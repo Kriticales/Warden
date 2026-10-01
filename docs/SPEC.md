@@ -80,7 +80,7 @@ Termos como aparecem na interface. A lista completa de termos obrigatórios fica
 
 ### 3.4 Pontos de segurança
 
-- Antes de qualquer ação que substitui ou apaga conteúdo do pack (voltar versão, limpeza de pack antigo, atualizar todos os mods), o Warden guarda automaticamente o estado atual num ponto de segurança escondido. O usuário pode recuperá-lo pela tela de Histórico (P1; na v1 P0 o ponto existe e é recuperável pelo orquestrador/suporte).
+- Antes de qualquer ação que substitui ou apaga conteúdo do pack (voltar versão, limpeza de pack antigo, atualizar todos os mods), o Warden guarda automaticamente o estado atual num ponto de segurança escondido. Na P0 o ponto é criado automaticamente e fica guardado no repositório do pack; a tela para listar e recuperar pontos de segurança é P1 (T17).
 
 ## 4. Prioridades e escopo
 
@@ -731,18 +731,19 @@ Cada item tem uma recomendação. Se o dono não responder, o projeto segue a re
 
 | Tela | Tarefas do ROADMAP |
 |---|---|
-| T01, T21, T23 | F0-06, P1-13, A-02 |
+| T01, T21 | P1-13 (Java em Configurações: L-01; IA: D-04) |
 | T02, T03, T04 | P1-07 |
-| T05, T06, T07 | P1-08 |
+| T05, T06, T07 | P1-08 (recarga automática por mudança externa: A-05) |
 | T08, T09 | P1-09, P1-10, P1-11 |
 | T10 | P1-12 |
 | T11 | P1-08 (ajustes básicos), P1-14 (opcionais, fixar) |
 | T12 | C-01, C-02, C-04 |
-| T13 | L-01 a L-05, L-07 |
-| T14 | D-01 a D-04 |
+| T13 | L-01, L-02, L-03, L-04, L-05, L-07 |
+| T14 | D-01, D-02, D-03, D-04 |
 | T15 | C-03 |
 | T16, T17 | V-01, V-02 |
 | T18 | V-03 |
 | T19 | E-01 |
 | T20 | L-06 |
 | T22 | F0-05, F0-06 |
+| T23 | F0-06 (aviso legal e versão), A-02 (licenças de terceiros) |

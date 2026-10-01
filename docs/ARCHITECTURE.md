@@ -101,7 +101,7 @@ Regras do monorepo:
 - Dependências e versões declaradas uma vez em `[workspace.dependencies]`; crates usam `dep.workspace = true`.
 - Lints declarados em `[workspace.lints]` (QUALITY §2); toda crate tem `[lints] workspace = true`.
 - `.gitattributes` da raiz: `* text=auto eol=lf`, exceto fixtures de packwiz (`crates/warden-packwiz/tests/fixtures/** -text`) e binários.
-- Arquivos de registro compartilhados são **acréscimo-apenas** (uma linha por entrada): `apps/desktop/src-tauri/src/commands/mod.rs` (registro de comandos), `apps/desktop/src/app/navigation.ts`, `apps/desktop/src/i18n/index.ts`. Conflitos neles são resolvidos pelo orquestrador na integração.
+- Arquivos de registro compartilhados são **acréscimo-apenas** (uma linha por entrada), como `apps/desktop/src-tauri/src/commands/mod.rs` (registro de comandos), `apps/desktop/src/app/navigation.ts` e `apps/desktop/src/i18n/index.ts`. A lista completa está em ROADMAP §1. Conflitos neles são resolvidos pelo orquestrador na integração.
 
 ## 3. Crates Rust e dependências
 
