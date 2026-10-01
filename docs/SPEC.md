@@ -599,7 +599,13 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
 
 **Objetivo:** gerar o pack para distribuir, só com o necessário.
 
-**Formatos:** **Pasta packwiz** (para hospedar, por exemplo no GitHub) ou **Arquivo .zip do pack packwiz**. Formatos de outros launchers (`.mrpack`, zip da CurseForge) são P2 (ver §10, decisão D1).
+**Formatos:** **Pasta packwiz** (para hospedar, por exemplo no GitHub) ou **Arquivo .zip do pack packwiz** (P0). Também na v1 (P1, decisão D1): **`.mrpack`** (app do Modrinth e launchers compatíveis) e **.zip da CurseForge** (app da CurseForge), gerados pelo packwiz (`modrinth export` / `curseforge export`) sobre uma cópia limpa do pack e validados depois de gerados.
+
+**Formatos de outros launchers (P1):**
+- Antes de gerar, o Warden mostra em linguagem simples o que se perde nesse formato (ex.: a CurseForge não guarda o lado cliente/servidor; o `.mrpack` não guarda descrição de opcionais) — ver R3 §2.3.
+- `.mrpack` com mod da CurseForge: se o mesmo arquivo existir no Modrinth (mesmo hash), o Warden oferece trocar a fonte; se não existir e o mod bloquear distribuição por terceiros, a exportação para e explica o motivo; se não bloquear, avisa que o arquivo será embutido e pede confirmação (licença).
+- Zip da CurseForge com mod que não é da CurseForge: aviso de que a CurseForge exige aprovação manual de arquivos de fora; pede confirmação.
+- `version` do `pack.toml` é obrigatória (o `.mrpack` exige); se faltar, o Warden pede antes de exportar.
 
 **Antes de exportar (sempre):**
 1. Verificação de higiene (a mesma de T04).
@@ -620,6 +626,8 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
 | CA-T19-01 | O conjunto de arquivos exportados é exatamente {`pack.toml`, `index.toml`} ∪ {arquivos do índice} (teste comparando listas). |
 | CA-T19-02 | Rodar `packwiz refresh` na pasta exportada não produz diferença; o packwiz-installer real instala a partir dela numa pasta vazia sem erro (teste de conformidade). |
 | CA-T19-03 | Um `crash-reports/x.txt` criado à mão na pasta do pack aparece como alerta de higiene e não é exportado depois de "Limpar". |
+| CA-T19-04 | (P1) O `.mrpack` gerado abre como zip válido, contém `modrinth.index.json` válido pelo esquema do formato, `overrides/` só com arquivos do índice, e é importável pelo Modrinth App ou por um launcher compatível (teste de integração + verificação manual no marco). |
+| CA-T19-05 | (P1) O zip da CurseForge gerado contém `manifest.json` válido, `overrides/` só com arquivos do índice, e nenhum jar de mod de terceiros sem confirmação explícita (teste com pack contendo mod da CurseForge, do Modrinth e local). |
 
 ---
 
@@ -705,7 +713,7 @@ Versão do Warden, commit do packwiz embutido, aviso legal da Mojang/Microsoft (
 - Quilt; Legacy Fabric para 1.7.10/1.12.2 (pode vir depois); versões anteriores a 1.7.10 além do "melhor esforço"; snapshots do Minecraft.
 - Login Microsoft/Mojang, contas, skins, multiplayer online.
 - Teste com servidor dedicado (P2), teste com mundo antigo (P2), "entrar direto no mundo" (Quick Play, P2).
-- Exportar `.mrpack` e zip da CurseForge (P2, ver D1); publicar no Modrinth/CurseForge.
+- Publicar direto no Modrinth/CurseForge (upload pela API).
 - Importar `.mrpack` ou zip da CurseForge (P2).
 - Várias variantes do mesmo pack (versões do Minecraft diferentes no mesmo projeto) e assistente de migração de versão do Minecraft (P2).
 - Editor de `servers.dat`, formulário para YAML, detecção de conflitos de teclas, sugestão de kits de performance, modelos de pack, datapacks globais (todos P2).
@@ -713,21 +721,21 @@ Versão do Warden, commit do packwiz embutido, aviso legal da Mojang/Microsoft (
 - Atualização automática do Warden; macOS; empacotamento oficial para Linux (o app compila e roda em Linux para desenvolvimento).
 - Temas além de claro/escuro do sistema; outros idiomas.
 
-## 10. Decisões pendentes do dono
+## 10. Decisões do dono
 
-Cada item tem uma recomendação. Se o dono não responder, o projeto segue a recomendação — **exceto D5**, que envolve aceitar uma licença em nome do dono e só vale com um "sim" explícito (sem resposta, a versão de Windows vem só da CI).
+Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exceção de D1.
 
-| # | Pergunta (em linguagem simples) | Recomendação |
+| # | Pergunta | Decisão |
 |---|---|---|
-| D1 | Você quer, já na primeira versão, exportar o pack também no formato do app do Modrinth (`.mrpack`) ou da CurseForge, para amigos que usam esses apps? | **Não na v1.** A primeira versão exporta só no formato packwiz (o que você decidiu). Os outros formatos ficam para depois; o packwiz já sabe gerá-los, então não é difícil. |
-| D2 | Cada pack deve ter o seu próprio repositório privado no GitHub? | **Sim, um repositório privado por pack.** Fica mais simples de entender e de voltar versões. |
-| D3 | Para enviar ao GitHub, o Warden precisa de uma permissão sua. Pode ser colando um "token" (um código que você gera no site do GitHub, com passo a passo no app) ou fazendo login pelo navegador. | **Token na v1** (mais simples de construir e seguro, fica no cofre do Windows). Login pelo navegador fica para depois. |
-| D4 | Como instalar o Warden no seu Windows? | **Instalador comum (.exe) sem assinatura digital.** Na primeira vez o Windows pode mostrar um aviso "Windows protegeu o seu computador"; basta clicar em "Mais informações" e "Executar assim mesmo". Assinatura digital custa dinheiro e não é necessária para uso pessoal. |
-| D5 | Para gerar a versão de Windows direto do WSL, a ferramenta usa o kit de desenvolvimento da Microsoft, cuja licença precisa ser aceita uma vez. Você autoriza? | **Sim.** Sem isso, a versão de Windows só sai pelo GitHub Actions (funciona, mas é mais lento para testar). |
-| D6 | Os mundos que você cria nos testes devem continuar existindo entre um teste e outro? | **Sim**, guardados na instância de teste de cada pack (nunca vão para o pack). Há um botão para apagar. |
-| D7 | Ao abrir um pack feito nos apps antigos (packwiz-gui), o Warden deve oferecer limpar arquivos que não deveriam estar lá? | **Sim, mostrando a lista antes e guardando um ponto de segurança.** Nada é apagado sem você confirmar. |
-| D8 | Ao procurar e atualizar mods, mostrar só versões estáveis? | **Sim, só estáveis por padrão**, com opção em Configurações para incluir beta/alpha. |
-| D9 | Testes automáticos no Windows pelo GitHub gastam mais minutos do plano gratuito (repositório privado). | **Rodar Windows só ao integrar na `main` e uma vez por noite;** Linux em toda mudança. |
+| D1 | Exportar já na v1 também em `.mrpack` (Modrinth) e zip da CurseForge? | **Sim, na v1** (P1; T19, tarefa E-02 do ROADMAP). |
+| D2 | Cada pack com repositório privado próprio no GitHub? | **Sim**, um repositório privado por pack. |
+| D3 | Permissão para enviar ao GitHub? | **Token** colado no app (guardado no cofre do Windows) na v1; login pelo navegador depois. |
+| D4 | Como instalar no Windows? | **Instalador .exe comum sem assinatura digital.** |
+| D5 | Aceitar a licença do kit da Microsoft usado pelo `cargo-xwin` para gerar a versão de Windows no WSL? | **Sim** (resposta explícita do dono em 01/10/2026). |
+| D6 | Mundos dos testes persistem entre testes? | **Sim**, na instância de teste do pack (nunca no pack), com botão para apagar. |
+| D7 | Oferecer limpeza ao abrir pack dos apps antigos? | **Sim**, mostrando a lista antes e criando ponto de segurança; nada é apagado sem confirmação. |
+| D8 | Só versões estáveis por padrão? | **Sim**, com opção em Configurações para incluir beta/alpha. |
+| D9 | Quando rodar a CI de Windows? | **Ao integrar na `main` e uma vez por noite**; Linux em toda mudança. |
 
 ## 11. Rastreabilidade
 
@@ -745,7 +753,7 @@ Cada item tem uma recomendação. Se o dono não responder, o projeto segue a re
 | T15 | C-03 |
 | T16, T17 | V-01, V-02 |
 | T18 | V-03 |
-| T19 | E-01 |
+| T19 | E-01, E-02 |
 | T20 | L-06 |
 | T22 | F0-05, F0-06 |
 | T23 | F0-06 (aviso legal e versão), A-02 (licenças de terceiros) |

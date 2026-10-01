@@ -10,7 +10,7 @@ O packwiz indexa tudo o que está na pasta do pack, inclusive lixo (R3 §1.8). P
 
 - A exportação produz o **formato nativo do packwiz** com **só o necessário**: `pack.toml`, `index.toml` e os arquivos do índice (metafiles, configs, resource packs/shaders locais e o que o usuário adicionou). Saída em pasta ou `.zip`.
 - O usuário vê uma **pré-visualização** exata antes de exportar (SPEC T19).
-- `.mrpack` e zip da CurseForge ficam para depois (P2; decisão pendente D1).
+- `.mrpack` e zip da CurseForge entram na v1 como P1 (decisão D1 do dono, 01/10/2026), gerados pelo packwiz em cópia limpa e validados (tarefa E-02).
 - **Projeto do pack e instância de teste são pastas separadas.** A instância é derivada do projeto; o caminho inverso passa sempre por revisão (SPEC T15).
 - O Warden cria `.packwizignore`, `.gitignore` e `.gitattributes` padrão e faz verificação de higiene ao abrir e ao exportar.
 

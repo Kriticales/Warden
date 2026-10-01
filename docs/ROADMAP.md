@@ -48,7 +48,7 @@
 | Quando | Ação | Por quê |
 |---|---|---|
 | Antes de F0-01 | No terminal do WSL: `sudo apt update && sudo apt install -y build-essential curl wget file pkg-config libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev xvfb webkit2gtk-driver clang lld llvm cmake nasm` | Bibliotecas de sistema que o Tauri exige no Linux (verificado em 2026-10-01: ausentes nesta máquina), o driver WebDriver do WebKitGTK para os testes E2E e o compilador/linker usados pelo `cargo-xwin` na F0-04 (a F0-04 confirma o conjunto mínimo). Exige senha de administrador; agentes não usam `sudo`. O Java para testes não precisa de `sudo`: o `cargo xtask installer` baixa um JRE Temurin para uma pasta de cache do usuário. |
-| Antes de F0-04 | Responder D5 da SPEC (licença do kit da Microsoft usado pelo `cargo-xwin`) com "sim" ou "não" explícito. | Gerar o `.exe` de Windows dentro do WSL. Sem "sim", só o caminho pela CI (`win-install`) é entregue. |
+| ~~Antes de F0-04~~ | ~~Responder D5~~ — **respondido "sim" em 01/10/2026** (SPEC §10). | `cargo xtask win-dev` pode ser entregue. |
 | Antes de F0-02 | No GitHub, em Settings → Secrets → Actions do repositório `Kriticales/Warden`, criar `CURSEFORGE_API_KEY` com a chave. | Testes de rede agendados na CI. |
 | Antes de V-03 | Gerar um token do GitHub (passo a passo virá no app) e salvá-lo no Warden. Para os testes de integração de V-03, um repositório de teste descartável. | Enviar ao GitHub. |
 | Antes de D-04 | Criar uma chave do Gemini (Google AI Studio). | IA do diagnóstico. |
@@ -66,7 +66,7 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 | 3 | P1-04, P1-05, P1-13, L-01, A-02 |
 | 4 | P1-07, L-02 (assim que o S1 concluir), L-03, D-01 |
 | 5 | P1-08, E-01, L-05 |
-| 6 | P1-09, P1-14, C-02, V-02, L-04, A-04, A-05 |
+| 6 | P1-09, P1-14, C-02, V-02, L-04, A-04, A-05, E-02 |
 | 7 | P1-10, C-03, C-04, D-03, V-03, L-07, A-06 |
 | 8 | P1-11, P1-12, L-06, D-04 |
 | 9 | P1-15, A-01 |
@@ -545,6 +545,15 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Critérios de aceite:** CA-T19-01 a CA-T19-03.
 - **Verificação:** integração com packwiz e packwiz-installer reais; E2E.
 
+### E-02 — Exportar `.mrpack` e zip da CurseForge
+
+- **Prioridade:** P1 (v1, decisão D1) · **Depende de:** E-01, P1-02, P1-04 · **Branch:** `feat/e-02-exportar-outros-formatos`
+- **Objetivo:** formatos de outros launchers em T19 (ARCHITECTURE §12).
+- **Posse:** `crates/warden-export/src/formats/**`, `crates/warden-export/tests/formats/**`, `apps/desktop/src/features/export/formats/**`, `apps/desktop/src/i18n/pt-BR/exportar-formatos.ts`, `apps/desktop/e2e/export-formats.e2e.ts` (depois de E-01 integrada; não roda em paralelo com E-01).
+- **Entregas:** `packwiz modrinth export` / `packwiz curseforge export` via sidecar sobre cópia limpa (staging); validação do arquivo gerado (zip abre, `modrinth.index.json`/`manifest.json` válidos, `overrides/` só com arquivos do índice); tela que explica o que se perde em cada formato; troca de fonte CurseForge → Modrinth por hash; bloqueio com explicação para mod da CurseForge sem distribuição por terceiros; confirmação para embutir arquivos de terceiros; exigência de `version` no `pack.toml`.
+- **Critérios de aceite:** CA-T19-04, CA-T19-05.
+- **Verificação:** integração com o packwiz real usando pack de teste com mods do Modrinth, da CurseForge e local; validação de esquema; importação manual do `.mrpack` no marco.
+
 ---
 
 ## Fase 6 — Acabamento
@@ -613,4 +622,4 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 
 ## 12. Backlog P2
 
-Não planejado em tarefas ainda (SPEC §9): exportar `.mrpack`/zip da CurseForge; importar `.mrpack`; teste com servidor dedicado; teste com mundo antigo; Quick Play; Legacy Fabric; migração de versão do Minecraft; variantes do pack; formulário para YAML; editor de `servers.dat`; conflitos de teclas; kits de performance e modelos de pack; datapacks globais; trazer mudanças do GitHub; login no GitHub pelo navegador; atualização remota dos dados curados do diagnóstico; leitura de `@Mod` no bytecode para 1.7.10/1.12.2; mecanismos de "padrão na primeira execução" por mod (YOSBR, Default Options, Config Manager).
+Não planejado em tarefas ainda (SPEC §9): importar `.mrpack`; teste com servidor dedicado; teste com mundo antigo; Quick Play; Legacy Fabric; migração de versão do Minecraft; variantes do pack; formulário para YAML; editor de `servers.dat`; conflitos de teclas; kits de performance e modelos de pack; datapacks globais; trazer mudanças do GitHub; login no GitHub pelo navegador; atualização remota dos dados curados do diagnóstico; leitura de `@Mod` no bytecode para 1.7.10/1.12.2; mecanismos de "padrão na primeira execução" por mod (YOSBR, Default Options, Config Manager).

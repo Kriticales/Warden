@@ -123,7 +123,7 @@ Regras do monorepo:
 | `warden-diagnostics` | Regras pré-teste, análise pós-crash, dados curados, redação de dados pessoais, montagem do relatório. | core, packwiz, jarmeta, catalog, modrinth, curseforge |
 | `warden-ai` | Cliente Gemini, montagem do conteúdo a enviar (a partir do relatório já redigido), esquema de resposta. | core, http, diagnostics |
 | `warden-versioning` | Git embutido (`git2`): repositório, ponto inicial, salvar versão, tags, pontos de segurança, restauração transacional, diffs, changelog, GitHub (API REST + push). Nomes legíveis de versões vêm de um trait `VersionNameResolver` implementado pela `warden-app` (com Modrinth e CurseForge). | core, packwiz, http |
-| `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P2: `.mrpack`/CurseForge via sidecar. | core, packwiz, packwiz-cli, project |
+| `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação. | core, packwiz, packwiz-cli, project |
 | `warden-secrets` | Cofre do sistema (`keyring`), `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
 | `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `win-dev`, `win-install` (F0-04); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes); `notices` (A-02). | — (ferramenta) |
@@ -246,7 +246,7 @@ pub enum ErrorCode {
 | `[options]` (`acceptable-game-versions`, `datapack-folder`…) | Warden escreve na tabela `[options]` do `pack.toml` (único lugar que o packwiz lê, R4 §2.3). |
 | Validação | `packwiz refresh` numa cópia de staging; o pack é válido se o resultado for idêntico ao original (zero diferença). |
 | Exportação nativa | Staging + `packwiz refresh --build` + cópia só dos arquivos indexados (§12). |
-| `.mrpack` e zip da CurseForge (P2) | `packwiz modrinth export` / `packwiz curseforge export` em staging, com validação do arquivo gerado. |
+| `.mrpack` e zip da CurseForge (P1, v1) | `packwiz modrinth export` / `packwiz curseforge export` em staging, com validação do arquivo gerado. |
 | **Nunca usados** | `init`, `modrinth add`, `curseforge add` por busca ou com `-y`, `update`, `migrate`, `serve`, `remove`, `pin`/`unpin`, `curseforge detect`, `curseforge import`. |
 
 Equivalência obrigatória: para cada tipo de `.pw.toml` que o Warden escreve, existe teste dourado comparando com o arquivo que o packwiz real escreve para o mesmo item (fixtures em `crates/warden-packwiz/tests/fixtures/packwiz-output/`, geradas por `cargo xtask fixtures-packwiz` e versionadas com `-text`).
