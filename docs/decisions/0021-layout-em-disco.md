@@ -9,15 +9,15 @@
 ## Decisão
 
 - **Pack:** pasta escolhida pelo usuário (padrão `Documentos\Warden\<pack>`), repositório git.
-- **`.warden/project.toml` dentro do pack:** `PackId` (ULID), preferências do pack (memória, Java, opcionais do teste), avisos ignorados. Versionado no git e **ignorado pelo packwiz**. `CHANGELOG.md` idem.
-- **Configuração do app:** `%APPDATA%\dev.kriticales.warden\` (`settings.json`, `packs.json`).
+- **`.warden/project.toml` dentro do pack:** `PackId` (ULID), `schemaVersion` e avisos do diagnóstico ignorados. Versionado no git e **ignorado pelo packwiz** (linha obrigatória do `.packwizignore`, sempre garantida). `CHANGELOG.md` idem.
+- **Configuração do app:** `%APPDATA%\dev.kriticales.warden\` (`settings.json`; `packs.json` com o registro dos packs e as preferências de teste de cada pack neste computador: memória, Java, argumentos JVM).
 - **Dados locais:** `%LOCALAPPDATA%\dev.kriticales.warden\` com `instances/`, `shared/`, `cache/`, `logs/` (ARCHITECTURE §13).
-- Dados de máquina (linha de base, sessões, escolhas da instância) nunca ficam no pack.
+- Dados de máquina (preferências de teste, linha de base, sessões, escolhas de opcionais da instância) nunca ficam no pack; assim, ajustar o teste não gera "alteração não salva".
 
 ## Alternativas consideradas
 
 - Metadados como comentários nos TOML do packwiz: o `refresh` apaga.
-- Tudo fora do pack: perde preferências do pack ao clonar em outra máquina.
+- Tudo fora do pack: o identificador e os avisos ignorados se perderiam ao clonar o pack em outra máquina.
 
 ## Consequências
 

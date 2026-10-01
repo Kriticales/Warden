@@ -22,4 +22,4 @@ O Warden usa chaves da CurseForge e do Gemini e um token do GitHub. Durante o de
 ## Consequências
 
 - `gitleaks` na CI e no checklist de revisão.
-- No WSL sem Secret Service, o desenvolvimento usa o recuo por variável de ambiente.
+- No WSL e no runner Linux, sem Secret Service, o desenvolvimento usa o recuo por variável de ambiente e os testes usam um cofre de teste em arquivo (só em debug, trait `SecretStore`); o cofre real é testado na CI Windows.

@@ -63,7 +63,7 @@ missing_errors_doc = "allow"
 
 - `clippy.toml`: `allow-unwrap-in-tests = true`, `allow-expect-in-tests = true`, `allow-panic-in-tests = true`.
 - `#[allow(...)]` só com comentário explicando o motivo, no menor escopo possível. `#[allow(clippy::all)]` e `#[allow(warnings)]` são proibidos.
-- `xtask` pode usar `anyhow` e `println!`; nenhuma crate de domínio pode.
+- `xtask` não herda `[workspace.lints]` (declara os próprios) e pode usar `anyhow` e `println!`; nenhuma crate de domínio pode.
 
 ### 2.2 TypeScript e React
 
@@ -75,7 +75,8 @@ missing_errors_doc = "allow"
   - `@typescript-eslint/no-floating-promises`, `no-misused-promises`: erro;
   - `@typescript-eslint/consistent-type-imports`: erro;
   - `no-console`: erro (usar o logger que encaminha ao `tauri-plugin-log`);
-  - `no-restricted-imports`: `@tauri-apps/api/core` (`invoke`) proibido fora de `src/lib/ipc/`; `dangerouslySetInnerHTML` só em `SafeHtml`.
+  - `no-restricted-imports`: `@tauri-apps/api/core` (`invoke`) proibido fora de `src/lib/ipc/`;
+  - `react/no-danger` (de `eslint-plugin-react`): erro, com exceção configurada só para o arquivo do componente `SafeHtml`.
 - `pnpm lint` com `--max-warnings 0`.
 - Arquivos gerados (`bindings.ts`, `routeTree.gen.ts`) são excluídos do lint e da formatação, nunca editados à mão.
 
@@ -103,14 +104,14 @@ missing_errors_doc = "allow"
 
 | Tipo | Onde | Ferramenta | Quando roda |
 |---|---|---|---|
-| Unitário Rust | `#[cfg(test)]` no módulo | `cargo nextest` | toda mudança (CI Linux e Windows) |
+| Unitário Rust | `#[cfg(test)]` no módulo | `cargo nextest` | toda mudança no Linux; Windows conforme §12 |
 | Dourado (golden) | `crates/*/tests/`, snapshots em `snapshots/` | `insta` | toda mudança |
 | Integração com packwiz real | `crates/*/tests/packwiz_*.rs` | `cargo nextest` + sidecar (`WARDEN_PACKWIZ_BIN`) | toda mudança |
 | Conformidade (packwiz-installer real, Java) | `crates/warden-instance/tests/conformance_*.rs`, `crates/warden-export/tests/conformance_*.rs` | Java 21 (CI: `actions/setup-java`), bootstrap fixado por versão e SHA-256, baixado pelo xtask para o cache | toda mudança no Linux; Windows à noite |
 | Rede (APIs reais) | testes marcados `#[ignore = "rede"]` | `cargo xtask test-network` | à noite e manual; local com `.env` |
 | Jogo real (matriz de versões) | `crates/warden-launcher/tests/smoke_*.rs` | Linux + Xvfb + Mesa | semanal e manual; antes de cada marco |
 | Componente/tela | `apps/desktop/src/**/*.test.tsx` | Vitest + Testing Library + `mockIPC` + `vitest-axe` | toda mudança |
-| Ponta a ponta (E2E) | `apps/desktop/e2e/` | WebdriverIO + `tauri-driver`, APIs simuladas por servidor local de fixtures | Linux em toda mudança; Windows na `main` e à noite |
+| Ponta a ponta (E2E) | `apps/desktop/e2e/` | WebdriverIO + `tauri-driver` sobre build de debug (`tauri build --debug`), APIs simuladas por servidor local de fixtures, cofre de teste em arquivo | Linux em toda mudança; Windows na `main` e à noite |
 | Injeção de falha | testes com a feature `fault-injection` de `warden-core` | `cargo nextest` | toda mudança |
 | Desempenho | `crates/*/benches/`, `apps/desktop/e2e/perf/` | `criterion`, medições E2E | marcos e tarefa A-04 |
 
@@ -208,7 +209,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 4. Botões com verbo no infinitivo que diz o que acontece ("Adicionar 3 mods", "Trazer selecionados para o pack"); evitar "OK" e "Sim/Não" em confirmações.
 5. Plural com i18next (`_one`/`_other`); números, datas e tamanhos com `Intl` em `pt-BR` ("1,5 MB", "1 de outubro de 2026").
 6. Mensagens de erro: o que aconteceu + o que fazer (§3).
-7. Proibido português europeu: "ficheiro", "ecrã", "utilizador", "registar", "a carregar", "guardar" (como ação de salvar), "transferir" (como download), "partilhar", "aceder".
+7. Proibido português europeu: "ficheiro", "ecrã", "utilizador", "registar", "a carregar", "transferir" (como download), "partilhar", "aceder". Em botões e nomes de ação, "Salvar", nunca "Guardar" (em texto descritivo, "fica guardado" é aceitável).
 8. Documentação e comentários de código em pt-BR; identificadores, nomes de crates, tipos e funções em inglês; termos técnicos no original.
 9. Toda tarefa que escreve texto de interface recebe este glossário.
 

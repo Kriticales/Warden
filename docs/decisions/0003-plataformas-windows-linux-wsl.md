@@ -11,7 +11,7 @@ O dono joga e usa o app no Windows. O desenvolvimento acontece em WSL2 (Linux), 
 - **Windows 10/11 x64** é a plataforma alvo da v1. **Linux x64** compila, roda (para desenvolvimento via WSLg) e passa na CI, mas empacotamento e suporte oficial ficam para depois da v1. macOS fora.
 - CI em Linux e Windows (ADR-0022).
 - Para o dono abrir o app no Windows a partir do WSL:
-  1. `cargo xtask win-dev`: compila para `x86_64-pc-windows-msvc` com `cargo-xwin`, copia para `C:\Users\<usuário>\Warden-dev\` e abre (depende da decisão D5 da SPEC sobre a licença do kit da Microsoft);
+  1. `cargo xtask win-dev`: compila para `x86_64-pc-windows-msvc` com `cargo-xwin`, copia para `C:\Users\<usuário>\Warden-dev\` e abre. Só existe se o dono responder "sim" à decisão D5 da SPEC (licença do kit da Microsoft); essa decisão não é tomada por omissão;
   2. `cargo xtask win-install`: baixa o instalador gerado pela CI da `main` e instala.
 - O código trata caminhos, processos (`javaw.exe`, Job Objects), codificação de console e limite de linha de comando do Windows desde o início.
 

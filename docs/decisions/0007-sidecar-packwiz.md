@@ -23,4 +23,4 @@ O packwiz não publica releases (artefatos da CI expiram em 90 dias) e embute a 
 
 - Go ≥ 1.24 é pré-requisito de desenvolvimento e da CI.
 - Atualizar o commit do packwiz é uma tarefa própria, com toda a suíte de integração.
-- Sem assinatura digital, antivírus podem estranhar o `.exe` (issue #374 do packwiz); aceitável para uso pessoal (decisão D4).
+- Sem assinatura digital, antivírus podem estranhar o `.exe` (issue #374 do packwiz); aceitável para uso pessoal (recomendação da decisão pendente D4 da SPEC).

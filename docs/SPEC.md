@@ -22,7 +22,7 @@
 
 ## 1. O que é o Warden
 
-**Em palavras simples:** o Warden é um programa para o seu computador (Windows) que serve para montar modpacks de Minecraft. Com ele você escolhe a versão do Minecraft e o carregador de mods (Forge, NeoForge ou Fabric), procura e adiciona mods, resource packs e shaders, ajusta as configurações, abre o jogo para testar com um clique, entende por que o jogo travou, guarda versões do pack com um resumo automático do que mudou e exporta só o que importa.
+**Em palavras simples:** o Warden é um programa para o seu computador (Windows) que serve para montar modpacks de Minecraft. Com ele você escolhe a versão do Minecraft e o carregador de mods (Forge, NeoForge ou Fabric), procura e adiciona mods, resource packs e shaders, ajusta as configurações, abre o jogo para testar com um clique, entende por que o jogo travou, salva versões do pack com um resumo automático do que mudou e exporta só o que importa.
 
 O pack que o Warden produz é 100% no formato do **packwiz** (o mesmo usado por packs conhecidos como o Fabulously Optimized). Isso quer dizer que o pack não fica "preso" ao Warden: qualquer ferramenta que entende packwiz consegue usá-lo.
 
@@ -53,15 +53,15 @@ Termos como aparecem na interface. A lista completa de termos obrigatórios fica
 | **Lado** | Onde um mod precisa estar: "Cliente e servidor", "Só cliente" ou "Só servidor". |
 | **Fonte** | De onde vem um item: Modrinth, CurseForge, Link direto ou Arquivo local. |
 | **Versão do pack** | Número no formato `MAIOR.MENOR.CORREÇÃO` (ex.: `1.4.2`), chamado SemVer. |
-| **Salvar versão** | Guardar o estado atual do pack no histórico, com número de versão e resumo das mudanças. |
+| **Salvar versão** | Registrar o estado atual do pack no histórico, com número de versão e resumo das mudanças. |
 | **Diagnóstico** | Verificação automática que procura problemas antes do teste e explica travamentos depois. |
 
 ## 3. Conceitos centrais
 
 ### 3.1 Pack (projeto)
 
-- Uma pasta no disco, por padrão `Documentos\Warden\<nome-do-pack>\`, escolhida pelo usuário.
-- Contém os arquivos do packwiz (`pack.toml`, `index.toml`, `mods/*.pw.toml` etc.), as configs do pack, os arquivos de controle (`.gitignore`, `.gitattributes`, `.packwizignore`), o `CHANGELOG.md` e a pasta `.warden/` com informações do Warden sobre o pack (identificador, preferências do pack). A pasta `.warden/` e o `CHANGELOG.md` **não** entram no pack distribuído (ficam fora do índice do packwiz).
+- Uma pasta no disco, por padrão `Documentos\Warden\<nome-do-pack-em-minúsculas-com-hífens>\`, escolhida pelo usuário.
+- Contém os arquivos do packwiz (`pack.toml`, `index.toml`, `mods/*.pw.toml` etc.), as configs do pack, os arquivos de controle (`.gitignore`, `.gitattributes`, `.packwizignore`), o `CHANGELOG.md` e a pasta `.warden/` com informações do Warden sobre o pack (identificador e avisos do diagnóstico que você decidiu ignorar). A pasta `.warden/` e o `CHANGELOG.md` **não** entram no pack distribuído (ficam fora do índice do packwiz).
 - É um repositório git. O usuário nunca vê git; vê "versões" e "histórico".
 - Tem exatamente **uma** versão do Minecraft e **um** loader (ou nenhum, para packs vanilla de resource packs/shaders).
 
@@ -80,7 +80,7 @@ Termos como aparecem na interface. A lista completa de termos obrigatórios fica
 
 ### 3.4 Pontos de segurança
 
-- Antes de qualquer ação que substitui ou apaga conteúdo do pack (voltar versão, limpeza de pack antigo, atualizar todos os mods), o Warden guarda automaticamente o estado atual num ponto de segurança escondido. Na P0 o ponto é criado automaticamente e fica guardado no repositório do pack; a tela para listar e recuperar pontos de segurança é P1 (T17).
+- Antes de ações que substituem ou apagam conteúdo do pack, o Warden registra automaticamente o estado atual num ponto de segurança escondido. A lista exata de ações está em ARCHITECTURE §11: voltar versão, limpeza de pack antigo, atualizar todos, remover dois ou mais itens, substituir um item por outro de outra fonte e trazer mudanças do teste que sobrescrevem arquivos do pack. Na P0 o ponto é criado e fica no repositório do pack; a tela para listar e recuperar pontos de segurança é P1 (T17).
 
 ## 4. Prioridades e escopo
 
@@ -184,7 +184,7 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
 - `pack.toml` (versão inicial `0.1.0`), `index.toml` vazio, já com o índice atualizado pelo packwiz;
 - `.gitattributes` com `* -text` (impede o Windows de mudar finais de linha e quebrar os hashes);
 - `.packwizignore` e `.gitignore` padrão do Warden (ARCHITECTURE §6.4);
-- `.warden/project.toml` (identificador do pack e preferências);
+- `.warden/project.toml` (identificador do pack);
 - `CHANGELOG.md` com cabeçalho;
 - repositório git com um ponto inicial "Pack criado" (não é uma versão salva).
 
@@ -212,15 +212,16 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
    - Loader suportado: Forge, NeoForge, Fabric ou nenhum. Quilt e LiteLoader: "Este pack usa Quilt, que o Warden ainda não suporta." (não abre). Mais de um loader: não abre, com explicação.
    - Sem `.warden/project.toml`: cria com identificador novo. Identificador já usado por outro pack registrado (pasta copiada): gera um novo e avisa.
    - Não é repositório git: cria o repositório e registra o estado atual como ponto inicial "Pack importado".
+   - Já é repositório git (por exemplo, feito pelos apps antigos ou clonado): usa a branch atual sem mudar nada; a última versão salva é a tag `vX.Y.Z` mais recente (ARCHITECTURE §11). Repositório com merge/rebase em andamento ou HEAD destacado: abre só para leitura, com explicação.
 3. **Verificação de higiene** (P0): procura no `index.toml` e na pasta arquivos que não deveriam estar no pack (`*.bak`, `*.tmp`, `*.log`, `packwiz-installer-bootstrap.jar`, `.packwiz.toml`, `logs/`, `crash-reports/`, `saves/`, caches de mods etc.; lista em ARCHITECTURE §6.4). Se encontrar, mostra "Encontramos N arquivos que não deveriam ir para quem joga o pack" com a lista (caminho, tamanho, motivo) e caixas marcadas. **Limpar** cria um ponto de segurança, apaga os marcados, adiciona as regras faltantes ao `.packwizignore` e atualiza o índice. **Agora não** abre o pack mesmo assim (o aviso reaparece em Exportar).
-4. Arquivos de controle faltando ou diferentes do padrão (`.gitattributes`, `.packwizignore`): oferece adicionar, mostrando a diferença antes.
+4. Arquivos de controle faltando ou diferentes do padrão (`.gitattributes`, `.packwizignore`): oferece adicionar, mostrando a diferença antes. Independentemente da resposta, as linhas obrigatórias que impedem `.warden/` e `CHANGELOG.md` de entrarem no pack são sempre acrescentadas ao `.packwizignore` (ARCHITECTURE §6.4), com aviso.
 
 | CA | Critério |
 |---|---|
 | CA-T04-01 | Abrir um pack com `config/x.toml.bak`, `packwiz-installer-bootstrap.jar` e `.packwiz.toml` indexados lista os três; "Limpar" remove-os do disco e do `index.toml`, e o `packwiz refresh` seguinte não os reinclui. |
 | CA-T04-02 | Abrir um pack Quilt mostra a mensagem de não suportado e não cria `.warden/` nem altera nada na pasta. |
 | CA-T04-03 | Abrir uma cópia de um pack já registrado gera identificador novo; os dois aparecem na lista com instâncias de teste separadas. |
-| CA-T04-04 | "Agora não" não altera nenhum arquivo além de criar `.warden/project.toml` e o repositório git, se faltarem. |
+| CA-T04-04 | "Agora não" não altera nenhum arquivo além de criar `.warden/project.toml`, acrescentar o bloco obrigatório ao `.packwizignore` e criar o repositório git, se faltarem; o `index.toml` seguinte não contém `.warden/` nem `CHANGELOG.md`. |
 
 ---
 
@@ -308,6 +309,7 @@ Painel com quatro abas: **Modrinth**, **CurseForge**, **Link**, **Arquivo**. Abr
 
 **Link:**
 - Aceita link de projeto ou versão do Modrinth (resolvido pela API do Modrinth), link de projeto ou arquivo da CurseForge (passa pelo packwiz, conforme decisão do dono; ADR-0006) e link direto `https://` para um arquivo `.jar`/`.zip`.
+- Link de **projeto** (Modrinth ou CurseForge) abre a pré-visualização com o seletor de versão, igual à busca; link de **arquivo/versão** usa exatamente aquele arquivo, avisando se ele não for compatível com o pack ou não for do canal configurado.
 - Para link direto: o Warden baixa uma vez, calcula o hash, lê os metadados (se for mod), pede o tipo (mod, resource pack, shader) e grava a referência. Links `http://` são recusados.
 
 **Arquivo:**
@@ -344,14 +346,14 @@ Aparece antes de gravar qualquer coisa no pack.
 - **Opcionais:** desmarcadas, só informativas.
 - **Sem versão compatível:** "Nenhuma versão de X para 1.20.1 Forge." O item principal ainda pode ser adicionado (vai aparecer no diagnóstico).
 - **Incompatibilidades declaradas** com itens do pack (Modrinth `incompatible`, CurseForge "incompatível", metadados do jar `breaks`/`incompatible`): aviso em vermelho com o motivo, quando o autor informar.
-- **Duplicado entre fontes:** "Este mod já está no pack pela CurseForge." com **Substituir pela versão do Modrinth**, **Manter os dois (não recomendado)** e **Cancelar**.
+- **Duplicado entre fontes:** "Este mod já está no pack pela CurseForge." com **Substituir pela versão do Modrinth** e **Cancelar** (manter os dois faria o jogo travar com mod duplicado).
 
 **Botão:** **Adicionar N itens**. A gravação é atômica: ou todos os itens confirmados entram, ou nenhum.
 
 | CA | Critério |
 |---|---|
 | CA-T09-01 | Adicionar um mod Fabric que exige Fabric API num pack sem ela lista a Fabric API como obrigatória e marcada; confirmar grava os dois `.pw.toml` e atualiza o índice uma vez. |
-| CA-T09-02 | Adicionar o Embeddium num pack com Sodium mostra a incompatibilidade declarada. |
+| CA-T09-02 | Num pack NeoForge 1.21.1 com Sodium, adicionar o Embeddium mostra a incompatibilidade declarada pela API do Modrinth. |
 | CA-T09-03 | Falha de rede no meio da gravação (simulada) não deixa nenhum `.pw.toml` novo no pack. |
 | CA-T09-04 | Adicionar pelo Modrinth um mod que já está no pack pela CurseForge (detectado por projeto equivalente ou hash do arquivo) mostra a opção de substituir. |
 
@@ -378,16 +380,16 @@ Aparece antes de gravar qualquer coisa no pack.
 
 ### T11 — Ajustes do pack, opcionais e fixar versão
 
-**Ajustes do pack (P0):** nome, autor, descrição, versão do loader (trocar para outra versão do mesmo loader; P1), memória do teste (Automático ou valor fixo; ver T13), Java do teste (Automático ou um Java instalado), argumentos extras da JVM (validados contra a versão do Java; argumentos desconhecidos geram aviso), "Recriar instância de teste" (apaga a instância; pergunta se mantém os mundos de teste).
+**Ajustes do pack (P0):** nome, autor, descrição (gravados no `pack.toml`), versão do loader (trocar para outra versão do mesmo loader; P1). **Ajustes do teste neste computador** (não fazem parte do pack e não contam como alteração não salva): memória do teste (Automático ou valor fixo; ver T13), Java do teste (Automático ou um Java instalado), argumentos extras da JVM (validados contra a versão do Java; argumentos desconhecidos geram aviso), "Recriar instância de teste" (apaga a instância; pergunta se mantém os mundos de teste).
 
-**Mods opcionais (P1):** no detalhe do item, "Opcional" com descrição e "ligado por padrão". Grava a tabela `[option]` do `.pw.toml`. Aviso fixo: "O app do Modrinth instala todos os opcionais; o formato da CurseForge não suporta lado." No teste, o usuário escolhe quais opcionais ligar na instância (padrão: os "ligados por padrão").
+**Mods opcionais (P1):** no detalhe do item, "Opcional" com descrição e "ligado por padrão". Grava a tabela `[option]` do `.pw.toml`. Aviso fixo: "O app do Modrinth instala todos os opcionais; o formato da CurseForge não suporta lado." Em Ajustes do teste, o usuário escolhe quais opcionais ligar na instância (padrão: os "ligados por padrão").
 
 **Fixar versão (P1):** "Fixar versão" grava `pin = true`; itens fixados não são atualizados em lote e mostram o cadeado.
 
 | CA | Critério |
 |---|---|
 | CA-T11-01 | Mudar o nome do pack altera só a linha `name` do `pack.toml` (diff de uma linha) e o índice continua válido. |
-| CA-T11-02 | Marcar um mod como opcional grava `[option] optional = true` com `description` e `default`; o packwiz-installer real oferece a escolha ao instalar (teste de conformidade). |
+| CA-T11-02 | Marcar um mod como opcional grava `[option] optional = true` com `description` e `default`; o packwiz-installer real, em modo sem interface, instala ou não o mod conforme `default` (teste de conformidade com `default = true` e `false`), e a instância do Warden faz o mesmo. |
 
 ---
 
@@ -412,7 +414,7 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 **Formulário (P1):** para TOML do Forge/NeoForge, JSON/JSONC, JSON5, `.properties`, `.cfg` do Forge antigo e `options.txt`. Mostra as chaves por seção, com os comentários do arquivo como ajuda, faixas e valores permitidos quando o arquivo informa (`#Range`, `#Allowed Values`), e controles por tipo (liga/desliga, número com limite, lista de opções, texto, lista). Só os valores alterados são gravados. Alternar entre formulário e texto a qualquer momento.
 
 **Avisos contextuais:**
-- Arquivo `*-server.toml` em `config/` (Forge/NeoForge 1.13+): "Este tipo de config vale por mundo. Para valer em mundos novos, ele precisa estar em `defaultconfigs/`." com **Copiar para defaultconfigs/**.
+- Arquivo `*-server.toml` em `config/` (Forge/NeoForge 1.13+): "Este tipo de config vale por mundo. Para valer em mundos novos, ele precisa estar em `defaultconfigs/`." (P0) com **Copiar para defaultconfigs/** (P1).
 - Arquivos do Forge/NeoForge: "O jogo pode reescrever este arquivo e apagar comentários que você adicionar."
 - `options.txt` no pack: "Este arquivo substitui as preferências de quem já joga o pack." com a opção **Não substituir se o jogador já tiver** (grava `preserve = true` no índice; P1).
 
@@ -460,7 +462,7 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 
 | CA | Critério |
 |---|---|
-| CA-T13-01 | Para cada combinação da matriz de versões (ROADMAP L-05: 1.7.10 Forge, 1.12.2 Forge, 1.16.5 Forge e Fabric, 1.20.1 Forge, NeoForge e Fabric, 1.21.1 NeoForge e Fabric, versão mais nova vanilla, Fabric e NeoForge), um pack mínimo chega ao menu principal e cria um mundo (teste automatizado em Linux com servidor gráfico virtual + roteiro manual no Windows). |
+| CA-T13-01 | Para cada combinação da matriz de versões (ROADMAP L-05, que cobre de 1.7.10 à versão mais nova com Forge, NeoForge, Fabric e vanilla), um pack mínimo chega ao menu principal e cria um mundo (teste automatizado em Linux com servidor gráfico virtual + roteiro manual no Windows). |
 | CA-T13-02 | "Parar jogo" encerra o processo do jogo e todos os processos filhos em até 5 s. |
 | CA-T13-03 | Linhas com acentos no log aparecem corretas no console (sem `Ã©`), em Java 8 e Java 21 no Windows. |
 | CA-T13-04 | Remover um mod do pack e testar de novo remove o jar da instância; um mundo criado no teste anterior continua lá. |
@@ -584,7 +586,7 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
 
 **Enviar:** envia as versões salvas e o histórico. Estado: "Tudo enviado" ou "N versões não enviadas". Opção (desligada por padrão) "Enviar automaticamente após salvar versão".
 
-**Erros:** sem internet; token inválido ou expirado ("O GitHub recusou o token. Gere um novo e salve em Configurações."); repositório inexistente ou sem permissão; o GitHub tem mudanças que não estão aqui (histórico divergente): bloqueia com explicação e oferece **Substituir o GitHub pelo que está aqui** (dupla confirmação, digitando o nome do pack) ou **Cancelar**. Trazer mudanças do GitHub (pull) é P1.
+**Erros:** sem internet; token inválido ou expirado ("O GitHub recusou o token. Gere um novo e salve em Configurações."); repositório inexistente ou sem permissão; o GitHub tem mudanças que não estão aqui (histórico divergente): bloqueia com explicação e oferece **Substituir o GitHub pelo que está aqui** (dupla confirmação, digitando o nome do pack) ou **Cancelar**. Trazer mudanças do GitHub (pull) é P2.
 
 | CA | Critério |
 |---|---|
@@ -662,7 +664,7 @@ Painel (gaveta) acessível pela barra lateral e por um indicador no rodapé: ope
 
 | CA | Critério |
 |---|---|
-| CA-T22-01 | Cancelar o download do Minecraft no meio para em até 2 s e não deixa arquivos parciais com nome final (só `.part` no cache, limpos depois). |
+| CA-T22-01 | Cancelar a sincronização do pack (download de mods para a instância) no meio para em até 2 s e não deixa arquivo incompleto com nome final (só `.part` no cache, limpos depois). O mesmo vale para a preparação do Minecraft, conforme os critérios do motor (ARCHITECTURE §7.1). |
 
 ---
 
@@ -675,7 +677,7 @@ Versão do Warden, commit do packwiz embutido, aviso legal da Mojang/Microsoft (
 ## 7. Regras que valem para o app inteiro
 
 1. **A pasta do pack só recebe conteúdo do pack.** Nenhum `.bak`, temporário, cache, log, jar auxiliar ou configuração do app. Gravações usam arquivo temporário com sufixo `.warden-tmp` na mesma pasta seguido de renomeação; esse sufixo está no `.packwizignore` e sobras dele são apagadas ao abrir o pack.
-2. **Confirmação e reversão.** Ação que apaga ou substitui conteúdo do pack pede confirmação nomeando o que será afetado, e cria ponto de segurança quando apaga mais de um item ou restaura versão.
+2. **Confirmação e reversão.** Ação que apaga ou substitui conteúdo do pack pede confirmação nomeando o que será afetado, e cria ponto de segurança nos casos listados em ARCHITECTURE §11.
 3. **Erros explicados.** Toda mensagem de erro diz o que aconteceu e o que fazer, em pt-BR, com **Detalhes técnicos** recolhível (código do erro e saída da ferramenta) e **Copiar**.
 4. **Sem internet.** Tudo o que não depende de rede continua funcionando. O que depende mostra "Sem conexão com a internet" e **Tentar de novo**; nunca fica carregando para sempre (limite de tempo em toda requisição).
 5. **Nada de botão morto.** Toda ação visível funciona ou está desabilitada com dica explicando por quê.
@@ -707,13 +709,13 @@ Versão do Warden, commit do packwiz embutido, aviso legal da Mojang/Microsoft (
 - Importar `.mrpack` ou zip da CurseForge (P2).
 - Várias variantes do mesmo pack (versões do Minecraft diferentes no mesmo projeto) e assistente de migração de versão do Minecraft (P2).
 - Editor de `servers.dat`, formulário para YAML, detecção de conflitos de teclas, sugestão de kits de performance, modelos de pack, datapacks globais (todos P2).
-- Painel git completo (branches, merges), trazer mudanças do GitHub (P1), sincronização entre computadores além do GitHub.
+- Painel git completo (branches, merges), trazer mudanças do GitHub (P2), sincronização entre computadores além do GitHub.
 - Atualização automática do Warden; macOS; empacotamento oficial para Linux (o app compila e roda em Linux para desenvolvimento).
 - Temas além de claro/escuro do sistema; outros idiomas.
 
 ## 10. Decisões pendentes do dono
 
-Cada item tem uma recomendação. Se o dono não responder, o projeto segue a recomendação.
+Cada item tem uma recomendação. Se o dono não responder, o projeto segue a recomendação — **exceto D5**, que envolve aceitar uma licença em nome do dono e só vale com um "sim" explícito (sem resposta, a versão de Windows vem só da CI).
 
 | # | Pergunta (em linguagem simples) | Recomendação |
 |---|---|---|
@@ -731,12 +733,12 @@ Cada item tem uma recomendação. Se o dono não responder, o projeto segue a re
 
 | Tela | Tarefas do ROADMAP |
 |---|---|
-| T01, T21 | P1-13 (Java em Configurações: L-01; IA: D-04) |
-| T02, T03, T04 | P1-07 |
-| T05, T06, T07 | P1-08 (recarga automática por mudança externa: A-05) |
+| T01, T21 | P1-13 (Java em Configurações: L-01; IA: D-04; Armazenamento: A-06) |
+| T02, T03, T04 | P1-07 (inclui Apagar pack, P1) |
+| T05, T06, T07 | P1-08 (recarga automática por mudança externa: A-05; trocar versão e dependências órfãs: P1-15) |
 | T08, T09 | P1-09, P1-10, P1-11 |
 | T10 | P1-12 |
-| T11 | P1-08 (ajustes básicos), P1-14 (opcionais, fixar) |
+| T11 | P1-08 (ajustes básicos), P1-14 (opcionais, fixar), P1-15 (trocar versão do loader) |
 | T12 | C-01, C-02, C-04 |
 | T13 | L-01, L-02, L-03, L-04, L-05, L-07 |
 | T14 | D-01, D-02, D-03, D-04 |
