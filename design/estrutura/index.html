@@ -1,0 +1,1228 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Warden — Estrutura (rascunho)</title>
+<style>
+/* Rascunho de ESTRUTURA: só escala de cinza, fonte do sistema, caixas e texto.
+   Nada aqui é proposta visual. */
+:root {
+  --ink: #111; --g1: #333; --g2: #595959; --g3: #8a8a8a; --g4: #c4c4c4;
+  --g5: #e2e2e2; --g6: #f3f3f3; --paper: #fff; --desk: #dcdcdc;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--desk); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.4; }
+
+/* ---------- Visualizador (fora da janela do app) ---------- */
+.vbar { position: sticky; top: 0; z-index: 50; background: #1d1d1d; color: #f0f0f0; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 10px 16px; }
+.vbar h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: .01em; }
+.vbar .seg { display: inline-flex; border: 1px solid #777; border-radius: 4px; overflow: hidden; }
+.vbar .seg button { background: transparent; color: #ddd; border: 0; padding: 6px 12px; font: inherit; cursor: pointer; }
+.vbar .seg button + button { border-left: 1px solid #777; }
+.vbar .seg button[aria-pressed="true"] { background: #f0f0f0; color: #111; font-weight: 600; }
+.vbar label { display: inline-flex; gap: 6px; align-items: center; color: #ccc; font-size: 13px; cursor: pointer; }
+.vbar .sp { flex: 1; }
+.vbar a { color: #ddd; }
+
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0; min-height: calc(100vh - 48px); }
+.idx { background: #efefef; border-right: 1px solid #bbb; padding: 14px 12px 40px; font-size: 13px; }
+.idx h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; }
+.idx h2:first-child { margin-top: 0; }
+.idx a { display: block; color: #222; text-decoration: none; padding: 3px 6px; border-radius: 3px; }
+.idx a:hover { background: #ddd; }
+.idx a[aria-current="page"] { background: #222; color: #fff; }
+.idx .spec { color: #777; font-size: 11px; }
+.idx a[aria-current="page"] .spec { color: #bbb; }
+.idx-select { display: none; }
+
+.stage { padding: 16px 20px 60px; min-width: 0; }
+.note { background: #fafafa; border: 1px solid #aaa; border-left: 4px solid #333; padding: 10px 14px; margin-bottom: 14px; max-width: 1080px; }
+.note h2 { margin: 0 0 4px; font-size: 17px; }
+.note .meta { color: #555; font-size: 12px; margin-bottom: 6px; }
+.note p { margin: 4px 0; max-width: 90ch; }
+.note .arrows { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 20px; margin-top: 6px; font-size: 13px; }
+.note .arrows ul { margin: 2px 0 0; padding-left: 18px; }
+.note a { color: #111; }
+.note .states { font-size: 13px; color: #333; }
+.scroller { overflow-x: auto; padding-bottom: 8px; }
+
+/* ---------- Janela do app (wireframe) ---------- */
+.win { background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; width: 1080px; height: 680px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.win-bar { height: 26px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; border-bottom: 1px solid var(--g4); background: var(--g6); font-size: 12px; color: var(--g2); }
+.win-body { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; }
+
+.apptop { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1.5px solid var(--g4); }
+.apptop .brand { font-weight: 700; font-size: 16px; }
+.grow { flex: 1; }
+.appmain { flex: 1; overflow: auto; padding: 22px 28px; min-height: 0; }
+.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-top: 1px solid var(--g4); font-size: 12px; color: var(--g2); background: var(--g6); }
+
+/* cabeçalho do pack */
+.phead { flex: none; display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-bottom: 2px solid var(--ink); }
+.phead .id { min-width: 0; }
+.phead .name { font-size: 18px; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
+.phead .sub { font-size: 12px; color: var(--g2); }
+.phead .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.back { white-space: nowrap; }
+.vsep { width: 1px; align-self: stretch; background: var(--g4); }
+
+.pbody { flex: 1; display: flex; min-height: 0; }
+.side { flex: none; width: 230px; border-right: 1.5px solid var(--g4); padding: 10px 8px; overflow: auto; }
+.side .it { display: block; width: 100%; text-align: left; border: 1.5px solid transparent; background: none; font: inherit; padding: 8px 10px; border-radius: 4px; cursor: pointer; margin-bottom: 4px; color: var(--ink); }
+.side .it b { display: flex; justify-content: space-between; font-size: 14px; }
+.side .it b span { font-weight: 400; font-size: 12px; color: var(--g2); }
+.side .it small { display: block; color: var(--g2); font-size: 12px; }
+.side .it.on { border-color: var(--ink); background: var(--g5); }
+.content { flex: 1; overflow: auto; padding: 16px 18px; min-width: 0; }
+.crumb { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--g4); font-size: 13px; color: var(--g2); flex: none; }
+
+/* elementos */
+.b { display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--g1); background: var(--paper); color: var(--ink); padding: 5px 10px; font: inherit; font-size: 13px; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+.b.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+.b.big { font-size: 15px; padding: 8px 18px; font-weight: 700; }
+.b.link { border: 0; background: none; text-decoration: underline; padding: 2px 3px; color: var(--ink); }
+.b.small { font-size: 12px; padding: 2px 7px; }
+.b.ghost { border-style: dashed; }
+.b[disabled] { opacity: .45; cursor: not-allowed; }
+.split { display: inline-flex; }
+.split .b:first-child { border-radius: 3px 0 0 3px; }
+.split .b:last-child { border-radius: 0 3px 3px 0; border-left: 1px solid #666; padding: 8px 9px; }
+.dead { cursor: help; }
+.chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--g1); border-radius: 10px; padding: 1px 8px; font-size: 12px; background: var(--paper); cursor: pointer; white-space: nowrap; font-family: inherit; color: var(--ink); }
+.chip.solid { background: var(--ink); color: #fff; }
+.in { display: flex; align-items: center; border: 1.5px solid var(--g3); border-radius: 3px; padding: 5px 8px; color: var(--g3); background: var(--paper); min-height: 30px; font-size: 13px; }
+.in.val { color: var(--ink); }
+.sel::after { content: " ▾"; color: var(--g2); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+.stack > * + * { margin-top: 10px; }
+.box { border: 1.5px solid var(--g4); border-radius: 4px; padding: 12px 14px; background: var(--paper); }
+.box.strong { border-color: var(--ink); }
+.box.dash { border-style: dashed; }
+.box h3, .content h3, .appmain h3 { margin: 0 0 6px; font-size: 15px; }
+.content h2, .appmain h2 { margin: 0 0 4px; font-size: 19px; }
+.muted { color: var(--g2); }
+.small { font-size: 12px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 2px; }
+.tag.err { background: var(--ink); color: #fff; }
+.tag.warn { border-style: solid; }
+.tag.info { border-style: dotted; }
+.tag.p1 { border-color: var(--g3); color: var(--g2); font-weight: 400; }
+.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th { text-align: left; font-weight: 600; color: var(--g2); font-size: 12px; border-bottom: 1.5px solid var(--g4); padding: 5px 6px; }
+.t td { border-bottom: 1px solid var(--g5); padding: 6px; vertical-align: top; }
+.t tr.selrow td { background: var(--g6); }
+.grp { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 4px; font-weight: 700; font-size: 14px; }
+.grp:first-child { margin-top: 0; }
+.ic { display: inline-block; width: 22px; height: 22px; border: 1.5px solid var(--g3); background: var(--g5); vertical-align: middle; margin-right: 6px; border-radius: 3px; }
+.ic.lg { width: 48px; height: 48px; }
+.cb { display: inline-block; width: 14px; height: 14px; border: 1.5px solid var(--g1); vertical-align: -2px; margin-right: 6px; text-align: center; font-size: 11px; line-height: 11px; }
+.cb.on::after { content: "✓"; }
+.rb { display: inline-block; width: 14px; height: 14px; border: 1.5px solid var(--g1); border-radius: 50%; vertical-align: -2px; margin-right: 6px; }
+.rb.on { background: radial-gradient(circle, var(--ink) 40%, transparent 45%); }
+.code { font-family: var(--mono); font-size: 12px; background: var(--g6); border: 1px solid var(--g4); padding: 8px 10px; white-space: pre; overflow: auto; line-height: 1.5; }
+.code .del { text-decoration: line-through; color: var(--g2); }
+.code .add { font-weight: 700; }
+.steps { display: flex; gap: 0; border: 1.5px solid var(--g4); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+.steps div { flex: 1; padding: 7px 10px; font-size: 12px; border-right: 1px solid var(--g4); color: var(--g2); }
+.steps div:last-child { border-right: 0; }
+.steps .done { color: var(--ink); }
+.steps .done::before { content: "✓ "; }
+.steps .now { background: var(--ink); color: #fff; font-weight: 700; }
+.bar { height: 10px; border: 1.5px solid var(--g1); border-radius: 2px; position: relative; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--g2); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card { border: 1.5px solid var(--g3); border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.card.bad { border-style: dashed; border-color: var(--ink); }
+.tree { font-size: 13px; line-height: 1.75; }
+.tree .f { padding-left: 18px; }
+.tree .on { background: var(--ink); color: #fff; padding: 0 4px; }
+.split2 { display: grid; grid-template-columns: 250px 1fr; gap: 0; height: 100%; border: 1.5px solid var(--g4); border-radius: 4px; }
+.split2 > div:first-child { border-right: 1.5px solid var(--g4); padding: 10px; overflow: auto; }
+.split2 > div:last-child { padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.banner { border: 1.5px solid var(--ink); border-left-width: 6px; padding: 8px 12px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.console { font-family: var(--mono); font-size: 12px; background: var(--g6); border: 1.5px solid var(--g3); padding: 8px; line-height: 1.55; height: 300px; overflow: auto; white-space: pre; }
+.console .e { font-weight: 700; }
+.console .w { text-decoration: underline dotted; }
+hr.s { border: 0; border-top: 1px solid var(--g4); margin: 12px 0; }
+
+/* sobreposições */
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.38); display: flex; align-items: center; justify-content: center; z-index: 5; }
+.dlg { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; width: 600px; max-height: 92%; overflow: auto; padding: 18px 20px; }
+.dlg.wide { width: 760px; }
+.dlg h2 { margin: 0 0 8px; font-size: 18px; }
+.dlg .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 400px; background: var(--paper); border-left: 2px solid var(--ink); overflow: auto; padding: 16px; z-index: 6; }
+.menu { position: absolute; z-index: 6; background: var(--paper); border: 2px solid var(--ink); border-radius: 3px; min-width: 300px; padding: 4px 0; }
+.menu button { display: block; width: 100%; text-align: left; background: none; border: 0; font: inherit; padding: 7px 14px; cursor: pointer; color: var(--ink); }
+.menu button:hover { background: var(--g5); }
+.menu hr { border: 0; border-top: 1px solid var(--g4); margin: 4px 0; }
+
+/* realce de áreas clicáveis (opção do visualizador) */
+body.showclick .win [data-go]:not([data-go=""]) { outline: 2px dashed #000; outline-offset: 1px; }
+.win [data-go]:not([data-go=""]):hover { outline: 2px solid #000; outline-offset: 1px; }
+
+/* ---------- Páginas do visualizador: mapa e fluxos ---------- */
+.doc { background: var(--paper); border: 1px solid #aaa; padding: 20px 24px; max-width: 1080px; }
+.doc h2 { margin: 0 0 6px; font-size: 22px; }
+.doc h3 { margin: 22px 0 6px; font-size: 16px; }
+.doc p, .doc li { max-width: 85ch; }
+.maptree { font-family: var(--mono); font-size: 13px; white-space: pre; background: var(--g6); border: 1px solid var(--g4); padding: 12px 14px; overflow-x: auto; line-height: 1.55; }
+.maptree a { color: #000; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; margin: 8px 0 4px; }
+.flow a { border: 1.5px solid #222; background: #fff; padding: 6px 9px; border-radius: 3px; color: #111; text-decoration: none; font-size: 13px; }
+.flow a:hover { background: #222; color: #fff; }
+.flow .arr { font-size: 16px; color: #333; padding: 0 2px; }
+.flow .act { font-size: 12px; color: #444; font-style: italic; }
+.cmp { border-collapse: collapse; width: 100%; font-size: 13px; }
+.cmp th, .cmp td { border: 1px solid #bbb; padding: 6px 8px; text-align: left; vertical-align: top; }
+.cmp th { background: #eee; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .idx { display: none; }
+  .idx-select { display: block; width: 100%; margin-bottom: 10px; padding: 8px; font: inherit; }
+  .stage { padding: 12px 16px 40px; }
+  .doc { padding: 16px; }
+}
+</style>
+</head>
+<body class="light">
+<div class="vbar" role="banner">
+  <h1>Warden — Estrutura (rascunho)</h1>
+  <div class="seg" role="group" aria-label="Alternativa">
+    <button type="button" data-alt="A">Alternativa A · Seções</button>
+    <button type="button" data-alt="B">Alternativa B · Painel</button>
+  </div>
+  <label><input type="checkbox" id="showclick" /> Mostrar o que é clicável</label>
+  <span class="sp"></span>
+  <a href="#" data-nav="mapa">Mapa</a>
+  <a href="#" data-nav="fluxos">Fluxos</a>
+</div>
+<div class="layout">
+  <nav class="idx" id="idx" aria-label="Telas do rascunho"></nav>
+  <main class="stage" id="stage">
+    <select class="idx-select" id="idxsel" aria-label="Escolher tela"></select>
+    <div id="view"></div>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ======================================================================
+   Dados de exemplo (pack fictício "Vale Sereno", Forge 1.20.1)
+   ====================================================================== */
+const PACK = { name: "Vale Sereno", mc: "1.20.1", loader: "Forge 47.3.0", ver: "1.4.2" };
+
+/* ======================================================================
+   Componentes
+   ====================================================================== */
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+// go = id da tela de destino; "" = não ligado neste rascunho
+function btn(label, go, cls) {
+  const g = go || "";
+  const dead = g ? "" : ' dead" title="Não ligado neste rascunho';
+  return `<button type="button" class="b ${cls || ""}${dead}" data-go="${g}">${label}</button>`;
+}
+function chip(label, go, cls) {
+  return `<button type="button" class="chip ${cls || ""}" data-go="${go || ""}">${label}</button>`;
+}
+function input(ph, val) { return `<div class="in ${val ? "val" : ""}">${val || ph}</div>`; }
+function select(label) { return `<div class="in val sel">${label}</div>`; }
+function cb(on) { return `<span class="cb ${on ? "on" : ""}"></span>`; }
+function rb(on) { return `<span class="rb ${on ? "on" : ""}"></span>`; }
+function tag(kind, text) { return `<span class="tag ${kind}">${text}</span>`; }
+function p1() { return tag("p1", "P1"); }
+
+function win(inner) {
+  return `<div class="scroller"><div class="win" role="img" aria-label="Rascunho da janela do Warden">
+    <div class="win-bar"><span>Warden</span><span>_&nbsp;&nbsp;▢&nbsp;&nbsp;✕</span></div>
+    <div class="win-body">${inner}</div></div></div>`;
+}
+function foot(text) {
+  return `<div class="foot">${chip(text || "Nenhuma tarefa em andamento", "tarefas")}<span class="grow"></span><span>Versão do Warden 0.1.0</span></div>`;
+}
+function dialog(inner, wide) { return `<div class="scrim"><div class="dlg ${wide ? "wide" : ""}">${inner}</div></div>`; }
+function drawer(inner) { return `<div class="drawer">${inner}</div>`; }
+
+/* ---------- Nível do APP ---------- */
+function appShell(content, o) {
+  o = o || {};
+  const left = o.back ? btn("← " + o.back[0], o.back[1], "link back") + '<span class="vsep"></span>' : "";
+  return `<div class="apptop">${left}<span class="brand">Warden</span><span class="muted">${o.title || "Meus packs"}</span>
+      <span class="grow"></span>${o.noSettings ? "" : btn("Configurações", "config-app", "link")}</div>
+    <div class="appmain">${content}</div>${foot(o.foot)}${o.overlay || ""}`;
+}
+
+/* ---------- Nível do PACK ---------- */
+const SECTIONS = [
+  ["mods", "Mods", "Mods, resource packs e shaders", "128"],
+  ["configs", "Configs", "Arquivos de ajuste dos mods e do jogo", ""],
+  ["problemas", "Problemas", "O que pode impedir o jogo de abrir", "3"],
+  ["historico", "Histórico", "Versões salvas e o que mudou", "5 não salvas"],
+  ["exportar", "Exportar", "Gerar o pack para quem vai jogar", ""],
+];
+const TITLES = { mods: "Mods, resource packs e shaders", adicionar: "Adicionar", configs: "Configs", problemas: "Problemas",
+  historico: "Histórico", exportar: "Exportar", teste: "Teste", info: "Informações do pack" };
+
+function packHeader(alt, o) {
+  const game = o.game;
+  let testBtn;
+  if (game === "running") {
+    testBtn = btn("● Jogo aberto: ver teste", "teste-jogo", "primary big");
+  } else if (game === "preparing") {
+    testBtn = btn("Testando… ver progresso", "teste-preparo", "primary big");
+  } else {
+    testBtn = `<span class="split">${btn("▶&nbsp;Testar", "teste-checagem", "primary big")}${btn("▾", "testar-menu", "primary")}</span>`;
+  }
+  const chips = [];
+  if (o.review) chips.push(chip("Mudanças do teste para revisar", "teste-fechou", "solid"));
+  // Em A os contadores já estão no menu lateral; o aviso de problemas só aparece em B.
+  if (alt === "B" && !o.noProblems) chips.push(chip("3 problemas", "problemas"));
+  if (o.packChanged) chips.push(chip("O pack mudou desde o início do teste", ""));
+  return `<div class="phead">
+      ${btn("← Meus packs", "packs", "link back")}<span class="vsep"></span>
+      <div class="id"><div class="name">${PACK.name} ${btn("Editar informações", "info", "link small")}</div>
+        <div class="sub">Minecraft ${PACK.mc} · ${PACK.loader} · versão do pack ${o.saved ? "1.5.0" : PACK.ver}</div></div>
+      <div class="chips">${chips.join("")}</div>
+      <span class="grow"></span>
+      ${btn(o.saved || o.noProblems ? "Salvar versão" : "Salvar versão · 5 alterações", "salvar", "")}
+      ${testBtn}
+    </div>`;
+}
+
+// sec: seção ativa (A) ou página (B). Em B "painel" é a página inicial do pack.
+function packShell(alt, sec, content, o) {
+  o = o || {};
+  let body;
+  if (alt === "A") {
+    const items = SECTIONS.map(([id, label, desc, count]) =>
+      `<button type="button" class="it ${id === sec || (sec === "adicionar" && id === "mods") ? "on" : ""}" data-go="${id}">
+        <b>${label}<span>${count}</span></b><small>${desc}</small></button>`).join("");
+    body = `<div class="pbody"><nav class="side" aria-label="Seções do pack">${items}</nav>
+      <div class="content">${content}</div></div>`;
+  } else {
+    const crumb = sec === "painel" ? "" :
+      `<div class="crumb">${btn("← Painel do pack", "painel", "link")}<span>${PACK.name} › ${o.crumb || TITLES[sec] || ""}</span></div>`;
+    body = `${crumb}<div class="pbody"><div class="content">${content}</div></div>`;
+  }
+  return packHeader(alt, o) + body + foot(o.foot) + (o.overlay || "");
+}
+
+/* ======================================================================
+   Conteúdos (compartilhados pelas duas alternativas)
+   ====================================================================== */
+function modsContent(o) {
+  o = o || {};
+  const rows = [
+    [true, "Create", "0.5.1.j", "Modrinth", "Cliente e servidor", "Em dia", ""],
+    [false, "Just Enough Items (JEI)", "15.20.0.106", "CurseForge", "Cliente e servidor", "Atualização: 15.20.0.112", ""],
+    [false, "Embeddium", "0.3.31", "Modrinth", "Só cliente", "Em dia", ""],
+    [false, "Rubidium", "0.7.1", "Arquivo local", "Só cliente", "Não se aplica", tag("err", "ERRO")],
+    [false, "Waystones", "14.1.6", "Modrinth", "Cliente e servidor", "Em dia", tag("err", "ERRO")],
+    [false, "Xaero's Minimap", "24.6.1", "CurseForge", "Cliente e servidor", "Atualização: 24.6.2", tag("warn", "AVISO")],
+    [false, "Farmer's Delight", "1.2.6", "Modrinth", "Cliente e servidor", "Em dia", ""],
+  ];
+  const tr = rows.map(r => `<tr class="${r[0] ? "selrow" : ""}"><td>${cb(r[0])}</td>
+      <td><button type="button" class="b link" data-go="${r[1].startsWith("Just") ? "mods-detalhe" : ""}"><span class="ic"></span>${r[1]}</button></td>
+      <td>${r[2]}</td><td>${r[3]}</td><td>${r[4]} ▾</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join("");
+  const head = `<tr><th></th><th>Nome</th><th>Versão</th><th>Fonte</th><th>Lado</th><th>Atualização</th><th>Marcas</th></tr>`;
+  return `<div class="row between"><div><h2>${o.title || "Mods, resource packs e shaders"}</h2>
+      <div class="muted small">124 mods · 3 resource packs · 1 shader · arraste arquivos .jar ou .zip para cá para adicionar do computador</div></div>
+      <div class="row">${btn("Verificar atualizações", "")}${btn("Adicionar", "adicionar", "primary")}</div></div>
+    <div class="row" style="margin:12px 0">${input("Buscar no pack…")}${select("Fonte: todas")}${select("Lado: todos")}${select("Mostrar: tudo")}</div>
+    <div class="banner"><span><b>4 atualizações disponíveis.</b> Nenhuma é aplicada sem você revisar.</span>${btn("Revisar e atualizar", "atualizar")}</div>
+    <div class="row" style="margin:10px 0" ><b>1 selecionado:</b>${btn("Alterar lado", "")}${btn("Atualizar", "", "")}${btn("Remover", "")}</div>
+    <div class="grp">▾ Mods <span class="muted small">124</span></div>
+    <table class="t">${head}${tr}<tr><td></td><td colspan="6" class="muted">… e mais 117 mods</td></tr></table>
+    <div class="grp">▾ Resource packs <span class="muted small">3</span></div>
+    <table class="t"><tr><td style="width:24px">${cb()}</td><td><span class="ic"></span>Fresh Animations</td><td>1.9.2</td><td>Modrinth</td><td>Só cliente</td><td>Em dia</td><td></td></tr>
+      <tr><td>${cb()}</td><td><span class="ic"></span>Stay True</td><td>1.3.1</td><td>CurseForge</td><td>Só cliente</td><td>Em dia</td><td></td></tr>
+      <tr><td></td><td colspan="6" class="muted">… e mais 1</td></tr></table>
+    <div class="grp">▾ Shaders <span class="muted small">1</span></div>
+    <table class="t"><tr><td style="width:24px">${cb()}</td><td><span class="ic"></span>Complementary Reimagined</td><td>r5.4</td><td>Modrinth</td><td>Só cliente</td><td>Em dia</td><td></td></tr></table>`;
+}
+
+function detailDrawer() {
+  return drawer(`<div class="row between">${btn("✕ Fechar", "mods", "link")}${btn("Abrir página", "", "link")}</div>
+    <div class="row" style="margin:8px 0"><span class="ic lg"></span><div><h3 style="margin:0">Just Enough Items (JEI)</h3><div class="muted small">por mezz · CurseForge</div></div></div>
+    <p class="small">Mostra todos os itens e receitas do jogo.</p>
+    <div class="box stack small"><div><b>Versão instalada</b> 15.20.0.106 · Minecraft 1.20.1 · Forge · 12/03/2025</div>
+      <div class="muted">jei-1.20.1-forge-15.20.0.106.jar · 1,4 MB · hash sha1 ▸</div></div>
+    <div class="row" style="margin-top:10px"><b>Lado</b>${select("Cliente e servidor")}</div>
+    <h3 style="margin-top:14px">Dependências</h3><div class="small muted">Nenhuma obrigatória.</div>
+    <h3 style="margin-top:10px">Usado por</h3><div class="small">Just Enough Resources (no pack)</div>
+    <h3 style="margin-top:10px">▸ Novidades da versão instalada</h3>
+    <hr class="s" />
+    <div class="row">${btn("Atualizar para 15.20.0.112", "atualizar", "primary")}${btn("Remover", "remover")}</div>
+    <div class="row" style="margin-top:8px">${btn("Mais opções ▾", "", "link")}<span class="muted small">Trocar de versão · Fixar versão · Opcional ${p1()}</span></div>`);
+}
+
+function addContent(alt) {
+  const res = [
+    ["Sophisticated Backpacks", "P3pp3rF1y", "Mochilas com melhorias e filtros.", "48 mi", "há 6 dias", false, true],
+    ["Sophisticated Storage", "P3pp3rF1y", "Baús e barris com melhorias.", "21 mi", "há 6 dias", false, false],
+    ["Backpacked", "MrCrayfish", "Uma mochila simples.", "9 mi", "há 2 meses", false, false],
+    ["Traveler's Backpack", "Tiviacz1337", "Mochilas temáticas com tanques.", "30 mi", "há 1 mês", true, false],
+  ];
+  const list = res.map(r => `<div class="box ${r[6] ? "strong" : ""}" style="padding:8px 10px"><div class="row between">
+      <div class="row"><span class="ic"></span><div><b>${r[0]}</b> <span class="muted small">por ${r[1]}</span><div class="small">${r[2]}</div>
+      <div class="muted small">${r[3]} downloads · atualizado ${r[4]}</div></div></div>
+      ${r[5] ? '<span class="chip">Já no pack</span>' : btn("Ver", "")}</div></div>`).join("");
+  return `<div class="row between"><div>${btn("← Voltar para " + (alt === "A" ? "Mods" : "a lista"), "mods", "link")}<h2>Adicionar ao pack</h2></div></div>
+    <div class="row" style="margin:10px 0">${select("Tipo: Mods")}${select("Onde buscar: Modrinth")}
+      <div style="flex:1;min-width:260px">${input("Buscar pelo nome, ou colar um link do Modrinth, da CurseForge ou direto", "backpack")}</div>
+      ${btn("Escolher arquivo do computador…", "")}</div>
+    <div class="small muted">Mostrando só o que funciona em <b>Minecraft 1.20.1 com Forge</b>. ${btn("Mostrar também os sem versão compatível", "", "link")} · ${btn("Mais filtros ▸", "", "link")}</div>
+    <div class="grid2" style="margin-top:10px;grid-template-columns: 1fr 1.1fr">
+      <div class="stack">${list}<div class="muted small">Rolar carrega mais 20…</div></div>
+      <div class="box strong">
+        <div class="row"><span class="ic lg"></span><div><h3 style="margin:0">Sophisticated Backpacks</h3><div class="muted small">por P3pp3rF1y · Modrinth</div></div></div>
+        <p class="small">Mochilas com melhorias, filtros e muito espaço.</p>
+        <div class="row"><b>Versão</b>${select("3.20.17 (mais nova compatível)")}</div>
+        <div class="small muted" style="margin-top:6px">Lado: Cliente e servidor (dado do Modrinth)</div>
+        <div class="small" style="margin-top:6px"><b>Precisa de:</b> Sophisticated Core (não está no pack)</div>
+        <hr class="s" />${btn("Adicionar ao pack", "dependencias", "primary")}
+        <p class="small muted">Descrição completa ▸ · Galeria ▸</p></div></div>`;
+}
+
+function depsDialog(alt) {
+  return dialog(`<h2>Adicionar Sophisticated Backpacks</h2>
+    <p class="small muted">Nada foi gravado ainda. Confira o que vai entrar no pack.</p>
+    <div class="box stack small">
+      <div>${cb(true)}<b>Sophisticated Backpacks 3.20.17</b> <span class="muted">(o que você escolheu)</span></div>
+      <div><b>Obrigatórias</b></div>
+      <div>${cb(true)}Sophisticated Core 0.6.26 <span class="muted">· sem ela o jogo provavelmente não abre</span></div>
+      <div><b>Já no pack</b></div><div class="muted">Nenhuma</div>
+      <div><b>Opcionais</b> <span class="muted">(só informação)</span></div>
+      <div>${cb(false)}Sophisticated Backpacks Create Integration</div>
+      <div><b>Avisos</b></div><div class="muted">Nenhuma incompatibilidade declarada com o que já está no pack.</div>
+    </div>
+    <div class="actions">${btn("Cancelar", "adicionar")}${btn("Adicionar 2 itens", "adicionar", "primary")}</div>`);
+}
+
+function updateDialog() {
+  const r = [["Just Enough Items (JEI)", "15.20.0.106", "15.20.0.112"], ["Xaero's Minimap", "24.6.1", "24.6.2"], ["Create", "0.5.1.j", "0.5.1.k"], ["Farmer's Delight", "1.2.6", "1.2.7"]];
+  return dialog(`<h2>Atualizar 4 itens</h2>
+    <table class="t"><tr><th></th><th>Item</th><th>Agora</th><th>Nova</th><th>Novidades</th></tr>
+    ${r.map(x => `<tr><td>${cb(true)}</td><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>▸ ver</td></tr>`).join("")}</table>
+    <p class="small">Novas dependências: nenhuma. Novas incompatibilidades: nenhuma.</p>
+    <p class="small muted">Antes de aplicar, o Warden guarda um ponto de segurança. Depois, verifica o pack de novo.</p>
+    <div class="actions">${btn("Cancelar", "mods")}${btn("Atualizar 4 itens", "mods", "primary")}</div>`, true);
+}
+
+function removeDialog() {
+  return dialog(`<h2>Remover Just Enough Items (JEI)?</h2>
+    <p>Estes mods dependem dele: <b>Just Enough Resources</b>. Sem o JEI, eles podem não funcionar.</p>
+    <p class="small muted">O item sai do pack. Dá para voltar atrás pelo Histórico.</p>
+    <div class="actions">${btn("Manter no pack", "mods-detalhe")}${btn("Remover JEI", "mods", "primary")}</div>`);
+}
+
+function configsContent(o) {
+  o = o || {};
+  const inst = o.instance;
+  const tree = inst
+    ? `<div class="f">▾ config/</div><div class="f" style="padding-left:30px"><span class="on">embeddium-options.json</span></div>
+       <div class="f" style="padding-left:30px">create-client.toml</div><div class="f" style="padding-left:30px">jei/ ▸</div>
+       <div class="f">▸ defaultconfigs/</div><div class="f">Opções do jogo (options.txt)</div><div class="f">▾ saves/Mundo de teste/serverconfig/</div>
+       <div class="f" style="padding-left:30px">create-server.toml</div>`
+    : `<div class="f">▾ config/</div><div class="f" style="padding-left:30px"><span class="on">create-common.toml</span></div>
+       <div class="f" style="padding-left:30px">embeddium-options.json</div><div class="f" style="padding-left:30px">waystones-common.toml</div>
+       <div class="f" style="padding-left:30px">jei/ ▸</div><div class="f" style="padding-left:30px">… 82 arquivos</div>
+       <div class="f">▸ defaultconfigs/ <span class="muted">(2)</span></div><div class="f">▸ kubejs/</div><div class="f">Opções do jogo (options.txt)</div>`;
+  const file = inst ? "config/embeddium-options.json" : "config/create-common.toml";
+  const code = inst
+    ? `{\n  "quality": {\n    "weather_quality": "FANCY",\n    "leaves_quality": "FAST",\n    <span class="add">"enable_vignette": false</span>\n  },\n  "performance": {\n    "chunk_builder_threads": 4\n  }\n}`
+    : `#.\n#Configurações gerais do Create\n[worldgen]\n\t#Desliga a geração de minérios do Create\n\tdisableWorldGen = false\n\n[kinetics]\n\t#Velocidade máxima de rotação\n\t#Range: > 64\n\t<span class="add">maxRotationSpeed = 256</span>\n\t#Multiplicador de stress\n\tstressMultiplier = 1.0`;
+  return `<div class="row between"><div><h2>Configs</h2><div class="muted small">Arquivos de ajuste dos mods e do jogo. Comentários e formatação são preservados.</div></div></div>
+    ${inst ? `<div class="banner" style="margin-top:10px"><span><b>Você está editando a instância de teste</b>, não o pack. Vale só para o teste; quando o jogo fechar, aparece em “O que mudou no teste”.</span>${btn("Voltar ao teste", "teste-jogo")}</div>` : ""}
+    <div style="height:${inst ? 470 : 520}px;margin-top:10px" class="split2">
+      <div><div class="stack">${select(inst ? "Mostrando: instância de teste (jogo aberto)" : "Mostrando: arquivos do pack")}${input("Buscar arquivo…")}</div>
+        <div class="tree" style="margin-top:8px">${tree}</div></div>
+      <div><div class="row between"><b>${file}</b><div class="row">
+          <span class="split">${btn("Formulário " + "", "", "small")}${btn("Texto", "", "small primary")}</span>${btn("Buscar e substituir", "", "small")}
+          ${btn("Salvar", inst ? "teste-jogo" : "configs-diff", "small primary")}</div></div>
+        ${inst ? "" : `<div class="small muted">Arquivo do Forge: o jogo pode reescrever este arquivo e apagar comentários que você adicionar.</div>`}
+        <div class="code" style="flex:1">${code}</div>
+        <div class="small muted">1 alteração não salva neste arquivo · Formulário ${p1()}</div></div></div>`;
+}
+
+function diffDialog() {
+  return dialog(`<h2>Salvar config/create-common.toml?</h2>
+    <p class="small muted">Só esta linha muda. O resto do arquivo fica igual, inclusive os comentários.</p>
+    <div class="code"><span class="del">\tmaxRotationSpeed = 128</span>\n<span class="add">\tmaxRotationSpeed = 256</span></div>
+    <p class="small muted">Dá para desligar esta confirmação em Configurações.</p>
+    <div class="actions">${btn("Continuar editando", "configs")}${btn("Salvar", "configs", "primary")}</div>`);
+}
+
+function problemsContent() {
+  return `<div class="row between"><div><h2>Problemas</h2><div class="muted small">3 encontrados · última verificação há 3 minutos · também roda sozinha ao clicar em Testar e antes de exportar</div></div>
+      ${btn("Verificar agora", "")}</div>
+    <div class="grp" style="margin-top:14px">Erros <span class="muted small">impedem o teste, a menos que você escolha testar mesmo assim</span></div>
+    <div class="box stack">
+      <div class="row between"><div>${tag("err", "ERRO")} <b>O Waystones precisa do Balm, que não está no pack</b></div></div>
+      <div class="small">Sem o Balm, o jogo para na tela de carregamento.</div>
+      <div class="small muted">Evidência: o arquivo META-INF/mods.toml do Waystones 14.1.6 declara a dependência obrigatória “balm” na faixa [7.3.0,).</div>
+      <div class="row">${btn("Adicionar Balm", "dependencias", "primary")}${btn("Ver Waystones", "mods", "link")}${btn("Ignorar neste pack", "", "link")} ${p1()}</div></div>
+    <div class="box stack" style="margin-top:10px">
+      <div>${tag("err", "ERRO")} <b>Dois mods de renderização no pack: Embeddium e Rubidium</b></div>
+      <div class="small">Os dois fazem a mesma coisa e travam o jogo juntos. Mantenha só um.</div>
+      <div class="small muted">Evidência: lista de conflitos conhecidos do Warden (categoria “renderizador”).</div>
+      <div class="row">${btn("Remover Rubidium", "remover")}${btn("Remover Embeddium", "remover")}</div></div>
+    <div class="grp" style="margin-top:16px">Avisos</div>
+    <div class="box stack">
+      <div>${tag("warn", "AVISO")} <b>Xaero's Minimap está como “Cliente e servidor”, mas só funciona no cliente</b></div>
+      <div class="small muted">Evidência: o Modrinth informa “client_side: required, server_side: unsupported”.</div>
+      <div class="row">${btn("Mudar lado para Só cliente", "")}</div></div>
+    <div class="grp" style="margin-top:16px">Último travamento</div>
+    <div class="box row between"><span class="small">Teste de 30/09 às 21:14 travou com 48 s de jogo.</span>${btn("Ver o que causou", "teste-travou")}</div>`;
+}
+
+function historyContent() {
+  const vers = [["1.4.2", "28/09/2026", "2 mods atualizados, 1 config alterada"], ["1.4.0", "20/09/2026", "3 mods adicionados, 1 shader"], ["1.3.0", "02/09/2026", "Create atualizado, 5 configs"], ["1.0.0", "15/08/2026", "Primeira versão"]];
+  return `<h2>Histórico</h2><div class="muted small">Cada versão salva guarda o pack inteiro. Dá para ver o que mudou e voltar a qualquer uma.</div>
+    <div class="box strong" style="margin-top:12px"><div class="row between"><h3>Alterações não salvas (5)</h3>${btn("Salvar versão", "salvar", "primary")}</div>
+      <div class="grid2 small"><div><b>Adicionados</b><br>Sophisticated Backpacks 3.20.17<br>Sophisticated Core 0.6.26</div>
+      <div><b>Atualizados</b><br>JEI 15.20.0.106 → 15.20.0.112<br><b>Configs alteradas</b><br>config/create-common.toml · options.txt</div></div>
+      <div class="small muted" style="margin-top:6px">Descartar a alteração de um arquivo ${p1()}</div></div>
+    <div class="box row between" style="margin-top:10px"><span class="small"><b>GitHub:</b> kriticales/vale-sereno (privado) · 1 versão não enviada</span>${btn("Enviar ao GitHub", "enviado")}</div>
+    <h3 style="margin-top:16px">Versões salvas</h3>
+    <table class="t">${vers.map((v, i) => `<tr><td><b>${v[0]}</b></td><td>${v[1]}</td><td>${v[2]}</td>
+      <td style="text-align:right">${btn(i === 0 ? "▾ Fechar" : "▸ Ver mudanças", "", "link")}${i === 2 ? btn("Voltar para esta versão", "voltar", "small") : ""}</td></tr>
+      ${i === 0 ? `<tr><td></td><td colspan="3"><div class="code" style="white-space:pre-wrap">## 1.4.2 (28/09/2026)\n### Atualizados\n- Create 0.5.1.i → 0.5.1.j\n- Embeddium 0.3.30 → 0.3.31\n### Configs alteradas\n- config/create-common.toml</div>
+      <div class="row" style="margin-top:6px">${btn("Ver diferenças para o estado atual", "", "small")}${btn("Exportar esta versão", "exportar", "small")} ${p1()}</div></td></tr>` : ""}`).join("")}</table>
+    <div style="margin-top:12px">${btn("Pontos de segurança…", "", "link")} ${p1()} <span class="muted small">cópias automáticas feitas antes de ações que apagam ou substituem</span></div>`;
+}
+
+function saveDialog() {
+  return dialog(`<h2>Salvar versão</h2>
+    <div class="row"><b>Número</b>${input("", "1.5.0")}<span class="small muted">Sugerido: <b>1.5.0</b> porque você adicionou mods (mudança “menor”). ${btn("Por quê?", "", "link")}</span></div>
+    <div style="margin-top:10px"><b>Notas</b> <span class="muted small">(opcional, entram no topo do resumo)</span>${input("Ex.: mochilas novas e ajuste de velocidade do Create")}</div>
+    <div style="margin-top:10px"><b>Resumo automático</b></div>
+    <div class="code" style="white-space:pre-wrap">### Adicionados\n- Sophisticated Backpacks 3.20.17\n- Sophisticated Core 0.6.26\n### Atualizados\n- Just Enough Items 15.20.0.106 → 15.20.0.112\n### Configs alteradas\n- config/create-common.toml\n- options.txt</div>
+    <div class="box small" style="margin-top:10px"><b>Antes de salvar</b> ${p1()}<br>✗ O pack tem 2 erros ${btn("Ver", "problemas", "link")}<br>✓ O último teste é depois da última mudança e abriu normalmente<br>✓ As mudanças do teste foram revisadas</div>
+    <div class="actions">${btn("Cancelar", "historico")}${btn("Salvar versão 1.5.0", "salvo", "primary")}</div>`, true);
+}
+function savedDialog() {
+  return dialog(`<h2>Versão 1.5.0 salva</h2>
+    <p>O resumo foi adicionado ao CHANGELOG.md e a versão aparece no Histórico.</p>
+    <p class="small"><b>O que fazer agora?</b></p>
+    <div class="actions" style="justify-content:flex-start">${btn("Exportar esta versão", "exportar", "primary")}${btn("Enviar ao GitHub", "enviado")}${btn("Fechar", "historico")}</div>`);
+}
+function sentDialog() {
+  return dialog(`<h2>Enviado ao GitHub</h2><p>kriticales/vale-sereno está em dia: todas as versões salvas foram enviadas.</p>
+    <p class="small muted">Primeira vez neste pack? Antes daqui aparece “Conectar este pack ao GitHub”: criar repositório privado ou usar um existente.</p>
+    <div class="actions">${btn("Fechar", "historico", "primary")}</div>`);
+}
+function rollbackDialog() {
+  return dialog(`<h2>Voltar o pack para a versão 1.3.0?</h2>
+    <p>O pack vai ficar exatamente como estava na 1.3.0. Arquivos que não existiam nela serão removidos.</p>
+    <p>O estado de agora fica guardado num ponto de segurança, e o histórico não é apagado.</p>
+    <div class="actions">${btn("Cancelar", "historico")}${btn("Voltar para 1.3.0", "historico", "primary")}</div>`);
+}
+
+function exportContent() {
+  return `<h2>Exportar</h2><div class="muted small">Gera o pack para quem vai jogar, só com o necessário. O pack no Warden não muda.</div>
+    <div class="box" style="margin-top:12px"><h3>1. Antes de exportar</h3><div class="small stack">
+      <div>✓ Nenhum arquivo que não deveria ir para quem joga (logs, backups, caches)</div>
+      <div class="row">✗ O pack tem 2 erros. ${btn("Ver problemas", "problemas", "link")}</div>
+      <div class="row">✗ Há 5 alterações não salvas: a exportação vai usar o estado atual. ${btn("Salvar versão antes", "salvar", "link")}</div></div></div>
+    <div class="box" style="margin-top:10px"><h3>2. Formato</h3><div class="grid2 small">
+      <div>${rb(true)}<b>Pasta packwiz</b><br><span class="muted">Para hospedar, por exemplo no GitHub.</span></div>
+      <div>${rb(false)}<b>Arquivo .zip do pack packwiz</b><br><span class="muted">A mesma coisa, num arquivo só.</span></div>
+      <div>${rb(false)}<b>.mrpack</b> ${p1()}<br><span class="muted">Para o app do Modrinth e launchers compatíveis.</span></div>
+      <div>${rb(false)}<b>.zip da CurseForge</b> ${p1()}<br><span class="muted">Para o app da CurseForge. Não guarda o lado dos mods.</span></div></div></div>
+    <div class="box" style="margin-top:10px"><h3>3. O que vai no pack</h3><div class="tree small">
+      pack.toml · index.toml<br>▸ mods/: 124 referências (os .jar não vão; quem joga baixa)<br>▸ resourcepacks/: 3 referências · shaderpacks/: 1 referência
+      <br>▸ config/: 86 arquivos, 412 KB<br>▸ defaultconfigs/: 2 arquivos<br>options.txt ${tag("warn", "AVISO")} substitui as preferências de quem já joga ${btn("Não substituir se o jogador já tiver", "", "link")} ${p1()}</div>
+      <div class="row small" style="margin-top:6px">Algo aqui não deveria ir? ${btn("Excluir do pack…", "", "link")}</div></div>
+    <div class="row" style="margin-top:12px">${input("", "Documentos\\Warden\\exportados\\vale-sereno-1.4.2")}${btn("Escolher pasta…", "")}<span class="grow"></span>${btn("Exportar", "exportado", "primary big")}</div>`;
+}
+function exportedDialog() {
+  return dialog(`<h2>Pack exportado</h2><p>216 arquivos, 1,2 MB, em Documentos\\Warden\\exportados\\vale-sereno-1.4.2.</p>
+    <div class="actions">${btn("Fechar", "exportar")}${btn("Abrir pasta", "exportar", "primary")}</div>`);
+}
+
+function infoDialog() {
+  return dialog(`<h2>Informações do pack</h2>
+    <div class="stack small"><div><b>Nome</b>${input("", "Vale Sereno")}</div><div><b>Autor</b>${input("", "Kriticales")}</div>
+    <div><b>Descrição</b>${input("Uma frase sobre o pack")}</div>
+    <div><b>Versão do Forge</b> ${p1()}${select("47.3.0 (recomendada)")}</div>
+    <div class="muted">Minecraft e loader não mudam aqui: mudar a versão do Minecraft é outro pack.</div>
+    <hr class="s" /><div class="row">${btn("Mostrar pasta do pack", "")}${btn("Apagar pack…", "")} ${p1()}</div></div>
+    <div class="actions">${btn("Cancelar", "home")}${btn("Salvar", "home", "primary")}</div>`);
+}
+
+function testMenu() {
+  return `<div class="menu" style="top:58px;right:14px">
+    <button type="button" data-go="teste-checagem"><b>Testar</b><br><span class="small muted">Abre o jogo com o pack, na instância de teste</span></button>
+    <button type="button" data-go="" class="dead" title="Não ligado neste rascunho">Testar como o jogador recebe ${p1()}<br><span class="small muted">Instância limpa, sem os mundos e ajustes do teste</span></button><hr>
+    <button type="button" data-go="teste-fechou">Ver último teste<br><span class="small muted">Hoje, 14:20 · fechou normalmente · console e o que mudou</span></button><hr>
+    <button type="button" data-go="ajustes-teste">Ajustes do teste neste computador…</button>
+    <button type="button" data-go="" class="dead" title="Não ligado neste rascunho">Abrir pasta da instância de teste</button>
+    <button type="button" data-go="" class="dead" title="Não ligado neste rascunho">Apagar mundos de teste…</button>
+    <button type="button" data-go="" class="dead" title="Não ligado neste rascunho">Recriar instância de teste…</button></div>`;
+}
+function testSettingsDialog() {
+  return dialog(`<h2>Ajustes do teste neste computador</h2>
+    <p class="small muted">Não fazem parte do pack e não contam como alteração não salva.</p>
+    <div class="stack small"><div class="row"><b>Memória</b>${select("Automático (6 GB para 128 mods)")}</div>
+    <div class="row"><b>Java</b>${select("Automático (Java 17, instalado pelo Warden)")}</div>
+    <div><b>Argumentos extras da JVM</b>${input("Deixe vazio se não souber")}</div>
+    <div><b>Mods opcionais ligados no teste</b> ${p1()}<div class="muted">Nenhum mod opcional neste pack.</div></div>
+    <hr class="s" /><div class="row">${btn("Recriar instância de teste…", "")}<span class="muted">pergunta se mantém os mundos</span></div></div>
+    <div class="actions">${btn("Cancelar", "home")}${btn("Salvar ajustes", "home", "primary")}</div>`);
+}
+
+/* ---------- Testar ---------- */
+const STEP_NAMES = ["Verificar o pack", "Preparar o Minecraft", "Copiar o pack para o teste", "Verificação final", "Abrir o jogo"];
+function steps(now) {
+  return `<div class="steps">${STEP_NAMES.map((s, i) => `<div class="${i < now ? "done" : i === now ? "now" : ""}">${i + 1}. ${s}</div>`).join("")}</div>`;
+}
+function testHead(title, sub, right) {
+  return `<div class="row between" style="margin-bottom:10px"><div><h2>${title}</h2><div class="muted small">${sub}</div></div><div class="row">${right || ""}</div></div>`;
+}
+function testCheck() {
+  return testHead("Testando o pack", "Etapa 1 de 5", btn("Cancelar", "home")) + steps(0) +
+    `<div class="box dash muted small">Verificando 128 itens com os dados do pack e das APIs…</div>`;
+}
+function testCheckDialog() {
+  return dialog(`<h2>2 erros podem impedir o jogo de abrir</h2>
+    <div class="box stack small"><div>${tag("err", "ERRO")} <b>O Waystones precisa do Balm, que não está no pack</b><div class="row" style="margin-top:4px">${btn("Adicionar Balm", "dependencias", "small")}</div></div>
+      <div>${tag("err", "ERRO")} <b>Dois mods de renderização: Embeddium e Rubidium</b><div class="row" style="margin-top:4px">${btn("Remover Rubidium", "remover", "small")}</div></div></div>
+    <p class="small muted">1 aviso também foi encontrado; ele não impede o teste e fica em Problemas.</p>
+    <div class="actions">${btn("Cancelar", "problemas")}${btn("Testar mesmo assim", "teste-preparo")}</div>`);
+}
+function testPrep() {
+  return testHead("Testando o pack", "Etapa 2 de 5", btn("Cancelar", "home")) + steps(1) +
+    `<div class="box stack"><b>Baixando o Minecraft 1.20.1, o Forge 47.3.0 e o Java 17</b>
+      <div class="bar"><i style="width:38%"></i></div><div class="small muted">812 de 2.140 arquivos · 160 de 420 MB · cerca de 2 minutos</div>
+      <div class="small">Na primeira vez isso pode levar alguns minutos. Nos próximos testes, só o que mudou é baixado.</div></div>
+    <div class="row small" style="margin-top:10px">${btn("Ver detalhes", "", "link")}<span class="grow"></span>${btn("Simular: próximo passo pede download manual", "teste-manual", "link")}</div>`;
+}
+function testManual() {
+  return testHead("Testando o pack", "Etapa 3 de 5 · esperando você", btn("Cancelar", "home")) + steps(2) +
+    `<div class="box stack"><b>2 mods da CurseForge precisam ser baixados à mão</b>
+      <div class="small">O autor não permite que outros apps baixem estes arquivos. Baixe pelo site e mostre ao Warden onde está.</div>
+      <table class="t"><tr><th>Mod</th><th>Arquivo esperado</th><th>Situação</th><th></th></tr>
+        <tr><td>Xaero's World Map</td><td>XaerosWorldMap_1.39.0_Forge_1.20.jar</td><td>Encontrado ✓</td><td></td></tr>
+        <tr><td>Epic Fight</td><td>epicfight-forge-20.9.4-1.20.1.jar</td><td>Aguardando</td><td>${btn("Abrir página de download", "", "small")} ${btn("Selecionar arquivo baixado…", "teste-jogo", "small")}</td></tr></table>
+      <div class="small muted">Quando todos forem encontrados, o teste continua sozinho. Quem jogar o pack também vai precisar baixar esses mods à mão.</div></div>`;
+}
+function testRunning() {
+  const lines = [
+    ["", "[14:20:01] [Warden] Abrindo Minecraft 1.20.1 com Forge 47.3.0 · Java 17 · 6 GB · jogador Jogador"],
+    ["", "[14:20:04] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running"],
+    ["", "[14:20:11] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery/]: Found 128 mods"],
+    ["w", "[14:20:19] [Render thread/WARN] [mixin/]: Reference map 'xaerominimap.refmap.json' could not be read"],
+    ["", "[14:20:38] [Render thread/INFO] [minecraft/Minecraft]: Reloading ResourceManager: vanilla, mod_resources"],
+    ["", "[14:21:02] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing level \"Mundo de teste\""],
+    ["", "[14:21:09] [Server thread/INFO] [minecraft/MinecraftServer]: Done (6.912s)!"],
+  ];
+  return testHead("Jogo aberto", "Começou às 14:20 · 4 min",
+      btn("Editar configs do teste", "configs-instancia") + btn("Abrir pasta da instância", "") + btn("Parar jogo", "parar")) +
+    steps(5) +
+    `<div class="row" style="margin-bottom:6px">${select("Nível: todos")}${input("Buscar no console…")}${btn("Pausar rolagem", "", "small")}${btn("Copiar tudo", "", "small")}${btn("Salvar em arquivo", "", "small")}</div>
+    <div class="console">${lines.map(l => `<span class="${l[0]}">${esc(l[1])}</span>`).join("\n")}</div>
+    <div class="row small" style="margin-top:8px"><span class="muted">Simular o fim do jogo:</span>${btn("fechou normalmente", "teste-fechou", "link")}${btn("travou", "teste-travou", "link")}</div>`;
+}
+function stopDialog() {
+  return dialog(`<h2>Parar o jogo?</h2><p>O progresso não salvo do mundo pode ser perdido.</p>
+    <div class="actions">${btn("Continuar jogando", "teste-jogo")}${btn("Parar jogo", "teste-fechou", "primary")}</div>`);
+}
+function testClosed() {
+  return testHead("O jogo fechou normalmente", "Teste de hoje, 14:20 a 14:32 · 12 min",
+      btn("Ver console", "teste-jogo", "link") + btn("▶ Testar de novo", "teste-checagem")) +
+    `<div class="box strong"><div class="row between"><h3>O que mudou durante o teste</h3><span class="small muted">5 arquivos · só mudanças de verdade, sem reformatação do jogo</span></div>
+      <div class="small stack">
+        <div><b>Configs do pack que você alterou</b> (1)</div>
+        <div>${cb(true)}config/embeddium-options.json: <span class="muted">chunk_builder_threads 2 → 4</span> ${btn("Ver diferença", "", "link")}</div>
+        <div><b>Opções do jogo (options.txt)</b> (2 de 31 mudanças; as automáticas do jogo foram escondidas)</div>
+        <div>${cb(true)}renderDistance: 12 → 16 &nbsp; ${cb(true)}guiScale: 0 → 3</div>
+        <div><b>▸ Arquivos novos criados pelos mods</b> (14) <span class="muted">desmarcados; em geral não precisam ir para o pack</span></div>
+        <div><b>Config de mundo</b> (1)</div>
+        <div>${cb(false)}saves/Mundo de teste/serverconfig/create-server.toml → <span class="muted">destino: defaultconfigs/</span></div>
+        <div><b>Mod colocado à mão na pasta da instância</b> (1)</div>
+        <div class="row">jei-1.20.1-forge-15.20.0.112.jar é o JEI do Modrinth. O arquivo não é copiado. ${btn("Adicionar ao pack pelo Modrinth", "adicionar", "small")}</div>
+      </div>
+      <div class="actions">${btn("Decidir depois", "home-review")}${btn("Descartar tudo", "")}${btn("Trazer 3 selecionados para o pack", "trazido", "primary")}</div></div>`;
+}
+function broughtDialog() {
+  return dialog(`<h2>3 mudanças trazidas para o pack</h2>
+    <p>Elas agora fazem parte do pack e aparecem em Alterações não salvas, junto com o resto do que você mudou desde a versão 1.4.2.</p>
+    <div class="actions">${btn("Continuar editando", "home")}${btn("Salvar versão", "salvar", "primary")}</div>`);
+}
+function testCrashed() {
+  return testHead("O jogo travou", "Teste de hoje, 14:40 · fechou com 48 s de jogo",
+      btn("Abrir crash report", "", "link") + btn("Ver console", "teste-jogo", "link") + btn("▶ Testar de novo", "teste-checagem")) +
+    `<div class="box strong stack"><h3>Por que travou</h3>
+      <div>${tag("err", "ERRO")} <b>Falta o mod Balm, exigido pelo Waystones</b></div>
+      <div class="small">O Forge parou a carga porque o Waystones precisa do Balm 7.3.0 ou mais novo.</div>
+      <div class="code small">latest.log, linha 1.204:\nMissing or unsupported mandatory dependencies:\n\tMod ID: 'balm', Requested by: 'waystones', Expected range: '[7.3.0,)', Actual version: '[MISSING]'</div>
+      <div class="row">${btn("Adicionar Balm", "dependencias", "primary")}${btn("Remover Waystones", "remover")}</div></div>
+    <div class="box row between" style="margin-top:10px"><span class="small"><b>Não parece ser isso?</b> A IA pode ler o log e sugerir uma causa. Antes, você vê exatamente o que será enviado.</span>${btn("Pedir ajuda à IA", "teste-ia")} ${p1()}</div>
+    <div class="box row between" style="margin-top:10px"><span class="small">O jogo também mudou 1 arquivo antes de travar.</span>${btn("Ver o que mudou", "teste-fechou", "link")}</div>`;
+}
+function aiDialog() {
+  return dialog(`<h2>Enviar o log para a IA?</h2>
+    <p class="small">Este é o texto <b>exato</b> que será enviado. Nome de usuário do Windows, nome do jogador, IPs, e-mails e chaves foram trocados por marcadores.</p>
+    <div class="code" style="height:150px;white-space:pre-wrap">Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · 128 mods
+[14:40:31] [main/ERROR] Missing or unsupported mandatory dependencies:
+  Mod ID: 'balm', Requested by: 'waystones' …
+Caminho: C:\\Users\\[usuário]\\AppData\\Local\\dev.kriticales.warden\\instances\\…
+--username [jogador] --uuid [uuid]
+…(mais 412 linhas)</div>
+    <p class="small muted">18 KB · Google Gemini (gemini-2.5-flash) · usa a sua chave, que pode ter limite e custo · no plano gratuito, o Google pode usar o conteúdo para melhorar os produtos dele.</p>
+    <div class="actions">${btn("Cancelar", "teste-travou")}${btn("Enviar", "teste-travou", "primary")}</div>`, true);
+}
+
+/* ---------- Painel do pack (só Alternativa B) ---------- */
+function painelContent() {
+  const mini = [["Create", "0.5.1.j", ""], ["Just Enough Items (JEI)", "15.20.0.106", "atualização"], ["Rubidium", "0.7.1", tag("err", "ERRO")],
+    ["Waystones", "14.1.6", tag("err", "ERRO")], ["Xaero's Minimap", "24.6.1", tag("warn", "AVISO")]];
+  return `<div class="banner"><span><b>Próximo passo:</b> o pack tem 2 erros que podem impedir o jogo de abrir.</span>${btn("Ver problemas", "problemas", "primary")}</div>
+    <div style="display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;margin-top:12px;align-items:start">
+      <section class="stack">
+        <div class="row between"><div><h3 style="margin:0">Mods, resource packs e shaders</h3>
+          <div class="small muted">124 mods · 3 resource packs · 1 shader · 4 atualizações ${btn("Revisar", "atualizar", "link")}</div></div>
+          ${btn("Adicionar", "adicionar", "primary")}</div>
+        ${input("Buscar no pack…")}
+        <table class="t">${mini.map(m => `<tr><td><span class="ic"></span>${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td></tr>`).join("")}</table>
+        <div>${btn("Ver lista completa (128)", "mods")}</div>
+        <hr class="s" />
+        <div class="row between"><h3 style="margin:0">Configs</h3>${btn("Abrir editor", "configs")}</div>
+        <div class="small">Editados há pouco: ${btn("config/create-common.toml", "configs", "link")} (hoje) · ${btn("options.txt", "configs", "link")} (ontem)</div>
+      </section>
+      <aside class="stack small" style="border-left:1.5px solid var(--g4);padding-left:14px">
+        <div><b>Situação</b></div>
+        <div class="row between"><span>Problemas</span>${btn("2 erros, 1 aviso", "problemas", "link")}</div>
+        <div class="row between"><span>Último teste</span>${btn("hoje 14:20, fechou normalmente", "teste-fechou", "link")}</div>
+        <div class="row between"><span>Não salvas</span>${btn("5 alterações", "historico", "link")}</div>
+        <hr class="s" />
+        <div class="row between"><b>Versões</b>${btn("Ver histórico", "historico", "link")}</div>
+        <div>Atual: <b>1.4.2</b>, salva em 28/09/2026</div>
+        <div>${btn("Salvar versão", "salvar", "primary")}</div>
+        <div>GitHub: 1 versão não enviada ${btn("Enviar", "enviado", "link")}</div>
+        <hr class="s" />
+        <div class="row between"><b>Exportar</b>${btn("Exportar…", "exportar")}</div>
+        <div class="muted">Última: 1.4.2, pasta packwiz, 28/09/2026</div>
+      </aside>
+    </div>`;
+}
+
+/* ---------- Nível do APP: conteúdos ---------- */
+function packCards(empty) {
+  if (empty) {
+    return `<h2>Meus packs</h2><div class="box dash" style="max-width:620px;margin-top:14px;padding:20px">
+      <h3>Você ainda não tem packs</h3><p class="muted">Crie um pack do zero ou abra um pack packwiz que já existe no computador.</p>
+      <div class="row">${btn("Criar pack", "criar-1", "primary big")}${btn("Abrir pack existente", "abrir-existente")}</div></div>`;
+  }
+  const row = (n, v, pv, when, test, unsaved, go) => `<tr><td><button type="button" class="b link" data-go="${go}"><span class="ic"></span><b>${n}</b></button></td>
+    <td>${v}</td><td>${pv}</td><td>${test}</td><td>${unsaved}</td><td>${when}</td>
+    <td style="text-align:right;white-space:nowrap">${btn("Abrir", go, "small primary")} ${btn("⋯", "packs-menu", "small")}</td></tr>`;
+  return `<div class="row between"><h2>Meus packs</h2><div class="row">${btn("Abrir pack existente", "abrir-existente")}${btn("Criar pack", "criar-1", "primary")}</div></div>
+    <div class="row" style="margin:10px 0 14px">${input("Buscar pack…")}${select("Ordenar: alterados recentemente")}</div>
+    <table class="t"><tr><th>Pack</th><th>Minecraft e loader</th><th>Versão</th><th>Último teste</th><th>Não salvas</th><th>Alterado</th><th></th></tr>
+      ${row("Vale Sereno", "1.20.1 · Forge 47.3.0", "1.4.2", "hoje às 14:02", "abriu normalmente", "5", "home")}
+      ${row("Técnico Clássico", "1.7.10 · Forge 10.13.4.1614", "2.0.1", "ontem", "<b>travou</b>", "0", "")}
+      ${row("Leve e Bonito", "1.21.1 · Fabric 0.16.5", "0.3.0", "12/09/2026", "nunca testado", "2", "")}
+      <tr><td><span class="ic"></span><b>Antigo Survival</b></td><td colspan="5"><b>Pasta não encontrada:</b> <span class="muted">D:\\Packs\\antigo-survival</span></td>
+        <td style="text-align:right;white-space:nowrap">${btn("Localizar…", "", "small")} ${btn("Remover da lista", "", "small")}</td></tr>
+    </table>`;
+}
+function packMenu() {
+  return `<div class="menu" style="top:200px;right:30px"><button type="button" class="dead" data-go="" title="Não ligado neste rascunho">Mostrar na pasta</button>
+    <button type="button" class="dead" data-go="" title="Não ligado neste rascunho">Remover da lista <span class="small muted">(não apaga arquivos)</span></button>
+    <button type="button" class="dead" data-go="" title="Não ligado neste rascunho">Apagar pack… ${p1()}</button></div>`;
+}
+function createContent(step) {
+  const names = ["Nome e pasta", "Versão do Minecraft", "Loader", "Resumo"];
+  const st = `<div class="steps">${names.map((n, i) => `<div class="${i < step ? "done" : i === step ? "now" : ""}">${i + 1}. ${n}</div>`).join("")}</div>`;
+  let body;
+  if (step === 0) body = `<div class="stack" style="max-width:560px"><div><b>Nome do pack</b>${input("", "Vale Sereno")}</div>
+      <div><b>Autor</b>${input("", "Kriticales")}</div><div><b>Descrição</b> <span class="muted small">(opcional)</span>${input("Uma frase sobre o pack")}</div>
+      <div><b>Pasta</b><div class="row">${input("", "Documentos\\Warden\\vale-sereno")}${btn("Escolher…", "")}</div></div></div>`;
+  else if (step === 1) body = `<div style="max-width:560px"><div class="row">${input("Buscar versão…")}<span class="small muted">Lista de versões de hoje</span></div>
+      <div class="box stack small" style="margin-top:8px">${["1.21.9", "1.21.8", "1.21.1", "1.20.4", "1.20.1", "1.19.2", "1.18.2", "1.16.5", "1.12.2", "1.7.10"].map(v => `<div>${rb(v === "1.20.1")}${v}</div>`).join("")}
+      <div class="muted">… versões anteriores a 1.7.10 aparecem com “melhor esforço”</div></div></div>`;
+  else if (step === 2) body = `<div class="stack" style="max-width:560px"><div class="small muted">Só aparecem os loaders que existem para o Minecraft 1.20.1.</div>
+      <div class="box">${rb(true)}<b>Forge</b> 47.3.0 (recomendada) ${btn("Escolher outra versão", "", "link")}</div>
+      <div class="box">${rb(false)}<b>NeoForge</b> 47.1.106</div><div class="box">${rb(false)}<b>Fabric</b> 0.16.5</div>
+      <div class="box">${rb(false)}<b>Nenhum (vanilla)</b> <span class="muted">só resource packs e shaders</span></div></div>`;
+  else body = `<div class="box stack" style="max-width:560px"><div><b>Vale Sereno</b> por Kriticales</div><div>Minecraft 1.20.1 · Forge 47.3.0 · versão inicial 0.1.0</div>
+      <div class="small muted">Documentos\\Warden\\vale-sereno</div></div>`;
+  const prev = step === 0 ? btn("Cancelar", "packs") : btn("Voltar", "criar-" + step);
+  const next = step === 3 ? btn("Criar pack", "home-new", "primary big") : btn("Próximo", "criar-" + (step + 2), "primary");
+  return `<h2>Criar pack</h2>${st}${body}<div class="row" style="margin-top:18px;max-width:560px;justify-content:space-between">${prev}${next}</div>`;
+}
+function openExistingContent() {
+  return `<h2>Abrir pack existente</h2><div class="muted small">D:\\Packs\\meu-pack-antigo · Minecraft 1.20.1 · NeoForge 47.1.106</div>
+    <div class="box small stack" style="margin-top:12px">
+      <div>✓ pack.toml lido · loader suportado</div><div>✓ Já tem histórico (versão salva mais recente: 1.2.0)</div></div>
+    <div class="box strong" style="margin-top:12px"><h3>Encontramos 3 arquivos que não deveriam ir para quem joga o pack</h3>
+      <table class="t small"><tr><th></th><th>Arquivo</th><th>Tamanho</th><th>Motivo</th></tr>
+      <tr><td>${cb(true)}</td><td>config/x.toml.bak</td><td>4 KB</td><td>cópia de segurança</td></tr>
+      <tr><td>${cb(true)}</td><td>packwiz-installer-bootstrap.jar</td><td>58 KB</td><td>ferramenta, não conteúdo</td></tr>
+      <tr><td>${cb(true)}</td><td>.packwiz.toml</td><td>1 KB</td><td>arquivo de outro programa</td></tr></table>
+      <p class="small muted">Antes de limpar, o Warden guarda um ponto de segurança. Nada some sem volta.</p>
+      <div class="actions">${btn("Agora não", "home")}${btn("Limpar 3 arquivos e abrir", "home", "primary")}</div></div>`;
+}
+function settingsContent() {
+  const sec = (t, inner) => `<div class="box" style="margin-top:12px"><h3>${t}</h3><div class="stack small">${inner}</div></div>`;
+  return `<h2>Configurações</h2><div class="muted small">Valem para o Warden inteiro. O que é de um pack fica dentro do pack.</div>
+    ${sec("Geral", `<div class="row"><b>Pasta dos packs</b>${input("", "Documentos\\Warden")}</div><div class="row"><b>Nome do jogador nos testes</b>${input("", "Jogador")}</div><div>${btn("Rever boas-vindas", "boas-vindas", "link")}</div>`)}
+    ${sec("Teste", `<div class="row"><b>Memória padrão</b>${select("Automático")}</div><div class="row"><b>Javas instalados pelo Warden</b> Java 8, 17, 21 ${btn("Gerenciar", "", "link")}</div><div>${cb(false)}Mostrar versões beta e alpha dos mods</div><div class="row"><b>Verificar atualizações</b>${select("a cada 24 horas")}</div>`)}
+    ${sec("Editor de configs", `<div>${cb(true)}Mostrar as diferenças antes de salvar</div>`)}
+    ${sec("Chaves e contas", `<div class="row"><b>CurseForge</b> Configurada ${btn("Testar", "", "small")}${btn("Substituir", "", "small")}${btn("Remover", "", "small")}</div>
+      <div class="row"><b>Gemini</b> ${input("Cole a chave")}${btn("Salvar", "", "small")}${btn("Como conseguir uma chave", "", "link")}</div>
+      <div class="row"><b>GitHub</b> ${input("Cole o token")}${btn("Salvar", "", "small")}${btn("Como gerar um token", "", "link")}</div>
+      <div class="muted">Guardadas no Gerenciador de Credenciais do Windows. Depois de salvas, não aparecem de novo.</div>`)}
+    ${sec("Privacidade e registros", `<div class="row">${btn("Abrir pasta de registros", "", "small")}<b>Nível de detalhe</b>${select("Normal")}</div>`)}
+    ${sec("Armazenamento " + p1(), `<div>Cache 1,8 GB · Minecraft 2,4 GB · Javas 610 MB · Instâncias 3,1 GB ${btn("Limpar cache", "", "small")}</div>`)}
+    ${sec("Sobre o Warden", `<div>Versão 0.1.0 · packwiz embutido 9066bf8</div><div><b>NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.</b></div><div class="row">${btn("Licenças de terceiros", "", "link")}${btn("Apoiar o Forge", "", "link")}</div>`)}`;
+}
+function welcomeContent() {
+  return `<div style="max-width:620px;margin:8px 0"><div class="steps"><div class="now">1. Aviso</div><div>2. Nome do jogador</div><div>3. Pasta dos packs</div><div>4. Chaves (opcional)</div></div>
+    <h2>Boas-vindas ao Warden</h2>
+    <div class="box stack"><b>NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.</b>
+    <div>O Warden abre o Minecraft em modo offline só para testar seus packs. Você precisa possuir o Minecraft: Java Edition.</div></div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">${btn("Entendi", "packs-vazio", "primary")}</div>
+    <p class="small muted">As próximas etapas pedem o nome do jogador, a pasta dos packs e as chaves (CurseForge, Gemini, GitHub), com “Pular, configuro depois”.</p></div>`;
+}
+function tasksDrawer() {
+  return drawer(`<div class="row between"><h3 style="margin:0">Tarefas</h3>${btn("✕ Fechar", "packs", "link")}</div>
+    <div class="grp">Em andamento</div>
+    <div class="box stack small"><b>Baixando o Minecraft 1.20.1</b><span class="muted">Vale Sereno</span><div class="bar"><i style="width:38%"></i></div><div class="row">${btn("Cancelar", "", "small")}</div></div>
+    <div class="grp">Concluídas</div>
+    <div class="small stack"><div>✓ Verificar atualizações · Leve e Bonito · 14:01</div><div>✗ Enviar ao GitHub · Técnico Clássico · sem internet ${btn("Ver detalhes", "", "link")}</div><div class="muted">… últimas 50</div></div>`);
+}
+
+/* ======================================================================
+   Registro de telas
+   group: app | pack | teste
+   render(alt) -> HTML da janela
+   ====================================================================== */
+const S = {};
+function def(id, o) { S[id] = Object.assign({ id }, o); }
+
+def("boas-vindas", { group: "app", title: "Primeira execução", spec: "T01",
+  render: () => appShell(welcomeContent(), { title: "Primeira execução", noSettings: true }),
+  note: "Aparece só na primeira vez. Não há menu nenhum: é um assistente de 4 etapas.",
+  to: [["Entendi → … → Meus packs (vazio)", "packs-vazio"]] });
+
+def("packs-vazio", { group: "app", title: "Meus packs (vazio)", spec: "T02",
+  render: () => appShell(packCards(true)),
+  note: "Nível do APP. Só existem duas coisas aqui: os packs e as Configurações do app. Nenhum item de pack aparece antes de abrir um pack.",
+  to: [["Criar pack", "criar-1"], ["Abrir pack existente", "abrir-existente"], ["Configurações", "config-app"]] });
+
+def("packs", { group: "app", title: "Meus packs (com packs)", spec: "T02",
+  render: () => appShell(packCards(false)),
+  note: "Tela inicial do app. Cada cartão já mostra o estado do pack (último teste, alterações não salvas). O menu ⋯ guarda as ações raras (mostrar na pasta, remover da lista, apagar).",
+  states: ["Pasta não encontrada (cartão tracejado, com Localizar… e Remover da lista)", "Pack ilegível: “Não foi possível ler este pack” com Ver detalhes"],
+  to: [["Abrir “Vale Sereno” → pack aberto", "home"], ["Criar pack", "criar-1"], ["Abrir pack existente", "abrir-existente"], ["⋯ do cartão", "packs-menu"], ["Tarefas (rodapé)", "tarefas"]] });
+
+def("packs-menu", { group: "app", title: "Meus packs: menu de um pack", spec: "T02", hidden: true,
+  render: () => appShell(packCards(false), { overlay: packMenu() }),
+  note: "Ações raras do cartão ficam escondidas no ⋯ (divulgação progressiva).", to: [["Fechar menu", "packs"]] });
+
+for (let i = 0; i < 4; i++) {
+  def("criar-" + (i + 1), { group: "app", title: "Criar pack: " + ["nome e pasta", "versão do Minecraft", "loader", "resumo"][i], spec: "T03", hidden: i > 0,
+    render: () => appShell(createContent(i), { title: "Criar pack", back: ["Meus packs", "packs"] }),
+    note: "Assistente em 4 etapas, em tela cheia. O indicador de etapas não é menu: só mostra onde você está. Cancelar volta para Meus packs.",
+    states: ["Sem internet e sem cache: “Não foi possível carregar as versões do Minecraft. Verifique a internet.” com Tentar de novo", "Pasta de destino não vazia: recusada antes de gravar, com explicação"],
+    to: i === 3 ? [["Criar pack → pack aberto (vazio)", "home-new"]] : [["Próximo", "criar-" + (i + 2)]] });
+}
+
+def("abrir-existente", { group: "app", title: "Abrir pack existente", spec: "T04",
+  render: () => appShell(openExistingContent(), { title: "Abrir pack existente", back: ["Meus packs", "packs"] }),
+  note: "Depois de escolher a pasta, o Warden confere o pack e oferece limpar o que não deveria ir para quem joga. “Agora não” abre mesmo assim (o aviso volta em Exportar).",
+  states: ["Pack Quilt: “Este pack usa Quilt, que o Warden ainda não suporta.” (não abre)", "Arquivos de controle faltando: oferece adicionar, mostrando a diferença"],
+  to: [["Limpar e abrir → pack aberto", "home"]] });
+
+def("config-app", { group: "app", title: "Configurações (+ Sobre)", spec: "T21, T23",
+  render: () => appShell(settingsContent(), { title: "Configurações", back: ["Meus packs", "packs"], noSettings: true }),
+  note: "Uma página só, rolável, sem submenu. “Sobre” virou a última seção daqui (proposta). Daqui não se chega a nenhum pack: é nível do app.",
+  to: [["← Meus packs", "packs"], ["Rever boas-vindas", "boas-vindas"]] });
+
+def("tarefas", { group: "app", title: "Tarefas em andamento", spec: "T22",
+  render: () => appShell(packCards(false), { overlay: tasksDrawer(), foot: "1 tarefa em andamento" }),
+  note: "Não é item de menu: é a gaveta que abre pelo indicador do rodapé, presente em todas as telas (do app e do pack).",
+  to: [["Fechar", "packs"]] });
+
+/* ---- pack ---- */
+def("painel", { group: "pack", only: "B", title: "Painel do pack (página inicial)", spec: "T05",
+  render: alt => packShell(alt, "painel", painelContent()),
+  note: "Alternativa B: o pack abre numa página única com tudo resumido. “Próximo passo” sugere o que fazer agora. Cada área leva a uma página de detalhe (e volta pelo “← Painel do pack”). Não há menu lateral.",
+  to: [["Testar (cabeçalho)", "teste-checagem"], ["Adicionar", "adicionar"], ["Ver lista completa", "mods"], ["Abrir editor de configs", "configs"], ["Salvar versão", "salvar"], ["Exportar", "exportar"], ["Ver problemas", "problemas"]] });
+
+def("mods", { group: "pack", title: "Mods, resource packs e shaders", spec: "T05, T06, T10",
+  render: alt => packShell(alt, "mods", modsContent()),
+  note: "Uma lista só, agrupada por tipo (Mods, Resource packs, Shaders), no lugar de três abas. Filtros são caixas de seleção, não abas. Em A, esta é a seção inicial do pack.",
+  states: ["Vazio: “Nenhum mod ainda.” com Adicionar mods", "Item com arquivo inválido: linha “Arquivo inválido” com Ver erro (os outros continuam normais)", "Arquivo fora do índice: linha “Fora do índice” com Incluir no pack"],
+  to: [["Clicar no JEI → detalhes", "mods-detalhe"], ["Adicionar", "adicionar"], ["Revisar e atualizar", "atualizar"], ["Testar", "teste-checagem"]] });
+
+def("mods-detalhe", { group: "pack", title: "Detalhes de um mod", spec: "T07, T11",
+  render: alt => packShell(alt, "mods", modsContent(), { overlay: detailDrawer() }),
+  note: "Painel lateral sobre a lista: você não perde o lugar. Ações raras (trocar de versão, fixar, opcional) ficam em “Mais opções”.",
+  to: [["Atualizar", "atualizar"], ["Remover", "remover"], ["Fechar", "mods"]] });
+
+def("atualizar", { group: "pack", title: "Atualizar itens", spec: "T10", hidden: true,
+  render: alt => packShell(alt, "mods", modsContent(), { overlay: updateDialog() }),
+  note: "Revisão antes de atualizar (um item ou vários). Atualizar todos é P1.", to: [["Atualizar 4 itens", "mods"]] });
+
+def("remover", { group: "pack", title: "Remover item", spec: "T06", hidden: true,
+  render: alt => packShell(alt, "mods", modsContent(), { overlay: removeDialog() }),
+  note: "Confirmação que nomeia o item e avisa quem depende dele.", to: [["Remover", "mods"]] });
+
+def("adicionar", { group: "pack", title: "Adicionar mod", spec: "T08",
+  render: alt => packShell(alt, "adicionar", addContent(alt)),
+  note: "Proposta: em vez de 4 abas (Modrinth, CurseForge, Link, Arquivo), um campo só que busca OU aceita um link colado, uma escolha “Onde buscar” e um botão para arquivo do computador. Os filtros do pack (versão e loader) já vêm aplicados.",
+  states: ["Link colado: o campo reconhece Modrinth, CurseForge ou link direto e mostra a pré-visualização", "CurseForge sem chave: “Para buscar na CurseForge, informe sua chave.” com Abrir Configurações", "Arquivo incompatível: bloqueio explicado com Adicionar mesmo assim"],
+  to: [["Adicionar ao pack → dependências", "dependencias"], ["← Voltar", "mods"]] });
+
+def("dependencias", { group: "pack", title: "Dependências ao adicionar", spec: "T09",
+  render: alt => packShell(alt, "adicionar", addContent(alt), { overlay: depsDialog(alt) }),
+  note: "Aparece antes de gravar. Ou entram todos os itens marcados, ou nenhum. Depois de adicionar, a busca continua aberta.",
+  to: [["Adicionar 2 itens → volta à busca", "adicionar"]] });
+
+def("configs", { group: "pack", title: "Configs (editor)", spec: "T12",
+  render: alt => packShell(alt, "configs", configsContent()),
+  note: "Árvore de arquivos + editor. “Mostrando: arquivos do pack / instância de teste” é uma caixa de seleção, não abas. Formulário × Texto (P1) é um modo de ver o mesmo arquivo.",
+  states: ["Arquivo mudou por fora: “Este arquivo foi alterado fora do Warden.” com Recarregar, Ver diferenças, Sobrescrever", "Arquivo acima de 2 MB: só leitura", "*-server.toml em config/: aviso sobre defaultconfigs/"],
+  to: [["Salvar → diferenças", "configs-diff"], ["Testar", "teste-checagem"]] });
+
+def("configs-diff", { group: "pack", title: "Salvar config (diferenças)", spec: "T12", hidden: true,
+  render: alt => packShell(alt, "configs", configsContent(), { overlay: diffDialog() }),
+  note: "Antes de gravar, mostra exatamente o que muda.", to: [["Salvar", "configs"]] });
+
+def("problemas", { group: "pack", title: "Problemas (diagnóstico)", spec: "T14",
+  render: alt => packShell(alt, "problemas", problemsContent()),
+  note: "“Diagnóstico” virou “Problemas”: o nome diz o que há dentro. Cada problema tem explicação, evidência e o botão que corrige. O diagnóstico de um travamento aparece no resultado do teste e fica linkado aqui.",
+  states: ["Nenhum problema: “Nenhum problema encontrado.” com a hora da última verificação"],
+  to: [["Adicionar Balm", "dependencias"], ["Ver o que causou (travamento)", "teste-travou"]] });
+
+def("historico", { group: "pack", title: "Histórico (versões salvas)", spec: "T16, T17, T18",
+  render: alt => packShell(alt, "historico", historyContent()),
+  note: "Alterações não salvas no topo, GitHub numa linha, e a lista de versões. Pontos de segurança (P1) ficam num link discreto no fim.",
+  to: [["Salvar versão", "salvar"], ["Enviar ao GitHub", "enviado"], ["Voltar para esta versão", "voltar"]] });
+
+def("salvar", { group: "pack", title: "Salvar versão", spec: "T16",
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: saveDialog() }),
+  note: "Abre de qualquer lugar do pack pelo botão do cabeçalho. Número sugerido com o motivo e resumo automático.",
+  to: [["Salvar versão 1.5.0", "salvo"]] });
+
+def("salvo", { group: "pack", title: "Versão salva → próximos passos", spec: "T16, T18, T19", hidden: true,
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: savedDialog(), saved: true }),
+  note: "Depois de salvar, o próprio aviso oferece o próximo passo natural: exportar ou enviar ao GitHub.",
+  to: [["Exportar esta versão", "exportar"], ["Enviar ao GitHub", "enviado"]] });
+
+def("enviado", { group: "pack", title: "Enviado ao GitHub", spec: "T18", hidden: true,
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: sentDialog() }),
+  note: "Resultado do envio. A primeira vez pede para conectar o pack a um repositório privado.", to: [["Fechar", "historico"]] });
+
+def("voltar", { group: "pack", title: "Voltar para uma versão", spec: "T17", hidden: true,
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: rollbackDialog() }),
+  note: "Confirmação que explica o que acontece e que nada se perde.", to: [["Voltar para 1.3.0", "historico"]] });
+
+def("exportar", { group: "pack", title: "Exportar", spec: "T19",
+  render: alt => packShell(alt, "exportar", exportContent()),
+  note: "Uma página de cima para baixo: conferências → formato → o que vai → exportar. Sem abas.",
+  to: [["Exportar", "exportado"], ["Salvar versão antes", "salvar"], ["Ver problemas", "problemas"]] });
+
+def("exportado", { group: "pack", title: "Exportado", spec: "T19", hidden: true,
+  render: alt => packShell(alt, "exportar", exportContent(), { overlay: exportedDialog() }),
+  note: "Mensagem final com Abrir pasta.", to: [["Fechar", "exportar"]] });
+
+def("info", { group: "pack", title: "Informações do pack", spec: "T11",
+  render: alt => packShell(alt, alt === "A" ? "mods" : "painel", alt === "A" ? modsContent() : painelContent(), { overlay: infoDialog() }),
+  note: "“Ajustes do pack” deixou de ser seção: nome, autor e descrição abrem pelo “Editar informações” ao lado do nome. Os ajustes do teste foram para o menu do Testar.",
+  to: [["Salvar", "home"]] });
+
+def("testar-menu", { group: "teste", title: "Menu do Testar (▾)", spec: "T11, T13",
+  render: alt => packShell(alt, alt === "A" ? "mods" : "painel", alt === "A" ? modsContent() : painelContent(), { overlay: testMenu() }),
+  note: "O ▾ ao lado do Testar guarda o que é do teste mas é raro: ajustes de memória/Java, testar como o jogador recebe, pasta da instância, apagar mundos.",
+  to: [["Testar", "teste-checagem"], ["Ajustes do teste…", "ajustes-teste"]] });
+
+def("ajustes-teste", { group: "teste", title: "Ajustes do teste", spec: "T11", hidden: true,
+  render: alt => packShell(alt, alt === "A" ? "mods" : "painel", alt === "A" ? modsContent() : painelContent(), { overlay: testSettingsDialog() }),
+  note: "Ajustes que valem só neste computador e não entram no pack.", to: [["Salvar ajustes", "home"]] });
+
+def("teste-checagem", { group: "teste", title: "1. Checagem antes do teste", spec: "T13, T14",
+  render: alt => packShell(alt, "teste", testCheck(), { overlay: testCheckDialog(), game: "preparing" }),
+  note: "Testar é o botão grande do cabeçalho, visível em todas as telas do pack. Ao clicar, a área principal vira a tela do teste (não é uma seção do menu). Se houver erro, a checagem para e explica; dá para corrigir ali mesmo.",
+  to: [["Testar mesmo assim", "teste-preparo"], ["Adicionar Balm", "dependencias"], ["Cancelar → Problemas", "problemas"]] });
+
+def("teste-preparo", { group: "teste", title: "2. Preparação (download)", spec: "T13",
+  render: alt => packShell(alt, "teste", testPrep(), { game: "preparing" }),
+  note: "Indicador das 5 etapas sempre visível, com progresso real e cancelamento.",
+  to: [["(pedido de download manual)", "teste-manual"]] });
+
+def("teste-manual", { group: "teste", title: "3. Download manual da CurseForge", spec: "T20",
+  render: alt => packShell(alt, "teste", testManual(), { game: "preparing" }),
+  note: "Só aparece quando um mod da CurseForge bloqueia downloads por outros apps. Faz parte do fluxo do teste, não é tela solta.",
+  to: [["Selecionar arquivo baixado → jogo abre", "teste-jogo"]] });
+
+def("teste-jogo", { group: "teste", title: "4. Jogo aberto (console)", spec: "T13",
+  render: alt => packShell(alt, "teste", testRunning(), { game: "running" }),
+  note: "Enquanto o jogo está aberto, o botão Testar vira “● Jogo aberto: ver teste”: de qualquer seção você volta ao console em um clique. “Editar configs do teste” abre o editor já na instância.",
+  to: [["Editar configs do teste", "configs-instancia"], ["Parar jogo", "parar"], ["(jogo fecha)", "teste-fechou"], ["(jogo trava)", "teste-travou"]] });
+
+def("parar", { group: "teste", title: "Parar jogo", spec: "T13", hidden: true,
+  render: alt => packShell(alt, "teste", testRunning(), { game: "running", overlay: stopDialog() }),
+  note: "Confirmação com a consequência.", to: [["Parar jogo", "teste-fechou"]] });
+
+def("configs-instancia", { group: "teste", title: "Editar configs durante o teste", spec: "T12, T13",
+  render: alt => packShell(alt, "configs", configsContent({ instance: true }), { game: "running" }),
+  note: "Mesmo editor, mas mostrando a instância de teste, com aviso fixo de que isso vale só para o teste.",
+  to: [["Voltar ao teste", "teste-jogo"]] });
+
+def("teste-fechou", { group: "teste", title: "5. Jogo fechou → o que mudou", spec: "T13, T15",
+  render: alt => packShell(alt, "teste", testClosed()),
+  note: "Proposta: “Revisar mudanças do teste” deixa de ser tela separada e vira o próprio resultado do teste. Só aparecem mudanças reais; o que é lixo nunca aparece.",
+  states: ["Conflito (o mesmo arquivo mudou no pack e no jogo): mostra as três versões com Manter a do pack, Usar a da instância, Editar e combinar", "Decidir depois: o cabeçalho mostra “Mudanças do teste para revisar”"],
+  to: [["Trazer selecionados", "trazido"], ["Decidir depois", "home-review"], ["Testar de novo", "teste-checagem"]] });
+
+def("trazido", { group: "teste", title: "Mudanças trazidas", spec: "T15, T16", hidden: true,
+  render: alt => packShell(alt, "teste", testClosed(), { overlay: broughtDialog() }),
+  note: "Confirma onde as mudanças foram parar e oferece o próximo passo natural.",
+  to: [["Salvar versão", "salvar"], ["Continuar editando", "home"]] });
+
+def("teste-travou", { group: "teste", title: "5b. Jogo travou → diagnóstico", spec: "T13, T14",
+  render: alt => packShell(alt, "teste", testCrashed()),
+  note: "O diagnóstico do travamento aparece no próprio resultado, com a evidência e a correção. A IA (P1) é a segunda opção, sempre com consentimento.",
+  states: ["Sem conclusão: “Não encontramos a causa automaticamente.” com Pedir ajuda à IA e Abrir crash report"],
+  to: [["Adicionar Balm", "dependencias"], ["Pedir ajuda à IA", "teste-ia"], ["Testar de novo", "teste-checagem"]] });
+
+def("teste-ia", { group: "teste", title: "Pedir ajuda à IA (consentimento)", spec: "T14",
+  render: alt => packShell(alt, "teste", testCrashed(), { overlay: aiDialog() }),
+  note: "Sempre pergunta. Mostra o texto exato, já sem dados pessoais. Cancelar não envia nada.",
+  to: [["Enviar / Cancelar", "teste-travou"]] });
+
+function emptyPackContent(alt) {
+  const inner = `<h2>${alt === "A" ? "Mods, resource packs e shaders" : "Pack criado"}</h2>
+    <div class="box dash" style="max-width:620px;margin-top:14px;padding:20px">
+      <h3>Nenhum mod ainda</h3><p class="muted">O pack Vale Sereno foi criado para Minecraft 1.20.1 com Forge 47.3.0. Comece adicionando mods, resource packs ou shaders.</p>
+      <div class="row">${btn("Adicionar mods", "adicionar", "primary big")}</div>
+      <p class="small muted">Ou arraste arquivos .jar e .zip para cá.</p></div>`;
+  return inner;
+}
+def("pack-novo", { group: "pack", title: "Pack recém-criado (vazio)", spec: "T03, T06", hidden: true,
+  render: alt => packShell(alt, alt === "A" ? "mods" : "painel", emptyPackContent(alt), { noProblems: true }),
+  note: "Logo depois de criar, o pack abre direto no lugar de adicionar mods, com uma ação só.",
+  to: [["Adicionar mods", "adicionar"]] });
+def("pack-revisar", { group: "pack", title: "Pack com mudanças do teste para revisar", spec: "T05, T15", hidden: true,
+  render: alt => packShell(alt, alt === "A" ? "mods" : "painel", alt === "A" ? modsContent() : painelContent(), { review: true }),
+  note: "Quem escolhe “Decidir depois” vê o aviso “Mudanças do teste para revisar” no cabeçalho, em qualquer tela do pack, até resolver.",
+  to: [["Mudanças do teste para revisar", "teste-fechou"]] });
+
+/* destinos especiais */
+const ALIAS = {
+  "home": alt => (alt === "A" ? "mods" : "painel"),
+  "home-new": () => "pack-novo",
+  "home-review": () => "pack-revisar",
+};
+
+/* ======================================================================
+   Mapa e fluxos (páginas do visualizador)
+   ====================================================================== */
+function L(id, label) { return `<a href="#${state.alt}/${id}">${label}</a>`; }
+function mapPage() {
+  const a = state.alt;
+  const treeA =
+`Primeira execução (assistente, só na 1ª vez)
+│
+${L("packs", "MEUS PACKS")}  ← nível do APP: só packs e Configurações
+├── ${L("criar-1", "Criar pack")} (assistente 4 etapas)
+├── ${L("abrir-existente", "Abrir pack existente")} (+ limpeza)
+├── ${L("config-app", "Configurações")} (inclui “Sobre o Warden”)
+└── [Abrir um pack] ───────────────────────────────────────────
+    PACK ABERTO  ← nível do PACK
+    Cabeçalho fixo: ← Meus packs · nome · Minecraft/loader/versão
+                    avisos · [Salvar versão] · [▶ Testar ▾]
+    Menu lateral (só existe dentro do pack):
+    ├── ${L("mods", "Mods")} ........ mods, resource packs e shaders (lista única)
+    │   ├── ${L("mods-detalhe", "detalhes")} (painel lateral)
+    │   └── ${L("adicionar", "Adicionar")} → ${L("dependencias", "dependências")}
+    ├── ${L("configs", "Configs")} ..... arquivos de ajuste dos mods e do jogo
+    ├── ${L("problemas", "Problemas")} ... o que pode impedir o jogo de abrir
+    ├── ${L("historico", "Histórico")} ... versões salvas, GitHub
+    └── ${L("exportar", "Exportar")} .... gerar o pack para quem vai jogar
+    Fora do menu (contextual):
+    ├── ${L("teste-checagem", "Testar")} → tela do teste (etapas → jogo → resultado)
+    ├── ${L("salvar", "Salvar versão")} (diálogo)
+    ├── ${L("info", "Editar informações")} (diálogo)
+    └── ${L("testar-menu", "▾ do Testar")}: ajustes do teste, pasta da instância…
+Rodapé em todas as telas: ${L("tarefas", "Tarefas")} (gaveta)`;
+  const treeB =
+`Primeira execução (assistente, só na 1ª vez)
+│
+${L("packs", "MEUS PACKS")}  ← nível do APP: só packs e Configurações
+├── ${L("criar-1", "Criar pack")} (assistente 4 etapas)
+├── ${L("abrir-existente", "Abrir pack existente")} (+ limpeza)
+├── ${L("config-app", "Configurações")} (inclui “Sobre o Warden”)
+└── [Abrir um pack] ───────────────────────────────────────────
+    ${L("painel", "PAINEL DO PACK")}  ← nível do PACK (página única, sem menu lateral)
+    Cabeçalho fixo: ← Meus packs · nome · Minecraft/loader/versão
+                    avisos · [Salvar versão] · [▶ Testar ▾]
+    Faixa “Próximo passo” + situação (problemas, último teste, não salvas)
+    Áreas (cada uma abre uma página de detalhe com “← Painel do pack”):
+    ├── Mods, resource packs e shaders → ${L("mods", "lista completa")}, ${L("adicionar", "Adicionar")}
+    ├── Configs → ${L("configs", "editor")}
+    ├── Versões → ${L("historico", "histórico")}, ${L("salvar", "Salvar versão")}, GitHub
+    └── Exportar → ${L("exportar", "página de exportação")}
+    Páginas sem área própria: ${L("problemas", "Problemas")} (pela faixa/situação),
+    ${L("teste-checagem", "Teste")} (pelo botão Testar)
+Rodapé em todas as telas: ${L("tarefas", "Tarefas")} (gaveta)`;
+  return `<div class="doc"><h2>Mapa do app · Alternativa ${a}</h2>
+    <p>${a === "A"
+      ? "<b>A · Seções do pack.</b> Dentro de um pack há um menu lateral com 5 seções fixas, cada uma com nome e uma linha dizendo o que tem dentro. Testar e Salvar versão ficam no cabeçalho, fora do menu."
+      : "<b>B · Painel do pack.</b> O pack abre numa página única que resume tudo e sugere o próximo passo. Cada área leva a uma página de detalhe; voltar é sempre “← Painel do pack”. Não existe menu lateral."}</p>
+    <div class="maptree">${treeA === "" ? "" : (a === "A" ? treeA : treeB)}</div>
+    <h3>Como os 4 problemas do protótipo reprovado foram resolvidos</h3>
+    <table class="cmp"><tr><th>Problema</th><th>Solução (vale para A e B)</th></tr>
+      <tr><td>1. Menu misturado (itens do app e do pack juntos, até sem pack aberto)</td><td>Dois níveis separados. Sem pack aberto não existe nenhum item de pack. Dentro do pack, o cabeçalho sempre mostra qual pack é e tem “← Meus packs”. Configurações do app só no nível do app.</td></tr>
+      <tr><td>2. Abas dentro de abas</td><td>Mods, resource packs e shaders numa lista única agrupada; Adicionar com um campo só (busca ou link) em vez de 4 abas; Configs com seletor de origem; Exportar e Histórico como páginas corridas. No máximo um nível de navegação visível.</td></tr>
+      <tr><td>3. Nomes pouco claros</td><td>Cada seção tem nome + uma linha dizendo o que tem dentro. “Diagnóstico” virou “Problemas”; “Ajustes do pack” foi desfeito; “Versões” virou “Histórico” (A) ou área “Versões” com o número atual à vista (B).</td></tr>
+      <tr><td>4. Itens demais</td><td>De 9 abas + 4 itens de menu para 5 seções (A) ou 4 áreas (B). Teste, Ajustes, Tarefas e Sobre deixaram de ser itens: viraram botão, menu do Testar, gaveta e seção de Configurações.</td></tr></table>
+    <h3>Recomendação</h3>
+    <p><b>Alternativa A.</b> O trabalho do dia a dia é um vai e vem rápido entre mods, configs e teste. Em A cada lugar está a um clique, sempre na mesma posição, e o cabeçalho já mostra a situação do pack (problemas, não salvas, teste). Em B cada troca passa pelo painel (dois cliques) e o painel tende a crescer com o tempo. Da B, a A herda a ideia de sugerir o próximo passo: os avisos do cabeçalho e o diálogo pós-salvar fazem esse papel.</p>
+    <p class="small">Use o seletor no topo para trocar entre A e B; as telas comuns (Meus packs, Criar, Testar, Configurações) são iguais nas duas. Marque “Mostrar o que é clicável” para ver as ligações.</p></div>`;
+}
+
+const FLOWS = [
+  { name: "1. Primeiro uso: criar o primeiro pack", steps: {
+      A: [["boas-vindas", "Boas-vindas"], ["packs-vazio", "Meus packs (vazio)"], ["criar-1", "Criar: nome"], ["criar-2", "versão"], ["criar-3", "loader"], ["criar-4", "resumo"], ["pack-novo", "Pack aberto em Mods (vazio)"]],
+      B: [["boas-vindas", "Boas-vindas"], ["packs-vazio", "Meus packs (vazio)"], ["criar-1", "Criar: nome"], ["criar-2", "versão"], ["criar-3", "loader"], ["criar-4", "resumo"], ["pack-novo", "Painel do pack (vazio)"]] },
+    acts: ["Entendi", "Criar pack", "Próximo", "Próximo", "Próximo", "Criar pack"] },
+  { name: "2. Adicionar mods", steps: {
+      A: [["packs", "Meus packs"], ["mods", "Mods"], ["adicionar", "Adicionar (busca)"], ["dependencias", "Dependências"], ["adicionar", "Continua buscando"], ["mods", "Mods"]],
+      B: [["packs", "Meus packs"], ["painel", "Painel"], ["adicionar", "Adicionar (busca)"], ["dependencias", "Dependências"], ["adicionar", "Continua buscando"], ["painel", "Painel"]] },
+    acts: ["Abrir", "Adicionar", "Adicionar ao pack", "Adicionar 2 itens", "← Voltar"] },
+  { name: "3. Ajustar configs, testar e trazer o que mudou", steps: {
+      A: [["configs", "Configs"], ["configs-diff", "Salvar (diferenças)"], ["teste-checagem", "Testar: checagem"], ["teste-preparo", "Preparação"], ["teste-jogo", "Jogo aberto"], ["configs-instancia", "Configs do teste"], ["teste-fechou", "O que mudou"], ["trazido", "Trazidas → Salvar versão"]],
+      B: [["painel", "Painel"], ["configs", "Configs"], ["configs-diff", "Salvar (diferenças)"], ["teste-checagem", "Testar: checagem"], ["teste-preparo", "Preparação"], ["teste-jogo", "Jogo aberto"], ["configs-instancia", "Configs do teste"], ["teste-fechou", "O que mudou"], ["trazido", "Trazidas → Salvar versão"]] },
+    actsA: ["Salvar", "▶ Testar", "Testar mesmo assim", "(jogo abre)", "Editar configs do teste", "(jogo fecha)", "Trazer selecionados"],
+    actsB: ["Abrir editor", "Salvar", "▶ Testar", "Testar mesmo assim", "(jogo abre)", "Editar configs do teste", "(jogo fecha)", "Trazer selecionados"] },
+  { name: "4. O jogo travou: entender e corrigir", steps: {
+      A: [["teste-jogo", "Jogo aberto"], ["teste-travou", "Travou: por que"], ["dependencias", "Adicionar Balm"], ["teste-checagem", "Testar de novo"]],
+      B: [["teste-jogo", "Jogo aberto"], ["teste-travou", "Travou: por que"], ["dependencias", "Adicionar Balm"], ["teste-checagem", "Testar de novo"]] },
+    acts: ["(jogo trava)", "Adicionar Balm", "▶ Testar"], extra: [["teste-ia", "Se a causa não aparecer: Pedir ajuda à IA (com consentimento)"]] },
+  { name: "5. Salvar versão, exportar e enviar ao GitHub", steps: {
+      A: [["mods", "Qualquer seção"], ["salvar", "Salvar versão"], ["salvo", "Versão salva"], ["exportar", "Exportar"], ["exportado", "Exportado"], ["historico", "Histórico"], ["enviado", "Enviado ao GitHub"]],
+      B: [["painel", "Painel"], ["salvar", "Salvar versão"], ["salvo", "Versão salva"], ["exportar", "Exportar"], ["exportado", "Exportado"], ["historico", "Histórico"], ["enviado", "Enviado ao GitHub"]] },
+    acts: ["Salvar versão (cabeçalho)", "Salvar versão 1.5.0", "Exportar esta versão", "Exportar", "Histórico", "Enviar ao GitHub"] },
+];
+function flowsPage() {
+  const a = state.alt;
+  const html = FLOWS.map(f => {
+    const st = f.steps[a];
+    const acts = f["acts" + a] || f.acts;
+    const parts = st.map((s, i) => (i ? `<span class="arr">→</span><span class="act">${acts[i - 1] || ""}</span><span class="arr">→</span>` : "") + L(s[0], s[1]));
+    const extra = (f.extra || []).map(e => `<div class="small">↳ ${L(e[0], e[1])}</div>`).join("");
+    return `<h3>${f.name}</h3><div class="flow">${parts.join("")}</div>${extra}<div class="small">${st.length - 1} cliques/etapas</div>`;
+  }).join("");
+  return `<div class="doc"><h2>Fluxos principais · Alternativa ${a}</h2>
+    <p>Cada caixa abre a tela correspondente; o texto em itálico é o botão que leva à próxima. O caminho do dia a dia é: abrir pack → adicionar mods → ajustar configs → testar → ver o que mudou → salvar versão → exportar.</p>${html}</div>`;
+}
+
+/* ======================================================================
+   Visualizador: estado, índice e navegação
+   ====================================================================== */
+const state = { alt: "A", screen: "mapa" };
+function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* sem armazenamento: ignora */ } }
+
+function resolve(id) {
+  if (ALIAS[id]) id = ALIAS[id](state.alt);
+  if (S[id] && S[id].only && S[id].only !== state.alt) id = ALIAS.home(state.alt);
+  return id;
+}
+function go(id) { location.hash = state.alt + "/" + resolve(id); }
+
+function buildIndex() {
+  const groups = [["Visão geral", null], ["Nível do app", "app"], ["Nível do pack", "pack"], ["Testar", "teste"]];
+  let html = "", opts = "";
+  for (const [label, g] of groups) {
+    html += `<h2>${label}</h2>`;
+    opts += `<optgroup label="${label}">`;
+    if (!g) {
+      html += `<a href="#${state.alt}/mapa" data-id="mapa">Mapa e recomendação</a><a href="#${state.alt}/fluxos" data-id="fluxos">Fluxos principais</a>`;
+      opts += `<option value="mapa">Mapa e recomendação</option><option value="fluxos">Fluxos principais</option>`;
+    } else {
+      for (const s of Object.values(S)) {
+        if (s.group !== g || (s.only && s.only !== state.alt)) continue;
+        if (s.hidden) continue;
+        html += `<a href="#${state.alt}/${s.id}" data-id="${s.id}">${s.title} <span class="spec">${s.spec}</span></a>`;
+        opts += `<option value="${s.id}">${esc(s.title)}</option>`;
+      }
+    }
+    opts += `</optgroup>`;
+  }
+  html += `<h2>Outras telas</h2><div class="spec" style="padding:0 6px">Diálogos e menus (atualizar, remover, salvo, exportado, voltar versão, parar jogo…) abrem clicando nas próprias telas.</div>`;
+  document.getElementById("idx").innerHTML = html;
+  document.getElementById("idxsel").innerHTML = opts;
+}
+
+function render() {
+  const view = document.getElementById("view");
+  const id = state.screen;
+  if (id === "mapa") view.innerHTML = mapPage();
+  else if (id === "fluxos") view.innerHTML = flowsPage();
+  else {
+    const s = S[id];
+    const link = ([label, to]) => `<li><a href="#${state.alt}/${resolve(to)}">${label}</a></li>`;
+    const from = Object.values(S).filter(o => (o.to || []).some(t => resolve(t[1]) === id) && o.id !== id && !(o.only && o.only !== state.alt))
+      .slice(0, 6).map(o => `<li><a href="#${state.alt}/${o.id}">${o.title}</a></li>`).join("");
+    view.innerHTML = `<div class="note"><h2>${s.title}</h2>
+      <div class="meta">SPEC: ${s.spec} · ${s.group === "app" ? "nível do app (igual em A e B)" : "nível do pack · Alternativa " + state.alt}</div>
+      <p>${s.note || ""}</p>
+      <div class="arrows"><div><b>← Chega aqui por</b><ul>${from || "<li>início do app</li>"}</ul></div>
+        <div><b>→ Daqui vai para</b><ul>${(s.to || []).map(link).join("")}</ul></div></div>
+      ${s.states ? `<div class="states"><b>Outros estados desta tela:</b> ${s.states.join(" · ")}</div>` : ""}</div>
+      ${win(s.render(state.alt))}`;
+  }
+  document.querySelectorAll("#idx a").forEach(a => a.setAttribute("aria-current", a.dataset.id === id ? "page" : "false"));
+  document.getElementById("idxsel").value = id;
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.alt === state.alt)));
+}
+
+function fromHash() {
+  const m = (location.hash || "").replace(/^#/, "").split("/");
+  const alt = m[0] === "B" ? "B" : m[0] === "A" ? "A" : (storeGet("warden-estrutura-alt") || "A");
+  let id = m[1] || "mapa";
+  const altChanged = alt !== state.alt;
+  state.alt = alt;
+  if (id !== "mapa" && id !== "fluxos") { id = resolve(id); if (!S[id]) id = "mapa"; }
+  state.screen = id;
+  storeSet("warden-estrutura-alt", alt);
+  if (altChanged || !document.getElementById("idx").innerHTML) buildIndex();
+  render();
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener("click", e => {
+  const altBtn = e.target.closest(".seg button");
+  if (altBtn) { const cur = state.screen; location.hash = altBtn.dataset.alt + "/" + cur; return; }
+  const nav = e.target.closest("[data-nav]");
+  if (nav) { e.preventDefault(); location.hash = state.alt + "/" + nav.dataset.nav; return; }
+  const g = e.target.closest(".win [data-go]");
+  if (g && g.dataset.go) { e.preventDefault(); go(g.dataset.go); }
+});
+document.getElementById("idxsel").addEventListener("change", e => { location.hash = state.alt + "/" + e.target.value; });
+document.getElementById("showclick").addEventListener("change", e => {
+  document.body.classList.toggle("showclick", e.target.checked);
+  storeSet("warden-estrutura-click", e.target.checked ? "1" : "0");
+});
+if (storeGet("warden-estrutura-click") === "1") { document.getElementById("showclick").checked = true; document.body.classList.add("showclick"); }
+window.addEventListener("hashchange", fromHash);
+state.alt = "";
+fromHash();
+</script>
+</body>
+</html>
