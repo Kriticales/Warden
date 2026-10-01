@@ -126,7 +126,7 @@ Regras do monorepo:
 | `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P2: `.mrpack`/CurseForge via sidecar. | core, packwiz, packwiz-cli, project |
 | `warden-secrets` | Cofre do sistema (`keyring`), `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
-| `xtask` | `setup`, `dev`, `build-packwiz`, `fixtures-packwiz`, `bindings`, `check`, `check-deps`, `coverage`, `win-dev`, `win-install`, `test-network`. | — (ferramenta) |
+| `xtask` | `setup`, `dev`, `build-packwiz`, `fixtures-packwiz`, `bindings`, `check`, `check-deps`, `check-docs`, `coverage`, `win-dev`, `win-install`, `test-network`. | — (ferramenta) |
 
 Grafo sem ciclos; `warden-core` não depende de ninguém. Nenhuma crate de domínio chama outra "para cima" (ex.: `warden-instance` não depende de `warden-project`; quem orquestra é `warden-app`).
 
@@ -718,6 +718,7 @@ mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (
 - CurseForge: chave do cofre no cabeçalho `x-api-key`; lote (`POST /v1/mods`, `POST /v1/mods/files`, `POST /v1/fingerprints/432`); concorrência máxima 4; **nada persistido** (cache só em memória durante a sessão; `downloadUrl` nunca gravada).
 - Mojang, Fabric meta, Maven do Forge/NeoForge: catálogo com cache (manifesto revalidado a cada 6 h; JSON de versão por `sha1`).
 - Sem internet: erros `NETWORK_UNAVAILABLE` (retryable) e uso do que houver em cache.
+- Testes: em build de debug, a URL base de cada API pode ser trocada por variável de ambiente (`WARDEN_API_BASE_MODRINTH`, `WARDEN_API_BASE_CURSEFORGE`, `WARDEN_API_BASE_MOJANG`, `WARDEN_API_BASE_FABRIC`, `WARDEN_API_BASE_FORGE`, `WARDEN_API_BASE_NEOFORGE`, `WARDEN_API_BASE_ADOPTIUM`, `WARDEN_API_BASE_GITHUB`, `WARDEN_API_BASE_GEMINI`), apontando para o servidor local de fixtures usado pelos E2E (`apps/desktop/e2e/mock-server/`). Em release essas variáveis são ignoradas.
 
 ## 18. Frontend
 
@@ -760,7 +761,7 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 | Ids | `ulid`, `uuid` | `PackId` ordenável; UUID offline. |
 | Versões | `semver`; FlexVer e faixas Maven próprias | R3 §5.6. |
 | Windows | `windows` (Job Objects) | Encerramento da árvore de processos. |
-| Testes | `cargo-nextest`, `insta` (dourados), `wiremock`, `tempfile`, `proptest`, `cargo-llvm-cov`, `cargo-deny` | QUALITY §4. |
+| Testes | `cargo-nextest`, `insta` (dourados), `wiremock`, `tempfile`, `proptest`, `criterion`, `cargo-llvm-cov`, `cargo-deny` | QUALITY §4. |
 
 ### 19.2 Frontend
 
