@@ -264,7 +264,7 @@ const SECTIONS = [
   ["configs", "Configs", "Arquivos de ajuste dos mods e do jogo", ""],
   ["problemas", "Problemas", "O que pode impedir o jogo de abrir", "3"],
   ["ia", '<i aria-hidden="true" style="font-style:normal">✦</i> Diagnóstico com IA', "Pedir à IA para explicar um travamento", ""],
-  ["historico", "Histórico", "Versões salvas e o que mudou", "5 não salvas"],
+  ["historico", "Histórico", "Versões salvas e publicação", "5 não salvas"],
   ["exportar", "Exportar", "Gerar o pack para quem vai jogar", ""],
 ];
 const TITLES = { mods: "Mods, resource packs e shaders", adicionar: "Adicionar", configs: "Configs", problemas: "Problemas", ia: "Diagnóstico com IA",
@@ -488,18 +488,32 @@ function problemsContent() {
     <div class="box row between"><span class="small">Teste de 30/09 às 21:14 travou com 48 s de jogo.</span><span class="row">${btn("Ver o que causou", "teste-travou")}${btn('<span aria-hidden="true">✦</span> Analisar com IA', "ia")}</span></div>`;
 }
 
+// Publicação (decisão do dono, 01/10/2026): salvar é local; uma versão salva marcada como
+// versão final pode ser publicada no GitHub, de onde os jogadores atualizam pelo link do pack.toml.
+const PACK_LINK = "https://raw.githubusercontent.com/kriticales/vale-sereno/main/pack.toml";
 function historyContent() {
-  const vers = [["1.4.2", "28/09/2026", "2 mods atualizados, 1 config alterada"], ["1.4.0", "20/09/2026", "3 mods adicionados, 1 shader"], ["1.3.0", "02/09/2026", "Create atualizado, 5 configs"], ["1.0.0", "15/08/2026", "Primeira versão"]];
-  return `<h2>Histórico</h2><div class="muted small">Cada versão salva guarda o pack inteiro. Dá para ver o que mudou e voltar a qualquer uma.</div>
+  // versão, data, resumo, estado
+  const vers = [["1.4.2", "28/09/2026", "2 mods atualizados, 1 config alterada", "final"],
+    ["1.4.1", "24/09/2026", "Ajuste de configs do Create", "salva"],
+    ["1.4.0", "20/09/2026", "3 mods adicionados, 1 shader", "publicada"],
+    ["1.3.0", "02/09/2026", "Create atualizado, 5 configs", "publicada"]];
+  const state = v => v === "publicada" ? '<span class="tag info">Publicada</span>'
+    : v === "final" ? '<span class="tag warn">Versão final · não publicada</span>' : '<span class="muted small">Só salva</span>';
+  const act = v => v === "final" ? btn("Publicar versão", "publicar", "small primary")
+    : v === "salva" ? btn("Marcar como versão final", "", "small") : "";
+  return `<h2>Histórico</h2><div class="muted small">Salvar versão guarda o pack só neste computador. Os jogadores só recebem as versões que você publica.</div>
     <div class="box strong" style="margin-top:12px"><div class="row between"><h3>Alterações não salvas (5)</h3>${btn("Salvar versão", "salvar", "primary")}</div>
       <div class="grid2 small"><div><b>Adicionados</b><br>Sophisticated Backpacks 3.20.17<br>Sophisticated Core 0.6.26</div>
       <div><b>Atualizados</b><br>JEI 15.20.0.106 → 15.20.0.112<br><b>Configs alteradas</b><br>config/create-common.toml · options.txt</div></div>
       <div class="small muted" style="margin-top:6px">Descartar a alteração de um arquivo ${p1()}</div></div>
-    <div class="box row between" style="margin-top:10px"><span class="small"><b>GitHub:</b> kriticales/vale-sereno (privado) · 1 versão não enviada</span>${btn("Enviar ao GitHub", "enviado")}</div>
-    <h3 style="margin-top:16px">Versões salvas</h3>
-    <table class="t">${vers.map((v, i) => `<tr><td><b>${v[0]}</b></td><td>${v[1]}</td><td>${v[2]}</td>
-      <td style="text-align:right">${btn(i === 0 ? "▾ Fechar" : "▸ Ver mudanças", "", "link")}${i === 2 ? btn("Voltar para esta versão", "voltar", "small") : ""}</td></tr>
-      ${i === 0 ? `<tr><td></td><td colspan="3"><div class="code" style="white-space:pre-wrap">## 1.4.2 (28/09/2026)\n### Atualizados\n- Create 0.5.1.i → 0.5.1.j\n- Embeddium 0.3.30 → 0.3.31\n### Configs alteradas\n- config/create-common.toml</div>
+    <div class="box" style="margin-top:10px"><div class="row between"><h3>Publicação para os jogadores</h3>${btn("Como os jogadores instalam", "publicado", "link")}</div>
+      <div class="small">GitHub: <b>kriticales/vale-sereno</b> (público) · versão publicada: <b>1.4.0</b>, em 20/09/2026</div>
+      <div class="row small" style="margin-top:6px"><b>Link do pack</b><span class="in val" style="font-family:var(--mono);font-size:12px">${PACK_LINK}</span>${btn("Copiar link", "", "small")}</div>
+      <div class="small muted" style="margin-top:4px">Quem joga com este link recebe as atualizações sozinho ao abrir o jogo.</div></div>
+    <h3 style="margin-top:16px">Versões</h3>
+    <table class="t">${vers.map((v, i) => `<tr><td><b>${v[0]}</b></td><td>${v[1]}</td><td>${v[2]}</td><td>${state(v[3])}</td>
+      <td style="text-align:right;white-space:nowrap">${act(v[3])} ${btn(i === 0 ? "▾ Fechar" : "▸ Ver mudanças", "", "link")}${i === 3 ? btn("Voltar para esta versão", "voltar", "small") : ""}</td></tr>
+      ${i === 0 ? `<tr><td></td><td colspan="4"><div class="code" style="white-space:pre-wrap">## 1.4.2 (28/09/2026)\n### Atualizados\n- Create 0.5.1.i → 0.5.1.j\n- Embeddium 0.3.30 → 0.3.31\n### Configs alteradas\n- config/create-common.toml</div>
       <div class="row" style="margin-top:6px">${btn("Ver diferenças para o estado atual", "", "small")}${btn("Exportar esta versão", "exportar", "small")} ${p1()}</div></td></tr>` : ""}`).join("")}</table>
     <div style="margin-top:12px">${btn("Pontos de segurança…", "", "link")} ${p1()} <span class="muted small">cópias automáticas feitas antes de ações que apagam ou substituem</span></div>`;
 }
@@ -508,21 +522,55 @@ function saveDialog() {
   return dialog(`<h2>Salvar versão</h2>
     <div class="row"><b>Número</b>${input("", "1.5.0")}<span class="small muted">Sugerido: <b>1.5.0</b> porque você adicionou mods (mudança “menor”). ${btn("Por quê?", "", "link")}</span></div>
     <div style="margin-top:10px"><b>Notas</b> <span class="muted small">(opcional, entram no topo do resumo)</span>${input("Ex.: mochilas novas e ajuste de velocidade do Create")}</div>
+    <div style="margin-top:10px">${cb(true)}<b>Marcar como versão final</b> <span class="small muted">· pronta para os jogadores; depois de salvar, dá para publicar</span></div>
     <div style="margin-top:10px"><b>Resumo automático</b></div>
     <div class="code" style="white-space:pre-wrap">### Adicionados\n- Sophisticated Backpacks 3.20.17\n- Sophisticated Core 0.6.26\n### Atualizados\n- Just Enough Items 15.20.0.106 → 15.20.0.112\n### Configs alteradas\n- config/create-common.toml\n- options.txt</div>
     <div class="box small" style="margin-top:10px"><b>Antes de salvar</b> ${p1()}<br>✗ O pack tem 2 erros ${btn("Ver", "problemas", "link")}<br>✓ O último teste é depois da última mudança e abriu normalmente<br>✓ As mudanças do teste foram revisadas</div>
     <div class="actions">${btn("Cancelar", "historico")}${btn("Salvar versão 1.5.0", "salvo", "primary")}</div>`, true);
 }
 function savedDialog() {
-  return dialog(`<h2>Versão 1.5.0 salva</h2>
-    <p>O resumo foi adicionado ao CHANGELOG.md e a versão aparece no Histórico.</p>
-    <p class="small"><b>O que fazer agora?</b></p>
-    <div class="actions" style="justify-content:flex-start">${btn("Exportar esta versão", "exportar", "primary")}${btn("Enviar ao GitHub", "enviado")}${btn("Fechar", "historico")}</div>`);
+  return dialog(`<h2>Versão 1.5.0 salva como versão final</h2>
+    <p>Ela está guardada neste computador. Os jogadores só recebem quando você publicar.</p>
+    <div class="actions" style="justify-content:flex-start">${btn("Publicar versão 1.5.0", "publicar", "primary")}${btn("Exportar arquivo", "exportar")}${btn("Fechar", "historico")}</div>`);
 }
-function sentDialog() {
-  return dialog(`<h2>Enviado ao GitHub</h2><p>kriticales/vale-sereno está em dia: todas as versões salvas foram enviadas.</p>
-    <p class="small muted">Primeira vez neste pack? Antes daqui aparece “Conectar este pack ao GitHub”: criar repositório privado ou usar um existente.</p>
-    <div class="actions">${btn("Fechar", "historico", "primary")}</div>`);
+function publishDialog() {
+  return dialog(`<h2>Publicar a versão 1.4.2 para os jogadores</h2>
+    <p class="small muted">Vai para o GitHub (kriticales/vale-sereno). Quem joga com o link do pack recebe a atualização ao abrir o jogo.</p>
+    <div class="box stack small"><b>Antes de publicar</b>
+      <div>${tag("warn", "AVISO")} <b>2 mods da CurseForge não podem ser baixados automaticamente pelos jogadores.</b> O autor bloqueou downloads por outros apps; cada jogador vai ter que baixar à mão.
+        <div style="margin-top:4px">Epic Fight · o mesmo arquivo existe no Modrinth ${btn("Trocar pelo Modrinth", "", "small")}<br>Xaero's World Map · não existe no Modrinth</div></div>
+      <div>${tag("warn", "AVISO")} <b>A versão 1.4.2 não foi testada.</b> O último teste foi antes das últimas mudanças. ${btn("Testar agora", "teste-checagem", "small")}</div>
+      <div>${tag("err", "ERRO")} <b>O pack tem 2 erros.</b> ${btn("Ver problemas", "problemas", "small")}</div>
+      <div class="muted">Trocar um mod muda o pack: depois é preciso salvar uma versão nova e publicar essa.</div></div>
+    <div style="margin-top:10px"><b>Notas da versão</b> <span class="small muted">· mudanças desde a 1.4.0, a última publicada; vão para o CHANGELOG.md e para a Release do GitHub</span></div>
+    <div class="code" style="white-space:pre-wrap;height:120px">## Vale Sereno 1.4.2 (28/09/2026)\n### Atenção\n- Removido: Quark (tinha blocos e itens nos mundos). Faça backup dos mundos antes de atualizar.\n### Adicionados\n- Farmer's Delight 1.2.6\n### Atualizados\n- Create 0.5.1.h → 0.5.1.j\n- Embeddium 0.3.28 → 0.3.31\n### Resource packs e shaders\n- Complementary Reimagined r5.4 (novo)\n### Configs alteradas\n- config/create-common.toml</div>
+    <div style="margin-top:8px">${input("Notas para os jogadores (opcional)")}</div>
+    <p class="small muted">Vai para o GitHub só o conteúdo do pack: pack.toml, index.toml, os arquivos do índice, CHANGELOG.md e .gitattributes. Não vão: .warden/, mundos de teste, registros, versões não publicadas.</p>
+    <div class="actions">${btn("Cancelar", "historico")}${btn("Publicar mesmo assim", "publicar-repo", "primary")}</div>`, true);
+}
+function publishRepoDialog() {
+  return dialog(`<h2>Primeira publicação deste pack</h2>
+    <p class="small">O Warden cria um repositório no seu GitHub para este pack.</p>
+    <div class="row small"><b>Nome</b>${input("", "vale-sereno")}<span class="muted">github.com/kriticales/vale-sereno</span></div>
+    <div class="box stack small" style="margin-top:10px">
+      <div>${rb(true)}<b>Público</b> (recomendado) · os jogadores recebem atualizações automáticas pelo link do pack. Qualquer pessoa com o link vê os arquivos do pack (mods e configs); nada do seu computador vai junto.</div>
+      <div>${rb(false)}<b>Privado</b> · só backup no GitHub. O link não funciona para os jogadores: eles não recebem atualizações automáticas.</div></div>
+    <div class="small" style="margin-top:8px">${btn("Usar um repositório que já existe", "", "link")}</div>
+    <div class="actions">${btn("Cancelar", "historico")}${btn("Criar repositório e publicar", "publicado", "primary")}</div>`);
+}
+function publishedDialog() {
+  return dialog(`<h2>Versão 1.4.2 publicada</h2>
+    <p class="small">Quem já joga com o link recebe a atualização na próxima vez que abrir o jogo. O GitHub pode levar alguns minutos para mostrar a versão nova.</p>
+    <div><b>Link do pack</b></div>
+    <div class="row small"><span class="in val" style="font-family:var(--mono);font-size:12px">${PACK_LINK}</span>${btn("Copiar link", "", "small primary")}</div>
+    <div class="box small" style="margin-top:10px"><div class="row between"><b>Como os jogadores instalam (Prism Launcher ou MultiMC)</b>${btn("Copiar instruções", "", "small")}</div>
+      <ol style="margin:6px 0 0;padding-left:18px">
+        <li>Criar uma instância com Minecraft 1.20.1 e Forge 47.3.0.</li>
+        <li>Baixar o packwiz-installer-bootstrap.jar e colocar na pasta <code>.minecraft</code> da instância.</li>
+        <li>Em Editar instância → Configurações → Comandos personalizados, colar no comando antes de iniciar:<br><code>"$INST_JAVA" -jar packwiz-installer-bootstrap.jar ${PACK_LINK}</code></li>
+        <li>Abrir o jogo. O pack é baixado agora e atualizado sozinho nas próximas vezes.</li></ol></div>
+    <div class="row" style="margin-top:10px">${btn("Copiar texto das notas da versão", "", "small")}${btn("Abrir a Release no GitHub", "", "small")}</div>
+    <div class="actions">${btn("Fechar", "historico", "primary")}</div>`, true);
 }
 function rollbackDialog() {
   return dialog(`<h2>Voltar o pack para a versão 1.3.0?</h2>
@@ -538,7 +586,7 @@ function exportContent() {
       <div class="row">✗ O pack tem 2 erros. ${btn("Ver problemas", "problemas", "link")}</div>
       <div class="row">✗ Há 5 alterações não salvas: a exportação vai usar o estado atual. ${btn("Salvar versão antes", "salvar", "link")}</div></div></div>
     <div class="box" style="margin-top:10px"><h3>2. Formato</h3><div class="grid2 small">
-      <div>${rb(true)}<b>Pasta packwiz</b><br><span class="muted">Para hospedar, por exemplo no GitHub.</span></div>
+      <div>${rb(true)}<b>Pasta packwiz</b><br><span class="muted">Para hospedar em outro lugar. Para o GitHub, use Publicar versão no Histórico.</span></div>
       <div>${rb(false)}<b>Arquivo .zip do pack packwiz</b><br><span class="muted">A mesma coisa, num arquivo só.</span></div>
       <div>${rb(false)}<b>.mrpack</b> ${p1()}<br><span class="muted">Para o app do Modrinth e launchers compatíveis.</span></div>
       <div>${rb(false)}<b>.zip da CurseForge</b> ${p1()}<br><span class="muted">Para o app da CurseForge. Não guarda o lado dos mods.</span></div></div></div>
@@ -820,7 +868,7 @@ function tasksDrawer() {
     <div class="grp">Em andamento</div>
     <div class="box stack small"><b>Baixando o Minecraft 1.20.1</b><span class="muted">Vale Sereno</span><div class="bar"><i style="width:38%"></i></div><div class="row">${btn("Cancelar", "", "small")}</div></div>
     <div class="grp">Concluídas</div>
-    <div class="small stack"><div>✓ Verificar atualizações · Leve e Bonito · 14:01</div><div>✗ Enviar ao GitHub · Técnico Clássico · sem internet ${btn("Ver detalhes", "", "link")}</div><div class="muted">… últimas 50</div></div>`);
+    <div class="small stack"><div>✓ Verificar atualizações · Leve e Bonito · 14:01</div><div>✗ Publicar versão · Técnico Clássico · sem internet ${btn("Ver detalhes", "", "link")}</div><div class="muted">… últimas 50</div></div>`);
 }
 
 /* ======================================================================
@@ -939,22 +987,33 @@ def("problemas", { group: "pack", title: "Problemas (diagnóstico)", spec: "T14"
 
 def("historico", { group: "pack", title: "Histórico (versões salvas)", spec: "T16, T17, T18",
   render: alt => packShell(alt, "historico", historyContent()),
-  note: "Alterações não salvas no topo, GitHub numa linha, e a lista de versões. Pontos de segurança (P1) ficam num link discreto no fim.",
-  to: [["Salvar versão", "salvar"], ["Enviar ao GitHub", "enviado"], ["Voltar para esta versão", "voltar"]] });
+  note: "Alterações não salvas no topo; depois a publicação para os jogadores (repositório e link do pack); depois as versões com o estado de cada uma: só salva, versão final ou publicada. Pontos de segurança (P1) ficam num link discreto no fim.",
+  to: [["Salvar versão", "salvar"], ["Publicar versão 1.4.2", "publicar"], ["Como os jogadores instalam", "publicado"], ["Voltar para esta versão", "voltar"]] });
 
 def("salvar", { group: "pack", title: "Salvar versão", spec: "T16",
   render: alt => packShell(alt, "historico", historyContent(), { overlay: saveDialog() }),
   note: "Abre de qualquer lugar do pack pelo botão do cabeçalho. Número sugerido com o motivo e resumo automático.",
   to: [["Salvar versão 1.5.0", "salvo"]] });
 
-def("salvo", { group: "pack", title: "Versão salva → próximos passos", spec: "T16, T18, T19", hidden: true,
+def("salvo", { group: "pack", title: "Versão salva → próximos passos", spec: "T16, T18", hidden: true,
   render: alt => packShell(alt, "historico", historyContent(), { overlay: savedDialog(), saved: true }),
-  note: "Depois de salvar, o próprio aviso oferece o próximo passo natural: exportar ou enviar ao GitHub.",
-  to: [["Exportar esta versão", "exportar"], ["Enviar ao GitHub", "enviado"]] });
+  note: "Salvar é local. Se a versão foi marcada como versão final, o aviso oferece publicar para os jogadores.",
+  to: [["Publicar versão 1.5.0", "publicar"], ["Exportar arquivo", "exportar"]] });
 
-def("enviado", { group: "pack", title: "Enviado ao GitHub", spec: "T18", hidden: true,
-  render: alt => packShell(alt, "historico", historyContent(), { overlay: sentDialog() }),
-  note: "Resultado do envio. A primeira vez pede para conectar o pack a um repositório privado.", to: [["Fechar", "historico"]] });
+def("publicar", { group: "pack", title: "Publicar versão: avisos e notas", spec: "T18",
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: publishDialog() }),
+  note: "Decisão do dono: o GitHub distribui o pack aos jogadores. Antes de publicar, o Warden avisa sobre mods da CurseForge que os jogadores não conseguem baixar sozinhos, versão não testada e problemas pendentes. As notas cobrem tudo desde a última versão publicada.",
+  to: [["Publicar (primeira vez: repositório)", "publicar-repo"], ["Testar agora", "teste-checagem"], ["Ver problemas", "problemas"]] });
+
+def("publicar-repo", { group: "pack", title: "Primeira publicação: repositório", spec: "T18", hidden: true,
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: publishRepoDialog() }),
+  note: "Só na primeira publicação do pack. Público é o recomendado, porque o link do pack.toml só funciona para os jogadores em repositório público. Privado fica como “só backup”.",
+  to: [["Criar repositório e publicar", "publicado"]] });
+
+def("publicado", { group: "pack", title: "Versão publicada: link e passo a passo", spec: "T18",
+  render: alt => packShell(alt, "historico", historyContent(), { overlay: publishedDialog() }),
+  note: "Depois de publicar: o link do pack.toml com Copiar link, o passo a passo curto para os jogadores (Prism ou MultiMC com o packwiz-installer-bootstrap) e a cópia do texto das notas.",
+  to: [["Fechar", "historico"]] });
 
 def("voltar", { group: "pack", title: "Voltar para uma versão", spec: "T17", hidden: true,
   render: alt => packShell(alt, "historico", historyContent(), { overlay: rollbackDialog() }),
@@ -1098,7 +1157,7 @@ ${L("packs", "MEUS PACKS")}  ← nível do APP: só packs e Configurações
     ├── ${L("configs", "Configs")} ..... arquivos de ajuste dos mods e do jogo
     ├── ${L("problemas", "Problemas")} ... o que pode impedir o jogo de abrir
     ├── ${L("ia", "✦ Diagnóstico com IA")} ... pedir à IA para explicar um travamento
-    ├── ${L("historico", "Histórico")} ... versões salvas, GitHub
+    ├── ${L("historico", "Histórico")} ... versões salvas e ${L("publicar", "publicação")} para os jogadores
     └── ${L("exportar", "Exportar")} .... gerar o pack para quem vai jogar
     Fora do menu (contextual):
     ├── ${L("teste-checagem", "Testar")} → tela do teste (etapas → jogo → resultado)
@@ -1136,9 +1195,10 @@ const FLOWS = [
   { name: "4. O jogo travou: entender e corrigir", steps: {
       A: [["teste-jogo", "Jogo aberto"], ["teste-travou", "Travou: por que"], ["dependencias", "Adicionar Balm"], ["teste-checagem", "Testar de novo"]], },
     acts: ["(jogo trava)", "Adicionar Balm", "▶ Testar"], extra: [["teste-ia", "Se a causa não aparecer: Pedir ajuda à IA (com consentimento)"]] },
-  { name: "5. Salvar versão, exportar e enviar ao GitHub", steps: {
-      A: [["mods", "Qualquer seção"], ["salvar", "Salvar versão"], ["salvo", "Versão salva"], ["exportar", "Exportar"], ["exportado", "Exportado"], ["historico", "Histórico"], ["enviado", "Enviado ao GitHub"]], },
-    acts: ["Salvar versão (cabeçalho)", "Salvar versão 1.5.0", "Exportar esta versão", "Exportar", "Histórico", "Enviar ao GitHub"] },
+  { name: "5. Salvar a versão final e publicar para os jogadores", steps: {
+      A: [["mods", "Qualquer seção"], ["salvar", "Salvar versão (versão final)"], ["salvo", "Versão salva"], ["publicar", "Avisos e notas"], ["publicar-repo", "Repositório (1ª vez)"], ["publicado", "Link e passo a passo"]] },
+    acts: ["Salvar versão (cabeçalho)", "Salvar versão 1.5.0", "Publicar versão 1.5.0", "Publicar mesmo assim", "Criar repositório e publicar"],
+    extra: [["exportar", "Para gerar um arquivo em vez de publicar: Exportar"]] },
 ];
 function flowsPage() {
   const a = state.alt;
