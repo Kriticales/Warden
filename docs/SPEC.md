@@ -431,12 +431,13 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 **Objetivo:** abrir o Minecraft com o pack em um clique e acompanhar o que acontece.
 
 **Fluxo ao clicar em Testar** (indicador de etapas sempre visível):
-1. **Verificar o pack:** roda o diagnóstico pré-teste (T14). Com erros: diálogo listando os erros, com **Corrigir** (quando houver correção automática), **Testar mesmo assim** e **Cancelar**. Só avisos: segue, com os avisos visíveis na aba Diagnóstico.
+1. **Verificar o pack (rápido):** roda a passagem rápida do diagnóstico pré-teste (T14), que usa o pack e os dados das APIs. Com erros: diálogo listando os erros, com **Corrigir** (quando houver correção automática), **Testar mesmo assim** e **Cancelar**. Só avisos: segue, com os avisos visíveis na aba Diagnóstico.
 2. **Preparar o Minecraft:** baixa a versão do jogo, instala o loader e escolhe/baixa o Java certo (ARCHITECTURE §7). Mostra progresso (arquivos e megabytes). Na primeira vez pode levar alguns minutos; o texto avisa isso.
 3. **Sincronizar o pack:** copia/baixa para a instância só o que mudou; remove o que saiu do pack; nunca toca em `saves/`, `screenshots/` e afins. Mods da CurseForge com download bloqueado abrem T20.
-4. **Abrir o jogo** com o perfil offline (nome configurado).
-5. **Jogo em execução:** console ao vivo; botões **Parar jogo** (confirmação: "O progresso não salvo do mundo pode ser perdido."), **Abrir pasta da instância**, **Editar configs da instância** (abre T12 na origem Instância).
-6. **Jogo fechou:** resumo com duração e resultado — "Fechado normalmente", "Travou" ou "Encerrado por você" — e:
+4. **Verificação final:** passagem completa do diagnóstico, que lê os próprios arquivos `.jar` (dependências, duplicatas por ID, versão do Java exigida). Erros abrem o mesmo diálogo do passo 1.
+5. **Abrir o jogo** com o perfil offline (nome configurado).
+6. **Jogo em execução:** console ao vivo; botões **Parar jogo** (confirmação: "O progresso não salvo do mundo pode ser perdido."), **Abrir pasta da instância**, **Editar configs da instância** (abre T12 na origem Instância).
+7. **Jogo fechou:** resumo com duração e resultado — "Fechado normalmente", "Travou" ou "Encerrado por você" — e:
    - "Mudanças detectadas: N arquivos" → **Revisar** (T15);
    - se travou: **Ver diagnóstico** (T14).
 
@@ -474,7 +475,7 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 **Objetivo:** encontrar problemas antes de abrir o jogo e explicar por que ele travou.
 
 **Camada determinística (P0)** — regras fixas, sem IA, sempre com a evidência que as sustenta:
-- **Antes do teste** (também sob demanda pelo botão "Verificar agora"): loader errado, versão do Minecraft incompatível, versão do loader fora da faixa exigida, dependência obrigatória ausente ou em versão errada, incompatibilidades declaradas, mod duplicado (mesmo ID, mesmo arquivo ou mesmo projeto de duas fontes), dois mods da mesma "categoria exclusiva" (ex.: dois renderizadores), mod só de cliente marcado como "cliente e servidor", Java incompatível, versões beta/alpha, conflitos conhecidos da lista curada, mods obsoletos. Lista de regras em ARCHITECTURE §9.
+- **Antes do teste**, em duas passagens — rápida (antes de baixar, com dados do pack e das APIs) e completa (depois de sincronizar, lendo os `.jar`) — e também sob demanda pelo botão "Verificar agora": loader errado, versão do Minecraft incompatível, versão do loader fora da faixa exigida, dependência obrigatória ausente ou em versão errada, incompatibilidades declaradas, mod duplicado (mesmo ID, mesmo arquivo ou mesmo projeto de duas fontes), dois mods da mesma "categoria exclusiva" (ex.: dois renderizadores), mod só de cliente marcado como "cliente e servidor", Java incompatível, versões beta/alpha, conflitos conhecidos da lista curada, mods obsoletos. Lista de regras em ARCHITECTURE §9.
 - **Depois de um travamento:** lê o resultado do processo, a saída capturada, `logs/latest.log`, `logs/debug.log`, os crash reports novos e os `hs_err_pid*.log` novos, e aplica o catálogo de padrões (dependência faltando, duplicado, falha de Mixin, Java errado, falta de memória, driver de vídeo, config corrompida, mod de cliente no servidor, entre outros).
 
 **Apresentação:**
