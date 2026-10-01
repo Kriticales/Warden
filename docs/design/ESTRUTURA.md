@@ -225,7 +225,7 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T14 | Verificar agora | Botão em **Problemas**. |
 | T14 | Diagnóstico depois de travar | Resultado do teste ("Por que travou"), com link em Problemas → Último travamento. |
 | T14 | Ignorar aviso (P1) | Em cada problema. |
-| T14 | IA Gemini com consentimento (P1) | **Pedir ajuda à IA** no resultado do travamento → diálogo de consentimento com o texto exato. |
+| T14 | IA Gemini com consentimento (P1) | **✦ Pedir ajuda à IA** (✦ = ícone de brilhinho que identifica a IA) no resultado do travamento → diálogo de consentimento com o texto exato. |
 | T15 | Revisar mudanças do teste | Parte do resultado do teste: "O que mudou durante o teste". Ver §7. |
 | T15 | Decidir depois | Aviso "Mudanças do teste para revisar" no cabeçalho até resolver. |
 | T15 | Conflito de três vias | Dentro de "O que mudou", no arquivo em conflito. |
@@ -346,7 +346,7 @@ Nesta etapa, que é só estrutura em cinza, a regra vale para textos e organiza�
 - textos diretos, sem slogans, sem exclamações, sem títulos óbvios; exemplos e dados realistas (nomes de mods, versões, trechos de log de verdade);
 - densidade de ferramenta: listas em tabela onde há o que comparar, em vez de cartões iguais em grade;
 - hierarquia com intenção: o botão Testar é o único elemento grande do cabeçalho; o painel da B é assimétrico;
-- nenhum ícone de "brilhinho" para a IA: "Pedir ajuda à IA" é um botão comum, em segundo plano, depois da causa determinística.
+- a IA é identificada pelo **ícone de brilhinho (sparkles)**, escolha do dono (correção do orquestrador em 01/10/2026). No rascunho em cinza ele aparece como o marcador "✦" no botão "Pedir ajuda à IA" e no título do diálogo de consentimento. Ele marca só o que é IA (o diagnóstico com Gemini), não é decoração. O botão continua em segundo plano, depois da causa determinística.
 
 ## 11. Como usar o rascunho clicável
 

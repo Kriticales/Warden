@@ -666,11 +666,11 @@ function testCrashed() {
       <div class="small">O Forge parou a carga porque o Waystones precisa do Balm 7.3.0 ou mais novo.</div>
       <div class="code small">latest.log, linha 1.204:\nMissing or unsupported mandatory dependencies:\n\tMod ID: 'balm', Requested by: 'waystones', Expected range: '[7.3.0,)', Actual version: '[MISSING]'</div>
       <div class="row">${btn("Adicionar Balm", "dependencias", "primary")}${btn("Remover Waystones", "remover")}</div></div>
-    <div class="box row between" style="margin-top:10px"><span class="small"><b>Não parece ser isso?</b> A IA pode ler o log e sugerir uma causa. Antes, você vê exatamente o que será enviado.</span>${btn("Pedir ajuda à IA", "teste-ia")} ${p1()}</div>
+    <div class="box row between" style="margin-top:10px"><span class="small"><b>Não parece ser isso?</b> A IA pode ler o log e sugerir uma causa. Antes, você vê exatamente o que será enviado.</span>${btn('<span aria-hidden="true">✦</span> Pedir ajuda à IA', "teste-ia")} ${p1()}</div>
     <div class="box row between" style="margin-top:10px"><span class="small">O jogo também mudou 1 arquivo antes de travar.</span>${btn("Ver o que mudou", "teste-fechou", "link")}</div>`;
 }
 function aiDialog() {
-  return dialog(`<h2>Enviar o log para a IA?</h2>
+  return dialog(`<h2><span aria-hidden="true">✦</span> Enviar o log para a IA?</h2>
     <p class="small">Este é o texto <b>exato</b> que será enviado. Nome de usuário do Windows, nome do jogador, IPs, e-mails e chaves foram trocados por marcadores.</p>
     <div class="code" style="height:150px;white-space:pre-wrap">Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · 128 mods
 [14:40:31] [main/ERROR] Missing or unsupported mandatory dependencies:
@@ -995,13 +995,13 @@ def("trazido", { group: "teste", title: "Mudanças trazidas", spec: "T15, T16", 
 
 def("teste-travou", { group: "teste", title: "5b. Jogo travou → diagnóstico", spec: "T13, T14",
   render: alt => packShell(alt, "teste", testCrashed()),
-  note: "O diagnóstico do travamento aparece no próprio resultado, com a evidência e a correção. A IA (P1) é a segunda opção, sempre com consentimento.",
+  note: "O diagnóstico do travamento aparece no próprio resultado, com a evidência e a correção. A IA (P1) é a segunda opção, sempre com consentimento. O ✦ marca o lugar do ícone de brilhinho (sparkles), que o dono escolheu para identificar tudo o que é IA.",
   states: ["Sem conclusão: “Não encontramos a causa automaticamente.” com Pedir ajuda à IA e Abrir crash report"],
   to: [["Adicionar Balm", "dependencias"], ["Pedir ajuda à IA", "teste-ia"], ["Testar de novo", "teste-checagem"]] });
 
 def("teste-ia", { group: "teste", title: "Pedir ajuda à IA (consentimento)", spec: "T14",
   render: alt => packShell(alt, "teste", testCrashed(), { overlay: aiDialog() }),
-  note: "Sempre pergunta. Mostra o texto exato, já sem dados pessoais. Cancelar não envia nada.",
+  note: "Sempre pergunta. Mostra o texto exato, já sem dados pessoais. Cancelar não envia nada. O ✦ no título repete o marcador de IA (ícone de brilhinho na etapa visual).",
   to: [["Enviar / Cancelar", "teste-travou"]] });
 
 function emptyPackContent(alt) {
