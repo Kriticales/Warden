@@ -265,10 +265,11 @@ const SECTIONS = [
   ["mods", "Mods", "Mods, resource packs e shaders", "128"],
   ["configs", "Configs", "Arquivos de ajuste dos mods e do jogo", ""],
   ["problemas", "Problemas", "O que pode impedir o jogo de abrir", "3"],
+  ["ia", '<i aria-hidden="true" style="font-style:normal">✦</i> Diagnóstico com IA', "Pedir à IA para explicar um travamento", ""],
   ["historico", "Histórico", "Versões salvas e o que mudou", "5 não salvas"],
   ["exportar", "Exportar", "Gerar o pack para quem vai jogar", ""],
 ];
-const TITLES = { mods: "Mods, resource packs e shaders", adicionar: "Adicionar", configs: "Configs", problemas: "Problemas",
+const TITLES = { mods: "Mods, resource packs e shaders", adicionar: "Adicionar", configs: "Configs", problemas: "Problemas", ia: "Diagnóstico com IA",
   historico: "Histórico", exportar: "Exportar", teste: "Teste", info: "Informações do pack" };
 
 function packHeader(alt, o) {
@@ -481,7 +482,7 @@ function problemsContent() {
       <div class="small muted">Evidência: o Modrinth informa “client_side: required, server_side: unsupported”.</div>
       <div class="row">${btn("Mudar lado para Só cliente", "")}</div></div>
     <div class="grp" style="margin-top:16px">Último travamento</div>
-    <div class="box row between"><span class="small">Teste de 30/09 às 21:14 travou com 48 s de jogo.</span>${btn("Ver o que causou", "teste-travou")}</div>`;
+    <div class="box row between"><span class="small">Teste de 30/09 às 21:14 travou com 48 s de jogo.</span><span class="row">${btn("Ver o que causou", "teste-travou")}${btn('<span aria-hidden="true">✦</span> Analisar com IA', "ia")}</span></div>`;
 }
 
 function historyContent() {
@@ -671,7 +672,7 @@ function testCrashed() {
     <div class="box row between" style="margin-top:10px"><span class="small"><b>Não parece ser isso?</b> A IA pode ler o log e sugerir uma causa. Antes, você vê exatamente o que será enviado.</span>${btn('<span aria-hidden="true">✦</span> Pedir ajuda à IA', "teste-ia")} ${p1()}</div>
     <div class="box row between" style="margin-top:10px"><span class="small">O jogo também mudou 1 arquivo antes de travar.</span>${btn("Ver o que mudou", "teste-fechou", "link")}</div>`;
 }
-function aiDialog() {
+function aiDialog(cancelTo, sendTo) {
   return dialog(`<h2><span aria-hidden="true">✦</span> Enviar o log para a IA?</h2>
     <p class="small">Este é o texto <b>exato</b> que será enviado. Nome de usuário do Windows, nome do jogador, IPs, e-mails e chaves foram trocados por marcadores.</p>
     <div class="code" style="height:150px;white-space:pre-wrap">Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · 128 mods
@@ -681,7 +682,37 @@ Caminho: C:\\Users\\[usuário]\\AppData\\Local\\dev.kriticales.warden\\instances
 --username [jogador] --uuid [uuid]
 …(mais 412 linhas)</div>
     <p class="small muted">18 KB · Google Gemini (gemini-2.5-flash) · usa a sua chave, que pode ter limite e custo · no plano gratuito, o Google pode usar o conteúdo para melhorar os produtos dele.</p>
-    <div class="actions">${btn("Cancelar", "teste-travou")}${btn("Enviar", "teste-travou", "primary")}</div>`, true);
+    <div class="actions">${btn("Cancelar", cancelTo || "teste-travou")}${btn("Enviar", sendTo || "ia-resposta", "primary")}</div>`, true);
+}
+
+const AI = '<span aria-hidden="true">✦</span>';
+function iaContent() {
+  return `<div class="row between"><div><h2>${AI} Diagnóstico com IA</h2>
+      <div class="muted small">A IA (Google Gemini) lê os logs e sugere a causa de um travamento. Antes de enviar, você vê exatamente o que vai.</div></div></div>
+    <div class="box strong" style="margin-top:12px"><h3>O que analisar</h3><div class="stack small">
+      <div>${rb(true)}<b>Último travamento:</b> hoje às 14:40, 48 s de jogo. <span class="muted">A verificação automática achou: falta o mod Balm.</span></div>
+      <div class="row">${rb(false)}<b>Outro teste</b>${select("30/09 às 21:14 · travou")}</div>
+      <div class="row">${rb(false)}<b>Um log ou crash report do computador</b>${btn("Escolher arquivo…", "", "small")}</div>
+      <div><b>Contar algo à IA</b> <span class="muted">(opcional)</span>${input("Ex.: trava quando entro no Nether")}</div></div>
+      <div class="row" style="margin-top:12px">${btn(AI + " Preparar envio", "ia-consent", "primary")}<span class="small muted">Próximo passo: ver o texto exato e confirmar.</span></div></div>
+    <h3 style="margin-top:16px">Respostas anteriores</h3>
+    <table class="t"><tr><th>Quando</th><th>O que foi analisado</th><th>Causa provável</th><th>Confiança</th><th></th></tr>
+      <tr><td>30/09 21:20</td><td>Teste de 30/09 às 21:14</td><td>Embeddium e Rubidium juntos</td><td>média</td><td>${btn("Ver resposta", "ia-resposta", "link")}</td></tr>
+      <tr><td>22/09 18:02</td><td>crash-2026-09-22.txt</td><td>Falta de memória</td><td>alta</td><td>${btn("Ver resposta", "", "link")}</td></tr></table>
+    <div class="box row between small" style="margin-top:14px"><span>Chave do Gemini configurada · modelo gemini-2.5-flash</span>${btn("Trocar em Configurações", "config-app", "link")}</div>`;
+}
+function iaAnswerContent() {
+  return `<div>${btn("← Voltar ao Diagnóstico com IA", "ia", "link")}</div>
+    <h2>${AI} Resposta da IA</h2><div class="muted small">Teste de 30/09 às 21:14 · enviado às 21:20 · Google Gemini (gemini-2.5-flash)</div>
+    <div class="banner" style="margin-top:10px"><span><b>A IA pode errar.</b> Confira antes de mudar o pack.</span></div>
+    <div class="box stack" style="margin-top:10px">
+      <div><b>Causa provável:</b> dois mods de renderização (Embeddium e Rubidium) carregados juntos. O log mostra os dois tentando substituir o mesmo código de desenho dos blocos.</div>
+      <div><b>Confiança:</b> média</div>
+      <div><b>Mods envolvidos:</b> ${btn("Embeddium", "mods", "link")} ${btn("Rubidium", "mods", "link")}</div>
+      <div><b>Passos sugeridos</b></div>
+      <div class="small">1. Remover o Rubidium (o Embeddium é o substituto mais novo). ${btn("Remover Rubidium", "remover", "small")}</div>
+      <div class="small">2. Testar de novo. ${btn("▶ Testar", "teste-checagem", "small")}</div></div>
+    <p class="small muted">Os botões passam pelos fluxos normais do Warden, com confirmação. A IA não muda nada sozinha.</p>`;
 }
 
 /* ---------- Painel do pack (só Alternativa B) ---------- */
@@ -706,6 +737,9 @@ function painelContent() {
         <div class="row between"><span>Problemas</span>${btn("2 erros, 1 aviso", "problemas", "link")}</div>
         <div class="row between"><span>Último teste</span>${btn("hoje 14:20, fechou normalmente", "teste-fechou", "link")}</div>
         <div class="row between"><span>Não salvas</span>${btn("5 alterações", "historico", "link")}</div>
+        <hr class="s" />
+        <div class="row between"><b><span aria-hidden="true">✦</span> Diagnóstico com IA</b>${btn("Abrir", "ia", "link")}</div>
+        <div class="muted">Pedir à IA para explicar um travamento. Última resposta: 30/09.</div>
         <hr class="s" />
         <div class="row between"><b>Versões</b>${btn("Ver histórico", "historico", "link")}</div>
         <div>Atual: <b>1.4.2</b>, salva em 28/09/2026</div>
@@ -1010,7 +1044,23 @@ def("teste-travou", { group: "teste", title: "5b. Jogo travou → diagnóstico",
 def("teste-ia", { group: "teste", title: "Pedir ajuda à IA (consentimento)", spec: "T14",
   render: alt => packShell(alt, "teste", testCrashed(), { overlay: aiDialog() }),
   note: "Sempre pergunta. Mostra o texto exato, já sem dados pessoais. Cancelar não envia nada. O ✦ no título repete o marcador de IA (ícone de brilhinho na etapa visual).",
-  to: [["Enviar / Cancelar", "teste-travou"]] });
+  to: [["Enviar → resposta", "ia-resposta"], ["Cancelar", "teste-travou"]] });
+
+def("ia", { group: "pack", title: "✦ Diagnóstico com IA", spec: "T14",
+  render: alt => packShell(alt, "ia", iaContent()),
+  note: "Pedido do dono: um lugar dedicado ao diagnóstico com IA. Na A é um item do menu, logo abaixo de Problemas; na B é um bloco do painel. Dá para analisar o último travamento, outro teste ou um log do computador, e rever respostas anteriores. O consentimento continua obrigatório em todo envio.",
+  states: ["Sem chave do Gemini: “Para usar a IA, informe sua chave do Gemini em Configurações.” com Abrir Configurações", "Nenhum travamento ainda: só a opção de escolher um log do computador"],
+  to: [["Preparar envio → consentimento", "ia-consent"], ["Ver resposta", "ia-resposta"]] });
+
+def("ia-consent", { group: "pack", title: "✦ Consentimento (pela seção de IA)", spec: "T14", hidden: true,
+  render: alt => packShell(alt, "ia", iaContent(), { overlay: aiDialog("ia", "ia-resposta") }),
+  note: "O mesmo diálogo do resultado do travamento: texto exato, sem dados pessoais. Cancelar não envia nada.",
+  to: [["Enviar", "ia-resposta"], ["Cancelar", "ia"]] });
+
+def("ia-resposta", { group: "pack", title: "✦ Resposta da IA", spec: "T14",
+  render: alt => packShell(alt, "ia", iaAnswerContent()),
+  note: "Resposta estruturada (causa provável, confiança, mods envolvidos, passos), com o aviso fixo de que a IA pode errar. Os botões usam os fluxos normais, com confirmação.",
+  to: [["Remover Rubidium", "remover"], ["Testar", "teste-checagem"]] });
 
 function emptyPackContent(alt) {
   const inner = `<h2>${alt === "A" ? "Mods, resource packs e shaders" : "Pack criado"}</h2>
@@ -1059,6 +1109,7 @@ ${L("packs", "MEUS PACKS")}  ← nível do APP: só packs e Configurações
     │   └── ${L("adicionar", "Adicionar")} → ${L("dependencias", "dependências")}
     ├── ${L("configs", "Configs")} ..... arquivos de ajuste dos mods e do jogo
     ├── ${L("problemas", "Problemas")} ... o que pode impedir o jogo de abrir
+    ├── ${L("ia", "✦ Diagnóstico com IA")} ... pedir à IA para explicar um travamento
     ├── ${L("historico", "Histórico")} ... versões salvas, GitHub
     └── ${L("exportar", "Exportar")} .... gerar o pack para quem vai jogar
     Fora do menu (contextual):
@@ -1083,13 +1134,14 @@ ${L("packs", "MEUS PACKS")}  ← nível do APP: só packs e Configurações
     ├── Mods, resource packs e shaders → ${L("mods", "lista completa")}, ${L("adicionar", "Adicionar")}
     ├── Configs → ${L("configs", "editor")}
     ├── Versões → ${L("historico", "histórico")}, ${L("salvar", "Salvar versão")}, GitHub
-    └── Exportar → ${L("exportar", "página de exportação")}
+    ├── Exportar → ${L("exportar", "página de exportação")}
+    └── ✦ Diagnóstico com IA → ${L("ia", "página dedicada")}
     Páginas sem área própria: ${L("problemas", "Problemas")} (pela faixa/situação),
     ${L("teste-checagem", "Teste")} (pelo botão Testar)
 Rodapé em todas as telas: ${L("tarefas", "Tarefas")} (gaveta)`;
   return `<div class="doc"><h2>Mapa do app · Alternativa ${a}</h2>
     <p>${a === "A"
-      ? "<b>A · Seções do pack.</b> Dentro de um pack há um menu lateral com 5 seções fixas, cada uma com nome e uma linha dizendo o que tem dentro. Testar e Salvar versão ficam no cabeçalho, fora do menu."
+      ? "<b>A · Seções do pack.</b> Dentro de um pack há um menu lateral com 6 seções fixas (a sexta, Diagnóstico com IA, a pedido do dono), cada uma com nome e uma linha dizendo o que tem dentro. Testar e Salvar versão ficam no cabeçalho, fora do menu."
       : "<b>B · Painel do pack.</b> O pack abre numa página única que resume tudo e sugere o próximo passo. Cada área leva a uma página de detalhe; voltar é sempre “← Painel do pack”. Não existe menu lateral."}</p>
     <div class="maptree">${treeA === "" ? "" : (a === "A" ? treeA : treeB)}</div>
     <h3>Como os 4 problemas do protótipo reprovado foram resolvidos</h3>
@@ -1097,7 +1149,7 @@ Rodapé em todas as telas: ${L("tarefas", "Tarefas")} (gaveta)`;
       <tr><td>1. Menu misturado (itens do app e do pack juntos, até sem pack aberto)</td><td>Dois níveis separados. Sem pack aberto não existe nenhum item de pack. Dentro do pack, o cabeçalho sempre mostra qual pack é e tem “← Meus packs”. Configurações do app só no nível do app.</td></tr>
       <tr><td>2. Abas dentro de abas</td><td>Mods, resource packs e shaders numa lista única agrupada; Adicionar com um campo só (busca ou link) em vez de 4 abas; Configs com seletor de origem; Exportar e Histórico como páginas corridas. No máximo um nível de navegação visível.</td></tr>
       <tr><td>3. Nomes pouco claros</td><td>Cada seção tem nome + uma linha dizendo o que tem dentro. “Diagnóstico” virou “Problemas”; “Ajustes do pack” foi desfeito; “Versões” virou “Histórico” (A) ou área “Versões” com o número atual à vista (B).</td></tr>
-      <tr><td>4. Itens demais</td><td>De 9 abas + 4 itens de menu para 5 seções (A) ou 4 áreas (B). Teste, Ajustes, Tarefas e Sobre deixaram de ser itens: viraram botão, menu do Testar, gaveta e seção de Configurações.</td></tr></table>
+      <tr><td>4. Itens demais</td><td>De 9 abas + 4 itens de menu para 6 seções (A) ou 5 áreas (B). Teste, Ajustes, Tarefas e Sobre deixaram de ser itens: viraram botão, menu do Testar, gaveta e seção de Configurações.</td></tr></table>
     <h3>Recomendação</h3>
     <p><b>Alternativa A.</b> O trabalho do dia a dia é um vai e vem rápido entre mods, configs e teste. Em A cada lugar está a um clique, sempre na mesma posição, e o cabeçalho já mostra a situação do pack (problemas, não salvas, teste). Em B cada troca passa pelo painel (dois cliques) e o painel tende a crescer com o tempo. Da B, a A herda a ideia de sugerir o próximo passo: os avisos do cabeçalho e o diálogo pós-salvar fazem esse papel.</p>
     <p class="small">Use o seletor no topo para trocar entre A e B; as telas comuns (Meus packs, Criar, Testar, Configurações) são iguais nas duas. Marque “Mostrar o que é clicável” para ver as ligações.</p></div>`;

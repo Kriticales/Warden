@@ -63,6 +63,8 @@ MEUS PACKS ............................ nível do APP: só packs e Configuraçõ
     │   └── Atualizar itens (diálogo)
     ├── Configs ..... arquivos de ajuste dos mods e do jogo
     ├── Problemas ... o que pode impedir o jogo de abrir
+    ├── ✦ Diagnóstico com IA ... pedir à IA para explicar um travamento (pedido do dono)
+    │   └── Resposta da IA
     ├── Histórico ... versões salvas, alterações não salvas, GitHub
     └── Exportar .... gerar o pack para quem vai jogar
     Fora do menu (ações e telas de contexto):
@@ -86,12 +88,14 @@ Rodapé em todas as telas: indicador de Tarefas (abre a gaveta)
     Coluna principal: Mods, resource packs e shaders (prévia da lista, busca, Adicionar)
                       Configs (editados há pouco, Abrir editor)
     Coluna lateral:   Situação (problemas, último teste, não salvas)
+                      ✦ Diagnóstico com IA (pedido do dono)
                       Versões (atual, Salvar versão, GitHub)
                       Exportar
     Cada área abre uma página de detalhe com "← Painel do pack":
     ├── Lista completa de mods → Detalhes, Adicionar, Atualizar
     ├── Editor de configs
     ├── Problemas
+    ├── ✦ Diagnóstico com IA → Resposta da IA
     ├── Histórico
     ├── Exportar
     └── Teste (pelo botão Testar)
@@ -103,13 +107,13 @@ As duas resolvem os 4 problemas do D1. A diferença está em **como se anda dent
 
 ### 3.1 Alternativa A: seções do pack
 
-- Um menu lateral com **5 seções fixas** (Mods, Configs, Problemas, Histórico, Exportar). Cada item mostra um contador quando faz sentido (128 itens, 3 problemas, 5 não salvas) e uma linha dizendo o que tem dentro.
+- Um menu lateral com **6 seções fixas** (Mods, Configs, Problemas, ✦ Diagnóstico com IA, Histórico, Exportar). A meta era até 5; a sexta foi pedida pelo dono num comentário na página (§10.4). Cada item mostra um contador quando faz sentido (128 itens, 3 problemas, 5 não salvas) e uma linha dizendo o que tem dentro.
 - O cabeçalho fixo concentra as duas ações do pack: **▶ Testar** (a maior) e **Salvar versão · N alterações**.
 - O teste não é seção: ao clicar em Testar, a área principal vira a tela do teste. Dá para navegar pelas seções com o jogo aberto, porque o botão do cabeçalho leva de volta ao console.
 - Pack novo abre em **Mods** com o estado vazio "Nenhum mod ainda" e um botão **Adicionar mods**.
 
 **Bom para:** o vai e vem do dia a dia (mods ↔ configs ↔ teste) a um clique; posições que não mudam; a situação do pack visível o tempo todo pelos contadores do menu.
-**Custo:** um menu lateral sempre presente (pequeno: 5 itens).
+**Custo:** um menu lateral sempre presente (pequeno: 6 itens).
 
 ### 3.2 Alternativa B: painel do pack
 
@@ -125,7 +129,7 @@ As duas resolvem os 4 problemas do D1. A diferença está em **como se anda dent
 
 | Critério | A · Seções | B · Painel |
 |---|---|---|
-| Itens de navegação dentro do pack | 5 seções | 4 áreas + páginas de detalhe |
+| Itens de navegação dentro do pack | 6 seções | 5 áreas + páginas de detalhe |
 | Trocar de Mods para Configs | 1 clique | 2 cliques (voltar ao painel, entrar) |
 | Testar | 1 clique, de qualquer tela | 1 clique, de qualquer tela |
 | Ver a situação do pack | Contadores no menu e avisos no cabeçalho | Painel inteiro dedicado a isso |
@@ -166,6 +170,7 @@ Termos seguem o glossário de `QUALITY.md` §8.2. Revisados com a skill `design:
 | **Problemas** | O que pode impedir o jogo de abrir | Substitui "Diagnóstico", palavra técnica que descreve o processo, não o resultado. O usuário procura "o que está errado", não "o diagnóstico". Sem nada a mostrar: "Nenhum problema encontrado". |
 | **Histórico** | Versões salvas e o que mudou | Termo do glossário. Substitui "Versões", que era ambíguo: versão do Minecraft? do mod? do pack? |
 | **Exportar** | Gerar o pack para quem vai jogar | O verbo diz a ação, e a descrição diz para quem. |
+| **✦ Diagnóstico com IA** | Pedir à IA para explicar um travamento | Nome pedido pelo dono. O ✦ (ícone de brilhinho na etapa visual) identifica a IA. Fica logo abaixo de Problemas, porque é o passo seguinte quando a verificação automática não explica. |
 | **▶ Testar** (botão) | — | Termo obrigatório do glossário ("Testar", nunca "Jogar"). |
 | **Salvar versão · 5 alterações** (botão) | — | Termo do glossário. O contador mostra que há algo a salvar sem precisar de outro aviso. |
 | **Editar informações** (link ao lado do nome) | — | Substitui "Ajustes do pack": o que fica ali é nome, autor e descrição, ou seja, informações. |
@@ -196,7 +201,7 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T04 | Abrir pack existente + limpeza | Botão em Meus packs → escolher pasta → tela de verificação com a lista de arquivos a limpar, **Agora não** e **Limpar N arquivos e abrir**. |
 | T05 | Cabeçalho do pack | Cabeçalho fixo em todas as telas do pack: ← Meus packs, nome, Minecraft/loader/versão, avisos do momento, Salvar versão, Testar. |
 | T05 | Indicadores (não salvas, mudanças do teste, problemas, jogo em execução) | Não salvas: no botão Salvar versão. Mudanças do teste: aviso no cabeçalho. Problemas: contador no menu (A) ou aviso no cabeçalho (B). Jogo em execução: o botão Testar vira "● Jogo aberto: ver teste". |
-| T05 | Abas do pack | Substituídas por 5 seções (A) ou painel + páginas (B). Ver §7. |
+| T05 | Abas do pack | Substituídas por 6 seções (A) ou painel + páginas (B). Ver §7. |
 | T06 | Lista de mods, resource packs e shaders | **Mods** (A) / página "lista completa" (B). Lista única agrupada por tipo, grupos recolhíveis. |
 | T06 | Buscar, filtrar, ordenar, seleção múltipla (lado, remover, atualizar) | Barra acima da lista. A barra de ações aparece quando há itens selecionados. |
 | T06 | Arrastar .jar/.zip | Sobre a lista (texto de ajuda logo abaixo do título). |
@@ -225,6 +230,8 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T14 | Verificar agora | Botão em **Problemas**. |
 | T14 | Diagnóstico depois de travar | Resultado do teste ("Por que travou"), com link em Problemas → Último travamento. |
 | T14 | Ignorar aviso (P1) | Em cada problema. |
+| T14 | Diagnóstico com IA, lugar dedicado (P1) | Seção **✦ Diagnóstico com IA** (A) ou bloco no painel (B): escolher o que analisar (último travamento, outro teste, log do computador), contar algo à IA, consentimento, respostas anteriores. Também pelo botão **✦ Analisar com IA** em Problemas → Último travamento. Ver M12. |
+| T14 | Resposta da IA (P1) | Página **Resposta da IA**: causa provável, confiança, mods envolvidos, passos com botões e o aviso "A IA pode errar". |
 | T14 | IA Gemini com consentimento (P1) | **✦ Pedir ajuda à IA** (✦ = ícone de brilhinho que identifica a IA) no resultado do travamento → diálogo de consentimento com o texto exato. |
 | T15 | Revisar mudanças do teste | Parte do resultado do teste: "O que mudou durante o teste". Ver §7. |
 | T15 | Decidir depois | Aviso "Mudanças do teste para revisar" no cabeçalho até resolver. |
@@ -246,7 +253,7 @@ Estas mudanças não removem nenhuma funcionalidade. Elas só mudam onde cada co
 
 | # | Mudança | Justificativa |
 |---|---|---|
-| M1 | As 9 abas do pack (T05) viram 5 seções (A) ou painel + páginas (B). | Problema 4 (itens demais) e 2 (abas dentro de abas). Teste, Diagnóstico e Ajustes deixam de ser abas: o teste é um modo aberto pelo botão; o diagnóstico vira "Problemas"; os ajustes se dividem entre "Editar informações" e o menu do Testar. |
+| M1 | As 9 abas do pack (T05) viram 6 seções (A, contando a de IA da M12) ou painel + páginas (B). | Problema 4 (itens demais) e 2 (abas dentro de abas). Teste, Diagnóstico e Ajustes deixam de ser abas: o teste é um modo aberto pelo botão; o diagnóstico vira "Problemas"; os ajustes se dividem entre "Editar informações" e o menu do Testar. |
 | M2 | Mods, Resource packs e Shaders (T06) viram **uma lista agrupada por tipo**. | Eram três abas idênticas, e com o menu lateral formavam abas dentro de abas. O comportamento era o mesmo nas três (a própria SPEC diz isso). |
 | M3 | Adicionar (T08) troca as **4 abas** por um campo único que aceita busca ou link, mais "Onde buscar", "Tipo" e "Escolher arquivo do computador…". | Para o leigo, colar um link e buscar são o mesmo gesto: "achar o mod". O Warden reconhece um link pelo formato. Arquivo é um botão porque é outra ação (abrir o explorador de arquivos). Some mais um nível de abas. |
 | M4 | "Revisar mudanças do teste" (T15) passa a ser **o próprio resultado do teste**. | O usuário só chega lá depois de um teste. Ser uma tela à parte criava um passo a mais e um lugar a mais para lembrar. |
@@ -257,6 +264,7 @@ Estas mudanças não removem nenhuma funcionalidade. Elas só mudam onde cada co
 | M9 | **Sobre** (T23) vira a última seção de Configurações. | Uma visita por ano não justifica um item de menu. |
 | M10 | A barra lateral do nível do app (Packs, Tarefas, Configurações, Sobre) **deixa de existir**. Meus packs é a tela inicial, com Configurações no topo. | Problema 1. Com M8 e M9, sobravam dois destinos, e eles cabem no topo da tela inicial. |
 | M11 | "Sincronizar o pack" (etapa 3 do T13) passa a se chamar **Copiar o pack para o teste** na interface. | Diz o que acontece, em vez de usar um termo técnico. |
+| M12 | **Diagnóstico com IA ganha lugar próprio** (pedido do dono): seção no menu (A) ou bloco no painel (B). Além do último travamento, permite analisar outro teste ou um log/crash report escolhido no computador, e guarda as respostas anteriores. | Pedido explícito do dono em comentário. A T14 só previa a IA como botão no resultado do travamento. As respostas guardadas ficam nos dados do Warden, nunca na pasta do pack (podem conter trechos de log). O consentimento a cada envio não muda. |
 
 ## 8. Os 5 fluxos principais, passo a passo
 
@@ -315,7 +323,7 @@ Os mesmos fluxos estão no rascunho, na página "Fluxos principais", com cada pa
 | **1. Menu misturado:** itens do app e de um pack no mesmo menu, aparecendo até sem pack aberto ("conteúdo de qual pack?"). | Dois níveis separados. O nível do app não tem menu lateral: só Meus packs, com Criar, Abrir existente e Configurações. Itens de pack só existem depois de abrir um pack. Dentro do pack, o cabeçalho sempre diz qual é o pack e tem "← Meus packs". Configurações do app nunca aparecem dentro do pack, só por links de contexto (por exemplo, "Abrir Configurações" quando falta a chave da CurseForge). |
 | **2. Abas dentro de abas.** | Nenhuma tela tem abas. Mods, resource packs e shaders ficam numa lista agrupada (M2). Adicionar usa um campo único (M3). Configs usa um seletor de origem. Exportar e Histórico são páginas corridas. Detalhes de mod abrem em painel lateral e confirmações em diálogo: são camadas temporárias, não navegação. |
 | **3. Nomes pouco claros.** | Cada seção tem nome e descrição visível (§5). "Conteúdo" virou "Mods", com a descrição "Mods, resource packs e shaders". "Diagnóstico" virou "Problemas". "Versões" virou "Histórico". "Ajustes do pack" foi desfeito. |
-| **4. Itens demais.** | De 9 abas no pack + 4 itens na barra lateral do app (13 destinos) para 5 seções no pack e 2 destinos no app (A). Teste, Ajustes, Tarefas e Sobre deixaram de ser itens de menu e viraram botão, menu do Testar, indicador no rodapé e seção de Configurações. |
+| **4. Itens demais.** | De 9 abas no pack + 4 itens na barra lateral do app (13 destinos) para 6 seções no pack (a sexta, Diagnóstico com IA, a pedido do dono) e 2 destinos no app (A). Teste, Ajustes, Tarefas e Sobre deixaram de ser itens de menu e viraram botão, menu do Testar, indicador no rodapé e seção de Configurações. |
 
 ## 10. Crítica das alternativas e o que foi corrigido
 
@@ -353,6 +361,7 @@ Nesta etapa, que é só estrutura em cinza, a regra vale para textos e organiza�
 | Comentário | O que foi feito |
 |---|---|
 | Java: "Sempre o mais recente, se não for possível, explique o porquê". | Atendido na estrutura. O Warden usa o Java mais novo que cada versão do Minecraft aceita, sempre com a atualização mais recente dele. Configurações → Teste ganhou uma tabela com cada Java, quais packs o usam e o motivo; Ajustes do teste mostra "Automático: Java 17" com "Por que não o Java 25?". Motivos tirados do R2 §2.1: o Forge 1.7.10/1.12.2 só abre no Java 8, e o Minecraft 1.18–1.20.4 e 1.20.5–1.21 foram feitos para o 17 e o 21. Sem mudança na regra de seleção do ADR-0012. Fica em aberto testar se versões como 1.18–1.20.4 funcionam bem num Java mais novo; isso cabe a um spike, não à estrutura. |
+| Na seção Problemas: "Tem que ter uma opção dedicada ao Diagnóstico com IA". | Feito. Nova seção **✦ Diagnóstico com IA** logo abaixo de Problemas (A) e bloco no painel (B), com página de resposta. Ver M12. O menu da A passou de 5 para 6 itens. |
 | Chaves: "Deve ficar .env nos arquivos do aplicativo". | **Não aplicado; aguarda decisão.** Contradiz o ADR-0017 (chaves no cofre do sistema, decisão registrada como do dono). Respondido no comentário com a diferença entre as duas opções; o tópico ficou aberto. Para a estrutura nada muda: as chaves continuam sendo digitadas em Configurações → Chaves e contas. Muda só onde elas ficam guardadas. |
 
 ## 11. Como usar o rascunho clicável
@@ -373,5 +382,5 @@ Verificação feita: as 43 telas mais as páginas Mapa e Fluxos, nas duas altern
 - A janela do rascunho tem largura fixa (1080 px) para parecer o app desktop. Em telas estreitas aparece rolagem horizontal só dentro da janela.
 - **Decisões para o dono:**
   1. Alternativa A ou B (recomendação: A).
-  2. Aprovar as mudanças M1 a M11 na SPEC (§7).
+  2. Aprovar as mudanças M1 a M12 na SPEC (§7).
   3. Manter "Onde buscar" separado por fonte ou pedir a busca combinada Modrinth + CurseForge (§10.2).
