@@ -47,7 +47,7 @@
 
 | Quando | Ação | Por quê |
 |---|---|---|
-| Antes de F0-01 | No terminal do WSL: `sudo apt update && sudo apt install -y build-essential curl wget file pkg-config libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev xvfb webkit2gtk-driver clang lld llvm cmake nasm` | Bibliotecas de sistema que o Tauri exige no Linux (verificado em 2026-10-01: ausentes nesta máquina), o driver WebDriver do WebKitGTK para os testes E2E e o compilador/linker usados pelo `cargo-xwin` na F0-04 (a F0-04 confirma o conjunto mínimo). Exige senha de administrador; agentes não usam `sudo`. O Java para testes não precisa de `sudo`: o `cargo xtask installer` baixa um JRE Temurin para uma pasta de cache do usuário. |
+| ~~Antes de F0-01~~ | **Feito em 01/10/2026 pelo orquestrador**, com autorização do dono: bibliotecas do Tauri instaladas no WSL (`webkitgtk-webdriver` substitui `webkit2gtk-driver` no Ubuntu 26.04). | — |
 | ~~Antes de F0-04~~ | ~~Responder D5~~ — **respondido "sim" em 01/10/2026** (SPEC §10). | `cargo xtask win-dev` pode ser entregue. |
 | Antes de F0-02 | No GitHub, em Settings → Secrets → Actions do repositório `Kriticales/Warden`, criar `CURSEFORGE_API_KEY` com a chave. | Testes de rede agendados na CI. |
 | Antes de V-03 | Gerar um token do GitHub (passo a passo virá no app) e salvá-lo no Warden. Para os testes de integração de V-03, um repositório de teste descartável. | Enviar ao GitHub. |
