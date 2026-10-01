@@ -1,6 +1,6 @@
 # ADR-0012 — Gestão de Java
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão técnica (A1)
+- **Status:** aceita; regra de escolha da versão substituída pela ADR-0029 · **Data:** 2026-10-01 · **Origem:** decisão técnica (A1)
 
 ## Contexto
 

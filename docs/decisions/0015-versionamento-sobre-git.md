@@ -1,6 +1,6 @@
 # ADR-0015 — Versionamento simples sobre git embutido
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão do dono (versionamento simples, git escondido, GitHub) + decisão técnica (A1) (implementação)
+- **Status:** aceita; item GitHub substituído pela ADR-0028 · **Data:** 2026-10-01 · **Origem:** decisão do dono (versionamento simples, git escondido, GitHub) + decisão técnica (A1) (implementação)
 
 ## Contexto
 

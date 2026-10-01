@@ -11,16 +11,16 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0005](0005-versoes-e-loaders.md) | Versões do Minecraft e loaders suportados | dono |
 | [0006](0006-integracao-hibrida-packwiz.md) | Integração híbrida com o packwiz | dono + técnica |
 | [0007](0007-sidecar-packwiz.md) | packwiz como sidecar de commit fixado, chave da CurseForge em tempo de execução | dono + técnica |
-| [0008](0008-fontes-de-mods.md) | Fontes de mods | dono |
+| [0008](0008-fontes-de-mods.md) | Fontes de mods (busca: ver 0027) | dono |
 | [0009](0009-exportacao-nativa-e-separacao.md) | Exportação nativa e separação entre projeto e instância | dono |
 | [0010](0010-launcher-offline-motor-abstrato.md) | Launcher integrado, só offline, com motor abstrato | dono + técnica |
 | [0011](0011-materializacao-propria.md) | Materialização do pack em Rust com conformidade ao packwiz-installer | técnica |
-| [0012](0012-gestao-de-java.md) | Gestão de Java | técnica |
+| [0012](0012-gestao-de-java.md) | Gestão de Java (escolha da versão: ver 0029) | técnica |
 | [0013](0013-editor-de-configs.md) | Editor de configs com preservação de formato | dono + técnica |
 | [0014](0014-diagnostico-e-ia.md) | Diagnóstico determinístico e IA com consentimento | dono |
-| [0015](0015-versionamento-sobre-git.md) | Versionamento simples sobre git embutido | dono + técnica |
+| [0015](0015-versionamento-sobre-git.md) | Versionamento simples sobre git embutido (GitHub: ver 0028) | dono + técnica |
 | [0016](0016-interface-pt-br.md) | Interface só em português do Brasil | dono + técnica |
-| [0017](0017-segredos-no-cofre.md) | Segredos no cofre de credenciais do sistema | dono |
+| [0017](0017-segredos-no-cofre.md) | Segredos no cofre de credenciais do sistema (substituída pela 0025) | dono |
 | [0018](0018-contrato-tipado-e-erros.md) | Contrato tipado e modelo de erros | técnica |
 | [0019](0019-concorrencia-e-cancelamento.md) | Concorrência, travas por pack e cancelamento | técnica |
 | [0020](0020-bibliotecas-frontend.md) | Bibliotecas do frontend | técnica |
@@ -28,5 +28,10 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0022](0022-testes-e-ci.md) | Estratégia de testes e CI | técnica |
 | [0023](0023-registros-e-privacidade.md) | Registros e privacidade | técnica |
 | [0024](0024-bibliotecas-rust.md) | Bibliotecas Rust principais | técnica |
+| [0025](0025-segredos-cofre-ou-env.md) | Segredos: cofre do sistema por padrão, arquivo .env opcional | dono |
+| [0026](0026-estrutura-de-navegacao.md) | Estrutura de navegação do app | dono |
+| [0027](0027-busca-combinada.md) | Busca de mods combinada (Modrinth + CurseForge) | dono |
+| [0028](0028-publicacao-no-github.md) | Publicar versões no GitHub para distribuir o pack | dono |
+| [0029](0029-java-mais-novo-que-funciona.md) | Java: o mais novo que funciona, com o motivo à vista | dono |
 
 Decisões ainda abertas para o dono estão em [SPEC §10](../SPEC.md#10-decisões-pendentes-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.

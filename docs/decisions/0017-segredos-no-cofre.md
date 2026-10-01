@@ -1,6 +1,6 @@
 # ADR-0017 — Segredos no cofre de credenciais do sistema
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão do dono
+- **Status:** substituída por ADR-0025 · **Data:** 2026-10-01 · **Origem:** decisão do dono
 
 ## Contexto
 

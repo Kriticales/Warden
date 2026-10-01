@@ -1,6 +1,6 @@
 # ADR-0008 — Fontes de mods
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão do dono
+- **Status:** aceita; busca e estado sem chave substituídos pela ADR-0027 · **Data:** 2026-10-01 · **Origem:** decisão do dono
 
 ## Contexto
 
