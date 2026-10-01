@@ -4,7 +4,7 @@
    Um único conjunto de NOMES de tokens, com três "direções visuais" que só
    trocam VALORES. Componentes nunca usam cor, tamanho ou raio literais:
    sempre um token daqui. Para trocar a direção, mude o atributo
-   data-direction no <html>: "grafite" (padrão), "ardosia" ou "calcita".
+   data-direction no <html>: "deepdark" (padrão), "sculk" ou "calcita".
 
    Grupos:
      --font-*      famílias tipográficas
@@ -54,6 +54,7 @@
   --control-h-lg: 48px;  /* ação principal da tela (ex.: Testar) */
 
   --sidebar-w: 236px;
+  --sidebar-w-rail: 96px; /* trilho só de ícones (Deep Dark) */
   --sidebar-w-compact: 64px;
   --protobar-h: 44px;
 
@@ -67,242 +68,193 @@
 }
 
 /* ==========================================================================
-   Direção 1 — GRAFITE (padrão)
-   Escuro, sóbrio, estilo ferramenta profissional. Neutros frios, um único
-   acento verde-azulado. Cantos médios, sombras discretas, sem textura.
+   Paleta-base "Warden" (o mob do Deep Dark): referência única de cores cruas.
+   As direções abaixo atribuem PAPÉIS a estas cores. Valores conferidos com
+   tools/contraste.mjs (WCAG 2.1 AA).
+     abismo      #050D12  fundo do Deep Dark
+     sculk-900   #0A1A21  painel
+     sculk-800   #0E2630  corpo do Warden (superfície)
+     sculk-700   #12313C  superfície elevada
+     sculk-600   #1E4552  bordas
+     alma        #19D3E0  brilho de sculk / almas no peito (destaque)
+     alma-escura #0FB5C2  destaque pressionado
+     alma-clara  #7FF3F0  brilho claro
+     osso        #CFE3DA  costelas: detalhes, foco e destaque secundário
+   ========================================================================== */
+
+/* ==========================================================================
+   Direção 1 — DEEP DARK (padrão, a mais caprichada)
+   Paleta do Warden + identidade Minecraft forte: títulos em fonte pixel,
+   botões com cantos em degrau, barras de progresso em blocos, cena de caverna
+   em pixel art original ao fundo, veias de sculk e partículas de alma.
+   Texto corrido continua numa sans legível.
    ========================================================================== */
 :root,
-:root[data-direction="grafite"] {
+:root[data-direction="deepdark"] {
   color-scheme: dark;
 
-  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --font-display: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Pixelify Sans", "Manrope", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
   --display-weight: 600;
+  --display-tracking: 0.01em;
+  --title-size: 2rem;             /* títulos de tela grandes, em pixel */
+
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-pill: 2px;
+  --notch: 4px;                   /* tamanho do "degrau" de pixel nos cantos */
+
+  --c-bg: #050d12;
+  --c-bg-sunken: #03090c;
+  --c-surface: #0a1a21;
+  --c-surface-glass: rgba(10, 26, 33, 0.86); /* cards sobre a cena de fundo */
+  --c-surface-2: #0e2630;
+  --c-surface-3: #12313c;
+  --c-overlay: rgba(2, 7, 10, 0.78);
+
+  --c-border: #15333e;
+  --c-border-strong: #1e4552;
+  --c-control-border: #4f8a98;
+
+  --c-text: #e4f3ef;
+  --c-text-2: #b4cfca;
+  --c-text-3: #8aacaa;
+  --c-bone: #cfe3da;
+
+  --c-accent: #19d3e0;
+  --c-accent-hover: #0fb5c2;
+  --c-on-accent: #021418;
+  --c-accent-text: #5fe3ec;
+  --c-accent-soft: rgba(25, 211, 224, 0.13);
+  --c-accent-glow: rgba(25, 211, 224, 0.45);
+
+  --c-focus: #cfe3da;             /* osso: distinto do ciano de seleção */
+
+  --c-ok: #3ddc84;
+  --c-ok-text: #6be7a2;
+  --c-ok-soft: rgba(61, 220, 132, 0.13);
+  --c-warn: #f2b33d;
+  --c-warn-text: #ffcb66;
+  --c-warn-soft: rgba(242, 179, 61, 0.13);
+  --c-danger: #ff5c5c;
+  --c-danger-text: #ff8e8e;
+  --c-danger-soft: rgba(255, 92, 92, 0.14);
+  --c-danger-solid: #c9353a;
+  --c-on-danger: #ffffff;
+  --c-info: #b3a6ff;              /* lavanda: “informação” nunca se confunde com o ciano */
+  --c-info-text: #c6bcff;
+  --c-info-soft: rgba(179, 166, 255, 0.13);
+
+  --c-src-modrinth: #3ddc84;
+  --c-src-curseforge: #f48a4a;
+  --c-src-local: #8aacaa;
+
+  --c-diff-add: rgba(61, 220, 132, 0.15);
+  --c-diff-del: rgba(255, 92, 92, 0.15);
+
+  --c-console-bg: #020709;
+  --c-console-text: #cfe6e1;
+  --c-console-muted: #86a9a6;
+  --c-console-warn: #ffcb66;
+  --c-console-error: #ff8e8e;
+
+  --c-data: #19d3e0;
+  --c-data-track: #12313c;
+
+  --shadow-1: 0 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 6px 0 rgba(0, 0, 0, 0.45), 0 12px 28px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 10px 0 rgba(0, 0, 0, 0.5), 0 30px 70px rgba(0, 0, 0, 0.65);
+  --glow: 0 0 0 1px rgba(25, 211, 224, 0.55), 0 0 24px rgba(25, 211, 224, 0.28);
+
+  /* Veias de sculk: tile original em pixel, ciano a 7% */
+  --fx-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' shape-rendering='crispEdges'%3E%3Cg fill='%2319D3E0' fill-opacity='.07'%3E%3Crect y='40' width='10' height='2'/%3E%3Crect x='10' y='36' width='2' height='6'/%3E%3Crect x='12' y='36' width='12' height='2'/%3E%3Crect x='24' y='28' width='2' height='10'/%3E%3Crect x='26' y='28' width='14' height='2'/%3E%3Crect x='40' y='20' width='2' height='10'/%3E%3Crect x='42' y='20' width='22' height='2'/%3E%3Crect x='32' y='30' width='2' height='16'/%3E%3Crect x='34' y='46' width='8' height='2'/%3E%3Crect x='50' y='4' width='2' height='16'/%3E%3C/g%3E%3Cg fill='%237FF3F0' fill-opacity='.14'%3E%3Crect x='24' y='28' width='2' height='2'/%3E%3Crect x='40' y='20' width='2' height='2'/%3E%3Crect x='32' y='46' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-texture-size: 64px 64px;
+  --fx-button-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.18), inset 0 -3px 0 rgba(0, 0, 0, 0.32);
+  --fx-button-bevel-active: inset 0 3px 0 rgba(0, 0, 0, 0.3);
+  --fx-card-edge: inset 0 1px 0 rgba(127, 243, 240, 0.05);
+  --fx-progress-segments: repeating-linear-gradient(90deg, transparent 0 10px, rgba(3, 9, 12, 0.85) 10px 12px);
+
+  --tile-s: 34%;
+  --tile-l: 20%;
+  --tile-l2: 42%;
+}
+
+/* ==========================================================================
+   Direção 2 — SCULK SÓBRIO
+   Mesma paleta do Warden, identidade contida para usar o dia inteiro: sem
+   cena de fundo, sem fonte pixel no corpo dos títulos, cantos levemente
+   arredondados, sombras discretas. A veia de sculk aparece só na lateral.
+   ========================================================================== */
+:root[data-direction="sculk"] {
+  --font-display: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --display-weight: 700;
   --display-tracking: -0.01em;
-  --display-transform: none;
+  --title-size: 1.5rem;
 
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
   --radius-pill: 999px;
+  --notch: 0px;
 
-  /* Superfícies (do fundo para o topo) */
-  --c-bg: #101215;
-  --c-bg-sunken: #0b0c0f;
-  --c-surface: #171a1e;
-  --c-surface-2: #1e2227;
-  --c-surface-3: #272c32;
-  --c-overlay: rgba(4, 6, 8, 0.72);
+  --c-bg: #071118;
+  --c-surface-glass: #0a1a21;
 
-  /* Linhas */
-  --c-border: #2b3037;          /* divisórias decorativas */
-  --c-border-strong: #3a414a;   /* cards, painéis */
-  --c-control-border: #737d89;  /* contorno de campos: ≥ 3:1 contra a superfície */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.6);
+  --glow: 0 0 0 1px rgba(25, 211, 224, 0.45);
 
-  /* Texto */
-  --c-text: #e6e9ed;
-  --c-text-2: #b6bdc6;
-  --c-text-3: #939ca7;          /* menor contraste permitido: ≥ 4.5:1 em surface-3 */
-
-  /* Acento */
-  --c-accent: #2ec4b0;
-  --c-accent-hover: #4fd6c3;
-  --c-on-accent: #03201b;
-  --c-accent-text: #5dd8c7;
-  --c-accent-soft: rgba(46, 196, 176, 0.14);
-
-  --c-focus: #6cb6ff;
-
-  /* Estados (sempre acompanhados de ícone + texto) */
-  --c-ok: #4ccf7a;
-  --c-ok-text: #74dd98;
-  --c-ok-soft: rgba(76, 207, 122, 0.13);
-  --c-warn: #f0b429;
-  --c-warn-text: #f5c75a;
-  --c-warn-soft: rgba(240, 180, 41, 0.13);
-  --c-danger: #f06363;
-  --c-danger-text: #ff9090;
-  --c-danger-soft: rgba(240, 99, 99, 0.14);
-  --c-danger-solid: #c5383c;
-  --c-on-danger: #ffffff;
-  --c-info: #6cb6ff;
-  --c-info-text: #8cc6ff;
-  --c-info-soft: rgba(108, 182, 255, 0.13);
-
-  /* Fontes de conteúdo (só o pontinho/ícone usa a cor; o texto usa --c-text-2) */
-  --c-src-modrinth: #3fbf6f;
-  --c-src-curseforge: #f0874a;
-  --c-src-local: #9aa3ad;
-
-  /* Diff */
-  --c-diff-add: rgba(76, 207, 122, 0.16);
-  --c-diff-del: rgba(240, 99, 99, 0.16);
-
-  /* Console */
-  --c-console-bg: #0b0c0f;
-  --c-console-text: #d9dee4;
-  --c-console-muted: #939ca7;
-  --c-console-warn: #f5c75a;
-  --c-console-error: #ff9090;
-
-  /* Série única para barras de tamanho (dataviz: magnitude = 1 matiz) */
-  --c-data: #2ec4b0;
-  --c-data-track: #262b31;
-
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.4);
-  --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.55);
-
-  /* Identidade da direção: neutra */
-  --fx-texture: none;
-  --fx-texture-size: auto;
   --fx-button-bevel: none;
   --fx-button-bevel-active: none;
   --fx-card-edge: none;
   --fx-progress-segments: none;
-  --fx-icon-style: monogram; /* lido pelo JS: monograma arredondado */
-  /* Ícones provisórios de mods (no app real vem o ícone da API). O JS passa só o matiz (--h). */
-  --tile-s: 32%;
-  --tile-l: 25%;
-  --tile-l2: 38%;
 }
 
 /* ==========================================================================
-   Direção 2 — ARDÓSIA
-   Escuro com identidade de "bloco" sutil: pedra quente, acento verde-grama,
-   detalhe dourado, cantos quase retos, sombras duras (deslocadas, sem
-   desfoque), textura de pixel quase invisível em fundos grandes, títulos em
-   fonte pixelada. Corpo de texto continua em fonte legível.
-   ========================================================================== */
-:root[data-direction="ardosia"] {
-  color-scheme: dark;
-
-  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Pixelify Sans", "IBM Plex Sans", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
-  --display-weight: 600;
-  --display-tracking: 0.01em;
-  --display-transform: none;
-
-  --radius-sm: 2px;
-  --radius-md: 3px;
-  --radius-lg: 4px;
-  --radius-pill: 3px;
-
-  --c-bg: #191716;
-  --c-bg-sunken: #121110;
-  --c-surface: #211e1c;
-  --c-surface-2: #2a2724;
-  --c-surface-3: #34302c;
-  --c-overlay: rgba(10, 8, 6, 0.75);
-
-  --c-border: #3b3632;
-  --c-border-strong: #4d4741;
-  --c-control-border: #887e72;
-
-  --c-text: #f0e9dd;
-  --c-text-2: #cfc5b6;
-  --c-text-3: #aca191;
-
-  --c-accent: #7fbf3f;
-  --c-accent-hover: #95d354;
-  --c-on-accent: #102106;
-  --c-accent-text: #a0d763;
-  --c-accent-soft: rgba(127, 191, 63, 0.16);
-
-  --c-focus: #f2c84b;
-
-  --c-ok: #62c97c;
-  --c-ok-text: #86d99a;
-  --c-ok-soft: rgba(98, 201, 124, 0.14);
-  --c-warn: #f0b23e;
-  --c-warn-text: #f6c86c;
-  --c-warn-soft: rgba(240, 178, 62, 0.14);
-  --c-danger: #f0705f;
-  --c-danger-text: #ff9a8c;
-  --c-danger-soft: rgba(240, 112, 95, 0.15);
-  --c-danger-solid: #b8382b;
-  --c-on-danger: #ffffff;
-  --c-info: #7fb6ff;
-  --c-info-text: #9ec7ff;
-  --c-info-soft: rgba(127, 182, 255, 0.14);
-
-  --c-src-modrinth: #62c97c;
-  --c-src-curseforge: #f0874a;
-  --c-src-local: #aca191;
-
-  --c-diff-add: rgba(98, 201, 124, 0.17);
-  --c-diff-del: rgba(240, 112, 95, 0.17);
-
-  --c-console-bg: #121110;
-  --c-console-text: #e6dfd3;
-  --c-console-muted: #aca191;
-  --c-console-warn: #f6c86c;
-  --c-console-error: #ff9a8c;
-
-  --c-data: #7fbf3f;
-  --c-data-track: #34302c;
-
-  --shadow-1: 0 2px 0 rgba(0, 0, 0, 0.45);
-  --shadow-2: 0 4px 0 rgba(0, 0, 0, 0.45);
-  --shadow-3: 0 8px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px #4d4741;
-
-  /* Textura de pixel: xadrez 4x4 com 3% de opacidade — percebida, não lida */
-  --fx-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' shape-rendering='crispEdges'%3E%3Crect width='2' height='2' fill='%23fff' fill-opacity='.035'/%3E%3Crect x='4' y='4' width='2' height='2' fill='%23fff' fill-opacity='.025'/%3E%3Crect x='6' y='2' width='2' height='2' fill='%23000' fill-opacity='.08'/%3E%3C/svg%3E");
-  --fx-texture-size: 8px 8px;
-  /* Chanfro de bloco: luz em cima, sombra embaixo */
-  --fx-button-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 0 rgba(0, 0, 0, 0.32);
-  --fx-button-bevel-active: inset 0 3px 0 rgba(0, 0, 0, 0.3);
-  --fx-card-edge: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  /* Barras de progresso em segmentos, como a barra de experiência */
-  --fx-progress-segments: repeating-linear-gradient(90deg, transparent 0 10px, rgba(0, 0, 0, 0.45) 10px 12px);
-  --fx-icon-style: pixel; /* lido pelo JS: ícone em pixel art gerado */
-  --tile-s: 30%;
-  --tile-l: 24%;
-  --tile-l2: 40%;
-}
-
-/* ==========================================================================
-   Direção 3 — CALCITA
-   Claro e limpo. Branco levemente esverdeado, acento verde-escuro, cantos
-   mais arredondados, sombras suaves. Para quem trabalha em ambiente claro.
+   Direção 3 — CALCITA (claro)
+   Mantida porque custa só valores de token: a mesma estrutura em versão clara,
+   com o verde-azulado do Warden como destaque. Para ambientes muito claros.
    ========================================================================== */
 :root[data-direction="calcita"] {
   color-scheme: light;
 
-  --font-ui: "Figtree", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Figtree", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
-  --display-weight: 700;
+  --font-display: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --display-weight: 800;
   --display-tracking: -0.015em;
-  --display-transform: none;
+  --title-size: 1.5rem;
 
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 14px;
   --radius-pill: 999px;
+  --notch: 0px;
 
-  --c-bg: #f4f6f3;
-  --c-bg-sunken: #eaede8;
+  --c-bg: #eff5f3;
+  --c-bg-sunken: #e5eeeb;
   --c-surface: #ffffff;
-  --c-surface-2: #f7f8f6;
-  --c-surface-3: #eceeea;
-  --c-overlay: rgba(20, 28, 22, 0.42);
+  --c-surface-glass: #ffffff;
+  --c-surface-2: #f6faf8;
+  --c-surface-3: #e8f0ed;
+  --c-overlay: rgba(5, 20, 26, 0.45);
 
-  --c-border: #e1e5df;
-  --c-border-strong: #cfd5cc;
-  --c-control-border: #7a837b;
+  --c-border: #dbe6e2;
+  --c-border-strong: #c5d5cf;
+  --c-control-border: #6f8983;
 
-  --c-text: #18201b;
-  --c-text-2: #424b45;
-  --c-text-3: #5a645d;
+  --c-text: #0b1f26;
+  --c-text-2: #35504f;
+  --c-text-3: #526a69;
+  --c-bone: #35504f;
 
-  --c-accent: #17784a;
-  --c-accent-hover: #11633c;
+  --c-accent: #075c63;
+  --c-accent-hover: #054a50;
   --c-on-accent: #ffffff;
-  --c-accent-text: #146c43;
-  --c-accent-soft: #e2f1e8;
+  --c-accent-text: #0a6770;
+  --c-accent-soft: #dcf1f2;
+  --c-accent-glow: rgba(11, 111, 120, 0.25);
 
   --c-focus: #2160d8;
 
@@ -317,38 +269,34 @@
   --c-danger-soft: #fce9e6;
   --c-danger-solid: #c4321f;
   --c-on-danger: #ffffff;
-  --c-info: #2a6fd6;
-  --c-info-text: #1f5bb8;
-  --c-info-soft: #e5eefc;
+  --c-info: #5b47c8;
+  --c-info-text: #4a37b3;
+  --c-info-soft: #ece9fb;
 
   --c-src-modrinth: #1f8a4c;
-  --c-src-curseforge: #d4621f;
-  --c-src-local: #6c766f;
+  --c-src-curseforge: #c95a1a;
+  --c-src-local: #637b78;
 
   --c-diff-add: #dcf2e3;
   --c-diff-del: #fbe3df;
 
-  --c-console-bg: #1b211d; /* o console continua escuro: leitura de log */
-  --c-console-text: #dfe6e0;
-  --c-console-muted: #9faba2;
-  --c-console-warn: #f5c75a;
-  --c-console-error: #ff9090;
+  --c-console-bg: #061318;       /* o console continua escuro: leitura de log */
 
-  --c-data: #17784a;
-  --c-data-track: #e3e7e1;
+  --c-data: #075c63;
+  --c-data-track: #dfe9e6;
 
-  --shadow-1: 0 1px 2px rgba(24, 32, 27, 0.08);
-  --shadow-2: 0 4px 16px rgba(24, 32, 27, 0.08), 0 1px 2px rgba(24, 32, 27, 0.06);
-  --shadow-3: 0 24px 60px rgba(24, 32, 27, 0.2);
+  --shadow-1: 0 1px 2px rgba(11, 31, 38, 0.08);
+  --shadow-2: 0 4px 16px rgba(11, 31, 38, 0.08), 0 1px 2px rgba(11, 31, 38, 0.06);
+  --shadow-3: 0 24px 60px rgba(11, 31, 38, 0.2);
+  --glow: 0 0 0 1px var(--c-accent);
 
   --fx-texture: none;
-  --fx-texture-size: auto;
   --fx-button-bevel: none;
   --fx-button-bevel-active: none;
   --fx-card-edge: none;
   --fx-progress-segments: none;
-  --fx-icon-style: monogram;
-  --tile-s: 55%;
+
+  --tile-s: 45%;
   --tile-l: 90%;
-  --tile-l2: 78%;
+  --tile-l2: 76%;
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-direction="grafite">
+<html lang="pt-BR" data-direction="deepdark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,11 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Pixelify+Sans:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;600&family=Manrope:wght@400;500;600;700;800&family=Pixelify+Sans:wght@500;600;700&display=swap"
     />
     <link rel="stylesheet" href="tokens.css" />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="screens.css" />
+    <link rel="stylesheet" href="identidade.css" />
   </head>
   <body>
     <!-- Barra do protótipo: NÃO faz parte do app. Serve para trocar a direção visual,
@@ -24,9 +25,9 @@
       <div class="group" role="group" aria-labelledby="pb-dir">
         <span id="pb-dir">Direção visual</span>
         <div class="seg">
-          <button type="button" data-dir="grafite" aria-pressed="true">1 · Grafite</button>
-          <button type="button" data-dir="ardosia" aria-pressed="false">2 · Ardósia</button>
-          <button type="button" data-dir="calcita" aria-pressed="false">3 · Calcita</button>
+          <button type="button" data-dir="deepdark" aria-pressed="true">1 · Deep Dark</button>
+          <button type="button" data-dir="sculk" aria-pressed="false">2 · Sculk sóbrio</button>
+          <button type="button" data-dir="calcita" aria-pressed="false">3 · Calcita (claro)</button>
         </div>
       </div>
       <div class="group" role="group" aria-labelledby="pb-state">
@@ -46,6 +47,8 @@
       <span class="note">Dados fictícios · nada é salvo</span>
     </div>
 
+    <!-- Cena de fundo (só no Deep Dark): pixel art original gerada em app.js -->
+    <div class="scene" id="scene" aria-hidden="true"><div class="scene-art"></div><div class="particles"></div><div class="scene-fade"></div></div>
     <nav aria-label="Atalho"><a class="skip-link" href="#/" data-action="skip">Pular para o conteúdo</a></nav>
     <div id="app" class="app"></div>
     <div id="layer"></div>

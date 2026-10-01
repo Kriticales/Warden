@@ -57,7 +57,7 @@
             )
             .join("")}</ol>`;
       return `<div class="page wide">
-        <div class="page-head"><div class="titles">${crumbs("Versões")}<h1 id="page-title" class="page-title" tabindex="-1">Versões do pack</h1>
+        <div class="page-head"><div class="titles">${crumbs("Versões")}<h1 id="page-title" class="page-title" tabindex="-1">Versões do <span class="hl">pack</span></h1>
           <p class="page-sub">Cada versão é uma foto do pack que você pode compartilhar e para a qual sempre pode voltar.</p></div></div>
         ${S.view === "erro" ? `<div class="alert danger" style="margin-bottom:var(--space-5)">${icon("wifiOff")}<div><div class="atitle">A versão 1.4.0 foi salva no computador, mas não chegou ao GitHub</div><div class="abody">Sem conexão com a internet. Nada se perdeu: tentamos enviar de novo sozinhos quando a conexão voltar.</div></div><div class="aactions"><button class="btn btn-sm" data-action="ver-retry">${icon("refresh", "sm")}Tentar enviar agora</button></div></div>` : ""}
         <div class="split" style="grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start">
@@ -188,7 +188,7 @@
           <tfoot><tr><td><strong>Total</strong> <span class="xs muted">· 112 arquivos</span></td><td><span class="num"><strong>${fmtKB(total)}</strong></span></td></tr></tfoot></table></div>`;
       }
       return `<div class="page wide">
-        <div class="page-head"><div class="titles">${crumbs("Exportar")}<h1 id="page-title" class="page-title" tabindex="-1">Exportar o pack</h1>
+        <div class="page-head"><div class="titles">${crumbs("Exportar")}<h1 id="page-title" class="page-title" tabindex="-1">Exportar o <span class="hl">pack</span></h1>
           <p class="page-sub">O resultado é uma pasta no formato do packwiz, só com o necessário: mods, resource packs, shaders, configs e o que você adicionou.</p></div></div>
         ${S.exp.done ? `<div class="alert ok" style="margin-bottom:var(--space-5)">${icon("ok")}<div><div class="atitle">Pack exportado</div><div class="abody">Em <code>D:\\Modpacks\\Exportados\\vale-das-engrenagens-1.4.0</code> · 2,5 MB · 112 arquivos.</div></div><div class="aactions"><button class="btn btn-sm" data-action="soon">${icon("folderOpen", "sm")}Abrir pasta</button></div></div>` : ""}
         <div class="split split-main-side" style="align-items:start">
@@ -262,7 +262,7 @@
       const s = S.set;
       const sec = [["chaves", "Chaves de acesso"], ["jogo", "Jogo e jogador"], ["java", "Java e memória"], ["pastas", "Pastas e espaço"], ["github", "GitHub"], ["aparencia", "Aparência"], ["sobre", "Sobre"]];
       const ram = 16;
-      const dirs = [["grafite", "Grafite", "Escuro e sóbrio"], ["ardosia", "Ardósia", "Escuro com toque de bloco"], ["calcita", "Calcita", "Claro e limpo"]];
+      const dirs = [["deepdark", "Deep Dark", "Cores do Warden, pixel e blocos"], ["sculk", "Sculk sóbrio", "Mesmas cores, visual contido"], ["calcita", "Calcita", "Claro, para ambientes iluminados"]];
       return `<div class="page">
         <div class="page-head"><div class="titles"><h1 id="page-title" class="page-title" tabindex="-1">Configurações</h1><p class="page-sub">Valem para todos os modpacks.</p></div></div>
         <div class="settings">

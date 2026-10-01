@@ -25,14 +25,30 @@
       <h2>${title}</h2><p>${body}</p>${acts ? `<div class="row wrap">${acts}</div>` : ""}</div>`;
   }
   // Ilustração simples (bloco isométrico) — sem marcas de terceiros
+  // Ilustração em pixel art original: um bloco de pedra escura com veias e um
+  // ícone no centro. Sem nenhuma textura de terceiros.
+  const ART = [
+    "................",
+    "...##########...",
+    "..#bbbbbbbbbb#..",
+    ".#bbvbbbbbbvbb#.",
+    ".#bvvbbbbbbbvb#.",
+    ".#bbbbbbbbbbbb#.",
+    ".#bbbbbbbbbbbb#.",
+    ".#bbbbbbbbbbbb#.",
+    ".#bbbbbbbbbbbb#.",
+    ".#bbbbbbbbbbbb#.",
+    ".#bvbbbbbbbbbb#.",
+    ".#bvvbbbbbbvvb#.",
+    ".#dddddddddddd#.",
+    "..############..",
+  ];
   function blockArt(kind, error) {
+    const col = { "#": "var(--c-bg-sunken)", b: "var(--c-surface-3)", d: "var(--c-surface-2)", v: error ? "var(--c-danger)" : "var(--c-accent)" };
+    let r = "";
+    ART.forEach((row, y) => [...row].forEach((ch, x) => col[ch] && (r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"${ch === "v" ? ' fill-opacity=".6"' : ""}/>`)));
     const glyph = error ? icon("alert") : icon(kind);
-    return `<svg viewBox="0 0 72 72" width="72" height="72" aria-hidden="true">
-      <path d="M36 6 64 22v28L36 66 8 50V22z" fill="var(--c-surface-2)" stroke="var(--c-border-strong)"/>
-      <path d="M36 6 64 22 36 38 8 22z" fill="var(--c-surface-3)"/>
-      <path d="M36 38v28l28-16V22z" fill="var(--c-bg-sunken)"/>
-      <foreignObject x="24" y="12" width="24" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="color:${error ? "var(--c-danger-text)" : "var(--c-accent-text)"};display:grid;place-items:center;width:24px;height:24px">${glyph}</div></foreignObject>
-    </svg>`;
+    return `<span class="art-wrap"><svg viewBox="0 0 16 15" width="80" height="75" shape-rendering="crispEdges" aria-hidden="true">${r}</svg><span class="art-glyph" style="color:${error ? "var(--c-danger-text)" : "var(--c-accent-text)"}">${glyph}</span></span>`;
   }
   W.emptyState = emptyState;
   W.loadingSr = loadingSr;
@@ -74,7 +90,7 @@
     states: ["normal", "carregando", "vazio", "erro"],
     render() {
       const head = `<div class="page-head">
-        <div class="titles"><h1 id="page-title" class="page-title" tabindex="-1">Meus modpacks</h1>
+        <div class="titles"><h1 id="page-title" class="page-title" tabindex="-1">Meus <span class="hl">modpacks</span></h1>
           <p class="page-sub">Cada modpack é uma pasta no formato do packwiz. Abra um para editar, testar e salvar versões.</p></div>
         <div class="page-actions">
           <button class="btn" data-action="soon" data-msg="Abre um pack packwiz que já existe no computador (pasta com pack.toml).">${icon("folderOpen")}Abrir pack existente</button>
@@ -187,7 +203,7 @@
       return `<div class="page">
         <div class="page-head"><div class="titles">
           <nav class="crumbs" aria-label="Você está em"><a href="#/inicio">Meus modpacks</a>${icon("chevronRight", "sm")}<span>Novo modpack</span></nav>
-          <h1 id="page-title" class="page-title" tabindex="-1">Criar modpack</h1>
+          <h1 id="page-title" class="page-title" tabindex="-1">Criar <span class="hl">modpack</span></h1>
           <p class="page-sub">Dá para mudar quase tudo depois, menos a combinação de versão do Minecraft e loader, que define quais mods funcionam.</p></div></div>
         <div class="split split-main-side">
           <form class="card" onsubmit="return false" novalidate aria-labelledby="page-title">
@@ -366,15 +382,20 @@
           ${updates ? `<div class="alert info" style="margin-bottom:var(--space-4)">${icon("update")}<div><div class="atitle">${updates} atualizações disponíveis</div><div class="abody">Antes de aplicar, você vê o que muda em cada mod.</div></div><div class="aactions"><button class="btn btn-sm" data-action="review-updates">Revisar atualizações</button></div></div>` : ""}
           <div class="toolbar" style="margin-bottom:var(--space-3)">
             <div class="input-icon">${icon("search")}<input class="input" type="search" placeholder="Filtrar mods" aria-label="Filtrar mods por nome ou autor" value="${esc(S.modQuery)}" data-input="mod-q" data-fk="mod-q"></div>
-            <span class="grow"></span>${addBtn}
+            <span class="grow"></span>
+            <div class="segmented" role="group" aria-label="Ver como">
+              <button aria-pressed="${S.modView === "cartoes"}" data-action="mod-view" data-v="cartoes" data-fk="mv-c">${icon("layers", "sm")}Cartões</button>
+              <button aria-pressed="${S.modView !== "cartoes"}" data-action="mod-view" data-v="tabela" data-fk="mv-t">${icon("list", "sm")}Tabela</button>
+            </div>
+            ${addBtn}
           </div>
           <div class="filter-chips" role="group" aria-label="Mostrar" style="margin-bottom:var(--space-4)">
             ${f("todos", "Todos", S.mods.length)}${f("problemas", "Com problemas", probs)}${f("atualizacoes", "Com atualização", updates)}${f("cliente", "Só no cliente")}${f("naosalvos", "Não salvos", S.mods.filter((m) => m.changed).length)}
           </div>
-          <div class="table-wrap"><table class="table" aria-label="Mods do pack">
+          ${S.modView === "cartoes" ? modCards(vis) : `<div class="table-wrap"><table class="table" aria-label="Mods do pack">
             ${tableHead(true, allSel, someSel && !allSel)}
             <tbody>${errRows}${vis.map(modRow).join("") || `<tr><td colspan="7"><div style="padding:var(--space-8);text-align:center" class="text-2">Nenhum mod corresponde a “${esc(S.modQuery)}”${S.modFilter !== "todos" ? " neste filtro" : ""}. <button class="btn btn-sm btn-ghost" data-action="mod-clear">Limpar filtros</button></div></td></tr>`}</tbody>
-          </table></div>
+          </table></div>`}
           <p class="xs muted" style="margin-top:var(--space-2)">Mostrando ${vis.length} de ${S.mods.length}. O lado diz onde o mod precisa estar: no jogo do jogador (cliente), no servidor ou nos dois.</p>
           ${S.selected.size ? bulkBar() : ""}`;
       }
@@ -400,6 +421,39 @@
       <button class="btn btn-sm btn-ghost" data-action="bulk-clear">Limpar seleção</button>
     </div>`;
   }
+  // Cartão de conteúdo: ícone + nome + descrição de 2 linhas + interruptor (ativo/desativado)
+  function contentCard(m, opts = {}) {
+    const iss = opts.noIssue ? null : issueOf(m);
+    const on = !m.off;
+    return `<li class="mod-card${on ? "" : " off"}${iss ? " has-issue " + iss.kind : ""}">
+      ${ticon(m.name, "lg")}
+      <div class="mc-main">
+        <div class="mc-title"><button class="nm" data-action="${opts.open || "mod-open"}" data-id="${m.id}" data-fk="card-${m.id}">${esc(m.name)}</button>${m.upd ? `<span class="upd" title="Atualização disponível">${icon("arrowUp", "sm")}${esc(m.upd)}<span class="sr-only"> disponível</span></span>` : ""}</div>
+        <p class="mc-desc">${esc(m.desc || "")}</p>
+        <div class="mc-meta">${src(m.src)}<span class="chip">${icon(sideIcons[m.side], "sm")}${sideNames[m.side]}</span><span class="ver">${esc(m.ver)}</span>${m.changed ? `<span class="xs" style="color:var(--c-warn-text)">${icon("edit", "sm")} não salvo</span>` : ""}</div>
+        ${iss ? `<div class="mc-issue">${status(iss.kind, iss.text)}</div>` : ""}
+      </div>
+      <label class="switch mc-toggle" title="${on ? "Ativo" : "Desativado"}"><input type="checkbox" role="switch" ${on ? "checked" : ""} data-change="${opts.toggle || "mod-toggle"}" data-id="${m.id}" data-fk="tg-${m.id}" aria-label="${esc(m.name)} ativo"></label>
+    </li>`;
+  }
+  W.contentCard = contentCard;
+  function modCards(vis) {
+    const err = S.view === "erro" ? `<li class="mod-card has-issue danger"><span class="ticon lg" aria-hidden="true">${icon("alert")}</span><div class="mc-main"><div class="mc-title"><strong class="mono small">mods/sodium-extra.pw.toml</strong></div><p class="mc-desc" style="color:var(--c-danger-text)">Não foi possível ler: aspas não fechadas na linha 4.</p><div class="mc-meta"><button class="btn btn-sm" data-action="soon">${icon("code", "sm")}Abrir arquivo</button></div></div></li>` : "";
+    if (!vis.length && !err) return `<div class="card card-pad text-2" style="text-align:center">Nenhum mod corresponde a “${esc(S.modQuery)}”${S.modFilter !== "todos" ? " neste filtro" : ""}. <button class="btn btn-sm btn-ghost" data-action="mod-clear">Limpar filtros</button></div>`;
+    return `<ul class="mod-grid" aria-label="Mods do pack">${err}${vis.map((m) => contentCard(m)).join("")}</ul>`;
+  }
+  actions["mod-view"] = (el) => {
+    S.modView = el.dataset.v;
+    render();
+  };
+  actions["mod-toggle"] = (el) => {
+    const m = S.mods.find((x) => x.id === el.dataset.id);
+    m.off = !el.checked;
+    m.changed = m.changed || (m.off ? "Desativado (não salvo)" : "Ativado (não salvo)");
+    S.unsaved++;
+    render();
+    toast(`<strong>${esc(m.name)}</strong> ${m.off ? "desativado: continua no pack, mas não carrega no jogo" : "ativado"}.`, "info");
+  };
   W.routes["pack/mods"].after = () => {
     const all = document.querySelector('[data-change="mod-select-all"]');
     if (all && all.dataset.mixed) all.indeterminate = true;
@@ -583,7 +637,9 @@
         acts: `<a class="btn btn-primary" href="#/adicionar">${icon("plus")}Adicionar ${kind === "shaders" ? "shader" : "resource pack"}</a>`,
       });
     return `${kind === "shaders" ? `<div class="alert ok" style="margin-bottom:var(--space-4)">${icon("ok")}<div><div class="atitle">O Iris já está no pack</div><div class="abody">Os shaders abaixo funcionam. O jogador escolhe qual usar no menu de vídeo.</div></div></div>` : ""}
-      <div class="toolbar"><span class="grow"></span><a class="btn btn-primary" href="#/adicionar">${icon("plus")}Adicionar</a></div>
+      <div class="toolbar"><p class="small text-2">${kind === "shaders" ? "O jogador escolhe qual shader usar no menu de vídeo. Desativar tira do pack sem apagar." : "Desativar tira do pack sem apagar. A ordem de prioridade fica nas opções do jogo (Configs → options.txt)."}</p><span class="grow"></span><a class="btn btn-primary" href="#/adicionar">${icon("plus")}Adicionar</a></div>
+      <ul class="mod-grid">${items.map((r) => W.contentCard(r, { noIssue: !r.issue, open: "soon", toggle: "rp-toggle" })).join("")}</ul>
+      <details class="passed" style="margin-top:var(--space-4);border:0"><summary>${icon("chevronRight", "sm")}Ver como tabela</summary>
       <div class="table-wrap"><table class="table"><thead><tr><th>Nome</th><th>Versão</th><th>Fonte</th><th>Tamanho no pack</th><th>Avisos</th></tr></thead><tbody>
       ${items
         .map(
@@ -592,8 +648,14 @@
         <td class="small text-2">${r.size ? `${esc(r.size)} (arquivo inteiro)` : "só a referência (menos de 1 KB)"}</td>
         <td>${r.issue ? `${status(r.issue.kind, r.issue.text)} <button class="btn btn-sm" data-action="soon" data-msg="Adicionaria Entity Model Features e Entity Texture Features.">Adicionar os 2 mods</button>` : `<span class="muted xs">—</span>`}</td></tr>`,
         )
-        .join("")}</tbody></table></div>`;
+        .join("")}</tbody></table></div></details>`;
   }
+  actions["rp-toggle"] = (el) => {
+    const r = [...D.resourcepacks, ...D.shaders].find((x) => x.id === el.dataset.id);
+    r.off = !el.checked;
+    S.unsaved++;
+    render();
+  };
   routes["pack/resourcepacks"] = {
     title: "Editor do pack — Resource packs",
     nav: "conteudo",
@@ -704,7 +766,7 @@
       return `<div class="page wide">
         <div class="page-head"><div class="titles">
           <nav class="crumbs" aria-label="Você está em"><a href="#/pack/mods">${esc(S.pack.name)}</a>${icon("chevronRight", "sm")}<a href="#/pack/mods">Conteúdo</a>${icon("chevronRight", "sm")}<span>Adicionar</span></nav>
-          <h1 id="page-title" class="page-title" tabindex="-1">Adicionar conteúdo</h1>
+          <h1 id="page-title" class="page-title" tabindex="-1">Adicionar <span class="hl">conteúdo</span></h1>
           <p class="page-sub">Tudo o que aparece aqui já foi filtrado para <strong>Minecraft ${esc(S.pack.mc)}</strong> e <strong>${esc(S.pack.loader)}</strong>, então funciona no seu pack.</p></div>
           <div class="page-actions"><a class="btn" href="#/pack/mods">${icon("arrowLeft")}Voltar ao pack</a></div></div>
         <div class="tabs inline" role="tablist" aria-label="Como adicionar" style="margin-bottom:var(--space-5);border-bottom:1px solid var(--c-border)">

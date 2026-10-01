@@ -49,7 +49,7 @@
         ["compare", "Revisar", "Quando você fecha o jogo, mostramos o que mudou para você trazer ao pack."],
       ];
       return `<div class="page">
-        ${testHead("Testar o pack", "", "")}
+        ${testHead('Testar o <span class="hl">pack</span>', "", "")}
         <section class="card test-hero" aria-labelledby="hero-t">
           <div class="hero-main">
             <div class="row" style="gap:var(--space-4);align-items:flex-start">${ticon(S.pack.name, "lg")}
@@ -63,7 +63,7 @@
             </dl>
           </div>
           <div class="hero-side">
-            <button class="btn btn-primary btn-lg btn-launch" data-action="test-start" data-fk="test-start">${icon("play", "lg")}Testar</button>
+            <button class="btn btn-primary btn-lg btn-launch" data-action="test-start" data-fk="test-start"><span class="tendrils" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${icon("play", "lg")}Testar</button>
             <span class="xs muted">Atalho: <kbd>F5</kbd></span>
           </div>
         </section>
@@ -144,7 +144,7 @@
     },
     render() {
       if (!S.test.checked) {
-        return `<div class="page">${testHead("Checando o pack", "Isso leva só alguns segundos e evita abrir um jogo que não vai funcionar.", "checagem")}
+        return `<div class="page">${testHead('Checando o <span class="hl">pack</span>', "Isso leva só alguns segundos e evita abrir um jogo que não vai funcionar.", "checagem")}
           <section class="card card-pad" aria-busy="true"><div class="row" style="gap:var(--space-4)"><span class="spinner lg" aria-hidden="true"></span><div class="grow"><p><strong id="chk-what">Lendo os mods do pack…</strong></p>
           <div class="progress" role="progressbar" aria-label="Checagem" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="margin-top:var(--space-3)"><span id="chk-bar" style="width:0%"></span></div></div></div></section></div>`;
       }
@@ -153,7 +153,7 @@
       const warns = list.filter((c) => c.sev === "warn" && !c.done).length;
       const sevName = { danger: "Erro", warn: "Aviso", info: "Informação" };
       return `<div class="page">
-        ${testHead("Checagem antes de abrir o jogo", "", "checagem")}
+        ${testHead('<span class="hl">Checagem</span> antes de abrir o jogo', "", "checagem")}
         <section class="card" aria-labelledby="chk-summary">
           <div class="card-head" style="flex-wrap:wrap">
             <h2 class="section-title" id="chk-summary" tabindex="-1">${errors ? `Encontramos ${errors} ${errors === 1 ? "problema que impede" : "problemas que impedem"} o jogo de abrir` : warns ? "Pronto para testar, com avisos" : "Tudo certo para testar"}</h2>
@@ -353,7 +353,7 @@
     render() {
       const p = prepState();
       return `<div class="page">
-        ${testHead("Preparando o jogo", "", "preparando")}
+        ${testHead('Preparando o <span class="hl">jogo</span>', "", "preparando")}
         ${p.failed ? `<div class="alert danger" style="margin-bottom:var(--space-4)">${icon("wifiOff")}<div><div class="atitle">Não conseguimos baixar 3 arquivos do Minecraft</div><div class="abody">Confira sua internet e tente de novo. O Warden continua de onde parou, sem baixar tudo outra vez.</div></div><div class="aactions"><button class="btn btn-sm btn-primary" data-action="prep-retry">${icon("refresh", "sm")}Tentar de novo</button></div></div>` : ""}
         <div class="split" style="grid-template-columns:minmax(0,1fr) 300px;align-items:start">
           <section class="card prep-card" aria-labelledby="prep-h">
@@ -469,7 +469,7 @@
       const f = (k, label, n, id) => `<button aria-pressed="${t.consoleFilter === k}" data-action="con-filter" data-k="${k}" data-fk="cf-${k}">${label}${n !== undefined ? ` <span class="num muted"${id ? ` id="${id}"` : ""}>${n}</span>` : ""}</button>`;
       const shown = t.lines.filter(consoleFilterOk);
       return `<div class="page wide">
-        ${testHead("Jogo aberto", "", "jogo")}
+        ${testHead('Jogo <span class="hl">aberto</span>', "", "jogo")}
         <section class="session" aria-label="Sessão de teste">
           <div class="session-main">
             <span class="live-dot" aria-hidden="true"></span>
@@ -566,7 +566,7 @@
     states: ["normal", "vazio"],
     render() {
       if (S.view === "vazio") {
-        return `<div class="page">${testHead("O que mudou durante o teste", "", "mudancas")}${W.emptyState({
+        return `<div class="page">${testHead('O que <span class="hl">mudou</span> durante o teste', "", "mudancas")}${W.emptyState({
           art: "ok",
           title: "Nada mudou durante o teste",
           body: "Você jogou sem mexer em configs, opções ou resource packs. O pack continua exatamente como estava.",
@@ -587,7 +587,7 @@
           ${pill(c.kind === "Novo" ? "info" : "neutral", c.kind, c.kind === "Novo" ? "plus" : "edit")}
         </div></li>`;
       return `<div class="page wide">
-        ${testHead("O que mudou durante o teste", "", "mudancas")}
+        ${testHead('O que <span class="hl">mudou</span> durante o teste', "", "mudancas")}
         <section class="after-hero">
           <div>${pill("ok", "O jogo fechou normalmente")}<span class="small text-2" style="margin-left:var(--space-2)">jogou por 6 min 12 s</span>
             <p class="text-2" style="margin-top:var(--space-3);max-width:70ch">Encontramos <strong>${ch.length} arquivos</strong> diferentes do pack. Já marcamos o que parece fazer parte dele. <strong>Nada é copiado até você confirmar.</strong></p></div>
@@ -683,7 +683,7 @@
       return `<div class="page">
         <div class="page-head"><div class="titles">
           <nav class="crumbs" aria-label="Você está em"><a href="#/pack/mods">${esc(S.pack.name)}</a>${icon("chevronRight", "sm")}<span>Diagnóstico</span></nav>
-          <h1 id="page-title" class="page-title" tabindex="-1">O jogo travou ao carregar</h1>
+          <h1 id="page-title" class="page-title" tabindex="-1">O jogo <span class="hl danger">travou</span> ao carregar</h1>
           <p class="page-sub row wrap">${pill("danger", "Travou")}<span>hoje, 21:43 · 18 segundos depois de abrir · ainda na tela de carregamento</span></p></div>
           <div class="page-actions"><a class="btn" href="#/testar/jogo" data-action="soon" data-msg="Abriria o console completo da última sessão.">${icon("terminal")}Ver console</a><a class="btn btn-primary" href="#/testar">${icon("play")}Testar de novo</a></div></div>
         ${fixed ? `<div class="alert ok" style="margin-bottom:var(--space-5)">${icon("ok")}<div><div class="atitle">${esc(fixed)}</div><div class="abody">Teste de novo para confirmar que resolveu.</div></div><div class="aactions"><a class="btn btn-sm btn-primary" href="#/testar">${icon("play", "sm")}Testar de novo</a></div></div>` : ""}

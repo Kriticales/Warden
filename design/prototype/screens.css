@@ -91,7 +91,7 @@ details.passed[open] > summary svg { transform: rotate(90deg); }
   background: conic-gradient(var(--c-data) calc(var(--p) * 1%), var(--c-data-track) 0);
   display: grid; place-items: center;
 }
-:root[data-direction="ardosia"] .prep-ring { border-radius: var(--radius-md); background: conic-gradient(from -45deg, var(--c-data) calc(var(--p) * 1%), var(--c-data-track) 0); }
+:root[data-direction="deepdark"] .prep-ring { border-radius: var(--radius-md); background: conic-gradient(from -45deg, var(--c-data) calc(var(--p) * 1%), var(--c-data-track) 0); }
 .prep-ring::before { content: ""; position: absolute; inset: 9px; border-radius: inherit; background: var(--c-surface); }
 .prep-ring span { position: relative; font-size: var(--text-3xl); line-height: 1; font-variant-numeric: tabular-nums; }
 .prep-ring small { font-size: var(--text-md); color: var(--c-text-3); margin-left: 1px; }
@@ -103,7 +103,7 @@ details.passed[open] > summary svg { transform: rotate(90deg); }
 .prep-step + .prep-step::before { content: ""; position: absolute; left: 15px; top: -10px; height: 20px; width: 2px; background: var(--c-border-strong); }
 .prep-step.ok + .prep-step::before { background: var(--c-ok); }
 .prep-step .st { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--c-surface-3); color: var(--c-text-3); position: relative; z-index: 1; }
-:root[data-direction="ardosia"] .prep-step .st { border-radius: var(--radius-sm); }
+:root[data-direction="deepdark"] .prep-step .st { border-radius: var(--radius-sm); }
 .prep-step .st.ok { background: var(--c-ok-soft); color: var(--c-ok-text); }
 .prep-step .st.run { background: var(--c-accent-soft); color: var(--c-accent-text); }
 .prep-step .st.fail { background: var(--c-danger-soft); color: var(--c-danger-text); }
@@ -122,7 +122,7 @@ details.tech summary { cursor: pointer; color: var(--c-text-2); display: inline-
 .session-actions { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
 .session-title { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: var(--text-lg); }
 .live-dot { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--c-ok); flex: none; }
-:root[data-direction="ardosia"] .live-dot { border-radius: 2px; }
+:root[data-direction="deepdark"] .live-dot { border-radius: 2px; }
 .live-dot::after { content: ""; position: absolute; inset: -5px; border-radius: inherit; border: 2px solid var(--c-ok); opacity: 0; animation: pulse 1.8s var(--ease) infinite; }
 @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.5); opacity: 0; } }
 .session-stats { display: flex; gap: var(--space-6); margin: 0; flex-wrap: wrap; align-items: flex-end; }
@@ -208,20 +208,20 @@ details.tech summary { cursor: pointer; color: var(--c-text-2); display: inline-
 .swatch { display: flex; height: 36px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--c-border-strong); margin-bottom: var(--space-2); }
 .swatch i { flex: 1; }
 /* Cores literais: mostram a paleta de CADA direção, independente da ativa */
-.swatch-grafite i:nth-child(1) { background: #101215; } .swatch-grafite i:nth-child(2) { background: #1e2227; } .swatch-grafite i:nth-child(3) { background: #2ec4b0; }
-.swatch-ardosia i:nth-child(1) { background: #191716; } .swatch-ardosia i:nth-child(2) { background: #2a2724; } .swatch-ardosia i:nth-child(3) { background: #7fbf3f; }
-.swatch-calcita i:nth-child(1) { background: #ffffff; } .swatch-calcita i:nth-child(2) { background: #eceeea; } .swatch-calcita i:nth-child(3) { background: #17784a; }
+.swatch-deepdark i:nth-child(1) { background: #050d12; } .swatch-deepdark i:nth-child(2) { background: #12313c; } .swatch-deepdark i:nth-child(3) { background: #19d3e0; }
+.swatch-sculk i:nth-child(1) { background: #071118; } .swatch-sculk i:nth-child(2) { background: #0e2630; } .swatch-sculk i:nth-child(3) { background: #cfe3da; }
+.swatch-calcita i:nth-child(1) { background: #ffffff; } .swatch-calcita i:nth-child(2) { background: #e8f0ed; } .swatch-calcita i:nth-child(3) { background: #075c63; }
 
-/* ---------- Ajustes da direção Ardósia nos componentes ---------- */
-:root[data-direction="ardosia"] .page-title,
-:root[data-direction="ardosia"] .pack-head h1,
-:root[data-direction="ardosia"] .hero-title { text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45); }
-:root[data-direction="ardosia"] .card { border-width: 1px; }
-:root[data-direction="ardosia"] .chip,
-:root[data-direction="ardosia"] .pill-status { text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
-:root[data-direction="ardosia"] .nav a[aria-current="page"] { box-shadow: inset 4px 0 0 var(--c-accent); }
-:root[data-direction="ardosia"] .tabs a[aria-current="page"],
-:root[data-direction="ardosia"] .tabs button[aria-selected="true"] { border-bottom-width: 3px; }
+/* ---------- Ajustes de bloco do Deep Dark nos componentes (mais em identidade.css) ---------- */
+:root[data-direction="deepdark"] .page-title,
+:root[data-direction="deepdark"] .pack-head h1,
+:root[data-direction="deepdark"] .hero-title { text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45); }
+:root[data-direction="deepdark"] .card { border-width: 1px; }
+:root[data-direction="deepdark"] .chip,
+:root[data-direction="deepdark"] .pill-status { text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
+:root[data-direction="deepdark"] .nav a[aria-current="page"] { box-shadow: inset 4px 0 0 var(--c-accent); }
+:root[data-direction="deepdark"] .tabs a[aria-current="page"],
+:root[data-direction="deepdark"] .tabs button[aria-selected="true"] { border-bottom-width: 3px; }
 
 @media (max-width: 1180px) {
   .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); }

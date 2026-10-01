@@ -14,9 +14,9 @@ function block(selectorRegex) {
   for (const v of m[1].matchAll(/--([\w-]+):\s*([^;]+);/g)) vars[v[1]] = v[2].trim();
   return vars;
 }
-const grafite = block(/:root\[data-direction="grafite"\]\s*\{([\s\S]*?)\n\}/);
-const ardosia = { ...grafite, ...block(/:root\[data-direction="ardosia"\]\s*\{([\s\S]*?)\n\}/) };
-const calcita = { ...grafite, ...block(/:root\[data-direction="calcita"\]\s*\{([\s\S]*?)\n\}/) };
+const deepdark = block(/:root,\s*:root\[data-direction="deepdark"\]\s*\{([\s\S]*?)\n\}/);
+const sculk = { ...deepdark, ...block(/:root\[data-direction="sculk"\]\s*\{([\s\S]*?)\n\}/) };
+const calcita = { ...deepdark, ...block(/:root\[data-direction="calcita"\]\s*\{([\s\S]*?)\n\}/) };
 
 function parse(c) {
   c = c.trim();
@@ -75,9 +75,12 @@ pairs.push(["c-data", "c-data-track", 3, "barra de dados contra o trilho"]);
 pairs.push(["c-src-modrinth", "c-surface", 3, "marcador Modrinth"]);
 pairs.push(["c-src-curseforge", "c-surface", 3, "marcador CurseForge"]);
 pairs.push(["c-src-local", "c-surface", 3, "marcador local"]);
+pairs.push(["c-bone", "c-surface", 4.5, "osso (texto de destaque)"]);
+pairs.push(["c-on-accent", "c-accent", 7, "botão Testar (AAA, é a peça central)"]);
+
 
 let fails = 0;
-for (const [name, t] of Object.entries({ grafite, ardosia, calcita })) {
+for (const [name, t] of Object.entries({ deepdark, sculk, calcita })) {
   console.log(`\n== ${name}`);
   for (const [fg, bgSpec, min, desc] of pairs) {
     let bg;

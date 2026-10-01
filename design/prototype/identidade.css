@@ -1,0 +1,234 @@
+/* ==========================================================================
+   Warden — identidade visual por direção
+   Tudo que é "jeito de Minecraft/Deep Dark" mora aqui, isolado dos componentes.
+   Arte, texturas e formas são originais (nenhum asset da Mojang/Microsoft).
+   Regras gerais (valem para as 3 direções) primeiro; depois o Deep Dark.
+   ========================================================================== */
+
+/* ---------- Gerais: componentes novos ---------- */
+.card { background: var(--c-surface-glass); }
+.page-title { font-size: var(--title-size); }
+.hl { color: var(--c-accent-text); }
+.hl.danger { color: var(--c-danger-text); }
+
+/* Ilustração dos estados vazios */
+.empty .art { width: auto; height: auto; }
+.art-wrap { position: relative; display: inline-block; width: 80px; height: 75px; }
+.art-wrap svg { display: block; image-rendering: pixelated; }
+.art-glyph { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); }
+.art-glyph svg.icon { width: 26px; height: 26px; }
+
+/* Cartões de conteúdo (mods, resource packs, shaders) */
+.mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: var(--space-3); }
+.mod-card {
+  position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: var(--space-3); align-items: start;
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg);
+  background: var(--c-surface-glass); border: 1px solid var(--c-border-strong);
+  box-shadow: var(--shadow-1), var(--fx-card-edge);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.mod-card:hover, .mod-card:focus-within { border-color: var(--c-accent); box-shadow: var(--glow); }
+.mod-card.has-issue.danger { border-color: color-mix(in srgb, var(--c-danger) 55%, var(--c-border-strong)); }
+.mod-card.has-issue.warn { border-color: color-mix(in srgb, var(--c-warn) 45%, var(--c-border-strong)); }
+.mod-card.off .ticon, .mod-card.off .mc-desc, .mod-card.off .mc-title .nm { opacity: 0.55; }
+.mc-title { display: flex; align-items: baseline; gap: var(--space-2); flex-wrap: wrap; }
+.mc-title .nm { padding: 0; border: 0; background: none; color: var(--c-text); font-weight: var(--weight-bold); font-size: var(--text-lg); text-align: left; }
+.mc-title .nm:hover { text-decoration: underline; }
+.mc-desc { margin-top: 2px; font-size: var(--text-sm); color: var(--c-text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.9em; }
+.mc-meta { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); }
+.mc-meta .ver { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--c-text-3); }
+.mc-issue { margin-top: var(--space-2); }
+.mc-toggle { margin-top: 6px; }
+
+/* Cena de fundo: escondida fora do Deep Dark */
+.scene { display: none; }
+
+/* ==========================================================================
+   DEEP DARK
+   ========================================================================== */
+:root[data-direction="deepdark"] body { background: var(--c-bg); }
+
+/* --- Cena: caverna em pixel art, escurecida e levemente desfocada --- */
+:root[data-direction="deepdark"] .scene { display: block; position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+:root[data-direction="deepdark"] .scene-art {
+  position: absolute; inset: -8px; background-size: cover; background-position: center bottom; image-rendering: pixelated;
+  filter: blur(1.2px) brightness(1.25) saturate(1.1); opacity: 1;
+}
+:root[data-direction="deepdark"] .scene-fade {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(75% 60% at 60% 35%, rgba(5, 13, 18, 0.5), rgba(5, 13, 18, 0.78) 75%),
+    linear-gradient(180deg, rgba(5, 13, 18, 0.3), rgba(5, 13, 18, 0) 55%, rgba(5, 13, 18, 0.25));
+}
+:root[data-direction="deepdark"] .particles i {
+  position: absolute; bottom: -10px; display: block; background: #7ff3f0; opacity: 0;
+  box-shadow: 0 0 6px 1px rgba(25, 211, 224, 0.7);
+  animation: soul linear infinite;
+}
+@keyframes soul {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.55; }
+  50% { transform: translate(14px, -50vh); opacity: 0.35; }
+  90% { opacity: 0.5; }
+  100% { transform: translate(-10px, -105vh); opacity: 0; }
+}
+:root[data-direction="deepdark"] .app { position: relative; z-index: 1; }
+
+/* --- Trilho lateral só de ícones (com rótulo curto embaixo) --- */
+.nav a .short { display: none; }
+@media (min-width: 1181px) {
+  :root[data-direction="deepdark"] { --sidebar-w: var(--sidebar-w-rail); }
+  :root[data-direction="deepdark"] .sidebar { padding: var(--space-3) var(--space-2); align-items: stretch; background-color: rgba(3, 9, 12, 0.82); backdrop-filter: blur(6px); }
+  :root[data-direction="deepdark"] .brand { flex-direction: column; gap: var(--space-1); padding: var(--space-1) 0 var(--space-2); }
+  :root[data-direction="deepdark"] .brand .mark { width: 36px; height: 36px; filter: drop-shadow(0 0 6px var(--c-accent-glow)); }
+  :root[data-direction="deepdark"] .brand .name { font-size: var(--text-sm); }
+  :root[data-direction="deepdark"] .sidebar .nav-label,
+  :root[data-direction="deepdark"] .sidebar .nav a .txt,
+  :root[data-direction="deepdark"] .sidebar .pack-switch .pname,
+  :root[data-direction="deepdark"] .sidebar .pack-switch .pmeta,
+  :root[data-direction="deepdark"] .sidebar .status-line .txt {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  :root[data-direction="deepdark"] .sidebar .pack-switch { grid-template-columns: 1fr; justify-items: center; padding: var(--space-2) 0; margin: var(--space-2) 0; border: 0; background: none; box-shadow: none; border-top: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); border-radius: 0; }
+  :root[data-direction="deepdark"] .sidebar .nav a {
+    position: relative; flex-direction: column; justify-content: center; gap: 4px;
+    min-height: 60px; padding: var(--space-2) 2px; text-align: center; border-radius: var(--radius-md);
+  }
+  :root[data-direction="deepdark"] .sidebar .nav a .short { display: block; font-size: var(--text-xs); font-weight: var(--weight-semibold); line-height: 1.1; }
+  :root[data-direction="deepdark"] .sidebar .nav a[aria-current="page"] {
+    background: var(--c-accent-soft); box-shadow: inset 0 0 0 1px rgba(25, 211, 224, 0.35);
+  }
+  :root[data-direction="deepdark"] .sidebar .nav a[aria-current="page"]::before {
+    content: ""; position: absolute; left: -8px; top: 12px; bottom: 12px; width: 3px; background: var(--c-accent); box-shadow: 0 0 10px var(--c-accent);
+  }
+  :root[data-direction="deepdark"] .sidebar .nav a[aria-current="page"] svg { filter: drop-shadow(0 0 6px var(--c-accent-glow)); }
+  :root[data-direction="deepdark"] .sidebar .nav a .count { position: absolute; top: 4px; right: 8px; margin: 0; font-size: 10px; line-height: 1; padding: 2px 4px; background: var(--c-surface-3); color: var(--c-text-2); }
+  :root[data-direction="deepdark"] .sidebar .nav a .count.danger { background: var(--c-danger-solid); color: var(--c-on-danger); }
+  :root[data-direction="deepdark"] .sidebar .status-line { justify-content: center; }
+}
+
+/* --- Superfícies translúcidas sobre a cena --- */
+:root[data-direction="deepdark"] .pack-head { background-color: rgba(10, 26, 33, 0.78); backdrop-filter: blur(8px); }
+:root[data-direction="deepdark"] .tabs { background: rgba(10, 26, 33, 0.7); backdrop-filter: blur(8px); }
+:root[data-direction="deepdark"] .card { backdrop-filter: blur(6px); }
+
+/* --- Títulos grandes em pixel com palavra brilhando --- */
+:root[data-direction="deepdark"] .page-title { line-height: 1.05; text-shadow: 0 3px 0 rgba(0, 0, 0, 0.55); }
+:root[data-direction="deepdark"] .hl { color: var(--c-accent); text-shadow: 0 3px 0 rgba(0, 0, 0, 0.55), 0 0 18px var(--c-accent-glow); }
+:root[data-direction="deepdark"] .hl.danger { color: var(--c-danger-text); text-shadow: 0 3px 0 rgba(0, 0, 0, 0.55), 0 0 18px rgba(255, 92, 92, 0.4); }
+:root[data-direction="deepdark"] .section-title,
+:root[data-direction="deepdark"] .pack-head h1,
+:root[data-direction="deepdark"] .hero-title,
+:root[data-direction="deepdark"] .session-title,
+:root[data-direction="deepdark"] .empty h2,
+:root[data-direction="deepdark"] .dialog .dhead h2 { letter-spacing: 0.02em; }
+:root[data-direction="deepdark"] .pack-head h1 { font-size: var(--text-2xl); }
+
+/* --- Botões com cantos em degrau de pixel ---
+   O recorte (clip-path) fica nos pseudo-elementos, não no botão: assim o anel de
+   foco (outline) continua inteiro e visível. */
+:root[data-direction="deepdark"] {
+  --notch-shape: polygon(0 var(--notch), var(--notch) var(--notch), var(--notch) 0, calc(100% - var(--notch)) 0, calc(100% - var(--notch)) var(--notch), 100% var(--notch), 100% calc(100% - var(--notch)), calc(100% - var(--notch)) calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, var(--notch) 100%, var(--notch) calc(100% - var(--notch)), 0 calc(100% - var(--notch)));
+  --notch-sm: 2px;
+  --notch-shape-sm: polygon(0 var(--notch-sm), var(--notch-sm) var(--notch-sm), var(--notch-sm) 0, calc(100% - var(--notch-sm)) 0, calc(100% - var(--notch-sm)) var(--notch-sm), 100% var(--notch-sm), 100% calc(100% - var(--notch-sm)), calc(100% - var(--notch-sm)) calc(100% - var(--notch-sm)), calc(100% - var(--notch-sm)) 100%, var(--notch-sm) 100%, var(--notch-sm) calc(100% - var(--notch-sm)), 0 calc(100% - var(--notch-sm)));
+}
+:root[data-direction="deepdark"] .btn { position: relative; isolation: isolate; background: transparent; border-color: transparent; box-shadow: none; border-radius: 0; }
+:root[data-direction="deepdark"] .btn::before,
+:root[data-direction="deepdark"] .btn::after { content: ""; position: absolute; pointer-events: none; clip-path: var(--notch-shape); }
+:root[data-direction="deepdark"] .btn::before { inset: -1px; z-index: -2; background: var(--btn-border); }
+:root[data-direction="deepdark"] .btn::after { inset: 0; z-index: -1; background: var(--btn-bg); box-shadow: var(--fx-button-bevel); }
+:root[data-direction="deepdark"] .btn:active::after { box-shadow: var(--fx-button-bevel-active); }
+:root[data-direction="deepdark"] .btn-ghost::after { box-shadow: none; }
+:root[data-direction="deepdark"] .btn-primary { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25); }
+:root[data-direction="deepdark"] .btn-primary:not(:disabled):hover { filter: drop-shadow(0 0 10px var(--c-accent-glow)); }
+
+/* Chips e pílulas com degrau menor */
+:root[data-direction="deepdark"] .chip,
+:root[data-direction="deepdark"] .pill-status { clip-path: var(--notch-shape-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; }
+:root[data-direction="deepdark"] .pill-status { font-weight: var(--weight-bold); }
+
+/* Cards: brilho ciano de borda no foco/hover, como sensores de sculk */
+:root[data-direction="deepdark"] .pack-card:hover,
+:root[data-direction="deepdark"] .pack-card:focus-within,
+:root[data-direction="deepdark"] .choice:has(input:checked),
+:root[data-direction="deepdark"] .result[aria-selected="true"] { box-shadow: var(--glow); border-color: var(--c-accent); }
+
+/* Separadores em blocos */
+:root[data-direction="deepdark"] .hr { height: 4px; background: repeating-linear-gradient(90deg, var(--c-border-strong) 0 8px, transparent 8px 12px); }
+
+/* Progresso em blocos que brilham */
+:root[data-direction="deepdark"] .progress > span,
+:root[data-direction="deepdark"] .sizebar .track > span,
+:root[data-direction="deepdark"] .meter .bar .fill { box-shadow: 0 0 10px var(--c-accent-glow); }
+:root[data-direction="deepdark"] .progress { border-radius: 0; }
+:root[data-direction="deepdark"] .progress.lg { height: 14px; }
+
+/* Ícones provisórios em pixel com moldura de bloco */
+:root[data-direction="deepdark"] .ticon { border-radius: 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35); }
+
+/* Ponto "ao vivo" quadrado */
+:root[data-direction="deepdark"] .live-dot { border-radius: 0; box-shadow: 0 0 10px var(--c-ok); }
+
+/* --- Botão Testar: bloco ciano com pulso de sensor de sculk --- */
+:root[data-direction="deepdark"] .btn-launch {
+  height: 76px; min-width: 240px; font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 0.04em;
+  animation: sensor 3.4s ease-in-out infinite;
+}
+:root[data-direction="deepdark"] .btn-launch svg.icon { width: 24px; height: 24px; }
+@keyframes sensor {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(25, 211, 224, 0.35)); }
+  50% { filter: drop-shadow(0 0 22px rgba(25, 211, 224, 0.75)); }
+}
+.tendrils { display: none; }
+:root[data-direction="deepdark"] .tendrils { display: block; position: absolute; left: 0; right: 0; top: -14px; height: 14px; pointer-events: none; }
+:root[data-direction="deepdark"] .tendrils i { position: absolute; bottom: 0; width: 4px; background: var(--c-accent); box-shadow: 0 0 8px var(--c-accent-glow); }
+:root[data-direction="deepdark"] .tendrils i:nth-child(1) { left: 22%; height: 10px; }
+:root[data-direction="deepdark"] .tendrils i:nth-child(2) { left: calc(22% + 8px); height: 14px; }
+:root[data-direction="deepdark"] .tendrils i:nth-child(3) { right: calc(22% + 8px); height: 14px; }
+:root[data-direction="deepdark"] .tendrils i:nth-child(4) { right: 22%; height: 10px; }
+:root[data-direction="deepdark"] .tendrils i::after { content: ""; position: absolute; top: -4px; left: -2px; width: 8px; height: 4px; background: var(--c-surface-3); }
+:root[data-direction="deepdark"] .test-hero { background: radial-gradient(90% 140% at 100% 0%, rgba(25, 211, 224, 0.16), transparent 55%), var(--fx-texture), var(--c-surface-glass); background-size: auto, var(--fx-texture-size), auto; }
+
+/* Anel de progresso da preparação: quadrado, como um bloco */
+:root[data-direction="deepdark"] .prep-ring { border-radius: 0; background: conic-gradient(from -45deg, var(--c-data) calc(var(--p) * 1%), var(--c-data-track) 0); box-shadow: 0 0 22px rgba(25, 211, 224, 0.25); }
+:root[data-direction="deepdark"] .prep-step .st { border-radius: 0; }
+:root[data-direction="deepdark"] .prep-ring span { font-family: var(--font-display); }
+
+/* Números grandes em pixel */
+:root[data-direction="deepdark"] .tile dd,
+:root[data-direction="deepdark"] .session-stats #game-time,
+:root[data-direction="deepdark"] .det-count,
+:root[data-direction="deepdark"] .bump-n { font-family: var(--font-display); }
+
+/* Console: bordas de bloco e leve brilho */
+:root[data-direction="deepdark"] .console-card { box-shadow: var(--shadow-2), inset 0 0 0 1px rgba(25, 211, 224, 0.08); }
+
+/* ==========================================================================
+   SCULK SÓBRIO: só a veia de sculk na lateral; nada animado além do essencial
+   ========================================================================== */
+:root[data-direction="sculk"] .test-hero { background: radial-gradient(120% 140% at 100% 0%, var(--c-accent-soft), transparent 55%), var(--c-surface); }
+:root[data-direction="sculk"] .prep-hero { background: radial-gradient(90% 120% at 0% 0%, var(--c-accent-soft), transparent 60%); }
+:root[data-direction="sculk"] .pack-head { background-image: none; }
+
+/* ==========================================================================
+   CALCITA: o claro não leva texturas
+   ========================================================================== */
+:root[data-direction="calcita"] .sidebar,
+:root[data-direction="calcita"] .pack-head,
+:root[data-direction="calcita"] .prep-hero { background-image: none; }
+
+/* Movimento reduzido: sem partículas e sem pulso (as regras globais zeram durações) */
+@media (prefers-reduced-motion: reduce) {
+  .particles { display: none; }
+  .btn-launch { animation: none !important; }
+}
+:root[data-motion="reduced"] .particles { display: none; }
+:root[data-motion="reduced"] .btn-launch { animation: none !important; }
+
+/* Botão contornado no Deep Dark: o preenchimento precisa cobrir o "contorno"
+   recortado, senão a cor da borda vaza por baixo de um fundo translúcido. */
+:root[data-direction="deepdark"] .btn-danger-outline::after { background: linear-gradient(var(--btn-bg), var(--btn-bg)), var(--c-surface); }
+
+/* Pixel só onde não atrapalha a leitura: frases longas voltam para a sans */
+:root[data-direction="deepdark"] .diag-summary .hero-title { font-family: var(--font-ui); font-weight: 800; letter-spacing: 0; font-size: 1.375rem; }
+:root[data-direction="deepdark"] .diag-summary .hero-title em { text-shadow: 0 0 14px var(--c-accent-glow); }

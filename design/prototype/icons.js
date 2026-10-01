@@ -90,15 +90,33 @@
     return `<svg class="icon${size ? " " + size : ""}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${body}</svg>`;
   };
 
-  // Marca do Warden: bloco isométrico com uma "fresta" de luz.
-  // Original deste protótipo; não usa nenhuma marca de terceiros.
+  // Marca do Warden: bloco de pedra escura em pixel art, com um núcleo de
+  // "alma" ciano e veias. Desenho original deste protótipo (16×16); não usa e
+  // não imita nenhuma marca, textura ou personagem de terceiros.
+  const MARK = [
+    "..##########....",
+    ".#bbbbbbbbbb#...",
+    "#bbbbbbbbbbbb#..",
+    "#bvbbbbbbbbbb#..",
+    "#bvvbbbbbbbvb#..",
+    "#bbvbbccbbvbb#..",
+    "#bbbbcllcbbbb#..",
+    "#bbbbcllcbbbb#..",
+    "#bbvbbccbbbbb#..",
+    "#bbvvbbbbbvbb#..",
+    "#bbbvbbbbvvbb#..",
+    "#bbbbbbbbbbbb#..",
+    "#dddddddddddd#..",
+    ".############...",
+  ];
+  const MC = { "#": "var(--c-bg-sunken)", b: "var(--c-surface-3)", d: "var(--c-surface-2)", v: "var(--c-accent)", c: "var(--c-accent)", l: "var(--c-bone)" };
   window.wardenMark = function () {
-    return `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <path d="M16 2 29 9.5v13L16 30 3 22.5v-13z" fill="var(--c-surface-3)" stroke="var(--c-border-strong)" stroke-width="1"/>
-      <path d="M16 2 29 9.5 16 17 3 9.5z" fill="var(--c-accent)"/>
-      <path d="M16 17v13L3 22.5v-13z" fill="var(--c-surface-2)"/>
-      <path d="M16 17v13l13-7.5v-13z" fill="var(--c-bg-sunken)"/>
-      <path d="M21.5 18.2v6.2" stroke="var(--c-accent)" stroke-width="2" stroke-linecap="square"/>
-    </svg>`;
+    let r = "";
+    MARK.forEach((row, y) =>
+      [...row].forEach((ch, x) => {
+        if (MC[ch]) r += `<rect x="${x + 1}" y="${y + 1}" width="1" height="1" fill="${MC[ch]}"${ch === "v" ? ' fill-opacity=".55"' : ""}/>`;
+      }),
+    );
+    return `<svg class="mark" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${r}</svg>`;
   };
 })();

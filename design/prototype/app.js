@@ -28,7 +28,7 @@
   // Estado do protótipo (tudo em memória; recarregar a página volta ao início)
   // ---------------------------------------------------------------------------
   const S = {
-    dir: store.get("dir", "grafite"),
+    dir: ["deepdark", "sculk", "calcita"].includes(store.get("dir", "")) ? store.get("dir") : "deepdark",
     motion: store.get("motion", "auto"),
     view: "normal", // normal | carregando | vazio | erro (seletor da barra do protótipo)
     route: "inicio",
@@ -39,6 +39,7 @@
     crash: true,
     // editor
     modFilter: "todos",
+    modView: "cartoes", // cartoes | tabela
     modQuery: "",
     selected: new Set(),
     // criar pack
@@ -81,7 +82,7 @@
     const hv = hash(name);
     const hue = hv % 360;
     const cls = `ticon${size ? " " + size : ""}`;
-    if (S.dir === "ardosia") {
+    if (S.dir === "deepdark") {
       let rects = "";
       let bits = hv;
       for (let y = 0; y < 6; y++) {
@@ -215,15 +216,16 @@
   function sidebar(def) {
     const p = S.pack;
     const cur = (n) => (def.nav === n ? ' aria-current="page"' : "");
-    const item = (href, ic, txt, n, extra = "") =>
-      `<a href="${href}"${cur(n)} title="${esc(txt)}">${icon(ic, "lg")}<span class="txt">${esc(txt)}</span>${extra}</a>`;
+    // .txt = rótulo completo (lido sempre); .short = rótulo curto visível só no trilho do Deep Dark
+    const item = (href, ic, txt, n, extra = "", short = txt) =>
+      `<a href="${href}"${cur(n)} title="${esc(txt)}">${icon(ic, "lg")}<span class="txt">${esc(txt)}</span><span class="short" aria-hidden="true">${esc(short)}</span>${extra}</a>`;
     return `<aside class="sidebar" aria-label="Navegação principal">
       <a class="brand" href="#/inicio" aria-label="Warden — início">${wardenMark()}<span class="name">Warden</span></a>
       <nav class="nav" aria-label="Geral">
-        ${item("#/inicio", "house", "Meus modpacks", "inicio")}
+        ${item("#/inicio", "house", "Meus modpacks", "inicio", "", "Modpacks")}
       </nav>
       <div class="nav-label" id="nav-pack-label">Pack aberto</div>
-      <div class="pack-switch">${ticon(p.name)}<span class="pname">${esc(p.name)}</span><span class="pmeta">${esc(p.mc)} · ${esc(p.loader)}</span></div>
+      <div class="pack-switch" title="${esc(p.name)} · ${esc(p.mc)} · ${esc(p.loader)}">${ticon(p.name)}<span class="pname">${esc(p.name)}</span><span class="pmeta">${esc(p.mc)} · ${esc(p.loader)}</span></div>
       <nav class="nav" aria-labelledby="nav-pack-label">
         ${item("#/pack/mods", "package", "Conteúdo", "conteudo", `<span class="count">${S.mods.length}</span>`)}
         ${item("#/pack/configs", "sliders", "Configs", "configs")}
@@ -233,7 +235,7 @@
         ${item("#/exportar", "upload", "Exportar", "exportar")}
       </nav>
       <div class="bottom">
-        <nav class="nav" aria-label="Aplicativo">${item("#/ajustes", "settings", "Configurações", "ajustes")}</nav>
+        <nav class="nav" aria-label="Aplicativo">${item("#/ajustes", "settings", "Configurações", "ajustes", "", "Ajustes")}</nav>
         <div class="status-line" title="packwiz embutido e pronto">${status("ok", "", "ok")}<span class="txt">Tudo pronto para usar</span></div>
       </div>
     </aside>`;
@@ -299,6 +301,87 @@
     const def = routes[S.route];
     def.enter && def.enter();
     render();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cena de fundo do Deep Dark: caverna em pixel art ORIGINAL, gerada aqui
+  // (nenhuma textura ou imagem da Mojang). Determinística: mesma semente, mesma cena.
+  // ---------------------------------------------------------------------------
+  function rng(seed) {
+    return () => {
+      seed |= 0;
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function buildScene() {
+    const R = rng(1311);
+    const Wd = 320;
+    const Ht = 180;
+    const px = [];
+    const rect = (x, y, w, h, c, o) => px.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"${o ? ` fill-opacity="${o}"` : ""}/>`);
+    rect(0, 0, Wd, Ht, "#050d12");
+    // fundo distante: pilares de pedra escura
+    for (let i = 0; i < 9; i++) {
+      const x = Math.floor(R() * Wd);
+      const w = 8 + Math.floor(R() * 4) * 4;
+      rect(x, 0, w, Ht, "#07141a");
+      rect(x, 0, 2, Ht, "#0a1b22");
+      for (let y = 0; y < Ht; y += 8) if (R() < 0.25) rect(x + 2 + Math.floor(R() * (w - 4)), y, 2, 2, "#0c2029");
+    }
+    // teto com estalactites em blocos de 4px
+    for (let x = 0; x < Wd; x += 4) {
+      const h = 10 + Math.floor(R() * 4) * 4 + (R() < 0.12 ? 16 + Math.floor(R() * 4) * 4 : 0);
+      rect(x, 0, 4, h, "#081820");
+      rect(x, h - 4, 4, 4, "#0b2029");
+      if (R() < 0.08) rect(x + 1, h, 2, 2, "#19d3e0", 0.35);
+    }
+    // chão em degraus, com uma camada de sculk por cima
+    let y = Ht - 28;
+    for (let x = 0; x < Wd; x += 8) {
+      if (R() < 0.35) y += R() < 0.5 ? -4 : 4;
+      y = Math.max(Ht - 44, Math.min(Ht - 16, y));
+      rect(x, y, 8, Ht - y, "#0a1c24");
+      rect(x, y, 8, 3, "#0d2d38");
+      for (let k = 0; k < 2; k++) if (R() < 0.45) rect(x + Math.floor(R() * 7), y + Math.floor(R() * 2), 1, 1, "#19d3e0", 0.55);
+      for (let yy = y + 6; yy < Ht; yy += 6) if (R() < 0.3) rect(x + Math.floor(R() * 6), yy, 2, 2, "#0e2630");
+    }
+    // veias de sculk subindo pelos pilares e pelo chão
+    for (let v = 0; v < 14; v++) {
+      let vx = Math.floor(R() * Wd);
+      let vy = Ht - 20 - Math.floor(R() * 40);
+      for (let s2 = 0; s2 < 14; s2++) {
+        rect(vx, vy, 2, 2, "#19d3e0", 0.16);
+        if (R() < 0.5) vx += R() < 0.5 ? -2 : 2;
+        else vy -= 2;
+      }
+      rect(vx, vy, 2, 2, "#7ff3f0", 0.35);
+    }
+    // "sensores": tufos de pixel brilhantes no chão (formas originais)
+    for (let t = 0; t < 5; t++) {
+      const tx = 20 + Math.floor(R() * (Wd - 40));
+      const ty = Ht - 30 - Math.floor(R() * 8);
+      rect(tx, ty, 6, 4, "#0e3540");
+      rect(tx + 1, ty - 4, 1, 4, "#19d3e0", 0.5);
+      rect(tx + 4, ty - 5, 1, 5, "#19d3e0", 0.5);
+      rect(tx + 2, ty + 1, 2, 1, "#7ff3f0", 0.4);
+    }
+    // almas paradas no ar
+    for (let a = 0; a < 26; a++) rect(Math.floor(R() * Wd), 20 + Math.floor(R() * (Ht - 70)), 1, 1, "#7ff3f0", (0.2 + R() * 0.45).toFixed(2));
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Wd} ${Ht}" preserveAspectRatio="xMidYMax slice" shape-rendering="crispEdges">${px.join("")}</svg>`;
+    const el = document.getElementById("scene");
+    if (!el) return;
+    el.querySelector(".scene-art").style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    const P = rng(77);
+    el.querySelector(".particles").innerHTML = Array.from({ length: 18 }, () => {
+      const left = (P() * 100).toFixed(1);
+      const size = [2, 3, 3, 4][Math.floor(P() * 4)];
+      const dur = (26 + P() * 30).toFixed(1);
+      const delay = (-P() * 50).toFixed(1);
+      return `<i style="left:${left}%;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:${delay}s"></i>`;
+    }).join("");
   }
 
   function setDir(d) {
@@ -401,6 +484,7 @@
   window.addEventListener("hashchange", onRoute);
   window.addEventListener("DOMContentLoaded", () => {
     document.documentElement.dataset.direction = S.dir;
+    buildScene();
     if (S.motion === "reduced") document.documentElement.dataset.motion = "reduced";
     bootProtobar();
     onRoute();
