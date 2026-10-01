@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR" data-direction="grafite">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Warden — Protótipo de design</title>
+    <meta name="description" content="Protótipo clicável da interface do Warden com 3 direções visuais" />
+    <!-- Fontes (SIL Open Font License). No app real elas vêm embutidas, sem internet. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Pixelify+Sans:wght@500;600&display=swap"
+    />
+    <link rel="stylesheet" href="tokens.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="screens.css" />
+  </head>
+  <body>
+    <!-- Barra do protótipo: NÃO faz parte do app. Serve para trocar a direção visual,
+         simular estados (carregando, vazio, erro) e pular direto para uma tela. -->
+    <div class="protobar" id="protobar" role="region" aria-label="Controles do protótipo">
+      <span class="tag">Protótipo</span>
+      <div class="group" role="group" aria-labelledby="pb-dir">
+        <span id="pb-dir">Direção visual</span>
+        <div class="seg">
+          <button type="button" data-dir="grafite" aria-pressed="true">1 · Grafite</button>
+          <button type="button" data-dir="ardosia" aria-pressed="false">2 · Ardósia</button>
+          <button type="button" data-dir="calcita" aria-pressed="false">3 · Calcita</button>
+        </div>
+      </div>
+      <div class="group" role="group" aria-labelledby="pb-state">
+        <span id="pb-state">Estado da tela</span>
+        <div class="seg">
+          <button type="button" data-view="normal" aria-pressed="true">Normal</button>
+          <button type="button" data-view="carregando" aria-pressed="false">Carregando</button>
+          <button type="button" data-view="vazio" aria-pressed="false">Vazio</button>
+          <button type="button" data-view="erro" aria-pressed="false">Erro</button>
+        </div>
+      </div>
+      <div class="group">
+        <label for="proto-screen">Ir para</label>
+        <select id="proto-screen"></select>
+      </div>
+      <span class="spacer"></span>
+      <span class="note">Dados fictícios · nada é salvo</span>
+    </div>
+
+    <nav aria-label="Atalho"><a class="skip-link" href="#/" data-action="skip">Pular para o conteúdo</a></nav>
+    <div id="app" class="app"></div>
+    <div id="layer"></div>
+    <section id="toasts" class="toasts" role="status" aria-live="polite" aria-label="Avisos"></section>
+
+    <script src="icons.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <script src="screens-pack.js"></script>
+    <script src="screens-test.js"></script>
+    <script src="screens-more.js"></script>
+  </body>
+</html>

@@ -1,0 +1,354 @@
+/* ==========================================================================
+   Warden — sistema de tokens de design
+   --------------------------------------------------------------------------
+   Um único conjunto de NOMES de tokens, com três "direções visuais" que só
+   trocam VALORES. Componentes nunca usam cor, tamanho ou raio literais:
+   sempre um token daqui. Para trocar a direção, mude o atributo
+   data-direction no <html>: "grafite" (padrão), "ardosia" ou "calcita".
+
+   Grupos:
+     --font-*      famílias tipográficas
+     --text-*      escala de tamanhos (o app é desktop: base 14px)
+     --leading-*   alturas de linha
+     --space-*     espaçamento (base 4px)
+     --radius-*    raios de canto
+     --c-*         cores semânticas (nunca use a cor "crua", use o papel)
+     --shadow-*    elevação
+     --dur-*, --ease  movimento
+     --control-*   medidas de controles (botões, campos)
+     --fx-*        efeitos de identidade da direção (textura, chanfro etc.)
+   ========================================================================== */
+
+:root {
+  /* ---------- Escalas comuns às três direções ---------- */
+  --text-xs: 0.75rem;    /* 12px — legendas, metadados */
+  --text-sm: 0.8125rem;  /* 13px — texto secundário, tabelas densas */
+  --text-md: 0.875rem;   /* 14px — corpo do app */
+  --text-lg: 1rem;       /* 16px — destaque em cards */
+  --text-xl: 1.25rem;    /* 20px — título de seção */
+  --text-2xl: 1.5rem;    /* 24px — título de tela */
+  --text-3xl: 2rem;      /* 32px — números de destaque */
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.6;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --control-h: 36px;     /* botões e campos padrão */
+  --control-h-sm: 28px;  /* ações compactas em tabelas */
+  --control-h-lg: 48px;  /* ação principal da tela (ex.: Testar) */
+
+  --sidebar-w: 236px;
+  --sidebar-w-compact: 64px;
+  --protobar-h: 44px;
+
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --focus-width: 2px;
+  --focus-offset: 2px;
+}
+
+/* ==========================================================================
+   Direção 1 — GRAFITE (padrão)
+   Escuro, sóbrio, estilo ferramenta profissional. Neutros frios, um único
+   acento verde-azulado. Cantos médios, sombras discretas, sem textura.
+   ========================================================================== */
+:root,
+:root[data-direction="grafite"] {
+  color-scheme: dark;
+
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  --display-weight: 600;
+  --display-tracking: -0.01em;
+  --display-transform: none;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* Superfícies (do fundo para o topo) */
+  --c-bg: #101215;
+  --c-bg-sunken: #0b0c0f;
+  --c-surface: #171a1e;
+  --c-surface-2: #1e2227;
+  --c-surface-3: #272c32;
+  --c-overlay: rgba(4, 6, 8, 0.72);
+
+  /* Linhas */
+  --c-border: #2b3037;          /* divisórias decorativas */
+  --c-border-strong: #3a414a;   /* cards, painéis */
+  --c-control-border: #737d89;  /* contorno de campos: ≥ 3:1 contra a superfície */
+
+  /* Texto */
+  --c-text: #e6e9ed;
+  --c-text-2: #b6bdc6;
+  --c-text-3: #939ca7;          /* menor contraste permitido: ≥ 4.5:1 em surface-3 */
+
+  /* Acento */
+  --c-accent: #2ec4b0;
+  --c-accent-hover: #4fd6c3;
+  --c-on-accent: #03201b;
+  --c-accent-text: #5dd8c7;
+  --c-accent-soft: rgba(46, 196, 176, 0.14);
+
+  --c-focus: #6cb6ff;
+
+  /* Estados (sempre acompanhados de ícone + texto) */
+  --c-ok: #4ccf7a;
+  --c-ok-text: #74dd98;
+  --c-ok-soft: rgba(76, 207, 122, 0.13);
+  --c-warn: #f0b429;
+  --c-warn-text: #f5c75a;
+  --c-warn-soft: rgba(240, 180, 41, 0.13);
+  --c-danger: #f06363;
+  --c-danger-text: #ff9090;
+  --c-danger-soft: rgba(240, 99, 99, 0.14);
+  --c-danger-solid: #c5383c;
+  --c-on-danger: #ffffff;
+  --c-info: #6cb6ff;
+  --c-info-text: #8cc6ff;
+  --c-info-soft: rgba(108, 182, 255, 0.13);
+
+  /* Fontes de conteúdo (só o pontinho/ícone usa a cor; o texto usa --c-text-2) */
+  --c-src-modrinth: #3fbf6f;
+  --c-src-curseforge: #f0874a;
+  --c-src-local: #9aa3ad;
+
+  /* Diff */
+  --c-diff-add: rgba(76, 207, 122, 0.16);
+  --c-diff-del: rgba(240, 99, 99, 0.16);
+
+  /* Console */
+  --c-console-bg: #0b0c0f;
+  --c-console-text: #d9dee4;
+  --c-console-muted: #939ca7;
+  --c-console-warn: #f5c75a;
+  --c-console-error: #ff9090;
+
+  /* Série única para barras de tamanho (dataviz: magnitude = 1 matiz) */
+  --c-data: #2ec4b0;
+  --c-data-track: #262b31;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.55);
+
+  /* Identidade da direção: neutra */
+  --fx-texture: none;
+  --fx-texture-size: auto;
+  --fx-button-bevel: none;
+  --fx-button-bevel-active: none;
+  --fx-card-edge: none;
+  --fx-progress-segments: none;
+  --fx-icon-style: monogram; /* lido pelo JS: monograma arredondado */
+  /* Ícones provisórios de mods (no app real vem o ícone da API). O JS passa só o matiz (--h). */
+  --tile-s: 32%;
+  --tile-l: 25%;
+  --tile-l2: 38%;
+}
+
+/* ==========================================================================
+   Direção 2 — ARDÓSIA
+   Escuro com identidade de "bloco" sutil: pedra quente, acento verde-grama,
+   detalhe dourado, cantos quase retos, sombras duras (deslocadas, sem
+   desfoque), textura de pixel quase invisível em fundos grandes, títulos em
+   fonte pixelada. Corpo de texto continua em fonte legível.
+   ========================================================================== */
+:root[data-direction="ardosia"] {
+  color-scheme: dark;
+
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Pixelify Sans", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  --display-weight: 600;
+  --display-tracking: 0.01em;
+  --display-transform: none;
+
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-pill: 3px;
+
+  --c-bg: #191716;
+  --c-bg-sunken: #121110;
+  --c-surface: #211e1c;
+  --c-surface-2: #2a2724;
+  --c-surface-3: #34302c;
+  --c-overlay: rgba(10, 8, 6, 0.75);
+
+  --c-border: #3b3632;
+  --c-border-strong: #4d4741;
+  --c-control-border: #887e72;
+
+  --c-text: #f0e9dd;
+  --c-text-2: #cfc5b6;
+  --c-text-3: #aca191;
+
+  --c-accent: #7fbf3f;
+  --c-accent-hover: #95d354;
+  --c-on-accent: #102106;
+  --c-accent-text: #a0d763;
+  --c-accent-soft: rgba(127, 191, 63, 0.16);
+
+  --c-focus: #f2c84b;
+
+  --c-ok: #62c97c;
+  --c-ok-text: #86d99a;
+  --c-ok-soft: rgba(98, 201, 124, 0.14);
+  --c-warn: #f0b23e;
+  --c-warn-text: #f6c86c;
+  --c-warn-soft: rgba(240, 178, 62, 0.14);
+  --c-danger: #f0705f;
+  --c-danger-text: #ff9a8c;
+  --c-danger-soft: rgba(240, 112, 95, 0.15);
+  --c-danger-solid: #b8382b;
+  --c-on-danger: #ffffff;
+  --c-info: #7fb6ff;
+  --c-info-text: #9ec7ff;
+  --c-info-soft: rgba(127, 182, 255, 0.14);
+
+  --c-src-modrinth: #62c97c;
+  --c-src-curseforge: #f0874a;
+  --c-src-local: #aca191;
+
+  --c-diff-add: rgba(98, 201, 124, 0.17);
+  --c-diff-del: rgba(240, 112, 95, 0.17);
+
+  --c-console-bg: #121110;
+  --c-console-text: #e6dfd3;
+  --c-console-muted: #aca191;
+  --c-console-warn: #f6c86c;
+  --c-console-error: #ff9a8c;
+
+  --c-data: #7fbf3f;
+  --c-data-track: #34302c;
+
+  --shadow-1: 0 2px 0 rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 4px 0 rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 8px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px #4d4741;
+
+  /* Textura de pixel: xadrez 4x4 com 3% de opacidade — percebida, não lida */
+  --fx-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' shape-rendering='crispEdges'%3E%3Crect width='2' height='2' fill='%23fff' fill-opacity='.035'/%3E%3Crect x='4' y='4' width='2' height='2' fill='%23fff' fill-opacity='.025'/%3E%3Crect x='6' y='2' width='2' height='2' fill='%23000' fill-opacity='.08'/%3E%3C/svg%3E");
+  --fx-texture-size: 8px 8px;
+  /* Chanfro de bloco: luz em cima, sombra embaixo */
+  --fx-button-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 0 rgba(0, 0, 0, 0.32);
+  --fx-button-bevel-active: inset 0 3px 0 rgba(0, 0, 0, 0.3);
+  --fx-card-edge: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  /* Barras de progresso em segmentos, como a barra de experiência */
+  --fx-progress-segments: repeating-linear-gradient(90deg, transparent 0 10px, rgba(0, 0, 0, 0.45) 10px 12px);
+  --fx-icon-style: pixel; /* lido pelo JS: ícone em pixel art gerado */
+  --tile-s: 30%;
+  --tile-l: 24%;
+  --tile-l2: 40%;
+}
+
+/* ==========================================================================
+   Direção 3 — CALCITA
+   Claro e limpo. Branco levemente esverdeado, acento verde-escuro, cantos
+   mais arredondados, sombras suaves. Para quem trabalha em ambiente claro.
+   ========================================================================== */
+:root[data-direction="calcita"] {
+  color-scheme: light;
+
+  --font-ui: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  --display-weight: 700;
+  --display-tracking: -0.015em;
+  --display-transform: none;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --c-bg: #f4f6f3;
+  --c-bg-sunken: #eaede8;
+  --c-surface: #ffffff;
+  --c-surface-2: #f7f8f6;
+  --c-surface-3: #eceeea;
+  --c-overlay: rgba(20, 28, 22, 0.42);
+
+  --c-border: #e1e5df;
+  --c-border-strong: #cfd5cc;
+  --c-control-border: #7a837b;
+
+  --c-text: #18201b;
+  --c-text-2: #424b45;
+  --c-text-3: #5a645d;
+
+  --c-accent: #17784a;
+  --c-accent-hover: #11633c;
+  --c-on-accent: #ffffff;
+  --c-accent-text: #146c43;
+  --c-accent-soft: #e2f1e8;
+
+  --c-focus: #2160d8;
+
+  --c-ok: #1f8a4c;
+  --c-ok-text: #17703d;
+  --c-ok-soft: #e3f3e8;
+  --c-warn: #b27c00;
+  --c-warn-text: #845400;
+  --c-warn-soft: #fdf3dc;
+  --c-danger: #d13a2a;
+  --c-danger-text: #b02a1b;
+  --c-danger-soft: #fce9e6;
+  --c-danger-solid: #c4321f;
+  --c-on-danger: #ffffff;
+  --c-info: #2a6fd6;
+  --c-info-text: #1f5bb8;
+  --c-info-soft: #e5eefc;
+
+  --c-src-modrinth: #1f8a4c;
+  --c-src-curseforge: #d4621f;
+  --c-src-local: #6c766f;
+
+  --c-diff-add: #dcf2e3;
+  --c-diff-del: #fbe3df;
+
+  --c-console-bg: #1b211d; /* o console continua escuro: leitura de log */
+  --c-console-text: #dfe6e0;
+  --c-console-muted: #9faba2;
+  --c-console-warn: #f5c75a;
+  --c-console-error: #ff9090;
+
+  --c-data: #17784a;
+  --c-data-track: #e3e7e1;
+
+  --shadow-1: 0 1px 2px rgba(24, 32, 27, 0.08);
+  --shadow-2: 0 4px 16px rgba(24, 32, 27, 0.08), 0 1px 2px rgba(24, 32, 27, 0.06);
+  --shadow-3: 0 24px 60px rgba(24, 32, 27, 0.2);
+
+  --fx-texture: none;
+  --fx-texture-size: auto;
+  --fx-button-bevel: none;
+  --fx-button-bevel-active: none;
+  --fx-card-edge: none;
+  --fx-progress-segments: none;
+  --fx-icon-style: monogram;
+  --tile-s: 55%;
+  --tile-l: 90%;
+  --tile-l2: 78%;
+}
