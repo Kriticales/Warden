@@ -1,7 +1,7 @@
 # Warden: estrutura do app (arquitetura de informação e navegação)
 
 > Tarefa D2, 01/10/2026. Rascunho para aprovação do dono.
-> Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet).
+> Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet), publicado em https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl
 > Base: `docs/SPEC.md` (telas T01 a T23), relatórios em `docs/research/` e o motivo da reprovação do protótipo D1.
 
 Este documento define **como se navega no Warden**, antes de qualquer estilo visual. Os rascunhos são em escala de cinza de propósito: a ideia é avaliar só a organização. A linguagem visual aprovada no D1 (paleta Warden, fontes pixel, menus estilo Minecraft) entra na etapa seguinte, por cima desta estrutura.
@@ -350,7 +350,7 @@ Nesta etapa, que é só estrutura em cinza, a regra vale para textos e organiza�
 
 ## 11. Como usar o rascunho clicável
 
-- Abrir `design/estrutura/index.html` no navegador, ou pelo link publicado (no relatório da tarefa).
+- Abrir `design/estrutura/index.html` no navegador, ou pelo link publicado (https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl).
 - **Seletor no topo:** troca entre Alternativa A e B mantendo a tela atual. As telas do nível do app são iguais nas duas.
 - **Mapa** e **Fluxos** (links no topo): a árvore do app, a recomendação e os 5 fluxos com cada passo clicável.
 - **Índice à esquerda:** todas as telas, com a referência da SPEC (T01–T23).
