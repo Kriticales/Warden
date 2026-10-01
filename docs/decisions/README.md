@@ -34,4 +34,4 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0028](0028-publicacao-no-github.md) | Publicar versões no GitHub para distribuir o pack | dono |
 | [0029](0029-java-mais-novo-que-funciona.md) | Java: o mais novo que funciona, com o motivo à vista | dono |
 
-Decisões ainda abertas para o dono estão em [SPEC §10](../SPEC.md#10-decisões-pendentes-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.
+As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.

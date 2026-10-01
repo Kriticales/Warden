@@ -1,6 +1,6 @@
 # Warden — Arquitetura técnica
 
-> Versão do documento: 1.0 (2026-10-01). Tarefa A1.
+> Versão do documento: 1.1 (2026-10-01). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub.
 > Público: agentes de implementação e orquestrador. O dono pode ler a §1 para ter a visão geral.
 > Fonte de verdade das decisões: `docs/decisions/` (ADRs citados como ADR-00NN). O que é produto está em `SPEC.md`; padrões obrigatórios em `QUALITY.md`; ordem de construção em `ROADMAP.md`.
 
@@ -115,16 +115,16 @@ Regras do monorepo:
 | `warden-curseforge` | Cliente da API da CurseForge (chave injetada), detecção de distribuição bloqueada, impressão digital murmur2. Sem persistência (termos da CurseForge). | core, http, packwiz (murmur2) |
 | `warden-catalog` | Catálogo de versões: manifesto da Mojang (ordem oficial), Fabric meta, Forge (maven-metadata + promotions, sufixos legados), NeoForge (API maven, `net.neoforged:forge` para 1.20.1), denylist de versões quebradas, cache. | core, http |
 | `warden-jarmeta` | Leitura de metadados de jars sem extrair: `fabric.mod.json` (com `jars[]`), `quilt.mod.json` (só leitura, para identificar), `META-INF/mods.toml`, `META-INF/neoforge.mods.toml`, `META-INF/jarjar/metadata.json`, `mcmod.info` tolerante, `MANIFEST.MF` (coremods), versão de classe Java; dialetos de faixa (Fabric, Maven, `@Mod`), FlexVer. | core |
-| `warden-project` | Serviço de domínio do pack: registro de packs, criar/abrir, inventário guiado pelo índice, adicionar/remover/atualizar, dependências, deduplicação, lado, opcionais, fixar, higiene, transação de escrita (§6.5). | core, packwiz, packwiz-cli, modrinth, curseforge, catalog, jarmeta, http |
+| `warden-project` | Serviço de domínio do pack: registro de packs, criar/abrir, inventário guiado pelo índice, busca combinada Modrinth + CurseForge (§17), adicionar/remover/atualizar, dependências, deduplicação, lado, opcionais, fixar, higiene, transação de escrita (§6.5). | core, packwiz, packwiz-cli, modrinth, curseforge, catalog, jarmeta, http |
 | `warden-configs` | Formatos de config com preservação: TOML, JSON/JSONC, JSON5, `.properties`, `.cfg` do Forge antigo, `options.txt`; modelo em árvore; edições mínimas; comparação semântica. | core |
-| `warden-java` | Runtimes Java: descoberta, download (Adoptium; fallback Mojang), validação, política de seleção. | core, http |
+| `warden-java` | Runtimes Java: descoberta, download (Adoptium; fallback Mojang), validação, política de seleção "mais novo que funciona" com motivo e atualização dos Javas instalados (§7.3). | core, http |
 | `warden-launcher` | Interface `LauncherEngine`, adaptador do motor escolhido no spike S1, perfil offline, supervisão do processo, leitura de logs do jogo (log4j XML e texto). | core, java, catalog |
 | `warden-instance` | Instância de teste: materialização pack → instância, manifesto de estado, linha de base, captura instância → pack, comparação de três vias. | core, packwiz, configs, modrinth, curseforge, http |
 | `warden-diagnostics` | Regras pré-teste, análise pós-crash, dados curados, redação de dados pessoais, montagem do relatório. | core, packwiz, jarmeta, catalog, modrinth, curseforge |
-| `warden-ai` | Cliente Gemini, montagem do conteúdo a enviar (a partir do relatório já redigido), esquema de resposta. | core, http, diagnostics |
-| `warden-versioning` | Git embutido (`git2`): repositório, ponto inicial, salvar versão, tags, pontos de segurança, restauração transacional, diffs, changelog, GitHub (API REST + push). Nomes legíveis de versões vêm de um trait `VersionNameResolver` implementado pela `warden-app` (com Modrinth e CurseForge). | core, packwiz, http |
+| `warden-ai` | Cliente Gemini, montagem do conteúdo a enviar (a partir do relatório já redigido ou de um log escolhido pelo usuário, redigido), esquema de resposta, respostas anteriores por pack (§9.5). | core, http, diagnostics |
+| `warden-versioning` | Git embutido (`git2`): repositório, ponto inicial, salvar versão, versão final, tags, pontos de segurança, restauração transacional, diffs, changelog e notas de publicação, publicação no GitHub (linha de publicação, push, Release pela API REST; §11.1). Nomes legíveis de versões vêm de um trait `VersionNameResolver` implementado pela `warden-app` (com Modrinth e CurseForge). | core, packwiz, http |
 | `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação. | core, packwiz, packwiz-cli, project |
-| `warden-secrets` | Cofre do sistema (`keyring`), `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
+| `warden-secrets` | Armazenamento de segredos: cofre do sistema (`keyring`, padrão) ou arquivo `.env` na pasta de configuração (escolha do usuário, ADR-0025), migração entre os dois, `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
 | `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `win-dev`, `win-install` (F0-04); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes); `notices` (A-02). | — (ferramenta) |
 
@@ -147,21 +147,21 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | Domínio | Comandos |
 |---|---|
 | app | `app_info`, `settings_get`, `settings_update`, `operations_list`, `operation_cancel`, `storage_usage` (P1), `storage_clear_cache` (P1) |
-| secrets | `secrets_status`, `secrets_set`, `secrets_test`, `secrets_remove` (não existe "ler segredo") |
+| secrets | `secrets_status`, `secrets_set`, `secrets_test`, `secrets_remove` (não existe "ler segredo"), `secrets_backend_get`, `secrets_backend_set` (cofre ↔ `.env`, move as chaves) |
 | catalog | `catalog_minecraft_versions`, `catalog_loader_versions` |
 | packs | `packs_list`, `pack_create`, `pack_import`, `pack_relocate`, `pack_reveal_folder`, `pack_forget`, `pack_trash` (P1), `pack_get`, `pack_update_meta`, `pack_hygiene_scan`, `pack_hygiene_fix` |
 | inventory | `inventory_list`, `item_details`, `items_set_side`, `items_remove_plan`, `items_remove`, `item_set_optional` (P1), `item_set_pin` (P1), `item_change_version_plan` (P1), `pack_change_loader_version_plan` (P1), `instance_set_optional_choices` (P1) |
-| search/add | `search_modrinth`, `search_curseforge`, `project_details`, `project_versions`, `add_plan`, `add_apply`, `add_from_link_plan`, `add_local_files_plan` |
+| search/add | `search_projects` (busca combinada; as fontes são internas), `project_details`, `project_versions`, `add_plan`, `add_apply`, `add_from_link_plan`, `add_local_files_plan` |
 | updates | `updates_check`, `updates_plan`, `updates_apply` |
 | configs | `config_tree`, `config_read`, `config_write`, `config_structured_read` (P1), `config_structured_apply` (P1), `config_set_preserve` (P1) |
 | test | `test_start`, `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file` |
 | capture | `capture_changes`, `capture_apply`, `capture_discard` |
 | diagnostics | `diagnostics_run`, `diagnostics_report_get`, `diagnostics_ignore` (P1) |
-| ai | `ai_preview` (P1), `ai_analyze` (P1) |
-| versioning | `versions_status`, `version_suggest`, `version_save`, `history_list`, `history_diff`, `history_restore`, `safety_points_list` (P1), `safety_point_restore` (P1) |
-| github | `github_status`, `github_setup`, `github_push` |
+| ai | `ai_sources_list` (P1: último travamento, outras sessões), `ai_preview` (P1; aceita sessão ou arquivo escolhido pelo diálogo nativo), `ai_analyze` (P1), `ai_history_list` (P1), `ai_history_get` (P1), `ai_history_delete` (P1) |
+| versioning | `versions_status`, `version_suggest`, `version_save` (com "versão final" opcional), `version_mark_final`, `version_unmark_final`, `history_list`, `history_diff`, `history_restore`, `safety_points_list` (P1), `safety_point_restore` (P1) |
+| github | `github_status` (repositório, visibilidade, versão publicada, link do pack), `github_setup` (criar público/privado ou vincular existente), `publish_plan` (avisos e notas da versão), `publish_run` |
 | export | `export_preview`, `export_run` (com versão salva opcional, P1) |
-| java | `java_runtimes_list`, `java_runtime_remove` |
+| java | `java_runtimes_list` (com os packs que usam cada um e o motivo), `java_runtime_remove`, `java_runtimes_check_updates`, `java_choice` (Java automático de um pack, com motivo) |
 
 ### 4.2 Eventos globais
 
@@ -430,7 +430,9 @@ pub trait LauncherEngine: Send + Sync {
 
 `warden-java`:
 - **Fonte padrão:** Adoptium Temurin JRE (8, 17, 21, 25), validado por SHA-256 da API; **alternativa:** runtime oficial da Mojang pelo `javaVersion.component`.
-- **Política de seleção** (primeira regra que se aplica): (a) Java escolhido pelo usuário nos Ajustes do pack; (b) Forge ≤ 1.12.2 → 8; (c) Forge 1.16.5 com versão < 36.2.26 → Java 8 ≤ 8u312 (Temurin 8 da série compatível, ou aviso se não houver); (d) `javaVersion.majorVersion` do JSON da versão (16 → 17); (e) sem `javaVersion` → 8. Exigências de mods (`[features] javaVersion`, `depends.java`) entram como verificação do diagnóstico (E-JAVA), não mudam a escolha sozinhas.
+- **Política de seleção: o mais novo que funciona** (ADR-0029; primeira regra que se aplica): (a) Java escolhido pelo usuário em Ajustes do teste; (b) Forge ≤ 1.12.2 → 8; (c) Forge 1.16.5 com versão < 36.2.26 → Java 8 ≤ 8u312 (Temurin 8 da série compatível, ou aviso se não houver); (d) o major mais novo listado como compatível para a faixa de versão e o loader em `crates/warden-java/data/compatibility.toml` (dados versionados; partida = R2 §2.1: até 1.16.5 → 8; 1.17–1.20.4 → 17; 1.20.5–1.21.x → 21; 26.x → 25; uma faixa só ganha major mais novo depois de a matriz L-05 passar com ele); (e) faixa sem entrada: `javaVersion.majorVersion` do JSON da versão (16 → 17), ou 8 sem `javaVersion`. Exigências de mods (`[features] javaVersion`, `depends.java`) entram como verificação do diagnóstico (E-JAVA), não mudam a escolha sozinhas.
+- **Motivo:** `java_choice` devolve `{ major, runtime, reason }`, com `reason` como código estável (`USER_CHOICE`, `FORGE_LEGACY_JAVA8`, `FORGE_1165_OLD`, `NEWEST_PROVEN_FOR_RANGE`, `NEWEST_AVAILABLE`, `FROM_VERSION_JSON`) traduzido pela interface. Ajustes do teste mostra "Por que não o Java N?" quando o escolhido não é o mais novo instalável.
+- **Sempre a atualização mais recente** do major: a verificação roda junto com a de atualizações do pack (intervalo de Configurações) e ao preparar o teste; a atualização nova é instalada antes do teste, e a antiga é removida quando nenhum jogo a está usando.
 - Instalação atômica em `shared/runtimes/<fornecedor>-<versão>-<arch>/` (baixar → verificar → extrair em temporário → renomear).
 - Validação de qualquer Java executando `java -XshowSettings:properties -version` uma vez; resultado em cache por caminho + data de modificação.
 - Só JVM 64 bits.
@@ -586,6 +588,8 @@ A redação é testada com casos positivos e negativos; o diálogo de consentime
 - Conteúdo: resumo do pack (versão MC, loader, lista de mods com id/versão/lado), achados determinísticos, trechos relevantes dos logs (orçamento total de 200 KB de texto), tudo redigido.
 - Resposta em JSON com esquema (`responseSchema`): `{ causaProvavel, confianca: "baixa"|"media"|"alta", passos: string[], modsEnvolvidos: string[] }`; validada antes de exibir.
 - Tempo-limite 90 s; erros mapeados (`AI_KEY_INVALID`, `AI_QUOTA_EXCEEDED`, `AI_TIMEOUT`, `AI_BAD_RESPONSE`).
+- **Seção ✦ Diagnóstico com IA** (ADR-0026): a origem do conteúdo pode ser o último travamento, outra sessão guardada em `instances/<id>/state/sessions/` ou um log/crash report escolhido no computador pelo diálogo nativo (só texto, até 20 MB lidos, tratado como entrada não confiável, mesma limpeza da §9.3 e mesma redação da §9.4 antes de mostrar o consentimento).
+- **Respostas anteriores:** cada análise grava `ai/<pack-id>/<ULID>.json` nos dados locais (§13) com data, origem, modelo, o texto enviado (já redigido) e a resposta validada. Nunca na pasta do pack. `ai_history_delete` apaga uma resposta.
 
 ## 10. Configs
 
@@ -644,12 +648,33 @@ Notas livres do usuário.
 ```
 
 - **Identidade dos commits:** nome do autor do pack; e-mail `<login>@users.noreply.github.com` se o GitHub estiver configurado, senão `warden@localhost`.
-- **GitHub:** API REST (`GET /user`, `POST /user/repos` com `private: true`) por `warden-http`; push por `git2` com credencial em memória (`x-access-token` + token do cofre). O token nunca vai para a URL do remoto nem para `.git/config`. Histórico divergente → erro `REMOTE_DIVERGED`; "substituir o GitHub" consulta o commit remoto e só força o envio se ele ainda for o esperado (equivalente ao `--force-with-lease`; como o `git2` não oferece a operação atômica, existe uma pequena janela de corrida, aceitável para um único usuário).
+- **Versão final:** marcar uma versão salva como final cria `refs/warden/final/vX.Y.Z` apontando para o commit da versão (não muda a árvore nem conta como alteração); desmarcar apaga a referência, só enquanto a versão não foi publicada.
+
+### 11.1 Publicação no GitHub (ADR-0028)
+
+O GitHub distribui o pack: os jogadores apontam o packwiz-installer-bootstrap para `https://raw.githubusercontent.com/<dono>/<repo>/main/pack.toml` e recebem só o que foi publicado. A branch de trabalho local **nunca** é enviada.
+
+1. **Plano (`publish_plan`)** para uma versão final:
+   - árvore da versão lida do commit da tag e montada em staging pela exportação (§12, origem "versão salva"): `pack.toml`, `index.toml` e os arquivos do índice;
+   - higiene (§6.4) e **varredura de segredos** na árvore (padrões da tabela da §9.4 e os valores atuais do armazenamento de segredos): achado bloqueia com `PUBLISH_SECRET_FOUND`, apontando arquivo e linha;
+   - avisos (não bloqueiam): mods da CurseForge com distribuição bloqueada, com a oferta de troca quando o mesmo arquivo existe no Modrinth (`version_files` por SHA-1); versão não testada (nenhuma sessão de teste "fechou normalmente" cuja árvore do pack, registrada na sessão, seja igual à da versão); diagnóstico rápido com erros;
+   - **notas da versão**: o gerador de changelog com base na **última versão publicada** (não na última salva), com "Atenção" quando houver remoção perigosa (SPEC T16), mais as notas livres.
+2. **Publicar (`publish_run`)**:
+   - acrescenta à árvore em staging o `CHANGELOG.md` de publicação (notas de todas as versões publicadas, a mais nova no topo) e `.gitattributes` com `* -text`;
+   - cria um commit com essa árvore na **linha de publicação** local `refs/warden/publish/main` (pai = publicação anterior; mensagem "<Nome do pack> X.Y.Z") e a tag anotada local `refs/warden/publish-tags/vX.Y.Z` com as notas;
+   - envia com `git2`: `refs/warden/publish/main:refs/heads/main` e `refs/warden/publish-tags/vX.Y.Z:refs/tags/vX.Y.Z`, com credencial em memória (`x-access-token` + token do armazenamento de segredos, §14). O token nunca vai para a URL do remoto nem para `.git/config`;
+   - cria a **GitHub Release** (`POST /repos/{dono}/{repo}/releases`, `tag_name = vX.Y.Z`, `name = "<Nome do pack> X.Y.Z"`, `body` = notas);
+   - devolve o link do `pack.toml`, o passo a passo para jogadores e o texto das notas.
+   Uma falha antes do envio não deixa nada no remoto; uma falha depois do envio e antes da Release deixa a publicação marcada como "Release pendente", e o próximo `publish_run` só cria a Release.
+3. **Repositório (`github_setup`, primeira publicação):** `GET /user`; criar com `POST /user/repos` e `private: false` (padrão, recomendado: o link só funciona para jogadores em repositório público) ou `private: true` ("só backup"); ou vincular um existente (`GET /repos/{dono}/{repo}` informa a visibilidade). O repositório e a visibilidade ficam em `packs.json`.
+4. **Estado:** "publicada" = existe `refs/warden/publish-tags/vX.Y.Z`. As tags de trabalho `vX.Y.Z` (locais) e as de publicação (remotas) não colidem, porque as locais nunca são enviadas.
+5. **Divergência:** o `main` remoto diferente da última publicação local → `REMOTE_DIVERGED`; "substituir o GitHub" consulta o commit remoto e só força o envio se ele ainda for o esperado (equivalente ao `--force-with-lease`; como o `git2` não oferece a operação atômica, existe uma pequena janela de corrida, aceitável para um único usuário).
+6. A API do GitHub usa `warden-http`; o `raw.githubusercontent.com` pode levar alguns minutos para refletir a publicação, e a interface avisa isso.
 
 ## 12. Exportação
 
 1. Verificação de higiene (§6.4) e diagnóstico rápido.
-2. Cópia de staging do pack (`cache/staging/<operação>/`), só com `pack.toml`, `index.toml`, `.packwizignore` e os arquivos não ignorados.
+2. Cópia de staging do pack (`cache/staging/<operação>/`), só com `pack.toml`, `index.toml`, `.packwizignore` e os arquivos não ignorados. Origem: a árvore de trabalho (estado atual) ou a árvore de uma versão salva, lida da tag pela `warden-versioning` (usada pela publicação, §11.1, e por "Exportar esta versão").
 3. `packwiz refresh --build` na cópia; conferir zero diferença em relação ao pack (exceto hashes internos que o `--build` acrescenta quando `no-internal-hashes` estiver ligado).
 4. Pré-visualização a partir do índice (tamanhos, contagens, alertas).
 5. Saída: pasta (cópia de `pack.toml`, `index.toml` e dos arquivos do índice) ou `.zip` (crate `zip`, entradas de diretório presentes, ordem determinística, datas fixas, sem bits de permissão estranhos — corrige a issue #115 do packwiz).
@@ -662,7 +687,7 @@ Identificador do app: `dev.kriticales.warden`.
 | O quê | Windows | Linux | Conteúdo |
 |---|---|---|---|
 | Packs (projetos) | escolhido pelo usuário; padrão `%USERPROFILE%\Documents\Warden\` | `~/Documentos/Warden/` ou `~/Documents/Warden/` (pasta de documentos do sistema) | Um subdiretório por pack (repositório git). |
-| Configuração | `%APPDATA%\dev.kriticales.warden\` | `~/.config/dev.kriticales.warden/` | `settings.json` (com `schemaVersion`), `packs.json` (registro: id → caminho, último teste, preferências de teste do pack). |
+| Configuração | `%APPDATA%\dev.kriticales.warden\` | `~/.config/dev.kriticales.warden/` | `settings.json` (com `schemaVersion`), `packs.json` (registro: id → caminho, último teste, preferências de teste do pack, repositório e visibilidade no GitHub), `.env` (só se o usuário escolher guardar as chaves em arquivo; §14). |
 | Dados locais | `%LOCALAPPDATA%\dev.kriticales.warden\` | `~/.local/share/dev.kriticales.warden/` | ver abaixo |
 
 Dentro de "dados locais":
@@ -678,6 +703,7 @@ cache/metadata.sqlite                 cache do Modrinth e do catálogo
 cache/staging/<operação>/             cópias temporárias do pack (apagadas ao fim; limpeza ao iniciar)
 cache/tmp/                            temporários diversos
 packwiz/packwiz.toml                  config vazia passada ao sidecar (--config)
+ai/<pack-id>/                         respostas anteriores da IA (§9.5)
 logs/                                 registros do app (§16)
 ```
 
@@ -696,12 +722,18 @@ mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (
 
 ## 14. Segredos
 
-- `warden-secrets` usa `keyring` (Gerenciador de Credenciais no Windows, Secret Service no Linux) com serviço `dev.kriticales.warden` e contas `curseforge-api-key`, `gemini-api-key`, `github-token`.
-- O acesso passa por um trait `SecretStore`. Além da implementação do sistema, há uma implementação de teste em arquivo temporário, selecionável só em build de debug por `WARDEN_SECRET_BACKEND=file:<pasta>` — usada pelos testes e E2E no WSL e no runner Linux, onde não há Secret Service. O teste com o cofre real roda na CI Windows.
-- Valores circulam como `secrecy::SecretString` (o `Debug` imprime `[REDACTED]`), são lidos do cofre só no momento do uso e nunca vão para a interface: a interface só conhece `secrets_status() → { curseforge: bool, gemini: bool, github: bool }`.
-- Desenvolvimento: só em build de debug, se o cofre não tiver a chave, `warden-secrets` lê `CURSEFORGE_API_KEY`, `GEMINI_API_KEY` e `GITHUB_TOKEN` do ambiente. `cargo xtask dev` e `cargo xtask test-network` carregam o `.env` do repositório principal (descoberto por `git rev-parse --git-common-dir`, sem copiar o arquivo e sem imprimir valores). Em build de release essa leitura não existe (`#[cfg(debug_assertions)]`).
+ADR-0025 (substitui a ADR-0017).
+
+- `warden-secrets` expõe o trait `SecretStore` com duas implementações de produção, escolhidas pelo usuário em Configurações → Chaves e contas e gravadas em `settings.json` como `secretsBackend`:
+  - **`keyring` (padrão):** Gerenciador de Credenciais no Windows, Secret Service no Linux; serviço `dev.kriticales.warden`, contas `curseforge-api-key`, `gemini-api-key`, `github-token`.
+  - **`envfile`:** arquivo `.env` na pasta de configuração (§13), com `CURSEFORGE_API_KEY`, `GEMINI_API_KEY` e `GITHUB_TOKEN` (aspas simples, como o `.env` de desenvolvimento, porque a chave da CurseForge começa com `$2a$`). Escrita atômica (`.warden-tmp` + renomeação); no Linux, permissão `0600`. Leitura tolerante (linhas desconhecidas são preservadas e ignoradas).
+- **Troca de modo** (`secrets_backend_set`): para cada segredo, grava no destino, relê para conferir e só então apaga da origem; ao fim, grava o modo novo em `settings.json`. Falha no meio: o modo continua o antigo, e o que já foi copiado ao destino é apagado. Voltar para o cofre apaga o `.env`.
+- Há também uma implementação de teste em arquivo temporário, selecionável só em build de debug por `WARDEN_SECRET_BACKEND=file:<pasta>`, usada pelos testes e E2E no WSL e no runner Linux, onde não há Secret Service. O teste com o cofre real roda na CI Windows.
+- Valores circulam como `secrecy::SecretString` (o `Debug` imprime `[REDACTED]`), são lidos só no momento do uso e nunca vão para a interface: a interface só conhece `secrets_status() → { backend, curseforge: bool, gemini: bool, github: bool }`.
+- Desenvolvimento: só em build de debug, se o armazenamento escolhido não tiver a chave, `warden-secrets` lê `CURSEFORGE_API_KEY`, `GEMINI_API_KEY` e `GITHUB_TOKEN` do ambiente. `cargo xtask dev` e `cargo xtask test-network` carregam o `.env` do **repositório** principal (descoberto por `git rev-parse --git-common-dir`, sem copiar o arquivo e sem imprimir valores). Esse `.env` de desenvolvimento não tem relação com o `.env` opcional da pasta de configuração. Em build de release a leitura do ambiente não existe (`#[cfg(debug_assertions)]`).
 - CI: testes de rede usam o segredo `CURSEFORGE_API_KEY` do GitHub Actions, só no workflow agendado/manual.
 - Ao passar a chave para o sidecar, só pela variável `WARDEN_CURSEFORGE_API_KEY` do processo filho; a linha de comando e o ambiente do filho nunca são registrados.
+- A varredura de segredos antes de publicar (§11.1) e a redação (§9.4) usam também os valores atuais do armazenamento escolhido.
 
 ## 15. Concorrência, travas e cancelamento
 
@@ -727,7 +759,9 @@ mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (
 - `warden-http`: `reqwest` com `rustls`, User-Agent `Kriticales/Warden/<versão> (+https://github.com/Kriticales/Warden)`, limitador por host (`governor`), novas tentativas com espera exponencial (máx. 3) em 429/5xx/tempo esgotado, só para requisições idempotentes, respeitando `Retry-After` e `X-Ratelimit-Reset`.
 - Downloads: streaming para `.part` no cache, hash calculado durante o download, retomada com `Range` quando o servidor aceita, renomeação ao final.
 - Modrinth: ≤ 300 req/min; uso de lote (`/projects?ids=`, `/versions?ids=`, `/version_files`, `/version_files/update`); cache em `metadata.sqlite` (versões são imutáveis; projetos expiram em 24 h).
-- CurseForge: chave do cofre no cabeçalho `x-api-key`; lote (`POST /v1/mods`, `POST /v1/mods/files`, `POST /v1/fingerprints/432`); concorrência máxima 4; **nenhuma resposta da API é persistida** (cache só em memória durante a sessão; `downloadUrl` nunca gravada). Os arquivos de mods baixados para a instância ficam no cache de downloads por hash, como fazem o packwiz e o Prism.
+- CurseForge: chave do armazenamento de segredos (§14) no cabeçalho `x-api-key`; lote (`POST /v1/mods`, `POST /v1/mods/files`, `POST /v1/fingerprints/432`); concorrência máxima 4; **nenhuma resposta da API é persistida** (cache só em memória durante a sessão; `downloadUrl` nunca gravada). Os arquivos de mods baixados para a instância ficam no cache de downloads por hash, como fazem o packwiz e o Prism.
+- **Busca combinada** (`warden-project::search`, ADR-0027): consulta Modrinth e CurseForge em paralelo, com tempo-limite por fonte e paginação independente por fonte; intercala os resultados pela posição em cada fonte e entrega páginas de 20 itens já combinados. Deduplicação na lista: mesmo autor (Modrinth `author`; CurseForge `authors[].name`) e mesmo slug ou nome normalizados (minúsculas, sem acentos, espaços e pontuação). Na pré-visualização, a SHA-1 do arquivo da versão escolhida é comparada entre as fontes (Modrinth `files[].hashes.sha1`; CurseForge `hashes` com algoritmo 1) e a diferença vira aviso. O item unificado guarda as referências das duas fontes; a parte da CurseForge fica só em memória. Sem chave (ou chave recusada), a fonte CurseForge nem é consultada; uma fonte com erro devolve resultado parcial com o aviso `SEARCH_SOURCE_UNAVAILABLE` (domínio `Project`).
+- GitHub: API REST (`GET /user`, `POST /user/repos`, `GET /repos/{dono}/{repo}`, `POST /repos/{dono}/{repo}/releases`) por `warden-http` (§11.1).
 - Mojang, Fabric meta, Maven do Forge/NeoForge: catálogo com cache (manifesto revalidado a cada 6 h; JSON de versão por `sha1`).
 - Sem internet: erros `NETWORK_UNAVAILABLE` (retryable) e uso do que houver em cache.
 - Testes: em build de debug, a URL base de cada API pode ser trocada por variável de ambiente (`WARDEN_API_BASE_MODRINTH`, `WARDEN_API_BASE_CURSEFORGE`, `WARDEN_API_BASE_MOJANG`, `WARDEN_API_BASE_FABRIC`, `WARDEN_API_BASE_FORGE`, `WARDEN_API_BASE_NEOFORGE`, `WARDEN_API_BASE_ADOPTIUM`, `WARDEN_API_BASE_GITHUB`, `WARDEN_API_BASE_GEMINI`), apontando para o servidor local de fixtures usado pelos E2E (`apps/desktop/e2e/mock-server/`). Em release essas variáveis são ignoradas; por isso os E2E rodam sempre sobre um build de debug (`tauri build --debug`), e o instalador de release é validado pelos roteiros manuais.
@@ -737,6 +771,7 @@ mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (
 - **Camadas:** `routes/` (páginas, carregam dados e compõem features) → `features/<f>/components` → `features/<f>/hooks` (TanStack Query sobre `lib/ipc`) → `lib/ipc/bindings.ts` (gerado). Componentes não chamam `invoke` direto.
 - **Estado do servidor:** TanStack Query com chaves `['pack', packId, área, …]`. O evento `pack-changed` invalida as chaves das áreas indicadas. Mutations nunca fazem atualização otimista de dados do pack (o disco é a verdade); mostram progresso e invalidam ao terminar.
 - **Estado de interface:** Zustand só para o que não vem do backend (seleção na lista, filtros do console, painel aberto). Nada de dados do pack no Zustand.
+- **Navegação (ADR-0026):** nível do app sem barra lateral: `/` (Meus packs), `/configuracoes` (inclui "Sobre o Warden" como última seção), `/boas-vindas`. Nível do pack: layout `/packs/$packId` com cabeçalho fixo (← Meus packs, nome e "Editar informações", identificação, avisos passageiros, Salvar versão · N alterações, Testar ▾) e menu lateral com as 6 seções, registradas em `features/pack-editor/sections.ts`: `mods` (com `adicionar` dentro), `configs`, `problemas`, `ia`, `historico`, `exportar`; a tela do teste é `/packs/$packId/teste` e não aparece no menu. Tarefas é uma gaveta global aberta pelo indicador do rodapé. Nenhuma tela tem abas.
 - **Rotas:** TanStack Router com rotas por arquivo (`src/routes/`); `routeTree.gen.ts` é gerado e **não** versionado (gerado antes de `typecheck`, `test` e `build`). Parâmetros tipados: `/packs/$packId/mods`, `/packs/$packId/configs?path=…`.
 - **Formulários:** React Hook Form + Zod (esquemas em `features/<f>/lib/schemas.ts`, mensagens via i18n).
 - **Listas longas:** TanStack Virtual.
