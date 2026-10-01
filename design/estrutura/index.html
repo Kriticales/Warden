@@ -573,7 +573,9 @@ function testSettingsDialog() {
   return dialog(`<h2>Ajustes do teste neste computador</h2>
     <p class="small muted">Não fazem parte do pack e não contam como alteração não salva.</p>
     <div class="stack small"><div class="row"><b>Memória</b>${select("Automático (6 GB para 128 mods)")}</div>
-    <div class="row"><b>Java</b>${select("Automático (Java 17, instalado pelo Warden)")}</div>
+    <div><div class="row"><b>Java</b>${select("Automático: Java 17")}</div>
+      <div class="muted" style="margin-top:4px">É o mais novo que o Minecraft 1.20.1 com Forge aceita. ${btn("Por que não o Java 25?", "", "link")}</div>
+      <div class="box" style="margin-top:4px">O Minecraft 1.18 a 1.20.4 foi feito para o Java 17. Forge e mods dessa época não são garantidos em Java mais novo: o jogo pode não abrir. Você pode escolher outro Java aqui por sua conta.</div></div>
     <div><b>Argumentos extras da JVM</b>${input("Deixe vazio se não souber")}</div>
     <div><b>Mods opcionais ligados no teste</b> ${p1()}<div class="muted">Nenhum mod opcional neste pack.</div></div>
     <hr class="s" /><div class="row">${btn("Recriar instância de teste…", "")}<span class="muted">pergunta se mantém os mundos</span></div></div>
@@ -777,7 +779,13 @@ function settingsContent() {
   const sec = (t, inner) => `<div class="box" style="margin-top:12px"><h3>${t}</h3><div class="stack small">${inner}</div></div>`;
   return `<h2>Configurações</h2><div class="muted small">Valem para o Warden inteiro. O que é de um pack fica dentro do pack.</div>
     ${sec("Geral", `<div class="row"><b>Pasta dos packs</b>${input("", "Documentos\\Warden")}</div><div class="row"><b>Nome do jogador nos testes</b>${input("", "Jogador")}</div><div>${btn("Rever boas-vindas", "boas-vindas", "link")}</div>`)}
-    ${sec("Teste", `<div class="row"><b>Memória padrão</b>${select("Automático")}</div><div class="row"><b>Javas instalados pelo Warden</b> Java 8, 17, 21 ${btn("Gerenciar", "", "link")}</div><div>${cb(false)}Mostrar versões beta e alpha dos mods</div><div class="row"><b>Verificar atualizações</b>${select("a cada 24 horas")}</div>`)}
+    ${sec("Teste", `<div class="row"><b>Memória padrão</b>${select("Automático")}</div><div><b>Java</b><div class="muted">O Warden usa sempre o Java mais novo que cada versão do Minecraft aceita, com a atualização mais recente. Quando não é o mais novo de todos, explica o porquê.</div>
+        <table class="t" style="margin-top:4px"><tr><th>Java</th><th>Usado por</th><th>Por que esta versão</th></tr>
+          <tr><td>25</td><td class="muted">nenhum pack ainda</td><td>O mais novo. Usado por Minecraft 26.1 e seguintes.</td></tr>
+          <tr><td>21</td><td>Leve e Bonito (1.21.1)</td><td>O Minecraft 1.20.5 a 1.21 foi feito para o Java 21. Com o 25 não há garantia de que abre.</td></tr>
+          <tr><td>17</td><td>Vale Sereno (1.20.1)</td><td>O Minecraft 1.18 a 1.20.4 foi feito para o Java 17. Forge e mods dessa época não são garantidos em Java mais novo.</td></tr>
+          <tr><td>8</td><td>Técnico Clássico (1.7.10)</td><td>O Forge 1.7.10 e 1.12.2 só abre no Java 8. A partir do Java 9 ele trava ao iniciar.</td></tr></table>
+        <div class="row" style="margin-top:4px">${btn("Procurar atualizações do Java", "", "small")}${btn("Remover Javas sem uso", "", "small")}</div></div><div>${cb(false)}Mostrar versões beta e alpha dos mods</div><div class="row"><b>Verificar atualizações</b>${select("a cada 24 horas")}</div>`)}
     ${sec("Editor de configs", `<div>${cb(true)}Mostrar as diferenças antes de salvar</div>`)}
     ${sec("Chaves e contas", `<div class="row"><b>CurseForge</b> Configurada ${btn("Testar", "", "small")}${btn("Substituir", "", "small")}${btn("Remover", "", "small")}</div>
       <div class="row"><b>Gemini</b> ${input("Cole a chave")}${btn("Salvar", "", "small")}${btn("Como conseguir uma chave", "", "link")}</div>
@@ -847,7 +855,7 @@ def("abrir-existente", { group: "app", title: "Abrir pack existente", spec: "T04
 
 def("config-app", { group: "app", title: "Configurações (+ Sobre)", spec: "T21, T23",
   render: () => appShell(settingsContent(), { title: "Configurações", back: ["Meus packs", "packs"], noSettings: true }),
-  note: "Uma página só, rolável, sem submenu. “Sobre” virou a última seção daqui (proposta). Daqui não se chega a nenhum pack: é nível do app.",
+  note: "Uma página só, rolável, sem submenu. “Sobre” virou a última seção daqui (proposta). Daqui não se chega a nenhum pack: é nível do app. Em Teste, a tabela de Java mostra qual pack usa cada versão e por que não é a mais nova de todas.",
   to: [["← Meus packs", "packs"], ["Rever boas-vindas", "boas-vindas"]] });
 
 def("tarefas", { group: "app", title: "Tarefas em andamento", spec: "T22",
@@ -951,7 +959,7 @@ def("testar-menu", { group: "teste", title: "Menu do Testar (▾)", spec: "T11, 
 
 def("ajustes-teste", { group: "teste", title: "Ajustes do teste", spec: "T11", hidden: true,
   render: alt => packShell(alt, alt === "A" ? "mods" : "painel", alt === "A" ? modsContent() : painelContent(), { overlay: testSettingsDialog() }),
-  note: "Ajustes que valem só neste computador e não entram no pack.", to: [["Salvar ajustes", "home"]] });
+  note: "Ajustes que valem só neste computador e não entram no pack. O Java automático é sempre o mais novo que a versão aceita; quando não é o mais novo de todos, a tela explica o porquê (pedido do dono).", to: [["Salvar ajustes", "home"]] });
 
 def("teste-checagem", { group: "teste", title: "1. Checagem antes do teste", spec: "T13, T14",
   render: alt => packShell(alt, "teste", testCheck(), { overlay: testCheckDialog(), game: "preparing" }),

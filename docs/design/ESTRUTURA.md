@@ -210,7 +210,7 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T10 | Verificar atualizações | Botão em Mods. Verificação automática ao abrir o pack. |
 | T10 | Atualizar um item / Atualizar todos (P1) | Nos detalhes do item, na seleção múltipla e na faixa "N atualizações disponíveis" → diálogo de revisão. |
 | T11 | Nome, autor, descrição, versão do loader (P1) | **Editar informações** ao lado do nome do pack (diálogo). |
-| T11 | Ajustes do teste (memória, Java, JVM, opcionais no teste, recriar instância) | Menu **▾** do Testar → **Ajustes do teste neste computador…** |
+| T11 | Ajustes do teste (memória, Java, JVM, opcionais no teste, recriar instância) | Menu **▾** do Testar → **Ajustes do teste neste computador…** O Java automático mostra por que é aquela versão ("Por que não o Java 25?"). |
 | T12 | Editor de configs | **Configs**: árvore à esquerda, editor à direita. |
 | T12 | Origem Pack / Instância de teste | Seletor "Mostrando: arquivos do pack ▾". Durante o teste, **Editar configs do teste** abre o editor já na instância, com aviso fixo. |
 | T12 | Formulário (P1) × Texto | Alternância de modo no topo do editor (mesmo arquivo, duas formas de ver). |
@@ -236,7 +236,7 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T19 | Exportar | **Exportar**: uma página de cima para baixo (conferências → formato → o que vai → exportar). |
 | T19 | Exportar uma versão salva (P1) | Em Histórico, dentro de cada versão. |
 | T20 | Downloads manuais da CurseForge | Etapa 3 do teste. Aviso antecipado na página Adicionar. |
-| T21 | Configurações do app | Página única rolável, com seções e sem submenu. |
+| T21 | Configurações do app | Página única rolável, com seções e sem submenu. Em Teste, uma tabela de Java mostra qual pack usa cada versão e por que não é a mais nova de todas. |
 | T22 | Tarefas | Indicador no rodapé de todas as telas → gaveta. |
 | T23 | Sobre | Última seção de Configurações ("Sobre o Warden"). O aviso legal também aparece na primeira execução. |
 
@@ -347,6 +347,13 @@ Nesta etapa, que é só estrutura em cinza, a regra vale para textos e organiza�
 - densidade de ferramenta: listas em tabela onde há o que comparar, em vez de cartões iguais em grade;
 - hierarquia com intenção: o botão Testar é o único elemento grande do cabeçalho; o painel da B é assimétrico;
 - a IA é identificada pelo **ícone de brilhinho (sparkles)**, escolha do dono (correção do orquestrador em 01/10/2026). No rascunho em cinza ele aparece como o marcador "✦" no botão "Pedir ajuda à IA" e no título do diálogo de consentimento. Ele marca só o que é IA (o diagnóstico com Gemini), não é decoração. O botão continua em segundo plano, depois da causa determinística.
+
+### 10.4 Comentários do dono na página publicada
+
+| Comentário | O que foi feito |
+|---|---|
+| Java: "Sempre o mais recente, se não for possível, explique o porquê". | Atendido na estrutura. O Warden usa o Java mais novo que cada versão do Minecraft aceita, sempre com a atualização mais recente dele. Configurações → Teste ganhou uma tabela com cada Java, quais packs o usam e o motivo; Ajustes do teste mostra "Automático: Java 17" com "Por que não o Java 25?". Motivos tirados do R2 §2.1: o Forge 1.7.10/1.12.2 só abre no Java 8, e o Minecraft 1.18–1.20.4 e 1.20.5–1.21 foram feitos para o 17 e o 21. Sem mudança na regra de seleção do ADR-0012. Fica em aberto testar se versões como 1.18–1.20.4 funcionam bem num Java mais novo; isso cabe a um spike, não à estrutura. |
+| Chaves: "Deve ficar .env nos arquivos do aplicativo". | **Não aplicado; aguarda decisão.** Contradiz o ADR-0017 (chaves no cofre do sistema, decisão registrada como do dono). Respondido no comentário com a diferença entre as duas opções; o tópico ficou aberto. Para a estrutura nada muda: as chaves continuam sendo digitadas em Configurações → Chaves e contas. Muda só onde elas ficam guardadas. |
 
 ## 11. Como usar o rascunho clicável
 
