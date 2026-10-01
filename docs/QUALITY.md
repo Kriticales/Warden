@@ -1,6 +1,6 @@
 # Warden — Padrão de qualidade obrigatório
 
-> Versão do documento: 1.0 (2026-10-01). Tarefa A1.
+> Versão do documento: 1.1 (2026-10-01). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029).
 > Vale para **todos** os agentes e para o orquestrador. Uma entrega que não cumpre este documento não é integrada.
 > Referências: `ARCHITECTURE.md` (estrutura), `SPEC.md` (critérios de aceite), `ROADMAP.md` (tarefas), `docs/decisions/` (ADRs).
 
@@ -212,6 +212,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 7. Proibido português europeu: "ficheiro", "ecrã", "utilizador", "registar", "a carregar", "transferir" (como download), "partilhar", "aceder". Em botões e nomes de ação, "Salvar", nunca "Guardar" (em texto descritivo, "fica guardado" é aceitável).
 8. Documentação e comentários de código em pt-BR; identificadores, nomes de crates, tipos e funções em inglês; termos técnicos no original.
 9. Toda tarefa que escreve texto de interface recebe este glossário.
+10. O ícone de brilhinho (✦/sparkles) marca o que é IA e só isso; nunca como decoração (ADR-0026).
+11. Nada de frases de marketing ("Eleve seus modpacks", "Experiência perfeita", "Desbloqueie"), exclamações, excesso de travessões ou títulos que dizem o óbvio: texto direto e útil, como numa ferramenta de trabalho.
 
 ### 8.2 Glossário
 
@@ -227,13 +229,23 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Instância do launcher | instância de teste | perfil, instalação |
 | Executar o jogo para testar | Testar | Jogar, Iniciar |
 | Download | baixar / download | transferir |
-| Upload ao GitHub | enviar ao GitHub | publicar, fazer push |
-| Commit + tag | salvar versão | commit, confirmar |
+| Enviar uma versão final ao GitHub para os jogadores | publicar versão | enviar ao GitHub, fazer push, upload |
+| Versão salva pronta para os jogadores | versão final | release, versão estável |
+| Endereço do `pack.toml` publicado | link do pack | URL raw, link do raw |
+| Commit + tag (local) | salvar versão | commit, confirmar, publicar |
 | Histórico git | histórico | log, commits |
 | Saída ao vivo do jogo | console | terminal |
 | Arquivos de log do jogo | log (do jogo) | registro do jogo |
 | Logs do Warden | registros | logs do app |
 | Crash | travou / travamento; "crash report" para o arquivo | quebrou, falhou geral |
+| Seção com os achados do diagnóstico | Problemas | Diagnóstico (como nome de seção), Erros |
+| Diagnóstico feito pela IA | Diagnóstico com IA (com o ícone ✦) | assistente, IA mágica |
+| Etapa que leva o pack para a instância | Copiar o pack para o teste | sincronizar, sync |
+| Revisão das mudanças feitas no jogo | O que mudou durante o teste | diff, sincronização reversa |
+| Tela inicial do app | Meus packs | Início, Modpacks, Dashboard |
+| Nome, autor e descrição do pack | Informações do pack (ação "Editar informações") | Ajustes do pack, Configurações do pack |
+| Memória, Java e argumentos do teste | Ajustes do teste neste computador | Configurações do pack |
+| Arquivo opcional com as chaves | arquivo .env | arquivo de segredos, config de chaves |
 | Side do packwiz | lado: "Cliente e servidor", "Só cliente", "Só servidor" | ambos, side |
 | Pin | fixar versão | travar, pinar |
 | Optional mod | opcional | facultativo |
@@ -243,7 +255,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ## 9. Segurança e privacidade
 
-1. **Segredos:** chaves e tokens só no cofre do sistema (ARCHITECTURE §14). Proibido: escrever em arquivo do repositório, fixture, log, mensagem de erro, saída de teste, commit, argumento de linha de comando de processo filho, URL de remoto git. A chave da CurseForge do dono está em `/home/solel/.superset/projects/Warden/.env` (`CURSEFORGE_API_KEY`): **não imprimir, não copiar, não registrar**; testes leem do ambiente.
+1. **Segredos:** chaves e tokens só no armazenamento escolhido pelo usuário: o cofre do sistema (padrão) ou o `.env` da pasta de configuração do Warden (ARCHITECTURE §14, ADR-0025). O conteúdo publicado no GitHub passa por varredura de segredos antes de sair (ARCHITECTURE §11.1). Proibido: escrever em arquivo do repositório, fixture, log, mensagem de erro, saída de teste, commit, argumento de linha de comando de processo filho, URL de remoto git. A chave da CurseForge do dono está em `/home/solel/.superset/projects/Warden/.env` (`CURSEFORGE_API_KEY`): **não imprimir, não copiar, não registrar**; testes leem do ambiente.
 2. **Varredura:** `gitleaks detect` na CI e no checklist de revisão; padrões extras para `$2a$`, `AIza`, `ghp_`, `github_pat_`.
 3. **Tipos de segredo:** `secrecy::SecretString` no Rust; no frontend, campos de senha que enviam o valor ao comando `secrets_set` e limpam o estado em seguida; nunca guardar em Zustand, Query cache ou `localStorage`.
 4. **PII:** nada é enviado a terceiros (IA) sem consentimento explícito por envio e sem passar pela redação (ARCHITECTURE §9.4). O texto mostrado é o texto enviado.
