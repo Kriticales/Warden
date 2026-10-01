@@ -1,7 +1,7 @@
 # S1 — Escolha do motor do launcher (spike)
 
 > Tarefa S1 do projeto Warden. Data: 2026-10-01. Branch: `spike/launcher-engine`.
-> Código descartável em [`spikes/launcher-engine/`](../../spikes/launcher-engine/) (ver o README de lá
+> Código descartável em `spikes/launcher-engine/`, na branch `spike/launcher-engine` (ver o README de lá
 > para reproduzir).
 >
 > Convenção: **[verificado]** = executei e vi o resultado; **[código]** = li no código-fonte do
