@@ -1,6 +1,6 @@
 # Warden: estrutura do app (arquitetura de informação e navegação)
 
-> Tarefa D2, 01/10/2026. Rascunho para aprovação do dono.
+> Tarefa D2, 01/10/2026. **Aprovada pelo dono no mesmo dia: Alternativa A** (ver §0). A SPEC, a ARCHITECTURE, o ROADMAP, o QUALITY e as ADRs 0025 a 0029 já foram atualizados; este documento registra a proposta e o porquê.
 > Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet), publicado em https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl
 > Base: `docs/SPEC.md` (telas T01 a T23), relatórios em `docs/research/` e o motivo da reprovação do protótipo D1.
 
@@ -8,6 +8,7 @@ Este documento define **como se navega no Warden**, antes de qualquer estilo vis
 
 ## Sumário
 
+0. [Decisões do dono](#0-decisões-do-dono)
 1. [Regras que guiaram a estrutura](#1-regras-que-guiaram-a-estrutura)
 2. [Mapa do app](#2-mapa-do-app)
 3. [As duas alternativas](#3-as-duas-alternativas)
@@ -22,6 +23,21 @@ Este documento define **como se navega no Warden**, antes de qualquer estilo vis
 12. [Limites deste rascunho e pontos em aberto](#12-limites-deste-rascunho-e-pontos-em-aberto)
 
 ---
+
+## 0. Decisões do dono
+
+Tomadas em 01/10/2026, a partir deste documento e dos comentários na página publicada. Valem as versões da SPEC 1.1 e das ADRs; aqui fica o resumo.
+
+| Decisão | Onde está registrada |
+|---|---|
+| **Alternativa A** aprovada, com a sexta seção **✦ Diagnóstico com IA**; Alternativa B descartada. | SPEC §5 e T05, ADR-0026 |
+| Mudanças **M1 a M12** (§7) aprovadas. | SPEC (telas citadas em cada M) |
+| **Busca combinada** Modrinth + CurseForge num resultado só, com a fonte marcada e sem duplicatas; sem chave da CurseForge, só Modrinth com aviso. Some o seletor "Onde buscar". | SPEC T08, ADR-0027 |
+| **Chaves:** cofre do Windows por padrão, com opção de arquivo `.env` na pasta de dados do Warden e aviso claro de que é texto legível por outros programas. | SPEC T21, ADR-0025 |
+| **Java:** o mais novo que funciona com cada versão, sempre atualizado, com o motivo à vista. | SPEC T11 e T21, ADR-0029 |
+| **GitHub distribui o pack:** salvar continua local; versões marcadas como **versão final** são publicadas com **Publicar versão** (nome escolhido no lugar de "Enviar ao GitHub"), com changelog, tag e Release; jogadores atualizam pelo link do `pack.toml`; repositório público recomendado, privado como "só backup". Substitui a D2 antiga ("sempre privado"). | SPEC T16–T18 e §10 (D14), ADR-0028 |
+
+**Por que "Publicar versão"** (revisado com a skill `design:ux-copy`): forma par com "Salvar versão" e deixa clara a diferença entre as duas (salvar é para você; publicar é para os jogadores). "Enviar ao GitHub" descrevia o mecanismo, não o efeito; "Lançar" e "Release" soam técnicos ou ambíguos. A versão pronta para os jogadores se chama **versão final**, e o endereço que os jogadores usam se chama **link do pack**.
 
 ## 1. Regras que guiaram a estrutura
 
@@ -146,7 +162,7 @@ O uso real do Warden é repetitivo: adicionar um mod, mexer numa config, testar,
 Da B, a A herda a ideia de sugerir o próximo passo nos momentos certos:
 - depois de criar o pack, o estado vazio leva a **Adicionar mods**;
 - depois do teste, o resultado oferece **Trazer para o pack** e, em seguida, **Salvar versão**;
-- depois de salvar, o diálogo oferece **Exportar esta versão** e **Enviar ao GitHub**.
+- depois de salvar uma versão final, o diálogo oferece **Publicar versão** e **Exportar arquivo**.
 
 ## 5. Nomes escolhidos e por quê
 
@@ -168,7 +184,7 @@ Termos seguem o glossário de `QUALITY.md` §8.2. Revisados com a skill `design:
 | **Mods** | Mods, resource packs e shaders | "Mods" é a palavra que todo jogador usa para "o que se adiciona ao jogo". A descrição deixa claro que resource packs e shaders também estão ali. Substitui "Conteúdo", que não dizia nada. |
 | **Configs** | Arquivos de ajuste dos mods e do jogo | "Config" é termo obrigatório do glossário para arquivo de configuração de mod. Não pode ser "Configurações", que é o app. A descrição explica o termo para o leigo e cita o jogo (`options.txt`). |
 | **Problemas** | O que pode impedir o jogo de abrir | Substitui "Diagnóstico", palavra técnica que descreve o processo, não o resultado. O usuário procura "o que está errado", não "o diagnóstico". Sem nada a mostrar: "Nenhum problema encontrado". |
-| **Histórico** | Versões salvas e o que mudou | Termo do glossário. Substitui "Versões", que era ambíguo: versão do Minecraft? do mod? do pack? |
+| **Histórico** | Versões salvas e publicação | Termo do glossário. A descrição ganhou "publicação" com a decisão do GitHub (§0). Substitui "Versões", que era ambíguo: versão do Minecraft? do mod? do pack? |
 | **Exportar** | Gerar o pack para quem vai jogar | O verbo diz a ação, e a descrição diz para quem. |
 | **✦ Diagnóstico com IA** | Pedir à IA para explicar um travamento | Nome pedido pelo dono. O ✦ (ícone de brilhinho na etapa visual) identifica a IA. Fica logo abaixo de Problemas, porque é o passo seguinte quando a verificação automática não explica. |
 | **▶ Testar** (botão) | — | Termo obrigatório do glossário ("Testar", nunca "Jogar"). |
@@ -209,8 +225,8 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T06 | Estados (vazio, arquivo inválido, fora do índice) | Na própria lista. |
 | T07 | Detalhes do item | Painel lateral sobre a lista: você não perde o lugar. |
 | T07, T11 | Trocar de versão, Fixar versão, Opcional (P1) | Dentro dos detalhes, em **Mais opções**. |
-| T08 | Adicionar (Modrinth, CurseForge, Link, Arquivo) | Página **Adicionar** dentro de Mods. Um campo só (busca ou link colado), **Onde buscar** (Modrinth/CurseForge), **Tipo** e **Escolher arquivo do computador…**. Ver §7. |
-| T08 | CurseForge sem chave | Estado da página Adicionar com **Abrir Configurações**. |
+| T08 | Adicionar (Modrinth, CurseForge, Link, Arquivo) | Página **Adicionar** dentro de Mods. Um campo só (busca combinada no Modrinth e na CurseForge, ou link colado), **Tipo** e **Escolher arquivo do computador…**. Cada resultado mostra a fonte; o mesmo mod nas duas fontes aparece uma vez (decisão do dono, §0). |
+| T08 | CurseForge sem chave | Só resultados do Modrinth, com aviso e **Abrir Configurações**. |
 | T09 | Dependências e conflitos | Diálogo antes de gravar, ao clicar em Adicionar ao pack. |
 | T10 | Verificar atualizações | Botão em Mods. Verificação automática ao abrir o pack. |
 | T10 | Atualizar um item / Atualizar todos (P1) | Nos detalhes do item, na seleção múltipla e na faixa "N atualizações disponíveis" → diálogo de revisão. |
@@ -236,14 +252,14 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T15 | Revisar mudanças do teste | Parte do resultado do teste: "O que mudou durante o teste". Ver §7. |
 | T15 | Decidir depois | Aviso "Mudanças do teste para revisar" no cabeçalho até resolver. |
 | T15 | Conflito de três vias | Dentro de "O que mudou", no arquivo em conflito. |
-| T16 | Salvar versão | Botão do cabeçalho (qualquer tela do pack) e em Histórico → diálogo. Depois de salvar: **Exportar esta versão** / **Enviar ao GitHub**. |
+| T16 | Salvar versão | Botão do cabeçalho (qualquer tela do pack) e em Histórico → diálogo, com **Marcar como versão final**. Salvar é local. Depois de salvar uma versão final: **Publicar versão** / **Exportar arquivo**. |
 | T17 | Alterações não salvas, versões, voltar para uma versão | **Histórico**. |
 | T17 | Pontos de segurança (P1) | Link discreto no fim do Histórico. |
-| T18 | Enviar ao GitHub | Linha "GitHub" no Histórico e no diálogo pós-salvar. A primeira vez pede para conectar o pack. Token em Configurações → Chaves e contas. |
+| T18 | Publicar versão (GitHub, para os jogadores) | Área "Publicação para os jogadores" no Histórico (repositório, link do pack, **Copiar link**, **Como os jogadores instalam**) e **Publicar versão** em cada versão final. Diálogo com avisos e notas; na primeira vez, repositório público (recomendado) ou privado ("só backup"); no fim, link do pack, passo a passo para jogadores e cópia das notas. |
 | T19 | Exportar | **Exportar**: uma página de cima para baixo (conferências → formato → o que vai → exportar). |
 | T19 | Exportar uma versão salva (P1) | Em Histórico, dentro de cada versão. |
 | T20 | Downloads manuais da CurseForge | Etapa 3 do teste. Aviso antecipado na página Adicionar. |
-| T21 | Configurações do app | Página única rolável, com seções e sem submenu. Em Teste, uma tabela de Java mostra qual pack usa cada versão e por que não é a mais nova de todas. |
+| T21 | Configurações do app | Página única rolável, com seções e sem submenu. Chaves e contas logo depois de Geral, com "Onde guardar as chaves" (cofre ou `.env`). Em Teste, uma tabela de Java mostra qual pack usa cada versão e por que não é a mais nova de todas. |
 | T22 | Tarefas | Indicador no rodapé de todas as telas → gaveta. |
 | T23 | Sobre | Última seção de Configurações ("Sobre o Warden"). O aviso legal também aparece na primeira execução. |
 
@@ -255,7 +271,7 @@ Estas mudanças não removem nenhuma funcionalidade. Elas só mudam onde cada co
 |---|---|---|
 | M1 | As 9 abas do pack (T05) viram 6 seções (A, contando a de IA da M12) ou painel + páginas (B). | Problema 4 (itens demais) e 2 (abas dentro de abas). Teste, Diagnóstico e Ajustes deixam de ser abas: o teste é um modo aberto pelo botão; o diagnóstico vira "Problemas"; os ajustes se dividem entre "Editar informações" e o menu do Testar. |
 | M2 | Mods, Resource packs e Shaders (T06) viram **uma lista agrupada por tipo**. | Eram três abas idênticas, e com o menu lateral formavam abas dentro de abas. O comportamento era o mesmo nas três (a própria SPEC diz isso). |
-| M3 | Adicionar (T08) troca as **4 abas** por um campo único que aceita busca ou link, mais "Onde buscar", "Tipo" e "Escolher arquivo do computador…". | Para o leigo, colar um link e buscar são o mesmo gesto: "achar o mod". O Warden reconhece um link pelo formato. Arquivo é um botão porque é outra ação (abrir o explorador de arquivos). Some mais um nível de abas. |
+| M3 | Adicionar (T08) troca as **4 abas** por um campo único que aceita busca ou link, mais "Tipo" e "Escolher arquivo do computador…". Com a decisão do dono, a busca é combinada (Modrinth + CurseForge) e o seletor "Onde buscar" saiu. | Para o leigo, colar um link e buscar são o mesmo gesto: "achar o mod". O Warden reconhece um link pelo formato. Arquivo é um botão porque é outra ação (abrir o explorador de arquivos). Some mais um nível de abas. |
 | M4 | "Revisar mudanças do teste" (T15) passa a ser **o próprio resultado do teste**. | O usuário só chega lá depois de um teste. Ser uma tela à parte criava um passo a mais e um lugar a mais para lembrar. |
 | M5 | O diagnóstico de travamento (T14) aparece **no resultado do teste**. A seção "Problemas" guarda o pré-teste e um link para o último travamento. | O travamento é visto na hora em que acontece, sem precisar ir buscar. |
 | M6 | "Ajustes do pack" (T11) se divide: informações do pack num diálogo ("Editar informações"); ajustes do teste no menu ▾ do Testar. | Eram coisas de natureza diferente (o que vai no pack × o que vale só neste computador) juntas sob um nome vago. |
@@ -306,15 +322,18 @@ Os mesmos fluxos estão no rascunho, na página "Fluxos principais", com cada pa
 4. **▶ Testar** de novo.
 5. Se a causa não aparecer: **Pedir ajuda à IA** (P1) → diálogo com o texto exato que será enviado, sem dados pessoais (**Enviar** ou **Cancelar**).
 
-### Fluxo 5. Salvar versão, exportar e enviar ao GitHub
+### Fluxo 5. Salvar a versão final e publicar para os jogadores
 
 1. De qualquer tela do pack: **Salvar versão · 5 alterações** (cabeçalho).
-2. Diálogo: número sugerido com o motivo, notas opcionais e resumo automático (**Salvar versão 1.5.0**).
-3. "Versão 1.5.0 salva" com os próximos passos (**Exportar esta versão**).
-4. Exportar: conferências, formato, o que vai no pack (**Exportar**) → "Pack exportado" (**Abrir pasta**).
-5. Histórico → linha GitHub (**Enviar ao GitHub**). Na primeira vez, conectar o pack a um repositório privado. Também dá para enviar direto do diálogo do passo 3.
+2. Diálogo: número sugerido com o motivo, notas opcionais, resumo automático e **Marcar como versão final** (**Salvar versão 1.5.0**). Até aqui, tudo fica só no computador.
+3. "Versão 1.5.0 salva como versão final" (**Publicar versão 1.5.0**).
+4. Diálogo de publicação: avisos (mods da CurseForge que os jogadores não conseguem baixar sozinhos, com troca pelo Modrinth quando existe; versão não testada; problemas pendentes), notas da versão desde a última publicada e o que vai e não vai para o GitHub (**Publicar** ou **Publicar mesmo assim**).
+5. Só na primeira vez: repositório **público** (recomendado, para o link funcionar) ou **privado** ("só backup") (**Criar repositório e publicar**).
+6. "Versão 1.5.0 publicada": **link do pack** com **Copiar link**, passo a passo para os jogadores (Prism ou MultiMC com o packwiz-installer-bootstrap) e **Copiar texto das notas da versão**.
 
-**Contagem de etapas** (página Fluxos do rascunho): fluxo 1, 6 nas duas; fluxo 2, 5 nas duas; fluxo 3, 7 (A) e 8 (B); fluxo 4, 3 nas duas; fluxo 5, 6 nas duas. A diferença entre A e B aparece toda vez que se troca de seção. No uso real isso acontece muitas vezes por sessão, mais do que a contagem de um fluxo isolado mostra.
+Para gerar um arquivo em vez de publicar, a seção **Exportar** continua igual.
+
+**Contagem de etapas** (proposta original, nas duas alternativas): fluxo 1, 6 nas duas; fluxo 2, 5 nas duas; fluxo 3, 7 (A) e 8 (B); fluxo 4, 3 nas duas; fluxo 5 (antes da decisão do GitHub), 6 nas duas. Depois da decisão, o fluxo 5 da A tem 5 etapas (a do repositório só na primeira publicação). A diferença entre A e B aparece toda vez que se troca de seção. No uso real isso acontece muitas vezes por sessão, mais do que a contagem de um fluxo isolado mostra.
 
 ## 9. Como os 4 problemas do protótipo foram resolvidos
 
@@ -344,7 +363,7 @@ Feita com a skill `design:design-critique`, olhando como um usuário leigo, sobr
 ### 10.2 Achados mantidos de propósito (para o dono avaliar)
 
 - **"Lado" pode confundir o leigo.** É o termo do glossário ("Cliente e servidor / Só cliente / Só servidor"). Sugestão para a etapa visual: uma dica ao passar o mouse no cabeçalho da coluna ("Onde o mod precisa estar instalado").
-- **"Onde buscar: Modrinth / CurseForge"** exige saber que existem duas lojas. Mantido porque a busca combinada nas duas fontes muda o comportamento da T08 (ordem, duplicatas, chave) e é uma decisão maior que esta tarefa.
+- ~~**"Onde buscar: Modrinth / CurseForge"** exige saber que existem duas lojas.~~ **Resolvido pelo dono:** busca combinada (§0).
 - **O botão ▾ ao lado do Testar** pode passar despercebido. O que está nele é raro, então tudo bem ser discreto. A etapa visual deve garantir que ele pareça clicável.
 - **Na B, Problemas e Teste não têm área própria no painel** (aparecem na faixa "Próximo passo" e em Situação). É coerente com a ideia do painel, mas é um ponto a mais para aprender.
 
@@ -362,25 +381,22 @@ Nesta etapa, que é só estrutura em cinza, a regra vale para textos e organiza�
 |---|---|
 | Java: "Sempre o mais recente, se não for possível, explique o porquê". | Atendido na estrutura. O Warden usa o Java mais novo que cada versão do Minecraft aceita, sempre com a atualização mais recente dele. Configurações → Teste ganhou uma tabela com cada Java, quais packs o usam e o motivo; Ajustes do teste mostra "Automático: Java 17" com "Por que não o Java 25?". Motivos tirados do R2 §2.1: o Forge 1.7.10/1.12.2 só abre no Java 8, e o Minecraft 1.18–1.20.4 e 1.20.5–1.21 foram feitos para o 17 e o 21. Sem mudança na regra de seleção do ADR-0012. Fica em aberto testar se versões como 1.18–1.20.4 funcionam bem num Java mais novo; isso cabe a um spike, não à estrutura. |
 | Na seção Problemas: "Tem que ter uma opção dedicada ao Diagnóstico com IA". | Feito. Nova seção **✦ Diagnóstico com IA** logo abaixo de Problemas (A) e bloco no painel (B), com página de resposta. Ver M12. O menu da A passou de 5 para 6 itens. |
-| Chaves: "Deve ficar .env nos arquivos do aplicativo". | **Não aplicado; aguarda decisão.** Contradiz o ADR-0017 (chaves no cofre do sistema, decisão registrada como do dono). Respondido no comentário com a diferença entre as duas opções; o tópico ficou aberto. Para a estrutura nada muda: as chaves continuam sendo digitadas em Configurações → Chaves e contas. Muda só onde elas ficam guardadas. |
+| Chaves: "Deve ficar .env nos arquivos do aplicativo". | **Decidido pelo dono: os dois.** Cofre do Windows por padrão, com opção de `.env` na pasta de dados do Warden e aviso claro (ADR-0025). Aplicado em Configurações → Chaves e contas (versão 5 da página); tópico respondido e resolvido. |
 
 ## 11. Como usar o rascunho clicável
 
 - Abrir `design/estrutura/index.html` no navegador, ou pelo link publicado (https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl).
-- **Seletor no topo:** troca entre Alternativa A e B mantendo a tela atual. As telas do nível do app são iguais nas duas.
-- **Mapa** e **Fluxos** (links no topo): a árvore do app, a recomendação e os 5 fluxos com cada passo clicável.
+- **Só a Alternativa A** (aprovada). A B saiu do rascunho; links antigos com `#B/…` abrem a mesma tela na A.
+- **Mapa** e **Fluxos** (links no topo): a árvore do app, as decisões do dono e os 5 fluxos com cada passo clicável.
 - **Índice à esquerda:** todas as telas, com a referência da SPEC (T01–T23).
 - **Mostrar o que é clicável:** contorna em tracejado tudo o que leva a outra tela. Botões sem destino mostram "Não ligado neste rascunho" ao passar o mouse.
 - Acima de cada tela há uma nota com o que observar, de onde se chega, para onde se vai e os outros estados daquela tela.
 
-Verificação feita: as 43 telas mais as páginas Mapa e Fluxos, nas duas alternativas (90 combinações), abertas num Chromium headless sem erros de JavaScript e sem nenhum botão ou link apontando para tela inexistente.
+Verificação feita: todas as telas mais as páginas Mapa e Fluxos (52 combinações na versão final, só Alternativa A; 96 combinações quando havia A e B), abertas num Chromium headless sem erros de JavaScript e sem nenhum botão ou link apontando para tela inexistente.
 
 ## 12. Limites deste rascunho e pontos em aberto
 
 - O rascunho mostra **organização**, não visual. Tamanhos, espaçamentos e a tipografia do sistema não são proposta.
 - Nem todo botão está ligado. Os principais caminhos dos 5 fluxos estão completos; ações secundárias (por exemplo, "Alterar lado" em lote) mostram "Não ligado neste rascunho".
 - A janela do rascunho tem largura fixa (1080 px) para parecer o app desktop. Em telas estreitas aparece rolagem horizontal só dentro da janela.
-- **Decisões para o dono:**
-  1. Alternativa A ou B (recomendação: A).
-  2. Aprovar as mudanças M1 a M12 na SPEC (§7).
-  3. Manter "Onde buscar" separado por fonte ou pedir a busca combinada Modrinth + CurseForge (§10.2).
+- **Decisões para o dono:** todas respondidas em 01/10/2026 (§0).
