@@ -1,0 +1,10 @@
+[package]
+name = "pmc-proto"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Spike S1 do Warden: protótipo do motor de launcher sobre a crate portablemc (descartável)"
+
+[dependencies]
+portablemc = "=5.0.5"
+libc = "0.2"

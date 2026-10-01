@@ -1,0 +1,8 @@
+# Artefatos de build e dados de execução do spike (nunca versionar)
+target/
+**/target/
+*.jar
+*.log
+*.png
+*.xwd
+data/

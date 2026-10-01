@@ -1,0 +1,3 @@
+# Mesma toolchain fixada pelo monorepo do Modrinth (rust-toolchain.toml dele).
+[toolchain]
+channel = "1.95.0"

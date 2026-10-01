@@ -1,0 +1,18 @@
+[package]
+name = "theseus-proto"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Spike S1 do Warden: protótipo do motor de launcher sobre o app-lib (theseus) do Modrinth App (descartável)"
+
+# Projeto isolado (não faz parte de nenhum workspace).
+[workspace]
+
+[dependencies]
+# Checkout de modrinth/code em e0bd3bc (2026-10-01), fora do repositório do Warden.
+# Ver README.md do spike para reproduzir. GPL-3.0-only.
+theseus = { path = "/home/solel/.local/share/warden-spike/src/modrinth-code/packages/app-lib" }
+tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread", "time"] }
+sqlx = { version = "0.8.6", default-features = false, features = ["sqlite", "runtime-tokio"] }
+uuid = "1.18.1"
+chrono = "0.4.42"
