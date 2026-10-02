@@ -424,7 +424,7 @@
   // size: "lg" (topo de Problemas) | "sm" (coluna de tabela)
   function health(score, o = {}) {
     const [k, label, ic] = healthBand(score);
-    if (o.size === "sm") return `<span class="health health--sm health--${k}"><span class="health__num">${score ?? "—"}</span>${icon(ic, "icon--sm")}<span>${label}</span></span>`;
+    if (o.size === "sm") return `<span class="health health--sm health--${k}"><span class="health__num">${score ?? "—"}</span>${icon(ic, "icon--sm")}<span class="health__lbl">${label}</span></span>`;
     const on = score == null ? 0 : Math.round(score / 10);
     return `<div class="health health--lg health--${k}" role="group" aria-label="Saúde do pack: ${score ?? "sem dados"}${score != null ? " de 100" : ""}, ${label}">
       <div class="health__num" aria-hidden="true">${score ?? "—"}<small>/100</small></div>
@@ -507,8 +507,8 @@
   function perfStrip(o = {}) {
     const st = o.state || "normal";
     const mem = st === "nodata"
-      ? `<div class="perf__item perf__item--mem"><div class="perf__lbl">Memória do jogo</div><div class="perf__val perf__val--na">sem leitura</div><div class="perf__sub">${o.nodataWhy || "Os argumentos do teste desligam a leitura."}</div></div>`
-      : `<div class="perf__item perf__item--mem"><div class="perf__lbl">Memória do jogo</div><div class="perf__val">${o.mem[0]} <small>de ${o.mem[1]} GB</small></div>${blockChart(o.series || [], o.mem[1], { rows: 5, warnAt: o.mem[1] * 0.9, label: o.seriesLabel || "" })}</div>`;
+      ? `<div class="perf__item perf__item--mem"><div class="perf__lbl">${o.memLabel || "Memória do jogo"}</div><div class="perf__val perf__val--na">sem leitura</div><div class="perf__sub">${o.nodataWhy || "Os argumentos do teste desligam a leitura."}</div></div>`
+      : `<div class="perf__item perf__item--mem"><div class="perf__lbl">${o.memLabel || "Memória do jogo"}</div><div class="perf__val">${o.mem[0]} <small>de ${o.mem[1]} GB</small></div>${blockChart(o.series || [], o.mem[1], { rows: 5, warnAt: o.mem[1] * 0.9, label: o.seriesLabel || "" })}</div>`;
     return `<section class="perf perf--${st}" aria-label="${esc(o.label || "Desempenho do jogo")}">${mem}
       <div class="perf__item"><div class="perf__lbl">RAM do processo</div><div class="perf__val">${o.rss} <small>GB</small></div><div class="perf__sub">memória usada pelo Java no Windows</div></div>
       <div class="perf__item"><div class="perf__lbl">Coletas de memória</div><div class="perf__val">${o.gc || "—"}</div><div class="perf__sub">${o.gcSub || ""}</div></div>
@@ -686,7 +686,7 @@
       const msg = p.kind === "missing" ? `Pasta não encontrada: ${esc(p.path)}` : "Não foi possível ler este pack";
       const why = p.kind === "missing" ? "Foi movida ou apagada fora do Warden." : "O pack.toml tem um erro na linha 4.";
       const acts = p.kind === "missing" ? btn("Localizar…", { size: "sm", attrs: o.locateAttrs }) + btn("Remover da lista", { size: "sm", variant: "ghost", attrs: o.removeAttrs }) : btn("Ver detalhes", { size: "sm", attrs: o.detailAttrs }) + btn("Remover da lista", { size: "sm", variant: "ghost", attrs: o.removeAttrs });
-      return `<tr class="packrow packrow--missing"><td><div class="packrow__name">${tile(p.name, "lg")}<div><span class="t-strong">${esc(p.name)}</span><div class="t-xs t-danger">${msg}</div></div></div></td><td colspan="${o.withHealth ? 5 : 4}" class="t-3">${why}</td><td class="shrink"><div class="row">${acts}</div></td></tr>`;
+      return `<tr class="packrow packrow--missing"><td><div class="packrow__name">${tile(p.name, "lg")}<div><span class="t-strong">${esc(p.name)}</span><div class="t-xs t-danger">${msg}</div></div></div></td><td colspan="${o.withHealth ? 5 : 4}" class="t-3">${why}</td><td class="shrink"><div class="row row--wrap" style="justify-content:flex-end">${acts}</div></td></tr>`;
     }
     return `<tr class="packrow"><td><div class="packrow__name">${tile(p.name, "lg")}<div><button type="button" class="packrow__title"${attrs(o.openAttrs)}>${esc(p.name)}</button><div class="t-xs t-3">Minecraft ${p.mc} · ${p.loader}</div></div></div></td>
       <td class="t-mono">${p.version}</td><td>${status(p.test[0], p.test[1])}</td>${p.health !== undefined ? `<td>${health(p.health, { size: "sm" })}</td>` : ""}<td class="num">${p.unsaved ? `<span class="t-warn">${p.unsaved}</span>` : '<span class="t-3">0</span>'}</td><td class="t-3">${p.when}</td>

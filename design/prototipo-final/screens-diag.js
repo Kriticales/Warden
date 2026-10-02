@@ -44,7 +44,7 @@ Travamento de 30/09 21:14, 3ª vez com a mesma causa:
 java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.getX()"
 Caminho: C:\\Users\\<mark>[usuário]</mark>\\AppData\\Local\\dev.kriticales.warden\\instances\\vale-sereno
 …(mais 64 linhas)</pre></div>
-        <dl class="kv"><dt>Para</dt><dd>Google Gemini (${MODEL}), com a sua chave</dd><dt>Tamanho inicial</dt><dd>cerca de 31 mil tokens</dd><dt>Custo</dt><dd>Cerca de US$ 0,20 numa conversa típica no plano pago. No plano gratuito não há custo, mas o Google pode usar o conteúdo para melhorar os produtos dele, e pessoas podem ler.</dd></dl>`,
+        <dl class="kv"><dt>Para</dt><dd>Google Gemini (${MODEL}), com a sua chave</dd><dt>Tamanho inicial</dt><dd>cerca de 31 mil tokens (a unidade que o Google usa para medir e cobrar)</dd><dt>Custo</dt><dd>Cerca de US$ 0,20 numa conversa típica no plano pago. No plano gratuito não há custo, mas o Google pode usar o conteúdo para melhorar os produtos dele, e pessoas podem ler.</dd></dl>`,
       foot: B("Cancelar", cancel, { variant: "ghost" }) + B("Começar conversa", "ia-conversa", { variant: "primary", icon: "sparkles" }) });
   }
   window.P.consentDialog = consentDialog;

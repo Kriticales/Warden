@@ -1,6 +1,6 @@
 # Warden: design system (direção Deep Dark)
 
-> Tarefa D3, 01/10/2026. Versão 1.0.
+> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3).
 > Galeria com todos os componentes e estados: `design/system/index.html`, publicada em https://app.superset.sh/page/warden-design-system-ysdscr
 > Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado em https://app.superset.sh/page/warden-prot-tipo-final-pri9am
 > Para republicar: `node design/tools/montar-publicacao.mjs` e `superset pages publish design/_publicado/<pasta>/ --page <id>`.
@@ -56,7 +56,7 @@ Para mudar um valor:
 ```bash
 # 1. edite design/system/tokens.json
 node design/system/tools/build-tokens.mjs   # gera tokens.css, tailwind-theme.css, shadcn-theme.css
-node design/system/tools/contraste.mjs      # confere os 88 pares de contraste; sai com erro se algum reprovar
+node design/system/tools/contraste.mjs      # confere os 102 pares de contraste; sai com erro se algum reprovar
 ```
 
 Regra: **componente nunca usa cor, tamanho, raio, sombra ou duração literais**. Exceções documentadas: os SVGs das texturas e da pixel art (que levam as cores da paleta escritas dentro do desenho) e as porcentagens de layout.
@@ -98,7 +98,7 @@ Decisões:
 
 ### 3.2 Contraste
 
-Verificado por `node design/system/tools/contraste.mjs` (WCAG 2.1, cores translúcidas compostas sobre o fundo real): **88 pares, todos aprovados**. Tabela completa em `design/system/contraste.md` e na galeria. Destaques:
+Verificado por `node design/system/tools/contraste.mjs` (WCAG 2.1, cores translúcidas compostas sobre o fundo real): **102 pares, todos aprovados**. Tabela completa em `design/system/contraste.md` e na galeria. Destaques:
 
 | Frente | Fundo | Contraste | Mínimo | Resultado |
 |---|---|---|---|---|
@@ -183,7 +183,7 @@ Sombras são duras e curtas (deslocadas para baixo), não nuvens desfocadas. Cad
 
 ### 3.7 Ícones
 
-- **Lucide** (licença ISC), traço 2 px, tamanhos 14, 16 (padrão) e 20. No React, `lucide-react` com os mesmos nomes (`triangle-alert` → `<TriangleAlert />`). Lista dos 72 usados em `design/system/icons.js` e na galeria.
+- **Lucide** (licença ISC), traço 2 px, tamanhos 14, 16 (padrão) e 20. No React, `lucide-react` com os mesmos nomes (`triangle-alert` → `<TriangleAlert />`). Lista dos 98 usados em `design/system/icons.js` e na galeria (26 entraram na D4: `network`, `activity`, `gauge`, `messages-square`, `send`, `target`, `flask-conical`, `import`, `images`, `braces`, `circle-dot`, `circle-dashed`, `circle-minus`, `timer`, `heart-pulse`, `scan-search`, `list-tree`, `chart-column`, `text-search`, `hand`, `sliders-horizontal`, `file-archive`, `code`, `square-terminal`, `upload`, `check-check`).
 - **`sparkles` só para IA**, sempre em `--color-ai` (osso) fora de botão primário.
 - Ícone sem texto só em ações muito conhecidas (fechar, editar, mais ações), sempre com nome acessível e tooltip.
 - **Pixel art própria**, desenhada por código: a marca do Warden (bloco com duas antenas e núcleo de alma), o ícone provisório de mod e de pack (padrão 8×8 simétrico gerado do nome, só quando a API não tem ícone oficial), as ilustrações dos estados vazios (bloco com símbolo), o visto do checkbox, o círculo do radio e a seta do select.
@@ -269,8 +269,33 @@ Todos estão na galeria com os estados. As funções em `components.js` têm o m
 | Árvore, chave-valor, divulgação, tecla | Configs, detalhes, “Mais opções” | — | — |
 | **Abas** | **Não existem no Warden** | — | — |
 
+### 4.1 Componentes das funções avançadas (D4)
+
+Na galeria, grupo “Funções avançadas (D4)”. Mesmas regras de sempre: só tokens, estado nunca só na cor, nada de abas.
+
+| Componente | Quando usar | Estados mostrados | Evite |
+|---|---|---|---|
+| **Saúde do pack** (`health`, `healthLosses`) | Topo de Problemas (grande) e coluna Saúde de Meus packs (pequena) | Ótimo, Bom, Atenção, Crítico, sem dados; “O que tirou pontos” com item ignorado riscado | Chamar de “pack saudável” ou usar como promessa; esconder de onde vieram os pontos |
+| **Rodadas da busca** (`rounds`, `suspects`) | No lugar das 5 etapas, quando a tela do teste está buscando o culpado | travou igual, passou, travou diferente (não conta), tempo esgotado, em andamento, pausada, esperando você, ainda não | Resultado só na cor; barra de progresso de 0 a 100% (o número de rodadas é estimado) |
+| **Mensagem de conversa** (`chatMsg`) | Conversa com a IA | sua, da IA | Balões arredondados de app de mensagem |
+| **Bloco “Enviado à IA”** (`toolCall`) | Cada consulta da IA, com o texto exato | recolhido, aberto, em andamento, erro; variante “Enviado ao GitHub” | Resumir o que foi enviado em vez de mostrar |
+| **Chip de evidência** (`evidence`, `claim`) | Cada afirmação da IA | conferida (verde, abre o trecho), não verificado (afirmação riscada) | Afirmação da IA sem evidência sem marcação |
+| **Cartão de proposta** (`proposal`) | Mudança sugerida pela IA (ou pela busca do culpado) | pendente (Aplicar, Descartar), aplicada (com Desfazer), descartada | Aplicar sozinho; proposta sem evidência |
+| **Faixa de desempenho** (`perfStrip`, `blockChart`) | Acima do console, durante o teste | normal, memória alta, sem leitura | Números em fonte pixel (5 e S se confundem) |
+| **Console: modos e linha de comando** (`consoleBox` com `show`, `groups`, `source`, `command`) | Console agrupado por mod e console do servidor local | linha a linha, agrupado (com ruído conhecido e stack trace recolhido), servidor/jogo, linha de comando | Traduzir ou “limpar” o log gravado |
+| **Linha de alteração de mixin** (`mixinRow`) | Raio-x nos detalhes do mod e na galeria | risco alto, médio, baixo; rebaixado (compatibilidade intencional, pode ser desligado pelo mod) | “Incompatível” |
+| **Grafo focado** (`depGraph`) | Mods → Ver como: Grafo | obrigatória, opcional, incompatível, inferida, embutida (dentro do nó) | Grafo do pack inteiro como padrão (ilegível com centenas de nós) |
+| **Resultado da descoberta** (`discoverRow`, `galleryStrip`) | Página de descoberta e mods de um modpack | normal, selecionado, já no pack, sem versão, arquivo fora das lojas, download manual; compacto; sem caixa | Grade de cartões iguais |
+| **Busca em configs** (`cfgHits`) e **linha do formulário com padrão** (`cfgRow`) | Configs | resultado com nome traduzido, “mudou do padrão”; linha alterada, erro de faixa, deduzido, padrão desconhecido | Formulário sem o padrão à vista |
+| **Erros dos scripts** e **autocompletar de IDs** (`scriptErrors`, `completions`) | Editor de scripts KubeJS/CraftTweaker | com erro, sem erro; lista com a opção ativa | Verificação estrita de TypeScript (dá falso positivo) |
+| **Testar com perfil e buscando o culpado** (`testButton` com `profile` e `state: "bisect"`) | Cabeçalho do pack | “Testar · PC fraco”; “Buscando o culpado: ver progresso” | Esconder que a busca está ocupando o launcher |
+| **Menu com grupos e rádio** (`menu` com `{ group }` e `{ radio }`) | Menu ▾ do Testar | título de grupo, rádio marcado e desmarcado | Submenus |
+| **Menu de seções recolhido** (`sectionMenu` com `compact`) | Só na página de descoberta | ícones com tooltip e ponto do contador | Recolher em outras telas |
+
 Contrato de teclado (reproduzido em `behavior.js` e exigido no app via Radix):
-- **Menu:** Enter, Espaço ou ↓ abrem e focam o primeiro item; ↑ ↓ Home End navegam; Esc fecha e devolve o foco ao botão.
+- **Menu:** Enter, Espaço ou ↓ abrem e focam o primeiro item; ↑ ↓ Home End navegam (pulando os títulos de grupo); Esc fecha e devolve o foco ao botão. Itens de rádio (`menuitemradio`) marcam um e desmarcam os outros do grupo.
+- **Grafo:** cada nó é um botão (Tab); Enter leva o mod para o centro. As ligações também estão em texto.
+- **Blocos recolhíveis** (Enviado à IA, grupos do console agrupado, stack trace): `<details>`, abrem com Enter ou Espaço.
 - **Diálogo e painel lateral:** o foco entra no título; Tab e Shift+Tab ficam presos; Esc fecha; o foco volta para quem abriu.
 - **Tooltip:** aparece no hover e no foco do teclado; Esc esconde. Com um tooltip aberto dentro de um diálogo, o primeiro Esc fecha só o tooltip e o segundo fecha o diálogo (mesmo comportamento do Radix).
 - **Seletor de modo:** setas trocam a opção.
@@ -286,6 +311,10 @@ Seguem a Alternativa A aprovada (ver `ESTRUTURA.md`):
 - **Cabeçalho de página:** título curto em pixel, uma linha dizendo o que há ali, ações à direita. Voltar (“← Voltar para Mods”) acima do título quando é subpágina.
 - **Teste:** é um modo, não uma seção (nenhum item do menu acende). Título, etapas sempre visíveis, conteúdo da etapa.
 - **Larguras:** de 1024 a 1180 px o menu de seções vai para 236 px, a descrição do mod encurta e o botão Salvar versão mostra só o número (o nome completo continua no leitor de tela).
+- **Página de descoberta (D4):** tela cheia dentro do pack, menu de seções recolhido para ícones, três colunas (filtros, resultados, pré-visualização). A pré-visualização é uma página rolável com índice de âncoras, não abas. Com um modpack aberto, os filtros saem e o painel do modpack cresce. Seleção múltipla com barra fixa “Adicionar N ao pack”.
+- **Busca do culpado (D4):** modo da tela do teste. Título “Buscando o mod culpado”, trilha de rodadas no lugar das etapas, “Agora: rodada N” em destaque, tabela das rodadas e coluna com os suspeitos. O botão do cabeçalho vira “Buscando o culpado: ver progresso” e o rodapé mostra a tarefa.
+- **Conversa com a IA (D4):** página de detalhe da seção ✦ Diagnóstico com IA (“← Conversas”), mensagens à esquerda e um resumo da conversa à direita (modelo, tokens, o que a IA pode ler). Campo “Perguntar mais” no fim.
+- **Teste com servidor (D4):** mesma tela do teste, com a etapa “Preparar o servidor”, “Mostrando: Servidor · Jogo” sobre o console e a linha de comando do servidor.
 
 ## 6. Textos
 
@@ -295,6 +324,7 @@ Revisados com a skill `design:ux-copy`, seguindo o glossário do `QUALITY.md` §
 - Estado vazio = o que é + por que está vazio + o que fazer.
 - Sem exclamação, sem slogan, sem excesso de travessão, sem título óbvio.
 - Termos fixos: Testar (nunca Jogar), console, travou, instância de teste, Copiar o pack para o teste, O que mudou durante o teste, Salvar versão, versão final, Publicar versão, link do pack, Configs × Configurações, lado (Cliente e servidor / Só cliente / Só servidor).
+- Termos da D4 (ESTRUTURA §13.4): Encontrar o mod culpado, rodada, Saúde do pack, O que este mod altera no jogo, alteram o mesmo ponto do jogo, Ver como: Lista · Grafo, conversa, Enviado à IA, proposta e Aplicar, Testar como servidor, Perfil do teste, Testar com perfil de desempenho, Pacote para servidor, Abrir ou importar…, Mods iniciais, Kit de desempenho. Na nota de saúde, as categorias evitam jargão: “Problemas encontrados”, “Mods que alteram o mesmo ponto do jogo”, “Download pelos jogadores”.
 
 ## 7. Acessibilidade: o que foi verificado
 
@@ -303,11 +333,11 @@ Revisado com a skill `design:accessibility-review` (WCAG 2.1 AA). **Verificado e
 | Verificação | Resultado |
 |---|---|
 | axe-core (WCAG 2.0/2.1 A e AA + boas práticas) na galeria, em 1280 e 1024 | 0 violações |
-| axe-core nas **90 combinações** de tela e estado do protótipo, em 1280 e 1024 | 0 violações |
+| axe-core nas **130 combinações** de tela e estado do protótipo (81 telas e diálogos, 30 da D4), em 1280 e 1024 (260 páginas) | 0 violações (refeito na D4, servido por HTTP local para o axe ler as folhas de estilo) |
 | Erros de JavaScript nas mesmas páginas | 0 |
 | Rolagem horizontal da página ou conteúdo estourando | nenhum no protótipo; na galeria, só a tabela de packs em 1024 rola dentro do próprio contêiner (a galeria tem uma coluna de índice que o app não tem) |
-| Contraste dos tokens | 88 pares, todos aprovados (§3.2) |
-| Teclado (18 testes automatizados) | diálogo: foco entra no título, Tab e Shift+Tab presos, Esc fecha e devolve o foco; menu do Testar: Enter e ↓ abrem, ↓ e End navegam, Esc devolve o foco; menu de seções: Enter navega e o foco vai para o título; painel lateral: foco entra, Esc fecha; atalho “Pular para o conteúdo”; anel de foco visível em todos os controles amostrados |
+| Contraste dos tokens | 102 pares, todos aprovados (§3.2; 14 pares novos da D4: chip de evidência, mensagem da IA, console agrupado, rodadas, faixa de desempenho) |
+| Teclado (26 testes automatizados; 8 novos da D4: menu com grupos pulando os títulos, itens de rádio do perfil com `aria-checked` e troca do perfil no botão Testar, nós do grafo focáveis, bloco “Enviado à IA” abrindo com Enter, menu recolhido com tooltip no foco e nome acessível, seleção da descoberta com Espaço) | diálogo: foco entra no título, Tab e Shift+Tab presos, Esc fecha e devolve o foco; menu do Testar: Enter e ↓ abrem, ↓ e End navegam, Esc devolve o foco; menu de seções: Enter navega e o foco vai para o título; painel lateral: foco entra, Esc fecha; atalho “Pular para o conteúdo”; anel de foco visível em todos os controles amostrados |
 | Movimento reduzido | emulado: pulso, carregador e durações param; a opção do app também funciona |
 | Links do protótipo | nenhum aponta para tela inexistente |
 
@@ -343,6 +373,29 @@ Feita com a skill `design:design-critique` sobre capturas reais das telas, com q
 - **“Cara de IA”.** Sem gradientes, sem vidro fosco, sem cartões iguais em grade, sem emojis, sem cantos arredondados, sem textos de marketing. O brilho existe em quatro lugares, todos com significado: Testar pronto, seção atual, item selecionado e progresso.
 - **“Editar informações” como ícone de lápis** ao lado do nome do pack, com tooltip: em 1024 px não cabe o texto sem empurrar o Testar. Ver §10.
 
+### 8.3 Crítica da D4: completa sem ficar confusa?
+
+Feita com a skill `design:design-critique`, de forma severa, sobre capturas reais das telas novas em 1280 e 1024 px. Perguntas do dono: a ferramenta ficou completa sem ficar confusa? A navegação continua simples para um leigo? Alguma coisa tem cara de IA?
+
+**Resposta curta.** A navegação não mudou: as mesmas 6 seções, nenhuma aba, e cada função nova mora num lugar que já existia (detalhes do mod, modo da tela do teste, menu ▾ do Testar, página Adicionar). O risco real de confusão estava no menu ▾ do Testar, que passou de 6 para 11 itens; ele ganhou títulos de grupo e todas as funções raras têm também uma entrada no lugar onde o problema aparece (por exemplo, “Encontrar o mod culpado” está no resultado do travamento e em Problemas → Travamentos, não só no menu).
+
+| Achado | Lente | Gravidade | Correção |
+|---|---|---|---|
+| Em 1024 px o menu de seções não recolhia na página de descoberta (a regra de janela estreita vencia a do modo recolhido) e a coluna de resultados ficava com 196 px. | Clareza | Alta | Seletor mais específico; resultados voltaram a ter espaço. |
+| No modpack aberto, a barra “Adicionar 5 selecionados” ficava na coluna dos modpacks, longe dos mods marcados, e as três colunas ficavam apertadas. | Clareza | Alta | A barra foi para dentro do painel do modpack; com um modpack aberto, a coluna de filtros sai. |
+| O início da descoberta mostrava primeiro mods que já estavam no pack (todos com “Já no pack”). | Utilidade | Média | “Populares” só mostra o que não está no pack, com uma linha dizendo quais populares já estão. |
+| Números em fonte pixel ficavam ambíguos (“5,9” lido como “S,9”; “35” como “38”) na faixa de desempenho e na estimativa da busca. | Clareza | Média | Números desses blocos na Manrope. Regra reforçada em §3.3. |
+| O painel de saúde abria com “O que tirou pontos” expandido e empurrava os problemas para baixo da dobra; as categorias usavam jargão (“Mixins”, “Distribuição”, “pré-teste”). | Hierarquia / clareza | Média | Lista recolhida por padrão; categorias renomeadas: “Problemas encontrados”, “Mods que alteram o mesmo ponto do jogo”, “Download pelos jogadores”. |
+| No resultado da busca do culpado, “Remover Epic Fight” era um botão de perigo sólido fora de confirmação, e a confiança usava o medidor da IA (osso), embora o resultado seja do Warden. | Consistência | Média | Perigo secundário; confiança com o status verde e texto. Botão “Ver as rodadas” duplicado saiu (ficou a divulgação “Ver as 15 rodadas”). |
+| Na conversa, o bloco do crash report vinha aberto e empurrava a resposta da IA para baixo. | Hierarquia | Média | Todos os blocos “Enviado à IA” vêm recolhidos; o título já diz o que foi enviado e o tamanho. |
+| Em 1024 px, o mini-gráfico da memória cobria o número ao lado e o título da página do teste era espremido pelas ações. | Clareza | Média | O gráfico desce para baixo do número na janela estreita; as ações do cabeçalho de página quebram linha em vez de espremer o título (componente `pagehead`). |
+| Coluna Saúde em Meus packs espremia o nome dos packs em 1024 px. | Clareza | Baixa | Na janela estreita a palavra da faixa fica só para o leitor de tela; número e ícone continuam. |
+| Editor de scripts em 1024 px: aviso do KubeJS 6 espremido e a linha com erro fora da vista. | Clareza | Baixa | Ações do aviso embaixo, árvore mais estreita, editor abre já mostrando a linha 16. |
+| Console do servidor com linha de comando estourava a altura e a caixa do protótipo cobria o fim. | Protótipo | Baixa | Altura mínima maior e o log encolhe dentro do console. |
+| Títulos fora de ordem (h3 sem h2) nos cartões de proposta, nos erros de script e na pré-visualização. | Acessibilidade | Baixa | Nível do título configurável nos componentes; nas telas, h2. |
+
+**“Cara de IA”.** Nenhum gradiente, vidro, emoji ou cartão igual em grade foi acrescentado. A conversa com a IA é deliberadamente sóbria: mensagens em blocos retos, a moldura de osso só na mensagem da IA, o brilhinho só nela, nas propostas não. As listas novas (descoberta, modpacks, travamentos, rodadas) são listas e tabelas densas. Ponto de atenção que fica: a página de descoberta em tela cheia lembra uma “loja”; ela continua sendo uma lista de trabalho (sem banners, sem destaques pagos, sem carrossel), e só a galeria do mod tem imagens grandes.
+
 ## 9. Licenças e origem de cada coisa
 
 | Item | Origem | Licença |
@@ -362,3 +415,6 @@ Nenhuma textura, logo, personagem, fonte ou asset da Mojang ou da Microsoft. “
 2. **“Editar informações” como lápis ao lado do nome do pack** (com tooltip), e não como texto. É o único botão só de ícone que é ação própria do pack.
 3. **Ícone provisório dos mods:** quando a API não tem ícone (arquivo local, link direto), o Warden mostra um desenho em pixel gerado do nome. Com ícone oficial, usa o oficial.
 4. **Sem tema claro.** Só existe o Deep Dark. Um tema claro custaria só um novo bloco de valores nos tokens, se um dia for preciso.
+5. **(D4) Menu ▾ do Testar com 11 itens em grupos.** Os testes extras, o perfil e a instância ficam ali, com títulos de grupo. Alternativa, se o dono achar longo: tirar o grupo “Perfil do teste” do menu e deixar a troca de perfil só no diálogo de ajustes (um clique a mais para trocar de perfil).
+6. **(D4) Menu lateral recolhido na página de descoberta.** Para caberem filtros, resultados e pré-visualização em 1024 px, o menu vira só ícones enquanto a página está aberta. Alternativa: manter o menu e esconder a coluna de filtros atrás de um botão “Filtros”.
+7. **(D4) Grafo:** o padrão é o grafo focado num mod, com explicação em texto. O grafo do pack inteiro fica num link discreto, porque com centenas de mods ele vira uma teia ilegível.

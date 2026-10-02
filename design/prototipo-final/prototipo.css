@@ -72,7 +72,8 @@
 .stat dd { font-family: var(--font-display); font-size: var(--text-lg); text-shadow: var(--shadow-pixel-text); }
 .run-console { height: calc(100vh - var(--proto-h) - var(--size-pack-header) - var(--size-statusbar) - 420px); min-height: 260px; }
 .run-console > .console { height: 100%; }
-.stack-3 > .run-console { height: calc(100vh - var(--proto-h) - var(--size-pack-header) - var(--size-statusbar) - 560px); min-height: 240px; }
+.run-console .console__log { min-height: 0; }
+.stack-3 > .run-console { height: calc(100vh - var(--proto-h) - var(--size-pack-header) - var(--size-statusbar) - 560px); min-height: 320px; }
 .changes { display: grid; gap: var(--space-4); }
 .change-group h3 { font-size: var(--text-sm); font-weight: var(--font-weight-bold); margin-bottom: var(--space-2); display: flex; gap: var(--space-2); align-items: center; }
 .change-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; padding: var(--space-3); background: var(--color-surface-1); border: var(--border-thin) solid var(--color-border); }

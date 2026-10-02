@@ -84,6 +84,21 @@ pairs.push(["danger-text", "console-bg", T, "Console: erro"]);
 pairs.push(["src-modrinth", "surface-1", G, "Marcador Modrinth"]);
 pairs.push(["src-curseforge", "surface-1", G, "Marcador CurseForge"]);
 pairs.push(["src-local", "surface-1", G, "Marcador arquivo local"]);
+// D4: funções avançadas
+pairs.push(["ok-text", "bg-sunken", T, "Chip de evidência conferida; string no editor de scripts"]);
+pairs.push(["ok", "bg-sunken", G, "Contorno do chip de evidência"]);
+pairs.push(["info-text", "bg-sunken", T, "Palavra-chave no editor de scripts"]);
+pairs.push(["text", "ai-soft@bg", T, "Texto da mensagem da IA na conversa"]);
+pairs.push(["text-2", "ai-soft@bg", T, "Texto secundário na mensagem da IA"]);
+pairs.push(["ai", "ai-soft@bg", T, "Rótulo em osso na mensagem da IA"]);
+pairs.push(["text", "danger-soft@console-bg", T, "Console agrupado: linha de erro"]);
+pairs.push(["danger-text", "danger-soft@console-bg", T, "Console agrupado: nível de erro"]);
+pairs.push(["text", "warn-soft@console-bg", T, "Stack trace: primeira linha de mod"]);
+pairs.push(["warn", "surface-3", G, "Faixa de suspeitos e blocos de memória alta"]);
+pairs.push(["danger", "danger-soft@surface-2", G, "Contorno da rodada que travou"]);
+pairs.push(["ok", "ok-soft@surface-2", G, "Contorno da rodada que passou"]);
+pairs.push(["warn-text", "warn-soft@surface-1", T, "Memória alta na faixa de desempenho"]);
+pairs.push(["primary", "surface-3", G, "Blocos do mini-gráfico de memória"]);
 pairs.push(["text", "overlay@surface-1", T, "Texto atrás do diálogo (não precisa, só referência)"]);
 
 let fails = 0;

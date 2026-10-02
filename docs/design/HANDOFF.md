@@ -1,6 +1,6 @@
 # Warden: handoff do design para o frontend
 
-> Tarefa D3, 01/10/2026. Para os agentes que vão construir a interface em React + TypeScript com **Tailwind CSS 4 + shadcn/ui (Radix) + lucide-react + CodeMirror 6** (ADR-0020).
+> Tarefa D3, 01/10/2026; ampliado na tarefa D4 (funções avançadas: componentes e estados marcados “D4”). Para os agentes que vão construir a interface em React + TypeScript com **Tailwind CSS 4 + shadcn/ui (Radix) + lucide-react + CodeMirror 6** (ADR-0020).
 > Referência visual e de comportamento: `design/prototipo-final/index.html` (cada tela tem a referência da SPEC na barra do protótipo).
 > Regras de uso: [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md). Estrutura obrigatória: [`ESTRUTURA.md`](ESTRUTURA.md).
 
@@ -115,6 +115,24 @@ Coluna “Classes” = classes de `components.css` que o componente aplica. Colu
 | `FileTree` | — (role tree) | `.tree`, `.tree__item`, `--dirty` | | Roving tabindex, ↑ ↓ ← → Enter |
 | `Disclosure` | shadcn `Collapsible` ou `<details>` | `.disclosure` | | “Mais opções”, “Por que não o Java 25?” |
 | `Tabs` | **não usar** | — | — | Proibido pela estrutura |
+| **D4** `HealthScore` | — | `.health--lg/--sm`, `--great/--good/--warn/--bad/--none`, `.losses` | `score` (0–100 ou `null`), `size`, `losses[]` | Faixa calculada do número (90/75/50). Sempre ícone + palavra; em `sm` abaixo de 1180 px a palavra fica só para leitor de tela. `role="group"` com o resumo no `aria-label`. Texto de apoio fixo (“não garante que o pack funciona”) |
+| **D4** `BisectRounds` | — | `.rounds`, `.round--same/pass/diff/timeout/now/todo/paused/ask`, `.rounds-legend`, `.suspects` | `rounds[] { n, mods, result }`, `legend` | `<ol>`; rodada atual com `aria-current="step"`; cada item com o nome completo em `sr-only`. Substitui as `Steps` na tela do teste durante a busca do culpado |
+| **D4** `ChatMessage` | — | `.msg--user/--ai`, `.chat` | `from`, `meta`, children | Mensagem da IA na moldura de osso com `Sparkles`. Nada de balão arredondado |
+| **D4** `ToolCallBlock` | `Collapsible` ou `<details>` | `.toolcall--done/running/error` | `kind: "ai" \| "github"`, `what`, `size`, `sent` (texto exato), `back` | Título “Enviado à IA: …”/“Enviado ao GitHub: …”. O `sent` é byte a byte o que saiu (CA da SPEC); fechado por padrão |
+| **D4** `EvidenceChip` | `Button` | `.evid`, `.evid--no` | `label`, `verified` | Conferida = botão que abre o trecho; “não verificado” = texto, e a afirmação vem riscada (`.claim--no`) |
+| **D4** `ProposalCard` | — | `.proposal--pending/applied/dismissed` | `title`, `text`, `diff`, `evidence`, `state`, `level` (nível do título) | Botão **Aplicar** passa pelos fluxos normais (diálogos de dependências, diferença de config) e cria ponto de segurança |
+| **D4** `PerfStrip` + `BlockChart` | — | `.perf--normal/warn/nodata`, `.bchart` | `mem [usado, máximo]`, `series`, `rss`, `gc`, `loaded`, `label`, `memLabel` | Atualiza a cada 1 s; o gráfico é `role="img"` com resumo em texto; blocos âmbar acima de 90%. Números na Manrope (não pixel: “5” e “S” se confundem) |
+| **D4** `Console` (modos) | — + TanStack Virtual | `.console__log--grouped`, `.cgroup`, `.cline`, `.cstack`, `.console__cmd` | `show: "lines" \| "grouped" \| "problems"`, `groups`, `source`, `command` | “Mostrar” é um `Select`, “Mostrando: Servidor · Jogo” é `ToggleGroup`. Agrupado: um `<details>` por mod; ruído conhecido com selo e tooltip. Linha de comando só com servidor local |
+| **D4** `MixinRow` | — | `.mixins`, `.mixin--high/medium/low` | `target`, `cls`, `who[]`, `risk`, `why`, `lower` | Linguagem: “alteram o mesmo ponto”, nunca “incompatíveis” |
+| **D4** `DependencyGraph` | HTML + SVG próprio | `.graph`, `.gnode--required/optional/incompatible/inferred`, `.gcenter`, `.ggutter` | `center`, `left[]`, `right[]` | Grafo **focado** (um mod no centro, até 2 níveis): nós são `<button>`; o SVG é decorativo (`aria-hidden`) e as ligações vão também em texto ao lado. O grafo do pack inteiro (opção “Ver o pack inteiro”) usa **Cytoscape.js** (MIT) com layout dagre, e tem a mesma lista em texto como alternativa |
+| **D4** `DiscoverResultRow` | `Checkbox` | `.drow--normal/selected/inpack/noversion/manual/external`, `--compact`, `--nobox`, `.dlist` | `name`, `author`, `desc`, `src`, `state`, `why` | Lista virtualizada; seleção múltipla com `SelectionBar` fixa embaixo (“Adicionar N ao pack”). Desabilitado sempre com o motivo em texto |
+| **D4** `Gallery` | — | `.gallery`, `.gallery__item` | `items[]` | Miniaturas da API (Modrinth `_350.webp`; CurseForge `thumbnailUrl` pelo protocolo `warden-img://`); clique abre a imagem grande em camada. No protótipo, cenas em pixel geradas por código |
+| **D4** `ConfigSearchResults` | — | `.hits`, `.hit` | `groups[] { file, hits[] }` | Agrupado por arquivo; clique abre o arquivo já na chave, no modo (formulário ou texto) em que o usuário estava |
+| **D4** `ConfigFormRow` | React Hook Form | `.cfgform__row--changed/--error`, `.cfgform__def` | `label`, `key`, `desc`, `def`, `defSource`, `changed`, `error`, `inferred` | Rótulo traduzido do mod (lang do jar) + chave em mono; “padrão: X · de onde veio”; erro de faixa com `aria-invalid`; “deduzido” para valor tirado do texto; botão Restaurar padrão por chave |
+| **D4** `ScriptErrors`, `IdCompletions` | `@codemirror/autocomplete` | `.scripterr`, `.complete` | `items[]`, `typed` | Autocompletar é `listbox` do CodeMirror; erros ligam à linha do editor |
+| **D4** `TestButton` (perfil e busca) | — | `.testbtn--profile`, `.testbtn--bisect` | `profile`, `state: "bisect"` | “Testar · PC fraco” quando o perfil não é o Padrão; durante a busca do culpado: “Buscando o culpado: ver progresso” |
+| **D4** `Menu` com grupos e rádio | `DropdownMenuLabel`, `DropdownMenuRadioGroup` | `.menu__label`, `.menu__item--radio`, `.menu__radio` | itens `{ group }`, `{ radio, checked }` | `role="menuitemradio"` com `aria-checked`; ↑ ↓ passam pelos rádios; Enter/Espaço marcam |
+| **D4** `SectionMenu` recolhido | `<Link>` + `Tooltip` | `.secmenu--compact`, `.secmenu__dot` | `compact` | Só na página de descoberta. Nome e descrição no tooltip (também no foco) e no nome acessível; ponto repete o contador |
 
 Ícones: `lucide-react`, `size={16}` (14 e 20 nas variações), `strokeWidth={2}`, `aria-hidden` quando há texto. `Sparkles` só em coisas de IA.
 
@@ -136,6 +154,11 @@ Coluna “Classes” = classes de `components.css` que o componente aplica. Colu
 | Item do menu de seções | ativo | Afundado (`slot`) + barra ciana com brilho |
 | Diálogo | abrir/fechar | Entra subindo 12 px em 320 ms; Esc ou ✕ fecha; clique fora fecha (não em `AlertDialog`) |
 | Toast | aparecer | Sobe 8 px em 200 ms; some em 6 s |
+| **D4** Rodada | em andamento | Bloco ciano com o carregador; ao terminar vira x (travou igual), visto (passou), menos (travou diferente) ou relógio (tempo esgotado) |
+| **D4** Resultado da descoberta | selecionado | `primary-soft` + barra ciana; a barra “N selecionados” aparece fixa embaixo |
+| **D4** Proposta da IA | Aplicar | Abre o fluxo normal (dependências, diferença); ao concluir, o cartão vira “Aplicada às HH:MM · ponto de segurança criado” com Desfazer |
+| **D4** Bloco “Enviado à IA” | em andamento | Título “A IA está consultando: …” com o carregador; abre e fecha com Enter |
+| **D4** Faixa de desempenho | memória alta | Item da memória com fundo âmbar suave e barra âmbar embaixo, mais o aviso abaixo da faixa |
 
 ## 5. Layout e larguras
 
@@ -148,6 +171,8 @@ Coluna “Classes” = classes de `components.css` que o componente aplica. Colu
 Estrutura de altura: barra do app 56 px ou cabeçalho do pack 76 px (+ ~36 px da faixa de avisos) / conteúdo com rolagem própria / rodapé 30 px. O menu de seções rola sozinho se a janela for baixa.
 
 Tabelas sempre dentro de `.tablewrap` (rola dentro, nunca a página).
+
+**Página de descoberta (D4):** em tela cheia, com o menu de seções recolhido para 56 px. Colunas: filtros 210 px (180 px abaixo de 1181) · resultados · pré-visualização 320–400 px (300–340 px). Com um modpack aberto, a coluna de filtros sai e o painel do modpack ocupa ~60%. A pré-visualização rola sozinha; o índice “Descrição · Galeria · Versões · Dependências · Links” rola até o título (não é aba). A barra de seleção fica fixa no fim da coluna de resultados (ou do painel do modpack).
 
 ## 6. Movimento
 

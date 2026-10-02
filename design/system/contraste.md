@@ -92,5 +92,19 @@ Gerado por `node design/system/tools/contraste.mjs` a partir de `tokens.json`. C
 | `src-modrinth` | `surface-1` | 9.95:1 | 3:1 | AA (3:1) | Marcador Modrinth |
 | `src-curseforge` | `surface-1` | 7.26:1 | 3:1 | AA (3:1) | Marcador CurseForge |
 | `src-local` | `surface-1` | 7.24:1 | 3:1 | AA (3:1) | Marcador arquivo local |
+| `ok-text` | `bg-sunken` | 12.95:1 | 4.5:1 | AAA | Chip de evidência conferida; string no editor de scripts |
+| `ok` | `bg-sunken` | 11.23:1 | 3:1 | AA (3:1) | Contorno do chip de evidência |
+| `info-text` | `bg-sunken` | 11.48:1 | 4.5:1 | AAA | Palavra-chave no editor de scripts |
+| `text` | `ai-soft sobre bg` | 15.12:1 | 4.5:1 | AAA | Texto da mensagem da IA na conversa |
+| `text-2` | `ai-soft sobre bg` | 10.47:1 | 4.5:1 | AAA | Texto secundário na mensagem da IA |
+| `ai` | `ai-soft sobre bg` | 12.89:1 | 4.5:1 | AAA | Rótulo em osso na mensagem da IA |
+| `text` | `danger-soft sobre console-bg` | 15.73:1 | 4.5:1 | AAA | Console agrupado: linha de erro |
+| `danger-text` | `danger-soft sobre console-bg` | 8.14:1 | 4.5:1 | AAA | Console agrupado: nível de erro |
+| `text` | `warn-soft sobre console-bg` | 14.96:1 | 4.5:1 | AAA | Stack trace: primeira linha de mod |
+| `warn` | `surface-3` | 7.38:1 | 3:1 | AA (3:1) | Faixa de suspeitos e blocos de memória alta |
+| `danger` | `danger-soft sobre surface-2` | 4.50:1 | 3:1 | AA (3:1) | Contorno da rodada que travou |
+| `ok` | `ok-soft sobre surface-2` | 6.79:1 | 3:1 | AA (3:1) | Contorno da rodada que passou |
+| `warn-text` | `warn-soft sobre surface-1` | 9.49:1 | 4.5:1 | AAA | Memória alta na faixa de desempenho |
+| `primary` | `surface-3` | 7.47:1 | 3:1 | AA (3:1) | Blocos do mini-gráfico de memória |
 
-**88 pares conferidos, todos aprovados.**
+**102 pares conferidos, todos aprovados.**

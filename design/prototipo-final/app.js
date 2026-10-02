@@ -48,7 +48,7 @@
       { label: "Ver último teste", desc: "Hoje, 14:40 · travou", icon: "history", attrs: go("teste-travou") },
       { group: "Outros testes" },
       { label: "Testar como o jogador recebe", desc: "Instala pelo link do pack, como um jogador", icon: "user", end: p1, attrs: go("") },
-      { label: "Testar como servidor…", desc: "Abre um servidor neste computador, só quando você pede", icon: "server", end: p1, attrs: go("servidor-eula") },
+      { label: "Testar como servidor…", desc: "Abre um servidor só neste computador e entra nele", icon: "server", end: p1, attrs: go("servidor-eula") },
       { label: "Testar com perfil de desempenho", desc: "Mede o que mais pesa para carregar e rodar", icon: "gauge", end: p1, attrs: go("teste-fechou~desempenho") },
       { label: "Encontrar o mod culpado…", desc: "Abre o jogo em rodadas até achar o mod", icon: "target", end: p1, attrs: go("culpado-config") },
       { group: "Perfil do teste" },
