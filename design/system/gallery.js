@@ -359,11 +359,12 @@
       ${aiBlock({ loading: true, meta: "Google Gemini (gemini-2.5-flash)" })}
       ${aiBlock({ error: "A chave do Gemini foi recusada.", errorText: "O Google respondeu que a chave não é válida. Nada foi alterado no pack.", meta: "21:20", actions: btn("Abrir Configurações", { size: "sm" }) })}</div>`);
 
-  sec("outros", "Componentes", "Árvore, chave-valor e teclas",
+  sec("outros", "Componentes", "Árvore, chave-valor, divulgação e teclas",
     "Peças menores usadas no editor de configs, nos detalhes de um mod e nas instruções.",
     states([
       st("Árvore de arquivos", `<div role="tree" aria-label="Arquivos de config" class="tree" style="width:100%"><button type="button" role="treeitem" class="tree__item" aria-expanded="true">${icon("folder-open")}config/</button><div role="group"><button type="button" role="treeitem" class="tree__item tree__item--dirty" aria-selected="true">${icon("file-text")}create-common.toml</button><button type="button" role="treeitem" class="tree__item">${icon("file-text")}embeddium-options.json</button><button type="button" role="treeitem" class="tree__item" aria-expanded="false">${icon("folder")}jei/</button><div role="group" hidden></div></div><button type="button" role="treeitem" class="tree__item tree__item--friendly">${icon("file-text")}Opções do jogo (options.txt)</button></div>`),
       st("Chave-valor", `<dl class="kv"><dt>Minecraft</dt><dd>1.20.1</dd><dt>Loader</dt><dd>Forge 47.3.0</dd><dt>Java</dt><dd>17 (automático)</dd></dl>`),
+      st("Divulgação (Mais opções)", `<details class="disclosure"><summary>Por que não o Java 25?</summary><p>O Minecraft 1.18 a 1.20.4 foi feito para o Java 17.</p></details>`),
       st("Teclas", `<span class="t-sm">${["Ctrl", "S"].map((k) => `<kbd>${k}</kbd>`).join(" + ")} salva o arquivo</span>`),
       st("Abas", `<span class="t-sm t-2">Não existem no Warden. Use seção do menu, seletor de modo, caixa de seleção ou página corrida.</span>`),
     ], "gx-states--wide"));

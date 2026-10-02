@@ -2,3 +2,6 @@
 .env
 .env.*
 !.env.example
+
+# Pastas montadas para publicar as páginas (geradas por design/tools/montar-publicacao.mjs)
+design/_publicado/

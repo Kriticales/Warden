@@ -134,6 +134,8 @@
   // ---------- Eventos ----------
   document.addEventListener("click", (e) => {
     const t = e.target;
+    // "Pular para o conteúdo": a rota usa o hash, então o atalho move o foco por script
+    if (t.closest(".skip-link")) { e.preventDefault(); const m = document.getElementById("conteudo"); if (m) { m.setAttribute("tabindex", "-1"); (m.querySelector("[data-title]") || m).focus(); } return; }
     if (t.closest("#pb-map")) { const w = document.createElement("div"); w.innerHTML = mapDialog(); const l = w.firstElementChild; l.id = "map-layer"; document.body.appendChild(l); window.WardenUI.openLayer(l, t.closest("#pb-map")); return; }
     if (t.closest("[data-map-link]")) { document.getElementById("map-layer")?.remove(); return; }
     const sb = t.closest(".proto-bar [data-state]");

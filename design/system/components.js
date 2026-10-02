@@ -229,7 +229,8 @@
   const BADGE_ICONS = { danger: "circle-x", warn: "triangle-alert", ok: "circle-check", info: "info", neutral: null, p1: null };
   function badge(kind, text) {
     const ic = BADGE_ICONS[kind];
-    return `<span class="badge badge--${kind}">${ic ? icon(ic) : ""}${text}</span>`;
+    const tip = kind === "p1" ? ' data-tip="Prioridade 1: entra logo depois da primeira versão do app"' : "";
+    return `<span class="badge badge--${kind}"${tip}>${ic ? icon(ic) : ""}${text}</span>`;
   }
   function count(n, kind, label) {
     return `<span class="count ${kind ? "count--" + kind : ""}"${label ? ` aria-label="${esc(label)}"` : ""}>${n}</span>`;
@@ -330,7 +331,7 @@
   function dialog(o = {}) {
     const did = o.id || id("dlg");
     return `<div class="scrim" data-layer="dialog"${o.static ? " data-static" : ""}${o.esc ? ` data-esc="${esc(o.esc)}"` : ""}><div class="dialog ${o.size ? "dialog--" + o.size : ""}" role="${o.alert ? "alertdialog" : "dialog"}" aria-modal="true" aria-labelledby="${did}-t"${o.sub ? ` aria-describedby="${did}-d"` : ""}>
-      <div class="dialog__head"><div><h2 class="dialog__title" id="${did}-t">${o.ai ? icon("sparkles", "icon--lg icon--ai") : ""}${o.title}</h2>${o.sub ? `<p class="dialog__sub" id="${did}-d">${o.sub}</p>` : ""}</div>
+      <div class="dialog__head"><div><h2 class="dialog__title" id="${did}-t" tabindex="-1">${o.ai ? icon("sparkles", "icon--lg icon--ai") : ""}${o.title}</h2>${o.sub ? `<p class="dialog__sub" id="${did}-d">${o.sub}</p>` : ""}</div>
         ${o.noClose ? "" : btn("Fechar", { variant: "ghost", size: "sm", iconOnly: true, icon: "x", attrs: Object.assign({ "data-close": "" }, o.closeAttrs || {}) })}</div>
       <div class="dialog__body">${o.body || ""}</div>
       ${o.foot ? `<div class="dialog__foot ${o.footSplit ? "dialog__foot--split" : ""}">${o.foot}</div>` : ""}</div></div>`;
@@ -338,7 +339,7 @@
   function drawer(o = {}) {
     const did = o.id || id("drw");
     return `<div class="scrim scrim--drawer" data-layer="drawer"${o.static ? " data-static" : ""}${o.esc ? ` data-esc="${esc(o.esc)}"` : ""}><div class="drawer" role="dialog" aria-modal="true" aria-labelledby="${did}-t">
-      <div class="drawer__head"><h2 class="t-title" id="${did}-t">${o.title}</h2>${btn("Fechar painel", { variant: "ghost", size: "sm", iconOnly: true, icon: "x", attrs: Object.assign({ "data-close": "" }, o.closeAttrs || {}) })}</div>
+      <div class="drawer__head"><h2 class="t-title" id="${did}-t" tabindex="-1">${o.title}</h2>${btn("Fechar painel", { variant: "ghost", size: "sm", iconOnly: true, icon: "x", attrs: Object.assign({ "data-close": "" }, o.closeAttrs || {}) })}</div>
       <div class="drawer__body">${o.body || ""}</div>${o.foot ? `<div class="drawer__foot">${o.foot}</div>` : ""}</div></div>`;
   }
   // items: { label, desc, icon, danger, disabled, attrs } | "sep" | { group: "Título" }

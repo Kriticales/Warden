@@ -31,7 +31,9 @@
   }
   function openLayer(scrim, returnFocus) {
     scrim.__returnFocus = returnFocus || document.activeElement;
-    const target = scrim.querySelector("[data-autofocus]") || focusables(scrim.querySelector(".dialog__body, .drawer__body") || scrim)[0] || focusables(scrim)[0];
+    // O foco entra no título (o leitor de tela anuncia o diálogo e o Tab segue a ordem);
+    // [data-autofocus] força outro alvo, por exemplo o campo principal.
+    const target = scrim.querySelector("[data-autofocus]") || scrim.querySelector(".dialog__title, .drawer__head h2") || focusables(scrim)[0];
     if (target) target.focus({ preventScroll: true });
   }
 
@@ -180,7 +182,7 @@
         const f = focusables(layer);
         if (!f.length) return;
         const first = f[0], last = f[f.length - 1];
-        if (!layer.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        if (!layer.contains(document.activeElement) || !f.includes(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
         else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
