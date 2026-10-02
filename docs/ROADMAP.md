@@ -69,9 +69,9 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 | 2 | F0-02, F0-04, F0-06, P1-02, P1-03, D-02, V-01 |
 | 3 | P1-04, P1-05, P1-13, L-01, A-02 |
 | 4 | P1-07, L-02, L-03, D-01 |
-| 5 | P1-08, L-05, D-05, D-07, E-01 |
-| 6 | P1-09, P1-14, L-04, C-02, D-11, V-02, E-02, A-05 |
-| 7 | P1-10, P1-18, L-08, L-10, C-03, C-04, C-05, C-07, D-03, D-09, V-03, A-06 |
+| 5 | P1-08, L-05, D-05, E-01 |
+| 6 | P1-09, P1-14, L-04, C-02, D-07, V-02, E-02, A-05 |
+| 7 | P1-10, P1-18, L-08, L-10, C-03, C-04, C-05, C-07, D-03, D-09, D-11, V-03, A-06 |
 | 8 | P1-11, P1-12, P1-16, P1-19, L-06, L-07, L-09, L-11, C-06, D-06, D-10, A-04 |
 | 9 | P1-15, P1-17, L-12, D-04, D-08, D-12, E-03, A-01 |
 | 10 | D-13, D-14, A-03 |
@@ -646,7 +646,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 
 ### D-07 — Consultas do grafo de dependências
 
-- **Prioridade:** P0 · **Depende de:** D-01 · **Branch:** `feat/d-07-grafo-consultas`
+- **Prioridade:** P0 · **Depende de:** D-01, P1-08 · **Branch:** `feat/d-07-grafo-consultas`
 - **Objetivo:** dependentes transitivos, "Por que está no pack" e bibliotecas sem uso (T06, T07; ARCHITECTURE §9.6; R5A §6.1).
 - **Posse:** `crates/warden-diagnostics/src/graph/**`, `apps/desktop/src-tauri/src/commands/graph.rs`, `apps/desktop/src/features/pack-editor/details/dependencies/**`, `apps/desktop/src/i18n/pt-BR/grafo.ts`.
 - **Entregas:** grafo a partir do modelo do diagnóstico (arestas tipadas, `provides`, jar-in-jar dentro do nó, ciclos como um nó, arestas inferidas guardadas por pack); `graph_dependents`, `graph_why_in_pack`, `graph_orphans`; bloco "Depende de / Usado por / Por que está no pack" nos detalhes do item (registro `details/blocks.ts`).
@@ -783,7 +783,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 
 - **Prioridade:** P0 · **Depende de:** todas as tarefas com parte P0 integradas (fases 1–5, inclusive P1-16, P1-18, L-10, C-05, D-05, D-06 e D-07 da D4) · **Branch:** `fix/a-01-revisao-ux`
 - **Objetivo:** passar por todas as telas com o glossário e a SPEC, corrigir estados faltantes, textos, foco e contraste.
-- **Posse:** ajustes em `apps/desktop/src/i18n/pt-BR/**` e componentes apontados pela revisão (lista declarada antes de começar, aprovada pelo orquestrador).
+- **Posse:** ajustes nos arquivos de textos das telas P0 (pasta i18n/pt-BR do app) e nos componentes apontados pela revisão, numa lista declarada antes de começar e aprovada pelo orquestrador; nunca arquivos de tarefas P1 em andamento na mesma onda.
 - **Critérios de aceite:** nenhuma violação séria do `axe` em nenhuma tela; todos os CA de estados vazios/erro conferidos; revisão de textos registrada.
 - **Verificação:** `pnpm -C apps/desktop test`; roteiro manual.
 
@@ -808,7 +808,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 
 - **Prioridade:** P0 · **Depende de:** P1-08, D-01, E-01, C-05, D-05 · **Branch:** `perf/a-04-packs-grandes`
 - **Objetivo:** cumprir as metas P0 da SPEC §8 com um pack de 300 mods e 500 configs (D4: inclusive índices de pacotes e busca em todas as configs; as metas P1 da D4, como raio-x e console agrupado, são medidas pelas tarefas donas).
-- **Posse:** `crates/*/benches/**`, `apps/desktop/e2e/perf/**`, correções pontuais declaradas.
+- **Posse:** `crates/{warden-packwiz,warden-project,warden-configs,warden-jarmeta,warden-diagnostics,warden-export}/benches/**`, `apps/desktop/e2e/perf/**`, correções pontuais declaradas.
 - **Critérios de aceite:** metas da SPEC §8 medidas e registradas; CA-T02-01, CA-T06-05.
 - **Verificação:** `cargo bench`; E2E de desempenho.
 
@@ -886,7 +886,7 @@ Investigações curtas, com relatório em `docs/spikes/` e código descartável 
 | M1 — Montar packs | P1-01 a P1-13, P1-16, V-01 | Criar/abrir packs, descobrir e adicionar vários mods de uma vez (Modrinth, CurseForge, link e arquivo), atualizar. |
 | M2 — Testar | L-01 a L-06, L-10, D-01 a D-03, D-05 a D-07 | Testar o pack no jogo, ver o console, a RAM e o tempo de carregamento, entender travamentos e ver a lista de Travamentos. |
 | M3 — Núcleo completo | C-01 a C-03, C-05, V-02, V-03, E-01, P1-18 | Editar e buscar configs, trazer mudanças do jogo, salvar versões, publicar versões finais, exportar, criar packs com os mods iniciais. Todas as funcionalidades P0 existem. |
-| M4 — Ferramenta completa | S-R5-1 a S-R5-4, P1-14, P1-15, P1-17, P1-19, L-07 a L-09, L-11, L-12, C-04, C-06, C-07, D-04, D-08 a D-14, E-02, E-03, A-05, A-06 | Busca do culpado, IA com ferramentas, raio-x, grafo, nota de saúde, console agrupado, perfil de desempenho, servidor local, perfis, scripts, formulário de configs, importar, modpacks, kits, pacote para servidor. |
+| M4 — Ferramenta completa | S-R5-1, S-R5-2, S-R5-3, S-R5-4, P1-14, P1-15, P1-17, P1-19, L-07 a L-09, L-11, L-12, C-04, C-06, C-07, D-04, D-08 a D-14, E-02, E-03, A-05, A-06 | Busca do culpado, IA com ferramentas, raio-x, grafo, nota de saúde, console agrupado, perfil de desempenho, servidor local, perfis, scripts, formulário de configs, importar, modpacks, kits, pacote para servidor. |
 | M5 — v1 | A-01 a A-04, A-07 | Versão para uso diário: revisada, com instalador e validada pelo dono. A-01, A-02 e A-04 podem acontecer antes, em paralelo com o M4. |
 
 ## 13. Backlog P2
