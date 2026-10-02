@@ -15,7 +15,9 @@ git-compare globe inbox flag book-open list minus archive file-code hard-drive b
 scroll-text cpu user
 network activity gauge messages-square send target flask-conical import images braces circle-dot circle-dashed
 circle-minus timer heart-pulse scan-search list-tree chart-column text-search hand sliders-horizontal file-archive code
-square-terminal upload check-check`.split(/\s+/);
+square-terminal upload check-check
+shield-check shield-x shield-alert shield-question-mark shield-ellipsis shield-user sticky-note replace trending-up
+archive-x file-x calendar-clock ban boxes pickaxe merge chart-no-axes-column`.split(/\s+/);
 const version = readFileSync(join(dir, "..", "package.json"), "utf8").match(/"version":\s*"([^"]+)"/)[1];
 const icons = {};
 for (const n of NAMES) {

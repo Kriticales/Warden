@@ -1,6 +1,6 @@
 # Warden: design system (direção Deep Dark)
 
-> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3).
+> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3). Acréscimo da tarefa D5 (02/10/2026): componentes do Warden 1.1 "Profissional" (§4.2).
 > Galeria com todos os componentes e estados: `design/system/index.html`, publicada em https://app.superset.sh/page/warden-design-system-ysdscr (versão 2, D4)
 > Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado em https://app.superset.sh/page/warden-prot-tipo-final-pri9am (versão 2, D4: 81 telas e diálogos, 30 novos)
 > Para republicar: `node design/tools/montar-publicacao.mjs` e `superset pages publish design/_publicado/<pasta>/ --page <id>`.
@@ -183,7 +183,7 @@ Sombras são duras e curtas (deslocadas para baixo), não nuvens desfocadas. Cad
 
 ### 3.7 Ícones
 
-- **Lucide** (licença ISC), traço 2 px, tamanhos 14, 16 (padrão) e 20. No React, `lucide-react` com os mesmos nomes (`triangle-alert` → `<TriangleAlert />`). Lista dos 98 usados em `design/system/icons.js` e na galeria (26 entraram na D4: `network`, `activity`, `gauge`, `messages-square`, `send`, `target`, `flask-conical`, `import`, `images`, `braces`, `circle-dot`, `circle-dashed`, `circle-minus`, `timer`, `heart-pulse`, `scan-search`, `list-tree`, `chart-column`, `text-search`, `hand`, `sliders-horizontal`, `file-archive`, `code`, `square-terminal`, `upload`, `check-check`).
+- **Lucide** (licença ISC), traço 2 px, tamanhos 14, 16 (padrão) e 20. No React, `lucide-react` com os mesmos nomes (`triangle-alert` → `<TriangleAlert />`). Lista dos 115 usados em `design/system/icons.js` e na galeria (17 entraram na D5: `shield-check`, `shield-x`, `shield-alert`, `shield-question-mark`, `shield-ellipsis`, `shield-user`, `sticky-note`, `replace`, `trending-up`, `archive-x`, `file-x`, `calendar-clock`, `ban`, `boxes`, `pickaxe`, `merge`, `chart-no-axes-column`; 26 entraram na D4: `network`, `activity`, `gauge`, `messages-square`, `send`, `target`, `flask-conical`, `import`, `images`, `braces`, `circle-dot`, `circle-dashed`, `circle-minus`, `timer`, `heart-pulse`, `scan-search`, `list-tree`, `chart-column`, `text-search`, `hand`, `sliders-horizontal`, `file-archive`, `code`, `square-terminal`, `upload`, `check-check`).
 - **`sparkles` só para IA**, sempre em `--color-ai` (osso) fora de botão primário.
 - Ícone sem texto só em ações muito conhecidas (fechar, editar, mais ações), sempre com nome acessível e tooltip.
 - **Pixel art própria**, desenhada por código: a marca do Warden (bloco com duas antenas e núcleo de alma), o ícone provisório de mod e de pack (padrão 8×8 simétrico gerado do nome, só quando a API não tem ícone oficial), as ilustrações dos estados vazios (bloco com símbolo), o visto do checkbox, o círculo do radio e a seta do select.
@@ -292,10 +292,41 @@ Na galeria, grupo “Funções avançadas (D4)”. Mesmas regras de sempre: só 
 | **Menu com grupos e rádio** (`menu` com `{ group }` e `{ radio }`) | Menu ▾ do Testar | título de grupo, rádio marcado e desmarcado | Submenus |
 | **Menu de seções recolhido** (`sectionMenu` com `compact`) | Só na página de descoberta | ícones com tooltip e ponto do contador | Recolher em outras telas |
 
+### 4.2 Componentes do Warden 1.1 "Profissional" (D5)
+
+Na galeria, grupo “Warden 1.1 (Profissional)”. Onde cada função mora: `ESTRUTURA.md` §14. Mesmas regras: só tokens (nenhum token novo foi preciso), estado com ícone e palavra, nada de abas, listas densas em vez de cartões.
+
+| Componente | Quando usar | Estados mostrados | Evite |
+|---|---|---|---|
+| **Verificações do pack** (`verifyPanel(rows, o)`) | Topo de Problemas, logo abaixo da saúde: uma linha por verificação (Segurança, Manutenção, Itens repetidos) com o link “Ver” para a página de detalhe | tudo certo, com perigo, com aviso, verificando (carregador de blocos; o que espera fica “Na fila”), conselho (lavanda, itens repetidos) | Linha inteira clicável; conselho em âmbar ou vermelho; dezenas de resultados no próprio painel |
+| **Selo de segurança** (`secStatus(kind, text, o)`) | Página Segurança dos mods, bloco “Segurança do arquivo” dos detalhes do mod e, curto (`size: "sm"`), na linha de mod | oficial, arquivo do computador (nenhum sinal conhecido), não confere, sinal de programa malicioso conhecido, não deu para conferir, ainda não conferido, você confiou; cada um com um escudo diferente | Prometer segurança (“seguro”, “protegido”); selo verde em todas as linhas de Mods |
+| **Aviso “não é um antivírus”** (`alert` neutro, sem componente novo) | Topo da página Segurança dos mods e do bloco do painel | — | Esconder a limitação; tom de alarme |
+| **Substituto sugerido** (`replacementRow(o)`) | “Procurar substituto” no painel de detalhes (440 px), uma linha por candidato com 2 a 4 motivos | normal, já no pack, sem versão para o pack (botão desabilitado com o motivo), carregando | Cartões em grade; nota ou estrelas inventadas |
+| **Marca de manutenção** (`maintTag(kind, text, o)`) | Ao lado do nome na linha de mod e nos detalhes | removido da plataforma, arquivo removido, arquivado pelo autor, sem atualização, sem versão para o Minecraft mais novo | “Abandonado” como rótulo (não dá para ter certeza) |
+| **Versão no log do jogador** (`versionMatch(o)`) | Resultado da página Travamento de um jogador | exata, próxima (com diferenças recolhidas), desconhecida, incompleta (o log não traz a lista de mods) | Chutar uma versão quando o log não diz |
+| **Campo do log** (`logSource(o)`) | Página Travamento de um jogador: colar link ou escolher arquivo | vazio, link reconhecido, link inválido (erro ligado ao campo), baixando | Abas Link · Arquivo |
+| **Grupo** (`groupChip(name, o)`, `groupPicker(o)`) | Chips na linha de mod e no painel; seletor no menu “Pôr no grupo ▾” e no painel | chip, chip pequeno, chip removível (botão de 28 px “Tirar do grupo X”), seletor com marcados, seletor vazio | Cor por grupo; chamar de “categoria” ou “tag” |
+| **Nota e grupos** (`noteBlock(o)`) | Topo do painel de detalhes do mod | vazio, preenchido, editando (contador fica âmbar a 20 caracteres do limite de 200), salvo (“Salvo no pack”) | Nota longa; botão Salvar só para a nota (salva ao sair do campo) |
+| **Linha de mod 1.1** (`modRow` com `note`, `groups`, `maint`, `sec`) | Lista de Mods | nota no lugar da descrição, até 2 grupos e “+N”, marca de manutenção, selo curto de segurança | Mais de uma marca de cada tipo; resultados bons de segurança na lista |
+| **Desempenho entre versões** (`versionChart(o)`, `versionTable(values, o)`) | Página de detalhe no Histórico, com “Mostrar: Tempo para abrir · Memória máxima · Tempo por tick” | normal, versão mais pesada (blocos e contorno âmbar mais o selo “Mais pesada”), versão sem testes comparáveis (barra tracejada), carregando; tabela equivalente logo abaixo | Destaque só na cor; eixo que não começa do zero; duas medidas no mesmo gráfico |
+| **Item repetido entre mods** (`dupMaterial(o)`) | Página Itens repetidos entre mods, um material por linha | com minério, só itens, já resolvido (“Unificado pelo AlmostUnified”), versão antiga do Minecraft (sugestão diferente, ex.: UniDict) | Tratar como erro ou aviso; esconder de onde veio a informação |
+
+Decisões:
+- **Escudo diferente por resultado.** Visto (confere), escudo liso com o ícone verde e borda neutra (arquivo do computador sem sinais: é mais fraco que “confere”), x (não confere), exclamação (sinal malicioso), interrogação (não deu para conferir), reticências (ainda não conferido), pessoa (você confiou). A forma diz o resultado sem a cor.
+- **Na linha de mod só entra o que pede atenção.** Selo de segurança curto (“Não confere”, “Sinal malicioso”, “Sem conferir”; o texto completo vai para o leitor de tela e o tooltip) e marca de manutenção. Abaixo de 1180 px a marca de manutenção mostra só a palavra curta (“Removido”, “Arquivado”) para a linha não ganhar uma terceira linha; o texto completo continua para o leitor de tela e no tooltip. Verificado: nenhum estouro em 1024 px.
+- **Nota na segunda linha.** Ícone de nota e cor `text-2` (a descrição usa `text-3`), sem itálico: a Manrope embutida não tem itálico e o navegador faria um itálico falso.
+- **Grupo é bloco reto com um ponto em pixel**, sem degrau e sem cor própria, para não ser confundido com as tags de fonte e de estado.
+- **Gráfico de desempenho** segue a skill `dataviz`: uma série, uma cor (`primary`), barras de no máximo 24 px feitas de blocos de 8 px com 2 px de folga, sempre a partir do zero, sem grade (cada barra tem o valor escrito); o destaque usa a cor de estado `warn` porque quer dizer “mais pesada”, sempre com ícone e palavra. O desenho fica `aria-hidden` e a **tabela logo abaixo é o conteúdo acessível** (versão, data, mediana, testes, diferença para a anterior). Com `table: false` o gráfico vira `role="img"` com o resumo em texto; só use quando a tabela já está na tela. Cada coluna tem tooltip no hover.
+- **Itens repetidos são conselho**: barra lavanda e o selo “Conselho”, nunca vermelho ou âmbar.
+- **Textos** revisados com a skill `design:ux-copy`. O aviso honesto ficou: “O Warden não é um antivírus. Ele confere se cada arquivo é igual ao oficial e procura sinais de programas maliciosos já conhecidos em mods. Um mod malicioso novo pode passar sem ser notado.” (“malware” virou “programas maliciosos”, como pede o glossário da ESTRUTURA §14.4). Erro do link: “Este link não é de um serviço que o Warden sabe ler. Use mclo.gs, pastebin ou gist, ou baixe o arquivo e escolha-o aqui.” Seletor vazio: “Nenhum grupo ainda. Crie um para juntar mods por assunto, como Desempenho ou Geração de mundo.”
+
+Verificação da D5 (Chromium headless, Playwright, axe-core 4, galeria servida por HTTP local): em 1280 e 1024 px, **0 erros de JavaScript e 0 violações do axe** (WCAG 2.0/2.1 A e AA + boas práticas) na galeria inteira; nenhum estouro horizontal nas seções novas (continua só o caso já conhecido da tabela de packs em 1024 px, que rola dentro do próprio contêiner). Capturas das 9 seções novas nas duas larguras foram conferidas a olho.
+
 Contrato de teclado (reproduzido em `behavior.js` e exigido no app via Radix):
 - **Menu:** Enter, Espaço ou ↓ abrem e focam o primeiro item; ↑ ↓ Home End navegam (pulando os títulos de grupo); Esc fecha e devolve o foco ao botão. Itens de rádio (`menuitemradio`) marcam um e desmarcam os outros do grupo.
 - **Grafo:** cada nó é um botão (Tab); Enter leva o mod para o centro. As ligações também estão em texto.
-- **Blocos recolhíveis** (Enviado à IA, grupos do console agrupado, stack trace): `<details>`, abrem com Enter ou Espaço.
+- **Blocos recolhíveis** (Enviado à IA, grupos do console agrupado, stack trace; na D5, diferenças do log do jogador e mods de um item repetido): `<details>`, abrem com Enter ou Espaço.
+- **(D5) Chip de grupo removível:** o ✕ é um botão próprio (Tab), com o nome “Tirar do grupo X”. **Seletor de grupos:** caixas de seleção comuns (Tab e Espaço); “Novo grupo…” no fim. **Verificações do pack:** só o “Ver” recebe foco.
 - **Diálogo e painel lateral:** o foco entra no título; Tab e Shift+Tab ficam presos; Esc fecha; o foco volta para quem abriu.
 - **Tooltip:** aparece no hover e no foco do teclado; Esc esconde. Com um tooltip aberto dentro de um diálogo, o primeiro Esc fecha só o tooltip e o segundo fecha o diálogo (mesmo comportamento do Radix).
 - **Seletor de modo:** setas trocam a opção.

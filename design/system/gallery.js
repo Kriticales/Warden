@@ -452,6 +452,140 @@
     "Só na página de descoberta, que precisa de três colunas. Ícones com o nome e a descrição no tooltip e no nome acessível; o ponto no canto repete o contador (vermelho com erro, âmbar com não salvas). Volta ao normal ao sair da página.",
     `<div style="height:330px;display:flex;border:1px solid var(--color-border)">${sectionMenu([{ id: "mods", name: "Mods", desc: "Mods, resource packs e shaders", icon: "puzzle", count: 128 }, { id: "configs", name: "Configs", desc: "Arquivos de ajuste e scripts do pack", icon: "file-code" }, { id: "problemas", name: "Problemas", desc: "Saúde do pack, problemas e travamentos", icon: "triangle-alert", count: 4, countKind: "danger", countLabel: "4 problemas" }, { id: "ia", name: "Diagnóstico com IA", desc: "Conversar com a IA sobre um problema do pack", icon: "sparkles", ai: true }, { id: "historico", name: "Histórico", desc: "Versões salvas e publicação", icon: "history", count: 5, countKind: "warn", countLabel: "5 alterações não salvas" }, { id: "exportar", name: "Exportar", desc: "Gerar o pack para quem vai jogar", icon: "package" }], "mods", { compact: true, label: "Seções do pack (recolhido)" })}<div class="fake" style="padding:16px">Página de descoberta</div></div>`);
 
+  // ======================= WARDEN 1.1 (PROFISSIONAL) =======================
+  const G2 = "Warden 1.1 (Profissional)";
+  const VER_ROWS = (o = {}) => [
+    { icon: "shield", title: "Segurança dos mods", summary: o.secSum || "Cada arquivo conferido com o oficial do Modrinth ou da CurseForge.", statusKind: o.sec || "ok", statusText: o.secText || "128 conferem", linkAttrs: { "data-demo": "" } },
+    { icon: "wrench", title: "Manutenção dos mods", summary: o.mntSum || "Mods removidos, arquivados ou sem atualização.", statusKind: o.mnt || "ok", statusText: o.mntText || "Nenhum problema" },
+    { icon: "boxes", title: "Itens repetidos entre mods", summary: o.dupSum || "Materiais que mais de um mod adiciona.", statusKind: o.dup || "ok", statusText: o.dupText || "Nada repetido" },
+  ];
+  sec("v11-verificacoes", G2, "Verificações do pack",
+    "Painel curto no topo de Problemas, logo abaixo da saúde. Uma linha por verificação: o que é, o resultado com ícone e palavra e o link “Ver” para a página de detalhe (← Problemas). A linha inteira não é botão; o link é o controle, com nome acessível completo (“Ver: Segurança dos mods”). Itens repetidos aparecem como Conselho (lavanda), nunca como erro.",
+    states([
+      st("Tudo certo", verifyPanelDemo({ meta: "Última verificação: hoje, 14:52" })),
+      st("Com perigo", verifyPanelDemo({ meta: "Última verificação: hoje, 14:52", sec: "danger", secText: "1 arquivo não confere", secSum: "<b>Waystones</b> não é igual ao arquivo oficial do Modrinth.", mnt: "warn", mntText: "2 mods sem manutenção" })),
+      st("Com aviso", verifyPanelDemo({ meta: "Última verificação: ontem, 21:10", mnt: "warn", mntText: "2 mods sem manutenção", mntSum: "1 removido do Modrinth, 1 arquivado pelo autor." })),
+      st("Verificando", verifyPanelDemo({ meta: "Verificando agora", sec: "loading", secText: "Conferindo 74 de 128", mnt: "neutral", mntText: "Na fila", dup: "neutral", dupText: "Na fila" })),
+      st("Conselho (itens repetidos)", verifyPanelDemo({ meta: "Última verificação: hoje, 14:52", dup: "info", dupText: "Conselho: 3 materiais", dupSum: "Cobre, estanho e chumbo aparecem em mais de um mod." })),
+    ], "gx-states--1") +
+    rules([["Resumo aqui, detalhe na página", "Três linhas, sempre na mesma ordem. As dezenas de resultados ficam na página de cada verificação."], ["O link é o controle", "Só o “Ver” é clicável. Ele leva à página de detalhe com “← Problemas”."]],
+      [["Linha inteira clicável", "Esconde o que é controle e briga com a seleção de texto do resumo."], ["Conselho como aviso", "Itens repetidos não quebram o jogo: lavanda e a palavra “Conselho”, nunca âmbar ou vermelho."]]));
+  function verifyPanelDemo(o) { return W.verifyPanel(VER_ROWS(o), { meta: o.meta, actions: o.sec === "loading" ? "" : btn("Verificar de novo", { size: "sm", variant: "ghost", icon: "refresh-cw" }) }); }
+
+  sec("v11-seguranca", G2, "Selo de segurança do arquivo",
+    "Resultado da conferência de cada arquivo, com escudo de forma diferente para cada caso e o texto sempre visível. Aparece na página Segurança dos mods (uma linha por arquivo), no bloco “Segurança do arquivo” dos detalhes do mod e, em versão curta, na linha de mod quando o resultado pede atenção. Acima dos resultados, sempre o aviso honesto de que o Warden não é um antivírus.",
+    states([
+      st("Oficial (confere)", W.secStatus("oficial", "Confere com o arquivo oficial do Modrinth")),
+      st("Arquivo do computador", W.secStatus("escaneado")),
+      st("Não confere", W.secStatus("naoconfere")),
+      st("Sinal de malware conhecido", W.secStatus("suspeito")),
+      st("Não deu para conferir", W.secStatus("semconferir")),
+      st("Ainda não conferido", W.secStatus("pendente")),
+      st("Você confiou", W.secStatus("confiado")),
+      st("Curto, na linha de mod", `<div class="row row--wrap">${W.secStatus("naoconfere", null, { size: "sm" })}${W.secStatus("suspeito", null, { size: "sm" })}${W.secStatus("semconferir", null, { size: "sm" })}</div>`),
+    ], "gx-states--wide") +
+    `<h3>Aviso honesto (W.alert neutro, sem componente novo)</h3><div style="max-width:760px">${alert({ kind: "neutral", icon: "shield", title: "O Warden não é um antivírus.", text: "Ele confere se cada arquivo é igual ao oficial e procura sinais de programas maliciosos já conhecidos em mods. Um mod malicioso novo pode passar sem ser notado." })}</div>
+     <p class="gx-note">Fica no topo da página Segurança dos mods e no bloco do painel de detalhes. “Malware” virou “programas maliciosos” (glossário: “malware” é jargão). Sempre neutro: não é erro nem alarme.</p>` +
+    rules([["Dizer o que foi feito", "“Confere com o arquivo oficial do Modrinth” diz a origem da conferência. “Hash” só nos detalhes técnicos."], ["Escudo diferente por resultado", "Visto, x, exclamação, interrogação, reticências, pessoa: a forma diz o resultado sem a cor."]],
+      [["Prometer segurança", "Nada de “seguro”, “protegido” ou “livre de vírus”. O Warden só sabe o que conferiu."], ["Selo verde em toda linha de mod", "Na lista de Mods só aparecem os resultados que pedem atenção; os bons ficam na página e no painel."]]));
+
+  sec("v11-substituto", G2, "Substituto sugerido",
+    "Lista de candidatos no painel de detalhes do mod (“Procurar substituto”, com “← Detalhes”). Cada linha diz por que foi sugerida, em 2 a 4 motivos curtos tirados dos dados das plataformas. Lista densa, nunca cartões em grade. “Trocar por este” passa pelo fluxo normal de adicionar e remover.",
+    `<p class="gx-note" style="margin:0 0 8px">Largura do painel de detalhes (440 px). Exemplo: substitutos do Rubidium, arquivado pelo autor.</p><ul class="replist" style="max-width:440px">
+      ${W.replacementRow({ name: "Embeddium", author: "embeddedt", src: "modrinth", downloads: "21 mi", updated: "há 3 dias", reasons: ["mesma categoria no Modrinth: Otimização", "tem versão para Forge 1.20.1", "também é Só cliente, como o Rubidium", "o mais baixado da categoria para Forge"] })}
+      ${W.replacementRow({ name: "ModernFix", author: "embeddedt", src: "both", downloads: "38 mi", updated: "há 2 semanas", reasons: ["mesma categoria: Otimização", "tem versão para Forge 1.20.1"], state: "inpack" })}
+      ${W.replacementRow({ id: "gx-rep-sod", name: "Sodium", author: "jellysquid3", src: "modrinth", downloads: "64 mi", updated: "há 5 dias", reasons: ["mesma categoria: Otimização", "faz o mesmo que o Rubidium no Fabric"], state: "noversion", why: "Sem versão para Forge 1.20.1" })}
+      ${W.replacementRow({ state: "loading" })}</ul>
+     <p class="gx-note">De cima para baixo: normal, já no pack, sem versão para o pack (botão desabilitado com o motivo ao lado), carregando (skeleton).</p>` +
+    rules([["Motivos verificáveis", "Categoria, versão para o pack, data da última atualização, downloads: dados que a pessoa pode conferir na página do mod."]],
+      [["Ordem por “nota”", "Nada de estrelas ou pontuação inventada. A ordem vem da plataforma e os motivos explicam."]]));
+
+  sec("v11-log", G2, "Campo do log do jogador",
+    "Variação da busca ou link para a página Travamento de um jogador: colar o link de um serviço de logs ou escolher o arquivo. Rótulo visível, status ligado ao campo (aria-describedby) e o erro dizendo o que fazer.",
+    states([
+      st("Vazio", W.logSource({ id: "gx-log1" })),
+      st("Link reconhecido", W.logSource({ id: "gx-log2", state: "recognized", value: "https://mclo.gs/8fKq2Lw" })),
+      st("Link inválido", W.logSource({ id: "gx-log3", state: "invalid", value: "https://drive.google.com/file/d/1aB…" })),
+      st("Baixando", W.logSource({ id: "gx-log4", state: "loading", value: "https://mclo.gs/8fKq2Lw" })),
+    ].map((x) => x.replace('class="gx-state"', 'class="gx-state" style="max-width:680px"')), "gx-states--1") +
+    rules([["Aceitar link e arquivo no mesmo lugar", "O jogador manda o que tiver: link do mclo.gs, pastebin, gist, ou o arquivo latest.log e o crash report."]], [["Abas Link | Arquivo", "Um campo e um botão ao lado resolvem sem trocar de modo."]]));
+
+  sec("v11-versao-log", G2, "Versão do pack no log do jogador",
+    "Resultado da comparação entre a lista de mods do log e as versões salvas do pack. Título que responde a pergunta (“O jogador usa a versão 1.4.2”), medidor textual com barra em blocos e as diferenças num bloco recolhível, com versões em mono.",
+    states([
+      st("Exata", W.versionMatch({ id: "gx-vm1", variant: "exact", version: "1.4.2", date: "18/09/2026", matched: 128, total: 128 })),
+      st("Próxima", W.versionMatch({ id: "gx-vm2", variant: "near", version: "1.4.0", matched: 125, total: 128, open: true, diffs: { extra: [["OptiFine", "HD_U_I6"]], missing: [["Xaero's Minimap", "24.6.1"]], changed: [["Create", "0.5.1.j", "0.5.1.f"]] } })),
+      st("Desconhecida", W.versionMatch({ id: "gx-vm3", variant: "unknown", matched: 12, total: 128 })),
+      st("Incompleta", W.versionMatch({ id: "gx-vm4", variant: "incomplete" })),
+    ], "gx-states--wide") +
+    rules([["Responder no título", "A primeira linha diz a versão (ou que não deu para saber). O número de mods que conferem vem em texto, a barra só reforça."]], [["Esconder a dúvida", "Se o log não traz a lista de mods, dizer isso e o que pedir ao jogador; não chutar uma versão."]]));
+
+  sec("v11-grupos", G2, "Grupos e nota do mod",
+    "Grupo é uma etiqueta criada pelo usuário (Desempenho, Geração de mundo…): bloco reto com um ponto em pixel, diferente das tags de fonte e de estado. O seletor de grupos é uma lista de caixas com “Novo grupo…” no fim, usada no menu “Pôr no grupo ▾” e no painel. O bloco “Nota e grupos” fica no topo do painel de detalhes e salva sozinho ao sair do campo.",
+    states([
+      st("Chip", `<div class="row row--wrap">${W.groupChip("Desempenho")}${W.groupChip("Geração de mundo")}${W.groupChip("Desempenho", { size: "sm" })}</div>`),
+      st("Chip removível", `<div class="row row--wrap">${W.groupChip("Desempenho", { removable: true })}${W.groupChip("Geração de mundo", { removable: true })}</div>`),
+      st("Seletor com marcados", W.groupPicker({ framed: true, groups: [["Desempenho", true, 12], ["Geração de mundo", false, 9], ["Visual", true, 6], ["Só para o servidor", false, 3]] })),
+      st("Seletor vazio", W.groupPicker({ framed: true, groups: [] })),
+    ], "gx-states--wide") +
+    `<h3>Nota e grupos (topo do painel de detalhes)</h3>` +
+    states([
+      st("Vazio", W.noteBlock({ state: "empty" })),
+      st("Preenchido", W.noteBlock({ state: "filled", note: "Deixa o jogo mais leve em PCs fracos. Não tirar sem testar o Embeddium.", groups: ["Desempenho"] })),
+      st("Editando (perto do limite)", W.noteBlock({ state: "editing", note: "Precisa ficar: o servidor usa as receitas dele para as máquinas do Create. Testado na 1.4.2 com 6 GB. Se travar ao entrar no mundo, olhar primeiro o Supplementaries, que altera o mesmo ponto.", groups: ["Desempenho", "Só para o servidor"] })),
+      st("Salvo", W.noteBlock({ state: "saved", note: "Deixa o jogo mais leve em PCs fracos.", groups: ["Desempenho", "Visual"] })),
+    ], "gx-states--wide") +
+    rules([["Nota curta e útil", "Até 200 caracteres, com contador. Responde “por que este mod está no pack?”."]],
+      [["Cor por grupo", "Grupos não ganham cores próprias: elas competiriam com as cores de estado e de fonte."], ["Chamar de categoria ou tag", "“Categoria” é das plataformas; “tag” se confunde com as tags de itens."]]));
+
+  const MODS11 = [
+    { name: "Embeddium", note: "Deixa o jogo mais leve em PCs fracos.", desc: "Deixa o jogo mais leve.", ver: "0.3.31", src: "modrinth", side: "client", groups: ["Desempenho"] },
+    { name: "Create", desc: "Engrenagens, eixos e máquinas que se mexem.", ver: "0.5.1.j", src: "modrinth", side: "both", groups: ["Tecnologia", "Servidor", "Visual"] },
+    { name: "Waystones", note: "Pedido dos jogadores do servidor.", ver: "14.1.6", src: "modrinth", side: "both", kind: "error", sec: "naoconfere" },
+    { name: "Xaero's Minimap", desc: "Minimapa no canto da tela.", ver: "24.6.1", src: "curseforge", side: "both", kind: "warn", maint: { kind: "removed", text: "Removido da CurseForge" } },
+    { name: "Clumps", desc: "Junta orbes de experiência.", ver: "12.0.0.4", src: "modrinth", side: "both", maint: { kind: "archived" }, groups: ["Desempenho"] },
+  ];
+  sec("v11-modrow", G2, "Linha de mod com nota, grupos e marcas",
+    "Opções novas e opcionais do modRow. A nota toma o lugar da descrição (com o ícone de nota e texto mais claro). Até 2 grupos ao lado do nome; o resto vira “+N”. A marca de manutenção e o selo curto de segurança entram ao lado do nome, como as outras marcas, e só quando pedem atenção. Cabe em 1024 px: o nome quebra linha antes de a tabela estourar.",
+    `<div class="tablewrap"><table class="table">${modTableHead()}<tbody>${MODS11.map((m) => modRow(m)).join("")}</tbody></table></div>
+     <p class="gx-note">Linhas: com nota e grupo; 3 grupos (“+1”); com erro de segurança (não confere) e nota; removido da plataforma; arquivado pelo autor com grupo. “Sem atualização há 2 anos” e “Sem versão para o 1.21” usam a mesma marca, neutra: ${W.maintTag("stale")} ${W.maintTag("nonewer")}</p>` +
+    rules([["Uma marca de cada tipo", "No máximo: grupos, um selo de estado, uma marca de manutenção e o selo de segurança. O detalhe fica no painel."]], [["Selo verde de segurança na lista", "“Confere com o oficial” em 128 linhas vira ruído. Na lista só entra o que pede atenção."]]));
+
+  const PERF = [
+    { version: "1.2.0", date: "12/08/2026", value: 82, tests: 3 },
+    { version: "1.3.0", date: "29/08/2026", value: 86, tests: 4 },
+    { version: "1.4.0", date: "05/09/2026", value: null, tests: 0 },
+    { version: "1.4.2", date: "18/09/2026", value: 91, tests: 3 },
+    { version: "1.5.0", date: "30/09/2026", value: 112, tests: 3 },
+  ];
+  const MEM = PERF.map((r, i) => Object.assign({}, r, { value: [4.1, 4.3, null, 4.4, 5.6][i] }));
+  const TICK = PERF.map((r, i) => Object.assign({}, r, { value: [31, 33, null, 34, 36][i] }));
+  sec("v11-desempenho", G2, "Desempenho entre versões",
+    "Página de detalhe no Histórico. Uma barra feita de blocos por versão salva, com a mediana dos testes neste computador e no mesmo perfil; o número fica em cima da barra (Manrope) e a contagem de testes embaixo. Versão sem testes comparáveis: barra vazia tracejada. Versão mais pesada: blocos e contorno âmbar mais o selo “Mais pesada” (ícone e palavra). A tabela logo abaixo é o conteúdo acessível; o desenho fica escondido do leitor de tela.",
+    `<div class="stack-3" style="max-width:760px">
+      <div class="row row--wrap"><span class="t-sm t-2">Mostrar</span>${segmented([["open", "Tempo para abrir"], ["mem", "Memória máxima"], ["tick", "Tempo por tick"]], "open", "Medida do gráfico")}<span class="grow"></span><span class="t-xs t-3">Perfil Padrão · este computador</span></div>
+      ${alert({ kind: "warn", title: "A versão 1.5.0 está mais pesada", text: "Abre em 1 min 52 s, 21 s a mais que a 1.4.2 (+23%). A memória máxima também subiu de 4,4 para 5,6 GB.", actions: btn("Ver o que mudou na 1.5.0", { size: "sm" }) })}
+      ${W.versionChart({ values: PERF, unit: "s", label: "Tempo para abrir", highlight: 4, caption: "Mediana dos testes de cada versão. Barras começam do zero." })}</div>
+     <h3>Outras medidas e estados</h3>` +
+    states([
+      st("Memória máxima (sem destaque, role=img)", W.versionChart({ values: MEM, unit: "GB", label: "Memória máxima", table: false })),
+      st("Tempo por tick", W.versionChart({ values: TICK, unit: "ms", label: "Tempo por tick", table: false })),
+      st("Carregando", W.versionChart({ loading: true })),
+    ], "gx-states--1") +
+    `<p class="gx-note">Com <code>table: false</code> o gráfico vira <code>role="img"</code> com um resumo em texto no nome acessível; use só onde a tabela já aparece em outro lugar da tela. Cada coluna tem tooltip no hover (versão, mediana, testes e diferença para a anterior).</p>` +
+    rules([["Comparar com o mesmo perfil e computador", "Só entram testes comparáveis. Sem eles, a barra fica vazia e diz isso."], ["Barra a partir do zero", "Sem eixo cortado: a diferença visual é a diferença real."]],
+      [["Destaque só na cor", "A versão mais pesada tem o selo com ícone e palavra, contorno e a linha marcada na tabela."], ["Dois eixos ou duas medidas juntas", "Uma medida por vez, escolhida em “Mostrar” (seletor de modo, não aba)."]]));
+
+  sec("v11-repetidos", G2, "Itens repetidos entre mods",
+    "Uma linha por material na página Itens repetidos entre mods. É um conselho, não um erro: barra lavanda e selo “Conselho”. Resumo em uma frase, mods recolhidos com o ID do item em mono e a marca “gera minério” ou “só item”, de onde veio a informação e a solução certa para a versão do Minecraft.",
+    `<ul class="dups" style="max-width:820px">
+      ${W.dupMaterial({ material: "Cobre", summary: "4 mods têm o próprio lingote · 3 geram minério", open: true, mods: [{ mod: "Minecraft", id: "minecraft:copper_ingot", ore: true }, { mod: "Mekanism", id: "mekanism:ingot_copper", ore: true }, { mod: "Thermal Foundation", id: "thermal:copper_ingot", ore: false }, { mod: "Immersive Engineering", id: "immersiveengineering:ingot_copper", ore: true }], evidence: "tag <span class=\"t-mono\">c:ingots/copper</span> nos jars de 4 mods", solution: { name: "AlmostUnified", text: "o AlmostUnified faz os mods usarem um item só e para de gerar os minérios repetidos." } })}
+      ${W.dupMaterial({ material: "Engrenagem de ferro", state: "items", summary: "3 mods têm a própria engrenagem · nenhum gera minério", mods: [{ mod: "Thermal Foundation", id: "thermal:iron_gear" }, { mod: "Mekanism", id: "mekanism:gear_iron" }, { mod: "Create", id: "create:iron_gear" }], evidence: "tag <span class=\"t-mono\">c:gears/iron</span>", solution: { name: "AlmostUnified", text: "o AlmostUnified faz as receitas usarem uma engrenagem só." } })}
+      ${W.dupMaterial({ material: "Estanho", state: "solved", solvedBy: "AlmostUnified", summary: "3 mods têm o próprio lingote · 2 geram minério", mods: [{ mod: "Mekanism", id: "mekanism:ingot_tin", ore: true }, { mod: "Thermal Foundation", id: "thermal:tin_ingot", ore: true }, { mod: "Immersive Engineering", id: "immersiveengineering:ingot_tin" }], solution: { attrs: {}, label: "Abrir a config do AlmostUnified" } })}
+      ${W.dupMaterial({ material: "Cobre", state: "legacy", mc: "Minecraft 1.12.2", summary: "3 mods têm o próprio lingote · 3 geram minério", mods: [{ mod: "Thermal Foundation", id: "thermalfoundation:material:128", ore: true }, { mod: "Mekanism", id: "mekanism:ingot:5", ore: true }, { mod: "IndustrialCraft 2", id: "ic2:ingot:2", ore: true }], evidence: "nome no dicionário de minérios <span class=\"t-mono\">ingotCopper</span>", solution: { name: "UniDict", text: "o UniDict faz o mesmo papel nesta versão." } })}</ul>
+     <p class="gx-note">De cima para baixo: com minério, só itens, já resolvido (unificador no pack), versão antiga do Minecraft (sugestão diferente).</p>` +
+    rules([["Explicar o efeito no jogo", "“4 mods têm o próprio lingote” é o que a pessoa vê no inventário. “Unificar” vem explicado: faz os mods usarem um item só."]], [["Tratar como erro", "Nada quebra por isso. Sem vermelho, sem contar na lista de erros e avisos."]]));
+
   // ======================= MONTAGEM =======================
   const nav = document.getElementById("gx-nav");
   const main = document.getElementById("conteudo");

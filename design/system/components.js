@@ -232,8 +232,9 @@
   const BADGE_ICONS = { danger: "circle-x", warn: "triangle-alert", ok: "circle-check", info: "info", neutral: null, p1: null };
   function badge(kind, text) {
     const ic = BADGE_ICONS[kind];
-    const tip = kind === "p1" ? ' data-tip="Prioridade 1: entra logo depois da primeira versão do app"' : "";
-    return `<span class="badge badge--${kind}"${tip}>${ic ? icon(ic) : ""}${text}</span>`;
+    // "v11": função do Warden 1.1 "Profissional", a versão seguinte à v1 (mesmo visual do selo P1)
+    const tip = kind === "p1" ? ' data-tip="Prioridade 1: entra logo depois da primeira versão do app"' : kind === "v11" ? ' data-tip="Warden 1.1: vem na versão seguinte à primeira versão do app"' : "";
+    return `<span class="badge badge--${kind === "v11" ? "p1" : kind}"${tip}>${ic ? icon(ic) : ""}${text}</span>`;
   }
   function count(n, kind, label) {
     return `<span class="count ${kind ? "count--" + kind : ""}"${label ? ` aria-label="${esc(label)}"` : ""}>${n}</span>`;
@@ -664,6 +665,8 @@
     }).join("")}</ul>${o.after || ""}</nav>`;
   }
   // Linha de mod. m: { name, desc, ver, src, side, update, flags[], selected, kind(error|warn|invalid|new|outside), id }
+  // 1.1 (opcionais): note (texto da nota, no lugar da descrição), groups[] (até 2 chips + "+N"),
+  // maint { kind, text } (marca de manutenção) e sec (selo de segurança curto; só resultados que pedem atenção).
   function modRow(m, o = {}) {
     const cls = ["modrow", m.kind ? "modrow--" + m.kind : "", m.state ? "is-" + m.state : ""].join(" ");
     const sideSel = m.kind === "invalid" ? "" : select({ bare: true, size: "sm", ariaLabel: `Lado de ${m.name}`, options: [["both", "Cliente e servidor"], ["client", "Só cliente"], ["server", "Só servidor"]], value: m.side || "both" });
@@ -671,11 +674,18 @@
     const title = m.kind === "invalid" ? `<span class="modrow__title">${esc(m.file)}</span>` : `<button type="button" class="modrow__title"${attrs(m.attrs)}>${esc(m.name)}</button>`;
     return `<tr class="${cls}"${m.selected ? ' aria-selected="true"' : ""}>
       <td class="modrow__check">${check({ checked: m.selected, ariaLabel: `Selecionar ${m.name || m.file}`, attrs: { "data-row": m.id || null } })}</td>
-      <td><div class="modrow__name">${m.kind === "invalid" ? `<span class="tile" aria-hidden="true" style="display:grid;place-items:center;color:var(--color-danger-text)">${icon("file-code")}</span>` : tile(m.name)}<div class="modrow__titles"><span class="modrow__line">${title}${(m.flags || []).join("")}</span><span class="modrow__desc">${esc(m.desc || "")}</span></div></div></td>
+      <td><div class="modrow__name">${m.kind === "invalid" ? `<span class="tile" aria-hidden="true" style="display:grid;place-items:center;color:var(--color-danger-text)">${icon("file-code")}</span>` : tile(m.name)}<div class="modrow__titles"><span class="modrow__line">${title}${modGroups(m.groups)}${(m.flags || []).join("")}${m.maint ? maintTag(m.maint.kind, m.maint.text, { compact: true }) : ""}${m.sec ? secStatus(m.sec, m.secText, { size: "sm" }) : ""}</span>${m.note ? `<span class="modrow__desc modrow__note">${icon("sticky-note", "icon--sm")}<span class="sr-only">Nota: </span>${esc(m.note)}</span>` : `<span class="modrow__desc">${esc(m.desc || "")}</span>`}</div></div></td>
       <td><span class="modrow__ver">${esc(m.ver || (m.kind === "invalid" ? "" : "—"))}</span>${upd}</td>
       <td>${m.src ? source(m.src) : ""}</td>
       <td>${sideSel}</td>
       ${o.rowEnd ? `<td class="shrink">${o.rowEnd}</td>` : ""}</tr>`;
+  }
+  // Até 2 grupos ao lado do nome; o resto vira "+N" (os nomes completos vão para o leitor de tela e o tooltip).
+  function modGroups(gs) {
+    if (!gs || !gs.length) return "";
+    const shown = gs.slice(0, 2).map((g) => groupChip(g, { size: "sm" })).join("");
+    const rest = gs.slice(2);
+    return `<span class="modrow__groups"><span class="sr-only">Grupos: </span>${shown}${rest.length ? `<span class="gchip gchip--sm gchip--more" data-tip="${esc(rest.join(", "))}">+${rest.length}<span class="sr-only"> ${rest.length === 1 ? "outro grupo" : "outros grupos"}: ${esc(rest.join(", "))}</span></span>` : ""}</span>`;
   }
   const MOD_HEAD = `<thead><tr><th class="modrow__check"><span class="sr-only">Selecionar</span></th><th><button type="button" class="sort">Nome ${'$I'}</button></th><th>Versão</th><th>Fonte</th><th><span data-tip="Onde o mod precisa estar instalado: no jogo de quem joga (cliente), no servidor ou nos dois" tabindex="0" style="border-bottom:1px dotted var(--color-text-3)">Lado</span></th></tr></thead>`;
   function modTableHead() { return MOD_HEAD.replace("$I", icon("arrow-up-down", "icon--sm")); }
@@ -695,5 +705,254 @@
   const PACK_HEAD = `<thead><tr><th>Pack</th><th>Versão</th><th>Último teste</th>$H<th class="num">Não salvas</th><th>Alterado</th><th class="shrink"><span class="sr-only">Ações</span></th></tr></thead>`;
   function packTableHead(o = {}) { return PACK_HEAD.replace("$H", o.withHealth ? `<th><span data-tip="Resumo dos problemas conhecidos, de 0 a 100. Não garante que o pack funciona." tabindex="0" style="border-bottom:1px dotted var(--color-text-3)">Saúde</span></th>` : ""); }
 
-  window.W = { esc, attrs, id, icon, tile, tileSvg, brandMark, art, btn, testButton, input, textarea, select, omnibox, switchCtl, check, choice, segmented, memory, tag, source, side, badge, count, status, alert, issue, empty, toast, skeletonRows, progress, steps, consoleLines, consoleBox, diff, dialog, drawer, menu, meter, aiBlock, tlItem, topbar, statusbar, packHeader, sectionMenu, modRow, modTableHead, packRow, packTableHead, consoleGroups, healthBand, health, healthLosses, rounds, roundsLegend, suspects, chatMsg, toolCall, evidence, claim, proposal, blockChart, perfStrip, mixinRow, depGraph, sceneSvg, galleryStrip, discoverRow, cfgHits, cfgRow, scriptErrors, completions, SOURCES, SIDES };
+  // ======================================================================
+  // ---------- Warden 1.1 "Profissional" (D5) ----------
+  // Segurança, manutenção, travamento de jogador, notas e grupos, itens repetidos
+  // e desempenho entre versões. Mesmas regras: só tokens, estado com ícone + palavra.
+  // ======================================================================
+  const LOADER = '<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+  const strip = (s) => String(s ?? "").replace(/<[^>]+>/g, "");
+  const nf = (n, d) => Number(n).toLocaleString("pt-BR", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+
+  // Painel "Verificações do pack" (topo de Problemas). Linha inteira não é botão: o link é o controle.
+  // rows: [{ icon, title, statusKind: ok|warn|danger|info|neutral|loading, statusText, summary, linkLabel, linkAttrs }]
+  const VSTATUS = { ok: "circle-check", warn: "triangle-alert", danger: "circle-x", info: "info", neutral: "circle-dashed" };
+  function verifyPanel(rows, o = {}) {
+    const vid = o.id || id("vp");
+    return `<section class="verify"${rows.some((r) => r.statusKind === "loading") ? ' aria-busy="true"' : ""}>
+      <div class="verify__head"><h${o.level || 2} class="verify__title" id="${vid}-h">${o.title || "Verificações do pack"}</h${o.level || 2}>${o.meta ? `<span class="verify__meta">${o.meta}</span>` : ""}${o.actions ? `<span class="verify__actions">${o.actions}</span>` : ""}</div>
+      <ul class="verify__list">${rows.map((r) => {
+        const k = r.statusKind || "neutral";
+        const mark = k === "loading" ? LOADER : icon(VSTATUS[k] || VSTATUS.neutral, "icon--sm");
+        const link = r.linkLabel === null ? "<span></span>" : btn(r.linkLabel || "Ver", { size: "sm", variant: "ghost", iconEnd: "chevron-right", attrs: Object.assign({ "aria-label": `${strip(r.linkLabel || "Ver")}: ${strip(r.title)}` }, r.linkAttrs || {}) });
+        return `<li class="vrow vrow--${k}"><span class="vrow__icon" aria-hidden="true">${icon(r.icon || "circle-check")}</span>
+          <span class="vrow__main"><span class="vrow__title">${r.title}</span>${r.summary ? `<span class="vrow__sum">${r.summary}</span>` : ""}</span>
+          <span class="vrow__status">${mark}<span>${r.statusText || ""}</span></span>${link}</li>`;
+      }).join("")}</ul>${o.foot ? `<div class="verify__foot">${o.foot}</div>` : ""}</section>`;
+  }
+
+  // Selo de segurança do arquivo. kind: oficial | escaneado | naoconfere | suspeito | semconferir | pendente | confiado
+  // [ícone, tom, texto completo, texto curto (para a linha de mod; o resto vai para o leitor de tela)]
+  const SEC = {
+    oficial: ["shield-check", "ok", "Confere com o arquivo oficial", "Confere"],
+    escaneado: ["shield", "scan", "Arquivo do computador: nenhum sinal conhecido", "Sem sinais"],
+    naoconfere: ["shield-x", "danger", "Não confere com o arquivo oficial", "Não confere"],
+    suspeito: ["shield-alert", "danger", "Sinal de programa malicioso conhecido", "Sinal malicioso"],
+    semconferir: ["shield-question-mark", "warn", "Não deu para conferir", "Sem conferir"],
+    pendente: ["shield-ellipsis", "pending", "Ainda não conferido", "Não conferido"],
+    confiado: ["shield-user", "trusted", "Você confiou neste arquivo", "Confiado"],
+  };
+  function secStatus(kind, text, o = {}) {
+    const [ic, tone, full, short] = SEC[kind] || SEC.pendente;
+    const t = text || full;
+    if (o.size === "sm") {
+      const rest = t.startsWith(short) ? t.slice(short.length) : `: ${t}`;
+      return `<span class="sec sec--${tone} sec--sm"${o.tip !== false ? ` data-tip="${esc(strip(t))}"` : ""}>${icon(ic)}<span>${short}</span>${rest ? `<span class="sr-only">${rest}</span>` : ""}</span>`;
+    }
+    return `<span class="sec sec--${tone}">${icon(ic)}<span>${t}</span></span>`;
+  }
+
+  // Marca de manutenção para a linha de mod e os detalhes. kind: removed | filegone | archived | stale | nonewer
+  // [ícone, tom, texto padrão, palavra curta]. Com o.compact (linha de mod), abaixo de 1180 px só a palavra curta
+  // fica visível; o resto continua para o leitor de tela e no tooltip.
+  const MAINT = { removed: ["ban", "warn", "Removido do Modrinth", "Removido"], filegone: ["file-x", "danger", "Arquivo removido", "Arquivo removido"], archived: ["archive-x", "warn", "Arquivado pelo autor", "Arquivado"], stale: ["calendar-clock", "plain", "Sem atualização há 2 anos", "Sem atualização"], nonewer: ["circle-minus", "plain", "Sem versão para o 1.21", "Sem versão"] };
+  function maintTag(kind, text, o = {}) {
+    const [ic, tone, def, short] = MAINT[kind] || MAINT.stale;
+    const t = text || def;
+    if (o.compact && t.startsWith(short) && t.length > short.length) return `<span class="tag tag--${tone} mtag" data-tip="${esc(t)}">${icon(ic)}${short}<span class="mtag__rest">${esc(t.slice(short.length))}</span></span>`;
+    return tag(t, tone, { icon: ic });
+  }
+
+  // Substituto sugerido (lista densa, não cartão). state: normal | inpack | noversion | loading
+  // o: { name, author, src, downloads, updated, reasons[2–4], why, detailAttrs, swapAttrs }
+  function replacementRow(o = {}) {
+    const st = o.state || "normal";
+    if (st === "loading") return `<li class="reprow reprow--loading" aria-hidden="true"><span class="skeleton skeleton--tile" style="width:40px;height:40px"></span><div class="reprow__main"><span class="skeleton skeleton--line" style="--w:38%"></span><span class="skeleton skeleton--line" style="--w:62%"></span><span class="skeleton skeleton--line" style="--w:80%"></span><div class="reprow__acts"><span class="skeleton skeleton--btn" style="--w:116px"></span><span class="skeleton skeleton--btn" style="--w:96px"></span></div></div></li>`;
+    const meta = [o.src ? source(o.src) : "", o.downloads ? `<span>${o.downloads} downloads</span>` : "", o.updated ? `<span>atualizado ${o.updated}</span>` : ""].filter(Boolean).join("");
+    const reasons = (o.reasons || []).length ? `<div class="reprow__why"><span class="reprow__whyt">Por que sugerimos</span><ul>${o.reasons.map((r) => `<li>${r}</li>`).join("")}</ul></div>` : "";
+    const name = strip(o.name);
+    const detail = btn("Ver detalhes", { size: "sm", variant: "ghost", attrs: Object.assign({ "aria-label": `Ver detalhes: ${name}` }, o.detailAttrs || {}) });
+    const swap = (dis) => btn("Trocar por este", { size: "sm", icon: "replace", disabled: dis, attrs: Object.assign({ "aria-label": `Trocar por este: ${name}` }, dis ? { "aria-describedby": `${o.id || "rep"}-no` } : o.swapAttrs || {}) });
+    const acts = st === "inpack" ? tag("Já no pack", "primary", { icon: "check" }) + detail
+      : st === "noversion" ? swap(true) + detail + `<span class="reprow__no" id="${o.id || "rep"}-no">${icon("circle-minus", "icon--sm")}${o.why || "Sem versão para o seu pack"}</span>`
+      : swap(false) + detail;
+    return `<li class="reprow reprow--${st}">${tile(o.name, "lg")}
+      <div class="reprow__main"><span class="reprow__line"><span class="reprow__name">${esc(o.name)}</span>${o.author ? `<span class="t-xs t-3">por ${esc(o.author)}</span>` : ""}</span>
+        ${meta ? `<span class="reprow__meta">${meta}</span>` : ""}${reasons}
+        <div class="reprow__acts">${acts}</div></div></li>`;
+  }
+
+  // Medidor em blocos (correspondência de mods). on/total em blocos; tom pelo estado.
+  function blockMeter(n, total, cells, tone) {
+    const c = cells || 32, on = total ? Math.round((n / total) * c) : 0;
+    return `<span class="bmeter bmeter--${tone || "ok"}" aria-hidden="true">${Array.from({ length: c }, (_, i) => `<i class="${i < on ? "on" : ""}"></i>`).join("")}</span>`;
+  }
+
+  // Versão do pack identificada no log de um jogador. variant: exact | near | unknown | incomplete
+  // o: { version, matched, total, diffs: { extra: [[mod, versão]], missing: [[mod, versão]], changed: [[mod, noPack, noJogador]] }, open }
+  function versionMatch(o = {}) {
+    const v = o.variant || "exact";
+    const d = o.diffs || {};
+    const nd = (d.extra || []).length + (d.missing || []).length + (d.changed || []).length;
+    const tone = { exact: "ok", near: "warn", unknown: "danger", incomplete: "neutral" }[v];
+    const ic = { exact: "circle-check", near: "triangle-alert", unknown: "circle-x", incomplete: "circle-help" }[v];
+    const title = o.title || {
+      exact: `O jogador usa a versão ${esc(o.version)}`,
+      near: `Parece a versão ${esc(o.version)}, com ${nd} ${nd === 1 ? "mod diferente" : "mods diferentes"}`,
+      unknown: "Não parece ser deste pack",
+      incomplete: "O log não traz a lista de mods",
+    }[v];
+    const word = { exact: "Versão encontrada", near: "Versão aproximada", unknown: "Pack diferente", incomplete: "Sem lista de mods" }[v];
+    const sub = o.text || {
+      exact: `A lista de mods do log é igual à da versão salva ${esc(o.version)}${o.date ? `, de ${esc(o.date)}` : ""}.`,
+      near: `A versão mais parecida é a ${esc(o.version)}. As diferenças estão abaixo.`,
+      unknown: "Nenhuma versão salva tem uma lista de mods parecida. Confira se o jogador mandou o log do pack certo.",
+      incomplete: "Sem a lista, não dá para saber qual versão ele usa. Peça o arquivo latest.log inteiro, que fica na pasta logs do jogo.",
+    }[v];
+    const meter = v === "incomplete" ? "" : `<div class="vmatch__meter"><span class="vmatch__count"><b>${o.matched}</b> de ${o.total} mods conferem</span>${blockMeter(o.matched, o.total, 32, tone)}</div>`;
+    const grp = (lbl, items, fmt) => items && items.length ? `<div class="vmatch__grp"><div class="vmatch__grpt">${lbl} <span class="t-3">(${items.length})</span></div><ul>${items.map(fmt).join("")}</ul></div>` : "";
+    const list = nd ? `<details class="disclosure vmatch__diffs"${o.open ? " open" : ""}><summary>Ver ${nd === 1 ? "a diferença" : `as ${nd} diferenças`}</summary>
+        ${grp("A mais no jogador", d.extra, ([m, ver]) => `<li><span class="vmatch__mod">${esc(m)}</span><span class="t-mono">${esc(ver)}</span></li>`)}
+        ${grp("Faltando no jogador", d.missing, ([m, ver]) => `<li><span class="vmatch__mod">${esc(m)}</span><span class="t-mono">${esc(ver)}</span></li>`)}
+        ${grp("Versão diferente", d.changed, ([m, a, b]) => `<li><span class="vmatch__mod">${esc(m)}</span><span class="vmatch__vers"><span class="t-3">no pack</span> <span class="t-mono">${esc(a)}</span> <span class="t-3">· no jogador</span> <span class="t-mono">${esc(b)}</span></span></li>`)}</details>` : "";
+    return `<section class="vmatch vmatch--${tone}" aria-labelledby="${o.id || "vm"}-h"><div class="vmatch__head"><span class="vmatch__word">${icon(ic, "icon--sm")}${word}</span>
+        <h${o.level || 3} class="vmatch__title" id="${o.id || "vm"}-h">${title}</h${o.level || 3}></div>
+      <p class="vmatch__text">${sub}</p>${meter}${list}${o.actions ? `<div class="vmatch__acts">${o.actions}</div>` : ""}</section>`;
+  }
+
+  // Campo para colar o link do log OU escolher o arquivo. state: empty | recognized | invalid | loading
+  function logSource(o = {}) {
+    const st = o.state || "empty";
+    const fid = o.id || "logsrc";
+    const svc = esc(o.service || "mclo.gs");
+    const status = {
+      empty: `Também aceita crash reports (.txt) e logs compactados (.log.gz).`,
+      recognized: `${icon("circle-check", "icon--sm t-ok")}<span><b class="t-ok">${svc}</b> <span class="t-2">· link reconhecido</span></span>`,
+      invalid: `${icon("circle-alert", "icon--sm")}<span>${o.error || "Este link não é de um serviço que o Warden sabe ler. Use mclo.gs, pastebin ou gist, ou baixe o arquivo e escolha-o aqui."}</span>`,
+      loading: `Baixando o log do ${svc}…`,
+    }[st];
+    const a = { id: fid, class: "input", type: "text", inputmode: "url", value: o.value || null, placeholder: "Cole o link (mclo.gs, pastebin, gist…) ou escolha o arquivo", "aria-describedby": fid + "-st", "aria-invalid": st === "invalid" ? "true" : null, autocomplete: "off", spellcheck: "false" };
+    return `<div class="logsrc logsrc--${st}"><label class="field__label" for="${fid}">${o.label || "Log ou crash report do jogador"}</label>
+      <div class="logsrc__row"><div class="inputwrap ${st === "loading" ? "inputwrap--loading" : ""}">${icon("link")}${st === "loading" ? LOADER : ""}<input${attrs(a)} /></div>
+        ${btn("Escolher arquivo…", { icon: "folder-open", attrs: o.fileAttrs })}${o.after || ""}</div>
+      <div class="logsrc__status ${st === "invalid" ? "field__error" : ""}" id="${fid}-st" role="status">${status}</div></div>`;
+  }
+
+  // Chip de grupo: bloco reto (não pílula). o.removable: botão "Tirar do grupo X"; o.size: "sm" (linha de mod)
+  function groupChip(name, o = {}) {
+    if (o.removable) return `<span class="gchip gchip--rm"><span class="gchip__mark" aria-hidden="true"></span><span>${esc(name)}</span><button type="button" class="gchip__x"${attrs(Object.assign({ "data-tip": `Tirar do grupo ${name}` }, o.removeAttrs || {}))}>${icon("x", "icon--sm")}<span class="sr-only">Tirar do grupo ${esc(name)}</span></button></span>`;
+    return `<span class="gchip ${o.size === "sm" ? "gchip--sm" : ""}"><span class="gchip__mark" aria-hidden="true"></span><span>${esc(name)}</span></span>`;
+  }
+  // Seletor de grupos (num menu suspenso ou no painel de detalhes).
+  // o: { groups: [[nome, marcado, nº de mods]], title, framed, id, newAttrs }
+  function groupPicker(o = {}) {
+    const gid = o.id || id("gp");
+    const gs = o.groups || [];
+    const body = gs.length
+      ? `<ul class="gpick__list">${gs.map(([n, on, c]) => `<li class="gpick__opt">${check({ label: esc(n), checked: on, id: `${gid}-${hash(n) % 100000}` })}${c != null ? `<span class="gpick__n">${c} ${c === 1 ? "mod" : "mods"}</span>` : ""}</li>`).join("")}</ul>`
+      : `<p class="gpick__empty"><b>Nenhum grupo ainda.</b> Crie um para juntar mods por assunto, como Desempenho ou Geração de mundo.</p>`;
+    return `<div class="gpick ${o.framed ? "frame gpick--framed" : ""}" role="group" aria-labelledby="${gid}-t"><div class="gpick__title" id="${gid}-t">${o.title || "Pôr no grupo"}</div>${body}
+      <div class="gpick__foot">${btn("Novo grupo…", { size: "sm", variant: "ghost", icon: "plus", attrs: o.newAttrs })}</div></div>`;
+  }
+
+  // Bloco "Nota e grupos" (topo do painel de detalhes). state: empty | filled | editing | saved
+  // o: { note, groups[], max (200), id, level }
+  function noteBlock(o = {}) {
+    const st = o.state || (o.note ? "filled" : "empty");
+    const nid = o.id || id("note");
+    const max = o.max || 200;
+    const len = (o.note || "").length;
+    const near = len >= max - 20;
+    const counter = `<span class="note__count ${near ? "note__count--near" : ""}" id="${nid}-c">${len} de ${max}<span class="sr-only"> caracteres</span></span>`;
+    const saved = st === "saved" ? `<span class="note__saved" role="status">${icon("check", "icon--sm")}Salvo no pack</span>` : "";
+    const groups = (o.groups || []).length ? (o.groups || []).map((g) => groupChip(g, { removable: true })).join("") : `<span class="t-sm t-3">Nenhum grupo</span>`;
+    return `<section class="note note--${st}"><div class="note__head"><h${o.level || 3} class="note__title" id="${nid}-h">${icon("sticky-note", "icon--sm")}Nota e grupos</h${o.level || 3}>${saved}</div>
+      <div class="note__field"><div class="note__lblrow"><label class="field__label" for="${nid}">Por que este mod está no pack?</label>${st === "editing" || len ? counter : ""}</div>
+        <textarea${attrs({ id: nid, class: `textarea note__ta ${st === "editing" ? "is-focus" : ""}`, rows: 2, maxlength: max, placeholder: "Ex.: deixa o jogo mais leve em PCs fracos", "aria-describedby": `${nid}-c ${nid}-h2` })}>${esc(o.note || "")}</textarea>
+        <span class="field__hint" id="${nid}-h2">Aparece na lista de Mods. Fica guardada no pack, só para você: não vai para os jogadores, a menos que você inclua as notas no resumo da versão.</span></div>
+      <div class="note__groups"><span class="note__glbl">Grupos</span><span class="note__chips">${groups}</span>${btn("Pôr no grupo", { size: "sm", variant: "ghost", iconEnd: "chevron-down", attrs: Object.assign({ "aria-haspopup": "dialog", "aria-expanded": "false" }, o.pickAttrs || {}) })}</div></section>`;
+  }
+
+  // ---------- Desempenho entre versões ----------
+  // values: [{ version, date, value (número ou null), tests }]; unit: "s" | "GB" | "ms"
+  function fmtValue(v, unit) {
+    if (v == null) return "—";
+    if (unit === "s") { const m = Math.floor(v / 60), s = Math.round(v % 60); return m ? `${m} min ${s} s` : `${s} s`; }
+    if (unit === "GB") return `${nf(v, 1)} GB`;
+    if (unit === "ms") return `${nf(v, v < 10 ? 1 : 0)} ms`;
+    return `${nf(v)} ${unit || ""}`.trim();
+  }
+  function fmtDelta(d, unit) {
+    if (d == null) return "—";
+    const sign = d > 0 ? "+" : d < 0 ? "−" : "±";
+    const a = Math.abs(d);
+    const val = unit === "s" ? fmtValue(a, "s") : fmtValue(a, unit);
+    return `${sign}${val}`;
+  }
+  function versionDeltas(values) {
+    let prev = null;
+    return values.map((r) => { const out = r.value != null && prev != null ? { d: r.value - prev, pct: ((r.value - prev) / prev) * 100 } : null; if (r.value != null) prev = r.value; return out; });
+  }
+  // o: { values, unit, label (nome da medida), highlight (índice da versão mais pesada), loading, rows, table, caption, id }
+  function versionChart(o = {}) {
+    const vals = o.values || [];
+    const rows = o.rows || 10;
+    const unit = o.unit || "s";
+    const label = o.label || "Tempo para abrir";
+    if (o.loading) {
+      const hs = [6, 7, 6, 8, 7];
+      return `<figure class="vchart vchart--loading" aria-busy="true"><div class="vchart__plot" style="--cols:${hs.length};--vrows:${rows}" aria-hidden="true">${hs.map((h) => `<div class="vcol"><span class="vcol__up"><span class="vcol__val"><span class="skeleton skeleton--line" style="--w:56px"></span></span><span class="vcol__bar">${Array.from({ length: h }, () => '<i class="sk"></i>').join("")}</span></span><span class="vcol__ver"><span class="skeleton skeleton--line" style="--w:40px"></span></span></div>`).join("")}</div><figcaption class="vchart__cap">Carregando os testes das versões salvas…</figcaption></figure>`;
+    }
+    const max = o.max || Math.max(...vals.map((r) => r.value || 0)) * 1.1 || 1;
+    const hot = o.highlight;
+    const dl = versionDeltas(vals);
+    const summary = `${label} por versão salva: ` + vals.map((r, i) => `${r.version}, ${r.value == null ? "sem testes comparáveis" : fmtValue(r.value, unit)}${i === hot ? ", mais pesada" : ""}`).join("; ") + ".";
+    const cols = vals.map((r, i) => {
+      const empty = r.value == null;
+      const h = empty ? 0 : Math.max(1, Math.round((r.value / max) * rows));
+      const isHot = i === hot;
+      const tip = empty ? `${r.version}: sem testes comparáveis` : `${r.version}: mediana ${fmtValue(r.value, unit)}, ${r.tests} ${r.tests === 1 ? "teste" : "testes"}${dl[i] ? `, ${fmtDelta(dl[i].d, unit)} em relação à anterior` : ""}`;
+      return `<div class="vcol ${isHot ? "is-hot" : ""} ${empty ? "is-empty" : ""}" data-tip="${esc(tip)}">
+        <span class="vcol__up">${isHot ? `<span class="vcol__flag">${icon("trending-up", "icon--sm")}Mais pesada</span>` : ""}${empty ? "" : `<span class="vcol__val">${fmtValue(r.value, unit)}</span>`}
+        <span class="vcol__bar">${empty ? `<span class="vcol__none">sem testes comparáveis</span>` : Array.from({ length: h }, () => "<i></i>").join("")}</span></span>
+        <span class="vcol__ver">${esc(r.version)}</span><span class="vcol__n">${empty ? "0 testes" : `${r.tests} ${r.tests === 1 ? "teste" : "testes"}`}</span></div>`;
+    }).join("");
+    const plotA = o.table === false ? ` role="img" aria-label="${esc(summary)}"` : ' aria-hidden="true"';
+    return `<figure class="vchart"${o.id ? ` id="${o.id}"` : ""}><div class="vchart__plot" style="--cols:${vals.length};--vrows:${rows}"${plotA}>${cols}</div>
+      ${o.caption ? `<figcaption class="vchart__cap">${o.caption}</figcaption>` : ""}</figure>${o.table === false ? "" : versionTable(vals, { unit, label, highlight: hot, caption: o.tableCaption })}`;
+  }
+  // Tabela equivalente ao gráfico (é o conteúdo acessível; fica sempre visível logo abaixo).
+  function versionTable(vals, o = {}) {
+    const unit = o.unit || "s";
+    const dl = versionDeltas(vals);
+    return `<div class="tablewrap vtable"><table class="table"><caption>${o.caption || `${o.label || "Tempo para abrir"} por versão salva: mediana dos testes neste computador`}</caption>
+      <thead><tr><th scope="col">Versão</th><th scope="col">Salva em</th><th scope="col" class="num">Mediana</th><th scope="col" class="num">Testes</th><th scope="col" class="num">Diferença para a anterior</th></tr></thead>
+      <tbody>${vals.map((r, i) => {
+        const isHot = i === o.highlight;
+        const d = dl[i];
+        const diff = r.value == null ? '<span class="t-3">sem testes comparáveis</span>' : d ? `<span class="${isHot ? "vtable__hot" : d.d > 0 ? "t-2" : "t-ok"}">${isHot ? icon("trending-up", "icon--sm") : ""}${fmtDelta(d.d, unit)} (${d.pct > 0 ? "+" : d.pct < 0 ? "−" : ""}${nf(Math.abs(d.pct))}%)${isHot ? " · mais pesada" : ""}</span>` : '<span class="t-3">primeira com testes</span>';
+        return `<tr${isHot ? ' class="is-hot"' : ""}><td class="t-mono">${esc(r.version)}</td><td class="t-2">${esc(r.date || "")}</td><td class="num">${fmtValue(r.value, unit)}</td><td class="num">${r.value == null ? "0" : r.tests}</td><td class="num">${diff}</td></tr>`;
+      }).join("")}</tbody></table></div>`;
+  }
+
+  // ---------- Itens repetidos entre mods ----------
+  // state: ore | items | solved | legacy
+  // o: { material, summary, mods: [{ mod, id, ore }], evidence, solution: { name, text, attrs }, solvedBy, open, id }
+  function dupMaterial(o = {}) {
+    const st = o.state || "ore";
+    const did = o.id || id("dup");
+    const mods = o.mods || [];
+    const seal = st === "solved" ? tag(`Unificado pelo ${esc(o.solvedBy || "AlmostUnified")}`, "ok", { icon: "check" }) : badge("info", "Conselho");
+    const list = mods.length ? `<details class="disclosure dup__mods"${o.open ? " open" : ""}><summary>Ver os ${mods.length} mods</summary><ul>${mods.map((m) => `<li><span class="dup__mod">${esc(m.mod)}</span><span class="dup__id">${esc(m.id)}</span>${m.ore ? tag("gera minério", "plain", { icon: "pickaxe" }) : tag("só item", "plain", { icon: "box" })}</li>`).join("")}</ul></details>` : "";
+    const sol = o.solution || {};
+    const fix = st === "solved"
+      ? `<div class="dup__fix dup__fix--done"><span class="dup__fixtxt">${icon("merge", "icon--sm")}<span>${sol.text || `O ${esc(o.solvedBy || "AlmostUnified")} já está no pack e faz os mods usarem um item só.`}</span></span>${sol.attrs ? btn(sol.label || "Abrir a config", { size: "sm", variant: "ghost", attrs: sol.attrs }) : ""}</div>`
+      : `<div class="dup__fix"><span class="dup__fixtxt">${icon("merge", "icon--sm")}<span><b>Sugestão${st === "legacy" ? ` para ${esc(o.mc || "1.12.2")}` : ""}:</b> ${sol.text || `${esc(sol.name || "AlmostUnified")} faz os mods usarem um item só.`}</span></span>${btn(`Adicionar ${esc(sol.name || "AlmostUnified")}`, { size: "sm", icon: "plus", attrs: sol.attrs })}</div>`;
+    return `<li class="dup dup--${st}"><div class="dup__head"><span class="dup__icon" aria-hidden="true">${icon("boxes")}</span><h${o.level || 3} class="dup__name" id="${did}-h">${esc(o.material)}</h${o.level || 3}>${seal}</div>
+      <p class="dup__sum">${o.summary || ""}</p>${list}
+      ${o.evidence ? `<p class="dup__ev">${icon("scan-search", "icon--sm")}<span><b>Como sabemos:</b> ${o.evidence}</span></p>` : ""}${fix}</li>`;
+  }
+
+  window.W = { esc, attrs, id, icon, tile, tileSvg, brandMark, art, btn, testButton, input, textarea, select, omnibox, switchCtl, check, choice, segmented, memory, tag, source, side, badge, count, status, alert, issue, empty, toast, skeletonRows, progress, steps, consoleLines, consoleBox, diff, dialog, drawer, menu, meter, aiBlock, tlItem, topbar, statusbar, packHeader, sectionMenu, modRow, modTableHead, packRow, packTableHead, consoleGroups, healthBand, health, healthLosses, rounds, roundsLegend, suspects, chatMsg, toolCall, evidence, claim, proposal, blockChart, perfStrip, mixinRow, depGraph, sceneSvg, galleryStrip, discoverRow, cfgHits, cfgRow, scriptErrors, completions, SOURCES, SIDES,
+    verifyPanel, secStatus, maintTag, replacementRow, blockMeter, versionMatch, logSource, groupChip, groupPicker, noteBlock, versionChart, versionTable, fmtValue, dupMaterial, SEC, MAINT };
 })();
