@@ -1,8 +1,9 @@
 # Warden: design system (direção Deep Dark)
 
 > Tarefa D3, 01/10/2026. Versão 1.0.
-> Galeria com todos os componentes e estados: `design/system/index.html` (publicada como “Warden — Design System”).
-> Protótipo final montado só com este sistema: `design/prototipo-final/index.html` (publicado como “Warden — Protótipo final”).
+> Galeria com todos os componentes e estados: `design/system/index.html`, publicada em https://app.superset.sh/page/warden-design-system-ysdscr
+> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado em https://app.superset.sh/page/warden-prot-tipo-final-pri9am
+> Para republicar: `node design/tools/montar-publicacao.mjs` e `superset pages publish design/_publicado/<pasta>/ --page <id>`.
 > Mapeamento para Tailwind CSS 4 + shadcn/ui: [`HANDOFF.md`](HANDOFF.md).
 > Estrutura que este sistema veste (obrigatória, aprovada): [`ESTRUTURA.md`](ESTRUTURA.md).
 
