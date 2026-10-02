@@ -1,0 +1,191 @@
+/* ARQUIVO GERADO por design/system/tools/build-tokens.mjs a partir de tokens.json.
+   Não edite à mão: mude tokens.json e rode o script de novo.
+   Uso: <link rel="stylesheet" href="tokens.css"> antes de components.css. */
+:root {
+  color-scheme: dark;
+
+  /* color */
+  --color-bg: #050d12;
+  --color-bg-sunken: #03090c;
+  --color-surface-1: #0a1a21;
+  --color-surface-2: #0e2630;
+  --color-surface-3: #12313c;
+  --color-overlay: rgba(2, 7, 10, 0.78);
+  --color-border: #15333e;
+  --color-border-strong: #1e4552;
+  --color-border-control: #4f8a98;
+  --color-text: #e4f3ef;
+  --color-text-2: #b4cfca;
+  --color-text-3: #8aacaa;
+  --color-bone: #cfe3da;
+  --color-primary: #19d3e0;
+  --color-primary-hover: #0fb5c2;
+  --color-primary-press: #0a8f9a;
+  --color-on-primary: #021418;
+  --color-primary-text: #5fe3ec;
+  --color-primary-bright: #7ff3f0;
+  --color-primary-soft: rgba(25, 211, 224, 0.12);
+  --color-primary-line: rgba(25, 211, 224, 0.4);
+  --color-primary-glow: rgba(25, 211, 224, 0.45);
+  --color-focus: #cfe3da;
+  --color-ok: #3ddc84;
+  --color-ok-text: #6be7a2;
+  --color-ok-soft: rgba(61, 220, 132, 0.12);
+  --color-warn: #f2b33d;
+  --color-warn-text: #ffcb66;
+  --color-warn-soft: rgba(242, 179, 61, 0.12);
+  --color-danger: #ff5c5c;
+  --color-danger-text: #ff8e8e;
+  --color-danger-soft: rgba(255, 92, 92, 0.13);
+  --color-danger-solid: #c42f35;
+  --color-on-danger: #ffffff;
+  --color-info: #b3a6ff;
+  --color-info-text: #c6bcff;
+  --color-info-soft: rgba(179, 166, 255, 0.12);
+  --color-ai: #cfe3da;
+  --color-ai-soft: rgba(207, 227, 218, 0.07);
+  --color-ai-line: rgba(207, 227, 218, 0.45);
+  --color-src-modrinth: #3ddc84;
+  --color-src-curseforge: #f48a4a;
+  --color-src-local: #8aacaa;
+  --color-diff-add: rgba(61, 220, 132, 0.14);
+  --color-diff-del: rgba(255, 92, 92, 0.14);
+  --color-console-bg: #020709;
+  --color-console-text: #cfe6e1;
+  --color-console-muted: #86a9a6;
+  --color-pixel-shadow: #010507;
+  --color-bevel-light: rgba(255, 255, 255, 0.2);
+  --color-bevel-dark: rgba(0, 0, 0, 0.34);
+
+  /* font */
+  --font-display: "Pixelify Sans", Manrope, system-ui, sans-serif;
+  --font-ui: Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* text */
+  --text-2xs: 11px;
+  --text-2xs--line-height: 14px;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+  --text-md: 16px;
+  --text-md--line-height: 22px;
+  --text-lg: 20px;
+  --text-lg--line-height: 24px;
+  --text-xl: 24px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 32px;
+  --text-2xl--line-height: 36px;
+
+  /* font-weight */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* tracking */
+  --tracking-display: 0.02em;
+  --tracking-caps: 0.06em;
+
+  /* space */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --spacing: 4px;
+
+  /* radius */
+  --radius-none: 0px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+
+  /* notch */
+  --notch-md: 4px;
+  --notch-sm: 2px;
+
+  /* border-width */
+  --border-thin: 1px;
+  --border-block: 2px;
+  --border-bar: 3px;
+
+  /* shadow */
+  --shadow-block-1: 0 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-block-2: 0 4px 0 rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.4);
+  --shadow-block-3: 0 8px 0 rgba(0, 0, 0, 0.5), 0 24px 64px rgba(0, 0, 0, 0.6);
+  --inset-shadow-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.34);
+  --inset-shadow-bevel-press: inset 0 3px 0 rgba(0, 0, 0, 0.34);
+  --inset-shadow-slot: inset 2px 2px 0 rgba(0, 0, 0, 0.5), inset -1px -1px 0 rgba(127, 243, 240, 0.06);
+  --shadow-glow: 0 0 0 1px rgba(25, 211, 224, 0.55), 0 0 18px rgba(25, 211, 224, 0.28);
+  --shadow-pixel-text: 2px 2px 0 #010507;
+
+  /* duration */
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-pulse: 3400ms;
+
+  /* ease */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-pixel: steps(4, end);
+
+  /* size */
+  --size-control-sm: 28px;
+  --size-control-md: 36px;
+  --size-control-lg: 48px;
+  --size-icon-sm: 14px;
+  --size-icon-md: 16px;
+  --size-icon-lg: 20px;
+  --size-topbar: 56px;
+  --size-pack-header: 76px;
+  --size-section-menu: 252px;
+  --size-statusbar: 30px;
+  --size-drawer: 440px;
+  --size-dialog-sm: 480px;
+  --size-dialog-md: 600px;
+  --size-dialog-lg: 780px;
+  --size-content-max: 1180px;
+  --size-window-min-w: 1024px;
+
+  /* z */
+  --z-header: 10;
+  --z-dropdown: 30;
+  --z-drawer: 40;
+  --z-dialog: 50;
+  --z-toast: 60;
+  --z-tooltip: 70;
+
+  /* formas derivadas */
+  --shape-notch-md: polygon(0 var(--notch-md), var(--notch-md) var(--notch-md), var(--notch-md) 0, calc(100% - var(--notch-md)) 0, calc(100% - var(--notch-md)) var(--notch-md), 100% var(--notch-md), 100% calc(100% - var(--notch-md)), calc(100% - var(--notch-md)) calc(100% - var(--notch-md)), calc(100% - var(--notch-md)) 100%, var(--notch-md) 100%, var(--notch-md) calc(100% - var(--notch-md)), 0 calc(100% - var(--notch-md)));
+  --shape-notch-sm: polygon(0 var(--notch-sm), var(--notch-sm) var(--notch-sm), var(--notch-sm) 0, calc(100% - var(--notch-sm)) 0, calc(100% - var(--notch-sm)) var(--notch-sm), 100% var(--notch-sm), 100% calc(100% - var(--notch-sm)), calc(100% - var(--notch-sm)) calc(100% - var(--notch-sm)), calc(100% - var(--notch-sm)) 100%, var(--notch-sm) 100%, var(--notch-sm) calc(100% - var(--notch-sm)), 0 calc(100% - var(--notch-sm)));
+}
+
+/* Movimento reduzido: tudo instantâneo e sem pulso (o app também oferece a opção em Configurações). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-pulse: 0ms;
+  }
+}
+:root[data-motion="reduced"] {
+  --duration-instant: 0ms;
+  --duration-fast: 0ms;
+  --duration-base: 0ms;
+  --duration-slow: 0ms;
+  --duration-pulse: 0ms;
+}

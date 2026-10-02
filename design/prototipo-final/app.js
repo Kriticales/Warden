@@ -1,0 +1,171 @@
+/* ==========================================================================
+   Warden — protótipo final: núcleo (visualizador, rotas, cascas)
+   Telas em screens-app.js, screens-pack.js e screens-test.js.
+   Tudo é montado com design/system/components.js (W) e behavior.js (WardenUI).
+   ========================================================================== */
+(function () {
+  "use strict";
+  const W = window.W, D = window.DATA;
+  const SCREENS = {};
+  const ORDER = [];
+  const GROUPS = { app: "Nível do app", pack: "Nível do pack", teste: "Testar" };
+  const STATE_LABELS = { normal: "Normal", carregando: "Carregando", vazio: "Vazio", erro: "Erro", conflito: "Conflito", semcausa: "Sem conclusão" };
+
+  // ---------- Registro ----------
+  // o: { group, title, spec, render(state), states: { vazio: "descrição", ... }, hidden, note }
+  function def(id, o) { SCREENS[id] = Object.assign({ id, states: {} }, o); ORDER.push(id); }
+
+  // ---------- Atalhos de componentes com navegação ----------
+  const go = (id, extra) => Object.assign({ "data-go": id || "" }, extra || {});
+  function B(label, target, o = {}) { return W.btn(label, Object.assign({}, o, { attrs: Object.assign(go(target), o.attrs || {}) })); }
+
+  // ---------- Cascas ----------
+  function tasksText(t) { return t || { state: "idle", text: "Nenhuma tarefa em andamento", attrs: go("tarefas") }; }
+  function appShell(content, o = {}) {
+    return `<div class="app">${W.topbar({ back: o.back ? [o.back[0], go(o.back[1])] : null, where: o.where, noSettings: o.noSettings, settingsAttrs: go("config-app") })}
+      <div class="app__body"><main class="app__main ${o.narrow ? "app__main--narrow" : ""}" id="conteudo"><div class="content">${content}</div></main></div>
+      ${W.statusbar({ tasks: Object.assign(tasksText(o.tasks), { attrs: go(o.tasksGo || "tarefas") }) })}</div>${o.overlay || ""}`;
+  }
+
+  const SECTIONS = [
+    { id: "mods", name: "Mods", desc: "Mods, resource packs e shaders", icon: "puzzle" },
+    { id: "configs", name: "Configs", desc: "Arquivos de ajuste dos mods e do jogo", icon: "file-code" },
+    { id: "problemas", name: "Problemas", desc: "O que pode impedir o jogo de abrir", icon: "triangle-alert" },
+    { id: "ia", name: "Diagnóstico com IA", desc: "Pedir à IA para explicar um travamento", icon: "sparkles", ai: true },
+    { id: "historico", name: "Histórico", desc: "Versões salvas e publicação", icon: "history" },
+    { id: "exportar", name: "Exportar", desc: "Gerar o pack para quem vai jogar", icon: "package" },
+  ];
+  // section: id da seção acesa ("teste" não acende nenhuma)
+  function packShell(section, content, o = {}) {
+    const unsaved = o.unsaved ?? D.PACK.unsaved;
+    const problems = o.problems ?? 3;
+    const counts = {
+      mods: { count: o.empty ? "" : 128, countLabel: "128 itens" },
+      problemas: problems ? { count: problems, countKind: o.problemsKind || "danger", countLabel: `${problems} problemas` } : {},
+      historico: unsaved ? { count: unsaved, countKind: "warn", countLabel: `${unsaved} alterações não salvas` } : {},
+    };
+    const items = SECTIONS.map((s) => Object.assign({}, s, counts[s.id] || {}, { href: "#" + s.id }));
+    const game = o.game || "ready";
+    const testTarget = game === "running" ? "teste-jogo" : game === "preparing" ? (o.prepTarget || "teste-preparo") : "teste-checagem";
+    const header = W.packHeader({
+      name: D.PACK.name, mc: D.PACK.mc, loader: D.PACK.loader, version: o.version || D.PACK.version, unsaved,
+      alerts: o.alerts || [], backAttrs: go("packs"), editAttrs: go("info"), saveAttrs: go("salvar"), menuId: "menu-testar",
+      test: { state: game, progress: o.progress, open: !!o.menuOpen, mainAttrs: go(testTarget), moreAttrs: {} },
+    });
+    const menu = W.menu([
+      { label: game === "running" ? "Ver o teste em andamento" : "Testar", desc: "Abre o jogo com o pack, na instância de teste", icon: "play", attrs: go(testTarget) },
+      { label: "Testar como o jogador recebe", desc: "Instância limpa, sem os mundos e ajustes do teste", icon: "user", end: W.badge("p1", "P1"), attrs: go("") }, "sep",
+      { label: "Ver último teste", desc: "Hoje, 14:20 a 14:32 · fechou normalmente", icon: "history", attrs: go("teste-fechou") }, "sep",
+      { label: "Ajustes do teste neste computador…", desc: "Memória, Java e argumentos. Não entram no pack", icon: "settings", attrs: go("ajustes-teste") },
+      { label: "Abrir pasta da instância de teste", icon: "folder-open", attrs: go("") },
+      { label: "Apagar mundos de teste…", icon: "trash-2", attrs: go("") },
+      { label: "Recriar instância de teste…", icon: "rotate-ccw", attrs: go("") },
+    ], { id: "menu-testar", label: "Mais opções do teste", style: "right:20px;top:72px" });
+    return `<div class="app app--pack">${header.replace(/<\/header>\s*$/, menu + "</header>")}
+      <div class="packbody">${W.sectionMenu(items, section)}
+        <main class="app__main" id="conteudo"><div class="content">${content}</div></main></div>
+      ${W.statusbar({ tasks: Object.assign(tasksText(o.tasks), { attrs: go(o.tasksGo || "tarefas-pack") }) })}</div>${o.overlay || ""}`;
+  }
+  // Cabeçalho de página dentro das cascas
+  function pageHead(title, sub, actions, o = {}) {
+    return `<div class="pagehead"><div>${o.back ? `<div class="back-link">${B(o.back[0], o.back[1], { variant: "ghost", size: "sm", icon: "arrow-left" })}</div>` : ""}
+      <h1 class="pagehead__title ${o.sans ? "pagehead__title--sans" : ""}" tabindex="-1" data-title>${title}</h1>${sub ? `<p class="pagehead__sub">${sub}</p>` : ""}</div>
+      ${actions ? `<div class="pagehead__actions">${actions}</div>` : ""}</div>`;
+  }
+
+  // Caixa de simulação: controle do protótipo dentro da tela (não existe no app).
+  const sim = (label, links) => `<div class="proto-sim" role="note"><span class="proto-sim__tag">Protótipo</span><span>${label}</span>${links.map(([t, g]) => `<button type="button" data-go="${g}">${t}</button>`).join("")}</div>`;
+
+  // ---------- Visualizador ----------
+  const stage = () => document.getElementById("stage");
+  function parseHash() {
+    const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    const [id, state] = raw.split("~");
+    return { id: SCREENS[id] ? id : "packs", state: state || "normal" };
+  }
+  function navigate(id, state) { location.hash = id + (state && state !== "normal" ? "~" + state : ""); }
+
+  function protobar(cur) {
+    const opts = Object.keys(GROUPS).map((g) => `<optgroup label="${GROUPS[g]}">${ORDER.filter((i) => SCREENS[i].group === g).map((i) => `<option value="${i}"${i === cur.id ? " selected" : ""}>${SCREENS[i].hidden ? "· " : ""}${SCREENS[i].title}</option>`).join("")}</optgroup>`).join("");
+    const s = SCREENS[cur.id];
+    const st = ["normal", ...Object.keys(s.states)];
+    const seg = st.length > 1 ? `<span class="proto-bar__lbl" id="pb-st">Estado</span><div class="segmented" role="radiogroup" aria-labelledby="pb-st">${st.map((k) => `<button type="button" role="radio" aria-checked="${k === cur.state}" tabindex="${k === cur.state ? 0 : -1}" data-state="${k}" title="${W.esc(s.states[k] || "")}">${STATE_LABELS[k] || k}</button>`).join("")}</div>` : `<span class="proto-bar__lbl t-3">Esta tela não tem outros estados</span>`;
+    return `<div class="proto-bar" role="region" aria-label="Controles do protótipo (não fazem parte do app)"><span class="proto-bar__tag">Protótipo</span>
+      <label class="proto-bar__lbl" for="pb-go">Tela</label><select class="select select--sm" id="pb-go">${opts}</select>${seg}
+      <span class="grow"></span><span class="proto-bar__spec t-3">${s.spec ? "SPEC " + s.spec : ""}</span>
+      <button type="button" class="btn btn--sm btn--ghost" id="pb-map">${W.icon("list")}<span>Mapa e fluxos</span></button>
+      <label class="proto-bar__lbl check" style="align-items:center"><input type="checkbox" id="pb-motion"${document.documentElement.dataset.motion === "reduced" ? " checked" : ""} /><span>Menos movimento</span></label></div>`;
+  }
+
+  function render() {
+    const cur = parseHash();
+    const s = SCREENS[cur.id];
+    if (!s.states[cur.state]) cur.state = "normal";
+    document.title = `${s.title} · Warden — Protótipo final`;
+    window.WardenUI.hideTip();
+    document.getElementById("bar").innerHTML = protobar(cur);
+    stage().innerHTML = s.render(cur.state);
+    document.querySelectorAll('.toasts').forEach((t) => t.remove());
+    window.WardenUI.bind(stage());
+    if (s.after) s.after(cur.state);
+    const layer = stage().querySelector(".scrim:not([data-static])");
+    const openMenu = stage().querySelector('[aria-expanded="true"][aria-controls]');
+    if (openMenu) { const m = document.getElementById(openMenu.getAttribute("aria-controls")); if (m) window.WardenUI.openMenu(openMenu, m); }
+    else if (!layer) { const t = stage().querySelector("[data-title]"); if (t) t.focus({ preventScroll: true }); }
+    const main = stage().querySelector(".app__main");
+    if (main) main.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+
+  function mapDialog() {
+    const flows = [
+      ["1. Primeiro uso: criar o primeiro pack", ["boas-vindas", "boas-vindas-2", "boas-vindas-3", "boas-vindas-4", "packs-vazio", "criar-1", "criar-2", "criar-3", "criar-4", "pack-novo"]],
+      ["2. Adicionar mods", ["packs", "mods", "adicionar", "adicionar-link", "dependencias", "adicionado"]],
+      ["3. Ajustar configs, testar e trazer o que mudou", ["configs", "configs-diff", "teste-checagem", "teste-preparo", "teste-manual", "teste-jogo", "configs-instancia", "teste-fechou", "trazido"]],
+      ["4. O jogo travou: entender e corrigir", ["teste-travou", "dependencias", "teste-ia", "ia-carregando", "ia-resposta"]],
+      ["5. Salvar a versão final e publicar", ["salvar", "salvo", "publicar", "publicar-repo", "publicado"]],
+    ];
+    const link = (i) => `<a href="#${i}" data-map-link>${SCREENS[i].title}</a>`;
+    const body = `<h3 class="t-strong">Fluxos principais</h3>${flows.map(([t, ids]) => `<div style="margin-top:10px"><div class="t-sm t-2">${t}</div><div class="row row--wrap t-sm" style="margin-top:4px">${ids.map(link).join(`<span class="t-3" aria-hidden="true">→</span>`)}</div></div>`).join("")}
+      <h3 class="t-strong" style="margin-top:20px">Todas as telas</h3><div class="grid-2" style="margin-top:8px">${Object.keys(GROUPS).map((g) => `<div><div class="t-caps t-3">${GROUPS[g]}</div><ul class="stack-2 t-sm" style="margin-top:6px">${ORDER.filter((i) => SCREENS[i].group === g).map((i) => `<li>${link(i)}${Object.keys(SCREENS[i].states).length ? ` <span class="t-3">· ${Object.keys(SCREENS[i].states).map((k) => STATE_LABELS[k] || k).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("")}</div>`;
+    return W.dialog({ title: "Mapa e fluxos do protótipo", sub: `${ORDER.length} telas e diálogos. Os estados (carregando, vazio, erro) ficam no seletor Estado da barra de cima.`, body, size: "lg", id: "map" });
+  }
+
+  // ---------- Eventos ----------
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t.closest("#pb-map")) { const w = document.createElement("div"); w.innerHTML = mapDialog(); const l = w.firstElementChild; l.id = "map-layer"; document.body.appendChild(l); window.WardenUI.openLayer(l, t.closest("#pb-map")); return; }
+    if (t.closest("[data-map-link]")) { document.getElementById("map-layer")?.remove(); return; }
+    const sb = t.closest(".proto-bar [data-state]");
+    if (sb) { navigate(parseHash().id, sb.dataset.state); return; }
+    const g = t.closest("[data-go]");
+    if (g && !g.disabled && g.getAttribute("aria-disabled") !== "true") {
+      e.preventDefault();
+      const target = g.getAttribute("data-go");
+      if (target) { const [id, st] = target.split("~"); navigate(id, st); }
+      else window.WardenUI.toast(W.toast({ kind: "info", text: "Esta ação não faz parte do protótipo." }), 2600);
+      return;
+    }
+    const sec = t.closest(".secmenu__item");
+    if (sec) { e.preventDefault(); navigate(sec.getAttribute("href").slice(1)); }
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "pb-go") navigate(e.target.value);
+    if (e.target.id === "pb-motion") { if (e.target.checked) document.documentElement.dataset.motion = "reduced"; else delete document.documentElement.dataset.motion; try { localStorage.setItem("warden-motion", e.target.checked ? "reduced" : ""); } catch (_) { /* sem armazenamento */ } }
+  });
+  // Fechar diálogo/painel = ir para a tela de fundo (data-esc)
+  document.addEventListener("warden:close", (e) => {
+    const target = e.target.getAttribute("data-esc");
+    if (target != null && e.target.closest("#stage")) { e.preventDefault(); navigate(target); }
+  });
+  document.addEventListener("warden:menu-close", (e) => {
+    if (e.target.id === "menu-testar" && parseHash().id === "testar-menu") { e.preventDefault(); navigate("mods"); }
+    if (e.target.id === "menu-pack" && parseHash().id === "packs-menu") { e.preventDefault(); navigate("packs"); }
+  });
+  window.addEventListener("hashchange", render);
+
+  try { if (localStorage.getItem("warden-motion") === "reduced") document.documentElement.dataset.motion = "reduced"; } catch (_) { /* sem armazenamento */ }
+
+  window.P = { def, go, B, sim, appShell, packShell, pageHead, render, navigate, SCREENS };
+  window.addEventListener("DOMContentLoaded", () => { if (!location.hash) history.replaceState(null, "", "#packs"); render(); });
+})();

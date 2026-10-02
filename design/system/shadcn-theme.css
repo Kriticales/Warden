@@ -1,0 +1,46 @@
+/* ARQUIVO GERADO por design/system/tools/build-tokens.mjs a partir de tokens.json.
+   Não edite à mão: mude tokens.json e rode o script de novo.
+   Uso: importe depois de tailwind-theme.css. Mapeia os nomes do shadcn/ui para os tokens do Warden. */
+:root {
+  --background: #050d12;
+  --foreground: #e4f3ef;
+  --card: #0a1a21;
+  --card-foreground: #e4f3ef;
+  --popover: #03090c;
+  --popover-foreground: #e4f3ef;
+  --primary: #19d3e0;
+  --primary-foreground: #021418;
+  --secondary: #0e2630;
+  --secondary-foreground: #e4f3ef;
+  --muted: #0e2630;
+  --muted-foreground: #8aacaa;
+  --accent: #12313c;
+  --accent-foreground: #e4f3ef;
+  --destructive: #c42f35;
+  --destructive-foreground: #ffffff;
+  --border: #15333e;
+  --input: #4f8a98;
+  --ring: #cfe3da;
+  --radius: 0px;
+}
+
+/* primary e border já existem em tailwind-theme.css com o mesmo valor. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
