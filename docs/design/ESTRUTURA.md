@@ -2,6 +2,7 @@
 
 > Tarefa D2, 01/10/2026. **Aprovada pelo dono no mesmo dia: Alternativa A** (ver §0). A SPEC, a ARCHITECTURE, o ROADMAP, o QUALITY e as ADRs 0025 a 0029 já foram atualizados; este documento registra a proposta e o porquê.
 > **Tarefa D4, 01/10/2026:** as funções avançadas pedidas pelo dono (pesquisas R5A e R5B) entram na mesma estrutura, sem seção nova e sem abas. Onde fica cada uma e as poucas mudanças de nome estão na [§13](#13-funções-avançadas-d4-onde-fica-cada-uma); ela prevalece sobre as seções anteriores quando houver diferença.
+> **Tarefa D5, 02/10/2026:** as seis funções do **Warden 1.1 "Profissional"** (segurança dos mods, manutenção, travamento de um jogador, notas e grupos, itens repetidos, desempenho entre versões) entram na mesma estrutura, de novo sem seção nova e sem abas. Onde fica cada uma está na [§14](#14-warden-11-profissional-d5-onde-fica-cada-função); ela prevalece sobre as seções anteriores quando houver diferença.
 > Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet), publicado em https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl
 > Base: `docs/SPEC.md` (telas T01 a T23), relatórios em `docs/research/` e o motivo da reprovação do protótipo D1.
 
@@ -23,6 +24,7 @@ Este documento define **como se navega no Warden**, antes de qualquer estilo vis
 11. [Como usar o rascunho clicável](#11-como-usar-o-rascunho-clicável)
 12. [Limites deste rascunho e pontos em aberto](#12-limites-deste-rascunho-e-pontos-em-aberto)
 13. [Funções avançadas (D4): onde fica cada uma](#13-funções-avançadas-d4-onde-fica-cada-uma)
+14. [Warden 1.1 "Profissional" (D5): onde fica cada função](#14-warden-11-profissional-d5-onde-fica-cada-função)
 
 ---
 
@@ -533,3 +535,97 @@ Revisados com a skill `design:ux-copy` e acrescentados ao glossário (`QUALITY.m
 - Os 5 fluxos principais da §8 não ganharam nenhum passo. As funções novas são caminhos laterais a partir deles (por exemplo, no fluxo 4, depois de "O jogo travou", **Encontrar o mod culpado** quando a causa não aparece).
 - O botão **▶ Testar** continua fazendo só o teste normal. Servidor local, busca do culpado e perfil de desempenho nunca rodam sem o usuário pedir.
 - O protótipo final (`design/prototipo-final/`) mostra as telas novas; o mapa do protótipo lista os caminhos.
+
+## 14. Warden 1.1 "Profissional" (D5): onde fica cada função
+
+Depois da D4, o dono perguntou o que faltava para o Warden ser um gerenciador de mods profissional e aprovou seis funções. Elas formam uma **versão nova do app, o Warden 1.1 "Profissional"**, construída depois da v1 (marco M6 do ROADMAP; SPEC §10, D27 a D33). Esta seção diz onde cada uma mora. As regras da §1 continuam valendo sem exceção: **dois níveis, 6 seções no pack, nenhuma aba, o raro escondido**. Nada novo vira seção: tudo entra como página de detalhe, modo de exibição, filtro, painel, diálogo ou item de menu.
+
+O lugar natural de quase tudo é **Problemas**: segurança, manutenção, itens repetidos e o travamento de um jogador são coisas que podem dar errado no pack. Para Problemas não virar uma página interminável, ela ganha um painel curto **Verificações do pack**, com uma linha por verificação e um link para a página de detalhe de cada uma. Os achados que exigem ação (um arquivo suspeito, um mod removido) aparecem também na lista normal de achados, com a gravidade de sempre.
+
+### 14.1 Mapa atualizado (só o que muda)
+
+```
+PACK ABERTO
+├── Mods ........ Mods, resource packs e shaders
+│   ├── barra: + "Agrupar por: Tipo · Grupo · Nenhum" (caixa de seleção) e filtro "Grupo"   (1.1)
+│   ├── linha do mod: a nota aparece na segunda linha, no lugar da descrição               (1.1)
+│   ├── barra de seleção: + "Pôr no grupo ▾"                                                (1.1)
+│   ├── Grupos do pack (diálogo, pelo menu ⋯ de Mods): criar, renomear, apagar             (1.1)
+│   └── Detalhes do item (painel): + "Nota e grupos" (no topo) e "Segurança do arquivo"     (1.1)
+│                                   + "Manutenção" quando o mod foi removido ou parou
+│                                     └── Procurar substituto (no mesmo painel, "← Detalhes")
+├── Problemas ... Saúde do pack, problemas e travamentos   (descrição igual)
+│   ├── Saúde do pack (topo): + categorias "Segurança", "Manutenção" (ampliada), "Itens repetidos"
+│   ├── Verificações do pack (painel novo, logo abaixo da saúde)                             (1.1)
+│   │     Segurança dos mods ......... → página "Segurança dos mods" (← Problemas)
+│   │     Manutenção dos mods ........ → página "Manutenção dos mods" (← Problemas)
+│   │     Itens repetidos entre mods . → página "Itens repetidos entre mods" (← Problemas)
+│   ├── Erros, Avisos e Informações (os achados de segurança e manutenção entram aqui também)
+│   └── Travamentos: + linhas de jogadores (origem "Jogador") e o botão
+│         "Analisar travamento de um jogador…" → página "Travamento de um jogador" (← Problemas)
+│         └── ✦ Conversar com a IA sobre este travamento (mesmo consentimento de sempre)
+├── Histórico ... Versões salvas e publicação
+│   ├── + bloco "Desempenho entre versões" (resumo de uma linha)                            (1.1)
+│   │     → página "Desempenho entre versões" (← Histórico): gráfico por versão salva
+│   └── Salvar versão (diálogo): + "Incluir as notas dos mods no resumo"                    (1.1)
+│       Publicar versão (diálogo): + "Checagens obrigatórias" (segurança e manutenção)      (1.1)
+└── (Configs, ✦ Diagnóstico com IA e Exportar não mudam)
+Fora do menu:
+├── Tela do teste: "Verificação final" passa a incluir a segurança dos arquivos;            (1.1)
+│     o resultado ganha o aviso "Esta versão está mais pesada" quando for o caso
+├── Adicionar (descoberta): arquivo do computador e link direto passam pela checagem        (1.1)
+└── Meus packs → Importar modpack: o resumo ganha "Segurança dos arquivos"                  (1.1)
+```
+
+### 14.2 Onde fica cada função
+
+| Função (D27 a D32) | Onde fica | Como se chega |
+|---|---|---|
+| **Segurança dos mods** (malware) | Página de detalhe **Segurança dos mods** dentro de Problemas: uma linha por arquivo com o resultado ("Confere com o arquivo oficial do Modrinth", "Arquivo do computador: nenhum sinal conhecido", "Não confere com o arquivo oficial", "Sinal de programa malicioso conhecido"). Bloco **Segurança do arquivo** nos detalhes do item. Achados de segurança na lista de Problemas, como erro. | Painel Verificações do pack; link na saúde ("Segurança"); detalhes do mod; etapa "Verificação final" do teste; checagem obrigatória do Publicar; adicionar arquivo ou link; importar. |
+| **Manutenção dos mods** (removidos ou abandonados) | Página de detalhe **Manutenção dos mods** dentro de Problemas, com um grupo por situação (removido da plataforma, arquivo removido, arquivado, sem atualização há muito tempo, sem versão para o Minecraft mais novo). **Procurar substituto** troca o conteúdo do painel de detalhes do mod pela lista de candidatos, com o porquê de cada um e "← Detalhes" (mesmo padrão de "Ver todas as alterações" do raio-x). | Painel Verificações do pack; filtro "Sem manutenção" em Mods; detalhes do mod; checagem obrigatória do Publicar. |
+| **Travamento de um jogador** | Página de detalhe **Travamento de um jogador** dentro de Problemas: colar o link (mclo.gs e outros) ou escolher o arquivo; o resultado diz qual versão do pack o jogador usa, mostra o mesmo "Por que travou" do teste e oferece **✦ Conversar com a IA**. Cada análise vira uma linha em Travamentos, com a origem "Jogador". | Botão **Analisar travamento de um jogador…** no topo de Problemas e no bloco Travamentos; em ✦ Diagnóstico com IA, "Começar pelo" ganha "Travamento de um jogador (link ou arquivo)". |
+| **Notas e grupos** | Em **Mods**: nota na segunda linha de cada mod; caixa **Agrupar por: Tipo · Grupo · Nenhum** e filtro **Grupo**; ação **Pôr no grupo ▾** na barra de seleção; diálogo **Grupos do pack** pelo menu ⋯ da seção. Nos detalhes do item, o bloco **Nota e grupos** fica no topo. No **Salvar versão**, a caixa **Incluir as notas dos mods no resumo**. | Seção Mods; detalhes do mod; Salvar versão. |
+| **Itens repetidos entre mods** | Página de detalhe **Itens repetidos entre mods** dentro de Problemas: um material por linha ("Cobre: 4 mods têm o próprio lingote; 3 geram minério"), com as evidências e a solução da versão certa (por exemplo, **Adicionar AlmostUnified**). É um **conselho**: não aparece entre os erros e avisos, só no painel Verificações e na própria página. | Painel Verificações do pack; linha "Itens repetidos" da saúde. |
+| **Desempenho entre versões** | Página de detalhe **Desempenho entre versões** dentro do Histórico: gráfico simples por versão salva, com o seletor **Mostrar: Tempo para abrir · Memória máxima** (modo de exibição, não aba), filtrado pelo perfil do teste e por este computador. O resultado do teste ganha o aviso "Esta versão está mais pesada" com o link para a página. | Bloco **Desempenho entre versões** no Histórico; aviso no resultado do teste; linha "Desempenho" da saúde. |
+
+### 14.3 Mudanças na estrutura (D5)
+
+| # | Mudança | Por que é indispensável |
+|---|---|---|
+| P1 | **Problemas** ganha o painel **Verificações do pack**, com três linhas (Segurança, Manutenção, Itens repetidos), cada uma levando a uma página de detalhe com "← Problemas". | Três verificações novas, com dezenas de linhas cada, não cabem na lista de achados sem empurrar os erros para baixo da dobra. O painel mostra o resumo e esconde o detalhe até ser pedido (regra 5). |
+| P2 | **Problemas → Travamentos** passa a aceitar travamentos de jogadores, com o botão **Analisar travamento de um jogador…** e a coluna **Origem** ("Seus testes" ou "Jogador"). | Um travamento é um travamento, venha de onde vier. Uma página separada só para jogadores duplicaria a lista e a análise. |
+| P3 | **Mods** ganha **Agrupar por** e o filtro **Grupo**, e o painel de detalhes ganha **Nota e grupos** no topo. | Agrupar é um modo de exibição da mesma lista (regra 3). A nota fica no topo do painel porque responde a primeira pergunta que se faz sobre um mod esquecido: "por que isto está aqui?". |
+| P4 | O painel de detalhes do item ganha **Procurar substituto**, que troca o conteúdo do painel (com "← Detalhes"). | É uma pergunta sobre um mod específico; o padrão já existe no raio-x ("Ver todas as alterações"). Diálogo sobre painel seria camada sobre camada. |
+| P5 | **Histórico** ganha o bloco **Desempenho entre versões** e a página de detalhe com o gráfico. | O que se compara são versões salvas, e as versões salvas moram no Histórico. O resultado do teste continua mostrando só a comparação com a versão anterior, com o link para o resto. |
+| P6 | O diálogo **Publicar versão** ganha **Checagens obrigatórias** (segurança e manutenção), que rodam sempre antes de publicar. | Pedido do dono (D27, D28): nada vai para os jogadores sem passar por elas. Ficam no mesmo diálogo, antes dos avisos, para não criar mais uma etapa. |
+
+Nenhuma sétima seção, nenhuma aba. O menu ▾ do Testar **não muda** (continua com os mesmos 11 itens; os pontos pendentes da D4 sobre ele, DESIGN-SYSTEM §10, ficam como estão). A ADR-0045 registra estas mudanças.
+
+### 14.4 Nomes novos
+
+Revisados com a skill `design:ux-copy` e acrescentados ao glossário (`QUALITY.md` §8.2).
+
+| Nome na interface | O que é | Por quê |
+|---|---|---|
+| **Segurança dos mods** | Conferência dos arquivos dos mods (hash oficial e sinais de programa malicioso) | Diz o assunto sem prometer o que não faz. "Antivírus" e "proteção" foram evitados de propósito: o Warden não é um antivírus e a tela diz isso. |
+| **Confere com o arquivo oficial** / **Não confere com o arquivo oficial** | Resultado da conferência pelo hash com o Modrinth ou a CurseForge | Frase de leigo para "hash igual". "Hash" aparece só nos detalhes técnicos. |
+| **Sinal de programa malicioso conhecido** | Assinatura de malware encontrada no arquivo | "Malware" é jargão; "vírus" é impreciso. A explicação diz qual sinal e de onde ele vem (por exemplo, "o mesmo padrão do caso fractureiser, de 2023"). |
+| **Confiar neste arquivo** | Liberar um arquivo apontado pela checagem, depois de confirmar | Deixa claro que a responsabilidade passa a ser de quem confia. Pede para digitar o nome do mod. |
+| **Manutenção dos mods** | Mods removidos, arquivados, sem atualização ou sem versão para o Minecraft mais novo | Palavra comum. "Abandonado" aparece só como explicação ("o autor parece ter parado"), porque não dá para ter certeza. |
+| **Removido do Modrinth** / **Removido da CurseForge** / **Arquivo removido** / **Arquivado pelo autor** | Situações da manutenção | Dizem o fato, não a interpretação. |
+| **Procurar substituto** / **Substitutos** | Mods parecidos na mesma plataforma, com o motivo da sugestão | "Alternativa" ficou para o texto de apoio; o botão diz a ação. |
+| **Analisar travamento de um jogador…** / **Travamento de um jogador** | Analisar o log ou o crash report que um jogador mandou | Diz de quem é o travamento. "Relatório de crash" e "log de terceiros" são jargão. |
+| **Nota** | Texto curto que diz por que o mod está no pack | Curto e comum. O campo tem a dica "Por que este mod está no pack?". |
+| **Grupo** / **Grupos do pack** | Etiquetas criadas pelo usuário (Performance, Geração de mundo…) | "Categoria" já é usada pela página de descoberta para as categorias das plataformas; "tag" é jargão e se confunde com as tags de itens. |
+| **Itens repetidos entre mods** | Materiais e minérios que vários mods adicionam | Diz o que o usuário vê no jogo (quatro lingotes de cobre diferentes). "Unificação" fica para a solução. |
+| **Unificar** / **unificador de itens** | O que o AlmostUnified e afins fazem | Verbo da própria comunidade, explicado na tela ("faz os mods usarem um item só"). |
+| **Conselho** | Resultado que não é erro nem aviso | Usado só para os itens repetidos; deixa claro que nada vai quebrar. |
+| **Desempenho entre versões** | Gráfico com o tempo para abrir e a memória máxima de cada versão salva | Diz o que se compara. |
+| **Tempo para abrir** / **Memória máxima** | As duas medidas do gráfico | Iguais às da faixa de desempenho ("Abriu em", "RAM do processo"), em forma de nome. |
+| **Esta versão está mais pesada** | Aviso quando uma versão passa do limite combinado | Leigo entende "pesada"; o texto de apoio dá os números. |
+
+### 14.5 O que continua igual
+
+- Os 10 fluxos do protótipo não ganharam passo novo. A 1.1 acrescenta três caminhos laterais (fluxos 11 a 13 do mapa do protótipo): conferir a segurança e trocar um mod removido antes de publicar; analisar o travamento de um jogador; organizar o pack com notas e grupos e ver o desempenho entre versões.
+- O ▶ Testar continua fazendo só o teste normal. A checagem de segurança entra dentro da "Verificação final", que já existia, e só lê os arquivos (não abre nada).
+- Os três pontos de design pendentes da D4 (DESIGN-SYSTEM §10: tamanho do menu ▾ do Testar, menu recolhido na descoberta e grafo focado) não foram mexidos.

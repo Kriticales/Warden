@@ -42,5 +42,14 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0036](0036-funcoes-avancadas-na-estrutura.md) | Funções avançadas encaixadas na estrutura aprovada | dono |
 | [0037](0037-editor-de-scripts.md) | Editor de scripts KubeJS e CraftTweaker | dono + técnica |
 | [0038](0038-monitor-de-desempenho.md) | Monitor de desempenho do jogo sem JDK | técnica |
+| [0039](0039-warden-1-1-profissional.md) | Warden 1.1 "Profissional": versão nova e ganchos na v1 | dono + técnica |
+| [0040](0040-seguranca-dos-mods.md) | Checagem de segurança dos mods | dono + técnica |
+| [0041](0041-lista-de-sinais-embutida.md) | Lista de sinais embutida e atualizada com o app | técnica |
+| [0042](0042-manutencao-e-substitutos.md) | Manutenção dos mods e substitutos | dono |
+| [0043](0043-travamento-de-jogador.md) | Analisar o travamento de um jogador | dono |
+| [0044](0044-notas-e-grupos.md) | Notas e grupos em `.warden/mods.toml` | técnica |
+| [0045](0045-funcoes-1-1-na-estrutura.md) | Funções da 1.1 encaixadas na estrutura aprovada | dono |
+| [0046](0046-itens-repetidos.md) | Itens repetidos: detecção estática e peso na saúde | dono + técnica |
+| [0047](0047-desempenho-entre-versoes.md) | Desempenho entre versões | técnica |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.

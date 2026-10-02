@@ -1,8 +1,15 @@
 # Warden — Especificação do produto
 
-> Versão do documento: 1.2 (2026-10-01). Tarefa A1; estrutura de navegação, busca combinada, chaves, Java e publicação revistas na tarefa D2 com as decisões do dono de 01/10/2026 (`docs/design/ESTRUTURA.md`, ADR-0025 a ADR-0029). Funções avançadas de criação, edição e debug acrescentadas na tarefa D4 (pesquisas R5A e R5B, decisões D15 a D26, ADR-0030 a ADR-0038).
+> Versão do documento: 1.3 (2026-10-02). Tarefa A1; estrutura de navegação, busca combinada, chaves, Java e publicação revistas na tarefa D2 com as decisões do dono de 01/10/2026 (`docs/design/ESTRUTURA.md`, ADR-0025 a ADR-0029). Funções avançadas de criação, edição e debug acrescentadas na tarefa D4 (pesquisas R5A e R5B, decisões D15 a D26, ADR-0030 a ADR-0038). **Warden 1.1 "Profissional"** acrescentado na tarefa D5 (decisões D27 a D33, ADR-0039 a ADR-0047): seis funções marcadas com a etiqueta **1.1**, construídas depois da v1 (§4).
 > Base: relatórios em `docs/research/` (R1 a R4, R5A em `05-diagnostico-avancado.md` e R5B em `06-criacao-edicao-descoberta.md`) e as decisões do dono registradas em `docs/decisions/`.
 > Documentos irmãos: `ARCHITECTURE.md` (como é construído), `QUALITY.md` (padrão obrigatório), `ROADMAP.md` (ordem de construção).
+
+| Versão do documento | Data | O que mudou |
+|---|---|---|
+| 1.0 | 2026-10-01 | Primeira versão (tarefa A1). |
+| 1.1 | 2026-10-01 | Estrutura de navegação, busca combinada, chaves, Java e publicação (tarefa D2). |
+| 1.2 | 2026-10-01 | Funções avançadas de criação, edição e debug (tarefa D4). |
+| 1.3 | 2026-10-02 | Warden 1.1 "Profissional": segurança dos mods, manutenção, travamento de um jogador, notas e grupos, itens repetidos e desempenho entre versões (tarefa D5; T28 a T33). |
 
 ## Sumário
 
@@ -35,6 +42,7 @@ Princípios que guiam todas as decisões:
 5. **Português do Brasil, linguagem simples.** Termos técnicos só quando ajudam; sempre com explicação.
 6. **Privado.** Nenhum dado sai do computador sem você pedir. Logs só vão para a IA numa conversa que você começou e aceitou, sempre sem dados pessoais, e cada coisa enviada fica visível na conversa (ADR-0030).
 7. **O pesado só quando você pede.** Servidor local, busca do culpado e perfil de desempenho nunca rodam sozinhos; o ▶ Testar continua fazendo só o teste normal.
+8. **Honesto sobre o que verifica** (1.1). A checagem de segurança dos mods confere arquivos e procura sinais conhecidos; não é um antivírus, e a interface diz isso em linguagem simples (ADR-0040).
 
 Uso: pessoal e privado. O Warden nunca será distribuído publicamente (ADR-0004).
 
@@ -73,6 +81,16 @@ Termos como aparecem na interface. A lista completa de termos obrigatórios fica
 | **Versão final** | Versão salva marcada como pronta para os jogadores. Só versões finais podem ser publicadas. |
 | **Publicar versão** | Enviar uma versão final ao GitHub do pack. Quem joga com o link do pack recebe a atualização sozinho. |
 | **Link do pack** | Endereço do `pack.toml` publicado no GitHub (`https://raw.githubusercontent.com/<dono>/<repo>/main/pack.toml`), usado pelos jogadores no packwiz-installer-bootstrap. |
+| **Segurança dos mods** (1.1) | Conferência de cada arquivo de mod: se ele é igual ao arquivo oficial do Modrinth ou da CurseForge e se tem algum sinal conhecido de programa malicioso. Não é um antivírus. |
+| **Confere com o arquivo oficial** (1.1) | O arquivo é exatamente o que a plataforma distribui (mesmo hash). |
+| **Sinal de programa malicioso conhecido** (1.1) | Trecho de código igual ao de um caso conhecido de mod com malware (como o fractureiser, de 2023). |
+| **Manutenção dos mods** (1.1) | Situação de cada mod na plataforma: removido, arquivado, arquivo removido, sem atualização há muito tempo ou sem versão para o Minecraft mais novo. |
+| **Substituto** (1.1) | Mod parecido na mesma plataforma, sugerido com o motivo, para trocar um mod removido ou parado. |
+| **Travamento de um jogador** (1.1) | Log ou crash report que um jogador mandou (por link ou arquivo), analisado como um travamento dos seus testes. |
+| **Nota** (1.1) | Texto curto num mod dizendo por que ele está no pack. |
+| **Grupo** (1.1) | Etiqueta criada por você para juntar mods (Performance, Geração de mundo…). Um mod pode estar em vários grupos. |
+| **Itens repetidos entre mods** (1.1) | O mesmo material (cobre, estanho…) adicionado por vários mods, cada um com o próprio item ou minério. É um conselho, não um erro. |
+| **Desempenho entre versões** (1.1) | Gráfico com o tempo para abrir e a memória máxima de cada versão salva, só com testes comparáveis. |
 
 ## 3. Conceitos centrais
 
@@ -107,7 +125,8 @@ Termos como aparecem na interface. A lista completa de termos obrigatórios fica
 |---|---|
 | **P0** | Obrigatório na v1. Sem isso o Warden não cumpre o objetivo. |
 | **P1** | Entra na v1, construído logo depois do P0 correspondente. |
-| **P2** | Depois da v1. Está descrito para orientar o desenho, mas não é construído agora. |
+| **1.1** | **Warden 1.1 "Profissional"** (decisão D33): versão nova do app, construída depois da v1 (marco M6 do ROADMAP). Não faz parte da v1 e não atrasa nenhuma tarefa dela. A v1 só deixa os ganchos prontos (ARCHITECTURE §21). Aparece como etiqueta "(1.1)" ao lado do item, do mesmo jeito que "(P1)". |
+| **P2** | Depois da v1 e da 1.1. Está descrito para orientar o desenho, mas não é construído agora. |
 | **Fora da v1** | Não planejado (§9). |
 
 Suporte de versões (ADR-0005): **garantido de 1.7.10 até a versão mais nova do Minecraft** desde a primeira versão do app, com Forge (todas as versões, inclusive 1.7.10 e 1.12.2), NeoForge (1.20.1+) e Fabric (1.14+). Versões anteriores a 1.7.10 aparecem com a etiqueta "melhor esforço": podem ser criadas e testadas, mas não fazem parte dos testes automáticos e falhas nelas não bloqueiam entregas.
@@ -119,6 +138,17 @@ Suporte de versões (ADR-0005): **garantido de 1.7.10 até a versão mais nova d
 | P0 | Índice pacote → mod e config de mixin → mod; assinatura de travamento e lista de Travamentos; higiene dos arquivos do spark, do KubeJS e do ProbeJS; mods iniciais (spark e Crash Assistant) e ferramentas do jogador; RAM do processo e tempo de carregamento em todo teste; consultas do grafo (quem depende, por que está no pack, bibliotecas sem uso); busca em todas as configs; página de descoberta em tela cheia com início, categorias, seleção múltipla e descrição higienizada | T03, T04, T06, T07, T08, T12, T13, T14, T15 |
 | P1 | Nota de saúde (Problemas e Meus packs); console agrupado; memória da JVM; busca do culpado (no cliente, modo assistido e com servidor local); IA com ferramentas e conversas; raio-x de mixins (camadas A e B); tempo por mod e perfil de desempenho com spark; grafo desenhado; formulário de configs em camadas, padrão e restaurar, validação de faixa; editor de scripts; perfis do teste com Quick Play; servidor local; teste "como o jogador recebe" pelo link; pacote para servidor; importar; navegar por modpacks; kits de desempenho; galeria, versões e links na pré-visualização | T02, T06, T07, T08, T11, T12, T13, T14, T19, T24, T25, T26, T27 |
 | P2 | Ver §9 | — |
+
+**Warden 1.1 "Profissional"** (decisões D27 a D33; ESTRUTURA §14):
+
+| Função | Etiqueta | Telas |
+|---|---|---|
+| Segurança dos mods: conferência pelo hash oficial e busca de sinais conhecidos de malware, obrigatória antes de publicar | 1.1 | T28 (e T07, T08, T13, T14, T18, T24) |
+| Manutenção dos mods: removidos, arquivados, sem atualização, sem versão nova; substitutos | 1.1 | T29 (e T06, T07, T14, T18) |
+| Analisar o travamento de um jogador (link ou arquivo), com a versão do pack identificada | 1.1 | T30 (e T14) |
+| Notas e grupos de mods, com filtro, agrupamento e notas no resumo da versão | 1.1 | T31 (e T06, T07, T16) |
+| Itens repetidos entre mods, com a solução de unificação da versão certa | 1.1 | T32 (e T14) |
+| Desempenho entre versões: métricas de cada teste, gráfico por versão e aviso de versão mais pesada | 1.1 | T33 (e T13, T14, T17) |
 
 ## 5. Mapa de telas
 
@@ -133,16 +163,22 @@ Primeira execução (T01) ──► Meus packs (T02, com a coluna Saúde) ... n�
                                      Cabeçalho: ← Meus packs · nome · Editar informações (T11)
                                                 · avisos · Salvar versão (T16) · ▶ Testar ▾ (T13)
                                      Menu lateral (6 seções):
-                                     ├── Mods (T06): Ver como: Lista · Grafo
-                                     │     ├── Detalhes do item (T07), com o raio-x de mixins
+                                     ├── Mods (T06): Ver como: Lista · Grafo; (1.1) Agrupar por e
+                                     │     filtro Grupo; Grupos do pack (T31)
+                                     │     ├── Detalhes do item (T07), com o raio-x de mixins; (1.1) nota e
+                                     │     │     grupos, segurança do arquivo, manutenção e substitutos (T29)
                                      │     ├── Adicionar: página de descoberta em tela cheia (T08),
                                      │     │     com Tipo = Modpacks
                                      │     │     └── Dependências e conflitos (T09)
                                      │     └── Atualizações (T10)
                                      ├── Configs (T12): busca em todas as configs; scripts (T26)
                                      ├── Problemas (T14): saúde do pack, problemas, travamentos
+                                     │     (1.1) Verificações do pack: Segurança dos mods (T28),
+                                     │     Manutenção dos mods (T29), Itens repetidos entre mods (T32);
+                                     │     Travamento de um jogador (T30)
                                      ├── ✦ Diagnóstico com IA (T14): conversas
-                                     ├── Histórico (T17), com Publicar versão (T18)
+                                     ├── Histórico (T17), com Publicar versão (T18);
+                                     │     (1.1) Desempenho entre versões (T33)
                                      └── Exportar (T19), com Pacote para servidor
                                      Fora do menu:
                                      ├── Teste (T13): etapas, downloads manuais (T20), jogo aberto
@@ -156,7 +192,7 @@ Primeira execução (T01) ──► Meus packs (T02, com a coluna Saúde) ... n�
 Tarefas em andamento (T22): indicador no rodapé de todas as telas, abre uma gaveta.
 ```
 
-Onde fica cada função nova da D4 e por quê: `docs/design/ESTRUTURA.md` §13 (ADR-0036).
+Onde fica cada função nova da D4 e por quê: `docs/design/ESTRUTURA.md` §13 (ADR-0036). Funções da 1.1: ESTRUTURA §14 (ADR-0045).
 
 **Navegação:**
 - **Dois níveis que não se misturam.** O nível do app não tem barra lateral: Meus packs é a tela inicial, com Criar pack, Abrir ou importar… e Configurações no topo. Itens de um pack só existem depois de abrir um pack.
@@ -326,9 +362,9 @@ Seção **Mods**: uma lista única, agrupada por tipo (Mods, Resource packs, Sha
 | Fonte | Modrinth, CurseForge, Link direto, Arquivo local. |
 | Lado | Cliente e servidor / Só cliente / Só servidor. Editável na linha. |
 | Atualização | Em dia / Atualização disponível / Não verificado / Não foi possível verificar / Não se aplica (arquivo local ou link). |
-| Marcas | Fixado (P1), Opcional (P1), Problema (do diagnóstico, com cor por gravidade). |
+| Marcas | Fixado (P1), Opcional (P1), Problema (do diagnóstico, com cor por gravidade); (1.1) manutenção ("Removido do Modrinth", "Arquivado") e até dois grupos, com "+1" (T29, T31). |
 
-**Ações:** buscar por nome; filtrar por tipo, fonte, lado, "com atualização", "com problema" (caixas de seleção); ordenar; selecionar vários e **Alterar lado**, **Remover**, **Atualizar** (a barra de ações aparece quando há seleção); **Adicionar** (T08); **Verificar atualizações** (T10); faixa "N atualizações disponíveis" com **Revisar e atualizar**; clicar abre Detalhes (T07) num painel lateral, sem sair da lista. Arrastar arquivos `.jar`/`.zip` para a lista inicia "Adicionar arquivo local" (T08).
+**Ações:** buscar por nome (1.1: e pela nota, T31); filtrar por tipo, fonte, lado, "com atualização", "com problema" e, na 1.1, "Sem manutenção" (T29) e **Grupo** (T31) (caixas de seleção); (1.1) **Agrupar por: Tipo · Grupo · Nenhum** (T31); ordenar; selecionar vários e **Alterar lado**, **Remover**, **Atualizar** (a barra de ações aparece quando há seleção); **Adicionar** (T08); **Verificar atualizações** (T10); faixa "N atualizações disponíveis" com **Revisar e atualizar**; clicar abre Detalhes (T07) num painel lateral, sem sair da lista; (1.1) na barra de seleção, **Pôr no grupo ▾**, e no menu ⋯ da seção, **Grupos do pack…** (T31). Na 1.1, a segunda linha de cada mod mostra a nota no lugar da descrição, quando houver (T31). Arrastar arquivos `.jar`/`.zip` para a lista inicia "Adicionar arquivo local" (T08).
 
 **Remover:** diálogo de confirmação que lista o que será removido e avisa "Estes mods dependem dele: …" quando houver, considerando a cadeia inteira (quem depende de quem depende dele; consultas do grafo, ADR-0034). P1: oferece também remover dependências que ficaram sem uso ("órfãs"). O Warden apaga o `.pw.toml` (ou o arquivo local) e atualiza o índice; não usa `packwiz remove` (R4 §2.3).
 
@@ -356,6 +392,8 @@ Seção **Mods**: uma lista única, agrupada por tipo (Mods, Resource packs, Sha
 **Conteúdo:** ícone, nome, autores, link da página (abre no navegador), descrição (Modrinth em Markdown; CurseForge em HTML, ambas higienizadas), informações da versão instalada (número, versões do Minecraft, loaders, data, nome do arquivo, tamanho, hashes), lado (editável), **Depende de** (obrigatórias, opcionais e incompatíveis, cada uma com estado "no pack" ou "falta"), **Usado por** (itens que dependem deste), **Por que está no pack** ("Você adicionou" ou a cadeia até um mod escolhido por você: "exigido por Sophisticated Backpacks, que você adicionou"), link **Ver no grafo** (P1), changelog da versão instalada.
 
 **O que este mod altera no jogo** (P1, raio-x de mixins, ADR-0034): resumo ("Altera 214 partes do jogo, em 3 configs. 2 também alteradas por outros mods.") e as sobreposições com outros mods, cada uma com o ponto do jogo (nome legível quando houver), o tipo de alteração, o risco (alto, médio, baixo, com selo e palavra) e o motivo em linguagem simples, inclusive os rebaixadores ("compatibilidade intencional", "pode ser desligado pelo próprio mod", "par conhecido como compatível"). **Ver todas as alterações** troca o conteúdo do mesmo painel pela lista completa (filtrável por texto e por risco), com "← Detalhes do mod". Mods sem mixins: "Este mod não altera o código do jogo por mixins." A linguagem é sempre "alteram o mesmo ponto do jogo", nunca "são incompatíveis".
+
+**Blocos da 1.1:** **Nota e grupos** no topo do painel (T31); **Segurança do arquivo**, com o resultado da checagem e a evidência (T28); **Manutenção**, quando o mod foi removido, arquivado ou parou de ser atualizado, com **Procurar substituto**, que troca o conteúdo do painel pela lista de substitutos com "← Detalhes" (T29).
 
 **Ações:** Atualizar (quando houver), Remover, Abrir página; em **Mais opções**: **Trocar de versão** (P1: escolher qualquer versão compatível, inclusive mais antiga), **Opcional** e **Fixar versão** (P1, ver T11).
 
@@ -403,12 +441,14 @@ Três colunas: **filtros** (categorias, ambiente, ordenar; fonte em "Mais filtro
 - Aceita link de projeto ou versão do Modrinth (resolvido pela API do Modrinth), link de projeto ou arquivo da CurseForge (passa pelo packwiz, conforme decisão do dono; ADR-0006) e link direto `https://` para um arquivo `.jar`/`.zip`.
 - Link de **projeto** (Modrinth ou CurseForge) abre a pré-visualização com o seletor de versão, igual à busca; link de **arquivo/versão** usa exatamente aquele arquivo, avisando se ele não for compatível com o pack ou não for do canal configurado.
 - Para link direto: o Warden baixa uma vez, calcula o hash, lê os metadados (se for mod), pede o tipo (mod, resource pack, shader) e grava a referência. Links `http://` são recusados.
+- (1.1) Antes de gravar, o jar baixado passa pela checagem de segurança (T28); com erro de segurança, só **Cancelar** ou **Confiar neste arquivo…**.
 
 **Arquivo:**
 - Escolher um ou vários arquivos (ou arrastar para a lista).
 - Para cada arquivo: o Warden lê os metadados (loader, versão do Minecraft) e procura o mesmo arquivo pelo hash no Modrinth e na CurseForge.
   - Encontrado: "Este arquivo é o Sodium 0.6.0 do Modrinth." com **Adicionar como referência ao Modrinth (recomendado)** ou **Adicionar como arquivo local**.
   - Não encontrado: entra como arquivo local (copiado para a pasta do pack).
+  - (1.1) Encontrado ou não, o arquivo passa pela checagem de segurança (T28) antes de ser copiado: um arquivo que diz ser um mod oficial mas não confere com ele, ou que tem um sinal conhecido, só entra com **Confiar neste arquivo…**; pontos de atenção aparecem no diálogo, sem impedir.
 - Loader ou versão do Minecraft incompatíveis: bloqueia com a explicação e oferece **Adicionar mesmo assim** (fica marcado como problema no diagnóstico).
 
 **Regras comuns:**
@@ -576,13 +616,14 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 1. **Verificar o pack (rápido):** roda a passagem rápida do diagnóstico pré-teste (T14), que usa o pack e os dados das APIs. Com erros: diálogo listando os erros, com **Corrigir** (quando houver correção automática), **Testar mesmo assim** e **Cancelar**. Só avisos: segue, com os avisos visíveis na aba Diagnóstico.
 2. **Preparar o Minecraft:** baixa a versão do jogo, instala o loader e escolhe/baixa o Java (o mais novo que funciona, T11; ARCHITECTURE §7). Mostra progresso (arquivos e megabytes). Na primeira vez pode levar alguns minutos; o texto avisa isso.
 3. **Copiar o pack para o teste** (sincronização): copia/baixa para a instância só o que mudou; remove o que saiu do pack; nunca toca em `saves/`, `screenshots/` e afins. Mods da CurseForge com download bloqueado abrem T20.
-4. **Verificação final:** passagem completa do diagnóstico, que lê os próprios arquivos `.jar` (dependências, duplicatas por ID, versão do Java exigida). Erros abrem o mesmo diálogo do passo 1.
+4. **Verificação final:** passagem completa do diagnóstico, que lê os próprios arquivos `.jar` (dependências, duplicatas por ID, versão do Java exigida). Erros abrem o mesmo diálogo do passo 1. (1.1) Inclui a checagem de segurança dos jars novos ou alterados (T28) e a leitura dos itens repetidos (T32); um erro de segurança abre o diálogo **sem** "Testar mesmo assim".
 5. **Abrir o jogo** com o perfil offline (nome configurado).
 6. **Jogo em execução:** console ao vivo; botões **Parar jogo** (confirmação: "O progresso não salvo do mundo pode ser perdido."), **Abrir pasta da instância**, **Editar configs do teste** (abre T12 na origem Instância) e, quando o pack tem KubeJS ou CraftTweaker, **Recarregar scripts** (T26). Acima do console, a **faixa de desempenho** (ver abaixo).
 7. **Jogo fechou:** a mesma tela mostra o resultado, com duração ("Fechado normalmente", "Travou" ou "Encerrado por você"), "Abriu em 1 min 42 s" (com a diferença para o último teste de outra versão do pack, quando houver), **Ver console** e **Testar de novo**, e logo abaixo:
    - **O que mudou durante o teste** (T15), quando houver mudanças;
    - se travou: **Por que travou** (diagnóstico pós-crash, T14), com a correção sugerida e, quando a causa não aparecer, **Encontrar o mod culpado** (P1, T25) como ação principal e **✦ Pedir ajuda à IA** (P1);
-   - depois de **Testar com perfil de desempenho**: a parte **Desempenho** (ver abaixo).
+   - depois de **Testar com perfil de desempenho**: a parte **Desempenho** (ver abaixo);
+   - (1.1) quando esta versão passa do critério de "mais pesada" (T33): o aviso **Esta versão está mais pesada**, com os números e **Ver desempenho entre versões**.
 
 **Console:**
 - Linhas coloridas por nível (erro, aviso, info, debug), com horário e origem (jogo, Warden).
@@ -638,9 +679,10 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 - **Depois de um travamento:** lê o resultado do processo, a saída capturada, `logs/latest.log`, `logs/debug.log`, os crash reports novos e os `hs_err_pid*.log` novos, e aplica o catálogo de padrões (dependência faltando, duplicado, falha de Mixin com o mod dono da config de mixin citada, Java errado, falta de memória, driver de vídeo, config corrompida, config resetada pelo NeoForge, mod de cliente no servidor, entre outros). Cada travamento ganha uma **assinatura** (a causa normalizada, sem números de linha nem endereços), usada para agrupar repetições e pela busca do culpado (T25).
 
 **Seção Problemas** (descrição "Saúde do pack, problemas e travamentos", decisão D20):
-1. **Saúde do pack** (P1; R5A §6.2; ADR-0034), no topo: nota de 0 a 100, faixa (90–100 Ótimo, 75–89 Bom, 50–74 Atenção, abaixo de 50 Crítico) e **O que tirou pontos**, uma linha por categoria com link para o problema, o mod ou o teste (nomes na interface entre aspas): "Problemas encontrados" (pré-teste: −15 por erro, −3 por aviso; teto −40), "Último teste" (travou −20, não testado depois da última alteração −5, nunca testado −10; teto −25), "Travamentos recentes" (−3 por causa diferente nas últimas 10 sessões; teto −10), "Mods que alteram o mesmo ponto do jogo" (mixins: −4 por sobreposição alta não rebaixada, −1 por média; teto −10; achados de mixin contam só aqui), "Manutenção" (mod sem versão nova há mais de 18 meses para a versão do pack, projeto arquivado, versão alpha ou beta; teto −10), "Download pelos jogadores" (−2 por mod da CurseForge que os jogadores não baixam sozinhos; teto −10), "Desempenho" (tempo de carregamento 50% acima do último teste bom −3; memória abaixo da sugestão −2; teto −5). Texto fixo: "Resumo dos problemas conhecidos. Não garante que o pack funciona." Itens ignorados não tiram pontos e aparecem riscados ("ignorado por você"). A mesma nota aparece em Meus packs (T02; decisão D24).
+1. **Saúde do pack** (P1; R5A §6.2; ADR-0034), no topo: nota de 0 a 100, faixa (90–100 Ótimo, 75–89 Bom, 50–74 Atenção, abaixo de 50 Crítico) e **O que tirou pontos**, uma linha por categoria com link para o problema, o mod ou o teste (nomes na interface entre aspas): "Problemas encontrados" (pré-teste: −15 por erro, −3 por aviso; teto −40), "Último teste" (travou −20, não testado depois da última alteração −5, nunca testado −10; teto −25), "Travamentos recentes" (−3 por causa diferente nas últimas 10 sessões; teto −10), "Mods que alteram o mesmo ponto do jogo" (mixins: −4 por sobreposição alta não rebaixada, −1 por média; teto −10; achados de mixin contam só aqui), "Manutenção" (mod sem versão nova há mais de 18 meses para a versão do pack, projeto arquivado, versão alpha ou beta; teto −10), "Download pelos jogadores" (−2 por mod da CurseForge que os jogadores não baixam sozinhos; teto −10), "Desempenho" (tempo de carregamento 50% acima do último teste bom −3; memória abaixo da sugestão −2; teto −5). (1.1) Três categorias novas ou ampliadas: "Segurança" (−20 por arquivo com erro de segurança não resolvido nem confiado, −3 por arquivo com pontos de atenção; teto −40; T28), "Manutenção" passa a contar também arquivo removido (−5) e projeto removido (−3), com o mesmo teto −10 (T29); achados de segurança e de manutenção contam só nas suas categorias, nunca também em "Problemas encontrados"; e "Itens repetidos" (−1 por material com minério de 2 ou mais mods; teto −3; T32); a linha "Desempenho" passa a usar o critério de versão mais pesada da T33 (−3), mantendo "memória abaixo da sugestão" (−2). Texto fixo: "Resumo dos problemas conhecidos. Não garante que o pack funciona." Itens ignorados não tiram pontos e aparecem riscados ("ignorado por você"). A mesma nota aparece em Meus packs (T02; decisão D24).
+1a. **Verificações do pack** (1.1; ESTRUTURA §14), logo abaixo da saúde: uma linha por verificação, com o resultado em ícone e palavra e o link para a página de detalhe: **Segurança dos mods** (T28), **Manutenção dos mods** (T29) e **Itens repetidos entre mods** (T32, sempre como conselho). Os achados de segurança e de manutenção também entram na lista de achados abaixo, com a gravidade de cada um.
 2. **Achados do pré-teste** agrupados por gravidade: **Erro** (bloqueia o teste por padrão), **Aviso**, **Informação**, com contador no menu. Itens com problema também ganham a marca na lista de Mods (T06).
-3. **Travamentos** (P0; R5A §7.5): uma linha por assinatura, com a causa em linguagem simples, quantas vezes travou, quando foi a última, em que versões do pack ("1.4.1 a 1.4.2"), a situação ("Causa encontrada", "Causa não encontrada", "Não voltou a acontecer desde a 1.4.4") e as ações **Ver o que causou**, **Encontrar o mod culpado** (P1, T25) e **✦ Conversar com a IA** (P1). Abrir uma linha mostra as sessões daquela causa, a busca do culpado e as conversas ligadas a ela. Sessões que fecharam normalmente são podadas (as últimas 30 ficam); sessões que travaram ficam até 500 MB por pack, com aviso antes de apagar.
+3. **Travamentos** (P0; R5A §7.5; 1.1: também os de jogadores, com a coluna **Origem** e o botão **Analisar travamento de um jogador…**, T30): uma linha por assinatura, com a causa em linguagem simples, quantas vezes travou, quando foi a última, em que versões do pack ("1.4.1 a 1.4.2"), a situação ("Causa encontrada", "Causa não encontrada", "Não voltou a acontecer desde a 1.4.4") e as ações **Ver o que causou**, **Encontrar o mod culpado** (P1, T25) e **✦ Conversar com a IA** (P1). Abrir uma linha mostra as sessões daquela causa, a busca do culpado e as conversas ligadas a ela. Sessões que fecharam normalmente são podadas (as últimas 30 ficam); sessões que travaram ficam até 500 MB por pack, com aviso antes de apagar.
 
 **Cada achado:** título em linguagem simples, explicação, itens envolvidos (com link para o item), evidência ("O arquivo fabric.mod.json do Sodium declara incompatibilidade com o OptiFine" ou o trecho do log com número da linha) e, quando houver, botões de correção (**Adicionar dependência X**, **Remover Y**, **Mudar lado para Só cliente**, **Atualizar Z**, **Restaurar padrão**). Correções passam pelos fluxos normais, com confirmação. "Ignorar este aviso neste pack" (P1; gravado em `.warden/`). Os achados de um travamento aparecem no resultado do teste ("Por que travou", T13). Sem conclusão: "Não encontramos a causa automaticamente." com **Encontrar o mod culpado** (P1), **Pedir ajuda à IA** (P1) e **Abrir crash report**.
 
@@ -671,6 +713,8 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 | CA-T14-13 | (P1) Com a busca no GitHub permitida, a consulta enviada ao GitHub contém só `repo:<dono>/<repo>` e as palavras do erro (nenhuma linha de log, caminho ou nome do jogador); com a caixa desmarcada, nenhuma requisição vai ao GitHub; com a caixa de configs desmarcada, a ferramenta de configs devolve "não permitido nesta conversa" e nada de config é enviado (servidores simulados). |
 | CA-T14-14 | (P1) O laço de ferramentas para em 8 rodadas por pergunta e pede a resposta final sem ferramentas; as *thought signatures* das respostas do modelo são reenviadas intactas (teste com servidor simulado que recusa histórico alterado, como a API real). |
 | CA-T14-15 | (P1) Continuar uma conversa depois de atualizar 3 mods mostra o aviso de que o pack mudou e a opção de começar outra; apagar uma conversa remove o arquivo dela dos dados do Warden. |
+| CA-T14-16 | (1.1) Num pack de teste com 1 arquivo com sinal conhecido, 1 arquivo local com pontos de atenção, 1 "Arquivo removido" e 2 materiais com minério repetido, a saúde tira 20 + 3 em "Segurança", 5 em "Manutenção" e 2 em "Itens repetidos", e nenhum desses achados desconta também em "Problemas encontrados"; confiar no arquivo devolve os 20 pontos (teste de domínio da nota). |
+| CA-T14-17 | (1.1) O painel Verificações do pack mostra as três linhas com o resultado em ícone e palavra e leva às páginas T28, T29 e T32; a linha "Itens repetidos" nunca usa a gravidade de erro ou aviso (teste de componente). |
 
 ---
 
@@ -725,6 +769,7 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
   - Primeira versão salva: sugere a versão atual do `pack.toml` (`0.1.0` em packs novos).
 - **Changelog automático** (pré-visualização): Adicionados, Removidos, Atualizados (`versão antiga → versão nova`), Resource packs e shaders, Configs alteradas (lista de arquivos), Mudança de Minecraft/loader.
 - **Notas** (texto livre, opcional) que entram no topo do changelog.
+- (1.1) **Incluir as notas dos mods no resumo** (caixa, desmarcada por padrão; o Warden lembra a última escolha do pack): acrescenta a nota de cada item adicionado ou removido (T31).
 - **Marcar como versão final** (caixa, desmarcada por padrão): a versão fica pronta para os jogadores e pode ser publicada (T18). Também dá para marcar ou desmarcar depois, no Histórico, enquanto a versão não foi publicada.
 - Avisos: "Você removeu mods que podem ter conteúdo nos mundos. Avise quem joga para fazer backup." quando aplicável; isso também entra no changelog numa seção "Atenção".
 - Checklist (P1): diagnóstico sem erros; último teste depois da última mudança abriu normalmente; mudanças do teste revisadas.
@@ -752,6 +797,8 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
 - **Publicação para os jogadores** (T18): repositório, visibilidade, última versão publicada, link do pack com **Copiar link** e **Como os jogadores instalam**. Antes da primeira publicação, uma frase explica como os jogadores recebem o pack.
 - Linha do tempo das versões salvas: número, data, resumo do changelog e **estado**: "Só salva" (com **Marcar como versão final**), "Versão final · não publicada" (com **Publicar versão** e **Desmarcar**) ou "Publicada" (com a data). Abrir mostra o changelog completo e **Ver diferenças para o estado atual**.
 - **Voltar para esta versão:** confirmação explicando que o estado atual fica guardado num ponto de segurança; o pack passa a ficar igual à versão escolhida (arquivos que não existiam nela são removidos); o histórico não é apagado. Depois disso, "Salvar versão" cria uma versão nova a partir dali.
+- (1.1) **Desempenho entre versões:** bloco com o resumo de uma linha da última versão com testes comparáveis e o link para a página de detalhe (T33).
+- (1.1) Alterações não salvas mostram "Notas e grupos" quando as notas ou os grupos mudaram (T31).
 - **Pontos de segurança** (P1): link discreto no fim da seção; lista com data e motivo ("antes de voltar para 1.2.0") e **Recuperar**.
 
 | CA | Critério |
@@ -771,11 +818,13 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
 **O que vai para o GitHub:** só o conteúdo do pack daquela versão: `pack.toml`, `index.toml` e os arquivos do índice (o mesmo conjunto da exportação, T19), mais `CHANGELOG.md` (notas de todas as versões publicadas, a mais nova no topo) e `.gitattributes` com `* -text` (o git nunca muda finais de linha, e os hashes não quebram). Nunca vão: `.warden/`, o histórico de trabalho, versões não publicadas, mundos de teste e registros. Cada publicação vira a ponta da branch `main` do repositório, uma tag `vX.Y.Z` e uma GitHub Release com as notas.
 
 **Antes de publicar** (diálogo "Publicar a versão X para os jogadores"):
+- (1.1) **Checagens obrigatórias**, sempre, antes dos avisos: **Segurança dos mods** (T28) para todos os arquivos da versão (os jars que faltam no cache são baixados antes, com progresso) e **Manutenção dos mods** (T29), sem cache. Erro de segurança não resolvido nem confiado e "Arquivo removido" **bloqueiam** a publicação, com as ações de cada um; os demais resultados viram avisos. Enquanto as checagens rodam, o botão final fica desabilitado com "Conferindo os arquivos…".
 - **Avisos** (não impedem; com avisos, o botão final é **Publicar mesmo assim**):
   - mods da CurseForge com distribuição bloqueada: "N mods da CurseForge não podem ser baixados automaticamente pelos jogadores." com a lista; quando o mesmo arquivo existe no Modrinth, **Trocar pelo Modrinth** (muda o pack; depois é preciso salvar e publicar uma versão nova);
   - versão não testada: "A versão X não foi testada." quando nenhum teste que fechou normalmente usou exatamente o conteúdo da versão, com **Testar agora**;
   - problemas pendentes: "O pack tem N erros." com **Ver problemas**.
 - **Bloqueios:** algo com cara de chave ou token no conteúdo a publicar ("Encontramos algo que parece uma chave em config/x.toml, linha N. Remova antes de publicar."); arquivos que a verificação de higiene reprova (os mesmos de T04 e T19), com **Limpar**.
+- (1.1) A caixa **Incluir as notas dos mods** nas notas da versão, desmarcada por padrão (T31).
 - **Notas da versão**, geradas comparando com a **última versão publicada** (não com a última salva): Atenção (remoção de mod que não é só de cliente ou de mod de geração de mundo, como em T16), Adicionados, Removidos, Atualizados (`versão antiga → versão nova`), Resource packs e shaders, Configs alteradas, Mudança de Minecraft/loader; mais "Notas para os jogadores" (opcional). Vão para o `CHANGELOG.md` publicado e para a Release.
 - Lista curta do que vai e do que não vai para o GitHub.
 
@@ -921,6 +970,7 @@ Painel (gaveta) aberto pelo indicador do rodapé, presente em todas as telas do 
 - **O que foi reconhecido:** tipo do arquivo, nome, versão, Minecraft e loader; **licença do projeto** quando vier na fonte, com aviso se não for livre ("All Rights Reserved: as configs e os arquivos são trabalho do autor. Para uso pessoal, tudo bem; para redistribuir, peça permissão.").
 - **Nome e pasta** do pack novo (mesmas regras do T03, etapa 1).
 - **Resumo da conversão** (lista, com contagens e "Ver lista"): **viram referência** (Modrinth ou CurseForge, inclusive jars soltos identificados pelo hash); **ficam como arquivo local** (jars que não estão em nenhuma loja, com aviso de licença); **para revisar** (lado desconhecido, `env` fora da especificação, `client-overrides/`, opcionais sem padrão definido); **não entram** (lixo encontrado pela verificação de higiene do T04, como `.mixin.out/`, `xmcl.json`, `mods/.connector/temp/`, logs e caches). `server-overrides/` vai para a pasta `server-overrides/` do pack, que só o pacote para servidor usa.
+- (1.1) **Segurança dos arquivos:** os jars que ficam como arquivo local passam pela checagem de segurança (T28) antes de o pack ser criado, com atenção redobrada (os pontos de atenção valem para eles); com erro de segurança, o resumo mostra o arquivo em "não entram", com **Confiar neste arquivo…** como saída.
 - **Instância do Prism:** a memória e os argumentos da instância viram um **perfil do teste** (T11); `options.txt` e `servers.dat` são perguntados ("Levar suas preferências para o pack?").
 - **Importar como pack novo**: cria o pack (repositório git, arquivos de controle, `.warden/`) e abre em Mods com o aviso "N itens para revisar" em Problemas. O arquivo de origem nunca é alterado.
 
@@ -1014,6 +1064,246 @@ Painel (gaveta) aberto pelo indicador do rodapé, presente em todas as telas do 
 
 ---
 
+### Warden 1.1 "Profissional": telas T28 a T33
+
+As telas T28 a T33 são da **versão 1.1** do app (decisão D33; §4), construída depois da v1. Mudanças da 1.1 em telas da v1 aparecem nelas com a etiqueta "(1.1)". Onde cada função mora e por quê: `docs/design/ESTRUTURA.md` §14 (ADR-0045).
+
+---
+
+### T28 — Segurança dos mods (1.1)
+
+**Objetivo:** saber se algum arquivo de mod do pack foi adulterado ou tem um sinal conhecido de programa malicioso, antes de abrir o jogo e antes de entregar o pack aos jogadores (decisão D27; ADR-0040 e ADR-0041). Em 2023, o caso "fractureiser" pôs código malicioso em mods publicados na CurseForge por contas roubadas; em 2024, o "Windows Borderless" fez o mesmo no Modrinth; e de 2025 em diante apareceram vários mods falsos fora das plataformas, que roubam a sessão do Minecraft, do Discord e do navegador (pesquisa em ADR-0040).
+
+**Onde:** página de detalhe **Segurança dos mods** dentro de Problemas (T14), com "← Problemas", aberta pela linha "Segurança dos mods" do painel **Verificações do pack** e pela linha "Segurança" da saúde do pack. Também: bloco **Segurança do arquivo** nos detalhes do item (T07); etapa "Verificação final" do teste (T13); **Checagens obrigatórias** do Publicar versão (T18); adicionar por arquivo ou link direto (T08); importar (T24).
+
+**O que o Warden faz, em duas partes** (nada é executado; os arquivos só são lidos):
+1. **Conferência com o arquivo oficial.** Para cada arquivo de mod, o Warden calcula o hash (a "impressão digital" do arquivo) e pergunta ao Modrinth e à CurseForge se aquele arquivo é o que eles distribuem. Só o hash sai do computador, nunca o arquivo. Itens do Modrinth: o SHA-512 tem de existir no Modrinth e pertencer ao projeto e à versão que o `.pw.toml` diz. Itens da CurseForge: o arquivo é achado pela impressão digital da CurseForge e confirmado pelo SHA-1 que a API informa; arquivo marcado pela CurseForge como "malware detectado" vira erro. Arquivo do computador e link direto: procurados pelo hash nas duas plataformas. O endereço de download dos `.pw.toml` também é conferido: um item "do Modrinth" que baixa de outro site, ou cujo hash não é o do arquivo oficial daquela versão, não confere.
+2. **Busca de sinais conhecidos.** O Warden abre cada classe dos jars (inclusive dos jars embutidos dentro de outros) e procura, numa lista que vem junto com o Warden, os **sinais de programa malicioso conhecido** (por exemplo, o código injetado pelo fractureiser e os hashes dos arquivos maliciosos já identificados). Nos arquivos que **não** conferem com nenhum arquivo oficial (arquivos do computador, links diretos, jars vindos de packs importados), procura também **pontos de atenção**: carregar código de um endereço da internet, montar textos escondidos em bytes, executar programas do sistema, endereços de webhooks do Discord e de sites de colagem, IPs fixos, caminhos de dados de navegador e de contas de launcher. Pontos de atenção não são aplicados a arquivos oficiais, porque mods legítimos usam essas coisas (o Sodium executa um programa do sistema para descobrir a placa de vídeo, por exemplo) e o aviso viraria ruído.
+
+**Resultados por arquivo** (sempre com ícone e palavra):
+
+| Resultado | Quando | Gravidade em Problemas |
+|---|---|---|
+| **Confere com o arquivo oficial do Modrinth** / **da CurseForge** | Hash confirmado na plataforma, para o projeto e a versão certos | — |
+| **Arquivo do computador: nenhum sinal conhecido** | Fora das plataformas, sem sinal e sem ponto de atenção | Informação ("3 arquivos não estão em nenhuma plataforma") |
+| **Pontos de atenção** | Fora das plataformas e com um ou mais pontos de atenção | Aviso, com a lista do que foi visto e onde (classe e trecho) |
+| **Não confere com o arquivo oficial** | O arquivo diz ser um mod e uma versão que existem na plataforma (pelo `.pw.toml` ou pelos metadados do jar), mas o hash é outro; ou o `.pw.toml` baixa de outro site | Erro |
+| **Sinal de programa malicioso conhecido** | Algum sinal da lista foi encontrado | Erro |
+| **Marcado pela plataforma** | A CurseForge informa "malware detectado" para o arquivo | Erro |
+| **Não deu para conferir** | Sem internet, sem chave da CurseForge ou plataforma fora do ar (a busca de sinais roda mesmo assim) | Aviso, com **Tentar de novo** |
+| **Você confiou neste arquivo** | O usuário liberou o arquivo (abaixo) | — (aparece riscado em Problemas, como um aviso ignorado) |
+
+**Conteúdo da página:** no topo, o aviso fixo em linguagem simples: "O Warden não é um antivírus. Ele confere se cada arquivo é igual ao oficial e procura sinais de casos conhecidos de malware em mods. Um mod malicioso novo pode passar sem ser notado. Baixe mods só do Modrinth e da CurseForge sempre que puder." Logo abaixo: quando foi a última verificação, a data da **lista de sinais** que veio com esta versão do Warden e **Verificar agora**. Depois, a lista dos arquivos agrupada pelo resultado (os problemas primeiro), com filtro "Só os que pedem atenção" ligado por padrão quando houver algum. Cada linha: mod, arquivo, fonte, resultado e, aberta, a evidência (hash local e oficial, sinal ou ponto de atenção com a classe e o trecho, endereço consultado).
+
+**Ações num achado:** **Remover do pack** (fluxo normal de remover, T06); **Trocar pelo arquivo oficial** quando o mesmo mod e versão existem na plataforma (o `.pw.toml` passa a apontar para o oficial; ponto de segurança, como "substituir um item"); **Confiar neste arquivo…**: diálogo de confirmação que explica o risco ("Se este arquivo tiver um programa malicioso, ele roda no seu computador quando o jogo abrir e no computador de quem jogar o pack"), pede para digitar o nome do mod e grava a confiança **por hash** em `.warden/trust.toml` (versionado com o pack, fora do que vai para os jogadores). Um arquivo novo, mesmo do mesmo mod, volta a ser verificado.
+
+**Quando roda:**
+- Ao **adicionar** um arquivo do computador ou um link direto (T08) e ao **importar** (T24): antes de gravar no pack. Com erro de segurança, o diálogo mostra o resultado e só oferece **Cancelar** (o arquivo não entra) ou **Confiar neste arquivo…**.
+- Na **Verificação final** do teste (T13), nos jars da instância de teste, antes de abrir o jogo: só os jars novos ou alterados são lidos (cache por hash). Um erro de segurança abre o diálogo de erros do teste **sem** "Testar mesmo assim": as saídas são remover, trocar pelo oficial, confiar ou cancelar.
+- Em **Problemas → Verificar agora** e na página, sob demanda.
+- **Sempre antes de publicar** (T18), para todos os arquivos da versão; os jars que ainda não estão no cache são baixados antes (com progresso). Publicar fica bloqueado enquanto houver erro de segurança que não foi resolvido nem confiado.
+
+**Lista de sinais:** vem dentro do Warden e é atualizada a cada versão do app (ADR-0041); a página mostra a data dela. Com mais de 180 dias, aparece a informação "A lista de sinais tem mais de 6 meses. Atualize o Warden quando puder." A conferência com o arquivo oficial não depende da lista: quando uma plataforma remove ou marca um arquivo, o Warden fica sabendo na próxima verificação.
+
+**Estados:** verificando (progresso "Conferindo 54 de 128 arquivos"); vazio (pack sem mods: "Nada para conferir ainda."); sem internet (a busca de sinais roda; a conferência fica "Não deu para conferir", com **Tentar de novo**); sem chave da CurseForge (itens da CurseForge ficam "Não deu para conferir", com **Abrir Configurações**).
+
+| CA | Critério |
+|---|---|
+| CA-T28-01 | Um jar sintético com o padrão do estágio 0 do fractureiser (classe com `URLClassLoader` criado por reflexão, textos montados com `new String(new byte[]{…})` e endereço fixo), inclusive escondido num jar embutido em `META-INF/jars/`, gera "Sinal de programa malicioso conhecido" com a classe e o sinal; o mesmo jar sem o padrão não gera (teste de domínio com jars sintéticos; nenhum malware real no repositório). |
+| CA-T28-02 | Num pack com o Sodium do Modrinth, o JEI da CurseForge e um jar local que é o Sodium com um byte alterado, os dois primeiros ficam "Confere com o arquivo oficial" e o terceiro "Não confere com o arquivo oficial", com o hash local e o oficial na evidência (servidores simulados com respostas reais gravadas do `POST /v2/version_files` e do `POST /v1/fingerprints`). |
+| CA-T28-03 | Um `.pw.toml` com `[update.modrinth]` cujo `url` aponta para outro site ou cujo hash não é o da versão informada no Modrinth gera "Não confere com o arquivo oficial" (teste de domínio). |
+| CA-T28-04 | Pontos de atenção (endereço de webhook do Discord, `Runtime.exec`, IP fixo) num jar local geram o aviso com a classe e o trecho; os mesmos padrões num jar que confere com o arquivo oficial não geram nada (teste de domínio). |
+| CA-T28-05 | Nenhum byte de jar sai do computador: durante a verificação, as únicas requisições são os lotes de hashes ao Modrinth e à CurseForge (servidor simulado que registra os corpos das requisições). |
+| CA-T28-06 | Com um erro de segurança, o diálogo do Testar não tem "Testar mesmo assim" e o Publicar fica bloqueado; depois de "Confiar neste arquivo" (com o nome digitado), o hash aparece em `.warden/trust.toml`, o achado fica riscado e o teste e a publicação seguem; trocar o arquivo por outro faz a verificação voltar (teste de integração + componente). |
+| CA-T28-07 | A segunda verificação de um pack de 300 mods sem mudanças não abre nenhum jar (cache por hash) e termina em menos de 2 s, sem contar a rede; a primeira, com os jars no cache local, termina em menos de 20 s (medido). |
+| CA-T28-08 | Sem internet, a busca de sinais roda e a conferência fica "Não deu para conferir"; sem chave da CurseForge, nenhuma requisição vai para a CurseForge e os itens dela ficam "Não deu para conferir" com o motivo (servidores simulados). |
+| CA-T28-09 | A página mostra o aviso "O Warden não é um antivírus" e a data da lista de sinais; com a data da lista a mais de 180 dias (relógio simulado), aparece a informação para atualizar o Warden (teste de componente). |
+
+---
+
+### T29 — Manutenção dos mods e substitutos (1.1)
+
+**Objetivo:** perceber cedo quando um mod do pack foi removido, arquivado ou parou de ser atualizado, e achar um substituto, antes que os jogadores fiquem sem conseguir baixar o pack (decisão D28; ADR-0042).
+
+**Onde:** página de detalhe **Manutenção dos mods** dentro de Problemas, com "← Problemas", aberta pela linha "Manutenção dos mods" do painel **Verificações do pack** e pela linha "Manutenção" da saúde do pack. Também: filtro **Sem manutenção** e marca na lista de Mods (T06); bloco **Manutenção** nos detalhes do item (T07), com **Procurar substituto**; **Checagens obrigatórias** do Publicar versão (T18).
+
+**Situações** (uma por mod; vale a mais grave):
+
+| Situação | Como o Warden sabe | Gravidade |
+|---|---|---|
+| **Arquivo removido** | O arquivo exato do pack não existe mais na plataforma (Modrinth: o hash some do `POST /version_files`; CurseForge: o arquivo some do lote, fica indisponível ou com estado de removido, arquivado, rejeitado ou obsoleto) | Erro: "Os jogadores não vão conseguir baixar este mod." |
+| **Removido do Modrinth** / **Removido da CurseForge** | O projeto some do lote ou responde 404; na CurseForge, estado "deletado" ou indisponível | Erro, se o arquivo também sumiu; senão, aviso |
+| **Arquivado pelo autor** / **Marcado como abandonado** | Modrinth `status = archived`; CurseForge estado "inativo" ou "abandonado" | Aviso |
+| **Sem atualização há mais de 18 meses** | Nenhuma versão nova do projeto (para qualquer Minecraft) nos últimos 18 meses, pela data da versão mais recente | Informação |
+| **Sem versão para o Minecraft mais novo** | A versão mais nova do Minecraft que o projeto suporta é mais antiga que a mais nova lançada (catálogo da Mojang) | Informação, só na página e no filtro (ajuda a planejar uma migração); não tira pontos |
+
+Arquivo local e link direto não têm manutenção ("Não se aplica"). A lista curada de mods obsoletos (`obsolete.toml`, T14) continua valendo e aparece junto.
+
+**Quando verifica:** ao **abrir o pack**, junto com a verificação de atualizações (T10), no máximo uma vez a cada 24 h para o Modrinth (com cache local); para a CurseForge, a resposta não pode ser guardada (termos da CurseForge), então a consulta é refeita na primeira abertura do pack em cada execução do Warden (dois lotes: projetos e arquivos) e o resultado fica só em memória. **Sempre antes de publicar** (T18), sem cache. E por **Verificar agora**, na página.
+
+**Conteúdo da página:** grupos por situação, os mais graves primeiro; cada linha com o mod, a situação, a data do último arquivo, a evidência (o que a plataforma respondeu e quando) e as ações **Procurar substituto**, **Remover do pack** e, para as informações, **Ignorar neste pack** (P1 da v1, mesma regra). Texto de apoio: "Um mod sem atualização não está necessariamente quebrado. Muitos mods antigos continuam funcionando."
+
+**Procurar substituto:** troca o conteúdo do painel de detalhes do mod pela lista **Substitutos para <mod>**, com "← Detalhes" (padrão do raio-x). Primeiro, se houver, o **substituto conhecido** da lista curada ("O Embeddium substitui o Rubidium: lista do Warden"). Depois, até 8 candidatos da **mesma plataforma** do mod, buscados pelas mesmas categorias, com versão para o Minecraft e o loader do pack, sem os arquivados, sem os que já estão no pack, ordenados por downloads. Cada candidato mostra **Por que sugerimos** com os motivos reais (categorias em comum, "tem versão para Forge 1.20.1", "atualizado há 3 dias", downloads), mais **Ver detalhes** (pré-visualização da página de descoberta, T08) e **Trocar por este** (adiciona o candidato pelo fluxo normal com dependências, T09, e remove o antigo numa transação só, com ponto de segurança). Texto fixo: "Os substitutos são parecidos pela categoria; confira se fazem o que você precisa." Resultados da CurseForge ficam só em memória.
+
+**Estados:** verificando; tudo em dia ("Nenhum mod com problema de manutenção."); sem internet (usa o último resultado do Modrinth guardado, com a data; a CurseForge fica "Não verificado agora"); sem chave da CurseForge (itens da CurseForge "Não verificado", com **Abrir Configurações**); substitutos vazios ("Nenhum mod parecido com versão para Forge 1.20.1 nesta plataforma.").
+
+| CA | Critério |
+|---|---|
+| CA-T29-01 | Com servidores simulados (respostas reais gravadas): um projeto do Modrinth ausente do `GET /projects?ids=` e com o hash ausente do `POST /version_files` vira "Arquivo removido" (erro); um projeto com `status = archived` vira "Arquivado pelo autor" (aviso); um mod da CurseForge ausente do `POST /v1/mods/files` vira "Arquivo removido"; com estado 8 vira "Marcado como abandonado" (teste de domínio). O Warden compara o que pediu com o que voltou, porque os lotes omitem itens sem avisar. |
+| CA-T29-02 | Verificar 200 mods do Modrinth e 50 da CurseForge usa no máximo 3 requisições ao Modrinth e 2 à CurseForge (servidor simulado contando chamadas). |
+| CA-T29-03 | Abrir o pack duas vezes em menos de 24 h consulta o Modrinth uma vez só; nenhuma resposta da CurseForge é gravada em disco (inspeção da pasta de dados depois da sessão); reiniciar o Warden e abrir o pack refaz a consulta à CurseForge. |
+| CA-T29-04 | Publicar uma versão com um "Arquivo removido" fica bloqueado com a mensagem e as ações; um "Arquivado pelo autor" só gera aviso (teste de componente + integração com servidor simulado). |
+| CA-T29-05 | "Procurar substituto" de um mod do Modrinth faz uma busca com as categorias do mod, a versão e o loader do pack e `disclosure_types!=archived`, não lista o próprio mod nem os que já estão no pack, e cada candidato mostra pelo menos dois motivos verdadeiros (servidor simulado conferindo a consulta). |
+| CA-T29-06 | "Trocar por este" adiciona o candidato com as dependências e remove o antigo numa transação só; uma falha simulada no meio não deixa o pack com os dois nem sem nenhum; existe um ponto de segurança "antes de trocar <antigo> por <novo>" (teste de integração com o packwiz real). |
+
+---
+
+### T30 — Travamento de um jogador (1.1)
+
+**Objetivo:** quando um jogador manda o log de um travamento, descobrir qual versão do pack ele usa, por que travou e o que fazer, com o mesmo diagnóstico dos seus testes (decisão D29; ADR-0043).
+
+**Onde:** página de detalhe **Travamento de um jogador** dentro de Problemas, com "← Problemas", aberta pelo botão **Analisar travamento de um jogador…** (topo de Problemas e bloco Travamentos, T14). Cada análise vira uma linha em **Travamentos**, com a origem **Jogador**, agrupada pela causa junto com os travamentos dos seus testes ("Travou 3 vezes: 2 nos seus testes, 1 de jogador"). Em ✦ Diagnóstico com IA, "Começar pelo" ganha **Travamento de um jogador (link ou arquivo)**.
+
+**Entrada:** um campo que aceita o **link** ou o **próprio texto** do log colado, e **Escolher arquivos…** (ou arrastar), aceitando vários de uma vez: `latest.log`, `debug.log`, crash report e `packwiz.json` da pasta do jogo. O Warden não lê os arquivos próprios do Crash Assistant (como o `modlist.txt`; ADR-0033): o link que o Crash Assistant mostra é o log do próprio jogo, guardado no mclo.gs, e esse o Warden lê. Texto fixo de ajuda: "Peça ao jogador o link que o Crash Assistant mostra quando o jogo trava, ou o arquivo crash-reports/crash-….txt. Se ele mandar também o packwiz.json da pasta do jogo, o Warden acha a versão exata."
+
+**Links aceitos** (o download é feito pelo Warden, só por HTTPS, só texto, até 10 MB):
+
+| Serviço | Formatos de link | De onde vem o texto |
+|---|---|---|
+| mclo.gs (usado pelo Crash Assistant, pelo Prism Launcher e pelo app do Modrinth) | `mclo.gs/<id>`, `gnomebot.dev/paste/mclogs/<id>`, `p.kdan.dev/<id>`, `paste.kostromdan.dev/mclogs/<id>` | `api.mclo.gs/1/raw/<id>` |
+| Pastebin | `pastebin.com/<id>` | `pastebin.com/raw/<id>` |
+| paste.ee | `paste.ee/p/<id>` | `paste.ee/r/<id>` |
+| Gist do GitHub | `gist.github.com/<usuário>/<id>` | o arquivo cru do gist |
+| 0x0.st, hst.sh, paste.gg | links desses serviços | o próprio arquivo, `/raw/<id>` e a API do paste.gg |
+
+Outros links: "O Warden não sabe ler links deste site. Peça o arquivo ao jogador ou cole o texto aqui." Link do hastebin.com: "Este serviço exige login para ler. Peça outro link ou o arquivo." Link expirado (o mclo.gs apaga depois de 90 dias sem acesso): "Este log não existe mais no mclo.gs. Peça um link novo ao jogador."
+
+**Dados pessoais:** antes de mostrar ou guardar, o texto passa pela mesma redação do diagnóstico (ARCHITECTURE §9.4) e, além disso, troca o **nome do jogador** (`Setting user:`, `--username`, nomes em listas de jogadores) por `<jogador>` e o nome da pasta da instância por `<instância>`. O Warden guarda **só a cópia sem dados pessoais**, nos dados do Warden, por pack (nunca na pasta do pack). O mclo.gs já esconde IPs e caminhos de usuário, mas não o nome do jogador; o Warden não confia nisso e redige de novo. Versões que o mclo.gs mascarou (`**.**.**.**`, ou com `∙` no lugar do ponto) são tratadas como "versão escondida" na comparação.
+
+**Qual versão do pack o jogador usa**, nesta ordem de confiança:
+1. `packwiz.json` (gravado pelo packwiz-installer na pasta do jogo): o hash do `pack.toml` que o jogador recebeu é comparado com o de cada versão publicada. **Exata**.
+2. **Nome dos arquivos** dos mods (crash report e `latest.log` do Forge e do NeoForge, tabela do Forge 1.12.2, linha `FML` do 1.7.10, lista do Prism), comparado com o `filename` dos `.pw.toml` de cada versão salva.
+3. **ID e versão de cada mod** (Fabric, que não informa o nome do arquivo), comparados com os metadados dos jars de cada versão (do cache; os que faltam são baixados, com progresso).
+
+Antes, o Warden confere a versão do Minecraft e o loader do log; o loader, o Minecraft, o Java e os jars embutidos não entram na conta. Só as versões salvas com o mesmo Minecraft e loader são candidatas (as 20 mais recentes). O resultado diz a versão e quanto confere ("126 de 128 mods conferem"), com a lista do que é diferente: mods **a mais no jogador**, **faltando no jogador** e **com outra versão**.
+
+**Casos:**
+- **Versão identificada** (tudo confere, ou só faltam mods opcionais desligados): "O jogador usa a versão 1.4.2 (publicada em 28/09)."
+- **Versão próxima** (90% ou mais conferem): "Parece a versão 1.4.2, com 3 diferenças." Mods que o jogador acrescentou viram um achado próprio ("O jogador tem 2 mods que não são do pack: OptiFine, …"), porque costumam ser a causa.
+- **Versão antiga:** "O jogador está na 1.4.0; a versão atual é a 1.5.0." Quando a mesma causa aparece em Travamentos como "não voltou a acontecer desde a 1.4.4", a página diz "Isso parece já corrigido na 1.4.4. Peça ao jogador para atualizar."
+- **Pack desconhecido** (menos de 50% conferem em todas as versões, ou outro Minecraft ou loader): "Este log não parece ser deste pack (só 12 de 128 mods conferem)." ou "Este log é de Minecraft 1.21.1 com NeoForge; o pack é 1.20.1 com Forge." O Warden não força uma versão; a análise do travamento continua, sem os dados do pack.
+- **Log incompleto** (sem lista de mods, cortado ou com versões escondidas): "O log não traz a lista de mods; não deu para saber a versão." O diagnóstico roda mesmo assim; a confiança baixa aparece na tela.
+
+**Resultado:** a versão (acima); **Por que travou** com o mesmo catálogo de padrões, as mesmas evidências (arquivo e linha da cópia redigida) e as mesmas correções do resultado do teste (T13, T14), aplicadas ao pack atual; quando a causa não aparece, **✦ Conversar com a IA** (consentimento uma vez por conversa, cada envio visível, propostas com **Aplicar**, exatamente como em T14; a IA recebe o log redigido e a versão identificada, e pode comparar com o pack atual) e **Encontrar o mod culpado** (no seu computador, com o pack atual). Ações: **Ver o log** (a cópia redigida, com as linhas da evidência marcadas), **Apagar esta análise**.
+
+**Estados:** baixando o log; lendo e comparando (progresso); erro de link (os textos acima); sem internet ("Sem conexão com a internet. Escolha o arquivo em vez do link."); arquivo que não é log ("Este arquivo não parece um log do Minecraft.").
+
+| CA | Critério |
+|---|---|
+| CA-T30-01 | Cada formato de link da tabela vira a requisição certa (`mclo.gs/abc`, `gnomebot.dev/paste/mclogs/abc` e `p.kdan.dev/abc` → `api.mclo.gs/1/raw/abc`; `pastebin.com/xyz` → `/raw/xyz`; `paste.ee/p/xyz` → `/r/xyz`); `http://` é recusado; um site fora da lista e o hastebin.com mostram as mensagens certas sem requisição (teste de domínio + servidor simulado). |
+| CA-T30-02 | Com logs reais do corpus (crash report do Forge 1.20.1 com `Mod List:`, `latest.log` do Fabric com `Loading N mods:`, crash report do Forge 1.12.2 com a tabela de estados e do 1.7.10 com a linha `FML`), a versão salva certa de um pack de teste com 5 versões é identificada; com o `packwiz.json`, a identificação é exata pelo hash do `pack.toml` (teste de domínio com logs reais, origem anotada). |
+| CA-T30-03 | Um log da versão 1.4.0 num pack em 1.5.0 mostra "versão antiga" e as diferenças; um log com 12 de 128 mods conferindo mostra "não parece ser deste pack" e não escolhe versão; um log de outro Minecraft ou loader mostra a mensagem certa; um log cortado antes da lista mostra "não deu para saber a versão" e ainda roda o diagnóstico (teste de domínio). |
+| CA-T30-04 | Num log com `C:\Users\Maria\…`, `Setting user: Fulano_123`, `--username Fulano_123`, um IPv4 e o nome da instância, nada disso aparece na tela, na cópia guardada nem no texto enviado à IA (teste de varredura da cópia guardada e do corpo enviado ao Gemini simulado). |
+| CA-T30-05 | Versões mascaradas pelo mclo.gs (`**.**.**.**` e `1∙20∙1`) não fazem um mod contar como diferente: contam como "versão escondida" (teste de domínio). |
+| CA-T30-06 | A análise aparece em Problemas → Travamentos com a origem "Jogador", agrupada pela assinatura com os travamentos dos testes que tiveram a mesma causa; apagar a análise remove a cópia guardada; nada é criado na pasta do pack (teste de integração com hash da pasta). |
+| CA-T30-07 | "✦ Conversar com a IA" a partir de um travamento de jogador passa pelo mesmo consentimento; cancelar não faz nenhuma requisição; o texto inicial mostrado é o enviado, byte a byte (servidor simulado do Gemini). |
+
+---
+
+### T31 — Notas e grupos de mods (1.1)
+
+**Objetivo:** lembrar por que cada mod está no pack e organizar a lista em grupos seus (Performance, Geração de mundo, Qualidade de vida…), sem mexer no que vai para os jogadores (decisão D30; ADR-0044).
+
+**Onde:** na seção **Mods** (T06) e nos **detalhes do item** (T07); o diálogo **Grupos do pack** abre pelo menu ⋯ da seção Mods; a opção das notas no resumo fica no **Salvar versão** (T16) e no **Publicar versão** (T18).
+
+**Nota:** um texto curto (até 200 caracteres) por item, no bloco **Nota e grupos**, no topo dos detalhes, com a dica "Por que este mod está no pack?". Na lista, a nota aparece na segunda linha da linha do mod, no lugar da descrição (com o ícone de nota), e a busca da lista também procura nas notas. Quando o Warden adiciona um mod por causa de outro (dependência), a nota fica vazia e o bloco mostra "Por que está no pack" automático (T07) como dica.
+
+**Grupos:** criados pelo usuário, com nome (até 32 caracteres, sem repetir). Um mod pode estar em vários grupos. Na lista: até dois grupos ao lado do nome (com "+1" quando houver mais); caixa **Agrupar por: Tipo · Grupo · Nenhum** (padrão Tipo, o comportamento da v1); filtro **Grupo** (caixas de seleção, com "Sem grupo"); na barra de seleção, **Pôr no grupo ▾** (marcar e desmarcar grupos para os itens selecionados, com "Novo grupo…"). No agrupamento por Grupo, um mod em dois grupos aparece nos dois e a seleção conta o mod uma vez. O diálogo **Grupos do pack** lista os grupos com a quantidade de mods, **Renomear**, **Apagar** (os mods continuam no pack; só saem do grupo) e **Novo grupo**.
+
+**Onde fica guardado:** no arquivo `.warden/mods.toml` do pack (versionado com o pack, fora do índice do packwiz e, portanto, fora do que vai para os jogadores e para o GitHub). Os campos não vão para o `.pw.toml` porque o packwiz apaga campos desconhecidos sempre que regrava um metafile (verificado no commit fixado: `pin`, `update`, `rehash` e `add` reescrevem o arquivo inteiro; só o `refresh` não toca nele; ADR-0044). Cada entrada é ligada ao item pelo caminho do `.pw.toml` e pelo projeto (Modrinth ou CurseForge), para sobreviver a atualizações, trocas de versão e renomeações do arquivo. Mudar notas e grupos conta como alteração não salva (aparece em Histórico como "Notas e grupos") e volta com "Voltar para esta versão". Remover um mod remove a nota dele na mesma transação; os grupos ficam.
+
+**No resumo da versão:** a caixa **Incluir as notas dos mods no resumo** (desmarcada por padrão; o Warden lembra a última escolha por pack) acrescenta a nota de cada item adicionado ou removido ("Sodium 0.6.0 (Modrinth): deixa o jogo mais leve"). Texto de apoio: "As notas são suas. Marque só se puderem ir para os jogadores." O Publicar versão tem a mesma caixa para as notas da versão.
+
+**Para a IA:** as notas entram na lista de mods que a IA pode consultar numa conversa, e o diálogo de consentimento passa a dizer isso ("nome, versão, lado e nota de cada mod").
+
+**Estados:** nenhum grupo ainda ("Crie grupos para juntar mods pelo assunto, como Performance ou Geração de mundo." com **Novo grupo**); filtro sem resultado ("Nenhum mod no grupo Geração de mundo." com **Limpar filtro**); `.warden/mods.toml` ilegível (a lista funciona sem notas e grupos, com o aviso "Não foi possível ler as notas e os grupos do pack." e **Ver detalhes**).
+
+| CA | Critério |
+|---|---|
+| CA-T31-01 | Escrever uma nota grava só em `.warden/mods.toml`; o `.pw.toml` não muda; o `packwiz refresh` seguinte não põe `.warden/mods.toml` no `index.toml` (teste de integração com o packwiz real). |
+| CA-T31-02 | A nota e os grupos de um mod continuam depois de atualizar o mod pelo Warden, de trocar a versão e de renomear o `.pw.toml` (ligação pelo projeto); remover o mod apaga a entrada dele (teste de integração). |
+| CA-T31-03 | Criar, renomear e apagar grupos funciona; apagar um grupo não remove nenhum mod; "Agrupar por Grupo" mostra um mod de dois grupos nos dois, e selecionar os dois conta 1; o filtro "Sem grupo" mostra só os sem grupo (teste de componente). |
+| CA-T31-04 | Com "Incluir as notas dos mods no resumo" marcado, o resumo e o `CHANGELOG.md` trazem a nota dos itens adicionados e removidos; desmarcado, não trazem; as notas publicadas só aparecem se a caixa do Publicar estiver marcada (teste de domínio + componente). |
+| CA-T31-05 | Mudar uma nota faz "Notas e grupos" aparecer em Alterações não salvas; "Voltar para esta versão" restaura as notas daquela versão (teste de integração). |
+| CA-T31-06 | Com 500 mods, todos com nota e grupo, a lista continua fluida (meta do CA-T06-05) e a busca encontra um texto que só existe numa nota (teste de desempenho e de componente). |
+
+---
+
+### T32 — Itens repetidos entre mods (1.1)
+
+**Objetivo:** avisar quando vários mods adicionam o mesmo material (por exemplo, quatro mods com o próprio lingote de cobre) e sugerir a solução certa para a versão do pack (decisão D31; ADR-0046). É um **conselho**: nada vai quebrar, mas o jogador acaba com itens que parecem iguais e não empilham, e com veios de minério demais.
+
+**Onde:** página de detalhe **Itens repetidos entre mods** dentro de Problemas, com "← Problemas", aberta pela linha "Itens repetidos entre mods" do painel **Verificações do pack**. Não aparece entre os erros e avisos; conta pouco na saúde do pack (abaixo).
+
+**Como o Warden descobre** (lendo os jars, sem abrir o jogo; roda na passagem completa do diagnóstico e usa o mesmo cache por hash):
+- **Minecraft 1.13 em diante, com confiança:** tags de material nos jars: `data/forge/tags/items/<tipo>/<material>.json` (Forge 1.13 a 1.20.x), `data/c/tags/items/<material>_<tipo>s.json` (convenção antiga do Fabric) e `data/c/tags/item/<tipo>/<material>.json` (Fabric 1.20.5+ e NeoForge 1.21). Quando itens de dois ou mais mods (pelo namespace do ID) estão na mesma tag de lingote, pepita, pó, placa, minério, minério bruto ou bloco, há repetição. Itens do próprio Minecraft contam como um mod (o cobre do jogo mais o cobre de um mod já é repetição).
+- **Minério gerado:** `data/<mod>/worldgen/configured_feature/*` e `placed_feature/*` com minério, ligados ao bioma por `forge/biome_modifier` ou `neoforge/biome_modifier`. No Fabric a ligação é feita em código; ali o Warden diz "provavelmente gera minério".
+- **Confiança média:** nomes de modelos e de itens no arquivo de idioma (`item.<mod>.copper_ingot` e `item.<mod>.ingot_copper`).
+- **1.7.10 e 1.12.2, só como "provável":** o dicionário de minérios é registrado em código; o Warden lê as chaves dos arquivos de idioma que trazem o nome do dicionário (`ingotTin`) e os JSON de geração de minério conhecidos (como os da CoFH). O que é feito só em código, ou por scripts do KubeJS e do CraftTweaker, fica de fora, e a página diz isso.
+- A lista de materiais e os sinônimos ficam em dados versionados (`materials.toml`).
+
+**Conteúdo da página:** um material por linha ("Cobre: 4 mods têm o próprio lingote · 3 geram minério"), com a lista recolhível dos mods e o ID de cada item (`mekanism:ingot_copper`), a marca "gera minério" ou "só item", a evidência (o arquivo do jar) e a confiança (certa ou provável). No topo, a **solução para a versão do pack**, vinda de dados versionados (`unifiers.toml`), com o botão que adiciona pelo fluxo normal (T08/T09):
+- Forge 1.18.2 a 1.20.1, NeoForge 1.20.1 e 1.21.1, Fabric 1.18.2 a 1.21.1: **AlmostUnified** ("faz os mods usarem um item só: reescreve as receitas e esconde os repetidos no JEI"). No NeoForge 1.21.1 ele também pode desligar os minérios repetidos (opção `world_gen_unification`); nas outras versões, não unifica minério, e a página diz isso.
+- Forge 1.7.10 e 1.12.2: **UniDict** (receitas e máquinas pelo dicionário de minérios), com a ressalva de que está sem atualização desde 2021 e não mexe na geração de minério.
+- Forge 1.16.5 e versões sem unificador mantido: explicação de que não há um unificador mantido e de que a saída é desligar o minério repetido nas configs dos mods ou usar scripts (KubeJS), com o link "Ver os mods de unificação desta versão" para a página de descoberta.
+- Geradores de material (JAOPCA, Emendatus Enigmatica) aparecem com a nota "gera materiais, não unifica".
+
+Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e mostra onde fica a config (`config/almostunified/`); no NeoForge 1.21.1, diz se a unificação de minério está ligada, lendo a config.
+
+**Na saúde do pack:** categoria **"Itens repetidos"**, com **−1 por material com minério gerado por 2 ou mais mods**, sem unificador que resolva a geração, e **teto de −3**; materiais repetidos só como item não tiram pontos. Motivo: a nota resume o risco de o pack não funcionar ou incomodar quem joga; itens repetidos não travam nada, mas minério em dobro afeta todos os mundos e é difícil de desfazer depois que o mundo foi gerado.
+
+**Estados:** verificando; nada repetido ("Nenhum material repetido entre os mods do pack."); antes do primeiro teste ("A verificação lê os arquivos dos mods. Faça um teste ou clique em Verificar agora."); pack 1.7.10/1.12.2 (aviso de que a leitura é aproximada nessas versões).
+
+| CA | Critério |
+|---|---|
+| CA-T32-01 | Com os jars de teste do corpus (Mekanism e outro mod com estanho em Forge 1.20.1; Mekanism NeoForge 1.21.1; Tech Reborn Fabric 1.20.1), o estanho aparece repetido com os IDs certos e a marca "gera minério" a partir do `configured_feature` e do `biome_modifier`; no Fabric, "provavelmente gera minério" (teste de domínio com jars reais, origem anotada). |
+| CA-T32-02 | As três convenções de tag (`forge:ingots/tin`, `c:tin_ingots`, `c:ingots/tin` na pasta `tags/item`) são reconhecidas como o mesmo material (teste de domínio). |
+| CA-T32-03 | A solução sugerida segue `unifiers.toml`: AlmostUnified em Forge 1.20.1, NeoForge 1.21.1 e Fabric 1.20.1; UniDict em Forge 1.12.2; explicação sem unificador em Forge 1.16.5; com o AlmostUnified no pack, a linha vira "Unificado pelo AlmostUnified" (teste de domínio + componente). |
+| CA-T32-04 | Na saúde, 2 materiais com minério repetido e 3 só com itens repetidos tiram 2 pontos; 5 materiais com minério tiram 3 (teto); com o AlmostUnified no NeoForge 1.21.1 e `world_gen_unification` ligado, não tiram nada (teste de domínio da nota). |
+| CA-T32-05 | Itens repetidos nunca aparecem como erro ou aviso, nunca bloqueiam o teste nem a publicação (teste de componente). |
+
+---
+
+### T33 — Desempenho entre versões (1.1)
+
+**Objetivo:** ver se o pack ficou mais pesado de uma versão para outra, com números de testes que podem ser comparados de verdade (decisão D32; ADR-0047).
+
+**Onde:** página de detalhe **Desempenho entre versões** dentro do Histórico (T17), com "← Histórico". No Histórico, o bloco **Desempenho entre versões** resume em uma linha ("1.5.0 abre em 2 min 6 s, 21% mais lenta que a 1.4.2 · Ver desempenho entre versões") e leva à página. O resultado do teste (T13) mostra o aviso **Esta versão está mais pesada** quando o critério abaixo se cumpre, com o link para a página. A linha "Desempenho" da saúde do pack (T14) passa a usar o mesmo critério.
+
+**O que cada teste guarda** (a v1 já grava, ganchos da L-10 e da L-04; ARCHITECTURE §21): tempo até o jogo carregar e até entrar no mundo (quando entrou), pico da RAM do processo, pico da memória do jogo depois das coletas (quando houver leitura, P1 da v1), o perfil do teste (nome e uma assinatura dos ajustes: memória, Java, argumentos, janela, "ao abrir o jogo"), a **impressão do computador** (processador, quantidade de núcleos, memória total, placa de vídeo e versão do Windows, reduzidos a um código; só local), o modo do teste, a árvore do pack testada e se foi a **primeira abertura** depois de preparar o Minecraft ou recriar a instância (caches frios). Quando um perfil do spark foi salvo nesse teste (T13), também o tempo médio por tick e o pior 5% dos ticks. Essas linhas ficam nos dados do Warden, neste computador, e não são apagadas pela poda das sessões (T14).
+
+**Testes comparáveis:** só entram testes no modo normal que chegaram a carregar, com o **mesmo perfil do teste** (mesma assinatura) e **neste computador** (mesma impressão), fora a primeira abertura. Testes "com perfil de desempenho" ficam de fora (o registro detalhado deixa o carregamento mais lento). Cada teste é atribuído à versão salva cuja árvore é igual à testada; testes de alterações não salvas aparecem só como "Agora (não salvo)", nunca como uma versão.
+
+**Conteúdo da página:**
+- Seletores (caixas de seleção, não abas): **Mostrar: Tempo para abrir · Memória máxima · Tempo por tick** (o último só quando houver dados do spark) e **Perfil do teste** (padrão: o perfil ativo).
+- **Gráfico de barras**, uma barra por versão salva (as 12 mais recentes, da mais antiga à mais nova), com o valor da **mediana** dos testes comparáveis e a quantidade de testes ("3 testes"). Versão sem teste comparável aparece vazia, com "sem testes comparáveis". A barra da versão mais pesada que a anterior leva o selo de aviso com ícone e palavra (nunca só cor). Logo abaixo, a mesma informação em **tabela** (versão, data, mediana, testes, diferença para a anterior), que é também o que o leitor de tela lê.
+- Linha "N testes ficaram de fora" com **Ver por quê** (lista: outro perfil, outro computador, primeira abertura, travou antes de carregar, perfil de desempenho).
+- Texto fixo: "Os números vêm só dos seus testes neste computador. Nada disso sai do seu computador."
+
+**Critério de "mais pesada"** (comparando a versão V com a versão salva anterior U que tenha testes comparáveis): **tempo para abrir** com mediana pelo menos **20% maior e 10 s a mais**; ou **memória máxima** pelo menos **20% maior e 512 MB a mais**; ou **tempo por tick** (quando as duas têm dados do spark) pelo menos **25% maior e 5 ms a mais**. É preciso ter **pelo menos 2 testes comparáveis em cada versão**; com menos, o Warden mostra "Poucos testes para comparar. Teste de novo para confirmar." e não dá o aviso. O aviso diz os números ("Abre em 2 min 6 s, 21% mais lenta que a 1.4.2 (1 min 44 s)") e sugere **Testar com perfil de desempenho** para ver o que mais pesa.
+
+**Estados:** carregando (esqueleto do gráfico); vazio ("Ainda não há testes comparáveis. Cada teste normal deste pack entra aqui." com **▶ Testar**); só uma versão com testes ("Salve outra versão e teste para comparar."); perfil sem testes ("Nenhum teste com o perfil PC fraco neste computador.").
+
+| CA | Critério |
+|---|---|
+| CA-T33-01 | Cada teste normal grava uma linha de métricas com os tempos, o pico de RAM, o perfil (nome e assinatura), a impressão do computador, a árvore do pack e a marca de primeira abertura; a linha continua lá depois de a poda apagar a sessão (teste com 40 sessões sintéticas). |
+| CA-T33-02 | O gráfico mostra, para cada versão salva, a mediana dos testes comparáveis e a contagem; testes com outro perfil, outro computador, modo diferente, primeira abertura ou que travaram antes de carregar ficam de fora e aparecem em "Ver por quê" com o motivo (teste de domínio + componente). |
+| CA-T33-03 | Tabela de casos: 1.4.2 com 100, 104 e 98 s e 1.5.0 com 125 e 128 s (mesmo perfil e computador) gera o aviso "mais lenta"; 1.5.0 com um teste só gera "Poucos testes para comparar"; 1.5.0 com 110 e 112 s (+8%) não gera aviso; memória de 5,0 GB para 5,4 GB (+8%, +400 MB) não gera aviso (teste de domínio). |
+| CA-T33-04 | Nenhuma métrica é gravada na pasta do pack nem enviada pela rede (inspeção da pasta do pack e servidor simulado que reprova qualquer requisição durante o uso da página). |
+| CA-T33-05 | O gráfico tem a tabela equivalente, os selos de aviso têm ícone e palavra, e a página passa no `axe` sem violações (teste de componente). |
+
+---
+
 ## 7. Regras que valem para o app inteiro
 
 1. **A pasta do pack só recebe conteúdo do pack.** Nenhum `.bak`, temporário, cache, log, jar auxiliar ou configuração do app. Gravações usam arquivo temporário com sufixo `.warden-tmp` na mesma pasta seguido de renomeação; esse sufixo está no `.packwizignore` e sobras dele são apagadas ao abrir o pack.
@@ -1023,7 +1313,7 @@ Painel (gaveta) aberto pelo indicador do rodapé, presente em todas as telas do 
 5. **Nada de botão morto.** Toda ação visível funciona ou está desabilitada com dica explicando por quê.
 6. **Teclado e acessibilidade.** Toda ação acessível por teclado, foco visível, contraste AA, textos alternativos em ícones com função.
 7. **Uma janela.** Só uma cópia do Warden aberta por vez; abrir de novo foca a janela existente.
-8. **Privacidade.** Nada é enviado a terceiros além das chamadas necessárias às APIs (Mojang, Modrinth, CurseForge, Adoptium, Maven dos loaders, GitHub e, com o consentimento da conversa, Gemini e a busca de issues no GitHub). Sem telemetria. O Warden nunca faz upload de perfis do spark nem de logs para serviços de colagem.
+8. **Privacidade.** Nada é enviado a terceiros além das chamadas necessárias às APIs (Mojang, Modrinth, CurseForge, Adoptium, Maven dos loaders, GitHub e, com o consentimento da conversa, Gemini e a busca de issues no GitHub). Sem telemetria. O Warden nunca faz upload de perfis do spark nem de logs para serviços de colagem. (1.1) A checagem de segurança envia só hashes de arquivos ao Modrinth e à CurseForge, nunca o arquivo; a análise do travamento de um jogador só **baixa** o log do link que você colou (mclo.gs e os outros da T30), pelo Rust; as métricas de desempenho nunca saem do computador.
 9. **Linguagem.** Português do Brasil, "você", frases curtas, sem gírias técnicas não explicadas (QUALITY §8).
 10. **O pesado só sob demanda.** Servidor local, busca do culpado e perfil de desempenho só rodam quando o usuário pede, sempre com pausar ou cancelar e com uma explicação do que está acontecendo. O ▶ Testar continua fazendo só o teste normal (decisão D18).
 11. **Tudo que roda em rede local fica em 127.0.0.1.** Servidor local, servidor de arquivos do teste "como o jogador recebe" e chamadas ao servidor web do KubeJS nunca escutam nem chamam fora do próprio computador.
@@ -1042,12 +1332,17 @@ Painel (gaveta) aberto pelo indicador do rodapé, presente em todas as telas do 
 | Início da página de descoberta | < 2 s em conexão comum, com no máximo 3 requisições por fonte. |
 | Amostragem de desempenho durante o teste | A cada 1 s, sem custo perceptível no jogo (< 1% de CPU do Warden). |
 | Console agrupado | Agrupa 50.000 linhas sem travar a interface. |
+| (1.1) Segurança dos mods (300 mods, jars no cache) | Primeira verificação < 20 s sem contar a rede; seguintes < 2 s (cache por hash). |
+| (1.1) Manutenção dos mods | No máximo 3 requisições ao Modrinth e 2 à CurseForge para 300 mods. |
+| (1.1) Travamento de um jogador | Log de 25.000 linhas lido, redigido e comparado com 20 versões salvas em < 5 s (jars no cache). |
 | Interface | Nunca congela; trabalho pesado sempre fora da thread da interface. |
 | Memória do app (sem jogo) | < 500 MB. |
 | Robustez | Encerrar o app à força em qualquer momento não corrompe o pack (gravações atômicas, testes de falha). |
 | Registros | Arquivos diários, guardados por 14 dias, sem chaves nem tokens. |
 
 ## 9. Fora da v1
+
+Revisado na tarefa D5: as seis funções do Warden 1.1 "Profissional" (T28 a T33) **não fazem parte da v1**; são a versão seguinte (§4, marco M6). Continuam fora da v1 e da 1.1 o assistente de migração de versão do Minecraft (P2), publicar no Modrinth e na CurseForge e o editor de quests. Itens novos que nasceram da 1.1 e ficaram para depois estão marcados "(D5)" abaixo.
 
 Revisado na tarefa D4 (decisão D15): saíram desta lista o teste com servidor dedicado (agora T27, P1), "entrar direto no mundo" (Quick Play, agora nos perfis do teste, T11), importar `.mrpack` e zip da CurseForge (agora T24, P1) e os kits de performance (agora P1, T03 e T08).
 
@@ -1062,10 +1357,15 @@ Revisado na tarefa D4 (decisão D15): saíram desta lista o teste com servidor d
 - Painel git completo (branches, merges), trazer mudanças do GitHub (P2), sincronização entre computadores além do GitHub.
 - Atualização automática do Warden; atualização remota dos dados curados (conflitos, kits, categorias); macOS; empacotamento oficial para Linux (o app compila e roda em Linux para desenvolvimento).
 - Temas além do Deep Dark; outros idiomas.
+- Editor de quests (FTB Quests, Better Questing e afins).
+- (D5) Atualização remota da lista de sinais de segurança (como os demais dados curados); procurar rastros de malware no computador (pastas e serviços deixados pelo fractureiser e afins); enviar arquivos a serviços de análise de terceiros (VirusTotal e afins); regras YARA.
+- (D5) Configurar o unificador de itens sozinho (escrever a config do AlmostUnified com a prioridade dos mods); unificação de líquidos.
+- (D5) Comparar desempenho entre computadores diferentes; desempenho medido automaticamente em cada teste com o spark.
+- (D5) Receber travamentos dos jogadores automaticamente (sem colar link nem arquivo).
 
 ## 10. Decisões do dono
 
-Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exceção de D1. D10 a D14 vieram da revisão da estrutura (tarefa D2), no mesmo dia; D14 alterou D2. D15 a D26 vieram das pesquisas R5A e R5B (tarefa D4), também no mesmo dia.
+Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exceção de D1. D10 a D14 vieram da revisão da estrutura (tarefa D2), no mesmo dia; D14 alterou D2. D15 a D26 vieram das pesquisas R5A e R5B (tarefa D4), também no mesmo dia. D27 a D32 são as seis funções que o dono aprovou em 02/10/2026, ao perguntar o que faltava para o Warden ser um gerenciador de mods profissional; D33 é a decisão do orquestrador de entregá-las como uma versão nova do app (tarefa D5). Os detalhes de cada uma foram definidos na D5 a partir de pesquisa e estão nas telas e ADRs citadas.
 
 | # | Pergunta | Decisão |
 |---|---|---|
@@ -1095,6 +1395,13 @@ Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exce
 | D24 | Onde mostrar a nota de saúde? | Em **Problemas** e também na lista **Meus packs** (T02, T14). |
 | D25 | Achados fora do escopo das pesquisas? | **Aplicar:** linha de ajuda sobre o erro 403 do bootstrap no passo a passo dos jogadores (T18); aviso de que o NeoForge apaga chaves desconhecidas e volta valores fora da faixa ao padrão (T12); `env: "unknown"` aceito na leitura de `.mrpack` e nunca gerado (T19, T24); correções de documentos da R5A §10.3 (ARCHITECTURE §7.4, §8.4, §9.5; ADR-0014; R2 §6.4). |
 | D26 | Spikes recomendados? | **Entram no ROADMAP** como tarefas antes das que dependem deles: S-R5-1 (intermed), S-R5-2 (memória pelo `hsperfdata`), S-R5-3 (marcadores da busca do culpado), S-R5-4 (laço de ferramentas do Gemini). |
+| D27 | Checar a segurança dos mods (malware)? | **Sim.** Conferir o hash de cada jar com o arquivo oficial do Modrinth e da CurseForge e procurar sinais conhecidos, com atenção especial a arquivos do computador, links diretos e packs importados; obrigatória antes de publicar; resultados em Problemas; a interface diz que não é um antivírus; nenhum arquivo é enviado a terceiros (só hashes). A lista de sinais vem com o Warden e é atualizada a cada versão do app (recomendação do orquestrador; baixá-la de um repositório fixo fica como ponto pendente para o dono) (T28, ADR-0040, ADR-0041). |
+| D28 | Vigiar mods removidos ou abandonados? | **Sim.** Ao abrir o pack (com limite de frequência) e sempre antes de publicar: projeto removido ou arquivado, arquivo removido, sem atualização há mais de 18 meses, sem versão para o Minecraft mais novo; substitutos da mesma plataforma com o motivo; respostas da CurseForge só em memória (T29, ADR-0042). |
+| D29 | Analisar o travamento de um jogador? | **Sim.** Em Problemas, por link (mclo.gs e afins) ou arquivo; o Warden identifica a versão do pack do jogador, roda o mesmo diagnóstico e oferece a IA com as mesmas regras de consentimento; dados pessoais removidos (T30, ADR-0043). |
+| D30 | Notas e grupos de mods? | **Sim.** Nota curta por mod e grupos do usuário, com filtro e agrupamento em Mods e a opção de usar as notas no resumo da versão; guardados em `.warden/mods.toml`, porque o packwiz apaga campos desconhecidos do `.pw.toml` (T31, ADR-0044). |
+| D31 | Avisar sobre itens repetidos entre mods? | **Sim**, como **conselho**: detecção pelos jars (tags, nomes, geração de minério) e a solução da versão certa (AlmostUnified nas versões novas; UniDict em 1.7.10 e 1.12.2); categoria própria em Problemas que tira no máximo 3 pontos da saúde (T32, ADR-0046). |
+| D32 | Acompanhar o desempenho entre versões? | **Sim.** Cada teste guarda tempo para abrir, memória máxima e, com spark, o tempo por tick; gráfico por versão salva no Histórico; aviso quando uma versão fica mais pesada, comparando só testes com o mesmo perfil no mesmo computador; dados só locais (T33, ADR-0047). |
+| D33 | As seis funções entram na v1? | **Não: formam o Warden 1.1 "Profissional"**, versão seguinte à v1 (marco M6), com etiqueta "1.1" na SPEC. A v1 só deixa os ganchos prontos, sem aumentar o trabalho além do mínimo (ARCHITECTURE §21, ADR-0039). Decisão do orquestrador, dentro da aprovação do dono. |
 
 ## 11. Rastreabilidade
 
@@ -1120,3 +1427,10 @@ Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exce
 | T25 | D-12 (no cliente e modo assistido), D-13 (com o servidor local) |
 | T26 | C-07 |
 | T27 | L-09 |
+| T28 (1.1) | W-01 (sinais e leitura dos jars), W-02 (conferência com o oficial, página, Testar, adicionar e importar), W-03 (checagens obrigatórias do Publicar) |
+| T29 (1.1) | W-04 (manutenção), W-05 (substitutos) |
+| T30 (1.1) | W-06 (leitura do log e versão do jogador), W-07 (página, Travamentos e IA) |
+| T31 (1.1) | W-08 |
+| T32 (1.1) | W-09 |
+| T33 (1.1) | W-10 |
+| T06, T07, T14, T16, T17, T18 (partes 1.1) | W-02, W-05, W-07, W-08, W-09, W-10 (cada uma registra o seu bloco); W-11 (saúde do pack com as categorias novas e painel Verificações do pack); W-12 (revisão e fluxos de ponta a ponta da 1.1) |

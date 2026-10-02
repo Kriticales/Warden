@@ -1,8 +1,8 @@
 # Warden — Plano de construção
 
-> Versão do documento: 1.2 (2026-10-01). Tarefa A1; escopos ajustados na tarefa D2 às decisões do dono (estrutura de navegação, busca combinada, chaves no cofre ou `.env`, Java, seção de IA e publicação no GitHub; ADR-0025 a ADR-0029); funções avançadas, spikes e ondas recalculadas na tarefa D4 (decisões D15 a D26; ADR-0030 a ADR-0038).
+> Versão do documento: 1.3 (2026-10-02). Tarefa A1; escopos ajustados na tarefa D2 às decisões do dono (estrutura de navegação, busca combinada, chaves no cofre ou `.env`, Java, seção de IA e publicação no GitHub; ADR-0025 a ADR-0029); funções avançadas, spikes e ondas recalculadas na tarefa D4 (decisões D15 a D26; ADR-0030 a ADR-0038); **Warden 1.1 "Profissional"** na tarefa D5: fase 7 (W-01 a W-12), marco M6, ganchos nas tarefas da v1 e ondas recalculadas (decisões D27 a D33; ADR-0039 a ADR-0047).
 > Cada tarefa abaixo é entregue por um agente numa branch própria, seguindo `QUALITY.md`. O orquestrador despacha, revisa e integra.
-> Referências: `SPEC.md` (telas T01–T23 e critérios CA-*), `ARCHITECTURE.md` (§ citados), `docs/decisions/` (ADR-*).
+> Referências: `SPEC.md` (telas T01–T33 e critérios CA-*), `ARCHITECTURE.md` (§ citados), `docs/decisions/` (ADR-*).
 
 ## Sumário
 
@@ -16,15 +16,16 @@
 8. [Fase 4 — Diagnóstico](#fase-4--diagnóstico)
 9. [Fase 5 — Versionamento e exportação](#fase-5--versionamento-e-exportação)
 10. [Fase 6 — Acabamento](#fase-6--acabamento)
-11. [Spikes da D4](#spikes-da-d4)
-12. [Marcos](#12-marcos)
-13. [Backlog P2](#13-backlog-p2)
+11. [Fase 7 — Warden 1.1 "Profissional"](#fase-7--warden-11-profissional)
+12. [Spikes da D4](#spikes-da-d4)
+13. [Marcos](#13-marcos)
+14. [Backlog P2](#14-backlog-p2)
 
 ---
 
 ## 1. Como ler este plano
 
-- **ID estável:** `F0-xx` (fundação), `P1-xx` (núcleo do pack), `L-xx` (launcher), `C-xx` (configs), `D-xx` (diagnóstico), `V-xx` (versionamento), `E-xx` (exportação), `A-xx` (acabamento), `S-R5-N` (spikes da D4, seção [Spikes da D4](#spikes-da-d4)). `S1` é o spike do motor do launcher, concluído fora deste plano (`docs/spikes/S1-motor-do-launcher.md`). As tarefas acrescentadas na D4 ficam na fase do assunto (P1-16 a P1-19, L-08 a L-12, C-05 a C-07, D-05 a D-14, E-03, A-07); as que já existiam e mudaram de escopo dizem "D4:" nas entregas.
+- **ID estável:** `F0-xx` (fundação), `P1-xx` (núcleo do pack), `L-xx` (launcher), `C-xx` (configs), `D-xx` (diagnóstico), `V-xx` (versionamento), `E-xx` (exportação), `A-xx` (acabamento), `W-xx` (Warden 1.1 "Profissional", fase 7, prioridade **1.1**), `S-R5-N` (spikes da D4, seção [Spikes da D4](#spikes-da-d4)). `S1` é o spike do motor do launcher, concluído fora deste plano (`docs/spikes/S1-motor-do-launcher.md`). As tarefas acrescentadas na D4 ficam na fase do assunto (P1-16 a P1-19, L-08 a L-12, C-05 a C-07, D-05 a D-14, E-03, A-07); as que já existiam e mudaram de escopo dizem "D4:" nas entregas. As tarefas da v1 que deixam um gancho pronto para a 1.1 dizem "Gancho 1.1:" nas entregas (custo mínimo, sem função visível; ADR-0039).
 - **Fases** agrupam por assunto; a **ordem real** é dada pelas dependências. Uma tarefa pode começar assim que as dependências estiverem integradas na `main` (ondas na §3).
 - **Posse:** arquivos e pastas que só aquela tarefa altera. Fora da posse, só os **registros acréscimo-apenas** (uma linha por entrada, conflitos resolvidos pelo orquestrador):
   - `Cargo.toml` da raiz (`[workspace.dependencies]`) e `Cargo.lock`;
@@ -33,8 +34,8 @@
   - `apps/desktop/src-tauri/src/commands/mod.rs` (registro de comandos) e `src/state.rs` (campos do estado);
   - `apps/desktop/src/app/navigation.ts`, `apps/desktop/src/i18n/index.ts`, `apps/desktop/src/i18n/errors/index.ts`;
   - `xtask/src/main.rs` (registro de subcomandos);
-  - `lib.rs` das crates divididas entre várias tarefas (`warden-project`, `warden-instance`, `warden-diagnostics`, `warden-versioning`; D4: `warden-jarmeta`, `warden-configs`, `warden-launcher`, `warden-ai`, `warden-perf`, `warden-discovery`, `warden-export`): só declarações de módulos e reexportações;
-  - `crates/warden-diagnostics/data/log-patterns.toml` (D4: um padrão por bloco, só acréscimo);
+  - `lib.rs` das crates divididas entre várias tarefas (`warden-project`, `warden-instance`, `warden-diagnostics`, `warden-versioning`; D4: `warden-jarmeta`, `warden-configs`, `warden-launcher`, `warden-ai`, `warden-perf`, `warden-discovery`, `warden-export`; D5: `warden-security`): só declarações de módulos e reexportações;
+  - `crates/warden-diagnostics/data/log-patterns.toml` (D4: um padrão por bloco, só acréscimo); D5: `crates/warden-diagnostics/data/health-score.toml` (só acréscimo de categorias; a W-11 é a dona das categorias da 1.1);
   - D4: `apps/desktop/src/features/test/menu-items.ts` (itens do menu ▾ do Testar, criado pela L-04), `apps/desktop/src/features/pack-editor/details/blocks.ts` (blocos do painel de detalhes do item, criado pela P1-08), `apps/desktop/src/features/diagnostics/problems-blocks.ts` (blocos da seção Problemas, criado pela D-03), `apps/desktop/src-tauri/src/ai_tools/mod.rs` (registro das ferramentas da IA, criado pela D-04);
   - enums de códigos de erro das crates (`crates/*/src/error.rs`, só acréscimo de variantes) e as frases correspondentes em `apps/desktop/src/i18n/errors/<domínio>.ts`;
   - `apps/desktop/src/features/pack-editor/header/slots.ts` e `apps/desktop/src/features/pack-editor/sections.ts` (botões/indicadores do cabeçalho e seções do menu do pack, criados pela P1-08);
@@ -56,7 +57,7 @@
 | Antes de V-03 | Gerar um token do GitHub com permissão para criar repositórios (públicos e privados), enviar conteúdo e criar Releases (passo a passo virá no app) e salvá-lo no Warden. Para os testes de integração de V-03, uma conta ou repositórios de teste descartáveis. | Publicar versão para os jogadores (D14). |
 | Antes de S-R5-4 | Criar uma chave do Gemini (Google AI Studio). | Spike do laço de ferramentas e, depois, IA do diagnóstico (D-04). |
 | Antes de S-R5-2 | Deixar o orquestrador rodar um teste curto no Windows da máquina (Java 8, 17, 21 e 25 baixados pelo próprio spike). | Medir a leitura de memória da JVM no Windows real. |
-| Em cada marco (§11) | Abrir o app no Windows e seguir o roteiro de aceite entregue. | Validação real no Windows. |
+| Em cada marco (§13) | Abrir o app no Windows e seguir o roteiro de aceite entregue. | Validação real no Windows. |
 
 ## 3. Ondas de paralelismo
 
@@ -76,8 +77,12 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 | 9 | P1-15, P1-17, L-12, D-04, D-08, D-12, E-03, A-01 |
 | 10 | D-13, D-14, A-03 |
 | 11 | A-07 |
+| 12 | W-01, W-04, W-06, W-08, W-09, W-10 |
+| 13 | W-02, W-05, W-07 |
+| 14 | W-03, W-11 |
+| 15 | W-12 |
 
-A tabela é derivada das dependências declaradas em cada tarefa (recalculada por script na D4: onda = 1 + a maior onda entre as dependências); em caso de dúvida, valem as dependências. Os spikes da D4 não dependem de nada e podem rodar logo; as tarefas que dependem deles (L-11, D-04, D-10, D-12) esperam o relatório. A-01 depende de todas as tarefas com parte P0; A-03, de todas as P0 e da A-01; A-07, de todas as tarefas P1 com interface. Muitas tarefas da onda 7 em diante são P1: o orquestrador pode adiar uma P1 sem travar as P0 da mesma onda.
+A tabela é derivada das dependências declaradas em cada tarefa (recalculada por script na D4 e de novo na D5: onda = 1 + a maior onda entre as dependências); em caso de dúvida, valem as dependências. Os spikes da D4 não dependem de nada e podem rodar logo; as tarefas que dependem deles (L-11, D-04, D-10, D-12) esperam o relatório. A-01 depende de todas as tarefas com parte P0; A-03, de todas as P0 e da A-01; A-07, de todas as tarefas P1 com interface. As ondas 12 a 15 são do Warden 1.1 (fase 7): começam depois do M5 (as tarefas W sem dependência de outra W dependem de A-03 e A-07). Muitas tarefas da onda 7 em diante são P1: o orquestrador pode adiar uma P1 sem travar as P0 da mesma onda.
 
 ---
 
@@ -229,7 +234,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** F0-05 · **Branch:** `feat/p1-03-http-modrinth`
 - **Objetivo:** cliente HTTP comum e cliente completo do Modrinth (ARCHITECTURE §17).
 - **Posse:** `crates/warden-http/**`, `crates/warden-modrinth/**`.
-- **Entregas:** User-Agent, limitador por host, novas tentativas, download em streaming com hash e `.part`; endpoints do Modrinth (busca com facets, projeto(s), versões, `version_files`, `version_files/update`, tags); cache SQLite de projetos/versões; códigos de erro e traduções do domínio.
+- **Entregas:** User-Agent, limitador por host, novas tentativas, download em streaming com hash e `.part`; endpoints do Modrinth (busca com facets, projeto(s), versões, `version_files`, `version_files/update`, tags); cache SQLite de projetos/versões; códigos de erro e traduções do domínio. Gancho 1.1: o download calcula de uma vez sha1, sha256, sha512 e o murmur2 da CurseForge, e o cache do Modrinth guarda `status`, `updated` e `game_versions` dos projetos (ADR-0039).
 - **Critérios de aceite:**
   1. 429 com `X-Ratelimit-Reset` é respeitado (teste com `wiremock`).
   2. Download interrompido retoma com `Range` e o hash final confere.
@@ -278,7 +283,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** P1-01, P1-02, P1-05, V-01, F0-06 · **Branch:** `feat/p1-07-packs`
 - **Objetivo:** telas T02, T03 e T04 completas, de ponta a ponta.
 - **Posse:** `crates/warden-project/src/{registry.rs,create.rs,open.rs,hygiene.rs,transaction.rs,trash.rs}` (e `lib.rs` inicial), `apps/desktop/src-tauri/src/commands/packs.rs`, `apps/desktop/src/features/packs/**`, `apps/desktop/src/routes/packs/{index.tsx,novo.tsx,abrir.tsx}`, `apps/desktop/src/i18n/pt-BR/packs.ts`, `apps/desktop/e2e/packs.e2e.ts`.
-- **Entregas:** registro de packs (`packs.json`), `PackTransaction` com bloco obrigatório do `.packwizignore` (ARCHITECTURE §6.4–§6.5), criação sem `packwiz init` (com `git` via V-01), importação (`pack_import`) com validações, repositórios git existentes (ARCHITECTURE §11) e higiene, limpeza de sobras `.warden-tmp`, telas com todos os estados; (P1) Apagar pack para a Lixeira (`pack_trash`). D4: o botão de Meus packs é **Abrir ou importar…** (detecta pasta packwiz; outros formatos ficam desabilitados com o motivo até a P1-19); o assistente Criar pack tem 5 etapas, com a etapa "Mods iniciais" registrada pela P1-18 (até lá, a etapa não aparece); a tabela de Meus packs deixa a coluna Saúde para a D-08.
+- **Entregas:** (Gancho 1.1: o leitor de `.warden/` preserva arquivos e tabelas que não conhece; o nome `.warden/mods.toml` fica reservado; ADR-0039) registro de packs (`packs.json`), `PackTransaction` com bloco obrigatório do `.packwizignore` (ARCHITECTURE §6.4–§6.5), criação sem `packwiz init` (com `git` via V-01), importação (`pack_import`) com validações, repositórios git existentes (ARCHITECTURE §11) e higiene, limpeza de sobras `.warden-tmp`, telas com todos os estados; (P1) Apagar pack para a Lixeira (`pack_trash`). D4: o botão de Meus packs é **Abrir ou importar…** (detecta pasta packwiz; outros formatos ficam desabilitados com o motivo até a P1-19); o assistente Criar pack tem 5 etapas, com a etapa "Mods iniciais" registrada pela P1-18 (até lá, a etapa não aparece); a tabela de Meus packs deixa a coluna Saúde para a D-08.
 - **Critérios de aceite:** CA-T02-01 a CA-T02-04, CA-T03-01 a CA-T03-06, CA-T04-01 a CA-T04-04; `PackTransaction` reverte corretamente com falha injetada em cada passo.
 - **Verificação:** `WARDEN_REQUIRE_EXTERNALS=1 cargo nextest run -p warden-project`; `pnpm -C apps/desktop test -- packs`; E2E `packs.e2e.ts`.
 
@@ -287,7 +292,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** P1-07, P1-03, L-01 · **Branch:** `feat/p1-08-editor-do-pack`
 - **Objetivo:** telas T05, T06 e T07 e a parte P0 de T11 (Informações do pack e o diálogo Ajustes do teste), na estrutura aprovada (ADR-0026).
 - **Posse:** `crates/warden-project/src/{inventory.rs,details.rs,side.rs,remove.rs,meta.rs}`, `apps/desktop/src-tauri/src/commands/{inventory.rs,pack_meta.rs}`, `apps/desktop/src/features/pack-editor/**`, `apps/desktop/src/routes/packs/$packId/{route.tsx,index.tsx,mods.tsx}`, `apps/desktop/src/i18n/pt-BR/editor.ts`, `apps/desktop/e2e/editor.e2e.ts`.
-- **Entregas:** layout do pack (cabeçalho fixo com ← Meus packs, nome e "Editar informações", identificação, avisos passageiros e "Salvar versão · N alterações"; menu lateral com as 6 seções, com descrição e contador; o pack abre em Mods); lista única de mods, resource packs e shaders agrupada por tipo; inventário guiado pelo índice e tolerante a erros, versão legível pelo cache, detalhes em painel lateral (Modrinth do cache; CurseForge ao vivo), lado individual e em lote, remover (com dependentes), Informações do pack (nome/autor/descrição no `pack.toml`) e o diálogo Ajustes do teste neste computador (memória, Java automático com motivo via `java_choice` da L-01, argumentos, recriar instância; gravados em `packs.json`, com efeito real a partir da L-04, que o expõe no menu ▾ do Testar). Cria os pontos de extensão `features/pack-editor/header/slots.ts` (botões e indicadores do cabeçalho registrados por L-04, V-02, C-03, D-03 e A-05), `features/pack-editor/sections.ts` (seções do menu, registradas por C-02, D-03, D-04, V-02 e E-01) e, na D4, `features/pack-editor/details/blocks.ts` (blocos do painel de detalhes, registrados por D-07 e D-10); o diálogo Ajustes do teste fica em `features/pack-editor/test-settings/` (a L-08 acrescenta os perfis); o layout do pack aceita o estado "menu recolhido" (ícones com tooltip) usado pela página de descoberta (P1-09). As descrições das seções seguem a ESTRUTURA §13 (Configs: "Arquivos de ajuste e scripts do pack"; Problemas: "Saúde do pack, problemas e travamentos"; ✦ Diagnóstico com IA: "Conversar com a IA sobre um problema do pack").
+- **Entregas:** layout do pack (cabeçalho fixo com ← Meus packs, nome e "Editar informações", identificação, avisos passageiros e "Salvar versão · N alterações"; menu lateral com as 6 seções, com descrição e contador; o pack abre em Mods); lista única de mods, resource packs e shaders agrupada por tipo; inventário guiado pelo índice e tolerante a erros, versão legível pelo cache, detalhes em painel lateral (Modrinth do cache; CurseForge ao vivo), lado individual e em lote, remover (com dependentes), Informações do pack (nome/autor/descrição no `pack.toml`) e o diálogo Ajustes do teste neste computador (memória, Java automático com motivo via `java_choice` da L-01, argumentos, recriar instância; gravados em `packs.json`, com efeito real a partir da L-04, que o expõe no menu ▾ do Testar). Cria os pontos de extensão `features/pack-editor/header/slots.ts` (botões e indicadores do cabeçalho registrados por L-04, V-02, C-03, D-03 e A-05), `features/pack-editor/sections.ts` (seções do menu, registradas por C-02, D-03, D-04, V-02 e E-01) e, na D4, `features/pack-editor/details/blocks.ts` (blocos do painel de detalhes, registrados por D-07 e D-10); o diálogo Ajustes do teste fica em `features/pack-editor/test-settings/` (a L-08 acrescenta os perfis); o layout do pack aceita o estado "menu recolhido" (ícones com tooltip) usado pela página de descoberta (P1-09). Gancho 1.1: cada item tem uma chave estável (projeto do Modrinth ou da CurseForge, ou o caminho do metafile) e o agrupamento da lista por tipo é uma função genérica de agrupamento, para a W-08 acrescentar "por grupo" (ADR-0039). As descrições das seções seguem a ESTRUTURA §13 (Configs: "Arquivos de ajuste e scripts do pack"; Problemas: "Saúde do pack, problemas e travamentos"; ✦ Diagnóstico com IA: "Conversar com a IA sobre um problema do pack").
 - **Critérios de aceite:** CA-T05-01 a CA-T05-03, CA-T06-01 a CA-T06-04, CA-T07-01, CA-T07-02, CA-T11-01, CA-T11-03.
 - **Verificação:** `cargo nextest run -p warden-project`; testes de componente; E2E `editor.e2e.ts`.
 
@@ -387,7 +392,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P1 · **Depende de:** P1-07, P1-02, P1-04, P1-06, L-08 · **Branch:** `feat/p1-19-importar`
 - **Objetivo:** T24 (ADR-0035; R5B §5.1; ARCHITECTURE §12.2).
 - **Posse:** `crates/warden-import/**`, `apps/desktop/src-tauri/src/commands/import.rs`, `apps/desktop/src/features/packs/import/**`, `apps/desktop/src/routes/packs/importar.tsx`, `apps/desktop/src/i18n/pt-BR/importar.ts`, `apps/desktop/e2e/import.e2e.ts`, corpus em `crates/warden-import/tests/corpus/**` (com a origem de cada arquivo anotada).
-- **Entregas:** detecção pelo conteúdo a partir do "Abrir ou importar…" da P1-07; conversão de `.mrpack` (proteção contra *zip slip*, metafiles do Modrinth pelo caminho da URL ou por `version_files` em lote, modo `url` para outros hosts, `env` → lado com valores desconhecidos como "Cliente e servidor" e aviso, opcionais para revisão, `overrides/`, jars soltos por hash, `client-overrides/` com aviso, `server-overrides/`); zip da CurseForge pelo `packwiz curseforge import` em staging com correção do lado pelo Modrinth; instância do Prism/MultiMC (`mmc-pack.json`, `mods/.index/*.pw.toml` sem os campos `x-prismlauncher-*`, jars por hash, `instance.cfg` → perfil do teste da L-08, pergunta sobre `options.txt`/`servers.dat`) e do app da CurseForge; higiene obrigatória; página "Importar modpack" com o resumo (referência, arquivo local, revisar, não entra) e a licença do projeto; criação do pack pela rotina do T03 seguida de `check_conformance`.
+- **Entregas:** detecção pelo conteúdo a partir do "Abrir ou importar…" da P1-07; conversão de `.mrpack` (proteção contra *zip slip*, metafiles do Modrinth pelo caminho da URL ou por `version_files` em lote, modo `url` para outros hosts, `env` → lado com valores desconhecidos como "Cliente e servidor" e aviso, opcionais para revisão, `overrides/`, jars soltos por hash, `client-overrides/` com aviso, `server-overrides/`); zip da CurseForge pelo `packwiz curseforge import` em staging com correção do lado pelo Modrinth; instância do Prism/MultiMC (`mmc-pack.json`, `mods/.index/*.pw.toml` sem os campos `x-prismlauncher-*`, jars por hash, `instance.cfg` → perfil do teste da L-08, pergunta sobre `options.txt`/`servers.dat`) e do app da CurseForge; higiene obrigatória; página "Importar modpack" com o resumo (referência, arquivo local, revisar, não entra) e a licença do projeto; criação do pack pela rotina do T03 seguida de `check_conformance`. Gancho 1.1: os jars que ficam como arquivo local são marcados com a origem da importação em `.warden/project.toml` (ADR-0039).
 - **Critérios de aceite:** CA-T24-01 a CA-T24-04.
 - **Verificação:** integração com o packwiz real e servidores simulados; testes de segurança com zips maliciosos; E2E.
 
@@ -427,7 +432,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** P1-01, P1-03, P1-04 · **Branch:** `feat/l-03-materializacao`
 - **Objetivo:** montar a instância a partir do pack com a semântica do packwiz-installer (ARCHITECTURE §8.2, ADR-0011).
 - **Posse:** `crates/warden-instance/src/{materialize.rs,manifest.rs,downloads.rs,blocked.rs,optional_choices.rs}` (e `lib.rs` inicial), `crates/warden-instance/tests/conformance_*.rs`, `xtask/src/installer.rs` (baixa, por versão e hash fixados, o bootstrap do packwiz-installer e um JRE Temurin para testes, numa pasta de cache do usuário).
-- **Entregas:** algoritmo completo (lado, opcionais, `preserve`, remoção do que saiu, cache por hash, CurseForge na hora), manifesto de estado, lista de bloqueados para T20, pausa antes de sobrescrever arquivo alterado e não revisado.
+- **Entregas:** algoritmo completo (lado, opcionais, `preserve`, remoção do que saiu, cache por hash, CurseForge na hora), manifesto de estado, lista de bloqueados para T20, pausa antes de sobrescrever arquivo alterado e não revisado. Gancho 1.1: o `cache/downloads/index.sqlite` guarda, por jar, os quatro hashes e a origem (fonte, projeto, versão, URL) (ADR-0039).
 - **Critérios de aceite:**
   1. Conformidade: para 5 packs de teste (com opcionais, `preserve`, lado servidor, configs, resource packs), a árvore do Warden é idêntica à do packwiz-installer real.
   2. CA-T13-04 (parte de sincronização) e CA-T22-01 (cancelamento da sincronização).
@@ -439,7 +444,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** L-02, L-03, P1-08 · **Branch:** `feat/l-04-testar-e-console`
 - **Objetivo:** T13 completa (exceto "Testar como o jogador recebe", L-07). Os passos de verificação (1 e 4) e a captura ficam em pontos de extensão criados pela L-04 como passagem direta: no backend, o trait `TestHooks` (`before_prepare`, `before_launch`, `after_exit`) em `apps/desktop/src-tauri/src/test_hooks/mod.rs`, implementado por `test_hooks/diagnostics.rs` (D-03) e `test_hooks/capture.rs` (C-03); na interface, `apps/desktop/src/features/test/verification/` (D-03). Até serem preenchidos, esses passos não aparecem na interface.
 - **Posse:** `apps/desktop/src-tauri/src/commands/test.rs`, `apps/desktop/src-tauri/src/test_session.rs`, `apps/desktop/src-tauri/src/test_hooks/mod.rs` (inicial), `apps/desktop/src/features/test/**` (exceto `verification/`, de D-03, `blocked/`, de L-06, `clean/`, de L-07, e as subpastas da D4: `profiles/` (L-08), `perf-strip/` (L-10), `perf-report/` (L-12), `server/` (L-09), `console-grouped/` (D-09), `reload-scripts/` (C-07)), `apps/desktop/src/routes/packs/$packId/teste.tsx`, `apps/desktop/src/i18n/pt-BR/teste.ts`, `apps/desktop/e2e/test.e2e.ts`.
-- **Entregas:** orquestração das etapas, memória automática, um jogo por vez, confirmação ao fechar o app, console virtualizado com filtros e busca, sessões anteriores; botão Testar no cabeçalho com os estados "Testando… ver progresso" e "● Jogo aberto: ver teste"; menu ▾ em grupos (Ver último teste; Outros testes; Perfil do teste com Ajustes do teste neste computador — diálogo da P1-08 —; Instância de teste: Abrir pasta, Apagar mundos de teste, Recriar instância), com o registro `features/test/menu-items.ts` para os itens das tarefas da D4 (L-07, L-08, L-09, L-12, D-12); tela do teste com o resultado e os espaços para "O que mudou durante o teste" (C-03) e "Por que travou" (D-03); `test_start` aceita o modo (normal, como o jogador recebe, perfil de desempenho, como servidor) e o perfil; cada sessão registra o hash da árvore do pack testada (usado pelo aviso "versão não testada" da V-03), o modo e o perfil; o canal do teste já transporta `PerfSample` (vazio até a L-10).
+- **Entregas:** orquestração das etapas, memória automática, um jogo por vez, confirmação ao fechar o app, console virtualizado com filtros e busca, sessões anteriores; botão Testar no cabeçalho com os estados "Testando… ver progresso" e "● Jogo aberto: ver teste"; menu ▾ em grupos (Ver último teste; Outros testes; Perfil do teste com Ajustes do teste neste computador — diálogo da P1-08 —; Instância de teste: Abrir pasta, Apagar mundos de teste, Recriar instância), com o registro `features/test/menu-items.ts` para os itens das tarefas da D4 (L-07, L-08, L-09, L-12, D-12); tela do teste com o resultado e os espaços para "O que mudou durante o teste" (C-03) e "Por que travou" (D-03); `test_start` aceita o modo (normal, como o jogador recebe, perfil de desempenho, como servidor) e o perfil; cada sessão registra o hash da árvore do pack testada (usado pelo aviso "versão não testada" da V-03), o modo e o perfil; o canal do teste já transporta `PerfSample` (vazio até a L-10). Gancho 1.1: a sessão grava a assinatura do perfil do teste (memória, Java, argumentos, janela, "ao abrir o jogo"), a impressão do computador e a marca de primeira abertura (ADR-0039).
 - **Critérios de aceite:** CA-T13-01 (pelo menos 1.20.1 Fabric e 1.12.2 Forge nesta tarefa; matriz completa em L-05), CA-T13-02 a CA-T13-08.
 - **Verificação:** E2E com jogo simulado (processo Java de teste); roteiro manual no Windows com pack real.
 
@@ -495,7 +500,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** L-04 · **Branch:** `feat/l-10-desempenho-base`
 - **Objetivo:** faixa de desempenho com RAM do processo e "Abriu em", em todo teste (T13; ARCHITECTURE §7.7; ADR-0038).
 - **Posse:** `crates/warden-perf/{Cargo.toml,src/lib.rs,src/process/**,src/load_time.rs}`, `apps/desktop/src-tauri/src/test_hooks/perf.rs`, `apps/desktop/src/features/test/perf-strip/**`, `apps/desktop/src/i18n/pt-BR/desempenho.ts`.
-- **Entregas:** crate `warden-perf` com a leitura da RAM do processo (Windows `GetProcessMemoryInfo` e pico do Job Object, com `unsafe` isolado e `SAFETY`; Linux `/proc`), amostras `PerfSample` a cada 1 s pelo canal do teste, tempos até carregar e até entrar no mundo pelos marcadores da §7.4, gravados na sessão e comparados com a última sessão de outra versão do pack; faixa acima do console e "Abriu em …" no resultado.
+- **Entregas:** crate `warden-perf` com a leitura da RAM do processo (Windows `GetProcessMemoryInfo` e pico do Job Object, com `unsafe` isolado e `SAFETY`; Linux `/proc`), amostras `PerfSample` a cada 1 s pelo canal do teste, tempos até carregar e até entrar no mundo pelos marcadores da §7.4, gravados na sessão e comparados com a última sessão de outra versão do pack; faixa acima do console e "Abriu em …" no resultado. Gancho 1.1: cada sessão acrescenta uma linha de métricas em `perf/<pack-id>.jsonl` nos dados locais (tempos, picos, perfil, computador, árvore do pack, modo, primeira abertura), que a poda das sessões não apaga (ADR-0039, ADR-0047).
 - **Critérios de aceite:** CA-T13-09.
 - **Verificação:** `cargo nextest run -p warden-perf` (Linux e Windows na CI); E2E com jogo simulado.
 
@@ -603,7 +608,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** F0-05 · **Branch:** `feat/d-02-analise-de-crash`
 - **Objetivo:** catálogo de padrões de log e redação de dados pessoais (ARCHITECTURE §9.3, §9.4).
 - **Posse:** `crates/warden-diagnostics/src/{lib.rs,model.rs,postcrash/**,redact.rs}`, `crates/warden-diagnostics/data/log-patterns.toml`, `crates/warden-diagnostics/tests/corpus/**`, seção correspondente em `THIRD_PARTY.md`.
-- **Entregas:** modelo `Finding` com evidência obrigatória (ARCHITECTURE §9.1), usado também pela D-01; coleta de artefatos de uma pasta de sessão, limpeza de `§`/ANSI, padrões (os 35 de R2 §6.3 + porte do codex-minecraft com atribuição), ordenação por probabilidade, redação.
+- **Entregas:** modelo `Finding` com evidência obrigatória (ARCHITECTURE §9.1), usado também pela D-01; coleta de artefatos de uma pasta de sessão, limpeza de `§`/ANSI, padrões (os 35 de R2 §6.3 + porte do codex-minecraft com atribuição), ordenação por probabilidade, redação. Gancho 1.1: a análise aceita qualquer texto de log, não só uma pasta de sessão (a IA já precisa disso para um log do computador), e a redação aceita regras extras (ADR-0039).
 - **Critérios de aceite:** CA-T14-02 com corpus de pelo menos 25 logs reais cobrindo Forge 1.7.10/1.12.2/moderno, NeoForge e Fabric; CA-T14-04.
 - **Verificação:** `cargo nextest run -p warden-diagnostics`.
 
@@ -640,7 +645,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** D-03, D-05 · **Branch:** `feat/d-06-travamentos`
 - **Objetivo:** assinatura gravada em cada sessão e a lista de Travamentos agrupada pela causa (T14; ARCHITECTURE §9.6; R5A §7.5).
 - **Posse:** `crates/warden-diagnostics/src/{signature.rs,crash_history.rs}`, `apps/desktop/src-tauri/src/test_hooks/crash_history.rs`, `apps/desktop/src-tauri/src/commands/crashes.rs`, `apps/desktop/src/features/diagnostics/crashes/**`, `apps/desktop/src/i18n/pt-BR/travamentos.ts`.
-- **Entregas:** assinatura normalizada (regra, exceção, primeiro frame de mod, mods citados) com hash estável, gravada no `session.json` pelo gancho `after_exit`; `crashes_list`/`crash_get` com contagem, datas, versões do pack, situação e ligações (busca do culpado e conversas, quando existirem); bloco "Travamentos" na seção Problemas (registro da D-03), substituindo "Último travamento"; retenção das sessões (30 que fecharam normalmente; as que travaram até 500 MB por pack, com aviso).
+- **Entregas:** (Gancho 1.1: o registro de travamento tem o campo `origin`, por enquanto sempre "teste"; ADR-0039) assinatura normalizada (regra, exceção, primeiro frame de mod, mods citados) com hash estável, gravada no `session.json` pelo gancho `after_exit`; `crashes_list`/`crash_get` com contagem, datas, versões do pack, situação e ligações (busca do culpado e conversas, quando existirem); bloco "Travamentos" na seção Problemas (registro da D-03), substituindo "Último travamento"; retenção das sessões (30 que fecharam normalmente; as que travaram até 500 MB por pack, com aviso).
 - **Critérios de aceite:** CA-T14-08; a retenção apaga as sessões certas num teste com 40 sessões sintéticas e avisa antes de passar de 500 MB.
 - **Verificação:** `cargo nextest run -p warden-diagnostics` com o corpus de crashes; testes de componente; E2E com jogo simulado que trava duas vezes com números diferentes.
 
@@ -743,7 +748,7 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Prioridade:** P0 · **Depende de:** V-02, P1-13, E-01, D-01, L-04, P1-04 · **Branch:** `feat/v-03-publicar-versao`
 - **Objetivo:** T18 (ADR-0028): publicar versões finais no GitHub para os jogadores atualizarem pelo link do `pack.toml`.
 - **Posse:** `crates/warden-versioning/src/{github/**,publish/**}`, `apps/desktop/src-tauri/src/commands/{github.rs,publish.rs}`, `apps/desktop/src/features/github/**`, `apps/desktop/src/i18n/pt-BR/publicar.ts`, `apps/desktop/e2e/publish.e2e.ts`.
-- **Entregas:** `publish_plan` (árvore da versão via exportação da E-01, higiene, varredura de segredos, avisos de mods da CurseForge bloqueados com troca pelo Modrinth, de versão não testada e de problemas, notas da versão desde a última publicada); `publish_run` (linha de publicação `refs/warden/publish/main`, `CHANGELOG.md` de publicação, `.gitattributes` com `* -text`, tag, push com credencial em memória, GitHub Release, estado "Release pendente"); `github_setup` (criar público por padrão, privado como "só backup", ou vincular existente, com a explicação de visibilidade); área "Publicação para os jogadores" no Histórico; resultado com link do pack, passo a passo para jogadores (Prism/MultiMC com o packwiz-installer-bootstrap) e cópia das notas; divergência com substituição protegida; passo a passo do token (verificar e documentar o tipo de token e as permissões mínimas que funcionam para criar repositório, enviar e criar Release); ligação do `secrets_test` para o GitHub.
+- **Entregas:** (Gancho 1.1: as conferências do `publish_plan` são uma lista de checagens plugáveis, para a W-03 acrescentar segurança e manutenção; ADR-0039) `publish_plan` (árvore da versão via exportação da E-01, higiene, varredura de segredos, avisos de mods da CurseForge bloqueados com troca pelo Modrinth, de versão não testada e de problemas, notas da versão desde a última publicada); `publish_run` (linha de publicação `refs/warden/publish/main`, `CHANGELOG.md` de publicação, `.gitattributes` com `* -text`, tag, push com credencial em memória, GitHub Release, estado "Release pendente"); `github_setup` (criar público por padrão, privado como "só backup", ou vincular existente, com a explicação de visibilidade); área "Publicação para os jogadores" no Histórico; resultado com link do pack, passo a passo para jogadores (Prism/MultiMC com o packwiz-installer-bootstrap) e cópia das notas; divergência com substituição protegida; passo a passo do token (verificar e documentar o tipo de token e as permissões mínimas que funcionam para criar repositório, enviar e criar Release); ligação do `secrets_test` para o GitHub.
 - **Critérios de aceite:** CA-T18-01 (teste sob demanda com conta descartável), CA-T18-02 a CA-T18-07.
 - **Verificação:** `cargo nextest run -p warden-versioning` (servidor git local para push e servidor HTTP local imitando o `raw.githubusercontent.com` e a API de Releases); conformidade com o packwiz-installer-bootstrap real (CA-T18-03); teste de rede sob demanda.
 
@@ -840,6 +845,119 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 
 ---
 
+## Fase 7 — Warden 1.1 "Profissional"
+
+As seis funções que o dono aprovou depois da D4 (SPEC T28 a T33; decisões D27 a D33; ADR-0039 a ADR-0047). Formam a **versão 1.1 do app**: começam **depois do marco M5** (por isso as tarefas sem dependência de outra W dependem de A-03 e A-07, que fecham a v1) e não mudam nenhuma tarefa da v1 além dos ganchos marcados "Gancho 1.1:". Prioridade de todas: **1.1**. O lugar de cada função na interface está na ESTRUTURA §14; a arquitetura, na ARCHITECTURE §21.
+
+### W-01 — `warden-security`: leitura dos jars e lista de sinais
+
+- **Prioridade:** 1.1 · **Depende de:** A-03, A-07, P1-06, D-05 · **Branch:** `feat/w-01-sinais-de-seguranca`
+- **Objetivo:** a parte local da checagem de segurança dos mods: abrir os jars sem executar nada e procurar sinais conhecidos e pontos de atenção (T28; ADR-0040, ADR-0041; ARCHITECTURE §21.1).
+- **Posse:** `crates/warden-security/**` (exceto `src/verify/**`, da W-02), `xtask/src/check_signatures.rs`, `xtask/src/fixtures_security.rs`, a seção "warden-security" de `THIRD_PARTY.md`.
+- **Entregas:** crate nova `warden-security` (`core`, `jarmeta`, `packwiz` para o murmur2) com `zip` e `cafebabe` (com `parse_bytecode(true)` só nas classes candidatas, para ler as instruções); descida nos jars embutidos (`META-INF/jars/`, `META-INF/jarjar/`) com limite de profundidade e de tamanho (proteção contra zip bomb); reconstrução de textos montados com `new String(new byte[]{…})` e de constantes em Base64; `data/signatures.toml` com os sinais conhecidos (padrões de instruções e de constantes do estágio 0 do fractureiser e hashes SHA-256 de arquivos maliciosos publicados), a data da lista e o nível (sinal conhecido × ponto de atenção), no formato inspirado nos modelos da Concoction (MIT, atribuição); pontos de atenção (`URLClassLoader` com endereço da internet, `defineClass` com bytes vindos de rede, `Runtime.exec`/`ProcessBuilder`, webhooks do Discord, sites de colagem, IPs fixos, caminhos de dados de navegador e de contas de launcher, `HKCU\…\Run`, `systemd/user`); resultado por jar com evidência (classe, método, trecho); cache em `cache/security/<sha256>.json` com a versão da lista; `cargo xtask fixtures-security` gera os jars sintéticos de teste (nenhum malware real no repositório) e `cargo xtask check-signatures` valida o esquema e confere cada sinal contra os jars sintéticos.
+- **Critérios de aceite:** CA-T28-01; CA-T28-04 (parte de domínio: o mesmo padrão gera ponto de atenção só quando o jar é marcado como "não oficial" na entrada); 300 jars reais do corpus da P1-06 e da D-05 sem nenhum sinal conhecido (sem falso positivo de sinal) e o tempo da primeira leitura medido.
+- **Verificação:** `cargo nextest run -p warden-security`; `cargo xtask check-signatures`; cobertura ≥ 85%.
+
+### W-02 — Conferência com o arquivo oficial e página Segurança dos mods
+
+- **Prioridade:** 1.1 · **Depende de:** W-01, P1-10, P1-11, P1-19, D-03, L-04 · **Branch:** `feat/w-02-seguranca-dos-mods`
+- **Objetivo:** juntar a conferência pelo hash com o Modrinth e a CurseForge à leitura da W-01 e levar o resultado ao app: página, detalhes do mod, Testar, adicionar e importar (T28).
+- **Posse:** `crates/warden-security/src/verify/**`, `apps/desktop/src-tauri/src/commands/security.rs`, `apps/desktop/src-tauri/src/test_hooks/security.rs`, `apps/desktop/src/features/security/**`, `apps/desktop/src/routes/packs/$packId/problemas.seguranca.tsx`, `apps/desktop/src/i18n/pt-BR/seguranca.ts`, `apps/desktop/e2e/security.e2e.ts`, os pontos de chamada da checagem em `crates/warden-project/src/add/{local.rs,url.rs}` e `crates/warden-import/src/security.rs` (as tarefas donas já integradas na v1).
+- **Entregas:** conferência em lote (Modrinth `POST /v2/version_files` com sha512 e conferência de projeto e versão; CurseForge `POST /v1/fingerprints` seguida da conferência do SHA-1 de `file.hashes` e de `fileStatus`; arquivos do computador e links pelo hash nas duas plataformas; endereço de download dos `.pw.toml`); só hashes saem do computador; regras `E_SEC_SIGNATURE`, `E_SEC_MISMATCH`, `E_SEC_PLATFORM_FLAGGED`, `W_SEC_ATTENTION`, `W_SEC_UNVERIFIED`, `I_SEC_OFF_PLATFORM` no modelo de achados (contam só na categoria "Segurança" da saúde, W-11); `.warden/trust.toml` com "Confiar neste arquivo" por hash (confirmação por digitação); comandos `security_scan`, `security_report_get`, `security_trust`, `security_replace_with_official`; gancho `before_launch` (só jars novos ou alterados) e o diálogo de erros do Testar sem "Testar mesmo assim" para erros de segurança; checagem antes de gravar no adicionar por arquivo e por link e no importar; página "Segurança dos mods" com o aviso "não é um antivírus", a data da lista e o aviso de lista com mais de 180 dias; bloco "Segurança do arquivo" nos detalhes (registro `details/blocks.ts`).
+- **Critérios de aceite:** CA-T28-02, CA-T28-03, CA-T28-05, CA-T28-06 (parte do Testar e do adicionar), CA-T28-07, CA-T28-08, CA-T28-09.
+- **Verificação:** testes de domínio com respostas reais gravadas das duas APIs; integração com o packwiz real (trocar pelo oficial passa em `check_conformance`); testes de componente (`axe`); E2E com servidores simulados.
+
+### W-03 — Checagens obrigatórias do Publicar versão
+
+- **Prioridade:** 1.1 · **Depende de:** W-02, W-04 · **Branch:** `feat/w-03-checagens-do-publicar`
+- **Objetivo:** segurança e manutenção sempre antes de publicar, bloqueando o que impede o jogador de jogar com segurança (T18 parte 1.1).
+- **Posse:** `crates/warden-versioning/src/publish/checks/**`, `apps/desktop/src/features/github/checks/**`, `apps/desktop/src/i18n/pt-BR/publicar-checagens.ts`.
+- **Entregas:** duas checagens plugadas no `publish_plan` (gancho da V-03): segurança de todos os arquivos da versão (baixa os jars que faltam no cache, com progresso e cancelamento) e manutenção sem cache; bloqueio por erro de segurança não resolvido nem confiado e por "Arquivo removido", com as ações de cada achado; os demais resultados viram avisos; bloco "Checagens obrigatórias" no diálogo, com o botão final desabilitado enquanto rodam.
+- **Critérios de aceite:** CA-T29-04; CA-T28-06 (parte do Publicar).
+- **Verificação:** testes de domínio do plano; testes de componente; E2E com servidores simulados (git local e APIs).
+
+### W-04 — Manutenção dos mods
+
+- **Prioridade:** 1.1 · **Depende de:** A-03, A-07, P1-12, D-03 · **Branch:** `feat/w-04-manutencao-dos-mods`
+- **Objetivo:** situações de manutenção de cada mod e a página "Manutenção dos mods" (T29; ADR-0042).
+- **Posse:** `crates/warden-diagnostics/src/maintenance/**`, `crates/warden-diagnostics/data/maintenance.toml`, `apps/desktop/src-tauri/src/commands/maintenance.rs`, `apps/desktop/src/features/maintenance/**` (exceto `replacements/`, da W-05), `apps/desktop/src/routes/packs/$packId/problemas.manutencao.tsx`, `apps/desktop/src/i18n/pt-BR/manutencao.ts`.
+- **Entregas:** consulta em lote junto com a verificação de atualizações (Modrinth `GET /projects?ids=` e `POST /version_files`, com cache de 24 h; CurseForge `POST /v1/mods` e `POST /v1/mods/files`, só em memória, refeita a cada execução do Warden), comparação do que foi pedido com o que voltou; situações e gravidades da T29 (limiar de 18 meses em dados); regras `E_MAINT_FILE_REMOVED`, `W_MAINT_PROJECT_REMOVED`, `W_MAINT_ARCHIVED`, `I_MAINT_STALE`, `I_MAINT_NO_LATEST_MC`; filtro "Sem manutenção" e marca na lista de Mods; bloco "Manutenção" nos detalhes; página com os grupos e as ações.
+- **Critérios de aceite:** CA-T29-01, CA-T29-02, CA-T29-03.
+- **Verificação:** testes de domínio com respostas reais gravadas; servidor simulado contando chamadas; inspeção da pasta de dados (nada da CurseForge gravado); testes de componente.
+
+### W-05 — Substitutos
+
+- **Prioridade:** 1.1 · **Depende de:** W-04, P1-15, P1-16 · **Branch:** `feat/w-05-substitutos`
+- **Objetivo:** "Procurar substituto" e "Trocar por este" (T29).
+- **Posse:** `crates/warden-discovery/src/similar.rs`, `crates/warden-project/src/replace.rs`, `apps/desktop/src-tauri/src/commands/replace.rs`, `apps/desktop/src/features/maintenance/replacements/**`, `apps/desktop/src/i18n/pt-BR/substitutos.ts`.
+- **Entregas:** busca de parecidos na mesma plataforma (Modrinth `/search` com as categorias do mod, versão, loader e `disclosure_types!=archived`; CurseForge com as categorias, versão e loader, só em memória), sem o próprio mod e sem os que já estão no pack; substituto conhecido da lista curada primeiro; motivos reais por candidato; painel de detalhes com "← Detalhes"; troca numa transação só (adição com dependências pelo `add_plan` + remoção), com ponto de segurança.
+- **Critérios de aceite:** CA-T29-05, CA-T29-06.
+- **Verificação:** servidor simulado conferindo as consultas; integração com o packwiz real; testes de componente.
+
+### W-06 — Log de um jogador: leitura, redação e versão do pack
+
+- **Prioridade:** 1.1 · **Depende de:** A-03, A-07, D-02, D-06, V-01, P1-06 · **Branch:** `feat/w-06-log-do-jogador`
+- **Objetivo:** a parte de domínio da T30: links aceitos, extração da lista de mods dos logs e identificação da versão salva (ADR-0043).
+- **Posse:** `crates/warden-diagnostics/src/{logsource.rs,player_redact.rs}`, `crates/warden-diagnostics/src/modlist/**`, `crates/warden-diagnostics/tests/corpus-player/**` (logs reais redigidos, com a origem anotada).
+- **Entregas:** `logsource` (link → endereço do texto cru, função pura, com a tabela de serviços da T30); extração da lista de mods por formato (crash report do Forge 1.7.10, 1.12.2 e moderno, do NeoForge, `latest.log` do Forge e do Fabric, `Fabric Mods:`, seção `Mods:` do Prism, `modlist.txt` do Crash Assistant, `packwiz.json`); versões mascaradas pelo mclo.gs como curinga; redação extra (nome do jogador, nome da instância) sobre a da D-02; comparação com as versões salvas (pela ordem de confiança da T30, lendo as árvores das versões pela `warden-versioning` e os metadados dos jars pelo cache), com cobertura, diferenças e limiares; resultado puro, sem rede.
+- **Critérios de aceite:** CA-T30-01 (normalização dos links), CA-T30-02, CA-T30-03, CA-T30-05; CA-T30-04 (parte de domínio da redação).
+- **Verificação:** `cargo nextest run -p warden-diagnostics` com o corpus de logs de jogadores e um pack de teste com 5 versões salvas.
+
+### W-07 — Página Travamento de um jogador, Travamentos e IA
+
+- **Prioridade:** 1.1 · **Depende de:** W-06, D-04, D-06 · **Branch:** `feat/w-07-travamento-de-jogador`
+- **Objetivo:** a T30 no app: entrada por link, texto ou arquivos, resultado, Travamentos com a origem e a conversa com a IA.
+- **Posse:** `apps/desktop/src-tauri/src/player_reports.rs`, `apps/desktop/src-tauri/src/commands/player_reports.rs`, `apps/desktop/src-tauri/src/ai_tools/player.rs`, `apps/desktop/src/features/diagnostics/player/**`, a coluna Origem em `apps/desktop/src/features/diagnostics/crashes/**` (a D-06 já integrada), `apps/desktop/src/routes/packs/$packId/problemas.jogador.tsx`, `apps/desktop/src/i18n/pt-BR/travamento-jogador.ts`, `apps/desktop/e2e/player-crash.e2e.ts`.
+- **Entregas:** download pelo Rust (só HTTPS, só texto, até 10 MB, tempo-limite), escolha de vários arquivos e texto colado; cópia redigida em `player-reports/<pack-id>/<ULID>/` (dados locais); diagnóstico com o catálogo da D-02 e os achados "mod acrescentado pelo jogador" e "parece já corrigido na versão X"; registro em Travamentos com `origin = player`, agrupado pela assinatura; "✦ Conversar com a IA" com o mesmo consentimento (origem "travamento de um jogador" no `ai_conversation_preview`); "Começar pelo: Travamento de um jogador" em ✦ Diagnóstico com IA; apagar análise.
+- **Critérios de aceite:** CA-T30-01 (download e mensagens), CA-T30-04, CA-T30-06, CA-T30-07.
+- **Verificação:** servidores simulados (mclo.gs e Gemini); varredura da cópia guardada e do corpo enviado à IA; testes de componente; E2E.
+
+### W-08 — Notas e grupos de mods
+
+- **Prioridade:** 1.1 · **Depende de:** A-03, A-07, P1-08, V-02 · **Branch:** `feat/w-08-notas-e-grupos`
+- **Objetivo:** T31 inteira (ADR-0044).
+- **Posse:** `crates/warden-project/src/annotations.rs`, `crates/warden-versioning/src/changelog_notes.rs`, `apps/desktop/src-tauri/src/commands/annotations.rs`, `apps/desktop/src/features/pack-editor/annotations/**`, `apps/desktop/src/features/versioning/notes-option/**`, `apps/desktop/src/i18n/pt-BR/notas-e-grupos.ts`, `apps/desktop/e2e/annotations.e2e.ts`.
+- **Entregas:** `.warden/mods.toml` (esquema versionado; ligação pelo caminho do metafile e pelo projeto; leitura tolerante; escrita pela `PackTransaction`); comandos `annotations_get`, `annotation_set_note`, `groups_create/rename/delete`, `items_set_groups`; remoção da entrada junto com o mod; "Notas e grupos" em Alterações não salvas; nota na linha do mod, busca nas notas, "Agrupar por" e filtro "Grupo" sobre a função de agrupamento genérica da P1-08; "Pôr no grupo ▾"; diálogo "Grupos do pack"; bloco "Nota e grupos" nos detalhes; opção das notas no resumo do Salvar versão e do Publicar; notas na ferramenta `list_mods` da IA e no texto do consentimento.
+- **Critérios de aceite:** CA-T31-01 a CA-T31-06.
+- **Verificação:** integração com o packwiz real (`.warden/` fora do índice); testes de componente; E2E; teste de desempenho com 500 mods.
+
+### W-09 — Itens repetidos entre mods
+
+- **Prioridade:** 1.1 · **Depende de:** A-03, A-07, D-05, D-08 · **Branch:** `feat/w-09-itens-repetidos`
+- **Objetivo:** T32 (ADR-0046), sem a parte da saúde (W-11).
+- **Posse:** `crates/warden-jarmeta/src/materials/**`, `crates/warden-diagnostics/src/duplicates/**`, `crates/warden-diagnostics/data/{materials.toml,unifiers.toml}`, `apps/desktop/src-tauri/src/commands/duplicates.rs`, `apps/desktop/src/features/diagnostics/duplicates/**`, `apps/desktop/src/routes/packs/$packId/problemas.repetidos.tsx`, `apps/desktop/src/i18n/pt-BR/itens-repetidos.ts`, corpus em `crates/warden-jarmeta/tests/corpus-materials/**` (origem anotada).
+- **Entregas:** leitura das três convenções de tag, de `worldgen/configured_feature`/`placed_feature` e dos `biome_modifier`, de nomes de modelos e do arquivo de idioma, e das heurísticas de 1.7.10/1.12.2, com cache por hash (junto do índice da D-05); análise por material com confiança; soluções por faixa em `unifiers.toml`; leitura da config do AlmostUnified (inclusive `world_gen_unification` no NeoForge 1.21.1); página com o botão de adicionar pelo fluxo normal.
+- **Critérios de aceite:** CA-T32-01, CA-T32-02, CA-T32-03, CA-T32-05.
+- **Verificação:** `cargo nextest run -p warden-jarmeta -p warden-diagnostics` com jars reais (Mekanism Forge 1.20.1 e NeoForge 1.21.1, Tech Reborn Fabric 1.20.1, Thermal Foundation 1.12.2); testes de componente.
+
+### W-10 — Desempenho entre versões
+
+- **Prioridade:** 1.1 · **Depende de:** A-03, A-07, L-10, L-11, L-12, V-02 · **Branch:** `feat/w-10-desempenho-entre-versoes`
+- **Objetivo:** T33 (ADR-0047), sobre as métricas que a v1 já grava (gancho da L-10).
+- **Posse:** `crates/warden-perf/src/history/**`, `apps/desktop/src-tauri/src/commands/perf_history.rs`, `apps/desktop/src/features/versioning/perf-history/**`, `apps/desktop/src/features/test/perf-compare/**`, `apps/desktop/src/routes/packs/$packId/historico.desempenho.tsx`, `apps/desktop/src/i18n/pt-BR/desempenho-versoes.ts`.
+- **Entregas:** leitura de `perf/<pack-id>.jsonl`; filtro de testes comparáveis com o motivo de cada exclusão; atribuição à versão salva pela árvore; mediana por versão; critério de "mais pesada" (função pura com tabela de casos); tempo por tick a partir dos resumos do spark da L-12; página com o gráfico, a tabela equivalente, os seletores e "Ver por quê"; bloco no Histórico; aviso no resultado do teste.
+- **Critérios de aceite:** CA-T33-01 (a gravação já vem da L-10; aqui, o teste com a poda), CA-T33-02 a CA-T33-05.
+- **Verificação:** testes de domínio e de propriedade (mediana e critério); testes de componente (`axe`); E2E com sessões sintéticas.
+
+### W-11 — Saúde do pack com as categorias da 1.1 e painel Verificações do pack
+
+- **Prioridade:** 1.1 · **Depende de:** W-02, W-04, W-09, W-10 · **Branch:** `feat/w-11-saude-e-verificacoes`
+- **Objetivo:** as categorias "Segurança", "Manutenção" (ampliada), "Itens repetidos" e o novo critério de "Desempenho" na nota, e o painel no topo de Problemas (T14 parte 1.1).
+- **Posse:** as categorias novas em `crates/warden-diagnostics/data/health-score.toml` e o ajuste em `crates/warden-diagnostics/src/health.rs` (a D-08 já integrada), `apps/desktop/src/features/diagnostics/verify-panel/**`, `apps/desktop/src/i18n/pt-BR/verificacoes.ts`.
+- **Entregas:** pesos e tetos da T14 (1.1) em dados; achados de segurança e de manutenção contados só nas suas categorias; "Itens repetidos" com o teto de −3; painel "Verificações do pack" registrado em `problems-blocks.ts`, com as três linhas e os links.
+- **Critérios de aceite:** CA-T14-16, CA-T14-17, CA-T32-04; a propriedade "acrescentar um achado nunca aumenta a nota" continua valendo com as categorias novas (`proptest`).
+- **Verificação:** testes de domínio e de propriedade; testes de componente.
+
+### W-12 — Revisão da 1.1 e fluxos de ponta a ponta
+
+- **Prioridade:** 1.1 · **Depende de:** W-01 a W-11 · **Branch:** `test/w-12-revisao-1-1`
+- **Objetivo:** fazer pela 1.1 o que a A-07 faz pelas funções da D4: textos, estados, foco e contraste conferidos com o glossário e o design system, e E2E dos fluxos 11 a 13 do protótipo.
+- **Posse:** `apps/desktop/e2e/pro-flows.e2e.ts`, a seção "Warden 1.1" de `docs/ROTEIRO-DE-ACEITE.md`, ajustes em `apps/desktop/src/i18n/pt-BR/**` e componentes apontados pela revisão (lista declarada antes de começar, aprovada pelo orquestrador).
+- **Critérios de aceite:** nenhuma violação séria do `axe` nas telas da 1.1; página de segurança, página do jogador e gráfico de desempenho navegáveis só por teclado; textos conferidos com o glossário (QUALITY §8.2); E2E dos fluxos 11 (conferir a segurança e trocar um mod removido antes de publicar), 12 (analisar o travamento de um jogador) e 13 (notas e grupos, desempenho entre versões) passa em Linux e no Windows; roteiro executado pelo dono.
+- **Verificação:** `pnpm -C apps/desktop test`; `pnpm -C apps/desktop e2e`; roteiro manual.
+
+---
+
 ## Spikes da D4
 
 Investigações curtas, com relatório em `docs/spikes/` e código descartável numa branch `spike/...` (como o S1), recomendadas pela R5A §10.2 e aprovadas pelo dono (decisão D26). Não dependem de nada e rodam logo; as tarefas que dependem delas esperam o relatório. Cada relatório termina com "Implicações para a tarefa X", e o orquestrador ajusta a tarefa antes de despachá-la.
@@ -878,7 +996,7 @@ Investigações curtas, com relatório em `docs/spikes/` e código descartável 
 
 ---
 
-## 12. Marcos
+## 13. Marcos
 
 | Marco | Contém | O que o dono consegue fazer |
 |---|---|---|
@@ -888,7 +1006,8 @@ Investigações curtas, com relatório em `docs/spikes/` e código descartável 
 | M3 — Núcleo completo | C-01 a C-03, C-05, V-02, V-03, E-01, P1-18 | Editar e buscar configs, trazer mudanças do jogo, salvar versões, publicar versões finais, exportar, criar packs com os mods iniciais. Todas as funcionalidades P0 existem. |
 | M4 — Ferramenta completa | S-R5-1, S-R5-2, S-R5-3, S-R5-4, P1-14, P1-15, P1-17, P1-19, L-07 a L-09, L-11, L-12, C-04, C-06, C-07, D-04, D-08 a D-14, E-02, E-03, A-05, A-06 | Busca do culpado, IA com ferramentas, raio-x, grafo, nota de saúde, console agrupado, perfil de desempenho, servidor local, perfis, scripts, formulário de configs, importar, modpacks, kits, pacote para servidor. |
 | M5 — v1 | A-01 a A-04, A-07 | Versão para uso diário: revisada, com instalador e validada pelo dono. A-01, A-02 e A-04 podem acontecer antes, em paralelo com o M4. |
+| M6 — Warden 1.1 "Profissional" | W-01 a W-12 | Conferir a segurança dos mods antes de testar e de publicar, ser avisado de mods removidos ou abandonados e trocá-los por substitutos, analisar o travamento que um jogador mandou, organizar os mods com notas e grupos, ver os itens repetidos entre mods e acompanhar o desempenho entre versões. Começa depois do M5. |
 
-## 13. Backlog P2
+## 14. Backlog P2
 
-Não planejado em tarefas ainda (SPEC §9): teste com mundo antigo trazido de fora; Legacy Fabric; migração de versão do Minecraft; variantes do pack; formulário para YAML; editor de `servers.dat`; conflitos de teclas; modelos de pack ("Salvar como modelo", "Criar a partir de um modpack"); datapacks globais e datapacks como Tipo na descoberta; trazer mudanças do GitHub; login no GitHub pelo navegador; atualização remota dos dados curados (diagnóstico, kits, categorias); leitura de `@Mod` no bytecode para 1.7.10/1.12.2; mecanismos de "padrão na primeira execução" por mod (YOSBR, Default Options, Config Manager). Da D4 (R5A §10.1 e R5B §9): raio-x camadas D (nomes sem refmap) e E (aplicação a seco do Mixin); perfil automático do cliente (JFR ou agente do spark) e tempo por mod no Fabric; busca do culpado em configs, scripts e por desempenho; saída estruturada do log4j por faixa; "Descobrir padrões" (camadas B e C); metadados de config por bytecode e dicionário curado; autocompletar completo de KubeJS (`tsc` 7 + ProbeJS) e servidor de linguagem de ZenScript; matriz de perfis; "Ver como este modpack configurou o mod X"; importar perfil do app do Modrinth.
+Não planejado em tarefas ainda (SPEC §9). Da D5: atualização remota da lista de sinais de segurança; procurar rastros de malware no computador; enviar arquivos a serviços de análise de terceiros e regras YARA; configurar o unificador de itens sozinho e unificar líquidos; comparar desempenho entre computadores; desempenho medido automaticamente com o spark; receber travamentos dos jogadores automaticamente; editor de quests. Antes da D5: teste com mundo antigo trazido de fora; Legacy Fabric; migração de versão do Minecraft; variantes do pack; formulário para YAML; editor de `servers.dat`; conflitos de teclas; modelos de pack ("Salvar como modelo", "Criar a partir de um modpack"); datapacks globais e datapacks como Tipo na descoberta; trazer mudanças do GitHub; login no GitHub pelo navegador; atualização remota dos dados curados (diagnóstico, kits, categorias); leitura de `@Mod` no bytecode para 1.7.10/1.12.2; mecanismos de "padrão na primeira execução" por mod (YOSBR, Default Options, Config Manager). Da D4 (R5A §10.1 e R5B §9): raio-x camadas D (nomes sem refmap) e E (aplicação a seco do Mixin); perfil automático do cliente (JFR ou agente do spark) e tempo por mod no Fabric; busca do culpado em configs, scripts e por desempenho; saída estruturada do log4j por faixa; "Descobrir padrões" (camadas B e C); metadados de config por bytecode e dicionário curado; autocompletar completo de KubeJS (`tsc` 7 + ProbeJS) e servidor de linguagem de ZenScript; matriz de perfis; "Ver como este modpack configurou o mod X"; importar perfil do app do Modrinth.

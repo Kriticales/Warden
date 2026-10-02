@@ -1,6 +1,6 @@
 # Warden — Arquitetura técnica
 
-> Versão do documento: 1.2 (2026-10-01). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; e na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor.
+> Versão do documento: 1.3 (2026-10-02). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor; e na tarefa D5 com o **Warden 1.1 "Profissional"** (ADR-0039 a ADR-0047): crate `warden-security`, módulos novos e os ganchos que a v1 deixa prontos (§21).
 > Público: agentes de implementação e orquestrador. O dono pode ler a §1 para ter a visão geral.
 > Fonte de verdade das decisões: `docs/decisions/` (ADRs citados como ADR-00NN). O que é produto está em `SPEC.md`; padrões obrigatórios em `QUALITY.md`; ordem de construção em `ROADMAP.md`.
 
@@ -26,6 +26,7 @@
 18. [Frontend](#18-frontend)
 19. [Bibliotecas escolhidas](#19-bibliotecas-escolhidas)
 20. [Segurança do app Tauri](#20-segurança-do-app-tauri)
+21. [Warden 1.1 "Profissional": módulos e ganchos na v1](#21-warden-11-profissional-módulos-e-ganchos-na-v1)
 
 ---
 
@@ -131,10 +132,13 @@ Regras do monorepo:
 | `warden-import` | Importar `.mrpack`, zip da CurseForge (via sidecar em staging) e instâncias do Prism/MultiMC e do app da CurseForge para o formato packwiz, com higiene obrigatória (§12.2, ADR-0035). | core, packwiz, packwiz-cli, modrinth, curseforge, http, jarmeta |
 | `warden-scripts` | Scripts KubeJS e CraftTweaker: detecção de versão, trechos prontos, índice de IDs, leitura de erros dos logs, cliente do servidor web local do KubeJS 7, comando de recarga certo por versão (§10.2, ADR-0037). | core, jarmeta, http |
 | `warden-versioning` | Git embutido (`git2`): repositório, ponto inicial, salvar versão, versão final, tags, pontos de segurança, restauração transacional, diffs, changelog e notas de publicação, publicação no GitHub (linha de publicação, push, Release pela API REST; §11.1). Nomes legíveis de versões vêm de um trait `VersionNameResolver` implementado pela `warden-app` (com Modrinth e CurseForge). | core, packwiz, http |
+| `warden-security` (1.1) | Segurança dos mods: leitura dos jars sem executar (`zip` + `cafebabe`), descida em jars embutidos, sinais conhecidos e pontos de atenção a partir de `data/signatures.toml`, conferência com o arquivo oficial a partir dos resultados das APIs (recebidos por trait, sem depender dos clientes), confiança por hash (`.warden/trust.toml`), cache por hash (§21.1, ADR-0040, ADR-0041). Não existe na v1: a W-01 cria a crate. | core, jarmeta, packwiz (murmur2) |
 | `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação; P1 (D4): pacote para servidor nas duas variantes (§12.1). | core, packwiz, packwiz-cli, project |
 | `warden-secrets` | Armazenamento de segredos: cofre do sistema (`keyring`, padrão) ou arquivo `.env` na pasta de configuração (escolha do usuário, ADR-0025), migração entre os dois, `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
 | `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `win-dev`, `win-install` (F0-04); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes; L-07 acrescenta o `packwiz-installer.jar`); `notices` (A-02); `check-kits` (P1-18: valida kits e mods iniciais contra a API do Modrinth). | — (ferramenta) |
+
+Na 1.1 (§21), crescem também: `warden-diagnostics` (manutenção, lista de mods e versão do jogador, itens repetidos, categorias novas da saúde), `warden-jarmeta` (materiais, tags e geração de minério), `warden-perf` (histórico de desempenho), `warden-project` (notas e grupos, troca por substituto), `warden-discovery` (busca de parecidos) e `warden-versioning` (notas no resumo, checagens do Publicar).
 
 Grafo sem ciclos; `warden-core` não depende de ninguém. Nenhuma crate de domínio chama outra "para cima" (ex.: `warden-instance` não depende de `warden-project`; quem orquestra é `warden-app`). A busca do culpado, o servidor local, a validação do pacote para servidor e as ferramentas da IA são orquestrados pela `warden-app` (`bisect_session.rs`, `server_session.rs`, `ai_tools/`), que liga instância, launcher, servidor e diagnóstico.
 
@@ -180,6 +184,12 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | github | `github_status` (repositório, visibilidade, versão publicada, link do pack), `github_setup` (criar público/privado ou vincular existente), `publish_plan` (avisos e notas da versão), `publish_run` |
 | export | `export_preview`, `export_run` (com versão salva opcional, P1; formato pacote para servidor com a variante, P1) |
 | java | `java_runtimes_list` (com os packs que usam cada um e o motivo), `java_runtime_remove`, `java_runtimes_check_updates`, `java_choice` (Java automático de um pack, com motivo) |
+| security (1.1) | `security_scan` (todos os arquivos ou uma lista; canal de progresso), `security_report_get`, `security_trust` (por hash, com o nome digitado), `security_replace_with_official` |
+| maintenance (1.1) | `maintenance_check` (com ou sem cache), `maintenance_report_get`, `replacements_find` (item), `item_replace_plan`, `item_replace_apply` |
+| player reports (1.1) | `player_report_from_link`, `player_report_from_files` (diálogo nativo), `player_report_from_text`, `player_reports_list`, `player_report_get`, `player_report_delete` |
+| annotations (1.1) | `annotations_get`, `annotation_set_note`, `groups_create`, `groups_rename`, `groups_delete`, `items_set_groups` |
+| duplicates (1.1) | `duplicates_report_get` |
+| perf history (1.1) | `perf_history_get` (perfil; devolve versões, medianas, exclusões e o veredito "mais pesada") |
 
 ### 4.2 Eventos globais
 
@@ -247,11 +257,13 @@ pub enum ErrorCode {
     // D4
     Mixin(MixinErrorCode), Bisect(BisectErrorCode), Server(ServerErrorCode), Perf(PerfErrorCode),
     Discovery(DiscoveryErrorCode), Import(ImportErrorCode), Scripts(ScriptsErrorCode),
+    // D5 (Warden 1.1); a W-01 acrescenta o domínio com INTERNAL
+    Security(SecurityErrorCode),
 }
 ```
 
 - `CoreErrorCode` (de `warden-core`) reúne o que é comum a todos: `CANCELLED`, `TIMEOUT`, `IO`, `PATH_OUTSIDE_ROOT`, `NETWORK_UNAVAILABLE`. `PACK_CHANGED_EXTERNALLY` pertence a `Project`.
-- A F0-05 cria todos os domínios acima já com um código `INTERNAL` (os domínios da D4 também, para que as tarefas novas só acrescentem códigos); tarefas posteriores só acrescentam códigos no enum da própria crate e as frases no arquivo `apps/desktop/src/i18n/errors/<domínio>.ts`, tipado como `Record<<Domínio>ErrorCode, string>` (o TypeScript falha se faltar tradução).
+- A F0-05 cria todos os domínios acima, exceto o `Security` da 1.1 (acrescentado pela W-01), já com um código `INTERNAL` (os domínios da D4 também, para que as tarefas novas só acrescentem códigos); tarefas posteriores só acrescentam códigos no enum da própria crate e as frases no arquivo `apps/desktop/src/i18n/errors/<domínio>.ts`, tipado como `Record<<Domínio>ErrorCode, string>` (o TypeScript falha se faltar tradução).
 - Frontend: `ErrorPanel` mostra a frase traduzida, a sugestão de ação, e "Detalhes técnicos" com `domain.code`, `detail` e `operationId`, com botão Copiar.
 - `detail` nunca contém segredo (§14) e é truncado em 16 KB.
 - `INTERNAL` existe para bugs: todo `INTERNAL` visto em teste ou uso vira tarefa para criar um código específico.
@@ -913,6 +925,9 @@ cache/xray/                           raio-x de mixins por conjunto de jars (§9
 cache/installer/                      packwiz-installer-bootstrap e packwiz-installer fixados (§8.5)
 cache/server-installers/              instaladores e jars de servidor por loader e versão (§7.6)
 logs/                                 registros do app (§16)
+perf/<pack-id>.jsonl                  (1.1, gravado desde a v1) uma linha de métricas por teste; não é podado (§21.6)
+player-reports/<pack-id>/<ULID>/      (1.1) travamentos de jogadores: só a cópia redigida e o resultado (§21.3)
+cache/security/<sha256>.json          (1.1) resultado da leitura de segurança de cada jar, com a versão da lista (§21.1)
 ```
 
 Dentro de cada pack:
@@ -920,7 +935,10 @@ Dentro de cada pack:
 ```
 pack.toml  index.toml  .packwizignore  .gitignore  .gitattributes  CHANGELOG.md
 mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (conteúdo)
-.warden/project.toml                  id do pack, schemaVersion, avisos do diagnóstico ignorados (P1), ferramentas do jogador (D4)
+.warden/project.toml                  id do pack, schemaVersion, avisos do diagnóstico ignorados (P1), ferramentas do jogador (D4),
+                                      origem dos arquivos locais vindos de importação (gancho 1.1)
+.warden/mods.toml                     (1.1) notas e grupos dos mods (§21.4, ADR-0044)
+.warden/trust.toml                    (1.1) arquivos em que você confiou, por hash (§21.1)
 server-overrides/                     (opcional) arquivos só do pacote para servidor; fora do índice (§6.4, §12.1)
 .git/
 ```
@@ -973,6 +991,9 @@ ADR-0025 (substitui a ADR-0017).
 - GitHub: API REST (`GET /user`, `POST /user/repos`, `GET /repos/{dono}/{repo}`, `POST /repos/{dono}/{repo}/releases`) por `warden-http` (§11.1). D4: busca de issues para a IA (`GET /search/issues?q=repo:<dono>/<repo>+is:issue+<termos>`), com o token quando existir (30 buscas/min) ou sem ele (10 buscas/min), e cache de 1 h por consulta; downloads de Release do packwiz-installer pela URL de download (que não usa a API).
 - Instaladores de servidor (D4): Fabric meta (`/v2/versions/loader/<mc>/<loader>/<installer>/server/jar`), Maven do Forge e do NeoForge (`--installServer`), `downloads.server` do JSON da versão.
 - Gemini (D4): só pelo laço da §9.5; `countTokens` antes da primeira requisição de cada conversa.
+- (1.1) Conferência de segurança: Modrinth `POST /v2/version_files` (sha512, em lote); CurseForge `POST /v1/fingerprints/432` (murmur2) e conferência do SHA-1 de `file.hashes` e do `fileStatus`; só hashes saem (§21.1).
+- (1.1) Manutenção: Modrinth `GET /v2/projects?ids=` e `POST /v2/version_files`; CurseForge `POST /v1/mods` e `POST /v1/mods/files`; os lotes omitem IDs inexistentes, então o resultado é sempre comparado com o pedido (§21.2). Parecidos: Modrinth `/v2/search` com `categories`, `versions`, loader e `disclosure_types!=archived`; CurseForge `/v1/mods/search` com `categoryIds`, `gameVersion` e `modLoaderType`.
+- (1.1) Logs de jogadores: só leitura de texto cru, por HTTPS, até 10 MB, tempo-limite de 30 s: `api.mclo.gs/1/raw/<id>`, `pastebin.com/raw/<id>`, `paste.ee/r/<id>`, gist cru, 0x0.st, `hst.sh/raw/<key>`, `api.paste.gg/v1/pastes/<id>?full=true` (§21.3).
 
 ### 17.1 Descoberta, modpacks e imagens (D4)
 
@@ -1033,6 +1054,7 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 | Windows | `windows` (Job Objects) | Encerramento da árvore de processos. |
 | Testes | `cargo-nextest`, `insta` (dourados), `wiremock`, `tempfile`, `proptest`, `criterion`, `cargo-llvm-cov`, `cargo-deny` | QUALITY §4. |
 | Leitura de `.class` (D4) | `cafebabe` (0BSD), com `ParseOptions::parse_bytecode(false)`; `noak` (MIT/Apache-2.0) como reserva | Lê as anotações visíveis, invisíveis e de parâmetro sem teto de versão de classe (R5A §5.7). O intermed (MIT) é avaliado no spike S-R5-1. |
+| Segurança dos mods (1.1) | `cafebabe` (o mesmo), com o bytecode decodificado só nas classes candidatas; `zip` (já usado) | Leitura sem executar nada, limites contra *zip bomb* (§21.1). YARA-X foi considerado e ficou para depois (ADR-0040). |
 | Protobuf (D4) | `prost` (Apache-2.0) | Perfis do spark a partir dos `.proto` públicos (§7.7). |
 | Busca aproximada (D4) | `nucleo-matcher` (MPL-2.0) | Busca em todas as configs (§10.1). |
 | Processo e memória (D4) | `windows` (já usado) no Windows; `/proc` no Linux | RAM do processo (§7.7); leitor de `hsperfdata` próprio (sem crate: as existentes são imaturas ou GPL). |
@@ -1066,3 +1088,75 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 - Downloads só por HTTPS, com hash verificado antes de uso.
 - **Rede local (D4):** o servidor local escuta só em `127.0.0.1` (§7.6); o servidor de arquivos do "Testar como o jogador recebe" também (§8.5); chamadas ao servidor web do KubeJS saem só do Rust, só para `127.0.0.1`, com o token lido na hora e nunca exposto à interface (§10.2). Nenhuma porta é aberta para a rede.
 - **IA (D4):** texto de logs, issues e changelogs é dado não confiável; nenhuma ferramenta da IA tem efeito sem o clique do usuário (§9.5).
+- **1.1:** jars são lidos, nunca carregados nem executados pelo Warden; a leitura tem limites de profundidade de jars embutidos, de tamanho descompactado e de quantidade de entradas (proteção contra *zip bomb*). Logs baixados de links são texto não confiável: tamanho máximo, sem seguir redirecionamento para outro host que não esteja na lista, nunca renderizados como HTML.
+
+## 21. Warden 1.1 "Profissional": módulos e ganchos na v1
+
+ADR-0039 a ADR-0047; telas SPEC T28 a T33; tarefas ROADMAP W-01 a W-12 (fase 7, marco M6). Nada desta seção é construído na v1, exceto os **ganchos** da §21.7, que entram nas tarefas da v1 com custo mínimo.
+
+### 21.1 Segurança dos mods (`warden-security`; ADR-0040, ADR-0041)
+
+- **Entrada:** a lista de arquivos de mod do pack com, para cada um, o caminho do jar (cache de downloads, instância ou pasta do pack), a fonte declarada (`.pw.toml`: Modrinth com `mod-id`/`version`, CurseForge com `project-id`/`file-id`, link direto, arquivo local) e se veio de importação.
+- **Leitura local** (`scan`, função pura sobre bytes): abre o zip com limites (profundidade de jars embutidos 3, 512 MB descompactados, 50 mil entradas); lê cada `.class` com `cafebabe` (pool de constantes sempre; bytecode só nas classes cujo pool cita algum alvo da lista, para não decodificar tudo); reconstrói textos de `new String(new byte[]{…})` (sequências `bipush`/`sipush` + `bastore`) e constantes em Base64; compara com `data/signatures.toml`. Cada regra tem `id`, `nivel` (`sinal` ou `atencao`), `descricao` em pt-BR, `fonte` (URL pública do caso) e um padrão: constantes (texto exato ou expressão regular), chamadas (`classe.método` com descritor), sequência de instruções, ou hash SHA-256 do arquivo inteiro. Regras de nível `atencao` só são aplicadas a arquivos sem confirmação oficial (decidido pelo chamador). Saída por jar: `{ sha256, achados: [{ regra, nivel, jar_interno?, classe, metodo?, trecho }] }`, guardada em `cache/security/<sha256>.json` com a versão da lista; uma lista nova invalida o cache.
+- **Conferência com o oficial** (`verify`): recebe as respostas das APIs pelo trait `OfficialLookup` (implementado pela `warden-app` com `warden-modrinth` e `warden-curseforge`), para a crate não depender dos clientes. Modrinth: o sha512 do jar tem de estar no `POST /version_files` e pertencer ao `project_id` e à versão do `.pw.toml`; o host do `url` tem de ser `cdn.modrinth.com`. CurseForge: murmur2 → `exactMatches` → `file.id` igual ao `file-id` do `.pw.toml` e SHA-1 local igual ao de `file.hashes` (o murmur2 de 32 bits sozinho pode colidir); `fileStatus = 6` vira "marcado pela plataforma". Arquivo local e link: o jar é procurado nas duas plataformas pelo hash; se os metadados do jar dizem ser um mod e uma versão que existem numa plataforma com outro hash, o resultado é "não confere".
+- **Veredito e achados:** combina leitura e conferência nos resultados da SPEC T28 e gera `E_SEC_SIGNATURE`, `E_SEC_MISMATCH`, `E_SEC_PLATFORM_FLAGGED`, `W_SEC_ATTENTION`, `W_SEC_UNVERIFIED`, `I_SEC_OFF_PLATFORM` (modelo da §9.1, com evidência obrigatória). Hashes em `.warden/trust.toml` (`[[trusted]] sha256, mod, data, motivo`) rebaixam o achado para "você confiou neste arquivo".
+- **Onde roda:** `test_hooks/security.rs` no `before_launch` (só jars novos ou alterados desde o último teste); antes de gravar em `add/local.rs` e `add/url.rs` e na importação; sob demanda (`security_scan`); no `publish_plan` como checagem obrigatória (§21.7 item 6), baixando antes os jars que faltam no cache.
+- **Lista de sinais:** `crates/warden-security/data/signatures.toml`, embutida com `include_str!`, validada por `cargo xtask check-signatures` (esquema, IDs únicos, fonte presente e cada regra casando com o jar sintético correspondente de `tests/fixtures/`, gerado por `cargo xtask fixtures-security`; nunca há malware real no repositório). Atualizada a cada versão do Warden; atualização remota é P2 (ADR-0041).
+
+### 21.2 Manutenção e substitutos (`warden-diagnostics::maintenance`, `warden-discovery::similar`; ADR-0042)
+
+- Roda junto com o produtor único de atualizações (P1-12): o mesmo `GET /projects?ids=` traz `status`, `updated` e `game_versions`; o `POST /version_files` com os sha512 dos `.pw.toml` diz se cada arquivo ainda existe. CurseForge: `POST /v1/mods` (ModStatus, `isAvailable`, data do último arquivo) e `POST /v1/mods/files` (FileStatus, `isAvailable`). IDs pedidos e não devolvidos = removidos.
+- Cache: Modrinth em `metadata.sqlite` por 24 h; CurseForge só em memória, consultada na primeira abertura do pack em cada execução do Warden. No `publish_plan`, sem cache.
+- Situações em função pura (`classify(projeto, arquivo, agora, catálogo) → Situacao`), com o limiar de 18 meses em `data/maintenance.toml`; "sem versão para o Minecraft mais novo" compara a maior versão suportada pelo projeto com a mais nova do manifesto da Mojang (`warden-catalog`).
+- Substitutos: `similar(projeto, pack)` monta a busca da mesma plataforma (categorias do projeto sem as de loader, versão e loader do pack, sem arquivados), tira o próprio projeto e os que já estão no pack, ordena por downloads e devolve até 8 candidatos com os motivos calculados (categorias em comum, versão compatível, data da última versão, downloads). O substituto conhecido vem de `obsolete.toml`. `item_replace_apply` usa o `add_plan` (dependências, T09) e a remoção na mesma `PackTransaction`, com ponto de segurança "antes de trocar X por Y".
+
+### 21.3 Travamento de um jogador (`warden-diagnostics::{logsource, modlist, player_redact}`, `warden-app::player_reports`; ADR-0043)
+
+- `logsource::resolve(link) → Option<RawSource>`: tabela fixa de hosts e formatos (SPEC T30) → endereço do texto cru; hosts fora da tabela e `http://` recusados. O download é feito pela `warden-app` com `warden-http` (só HTTPS, `Content-Type` de texto, até 10 MB, redirecionamento só para hosts da tabela, como `gist.githubusercontent.com`).
+- `modlist::extract(texto) → ModListado { mc?, loader?, mods: [{ arquivo?, id?, versao?, versao_escondida }] }` para cada formato da T30 (Forge 1.7.10 `UCHIJAAAA`, tabela do 1.12.2, `Mod List:` do Forge e do NeoForge, `Found mod file`, `Loading N mods:` e `Fabric Mods:` do Fabric, seção `Mods:` do Prism, `packwiz.json`), com golden tests de logs reais.
+- `modlist::match(listado, candidatas) → Correspondencia`: candidatas = versões salvas com o mesmo Minecraft e loader (as 20 mais recentes), lidas pela `warden-versioning` (árvore de cada tag) e pelos metadados dos jars em cache (`warden-jarmeta`); `packFileHash` do `packwiz.json` confere com o sha256 do `pack.toml` de cada versão publicada; senão, nome do jar contra o `filename` dos `.pw.toml`, e ID + versão contra os metadados. Cobertura = mods que conferem ÷ mods da versão; limiares: exata, ≥ 90% próxima, < 50% desconhecido.
+- `player_redact` acrescenta à redação da §9.4 o nome do jogador (`Setting user:`, `--username`, listas de jogadores) e o nome da pasta da instância. Só a cópia redigida é gravada (`player-reports/<pack-id>/<ULID>/log.txt` e `resultado.json`).
+- O diagnóstico usa o catálogo da §9.3 sobre o texto (gancho da D-02) e grava um registro de travamento com `origin = player` (gancho da D-06), agrupado pela assinatura. A IA recebe a origem "travamento de um jogador" no `ai_conversation_preview` e a ferramenta `get_player_report` (com a versão identificada e as diferenças).
+
+### 21.4 Notas e grupos (`warden-project::annotations`; ADR-0044)
+
+```toml
+# .warden/mods.toml (versionado com o pack; fora do índice pelo bloco obrigatório /.warden/)
+schemaVersion = 1
+
+[[groups]]
+id = "01JA2…"            # ULID
+name = "Performance"
+
+[items."mods/sodium.pw.toml"]
+project = "modrinth:AANobbMI"   # ou "curseforge:238222"; arquivos locais: só o caminho
+note = "Deixa o jogo mais leve"
+groups = ["01JA2…"]
+```
+
+- Leitura tolerante (arquivo ilegível não derruba a lista); escrita pela `PackTransaction` (§6.5), com edição mínima (`toml_edit`). A chave é o caminho do metafile; se o caminho sumir e outro metafile tiver o mesmo `project`, a entrada é religada (atualização, troca de versão, renomeação). Remover um item remove a entrada na mesma transação.
+- A lista de Mods recebe notas e grupos junto do inventário (`inventory_list`) e agrupa pela função genérica da P1-08. O changelog (`warden-versioning::changelog_notes`) acrescenta a nota aos itens adicionados e removidos quando a opção está marcada; a escolha fica em `packs.json` (dado de máquina).
+
+### 21.5 Itens repetidos (`warden-jarmeta::materials`, `warden-diagnostics::duplicates`; ADR-0046)
+
+- `materials::read(jar)`: tags de material nas três convenções (`data/forge/tags/items/<tipo>/<mat>.json`, `data/c/tags/items/<mat>_<tipo>s.json`, `data/c/tags/item/<tipo>/<mat>.json`), `worldgen/configured_feature` e `placed_feature` de minério, `forge/biome_modifier` e `neoforge/biome_modifier`, modelos `models/item/*` e chaves de idioma; em 1.7.10/1.12.2, chaves `.lang` com nomes do dicionário de minérios e JSON de geração conhecidos (CoFH). Resultado em cache junto do índice da D-05 (`cache/jarindex/`).
+- `duplicates::analyze(pack)`: normaliza material e tipo por `data/materials.toml` (sinônimos, como `ingot_copper` e `copper_ingot`), conta mods por material (o Minecraft conta como um), marca "gera minério" (certo com `biome_modifier`; provável no Fabric e nas versões antigas) e escolhe a solução em `data/unifiers.toml` (faixa de versão + loader → mod, ID no Modrinth ou na CurseForge, o que unifica e o que não). Com um unificador no pack, lê a config dele (AlmostUnified: `config/almostunified/*.json`, inclusive `world_gen_unification` no NeoForge 1.21.1).
+
+### 21.6 Desempenho entre versões (`warden-perf::history`; ADR-0047)
+
+- Fonte: `perf/<pack-id>.jsonl`, gravado desde a v1 (gancho da L-10). Uma linha por teste: `{ sessao, data, modo, carregou_ms?, mundo_ms?, ram_pico_mb, heap_pico_mb?, tick_medio_ms?, tick_p95_ms?, perfil: { id, nome, assinatura }, computador, arvore, primeira_abertura, resultado }`. A impressão do computador é um SHA-256 de processador, núcleos, memória total, placa de vídeo e versão do sistema, calculado localmente e nunca enviado.
+- `history::compare(linhas, versões, perfil, computador) → Relatorio`: filtra os comparáveis (com o motivo de cada exclusão), atribui à versão pela árvore, calcula a mediana por versão e aplica o critério da SPEC T33 (função pura, com tabela de casos e `proptest`). O resumo do spark por sessão vem da L-12.
+
+### 21.7 Ganchos que a v1 deixa prontos
+
+Custo mínimo, sem função visível na v1. Cada um entra nas entregas da tarefa citada ("Gancho 1.1:" no ROADMAP) e tem o seu teste.
+
+| # | Tarefa da v1 | Gancho | Usado por |
+|---|---|---|---|
+| 1 | P1-03, L-03 | O download calcula sha1, sha256, sha512 e o murmur2 da CurseForge de uma vez, e o `cache/downloads/index.sqlite` guarda os quatro mais a origem (fonte, projeto, versão, URL) de cada jar. | W-01, W-02 (conferência sem reler os jars), W-06 (identificar jars por hash) |
+| 2 | P1-19 | Jars que ficam como arquivo local num pack importado são marcados com a origem da importação em `.warden/project.toml`. | W-02 (atenção redobrada aos jars de packs importados) |
+| 3 | L-04, L-10 | A sessão grava a assinatura do perfil, a impressão do computador e a marca de primeira abertura; cada teste acrescenta uma linha em `perf/<pack-id>.jsonl`, que a poda das sessões não apaga. | W-10 (sem isto, os testes feitos antes da 1.1 ficariam fora do gráfico) |
+| 4 | P1-07, P1-08 | O leitor de `.warden/` preserva arquivos e tabelas desconhecidos (`.warden/mods.toml` e `.warden/trust.toml` reservados); cada item tem chave estável; o agrupamento da lista é uma função genérica. | W-02, W-08 |
+| 5 | D-02, D-06 | A análise pós-crash aceita qualquer texto de log e a redação aceita regras extras; o registro de travamento tem o campo `origin`. | W-06, W-07 |
+| 6 | V-03 | As conferências do `publish_plan` são uma lista de checagens plugáveis (trait `PublishCheck`). | W-03 |
+| 7 | P1-03, P1-12 | O cache do Modrinth guarda `status`, `updated` e `game_versions` dos projetos, que já vêm na resposta. | W-04 |
