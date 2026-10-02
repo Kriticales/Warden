@@ -1,6 +1,7 @@
 # Warden: estrutura do app (arquitetura de informação e navegação)
 
 > Tarefa D2, 01/10/2026. **Aprovada pelo dono no mesmo dia: Alternativa A** (ver §0). A SPEC, a ARCHITECTURE, o ROADMAP, o QUALITY e as ADRs 0025 a 0029 já foram atualizados; este documento registra a proposta e o porquê.
+> **Tarefa D4, 01/10/2026:** as funções avançadas pedidas pelo dono (pesquisas R5A e R5B) entram na mesma estrutura, sem seção nova e sem abas. Onde fica cada uma e as poucas mudanças de nome estão na [§13](#13-funções-avançadas-d4-onde-fica-cada-uma); ela prevalece sobre as seções anteriores quando houver diferença.
 > Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet), publicado em https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl
 > Base: `docs/SPEC.md` (telas T01 a T23), relatórios em `docs/research/` e o motivo da reprovação do protótipo D1.
 
@@ -21,6 +22,7 @@ Este documento define **como se navega no Warden**, antes de qualquer estilo vis
 10. [Crítica das alternativas e o que foi corrigido](#10-crítica-das-alternativas-e-o-que-foi-corrigido)
 11. [Como usar o rascunho clicável](#11-como-usar-o-rascunho-clicável)
 12. [Limites deste rascunho e pontos em aberto](#12-limites-deste-rascunho-e-pontos-em-aberto)
+13. [Funções avançadas (D4): onde fica cada uma](#13-funções-avançadas-d4-onde-fica-cada-uma)
 
 ---
 
@@ -400,3 +402,134 @@ Verificação feita: todas as telas mais as páginas Mapa e Fluxos (52 combinaç
 - Nem todo botão está ligado. Os principais caminhos dos 5 fluxos estão completos; ações secundárias (por exemplo, "Alterar lado" em lote) mostram "Não ligado neste rascunho".
 - A janela do rascunho tem largura fixa (1080 px) para parecer o app desktop. Em telas estreitas aparece rolagem horizontal só dentro da janela.
 - **Decisões para o dono:** todas respondidas em 01/10/2026 (§0).
+
+## 13. Funções avançadas (D4): onde fica cada uma
+
+Depois de aprovar a estrutura, o dono pediu uma ferramenta **completa** de criação, edição e debug. As pesquisas `docs/research/05-diagnostico-avancado.md` (R5A) e `docs/research/06-criacao-edicao-descoberta.md` (R5B) detalharam as funções, e o dono decidiu o escopo em 01/10/2026 (SPEC §10, D15 a D25). Esta seção diz onde cada função mora. As regras da §1 continuam valendo sem exceção: **dois níveis, 6 seções no pack, nenhuma aba, o raro escondido**. Função nova entra como página de detalhe, modo de exibição ("Ver como: Lista · Grafo"), item do menu ▾ do Testar, painel lateral, diálogo ou modo da tela do teste.
+
+### 13.1 Mapa atualizado
+
+```
+MEUS PACKS ................................ nível do APP
+├── coluna nova: Saúde (nota do pack: "36 · Crítico")
+├── Criar pack (5 etapas: Nome e pasta · Versão do Minecraft · Loader · Mods iniciais · Resumo)
+├── Abrir ou importar… (pasta packwiz, .mrpack, zip da CurseForge, instância do Prism ou da CurseForge)
+│   └── Importar modpack (verificação: convertido, arquivo local, revisar, lixo que não entra)
+├── Configurações (+ "EULA do Minecraft" em Teste)
+└── PACK ABERTO ........................... nível do PACK
+    Cabeçalho: igual; o Testar mostra o perfil quando não é o padrão ("▶ Testar · PC fraco")
+    Menu lateral (as mesmas 6 seções; três descrições mudam):
+    ├── Mods ........ Mods, resource packs e shaders
+    │   ├── Ver como: Lista · Grafo (seletor de modo, não aba)
+    │   ├── Detalhes do item (painel): + Depende de / Usado por / Por que está no pack
+    │   │                               + O que este mod altera no jogo (raio-x de mixins)
+    │   │                               └── Ver todas as alterações (no mesmo painel, com "← Detalhes")
+    │   ├── Adicionar → PÁGINA DE DESCOBERTA em tela cheia
+    │   │     Tipo: Mods · Resource packs · Shaders · Modpacks
+    │   │     campo vazio = início: Populares, Atualizados recentemente, Kits de desempenho, Categorias
+    │   │     resultados com seleção múltipla → "Adicionar N ao pack" → Dependências (um diálogo só)
+    │   │     pré-visualização à direita: Descrição · Galeria · Versões · Dependências · Links
+    │   │     Tipo = Modpacks: abrir um modpack mostra os mods dele com caixas → "Adicionar N selecionados"
+    │   └── Atualizar itens (diálogo)
+    ├── Configs ..... Arquivos de ajuste e scripts do pack                       (descrição nova)
+    │   ├── Buscar em todas as configs (acima da árvore) · filtro "Só o que mudou do padrão"
+    │   ├── Formulário: padrão de cada chave e "Restaurar padrão"
+    │   └── Scripts .js/.zs: o mesmo editor, com Trechos prontos, IDs, Erros dos scripts,
+    │       Recarregar no jogo e Abrir no VS Code
+    ├── Problemas ... Saúde do pack, problemas e travamentos                     (descrição nova)
+    │   ├── Saúde do pack (nota, faixa e "O que tirou pontos"), no topo
+    │   ├── Erros, Avisos e Informações (inclui "dois mods alteram o mesmo ponto do jogo")
+    │   └── Travamentos (agrupados pela causa), com "Encontrar o mod culpado" e "✦ Conversar com a IA"
+    ├── ✦ Diagnóstico com IA ... Conversar com a IA sobre um problema do pack     (descrição nova)
+    │   ├── Nova conversa (do que se trata, o que analisar) → consentimento uma vez por conversa
+    │   ├── Conversas (lista: Continuar, Apagar)
+    │   └── Conversa (página de detalhe com "← Conversas"; substitui a página "Resposta da IA")
+    ├── Histórico ... Versões salvas e publicação
+    └── Exportar .... Gerar o pack para quem vai jogar
+        └── + formato "Pacote para servidor (.zip)": baixar os mods pelo link do pack (padrão) ou mods dentro do zip
+    Fora do menu:
+    ├── Tela do teste (igual) + faixa de desempenho acima do console
+    │     console: "Mostrar: Linha a linha · Agrupado por mod · Só problemas"
+    │     com servidor: "Mostrando: Servidor · Jogo" e linha de comando do servidor
+    │     com KubeJS ou CraftTweaker no pack: botão "Recarregar scripts"
+    │     resultado: + "Abriu em 1 min 42 s" e, se travou, "Encontrar o mod culpado"
+    ├── Busca do culpado: modo da tela do teste, com rodadas no lugar das 5 etapas;
+    │     o botão do cabeçalho vira "Buscando o culpado: ver progresso"
+    └── ▾ do Testar (em grupos):
+          Ver último teste
+          ── Outros testes: Testar como o jogador recebe · Testar como servidor… ·
+                            Testar com perfil de desempenho · Encontrar o mod culpado…
+          ── Perfil do teste: ◉ Padrão · ○ PC fraco · Ajustes do teste neste computador…
+          ── Instância de teste: Abrir pasta · Apagar mundos de teste… · Recriar instância de teste…
+```
+
+### 13.2 Onde fica cada função nova
+
+| Função (pesquisa) | Onde fica | Como se chega |
+|---|---|---|
+| Página de descoberta (R5B §7) | **Adicionar**, agora em tela cheia dentro do pack. O menu lateral recolhe para ícones enquanto ela está aberta e volta ao sair. | Botão **Adicionar** em Mods. "← Voltar para Mods · 2 adicionados". |
+| Navegar por modpacks (R5B §6) | Valor **Modpacks** no seletor Tipo da página de descoberta. Abrir um modpack mostra os mods dele no painel da direita, com caixas de seleção. | Tipo = Modpacks. |
+| Kits de desempenho (R5B §5.3) | Início da página de descoberta ("Kits de desempenho") e etapa **Mods iniciais** do Criar pack. | Sempre pelo diálogo de dependências, com caixas marcadas. Nada entra em silêncio. |
+| Mods padrão: spark e Crash Assistant (R5A §2) | Etapa **Mods iniciais** do Criar pack, já marcados, cada um com uma frase dizendo para que serve. | Criar pack. |
+| Importar `.mrpack`, zip da CurseForge e instância do Prism (R5B §5.1) | **Abrir ou importar…** em Meus packs → página **Importar modpack** (mesma verificação e limpeza do T04). | Meus packs. |
+| Grafo de dependências (R5A §6.1) | **Mods → Ver como: Grafo**. Grafo focado num mod (o que ele exige à esquerda, quem depende dele à direita), com a explicação em texto ao lado. Nos detalhes do item: Depende de, Usado por, Por que está no pack. | Seletor no topo de Mods; links nos detalhes. |
+| Raio-x de mixins (R5A §5) | **Detalhes do item** (painel): bloco "O que este mod altera no jogo" e **Ver todas as alterações** no mesmo painel. Sobreposições de risco viram aviso em **Problemas**. | Detalhes do mod, Problemas, resultado da busca do culpado. |
+| Nota de saúde (R5A §6.2) | Topo de **Problemas** e coluna **Saúde** em Meus packs. | Sempre visível. |
+| Travamentos (R5A §7.5) | **Problemas → Travamentos**: uma linha por causa, com quantas vezes, quando e em que versões. | Problemas. |
+| Busca do culpado (R5A §3) | Modo da **tela do teste** (é um teste em várias rodadas). Configuração em diálogo; progresso por rodada; resultado com as rodadas. | Resultado "O jogo travou", Problemas → Travamentos, menu ▾ ("Encontrar o mod culpado…"), proposta da IA. |
+| IA "médico" com ferramentas (R5A §4) | Seção **✦ Diagnóstico com IA**: Nova conversa e lista de Conversas; cada conversa é uma página de detalhe. | Seção do menu; **✦ Pedir ajuda à IA** no resultado do travamento abre uma conversa já com aquele travamento. |
+| Console agrupado por mod (R5A §7.1) | **Tela do teste**: seletor "Mostrar: Linha a linha · Agrupado por mod · Só problemas" no console. | Durante e depois do teste. |
+| Memória ao vivo e tempo de carregamento (R5A §7.2, §7.3) | **Tela do teste**: faixa acima do console; no resultado, "Abriu em…" e "O que mais demorou" (quando houver dados). | Automático em todo teste. |
+| spark e perfil de desempenho (R5A §7.4) | Menu ▾ → **Testar com perfil de desempenho**; resultado ganha a parte "Desempenho". | Ação explícita. |
+| Configs: busca, formulário com padrão, restaurar (R5B §2) | **Configs**: campo "Buscar em todas as configs" acima da árvore; no formulário, "padrão: X" e **Restaurar padrão** por chave. | Configs. |
+| Editor de scripts KubeJS/CraftTweaker (R5B §3) | **Configs**: arquivos `.js` e `.zs` abrem no mesmo editor com recursos de script. Durante o teste, **Recarregar scripts** na tela do teste. | Árvore de Configs (`kubejs/`, `scripts/`). |
+| Perfis de teste com Quick Play (R5B §4.1) | Menu ▾ → grupo **Perfil do teste** (troca rápida) e o diálogo **Ajustes do teste neste computador**, que ganha o seletor de perfil no topo. | Menu ▾. |
+| Servidor local (R5B §4.2) | Menu ▾ → **Testar como servidor…**. Também valida o pacote para servidor e ajuda a busca do culpado quando preciso (sempre perguntando antes). Nunca faz parte do Testar normal. | Menu ▾, Exportar, busca do culpado. |
+| Testar como o jogador recebe (R5B §4.3) | Menu ▾ (já aprovado). Agora instala pelo **link do pack**, como um jogador. | Menu ▾; aviso "versão não testada" ao publicar. |
+| Pacote para servidor (R5B §5.2) | **Exportar**: formato novo, com a escolha de como os mods chegam ao servidor. | Exportar. |
+
+### 13.3 Mudanças na estrutura (aprovadas pelo dono na D4)
+
+| # | Mudança | Por que é indispensável |
+|---|---|---|
+| N1 | Descrição de **Problemas**: "Saúde do pack, problemas e travamentos" (era "O que pode impedir o jogo de abrir"). | A seção passa a ter a nota e a lista de travamentos. A descrição tem de dizer o que há dentro (regra 6). |
+| N2 | **✦ Diagnóstico com IA** vira conversas. Descrição: "Conversar com a IA sobre um problema do pack". A página "Resposta da IA" deixa de existir: a resposta é a própria conversa. | Decisão do dono (D17): a IA consulta o pack aos poucos e conversa. Uma página de resposta fixa não comporta perguntas de seguimento. |
+| N3 | Descrição de **Configs**: "Arquivos de ajuste e scripts do pack". | Decisão do dono (D20): os scripts KubeJS e CraftTweaker ficam ali. |
+| N4 | **Abrir pack existente** vira **Abrir ou importar…** em Meus packs. | Decisão do dono (D20): também aceita arquivos de modpack de outros apps. |
+| N5 | **Criar pack** ganha a etapa **Mods iniciais** (passa de 4 para 5 etapas). | Os mods padrão (spark e Crash Assistant, D16) e o kit de desempenho precisam estar à vista e desmarcáveis. Dentro do Resumo ficariam escondidos num lugar onde ninguém espera escolher nada. |
+| N6 | **Adicionar** abre em tela cheia, e o menu lateral do pack recolhe para ícones (com nome no tooltip) enquanto ela está aberta. | A página de descoberta tem três colunas (filtros, resultados, pré-visualização) e precisa caber em 1024 px. É estado de exibição, não navegação nova: as 6 seções continuam a um clique. |
+| N7 | O menu ▾ do Testar ganha grupos (Outros testes, Perfil do teste, Instância de teste) e quatro itens novos. O item "Testar", que repetia o botão principal, sai. | Os testes avançados são raros e ficam escondidos até serem precisos (regra 5). Os grupos com título mantêm o menu legível com 11 itens. |
+| N8 | **Mods** ganha o seletor "Ver como: Lista · Grafo". | Modo de exibição dos mesmos dados (regra 3). |
+| N9 | A tela do teste ganha a faixa de desempenho, o seletor "Mostrar" do console, "Mostrando: Servidor · Jogo" quando há servidor, e o modo **Busca do culpado**. | Tudo isso é sobre um teste em andamento ou já feito; o lugar natural é a tela do teste. |
+| N10 | **Exportar** ganha o formato "Pacote para servidor (.zip)". | Decisão do dono (D22). |
+
+Nenhuma sétima seção, nenhuma aba. A ADR-0036 registra estas mudanças.
+
+### 13.4 Nomes novos
+
+Revisados com a skill `design:ux-copy` e acrescentados ao glossário (`QUALITY.md` §8.2).
+
+| Nome na interface | O que é | Por quê |
+|---|---|---|
+| **Encontrar o mod culpado** | Busca automática por rodadas (bisseção) | Diz o resultado que o usuário quer. "Bisseção" e "busca binária" são jargão. |
+| **Rodada** | Cada vez que o jogo é aberto com parte dos mods | Palavra comum, dá a ideia de repetição com fim. |
+| **Saúde do pack** | Nota de 0 a 100 com faixa (Ótimo, Bom, Atenção, Crítico) | Curto e familiar. O texto de apoio diz "resumo dos problemas conhecidos" para não parecer promessa de que o pack funciona. |
+| **O que este mod altera no jogo** | Raio-x de mixins nos detalhes do mod | "Mixin" é termo técnico; a frase diz o efeito. Na lista completa, a coluna técnica mostra o tipo de alteração para quem quiser. |
+| **Alteram o mesmo ponto do jogo** | Sobreposição de mixins | Nunca "são incompatíveis": a maioria das sobreposições é compatibilidade intencional (R5A §5.4). |
+| **Ver como: Lista · Grafo** | Modo de exibição de Mods | "Grafo" fica com a explicação no tooltip ("quem precisa de quem"). |
+| **Conversa** | Uma sessão de perguntas e respostas com a IA | O que a pessoa faz de fato. |
+| **Enviado à IA** | Bloco que mostra, byte a byte, o que a IA consultou | Transparência pedida pelo dono (D17). |
+| **Proposta** / **Aplicar** | Mudança sugerida pela IA e o botão que a executa | Deixa claro que nada muda sem o clique. |
+| **Testar como servidor** | Teste com servidor local sob demanda | Par de "Testar como o jogador recebe". |
+| **Perfil do teste** | Conjunto nomeado de ajustes do teste (memória, Java, mundo) | Os ajustes já se chamavam "Ajustes do teste"; o perfil é um conjunto deles com nome. |
+| **Testar com perfil de desempenho** | Teste que mede tempo por mod e lê o spark | "Perfil" aqui no sentido de medição; o menu explica em uma linha ("mede o que mais pesa"). |
+| **Pacote para servidor** | Server pack | Termo em português, igual ao padrão de "pack" do glossário. |
+| **Abrir ou importar…** | Abrir pack packwiz ou importar de outro app | Decisão do dono. |
+| **Mods iniciais** | Etapa do Criar pack com spark, Crash Assistant e kit | Diz o que se escolhe ali. |
+| **Kit de desempenho** | Lista curada de mods de otimização | Termo já usado no R1. |
+
+### 13.5 O que continua igual
+
+- Os 5 fluxos principais da §8 não ganharam nenhum passo. As funções novas são caminhos laterais a partir deles (por exemplo, no fluxo 4, depois de "O jogo travou", **Encontrar o mod culpado** quando a causa não aparece).
+- O botão **▶ Testar** continua fazendo só o teste normal. Servidor local, busca do culpado e perfil de desempenho nunca rodam sem o usuário pedir.
+- O protótipo final (`design/prototipo-final/`) mostra as telas novas; o mapa do protótipo lista os caminhos.
