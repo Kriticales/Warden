@@ -45,26 +45,26 @@
 
   // ---------- Meus packs ----------
   function packsContent(state, o = {}) {
-    const actions = B("Abrir pack existente", "abrir-existente", { icon: "folder-open" }) + B("Criar pack", "criar-1", { variant: "primary", icon: "plus" });
+    const actions = B("Abrir ou importar…", "abrir-existente", { icon: "folder-open", tip: "Pack packwiz, .mrpack, zip da CurseForge ou instância do Prism" }) + B("Criar pack", "criar-1", { variant: "primary", icon: "plus" });
     if (state === "vazio") {
-      return pageHead("Meus packs", null) + W.empty({ title: "Você ainda não tem packs", text: "Crie um pack do zero ou abra um pack packwiz que já existe no computador.", actions: B("Criar pack", "criar-1", { variant: "primary", icon: "plus" }) + B("Abrir pack existente", "abrir-existente", { icon: "folder-open" }), glyph: "plus" });
+      return pageHead("Meus packs", null) + W.empty({ title: "Você ainda não tem packs", text: "Crie um pack do zero, abra um pack packwiz que já está no computador ou importe um modpack de outro app (.mrpack, zip da CurseForge, instância do Prism).", actions: B("Criar pack", "criar-1", { variant: "primary", icon: "plus" }) + B("Abrir ou importar…", "abrir-existente", { icon: "folder-open" }), glyph: "plus" });
     }
     const head = pageHead("Meus packs", state === "carregando" ? "Lendo a pasta Documents\\Warden…" : `${D.PACKS.length + 1} packs na pasta Documents\\Warden`, actions);
     const tools = `<div class="packs-tools">${W.input({ bare: true, icon: "search", placeholder: "Buscar pack", ariaLabel: "Buscar pack" })}${W.select({ bare: true, ariaLabel: "Ordenar", options: ["Ordenar: alterados recentemente", "Ordenar: nome", "Ordenar: último teste"] })}</div>`;
-    if (state === "carregando") return head + tools + `<div class="tablewrap"><table class="table" aria-busy="true">${W.packTableHead()}<tbody>${[0, 1, 2].map((i) => `<tr aria-hidden="true"><td><div class="row row--gap-3"><span class="skeleton skeleton--tile" style="width:40px;height:40px"></span><div class="grow"><span class="skeleton skeleton--line" style="--w:${50 + i * 10}%;height:12px"></span><span class="skeleton skeleton--line" style="--w:70%"></span></div></div></td>${[60, 80, 30, 50].map((w) => `<td><span class="skeleton skeleton--line" style="--w:${w}%"></span></td>`).join("")}<td><span class="skeleton skeleton--btn" style="--w:90px"></span></td></tr>`).join("")}</tbody></table></div>`;
+    if (state === "carregando") return head + tools + `<div class="tablewrap"><table class="table" aria-busy="true">${W.packTableHead({ withHealth: true })}<tbody>${[0, 1, 2].map((i) => `<tr aria-hidden="true"><td><div class="row row--gap-3"><span class="skeleton skeleton--tile" style="width:40px;height:40px"></span><div class="grow"><span class="skeleton skeleton--line" style="--w:${50 + i * 10}%;height:12px"></span><span class="skeleton skeleton--line" style="--w:70%"></span></div></div></td>${[60, 80, 40, 30, 50].map((w) => `<td><span class="skeleton skeleton--line" style="--w:${w}%"></span></td>`).join("")}<td><span class="skeleton skeleton--btn" style="--w:90px"></span></td></tr>`).join("")}</tbody></table></div>`;
     const rows = D.PACKS.map((p, i) => W.packRow(p, { openAttrs: go(p.go || ""), menuAttrs: i === 0 ? { "aria-haspopup": "menu", "aria-expanded": o.menu ? "true" : "false", "aria-controls": "menu-pack" } : go("") })).join("") +
-      W.packRow({ name: "Antigo Survival", kind: "missing", path: "D:\\Packs\\antigo-survival" }, { locateAttrs: go(""), removeAttrs: go("") }) +
-      (state === "erro" ? W.packRow({ name: "Pack do Lucas", kind: "unreadable" }, { detailAttrs: go(""), removeAttrs: go("") }) : "");
+      W.packRow({ name: "Antigo Survival", kind: "missing", path: "D:\\Packs\\antigo-survival" }, { locateAttrs: go(""), removeAttrs: go(""), withHealth: true }) +
+      (state === "erro" ? W.packRow({ name: "Pack do Lucas", kind: "unreadable" }, { detailAttrs: go(""), removeAttrs: go(""), withHealth: true }) : "");
     const menu = W.menu([{ label: "Mostrar na pasta", icon: "folder-open", attrs: go("") }, { label: "Remover da lista", desc: "Não apaga nenhum arquivo", icon: "x", attrs: go("") }, "sep", { label: "Apagar pack…", desc: "Vai para a lixeira, com o histórico junto", icon: "trash-2", danger: true, end: W.badge("p1", "P1"), attrs: go("") }], { id: "menu-pack", label: "Ações do pack Vale Sereno", style: "right:8px;top:96px" });
     const err = state === "erro" ? W.alert({ kind: "danger", title: "Não foi possível ler 1 pack.", text: "O pack.toml do “Pack do Lucas” tem um erro na linha 4. Os outros packs não são afetados.", cls: "mods-banner" }) : "";
-    return head + err + tools + `<div style="position:relative"><div class="tablewrap"><table class="table">${W.packTableHead()}<tbody>${rows}</tbody></table></div>${menu}</div>`;
+    return head + err + tools + `<div style="position:relative"><div class="tablewrap"><table class="table">${W.packTableHead({ withHealth: true })}<tbody>${rows}</tbody></table></div>${menu}</div>`;
   }
-  def("packs", { group: "app", title: "Meus packs", spec: "T02", render: (s) => appShell(packsContent(s)), states: { carregando: "Lendo a pasta dos packs", vazio: "Nenhum pack ainda", erro: "Um pack ilegível na lista" } });
+  def("packs", { group: "app", title: "Meus packs", spec: "T02", render: (s) => appShell(packsContent(s) + (s === "normal" ? window.P.sim("Abrir ou importar…:", [["escolher uma pasta packwiz", "abrir-existente"], ["escolher um .mrpack", "importar"]]) : "")), states: { carregando: "Lendo a pasta dos packs", vazio: "Nenhum pack ainda", erro: "Um pack ilegível na lista" } });
   def("packs-vazio", { group: "app", title: "Meus packs (vazio)", spec: "T02", hidden: true, render: () => appShell(packsContent("vazio")) });
   def("packs-menu", { group: "app", title: "Meus packs: menu ⋯ de um pack", spec: "T02", hidden: true, render: () => appShell(packsContent("normal", { menu: true })) });
 
   // ---------- Criar pack ----------
-  const CREATE = ["Nome e pasta", "Versão do Minecraft", "Loader", "Resumo"];
+  const CREATE = ["Nome e pasta", "Versão do Minecraft", "Loader", "Mods iniciais", "Resumo"];
   function create(step, state) {
     let body = "", next = "criar-" + (step + 2), nextLabel = "Próximo", nextDisabled = false;
     if (step === 0) {
@@ -90,25 +90,36 @@
         ${W.choice({ name: "cr-ld", title: "Nenhum (vanilla)", desc: "Só resource packs e shaders." })}
         ${W.choice({ name: "cr-ld", title: "Quilt", desc: "O Warden ainda não suporta o Quilt.", disabled: true })}</div></fieldset>
         <p class="field__hint" style="margin-top:10px">${W.icon("coffee", "icon--sm")} O teste vai usar o Java 17, o mais novo que o Minecraft 1.20.1 com Forge aceita.</p></div>`;
+    } else if (step === 3) {
+      const old = state === "antiga";
+      const mc = old ? "1.12.2" : "1.20.1", ld = old ? "Forge 14.23.5.2860" : "Forge 47.3.0";
+      body = `<div style="max-width:680px" class="stack"><p class="t-sm t-2">Mods que ajudam você a testar e ajudam quem joga quando algo dá errado. Vêm marcados; desmarque o que não quiser. Tudo entra pelo diálogo de dependências, como qualquer mod.</p>
+        <fieldset style="border:0;padding:0;margin:0"><legend class="field__label" style="margin-bottom:8px">Recomendados para Minecraft ${mc} com ${ld}</legend><div class="dlist" role="list">
+          <div class="drow drow--compact" role="listitem"><span class="drow__box">${W.check({ checked: true, ariaLabel: "spark" })}</span><span class="drow__main"><span class="drow__line"><b>spark</b> <span class="t-mono t-xs t-3">${old ? "1.6.3" : "1.10.187"}</span></span><span class="drow__desc">Mede o que deixa o jogo lento. Lado: cliente e servidor.</span>${old ? `<span class="drow__meta">${W.tag("Versão antiga do spark, sem atualizações", "warn", { icon: "triangle-alert" })}</span>` : ""}</span><span class="drow__end">${W.source(old ? "curseforge" : "modrinth")}</span></div>
+          <div class="drow drow--compact" role="listitem"><span class="drow__box">${W.check({ checked: true, ariaLabel: "Crash Assistant" })}</span><span class="drow__main"><span class="drow__line"><b>Crash Assistant</b> <span class="t-mono t-xs t-3">1.11.14</span></span><span class="drow__desc">Mostra uma janela clara para o jogador quando o jogo trava. O envio de dados ao autor do mod vem desligado. Fica fora dos seus testes normais.</span></span><span class="drow__end">${W.source("modrinth")}</span></div></div></fieldset>
+        <fieldset style="border:0;padding:0;margin:0"><legend class="field__label" style="margin-bottom:8px">Kit de desempenho <span class="opt">(opcional)</span></legend>
+          <div class="drow drow--compact"><span class="drow__box">${W.check({ ariaLabel: "Adicionar o kit de desempenho" })}</span><span class="drow__main"><span class="drow__line"><b>${old ? "Desempenho (Forge 1.12.2)" : "Desempenho (Forge 1.20.1)"}</b></span><span class="drow__desc">${old ? "VintageFix, FoamFix, Phosphor e mais 1. Mods que deixam o jogo mais leve sem mudar como ele é jogado." : "Embeddium, FerriteCore, ModernFix e mais 2. Mods que deixam o jogo mais leve sem mudar como ele é jogado."}</span></span><span class="drow__end">${B("Ver o que vem no kit", "", { variant: "link" })}</span></div></fieldset>
+        <p class="field__hint">Você confirma cada item no diálogo de dependências ao criar o pack.</p></div>`;
     } else {
       body = `<div style="max-width:620px" class="stack"><div class="packcard">${W.tile("Vale Sereno", "xl")}<div class="packcard__name">Vale Sereno</div><div class="packcard__meta">Minecraft 1.20.1 · Forge 47.3.0 · por Kriticales</div>
         <dl class="packcard__facts"><div><dt>Versão inicial</dt><dd>0.1.0</dd></div><div><dt>Java do teste</dt><dd>17 (baixado no primeiro teste)</dd></div><div><dt>Pasta</dt><dd class="path">Documents\\Warden\\vale-sereno</dd></div></dl></div>
-        <div class="panel"><div class="panel__title panel__title--sans">Arquivos que o Warden vai criar</div><ul class="checklist" style="margin-top:8px">${["pack.toml e index.toml (o pack em si, no formato packwiz)", ".gitattributes (impede o Windows de mudar finais de linha e quebrar o pack)", ".packwizignore (só entra no pack o que é conteúdo)", "Primeira versão salva no histórico"].map((t) => `<li class="is-ok">${W.icon("check")}<span>${t}</span></li>`).join("")}</ul></div></div>`;
+        <div class="panel"><div class="panel__title panel__title--sans">Arquivos que o Warden vai criar</div><ul class="checklist" style="margin-top:8px">${["pack.toml e index.toml (o pack em si, no formato packwiz)", ".gitattributes (impede o Windows de mudar finais de linha e quebrar o pack)", ".packwizignore (só entra no pack o que é conteúdo)", "Mods iniciais: spark e Crash Assistant, com a config do Crash Assistant sem envio de dados ao autor", "Primeira versão salva no histórico"].map((t) => `<li class="is-ok">${W.icon("check")}<span>${t}</span></li>`).join("")}</ul></div></div>`;
       next = "pack-novo"; nextLabel = "Criar pack";
     }
     const prev = step === 0 ? B("Cancelar", "packs", { variant: "ghost" }) : B("Voltar", step === 1 ? "criar-1" : "criar-" + step, { variant: "ghost" });
-    return appShell(`<div class="wizard">${pageHead("Criar pack", null)}${W.steps(CREATE, step, { label: "Etapas de criar pack" })}${body}<div class="wizard__foot">${prev}${B(nextLabel, nextDisabled ? "" : next, { variant: "primary", disabled: nextDisabled, icon: step === 3 ? "plus" : null })}</div></div>`, { back: ["Meus packs", "packs"], where: "Criar pack" });
+    return appShell(`<div class="wizard">${pageHead("Criar pack", null)}${W.steps(CREATE, step, { label: "Etapas de criar pack" })}${body}<div class="wizard__foot">${prev}${B(nextLabel, nextDisabled ? "" : next, { variant: "primary", disabled: nextDisabled, icon: step === 4 ? "plus" : null })}</div></div>`, { back: ["Meus packs", "packs"], where: "Criar pack" });
   }
   def("criar-1", { group: "app", title: "Criar pack: nome e pasta", spec: "T03", render: (s) => create(0, s), states: { erro: "Pasta de destino não vazia" } });
   def("criar-2", { group: "app", title: "Criar pack: versão do Minecraft", spec: "T03", hidden: true, render: (s) => create(1, s), states: { carregando: "Carregando versões", erro: "Sem internet e sem cache" } });
   def("criar-3", { group: "app", title: "Criar pack: loader", spec: "T03", hidden: true, render: () => create(2) });
-  def("criar-4", { group: "app", title: "Criar pack: resumo", spec: "T03", hidden: true, render: () => create(3) });
+  def("criar-4", { group: "app", title: "Criar pack: mods iniciais", spec: "T03", d4: true, render: (s) => create(3, s), states: { antiga: "Minecraft 1.12.2: spark antigo" } });
+  def("criar-5", { group: "app", title: "Criar pack: resumo", spec: "T03", hidden: true, render: () => create(4) });
 
   // ---------- Abrir pack existente ----------
   function openExisting(state) {
-    const head = pageHead("Abrir pack existente", "D:\\Packs\\meu-pack-antigo", null);
-    if (state === "carregando") return appShell(head + `<div style="max-width:620px">${W.progress({ label: "Lendo o pack", value: null, meta: "pack.toml, index.toml e 92 arquivos do índice" })}</div>`, { back: ["Meus packs", "packs"], where: "Abrir pack existente" });
-    if (state === "erro") return appShell(head + `<div style="max-width:720px">${W.alert({ kind: "danger", title: "Este pack usa Quilt, que o Warden ainda não suporta.", text: "Nada foi alterado na pasta. Packs Forge, NeoForge e Fabric abrem normalmente.", actions: B("Escolher outra pasta", "", { size: "sm", icon: "folder-open" }) })}</div>`, { back: ["Meus packs", "packs"], where: "Abrir pack existente" });
+    const head = pageHead("Abrir pack", "Pasta packwiz em D:\\Packs\\meu-pack-antigo", null);
+    if (state === "carregando") return appShell(head + `<div style="max-width:620px">${W.progress({ label: "Lendo o pack", value: null, meta: "pack.toml, index.toml e 92 arquivos do índice" })}</div>`, { back: ["Meus packs", "packs"], where: "Abrir ou importar" });
+    if (state === "erro") return appShell(head + `<div style="max-width:720px">${W.alert({ kind: "danger", title: "Este pack usa Quilt, que o Warden ainda não suporta.", text: "Nada foi alterado na pasta. Packs Forge, NeoForge e Fabric abrem normalmente.", actions: B("Escolher outra pasta", "", { size: "sm", icon: "folder-open" }) })}</div>`, { back: ["Meus packs", "packs"], where: "Abrir ou importar" });
     const files = [["config/create-common.toml.bak", "4 KB", "cópia de segurança"], ["packwiz-installer-bootstrap.jar", "58 KB", "ferramenta, não conteúdo"], [".packwiz.toml", "1 KB", "arquivo de outro programa"]];
     return appShell(head + `<div class="stack" style="max-width:820px">
       <div class="packcard">${W.tile("Meu pack antigo", "xl")}<div class="packcard__name">Meu pack antigo</div><div class="packcard__meta">Minecraft 1.20.1 · NeoForge 47.1.106</div>
@@ -116,9 +127,35 @@
       <div class="panel panel--strong"><div class="panel__head"><h2 class="panel__title panel__title--sans">3 arquivos não deveriam ir para quem joga o pack</h2></div>
         <div class="tablewrap"><table class="table table--plain"><thead><tr><th class="shrink"><span class="sr-only">Limpar</span></th><th>Arquivo</th><th class="num">Tamanho</th><th>Motivo</th></tr></thead><tbody>${files.map(([f, sz, why]) => `<tr><td>${W.check({ checked: true, ariaLabel: "Limpar " + f })}</td><td class="path">${f}</td><td class="num">${sz}</td><td class="t-2">${why}</td></tr>`).join("")}</tbody></table></div>
         <p class="t-sm t-3" style="margin-top:10px">Antes de limpar, o Warden guarda um ponto de segurança. Nada some sem volta.</p>
-        <div class="btn-row btn-row--end" style="margin-top:12px">${B("Agora não", "mods", { variant: "ghost" })}${B("Limpar 3 arquivos e abrir", "mods", { variant: "primary" })}</div></div></div>`, { back: ["Meus packs", "packs"], where: "Abrir pack existente" });
+        <div class="btn-row btn-row--end" style="margin-top:12px">${B("Agora não", "mods", { variant: "ghost" })}${B("Limpar 3 arquivos e abrir", "mods", { variant: "primary" })}</div></div></div>`, { back: ["Meus packs", "packs"], where: "Abrir ou importar" });
   }
-  def("abrir-existente", { group: "app", title: "Abrir pack existente", spec: "T04", render: openExisting, states: { carregando: "Lendo o pack", erro: "Pack Quilt (não suportado)" } });
+  // ---------- Importar modpack de outro app (D4) ----------
+  function importPage(state) {
+    const sh = (c) => appShell(c, { back: ["Meus packs", "packs"], where: "Abrir ou importar" });
+    const head = pageHead("Importar modpack", "Vira um pack packwiz novo. O arquivo original não muda.", null);
+    if (state === "carregando") return sh(head + `<div style="max-width:620px">${W.progress({ label: "Lendo Create+ 6.0.0.mrpack", value: 46, meta: "Identificando 168 arquivos no Modrinth e na CurseForge pelo hash" })}</div>`);
+    if (state === "erro") return sh(pageHead("Importar modpack", "Cozy Create 2.3.0.zip · zip da CurseForge", null) + `<div style="max-width:760px">${W.alert({ kind: "warn", icon: "key-round", title: "Para importar um zip da CurseForge, o Warden precisa da sua chave da CurseForge.", text: "O zip só traz os números dos mods; a chave é usada para saber quais mods são. Nada foi gravado.", actions: B("Abrir Configurações", "config-app", { size: "sm" }) + B("Escolher outro arquivo", "", { size: "sm", variant: "ghost" }) })}</div>`);
+    const rows = [
+      ["circle-check", "ok", "154", "viram referência ao Modrinth", "Baixados pelo jogador direto do Modrinth, como num pack feito no Warden."],
+      ["circle-check", "ok", "9", "jars de overrides/mods identificados pelo hash", "Também viram referência (8 do Modrinth, 1 da CurseForge)."],
+      ["triangle-alert", "warn", "5", "jars ficam como arquivo local", "Não foram achados nas lojas. Vão dentro do pack; confira se a licença de cada um permite."],
+      ["triangle-alert", "warn", "3", "mods com lado desconhecido", "O arquivo diz “unknown”. Entram como Cliente e servidor e ficam marcados para você conferir."],
+      ["triangle-alert", "warn", "2", "arquivos em client-overrides/", "O packwiz não tem esse conceito: entram no pack para todos, com aviso."],
+    ];
+    return sh(pageHead("Importar modpack", "Create+ 6.0.0.mrpack · Minecraft 1.21.1 · NeoForge 21.1.252", null) + `<div class="stack" style="max-width:860px">
+      ${W.alert({ kind: "info", icon: "scroll-text", title: "Licença do modpack: All Rights Reserved.", text: "Os mods são referências livres. As configs e os arquivos do modpack são trabalho do autor: use para você, não publique como se fosse seu." })}
+      <div class="field"><label class="field__label" for="im-dir">Pasta do pack novo</label><div class="row">${W.input({ id: "im-dir", bare: true, value: "Documents\\Warden\\create-plus", mono: true })}${B("Escolher…", "", { icon: "folder-open" })}</div></div>
+      <section class="panel panel--strong" aria-labelledby="im-h"><h2 class="panel__title panel__title--sans" id="im-h">O que acontece com cada arquivo</h2>
+        <div class="tablewrap" style="margin-top:10px"><table class="table table--plain"><tbody>${rows.map(([ic, k, n, what, why]) => `<tr><td class="shrink">${W.icon(ic, "t-" + k)}</td><td class="num t-strong shrink">${n}</td><td><b>${what}</b><div class="t-xs t-3">${why}</div></td></tr>`).join("")}</tbody></table></div></section>
+      <section class="panel" aria-labelledby="im-lixo"><h2 class="panel__title panel__title--sans" id="im-lixo">Lixo que não entra no pack</h2>
+        <ul class="checklist" style="margin-top:8px"><li class="is-ok">${W.icon("x")}<span><span class="path">overrides/.mixin.out/</span> · 812 arquivos de depuração de mixin</span></li><li class="is-ok">${W.icon("x")}<span><span class="path">xmcl.json</span> · arquivo de outro launcher</span></li><li class="is-ok">${W.icon("x")}<span><span class="path">mods/.connector/temp/</span> · 1 arquivo de cache</span></li></ul></section>
+      <div class="btn-row btn-row--end">${B("Cancelar", "packs", { variant: "ghost" })}${B("Importar como pack novo", "importar-pronto", { variant: "primary", icon: "import" })}</div></div>`);
+  }
+  def("importar", { group: "app", title: "Importar modpack (.mrpack)", spec: "T04", d4: true, render: importPage, states: { carregando: "Lendo o arquivo", erro: "Zip da CurseForge sem chave" } });
+  def("importar-pronto", { group: "app", title: "Importado: o que revisar", spec: "T04", d4: true, hidden: true, render: () => importPage("normal"),
+    after: () => window.WardenUI.toast(W.toast({ kind: "ok", title: "Create+ importado como pack novo", text: "8 itens marcados para revisar aparecem em Problemas.", actions: B("Abrir o pack", "mods", { size: "sm" }) }), 9000) });
+
+  def("abrir-existente", { group: "app", title: "Abrir pack (pasta packwiz)", spec: "T04", render: openExisting, states: { carregando: "Lendo o pack", erro: "Pack Quilt (não suportado)" } });
 
   // ---------- Configurações ----------
   function settings(o = {}) {

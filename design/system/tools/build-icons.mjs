@@ -12,7 +12,10 @@ triangle-alert circle-alert circle-x circle-help info circle-check refresh-cw tr
 file-text folder history cloud-upload download copy external-link square terminal sparkles tag clock memory-stick coffee
 key-round shield lock eye eye-off list-filter arrow-up-down pause save undo-2 wrench puzzle image sun file-diff
 git-compare globe inbox flag book-open list minus archive file-code hard-drive box layers file-plus rotate-ccw
-scroll-text cpu user`.split(/\s+/);
+scroll-text cpu user
+network activity gauge messages-square send target flask-conical import images braces circle-dot circle-dashed
+circle-minus timer heart-pulse scan-search list-tree chart-column text-search hand sliders-horizontal file-archive code
+square-terminal upload check-check`.split(/\s+/);
 const version = readFileSync(join(dir, "..", "package.json"), "utf8").match(/"version":\s*"([^"]+)"/)[1];
 const icons = {};
 for (const n of NAMES) {

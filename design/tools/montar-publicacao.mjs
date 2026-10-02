@@ -24,7 +24,7 @@ copySystem(ds, true);
 // 2. Protótipo final
 const pf = join(out, "prototipo-final");
 mkdirSync(pf, { recursive: true });
-for (const f of ["app.js", "data.js", "prototipo.css", "screens-app.js", "screens-pack.js", "screens-test.js"]) cpSync(join(design, "prototipo-final", f), join(pf, f));
+for (const f of ["app.js", "data.js", "prototipo.css", "screens-app.js", "screens-pack.js", "screens-discover.js", "screens-diag.js", "screens-test.js"]) cpSync(join(design, "prototipo-final", f), join(pf, f));
 copySystem(join(pf, "system"), false);
 writeFileSync(join(pf, "index.html"), readFileSync(join(design, "prototipo-final", "index.html"), "utf8").replaceAll("../system/", "system/"));
 

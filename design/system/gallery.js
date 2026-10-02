@@ -355,8 +355,8 @@
 
   sec("ia", "Componentes", "Bloco de resposta da IA",
     "Tudo que vem da IA fica dentro desta moldura em osso, com o ícone de brilhinho e o aviso fixo de que a IA pode errar. Causa provável, confiança em 3 blocos, mods envolvidos e passos com botões que passam pelos fluxos normais.",
-    `<div class="stack-3" style="max-width:860px">${aiBlock({ meta: "Teste de 30/09 às 21:14 · Google Gemini (gemini-2.5-flash) · 21:20", cause: "Dois mods de renderização, Embeddium e Rubidium, carregados juntos. O log mostra os dois tentando substituir o mesmo código de desenho dos blocos.", confidence: "média", mods: [btn("Embeddium", { variant: "link" }), btn("Rubidium", { variant: "link" })], steps: [["Remover o Rubidium (o Embeddium é o substituto mais novo).", btn("Remover Rubidium", { size: "sm", variant: "danger-ghost", icon: "trash-2" })], ["Testar de novo.", btn("Testar", { size: "sm", icon: "play" })]] })}
-      ${aiBlock({ loading: true, meta: "Google Gemini (gemini-2.5-flash)" })}
+    `<div class="stack-3" style="max-width:860px">${aiBlock({ meta: "Teste de 30/09 às 21:14 · Google Gemini (gemini-3.8-flash) · 21:20", cause: "Dois mods de renderização, Embeddium e Rubidium, carregados juntos. O log mostra os dois tentando substituir o mesmo código de desenho dos blocos.", confidence: "média", mods: [btn("Embeddium", { variant: "link" }), btn("Rubidium", { variant: "link" })], steps: [["Remover o Rubidium (o Embeddium é o substituto mais novo).", btn("Remover Rubidium", { size: "sm", variant: "danger-ghost", icon: "trash-2" })], ["Testar de novo.", btn("Testar", { size: "sm", icon: "play" })]] })}
+      ${aiBlock({ loading: true, meta: "Google Gemini (gemini-3.8-flash)" })}
       ${aiBlock({ error: "A chave do Gemini foi recusada.", errorText: "O Google respondeu que a chave não é válida. Nada foi alterado no pack.", meta: "21:20", actions: btn("Abrir Configurações", { size: "sm" }) })}</div>`);
 
   sec("outros", "Componentes", "Árvore, chave-valor, divulgação e teclas",
@@ -369,13 +369,96 @@
       st("Abas", `<span class="t-sm t-2">Não existem no Warden. Use seção do menu, seletor de modo, caixa de seleção ou página corrida.</span>`),
     ], "gx-states--wide"));
 
+  // ======================= FUNÇÕES AVANÇADAS (D4) =======================
+  const G = "Funções avançadas (D4)";
+  sec("saude", G, "Saúde do pack",
+    "Nota de 0 a 100, explicável e estável: começa em 100 e cada problema conhecido tira pontos. Faixa sempre com ícone e palavra (nunca só a cor). Texto de apoio fixo: não é promessa de que o pack funciona. Grande no topo de Problemas; pequena na coluna Saúde de Meus packs.",
+    states([
+      st("Ótimo (90 a 100)", W.health(97)), st("Bom (75 a 89)", W.health(88)), st("Atenção (50 a 74)", W.health(61)), st("Crítico (abaixo de 50)", W.health(33)), st("Sem dados", W.health(null, { note: "O pack ainda não foi verificado." })),
+      st("Na tabela", `<div class="stack-2">${[97, 88, 61, 33].map((n) => W.health(n, { size: "sm" })).join("<br>")}</div>`),
+    ], "gx-states--wide") +
+    `<h3>O que tirou pontos</h3><div style="max-width:760px">${W.healthLosses([["−30", "Problemas do pré-teste:", "2 erros."], ["−20", "Último teste:", "travou hoje às 14:40.", btn("Ver", { size: "sm", variant: "ghost" })], ["−3", "Problemas do pré-teste:", "1 aviso.", "", true]])}</div>` +
+    rules([["Explique cada ponto", "Toda linha diz a categoria, o motivo e leva ao problema."]], [["Prometer", "Nunca “o pack está saudável, pode publicar”. A nota resume o que se sabe."]]));
+
+  sec("rodadas", G, "Busca do culpado: rodadas e suspeitos",
+    "Trilha de rodadas no lugar das 5 etapas quando a tela do teste está no modo Busca do culpado. Cada resultado tem um ícone de forma diferente (x, visto, menos, relógio, carregador, tracejado) e o nome completo para leitor de tela. A faixa de suspeitos mostra quanto do pack ainda pode ser o culpado.",
+    `<div class="stack" style="max-width:900px">${W.rounds([{ n: 0, mods: 118, result: "same" }, { n: 1, mods: 0, result: "pass" }, { n: 2, mods: 59, result: "pass" }, { n: 3, mods: 88, result: "same" }, { n: 4, mods: 73, result: "diff" }, { n: 5, mods: 66, result: "timeout" }, { n: 6, mods: 69, result: "now" }, { n: 7, result: "todo" }, { n: 8, result: "todo" }])}
+      ${states([st("Rodada pausada", W.rounds([{ n: 5, result: "pass" }, { n: 6, result: "paused" }], { legend: false })), st("Esperando você (modo assistido)", W.rounds([{ n: 5, result: "pass" }, { n: 6, result: "ask" }], { legend: false })), st("Suspeitos: começo", W.suspects(118, 118, { from: 0 })), st("Suspeitos: rodada 6", W.suspects(7, 118, { from: 22 }))], "gx-states--wide")}</div>`);
+
+  sec("conversa", G, "Conversa com a IA",
+    "Mensagens, blocos do que foi enviado, evidências e propostas. Tudo que vem da IA fica na moldura de osso com o brilhinho. Cada consulta da IA aparece como um bloco “Enviado à IA” (ou “Enviado ao GitHub”) com o texto exato. Afirmação sem evidência conferida pelo Warden aparece riscada. Proposta só muda o pack com o clique em Aplicar.",
+    `<div class="stack-3" style="max-width:860px">
+      ${W.chatMsg({ from: "user", meta: "15:40", body: "<p>Trava quando entro no mundo. Já aconteceu 3 vezes.</p>" })}
+      ${W.chatMsg({ from: "ai", meta: "gemini-3.8-flash · 15:41", body: W.toolCall({ what: "visão geral do pack", size: "2,1 KB", sent: "Minecraft 1.20.1 · Forge 47.3.0 · 128 itens" }) + W.toolCall({ what: "crash report de 30/09, linhas 1 a 80", size: "6,8 KB", open: true, sent: "Description: Ticking entity\njava.lang.NullPointerException…", back: "Linhas 1 a 80 do crash report." }) + W.toolCall({ kind: "github", what: "busca de issues no Supplementaries", size: "0,1 KB", sent: "GET …/search/issues?q=repo:MehVahdJukaar/Supplementaries+NullPointerException+travel" }) + W.toolCall({ state: "running", what: "o que o Epic Fight altera no jogo" }) + W.toolCall({ state: "error", what: "changelog do Epic Fight", error: "A CurseForge não respondeu. A IA seguiu sem esse dado." }) })}
+      <ul class="claims">${W.claim("O pack está com a 2.8.17; a correção saiu na 2.8.21.", [W.evidence("issue #3121"), W.evidence("changelog 2.8.21")])}${W.claim("Também acontece em servidores grandes.", [W.evidence("", { unverified: true })], { unverified: true })}</ul>
+      ${states([
+        st("Proposta pendente", W.proposal({ title: "Atualizar Supplementaries 2.8.17 → 2.8.21", text: "Corrige o travamento.", evidence: W.evidence("issue #3121"), actions: btn("Aplicar", { variant: "primary", size: "sm", icon: "check" }) + btn("Descartar", { size: "sm", variant: "ghost" }) })),
+        st("Aplicada", W.proposal({ title: "Atualizar Epic Fight 20.9.4 → 20.9.6", state: "applied", appliedText: "Aplicada às 15:52 · ponto de segurança criado", appliedActions: btn("Desfazer", { size: "sm", variant: "ghost", icon: "undo-2" }) })),
+        st("Descartada", W.proposal({ title: "Remover Epic Fight", state: "dismissed" })),
+      ], "gx-states--wide")}</div>` +
+    rules([["Mostrar o que foi enviado", "Byte a byte, num bloco recolhido. É o que o consentimento por conversa promete."]], [["IA mudando o pack", "Nenhuma ferramenta da IA escreve no pack. Só o clique em Aplicar, que passa pelos fluxos normais."]]));
+
+  sec("desempenho", G, "Faixa de desempenho",
+    "Acima do console, durante o teste. A memória do jogo vem com um mini-gráfico em blocos dos últimos minutos; os blocos ficam âmbar acima de 90% do máximo. Sem leitura (argumento que desliga), o número dá lugar ao motivo.",
+    `<div class="stack-3" style="max-width:980px">${W.perfStrip({ mem: ["3,1", 6], series: [2.4, 2.6, 2.8, 2.7, 3.0, 2.8, 3.1, 2.9, 3.2, 3.1, 3.0, 3.1], seriesLabel: "Memória nos últimos minutos", rss: "4,2", gc: "214", gcSub: "1,2 s parado em coletas", loaded: "1 min 42 s", loadedSub: "18 s a mais que na 1.4.2" })}
+      ${W.perfStrip({ label: "Desempenho: memória alta", state: "warn", mem: ["5,9", 6], series: [5.0, 5.3, 5.5, 5.6, 5.7, 5.8, 5.9, 5.9, 5.8, 5.9, 5.9, 5.9], seriesLabel: "Memória alta", rss: "7,1", gc: "1.902", gcSub: "18,4 s parado", loaded: "1 min 42 s" })}
+      ${W.perfStrip({ label: "Desempenho: sem leitura", state: "nodata", rss: "4,2", gc: "—", gcSub: "sem leitura", loaded: "1 min 42 s" })}</div>`);
+
+  sec("console-agrupado", G, "Console agrupado e linha de comando",
+    "Modo do console escolhido em “Mostrar: Linha a linha · Agrupado por mod · Só problemas” (seletor, não aba). Linhas repetidas viram uma com “×N”; ruído conhecido ganha o selo “comum, geralmente inofensivo”; stack trace vira um item recolhido com a primeira linha de mod em destaque. Com servidor, “Mostrando: Servidor · Jogo” e uma linha de comando.",
+    `<div class="stack-3" style="max-width:980px">${consoleBox({ id: "gx-cg", label: "Console agrupado por mod", show: "grouped", height: 320, groups: [{ mod: "Supplementaries", errors: 0, warns: 1290, total: 1290, open: true, lines: [[1284, "warn", "Unable to load model: 'supplementaries:{id}'", true]] }, { mod: "Epic Fight", errors: 1, warns: 0, total: 51, open: true, lines: [], stack: { title: "java.lang.NullPointerException", frames: ["at net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:2108)", "at yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch.onTravel(LivingEntityPatch.java:412)"], hidden: 44, modFrame: 1 } }, { mod: "Jogo e loader", errors: 0, warns: 0, total: 412, lines: [[1, "info", "Found 128 mods"]] }] })}
+      ${consoleBox({ id: "gx-cs", label: "Console do servidor", show: "lines", height: 200, source: { value: "server", options: [["server", "Servidor"], ["game", "Jogo"]] }, command: true, lines: [["info", "15:10:31", "minecraft/DedicatedServer", "Done (6.912s)! For help, type \"help\""]] })}</div>`);
+
+  sec("raio-x", G, "Raio-x de mixins",
+    "Linha de alteração: a parte do jogo em linguagem legível, quem altera e como, o risco com selo e o motivo, e o que diminui o risco (compatibilidade intencional, pode ser desligado pelo próprio mod). Linguagem: “alteram o mesmo ponto”, nunca “são incompatíveis”.",
+    `<ul class="mixins" style="max-width:640px">${W.mixinRow({ target: "LivingEntity#travel (movimento das criaturas)", cls: "net.minecraft.world.entity.LivingEntity", who: [["Epic Fight", "@Redirect"], ["Supplementaries", "@Redirect"]], risk: "high", why: "Os dois trocam a mesma chamada. Só um vale." })}${W.mixinRow({ target: "Biome#getTemperature", who: [["Lithium", "@Overwrite"], ["ModernFix", "@Overwrite"]], risk: "medium", why: "Os dois substituem o método inteiro.", lower: "Pode ser desligado pelo próprio mod: o ModernFix desliga esta opção quando o Lithium está presente" })}${W.mixinRow({ target: "ModelPart#render", who: [["Sodium", "@Overwrite"], ["Iris", "@Overwrite"]], risk: "low", why: "Rebaixado de alto.", lower: "Compatibilidade intencional: o Iris referencia o Sodium neste ponto" })}</ul>`);
+
+  sec("grafo", G, "Grafo focado de dependências",
+    "Um mod no centro; o que ele exige à esquerda e quem depende dele à direita. Nós são botões (teclado: Tab; Enter leva o mod para o centro). O desenho das ligações é decorativo: as mesmas ligações vão em texto ao lado. No app, o grafo do pack inteiro (opcional) usa Cytoscape.js.",
+    W.depGraph({ center: { name: "Create", sub: "0.5.1.j · você adicionou", inside: "Flywheel e Registrate" }, left: [{ name: "Forge", sub: "47.1 ou mais novo", kind: "required" }, { name: "JEI", sub: "no pack", kind: "optional" }], right: [{ name: "Create Slice & Dice", sub: "no pack", kind: "required" }, { name: "OptiFine", sub: "exemplo", kind: "incompatible" }, { name: "Kotlin for Forge", sub: "deduzida do log", kind: "inferred" }] }));
+
+  sec("descoberta", G, "Descoberta: resultado com seleção e galeria",
+    "Linha de resultado com caixa para seleção múltipla. Estados: normal, selecionado, já no pack (sem caixa), sem versão para o pack e arquivo fora das lojas (caixa desabilitada com o motivo), download manual. Galeria em miniaturas próprias desenhadas por código (nenhuma imagem da Mojang).",
+    `<ul class="dlist" style="max-width:760px">
+      ${W.discoverRow({ name: "Sophisticated Storage", author: "P3pp3rF1y", desc: "Baús e barris com melhorias.", src: "both", meta: "<span>21 mi downloads</span>" })}
+      ${W.discoverRow({ name: "Sophisticated Backpacks", author: "P3pp3rF1y", desc: "Mochilas com melhorias.", src: "both", state: "selected", meta: "<span>48 mi downloads</span>" })}
+      ${W.discoverRow({ name: "Traveler's Backpack", author: "Tiviacz1337", desc: "Mochilas temáticas.", src: "both", state: "inpack" })}
+      ${W.discoverRow({ name: "Backpacked", author: "MrCrayfish", desc: "Uma mochila simples.", src: "curseforge", state: "manual" })}
+      ${W.discoverRow({ name: "Backpacks!", author: "Lorie", desc: "Mochilas coloridas.", src: "modrinth", state: "noversion", why: "Sem versão para Forge 1.20.1" })}
+      ${W.discoverRow({ name: "Cozy Create Tweaks", desc: "Ajustes do autor do modpack.", state: "external", compact: true })}</ul>
+      <h3>Galeria</h3>${W.galleryStrip(["Mochilas", "Melhorias", "Filtro", "Cinto"])}
+      <h3>Seleção múltipla</h3><div class="selbar" style="max-width:760px"><span class="selbar__count">3 selecionados</span>${btn("Limpar seleção", { size: "sm", variant: "ghost" })}<span class="grow"></span>${btn("Adicionar 3 ao pack", { variant: "primary", icon: "plus" })}</div>`);
+
+  sec("configs-avancado", G, "Configs: busca em todas e formulário com padrão",
+    "Resultado da busca agrupado por arquivo, com o nome traduzido do mod quando existe e a chave em mono. Linha do formulário com o padrão e de onde ele veio, marca de alterado, erro de faixa e valor deduzido (baixa confiança). Restaurar padrão por chave.",
+    `<div class="stack" style="max-width:900px">${W.cfgHits([{ file: "config/waystones-common.toml", hits: [{ label: "Gerar pedras nas vilas", key: "spawnInVillages", value: "true", ctx: "#Se as vilas geram uma pedra. Valores pequenos geram muitas perto do <mark>spawn</mark>." }, { key: "worldGenFrequency", value: "25", changed: true }] }])}
+      <div class="cfgform" style="padding:0">${W.cfgRow({ label: "Velocidade máxima de rotação", key: "maxRotationSpeed", desc: "Faixa: acima de 64.", def: "256", defSource: "do comentário do arquivo", changed: true, control: input({ bare: true, size: "sm", value: "512", ariaLabel: "Velocidade máxima de rotação" }) })}
+        ${W.cfgRow({ label: "Multiplicador de stress", key: "stressMultiplier", def: "1.0", defSource: "do comentário do arquivo", error: "12.0 está fora da faixa 0,0 a 10,0. O Forge troca por 1,0 sem avisar.", errId: "gx-cf-err", control: input({ bare: true, size: "sm", value: "12.0", ariaLabel: "Multiplicador de stress", attrs: { "aria-invalid": "true", "aria-describedby": "gx-cf-err" } }) })}
+        ${W.cfgRow({ label: "Alcance do ventilador", key: "fanPushDistance", def: "20", defSource: "tirado do texto", inferred: true, control: input({ bare: true, size: "sm", value: "20", ariaLabel: "Alcance do ventilador" }) })}
+        ${W.cfgRow({ key: "customKey", control: input({ bare: true, size: "sm", value: "abc", ariaLabel: "customKey" }) })}</div></div>`);
+
+  sec("scripts", G, "Scripts: autocompletar de IDs e erros do jogo",
+    "IDs de itens, blocos e tags lidos dos jars do pack (sem abrir o jogo). Erros dos scripts vêm do log do último teste, com a linha original. Realce: string em verde, palavra-chave em lavanda, função em ciano, ID errado sublinhado em vermelho.",
+    `<div class="grid-2" style="max-width:980px"><div style="position:relative;min-height:140px"><div class="editor" style="min-height:140px"><div class="editor__lines" style="position:relative"><div class="editor__line editor__line--error"><span>    <span class="tk-str tk-err">'minecraft:copper_ingott'</span>,</span></div></div></div>
+      <div style="position:absolute;left:40px;top:40px">${W.completions([["copper_ingot", "item", "Minecraft"], ["copper_block", "bloco", "Minecraft"], ["copper_ore", "bloco", "Minecraft"]], { typed: "minecraft:copper_", id: "gx-cmp" })}</div></div>
+      ${W.scriptErrors([{ where: "receitas.js, linha 16", msg: "O item <span class='t-mono'>minecraft:copper_ingott</span> não existe.", log: "Item 'minecraft:copper_ingott' not found" }], { id: "gx-se", meta: "último teste" })}</div>`);
+
+  sec("testar-avancado", G, "Testar: perfil e busca do culpado; menu com grupos e rádio",
+    "O botão Testar mostra o perfil quando ele não é o Padrão. Durante a busca do culpado o botão fica escuro com antenas âmbar e leva ao progresso. O menu ▾ separa os testes extras, o perfil (itens de rádio, role menuitemradio) e a instância em grupos com título.",
+    `${states([st("Com perfil", testButton({ profile: "PC fraco", menuId: "gx-mp1" })), st("Buscando o culpado", testButton({ state: "bisect", progress: 44, menuId: "gx-mp2" }))])}
+      <div class="gx-stage" style="height:520px"><div class="fake">Menu aberto (estático para a galeria)</div>${menu([{ label: "Ver último teste", desc: "Hoje, 14:40 · travou", icon: "history" }, { group: "Outros testes" }, { label: "Testar como servidor…", desc: "Abre um servidor neste computador, só quando você pede", icon: "server" }, { label: "Encontrar o mod culpado…", desc: "Abre o jogo em rodadas até achar o mod", icon: "target" }, { group: "Perfil do teste" }, { radio: "gx-p", label: "Padrão", checked: true, end: '<span class="t-xs t-3">6 GB</span>' }, { radio: "gx-p", label: "PC fraco", end: '<span class="t-xs t-3">4 GB</span>' }, { label: "Ajustes do teste neste computador…", icon: "settings" }], { id: "gx-menu-adv", static: true, label: "Menu do Testar", style: "left:24px;top:48px" })}</div>`);
+
+  sec("secmenu-compacto", G, "Menu de seções recolhido",
+    "Só na página de descoberta, que precisa de três colunas. Ícones com o nome e a descrição no tooltip e no nome acessível; o ponto no canto repete o contador (vermelho com erro, âmbar com não salvas). Volta ao normal ao sair da página.",
+    `<div style="height:330px;display:flex;border:1px solid var(--color-border)">${sectionMenu([{ id: "mods", name: "Mods", desc: "Mods, resource packs e shaders", icon: "puzzle", count: 128 }, { id: "configs", name: "Configs", desc: "Arquivos de ajuste e scripts do pack", icon: "file-code" }, { id: "problemas", name: "Problemas", desc: "Saúde do pack, problemas e travamentos", icon: "triangle-alert", count: 4, countKind: "danger", countLabel: "4 problemas" }, { id: "ia", name: "Diagnóstico com IA", desc: "Conversar com a IA sobre um problema do pack", icon: "sparkles", ai: true }, { id: "historico", name: "Histórico", desc: "Versões salvas e publicação", icon: "history", count: 5, countKind: "warn", countLabel: "5 alterações não salvas" }, { id: "exportar", name: "Exportar", desc: "Gerar o pack para quem vai jogar", icon: "package" }], "mods", { compact: true, label: "Seções do pack (recolhido)" })}<div class="fake" style="padding:16px">Página de descoberta</div></div>`);
+
   // ======================= MONTAGEM =======================
   const nav = document.getElementById("gx-nav");
   const main = document.getElementById("conteudo");
   let groups = {};
   S.forEach(([id, g, t]) => { (groups[g] = groups[g] || []).push([id, t]); });
   nav.innerHTML = `<span class="brand">${brandMark()}<span class="brand__name">Warden</span></span>` + Object.entries(groups).map(([g, items]) => `<h2>${g}</h2>${items.map(([id, t]) => `<a href="#${id}">${t}</a>`).join("")}`).join("");
-  main.innerHTML = `<div class="gx-intro"><div class="t-caps t-3">Design system · versão 1.0 · 01/10/2026</div><h1 class="t-display-2xl" style="margin-top:8px">Warden · <span class="t-hl">Deep Dark</span></h1>
+  main.innerHTML = `<div class="gx-intro"><div class="t-caps t-3">Design system · versão 1.1 · 01/10/2026</div><h1 class="t-display-2xl" style="margin-top:8px">Warden · <span class="t-hl">Deep Dark</span></h1>
     <p>Fundamentos e componentes do Warden, com todos os estados. Esta página é montada com o mesmo CSS e as mesmas funções que o protótipo final usa. Regras completas em <code>docs/design/DESIGN-SYSTEM.md</code>; mapeamento para Tailwind 4 e shadcn/ui em <code>docs/design/HANDOFF.md</code>. Fonte única dos tokens: <code>design/system/tokens.json</code>.</p></div>` + S.map((s) => s[3]).join("");
 
   document.querySelectorAll("[data-v]").forEach((el) => { el.textContent = css(el.dataset.v); });

@@ -3,6 +3,7 @@
    No app real isso vem do Radix (via shadcn/ui); aqui reproduz o mesmo contrato
    de teclado para a galeria e o protótipo poderem ser testados de verdade.
      Menus: Enter/Espaço/↓ abrem; ↑ ↓ Home End navegam; Esc fecha e devolve o foco.
+            Itens de rádio (menuitemradio) marcam um e desmarcam os outros do mesmo grupo.
      Diálogo e painel: o foco entra, Tab fica preso, Esc fecha, o foco volta para quem abriu.
      Tooltip: aparece no hover e no foco, some com Esc.
      Seletor de modo e grupos de radio: setas trocam.
@@ -38,7 +39,7 @@
   }
 
   // ---------- Menus ----------
-  function menuItems(menu) { return [...menu.querySelectorAll('[role="menuitem"]')].filter(visible); }
+  function menuItems(menu) { return [...menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"]')].filter(visible); }
   function openMenu(trigger, menu, focusLast) {
     menu.hidden = false;
     trigger.setAttribute("aria-expanded", "true");
@@ -121,6 +122,12 @@
       if (m) { e.preventDefault(); if (m.hidden) openMenu(trig, m); else closeMenu(m, true); return; }
     }
     document.querySelectorAll('.menu[role="menu"]:not([hidden]):not([data-static])').forEach((m) => { if (!m.contains(t)) closeMenu(m, false); });
+    // Item de rádio do menu: marca este e desmarca os do mesmo grupo (data-radio)
+    const mr = t.closest('[role="menuitemradio"]');
+    if (mr && mr.getAttribute("aria-disabled") !== "true") {
+      const menuEl = mr.closest(".menu");
+      menuEl.querySelectorAll(`[role="menuitemradio"][data-radio="${mr.dataset.radio}"]`).forEach((b) => b.setAttribute("aria-checked", String(b === mr)));
+    }
     // Toggle
     const sw = t.closest(".switch__track");
     if (sw && !sw.disabled) {

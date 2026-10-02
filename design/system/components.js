@@ -102,16 +102,19 @@
     return `<${tag}${attrs(a)}>${busy}${ic}${text}${count}${end}</${tag}>`;
   }
 
-  // Botão Testar. state: ready | preparing | running | disabled
+  // Botão Testar. state: ready | preparing | running | bisect | disabled
+  // o.profile: nome do perfil do teste quando não é o padrão ("PC fraco"); aparece ao lado de "Testar".
   function testButton(o = {}) {
     const st = o.state || "ready";
-    const label = { ready: "Testar", preparing: "Testando… ver progresso", running: "Jogo aberto: ver teste", disabled: "Testar" }[st];
-    const lead = st === "running" ? `<span class="live" aria-hidden="true"></span>` : st === "preparing" ? `<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : icon("play", "icon--fill");
-    const prog = st === "preparing" ? `<span class="testbtn__progress" aria-hidden="true"><span style="--p:${o.progress ?? 38}%"></span></span>` : "";
+    const label = { ready: "Testar", preparing: "Testando… ver progresso", running: "Jogo aberto: ver teste", bisect: "Buscando o culpado: ver progresso", disabled: "Testar" }[st];
+    const lead = st === "running" ? `<span class="live" aria-hidden="true"></span>` : st === "preparing" || st === "bisect" ? `<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : icon("play", "icon--fill");
+    const prog = st === "preparing" || st === "bisect" ? `<span class="testbtn__progress" aria-hidden="true"><span style="--p:${o.progress ?? 38}%"></span></span>` : "";
+    const prof = o.profile && (st === "ready" || st === "disabled") ? `<span class="testbtn__profile"><span aria-hidden="true">·</span> ${esc(o.profile)}</span>` : "";
     const menuId = o.menuId || "menu-testar";
-    return `<div class="testbtn testbtn--${st}">
+    const cls = st === "bisect" ? "testbtn--running testbtn--bisect" : "testbtn--" + st;
+    return `<div class="testbtn ${cls} ${prof ? "testbtn--profile" : ""}">
       <span class="testbtn__antenna" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-      <button type="button" class="btn btn--primary testbtn__main"${attrs(Object.assign({ disabled: st === "disabled" || null }, o.mainAttrs || {}))}>${lead}<span>${label}</span>${prog}</button>
+      <button type="button" class="btn btn--primary testbtn__main"${attrs(Object.assign({ disabled: st === "disabled" || null }, o.mainAttrs || {}))}>${lead}<span>${label}</span>${prof}${prog}</button>
       <button type="button" class="btn btn--primary testbtn__more" aria-haspopup="menu" aria-expanded="${o.open ? "true" : "false"}" aria-controls="${menuId}"${attrs(Object.assign({ disabled: st === "disabled" || null }, o.moreAttrs || {}))} data-tip="Mais opções do teste">${icon("chevron-down")}<span class="sr-only">Mais opções do teste</span></button>
     </div>`;
   }
@@ -303,21 +306,42 @@
   function consoleLines(lines) {
     return lines.map(([lvl, time, src, msg]) => `<div class="console__line console__line--${lvl}"><span class="console__time">${time}</span><span class="console__lvl">${{ info: "INFO", warn: "WARN", error: "ERROR", warden: "WARDEN" }[lvl]}</span><span class="console__src" title="${esc(src)}">${esc(src)}</span><span class="console__msg">${esc(msg)}</span></div>`).join("");
   }
+  // o.show: "lines" | "grouped" | "problems" troca o seletor de nível por "Mostrar" (console inteligente).
+  // o.groups: [{ mod, errors, warns, lines: [[repetições, nível, texto, ruído?]], stack: { title, frames, modFrame } }]
+  // o.source: { value, options: [[valor, rótulo]] } mostra "Mostrando" (servidor ou jogo). o.command: linha de comando do servidor.
   function consoleBox(o = {}) {
     const st = o.state || "live";
     const stTxt = { live: '<span class="live" aria-hidden="true"></span>Ao vivo', paused: `${icon("pause", "icon--sm")}Rolagem pausada`, ended: `${icon("square", "icon--sm")}Jogo fechado`, waiting: '<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Esperando o jogo abrir' }[st];
-    const body = o.lines && o.lines.length ? consoleLines(o.lines) : `<div class="console__empty">Nenhuma linha ainda. A saída do jogo aparece aqui assim que ele começar a abrir.</div>`;
+    const show = o.show;
+    const levelSel = show
+      ? `<label class="console__lbl" for="${o.id || "cs"}-show">Mostrar</label>${select({ bare: true, size: "sm", id: (o.id || "cs") + "-show", options: [["lines", "Linha a linha"], ["grouped", "Agrupado por mod"], ["problems", "Só problemas"]], value: show, attrs: o.showAttrs })}`
+      : select({ bare: true, size: "sm", ariaLabel: "Nível das linhas", options: [["all", "Todas as linhas"], ["warn", "Só avisos e erros"], ["error", "Só erros"]], value: o.level || "all" });
+    const src = o.source ? `<span class="console__lbl" id="${o.id || "cs"}-src">Mostrando</span>${segmented(o.source.options, o.source.value, "Mostrando")}` : "";
+    let body;
+    if (show === "grouped" && o.groups) body = `<div class="console__log console__log--grouped" role="region" aria-label="Linhas agrupadas por mod" tabindex="0">${consoleGroups(o.groups)}</div>`;
+    else body = `<div class="console__log" role="log" aria-live="off" tabindex="0">${o.lines && o.lines.length ? consoleLines(o.lines) : `<div class="console__empty">Nenhuma linha ainda. A saída do jogo aparece aqui assim que ele começar a abrir.</div>`}</div>`;
+    const cmd = o.command ? `<div class="console__cmd"><label class="sr-only" for="${o.id || "cs"}-cmd">Comando para o servidor</label><span class="console__prompt" aria-hidden="true">&gt;</span><input class="input input--sm input--mono" id="${o.id || "cs"}-cmd" type="text" placeholder="Comando para o servidor (ex.: reload)" autocomplete="off" spellcheck="false" />${btn("Enviar", { size: "sm", icon: "send" })}</div>` : "";
     return `<section class="console" aria-label="${esc(o.label || "Console do jogo")}" style="${o.height ? `height:${o.height}px` : ""}">
-      <div class="console__bar"><span class="console__state">${stTxt}</span>
-        ${select({ bare: true, size: "sm", ariaLabel: "Nível das linhas", options: [["all", "Todas as linhas"], ["warn", "Só avisos e erros"], ["error", "Só erros"]], value: o.level || "all" })}
+      <div class="console__bar"><span class="console__state">${stTxt}</span>${src}
+        ${levelSel}
         ${input({ bare: true, size: "sm", icon: "search", placeholder: "Buscar no console", ariaLabel: "Buscar no console", value: o.query })}
         <span class="grow"></span>
-        ${btn(st === "paused" ? "Retomar rolagem" : "Pausar rolagem", { size: "sm", variant: "ghost", icon: st === "paused" ? "play" : "pause" })}
-        ${btn("Copiar tudo", { size: "sm", variant: "ghost", icon: "copy" })}
-        ${btn("Salvar em arquivo…", { size: "sm", variant: "ghost", icon: "download" })}</div>
-      <div class="console__log" role="log" aria-live="off" tabindex="0">${body}</div>
-      ${st === "paused" ? `<div class="console__paused"><span>${o.newLines || 23} linhas novas desde que você pausou.</span>${btn("Ir para o fim", { size: "sm", icon: "chevron-down" })}</div>` : ""}
+        ${o.extra || ""}
+        ${btn(st === "paused" ? "Retomar rolagem" : "Pausar rolagem", { size: "sm", variant: "ghost", icon: st === "paused" ? "play" : "pause", iconOnly: !!show })}
+        ${btn("Copiar tudo", { size: "sm", variant: "ghost", icon: "copy", iconOnly: !!show })}
+        ${btn("Salvar em arquivo…", { size: "sm", variant: "ghost", icon: "download", iconOnly: !!show })}</div>
+      ${body}
+      ${st === "paused" ? `<div class="console__paused"><span>${o.newLines || 23} linhas novas desde que você pausou.</span>${btn("Ir para o fim", { size: "sm", icon: "chevron-down" })}</div>` : ""}${cmd}
     </section>`;
+  }
+  // Console agrupado por mod: cada grupo recolhível, linhas repetidas viram uma só com "×N",
+  // stack trace vira um item só com a primeira linha de mod em destaque.
+  function consoleGroups(groups) {
+    const lvl = { error: "ERROR", warn: "WARN", info: "INFO" };
+    return groups.map((g) => `<details class="cgroup"${g.open ? " open" : ""}><summary class="cgroup__head"><span class="cgroup__mod">${esc(g.mod)}</span>
+        <span class="cgroup__counts">${g.errors ? `<span class="t-danger">${g.errors} ${g.errors === 1 ? "erro" : "erros"}</span>` : ""}${g.warns ? `<span class="t-warn">${g.warns} ${g.warns === 1 ? "aviso" : "avisos"}</span>` : ""}<span>${g.total} ${g.total === 1 ? "linha" : "linhas"}</span></span></summary>
+      <ul class="cgroup__lines">${(g.lines || []).map(([rep, l, txt, noise]) => `<li class="cline cline--${l}"><span class="cline__rep">${rep > 1 ? "×" + rep.toLocaleString("pt-BR") : ""}</span><span class="cline__lvl">${lvl[l]}</span><span class="cline__msg">${esc(txt)}${noise ? ` <span class="tag tag--plain cline__noise" data-tip="Aparece em muitos packs e quase nunca causa problema">comum, geralmente inofensivo</span>` : ""}</span></li>`).join("")}
+      ${g.stack ? `<li class="cline cline--error cline--stack"><span class="cline__rep"></span><span class="cline__lvl">ERROR</span><details class="cline__msg"><summary>${esc(g.stack.title)} <span class="t-3">(stack trace, ${g.stack.frames.length + g.stack.hidden} linhas)</span></summary><div class="cstack">${g.stack.frames.map((f, i) => `<div class="cstack__f ${i === g.stack.modFrame ? "cstack__f--mod" : ""}">${i === g.stack.modFrame ? '<span class="sr-only">Primeira linha de mod: </span>' : ""}${esc(f)}</div>`).join("")}<div class="cstack__more">… mais ${g.stack.hidden} linhas do Java, do jogo e do loader</div></div></details></li>` : ""}</ul></details>`).join("");
   }
   // lines: [tipo, numAntigo, numNovo, texto]. tipo: ctx | add | del | fold
   function diff(o = {}) {
@@ -342,11 +366,13 @@
       <div class="drawer__head"><h2 class="t-title" id="${did}-t" tabindex="-1">${o.title}</h2>${btn("Fechar painel", { variant: "ghost", size: "sm", iconOnly: true, icon: "x", attrs: Object.assign({ "data-close": "" }, o.closeAttrs || {}) })}</div>
       <div class="drawer__body">${o.body || ""}</div>${o.foot ? `<div class="drawer__foot">${o.foot}</div>` : ""}</div></div>`;
   }
-  // items: { label, desc, icon, danger, disabled, attrs } | "sep" | { group: "Título" }
+  // items: { label, desc, icon, danger, disabled, attrs, radio: "nome-do-grupo", checked } | "sep" | { group: "Título" }
+  // Itens com radio viram role="menuitemradio" com aria-checked (escolha de um entre poucos, ex.: perfil do teste).
   function menu(items, o = {}) {
     return `<div class="menu" role="menu" id="${o.id || "menu"}"${o.static ? " data-static" : ""}${o.labelledby ? ` aria-labelledby="${o.labelledby}"` : ` aria-label="${esc(o.label || "Menu")}"`} style="${o.style || ""}">${items.map((it) => {
       if (it === "sep") return `<div class="menu__sep" role="separator"></div>`;
       if (it.group) return `<div class="menu__label" role="presentation">${it.group}</div>`;
+      if (it.radio) return `<button type="button" role="menuitemradio" aria-checked="${!!it.checked}" data-radio="${esc(it.radio)}" class="menu__item menu__item--radio" tabindex="-1"${attrs(it.attrs)}><span class="menu__radio" aria-hidden="true"></span><span>${it.label}</span>${it.end || "<span></span>"}${it.desc ? `<span class="menu__desc">${it.desc}</span>` : ""}</button>`;
       return `<button type="button" role="menuitem" class="menu__item ${it.danger ? "menu__item--danger" : ""} ${it.state ? "is-" + it.state : ""}" tabindex="-1"${it.disabled ? ' aria-disabled="true"' : ""}${attrs(it.attrs)}>${it.icon ? icon(it.icon) : "<span></span>"}<span>${it.label}</span>${it.end || "<span></span>"}${it.desc ? `<span class="menu__desc">${it.desc}</span>` : ""}</button>`;
     }).join("")}</div>`;
   }
@@ -386,6 +412,205 @@
   }
 
 
+  // ---------- Saúde do pack ----------
+  // Faixas: 90–100 Ótimo, 75–89 Bom, 50–74 Atenção, abaixo de 50 Crítico; null = sem dados (pack nunca verificado).
+  function healthBand(score) {
+    if (score == null) return ["none", "Sem dados", "circle-help"];
+    if (score >= 90) return ["great", "Ótimo", "circle-check"];
+    if (score >= 75) return ["good", "Bom", "circle-check"];
+    if (score >= 50) return ["warn", "Atenção", "triangle-alert"];
+    return ["bad", "Crítico", "circle-x"];
+  }
+  // size: "lg" (topo de Problemas) | "sm" (coluna de tabela)
+  function health(score, o = {}) {
+    const [k, label, ic] = healthBand(score);
+    if (o.size === "sm") return `<span class="health health--sm health--${k}"><span class="health__num">${score ?? "—"}</span>${icon(ic, "icon--sm")}<span>${label}</span></span>`;
+    const on = score == null ? 0 : Math.round(score / 10);
+    return `<div class="health health--lg health--${k}" role="group" aria-label="Saúde do pack: ${score ?? "sem dados"}${score != null ? " de 100" : ""}, ${label}">
+      <div class="health__num" aria-hidden="true">${score ?? "—"}<small>/100</small></div>
+      <div class="health__side"><div class="health__band">${icon(ic)}<span>${label}</span></div>
+        <div class="health__blocks" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<i class="${i < on ? "on" : ""}"></i>`).join("")}</div>
+        <p class="health__note">${o.note || "Resumo dos problemas conhecidos. Não garante que o pack funciona."}</p></div></div>`;
+  }
+  // items: [pontos, categoria, texto, ação?, ignorado?]
+  function healthLosses(items) {
+    return `<ul class="losses">${items.map(([pts, cat, txt, act, ign]) => `<li class="${ign ? "is-ignored" : ""}"><span class="losses__pts">${pts}</span><span class="losses__txt"><b>${cat}</b> ${txt}${ign ? ' <span class="t-3">(ignorado por você)</span>' : ""}</span>${act || "<span></span>"}</li>`).join("")}</ul>`;
+  }
+
+  // ---------- Busca do culpado ----------
+  const ROUND = {
+    same: ["circle-x", "Travou igual"], pass: ["circle-check", "Passou"], diff: ["circle-minus", "Travou diferente (não conta)"],
+    timeout: ["timer", "Tempo esgotado"], now: [null, "Em andamento"], todo: ["circle-dashed", "Ainda não"], paused: ["pause", "Pausada antes desta rodada"], ask: ["hand", "Esperando a sua resposta"],
+  };
+  // rounds: [{ n, mods, result }]; result: same | pass | diff | timeout | now | todo | paused | ask
+  function rounds(list, o = {}) {
+    return `<ol class="rounds" aria-label="${esc(o.label || "Rodadas da busca")}">${list.map((r) => {
+      const [ic, word] = ROUND[r.result] || ROUND.todo;
+      const mark = r.result === "now" ? '<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>' : icon(ic);
+      return `<li class="round round--${r.result}"${r.result === "now" || r.result === "ask" ? ' aria-current="step"' : ""}><span class="round__n">${r.n}</span><span class="round__mark" aria-hidden="true">${mark}</span><span class="sr-only">Rodada ${r.n}${r.mods != null ? `, ${r.mods} mods` : ""}: ${word}</span></li>`;
+    }).join("")}</ol>${o.legend === false ? "" : roundsLegend()}`;
+  }
+  function roundsLegend() {
+    return `<ul class="rounds-legend" aria-label="Legenda das rodadas">${["same", "pass", "diff", "now", "todo"].map((k) => `<li class="round--${k}"><span class="round__mark" aria-hidden="true">${k === "now" ? '<span class="loader"><i></i><i></i><i></i><i></i></span>' : icon(ROUND[k][0])}</span>${ROUND[k][1]}</li>`).join("")}</ul>`;
+  }
+  // Faixa dos suspeitos: blocos acesos = mods que ainda podem ser o culpado
+  function suspects(remain, total, o = {}) {
+    const cells = 40, on = Math.max(1, Math.round((remain / total) * cells));
+    const from = o.from ?? Math.round(cells * 0.45);
+    return `<div class="suspects"><div class="suspects__bar" aria-hidden="true">${Array.from({ length: cells }, (_, i) => `<i class="${i >= from && i < from + on ? "on" : i < from ? "out" : ""}"></i>`).join("")}</div><div class="suspects__txt"><b>${remain}</b> de ${total} mods ainda suspeitos</div></div>`;
+  }
+
+  // ---------- Conversa com a IA ----------
+  // from: user | ai
+  function chatMsg(o = {}) {
+    const who = o.from === "ai" ? `${icon("sparkles", "icon--ai")}<span>IA</span>` : `${icon("user")}<span>Você</span>`;
+    return `<article class="msg msg--${o.from || "user"}" aria-label="${o.from === "ai" ? "Mensagem da IA" : "Sua mensagem"}"><div class="msg__head">${who}${o.meta ? `<span class="msg__meta">${o.meta}</span>` : ""}</div><div class="msg__body">${o.body || ""}</div></article>`;
+  }
+  // Bloco do que foi enviado: kind ai | github; state done | running | error; sent/back: texto exato
+  function toolCall(o = {}) {
+    const st = o.state || "done";
+    const lead = st === "running" ? '<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>' : st === "error" ? icon("circle-alert") : icon(o.kind === "github" ? "globe" : "send");
+    const title = st === "running" ? `A IA está consultando: ${o.what}` : `${o.kind === "github" ? "Enviado ao GitHub" : "Enviado à IA"}: ${o.what}`;
+    return `<details class="toolcall toolcall--${st}"${o.open ? " open" : ""}><summary>${lead}<span class="toolcall__title">${title}</span>${o.size ? `<span class="toolcall__size">${o.size}</span>` : ""}</summary>
+      <div class="toolcall__body">${o.sent ? `<div class="t-caps t-3">Exatamente o que foi enviado</div><pre class="code code--scroll" tabindex="0">${esc(o.sent)}</pre>` : ""}${o.back ? `<div class="t-caps t-3">O que voltou</div><div class="t-sm t-2">${o.back}</div>` : ""}${o.error ? alert({ kind: "danger", compact: true, title: o.error }) : ""}</div></details>`;
+  }
+  // Evidência citada pela IA: conferida pelo Warden (a citação existe no que a ferramenta devolveu) ou não
+  function evidence(label, o = {}) {
+    if (o.unverified) return `<span class="evid evid--no">${icon("circle-help", "icon--sm")}não verificado</span>`;
+    return `<button type="button" class="evid"${attrs(o.attrs)} data-tip="Conferido: o trecho citado existe neste arquivo">${icon("check", "icon--sm")}<span class="sr-only">Evidência conferida: </span>${label}</button>`;
+  }
+  // Afirmação da resposta com suas evidências
+  function claim(text, evs, o = {}) {
+    return `<li class="claim ${o.unverified ? "claim--no" : ""}"><p>${text}</p><div class="claim__ev">${evs.join("")}</div></li>`;
+  }
+  // Proposta da IA: state pending | applied | dismissed
+  function proposal(o = {}) {
+    const st = o.state || "pending";
+    const tagHtml = st === "applied" ? tag(o.appliedText || "Aplicada", "ok", { icon: "check" }) : st === "dismissed" ? tag("Descartada", "plain") : "";
+    const acts = st === "pending" ? o.actions || "" : st === "applied" ? o.appliedActions || "" : "";
+    return `<section class="proposal proposal--${st}" aria-label="Proposta: ${esc(o.title.replace(/<[^>]+>/g, ""))}"><div class="proposal__head">${icon(o.icon || "wrench")}<span class="proposal__kind">Proposta</span><h${o.level || 3} class="proposal__title">${o.title}</h${o.level || 3}>${tagHtml}</div>
+      ${o.text ? `<p class="proposal__text">${o.text}</p>` : ""}${o.body || ""}${o.evidence ? `<div class="proposal__ev"><span class="t-xs t-3">Com base em</span>${o.evidence}</div>` : ""}
+      ${acts ? `<div class="proposal__actions">${acts}</div>` : ""}</section>`;
+  }
+
+  // ---------- Desempenho ----------
+  // Mini-gráfico em blocos. values: números; max: topo da escala; rows: altura em blocos
+  function blockChart(values, max, o = {}) {
+    const rows = o.rows || 6;
+    return `<span class="bchart ${o.warnAt ? "" : ""}" role="img" aria-label="${esc(o.label || "")}">${values.map((v) => {
+      const h = Math.max(1, Math.round((v / max) * rows));
+      const hot = o.warnAt && v >= o.warnAt;
+      return `<span class="bchart__col ${hot ? "is-hot" : ""}">${Array.from({ length: rows }, (_, i) => `<i class="${rows - i <= h ? "on" : ""}"></i>`).join("")}</span>`;
+    }).join("")}</span>`;
+  }
+  // state: normal | warn | nodata
+  function perfStrip(o = {}) {
+    const st = o.state || "normal";
+    const mem = st === "nodata"
+      ? `<div class="perf__item perf__item--mem"><div class="perf__lbl">Memória do jogo</div><div class="perf__val perf__val--na">sem leitura</div><div class="perf__sub">${o.nodataWhy || "Os argumentos do teste desligam a leitura."}</div></div>`
+      : `<div class="perf__item perf__item--mem"><div class="perf__lbl">Memória do jogo</div><div class="perf__val">${o.mem[0]} <small>de ${o.mem[1]} GB</small></div>${blockChart(o.series || [], o.mem[1], { rows: 5, warnAt: o.mem[1] * 0.9, label: o.seriesLabel || "" })}</div>`;
+    return `<section class="perf perf--${st}" aria-label="${esc(o.label || "Desempenho do jogo")}">${mem}
+      <div class="perf__item"><div class="perf__lbl">RAM do processo</div><div class="perf__val">${o.rss} <small>GB</small></div><div class="perf__sub">memória usada pelo Java no Windows</div></div>
+      <div class="perf__item"><div class="perf__lbl">Coletas de memória</div><div class="perf__val">${o.gc || "—"}</div><div class="perf__sub">${o.gcSub || ""}</div></div>
+      <div class="perf__item"><div class="perf__lbl">Abriu em</div><div class="perf__val">${o.loaded}</div><div class="perf__sub">${o.loadedSub || ""}</div></div></section>`;
+  }
+
+  // ---------- Raio-x de mixins ----------
+  // risk: high | medium | low. who: [[mod, tipo de alteração]]. why: motivo. lower: rebaixador (compatibilidade intencional…)
+  function mixinRow(o = {}) {
+    const rk = { high: ["danger", "Risco alto"], medium: ["warn", "Risco médio"], low: ["neutral", "Risco baixo"] }[o.risk || "low"];
+    return `<li class="mixin mixin--${o.risk || "low"}"><div class="mixin__head"><span class="mixin__target">${esc(o.target)}</span>${badge(rk[0], rk[1])}</div>
+      ${o.cls ? `<div class="path">${esc(o.cls)}</div>` : ""}
+      <div class="mixin__who">${(o.who || []).map(([m, k]) => `<span class="mixin__mod"><b>${esc(m)}</b> <span class="t-mono t-3">${esc(k)}</span></span>`).join('<span class="t-3" aria-hidden="true">+</span>')}</div>
+      ${o.why ? `<p class="mixin__why">${o.why}</p>` : ""}${o.lower ? `<p class="mixin__lower">${icon("info", "icon--sm")}${o.lower}</p>` : ""}</li>`;
+  }
+
+  // ---------- Grafo focado de dependências ----------
+  // left: o que o mod do centro exige; right: quem depende dele. Itens: { name, sub, kind: required|optional|incompatible|inferred, attrs }
+  // Desenho: HTML (nós são botões) + SVG só nas calhas entre as colunas. As ligações também vão em texto (ver o protótipo).
+  function depGraph(o = {}) {
+    const ROW = 56, GAP = 16, W = 72;
+    const L = o.left || [], R = o.right || [];
+    const n = Math.max(L.length, R.length, 1);
+    const H = n * (ROW + GAP) - GAP;
+    const ys = (k) => { const off = (H - (k * (ROW + GAP) - GAP)) / 2; return Array.from({ length: k }, (_, i) => off + i * (ROW + GAP) + ROW / 2); };
+    const style = { required: "", optional: ' stroke-dasharray="6 4"', inferred: ' stroke-dasharray="2 4"', incompatible: "" };
+    const line = (x1, y1, x2, y2, kind) => `<path class="gedge gedge--${kind}" d="M${x1} ${y1} C ${W / 2} ${y1}, ${W / 2} ${y2}, ${x2} ${y2}"${style[kind] || ""} vector-effect="non-scaling-stroke"/>`;
+    const cy = H / 2;
+    const gutter = (items, side) => `<svg class="ggutter" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">${ys(items.length).map((y, i) => side === "l" ? line(0, y, W, cy, items[i].kind) : line(0, cy, W, y, items[i].kind)).join("")}</svg>`;
+    const kindTxt = { required: "obrigatória", optional: "opcional", incompatible: "incompatível", inferred: "inferida" };
+    const node = (it) => `<button type="button" class="gnode gnode--${it.kind}"${attrs(Object.assign({ "data-tip": it.name.length > 24 ? it.name : null }, it.attrs || {}))}>${tile(it.name, "sm")}<span class="gnode__txt"><span class="gnode__name">${esc(it.name)}</span><span class="gnode__sub">${it.sub || ""} <span class="gnode__kind">· ${kindTxt[it.kind]}</span></span></span></button>`;
+    const col = (items) => `<div class="gcol" style="height:${H}px">${(() => { const yy = ys(items.length); return items.map((it, i) => `<div class="gcol__slot" style="top:${yy[i] - ROW / 2}px;height:${ROW}px">${node(it)}</div>`).join(""); })()}</div>`;
+    const c = o.center;
+    return `<div class="graph" style="--g-h:${H}px">
+      <div class="graph__cap"><span>${o.leftTitle || "Precisa de"}</span><span></span><span>Mod no centro</span><span></span><span>${o.rightTitle || "Usado por"}</span></div>
+      <div class="graph__body">${col(L)}${gutter(L, "l")}
+        <div class="gcol gcol--center" style="height:${H}px"><div class="gcenter" style="top:${Math.max(0, cy - (c.inside ? 64 : 28))}px">${tile(c.name, "lg")}<div><div class="gcenter__name">${esc(c.name)}</div><div class="gcenter__sub">${c.sub || ""}</div>${c.inside ? `<div class="gcenter__inside">${icon("box", "icon--sm")}Dentro dele: ${c.inside}</div>` : ""}</div></div></div>
+        ${gutter(R, "r")}${col(R)}</div>
+      <ul class="graph__legend" aria-label="Tipos de ligação"><li><svg width="28" height="8" aria-hidden="true"><path class="gedge gedge--required" d="M0 4h28"/></svg>Obrigatória</li><li><svg width="28" height="8" aria-hidden="true"><path class="gedge gedge--optional" d="M0 4h28" stroke-dasharray="6 4"/></svg>Opcional</li><li><svg width="28" height="8" aria-hidden="true"><path class="gedge gedge--incompatible" d="M0 4h28"/></svg>Incompatível</li><li><svg width="28" height="8" aria-hidden="true"><path class="gedge gedge--inferred" d="M0 4h28" stroke-dasharray="2 4"/></svg>Inferida (não declarada pelo mod)</li><li>${icon("box", "icon--sm")}Embutida: fica dentro do nó</li></ul></div>`;
+  }
+
+  // ---------- Descoberta ----------
+  // Pixel art própria para miniaturas de galeria (cena abstrata gerada do nome; nada da Mojang)
+  function sceneSvg(seed) {
+    const h = hash(seed);
+    const hue = h % 360;
+    let r = "";
+    const sky = `hsl(${(hue + 190) % 360} 30% 16%)`, hill = `hsl(${hue} 30% 26%)`, ground = `hsl(${(hue + 20) % 360} 28% 20%)`, hi = `hsl(${(hue + 40) % 360} 55% 58%)`;
+    r += `<rect width="32" height="18" fill="${sky}"/>`;
+    let bits = h;
+    for (let x = 0; x < 32; x++) {
+      bits = Math.imul(bits ^ (bits >>> 13), 0x5bd1e995) >>> 0;
+      const top = 9 + (bits % 4);
+      r += `<rect x="${x}" y="${top}" width="1" height="${18 - top}" fill="${hill}"/>`;
+      if (bits % 7 === 0) r += `<rect x="${x}" y="${top - 2}" width="1" height="2" fill="${hi}"/>`;
+    }
+    r += `<rect y="14" width="32" height="4" fill="${ground}"/>`;
+    r += `<rect x="${4 + (h % 20)}" y="3" width="2" height="2" fill="${hi}" fill-opacity=".8"/>`;
+    return `<svg viewBox="0 0 32 18" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+  }
+  function galleryStrip(items) {
+    return `<ul class="gallery">${items.map((t, i) => `<li><button type="button" class="gallery__item" aria-label="Abrir imagem: ${esc(t)}">${sceneSvg(t + i)}</button><span class="gallery__cap">${esc(t)}</span></li>`).join("")}</ul>`;
+  }
+  // Resultado da descoberta. state: normal | selected | inpack | noversion | manual | external
+  function discoverRow(o = {}) {
+    const st = o.state || "normal";
+    const can = st === "normal" || st === "selected" || st === "manual";
+    const box = o.nobox ? "" : st === "inpack" ? `<span class="drow__box"></span>` : `<span class="drow__box">${check({ checked: st === "selected", disabled: !can, ariaLabel: `Selecionar ${o.name}` })}</span>`;
+    const status = st === "inpack" ? tag("Já no pack", "primary", { icon: "check" }) : st === "noversion" ? `<span class="drow__why">${icon("circle-minus", "icon--sm")}${o.why || "Sem versão para o seu pack"}</span>` : st === "external" ? `<span class="drow__why">${icon("lock", "icon--sm")}${o.why || "Arquivo fora das lojas"}</span>` : st === "manual" ? tag("Download manual", "warn", { icon: "download" }) : "";
+    return `<li class="drow drow--${st} ${o.compact ? "drow--compact" : ""} ${o.nobox ? "drow--nobox" : ""} ${o.current ? "is-current" : ""}">${box}${o.compact ? "" : tile(o.name, "lg")}
+      <span class="drow__main"><span class="drow__line"><button type="button" class="drow__name"${attrs(o.attrs)}>${esc(o.name)}</button>${o.author ? ` <span class="t-xs t-3">por ${esc(o.author)}</span>` : ""}</span>
+        ${o.desc ? `<span class="drow__desc">${esc(o.desc)}</span>` : ""}
+        ${o.meta || o.src ? `<span class="drow__meta">${o.src ? source(o.src) : ""}${o.meta || ""}</span>` : ""}</span>
+      <span class="drow__end">${status}${o.end || ""}</span></li>`;
+  }
+
+  // ---------- Configs: busca em todas e formulário com padrão ----------
+  // groups: [{ file, hits: [{ key, value, ctx, mark }] }]
+  function cfgHits(groups, o = {}) {
+    return `<div class="hits">${groups.map((g) => `<section class="hits__group" aria-label="${esc(g.file)}"><div class="hits__file">${icon("file-text", "icon--sm")}<span class="path">${esc(g.file)}</span><span class="count count--text">${g.hits.length}</span></div>
+      ${g.hits.map((h) => `<button type="button" class="hit"${attrs(h.attrs || o.attrs)}><span class="hit__key">${h.label ? `${h.label} <span class="t-mono t-3">${esc(h.key)}</span>` : `<span class="t-mono">${esc(h.key)}</span>`}</span><span class="hit__val t-mono">= ${esc(h.value)}</span>${h.changed ? `<span class="hit__chg">${tag("Mudou do padrão", "warn")}</span>` : ""}${h.ctx ? `<span class="hit__ctx">${h.ctx}</span>` : ""}</button>`).join("")}</section>`).join("")}</div>`;
+  }
+  // Linha do formulário. o: { label, key, desc, control, def, defSource, changed, error, inferred }
+  function cfgRow(o = {}) {
+    const cls = ["cfgform__row", o.changed ? "cfgform__row--changed" : "", o.error ? "cfgform__row--error" : ""].join(" ");
+    const def = o.def != null ? `<div class="cfgform__def">padrão: <span class="t-mono">${esc(o.def)}</span>${o.defSource ? ` <span class="t-3">· ${o.defSource}</span>` : ""}${o.inferred ? ` ${tag("deduzido", "plain", { title: "Tirado do texto do comentário; pode não ser exato" })}` : ""}</div>` : `<div class="cfgform__def t-3">padrão desconhecido</div>`;
+    return `<div class="${cls}"><div class="cfgform__info">${o.label ? `<div class="cfgform__label">${o.label}${o.changed ? ` <span class="cfgform__mark">${icon("pencil", "icon--sm")}alterado</span>` : ""}</div>` : ""}<div class="cfgform__key">${esc(o.key)}</div>${o.desc ? `<div class="cfgform__desc">${o.desc}</div>` : ""}${def}
+      ${o.error ? `<div class="field__error" id="${o.errId || ""}">${icon("circle-alert", "icon--sm")}<span>${o.error}</span></div>` : ""}</div>
+      <div class="cfgform__ctl">${o.control || ""}</div><div class="cfgform__act">${o.changed || o.error ? btn(`Restaurar padrão de ${o.key}`, { variant: "ghost", size: "sm", iconOnly: true, icon: "rotate-ccw", tip: "Restaurar padrão" }) : ""}</div></div>`;
+  }
+
+  // ---------- Scripts ----------
+  // items: [{ where, msg, log }]
+  function scriptErrors(items, o = {}) {
+    return `<section class="scripterr" aria-labelledby="${o.id || "se"}-h"><div class="scripterr__head"><h${o.level || 3} class="scripterr__title" id="${o.id || "se"}-h">${icon("circle-alert", "icon--sm")}${o.title || "Erros dos scripts"}</h${o.level || 3}><span class="t-xs t-3">${o.meta || ""}</span></div>
+      ${items.length ? `<ul>${items.map((it) => `<li><button type="button" class="scripterr__loc"${attrs(it.attrs)}>${esc(it.where)}</button><span class="scripterr__msg">${it.msg}</span>${it.log ? `<pre class="code">${esc(it.log)}</pre>` : ""}</li>`).join("")}</ul>` : `<p class="t-sm t-3" style="padding:8px 12px">Nenhum erro no último teste.</p>`}</section>`;
+  }
+  // Lista de autocompletar (IDs de itens, blocos e tags lidos dos jars do pack)
+  function completions(items, o = {}) {
+    return `<ul class="complete" role="listbox" id="${o.id || "cmp"}" aria-label="${esc(o.label || "Sugestões")}">${items.map(([id, kind, from], i) => `<li role="option" aria-selected="${i === 0}" class="complete__opt"><span class="complete__id"><b>${esc(o.typed || "")}</b>${esc(id.slice((o.typed || "").length))}</span><span class="complete__kind">${kind}</span><span class="complete__from">${from || ""}</span></li>`).join("")}</ul>`;
+  }
+
   // ---------- Estrutura do app ----------
   // Barra do nível do app. o.back: [rótulo, attrs]; o.where: texto de onde você está; o.end: HTML à direita
   function topbar(o = {}) {
@@ -422,7 +647,16 @@
     </header>`;
   }
   // Menu de seções. items: { id, name, desc, icon, count, countKind, countLabel, ai, attrs }
+  // o.compact: menu recolhido para ícones (página de descoberta em tela cheia); nome e descrição continuam
+  // no nome acessível e aparecem no tooltip.
   function sectionMenu(items, active, o = {}) {
+    if (o.compact) {
+      return `<nav class="secmenu secmenu--compact" aria-label="${esc(o.label || "Seções do pack")}"><ul>${items.map((it) => {
+        const cur = it.id === active;
+        const cnt = it.count != null && it.count !== "" ? `<span class="secmenu__dot secmenu__dot--${it.countKind || "neutral"}" aria-hidden="true"></span>` : "";
+        return `<li><a class="secmenu__item ${it.ai ? "secmenu__item--ai" : ""}" href="${it.href || "#"}"${cur ? ' aria-current="page"' : ""} data-tip="${esc(it.name + ": " + it.desc)}"${attrs(it.attrs)}>${icon(it.icon)}${cnt}<span class="sr-only">${it.name}${it.countLabel ? ", " + it.countLabel : ""}</span></a></li>`;
+      }).join("")}</ul></nav>`;
+    }
     return `<nav class="secmenu" aria-label="${esc(o.label || "Seções do pack")}"><ul>${items.map((it) => {
       const cur = it.id === active;
       const cnt = it.count != null && it.count !== "" ? count(it.count, it.countKind, it.countLabel) : "";
@@ -452,14 +686,14 @@
       const msg = p.kind === "missing" ? `Pasta não encontrada: ${esc(p.path)}` : "Não foi possível ler este pack";
       const why = p.kind === "missing" ? "Foi movida ou apagada fora do Warden." : "O pack.toml tem um erro na linha 4.";
       const acts = p.kind === "missing" ? btn("Localizar…", { size: "sm", attrs: o.locateAttrs }) + btn("Remover da lista", { size: "sm", variant: "ghost", attrs: o.removeAttrs }) : btn("Ver detalhes", { size: "sm", attrs: o.detailAttrs }) + btn("Remover da lista", { size: "sm", variant: "ghost", attrs: o.removeAttrs });
-      return `<tr class="packrow packrow--missing"><td><div class="packrow__name">${tile(p.name, "lg")}<div><span class="t-strong">${esc(p.name)}</span><div class="t-xs t-danger">${msg}</div></div></div></td><td colspan="4" class="t-3">${why}</td><td class="shrink"><div class="row">${acts}</div></td></tr>`;
+      return `<tr class="packrow packrow--missing"><td><div class="packrow__name">${tile(p.name, "lg")}<div><span class="t-strong">${esc(p.name)}</span><div class="t-xs t-danger">${msg}</div></div></div></td><td colspan="${o.withHealth ? 5 : 4}" class="t-3">${why}</td><td class="shrink"><div class="row">${acts}</div></td></tr>`;
     }
     return `<tr class="packrow"><td><div class="packrow__name">${tile(p.name, "lg")}<div><button type="button" class="packrow__title"${attrs(o.openAttrs)}>${esc(p.name)}</button><div class="t-xs t-3">Minecraft ${p.mc} · ${p.loader}</div></div></div></td>
-      <td class="t-mono">${p.version}</td><td>${status(p.test[0], p.test[1])}</td><td class="num">${p.unsaved ? `<span class="t-warn">${p.unsaved}</span>` : '<span class="t-3">0</span>'}</td><td class="t-3">${p.when}</td>
+      <td class="t-mono">${p.version}</td><td>${status(p.test[0], p.test[1])}</td>${p.health !== undefined ? `<td>${health(p.health, { size: "sm" })}</td>` : ""}<td class="num">${p.unsaved ? `<span class="t-warn">${p.unsaved}</span>` : '<span class="t-3">0</span>'}</td><td class="t-3">${p.when}</td>
       <td class="shrink"><div class="row">${btn("Abrir", { size: "sm", variant: "primary", attrs: Object.assign({ "aria-label": `Abrir ${p.name}` }, o.openAttrs || {}) })}${btn(`Mais ações para ${p.name}`, { size: "sm", variant: "ghost", iconOnly: true, icon: "ellipsis", attrs: o.menuAttrs })}</div></td></tr>`;
   }
-  const PACK_HEAD = `<thead><tr><th>Pack</th><th>Versão</th><th>Último teste</th><th class="num">Não salvas</th><th>Alterado</th><th class="shrink"><span class="sr-only">Ações</span></th></tr></thead>`;
-  function packTableHead() { return PACK_HEAD; }
+  const PACK_HEAD = `<thead><tr><th>Pack</th><th>Versão</th><th>Último teste</th>$H<th class="num">Não salvas</th><th>Alterado</th><th class="shrink"><span class="sr-only">Ações</span></th></tr></thead>`;
+  function packTableHead(o = {}) { return PACK_HEAD.replace("$H", o.withHealth ? `<th><span data-tip="Resumo dos problemas conhecidos, de 0 a 100. Não garante que o pack funciona." tabindex="0" style="border-bottom:1px dotted var(--color-text-3)">Saúde</span></th>` : ""); }
 
-  window.W = { esc, attrs, id, icon, tile, tileSvg, brandMark, art, btn, testButton, input, textarea, select, omnibox, switchCtl, check, choice, segmented, memory, tag, source, side, badge, count, status, alert, issue, empty, toast, skeletonRows, progress, steps, consoleLines, consoleBox, diff, dialog, drawer, menu, meter, aiBlock, tlItem, topbar, statusbar, packHeader, sectionMenu, modRow, modTableHead, packRow, packTableHead, SOURCES, SIDES };
+  window.W = { esc, attrs, id, icon, tile, tileSvg, brandMark, art, btn, testButton, input, textarea, select, omnibox, switchCtl, check, choice, segmented, memory, tag, source, side, badge, count, status, alert, issue, empty, toast, skeletonRows, progress, steps, consoleLines, consoleBox, diff, dialog, drawer, menu, meter, aiBlock, tlItem, topbar, statusbar, packHeader, sectionMenu, modRow, modTableHead, packRow, packTableHead, consoleGroups, healthBand, health, healthLosses, rounds, roundsLegend, suspects, chatMsg, toolCall, evidence, claim, proposal, blockChart, perfStrip, mixinRow, depGraph, sceneSvg, galleryStrip, discoverRow, cfgHits, cfgRow, scriptErrors, completions, SOURCES, SIDES };
 })();

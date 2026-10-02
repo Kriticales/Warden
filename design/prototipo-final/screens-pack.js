@@ -11,6 +11,10 @@
     return `<section class="listgroup" aria-labelledby="${id}-h"><div class="listgroup__head"><button type="button" class="listgroup__toggle" id="${id}-h" aria-expanded="true" aria-controls="${id}-b">${W.icon("chevron-down")}${title}</button><span class="t-3 t-sm">${n}</span></div>
       <div id="${id}-b"><div class="tablewrap"><table class="table">${W.modTableHead()}<tbody>${rows}${o.more ? `<tr class="more-row"><td></td><td colspan="4">${o.more}</td></tr>` : ""}</tbody></table></div></div></section>`;
   }
+  // "Ver como: Lista · Grafo": modo de exibição dos mesmos dados (não é aba)
+  function viewAs(v) {
+    return `<span class="row"><span class="t-xs t-3" id="viewas-l">Ver como</span><span data-viewas>${W.segmented([["list", "Lista"], ["graph", "Grafo"]], v, "Ver como")}</span></span>`;
+  }
   function modsContent(state, o = {}) {
     const actions = B("Verificar atualizações", "", { icon: "refresh-cw" }) + B("Adicionar", "adicionar", { variant: "primary", icon: "plus" });
     if (state === "vazio") {
@@ -18,11 +22,11 @@
         W.empty({ title: "Nenhum mod ainda", text: "O pack Vale Sereno foi criado para Minecraft 1.20.1 com Forge 47.3.0. Comece pelos mods; resource packs e shaders entram pelo mesmo botão.", actions: B("Adicionar mods", "adicionar", { variant: "primary", icon: "plus" }), hint: "Ou arraste arquivos .jar e .zip do computador para cá.", glyph: "plus" });
     }
     const head = pageHead("Mods", `128 itens: 124 mods, 3 resource packs e 1 shader. <span class="dropnote">${W.icon("download", "icon--sm")}Arraste arquivos .jar ou .zip para cá para adicionar do computador.</span>`, actions);
-    const tools = `<div class="toolbar">${W.input({ bare: true, icon: "search", placeholder: "Buscar no pack", ariaLabel: "Buscar no pack" })}${W.select({ bare: true, ariaLabel: "Fonte", options: ["Fonte: todas", "Modrinth", "CurseForge", "Arquivo local"] })}${W.select({ bare: true, ariaLabel: "Lado", options: ["Lado: todos", "Cliente e servidor", "Só cliente", "Só servidor"] })}${W.select({ bare: true, ariaLabel: "Mostrar", options: ["Mostrar: tudo", "Com problemas (3)", "Com atualização (4)", "Não salvos (2)"] })}</div>`;
+    const tools = `<div class="toolbar">${viewAs("list")}${W.input({ bare: true, icon: "search", placeholder: "Buscar no pack", ariaLabel: "Buscar no pack" })}${W.select({ bare: true, ariaLabel: "Fonte", options: ["Fonte: todas", "Modrinth", "CurseForge", "Arquivo local"] })}${W.select({ bare: true, ariaLabel: "Lado", options: ["Lado: todos", "Cliente e servidor", "Só cliente", "Só servidor"] })}${W.select({ bare: true, ariaLabel: "Mostrar", options: ["Mostrar: tudo", "Com problemas (6)", "Com atualização (5)", "Não salvos (2)"] })}</div>`;
     if (state === "carregando") return head + tools + `<div class="tablewrap"><table class="table" aria-busy="true">${W.modTableHead()}<tbody>${W.skeletonRows(8, 5)}</tbody></table></div>`;
-    const banner = `<div class="mods-banner">${W.alert({ kind: "neutral", compact: true, icon: "refresh-cw", title: "4 atualizações disponíveis.", text: "Nenhuma é aplicada sem você revisar antes.", actions: B("Revisar e atualizar", "atualizar", { size: "sm" }) })}</div>`;
+    const banner = `<div class="mods-banner">${W.alert({ kind: "neutral", compact: true, icon: "refresh-cw", title: "5 atualizações disponíveis.", text: "Nenhuma é aplicada sem você revisar antes.", actions: B("Revisar e atualizar", "atualizar", { size: "sm" }) })}</div>`;
     const sel = `<div class="selbar" style="margin-bottom:12px" role="region" aria-label="Ações para os selecionados"><span class="selbar__count">1 selecionado</span>${B("Alterar lado", "", { size: "sm" })}${B("Atualizar", "", { size: "sm", icon: "refresh-cw" })}${B("Remover", "", { size: "sm", variant: "danger-ghost", icon: "trash-2" })}<span class="grow"></span>${B("Limpar seleção", "", { size: "sm", variant: "ghost" })}</div>`;
-    let mods = D.MODS.map((m) => toRow(m, { selected: m[0] === "Embeddium", attrs: go(m[0].startsWith("Just") ? "mods-detalhe" : m[0] === "Waystones" || m[0] === "Rubidium" ? "problemas" : "") }));
+    let mods = D.MODS.map((m) => toRow(m, { selected: m[0] === "Embeddium", attrs: go(m[0].startsWith("Just") ? "mods-detalhe" : m[0] === "Epic Fight" || m[0] === "Supplementaries" ? "mods-raio-x" : m[0] === "Waystones" || m[0] === "Rubidium" ? "problemas" : m[0] === "Create" ? "mods-grafo" : "") }));
     if (state === "erro") {
       mods = [{ kind: "invalid", file: "mods/sodium-extra.pw.toml", name: "sodium-extra.pw.toml", desc: "Não foi possível ler: falta fechar as aspas na linha 3. Os outros itens não são afetados.", update: "na", flags: [W.badge("danger", "Arquivo inválido")] },
         { name: "kotlinforforge-4.11.0-all.jar", desc: "Está na pasta mods/, mas fora do índice do pack. Não vai para quem joga.", ver: "4.11.0", src: "local", side: "both", update: "na", flags: [W.badge("warn", "Fora do índice")] }, ...mods];
@@ -34,7 +38,8 @@
       group("g-sh", "Shaders", 1, D.SHADERS.map((m) => W.modRow(toRow(m))).join(""));
   }
   window.P.modsContent = modsContent;
-  def("mods", { group: "pack", title: "Mods, resource packs e shaders", spec: "T05, T06, T10", render: (s) => packShell("mods", modsContent(s), s === "vazio" ? { unsaved: 0, problems: 0, empty: true } : {}), states: { carregando: "Lendo o índice do pack", vazio: "Pack sem mods", erro: "Um arquivo inválido e um fora do índice" } });
+  const viewAsAfter = (to) => () => document.querySelectorAll("[data-viewas] [role=radio]").forEach((b) => { if (b.getAttribute("aria-checked") !== "true") b.setAttribute("data-go", to); });
+  def("mods", { group: "pack", title: "Mods, resource packs e shaders", spec: "T05, T06, T10", render: (s) => packShell("mods", modsContent(s), s === "vazio" ? { unsaved: 0, problems: 0, empty: true } : {}), states: { carregando: "Lendo o índice do pack", vazio: "Pack sem mods", erro: "Um arquivo inválido e um fora do índice" }, after: viewAsAfter("mods-grafo") });
   def("pack-novo", { group: "pack", title: "Pack recém-criado (vazio)", spec: "T03, T06", hidden: true, render: () => packShell("mods", modsContent("vazio"), { unsaved: 0, problems: 0, empty: true, version: "0.1.0" }) });
   def("pack-revisar", { group: "pack", title: "Pack com mudanças do teste para revisar", spec: "T05, T15", hidden: true, render: () => packShell("mods", modsContent("normal"), { unsaved: 5, alerts: [{ kind: "warn", text: "Mudanças do teste para revisar", attrs: go("teste-fechou") }] }) });
 
@@ -44,8 +49,8 @@
       ${W.alert({ kind: "info", icon: "refresh-cw", compact: true, title: "Atualização disponível: 15.20.0.112", text: "Corrige um travamento ao abrir receitas do Create." })}
       <dl class="kv"><dt>Versão instalada</dt><dd class="t-mono">15.20.0.106</dd><dt>Para</dt><dd>Minecraft 1.20.1 · Forge</dd><dt>Publicada em</dt><dd>12/03/2025</dd><dt>Arquivo</dt><dd class="path">jei-1.20.1-forge-15.20.0.106.jar · 1,4 MB</dd></dl>
       ${W.select({ id: "dt-side", label: "Lado", options: [["both", "Cliente e servidor"], ["client", "Só cliente"], ["server", "Só servidor"]], value: "both", hint: "Onde o mod precisa estar instalado. Informado pela CurseForge." })}
-      <div><div class="field__label">Dependências</div><p class="t-sm t-3">Nenhuma obrigatória.</p></div>
-      <div><div class="field__label">Usado por</div><p class="t-sm">${B("Just Enough Resources", "", { variant: "link" })} <span class="t-3">(no pack)</span></p></div>
+      <dl class="kv"><dt>Depende de</dt><dd class="t-3">Nenhum mod (só o Forge)</dd><dt>Usado por</dt><dd>${B("Just Enough Resources", "", { variant: "link" })} <span class="t-3">· obrigatória</span></dd><dt>Por que está no pack</dt><dd>Você adicionou em 12/08/2026</dd></dl>
+      <div><div class="field__label">O que este mod altera no jogo</div><p class="t-sm t-2">Nada por mixin: o JEI usa só as APIs do Forge.</p></div>
       <details class="disclosure"><summary>Novidades da versão 15.20.0.112</summary><pre class="code" style="margin-top:6px">- Corrige travamento ao abrir receitas do Create
 - Melhora a busca por nome de mod (@create)</pre></details>
       <details class="disclosure"><summary>Mais opções</summary><div class="stack-2" style="margin-top:8px">${B("Trocar de versão…", "", { size: "sm" })}${W.switchCtl({ label: "Fixar versão (não atualizar)" })}${W.switchCtl({ label: "Opcional para o jogador", disabled: true })} ${W.badge("p1", "P1")}</div></details>`,
@@ -53,72 +58,61 @@
   }
   def("mods-detalhe", { group: "pack", title: "Detalhes de um mod (painel lateral)", spec: "T07, T11", render: () => packShell("mods", modsContent("normal"), { overlay: detailDrawer() }) });
 
+
+  // ---------- Raio-x de mixins (D4): detalhes do Epic Fight ----------
+  const OVERLAPS = [
+    { target: "LivingEntity#travel (movimento das criaturas)", cls: "net.minecraft.world.entity.LivingEntity", who: [["Epic Fight", "@Redirect"], ["Supplementaries", "@Redirect"]], risk: "high", why: "Os dois trocam a mesma chamada dentro do método. Só um vale; o outro é pulado em silêncio. O travamento de 30/09 citou epicfight.mixins.json." },
+    { target: "PlayerRenderer#render (desenho do jogador)", cls: "net.minecraft.client.renderer.entity.player.PlayerRenderer", who: [["Epic Fight", "@Inject no começo"], ["Embeddium", "@Inject no fim"]], risk: "low", why: "Pontos diferentes do mesmo método.", lower: "Feitos para conviver" },
+  ];
+  function xrayDrawer(all) {
+    const back = `<div class="back-link">${B("Detalhes do mod", "mods-raio-x", { variant: "ghost", size: "sm", icon: "arrow-left" })}</div>`;
+    if (all) {
+      const rows = [["LivingEntity#travel", "@Redirect", "Também Supplementaries", "high"], ["LivingEntity#hurt", "@Inject (começo)", "", "low"], ["LivingEntity#die", "@Inject (fim)", "", "low"], ["PlayerRenderer#render", "@Inject (começo)", "Também Embeddium", "low"], ["Player#attack", "@Overwrite", "", "low"], ["ItemInHandRenderer#renderArmWithItem", "@WrapOperation", "", "low"], ["Mob#doHurtTarget", "@Inject (começo)", "", "low"], ["Camera#setup", "@ModifyArgs", "", "low"]];
+      return W.drawer({ esc: "mods", title: "Todas as alterações do Epic Fight", body: `${back}<p class="t-sm t-2">214 alterações em 3 configs de mixin (epicfight.mixins.json, epicfight.client.mixins.json, epicfight.compat.mixins.json). Ordem prevista: prioridade 1000, igual à da maioria dos mods.</p>
+        <div class="row">${W.input({ bare: true, size: "sm", icon: "search", placeholder: "Filtrar por parte do jogo", ariaLabel: "Filtrar alterações" })}${W.check({ label: "Só as que outros mods também alteram", checked: false })}</div>
+        <div class="tablewrap"><table class="table"><thead><tr><th>Parte do jogo</th><th>Tipo</th><th>Outros mods</th></tr></thead><tbody>${rows.map(([t, k, o, r]) => `<tr><td class="t-mono" style="font-size:var(--text-xs);word-break:break-all">${t}</td><td class="t-mono t-2" style="font-size:var(--text-xs)">${k}</td><td>${o ? (r === "high" ? W.badge("danger", "Alto") + " " : "") + `<span class="t-xs">${o}</span>` : '<span class="t-3 t-xs">nenhum</span>'}</td></tr>`).join("")}<tr class="more-row"><td colspan="3">… e mais 206 alterações</td></tr></tbody></table></div>
+        <details class="disclosure"><summary>Como ler os tipos</summary><p class="t-sm" style="margin-top:6px">@Inject acrescenta código num ponto e convive bem com outros. @Redirect e @Overwrite trocam código: quando dois mods fazem isso no mesmo ponto, só um vale.</p></details>` });
+    }
+    return W.drawer({ esc: "mods", title: "Detalhes do mod", body: `<div class="row row--gap-3">${W.tile("Epic Fight", "xl")}<div><div class="t-display-lg">Epic Fight</div><div class="t-xs t-3 row" style="margin-top:4px">por Yesman · ${W.source("curseforge")} ${B("Abrir página", "", { variant: "link", iconEnd: "external-link" })}</div></div></div>
+      <p class="t-sm t-2">Combate com animações e golpes novos.</p>
+      <dl class="kv"><dt>Versão instalada</dt><dd class="t-mono">20.9.4</dd><dt>Depende de</dt><dd>Forge 47.1 ou mais novo</dd><dt>Usado por</dt><dd class="t-3">nenhum mod do pack</dd><dt>Por que está no pack</dt><dd>Você adicionou em 02/09/2026</dd></dl>
+      <section aria-labelledby="xr-h"><h3 class="field__label" id="xr-h">O que este mod altera no jogo</h3><p class="t-sm" style="margin:4px 0 8px">214 partes do jogo, em 3 configs. <b>2 também alteradas por outros mods.</b></p>
+        <ul class="mixins">${OVERLAPS.map(W.mixinRow).join("")}</ul>
+        <div class="row row--wrap" style="margin-top:8px">${B("Ver todas as alterações", "mods-raio-x~todas", { size: "sm", icon: "list" })}${B("Ver em Problemas", "problemas", { size: "sm", variant: "ghost" })}</div>
+        <p class="t-xs t-3" style="margin-top:8px">“Alteram o mesmo ponto” não quer dizer que não funcionam juntos: muitas vezes é de propósito. Este resumo é lido dos arquivos dos mods, sem abrir o jogo.</p></section>`,
+      foot: B("Encontrar o mod culpado…", "culpado-config", { icon: "target" }) + B("Remover", "", { variant: "danger-ghost", icon: "trash-2" }) });
+  }
+  def("mods-raio-x", { group: "pack", title: "Detalhes: o que o mod altera no jogo (raio-x)", spec: "T07", d4: true, render: (s) => packShell("mods", modsContent("normal"), { overlay: xrayDrawer(s === "todas") }), states: { todas: "Ver todas as alterações" } });
+
+  // ---------- Grafo de dependências (D4) ----------
+  function graphContent() {
+    const head = pageHead("Mods", "128 itens: 124 mods, 3 resource packs e 1 shader.", B("Verificar atualizações", "", { icon: "refresh-cw" }) + B("Adicionar", "adicionar", { variant: "primary", icon: "plus" }));
+    const tools = `<div class="toolbar">${viewAs("graph")}<label class="t-xs t-3" for="gr-center">Mod no centro</label>${W.select({ bare: true, id: "gr-center", options: ["Create", "Sophisticated Backpacks", "Epic Fight", "Supplementaries", "Waystones"], value: "Create" })}${W.select({ bare: true, ariaLabel: "Profundidade", options: ["1 nível de cada lado", "2 níveis de cada lado"] })}${W.check({ label: "Mostrar mods que alteram o mesmo ponto do jogo" })}</div>`;
+    const graph = W.depGraph({
+      center: { name: "Create", sub: "0.5.1.j · Modrinth · você adicionou", inside: "Flywheel 0.6.11 e Registrate 1.3.3" },
+      left: [{ name: "Forge", sub: "47.1 ou mais novo", kind: "required" }, { name: "Just Enough Items (JEI)", sub: "no pack", kind: "optional", attrs: go("mods-detalhe") }],
+      right: [{ name: "Create Slice & Dice", sub: "no pack", kind: "required" }, { name: "Create Crafts & Additions", sub: "no pack", kind: "required" }, { name: "Sophisticated Backpacks Create Integration", sub: "não está no pack", kind: "optional" }],
+    });
+    const text = `<section class="panel" aria-labelledby="gr-txt"><h2 class="panel__title panel__title--sans" id="gr-txt">Em palavras</h2><ul class="stack-2 t-sm" style="margin-top:8px">
+      <li><b>Create precisa de:</b> Forge 47.1 ou mais novo. Usa o JEI se ele estiver no pack, mas não precisa. Flywheel e Registrate vêm dentro do próprio Create.</li>
+      <li><b>Precisam do Create:</b> Create Slice & Dice e Create Crafts & Additions. ${W.tag("Se você remover o Create, 2 mods param de funcionar", "warn", { icon: "triangle-alert" })}</li>
+      <li><b>Por que está no pack:</b> você adicionou em 18/08/2026.</li></ul></section>`;
+    const orphan = W.alert({ kind: "info", compact: true, icon: "box", title: "1 biblioteca sem uso: Kotlin for Forge.", text: "Nenhum mod do pack precisa mais dela (sobrou de um mod removido). Pode ser removida.", actions: B("Ver Kotlin for Forge", "", { size: "sm" }) });
+    return head + tools + `<div class="stack">${graph}${text}${orphan}<p class="t-xs t-3">Clique num mod para ele ir para o centro. O grafo inteiro, com todos os 124 mods, fica em ${B("Ver o pack inteiro", "", { variant: "link" })}.</p></div>`;
+  }
+  def("mods-grafo", { group: "pack", title: "Mods: ver como grafo", spec: "T06", d4: true, render: () => packShell("mods", graphContent()), after: viewAsAfter("mods") });
+
   function updateDialog() {
-    const r = [["Just Enough Items (JEI)", "15.20.0.106", "15.20.0.112"], ["Xaero's Minimap", "24.6.1", "24.6.2"], ["Create", "0.5.1.j", "0.5.1.k"], ["Farmer's Delight", "1.2.6", "1.2.7"]];
-    return W.dialog({ esc: "mods", size: "lg", title: "Atualizar 4 itens", sub: "Confira antes de aplicar. Nada muda até você confirmar.", body: `<div class="tablewrap"><table class="table table--plain"><thead><tr><th class="shrink"><span class="sr-only">Incluir</span></th><th>Item</th><th>Agora</th><th>Nova</th><th>Novidades</th></tr></thead><tbody>${r.map((x) => `<tr><td>${W.check({ checked: true, ariaLabel: "Atualizar " + x[0] })}</td><td class="t-strong">${x[0]}</td><td class="t-mono t-2">${x[1]}</td><td class="t-mono t-primary">${x[2]}</td><td>${B("Ver novidades", "", { variant: "link" })}</td></tr>`).join("")}</tbody></table></div>
+    const r = [["Just Enough Items (JEI)", "15.20.0.106", "15.20.0.112"], ["Xaero's Minimap", "24.6.1", "24.6.2"], ["Create", "0.5.1.j", "0.5.1.k"], ["Farmer's Delight", "1.2.6", "1.2.7"], ["Supplementaries", "2.8.17", "2.8.21"]];
+    return W.dialog({ esc: "mods", size: "lg", title: "Atualizar 5 itens", sub: "Confira antes de aplicar. Nada muda até você confirmar.", body: `<div class="tablewrap"><table class="table table--plain"><thead><tr><th class="shrink"><span class="sr-only">Incluir</span></th><th>Item</th><th>Agora</th><th>Nova</th><th>Novidades</th></tr></thead><tbody>${r.map((x) => `<tr><td>${W.check({ checked: true, ariaLabel: "Atualizar " + x[0] })}</td><td class="t-strong">${x[0]}</td><td class="t-mono t-2">${x[1]}</td><td class="t-mono t-primary">${x[2]}</td><td>${B("Ver novidades", "", { variant: "link" })}</td></tr>`).join("")}</tbody></table></div>
       <ul class="checklist"><li class="is-ok">${W.icon("circle-check")}<span>Nenhuma dependência nova.</span></li><li class="is-ok">${W.icon("circle-check")}<span>Nenhuma incompatibilidade nova com o que já está no pack.</span></li></ul>
-      <p class="t-sm t-3">Antes de aplicar, o Warden guarda um ponto de segurança. Depois, verifica o pack de novo.</p>`, foot: B("Cancelar", "mods", { variant: "ghost" }) + B("Atualizar 4 itens", "mods", { variant: "primary", icon: "refresh-cw" }) });
+      <p class="t-sm t-3">Antes de aplicar, o Warden guarda um ponto de segurança. Depois, verifica o pack de novo.</p>`, foot: B("Cancelar", "mods", { variant: "ghost" }) + B("Atualizar 5 itens", "mods", { variant: "primary", icon: "refresh-cw" }) });
   }
   def("atualizar", { group: "pack", title: "Atualizar itens (diálogo)", spec: "T10", hidden: true, render: () => packShell("mods", modsContent("normal"), { overlay: updateDialog() }) });
   function removeDialog() {
     return W.dialog({ esc: "mods-detalhe", size: "sm", alert: true, title: "Remover Just Enough Items (JEI)?", body: `<p>Este mod depende dele: <b>Just Enough Resources</b>. Sem o JEI, ele pode não funcionar.</p><p class="t-sm t-3">O item sai do pack. Dá para voltar atrás pelo Histórico.</p>`, foot: B("Manter no pack", "mods-detalhe", { variant: "ghost" }) + B("Remover JEI", "mods", { variant: "danger", icon: "trash-2" }) });
   }
   def("remover", { group: "pack", title: "Remover item (confirmação)", spec: "T06", hidden: true, render: () => packShell("mods", modsContent("normal"), { overlay: removeDialog() }) });
-
-  // ======================= ADICIONAR =======================
-  function result(r, i, o = {}) {
-    const [name, author, desc, dl, upd, src, inPack, manual] = r;
-    const pressed = o.selected === i;
-    return `<button type="button" class="result" aria-pressed="${pressed}"${W.attrs(go(""))}>${W.tile(name, "lg")}<span><span class="result__name">${name}</span> <span class="t-xs t-3">por ${author}</span><span class="result__desc" style="display:block">${desc}</span>
-      <span class="result__meta">${W.source(o.onlyModrinth ? "modrinth" : src)}<span>${dl} downloads</span><span>atualizado ${upd}</span>${manual ? W.tag("Download manual", "warn", { icon: "download" }) : ""}</span></span>
-      ${inPack ? W.tag("Já no pack", "primary", { icon: "check" }) : ""}</button>`;
-  }
-  function preview(o = {}) {
-    return `<aside class="panel panel--strong preview" aria-label="Pré-visualização">
-      <div class="row row--gap-3">${W.tile("Sophisticated Backpacks", "xl")}<div><div class="t-display-lg">Sophisticated Backpacks</div><div class="t-xs t-3" style="margin-top:4px">por P3pp3rF1y · 48 mi downloads</div></div></div>
-      <p class="t-sm t-2" style="margin-top:12px">Mochilas com melhorias, filtros e muito espaço. Dá para pendurar no cinto e usar sem abrir.</p>
-      <div class="stack" style="margin-top:14px">
-        ${W.select({ id: "pv-src", label: "Fonte", options: o.onlyModrinth ? ["Modrinth"] : ["Modrinth (recomendada)", "CurseForge"], hint: o.onlyModrinth ? null : "O mesmo arquivo existe nas duas. O Modrinth deixa os jogadores baixarem sozinhos." })}
-        ${W.select({ id: "pv-ver", label: "Versão", options: ["3.20.17 (mais nova compatível)", "3.20.16", "3.20.11 (beta)"] })}
-        <dl class="kv"><dt>Lado</dt><dd>Cliente e servidor <span class="t-3">(informado pelo Modrinth)</span></dd><dt>Precisa de</dt><dd>Sophisticated Core ${W.tag("Não está no pack", "warn")}</dd></dl>
-        ${o.added ? W.alert({ kind: "ok", compact: true, title: "Já no pack.", text: "Adicionado com a Sophisticated Core." }) : B("Adicionar ao pack", "dependencias", { variant: "primary", icon: "plus", block: true })}
-        <div class="row row--wrap t-sm">${B("Descrição completa", "", { variant: "link" })}<span class="t-3">·</span>${B("Galeria", "", { variant: "link" })}<span class="t-3">·</span>${B("Página no Modrinth", "", { variant: "link" })}</div></div></aside>`;
-  }
-  function addContent(state, o = {}) {
-    const omni = { empty: "search", link: "link", invalid: "invalid", loading: "loading" }[o.omni] || "search";
-    const value = o.omni === "link" ? "https://modrinth.com/mod/sophisticated-backpacks" : state === "vazio" ? "mochila voadora" : "backpack";
-    const statusText = o.onlyModrinth || state === "erro" ? "32 resultados do Modrinth para “backpack”" : "48 resultados para “backpack”, do Modrinth e da CurseForge";
-    const top = `<div class="add-top">${W.select({ bare: true, ariaLabel: "Tipo", options: ["Tipo: Mods", "Tipo: Resource packs", "Tipo: Shaders"] })}${W.omnibox({ id: "add-q", value, state: state === "carregando" ? "loading" : state === "vazio" ? "search" : omni, statusText: state === "vazio" ? "Nenhum resultado" : statusText })}${B("Escolher arquivo do computador…", "", { icon: "file-plus" })}</div>`;
-    const filters = `<div class="filters-line" style="margin-top:4px">${W.icon("lock", "icon--sm")}<span>Só aparece o que funciona em <b class="t-2">Minecraft 1.20.1 com Forge</b>.</span>${B("Mostrar também os sem versão compatível", "", { variant: "link" })}<span aria-hidden="true">·</span>${B("Mais filtros", "", { variant: "link", iconEnd: "chevron-down" })}</div>`;
-    const notes = [];
-    if (o.onlyModrinth) notes.push(W.alert({ kind: "info", title: "Mostrando só o Modrinth.", text: "Para buscar também na CurseForge, informe sua chave em Configurações. Nenhuma busca vai para a CurseForge sem chave.", actions: B("Abrir Configurações", "config-app", { size: "sm" }) }));
-    if (state === "erro") notes.push(W.alert({ kind: "warn", title: "A CurseForge não respondeu.", text: "Mostrando só os resultados do Modrinth. O Warden tenta de novo na próxima busca.", actions: B("Tentar de novo", "adicionar", { size: "sm", icon: "refresh-cw" }) }));
-    let main;
-    if (state === "carregando") main = `<div class="results" aria-busy="true">${[0, 1, 2, 3].map(() => `<div class="result" aria-hidden="true"><span class="skeleton" style="width:40px;height:40px"></span><span><span class="skeleton skeleton--line" style="--w:45%;height:12px"></span><span class="skeleton skeleton--line" style="--w:80%"></span><span class="skeleton skeleton--line" style="--w:35%"></span></span><span></span></div>`).join("")}</div><div></div>`;
-    else if (state === "vazio") main = W.empty({ glyph: "search", artKind: "muted", title: "Nada encontrado para “mochila voadora”", text: "Só aparecem mods que funcionam em Minecraft 1.20.1 com Forge. Tente outro nome, em inglês, ou cole o link do mod.", actions: B("Mostrar também os sem versão compatível", "", { variant: "link" }), compact: true }) + "<div></div>";
-    else if (o.omni === "link") main = `<div>${W.alert({ kind: "ok", title: "Link do Modrinth reconhecido.", text: "É o Sophisticated Backpacks, versão 3.20.17 para Minecraft 1.20.1 com Forge. Confira ao lado e adicione." })}</div>${preview()}`;
-    else {
-      const list = (o.onlyModrinth || state === "erro" ? D.SEARCH.filter((r) => r[5] !== "curseforge") : D.SEARCH).map((r, i) => result(r, i, { selected: 0, onlyModrinth: o.onlyModrinth || state === "erro" })).join("");
-      main = `<div class="results" role="group" aria-label="Resultados">${list}<p class="t-xs t-3" style="padding:8px 0">Rolar carrega mais 20.</p></div>${preview({ onlyModrinth: o.onlyModrinth || state === "erro", added: o.added })}`;
-    }
-    return pageHead("Adicionar ao pack", null, null, { back: ["Voltar para Mods", "mods"] }) + top + filters + (notes.length ? `<div class="stack-2" style="margin-top:12px">${notes.join("")}</div>` : "") + `<div class="add-grid">${main}</div>`;
-  }
-  const addSim = () => window.P.sim("Ver outros casos:", [["colar um link do Modrinth", "adicionar-link"], ["sem chave da CurseForge", "adicionar-semchave"]]);
-  def("adicionar", { group: "pack", title: "Adicionar (busca combinada)", spec: "T08", render: (s) => packShell("mods", addContent(s) + (s === "normal" ? addSim() : "")), states: { carregando: "Buscando", vazio: "Nenhum resultado", erro: "CurseForge fora do ar" } });
-  def("adicionar-link", { group: "pack", title: "Adicionar: link colado", spec: "T08", hidden: true, render: () => packShell("mods", addContent("normal", { omni: "link" })) });
-  def("adicionar-semchave", { group: "pack", title: "Adicionar sem chave da CurseForge", spec: "T08", hidden: true, render: () => packShell("mods", addContent("normal", { onlyModrinth: true })) });
-  def("adicionado", { group: "pack", title: "Adicionado: busca continua aberta", spec: "T08, T09", hidden: true, render: () => packShell("mods", addContent("normal", { added: true }), { unsaved: 7 }),
-    after: () => window.WardenUI.toast(W.toast({ kind: "ok", title: "2 itens adicionados ao pack", text: "Sophisticated Backpacks e Sophisticated Core.", actions: B("Desfazer", "adicionar", { size: "sm", variant: "ghost" }) }), 9000) });
-
-  function depsDialog() {
-    return W.dialog({ esc: "adicionar", title: "Adicionar Sophisticated Backpacks", sub: "Nada foi gravado ainda. Confira o que vai entrar no pack.", body: `
-      <div><div class="t-caps t-3" style="margin-bottom:6px">O que você escolheu</div>${W.check({ checked: true, disabled: true, label: "<b>Sophisticated Backpacks</b> <span class='t-mono t-sm'>3.20.17</span>" })}</div>
-      <div><div class="t-caps t-3" style="margin-bottom:6px">Obrigatórias</div>${W.check({ checked: true, disabled: true, label: "<b>Sophisticated Core</b> <span class='t-mono t-sm'>0.6.26</span>", desc: "Sem ela o jogo não abre. Não dá para desmarcar." })}</div>
-      <div><div class="t-caps t-3" style="margin-bottom:6px">Opcionais</div>${W.check({ label: "Sophisticated Backpacks Create Integration", desc: "Mochilas que se ligam às máquinas do Create." })}</div>
-      ${W.alert({ kind: "ok", compact: true, title: "Nenhuma incompatibilidade declarada", text: "com os 128 itens que já estão no pack." })}`,
-      foot: B("Cancelar", "adicionar", { variant: "ghost" }) + B("Adicionar 2 itens", "adicionado", { variant: "primary", icon: "plus" }) });
-  }
-  def("dependencias", { group: "pack", title: "Dependências ao adicionar (diálogo)", spec: "T09", render: () => packShell("mods", addContent("normal"), { overlay: depsDialog() }) });
 
   // ======================= CONFIGS =======================
   function highlight(line) {
@@ -134,9 +128,9 @@
     const tree = inst
       ? `<button type="button" role="treeitem" class="tree__item" aria-expanded="true">${W.icon("folder-open")}config/</button><div role="group"><button type="button" role="treeitem" class="tree__item tree__item--dirty" aria-selected="true">${W.icon("file-text")}embeddium-options.json</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}create-client.toml</button><button type="button" role="treeitem" class="tree__item" aria-expanded="false">${W.icon("folder")}jei/</button><div role="group" hidden></div></div>
          <button type="button" role="treeitem" class="tree__item tree__item--friendly">${W.icon("file-text")}Opções do jogo (options.txt)</button><button type="button" role="treeitem" class="tree__item" aria-expanded="true">${W.icon("folder-open")}saves/Mundo de teste/serverconfig/</button><div role="group"><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}create-server.toml</button></div>`
-      : `<button type="button" role="treeitem" class="tree__item" aria-expanded="true">${W.icon("folder-open")}config/ <span class="t-3">(86)</span></button><div role="group"><button type="button" role="treeitem" class="tree__item ${o.form ? "" : "tree__item--dirty"}" aria-selected="true">${W.icon("file-text")}create-common.toml</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}embeddium-options.json</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}waystones-common.toml</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}xaerominimap.txt</button><button type="button" role="treeitem" class="tree__item" aria-expanded="false">${W.icon("folder")}jei/</button><div role="group" hidden></div><span class="tree__item t-3" style="cursor:default">… mais 81 arquivos</span></div>
-         <button type="button" role="treeitem" class="tree__item" aria-expanded="false">${W.icon("folder")}defaultconfigs/ <span class="t-3">(2)</span></button><div role="group" hidden></div><button type="button" role="treeitem" class="tree__item" aria-expanded="false">${W.icon("folder")}kubejs/</button><div role="group" hidden></div><button type="button" role="treeitem" class="tree__item tree__item--friendly">${W.icon("file-text")}Opções do jogo (options.txt)</button>`;
-    const head = pageHead("Configs", "Arquivos de ajuste dos mods e do jogo. Comentários e formatação são preservados.");
+      : `<button type="button" role="treeitem" class="tree__item" aria-expanded="true">${W.icon("folder-open")}config/ <span class="t-3">(86)</span></button><div role="group"><button type="button" role="treeitem" class="tree__item ${o.form || o.script ? "" : "tree__item--dirty"}"${o.script ? "" : ' aria-selected="true"'}>${W.icon("file-text")}create-common.toml</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}embeddium-options.json</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}waystones-common.toml</button><button type="button" role="treeitem" class="tree__item">${W.icon("file-text")}xaerominimap.txt</button><button type="button" role="treeitem" class="tree__item" aria-expanded="false">${W.icon("folder")}jei/</button><div role="group" hidden></div><span class="tree__item t-3" style="cursor:default">… mais 81 arquivos</span></div>
+         <button type="button" role="treeitem" class="tree__item" aria-expanded="false">${W.icon("folder")}defaultconfigs/ <span class="t-3">(2)</span></button><div role="group" hidden></div>${o.script ? `<button type="button" role="treeitem" class="tree__item" aria-expanded="true">${W.icon("folder-open")}kubejs/server_scripts/</button><div role="group"><button type="button" role="treeitem" class="tree__item tree__item--dirty" aria-selected="true">${W.icon("braces")}receitas.js</button><button type="button" role="treeitem" class="tree__item">${W.icon("braces")}tags.js</button></div>` : `<button type="button" role="treeitem" class="tree__item" aria-expanded="false" data-go="scripts">${W.icon("folder")}kubejs/</button><div role="group" hidden></div>`}<button type="button" role="treeitem" class="tree__item tree__item--friendly">${W.icon("file-text")}Opções do jogo (options.txt)</button>`;
+    const head = pageHead("Configs", "Arquivos de ajuste e scripts do pack. Comentários e formatação são preservados.");
     if (state === "vazio") return head + W.empty({ glyph: "dots", title: "Este pack ainda não tem configs", text: "Os mods criam os arquivos de config na primeira vez que o jogo abre. Teste o pack uma vez e eles aparecem aqui.", actions: B("Testar", "teste-checagem", { variant: "primary", icon: "play" }) });
     const instBanner = inst ? `<div style="margin-bottom:12px">${W.alert({ kind: "warn", title: "Você está editando a instância de teste, não o pack.", text: "Vale só para este teste. Quando o jogo fechar, a mudança aparece em “O que mudou durante o teste” e você decide se traz para o pack.", actions: B("Voltar ao teste", "teste-jogo", { size: "sm", icon: "terminal" }) })}</div>` : "";
     const ext = state === "erro" ? `<div style="margin-bottom:12px">${W.alert({ kind: "danger", title: "Este arquivo foi alterado fora do Warden.", text: "Outro programa mudou config/create-common.toml depois que você abriu. Escolha o que fazer antes de salvar.", actions: B("Recarregar", "configs", { size: "sm" }) + B("Ver diferenças", "configs-diff", { size: "sm" }) + B("Sobrescrever", "", { size: "sm", variant: "danger-ghost" }) })}</div>` : "";
@@ -146,23 +140,62 @@
     let editorBody;
     if (state === "carregando") editorBody = `<div class="editor__lines" aria-busy="true" style="padding:16px">${[60, 40, 75, 30, 55, 68, 20, 50].map((w) => `<span class="skeleton skeleton--line" style="--w:${w}%"></span>`).join("")}</div>`;
     else if (o.form) {
-      const row = (key, desc, ctl, ch) => `<div class="cfgform__row ${ch ? "cfgform__row--changed" : ""}"><div><div class="cfgform__key">${key}</div><div class="cfgform__desc">${desc}</div></div>${ctl}<div>${ch ? B("Desfazer " + key, "", { variant: "ghost", size: "sm", iconOnly: true, icon: "undo-2" }) : ""}</div></div>`;
-      editorBody = `<div class="editor__lines" style="font-family:var(--font-ui)"><div class="cfgform"><div class="cfgform__group">[worldgen]</div>${row("disableWorldGen", "Desliga a geração de minérios do Create. Padrão: false.", W.switchCtl({ label: "disableWorldGen", checked: false }).replace('<label', '<label class="sr-only"'), false)}
-        <div class="cfgform__group">[kinetics]</div>${row("maxRotationSpeed", "Velocidade máxima de rotação. Faixa: acima de 64. Padrão: 256.", W.input({ bare: true, value: "512", size: "sm", ariaLabel: "maxRotationSpeed" }), true)}${row("stressMultiplier", "Multiplicador de stress. Faixa: 0,0 a 10,0. Padrão: 1,0.", W.input({ bare: true, value: "1.0", size: "sm", ariaLabel: "stressMultiplier" }), false)}
-        <div class="cfgform__group">[fluids]</div>${row("mechanicalPumpRange", "Quantos blocos o cano leva o líquido. Faixa: 1 a 256. Padrão: 16.", W.input({ bare: true, value: "16", size: "sm", ariaLabel: "mechanicalPumpRange" }), false)}</div></div>`;
+      const bad = state === "erro";
+      editorBody = `<div class="editor__lines" style="font-family:var(--font-ui)"><div class="cfgform"><div class="cfgform__group">[worldgen]</div>
+        ${W.cfgRow({ label: "Desligar a geração de minérios", key: "disableWorldGen", desc: "Desliga a geração de minérios do Create.", def: "false", defSource: "do comentário do arquivo", control: W.switchCtl({ label: "disableWorldGen", checked: false }).replace("<label", '<label class="sr-only"') })}
+        <div class="cfgform__group">[kinetics]</div>
+        ${W.cfgRow({ label: "Velocidade máxima de rotação", key: "maxRotationSpeed", desc: "Faixa: acima de 64.", def: "256", defSource: "do comentário do arquivo", changed: true, control: W.input({ bare: true, value: "512", size: "sm", ariaLabel: "Velocidade máxima de rotação" }) })}
+        ${W.cfgRow({ label: "Multiplicador de stress", key: "stressMultiplier", desc: "Faixa: 0,0 a 10,0.", def: "1.0", defSource: "do comentário do arquivo", changed: bad, error: bad ? "12.0 está fora da faixa 0,0 a 10,0. O Forge troca por 1,0 sem avisar." : null, errId: "cf-err-stress", control: W.input({ bare: true, value: bad ? "12.0" : "1.0", size: "sm", ariaLabel: "Multiplicador de stress", attrs: bad ? { "aria-invalid": "true", "aria-describedby": "cf-err-stress" } : {} }) })}
+        ${W.cfgRow({ label: "Alcance do ventilador", key: "fanPushDistance", desc: "Até quantos blocos o ventilador empurra. Defaults to 20.", def: "20", defSource: "tirado do texto", inferred: true, control: W.input({ bare: true, value: "20", size: "sm", ariaLabel: "Alcance do ventilador" }) })}
+        <div class="cfgform__group">[fluids]</div>
+        ${W.cfgRow({ label: "Alcance da bomba", key: "mechanicalPumpRange", desc: "Quantos blocos o cano leva o líquido. Faixa: 1 a 256.", def: "16", defSource: "do comentário do arquivo", control: W.input({ bare: true, value: "16", size: "sm", ariaLabel: "Alcance da bomba" }) })}</div></div>`;
     } else editorBody = `<div class="editor__lines" role="textbox" aria-multiline="true" aria-label="Conteúdo de ${file}" tabindex="0">${lines.map((l, i) => `<div class="editor__line ${i === changed ? "editor__line--changed" : ""}"><span>${highlight(l) || " "}</span></div>`).join("")}</div>`;
     const kindTag = inst ? W.tag("Instância de teste", "warn", { icon: "terminal" }) : W.tag("Config do pack", "plain", { title: "Sempre substitui a do jogador ao atualizar" });
-    const editor = `<section class="editor" aria-label="Editor"><div class="editor__bar"><span class="editor__file">${file}</span>${kindTag}<span class="grow"></span>
-        ${W.segmented([["form", "Formulário"], ["text", "Texto"]], o.form ? "form" : "text", "Modo do editor")}${B("Buscar e substituir", "", { size: "sm", variant: "ghost", icon: "search" })}${B("Salvar", inst ? "teste-jogo" : o.form ? "configs-diff" : "configs-diff", { size: "sm", variant: "primary", icon: "save" })}</div>
+    const editor = `<section class="editor" aria-label="Editor" style="position:relative"><div class="editor__bar"><span class="editor__file">${file}</span>${kindTag}<span class="grow"></span>
+        ${W.segmented([["form", "Formulário"], ["text", "Texto"]], o.form ? "form" : "text", "Modo do editor")}${B("Buscar e substituir", "", { size: "sm", variant: "ghost", icon: "search" })}${o.form ? B("Mais ações do arquivo", "", { size: "sm", variant: "ghost", iconOnly: true, icon: "ellipsis", attrs: { "aria-haspopup": "menu", "aria-expanded": "false", "aria-controls": "menu-cfg", "data-go": null } }) + W.menu([{ label: "Restaurar o arquivo todo para o padrão…", desc: "Mostra as diferenças antes de gravar", icon: "rotate-ccw", attrs: go("") }, { label: "Copiar para defaultconfigs/", icon: "copy", attrs: go("") }], { id: "menu-cfg", label: "Mais ações do arquivo", style: "right:12px;top:44px" }) : ""}${B("Salvar", inst ? "teste-jogo" : o.form ? "configs-diff" : "configs-diff", { size: "sm", variant: "primary", icon: "save" })}</div>
       ${inst || o.form ? "" : `<div style="padding:8px 12px;border-bottom:1px solid var(--color-border)" class="t-xs t-3">${W.icon("info", "icon--sm")} Arquivo do Forge: o jogo pode reescrever este arquivo e apagar comentários que você adicionar.</div>`}
       ${editorBody}<div class="editor__foot"><span class="t-warn">1 alteração não salva neste arquivo</span><span class="grow"></span><span>${inst ? "JSON" : "TOML"} · UTF-8 · linha ${changed + 1}, coluna 24</span></div></section>`;
-    return head + instBanner + ext + `<div class="cfg"><div class="cfg__side">${W.select({ bare: true, ariaLabel: "Origem dos arquivos", options: inst ? ["Mostrando: instância de teste (jogo aberto)", "Mostrando: arquivos do pack"] : ["Mostrando: arquivos do pack", "Mostrando: instância de teste"] })}${W.input({ bare: true, icon: "search", placeholder: "Buscar arquivo", ariaLabel: "Buscar arquivo de config", size: "sm" })}<div role="tree" aria-label="Arquivos" class="tree">${tree}</div></div>${editor}</div>`;
+    return head + instBanner + ext + `<div class="cfg"><div class="cfg__side">${W.select({ bare: true, ariaLabel: "Origem dos arquivos", options: inst ? ["Mostrando: instância de teste (jogo aberto)", "Mostrando: arquivos do pack"] : ["Mostrando: arquivos do pack", "Mostrando: instância de teste"] })}${W.input({ bare: true, icon: "search", placeholder: "Buscar em todas as configs", ariaLabel: "Buscar em todas as configs", size: "sm", value: o.search ? "spawn" : null, attrs: o.search ? {} : { "data-go": "configs-busca" } })}${inst ? "" : W.check({ label: "Só o que mudou do padrão", checked: false })}<div role="tree" aria-label="Arquivos" class="tree">${tree}</div></div>${o.search ? searchResults() : o.script ? scriptEditor(state) : editor}</div>`;
+  }
+
+  // ---------- Busca em todas as configs (D4) ----------
+  function searchResults() {
+    const n = D.CONFIG_HITS.reduce((a, g) => a + g.hits.length, 0);
+    return `<section class="panel" aria-labelledby="cfg-hits-h" style="overflow:auto;min-height:0"><div class="panel__head"><div><h2 class="panel__title panel__title--sans" id="cfg-hits-h">${n} resultados em ${D.CONFIG_HITS.length} arquivos para “spawn”</h2><p class="t-xs t-3" style="margin-top:2px">Procura no nome da chave, no nome traduzido do mod, no comentário e no valor. Clique para abrir o arquivo já na chave.</p></div>${B("Limpar busca", "configs", { size: "sm", variant: "ghost", icon: "x" })}</div>
+      <div class="row row--wrap" style="margin-bottom:10px">${W.check({ label: "Só o que mudou do padrão" })}${W.select({ bare: true, size: "sm", ariaLabel: "Só deste mod", options: ["Todos os mods", "Só do Create", "Só do Supplementaries", "Só do Waystones"] })}</div>
+      ${W.cfgHits(D.CONFIG_HITS, { attrs: go("configs-formulario") })}</section>`;
+  }
+  // ---------- Editor de scripts KubeJS (D4) ----------
+  function hlJs(line, n) {
+    let e = W.esc(line);
+    if (/^\s*\/\//.test(line)) return `<span class="tk-c">${e}</span>`;
+    e = e.replace(/(&#39;|')([^']*)(&#39;|')/g, (m, a, body) => `<span class="tk-str${n === 16 && body.includes("copper_ingott") ? " tk-err" : ""}">'${body}'</span>`);
+    e = e.replace(/\b(ServerEvents|event)\b/g, '<span class="tk-kw">$1</span>').replace(/\.(recipes|shaped|mixing|create|heated)\b/g, '.<span class="tk-fn">$1</span>');
+    return e;
+  }
+  function scriptEditor(state) {
+    const game = state === "jogoaberto", srv = state === "servidor";
+    const reload = srv ? B("Recarregar no jogo", "scripts~servidor", { size: "sm", icon: "refresh-cw", attrs: { "data-reload": "" } })
+      : game ? B("Recarregar no jogo", "scripts~jogoaberto", { size: "sm", icon: "refresh-cw" })
+      : B("Recarregar no jogo", "", { size: "sm", icon: "refresh-cw", disabled: true, tip: "Abra o jogo pelo Testar para recarregar os scripts sem reiniciar" });
+    const lines = D.SCRIPT.map((l, i) => `<div class="editor__line ${i === 15 ? "editor__line--error" : ""}"><span>${hlJs(l, i + 1) || " "}</span></div>`).join("");
+    const errLine = state === "carregando" ? "" : W.completions([["copper_ingot", "item", "Minecraft"], ["copper_block", "bloco", "Minecraft"], ["copper_ore", "bloco", "Minecraft"], ["copper_door", "bloco", "Minecraft"]], { typed: "minecraft:copper_", id: "cmp-ids", label: "IDs de itens e blocos do pack" });
+    const note = game ? `<div style="padding:8px 12px;border-bottom:1px solid var(--color-border)">${W.alert({ kind: "info", compact: true, icon: "terminal", title: "No KubeJS 6, recarregar precisa de um comando no jogo.", text: "Cole no chat do jogo e aperte Enter. Com o servidor deste computador aberto, o Warden envia sozinho.", actions: B("Copiar /kubejs reload server_scripts", "", { size: "sm", icon: "copy" }), actionsBelow: true })}</div>` : "";
+    return `<section class="editor" aria-label="Editor de script" style="position:relative"><div class="editor__bar"><span class="editor__file">kubejs/server_scripts/receitas.js</span>${W.tag("KubeJS 6 · Forge 1.20.1", "plain", { icon: "braces" })}<span class="grow"></span>
+        ${B("Trechos prontos", "", { size: "sm", variant: "ghost", iconEnd: "chevron-down", tip: "Modelos dos eventos mais usados: receitas, tags, itens novos" })}${reload}${B("Abrir no VS Code", "", { size: "sm", variant: "ghost", icon: "external-link" })}${B("Salvar", "", { size: "sm", variant: "primary", icon: "save" })}</div>
+      ${note}
+      <div class="editor__lines" role="textbox" aria-multiline="true" aria-label="Conteúdo de receitas.js" tabindex="0" style="position:relative">${lines}<div style="position:absolute;left:150px;top:344px">${errLine}</div></div>
+      ${W.scriptErrors([{ where: "receitas.js, linha 16", msg: "O item <span class=\"t-mono\">minecraft:copper_ingott</span> não existe. Quis dizer <span class=\"t-mono\">minecraft:copper_ingot</span>?", log: "[14:20:44] [ERROR] receitas.js#16: Failed to create recipe for type 'create:mixing': Item 'minecraft:copper_ingott' not found" }], { level: 2, meta: "do último teste, hoje às 14:20 · lido de logs/kubejs/server.log" })}
+      <div class="editor__foot"><span class="t-warn">1 alteração não salva neste arquivo</span><span class="grow"></span><span>JavaScript · KubeJS 6 · linha 16, coluna 22</span></div></section>`;
   }
   window.P.configsContent = configsContent;
   def("configs", { group: "pack", title: "Configs (editor em texto)", spec: "T12", render: (s) => packShell("configs", configsContent(s)), states: { carregando: "Abrindo o arquivo", vazio: "Pack nunca testado: sem configs", erro: "Arquivo alterado fora do Warden" },
     after: () => document.querySelector('.segmented [data-value="form"]')?.setAttribute("data-go", "configs-formulario") });
-  def("configs-formulario", { group: "pack", title: "Configs (modo formulário)", spec: "T12", hidden: true, render: () => packShell("configs", configsContent("normal", { form: true })),
+  def("configs-formulario", { group: "pack", title: "Configs (formulário com padrão)", spec: "T12", d4: true, render: (s) => packShell("configs", configsContent(s, { form: true })), states: { erro: "Valor fora da faixa" },
     after: () => document.querySelector('.segmented [data-value="text"]')?.setAttribute("data-go", "configs") });
+  def("configs-busca", { group: "pack", title: "Configs: buscar em todas as configs", spec: "T12", d4: true, render: () => packShell("configs", configsContent("normal", { search: true })) });
+  def("scripts", { group: "pack", title: "Configs: editor de scripts (KubeJS)", spec: "T12", d4: true, render: (s) => packShell("configs", configsContent(s === "carregando" ? "normal" : s, { script: true }), s === "jogoaberto" || s === "servidor" ? { game: "running", runTarget: s === "servidor" ? "teste-servidor" : "teste-jogo" } : {}), states: { jogoaberto: "Jogo aberto (KubeJS 6: comando)", servidor: "Com o servidor deste computador" },
+    after: (s) => { const ed = document.querySelector('.editor__lines[aria-label="Conteúdo de receitas.js"]'); if (ed) ed.scrollTop = 150; if (s === "servidor") window.WardenUI.toast(W.toast({ kind: "ok", title: "Scripts recarregados no servidor", text: "O Warden enviou kubejs reload server_scripts. Nenhum erro novo." }), 8000); } });
   function cfgDiffDialog() {
     return W.dialog({ esc: "configs", size: "lg", title: "Salvar config/create-common.toml?", sub: "Só esta linha muda. O resto do arquivo fica igual, inclusive os comentários.",
       body: W.diff({ file: "config/create-common.toml", lines: [["fold", "", "", "… 6 linhas iguais"], ["ctx", 7, 7, "[kinetics]"], ["ctx", 8, 8, "\t#Velocidade máxima de rotação"], ["ctx", 9, 9, "\t#Range: > 64"], ["del", 10, "", "\tmaxRotationSpeed = 128"], ["add", "", 10, "\tmaxRotationSpeed = 256"], ["ctx", 11, 11, "\t#Multiplicador de stress"], ["fold", "", "", "… 7 linhas iguais"]] }) + `<p class="t-sm t-3">Dá para desligar esta confirmação em Configurações.</p>`,
@@ -171,63 +204,31 @@
   def("configs-diff", { group: "pack", title: "Salvar config: diferenças", spec: "T12", hidden: true, render: () => packShell("configs", configsContent("normal"), { overlay: cfgDiffDialog() }) });
 
   // ======================= PROBLEMAS =======================
+  // Saúde do pack no topo, achados por gravidade, travamentos agrupados pela causa (D4)
+  function healthPanel(score, losses, o = {}) {
+    return `<section class="panel panel--strong" aria-labelledby="hp-h"><h2 class="sr-only" id="hp-h">Saúde do pack</h2><div class="row row--between row--top row--wrap">${W.health(score)}
+      <div class="row">${o.actions || ""}</div></div>
+      ${losses ? `<details class="disclosure" style="margin-top:12px"${o.open ? " open" : ""}><summary>O que tirou pontos</summary>${W.healthLosses(losses)}<p class="t-xs t-3" style="margin-top:6px">Faixas: 90 a 100 Ótimo, 75 a 89 Bom, 50 a 74 Atenção, abaixo de 50 Crítico. Avisos que você mandar ignorar não tiram pontos.</p></details>` : ""}</section>`;
+  }
+  function crashesTable() {
+    return `<div class="tablewrap"><table class="table"><thead><tr><th>Causa</th><th class="num">Vezes</th><th>Última vez</th><th>Situação</th><th class="shrink"><span class="sr-only">Ações</span></th></tr></thead><tbody>
+      ${D.CRASHES.map((c, i) => `<tr><td class="t-strong">${c.title}</td><td class="num">${c.times}</td><td class="t-2">${c.last}<div class="t-xs t-3">versão ${c.versions}</div></td><td><span style="white-space:normal">${W.status(c.state[0], c.state[1]).replace('class="status ', 'style="white-space:normal" class="status ')}</span></td><td style="width:1%"><div class="row row--wrap" style="justify-content:flex-end;min-width:150px">${i === 0 ? B("Ver o que causou", "teste-travou", { size: "sm" }) : i === 1 ? B("Encontrar o mod culpado", "culpado-config", { size: "sm", variant: "primary", icon: "target" }) + B("Conversar com a IA", "ia-consent", { size: "sm", variant: "ghost", icon: "sparkles", iconCls: "icon--ai" }) : B("Ver detalhes", "", { size: "sm", variant: "ghost" })}</div></td></tr>`).join("")}</tbody></table></div>
+      <p class="t-xs t-3" style="margin-top:6px">Travamentos com a mesma causa ficam numa linha só. Os testes que fecharam normalmente são guardados só os 30 mais recentes.</p>`;
+  }
   function problemsContent(state) {
-    if (state === "vazio") return pageHead("Problemas", "Última verificação há 3 minutos.", B("Verificar agora", "problemas~carregando", { icon: "refresh-cw" })) + W.empty({ kind: "ok", glyph: "check", title: "Nenhum problema encontrado", text: "Dependências, versões, Java, duplicatas e conflitos conhecidos foram conferidos nos 128 itens. A verificação também roda sozinha ao clicar em Testar e antes de exportar." });
-    if (state === "carregando") return pageHead("Problemas", "Verificando…", W.btn("Verificando…", { busy: true, disabled: true })) + `<div class="panel" style="max-width:720px">${W.progress({ label: "Conferindo 128 itens", value: 64, meta: "Dependências, versões, Java, duplicatas e conflitos conhecidos" })}</div>`;
-    return pageHead("Problemas", "3 encontrados · última verificação há 3 minutos. Também roda sozinha ao clicar em Testar e antes de exportar.", B("Verificar agora", "problemas~carregando", { icon: "refresh-cw" })) +
-      `<h2 class="group-title" style="margin-top:0">Erros <span class="t-3">impedem o teste, a menos que você escolha testar mesmo assim</span></h2>
+    if (state === "vazio") return pageHead("Problemas", "Última verificação há 3 minutos.", B("Verificar agora", "problemas~carregando", { icon: "refresh-cw" })) + `<div class="stack">${healthPanel(100, null)}` + W.empty({ kind: "ok", glyph: "check", title: "Nenhum problema encontrado", text: "Dependências, versões, Java, duplicatas, conflitos conhecidos e o que os mods alteram no jogo foram conferidos nos 128 itens. A verificação também roda sozinha ao clicar em Testar e antes de exportar." }) + `</div>`;
+    if (state === "carregando") return pageHead("Problemas", "Verificando…", W.btn("Verificando…", { busy: true, disabled: true })) + `<div class="panel" style="max-width:720px">${W.progress({ label: "Conferindo 128 itens", value: 64, meta: "Dependências, versões, Java, duplicatas, conflitos conhecidos e o que os mods alteram no jogo" })}</div>`;
+    return pageHead("Problemas", "4 encontrados · última verificação há 3 minutos. Também roda sozinha ao clicar em Testar e antes de exportar.", B("Verificar agora", "problemas~carregando", { icon: "refresh-cw" })) +
+      healthPanel(D.HEALTH, D.HEALTH_LOSSES) +
+      `<h2 class="group-title">Erros <span class="t-3">impedem o teste, a menos que você escolha testar mesmo assim</span></h2>
       ${W.issue({ kind: "danger", id: "pb-1", title: "O Waystones precisa do Balm, que não está no pack", text: "Sem o Balm, o jogo para na tela de carregamento.", evidence: "O arquivo META-INF/mods.toml do Waystones 14.1.6 declara a dependência obrigatória “balm” na faixa [7.3.0,).", actions: B("Adicionar Balm", "dependencias", { variant: "primary", size: "sm", icon: "plus" }) + B("Ver Waystones", "mods", { variant: "ghost", size: "sm" }) + B("Ignorar neste pack", "", { variant: "ghost", size: "sm" }) + W.badge("p1", "P1") })}
       ${W.issue({ kind: "danger", id: "pb-2", title: "Dois mods de renderização no pack: Embeddium e Rubidium", text: "Os dois fazem a mesma coisa e travam o jogo quando estão juntos. Mantenha só um. O Embeddium é o mais novo.", evidence: "Lista de conflitos conhecidos do Warden, categoria “renderizador”.", actions: B("Remover Rubidium", "", { size: "sm", icon: "trash-2" }) + B("Remover Embeddium", "", { size: "sm", variant: "ghost" }) })}
       <h2 class="group-title">Avisos</h2>
       ${W.issue({ kind: "warn", id: "pb-3", title: "Xaero's Minimap está como Cliente e servidor, mas só funciona no cliente", text: "Num servidor, ele impede o servidor de abrir.", evidence: "O Modrinth informa client_side: required, server_side: unsupported.", actions: B("Mudar lado para Só cliente", "", { size: "sm" }) })}
-      <h2 class="group-title">Último travamento</h2>
-      <div class="panel row row--between row--wrap"><span class="t-sm">${W.status("danger", "Teste de hoje às 14:40 travou com 48 s de jogo.")} <span class="t-3">A verificação achou a causa: falta o Balm.</span></span><span class="row">${B("Ver o que causou", "teste-travou", { size: "sm" })}${B("Analisar com IA", "ia", { size: "sm", variant: "ghost", icon: "sparkles", iconCls: "icon--ai" })}</span></div>`;
+      ${W.issue({ kind: "warn", id: "pb-4", title: "Epic Fight e Supplementaries alteram o mesmo ponto do jogo", text: "Os dois trocam a mesma chamada no movimento das criaturas (LivingEntity#travel). Só uma das trocas vale, e a outra some sem aviso. Pode ser a causa do travamento de 30/09.", evidence: "Lido dos arquivos dos dois mods: @Redirect no mesmo ponto, nos dois com prioridade 1000. O crash report de 30/09 às 21:14 cita epicfight.mixins.json.", actions: B("Ver o que o Epic Fight altera", "mods-raio-x", { size: "sm", icon: "scan-search" }) + B("Encontrar o mod culpado", "culpado-config", { size: "sm", variant: "ghost", icon: "target" }) + W.badge("p1", "P1") })}
+      <h2 class="group-title">Travamentos <span class="t-3">dos seus testes, agrupados pela causa</span></h2>${crashesTable()}`;
   }
-  def("problemas", { group: "pack", title: "Problemas", spec: "T14", render: (s) => packShell("problemas", problemsContent(s), s === "vazio" ? { problems: 0 } : {}), states: { carregando: "Verificando agora", vazio: "Nenhum problema" } });
-
-  // ======================= DIAGNÓSTICO COM IA =======================
-  function iaContent(state) {
-    const head = pageHead(`${W.icon("sparkles", "icon--lg icon--ai")} Diagnóstico com IA`, "A IA (Google Gemini) lê os logs e sugere a causa de um travamento. Antes de enviar, você vê exatamente o que vai.");
-    if (state === "vazio") return head + W.empty({ artKind: "ai", glyph: "dots", title: "Falta a chave do Gemini", text: "Para usar a IA, informe a sua chave do Gemini em Configurações. A chave é sua: o Google pode cobrar pelo uso, conforme o seu plano.", actions: B("Abrir Configurações", "config-app", { variant: "primary", icon: "key-round" }) + B("Como conseguir uma chave", "", { variant: "link" }) });
-    return head + `<section class="panel panel--strong" aria-labelledby="ia-what"><h2 class="panel__title panel__title--sans" id="ia-what">O que analisar</h2><fieldset style="border:0;padding:0;margin:12px 0 0"><legend class="sr-only">O que analisar</legend><div class="choice-list">
-        ${W.choice({ name: "ia-src", title: "Último travamento", desc: "Hoje às 14:40, 48 s de jogo. A verificação automática achou: falta o mod Balm.", checked: true })}
-        ${W.choice({ name: "ia-src", title: "Outro teste", desc: "Escolha um dos testes guardados.", extra: `<div style="margin-top:6px;max-width:320px">${W.select({ bare: true, size: "sm", ariaLabel: "Teste", options: ["30/09 às 21:14 · travou", "28/09 às 19:02 · travou"] })}</div>` })}
-        ${W.choice({ name: "ia-src", title: "Um log ou crash report do computador", desc: "Por exemplo, um arquivo que um jogador mandou.", extra: `<div style="margin-top:6px">${B("Escolher arquivo…", "", { size: "sm", icon: "file-plus" })}</div>` })}</div></fieldset>
-      <div style="margin-top:14px">${W.textarea({ id: "ia-note", label: "Contar algo à IA", optional: true, placeholder: "Ex.: trava quando entro no Nether", rows: 2 })}</div>
-      <div class="row row--gap-3" style="margin-top:14px">${B("Preparar envio", "ia-consent", { variant: "primary", icon: "sparkles" })}<span class="t-sm t-3">Próximo passo: ver o texto exato e confirmar. Nada é enviado antes disso.</span></div></section>
-      <h2 class="group-title">Respostas anteriores</h2>
-      <div class="tablewrap"><table class="table"><thead><tr><th>Quando</th><th>O que foi analisado</th><th>Causa provável</th><th>Confiança</th><th class="shrink"><span class="sr-only">Abrir</span></th></tr></thead><tbody>
-        <tr><td>30/09 21:20</td><td>Teste de 30/09 às 21:14</td><td>Embeddium e Rubidium juntos</td><td>${W.meter("média")}</td><td class="shrink">${B("Ver resposta", "ia-resposta", { size: "sm", variant: "ghost" })}</td></tr>
-        <tr><td>22/09 18:02</td><td class="path">crash-2026-09-22.txt</td><td>Falta de memória</td><td>${W.meter("alta")}</td><td class="shrink">${B("Ver resposta", "", { size: "sm", variant: "ghost" })}</td></tr></tbody></table></div>
-      <p class="t-xs t-3" style="margin-top:8px">As respostas ficam nos dados do Warden, neste computador. Nunca vão para a pasta do pack nem para o GitHub.</p>
-      <div class="panel row row--between" style="margin-top:16px"><span class="t-sm">${W.status("ok", "Chave do Gemini configurada")} <span class="t-3">· modelo gemini-2.5-flash</span></span>${B("Trocar em Configurações", "config-app", { variant: "link" })}</div>`;
-  }
-  function consentDialog(cancel) {
-    return W.dialog({ esc: cancel, size: "lg", ai: true, title: "Enviar o log para a IA?", sub: "Este é o texto exato que será enviado. Nome de usuário do Windows, nome do jogador, IPs, e-mails e chaves foram trocados por marcadores.",
-      body: `<pre class="code code--scroll" tabindex="0" aria-label="Texto que será enviado">Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · 126 mods
-Verificação automática: falta o mod Balm (exigido pelo Waystones)
-[14:40:31] [main/ERROR] [fml/ModLoader]: Missing or unsupported mandatory dependencies:
-	Mod ID: 'balm', Requested by: 'waystones', Expected range: '[7.3.0,)', Actual version: '[MISSING]'
-Caminho: C:\\Users\\<mark>[usuário]</mark>\\AppData\\Roaming\\dev.kriticales.warden\\instances\\vale-sereno
---username <mark>[jogador]</mark> --uuid <mark>[uuid]</mark>
-…(mais 412 linhas)</pre>
-      <dl class="kv"><dt>Tamanho</dt><dd>18 KB</dd><dt>Para</dt><dd>Google Gemini (gemini-2.5-flash), com a sua chave</dd><dt>Custo</dt><dd>Pode ter limite e custo, conforme o seu plano. No plano gratuito, o Google pode usar o conteúdo para melhorar os produtos dele.</dd></dl>`,
-      foot: B("Cancelar", cancel, { variant: "ghost" }) + B("Enviar", "ia-carregando", { variant: "primary", icon: "sparkles" }) });
-  }
-  window.P.consentDialog = consentDialog;
-  def("ia", { group: "pack", title: "Diagnóstico com IA", spec: "T14", render: (s) => packShell("ia", iaContent(s)), states: { vazio: "Sem chave do Gemini" } });
-  def("ia-consent", { group: "pack", title: "IA: consentimento (pela seção)", spec: "T14", hidden: true, render: () => packShell("ia", iaContent("normal"), { overlay: consentDialog("ia") }) });
-  function answer(state) {
-    const head = pageHead("Resposta da IA", state === "carregando" ? "Último travamento · enviado agora · Google Gemini (gemini-2.5-flash)" : "Teste de 30/09 às 21:14 · enviado às 21:20 · Google Gemini (gemini-2.5-flash)", null, { back: ["Voltar ao Diagnóstico com IA", "ia"] });
-    if (state === "carregando") return head + `<div style="max-width:880px">${W.aiBlock({ loading: true, meta: "Google Gemini" })}</div>`;
-    if (state === "erro") return head + `<div style="max-width:880px">${W.aiBlock({ error: "A IA não respondeu a tempo.", errorText: "O Google demorou mais de 60 segundos. Nada foi alterado no pack e o texto enviado continua guardado.", meta: "21:20", actions: B("Tentar de novo", "ia-carregando", { size: "sm", icon: "refresh-cw" }) })}</div>`;
-    return head + `<div style="max-width:880px">${W.aiBlock({ meta: "gemini-2.5-flash · 21:20", cause: "Dois mods de renderização, Embeddium e Rubidium, carregados juntos. O log mostra os dois tentando substituir o mesmo código de desenho dos blocos logo depois de abrir o mundo.", confidence: "média",
-      mods: [B("Embeddium", "mods", { variant: "link" }), B("Rubidium", "mods", { variant: "link" })],
-      steps: [["Remover o Rubidium. O Embeddium é o substituto mais novo e já está no pack.", B("Remover Rubidium", "", { size: "sm", variant: "danger-ghost", icon: "trash-2" })], ["Testar de novo.", B("Testar", "teste-checagem", { size: "sm", icon: "play" })]] })}
-      <p class="t-xs t-3" style="margin-top:8px">A verificação automática do Warden também aponta esse conflito em Problemas.</p></div>`;
-  }
-  def("ia-carregando", { group: "pack", title: "IA: esperando a resposta", spec: "T14", hidden: true, render: () => packShell("ia", answer("carregando")) });
-  def("ia-resposta", { group: "pack", title: "Resposta da IA", spec: "T14", render: (s) => packShell("ia", answer(s)), states: { carregando: "Esperando a IA", erro: "A IA não respondeu" } });
+  def("problemas", { group: "pack", title: "Problemas (saúde e travamentos)", spec: "T14", d4: true, render: (s) => packShell("problemas", problemsContent(s), s === "vazio" ? { problems: 0 } : {}), states: { carregando: "Verificando agora", vazio: "Nenhum problema" } });
 
   // ======================= HISTÓRICO =======================
   function historyContent(state) {
@@ -297,17 +298,28 @@ Caminho: C:\\Users\\<mark>[usuário]</mark>\\AppData\\Roaming\\dev.kriticales.wa
     overlay: W.dialog({ esc: "historico", size: "sm", alert: true, title: "Voltar o pack para a versão 1.3.0?", body: `<p>O pack fica exatamente como estava na 1.3.0. Arquivos que não existiam nela são removidos.</p><p class="t-sm t-2">O estado de agora, com as 5 alterações não salvas, fica guardado num ponto de segurança. O histórico não é apagado.</p>`, foot: B("Cancelar", "historico", { variant: "ghost" }) + B("Voltar para 1.3.0", "historico", { variant: "primary", icon: "rotate-ccw" }) }) }) });
 
   // ======================= EXPORTAR =======================
-  function exportContent(state) {
+  function exportContent(state, o = {}) {
+    const srv = !!o.server;
     const head = pageHead("Exportar", "Gera o pack para quem vai jogar, só com o necessário. O pack no Warden não muda.");
     const checks = `<section class="panel" aria-labelledby="ex-1"><h2 class="panel__title panel__title--sans" id="ex-1">1. Antes de exportar</h2><ul class="checklist" style="margin-top:10px">
       <li class="is-ok">${W.icon("circle-check")}<span>Nenhum arquivo que não deveria ir para quem joga (registros, cópias de segurança, caches).</span></li>
       <li class="is-bad">${W.icon("circle-x")}<span>O pack tem 2 erros. ${B("Ver problemas", "problemas", { variant: "link" })}</span></li>
       <li class="is-warn">${W.icon("triangle-alert")}<span>Há 5 alterações não salvas: a exportação usa o estado de agora. ${B("Salvar versão antes", "salvar", { variant: "link" })}</span></li></ul></section>`;
     const fmt = `<section class="panel" aria-labelledby="ex-2"><h2 class="panel__title panel__title--sans" id="ex-2">2. Formato</h2><fieldset style="border:0;padding:0;margin:10px 0 0"><legend class="sr-only">Formato</legend><div class="choice-list choice-list--2">
-      ${W.choice({ name: "ex-f", title: "Pasta packwiz", desc: "Para hospedar em outro lugar. Para o GitHub, use Publicar versão no Histórico.", checked: true })}
+      ${W.choice({ name: "ex-f", title: "Pasta packwiz", desc: "Para hospedar em outro lugar. Para o GitHub, use Publicar versão no Histórico.", checked: !srv })}
       ${W.choice({ name: "ex-f", title: "Arquivo .zip do pack packwiz", desc: "A mesma coisa, num arquivo só." })}
       ${W.choice({ name: "ex-f", title: ".mrpack", badge: " " + W.badge("p1", "P1"), desc: "Para o app do Modrinth e launchers compatíveis." })}
-      ${W.choice({ name: "ex-f", title: ".zip da CurseForge", badge: " " + W.badge("p1", "P1"), desc: "Para o app da CurseForge. Não guarda o lado dos mods." })}</div></fieldset></section>`;
+      ${W.choice({ name: "ex-f", title: ".zip da CurseForge", badge: " " + W.badge("p1", "P1"), desc: "Para o app da CurseForge. Não guarda o lado dos mods." })}
+      <span ${srv ? "" : 'data-go="exportar-servidor"'}>${W.choice({ name: "ex-f", title: "Pacote para servidor (.zip)", badge: " " + W.badge("p1", "P1"), desc: "Para abrir o pack num servidor (em casa ou numa hospedagem). Mods só de cliente ficam de fora.", checked: srv })}</span></div></fieldset></section>`;
+    const how = `<section class="panel" aria-labelledby="ex-how"><h2 class="panel__title panel__title--sans" id="ex-how">Como os mods chegam ao servidor</h2><fieldset style="border:0;padding:0;margin:10px 0 0"><legend class="sr-only">Como os mods chegam ao servidor</legend><div class="choice-list choice-list--2">
+      ${W.choice({ name: "ex-srv", title: "Baixar os mods pelo link do pack", badge: " " + W.tag("Recomendado", "ok"), desc: "O servidor baixa os mods ao iniciar e se atualiza sozinho a cada versão publicada. Precisa do pack publicado (está: versão 1.4.0).", checked: true })}
+      ${W.choice({ name: "ex-srv", title: "Mods dentro do zip", desc: "Funciona sem internet, mas o zip fica grande (cerca de 610 MB) e 2 mods da CurseForge precisam ser baixados à mão." })}</div></fieldset>
+      <div class="row row--wrap" style="margin-top:12px">${W.select({ id: "ex-mem", label: "Memória do servidor (user_jvm_args.txt)", options: ["6 GB (recomendado para 120 mods)", "4 GB", "8 GB"] })}</div></section>`;
+    const whatSrv = `<section class="panel" aria-labelledby="ex-3s"><h2 class="panel__title panel__title--sans" id="ex-3s">O que vai no pacote</h2><div class="export-tree" style="margin-top:10px">
+      <b>start.bat</b> · <b>start.sh</b> <span class="t-3">(verificam o Java, instalam o Forge na primeira vez e perguntam sobre a EULA)</span><br><b>user_jvm_args.txt</b> <span class="t-3">-Xms6G -Xmx6G</span><br><b>packwiz-installer-bootstrap.jar</b> <span class="t-3">(baixa os mods pelo link)</span><br>
+      ${W.icon("chevron-right", "icon--sm")} <b>config/</b> 86 arquivos · <b>defaultconfigs/</b> 2 · <b>kubejs/</b> sem client_scripts/</div>
+      ${W.alert({ kind: "neutral", compact: true, icon: "monitor", title: "8 mods só de cliente ficam de fora.", text: "Embeddium, Rubidium, Jade, Xaero's Minimap e mais 4. Também ficam de fora options.txt, resource packs e shaders." })}</section>`;
+    const untested = W.alert({ kind: "warn", title: "Este pacote ainda não foi testado num servidor.", text: "Às vezes um mod diz que funciona no servidor e não funciona. Testar abre um servidor neste computador, só para você.", actions: B("Testar como servidor", "servidor-opcoes", { size: "sm", icon: "server" }) });
     const what = `<section class="panel" aria-labelledby="ex-3"><h2 class="panel__title panel__title--sans" id="ex-3">3. O que vai no pack</h2><div class="export-tree" style="margin-top:10px">
       <b>pack.toml</b> · <b>index.toml</b><br>${W.icon("chevron-right", "icon--sm")} <b>mods/</b> 124 referências <span class="t-3">(os .jar não vão: quem joga baixa)</span><br>${W.icon("chevron-right", "icon--sm")} <b>resourcepacks/</b> 3 referências · <b>shaderpacks/</b> 1 referência<br>
       ${W.icon("chevron-right", "icon--sm")} <b>config/</b> 86 arquivos, 412 KB<br>${W.icon("chevron-right", "icon--sm")} <b>defaultconfigs/</b> 2 arquivos<br><b>options.txt</b> ${W.tag("Substitui as preferências de quem já joga", "warn")} ${B("Não substituir se o jogador já tiver", "", { variant: "link" })} ${W.badge("p1", "P1")}</div>
@@ -316,9 +328,11 @@ Caminho: C:\\Users\\<mark>[usuário]</mark>\\AppData\\Roaming\\dev.kriticales.wa
     if (state === "carregando") foot = `<div class="panel" style="margin-top:16px">${W.progress({ label: "Exportando", value: 72, meta: "156 de 216 arquivos · conferindo com o packwiz no fim" })}<div style="margin-top:10px">${B("Cancelar", "exportar", { variant: "ghost", size: "sm" })}</div></div>`;
     else foot = `${state === "erro" ? `<div style="margin-top:16px">${W.alert({ kind: "danger", title: "Não foi possível exportar: o disco D: está cheio.", text: "Faltam 1,2 MB. Nada foi gravado pela metade. Libere espaço ou escolha outra pasta.", actions: B("Escolher outra pasta", "", { size: "sm", icon: "folder-open" }) })}</div>` : ""}
       <div class="export-foot"><div class="field grow"><label class="field__label" for="ex-dir">Pasta de destino</label>${W.input({ id: "ex-dir", bare: true, value: state === "erro" ? "D:\\Exportados\\vale-sereno-1.4.2" : "Documents\\Warden\\exportados\\vale-sereno-1.4.2", mono: true, attrs: state === "erro" ? { "aria-invalid": "true" } : {} })}</div>${B("Escolher pasta…", "", { icon: "folder-open" })}${B("Exportar", "exportado", { variant: "primary", size: "lg", icon: "package" })}</div>`;
-    return head + `<div class="stack" style="max-width:920px">${checks}${fmt}${what}</div><div style="max-width:920px">${foot}</div>`;
+    if (srv) foot = `<div class="stack" style="margin-top:16px">${untested}${W.check({ label: "Testar no servidor deste computador depois de gerar (recomendado)", checked: true })}</div><div class="export-foot"><div class="field grow"><label class="field__label" for="ex-dir2">Pasta de destino</label>${W.input({ id: "ex-dir2", bare: true, value: "Documents\\Warden\\exportados\\vale-sereno-1.4.2-servidor.zip", mono: true })}</div>${B("Escolher pasta…", "", { icon: "folder-open" })}${B("Gerar pacote para servidor", "", { variant: "primary", size: "lg", icon: "server" })}</div>`;
+    return head + `<div class="stack" style="max-width:920px">${checks}${fmt}${srv ? how + whatSrv : what}</div><div style="max-width:920px">${foot}</div>`;
   }
   def("exportar", { group: "pack", title: "Exportar", spec: "T19", render: (s) => packShell("exportar", exportContent(s)), states: { carregando: "Exportando", erro: "Disco cheio" } });
+  def("exportar-servidor", { group: "pack", title: "Exportar: pacote para servidor", spec: "T19", d4: true, render: () => packShell("exportar", exportContent("normal", { server: true })) });
   def("exportado", { group: "pack", title: "Exportado", spec: "T19", hidden: true, render: () => packShell("exportar", exportContent("normal"), { overlay: W.dialog({ esc: "exportar", size: "sm", title: "Pack exportado", body: `<p>216 arquivos, 1,2 MB, em <span class="path">Documents\\Warden\\exportados\\vale-sereno-1.4.2</span>.</p>${W.alert({ kind: "ok", compact: true, title: "Conferido com o packwiz.", text: "O pack exportado é exatamente o que o packwiz geraria." })}`, foot: B("Fechar", "exportar", { variant: "ghost" }) + B("Abrir pasta", "exportar", { variant: "primary", icon: "folder-open" }) }) }) });
 
   // ======================= INFORMAÇÕES DO PACK =======================
