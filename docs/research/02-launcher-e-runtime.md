@@ -1094,7 +1094,7 @@ reduz chamadas à IA.
 | **Refraction** (bot do Discord do Prism) | GPL-3.0 | ~30 regras (`issues.rs`, em Rust) | só leitura |
 | **Prism** upload de logs | GPL-3.0 | envia para mclo.gs por padrão | referência de UX |
 | **Not Enough Crashes** | MIT | mod que mostra tela de crash e identifica o mod suspeito | referência |
-| **Crash Assistant** | licença própria "All Rights Reserved" | GUI pós-crash, upload, auto-fixes | só referência de UX; não portar |
+| **Crash Assistant** | licença própria "All Rights Reserved" (**correção da tarefa D4:** é a KostromDan's Modded Minecraft License 1.1.3, com cláusula de não concorrência; ver R5A §1.2 e ADR-0033) | GUI pós-crash, upload, auto-fixes | só referência de UX; não portar; o Warden só inclui o mod no pack por referência e nunca usa o código dele |
 
 Fontes: https://github.com/aternosorg/codex-minecraft, https://github.com/aternosorg/codex,
 https://github.com/aternosorg/mclogs, https://github.com/HMCL-dev/HMCL/blob/main/HMCLCore/src/main/java/org/jackhuang/hmcl/game/CrashReportAnalyzer.java,

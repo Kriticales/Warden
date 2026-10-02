@@ -1,6 +1,6 @@
 # ADR-0014 — Diagnóstico determinístico em duas camadas e IA com consentimento
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão do dono
+- **Status:** aceita; **substituída em parte pela [ADR-0030](0030-ia-com-ferramentas-e-conversas.md)** (consentimento por conversa e IA com ferramentas) · **Data:** 2026-10-01 · **Origem:** decisão do dono
 
 ## Contexto
 
