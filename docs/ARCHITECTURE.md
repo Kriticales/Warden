@@ -1,6 +1,6 @@
 # Warden — Arquitetura técnica
 
-> Versão do documento: 1.1 (2026-10-01). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub.
+> Versão do documento: 1.2 (2026-10-01). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; e na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor.
 > Público: agentes de implementação e orquestrador. O dono pode ler a §1 para ter a visão geral.
 > Fonte de verdade das decisões: `docs/decisions/` (ADRs citados como ADR-00NN). O que é produto está em `SPEC.md`; padrões obrigatórios em `QUALITY.md`; ordem de construção em `ROADMAP.md`.
 
@@ -42,10 +42,11 @@
 │    estado: registro de operações, travas por pack, configurações, cofre            │
 └─────────┬───────────────┬──────────────────┬────────────────┬─────────────────────┘
           │               │                  │                │
-   sidecar packwiz   processo java      HTTPS (Mojang, Modrinth,   git (libgit2,
-   (refresh/export)  (o jogo de teste)  CurseForge, Adoptium,      embutida)
-                                         Fabric/Forge/NeoForge,
-                                         GitHub, Gemini)
+   sidecar packwiz   processos java     HTTPS (Mojang, Modrinth,   git (libgit2,
+   (refresh/export/  (o jogo de teste;  CurseForge, Adoptium,      embutida)
+   curseforge        servidor local     Fabric/Forge/NeoForge,
+   import)           sob demanda, só    GitHub, Gemini)
+                     em 127.0.0.1)
 ```
 
 Princípios:
@@ -114,21 +115,28 @@ Regras do monorepo:
 | `warden-modrinth` | Cliente da API v2 do Modrinth e cache persistente de metadados (SQLite). | core, http |
 | `warden-curseforge` | Cliente da API da CurseForge (chave injetada), detecção de distribuição bloqueada, impressão digital murmur2. Sem persistência (termos da CurseForge). | core, http, packwiz (murmur2) |
 | `warden-catalog` | Catálogo de versões: manifesto da Mojang (ordem oficial), Fabric meta, Forge (maven-metadata + promotions, sufixos legados), NeoForge (API maven, `net.neoforged:forge` para 1.20.1), denylist de versões quebradas, cache. | core, http |
-| `warden-jarmeta` | Leitura de metadados de jars sem extrair: `fabric.mod.json` (com `jars[]`), `quilt.mod.json` (só leitura, para identificar), `META-INF/mods.toml`, `META-INF/neoforge.mods.toml`, `META-INF/jarjar/metadata.json`, `mcmod.info` tolerante, `MANIFEST.MF` (coremods), versão de classe Java; dialetos de faixa (Fabric, Maven, `@Mod`), FlexVer. | core |
-| `warden-project` | Serviço de domínio do pack: registro de packs, criar/abrir, inventário guiado pelo índice, busca combinada Modrinth + CurseForge (§17), adicionar/remover/atualizar, dependências, deduplicação, lado, opcionais, fixar, higiene, transação de escrita (§6.5). | core, packwiz, packwiz-cli, modrinth, curseforge, catalog, jarmeta, http |
-| `warden-configs` | Formatos de config com preservação: TOML, JSON/JSONC, JSON5, `.properties`, `.cfg` do Forge antigo, `options.txt`; modelo em árvore; edições mínimas; comparação semântica. | core |
+| `warden-jarmeta` | Leitura de metadados de jars sem extrair: `fabric.mod.json` (com `jars[]`), `quilt.mod.json` (só leitura, para identificar), `META-INF/mods.toml`, `META-INF/neoforge.mods.toml`, `META-INF/jarjar/metadata.json`, `mcmod.info` tolerante, `MANIFEST.MF` (coremods), versão de classe Java; dialetos de faixa (Fabric, Maven, `@Mod`), FlexVer. D4: **índices** pacote → jar → modid e config de mixin → mod, descendo em jars aninhados, com cache por hash (§9.6); leitura de arquivos de idioma (`assets/<modid>/lang/*.json`) e da lista de itens, blocos e tags (`assets/*/models/item`, `data/*/tags`) para os rótulos de config e os IDs dos scripts. | core |
+| `warden-project` | Serviço de domínio do pack: registro de packs, criar/abrir, inventário guiado pelo índice, busca combinada Modrinth + CurseForge (§17), adicionar/remover/atualizar (inclusive vários itens de uma vez), dependências, deduplicação, lado, opcionais, fixar, higiene, transação de escrita (§6.5); D4: mods iniciais, kits de desempenho e ferramentas do jogador (dados versionados em `crates/warden-project/data/`). | core, packwiz, packwiz-cli, modrinth, curseforge, catalog, jarmeta, http |
+| `warden-configs` | Formatos de config com preservação: TOML, JSON/JSONC, JSON5, `.properties`, `.cfg` do Forge antigo, `options.txt`; modelo em árvore; edições mínimas; comparação semântica. D4: metadados em camadas para o formulário (§10.1), padrões da camada A, índice de busca em todas as configs. | core, jarmeta |
 | `warden-java` | Runtimes Java: descoberta, download (Adoptium; fallback Mojang), validação, política de seleção "mais novo que funciona" com motivo e atualização dos Javas instalados (§7.3). | core, http |
-| `warden-launcher` | Interface `LauncherEngine`, adaptador do motor escolhido no spike S1, perfil offline, supervisão do processo, leitura de logs do jogo (log4j XML e texto). | core, java, catalog |
-| `warden-instance` | Instância de teste: materialização pack → instância, manifesto de estado, linha de base, captura instância → pack, comparação de três vias. | core, packwiz, configs, modrinth, curseforge, http |
-| `warden-diagnostics` | Regras pré-teste, análise pós-crash, dados curados, redação de dados pessoais, montagem do relatório. | core, packwiz, jarmeta, catalog, modrinth, curseforge |
-| `warden-ai` | Cliente Gemini, montagem do conteúdo a enviar (a partir do relatório já redigido ou de um log escolhido pelo usuário, redigido), esquema de resposta, respostas anteriores por pack (§9.5). | core, http, diagnostics |
+| `warden-launcher` | Interface `LauncherEngine`, adaptador do motor escolhido no spike S1, perfil offline, supervisão do processo, leitura de logs do jogo (log4j XML e texto). D4: Quick Play (entrar direto num mundo ou no servidor local) e propriedades de sistema por teste (§7.1). | core, java, catalog |
+| `warden-instance` | Instância de teste: materialização pack → instância, manifesto de estado, linha de base, captura instância → pack, comparação de três vias. D4: filtro das ferramentas do jogador, materialização de subconjuntos com links físicos para a busca do culpado, instância limpa pelo link do pack com o bootstrap em cache (§8.5). | core, packwiz, configs, modrinth, curseforge, http |
+| `warden-diagnostics` | Regras pré-teste, análise pós-crash, dados curados, redação de dados pessoais, montagem do relatório. D4: grafo de dependências e consultas, assinatura de travamento e histórico de travamentos, nota de saúde, console agrupado (normalização e atribuição), achados de faixa de config e de memória (§9.6, §9.8). | core, packwiz, jarmeta, catalog, modrinth, curseforge |
+| `warden-ai` | Cliente Gemini com *function calling*: laço de ferramentas sem estado, registro de ferramentas de leitura e de proposta, conferência de evidências, consentimento por conversa, conversas por pack (§9.5, ADR-0030). As ferramentas leem por traits implementados pela `warden-app` (sem depender das crates de cima). | core, http, diagnostics |
+| `warden-mixin` | Raio-x de mixins: configs de mixin, refmaps e anotações das classes (`cafebabe`), inventário por mod, sobreposições por ponto de aplicação e regras de risco com rebaixadores e elevadores (§9.6, ADR-0034). | core, jarmeta |
+| `warden-bisect` | Busca do culpado: ordem topológica, prefixos, busca binária, minimização para pares, comparação de assinaturas, estado persistente e pausável; algoritmo puro, testado com um executor simulado (§9.7, ADR-0031). | core, diagnostics |
+| `warden-server` | Servidor local sob demanda: instaladores de servidor por loader, `server.properties` controlado, EULA, ciclo de vida, comandos pelo stdin, detecção de "Done" (§7.6, ADR-0032). | core, http, java, catalog, instance |
+| `warden-perf` | Desempenho do jogo: RAM do processo, leitor de `hsperfdata`, tempos de carregamento (total e por mod a partir dos logs), leitura de `.sparkprofile` (protobuf), achados de memória (§7.7, ADR-0038). | core |
+| `warden-discovery` | Página de descoberta: início (populares, atualizados, kits), mapeamento curado de categorias, mescla por números, modpacks (lista de mods pela API do Modrinth e leitura por partes de `.mrpack`/`manifest.json`), compatibilidade com o pack (§17.1). | core, http, modrinth, curseforge |
+| `warden-import` | Importar `.mrpack`, zip da CurseForge (via sidecar em staging) e instâncias do Prism/MultiMC e do app da CurseForge para o formato packwiz, com higiene obrigatória (§12.2, ADR-0035). | core, packwiz, packwiz-cli, modrinth, curseforge, http, jarmeta |
+| `warden-scripts` | Scripts KubeJS e CraftTweaker: detecção de versão, trechos prontos, índice de IDs, leitura de erros dos logs, cliente do servidor web local do KubeJS 7, comando de recarga certo por versão (§10.2, ADR-0037). | core, jarmeta, http |
 | `warden-versioning` | Git embutido (`git2`): repositório, ponto inicial, salvar versão, versão final, tags, pontos de segurança, restauração transacional, diffs, changelog e notas de publicação, publicação no GitHub (linha de publicação, push, Release pela API REST; §11.1). Nomes legíveis de versões vêm de um trait `VersionNameResolver` implementado pela `warden-app` (com Modrinth e CurseForge). | core, packwiz, http |
-| `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação. | core, packwiz, packwiz-cli, project |
+| `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação; P1 (D4): pacote para servidor nas duas variantes (§12.1). | core, packwiz, packwiz-cli, project |
 | `warden-secrets` | Armazenamento de segredos: cofre do sistema (`keyring`, padrão) ou arquivo `.env` na pasta de configuração (escolha do usuário, ADR-0025), migração entre os dois, `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
-| `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `win-dev`, `win-install` (F0-04); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes); `notices` (A-02). | — (ferramenta) |
+| `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `win-dev`, `win-install` (F0-04); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes; L-07 acrescenta o `packwiz-installer.jar`); `notices` (A-02); `check-kits` (P1-18: valida kits e mods iniciais contra a API do Modrinth). | — (ferramenta) |
 
-Grafo sem ciclos; `warden-core` não depende de ninguém. Nenhuma crate de domínio chama outra "para cima" (ex.: `warden-instance` não depende de `warden-project`; quem orquestra é `warden-app`).
+Grafo sem ciclos; `warden-core` não depende de ninguém. Nenhuma crate de domínio chama outra "para cima" (ex.: `warden-instance` não depende de `warden-project`; quem orquestra é `warden-app`). A busca do culpado, o servidor local, a validação do pacote para servidor e as ferramentas da IA são orquestrados pela `warden-app` (`bisect_session.rs`, `server_session.rs`, `ai_tools/`), que liga instância, launcher, servidor e diagnóstico.
 
 ## 4. Fronteira com a interface: comandos, eventos e canais
 
@@ -151,16 +159,26 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | catalog | `catalog_minecraft_versions`, `catalog_loader_versions` |
 | packs | `packs_list`, `pack_create`, `pack_import`, `pack_relocate`, `pack_reveal_folder`, `pack_forget`, `pack_trash` (P1), `pack_get`, `pack_update_meta`, `pack_hygiene_scan`, `pack_hygiene_fix` |
 | inventory | `inventory_list`, `item_details`, `items_set_side`, `items_remove_plan`, `items_remove`, `item_set_optional` (P1), `item_set_pin` (P1), `item_change_version_plan` (P1), `pack_change_loader_version_plan` (P1), `instance_set_optional_choices` (P1) |
-| search/add | `search_projects` (busca combinada; as fontes são internas), `project_details`, `project_versions`, `add_plan`, `add_apply`, `add_from_link_plan`, `add_local_files_plan` |
+| search/add | `search_projects` (busca combinada; as fontes são internas), `project_details`, `project_versions`, `project_gallery` (P1), `project_changelog` (P1), `add_plan` (aceita vários itens), `add_apply`, `add_from_link_plan`, `add_local_files_plan` |
 | updates | `updates_check`, `updates_plan`, `updates_apply` |
-| configs | `config_tree`, `config_read`, `config_write`, `config_structured_read` (P1), `config_structured_apply` (P1), `config_set_preserve` (P1) |
-| test | `test_start`, `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file` |
+| configs | `config_tree`, `config_read`, `config_write`, `config_search` (P0), `config_structured_read` (P1, com metadados em camadas), `config_structured_apply` (P1), `config_restore_default` (P1), `config_set_preserve` (P1) |
+| test | `test_start` (com o perfil e o modo: normal, como o jogador recebe, com perfil de desempenho, como servidor), `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file` |
 | capture | `capture_changes`, `capture_apply`, `capture_discard` |
 | diagnostics | `diagnostics_run`, `diagnostics_report_get`, `diagnostics_ignore` (P1) |
-| ai | `ai_sources_list` (P1: último travamento, outras sessões), `ai_preview` (P1; aceita sessão ou arquivo escolhido pelo diálogo nativo), `ai_analyze` (P1), `ai_history_list` (P1), `ai_history_get` (P1), `ai_history_delete` (P1) |
+| ai | `ai_sources_list` (P1: último travamento, outras sessões), `ai_conversation_preview` (P1: texto inicial e o que a IA poderá consultar; aceita sessão ou arquivo escolhido pelo diálogo nativo), `ai_conversation_start` (P1, com as permissões escolhidas), `ai_conversation_send` (P1), `ai_conversations_list`, `ai_conversation_get`, `ai_conversation_delete` (P1), `ai_proposal_apply`, `ai_proposal_discard` (P1) |
+| graph | `graph_dependents` (P0: transitivos), `graph_why_in_pack` (P0), `graph_orphans` (P0), `graph_focus` (P1: nós e ligações em volta de um item) |
+| xray | `xray_mod` (P1: inventário e sobreposições de um mod), `xray_overlaps` (P1: todas as sobreposições do pack) |
+| health | `health_get` (P1: nota, faixa e o que tirou pontos), `crashes_list` (P0: travamentos agrupados por assinatura), `crash_get` (P0) |
+| bisect | `bisect_plan` (P1: estimativa, sempre ligados, desligados), `bisect_start`, `bisect_pause`, `bisect_resume`, `bisect_cancel`, `bisect_answer` (modo assistido), `bisect_get` (P1) |
+| perf | eventos de amostra pelo canal do teste; `perf_report_get` (P1: tempos por mod e resumo do spark de uma sessão), `perf_open_spark_viewer` (P1: abre o arquivo local no navegador) |
+| profiles | `test_profiles_list`, `test_profile_save`, `test_profile_delete`, `test_profile_select` (P1) |
+| server | `server_plan` (P1: memória, mods de fora, EULA), `server_start`, `server_command`, `server_stop` (P1), `eula_status`, `eula_accept`, `eula_revoke` (P1) |
+| discover | `discover_home` (P0: populares, atualizados, categorias; P1: kits), `discover_categories` (P0), `modpack_contents` (P1), `kits_list` (P1), `initial_mods_plan` (P0) |
+| import | `import_detect` (P1), `import_plan` (P1: o que vira referência, arquivo local, revisão e lixo), `import_run` (P1) |
+| scripts | `scripts_info` (P1: KubeJS/CraftTweaker e versão), `scripts_snippets`, `scripts_ids` (P1: IDs dos jars, e do servidor web com o jogo aberto), `scripts_errors` (P1), `scripts_reload` (P1), `scripts_open_vscode` (P1) |
 | versioning | `versions_status`, `version_suggest`, `version_save` (com "versão final" opcional), `version_mark_final`, `version_unmark_final`, `history_list`, `history_diff`, `history_restore`, `safety_points_list` (P1), `safety_point_restore` (P1) |
 | github | `github_status` (repositório, visibilidade, versão publicada, link do pack), `github_setup` (criar público/privado ou vincular existente), `publish_plan` (avisos e notas da versão), `publish_run` |
-| export | `export_preview`, `export_run` (com versão salva opcional, P1) |
+| export | `export_preview`, `export_run` (com versão salva opcional, P1; formato pacote para servidor com a variante, P1) |
 | java | `java_runtimes_list` (com os packs que usam cada um e o motivo), `java_runtime_remove`, `java_runtimes_check_updates`, `java_choice` (Java automático de um pack, com motivo) |
 
 ### 4.2 Eventos globais
@@ -171,7 +189,9 @@ Emitidos com `app.emit` para quem estiver ouvindo; tipados com `tauri-specta` (`
 |---|---|---|
 | `pack-changed` | `{ packId, areas: ("inventory" \| "configs" \| "meta" \| "history")[] }` | Invalida queries do TanStack Query. Emitido após qualquer escrita do Warden e após mudança externa detectada (P1). |
 | `operation-updated` | `OperationSnapshot` | Painel Tarefas (T22). |
-| `game-state` | `{ packId, state: "preparing" \| "running" \| "exited", sessionId }` | Cabeçalho do pack, bloqueio de "um jogo por vez". |
+| `game-state` | `{ packId, state: "preparing" \| "running" \| "bisecting" \| "exited", sessionId, profile }` | Cabeçalho do pack ("Buscando o culpado: ver progresso" no estado `bisecting`), bloqueio de "um jogo por vez" (a busca do culpado e o servidor local contam como jogo). |
+| `server-state` | `{ packId, state: "installing" \| "starting" \| "ready" \| "stopping" \| "stopped", port }` | Tela do teste com servidor (T27). |
+| `ai-conversation-updated` | `{ packId, conversationId }` | Lista de conversas e a conversa aberta. |
 
 ### 4.3 Canais por operação
 
@@ -185,12 +205,17 @@ pub enum OperationEvent {
     Stage { stage: StageId, label_key: String },           // ex.: "test.stage.prepareMinecraft"
     Progress { current: u64, total: Option<u64>, unit: ProgressUnit },
     Log { lines: Vec<LogLine> },                             // console do jogo, saída do packwiz (lotes)
+    PerfSample { rss_mb: u32, heap_used_mb: Option<u32>, heap_max_mb: Option<u32>,
+                 gc_count: Option<u32>, gc_ms: Option<u32> },  // a cada 1 s durante o teste (§7.7)
+    Round { index: u32, total_estimate: (u32, u32), enabled: u32, suspects: u32,
+            result: Option<RoundResult> },                   // busca do culpado (§9.7)
+    ToolCall { conversation_id: Ulid, sent_bytes: u64, label_key: String },  // IA (§9.5)
     Warning { error: AppError },
     Finished,                                                // o resultado vem no retorno do comando
 }
 ```
 
-O console do jogo usa o mesmo canal (`Log`). O backend agrega linhas em lotes de até 50 ms para não inundar o IPC.
+O console do jogo usa o mesmo canal (`Log`). O backend agrega linhas em lotes de até 50 ms para não inundar o IPC. Com servidor local, as linhas levam a origem (`source: game | server`) e a interface filtra pelo seletor "Mostrando".
 
 ## 5. Modelo de erros
 
@@ -219,11 +244,14 @@ pub enum ErrorCode {
     Instance(InstanceErrorCode), Diagnostics(DiagnosticsErrorCode), Ai(AiErrorCode),
     Versioning(VersioningErrorCode), Export(ExportErrorCode), Secrets(SecretsErrorCode),
     Http(HttpErrorCode),
+    // D4
+    Mixin(MixinErrorCode), Bisect(BisectErrorCode), Server(ServerErrorCode), Perf(PerfErrorCode),
+    Discovery(DiscoveryErrorCode), Import(ImportErrorCode), Scripts(ScriptsErrorCode),
 }
 ```
 
 - `CoreErrorCode` (de `warden-core`) reúne o que é comum a todos: `CANCELLED`, `TIMEOUT`, `IO`, `PATH_OUTSIDE_ROOT`, `NETWORK_UNAVAILABLE`. `PACK_CHANGED_EXTERNALLY` pertence a `Project`.
-- A F0-05 cria todos os domínios acima já com um código `INTERNAL`; tarefas posteriores só acrescentam códigos no enum da própria crate e as frases no arquivo `apps/desktop/src/i18n/errors/<domínio>.ts`, tipado como `Record<<Domínio>ErrorCode, string>` (o TypeScript falha se faltar tradução).
+- A F0-05 cria todos os domínios acima já com um código `INTERNAL` (os domínios da D4 também, para que as tarefas novas só acrescentem códigos); tarefas posteriores só acrescentam códigos no enum da própria crate e as frases no arquivo `apps/desktop/src/i18n/errors/<domínio>.ts`, tipado como `Record<<Domínio>ErrorCode, string>` (o TypeScript falha se faltar tradução).
 - Frontend: `ErrorPanel` mostra a frase traduzida, a sugestão de ação, e "Detalhes técnicos" com `domain.code`, `detail` e `operationId`, com botão Copiar.
 - `detail` nunca contém segredo (§14) e é truncado em 16 KB.
 - `INTERNAL` existe para bugs: todo `INTERNAL` visto em teste ou uso vira tarefa para criar um código específico.
@@ -333,6 +361,16 @@ Arquivos criados no pack pelo Warden:
 /xaero/
 /kubejs/probe/
 /kubejs/exported/
+# Segredos e arquivos de ferramentas (decisão D21; R5A §2.1, R5B §11):
+/kubejs/config/web_server.json
+/.probe/
+/.vscode/
+/local/kubejs/
+/config/spark/*.sparkprofile
+/config/spark/*.sparkheap
+/config/spark/tmp*
+# Só para o pacote para servidor (§12.1); nunca vai para o jogador:
+/server-overrides/
 /usercache.json
 /usernamecache.json
 /launcher_profiles*.json
@@ -358,12 +396,15 @@ desktop.ini
 
 Por que lista de bloqueio e não lista de permissão (`/*` + `!/config/`…, como Craftoria, R1 §1.A): packs usam pastas de mods variadas (`kubejs/`, `openloader/`, `paxi/`, `global_packs/`, `schematics/`…); numa lista de permissão, uma pasta nova seria excluída em silêncio. Aqui ela entra no índice e a verificação de higiene (abaixo) aponta qualquer item desconhecido na raiz para o usuário decidir. `local/` não é ignorada por padrão (alguns packs, como o ATM10, a usam como conteúdo); a higiene a sinaliza para revisão.
 
-`.gitignore`: os mesmos padrões, **exceto** `/.warden/`, `/CHANGELOG.md` e `/README.md` (que são versionados).
+`.gitignore`: os mesmos padrões, **exceto** `/.warden/`, `/CHANGELOG.md`, `/README.md` e `/server-overrides/` (que são versionados).
+
+O token do servidor web do KubeJS 7 (`kubejs/config/web_server.json`) é aleatório e a varredura de segredos por padrão (§11.1) não o reconheceria; por isso ele fica ignorado no pack e na captura, e a publicação recusa o arquivo pelo nome se ele aparecer no índice por qualquer motivo.
 
 **Bloco obrigatório:** antes de qualquer `packwiz refresh`, a `PackTransaction` confere que o `.packwizignore` contém as quatro linhas do bloco obrigatório e, se faltar alguma, acrescenta (avisando na interface). Isso vale também para packs importados cujo usuário recusou os arquivos de controle padrão: o resto do `.packwizignore` dele é respeitado, mas `.warden/` e `CHANGELOG.md` nunca entram no índice.
 
 Verificação de higiene (`pack_hygiene_scan`): procura entradas do índice e arquivos na pasta que casam com os padrões acima ou com as regras extras abaixo, e devolve itens com motivo:
-- itens na raiz que não sejam `pack.toml`, `index.toml`, `options.txt`, `optionsof.txt`, `optionsshaders.txt`, `servers.dat`, arquivos de controle ou pastas de conteúdo conhecidas (`mods/`, `resourcepacks/`, `shaderpacks/`, `config/`, `defaultconfigs/`, `kubejs/`, `scripts/`, `datapacks/`, `openloader/`, `global_packs/`, `paxi/`) — inclusive `local/`;
+- itens na raiz que não sejam `pack.toml`, `index.toml`, `options.txt`, `optionsof.txt`, `optionsshaders.txt`, `servers.dat`, arquivos de controle ou pastas de conteúdo conhecidas (`mods/`, `resourcepacks/`, `shaderpacks/`, `config/`, `defaultconfigs/`, `kubejs/`, `scripts/`, `datapacks/`, `openloader/`, `global_packs/`, `paxi/`, `server-overrides/`) — inclusive `local/`;
+- arquivos de ferramentas e segredos listados no bloco "Segredos e arquivos de ferramentas" acima, mesmo que estejam fora do índice;
 - arquivos acima de 20 MB que não sejam jars de mods;
 - pastas desconhecidas (fora da lista acima) com mais de 1.000 arquivos (sinal de cache).
 
@@ -396,10 +437,12 @@ pub struct GameSpec {
 }
 
 pub struct LaunchOptions {
-    pub game_dir: PathBuf,                       // instances/<id>/minecraft
+    pub game_dir: PathBuf,                       // instances/<id>/minecraft (ou bisect/, ou a temporária)
     pub java: JavaRuntime,                       // escolhido por warden-java
     pub memory_mb: u32,
     pub extra_jvm_args: Vec<String>,             // já validados
+    pub system_props: Vec<(String, String)>,     // D4: -Dfml.queryResult=confirm, -Dfabric.noGui, log TRACE no perfil de desempenho
+    pub quick_play: Option<QuickPlay>,           // D4: Singleplayer { world } (1.20+) | Multiplayer { host, port } (§7.8)
     pub player: OfflineProfile,
 }
 
@@ -447,17 +490,48 @@ pub trait LauncherEngine: Send + Sync {
 - Configuração de log4j: segue o `logging` efetivo do perfil (XML da Mojang para vanilla/Fabric; nada para NeoForge, que usa o próprio `debug.log`; nada para os perfis do Forge que anulam `logging` com configuração própria **verificada** como segura, como 1.12.2, 1.16.5 e 1.20.1 em R2 §3.1). Nunca lançar versão ≤ 1.18 sem configuração log4j segura (R2 §1.7): onde a segurança da configuração do loader não foi verificada (ex.: Forge 1.7.10, com log4j 2.0-beta9, que não tem `nolookups`), usa-se o XML corrigido da Mojang da faixa (`client-1.7.xml`/`client-1.12.xml`). A L-02 verifica cada faixa da matriz com um teste que confirma que `${jndi:…}` não é expandido.
 - Encerramento: Windows usa *Job Object* com `KILL_ON_JOB_CLOSE` (o jogo morre se o Warden fechar); "Parar jogo" encerra o job. Linux usa grupo de processos e `SIGTERM` → `SIGKILL` após 3 s. O código `unsafe` necessário fica isolado em `warden-launcher/src/process/windows.rs`, com comentário `SAFETY` em cada bloco.
 - Classificação da saída: "Encerrado por você" se foi pedido; "Travou" se código ≠ 0, se apareceu crash report novo ou `hs_err_pid` novo; senão "Fechado normalmente".
-- Sessão gravada em `instances/<id>/state/sessions/<data-hora>/` (`output.log` com tudo o que saiu dos pipes, `session.json` com resultado, duração, versão do pack e caminhos dos artefatos de crash).
+- Sessão gravada em `instances/<id>/state/sessions/<data-hora>/` (`output.log` com tudo o que saiu dos pipes, `session.json` com resultado, duração, versão do pack e caminhos dos artefatos de crash). D4: `session.json` também guarda o hash da árvore do pack testada (commit ou árvore de trabalho), o resumo da lista de mods, o perfil do teste, o modo (normal, como o jogador recebe, perfil de desempenho, como servidor, rodada da busca), a **assinatura** do travamento (§9.6), o pico de RAM e os tempos até carregar e até entrar no mundo (§7.7). Retenção: sessões que fecharam normalmente ficam as 30 mais novas; as que travaram, até 500 MB por pack, com aviso antes de apagar.
+- **Marcadores de "carregou" e "entrou no mundo"** por faixa de versão (os mesmos da matriz L-05, completados pelo spike S-R5-3): carregou = marcadores do S1 §3.4 (atlas de texturas e `Sound engine started`); entrou no mundo = `logged in with entity id` (igual de 1.7.10 à versão mais nova); servidor pronto = `Done (…)! For help, type "help"`.
+- **Leitura de memória:** se os argumentos do teste tiverem `-XX:+PerfDisableSharedMem` ou `-XX:-UsePerfData` (comuns nas "flags do Aikar"), o Warden avisa que a memória da JVM não poderá ser lida e oferece remover (ADR-0038).
 
 ### 7.5 Forge
 
 O instalador do Forge pede para não automatizar o download. O Warden automatiza (sem isso o requisito é inviável), baixa sempre do Maven oficial, não espelha instaladores e mostra em Sobre o crédito ao Forge com o link de apoio do próprio instalador (R2 §3.4).
 
+### 7.6 Servidor local (ADR-0032)
+
+`warden-server`, usado por "Testar como servidor" (T27), pela validação do pacote para servidor (§12.1) e pela busca do culpado (§9.7), sempre a pedido do usuário:
+
+- **Pasta:** `instances/<pack-id>/server/` (separada da instância de cliente). O pack é materializado pelo mesmo algoritmo da §8.2 com o filtro inverso: entram os itens cujo lado não é `client`.
+- **Instalação** (idempotente, cacheada por versão): vanilla pelo `downloads.server` do JSON da versão; Fabric pelo jar de servidor do Fabric meta (`/v2/versions/loader/<mc>/<loader>/<installer>/server/jar`); Forge e NeoForge pelo instalador oficial com `--installServer <pasta>` (Forge 1.17+ e NeoForge geram `run.bat`/`run.sh` e `*_args.txt`; Forge ≤ 1.16.5 gera um jar executável; Forge 1.7.10/1.12.2 usa o instalador legado e Java 8). O motor do launcher não instala servidor (R5B §4.2).
+- **EULA:** `eula.txt` com `eula=true` só é gravado se `settings.json` tiver o aceite (`eulaAcceptedAt`), dado pelo diálogo da T27 com o link https://aka.ms/MinecraftEULA. Revogar apaga o aceite; o próximo servidor pergunta de novo.
+- **`server.properties` controlado:** `server-ip=127.0.0.1`, `server-port` = porta livre testada antes, `online-mode=false`, `enable-rcon=false`, `enable-query=false`, `motd` com o nome do pack; o resto vem do `server.properties` do pack, se houver, com essas chaves sempre sobrescritas.
+- **Processo:** mesmo supervisor da §7.4 (Job Object, pipes, decodificação), com stdin em pipe para comandos (`reload`, `kubejs reload server_scripts`, `spark profiler …`). Pronto quando casar `Done \([\d.,]+s\)! For help, type "help"` (também aceita o sufixo ` or "?"` de versões antigas).
+- **Parar:** `stop\n` no stdin; se não sair em 60 s, encerra o job. Ao fim do teste ou da rodada, o servidor sempre é parado; fechar o Warden com servidor aberto pede confirmação e encerra.
+- **Memória:** antes de abrir, `server_plan` compara servidor + jogo com a RAM livre (API do sistema) e devolve o aviso; nada abre sem confirmação.
+- **Cliente conectado:** `QuickPlay::Multiplayer { host: "127.0.0.1", port }` (§7.8); em versões anteriores a 1.20, `--server`/`--port`.
+
+### 7.7 Desempenho do jogo (ADR-0038)
+
+`warden-perf`, ligado ao supervisor pela `warden-app` (`test_hooks/perf.rs`), com amostras a cada 1 s enviadas como `OperationEvent::PerfSample`:
+
+- **RAM do processo** (P0): Windows `GetProcessMemoryInfo` (`PROCESS_MEMORY_COUNTERS_EX`: `WorkingSetSize`, `PrivateUsage`) pelo handle que o supervisor já tem, e `PeakProcessMemoryUsed` do Job Object; Linux pelo `/proc/<pid>/status`. Código `unsafe` isolado em `warden-perf/src/process/windows.rs`, com comentário `SAFETY`.
+- **Tempos** (P0): do início do processo até o marcador de "carregou" e até "entrou no mundo" (§7.4), gravados na sessão e comparados com a última sessão de outra versão do pack.
+- **Heap da JVM** (P1, depois do spike S-R5-2): leitor próprio do arquivo `hsperfdata` (Windows: *file mapping* nomeado `hsperfdata_<usuário>_<pid>` e o arquivo em `%TEMP%\hsperfdata_<usuário>\<pid>`, procurado por `hsperfdata_*\<pid>` para tolerar nomes com acento; Linux: `/tmp/hsperfdata_<usuário>/<pid>`). Cabeçalho `0xcafec0c0`; heap usada = soma de `sun.gc.generation.*.space.*.used`; máximo = `-Xmx` passado pelo Warden; coletas = `sun.gc.collector.N.invocations`/`time`. Sem o arquivo (OpenJ9, flags que desligam), a amostra vai sem heap e a interface diz o motivo.
+- **Achados de memória** (P1): `W_LOW_HEAP` quando a heap depois das coletas fica acima de 90% do máximo por mais de 60 s; `I_HEAP_OVERSIZED` quando nunca passa de 40% com mais de 8 GB configurados.
+- **Tempo por mod** (P1, "Testar com perfil de desempenho"): Forge 1.12.2 lê `Bar Step: <fase> - <mod> took X.XXXs` do `debug.log`; Forge 1.7.10 lê os pares `Sending event`/`Sent event` do `fml-client-latest.log`; Forge/NeoForge modernos ligam o nível `TRACE` só neste teste (`-Dforge.logging.debugFile.level=trace`) e casam `Loading mod instance`/`Loaded mod instance` e `Firing event`/`Fired event` por thread; NeoForge também `Mod '{}' took {} to run a deferred task.`; Fabric não tem dado por mod (o resultado diz isso). No NeoForge, nunca passar config de log4j própria (some o `debug.log`, R5A §7.1).
+- **spark** (P1): os `.sparkprofile`/`.sparkheap` salvos na instância são lidos com `prost` a partir dos `.proto` públicos do spark (copiados com a licença GPL-3.0 registrada em `THIRD_PARTY.md`; o app é privado, ADR-0004), agrupando os frames por jar pelo índice de pacotes (§9.6). No servidor local, "perfil de desempenho" envia `spark profiler start --timeout 60 --save-to-file` pelo stdin. "Abrir no visualizador do spark" abre o arquivo local no navegador padrão; nunca há upload.
+
+### 7.8 Perfis do teste e Quick Play
+
+- Perfis guardados em `packs.json`, por pack: `{ id, nome, memoria_mb, java (auto ou caminho), jvm_args, opcionais, janela, ao_abrir: "menu" | "mundo" }`, com um "Padrão" que não pode ser apagado. O perfil ativo vai em `game-state` para o cabeçalho.
+- **Quick Play:** a partir do 23w14a (Minecraft 1.20), `--quickPlaySingleplayer <pasta do mundo>` abre um mundo direto e `--quickPlayPath <arquivo>` faz o jogo gravar um JSON quando entra no mundo (sinal estruturado de "entrou"); `QuickPlay::Multiplayer` usa `--quickPlayMultiplayer host:port`. Antes de 1.20, só o multiplayer funciona, por `--server`/`--port` (removidos no 23w14a). O adaptador do motor converte (o portablemc já tem `set_quick_play` e a correção para versões antigas, R5B §4.1).
+
 ## 8. Instância de teste: materialização e captura
 
 ### 8.1 Pasta
 
-`instances/<pack-id>/minecraft/` é o `gameDir`. `instances/<pack-id>/state/` guarda `manifest.json`, `baseline/`, `sessions/` e `optional-choices.json`. Nada de `state/` fica dentro do `gameDir`.
+`instances/<pack-id>/minecraft/` é o `gameDir`. `instances/<pack-id>/state/` guarda `manifest.json`, `baseline/`, `sessions/`, `optional-choices.json` e, durante uma busca do culpado, `bisect.json`. Nada de `state/` fica dentro do `gameDir`. D4: `instances/<pack-id>/bisect/` (instância da busca do culpado, recriada a cada rodada e apagada no fim), `instances/<pack-id>/server/` (servidor local) e `cache/tmp/player-test-<ULID>/` (instância temporária do "Testar como o jogador recebe").
 
 ### 8.2 Materialização (pack → instância; ADR-0011)
 
@@ -474,6 +548,8 @@ Mesma semântica do packwiz-installer, implementada em Rust (`warden-instance`):
 7. Antes de sobrescrever um arquivo gerenciado que foi alterado na instância e ainda não revisado, a operação para e pede revisão (T15).
 8. Gravar o novo `manifest.json` (`caminho → { sha256, origem, hashDoÍndice }`).
 9. Mods da CurseForge com download bloqueado: a operação devolve a lista para T20 e espera os arquivos.
+10. **Ferramentas do jogador** (D4, ADR-0033): a lista vem de `.warden/project.toml` (`[player-tools]`). Na instância de teste normal, os itens marcados como "fora dos testes" (o Crash Assistant) são pulados como se fossem opcionais desligados; na busca do culpado, todas as ferramentas do jogador são puladas, a menos que estejam entre os suspeitos; no "Testar como o jogador recebe", nada é pulado (é o packwiz-installer real que instala).
+11. **Subconjuntos da busca do culpado** (D4): a materialização recebe a lista de itens ligados e recria `mods/` com **links físicos** a partir de `cache/downloads/` (no mesmo volume; senão, cópia). Configs vêm do pack a cada rodada; mundos, de cópias descartáveis.
 
 **Teste de conformidade:** instalar o mesmo pack com o packwiz-installer real (lado cliente, a partir do caminho local) e com o Warden, em pastas vazias, e exigir árvores idênticas (ignorando `packwiz.json` e `state/`).
 
@@ -496,11 +572,24 @@ usercache.json  usernamecache.json  hotbar.nbt  command_history.txt  realms_pers
 hs_err_pid*.log  replay_pid*.log  *.heapdump
 .fabric/  .quilt/  .mixin.out/  .cache/  local/  mods/.connector/  modernfix/
 kubejs/exported/  kubejs/probe/  journeymap/data/  XaeroWaypoints/  XaeroWorldMap/  xaero/
+kubejs/config/web_server.json  .probe/  .vscode/  local/kubejs/
+config/spark/*.sparkprofile  config/spark/*.sparkheap  config/spark/tmp*
 packwiz.json  packwiz-installer*.jar
 *.bak  *.old  *.tmp  servers.dat_old
 ```
 
+(`local/` inteira já é ignorada na captura; `local/kubejs/` aparece explícita porque o KubeJS 7 grava ali exportações e scripts locais.) Os `*-N.toml.bak` que o NeoForge cria ao corrigir uma config caem em `*.bak`.
+
 A lista vive em `crates/warden-instance/data/capture-ignore.txt` (formato gitignore), com testes.
+
+### 8.5 Testar como o jogador recebe (D4; R5B §4.3)
+
+1. Garantir no cache (`cache/installer/`) o `packwiz-installer-bootstrap.jar` e o `packwiz-installer.jar` com versão e SHA-256 fixados no código (baixados da URL de download do Release, que não passa pela API do GitHub).
+2. Origem: o **link do pack** publicado (ADR-0028). Sem publicação, o Warden exporta o estado atual (§12) para `cache/staging/` e o serve por um servidor HTTP só em `127.0.0.1`, numa porta livre, durante o teste.
+3. Pasta temporária `cache/tmp/player-test-<ULID>/`; rodar `java -jar bootstrap --bootstrap-no-update --bootstrap-main-jar <cache>/packwiz-installer.jar -g -s client <link>` com o Java do teste (sem janela).
+4. Ler o `pack.toml` baixado e comparar o hash com o da última publicação; diferente → aviso de cache do GitHub (até 5 minutos, `cache-control: max-age=300`).
+5. Falhas por mod da CurseForge bloqueado viram resultado do teste, não erro.
+6. Abrir o jogo com o loader do `pack.toml` baixado, como numa sessão normal (mesma supervisão e diagnóstico). No fim, apagar a pasta temporária e manter os logs na sessão.
 
 ## 9. Diagnóstico
 
@@ -555,20 +644,25 @@ Regras (códigos estáveis):
 | `I_LEGACY_COREMOD` | Coremod/tweaker em 1.7.10/1.12.2. | informação | MANIFEST |
 | `I_PACK_FORMAT` | `pack_format` de resource pack incompatível com a versão. | informação | zip |
 | `W_DOWNLOAD_BLOCKED` | Mod da CurseForge com distribuição bloqueada. | aviso | API |
+| `W_MIXIN_OVERLAP` | (P1, D4) Dois ou mais mods alteram o mesmo ponto do jogo com risco alto ou médio, depois dos rebaixadores (§9.6). Nunca bloqueia; conta só na categoria Mixins da nota de saúde. | aviso | jar |
+| `W_CONFIG_RANGE` | (P1, D4) Valor de config fora da faixa ou dos valores permitidos que o próprio arquivo informa (§10.1). | aviso | arquivo do pack |
+| `W_PERF_FLAGS` | (P1, D4) Argumentos do teste que impedem ler a memória da JVM (`-XX:+PerfDisableSharedMem`, `-XX:-UsePerfData`). | aviso | ajustes do teste |
+| `W_UNDECLARED_DEP` | (P1, D4) Dependência não declarada descoberta pela busca do culpado ou pelo log (`NoClassDefFoundError` de uma classe de outro mod), guardada como aresta inferida do grafo. | aviso | log |
 
-Dados curados em `crates/warden-diagnostics/data/` (`exclusive-categories.toml`, `known-conflicts.toml`, `obsolete.toml`), embutidos no binário com `include_str!` e validados por teste (esquema e IDs existentes). Atualização remota dos dados é P2.
+Dados curados em `crates/warden-diagnostics/data/` (`exclusive-categories.toml`, `known-conflicts.toml`, `obsolete.toml`, `mixin-known-compatible.toml`, `log-noise.toml`, `health-score.toml`), embutidos no binário com `include_str!` e validados por teste (esquema e IDs existentes). Atualização remota dos dados é P2. Achados de execução (`W_LOW_HEAP`, `I_HEAP_OVERSIZED`) vêm da `warden-perf` (§7.7).
 
 ### 9.3 Pós-crash
 
 1. Coleta: código de saída, `output.log` da sessão, `logs/latest.log`, `logs/debug.log` (ou `logs/fml-client-latest.log` em Forge antigo), `crash-reports/*` e `hs_err_pid*.log` com data posterior ao início da sessão.
 2. Limpeza: remove códigos `§x` e ANSI.
-3. Catálogo de padrões em `crates/warden-diagnostics/data/log-patterns.toml`: cada padrão tem `id`, regex (crate `regex`), escopo (loader/faixa de versão), extratores de grupos e o `Finding` produzido. Ponto de partida: os 35 padrões de R2 §6.3 e as classes de problema do codex-minecraft (MIT, porte com atribuição em `THIRD_PARTY.md`).
+3. Catálogo de padrões em `crates/warden-diagnostics/data/log-patterns.toml`: cada padrão tem `id`, regex (crate `regex`), escopo (loader/faixa de versão), extratores de grupos e o `Finding` produzido. Ponto de partida: os 35 padrões de R2 §6.3 e as classes de problema do codex-minecraft (MIT, porte com atribuição em `THIRD_PARTY.md`). D4: o padrão de falha de Mixin aponta o mod dono da config citada pelo índice config → mod (§9.6); o padrão `Incorrect key {chave} was corrected from {valor} to its default` do NeoForge vira o achado "config resetada pelo jogo" (R5B §2.3); o Crash Assistant nunca é fonte (ADR-0033).
 4. Evidência = arquivo + linha + trecho; achado mais provável primeiro (crash report > tela de erro do loader > exceção mais profunda > padrões genéricos).
 5. Corpus de testes: logs reais em `crates/warden-diagnostics/tests/corpus/<caso>/` com o resultado esperado.
+6. **Assinatura** (D4, §9.6): ao fim da análise, o achado principal gera a assinatura da sessão, gravada no `session.json`.
 
 ### 9.4 Redação de dados pessoais
 
-`warden-diagnostics::redact` (usada antes de qualquer envio à IA e no "Copiar relatório"):
+`warden-diagnostics::redact` (usada antes de qualquer envio à IA, nas palavras de erro mandadas na busca de issues do GitHub e no "Copiar relatório"):
 
 | Dado | Substituição |
 |---|---|
@@ -581,15 +675,84 @@ Dados curados em `crates/warden-diagnostics/data/` (`exclusive-categories.toml`,
 
 A redação é testada com casos positivos e negativos; o diálogo de consentimento mostra o texto **depois** da redação, e esse é exatamente o texto enviado.
 
-### 9.5 IA (Gemini, P1)
+### 9.5 IA (Gemini com ferramentas, P1; ADR-0030)
 
-- API REST `generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent`, chave no cabeçalho `x-goog-api-key`.
-- Modelo configurável; padrão resolvido na primeira configuração pela lista de modelos da conta (`models.list`), preferindo a família "flash" mais recente estável. Nada fixo no código.
-- Conteúdo: resumo do pack (versão MC, loader, lista de mods com id/versão/lado), achados determinísticos, trechos relevantes dos logs (orçamento total de 200 KB de texto), tudo redigido.
-- Resposta em JSON com esquema (`responseSchema`): `{ causaProvavel, confianca: "baixa"|"media"|"alta", passos: string[], modsEnvolvidos: string[] }`; validada antes de exibir.
-- Tempo-limite 90 s; erros mapeados (`AI_KEY_INVALID`, `AI_QUOTA_EXCEEDED`, `AI_TIMEOUT`, `AI_BAD_RESPONSE`).
-- **Seção ✦ Diagnóstico com IA** (ADR-0026): a origem do conteúdo pode ser o último travamento, outra sessão guardada em `instances/<id>/state/sessions/` ou um log/crash report escolhido no computador pelo diálogo nativo (só texto, até 20 MB lidos, tratado como entrada não confiável, mesma limpeza da §9.3 e mesma redação da §9.4 antes de mostrar o consentimento).
-- **Respostas anteriores:** cada análise grava `ai/<pack-id>/<ULID>.json` nos dados locais (§13) com data, origem, modelo, o texto enviado (já redigido) e a resposta validada. Nunca na pasta do pack. `ai_history_delete` apaga uma resposta.
+**API.** REST `generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent`, chave no cabeçalho `x-goog-api-key`, **sem estado** (o histórico inteiro da conversa é reenviado a cada rodada); a Interactions API com `store: true` não é usada (guarda dados no Google). Sem SDK: laço HTTP próprio em Rust pela `warden-http`.
+
+**Modelo.** Configurável; o padrão é resolvido pela lista de modelos da conta (`models.list`): o Flash estável mais novo com `generateContent` e *function calling* (em 01/10/2026, `gemini-3.8-flash`), com o Flash-Lite como opção econômica. Nada fixo no código. Temperatura 1.0 (recomendação do Google para o Gemini 3).
+
+**Ferramentas.** Declaradas como `tools[].functionDeclarations[]` com `parametersJsonSchema`. O registro de ferramentas fica na `warden-ai`; cada ferramenta lê dados por um trait implementado pela `warden-app` (`ai_tools/`), para a `warden-ai` não depender das crates de cima.
+
+| Leitura (respondem na hora; tudo redigido pela §9.4) | Evidência citável |
+|---|---|
+| `get_pack_overview` (MC, loader, Java, memória, itens, nota de saúde, último teste) | `pack:overview` |
+| `list_mods(filter?)`, `get_mod_details(mod_id)` (metadados do jar e da API, achados que o envolvem) | `mod:<id>`, `jar:<id>/<arquivo>`, `api:<fonte>/<id>` |
+| `get_findings(kind?)` | `finding:<código>#n` |
+| `list_sessions`, `get_session(id)`, `get_crash_report(session)`, `search_log(session, query)` (até 40 trechos), `read_log(session, file, from, to)` (até 300 linhas) | `session:<id>`, `crash:<session>`, `log:<session>/<arquivo>#L<n>` |
+| `search_configs(query)`, `read_config(path)` (só com a permissão de configs da conversa) | `config:<path>#L<n>` |
+| `get_history(limit)`, `diff_versions(a, b)` | `version:<a>..<b>` |
+| `get_mixin_report(mod_id?)` (P1 com D-10), `get_dependents(mod_id)`, `why_in_pack(mod_id)`, `get_bisect_result` (P1 com D-12) | `mixin:<id>`, `graph:<id>`, `bisect:<id>` |
+| `get_mod_changelog(mod_id, from, to)` (Modrinth `include_changelog`; CurseForge `/files/{id}/changelog` em HTML convertido) | `changelog:<id>@<versão>` |
+| `search_mod_issues(mod_id, query)` (só com a permissão do GitHub da conversa): até 5 issues do repositório do mod, achado por `source_url`/`issues_url` (Modrinth) ou `links.sourceUrl`/`issuesUrl` (CurseForge); a consulta enviada é só `repo:<dono>/<repo> is:issue <termos>`; usa o token do GitHub quando existir (30 buscas/min) e cache; sem token, 10 buscas/min | `issue:<dono>/<repo>#<n>` |
+
+**Propostas** (nunca têm efeito sozinhas): `propose_add_mod`, `propose_remove_mod`, `propose_update_mod`, `propose_change_version`, `propose_set_side`, `propose_edit_config(path, key, value)`, `propose_test_settings(memory, java, jvm_args)`, `propose_run_test`, `propose_start_bisect`. Cada proposta precisa citar pelo menos uma evidência válida; sem isso, o Warden devolve erro à IA e não mostra nada. `ai_proposal_apply` executa pelos mesmos serviços dos fluxos da interface (planos de adição, `config_write` com diferença, ajustes do teste), com ponto de segurança quando muda o pack.
+
+**Laço.** Primeira rodada com as ferramentas de visão geral e log; changelog, issues e propostas entram quando a IA já citou mods suspeitos (`allowedFunctionNames`), para ficar na faixa recomendada de 10 a 20 ferramentas ativas. `toolConfig.functionCallingConfig.mode = VALIDATED` nas rodadas de ferramenta; `finishReason = MALFORMED_FUNCTION_CALL` é tratado como erro recuperável (uma nova tentativa). Cada `functionResponse` repete o `id` da chamada. As *thought signatures* exigem reenviar o `content` do modelo **inteiro e intacto** (nunca fundir partes). No máximo **8 rodadas de ferramenta** por pergunta e um teto de tokens por conversa; ao estourar, o Warden força `mode: NONE` e pede a resposta com o que já tem. Chamadas paralelas são suportadas; o spike S-R5-4 confere as assinaturas nesse caso.
+
+**Resposta final.** JSON com `responseFormat`/`responseJsonSchema` (o `responseSchema` está obsoleto): `{ achados: [{ afirmacao, evidencias: [{ id, citacao }], confianca }], propostas: [...], semConclusao: bool }`. O Rust confere que cada `id` foi devolvido por uma ferramenta **nesta conversa** e que a `citacao` aparece literalmente no resultado daquela ferramenta; afirmação sem evidência válida vai com `verificada: false` e a interface a marca "não verificado". Todo mod citado precisa existir no pack ou na API. O *system prompt* manda citar a evidência, dizer "não sei" quando faltar e sugerir a busca do culpado; os achados determinísticos entram como fatos.
+
+**Texto não confiável.** Resultados que contêm logs, issues ou changelogs vão delimitados e marcados como dados (injeção de instruções, OWASP LLM01); nenhuma ferramenta tem efeito sem o clique do usuário.
+
+**Consentimento e transparência.** `ai_conversation_preview` devolve o texto inicial exato (visão geral, achados e o travamento escolhido, já redigidos), a contagem de tokens (`countTokens`) e as permissões; `ai_conversation_start` grava as permissões escolhidas (configs e GitHub) e só então faz a primeira requisição. Cada resultado de ferramenta enviado vira um bloco "Enviado à IA" com os bytes exatos; cada busca no GitHub, um bloco "Enviado ao GitHub". Origem do texto inicial: último travamento, outra sessão, um log escolhido no computador (só texto, até 20 MB lidos, mesma limpeza da §9.3 e redação da §9.4) ou só o pack.
+
+**Conversas.** `ai/<pack-id>/<ULID>.json` nos dados locais (§13), nunca na pasta do pack: mensagens, chamadas e resultados **como enviados**, permissões, modelo, `usageMetadata` (tokens), propostas e o que foi aplicado, o hash da árvore do pack no início. Ao continuar, se o hash mudou, a interface avisa. `ai_conversation_delete` apaga o arquivo.
+
+**Erros.** Tempo-limite de 90 s por requisição; `AI_KEY_INVALID`, `AI_QUOTA_EXCEEDED`, `AI_TIMEOUT`, `AI_BAD_RESPONSE`, `AI_TOOL_LIMIT`, `AI_PERMISSION_DENIED` (ferramenta não permitida nesta conversa, devolvida à IA, não ao usuário).
+
+### 9.6 Índices, grafo, raio-x de mixins, nota de saúde e travamentos (D4; ADR-0034)
+
+**Índices** (P0, `warden-jarmeta::index`), montados na passagem completa do diagnóstico e guardados em `cache/jarindex/<sha256 do jar>.json`:
+- pacote → jar → modid, descendo nos jars aninhados (`META-INF/jars/`, `META-INF/jarjar/`); pacote ambíguo é atribuído ao jar de topo (o mod que o usuário adicionou);
+- config de mixin (`*.mixins.json`, de `fabric.mod.json`, `MixinConfigs` do `MANIFEST.MF`, `[[mixins]]` do `neoforge.mods.toml`) → mod.
+Usados pelo console agrupado (§9.8), pelo padrão de falha de Mixin (§9.3), pela dependência inferida da busca do culpado (§9.7) e pelo agrupamento dos perfis do spark (§7.7).
+
+**Grafo** (`warden-diagnostics::graph`): nós = itens do pack e dependências embutidas (marcadas "dentro de X"); arestas tipadas obrigatória, opcional/recomendada, incompatível (jar, API, lista curada), embutida, fornece (`provides`), inferida (busca do culpado ou log). Consultas P0: dependentes transitivos (`graph_dependents`), cadeia até um item adicionado pelo usuário (`graph_why_in_pack`, a partir do histórico de adições ou, sem ele, de quem não é dependência de ninguém), bibliotecas órfãs (`graph_orphans`). P1: `graph_focus` devolve o subgrafo de até 2 níveis em volta de um item para o desenho (§18). Ciclos de dependência viram um só nó.
+
+**Raio-x de mixins** (P1, `warden-mixin`; a implementação passa antes pelo spike S-R5-1 do intermed):
+- Lê as configs de mixin (`package`, `mixins`/`client`/`server`, `priority`, `refmap`, `plugin`, `injectors.defaultRequire`) e os refmaps; abre cada classe de mixin com `cafebabe` (sem decodificar bytecode) e lê `@Mixin` (alvos e prioridade) em `RuntimeInvisibleAnnotations` e os injetores (`@Inject`, `@Redirect`, `@Overwrite`, `@ModifyArg(s)`, `@ModifyVariable`, `@ModifyConstant` e os do MixinExtras: `@WrapOperation`, `@ModifyExpressionValue`, `@ModifyReturnValue`, `@WrapWithCondition`, `@WrapMethod`) em `RuntimeVisibleAnnotations`, com o método-alvo e o `@At` traduzidos pelo refmap. Jars aninhados são obrigatórios (no Sodium NeoForge 26.3, todos os mixins estão no jar aninhado). `mods.toml` com parser TOML de verdade.
+- **Ponto de aplicação** = classe-alvo + método-alvo + `@At` (tipo + alvo). Regras (R5A §5.5): `@Overwrite` de 2+ mods → alto; `@Redirect`/`@ModifyConstant` de 2+ mods no mesmo `@At` → alto; `@Overwrite` + injeção no corpo (`INVOKE`, `FIELD`, `CONSTANT`, `NEW`, `JUMP`) → médio; `@Redirect` + outro injetor no mesmo `@At` → médio; `@ModifyVariable`/`@ModifyArg(s)` de 2+ mods no mesmo `@At` → médio; `@Overwrite` + `HEAD`/`RETURN`/`TAIL` → baixo; só `@Inject` e os do MixinExtras → baixo.
+- **Rebaixadores** (um nível, com o motivo): todos os mixins envolvidos têm `plugin` ("pode ser desligado pelo próprio mod"); o mixin de um mod referencia classes do outro, fica numa config/pacote `compat`, ou o mod declara o outro como dependência ou recomendação ("compatibilidade intencional"); o par está em `mixin-known-compatible.toml`. **Elevadores:** o par está em `known-conflicts.toml`; o último travamento citou uma das configs envolvidas (evidência = linha do log); `require`/`defaultRequire ≥ 1` no ponto disputado. MixinSquared presente baixa a confiança do raio-x inteiro (um mod pode cancelar mixins de outro).
+- Ordem prevista de aplicação pela prioridade (menor aplica antes; padrão 1000). Alvos em outros mods (não só no jogo) entram naturalmente.
+- Saída: inventário por mod (configs, classes, alterações por tipo, alvos) e sobreposições; `W_MIXIN_OVERLAP` para as de risco alto ou médio depois dos rebaixadores. Cache por conjunto de hashes dos jars em `cache/xray/`.
+
+**Nota de saúde** (P1, `warden-diagnostics::health`): função pura sobre os achados, as sessões, o raio-x, as atualizações e os tempos, com pesos e tetos em `data/health-score.toml` (tabela da SPEC T14). Teste de propriedade: acrescentar um achado nunca aumenta a nota. Resultado `{ nota, faixa, linhas: [{ categoria, pontos, motivo, link }] }`, guardado por pack em `packs.json` para a coluna Saúde de Meus packs (sem recalcular ao listar).
+
+**Assinatura e travamentos** (P0, `warden-diagnostics::signature`): assinatura = id da regra do catálogo + tipo de exceção + primeiro frame de mod normalizado (sem números de linha, endereços, coordenadas, UUIDs nem caminhos) + mods citados, com hash estável. `crashes_list` agrupa as sessões que travaram por assinatura, com contagem, primeira e última data, versões do pack (pelo hash da árvore registrado na sessão), a situação ("causa encontrada" quando há achado determinístico; "não voltou a acontecer desde a versão X" quando sessões posteriores daquela árvore fecharam normalmente) e as ligações com a busca do culpado e as conversas.
+
+### 9.7 Busca do culpado (P1; ADR-0031)
+
+`warden-bisect` (algoritmo puro) e `warden-app::bisect_session` (orquestração):
+
+1. **Entrada:** grafo (§9.6) já com as arestas inferidas, a assinatura do problema (de uma sessão ou escolhida: travou ao abrir, travou no mundo, linha do log, modo assistido) e as listas de sempre ligados (loader e bibliotecas de que todos dependem) e de desligados (ferramentas do jogador, salvo suspeitas).
+2. **Ordem topológica estável** do grafo de obrigatórias (desempate: bibliotecas primeiro, depois id em ordem alfabética); todo prefixo é fechado por dependência.
+3. **Rodada 0:** pack inteiro, até 3 tentativas; estima a taxa de reprodução *p*. Se não reproduzir, para. Abaixo de ~30%, recomenda não seguir; entre 30% e 100%, cada "passou" é repetido `⌈ln 0,05 / ln(1−p)⌉` vezes.
+4. **Rodada 1:** só os sempre ligados. Se falhar igual, a causa não é um mod.
+5. **Busca binária no tamanho do prefixo** (`lo` = maior que passou, `hi` = menor que falhou) até `hi = lo + 1`; o item na posição `hi` é o último membro necessário.
+6. **Minimização para pares** (variante do *ddmin*): repete a busca só entre os itens antes do encontrado, com ele sempre ligado, até o conjunto mínimo.
+7. **Confirmação:** só o conjunto mínimo (deve falhar) e o pack sem ele (deve passar). Se o pack sem ele falhar igual, existe outro culpado: oferece continuar a busca sem o primeiro.
+8. **Veredito de cada rodada** pela assinatura (§9.6): `Passed` (chegou ao marcador de sucesso e ficou estável por 20 s), `FailedSame`, `FailedOther` (inconclusiva, como o `skip` do `git bisect`), `Timeout`, e no modo assistido `UserYes`/`UserNo`/`UserSkip`. `NoClassDefFoundError`/`ClassNotFoundException` de um pacote de mod desligado vira aresta inferida e a rodada é refeita. "Congelou" = sem linha nova de log por N s depois do último marcador (N = 3× o maior intervalo da rodada de controle, mínimo 120 s). Monotonicidade quebrada (prefixo maior passa depois de um menor falhar) para a busca com explicação.
+9. **Ambiente de cada rodada:** `instances/<pack-id>/bisect/` materializada com o subconjunto (§8.2 item 11); mundo de teste copiado para uma pasta descartável; cliente 1.20+ entra no mundo por Quick Play (§7.8); versões anteriores, ou problemas de servidor, usam o servidor local (§7.6) só depois do aceite do usuário; Forge 1.12.2 com `-Dfml.queryResult=confirm`; Fabric com `-Dfabric.noGui`. Marcadores por faixa vêm do spike S-R5-3.
+10. **Estado** em `instances/<pack-id>/state/bisect.json` depois de cada rodada (ordem, `lo`, `hi`, resultados, assinatura, tempo); **pausar** espera o fim da rodada atual; **cancelar** encerra o jogo pelo Job Object, apaga `bisect/` e guarda o resultado parcial. Progresso por `OperationEvent::Round` e `game-state = bisecting`.
+11. **Resultado** `{ culpados, confianca, rodadas: [...], duracao }`, ligado à assinatura em Problemas → Travamentos e disponível à IA (`get_bisect_result`).
+
+### 9.8 Console agrupado (P1)
+
+`warden-diagnostics::console`, sobre as `LogLine` do supervisor (o `output.log` continua bruto):
+- **Atribuição** de cada linha a um mod, nesta ordem: jar no frame do stack trace (Forge 1.17+: `~[arquivo.jar%23NN!/:versão]`), módulo no frame (NeoForge 1.20.5+: `TRANSFORMER/modid@versão/`), nome do *handler* do mixin no Fabric (`handler$<uid>$<modid>$<método>`), "Mixins in Stacktrace", nome do logger (quando é um modid conhecido) e índice pacote → mod (§9.6). Sem sinal: grupo "Desconhecido"; classes do jogo e do loader: "Jogo e loader".
+- **Normalização:** números, coordenadas, UUIDs, hexadecimais e caminhos viram marcadores (`Missing texture for {id} at {n}`); o hash do modelo agrupa repetições com contagem, primeira e última hora.
+- **Stack trace** é um item só, recolhido, com a primeira linha de mod em destaque (pulando frames do Java, do jogo e do loader).
+- **Ruído conhecido:** `data/log-noise.toml` (mesmo formato do catálogo de padrões) marca linhas inofensivas ("comum, geralmente inofensivo").
+- A interface recebe os grupos já calculados, atualizados em lotes; nada de agrupamento no frontend.
 
 ## 10. Configs
 
@@ -609,6 +772,25 @@ A redação é testada com casos positivos e negativos; o diálogo de consentime
 - Invariantes testados para cada formato com um corpus de arquivos reais (`crates/warden-configs/tests/corpus/`): ler e gravar sem edição = bytes idênticos; uma edição = diff de uma linha (ou do trecho do valor); comparação semântica ignora formatação.
 - Concorrência otimista: `config_read` devolve `{ conteúdo, hash }`; `config_write` exige o `hash` esperado e falha com `FILE_CHANGED_ON_DISK` se o arquivo mudou.
 - Escrita no pack pela `PackTransaction` (§6.5); escrita na instância com gravação atômica (sem `refresh`).
+
+### 10.1 Busca, formulário em camadas, padrões e validação (D4; R5B §2)
+
+- **Busca em todas as configs** (P0, `warden-configs::index`): ao abrir o pack (e ao trocar a origem para a instância), varre `config/`, `defaultconfigs/`, `kubejs/config/`, `options.txt` e os demais arquivos de texto e guarda uma entrada por chave `{ arquivo, caminho da chave, valor, comentário, rótulo traduzido?, modid?, linha }`; arquivos sem parser são indexados por linha. Para 500 configs, ~50 mil entradas em memória. Busca por palavras, sem acento e sem diferenciar maiúsculas, com pontuação nome da chave > rótulo > comentário > valor, por um *matcher* aproximado (`nucleo-matcher`). Atualização incremental pelo mesmo observador de "alteração externa" (§15). `config_search` devolve os resultados agrupados por arquivo, com a linha.
+- **Metadados em camadas** (P1) para cada chave, `ConfigField { caminho, tipo, valor, padrao?, faixa?, opcoes?, descricao?, rotulo?, confianca, origem }`, na ordem: (1) metadados explícitos do arquivo (`Range`, `Allowed Values`, `Default`, `[range: … default: …]`, `Min`/`Max`, `Valid values`, prefixo de tipo do `.cfg`), confiança alta; (2) tipo pelo valor; (3) frases do comentário (`Defaults to X`, `between X and Y`, cores `#RRGGBB`), confiança baixa, marcadas "deduzido"; (4) rótulo e ajuda do arquivo de idioma do jar (`warden-jarmeta::lang`), procurando as chaves dos padrões conhecidos (NeoForge `<modid>.configuration.<chave>` e `.tooltip`; AutoConfig `text.autoconfig.<nome>.option.<campo>`; owo `text.config.<nome>.option.<campo>`; MidnightLib `<modid>.midnightconfig.<campo>`), `pt_br.json` antes de `en_us.json`. Camadas 5 (bytecode) e 6 (dicionário curado) são P2.
+- **Só texto** quando: a leitura de teste não volta byte a byte (o Warden lê, regrava em memória e compara), YAML, SNBT, scripts, `.json` de datapack, estruturas profundas (o nó vira "editar este trecho como texto") e arquivos acima de 2 MB.
+- **Padrões** (P1, camada A): do comentário (`Default:` do NeoForge com faixa; `[default: …]` do `Configuration` do Forge antigo); `config_restore_default` grava só a linha da chave (ou o arquivo inteiro, com diferença). Camadas B e C (padrões gerados por servidor e por cliente limpos, em `cache/defaults/<hash do conjunto de mods>/`) são P2.
+- **Validação de faixa** (P1): na passagem rápida do diagnóstico, cada valor é conferido contra a faixa e os valores permitidos do arquivo → `W_CONFIG_RANGE` com **Restaurar padrão** quando há padrão.
+
+### 10.2 Scripts KubeJS e CraftTweaker (P1; ADR-0037)
+
+`warden-scripts`:
+- **Detecção:** versão do KubeJS (5, 6, 7, 8 por faixa) e do CraftTweaker pelos jars do pack (`warden-jarmeta`); a interface mostra "KubeJS 6 · Forge 1.20.1".
+- **Trechos prontos** por versão em `crates/warden-scripts/data/snippets/*.toml` (KubeJS: `ServerEvents.recipes`, `ServerEvents.tags`, `StartupEvents.registry`, `ItemEvents.tooltip`; CraftTweaker: `craftingTable.addShaped` e afins).
+- **IDs** de itens, blocos e tags dos jars (`assets/*/models/item/*.json`, `data/*/tags/**`, `data/*/recipes/**`), com cache por hash; itens registrados só por código ficam de fora (limitação documentada). Com o jogo aberto e o KubeJS 7, também `/api/registries/.../keys` e `/api/tags/...` do servidor web local.
+- **Erros:** `logs/kubejs/{startup,server,client}.log` (KubeJS) e `logs/crafttweaker.log` ou `crafttweaker.log` na raiz (1.12.2; confirmado nos golden logs) da instância de teste, com arquivo e linha; com KubeJS 7 e o jogo aberto, `GET /api/console/server/errors` e o WebSocket de console.
+- **Recarregar:** KubeJS 7 com o jogo aberto → `POST /api/reload/server` (ou `/startup`) em `127.0.0.1:<porta>`, com o token lido de `kubejs/config/web_server.json` **da instância de teste**, só no Rust (nunca vai para a interface nem para registros); servidor local aberto → `kubejs reload server_scripts` (KubeJS 6), `reload` (KubeJS 7 e CraftTweaker moderno) pelo stdin; outros casos → o comando certo para copiar. CraftTweaker 1.12.2 não tem recarga oficial: a interface diz "reinicie o jogo".
+- **Editor:** CodeMirror 6 com `@codemirror/lang-javascript` (MIT); ZenScript por `StreamLanguage` com gramática própria baseada na TextMate MIT do `Yesterday17/ZenScript` (atribuição em `THIRD_PARTY.md`); autocompletar de IDs por `@codemirror/autocomplete`. Autocompletar completo com `tsc` 7 `--lsp --stdio` e ProbeJS é P2.
+- **Abrir no VS Code:** procura o `code` no PATH e nos caminhos padrão do Windows; abre a pasta da instância de teste.
 
 ## 11. Versionamento
 
@@ -656,7 +838,7 @@ O GitHub distribui o pack: os jogadores apontam o packwiz-installer-bootstrap pa
 
 1. **Plano (`publish_plan`)** para uma versão final:
    - árvore da versão lida do commit da tag e montada em staging pela exportação (§12, origem "versão salva"): `pack.toml`, `index.toml` e os arquivos do índice;
-   - higiene (§6.4) e **varredura de segredos** na árvore (padrões da tabela da §9.4 e os valores atuais do armazenamento de segredos): achado bloqueia com `PUBLISH_SECRET_FOUND`, apontando arquivo e linha;
+   - higiene (§6.4) e **varredura de segredos** na árvore (padrões da tabela da §9.4, os valores atuais do armazenamento de segredos e, pelo nome, `kubejs/config/web_server.json`): achado bloqueia com `PUBLISH_SECRET_FOUND`, apontando arquivo e linha;
    - avisos (não bloqueiam): mods da CurseForge com distribuição bloqueada, com a oferta de troca quando o mesmo arquivo existe no Modrinth (`version_files` por SHA-1); versão não testada (nenhuma sessão de teste "fechou normalmente" cuja árvore do pack, registrada na sessão, seja igual à da versão); diagnóstico rápido com erros;
    - **notas da versão**: o gerador de changelog com base na **última versão publicada** (não na última salva), com "Atenção" quando houver remoção perigosa (SPEC T16), mais as notas livres.
 2. **Publicar (`publish_run`)**:
@@ -680,6 +862,26 @@ O GitHub distribui o pack: os jogadores apontam o packwiz-installer-bootstrap pa
 5. Saída: pasta (cópia de `pack.toml`, `index.toml` e dos arquivos do índice) ou `.zip` (crate `zip`, entradas de diretório presentes, ordem determinística, datas fixas, sem bits de permissão estranhos — corrige a issue #115 do packwiz).
 6. Conformidade (nos testes e opcionalmente no app): packwiz-installer instala a partir da saída numa pasta vazia.
 
+O validador de `.mrpack` (E-02) aceita `env: "unknown"` e outros valores fora da especificação **na leitura** (a importação, §12.2, os encontra em arquivos reais) e **nunca** os gera.
+
+### 12.1 Pacote para servidor (P1; ADR-0035)
+
+`warden-export::server_pack`, a partir da mesma cópia de staging:
+1. **Conteúdo comum às duas variantes:** itens cujo lado não é `client`; `config/`, `defaultconfigs/`, `kubejs/` sem `client_scripts/`, `scripts/`, datapacks globais, `server.properties` de referência (se o pack tiver um) e o conteúdo de `server-overrides/`; fora `options.txt`, `servers.dat`, `resourcepacks/`, `shaderpacks/`. `user_jvm_args.txt` com `-Xms`/`-Xmx` recomendados (comentado como o do instalador). `start.bat` e `start.sh` mínimos e próprios (inspirados nos casos tratados pelo ServerPackCreator, LGPL-2.1, sem copiar código): verificar Java, instalar o loader se faltar (`--installServer` ou o jar do Fabric; para Forge 1.17+/NeoForge, opcionalmente o `server.jar` do ServerStarterJar), **perguntar** a EULA a quem roda e iniciar.
+2. **Variante "pelo link do pack"** (padrão): os scripts rodam `java -jar packwiz-installer-bootstrap.jar --bootstrap-no-update --bootstrap-main-jar packwiz-installer.jar -g -s server <link do pack>` antes de iniciar; o zip leva os dois jars fixados. Exige publicação (ADR-0028).
+3. **Variante "mods dentro do zip":** os jars vêm do cache de downloads, conferidos pelo hash do índice; mods da CurseForge bloqueados passam pelo fluxo da T20; arquivos de terceiros só entram depois da confirmação de licença.
+4. **Validação opcional** (com a EULA aceita no Warden): descompactar em `cache/tmp/`, rodar o ciclo do servidor local (§7.6) até "Done" e parar; o resultado vai para a interface ("o servidor abriu em 34 s" ou o trecho do log que falhou).
+
+### 12.2 Importação (P1; ADR-0035)
+
+`warden-import`, sempre gerando um pack novo numa pasta escolhida e nunca alterando a origem:
+- **Detecção** pelo conteúdo: `pack.toml` (vai para T04), `modrinth.index.json`, `manifest.json`, `instance.cfg` + `mmc-pack.json`, `minecraftinstance.json`.
+- **`.mrpack`:** zip aberto com proteção contra *zip slip* (`files[].path` sem `..`, caminho absoluto ou letra de drive); `dependencies` → `pack.toml`; cada `files[]` do `cdn.modrinth.com` → metafile Modrinth (projeto e versão vêm do caminho da URL; senão, `POST /v2/version_files` por `sha1`, em lote); outros hosts → metafile em modo `url` com o hash; `env` → `side` pela tabela da §6.2 (valores desconhecidos → `both` com aviso); `optional` → `[option] optional = true` com `default = true` marcado para revisão; `overrides/` → arquivos do pack; jars em `overrides/mods/` identificados por hash no Modrinth e na CurseForge ou mantidos como arquivo local com aviso de licença; `client-overrides/` entra com aviso; `server-overrides/` → `server-overrides/` do pack.
+- **Zip da CurseForge:** `packwiz curseforge import` numa cópia de staging (exige a chave; sem ela, `IMPORT_CURSEFORGE_KEY_MISSING` sem nenhuma requisição); depois, o lado é corrigido pelo Modrinth (SHA-1 → `/v2/version_files`) e os opcionais desligados viram revisão.
+- **Prism/MultiMC:** `mmc-pack.json` dá Minecraft e loader; `mods/.index/*.pw.toml` viram metafiles quase direto (sem os campos `x-prismlauncher-*`); jars sem metadados são identificados por hash; `instance.cfg` (`MinMemAlloc`, `MaxMemAlloc`, argumentos) vira um perfil do teste (§7.8); `options.txt` e `servers.dat` são perguntados.
+- **Higiene obrigatória** antes de gravar: a verificação da §6.4 e a lista de ignorados da captura (§8.4) removem `.mixin.out/`, `xmcl.json`, `mods/.connector/`, logs, caches e mundos; o resultado lista o que foi convertido, o que ficou como arquivo local, o que precisa de revisão e o que não entrou.
+- Criação do pack pela mesma rotina do T03 (git, arquivos de controle, `.warden/`), seguida de `packwiz refresh` e `check_conformance`.
+
 ## 13. Layout em disco
 
 Identificador do app: `dev.kriticales.warden`.
@@ -687,7 +889,7 @@ Identificador do app: `dev.kriticales.warden`.
 | O quê | Windows | Linux | Conteúdo |
 |---|---|---|---|
 | Packs (projetos) | escolhido pelo usuário; padrão `%USERPROFILE%\Documents\Warden\` | `~/Documentos/Warden/` ou `~/Documents/Warden/` (pasta de documentos do sistema) | Um subdiretório por pack (repositório git). |
-| Configuração | `%APPDATA%\dev.kriticales.warden\` | `~/.config/dev.kriticales.warden/` | `settings.json` (com `schemaVersion`), `packs.json` (registro: id → caminho, último teste, preferências de teste do pack, repositório e visibilidade no GitHub), `.env` (só se o usuário escolher guardar as chaves em arquivo; §14). |
+| Configuração | `%APPDATA%\dev.kriticales.warden\` | `~/.config/dev.kriticales.warden/` | `settings.json` (com `schemaVersion`; D4: `eulaAcceptedAt`), `packs.json` (registro: id → caminho, último teste, preferências de teste do pack e, na D4, os perfis do teste e a última nota de saúde, repositório e visibilidade no GitHub), `.env` (só se o usuário escolher guardar as chaves em arquivo; §14). |
 | Dados locais | `%LOCALAPPDATA%\dev.kriticales.warden\` | `~/.local/share/dev.kriticales.warden/` | ver abaixo |
 
 Dentro de "dados locais":
@@ -703,7 +905,13 @@ cache/metadata.sqlite                 cache do Modrinth e do catálogo
 cache/staging/<operação>/             cópias temporárias do pack (apagadas ao fim; limpeza ao iniciar)
 cache/tmp/                            temporários diversos
 packwiz/packwiz.toml                  config vazia passada ao sidecar (--config)
-ai/<pack-id>/                         respostas anteriores da IA (§9.5)
+ai/<pack-id>/                         conversas com a IA (§9.5)
+instances/<pack-id>/bisect/           instância da busca do culpado (recriada a cada rodada; apagada no fim)
+instances/<pack-id>/server/           servidor local do pack (§7.6)
+cache/jarindex/                       índices pacote → mod e config de mixin → mod, por hash do jar (§9.6)
+cache/xray/                           raio-x de mixins por conjunto de jars (§9.6)
+cache/installer/                      packwiz-installer-bootstrap e packwiz-installer fixados (§8.5)
+cache/server-installers/              instaladores e jars de servidor por loader e versão (§7.6)
 logs/                                 registros do app (§16)
 ```
 
@@ -712,7 +920,8 @@ Dentro de cada pack:
 ```
 pack.toml  index.toml  .packwizignore  .gitignore  .gitattributes  CHANGELOG.md
 mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (conteúdo)
-.warden/project.toml                  id do pack, schemaVersion, avisos do diagnóstico ignorados (P1)
+.warden/project.toml                  id do pack, schemaVersion, avisos do diagnóstico ignorados (P1), ferramentas do jogador (D4)
+server-overrides/                     (opcional) arquivos só do pacote para servidor; fora do índice (§6.4, §12.1)
 .git/
 ```
 
@@ -740,7 +949,7 @@ ADR-0025 (substitui a ADR-0017).
 - **Runtime:** Tokio (o do Tauri). Trabalho bloqueante (hash de arquivos grandes, zip, `git2`, leitura de jars) vai para `spawn_blocking`.
 - **Travas por pack** (`PackLocks` em `warden-app`): `RwLock` por `PackId`. Leituras (inventário, detalhes, diagnóstico rápido) pegam leitura; mutações pegam escrita. A espera aparece em Tarefas como "Aguardando outra operação neste pack".
 - **Registro de operações** (`OperationRegistry`): toda operação longa recebe `OperationId`, `CancellationToken`, tipo, pack e progresso; `operation_cancel` aciona o token. Operações que não podem ser canceladas no meio (gravação final de uma transação) ignoram o cancelamento só nesse trecho.
-- **Um jogo por vez** no app (estado global em `warden-app`); a trava do pack **não** fica presa enquanto o jogo roda, só durante a materialização.
+- **Um jogo por vez** no app (estado global em `warden-app`); a trava do pack **não** fica presa enquanto o jogo roda, só durante a materialização. A busca do culpado e o servidor local contam como "jogo" para essa regra (D4); a busca segura a trava de leitura do pack só ao calcular a ordem, e cada rodada trabalha numa cópia (`bisect/`).
 - **Tempos-limite:** HTTP (conexão 10 s, resposta 30 s, download sem limite total mas com 30 s sem dados), sidecar (§6.3), processors do Forge (10 min), validação de Java (20 s).
 - **Instância única do app:** `tauri-plugin-single-instance`.
 - **Mudanças externas (P1):** `notify` com espera de 500 ms na pasta do pack; eventos causados pelo próprio Warden são descartados por "fichas de escrita" registradas pela `PackTransaction`; o resto vira `pack-changed`.
@@ -761,7 +970,19 @@ ADR-0025 (substitui a ADR-0017).
 - Modrinth: ≤ 300 req/min; uso de lote (`/projects?ids=`, `/versions?ids=`, `/version_files`, `/version_files/update`); cache em `metadata.sqlite` (versões são imutáveis; projetos expiram em 24 h).
 - CurseForge: chave do armazenamento de segredos (§14) no cabeçalho `x-api-key`; lote (`POST /v1/mods`, `POST /v1/mods/files`, `POST /v1/fingerprints/432`); concorrência máxima 4; **nenhuma resposta da API é persistida** (cache só em memória durante a sessão; `downloadUrl` nunca gravada). Os arquivos de mods baixados para a instância ficam no cache de downloads por hash, como fazem o packwiz e o Prism.
 - **Busca combinada** (`warden-project::search`, ADR-0027): consulta Modrinth e CurseForge em paralelo, com tempo-limite por fonte e paginação independente por fonte; intercala os resultados pela posição em cada fonte e entrega páginas de 20 itens já combinados. Deduplicação na lista: mesmo autor (Modrinth `author`; CurseForge `authors[].name`) e mesmo slug ou nome normalizados (minúsculas, sem acentos, espaços e pontuação). Na pré-visualização, a SHA-1 do arquivo da versão escolhida é comparada entre as fontes (Modrinth `files[].hashes.sha1`; CurseForge `hashes` com algoritmo 1) e a diferença vira aviso. O item unificado guarda as referências das duas fontes; a parte da CurseForge fica só em memória. Sem chave (ou chave recusada), a fonte CurseForge nem é consultada; uma fonte com erro devolve resultado parcial com o aviso `SEARCH_SOURCE_UNAVAILABLE` (domínio `Project`).
-- GitHub: API REST (`GET /user`, `POST /user/repos`, `GET /repos/{dono}/{repo}`, `POST /repos/{dono}/{repo}/releases`) por `warden-http` (§11.1).
+- GitHub: API REST (`GET /user`, `POST /user/repos`, `GET /repos/{dono}/{repo}`, `POST /repos/{dono}/{repo}/releases`) por `warden-http` (§11.1). D4: busca de issues para a IA (`GET /search/issues?q=repo:<dono>/<repo>+is:issue+<termos>`), com o token quando existir (30 buscas/min) ou sem ele (10 buscas/min), e cache de 1 h por consulta; downloads de Release do packwiz-installer pela URL de download (que não usa a API).
+- Instaladores de servidor (D4): Fabric meta (`/v2/versions/loader/<mc>/<loader>/<installer>/server/jar`), Maven do Forge e do NeoForge (`--installServer`), `downloads.server` do JSON da versão.
+- Gemini (D4): só pelo laço da §9.5; `countTokens` antes da primeira requisição de cada conversa.
+
+### 17.1 Descoberta, modpacks e imagens (D4)
+
+- **Início da página de descoberta:** Modrinth `/v2/search` com `index=downloads` e `index=updated` e os facets do pack (codificados na URL; com colchetes crus a API responde 400), `/v2/tag/category`; CurseForge `POST /v1/mods/featured` e `/v1/categories?gameId=432&classId=6`; no máximo 3 requisições por fonte. Mapeamento curado de categorias em `crates/warden-discovery/data/categories.toml` (nome em português → categorias do Modrinth e IDs da CurseForge).
+- **Ordenar por downloads ou atualização** mescla pelos números (`downloads` × `downloadCount`; `date_modified` × `dateModified`); relevância continua intercalada pela posição (ADR-0027). Paginação de 20 por fonte, pré-carregando a próxima a 70% da rolagem; teto da CurseForge de 10 mil resultados.
+- **Modpacks:** Modrinth `project_type:modpack` e, para a lista de mods, as dependências `embedded` da versão do modpack (com `project_id`/`version_id`; arquivos fora do Modrinth só com `file_name`), resolvidas em lote por `/v2/projects?ids=` e `/v2/versions?ids=` (~4 requisições por modpack); CurseForge `classId=4471`. Detalhes (caminho, `env`, hashes) pelo `modrinth.index.json` ou `manifest.json` lidos **por partes** com `Range` (`warden-http::range_reader`: `Read + Seek` sobre `reqwest`, entregue ao crate `zip`; diretório central no fim e só a entrada desejada). Servidor sem `Range`: download completo até 200 MB, com aviso. Na CurseForge, nada é gravado em disco; `downloadUrl` nulo → "Este modpack não pode ser aberto por apps de terceiros".
+- **Classes da CurseForge** confirmadas (R5B §6.2): 6 mods, 12 resource packs, 6552 shaders, 4471 modpacks, 6945 datapacks.
+- **Imagens:** as do Modrinth vão direto (`img-src https:`); as da CurseForge passam pelo protocolo `warden-img://` servido pelo Rust (tempo-limite, tamanho máximo de 5 MB, só tipos de imagem, cache só em memória e `Cache-Control: no-store`), para o WebView não guardar dados da API no cache de disco.
+- **Cache:** Modrinth em `metadata.sqlite` também para descrição e galeria (24 h); busca em memória por 5 minutos; CurseForge só em memória.
+- **Kits e mods iniciais:** `crates/warden-project/data/{kits.toml,initial-mods.toml}` com IDs do Modrinth (nunca slugs) e IDs da CurseForge quando o item só existe lá (sem guardar mais nada da CurseForge); o `cargo xtask check-kits`, rodado no CI semanal e a cada mudança desses arquivos, consulta `GET /v2/project/{id}/version?loaders=…&game_versions=…` para cada faixa e marca item sem versão como "não disponível nesta versão" no relatório.
 - Mojang, Fabric meta, Maven do Forge/NeoForge: catálogo com cache (manifesto revalidado a cada 6 h; JSON de versão por `sha1`).
 - Sem internet: erros `NETWORK_UNAVAILABLE` (retryable) e uso do que houver em cache.
 - Testes: em build de debug, a URL base de cada API pode ser trocada por variável de ambiente (`WARDEN_API_BASE_MODRINTH`, `WARDEN_API_BASE_CURSEFORGE`, `WARDEN_API_BASE_MOJANG`, `WARDEN_API_BASE_FABRIC`, `WARDEN_API_BASE_FORGE`, `WARDEN_API_BASE_NEOFORGE`, `WARDEN_API_BASE_ADOPTIUM`, `WARDEN_API_BASE_GITHUB`, `WARDEN_API_BASE_GEMINI`), apontando para o servidor local de fixtures usado pelos E2E (`apps/desktop/e2e/mock-server/`). Em release essas variáveis são ignoradas; por isso os E2E rodam sempre sobre um build de debug (`tauri build --debug`), e o instalador de release é validado pelos roteiros manuais.
@@ -771,12 +992,14 @@ ADR-0025 (substitui a ADR-0017).
 - **Camadas:** `routes/` (páginas, carregam dados e compõem features) → `features/<f>/components` → `features/<f>/hooks` (TanStack Query sobre `lib/ipc`) → `lib/ipc/bindings.ts` (gerado). Componentes não chamam `invoke` direto.
 - **Estado do servidor:** TanStack Query com chaves `['pack', packId, área, …]`. O evento `pack-changed` invalida as chaves das áreas indicadas. Mutations nunca fazem atualização otimista de dados do pack (o disco é a verdade); mostram progresso e invalidam ao terminar.
 - **Estado de interface:** Zustand só para o que não vem do backend (seleção na lista, filtros do console, painel aberto). Nada de dados do pack no Zustand.
-- **Navegação (ADR-0026):** nível do app sem barra lateral: `/` (Meus packs), `/configuracoes` (inclui "Sobre o Warden" como última seção), `/boas-vindas`. Nível do pack: layout `/packs/$packId` com cabeçalho fixo (← Meus packs, nome e "Editar informações", identificação, avisos passageiros, Salvar versão · N alterações, Testar ▾) e menu lateral com as 6 seções, registradas em `features/pack-editor/sections.ts`: `mods` (com `adicionar` dentro), `configs`, `problemas`, `ia`, `historico`, `exportar`; a tela do teste é `/packs/$packId/teste` e não aparece no menu. Tarefas é uma gaveta global aberta pelo indicador do rodapé. Nenhuma tela tem abas.
+- **Navegação (ADR-0026, ADR-0036):** nível do app sem barra lateral: `/` (Meus packs), `/configuracoes` (inclui "Sobre o Warden" como última seção), `/boas-vindas`, `/packs/importar` (D4). Nível do pack: layout `/packs/$packId` com cabeçalho fixo (← Meus packs, nome e "Editar informações", identificação, avisos passageiros, Salvar versão · N alterações, Testar ▾) e menu lateral com as 6 seções, registradas em `features/pack-editor/sections.ts`: `mods` (com `?ver=grafo` como modo, e `adicionar` dentro), `configs`, `problemas`, `ia` (com `ia/$conversaId` como página de detalhe), `historico`, `exportar`; a tela do teste é `/packs/$packId/teste` (com `?modo=busca` para a busca do culpado) e não aparece no menu. A rota `/packs/$packId/adicionar` liga o estado "menu recolhido" do layout (ícones com tooltip) enquanto está aberta. Tarefas é uma gaveta global aberta pelo indicador do rodapé. Nenhuma tela tem abas.
 - **Rotas:** TanStack Router com rotas por arquivo (`src/routes/`); `routeTree.gen.ts` é gerado e **não** versionado (gerado antes de `typecheck`, `test` e `build`). Parâmetros tipados: `/packs/$packId/mods`, `/packs/$packId/configs?path=…`.
 - **Formulários:** React Hook Form + Zod (esquemas em `features/<f>/lib/schemas.ts`, mensagens via i18n).
 - **Listas longas:** TanStack Virtual.
-- **Editor de configs:** CodeMirror 6 (`@codemirror/lang-json`, `@codemirror/legacy-modes` para TOML, properties e YAML, `@codemirror/merge` para diferenças).
-- **Conteúdo remoto:** Markdown com `react-markdown` + `rehype-sanitize`; HTML da CurseForge com DOMPurify; links externos abrem no navegador (plugin `opener`, só `https:`).
+- **Editor de configs:** CodeMirror 6 (`@codemirror/lang-json`, `@codemirror/legacy-modes` para TOML, properties e YAML, `@codemirror/merge` para diferenças; D4: `@codemirror/lang-javascript`, `@codemirror/autocomplete` e um `StreamLanguage` próprio para ZenScript, §10.2).
+- **Conteúdo remoto:** Markdown com `react-markdown` + `rehype-raw` **antes** de `rehype-sanitize` (o corpo do Modrinth mistura Markdown e HTML; a ordem é obrigatória), com lista de permissão explícita: títulos, parágrafos, listas, tabelas, `a`, `img`, `code`/`pre`, `details`/`summary` e o atributo `align`; sem `script`, `style`, atributos `on*`, `form`, `object`/`embed`, `iframe` (vídeos viram miniatura com "Abrir no navegador"). HTML da CurseForge com DOMPurify e a mesma lista; links externos abrem no navegador (plugin `opener`, só `https:`).
+- **Grafo (D4):** o grafo focado (até 2 níveis, dezenas de nós) é desenhado com HTML + SVG próprios, com cada nó como botão e as ligações também listadas em texto (acessível); "Ver o pack inteiro" usa Cytoscape.js (MIT) com o layout `dagre` (MIT), em canvas, sempre com a lista em texto ao lado.
+- **Conversa com a IA (D4):** mensagens, blocos "Enviado à IA" (recolhidos, com os bytes exatos), selos de evidência e cartões de proposta são componentes do design system (`docs/design/HANDOFF.md`); nenhum HTML vindo da IA é renderizado como HTML (Markdown simples, higienizado como o conteúdo remoto).
 - **i18n:** i18next + react-i18next com um único idioma (pt-BR); recursos tipados (chaves inexistentes não compilam); arquivos por área em `src/i18n/pt-BR/<área>.ts`; ESLint `i18next/no-literal-string` proíbe texto solto em JSX.
 - **Componentes base** em `components/common/`: `EmptyState`, `ErrorPanel`, `LoadingState`, `ConfirmDialog` (com digitação de confirmação opcional), `ProgressBar`, `OperationToast`, `DiffView`.
 - **Testes:** Vitest + Testing Library + `@tauri-apps/api/mocks` (`mockIPC`) com fábricas de dados tipadas a partir dos bindings; E2E com WebdriverIO + `tauri-driver` contra o app real (QUALITY §4).
@@ -809,6 +1032,10 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 | Versões | `semver`; FlexVer e faixas Maven próprias | R3 §5.6. |
 | Windows | `windows` (Job Objects) | Encerramento da árvore de processos. |
 | Testes | `cargo-nextest`, `insta` (dourados), `wiremock`, `tempfile`, `proptest`, `criterion`, `cargo-llvm-cov`, `cargo-deny` | QUALITY §4. |
+| Leitura de `.class` (D4) | `cafebabe` (0BSD), com `ParseOptions::parse_bytecode(false)`; `noak` (MIT/Apache-2.0) como reserva | Lê as anotações visíveis, invisíveis e de parâmetro sem teto de versão de classe (R5A §5.7). O intermed (MIT) é avaliado no spike S-R5-1. |
+| Protobuf (D4) | `prost` (Apache-2.0) | Perfis do spark a partir dos `.proto` públicos (§7.7). |
+| Busca aproximada (D4) | `nucleo-matcher` (MPL-2.0) | Busca em todas as configs (§10.1). |
+| Processo e memória (D4) | `windows` (já usado) no Windows; `/proc` no Linux | RAM do processo (§7.7); leitor de `hsperfdata` próprio (sem crate: as existentes são imaturas ou GPL). |
 
 ### 19.2 Frontend
 
@@ -823,15 +1050,19 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 | Editor de configs | CodeMirror 6 (+ `@codemirror/merge`) | Leve, modular, sem web workers; Monaco é pesado para o WebView. |
 | Listas | TanStack Virtual | Listas de centenas de mods e console. |
 | i18n | i18next + react-i18next | Plural, interpolação, chaves tipadas. |
-| Markdown/HTML | `react-markdown`, `rehype-sanitize`, `dompurify` | Descrições de mods seguras. |
+| Markdown/HTML | `react-markdown`, `rehype-raw`, `rehype-sanitize`, `dompurify` | Descrições de mods seguras (`rehype-raw` antes de `rehype-sanitize`). |
+| Scripts (D4) | `@codemirror/lang-javascript`, `@codemirror/autocomplete` | Editor de scripts (§10.2). |
+| Grafo inteiro (D4, P1) | `cytoscape`, `cytoscape-dagre` (MIT) | Só para "Ver o pack inteiro"; o grafo focado é próprio (§18). |
 | Testes | Vitest, Testing Library, jsdom, `@tauri-apps/api/mocks`, WebdriverIO + `tauri-driver` | QUALITY §4. |
 | Qualidade | ESLint (typescript-eslint `strictTypeChecked`, react-hooks, jsx-a11y, i18next), Prettier | QUALITY §2. |
 
 ## 20. Segurança do app Tauri
 
 - **Capabilities** mínimas em `capabilities/default.json`: eventos e comandos do app, `opener` restrito a URLs `https:`, `log`. Diálogos de arquivo/pasta e "mostrar na pasta" são acionados pelo Rust dentro dos comandos (§4.1), não pela interface. **Sem** plugin `shell` na interface, **sem** `fs` na interface (todo acesso a arquivo passa por comandos com validação).
-- **CSP:** `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'`.
+- **CSP:** `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: warden-img:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'` (D4: o esquema `warden-img:` serve as imagens da CurseForge, §17.1).
 - Nenhum comando genérico do tipo "execute isto" ou "leia este caminho absoluto" (R4 §1.5).
 - Todo caminho relativo validado por `resolve_inside`; extração de zip protegida contra *zip slip*; `.mrpack`/arquivos de terceiros nunca extraídos fora do destino.
 - Conteúdo remoto (descrições) sempre higienizado; nada de `dangerouslySetInnerHTML` fora do componente `SafeHtml`.
 - Downloads só por HTTPS, com hash verificado antes de uso.
+- **Rede local (D4):** o servidor local escuta só em `127.0.0.1` (§7.6); o servidor de arquivos do "Testar como o jogador recebe" também (§8.5); chamadas ao servidor web do KubeJS saem só do Rust, só para `127.0.0.1`, com o token lido na hora e nunca exposto à interface (§10.2). Nenhuma porta é aberta para a rede.
+- **IA (D4):** texto de logs, issues e changelogs é dado não confiável; nenhuma ferramenta da IA tem efeito sem o clique do usuário (§9.5).
