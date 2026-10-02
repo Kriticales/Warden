@@ -1,8 +1,8 @@
 # Warden: design system (direção Deep Dark)
 
-> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3). Acréscimo da tarefa D5 (02/10/2026): componentes do Warden 1.1 "Profissional" (§4.2).
-> Galeria com todos os componentes e estados: `design/system/index.html`, publicada em https://app.superset.sh/page/warden-design-system-ysdscr (versão 2, D4)
-> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado em https://app.superset.sh/page/warden-prot-tipo-final-pri9am (versão 2, D4: 81 telas e diálogos, 30 novos)
+> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3). Versão 1.2 (tarefa D5, 02/10/2026): componentes do Warden 1.1 "Profissional" (§4.2), padrões de tela da 1.1 (§5), verificação refeita (§7) e crítica da D5 (§8.4).
+> Galeria com todos os componentes e estados: `design/system/index.html`, publicada em https://app.superset.sh/page/warden-design-system-ysdscr (versão 3, D5)
+> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado em https://app.superset.sh/page/warden-prot-tipo-final-pri9am (versão 3, D5: 94 telas e diálogos; 30 da D4 e 13 do Warden 1.1, marcados com o selo "1.1")
 > Para republicar: `node design/tools/montar-publicacao.mjs` e `superset pages publish design/_publicado/<pasta>/ --page <id>`.
 > Mapeamento para Tailwind CSS 4 + shadcn/ui: [`HANDOFF.md`](HANDOFF.md).
 > Estrutura que este sistema veste (obrigatória, aprovada): [`ESTRUTURA.md`](ESTRUTURA.md).
@@ -183,7 +183,7 @@ Sombras são duras e curtas (deslocadas para baixo), não nuvens desfocadas. Cad
 
 ### 3.7 Ícones
 
-- **Lucide** (licença ISC), traço 2 px, tamanhos 14, 16 (padrão) e 20. No React, `lucide-react` com os mesmos nomes (`triangle-alert` → `<TriangleAlert />`). Lista dos 115 usados em `design/system/icons.js` e na galeria (17 entraram na D5: `shield-check`, `shield-x`, `shield-alert`, `shield-question-mark`, `shield-ellipsis`, `shield-user`, `sticky-note`, `replace`, `trending-up`, `archive-x`, `file-x`, `calendar-clock`, `ban`, `boxes`, `pickaxe`, `merge`, `chart-no-axes-column`; 26 entraram na D4: `network`, `activity`, `gauge`, `messages-square`, `send`, `target`, `flask-conical`, `import`, `images`, `braces`, `circle-dot`, `circle-dashed`, `circle-minus`, `timer`, `heart-pulse`, `scan-search`, `list-tree`, `chart-column`, `text-search`, `hand`, `sliders-horizontal`, `file-archive`, `code`, `square-terminal`, `upload`, `check-check`).
+- **Lucide** (licença ISC), traço 2 px, tamanhos 14, 16 (padrão) e 20. No React, `lucide-react` com os mesmos nomes (`triangle-alert` → `<TriangleAlert />`). Lista dos 116 usados em `design/system/icons.js` e na galeria (18 entraram na D5: `shield-check`, `shield-x`, `shield-alert`, `shield-question-mark`, `shield-half`, `shield-ellipsis`, `shield-user`, `sticky-note`, `replace`, `trending-up`, `archive-x`, `file-x`, `calendar-clock`, `ban`, `boxes`, `pickaxe`, `merge`, `chart-no-axes-column`; 26 entraram na D4: `network`, `activity`, `gauge`, `messages-square`, `send`, `target`, `flask-conical`, `import`, `images`, `braces`, `circle-dot`, `circle-dashed`, `circle-minus`, `timer`, `heart-pulse`, `scan-search`, `list-tree`, `chart-column`, `text-search`, `hand`, `sliders-horizontal`, `file-archive`, `code`, `square-terminal`, `upload`, `check-check`).
 - **`sparkles` só para IA**, sempre em `--color-ai` (osso) fora de botão primário.
 - Ícone sem texto só em ações muito conhecidas (fechar, editar, mais ações), sempre com nome acessível e tooltip.
 - **Pixel art própria**, desenhada por código: a marca do Warden (bloco com duas antenas e núcleo de alma), o ícone provisório de mod e de pack (padrão 8×8 simétrico gerado do nome, só quando a API não tem ícone oficial), as ilustrações dos estados vazios (bloco com símbolo), o visto do checkbox, o círculo do radio e a seta do select.
@@ -299,7 +299,7 @@ Na galeria, grupo “Warden 1.1 (Profissional)”. Onde cada função mora: `EST
 | Componente | Quando usar | Estados mostrados | Evite |
 |---|---|---|---|
 | **Verificações do pack** (`verifyPanel(rows, o)`) | Topo de Problemas, logo abaixo da saúde: uma linha por verificação (Segurança, Manutenção, Itens repetidos) com o link “Ver” para a página de detalhe | tudo certo, com perigo, com aviso, verificando (carregador de blocos; o que espera fica “Na fila”), conselho (lavanda, itens repetidos) | Linha inteira clicável; conselho em âmbar ou vermelho; dezenas de resultados no próprio painel |
-| **Selo de segurança** (`secStatus(kind, text, o)`) | Página Segurança dos mods, bloco “Segurança do arquivo” dos detalhes do mod e, curto (`size: "sm"`), na linha de mod | oficial, arquivo do computador (nenhum sinal conhecido), não confere, sinal de programa malicioso conhecido, não deu para conferir, ainda não conferido, você confiou; cada um com um escudo diferente | Prometer segurança (“seguro”, “protegido”); selo verde em todas as linhas de Mods |
+| **Selo de segurança** (`secStatus(kind, text, o)`) | Página Segurança dos mods, bloco “Segurança do arquivo” dos detalhes do mod e, curto (`size: "sm"`), na linha de mod | oficial, arquivo do computador (nenhum sinal conhecido), pontos de atenção (escudo pela metade, âmbar), não confere, sinal de programa malicioso conhecido, não deu para conferir, ainda não conferido, você confiou; cada um com um escudo diferente | Prometer segurança (“seguro”, “protegido”); selo verde em todas as linhas de Mods |
 | **Aviso “não é um antivírus”** (`alert` neutro, sem componente novo) | Topo da página Segurança dos mods e do bloco do painel | — | Esconder a limitação; tom de alarme |
 | **Substituto sugerido** (`replacementRow(o)`) | “Procurar substituto” no painel de detalhes (440 px), uma linha por candidato com 2 a 4 motivos | normal, já no pack, sem versão para o pack (botão desabilitado com o motivo), carregando | Cartões em grade; nota ou estrelas inventadas |
 | **Marca de manutenção** (`maintTag(kind, text, o)`) | Ao lado do nome na linha de mod e nos detalhes | removido da plataforma, arquivo removido, arquivado pelo autor, sem atualização, sem versão para o Minecraft mais novo | “Abandonado” como rótulo (não dá para ter certeza) |
@@ -312,7 +312,7 @@ Na galeria, grupo “Warden 1.1 (Profissional)”. Onde cada função mora: `EST
 | **Item repetido entre mods** (`dupMaterial(o)`) | Página Itens repetidos entre mods, um material por linha | com minério, só itens, já resolvido (“Unificado pelo AlmostUnified”), versão antiga do Minecraft (sugestão diferente, ex.: UniDict) | Tratar como erro ou aviso; esconder de onde veio a informação |
 
 Decisões:
-- **Escudo diferente por resultado.** Visto (confere), escudo liso com o ícone verde e borda neutra (arquivo do computador sem sinais: é mais fraco que “confere”), x (não confere), exclamação (sinal malicioso), interrogação (não deu para conferir), reticências (ainda não conferido), pessoa (você confiou). A forma diz o resultado sem a cor.
+- **Escudo diferente por resultado.** Visto (confere), escudo liso com o ícone verde e borda neutra (arquivo do computador sem sinais: é mais fraco que “confere”), escudo pela metade (pontos de atenção), x (não confere), exclamação (sinal malicioso), interrogação (não deu para conferir), reticências (ainda não conferido), pessoa (você confiou). A forma diz o resultado sem a cor.
 - **Na linha de mod só entra o que pede atenção.** Selo de segurança curto (“Não confere”, “Sinal malicioso”, “Sem conferir”; o texto completo vai para o leitor de tela e o tooltip) e marca de manutenção. Abaixo de 1180 px a marca de manutenção mostra só a palavra curta (“Removido”, “Arquivado”) para a linha não ganhar uma terceira linha; o texto completo continua para o leitor de tela e no tooltip. Verificado: nenhum estouro em 1024 px.
 - **Nota na segunda linha.** Ícone de nota e cor `text-2` (a descrição usa `text-3`), sem itálico: a Manrope embutida não tem itálico e o navegador faria um itálico falso.
 - **Grupo é bloco reto com um ponto em pixel**, sem degrau e sem cor própria, para não ser confundido com as tags de fonte e de estado.
@@ -346,6 +346,10 @@ Seguem a Alternativa A aprovada (ver `ESTRUTURA.md`):
 - **Busca do culpado (D4):** modo da tela do teste. Título “Buscando o mod culpado”, trilha de rodadas no lugar das etapas, “Agora: rodada N” em destaque, tabela das rodadas e coluna com os suspeitos. O botão do cabeçalho vira “Buscando o culpado: ver progresso” e o rodapé mostra a tarefa.
 - **Conversa com a IA (D4):** página de detalhe da seção ✦ Diagnóstico com IA (“← Conversas”), mensagens à esquerda e um resumo da conversa à direita (modelo, tokens, o que a IA pode ler). Campo “Perguntar mais” no fim.
 - **Teste com servidor (D4):** mesma tela do teste, com a etapa “Preparar o servidor”, “Mostrando: Servidor · Jogo” sobre o console e a linha de comando do servidor.
+- **Verificações do pack (1.1):** painel logo abaixo da saúde, em Problemas, com uma linha por verificação e o link “Ver” para a página de detalhe (“← Problemas”). Os achados que pedem ação também aparecem na lista de Problemas, com o selo “1.1”.
+- **Páginas de detalhe da 1.1:** Segurança dos mods, Manutenção dos mods, Itens repetidos entre mods e Travamento de um jogador (em Problemas) e Desempenho entre versões (no Histórico). Título curto em pixel com o selo “1.1”, uma linha de explicação, a linha “quando foi verificado” com “Verificar agora”, e a lista agrupada com os problemas primeiro. O aviso honesto “não é um antivírus” fica sempre no topo da página de segurança.
+- **Substitutos (1.1):** no próprio painel de detalhes do mod, com “← Detalhes”, como “Ver todas as alterações” do raio-x. Nunca diálogo sobre o painel.
+- **Mods agrupados por grupo (1.1):** a mesma lista, com um grupo recolhível por grupo do usuário e “Sem grupo” recolhido no fim; o chip do próprio grupo não se repete nas linhas daquele grupo.
 
 ## 6. Textos
 
@@ -371,6 +375,8 @@ Revisado com a skill `design:accessibility-review` (WCAG 2.1 AA). **Verificado e
 | Teclado (26 testes automatizados; 8 novos da D4: menu com grupos pulando os títulos, itens de rádio do perfil com `aria-checked` e troca do perfil no botão Testar, nós do grafo focáveis, bloco “Enviado à IA” abrindo com Enter, menu recolhido com tooltip no foco e nome acessível, seleção da descoberta com Espaço) | diálogo: foco entra no título, Tab e Shift+Tab presos, Esc fecha e devolve o foco; menu do Testar: Enter e ↓ abrem, ↓ e End navegam, Esc devolve o foco; menu de seções: Enter navega e o foco vai para o título; painel lateral: foco entra, Esc fecha; atalho “Pular para o conteúdo”; anel de foco visível em todos os controles amostrados |
 | Movimento reduzido | emulado: pulso, carregador e durações param; a opção do app também funciona |
 | Links do protótipo | nenhum aponta para tela inexistente |
+| **D5:** axe-core nas **182 combinações** de tela e estado (94 telas e diálogos, 13 do Warden 1.1 com 50 estados, mais os estados novos em telas existentes: Publicar bloqueado, versão mais pesada no resultado do teste, arquivo removido na manutenção), em 1280 e 1024 (364 páginas) | 0 violações, 0 erros de JavaScript, nenhum estouro horizontal |
+| **D5:** teclado, 15 testes novos (diálogo “Confiar neste arquivo”: foco no título, Tab preso, botão só habilita depois de digitar o nome, Esc volta; painel de substitutos com foco e Esc; os três “Ver” das Verificações alcançáveis por Tab e com nome; “Pôr no grupo” abre com Enter e fecha com Esc; chip removível com nome; contador da nota ligado ao campo; “Mostrar” do desempenho troca com as setas e o gráfico acompanha; gráfico escondido do leitor de tela e tabela com legenda; erro do link do jogador ligado ao campo) e os da D3/D4 de novo (25 executados; o do tooltip dentro do diálogo só roda quando há um tooltip aberto) | todos passaram, nenhuma falha |
 
 Garantias do sistema: rótulo visível em todo campo; erros ligados ao campo (`aria-invalid`, `aria-describedby`); `aria-current` na seção ativa e na etapa atual; `role="progressbar"` com valores; console com `role="log"`; toasts com `role="status"` (erro com `role="alert"`); confirmações destrutivas com `role="alertdialog"`; alvos de clique de no mínimo 28 px (acima dos 24 px da WCAG 2.2; o critério de 44 px da 2.5.5 é AAA e voltado a toque).
 
@@ -426,6 +432,25 @@ Feita com a skill `design:design-critique`, de forma severa, sobre capturas reai
 | Títulos fora de ordem (h3 sem h2) nos cartões de proposta, nos erros de script e na pré-visualização. | Acessibilidade | Baixa | Nível do título configurável nos componentes; nas telas, h2. |
 
 **“Cara de IA”.** Nenhum gradiente, vidro, emoji ou cartão igual em grade foi acrescentado. A conversa com a IA é deliberadamente sóbria: mensagens em blocos retos, a moldura de osso só na mensagem da IA, o brilhinho só nela, nas propostas não. As listas novas (descoberta, modpacks, travamentos, rodadas) são listas e tabelas densas. Ponto de atenção que fica: a página de descoberta em tela cheia lembra uma “loja”; ela continua sendo uma lista de trabalho (sem banners, sem destaques pagos, sem carrossel), e só a galeria do mod tem imagens grandes.
+
+### 8.4 Crítica da D5: ficou profissional sem ficar confuso?
+
+Feita com a skill `design:design-critique`, de forma severa, sobre capturas reais das 13 telas novas e das telas alteradas em 1280 e 1024 px, olhando como o dono leigo.
+
+**Resposta curta.** Sim, com dois cuidados. A navegação não mudou: as 6 seções, nenhuma aba, o menu ▾ do Testar igual. Problemas é onde o risco de confusão era maior (três verificações novas e os travamentos de jogadores); o painel “Verificações do pack” resolve isso mostrando só uma linha por verificação, e o detalhe só aparece quando se clica em “Ver”. As telas dizem o que fazem em linguagem simples (“confere com o arquivo oficial”, “não é um antivírus”, “é um conselho: nada vai travar por causa disso”), e cada resultado tem ícone e palavra.
+
+| Achado | Lente | Gravidade | Correção |
+|---|---|---|---|
+| A caixa da nota dizia que a nota “vai junto quando você publica”, o contrário da regra (notas não vão para os jogadores). | Clareza / honestidade | Alta | Texto corrigido no componente: “Fica guardada no pack, só para você: não vai para os jogadores, a menos que você inclua as notas no resumo da versão.” |
+| Problemas dizia “4 encontrados”, mas o painel de Verificações mostrava um ponto de atenção e um mod arquivado que não estavam na lista. | Coerência | Alta | Os dois entraram como avisos na lista, com o selo “1.1”; contagem, nota de saúde (26) e “O que tirou pontos” acertados em todas as telas. |
+| A manutenção mostrava um arquivo removido que o painel de Problemas e o Publicar não mostravam. | Coerência | Média | O arquivo removido virou o estado “Arquivo removido” da página, ligado ao Publicar bloqueado; o estado normal bate com o painel. |
+| “Pontos de atenção” usava o mesmo escudo de “Não deu para conferir”. | Consistência | Média | Selo próprio (escudo pela metade, âmbar) no design system. |
+| Na lista agrupada por grupo, o chip do grupo se repetia em todas as linhas daquele grupo. | Hierarquia | Média | O chip do próprio grupo some nas linhas do grupo; ficam só os outros grupos do mod. |
+| Os textos do jogador falavam da 1.4.2 como publicada, mas o Histórico diz que a última publicada é a 1.4.0. | Coerência | Média | O jogador agora usa a 1.4.0 (exata pelo `packwiz.json`); no caso “versão antiga”, a correção está numa versão ainda não publicada, e a tela sugere publicar. |
+| “Agrupar por” tinha rótulos diferentes em duas telas. | Consistência | Baixa | “Agrupar por: tipo · grupo · nenhum” nas duas. |
+| O selo “P1” era usado para marcar funções da 1.1. | Clareza | Baixa | Selo “1.1” com tooltip próprio (“vem na versão seguinte à primeira versão do app”), também ao lado do título das telas novas. |
+
+**O que fica de propósito.** O botão “Procurar substituto” leva aos substitutos do Xaero's Minimap em todas as entradas do protótipo (o app real mostra os do mod escolhido). A página de segurança mostra a evidência técnica (hash, classe) recolhida em “Como sabemos”, para quem quiser conferir, sem obrigar o leigo a ler. “Cara de IA”: nenhum gradiente, vidro, emoji ou cartão em grade foi acrescentado; o gráfico de desempenho é de blocos, de uma cor só, com a tabela ao lado; o brilhinho aparece só no botão e no diálogo da IA do travamento de jogador.
 
 ## 9. Licenças e origem de cada coisa
 

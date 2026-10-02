@@ -731,11 +731,12 @@
       }).join("")}</ul>${o.foot ? `<div class="verify__foot">${o.foot}</div>` : ""}</section>`;
   }
 
-  // Selo de segurança do arquivo. kind: oficial | escaneado | naoconfere | suspeito | semconferir | pendente | confiado
+  // Selo de segurança do arquivo. kind: oficial | escaneado | atencao | naoconfere | suspeito | semconferir | pendente | confiado
   // [ícone, tom, texto completo, texto curto (para a linha de mod; o resto vai para o leitor de tela)]
   const SEC = {
     oficial: ["shield-check", "ok", "Confere com o arquivo oficial", "Confere"],
     escaneado: ["shield", "scan", "Arquivo do computador: nenhum sinal conhecido", "Sem sinais"],
+    atencao: ["shield-half", "warn", "Pontos de atenção", "Atenção"],
     naoconfere: ["shield-x", "danger", "Não confere com o arquivo oficial", "Não confere"],
     suspeito: ["shield-alert", "danger", "Sinal de programa malicioso conhecido", "Sinal malicioso"],
     semconferir: ["shield-question-mark", "warn", "Não deu para conferir", "Sem conferir"],
@@ -834,7 +835,7 @@
     const a = { id: fid, class: "input", type: "text", inputmode: "url", value: o.value || null, placeholder: "Cole o link (mclo.gs, pastebin, gist…) ou escolha o arquivo", "aria-describedby": fid + "-st", "aria-invalid": st === "invalid" ? "true" : null, autocomplete: "off", spellcheck: "false" };
     return `<div class="logsrc logsrc--${st}"><label class="field__label" for="${fid}">${o.label || "Log ou crash report do jogador"}</label>
       <div class="logsrc__row"><div class="inputwrap ${st === "loading" ? "inputwrap--loading" : ""}">${icon("link")}${st === "loading" ? LOADER : ""}<input${attrs(a)} /></div>
-        ${btn("Escolher arquivo…", { icon: "folder-open", attrs: o.fileAttrs })}${o.after || ""}</div>
+        ${btn("Escolher arquivos…", { icon: "folder-open", attrs: o.fileAttrs })}${o.after || ""}</div>
       <div class="logsrc__status ${st === "invalid" ? "field__error" : ""}" id="${fid}-st" role="status">${status}</div></div>`;
   }
 

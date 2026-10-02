@@ -479,6 +479,7 @@
       st("Arquivo do computador", W.secStatus("escaneado")),
       st("Não confere", W.secStatus("naoconfere")),
       st("Sinal de malware conhecido", W.secStatus("suspeito")),
+      st("Pontos de atenção", W.secStatus("atencao", "2 pontos de atenção")),
       st("Não deu para conferir", W.secStatus("semconferir")),
       st("Ainda não conferido", W.secStatus("pendente")),
       st("Você confiou", W.secStatus("confiado")),

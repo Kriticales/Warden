@@ -11,11 +11,14 @@
   const GROUPS = { app: "Nível do app", pack: "Nível do pack", teste: "Testar" };
   const STATE_LABELS = { normal: "Normal", carregando: "Carregando", vazio: "Vazio", erro: "Erro", conflito: "Conflito", semcausa: "Sem conclusão",
     agrupado: "Agrupado por mod", memoria: "Memória alta", semdados: "Sem leitura", desempenho: "Desempenho", pausada: "Pausada", assistido: "Assistido",
-    cancelada: "Cancelada", aplicada: "Aplicada", mudou: "Pack mudou", antiga: "Versão antiga", pouca: "Pouca memória", jogo: "Console do jogo", jogoaberto: "Com jogo", servidor: "Com servidor", semchave: "Sem chave", todas: "Todas as alterações", velho: "Versão antiga" };
+    cancelada: "Cancelada", aplicada: "Aplicada", mudou: "Pack mudou", antiga: "Versão antiga", pouca: "Pouca memória", jogo: "Console do jogo", jogoaberto: "Com jogo", servidor: "Com servidor", semchave: "Sem chave", todas: "Todas as alterações", velho: "Versão antiga",
+    suspeito: "Sinal conhecido", naoconfere: "Não confere", bloqueado: "Bloqueado", proxima: "Versão próxima", desconhecido: "Pack desconhecido", incompleto: "Log incompleto",
+    unificado: "Já unificado", poucos: "Poucos testes", perfil: "Outro perfil", pesada: "Versão mais pesada", grupos: "Agrupado por grupo", semgrupo: "Sem grupos", sinais: "Lista antiga", confiado: "Confiado", removido: "Arquivo removido" };
 
   // ---------- Registro ----------
   // o: { group, title, spec, render(state), states: { vazio: "descrição", ... }, hidden, note, d4 }
   // d4: tela ou estado novo da tarefa D4 (funções avançadas); aparece marcado no seletor e no mapa.
+  // v11: tela nova do Warden 1.1 "Profissional" (tarefa D5); aparece marcada como (1.1).
   function def(id, o) { SCREENS[id] = Object.assign({ id, states: {} }, o); ORDER.push(id); }
 
   // ---------- Atalhos de componentes com navegação ----------
@@ -62,7 +65,7 @@
   }
   function packShell(section, content, o = {}) {
     const unsaved = o.unsaved ?? D.PACK.unsaved;
-    const problems = o.problems ?? 4;
+    const problems = o.problems ?? 6;
     const counts = {
       mods: { count: o.empty ? "" : 128, countLabel: "128 itens" },
       problemas: problems ? { count: problems, countKind: o.problemsKind || "danger", countLabel: `${problems} problemas` } : {},
@@ -101,7 +104,7 @@
   function navigate(id, state) { location.hash = id + (state && state !== "normal" ? "~" + state : ""); }
 
   function protobar(cur) {
-    const opts = Object.keys(GROUPS).map((g) => `<optgroup label="${GROUPS[g]}">${ORDER.filter((i) => SCREENS[i].group === g).map((i) => `<option value="${i}"${i === cur.id ? " selected" : ""}>${SCREENS[i].hidden ? "· " : ""}${SCREENS[i].title}${SCREENS[i].d4 ? " (D4)" : ""}</option>`).join("")}</optgroup>`).join("");
+    const opts = Object.keys(GROUPS).map((g) => `<optgroup label="${GROUPS[g]}">${ORDER.filter((i) => SCREENS[i].group === g).map((i) => `<option value="${i}"${i === cur.id ? " selected" : ""}>${SCREENS[i].hidden ? "· " : ""}${SCREENS[i].title}${SCREENS[i].v11 ? " (1.1)" : SCREENS[i].d4 ? " (D4)" : ""}</option>`).join("")}</optgroup>`).join("");
     const s = SCREENS[cur.id];
     const st = ["normal", ...Object.keys(s.states)];
     const seg = st.length > 1 ? `<span class="proto-bar__lbl" id="pb-st">Estado</span><div class="segmented" role="radiogroup" aria-labelledby="pb-st">${st.map((k) => `<button type="button" role="radio" aria-checked="${k === cur.state}" tabindex="${k === cur.state ? 0 : -1}" data-state="${k}" title="${W.esc(s.states[k] || "")}">${STATE_LABELS[k] || k}</button>`).join("")}</div>` : `<span class="proto-bar__lbl t-3">Esta tela não tem outros estados</span>`;
@@ -123,6 +126,8 @@
     document.querySelectorAll('.toasts').forEach((t) => t.remove());
     window.WardenUI.bind(stage());
     if (s.after) s.after(cur.state);
+    // Telas do Warden 1.1: selo "1.1" ao lado do título da página (como o selo P1 nas funções P1)
+    if (s.v11) { const h = stage().querySelector(".pagehead__title[data-title]"); if (h && !h.querySelector(".badge")) h.insertAdjacentHTML("beforeend", " " + W.badge("v11", "1.1")); }
     const layer = stage().querySelector(".scrim:not([data-static])");
     const openMenu = stage().querySelector('[aria-expanded="true"][aria-controls]');
     if (openMenu) { const m = document.getElementById(openMenu.getAttribute("aria-controls")); if (m) window.WardenUI.openMenu(openMenu, m); }
@@ -144,11 +149,14 @@
       ["8. Travou sem causa: encontrar o culpado e conversar com a IA (D4)", ["problemas", "teste-travou~semcausa", "culpado-config", "culpado", "culpado-resultado", "mods-raio-x", "ia-consent", "ia-conversa"]],
       ["9. Testar como servidor e gerar o pacote para servidor (D4)", ["testar-menu", "servidor-eula", "servidor-opcoes", "teste-servidor", "exportar-servidor"]],
       ["10. Importar um modpack de outro app (D4)", ["packs", "importar", "importar-pronto"]],
+      ["11. Antes de publicar: segurança e mods removidos (1.1)", ["problemas", "seguranca", "seguranca-confiar", "manutencao~removido", "substitutos", "publicar~bloqueado", "publicar"]],
+      ["12. Analisar o travamento de um jogador (1.1)", ["problemas", "jogador", "jogador-resultado", "jogador-ia", "ia-conversa"]],
+      ["13. Organizar o pack e acompanhar o desempenho (1.1)", ["mods-grupos", "mods-nota", "grupos", "salvar", "historico", "desempenho", "teste-fechou~pesada", "repetidos"]],
     ];
     const link = (i) => `<a href="#${i}" data-map-link>${SCREENS[i].title}</a>`;
     const body = `<h3 class="t-strong">Fluxos principais</h3>${flows.map(([t, ids]) => `<div style="margin-top:10px"><div class="t-sm t-2">${t}</div><div class="row row--wrap t-sm" style="margin-top:4px">${ids.map(link).join(`<span class="t-3" aria-hidden="true">→</span>`)}</div></div>`).join("")}
-      <h3 class="t-strong" style="margin-top:20px">Todas as telas</h3><div class="grid-2" style="margin-top:8px">${Object.keys(GROUPS).map((g) => `<div><div class="t-caps t-3">${GROUPS[g]}</div><ul class="stack-2 t-sm" style="margin-top:6px">${ORDER.filter((i) => SCREENS[i].group === g).map((i) => `<li>${link(i)}${SCREENS[i].d4 ? " " + W.tag("D4", "plain", { title: "Novo na tarefa D4" }) : ""}${Object.keys(SCREENS[i].states).length ? ` <span class="t-3">· ${Object.keys(SCREENS[i].states).map((k) => STATE_LABELS[k] || k).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("")}</div>`;
-    return W.dialog({ title: "Mapa e fluxos do protótipo", sub: `${ORDER.length} telas e diálogos, ${ORDER.filter((i) => SCREENS[i].d4).length} delas da D4 (funções avançadas). Os estados (carregando, vazio, erro) ficam no seletor Estado da barra de cima.`, body, size: "lg", id: "map" });
+      <h3 class="t-strong" style="margin-top:20px">Todas as telas</h3><div class="grid-2" style="margin-top:8px">${Object.keys(GROUPS).map((g) => `<div><div class="t-caps t-3">${GROUPS[g]}</div><ul class="stack-2 t-sm" style="margin-top:6px">${ORDER.filter((i) => SCREENS[i].group === g).map((i) => `<li>${link(i)}${SCREENS[i].v11 ? " " + W.tag("1.1", "plain", { title: "Warden 1.1 \"Profissional\" (tarefa D5)" }) : SCREENS[i].d4 ? " " + W.tag("D4", "plain", { title: "Novo na tarefa D4" }) : ""}${Object.keys(SCREENS[i].states).length ? ` <span class="t-3">· ${Object.keys(SCREENS[i].states).map((k) => STATE_LABELS[k] || k).join(", ")}</span>` : ""}</li>`).join("")}</ul></div>`).join("")}</div>`;
+    return W.dialog({ title: "Mapa e fluxos do protótipo", sub: `${ORDER.length} telas e diálogos: ${ORDER.filter((i) => SCREENS[i].d4).length} da D4 (funções avançadas) e ${ORDER.filter((i) => SCREENS[i].v11).length} do Warden 1.1 "Profissional". Os estados (carregando, vazio, erro) ficam no seletor Estado da barra de cima.`, body, size: "lg", id: "map" });
   }
 
   // ---------- Eventos ----------

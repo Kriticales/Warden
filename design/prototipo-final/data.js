@@ -1,6 +1,6 @@
 /* Dados fictícios do protótipo final. Uma história só, coerente entre as telas:
    o pack "Vale Sereno" (Minecraft 1.20.1, Forge 47.3.0) está na versão 1.4.2, tem 5 alterações
-   não salvas, 4 problemas (2 erros, 2 avisos), saúde 33 (Crítico), um travamento hoje por falta
+   não salvas, 6 problemas (2 erros, 4 avisos), saúde 26 (Crítico), um travamento hoje por falta
    do Balm e um travamento repetido sem causa (Ticking entity) que a busca do culpado resolve:
    Epic Fight junto com o Supplementaries.
    Nomes de mods reais aparecem só como exemplo; versões, logs, issues, modpacks e datas são inventados. */
@@ -9,7 +9,7 @@ window.DATA = (function () {
   const PACK_LINK = "https://raw.githubusercontent.com/kriticales/vale-sereno/main/pack.toml";
 
   const PACKS = [
-    { name: "Vale Sereno", mc: "1.20.1", loader: "Forge 47.3.0", version: "1.4.2", test: ["danger", "travou · hoje, 14:40"], health: 33, unsaved: 5, when: "hoje, 14:40", go: "mods" },
+    { name: "Vale Sereno", mc: "1.20.1", loader: "Forge 47.3.0", version: "1.4.2", test: ["danger", "travou · hoje, 14:40"], health: 26, unsaved: 5, when: "hoje, 14:40", go: "mods" },
     { name: "Técnico Clássico", mc: "1.7.10", loader: "Forge 10.13.4.1614", version: "2.0.1", test: ["danger", "travou · ontem, 22:10"], health: 61, unsaved: 0, when: "ontem" },
     { name: "Leve e Bonito", mc: "1.21.1", loader: "Fabric 0.16.5", version: "0.3.0", test: ["muted", "nunca testado"], health: 88, unsaved: 2, when: "12/09/2026" },
     { name: "Sky Factory do Zero", mc: "1.12.2", loader: "Forge 14.23.5.2860", version: "1.0.0", test: ["ok", "abriu normalmente · 03/09"], health: 97, unsaved: 0, when: "03/09/2026" },
@@ -97,7 +97,7 @@ window.DATA = (function () {
 
   // ---------- D4: funções avançadas ----------
   // Saúde do pack: [pontos, categoria, texto]
-  const HEALTH = 33;
+  const HEALTH = 26;
   const HEALTH_LOSSES = [
     ["−30", "Problemas encontrados:", "2 erros (Balm faltando; Embeddium e Rubidium juntos)."],
     ["−3", "Problemas encontrados:", "1 aviso (Xaero's Minimap com o lado errado)."],
@@ -105,12 +105,15 @@ window.DATA = (function () {
     ["−6", "Travamentos recentes:", "2 causas diferentes nas últimas 10 vezes que você testou."],
     ["−4", "Mods que alteram o mesmo ponto do jogo:", "Epic Fight e Supplementaries (risco alto)."],
     ["−4", "Download pelos jogadores:", "2 mods da CurseForge precisam ser baixados à mão."],
+    ["−3", "Segurança:", "1 arquivo do computador com pontos de atenção (fastchest-extra.jar)."],
+    ["−2", "Manutenção:", "Clumps foi arquivado pelo autor."],
+    ["−2", "Itens repetidos:", "chumbo e níquel geram minério em 2 mods cada."],
   ];
   // Travamentos agrupados pela causa
   const CRASHES = [
-    { title: "Falta o mod Balm, exigido pelo Waystones", times: 1, last: "hoje, 14:40", versions: "1.4.2 com alterações", state: ["ok", "Causa encontrada"] },
-    { title: "NullPointerException ao atualizar uma entidade (Ticking entity)", times: 3, last: "30/09, 21:14", versions: "1.4.1 a 1.4.2", state: ["danger", "Causa não encontrada"] },
-    { title: "O jogo ficou sem memória (OutOfMemoryError)", times: 1, last: "22/09", versions: "1.4.0", state: ["muted", "Não voltou a acontecer desde a 1.4.1"] },
+    { title: "Falta o mod Balm, exigido pelo Waystones", times: 1, last: "hoje, 14:40", versions: "1.4.2 com alterações", state: ["ok", "Causa encontrada"], origin: "Seus testes" },
+    { title: "NullPointerException ao atualizar uma entidade (Ticking entity)", times: 4, last: "hoje, 11:02", versions: "1.4.1 a 1.4.2", state: ["danger", "Causa não encontrada"], origin: "3 seus testes · 1 jogador" },
+    { title: "O jogo ficou sem memória (OutOfMemoryError)", times: 1, last: "22/09", versions: "1.4.0", state: ["muted", "Não voltou a acontecer desde a 1.4.1"], origin: "Seus testes" },
   ];
   // Busca do culpado: rodada, mods ligados, resultado, tempo
   const ROUNDS = [

@@ -39,7 +39,7 @@
           ${item("Procurar problemas parecidos nas páginas dos mods no GitHub", "Envia ao GitHub só o nome do mod e algumas palavras do erro. Nunca o log.")}</ul></div>
         <div><div class="field__label" style="margin-bottom:6px">Texto inicial, exatamente como vai</div><pre class="code code--scroll" tabindex="0" aria-label="Texto inicial que será enviado">Sintoma: trava ao entrar no mundo
 Pack: Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · 128 itens
-Achados do Warden: 4 (2 erros, 2 avisos), entre eles "Epic Fight e Supplementaries alteram o mesmo ponto do jogo"
+Achados do Warden: 6 (2 erros, 4 avisos), entre eles "Epic Fight e Supplementaries alteram o mesmo ponto do jogo"
 Travamento de 30/09 21:14, 3ª vez com a mesma causa:
 java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.Entity.getX()"
 Caminho: C:\\Users\\<mark>[usuário]</mark>\\AppData\\Local\\dev.kriticales.warden\\instances\\vale-sereno
@@ -55,7 +55,7 @@ Caminho: C:\\Users\\<mark>[usuário]</mark>\\AppData\\Local\\dev.kriticales.ward
   function conversation(state) {
     const loading = state === "carregando", applied = state === "aplicada", err = state === "erro", changed = state === "mudou";
     const tools = [
-      W.toolCall({ what: "visão geral do pack", size: "2,1 KB", sent: "Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · memória 6 GB\n128 itens: 124 mods, 3 resource packs, 1 shader\nSaúde 33 (Crítico) · último teste: travou hoje às 14:40", back: "A IA recebeu o resumo acima." }),
+      W.toolCall({ what: "visão geral do pack", size: "2,1 KB", sent: "Minecraft 1.20.1 · Forge 47.3.0 · Java 17.0.12 · memória 6 GB\n128 itens: 124 mods, 3 resource packs, 1 shader\nSaúde 26 (Crítico) · último teste: travou hoje às 14:40", back: "A IA recebeu o resumo acima." }),
       W.toolCall({ what: "crash report de 30/09 21:14, linhas 1 a 80 (sem dados pessoais)", size: "6,8 KB", sent: "---- Minecraft Crash Report ----\nDescription: Ticking entity\n\njava.lang.NullPointerException: Cannot invoke \"net.minecraft.world.entity.Entity.getX()\"\n\tat net.minecraft.world.entity.LivingEntity.travel(LivingEntity.java:2108)\n\tat yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch.onTravel(LivingEntityPatch.java:412)\n…\nMixins in Stacktrace:\n\tnet.minecraft.world.entity.LivingEntity:\n\t\tepicfight.mixins.json:MixinLivingEntity\n\t\tsupplementaries-common.mixins.json:LivingEntityMixin", back: "Linhas 1 a 80 do arquivo crash-2026-09-30_21.14.02-server.txt." }),
       W.toolCall({ what: "o que o Epic Fight altera no jogo", size: "1,4 KB", sent: "Epic Fight 20.9.4: 214 alterações em 3 configs.\nMesmo ponto que outro mod: LivingEntity#travel (@Redirect), também Supplementaries 2.8.17 (@Redirect). Risco alto." }),
       W.toolCall({ kind: "github", what: "busca de issues no Supplementaries com “NullPointerException travel”", size: "0,1 KB", sent: "GET https://api.github.com/search/issues?q=repo:MehVahdJukaar/Supplementaries+is:issue+NullPointerException+travel", back: "2 issues: <b>#3121</b> “NPE in LivingEntity.travel with Epic Fight” (fechada em 12/09, corrigida na 2.8.21) e <b>#2987</b> (outro erro, aberta)." }),
