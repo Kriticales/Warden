@@ -405,7 +405,7 @@ Verificação feita: todas as telas mais as páginas Mapa e Fluxos (52 combinaç
 
 ## 13. Funções avançadas (D4): onde fica cada uma
 
-Depois de aprovar a estrutura, o dono pediu uma ferramenta **completa** de criação, edição e debug. As pesquisas `docs/research/05-diagnostico-avancado.md` (R5A) e `docs/research/06-criacao-edicao-descoberta.md` (R5B) detalharam as funções, e o dono decidiu o escopo em 01/10/2026 (SPEC §10, D15 a D25). Esta seção diz onde cada função mora. As regras da §1 continuam valendo sem exceção: **dois níveis, 6 seções no pack, nenhuma aba, o raro escondido**. Função nova entra como página de detalhe, modo de exibição ("Ver como: Lista · Grafo"), item do menu ▾ do Testar, painel lateral, diálogo ou modo da tela do teste.
+Depois de aprovar a estrutura, o dono pediu uma ferramenta **completa** de criação, edição e debug. As pesquisas `docs/research/05-diagnostico-avancado.md` (R5A) e `docs/research/06-criacao-edicao-descoberta.md` (R5B) detalharam as funções, e o dono decidiu o escopo em 01/10/2026 (SPEC §10, D15 a D26). Esta seção diz onde cada função mora. As regras da §1 continuam valendo sem exceção: **dois níveis, 6 seções no pack, nenhuma aba, o raro escondido**. Função nova entra como página de detalhe, modo de exibição ("Ver como: Lista · Grafo"), item do menu ▾ do Testar, painel lateral, diálogo ou modo da tela do teste.
 
 ### 13.1 Mapa atualizado
 

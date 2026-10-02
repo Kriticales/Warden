@@ -1,6 +1,6 @@
 # Warden — Padrão de qualidade obrigatório
 
-> Versão do documento: 1.1 (2026-10-01). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029).
+> Versão do documento: 1.2 (2026-10-01). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038).
 > Vale para **todos** os agentes e para o orquestrador. Uma entrega que não cumpre este documento não é integrada.
 > Referências: `ARCHITECTURE.md` (estrutura), `SPEC.md` (critérios de aceite), `ROADMAP.md` (tarefas), `docs/decisions/` (ADRs).
 
@@ -114,6 +114,8 @@ missing_errors_doc = "allow"
 | Ponta a ponta (E2E) | `apps/desktop/e2e/` | WebdriverIO + `tauri-driver` sobre build de debug (`tauri build --debug`), APIs simuladas por servidor local de fixtures, cofre de teste em arquivo | Linux em toda mudança; Windows na `main` e à noite |
 | Injeção de falha | testes com a feature `fault-injection` de `warden-core` | `cargo nextest` | toda mudança |
 | Desempenho | `crates/*/benches/`, `apps/desktop/e2e/perf/` | `criterion`, medições E2E | marcos e tarefa A-04 |
+| Servidor local real (D4) | `crates/warden-server/tests/server_*.rs` | instaladores oficiais + Java, marcados `#[ignore = "servidor"]` | sob demanda e antes do marco M4 |
+| IA com servidor simulado (D4) | `crates/warden-ai/tests/` | servidor que imita o Gemini, inclusive a recusa de histórico com *thought signatures* alteradas, e o GitHub | toda mudança; chave real só no teste de rede |
 
 Regras:
 - **Testes de integração não pulam em silêncio.** Na CI (`WARDEN_REQUIRE_EXTERNALS=1`), falta de packwiz/Java é falha. Localmente, pulam com aviso explícito na saída.
@@ -124,6 +126,8 @@ Regras:
 - **Testes de interface** cobrem para cada tela os estados vazio, carregando, erro e sucesso, e passam no `axe` sem violações sérias.
 - **E2E** cobre pelo menos o caminho feliz de cada fluxo P0 e um caminho de erro, pela interface real (clique, digitação), sem chamar comandos diretamente.
 - **Guarda de contrato:** teste que lista os comandos registrados no Rust e verifica que cada um é usado por algum código em `src/features/` (equivalente ao `ipcConsumerGuard` de R4); a lista de exceções só pode diminuir.
+- **Algoritmos com executor simulado (D4):** a busca do culpado e a nota de saúde são funções puras testadas com executores e dados simulados e com `proptest` (nenhum prefixo sem dependências; um achado a mais nunca aumenta a nota).
+- **Nada de jogo, servidor ou IA de verdade para provar a interface:** E2E usam processos Java de teste que imitam o jogo e o servidor (imprimem os marcadores, travam, criam filhos) e servidores HTTP simulados.
 
 ### 4.2 Cobertura mínima (linhas)
 
@@ -131,7 +135,7 @@ Medida com `cargo llvm-cov nextest` e `vitest --coverage` (v8), aplicada por `ca
 
 | Alvo | Mínimo |
 |---|---|
-| `warden-packwiz`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics`, `warden-catalog` | 85% |
+| `warden-packwiz`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics`, `warden-catalog`, `warden-bisect`, `warden-mixin`, `warden-import` | 85% |
 | Demais crates de domínio | 75% |
 | `warden-app` | sem mínimo numérico (coberto por E2E e guardas de contrato) |
 | `apps/desktop/src/lib/**`, `src/features/*/lib/**` | 85% |
@@ -252,13 +256,30 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Snapshot de segurança | ponto de segurança | backup, snapshot |
 | Index do packwiz | índice | index |
 | Chave de API | chave | token (exceto o do GitHub, que é "token") |
+| Nota que resume os problemas do pack (D4) | saúde do pack; faixas Ótimo, Bom, Atenção, Crítico | score, pontuação, health |
+| Bisseção automática (D4) | encontrar o mod culpado; busca do culpado; rodada | bisseção, bisect, busca binária |
+| Raio-x de mixins (D4) | o que este mod altera no jogo; "alteram o mesmo ponto do jogo" | mixin (na interface, fora da coluna técnica), conflito de mixin, "são incompatíveis" |
+| Sessão de perguntas com a IA (D4) | conversa | chat, sessão de IA |
+| O que a IA consultou, mostrado na conversa (D4) | Enviado à IA | log de ferramentas, function call |
+| Mudança sugerida pela IA (D4) | proposta; botão **Aplicar** | sugestão automática, ação da IA |
+| Conjunto de ajustes do teste com nome (D4) | perfil do teste | preset, configuração de teste |
+| Servidor dedicado na máquina do usuário (D4) | servidor local; "Testar como servidor" | servidor dedicado, host local |
+| Server pack (D4) | pacote para servidor | server pack, pacote de servidor |
+| Mods sugeridos ao criar um pack (D4) | mods iniciais | mods padrão, mods obrigatórios |
+| Lista curada de mods de otimização (D4) | kit de desempenho | pacote de performance, otimizações |
+| spark e Crash Assistant no pack (D4) | ferramenta do jogador | mod utilitário, dependência |
+| Lista de testes que travaram (D4) | Travamentos | crashes, histórico de crashes |
+| Página aberta por Adicionar (D4) | página de descoberta (na interface, o título continua "Adicionar ao pack") | loja, explorar, marketplace |
+| Grafo de dependências (D4) | Ver como: Grafo; "quem precisa de quem" | árvore de dependências, diagrama |
+| Abrir pack packwiz ou de outro app (D4) | Abrir ou importar… | Importar pack, Abrir pack existente |
 
 ## 9. Segurança e privacidade
 
 1. **Segredos:** chaves e tokens só no armazenamento escolhido pelo usuário: o cofre do sistema (padrão) ou o `.env` da pasta de configuração do Warden (ARCHITECTURE §14, ADR-0025). O conteúdo publicado no GitHub passa por varredura de segredos antes de sair (ARCHITECTURE §11.1). Proibido: escrever em arquivo do repositório, fixture, log, mensagem de erro, saída de teste, commit, argumento de linha de comando de processo filho, URL de remoto git. A chave da CurseForge do dono está em `/home/solel/.superset/projects/Warden/.env` (`CURSEFORGE_API_KEY`): **não imprimir, não copiar, não registrar**; testes leem do ambiente.
 2. **Varredura:** `gitleaks detect` na CI e no checklist de revisão; padrões extras para `$2a$`, `AIza`, `ghp_`, `github_pat_`.
 3. **Tipos de segredo:** `secrecy::SecretString` no Rust; no frontend, campos de senha que enviam o valor ao comando `secrets_set` e limpam o estado em seguida; nunca guardar em Zustand, Query cache ou `localStorage`.
-4. **PII:** nada é enviado a terceiros (IA) sem consentimento explícito por envio e sem passar pela redação (ARCHITECTURE §9.4). O texto mostrado é o texto enviado.
+4. **PII:** nada é enviado à IA sem o consentimento explícito da conversa (ADR-0030: uma vez por conversa, listando o que a IA pode consultar) e sem passar pela redação (ARCHITECTURE §9.4). O texto inicial mostrado é o texto enviado, e cada envio seguinte aparece na conversa com os bytes exatos. A busca de issues no GitHub envia só o repositório e palavras do erro redigidas, e só com a permissão da conversa. Nada muda no pack por ação da IA sem o clique em Aplicar.
+4a. **Rede local (D4):** servidor local, servidor de arquivos do teste pelo link e chamadas ao servidor web do KubeJS só em `127.0.0.1`; o token do KubeJS nunca sai do Rust (ARCHITECTURE §20).
 5. **Registros:** sem segredos; sem corpo de respostas da CurseForge; sem ambiente de processos filhos.
 6. **Entrada externa** (APIs, jars, zips, logs, configs) é não confiável: limites de tamanho, parsers tolerantes que não entram em pânico (testes com `proptest`/entradas malformadas), proteção contra *zip slip* e *path traversal*, HTML/Markdown higienizado.
 7. **Processos:** argv sempre em vetor, nunca via shell; ambiente limpo para o sidecar; nenhum comando genérico exposto à interface.
