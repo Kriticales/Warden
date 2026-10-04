@@ -35,7 +35,14 @@ pub enum ModoFinal {
     /// Sem `responseFormat` nas rodadas de ferramenta; quando o modelo para de chamar, uma
     /// requisição extra com `mode: NONE` e `responseFormat` pede o JSON.
     Separado,
+    /// A resposta final é uma chamada à ferramenta `responder`, cujo esquema é o da resposta
+    /// (o `VALIDATED` impõe o esquema nas chamadas). Sem rodada extra.
+    Ferramenta,
 }
+
+pub const NOME_RESPONDER: &str = "responder";
+const INSTRUCAO_RESPONDER: &str = "
+8. Para dar a resposta final, chame a ferramenta responder (uma vez, sozinha, sem texto antes). Não escreva a resposta em texto.";
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -124,6 +131,37 @@ pub enum ErroLaco {
     Http { status: u16, corpo: String },
     Rede(String),
     RespostaRuim(String),
+    /// 429 de cota (por dia, ou com espera longa): não adianta tentar de novo agora.
+    Cota { espera_s: u64, por_dia: bool, plano_gratuito: bool },
+}
+
+/// `RetryInfo.retryDelay` em segundos, se houver.
+fn espera_pedida(corpo: &str) -> Option<u64> {
+    let v: Value = serde_json::from_str(corpo).ok()?;
+    v.pointer("/error/details")?.as_array()?.iter().find_map(|d| {
+        d.get("retryDelay").and_then(Value::as_str).and_then(|r| r.trim_end_matches('s').parse::<f64>().ok()).map(|x| x as u64)
+    })
+}
+
+/// Lê um 429 da API: devolve `Some` quando é cota que não volta em segundos
+/// (`RetryInfo.retryDelay` acima de 60 s ou `quotaId` "PerDay").
+pub fn cota_esgotada(corpo: &str) -> Option<ErroLaco> {
+    let v: Value = serde_json::from_str(corpo).ok()?;
+    let detalhes = v.pointer("/error/details")?.as_array()?;
+    let mut espera_s = 0;
+    let mut por_dia = false;
+    let mut gratuito = false;
+    for d in detalhes {
+        if let Some(r) = d.get("retryDelay").and_then(Value::as_str) {
+            espera_s = r.trim_end_matches('s').parse::<f64>().unwrap_or(0.0) as u64;
+        }
+        for viol in d.get("violations").and_then(Value::as_array).into_iter().flatten() {
+            let id = viol.get("quotaId").and_then(Value::as_str).unwrap_or("");
+            por_dia |= id.contains("PerDay");
+            gratuito |= id.contains("FreeTier");
+        }
+    }
+    (por_dia || espera_s > 60).then_some(ErroLaco::Cota { espera_s, por_dia, plano_gratuito: gratuito })
 }
 
 impl std::fmt::Display for ErroLaco {
@@ -132,6 +170,9 @@ impl std::fmt::Display for ErroLaco {
             ErroLaco::Http { status, corpo } => write!(f, "HTTP {status}: {corpo}"),
             ErroLaco::Rede(e) => write!(f, "rede: {e}"),
             ErroLaco::RespostaRuim(e) => write!(f, "resposta ruim: {e}"),
+            ErroLaco::Cota { espera_s, por_dia, plano_gratuito } => {
+                write!(f, "cota esgotada (por dia: {por_dia}, plano gratuito: {plano_gratuito}); liberar em {espera_s} s")
+            }
         }
     }
 }
@@ -149,8 +190,23 @@ impl Conversa {
 
     fn corpo(&self, modo: &str, permitidas: Option<&[&str]>, com_formato: bool) -> Value {
         let mut fcc = json!({ "mode": modo });
+        let ferramenta = self.cfg.modo_final == ModoFinal::Ferramenta;
         if let Some(p) = permitidas {
+            let mut p: Vec<&str> = p.to_vec();
+            if ferramenta {
+                p.push(NOME_RESPONDER);
+            }
             fcc["allowedFunctionNames"] = json!(p);
+        }
+        let mut declaracoes = tools::declaracoes();
+        let mut sistema = SYSTEM_PROMPT.to_string();
+        if ferramenta {
+            declaracoes[0]["functionDeclarations"].as_array_mut().unwrap().push(json!({
+                "name": NOME_RESPONDER,
+                "description": "Entrega a resposta final ao usuário, com as evidências. Chame quando terminar de consultar.",
+                "parametersJsonSchema": evidence::esquema_resposta(),
+            }));
+            sistema.push_str(INSTRUCAO_RESPONDER);
         }
         let mut geracao = json!({ "temperature": 1.0 });
         if let Some(t) = &self.cfg.thinking_level {
@@ -160,9 +216,9 @@ impl Conversa {
             geracao["responseFormat"] = json!({ "text": { "mimeType": "APPLICATION_JSON", "schema": evidence::esquema_resposta() } });
         }
         json!({
-            "systemInstruction": { "parts": [{ "text": SYSTEM_PROMPT }] },
+            "systemInstruction": { "parts": [{ "text": sistema }] },
             "contents": self.contents,
-            "tools": tools::declaracoes(),
+            "tools": declaracoes,
             "toolConfig": { "functionCallingConfig": fcc },
             "generationConfig": geracao,
         })
@@ -249,12 +305,22 @@ impl Conversa {
 
             let (status, resp) = match resultado {
                 Ok(x) => x,
-                Err(ErroLaco::Http { status, corpo }) if matches!(status, 429 | 500 | 503) && tentativas_rede < 2 => {
+                // 429/500/503 (inclusive "high demand"): até 4 novas tentativas por requisição,
+                // com espera exponencial (2, 4, 8, 16 s).
+                Err(ErroLaco::Http { status: 429, corpo }) if cota_esgotada(&corpo).is_some() => {
+                    ev.http = 429;
+                    ev.erro = Some(corpo.clone());
+                    self.eventos.push(ev);
+                    return Err(cota_esgotada(&corpo).unwrap());
+                }
+                Err(ErroLaco::Http { status, corpo }) if matches!(status, 429 | 500 | 503) && tentativas_rede < 4 => {
+                    // Cota por minuto: espera o retryDelay que a API manda (até 60 s).
+                    let espera = espera_pedida(&corpo).unwrap_or(1 << (tentativas_rede + 1));
                     ev.http = status;
                     ev.erro = Some(corpo);
                     self.eventos.push(ev);
                     tentativas_rede += 1;
-                    std::thread::sleep(Duration::from_secs(5 * tentativas_rede as u64));
+                    std::thread::sleep(Duration::from_secs(espera + 1));
                     continue;
                 }
                 Err(e) => {
@@ -266,6 +332,7 @@ impl Conversa {
                     return Err(e);
                 }
             };
+            tentativas_rede = 0;
             ev.http = status;
             ev.uso = resp.get("usageMetadata").map(Uso::de).unwrap_or_default();
             ev.resposta = Some(resp.clone());
@@ -295,6 +362,25 @@ impl Conversa {
             }
             let content = content.unwrap();
             let chamadas: Vec<Value> = partes.iter().filter_map(|p| p.get("functionCall").cloned()).collect();
+
+            if let Some(fc) = chamadas.iter().find(|c| c.get("name").and_then(Value::as_str) == Some(NOME_RESPONDER)) {
+                // Resposta final como chamada: o histórico recebe a chamada e uma resposta curta,
+                // para a conversa poder continuar com outra pergunta.
+                let json = fc.get("args").cloned().unwrap_or(json!({}));
+                let mut respostas = vec![];
+                for c in &chamadas {
+                    let mut fr = json!({ "name": c.get("name").cloned().unwrap_or(json!("")), "response": { "ok": c.get("name").and_then(Value::as_str) == Some(NOME_RESPONDER) } });
+                    if let Some(id) = c.get("id") {
+                        fr["id"] = id.clone();
+                    }
+                    respostas.push(json!({ "functionResponse": fr }));
+                }
+                self.contents.push(content);
+                self.contents.push(json!({ "role": "user", "parts": respostas }));
+                self.eventos.push(ev);
+                let conferencia = evidence::conferir(&json, &self.registro, false);
+                return Ok(Resultado { json, conferencia, rodadas: rodada });
+            }
 
             if chamadas.is_empty() {
                 let texto: String = partes

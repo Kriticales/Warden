@@ -145,3 +145,89 @@ fn chave_errada_da_403_sem_vazar() {
     assert!(e.contains("403"));
     assert!(!e.contains("outra"));
 }
+
+#[test]
+fn modo_ferramenta_encerra_com_responder() {
+    let roteiro: Roteiro = Box::new(|i, req| {
+        let nomes = req.pointer("/tools/0/functionDeclarations").unwrap().as_array().unwrap().len();
+        assert_eq!(nomes, 18);
+        match i {
+            0 => mock::chamadas(&[("get_crash_report", json!({ "session_id": "s3" }))]),
+            1 => mock::chamadas(&[("responder", json!({ "resumo": "ok", "semConclusao": false, "propostas": [],
+                "achados": [{ "afirmacao": "a", "mods": ["railways"], "confianca": "alta",
+                    "evidencias": [{ "id": "crash:s3", "citacao": "railways$tickBogeys" }] }] }))]),
+            2 => mock::chamadas(&[("diff_versions", json!({ "from": "v1.3", "to": "v1.4" }))]),
+            _ => mock::chamadas(&[("responder", json!({ "resumo": "2", "semConclusao": true, "propostas": [], "achados": [] }))]),
+        }
+    });
+    let srv = Servidor::iniciar(roteiro);
+    let mut c = cfg(&srv.url);
+    c.modo_final = ModoFinal::Ferramenta;
+    let mut conv = Conversa::nova(c);
+    let r = conv.perguntar("x").unwrap();
+    assert!(r.conferencia.achados[0].verificada);
+    conv.perguntar("y").unwrap();
+    assert!(srv.recusas().is_empty(), "{:?}", srv.recusas());
+    assert_eq!(conv.eventos.len(), 4);
+}
+
+fn erros_reais() -> Value {
+    serde_json::from_str(include_str!("../fixtures/erros-http-reais.json")).unwrap()
+}
+
+#[test]
+fn erro_503_real_e_recuperado() {
+    let e = erros_reais()["http_503_alta_demanda"].clone();
+    let roteiro: Roteiro = Box::new(move |i, _| match i {
+        0 => e.clone(),
+        _ => final_simples(),
+    });
+    let srv = Servidor::iniciar(roteiro);
+    let mut c = Conversa::nova(cfg(&srv.url));
+    c.registro.itens.push(crate::tools::ItemEnviado { id: "crash:s3".into(), texto: "railways$tickBogeys".into() });
+    let r = c.perguntar("x").unwrap();
+    assert!(r.conferencia.achados[0].verificada);
+    assert_eq!(c.eventos[0].http, 503);
+}
+
+#[test]
+fn cota_por_minuto_le_espera() {
+    let e = erros_reais()["http_429_cota_por_minuto_plano_gratuito"].to_string();
+    assert!(crate::laco::cota_esgotada(&e).is_none());
+    let d = erros_reais()["http_429_cota_diaria_plano_gratuito"].to_string();
+    assert!(crate::laco::cota_esgotada(&d).is_some());
+}
+
+#[test]
+fn cota_diaria_real_para_na_hora() {
+    let e = erros_reais()["http_429_cota_diaria_plano_gratuito"].clone();
+    let srv = Servidor::iniciar(Box::new(move |_, _| e.clone()));
+    let mut c = Conversa::nova(cfg(&srv.url));
+    let inicio = std::time::Instant::now();
+    match c.perguntar("x") {
+        Err(crate::laco::ErroLaco::Cota { por_dia, plano_gratuito, espera_s }) => {
+            assert!(por_dia && plano_gratuito && espera_s > 3600);
+        }
+        outro => panic!("{outro:?}"),
+    }
+    assert_eq!(c.eventos.len(), 1);
+    assert!(inicio.elapsed() < Duration::from_secs(2));
+}
+
+#[test]
+fn gravacoes_reais_passam_no_simulado() {
+    for nome in ["travamento-gemini-3.8-flash.json", "travamento-gemini-3.8-flash-ferramenta.json"] {
+        let f: Value = serde_json::from_str(&std::fs::read_to_string(format!("{}/fixtures/{nome}", env!("CARGO_MANIFEST_DIR"))).unwrap()).unwrap();
+        let respostas = f["respostas"].as_array().unwrap().clone();
+        let srv = Servidor::iniciar(mock::roteiro_de_gravacao(respostas));
+        let mut c = cfg(&srv.url);
+        if nome.contains("ferramenta") {
+            c.modo_final = ModoFinal::Ferramenta;
+        }
+        let mut conv = Conversa::nova(c);
+        let r = conv.perguntar(f["perguntas"][0].as_str().unwrap()).unwrap();
+        assert!(srv.recusas().is_empty(), "{nome}: {:?}", srv.recusas());
+        assert_eq!(r.conferencia.evidencias_validas, r.conferencia.evidencias_total, "{nome}");
+        assert!(r.conferencia.evidencias_total >= 6);
+    }
+}

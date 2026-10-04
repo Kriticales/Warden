@@ -107,6 +107,10 @@ fn atender(url: &str, chave: Option<&str>, corpo: &str, n: &mut usize, roteiro: 
     *n += 1;
     drop(st);
     let resposta = roteiro(i, &req);
+    // O roteiro pode devolver um corpo de erro da API ({"error": {"code": ...}}).
+    if let Some(codigo) = resposta.pointer("/error/code").and_then(Value::as_u64) {
+        return (codigo as u16, resposta);
+    }
     let mut st = estado.lock().unwrap();
     if let Some(c) = resposta.pointer("/candidates/0/content") {
         st.emitidos.push(c.clone());

@@ -164,6 +164,7 @@ fn real(modelo: &str, cenario: &str, opcoes: &[String]) -> anyhow::Result<()> {
     while i < opcoes.len() {
         match opcoes[i].as_str() {
             "--separado" => c.modo_final = ModoFinal::Separado,
+            "--ferramenta" => c.modo_final = ModoFinal::Ferramenta,
             "--sem-escalonar" => c.escalonar_ferramentas = false,
             "--thinking" => {
                 i += 1;
@@ -175,7 +176,11 @@ fn real(modelo: &str, cenario: &str, opcoes: &[String]) -> anyhow::Result<()> {
     }
     let rotulo = format!(
         "{cenario}-{modelo}{}{}",
-        if c.modo_final == ModoFinal::Separado { "-separado" } else { "" },
+        match c.modo_final {
+            ModoFinal::Junto => "",
+            ModoFinal::Separado => "-separado",
+            ModoFinal::Ferramenta => "-ferramenta",
+        },
         c.thinking_level.as_ref().map(|t| format!("-thinking-{t}")).unwrap_or_default()
     );
     let mut conv = Conversa::nova(c);

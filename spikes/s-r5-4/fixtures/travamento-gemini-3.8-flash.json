@@ -1,0 +1,303 @@
+{
+  "origem": "Gravação real da API do Gemini (generateContent) feita pelo spike S-R5-4 em 2026-10-04, com o pack fictício Vale Sombrio. Só os corpos das respostas, na ordem; sem cabeçalhos nem chave.",
+  "modelo": "gemini-3.8-flash",
+  "cenario": "travamento",
+  "perguntas": [
+    "O pack travou no último teste (sessão s3). Por que travou e como resolvo?"
+  ],
+  "respostas": [
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_findings",
+                  "args": {},
+                  "id": "call_3222054"
+                },
+                "thoughtSignature": "EtICCs8CAWkUfRMHm9+q/z1pyL4HztYNdeMlN4cjR+J2o8zgZmf3msYSQmZReJFrk4FvzXPplkFHXVotm7bdOo3yzkPubC1FI2LxMeutsc/aKnAS97HkGfP0E4QFtJIcvlMa5WYEib2aCDkmguOOuRospMHBcs9lzIUMWy3ljzDogfjp68DRfJmAmkv0JSJS9/A0wnhCj+lzMkOx3IdLxz6URKbQc7JCCAl1IGUkhR+c/PJUL+QNsHeOXnS1fEiFuOmprubgnWhKNhWEmN0QNtoMkKCzDJwaDKJj/bScLzhXSWynlcr9AwXGkBf5zRXPbDgbN+VpuK7JkCnXCLMinovktdybJThEGC17lwBvUTFkOSSUR7El3h6p+z55Go2dbn8hrr8ooPIJsvZJOunm6uHj/VcCC2UgK4UamlOWwkIL9FT5KExpr6ZN0PWGfZcz4taVvgI="
+              },
+              {
+                "functionCall": {
+                  "name": "get_session",
+                  "args": {
+                    "session_id": "s3"
+                  },
+                  "id": "call_3222055"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "get_crash_report",
+                  "args": {
+                    "session_id": "s3"
+                  },
+                  "id": "call_3222056"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 1552,
+        "candidatesTokenCount": 50,
+        "totalTokenCount": 1664,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1552
+          }
+        ],
+        "thoughtsTokenCount": 62,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "uMXCaoyMOYbRz7IPmNHg0AM"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_mod_details",
+                  "args": {
+                    "mod_id": "railways"
+                  },
+                  "id": "call_4782611"
+                },
+                "thoughtSignature": "EqAFCp0FAWkUfRNpm1c4XaeACjKPJRAcOjCBZX17xiV7IQLF9A8XrHmQhV290fJTX+2+BjNmdkc8JtmEociCdfI7v/E8oBRBbC0ktkvlwqAJS+vDn5n3CgKw5PgcCZU3lrmJtfAeKoSecTWCSH7DEYicCXUqoGlUm2xfqn4ka1503xAgy689FZrAh3lK/qRiInhEM/V/lBG14yCCjO8VLp6kuX0SKT/qRGIF553THD/h52nxHriAcyYIlizN4OzneskSgw3UoFA5quwWNCONpqHA5Ybv9FRdjmiG3PaMc0VbrQ6AQ/y6rgMGhWFw0Gkoin7Mp8cC2TD4D2PMRyDOKGWQBWJEqnUUAuj+rboPCdkhcXLYdBf+KrUWvyVbk9CrrWiDOS/QkbyznefmS6Up4R7Mk0V2L7l+UuIT607WmTZzHYLc3RgDtyuI4hlsRVAUJC0ymRtdOL7ScNCWdiS/ZOnZSEv2MR4c7EbvepuVWtUQS2DckMeAmZkzJrl7UK7YtxXgWkJ030rMFFaIl3cYcH34uHlQSyq08tGbu3L357eg5vZ+YUTtMQoAP7n4wNSWlGBEYtDCej6W2ThtNuXxeXlH7hkvsfDLNqNQksbi6QZPEwa2bxNpHC20BI5duWZMVx9LLR8/PR37FF1ZR+HBOe4EiSQpwK5rrv/XCXHPxwgBMg/Po5cUMGDIgiwEiMy/rtJr0ZnJUypq/h/1uwicjTV/yjUAEBeXGpwwdBP5H/FULdj2xgbwmql2Ykv4OFsWZdxU7mKKm9OXnEAWn0oSaAt8oxAgoO8F6XE5chlLzqyJrR2r9jVjbFcV5HI88DfwuKYu2qmOXbYpK9UmCxdM/UVzpU0l3K1b8cEnKTwqZFavmdQn7YFqnbtPK6GX6CRJhBP2"
+              },
+              {
+                "functionCall": {
+                  "name": "get_mod_details",
+                  "args": {
+                    "mod_id": "create"
+                  },
+                  "id": "call_4782612"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 2805,
+        "candidatesTokenCount": 41,
+        "totalTokenCount": 3039,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2805
+          }
+        ],
+        "thoughtsTokenCount": 193,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "vcXCaoO5FOKfz7IPweaa-AM"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_mod_changelog",
+                  "args": {
+                    "mod_id": "railways"
+                  },
+                  "id": "call_1639476"
+                },
+                "thoughtSignature": "EoQCCoECAWkUfRMRgvsUntue4TrFZWuNs0gNQeB4mA+6EbKAmT+OQEb+lCXaow0oPoLraSwmR98Cg9wRutt8C7LpEEmg1rRc8PaCa7IQkflO1ZzXGOzUl/x57QkbCgMOavpQD8Jw38tYNTxkzmrzDPmnd20nOQJj8lLFX0E291nH+Ra9UuADhWLmdX/xsppiOKw/LrEvwse/lTXsd1peq6MA6KOeTS0JCv1XNo1JUUFAOqcLMFv6KgVwcFmI8VX/FKNSrbVjcE1amJJxn8ww9soUrH9qAIP65sJk/nB4T82ooa2bGzaPluQAkcLP7yLiktNpM/mBWzq+ffASRVW/roi5ED4JeJU="
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 3254,
+        "candidatesTokenCount": 22,
+        "totalTokenCount": 3316,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3254
+          }
+        ],
+        "thoughtsTokenCount": 40,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "vsXCar_4NP3Qz7IPzsL02AM"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "### Causa do Travamento\n\nO travamento ocorreu devido a uma incompatibilidade entre a versão instalada do mod **Create: Steam 'n' Rails** (`railways`) e a versão instalada do mod **Create** (`6.0.4`), gerando um erro de método inexistente (`NoSuchMethodError`) durante a execução do tick de um vagão/trem.\n\n**Evidências:**\n* Conforme apontado no diagnóstico determinístico [finding:CRASH_SIGNATURE#1]:\n  > \"Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).\"\n\n* No relatório de erro da sessão [crash:s3]:\n  > \"java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'\"\n  > \"at com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88) ~[Steam_Rails-1.6.4+forge-mc1.20.1.jar%23142!/:?]\"\n\n---\n\n### Como Resolver\n\nAtualize o mod **Create: Steam 'n' Rails** (`railways`) para a versão **`1.6.7+forge-mc1.20.1`**. Essa versão inclui suporte ao Create 6.0 e corrige exatamente essa falha de execução.\n\n**Evidências:**\n* Metadados do mod [jar:railways]:\n  > \"Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1\"\n\n* Changelog da versão [changelog:railways@1.6.7+forge-mc1.20.1]:\n  > \"Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.\"",
+                "thoughtSignature": "EtoRCtcRAWkUfRPRmoA2jf1/qvWe6rS9xz8BOKY17lwJECBOh7V4Sjt44d3jgFnoMTvh8CYdVPqk2ZhSszXzFPp221rYn/AzR/iQB9tZgZDn7FDWlweo/7Qrv0DYaTPPnXc8GA5HOqT45c73Di7XuAYcUGbZgi9VRiLHT1OJZIYaQlZU1ywK75WmZgUt6BdrVIuTRiydnFzZc30eEpa/6iQhBlPGywAnWKLu+nfV/dSdCF4p7ABaHNY5w+CoxrUW7a8lxLsP78gFGZSNvUcoaRqx04dKjnlYdBm1DYBBkj8ym3mLxUrt+xTesNIfD/XVp7sh/nC0aQwFJkSpctQpp4AycvmschBvbuKVHgdaeGiKNSH5c1f4nf91PwHUTu07e8TM6Z/TQDs25Gsmm+aeO8N9qH+ScNSr6IngZqNUkONzOjADKM/7Nx2RgwdmuVvPdRMxMmRo2UPx+/owGUfqbpLlsDhGH75ZZR3zxVuB/a3a2TsjGMbj2T8iJtN29ZSRs5twiavd1d1UiWL2yNmnjM0htCMwhY+94j76ygzJRpST+NrJlw3DsAOIIb+FdGqNhdJ/4dULW8xDzPNPukdmpBO639QMp6EXxIaL61WhWw6X4SexbjcT7cRTpmNm5bdYs/xVGRvTEx7W5fIPEgRrwjkm6+sb9AihPjIb2z1BAMNoomwyVCSXl+RxUYN04RfB3yJgpC0w3/7Gk3tZFGLMnc7ZS72ceVBGA++4sMnUwwD/RPTK3E5kw/0zb5IVQAIt5qkQ7GGXjP5jwQzUnp0gTkeyUc+DGE7yc+AJpy73PEOg/AnQuUGlxY7uX/V9A3UknjMYxo4sW2TSoDWoSugrUd7gi2e03ehoKPRNRBFKF870jfPRRA/ZLN+cur6gmC4D0D5hQizVmSSQa06fjyIJmBwWIRGikULvS3BK7eth7+5fsZ4i+3ZOY9e5WwfU9NO4bezXeJU1dYlo8PXIvxGeoF8dOv1dQnz+VD9pMurdBIMc70EFA5vG56tJWfbC10FJAqCZSoVr1WsQaiYrYrOe1KZYL9S56fWDr21F5NsfLfud8epnEuStshrCSFKuUsWF4pACTpBmKXSny6+CwRWcKWH3sZi8tdL1db9zNpeWjnQu7d9/D+bsjT3mq07v0w0M3ZgbmY0jbb5mj9FhQgSiZqkFfboNtu8uo3oIm4Zv/dfPVGkAljDP2IU/bRP08DQXm25SN7s1i1Hs8KinTosXJNlavAGON34MICmRQzRIwG9CTOBp6rxkLEaoIJYqIJFXaRroCSIchFgEavDYhpDsKZQkbks5w+BRUQW8coplZ+/+AJsx+vr2D72P22QL3/8b8HmCoC2Fl7cFoNnV4yO9GmOjpou25C/vWGuZpej8+Y477/C7aSaG8wTFNy+h34AMg3ACbukLDb7qk5zh1yadzCUs2SOEJZJ88bsB7vpaiyervsRUZ5yEBX7EVbgPZ+lpJUBiqqmkiFiSav0ZAijmRF24nTUD5ZvK/IDrUD4tD9BSGmj43LYrzwDxvnjgrl6BQuExWWEPnyD4IPhfYwVuHrUaEhf9vdRavHefYKOYz7YvmXDmWqqKjoOf4evPzrcxf5xe8krnsT6lmG+G7So/gW1xuXZKC6PwGtFFJCqEIPkaqKsS+2jSNcfou8zWx5K+T1D2PjboRfwlvFzdhjW8vyw9HM8Hsy8Alx/6GX9drZMZP5KYq1ym+krvh2mG/z5Sqv4GQzJ9rC82JIbLla/3Ym5+rbyCOdqyMWOrG/tEJBYQQIV70xpBR6Sf4vH89Bi5lUr7CqXnNTG0uuJFq0DxVbhnLA47q123hfrGI2K0THreYUiw3sMLusS2TWQvsHYabkiGBvF/MV2fTFDQgDGnhhvurpIAsMxpy91W5kiwtug6qGp7ek7WZgeIDNffuuC0q94xdjD7tvgO+c55oXKupuR7c/5A3ijwF2aiJo6wZXF3DdBZ9EldXoLdZwIxukPQEUuIkWqbcGH1c/YAdYXqPOAx7hhaCqezQZM5R8icHI/G++I2rmtCYl4r+EadbcaoB9m8gNEvHYahy1ch+XNj7icbmI/bm2sKs4bTN4pwJ2q3/TLQEKEPnQ+ZRnNy00pW+xOYUUCyfhilHcbBKQoyw+XLs4QzgZXCywN3aLlJSBh+pLAVXYLS1l+18OJO303flA7ynIhPgs4eU+/A+WP9uftYviHVdIblqxk96sTGnWvoz/eCGJru2wVvRcIwE+bWBb7F1TKDAAa1drVa4hTJSbmrB8kREpbp7MpbWVIthwV6yqEu6z51bIJD9n+MMZmUh2j+uwve+S2mDO/hlZKkzdR7RwZGNi+z0MRc7O144+EsqxZUAr7E12aVtkEQHsESR4CuAAliFuvjZpxO1mdxFA1uw314nisobMlL52OS4wUme++GXMgqQ7uE5nJFaoSrsxa4xu4O88TFuubkiRmY6jrFkdkDpyuwZIAnok68N+JC2GDje4l2bWRhN83sz1KcY/65LZeT4lvuD5pQUSGr0gTBTVbPJMy6sbDi0TSbUlvPlNvogydPj68jHXa/YT6H/dNnomLz5eI0w5TkWN0jdysU4vOOV+87ML1NyGW/TSVPZmeiGtJ4B8Z03UjlKFqHwkBw8bNARgDjnFItZE+CaRmEPGYagrRxXGkJJwSbCR6wH1CymCzh/vA11lVcfaTzydVa+1+dQI8gsjkxOOaANtYsid0PuV1qZbSXRY8w73XQPpsBR9rpnKNO5aDuT5G5vEmFc/Br++Vas1d4VXIpH58WkpKn77HDMQnXJY6e0JzeJPIAsj+KdQvjy+8gatstw2IzaAilnRYM81f7y5FA7JaSVG7CquvlzsEo1zq5BFVq1t+ifvql7J1KTAAlG6fcub9MbnOL5j4xNKN6qNc/5h4d3KmcjCVj9O8nxTXxF/ZeHJk4hcKOoP58uJDZhk/2Vfg/VZncH40H1zqMYNMY7BbMeXA2GvpfOE1bwoBxwG+u2zHMCjvRYlvmquq4Xd2NHR55EBbnP4l+iFaSpQ=="
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 3515,
+        "candidatesTokenCount": 522,
+        "totalTokenCount": 4694,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3515
+          }
+        ],
+        "thoughtsTokenCount": 657,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "v8XCaqXEOZesz7IPxYLikQQ"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "{\n  \"resumo\": \"O jogo travou devido a uma incompatibilidade entre o Create: Steam 'n' Rails e a versão 6.0.4 do Create. A atualização do Steam 'n' Rails para a versão 1.6.7 resolve o problema.\",\n  \"achados\": [\n    {\n      \"afirmacao\": \"O mod Create: Steam 'n' Rails causou um erro java.lang.NoSuchMethodError ao tentar processar vagões de trem (MixinCarriageContraptionEntity) em conjunto com a versão 6.0 do Create.\",\n      \"mods\": [\"railways\", \"create\"],\n      \"evidencias\": [\n        {\n          \"id\": \"crash:s3\",\n          \"citacao\": \"java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'\\n\\tat com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88) ~[Steam_Rails-1.6.4+forge-mc1.20.1.jar%23142!/:?]\"\n        },\n        {\n          \"id\": \"finding:CRASH_SIGNATURE#1\",\n          \"citacao\": \"Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).\"\n        }\n      ],\n      \"confianca\": \"alta\"\n    },\n    {\n      \"afirmacao\": \"A versão 1.6.7+forge-mc1.20.1 do Create: Steam 'n' Rails corrige especificamente a falha de NoSuchMethodError em MixinCarriageContraptionEntity ao rodar com Create 6.0.\",\n      \"mods\": [\"railways\"],\n      \"evidencias\": [\n        {\n          \"id\": \"changelog:railways@1.6.7+forge-mc1.20.1\",\n          \"citacao\": \"Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.\"\n        },\n        {\n          \"id\": \"jar:railways\",\n          \"citacao\": \"Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1\"\n        }\n      ],\n      \"confianca\": \"alta\"\n    }\n  ],\n  \"propostas\": [\n    {\n      \"tipo\": \"atualizar_mod\",\n      \"detalhe\": \"Atualizar o mod Create: Steam 'n' Rails (railways) para a versão 1.6.7+forge-mc1.20.1.\",\n      \"evidencias\": [\n        {\n          \"id\": \"changelog:railways@1.6.7+forge-mc1.20.1\",\n          \"citacao\": \"Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.\"\n        },\n        {\n          \"id\": \"jar:railways\",\n          \"citacao\": \"Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1\"\n        }\n      ],\n      \"modId\": \"railways\"\n    }\n  ],\n  \"semConclusao\": false\n}",
+                "thoughtSignature": "EpYJCpMJAWkUfRObqpf0SePYRuNRCEtjQhOr1U+JiQeLuZmOvRCtmDKDjKxjS/gixhKaBNrtZi2SXQw4NjI7DjZUDj5xM3H7VkBsqGFKx2ihi+a9i0mgP3jdihUqzLSUEme4s0QeoQKUTopxnQ/fRqP867wnt31YBdfxZWEDT8um6T2feIqCGVSzkLOw4DZNSDRqcGY3G94H8OfYee/EYjQ32BJIDK1070RFqVcJbcwpcjlG/9hTI/9U2DbJmJN1AMuLoPbSszkcdJg8IfiqPT9oMXbJZ3ewRqNtuRxCFAw21UCHnrDxQlhdJIc0/iBWZ6KJzKnXQyFRLf9mcO3IRmYO95876o5e7RxHetvE96NoVHciRb2kKWeWSWx5KrcywGkg3ixB6Ih1WJzK1bJImaCehpSnx4SUBqlh8rxn5Uciuk0R8zfzc4A1dks7zFdEdS67qSV+jiexzEAL8mZrxkOL34JpR+B0JBlagpNBZYrmqX+GtKp+Y/FO4eMtnIYoTeZ+e4M2UonjeeNWDu76LsOQ0G1cByNjXShhyCypHqCDIRWyDZZQ+w+zHkLoXnCCooSW1A23lvDvKu9RoFRLEMSLl3STZbF6C+t7apfvN2wt1ds4lrgLkDhWnuMpmg/xC6UIhdRtZlheeM85sEgjvQmB669KdK5Am4zHljTkGYUd8s6Kl98akjzNA69T0vhdMJ1YJiC6HdF6skYXT80WPrn2kA4VatKMSDeFhM2+SI5wTsdj8b4uo4n/nTStWCifos3/u7eX0SiVJGkqJhBMKJlrq+Ujc/BgFL267CVEXdiypMfMt9Y+8oga6PrI+Egjo6TSM2n1z/rV5rl/JfemWXXitFBEUGHQenlRON0RTbaNxBiD1e6lhZlfTt5OvQG0GkWRVqKjn7eYs3ThRZebpsnYJOduDvb1qbfVROAOVzatmIO0GZXHXMHlRmSTFeM4eWSdLE9TnVz5hCi9SN6Q+8WStqMgWgmHydvwpFsJT1qWmmSm+zZZhImKeEoVZE6O2c2/W/DQTFZfkUr6AzEY0gppxp7b+KOO1yiQjMvBRfciXmVScAh9wC+n6hzw/mAdjr6H0Kls3uFief5zHd8tdZB+Ic/8lbODC1eWxCBBtraDx787QIp6oZOp8188xSCX0Zl9p5lNyYApkAnU/k4KTxumFOJF2oxL5kWDQDdD/yhbloIQeLWcp3HDfwDQfiqBK6HAR8u+YhPAbxs5tD3n5dLy8CSFhKeCxhYjy9F/W/hlfwQ+e0fa0kbvnJlBEH4GDT73dgKRzhojwduRz0MQwSg8iBb7I2PIDRUv+nG3GJo63lji+eQvD2R0k18HErGZ6utSWpWTt26GoHq9PLBzEDSm0uD7UQRSo+QchLvqeE0Ni49b+xxwPMLLbAaHqqCJbfa2ocL9Op1R5iVezD8ijC33br0xZx+wkIIHOTX4vT3O2O9X3ZrGRhx5SN9jkM/WQhIX9n3sm99WRNWzsch1vA4srucpqu3dNvJV8/QpyFZn9ceAZyOdulLwVu4tQW+JHRvrdDEKzPCFzA9DWO+cLmaCVgV58BRgyQ=="
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 3515,
+        "candidatesTokenCount": 897,
+        "totalTokenCount": 4778,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3515
+          }
+        ],
+        "thoughtsTokenCount": 366,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "y8XCau3PIPyez7IP1P-KIA"
+    }
+  ],
+  "erros": [
+    {
+      "rodada": 3,
+      "http": 200,
+      "erro": "JSON inválido: expected value at line 1 column 1"
+    },
+    {
+      "rodada": 3,
+      "http": 503,
+      "erro": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"
+    }
+  ],
+  "uso_total": {
+    "prompt": 14641,
+    "cache": 0,
+    "saida": 1532,
+    "pensamento": 1318,
+    "ferramentas_prompt": 0
+  },
+  "conferencias": [
+    {
+      "resumo": "O jogo travou devido a uma incompatibilidade entre o Create: Steam 'n' Rails e a versão 6.0.4 do Create. A atualização do Steam 'n' Rails para a versão 1.6.7 resolve o problema.",
+      "sem_conclusao": false,
+      "achados": [
+        {
+          "afirmacao": "O mod Create: Steam 'n' Rails causou um erro java.lang.NoSuchMethodError ao tentar processar vagões de trem (MixinCarriageContraptionEntity) em conjunto com a versão 6.0 do Create.",
+          "confianca": "alta",
+          "verificada": true,
+          "mods_inexistentes": [],
+          "evidencias": [
+            {
+              "id": "crash:s3",
+              "citacao": "java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'\n\tat com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88) ~[Steam_Rails-1.6.4+forge-mc1.20.1.jar%23142!/:?]",
+              "situacao": "Valida"
+            },
+            {
+              "id": "finding:CRASH_SIGNATURE#1",
+              "citacao": "Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).",
+              "situacao": "Valida"
+            }
+          ]
+        },
+        {
+          "afirmacao": "A versão 1.6.7+forge-mc1.20.1 do Create: Steam 'n' Rails corrige especificamente a falha de NoSuchMethodError em MixinCarriageContraptionEntity ao rodar com Create 6.0.",
+          "confianca": "alta",
+          "verificada": true,
+          "mods_inexistentes": [],
+          "evidencias": [
+            {
+              "id": "changelog:railways@1.6.7+forge-mc1.20.1",
+              "citacao": "Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+              "situacao": "Valida"
+            },
+            {
+              "id": "jar:railways",
+              "citacao": "Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "propostas": [
+        {
+          "tipo": "atualizar_mod",
+          "mod_id": "railways",
+          "detalhe": "Atualizar o mod Create: Steam 'n' Rails (railways) para a versão 1.6.7+forge-mc1.20.1.",
+          "exibida": true,
+          "motivo_descarte": null,
+          "evidencias": [
+            {
+              "id": "changelog:railways@1.6.7+forge-mc1.20.1",
+              "citacao": "Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+              "situacao": "Valida"
+            },
+            {
+              "id": "jar:railways",
+              "citacao": "Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "evidencias_total": 6,
+      "evidencias_validas": 6,
+      "evidencias_so_com_espacos": 0
+    }
+  ]
+}

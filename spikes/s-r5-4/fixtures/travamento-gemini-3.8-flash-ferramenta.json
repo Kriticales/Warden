@@ -1,0 +1,373 @@
+{
+  "origem": "Gravação real da API do Gemini (generateContent) feita pelo spike S-R5-4 em 2026-10-04, com o pack fictício Vale Sombrio. Só os corpos das respostas, na ordem; sem cabeçalhos nem chave.",
+  "modelo": "gemini-3.8-flash",
+  "cenario": "travamento",
+  "perguntas": [
+    "O pack travou no último teste (sessão s3). Por que travou e como resolvo?"
+  ],
+  "respostas": [
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_crash_report",
+                  "args": {
+                    "session_id": "s3"
+                  },
+                  "id": "call_2540502"
+                },
+                "thoughtSignature": "EvgCCvUCAWkUfRPJoWEZ1QxG2/0B52vg4vzYVy17IW+5r8rMcTWXwDCLhpsxbI9dj8ol9mDSjAwMrsjWHrQxTogYAe3MQQoPal6+x08cs41izP0VAI50o4JQYADe3JZJZ/RW9B8U4LQqoNnU/izxJ5XJhMJashZ85H+pfVkT6PIsdwheK5yWSF5uW/RqgY2Fnqtmso9VDdB+AWfMgqZv/5Um4P05kH/Zrs3GFrdyRU9m8OtuGEby1DakJb9YyqpyZsHb5xzOKL0uVnbFFjyx4c+FUV6qP4FYw3z+l18XIKibdQuMFNlQxWGqrxMEoVIbSh7EoseYXWPuQLW/qlatBMli6HVlz7ETt/PS01/V+26+mVCoJJu4ACu80siUoOpUiP5jTwxEOkEcS4lkoTMavLzUjkGLQ/qBLA/TUDlyTQGy0x3GyygvBznw4IoCI/uN3W3EfvPGMTasQ54z9B7gVHhEQT/FkhmF9Qo5jXK+mZC5NvB9CQkxqbw/fA=="
+              },
+              {
+                "functionCall": {
+                  "name": "get_session",
+                  "args": {
+                    "session_id": "s3"
+                  },
+                  "id": "call_2540503"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "get_findings",
+                  "args": {},
+                  "id": "call_2540504"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "get_pack_overview",
+                  "args": {},
+                  "id": "call_2540505"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 2118,
+        "candidatesTokenCount": 62,
+        "totalTokenCount": 2264,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2118
+          }
+        ],
+        "thoughtsTokenCount": 84,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "IsbCaqWsEoCoqtsP3L2PqQM"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_mod_details",
+                  "args": {
+                    "mod_id": "railways"
+                  },
+                  "id": "call_4008309"
+                },
+                "thoughtSignature": "EpsICpgIAWkUfRMonK49DPJZxQdLBWq/qicOC8CrDBkhmy0ACvb/ZGcc0r3kZZLBvUoulBc0nCBiaCbNEU+zMDmZbsSi0j9oRtpjItYwjnyTHvuv4voO7PmIXvgxP0IT644Br+VH4a89CDYybzhwZfUFNc6+NRIDoloE/nTZ8DU7SsL7yYWKJz78MCihnWWi1JOGZYELSWLocPvxfsUmC1cWWsyjPPIg5MFvam39XXfiPCqrdKrL2RiaZntCtBPWHquRWyvnNMT7RCY1s0o1OlrNo/crCtUiK779cwo2nhGXqpF6dILsQaf3ZNP5YwusHMdryiw5z7u9ptuu8fBZ1Io0cwT58ojcYFjK/6LKpREy6XQhvug80S/nGazb8C5E3KePaBt2H7szphkYCaiAIjOWCkT3LpKap53PtcuWidxc0zzUM/Ts6J4//OJaA43X/z0f+UUXjozANVDd4Q9Wij1NCPZ7vXKQDp9HoJjaPkSy0Ls6QG20p6H2ocs+6W9zJYjcgWvb0yM7seXCnyDD38Q3a1XgZKah9bktAv6MjQFXzgnGNl5BQhrOyOKvpfgm4OCIwAR1fceHxf5p23/CMjCybCsaQRKkXbYqkWRq2dvCILKDSDXEhzYr1ZkKxg9RlinEwOQIQT6Kxlshz00CDmg85ovwI4E/cPSihp65sS9hW2QnY6F8Jq6mrpvLxzZRyg8Am42Ny/QEyXnmBTpSBQTmmXC/jBDhUVnxgAME6joxFUWm+5cFXS0wsznvb+3Viiouew5h3YgqyTxoQ32rg8I61rmrrjzIenGfJ3tF00wEySv0PxAaikw8VcsKDux124mDzHZ9Fh9eWOHnm6vaKsMhVIBBVmcUUT4nPoeYF/tLiRgNpfFp8d0nnSk9aRVkLKT8qk9d65XJLPvsIO2/5wPrEL9iy1uSdIxal34CZyf4ROa9W48LpKxnBGPfonLpCYzSJyT30suGhcme4Ice23AilIZIRy2kgGpmyTZ3RN4A+jDI67JlBbFz9j3IkoFknAsPV070P819fZAHONT7q3qW+Qyt0s/ZNPqlsQjqyDHLG1GAhc24dvT9KGDS3Z1vF0ckP/lAeh/3uXZVhrdmwaDr8KRw6eVK56voXJJSNaWIPLWG3urKpvPiAU5xjlQdK1FH11qAWLehmVwW7OFAEtDS9dTcjooUsxIdP3YCoaQVY1fxgk6YIFvd5PQ/ywSVV8dch/sKs02geZONgfadq0bOzkqzPtkLDFx5wxO2CQDtQsNvevAL+/ZCX7gYauP7T86K2Bk8mM05Mx4f38D/q5fJZv72pgiRjQR3TE7ofn2CoywrwtCU0XQw6rq3hQSVodm19Ip9y4nlZofNuU9UBufHwlal/QpVFjgcA1RjjPeYWovbx4J/+7w9gXvAQw=="
+              },
+              {
+                "functionCall": {
+                  "name": "get_mod_details",
+                  "args": {
+                    "mod_id": "create"
+                  },
+                  "id": "call_4008310"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "get_mod_changelog",
+                  "args": {
+                    "mod_id": "railways"
+                  },
+                  "id": "call_4008311"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "search_mod_issues",
+                  "args": {
+                    "query": "getPositionVec",
+                    "mod_id": "railways"
+                  },
+                  "id": "call_4008312"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 3547,
+        "candidatesTokenCount": 91,
+        "totalTokenCount": 3949,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3547
+          }
+        ],
+        "thoughtsTokenCount": 311,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "K8bCar3PJqupqtsPpezKiQM"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "list_mods",
+                  "args": {
+                    "filtro": "railways"
+                  },
+                  "id": "call_1835106"
+                },
+                "thoughtSignature": "Er0LCroLAWkUfRM/g9Nh7F7U5Ez13epNAUhwD/ypE5sXldmx2/csUUADmYCUoJEHLK6Q0n48mJPrE2HXbhGxunsDQULj97WVEp/1LknJUgArLyOYDIoqYherNT08FiMnDvL2wVc6Mu/wWgcOAkP17qN9EwwRw48lC/deDEmRC0OsTOizwDxEbboWT2C4OOTeSIP4E17Q2CXU9YNSu6/EF7QeFSgfPlFDP+uW5qohrupx79AeMZWbvIXmI2oboaaKhXw1M9dR4PDGuW9Bg4nBZbXQJsYx8rri4jNna4JwLwgXl3uyQl3KzM6qNHF4YnXVWOVhGXpB9uAIKGg58OMAURafW07cVoOEOd/1/gtP6um508DdWofZ8GsUCwGtA566l9Gum9FVA3xnanK7sW00QBpXIy67GJ3tqpXpBavAJY8ZLPb0dihapzBca1I5f3DIvWHr9ut5amLliVFBavFMSOmzOfTmbZtPOIsuO1QcXKL3s7RLGOM+DZ2cNpuyMZbuR0LUpJZ4pErw6X+JMXzkhHzZw5I7OhVehzTaKHMFMUqisMyLOLyEAgxFN1pN4D2szFIbOipGb5Z0QQh1T/ivm8g4BbX1ieL9Z8oriq8GH03NlTU7LALIQrJjo/P0tmIy0UxgLEuvVEug8v2bxglmz/wl08GIYjO7HqIgKLf8EVKDF47kceyhZ0nUUzTLawndfSuQ2M9SVCyiEjIJqBrv8ReQVSyjwsgpCcyXKB+4vAU31x61bZj/FiVw/yjgkXeFywewuzx0PFLeSELbva6GAi7/iBpMQeW5jAEY3gNheEFbC6s5ipRVa0E/YBFuLs+Q1QuqZb7FZwBKNzN1lqK/u5CYudQ1dwR2a5qksHs2tIi6YAllLBaIqwkZWGsgxMjHsIShxqoyGuUzKabBNAJv3W51GC6NUGNTmVMXZ3utG0/NJ/KfFR1hoNV7RIT3tUZsXjNsEAQMuOR7L+JY8qH5OTZAhGVPpA7b9m8bfCY3/LLI7ZpPH+0GuBY/OSXBoEOgYcs71uslxLDqSckRX/BzKGYGm/k8dakGYyJ0nbz46/BqdvcQUOqVC5/C9d6wuhzmur+MgHlNtSSpqSx2my3ZiMBAvt8lMlGmenGSmz3DIWdfUgSPOiiTTpGagp5duEwvtR7Yunzx4jpawhaRW/1ONglgb8zzc7RdlEhcFooDU+P8mrZyBYB8NrI/LWOvag8oR1UobfAPdQ1WM8JxqZAwXWqnq7ogCZ2jVCEMCRyV4Sl8Vno/oHDYYbiZ1hAKLlFKMw5ArfxfncOXcVOtR37C4RB4/iKeHBBcnHZNFMnhSYGmMb1ftKVYIgB4rEDbpdurJ6DH2GAxMHwrLP9dJHX3fdwL8iaaIGImUmTzf1LQl5yvEEkezGx+hkHi1yZTNdCj+d4gw90n7u+Q8suStnF2Qn54cJuEm0lQ2jPr6sv9ykG8/OV2SnKLZCe+vrB3/II4m6GVtQXTRcga6TcMNS/Fovkp72xAICUw3a1Fwx4mEm54jEMLQJn36Bqa2UnqfNFyYjR5rA3TpNTrXqt3hLY060dEF9ZWi2MThqf/p6dbi1NrHiNG0Ky2ySXPr5YB9ItCdzzVj5UfYsccqIbIH4FLsCkYGsbTx81++rweCNX4n2XcCYjTMrjD3U+AmXtNhaG18pHsfxfV41C2Xln6qGh5wctb7t+s0iu4DulIqXxeQOcnMu42fU8Ce3t/JheigB4g149N+2ZILRF3TzYSQya+5Ml9PWjnVDvP4KNyM7CfI7xkWi5atpubNpF2vSC4M9J+BiHNHYejoxRQB0lW0LRmPn5MMlTbtfTQTxD4jf2gccFzg8dqgLicvVSuwGDg2Q2hUowux7bkUlVCFV7Qdyz2K+XxAoZbbunyMdvq87AbISmsmfXChqYHqQpx502icW0fv/kfPLB1hhpzwHSjnaG9U524HuocJC+Nxxx0mIEyIhw="
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 4468,
+        "candidatesTokenCount": 18,
+        "totalTokenCount": 4950,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4468
+          }
+        ],
+        "thoughtsTokenCount": 464,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "LcbCap3ILM6O6dkPnqaI2AM"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "responder",
+                  "args": {
+                    "propostas": [
+                      {
+                        "detalhe": "Atualizar o mod Create: Steam 'n' Rails para a versão 1.6.7+forge-mc1.20.1, que corrige a incompatibilidade com o Create 6.0.",
+                        "evidencias": [
+                          {
+                            "citacao": "Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+                            "id": "changelog:railways@1.6.7+forge-mc1.20.1"
+                          },
+                          {
+                            "id": "jar:railways",
+                            "citacao": "Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1"
+                          }
+                        ],
+                        "modId": "railways",
+                        "tipo": "atualizar_mod"
+                      }
+                    ],
+                    "achados": [
+                      {
+                        "evidencias": [
+                          {
+                            "citacao": "java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'",
+                            "id": "crash:s3"
+                          },
+                          {
+                            "citacao": "at com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88) ~[Steam_Rails-1.6.4+forge-mc1.20.1.jar%23142!/:?]",
+                            "id": "crash:s3"
+                          },
+                          {
+                            "citacao": "Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).",
+                            "id": "finding:CRASH_SIGNATURE#1"
+                          }
+                        ],
+                        "confianca": "alta",
+                        "afirmacao": "O crash ocorreu devido a um erro java.lang.NoSuchMethodError chamado pelo mixin do Create: Steam 'n' Rails (railways) ao tentar acessar getPositionVec() de uma entidade do Create durante o tick.",
+                        "mods": [
+                          "railways",
+                          "create"
+                        ]
+                      },
+                      {
+                        "mods": [
+                          "railways",
+                          "create"
+                        ],
+                        "confianca": "alta",
+                        "afirmacao": "A versão 1.6.4 do Create: Steam 'n' Rails é incompatível com o Create 6.0; essa falha de NoSuchMethodError ao processar o tick de trens foi corrigida na versão 1.6.7+forge-mc1.20.1 do mod railways.",
+                        "evidencias": [
+                          {
+                            "citacao": "Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+                            "id": "changelog:railways@1.6.7+forge-mc1.20.1"
+                          },
+                          {
+                            "id": "issue:Layers-of-Railways/Railway#712",
+                            "citacao": "[fechada, 2026-09-14] Crash NoSuchMethodError getPositionVec with Create 6.0 — Fixed in 1.6.7, please update."
+                          },
+                          {
+                            "id": "jar:railways",
+                            "citacao": "Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1"
+                          }
+                        ]
+                      }
+                    ],
+                    "resumo": "O travamento ocorreu por incompatibilidade entre a versão 1.6.4 do Create: Steam 'n' Rails e o Create 6.0.4. Atualizar o mod Create: Steam 'n' Rails para a versão 1.6.7+forge-mc1.20.1 soluciona o erro.",
+                    "semConclusao": false
+                  },
+                  "id": "call_2706027"
+                },
+                "thoughtSignature": "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"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5011,
+        "candidatesTokenCount": 905,
+        "totalTokenCount": 7737,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5011
+          }
+        ],
+        "thoughtsTokenCount": 1821,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.8-flash",
+      "responseId": "L8bCavqgOearqtsP_LXm0AM"
+    }
+  ],
+  "erros": [
+    {
+      "rodada": 1,
+      "http": 503,
+      "erro": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n"
+    }
+  ],
+  "uso_total": {
+    "prompt": 15144,
+    "cache": 0,
+    "saida": 1076,
+    "pensamento": 2680,
+    "ferramentas_prompt": 0
+  },
+  "conferencias": [
+    {
+      "resumo": "O travamento ocorreu por incompatibilidade entre a versão 1.6.4 do Create: Steam 'n' Rails e o Create 6.0.4. Atualizar o mod Create: Steam 'n' Rails para a versão 1.6.7+forge-mc1.20.1 soluciona o erro.",
+      "sem_conclusao": false,
+      "achados": [
+        {
+          "afirmacao": "O crash ocorreu devido a um erro java.lang.NoSuchMethodError chamado pelo mixin do Create: Steam 'n' Rails (railways) ao tentar acessar getPositionVec() de uma entidade do Create durante o tick.",
+          "confianca": "alta",
+          "verificada": true,
+          "mods_inexistentes": [],
+          "evidencias": [
+            {
+              "id": "crash:s3",
+              "citacao": "java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'",
+              "situacao": "Valida"
+            },
+            {
+              "id": "crash:s3",
+              "citacao": "at com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88) ~[Steam_Rails-1.6.4+forge-mc1.20.1.jar%23142!/:?]",
+              "situacao": "Valida"
+            },
+            {
+              "id": "finding:CRASH_SIGNATURE#1",
+              "citacao": "Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).",
+              "situacao": "Valida"
+            }
+          ]
+        },
+        {
+          "afirmacao": "A versão 1.6.4 do Create: Steam 'n' Rails é incompatível com o Create 6.0; essa falha de NoSuchMethodError ao processar o tick de trens foi corrigida na versão 1.6.7+forge-mc1.20.1 do mod railways.",
+          "confianca": "alta",
+          "verificada": true,
+          "mods_inexistentes": [],
+          "evidencias": [
+            {
+              "id": "changelog:railways@1.6.7+forge-mc1.20.1",
+              "citacao": "Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+              "situacao": "Valida"
+            },
+            {
+              "id": "issue:Layers-of-Railways/Railway#712",
+              "citacao": "[fechada, 2026-09-14] Crash NoSuchMethodError getPositionVec with Create 6.0 — Fixed in 1.6.7, please update.",
+              "situacao": "Valida"
+            },
+            {
+              "id": "jar:railways",
+              "citacao": "Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "propostas": [
+        {
+          "tipo": "atualizar_mod",
+          "mod_id": "railways",
+          "detalhe": "Atualizar o mod Create: Steam 'n' Rails para a versão 1.6.7+forge-mc1.20.1, que corrige a incompatibilidade com o Create 6.0.",
+          "exibida": true,
+          "motivo_descarte": null,
+          "evidencias": [
+            {
+              "id": "changelog:railways@1.6.7+forge-mc1.20.1",
+              "citacao": "Ported to Create 6.0. Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+              "situacao": "Valida"
+            },
+            {
+              "id": "jar:railways",
+              "citacao": "Versão mais nova compatível com Minecraft 1.20.1 + Forge na fonte: 1.6.7+forge-mc1.20.1",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "evidencias_total": 8,
+      "evidencias_validas": 8,
+      "evidencias_so_com_espacos": 0
+    }
+  ]
+}
