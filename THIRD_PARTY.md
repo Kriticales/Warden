@@ -24,8 +24,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `toml` | 1.1.6 | MIT OR Apache-2.0 | `xtask` | Leitura de `xtask/coverage.toml`. |
 | `which` | 8.0.6 | MIT | `xtask` | Localizar `pnpm.cmd`/`node` no `PATH` do Windows. |
 | `base64` | 0.23.1 | MIT OR Apache-2.0 | `xtask` | Decodificar a chave embutida do packwiz para provar que ela não está no sidecar (F0-03). |
-| `sha2` | 0.10.9 | MIT OR Apache-2.0 | `xtask` | SHA-256 dos patches e dos executáveis no registro do `build-packwiz` (F0-03). Mesma versão que o Tauri já usa. |
-| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05). |
+| `sha2` | 0.10.9 | MIT OR Apache-2.0 | `xtask`, `warden-packwiz` | SHA-256 dos patches e dos executáveis no registro do `build-packwiz` (F0-03). Mesma versão que o Tauri já usa. Na `warden-packwiz` (P1-01): hashes `sha256` (índice, links) e `sha512` (Modrinth). |
+| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets`, `warden-packwiz` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05), e de ida e volta e entradas aleatórias do formato packwiz (P1-01). |
 | `ulid` | 3.0.0 | MIT | `warden-core` | `PackId` e `OperationId` ordenáveis (ARCHITECTURE §13). |
 | `tokio-util` | 0.7.19 | MIT | `warden-core` | `CancellationToken` (ARCHITECTURE §15). |
 | `junction` | 2.1.0 | MIT | `warden-core` (testes, Windows) | Criar junções do NTFS nos testes do `resolve_inside`, sem `cmd /c mklink`. |
@@ -42,6 +42,11 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tauri-plugin-log` | 2.10.0 | Apache-2.0 OR MIT | `warden-app` | Registros do frontend no mesmo arquivo (ARCHITECTURE §16). |
 | `tauri-plugin-opener` | 2.7.0 | Apache-2.0 OR MIT | `warden-app` | Abrir links `https:` no navegador (ARCHITECTURE §20). |
 | `tauri-plugin-dialog` | 2.8.1 | Apache-2.0 OR MIT | `warden-app` | Aviso de erro interno no pânico; diálogos nativos acionados pelo Rust (ARCHITECTURE §4.1). |
+| `toml_edit` | 0.25.15 | MIT OR Apache-2.0 | `warden-packwiz` | Leitura de TOML e edição mínima de `pack.toml`, `index.toml` e `.pw.toml` (ARCHITECTURE §6.2). |
+| `regex` | 1.13.1 | MIT OR Apache-2.0 | `warden-packwiz` | Matcher do `.packwizignore` com a semântica do packwiz (expressões geradas como no go-gitignore). |
+| `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `sha1` (CurseForge). |
+| `md-5` | 0.10.6 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `md5` (CurseForge sem `sha1`). |
+| `hex` | 0.4.3 | MIT OR Apache-2.0 | `warden-packwiz` | Hashes em hexadecimal minúsculo, como o packwiz grava. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
@@ -90,6 +95,10 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | Arquivo | Origem | Licença | O quê |
 |---|---|---|---|
 | `apps/desktop/src-tauri/windows-app-manifest.xml` | `tauri-build` 2.7.1, `src/windows-app-manifest.xml` ([tauri-apps/tauri](https://github.com/tauri-apps/tauri)) | Apache-2.0 OR MIT | Manifesto do Windows que pede o Common Controls v6, embutido pelo linker em todos os alvos da `warden-app` (inclusive testes). |
+| `crates/warden-packwiz/src/encode.rs` | `github.com/BurntSushi/toml` v1.5.0, `encode.go` | MIT | Regras de escrita de TOML que o packwiz usa (ordem das chaves, linhas em branco, aspas, escapes, decimais), portadas para gravar arquivos idênticos aos do packwiz. |
+| `crates/warden-packwiz/src/ignore.rs` | `github.com/sabhiram/go-gitignore` commit `525f6e181f06`, `ignore.go`; padrões embutidos de `packwiz/packwiz` `ef87d96`, `core/index.go` | MIT | Tradução de cada linha do `.packwizignore` em expressão regular, portada linha a linha. |
+| `crates/warden-packwiz/src/hash.rs` | `github.com/aviddiviner/go-murmur` `b9740d71e571`, `murmur2.go`; `packwiz/packwiz` `ef87d96`, `curseforge/murmur2` e `core/hash.go` | MIT | MurmurHash2 de 32 bits e a variante da CurseForge (sem espaços em branco, semente 1). |
+| `crates/warden-packwiz/src/naming.rs`, `metafile.rs`, `pack.rs`, `index.rs` | `packwiz/packwiz` `ef87d96`: `core/mod.go` (`SlugifyName`), `core/pack.go`, `core/indexfiles.go`, `modrinth/modrinth.go` (`getSide`), `url/install.go` | MIT | Regras do formato portadas: slug de nome, migração de `pack-format`, normalização do índice, nome do arquivo de um link. |
 
 ## Sidecar do packwiz
 
