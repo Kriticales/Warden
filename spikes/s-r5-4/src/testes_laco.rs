@@ -219,19 +219,27 @@ fn cota_diaria_real_para_na_hora() {
 
 #[test]
 fn gravacoes_reais_passam_no_simulado() {
-    for nome in ["travamento-gemini-3.8-flash.json", "travamento-gemini-3.8-flash-ferramenta.json"] {
+    for nome in [
+        "travamento-gemini-3.8-flash.json",
+        "travamento-gemini-3.8-flash-ferramenta.json",
+        "seguimento-gemini-3.1-flash-lite-preview.json",
+        "injecao-gemini-3.5-flash-lite.json",
+    ] {
         let f: Value = serde_json::from_str(&std::fs::read_to_string(format!("{}/fixtures/{nome}", env!("CARGO_MANIFEST_DIR"))).unwrap()).unwrap();
         let respostas = f["respostas"].as_array().unwrap().clone();
         let srv = Servidor::iniciar(mock::roteiro_de_gravacao(respostas));
         let mut c = cfg(&srv.url);
-        if nome.contains("ferramenta") {
+        if nome.contains("ferramenta") || f["modo_final"] == "ferramenta" {
             c.modo_final = ModoFinal::Ferramenta;
         }
         let mut conv = Conversa::nova(c);
-        let r = conv.perguntar(f["perguntas"][0].as_str().unwrap()).unwrap();
-        assert!(srv.recusas().is_empty(), "{nome}: {:?}", srv.recusas());
-        assert_eq!(r.conferencia.evidencias_validas, r.conferencia.evidencias_total, "{nome}");
-        assert!(r.conferencia.evidencias_total >= 6);
+        // A conferência refeita no simulado tem de bater com a gravada na hora.
+        for (i, p) in f["perguntas"].as_array().unwrap().iter().enumerate() {
+            let r = conv.perguntar(p.as_str().unwrap()).unwrap();
+            assert!(srv.recusas().is_empty(), "{nome}: {:?}", srv.recusas());
+            assert_eq!(r.conferencia.evidencias_validas as u64, f["conferencias"][i]["evidencias_validas"].as_u64().unwrap(), "{nome}");
+            assert_eq!(r.conferencia.evidencias_total as u64, f["conferencias"][i]["evidencias_total"].as_u64().unwrap(), "{nome}");
+        }
     }
 }
 
@@ -249,4 +257,20 @@ fn resposta_vazia_e_json_degenerado_sao_repetidos() {
     assert!(r.conferencia.achados[0].verificada);
     let erros: Vec<_> = c.eventos.iter().filter_map(|e| e.erro.clone()).collect();
     assert_eq!(erros, vec!["resposta vazia".to_string(), "JSON vazio".to_string()]);
+}
+
+#[test]
+fn respostas_reais_com_problema_viram_nova_tentativa() {
+    let f: Value = serde_json::from_str(include_str!("../fixtures/respostas-com-problema-reais.json")).unwrap();
+    for caso in ["malformed_function_call_sem_chamadas", "malformed_function_call_com_chamadas", "malformed_response_texto_cortado", "stop_texto_vazio"] {
+        let ruim = f[caso]["resposta"].clone();
+        let srv = Servidor::iniciar(Box::new(move |i, _| if i == 0 { ruim.clone() } else { final_simples() }));
+        let mut conv = Conversa::nova(cfg(&srv.url));
+        conv.perguntar("x").unwrap_or_else(|e| panic!("{caso}: {e}"));
+        assert!(conv.eventos[0].erro.is_some(), "{caso}");
+        assert_eq!(conv.eventos.len(), 2, "{caso}");
+        assert!(srv.recusas().is_empty(), "{caso}: {:?}", srv.recusas());
+    }
+    let vazio = f["json_final_vazio"]["resposta"].clone();
+    assert!(crate::laco::degenerada(&serde_json::from_str(vazio.pointer("/candidates/0/content/parts/0/text").unwrap().as_str().unwrap()).unwrap()));
 }
