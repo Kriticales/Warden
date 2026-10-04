@@ -1,0 +1,14 @@
+[package]
+name = "warden-mixin"
+description = "Raio-x de mixins: configs, refmaps, anotações das classes e sobreposições por ponto de aplicação."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-jarmeta.workspace = true
+
+[lints]
+workspace = true

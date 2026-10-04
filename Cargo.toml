@@ -1,0 +1,87 @@
+# Workspace do Warden (ARCHITECTURE §2 e §3).
+# Dependências e lints são declarados uma vez aqui; as crates usam `dep.workspace = true`
+# e `[lints] workspace = true`. `[workspace.dependencies]` é registro acréscimo-apenas
+# (ROADMAP §1): uma linha por dependência.
+
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98.1"
+publish = false
+repository = "https://github.com/Kriticales/Warden"
+
+[workspace.dependencies]
+# Crates internas, na ordem da ARCHITECTURE §3.
+warden-core = { path = "crates/warden-core" }
+warden-packwiz = { path = "crates/warden-packwiz" }
+warden-packwiz-cli = { path = "crates/warden-packwiz-cli" }
+warden-http = { path = "crates/warden-http" }
+warden-modrinth = { path = "crates/warden-modrinth" }
+warden-curseforge = { path = "crates/warden-curseforge" }
+warden-catalog = { path = "crates/warden-catalog" }
+warden-jarmeta = { path = "crates/warden-jarmeta" }
+warden-project = { path = "crates/warden-project" }
+warden-configs = { path = "crates/warden-configs" }
+warden-java = { path = "crates/warden-java" }
+warden-launcher = { path = "crates/warden-launcher" }
+warden-instance = { path = "crates/warden-instance" }
+warden-diagnostics = { path = "crates/warden-diagnostics" }
+warden-ai = { path = "crates/warden-ai" }
+warden-mixin = { path = "crates/warden-mixin" }
+warden-bisect = { path = "crates/warden-bisect" }
+warden-server = { path = "crates/warden-server" }
+warden-perf = { path = "crates/warden-perf" }
+warden-discovery = { path = "crates/warden-discovery" }
+warden-import = { path = "crates/warden-import" }
+warden-scripts = { path = "crates/warden-scripts" }
+warden-versioning = { path = "crates/warden-versioning" }
+warden-export = { path = "crates/warden-export" }
+warden-secrets = { path = "crates/warden-secrets" }
+
+# Externas, em ordem alfabética. Versões exatas ficam no Cargo.lock; aqui, o mínimo compatível.
+# `specta`, `specta-typescript` e `tauri-specta` são RC e ficam fixados com `=` (ADR-0018).
+anyhow = "1.0.104"
+cargo_metadata = "0.23.1"
+clap = { version = "4.6.7", features = ["derive"] }
+pulldown-cmark = { version = "0.13.4", default-features = false }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+specta = "=2.0.0-rc.25"
+specta-typescript = "=0.0.12"
+tauri = "2.12.1"
+tauri-build = "2.7.1"
+tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+toml = "1.1.6"
+which = "8.0.6"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+large_futures = "warn"
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+
+# Dependências sem informação de depuração em build de debug: a pasta `target` fica bem
+# menor e o link mais rápido (QUALITY §13.4); o código do Warden mantém a depuração completa.
+[profile.dev.package."*"]
+debug = false

@@ -1,0 +1,15 @@
+[package]
+name = "warden-launcher"
+description = "Interface LauncherEngine, perfil offline, supervisão do processo do jogo e leitura de logs."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-java.workspace = true
+warden-catalog.workspace = true
+
+[lints]
+workspace = true

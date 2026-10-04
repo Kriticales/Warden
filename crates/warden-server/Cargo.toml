@@ -1,0 +1,17 @@
+[package]
+name = "warden-server"
+description = "Servidor local sob demanda: instaladores, server.properties, EULA e ciclo de vida."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-http.workspace = true
+warden-java.workspace = true
+warden-catalog.workspace = true
+warden-instance.workspace = true
+
+[lints]
+workspace = true

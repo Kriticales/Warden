@@ -1,0 +1,14 @@
+[package]
+name = "warden-java"
+description = 'Runtimes Java: descoberta, download, validação e política "mais novo que funciona".'
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-http.workspace = true
+
+[lints]
+workspace = true

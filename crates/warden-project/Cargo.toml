@@ -1,0 +1,20 @@
+[package]
+name = "warden-project"
+description = "Serviço de domínio do pack: registro, criar e abrir, inventário, busca combinada, adicionar, remover e atualizar."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-packwiz.workspace = true
+warden-packwiz-cli.workspace = true
+warden-modrinth.workspace = true
+warden-curseforge.workspace = true
+warden-catalog.workspace = true
+warden-jarmeta.workspace = true
+warden-http.workspace = true
+
+[lints]
+workspace = true

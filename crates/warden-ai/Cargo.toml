@@ -1,0 +1,15 @@
+[package]
+name = "warden-ai"
+description = "Cliente Gemini com ferramentas, conferência de evidências, consentimento e conversas por pack."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-http.workspace = true
+warden-diagnostics.workspace = true
+
+[lints]
+workspace = true

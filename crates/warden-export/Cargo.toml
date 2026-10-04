@@ -1,0 +1,16 @@
+[package]
+name = "warden-export"
+description = "Pré-visualização e exportação do pack (pasta, zip, .mrpack, CurseForge e pacote para servidor)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-packwiz.workspace = true
+warden-packwiz-cli.workspace = true
+warden-project.workspace = true
+
+[lints]
+workspace = true

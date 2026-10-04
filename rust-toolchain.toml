@@ -1,0 +1,6 @@
+# Versão do Rust fixada para todo o workspace (ARCHITECTURE §2; QUALITY §2.1).
+# Atualizar é tarefa própria, com changelog lido e `cargo xtask check` completo.
+[toolchain]
+channel = "1.98.1"
+components = ["rustfmt", "clippy", "llvm-tools"]
+profile = "minimal"

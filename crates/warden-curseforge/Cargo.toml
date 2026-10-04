@@ -1,0 +1,15 @@
+[package]
+name = "warden-curseforge"
+description = "Cliente da API da CurseForge, distribuição bloqueada e impressão digital murmur2."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-http.workspace = true
+warden-packwiz.workspace = true
+
+[lints]
+workspace = true
