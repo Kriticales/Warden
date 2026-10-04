@@ -1,0 +1,32 @@
+# Fim de linha garantido pelo git, não pela configuração de cada máquina (ARCHITECTURE §2;
+# QUALITY §13.2). O repositório usa core.autocrlf=false.
+* text=auto eol=lf
+
+# O cmd.exe lê rótulos errado com LF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Fixtures do packwiz: bytes intocados, senão os hashes do index.toml deixam de valer.
+crates/warden-packwiz/tests/fixtures/** -text
+
+# Binários.
+*.png binary
+*.ico binary
+*.icns binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.jar binary
+*.zip binary
+*.mrpack binary
+*.exe binary
+*.dll binary
+*.class binary
+*.nbt binary
+*.dat binary
+*.sparkprofile binary

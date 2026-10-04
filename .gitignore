@@ -8,3 +8,24 @@ design/_publicado/
 
 # Pacote local da mudança do Superset para o Orca (memória, prompts, conversa) — nunca versionar
 mudanca-superset/
+
+# Rust
+/target/
+
+# Node e frontend
+node_modules/
+apps/desktop/dist/
+apps/desktop/coverage/
+# Gerado pelo TanStack Router antes de typecheck, test e build (ARCHITECTURE §18)
+apps/desktop/src/routeTree.gen.ts
+*.tsbuildinfo
+
+# Sidecar do packwiz gerado pela F0-03 (ignorado também em src-tauri/binaries/.gitignore)
+apps/desktop/src-tauri/binaries/packwiz-*
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
