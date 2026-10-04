@@ -1,6 +1,6 @@
 # Warden — Padrão de qualidade obrigatório
 
-> Versão do documento: 1.3 (2026-10-02). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038); glossário, testes e privacidade do Warden 1.1 "Profissional" na tarefa D5 (ADR-0039 a ADR-0047).
+> Versão do documento: 1.4 (2026-10-04). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038); glossário, testes e privacidade do Warden 1.1 "Profissional" na tarefa D5 (ADR-0039 a ADR-0047); desenvolvimento direto no Windows na tarefa D6 (ADR-0048): §13 nova, testes, fim de linha e caminho do `.env`.
 > Vale para **todos** os agentes e para o orquestrador. Uma entrega que não cumpre este documento não é integrada.
 > Referências: `ARCHITECTURE.md` (estrutura), `SPEC.md` (critérios de aceite), `ROADMAP.md` (tarefas), `docs/decisions/` (ADRs).
 
@@ -18,6 +18,7 @@
 10. [Dependências e código de terceiros](#10-dependências-e-código-de-terceiros)
 11. [Código e documentação](#11-código-e-documentação)
 12. [Comandos de verificação](#12-comandos-de-verificação)
+13. [Desenvolvimento no Windows](#13-desenvolvimento-no-windows)
 
 ---
 
@@ -82,7 +83,7 @@ missing_errors_doc = "allow"
 
 ### 2.3 Outros
 
-- `.editorconfig`: UTF-8, LF, indentação de 2 espaços (TS/JSON/YAML/TOML) e 4 (Rust), linha final.
+- `.editorconfig`: UTF-8, LF (CRLF só em `.cmd` e `.bat`), indentação de 2 espaços (TS/JSON/YAML/TOML) e 4 (Rust), linha final. Fim de linha no Windows: §13.2.
 - Workflows do GitHub validados com `actionlint`.
 - Markdown dos docs: títulos em sentence case, links relativos válidos (`cargo xtask check-docs` verifica links internos).
 
@@ -104,14 +105,14 @@ missing_errors_doc = "allow"
 
 | Tipo | Onde | Ferramenta | Quando roda |
 |---|---|---|---|
-| Unitário Rust | `#[cfg(test)]` no módulo | `cargo nextest` | toda mudança no Linux; Windows conforme §12 |
+| Unitário Rust | `#[cfg(test)]` no módulo | `cargo nextest` | toda mudança (local no Windows; na CI, Linux em toda mudança e Windows conforme §12) |
 | Dourado (golden) | `crates/*/tests/`, snapshots em `snapshots/` | `insta` | toda mudança |
 | Integração com packwiz real | `crates/*/tests/packwiz_*.rs` | `cargo nextest` + sidecar (`WARDEN_PACKWIZ_BIN`) | toda mudança |
 | Conformidade (packwiz-installer real, Java) | `crates/warden-instance/tests/conformance_*.rs`, `crates/warden-export/tests/conformance_*.rs` | Java 21 (CI: `actions/setup-java`), bootstrap fixado por versão e SHA-256, baixado pelo xtask para o cache | toda mudança no Linux; Windows à noite |
 | Rede (APIs reais) | testes marcados `#[ignore = "rede"]` | `cargo xtask test-network` | à noite e manual; local com `.env` |
 | Jogo real (matriz de versões) | `crates/warden-launcher/tests/smoke_*.rs` | Linux + Xvfb + Mesa | semanal e manual; antes de cada marco |
 | Componente/tela | `apps/desktop/src/**/*.test.tsx` | Vitest + Testing Library + `mockIPC` + `vitest-axe` | toda mudança |
-| Ponta a ponta (E2E) | `apps/desktop/e2e/` | WebdriverIO + `tauri-driver` sobre build de debug (`tauri build --debug`), APIs simuladas por servidor local de fixtures, cofre de teste em arquivo | Linux em toda mudança; Windows na `main` e à noite |
+| Ponta a ponta (E2E) | `apps/desktop/e2e/` | WebdriverIO + `tauri-driver` sobre build de debug (`tauri build --debug`), APIs simuladas por servidor local de fixtures, cofre de teste em arquivo e `WARDEN_DATA_ROOT` (§13.5) | local no Windows; na CI, Linux em toda mudança e Windows na `main` e à noite |
 | Injeção de falha | testes com a feature `fault-injection` de `warden-core` | `cargo nextest` | toda mudança |
 | Desempenho | `crates/*/benches/`, `apps/desktop/e2e/perf/` | `criterion`, medições E2E | marcos e tarefa A-04 |
 | Servidor local real (D4) | `crates/warden-server/tests/server_*.rs` | instaladores oficiais + Java, marcados `#[ignore = "servidor"]` | sob demanda e antes do marco M4 |
@@ -120,6 +121,7 @@ missing_errors_doc = "allow"
 | Logs de jogadores (1.1) | `crates/warden-diagnostics/tests/corpus-player/` | logs reais públicos, já redigidos, com a origem (URL da issue) anotada, por formato (Forge 1.7.10, 1.12.2 e moderno, NeoForge, Fabric, Prism, `packwiz.json`) | toda mudança |
 
 Regras:
+- **Nada de dados reais do dono.** Testes e E2E nunca tocam nas pastas reais do Warden, nos packs do dono nem no cofre do Windows (§13.6).
 - **Testes de integração não pulam em silêncio.** Na CI (`WARDEN_REQUIRE_EXTERNALS=1`), falta de packwiz/Java é falha. Localmente, pulam com aviso explícito na saída.
 - **Teste visto falhando.** Correção de bug começa por um teste que falha pela razão certa; o relatório da tarefa mostra a falha antes e o sucesso depois.
 - **Sem rede nos testes comuns.** HTTP simulado com `wiremock` e fixtures gravadas de respostas reais (`tests/fixtures/http/`), com data de gravação no nome.
@@ -291,7 +293,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ## 9. Segurança e privacidade
 
-1. **Segredos:** chaves e tokens só no armazenamento escolhido pelo usuário: o cofre do sistema (padrão) ou o `.env` da pasta de configuração do Warden (ARCHITECTURE §14, ADR-0025). O conteúdo publicado no GitHub passa por varredura de segredos antes de sair (ARCHITECTURE §11.1). Proibido: escrever em arquivo do repositório, fixture, log, mensagem de erro, saída de teste, commit, argumento de linha de comando de processo filho, URL de remoto git. A chave da CurseForge do dono está em `/home/solel/.superset/projects/Warden/.env` (`CURSEFORGE_API_KEY`): **não imprimir, não copiar, não registrar**; testes leem do ambiente.
+1. **Segredos:** chaves e tokens só no armazenamento escolhido pelo usuário: o cofre do sistema (padrão) ou o `.env` da pasta de configuração do Warden (ARCHITECTURE §14, ADR-0025). O conteúdo publicado no GitHub passa por varredura de segredos antes de sair (ARCHITECTURE §11.1). Proibido: escrever em arquivo do repositório, fixture, log, mensagem de erro, saída de teste, commit, argumento de linha de comando de processo filho, URL de remoto git. A chave da CurseForge do dono está em `C:\Users\solel\orca\projects\Warden\.env` (`CURSEFORGE_API_KEY`, entre aspas simples): **não imprimir, não copiar, não registrar**; testes leem do ambiente.
 2. **Varredura:** `gitleaks detect` na CI e no checklist de revisão; padrões extras para `$2a$`, `AIza`, `ghp_`, `github_pat_`.
 3. **Tipos de segredo:** `secrecy::SecretString` no Rust; no frontend, campos de senha que enviam o valor ao comando `secrets_set` e limpam o estado em seguida; nunca guardar em Zustand, Query cache ou `localStorage`.
 4. **PII:** nada é enviado à IA sem o consentimento explícito da conversa (ADR-0030: uma vez por conversa, listando o que a IA pode consultar) e sem passar pela redação (ARCHITECTURE §9.4). O texto inicial mostrado é o texto enviado, e cada envio seguinte aparece na conversa com os bytes exatos. A busca de issues no GitHub envia só o repositório e palavras do erro redigidas, e só com a permissão da conversa. Nada muda no pack por ação da IA sem o clique em Aplicar.
@@ -333,4 +335,54 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | `pnpm -C apps/desktop e2e` | Testes ponta a ponta com o app real. |
 | `cargo xtask bindings` | Regenera `apps/desktop/src/lib/ipc/bindings.ts`. |
 
+Os comandos são os mesmos no PowerShell do Windows (onde os agentes trabalham) e no Linux da CI (§13.7).
+
 A CI (`.github/workflows/ci.yml`) executa o equivalente a `cargo xtask check` em Linux em todo push de branch e PR; Windows na `main`, em PRs marcados e à noite (decisão pendente D9 da SPEC); E2E Linux em todo PR; testes de rede, conformidade no Windows e smoke do jogo em workflows agendados/manuais.
+
+## 13. Desenvolvimento no Windows
+
+O Warden é desenvolvido direto no Windows nativo; o Linux só roda na CI (ADR-0048). As regras abaixo vêm da prova feita na tarefa D6 nesta máquina (app Tauri 2 mínimo compilado, janela aberta, instalador NSIS gerado) e valem para todos os agentes.
+
+### 13.1 Pré-requisitos
+
+- Já instalados nesta máquina (conferidos em 03/10/2026): Visual Studio Build Tools 2022 com o componente C++ (MSVC 14.44), WebView2 (154), Rust stable `x86_64-pc-windows-msvc` pelo `rustup` (o `rust-toolchain.toml` fixa a versão), `cargo-tauri`, Node 24, pnpm 12, Go, git com `core.autocrlf=false` e GitHub CLI (`gh`). Java não é pré-requisito: o motor do launcher baixa o Java do Minecraft.
+- **Instalar programa no Windows só com autorização do dono.** O que fica no espaço do usuário e é refeito por comando não conta como instalação: `cargo install` feito pelo `cargo xtask setup`, pacotes do pnpm, ferramentas baixadas pelo `xtask` para o cache (como o `msedgedriver`) e as que o próprio `tauri build` baixa para `%LOCALAPPDATA%\tauri\` (NSIS).
+- Instalar o próprio Warden para teste é a F0-04; só o dono ou o orquestrador fazem isso.
+
+### 13.2 Fim de linha
+
+- O git do repositório usa `core.autocrlf=false`: não mude. Quem garante o fim de linha é o `.gitattributes` da raiz (ARCHITECTURE §2): `* text=auto eol=lf`; `*.cmd` e `*.bat` com `eol=crlf` (o `cmd.exe` lê rótulos errado com LF); fixtures do packwiz com `-text`, para os bytes não mudarem e os hashes do `index.toml` continuarem valendo.
+- O `.editorconfig` pede LF (§2.3) e o `rustfmt.toml` usa `newline_style = "Unix"`; o Prettier usa LF (padrão dele).
+- Código que escreve arquivos de texto do Warden usa `\n`. Arquivos do pack mantêm os bytes que já têm (a regra de edição mínima da ARCHITECTURE §6).
+
+### 13.3 Caminhos longos e a pasta `target`
+
+- O `link.exe` da Microsoft não aceita caminhos com mais de 260 caracteres, mesmo com `LongPathsEnabled` ligado no Windows (como está nesta máquina). Na prova da D6, com a pasta `target` a 182 caracteres, o build falhou com `LNK1104` ao criar `build_script_build-<hash>.exe` (caminho de 268 caracteres); com a pasta a 160 caracteres, passou. Dentro da `target` os caminhos chegam a cerca de 135 caracteres.
+- **Regra:** o caminho da pasta `target` fica com até 100 caracteres. Os worktrees do Orca (`C:\Users\<usuário>\orca\workspaces\Warden\<nome>\`) já cabem; o `xtask` avisa quando passa. Se passar, defina `CARGO_TARGET_DIR` com um caminho curto **só daquele worktree** (por exemplo `$env:CARGO_TARGET_DIR = 'C:\wt\<nome>'`); uma pasta `target` única para vários worktrees faz os agentes disputarem a trava do cargo.
+- `core.longpaths` do git não é necessário: o repositório não versiona caminhos longos, e `node_modules` e `target` não passam pelo git. Se uma fixture precisar de caminho longo, a tarefa liga `core.longpaths` só no próprio worktree e registra no relatório.
+- O pnpm já encurta a pasta `node_modules/.pnpm` no Windows; não mude `virtual-store-dir-max-length`.
+- No código do app, caminhos do Windows passam pela biblioteca padrão do Rust, que aceita caminhos longos; nada de montar caminho com concatenação de texto (ARCHITECTURE §13).
+
+### 13.4 Tempo de compilação, disco e antivírus
+
+- Medido na prova da D6 (app mínimo, sem o resto do Warden): primeira compilação de debug em 81 s; uma mudança pequena recompila em 8 s; build de release com instalador NSIS em 222 s; a pasta `target` ficou com 3,6 GB (debug e release). O Warden completo será bem maior: limpe a `target` de worktrees encerrados (`cargo clean`), tarefa do orquestrador.
+- **Antivírus:** a verificação em tempo real pode deixar a compilação bem mais lenta, porque cada arquivo novo da `target` é examinado. No momento da medição a proteção em tempo real do Defender estava desligada nesta máquina, então o efeito não foi medido. Excluir as pastas `target` da verificação é **decisão do dono**: nenhum agente adiciona exclusões, desliga a proteção ou roda `Add-MpPreference`.
+- O sidecar `packwiz.exe` e o instalador não têm assinatura digital (decisão D4): o SmartScreen e antivírus podem estranhar (ADR-0007, `docs/DEV-WINDOWS.md`).
+- Avisos conhecidos: o `staticlib`/`cdylib` do modelo do Tauri gera aviso do linker no Windows (por isso a `warden-app` usa só `rlib`, F0-01); a `tauri-cli` 2.11 imprime um aviso de `STATIC_VCRUNTIME` obsoleto que vem dela própria e não falha o build.
+
+### 13.5 Testes ponta a ponta
+
+- **Windows (local e CI Windows):** `tauri-driver` com o `msedgedriver` da **mesma versão** do WebView2 instalado, baixado por `cargo xtask e2e-driver` para um cache fora do git (sem instalar nada). Quando o WebView2 se atualiza, o comando baixa o driver novo.
+- **Linux (CI):** `tauri-driver` com o `WebKitWebDriver` do WebKitGTK, sob Xvfb.
+- Os E2E rodam sobre build de debug, com `WARDEN_DATA_ROOT` e cofre de teste em arquivo numa pasta temporária (§13.6).
+
+### 13.6 Dados e cofre do dono
+
+- Testes, E2E e `cargo xtask dev` **nunca** leem nem escrevem nas pastas reais do Warden (`%APPDATA%\dev.kriticales.warden\`, `%LOCALAPPDATA%\dev.kriticales.warden\`), nos packs do dono (`Documentos\Warden\`) nem no Gerenciador de Credenciais do Windows. Usam `WARDEN_DATA_ROOT` (pasta temporária, ou `%LOCALAPPDATA%\Warden-dev\<worktree>\` no `dev`) e `WARDEN_SECRET_BACKEND=file:<pasta>`, que só existem em build de debug (ADR-0048, ARCHITECTURE §14).
+- O teste com o cofre real do Windows fica marcado `#[ignore = "cofre-real"]` e só roda na CI Windows; o roteiro manual dos marcos confere o cofre real com a versão instalada (F0-04).
+
+### 13.7 Comandos e processos
+
+- Toda automação passa pelo `xtask` (Rust), que funciona no PowerShell e no Linux da CI. Nada de script bash ou PowerShell como passo obrigatório; arquivos `.cmd` só como atalho de duplo clique que chama o `xtask` (F0-04).
+- Comandos de verificação nos relatórios e nos documentos são escritos para o PowerShell 7 (`&&` funciona; variável de ambiente com `$env:NOME = 'valor'`; caminhos com espaço entre aspas).
+- Testes que iniciam processos resolvem o executável com a extensão do Windows (`.exe`, `.cmd`) e passam argumentos em vetor, nunca por `cmd /c` ou `sh -c` (§9).
