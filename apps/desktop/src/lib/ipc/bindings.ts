@@ -118,7 +118,23 @@ export type CatalogErrorCode =
  */
 export type ConfigsErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  Arquivo grande demais para o editor estruturado. */
+"TOO_LARGE" | 
+/**  Arquivo que não é texto UTF-8. */
+"NOT_UTF8" | 
+/**  O texto não segue o formato esperado. */
+"PARSE_FAILED" | 
+/**  A chave pedida não existe no arquivo. */
+"KEY_NOT_FOUND" | 
+/**  A chave é uma seção, não um valor. */
+"KEY_NOT_EDITABLE" | 
+/**  O valor novo não serve para essa chave nesse formato. */
+"INVALID_VALUE" | 
+/**  A mesma chave apareceu duas vezes num pedido de edição. */
+"DUPLICATE_EDIT" | 
+/**  A releitura não confirmou a edição. */
+"EDIT_NOT_CONFIRMED";
 
 /**
  *  Códigos do domínio `core`, comuns a todas as crates. O código é contrato: renomear é

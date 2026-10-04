@@ -1,10 +1,15 @@
 //! Erros da crate.
 //!
-//! Cada variante tem um código estável ([`ConfigError::code`]) no estilo da ARCHITECTURE §5.
-//! Quando a `warden-core` ganhar o trait `DomainError` (tarefa F0-05), este tipo passa a
-//! implementá-lo com os mesmos códigos.
+//! [`ConfigError`] implementa [`DomainError`] (ARCHITECTURE §5): cada variante tem um código
+//! estável de [`ConfigsErrorCode`] e os parâmetros da frase em
+//! `apps/desktop/src/i18n/errors/configs.ts`. A crate trabalha sobre bytes já lidos e não toca
+//! no disco, então não devolve códigos do domínio `core` (a falha de disco é de quem lê e grava
+//! o arquivo).
+
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
+use warden_core::{DomainCode, DomainError};
 
 use crate::format::ConfigFormat;
 use crate::path::KeyPath;
@@ -21,6 +26,22 @@ pub type Result<T, E = ConfigError> = std::result::Result<T, E>;
 pub enum ConfigsErrorCode {
     /// Bug: invariante quebrada sem código específico.
     Internal,
+    /// Arquivo grande demais para o editor estruturado.
+    TooLarge,
+    /// Arquivo que não é texto UTF-8.
+    NotUtf8,
+    /// O texto não segue o formato esperado.
+    ParseFailed,
+    /// A chave pedida não existe no arquivo.
+    KeyNotFound,
+    /// A chave é uma seção, não um valor.
+    KeyNotEditable,
+    /// O valor novo não serve para essa chave nesse formato.
+    InvalidValue,
+    /// A mesma chave apareceu duas vezes num pedido de edição.
+    DuplicateEdit,
+    /// A releitura não confirmou a edição.
+    EditNotConfirmed,
 }
 
 /// Erro ao ler, editar ou comparar uma config.
@@ -98,60 +119,143 @@ pub enum ConfigError {
     },
 }
 
-impl ConfigError {
-    /// Código estável do erro (`SCREAMING_SNAKE_CASE`), para o `ConfigsErrorCode` do app.
-    #[must_use]
-    pub fn code(&self) -> &'static str {
-        match self {
-            Self::TooLarge { .. } => "TOO_LARGE",
-            Self::NotUtf8 { .. } => "NOT_UTF8",
-            Self::Parse { .. } => "PARSE_FAILED",
-            Self::PathNotFound { .. } => "KEY_NOT_FOUND",
-            Self::NotEditable { .. } => "KEY_NOT_EDITABLE",
-            Self::InvalidValue { .. } => "INVALID_VALUE",
-            Self::DuplicateEdit { .. } => "DUPLICATE_EDIT",
-            Self::EditNotConfirmed { .. } => "EDIT_NOT_CONFIRMED",
-        }
+impl DomainError for ConfigError {
+    type Code = ConfigsErrorCode;
+
+    fn code(&self) -> DomainCode<ConfigsErrorCode> {
+        DomainCode::Domain(match self {
+            Self::TooLarge { .. } => ConfigsErrorCode::TooLarge,
+            Self::NotUtf8 { .. } => ConfigsErrorCode::NotUtf8,
+            Self::Parse { .. } => ConfigsErrorCode::ParseFailed,
+            Self::PathNotFound { .. } => ConfigsErrorCode::KeyNotFound,
+            Self::NotEditable { .. } => ConfigsErrorCode::KeyNotEditable,
+            Self::InvalidValue { .. } => ConfigsErrorCode::InvalidValue,
+            Self::DuplicateEdit { .. } => ConfigsErrorCode::DuplicateEdit,
+            Self::EditNotConfirmed { .. } => ConfigsErrorCode::EditNotConfirmed,
+        })
     }
+
+    fn params(&self) -> BTreeMap<String, String> {
+        let mut params = BTreeMap::new();
+        let mut put = |name: &str, value: String| {
+            params.insert(name.to_owned(), value);
+        };
+        match self {
+            Self::TooLarge { size, limit } => {
+                put("sizeMb", megabytes(*size));
+                put("limitMb", megabytes(*limit));
+            }
+            Self::NotUtf8 { offset } => put("offset", offset.to_string()),
+            Self::Parse {
+                format,
+                line,
+                column,
+                ..
+            } => {
+                put("format", format.name().to_owned());
+                put("line", line.to_string());
+                put("column", column.to_string());
+            }
+            Self::PathNotFound { path } | Self::DuplicateEdit { path } => {
+                put("key", path.to_string());
+            }
+            Self::NotEditable { path, reason } | Self::InvalidValue { path, reason } => {
+                put("key", path.to_string());
+                put("reason", reason.clone());
+            }
+            Self::EditNotConfirmed { .. } => {}
+        }
+        params
+    }
+}
+
+/// Tamanho em MB com uma casa decimal (`2,0`), para a frase.
+fn megabytes(bytes: usize) -> String {
+    let tenths = bytes.saturating_mul(10) / (1024 * 1024);
+    format!("{},{}", tenths / 10, tenths % 10)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn codigos_sao_estaveis_e_distintos() {
-        let path = KeyPath::from_keys(["a"]);
-        let all = [
-            ConfigError::TooLarge { size: 2, limit: 1 },
-            ConfigError::NotUtf8 { offset: 0 },
+    fn all() -> Vec<ConfigError> {
+        let path = KeyPath::from_keys(["geral", "max"]);
+        vec![
+            ConfigError::TooLarge {
+                size: 3 * 1024 * 1024 + 1,
+                limit: 2 * 1024 * 1024,
+            },
+            ConfigError::NotUtf8 { offset: 7 },
             ConfigError::Parse {
                 format: ConfigFormat::Toml,
-                line: 1,
-                column: 1,
-                message: String::new(),
+                line: 3,
+                column: 5,
+                message: "expected `=`".into(),
             },
             ConfigError::PathNotFound { path: path.clone() },
             ConfigError::NotEditable {
                 path: path.clone(),
-                reason: String::new(),
+                reason: "é uma seção".into(),
             },
             ConfigError::InvalidValue {
                 path: path.clone(),
-                reason: String::new(),
+                reason: "só inteiro".into(),
             },
             ConfigError::DuplicateEdit { path },
             ConfigError::EditNotConfirmed {
-                detail: String::new(),
+                detail: "mudança inesperada".into(),
             },
-        ];
-        let codes: Vec<_> = all.iter().map(ConfigError::code).collect();
+        ]
+    }
+
+    #[test]
+    fn cada_variante_tem_codigo_proprio_do_dominio() {
+        let codes: Vec<_> = all()
+            .iter()
+            .map(|error| match error.code() {
+                DomainCode::Domain(code) => code,
+                DomainCode::Core(code) => panic!("{error}: código core {code:?}"),
+            })
+            .collect();
         let mut unique = codes.clone();
         unique.sort_unstable();
         unique.dedup();
         assert_eq!(unique.len(), codes.len());
-        for error in &all {
-            assert!(!error.to_string().is_empty());
+        assert!(!codes.contains(&ConfigsErrorCode::Internal));
+    }
+
+    #[test]
+    fn codigos_na_forma_do_contrato() {
+        let json = serde_json::to_string(&ConfigsErrorCode::EditNotConfirmed).unwrap();
+        assert_eq!(json, "\"EDIT_NOT_CONFIRMED\"");
+        let json = serde_json::to_string(&ConfigsErrorCode::NotUtf8).unwrap();
+        assert_eq!(json, "\"NOT_UTF8\"");
+    }
+
+    #[test]
+    fn parametros_e_detalhe() {
+        let errors = all();
+        let params: Vec<_> = errors.iter().map(DomainError::params).collect();
+        assert_eq!(params[0]["sizeMb"], "3,0");
+        assert_eq!(params[0]["limitMb"], "2,0");
+        assert_eq!(params[1]["offset"], "7");
+        assert_eq!(
+            (
+                params[2]["format"].as_str(),
+                params[2]["line"].as_str(),
+                params[2]["column"].as_str()
+            ),
+            ("TOML", "3", "5")
+        );
+        assert_eq!(params[3]["key"], "geral.max");
+        assert_eq!(params[4]["reason"], "é uma seção");
+        assert_eq!(params[5]["reason"], "só inteiro");
+        assert_eq!(params[6]["key"], "geral.max");
+        assert!(params[7].is_empty());
+        for error in &errors {
+            assert!(error.detail().is_some_and(|detail| !detail.is_empty()));
+            assert!(!error.retryable());
         }
     }
 }

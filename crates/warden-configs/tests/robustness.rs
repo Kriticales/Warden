@@ -8,7 +8,12 @@
 mod common;
 
 use proptest::prelude::*;
-use warden_configs::{ConfigDocument, ConfigEdit, ConfigFormat, ConfigValue, compare};
+use warden_configs::{
+    ConfigDocument, ConfigEdit, ConfigFormat, ConfigValue, ConfigsErrorCode, compare,
+};
+use warden_core::{DomainCode, DomainError};
+
+const INVALID: DomainCode<ConfigsErrorCode> = DomainCode::Domain(ConfigsErrorCode::InvalidValue);
 
 fn any_format() -> impl Strategy<Value = ConfigFormat> {
     prop::sample::select(ConfigFormat::ALL.to_vec())
@@ -166,7 +171,7 @@ proptest! {
                     Some(ConfigValue::String(text))
                 );
             }
-            Err(error) => prop_assert_eq!(error.code(), "INVALID_VALUE", "{}", error),
+            Err(error) => prop_assert_eq!(error.code(), INVALID, "{}", error),
         }
     }
 
@@ -186,7 +191,7 @@ proptest! {
                         prop_assert_eq!(found, ConfigValue::String(value.as_plain_text().unwrap()));
                     }
                 }
-                Err(error) => prop_assert_eq!(error.code(), "INVALID_VALUE", "{}", error),
+                Err(error) => prop_assert_eq!(error.code(), INVALID, "{}", error),
             }
         }
     }
