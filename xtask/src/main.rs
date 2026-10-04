@@ -11,6 +11,7 @@ mod deps;
 mod dev;
 mod docs;
 mod env_file;
+mod fixtures_packwiz;
 mod network;
 mod packwiz;
 mod setup;
@@ -63,6 +64,15 @@ enum Command {
         #[arg(long)]
         force: bool,
     },
+    /// Gera as fixtures da warden-packwiz com o packwiz real (rede e chave do .env).
+    FixturesPackwiz {
+        /// Binário do packwiz (padrão: `WARDEN_PACKWIZ_BIN` ou o da F0-03).
+        #[arg(long)]
+        packwiz: Option<std::path::PathBuf>,
+        /// Commit do packwiz (padrão: `third_party/packwiz/COMMIT`).
+        #[arg(long)]
+        commit: Option<String>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -77,6 +87,9 @@ fn main() -> ExitCode {
         Command::Coverage => coverage::run(),
         Command::TestNetwork => network::run(),
         Command::BuildPackwiz { force } => packwiz::run(force),
+        Command::FixturesPackwiz { packwiz, commit } => {
+            fixtures_packwiz::run(fixtures_packwiz::Options { packwiz, commit })
+        }
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

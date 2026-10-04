@@ -1,0 +1,13 @@
+name = "Fixture 1.7.10"
+author = "Warden"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "b6f89fb18431f37c4a483f8dc0a12dcf84d021226c3b7fbeff2a1a7e0e2cd29c"
+
+[versions]
+forge = "10.13.4.1614"
+minecraft = "1.7.10"

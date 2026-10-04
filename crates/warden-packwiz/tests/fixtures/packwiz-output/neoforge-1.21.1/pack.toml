@@ -1,0 +1,13 @@
+name = "Fixture NeoForge"
+author = "Warden"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "789304a3d44d7ec8bdde525532890b617fb711b3388c20a0e51e177307a7502b"
+
+[versions]
+minecraft = "1.21.1"
+neoforge = "21.1.209"

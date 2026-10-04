@@ -1,0 +1,4 @@
+hash-format = "sha256"
+
+[[files]]
+file = "config/a.toml"

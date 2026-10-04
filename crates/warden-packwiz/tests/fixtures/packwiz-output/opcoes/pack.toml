@@ -1,0 +1,23 @@
+name = "Fixture Opções"
+author = "Warden"
+version = "1.0.0"
+description = "Pack de teste: acentuação, \"aspas\" e emoji 🔍"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "4a941784eb292119a0380a1133316d0eab178ecf05729112474e7c70972f893e"
+
+[versions]
+fabric = "0.16.14"
+minecraft = "1.21.1"
+
+[export]
+[export.curseforge]
+project-id = 123456
+
+[options]
+acceptable-game-versions = ["1.21", "1.21.1"]
+datapack-folder = "config/openloader/data"
+meta-folder-base = "."

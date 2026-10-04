@@ -1,0 +1,45 @@
+hash-format = "sha256"
+
+[[files]]
+file = "config/exemplo.properties"
+hash = "a3a9366e72bf0eb503c6fbb04dadb9abee447640852215c060b1f106710e664b"
+
+[[files]]
+file = "mods/jade.pw.toml"
+hash = "f6200c2a215b08c65f4aeacbe34bc51f63864d352ddd3dfcb1d754768a80542e"
+metafile = true
+
+[[files]]
+file = "mods/lithium.pw.toml"
+hash = "5d2e02af3199bb40b7e2205b4fb449ddbb485073a709381949ddcca8f732a027"
+metafile = true
+
+[[files]]
+file = "mods/modmenu.pw.toml"
+hash = "afb22d0478db09d5c6845b18f84995a52f6d772f78e2705d075316c2d92ba1db"
+metafile = true
+
+[[files]]
+file = "mods/sodium.pw.toml"
+hash = "a78eacfafdb77a93e853f9817e16e00f77f2be3a9ee194b9ffc2e88440a721c1"
+metafile = true
+
+[[files]]
+file = "mods/text-placeholder-api.pw.toml"
+hash = "87f794d7d3cc98619c50479c7e829a31c317fceca9908fb612618d04b683d543"
+metafile = true
+
+[[files]]
+file = "options.txt"
+hash = "92c43faa740640fa292ba822001bf95a68ed2e277cf3804ebf146eb23781682a"
+preserve = true
+
+[[files]]
+file = "resourcepacks/fresh-animations.pw.toml"
+hash = "9dc9b1568b6eaa48e16455e2a119566aa0e1c0e6f3e71099b97c535a73d0cd84"
+metafile = true
+
+[[files]]
+file = "shaderpacks/complementary-reimagined.pw.toml"
+hash = "507cb3963240110bc71ed7c75cac1682e66d3609536b0bc5ef90a01db3cce21f"
+metafile = true

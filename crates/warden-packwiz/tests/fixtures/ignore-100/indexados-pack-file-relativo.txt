@@ -1,0 +1,27 @@
+#comentario.txt
+config/debug/x.toml
+config/logs/x.txt
+config/private/keep.json
+config/private/sub/b.json
+config/sodium-options.json
+config/spark/config.json
+config/usercache.json
+defaultconfigs/a.toml
+docs/README.md
+journeymap/config/5.9/journeymap.core.config
+kubejs/assets/x/textures/y.png
+kubejs/config/common.json
+kubejs/server_scripts/a.js
+local/outro.txt
+mods/a.zip
+mods/keep.disabled
+mods/local.jar
+mods/sodium.pw.toml
+notas3.txt
+options.txt
+resourcepacks/pack.zip
+secret1.txt
+servers.dat
+shaderpacks/s.zip
+temp{1}x.txt
+Ünïcödé/arquivo ção.txt

@@ -1,0 +1,61 @@
+# Gerado pelo Warden. Nada abaixo deve chegar a quem joga o pack.
+# Bloco obrigatório (o Warden sempre garante estas linhas):
+/.warden/
+/CHANGELOG.md
+/README.md
+*.warden-tmp
+# Dados de execução do jogo e do launcher:
+/logs/
+/crash-reports/
+/saves/
+/screenshots/
+/debug/
+/stats/
+/natives/
+/libraries/
+/versions/
+/assets/
+/resources/
+/.mixin.out/
+/.fabric/
+/.quilt/
+/.cache/
+/mods/.connector/
+/modernfix/
+/journeymap/data/
+/XaeroWaypoints/
+/XaeroWorldMap/
+/xaero/
+/kubejs/probe/
+/kubejs/exported/
+# Segredos e arquivos de ferramentas (decisão D21; R5A §2.1, R5B §11):
+/kubejs/config/web_server.json
+/.probe/
+/.vscode/
+/local/kubejs/
+/config/spark/*.sparkprofile
+/config/spark/*.sparkheap
+/config/spark/tmp*
+# Só para o pacote para servidor (§12.1); nunca vai para o jogador:
+/server-overrides/
+/usercache.json
+/usernamecache.json
+/launcher_profiles*.json
+/servers.dat_old
+/command_history.txt
+/packwiz.json
+/packwiz-installer*.jar
+/.packwiz.toml
+# Em qualquer profundidade:
+jsconfig.json
+*.log
+*.log.gz
+hs_err_pid*.log
+replay_pid*.log
+*.heapdump
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.old
+*.disabled

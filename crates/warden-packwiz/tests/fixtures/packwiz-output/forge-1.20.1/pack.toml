@@ -1,0 +1,13 @@
+name = "Fixture Forge"
+author = "Warden"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "5d1511138c6d407d1b61dc0abadb9a46a4531abc521e1212042911d325ea8846"
+
+[versions]
+forge = "47.4.0"
+minecraft = "1.20.1"

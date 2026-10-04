@@ -1,0 +1,13 @@
+name = "Fixture NeoForge legado"
+author = "Warden"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "44e74d20b2cfe306999ed379a67f82dddc0501c1d4a906a1a3fc864aa1832a59"
+
+[versions]
+minecraft = "1.20.1"
+neoforge = "47.1.106"

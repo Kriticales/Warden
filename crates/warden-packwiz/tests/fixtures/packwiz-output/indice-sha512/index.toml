@@ -1,0 +1,6 @@
+hash-format = "sha512"
+
+[[files]]
+file = "config/a.toml"
+hash = "cb78bd8a17f7b751fe0d4663366dcbc257204033ef7ddd64b1f2969573b5b2e2"
+hash-format = "sha256"

@@ -1,0 +1,48 @@
+// Gera vetores do murmur2 da CurseForge com a biblioteca que o packwiz usa.
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+
+	murmur "github.com/aviddiviner/go-murmur"
+)
+
+// Igual a curseforge/murmur2 do packwiz: tira tab, LF, CR e espaço; semente 1.
+func cf(data []byte) uint32 {
+	var kept []byte
+	for _, b := range data {
+		if b != 9 && b != 10 && b != 13 && b != 32 {
+			kept = append(kept, b)
+		}
+	}
+	return murmur.MurmurHash2(kept, 1)
+}
+
+func main() {
+	state := uint32(2463534242)
+	next := func() byte {
+		state ^= state << 13
+		state ^= state >> 17
+		state ^= state << 5
+		return byte(state)
+	}
+	lengths := []int{}
+	for n := 0; n <= 40; n++ {
+		lengths = append(lengths, n)
+	}
+	lengths = append(lengths, 63, 64, 65, 127, 128, 255, 256, 1000, 1023)
+	fmt.Println("# tamanho hex murmur2_curseforge murmur2_semente_1_sem_filtro")
+	for _, n := range lengths {
+		data := make([]byte, n)
+		for i := range data {
+			b := next()
+			// Um terço dos bytes vira espaço em branco, para exercitar o filtro.
+			if b%3 == 0 {
+				b = []byte{9, 10, 13, 32}[b%4]
+			}
+			data[i] = b
+		}
+		fmt.Printf("%d %s %d %d\n", n, hex.EncodeToString(data), cf(data), murmur.MurmurHash2(data, 1))
+	}
+}

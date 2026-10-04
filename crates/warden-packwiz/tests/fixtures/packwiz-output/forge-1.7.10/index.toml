@@ -1,0 +1,6 @@
+hash-format = "sha256"
+
+[[files]]
+file = "mods/journeymap.pw.toml"
+hash = "6e923f061ec3ad5997f5c8a42ac09682147b09928eccf3366b9548487b40ce83"
+metafile = true

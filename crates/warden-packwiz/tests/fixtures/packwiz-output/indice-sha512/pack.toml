@@ -1,0 +1,13 @@
+name = "Fixture índice sha512"
+author = "Warden"
+version = "1.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "9da292452f3e0f73c773dadf90b85d00178431b85ce9b1e02f14df768a8068dc"
+
+[versions]
+fabric = "0.16.14"
+minecraft = "1.21.1"

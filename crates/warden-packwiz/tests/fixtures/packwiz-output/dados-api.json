@@ -1,0 +1,230 @@
+{
+  "curseforge": [
+    {
+      "file_id": 8591528,
+      "filename": "Jade-1.21.1-Fabric-15.10.6.jar",
+      "metafile": "mods/jade.pw.toml",
+      "name": "Jade 🔍",
+      "pack": "fabric-1.21.1",
+      "project_id": 324717,
+      "sha1": "bed67c605cbc991f474b270581cfa04ed48228df",
+      "slug": "jade"
+    },
+    {
+      "file_id": 9009995,
+      "filename": "jei-1.20.1-forge-15.62.0.217.jar",
+      "metafile": "mods/jei.pw.toml",
+      "name": "Just Enough Items (JEI)",
+      "pack": "forge-1.20.1",
+      "project_id": 238222,
+      "sha1": "2ce77e29e2828010ea61ad6c4b10defae764dfe4",
+      "slug": "jei"
+    },
+    {
+      "file_id": 7148487,
+      "filename": "appliedenergistics2-forge-15.4.10.jar",
+      "metafile": "mods/applied-energistics-2.pw.toml",
+      "name": "Applied Energistics 2",
+      "pack": "forge-1.20.1",
+      "project_id": 223794,
+      "sha1": "ac255a120499f79f8deade474da09e3c00ff9bad",
+      "slug": "applied-energistics-2"
+    },
+    {
+      "file_id": 8963414,
+      "filename": "jei_1.12.2-4.16.6.1033.jar",
+      "metafile": "mods/jei.pw.toml",
+      "name": "Just Enough Items (JEI)",
+      "pack": "forge-1.12.2",
+      "project_id": 238222,
+      "sha1": "98dd96b1d336aad245034147a4bc74bdb3115169",
+      "slug": "jei"
+    },
+    {
+      "file_id": 8923608,
+      "filename": "journeymap-forge-1.7.10-6.0.7.jar",
+      "metafile": "mods/journeymap.pw.toml",
+      "name": "JourneyMap",
+      "pack": "forge-1.7.10",
+      "project_id": 32274,
+      "sha1": "31960479e5bcfd37aa766ccdc52f45f2ec56f678",
+      "slug": "journeymap"
+    }
+  ],
+  "modrinth": [
+    {
+      "environment": "client_only",
+      "filename": "modmenu-11.0.5.jar",
+      "loaders": [
+        "fabric",
+        "quilt"
+      ],
+      "metafile": "mods/modmenu.pw.toml",
+      "pack": "fabric-1.21.1",
+      "project_id": "mOgUt4GM",
+      "project_type": "mod",
+      "sha512": "92e8e96267ff18d320903090f2ad9b32408a218919f5a0d578e232ad774c89d49a34a8271806652be7d6283f24e98432bc4af7f95855e78b843f9100d68696c7",
+      "slug": "modmenu",
+      "title": "Mod Menu",
+      "url": "https://cdn.modrinth.com/data/mOgUt4GM/versions/6lgOkclV/modmenu-11.0.5.jar",
+      "version_id": "6lgOkclV"
+    },
+    {
+      "environment": "client_only",
+      "filename": "sodium-fabric-0.8.13+mc1.21.1.jar",
+      "loaders": [
+        "fabric"
+      ],
+      "metafile": "mods/sodium.pw.toml",
+      "pack": "fabric-1.21.1",
+      "project_id": "AANobbMI",
+      "project_type": "mod",
+      "sha512": "8614a374593698069a80ac74de8cd9c28f3928d16819a0e0d6320b538e823f7e54e8be06d5ea5a9c268beb0e02073209d1f831a02dede851588b972367680853",
+      "slug": "sodium",
+      "title": "Sodium",
+      "url": "https://cdn.modrinth.com/data/AANobbMI/versions/SMxNOGZ6/sodium-fabric-0.8.13%2Bmc1.21.1.jar",
+      "version_id": "SMxNOGZ6"
+    },
+    {
+      "environment": "client_or_server_prefers_both",
+      "filename": "lithium-fabric-0.15.4+mc1.21.1.jar",
+      "loaders": [
+        "fabric",
+        "quilt"
+      ],
+      "metafile": "mods/lithium.pw.toml",
+      "pack": "fabric-1.21.1",
+      "project_id": "gvQqBUqZ",
+      "project_type": "mod",
+      "sha512": "182064b00e6315e2255b857eaab8eb759e6b042ebd4cc8b855ff0d93f875a5a7188fac49f878d7b29d4ef7e6b6341190ad7f6f6f39f4a6d2c62003468b08e4c6",
+      "slug": "lithium",
+      "title": "Lithium",
+      "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/N08Z8wog/lithium-fabric-0.15.4%2Bmc1.21.1.jar",
+      "version_id": "N08Z8wog"
+    },
+    {
+      "environment": "unknown",
+      "filename": "ComplementaryReimagined_r5.9.3.zip",
+      "loaders": [
+        "iris",
+        "optifine"
+      ],
+      "metafile": "shaderpacks/complementary-reimagined.pw.toml",
+      "pack": "fabric-1.21.1",
+      "project_id": "HVnmMxH1",
+      "project_type": "shader",
+      "sha512": "45304b1d7862afdb2177b7e6226fc9c6737911d17a4ad46cc9c519ca4deb935f05072cd337cd8b19a15bb8062b57b54eceec7bdee4cd572d94858e2946d37d85",
+      "slug": "complementary-reimagined",
+      "title": "Complementary Shaders - Reimagined",
+      "url": "https://cdn.modrinth.com/data/HVnmMxH1/versions/Bqen1mJX/ComplementaryReimagined_r5.9.3.zip",
+      "version_id": "Bqen1mJX"
+    },
+    {
+      "environment": "unknown",
+      "filename": "FreshAnimations_v1.10.4.zip",
+      "loaders": [
+        "minecraft"
+      ],
+      "metafile": "resourcepacks/fresh-animations.pw.toml",
+      "pack": "fabric-1.21.1",
+      "project_id": "50dA9Sha",
+      "project_type": "resourcepack",
+      "sha512": "41258f9bea1a773d823f9a014d0c08206e9e7b339bc538e1538211fff28fadd06878a836d292cbb636ed6829cd2801a509368ae3eb3ad4bedf42190a0d5f7a90",
+      "slug": "fresh-animations",
+      "title": "Fresh Animations",
+      "url": "https://cdn.modrinth.com/data/50dA9Sha/versions/xN57JJts/FreshAnimations_v1.10.4.zip",
+      "version_id": "xN57JJts"
+    },
+    {
+      "environment": "client_or_server",
+      "filename": "ferritecore-6.0.1-forge.jar",
+      "loaders": [
+        "forge",
+        "neoforge"
+      ],
+      "metafile": "mods/ferrite-core.pw.toml",
+      "pack": "forge-1.20.1",
+      "project_id": "uXXizFIs",
+      "project_type": "mod",
+      "sha512": "a1960a7c03dc32d4ccaccaf28afdd9b078758bbd62d15a91d4039a83fa9397a098e89b69591f6bd5190254d9ee97e502504154b9aec764adb8c65f000b75ba2c",
+      "slug": "ferrite-core",
+      "title": "FerriteCore",
+      "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/DG5Fn9Sz/ferritecore-6.0.1-forge.jar",
+      "version_id": "DG5Fn9Sz"
+    },
+    {
+      "environment": "client_only",
+      "filename": "sodium-neoforge-0.8.13+mc1.21.1.jar",
+      "loaders": [
+        "neoforge"
+      ],
+      "metafile": "mods/sodium.pw.toml",
+      "pack": "neoforge-1.21.1",
+      "project_id": "AANobbMI",
+      "project_type": "mod",
+      "sha512": "4f537696af95411e9daf15795fb5fcbc49913d488a96fa912fa8f1d7db408710995e8a1461190f3cd0f8217bf9e35e9539176592428ed587ca2d7aa84450a390",
+      "slug": "sodium",
+      "title": "Sodium",
+      "url": "https://cdn.modrinth.com/data/AANobbMI/versions/uMOpc5uV/sodium-neoforge-0.8.13%2Bmc1.21.1.jar",
+      "version_id": "uMOpc5uV"
+    },
+    {
+      "environment": "client_or_server",
+      "filename": "ferritecore-7.0.3-neoforge.jar",
+      "loaders": [
+        "neoforge"
+      ],
+      "metafile": "mods/ferrite-core.pw.toml",
+      "pack": "neoforge-1.21.1",
+      "project_id": "uXXizFIs",
+      "project_type": "mod",
+      "sha512": "19af89a2075bb10a63884fa853ebf84b02c79dc3242430ecdad056fd764fdcde367a7303276b329df01b0736e2ef264c5d80c7dc92c6aebd244f556a230bb417",
+      "slug": "ferrite-core",
+      "title": "FerriteCore",
+      "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/x7kQWVju/ferritecore-7.0.3-neoforge.jar",
+      "version_id": "x7kQWVju"
+    },
+    {
+      "environment": "client_only",
+      "filename": "embeddium-0.3.31+mc1.20.1.jar",
+      "loaders": [
+        "forge",
+        "neoforge"
+      ],
+      "metafile": "mods/embeddium.pw.toml",
+      "pack": "neoforge-1.20.1",
+      "project_id": "sk9rgfiA",
+      "project_type": "mod",
+      "sha512": "ffbf2da4685260a4d5c14c621708bd20722563f084f042d3dfb0a7b87f048e39299648c854a93939129da0d23a15a91ec628560d601e76074b08e275f6e132e9",
+      "slug": "embeddium",
+      "title": "Embeddium",
+      "url": "https://cdn.modrinth.com/data/sk9rgfiA/versions/UTbfe5d1/embeddium-0.3.31%2Bmc1.20.1.jar",
+      "version_id": "UTbfe5d1"
+    },
+    {
+      "environment": "client_only",
+      "filename": "modmenu-7.2.2.jar",
+      "loaders": [
+        "fabric",
+        "quilt"
+      ],
+      "metafile": "mods/modmenu.pw.toml",
+      "pack": "quilt-1.20.1",
+      "project_id": "mOgUt4GM",
+      "project_type": "mod",
+      "sha512": "9a7837e04bb34376611b207a3b20e5fe1c82a4822b42929d5b410809ec4b88ff3cac8821c4568f880775bafa3c079dfc7800f8471356a4046248b12607e855eb",
+      "slug": "modmenu",
+      "title": "Mod Menu",
+      "url": "https://cdn.modrinth.com/data/mOgUt4GM/versions/lEkperf6/modmenu-7.2.2.jar",
+      "version_id": "lEkperf6"
+    }
+  ],
+  "url": [
+    {
+      "metafile": "mods/text-placeholder-api.pw.toml",
+      "name": "Text Placeholder API",
+      "pack": "fabric-1.21.1",
+      "url": "https://github.com/Patbox/TextPlaceholderAPI/releases/download/2.4.2%2B1.21/placeholder-api-2.4.2%2B1.21.jar"
+    }
+  ]
+}
