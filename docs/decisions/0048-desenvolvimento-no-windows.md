@@ -6,7 +6,7 @@
 
 A [ADR-0003](0003-plataformas-windows-linux-wsl.md) supunha que os agentes desenvolviam no WSL2 e que o dono abria o app no Windows a partir do WSL (`cargo xtask win-dev` com `cargo-xwin`, decisão D5 da SPEC). Desde 03/10/2026 o dono usa o Orca no Windows e os agentes rodam no Claude Code nativo do Windows; em 04/10/2026 o dono mandou migrar o projeto para o Windows. Ainda não existe código do app.
 
-Os pré-requisitos do Tauri já estão na máquina (conferidos pelo orquestrador em 03/10/2026): MSVC Build Tools 2022 com o componente C++, WebView2, Rust stable `x86_64-pc-windows-msvc`, `cargo-tauri`, Node 24, pnpm 12, Go e git com `core.autocrlf=false`. A prova da tarefa D6 (app Tauri 2 mínimo compilado nesta máquina, janela aberta e instalador NSIS gerado) mostrou duas armadilhas próprias do Windows: o `link.exe` da Microsoft não aceita caminhos com mais de 260 caracteres, e um app de desenvolvimento usa as mesmas pastas de dados do app instalado.
+Os pré-requisitos do Tauri já estão na máquina (conferidos pelo orquestrador em 03/10/2026): MSVC Build Tools 2022 com o componente C++, WebView2, Rust stable `x86_64-pc-windows-msvc`, `cargo-tauri`, Node 24, pnpm 12 e git com `core.autocrlf=false`; na D6 foram conferidos também o Go (para o sidecar do packwiz) e o GitHub CLI. A prova da tarefa D6 (app Tauri 2 mínimo compilado nesta máquina, janela aberta e instalador NSIS gerado) mostrou duas armadilhas próprias do Windows: o `link.exe` da Microsoft não aceita caminhos com mais de 260 caracteres, e um app de desenvolvimento usa as mesmas pastas de dados do app instalado.
 
 ## Decisão
 

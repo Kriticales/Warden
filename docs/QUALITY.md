@@ -345,7 +345,7 @@ O Warden é desenvolvido direto no Windows nativo; o Linux só roda na CI (ADR-0
 
 ### 13.1 Pré-requisitos
 
-- Já instalados nesta máquina (conferidos em 03/10/2026): Visual Studio Build Tools 2022 com o componente C++ (MSVC 14.44), WebView2 (154), Rust stable `x86_64-pc-windows-msvc` pelo `rustup` (o `rust-toolchain.toml` fixa a versão), `cargo-tauri`, Node 24, pnpm 12, Go, git com `core.autocrlf=false` e GitHub CLI (`gh`). Java não é pré-requisito: o motor do launcher baixa o Java do Minecraft.
+- Já instalados nesta máquina (conferidos em 03/10/2026 e, o Go e o `gh`, na D6): Visual Studio Build Tools 2022 com o componente C++ (MSVC 14.44), WebView2 (154), Rust stable `x86_64-pc-windows-msvc` pelo `rustup` (o `rust-toolchain.toml` fixa a versão), `cargo-tauri`, Node 24, pnpm 12, Go, git com `core.autocrlf=false` e GitHub CLI (`gh`). Java não é pré-requisito: o motor do launcher baixa o Java do Minecraft.
 - **Instalar programa no Windows só com autorização do dono.** O que fica no espaço do usuário e é refeito por comando não conta como instalação: `cargo install` feito pelo `cargo xtask setup`, pacotes do pnpm, ferramentas baixadas pelo `xtask` para o cache (como o `msedgedriver`) e as que o próprio `tauri build` baixa para `%LOCALAPPDATA%\tauri\` (NSIS).
 - Instalar o próprio Warden para teste é a F0-04; só o dono ou o orquestrador fazem isso.
 
