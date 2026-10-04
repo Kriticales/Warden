@@ -5,3 +5,6 @@
 
 # Pastas montadas para publicar as páginas (geradas por design/tools/montar-publicacao.mjs)
 design/_publicado/
+
+# Pacote local da mudança do Superset para o Orca (memória, prompts, conversa) — nunca versionar
+mudanca-superset/
