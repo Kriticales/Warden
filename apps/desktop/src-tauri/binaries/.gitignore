@@ -1,0 +1,4 @@
+# Gerados por `cargo xtask build-packwiz` (F0-03, ARCHITECTURE §6.3): o sidecar do packwiz,
+# packwiz.commit e o registro do build. Nada daqui é versionado, exceto este arquivo.
+*
+!.gitignore

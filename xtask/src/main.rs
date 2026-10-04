@@ -12,6 +12,7 @@ mod dev;
 mod docs;
 mod env_file;
 mod network;
+mod packwiz;
 mod setup;
 mod util;
 
@@ -56,6 +57,12 @@ enum Command {
     Coverage,
     /// Testes contra APIs reais (`#[ignore = "rede"]`, nome `rede_*`), com o .env.
     TestNetwork,
+    /// Compila o sidecar do packwiz (commit fixado + patches) para Windows e Linux.
+    BuildPackwiz {
+        /// Compila mesmo que o commit e os patches não tenham mudado.
+        #[arg(long)]
+        force: bool,
+    },
 }
 
 fn main() -> ExitCode {
@@ -69,6 +76,7 @@ fn main() -> ExitCode {
         Command::Bindings { check } => bindings::run(check),
         Command::Coverage => coverage::run(),
         Command::TestNetwork => network::run(),
+        Command::BuildPackwiz { force } => packwiz::run(force),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

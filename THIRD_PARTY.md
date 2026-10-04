@@ -23,6 +23,9 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tempfile` | 3.27.0 | MIT OR Apache-2.0 | `xtask` | Pastas temporárias (`bindings --check` e testes). |
 | `toml` | 1.1.6 | MIT OR Apache-2.0 | `xtask` | Leitura de `xtask/coverage.toml`. |
 | `which` | 8.0.6 | MIT | `xtask` | Localizar `pnpm.cmd`/`node` no `PATH` do Windows. |
+| `base64` | 0.23.1 | MIT OR Apache-2.0 | `xtask` | Decodificar a chave embutida do packwiz para provar que ela não está no sidecar (F0-03). |
+| `sha2` | 0.10.9 | MIT OR Apache-2.0 | `xtask` | SHA-256 dos patches e dos executáveis no registro do `build-packwiz` (F0-03). Mesma versão que o Tauri já usa. |
+| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
@@ -71,3 +74,9 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | Arquivo | Origem | Licença | O quê |
 |---|---|---|---|
 | `apps/desktop/src-tauri/windows-app-manifest.xml` | `tauri-build` 2.7.1, `src/windows-app-manifest.xml` ([tauri-apps/tauri](https://github.com/tauri-apps/tauri)) | Apache-2.0 OR MIT | Manifesto do Windows que pede o Common Controls v6, embutido pelo linker em todos os alvos da `warden-app` (inclusive testes). |
+
+## Sidecar do packwiz
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [packwiz/packwiz](https://github.com/packwiz/packwiz) | commit em [`third_party/packwiz/COMMIT`](third_party/packwiz/COMMIT) (`ef87d96`, 2026-09-06) | MIT ([`third_party/packwiz/LICENSE`](third_party/packwiz/LICENSE)) | Refresh, validação e exportação do pack ([ADR-0007](docs/decisions/0007-sidecar-packwiz.md)). Compilado por `cargo xtask build-packwiz` com os patches de [`third_party/packwiz/patches/`](third_party/packwiz/patches/) e embutido como sidecar do Tauri. As dependências Go do packwiz vêm do `go.sum` do commit. |
