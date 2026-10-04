@@ -139,8 +139,8 @@ pub(crate) struct Rendered {
     pub expected: ConfigValue,
 }
 
-/// Escreve `value` no estilo de `style`. `raw` é o texto atual do valor (para manter detalhes
-/// como o tipo de aspas) e `line_ending`, o fim de linha do arquivo.
+/// Escreve `value` no estilo de `style` (aspas, escapes e prefixo de tipo guardados na leitura);
+/// `line_ending` é o fim de linha do arquivo, usado quando a escrita cria linhas.
 pub(crate) fn render(
     format: ConfigFormat,
     style: &EditStyle,

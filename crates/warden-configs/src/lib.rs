@@ -25,7 +25,7 @@ mod text;
 mod tree;
 
 pub use compare::{SemanticChange, SemanticDiff, compare};
-pub use document::{ConfigDocument, ConfigEdit};
+pub use document::{ConfigDocument, ConfigEdit, RewriteProblem};
 pub use error::{ConfigError, ConfigsErrorCode, Result};
 pub use format::ConfigFormat;
 pub use path::{KeyPath, PathSegment};
