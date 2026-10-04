@@ -1,0 +1,75 @@
+Warden: chave da CurseForge em tempo de execução (ADR-0007).
+
+A chave passa a vir da variável de ambiente WARDEN_CURSEFORGE_API_KEY, lida a cada
+requisição à API da CurseForge. Sem ela (ou só com espaços), toda requisição falha antes de
+sair da máquina com um erro que começa por "WARDEN_CURSEFORGE_API_KEY ausente". Nada usa
+mais a chave embutida do packwiz: a função que a decodificava e a variável trocável por
+-ldflags -X foram removidas, sem recuo para a chave do autor do packwiz (que pede a projetos
+derivados que usem a própria chave). A constante original fica no código, sem uso: o Go não
+grava constantes não usadas no executável (o build confere), e assim o texto da chave não
+entra no repositório do Warden. Por isso o diff tem uma linha só de contexto.
+
+Base: packwiz/packwiz no commit de third_party/packwiz/COMMIT. Aplicar com `git apply`.
+
+diff --git a/curseforge/request.go b/curseforge/request.go
+index d219751..739fa42 100644
+--- a/curseforge/request.go
++++ b/curseforge/request.go
+@@ -4,4 +4,4 @@
+ 	"bytes"
+-	"encoding/base64"
+ 	"encoding/json"
++	"errors"
+ 	"fmt"
+@@ -11,3 +11,5 @@
+ 	"net/url"
++	"os"
+ 	"strconv"
++	"strings"
+ 	"time"
+@@ -20,11 +22,16 @@
+ 
+-// Exists so you can provide it as a build parameter: -ldflags="-X 'github.com/packwiz/packwiz/curseforge.cfApiKey=key'"
+-var cfApiKey = ""
++// Warden: a chave da CurseForge vem da variável de ambiente abaixo, lida a cada requisição.
++// Não há recuo para a chave embutida acima (pedido do autor do packwiz a projetos derivados;
++// ADR-0007 do Warden): cfApiKeyDefault não é mais usada, e o Go não a grava no executável.
++const cfApiKeyEnv = "WARDEN_CURSEFORGE_API_KEY"
+ 
+-func decodeDefaultKey() string {
+-	k, err := base64.StdEncoding.DecodeString(cfApiKeyDefault)
+-	if err != nil {
+-		panic("failed to read API key!")
++var errNoCfApiKey = errors.New("WARDEN_CURSEFORGE_API_KEY ausente: a chave da CurseForge não foi informada. " +
++	"Defina a variável de ambiente WARDEN_CURSEFORGE_API_KEY com a sua chave da API da CurseForge")
++
++func cfApiKey() (string, error) {
++	key := strings.TrimSpace(os.Getenv(cfApiKeyEnv))
++	if key == "" {
++		return "", errNoCfApiKey
+ 	}
+-	return string(k)
++	return key, nil
+ }
+@@ -45,6 +52,7 @@
+ 	req.Header.Set("Accept", "application/json")
+-	if cfApiKey == "" {
+-		cfApiKey = decodeDefaultKey()
++	key, err := cfApiKey()
++	if err != nil {
++		return nil, err
+ 	}
+-	req.Header.Set("X-API-Key", cfApiKey)
++	req.Header.Set("X-API-Key", key)
+ 
+@@ -70,6 +78,7 @@
+ 	req.Header.Set("Content-Type", "application/json")
+-	if cfApiKey == "" {
+-		cfApiKey = decodeDefaultKey()
++	key, err := cfApiKey()
++	if err != nil {
++		return nil, err
+ 	}
+-	req.Header.Set("X-API-Key", cfApiKey)
++	req.Header.Set("X-API-Key", key)
+ 
