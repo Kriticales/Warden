@@ -25,7 +25,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `which` | 8.0.6 | MIT | `xtask` | Localizar `pnpm.cmd`/`node` no `PATH` do Windows. |
 | `base64` | 0.23.1 | MIT OR Apache-2.0 | `xtask` | Decodificar a chave embutida do packwiz para provar que ela não está no sidecar (F0-03). |
 | `sha2` | 0.10.9 | MIT OR Apache-2.0 | `xtask`, `warden-packwiz` | SHA-256 dos patches e dos executáveis no registro do `build-packwiz` (F0-03). Mesma versão que o Tauri já usa. Na `warden-packwiz` (P1-01): hashes `sha256` (índice, links) e `sha512` (Modrinth). |
-| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets`, `warden-packwiz` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05), e de ida e volta e entradas aleatórias do formato packwiz (P1-01). |
+| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets`, `warden-packwiz`, `warden-configs` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05), de ida e volta e entradas aleatórias do formato packwiz (P1-01) e dos parsers de config (C-01). |
 | `ulid` | 3.0.0 | MIT | `warden-core` | `PackId` e `OperationId` ordenáveis (ARCHITECTURE §13). |
 | `tokio-util` | 0.7.19 | MIT | `warden-core` | `CancellationToken` (ARCHITECTURE §15). |
 | `junction` | 2.1.0 | MIT | `warden-core` (testes, Windows) | Criar junções do NTFS nos testes do `resolve_inside`, sem `cmd /c mklink`. |
@@ -42,11 +42,12 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tauri-plugin-log` | 2.10.0 | Apache-2.0 OR MIT | `warden-app` | Registros do frontend no mesmo arquivo (ARCHITECTURE §16). |
 | `tauri-plugin-opener` | 2.7.0 | Apache-2.0 OR MIT | `warden-app` | Abrir links `https:` no navegador (ARCHITECTURE §20). |
 | `tauri-plugin-dialog` | 2.8.1 | Apache-2.0 OR MIT | `warden-app` | Aviso de erro interno no pânico; diálogos nativos acionados pelo Rust (ARCHITECTURE §4.1). |
-| `toml_edit` | 0.25.15 | MIT OR Apache-2.0 | `warden-packwiz` | Leitura de TOML e edição mínima de `pack.toml`, `index.toml` e `.pw.toml` (ARCHITECTURE §6.2). |
+| `toml_edit` | 0.25.15 | MIT OR Apache-2.0 | `warden-packwiz`, `warden-configs` | Leitura de TOML e edição mínima de `pack.toml`, `index.toml` e `.pw.toml` (ARCHITECTURE §6.2); nas configs, posição de cada valor para editar só os bytes dele (ADR-0013). |
 | `regex` | 1.13.1 | MIT OR Apache-2.0 | `warden-packwiz` | Matcher do `.packwizignore` com a semântica do packwiz (expressões geradas como no go-gitignore). |
 | `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `sha1` (CurseForge). |
 | `md-5` | 0.10.6 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `md5` (CurseForge sem `sha1`). |
 | `hex` | 0.4.3 | MIT OR Apache-2.0 | `warden-packwiz` | Hashes em hexadecimal minúsculo, como o packwiz grava. |
+| `jsonc-parser` | 0.34.0 | MIT | `warden-configs` | Leitura de JSON, JSONC e JSON5 com posições e comentários (ADR-0013). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

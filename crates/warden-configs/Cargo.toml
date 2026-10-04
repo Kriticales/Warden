@@ -7,10 +7,17 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
-warden-core.workspace = true
-warden-jarmeta.workspace = true
+jsonc-parser.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+toml_edit.workspace = true
+warden-core.workspace = true
+warden-jarmeta.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

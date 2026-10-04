@@ -50,6 +50,7 @@ base64 = "0.23.1"
 cargo_metadata = "0.23.1"
 clap = { version = "4.6.7", features = ["derive"] }
 hex = "0.4.3"
+jsonc-parser = "0.34.0"
 junction = "2.1.0"
 keyring-core = "1.0.0"
 md-5 = "0.10.6"
