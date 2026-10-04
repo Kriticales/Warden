@@ -1,6 +1,6 @@
 # Warden — Especificação do produto
 
-> Versão do documento: 1.3 (2026-10-02). Tarefa A1; estrutura de navegação, busca combinada, chaves, Java e publicação revistas na tarefa D2 com as decisões do dono de 01/10/2026 (`docs/design/ESTRUTURA.md`, ADR-0025 a ADR-0029). Funções avançadas de criação, edição e debug acrescentadas na tarefa D4 (pesquisas R5A e R5B, decisões D15 a D26, ADR-0030 a ADR-0038). **Warden 1.1 "Profissional"** acrescentado na tarefa D5 (decisões D27 a D33, ADR-0039 a ADR-0047): seis funções marcadas com a etiqueta **1.1**, construídas depois da v1 (§4).
+> Versão do documento: 1.4 (2026-10-04). Tarefa A1; estrutura de navegação, busca combinada, chaves, Java e publicação revistas na tarefa D2 com as decisões do dono de 01/10/2026 (`docs/design/ESTRUTURA.md`, ADR-0025 a ADR-0029). Funções avançadas de criação, edição e debug acrescentadas na tarefa D4 (pesquisas R5A e R5B, decisões D15 a D26, ADR-0030 a ADR-0038). **Warden 1.1 "Profissional"** acrescentado na tarefa D5 (decisões D27 a D33, ADR-0039 a ADR-0047): seis funções marcadas com a etiqueta **1.1**, construídas depois da v1 (§4). Na tarefa D6, a decisão D5 ficou sem efeito: o desenvolvimento passou para o Windows nativo (ADR-0048).
 > Base: relatórios em `docs/research/` (R1 a R4, R5A em `05-diagnostico-avancado.md` e R5B em `06-criacao-edicao-descoberta.md`) e as decisões do dono registradas em `docs/decisions/`.
 > Documentos irmãos: `ARCHITECTURE.md` (como é construído), `QUALITY.md` (padrão obrigatório), `ROADMAP.md` (ordem de construção).
 
@@ -10,6 +10,7 @@
 | 1.1 | 2026-10-01 | Estrutura de navegação, busca combinada, chaves, Java e publicação (tarefa D2). |
 | 1.2 | 2026-10-01 | Funções avançadas de criação, edição e debug (tarefa D4). |
 | 1.3 | 2026-10-02 | Warden 1.1 "Profissional": segurança dos mods, manutenção, travamento de um jogador, notas e grupos, itens repetidos e desempenho entre versões (tarefa D5; T28 a T33). |
+| 1.4 | 2026-10-04 | Desenvolvimento direto no Windows: decisão D5 sem efeito (tarefa D6, ADR-0048). |
 
 ## Sumário
 
@@ -1373,7 +1374,7 @@ Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exce
 | D2 | Cada pack com repositório próprio no GitHub? | ~~Sim, um repositório privado por pack.~~ **Alterada pelo dono em 01/10/2026:** um repositório por pack, **público recomendado**, porque o GitHub passa a distribuir o pack aos jogadores pelo link do `pack.toml`; privado fica como opção "só backup, sem atualização automática para jogadores" (T18, ADR-0028). |
 | D3 | Permissão para publicar no GitHub? | **Token** colado no app (guardado como as demais chaves, T21) na v1; login pelo navegador depois. |
 | D4 | Como instalar no Windows? | **Instalador .exe comum sem assinatura digital.** |
-| D5 | Aceitar a licença do kit da Microsoft usado pelo `cargo-xwin` para gerar a versão de Windows no WSL? | **Sim** (resposta explícita do dono em 01/10/2026). |
+| D5 | Aceitar a licença do kit da Microsoft usado pelo `cargo-xwin` para gerar a versão de Windows no WSL? | ~~**Sim** (resposta explícita do dono em 01/10/2026).~~ **Sem efeito desde a ADR-0048 (04/10/2026):** o desenvolvimento passou para o Windows nativo e o `cargo-xwin` saiu do plano. |
 | D6 | Mundos dos testes persistem entre testes? | **Sim**, na instância de teste do pack (nunca no pack), com botão para apagar. |
 | D7 | Oferecer limpeza ao abrir pack dos apps antigos? | **Sim**, mostrando a lista antes e criando ponto de segurança; nada é apagado sem confirmação. |
 | D8 | Só versões estáveis por padrão? | **Sim**, com opção em Configurações para incluir beta/alpha. |
