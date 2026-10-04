@@ -53,9 +53,9 @@
 |---|---|---|
 | ~~Antes de F0-01~~ | ~~**Feito em 01/10/2026 pelo orquestrador**, com autorização do dono: bibliotecas do Tauri instaladas no WSL (`webkitgtk-webdriver` substitui `webkit2gtk-driver` no Ubuntu 26.04).~~ **Sem efeito desde a ADR-0048 (04/10/2026):** o desenvolvimento é no Windows, onde os pré-requisitos já estão instalados. | — |
 | ~~Antes de F0-04~~ | ~~Responder D5 — **respondido "sim" em 01/10/2026** (SPEC §10).~~ **Sem efeito desde a ADR-0048 (04/10/2026):** o `cargo-xwin` saiu do plano. | ~~`cargo xtask win-dev` pode ser entregue.~~ |
-| Antes de F0-02 | No GitHub, em Settings → Secrets → Actions do repositório `Kriticales/Warden`, criar `CURSEFORGE_API_KEY` com a chave. | Testes de rede agendados na CI. |
+| ~~Antes de F0-02~~ | **Feito em 04/10/2026 pelo orquestrador**, com autorização do dono: segredo `CURSEFORGE_API_KEY` criado com o `gh`, lido do `.env` sem exibir o valor. | Testes de rede agendados na CI. |
 | Antes de V-03 | Gerar um token do GitHub com permissão para criar repositórios (públicos e privados), enviar conteúdo e criar Releases (passo a passo virá no app) e salvá-lo no Warden. Para os testes de integração de V-03, uma conta ou repositórios de teste descartáveis. | Publicar versão para os jogadores (D14). |
-| Antes de S-R5-4 | Criar uma chave do Gemini (Google AI Studio). | Spike do laço de ferramentas e, depois, IA do diagnóstico (D-04). |
+| ~~Antes de S-R5-4~~ | **Feito em 04/10/2026 pelo dono:** chave do Gemini no `.env` da raiz (`GEMINI_API_KEY`), testada pelo orquestrador. | Spike do laço de ferramentas e, depois, IA do diagnóstico (D-04). |
 | ~~Antes de S-R5-2~~ | ~~Deixar o orquestrador rodar um teste curto no Windows da máquina (Java 8, 17, 21 e 25 baixados pelo próprio spike).~~ **Não precisa mais (ADR-0048):** o spike roda direto no Windows desta máquina, com os Javas baixados para uma pasta temporária, sem instalar nada. | — |
 | Em cada marco (§13) | Instalar a versão de teste do marco (F0-04, `docs/DEV-WINDOWS.md`), abrir o app e seguir o roteiro de aceite entregue. | Validação real no Windows, inclusive do cofre real do Windows. |
 

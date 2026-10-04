@@ -143,18 +143,18 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 
      O dono pediu para esperar o retorno do D5 e ainda não decidiu.
    - **Lista de sinais de malware:** vir junto com cada versão do app (recomendado) ou ser baixada com assinatura (ADR-0041). Até ele decidir, vale "vir junto".
-2. **Três pontos de design** (DESIGN-SYSTEM.md §10, itens 5 a 7). A recomendação é manter os três como estão:
+2. ~~Três pontos de design~~ (DESIGN-SYSTEM.md §10, itens 5 a 7): **o dono aprovou manter os três em 04/10/2026**:
    - o menu ▾ do Testar tem 11 itens;
    - o menu lateral fica recolhido na página de descoberta;
    - o grafo de dependências abre focado num mod.
-3. **Sinal verde para começar a construção:** onda 0 = F0-01 (esqueleto) + spikes S-R5-1 a S-R5-4.
+3. ~~Sinal verde para começar a construção~~: **dado em 04/10/2026**; onda 0 = F0-01 (esqueleto) + spikes S-R5-1 a S-R5-4, despachada no mesmo dia.
    - o S-R5-4 precisa da **chave do Gemini**;
    - o S-R5-2 precisa de um **teste curto no Windows**.
 4. ~~Ajustar o plano ao desenvolvimento no Windows~~: **D6 integrada em 04/10/2026** (ADR-0048 substitui a ADR-0003; documentos em 1.4; F0-04 virou "Versão de teste do app para o dono no Windows" e foi para a onda 3; regras novas na QUALITY §13). Decisões da D6 para o dono, quando for a hora:
    - excluir as pastas `target` da verificação do antivírus (o ativo é o **Kaspersky**; o Defender fica desligado por causa dele). Recomendação: só se a compilação ficar lenta;
    - testar cada versão pelo duplo clique que baixa o instalador da CI (recomendação: sim, como caminho padrão).
 5. Ações do dono previstas no ROADMAP §2:
-   - criar o segredo `CURSEFORGE_API_KEY` no GitHub Actions antes da F0-02 (o orquestrador pode fazer isso com o `gh`, lendo do `.env`, se o dono autorizar);
+   - ~~criar o segredo `CURSEFORGE_API_KEY` no GitHub Actions~~: feito pelo orquestrador em 04/10/2026, com autorização do dono;
    - criar um token do GitHub antes da V-03.
 6. ~~Limpezas no WSL~~: feitas em 04/10/2026 com autorização do dono (ver §9).
 
@@ -172,6 +172,11 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 | D4 funções avançadas da v1 | docs/v1-completo | integrada (1d15a99) |
 | D5 Warden 1.1 Profissional | docs/v1-1-profissional | integrada (528352c) |
 | D6 desenvolvimento no Windows | Kriticales/docs-d6-desenvolvimento-windows | integrada (26da933) |
+| F0-01 esqueleto do app | Kriticales/feat-f0-01-esqueleto | em andamento (onda 0, despachada em 04/10/2026) |
+| S-R5-1 intermed | Kriticales/spike-s-r5-1-intermed | em andamento (onda 0, despachada em 04/10/2026) |
+| S-R5-2 memória da JVM | Kriticales/spike-s-r5-2-hsperfdata | em andamento (onda 0, despachada em 04/10/2026) |
+| S-R5-3 marcadores da busca | Kriticales/spike-s-r5-3-marcadores | em andamento (onda 0, despachada em 04/10/2026) |
+| S-R5-4 laço do Gemini | Kriticales/spike-s-r5-4-laco-gemini | em andamento (onda 0, despachada em 04/10/2026) |
 
 O histórico completo, com os ids do Superset, está em `mudanca-superset/pacote/orquestrador/state.md`.
 
