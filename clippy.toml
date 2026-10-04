@@ -7,6 +7,6 @@ allow-panic-in-tests = true
 # Nomes próprios do domínio que o `doc_markdown` confundiria com identificadores de código.
 doc-valid-idents = [
   "CurseForge", "NeoForge", "LegacyFabric", "KubeJS", "CraftTweaker", "ZenScript", "MultiMC",
-  "WebView2", "WebKitGTK", "PowerShell", "GitHub", "TypeScript", "JavaScript", "TanStack",
+  "WebView", "WebView2", "WebKitGTK", "PowerShell", "GitHub", "TypeScript", "JavaScript", "TanStack",
   "..",
 ]
