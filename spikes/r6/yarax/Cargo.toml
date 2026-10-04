@@ -1,0 +1,12 @@
+[package]
+name = "r6yarax"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Spike R6: custo e utilidade do YARA-X em jars (código descartável)"
+
+[workspace]
+
+[dependencies]
+yara-x = "1.21"
+zip = { version = "2", default-features = false, features = ["deflate"] }

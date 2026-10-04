@@ -1,0 +1,19 @@
+[package]
+name = "r6probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Spike R6 do Warden: jars sintéticos, AMSI e busca de sinais (código descartável)"
+
+# Projeto isolado: não pertence a nenhum workspace do repositório.
+[workspace]
+
+[dependencies]
+zip = { version = "2", default-features = false, features = ["deflate"] }
+cafebabe = "0.9"
+sha2 = "0.10"
+sha1 = "0.10"
+hex = "0.4"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_System_Antimalware", "Win32_Foundation"] }

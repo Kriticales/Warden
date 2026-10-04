@@ -1,0 +1,15 @@
+# Spike R6: nada de binário, amostra ou dado pessoal no git.
+target/
+**/target/
+*.jar
+*.class
+*.com
+*.exe
+*.zip
+*.db
+*.png
+amostras*/
+java/
+mods/
+rep/
+Cargo.lock

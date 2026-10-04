@@ -1,0 +1,23 @@
+# IOCs públicos (só hashes; nenhum arquivo). Fontes: fractureiser docs/tech.md (SHA-1), Check Point Research 2025 Stargazers (SHA-256), Modrinth Windows Borderless 2024 (SHA-1). Formato: <hash> <descrição>
+275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f EICAR (controle positivo)
+688c26029ce69f0b1f7cf936866656ca6723228ac46c4aef5b5f793b1e6abd22 Sodium 0.5.13 oficial (controle negativo)
+dc43c4685c3f47808ac207d1667cc1eb915b2d82 fractureiser estágio 1 dl.jar (SHA-1)
+52d08736543a240b0cbbbf2da03691ae525bb119 fractureiser estágio 2 (SHA-1)
+6ec85c8112c25abe4a71998eb32480d266408863 fractureiser estágio 2 alt (SHA-1)
+c2d0c87a1fe99e3c44a52c48d8bcf65a67b3e9a5 fractureiser estágio 3 (SHA-1)
+e299bf5a025f5c3fff45d017c3c2f467fa599915 fractureiser estágio 3 alt (SHA-1)
+05b143fd7061bdd317bd42c373c5352bec351a44fa849ded58236013126d2963 Stargazers estágio 1 jar
+9ca41431df9445535b96a45529fce9f9a8b7f26c08ac8989a57787462da3342f Stargazers estágio 1 jar
+c5936514e05e8b1327f0df393f4d311afd080e5467062151951e94bbd7519703 Stargazers estágio 1 jar
+9a678140ce41bdd8c02065908ee85935e8d01e2530069df42856a1d6c902bae1 Stargazers estágio 1 jar
+4c8a6ad89c4218507e27ad6ef4ddadb6b507020c74691d02b986a252fb5dc612 Stargazers estágio 2 jar
+51e423e8ab1eb49691d8500983f601989286f0552f444f342245197b74bc6fcf Stargazers estágio 2 jar
+5d80105913e42efe58f4c325ac9b7c89857cc67e1dcab9d99f865a28ef084b37 Stargazers estágio 2 jar
+97df45c790994bbe7ac1a2cf83d42791c9d832fa21b99c867f5b329e0cc63f64 Stargazers estágio 2 jar
+4c944b07832d5c29e7b499d9dd17a3d71f0fd918ab68694d110cbb8523b8af49 Stargazers estágio 2 jar
+5590eaa4f11a6ed4351bc983e47d9dfd91245b89f3108bfd8b7f86e40d00b9fa Stargazers estágio 2 jar
+7aefd6442b09e37aa287400825f81b2ff896b9733328814fb7233978b104127f Stargazers estágio 3 .NET
+179b5da318604f97616b5108f305e2a8e4609484 Windows Borderless (SHA-1, Modrinth 2024)
+1a1c4dcae846866c58cc1abf71fb7f7aa4e7352a Windows Borderless (SHA-1, Modrinth 2024)
+e4d55310039b965fce6756da5286b481cfb09946 Windows Borderless (SHA-1, Modrinth 2024)
+2f47e57a6bedc729359ffaf6f0149876008b5cc3 Windows Borderless (SHA-1, Modrinth 2024)
