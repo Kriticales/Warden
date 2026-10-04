@@ -1,6 +1,6 @@
 # ADR-0003 — Plataformas: Windows primeiro, Linux depois, desenvolvimento em WSL2
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão do dono (plataformas) + decisão técnica (A1) (caminho de build)
+- **Status:** substituída pela [ADR-0048](0048-desenvolvimento-no-windows.md) (04/10/2026: o desenvolvimento passou para o Windows nativo e o WSL saiu do fluxo; o texto abaixo fica como registro) · **Data:** 2026-10-01 · **Origem:** decisão do dono (plataformas) + decisão técnica (A1) (caminho de build)
 
 ## Contexto
 

@@ -6,7 +6,7 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 |---|---|---|
 | [0001](0001-registro-de-decisoes.md) | Registro de decisões de arquitetura | técnica |
 | [0002](0002-stack-tauri-rust-react.md) | Stack: Tauri 2, Rust e React com TypeScript | dono |
-| [0003](0003-plataformas-windows-linux-wsl.md) | Plataformas: Windows primeiro, Linux depois, desenvolvimento em WSL2 | dono + técnica |
+| [0003](0003-plataformas-windows-linux-wsl.md) | Plataformas: Windows primeiro, Linux depois, desenvolvimento em WSL2 (substituída pela 0048) | dono + técnica |
 | [0004](0004-uso-privado-e-licencas.md) | Uso privado e política de licenças de terceiros | dono |
 | [0005](0005-versoes-e-loaders.md) | Versões do Minecraft e loaders suportados | dono |
 | [0006](0006-integracao-hibrida-packwiz.md) | Integração híbrida com o packwiz | dono + técnica |
@@ -51,5 +51,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0045](0045-funcoes-1-1-na-estrutura.md) | Funções da 1.1 encaixadas na estrutura aprovada | dono |
 | [0046](0046-itens-repetidos.md) | Itens repetidos: detecção estática e peso na saúde | dono + técnica |
 | [0047](0047-desempenho-entre-versoes.md) | Desempenho entre versões | técnica |
+| [0048](0048-desenvolvimento-no-windows.md) | Plataformas: Windows primeiro, desenvolvimento direto no Windows (substitui a 0003) | dono + técnica |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.
