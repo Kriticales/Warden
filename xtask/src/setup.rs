@@ -1,11 +1,14 @@
 //! `cargo xtask setup`: prepara a máquina para desenvolver o Warden, só no espaço do usuário
-//! (QUALITY §13.1): ferramentas do cargo com versão fixada e dependências do pnpm.
+//! (QUALITY §13.1): ferramentas do cargo com versão fixada, o sidecar do packwiz e as
+//! dependências do pnpm.
 //!
-//! Idempotente: ferramenta já instalada na versão certa não é recompilada. Nada aqui usa
+//! Idempotente: ferramenta já instalada na versão certa não é recompilada, e o sidecar só é
+//! recompilado quando o commit ou os patches mudam (`cargo xtask build-packwiz`). Nada aqui usa
 //! instalador, administrador ou muda configuração do sistema.
 
 use anyhow::{Context as _, Result};
 
+use crate::packwiz;
 use crate::util::{Cmd, find_program, warn_long_target};
 
 /// Ferramentas instaladas com `cargo install --locked`: (crate, versão).
@@ -47,6 +50,8 @@ pub fn run() -> Result<()> {
             .args(["install", name, "--version", version, "--locked"])
             .run()?;
     }
+
+    packwiz::run(false)?;
 
     Cmd::pnpm()?.args(["install", "--frozen-lockfile"]).run()?;
     println!("\nsetup: pronto. Próximos passos: `cargo xtask dev` ou `cargo xtask check`.");
