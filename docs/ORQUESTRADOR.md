@@ -150,8 +150,9 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 3. **Sinal verde para começar a construção:** onda 0 = F0-01 (esqueleto) + spikes S-R5-1 a S-R5-4.
    - o S-R5-4 precisa da **chave do Gemini**;
    - o S-R5-2 precisa de um **teste curto no Windows**.
-4. **Ajustar o plano ao desenvolvimento no Windows.** O ROADMAP e o QUALITY foram escritos para desenvolver no WSL e abrir o app no Windows (F0-04 "Abrir o app no Windows a partir do WSL", `cargo xtask win-dev`). Em 04/10/2026 o dono mandou migrar o projeto para o Windows: tarefa **D6** (documentação), antes da F0-01. Desenvolvimento direto no Windows; Linux só na CI.
-   - Pré-requisitos do Tauri no Windows conferidos em 03/10/2026: MSVC Build Tools 2022 (17.14), WebView2, Rust stable `x86_64-pc-windows-msvc`, Node 24 e pnpm 12. Nada falta.
+4. ~~Ajustar o plano ao desenvolvimento no Windows~~: **D6 integrada em 04/10/2026** (ADR-0048 substitui a ADR-0003; documentos em 1.4; F0-04 virou "Versão de teste do app para o dono no Windows" e foi para a onda 3; regras novas na QUALITY §13). Decisões da D6 para o dono, quando for a hora:
+   - excluir as pastas `target` da verificação do antivírus (o ativo é o **Kaspersky**; o Defender fica desligado por causa dele). Recomendação: só se a compilação ficar lenta;
+   - testar cada versão pelo duplo clique que baixa o instalador da CI (recomendação: sim, como caminho padrão).
 5. Ações do dono previstas no ROADMAP §2:
    - criar o segredo `CURSEFORGE_API_KEY` no GitHub Actions antes da F0-02 (o orquestrador pode fazer isso com o `gh`, lendo do `.env`, se o dono autorizar);
    - criar um token do GitHub antes da V-03.
@@ -170,7 +171,7 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 | R5A/R5B pesquisas avançadas | main | 11393ad |
 | D4 funções avançadas da v1 | docs/v1-completo | integrada (1d15a99) |
 | D5 Warden 1.1 Profissional | docs/v1-1-profissional | integrada (528352c) |
-| D6 desenvolvimento no Windows | docs/d6-desenvolvimento-windows | em andamento (despachada em 04/10/2026) |
+| D6 desenvolvimento no Windows | Kriticales/docs-d6-desenvolvimento-windows | integrada (26da933) |
 
 O histórico completo, com os ids do Superset, está em `mudanca-superset/pacote/orquestrador/state.md`.
 
@@ -197,7 +198,10 @@ O histórico completo, com os ids do Superset, está em `mudanca-superset/pacote
 - **Armadilhas:**
   - o protótipo só funciona servido por HTTP;
   - a CurseForge não permite guardar as respostas da API em cache persistente;
-  - o Defender pode deixar lentas as compilações Rust no Windows: avalie excluir a pasta `target` com o dono.
+  - o antivírus (Kaspersky) pode deixar lentas as compilações Rust: excluir as pastas `target` é decisão do dono (QUALITY §13.4);
+  - o `link.exe` não aceita caminhos acima de 260 caracteres: pasta `target` com até 100 (QUALITY §13.3);
+  - o Orca prefixa o usuário no nome da branch (`--name docs/x` vira `Kriticales/docs-x`): avise o agente e use o nome real na revisão;
+  - `docs/design/DESIGN-SYSTEM.md` e `ESTRUTURA.md` ainda citam as páginas antigas do Superset (trocar pelos Artifacts numa próxima tarefa de documentação).
 
 ## 10. Ferramentas de verificação
 
