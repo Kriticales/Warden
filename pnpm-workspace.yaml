@@ -1,0 +1,7 @@
+# Workspace pnpm do Warden (ARCHITECTURE §2).
+packages:
+  - apps/*
+
+# Versões exatas no package.json; o lockfile fixa o resto.
+saveExact: true
+engineStrict: true

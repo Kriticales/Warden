@@ -1,0 +1,10 @@
+{
+  "name": "warden-monorepo",
+  "private": true,
+  "description": "Raiz do workspace pnpm do Warden. O app fica em apps/desktop.",
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=12 <13"
+  }
+}

@@ -1,0 +1,56 @@
+[package]
+name = "warden-app"
+description = "App desktop do Warden: comandos, eventos, estado e ligação das crates de domínio ao Tauri."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+default-run = "warden-app"
+
+[lib]
+name = "warden_app"
+# Só `rlib`: o `staticlib`/`cdylib` do modelo do Tauri servem ao celular e geram aviso do
+# linker no Windows (ROADMAP F0-01; QUALITY §13.4).
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+serde.workspace = true
+specta.workspace = true
+specta-typescript.workspace = true
+tauri.workspace = true
+tauri-specta.workspace = true
+thiserror.workspace = true
+warden-core.workspace = true
+warden-packwiz.workspace = true
+warden-packwiz-cli.workspace = true
+warden-http.workspace = true
+warden-modrinth.workspace = true
+warden-curseforge.workspace = true
+warden-catalog.workspace = true
+warden-jarmeta.workspace = true
+warden-project.workspace = true
+warden-configs.workspace = true
+warden-java.workspace = true
+warden-launcher.workspace = true
+warden-instance.workspace = true
+warden-diagnostics.workspace = true
+warden-ai.workspace = true
+warden-mixin.workspace = true
+warden-bisect.workspace = true
+warden-server.workspace = true
+warden-perf.workspace = true
+warden-discovery.workspace = true
+warden-import.workspace = true
+warden-scripts.workspace = true
+warden-versioning.workspace = true
+warden-export.workspace = true
+warden-secrets.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

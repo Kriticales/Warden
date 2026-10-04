@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissões da janela principal. Mínimas: comandos do próprio app e eventos (ARCHITECTURE §20). A F0-05 acrescenta opener e log.",
+  "windows": ["main"],
+  "permissions": ["core:event:default"]
+}

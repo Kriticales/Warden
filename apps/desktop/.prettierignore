@@ -1,0 +1,7 @@
+# Gerados: nunca editados à mão nem formatados (QUALITY §2.2).
+src/lib/ipc/bindings.ts
+src/routeTree.gen.ts
+dist/
+coverage/
+src-tauri/
+node_modules/
