@@ -1,6 +1,6 @@
 # Warden — Plano de construção
 
-> Versão do documento: 1.3 (2026-10-02). Tarefa A1; escopos ajustados na tarefa D2 às decisões do dono (estrutura de navegação, busca combinada, chaves no cofre ou `.env`, Java, seção de IA e publicação no GitHub; ADR-0025 a ADR-0029); funções avançadas, spikes e ondas recalculadas na tarefa D4 (decisões D15 a D26; ADR-0030 a ADR-0038); **Warden 1.1 "Profissional"** na tarefa D5: fase 7 (W-01 a W-12), marco M6, ganchos nas tarefas da v1 e ondas recalculadas (decisões D27 a D33; ADR-0039 a ADR-0047).
+> Versão do documento: 1.4 (2026-10-04). Tarefa A1; escopos ajustados na tarefa D2 às decisões do dono (estrutura de navegação, busca combinada, chaves no cofre ou `.env`, Java, seção de IA e publicação no GitHub; ADR-0025 a ADR-0029); funções avançadas, spikes e ondas recalculadas na tarefa D4 (decisões D15 a D26; ADR-0030 a ADR-0038); **Warden 1.1 "Profissional"** na tarefa D5: fase 7 (W-01 a W-12), marco M6, ganchos nas tarefas da v1 e ondas recalculadas (decisões D27 a D33; ADR-0039 a ADR-0047); **desenvolvimento direto no Windows** na tarefa D6 (ADR-0048): F0-01, F0-04, F0-05, F0-06 e S-R5-2 revistas, ações do dono e ondas recalculadas.
 > Cada tarefa abaixo é entregue por um agente numa branch própria, seguindo `QUALITY.md`. O orquestrador despacha, revisa e integra.
 > Referências: `SPEC.md` (telas T01–T33 e critérios CA-*), `ARCHITECTURE.md` (§ citados), `docs/decisions/` (ADR-*).
 
@@ -51,13 +51,13 @@
 
 | Quando | Ação | Por quê |
 |---|---|---|
-| ~~Antes de F0-01~~ | **Feito em 01/10/2026 pelo orquestrador**, com autorização do dono: bibliotecas do Tauri instaladas no WSL (`webkitgtk-webdriver` substitui `webkit2gtk-driver` no Ubuntu 26.04). | — |
-| ~~Antes de F0-04~~ | ~~Responder D5~~ — **respondido "sim" em 01/10/2026** (SPEC §10). | `cargo xtask win-dev` pode ser entregue. |
+| ~~Antes de F0-01~~ | ~~**Feito em 01/10/2026 pelo orquestrador**, com autorização do dono: bibliotecas do Tauri instaladas no WSL (`webkitgtk-webdriver` substitui `webkit2gtk-driver` no Ubuntu 26.04).~~ **Sem efeito desde a ADR-0048 (04/10/2026):** o desenvolvimento é no Windows, onde os pré-requisitos já estão instalados. | — |
+| ~~Antes de F0-04~~ | ~~Responder D5 — **respondido "sim" em 01/10/2026** (SPEC §10).~~ **Sem efeito desde a ADR-0048 (04/10/2026):** o `cargo-xwin` saiu do plano. | ~~`cargo xtask win-dev` pode ser entregue.~~ |
 | Antes de F0-02 | No GitHub, em Settings → Secrets → Actions do repositório `Kriticales/Warden`, criar `CURSEFORGE_API_KEY` com a chave. | Testes de rede agendados na CI. |
 | Antes de V-03 | Gerar um token do GitHub com permissão para criar repositórios (públicos e privados), enviar conteúdo e criar Releases (passo a passo virá no app) e salvá-lo no Warden. Para os testes de integração de V-03, uma conta ou repositórios de teste descartáveis. | Publicar versão para os jogadores (D14). |
 | Antes de S-R5-4 | Criar uma chave do Gemini (Google AI Studio). | Spike do laço de ferramentas e, depois, IA do diagnóstico (D-04). |
-| Antes de S-R5-2 | Deixar o orquestrador rodar um teste curto no Windows da máquina (Java 8, 17, 21 e 25 baixados pelo próprio spike). | Medir a leitura de memória da JVM no Windows real. |
-| Em cada marco (§13) | Abrir o app no Windows e seguir o roteiro de aceite entregue. | Validação real no Windows. |
+| ~~Antes de S-R5-2~~ | ~~Deixar o orquestrador rodar um teste curto no Windows da máquina (Java 8, 17, 21 e 25 baixados pelo próprio spike).~~ **Não precisa mais (ADR-0048):** o spike roda direto no Windows desta máquina, com os Javas baixados para uma pasta temporária, sem instalar nada. | — |
+| Em cada marco (§13) | Instalar a versão de teste do marco (F0-04, `docs/DEV-WINDOWS.md`), abrir o app e seguir o roteiro de aceite entregue. | Validação real no Windows, inclusive do cofre real do Windows. |
 
 ## 3. Ondas de paralelismo
 
@@ -67,8 +67,8 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 |---|---|
 | 0 | F0-01, S-R5-1, S-R5-2, S-R5-3, S-R5-4 |
 | 1 | F0-03, F0-05, P1-01, P1-06, C-01 |
-| 2 | F0-02, F0-04, F0-06, P1-02, P1-03, D-02, V-01 |
-| 3 | P1-04, P1-05, P1-13, L-01, A-02 |
+| 2 | F0-02, F0-06, P1-02, P1-03, D-02, V-01 |
+| 3 | F0-04, P1-04, P1-05, P1-13, L-01, A-02 |
 | 4 | P1-07, L-02, L-03, D-01 |
 | 5 | P1-08, L-05, D-05, E-01 |
 | 6 | P1-09, P1-14, L-04, C-02, D-07, V-02, E-02, A-05 |
@@ -82,33 +82,35 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 | 14 | W-03, W-11 |
 | 15 | W-12 |
 
-A tabela é derivada das dependências declaradas em cada tarefa (recalculada por script na D4 e de novo na D5: onda = 1 + a maior onda entre as dependências); em caso de dúvida, valem as dependências. Os spikes da D4 não dependem de nada e podem rodar logo; as tarefas que dependem deles (L-11, D-04, D-10, D-12) esperam o relatório. A-01 depende de todas as tarefas com parte P0; A-03, de todas as P0 e da A-01; A-07, de todas as tarefas P1 com interface. As ondas 12 a 15 são do Warden 1.1 (fase 7): começam depois do M5 (as tarefas W sem dependência de outra W dependem de A-03 e A-07). Muitas tarefas da onda 7 em diante são P1: o orquestrador pode adiar uma P1 sem travar as P0 da mesma onda.
+A tabela é derivada das dependências declaradas em cada tarefa (recalculada por script na D4, na D5 e na D6: onda = 1 + a maior onda entre as dependências); em caso de dúvida, valem as dependências. Os spikes da D4 não dependem de nada e podem rodar logo; as tarefas que dependem deles (L-11, D-04, D-10, D-12) esperam o relatório. A-01 depende de todas as tarefas com parte P0; A-03, de todas as P0 e da A-01; A-07, de todas as tarefas P1 com interface. As ondas 12 a 15 são do Warden 1.1 (fase 7): começam depois do M5 (as tarefas W sem dependência de outra W dependem de A-03 e A-07). Muitas tarefas da onda 7 em diante são P1: o orquestrador pode adiar uma P1 sem travar as P0 da mesma onda.
 
 ---
 
 ## Fase 0 — Fundação
 
-Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o sidecar do packwiz é compilado de commit fixado, o dono consegue abrir o app no Windows a partir do WSL, e toda a infraestrutura comum (erros, operações, travas, registros, configurações, cofre, layout, i18n, testes) existe.
+Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o sidecar do packwiz é compilado de commit fixado, o dono instala e abre uma versão de teste no Windows com um comando, e toda a infraestrutura comum (erros, operações, travas, registros, configurações, cofre, layout, i18n, testes) existe.
 
 ### F0-01 — Esqueleto do monorepo e app compilando
 
-- **Prioridade:** P0 · **Depende de:** ação do dono (pacotes de sistema) · **Branch:** `feat/f0-01-esqueleto`
+- **Prioridade:** P0 · **Depende de:** — (os pré-requisitos do Windows já estão instalados; ADR-0048) · **Branch:** `feat/f0-01-esqueleto`
 - **Objetivo:** criar a estrutura do monorepo (ARCHITECTURE §2) com o app Tauri 2 + React/TypeScript abrindo uma janela, todas as crates de domínio como esqueletos vazios e as configurações de lint/format/teste.
 - **Posse:** arquivos da raiz (`Cargo.toml`, `rust-toolchain.toml`, `rustfmt.toml`, `clippy.toml`, `deny.toml`, `.config/nextest.toml`, `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `.nvmrc`, `.editorconfig`, `.gitattributes`, `.gitignore`, `THIRD_PARTY.md`, `README.md`), `apps/desktop/**` (estrutura inicial), `crates/*/Cargo.toml` e `crates/*/src/lib.rs` (esqueletos de todas as crates da ARCHITECTURE §3), `xtask/**` (inicial, com os subcomandos listados abaixo).
 - **Entregas:**
   - Workspace com `[workspace.lints]` e `[workspace.dependencies]` (QUALITY §2.1); Rust 1.98.1 fixado; edição 2024.
-  - App Tauri 2 (`identifier = "dev.kriticales.warden"`, `productName = "Warden"`), React 19 + Vite + TS strict + ESLint/Prettier conforme QUALITY §2.2, TanStack Router com rotas por arquivo, i18next com pt-BR.
+  - App Tauri 2 (`identifier = "dev.kriticales.warden"`, `productName = "Warden"`; a biblioteca da `warden-app` com `crate-type = ["rlib"]`, só para desktop: o `staticlib`/`cdylib` do modelo do Tauri servem ao celular e geram aviso do linker no Windows), React 19 + Vite + TS strict + ESLint/Prettier conforme QUALITY §2.2, TanStack Router com rotas por arquivo, i18next com pt-BR.
   - `tauri.conf.json` com a CSP da ARCHITECTURE §20 (o `bundle.externalBin` é acrescentado pela F0-03; o resto do bundle pela A-02).
   - `tauri-specta` integrado com um comando `app_info` (versão, commit) e `AppError` mínimo; `bindings.ts` gerado e versionado.
-  - Subcomandos do xtask: `setup` (instala no espaço do usuário `cargo-nextest`, `cargo-deny`, `cargo-llvm-cov`, `tauri-cli`, e roda `pnpm install`), `dev` (carrega o `.env` do repositório principal sem imprimir valores e abre o app via WSLg), `check` e `check --fast` (QUALITY §12), `check-deps`, `check-docs` (links internos dos docs), `bindings` (com `--check`), `coverage` (mínimos da QUALITY §4.2, configuráveis por crate) e `test-network` (testes `#[ignore = "rede"]` com o `.env`).
+  - Subcomandos do xtask, todos em Rust (funcionam no PowerShell do Windows e no Linux da CI, sem bash): `setup` (instala no espaço do usuário `cargo-nextest`, `cargo-deny`, `cargo-llvm-cov`, `tauri-cli`, `tauri-driver`, e roda `pnpm install`), `dev` (carrega o `.env` do repositório principal sem imprimir valores, define `WARDEN_DATA_ROOT` e `WARDEN_SECRET_BACKEND=file:` numa pasta própria do worktree, `%LOCALAPPDATA%\Warden-dev\<worktree>\`, e abre o app nativo no Windows com `tauri dev`; ADR-0048), `check` e `check --fast` (QUALITY §12), `check-deps`, `check-docs` (links internos dos docs), `bindings` (com `--check`), `coverage` (mínimos da QUALITY §4.2, configuráveis por crate) e `test-network` (testes `#[ignore = "rede"]` com o `.env`).
   - `xtask check-deps`: falha se alguma crate fora de `warden-app` depender de `tauri`.
-  - `README.md` da raiz com: pré-requisitos, `cargo xtask setup`, `cargo xtask dev` (abre o app via WSLg), `cargo xtask check`.
+  - `xtask setup`, `dev` e `check` avisam quando o caminho da pasta `target` passa de 100 caracteres, com a solução (QUALITY §13).
+  - `.gitattributes` da ARCHITECTURE §2 (`* text=auto eol=lf`, `*.cmd`/`*.bat` com `eol=crlf`, fixtures do packwiz com `-text`, binários) e `.editorconfig` (QUALITY §2.3).
+  - `README.md` da raiz com: pré-requisitos do Windows (QUALITY §13), `cargo xtask setup`, `cargo xtask dev` (abre o app no Windows), `cargo xtask check` e a nota sobre caminhos curtos.
 - **Critérios de aceite:**
-  1. `cargo xtask check` passa num clone limpo após `cargo xtask setup`.
-  2. `cargo xtask dev` abre a janela "Warden" no WSLg mostrando uma página inicial com texto vindo do catálogo pt-BR e a versão obtida por `app_info`.
+  1. `cargo xtask check` passa num clone limpo após `cargo xtask setup`, no PowerShell do Windows (no Linux, conferido pela CI da F0-02).
+  2. `cargo xtask dev` abre a janela "Warden" no Windows mostrando uma página inicial com texto vindo do catálogo pt-BR e a versão obtida por `app_info`.
   3. `cargo xtask check-deps` falha num teste em que uma crate de domínio declara `tauri` (teste do próprio xtask).
   4. `bindings.ts` regenerado é idêntico ao versionado (`cargo xtask bindings --check`).
-- **Verificação:** `cargo xtask setup && cargo xtask check`; `cargo xtask dev` (captura de tela no relatório).
+- **Verificação:** no PowerShell, `cargo xtask setup && cargo xtask check`; `cargo xtask dev` (captura de tela no relatório).
 
 ### F0-02 — CI no GitHub Actions (Linux + Windows)
 
@@ -141,20 +143,23 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
   3. `packwiz init`/`refresh` num pack temporário funcionam igual ao binário sem patch (teste de fumaça).
 - **Verificação:** `cargo xtask build-packwiz && cargo nextest run -p xtask`; roteiro do critério 2 descrito no relatório.
 
-### F0-04 — Abrir o app no Windows a partir do WSL
+### F0-04 — Versão de teste do app para o dono no Windows
 
-- **Prioridade:** P0 · **Depende de:** F0-01, F0-03, D5 respondida · **Branch:** `build/f0-04-windows-a-partir-do-wsl`
-- **Objetivo:** o dono (ou o orquestrador) roda um comando no WSL e o Warden abre no Windows.
-- **Posse:** `xtask/src/windows.rs`, `docs/DEV-WINDOWS.md`.
+- **Prioridade:** P0 · **Depende de:** F0-01, F0-02, F0-03 · **Branch:** `build/f0-04-versao-de-teste-windows`
+- **Objetivo:** o dono, sem saber programar, instala e abre no Windows a versão mais recente do Warden para testar, e repete isso a cada entrega (ADR-0048).
+- **Posse:** `xtask/src/preview.rs`, `scripts/versao-de-teste.cmd`, `docs/DEV-WINDOWS.md`.
 - **Entregas:**
-  - `cargo xtask win-dev` (só se D5 = "sim" explícito): compila o app para `x86_64-pc-windows-msvc` com `cargo-xwin`, inclui o sidecar `.exe`, copia para `C:\Users\<usuário Windows>\Warden-dev\` (descoberto via `cmd.exe /c echo %USERPROFILE%` + `wslpath`), cria atalho na Área de Trabalho e abre o app (interop do WSL).
-  - `cargo xtask win-install`: alternativa sem compilar — baixa com `gh run download` o último artefato de Windows da `main`, instala silenciosamente (`/S`) e abre.
-  - `docs/DEV-WINDOWS.md`: passo a passo para o dono, em linguagem simples, com solução para o aviso do SmartScreen.
+  - `cargo xtask preview`: gera o instalador NSIS com `tauri build` (inclui o sidecar `packwiz.exe` da F0-03), instala para o usuário atual sem pedir administrador (`/S`) e abre o Warden instalado.
+  - `cargo xtask preview --from-ci [--branch <nome>]`: alternativa sem compilar; baixa com `gh run download` o último artefato `warden-windows-<sha>` da `main` (ou da branch indicada), confere que a execução terminou com sucesso, instala e abre.
+  - Antes de instalar, fecha o Warden instalado se ele estiver aberto (pedindo confirmação) e mostra a versão e o commit que vão ser instalados.
+  - `scripts/versao-de-teste.cmd`: atalho de duplo clique que roda `cargo xtask preview --from-ci` e deixa a janela aberta com o resultado.
+  - `docs/DEV-WINDOWS.md`: passo a passo para o dono, em linguagem simples: o duplo clique, o comando para gerar localmente, o aviso do SmartScreen ("O Windows protegeu o computador" → "Mais informações" → "Executar assim mesmo", com o motivo: o instalador não tem assinatura digital, decisão D4), onde ficam os dados do app, como desinstalar e o que mandar ao orquestrador quando algo der errado.
 - **Critérios de aceite:**
-  1. Em uma máquina com Windows 11 e WSL2, `cargo xtask win-dev` (ou, sem D5, `cargo xtask win-install`) termina com o Warden aberto no Windows mostrando a versão (roteiro manual com captura de tela).
-  2. A janela usa o WebView2 do Windows (verificado em `app_info`, que informa a plataforma) e o sidecar `packwiz.exe` está ao lado do executável.
-  3. Rodar de novo atualiza a cópia sem apagar dados do app.
-- **Verificação:** roteiro manual; `cargo nextest run -p xtask` (descoberta de caminhos testada com valores simulados).
+  1. Nesta máquina Windows 11, `cargo xtask preview` termina com o Warden instalado e aberto mostrando a versão e o commit (roteiro manual com captura de tela); o mesmo com `--from-ci`, a partir de um artefato real da CI.
+  2. O app instalado usa o WebView2 do Windows (verificado em `app_info`, que informa a plataforma) e o sidecar `packwiz.exe` está ao lado do executável.
+  3. Rodar de novo atualiza a instalação sem apagar os dados do app (`%APPDATA%\dev.kriticales.warden\` e `%LOCALAPPDATA%\dev.kriticales.warden\` intactos, conferidos antes e depois).
+  4. Sem o `gh` autenticado, ou sem artefato de execução com sucesso, `--from-ci` termina com uma frase que diz o que fazer, sem instalar nada.
+- **Verificação:** roteiro manual (critérios 1 a 3); `cargo nextest run -p xtask` (escolha do artefato, leitura da versão e mensagens de erro testadas com respostas simuladas do `gh`).
 
 ### F0-05 — Serviços comuns do backend
 
@@ -167,32 +172,33 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
   - `OperationRegistry` + `operations_list`/`operation_cancel` + evento `operation-updated`; `PackLocks`; canal `OperationEvent`.
   - `settings.json` com `schemaVersion` e migração; `settings_get`/`settings_update`.
   - `warden-secrets` com o trait `SecretStore` e as implementações cofre do sistema (`keyring`, padrão), arquivo `.env` na pasta de configuração (escolha do usuário) e cofre de teste em arquivo (só em debug), mais a troca de modo que move as chaves (ARCHITECTURE §14, ADR-0025); `secrets_status/set/test/remove` e `secrets_backend_get/set` (o `test` real de cada chave é ligado pelas tarefas das APIs; aqui só a infraestrutura); recuo de desenvolvimento por variável de ambiente só em debug.
+  - Pastas de desenvolvimento (ADR-0048): só em build de debug, `AppPaths` usa `WARDEN_DATA_ROOT` (configuração e dados locais dentro dela) quando definida; com ela, a instância única vale só entre cópias com a mesma pasta, para o app de desenvolvimento não focar o Warden instalado.
   - Registros com `tracing` + arquivo diário + `tauri-plugin-log`; gancho de pânico; `tauri-plugin-single-instance`; capabilities da ARCHITECTURE §20.
 - **Critérios de aceite:**
   1. `atomic_write` com falha injetada entre escrita e renomeação deixa o arquivo original intacto e nenhum `.warden-tmp` após a limpeza.
   2. `resolve_inside` recusa `../x`, caminhos absolutos, `C:\x` e links que saem da raiz (testes com `proptest`).
-  3. `secrets_set` + reinício mantém o estado, com o cofre de teste em arquivo (Linux), com o cofre real do Windows (CI Windows) e no modo `.env`; trocar de modo move as chaves, e uma falha injetada no meio não perde nenhuma; nenhum valor de segredo aparece em `settings.json` nem nos registros (teste de varredura). CA-T21-01 e CA-T21-03 (parte de backend).
+  3. `secrets_set` + reinício mantém o estado, com o cofre de teste em arquivo (local no Windows e no Linux), com o cofre real do Windows (só na CI Windows: localmente esse teste fica `#[ignore = "cofre-real"]`, para nunca tocar no cofre do dono) e no modo `.env`; trocar de modo move as chaves, e uma falha injetada no meio não perde nenhuma; nenhum valor de segredo aparece em `settings.json` nem nos registros (teste de varredura). CA-T21-01 e CA-T21-03 (parte de backend).
   4. Duas operações de escrita no mesmo pack são serializadas; em packs diferentes, rodam em paralelo (teste de concorrência).
   5. Cancelar uma operação longa simulada encerra em < 2 s com `CANCELLED`.
-  6. Abrir uma segunda cópia do app foca a primeira.
+  6. Abrir uma segunda cópia do app foca a primeira; com `WARDEN_DATA_ROOT` diferente, as duas abrem, e nenhum arquivo é criado fora da pasta indicada (teste de integração).
 - **Verificação:** `cargo nextest run -p warden-core -p warden-secrets -p warden-app`; `cargo xtask check`.
 
 ### F0-06 — Fundação do frontend
 
 - **Prioridade:** P0 · **Depende de:** F0-01, F0-05 · **Branch:** `feat/f0-06-fundacao-frontend`
 - **Objetivo:** base visual e técnica para todas as telas.
-- **Posse:** `apps/desktop/src/{app,components,lib,styles}/**` (exceto `lib/ipc/bindings.ts`, gerado), `apps/desktop/src/routes/{__root.tsx,index.tsx}`, `apps/desktop/src/features/about/**` (exceto `licenses/`, da A-02), `apps/desktop/src/i18n/pt-BR/{comum.ts,navegacao.ts,sobre.ts,tarefas.ts}`, `apps/desktop/e2e/**` (harness), `apps/desktop/wdio.conf.ts`, `apps/desktop/vitest.config.ts`.
+- **Posse:** `apps/desktop/src/{app,components,lib,styles}/**` (exceto `lib/ipc/bindings.ts`, gerado), `apps/desktop/src/routes/{__root.tsx,index.tsx}`, `apps/desktop/src/features/about/**` (exceto `licenses/`, da A-02), `apps/desktop/src/i18n/pt-BR/{comum.ts,navegacao.ts,sobre.ts,tarefas.ts}`, `apps/desktop/e2e/**` (harness), `apps/desktop/wdio.conf.ts`, `apps/desktop/vitest.config.ts`, `xtask/src/e2e.rs`.
 - **Entregas:**
   - shadcn/ui + Tailwind 4 com tokens de cor, tema claro/escuro seguindo o sistema; layout do nível do app **sem barra lateral** (ADR-0026): topo com o nome do app e Configurações, rodapé com o indicador de Tarefas em todas as telas (do app e do pack), que abre a gaveta T22.
   - Componentes comuns: `EmptyState`, `ErrorPanel` (com "Detalhes técnicos" e Copiar), `LoadingState`, `ConfirmDialog` (com confirmação por digitação), `ProgressBar`, `OperationToast`, `DiffView`, `SafeHtml`, `SafeMarkdown` (D4: `rehype-raw` antes de `rehype-sanitize`, com a lista de permissão da ARCHITECTURE §18; `iframe` vira miniatura com "Abrir no navegador").
   - `lib/ipc`: wrappers de query/mutation, assinatura de eventos com invalidação de `pack-changed`, tradução de `AppError`.
   - Gaveta Tarefas (T22) consumindo `operations_list`/`operation-updated`/`operation_cancel`; componente "Sobre o Warden" (T23) com aviso legal e versão, que a P1-13 encaixa como última seção de Configurações pelo registro `features/settings/sections.ts`.
-  - Harness de testes: Vitest + `mockIPC` + fábricas a partir dos tipos gerados + `vitest-axe`; E2E WebdriverIO + `tauri-driver` com um teste de fumaça (abre o app e abre a gaveta de Tarefas) e servidor local de fixtures (`e2e/mock-server/`).
+  - Harness de testes: Vitest + `mockIPC` + fábricas a partir dos tipos gerados + `vitest-axe`; E2E WebdriverIO + `tauri-driver` com um teste de fumaça (abre o app e abre a gaveta de Tarefas) e servidor local de fixtures (`e2e/mock-server/`); os E2E rodam com `WARDEN_DATA_ROOT` e o cofre de teste em arquivo numa pasta temporária. `cargo xtask e2e-driver` baixa para o cache o `msedgedriver` da mesma versão do WebView2 instalado (Windows, sem instalar nada) e confere o `WebKitWebDriver` (Linux); o `wdio.conf.ts` usa o driver de cada plataforma.
   - Guarda de contrato (QUALITY §4.1): teste que compara comandos registrados com usos em `src/features/`.
 - **Critérios de aceite:**
   1. Todos os componentes comuns têm testes de estado e passam no `axe`.
   2. `ErrorPanel` mostra frase traduzida para um `AppError` de cada domínio e "Detalhes técnicos" com código e `detail`.
-  3. E2E de fumaça passa em Linux (Xvfb).
+  3. E2E de fumaça passa no Windows (local, com o `msedgedriver`) e no Linux (Xvfb, na CI).
   4. CA-T01-04 (aviso legal no componente "Sobre o Warden"), CA-T22-01 parcial (cancelamento pela interface, com operação simulada).
 - **Verificação:** `pnpm -C apps/desktop test && pnpm -C apps/desktop e2e`; `cargo xtask check`.
 
@@ -972,11 +978,11 @@ Investigações curtas, com relatório em `docs/spikes/` e código descartável 
 
 ### S-R5-2 — Memória da JVM sem JDK no Windows
 
-- **Prioridade:** P1 (antes da L-11) · **Depende de:** — (ação do dono na §2) · **Branch:** `spike/s-r5-2-hsperfdata`
+- **Prioridade:** P1 (antes da L-11) · **Depende de:** — · **Branch:** `spike/s-r5-2-hsperfdata`
 - **Pergunta:** o `hsperfdata` pode ser lido pelo *file mapping* nomeado no Windows com Java 8, 17, 21 e 25, inclusive com nome de usuário acentuado, e os valores batem com o `jstat` de um JDK?
 - **Posse:** `docs/spikes/S-R5-2-memoria-da-jvm.md`.
 - **Entregas:** leitor de prova em Rust; tabela de comparação com o `jstat` por versão de Java; comportamento com `-XX:+PerfDisableSharedMem`; arquivos `hsperfdata` gravados para os testes da L-11.
-- **Verificação:** execução real no Windows registrada no relatório.
+- **Verificação:** execução real direto no Windows desta máquina (ADR-0048), com os Javas baixados para uma pasta temporária, registrada no relatório.
 
 ### S-R5-3 — Marcadores e mecanismos da busca do culpado
 
