@@ -63,7 +63,15 @@ pub fn different_value(entry: &ConfigEntry) -> Option<ConfigValue> {
     Some(match value {
         ConfigValue::Bool(flag) => ConfigValue::Bool(!flag),
         ConfigValue::Integer(number) => ConfigValue::Integer(number.wrapping_add(1)),
-        ConfigValue::Float(number) if number.is_finite() => ConfigValue::Float(number + 0.5),
+        ConfigValue::Float(number) if number.is_finite() => {
+            // Em números grandes, somar 0,5 não muda o valor (precisão do f64): usa a metade.
+            let nudged = number + 0.5;
+            ConfigValue::Float(if nudged.to_bits() == number.to_bits() {
+                number * 0.5
+            } else {
+                nudged
+            })
+        }
         ConfigValue::Float(_) => ConfigValue::Float(1.0),
         ConfigValue::String(_)
             if entry.cfg_type.is_some_and(|ty| {

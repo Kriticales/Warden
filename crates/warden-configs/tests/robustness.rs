@@ -110,6 +110,14 @@ proptest! {
     }
 }
 
+/// Regressão achada pelo proptest: `-1.5e30 + 0.5` é o mesmo `f64`, e o auxiliar de teste
+/// pedia uma "mudança" para o mesmo valor (a crate, corretamente, não mudava nada).
+#[test]
+fn numero_grande_ganha_valor_realmente_diferente() {
+    exercise(ConfigFormat::Json, b"-1.5e30");
+    exercise(ConfigFormat::Json5, b"[1e300]");
+}
+
 proptest! {
     #![proptest_config(ProptestConfig { cases: 300, ..ProptestConfig::default() })]
 
