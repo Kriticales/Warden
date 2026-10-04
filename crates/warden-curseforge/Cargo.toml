@@ -10,6 +10,8 @@ publish.workspace = true
 warden-core.workspace = true
 warden-http.workspace = true
 warden-packwiz.workspace = true
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true

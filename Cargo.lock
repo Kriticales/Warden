@@ -4707,6 +4707,8 @@ dependencies = [
 name = "warden-ai"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-diagnostics",
  "warden-http",
@@ -4755,6 +4757,8 @@ dependencies = [
 name = "warden-bisect"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-diagnostics",
 ]
@@ -4763,6 +4767,8 @@ dependencies = [
 name = "warden-catalog"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-http",
 ]
@@ -4771,6 +4777,8 @@ dependencies = [
 name = "warden-configs"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-jarmeta",
 ]
@@ -4796,6 +4804,8 @@ dependencies = [
 name = "warden-curseforge"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-http",
  "warden-packwiz",
@@ -4805,6 +4815,8 @@ dependencies = [
 name = "warden-diagnostics"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-catalog",
  "warden-core",
  "warden-curseforge",
@@ -4817,6 +4829,8 @@ dependencies = [
 name = "warden-discovery"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-curseforge",
  "warden-http",
@@ -4827,6 +4841,8 @@ dependencies = [
 name = "warden-export"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-packwiz",
  "warden-packwiz-cli",
@@ -4837,6 +4853,8 @@ dependencies = [
 name = "warden-http"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
 ]
 
@@ -4844,6 +4862,8 @@ dependencies = [
 name = "warden-import"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-curseforge",
  "warden-http",
@@ -4857,6 +4877,8 @@ dependencies = [
 name = "warden-instance"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-configs",
  "warden-core",
  "warden-curseforge",
@@ -4869,6 +4891,8 @@ dependencies = [
 name = "warden-jarmeta"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
 ]
 
@@ -4876,6 +4900,8 @@ dependencies = [
 name = "warden-java"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-http",
 ]
@@ -4884,6 +4910,8 @@ dependencies = [
 name = "warden-launcher"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-catalog",
  "warden-core",
  "warden-java",
@@ -4893,6 +4921,8 @@ dependencies = [
 name = "warden-mixin"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-jarmeta",
 ]
@@ -4901,6 +4931,8 @@ dependencies = [
 name = "warden-modrinth"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-http",
 ]
@@ -4909,6 +4941,8 @@ dependencies = [
 name = "warden-packwiz"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
 ]
 
@@ -4916,6 +4950,8 @@ dependencies = [
 name = "warden-packwiz-cli"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-packwiz",
 ]
@@ -4924,6 +4960,8 @@ dependencies = [
 name = "warden-perf"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
 ]
 
@@ -4931,6 +4969,8 @@ dependencies = [
 name = "warden-project"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-catalog",
  "warden-core",
  "warden-curseforge",
@@ -4945,6 +4985,8 @@ dependencies = [
 name = "warden-scripts"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-http",
  "warden-jarmeta",
@@ -4973,6 +5015,8 @@ dependencies = [
 name = "warden-server"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-catalog",
  "warden-core",
  "warden-http",
@@ -4984,6 +5028,8 @@ dependencies = [
 name = "warden-versioning"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "specta",
  "warden-core",
  "warden-http",
  "warden-packwiz",

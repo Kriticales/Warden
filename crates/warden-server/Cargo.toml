@@ -12,6 +12,8 @@ warden-http.workspace = true
 warden-java.workspace = true
 warden-catalog.workspace = true
 warden-instance.workspace = true
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true

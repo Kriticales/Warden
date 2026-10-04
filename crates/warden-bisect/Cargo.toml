@@ -9,6 +9,8 @@ publish.workspace = true
 [dependencies]
 warden-core.workspace = true
 warden-diagnostics.workspace = true
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true

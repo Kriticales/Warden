@@ -11,6 +11,8 @@ warden-core.workspace = true
 warden-packwiz.workspace = true
 warden-packwiz-cli.workspace = true
 warden-project.workspace = true
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true

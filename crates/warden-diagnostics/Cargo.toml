@@ -13,6 +13,8 @@ warden-jarmeta.workspace = true
 warden-catalog.workspace = true
 warden-modrinth.workspace = true
 warden-curseforge.workspace = true
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true
