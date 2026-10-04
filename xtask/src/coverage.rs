@@ -178,7 +178,10 @@ pub fn run() -> Result<()> {
         &std::fs::read_to_string(&config_path)
             .with_context(|| format!("falha ao ler {}", config_path.display()))?,
     )?;
-    let output = target_dir()?.join("llvm-cov").join("warden-summary.json");
+    let output_dir = target_dir()?.join("llvm-cov");
+    std::fs::create_dir_all(&output_dir)
+        .with_context(|| format!("falha ao criar {}", output_dir.display()))?;
+    let output = output_dir.join("warden-summary.json");
     Cmd::cargo()
         .args([
             "llvm-cov",

@@ -2,7 +2,7 @@
 // Garante que as regras do ESLint que protegem o padrão do projeto estão ativas
 // (QUALITY §2.2; a CI da F0-02 também confere que texto solto em JSX falha).
 import { ESLint } from 'eslint';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 // Os arquivos de exemplo não existem no disco: o projeto padrão do TypeScript os aceita.
 const FIXTURES = ['src/routes/teste-regra.tsx', 'src/routes/teste-regra.ts'];
@@ -23,6 +23,12 @@ async function ruleIds(code: string, filePath: string): Promise<string[]> {
 }
 
 describe('regras do ESLint', () => {
+  // O primeiro lint carrega o TypeScript e o projeto inteiro (alguns segundos, mais com a
+  // cobertura ligada); fora dos testes, para o prazo de cada teste valer só para a regra.
+  beforeAll(async () => {
+    await ruleIds('export const aquecimento = 1;\n', 'src/routes/teste-regra.ts');
+  }, 60_000);
+
   it('texto solto em JSX é erro (i18next/no-literal-string)', async () => {
     const code = 'export function Teste() {\n  return <p>Texto solto</p>;\n}\n';
     expect(await ruleIds(code, 'src/routes/teste-regra.tsx')).toContain(
