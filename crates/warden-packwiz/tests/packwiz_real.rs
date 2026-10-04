@@ -1,6 +1,6 @@
-//! Integração com o packwiz real (QUALITY §4.1): `WARDEN_PACKWIZ_BIN` aponta o binário
-//! compilado pela F0-03. Sem ele, os testes avisam e passam; com `WARDEN_REQUIRE_EXTERNALS=1`
-//! (CI), a falta do binário é falha.
+//! Integração com o packwiz real (QUALITY §4.1): usa `WARDEN_PACKWIZ_BIN` ou, sem ela, o
+//! sidecar compilado pela F0-03 (`cargo xtask build-packwiz`). Sem binário, os testes avisam e
+//! passam; com `WARDEN_REQUIRE_EXTERNALS=1` (CI), a falta do binário é falha.
 //!
 //! O packwiz é chamado como o Warden deve chamá-lo: pasta do pack como pasta atual e
 //! `--pack-file pack.toml` relativo (ver `tests/fixtures/FIXTURES.md`).
@@ -26,18 +26,34 @@ use warden_packwiz::{
     edit,
 };
 
+/// O binário do packwiz: `WARDEN_PACKWIZ_BIN`, senão o sidecar que `cargo xtask build-packwiz`
+/// grava em `apps/desktop/src-tauri/binaries/`.
 fn packwiz() -> Option<PathBuf> {
-    match std::env::var_os("WARDEN_PACKWIZ_BIN") {
-        Some(path) if Path::new(&path).is_file() => Some(PathBuf::from(path)),
-        _ => {
-            assert!(
-                std::env::var_os("WARDEN_REQUIRE_EXTERNALS").is_none_or(|value| value != "1"),
-                "WARDEN_REQUIRE_EXTERNALS=1, mas WARDEN_PACKWIZ_BIN não aponta um binário"
-            );
-            eprintln!("AVISO: WARDEN_PACKWIZ_BIN ausente; teste com o packwiz real pulado.");
-            None
-        }
+    let candidate = std::env::var_os("WARDEN_PACKWIZ_BIN").map_or_else(sidecar_path, PathBuf::from);
+    if candidate.is_file() {
+        return Some(candidate);
     }
+    assert!(
+        std::env::var_os("WARDEN_REQUIRE_EXTERNALS").is_none_or(|value| value != "1"),
+        "WARDEN_REQUIRE_EXTERNALS=1, mas o packwiz não está em {}",
+        candidate.display()
+    );
+    eprintln!(
+        "AVISO: packwiz não encontrado em {} (rode `cargo xtask build-packwiz` ou defina          WARDEN_PACKWIZ_BIN); teste com o packwiz real pulado.",
+        candidate.display()
+    );
+    None
+}
+
+fn sidecar_path() -> PathBuf {
+    let name = if cfg!(windows) {
+        "packwiz-x86_64-pc-windows-msvc.exe"
+    } else {
+        "packwiz-x86_64-unknown-linux-gnu"
+    };
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../apps/desktop/src-tauri/binaries")
+        .join(name)
 }
 
 fn refresh(bin: &Path, pack: &Path, temp: &Path) {

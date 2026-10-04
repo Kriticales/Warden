@@ -398,7 +398,19 @@ export type PackwizCliErrorCode =
  */
 export type PackwizErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O arquivo não é um TOML válido. */
+"INVALID_TOML" | 
+/**  Um campo existe, mas com o tipo errado (texto onde se esperava número etc.). */
+"INVALID_FIELD_TYPE" | 
+/**  Um campo tem um valor que o packwiz não aceita (`pack-format` desconhecido etc.). */
+"INVALID_FIELD_VALUE" | 
+/**  Um caminho do índice ou de um metafile tenta sair da pasta do pack. */
+"UNSAFE_PATH" | 
+/**  Um link não pôde ser interpretado. */
+"INVALID_URL" | 
+/**  Formato de hash que o packwiz não conhece. */
+"UNKNOWN_HASH_FORMAT";
 
 /**
  *  Códigos do domínio `perf`. O código é contrato: renomear é mudança de contrato;

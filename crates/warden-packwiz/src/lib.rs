@@ -31,7 +31,7 @@ mod pack;
 mod read;
 mod value;
 
-pub use error::{Error, PackwizErrorCode, Result};
+pub use error::{Error, PackwizErrorCode, Result, UNKNOWN_FILE};
 pub use hash::HashFormat;
 pub use ignore::{PACKWIZ_DEFAULT_PATTERNS, PackwizIgnore};
 pub use index::{IndexEntry, METAFILE_SUFFIX, PackIndex, check_relative_path, clean_path};

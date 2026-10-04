@@ -9,6 +9,7 @@ use std::io;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+use warden_core::{CoreErrorCode, DomainCode, DomainError, error_chain};
 
 /// Códigos do domínio `packwiz`. O código é contrato: renomear é mudança de contrato;
 /// acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -101,45 +102,45 @@ pub enum Error {
     },
 }
 
+/// Valor de `file` nos parâmetros quando o erro não sabe de que arquivo veio.
+pub const UNKNOWN_FILE: &str = "(sem nome)";
+
 fn file_prefix(file: Option<&str>) -> String {
     file.map(|file| format!("{file}: ")).unwrap_or_default()
 }
 
-impl Error {
-    /// Código estável do erro. `None` para falha de disco, que usa o código comum `IO` do
-    /// domínio `core` (ARCHITECTURE §5).
-    #[must_use]
-    pub fn code(&self) -> Option<PackwizErrorCode> {
-        Some(match self {
+impl DomainError for Error {
+    type Code = PackwizErrorCode;
+
+    /// Código estável do erro: falha de disco usa o código comum `IO` do domínio `core`
+    /// (ARCHITECTURE §5); os demais são do domínio `packwiz`.
+    fn code(&self) -> DomainCode<PackwizErrorCode> {
+        DomainCode::Domain(match self {
             Self::InvalidToml { .. } => PackwizErrorCode::InvalidToml,
             Self::InvalidFieldType { .. } => PackwizErrorCode::InvalidFieldType,
             Self::InvalidFieldValue { .. } => PackwizErrorCode::InvalidFieldValue,
             Self::UnsafePath { .. } => PackwizErrorCode::UnsafePath,
             Self::InvalidUrl { .. } => PackwizErrorCode::InvalidUrl,
             Self::UnknownHashFormat(_) => PackwizErrorCode::UnknownHashFormat,
-            Self::Io { .. } => return None,
+            Self::Io { .. } => return DomainCode::Core(CoreErrorCode::Io),
         })
     }
 
     /// Valores para a frase traduzida: `file`, `key`, `path`, `url` ou `format`, conforme o
     /// erro.
-    #[must_use]
-    pub fn params(&self) -> BTreeMap<String, String> {
+    fn params(&self) -> BTreeMap<String, String> {
         let mut params = BTreeMap::new();
         let mut put = |name: &str, value: &str| {
             params.insert(name.to_owned(), value.to_owned());
         };
+        // As frases sempre citam o arquivo; sem nome conhecido, um marcador neutro.
+        let file_name =
+            |file: &Option<String>| file.clone().unwrap_or_else(|| UNKNOWN_FILE.to_owned());
         match self {
-            Self::InvalidToml { file, .. } => {
-                if let Some(file) = file {
-                    put("file", file);
-                }
-            }
+            Self::InvalidToml { file, .. } => put("file", &file_name(file)),
             Self::InvalidFieldType { file, key, .. }
             | Self::InvalidFieldValue { file, key, .. } => {
-                if let Some(file) = file {
-                    put("file", file);
-                }
+                put("file", &file_name(file));
                 put("key", key);
             }
             Self::UnsafePath { path, .. } => put("path", path),
@@ -150,6 +151,18 @@ impl Error {
         params
     }
 
+    fn detail(&self) -> Option<String> {
+        Some(error_chain(self))
+    }
+
+    /// Só a falha de disco pode passar tentando de novo (arquivo travado pelo antivírus ou por
+    /// outro programa); erro de formato exige corrigir o arquivo.
+    fn retryable(&self) -> bool {
+        matches!(self, Self::Io { .. })
+    }
+}
+
+impl Error {
     /// O mesmo erro, citando o arquivo em que aconteceu (para os erros de formato).
     #[must_use]
     pub fn in_file(mut self, name: &str) -> Self {
@@ -201,7 +214,16 @@ mod tests {
             "mods/sodium.pw.toml: o campo `download.hash` deveria ser texto, mas é número inteiro"
         );
         assert_eq!(error.file(), Some("mods/sodium.pw.toml"));
-        assert_eq!(error.code(), Some(PackwizErrorCode::InvalidFieldType));
+        assert_eq!(
+            error.code(),
+            DomainCode::Domain(PackwizErrorCode::InvalidFieldType)
+        );
+        assert!(!error.retryable());
+        assert!(
+            error
+                .detail()
+                .is_some_and(|detail| detail.contains("download.hash"))
+        );
         let params = error.params();
         assert_eq!(params["file"], "mods/sodium.pw.toml");
         assert_eq!(params["key"], "download.hash");
@@ -214,7 +236,8 @@ mod tests {
             path: PathBuf::from("pack.toml"),
             source: io::Error::other("x"),
         };
-        assert_eq!(io.code(), None);
+        assert_eq!(io.code(), DomainCode::Core(CoreErrorCode::Io));
+        assert!(io.retryable());
         assert_eq!(io.params()["path"], "pack.toml");
         assert!(io.to_string().starts_with("falha ao ler pack.toml"));
         assert_eq!(io.in_file("a").file(), None);
@@ -226,7 +249,7 @@ mod tests {
                     message: "m".to_owned(),
                 },
                 PackwizErrorCode::InvalidToml,
-                None,
+                Some(("file", UNKNOWN_FILE)),
             ),
             (
                 Error::InvalidFieldValue {
@@ -260,7 +283,7 @@ mod tests {
             ),
         ];
         for (error, code, param) in cases {
-            assert_eq!(error.code(), Some(code));
+            assert_eq!(error.code(), DomainCode::Domain(code));
             if let Some((name, value)) = param {
                 assert_eq!(error.params()[name], value);
             }
