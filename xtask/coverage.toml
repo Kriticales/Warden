@@ -1,0 +1,20 @@
+# Mínimos de cobertura de linhas por crate (QUALITY §4.2), aplicados por `cargo xtask coverage`.
+# Crates sem nenhuma linha de código (esqueletos) são listadas, mas não reprovam.
+# Os mínimos do frontend ficam em apps/desktop/vitest.config.ts (coverage.thresholds).
+
+[rust]
+# Demais crates de domínio.
+default = 75
+
+[rust.crates]
+warden-packwiz = 85
+warden-configs = 85
+warden-jarmeta = 85
+warden-diagnostics = 85
+warden-catalog = 85
+warden-bisect = 85
+warden-mixin = 85
+warden-import = 85
+warden-security = 85
+# Sem mínimo numérico: coberta por E2E e guardas de contrato.
+warden-app = 0

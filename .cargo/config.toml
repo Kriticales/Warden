@@ -1,0 +1,3 @@
+# `cargo xtask <tarefa>`: ponto único de automação do desenvolvimento (ARCHITECTURE §2).
+[alias]
+xtask = "run --package xtask --quiet --"
