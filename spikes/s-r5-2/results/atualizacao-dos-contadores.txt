@@ -1,0 +1,10 @@
+# hold 100 (100 MB vivos), leitura logo depois, 2 s depois e depois de System.gc(); "Runtime" = totalMemory-freeMemory dentro da JVM.
+java 8 -XX:+UseParallelGC | hold 100: Runtime=105844 KB, leitor=51090.2 KB (EU=51090.2, coletas=0), 2 s depois leitor=105844 KB | depois de gc: Runtime=105347 KB, leitor=105347.9 KB
+java 17 -XX:+UseParallelGC | hold 100: Runtime=114387 KB, leitor=83766.6 KB (EU=83766.6, coletas=0), 2 s depois leitor=114387.2 KB | depois de gc: Runtime=105629 KB, leitor=105629.5 KB
+java 21 -XX:+UseParallelGC | hold 100: Runtime=119707 KB, leitor=18422.3 KB (EU=18422.3, coletas=0), 2 s depois leitor=119707.1 KB | depois de gc: Runtime=105590 KB, leitor=105590.3 KB
+java 25 -XX:+UseParallelGC | hold 100: Runtime=112555 KB, leitor=0 KB (EU=0, coletas=0), 2 s depois leitor=0 KB | depois de gc: Runtime=106321 KB, leitor=103785.8 KB
+java 25 -XX:+UseSerialGC | hold 100: Runtime=115217 KB, leitor=0 KB (EU=0, coletas=0), 2 s depois leitor=0 KB | depois de gc: Runtime=106466 KB, leitor=103800.6 KB
+java 8 -XX:+UseG1GC | hold 100: Runtime=109440 KB, leitor=108608.5 KB (EU=5120, coletas=4), 2 s depois leitor=108608.5 KB | depois de gc: Runtime=103296 KB, leitor=102784.7 KB
+java 25 -XX:+UseG1GC | hold 100: Runtime=110788 KB, leitor=109700.2 KB (EU=62464, coletas=1), 2 s depois leitor=109700.2 KB | depois de gc: Runtime=104310 KB, leitor=103798.2 KB
+java 25 -XX:+UseZGC | hold 100: Runtime=116736 KB, leitor=114688 KB (EU=114688, coletas=5), 2 s depois leitor=114688 KB | depois de gc: Runtime=116736 KB, leitor=114688 KB
+java 25 -XX:+UseShenandoahGC | hold 100: Runtime=106008 KB, leitor=0 KB (EU=, coletas=0), 2 s depois leitor=106008.9 KB | depois de gc: Runtime=104729 KB, leitor=104729.1 KB

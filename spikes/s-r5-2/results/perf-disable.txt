@@ -1,0 +1,10 @@
+# Saída do teste com as flags que desligam o hsperfdata (04/10/2026), pids variam.
+# "arquivo" = existe %TEMP%\hsperfdata_*\<pid>; "leitor" = hsperf-probe read <pid>; "jstat" = jstat -gc <pid> (JDK 25).
+java 8 -XX:+PerfDisableSharedMem : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\57212 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 57212
+java 8 -XX:-UsePerfData : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\27152 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 27152
+java 17 -XX:+PerfDisableSharedMem : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\58008 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 58008
+java 17 -XX:-UsePerfData : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\47296 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 47296
+java 21 -XX:+PerfDisableSharedMem : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\18780 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 18780
+java 21 -XX:-UsePerfData : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\10600 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 10600
+java 25 -XX:+PerfDisableSharedMem : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\32624 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 32624
+java 25 -XX:-UsePerfData : arquivo=False | leitor: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\50764 | jstat: sun.jvmstat.monitor.MonitorException: Could not attach to 50764

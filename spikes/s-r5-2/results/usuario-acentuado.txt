@@ -1,0 +1,102 @@
+### acento no USERNAME (java 8) USERNAME=[João] TMP=[]
+  pasta: [hsperfdata_João]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_João_58132 (65536 bytes)","heap_used_kb":56481.6
+leitura em 0.628 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\Users\\<usuário>\\AppData\\Local\\Temp\\hsperfdata_João\\58132","heap_used_kb":56481.6
+leitura em 3.286 ms (65536 bytes)
+  jstat: 21504,0     21504,0         0,0         0,0     131584,0      56481,6     349696,0          0,0     4480,0      779,1     384,0      76,0      0     0,000     0     0,000     -         -     0,000
+  stderr: []
+### acento no USERNAME e no TEMP (java 8) USERNAME=[João Ç] TMP=[C:\wt\s-r5-2\Usuários\João Ç\AppData\Local\Temp]
+  pasta: [hsperfdata_João Ç]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_João Ç_47748 (65536 bytes)","heap_used_kb":56481.6
+leitura em 0.332 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\wt\\s-r5-2\\Usuários\\João Ç\\AppData\\Local\\Temp\\hsperfdata_João Ç\\47748","heap_used_kb":56481.6
+leitura em 3.398 ms (65536 bytes)
+  jstat: ... 4 more
+  stderr: []
+### fora da cp1252 (Ł) (java 8) USERNAME=[Łukasz] TMP=[]
+  pasta: [hsperfdata_Lukasz]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_Lukasz_13952 (65536 bytes)","heap_used_kb":56481.6
+leitura em 0.448 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\Users\\<usuário>\\AppData\\Local\\Temp\\hsperfdata_Lukasz\\13952","heap_used_kb":56481.6
+leitura em 2.670 ms (65536 bytes)
+  jstat: 21504,0     21504,0         0,0         0,0     131584,0      56481,6     349696,0          0,0     4480,0      779,1     384,0      76,0      0     0,000     0     0,000     -         -     0,000
+  stderr: []
+### cirílico (java 8) USERNAME=[Иван] TMP=[]
+  pasta: []
+  leitor (mapeamento): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\61520
+  leitor (arquivo): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\61520
+  jstat: ... 4 more
+  stderr: []
+### chinês (java 8) USERNAME=[王伟] TMP=[]
+  pasta: []
+  leitor (mapeamento): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\37084
+  leitor (arquivo): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\37084
+  jstat: ... 4 more
+  stderr: []
+### sem USERNAME (GetUserNameA) (java 8) USERNAME=[] TMP=[]
+  pasta: [hsperfdata_<usuário>]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_<usuário>_36428 (65536 bytes)","heap_used_kb":56481.6
+leitura em 0.470 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\Users\\<usuário>\\AppData\\Local\\Temp\\hsperfdata_<usuário>\\36428","heap_used_kb":56481.6
+leitura em 2.707 ms (65536 bytes)
+  jstat: 21504,0     21504,0         0,0         0,0     131584,0      56481,6     349696,0          0,0     4480,0      779,1     384,0      76,0      0     0,000     0     0,000     -         -     0,000
+  stderr: []
+### acento no USERNAME (java 25) USERNAME=[João] TMP=[]
+  pasta: [hsperfdata_João]
+  leitor (mapeamento): leitura em 0.456 ms (65536 bytes)
+{"src":"mapeamento hsperfdata_João_62228 (65536 bytes)","heap_used_kb":54404.2
+  leitor (arquivo): {"src":"arquivo C:\\Users\\<usuário>\\AppData\\Local\\Temp\\hsperfdata_João\\62228","heap_used_kb":54404.2
+leitura em 3.646 ms (65536 bytes)
+  jstat: 0,0      6144,0         0,0      6144,0     190464,0       7168,0     329728,0      41092,2      832,0      684,0     128,0      62,5      1     0,010     0     0,000     0     0,000     0,010
+  stderr: []
+### acento no USERNAME e no TEMP (java 25) USERNAME=[João Ç] TMP=[C:\wt\s-r5-2\Usuários\João Ç\AppData\Local\Temp]
+  pasta: [hsperfdata_João Ç]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_João Ç_34344 (65536 bytes)","heap_used_kb":54404.2
+leitura em 0.423 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\wt\\s-r5-2\\Usuários\\João Ç\\AppData\\Local\\Temp\\hsperfdata_João Ç\\34344","heap_used_kb":54404.2
+leitura em 3.789 ms (65536 bytes)
+  jstat: ... 4 more
+  stderr: []
+### fora da cp1252 (Ł) (java 25) USERNAME=[Łukasz] TMP=[]
+  pasta: [hsperfdata_Lukasz]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_Lukasz_35552 (65536 bytes)","heap_used_kb":54468.2
+leitura em 0.528 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\Users\\<usuário>\\AppData\\Local\\Temp\\hsperfdata_Lukasz\\35552","heap_used_kb":54468.2
+leitura em 2.982 ms (65536 bytes)
+  jstat: 0,0      6144,0         0,0      6144,0     190464,0       7168,0     329728,0      41156,2      832,0      685,9     128,0      62,5      1     0,010     0     0,000     0     0,000     0,010
+  stderr: []
+### cirílico (java 25) USERNAME=[Иван] TMP=[]
+  pasta: []
+  leitor (mapeamento): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\27172
+  leitor (arquivo): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\27172
+  jstat: ... 4 more
+  stderr: []
+### chinês (java 25) USERNAME=[王伟] TMP=[]
+  pasta: []
+  leitor (mapeamento): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\59436
+  leitor (arquivo): erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\hsperfdata_*\59436
+  jstat: ... 4 more
+  stderr: []
+### sem USERNAME (GetUserNameA) (java 25) USERNAME=[] TMP=[]
+  pasta: [hsperfdata_<usuário>]
+  leitor (mapeamento): {"src":"mapeamento hsperfdata_<usuário>_49120 (65536 bytes)","heap_used_kb":54276.5
+leitura em 0.620 ms (65536 bytes)
+  leitor (arquivo): {"src":"arquivo C:\\Users\\<usuário>\\AppData\\Local\\Temp\\hsperfdata_<usuário>\\49120","heap_used_kb":54276.5
+leitura em 3.281 ms (65536 bytes)
+  jstat: 0,0      6144,0         0,0      6144,0     191488,0       7168,0     328704,0      40964,5      832,0      686,4     128,0      62,5      1     0,011     0     0,000     0     0,000     0,011
+  stderr: []
+### TEMP com cirílico (java 21) USERNAME=[<usuário>] TMP=[C:\wt\s-r5-2\Иван1\Temp]
+  pastas no TEMP: []
+  leitor: erro: nenhum C:\wt\s-r5-2\Иван1\Temp\hsperfdata_*\50644
+### TEMP com cirílico passado como caminho curto 8.3 (java 21) USERNAME=[<usuário>] TMP=[C:\wt\s-r5-2\2964E~1\Temp]
+  pastas no TEMP: [hsperfdata_<usuário>]
+  leitor: {"src":"mapeamento hsperfdata_<usuário>_48204 (65536 bytes)","heap_used_kb":4096.0
+leitura em 0.365 ms (65536 bytes)
+### USERNAME cirílico + TEMP curto (java 21) USERNAME=[Иван] TMP=[C:\wt\s-r5-2\3E059~1\Temp]
+  pastas no TEMP: []
+  leitor: erro: nenhum C:\wt\s-r5-2\Иван3\Temp\hsperfdata_*\56388
+### USERNAME trocado por ASCII + TEMP curto (java 21) USERNAME=[Ivan] TMP=[C:\wt\s-r5-2\43B54~1\Temp]
+  pastas no TEMP: [hsperfdata_Ivan]
+  leitor: {"src":"mapeamento hsperfdata_Ivan_41044 (65536 bytes)","heap_used_kb":3072.0
+leitura em 0.352 ms (65536 bytes)

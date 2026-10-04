@@ -1,0 +1,17 @@
+[package]
+name = "hsperf-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Leitor de prova do hsperfdata (spike S-R5-2 do Warden; código descartável)"
+
+# Fora do workspace do Warden: código de spike.
+[workspace]
+
+[dependencies]
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_Memory",
+] }

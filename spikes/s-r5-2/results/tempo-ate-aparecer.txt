@@ -1,0 +1,8 @@
+# Tempo do início do processo (Process.Start) até o hsperfdata ficar legível pelo hsperf-probe (laço de leituras, cada uma ~10-20 ms por abrir o .exe).
+# "arquivo visto" ficou vazio porque a leitura válida aconteceu na mesma volta do laço em que o arquivo apareceu.
+java 8 : arquivo visto em  ms; primeira leitura válida em 62 ms; main() respondeu em 124 ms; arquivo apagado após sair: True
+java 17 : arquivo visto em  ms; primeira leitura válida em 67 ms; main() respondeu em 148 ms; arquivo apagado após sair: True
+java 21 : arquivo visto em  ms; primeira leitura válida em 52 ms; main() respondeu em 147 ms; arquivo apagado após sair: True
+java 25 : arquivo visto em  ms; primeira leitura válida em 68 ms; main() respondeu em 145 ms; arquivo apagado após sair: True
+java 8 morto com TerminateProcess: arquivo antes=True, depois=False; leitor depois: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\\hsperfdata_*\61816
+java 25 morto com TerminateProcess: arquivo antes=True, depois=False; leitor depois: erro: nenhum C:\Users\<usuário>\AppData\Local\Temp\\hsperfdata_*\54984

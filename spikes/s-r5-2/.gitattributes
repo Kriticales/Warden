@@ -1,0 +1,3 @@
+# Fixtures com os bytes exatos gravados (hsperfdata é binário; a saída do jstat
+# fica com o CRLF original do Windows).
+fixtures/* -text
