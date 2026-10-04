@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 5.1.10+52cc178c77
+MixinConfigs: fabric-message-api-v1.mixins.json,fabric-message-api-v1.cl
+ ient.mixins.json
+

@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.3+53347ba977
+MixinConfigs: fabric-block-view-api-v2.mixins.json,fabric-block-view-api
+ -v2.client.mixins.json
+

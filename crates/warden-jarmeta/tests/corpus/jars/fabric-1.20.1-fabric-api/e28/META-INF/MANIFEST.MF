@@ -1,0 +1,131 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/impl/recipe/ingredi
+ ent/client/CustomIngredientSyncClient.class;net/fabricmc/fabric/impl/re
+ cipe/ingredient/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/CombinedIngredi
+ ent.class
+SHA-256-Digest: 8L9P5sbJAS3Ehikuu3FPlc8VSNPwAL+vww4hcM/5yyY=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/CombinedIngredi
+ ent$Serializer.class
+SHA-256-Digest: VXprnIuT2ut7Hp0rOidEpXjnhZHiqASvQ4yhfk6sqWc=
+
+Name: net/fabricmc/fabric/mixin/recipe/ingredient/PacketEncoderMixin.cla
+ ss
+SHA-256-Digest: 9U6ylRAYYqi+MInC/LOud32qf0t0RZ23GTDYsgXUz5I=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/NbtIngredient$S
+ erializer.class
+SHA-256-Digest: Jey/P427i+MrtQT3Mc+cFlU+L4g+xxC0mx78TAewMis=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/client/CustomIngredient
+ SyncClient.class
+SHA-256-Digest: t8csIslVrzVTFkIKR8QmLnFYEm/1NSo68MMBsmHCXGw=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/CustomIngredientImpl.cl
+ ass
+SHA-256-Digest: 99UrB7oMPxvJfXWKGBpPypITboaN6j6RqWXOBhHeC9I=
+
+Name: fabric-recipe-api-v1-refmap.json
+SHA-256-Digest: V3jtb2+8VN+reGxUno3gtBK1/NIJSNZqnpBkw/DhCps=
+
+Name: net/fabricmc/fabric/api/recipe/v1/ingredient/CustomIngredientSeria
+ lizer.class
+SHA-256-Digest: qYG/wLB63p43VhSVL4Oe7Djg2L4cTNI5J7Uu9LIIjno=
+
+Name: LICENSE-fabric-recipe-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: fabric-recipe-api-v1.mixins.json
+SHA-256-Digest: x+DpVY9UGyxJ9dfUvXUzEMrI2A9c8LUxmPZODSUDTbs=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/DifferenceIngre
+ dient$Serializer.class
+SHA-256-Digest: 3LagIj7ZJ8Hj5qvO/71rPi4eegNuBrstQq8MZ/7mvzc=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/NbtIngredient.c
+ lass
+SHA-256-Digest: 6CglF6mmA3JeNqQCD5bKYXgqlhHH2fRLU8BsrXWyrxs=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/client/package-info.cla
+ ss
+SHA-256-Digest: ZAseteO/tKKOi+inQvJiGxudnraUjzuGzbgCc8Yw6Wo=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/package-info.class
+SHA-256-Digest: uxYlUbcsZbn7zSP2J/FSZsnnIB73NhN+5rNu0vz6Ihk=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/CustomIngredientSync.cl
+ ass
+SHA-256-Digest: CAuayNEr4DvPITDc1hajOVSPJiWNtifRlijawwzx3dU=
+
+Name: net/fabricmc/fabric/api/recipe/v1/ingredient/DefaultCustomIngredie
+ nts.class
+SHA-256-Digest: DtmJsn7453aCVKVFHqOHMMQIzhV2yUgQl6T6p+FKcYs=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/SupportedIngredientsPac
+ ketEncoder.class
+SHA-256-Digest: R87W1v3iQMLNaggpn4xfzN7mIcMbmfU2BPn4ETwE+EY=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/AnyIngredient.c
+ lass
+SHA-256-Digest: Sdbjqa+jc9gyS+NjwWs9748B/VN+b7zlgYIVEwOHP8s=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/CustomIngredientInit.cl
+ ass
+SHA-256-Digest: gQa7MndzfTotPEVYz9TQWd2mpD0NdysFNJXF6DwrNBQ=
+
+Name: net/fabricmc/fabric/api/recipe/v1/ingredient/CustomIngredient.clas
+ s
+SHA-256-Digest: gJ+FIgkFf6Jn3cG7TyK0ZkU85TNsL1HMrlfM5EVHF6c=
+
+Name: net/fabricmc/fabric/mixin/recipe/ingredient/package-info.class
+SHA-256-Digest: /QuVwhQrD6u5/reCsHstlvePDigU7sZo9Hrw6i+Ug1k=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/ShapelessMatch.class
+SHA-256-Digest: jUV1NSBV3IoxQfc+9mVoUTkvp8/2y4jiS0/6H9ujETk=
+
+Name: fabric.mod.json
+SHA-256-Digest: lCMzlepaL6SHNNeKot4pg074yBme775/P3mEKFF3amY=
+
+Name: fabric-recipe-api-v1.accesswidener
+SHA-256-Digest: YBcDBQASlRKT9V/ywWGYN2FhIeXDpVIq8U1QcaLP6CE=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/package-info.cl
+ ass
+SHA-256-Digest: Bvtxf42I5pY7RrUg0l+CjHdx4CCxrIg3Op1XYVX/yBM=
+
+Name: net/fabricmc/fabric/mixin/recipe/ingredient/ShapelessRecipeMixin.c
+ lass
+SHA-256-Digest: 5yAM69qr1D5aQilmVeNKLMKdxuTFk14SZGSXQVZXTRg=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/AllIngredient.c
+ lass
+SHA-256-Digest: ayiFJvU4Z9DkU/4A9od+M7J2yDiyFkR/B2Rvvgdx9nE=
+
+Name: assets/fabric-recipe-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/recipe/v1/ingredient/FabricIngredient.clas
+ s
+SHA-256-Digest: gh0xxttUdVkwL9Q5YiRGT+j9mJkUNnCZq/J58KF+1gM=
+
+Name: net/fabricmc/fabric/impl/recipe/ingredient/builtin/DifferenceIngre
+ dient.class
+SHA-256-Digest: OZtnARl3RRSCPa+PEnpnJdb29v59IzOU5J/X7ZeUYag=
+
+Name: net/fabricmc/fabric/mixin/recipe/ingredient/IngredientMixin.class
+SHA-256-Digest: 7QiS4miSx+x7qT/kblbI+fxysT0lP7ie3sSAg9Sgg/8=
+

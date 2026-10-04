@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 2.2.14+561530ec77
+MixinConfigs: fabric-command-api-v2.mixins.json,fabric-command-api-v2.cl
+ ient.mixins.json
+

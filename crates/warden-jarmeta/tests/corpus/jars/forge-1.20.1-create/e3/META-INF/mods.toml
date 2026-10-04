@@ -1,0 +1,37 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+issueTrackerURL="https://github.com/Creators-of-Create/Ponder/issues"
+
+[[mods]]
+modId="ponder"
+version="1.0.91"
+displayName="Ponder"
+displayURL="https://github.com/Creators-of-Create/Ponder"
+logoFile="logo.png"
+authors="simibubi, Pepper, zelophed"
+credits="Special Thanks to IThundxr, Jozufozu, Snownee, gamez7, tterrag and Grimmauld"
+description='''
+Visual in-Game Documentation
+'''
+
+[[dependencies.ponder]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.ponder]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1, 1.21)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.ponder]]
+    modId="flywheel"
+    mandatory=true
+    versionRange="[1.0.0,2.0)"
+    ordering="AFTER"
+    side="CLIENT"

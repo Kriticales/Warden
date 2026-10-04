@@ -3,7 +3,8 @@
 //! Abre o zip, lê só os arquivos de metadados (com limite de tamanho contado nos bytes
 //! descompactados), o cabeçalho de algumas classes para a versão do Java e, recursivamente, os
 //! jars embutidos declarados (`jars[]` do Fabric e do Quilt, `META-INF/jarjar/metadata.json`,
-//! `ContainedDeps` do manifesto do Forge 1.12.2). Nada vai para o disco.
+//! `ContainedDeps` do manifesto do Forge 1.12.2 e `Embedded-Dependencies-Mod`). Nada vai para o
+//! disco.
 
 use std::fs::File;
 use std::io::{BufReader, Cursor, Read, Seek};
@@ -266,6 +267,9 @@ fn read_archive<R: Read + Seek>(
         meta.descriptors.push(DescriptorKind::Manifest);
         for dep in &m.contained_deps {
             nested.push((format!("META-INF/{dep}"), DescriptorKind::Manifest, None));
+        }
+        if let Some(embedded) = &m.embedded_dependencies_mod {
+            nested.push((embedded.clone(), DescriptorKind::Manifest, None));
         }
     }
     meta.manifest = manifest;

@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_lifecycle_events_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Lifecycle Events (v1)"
+logoFile = "assets/fabric-lifecycle-events-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Events for the game's lifecycle."
+provides = ["fabric-lifecycle-events-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_lifecycle_events_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_lifecycle_events_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_lifecycle_events_v1]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-lifecycle-events-v1.mixins.json"
+
+[[mixins]]
+config = "fabric-lifecycle-events-v1.client.mixins.json"

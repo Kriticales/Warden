@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 2.1.52+561530ec77
+MixinConfigs: fabric-mining-level-api-v1.mixins.json
+

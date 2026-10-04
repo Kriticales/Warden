@@ -1,0 +1,89 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-ferrite-core (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "ferritecore",
+      "version": "6.0.1",
+      "name": "FerriteCore",
+      "description": "Reduces memory usage",
+      "authors": [
+        "malte0811"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.14.21"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=1.20 <1.21"
+            ]
+          }
+        },
+        {
+          "id": "hydrogen",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<=0.3"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=1.20 <1.21"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.14.21"
+        ]
+      },
+      "mixins": [
+        "ferritecore.blockstatecache.mixin.json",
+        "ferritecore.dedupmultipart.mixin.json",
+        "ferritecore.fastmap.mixin.json",
+        "ferritecore.mrl.mixin.json",
+        "ferritecore.predicates.mixin.json",
+        "ferritecore.dedupbakedquad.mixin.json",
+        "ferritecore.threaddetec.mixin.json",
+        "ferritecore.modelsides.mixin.json",
+        "ferritecore.fabric.mixin.json"
+      ]
+    }
+  ],
+  "manifest": {
+    "implementationTitle": "Fabric",
+    "implementationVersion": "6.0.1"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  }
+}

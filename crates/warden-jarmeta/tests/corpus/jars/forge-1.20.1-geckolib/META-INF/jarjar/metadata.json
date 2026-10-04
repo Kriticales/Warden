@@ -1,0 +1,16 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "com.eliotlash.mclib",
+        "artifact": "mclib"
+      },
+      "version": {
+        "range": "[20,)",
+        "artifactVersion": "20"
+      },
+      "path": "META-INF/jarjar/mclib-20.jar",
+      "isObfuscated": false
+    }
+  ]
+}

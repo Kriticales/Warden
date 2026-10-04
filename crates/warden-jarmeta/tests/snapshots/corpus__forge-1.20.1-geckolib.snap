@@ -1,0 +1,104 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-geckolib (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "geckolib",
+      "version": "4.8.4",
+      "name": "GeckoLib 4",
+      "description": "GeckoLib is an animation engine for Minecraft Mods, with support for complex 3D keyframe-based animations, 30+ easings, concurrent animation support, sound and particle keyframes, event keyframes, and more.",
+      "authors": [
+        "Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witixin"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[47.1,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20.1,)"
+          }
+        },
+        {
+          "id": "geckoanimfix",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[9.removeoculusgeckolibcompat,)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.20.1,)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[47.1,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[47,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "geckolib.mixins.json"
+    ],
+    "implementationTitle": "GeckoLib 4 Forge",
+    "implementationVersion": "4.8.4"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/mclib-20.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "com.eliotlash.mclib",
+        "artifact": "mclib",
+        "artifactVersion": "20",
+        "range": {
+          "dialect": "maven",
+          "spec": "[20,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

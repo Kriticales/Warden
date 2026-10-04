@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.1.3+78e1ecb877
+MixinConfigs: fabric-particles-v1.client.mixins.json
+

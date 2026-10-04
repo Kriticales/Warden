@@ -1,0 +1,252 @@
+Manifest-Version: 1.0
+Fabric-Gradle-Version: 8.1.1
+Fabric-Loom-Version: 1.2.7
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.8.5
+Fabric-Loader-Version: 0.14.21
+Fabric-Mixin-Version: 0.12.5+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Loom-Split-Environment: true
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/impl/client/resourc
+ e/loader/package-info.class;net/fabricmc/fabric/impl/client/resource/lo
+ ader/FabricWrappedVanillaResourcePack.class;net/fabricmc/fabric/mixin/r
+ esource/loader/client/package-info.class;net/fabricmc/fabric/mixin/reso
+ urce/loader/client/KeyedResourceReloadListenerClientMixin.class;net/fab
+ ricmc/fabric/mixin/resource/loader/client/CreateWorldScreenMixin.class;
+ net/fabricmc/fabric/mixin/resource/loader/client/GameOptionsMixin.class
+ ;net/fabricmc/fabric/mixin/resource/loader/client/DefaultClientResource
+ PackProviderMixin.class;net/fabricmc/fabric/mixin/resource/loader/clien
+ t/VanillaResourcePackProviderMixin.class;net/fabricmc/fabric/mixin/reso
+ urce/loader/client/FontManagerMixin.class;client-fabric-resource-loader
+ -v0-refmap.json;fabric-resource-loader-v0.client.mixins.json
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/resource/loader/ResourceManagerHelperImpl
+ .class
+SHA-256-Digest: okjpeoGbVRvHKX5LE5TcTlmz1onPD/P61/LiBsoB1zc=
+
+Name: assets/fabric-resource-loader-v0/lang/zh_tw.json
+SHA-256-Digest: P3NABKqXIB7NuV7fjbyv/lnk2vmFLhd6xtYeveLLZdc=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ModNioResourcePack.class
+SHA-256-Digest: fG3cI3rUVFK0KQH9CAYSFAN1SoT9s+lPkk4RG7XE5Ww=
+
+Name: assets/fabric-resource-loader-v0/lang/it_it.json
+SHA-256-Digest: BMngQafpsDuPrIigbUs1NG9SbTXGxLJZYj7F18dGHTA=
+
+Name: net/fabricmc/fabric/api/resource/SimpleResourceReloadListener.clas
+ s
+SHA-256-Digest: lJNZe+cfKZlnED7aklAkufDX8ziiIssX7P0YxIshAZE=
+
+Name: net/fabricmc/fabric/impl/resource/loader/BuiltinModResourcePackSou
+ rce.class
+SHA-256-Digest: zzl/b+lip1qJcf7lKueH/mciCZQ1oEeC00lZTtqqHy8=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/MinecraftServerMixin.cla
+ ss
+SHA-256-Digest: cgNQvFI6tMvrPYNxEiPVeNGfRI+XTqpjK3FcaKPAnsQ=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/DefaultClientReso
+ urcePackProviderMixin.class
+SHA-256-Digest: 4mWdeMO1FF+17sUdpUs8JDB54mF2Hdq5+8YciOeYKOA=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/ResourcePackManagerMixin
+ .class
+SHA-256-Digest: lRcpq8TEfwVwZTKr+4HVkvIEPcb175qcrMw1o1qByLQ=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ServerLanguageUtil.class
+SHA-256-Digest: F6vNvHgg+BAT8rYr5LB78cUQh+hDRuU6HVcL4A5LnZE=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/TestServerMixin.class
+SHA-256-Digest: lDpdkH8dUht18CTN+FWqJtTLfu5dYBtPnLBlqPR7PLo=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ModNioResourcePack$1.clas
+ s
+SHA-256-Digest: qgT1fZIsAVLhLa17jLXRLfn5q66uEaPv9qKfxNDw/tg=
+
+Name: net/fabricmc/fabric/impl/resource/loader/FabricResource.class
+SHA-256-Digest: s/bbNCPoVjD60fpOUDdyvGoKxvycCwoF1Tg2/iVUnBg=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/FontManagerMixin.
+ class
+SHA-256-Digest: QQhXwVU44kB+oqKu8ydIvhB6iYNCb+SbTR1s/gM55Ls=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ModResourcePackCreator.cl
+ ass
+SHA-256-Digest: /5r+u1HAlloLH4kJxmVJqudzQotuvDjTHrw15tCFF54=
+
+Name: LICENSE-fabric-resource-loader-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/KeyedResourceReloadListe
+ nerMixin.class
+SHA-256-Digest: op546w1P3WUz7pZV9purdFyTsVY5Yujasq7LTGqvMOI=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/LifecycledResourceManage
+ rImplMixin.class
+SHA-256-Digest: MzzXGAqfUdcOXmQKSLYXk143YMiWP1CI0qSs2cArqfU=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/NamespaceResourceManager
+ Mixin.class
+SHA-256-Digest: qUp48LFejn+VfeP0+GbNpDD/XYx6S2dkCziSjIdWouQ=
+
+Name: assets/fabric-resource-loader-v0/lang/en_us.json
+SHA-256-Digest: DIVljfrKlsKevnObJ75rG2kMoiMktaly15KD3Ke6mwI=
+
+Name: fabric-resource-loader-v0.mixins.json
+SHA-256-Digest: +5A2e6QItAnlpz7mYoIN1kevvaEv1EjOSXbH6B+2INU=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/package-info.clas
+ s
+SHA-256-Digest: 1XPef7weYCkrxl7Wymcjtk/dQHfOqFY8/Q1aPGtue1c=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/server/package-info.clas
+ s
+SHA-256-Digest: ppjFsFar4OLBKq7vfibFHciL2h75sMDQPmFxhyNJdyw=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/ResourceMixin.class
+SHA-256-Digest: opV2Q7ENcycJv4nE6TT/o31JvlLRbHhe/GQZrGxlS1o=
+
+Name: fabric.mod.json
+SHA-256-Digest: MhxqZXERGTypjrRfvV80oDuwnsCQK2iutKbNlEASkrE=
+
+Name: assets/fabric-resource-loader-v0/lang/et_ee.json
+SHA-256-Digest: YsOIZJiaL6GCCZseYFx4TyJXrrDaXRDUqsoRZLQncog=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/package-info.class
+SHA-256-Digest: CrtqoyoyLWcxmQu9L/d56ZhdDLbw8Vp6PtREqintYuU=
+
+Name: net/fabricmc/fabric/api/resource/ResourcePackActivationType.class
+SHA-256-Digest: cQYr9Y1EE2fO1XYM9wuHbLfwXT0Q5firGxw80zW3GXI=
+
+Name: net/fabricmc/fabric/api/resource/ModResourcePack.class
+SHA-256-Digest: iVX/L82F2QaU+diVpvjwBHGdvpQopK1+n3emoIfx53Q=
+
+Name: net/fabricmc/fabric/impl/client/resource/loader/package-info.class
+SHA-256-Digest: iUpDrY9x69LSZgD8nSNiSfPyovEZOU1wFUCibqTkaSs=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/ServerPropertiesHandlerM
+ ixin.class
+SHA-256-Digest: UlbthflnYzjqhgXssNIVe+jEuO3UMd5hTC6FSxM9O8s=
+
+Name: assets/fabric-resource-loader-v0/lang/zh_cn.json
+SHA-256-Digest: 9mFNf9+5gJCsRejaQrmsIHiwDCKOqjhvg60TomwIBqM=
+
+Name: fabric-resource-loader-v0-refmap.json
+SHA-256-Digest: lhlCJXRTZC9HCgz/3d6e5EuFTr1qQYkwG9m5RD12BIw=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ResourcePackSourceTracker
+ .class
+SHA-256-Digest: HESP/KqzUtJl6K89Rl2qLESmDfTsz4XFKmXVnzSybcI=
+
+Name: net/fabricmc/fabric/api/resource/ResourceManagerHelper.class
+SHA-256-Digest: BLu0XMl0dd7F5/SR/Z1ER1LLeAz6zcfEJkghzNGDPyw=
+
+Name: assets/fabric-resource-loader-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ModResourcePackUtil.class
+SHA-256-Digest: z8HfDvp93ZkYFrGbjcNaijxWwyWEq/sjDsR9aQacUZk=
+
+Name: assets/fabric-resource-loader-v0/lang/tt_ru.json
+SHA-256-Digest: X+IVPKTKCqlk5mpsnahiXLcEdy2VwQ0cFMdlXeZ1ido=
+
+Name: net/fabricmc/fabric/impl/resource/loader/GroupResourcePack.class
+SHA-256-Digest: 3ywhpq9Pz9P4XhqqLwZHcBhmsxaoyUiMiDUz7gD+9EY=
+
+Name: fabric-resource-loader-v0.accesswidener
+SHA-256-Digest: giQ44bxaxODUukWlLzs1XN4TRHMJqbmDVtPg8e++rRk=
+
+Name: net/fabricmc/fabric/impl/resource/loader/package-info.class
+SHA-256-Digest: bUtERzVESrL2bRgv8e5b/olZ7hScbc/FLeZdwJeAQWI=
+
+Name: assets/fabric-resource-loader-v0/lang/fi_fi.json
+SHA-256-Digest: Y2zt6e/K43GjdfvxSa1tIQVctgTbz2jBeLgG1CWGxCs=
+
+Name: net/fabricmc/fabric/api/resource/ResourceReloadListenerKeys.class
+SHA-256-Digest: T5NZxWXUgSbuPMpzoyXIl2MPQNH05UrkHqi/zqVgkJ4=
+
+Name: net/fabricmc/fabric/api/resource/IdentifiableResourceReloadListene
+ r.class
+SHA-256-Digest: miDkXf5Jw4ElHXjH9qwCpo5PVWf8P8ALBWwBAMhc26U=
+
+Name: net/fabricmc/fabric/impl/resource/loader/FabricLifecycledResourceM
+ anager.class
+SHA-256-Digest: 6QqN734ZeqeZ371tM03P6Cmano2yvt6WWGJiP+YO53U=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/KeyedResourceRelo
+ adListenerClientMixin.class
+SHA-256-Digest: Rlos8Rb9lKTHEj2cRM2UHkdU/hmNogRD6tkYkGncUlo=
+
+Name: assets/fabric-resource-loader-v0/lang/es_es.json
+SHA-256-Digest: Vy1mJtEkcjQr7l9+w2cu9jGtcme5kNMCXcszxd143aQ=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/ResourcePackProfileMixin
+ .class
+SHA-256-Digest: 9nZAnl1gD0vBudsUo3tAmxcFo8YwyRu+vaBzigpswcE=
+
+Name: assets/fabric-resource-loader-v0/lang/ko_kr.json
+SHA-256-Digest: u7jQOGwkox4XckIUxeXCBuJVMQX3N7Ge0u8RG8zbFdE=
+
+Name: net/fabricmc/fabric/api/resource/SimpleSynchronousResourceReloadLi
+ stener.class
+SHA-256-Digest: n6cju0/aOQY4VS6xLHmOm7h1QBWBw0aihf9njlX+vmk=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/CreateWorldScreen
+ Mixin.class
+SHA-256-Digest: beozcuKY/tdDg40qezYBw3TEukQO5pI34npOs+cLmsk=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/GameOptionsMixin.
+ class
+SHA-256-Digest: ngXhqVj3m1PKBg3iuhT1LQ9i//xqrP0jO5L1bisNd0s=
+
+Name: assets/fabric-resource-loader-v0/lang/fr_fr.json
+SHA-256-Digest: 1pXonquztit0P4YnhegBvETl2jxuFV8yDg+2rVySvQw=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/client/VanillaResourcePa
+ ckProviderMixin.class
+SHA-256-Digest: 1FveVP7giK8uLeMmNnTYJTYdxhn8OGw8LSgsY5D9D9w=
+
+Name: net/fabricmc/fabric/impl/client/resource/loader/FabricWrappedVanil
+ laResourcePack.class
+SHA-256-Digest: zMuV8l+qtD7tvuXUzO8UYAtYfRZvZHa7u7vYGVTyD2o=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/ReloadableResourceManage
+ rImplMixin.class
+SHA-256-Digest: PLVzBjFwBVCslhWgOOG73S6coC/W2UPmka82sLLzqbc=
+
+Name: assets/fabric-resource-loader-v0/lang/pl_pl.json
+SHA-256-Digest: vnzc194lTOCzg4GigpcEtaoSbebUrZw5EM9zuPSwvk4=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/server/LanguageMixin.cla
+ ss
+SHA-256-Digest: Pqrs+6YjCoNLCcfuT3LLypVYN61UWTpydQTu8UDR+50=
+
+Name: net/fabricmc/fabric/impl/resource/loader/ModResourcePackCreator$1.
+ class
+SHA-256-Digest: 11xJnVOIydEmWTzaf5Wti9XnexogQWCl49GBMg6bzqM=
+
+Name: assets/fabric-resource-loader-v0/lang/ja_jp.json
+SHA-256-Digest: SFfBkJx6f5dkgUcMg0dnx3QkG4wAk7KfbT9wn8bAo8k=
+
+Name: assets/fabric-resource-loader-v0/lang/pt_br.json
+SHA-256-Digest: V1g2No9rLJeIkXTJ5gcFfTsd8XX0Me1kNwYSAtgLhy0=
+
+Name: assets/fabric-resource-loader-v0/lang/fr_ca.json
+SHA-256-Digest: cC0PUKcFQnQxGpzp5zev5E6qpfSQrYCf9Dlh+br2SRs=
+
+Name: net/fabricmc/fabric/impl/resource/loader/FabricModResourcePack.cla
+ ss
+SHA-256-Digest: idjdSb+iQzHzV/xUseR0eujZkCxiWwRspu9b9anFk8Y=
+
+Name: client-fabric-resource-loader-v0-refmap.json
+SHA-256-Digest: IIr635onpCza2cjrWoCwEFimYvh/+tlusY+3BXuMvic=
+
+Name: fabric-resource-loader-v0.client.mixins.json
+SHA-256-Digest: lHiKMfJpezBKG9xwPM6gC8Bu4bdcNPAzfh3y0Uqf2pI=
+
+Name: net/fabricmc/fabric/mixin/resource/loader/SimpleResourceReloadMixi
+ n.class
+SHA-256-Digest: yRDSmJd5D147gbG6rbJiFrS9fTtj5aYm5MXGzn1At6E=
+

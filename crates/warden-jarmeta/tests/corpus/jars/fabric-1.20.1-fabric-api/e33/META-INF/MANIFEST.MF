@@ -1,0 +1,372 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-rendering-v1;assets/fabr
+ ic-rendering-v1/icon.png;client-fabric-rendering-v1-refmap.json;fabric-
+ rendering-v1.mixins.json;fabric.mod.json;net/fabricmc/fabric/api/client
+ /rendering/v1/ArmorRenderer.class;net/fabricmc/fabric/api/client/render
+ ing/v1/BlockEntityRendererRegistry.class;net/fabricmc/fabric/api/client
+ /rendering/v1/BuiltinItemRenderer.class;net/fabricmc/fabric/api/client/
+ rendering/v1/BuiltinItemRendererRegistry$DynamicItemRenderer.class;net/
+ fabricmc/fabric/api/client/rendering/v1/BuiltinItemRendererRegistry.cla
+ ss;net/fabricmc/fabric/api/client/rendering/v1/ColorProviderRegistry.cl
+ ass;net/fabricmc/fabric/api/client/rendering/v1/CoreShaderRegistrationC
+ allback$RegistrationContext.class;net/fabricmc/fabric/api/client/render
+ ing/v1/CoreShaderRegistrationCallback.class;net/fabricmc/fabric/api/cli
+ ent/rendering/v1/DimensionRenderingRegistry$CloudRenderer.class;net/fab
+ ricmc/fabric/api/client/rendering/v1/DimensionRenderingRegistry$SkyRend
+ erer.class;net/fabricmc/fabric/api/client/rendering/v1/DimensionRenderi
+ ngRegistry$WeatherRenderer.class;net/fabricmc/fabric/api/client/renderi
+ ng/v1/DimensionRenderingRegistry.class;net/fabricmc/fabric/api/client/r
+ endering/v1/EntityModelLayerRegistry$TexturedModelDataProvider.class;ne
+ t/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry.clas
+ s;net/fabricmc/fabric/api/client/rendering/v1/EntityRendererRegistry.cl
+ ass;net/fabricmc/fabric/api/client/rendering/v1/HudRenderCallback.class
+ ;net/fabricmc/fabric/api/client/rendering/v1/InvalidateRenderStateCallb
+ ack.class;net/fabricmc/fabric/api/client/rendering/v1/LivingEntityFeatu
+ reRenderEvents$AllowCapeRender.class;net/fabricmc/fabric/api/client/ren
+ dering/v1/LivingEntityFeatureRenderEvents.class;net/fabricmc/fabric/api
+ /client/rendering/v1/LivingEntityFeatureRendererRegistrationCallback$Re
+ gistrationHelper.class;net/fabricmc/fabric/api/client/rendering/v1/Livi
+ ngEntityFeatureRendererRegistrationCallback.class;net/fabricmc/fabric/a
+ pi/client/rendering/v1/TooltipComponentCallback.class;net/fabricmc/fabr
+ ic/api/client/rendering/v1/WorldRenderContext$BlockOutlineContext.class
+ ;net/fabricmc/fabric/api/client/rendering/v1/WorldRenderContext.class;n
+ et/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$AfterEntit
+ ies.class;net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents
+ $AfterSetup.class;net/fabricmc/fabric/api/client/rendering/v1/WorldRend
+ erEvents$AfterTranslucent.class;net/fabricmc/fabric/api/client/renderin
+ g/v1/WorldRenderEvents$BeforeBlockOutline.class;net/fabricmc/fabric/api
+ /client/rendering/v1/WorldRenderEvents$BeforeEntities.class;net/fabricm
+ c/fabric/api/client/rendering/v1/WorldRenderEvents$BlockOutline.class;n
+ et/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$DebugRende
+ r.class;net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$E
+ nd.class;net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$
+ Last.class;net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvent
+ s$Start.class;net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEv
+ ents.class;net/fabricmc/fabric/impl/client/rendering/ArmorRendererRegis
+ tryImpl.class;net/fabricmc/fabric/impl/client/rendering/BlockEntityRend
+ ererRegistryImpl.class;net/fabricmc/fabric/impl/client/rendering/Builti
+ nItemRendererRegistryImpl.class;net/fabricmc/fabric/impl/client/renderi
+ ng/ColorProviderRegistryImpl$1.class;net/fabricmc/fabric/impl/client/re
+ ndering/ColorProviderRegistryImpl$2.class;net/fabricmc/fabric/impl/clie
+ nt/rendering/ColorProviderRegistryImpl$ColorMapperHolder.class;net/fabr
+ icmc/fabric/impl/client/rendering/ColorProviderRegistryImpl.class;net/f
+ abricmc/fabric/impl/client/rendering/DimensionRenderingRegistryImpl.cla
+ ss;net/fabricmc/fabric/impl/client/rendering/EntityModelLayerImpl.class
+ ;net/fabricmc/fabric/impl/client/rendering/EntityRendererRegistryImpl.c
+ lass;net/fabricmc/fabric/impl/client/rendering/FabricShaderProgram.clas
+ s;net/fabricmc/fabric/impl/client/rendering/RegistrationHelperImpl.clas
+ s;net/fabricmc/fabric/impl/client/rendering/WorldRenderContextImpl.clas
+ s;net/fabricmc/fabric/impl/client/rendering/package-info.class;net/fabr
+ icmc/fabric/mixin/client/rendering/ArmorFeatureRendererMixin.class;net/
+ fabricmc/fabric/mixin/client/rendering/BlockColorsMixin.class;net/fabri
+ cmc/fabric/mixin/client/rendering/BlockEntityRendererFactoriesMixin.cla
+ ss;net/fabricmc/fabric/mixin/client/rendering/BuiltinModelItemRendererM
+ ixin.class;net/fabricmc/fabric/mixin/client/rendering/CapeFeatureRender
+ erMixin.class;net/fabricmc/fabric/mixin/client/rendering/DimensionEffec
+ tsAccessor.class;net/fabricmc/fabric/mixin/client/rendering/EntityModel
+ LayersAccessor.class;net/fabricmc/fabric/mixin/client/rendering/EntityM
+ odelsMixin.class;net/fabricmc/fabric/mixin/client/rendering/EntityRende
+ rersMixin.class;net/fabricmc/fabric/mixin/client/rendering/InGameHudMix
+ in.class;net/fabricmc/fabric/mixin/client/rendering/ItemColorsMixin.cla
+ ss;net/fabricmc/fabric/mixin/client/rendering/LivingEntityRendererAcces
+ sor.class;net/fabricmc/fabric/mixin/client/rendering/TooltipComponentMi
+ xin.class;net/fabricmc/fabric/mixin/client/rendering/WorldRendererMixin
+ .class;net/fabricmc/fabric/mixin/client/rendering/package-info.class;ne
+ t/fabricmc/fabric/mixin/client/rendering/shader/GameRendererMixin.class
+ ;net/fabricmc/fabric/mixin/client/rendering/shader/ShaderProgramImportP
+ rocessorMixin.class;net/fabricmc/fabric/mixin/client/rendering/shader/S
+ haderProgramMixin.class;net/fabricmc/fabric/mixin/client/rendering/shad
+ er/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/DimensionRenderingRegi
+ stry.class
+SHA-256-Digest: JputA+6rtPDmLmnVB+S9yat65bBT+GACEK/mjjtFNbs=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/BlockColorsMixin.class
+SHA-256-Digest: qVxd71mCJVBzJVuorrPDvHCjCiTb/y0MHXRAZvhmGmo=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Afte
+ rEntities.class
+SHA-256-Digest: EB/EEK/DxkYNU/V5XEbw3LE+FIJ5VDLc82UPTzQdSxg=
+
+Name: net/fabricmc/fabric/impl/client/rendering/BlockEntityRendererRegis
+ tryImpl.class
+SHA-256-Digest: MsSMf8uftS8PJmDc6JvFxOedTXfRIOHBRyI27Hb3Xc0=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/package-info.class
+SHA-256-Digest: K25Kf8b0k1jYhyqnPaEBpwILhwVtD5SWFruqPwIaezk=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/BuiltinItemRendererReg
+ istry.class
+SHA-256-Digest: /1vaaPKKRyY8SebhGq0wZs29UE6JSuO8df7b/xaStUU=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/DimensionRenderingRegi
+ stry$CloudRenderer.class
+SHA-256-Digest: i8yQaH5MiIf94zHsnvTRF68PPHI8m1JB301TFVw+fl0=
+
+Name: net/fabricmc/fabric/impl/client/rendering/DimensionRenderingRegist
+ ryImpl.class
+SHA-256-Digest: hLf3lZZySOkGqZWwC2/IGjC6eeHIP7SA6Y1so+sNqGw=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/shader/GameRendererMixi
+ n.class
+SHA-256-Digest: AZUTX8rd/2In4x83hIUBhY4rFoTo0RFZg126HpzkspU=
+
+Name: client-fabric-rendering-v1-refmap.json
+SHA-256-Digest: ZwYbwaXJ2RwaNaK3nkfdMJf/30lalUgR39NpxBPr6t8=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/LivingEntityRendererAcc
+ essor.class
+SHA-256-Digest: FSdVvP5oWzJGm3C6Feq1NKlRViGNkyiKUVqkrdHGVkM=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/TooltipComponentMixin.c
+ lass
+SHA-256-Digest: 6VVUeuH+ynMCSmYG1KnT3jHTauHoHc2eD5oUkdbbRgU=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/shader/package-info.cla
+ ss
+SHA-256-Digest: r/zb+kXVI7o0/g8bAD7/w0OqHGr37TPJ2N9tFIf/aIU=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/DimensionRenderingRegi
+ stry$WeatherRenderer.class
+SHA-256-Digest: Jl9QhM33ZcramhlZs0tTtF8U9K19VUy0pawng/bZb7g=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegist
+ ry$TexturedModelDataProvider.class
+SHA-256-Digest: uhW9q25nnHjwf8g3U7sn9lyFT76vgDbR/nki+75UeBc=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/LivingEntityFeatureRen
+ derEvents.class
+SHA-256-Digest: SGXjfKXF2f8mVzCxmeEKvyp0HmFdHNl2gU7PhZ4BKR8=
+
+Name: net/fabricmc/fabric/impl/client/rendering/EntityModelLayerImpl.cla
+ ss
+SHA-256-Digest: 80vvv8YvYGGByB9aFPtMZhVxgrHl5ozzdB0OKNCJdmc=
+
+Name: assets/fabric-rendering-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/client/rendering/ColorProviderRegistryImp
+ l$2.class
+SHA-256-Digest: jJUErKprVynF/TAVtPNVueAPR9agJ7yyqyOd/qvwKGs=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents.clas
+ s
+SHA-256-Digest: TIe3a/ufERFQysiB7QZnv1wEczy7VPvhFqfNrZGKUEI=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Last
+ .class
+SHA-256-Digest: MwdjjeKQNh3F0LcQIY1BVDQ1D6CIgbxVNfZi5mP5g3E=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/DimensionEffectsAccesso
+ r.class
+SHA-256-Digest: 12qcidCa+LOjKwgJXTNPlllvBAx3elHeb2hkXvG6Adc=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/shader/ShaderProgramImp
+ ortProcessorMixin.class
+SHA-256-Digest: F/2Vb5eQQdJcq22hOePjyYX89qRnwr8LGOymULAVWBg=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/BuiltinItemRenderer.cl
+ ass
+SHA-256-Digest: Pn4LBJlOPY4xUnKcD+v8rr6ZwDQaLSkjjNTjzm+1xfc=
+
+Name: net/fabricmc/fabric/impl/client/rendering/EntityRendererRegistryIm
+ pl.class
+SHA-256-Digest: UhjDx6pVIYlFWfV7/1k05Gqxd25ZAgHVnuBu/aKj06k=
+
+Name: fabric-rendering-v1.mixins.json
+SHA-256-Digest: k+vrKYk/kd1J4FxWhT+3+RlGXeOHZO6KU9p6D9jUGmw=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderContext$Blo
+ ckOutlineContext.class
+SHA-256-Digest: yLPkZjVJXwQxi5aUVpWe5YDoh6u9dRZ6zWLZUfhKtBk=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Befo
+ reBlockOutline.class
+SHA-256-Digest: JzBqckovA/g2kSH9psJoAA2pJohsyCgXDTp4ld5eR1o=
+
+Name: fabric.mod.json
+SHA-256-Digest: 8GOoW9iLhswL8cuz0/kKAgNoXdRRQcPMsSc/JV2zpaE=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Bloc
+ kOutline.class
+SHA-256-Digest: BzAb/Awtl8g2rxlRxWd1V0hl00aAJBmGPj4rGeNHBpQ=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/DimensionRenderingRegi
+ stry$SkyRenderer.class
+SHA-256-Digest: iuZUm3YCPqPxp03eUqKRw/aQCRvoLSsI1+vF++9oIuA=
+
+Name: net/fabricmc/fabric/impl/client/rendering/package-info.class
+SHA-256-Digest: +/gk/ZT0X9PDe/IzG9PWoBZbFZcH1W9wTbFEuKo7970=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Star
+ t.class
+SHA-256-Digest: 7baevCPYSjIECtaTx/I4I9+Jt+3K0l9TUXntJmqdlYY=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/CapeFeatureRendererMixi
+ n.class
+SHA-256-Digest: LIWI1mu7HI2g9fAx/HuxSG5w749tu6XRZNY8CmzZjmU=
+
+Name: net/fabricmc/fabric/impl/client/rendering/ColorProviderRegistryImp
+ l$ColorMapperHolder.class
+SHA-256-Digest: X8GIM+T2TpA0MAeekRFF6kldjWWMS7OmAikCi3S/FWc=
+
+Name: net/fabricmc/fabric/impl/client/rendering/ColorProviderRegistryImp
+ l.class
+SHA-256-Digest: PYIr+hzUL1+u8aGyjHCVzWOJBm6uscRhjsROSYEzqDs=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/WorldRendererMixin.clas
+ s
+SHA-256-Digest: U1A0erkn8l1zKln8iUCRNcwDBoxgcm8imjZIe3LUDJo=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/TooltipComponentCallba
+ ck.class
+SHA-256-Digest: acgptZKu14G5hZu07nYjoxozJV6GXp6Dyxc0d7djWUY=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/EntityModelLayersAccess
+ or.class
+SHA-256-Digest: S3mOBesJzTwQiJ+cbXylrsYhVeBVoold8dwmj4TKKqc=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/ArmorFeatureRendererMix
+ in.class
+SHA-256-Digest: cFUJuIHw+2GC9xlg5fMVEM2KTGgwMeACfg2TuEVXBvg=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegist
+ ry.class
+SHA-256-Digest: Tt87jkvpBD+jE1gGDWR9yyBdNuMk4mWwBKk+7f/ezIs=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/HudRenderCallback.clas
+ s
+SHA-256-Digest: 7uaQoV224PWAu8nb0j7vQ+sA7yZdo6SrYhSnbUzKric=
+
+Name: LICENSE-fabric-rendering-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/EntityRendererRegistry
+ .class
+SHA-256-Digest: 5qpHzlsrapab4w2IOMDbHRs2mfk1sz2iAfNKcQX5cFE=
+
+Name: net/fabricmc/fabric/impl/client/rendering/FabricShaderProgram.clas
+ s
+SHA-256-Digest: TMKCUvww5ZLtQUhJS8eubXH2bU6bSq0/A4yawMVCZDs=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/CoreShaderRegistration
+ Callback.class
+SHA-256-Digest: hESHnvlNqZxguwDHPMijWfTOT/BcKhCpcAIZCKdnKhM=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/shader/ShaderProgramMix
+ in.class
+SHA-256-Digest: Tsq8K7NxfhT69nrhcJWOuS88thoyHY3a82MkD2s5mhE=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/EntityModelsMixin.class
+SHA-256-Digest: 4j/UdXJ4kPQ5bYQvMFHac+7NANja4hWkCM2PtJhclio=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/InGameHudMixin.class
+SHA-256-Digest: 5cDzZLIPW970SsEIjP54No+p043HDUYharxTbKp0DRA=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/BuiltinModelItemRendere
+ rMixin.class
+SHA-256-Digest: KnBle2QNeFfuQQlA/Vswr8tH3UZy+V0Nen3gnir/BdI=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/CoreShaderRegistration
+ Callback$RegistrationContext.class
+SHA-256-Digest: Gcw4ukUb1rPlrsbqBSg1MfJasaa+AcRU/shtflLVK0A=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/LivingEntityFeatureRen
+ dererRegistrationCallback.class
+SHA-256-Digest: UtResSO4zmboBBDWoWr7GMN0C89EnTpuNSvLZOHX7vw=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/BlockEntityRendererReg
+ istry.class
+SHA-256-Digest: id1bPIGysiTOju0eAURQ7qLiFGpij6DPTQ/NtcVIlIc=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$End.
+ class
+SHA-256-Digest: cpmiM3/CmsguhWuljYk3jEuoOLLnaDCn53isH62S0Vc=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/EntityRenderersMixin.cl
+ ass
+SHA-256-Digest: c1ikAnvr+wbbIm86r6qBtwNEr0CueHHu16P6VvB1heE=
+
+Name: net/fabricmc/fabric/impl/client/rendering/ColorProviderRegistryImp
+ l$1.class
+SHA-256-Digest: euHSDEipUjGJNtqOxJ3QEiIzB2cRziqlB4Z48Ob21R4=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Afte
+ rTranslucent.class
+SHA-256-Digest: 4Jca2uABz8fOlMuzsE/+zhVMKzr7EzcvhYrJTAZL8ME=
+
+Name: net/fabricmc/fabric/impl/client/rendering/WorldRenderContextImpl.c
+ lass
+SHA-256-Digest: wRK/VPeCycm9uERLYOyYJ2PcmTnx1L3779nN1bNYFFk=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/BuiltinItemRendererReg
+ istry$DynamicItemRenderer.class
+SHA-256-Digest: RBxEc4+9dpbrzXvYSM81eDh6/t7tm4pOxBM4ufeqq2A=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/ItemColorsMixin.class
+SHA-256-Digest: 6WX1dIdL7tw8TMcBBfp4MGQAD2QRZLiHFdtEMTB7Suk=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/BlockEntityRendererFact
+ oriesMixin.class
+SHA-256-Digest: 78DnRg+U9Z7O3NAhxWpfmapFPpDcEByMNEiZdb7A2Lc=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderContext.cla
+ ss
+SHA-256-Digest: vRhn7UFne+xKHtxOac6VpF7MBDHtxTEK1Qplt7h9y6Q=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/ColorProviderRegistry.
+ class
+SHA-256-Digest: eO1Ukodu3sINgwrXGkcMmiVH77krzHdIWHpBh/6LUmA=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/LivingEntityFeatureRen
+ dererRegistrationCallback$RegistrationHelper.class
+SHA-256-Digest: ouPUqIt8b4MiL5O6yBtLSBjzdQifMtLciaOj6KjeSDI=
+
+Name: net/fabricmc/fabric/impl/client/rendering/ArmorRendererRegistryImp
+ l.class
+SHA-256-Digest: zdS0jFUCM6WX92LkobBT8rfdpjd5P9t4OxLVCzSuqB4=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/ArmorRenderer.class
+SHA-256-Digest: nGX8+CsyCQrmMuHNSRRA8/Y+hT+fOqlhGHp6bXHtFW4=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/LivingEntityFeatureRen
+ derEvents$AllowCapeRender.class
+SHA-256-Digest: Pyo6H9xfVkUTeLoSFieC43cpJG0JZkzkCg07YD856Bs=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Afte
+ rSetup.class
+SHA-256-Digest: Zb6KbgEVhSVuZhQC5rGR38MnU2y5KYt4FTj8/6azYjc=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/InvalidateRenderStateC
+ allback.class
+SHA-256-Digest: r+6yRllfXg85OHXyL1oAGSNJ9RsedRneibja/71eqBs=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Debu
+ gRender.class
+SHA-256-Digest: QFwkCrKCFu+F/J33QOJZzK5q3h1HlqZJn+nvziDDIyY=
+
+Name: net/fabricmc/fabric/impl/client/rendering/RegistrationHelperImpl.c
+ lass
+SHA-256-Digest: mrKDNtI5pCqVFGk4uNn9h5pSu8k8s+acwedXJ1Uu0I4=
+
+Name: net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Befo
+ reEntities.class
+SHA-256-Digest: DQsAf+uGNNWa2WcgQNs2do5pCXm1WoVbxipCjuv9y2Q=
+
+Name: net/fabricmc/fabric/impl/client/rendering/BuiltinItemRendererRegis
+ tryImpl.class
+SHA-256-Digest: xSQxQXaCTEi54q5slmpJkzVYyQbBP0jsjnNcidUkY+E=
+

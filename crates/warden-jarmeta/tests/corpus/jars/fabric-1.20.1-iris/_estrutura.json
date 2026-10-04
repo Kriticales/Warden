@@ -1,0 +1,28 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/antlr4-runtime-4.13.1.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jars/fabric-api-base-0.4.31+1802ada577.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jars/fabric-key-binding-api-v1-1.0.37+1802ada577.jar",
+      "dir": "e2"
+    },
+    {
+      "path": "META-INF/jars/glsl-transformer-2.0.1.jar",
+      "dir": "e3"
+    },
+    {
+      "path": "META-INF/jars/jcpp-1.4.14.jar",
+      "dir": "e4"
+    }
+  ]
+}

@@ -1,0 +1,392 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-create (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "create",
+      "version": "6.0.8",
+      "name": "Create",
+      "description": "Technology that empowers the player.",
+      "authors": [
+        "simibubi"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[47.1.3,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20.1]"
+          }
+        },
+        {
+          "id": "flywheel",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.0.0,2.0)"
+          },
+          "side": "client",
+          "ordering": "after"
+        },
+        {
+          "id": "ponder",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.8,)"
+          },
+          "ordering": "after"
+        },
+        {
+          "id": "jei",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[15.19.0,)"
+          },
+          "side": "client"
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.20.1]"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[47.1.3,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[47,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "create.mixins.json"
+    ],
+    "implementationTitle": "Create",
+    "implementationVersion": "6.0.8"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/Registrate-MC1.20-1.3.3.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "com.tterrag.registrate",
+        "artifact": "Registrate",
+        "artifactVersion": "MC1.20-1.3.3",
+        "range": {
+          "dialect": "maven",
+          "spec": "[MC1.20-1.3.3,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/flywheel-forge-1.20.1-1.0.5.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.engine-room.flywheel",
+        "artifact": "flywheel-forge-1.20.1",
+        "artifactVersion": "1.0.5",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0,2.0)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "flywheel",
+            "version": "1.0.5",
+            "name": "Flywheel",
+            "description": "An overhauled entity and block entity rendering API.",
+            "authors": [
+              "Jozufozu, PepperCode1"
+            ],
+            "licenses": [
+              "MIT"
+            ],
+            "dependencies": [
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.20.2)"
+                },
+                "side": "client"
+              },
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.0.0,)"
+                },
+                "side": "client"
+              },
+              {
+                "id": "embeddium",
+                "kind": "optional",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0.3.25,)"
+                },
+                "side": "client"
+              },
+              {
+                "id": "sodium",
+                "kind": "optional",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0.6.0-beta.2,)"
+                },
+                "side": "client"
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.20.2)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.0.0,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[0,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "flywheel.backend.mixins.json",
+            "flywheel.impl.mixins.json"
+          ]
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/mixinextras-forge-0.4.1.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "io.github.llamalad7",
+        "artifact": "mixinextras-forge",
+        "artifactVersion": "0.4.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.4.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "jarJarMetadata",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "mixinextras",
+            "version": "0.4.1",
+            "name": "MixinExtras",
+            "description": "Companion library to Mixin with lots of features to improve the compatibility and concision of your mixins!",
+            "authors": [
+              "LlamaLad7"
+            ],
+            "licenses": [
+              "MIT"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "*"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "mixinextras.init.mixins.json"
+          ],
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/MixinExtras-0.4.1.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "com.github.LlamaLad7",
+              "artifact": "MixinExtras",
+              "artifactVersion": "0.4.1",
+              "range": {
+                "dialect": "maven",
+                "spec": "[0.4.1,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {},
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "path": "META-INF/jarjar/Ponder-Forge-1.20.1-1.0.91.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "net.createmod.ponder",
+        "artifact": "Ponder-Forge-1.20.1",
+        "artifactVersion": "1.0.91",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.91,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "ponder",
+            "version": "1.0.91",
+            "name": "Ponder",
+            "description": "Visual in-Game Documentation",
+            "authors": [
+              "simibubi, Pepper, zelophed"
+            ],
+            "licenses": [
+              "MIT"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1, 1.21)"
+                }
+              },
+              {
+                "id": "flywheel",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.0.0,2.0)"
+                },
+                "side": "client",
+                "ordering": "after"
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1, 1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "ponder.mixins.json",
+            "ponder-common.mixins.json"
+          ],
+          "implementationTitle": "Forge",
+          "implementationVersion": "1.0.91"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

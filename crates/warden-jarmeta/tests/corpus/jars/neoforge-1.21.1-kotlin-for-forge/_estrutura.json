@@ -1,0 +1,48 @@
+{
+  "nested": [
+    {
+      "path": "META-INF/jarjar/kotlin-reflect-2.4.0.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jarjar/kotlin-stdlib-2.4.0.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jarjar/kotlin-stdlib-jdk7-2.4.0.jar",
+      "dir": "e2"
+    },
+    {
+      "path": "META-INF/jarjar/kotlin-stdlib-jdk8-2.4.0.jar",
+      "dir": "e3"
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "dir": "e4"
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-coroutines-jdk8-1.11.0.jar",
+      "dir": "e5"
+    },
+    {
+      "path": "META-INF/jarjar/thedarkcolour.kfflang-5.12.0.jar",
+      "dir": "e6"
+    },
+    {
+      "path": "META-INF/jarjar/thedarkcolour.kfflib-5.12.0.jar",
+      "dir": "e7"
+    },
+    {
+      "path": "META-INF/jarjar/thedarkcolour.kffmod-5.12.0.jar",
+      "dir": "e8"
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-serialization-core-jvm-1.11.0.jar",
+      "dir": "e9"
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-serialization-json-jvm-1.11.0.jar",
+      "dir": "e10"
+    }
+  ]
+}

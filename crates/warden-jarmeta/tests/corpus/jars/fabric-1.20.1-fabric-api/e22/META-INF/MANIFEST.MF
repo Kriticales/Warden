@@ -1,0 +1,178 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-message-api-v1-refmap.jso
+ n;fabric-message-api-v1.client.mixins.json;net/fabricmc/fabric/api/clie
+ nt/message/v1/ClientReceiveMessageEvents$AllowChat.class;net/fabricmc/f
+ abric/api/client/message/v1/ClientReceiveMessageEvents$AllowGame.class;
+ net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEvents$Ch
+ at.class;net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessage
+ Events$ChatCanceled.class;net/fabricmc/fabric/api/client/message/v1/Cli
+ entReceiveMessageEvents$Game.class;net/fabricmc/fabric/api/client/messa
+ ge/v1/ClientReceiveMessageEvents$GameCanceled.class;net/fabricmc/fabric
+ /api/client/message/v1/ClientReceiveMessageEvents$ModifyGame.class;net/
+ fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEvents.class;
+ net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$Allow
+ Chat.class;net/fabricmc/fabric/api/client/message/v1/ClientSendMessageE
+ vents$AllowCommand.class;net/fabricmc/fabric/api/client/message/v1/Clie
+ ntSendMessageEvents$Chat.class;net/fabricmc/fabric/api/client/message/v
+ 1/ClientSendMessageEvents$ChatCanceled.class;net/fabricmc/fabric/api/cl
+ ient/message/v1/ClientSendMessageEvents$Command.class;net/fabricmc/fabr
+ ic/api/client/message/v1/ClientSendMessageEvents$CommandCanceled.class;
+ net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$Modif
+ yChat.class;net/fabricmc/fabric/api/client/message/v1/ClientSendMessage
+ Events$ModifyCommand.class;net/fabricmc/fabric/api/client/message/v1/Cl
+ ientSendMessageEvents.class;net/fabricmc/fabric/mixin/client/message/Cl
+ ientPlayNetworkHandlerMixin.class;net/fabricmc/fabric/mixin/client/mess
+ age/MessageHandlerMixin.class;net/fabricmc/fabric/mixin/client/message/
+ package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/mixin/client/message/ClientPlayNetworkHandlerM
+ ixin.class
+SHA-256-Digest: nHAe7fhH51SlGsExz7pnyzlBNF+PzLaREswtj+N8s3Y=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ CommandCanceled.class
+SHA-256-Digest: 4oRlK+xszOhp1lI4IzPKD0ThfE0YaqyQoB6+RFv3uWg=
+
+Name: fabric-message-api-v1-refmap.json
+SHA-256-Digest: NwMlzHE52ZzxYg8m8EuQjiIdzCgtWwnz1JYOBjB6zCU=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents$CommandMess
+ age.class
+SHA-256-Digest: veFykPJcGYQLH2OMa121lPBG309uH+bG/9StQYN2EyI=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents.
+ class
+SHA-256-Digest: 5t5M7lWP0nlPxCn3zsoTXD0jhSNw0zlKNmlykhpw/yA=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents$AllowChatMe
+ ssage.class
+SHA-256-Digest: BLZJaXrUXfpXFC2b7NtOdPKT8zdbGW0prCXIoSrf52c=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents$AllowComman
+ dMessage.class
+SHA-256-Digest: mhMUA4LsQtsKw+64GXQ5lkMHKDA1PeH9VtxQ5Fin2EA=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ AllowChat.class
+SHA-256-Digest: YFbb+Ax1wetxbQqoYCOMuXbfBFmgBCefYi9DOQnp8r0=
+
+Name: net/fabricmc/fabric/mixin/message/PlayerManagerMixin.class
+SHA-256-Digest: rYrQIAjqrGRGYVsM+5igFrI5BCm0HNzrf8ENbryBohY=
+
+Name: net/fabricmc/fabric/mixin/client/message/MessageHandlerMixin.class
+SHA-256-Digest: phr31pWgwqEQuoJ+cPjP0td4KIYjmabyNwPLUXZPdD4=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$ChatCanceled.class
+SHA-256-Digest: EEMtGpQPXgN9fUAR5HDs39xunBsmhnrnRL+ebeiWahA=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents$ChatMessage
+ .class
+SHA-256-Digest: 03IzA5BM20S3f/2XHynS0ecmHyx7bIHjd24DHf6lHFY=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$GameCanceled.class
+SHA-256-Digest: CWqQTMQXUpuJj9jf05SBXpE5RnSrQZPHkjyNXf+9WC0=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ AllowCommand.class
+SHA-256-Digest: ntz/66lL6w/n30FYq/L08Fix2KrMfZgRmIT8/5uafWk=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ ChatCanceled.class
+SHA-256-Digest: jyDjRMmuBf/1w4oOxx438MaFBcQAK8tCsre3wWkpeDo=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$AllowGame.class
+SHA-256-Digest: k4Vyt2oy+m7s4sLWUHv+RU1pp1WEWVE4L9quD4LFtmM=
+
+Name: LICENSE-fabric-message-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$Chat.class
+SHA-256-Digest: ZHXuo2YY8GHPOASFertyTaB0mjLjMhJMpHc+l2yUkq4=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents$AllowGameMe
+ ssage.class
+SHA-256-Digest: NiHaJ5XBBgE1qRhoTeOFIzI9RVruXC242QhDgB1JbQ4=
+
+Name: assets/fabric-message-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ Command.class
+SHA-256-Digest: jb/6sHObNnRDFeEnnDSAH0u7ahxDspVuldFw5MVZFVg=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents.class
+SHA-256-Digest: AYivri93V37h6yn0VEBbjiI7rIUQ9kHKvrgOGnyu5Gc=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$ModifyGame.class
+SHA-256-Digest: szOAxLCEUjJblGLBtt4NWGHQzXlPBAuXz+SRmhOjNKo=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageEvents$GameMessage
+ .class
+SHA-256-Digest: hN0VLYPsFkJYop48Trl1ZBjPveaRYQVYKsX10zdAXEc=
+
+Name: net/fabricmc/fabric/mixin/message/MinecraftServerMixin.class
+SHA-256-Digest: HTG8XbDysLHkUzglnMui0niv0Jm+zFrWFEg7wUIWoKc=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts.class
+SHA-256-Digest: pTtPMGI3pBwlqsHoN4T0fynPICyEcvpFBccKY5zegS0=
+
+Name: fabric-message-api-v1.mixins.json
+SHA-256-Digest: upUcBaxLhc1B9E+yZJdRENxU9FimhwdAGAGiAZPx/0c=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ Chat.class
+SHA-256-Digest: Bu6+Y1NRGCnC+ZY9Jhpg9Xud1NPbuJGNzzxu09681wQ=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$Game.class
+SHA-256-Digest: fSyPwWpawqy4HEApT4dnhkqzsREIzMsDiL8/bXZ5evQ=
+
+Name: net/fabricmc/fabric/api/message/v1/ServerMessageDecoratorEvent.cla
+ ss
+SHA-256-Digest: EnnPlr99lU/J7VBJWHc6Urq7MBrrIbDiJ52M6+10Eco=
+
+Name: net/fabricmc/fabric/mixin/client/message/package-info.class
+SHA-256-Digest: lwtoElzTptoPuFapZvas8nF8sI8YqcL+UV0cTBbya6s=
+
+Name: client-fabric-message-api-v1-refmap.json
+SHA-256-Digest: Jg2AhCshHf+U2MqYQMMplr+0Qkc5+3FddCVNZg7Z5so=
+
+Name: fabric.mod.json
+SHA-256-Digest: smZQhrMDL+rl65a+c61OS+KFKkM6yBRy2+IhG+tGPuo=
+
+Name: net/fabricmc/fabric/mixin/message/package-info.class
+SHA-256-Digest: 5S5FM/cy0C127pBNxTr1NQ9Q4z3RIstZd95+Qw1aam0=
+
+Name: fabric-message-api-v1.client.mixins.json
+SHA-256-Digest: cuYU5ofbHVu+ZYgdHoQ+ng5o8CCtWGKG6Nb6DzTaelo=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientReceiveMessageEven
+ ts$AllowChat.class
+SHA-256-Digest: iUp7fF7CvYi9GvJzaEk9KjrIXs7iCR8QFqNJ1bbUs+0=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ ModifyChat.class
+SHA-256-Digest: lIYP8OX+c0AKWWNl2eBPXn5OSp6Ji0/bNTbI0XULcJ8=
+
+Name: net/fabricmc/fabric/api/client/message/v1/ClientSendMessageEvents$
+ ModifyCommand.class
+SHA-256-Digest: g4JFY5Wie3jTxwC2f1c6QOTzTxpJ1VZuNpH5BQWpml8=
+

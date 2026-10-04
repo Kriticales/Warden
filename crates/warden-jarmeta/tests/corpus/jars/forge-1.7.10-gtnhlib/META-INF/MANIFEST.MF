@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+FMLCorePluginContainsFMLMod: true
+FMLAT: gtnhlib_at.cfg
+FMLCorePlugin: com.gtnewhorizon.gtnhlib.core.GTNHLibCore
+TweakClass: org.spongepowered.asm.launch.MixinTweaker
+MixinConfigs: mixins.gtnhlib.preinit.json
+ForceLoadAsMod: true
+Multi-Release: true
+

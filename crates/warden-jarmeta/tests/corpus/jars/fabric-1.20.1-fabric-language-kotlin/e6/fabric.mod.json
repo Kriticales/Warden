@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlinx_kotlinx-coroutines-jdk8",
+  "version": "1.11.0",
+  "name": "kotlinx-coroutines-jdk8",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

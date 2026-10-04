@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlin_kotlin-stdlib-jdk7",
+  "version": "2.4.20",
+  "name": "kotlin-stdlib-jdk7",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

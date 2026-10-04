@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.4+6274ab9d77
+MixinConfigs: fabric-model-loading-api-v1.mixins.json
+

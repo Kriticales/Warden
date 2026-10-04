@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_registry_sync_v0"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Registry Sync (v0)"
+logoFile = "assets/fabric-registry-sync-v0/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Syncs registry mappings."
+provides = ["fabric-registry-sync-v0"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_registry_sync_v0]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_registry_sync_v0]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_registry_sync_v0]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-registry-sync-v0.mixins.json"

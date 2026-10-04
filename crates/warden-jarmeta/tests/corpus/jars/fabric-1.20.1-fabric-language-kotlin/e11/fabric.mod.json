@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlinx_kotlinx-serialization-core-jvm",
+  "version": "1.11.0",
+  "name": "kotlinx-serialization-core-jvm",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

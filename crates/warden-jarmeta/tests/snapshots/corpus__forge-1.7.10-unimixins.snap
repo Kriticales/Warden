@@ -1,0 +1,148 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-unimixins (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "unimixins",
+      "version": "0.3.1",
+      "name": "UniMixins",
+      "description": "UniMixins composite jar consisting of the following modules:\nMixin (UniMix); Compatibility; Mixingasm; SpongeMixins; MixinBooterLegacy; GTNHMixins; MixinExtras",
+      "authors": [
+        "makamys"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "unimixins-mixin",
+      "version": "0.3.1+unimix.0.15.6-mixin.0.8.7",
+      "name": "UniMixins: Mixin (UniMix)",
+      "description": "UniMixins module that provides the UniMix fork of Mixin (version: unimix.0.15.6-mixin.0.8.7).",
+      "authors": [
+        "makamys"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "unimixins-compat",
+      "version": "0.3.1",
+      "name": "UniMixins: Compatibility",
+      "description": "UniMixins module that improves compatibility and helps debug crashes.",
+      "authors": [
+        "makamys"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "mixingasm",
+      "version": "0.3+uni.0.3.1",
+      "name": "UniMixins: Mixingasm",
+      "description": "UniMixins module that implements Mixingasm (version: 0.3).",
+      "authors": [
+        "makamys"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "spongemixins",
+      "version": "2.0.1+gtnh.uni.0.3.1",
+      "name": "UniMixins: SpongeMixins",
+      "description": "UniMixins module that provides an emulation of SpongeMixins (version: 2.0.1 from GTNHMixins).",
+      "authors": [
+        "Time_Conqueror",
+        "mitchej123"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "mixinbooterlegacy",
+      "version": "1.2.1+uni.0.3.1",
+      "name": "UniMixins: MixinBooterLegacy",
+      "description": "UniMixins module that provides MixinBooterLegacy extras and MixinExtras with MixinBooterLegacy's package name.",
+      "authors": [
+        "Rongmario",
+        "tox1cozZ"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "gtnhmixins",
+      "version": "2.2.0+uni.0.3.1",
+      "name": "UniMixins: GTNHMixins",
+      "description": "UniMixins module that provides GTNHMixins extras and MixinExtras with the GTNH package name.\nDepends on: SpongeMixins",
+      "authors": [
+        "mitchej123"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "mixinextras",
+      "version": "0.5.0+uni.0.3.1",
+      "name": "UniMixins: MixinExtras",
+      "description": "UniMixins module that provides MixinExtras (version: 0.5.0).",
+      "authors": [
+        "LlamaLad7"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "io.github.legacymoddingmc.unimixins.all.AllCore",
+    "fmlCorePluginContainsMod": true,
+    "tweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+    "mixinConfigs": [
+      "mixins.gtnhmixins.json",
+      "mixingasm.mixin.json"
+    ],
+    "implementationVersion": "0.15.6+mixin.0.8.7"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

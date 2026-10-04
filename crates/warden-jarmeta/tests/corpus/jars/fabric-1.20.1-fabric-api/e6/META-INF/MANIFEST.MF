@@ -1,0 +1,53 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-client-tags-api-v1;asset
+ s/fabric-client-tags-api-v1/icon.png;fabric.mod.json;net/fabricmc/fabri
+ c/api/tag/client/v1/ClientTags.class;net/fabricmc/fabric/impl/tag/clien
+ t/ClientTagsImpl.class;net/fabricmc/fabric/impl/tag/client/ClientTagsLo
+ ader$1.class;net/fabricmc/fabric/impl/tag/client/ClientTagsLoader$2.cla
+ ss;net/fabricmc/fabric/impl/tag/client/ClientTagsLoader$LoadedTag.class
+ ;net/fabricmc/fabric/impl/tag/client/ClientTagsLoader.class;net/fabricm
+ c/fabric/impl/tag/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric.mod.json
+SHA-256-Digest: hes6+ecH+1UL+WhJTlx3pnSZWXzzY2W1TuAAJBQnWtY=
+
+Name: net/fabricmc/fabric/impl/tag/client/ClientTagsLoader$2.class
+SHA-256-Digest: VJe2thGEdB73rzyQq/XLPzXgneHZ5pgGKBhMutPncuY=
+
+Name: net/fabricmc/fabric/api/tag/client/v1/ClientTags.class
+SHA-256-Digest: O1VGDAB7QoVW/GD3nQyAfGTggAAD0k1e1KMxNlgk8bE=
+
+Name: net/fabricmc/fabric/impl/tag/client/ClientTagsLoader.class
+SHA-256-Digest: c1Atmrtp2PPo1vkvBlZNCUzbHzzhnnLX+urh06ieyvQ=
+
+Name: assets/fabric-client-tags-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/tag/client/ClientTagsLoader$1.class
+SHA-256-Digest: IavGoysygamhJATVY1h22526266UMc8cdUNR5g1tXQ8=
+
+Name: net/fabricmc/fabric/impl/tag/client/ClientTagsImpl.class
+SHA-256-Digest: VJrnjr7rgN3fz3DpUF6FcbC9z+eLhK36ikSrGnrDNso=
+
+Name: LICENSE-fabric-client-tags-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/tag/client/package-info.class
+SHA-256-Digest: r6OAP6Go9np52XYTpG4JJH90Hy4FRHVGb6jPtSf1v0s=
+
+Name: net/fabricmc/fabric/impl/tag/client/ClientTagsLoader$LoadedTag.cla
+ ss
+SHA-256-Digest: tQjqon6c7iPeHhLncLlhDV2TVhZFWOttVQOa1VHxQMk=
+

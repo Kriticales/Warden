@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "com_velocitypowered_velocity-native",
+  "version": "3.2.0-SNAPSHOT",
+  "name": "velocity-native",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 4.0.13+a670df1e77
+MixinConfigs: fabric-content-registries-v0.mixins.json
+

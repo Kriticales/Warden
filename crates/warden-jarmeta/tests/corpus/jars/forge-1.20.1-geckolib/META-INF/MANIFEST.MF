@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Specification-Title: GeckoLib 4
+Specification-Vendor: Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witixi
+ n
+Specification-Version: 4
+Implementation-Title: GeckoLib 4 Forge
+Implementation-Version: 4.8.4
+Implementation-Vendor: Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witix
+ in
+Implementation-Timestamp: 2026-06-20T21:07:15+1000
+MixinConfigs: geckolib.mixins.json
+

@@ -1,0 +1,182 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-packet-fixer (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "neoForgeModsToml",
+    "modsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "packetfixer",
+      "version": "3.3.2",
+      "name": "Packet Fixer",
+      "description": "A simple mod to solve various problems with packets/NBT's.",
+      "authors": [
+        "TonimatasDEV"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "1.18",
+              "1.18.1",
+              "1.18.2",
+              "1.19",
+              "1.19.1",
+              "1.19.2",
+              "1.19.3",
+              "1.19.4",
+              "1.20",
+              "1.20.1",
+              "1.20.2",
+              "1.20.3",
+              "1.20.4"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          "1.18",
+          "1.18.1",
+          "1.18.2",
+          "1.19",
+          "1.19.1",
+          "1.19.2",
+          "1.19.3",
+          "1.19.4",
+          "1.20",
+          "1.20.1",
+          "1.20.2",
+          "1.20.3",
+          "1.20.4"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          "*"
+        ]
+      },
+      "mixins": [
+        "packetfixer.v1_18.fabric.mixins.json",
+        "packetfixer.v1_19.fabric.mixins.json",
+        "packetfixer.v1_19_3.fabric.mixins.json",
+        "packetfixer.v1_20_2.fabric.mixins.json"
+      ]
+    },
+    {
+      "source": "neoForgeModsToml",
+      "loader": "neoForge",
+      "id": "packetfixer",
+      "version": "3.3.2",
+      "name": "PacketFixer",
+      "description": "A simple mod to solve various problems with packets.",
+      "authors": [
+        "TonimatasDEV"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "mixins": [
+        "packetfixer.v1_20_2.neoforge.mixins.json"
+      ]
+    },
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "packetfixer",
+      "version": "3.3.2",
+      "name": "PacketFixer",
+      "description": "A simple mod to solve various problems with packets.",
+      "authors": [
+        "TonimatasDEV"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0,)"
+          }
+        },
+        {
+          "id": "neoforge",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.18,1.20.4]"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.18,1.20.4]"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[0,)"
+      },
+      "mixins": [
+        "packetfixer.v1_20_2.neoforge.mixins.json"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[0,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "packetfixer.v1_18.forge.mixins.json",
+      "packetfixer.v1_19.forge.mixins.json",
+      "packetfixer.v1_19_3.forge.mixins.json",
+      "packetfixer.v1_19_4.forge.mixins.json",
+      "packetfixer.v1_20_2.forge.mixins.json"
+    ],
+    "implementationTitle": "Packet Fixer",
+    "implementationVersion": "3.3.2-1.18-1.20.4"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  }
+}

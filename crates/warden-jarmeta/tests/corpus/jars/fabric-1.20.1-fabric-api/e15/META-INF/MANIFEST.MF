@@ -1,0 +1,162 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-events-interaction-v0-ref
+ map.json;fabric-events-interaction-v0.client.mixins.json;net/fabricmc/f
+ abric/api/event/client/player/ClientPreAttackCallback.class;net/fabricm
+ c/fabric/mixin/event/interaction/client/ClientPlayerInteractionManagerM
+ ixin.class;net/fabricmc/fabric/mixin/event/interaction/client/KeyBindin
+ gAccessor.class;net/fabricmc/fabric/mixin/event/interaction/client/Mine
+ craftClientMixin.class;net/fabricmc/fabric/mixin/event/interaction/clie
+ nt/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/entity/FakePlayer.class
+SHA-256-Digest: 68nYO7STQcwL3i1q00Uqs1lrRS7BikXpBAYvoVt3P8I=
+
+Name: net/fabricmc/fabric/api/event/client/player/ClientPickBlockCallbac
+ k.class
+SHA-256-Digest: wF4MjhciiasC7KIll9gk04GfAqJtoL5oaZKSKtWq7LE=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/client/package-info.cl
+ ass
+SHA-256-Digest: YPUvmMwRpZD/e3p5dZgO9SgC0Se21Adc3e8p73CSLXQ=
+
+Name: net/fabricmc/fabric/api/event/player/PlayerBlockBreakEvents$Cancel
+ ed.class
+SHA-256-Digest: HPZFbBlimb9H2DbP1VCNbIzKRvIvBDFY0ZLHvYW2sD8=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/client/ClientPlayerInt
+ eractionManagerMixin.class
+SHA-256-Digest: Ulrk+ZxbD96loLqlKw1uEg2FVx3+6hMVO7rO2Ruh+8E=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/package-info.class
+SHA-256-Digest: Ac6bcHS33xWaUfpZhWmo2gARuB9+WNl3mkoGS4yc+wY=
+
+Name: net/fabricmc/fabric/api/event/client/player/ClientPickBlockGatherC
+ allback.class
+SHA-256-Digest: ONO+9GwGndk2J54kAI1Vig/62QF7hnppG4Fgg4e4L7U=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/ServerPlayerInteractio
+ nManagerMixin.class
+SHA-256-Digest: VGTcl/+tW2WCrU49fwPsvxqw3YpowarAzh9jiMxWWck=
+
+Name: net/fabricmc/fabric/api/event/client/player/ClientPreAttackCallbac
+ k.class
+SHA-256-Digest: N5lgkWNdHbI2gwJWlvtGSgFzEMAJPT4ShM+Izck4Xb0=
+
+Name: LICENSE-fabric-events-interaction-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: fabric-events-interaction-v0.mixins.json
+SHA-256-Digest: Z7CVVJUKsQYuoN3s7SX0V+bHszXxIYTu+h1tHNEbWMs=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/ServerPlayerEntityMixi
+ n.class
+SHA-256-Digest: hiB3kAlggU9F/Z33HgEZvqnQ4AcZmFV8r8MrfLI+xd4=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/client/KeyBindingAcces
+ sor.class
+SHA-256-Digest: RbYSlTHSa0/9imE13yxFftxeqo8Xt7Jt93rmBxFgFSU=
+
+Name: net/fabricmc/fabric/api/event/player/PlayerBlockBreakEvents$After.
+ class
+SHA-256-Digest: VM5Y8UUBw7lmU79ydJxlS+TYuuLUqvYYY6qOYDy1aP4=
+
+Name: net/fabricmc/fabric/impl/event/interaction/InteractionEventsRouter
+ Client.class
+SHA-256-Digest: l+l2J/ZKGphhMKDrEKInkebpPNDxFjSLxW5aO6bN95A=
+
+Name: net/fabricmc/fabric/api/event/player/UseEntityCallback.class
+SHA-256-Digest: 7CdvMjDCCOftFIiNflk1bRHHPnl3RPHXy9dG8rjXyU0=
+
+Name: net/fabricmc/fabric/api/block/BlockPickInteractionAware.class
+SHA-256-Digest: Ok5nZtT3CMxMwrmsJFRm8KyLfElXYs2tvYSJ7SLCy0U=
+
+Name: net/fabricmc/fabric/api/block/BlockAttackInteractionAware.class
+SHA-256-Digest: 5X8uyR1Kek5JuRF4XlyMTO+9Wrl+XGbJobciryj2luk=
+
+Name: assets/fabric-events-interaction-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-events-interaction-v0.client.mixins.json
+SHA-256-Digest: AsWUYDII5cHM6MTy49ECKSrNOEOOsuFkVvv+PH23D1A=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/BeehiveBlockMixin.clas
+ s
+SHA-256-Digest: FNDIrgI1r/0HSJTqEC6xgR4Qs2k2wYqdrEWZBVYE49s=
+
+Name: fabric-events-interaction-v0-refmap.json
+SHA-256-Digest: 7pSP7dEzF7Ly0BiDe6ZCa3uWWF0a8uEUjoLSAyI3gko=
+
+Name: net/fabricmc/fabric/impl/event/interaction/package-info.class
+SHA-256-Digest: vOARRdyGZuNPD/mh9qNIPcyRp6QHXpXXUkz9H/kvyww=
+
+Name: client-fabric-events-interaction-v0-refmap.json
+SHA-256-Digest: kZSwjjmSKgmvE1q0FSkU08oNCoWtdxfxUOoKWjyyeOo=
+
+Name: net/fabricmc/fabric/api/entity/FakePlayer$FakePlayerKey.class
+SHA-256-Digest: FhPeA5rkCKGkP7sZRE5zG67U1BkvJXit8gcctuF1lGY=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/client/MinecraftClient
+ Mixin.class
+SHA-256-Digest: pF/i/jf7fd6DwBows6rRP6FXrWf/aWKil63yJ9Qkkbk=
+
+Name: net/fabricmc/fabric/api/event/player/UseBlockCallback.class
+SHA-256-Digest: Zo0Z2jQqJiENQTBbjkxZI58OGDbI5Ce5+CBvboXSyTI=
+
+Name: net/fabricmc/fabric/api/entity/EntityPickInteractionAware.class
+SHA-256-Digest: 9nfPuOhUiZ+CNjn3ipL4+4JG/y9d/9FLrJk9fTMHbjM=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/PlayerAdvancementTrack
+ erMixin.class
+SHA-256-Digest: f1VZeAlB41ZuC2ZxqM6rcmZcnTWSSXpPVD2y5km7ACY=
+
+Name: fabric.mod.json
+SHA-256-Digest: 6ALSFKC4pqBalSVoxLOnbL/W1pcq3xwdLmtxoGBudTo=
+
+Name: net/fabricmc/fabric/mixin/event/interaction/ServerPlayNetworkHandl
+ erMixin.class
+SHA-256-Digest: ziVHYq6Fi0WcN+tkZWi4GGPDCXnctfu1+7Le04YvCM8=
+
+Name: net/fabricmc/fabric/api/event/player/PlayerBlockBreakEvents.class
+SHA-256-Digest: 6/111hWi28DL0ElVGUawFIEi7QesjM/YP7I5C7qK4ks=
+
+Name: net/fabricmc/fabric/api/event/player/UseItemCallback.class
+SHA-256-Digest: wnBU/w4SAbdnTWq4e1dk9MeTVmnyakVYMDGgaVO6clY=
+
+Name: net/fabricmc/fabric/impl/event/interaction/FakePlayerNetworkHandle
+ r.class
+SHA-256-Digest: W34891wZ12crrjkoowoX3FQe2+H8Vtjzd0ILtnEMFNA=
+
+Name: net/fabricmc/fabric/api/event/player/AttackBlockCallback.class
+SHA-256-Digest: uj9fyYmaluWJ/5xa9g2gNWH/DbRpdvyna9PVbbQPQpY=
+
+Name: net/fabricmc/fabric/api/event/player/PlayerBlockBreakEvents$Before
+ .class
+SHA-256-Digest: pj8PTcEtwmkK6k7JY8mm6Yuvpyeu5PCnAsNBWAP5izs=
+
+Name: net/fabricmc/fabric/impl/event/interaction/InteractionEventsRouter
+ .class
+SHA-256-Digest: nw4KGaA6uVmRUrb9bW4oxDOnbSqj/5sdCMEKF4/JptM=
+
+Name: net/fabricmc/fabric/api/event/player/AttackEntityCallback.class
+SHA-256-Digest: 2Zoqi9xa0GJw7aielPvyuGofmow00u6VpHUThDYqCy8=
+
+Name: net/fabricmc/fabric/api/event/client/player/ClientPickBlockCallbac
+ k$Container.class
+SHA-256-Digest: b6Wqcugksq8VVuSnWFO0nLgcjAomzA120Xxkv+qAQ4E=
+
+Name: net/fabricmc/fabric/api/event/client/player/ClientPickBlockApplyCa
+ llback.class
+SHA-256-Digest: 0TSVJC1vNjcOi43IcqcAZ14Q8iEzt8whh7Oj+8Qy+ms=
+

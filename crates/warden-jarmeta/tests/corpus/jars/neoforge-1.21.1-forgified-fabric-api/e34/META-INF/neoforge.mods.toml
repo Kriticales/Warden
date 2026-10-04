@@ -1,0 +1,34 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_resource_loader_v0"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Resource Loader (v0)"
+logoFile = "assets/fabric-resource-loader-v0/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Asset and data resource loading."
+provides = ["fabric-resource-loader-v0"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_resource_loader_v0]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_resource_loader_v0]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-resource-loader-v0.mixins.json"
+
+[[mixins]]
+config = "fabric-resource-loader-v0.client.mixins.json"

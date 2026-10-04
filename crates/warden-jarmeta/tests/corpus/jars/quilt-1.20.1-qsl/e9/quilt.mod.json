@@ -1,0 +1,70 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.qsl.core",
+		"id": "quilt_networking",
+		"version": "6.3.0+1.20.1",
+		"metadata": {
+			"name": "Quilt Networking",
+			"description": "Utilites to assist with sending custom packets over the Minecraft protocol.",
+			"contributors": {
+				"The Quilt Project": "Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilt-standard-libraries/issues",
+				"sources": "https://github.com/QuiltMC/quilt-standard-libraries"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilt_networking/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"load_type": "if_possible",
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.25.0"
+			},
+			{
+				"id": "minecraft",
+				"versions": {
+					"any": [
+						"=1.20.1",
+						"=1.20"
+					]
+				}
+			},
+			{
+				"id": "quilt_base",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_lifecycle_events",
+				"versions": ">=6.3.0+1.20.1"
+			}
+		],
+		"entrypoints": {
+			"client_init": [
+				"org.quiltmc.qsl.networking.impl.client.ClientNetworkingImpl::clientInit"
+			],
+			"init": [
+				"org.quiltmc.qsl.networking.impl.NetworkingImpl::init"
+			]
+		}
+	},
+	"mixin": "quilt_networking.mixins.json",
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": {
+			"id": "qsl",
+			"name": "Quilt Standard Libraries",
+			"description": "A set of libraries to assist in making Quilt mods.",
+			"icon": "assets/quilt_networking/icon.png",
+			"badges": [
+				"library"
+			]
+		}
+	}
+}

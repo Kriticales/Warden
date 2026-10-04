@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 11.1.5+f8c414ce77
+MixinConfigs: fabric-object-builder-v1.mixins.json
+

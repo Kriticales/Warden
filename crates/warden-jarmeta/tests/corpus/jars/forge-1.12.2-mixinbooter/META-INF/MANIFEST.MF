@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+FMLCorePlugin: zone.rong.mixinbooter.MixinBooterPlugin
+Premain-Class: org.spongepowered.tools.agent.MixinAgent
+Agent-Class: org.spongepowered.tools.agent.MixinAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+MixinConfigs: mixin.mixinbooter.init.json
+

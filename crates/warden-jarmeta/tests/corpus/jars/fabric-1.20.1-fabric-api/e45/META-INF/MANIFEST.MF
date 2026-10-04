@@ -1,0 +1,61 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/api/event/client/Cl
+ ientTickCallback.class;net/fabricmc/fabric/api/event/client/ItemTooltip
+ Callback.class;net/fabricmc/fabric/impl/event/lifecycle/v0/client/Legac
+ yClientEventInvokers.class;net/fabricmc/fabric/impl/event/lifecycle/v0/
+ client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: assets/fabric-events-lifecycle-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/event/server/ServerStartCallback.class
+SHA-256-Digest: P/nzukpqsjH8KE4A6BX07yxT200mwX/ihLSaeIBmXqE=
+
+Name: net/fabricmc/fabric/api/event/server/ServerTickCallback.class
+SHA-256-Digest: wpqJQ4htkX61gtRaC676RDC/hl7yykVPNHsSmZPReSg=
+
+Name: net/fabricmc/fabric/api/event/server/ServerStopCallback.class
+SHA-256-Digest: EODmGB5nL9QBuFGtGEA/j0JuHMhe1U/u9mMEYV2gZbM=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/v0/client/package-info.cl
+ ass
+SHA-256-Digest: Ob4CITPo5/C5+I9R40i2bOu5djwe0tA/LNzYYrku2j8=
+
+Name: net/fabricmc/fabric/api/event/client/ClientTickCallback.class
+SHA-256-Digest: 4pjVWxlcNtOpwj5b3AwxDje/gPnOL0QOEaXrnETxDqA=
+
+Name: fabric.mod.json
+SHA-256-Digest: pg5FtElkjZnpXVVsZZIe0OWsjxIjtqEWxZwyqdSU/Zc=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/v0/LegacyEventInvokers.cl
+ ass
+SHA-256-Digest: xxDkKvSUJ434/TIjadqeikWrg1sggnPtmWVoZqEY9qw=
+
+Name: net/fabricmc/fabric/api/event/world/WorldTickCallback.class
+SHA-256-Digest: jPPe7FFpdhUEKF6o7yt+qfk0LjHRMI9TSL1aK8X56FQ=
+
+Name: net/fabricmc/fabric/api/event/client/ItemTooltipCallback.class
+SHA-256-Digest: F+s5f3oOTmRXzpiL1yq1He8by61J1U+fLTN3t0cRlhU=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/v0/package-info.class
+SHA-256-Digest: unLcE0GR9TM111XayeTxg7MenYTBmZhsXSLhmpRLM3c=
+
+Name: LICENSE-fabric-events-lifecycle-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/v0/client/LegacyClientEve
+ ntInvokers.class
+SHA-256-Digest: TPRc+4/pVBrR4ui2MraYh0RrT3CRAPiL3di/osYHNKY=
+

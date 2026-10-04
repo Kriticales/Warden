@@ -1,0 +1,100 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-resource-conditions-api-v1-refmap.json
+SHA-256-Digest: loZboEkELBPYDSYTymaxqHCiP4Ny22Cn9QnXjlAj2lw=
+
+Name: net/fabricmc/fabric/api/resource/conditions/v1/ConditionJsonProvid
+ er.class
+SHA-256-Digest: BW/DGGk+DF5NdkDCKgBFcmqsxjYsznlKgDenIAzPDUc=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/ResourceConditionsImp
+ l$5.class
+SHA-256-Digest: 9RiP69hpNdhhcfLw8/5STjOhwX0gGbLkIzXNmrf6ymg=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/package-info.class
+SHA-256-Digest: dygLdvxlwRnPWRalh1mNMXPs6lRZox4rpc9gtMB0E0s=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/DataPackContentsMixi
+ n.class
+SHA-256-Digest: i6/qq0ROQMmyUp65ezfCPxFh02U4fYQ3+Y5qagMnmEg=
+
+Name: fabric-resource-conditions-api-v1.mixins.json
+SHA-256-Digest: Oq7Dgmr63x0NLgV10BN9jREkHbv/cpZjD3eyzaMN9qI=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/DataProviderMixin.cl
+ ass
+SHA-256-Digest: PZ54QUmfGWi1+K8gjxmmTYfZR/ZBxcZuwOleKXjKPt4=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/ResourceConditionsImp
+ l$4.class
+SHA-256-Digest: vyj0zyjuRVfd03CAfWYaJ8uGZ8/vi0HCxHOcWxhVVcw=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/TagManagerLoaderMixi
+ n.class
+SHA-256-Digest: JG46wGGbd3dCtrh0y/0eBVBZjCPdFA3t27HUZpo8WFs=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/package-info.class
+SHA-256-Digest: wd7oQxyMoSiRqHeujjK6vcflxdRYCV1gBAcCmamokkU=
+
+Name: assets/fabric-resource-conditions-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/SinglePreparationRes
+ ourceReloaderMixin.class
+SHA-256-Digest: vCdhtQU2jLMIe+hDg9f7UDHGwqbrI8vUmNUqP2+nxcs=
+
+Name: fabric.mod.json
+SHA-256-Digest: TIE8Gjveu5BAQEOkFq7Yl7myMGCeYpVQxrNl4jL8M6M=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/ResourceConditionsImp
+ l$3.class
+SHA-256-Digest: ObfdQIxWRZhmtLQcS5wuqLNLZIhiIBIjFL8xZ0YWTTk=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/LootManagerMixin.cla
+ ss
+SHA-256-Digest: f/X5I4ZSJ5qLGgjxL3+udTi8o3IZPeCniJf8lYSVeN0=
+
+Name: net/fabricmc/fabric/api/resource/conditions/v1/ResourceConditions.
+ class
+SHA-256-Digest: 1Udu2ilCIn0tzH9WD3C0bllWbaynE3oxNjqn39btU0M=
+
+Name: LICENSE-fabric-resource-conditions-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/resource/conditions/v1/DefaultResourceCond
+ itions.class
+SHA-256-Digest: LevldMhtBmbir1fgBXaVO686JpNGPJnp3bSWpRbaUp0=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/ResourceConditionsImp
+ l$1.class
+SHA-256-Digest: J3Wh4dIFD1DcH8gCmlFUZaB7f22I18B/WjwLqiFrvBI=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/ResourceConditionsImp
+ l$2.class
+SHA-256-Digest: pHKTDw4Z/6YI8rjUwhTlJYeJmzIwA7p7lQXpC/DmKT8=
+
+Name: net/fabricmc/fabric/impl/resource/conditions/ResourceConditionsImp
+ l.class
+SHA-256-Digest: qTDk4xcSxqKDINp33eCqiuSLWCu+pE9gDdnjxduXGtc=
+
+Name: net/fabricmc/fabric/api/resource/conditions/v1/DefaultResourceCond
+ itions$1.class
+SHA-256-Digest: mowzT2MsY052scF9rTNq3BhoJvpbKAS2ICuv/0RuiIw=
+
+Name: net/fabricmc/fabric/mixin/resource/conditions/JsonDataLoaderMixin.
+ class
+SHA-256-Digest: gzbZ8Pt1NyachBtoYUaj0JzGCVGNkB+aro4XsJjIEvw=
+

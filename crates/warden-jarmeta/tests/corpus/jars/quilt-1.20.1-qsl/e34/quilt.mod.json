@@ -1,0 +1,68 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.qsl.gui",
+		"id": "quilt_screen",
+		"version": "6.3.0+1.20.1",
+		"metadata": {
+			"name": "Quilt Screen API",
+			"description": "Hooks and APIs for manipulating screens.",
+			"contributors": {
+				"The Quilt Project": "Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilt-standard-libraries/issues",
+				"sources": "https://github.com/QuiltMC/quilt-standard-libraries"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilt_screen/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"load_type": "if_possible",
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.25.0"
+			},
+			{
+				"id": "minecraft",
+				"versions": {
+					"any": [
+						"=1.20.1",
+						"=1.20"
+					]
+				}
+			},
+			{
+				"id": "quilt_base",
+				"versions": ">=6.3.0+1.20.1"
+			}
+		]
+	},
+	"mixin": "quilt_screen.mixins.json",
+	"minecraft": {
+		"environment": "client"
+	},
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": {
+			"id": "qsl",
+			"name": "Quilt Standard Libraries",
+			"description": "A set of libraries to assist in making Quilt mods.",
+			"icon": "assets/quilt_screen/icon.png",
+			"badges": [
+				"library"
+			]
+		}
+	},
+	"quilt_loom": {
+		"injected_interfaces": {
+			"net/minecraft/class_437": [
+				"org/quiltmc/qsl/screen/api/client/QuiltScreen"
+			]
+		}
+	}
+}

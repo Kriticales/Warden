@@ -1,0 +1,3830 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-forgified-fabric-api (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "fabric_api",
+      "version": "0.92.6+1.11.15+1.20.1",
+      "name": "Forgified Fabric API",
+      "description": "Core API module providing key hooks and intercompatibility features.",
+      "authors": [
+        "FabricMC, Sinytra"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[47.1.3,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20.1,1.21)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.20.1,1.21)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[47.1.3,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[47,)"
+    }
+  },
+  "manifest": {
+    "implementationVersion": "0.92.6+1.11.15+1.20.1"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra",
+        "artifact": "fabric-loader",
+        "artifactVersion": "2.6.0+0.15.0+1.20.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.6.0+0.15.0+1.20.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "LANGPROVIDER",
+          "implementationVersion": "2.6.0+0.15.0+1.20.1",
+          "automaticModuleName": "net.fabricmc.loader"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/mixinextras-forge-0.4.1.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "io.github.llamalad7",
+        "artifact": "mixinextras-forge",
+        "artifactVersion": "0.4.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.4.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "jarJarMetadata",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "mixinextras",
+            "version": "0.4.1",
+            "name": "MixinExtras",
+            "description": "Companion library to Mixin with lots of features to improve the compatibility and concision of your mixins!",
+            "authors": [
+              "LlamaLad7"
+            ],
+            "licenses": [
+              "MIT"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "*"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "mixinextras.init.mixins.json"
+          ],
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/MixinExtras-0.4.1.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "com.github.LlamaLad7",
+              "artifact": "MixinExtras",
+              "artifactVersion": "0.4.1",
+              "range": {
+                "dialect": "maven",
+                "spec": "[0.4.1,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {},
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-api-base-0.4.32+ef105b4977.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-api-base",
+        "artifactVersion": "0.4.32+ef105b4977",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.4.32+ef105b4977,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_api_base",
+            "version": "0.4.32+ef105b4977",
+            "name": "Fabric API Base",
+            "description": "Contains the essentials for Fabric API modules.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-api-base.init.mixins.json"
+          ],
+          "implementationVersion": "0.4.32+ef105b4977"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-api-lookup-api-v1-1.6.37+67f9824077.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-api-lookup-api-v1",
+        "artifactVersion": "1.6.37+67f9824077",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.6.37+67f9824077,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_api_lookup_api_v1",
+            "version": "1.6.37+67f9824077",
+            "name": "Fabric API Lookup API (v1)",
+            "description": "A universal way to expose and query APIs",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_lifecycle_events_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-api-lookup-api-v1.mixins.json"
+          ],
+          "implementationVersion": "1.6.37+67f9824077"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-biome-api-v1-13.0.14+dc36698e77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-biome-api-v1",
+        "artifactVersion": "13.0.14+dc36698e77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[13.0.14+dc36698e77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_biome_api_v1",
+            "version": "13.0.14+dc36698e77",
+            "name": "Fabric Biome API (v1)",
+            "description": "Hooks for adding biomes to the default world generator.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-biome-api-v1.mixins.json"
+          ],
+          "implementationVersion": "13.0.14+dc36698e77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-block-api-v1-1.0.12+0e6cb7f777.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-block-api-v1",
+        "artifactVersion": "1.0.12+0e6cb7f777",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.12+0e6cb7f777,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_block_api_v1",
+            "version": "1.0.12+0e6cb7f777",
+            "name": "Fabric Block API (v1)",
+            "description": "Hooks for blocks",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "1.0.12+0e6cb7f777"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-block-view-api-v2-1.0.3+53347ba977.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-block-view-api-v2",
+        "artifactVersion": "1.0.3+53347ba977",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.3+53347ba977,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_block_view_api_v2",
+            "version": "1.0.3+53347ba977",
+            "name": "Fabric BlockView API (v2)",
+            "description": "Hooks for block views",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-block-view-api-v2.mixins.json",
+            "fabric-block-view-api-v2.client.mixins.json"
+          ],
+          "implementationVersion": "1.0.3+53347ba977"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-blockrenderlayer-v1-1.1.42+1d0da21e77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-blockrenderlayer-v1",
+        "artifactVersion": "1.1.42+1d0da21e77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.1.42+1d0da21e77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_blockrenderlayer_v1",
+            "version": "1.1.42+1d0da21e77",
+            "name": "Fabric BlockRenderLayer Registration (v1)",
+            "description": "Registration utility for block and fluid render layers.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-blockrenderlayer-v1.mixins.json"
+          ],
+          "implementationVersion": "1.1.42+1d0da21e77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-client-tags-api-v1-1.1.3+5d6761b877.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-client-tags-api-v1",
+        "artifactVersion": "1.1.3+5d6761b877",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.1.3+5d6761b877,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_client_tags_api_v1",
+            "version": "1.1.3+5d6761b877",
+            "name": "Fabric Client Tags",
+            "description": "Adds the ability to load tags from the local mods.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "1.1.3+5d6761b877"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-command-api-v2-2.2.14+561530ec77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-command-api-v2",
+        "artifactVersion": "2.2.14+561530ec77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.2.14+561530ec77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_command_api_v2",
+            "version": "2.2.14+561530ec77",
+            "name": "Fabric Command API (v2)",
+            "description": "Adds command-related hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-command-api-v2.mixins.json",
+            "fabric-command-api-v2.client.mixins.json"
+          ],
+          "implementationVersion": "2.2.14+561530ec77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-content-registries-v0-4.0.13+a670df1e77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-content-registries-v0",
+        "artifactVersion": "4.0.13+a670df1e77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[4.0.13+a670df1e77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_content_registries_v0",
+            "version": "4.0.13+a670df1e77",
+            "name": "Fabric Content Registries (v0)",
+            "description": "Adds registries for vanilla mechanics that are missing them.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_lifecycle_events_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-content-registries-v0.mixins.json"
+          ],
+          "implementationVersion": "4.0.13+a670df1e77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-convention-tags-v1-1.5.6+fa3d1c0177.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-convention-tags-v1",
+        "artifactVersion": "1.5.6+fa3d1c0177",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.5.6+fa3d1c0177,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_convention_tags_v1",
+            "version": "1.5.6+fa3d1c0177",
+            "name": "Fabric Convention Tags",
+            "description": "Contains common tags used by mods for vanilla things.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "1.5.6+fa3d1c0177"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-data-attachment-api-v1-1.0.2+30ef839e77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-data-attachment-api-v1",
+        "artifactVersion": "1.0.2+30ef839e77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.2+30ef839e77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_data_attachment_api_v1",
+            "version": "1.0.2+30ef839e77",
+            "name": "Fabric Data Attachment API (v1)",
+            "description": "Allows conveniently attaching data to existing game objects",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_entity_events_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_object_builder_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-data-attachment-api-v1.mixins.json",
+            "fabric-data-attachment-api-v1.client.mixins.json"
+          ],
+          "implementationVersion": "1.0.2+30ef839e77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-data-generation-api-v1-12.3.7+369cb3a477.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-data-generation-api-v1",
+        "artifactVersion": "12.3.7+369cb3a477",
+        "range": {
+          "dialect": "maven",
+          "spec": "[12.3.7+369cb3a477,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_data_generation_api_v1",
+            "version": "12.3.7+369cb3a477",
+            "name": "Fabric Data Generation API (v1)",
+            "description": "Allows for automatic data generation.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-data-generation-api-v1.mixins.json"
+          ],
+          "implementationVersion": "12.3.7+369cb3a477"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-dimensions-v1-2.1.55+8005d10d77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-dimensions-v1",
+        "artifactVersion": "2.1.55+8005d10d77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.1.55+8005d10d77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_dimensions_v1",
+            "version": "2.1.55+8005d10d77",
+            "name": "Fabric Dimensions API (v1)",
+            "description": "Fabric Dimension API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "2.1.55+8005d10d77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-entity-events-v1-1.6.1+4ca7515277.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-entity-events-v1",
+        "artifactVersion": "1.6.1+4ca7515277",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.6.1+4ca7515277,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_entity_events_v1",
+            "version": "1.6.1+4ca7515277",
+            "name": "Fabric Entity Events (v1)",
+            "description": "Events to hook into entities.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-entity-events-v1.mixins.json",
+            "fabric-entity-events-v1.client.mixins.json"
+          ],
+          "implementationVersion": "1.6.1+4ca7515277"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-events-interaction-v0-0.6.5+0f26153f77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-events-interaction-v0",
+        "artifactVersion": "0.6.5+0f26153f77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.6.5+0f26153f77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_events_interaction_v0",
+            "version": "0.6.5+0f26153f77",
+            "name": "Fabric Events Interaction (v0)",
+            "description": "Events for player interaction with blocks and entities.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_networking_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-events-interaction-v0.mixins.json",
+            "fabric-events-interaction-v0.client.mixins.json"
+          ],
+          "implementationVersion": "0.6.5+0f26153f77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-game-rule-api-v1-1.0.41+683d4da877.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-game-rule-api-v1",
+        "artifactVersion": "1.0.41+683d4da877",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.41+683d4da877,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_game_rule_api_v1",
+            "version": "1.0.41+683d4da877",
+            "name": "Fabric Game Rule API (v1)",
+            "description": "Allows registration of custom game rules.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-game-rule-api-v1.mixins.json",
+            "fabric-game-rule-api-v1.client.mixins.json"
+          ],
+          "implementationVersion": "1.0.41+683d4da877"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-item-api-v1-2.1.29+4d0bbcfa77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-item-api-v1",
+        "artifactVersion": "2.1.29+4d0bbcfa77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.1.29+4d0bbcfa77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_item_api_v1",
+            "version": "2.1.29+4d0bbcfa77",
+            "name": "Fabric Item API (v1)",
+            "description": "Hooks for items",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-item-api-v1.mixins.json",
+            "fabric-item-api-v1.client.mixins.json"
+          ],
+          "implementationVersion": "2.1.29+4d0bbcfa77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-item-group-api-v1-4.0.14+c9161c2d77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-item-group-api-v1",
+        "artifactVersion": "4.0.14+c9161c2d77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[4.0.14+c9161c2d77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_item_group_api_v1",
+            "version": "4.0.14+c9161c2d77",
+            "name": "Fabric Item Group API (v1)",
+            "description": "An API for adding custom item groups.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-item-group-api-v1.mixins.json",
+            "fabric-item-group-api-v1.client.mixins.json"
+          ],
+          "implementationVersion": "4.0.14+c9161c2d77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-key-binding-api-v1-1.0.38+561530ec77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-key-binding-api-v1",
+        "artifactVersion": "1.0.38+561530ec77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.38+561530ec77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_key_binding_api_v1",
+            "version": "1.0.38+561530ec77",
+            "name": "Fabric Key Binding API (v1)",
+            "description": "Key Binding registry API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-key-binding-api-v1.mixins.json"
+          ],
+          "implementationVersion": "1.0.38+561530ec77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-lifecycle-events-v1-2.2.23+afab492177.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-lifecycle-events-v1",
+        "artifactVersion": "2.2.23+afab492177",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.2.23+afab492177,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_lifecycle_events_v1",
+            "version": "2.2.23+afab492177",
+            "name": "Fabric Lifecycle Events (v1)",
+            "description": "Events for the game's lifecycle.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-lifecycle-events-v1.mixins.json",
+            "fabric-lifecycle-events-v1.client.mixins.json"
+          ],
+          "implementationVersion": "2.2.23+afab492177"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-loot-api-v2-1.2.3+eb28f93e77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-loot-api-v2",
+        "artifactVersion": "1.2.3+eb28f93e77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.2.3+eb28f93e77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_loot_api_v2",
+            "version": "1.2.3+eb28f93e77",
+            "name": "Fabric Loot API (v2)",
+            "description": "Hooks for manipulating loot tables.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-loot-api-v2.mixins.json"
+          ],
+          "implementationVersion": "1.2.3+eb28f93e77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-message-api-v1-5.1.10+52cc178c77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-message-api-v1",
+        "artifactVersion": "5.1.10+52cc178c77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[5.1.10+52cc178c77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_message_api_v1",
+            "version": "5.1.10+52cc178c77",
+            "name": "Fabric Message API (v1)",
+            "description": "Adds message-related hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-message-api-v1.mixins.json",
+            "fabric-message-api-v1.client.mixins.json"
+          ],
+          "implementationVersion": "5.1.10+52cc178c77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-mining-level-api-v1-2.1.52+561530ec77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-mining-level-api-v1",
+        "artifactVersion": "2.1.52+561530ec77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.1.52+561530ec77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_mining_level_api_v1",
+            "version": "2.1.52+561530ec77",
+            "name": "Fabric Mining Level API (v1)",
+            "description": "Adds support for custom mining levels.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_lifecycle_events_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-mining-level-api-v1.mixins.json"
+          ],
+          "implementationVersion": "2.1.52+561530ec77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-model-loading-api-v1-1.0.4+6274ab9d77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-model-loading-api-v1",
+        "artifactVersion": "1.0.4+6274ab9d77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.4+6274ab9d77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_model_loading_api_v1",
+            "version": "1.0.4+6274ab9d77",
+            "name": "Fabric Model Loading API (v1)",
+            "description": "Provides hooks for model loading.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-model-loading-api-v1.mixins.json"
+          ],
+          "implementationVersion": "1.0.4+6274ab9d77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-networking-api-v1-1.3.14+fb7c822677.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-networking-api-v1",
+        "artifactVersion": "1.3.14+fb7c822677",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.3.14+fb7c822677,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_networking_api_v1",
+            "version": "1.3.14+fb7c822677",
+            "name": "Fabric Networking API (v1)",
+            "description": "Low-level, vanilla protocol oriented networking hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-networking-api-v1.mixins.json",
+            "fabric-networking-api-v1.client.mixins.json"
+          ],
+          "implementationVersion": "1.3.14+fb7c822677"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-object-builder-api-v1-11.1.5+f8c414ce77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-object-builder-api-v1",
+        "artifactVersion": "11.1.5+f8c414ce77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[11.1.5+f8c414ce77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_object_builder_api_v1",
+            "version": "11.1.5+f8c414ce77",
+            "name": "Fabric Object Builder API (v1)",
+            "description": "Builders for objects vanilla has locked down.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-object-builder-v1.mixins.json"
+          ],
+          "implementationVersion": "11.1.5+f8c414ce77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-particles-v1-1.1.3+78e1ecb877.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-particles-v1",
+        "artifactVersion": "1.1.3+78e1ecb877",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.1.3+78e1ecb877,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_particles_v1",
+            "version": "1.1.3+78e1ecb877",
+            "name": "Fabric Particles (v1)",
+            "description": "Hooks for registering custom particles.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-particles-v1.client.mixins.json"
+          ],
+          "implementationVersion": "1.1.3+78e1ecb877"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-recipe-api-v1-1.0.24+514a076577.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-recipe-api-v1",
+        "artifactVersion": "1.0.24+514a076577",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.24+514a076577,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_recipe_api_v1",
+            "version": "1.0.24+514a076577",
+            "name": "Fabric Recipe API (v1)",
+            "description": "Recipe extensions such as creation of new types of recipe ingredients.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_networking_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-recipe-api-v1.mixins.json"
+          ],
+          "implementationVersion": "1.0.24+514a076577"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-registry-sync-v0-2.3.6+1c0ea72177.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-registry-sync-v0",
+        "artifactVersion": "2.3.6+1c0ea72177",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.3.6+1c0ea72177,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_registry_sync_v0",
+            "version": "2.3.6+1c0ea72177",
+            "name": "Fabric Registry Sync (v0)",
+            "description": "Syncs registry mappings.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_networking_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-registry-sync-v0.mixins.json",
+            "fabric-registry-sync-v0.client.mixins.json"
+          ],
+          "implementationVersion": "2.3.6+1c0ea72177"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-renderer-api-v1-3.2.2+cf68abbe77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-renderer-api-v1",
+        "artifactVersion": "3.2.2+cf68abbe77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[3.2.2+cf68abbe77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_renderer_api_v1",
+            "version": "3.2.2+cf68abbe77",
+            "name": "Fabric Renderer API (v1)",
+            "description": "Defines rendering extensions for dynamic/fancy block and item models.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-renderer-api-v1.mixins.json",
+            "fabric-renderer-api-v1.debughud.mixins.json"
+          ],
+          "implementationVersion": "3.2.2+cf68abbe77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-renderer-indigo-1.5.3+b5b2da4177.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-renderer-indigo",
+        "artifactVersion": "1.5.3+b5b2da4177",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.5.3+b5b2da4177,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_renderer_indigo",
+            "version": "1.5.3+b5b2da4177",
+            "name": "Fabric Renderer - Indigo",
+            "description": "Default implementation of the Fabric Renderer API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_renderer_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-renderer-indigo.mixins.json"
+          ],
+          "implementationVersion": "1.5.3+b5b2da4177"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-rendering-fluids-v1-3.0.29+4ac5e37a77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-rendering-fluids-v1",
+        "artifactVersion": "3.0.29+4ac5e37a77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[3.0.29+4ac5e37a77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_rendering_fluids_v1",
+            "version": "3.0.29+4ac5e37a77",
+            "name": "Fabric Rendering Fluids (v1)",
+            "description": "Hooks for registering fluid renders.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-rendering-fluids-v1.mixins.json"
+          ],
+          "implementationVersion": "3.0.29+4ac5e37a77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-rendering-v1-3.0.9+66e9a48f77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-rendering-v1",
+        "artifactVersion": "3.0.9+66e9a48f77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[3.0.9+66e9a48f77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_rendering_v1",
+            "version": "3.0.9+66e9a48f77",
+            "name": "Fabric Rendering (v1)",
+            "description": "Hooks and registries for rendering-related things.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-rendering-v1.mixins.json"
+          ],
+          "implementationVersion": "3.0.9+66e9a48f77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-resource-conditions-api-v1-2.3.9+996d00b277.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-resource-conditions-api-v1",
+        "artifactVersion": "2.3.9+996d00b277",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.3.9+996d00b277,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_resource_conditions_api_v1",
+            "version": "2.3.9+996d00b277",
+            "name": "Fabric Resource Conditions API (v1)",
+            "description": "Allows conditionally loading resources.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-resource-conditions-api-v1.mixins.json"
+          ],
+          "implementationVersion": "2.3.9+996d00b277"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-resource-loader-v0-0.11.12+4b4151c077.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-resource-loader-v0",
+        "artifactVersion": "0.11.12+4b4151c077",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.11.12+4b4151c077,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_resource_loader_v0",
+            "version": "0.11.12+4b4151c077",
+            "name": "Fabric Resource Loader (v0)",
+            "description": "Asset and data resource loading.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-resource-loader-v0.mixins.json",
+            "fabric-resource-loader-v0.client.mixins.json"
+          ],
+          "implementationVersion": "0.11.12+4b4151c077"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-screen-api-v1-2.0.9+45a670a577.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-screen-api-v1",
+        "artifactVersion": "2.0.9+45a670a577",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.0.9+45a670a577,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_screen_api_v1",
+            "version": "2.0.9+45a670a577",
+            "name": "Fabric Screen API (v1)",
+            "description": "Adds screen related hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-screen-api-v1.mixins.json"
+          ],
+          "implementationVersion": "2.0.9+45a670a577"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-screen-handler-api-v1-1.3.33+561530ec77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-screen-handler-api-v1",
+        "artifactVersion": "1.3.33+561530ec77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.3.33+561530ec77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_screen_handler_api_v1",
+            "version": "1.3.33+561530ec77",
+            "name": "Fabric Screen Handler API (v1)",
+            "description": "Hooks and extensions for creating screen handlers.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_networking_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-screen-handler-api-v1.mixins.json"
+          ],
+          "implementationVersion": "1.3.33+561530ec77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-sound-api-v1-1.0.14+4f23bd8477.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-sound-api-v1",
+        "artifactVersion": "1.0.14+4f23bd8477",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.14+4f23bd8477,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_sound_api_v1",
+            "version": "1.0.14+4f23bd8477",
+            "name": "Fabric Sound API (v1)",
+            "description": "Hooks for modifying Minecraft's sound system.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-sound-api-v1.mixins.json"
+          ],
+          "implementationVersion": "1.0.14+4f23bd8477"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-transfer-api-v1-3.3.6+25eff73b77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-transfer-api-v1",
+        "artifactVersion": "3.3.6+25eff73b77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[3.3.6+25eff73b77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_transfer_api_v1",
+            "version": "3.3.6+25eff73b77",
+            "name": "Fabric Transfer API (v1)",
+            "description": "A common API for the transfer of fluids, items and other game resources.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_lookup_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_rendering_fluids_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-transfer-api-v1.mixins.json"
+          ],
+          "implementationVersion": "3.3.6+25eff73b77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-transitive-access-wideners-v1-4.3.2+1880499877.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-transitive-access-wideners-v1",
+        "artifactVersion": "4.3.2+1880499877",
+        "range": {
+          "dialect": "maven",
+          "spec": "[4.3.2+1880499877,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_transitive_access_wideners_v1",
+            "version": "4.3.2+1880499877",
+            "name": "Fabric Transitive Access Wideners (v1)",
+            "description": "Contains transitive access wideners that provide access to otherwise inaccessible Minecraft code.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "lowcodefml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "4.3.2+1880499877"
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-command-api-v1-1.2.35+f71b366f77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-command-api-v1",
+        "artifactVersion": "1.2.35+f71b366f77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.2.35+f71b366f77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_command_api_v1",
+            "version": "1.2.35+f71b366f77",
+            "name": "Fabric Command API (v1)",
+            "description": "Deprecated. Please migrate to v2",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_command_api_v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "1.2.35+f71b366f77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-models-v0-0.4.3+7c3892a477.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-models-v0",
+        "artifactVersion": "0.4.3+7c3892a477",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.4.3+7c3892a477,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_models_v0",
+            "version": "0.4.3+7c3892a477",
+            "name": "Fabric Models (v0)",
+            "description": "Hooks for models and model loading.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              },
+              {
+                "id": "fabric_model_loading_api_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "0.4.3+7c3892a477"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.39+a6081afc77.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "dev.su5ed.sinytra.fabric-api",
+        "artifact": "fabric-rendering-data-attachment-v1",
+        "artifactVersion": "0.3.39+a6081afc77",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.3.39+a6081afc77,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "fabric_rendering_data_attachment_v1",
+            "version": "0.3.39+a6081afc77",
+            "name": "Fabric Rendering Data Attachment (v1)",
+            "description": "Thread-safe hooks for block entity data use during terrain rendering.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.1.3,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              },
+              {
+                "id": "fabric_block_view_api_v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0, )"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.1.3,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "fabric-rendering-data-attachment-v1.mixins.json",
+            "fabric-rendering-data-attachment-v1.client.mixins.json"
+          ],
+          "implementationVersion": "0.3.39+a6081afc77"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

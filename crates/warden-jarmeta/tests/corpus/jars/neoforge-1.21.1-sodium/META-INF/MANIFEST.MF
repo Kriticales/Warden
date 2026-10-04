@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Main-Class: net.caffeinemc.mods.sodium.desktop.LaunchWarn
+FMLModType: LIBRARY
+Automatic-Module-Name: sodium_service
+

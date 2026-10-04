@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_antlr_antlr4-runtime",
+  "version": "4.13.1",
+  "name": "antlr4-runtime",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

@@ -1,0 +1,215 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-data-generation-api-v1-re
+ fmap.json;fabric-data-generation-api-v1.client.mixins.json;net/fabricmc
+ /fabric/mixin/datagen/client/MinecraftClientMixin.class;net/fabricmc/fa
+ bric/mixin/datagen/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/mixin/datagen/TagProviderMixin.class
+SHA-256-Digest: o5kBRj1nWtWxZKTD2BRZ4hfdtbgViZrdEBbtFkODht0=
+
+Name: net/fabricmc/fabric/api/datagen/v1/FabricDataGenerator.class
+SHA-256-Digest: wtXMKwOtVBmKq/EFTXcc0GoVzMHd6+dNDftbNNnQFWs=
+
+Name: client-fabric-data-generation-api-v1-refmap.json
+SHA-256-Digest: eaRu2Rqhia0dPqafDsi9KsC01cO1yY2DrTXLX13AiIE=
+
+Name: net/fabricmc/fabric/api/datagen/v1/FabricDataGenerator$Pack.class
+SHA-256-Digest: rkRR54R8kyXPTb8pwAQN18uNj9/6EVi88Do/tDgOUw8=
+
+Name: net/fabricmc/fabric/api/datagen/v1/loot/FabricBlockLootTableGenera
+ tor.class
+SHA-256-Digest: r+yW2cgT09LPyHLTLuaj0BdToAzZnGFo3/eom4is+vU=
+
+Name: assets/fabric-data-generation-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/mixin/datagen/ModelProviderMixin.class
+SHA-256-Digest: DKClYrMgNojkVfP89DbXsiOzqeLp7+BhF+QaOXtUTBo=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricLootTableProvide
+ r.class
+SHA-256-Digest: enTAFJ+T81ZGo3ZUK62aMYkonunOLBdgnsGZnFU+h3g=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Item
+ TagProvider.class
+SHA-256-Digest: 58fou6POsUd8ZhJ5zErth12DM7AR64lh/BpbNYHS8rA=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Fabr
+ icTagBuilder.class
+SHA-256-Digest: dAY5JLQ6La6eweRAPcLPgUuJrEkpTgHDvK4jaUjbxV4=
+
+Name: net/fabricmc/fabric/impl/datagen/TagBuilderHooks.class
+SHA-256-Digest: pcu4P3j1IDXXhyV2I8JYAa99JBKHK15y5o5qS/DTYSo=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricBlockLootTablePr
+ ovider.class
+SHA-256-Digest: UVxJTMILRiFsg6ZL9hefxfYBVYlXKrlv0vymPMIWf48=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Bloc
+ kTagProvider.class
+SHA-256-Digest: TMERZzJj65ah0ZX+YQ4qGsyWhX9cM7MfNgU+/uYtKeM=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricDynamicRegistryP
+ rovider.class
+SHA-256-Digest: +p4Zh071hezAdhiAybNgSQmS1jdd+vvL8HUJqoGgpmA=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricLanguageProvider
+ .class
+SHA-256-Digest: s6eSuICS7qpsLVUOY5qmt8WsG+LhbPzhQwKfhg87qFo=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricProvidedTagBuild
+ er.class
+SHA-256-Digest: uHDo8U+qGrN6baJzHcQTaEkjMdRnTCDjELJaMkrFtAc=
+
+Name: net/fabricmc/fabric/api/datagen/v1/JsonKeySortOrderCallback.class
+SHA-256-Digest: Fhi0Pb4OXwbtY3xmxXSHVbScBMaVz3FQE87Jg66sNkg=
+
+Name: net/fabricmc/fabric/impl/datagen/package-info.class
+SHA-256-Digest: tUeJbXf6oSWR/QnV5SmuKd+cvuTRb8KauWgS4w89BEM=
+
+Name: fabric.mod.json
+SHA-256-Digest: GUvJZ3DtNmshCXN+EZEMp5/jr+fquE/GpN+tnXyGACQ=
+
+Name: net/fabricmc/fabric/api/datagen/v1/DataGeneratorEntrypoint.class
+SHA-256-Digest: D7WX++ideBXjlwFMA0IjUqCdWuYkvL+nhuKOXPEG5Zo=
+
+Name: net/fabricmc/fabric/mixin/datagen/package-info.class
+SHA-256-Digest: h6zDkyY3tARvywERNFHWZ8OLVrrp6o4AD5LSu636Qg4=
+
+Name: net/fabricmc/fabric/impl/datagen/ForcedTagEntry.class
+SHA-256-Digest: lz7lIA84SNvN55shp13MVfeT1RiMcEWlha0gfOKK/xk=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricDynamicRegistryP
+ rovider$RegistryEntries.class
+SHA-256-Digest: 9jBpomgWpSaaUTveHG9RgPW3fz8WDJSw7QjUCIFUiZA=
+
+Name: net/fabricmc/fabric/impl/datagen/loot/package-info.class
+SHA-256-Digest: FVy4viL0GavSu3FjYfqu4lzX6ojW7aTXpBoFtKB4DDQ=
+
+Name: net/fabricmc/fabric/api/datagen/v1/FabricDataGenerator$Pack$Regist
+ ryDependentFactory.class
+SHA-256-Digest: zJC/GyP+vKGC5BEOA7hG72RsRiPANzsnl7/t9Wxnt+M=
+
+Name: net/fabricmc/fabric/impl/datagen/loot/FabricLootTableProviderImpl.
+ class
+SHA-256-Digest: tXxbG2eiY3nWAsKmT5+ANRoKYLgIOdIng6UGJb9aOSA=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/SimpleFabricLootTableP
+ rovider.class
+SHA-256-Digest: YgLzzSVhcCp+AbOiBLlTJk3spp6Dff10gO+iwH0sGCc=
+
+Name: fabric-data-generation-api-v1.mixins.json
+SHA-256-Digest: i1qIsRJvMJOHv/2JpznR/KzUyjadP0TwY+2JfIT3eC4=
+
+Name: net/fabricmc/fabric/mixin/datagen/loot/package-info.class
+SHA-256-Digest: WMeGl1GZ6C2o7O5FdGryYQS+FndAx+uQynU07fPhzik=
+
+Name: fabric-data-generation-api-v1.accesswidener
+SHA-256-Digest: I5jya6eWM9AJEKupbizYV6Y7PRlHnCDLCp/jUCrBuZE=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricAdvancementProvi
+ der.class
+SHA-256-Digest: euxOgSPekL/T+mLWkVHWUc/pHWtpZl5/hT9MafS1DYQ=
+
+Name: LICENSE-fabric-data-generation-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/datagen/DataProviderMixin.class
+SHA-256-Digest: PLulQpKpdRffDGvzFDgVbuv2LYcJ4i8PILT2Q/omAVk=
+
+Name: fabric-data-generation-api-v1.client.mixins.json
+SHA-256-Digest: suU3Art2JkPgY1Q5wTKDjeO7zViu236CVQerSi+mWI8=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricRecipeProvider.c
+ lass
+SHA-256-Digest: aeYkp8xTmmGTvF4atYpiuNHO1oxbo++INabZ4w9ozpA=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricCodecDataProvide
+ r.class
+SHA-256-Digest: gn8g+7N79MQJVBC9THlw9sG9OtFsO4XGC/5k+HgpCkE=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Game
+ EventTagProvider.class
+SHA-256-Digest: hXNLxR5Cyl8CULdU3KxT7UtzRcw0MdAuTBaL3DxH7q8=
+
+Name: net/fabricmc/fabric/api/datagen/v1/FabricDataOutput.class
+SHA-256-Digest: tTPg+M7p0gohCcOaVJGt3pC/0lKnzlBdZLL6S0MHqeM=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Enti
+ tyTypeTagProvider.class
+SHA-256-Digest: wQZs9U7FRlBiV+2M1k6urUYfm2YAPvtll0fYXi7vjvY=
+
+Name: net/fabricmc/fabric/impl/datagen/FabricDataGenHelper.class
+SHA-256-Digest: fmXIyxn6nDSOEpMPlZ0sWlN8VC40QG6O0O+HT3dhmpw=
+
+Name: net/fabricmc/fabric/mixin/datagen/server/package-info.class
+SHA-256-Digest: LD3uJDsO/UwXb/mfoNjBZ2lG8KlbC5f2jbUVaf7X15Q=
+
+Name: net/fabricmc/fabric/impl/datagen/FabricDataGenHelper$1BuilderData.
+ class
+SHA-256-Digest: KJnl1cL/AnKnMNR8P8klxN7un4nP3nLcTC2nqEmjhyQ=
+
+Name: fabric-data-generation-api-v1-refmap.json
+SHA-256-Digest: GyDxYLcz9kw3AamM5MM+Y3bPvSvNtVp1PrdqQfhVb9k=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricDynamicRegistryP
+ rovider$Entries.class
+SHA-256-Digest: na2q/K0e8lQefS+I9CpnSBTqQMG7yT8DfGdt9Vjs2uc=
+
+Name: net/fabricmc/fabric/mixin/datagen/client/MinecraftClientMixin.clas
+ s
+SHA-256-Digest: ibKt7NyDfasKCQmnnDy/YTRSDIRPExrptJP0Vi7Y9GE=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Flui
+ dTagProvider.class
+SHA-256-Digest: P/7RXHgKwYJvhhnpIou0oFJeh4wSGapK69wKwm6hZ80=
+
+Name: net/fabricmc/fabric/mixin/datagen/client/package-info.class
+SHA-256-Digest: FIvT/nph4woKiXnMWErpLn90DEhIx4Pav44g9jDlJ9Q=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricModelProvider.cl
+ ass
+SHA-256-Digest: vMJeu8nLkbnzbi1OqE12IabsoGlCtPnmJNO/RybT1P8=
+
+Name: net/fabricmc/fabric/mixin/datagen/TagBuilderMixin.class
+SHA-256-Digest: rhBsvtCY/ErQwEzDwQhXlrDZ7mgNAnYHCqzDQeUS8pU=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider.clas
+ s
+SHA-256-Digest: zqLQbmKlrJAVJcxH1r9hmWmWpAfSVpLFYeMKWucQYQ4=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricTagProvider$Ench
+ antmentTagProvider.class
+SHA-256-Digest: OKcJlfdvX47zYAcsLyIaFDzIzyY3k4Eu4bFk4bwQXbI=
+
+Name: net/fabricmc/fabric/api/datagen/v1/FabricDataGenerator$Pack$Factor
+ y.class
+SHA-256-Digest: k/FQ0asucr1f3dRS1kITF6iWMdDH6nQjMOzmP9p3QzQ=
+
+Name: net/fabricmc/fabric/api/datagen/v1/provider/FabricLanguageProvider
+ $TranslationBuilder.class
+SHA-256-Digest: tJybqK6nrJYLgFsloSld7sxxfI7nrFiedWCPURqXTuc=
+
+Name: net/fabricmc/fabric/mixin/datagen/server/MainMixin.class
+SHA-256-Digest: FMkQdbwvCQBWCIFA/Epcw8QPA8WJ+flUMZFassUROP4=
+
+Name: net/fabricmc/fabric/impl/datagen/loot/ConditionBlockLootTableGener
+ ator.class
+SHA-256-Digest: aXQ+vtuFPrWxuMJaXno0es+vgp7GCu1i7gF0SRYBx/c=
+
+Name: net/fabricmc/fabric/mixin/datagen/loot/BlockLootTableGeneratorMixi
+ n.class
+SHA-256-Digest: lMqzplPUw8luM5mggXRtssogbx6aXvyBjzgJ7DtWbkU=
+

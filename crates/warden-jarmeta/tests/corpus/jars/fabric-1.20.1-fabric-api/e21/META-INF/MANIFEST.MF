@@ -1,0 +1,75 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/loot/v2/FabricLootTableBuilder.class
+SHA-256-Digest: y22AzpVDr02wqETCftkvkTigySYufBOZqWlnMB8DJ7I=
+
+Name: net/fabricmc/fabric/api/loot/v2/LootTableEvents$Modify.class
+SHA-256-Digest: 9bbdSXgV+LyiBZy7v0Wa1DB+MA+rpvC4Sc/ZnLJ2yjI=
+
+Name: net/fabricmc/fabric/mixin/loot/LootPoolBuilderMixin.class
+SHA-256-Digest: TRtU6cbibWoPmP2vNaOsj6I6+jF9fsdg8opWLuTUMe8=
+
+Name: net/fabricmc/fabric/api/loot/v2/LootTableEvents.class
+SHA-256-Digest: Oot2zpHdwscF8Z6wT6amw6VEvx7jscvst9DRI0GrTYQ=
+
+Name: net/fabricmc/fabric/api/loot/v2/LootTableEvents$Replace.class
+SHA-256-Digest: A8yjuCrdKmeiGfNE8owLxtxCcdFaGbXm9ERrdMjHNoI=
+
+Name: net/fabricmc/fabric/mixin/loot/package-info.class
+SHA-256-Digest: F76fool4Eu0UvWf6L54cigndGn5kOGKt7ObsPxyL5FY=
+
+Name: assets/fabric-loot-api-v2/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/mixin/loot/LootManagerMixin.class
+SHA-256-Digest: HoiL4NWCkJqPkv670AJl8n6zMqtnnq7XNYlx3bW83Qs=
+
+Name: fabric.mod.json
+SHA-256-Digest: hqASkP1F5pr+XDCUQoVULrd7c4E/p8x34oQL2MIlio4=
+
+Name: net/fabricmc/fabric/mixin/loot/LootPoolAccessor.class
+SHA-256-Digest: krHNpzR/ssfotSdtoSxwSW+L4TMgTeDjX3+Dflgko3o=
+
+Name: net/fabricmc/fabric/mixin/loot/LootTableAccessor.class
+SHA-256-Digest: UWmkfJfpaCOIpSSS8txvs6lCOZWZvCrPHTg2BPZNs7U=
+
+Name: fabric-loot-api-v2-refmap.json
+SHA-256-Digest: RE0Zgk33sGxHh1hKpCiEAjbFIhYQyWGfijWc1hV+c30=
+
+Name: net/fabricmc/fabric/api/loot/v2/LootTableSource.class
+SHA-256-Digest: 75iG1G8hG03TPeFfyD5Wi7EC6Nn5rnagfkvfZ1EkgQA=
+
+Name: net/fabricmc/fabric/api/loot/v2/LootTableEvents$Loaded.class
+SHA-256-Digest: gtBGAY1eme6sdSZuuXzY4c4WYsZbyR85Z29maB7FkzE=
+
+Name: net/fabricmc/fabric/impl/loot/LootUtil.class
+SHA-256-Digest: 3+afTKmXucFAaAKnjKUKI6jALRVX4Gyol+eTQjZPC9I=
+
+Name: LICENSE-fabric-loot-api-v2
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: fabric-loot-api-v2.mixins.json
+SHA-256-Digest: BQPDY5Ow6Ttq7JzsZEjXuXlwbi68REV+5GJ5ZwM+owY=
+
+Name: net/fabricmc/fabric/mixin/loot/LootTableBuilderMixin.class
+SHA-256-Digest: xMBdKTWJ3pmYN4nQJ7zvyhtFIPejz+Xv478Kdi0vLxI=
+
+Name: net/fabricmc/fabric/impl/loot/package-info.class
+SHA-256-Digest: QKrrxfYlIlSV485exAwETk733MF+oVBfUxOxkkzh/P8=
+
+Name: net/fabricmc/fabric/api/loot/v2/FabricLootPoolBuilder.class
+SHA-256-Digest: otFEWhHHmG0OGVOl0xgB72+fFHq9rY8QVWmG41xUz9M=
+

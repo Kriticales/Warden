@@ -1,0 +1,76 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "io.github.douira",
+        "artifact": "glsl-transformer"
+      },
+      "version": {
+        "range": "[3.0.0-pre3,)",
+        "artifactVersion": "3.0.0-pre3"
+      },
+      "path": "META-INF/jarjar/glsl-transformer-3.0.0-pre3.jar",
+      "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "org.anarres",
+        "artifact": "jcpp"
+      },
+      "version": {
+        "range": "[1.4.14,)",
+        "artifactVersion": "1.4.14"
+      },
+      "path": "META-INF/jarjar/jcpp-1.4.14.jar",
+      "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-api-base"
+      },
+      "version": {
+        "range": "[0.4.42+d1308ded19,)",
+        "artifactVersion": "0.4.42+d1308ded19"
+      },
+      "path": "META-INF/jarjar/fabric-api-base-0.4.42+d1308ded19.jar",
+      "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-block-view-api-v2"
+      },
+      "version": {
+        "range": "[1.0.10+9afaaf8c19,)",
+        "artifactVersion": "1.0.10+9afaaf8c19"
+      },
+      "path": "META-INF/jarjar/fabric-block-view-api-v2-1.0.10+9afaaf8c19.jar",
+      "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-renderer-api-v1"
+      },
+      "version": {
+        "range": "[3.4.0+acb05a3919,)",
+        "artifactVersion": "3.4.0+acb05a3919"
+      },
+      "path": "META-INF/jarjar/fabric-renderer-api-v1-3.4.0+acb05a3919.jar",
+      "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-rendering-data-attachment-v1"
+      },
+      "version": {
+        "range": "[0.3.48+73761d2e19,)",
+        "artifactVersion": "0.3.48+73761d2e19"
+      },
+      "path": "META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.48+73761d2e19.jar",
+      "isObfuscated": false
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 13.0.14+dc36698e77
+MixinConfigs: fabric-biome-api-v1.mixins.json
+

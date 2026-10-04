@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 2.2.23+afab492177
+MixinConfigs: fabric-lifecycle-events-v1.mixins.json,fabric-lifecycle-ev
+ ents-v1.client.mixins.json
+

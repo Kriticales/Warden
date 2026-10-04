@@ -1,0 +1,129 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-buildcraft (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Core",
+      "version": "7.1.27",
+      "name": "BuildCraft",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more!",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Builders",
+      "version": "7.1.27",
+      "name": "BC Builders",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more! (Builders Component)",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Energy",
+      "version": "7.1.27",
+      "name": "BC Energy",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more! (Energy Component)",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Factory",
+      "version": "7.1.27",
+      "name": "BC Factory",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more! (Factory Component)",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Silicon",
+      "version": "7.1.27",
+      "name": "BC Silicon",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more! (Silicon Component)",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Transport",
+      "version": "7.1.27",
+      "name": "BC Transport",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more! (Transport Component)",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "BuildCraft|Robotics",
+      "version": "7.1.27",
+      "name": "BC Robotics",
+      "description": "Extending Minecraft with pipes, auto-crafting, quarries, engines and much more! (Transport Component)",
+      "authors": [
+        "SpaceToad",
+        "BuildCraft Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 50,
+    "minor": 0
+  }
+}

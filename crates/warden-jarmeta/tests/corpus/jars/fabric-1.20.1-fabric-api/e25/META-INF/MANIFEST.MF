@@ -1,0 +1,399 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-networking-api-v1-refmap.
+ json;fabric-networking-api-v1.client.mixins.json;net/fabricmc/fabric/ap
+ i/client/networking/v1/C2SPlayChannelEvents$Register.class;net/fabricmc
+ /fabric/api/client/networking/v1/C2SPlayChannelEvents$Unregister.class;
+ net/fabricmc/fabric/api/client/networking/v1/C2SPlayChannelEvents.class
+ ;net/fabricmc/fabric/api/client/networking/v1/ClientLoginConnectionEven
+ ts$Disconnect.class;net/fabricmc/fabric/api/client/networking/v1/Client
+ LoginConnectionEvents$Init.class;net/fabricmc/fabric/api/client/network
+ ing/v1/ClientLoginConnectionEvents$QueryStart.class;net/fabricmc/fabric
+ /api/client/networking/v1/ClientLoginConnectionEvents.class;net/fabricm
+ c/fabric/api/client/networking/v1/ClientLoginNetworking$LoginQueryReque
+ stHandler.class;net/fabricmc/fabric/api/client/networking/v1/ClientLogi
+ nNetworking.class;net/fabricmc/fabric/api/client/networking/v1/ClientPl
+ ayConnectionEvents$Disconnect.class;net/fabricmc/fabric/api/client/netw
+ orking/v1/ClientPlayConnectionEvents$Init.class;net/fabricmc/fabric/api
+ /client/networking/v1/ClientPlayConnectionEvents$Join.class;net/fabricm
+ c/fabric/api/client/networking/v1/ClientPlayConnectionEvents.class;net/
+ fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$1.class;n
+ et/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$2.clas
+ s;net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$Pla
+ yChannelHandler.class;net/fabricmc/fabric/api/client/networking/v1/Clie
+ ntPlayNetworking$PlayChannelHandlerProxy.class;net/fabricmc/fabric/api/
+ client/networking/v1/ClientPlayNetworking$PlayPacketHandler.class;net/f
+ abricmc/fabric/api/client/networking/v1/ClientPlayNetworking.class;net/
+ fabricmc/fabric/impl/networking/client/ClientLoginNetworkAddon.class;ne
+ t/fabricmc/fabric/impl/networking/client/ClientNetworkingImpl.class;net
+ /fabricmc/fabric/impl/networking/client/ClientPlayNetworkAddon.class;ne
+ t/fabricmc/fabric/impl/networking/client/package-info.class;net/fabricm
+ c/fabric/mixin/networking/client/ClientLoginNetworkHandlerMixin.class;n
+ et/fabricmc/fabric/mixin/networking/client/ClientPlayNetworkHandlerMixi
+ n.class;net/fabricmc/fabric/mixin/networking/client/accessor/ClientLogi
+ nNetworkHandlerAccessor.class;net/fabricmc/fabric/mixin/networking/clie
+ nt/accessor/ConnectScreenAccessor.class;net/fabricmc/fabric/mixin/netwo
+ rking/client/accessor/MinecraftClientAccessor.class;net/fabricmc/fabric
+ /mixin/networking/client/accessor/package-info.class;net/fabricmc/fabri
+ c/mixin/networking/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientLoginNetworking
+ .class
+SHA-256-Digest: MuP67ByYcBgfAbqOf7jez7SLYt0dBbs/WnwoxsG0+Cs=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$
+ PlayPacketHandler.class
+SHA-256-Digest: 2vDKT4FEMTt/Ju7tqEATtqlQ1E2JafrDML2XW5aJ8+o=
+
+Name: net/fabricmc/fabric/mixin/networking/client/accessor/package-info.
+ class
+SHA-256-Digest: LwaCD3+eVpmdM/WYgNX+HREqdqxgNmnLsgRUSBysAWc=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/ThreadedAnvilChunkSt
+ orageAccessor.class
+SHA-256-Digest: XiEynms4G0tF0B6LKQex/fD5PtmW+LQ3rlbO7edSoqI=
+
+Name: fabric-networking-api-v1-refmap.json
+SHA-256-Digest: KfzpC+LJ7OABPw9PB/7XjLqyZCK6ueYXDlMVPhBYH+g=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/ServerLoginNetworkHa
+ ndlerAccessor.class
+SHA-256-Digest: aW5LmhhwKa/2Q9wnlnz9KWFKbRtiyXfQCv4Vtv0VEwo=
+
+Name: net/fabricmc/fabric/api/networking/v1/PacketByteBufs.class
+SHA-256-Digest: yOGPZ/CHcqfAkpdAobLsp5jPsF9YKSHprrwk4FMzNos=
+
+Name: client-fabric-networking-api-v1-refmap.json
+SHA-256-Digest: XmwQxTCgnviVYqXD+P39BvKnF2nDBY9iu8piGw6Cz0Y=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$PlayPac
+ ketHandler.class
+SHA-256-Digest: 3zrdvjf/WmunXw29VbOkr4CgENPukue1LJ3P70hKL5U=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/C2SPlayChannelEvents$
+ Unregister.class
+SHA-256-Digest: RDpWEh1qKJ0Rf7uHQxH0N1kRFaAexycPka9JjVrCfAw=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/LoginQueryResponseC2
+ SPacketAccessor.class
+SHA-256-Digest: L2s6OIviNAbxHYtj/W/wfo0CYgkf8MK6C2zHKdl4cw4=
+
+Name: net/fabricmc/fabric/impl/networking/server/ServerLoginNetworkAddon
+ .class
+SHA-256-Digest: iiJGzEEmgEefDt+/JH5ryToX5r9kwQ1FNHidiGzVSH4=
+
+Name: net/fabricmc/fabric/mixin/networking/client/ClientLoginNetworkHand
+ lerMixin.class
+SHA-256-Digest: khAYtrlnu1taJaLstFRLWKMWzPaiGbk+qY/lWQWQn3o=
+
+Name: net/fabricmc/fabric/mixin/networking/client/ClientPlayNetworkHandl
+ erMixin.class
+SHA-256-Digest: efazGZWMdHbpVzKXvQX5sMgyj2qNki0FXmbgXzcDwO4=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$
+ 1.class
+SHA-256-Digest: bq3XEjTCgqxXoTj2NwG/taC6Je3tSojotUPEh2FUClU=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayConnectionEvents$I
+ nit.class
+SHA-256-Digest: 1Un+4Z9N984KnxhlWNh6DoH4MRm2aNApUHJdKcGvJwQ=
+
+Name: net/fabricmc/fabric/api/networking/v1/EntityTrackingEvents$StartTr
+ acking.class
+SHA-256-Digest: pV/EZqc8qTEaA3hp7nYq25InJLnEmzfOZeDZq2sQipg=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking.
+ class
+SHA-256-Digest: BDxKVqMCc5EpPR1ExfDhf76msMWsh0HVdAVRFg1rwcY=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$PlayCha
+ nnelHandlerProxy.class
+SHA-256-Digest: toI8D4NtM2YKcqjV+dYuK1g203Mb+0c0ks0wo0Hsc8g=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginConnectionEvents$
+ QueryStart.class
+SHA-256-Digest: 82C/F68Dytc9jbMxuefMOFLcJj1LiSNEC6/mAEBp8iw=
+
+Name: LICENSE-fabric-networking-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginNetworking.class
+SHA-256-Digest: b6MQaBleSHH/lk5JDpuHXDdNhRBQe5KeYzKIEUHYjs4=
+
+Name: fabric-networking-api-v1.client.mixins.json
+SHA-256-Digest: bF8UOyNSSGppqPWgp+OoQmkzsNJq3wbhIGgkdI8y8lA=
+
+Name: fabric.mod.json
+SHA-256-Digest: EN0YDmM7HlP+M+lCUugUUFG9/lf4TNuRPhXDq1Uz+aM=
+
+Name: net/fabricmc/fabric/api/networking/v1/EntityTrackingEvents$StopTra
+ cking.class
+SHA-256-Digest: +zfMSgES3yFX/KcJN5CsmqcwlTdU+6TkB/zxSxRUya8=
+
+Name: net/fabricmc/fabric/impl/networking/server/ServerNetworkingImpl.cl
+ ass
+SHA-256-Digest: 6FflJjvh9vTyDYeBwurrpACmcUGxKWU9j+Q1dTHG+yg=
+
+Name: net/fabricmc/fabric/impl/networking/GlobalReceiverRegistry.class
+SHA-256-Digest: Oa5cubgBE0u7uxN4SPJ4dTXR2/ZpGCu8Q/evDBY14wA=
+
+Name: net/fabricmc/fabric/impl/networking/NetworkingImpl.class
+SHA-256-Digest: ByhvZoWmoLUMDCDJcOYkaMUWPMr20LnALD0f0onnZEs=
+
+Name: net/fabricmc/fabric/mixin/networking/package-info.class
+SHA-256-Digest: 2XT7ZQR7LJB2avm3QPfegnIuvtRuHQne07PRW6MJ45w=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientLoginConnection
+ Events$Init.class
+SHA-256-Digest: tYwcTtf4hv++5L5XjTfK8taYstTHNIhQD3rDWf9ZOiA=
+
+Name: net/fabricmc/fabric/mixin/networking/EntityTrackerEntryMixin.class
+SHA-256-Digest: AbWlL1jJ2NA15BGOFqPffsX7JVaM7YDmBlhBXu7jd1k=
+
+Name: net/fabricmc/fabric/api/networking/v1/S2CPlayChannelEvents$Registe
+ r.class
+SHA-256-Digest: eaTSvehgetpsxivJ0GuvPjKx9wspCO0OTJLahqlLjaE=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayConnectionEvents$D
+ isconnect.class
+SHA-256-Digest: WAXnXsLhw29e2i6/AS4Q0rjCEi52/0mMZqL3rrVAE1o=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/EntityTrackerAccesso
+ r.class
+SHA-256-Digest: 3yZfVLoNqkXrfgJqsTKj4uNTYdf2Cg8G2qHOofxHvSI=
+
+Name: net/fabricmc/fabric/impl/networking/server/QueryIdFactory$1.class
+SHA-256-Digest: n9yNiDKOQE8oQqTwICutPjTxVa7OoKvFLnuCbSVx7TU=
+
+Name: net/fabricmc/fabric/impl/networking/client/ClientNetworkingImpl.cl
+ ass
+SHA-256-Digest: n3OWblfgo1P06YFtxdRU5ZRi7J5srwds8QFXxa4rvJs=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientLoginConnection
+ Events$QueryStart.class
+SHA-256-Digest: IDNixdl9Pmv21f94ky3JX7mHFZZ8NnQrmvYaYVJHCkg=
+
+Name: net/fabricmc/fabric/impl/networking/AbstractNetworkAddon.class
+SHA-256-Digest: LDeBoHACvwDUEQtcDh8/0jfE36Nph0A3ZCKcbd4gmF4=
+
+Name: net/fabricmc/fabric/mixin/networking/PacketByteBufMixin.class
+SHA-256-Digest: oPb+oKRGW6MUoucgExeTWLes2HTuqpTUsr4lqGI4Icw=
+
+Name: net/fabricmc/fabric/mixin/networking/ServerPlayNetworkHandlerMixin
+ .class
+SHA-256-Digest: ba3e5WUdhS8AEf1d8/Z5QVnAuXQZ4plJ+5sIn/VMd7E=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientLoginConnection
+ Events.class
+SHA-256-Digest: qgXR/U7Zksm146EheZv+tzQJ4KMixRhXqiOLHvUz2XY=
+
+Name: net/fabricmc/fabric/mixin/networking/ClientConnectionMixin.class
+SHA-256-Digest: SocS3+5qLPKRKigZBJjMKEDqchZALIVI0upJVKmDBOQ=
+
+Name: net/fabricmc/fabric/mixin/networking/ServerLoginNetworkHandlerMixi
+ n.class
+SHA-256-Digest: GbU6WLWCn/S/DpdQnP5WwKCQj55mAEJJX5Nv//LykuI=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionE
+ vents.class
+SHA-256-Digest: GVuU9Wrvj3mKkgl+pQUtB9xyHEljp08jbw/eU2AR2gs=
+
+Name: net/fabricmc/fabric/impl/networking/package-info.class
+SHA-256-Digest: ZV8OHvr0Er1CNw933veftCJWjwqvpUiwxba8/FKzdG8=
+
+Name: net/fabricmc/fabric/impl/networking/server/package-info.class
+SHA-256-Digest: uEVFVod8jAmOUf3osnf+l2oj3xdLTg8LIhlD6cW38R0=
+
+Name: assets/fabric-networking-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/networking/v1/FabricPacket.class
+SHA-256-Digest: +FctJxnTxJIy12GmRMR/1v2y+FQTfcb1VgiyzEpDriE=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$
+ 2.class
+SHA-256-Digest: OeHby/42vlY99e4OU3axLxLQ2k/0o2EIcLL4UhIc4u8=
+
+Name: net/fabricmc/fabric/api/networking/v1/PacketType.class
+SHA-256-Digest: ty6WNrNxSEGDYw0otEdCA522l6vw+Cwk751B9ukd8mw=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/C2SPlayChannelEvents.
+ class
+SHA-256-Digest: oOdT1xNHANzuMfRgo9eUSo6PQG+p4kLqS2ZKRU42FFo=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/C2SPlayChannelEvents$
+ Register.class
+SHA-256-Digest: 5XzBWJUZhoc+JGMFl4tVcIQU3x/PQccIqta3PUvAS6Y=
+
+Name: net/fabricmc/fabric/api/networking/v1/PacketSender.class
+SHA-256-Digest: 1O27bI0ZZ1KNg4CSSs3qXs3VZ4b+YzNtZXPHF2pLUuU=
+
+Name: net/fabricmc/fabric/api/networking/v1/PlayerLookup.class
+SHA-256-Digest: xGLTtiOpprTuBoMLhTItKhD+XEVBbKQf6dz5Gnk+fy4=
+
+Name: net/fabricmc/fabric/api/networking/v1/FutureListeners.class
+SHA-256-Digest: +es24TbIQ+HX/LtZm9eQ7yhU2aVJ84KEI+zFXnHbEtA=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayNetworking.class
+SHA-256-Digest: ysd0U+jhvvIeN6F+54N1kOBINNwqiRFsRLUvK/NCMdM=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/CustomPayloadC2SPack
+ etAccessor.class
+SHA-256-Digest: BGO+14wXI8GSdiKUtfEo8blh6GXAeRWz5HZsUK9chX0=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginConnectionEvents$
+ Init.class
+SHA-256-Digest: G9lXYp4fiNh7VB184xSfZ5iLpVpy/5S65TIWVQrXB80=
+
+Name: net/fabricmc/fabric/api/networking/v1/S2CPlayChannelEvents.class
+SHA-256-Digest: qoA2nN47OvmXRlQpk+kaS1QJpFmY3h4abzLXC0yRsHs=
+
+Name: net/fabricmc/fabric/impl/networking/UntrackedNetworkHandler.class
+SHA-256-Digest: nDT5WOSoFagL9wfKCIb8PH1T/ACGUEWVSSbZ+FkHBSI=
+
+Name: net/fabricmc/fabric/impl/networking/client/package-info.class
+SHA-256-Digest: XAag6FOcJwc47N+Nl21u+9UPWHa2gkk+0uf6U8lf2Vk=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionE
+ vents$Disconnect.class
+SHA-256-Digest: ibQPAr4HrxrhmaWx6EBvVF/ZgcaIqlcM63IcKkCtFOI=
+
+Name: net/fabricmc/fabric/impl/networking/server/QueryIdFactory.class
+SHA-256-Digest: aFQyA4eMn+lO19leeFqJTkfh6ktm3VmGBOAK8g+af44=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$1.class
+SHA-256-Digest: TPAr1EDEUJx5MhJqvEok7uKerlk/mpBuaENAwkm7lfE=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/package-info.class
+SHA-256-Digest: K/dA0x4P0aa4BLE2djqNWfTtj76X0aOtq0XlvtoHh0w=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayConnectionEvents$J
+ oin.class
+SHA-256-Digest: ktE3ZJ8BFQyhqq+D5d8GjDjChtYOwIqeFfLaT2YsaDQ=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginConnectionEvents$
+ Disconnect.class
+SHA-256-Digest: A+xJy223sVZEoWO0lmOFH+CD84dLd9dbuA60pHvuVz8=
+
+Name: net/fabricmc/fabric/impl/networking/ChannelInfoHolder.class
+SHA-256-Digest: gLq0gEf/8jc3nctjuIWUnn7U/143M6Ny0SJe4Q2PT70=
+
+Name: net/fabricmc/fabric/api/networking/v1/EntityTrackingEvents.class
+SHA-256-Digest: RmVnNaTS85XNJqzks9B3N8HThPxlJrXMdhuLmD+r69Q=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientLoginConnection
+ Events$Disconnect.class
+SHA-256-Digest: ZrTi3paYN83eYMgJBZ1KcGD99A1Uqq05k0QDhQcBqHo=
+
+Name: net/fabricmc/fabric/impl/networking/GenericFutureListenerHolder.cl
+ ass
+SHA-256-Digest: QuhTm8fnDZyTkH/d2RmUswH8KHom4gzGvbjvnGmPkGc=
+
+Name: net/fabricmc/fabric/mixin/networking/client/accessor/ClientLoginNe
+ tworkHandlerAccessor.class
+SHA-256-Digest: hme2LmujGm9Ji04Z9jjlJS6uPkVpXnbhQn0zelg1ZqM=
+
+Name: net/fabricmc/fabric/impl/networking/client/ClientPlayNetworkAddon.
+ class
+SHA-256-Digest: VzgAyu+vFhBHE/uX8SRYiboSxYVOa0RLLUmLAGP9kCg=
+
+Name: net/fabricmc/fabric/api/networking/v1/S2CPlayChannelEvents$Unregis
+ ter.class
+SHA-256-Digest: TGJXBpr6XrXu56ictq/dur5P2RWy/SuxGJUWQP5GmFw=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayConnectionEvents.c
+ lass
+SHA-256-Digest: vhNnfbdtjLL2RQg2YXtzmG2j1HYg2PohloR0bqpijKU=
+
+Name: net/fabricmc/fabric/impl/networking/AbstractChanneledNetworkAddon.
+ class
+SHA-256-Digest: 2/FkuMsemS4el8OzPhco3a+EPpDvXpnOVmzx1NUFKFg=
+
+Name: net/fabricmc/fabric/mixin/networking/client/accessor/ConnectScreen
+ Accessor.class
+SHA-256-Digest: +4gJ+Pfmv69E4DUC6OqFebeze4hII/5ckSAaEfm4S/Q=
+
+Name: net/fabricmc/fabric/impl/networking/client/ClientLoginNetworkAddon
+ .class
+SHA-256-Digest: Ig18KrCsYMrgf+h2dOyNhs4y/9F2n4BG4vBxmTTwXBQ=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginNetworking$LoginS
+ ynchronizer.class
+SHA-256-Digest: Yl3iMixp6SRvyBvsIj4j98aQ7NjEaat73wyaVVz7lFk=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginNetworking$LoginQ
+ ueryResponseHandler.class
+SHA-256-Digest: udnGJ9fcy9iPQ7dFppchy3M7ROTZKzUj0u6aG95Jok8=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientLoginNetworking
+ $LoginQueryRequestHandler.class
+SHA-256-Digest: j6EbAl0hO6r7VB1krUBDNXgMrd7kXfHOW26Y9oizvPg=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$
+ PlayChannelHandler.class
+SHA-256-Digest: ys/aRd0FBBSI5k30Nf+I/fueBnzRFhkUK6Kvo0O4arY=
+
+Name: net/fabricmc/fabric/impl/networking/NetworkHandlerExtensions.class
+SHA-256-Digest: cDiHn5fHhmbwBhhGPZk2v4KV+2DBSSDC+rM4eBSz34k=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionE
+ vents$Join.class
+SHA-256-Digest: frePOGewoq1mThefiS2hX48yeZk3c7+BCQqJTGSjjCc=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayConnectionE
+ vents$Init.class
+SHA-256-Digest: laR4TKjbZl5aXsM4O57hTTlNepCNdZGPTfFGv41cqLI=
+
+Name: net/fabricmc/fabric/impl/networking/DisconnectPacketSource.class
+SHA-256-Digest: Y8pSARcS/vyPMTMccuPAi5RI8LvEPdnoJOQAtTgp5PM=
+
+Name: net/fabricmc/fabric/impl/networking/PacketCallbackListener.class
+SHA-256-Digest: kkenoW9ELhHiEVQCq0p3gHnysmDO9C5H/ChJseDQuq4=
+
+Name: net/fabricmc/fabric/impl/networking/server/ServerPlayNetworkAddon.
+ class
+SHA-256-Digest: iZn3KvlS7vFzheP0p1kmwAd5UOKgMfrnJfOT8a67Nhg=
+
+Name: fabric-networking-api-v1.mixins.json
+SHA-256-Digest: eXR+BdQGGuM+700TVq9OKH9o59mAzUkxRUMoJYHlmbU=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$2.class
+SHA-256-Digest: RpnCIWAsMbTggeICfgwc7c3w8pQMVS+CdAIMcV8q5dc=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerLoginConnectionEvents.
+ class
+SHA-256-Digest: zk6+SOHg+n0mkphH+za2YkrWxrMA1lrENdIcqK4t/5A=
+
+Name: net/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$PlayCha
+ nnelHandler.class
+SHA-256-Digest: A5xKn7+oxM0w1/2b0DhuAqLs0PZsTXxAh+EJ07GPtbw=
+
+Name: net/fabricmc/fabric/mixin/networking/client/accessor/MinecraftClie
+ ntAccessor.class
+SHA-256-Digest: xQLi86o3s/kYT42oLHHN9Bt+ApfeMnN1LSRUp+Ae5bE=
+
+Name: net/fabricmc/fabric/mixin/networking/client/package-info.class
+SHA-256-Digest: HcA9HxEivjshmroeq93dS1zwfRyR5Jg7rvg8YxIBv7g=
+
+Name: net/fabricmc/fabric/mixin/networking/PlayerManagerMixin.class
+SHA-256-Digest: 1FpHDLm7quMWC5c1yr3Qdq3g9SPFSD9I2keNd/hbs3I=
+
+Name: net/fabricmc/fabric/mixin/networking/accessor/ServerPlayNetworkHan
+ dlerAccessor.class
+SHA-256-Digest: 5isXQZzsT4AvPq8KzCFmDJaNzbbMEGtLM64oBMTHby4=
+
+Name: net/fabricmc/fabric/api/client/networking/v1/ClientPlayNetworking$
+ PlayChannelHandlerProxy.class
+SHA-256-Digest: iMeLNyfy89yVVF/dE+a2igjoktWQUYmN15w5geESpD4=
+

@@ -1,0 +1,112 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-xaeroplus (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "neoForgeModsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "neoForgeModsToml",
+      "loader": "neoForge",
+      "id": "xaeroplus",
+      "version": "2.36.4",
+      "name": "XaeroPlus",
+      "description": "Xaero WorldMap / Minimap Extra Features",
+      "authors": [
+        "rfresh2"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "neoforge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1,)"
+          },
+          "side": "client"
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.21,1.21.1)"
+          },
+          "side": "client"
+        },
+        {
+          "id": "xaerominimap",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[26.5.0]"
+          },
+          "side": "client",
+          "ordering": "before"
+        },
+        {
+          "id": "xaerobetterpvp",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[26.5.0]"
+          },
+          "side": "client",
+          "ordering": "before"
+        },
+        {
+          "id": "xaeroworldmap",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.46.0]"
+          },
+          "side": "client",
+          "ordering": "before"
+        },
+        {
+          "id": "worldtools",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.2.0,)"
+          },
+          "side": "client",
+          "ordering": "before"
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.21,1.21.1)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[1,)"
+      },
+      "mixins": [
+        "xaeroplus.mixins.json",
+        "xaeroplus-neo.mixins.json"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[1,)"
+    }
+  },
+  "manifest": {
+    "multiRelease": true
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  }
+}

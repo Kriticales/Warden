@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_rendering_fluids_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Rendering Fluids (v1)"
+logoFile = "assets/fabric-rendering-fluids-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Hooks for registering fluid renders."
+provides = ["fabric-rendering-fluids-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_rendering_fluids_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_rendering_fluids_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_rendering_fluids_v1]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-rendering-fluids-v1.mixins.json"

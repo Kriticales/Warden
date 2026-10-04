@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 0.4.32+ef105b4977
+MixinConfigs: fabric-api-base.init.mixins.json
+

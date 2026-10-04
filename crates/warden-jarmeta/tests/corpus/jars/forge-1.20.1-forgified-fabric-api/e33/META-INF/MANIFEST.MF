@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 3.0.29+4ac5e37a77
+MixinConfigs: fabric-rendering-fluids-v1.mixins.json
+

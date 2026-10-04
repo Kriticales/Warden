@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/mezz_config-1.21.1-neoforge-0.5.12.jar",
+      "dir": "e0"
+    }
+  ]
+}

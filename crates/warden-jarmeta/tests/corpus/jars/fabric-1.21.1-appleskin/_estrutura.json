@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/cloth-config-fabric-15.0.127-fabric.jar",
+      "dir": "e0"
+    }
+  ]
+}

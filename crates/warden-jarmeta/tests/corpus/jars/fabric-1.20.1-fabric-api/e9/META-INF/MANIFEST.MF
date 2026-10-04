@@ -1,0 +1,540 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: data/c/tags/items/entity_water_buckets.json
+SHA-256-Digest: VeEBNmqf+h13trr5KjBA5Dk+XHpkKR2bNj1XVGTTEq0=
+
+Name: data/c/tags/enchantment/entity_movement_enhancement.json
+SHA-256-Digest: wGZWZ6YEMvtm3XXcFVfDslTmGD/IAhoeJTJBgPYLNms=
+
+Name: data/c/tags/items/raw_iron_blocks.json
+SHA-256-Digest: haKLFAp6ArRg5vdJz8FTpviP4tl7mvn+MxpTz73SDME=
+
+Name: data/c/tags/items/water_buckets.json
+SHA-256-Digest: C5vOWf71UlYKVmhDTCV3zZF/PbPUuWdGimKk7O1pKls=
+
+Name: data/c/tags/entity_types/bosses.json
+SHA-256-Digest: iEdUXaHKHV3k7K7qaA9U8TVoDNI/V/3MH5dImuJk2+w=
+
+Name: data/c/tags/items/villager_job_sites.json
+SHA-256-Digest: 3O5RwtBpmUe4gvSzkx0BmsihRDM7evL0/rBsIAQxQHg=
+
+Name: data/c/tags/items/orange_dyes.json
+SHA-256-Digest: PC4EgTKNEBKLOFloiw+mhXW14z5QJsDl+GbMwdzY8wo=
+
+Name: data/c/tags/worldgen/biome/savanna.json
+SHA-256-Digest: RrOqrgxT4VPwqmyoZrvAB/kBECL7imQGb2Cskrtii/8=
+
+Name: data/c/tags/items/yellow_dyes.json
+SHA-256-Digest: oAeLvuiuIxkoHhuY4kUUEyhdUCtxqhN30y49bldtwgA=
+
+Name: data/c/tags/items/raw_gold_blocks.json
+SHA-256-Digest: 0Rx5ire+2rz9LCaXAQJEzP9BT83vi0FxglWI7JuIzfA=
+
+Name: data/c/tags/worldgen/biome/mountain_peak.json
+SHA-256-Digest: S5k3KpWj+VqiOq4Q9ZI4lWqf+jNhcmxHp6arR9xuj7E=
+
+Name: data/c/tags/items/black_dyes.json
+SHA-256-Digest: SpsY00md988XsodrmP7dr5MefSNGLsYdeWC6QqPduWs=
+
+Name: data/c/tags/blocks/red_sandstone_blocks.json
+SHA-256-Digest: p+XEDV4eV7ze/UeMYbSHlzSeMpQJbFyIYx2rqo0miT4=
+
+Name: data/c/tags/worldgen/biome/caves.json
+SHA-256-Digest: XmIOjAY1FjN//EeY64L0yGqdxGRjFkSIitN8DcM0wLY=
+
+Name: data/c/tags/items/red_sandstone_blocks.json
+SHA-256-Digest: p+XEDV4eV7ze/UeMYbSHlzSeMpQJbFyIYx2rqo0miT4=
+
+Name: data/c/tags/items/cyan_dyes.json
+SHA-256-Digest: /su9c53d7FP9Wzls5fwX9191eZGXH2kwy0zHj3cCZxY=
+
+Name: data/c/tags/items/light_gray_dyes.json
+SHA-256-Digest: onU4d4Z0HHMIA38Zgdi7OCy9u/Q1RvWPZfwLIsMreMU=
+
+Name: data/c/tags/blocks/budding_blocks.json
+SHA-256-Digest: LAynzjbLVTSdrEstTGTnTZHw7rNYihlLg58tBDh84jM=
+
+Name: data/c/tags/blocks/uncolored_sandstone_stairs.json
+SHA-256-Digest: ykFUJpQxS9moLOjgm2LeDZ2gqrMqlFDxsm+JaC8CtJs=
+
+Name: data/c/tags/items/ingots.json
+SHA-256-Digest: whiCnMBfCC8NtAGaocuSh9UoTKLtFUoQrNbRjcjxxLk=
+
+Name: data/c/tags/worldgen/biome/in_nether.json
+SHA-256-Digest: ALI66mPA0H/4tB6QKL0MS0iKcE8OceahCiHFB9ZIEpw=
+
+Name: data/c/tags/worldgen/biome/birch_forest.json
+SHA-256-Digest: eWiDF7ZWnYi3p6RwhXJYRPazIxsiIuIlEer8qOinlcs=
+
+Name: data/c/tags/worldgen/biome/vegetation_sparse.json
+SHA-256-Digest: Yg07l4+ubTsO3rtJO8jZkuhOS43JvrXDMGpCEYa/S+U=
+
+Name: fabric.mod.json
+SHA-256-Digest: BiPl19wSXnFHuvLfxRg/i6WHPk2lwa+m1II3hToQiGY=
+
+Name: data/c/tags/items/empty_buckets.json
+SHA-256-Digest: y3YFfxMfs5fH2+uxY6KGvmCO1h465pKFOMF+PAMrqPY=
+
+Name: data/c/tags/items/lava_buckets.json
+SHA-256-Digest: pciKwlDi72qxhwHLeuJC/qbt2kpr1minn8+iKFlAGh8=
+
+Name: data/c/tags/items/sandstone_stairs.json
+SHA-256-Digest: DRimCS5Q4+YiE6Iktft6xJrJJJLDVwBfMPDpPJtO+S4=
+
+Name: data/c/tags/items/quartz.json
+SHA-256-Digest: WF/9l6mxXuhVwPSwJuJf+Tnq9K8ZFze2frK0TiDlevY=
+
+Name: data/c/tags/worldgen/biome/climate_cold.json
+SHA-256-Digest: /LuSmsdqzH5di9qC6gmhGMHnFv2Pia7tsVKPilBMBFg=
+
+Name: data/c/tags/blocks/sandstone_slabs.json
+SHA-256-Digest: pRDe2R0sQYa6ehzGY0MDAFKH9nHdeN7xeoF3+P88yjM=
+
+Name: net/fabricmc/fabric/impl/tag/convention/package-info.class
+SHA-256-Digest: EcdrdQek7tAHnMWx+jbqpOiAeysDRq518Cfr0CpHYPQ=
+
+Name: data/c/tags/blocks/villager_job_sites.json
+SHA-256-Digest: 6fP3xAmRPBGSd9+mSArbXZmPkdYf0E1PSi/qCIrM+LY=
+
+Name: data/c/tags/worldgen/biome/shallow_ocean.json
+SHA-256-Digest: NZxCQgXXOXPcQV4gxK7zcDcLWoE+XhKviVoUon7Mcqw=
+
+Name: data/c/tags/items/bookshelves.json
+SHA-256-Digest: qpDQQ2CBqPTzCDJ2aJjDUIgkkZkVsUjVYtvpqF51SfQ=
+
+Name: data/c/tags/items/lapis.json
+SHA-256-Digest: gEI7onKX5G4zaY7V6+y3xoNkN1Qwtu+n37fiM4nHRxE=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalEntityTypeTa
+ gs.class
+SHA-256-Digest: Bvi772sSwxCr9GH8HXo07lCctH+XoX/QmIISqoMZ8p4=
+
+Name: data/c/tags/items/potions.json
+SHA-256-Digest: EVyhpx/CdrW8pzaFsLPRiFYm3mmy8xfgsA+CwVyrFp4=
+
+Name: data/c/tags/blocks/sandstone_blocks.json
+SHA-256-Digest: MsK7pYxi1/EE1rjxGNLpJxfrmElGcEGTq/3jPV14rk4=
+
+Name: data/c/tags/blocks/ores.json
+SHA-256-Digest: /PboRZg9kMS64liQDY8RWhf7Q8fyQ7q49mT3wpqVAZw=
+
+Name: data/c/tags/items/dusts.json
+SHA-256-Digest: 5mnrSM7ML9v2mSrLnPlZG33uSkbJevN9HLXNQHi9zlY=
+
+Name: data/c/tags/items/gems.json
+SHA-256-Digest: X1lvpKe5po1poCi//umprR/D8AmKFeo+uUv2mWWXU8I=
+
+Name: data/c/tags/items/quartz_ores.json
+SHA-256-Digest: AtVvU5qvMQ4gq8+hn6DPr4PZ8OWBNY4U4wr1HycmkoU=
+
+Name: data/c/tags/blocks/glass_panes.json
+SHA-256-Digest: mC8CpnvelzeoglPdnX0oOCSVcOcMSxM0luvwZmdVA0Y=
+
+Name: data/minecraft/tags/items/pickaxes.json
+SHA-256-Digest: 1VHFObvfl/E4o9h2GtjHKdSk+RPM0KKvLshDFu0STng=
+
+Name: data/c/tags/items/ores.json
+SHA-256-Digest: /PboRZg9kMS64liQDY8RWhf7Q8fyQ7q49mT3wpqVAZw=
+
+Name: data/c/tags/worldgen/biome/windswept.json
+SHA-256-Digest: JWxZz/N6MkVWsFQl4LrT8pBjbYjDMlxf+n9v1Gis3pE=
+
+Name: data/c/tags/items/white_dyes.json
+SHA-256-Digest: ruFfWcK4i29/wqU7ifTIokLDLrSpxUxj9wJi8iarvek=
+
+Name: LICENSE-fabric-convention-tags-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: data/c/tags/worldgen/biome/vegetation_dense.json
+SHA-256-Digest: tSQ+2u6QCKV6NZMEI9QVDFiUuEVh1ESMHiSi5p30gXo=
+
+Name: data/c/tags/blocks/red_sandstone_stairs.json
+SHA-256-Digest: mCEOkb68wbXx/Qz7z4/v4FraGsFLRwkpk+u94+5Yk1M=
+
+Name: data/c/tags/blocks/sandstone_stairs.json
+SHA-256-Digest: DRimCS5Q4+YiE6Iktft6xJrJJJLDVwBfMPDpPJtO+S4=
+
+Name: data/c/tags/entity_types/boats.json
+SHA-256-Digest: ciwB8gjpAmnNsjoe/GAtKKjENbElkx/qlJ+HhNguH+M=
+
+Name: data/c/tags/worldgen/biome/forest.json
+SHA-256-Digest: dBmHTE9A0BVrpqcu35lBceHneSX9h1WvOoSt9UsGhAA=
+
+Name: data/c/tags/items/glass_panes.json
+SHA-256-Digest: mC8CpnvelzeoglPdnX0oOCSVcOcMSxM0luvwZmdVA0Y=
+
+Name: data/c/tags/worldgen/biome/desert.json
+SHA-256-Digest: iHiFwugh8MGmULLbYghgPv8kvx/VZ0moSNZplHyfdu4=
+
+Name: data/c/tags/blocks/uncolored_sandstone_slabs.json
+SHA-256-Digest: 6YzX75TcWPRYDLuxAxcFLc/d3h+ZH8fKK2OO5KdsgbI=
+
+Name: data/c/tags/worldgen/biome/climate_dry.json
+SHA-256-Digest: P5lcd1OowIuXynSI8KFFQAJ9Gf3NSEud3q/A4WkVakk=
+
+Name: data/c/tags/worldgen/biome/snowy.json
+SHA-256-Digest: rkbIJm+RiYHs3nHHfsXBkeA0u9dOHT4LPhWRwPENYXI=
+
+Name: data/c/tags/items/purple_dyes.json
+SHA-256-Digest: 4yPpNjmL8lV5Jc1/67fEOI+3ullXG2UdqBfSavVNMoQ=
+
+Name: data/c/tags/worldgen/biome/deep_ocean.json
+SHA-256-Digest: 72jzeFkfyvb6z5Rf/525bjI1QiTo2pC2ak/AMcTt/Bw=
+
+Name: data/c/tags/worldgen/biome/ocean.json
+SHA-256-Digest: xSmlLm7GDSITr5qMxZkC1wdfnBC1fwMg537klF8O5fo=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalBlockTags.cl
+ ass
+SHA-256-Digest: bOn+2Nzc47m/uJfDwP9e/UO9TidHaAFgUQskd/MtSCY=
+
+Name: data/c/tags/items/budding_blocks.json
+SHA-256-Digest: LAynzjbLVTSdrEstTGTnTZHw7rNYihlLg58tBDh84jM=
+
+Name: data/c/tags/items/uncolored_sandstone_stairs.json
+SHA-256-Digest: ykFUJpQxS9moLOjgm2LeDZ2gqrMqlFDxsm+JaC8CtJs=
+
+Name: data/c/tags/worldgen/biome/snowy_plains.json
+SHA-256-Digest: ItcY1dfNwtDI9eTydGY0cyhX2vhamRHy3o1bapYKcx4=
+
+Name: data/c/tags/items/swords.json
+SHA-256-Digest: attl3xK9lq5xFZgnzTZLDwA5Y/DfMKSeFi1w7hNeY+k=
+
+Name: data/c/tags/blocks/quartz_ores.json
+SHA-256-Digest: AtVvU5qvMQ4gq8+hn6DPr4PZ8OWBNY4U4wr1HycmkoU=
+
+Name: data/c/tags/worldgen/biome/in_overworld.json
+SHA-256-Digest: EDqM+GVpSEAEabbf3M/w//oABvTS46XPwec4pCZRqGM=
+
+Name: data/c/tags/fluids/water.json
+SHA-256-Digest: cGHEw3H5xw6/3ffsZt+s4Ret3avnAU4XOgsKPpJ7kS4=
+
+Name: data/c/tags/blocks/red_sandstone_slabs.json
+SHA-256-Digest: jYkYVNo6WSuMNu9U1uEkH8wEw1rDKgZ0K9Hxj5wxoOU=
+
+Name: data/c/tags/items/chests.json
+SHA-256-Digest: L8H/pkXSq3Wg9woDNX/DiaMe/f0UJhBp2vvCeSBa2ZQ=
+
+Name: assets/fabric-convention-tags-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: data/c/tags/worldgen/biome/nether_forests.json
+SHA-256-Digest: N8Hp8PWAGWQ++KXVHBrFQdQuOsKcpdocOdSu0G50By4=
+
+Name: data/c/tags/worldgen/biome/tree_jungle.json
+SHA-256-Digest: OYPklU72hgil4z0+vc7d3K0nDWVDR7O6zsW+pkQxAm4=
+
+Name: data/c/tags/worldgen/biome/void.json
+SHA-256-Digest: I3BCJ9yFYRMXL9wzWp2NSR9wPqJMw5cdpZKLnJo5KI0=
+
+Name: data/c/tags/items/diamonds.json
+SHA-256-Digest: wBeuyvRWnKWFQ0P4k5Bi7Im3Db2f9J0BSLxswFd/mf4=
+
+Name: data/c/tags/items/raw_gold_ores.json
+SHA-256-Digest: rklypVLB9atIQOuzdQlJ9brMMJivpzcWNVnUTP4Zsww=
+
+Name: data/c/tags/worldgen/biome/climate_hot.json
+SHA-256-Digest: oQ+VO7Oo/D3gzGAy3/hY4f0lLlWTHOmRBtgDTDGgR0A=
+
+Name: data/c/tags/blocks/glass_blocks.json
+SHA-256-Digest: D5n8DqMNYT/xwMlCWyrvYBIAfCzl1lyGuwmZpm8S/ag=
+
+Name: data/c/tags/items/green_dyes.json
+SHA-256-Digest: vVcFlR/ga1MiBDXh+6AGpDoFzsZHrbmHjW60FomZ8Xc=
+
+Name: data/c/tags/worldgen/biome/beach.json
+SHA-256-Digest: t+MbcIV40r4ACMt36cum6vQtCCAiLj/1t/jBBfXt6RM=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalEnchantmentT
+ ags.class
+SHA-256-Digest: P9DAvJwusoKwEThh32gryQ5J2wVLdRnbD/ltHOaGN4A=
+
+Name: data/c/tags/items/sandstone_blocks.json
+SHA-256-Digest: MsK7pYxi1/EE1rjxGNLpJxfrmElGcEGTq/3jPV14rk4=
+
+Name: data/c/tags/worldgen/biome/taiga.json
+SHA-256-Digest: CRDUfVvoRVlEi6Hv4NKsHeaM7ffazPqFA3XnA1hLv5M=
+
+Name: data/c/tags/items/raw_copper_ores.json
+SHA-256-Digest: RfCitVWQQ1qe+Mqec3G+S3UD9spWTMRZNdLly4HKyKI=
+
+Name: data/c/tags/entity_types/minecarts.json
+SHA-256-Digest: 5J3pUeaS+RD5huzKX/B9g5ChkRPAl9KiLmGZnTw6fsE=
+
+Name: data/c/tags/items/raw_copper_blocks.json
+SHA-256-Digest: BIHuv7cj1ZYDN+Rg3sJRMmUdmx1aikPg2Q1CJwgki3s=
+
+Name: data/minecraft/tags/items/swords.json
+SHA-256-Digest: 2DRDZ2s9yGQnZH8pODls24otPZ8pNtIYpBpS5L3m4XE=
+
+Name: data/c/tags/worldgen/biome/river.json
+SHA-256-Digest: +N2gFrpeFK0rkOX788PElDb//BQoOpIGywads3jxOcE=
+
+Name: data/c/tags/items/clusters.json
+SHA-256-Digest: Rd7gB0c6OoiMU4+xjMMH/GpoPyDMLPw1JmZ+1sEaLIo=
+
+Name: data/c/tags/worldgen/biome/aquatic_icy.json
+SHA-256-Digest: iWrjgAjaZNxV7/9nobHLN0WPP+IXHhnNmju1ZYCAXZM=
+
+Name: data/c/tags/items/dyes.json
+SHA-256-Digest: SsCAVzPvmQUo6X+Ae2tapAalmCPrqnR50KiFpne9a5Q=
+
+Name: data/c/tags/items/glass_blocks.json
+SHA-256-Digest: D5n8DqMNYT/xwMlCWyrvYBIAfCzl1lyGuwmZpm8S/ag=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/TagUtil.class
+SHA-256-Digest: oO9t2+Ng0Pm9fVhORyIaJUSTSlXquwjj5mBx5lojVyA=
+
+Name: data/c/tags/blocks/chests.json
+SHA-256-Digest: L8H/pkXSq3Wg9woDNX/DiaMe/f0UJhBp2vvCeSBa2ZQ=
+
+Name: data/c/tags/worldgen/biome/tree_coniferous.json
+SHA-256-Digest: 2DXQ1M/3hcW9+6E6FM2bqOSffUbG+ihKMrN1MUaZm10=
+
+Name: data/c/tags/enchantment/weapon_damage_enhancement.json
+SHA-256-Digest: Owi7oxaA6BmYQ8Gr2Ei1K3jbBLcz8i77O5jq5dRap2U=
+
+Name: data/c/tags/items/red_sandstone_stairs.json
+SHA-256-Digest: mCEOkb68wbXx/Qz7z4/v4FraGsFLRwkpk+u94+5Yk1M=
+
+Name: data/c/tags/worldgen/biome/climate_temperate.json
+SHA-256-Digest: gtesqFJvUmzK1eLJw6UYQzvhNUz5X7VqgimxXwvZR80=
+
+Name: data/c/tags/items/shovels.json
+SHA-256-Digest: pcFKYm2NrywJJVmrA3UmO1SIzFde2iuwPre8C3WCkVk=
+
+Name: data/c/tags/items/shulker_boxes.json
+SHA-256-Digest: MUPuhZteW9QS9PPptU6Qm/NJkZ06ZEPd3O3YyZSYsAY=
+
+Name: data/c/tags/items/emeralds.json
+SHA-256-Digest: 8KkfjQ7IArCoXHNFSvgmhyGwlyUE34Ptsk7OdxKtozM=
+
+Name: data/minecraft/tags/items/axes.json
+SHA-256-Digest: c4+9Q5kR8354cOxhNrxPoX9aOF8dq86p/NKYcqDi/RM=
+
+Name: data/c/tags/enchantment/entity_defense_enhancement.json
+SHA-256-Digest: KYdpmcu93crBWXlD/POrV1hhLuSURt2HhaIyxCsA8ck=
+
+Name: data/c/tags/items/bows.json
+SHA-256-Digest: cfZraYQ3xxrwkvmNMDowu5z+guvY7EEdV7pYafOHTA0=
+
+Name: data/c/tags/items/nuggets.json
+SHA-256-Digest: YG34yOK2JHCzRwUVe1HMWk9tTh6DaA/nU0torLKSf6o=
+
+Name: data/c/tags/items/uncolored_sandstone_blocks.json
+SHA-256-Digest: wKOVVl3btkW6uzgXsLVINjaZQjueax8vhmDP9qE/a3o=
+
+Name: data/c/tags/blocks/clusters.json
+SHA-256-Digest: Rd7gB0c6OoiMU4+xjMMH/GpoPyDMLPw1JmZ+1sEaLIo=
+
+Name: data/c/tags/items/raw_ores.json
+SHA-256-Digest: YTmqKi8vmkvAMOhWZmvqspzpSMAgYoPFUEbxKCZ0dKo=
+
+Name: data/c/tags/items/red_sandstone_slabs.json
+SHA-256-Digest: jYkYVNo6WSuMNu9U1uEkH8wEw1rDKgZ0K9Hxj5wxoOU=
+
+Name: data/c/tags/blocks/wooden_barrels.json
+SHA-256-Digest: 7VXb5QSeSGL7y9aSlBAFDbOUYnqesoH+XBaOPnNTVi0=
+
+Name: data/c/tags/items/wooden_barrels.json
+SHA-256-Digest: 7VXb5QSeSGL7y9aSlBAFDbOUYnqesoH+XBaOPnNTVi0=
+
+Name: data/c/tags/worldgen/biome/badlands.json
+SHA-256-Digest: Bkr9W4+wuOKAQRb3aCXPANg/Kbv/V+PL13W8UK2cQdA=
+
+Name: data/c/tags/blocks/bookshelves.json
+SHA-256-Digest: qpDQQ2CBqPTzCDJ2aJjDUIgkkZkVsUjVYtvpqF51SfQ=
+
+Name: data/c/tags/worldgen/biome/stony_shores.json
+SHA-256-Digest: 2oO/x5Y509bN4J3+ZERvLCBptiRg6+lOvBpqM1uQSrc=
+
+Name: data/c/tags/items/gray_dyes.json
+SHA-256-Digest: q/cX3T7/OxsiRNgN9MUu5eBmvZwKjRR+R8Szmwx0J3w=
+
+Name: data/c/tags/items/uncolored_sandstone_slabs.json
+SHA-256-Digest: 6YzX75TcWPRYDLuxAxcFLc/d3h+ZH8fKK2OO5KdsgbI=
+
+Name: data/c/tags/items/lime_dyes.json
+SHA-256-Digest: bUUvJ8WUYX6zeQ2zUHZGF4sCrxLOygiTkf3t4jZgPTk=
+
+Name: data/c/tags/worldgen/biome/underground.json
+SHA-256-Digest: ZNHuDGRjtcOrFNP4rkS6NYOTYDNMdHTH4DM+tDm0J5E=
+
+Name: data/c/tags/items/spears.json
+SHA-256-Digest: PG/iODvqKpN642eeiBXK4gCVXgdqDB3DvKiyln8cg+w=
+
+Name: data/c/tags/enchantment/fortune.json
+SHA-256-Digest: MtTQflolEPeoQaE11KT51Rbx4qp0vl2cwkCc/tc/3u8=
+
+Name: data/c/tags/worldgen/biome/flower_forests.json
+SHA-256-Digest: vAvKk+rch3Yui1lqN3KsJUxybUC+qqrPv/aQAHtXkU4=
+
+Name: data/c/tags/items/hoes.json
+SHA-256-Digest: W+0/WbNfQrIwgOqopem3ZIgX1v3ipsCpyVYUk56naEc=
+
+Name: data/c/tags/worldgen/biome/end_islands.json
+SHA-256-Digest: B5uJ8blblbXgZes80N2QJPB8+33/ED/B8TbymBJpKkc=
+
+Name: data/c/tags/items/redstone_dusts.json
+SHA-256-Digest: //Ma8yabd7OtFUoJwYbRo34gZjAVOKfQDvW92gjZczE=
+
+Name: data/c/tags/items/copper_ingots.json
+SHA-256-Digest: x7C2AlMIFL3Byf8Pz7CtbyogA+BYRQcduDnov6RjFmg=
+
+Name: data/c/tags/blocks/uncolored_sandstone_blocks.json
+SHA-256-Digest: wKOVVl3btkW6uzgXsLVINjaZQjueax8vhmDP9qE/a3o=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalBiomeTags.cl
+ ass
+SHA-256-Digest: TouAQopeR358FoPL9GcHAw3xVuQxUwT/LVoxypMRh0w=
+
+Name: data/c/tags/worldgen/biome/climate_wet.json
+SHA-256-Digest: hfOy2aasQaPpuUaMAbH9Xxyr852k7AmPMNMX1OZGhXo=
+
+Name: data/c/tags/worldgen/biome/mountain.json
+SHA-256-Digest: vCQfWdUC8lYgtSAe3nbfaRbuKHr8eiPto5I4kW6lZ6U=
+
+Name: data/c/tags/fluids/lava.json
+SHA-256-Digest: YVO5JAU5dzwg9j8uLWuOi0U7mXXcc93i1tivpm2ASmw=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalItemTags.cla
+ ss
+SHA-256-Digest: EC9vBBVN5Q8OfFnBhRAogVHuH0Yb0U7Tm8jalnW/xYc=
+
+Name: data/c/tags/items/milk_buckets.json
+SHA-256-Digest: NTPMgd/2KDzt2sArb/pKJdWPQSC4PaSH555/zv+rLdo=
+
+Name: data/c/tags/worldgen/biome/aquatic.json
+SHA-256-Digest: CnBivglvtlCBrV+jr1GdKlXUaZO8sjyL+7/mWiBPj1o=
+
+Name: data/c/tags/items/pink_dyes.json
+SHA-256-Digest: GJQ0Rad5uvCAzni5dRIDWxpIF6uh5eE3CC/9VtRZOA8=
+
+Name: data/c/tags/items/raw_iron_ores.json
+SHA-256-Digest: KK4y+v/jCQaoioBtoraE0CGksI7OvtPOURsNyXmCxuQ=
+
+Name: data/c/tags/worldgen/biome/plains.json
+SHA-256-Digest: ZAyuQ8m/cMZsYPxcUHmhhDyNTTzfIOLzb+PD9HNrFcM=
+
+Name: data/c/tags/worldgen/biome/icy.json
+SHA-256-Digest: TdCuIxS5O/8Ehu+7m9wEKQCkMPIMxB3ZIIEvjZM98O0=
+
+Name: data/c/tags/worldgen/biome/dead.json
+SHA-256-Digest: B5uJ8blblbXgZes80N2QJPB8+33/ED/B8TbymBJpKkc=
+
+Name: data/c/tags/worldgen/biome/swamp.json
+SHA-256-Digest: 6AEZ/qh3TfRF/U7XNkFO2ky/GjHglght35+EegZ5ZTE=
+
+Name: data/c/tags/blocks/shulker_boxes.json
+SHA-256-Digest: MUPuhZteW9QS9PPptU6Qm/NJkZ06ZEPd3O3YyZSYsAY=
+
+Name: data/c/tags/blocks/buds.json
+SHA-256-Digest: LmEMx7mpryu8P95IIS1LJv8NHjaTH7shZReM56PtI3Y=
+
+Name: data/c/tags/items/light_blue_dyes.json
+SHA-256-Digest: 0vFocgOsZwWlkToNnzQOrGv4YxfRvZ8CY7yapHtyLlY=
+
+Name: data/c/tags/worldgen/biome/tree_savanna.json
+SHA-256-Digest: XTkOR3d/pXVSmufhO2F33pbWKH0iyM1PM+wTIk/V7RA=
+
+Name: data/c/tags/items/red_dyes.json
+SHA-256-Digest: vFiIPOvFAC6ENXk9NeWjN/wYXlNQgkX1TTUiXZobUcg=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalFluidTags.cl
+ ass
+SHA-256-Digest: 9FnAg6eLLQ2gNj4MRnFyKrhPN8HeMhAZZaMFj1hbl84=
+
+Name: data/c/tags/items/sandstone_slabs.json
+SHA-256-Digest: pRDe2R0sQYa6ehzGY0MDAFKH9nHdeN7xeoF3+P88yjM=
+
+Name: data/c/tags/worldgen/biome/mountain_slope.json
+SHA-256-Digest: xkceQiNbrXyydM7i0o9PIxkXHDjz8+ADpE4n5x2RVzY=
+
+Name: data/c/tags/items/netherite_ingots.json
+SHA-256-Digest: Pp0w/aD35yCvTAMvBGvCcpH69tHaWM9mr2VpB5pZbJY=
+
+Name: data/c/tags/items/axes.json
+SHA-256-Digest: iTwBsjvGs/+3k5s4IafJgXkGKB5BZTyFUoCTSEx8oL0=
+
+Name: data/c/tags/items/magenta_dyes.json
+SHA-256-Digest: zzBj5hGRn6UoYwx7C5qY7qAusjzv2vgjOBkk5MKOwS8=
+
+Name: data/c/tags/items/iron_ingots.json
+SHA-256-Digest: IFTUgHIHDhgKLGEDUHpiG3WsgXunS1IaFNI0BSp2XlE=
+
+Name: data/c/tags/items/shields.json
+SHA-256-Digest: 0X6mPBzzPh3Fsi+dIvnY83OjWE17YJFiu3bf8cPbxgo=
+
+Name: data/c/tags/worldgen/biome/jungle.json
+SHA-256-Digest: J/AynV4tKEOoIa+5xIE4NBe+Zg5WnznYgNkhoB05+0U=
+
+Name: data/c/tags/items/brown_dyes.json
+SHA-256-Digest: 6iedOte3NLzOycA2yM1BfV8q85Mn/6XU3yqiUvjjmso=
+
+Name: data/c/tags/items/gold_ingots.json
+SHA-256-Digest: +rP5SqJ4VLP/bya4LW52zaO2iS1Fd7EKyaxYEC+vABc=
+
+Name: data/minecraft/tags/items/shovels.json
+SHA-256-Digest: tmaBpi03uXrMurn33zKstTpy4sposa6dAvitCwdrOQU=
+
+Name: data/c/tags/items/foods.json
+SHA-256-Digest: 5hb/Oi+YjuQN3Ps13lCDpb9i0BAIDfZoRb3WD62cb/Q=
+
+Name: data/c/tags/worldgen/biome/extreme_hills.json
+SHA-256-Digest: Ep+IcObu4MHbZHAr6dqGW3M3BAdet9uMNpAZZwJSs00=
+
+Name: data/c/tags/worldgen/biome/mesa.json
+SHA-256-Digest: lNdDi9zVcgOJfzS9GZyhuchCPb/hSUSKTUbSlmh8kWY=
+
+Name: net/fabricmc/fabric/impl/tag/convention/TagRegistration.class
+SHA-256-Digest: KlIiSIVCUzKM0y6QEhZDT/aaV+nEKb3EbFhCBrAByaI=
+
+Name: data/c/tags/enchantment/looting.json
+SHA-256-Digest: wfs07/qBlCXDKa5Mu+a1CoJTM7NCXZoeqvIdEhq56Ok=
+
+Name: data/c/tags/worldgen/biome/floral.json
+SHA-256-Digest: t3LlmqnfT7Pb1S2WY1THTkPfg/wQ6NHMfXaqU7Tf/xE=
+
+Name: data/c/tags/worldgen/biome/mushroom.json
+SHA-256-Digest: 18jQSuUCPpXE4/ns/RljYV4ciquzyQ08A6Uk0kU1xHk=
+
+Name: data/c/tags/worldgen/biome/tree_deciduous.json
+SHA-256-Digest: gIoBVOAdNejKwwovwPMlZ9jjw2ZXPHE52970BDjqRcw=
+
+Name: data/c/tags/items/pickaxes.json
+SHA-256-Digest: gF49dXq/sCvOZEeVqtpuIuOHTKgmjTIa++2dsjCJuL8=
+
+Name: data/minecraft/tags/items/hoes.json
+SHA-256-Digest: 59RTlHQi8OG6uTV5VziMeptmsowUISGKCWxCdj1Ypno=
+
+Name: data/c/tags/items/coal.json
+SHA-256-Digest: xryrJruKgUwrQpaO/islZCQvQkZvOEZQQ1R62ON8Kv8=
+
+Name: data/c/tags/items/shears.json
+SHA-256-Digest: e90KUAzoJcYCYfQOqRzFtljeTwug+qaH1d+bpBAsp2w=
+
+Name: data/c/tags/items/buds.json
+SHA-256-Digest: LmEMx7mpryu8P95IIS1LJv8NHjaTH7shZReM56PtI3Y=
+
+Name: data/c/tags/worldgen/biome/in_the_end.json
+SHA-256-Digest: zF1wAu4DBd/rIU28Ty1SejD61QbV9ku7RPbJ38EUteQ=
+
+Name: data/c/tags/worldgen/biome/wasteland.json
+SHA-256-Digest: B5uJ8blblbXgZes80N2QJPB8+33/ED/B8TbymBJpKkc=
+
+Name: data/c/tags/items/blue_dyes.json
+SHA-256-Digest: 357W3tqAYFF4ycsQEqB50kCDTMRkKhpDnKGuBnvy7go=
+

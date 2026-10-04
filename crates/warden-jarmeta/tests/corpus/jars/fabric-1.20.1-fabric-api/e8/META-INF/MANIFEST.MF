@@ -1,0 +1,164 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/content/registry/FuelRegistryImpl.class
+SHA-256-Digest: ICoCsn4QHB3n1pR560L+M1dv8fnmthUNUiJGV22MebY=
+
+Name: net/fabricmc/fabric/mixin/content/registry/VillagerEntityAccessor.
+ class
+SHA-256-Digest: L2XNGnOvp/F0q8VhFwBNJ0Jen7ZB+IzeMfMuMO7BBm0=
+
+Name: net/fabricmc/fabric/api/registry/OxidizableBlocksRegistry.class
+SHA-256-Digest: CuY30D4p3Q8zleDSWP3coxow4jIqlf3nlgAfgNU4BTQ=
+
+Name: net/fabricmc/fabric/api/registry/VillagerInteractionRegistries.cla
+ ss
+SHA-256-Digest: iG2H/2yLxfiO6uwoqk21zAXgYaU5HyCDvno8zjOkn24=
+
+Name: net/fabricmc/fabric/impl/content/registry/CompostingChanceRegistry
+ Impl.class
+SHA-256-Digest: DjS1uuhDNN5EpByC0olJo8VAGS9OtFXPj1jM57x/6dE=
+
+Name: net/fabricmc/fabric/mixin/content/registry/LandPathNodeMakerMixin.
+ class
+SHA-256-Digest: DJ/0UZ9qSvvBDHsxO9GcVN4A7ZGqaRy9WaZ/9b34lvU=
+
+Name: fabric-content-registries-v0-refmap.json
+SHA-256-Digest: ySz2MB3CSWXa07kqImO/Cd02LQ8dJJRue5hq+zu012I=
+
+Name: net/fabricmc/fabric/impl/content/registry/LootEntryTypeRegistryImp
+ l.class
+SHA-256-Digest: 3GRBDv3+rcrkwPWZRlHpEhOtqoU0egg/EEguzfwHGmM=
+
+Name: net/fabricmc/fabric/api/registry/StrippableBlockRegistry.class
+SHA-256-Digest: j/uqchE8S+wVIAvQHp13FZwOJayqw8haj+0W6hjghK0=
+
+Name: net/fabricmc/fabric/impl/content/registry/util/package-info.class
+SHA-256-Digest: NekNwo2uRh0GQ2olB9VeAtYD7q9mMYmBUI0SYISnbH4=
+
+Name: net/fabricmc/fabric/mixin/content/registry/FireBlockMixin.class
+SHA-256-Digest: IwHpXNZo42/wqR6OmqMz9RVXpfp7np1iMFHR1BSV6oo=
+
+Name: net/fabricmc/fabric/mixin/content/registry/ShovelItemAccessor.clas
+ s
+SHA-256-Digest: efg3NOi4MJ73MOwnT9O+8odochVFISWsXNYwVIMJLJs=
+
+Name: net/fabricmc/fabric/api/registry/LandPathNodeTypesRegistry.class
+SHA-256-Digest: gL/LwE8KF44S0ElOSBwDBjwQldZXHfcHc4bIDC3B2+k=
+
+Name: net/fabricmc/fabric/mixin/content/registry/HoeItemAccessor.class
+SHA-256-Digest: 5F7ugOUN4/FwupJh0/0coxTygkCCd42fr+3BV+PfRlY=
+
+Name: net/fabricmc/fabric/impl/content/registry/package-info.class
+SHA-256-Digest: nHzTHvbbc2OxUSj+hq0vmVZwfVhp0CRftLOL+7H07XI=
+
+Name: fabric-content-registries-v0.accesswidener
+SHA-256-Digest: nB/Xv5KwITPHDWenDSGMfMk1/5HgtD+uXGoE7x7wyds=
+
+Name: net/fabricmc/fabric/api/registry/LandPathNodeTypesRegistry$StaticP
+ athNodeTypeProvider.class
+SHA-256-Digest: jOj64xgohIKHy9ARgEA9UW6I8tSL009ovA/fRcVHu5w=
+
+Name: net/fabricmc/fabric/mixin/content/registry/FarmerWorkTaskAccessor.
+ class
+SHA-256-Digest: bxsEznrkvDv1iyKgqXLHu4UsHDcR3U7Weo5sFz8LdDA=
+
+Name: net/fabricmc/fabric/api/registry/CompostingChanceRegistry.class
+SHA-256-Digest: fgDhzNNeQUaipcX9bpHf3S+BpyX9lEAmdhwm3ApTlW4=
+
+Name: net/fabricmc/fabric/mixin/content/registry/AxeItemAccessor.class
+SHA-256-Digest: JskAq2vdFSJwEIXuog6SY8SuTW+R4Dsso9Tzjwh0CsA=
+
+Name: net/fabricmc/fabric/api/registry/LandPathNodeTypesRegistry$Dynamic
+ PathNodeTypeProvider.class
+SHA-256-Digest: YHSW0UfvK2s4WHxT/FuJfBeBU0VRL9NbXEhjtSWn+Gs=
+
+Name: net/fabricmc/fabric/mixin/content/registry/OxidizableMixin.class
+SHA-256-Digest: AZh65gseSoZNjr4CY30qQAT4I2s/+NH4zFSKDJd5VV4=
+
+Name: net/fabricmc/fabric/api/registry/FuelRegistry.class
+SHA-256-Digest: oMoyuNy89s9DnIHVtOKhPyrAkbeilM/vN+k50F3Tdr4=
+
+Name: net/fabricmc/fabric/api/registry/LootEntryTypeRegistry.class
+SHA-256-Digest: cejgqbrKGYKgLYYv2Q9AC3dmsRy5MYG70Y7UwQwD2LI=
+
+Name: net/fabricmc/fabric/impl/content/registry/util/ImmutableCollection
+ Utils.class
+SHA-256-Digest: vtieJRzYbyJKtpHXBAOAs+A7Msej192rtl0aGM8IGlo=
+
+Name: net/fabricmc/fabric/api/registry/FlammableBlockRegistry.class
+SHA-256-Digest: Dne1YVjbqXuAKMYds16Nl7PIv26EupGpey7Yl/5ofoo=
+
+Name: net/fabricmc/fabric/api/registry/FlattenableBlockRegistry.class
+SHA-256-Digest: PTl194bSjjIcF/bQWwV9MP/XmV9ROY3kMAQpnJ+lnYU=
+
+Name: net/fabricmc/fabric/mixin/content/registry/AbstractFurnaceBlockEnt
+ ityMixin.class
+SHA-256-Digest: B7Nmqw3b2+btfaAGjz4M03sMzYnPOtMsCq4yyoRRynI=
+
+Name: net/fabricmc/fabric/impl/content/registry/FireBlockHooks.class
+SHA-256-Digest: W6Iwr6svGye0LUXXpFMkkRk5jIjeUiXztK44JvJ/uO4=
+
+Name: net/fabricmc/fabric/api/util/Item2ObjectMap.class
+SHA-256-Digest: oV2oRIf6Ee2a/5ehetnG1CkAgJQSltWQ8mdU9hNUURQ=
+
+Name: fabric-content-registries-v0.mixins.json
+SHA-256-Digest: 1dV6KVnP7i5gxz0QEuX87D8TyXFqsL0qcg0JLnFUFRE=
+
+Name: fabric.mod.json
+SHA-256-Digest: z7j7UViTxpKBxNaMJMsXaKoGOn5ZuGEue/RTb+0j4Pg=
+
+Name: net/fabricmc/fabric/api/registry/LandPathNodeTypesRegistry$PathNod
+ eTypeProvider.class
+SHA-256-Digest: +ctOjZAcK20UhJPboPMUYXxmSIkmEWqP5eMr0odv1v8=
+
+Name: net/fabricmc/fabric/api/registry/TillableBlockRegistry.class
+SHA-256-Digest: hezBNbws6+UWVlmcNatp27T4YMm6CjNk6dcXf7LFzQo=
+
+Name: assets/fabric-content-registries-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/registry/FlammableBlockRegistry$Entry.clas
+ s
+SHA-256-Digest: OnK/aL+mdYdgqWM+3DxlQJGUlWShH5jjMbJMvbWF0LA=
+
+Name: net/fabricmc/fabric/mixin/content/registry/GiveGiftsToHeroTaskAcce
+ ssor.class
+SHA-256-Digest: uqmItWUUQ2hjw1F4ZeOtGJWGVzlpit/lYllcvtlmhl8=
+
+Name: net/fabricmc/fabric/api/registry/FabricBrewingRecipeRegistry.class
+SHA-256-Digest: EoanWVDx+sMICnR2yTpxRIHLxy0qejN0h8OUBHDwdwc=
+
+Name: net/fabricmc/fabric/impl/content/registry/FlammableBlockRegistryIm
+ pl.class
+SHA-256-Digest: 0WV2ClWqjOQm4vEdfApQ19qnJNbwLyetW/5h1JLG3Kw=
+
+Name: net/fabricmc/fabric/mixin/content/registry/package-info.class
+SHA-256-Digest: MuLj5kIknidCumoooPt+AOU2Tru/CVOQ5LWtYYE4Q0M=
+
+Name: net/fabricmc/fabric/api/registry/SculkSensorFrequencyRegistry.clas
+ s
+SHA-256-Digest: PkJGRsnN57Jt6r+6L2PEVOpaQgzKg/lkNCklN9oA2Q4=
+
+Name: LICENSE-fabric-content-registries-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/util/Block2ObjectMap.class
+SHA-256-Digest: 6eFdwPWPn4ftfnTS1RWH4ALeZmsIACUFeGIDRQOtrm8=
+
+Name: net/fabricmc/fabric/mixin/content/registry/HoneycombItemMixin.clas
+ s
+SHA-256-Digest: pPj5vOwGBmSFZNUFVUV65BmRb1Nv0VxgdfL+2v0cMWk=
+

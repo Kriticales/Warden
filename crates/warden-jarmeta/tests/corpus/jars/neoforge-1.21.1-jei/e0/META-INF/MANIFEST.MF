@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Specification-Title: MezzConfig
+Specification-Vendor: mezz
+Specification-Version: 0.5.12
+Implementation-Title: jar
+Implementation-Version: 0.5.12
+Implementation-Vendor: mezz
+

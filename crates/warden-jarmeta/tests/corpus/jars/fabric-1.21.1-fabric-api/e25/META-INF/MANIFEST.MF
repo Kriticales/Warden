@@ -1,0 +1,239 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-object-builder-api-v1-ref
+ map.json;fabric-object-builder-v1.client.mixins.json;net/fabricmc/fabri
+ c/api/object/builder/v1/client/model/FabricModelPredicateProviderRegist
+ ry.class;net/fabricmc/fabric/mixin/object/builder/client/EntityModelLay
+ ersMixin.class;net/fabricmc/fabric/mixin/object/builder/client/HangingS
+ ignEditScreenMixin.class;net/fabricmc/fabric/mixin/object/builder/clien
+ t/ModelPredicateProviderRegistryAccessor.class;net/fabricmc/fabric/mixi
+ n/object/builder/client/ModelPredicateProviderRegistrySpecificAccessor.
+ class;net/fabricmc/fabric/mixin/object/builder/client/TexturedRenderLay
+ ersMixin.class;net/fabricmc/fabric/mixin/object/builder/client/package-
+ info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/mixin/object/builder/EntityTypeBuilderMixin.cl
+ ass
+SHA-256-Digest: iqUtSEA/e2WsaSc4Umwh9QxjcTlRtI+SOb4UqNufOTY=
+
+Name: net/fabricmc/fabric/mixin/object/builder/package-info.class
+SHA-256-Digest: smPACkp9eiTtSMYjYPGjMRFGSb4RrU15Oqu/dS+qAH0=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/villager/VillagerTypeHel
+ per.class
+SHA-256-Digest: Nto+KQBKe0C0Xu7Dg/8T5DRmquVre7pWJfQq9k9778k=
+
+Name: net/fabricmc/fabric/mixin/object/builder/client/EntityModelLayersM
+ ixin.class
+SHA-256-Digest: ofa1ccv4ck0Wv8ftUE+LOsD7+uiEvK8PWD8rSkj0MSQ=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityType$
+ Builder$Mob.class
+SHA-256-Digest: 2HTCm6guJPYnL1CRQEXJNtG/K9wQeuwnUhqdymsJqIU=
+
+Name: client-fabric-object-builder-api-v1-refmap.json
+SHA-256-Digest: nmb+UDWEUBYYeu2RbbydY/zrHBgCLXmsGBrZTtkT1Xw=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlock
+ EntityType$Builder.class
+SHA-256-Digest: tG0Tbwv+py/XJIbCiQDkMwbBN83Fa8aftpeeUG7d0cc=
+
+Name: net/fabricmc/fabric/mixin/object/builder/PersistentStateManagerMix
+ in.class
+SHA-256-Digest: dgLhSh6ya4FPcr5NLxi5GDDAZ9hRnM78ucoXJ0QvKjw=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/MinecartComparato
+ rLogic.class
+SHA-256-Digest: 0hYAjTsIOrE79/u8WguVnQlGeQL6qoyAuojWwLgxTe4=
+
+Name: net/fabricmc/fabric/mixin/object/builder/client/HangingSignEditScr
+ eenMixin.class
+SHA-256-Digest: B9oXFCNbVr7/3DATvhFxsMBMZPru1+cbzYN4kCupiak=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityType.
+ class
+SHA-256-Digest: B4Gu3StLdg6PNR3sn7m2+uSuz5l2kit43l2kMWAtMjY=
+
+Name: net/fabricmc/fabric/mixin/object/builder/DefaultAttributeRegistryM
+ ixin.class
+SHA-256-Digest: n00sG6WaDX348VNoW9isCKIvl1AZ3sPuZWek4p+50PI=
+
+Name: net/fabricmc/fabric/impl/object/builder/TradeOfferInternals$Wander
+ ingTraderOffersBuilderImpl.class
+SHA-256-Digest: njy338R9RZOLTbm2rgA3i5EvHXxT+lu8oRIY5aeCEmM=
+
+Name: net/fabricmc/fabric/mixin/object/builder/DefaultAttributeRegistryA
+ ccessor.class
+SHA-256-Digest: XPZcmn/2NYaPEtrr98CH4GfSOKjWFLnUzer6wOZQZFs=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/client/model/FabricModel
+ PredicateProviderRegistry.class
+SHA-256-Digest: B95Yo6pXZdz/AbpOD88Iyg/n7OaS8r1R/+D+Wgtm0MQ=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/type/WoodTypeBuild
+ er.class
+SHA-256-Digest: H9SumWYeKllJSN/vlWhUpy2ceHW9VbqCb4KbvwER9Lw=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/trade/TradeOfferHelper$V
+ illagerOffersAdder.class
+SHA-256-Digest: KkkjkIs5CXixaJO8PU85eF51fxn5YgAUTxsdwsVJWiM=
+
+Name: net/fabricmc/fabric/impl/object/builder/TradeOfferInternals.class
+SHA-256-Digest: Cxgd3wDeccOwfA6Uz2GbEh6Qqthq4A6tka3/Z8ntOz0=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/world/poi/PointOfInteres
+ tHelper.class
+SHA-256-Digest: uAq496sY2wi1ejBp4unUuThag/VC/kNaqPQhculF44g=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityTypeB
+ uilder.class
+SHA-256-Digest: jwrx4jJiSKTkuffJxxYlzPwEpL+l51GVCO5phMr6EOQ=
+
+Name: net/fabricmc/fabric/mixin/object/builder/BlockEntityTypeMixin.clas
+ s
+SHA-256-Digest: LHJGYK1LOGQ9qJeDoPkKl3AzIUxr8w3sLCbM9Yzqk2M=
+
+Name: fabric.mod.json
+SHA-256-Digest: ParxDNKmjxvYEDuKXWZ73B3bTodx8vktrW2wkRYHlv4=
+
+Name: net/fabricmc/fabric/mixin/object/builder/client/ModelPredicateProv
+ iderRegistrySpecificAccessor.class
+SHA-256-Digest: NDNl7q359L98yAwL9cX6Z2A/ToLClTpZom6RW95XNTE=
+
+Name: net/fabricmc/fabric/mixin/object/builder/client/package-info.class
+SHA-256-Digest: kvjAi6TkfdRvuamT1ew5b6kVju9M7I3oU1TK8O49auY=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/MinecartComparato
+ rLogicRegistry.class
+SHA-256-Digest: 6TghNATVP6eVi++mkfVOgleS5wSkbS0JRLrL+LhrI3o=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlock
+ EntityTypeBuilder.class
+SHA-256-Digest: XQUvAZKLB3+trKtPwj0x3rc21urDfZ39FVwKgwFlGkM=
+
+Name: net/fabricmc/fabric/mixin/object/builder/client/ModelPredicateProv
+ iderRegistryAccessor.class
+SHA-256-Digest: nSTaRK2+FpXRDRjhF8i0iI7iApc5/5x0JzeqcFiDq4g=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/trade/TradeOfferHelper.c
+ lass
+SHA-256-Digest: VDEeU8U7isLqonfbgMhb/yk85U1L2WuuIJT2QzF6hiE=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/trade/TradeOfferHelper$W
+ anderingTraderOffersBuilder.class
+SHA-256-Digest: s/bmzq0MGkHP3D+EGEDP40SYh0S4lz9x5wtQ3kwsedQ=
+
+Name: net/fabricmc/fabric/impl/object/builder/FabricEntityTypeImpl$Build
+ er$Living.class
+SHA-256-Digest: 0qK+LE7pzm/nGma0x/GFKF/lgANjoj2BaDnYSMDGqRw=
+
+Name: fabric-object-builder-api-v1.accesswidener
+SHA-256-Digest: LztOJjh8IXy1KPMAsl9Ps6Qo13hrrZX6fmxnARGj0fs=
+
+Name: net/fabricmc/fabric/mixin/object/builder/AbstractBlockSettingsAcce
+ ssor.class
+SHA-256-Digest: YaBwzwHrMdPCuhMmg3VW7nLe/Qo3lSw6WQe/jUnDUuE=
+
+Name: fabric-object-builder-api-v1-refmap.json
+SHA-256-Digest: WCCbPuBS2odApT7C86o5GcosRFX22SBtD631cHzT4cw=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlock
+ EntityTypeBuilder$Factory.class
+SHA-256-Digest: C5nzI2SRGFWlxHILK0vDVxW9b0yd1NDoYol6r+c27j0=
+
+Name: net/fabricmc/fabric/mixin/object/builder/client/TexturedRenderLaye
+ rsMixin.class
+SHA-256-Digest: Eyk+cLYZVPlHoRbEdAIE8ilDWtCKiQQ2hJLexwmg9vw=
+
+Name: net/fabricmc/fabric/impl/object/builder/FabricEntityTypeImpl.class
+SHA-256-Digest: HdMxEtEqKGSpqhzx80c5cC4ABcB95lmdOxYcb/O0bkY=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/FabricBlockSetting
+ s.class
+SHA-256-Digest: ugjp/VZPLkTT0GPvdttxU/Ni4wu+Evv5q5pyAgfeGGM=
+
+Name: net/fabricmc/fabric/mixin/object/builder/BlockEntityTypeBuilderMix
+ in.class
+SHA-256-Digest: UDS3EhGGetL2NMXRxH/MgnnWtNPwHwhIo76pGw/UO6Y=
+
+Name: fabric-object-builder-v1.mixins.json
+SHA-256-Digest: OTPBIP5seyLV21xXaJQ30357ZqjRN7twCw7vKTCdOcM=
+
+Name: assets/fabric-object-builder-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricDefaultAttr
+ ibuteRegistry.class
+SHA-256-Digest: K1seF3w1qXTvBKe2eYLlUnAkXfrD+rEOk7d1/3gLc1k=
+
+Name: LICENSE-fabric-object-builder-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/object/builder/AbstractBlockAccessor.cla
+ ss
+SHA-256-Digest: 0L2qiO6bJs81PfaBbeh/0m/thYWxkbHvEVVvyCGbYCw=
+
+Name: net/fabricmc/fabric/impl/object/builder/FabricEntityTypeImpl$Build
+ er.class
+SHA-256-Digest: JLuJcSqwgof+OhYdS3Gy5W4Cdv9vvyWfk3ZINXLlFu0=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/type/BlockSetTypeB
+ uilder.class
+SHA-256-Digest: iIWpEenC+xxhwRrBEmqTMuuYQBkP3mnLsPfVH3hg4b8=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlock
+ EntityType.class
+SHA-256-Digest: VeABT8N7dUW8nGnIUzC1ESX1qMq106cFrW6T6tuKARg=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/villager/VillagerProfess
+ ionBuilder.class
+SHA-256-Digest: JAVS7e8BkIa6J3EEIrtA4thjzznu8sNGZt0lFB0JhQY=
+
+Name: net/fabricmc/fabric/mixin/object/builder/TradeOffersTypeAwareBuyFo
+ rOneEmeraldFactoryMixin.class
+SHA-256-Digest: mNRN3yx8IS5YHJfalh/JMwgPb/eqoJUobO74pKbqTuI=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityTypeB
+ uilder$Living.class
+SHA-256-Digest: WCu6LtRYsd0J3qfCwLp51PtOQkz/SxaZ3870e3C8/yw=
+
+Name: net/fabricmc/fabric/impl/object/builder/FabricEntityTypeImpl$Build
+ er$Mob.class
+SHA-256-Digest: ZRmOn7B538BaHUx7/KtW8H2NbxEhNNXCAQ56aqG9aC0=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityTypeB
+ uilder$Mob.class
+SHA-256-Digest: afa3Xo41nrVApWsGq864Lrpi2gIvvu/oH0gkanfhr5o=
+
+Name: net/fabricmc/fabric/mixin/object/builder/EntityTypeMixin.class
+SHA-256-Digest: +xy/TFLjcQEIC0ARZF7HX+LwJ6iktAVgIvq4Km0S5n4=
+
+Name: net/fabricmc/fabric/mixin/object/builder/DetectorRailBlockMixin.cl
+ ass
+SHA-256-Digest: Fpl7Ef0Sjs2oUkqVtHWM4qYCLyHPnVX3LTokZRLebOU=
+
+Name: fabric-object-builder-v1.client.mixins.json
+SHA-256-Digest: S1h3ILl9SPGWbJR5U2ZKp4VtVxCSj24QsLC4ZoBs0gs=
+
+Name: net/fabricmc/fabric/impl/object/builder/package-info.class
+SHA-256-Digest: Kp35yeR70z3ZSxLeZla64ogNlyEi6by7lRfrW35Kk5g=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityType$
+ Builder$Living.class
+SHA-256-Digest: zILJn612Mqdxs+x/2PITvDM45Q9wk8uAXV7MwFwbbos=
+
+Name: net/fabricmc/fabric/api/object/builder/v1/entity/FabricEntityType$
+ Builder.class
+SHA-256-Digest: 99NSZC0SvoHq2ZnciilY691BJngyw/Bt+jrFoArkzv8=
+

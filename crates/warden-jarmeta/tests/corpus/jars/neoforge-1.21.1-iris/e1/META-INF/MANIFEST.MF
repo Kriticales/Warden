@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Implementation-Title: org.anarres#jcpp;1.4.14
+Module-Origin: git@github.com:shevek/jcpp.git
+Build-Date: 2019-08-19_12:23:46
+Build-Id: LOCAL
+Implementation-Version: 1.4.14
+Build-Number: LOCAL
+Built-By: shevek
+Change: f658426
+Module-Source: 
+Branch: master
+Built-Status: integration
+Gradle-Version: 4.10.3
+Build-Job: LOCAL
+Built-OS: Linux
+X-Compile-Target-JDK: 1.5
+Build-Host: starling
+X-Compile-Source-JDK: 1.5
+Created-By: 1.8.0_222-8u222-b10-1ubuntu1~19.04.1-b10 (Private Build)
+Build-Java-Version: 1.8.0_222
+

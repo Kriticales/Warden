@@ -1,0 +1,133 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-game-rule-api-v1-refmap.j
+ son;fabric-game-rule-api-v1.client.mixins.json;net/fabricmc/fabric/impl
+ /gamerule/widget/DoubleRuleWidget.class;net/fabricmc/fabric/impl/gameru
+ le/widget/EnumRuleWidget.class;net/fabricmc/fabric/impl/gamerule/widget
+ /package-info.class;net/fabricmc/fabric/mixin/gamerule/client/EditGameR
+ ulesScreenAccessor.class;net/fabricmc/fabric/mixin/gamerule/client/Edit
+ GameRulesScreenRuleListWidgetMixin.class;net/fabricmc/fabric/mixin/game
+ rule/client/RuleListWidgetVisitorMixin.class;net/fabricmc/fabric/mixin/
+ gamerule/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-game-rule-api-v1-refmap.json
+SHA-256-Digest: YvxSxGpGJa2KWj9MJsbeHrjiZaSt+TEdzl1PyFaqmGk=
+
+Name: net/fabricmc/fabric/impl/gamerule/rule/BoundedIntRule.class
+SHA-256-Digest: Q1hxrDK9yKVB+kxR+cqx/mnGMzglLmu36Kxite8u2Q0=
+
+Name: net/fabricmc/fabric/impl/gamerule/widget/package-info.class
+SHA-256-Digest: yhJW2yn/1djA4eNAL831ijRKOCjtFTcblgv5GdeM5Ww=
+
+Name: net/fabricmc/fabric/mixin/gamerule/client/EditGameRulesScreenRuleL
+ istWidgetMixin.class
+SHA-256-Digest: S+Ojk8xJpHW83J76vPgLRoXGEaHUvF3kNZFRKCCZpQQ=
+
+Name: net/fabricmc/fabric/mixin/gamerule/client/RuleListWidgetVisitorMix
+ in.class
+SHA-256-Digest: 9xo2tJcKg48v0SpmfcgB0hx2PtJ4MwS29vt4GY9k6UM=
+
+Name: LICENSE-fabric-game-rule-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/gamerule/package-info.class
+SHA-256-Digest: 2Cua+nksbcz9+Z0I9j0mdyRR+ZPhTt/jhCkLCPkldlM=
+
+Name: fabric-game-rule-api-v1.accesswidener
+SHA-256-Digest: VUWxBXJ5Y8DePtH8S3WA6rNEqKmq8PohdA+FHJclTIE=
+
+Name: net/fabricmc/fabric/mixin/gamerule/GameRulesAccessor.class
+SHA-256-Digest: TwleE5K8hBjD3XN56e7B79vbMrKqq44tUZiQR1zZEcU=
+
+Name: net/fabricmc/fabric/impl/gamerule/EnumRuleCommand.class
+SHA-256-Digest: GehnySAGQmnbbVR0ynmfgUrKX+DNCUJPzmDbkyBOhP8=
+
+Name: net/fabricmc/fabric/mixin/gamerule/client/package-info.class
+SHA-256-Digest: f5JS1ToR8xbJL8pG3ZLJRs2D485tF1hVUMPe3hhMSbY=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/GameRuleFactory.class
+SHA-256-Digest: wKuixjTv7rHR203Q0X0dLOJodi/q1Gz6JHABoSDhrLQ=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/rule/EnumRule.class
+SHA-256-Digest: xw0uMibdQvlJHZ/VWMD70DkOVGSYI6Am2gyJgSLWBxU=
+
+Name: net/fabricmc/fabric/mixin/gamerule/GameRuleCommandAccessor.class
+SHA-256-Digest: qMUzglstkJHw0te9qkK7sQuxssfpmmzC9liKI487M5A=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/FabricGameRuleVisitor.class
+SHA-256-Digest: D0n9q2tIRt9UuvGaoffW4WTKzPSfCIS4tKiT1JkyWSg=
+
+Name: net/fabricmc/fabric/impl/gamerule/RuleKeyExtensions.class
+SHA-256-Digest: DCcGa3IUGg2kYpBuyzz4Sa3sFUYW4UJUAi+u+GkKGPI=
+
+Name: net/fabricmc/fabric/impl/gamerule/widget/DoubleRuleWidget.class
+SHA-256-Digest: LZpqKlxpl8cODJgUH0zx+PVSEl6VkCSYGBi3eeC107o=
+
+Name: net/fabricmc/fabric/impl/gamerule/widget/EnumRuleWidget.class
+SHA-256-Digest: nAMhJ1Hja+Kf4gkSHuzqiDJNOT5EFAnO9a24GvoJ0cs=
+
+Name: client-fabric-game-rule-api-v1-refmap.json
+SHA-256-Digest: vzf32ZuppVJsiNkcw4GIT7tlSDvi68a9yVf86FpD0Fs=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/CustomGameRuleCategory.class
+SHA-256-Digest: DOLamQ5Q5hcLzX0ARX8EBXBT+789lfJf3v9EPEhSLJE=
+
+Name: net/fabricmc/fabric/mixin/gamerule/package-info.class
+SHA-256-Digest: T2u+KW3aAEJIfeJrgDeUse+6AksXEYgBsYHVVCTRdPQ=
+
+Name: fabric-game-rule-api-v1.mixins.json
+SHA-256-Digest: iWUPAOt4oZQ7+bV9gU0pm9nekoVtnjalaXtIT3EYmH8=
+
+Name: net/fabricmc/fabric/impl/gamerule/EnumRuleType.class
+SHA-256-Digest: YBLkAu5cR1fHXkYJ7c6LWqZnG0PXsO2nLm5RClkHEcE=
+
+Name: net/fabricmc/fabric/impl/gamerule/rule/package-info.class
+SHA-256-Digest: OIMpFHuOnIzWdn3guvtACrusD7SlF9zdgiISusMYPqQ=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/GameRuleRegistry.class
+SHA-256-Digest: qe5sJp1zo6biU8B7zTNxkyTlx4oBnVZAcUIzVyLuBno=
+
+Name: net/fabricmc/fabric/mixin/gamerule/GameRuleCommandVisitorMixin.cla
+ ss
+SHA-256-Digest: 1jGsTtHNm6Fi8ApFwMrr1MkectJUPzzfSC1b8DL9fC8=
+
+Name: fabric.mod.json
+SHA-256-Digest: s9dFjaZsVqXC1l+WxSbygzpMnG+TRO3rBgWdM1OlVxE=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/rule/DoubleRule.class
+SHA-256-Digest: mpXix2tNtY/zmKZQqlttSL7owl5xv5fNSmpEQRq3Tio=
+
+Name: net/fabricmc/fabric/mixin/gamerule/GameRulesBooleanRuleAccessor.cl
+ ass
+SHA-256-Digest: JTq0Q8SU3tpbx/lR2IZhcHXQb49TG/9vZc4giBPUJU8=
+
+Name: net/fabricmc/fabric/mixin/gamerule/GameRulesIntRuleAccessor.class
+SHA-256-Digest: L3Iu0XePFaW4oyoSYhfgaFwRAV0nkCSTJta3hkka984=
+
+Name: fabric-game-rule-api-v1.client.mixins.json
+SHA-256-Digest: lgWf650cXVBtxyNgRAy2W5VZ7mMggQXpUJdO56U0oxs=
+
+Name: net/fabricmc/fabric/mixin/gamerule/GameRulesKeyMixin.class
+SHA-256-Digest: SysflyO/hcEcd8x/OM4N1k98pfnuw0flqEfUCOOU8fk=
+
+Name: net/fabricmc/fabric/mixin/gamerule/client/EditGameRulesScreenAcces
+ sor.class
+SHA-256-Digest: kHQE2skYSJmFL15liSPb/YgTKJYp/TepG8PSjpRYPUQ=
+
+Name: assets/fabric-game-rule-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/gamerule/v1/rule/ValidateableRule.class
+SHA-256-Digest: S7G0mPpRqkBHzqJ+y08kfSoSb1HKvJfNSQaNhK792VA=
+

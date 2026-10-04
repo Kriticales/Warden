@@ -1,0 +1,128 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-connector (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "manifest": {
+    "implementationTitle": "connector",
+    "implementationVersion": "2.0.0-beta.17+1.21.1",
+    "automaticModuleName": "org.sinytra.connector"
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/runtime-1.0.0+1.21.1.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.sinytra.adapter",
+        "artifact": "runtime",
+        "artifactVersion": "1.0.0+1.21.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.0+1.21.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "mixinConfigs": [
+            "adapter.init.mixins.json"
+          ],
+          "fmlModType": "GAMELIBRARY",
+          "implementationVersion": "1.0.0+1.21.1"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/org.sinytra.connector-2.0.0-beta.17+1.21.1-mod.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.sinytra",
+        "artifact": "connector-mod",
+        "artifactVersion": "2.0.0-beta.17+1.21.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.0.0-beta.17+1.21.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "connector",
+            "version": "2.0.0-beta.17+1.21.1",
+            "name": "Sinytra Connector",
+            "description": "Connector is a translation/compatibility layer that allows running Fabric mods on NeoForge.\nIts goal is to bring the two platforms closer together, saving developers time and effort maintaining their mods for\nmultiple platforms at once, as well as allowing players to play all their favourite mods in one modpack.",
+            "authors": [
+              "Su5eD"
+            ],
+            "licenses": [
+              "MIT"
+            ],
+            "dependencies": [
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.1.97,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.21,1.22)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.21,1.22)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.1.97,)"
+            },
+            "mixins": [
+              "connector.mixins.json"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "*"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "2.0.0-beta.17+1.21.1"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

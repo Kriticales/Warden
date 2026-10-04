@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 3.3.6+25eff73b77
+MixinConfigs: fabric-transfer-api-v1.mixins.json
+

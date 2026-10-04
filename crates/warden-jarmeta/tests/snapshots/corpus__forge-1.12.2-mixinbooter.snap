@@ -1,0 +1,37 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-mixinbooter (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "mixinbooter",
+      "version": "11.17",
+      "name": "MixinBooter",
+      "description": "De facto standard on Minecraft 1.8 - 1.12.2 that provides Mixins & standard API for mods to write mixins comfortably",
+      "authors": [
+        "Rongmario"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.12.2"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "zone.rong.mixinbooter.MixinBooterPlugin",
+    "mixinConfigs": [
+      "mixin.mixinbooter.init.json"
+    ]
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

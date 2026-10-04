@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 2.1.29+4d0bbcfa77
+MixinConfigs: fabric-item-api-v1.mixins.json,fabric-item-api-v1.client.m
+ ixins.json
+

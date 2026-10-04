@@ -1,0 +1,15 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "com.github.dima_dencep.mods",
+        "artifact": "NanoLiveConfig"
+      },
+      "version": {
+        "range": "[1.2.1,)",
+        "artifactVersion": "1.2.1"
+      },
+      "path": "META-INF/jars/NanoLiveConfig-1.2.1.jar"
+    }
+  ]
+}

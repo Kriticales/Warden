@@ -1,0 +1,214 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-data-attachment-api-v1-re
+ fmap.json;fabric-data-attachment-api-v1.client.mixins.json;net/fabricmc
+ /fabric/impl/attachment/client/AttachmentSyncClient.class;net/fabricmc/
+ fabric/impl/attachment/client/package-info.class;net/fabricmc/fabric/mi
+ xin/attachment/client/ClientPlayNetworkHandlerMixin.class;net/fabricmc/
+ fabric/mixin/attachment/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/mixin/attachment/ChunkSerializerMixin.class
+SHA-256-Digest: JaaFsDHmoZEfadeiQLqxP9ZWt/z10HE8kGsEKvi8ohE=
+
+Name: fabric-data-attachment-api-v1.mixins.json
+SHA-256-Digest: Fk8L8l8/kEeXImv6fsfL2Vwo5fC54ipe9kk3qQQeOOY=
+
+Name: net/fabricmc/fabric/mixin/attachment/package-info.class
+SHA-256-Digest: iItpdduYUndsmMrQTd4G8vY378spGZ9tDzCOk6/uLb0=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/s2c/RequestAcceptedAttach
+ mentsPayloadS2C.class
+SHA-256-Digest: NgAnGHk+48uAxRwyeMSD8wIzLLTopXKZ6XzOrp3gnEI=
+
+Name: net/fabricmc/fabric/mixin/attachment/ServerWorldMixin.class
+SHA-256-Digest: /GPLQzzGHM54ka2lRp/AmpC7HMe1jUaVh2JsEMYgTXk=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentSync$Attachment
+ SyncTask.class
+SHA-256-Digest: wL8QlxL2z8qupXaFAees8lgoVY6tT5dfFgBuvnbcODU=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentRegistryImpl.class
+SHA-256-Digest: Ofx1HPS+I2x+n4s2SiIrcQDQ9210cDZIoJZFRzJWGx0=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentTargetInfo$Bloc
+ kEntityTarget.class
+SHA-256-Digest: oO34Qtbs0ViDpVf1GkmvD8OSB5YvRa2EPAbrPOqtA98=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentSync.class
+SHA-256-Digest: efQTbCsg8sTUncrbsvpqQHVAy6az1C2WjbD8IO05xs0=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentTargetInfo$Chun
+ kTarget.class
+SHA-256-Digest: HzNk572jPtq65cA3nsO3YfUB5d06eu9telY8OU/Brko=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/package-info.class
+SHA-256-Digest: bdBVJB7PKgf0JaKo2CVN5z2plDfyUtUTFJ86E+7J/ZY=
+
+Name: assets/fabric-data-attachment-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/s2c/AttachmentSyncPayload
+ S2C.class
+SHA-256-Digest: YECZUraGxBXGg5Dy1N86hEXTqZo7yFIE/ndgswcNqP0=
+
+Name: LICENSE-fabric-data-attachment-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: fabric-data-attachment-api-v1-refmap.json
+SHA-256-Digest: 1sDgKbpPJ2UkEjxtyA+9k26sB3G+GWQ06Ox8W4OA/DM=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentTypeImpl.class
+SHA-256-Digest: 1TxIUVEEXbqK1osLwxUW33Ar56LMVIdv9lxkKyfPPIQ=
+
+Name: net/fabricmc/fabric/impl/attachment/client/package-info.class
+SHA-256-Digest: QxEBv2NTszBgwi1DREx0SkSF6HkPQJ8aMwtFrIj1d2Y=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentRegistryImpl$Builder
+ Impl.class
+SHA-256-Digest: rbKFOZo1qr3qYxEssZnnP1AMEiprl0fpvbpsi7YIVVw=
+
+Name: net/fabricmc/fabric/impl/attachment/package-info.class
+SHA-256-Digest: FVnF79CSf1bDG+oN95RjQ0spP4klDBDM31xWzbA6LNk=
+
+Name: net/fabricmc/fabric/mixin/attachment/EntityMixin.class
+SHA-256-Digest: 793fHgNHtWdAUV0JUAIvJVfMEKLB3QCcaKJDu6gNMKY=
+
+Name: net/fabricmc/fabric/mixin/attachment/BannerBlockEntityMixin.class
+SHA-256-Digest: 7rMLpCkUsGX0b90WggTzrAPcG5udlC/kECiT4jrhKRw=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentTargetInfo$Worl
+ dTarget.class
+SHA-256-Digest: WQ5sIfCtrthpgMGJGnViuk89nDlG603rSoBn+UliYko=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/c2s/AcceptedAttachmentsPa
+ yloadC2S.class
+SHA-256-Digest: 2u+jhrUfByBiqUuJMdMO3kjY9Nklstq/TYfGTl6y178=
+
+Name: fabric.mod.json
+SHA-256-Digest: a2GAxXhFl+vtshsxz0IvKak8STlW9pkXbUtc2KE2TkA=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentTargetImpl.class
+SHA-256-Digest: 42XREB/gsHAxIqby7u4itTshhsufrFvbAzyy5wNOHJM=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentPersistentState.clas
+ s
+SHA-256-Digest: dD7E++CnzrEo2Io3awtRDknuHweQYPzuVymmTTM+51Y=
+
+Name: net/fabricmc/fabric/api/attachment/v1/AttachmentType.class
+SHA-256-Digest: hZgGF6AUo1lJHBJtcVDu2G/k4RW0IS9bZGnq//oIYrM=
+
+Name: net/fabricmc/fabric/api/attachment/v1/AttachmentRegistry$Builder.c
+ lass
+SHA-256-Digest: Nq/Hf0IxmnXeXPAK8kF1Sv64bP3GYUa6+fa2HqqzQyk=
+
+Name: net/fabricmc/fabric/impl/attachment/client/AttachmentSyncClient.cl
+ ass
+SHA-256-Digest: +3MULuwSu/KiRwQhAUlaAW6B+Wix5bLfKB9KUY9zKBQ=
+
+Name: net/fabricmc/fabric/api/attachment/v1/AttachmentTarget.class
+SHA-256-Digest: AtcU9tVOpvTbzWdbezRwwp/XhcgViuUaA4zCKXMDLhA=
+
+Name: client-fabric-data-attachment-api-v1-refmap.json
+SHA-256-Digest: pWonha7wcstnJNnoGDsu73FbEzqDIe9+yIcwSecbs5Q=
+
+Name: net/fabricmc/fabric/mixin/attachment/WorldChunkMixin.class
+SHA-256-Digest: 1e/qIHg7WgwCsPtt2xfO2wblwDW6pyJW5UjcUBn5rXU=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentTargetInfo$Enti
+ tyTarget.class
+SHA-256-Digest: 70nN5Qf58OWNuJjDs6bGEMAy6TRXE8jFotEH+t8UoEw=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/s2c/package-info.class
+SHA-256-Digest: Ve/rqInzVdXfQTwdqCStoQ6gWwmI9XMJ/WVcWm+PRzc=
+
+Name: fabric-data-attachment-api-v1.client.mixins.json
+SHA-256-Digest: sgGj2PFsaY74sp8GEH82DaaV8Zm8+IYv7URo4oLvvfM=
+
+Name: net/fabricmc/fabric/mixin/attachment/client/package-info.class
+SHA-256-Digest: y9QTJbL4YiCoOeFuiv7Oc+GEdLz2L3jyeqcZR5P1HA4=
+
+Name: net/fabricmc/fabric/mixin/attachment/ChunkDataSenderMixin.class
+SHA-256-Digest: b5W5z7ILIa2S50RmnmiiANnX3CHgFgimBZ6bbKzaWVw=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentTargetInfo.clas
+ s
+SHA-256-Digest: LSYY/qpZAylKNMLnxc67em3cWEvoA4BEYZjSEsvxr+0=
+
+Name: net/fabricmc/fabric/api/attachment/v1/AttachmentRegistry.class
+SHA-256-Digest: z+cRtduZECRlipHlFhLcDIjE+vdIARvpJBnMqax00Rs=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentChange.class
+SHA-256-Digest: HEELBM6i1S38eH9aDNSbonAdZ9sO0RUs8wIl+SCHr2U=
+
+Name: assets/fabric-data-attachment-api-v1/lang/en_us.json
+SHA-256-Digest: XdtqrNFzWn3VdXWA4L86MgpVtdVJrVetBXTlkCT9QBw=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentSyncException.c
+ lass
+SHA-256-Digest: DQ9+ZCDdKcTDkbVIkTPJMOHM9D5FnuLE5qrRPXp+osk=
+
+Name: net/fabricmc/fabric/mixin/attachment/ChunkMixin.class
+SHA-256-Digest: fBoP2rnBxQmOuFwvAjeo2yO8GbC6NUv+7AWyq9YGrIk=
+
+Name: net/fabricmc/fabric/mixin/attachment/EntityTrackerEntryMixin.class
+SHA-256-Digest: Io2eOe763yEFqkluVsxwuCVX1VDA9f8gLExgEQM3Xa8=
+
+Name: net/fabricmc/fabric/mixin/attachment/client/ClientPlayNetworkHandl
+ erMixin.class
+SHA-256-Digest: G9DNqpqfXKJk7b7/fgfxZy+cEJc3MzJxZpna7K3T3rM=
+
+Name: net/fabricmc/fabric/mixin/attachment/WrapperProtoChunkMixin.class
+SHA-256-Digest: JodXKf2eSVuSIiRDTgbl8s9/1lw71qwMPwZLCWeCiF0=
+
+Name: net/fabricmc/fabric/mixin/attachment/CustomPayloadS2CPacketAccesso
+ r.class
+SHA-256-Digest: zYlQgc8NbdjXQIV22Ecfi6etOmjgp1DnRKHUQRcoR+0=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentEntrypoint.class
+SHA-256-Digest: n4Gk6bt+h7MDBJmCuBqCEp78HQ3DFO3PzuAXWYL9tjY=
+
+Name: net/fabricmc/fabric/mixin/attachment/AttachmentTargetsMixin.class
+SHA-256-Digest: kREN1GNF3Cq2Sqb41FliAfZQ6QHwd4GFHEiDZZsCHGo=
+
+Name: net/fabricmc/fabric/mixin/attachment/ClientConnectionMixin.class
+SHA-256-Digest: LtUVVMJ5iIvXI9+9fZRBOQVZ7PdmpMF08qjHjA/v8Ks=
+
+Name: net/fabricmc/fabric/mixin/attachment/VarIntsAccessor.class
+SHA-256-Digest: 2COv1EimJL/ydu0BLtdZhCLZsvbLpc76/yzjYJKmM38=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/SupportedAttachmentsClien
+ tConnection.class
+SHA-256-Digest: XAW9i8QWUYVfh0FaCIALDZo0RdDHt+4+zw4rJ5B2rzM=
+
+Name: net/fabricmc/fabric/mixin/attachment/BlockEntityMixin.class
+SHA-256-Digest: MlypfVDNvA7tMyarEDlCUfs+bjVgIx7Tm0bN5BpvQwM=
+
+Name: net/fabricmc/fabric/api/attachment/v1/AttachmentSyncPredicate.clas
+ s
+SHA-256-Digest: e58r/QezHnN69srd9TnAq9ZUEfAAuz+UytVYxo0dUyw=
+
+Name: net/fabricmc/fabric/impl/attachment/AttachmentSerializingImpl.clas
+ s
+SHA-256-Digest: 9PwHGMLpv7Dk1BUSAjmuU8zL474gTi2U89XRPd3/xDg=
+
+Name: net/fabricmc/fabric/mixin/attachment/WorldMixin.class
+SHA-256-Digest: 9/6K1jQL9LYUbIWJsudroYX4GYzlU6ixSD20PVdCLQ4=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/AttachmentTargetInfo$Type
+ .class
+SHA-256-Digest: L6xdFrHv0staSR4leBXf52BQ11EuXDY34+vwEGRuB5o=
+
+Name: net/fabricmc/fabric/impl/attachment/sync/c2s/package-info.class
+SHA-256-Digest: XJNRcisBslRZ5sBITs5InLVShvFkXpc/VSU0Fo6seEs=
+

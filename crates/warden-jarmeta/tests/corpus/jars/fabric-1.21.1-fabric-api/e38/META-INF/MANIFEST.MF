@@ -1,0 +1,57 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-tag-api-v1-refmap.json
+SHA-256-Digest: 7Lly6vK5AJjt2D6v8eOaLSlOhkmxpPGdFs0gPhWDQuQ=
+
+Name: net/fabricmc/fabric/api/tag/v1/FabricTagFile.class
+SHA-256-Digest: kJdemdzscLQIqx86Q4Cf446l+RSDoxgTAtTwY0N4W1k=
+
+Name: net/fabricmc/fabric/impl/tag/TagFileHooks.class
+SHA-256-Digest: QiDspzvC41gRTdLMkOwHjO/shHgQFwhIwu38mfX4K3Q=
+
+Name: LICENSE-fabric-tag-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/tag/package-info.class
+SHA-256-Digest: VwWTBdah1y5F/ZENG+Re6R9/HwlWmeGrFgBfVj98fpo=
+
+Name: net/fabricmc/fabric/mixin/tag/TagFileMixin.class
+SHA-256-Digest: ZeSQC8W7PKZYHk7i7ArI7qybEfwvzPAYhKozHE0Rbaw=
+
+Name: net/fabricmc/fabric/mixin/tag/TagEntryAccessor.class
+SHA-256-Digest: DVI/PvSuATjB00SNsg2sAgMOfAeQnllr+sW9r42LO7E=
+
+Name: fabric.mod.json
+SHA-256-Digest: cKw4XaOktDyR7ucjbCsHdqoFbItp7hYFNVSt3xvaxHQ=
+
+Name: assets/fabric-tag-api-v1/icon.png
+SHA-256-Digest: 5bjCM48CYBZeMiy/96e95eEjZ4ijQ3MsoapGvfAwh/I=
+
+Name: net/fabricmc/fabric/mixin/tag/package-info.class
+SHA-256-Digest: UvkowIrBFXN47cOBQfQbd68vnMTCrwngrEiPu/1/ybA=
+
+Name: net/fabricmc/fabric/impl/tag/TagRemovalInternals.class
+SHA-256-Digest: r5km42Jk/wlAyWxCCYkkRXdiHH/kq7pMHNMSDmQXtMA=
+
+Name: fabric-tag-api-v1.mixins.json
+SHA-256-Digest: 95ydolee7s9BWk/6MInce/3BdQ7PknaWkL7o8jhxcX8=
+
+Name: fabric-tag-api-v1.accesswidener
+SHA-256-Digest: I8QkzYymYygMez6ZI+drDYyt9wwnL7SKIb0qcgs0iMM=
+
+Name: net/fabricmc/fabric/mixin/tag/TagGroupLoaderMixin.class
+SHA-256-Digest: cXweYWUZI97En2wivp+E6j3dHE83BSjZgezbpiF8mv8=
+

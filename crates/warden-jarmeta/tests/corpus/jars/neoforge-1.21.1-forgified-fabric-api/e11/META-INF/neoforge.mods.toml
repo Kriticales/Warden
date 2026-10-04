@@ -1,0 +1,46 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+displayTest = "IGNORE_ALL_VERSION"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_renderer_indigo"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Renderer - Indigo"
+logoFile = "assets/fabric-renderer-indigo/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Default implementation of the Fabric Renderer API."
+provides = ["fabric-renderer-indigo"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_renderer_indigo]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_renderer_indigo]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_renderer_indigo]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_renderer_indigo]]
+modId = "fabric_renderer_api_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-renderer-indigo.mixins.json"

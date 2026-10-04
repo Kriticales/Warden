@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Embedded-Dependencies-Mod: META-INF/jarjar/Connector-1.0.0-beta.49+1.20.
+ 1-mod.jar
+Fabric-Loader-Version: 0.19.3
+Specification-Title: Connector
+Specification-Vendor: Sinytra
+Specification-Version: 1
+Implementation-Title: Connector
+Implementation-Version: 1.0.0-beta.49+1.20.1
+Implementation-Vendor: Sinytra
+Implementation-Timestamp: 2026-07-04T09:10:19.837342561
+Automatic-Module-Name: org.sinytra.connector
+

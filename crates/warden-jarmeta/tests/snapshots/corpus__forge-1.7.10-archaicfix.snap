@@ -1,0 +1,40 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-archaicfix (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "archaicfix",
+      "version": "0.8.0",
+      "name": "ArchaicFix",
+      "description": "Swiss army knife of bugfixes for 1.7.",
+      "authors": [
+        "embeddedt"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "org.embeddedt.archaicfix.ArchaicCore",
+    "fmlCorePluginContainsMod": true,
+    "tweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+    "mixinConfigs": [
+      "mixins.archaicfix.json"
+    ],
+    "fmlAccessTransformer": "archaicfix_at.cfg"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

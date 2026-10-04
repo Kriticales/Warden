@@ -1,0 +1,35 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-thaumcraft (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "Thaumcraft",
+      "version": "1.7.10-4.2.3.5",
+      "name": "Thaumcraft",
+      "description": "Adding a touch of magic to Minecraft",
+      "authors": [
+        "Azanor"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "thaumcraft.codechicken.core.launch.DepLoader",
+    "fmlCorePluginContainsMod": true
+  },
+  "classVersion": {
+    "major": 50,
+    "minor": 0
+  }
+}

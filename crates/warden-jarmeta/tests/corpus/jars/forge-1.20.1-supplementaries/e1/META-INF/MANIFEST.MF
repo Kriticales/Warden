@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+MixinConfigs: mixinsquared.init.mixins.json
+FMLModType: GAMELIBRARY
+

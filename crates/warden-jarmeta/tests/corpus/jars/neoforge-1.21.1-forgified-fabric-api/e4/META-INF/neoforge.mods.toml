@@ -1,0 +1,45 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_transfer_api_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Transfer API (v1)"
+logoFile = "assets/fabric-transfer-api-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "A common API for the transfer of fluids, items and other game resources."
+provides = ["fabric-transfer-api-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_transfer_api_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_transfer_api_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_transfer_api_v1]]
+modId = "fabric_api_lookup_api_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_transfer_api_v1]]
+modId = "fabric_rendering_fluids_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-transfer-api-v1.mixins.json"

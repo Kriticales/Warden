@@ -1,0 +1,69 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/dimension/Teleportable.class
+SHA-256-Digest: +jA25dUjPo2AJRssDdFu2x82pCbZmNfKD0FkgSxyQlw=
+
+Name: net/fabricmc/fabric/mixin/dimension/Schema2832Mixin.class
+SHA-256-Digest: K+5qIQhxhNCoX7Y6bdsCWFxSq2OdhZIGgnWEJQ+K2zc=
+
+Name: net/fabricmc/fabric/mixin/dimension/package-info.class
+SHA-256-Digest: Tc0pZ2zmBL2LeDsRHIEYjkeLE2Pm9E7+JpLcwNiZq8c=
+
+Name: net/fabricmc/fabric/impl/dimension/FabricDimensionInternals.class
+SHA-256-Digest: veuZ6S7BOn40dytKR3ftfxJorqDoBL/QMEM/Hrsztm4=
+
+Name: net/fabricmc/fabric/impl/dimension/FailSoftMapCodec.class
+SHA-256-Digest: 07IZwTgppab4EmKxT9zdIF96tIJ2GBCitHc0YRHcQ4s=
+
+Name: net/fabricmc/fabric/impl/dimension/TaggedChoiceTypeExtension.class
+SHA-256-Digest: afFaCAA2kMeqht5Vdps/6qIXTj9pJvhwDEUFdmwB3iI=
+
+Name: net/fabricmc/fabric/mixin/dimension/EntityMixin.class
+SHA-256-Digest: dx5joz+NWWiULuZFZ/uPvk4Bin5y2wPDSOjOFKGZR+w=
+
+Name: net/fabricmc/fabric/mixin/dimension/RegistryCodecsMixin.class
+SHA-256-Digest: Z/VzeS44flFhiIPLYw3ul9Y9uGBsy6rhKILWXawXYU4=
+
+Name: LICENSE-fabric-dimensions-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/dimension/TaggedChoiceExtension.class
+SHA-256-Digest: WjO9Yt/v+6VD4ZmHiomrcvRkjAWQT8aJnc97oABR0pw=
+
+Name: fabric.mod.json
+SHA-256-Digest: VjpRnS9lf5q8AxfVNWKo++afIfpjUrZR5ph+kcFAcik=
+
+Name: fabric-dimensions-v1-refmap.json
+SHA-256-Digest: jPbQ0hu8yuJnB+A194pw+Z3vPh38UxX4ON4lKtwFM8I=
+
+Name: fabric-dimensions-v1.mixins.json
+SHA-256-Digest: Mcd3YrqPmCZ2/gNKUR0/Ppi6invqcGizHnEjuUL7W/0=
+
+Name: net/fabricmc/fabric/impl/dimension/package-info.class
+SHA-256-Digest: vY88uH8eKxjGeisqNWDcIU7669VRZv23l8OPtWYdkUg=
+
+Name: net/fabricmc/fabric/mixin/dimension/TaggedChoiceMixin.class
+SHA-256-Digest: AYvy2S4HIZeClnuEOtTsRpjKtQQ6jWNgCgkF4ms0PoE=
+
+Name: net/fabricmc/fabric/mixin/dimension/TaggedChoiceTypeMixin.class
+SHA-256-Digest: Zra5L9xf5wEAHNgDZMQxS4liRNVv1VKQDH5uw29mV+U=
+
+Name: net/fabricmc/fabric/api/dimension/v1/FabricDimensions.class
+SHA-256-Digest: +csr4s/EHGtw+QEI0fVengN01W83cIQgjO+zG+oTUUo=
+
+Name: assets/fabric-dimensions-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+

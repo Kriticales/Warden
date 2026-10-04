@@ -1,0 +1,57 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-tag-api-v1-refmap.json
+SHA-256-Digest: 7Lly6vK5AJjt2D6v8eOaLSlOhkmxpPGdFs0gPhWDQuQ=
+
+Name: net/fabricmc/fabric/api/tag/v1/FabricTagFile.class
+SHA-256-Digest: VSlN9r1lpiyUrMTo5I7UNMGJKPrA9tVNKRcgGESUwzE=
+
+Name: net/fabricmc/fabric/impl/tag/TagFileHooks.class
+SHA-256-Digest: bE1kQ+iwWF64cDK4EAp+GiJnxdnosr0O1JlDuKO336M=
+
+Name: LICENSE-fabric-tag-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/tag/package-info.class
+SHA-256-Digest: KhrgTbRZR4Bn1X3otYhnQ32UONlfTKS/emHW4R8Oa/Q=
+
+Name: net/fabricmc/fabric/mixin/tag/TagFileMixin.class
+SHA-256-Digest: wv6kMppdDIIDJCPyh31Olv66rmP07+FiXOyon3QgGJQ=
+
+Name: net/fabricmc/fabric/mixin/tag/TagEntryAccessor.class
+SHA-256-Digest: tZKA9qgk1ao3xyi9EDCu6isGd8GfoI/aSNZkxjC2ng8=
+
+Name: fabric.mod.json
+SHA-256-Digest: umPTHWTdCXQxwAyiY5ysRDLoUwCYK1X2/E47+Oq/F5c=
+
+Name: assets/fabric-tag-api-v1/icon.png
+SHA-256-Digest: 5bjCM48CYBZeMiy/96e95eEjZ4ijQ3MsoapGvfAwh/I=
+
+Name: net/fabricmc/fabric/mixin/tag/package-info.class
+SHA-256-Digest: A+Vdq5yiKjXXs9fSZT8pyCZp5XLczL1gGbHokOqc2JE=
+
+Name: net/fabricmc/fabric/impl/tag/TagRemovalInternals.class
+SHA-256-Digest: B1aB/gxKaCJiZpIlr2QxNYI4wi1daXdaQCMQ2uc7HF0=
+
+Name: fabric-tag-api-v1.mixins.json
+SHA-256-Digest: S/PAglVu4noEkFh7Tho2WtbRZ/8xWRiVTYV3dMqq41s=
+
+Name: fabric-tag-api-v1.accesswidener
+SHA-256-Digest: I8QkzYymYygMez6ZI+drDYyt9wwnL7SKIb0qcgs0iMM=
+
+Name: net/fabricmc/fabric/mixin/tag/TagGroupLoaderMixin.class
+SHA-256-Digest: ExFnJbfdgV2a5Orf0ZaeDlKkVVldaEjF7l/SiR4Rc1E=
+

@@ -1,0 +1,41 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-hodgepodge (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "hodgepodge",
+      "version": "2.7.215",
+      "name": "Hodgepodge",
+      "description": "A Hodgepodge of patches",
+      "authors": [
+        "mitchej123",
+        "GTNewHorizons Team"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "com.mitchej123.hodgepodge.core.HodgepodgeCore",
+    "fmlCorePluginContainsMod": true,
+    "tweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+    "mixinConfigs": [
+      "mixins.hodgepodge.json"
+    ],
+    "fmlAccessTransformer": "hodgepodge_at.cfg"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

@@ -1,0 +1,352 @@
+{
+  "nested": [
+    {
+      "path": "META-INF/jars/item_setting-6.3.0+1.20.1.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jars/block_entity-6.3.0+1.20.1.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jars/surface_rule-6.3.0+1.20.1.jar",
+      "dir": "e2"
+    },
+    {
+      "path": "META-INF/jars/block_extensions-6.3.0+1.20.1.jar",
+      "dir": "e3"
+    },
+    {
+      "path": "META-INF/jars/data_callback-6.3.0+1.20.1.jar",
+      "dir": "e4"
+    },
+    {
+      "path": "META-INF/jars/resource_loader-6.3.0+1.20.1.jar",
+      "dir": "e5"
+    },
+    {
+      "path": "META-INF/jars/entity_rendering-6.3.0+1.20.1.jar",
+      "dir": "e6"
+    },
+    {
+      "path": "META-INF/jars/status_effect-6.3.0+1.20.1.jar",
+      "dir": "e7"
+    },
+    {
+      "path": "META-INF/jars/testing-6.3.0+1.20.1.jar",
+      "dir": "e8"
+    },
+    {
+      "path": "META-INF/jars/networking-6.3.0+1.20.1.jar",
+      "dir": "e9"
+    },
+    {
+      "path": "META-INF/jars/tags-6.3.0+1.20.1.jar",
+      "dir": "e10"
+    },
+    {
+      "path": "META-INF/jars/crash_info-6.3.0+1.20.1.jar",
+      "dir": "e11"
+    },
+    {
+      "path": "META-INF/jars/recipe-6.3.0+1.20.1.jar",
+      "dir": "e12"
+    },
+    {
+      "path": "META-INF/jars/command-6.3.0+1.20.1.jar",
+      "dir": "e13"
+    },
+    {
+      "path": "META-INF/jars/villager-6.3.0+1.20.1.jar",
+      "dir": "e14"
+    },
+    {
+      "path": "META-INF/jars/entity_networking-6.3.0+1.20.1.jar",
+      "dir": "e15"
+    },
+    {
+      "path": "META-INF/jars/tooltip-6.3.0+1.20.1.jar",
+      "dir": "e16"
+    },
+    {
+      "path": "META-INF/jars/multipart-6.3.0+1.20.1.jar",
+      "dir": "e17"
+    },
+    {
+      "path": "META-INF/jars/registry-6.3.0+1.20.1.jar",
+      "dir": "e18"
+    },
+    {
+      "path": "META-INF/jars/chat-6.3.0+1.20.1.jar",
+      "dir": "e19"
+    },
+    {
+      "path": "META-INF/jars/entity-6.3.0+1.20.1.jar",
+      "dir": "e20"
+    },
+    {
+      "path": "META-INF/jars/vehicle-6.3.0+1.20.1.jar",
+      "dir": "e21"
+    },
+    {
+      "path": "META-INF/jars/advancement-6.3.0+1.20.1.jar",
+      "dir": "e22"
+    },
+    {
+      "path": "META-INF/jars/client_command-6.3.0+1.20.1.jar",
+      "dir": "e23"
+    },
+    {
+      "path": "META-INF/jars/block_content_registry-6.3.0+1.20.1.jar",
+      "dir": "e24"
+    },
+    {
+      "path": "META-INF/jars/entity_events-6.3.0+1.20.1.jar",
+      "dir": "e25"
+    },
+    {
+      "path": "META-INF/jars/registry_entry_attachment-6.3.0+1.20.1.jar",
+      "dir": "e26"
+    },
+    {
+      "path": "META-INF/jars/point_of_interest-6.3.0+1.20.1.jar",
+      "dir": "e27"
+    },
+    {
+      "path": "META-INF/jars/biome-6.3.0+1.20.1.jar",
+      "dir": "e28"
+    },
+    {
+      "path": "META-INF/jars/lifecycle_events-6.3.0+1.20.1.jar",
+      "dir": "e29"
+    },
+    {
+      "path": "META-INF/jars/dimension-6.3.0+1.20.1.jar",
+      "dir": "e30"
+    },
+    {
+      "path": "META-INF/jars/item_extensions-6.3.0+1.20.1.jar",
+      "dir": "e31"
+    },
+    {
+      "path": "META-INF/jars/qsl_base-6.3.0+1.20.1.jar",
+      "dir": "e32"
+    },
+    {
+      "path": "META-INF/jars/item_content_registry-6.3.0+1.20.1.jar",
+      "dir": "e33"
+    },
+    {
+      "path": "META-INF/jars/screen-6.3.0+1.20.1.jar",
+      "dir": "e34"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_api_base-7.7.0.jar",
+      "dir": "e35"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_api_lookup_api_v1-7.7.0.jar",
+      "dir": "e36"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_biome_api_v1-7.7.0.jar",
+      "dir": "e37"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_block_api_v1-7.7.0.jar",
+      "dir": "e38"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_block_view_api_v2-7.7.0.jar",
+      "dir": "e39"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_blockrenderlayer_v1-7.7.0.jar",
+      "dir": "e40"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_client_tags_api_v1-7.7.0.jar",
+      "dir": "e41"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_command_api_v2-7.7.0.jar",
+      "dir": "e42"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_content_registries_v0-7.7.0.jar",
+      "dir": "e43"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_convention_tags_v1-7.7.0.jar",
+      "dir": "e44"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_crash_report_info_v1-7.7.0.jar",
+      "dir": "e45"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_data_attachment_api_v1-7.7.0.jar",
+      "dir": "e46"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_data_generation_api_v1-7.7.0.jar",
+      "dir": "e47"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_dimensions_v1-7.7.0.jar",
+      "dir": "e48"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_entity_events_v1-7.7.0.jar",
+      "dir": "e49"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_events_interaction_v0-7.7.0.jar",
+      "dir": "e50"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_game_rule_api_v1-7.7.0.jar",
+      "dir": "e51"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_item_api_v1-7.7.0.jar",
+      "dir": "e52"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_item_group_api_v1-7.7.0.jar",
+      "dir": "e53"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_key_binding_api_v1-7.7.0.jar",
+      "dir": "e54"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_lifecycle_events_v1-7.7.0.jar",
+      "dir": "e55"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_loot_api_v2-7.7.0.jar",
+      "dir": "e56"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_message_api_v1-7.7.0.jar",
+      "dir": "e57"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_mining_level_api_v1-7.7.0.jar",
+      "dir": "e58"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_model_loading_api_v1-7.7.0.jar",
+      "dir": "e59"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_networking_api_v1-7.7.0.jar",
+      "dir": "e60"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_object_builder_api_v1-7.7.0.jar",
+      "dir": "e61"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_particles_v1-7.7.0.jar",
+      "dir": "e62"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_recipe_api_v1-7.7.0.jar",
+      "dir": "e63"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_registry_sync_v0-7.7.0.jar",
+      "dir": "e64"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_renderer_api_v1-7.7.0.jar",
+      "dir": "e65"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_renderer_indigo-7.7.0.jar",
+      "dir": "e66"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_fluids_v1-7.7.0.jar",
+      "dir": "e67"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_v1-7.7.0.jar",
+      "dir": "e68"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_resource_conditions_api_v1-7.7.0.jar",
+      "dir": "e69"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_resource_loader_v0-7.7.0.jar",
+      "dir": "e70"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_screen_api_v1-7.7.0.jar",
+      "dir": "e71"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_screen_handler_api_v1-7.7.0.jar",
+      "dir": "e72"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_sound_api_v1-7.7.0.jar",
+      "dir": "e73"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_transfer_api_v1-7.7.0.jar",
+      "dir": "e74"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_transitive_access_wideners_v1-7.7.0.jar",
+      "dir": "e75"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_command_api_v1-7.7.0.jar",
+      "dir": "e76"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_commands_v0-7.7.0.jar",
+      "dir": "e77"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_containers_v0-7.7.0.jar",
+      "dir": "e78"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_events_lifecycle_v0-7.7.0.jar",
+      "dir": "e79"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_keybindings_v0-7.7.0.jar",
+      "dir": "e80"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_loot_tables_v1-7.7.0.jar",
+      "dir": "e81"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_models_v0-7.7.0.jar",
+      "dir": "e82"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_networking_v0-7.7.0.jar",
+      "dir": "e83"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_renderer_registries_v1-7.7.0.jar",
+      "dir": "e84"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_data_attachment_v1-7.7.0.jar",
+      "dir": "e85"
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_v0-7.7.0.jar",
+      "dir": "e86"
+    }
+  ]
+}

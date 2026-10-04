@@ -1,0 +1,39 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+displayTest = "IGNORE_ALL_VERSION"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_model_loading_api_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Model Loading API (v1)"
+logoFile = "assets/fabric-model-loading-api-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Provides hooks for model loading."
+provides = ["fabric-model-loading-api-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_model_loading_api_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_model_loading_api_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_model_loading_api_v1]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-model-loading-api-v1.mixins.json"

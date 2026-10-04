@@ -1,0 +1,41 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-gtnhlib (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "gtnhlib",
+      "version": "0.11.52",
+      "name": "GTNH Lib",
+      "description": "GTNHLib.",
+      "authors": [
+        "mitchej123"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "com.gtnewhorizon.gtnhlib.core.GTNHLibCore",
+    "fmlCorePluginContainsMod": true,
+    "tweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+    "mixinConfigs": [
+      "mixins.gtnhlib.preinit.json"
+    ],
+    "fmlAccessTransformer": "gtnhlib_at.cfg",
+    "multiRelease": true
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

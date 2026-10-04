@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+
+[[mods]]
+  modId = "fabric_dimensions_v1"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Dimensions API (v1)"
+  logoFile = "assets/fabric-dimensions-v1/icon.png"
+  authors = "FabricMC"
+  description = "Fabric Dimension API."
+provides = ["fabric-dimensions-v1"]
+
+    [[dependencies.fabric_dimensions_v1]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_dimensions_v1]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_dimensions_v1]]
+      modId = "fabric_api_base"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"

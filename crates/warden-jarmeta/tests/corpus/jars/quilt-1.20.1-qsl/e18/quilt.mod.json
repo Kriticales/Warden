@@ -1,0 +1,75 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.qsl.core",
+		"id": "quilt_registry",
+		"version": "6.3.0+1.20.1",
+		"metadata": {
+			"name": "Quilt Registry API",
+			"description": "Tools and events for manipulating and monitoring Minecraft's content registries.",
+			"contributors": {
+				"The Quilt Project": "Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilt-standard-libraries/issues",
+				"sources": "https://github.com/QuiltMC/quilt-standard-libraries"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilt_registry/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"load_type": "if_possible",
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.25.0"
+			},
+			{
+				"id": "minecraft",
+				"versions": {
+					"any": [
+						"=1.20.1",
+						"=1.20"
+					]
+				}
+			},
+			{
+				"id": "quilt_base",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_networking",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_lifecycle_events",
+				"versions": ">=6.3.0+1.20.1"
+			}
+		],
+		"entrypoints": {
+			"client_init": [
+				"org.quiltmc.qsl.registry.impl.sync.client.RegistrySyncClientInitializer"
+			],
+			"init": [
+				"org.quiltmc.qsl.registry.impl.sync.RegistrySyncInitializer"
+			]
+		}
+	},
+	"mixin": "quilt_registry.mixins.json",
+	"access_widener": "quilt_registry.accesswidener",
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": {
+			"id": "qsl",
+			"name": "Quilt Standard Libraries",
+			"description": "A set of libraries to assist in making Quilt mods.",
+			"icon": "assets/quilt_registry/icon.png",
+			"badges": [
+				"library"
+			]
+		}
+	}
+}

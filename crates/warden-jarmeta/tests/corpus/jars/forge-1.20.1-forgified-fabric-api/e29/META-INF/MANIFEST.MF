@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.24+514a076577
+MixinConfigs: fabric-recipe-api-v1.mixins.json
+

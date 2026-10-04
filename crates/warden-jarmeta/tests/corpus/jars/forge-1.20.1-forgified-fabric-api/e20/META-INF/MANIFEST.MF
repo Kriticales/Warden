@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.38+561530ec77
+MixinConfigs: fabric-key-binding-api-v1.mixins.json
+

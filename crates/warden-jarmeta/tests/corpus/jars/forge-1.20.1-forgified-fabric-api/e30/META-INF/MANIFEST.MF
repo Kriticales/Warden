@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 2.3.6+1c0ea72177
+MixinConfigs: fabric-registry-sync-v0.mixins.json,fabric-registry-sync-v
+ 0.client.mixins.json
+

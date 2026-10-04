@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+FMLCorePlugin: pl.asie.foamfix.coremod.FoamFixCore
+FMLCorePluginContainsFMLMod: true
+

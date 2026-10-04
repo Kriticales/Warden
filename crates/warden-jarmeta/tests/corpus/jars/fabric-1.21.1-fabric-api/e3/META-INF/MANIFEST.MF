@@ -1,0 +1,58 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: assets/fabric-block-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-block-api-v1.mixins.json
+SHA-256-Digest: PNBiVSu4C57BwwVm2JAtaxbufmwTtE910rBBJ8Tii44=
+
+Name: net/fabricmc/fabric/mixin/block/package-info.class
+SHA-256-Digest: Xds5P205dVeQNeD9PDPuWwBMZY0e2EiktKy4F0soNbU=
+
+Name: net/fabricmc/fabric/mixin/block/BlockStateMixin.class
+SHA-256-Digest: tsAU9Px9OzIJg4lvWn4QrDSAtOMw8OjZbbbp5TyMp2U=
+
+Name: net/fabricmc/fabric/mixin/block/ChunkSectionMixin.class
+SHA-256-Digest: iBYaKRw1FzO54XWRPq1Tr2MgONiamMCGcYrxsJ1/WPA=
+
+Name: fabric-block-api-v1-refmap.json
+SHA-256-Digest: x8pZf7n3wwGNcaRomS2nfsBtrP7tx59r9xKbSydLp7M=
+
+Name: net/fabricmc/fabric/api/block/v1/BlockFunctionalityTags.class
+SHA-256-Digest: QuYUkQcswdIzJZUjg83a/I4xLYd33aPHpDJGNTbkaRU=
+
+Name: fabric.mod.json
+SHA-256-Digest: EsFekKZqWkVLshl79n7tkU0z2EGbMmw5LfpNRGtui3A=
+
+Name: net/fabricmc/fabric/api/block/v1/FabricBlock.class
+SHA-256-Digest: 5yXNU7strXbgFAv4a/sZ1cc48/RaiJkbg3cxAcfSgkg=
+
+Name: net/fabricmc/fabric/mixin/block/LivingEntityMixin.class
+SHA-256-Digest: OvAGdfvZ3lIb5ZqF9ZFlZC8F81Fw5rio0pR+cWc7yrk=
+
+Name: LICENSE-fabric-block-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/block/BlockMixin.class
+SHA-256-Digest: Z4IVOv7YgI7jA2y/887nPQOg7BGJ4BGU3MiEacr9yz4=
+
+Name: net/fabricmc/fabric/mixin/block/ChunkSectionBlockStateCounterMixin
+ .class
+SHA-256-Digest: 5F7EnL819X9lGV682YN7VaLpZIx66vqPr5/wxZHyUQE=
+
+Name: net/fabricmc/fabric/api/block/v1/FabricBlockState.class
+SHA-256-Digest: GCyflhKtzlRvyCnq6iMf192Xr04WZvli2KPAQ8sZug8=
+

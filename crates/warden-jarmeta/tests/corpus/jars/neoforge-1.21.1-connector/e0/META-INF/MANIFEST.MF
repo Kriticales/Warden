@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.0+1.21.1
+MixinConfigs: adapter.init.mixins.json
+FMLModType: GAMELIBRARY
+

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlin_kotlin-reflect",
+  "version": "2.4.20",
+  "name": "kotlin-reflect",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Implementation-Title: atomicfu
+Implementation-Version: 0.33.0
+Implementation-Vendor: JetBrains
+Multi-Release: true
+

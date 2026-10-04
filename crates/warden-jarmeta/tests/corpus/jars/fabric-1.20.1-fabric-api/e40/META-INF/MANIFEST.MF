@@ -1,0 +1,424 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/api/transfer/v1/cli
+ ent/fluid/FluidVariantRenderHandler.class;net/fabricmc/fabric/api/trans
+ fer/v1/client/fluid/FluidVariantRendering$1.class;net/fabricmc/fabric/a
+ pi/transfer/v1/client/fluid/FluidVariantRendering.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/CombinedStorage.c
+ lass
+SHA-256-Digest: cSS2S4kXl9e+AE03zyNmuTb7lmRajKmKUKfqWjrSERI=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/FilteringStorage.
+ class
+SHA-256-Digest: ASmncdecqmGlvtv7uQAJ+up9+QSVj1zphaI+sz6XUA4=
+
+Name: net/fabricmc/fabric/impl/transfer/context/PlayerContainerItemConte
+ xt.class
+SHA-256-Digest: Fd8Vhh07UoNP1Vp2qKi1CGH3DlVlpMIJnHWcPqDdgnk=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidStorageUtil.class
+SHA-256-Digest: Qr+HV49Ao9Xi35rbA6M2ta0THc6JQZLHHijnrIKMMWM=
+
+Name: net/fabricmc/fabric/api/transfer/v1/client/fluid/FluidVariantRende
+ rHandler.class
+SHA-256-Digest: SmGQbia8JsU6zI9AHKBqxNic+Db8g6tKFJzlwxuQZLw=
+
+Name: net/fabricmc/fabric/impl/transfer/TransferApiImpl$3.class
+SHA-256-Digest: rAHh5TqrY9zgYf7whFD1rGL7w65IyCjuv05NCiEocbM=
+
+Name: net/fabricmc/fabric/mixin/transfer/HopperBlockEntityMixin.class
+SHA-256-Digest: mrisc/kCZW6Gbgx5xh5IalfWGm/pDmeEu3ZAyb+C+8w=
+
+Name: net/fabricmc/fabric/mixin/transfer/ItemMixin.class
+SHA-256-Digest: 5sAJ/d2RcDUj7jA4StEGUdk3zB1oJsZN7pR5dkhfbSg=
+
+Name: net/fabricmc/fabric/impl/transfer/item/SidedInventorySlotWrapper.c
+ lass
+SHA-256-Digest: jnif0TYihirsQ1TtgmowTN16GVbsrVsIp/1iRcsMu6o=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/TransactionContext
+ $OuterCloseCallback.class
+SHA-256-Digest: IHMdsZbcINQQoIl7RNC91gW44AnX7C/3OcHapkRN64Y=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/TransactionContext
+ .class
+SHA-256-Digest: ELiJSXEsZ6r1tskN8FGPhyydTzVPOPDdy1NxOtQykCI=
+
+Name: net/fabricmc/fabric/impl/transfer/item/PlayerInventoryStorageImpl$
+ DroppedStacks$Entry.class
+SHA-256-Digest: HVf+i9EZhQKGAIgjWuXLxXCXUVXxjA4Q2U0KyWjTpZQ=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/FilteringStorage$
+ FilteringStorageView.class
+SHA-256-Digest: 2pS9mCN9hSkyLhsOK8RcCvoPAYkvNTFwDgQAfbFk+1M=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/CauldronFluidContent.cla
+ ss
+SHA-256-Digest: Knw7NFkhrcsTlYAT38Rgja01wvaDEaI6RPnBNaHmerc=
+
+Name: net/fabricmc/fabric/impl/transfer/transaction/TransactionManagerIm
+ pl.class
+SHA-256-Digest: +V3zMZLPGMIZQ0SzMH08cJMK4u6UkqPyFXT+573DqhQ=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/ResourceAmount.cl
+ ass
+SHA-256-Digest: 54ZTIEH1DWAckSk7Win9KU/hHIOTlv7RCxP8HyNvANU=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/TransactionContext
+ $CloseCallback.class
+SHA-256-Digest: iR0menubuKYPlz9I6h8440lYluao50DRzM7rOujVzis=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/StorageView.class
+SHA-256-Digest: 8CKGsD7Z8mfp/Hecv9jAFfmUcT64IpsSYhjQityk6fQ=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidVariant.class
+SHA-256-Digest: JwHhhvxZPyeAEbUZVnajT0iIPSCNPS2jj/x0JSSGhe8=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/FluidVariantImpl.class
+SHA-256-Digest: 6ooLMDvT4hg+9lufUu/0an+B9/0u8JwyhiB3/Ukd22A=
+
+Name: net/fabricmc/fabric/mixin/transfer/FluidMixin.class
+SHA-256-Digest: tToxV/QfsluCk5cIKhm4NtSPrn33JtMLACey/51pIW4=
+
+Name: fabric-transfer-api-v1.mixins.json
+SHA-256-Digest: uah3YT+fgfTlFnMBcnu6ncUNSl1l18AeEFUQW1I6gE4=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/SingleSlotStorage
+ .class
+SHA-256-Digest: 5UOLauCD3CaECrEilM8YDAs/Cjx2lU0NG/DofwZFJgo=
+
+Name: net/fabricmc/fabric/mixin/transfer/ChiseledBookshelfBlockEntityMix
+ in.class
+SHA-256-Digest: FtqZNs6BZN+xp7YF2DkP0n09EzrBVF8DNw4Uc1cHHcg=
+
+Name: net/fabricmc/fabric/mixin/transfer/DoubleInventoryAccessor.class
+SHA-256-Digest: +qNz5TVRVW1jr204dbFEhVKPUzEQi+Z+KIcS37ejdoY=
+
+Name: fabric.mod.json
+SHA-256-Digest: LFUa3QpmhG73slSip2cz9/rScN9Qyi1K6+zcv+p0O2M=
+
+Name: net/fabricmc/fabric/impl/transfer/item/ItemVariantCache.class
+SHA-256-Digest: dbxFpOJc/fU6XNbK6dxwr1gzQnFHvTdexDPppeQjfDw=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/BlankVariantView.
+ class
+SHA-256-Digest: y3a7r8lvtju8B+pyx55dag0bIYXISnPxf9PwM4tJ+I8=
+
+Name: net/fabricmc/fabric/mixin/transfer/BucketItemMixin.class
+SHA-256-Digest: acrwwVWAsyDZhsCn5VWRzIS4D9oEnv7zoaPgkjzgcAw=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/SlottedStorage.class
+SHA-256-Digest: fc7SJRHFcM8XNDToP5Z6eCRcW5DUHhU9WLfLIqJydXY=
+
+Name: net/fabricmc/fabric/mixin/transfer/JukeboxBlockEntityMixin.class
+SHA-256-Digest: nfnqfCAtheEVzzL9E6+s32boWOmjc8o4AaWMB99ffBc=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/CombinedSlottedSt
+ orage.class
+SHA-256-Digest: 2fcRBbTwsGgJOwLaRkxcyZPeJpNW8zXKZuX/yV7qTrA=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/TransferVariant.class
+SHA-256-Digest: iGKry5iPQ8uTebpt0clN8Ow+c4I8jj7NYp+oxxEb0Ww=
+
+Name: net/fabricmc/fabric/impl/transfer/context/InitialContentsContainer
+ ItemContext.class
+SHA-256-Digest: PcXep75yPAD5kbvqC3ePJzXh/aFZKxwlkzNeYxrlg5A=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/CombinedProvidersImpl.clas
+ s
+SHA-256-Digest: a9jvADd2tcrAAls6Dp/+2gufkvqrwonHs+rZMrSUc7o=
+
+Name: net/fabricmc/fabric/impl/transfer/item/CursorSlotWrapper.class
+SHA-256-Digest: urmE3Udn1OEZxpiB8S/hEWTQJa1GpyAAzH3poKYTuA0=
+
+Name: net/fabricmc/fabric/mixin/transfer/DropperBlockMixin.class
+SHA-256-Digest: mzi/E1JXsoZpEUb2HbDFZtNydXOgzr/O4ZK6u9xiPTk=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/base/SingleFluidStorage.
+ class
+SHA-256-Digest: AMi7iTMaD7U4nbxY7RkAI8yw8p0G0BS1F/5dtZJAfRU=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/SingleVariantStor
+ age.class
+SHA-256-Digest: SL34KHGlTvtabQKm3ZlzfAJ7nr9Eg/HQg8LVmSJCNoY=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/FluidVariantCache.class
+SHA-256-Digest: c5rV2Q+/CFI1vHa/Gkrw/JtEjkfy6Jbt8ksyjjqdHWg=
+
+Name: net/fabricmc/fabric/impl/transfer/TransferApiImpl$2.class
+SHA-256-Digest: 8DF7mNYkTvsw4jyb++vyKGKc50JW16QuDeHIUeY44EU=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/CombinedProvidersImpl$Prov
+ ider.class
+SHA-256-Digest: gHtGLCIrINAlLaZ3KuyQNJkbFh8RL8Kr+hvJLSgOqXk=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/TransactionContext
+ $Result.class
+SHA-256-Digest: 8Rrxv12nEDYr9O5mPxuzNouJReUrja+5GKspuZCxgYk=
+
+Name: net/fabricmc/fabric/impl/transfer/transaction/package-info.class
+SHA-256-Digest: fIJynZBwjA/o3/sTu+wzHwmiKNtq3QrGTc3LCkPZXB4=
+
+Name: net/fabricmc/fabric/api/transfer/v1/client/fluid/FluidVariantRende
+ ring$1.class
+SHA-256-Digest: F7CIMtfgEwigneeWJDFa7rLmWAcoXCcVMpi2XnFiMls=
+
+Name: net/fabricmc/fabric/api/transfer/v1/item/base/SingleStackStorage.c
+ lass
+SHA-256-Digest: 4N6jZebSJ9Vb+/K0QnVjKBVNJcv7pnU8zJeIr+h52Zk=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/EmptyBucketStorage.class
+SHA-256-Digest: D9qtmNW308Q7Np/MhbE51sN47VH8njF0h2puhXGjndg=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/package-info.class
+SHA-256-Digest: D4NzKLSGJjeCLcxvP+Qc1lDdmJGUyu/zAEIbptyucxk=
+
+Name: net/fabricmc/fabric/impl/transfer/item/InventorySlotWrapper.class
+SHA-256-Digest: 956ExC+HTUrXQkSGrvtYFaTm3ewUApMGxN/3Gd+7HPI=
+
+Name: net/fabricmc/fabric/impl/transfer/context/InitialContentsContainer
+ ItemContext$1.class
+SHA-256-Digest: jr2BHN39MBtl3c7c6M5Nxdk3bGAdleimFFvPM1L8Glw=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/WaterPotionStorage.class
+SHA-256-Digest: lfxuu4btj4YN703DCVP943uwJccO2bQ9vTt45msahXw=
+
+Name: net/fabricmc/fabric/api/transfer/v1/context/ContainerItemContext.c
+ lass
+SHA-256-Digest: DpKYCJsvHZAAI3+2qMvocaIt4+u+FrZPB0N/P6AY0v0=
+
+Name: net/fabricmc/fabric/impl/transfer/item/InventoryStorageImpl$MarkDi
+ rtyParticipant.class
+SHA-256-Digest: jFACr+oYSEqBSrFTbQPQbafC2igODSPYdS3GbVHIKUw=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidStorage.class
+SHA-256-Digest: VWzzsRltuKNQuctSiGRU6xDQ3btvoJxtRtoiCK+5fCM=
+
+Name: net/fabricmc/fabric/api/transfer/v1/item/base/SingleItemStorage.cl
+ ass
+SHA-256-Digest: Op64KYYBbG60+SqbCTOmOzSPUItiDirnwf36EVRCNm4=
+
+Name: net/fabricmc/fabric/api/transfer/v1/item/ItemVariant.class
+SHA-256-Digest: +Ji9bH6scaCNkDf6ddafXrZGBtXZuEs9+1tdqbWaNS8=
+
+Name: net/fabricmc/fabric/impl/transfer/item/SpecialLogicInventory.class
+SHA-256-Digest: jX9uibdonIISI5IvYfouJtaY5843AKmHJcmnJPuPISQ=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidVariantAttributes$3
+ .class
+SHA-256-Digest: Hnr6pT2Vc3csFBFMcyjnC36sw7P7it9XWYJVxFbmqv8=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/Storage.class
+SHA-256-Digest: vB/nTiztjp+/6qpIeOSBpyTj2QY00x1+WKZLdLZ9yug=
+
+Name: net/fabricmc/fabric/impl/transfer/context/ConstantContainerItemCon
+ text$1.class
+SHA-256-Digest: hex93VoyjI1k0ftGFldYfblbgBKi00zaQR0Kroa1qa0=
+
+Name: net/fabricmc/fabric/api/transfer/v1/client/fluid/FluidVariantRende
+ ring.class
+SHA-256-Digest: X594j43l4kd5wKnFhF3TovHv6ZNeUoDLxtmOzRX5ts4=
+
+Name: net/fabricmc/fabric/impl/transfer/package-info.class
+SHA-256-Digest: tXjaBMY2F8KpZiUBP/PEhzf3ypHcNr+0jUFWyFbG2Pw=
+
+Name: net/fabricmc/fabric/impl/transfer/item/ComposterWrapper$BottomStor
+ age.class
+SHA-256-Digest: AnmkHXsRWXeCsuyB5NFapDpwAsRvHGYsceBQZv7OneA=
+
+Name: fabric-transfer-api-v1-refmap.json
+SHA-256-Digest: 2KQUJAT6rAxHSET1t5eeeLu8Ie9BpL6VXZovBKUeih8=
+
+Name: net/fabricmc/fabric/mixin/transfer/AbstractFurnaceBlockEntityMixin
+ .class
+SHA-256-Digest: C+vlpVqgAUZURjCzVklSDyKPRkIj+Jwq6uCUH6gqOeI=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/Transaction.class
+SHA-256-Digest: T1L3oTYGI/KGUfO7ES2lyYrJ6zFIK5eU6+pUGngmZF4=
+
+Name: net/fabricmc/fabric/impl/transfer/item/InventoryStorageImpl.class
+SHA-256-Digest: ajhfoPNhdoCD5hyzLF2xH3dE6UcY0QTd1jZ013fxNPg=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidVariantAttributes$2
+ .class
+SHA-256-Digest: HY1sBLWmsgCDneNeFGDDFybXWuW69/85izz9rNc/hjY=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidStorage$CombinedIte
+ mApiProvider.class
+SHA-256-Digest: CLE7UO82Emwq+C0x8tPldV/y5S0uSYVFKLLG+Brh0Ec=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/StoragePreconditions.c
+ lass
+SHA-256-Digest: D0vTA/lf8+kbT3pMHJNOYLVEbOPfyRwkFb5Ew7KRy6I=
+
+Name: net/fabricmc/fabric/mixin/transfer/ChiseledBookshelfBlockEntityMix
+ in$1.class
+SHA-256-Digest: CrIybWAmHwUmld1ymKlYpbUypUw2kl2mSG7PG0IOiAM=
+
+Name: LICENSE-fabric-transfer-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/StorageUtil.class
+SHA-256-Digest: ygsTyaff4srFJ0s5eJZVXYdoouZpfXpR2TjMW/5aSGg=
+
+Name: net/fabricmc/fabric/api/transfer/v1/item/InventoryStorage.class
+SHA-256-Digest: b0w3t1A7P7m8CBMLpVdaGoAIOAK4Brsm0cStnxfzaCY=
+
+Name: net/fabricmc/fabric/impl/transfer/TransferApiImpl.class
+SHA-256-Digest: /RecXGutPBUNwrggSneeL78zgWdESdR7bS9vJDtVNB4=
+
+Name: net/fabricmc/fabric/impl/transfer/item/package-info.class
+SHA-256-Digest: 65Xs8hATEdXjG8RNaR77qenusx7jcCk0wCVEv3lAZJc=
+
+Name: net/fabricmc/fabric/impl/transfer/context/package-info.class
+SHA-256-Digest: ycZ/DG4294SSh4LOWh/2lTMFZrz/+sCtE86FY+oPA2k=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/CauldronStorage.class
+SHA-256-Digest: beJvFTyuE60m/wczAQAkf9t/Pp5Km2MKiMPmqOeIoMw=
+
+Name: net/fabricmc/fabric/impl/transfer/context/CreativeInteractionConta
+ inerItemContext.class
+SHA-256-Digest: yfj4QTsrzRB89OCjETnheuUlIDItX1nRvIw0ODCw0MY=
+
+Name: net/fabricmc/fabric/mixin/transfer/BucketItemAccessor.class
+SHA-256-Digest: f02QAb//FZccOjK8sAahpVfBfxTSFpHZzJ9jjp//CEA=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidVariantAttributes$1
+ .class
+SHA-256-Digest: m3V1vpXxhhxhpK2i4XXPnq5VCH+UaXu2VNmJ0bDXRhA=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/ExtractionOnlySto
+ rage.class
+SHA-256-Digest: HTrz3SfrGC0XdKEwQdowi/RsY7huBzermf1XFh1LBSs=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/base/EmptyItemFluidStora
+ ge.class
+SHA-256-Digest: 5Vv184/TXZGjapzpp3IsRRlBbAc/WqQOSHh0xql2+D0=
+
+Name: net/fabricmc/fabric/impl/transfer/item/PlayerInventoryStorageImpl.
+ class
+SHA-256-Digest: ImLJTJmEXprl8+81oFymxzjP9CBpiP4NWUJHxSFyKz4=
+
+Name: net/fabricmc/fabric/impl/transfer/transaction/TransactionManagerIm
+ pl$TransactionImpl.class
+SHA-256-Digest: pGpxn4ESUOgsz13p2B6aA0jehAPVs05Ylcsp1pHAqvY=
+
+Name: net/fabricmc/fabric/impl/transfer/item/ItemVariantImpl.class
+SHA-256-Digest: jtVKi9Kx+nkK5ZEpxjemZ9uftEMMDl+0sySx5EUgwBw=
+
+Name: net/fabricmc/fabric/impl/transfer/item/PlayerInventoryStorageImpl$
+ DroppedStacks.class
+SHA-256-Digest: y1qFdcriy9eE20B/r2F1KYLpvAkRw5ryuJFRPgn4Egs=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/CombinedStorage$C
+ ombinedIterator.class
+SHA-256-Digest: V/r/9enA/YfKpvNp8uBs7N5oW5C1j4gQyWvkZn1BWM8=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/base/FullItemFluidStorag
+ e.class
+SHA-256-Digest: SnhIURNS6RR7tt9fkzFsLI2e9/gKOwN1tw6iSSdxjoo=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/InsertionOnlyStor
+ age.class
+SHA-256-Digest: k35pnYLTHfMpvQ5c1nkXe0E5Gf++EqHh0YVMWziFaBk=
+
+Name: net/fabricmc/fabric/impl/transfer/TransferApiImpl$1.class
+SHA-256-Digest: 0baYpFlVwlfW+xpUY0RiOWduq5TqZxR7lADoCdc6R/A=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidVariantAttributes.c
+ lass
+SHA-256-Digest: CDN3WQZf2GeItL3EwROi5bAdTarnIi1mCRSyzaD8QlU=
+
+Name: net/fabricmc/fabric/impl/transfer/DebugMessages.class
+SHA-256-Digest: LdCNmI/8JOfupfciO7TfYjlO0UiImhNHaRpGKScCIrM=
+
+Name: net/fabricmc/fabric/impl/transfer/item/ComposterWrapper$TopStorage
+ .class
+SHA-256-Digest: THfeOI+X6fENcpOje/Bk+gcz7ZcaiOYaT9dXznxgk6w=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidVariantAttributeHan
+ dler.class
+SHA-256-Digest: 8WWKJhDlD0ZGCmHvWfGKvJ8H/bUkNYV5TmCzMippU8c=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/FluidConstants.class
+SHA-256-Digest: x4PQY+bC0toPJlCWIM8v2e3svaO+g71t5mkburmk+L4=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/base/SnapshotParti
+ cipant.class
+SHA-256-Digest: tVQD0HTokTrDIfv/j+ByOew+2wF8bcGbEbFw1kqxHIM=
+
+Name: net/fabricmc/fabric/api/transfer/v1/item/PlayerInventoryStorage.cl
+ ass
+SHA-256-Digest: kRLrtro/wWeTQFBCwXEF2Ye+UzSQpBSf3WuCkStIHa8=
+
+Name: net/fabricmc/fabric/impl/transfer/context/SingleSlotContainerItemC
+ ontext.class
+SHA-256-Digest: c8V5ysUvpEqhJKuNdZHMXGIvjlcOqUGBxTDiCw3rpO8=
+
+Name: net/fabricmc/fabric/mixin/transfer/LootableContainerBlockEntityMix
+ in.class
+SHA-256-Digest: 6fVrLNE9G/OYNPprFRxXAdHgOmj/6+IIMr5xk47YYd8=
+
+Name: net/fabricmc/fabric/impl/transfer/context/ConstantContainerItemCon
+ text.class
+SHA-256-Digest: rti82m2KurevGWB2QE8BSF6wtN601LHhrCga7nSA0Mo=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/SidedStorageBlock
+ Entity.class
+SHA-256-Digest: pKB6T+jaFyRE3kzln5j2RA++8hIUpr+TFd8MmgYBXeA=
+
+Name: net/fabricmc/fabric/impl/transfer/item/SidedInventoryStorageImpl.c
+ lass
+SHA-256-Digest: 95/b2PVdOWuBT+2L3iunPnctdXefVYWBA1SLdpAMdeo=
+
+Name: net/fabricmc/fabric/impl/transfer/item/ComposterWrapper$WorldLocat
+ ion.class
+SHA-256-Digest: WawBaLSTP+/32//xCxAL3r/P5wmYvhOExqWCqiDqlhc=
+
+Name: net/fabricmc/fabric/mixin/transfer/package-info.class
+SHA-256-Digest: SAIE4RUBHnvjVcbm0yr1UT/VwF7KzMKIwJ4xDSOu+TY=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/FilteringStorage$
+ 1.class
+SHA-256-Digest: xjY8IH3dk/dp1oyisJG78A/B9AzYlNXNKDU0e8Qt1yw=
+
+Name: net/fabricmc/fabric/api/transfer/v1/storage/base/SingleVariantItem
+ Storage.class
+SHA-256-Digest: rGk/VTs5kaxuPaDNRj15K8u732wGFn1xWJIqgdzHOCc=
+
+Name: net/fabricmc/fabric/impl/transfer/fluid/CauldronStorage$WorldLocat
+ ion.class
+SHA-256-Digest: KgXEnQ0nr4OvhKlvxavPMVmmtLJDhDtKF/nyjWU1gdY=
+
+Name: assets/fabric-transfer-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/transfer/v1/transaction/Transaction$Lifecy
+ cle.class
+SHA-256-Digest: Sa6hMEZsyZzktvjZg0wNyWBvCenFFjnLGgfSiMioRUA=
+
+Name: net/fabricmc/fabric/api/transfer/v1/fluid/base/SingleFluidStorage$
+ 1.class
+SHA-256-Digest: fgjNp+CUNVBpvd4eTGSdFWkGbrRWcYM4aBEwgv0MvHQ=
+
+Name: net/fabricmc/fabric/api/transfer/v1/item/ItemStorage.class
+SHA-256-Digest: wz8esBF1VnHZt9wG/5LZdDlXx9Dn8Xbj9EjmEaNBavE=
+
+Name: net/fabricmc/fabric/impl/transfer/item/ComposterWrapper.class
+SHA-256-Digest: N7KcSiW8ZOXXE/ZU3wS62mGi7crvyJ7Ygfe6tAX4Zag=
+
+Name: net/fabricmc/fabric/mixin/transfer/SimpleInventoryMixin.class
+SHA-256-Digest: pf6XuwVByC04gOlXl0Rj793KbcMnT+wBBiRS5ldEhxo=
+

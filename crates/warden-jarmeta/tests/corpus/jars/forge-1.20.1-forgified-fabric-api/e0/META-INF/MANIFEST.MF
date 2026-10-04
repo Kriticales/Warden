@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+FMLModType: LANGPROVIDER
+Automatic-Module-Name: net.fabricmc.loader
+Implementation-Version: 2.6.0+0.15.0+1.20.1
+

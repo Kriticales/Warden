@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+FMLCorePluginContainsFMLMod: true
+FMLAT: angelica_at.cfg notfine_at.cfg archaicfix_at.cfg mcpatcherforge_a
+ t.cfg
+FMLCorePlugin: com.gtnewhorizons.angelica.loading.AngelicaTweaker
+TweakClass: org.spongepowered.asm.launch.MixinTweaker
+MixinConfigs: mixins.angelica.json
+ForceLoadAsMod: true
+Multi-Release: true
+JvmDowngrader-Version: 1.3.5
+

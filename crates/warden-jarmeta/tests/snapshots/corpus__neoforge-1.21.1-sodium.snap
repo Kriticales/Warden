@@ -1,0 +1,503 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-sodium (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "neoForgeModsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "neoForgeModsToml",
+      "loader": "neoForge",
+      "id": "sodium",
+      "version": "0.8.13+mc1.21.1",
+      "name": "Sodium",
+      "description": "Sodium is a powerful rendering engine for Minecraft which improves frame rates and reduces lag spikes.",
+      "authors": [
+        "JellySquid (jellysquid3), IMS212"
+      ],
+      "licenses": [
+        "Polyform-Shield-1.0.0"
+      ],
+      "dependencies": [
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "1.21.1"
+          },
+          "side": "client"
+        },
+        {
+          "id": "neoforge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[21.1.82,)"
+          },
+          "side": "client"
+        },
+        {
+          "id": "embeddium",
+          "kind": "incompatible",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.0.1,)"
+          },
+          "side": "client",
+          "reason": "Sodium and Embeddium cannot be used together. Please remove Embeddium."
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "1.21.1"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[21.1.82,)"
+      },
+      "mixins": [
+        "sodium-common.mixins.json",
+        "sodium-neoforge.mixins.json"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[4,)"
+    }
+  },
+  "manifest": {
+    "fmlModType": "LIBRARY",
+    "automaticModuleName": "sodium_service"
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/net.caffeinemc.sodium-neoforge-0.8.13+mc1.21.1-mod.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "net.caffeinemc",
+        "artifact": "neoforge",
+        "artifactVersion": "0.8.13+mc1.21.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.8.13+mc1.21.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "sodium",
+            "version": "0.8.13+mc1.21.1",
+            "name": "Sodium",
+            "description": "Sodium is a powerful rendering engine for Minecraft which improves frame rates and reduces lag spikes.",
+            "authors": [
+              "JellySquid (jellysquid3), IMS212"
+            ],
+            "licenses": [
+              "Polyform-Shield-1.0.0"
+            ],
+            "dependencies": [
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "1.21.1"
+                },
+                "side": "client"
+              },
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.1.82,)"
+                },
+                "side": "client"
+              },
+              {
+                "id": "embeddium",
+                "kind": "incompatible",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[0.0.1,)"
+                },
+                "side": "client",
+                "reason": "Sodium and Embeddium cannot be used together. Please remove Embeddium."
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "1.21.1"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.1.82,)"
+            },
+            "mixins": [
+              "sodium-common.mixins.json",
+              "sodium-neoforge.mixins.json"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[4,)"
+          }
+        },
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-api-base-0.4.42+d1308ded19.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-api-base",
+        "artifactVersion": "0.4.42+d1308ded19",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.4.42+d1308ded19,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "fabric_api_base",
+            "version": "0.4.42+d1308ded19",
+            "name": "Forgified Fabric API Base",
+            "description": "Contains the essentials for Fabric API modules.",
+            "authors": [
+              "Sinytra, FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.1.219,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.21.1,1.22)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.21.1,1.22)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.1.219,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[1,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "0.4.42+d1308ded19"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-block-view-api-v2-1.0.10+9afaaf8c19.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-block-view-api-v2",
+        "artifactVersion": "1.0.10+9afaaf8c19",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.0.10+9afaaf8c19,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "fabric_block_view_api_v2",
+            "version": "1.0.10+9afaaf8c19",
+            "name": "Forgified Fabric BlockView API (v2)",
+            "description": "Hooks for block views",
+            "authors": [
+              "Sinytra, FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.1.115,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.21.1,1.22)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.21.1,1.22)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.1.115,)"
+            },
+            "mixins": [
+              "fabric-block-view-api-v2.mixins.json",
+              "fabric-block-view-api-v2.client.mixins.json"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[1,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "1.0.10+9afaaf8c19"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-renderer-api-v1-3.4.1+9125b6dc19.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-renderer-api-v1",
+        "artifactVersion": "3.4.1+9125b6dc19",
+        "range": {
+          "dialect": "maven",
+          "spec": "[3.4.1+9125b6dc19,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "fabric_renderer_api_v1",
+            "version": "3.4.1+9125b6dc19",
+            "name": "Forgified Fabric Renderer API (v1)",
+            "description": "Defines rendering extensions for dynamic/fancy block and item models.",
+            "authors": [
+              "Sinytra, FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.1.219,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.21.1,1.22)"
+                }
+              },
+              {
+                "id": "fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "*"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.21.1,1.22)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.1.219,)"
+            },
+            "mixins": [
+              "fabric-renderer-api-v1.mixins.json",
+              "fabric-renderer-api-v1.debughud.mixins.json"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[1,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "3.4.1+9125b6dc19"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.48+73761d2e19.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.sinytra.forgified-fabric-api",
+        "artifact": "fabric-rendering-data-attachment-v1",
+        "artifactVersion": "0.3.48+73761d2e19",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.3.48+73761d2e19,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "fabric_rendering_data_attachment_v1",
+            "version": "0.3.48+73761d2e19",
+            "name": "Forgified Fabric Rendering Data Attachment (v1)",
+            "description": "Thread-safe hooks for block entity data use during terrain rendering.",
+            "authors": [
+              "Sinytra, FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.1.115,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.21.1,1.22)"
+                }
+              },
+              {
+                "id": "fabric_block_view_api_v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "*"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.21.1,1.22)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.1.115,)"
+            },
+            "mixins": [
+              "fabric-rendering-data-attachment-v1.mixins.json",
+              "fabric-rendering-data-attachment-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[1,)"
+          }
+        },
+        "manifest": {
+          "implementationVersion": "0.3.48+73761d2e19"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

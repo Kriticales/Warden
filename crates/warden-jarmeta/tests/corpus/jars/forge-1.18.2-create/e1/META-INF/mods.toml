@@ -1,0 +1,30 @@
+modLoader = "javafml"
+loaderVersion = "[40,)"
+issueTrackerURL = "https://github.com/Jozufozu/Flywheel/issues"
+license = "MIT"
+
+[[mods]]
+modId = "flywheel"
+# The Implementation-Version property in the jar's MANIFEST.MF file will be used as the mod version at runtime
+version = "${file.jarVersion}"
+displayName = "Flywheel"
+logoFile = "logo.png"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/flywheel"
+updateJSONURL = "https://api.modrinth.com/updates/flywheel/forge_updates.json"
+authors = "Jozufozu, PepperCode1"
+description = '''
+A modern engine for modded minecraft.'''
+
+[[dependencies.flywheel]]
+modId = "forge"
+mandatory = true
+versionRange = "[40.0.0,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.flywheel]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18.2,1.19)"
+ordering = "NONE"
+side = "CLIENT"

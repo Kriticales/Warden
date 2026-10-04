@@ -1,0 +1,205 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-entity-events-v1-refmap.j
+ son;fabric-entity-events-v1.client.mixins.json;net/fabricmc/fabric/mixi
+ n/client/entity/event/elytra/ClientPlayerEntityMixin.class;net/fabricmc
+ /fabric/mixin/client/entity/event/elytra/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/mixin/entity/event/EntityMixin.class
+SHA-256-Digest: cNP3AAuDKsLYSSjTs7kFsbtC6epFbu4Civ7CwXySwQY=
+
+Name: LICENSE-fabric-entity-events-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$AllowBed
+ .class
+SHA-256-Digest: 9vtbsfUXiI0X3U1quUH58ifhOvvQUiA5He7u5RN04d0=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerPlayerEvents$CopyFro
+ m.class
+SHA-256-Digest: zqrixNSzXDIXSPv2TU0S5UqQ0m3rmzEYX1tOKd2UT3w=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerLivingEntityEvents$A
+ fterDeath.class
+SHA-256-Digest: XgSTqOoJHxg4Chg6rjvi+CSXWpUR+KarPIPswxWX2Kw=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$AllowRes
+ ettingTime.class
+SHA-256-Digest: uBDQtyI8sUdZD1CNkWL7kaqXw0lOCLh7raetSWm2Gh4=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerPlayerEvents$AllowDe
+ ath.class
+SHA-256-Digest: NnVNVybRXsaCXjgfZQ/rzM/dFDYl1jSCxlW1wop5SN0=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntityElytraEvents$Custom.
+ class
+SHA-256-Digest: cImGzrV8460plzFlBxmlwMyLlj8LbYXWgxYnWkMJhnY=
+
+Name: net/fabricmc/fabric/mixin/entity/event/elytra/package-info.class
+SHA-256-Digest: k/Vg7TF6z6zWf4CVLmAGalcZjvuOlskbM80eJASGPjk=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntityElytraEvents$Allow.c
+ lass
+SHA-256-Digest: Yv1zF4wadf22pJc0iSVnOylJsRB1J4JpkMh/7rD27pQ=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/FabricElytraItem.class
+SHA-256-Digest: Q5mnqb06S/aAJ1SxIHS+z4JjlEDKKjDONhs0a8Vteu4=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerEntityCombatEvents$A
+ fterKilledOtherEntity.class
+SHA-256-Digest: G5BodG2t+uGPikqvZ9DHbJzZfV/TTrb6KbOqWMrwz94=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$AllowSle
+ eping.class
+SHA-256-Digest: MklnynnECwez5DQ7Nb6TqWRlpY2BtnUXlOELqGkAA1A=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerEntityCombatEvents.c
+ lass
+SHA-256-Digest: ypqPfBXeuMBq9xoB7XT5Oaaii8QqQtdT6VUsmyjb0G8=
+
+Name: net/fabricmc/fabric/mixin/entity/event/TadpoleEntityMixin.class
+SHA-256-Digest: kwBtX4yFCT/uOlR5bFt3PN2xhDV0jnaLmWXuUl/SS84=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$ModifyWa
+ keUpPosition.class
+SHA-256-Digest: EC2elBAscRh9NaprFHRboT2gIRD/T+gbSwJFk93v610=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$StartSle
+ eping.class
+SHA-256-Digest: ofFFd/ZUBcsye39XaZfFjum4iVjaTf3/OtcBXkXGstI=
+
+Name: net/fabricmc/fabric/mixin/entity/event/ServerPlayerEntityMixin.cla
+ ss
+SHA-256-Digest: hxdTao3D/LVSFDopKwT+l/9yAyt3CitrQe0ACwb/G9c=
+
+Name: net/fabricmc/fabric/mixin/client/entity/event/elytra/ClientPlayerE
+ ntityMixin.class
+SHA-256-Digest: vQTjcctMake1j+UZ7c1F7ph+CW2AGAAYeyJLALf+swM=
+
+Name: net/fabricmc/fabric/mixin/entity/event/PlayerEntityMixin.class
+SHA-256-Digest: zsD+A15v+gBa3ep0oZvBwIAXRHVsbWP/yZEf5DcCTBA=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerEntityWorldChangeEve
+ nts$AfterPlayerChange.class
+SHA-256-Digest: pQJwhryytNAvvdjl6jn4EWgTPsssJUmueGO1ktEySnM=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerLivingEntityEvents.c
+ lass
+SHA-256-Digest: yCTXv0V/LOERoRa3lKvlSceKycbKmeD4GQMkdU91WaM=
+
+Name: fabric.mod.json
+SHA-256-Digest: /ef77XZhEZh9WExYn2SrPUkqK7hAh9mPqddmOm7IiWk=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$ModifySl
+ eepingDirection.class
+SHA-256-Digest: 0OdFa022CRvmE3e9TIVCaSb9dbOS5bchav02eI6c1JQ=
+
+Name: fabric-entity-events-v1.client.mixins.json
+SHA-256-Digest: xnIy5Gi6Vu32A6aTmaNgBAjknHko0YvKf/kAq/m8tfY=
+
+Name: fabric-entity-events-v1.mixins.json
+SHA-256-Digest: C2PsSXt+fdNt2mpuhSBaV55jy+J5DVBHlaHc0V/LAqw=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntityElytraEvents.class
+SHA-256-Digest: fHEVOIT7YHK1CPzvAGhfsNW4uBknI0ILAjvk6l4uHn8=
+
+Name: net/fabricmc/fabric/mixin/entity/event/VillagerEntityMixin.class
+SHA-256-Digest: +nzoHhzZbmDkfEVkC5oveIaxlB2cWvuT12FLGO9GuTo=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerPlayerEvents$AfterRe
+ spawn.class
+SHA-256-Digest: KaIW3UJuOe8sjcyK8cU9iSl3y7E9CrxL9nkFArniM1o=
+
+Name: net/fabricmc/fabric/mixin/entity/event/MobEntityMixin.class
+SHA-256-Digest: J3F88OZIRJs3ICMkerkSiNy6Z+IkyEVtM3SVK1s7Oec=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents.class
+SHA-256-Digest: 8JrDB6LDhtmt19FxKhMZuwGjWyHrKbbn8g8vPjfiLVk=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerLivingEntityEvents$M
+ obConversion.class
+SHA-256-Digest: xaZDaeEVZZC8IWMhyYj3/KqgvRF8SlwGDE6Ov2fjZ7E=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerLivingEntityEvents$A
+ llowDeath.class
+SHA-256-Digest: 2cyVjmNfI3b1A0iEcyRch06I22NwbCUb+Y833Onwijs=
+
+Name: net/fabricmc/fabric/mixin/entity/event/PigEntityMixin.class
+SHA-256-Digest: fqpCeLRJvrNlx13zJlGJVq+T4wa73CdUR2LR4hQdPR8=
+
+Name: net/fabricmc/fabric/mixin/entity/event/elytra/PlayerEntityMixin.cl
+ ass
+SHA-256-Digest: I5vnaUG4mQoFxY/XACnyovTB/EPfWvwbFnjAT7A9+iA=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$StopSlee
+ ping.class
+SHA-256-Digest: unN7QbpFALa1D92OVN3KAEOFRmQGS6eoeLfdAYvCH9g=
+
+Name: net/fabricmc/fabric/mixin/entity/event/PlayerManagerMixin.class
+SHA-256-Digest: YT19EkmPiPnGgVimTX5aeMfzsrLbGUA8CDKd3Fl98yE=
+
+Name: net/fabricmc/fabric/mixin/entity/event/elytra/LivingEntityMixin.cl
+ ass
+SHA-256-Digest: Ee5rBPSFzFeqqA3RRZ+3ujPFTihnAASqxbPa0nrqw2g=
+
+Name: net/fabricmc/fabric/mixin/entity/event/LivingEntityMixin.class
+SHA-256-Digest: 36qr72upE5MTNNbNL/inpehJ6yszl3wtB9AFNA58Eoo=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerEntityWorldChangeEve
+ nts$AfterEntityChange.class
+SHA-256-Digest: QUlJ3nGf0JF8zcKg3+Nkly7oGmv58zMWpPbULTD3li0=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$AllowSle
+ epTime.class
+SHA-256-Digest: EbiwaUt1P+334+IC2TxoVmW9KNmuulMNimYtit2QO9E=
+
+Name: client-fabric-entity-events-v1-refmap.json
+SHA-256-Digest: 325WAAw2/DdoLAqHjPWOH8qMh2PKWHywFbEHusJzl2I=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerPlayerEvents.class
+SHA-256-Digest: WhYt1yImpXuv7DGEVKU6PuSIgAZ7C/7Ef7x6QgH4X5c=
+
+Name: fabric-entity-events-v1-refmap.json
+SHA-256-Digest: 1p37tmgRMH6bphEeerApX3DYP76rN4DsxZMbnYTdGIU=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerLivingEntityEvents$A
+ llowDamage.class
+SHA-256-Digest: wbiTuMuCW7fvXVC1LlYvstulszpEiJ5kSkBagPtFPKU=
+
+Name: net/fabricmc/fabric/mixin/client/entity/event/elytra/package-info.
+ class
+SHA-256-Digest: hJgTbpMoOKPC6oCa9Qeec8xtjr81MQKPgjQeqy+VM2U=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$AllowSet
+ tingSpawn.class
+SHA-256-Digest: gcGldYWE7qnx1R7/9PQu2YtTVPrluJNQ4NQ/tvOZHBc=
+
+Name: net/fabricmc/fabric/mixin/entity/event/package-info.class
+SHA-256-Digest: SjUFXEDRe0kVtm0SUfZ6Y3RLGpkqdXtw3qADH61d2mU=
+
+Name: assets/fabric-entity-events-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$SetBedOc
+ cupationState.class
+SHA-256-Digest: KRtI3Pfb6FX7+nw6yM1CMfIlHgfircIYXZ//MxwtOp0=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/EntitySleepEvents$AllowNea
+ rbyMonsters.class
+SHA-256-Digest: aJOblvLvbBoh2zJ1qET3fekbiUZqXSM5zOl/5WIXJY8=
+
+Name: net/fabricmc/fabric/api/entity/event/v1/ServerEntityWorldChangeEve
+ nts.class
+SHA-256-Digest: DW5a9An6tMpCCyugWHHTbRkh2L7TjkvwGvDBS5tpLBA=
+

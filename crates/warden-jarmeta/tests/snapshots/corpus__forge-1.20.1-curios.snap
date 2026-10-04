@@ -1,0 +1,70 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-curios (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "curios",
+      "version": "5.14.1+1.20.1",
+      "name": "Curios API",
+      "description": "A flexible and expandable accessory/equipment API for users and developers.",
+      "authors": [
+        "C4"
+      ],
+      "licenses": [
+        "LGPL-3.0-or-later"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[46,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20,1.21)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.20,1.21)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[46,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[41,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "curios.mixins.json"
+    ],
+    "implementationTitle": "curios",
+    "implementationVersion": "5.14.1+1.20.1"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  }
+}

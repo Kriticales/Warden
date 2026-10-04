@@ -1,0 +1,54 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-mining-level-api-v1-refmap.json
+SHA-256-Digest: qBeVmdzDha8ZVlFy0EZqPhLNnLg07qhmr0Y+y6FZ7YE=
+
+Name: assets/fabric-mining-level-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-mining-level-api-v1.mixins.json
+SHA-256-Digest: 4ClfbHnZ4eDz056NDLpf/urknM1uU+41DxWQtXb7oeI=
+
+Name: net/fabricmc/fabric/mixin/mininglevel/ShearsItemMixin.class
+SHA-256-Digest: AyHI/cpRbJQC06n9H8I6h4g7oppJMU+9Tdp1ctgCiB4=
+
+Name: net/fabricmc/fabric/mixin/mininglevel/SwordItemMixin.class
+SHA-256-Digest: 7lVKipb3Fr1swFIWpoIDYMbVJh8kMonsTpU5dCd2VCk=
+
+Name: net/fabricmc/fabric/impl/mininglevel/MiningLevelManagerImpl.class
+SHA-256-Digest: 3pfwq4PIprV5FqoW6Baa/ktCYNLF82ghRNxf3Lk55LY=
+
+Name: fabric.mod.json
+SHA-256-Digest: Z+PUjmOnxQOR2jqHKn9DFPItbVYb+xnXGjfKQMTx1ZM=
+
+Name: net/fabricmc/fabric/api/mininglevel/v1/MiningLevelManager.class
+SHA-256-Digest: sm6jlcixGey85eWx03pM4kJvCcZvjzq/MYk1lUEHaSE=
+
+Name: LICENSE-fabric-mining-level-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/mininglevel/MiningToolItemMixin.class
+SHA-256-Digest: gQxf42J9RNqgSoGzmfbjwfHVolqi5Ozn6H5PjzoGKRE=
+
+Name: net/fabricmc/fabric/mixin/mininglevel/package-info.class
+SHA-256-Digest: 9M9BwnfUsNk+HpSLHDMrnI67/xQnEFdk8Sdg8Uo7lgw=
+
+Name: net/fabricmc/fabric/impl/mininglevel/package-info.class
+SHA-256-Digest: /3i4MoBiab/kQb3OhIwm1ul8SyRdwC8/T6Q3dJe/zdI=
+
+Name: net/fabricmc/fabric/api/mininglevel/v1/FabricMineableTags.class
+SHA-256-Digest: BdPF1+VCZhaVeZSMVC3HKHa2OWl8HjMvniS+M856FwU=
+

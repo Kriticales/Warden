@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Implementation-Title: AppleSkin
+Implementation-Version: 2.5.1+mc1.16.4
+Specification-Vendor: squeek
+Specification-Title: appleskin
+Implementation-Timestamp: 2023-09-26T20:57:38-0700
+Specification-Version: 1
+Implementation-Vendor: squeek
+

@@ -1,0 +1,28 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/fabric-api-base-0.4.31+1802ada577.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jars/fabric-block-view-api-v2-1.0.1+1802ada577.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-data-attachment-v1-0.3.37+92a0d36777.jar",
+      "dir": "e2"
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-fluids-v1-3.0.28+1802ada577.jar",
+      "dir": "e3"
+    },
+    {
+      "path": "META-INF/jars/fabric-resource-loader-v0-0.11.11+fb82e9d777.jar",
+      "dir": "e4"
+    }
+  ]
+}

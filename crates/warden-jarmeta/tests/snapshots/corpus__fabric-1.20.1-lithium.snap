@@ -1,0 +1,79 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-lithium (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "lithium",
+      "version": "0.11.4",
+      "name": "Lithium",
+      "description": "Lithium is a free and open-source optimization mod for Minecraft which makes a wide range of performance improvements to the game.",
+      "authors": [
+        "JellySquid",
+        "2No2Name"
+      ],
+      "licenses": [
+        "LGPL-3.0-only"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.12.11"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "1.20.1"
+            ]
+          }
+        },
+        {
+          "id": "optifabric",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          "1.20.1"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.12.11"
+        ]
+      },
+      "mixins": [
+        "lithium.mixins.json"
+      ]
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  }
+}

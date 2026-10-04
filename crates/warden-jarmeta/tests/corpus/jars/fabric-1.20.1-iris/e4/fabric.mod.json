@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_anarres_jcpp",
+  "version": "1.4.14",
+  "name": "jcpp",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

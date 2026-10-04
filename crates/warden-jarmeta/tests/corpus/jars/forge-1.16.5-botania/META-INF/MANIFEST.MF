@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Implementation-Title: Botania
+Implementation-Version: 1.16.5-420.3
+Specification-Vendor: botania
+Specification-Title: botania
+MixinConnector: vazkii.botania.common.MixinConnector
+Specification-Version: 1
+Implementation-Vendor: botania
+

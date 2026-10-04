@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.6.1+4ca7515277
+MixinConfigs: fabric-entity-events-v1.mixins.json,fabric-entity-events-v
+ 1.client.mixins.json
+

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlinx_kotlinx-io-core-jvm",
+  "version": "0.9.1",
+  "name": "kotlinx-io-core-jvm",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

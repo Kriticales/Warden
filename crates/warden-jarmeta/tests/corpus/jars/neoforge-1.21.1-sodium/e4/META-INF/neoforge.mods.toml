@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_rendering_data_attachment_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Rendering Data Attachment (v1)"
+logoFile = "assets/fabric-rendering-data-attachment-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Thread-safe hooks for block entity data use during terrain rendering."
+provides = ["fabric-rendering-data-attachment-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_rendering_data_attachment_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.115,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_rendering_data_attachment_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_rendering_data_attachment_v1]]
+modId = "fabric_block_view_api_v2"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-rendering-data-attachment-v1.mixins.json"
+
+[[mixins]]
+config = "fabric-rendering-data-attachment-v1.client.mixins.json"

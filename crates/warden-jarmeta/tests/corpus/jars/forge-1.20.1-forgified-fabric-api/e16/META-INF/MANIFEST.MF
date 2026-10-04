@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 0.6.5+0f26153f77
+MixinConfigs: fabric-events-interaction-v0.mixins.json,fabric-events-int
+ eraction-v0.client.mixins.json
+

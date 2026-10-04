@@ -1,0 +1,69 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.qsl.entity",
+		"id": "quilt_vehicle",
+		"version": "6.3.0+1.20.1",
+		"metadata": {
+			"name": "Quilt Vehicle API",
+			"description": "Module for working with Minecraft's vehicles.",
+			"contributors": {
+				"The Quilt Project": "Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilt-standard-libraries/issues",
+				"sources": "https://github.com/QuiltMC/quilt-standard-libraries"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilt_vehicle/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"load_type": "if_possible",
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.25.0"
+			},
+			{
+				"id": "minecraft",
+				"versions": {
+					"any": [
+						"=1.20.1",
+						"=1.20"
+					]
+				}
+			},
+			{
+				"id": "quilt_resource_loader",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_entity",
+				"versions": ">=6.3.0+1.20.1"
+			}
+		]
+	},
+	"mixin": "quilt_vehicle.mixins.json",
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": {
+			"id": "qsl",
+			"name": "Quilt Standard Libraries",
+			"description": "A set of libraries to assist in making Quilt mods.",
+			"icon": "assets/quilt_vehicle/icon.png",
+			"badges": [
+				"library"
+			]
+		}
+	},
+	"quilt_loom": {
+		"injected_interfaces": {
+			"net/minecraft/class_1688": [
+				"org/quiltmc/qsl/vehicle/api/MinecartComparatorLogic"
+			]
+		}
+	}
+}

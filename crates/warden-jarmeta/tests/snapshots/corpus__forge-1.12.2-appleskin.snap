@@ -1,0 +1,32 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-appleskin (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "appleskin",
+      "version": "1.0.14",
+      "name": "AppleSkin",
+      "description": "Adds various food-related HUD improvements",
+      "authors": [
+        "squeek"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.12"
+      }
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

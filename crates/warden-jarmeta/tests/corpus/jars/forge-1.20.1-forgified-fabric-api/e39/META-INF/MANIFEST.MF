@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.14+4f23bd8477
+MixinConfigs: fabric-sound-api-v1.mixins.json
+

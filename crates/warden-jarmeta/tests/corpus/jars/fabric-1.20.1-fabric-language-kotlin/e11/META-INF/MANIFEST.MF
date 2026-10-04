@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Require-Kotlin-Version: 2.0.0-RC1
+Multi-Release: true
+Implementation-Vendor: JetBrains
+Implementation-Title: kotlinx-serialization-core
+Implementation-Version: 1.11.0
+

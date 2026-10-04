@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric.mod.json
+SHA-256-Digest: f/L1La5V3SsW1fEAbB2M/FPM2IBD0NLOQD7R+bikjiU=
+
+Name: assets/fabric-transitive-access-wideners-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-transitive-access-wideners-v1.accesswidener
+SHA-256-Digest: WLkSEFn+ZIqJ/EkkFGMyAJpUYZGNBIETBY3zD9TsO94=
+
+Name: LICENSE-fabric-transitive-access-wideners-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+

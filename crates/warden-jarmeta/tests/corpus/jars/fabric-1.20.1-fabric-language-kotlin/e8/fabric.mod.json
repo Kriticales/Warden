@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm",
+  "version": "0.9.1",
+  "name": "kotlinx-io-bytestring-jvm",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

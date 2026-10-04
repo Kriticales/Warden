@@ -1,0 +1,264 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-registry-sync-v0-refmap.j
+ son;fabric-registry-sync-v0.client.mixins.json;net/fabricmc/fabric/impl
+ /client/registry/sync/FabricRegistryClientInit.class;net/fabricmc/fabri
+ c/impl/client/registry/sync/package-info.class;net/fabricmc/fabric/mixi
+ n/registry/sync/client/BlockColorsMixin.class;net/fabricmc/fabric/mixin
+ /registry/sync/client/ItemColorsMixin.class;net/fabricmc/fabric/mixin/r
+ egistry/sync/client/ItemModelsMixin.class;net/fabricmc/fabric/mixin/reg
+ istry/sync/client/MinecraftClientMixin.class;net/fabricmc/fabric/mixin/
+ registry/sync/client/ParticleManagerMixin.class;net/fabricmc/fabric/mix
+ in/registry/sync/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/event/registry/RegistryAttributeHolder.cla
+ ss
+SHA-256-Digest: B4amy3FOQACYJDpsgX6IPXTjc0gNHgwZ6ljTCwNU0ZY=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/ChunkSerializerMixin.class
+SHA-256-Digest: XgMKqNYt8u6B8wujUo3Bbn22IgxsuZ0grJdzGmGBomw=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/IdListMixin.class
+SHA-256-Digest: 1XIw0RwXYllfHJFOckI6tGhCzz94+8YymPABD0LCNy0=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/IdListTracker.clas
+ s
+SHA-256-Digest: AfsIE3QHuR/aNLFcrDeUCCKj26Ojv7FpgzuxdyZsUdA=
+
+Name: net/fabricmc/fabric/api/event/registry/RegistryIdRemapCallback$Rem
+ apState.class
+SHA-256-Digest: ZuEUCLJ/xLy/es4X9kUmljusAvyfv6Zmuz+D5r9JGL8=
+
+Name: net/fabricmc/fabric/api/event/registry/DynamicRegistrySetupCallbac
+ k.class
+SHA-256-Digest: s58uiDVMRruZ+nASb1b1OFreh1VF4Jhpg1D7xKCuuIU=
+
+Name: net/fabricmc/fabric/api/event/registry/FabricRegistryBuilder.class
+SHA-256-Digest: 3K8jH+PBJurTUoPdbAABEugytQyFgvVEHJuubHNBZ00=
+
+Name: net/fabricmc/fabric/impl/client/registry/sync/package-info.class
+SHA-256-Digest: JYw/tHwMrQ1pfHxoM6m8qIV2zmtR03YnZazsIebVcuw=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RemapException.class
+SHA-256-Digest: rk1lk/26o0ut7fJTdhGl0+xZT6/0yShm54LLDNpWFxA=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RemovableIdList.class
+SHA-256-Digest: 2aWjldKJupzP0I+DeTQJP6wZ+cliu/FssJbSuTtevC0=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/vanilla/package-in
+ fo.class
+SHA-256-Digest: ERWhh2SNT406JOOv/xR0QWrENWYMeijeaxYV6gr/ink=
+
+Name: net/fabricmc/fabric/api/event/registry/FabricRegistry.class
+SHA-256-Digest: CDk1tMHYgfCYZIbPVb4XV4js50czMHc1K4EFxNeJfUk=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/MinecraftServerMixin.class
+SHA-256-Digest: Cy1YU7wAoALvl4pnOnlrt8HA2DTNpPDKh07q/ofNxtE=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/DebugChunkGeneratorAccesso
+ r.class
+SHA-256-Digest: 2F1Ag//szu0TL0cGFjoczFAE8rx89Pu0R8+HYGfZ2wE=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/RegistryLoaderMixin.class
+SHA-256-Digest: jdPSBBDjAQ2GKfSRRrTjOvaHk+Pl9I3uWEY/OZfhloU=
+
+Name: net/fabricmc/fabric/impl/registry/sync/DynamicRegistriesImpl.class
+SHA-256-Digest: olVP8MtF86IUibAxg6OK/crTcfmpVd7qHUH0MaAY424=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/vanilla/BlockInitT
+ racker.class
+SHA-256-Digest: CjXe1+XrdwFrgc4NRTxHL2ZHjrM1EFRsL0V2rPRKlP8=
+
+Name: fabric-registry-sync-v0-refmap.json
+SHA-256-Digest: YrTgERpZJBuCYJgAmbZdALuH2QLPKj5mgznfxOAt4AQ=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/client/ItemColorsMixin.cla
+ ss
+SHA-256-Digest: Oj+dTDB4JTHYFrWTMhOGfhqNG7CFK3owJy2iz/q1Ehw=
+
+Name: client-fabric-registry-sync-v0-refmap.json
+SHA-256-Digest: JvObmBhYnxoWaE6kxzP4Ur6wGwsbYHnjxy6nU7A4hek=
+
+Name: net/fabricmc/fabric/impl/registry/sync/DynamicRegistryViewImpl.cla
+ ss
+SHA-256-Digest: EuOFLC6wlXyGUyRvlKaEWNopyQwzkbygljHc9YomOIg=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RemapStateImpl.class
+SHA-256-Digest: aTMqUv+xQj3BVc1U/rnsfwKt0BgN5320Gl0LR397OKI=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/vanilla/BlockItemT
+ racker.class
+SHA-256-Digest: 8zJRLl2uOGffv/Ivp9dYUGkC7CK4sxPVEB43heX58xA=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/SimpleRegistryMixin$1.clas
+ s
+SHA-256-Digest: Cliicci8aQ+8iw8WLIU/95+W2mse0OWC06RX1t5wiKA=
+
+Name: net/fabricmc/fabric/impl/registry/sync/FabricRegistryInit.class
+SHA-256-Digest: 3g5wVFx50KzmQEtzyrugXGE7t8yEhfpflsHEiZQnstQ=
+
+Name: net/fabricmc/fabric/impl/registry/sync/ListenableRegistry.class
+SHA-256-Digest: dryu9NFXzy/IobsK1acvyzjW6EdZUW63bX17dV/dSfM=
+
+Name: LICENSE-fabric-registry-sync-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/Int2ObjectMapTrack
+ er.class
+SHA-256-Digest: 35ix5gWD99suOrTjRmdeAfPeAEa3FpEHNYBsCWHKSzc=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/client/ItemModelsMixin.cla
+ ss
+SHA-256-Digest: Lg+msvpe2YYvhSaJga7Ov4tAm7MAcqU1nzmVO1AKd1I=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RegistryAttributeImpl.class
+SHA-256-Digest: bgx845sUERnUs+nrZeDJFGL7esBtYLRj6LS6hCV6qf0=
+
+Name: fabric.mod.json
+SHA-256-Digest: FmcIfF8+VaqISPqypoOgxbzGeKeQ+hbvIAPbAZcGqm4=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/client/MinecraftClientMixi
+ n.class
+SHA-256-Digest: wGPfcW8gK9BoQFBGX2p3FBC2ZQnKMOJGcQVFKJ1Qwz4=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/client/package-info.class
+SHA-256-Digest: ++5JGhdGGIkVhopE55IwumjEyKV8RVed8BzmCqcM6+o=
+
+Name: net/fabricmc/fabric/api/event/registry/DynamicRegistryView.class
+SHA-256-Digest: xdGS9CE0gs9etgxPABZVh2ExRPiQg0Xo1hFVyg4EVmg=
+
+Name: net/fabricmc/fabric/api/event/registry/RegistryEntryRemovedCallbac
+ k.class
+SHA-256-Digest: wKqEgmo4nULFbgdnpR4zuez9iRydwY1bCosw0eNVjc0=
+
+Name: net/fabricmc/fabric/api/event/registry/DynamicRegistries.class
+SHA-256-Digest: 7BNGzIOhGPylXFYyLtMNvCpb+oqsD6nLG239kZrITRM=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/BootstrapMixin.class
+SHA-256-Digest: 30kztOcLyme7yTwT1KciNJZqG/Bk7hYhJ5o4JF/xSpE=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/package-info.class
+SHA-256-Digest: P46xwQWv4EqRAgdKMuWV4ub+tYjiuubcpoN5xhaaNuI=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/SimpleRegistryMixin.class
+SHA-256-Digest: +dqaXxGnDacWP+2GSC62SeD+wFDGQEvKzS6HrxkGEMo=
+
+Name: fabric-registry-sync-v0.client.mixins.json
+SHA-256-Digest: FoVxL0JLdgHSmaiOlPIkvoeouj1Hj1zgDTvJGsQ5sHw=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/StructuresToConfiguredStru
+ cturesFixMixin.class
+SHA-256-Digest: dA6sPmQOhWIMMZ6codpJRs7M4+K7OaUbxPuxjzGF+7M=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/client/BlockColorsMixin.cl
+ ass
+SHA-256-Digest: JKrdc39qJhYTk0IHtgdmPDPFBhhuKBQ8vJZmgmK5+zA=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/LevelStorageSessionMixin.c
+ lass
+SHA-256-Digest: Aq1f0OzaZVhA83PauN7uEVkLfhqeyLBlJU7Q89K6YfM=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/RegistriesMixin.class
+SHA-256-Digest: s5rblGSiOHSXTdejimtY6thKk+mcmYxflh0GkfzkBeI=
+
+Name: net/fabricmc/fabric/impl/client/registry/sync/FabricRegistryClient
+ Init.class
+SHA-256-Digest: pxlBdY6id1VX3F585U2ivwk858kN87HKEdGPOlmqosg=
+
+Name: net/fabricmc/fabric/impl/registry/sync/packet/RegistryPacketHandle
+ r.class
+SHA-256-Digest: hwhBzi0nP14fvLpRM8ZxQ/jEFd1rrr8BMpC+CclQimM=
+
+Name: net/fabricmc/fabric/api/event/registry/DynamicRegistries$SyncOptio
+ n.class
+SHA-256-Digest: P2OPCq1GtOtQD8V9Yi/k0wusqirC91M3qTamacurqU8=
+
+Name: fabric-registry-sync-v0.mixins.json
+SHA-256-Digest: 0zOl+Rm0sF3cVOGLVONZHssquHK50urqgBaBiMxyYZc=
+
+Name: net/fabricmc/fabric/api/event/registry/RegistryIdRemapCallback.cla
+ ss
+SHA-256-Digest: iR57TsOcaB3/UwY1AHJR/79c4VrfxL+HuyM16RzKrJc=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/RegistriesAccessor.class
+SHA-256-Digest: Rqaz3FvNiE74ovjSPv6Feks2MDQSEnWvs2Oj3UMkl50=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/RegistryMixin.class
+SHA-256-Digest: SZkD62vT1xIE8HLcpLzzYDM3nBQMTN3/Pub09CYcQ64=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RemappableRegistry.class
+SHA-256-Digest: C6a+ONlsHfnIhxBUg55EYlnbfBgI4iGz1FM0QDfK27A=
+
+Name: net/fabricmc/fabric/impl/registry/sync/package-info.class
+SHA-256-Digest: 2NLT2bybEdj+OB2qgY1nphhAN3+F7Uyi2iBTFnlouQM=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RegistrySyncManager.class
+SHA-256-Digest: MzJLtzKbSmBayLT6eDgSrYVGp9L/AP4ggFxL9n/ryDk=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/TagManagerLoaderMixin.clas
+ s
+SHA-256-Digest: byHoc4PKkfDs8IjBNwpmLEmK3O5MJkvJwSliw28/00s=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/SerializableRegistriesMixi
+ n.class
+SHA-256-Digest: KPSFF3pAXyPz48ykPmloWDOGjX8OORDNRl0nufqJUnI=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/client/ParticleManagerMixi
+ n.class
+SHA-256-Digest: DDWwJaoc6LtNXu9h55XPvu6V/gVPdIdCl0sb5pUrWKs=
+
+Name: net/fabricmc/fabric/impl/registry/sync/packet/DirectRegistryPacket
+ Handler.class
+SHA-256-Digest: ETlASJicwO6ncf13eJikeVc2clwPFKs6OV3RvMN9Dpo=
+
+Name: net/fabricmc/fabric/api/event/registry/RegistryAttribute.class
+SHA-256-Digest: dicjzwKAIf1NwoqTdpCTtwH51uMecB9nvJ065U6Ux1U=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RemappableRegistry$RemapMod
+ e.class
+SHA-256-Digest: X4/xB+ZBTReJqGpj+byx+lC2xM7VMZgV9DbMr+Ls+pg=
+
+Name: net/fabricmc/fabric/impl/registry/sync/RegistryMapSerializer.class
+SHA-256-Digest: KLkWDu+agOR6Qd85T0qPYk1PcFc4EgemWQd9t+TTnlE=
+
+Name: net/fabricmc/fabric/impl/registry/sync/packet/package-info.class
+SHA-256-Digest: XxIe3+/9z3qIexDOpQozGDuIyINSMBstIlVO4t1GUk4=
+
+Name: net/fabricmc/fabric/mixin/registry/sync/SaveLoadingMixin.class
+SHA-256-Digest: Y1d/EiPqtCJ9dh2a3gnEEG6LDQyUe5zEpjh1vClXrVM=
+
+Name: net/fabricmc/fabric/impl/registry/sync/DynamicRegistryViewImpl$1.c
+ lass
+SHA-256-Digest: bsZhO2Mw87pOE/s7TW7gXXtTBLor2nPlRL3vC8BYeWA=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/StateIdTracker.cla
+ ss
+SHA-256-Digest: y8eNEv+s6lqpevUCxfCnA9VDKCfnfEEtJsdQvbvkxmU=
+
+Name: assets/fabric-registry-sync-v0/lang/en_us.json
+SHA-256-Digest: doJ/Ci9mhY/bz3+9LpwADidVa4RsgpcORy1ahqoekDY=
+
+Name: fabric-registry-sync-v0.accesswidener
+SHA-256-Digest: sbFIw3h/hIp5rWe8MDE60bE0+oMsheKom8mnq0qqfxE=
+
+Name: net/fabricmc/fabric/impl/registry/sync/trackers/package-info.class
+SHA-256-Digest: xAKPKTLRhTAIfSGn2NHkIJCR82OXXhdy6/k7qibN1o8=
+
+Name: net/fabricmc/fabric/api/event/registry/RegistryEntryAddedCallback.
+ class
+SHA-256-Digest: hC7/v3tir0frMrLBPAmSFAgbTSg8uLzrcRDx9I7M1KM=
+
+Name: assets/fabric-registry-sync-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+

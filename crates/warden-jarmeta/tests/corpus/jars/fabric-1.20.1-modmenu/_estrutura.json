@@ -1,0 +1,28 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/fabric-api-base-0.4.29+b04edc7a77.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jars/fabric-resource-loader-v0-0.11.7+f7923f6d77.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jars/fabric-screen-api-v1-2.0.6+b3afc78b77.jar",
+      "dir": "e2"
+    },
+    {
+      "path": "META-INF/jars/fabric-key-binding-api-v1-1.0.36+fb8d95da77.jar",
+      "dir": "e3"
+    },
+    {
+      "path": "META-INF/jars/fabric-lifecycle-events-v1-2.2.20+b3afc78b77.jar",
+      "dir": "e4"
+    }
+  ]
+}

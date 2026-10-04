@@ -1,0 +1,180 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: assets/fabric-biome-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/biome/NetherBiomeData.class
+SHA-256-Digest: H0b6CLF+1bIUo3TZZHGELzsu0grsq6K2Ywd+133eBPU=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationConte
+ xtImpl$SpawnSettingsContextImpl.class
+SHA-256-Digest: IhnRB8noI8jLtVQ0VlGTqacGKzsCcSDEWukmX7tmIxw=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationConte
+ xtImpl$GenerationSettingsContextImpl.class
+SHA-256-Digest: C5rxg/5PFapp5qJnPJwci+bDTmeo3J68k8eJydnmBW0=
+
+Name: fabric-biome-api-v1-refmap.json
+SHA-256-Digest: rJbZMuOKCs7eSvq1lBM6jB4KLzdUbRb9baIzmZAZdYg=
+
+Name: net/fabricmc/fabric/mixin/biome/ChunkNoiseSamplerMixin.class
+SHA-256-Digest: +xAGeKTUnt1IzW8UhqDzGW1sQaaWHuoiMELZyDCK9Mw=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModificationContext$EffectsC
+ ontext.class
+SHA-256-Digest: 1UVF+90NLtBYl8IKpOLSnDQ7Mr3CL4ROrjOJLKRZbWg=
+
+Name: net/fabricmc/fabric/impl/biome/WeightedPicker$WeightedEntry.class
+SHA-256-Digest: KZTRWaavVioJ2gO0daGd531D8qBM9lHAuFEketoN3V0=
+
+Name: net/fabricmc/fabric/impl/biome/modification/package-info.class
+SHA-256-Digest: aeepKy1NLuQd7QZA+rC4NrnFXGOAnGh4vVTkITGRU6Q=
+
+Name: net/fabricmc/fabric/impl/biome/package-info.class
+SHA-256-Digest: SwhSIi4GI4pTiLjjieY6eNPe58CCs9u0PHC8kisKKiM=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModification.class
+SHA-256-Digest: S3N61xeGZ5H3s16um5rh0WaY4X1jANTlmthBInIVELQ=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeSelectionContext.class
+SHA-256-Digest: mY6euWFfLBiR1C74Z1cjGnogbkvMblmj5j9qzuBxMtE=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModifications.class
+SHA-256-Digest: 3COZeCaEWFst2CKP0EZx6FiWy/+p8iW8C7k09p4AZMA=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationImpl$
+ ModifierRecord.class
+SHA-256-Digest: kr9OrFMPRl++Ynduq66Nxg6KW4WBj7C2n4xxPUmivJI=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModificationContext.class
+SHA-256-Digest: uOulON6HeRZKZxJxDLTTM8MmqWl5TaXzN23ZFuJ0dvM=
+
+Name: fabric.mod.json
+SHA-256-Digest: kl7ZRMCZw+yHO1WfQhHwZgFcOeNqVQ5zaXaqqcaTZFs=
+
+Name: net/fabricmc/fabric/mixin/biome/BiomeSourceMixin.class
+SHA-256-Digest: bqO6H8roqu7FIHiCLWPXMVnptY13BuJHn9sJgNEo8Tw=
+
+Name: net/fabricmc/fabric/api/biome/v1/TheEndBiomes.class
+SHA-256-Digest: JkK2nZWYzZy/heYA+BrBRtOjhO3MUmKGagM4P0Su22w=
+
+Name: net/fabricmc/fabric/mixin/biome/package-info.class
+SHA-256-Digest: EFqeJ/wfy/T5ITt4bTkQFij4fm5m8W2KTAqJcVBgkbI=
+
+Name: net/fabricmc/fabric/impl/biome/BiomeSourceAccess.class
+SHA-256-Digest: LOu4TeSz7bm85VphCMEvitapthiDj6Rkt91tdMbWBho=
+
+Name: net/fabricmc/fabric/impl/biome/TheEndBiomeData$RegistryKeyHashStra
+ tegy.class
+SHA-256-Digest: mRrrsUREW2NKAmhcop7Oq8mWdnXCJ54KBAR/GqsMsiM=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationConte
+ xtImpl$EffectsContextImpl.class
+SHA-256-Digest: RSWQmiN6JHWCoAYEAR+AQHsU5pITm32Yv8L36haDXHI=
+
+Name: net/fabricmc/fabric/impl/biome/WeightedPicker.class
+SHA-256-Digest: XyJLL5ye0CMmuX/QXuPUSEF2ooZ0sGq9qqdKnog1tSU=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationMarke
+ r.class
+SHA-256-Digest: 0Zhx0BRPamzbvQZD6pEAepXbCIuuKuyv+XjoiZNLjr8=
+
+Name: net/fabricmc/fabric/impl/biome/MultiNoiseSamplerHooks.class
+SHA-256-Digest: /hnnWpRZZRiRjwaemJazV/4AAXTi6f/wMru0EhUuCaw=
+
+Name: net/fabricmc/fabric/api/biome/v1/NetherBiomes.class
+SHA-256-Digest: nYN2IAAQD3AiLd5l5JlYNM7PBgMI1jqgNB2y1uyIoIk=
+
+Name: net/fabricmc/fabric/api/biome/v1/ModificationPhase.class
+SHA-256-Digest: 3ZcZ8tTQXK26HNv/tQ0cqFqZTmz5F2PCkRsOqWDDtZA=
+
+Name: net/fabricmc/fabric/mixin/biome/modification/package-info.class
+SHA-256-Digest: bHp1uqaD1yF+30x/o6UrXU6cnzx+0o6ZxJmKwZZrUqk=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationConte
+ xtImpl$WeatherContextImpl.class
+SHA-256-Digest: SUzKjTTNC1yv3sMH80hPYRv4dpBuwVzkDiceO6U9BZo=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModificationContext$WeatherC
+ ontext.class
+SHA-256-Digest: qD/DFiCngLsdJWHBAuQlZVSaBD7T6o4LOVeUoCNb7ko=
+
+Name: net/fabricmc/fabric/impl/biome/TheEndBiomeData$Overrides.class
+SHA-256-Digest: 7faBPvapYMxMJy/qZ5qZKBlWS+Q6lT3rYq1csYBfmQ8=
+
+Name: net/fabricmc/fabric/mixin/biome/TheEndBiomeSourceMixin.class
+SHA-256-Digest: 90cEi0xdYeP4YjFdp61I3aRzJpp3lxewIAPEHgWupZE=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BuiltInRegistryKeys.cl
+ ass
+SHA-256-Digest: HBuRepgmjzgIlq1t2LeYlY9P74NuS/J17lwamNHTwY4=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeSelectionContextI
+ mpl.class
+SHA-256-Digest: bmGJJy//NZxtFR8Ny0tF3TB5Mq5ThEOipE4gexTtU6c=
+
+Name: net/fabricmc/fabric/mixin/biome/modification/DynamicRegistryManage
+ rImmutableImplMixin.class
+SHA-256-Digest: t914S9VLi120b0mv5Okevd2sT0UnVMnxJwqAVV0NO6I=
+
+Name: net/fabricmc/fabric/mixin/biome/MultiNoiseUtilMultiNoiseSamplerMix
+ in.class
+SHA-256-Digest: lqgSJu6+fLnJo2bbk0m1NCtQwzNk6rB9Dv2rZKovIXs=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeSelectors.class
+SHA-256-Digest: yMNodTCTaUfxuG2IFp+U5/SYOpnA/2w/K3pckMHxOAg=
+
+Name: fabric-biome-api-v1.mixins.json
+SHA-256-Digest: Sdg8i6+VFGkb9bYul9Lg6diVGXUHD265XZJ2z+aITFE=
+
+Name: net/fabricmc/fabric/impl/biome/TheEndBiomeData.class
+SHA-256-Digest: 2LfqW+rZOVo/vmOUdHdc+QnmZRjtmGcIsafsKi3arPM=
+
+Name: fabric-biome-api-v1.accesswidener
+SHA-256-Digest: wSnW9TfeTDwUMhTiSnhTY4d5xghzMC8cDTYiEJlY6jo=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationConte
+ xtImpl.class
+SHA-256-Digest: CDB7cM+4hV2Nu/7uY0nlbM9+Syu0SM9Bb3CPmIgMLJ8=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModificationContext$Generati
+ onSettingsContext.class
+SHA-256-Digest: 22kaqbGtsinkhoshn+WMK+JMlLdobhnfmiDE/0lDPKc=
+
+Name: net/fabricmc/fabric/impl/biome/modification/BiomeModificationImpl.
+ class
+SHA-256-Digest: aPxfKevOp5QA/mArSlAHliQ6c0i6VUO0oYME47Ua2MU=
+
+Name: net/fabricmc/fabric/mixin/biome/NoiseConfigMixin.class
+SHA-256-Digest: GeHxRWrvQvqBBvdPvwCuQyYlag8nCdm+s/Vf19xSu1A=
+
+Name: net/fabricmc/fabric/mixin/biome/MultiNoiseBiomeSourceMixin.class
+SHA-256-Digest: bgBS1FmhgtNbWiCjGO3mB3vvEdYUCmdAq9Hv6qEIo3Y=
+
+Name: net/fabricmc/fabric/mixin/biome/NetherBiomePresetMixin.class
+SHA-256-Digest: Cs2HwSZpIW+lFHFT2qDrN8x3liUsZ73f+seZk3Io/WE=
+
+Name: net/fabricmc/fabric/api/biome/v1/BiomeModificationContext$SpawnSet
+ tingsContext.class
+SHA-256-Digest: HX/DDS4gwho8F19PvZooPVSGiy7vL0u7PiFRrUNhLdI=
+
+Name: net/fabricmc/fabric/mixin/biome/modification/MinecraftServerMixin.
+ class
+SHA-256-Digest: XK5fc9KotjIvHP5glwxx1jA/rZi9OIXB6/FzcNyND34=
+
+Name: LICENSE-fabric-biome-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+

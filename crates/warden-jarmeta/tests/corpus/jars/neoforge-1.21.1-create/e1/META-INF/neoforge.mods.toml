@@ -1,0 +1,46 @@
+modLoader = "javafml"
+# The loader version doesn't matter. Modify the NeoForge and/or Minecraft version ranges instead.
+loaderVersion = "[0,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/Engine-Room/Flywheel/issues"
+
+[[mods]]
+modId = "flywheel"
+version = "1.0.6"
+displayName = "Flywheel"
+description = "An overhauled entity and block entity rendering API."
+logoFile = "logo.png"
+authors = "Jozufozu, PepperCode1"
+displayURL = "https://github.com/Engine-Room/Flywheel"
+displayTest = "IGNORE_ALL_VERSION"
+
+[[mixins]]
+config = "flywheel.backend.mixins.json"
+[[mixins]]
+config = "flywheel.impl.mixins.json"
+[[mixins]]
+config = "flywheel.impl.neoforge.mixins.json"
+
+[[dependencies.flywheel]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+side = "CLIENT"
+
+[[dependencies.flywheel]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.66,)"
+side = "CLIENT"
+
+[[dependencies.flywheel]]
+modId = "embeddium"
+type = "optional"
+versionRange = "[0.3.25,)"
+side = "CLIENT"
+
+[[dependencies.flywheel]]
+modId = "sodium"
+type = "optional"
+versionRange = "[0.6.0-beta.2,)"
+side = "CLIENT"

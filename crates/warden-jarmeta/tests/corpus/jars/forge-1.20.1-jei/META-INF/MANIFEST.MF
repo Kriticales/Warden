@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Specification-Title: Just Enough Items
+Specification-Vendor: mezz
+Specification-Version: 15.62.0
+Implementation-Title: modShadeJar
+Implementation-Version: 15.62.0.219
+Implementation-Vendor: mezz
+

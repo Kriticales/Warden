@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+displayTest = "IGNORE_ALL_VERSION"
+
+[[mods]]
+  modId = "fabric_sound_api_v1"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Sound API (v1)"
+  logoFile = "assets/fabric-sound-api-v1/icon.png"
+  authors = "FabricMC"
+  description = "Hooks for modifying Minecraft's sound system."
+provides = ["fabric-sound-api-v1"]
+
+    [[dependencies.fabric_sound_api_v1]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_sound_api_v1]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"

@@ -1,0 +1,60 @@
+{
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/atomicfu-jvm-0.33.0.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jars/kotlin-reflect-2.4.20.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jars/kotlin-stdlib-2.4.20.jar",
+      "dir": "e2"
+    },
+    {
+      "path": "META-INF/jars/kotlin-stdlib-jdk7-2.4.20.jar",
+      "dir": "e3"
+    },
+    {
+      "path": "META-INF/jars/kotlin-stdlib-jdk8-2.4.20.jar",
+      "dir": "e4"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "dir": "e5"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-coroutines-jdk8-1.11.0.jar",
+      "dir": "e6"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-datetime-jvm-0.8.0.jar",
+      "dir": "e7"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-io-bytestring-jvm-0.9.1.jar",
+      "dir": "e8"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-io-core-jvm-0.9.1.jar",
+      "dir": "e9"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-serialization-cbor-jvm-1.11.0.jar",
+      "dir": "e10"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-serialization-core-jvm-1.11.0.jar",
+      "dir": "e11"
+    },
+    {
+      "path": "META-INF/jars/kotlinx-serialization-json-jvm-1.11.0.jar",
+      "dir": "e12"
+    }
+  ]
+}

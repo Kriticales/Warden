@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+
+[[mods]]
+  modId = "fabric_command_api_v2"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Command API (v2)"
+  logoFile = "assets/fabric-command-api-v2/icon.png"
+  authors = "FabricMC"
+  description = "Adds command-related hooks."
+provides = ["fabric-command-api-v2"]
+
+    [[dependencies.fabric_command_api_v2]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_command_api_v2]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_command_api_v2]]
+      modId = "fabric_api_base"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"

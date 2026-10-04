@@ -1,0 +1,59 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-key-binding-api-v1;asset
+ s/fabric-key-binding-api-v1/icon.png;client-fabric-key-binding-api-v1-r
+ efmap.json;fabric-key-binding-api-v1.mixins.json;fabric.mod.json;net/fa
+ bricmc/fabric/api/client/keybinding/v1/KeyBindingHelper.class;net/fabri
+ cmc/fabric/impl/client/keybinding/KeyBindingRegistryImpl.class;net/fabr
+ icmc/fabric/impl/client/keybinding/package-info.class;net/fabricmc/fabr
+ ic/mixin/client/keybinding/GameOptionsMixin.class;net/fabricmc/fabric/m
+ ixin/client/keybinding/KeyBindingAccessor.class;net/fabricmc/fabric/mix
+ in/client/keybinding/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric.mod.json
+SHA-256-Digest: PvviBfHS0zDshZnd6bp9PhzBX8GQEC46bf3QybgBd50=
+
+Name: net/fabricmc/fabric/mixin/client/keybinding/package-info.class
+SHA-256-Digest: MQI1IRsLMZJnd2Y40KaFcVGT9JU5qMPt/UPTnmYURuM=
+
+Name: client-fabric-key-binding-api-v1-refmap.json
+SHA-256-Digest: RE1IUoZdjuhrPnjubn9QkiDy+frTOSPyKZaMM2VLf3w=
+
+Name: assets/fabric-key-binding-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/client/keybinding/v1/KeyBindingHelper.clas
+ s
+SHA-256-Digest: vpwXG2mPsz3UiJE2ooP3cW/xxLVx6OPGUlod5g4+5p0=
+
+Name: fabric-key-binding-api-v1.mixins.json
+SHA-256-Digest: 1c+SCbSRgYNvaFjzjfRfUqZq0OdCFMJ5g14Fhcu8KYY=
+
+Name: net/fabricmc/fabric/mixin/client/keybinding/GameOptionsMixin.class
+SHA-256-Digest: XJD8uag6zuWGxtYEcH2GkdevLIaL70PA4ItBBqEjDt8=
+
+Name: net/fabricmc/fabric/impl/client/keybinding/package-info.class
+SHA-256-Digest: fOBPCGCTUDfT5PBiz/wD40PxEkH+jAqd18iGP1PJy4k=
+
+Name: LICENSE-fabric-key-binding-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/client/keybinding/KeyBindingRegistryImpl.
+ class
+SHA-256-Digest: QsyM/P5YepnieS1Vkq68yieZ9uDwR2Vm85NXQZMaEYQ=
+
+Name: net/fabricmc/fabric/mixin/client/keybinding/KeyBindingAccessor.cla
+ ss
+SHA-256-Digest: CeIU8Z4W+JO9FPkScMWRMoLt8lASYYvRU0Z3M282NS4=
+

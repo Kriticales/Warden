@@ -1,0 +1,54 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-blockrenderlayer-v1;asse
+ ts/fabric-blockrenderlayer-v1/icon.png;client-fabric-blockrenderlayer-v
+ 1-refmap.json;fabric-blockrenderlayer-v1.mixins.json;fabric.mod.json;ne
+ t/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap.class;net
+ /fabricmc/fabric/impl/blockrenderlayer/BlockRenderLayerMapImpl.class;ne
+ t/fabricmc/fabric/impl/blockrenderlayer/package-info.class;net/fabricmc
+ /fabric/mixin/blockrenderlayer/RenderLayersMixin.class;net/fabricmc/fab
+ ric/mixin/blockrenderlayer/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric.mod.json
+SHA-256-Digest: kPspSPvpjvT8C6eYFE9c7HS/W3+dVz/gktNxW31aZxU=
+
+Name: assets/fabric-blockrenderlayer-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: client-fabric-blockrenderlayer-v1-refmap.json
+SHA-256-Digest: JSOQLSmqyaeSRHbpJu+kcM0bMPLPhoE31goXs8pVDOk=
+
+Name: net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap.cl
+ ass
+SHA-256-Digest: Nu19U4tx8sNT9JbIQTaguAF7xsTUqMD46sVy5mAGE4A=
+
+Name: net/fabricmc/fabric/impl/blockrenderlayer/package-info.class
+SHA-256-Digest: mESVaQCrWdWWOKpoT/oMm6XLzW+aUU0KiWHw3OD7QA8=
+
+Name: net/fabricmc/fabric/mixin/blockrenderlayer/package-info.class
+SHA-256-Digest: KnwqO7jKfUG9cCZ0g6z7YYhLcaFDPwqJbm4V1oISwXo=
+
+Name: LICENSE-fabric-blockrenderlayer-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: fabric-blockrenderlayer-v1.mixins.json
+SHA-256-Digest: VIzf4L5ugZLgczNACmGsICU9de37Nb+KNszzXX4+frw=
+
+Name: net/fabricmc/fabric/impl/blockrenderlayer/BlockRenderLayerMapImpl.
+ class
+SHA-256-Digest: vELg7ezh5OzJ76i3l1X6/bF7aHVlQsaRiECoaa79SOU=
+
+Name: net/fabricmc/fabric/mixin/blockrenderlayer/RenderLayersMixin.class
+SHA-256-Digest: Uq6kQ6uRvFm+TCsEOVgqie7dT0q81zqMF7KPJ5v6tdo=
+

@@ -1,0 +1,45 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: assets/fabric-block-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-block-api-v1.mixins.json
+SHA-256-Digest: nnS4+tk9TrgJ4a19hP1oPdP30P9sHqTm40JoijfqEgo=
+
+Name: net/fabricmc/fabric/mixin/block/package-info.class
+SHA-256-Digest: 49vh1Sh0h95Hm42+RMa5MFgH8Cbvm8VXloyW0iBgq3o=
+
+Name: fabric.mod.json
+SHA-256-Digest: UC+QCwfmgTzfP53wj8KZrVRPZ4d3/3sil4MG+dsD+t0=
+
+Name: net/fabricmc/fabric/mixin/block/BlockStateMixin.class
+SHA-256-Digest: frkgwfy6Fe6k6PAf9D++OYShUNxtkmgTiHJXyObsPRA=
+
+Name: net/fabricmc/fabric/api/block/v1/FabricBlock.class
+SHA-256-Digest: Dy6E7b4GY5SQ0ZFswO9hYnkVF8tzIQGXb9xlmNGfxNs=
+
+Name: fabric-block-api-v1-refmap.json
+SHA-256-Digest: LJSHm56UOzTFYvaWb54KqIwaMLObyOF70YdytmryRSM=
+
+Name: LICENSE-fabric-block-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/block/BlockMixin.class
+SHA-256-Digest: f2x3N6hxqOVQT3spSo/5gCZ127GgyTWMW63DL14ZTs0=
+
+Name: net/fabricmc/fabric/api/block/v1/FabricBlockState.class
+SHA-256-Digest: T1YYWNzoZvoxTAHuczxCducaOpRCjl0OCM0oSfJOCk0=
+

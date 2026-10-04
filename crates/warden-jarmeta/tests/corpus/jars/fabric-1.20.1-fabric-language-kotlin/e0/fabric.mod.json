@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlinx_atomicfu-jvm",
+  "version": "0.33.0",
+  "name": "atomicfu-jvm",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

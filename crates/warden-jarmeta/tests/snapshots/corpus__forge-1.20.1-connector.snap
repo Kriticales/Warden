@@ -1,0 +1,222 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-connector (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "manifest"
+  ],
+  "manifest": {
+    "embeddedDependenciesMod": "META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-mod.jar",
+    "implementationTitle": "Connector",
+    "implementationVersion": "1.0.0-beta.49+1.20.1",
+    "automaticModuleName": "org.sinytra.connector"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-mod.jar",
+      "declaredBy": "manifest",
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "jarJarMetadata",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "connectormod",
+            "version": "1.0.0-beta.49+1.20.1",
+            "name": "Connector",
+            "description": "Connector is a translation/compatibility layer that allows running Fabric mods on MinecraftForge.\nIts goal is to bring the two platforms closer together, saving developers time and effort maintaining their mods for\nmultiple platforms at once, as well as allowing players to play all their favourite mods in one modpack.",
+            "authors": [
+              "Su5eD"
+            ],
+            "licenses": [
+              "MIT"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1,1.21)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "connectormod.mixins.json"
+          ],
+          "implementationVersion": "1.0.0-beta.49+1.20.1"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jarjar/mixinextras-forge-0.3.2.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "io.github.llamalad7",
+              "artifact": "mixinextras-forge",
+              "artifactVersion": "0.3.2",
+              "range": {
+                "dialect": "maven",
+                "spec": "[0.3.2,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "modsToml",
+                "jarJarMetadata",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "modsToml",
+                  "loader": "forge",
+                  "id": "mixinextras",
+                  "version": "0.3.2",
+                  "name": "MixinExtras",
+                  "description": "Companion library to Mixin with lots of features to improve the compatibility and concision of your mixins!",
+                  "authors": [
+                    "LlamaLad7"
+                  ],
+                  "licenses": [
+                    "MIT"
+                  ]
+                }
+              ],
+              "languageLoader": {
+                "name": "javafml",
+                "version": {
+                  "dialect": "maven",
+                  "spec": "*"
+                }
+              },
+              "manifest": {
+                "mixinConfigs": [
+                  "mixinextras.init.mixins.json"
+                ],
+                "fmlModType": "GAMELIBRARY"
+              },
+              "classVersion": {
+                "major": 61,
+                "minor": 0
+              },
+              "nested": [
+                {
+                  "path": "META-INF/jars/MixinExtras-0.3.2.jar",
+                  "declaredBy": "jarJarMetadata",
+                  "jarjar": {
+                    "group": "com.github.LlamaLad7",
+                    "artifact": "MixinExtras",
+                    "artifactVersion": "0.3.2",
+                    "range": {
+                      "dialect": "maven",
+                      "spec": "[0.3.2,)"
+                    }
+                  },
+                  "metadata": {
+                    "descriptors": [
+                      "manifest"
+                    ],
+                    "manifest": {},
+                    "classVersion": {
+                      "major": 52,
+                      "minor": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "path": "META-INF/jarjar/runtime-1.0.0+1.20.1.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "org.sinytra.adapter",
+              "artifact": "runtime",
+              "artifactVersion": "1.0.0+1.20.1",
+              "range": {
+                "dialect": "maven",
+                "spec": "[1.0.0,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {
+                "mixinConfigs": [
+                  "adapter.init.mixins.json"
+                ],
+                "fmlModType": "GAMELIBRARY",
+                "implementationVersion": "1.0.0+1.20.1"
+              },
+              "classVersion": {
+                "major": 61,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-fabricloader.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "dev.su5ed.sinytra",
+              "artifact": "fabric-loader",
+              "artifactVersion": "999.999.999",
+              "range": {
+                "dialect": "maven",
+                "spec": "[999.999.999,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {
+                "fmlModType": "LIBRARY",
+                "implementationVersion": "999.999.999"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-jei (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "jei",
+      "version": "4.22.0.1035",
+      "name": "Just Enough Items",
+      "description": "Simple recipe and item helper.",
+      "authors": [
+        "mezz"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.12.2"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlAccessTransformer": "jei_at.cfg"
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  }
+}

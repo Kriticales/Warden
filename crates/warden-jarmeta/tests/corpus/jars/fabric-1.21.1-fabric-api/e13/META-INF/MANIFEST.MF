@@ -1,0 +1,58 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/mixin/dimension/Schema2832Mixin.class
+SHA-256-Digest: 7/B0WieuSvIy8yB4+/EslDuLT1GL0GjhbFIQJYmwJtM=
+
+Name: net/fabricmc/fabric/mixin/dimension/package-info.class
+SHA-256-Digest: WD5lI6d9zacN+VVbhnYfsn/y3yY2HPBENZZs6lI/Gpk=
+
+Name: net/fabricmc/fabric/impl/dimension/FailSoftMapCodec.class
+SHA-256-Digest: zwF4eflgPpXr1ewPlGi5dr/W94hqPZxHndou0oe36KE=
+
+Name: net/fabricmc/fabric/impl/dimension/TaggedChoiceTypeExtension.class
+SHA-256-Digest: HMwYdq4KzL7vLzfB/VlXljGxOd5dGt8K/LSAzO9g1m0=
+
+Name: LICENSE-fabric-dimensions-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/dimension/TaggedChoiceExtension.class
+SHA-256-Digest: UaAWsQun+3lGFJt0uKX1rZQPGS11XqclX0tg5r2z8LM=
+
+Name: fabric.mod.json
+SHA-256-Digest: c9rs4/PjwuwKMcEqxmG3oAD7Q/Nsoz6ef5eNNuielYA=
+
+Name: fabric-dimensions-v1-refmap.json
+SHA-256-Digest: gaafq2zndesRrxvhbsq5y4HeOR0CdJ032I5AGb7QFc4=
+
+Name: fabric-dimensions-v1.mixins.json
+SHA-256-Digest: VT6x7AWIfBX2JVYKl98PJ4Ym9kYsAbCdtLJytKqPcJ0=
+
+Name: net/fabricmc/fabric/impl/dimension/package-info.class
+SHA-256-Digest: SSx0tQxhoICLaO3aOkyZ7XeomG/fkWvylMdQeS9vs7I=
+
+Name: net/fabricmc/fabric/mixin/dimension/TaggedChoiceMixin.class
+SHA-256-Digest: js0Ah8NXPv6wF3o4Q/C65MppLFAVaGFOjpWWWXGWgfo=
+
+Name: net/fabricmc/fabric/mixin/dimension/DimensionOptionsRegistryHolder
+ Mixin.class
+SHA-256-Digest: SBCK584JGCNOpiqTs3FaFRaO88/9wC9m4MtsqrX/tkM=
+
+Name: net/fabricmc/fabric/mixin/dimension/TaggedChoiceTypeMixin.class
+SHA-256-Digest: Q7r308QG2+0TMXNiJu6Anb5rL5nKR24JvM1wlKJemjQ=
+
+Name: assets/fabric-dimensions-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+

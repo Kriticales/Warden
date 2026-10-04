@@ -1,0 +1,168 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.21.1-appleskin (Minecraft 1.21.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "appleskin",
+      "version": "3.0.6+mc1.21",
+      "name": "AppleSkin",
+      "description": "Adds various food-related HUD improvements",
+      "authors": [
+        "squeek502"
+      ],
+      "licenses": [
+        "Unlicense"
+      ],
+      "dependencies": [
+        {
+          "id": "fabric-api",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        },
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.15.10"
+            ]
+          }
+        },
+        {
+          "id": "roughlyenoughitems",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<6.0.306-alpha"
+            ]
+          }
+        }
+      ],
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.15.10"
+        ]
+      },
+      "mixins": [
+        "appleskin.mixins.json",
+        "appleskin.jei.mixins.json"
+      ]
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/cloth-config-fabric-15.0.127-fabric.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "cloth-config",
+            "version": "15.0.127",
+            "name": "Cloth Config v15",
+            "description": "An API for config screens.",
+            "authors": [
+              "shedaniel"
+            ],
+            "licenses": [
+              "GNU LGPLv3"
+            ],
+            "provides": [
+              "cloth-config2"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.14.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.21-"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.21-"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.14.0"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/basic-math-0.6.1.jar",
+            "declaredBy": "fabricModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "cloth-basic-math",
+                  "version": "0.6.1"
+                }
+              ],
+              "manifest": {},
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

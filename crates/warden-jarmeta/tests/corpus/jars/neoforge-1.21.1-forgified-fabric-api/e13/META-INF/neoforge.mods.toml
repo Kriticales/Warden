@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_networking_api_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Networking API (v1)"
+logoFile = "assets/fabric-networking-api-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Low-level, vanilla protocol oriented networking hooks."
+provides = ["fabric-networking-api-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_networking_api_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_networking_api_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_networking_api_v1]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-networking-api-v1.mixins.json"
+
+[[mixins]]
+config = "fabric-networking-api-v1.client.mixins.json"

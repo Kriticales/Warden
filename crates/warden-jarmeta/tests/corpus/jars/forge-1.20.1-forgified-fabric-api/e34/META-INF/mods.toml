@@ -1,0 +1,34 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+displayTest = "IGNORE_ALL_VERSION"
+
+[[mods]]
+  modId = "fabric_rendering_v1"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Rendering (v1)"
+  logoFile = "assets/fabric-rendering-v1/icon.png"
+  authors = "FabricMC"
+  description = "Hooks and registries for rendering-related things."
+provides = ["fabric-rendering-v1"]
+
+    [[dependencies.fabric_rendering_v1]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_rendering_v1]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_rendering_v1]]
+      modId = "fabric_api_base"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"

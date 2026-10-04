@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 3.2.2+cf68abbe77
+MixinConfigs: fabric-renderer-api-v1.mixins.json,fabric-renderer-api-v1.
+ debughud.mixins.json
+

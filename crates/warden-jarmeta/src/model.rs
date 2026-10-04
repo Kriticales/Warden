@@ -236,6 +236,10 @@ pub struct ManifestInfo {
     /// `ContainedDeps` (Forge 1.12.2): jars embutidos em `META-INF/`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub contained_deps: Vec<String>,
+    /// `Embedded-Dependencies-Mod`: jar embutido com o mod de verdade, quando o jar de cima é só
+    /// um localizador do FML (Sinytra Connector 1.20.1, Kotlin for Forge).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub embedded_dependencies_mod: Option<String>,
     /// `Implementation-Title`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub implementation_title: Option<String>,
@@ -419,6 +423,47 @@ impl JarMetadata {
             })
             .find(|mods| !mods.is_empty())
             .unwrap_or_default()
+    }
+
+    /// Como [`JarMetadata::mods_for_loader`], mas para jars que não declaram mod próprio e só
+    /// carregam outros (o FML carrega os embutidos no lugar do jar de cima):
+    ///
+    /// 1. o jar apontado por `Embedded-Dependencies-Mod` no manifesto (Sinytra Connector 1.20.1);
+    /// 2. no Forge e no NeoForge, os jars de `META-INF/jarjar/metadata.json` (bibliotecas com
+    ///    `FMLModType: LIBRARY`, como o Kotlin for Forge).
+    #[must_use]
+    pub fn effective_mods_for_loader(&self, loader: Loader) -> Vec<&ModMetadata> {
+        let own = self.mods_for_loader(loader);
+        if !own.is_empty() {
+            return own;
+        }
+        let nested_meta = |path: &str| {
+            self.nested
+                .iter()
+                .filter(|n| n.path.trim_start_matches('/') == path.trim_start_matches('/'))
+                .find_map(|n| n.metadata.as_deref())
+        };
+        if let Some(embedded) = self
+            .manifest
+            .as_ref()
+            .and_then(|m| m.embedded_dependencies_mod.as_deref())
+            .and_then(nested_meta)
+        {
+            let mods = embedded.effective_mods_for_loader(loader);
+            if !mods.is_empty() {
+                return mods;
+            }
+        }
+        if matches!(loader, Loader::Forge | Loader::NeoForge) {
+            return self
+                .nested
+                .iter()
+                .filter(|n| n.declared_by == DescriptorKind::JarJarMetadata)
+                .filter_map(|n| n.metadata.as_deref())
+                .flat_map(|m| m.effective_mods_for_loader(loader))
+                .collect();
+        }
+        Vec::new()
     }
 
     /// `true` se o jar traz descritores de mais de um loader.

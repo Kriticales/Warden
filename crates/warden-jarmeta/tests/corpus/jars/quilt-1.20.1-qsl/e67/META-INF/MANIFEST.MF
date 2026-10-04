@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-quilted_fabric_rendering_fluids_
+ v1-refmap.json;net/fabricmc/fabric/api/client/render/fluid/v1/FluidRend
+ erHandler.class;net/fabricmc/fabric/api/client/render/fluid/v1/FluidRen
+ derHandlerRegistry.class;net/fabricmc/fabric/api/client/render/fluid/v1
+ /SimpleFluidRenderHandler.class;net/fabricmc/fabric/impl/client/renderi
+ ng/fluid/FluidRenderHandlerRegistryImpl$1.class;net/fabricmc/fabric/imp
+ l/client/rendering/fluid/FluidRenderHandlerRegistryImpl$2.class;net/fab
+ ricmc/fabric/impl/client/rendering/fluid/FluidRenderHandlerRegistryImpl
+ .class;net/fabricmc/fabric/impl/client/rendering/fluid/FluidRendererHoo
+ kContainer.class;net/fabricmc/fabric/impl/client/rendering/fluid/packag
+ e-info.class;net/fabricmc/fabric/mixin/client/rendering/fluid/FluidRend
+ ererMixin.class;net/fabricmc/fabric/mixin/client/rendering/fluid/packag
+ e-info.class;quilted_fabric_rendering_fluids_v1.mixins.json
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.8
+Fabric-Loom-Version: 1.7.3
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.3
+Fabric-Loader-Version: 0.26.0
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+

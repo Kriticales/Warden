@@ -1,0 +1,360 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-kotlin-for-forge (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "manifest": {
+    "fmlModType": "LIBRARY"
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/kotlin-reflect-2.4.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.jetbrains.kotlin",
+        "artifact": "kotlin-reflect",
+        "artifactVersion": "2.4.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.4.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-reflect",
+          "implementationVersion": "2.4.0-release-281",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 50,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlin-stdlib-2.4.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.jetbrains.kotlin",
+        "artifact": "kotlin-stdlib",
+        "artifactVersion": "2.4.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.4.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-stdlib",
+          "implementationVersion": "2.4.0-release-281",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlin-stdlib-jdk7-2.4.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.jetbrains.kotlin",
+        "artifact": "kotlin-stdlib-jdk7",
+        "artifactVersion": "2.4.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.4.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-stdlib-jdk7",
+          "implementationVersion": "2.4.0-release-281",
+          "multiRelease": true
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlin-stdlib-jdk8-2.4.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.jetbrains.kotlin",
+        "artifact": "kotlin-stdlib-jdk8",
+        "artifactVersion": "2.4.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[2.4.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-stdlib-jdk8",
+          "implementationVersion": "2.4.0-release-281",
+          "multiRelease": true
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.jetbrains.kotlinx",
+        "artifact": "kotlinx-coroutines-core-jvm",
+        "artifactVersion": "1.11.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.11.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-coroutines-core",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-coroutines-jdk8-1.11.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "org.jetbrains.kotlinx",
+        "artifact": "kotlinx-coroutines-jdk8",
+        "artifactVersion": "1.11.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.11.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-coroutines-jdk8",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/thedarkcolour.kfflang-5.12.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "thedarkcolour",
+        "artifact": "kfflang",
+        "artifactVersion": "5.12.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[5.12.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "LIBRARY",
+          "implementationVersion": "5.12.0"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/thedarkcolour.kfflib-5.12.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "thedarkcolour",
+        "artifact": "kfflib",
+        "artifactVersion": "5.12.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[5.12.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/thedarkcolour.kffmod-5.12.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "thedarkcolour",
+        "artifact": "kffmod",
+        "artifactVersion": "5.12.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[5.12.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "kotlinforforge",
+            "version": "5.12.0",
+            "name": "Kotlin For Forge",
+            "description": "Makes Kotlin forge-friendly",
+            "authors": [
+              "thedarkcolour"
+            ],
+            "licenses": [
+              "LGPL"
+            ],
+            "dependencies": [
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.6,1.21.9)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.6,1.21.9)"
+            }
+          },
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "kotlinforforge",
+            "version": "5.12.0",
+            "name": "Kotlin For Forge",
+            "description": "Makes Kotlin forge-friendly",
+            "authors": [
+              "thedarkcolour"
+            ],
+            "licenses": [
+              "LGPL"
+            ],
+            "dependencies": [
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.6,1.21.9)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.6,1.21.9)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "kotlinforforge",
+          "version": {
+            "dialect": "maven",
+            "spec": "[5,)"
+          }
+        },
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-serialization-core-jvm-1.11.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "",
+        "artifact": "kotlinx.serialization.core",
+        "artifactVersion": "cce19040b3217192d383e28af7ffcb58",
+        "range": {
+          "dialect": "maven",
+          "spec": "[cce19040b3217192d383e28af7ffcb58]"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-serialization-core",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kotlinx-serialization-json-jvm-1.11.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "",
+        "artifact": "kotlinx.serialization.json",
+        "artifactVersion": "22c7504f2965bec48288d5efa4886c52",
+        "range": {
+          "dialect": "maven",
+          "spec": "[22c7504f2965bec48288d5efa4886c52]"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-serialization-json",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

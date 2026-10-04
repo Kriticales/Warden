@@ -1,0 +1,48 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_events_interaction_v0"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Events Interaction (v0)"
+logoFile = "assets/fabric-events-interaction-v0/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Events for player interaction with blocks and entities."
+provides = ["fabric-events-interaction-v0"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_events_interaction_v0]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_events_interaction_v0]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_events_interaction_v0]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_events_interaction_v0]]
+modId = "fabric_networking_api_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-events-interaction-v0.mixins.json"
+
+[[mixins]]
+config = "fabric-events-interaction-v0.client.mixins.json"

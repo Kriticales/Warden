@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-mod.jar",
+      "dir": "e0"
+    }
+  ]
+}

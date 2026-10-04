@@ -1,0 +1,72 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.qsl.data",
+		"id": "quilt_recipe",
+		"version": "6.3.0+1.20.1",
+		"metadata": {
+			"name": "Quilt Recipe API",
+			"description": "Recipe manipulation APIs.",
+			"contributors": {
+				"The Quilt Project": "Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilt-standard-libraries/issues",
+				"sources": "https://github.com/QuiltMC/quilt-standard-libraries"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilt_recipe/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"load_type": "if_possible",
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.25.0"
+			},
+			{
+				"id": "minecraft",
+				"versions": {
+					"any": [
+						"=1.20.1",
+						"=1.20"
+					]
+				}
+			},
+			{
+				"id": "quilt_base",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_registry",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_resource_loader",
+				"versions": ">=6.3.0+1.20.1"
+			}
+		],
+		"entrypoints": {
+			"events": [
+				"org.quiltmc.qsl.recipe.impl.RecipeManagerImpl"
+			]
+		}
+	},
+	"mixin": "quilt_recipe.mixins.json",
+	"access_widener": "quilt_recipe.accesswidener",
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": {
+			"id": "qsl",
+			"name": "Quilt Standard Libraries",
+			"description": "A set of libraries to assist in making Quilt mods.",
+			"icon": "assets/quilt_recipe/icon.png",
+			"badges": [
+				"library"
+			]
+		}
+	}
+}

@@ -1,0 +1,153 @@
+[
+    {
+        "modid": "unimixins",
+        "name": "UniMixins",
+        "description": "UniMixins composite jar consisting of the following modules:\nMixin (UniMix); Compatibility; Mixingasm; SpongeMixins; MixinBooterLegacy; GTNHMixins; MixinExtras",
+        "version": "0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "authorList": [
+            "makamys"
+        ]
+    },
+    {
+        "modid": "unimixins-mixin",
+        "name": "UniMixins: Mixin (UniMix)",
+        "description": "UniMixins module that provides the UniMix fork of Mixin (version: unimix.0.15.6-mixin.0.8.7).",
+        "version": "0.3.1+unimix.0.15.6-mixin.0.8.7",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "makamys"
+        ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "dependencies": [
+            
+        ],
+        "parent": "unimixins"
+    },
+    {
+        "modid": "unimixins-compat",
+        "name": "UniMixins: Compatibility",
+        "description": "UniMixins module that improves compatibility and helps debug crashes.",
+        "version": "0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "makamys"
+        ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "parent": "unimixins"
+    },
+    {
+        "modid": "mixingasm",
+        "name": "UniMixins: Mixingasm",
+        "description": "UniMixins module that implements Mixingasm (version: 0.3).",
+        "version": "0.3+uni.0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "makamys"
+        ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "parent": "unimixins"
+    },
+    {
+        "modid": "spongemixins",
+        "name": "UniMixins: SpongeMixins",
+        "description": "UniMixins module that provides an emulation of SpongeMixins (version: 2.0.1 from GTNHMixins).",
+        "version": "2.0.1+gtnh.uni.0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "Time_Conqueror",
+            "mitchej123"
+        ],
+        "credits": "SpongePowered Team",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "parent": "unimixins"
+    },
+    {
+        "modid": "mixinbooterlegacy",
+        "name": "UniMixins: MixinBooterLegacy",
+        "description": "UniMixins module that provides MixinBooterLegacy extras and MixinExtras with MixinBooterLegacy's package name.",
+        "version": "1.2.1+uni.0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "Rongmario",
+            "tox1cozZ"
+        ],
+        "credits": "Thanks Rongmario for a MixinBooter on Minecraft 1.12.2.",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "dependencies": [
+            
+        ],
+        "parent": "unimixins"
+    },
+    {
+        "modid": "gtnhmixins",
+        "name": "UniMixins: GTNHMixins",
+        "description": "UniMixins module that provides GTNHMixins extras and MixinExtras with the GTNH package name.\nDepends on: SpongeMixins",
+        "version": "2.2.0+uni.0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "mitchej123"
+        ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "dependencies": [
+            
+        ],
+        "parent": "unimixins"
+    },
+    {
+        "modid": "mixinextras",
+        "name": "UniMixins: MixinExtras",
+        "description": "UniMixins module that provides MixinExtras (version: 0.5.0).",
+        "version": "0.5.0+uni.0.3.1",
+        "mcversion": "1.7.10",
+        "url": "https://github.com/LegacyModdingMC/UniMixins",
+        "updateUrl": "",
+        "authorList": [
+            "LlamaLad7"
+        ],
+        "credits": "",
+        "logoFile": "",
+        "screenshots": [
+            
+        ],
+        "dependencies": [
+            
+        ],
+        "parent": "unimixins"
+    }
+]

@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Specification-Title: flywheel
+Specification-Version: 1
+Implementation-Title: flywheel-forge-1.18.2
+Implementation-Version: 0.6.11-107
+Implementation-Timestamp: 2024-09-02T02:25:30+0200
+MixinConfigs: flywheel.mixins.json,flywheel.sodium.mixins.json
+

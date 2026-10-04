@@ -1,0 +1,97 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-angelica (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "angelica",
+      "version": "2.2.28",
+      "name": "Angelica",
+      "description": "The little angle that supports shaders while saving your FPS from a certain death",
+      "authors": [
+        "eigenraven",
+        "mitchej123",
+        "glowredman",
+        "caedis",
+        "vlaetansky",
+        "karyonix",
+        "sonic ether",
+        "id_miner",
+        "daxnitro"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "notfine",
+      "version": "2.2.28",
+      "name": "NotFine",
+      "description": "Extra video settings for Minecraft 1.7.10 implemented with Mixins",
+      "authors": [
+        "jss2a98aj"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "embeddium",
+      "version": "2.2.28",
+      "name": "Embeddium",
+      "authors": [
+        "embeddedt",
+        "NanoLive",
+        "CaffeineMC",
+        "mitchej123"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    },
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "mcpatcherforge",
+      "version": "1.0.0-alpha",
+      "name": "MCPatcherForge",
+      "description": "MCPatcher ported to forge 1.7.10. Adding a variety of graphical enhancements to the game such as connected textures, random mob skins, and custom skyboxes",
+      "authors": [
+        "Paul Rupe",
+        "Mist475"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "com.gtnewhorizons.angelica.loading.AngelicaTweaker",
+    "fmlCorePluginContainsMod": true,
+    "tweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+    "mixinConfigs": [
+      "mixins.angelica.json"
+    ],
+    "fmlAccessTransformer": "angelica_at.cfg notfine_at.cfg archaicfix_at.cfg mcpatcherforge_at.cfg",
+    "multiRelease": true
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

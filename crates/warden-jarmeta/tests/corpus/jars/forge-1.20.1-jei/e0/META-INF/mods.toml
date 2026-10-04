@@ -1,0 +1,30 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+issueTrackerURL="https://github.com/mezz/MezzConfig/issues?q=is%3Aissue"
+license="The MIT License (MIT)"
+
+[[mods]]
+modId="mezz_config"
+version="0.6.3"
+displayName="MezzConfig"
+displayURL="https://github.com/mezz/MezzConfig"
+logoFile="mezz_config-icon.png"
+authors="mezz"
+displayTest="IGNORE_SERVER_VERSION"
+description='''
+Lightweight client and server-authoritative config support for Minecraft mods.
+'''
+
+[[dependencies.mezz_config]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.mezz_config]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1]"
+    ordering="NONE"
+    side="BOTH"

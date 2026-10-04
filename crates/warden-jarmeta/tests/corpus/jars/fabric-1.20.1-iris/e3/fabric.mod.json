@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "io_github_douira_glsl-transformer",
+  "version": "2.0.1",
+  "name": "glsl-transformer",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/basic-math-0.6.1.jar",
+      "dir": "e0"
+    }
+  ]
+}

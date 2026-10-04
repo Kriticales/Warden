@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.2+30ef839e77
+MixinConfigs: fabric-data-attachment-api-v1.mixins.json,fabric-data-atta
+ chment-api-v1.client.mixins.json
+

@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Specification-Title: Curios API
+Specification-Vendor: C4
+Specification-Version: property(class java.lang.String, provider(?))
+Implementation-Title: Curios API
+Implementation-Version: property(class java.lang.String, provider(?))
+Implementation-Vendor: C4
+Implementation-Timestamp: 2023-03-03T01:33:23-0800
+

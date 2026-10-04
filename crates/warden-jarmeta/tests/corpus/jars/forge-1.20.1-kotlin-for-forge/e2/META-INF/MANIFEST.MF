@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: Kotlin for Forge
+Specification-Vendor: Forge
+Specification-Version: 1
+Implementation-Title: kffmod
+Implementation-Version: 4.12.0
+Implementation-Vendor: thedarkcolour
+Implementation-Timestamp: 2025-11-19T13:33:53.409045900
+Automatic-Module-Name: thedarkcolour.kotlinforforge.kffmod
+

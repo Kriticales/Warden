@@ -1,0 +1,28 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "org.sinytra.adapter",
+        "artifact": "runtime"
+      },
+      "version": {
+        "range": "[1.0.0+1.21.1,)",
+        "artifactVersion": "1.0.0+1.21.1"
+      },
+      "path": "META-INF/jarjar/runtime-1.0.0+1.21.1.jar",
+      "isObfuscated": false
+    },
+    {
+      "identifier": {
+        "group": "org.sinytra",
+        "artifact": "connector-mod"
+      },
+      "version": {
+        "range": "[2.0.0-beta.17+1.21.1,)",
+        "artifactVersion": "2.0.0-beta.17+1.21.1"
+      },
+      "path": "META-INF/jarjar/org.sinytra.connector-2.0.0-beta.17+1.21.1-mod.jar",
+      "isObfuscated": false
+    }
+  ]
+}

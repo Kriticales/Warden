@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_convention_tags_v2"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Convention Tags (v2)"
+logoFile = "assets/fabric-convention-tags-v2/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Contains common tags used by mods for better inter-mod compatibility."
+provides = ["fabric-convention-tags-v2"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_convention_tags_v2]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_convention_tags_v2]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_convention_tags_v2]]
+modId = "fabric_lifecycle_events_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-convention-tags-api-v2.mixins.json"

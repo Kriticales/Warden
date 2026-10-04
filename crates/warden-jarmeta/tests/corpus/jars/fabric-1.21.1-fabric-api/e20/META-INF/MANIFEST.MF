@@ -1,0 +1,372 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-lifecycle-events-v1-refma
+ p.json;fabric-lifecycle-events-v1.client.mixins.json;net/fabricmc/fabri
+ c/api/client/event/lifecycle/v1/ClientBlockEntityEvents$Load.class;net/
+ fabricmc/fabric/api/client/event/lifecycle/v1/ClientBlockEntityEvents$U
+ nload.class;net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientBlo
+ ckEntityEvents.class;net/fabricmc/fabric/api/client/event/lifecycle/v1/
+ ClientChunkEvents$Load.class;net/fabricmc/fabric/api/client/event/lifec
+ ycle/v1/ClientChunkEvents$Unload.class;net/fabricmc/fabric/api/client/e
+ vent/lifecycle/v1/ClientChunkEvents.class;net/fabricmc/fabric/api/clien
+ t/event/lifecycle/v1/ClientEntityEvents$Load.class;net/fabricmc/fabric/
+ api/client/event/lifecycle/v1/ClientEntityEvents$Unload.class;net/fabri
+ cmc/fabric/api/client/event/lifecycle/v1/ClientEntityEvents.class;net/f
+ abricmc/fabric/api/client/event/lifecycle/v1/ClientLifecycleEvents$Clie
+ ntStarted.class;net/fabricmc/fabric/api/client/event/lifecycle/v1/Clien
+ tLifecycleEvents$ClientStopping.class;net/fabricmc/fabric/api/client/ev
+ ent/lifecycle/v1/ClientLifecycleEvents.class;net/fabricmc/fabric/api/cl
+ ient/event/lifecycle/v1/ClientTickEvents$EndTick.class;net/fabricmc/fab
+ ric/api/client/event/lifecycle/v1/ClientTickEvents$EndWorldTick.class;n
+ et/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents$Start
+ Tick.class;net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTick
+ Events$StartWorldTick.class;net/fabricmc/fabric/api/client/event/lifecy
+ cle/v1/ClientTickEvents.class;net/fabricmc/fabric/api/client/event/life
+ cycle/v1/ClientWorldEvents$AfterClientWorldChange.class;net/fabricmc/fa
+ bric/api/client/event/lifecycle/v1/ClientWorldEvents.class;net/fabricmc
+ /fabric/impl/client/event/lifecycle/ClientLifecycleEventsImpl.class;net
+ /fabricmc/fabric/impl/client/event/lifecycle/package-info.class;net/fab
+ ricmc/fabric/mixin/event/lifecycle/client/ClientChunkManagerMixin.class
+ ;net/fabricmc/fabric/mixin/event/lifecycle/client/ClientPlayNetworkHand
+ lerMixin.class;net/fabricmc/fabric/mixin/event/lifecycle/client/ClientT
+ agLoaderMixin.class;net/fabricmc/fabric/mixin/event/lifecycle/client/Cl
+ ientWorldClientEntityHandlerMixin.class;net/fabricmc/fabric/mixin/event
+ /lifecycle/client/ClientWorldMixin.class;net/fabricmc/fabric/mixin/even
+ t/lifecycle/client/MinecraftClientMixin.class;net/fabricmc/fabric/mixin
+ /event/lifecycle/client/WorldChunkMixin.class;net/fabricmc/fabric/mixin
+ /event/lifecycle/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientBlockEntit
+ yEvents$Load.class
+SHA-256-Digest: 5tN8VOkEnf5t+0YjVIec7pXsxihLNvOI8LmB0VsCjd8=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientLifecycleE
+ vents.class
+SHA-256-Digest: h7DAXF/43qPySjaz1gifKuNSmjmGf7yW7o4eZzTFOHw=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/PlayerManagerMixin.class
+SHA-256-Digest: RU9/7BuFbCD8mQ3b5ejUWkdqPTNKeBGqlyS1Inv/DAE=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$A
+ fterSave.class
+SHA-256-Digest: dQR1iGanWruewwUMkxjM1TjF3y5xWmdWxYDnd900KYw=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/ServerChunkLoadingManage
+ rMixin.class
+SHA-256-Digest: KyM/E3PJSjm4uF8RaC31P1CYV2r540vuqI62LiXOzfk=
+
+Name: net/fabricmc/fabric/impl/client/event/lifecycle/package-info.class
+SHA-256-Digest: pTrBLXt1msZBecFmG/IDA4yGWs/Y9p36MXeA4cSNkvo=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents
+ $EndWorldTick.class
+SHA-256-Digest: a1dmbdmPJc+SvkAGqto68AouJf8BMJMA2WEgrXjb81g=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/DataPackContentsMixin.cl
+ ass
+SHA-256-Digest: Y2Uj7M6tFGxp/rvFXcOIhwHNHiRyZ3J1WK6LlJxMkSE=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/ServerWorldMixin.class
+SHA-256-Digest: Xk3F82ileMavlDWhKdF4Kb/GLXgPkPhOQOplV+mvi60=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/server/WorldChunkMixin.c
+ lass
+SHA-256-Digest: uBVB4ieDXdquF59ZluCHaLMJNKSSqCI4OXL4LHt2vG8=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/package-info.class
+SHA-256-Digest: NjSIjpcY+6nwDVpPTW0Xv+/G4G4WiYal/G7SGtlpox4=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/ClientWorldClient
+ EntityHandlerMixin.class
+SHA-256-Digest: VE39X3WDYM9lfrLx8R92VQEnM0qAo4njmqPBJeIQeOY=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerBlockEntityEvents
+ .class
+SHA-256-Digest: Yo2C6Pt2jQG7wcYSGrVuwN2tX5uFsAeCGzQisPCt71c=
+
+Name: client-fabric-lifecycle-events-v1-refmap.json
+SHA-256-Digest: 28cbEWxrrqxwNwxZyNcAPGmu95T+qucHjOOLETApmpo=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerWorldEvents$Load.
+ class
+SHA-256-Digest: Op4ZIS0XEYj4bQF5yNy9mDQI3tpGlfOBlhGJdwPbWH4=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/package-info.class
+SHA-256-Digest: YHR0eZMXyludAePStsT5kcbo1ZfWUJvdn/ho1jrOVFw=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/ClientChunkManage
+ rMixin.class
+SHA-256-Digest: f1h+hMp5iGvIW3mIwAbf3H+cR0kkA8mZgOwGjwLRewY=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/ClientPlayNetwork
+ HandlerMixin.class
+SHA-256-Digest: mEzb0NpLbbANB+kKK7/ydUe1rWwLbju0gU2mTC2NpqE=
+
+Name: fabric-lifecycle-events-v1-refmap.json
+SHA-256-Digest: 2TXa/wVLFWf1C7u3r6RwJFnW9Wb86c+/KsRFa4WoyZk=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents
+ $StartTick.class
+SHA-256-Digest: ZqWEONv8v0ttuC6YCDBkfw/eISaBO73Qzqsg6JR8fhw=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$S
+ tartDataPackReload.class
+SHA-256-Digest: OfFTmx0BslZFevtOJLVGIVh5uXmd1S1wA2swz23EOHo=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerChunkEvents$Level
+ TypeChange.class
+SHA-256-Digest: fRQJ+eLSTCdIeMD4ZWC6PvwuQm4e8S5Zx1oxQk6aEYE=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/ChunkGeneratingMixin.cla
+ ss
+SHA-256-Digest: n5ohsRPHHCp5uPn0E43TxffZz8+IfUJGT76prMHtjKo=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$S
+ erverStopped.class
+SHA-256-Digest: zOLQxecaUPT8ZLyogq8PnPgpQjIa0XuA2GYytz5KAhE=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents
+ $EndTick.class
+SHA-256-Digest: qaYJmvc/8KkyP3JZVrF0h7/QNagSpDJ4hDTTYTfznLQ=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/WorldMixin.class
+SHA-256-Digest: 8Hwd1gyMGDne/dFZ4mQ1xouZVFLEa3KIBfJFER5MRrw=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientBlockEntit
+ yEvents$Unload.class
+SHA-256-Digest: n9mbCryF5IJ2n3QSiGK31IdttI4bi1rlrFOvbUlgP+M=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerChunkEvents$Unloa
+ d.class
+SHA-256-Digest: GJ9KxAscrkRrCHImmFftrs3zXVKb55CX7ISLyubAyFA=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/CommonLifecycleEvents$T
+ agsLoaded.class
+SHA-256-Digest: WbmusXMoTQTj/UOmgMJZtf0222VXj+UtynEH5vVH5y0=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerTickEvents.class
+SHA-256-Digest: Y9lDqDoENa2tRZoMKVaoEiViRRm2JLMZqfEJJR5P9ys=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerWorldEvents$Unloa
+ d.class
+SHA-256-Digest: 3E5p1YWexAFi8QBxaKZNbZlA5JAbbUdLxCyXnJDE5ZU=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerBlockEntityEvents
+ $Load.class
+SHA-256-Digest: 2b/+7YY9qMBXhxkd5/ZPZfcJpXe0//M8tEH7tIArXs4=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientChunkEvent
+ s.class
+SHA-256-Digest: P3u+tfGU5JpA2U+bX5fwKaX5oKan3XpnQONf+bV2vlY=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientWorldEvent
+ s.class
+SHA-256-Digest: Z2/+vyDefxHjjXObXTVjiao/XzZrcl8bpx6snPxpQ8Y=
+
+Name: LICENSE-fabric-lifecycle-events-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/MinecraftClientMi
+ xin.class
+SHA-256-Digest: 59K5HseROe252rvvxwVWj7lFbQh4OoTSQ9iplEiSCRM=
+
+Name: fabric.mod.json
+SHA-256-Digest: FCT5oxzBn27+NhhRuIUiXs4Zq7rPpMLbUEJkoHfIIWg=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerTickEvents$StartW
+ orldTick.class
+SHA-256-Digest: yk2SC7hWDWdlo49sYSJSGEtSSKRI2xLhWPxvejH52sc=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientEntityEven
+ ts.class
+SHA-256-Digest: ts6ov9uI2nXE8TO7XS3spx9QmnR0lI50DKmad1B4+hY=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$S
+ yncDataPackContents.class
+SHA-256-Digest: Sas65aGNg+yHyLLS/YpqHMNlJUOu5IV5c1VyMjhxgqA=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientBlockEntit
+ yEvents.class
+SHA-256-Digest: dWUdL+VjdPg0fnybqO1GKBRxDS/9vKl+HzyXB98t/7M=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerBlockEntityEvents
+ $Unload.class
+SHA-256-Digest: xDZ9WJjO7JkBR3SxmUo968v8KzKcpf2y67aJDEkadiI=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerEntityEvents$Unlo
+ ad.class
+SHA-256-Digest: r/kFq8aUjl158O5T+mgJUv1ul+1tw7+YmGQO0PBI5qk=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientEntityEven
+ ts$Unload.class
+SHA-256-Digest: 9Ft8tYofLjsvUVRlWl50DJaGqSuez5yF42yVlxFT9qU=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/CommonLifecycleEvents.c
+ lass
+SHA-256-Digest: L8tS2NsIuVYdzGSFmL/8JywNcD1p+Sa9OeIeWngvlz4=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerChunkEvents$Load.
+ class
+SHA-256-Digest: +4iWvRHyCxYwddG09s2jjVoEjy2QDGWmuuYtIka9AXo=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/WorldChunkMixin.c
+ lass
+SHA-256-Digest: upy7ekfDPKP8EXngNQgwHEj6/dEmmTpvG5SoQ60xvsM=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/ChunkLevelTypeEventTracke
+ r.class
+SHA-256-Digest: 64BLK+wLkoEz81p5hnYtvQqoMmoYWZC5ta2gVuVZqfY=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/LifecycleEventsImpl.class
+SHA-256-Digest: Tk4chSeBaZCXp4AP8qwyGtY8Vq2ZTMOC4g0IU1gnzOc=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientChunkEvent
+ s$Unload.class
+SHA-256-Digest: F+Z4S1PdgiW/51qmkfqL+0MqAiU0/QkEgYV5zFsAqnU=
+
+Name: fabric-lifecycle-events-v1.client.mixins.json
+SHA-256-Digest: sPMyjp4C61Dv1b50zHinBSV3vXSq+l2C+SEM96Tp1+Q=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerChunkEvents$Gener
+ ate.class
+SHA-256-Digest: BSs4ZzkZh4EghVnDeLc8dVaPde+a/z5kqbH4pFxJ+44=
+
+Name: fabric-lifecycle-events-v1.mixins.json
+SHA-256-Digest: vtndIaWdfL8hYipzUA4F2vZCaHQj7a1zVbwXGLq9B50=
+
+Name: net/fabricmc/fabric/impl/event/lifecycle/LoadedChunksCache.class
+SHA-256-Digest: kUWG6O9BZZSTekNiIeb3M8la5DEVlnMsJMYclw4Tnuk=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/MinecraftServerMixin.cla
+ ss
+SHA-256-Digest: /j3cKk2cHaTJ8WtFkaAilBTa+04adKrWiaba+spCSt0=
+
+Name: assets/fabric-lifecycle-events-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$B
+ eforeSave.class
+SHA-256-Digest: 3EdgbZ81/2YLZwx6uriGD+YpcekS99UZE2zqmcjBN3M=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerTickEvents$EndTic
+ k.class
+SHA-256-Digest: EWZGNSgbvX4y2s4qgQHs2zxpCLakfNUwrYnvFp1tQtQ=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/ChunkHolderMixin.class
+SHA-256-Digest: Jl/tqU5mcB+vIyZ4EvzQSLLPfW8zEXuZ1MnDdxj3LZg=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerEntityEvents$Load
+ .class
+SHA-256-Digest: TPIYfoZAlgzwMHdnSs1NphTruTRXyCjssUt1hOGR7E4=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerChunkEvents.class
+SHA-256-Digest: sw3C7uEdNQu3ULb78x6SO7XvZl7s5mXfw7YG6G6FZAQ=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents
+ .class
+SHA-256-Digest: ry4VxUtUVaMv7axm7fi/rSSOku5LG4dsgER/oqfGFZI=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/ServerWorldServerEntityH
+ andlerMixin.class
+SHA-256-Digest: Nsk+pw+1YOH+oU6ogNb1Lbgy4XpTCLrcswcRC3t4xW0=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientWorldEvent
+ s$AfterClientWorldChange.class
+SHA-256-Digest: WWCszk+xIoeDc7ooqmAGhRGNFcjaGKvlONLkN6OdKL8=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientEntityEven
+ ts$Load.class
+SHA-256-Digest: zcTOj4lcs+q9RKaqTpAN9FUgCjk+fOG21JECNJ/pjB0=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientLifecycleE
+ vents$ClientStopping.class
+SHA-256-Digest: Z9GYoFDEhT2azgjneAE0hiUQFRnUOjQc2Gm9K6fG/IU=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$E
+ ndDataPackReload.class
+SHA-256-Digest: lRI88XyqGT21u8Kbq4J+uw/g0kq02nFIJillqZwAmgw=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$S
+ erverStarted.class
+SHA-256-Digest: +e26poPnwuMLDRLeHJgT6B8RoOIFdsOCAgBlU0XAy2A=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents.c
+ lass
+SHA-256-Digest: lBABIdnxScg+6KDTpSxFvw9Gem0FbkOjtnyAF0rEkkM=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerTickEvents$EndWor
+ ldTick.class
+SHA-256-Digest: vN+mw2qOJGX2Zv9xxnNImgehtvogyygU/RY/mPnstJU=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientLifecycleE
+ vents$ClientStarted.class
+SHA-256-Digest: nHRjc2b1gEkRjFMK3hfEgHzEPcYNK9ehmxcdIk6YbbQ=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerEntityEvents$Equi
+ pmentChange.class
+SHA-256-Digest: UsDj5YGvlM4FlNudLtfR0KdSYuglOtZrsD07ngY8dhU=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/package-info.clas
+ s
+SHA-256-Digest: A+fNB62H2DLhrD4fmRiVfjfAF0Lbo9mxDtqMhwdOv3w=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerTickEvents$StartT
+ ick.class
+SHA-256-Digest: FVyk48py59ZgVjMy4xtu88FK+ViMTbxrpHVbxxkGuqU=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$S
+ erverStopping.class
+SHA-256-Digest: WhZKLsOdOVlm5g4YoRp1SdUoz5NhXhnD4tnF/CBqu2w=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerWorldEvents.class
+SHA-256-Digest: UD39qVMSv+qwcHMJrjOgddYMTWZkUa2GVa9a2QZ5ooY=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/ClientTagLoaderMi
+ xin.class
+SHA-256-Digest: 13adXjFR7TXPxnpOa8MSoT/Utqy2ZNJeNkK7NSuaCq8=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerLifecycleEvents$S
+ erverStarting.class
+SHA-256-Digest: nLeRVgbb6rt4lubQIbs3vHSk9gCFRQHhaPVx+c2gIo4=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents
+ $StartWorldTick.class
+SHA-256-Digest: LuklCBFWbtyAWMlU1x6tapHbAQE3Hkyexdlt7YTrCTI=
+
+Name: fabric-lifecycle-events-v1.accesswidener
+SHA-256-Digest: MmMLMDOyuovODT1j5778eaeqctf3FtGXIKNPdFAbEOE=
+
+Name: net/fabricmc/fabric/impl/client/event/lifecycle/ClientLifecycleEve
+ ntsImpl.class
+SHA-256-Digest: NtE9YJJthy5ZJFxl3+kJPwC9kBN5BOH2pR/A1OjNtMo=
+
+Name: net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientChunkEvent
+ s$Load.class
+SHA-256-Digest: 23z5DZGiGIctfdvPJ7CTrHJDzcb5VqTXloSR9KT3wZk=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/LivingEntityMixin.class
+SHA-256-Digest: NFCBNibnhdoU/SMgKpjVkqaJuUHNF+44lpUrCORgyMU=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/server/package-info.clas
+ s
+SHA-256-Digest: GY8qRgudlz9peKSUL1f2JtIujPryKsvZnrfl+bepBCM=
+
+Name: net/fabricmc/fabric/api/event/lifecycle/v1/ServerEntityEvents.clas
+ s
+SHA-256-Digest: UXQVT4wp9nmRrQWzd8xWEDPX/jqX9MAqWqq7ZcviRHI=
+
+Name: net/fabricmc/fabric/mixin/event/lifecycle/client/ClientWorldMixin.
+ class
+SHA-256-Digest: Bfu8aqs6tJwwEmNkNm0DaWCD8349Z+fjBuboU2QCT8A=
+

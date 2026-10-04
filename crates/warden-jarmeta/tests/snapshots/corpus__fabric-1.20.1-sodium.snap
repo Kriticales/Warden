@@ -1,0 +1,601 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-sodium (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "sodium",
+      "version": "0.5.13+mc1.20.1",
+      "name": "Sodium",
+      "description": "Sodium is a powerful rendering engine for Minecraft which greatly improves frame rates and micro-stutter, while fixing many graphical issues",
+      "authors": [
+        "JellySquid (jellysquid3)"
+      ],
+      "licenses": [
+        "Polyform-Shield-1.0.0"
+      ],
+      "environment": "client",
+      "dependencies": [
+        {
+          "id": "fabric-rendering-data-attachment-v1",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.1"
+            ]
+          }
+        },
+        {
+          "id": "fabric-rendering-fluids-v1",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.1"
+            ]
+          }
+        },
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.12.0"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "1.20.1"
+            ]
+          }
+        },
+        {
+          "id": "betterfpsdist",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.20.1-3.8"
+            ]
+          }
+        },
+        {
+          "id": "bobby",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<5.0.1"
+            ]
+          }
+        },
+        {
+          "id": "canvas",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        },
+        {
+          "id": "cauldron_dyeing",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.0.11"
+            ]
+          }
+        },
+        {
+          "id": "cullleaves",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<=3.1.0"
+            ]
+          }
+        },
+        {
+          "id": "custom_hud",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<=3.1.0+1.20"
+            ]
+          }
+        },
+        {
+          "id": "dashloader",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<5.0.0-beta.2"
+            ]
+          }
+        },
+        {
+          "id": "farsight",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.20.1-4.0"
+            ]
+          }
+        },
+        {
+          "id": "fluidvoidfading",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.1.2"
+            ]
+          }
+        },
+        {
+          "id": "iceberg",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.1.14"
+            ]
+          }
+        },
+        {
+          "id": "immersive_portals",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<=5.1.3"
+            ]
+          }
+        },
+        {
+          "id": "indium",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.0.36"
+            ]
+          }
+        },
+        {
+          "id": "iris",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.7.6"
+            ]
+          }
+        },
+        {
+          "id": "notenoughcrashes",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<4.4.6"
+            ]
+          }
+        },
+        {
+          "id": "noxesium",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.0.2"
+            ]
+          }
+        },
+        {
+          "id": "ocrenderfix_sodium",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        },
+        {
+          "id": "optifabric",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        },
+        {
+          "id": "rayon",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<=1.7.2+1.20.1"
+            ]
+          }
+        },
+        {
+          "id": "reeses-sodium-options",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.7.1"
+            ]
+          }
+        },
+        {
+          "id": "sodium-blendingregistry",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "*"
+            ]
+          }
+        },
+        {
+          "id": "sodium-extra",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<0.5.4"
+            ]
+          }
+        },
+        {
+          "id": "sspb",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<3.2.0"
+            ]
+          }
+        },
+        {
+          "id": "supplementaries",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<=1.20-2.7.32"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          "1.20.1"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.12.0"
+        ]
+      },
+      "mixins": [
+        "sodium.mixins.json"
+      ]
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/fabric-api-base-0.4.31+1802ada577.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-api-base",
+            "version": "0.4.31+1802ada577",
+            "name": "Fabric API Base",
+            "description": "Contains the essentials for Fabric API modules.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.4.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.4.0"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-block-view-api-v2-1.0.1+1802ada577.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-block-view-api-v2",
+            "version": "1.0.1+1802ada577",
+            "name": "Fabric BlockView API (v2)",
+            "description": "Hooks for block views",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.14.21"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.14.21"
+              ]
+            },
+            "mixins": [
+              "fabric-block-view-api-v2.mixins.json",
+              "fabric-block-view-api-v2.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-data-attachment-v1-0.3.37+92a0d36777.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-rendering-data-attachment-v1",
+            "version": "0.3.37+92a0d36777",
+            "name": "Fabric Rendering Data Attachment (v1)",
+            "description": "Thread-safe hooks for block entity data use during terrain rendering.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-block-view-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.4.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.4.0"
+              ]
+            },
+            "mixins": [
+              "fabric-rendering-data-attachment-v1.mixins.json",
+              "fabric-rendering-data-attachment-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-fluids-v1-3.0.28+1802ada577.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-rendering-fluids-v1",
+            "version": "3.0.28+1802ada577",
+            "name": "Fabric Rendering Fluids (v1)",
+            "description": "Hooks for registering fluid renders.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.4.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.4.0"
+              ]
+            },
+            "mixins": [
+              "fabric-rendering-fluids-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-resource-loader-v0-0.11.11+fb82e9d777.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-resource-loader-v0",
+            "version": "0.11.11+fb82e9d777",
+            "name": "Fabric Resource Loader (v0)",
+            "description": "Asset and data resource loading.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.13.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.13.0"
+              ]
+            },
+            "mixins": [
+              "fabric-resource-loader-v0.mixins.json",
+              "fabric-resource-loader-v0.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

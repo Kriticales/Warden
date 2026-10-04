@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+FMLModType: LIBRARY
+Automatic-Module-Name: net.fabricmc.loader
+Implementation-Version: 2.5.68+0.18.4+1.21.1
+

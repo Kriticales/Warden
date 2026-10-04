@@ -1,0 +1,31 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_entity_events_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Entity Events (v1)"
+logoFile = "assets/fabric-entity-events-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Events to hook into entities."
+provides = ["fabric-entity-events-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_entity_events_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_entity_events_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-entity-events-v1.mixins.json"

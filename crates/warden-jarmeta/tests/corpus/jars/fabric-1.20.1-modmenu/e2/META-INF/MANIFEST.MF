@@ -1,0 +1,200 @@
+Manifest-Version: 1.0
+Fabric-Gradle-Version: 8.1.1
+Fabric-Loom-Version: 1.2.7
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.8.5
+Fabric-Loader-Version: 0.14.21
+Fabric-Mixin-Version: 0.12.5+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/impl/client/screen/
+ ScreenExtensions.class;net/fabricmc/fabric/impl/client/screen/package-i
+ nfo.class;net/fabricmc/fabric/impl/client/screen/ButtonList.class;net/f
+ abricmc/fabric/impl/client/screen/ScreenEventFactory.class;net/fabricmc
+ /fabric/api/client/screen/v1/ScreenMouseEvents$AllowMouseScroll.class;n
+ et/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AllowMouseCli
+ ck.class;net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$Bef
+ oreMouseScroll.class;net/fabricmc/fabric/api/client/screen/v1/ScreenEve
+ nts$BeforeInit.class;net/fabricmc/fabric/api/client/screen/v1/ScreenMou
+ seEvents$AfterMouseScroll.class;net/fabricmc/fabric/api/client/screen/v
+ 1/Screens.class;net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEve
+ nts$AllowMouseRelease.class;net/fabricmc/fabric/api/client/screen/v1/Sc
+ reenEvents$AfterRender.class;net/fabricmc/fabric/api/client/screen/v1/S
+ creenKeyboardEvents$BeforeKeyRelease.class;net/fabricmc/fabric/api/clie
+ nt/screen/v1/ScreenEvents$Remove.class;net/fabricmc/fabric/api/client/s
+ creen/v1/ScreenEvents$AfterInit.class;net/fabricmc/fabric/api/client/sc
+ reen/v1/ScreenEvents$AfterTick.class;net/fabricmc/fabric/api/client/scr
+ een/v1/ScreenMouseEvents$BeforeMouseClick.class;net/fabricmc/fabric/api
+ /client/screen/v1/ScreenEvents$BeforeRender.class;net/fabricmc/fabric/a
+ pi/client/screen/v1/ScreenKeyboardEvents$AllowKeyPress.class;net/fabric
+ mc/fabric/api/client/screen/v1/ScreenKeyboardEvents$BeforeKeyPress.clas
+ s;net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents.class;net/
+ fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AfterMouseClick.
+ class;net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents.cla
+ ss;net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$AllowK
+ eyRelease.class;net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$B
+ eforeTick.class;net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEve
+ nts$BeforeMouseRelease.class;net/fabricmc/fabric/api/client/screen/v1/S
+ creenEvents.class;net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboa
+ rdEvents$AfterKeyPress.class;net/fabricmc/fabric/api/client/screen/v1/S
+ creenKeyboardEvents$AfterKeyRelease.class;net/fabricmc/fabric/api/clien
+ t/screen/v1/ScreenMouseEvents$AfterMouseRelease.class;net/fabricmc/fabr
+ ic/mixin/screen/ScreenAccessor.class;net/fabricmc/fabric/mixin/screen/p
+ ackage-info.class;net/fabricmc/fabric/mixin/screen/MinecraftClientMixin
+ .class;net/fabricmc/fabric/mixin/screen/KeyboardMixin.class;net/fabricm
+ c/fabric/mixin/screen/MouseMixin.class;net/fabricmc/fabric/mixin/screen
+ /ScreenMixin.class;net/fabricmc/fabric/mixin/screen/GameRendererMixin.c
+ lass;client-fabric-screen-api-v1-refmap.json;fabric.mod.json;assets/fab
+ ric-screen-api-v1/icon.png;fabric-screen-api-v1.mixins.json;LICENSE-fab
+ ric-screen-api-v1
+Fabric-Loom-Split-Environment: true
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$BeforeRender
+ .class
+SHA-256-Digest: F2sxGjZ9PTRccI+QmP7EzhrcbUxhVOu6WMZcCXR20Hw=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AllowMo
+ useScroll.class
+SHA-256-Digest: qfeFqO5XoucXKYetET1SWQ3Y/9FcJB4ru+KmkoCLa2U=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AllowMo
+ useClick.class
+SHA-256-Digest: 1f1wF2++larhy086vEnYDzEs8yc0HGhiMKJAslPwv9c=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents.clas
+ s
+SHA-256-Digest: CG7lF4lkD3FXKjfQO6VJwywExJaXZmXCqR1M+DfRqDQ=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$BeforeM
+ ouseClick.class
+SHA-256-Digest: CBc2ARPcwsJ9l3Rx+Z5MpIYP/uADou2aroDD4ndqIjA=
+
+Name: client-fabric-screen-api-v1-refmap.json
+SHA-256-Digest: cpfUB4mwRk3jP561VU/koDeADgxj3d7TLrj0N/pr5TU=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$BeforeTick.c
+ lass
+SHA-256-Digest: JOLJs1JVECSfy+MiGJ+y+6urJ6SRjOZj7SqXYb+3Vu0=
+
+Name: net/fabricmc/fabric/impl/client/screen/ScreenEventFactory.class
+SHA-256-Digest: RU/FH4y9FgRZHj6T27qrA9lcq9qvM+OtuuLiDizqdR0=
+
+Name: net/fabricmc/fabric/mixin/screen/package-info.class
+SHA-256-Digest: pYDriftSPVYOkKH+C2MmZzx9mzYBzsofyLu/kyPOgac=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$BeforeInit.c
+ lass
+SHA-256-Digest: 6j6pcHft4DZ6SO8lZAk8JUuHRFmNJEZqg2S6S3/j6Dk=
+
+Name: fabric-screen-api-v1.mixins.json
+SHA-256-Digest: c2G7xcxG22msNRBQ1c0gi3mPSdOYZoOI/EnkOxWlDcA=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AfterMo
+ useClick.class
+SHA-256-Digest: h7ci7R/lw0wpnZJ3XUqrjcfgbMdHWSri6uqznPyS1XI=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents.class
+SHA-256-Digest: g7Illq1iK9YY+3iA+vSTHD/tkqVKw7MiFyPuNWJwxQY=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$Remove.class
+SHA-256-Digest: LfiTDd4iHVcnpdt23Lh8btfKtS6vQKOemcXuFjF0qnI=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$Allo
+ wKeyRelease.class
+SHA-256-Digest: zek7TRPzxuU1ThreA77gCCoPQRHK0KDeP619Kgvq+kU=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents.class
+SHA-256-Digest: MzltDrihIStr/EjA5bQ15F4DCklOP81GVgEyP0oRZYE=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AllowMo
+ useRelease.class
+SHA-256-Digest: aSyW9PS0cQ1xAHstBmL0ExLfEoS/HLawLQdjk5rtSsU=
+
+Name: net/fabricmc/fabric/mixin/screen/MouseMixin.class
+SHA-256-Digest: MnXxESYgDqVejN6Oot4EiBcTlYYeS9FvES95rbgtxmg=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$Afte
+ rKeyRelease.class
+SHA-256-Digest: 0tXDeSpHi0+S0sfHN8BvpDboWbJp5XcHSTYpik8WhKY=
+
+Name: net/fabricmc/fabric/impl/client/screen/ScreenExtensions.class
+SHA-256-Digest: gGE6oiOCwtiGk1CiD1Ey4pL8P4OCIB/5AOvS2o+uNYA=
+
+Name: net/fabricmc/fabric/mixin/screen/MinecraftClientMixin.class
+SHA-256-Digest: 3PFCl6knOLgkPNhCE1JSQantz07Xz6ibos1AOy2wcDQ=
+
+Name: net/fabricmc/fabric/mixin/screen/ScreenMixin.class
+SHA-256-Digest: +U51NWFIFxR30dIopOd3tJ8W62uN5MjzaPofQKvK7O4=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$BeforeM
+ ouseRelease.class
+SHA-256-Digest: dNgWy59WRG9WOYelZdMUfv8BS4QPKD1lLXIC5ssq0tE=
+
+Name: LICENSE-fabric-screen-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/screen/GameRendererMixin.class
+SHA-256-Digest: KozmzFLbACVU0WB+OqX4lE5aPGYXXa1cMq/h8cj+QuU=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AfterMo
+ useRelease.class
+SHA-256-Digest: 6bwXFfNwckUg7oEJp4DK/GTpUj5ysdRew0d8uQdrX40=
+
+Name: fabric.mod.json
+SHA-256-Digest: Wc07OHXa8IYPaTDeZEb/10/rMXrEa0+Q+hnF+PU4UDQ=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$AfterInit.cl
+ ass
+SHA-256-Digest: M8EGW8qE/UB78EVxVqE/gC3hEeSTSKi4WQDXLZ6nhYU=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$AfterTick.cl
+ ass
+SHA-256-Digest: tmbTj3U9rBv6KfcBXQN/advIrHTH+iZfeIDV5wi/U/k=
+
+Name: net/fabricmc/fabric/mixin/screen/KeyboardMixin.class
+SHA-256-Digest: b8yq3u//IoSuEpSR8f269VFqAFrN2LCAQaEYn3D/ino=
+
+Name: assets/fabric-screen-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$BeforeM
+ ouseScroll.class
+SHA-256-Digest: mb9X+5HYFB9fFsdTahTalVwIxoMHrsK2NtcSuTxPP9Q=
+
+Name: net/fabricmc/fabric/impl/client/screen/ButtonList.class
+SHA-256-Digest: tFm5piK/Tt/TjhGZKQdwP4LsV/xD1u9/oIgpA8e+cYo=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$Afte
+ rKeyPress.class
+SHA-256-Digest: 1MEs+zv/ignnMCiI0Z42RQs5WVZT/YvTR2RMvKQhcIM=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenMouseEvents$AfterMo
+ useScroll.class
+SHA-256-Digest: sLkAmb2aleUDixxdRnM0K72H+xNabw2BrDc8siewyas=
+
+Name: net/fabricmc/fabric/impl/client/screen/package-info.class
+SHA-256-Digest: +h6FGL71TIG6266EWQnj3nYNWIUr48RDF1V9glB5tAY=
+
+Name: net/fabricmc/fabric/mixin/screen/ScreenAccessor.class
+SHA-256-Digest: GuZn7oFEIUB8OnMoi4kle7aZyqkXx9KVirATcJI9Aoc=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenEvents$AfterRender.
+ class
+SHA-256-Digest: QMd+6/Tm2+oJBkMJDeErmVy44ZDMnB/v9VnZQLsz6Do=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$Allo
+ wKeyPress.class
+SHA-256-Digest: dgO1weo61Knbrk6SILRcXF++5oGeMzUUiQetKue3/lQ=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$Befo
+ reKeyPress.class
+SHA-256-Digest: ivxcusPeJB16vSjC3khCfpGO1YOFB+rijKbKuVr8D3s=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/ScreenKeyboardEvents$Befo
+ reKeyRelease.class
+SHA-256-Digest: FTqO0sLecEpof/jXGhKA94IvIMOdPhOAxYzMDbRlv9Y=
+
+Name: net/fabricmc/fabric/api/client/screen/v1/Screens.class
+SHA-256-Digest: NO4WdToMke11qAfnBXyyu+9CZX7DYBA9OynKIJ+JkQs=
+

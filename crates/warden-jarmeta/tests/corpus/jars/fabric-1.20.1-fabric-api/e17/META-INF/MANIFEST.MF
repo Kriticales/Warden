@@ -1,0 +1,117 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-item-api-v1-refmap.json;f
+ abric-item-api-v1.client.mixins.json;net/fabricmc/fabric/api/client/ite
+ m/v1/ItemTooltipCallback.class;net/fabricmc/fabric/mixin/item/client/Cl
+ ientPlayerInteractionManagerMixin.class;net/fabricmc/fabric/mixin/item/
+ client/HeldItemRendererMixin.class;net/fabricmc/fabric/mixin/item/clien
+ t/ItemStackMixin.class;net/fabricmc/fabric/mixin/item/client/package-in
+ fo.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/item/v1/CustomDamageHandler.class
+SHA-256-Digest: /MHC6+dsttSo3aSPbDO/nbhNddB03icTMIRgNLp0EXA=
+
+Name: net/fabricmc/fabric/mixin/item/ItemMixin.class
+SHA-256-Digest: OOSzrW9DhZDOj1Dfm5rYamy2nE/wjM0a8v9YUzYrJj4=
+
+Name: net/fabricmc/fabric/mixin/item/ArmorItemMixin.class
+SHA-256-Digest: MLK//jG/d580zyATZLQYr8u126+aFVBOeHk+zRB5w6U=
+
+Name: net/fabricmc/fabric/impl/item/FabricItemInternals.class
+SHA-256-Digest: Xj8lw5Rs1lRKrwQ9YoTzTg3ktsMUdBK5hrPjM9Qo9Ds=
+
+Name: net/fabricmc/fabric/mixin/item/LivingEntityMixin.class
+SHA-256-Digest: Zdk98Jib4iBYJTYRBA0X0ljVepEWAo6JVQASPVbQckA=
+
+Name: net/fabricmc/fabric/api/client/item/v1/ItemTooltipCallback.class
+SHA-256-Digest: Eihj6dcIfCsaLz+QKaFfU65e+NraMeE3ENl0JVdRk2E=
+
+Name: net/fabricmc/fabric/mixin/item/client/ClientPlayerInteractionManag
+ erMixin.class
+SHA-256-Digest: 6FWaGYdYzYol/CgJGqWbw324y+bzUSU648IE/Bxgp5g=
+
+Name: assets/fabric-item-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-item-api-v1.mixins.json
+SHA-256-Digest: Vx3cqnRb1z1cylwF6tATY2fC35HaaSKZsSMbqE0Y6UM=
+
+Name: net/fabricmc/fabric/impl/item/RecipeRemainderHandler.class
+SHA-256-Digest: lW0hPHnDzlU/7AbiwUrL8K0qB3/SQdBjoEQDeLs8LD8=
+
+Name: net/fabricmc/fabric/mixin/item/package-info.class
+SHA-256-Digest: HtpksMjc7Q9uCL78yLq8wRabDFKR0CzUcR3++aREUb4=
+
+Name: net/fabricmc/fabric/api/item/v1/FabricItemSettings.class
+SHA-256-Digest: s40LU/aPp9JIpG4oKxkUeSaMvVbVRMYcE4VRxbevjps=
+
+Name: net/fabricmc/fabric/mixin/item/AbstractFurnaceBlockEntityMixin.cla
+ ss
+SHA-256-Digest: NVeuiM450sbDQ4Mxpsnyl6Z0KpUnnNLrp0HF2pyqm2U=
+
+Name: net/fabricmc/fabric/mixin/item/ItemStackMixin.class
+SHA-256-Digest: KbEI+vC4frKLxJWrB8DP/oG9y7jjSCEzgwCyWduRqBk=
+
+Name: net/fabricmc/fabric/api/item/v1/ModifyItemAttributeModifiersCallba
+ ck.class
+SHA-256-Digest: Xz5EVlehBPz7b4YVPMfZorOpfdjL43w8/+HQXO1drOs=
+
+Name: net/fabricmc/fabric/mixin/item/BrewingStandBlockEntityMixin.class
+SHA-256-Digest: ndAXxqx53G1UzadBy2JF7T5gG4PibuCCNfZLNhqGWPE=
+
+Name: net/fabricmc/fabric/mixin/item/client/ItemStackMixin.class
+SHA-256-Digest: FXjfTsKovpp4wuuANqHn2XKG94h9Pg6pCeBYDZkohUc=
+
+Name: client-fabric-item-api-v1-refmap.json
+SHA-256-Digest: 622Doi0rhRo+URpOL1JMH5KG1GGZEh4g29R8TtDl6vQ=
+
+Name: net/fabricmc/fabric/api/item/v1/EquipmentSlotProvider.class
+SHA-256-Digest: Ja6DmHVQLuvamLVyHeZ5GlK93BRNlvyV54wSAqhgVEk=
+
+Name: fabric-item-api-v1-refmap.json
+SHA-256-Digest: ACQdo+XLPoftnubEZ+pfP2o3GHoha0jMST7XLMQpKKI=
+
+Name: LICENSE-fabric-item-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/mixin/item/client/HeldItemRendererMixin.class
+SHA-256-Digest: yluCl4m/yFISaWF+fXkCTaGJzlYMcCDm7W/OrkkYZf0=
+
+Name: net/fabricmc/fabric/api/item/v1/FabricItemStack.class
+SHA-256-Digest: 1v1Zv4oP8cbLr8QlkEeAXbxEc25f7zskFGEvY2B5sCk=
+
+Name: fabric-item-api-v1.client.mixins.json
+SHA-256-Digest: czUz28JValEU/cvgDctrbmzc/6D7ZJK+OhL89A3rUaw=
+
+Name: net/fabricmc/fabric/impl/item/FabricItemInternals$ExtraData.class
+SHA-256-Digest: 8fqLZEWyoe0Q+WJ1NHnHkYmCubWlbZKt/x423eviVEk=
+
+Name: fabric.mod.json
+SHA-256-Digest: UtpaWTVYGtsUXj834O0nllTPapyaM8mWOoavri3JXNM=
+
+Name: net/fabricmc/fabric/impl/item/ItemExtensions.class
+SHA-256-Digest: XXtOscwGn+pEqP1DqZ+Jxqh2r3CRYbpif0AJRd0vhfA=
+
+Name: net/fabricmc/fabric/impl/item/package-info.class
+SHA-256-Digest: 4EWnRr9yBOWqyoONG7v7OxBjmYBx5D5Gd/l/8b2QnJg=
+
+Name: net/fabricmc/fabric/mixin/item/RecipeMixin.class
+SHA-256-Digest: NJG6b6JV66Xn3tHMM/62f7cqS2ANacrt3GP1qJ1nJWw=
+
+Name: net/fabricmc/fabric/mixin/item/client/package-info.class
+SHA-256-Digest: 5SALwFltzxd5yIf14UDKmOfzcAoPpgasM351ckZDRJA=
+
+Name: net/fabricmc/fabric/api/item/v1/FabricItem.class
+SHA-256-Digest: 6fmEtxQ1udUY75YSh1gD+v6UmPPA718nxZPM5LX62Ts=
+

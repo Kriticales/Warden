@@ -1,0 +1,64 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-rendering-data-attachment
+ -v1-refmap.json;fabric-rendering-data-attachment-v1.client.mixins.json;
+ net/fabricmc/fabric/mixin/rendering/data/client/ChunkRendererRegionMixi
+ n.class;net/fabricmc/fabric/mixin/rendering/data/client/package-info.cl
+ ass
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.15.6
+Fabric-Mixin-Version: 0.12.5+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: LICENSE-fabric-rendering-data-attachment-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: fabric-rendering-data-attachment-v1.client.mixins.json
+SHA-256-Digest: OdDozd1hDAPidQE3bXU0XKj+IYSvX029rNLjq4Cmw/U=
+
+Name: client-fabric-rendering-data-attachment-v1-refmap.json
+SHA-256-Digest: LJSHm56UOzTFYvaWb54KqIwaMLObyOF70YdytmryRSM=
+
+Name: fabric-rendering-data-attachment-v1.mixins.json
+SHA-256-Digest: 7CCOoKDCZ6YSAJYV613kH5Y79K9UAgM4GycFfKDi1Fg=
+
+Name: assets/fabric-rendering-data-attachment-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric.mod.json
+SHA-256-Digest: jq7xEV/pdBOkDmUu8SAJcfvkoBGHJYG5R2QfSVI4ZZk=
+
+Name: net/fabricmc/fabric/mixin/rendering/data/WorldViewMixin.class
+SHA-256-Digest: k+BaLyGZ2j+kepg6eY6p9FLmYz7JZK6MgTtUOLPd85w=
+
+Name: net/fabricmc/fabric/mixin/rendering/data/BlockEntityMixin.class
+SHA-256-Digest: BDX9bBejytlcn8O5ZN4nWVnZFHJH/HZXvjcjNA349vM=
+
+Name: net/fabricmc/fabric/mixin/rendering/data/client/ChunkRendererRegio
+ nMixin.class
+SHA-256-Digest: f6S8QCN70s1wSWKOwyDrix7bBD09q9n/VVqH7Hpvreo=
+
+Name: net/fabricmc/fabric/mixin/rendering/data/package-info.class
+SHA-256-Digest: yOA9WOYdaQOAMzkQAsuiQOH/z8JIMcnooBKV5ESinCo=
+
+Name: fabric-rendering-data-attachment-v1-refmap.json
+SHA-256-Digest: LJSHm56UOzTFYvaWb54KqIwaMLObyOF70YdytmryRSM=
+
+Name: net/fabricmc/fabric/api/rendering/data/v1/RenderAttachmentBlockEnt
+ ity.class
+SHA-256-Digest: FKiE095ZbpznRW12yeosTl7mxdXLVVTdRD4Xp24HwTA=
+
+Name: net/fabricmc/fabric/mixin/rendering/data/client/package-info.class
+SHA-256-Digest: SAm+X0U+toW4nLOvflqjyjzRnD4mDIojmEsKWtj3cCc=
+
+Name: net/fabricmc/fabric/api/rendering/data/v1/RenderAttachedBlockView.
+ class
+SHA-256-Digest: Qs9cPDfDARchZ57Onvusp+2uvTjg0ZrEvBc9ohebQio=
+

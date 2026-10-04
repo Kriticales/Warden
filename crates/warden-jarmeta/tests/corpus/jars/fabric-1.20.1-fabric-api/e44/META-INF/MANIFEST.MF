@@ -1,0 +1,76 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/api/client/screen/C
+ ontainerScreenFactory.class;net/fabricmc/fabric/api/client/screen/Scree
+ nProviderRegistry.class;net/fabricmc/fabric/impl/client/container/Scree
+ nProviderRegistryImpl.class;net/fabricmc/fabric/impl/client/container/p
+ ackage-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/container/ContainerProviderImpl.class
+SHA-256-Digest: SxtmnS2qz6n/+k1Z9KqBP4ekO0GmGPcr/aHBnRVYxt0=
+
+Name: net/fabricmc/fabric/mixin/container/ServerPlayerEntityAccessor.cla
+ ss
+SHA-256-Digest: Fyl2iqe9y2tTIgTcAUR7WbufZ1RIna1CMAuQzDDDeWI=
+
+Name: fabric-containers-v0-refmap.json
+SHA-256-Digest: 6FmVTvTdaezir9u93QZAEJsKgnujIGCIBa1uvcp6Qlg=
+
+Name: net/fabricmc/fabric/mixin/container/ServerPlayerEntityMixin.class
+SHA-256-Digest: rS6v5XgAoP3Mpjs+kXIkQii2nuDBBf4IuloFPlr1iqI=
+
+Name: net/fabricmc/fabric/mixin/container/package-info.class
+SHA-256-Digest: 2nUcCnjs2IeEN5o4uinp0Lgfcdu8ZTpELGKOZQDPGSE=
+
+Name: net/fabricmc/fabric/impl/client/container/package-info.class
+SHA-256-Digest: 1BNqpdHChJ4K2s7YKymlJ+D75jSSVuYr5KVHVrWqa/I=
+
+Name: fabric-containers-v0.mixins.json
+SHA-256-Digest: jwsG+q6pgrUWGXl+Xl6LodLBMtrsr7dlthJ92fnlrlI=
+
+Name: net/fabricmc/fabric/api/client/screen/ContainerScreenFactory.class
+SHA-256-Digest: 2bW9zLWtps7/0CJj1WR9uetB9586UYwIFKaF95c7ETk=
+
+Name: net/fabricmc/fabric/api/client/screen/ScreenProviderRegistry.class
+SHA-256-Digest: ieDjI8EU8MiHYxAJ5pfBHwABEXoXJSTMAXvQmJB9xrE=
+
+Name: fabric.mod.json
+SHA-256-Digest: lSxc8tv7u0ETBmWq6Z9tX2YOdUj+ZJyFeF8qOzdL32Y=
+
+Name: LICENSE-fabric-containers-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/client/container/ScreenProviderRegistryIm
+ pl.class
+SHA-256-Digest: UIOjqHxgyQiLUuyrHO8ClACdgOEBfX2TqTELvZ+FXWQ=
+
+Name: net/fabricmc/fabric/impl/container/package-info.class
+SHA-256-Digest: gsC8QB2SpSHg5JAYuerrU5+8aJ+qBqNkMN32GkLCrPA=
+
+Name: fabric-containers-v0.accurate.mixins.json
+SHA-256-Digest: 2CqQt9E5xwM20JtVmc9m1uVz5sqLLymsp4mXKTtWlCo=
+
+Name: assets/fabric-containers-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/container/ContainerFactory.class
+SHA-256-Digest: 2iiMFnTBr/vUPU/LJ2auU1K8/FdGGapSpFWapay7Zvk=
+
+Name: net/fabricmc/fabric/impl/container/ServerPlayerEntitySyncHook.clas
+ s
+SHA-256-Digest: 9hGknxuBXLsyFAKN0FMGzYrG8uKPmz40U/2PtVTBLBQ=
+
+Name: net/fabricmc/fabric/api/container/ContainerProviderRegistry.class
+SHA-256-Digest: RwUCZTVQkjBROCY04TlX9p/4JywHu9Ry764zNhAG0wQ=
+

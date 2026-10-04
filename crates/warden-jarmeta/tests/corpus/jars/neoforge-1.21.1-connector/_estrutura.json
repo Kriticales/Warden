@@ -1,0 +1,16 @@
+{
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/runtime-1.0.0+1.21.1.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jarjar/org.sinytra.connector-2.0.0-beta.17+1.21.1-mod.jar",
+      "dir": "e1"
+    }
+  ]
+}

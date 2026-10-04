@@ -1,0 +1,456 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "quilt-1.20.1-qkl (Minecraft 1.20.1, loader quilt)"
+---
+{
+  "descriptors": [
+    "quiltModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "quiltModJson",
+      "loader": "quilt",
+      "id": "qkl",
+      "version": "2.1.3",
+      "name": "Quilt Kotlin Libraries",
+      "description": "Quilt's official Kotlin libraries",
+      "authors": [
+        "QuiltMC: Quilt Kotlin Team"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "dependencies": [
+        {
+          "id": "quilt_loader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.18.1"
+            ]
+          }
+        },
+        {
+          "id": "qkl_core",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=2.1.3"
+            ]
+          }
+        },
+        {
+          "id": "qkl_library",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=2.1.3"
+            ]
+          }
+        }
+      ],
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.18.1"
+        ]
+      }
+    }
+  ],
+  "manifest": {},
+  "nested": [
+    {
+      "path": "META-INF/jars/quilt-kotlin-libraries-core-2.1.3+kt.1.9.10+flk.1.10.10.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "qkl_core",
+            "version": "2.1.3",
+            "name": "Quilt Kotlin Libraries: Core",
+            "description": "Core module for QKL",
+            "authors": [
+              "QuiltMC: Quilt Kotlin Team"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-language-kotlin"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.18.1"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.18.1"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/kotlin-stdlib-1.9.10.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlin_kotlin-stdlib",
+                  "version": "1.9.10",
+                  "name": "kotlin-stdlib"
+                }
+              ],
+              "manifest": {
+                "implementationTitle": "kotlin-stdlib",
+                "implementationVersion": "1.9.10-release-459",
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlin-stdlib-jdk7-1.9.10.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlin_kotlin-stdlib-jdk7",
+                  "version": "1.9.10",
+                  "name": "kotlin-stdlib-jdk7"
+                }
+              ],
+              "manifest": {
+                "implementationTitle": "kotlin-stdlib-jdk7",
+                "implementationVersion": "1.9.10-release-459",
+                "multiRelease": true
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlin-stdlib-jdk8-1.9.10.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlin_kotlin-stdlib-jdk8",
+                  "version": "1.9.10",
+                  "name": "kotlin-stdlib-jdk8"
+                }
+              ],
+              "manifest": {
+                "implementationTitle": "kotlin-stdlib-jdk8",
+                "implementationVersion": "1.9.10-release-459",
+                "multiRelease": true
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlin-reflect-1.9.10.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlin_kotlin-reflect",
+                  "version": "1.9.10",
+                  "name": "kotlin-reflect"
+                }
+              ],
+              "manifest": {
+                "implementationTitle": "kotlin-reflect",
+                "implementationVersion": "1.9.10-release-459",
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 50,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlinx-coroutines-core-jvm-1.7.3.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm",
+                  "version": "1.7.3",
+                  "name": "kotlinx-coroutines-core-jvm"
+                }
+              ],
+              "manifest": {
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlinx-coroutines-jdk8-1.7.3.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_kotlinx-coroutines-jdk8",
+                  "version": "1.7.3",
+                  "name": "kotlinx-coroutines-jdk8"
+                }
+              ],
+              "manifest": {
+                "multiRelease": true
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlinx-serialization-core-jvm-1.6.0.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_kotlinx-serialization-core-jvm",
+                  "version": "1.6.0",
+                  "name": "kotlinx-serialization-core-jvm"
+                }
+              ],
+              "manifest": {
+                "implementationVersion": "1.6.0",
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlinx-serialization-json-jvm-1.6.0.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_kotlinx-serialization-json-jvm",
+                  "version": "1.6.0",
+                  "name": "kotlinx-serialization-json-jvm"
+                }
+              ],
+              "manifest": {
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlinx-serialization-cbor-jvm-1.6.0.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm",
+                  "version": "1.6.0",
+                  "name": "kotlinx-serialization-cbor-jvm"
+                }
+              ],
+              "manifest": {
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/atomicfu-jvm-0.22.0.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_atomicfu-jvm",
+                  "version": "0.22.0",
+                  "name": "atomicfu-jvm"
+                }
+              ],
+              "manifest": {
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          },
+          {
+            "path": "META-INF/jars/kotlinx-datetime-jvm-0.4.1.jar",
+            "declaredBy": "quiltModJson",
+            "metadata": {
+              "descriptors": [
+                "fabricModJson",
+                "manifest"
+              ],
+              "mods": [
+                {
+                  "source": "fabricModJson",
+                  "loader": "fabric",
+                  "id": "org_jetbrains_kotlinx_kotlinx-datetime-jvm",
+                  "version": "0.4.1",
+                  "name": "kotlinx-datetime-jvm"
+                }
+              ],
+              "manifest": {
+                "multiRelease": true
+              },
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "path": "META-INF/jars/quilt-kotlin-libraries-library-2.1.3+kt.1.9.10+flk.1.10.10.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "qkl_library",
+            "version": "2.1.3",
+            "name": "Quilt Kotlin Libraries: Library",
+            "description": "QKL Wrappers and Libraries",
+            "authors": [
+              "QuiltMC: Quilt Kotlin Team"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.18.1"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.18.1"
+              ]
+            },
+            "mixins": [
+              "qkl_library.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Specification-Title: Ponder
+Specification-Vendor: simibubi, Pepper, zelophed
+Specification-Version: 1.0.91
+Implementation-Title: Forge
+Implementation-Version: 1.0.91
+Implementation-Vendor: simibubi, Pepper, zelophed
+Implementation-Timestamp: 2025-10-23T23:24:16+0200
+Timestamp: 1761254656182
+Built-On-Java: 17.0.1+12 (Eclipse Adoptium)
+Build-On-Minecraft: 1.20.1
+MixinConfigs: ponder.mixins.json,ponder-common.mixins.json
+

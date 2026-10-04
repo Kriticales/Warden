@@ -1,0 +1,52 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_data_attachment_api_v1"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Data Attachment API (v1)"
+logoFile = "assets/fabric-data-attachment-api-v1/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Allows conveniently attaching data to existing game objects"
+provides = ["fabric-data-attachment-api-v1"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_data_attachment_api_v1]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_data_attachment_api_v1]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_data_attachment_api_v1]]
+modId = "fabric_entity_events_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_data_attachment_api_v1]]
+modId = "fabric_object_builder_api_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_data_attachment_api_v1]]
+modId = "fabric_networking_api_v1"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-data-attachment-api-v1.mixins.json"

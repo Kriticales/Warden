@@ -64,6 +64,7 @@ pub(crate) fn parse(text: &str) -> ManifestInfo {
         contained_deps: get("ContainedDeps")
             .map(|v| split_list(&v, &[' ', ',']))
             .unwrap_or_default(),
+        embedded_dependencies_mod: get("Embedded-Dependencies-Mod"),
         implementation_title: get("Implementation-Title"),
         implementation_version: get("Implementation-Version"),
         automatic_module_name: get("Automatic-Module-Name"),
@@ -94,13 +95,17 @@ mod tests {
     #[test]
     fn manifesto_moderno() {
         let info = parse(
-            "\nManifest-Version: 1.0\nMixinConfigs: a.mixins.json, b.mixins.json,\nImplementation-Version: 2.4.1\nFMLModType: GAMELIBRARY\nContainedDeps: lib-a.jar lib-b.jar\nMulti-Release: true\nAutomatic-Module-Name: x.y\nImplementation-Title: X\nlinha sem dois pontos\n",
+            "\nManifest-Version: 1.0\nMixinConfigs: a.mixins.json, b.mixins.json,\nImplementation-Version: 2.4.1\nFMLModType: GAMELIBRARY\nContainedDeps: lib-a.jar lib-b.jar\nMulti-Release: true\nEmbedded-Dependencies-Mod: META-INF/jarjar/m\n od.jar\nAutomatic-Module-Name: x.y\nImplementation-Title: X\nlinha sem dois pontos\n",
         );
         assert_eq!(info.mixin_configs, ["a.mixins.json", "b.mixins.json"]);
         assert_eq!(info.implementation_version.as_deref(), Some("2.4.1"));
         assert_eq!(info.fml_mod_type.as_deref(), Some("GAMELIBRARY"));
         assert_eq!(info.contained_deps, ["lib-a.jar", "lib-b.jar"]);
         assert!(info.multi_release);
+        assert_eq!(
+            info.embedded_dependencies_mod.as_deref(),
+            Some("META-INF/jarjar/mod.jar")
+        );
         assert!(!info.is_coremod());
         assert_eq!(
             parse(" continuação órfã\nTweakClass:\n"),

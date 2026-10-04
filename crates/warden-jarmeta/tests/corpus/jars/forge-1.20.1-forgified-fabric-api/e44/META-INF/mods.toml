@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+
+[[mods]]
+  modId = "fabric_rendering_data_attachment_v1"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Rendering Data Attachment (v1)"
+  logoFile = "assets/fabric-rendering-data-attachment-v1/icon.png"
+  authors = "FabricMC"
+  description = "Thread-safe hooks for block entity data use during terrain rendering."
+provides = ["fabric-rendering-data-attachment-v1"]
+
+    [[dependencies.fabric_rendering_data_attachment_v1]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_rendering_data_attachment_v1]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_rendering_data_attachment_v1]]
+      modId = "fabric_block_view_api_v2"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"

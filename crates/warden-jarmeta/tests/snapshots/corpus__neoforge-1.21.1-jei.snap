@@ -1,0 +1,165 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-jei (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "neoForgeModsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "neoForgeModsToml",
+      "loader": "neoForge",
+      "id": "jei",
+      "version": "19.57.0.450",
+      "name": "Just Enough Items",
+      "description": "JEI is an item and recipe viewing mod for Minecraft, built from the ground up for stability and performance.",
+      "authors": [
+        "mezz"
+      ],
+      "licenses": [
+        "The MIT License (MIT)"
+      ],
+      "dependencies": [
+        {
+          "id": "mezz_config",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.5.12,1.0.0)"
+          },
+          "ordering": "after"
+        },
+        {
+          "id": "mezz_config_gui",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.5.5,)"
+          },
+          "side": "client",
+          "ordering": "after"
+        },
+        {
+          "id": "neoforge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[21.1.238,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.21, 1.21.1)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.21, 1.21.1)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[21.1.238,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[4,)"
+    }
+  },
+  "manifest": {
+    "implementationTitle": "modShadeJar",
+    "implementationVersion": "19.57.0.450"
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/mezz_config-1.21.1-neoforge-0.5.12.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "net.mezzdev.config",
+        "artifact": "mezz_config-1.21.1-neoforge",
+        "artifactVersion": "0.5.12",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.5.12,1.0.0)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "neoForgeModsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "mezz_config",
+            "version": "0.5.12",
+            "name": "MezzConfig",
+            "description": "Lightweight client and server-authoritative config support for Minecraft mods.",
+            "authors": [
+              "mezz"
+            ],
+            "licenses": [
+              "The MIT License (MIT)"
+            ],
+            "dependencies": [
+              {
+                "id": "neoforge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[21.0.118-beta,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.21.1]"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.21.1]"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[21.0.118-beta,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[4,)"
+          }
+        },
+        "manifest": {
+          "implementationTitle": "jar",
+          "implementationVersion": "0.5.12"
+        },
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

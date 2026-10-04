@@ -1,0 +1,20 @@
+{
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/kfflang-4.12.0.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jarjar/kfflib-4.12.0.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jarjar/kffmod-4.12.0.jar",
+      "dir": "e2"
+    }
+  ]
+}

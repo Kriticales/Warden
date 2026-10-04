@@ -1,0 +1,69 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "xaeroplus"
+version = "2.36.4"
+displayName = "XaeroPlus"
+authors = "rfresh2"
+description = '''
+Xaero WorldMap / Minimap Extra Features
+'''
+logoFile = "icon.png"
+displayTest="IGNORE_ALL_VERSION"
+
+[[dependencies.xaeroplus]]
+modId = "neoforge"
+type = "required"
+versionRange = "[1,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.xaeroplus]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,1.21.1)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.xaeroplus]]
+modId = "xaerominimap"
+type = "optional"
+versionRange = "[26.5.0]"
+ordering = "BEFORE"
+side = "CLIENT"
+
+[[dependencies.xaeroplus]]
+modId = "xaerobetterpvp"
+type = "optional"
+versionRange = "[26.5.0]"
+ordering = "BEFORE"
+side = "CLIENT"
+
+[[dependencies.xaeroplus]]
+modId = "xaeroworldmap"
+type = "required"
+versionRange = "[1.46.0]"
+ordering = "BEFORE"
+side = "CLIENT"
+
+[[dependencies.xaeroplus]]
+modId = "worldtools"
+type = "optional"
+versionRange = "[1.2.0,)"
+ordering = "BEFORE"
+side = "CLIENT"
+
+[mods."lithium:options"]
+"mixin.chunk.palette" = false
+
+[modproperties.xaeroplus]
+"sodium_config_api_user" = "xaeroplus.neo.XaeroPlusSodiumConfigBuilder"
+
+[[mixins]]
+config = "xaeroplus.mixins.json"
+
+[[mixins]]
+config = "xaeroplus-neo.mixins.json"

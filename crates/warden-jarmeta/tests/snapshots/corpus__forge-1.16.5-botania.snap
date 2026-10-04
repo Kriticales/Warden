@@ -1,0 +1,87 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.16.5-botania (Minecraft 1.16.5, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "botania",
+      "version": "1.16.5-420.3",
+      "name": "Botania",
+      "description": "Botania is a mod that adds nature magic to Minecraft.",
+      "authors": [
+        "Vazkii, wiiv, williewillus, dylan4ever, Hubry"
+      ],
+      "licenses": [
+        "Botania License"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[36.1.52,)"
+          }
+        },
+        {
+          "id": "patchouli",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.16.4-48,)"
+          }
+        },
+        {
+          "id": "curios",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.16.4-4.0.3.5,)"
+          }
+        },
+        {
+          "id": "gardenofglass",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.7,)"
+          }
+        },
+        {
+          "id": "crafttweaker",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[7.1.2.448,)"
+          }
+        }
+      ],
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[36.1.52,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[36,)"
+    }
+  },
+  "manifest": {
+    "implementationTitle": "Botania",
+    "implementationVersion": "1.16.5-420.3"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

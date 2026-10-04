@@ -1,0 +1,121 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-mekanism (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "neoForgeModsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "neoForgeModsToml",
+      "loader": "neoForge",
+      "id": "mekanism",
+      "version": "10.7.19",
+      "name": "Mekanism",
+      "description": "Mekanism is a Minecraft add-on featuring high-tech machinery that can be used to create powerful tools, armor, and weapons.",
+      "authors": [
+        "Aidancbrady, Thommy101, Thiakil, pupnewfster, dizzyd"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.21.1]"
+          }
+        },
+        {
+          "id": "neoforge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[21.1.194,)"
+          }
+        },
+        {
+          "id": "jei",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[19.19.0.219,)"
+          }
+        },
+        {
+          "id": "appmek",
+          "kind": "incompatible",
+          "range": {
+            "dialect": "maven",
+            "spec": "[,1.6.0-alpha.2]"
+          },
+          "reason": "Requires an update to support changes to Mekanism's Chemical API"
+        },
+        {
+          "id": "enderio_conduits_modded",
+          "kind": "incompatible",
+          "range": {
+            "dialect": "maven",
+            "spec": "[,6.0.24.351-nightly+d8261275]"
+          },
+          "reason": "Requires an update to support changes to Mekanism's Chemical API"
+        },
+        {
+          "id": "laserio",
+          "kind": "incompatible",
+          "range": {
+            "dialect": "maven",
+            "spec": "[,1.9.9]"
+          },
+          "reason": "Requires an update to support changes to Mekanism's Chemical API"
+        },
+        {
+          "id": "jaopca",
+          "kind": "incompatible",
+          "range": {
+            "dialect": "maven",
+            "spec": "[,5.0.1.2]"
+          },
+          "reason": "Requires an update to support changes to Mekanism's Chemical API"
+        },
+        {
+          "id": "fissionrecipe",
+          "kind": "incompatible",
+          "range": {
+            "dialect": "maven",
+            "spec": "[,3.0.7]"
+          },
+          "reason": "Requires an update to support changes to Mekanism's Chemical API"
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.21.1]"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[21.1.194,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[4,)"
+    }
+  },
+  "manifest": {
+    "implementationTitle": "Mekanism",
+    "implementationVersion": "10.7.19",
+    "automaticModuleName": "mekanism"
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  }
+}

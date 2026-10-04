@@ -1,0 +1,66 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/base/toposort/NodeSorting$NodeScc.class
+SHA-256-Digest: 0MKqWsT9w1RcqGtdsPJoiZzD9xMwxXRiHmynZ6QypYo=
+
+Name: net/fabricmc/fabric/api/event/Event.class
+SHA-256-Digest: FRaAZsLqgsRTumuUUb13SDyaMMvnmaMz7pHMReHXPt4=
+
+Name: net/fabricmc/fabric/api/util/NbtType.class
+SHA-256-Digest: TBZgALNx5bUdxnXRY1M9V86ZsiI4B7xrc9rJhdY+B5Y=
+
+Name: net/fabricmc/fabric/impl/base/toposort/NodeSorting.class
+SHA-256-Digest: 0rtDbs1JBGrIRVVeaVaiL4i9s/wnZmAWiiCbEFJ2KFY=
+
+Name: net/fabricmc/fabric/api/util/BooleanFunction.class
+SHA-256-Digest: OudyeWYylDXiApPWnyIpeYJHqZqtRdyFIB/jYSs7/hw=
+
+Name: net/fabricmc/fabric/impl/base/event/ArrayBackedEvent.class
+SHA-256-Digest: ZA5JZAhe2WR04QwxCpJffnOx7H2sY0K+ZboPKhOi4dg=
+
+Name: net/fabricmc/fabric/impl/base/toposort/SortableNode.class
+SHA-256-Digest: kYxaoYfj1iBxVMHEo+xgx+RrVUF2/BWHwp/YK7S3dQg=
+
+Name: fabric.mod.json
+SHA-256-Digest: Lxk5J0YeNXOSbiq9RiM7Ar6cN5MrbRz+IXwzey0N9RU=
+
+Name: net/fabricmc/fabric/impl/base/event/package-info.class
+SHA-256-Digest: XicKUpHdxrI5SY8CZKOvI6E3BtLZnUUZJdNBFYbRVDU=
+
+Name: net/fabricmc/fabric/impl/base/event/EventFactoryImpl.class
+SHA-256-Digest: bG2qa7Ou/p5O/SqPTBclVoSzei7bjXXZMVLtnkUxyPE=
+
+Name: net/fabricmc/fabric/impl/base/toposort/package-info.class
+SHA-256-Digest: dIOygFAgns83TFzJFIEyZIV0GjExTRwJxmR5cdlBUGU=
+
+Name: assets/fabric-api-base/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: LICENSE-fabric-api-base
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/event/EventFactory.class
+SHA-256-Digest: R5z2xzwq1F16fLhGIXZXssvLtWLNPO9YVqppk+8v2io=
+
+Name: net/fabricmc/fabric/api/event/AutoInvokingEvent.class
+SHA-256-Digest: ZUluP0XRUw4tbkDcuRSei0efkXKrHCQKzV0eQeS7VQ4=
+
+Name: net/fabricmc/fabric/api/util/TriState.class
+SHA-256-Digest: nsT1QoQ7LQzdA+IvOKjikqQd7RWue3UjHbz4JlWZy4Y=
+
+Name: net/fabricmc/fabric/impl/base/event/EventPhaseData.class
+SHA-256-Digest: oLtDljhA2XfXLtBONEAMpnIJXXqvjuPdCqrGMGW4m0k=
+

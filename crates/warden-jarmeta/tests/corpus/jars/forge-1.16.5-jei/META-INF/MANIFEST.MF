@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: Just Enough Items
+Specification-Vendor: mezz
+Specification-Version: 7.8.1
+Implementation-Title: jei-1.16.5
+Implementation-Version: 7.8.1.1019
+Implementation-Vendor: mezz
+Implementation-Timestamp: 2026-07-28T14:52:17+0000
+Automatic-Module-Name: mezz.jei
+

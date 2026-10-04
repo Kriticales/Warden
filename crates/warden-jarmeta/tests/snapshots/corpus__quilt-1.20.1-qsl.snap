@@ -1,0 +1,7177 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "quilt-1.20.1-qsl (Minecraft 1.20.1, loader quilt)"
+---
+{
+  "descriptors": [
+    "quiltModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "quiltModJson",
+      "loader": "quilt",
+      "id": "quilted_fabric_api",
+      "version": "7.7.0+0.92.2-1.20.1",
+      "name": "Quilted Fabric API",
+      "description": "A reimplementation of Fabric API on top of Quilt Standard Libraries.",
+      "authors": [
+        "FabricMC",
+        "The Quilt Project"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "provides": [
+        "fabric-api",
+        "fabric"
+      ],
+      "dependencies": [
+        {
+          "id": "quilt_loader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.25.0"
+            ]
+          }
+        },
+        {
+          "id": "java",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=17"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=1.20- <1.20.2-"
+            ]
+          }
+        },
+        {
+          "id": "quilted_fabric_api_base",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_api_lookup_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_biome_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_block_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_block_view_api_v2",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_blockrenderlayer_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_client_tags_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_command_api_v2",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_content_registries_v0",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_convention_tags_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_crash_report_info_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_data_attachment_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_data_generation_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_dimensions_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_entity_events_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_events_interaction_v0",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_game_rule_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_item_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_item_group_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_key_binding_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_lifecycle_events_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_loot_api_v2",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_message_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_mining_level_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_model_loading_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_networking_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_object_builder_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_particles_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_recipe_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_registry_sync_v0",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_renderer_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_renderer_indigo",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_rendering_fluids_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_rendering_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_resource_conditions_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_resource_loader_v0",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_screen_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_screen_handler_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_sound_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_transfer_api_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_transitive_access_wideners_v1",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_command_api_v1",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_commands_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_containers_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_events_lifecycle_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_keybindings_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_loot_tables_v1",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_models_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_networking_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_renderer_registries_v1",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_rendering_data_attachment_v1",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilted_fabric_rendering_v0",
+          "kind": "optional",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_advancement",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_base",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_biome",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_block_content_registry",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_block_entity",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_block_extensions",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_chat",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_client_command",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_command",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_crash_info",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_dimension",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_entity",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_entity_events",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_entity_multipart",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_entity_networking",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_entity_rendering",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_item_content_registry",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_item_extensions",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_item_setting",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_lifecycle_events",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_networking",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_point_of_interest",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_recipe",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_registry",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_registry_entry_attachment",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_resource_loader",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_screen",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_status_effect",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_surface_rule",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_tags",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_testing",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_tooltip",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_vehicle",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        },
+        {
+          "id": "quilt_villager",
+          "kind": "required",
+          "range": {
+            "dialect": "any"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=1.20- <1.20.2-"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.25.0"
+        ]
+      },
+      "java": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=17"
+        ]
+      }
+    }
+  ],
+  "manifest": {},
+  "nested": [
+    {
+      "path": "META-INF/jars/item_setting-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_item_setting",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Item Setting API",
+            "description": "An API for extended functionality in Item Settings",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_item_setting.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/block_entity-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_block_entity",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Block Entity API",
+            "description": "Extensions for creating and working with block entities.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_block_entity.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/surface_rule-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_surface_rule",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Surface Rule API",
+            "description": "An API for managing custom Surface Rules.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_data_callback",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_surface_rule.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/block_extensions-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_block_extensions",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Block Extensions API",
+            "description": "Extensions for creating and working with blocks.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_block_extensions.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/data_callback-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_data_callback",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Data Callback API",
+            "description": "APIs for making events or APIs data-driven",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/resource_loader-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_resource_loader",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Resource Loader",
+            "description": "Asset and data resource loading for Quilt mods.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_resource_loader.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/entity_rendering-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_entity_rendering",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Entity Rendering API",
+            "description": "Quilt APIs relating to the rendering of entities.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_entity_rendering.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/status_effect-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_status_effect",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Status Effect API",
+            "description": "Provides extensions for dealing with status effects.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_status_effect.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/testing-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_testing",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Testing API",
+            "description": "Utilites to assist in testing the game and mods.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_testing.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/networking-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_networking",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Networking",
+            "description": "Utilites to assist with sending custom packets over the Minecraft protocol.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_networking.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/tags-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_tags",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Tags API",
+            "description": "Tag loading and management.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_tags.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/crash_info-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_crash_info",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Crash Info",
+            "description": "Adds information about the Quilt environment to crash reports, and allows other mods to do the same.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_crash_info.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/recipe-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_recipe",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Recipe API",
+            "description": "Recipe manipulation APIs.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_recipe.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/command-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_command",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Command API",
+            "description": "Quilt APIs relating to commands.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_networking",
+                "kind": "optional",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_command.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/villager-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_villager",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Villager API",
+            "description": "Helpers for creating villager types and trades.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_villager.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/entity_networking-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_entity_networking",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Entity Networking API",
+            "description": "An API extending Minecraft's entity data tracking/syncing functionality.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_networking",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_entity_networking.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/tooltip-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_tooltip",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Tooltip API",
+            "description": "Hooks and APIs for manipulating tooltips.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_tooltip.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/multipart-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_entity_multipart",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Multipart Entity API",
+            "description": "An API to support custom multipart entities.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_entity_multipart.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/registry-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_registry",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Registry API",
+            "description": "Tools and events for manipulating and monitoring Minecraft's content registries.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_networking",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_registry.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/chat-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_chat",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Chat API",
+            "description": "Quilt APIs for modifying chat.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_chat.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/entity-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_entity",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Entity API",
+            "description": "Base module for creating and registering entity attributes and types.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_entity.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/vehicle-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_vehicle",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Vehicle API",
+            "description": "Module for working with Minecraft's vehicles.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_entity",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_vehicle.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/advancement-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_advancement",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Advancement API",
+            "description": "Provides APIs for working with advancements.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            }
+          }
+        ],
+        "manifest": {}
+      }
+    },
+    {
+      "path": "META-INF/jars/client_command-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_client_command",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Client Command API",
+            "description": "Quilt APIs for creating and managing client-side commands.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_client_command.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/block_content_registry-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_block_content_registry",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Block Content Registry API",
+            "description": "An API for adding to different content registries in Minecraft",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry_entry_attachment",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_tooltip",
+                "kind": "optional",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_block_content_registry.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/entity_events-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_entity_events",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Entity Events",
+            "description": "Provides various events to do with entities",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_entity_events.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/registry_entry_attachment-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_registry_entry_attachment",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Registry Entry Attachment",
+            "description": "Extensible attachment system for registry entries.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "quilt_registry_entry_attachments"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_networking",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_command",
+                "kind": "optional",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_registry_entry_attachment.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/point_of_interest-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_point_of_interest",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Point of Interest API",
+            "description": "Builders for Points of Interest.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_point_of_interest.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/biome-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_biome",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Biome API",
+            "description": "An API for managing custom biomes.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_data_callback",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_biome.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/lifecycle_events-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_lifecycle_events",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Lifecycle Events",
+            "description": "Events to track the lifecycle of Minecraft.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_lifecycle_events.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/dimension-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_dimension",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Dimension API",
+            "description": "An API for managing custom dimensions.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_dimension.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/item_extensions-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_item_extensions",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Item Extensions API",
+            "description": "An API for extending various vanilla items and providing relevant events for such items.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_item_extensions.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/qsl_base-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_base",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Base API",
+            "description": "Basic APIs for Quilt mods, such as events and entrypoints.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_base.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/item_content_registry-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_item_content_registry",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Item Content Registry API",
+            "description": "An API for adding to different content registries in Minecraft",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_registry_entry_attachment",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_tooltip",
+                "kind": "optional",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_item_content_registry.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/screen-6.3.0+1.20.1.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilt_screen",
+            "version": "6.3.0+1.20.1",
+            "name": "Quilt Screen API",
+            "description": "Hooks and APIs for manipulating screens.",
+            "authors": [
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.25.0"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "=1.20.1",
+                    "=1.20"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=6.3.0+1.20.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                "=1.20.1",
+                "=1.20"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.25.0"
+              ]
+            },
+            "mixins": [
+              "quilt_screen.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_api_base-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_api_base",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric API Base",
+            "description": "Contains the essentials for Fabric API modules.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-api-base"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.0.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_api_lookup_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_api_lookup_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric API Lookup API (v1)",
+            "description": "A universal way to expose and query APIs",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-api-lookup-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-lifecycle-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_api_lookup_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_biome_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_biome_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Biome API (v1)",
+            "description": "Hooks for adding biomes to the default world generator.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-biome-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.16.2"
+                  ]
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_biome",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.0.0"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.16.2"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_biome_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_block_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_block_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Block API (v1)",
+            "description": "Hooks for blocks",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-block-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_block_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_block_view_api_v2-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_block_view_api_v2",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric BlockView API (v2)",
+            "description": "Hooks for block views",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-block-view-api-v2"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_block_view_api_v2.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_blockrenderlayer_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_blockrenderlayer_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric BlockRenderLayer Registration (v1)",
+            "description": "Registration utility for block and fluid render layers.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-blockrenderlayer-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.38.b"
+                  ]
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_block_extensions",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.38.b"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_blockrenderlayer_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_client_tags_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_client_tags_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Client Tags",
+            "description": "Adds the ability to load tags from the local mods.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-client-tags-api-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_command_api_v2-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_command_api_v2",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Command API (v2)",
+            "description": "Adds command-related hooks.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-command-api-v2"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "any"
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_command_api_v2.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_content_registries_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_content_registries_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Content Registries (v0)",
+            "description": "Adds registries for vanilla mechanics that are missing them.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-content-registries-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-lifecycle-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_content_registries_v0.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_convention_tags_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_convention_tags_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Convention Tags API (v1)",
+            "description": "Contains common tags used by mods for vanilla things.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-convention-tags-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_crash_report_info_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_crash_report_info_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Crash Report Info (v1)",
+            "description": "Adds Fabric-related debug info to crash reports.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-crash-report-info-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_crash_info",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.0.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_data_attachment_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_data_attachment_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Data Attachment API (v1)",
+            "description": "Allows conveniently attaching data to existing game objects",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-data-attachment-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-entity-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-object-builder-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_data_attachment_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_data_generation_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_data_generation_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Data Generation API (v1)",
+            "description": "Allows for automatic data generation.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-data-generation-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_data_generation_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_dimensions_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_dimensions_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Dimensions API (v1)",
+            "description": "Fabric Dimension API.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-dimensions-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.16-rc.3"
+                  ]
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_dimension",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.0.0"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.16-rc.3"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_dimensions_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_entity_events_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_entity_events_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Entity Events (v1)",
+            "description": "Events to hook into entities.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-entity-events-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_entity_events_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_events_interaction_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_events_interaction_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Events Interaction (v0)",
+            "description": "Events for player interaction with blocks and entities.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-events-interaction-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.37.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.37.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_events_interaction_v0.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_game_rule_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_game_rule_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Game Rule API (v1)",
+            "description": "Allows registration of custom game rules.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-game-rule-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_game_rule_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_item_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_item_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Item API (v1)",
+            "description": "Hooks for items",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-item-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_tooltip",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_item_setting",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_item_extensions",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_item_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_item_group_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_item_group_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Item Group API (v1)",
+            "description": "An API for adding custom item groups.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-item-group-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_item_group_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_key_binding_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_key_binding_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Key Binding API (v1)",
+            "description": "Key Binding registry API.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-key-binding-api-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_key_binding_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_lifecycle_events_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_lifecycle_events_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Lifecycle Events (v1)",
+            "description": "Events for the game's lifecycle.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-lifecycle-events-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=4.0.0-"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=4.0.0-"
+                  ]
+                }
+              },
+              {
+                "id": "quilt_entity_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=4.0.0-"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_lifecycle_events_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_loot_api_v2-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_loot_api_v2",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Loot API (v2)",
+            "description": "Hooks for manipulating loot tables.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-loot-api-v2"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_loot_api_v2.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_message_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_message_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Message API (v1)",
+            "description": "Adds message-related hooks.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-message-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_message_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_mining_level_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_mining_level_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Mining Level API (v1)",
+            "description": "Adds support for custom mining levels.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-mining-level-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_mining_level_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_model_loading_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_model_loading_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Model Loading API (v1)",
+            "description": "Provides hooks for model loading.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-model-loading-api-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-models-v0",
+                "kind": "breaks",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "<0.4.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_model_loading_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_networking_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_networking_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Networking API (v1)",
+            "description": "Low-level, vanilla protocol oriented networking hooks.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-networking-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_networking",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_networking_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_object_builder_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_object_builder_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Object Builder API (v1)",
+            "description": "Builders for objects vanilla has locked down.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-object-builder-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_transitive_access_wideners_v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_advancement",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_block_entity",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_block_extensions",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_entity",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_point_of_interest",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_vehicle",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_villager",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_object_builder_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_particles_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_particles_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Particles (v1)",
+            "description": "Hooks for registering custom particles.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-particles-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_recipe_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_recipe_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Recipe API (v1)",
+            "description": "Recipe extensions such as creation of new types of recipe ingredients.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-recipe-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_recipe_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_registry_sync_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_registry_sync_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Registry Sync (v0)",
+            "description": "Syncs registry mappings.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-registry-sync-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_registry",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_lifecycle_events",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_registry_sync_v0.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_renderer_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_renderer_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Renderer API (v1)",
+            "description": "Defines rendering extensions for dynamic/fancy block and item models.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-renderer-api-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.39.a"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.39.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_renderer_api_v1.mixins.json",
+              "quilted_fabric_renderer_api_v1.debughud.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_renderer_indigo-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_renderer_indigo",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Renderer - Indigo",
+            "description": "Default implementation of the Fabric Renderer API.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-renderer-indigo"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-rendering-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "any"
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_renderer_indigo.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_fluids_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_rendering_fluids_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Rendering Fluids (v1)",
+            "description": "Hooks for registering fluid renders.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-rendering-fluids-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_rendering_fluids_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_rendering_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Rendering (v1)",
+            "description": "Hooks and registries for rendering-related things.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-rendering-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_tooltip",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_rendering_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_resource_conditions_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_resource_conditions_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Resource Conditions API (v1)",
+            "description": "Allows conditionally loading resources.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-resource-conditions-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_resource_conditions_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_resource_loader_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_resource_loader_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Resource Loader (v0)",
+            "description": "Asset and data resource loading.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-resource-loader-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilted_fabric_api_base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_resource_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.0.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_resource_loader_v0.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_screen_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_screen_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Screen API (v1)",
+            "description": "Adds screen related hooks.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-screen-api-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_screen",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.0.0"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_screen_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_screen_handler_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_screen_handler_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Screen Handler API (v1)",
+            "description": "Hooks and extensions for creating screen handlers.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-screen-handler-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_screen_handler_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_sound_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_sound_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Sound API (v1)",
+            "description": "Hooks for modifying Minecraft's sound system.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-sound-api-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "any"
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_transfer_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_transfer_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Transfer API (v1)",
+            "description": "A common API for the transfer of fluids, items and other game resources.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-transfer-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-lookup-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-rendering-fluids-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_transfer_api_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_transitive_access_wideners_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_transitive_access_wideners_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Transitive Access Wideners (v1)",
+            "description": "Contains transitive access wideners that provide access to otherwise inaccessible Minecraft code.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-transitive-access-wideners-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_advancement",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_block_entity",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_block_extensions",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_entity",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "quilt_villager",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {}
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_command_api_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_command_api_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Command API (v1)",
+            "description": "Deprecated. Please migrate to v2",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-command-api-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-command-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_commands_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_commands_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Commands (v0)",
+            "description": "Deprecated. Please migrate to v1",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-commands-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-command-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_containers_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_containers_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Containers (v0)",
+            "description": "Adds hooks for containers.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-containers-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_containers_v0.mixins.json",
+              "quilted_fabric_containers_v0.accurate.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_events_lifecycle_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_events_lifecycle_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Events Lifecycle (v0)",
+            "description": "Legacy events for the game's lifecycle, superseded by fabric-lifecycle-events-v1 and fabric-item-api-v1.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-events-lifecycle-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-item-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-lifecycle-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_keybindings_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_keybindings_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Key Bindings (v0)",
+            "description": "Keybinding registry API.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-keybindings-v0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-key-binding-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_loot_tables_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_loot_tables_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Loot Tables (v1)",
+            "description": "Hooks for manipulating loot tables.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-loot-tables-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-loot-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_loot_tables_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_models_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_models_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Models (v0)",
+            "description": "Hooks for models and model loading.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-models-v0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_networking_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_networking_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Networking (v0)",
+            "description": "Legacy Networking packet hooks and registries, superseded by fabric-networking-api-v1.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-networking-v0"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_renderer_registries_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_renderer_registries_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Renderer Registries (v1)",
+            "description": "Registries for entity and block renderers.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-renderer-registries-v1"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-rendering-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "any"
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_data_attachment_v1-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_rendering_data_attachment_v1",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Rendering Data Attachment (v1)",
+            "description": "Thread-safe hooks for block entity data use during terrain rendering.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-rendering-data-attachment-v1"
+            ],
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-block-view-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "any"
+            },
+            "mixins": [
+              "quilted_fabric_rendering_data_attachment_v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/quilted_fabric_rendering_v0-7.7.0.jar",
+      "declaredBy": "quiltModJson",
+      "metadata": {
+        "descriptors": [
+          "quiltModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "quiltModJson",
+            "loader": "quilt",
+            "id": "quilted_fabric_rendering_v0",
+            "version": "7.7.0+0.92.2-1.20.1",
+            "name": "Quilted Fabric Rendering (v0)",
+            "description": "Hooks and registries for rendering-related things.",
+            "authors": [
+              "FabricMC",
+              "The Quilt Project"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "provides": [
+              "fabric-rendering-v0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "quilt_loader",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.39.a"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              },
+              {
+                "id": "fabric-rendering-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "any"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.39.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "any"
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

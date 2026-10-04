@@ -1,0 +1,79 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.qsl.worldgen",
+		"id": "quilt_surface_rule",
+		"version": "6.3.0+1.20.1",
+		"metadata": {
+			"name": "Quilt Surface Rule API",
+			"description": "An API for managing custom Surface Rules.",
+			"contributors": {
+				"The Quilt Project": "Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilt-standard-libraries/issues",
+				"sources": "https://github.com/QuiltMC/quilt-standard-libraries"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilt_surface_rule/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"load_type": "if_possible",
+		"depends": [
+			{
+				"id": "quilt_loader",
+				"versions": ">=0.25.0"
+			},
+			{
+				"id": "minecraft",
+				"versions": {
+					"any": [
+						"=1.20.1",
+						"=1.20"
+					]
+				}
+			},
+			{
+				"id": "quilt_base",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_registry",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_resource_loader",
+				"versions": ">=6.3.0+1.20.1"
+			},
+			{
+				"id": "quilt_data_callback",
+				"versions": ">=6.3.0+1.20.1"
+			}
+		],
+		"entrypoints": {
+			"events": [
+				"org.quiltmc.qsl.worldgen.surface_rule.impl.QuiltSurfaceRuleInitializer"
+			],
+			"init": [
+				"org.quiltmc.qsl.worldgen.surface_rule.impl.SurfaceRuleDataInitializer"
+			]
+		}
+	},
+	"mixin": "quilt_surface_rule.mixins.json",
+	"access_widener": "quilt_surface_rule.accesswidener",
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": {
+			"id": "qsl",
+			"name": "Quilt Standard Libraries",
+			"description": "A set of libraries to assist in making Quilt mods.",
+			"icon": "assets/quilt_surface_rule/icon.png",
+			"badges": [
+				"library"
+			]
+		}
+	}
+}

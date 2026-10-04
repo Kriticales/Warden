@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.6.37+67f9824077
+MixinConfigs: fabric-api-lookup-api-v1.mixins.json
+

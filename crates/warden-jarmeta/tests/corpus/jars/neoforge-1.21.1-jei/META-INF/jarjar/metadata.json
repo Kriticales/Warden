@@ -1,0 +1,16 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "net.mezzdev.config",
+        "artifact": "mezz_config-1.21.1-neoforge"
+      },
+      "version": {
+        "range": "[0.5.12,1.0.0)",
+        "artifactVersion": "0.5.12"
+      },
+      "path": "META-INF/jarjar/mezz_config-1.21.1-neoforge-0.5.12.jar",
+      "isObfuscated": false
+    }
+  ]
+}

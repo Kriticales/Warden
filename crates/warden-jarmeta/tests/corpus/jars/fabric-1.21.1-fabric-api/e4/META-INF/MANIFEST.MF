@@ -1,0 +1,81 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-block-view-api-v2-refmap.
+ json;fabric-block-view-api-v2.client.mixins.json;net/fabricmc/fabric/im
+ pl/blockview/client/RenderDataMapConsumer.class;net/fabricmc/fabric/imp
+ l/blockview/client/package-info.class;net/fabricmc/fabric/mixin/blockvi
+ ew/client/ChunkRendererRegionBuilderMixin.class;net/fabricmc/fabric/mix
+ in/blockview/client/ChunkRendererRegionMixin.class;net/fabricmc/fabric/
+ mixin/blockview/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-block-view-api-v2.client.mixins.json
+SHA-256-Digest: vgBphK4+XECLgBwC1Q0aJuTMQpDemeZZZl1NrcHfHJU=
+
+Name: net/fabricmc/fabric/impl/blockview/client/RenderDataMapConsumer.cl
+ ass
+SHA-256-Digest: PuCdSxXCTdOrA1xGB/AdNYSlEmseJeWHf9Lhi7CusC4=
+
+Name: LICENSE-fabric-block-view-api-v2
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: assets/fabric-block-view-api-v2/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: fabric-block-view-api-v2.accesswidener
+SHA-256-Digest: IK2keoB/UpNRFr7YAYrPPlBgeeCpYckt0CchHn+5eQ8=
+
+Name: net/fabricmc/fabric/mixin/blockview/BlockEntityMixin.class
+SHA-256-Digest: Lvd4w1DNrAB8mieCzLLS882F/LXkoWdkVmh/C5LqhQU=
+
+Name: net/fabricmc/fabric/mixin/blockview/client/ChunkRendererRegionBuil
+ derMixin.class
+SHA-256-Digest: tUimyBfV7ugbFOPyqutNTyZ2RQw7DQutlXNr8KHV3v4=
+
+Name: fabric-block-view-api-v2.mixins.json
+SHA-256-Digest: OTeQ1/6GY+IPclqaH4Jqo0FvDdqtStwZgm/Suf8eof0=
+
+Name: net/fabricmc/fabric/mixin/blockview/client/package-info.class
+SHA-256-Digest: z7ObxcdpTn/Sf+gvbUiQZI0c75LRa9ozpQ9DgPQQ7Zw=
+
+Name: net/fabricmc/fabric/mixin/blockview/BlockViewMixin.class
+SHA-256-Digest: bVammd1eSU5GWlh0G51KsL03i2VvMN9Ykgv7+h4qWt8=
+
+Name: net/fabricmc/fabric/mixin/blockview/client/ChunkRendererRegionMixi
+ n.class
+SHA-256-Digest: 1f692Rz/xLYAUULUFV0yhVQ880VbEx6B5xE7j1cvjQ0=
+
+Name: fabric.mod.json
+SHA-256-Digest: 0/1am7KmCTw1DKpvBYDKWpAF03lVWzve7RLhI9tvkBI=
+
+Name: net/fabricmc/fabric/impl/blockview/client/package-info.class
+SHA-256-Digest: C6HtlAzaiXClD72g5ErYgknRVdiJ+Svk5QTRjmnQ3hE=
+
+Name: net/fabricmc/fabric/mixin/blockview/package-info.class
+SHA-256-Digest: 4L9g3flpj34kLW9sBdsPY2GxsmxRQ67i7vQy+4o0wY4=
+
+Name: net/fabricmc/fabric/api/blockview/v2/FabricBlockView.class
+SHA-256-Digest: GNQRXa/wQRtWkZKJTIUtpKfKfmu5kgIM6KrdV9qU7Jc=
+
+Name: net/fabricmc/fabric/api/blockview/v2/RenderDataBlockEntity.class
+SHA-256-Digest: YnlNP/a5Y7tahH2MMCzWRRCvUvXCS/H4uYeZYNz73Ls=
+
+Name: fabric-block-view-api-v2-refmap.json
+SHA-256-Digest: LJSHm56UOzTFYvaWb54KqIwaMLObyOF70YdytmryRSM=
+
+Name: net/fabricmc/fabric/mixin/blockview/WorldViewMixin.class
+SHA-256-Digest: Zg1TdFF5oMsjISh1S9H3o1lfqzmxZFctqxtzbL/9kXE=
+
+Name: client-fabric-block-view-api-v2-refmap.json
+SHA-256-Digest: KW0DTYUkE10BOkz96R+4wABEPY5GA/Pz4qxeucdFQWc=
+

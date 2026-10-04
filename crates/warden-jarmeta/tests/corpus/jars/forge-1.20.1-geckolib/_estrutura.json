@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/mclib-20.jar",
+      "dir": "e0"
+    }
+  ]
+}

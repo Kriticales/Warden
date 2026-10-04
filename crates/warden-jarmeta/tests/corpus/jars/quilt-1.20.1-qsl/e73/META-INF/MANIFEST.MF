@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-sound-api-v1;assets/fabr
+ ic-sound-api-v1/sounds/empty.ogg;assets/quilted_fabric_sound_api_v1/ico
+ n.png;client-quilted_fabric_sound_api_v1-refmap.json;net/fabricmc/fabri
+ c/api/client/sound/v1/FabricSoundInstance.class;net/fabricmc/fabric/mix
+ in/client/sound/SoundInstanceMixin.class;net/fabricmc/fabric/mixin/clie
+ nt/sound/SoundSystemMixin.class;net/fabricmc/fabric/mixin/client/sound/
+ package-info.class;quilt.mod.json;quilted_fabric_sound_api_v1.client.mi
+ xins.json
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.8
+Fabric-Loom-Version: 1.7.3
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.3
+Fabric-Loader-Version: 0.26.0
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+

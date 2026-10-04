@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.2.3+eb28f93e77
+MixinConfigs: fabric-loot-api-v2.mixins.json
+

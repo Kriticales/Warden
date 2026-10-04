@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+MixinConfigs: forge-badoptimizations.mixins.json
+Fabric-Jar-Type: classes
+Fabric-Loom-Mixin-Remap-Type: static
+Fabric-Gradle-Version: 8.11
+Fabric-Loom-Version: 1.13.467
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.12.0
+Fabric-Loader-Version: 0.16.9
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+Forgix-Version: 1.2.6
+

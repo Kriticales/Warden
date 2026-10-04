@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "appleskin",
+  "version": "3.0.6+mc1.21",
+  "name": "AppleSkin",
+  "description": "Adds various food-related HUD improvements",
+  "authors": [
+    "squeek502"
+  ],
+  "contact": {
+    "sources": "https://github.com/squeek502/AppleSkin",
+    "homepage": "https://minecraft.curseforge.com/projects/appleskin",
+    "issues": "https://github.com/squeek502/AppleSkin/issues"
+  },
+  "license": "Unlicense",
+  "icon": "assets/appleskin/appleskin.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "squeek.appleskin.AppleSkin"
+    ],
+    "main": [
+      "squeek.appleskin.AppleSkinCommon"
+    ],
+    "modmenu": [
+      "squeek.appleskin.gui.ModMenuIntegration"
+    ],
+    "rei_client": [
+      "squeek.appleskin.client.REITooltipPlugin"
+    ]
+  },
+  "mixins": [
+    "appleskin.mixins.json",
+    {
+      "config": "appleskin.jei.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": "\u003e\u003d0.15.10",
+    "fabric-api": "*"
+  },
+  "breaks": {
+    "roughlyenoughitems": "\u003c6.0.306-alpha"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/cloth-config-fabric-15.0.127-fabric.jar"
+    }
+  ]
+}

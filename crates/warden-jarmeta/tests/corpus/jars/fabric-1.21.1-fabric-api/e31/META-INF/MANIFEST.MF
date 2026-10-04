@@ -1,0 +1,97 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: assets/fabric-rendering-fluids-v1/icon.
+ png;client-fabric-rendering-fluids-v1-refmap.json;fabric-rendering-flui
+ ds-v1.mixins.json;net/fabricmc/fabric/api/client/render/fluid/v1/FluidR
+ enderHandler.class;net/fabricmc/fabric/api/client/render/fluid/v1/Fluid
+ RenderHandlerRegistry.class;net/fabricmc/fabric/api/client/render/fluid
+ /v1/FluidRendering$DefaultRenderer.class;net/fabricmc/fabric/api/client
+ /render/fluid/v1/FluidRendering.class;net/fabricmc/fabric/api/client/re
+ nder/fluid/v1/SimpleFluidRenderHandler.class;net/fabricmc/fabric/impl/c
+ lient/rendering/fluid/FluidRenderHandlerInfo.class;net/fabricmc/fabric/
+ impl/client/rendering/fluid/FluidRenderHandlerRegistryImpl$LavaRenderHa
+ ndler.class;net/fabricmc/fabric/impl/client/rendering/fluid/FluidRender
+ HandlerRegistryImpl$WaterRenderHandler.class;net/fabricmc/fabric/impl/c
+ lient/rendering/fluid/FluidRenderHandlerRegistryImpl.class;net/fabricmc
+ /fabric/impl/client/rendering/fluid/FluidRenderingImpl.class;net/fabric
+ mc/fabric/impl/client/rendering/fluid/package-info.class;net/fabricmc/f
+ abric/mixin/client/rendering/fluid/FluidRendererMixin.class;net/fabricm
+ c/fabric/mixin/client/rendering/fluid/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/client/rendering/fluid/FluidRenderHandler
+ RegistryImpl.class
+SHA-256-Digest: hjrphcxO8gm46GOWxMSFYGPwEYkKJ5Rt+g8EKFarFtY=
+
+Name: net/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandler.
+ class
+SHA-256-Digest: Nayudu2UhNvG/ptBBu3DjBYgze1CfQTYfl7CmKJetXs=
+
+Name: assets/fabric-rendering-fluids-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/client/render/fluid/v1/FluidRendering.clas
+ s
+SHA-256-Digest: ISmJfwXAS2hcX36CN3TrbUw+n87j26hWsT7Dq/pRBDQ=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/fluid/package-info.clas
+ s
+SHA-256-Digest: KiwVGYKWnvKzWhB5KMJaMjKwK8+Cu+POiEDxXoOupns=
+
+Name: LICENSE-fabric-rendering-fluids-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: client-fabric-rendering-fluids-v1-refmap.json
+SHA-256-Digest: I4PFGNgjWLR8dTwc6kYcCJaIBLczIK0ibyTHQ7Itzfk=
+
+Name: net/fabricmc/fabric/api/client/render/fluid/v1/SimpleFluidRenderHa
+ ndler.class
+SHA-256-Digest: YUc5tOmv108OqUGYjxj5erDUtTO+9kRRtB36juvJ/B8=
+
+Name: net/fabricmc/fabric/mixin/client/rendering/fluid/FluidRendererMixi
+ n.class
+SHA-256-Digest: 3Zsnr3vUqRxpCJ2bKQrsrf8ibNExoa8lkF0Z9hlZFmY=
+
+Name: net/fabricmc/fabric/impl/client/rendering/fluid/FluidRenderHandler
+ Info.class
+SHA-256-Digest: qwhPP2zNG4hF1bcTL5rb8WB3yvLo2QH8x1aiIhFXEso=
+
+Name: net/fabricmc/fabric/impl/client/rendering/fluid/FluidRenderHandler
+ RegistryImpl$WaterRenderHandler.class
+SHA-256-Digest: VCDkpj3/0pWsOaDQTQNOrsYtYdVHOIyYOXG8fKRo2tE=
+
+Name: fabric.mod.json
+SHA-256-Digest: FTf4v43tteXTaI+lNmfpQJWkwyafMbAltDPshYvAOvo=
+
+Name: net/fabricmc/fabric/api/client/render/fluid/v1/FluidRendering$Defa
+ ultRenderer.class
+SHA-256-Digest: e03jnXO5dRF36Dc2H6aATBafpseXlBA1mDntiyE9G+E=
+
+Name: net/fabricmc/fabric/impl/client/rendering/fluid/FluidRenderHandler
+ RegistryImpl$LavaRenderHandler.class
+SHA-256-Digest: Uqa4tWCPVTwAfqBUC+WjWrukQ0Qhan5xtQgVzs1aYYA=
+
+Name: net/fabricmc/fabric/impl/client/rendering/fluid/package-info.class
+SHA-256-Digest: 8yS4t0MQv/aLb9qZcxDXaKBg+1tSdWaCFnpvJ9proXQ=
+
+Name: net/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandlerR
+ egistry.class
+SHA-256-Digest: 4z/A7ycEStahBJ05moN/a5G0M4B5YaTv1u0igQtyfII=
+
+Name: fabric-rendering-fluids-v1.mixins.json
+SHA-256-Digest: sqbusHdmQiKdGbG6jnhZPsuirIiTzk6rBYQR7loEHuA=
+
+Name: net/fabricmc/fabric/impl/client/rendering/fluid/FluidRenderingImpl
+ .class
+SHA-256-Digest: v5BZIfnDdt71EzX06B7mL96OEKX4z02Z46PRucb5ANE=
+

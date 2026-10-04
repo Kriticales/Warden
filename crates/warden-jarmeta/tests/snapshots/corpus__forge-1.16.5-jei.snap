@@ -1,0 +1,68 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.16.5-jei (Minecraft 1.16.5, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "jei",
+      "version": "7.8.1.1019",
+      "name": "Just Enough Items",
+      "description": "JEI is an item and recipe viewing mod for Minecraft, built from the ground up for stability and performance.",
+      "authors": [
+        "mezz"
+      ],
+      "licenses": [
+        "The MIT License (MIT)"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[34.0.3,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.16.2, 1.17)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.16.2, 1.17)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[34.0.3,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[34,)"
+    }
+  },
+  "manifest": {
+    "implementationTitle": "jei-1.16.5",
+    "implementationVersion": "7.8.1.1019",
+    "automaticModuleName": "mezz.jei"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

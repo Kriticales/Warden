@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/MixinSquared-0.1.1.jar",
+      "dir": "e0"
+    }
+  ]
+}

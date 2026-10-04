@@ -1,0 +1,93 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-cloth-config (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "cloth-config",
+      "version": "11.1.136",
+      "name": "Cloth Config v11",
+      "description": "An API for config screens.",
+      "authors": [
+        "shedaniel"
+      ],
+      "licenses": [
+        "GNU LGPLv3"
+      ],
+      "provides": [
+        "cloth-config2"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.14.0"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=1.20-"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=1.20-"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.14.0"
+        ]
+      }
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 60,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/basic-math-0.6.1.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "cloth-basic-math",
+            "version": "0.6.1"
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

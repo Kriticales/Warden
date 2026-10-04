@@ -1,0 +1,37 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-quark (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "quark",
+      "version": "r1.6-179",
+      "name": "Quark",
+      "description": "Small things.",
+      "authors": [
+        "Vazkii",
+        "wiiv"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.12.2"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "vazkii.quark.base.asm.LoadingPlugin",
+    "fmlCorePluginContainsMod": true,
+    "fmlAccessTransformer": "quark_at.cfg"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

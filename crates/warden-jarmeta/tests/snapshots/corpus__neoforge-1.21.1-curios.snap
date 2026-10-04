@@ -1,0 +1,71 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "neoforge-1.21.1-curios (Minecraft 1.21.1, loader neoforge)"
+---
+{
+  "descriptors": [
+    "neoForgeModsToml",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "neoForgeModsToml",
+      "loader": "neoForge",
+      "id": "curios",
+      "version": "9.5.1+1.21.1",
+      "name": "Curios API",
+      "description": "A flexible and expandable accessory/equipment API for users and developers.",
+      "authors": [
+        "C4"
+      ],
+      "licenses": [
+        "LGPL-3.0-or-later"
+      ],
+      "dependencies": [
+        {
+          "id": "neoforge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[21.1.60,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.21, 1.22)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.21, 1.22)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[21.1.60,)"
+      },
+      "mixins": [
+        "curios.neoforge.mixins.json",
+        "curios.mixins.json"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[1,)"
+    }
+  },
+  "manifest": {
+    "implementationTitle": "neoforge",
+    "implementationVersion": "9.5.1+1.21.1"
+  },
+  "classVersion": {
+    "major": 65,
+    "minor": 0
+  }
+}

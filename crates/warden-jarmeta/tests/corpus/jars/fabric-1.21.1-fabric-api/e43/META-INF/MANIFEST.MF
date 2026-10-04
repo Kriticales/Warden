@@ -1,0 +1,65 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalEntityTypeTa
+ gs.class
+SHA-256-Digest: 4kHjEWSozFH71v9w/GyqvrvtXtTv3VU+mORPGYz5a+E=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalEnchantmentT
+ ags.class
+SHA-256-Digest: wTYPU+b7VdRxDFbdp4mQPuKgThER0BL5loHnt75VBgo=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalBlockTags.cl
+ ass
+SHA-256-Digest: 7JKMLXtxgwzQfUDOHC5LcaNuuVcO17rHxx78pW6Ldmg=
+
+Name: net/fabricmc/fabric/impl/tag/convention/TagRegistration.class
+SHA-256-Digest: Pun6R6Or/6dBnUvYfxqiTIC1n4SKLw/4Awyz9FgzDys=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/TagUtil.class
+SHA-256-Digest: IexHH4fQfbQygqrLXUwi4ws24dXOsQywLac17Xw4Y3k=
+
+Name: net/fabricmc/fabric/impl/tag/convention/ConventionLogWarnings$LogW
+ arningMode.class
+SHA-256-Digest: mE9KdmqVDDwiEIma+JoQqkxDlIx0y3QDKE0povEv4FE=
+
+Name: fabric.mod.json
+SHA-256-Digest: FqzkqTIIekSi6EO4iHZGE4u8fKqyI0Y8tUjpbgVnkow=
+
+Name: net/fabricmc/fabric/impl/tag/convention/ConventionLogWarnings.clas
+ s
+SHA-256-Digest: MnBNV7U47RNo6bmt2cKnP4vqcFJRYaX1UFwvRhrMFfI=
+
+Name: LICENSE-fabric-convention-tags-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: assets/fabric-convention-tags-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/tag/convention/package-info.class
+SHA-256-Digest: 7ZOJaz9P7bRTtivT3RcbKAGs1ULCbxVhVnW7D/vWM9c=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalBiomeTags.cl
+ ass
+SHA-256-Digest: VeFrac7/7nrYltAtz08DPc9PkpFA7vekDtlfvhiQ3Nk=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalFluidTags.cl
+ ass
+SHA-256-Digest: BLizLmHawAH5m+QmWsrRLmRkj7gKhf0st2Q0JV9a4tA=
+
+Name: net/fabricmc/fabric/api/tag/convention/v1/ConventionalItemTags.cla
+ ss
+SHA-256-Digest: ciG/VDJXQaIZoh70xhwNzP3GRAxWJTJukqIvfqDoa7Q=
+

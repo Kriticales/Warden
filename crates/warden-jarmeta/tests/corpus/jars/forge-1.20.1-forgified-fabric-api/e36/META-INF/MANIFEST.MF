@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 0.11.12+4b4151c077
+MixinConfigs: fabric-resource-loader-v0.mixins.json,fabric-resource-load
+ er-v0.client.mixins.json
+

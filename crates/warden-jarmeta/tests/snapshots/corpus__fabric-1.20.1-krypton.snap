@@ -1,0 +1,94 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-krypton (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "krypton",
+      "version": "0.2.3",
+      "name": "Krypton",
+      "description": "A Fabric mod that optimizes the Minecraft networking stack and entity tracker.",
+      "authors": [
+        "tuxed"
+      ],
+      "licenses": [
+        "LGPL-3.0"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.11.3"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "1.20.x"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          "1.20.x"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.11.3"
+        ]
+      },
+      "mixins": [
+        "krypton.mixins.json"
+      ]
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/velocity-native-3.2.0-SNAPSHOT.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "com_velocitypowered_velocity-native",
+            "version": "3.2.0-SNAPSHOT",
+            "name": "velocity-native"
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 55,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

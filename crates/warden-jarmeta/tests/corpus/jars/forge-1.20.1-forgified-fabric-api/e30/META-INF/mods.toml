@@ -1,0 +1,40 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+
+[[mods]]
+  modId = "fabric_registry_sync_v0"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Registry Sync (v0)"
+  logoFile = "assets/fabric-registry-sync-v0/icon.png"
+  authors = "FabricMC"
+  description = "Syncs registry mappings."
+provides = ["fabric-registry-sync-v0"]
+
+    [[dependencies.fabric_registry_sync_v0]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_registry_sync_v0]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_registry_sync_v0]]
+      modId = "fabric_api_base"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_registry_sync_v0]]
+      modId = "fabric_networking_api_v1"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"

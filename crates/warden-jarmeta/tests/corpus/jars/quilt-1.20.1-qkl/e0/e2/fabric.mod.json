@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "org_jetbrains_kotlin_kotlin-stdlib-jdk8",
+  "version": "1.9.10",
+  "name": "kotlin-stdlib-jdk8",
+  "custom": {
+    "fabric-loom:generated": true
+  }
+}

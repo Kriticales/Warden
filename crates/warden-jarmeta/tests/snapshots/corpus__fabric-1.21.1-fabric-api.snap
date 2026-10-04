@@ -1,0 +1,3330 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.21.1-fabric-api (Minecraft 1.21.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "fabric-api",
+      "version": "0.116.17+1.21.1",
+      "name": "Fabric API",
+      "description": "Core API module providing key hooks and intercompatibility features.",
+      "authors": [
+        "FabricMC"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "provides": [
+        "fabric"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.15.11"
+            ]
+          }
+        },
+        {
+          "id": "java",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=21"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=1.21- <1.21.2-"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=1.21- <1.21.2-"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.15.11"
+        ]
+      },
+      "java": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=21"
+        ]
+      }
+    }
+  ],
+  "manifest": {},
+  "nested": [
+    {
+      "path": "META-INF/jars/fabric-api-base-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-api-base",
+            "version": "0.4.42+6573ed8c19",
+            "name": "Fabric API Base",
+            "description": "Contains the essentials for Fabric API modules.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-api-lookup-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-api-lookup-api-v1",
+            "version": "1.6.72+7b3d111d19",
+            "name": "Fabric API Lookup API (v1)",
+            "description": "A universal way to expose and query APIs",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-lifecycle-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-api-lookup-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-biome-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-biome-api-v1",
+            "version": "13.0.31+d527f9fd19",
+            "name": "Fabric Biome API (v1)",
+            "description": "Hooks for adding biomes to the default world generator.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.16.2"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.16.2"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-biome-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-block-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-block-api-v1",
+            "version": "1.1.0+0bc3503219",
+            "name": "Fabric Block API (v1)",
+            "description": "Hooks for blocks",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-block-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-block-view-api-v2-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-block-view-api-v2",
+            "version": "1.0.11+ebb2264e19",
+            "name": "Fabric BlockView API (v2)",
+            "description": "Hooks for block views",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-block-view-api-v2.mixins.json",
+              "fabric-block-view-api-v2.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-blockrenderlayer-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-blockrenderlayer-v1",
+            "version": "1.1.52+0af3f5a719",
+            "name": "Fabric BlockRenderLayer Registration (v1)",
+            "description": "Registration utility for block and fluid render layers.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.38.b"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.38.b"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-blockrenderlayer-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-client-tags-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-client-tags-api-v1",
+            "version": "1.2.0+1eb36c0719",
+            "name": "Fabric Client Tags",
+            "description": "Adds the ability to load tags from the local mods.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-command-api-v2-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-command-api-v2",
+            "version": "2.2.28+6ced4dd919",
+            "name": "Fabric Command API (v2)",
+            "description": "Adds command-related hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">1.19-alpha.22.11.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">1.19-alpha.22.11.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-command-api-v2.mixins.json",
+              "fabric-command-api-v2.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-content-registries-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-content-registries-v0",
+            "version": "8.0.19+b559734419",
+            "name": "Fabric Content Registries (v0)",
+            "description": "Adds registries for vanilla mechanics that are missing them.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-lifecycle-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-content-registries-v0.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-convention-tags-v2-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-convention-tags-v2",
+            "version": "2.12.0+c3656daa19",
+            "name": "Fabric Convention Tags (v2)",
+            "description": "Contains common tags used by mods for better inter-mod compatibility.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-lifecycle-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.20.5-beta.1"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.20.5-beta.1"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-convention-tags-api-v2.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-crash-report-info-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-crash-report-info-v1",
+            "version": "0.2.29+0af3f5a719",
+            "name": "Fabric Crash Report Info (v1)",
+            "description": "Adds Fabric-related debug info to crash reports.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-crash-report-info-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-data-attachment-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-data-attachment-api-v1",
+            "version": "1.4.7+5b36e0f719",
+            "name": "Fabric Data Attachment API (v1)",
+            "description": "Allows conveniently attaching data to existing game objects",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-entity-events-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-object-builder-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-data-attachment-api-v1.mixins.json",
+              "fabric-data-attachment-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-data-generation-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-data-generation-api-v1",
+            "version": "20.3.0+1eb36c0719",
+            "name": "Fabric Data Generation API (v1)",
+            "description": "Allows for automatic data generation.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-data-generation-api-v1.mixins.json",
+              "fabric-data-generation-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-dimensions-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-dimensions-v1",
+            "version": "4.0.1+65213ef819",
+            "name": "Fabric Dimensions API (v1)",
+            "description": "Fabric Dimension API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.16-rc.3"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.16-rc.3"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-dimensions-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-entity-events-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-entity-events-v1",
+            "version": "1.8.0+2b27e0a419",
+            "name": "Fabric Entity Events (v1)",
+            "description": "Events to hook into entities.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-entity-events-v1.mixins.json",
+              "fabric-entity-events-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-events-interaction-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-events-interaction-v0",
+            "version": "0.7.14+ba9dae0619",
+            "name": "Fabric Events Interaction (v0)",
+            "description": "Events for player interaction with blocks and entities.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.37.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.37.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-events-interaction-v0.mixins.json",
+              "fabric-events-interaction-v0.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-game-rule-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-game-rule-api-v1",
+            "version": "1.0.53+6ced4dd919",
+            "name": "Fabric Game Rule API (v1)",
+            "description": "Allows registration of custom game rules.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-game-rule-api-v1.mixins.json",
+              "fabric-game-rule-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-item-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-item-api-v1",
+            "version": "11.3.0+467044f319",
+            "name": "Fabric Item API (v1)",
+            "description": "Hooks for items",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-item-api-v1.mixins.json",
+              "fabric-item-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-item-group-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-item-group-api-v1",
+            "version": "4.1.7+def88e3a19",
+            "name": "Fabric Item Group API (v1)",
+            "description": "An API for adding custom item groups.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-item-group-api-v1.mixins.json",
+              "fabric-item-group-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-key-binding-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-key-binding-api-v1",
+            "version": "1.0.47+0af3f5a719",
+            "name": "Fabric Key Binding API (v1)",
+            "description": "Key Binding registry API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-key-binding-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-lifecycle-events-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-lifecycle-events-v1",
+            "version": "2.6.0+0865547519",
+            "name": "Fabric Lifecycle Events (v1)",
+            "description": "Events for the game's lifecycle.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-lifecycle-events-v1.mixins.json",
+              "fabric-lifecycle-events-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-loot-api-v3-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-loot-api-v3",
+            "version": "1.0.3+3f89f5a519",
+            "name": "Fabric Loot API (v3)",
+            "description": "Hooks for manipulating loot tables.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-loot-api-v3.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-message-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-message-api-v1",
+            "version": "6.0.14+8aaf3aca19",
+            "name": "Fabric Message API (v1)",
+            "description": "Adds message-related hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-message-api-v1.mixins.json",
+              "fabric-message-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-model-loading-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-model-loading-api-v1",
+            "version": "2.1.0+b4d813fc19",
+            "name": "Fabric Model Loading API (v1)",
+            "description": "Provides hooks for model loading.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-model-loading-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-networking-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-networking-api-v1",
+            "version": "4.3.1+d30f6a7919",
+            "name": "Fabric Networking API (v1)",
+            "description": "Low-level, vanilla protocol oriented networking hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-networking-api-v1.mixins.json",
+              "fabric-networking-api-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-object-builder-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-object-builder-api-v1",
+            "version": "15.2.1+40875a9319",
+            "name": "Fabric Object Builder API (v1)",
+            "description": "Builders for objects vanilla has locked down.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-object-builder-v1.mixins.json",
+              "fabric-object-builder-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-particles-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-particles-v1",
+            "version": "4.0.2+6573ed8c19",
+            "name": "Fabric Particles (v1)",
+            "description": "Hooks for registering custom particles.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-particles-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-recipe-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-recipe-api-v1",
+            "version": "5.0.16+2475392c19",
+            "name": "Fabric Recipe API (v1)",
+            "description": "Recipe extensions such as creation of new types of recipe ingredients.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-recipe-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-registry-sync-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-registry-sync-v0",
+            "version": "5.3.2+e3eddc2119",
+            "name": "Fabric Registry Sync (v0)",
+            "description": "Syncs registry mappings.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-registry-sync-v0.mixins.json",
+              "fabric-registry-sync-v0.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-renderer-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-renderer-api-v1",
+            "version": "3.4.1+b4d813fc19",
+            "name": "Fabric Renderer API (v1)",
+            "description": "Defines rendering extensions for dynamic/fancy block and item models.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.39.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.39.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-renderer-api-v1.mixins.json",
+              "fabric-renderer-api-v1.debughud.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-renderer-indigo-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-renderer-indigo",
+            "version": "1.7.1+c705a49c19",
+            "name": "Fabric Renderer - Indigo",
+            "description": "Default implementation of the Fabric Renderer API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-renderer-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.39.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.39.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-renderer-indigo.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-fluids-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-rendering-fluids-v1",
+            "version": "3.1.6+1daea21519",
+            "name": "Fabric Rendering Fluids (v1)",
+            "description": "Hooks for registering fluid renders.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-rendering-fluids-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-rendering-v1",
+            "version": "5.2.1+f44c2eea19",
+            "name": "Fabric Rendering (v1)",
+            "description": "Hooks and registries for rendering-related things.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-rendering-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-resource-conditions-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-resource-conditions-api-v1",
+            "version": "4.3.0+8dc279b119",
+            "name": "Fabric Resource Conditions API (v1)",
+            "description": "Allows conditionally loading resources.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-resource-conditions-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-resource-loader-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-resource-loader-v0",
+            "version": "1.3.1+5b5275af19",
+            "name": "Fabric Resource Loader (v0)",
+            "description": "Asset and data resource loading.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-resource-loader-v0.mixins.json",
+              "fabric-resource-loader-v0.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-screen-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-screen-api-v1",
+            "version": "2.0.26+639b4c0719",
+            "name": "Fabric Screen API (v1)",
+            "description": "Adds screen related hooks.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-screen-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-screen-handler-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-screen-handler-api-v1",
+            "version": "1.3.91+b559734419",
+            "name": "Fabric Screen Handler API (v1)",
+            "description": "Hooks and extensions for creating screen handlers.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-networking-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-screen-handler-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-sound-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-sound-api-v1",
+            "version": "1.0.23+6573ed8c19",
+            "name": "Fabric Sound API (v1)",
+            "description": "Hooks for modifying Minecraft's sound system.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.19.2"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.19.2"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-sound-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-tag-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-tag-api-v1",
+            "version": "1.3.0+1eb36c0719",
+            "name": "Fabric Tag API (v1)",
+            "description": "Hooks for working with tags.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-tag-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-transfer-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-transfer-api-v1",
+            "version": "5.4.4+7b3d111d19",
+            "name": "Fabric Transfer API (v1)",
+            "description": "A common API for the transfer of fluids, items and other game resources.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-lookup-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-rendering-fluids-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-transfer-api-v1.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-transitive-access-wideners-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-transitive-access-wideners-v1",
+            "version": "6.2.0+45b9699719",
+            "name": "Fabric Transitive Access Wideners (v1)",
+            "description": "Contains transitive access wideners that provide access to otherwise inaccessible Minecraft code.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {}
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-command-api-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-command-api-v1",
+            "version": "1.2.49+f71b366f19",
+            "name": "Fabric Command API (v1)",
+            "description": "Deprecated. Please migrate to v2",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-command-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-commands-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-commands-v0",
+            "version": "0.2.66+df3654b319",
+            "name": "Fabric Commands (v0)",
+            "description": "Deprecated. Please migrate to v2",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-command-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-convention-tags-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-convention-tags-v1",
+            "version": "2.1.7+7f945d5b19",
+            "name": "Fabric Convention Tags",
+            "description": "Contains common tags used by mods for vanilla things.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.18.2"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.18.2"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-keybindings-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-keybindings-v0",
+            "version": "0.2.45+df3654b319",
+            "name": "Fabric Key Bindings (v0)",
+            "description": "Keybinding registry API.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-key-binding-api-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-loot-api-v2-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-loot-api-v2",
+            "version": "3.0.15+3f89f5a519",
+            "name": "Fabric Loot API (v2)",
+            "description": "Hooks for manipulating loot tables.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-resource-loader-v0",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-loot-api-v2.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-renderer-registries-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-renderer-registries-v1",
+            "version": "3.2.71+df3654b319",
+            "name": "Fabric Renderer Registries (v1)",
+            "description": "Registries for entity and block renderers.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-rendering-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.39.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.39.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-data-attachment-v1-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-rendering-data-attachment-v1",
+            "version": "0.3.49+73761d2e19",
+            "name": "Fabric Rendering Data Attachment (v1)",
+            "description": "Thread-safe hooks for block entity data use during terrain rendering.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "dependencies": [
+              {
+                "id": "fabric-block-view-api-v2",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            },
+            "mixins": [
+              "fabric-rendering-data-attachment-v1.mixins.json",
+              "fabric-rendering-data-attachment-v1.client.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/fabric-rendering-v0-0.116.17.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "fabric-rendering-v0",
+            "version": "1.1.74+df3654b319",
+            "name": "Fabric Rendering (v0)",
+            "description": "Hooks and registries for rendering-related things.",
+            "authors": [
+              "FabricMC"
+            ],
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "environment": "client",
+            "dependencies": [
+              {
+                "id": "fabric-api-base",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabric-rendering-v1",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    "*"
+                  ]
+                }
+              },
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.15.11"
+                  ]
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=1.15-alpha.19.39.a"
+                  ]
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=1.15-alpha.19.39.a"
+              ]
+            },
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.15.11"
+              ]
+            }
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 65,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

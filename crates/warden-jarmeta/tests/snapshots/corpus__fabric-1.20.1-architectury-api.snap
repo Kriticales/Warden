@@ -1,0 +1,89 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-architectury-api (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "architectury",
+      "version": "9.2.14",
+      "name": "Architectury",
+      "description": "A intermediary api aimed to ease developing multiplatform mods.",
+      "authors": [
+        "shedaniel"
+      ],
+      "licenses": [
+        "LGPL-3"
+      ],
+      "dependencies": [
+        {
+          "id": "fabric-api",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.66.0"
+            ]
+          }
+        },
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.14.0"
+            ]
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "~1.20-"
+            ]
+          }
+        },
+        {
+          "id": "optifabric",
+          "kind": "breaks",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "<1.13.0"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          "~1.20-"
+        ]
+      },
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.14.0"
+        ]
+      },
+      "mixins": [
+        "architectury-common.mixins.json",
+        "architectury.mixins.json"
+      ]
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 60,
+    "minor": 0
+  }
+}

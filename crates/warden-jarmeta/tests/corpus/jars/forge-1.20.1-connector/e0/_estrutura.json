@@ -1,0 +1,20 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/mixinextras-forge-0.3.2.jar",
+      "dir": "e0"
+    },
+    {
+      "path": "META-INF/jarjar/runtime-1.0.0+1.20.1.jar",
+      "dir": "e1"
+    },
+    {
+      "path": "META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-fabricloader.jar",
+      "dir": "e2"
+    }
+  ]
+}

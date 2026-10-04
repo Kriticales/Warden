@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+FMLCorePluginContainsFMLMod: true
+FMLAT: archaicfix_at.cfg
+FMLCorePlugin: org.embeddedt.archaicfix.ArchaicCore
+TweakClass: org.spongepowered.asm.launch.MixinTweaker
+MixinConfigs: mixins.archaicfix.json
+ForceLoadAsMod: true
+

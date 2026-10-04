@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 2.3.9+996d00b277
+MixinConfigs: fabric-resource-conditions-api-v1.mixins.json
+

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: sqlite-jdbc-3.53.4.0.jar caffeine-3.2.4.jar LambdaEvents-2.4
+ .2.jar OldBiomes-1.0.0.jar jspecify-1.0.0.jar error_prone_annotations-2
+ .49.0.jar
+Multi-Release: true
+

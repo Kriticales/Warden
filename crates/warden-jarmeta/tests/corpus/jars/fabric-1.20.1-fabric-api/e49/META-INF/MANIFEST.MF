@@ -1,0 +1,82 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/api/network/ClientS
+ idePacketRegistry.class;net/fabricmc/fabric/impl/client/networking/v0/C
+ lientSidePacketRegistryImpl$1.class;net/fabricmc/fabric/impl/client/net
+ working/v0/ClientSidePacketRegistryImpl.class;net/fabricmc/fabric/impl/
+ client/networking/v0/OldClientNetworkingHooks.class;net/fabricmc/fabric
+ /impl/client/networking/v0/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/network/ClientSidePacketRegistry.class
+SHA-256-Digest: hw85FFKGqNRga5GhoMtPS9tIiJ1M8JEvn83B+fsYj9Q=
+
+Name: net/fabricmc/fabric/api/server/PlayerStream.class
+SHA-256-Digest: LL/n8R7SmeAiEAfmVAZgMYEsvXeqZWHFb13+PtqsxC0=
+
+Name: net/fabricmc/fabric/impl/client/networking/v0/ClientSidePacketRegi
+ stryImpl$1.class
+SHA-256-Digest: NwIgZML0jMiBSNsuutTCn2CpyFrofRtUXIb9urobv3o=
+
+Name: net/fabricmc/fabric/api/network/ServerSidePacketRegistry.class
+SHA-256-Digest: U81C//o6SZTbi9vTe7VCsQw3sOuppsmfq/3i/pD1ZiE=
+
+Name: net/fabricmc/fabric/api/network/PacketConsumer.class
+SHA-256-Digest: HaKdWgDcrEmUjqjUyNO1Jmod1EQbvYMfcWwpBu9Rs7Y=
+
+Name: net/fabricmc/fabric/impl/client/networking/v0/package-info.class
+SHA-256-Digest: aUOv85nYPwMa+ipXfBe+ALHayGF0Yfa7skj2cntvJl8=
+
+Name: LICENSE-fabric-networking-v0
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/networking/v0/package-info.class
+SHA-256-Digest: YaPezjgYZ8y28xj+WgQ4O7B8/Ok2Mon9mjpVJQRmD7w=
+
+Name: net/fabricmc/fabric/api/event/network/C2SPacketTypeCallback.class
+SHA-256-Digest: 8RYWimzcQYTvXQW6TC8ASCclqhmQpb560Xupb2LZPrA=
+
+Name: net/fabricmc/fabric/impl/networking/v0/OldNetworkingHooks.class
+SHA-256-Digest: fhL8ypdGOVtFiLKplftH3jmOsuwamHZLOGbF4Bai+fs=
+
+Name: fabric.mod.json
+SHA-256-Digest: 7sgYr5E9dLlJDShtC6E2GnKhY5Ev4zNwyHDqhejdDwk=
+
+Name: net/fabricmc/fabric/impl/networking/v0/ServerSidePacketRegistryImp
+ l.class
+SHA-256-Digest: iarCpVQ+tgOaxaGMAjkPuCXRWzMszYnbsmLm3AgA0Ns=
+
+Name: net/fabricmc/fabric/api/network/PacketRegistry.class
+SHA-256-Digest: u87MyS2vWT7Gj56+beyDjxcrsXGhWs5hZoc1E6yJ33Y=
+
+Name: net/fabricmc/fabric/impl/client/networking/v0/OldClientNetworkingH
+ ooks.class
+SHA-256-Digest: D/mefgjdYDxx/w4h+kfhfCR0KtMmELDfvXYltSAYp1A=
+
+Name: net/fabricmc/fabric/api/event/network/S2CPacketTypeCallback.class
+SHA-256-Digest: XHHTX5lYpcJbxCxppslNAazn6fg9cvlpoXRIZ2xyZf0=
+
+Name: net/fabricmc/fabric/impl/client/networking/v0/ClientSidePacketRegi
+ stryImpl.class
+SHA-256-Digest: UlKQHDBLQu+CXdYsm0R3pe8LtNuGZRefbkPanCaAbj4=
+
+Name: net/fabricmc/fabric/impl/networking/v0/ServerSidePacketRegistryImp
+ l$1.class
+SHA-256-Digest: Od7fgGhHxkD0GU/Z4/F8bcydBbekCuFi9aHsdLv90B0=
+
+Name: assets/fabric-networking-v0/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/network/PacketContext.class
+SHA-256-Digest: CIhLUiNLAEDoY7kbgVXsCJTIAt3pbneCXm50RHjoVXA=
+

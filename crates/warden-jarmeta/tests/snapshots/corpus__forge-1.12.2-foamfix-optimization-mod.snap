@@ -1,0 +1,31 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-foamfix-optimization-mod (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "foamfix",
+      "version": "@VERSION@",
+      "name": "FoamFix",
+      "description": "Questionable \"performance improvements\" that are not in Forge for probably very good reasons.",
+      "authors": [
+        "asiekierka"
+      ]
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "pl.asie.foamfix.coremod.FoamFixCore",
+    "fmlCorePluginContainsMod": true
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

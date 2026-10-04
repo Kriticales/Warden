@@ -1,0 +1,79 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: net/fabricmc/fabric/impl/screenhandler/
+ client/ClientNetworking.class;net/fabricmc/fabric/impl/screenhandler/cl
+ ient/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: fabric-screen-handler-api-v1-refmap.json
+SHA-256-Digest: AYSZzbccGyHNP74HR6RK1LYSvttJig3whJF6UpHEvEo=
+
+Name: LICENSE-fabric-screen-handler-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/screenhandler/Networking$OpenScreenPayloa
+ d.class
+SHA-256-Digest: 0CdMXZA7zcb/gYt6bP0YkVYExQCa0M04/+U6sLWNQ/U=
+
+Name: fabric-screen-handler-api-v1.mixins.json
+SHA-256-Digest: c+kzr+pAi0y0pqiZVb6li2LjjyoJXpONePdmnMs6PZY=
+
+Name: net/fabricmc/fabric/impl/screenhandler/Networking.class
+SHA-256-Digest: 4+8QYbEZsdgHYSU8tjX9ad2wAy8rklcQeH72lqeulx0=
+
+Name: net/fabricmc/fabric/api/screenhandler/v1/FabricScreenHandlerFactor
+ y.class
+SHA-256-Digest: UGxl/u1hEfN9aF+u/LbUPyCYt18SkT5nH6UrGk34QM4=
+
+Name: net/fabricmc/fabric/mixin/screenhandler/ServerPlayerEntityMixin.cl
+ ass
+SHA-256-Digest: 08W/Eip8aAc7ONcUsgByNchdCVFMO9mwRyX88/4dMic=
+
+Name: net/fabricmc/fabric/mixin/screenhandler/package-info.class
+SHA-256-Digest: ihW3Poy/vFdThMj/JVf/3xo42HoZ2ex44kq7sQYf8x0=
+
+Name: net/fabricmc/fabric/api/screenhandler/v1/ExtendedScreenHandlerType
+ $ExtendedFactory.class
+SHA-256-Digest: hpcMVu/iMw4oPC75zhxtAUTtZFCtKR9lFDEVu7TIpQs=
+
+Name: fabric.mod.json
+SHA-256-Digest: pRlEnMVOv1ds3L8lIOD5iXCI2wAm4kzr5/bDK+WyppY=
+
+Name: net/fabricmc/fabric/mixin/screenhandler/NamedScreenHandlerFactoryM
+ ixin.class
+SHA-256-Digest: bMgR5Gs8zNOXcbwwEB2zKTq7giRUdx9pmuYJe+DGcLk=
+
+Name: net/fabricmc/fabric/api/screenhandler/v1/ExtendedScreenHandlerFact
+ ory.class
+SHA-256-Digest: AKYkg/5uETIoa02HIIZqDx1kIVeHhAVN5iu47tEaKN8=
+
+Name: net/fabricmc/fabric/impl/screenhandler/client/package-info.class
+SHA-256-Digest: j7UlGn4Vma5ijC288c4OPQQ+ejzt1OsyJ90VWjxBvbE=
+
+Name: assets/fabric-screen-handler-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/screenhandler/package-info.class
+SHA-256-Digest: qaFVKZL6+b09eavQhPwes90L2a1yEVdYLpFzZzHejjo=
+
+Name: net/fabricmc/fabric/api/screenhandler/v1/ExtendedScreenHandlerType
+ .class
+SHA-256-Digest: qVNa/KPPGqTbna3Wn8PShmOE/ZYpKzPqlldEK+IVs1g=
+
+Name: net/fabricmc/fabric/impl/screenhandler/client/ClientNetworking.cla
+ ss
+SHA-256-Digest: AL+sqW5P8PLN1TDfFhjW2xxON+OzpF5y2KLDQod2tWA=
+
+Name: fabric-screen-handler-api-v1.accesswidener
+SHA-256-Digest: L7fxcXz+tVZN/sAIMUPsthl7+yWbXi3sf8RKwgJUXFI=
+

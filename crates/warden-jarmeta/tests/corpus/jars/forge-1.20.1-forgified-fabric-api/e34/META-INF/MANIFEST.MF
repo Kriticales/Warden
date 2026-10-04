@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 3.0.9+66e9a48f77
+MixinConfigs: fabric-rendering-v1.mixins.json
+

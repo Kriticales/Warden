@@ -1,0 +1,165 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-jei (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "jei",
+      "version": "15.62.0.219",
+      "name": "Just Enough Items",
+      "description": "JEI is an item and recipe viewing mod for Minecraft, built from the ground up for stability and performance.",
+      "authors": [
+        "mezz"
+      ],
+      "licenses": [
+        "The MIT License (MIT)"
+      ],
+      "dependencies": [
+        {
+          "id": "mezz_config",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.6.3,1.0.0)"
+          },
+          "ordering": "after"
+        },
+        {
+          "id": "mezz_config_gui",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.5.10,)"
+          },
+          "side": "client",
+          "ordering": "after"
+        },
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[47.0,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20.1, 1.20.2)"
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.20.1, 1.20.2)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[47.0,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[47,)"
+    }
+  },
+  "manifest": {
+    "implementationTitle": "modShadeJar",
+    "implementationVersion": "15.62.0.219"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/mezz_config-1.20.1-forge-0.6.3.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "net.mezzdev.config",
+        "artifact": "mezz_config-1.20.1-forge",
+        "artifactVersion": "0.6.3",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.6.3,1.0.0)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "mezz_config",
+            "version": "0.6.3",
+            "name": "MezzConfig",
+            "description": "Lightweight client and server-authoritative config support for Minecraft mods.",
+            "authors": [
+              "mezz"
+            ],
+            "licenses": [
+              "The MIT License (MIT)"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[47.0,)"
+                }
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.20.1]"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.20.1]"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[47.0,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[47,)"
+          }
+        },
+        "manifest": {
+          "implementationTitle": "jar",
+          "implementationVersion": "0.6.3"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

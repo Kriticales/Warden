@@ -1,0 +1,217 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-item-group-api-v1-refmap.
+ json;fabric-item-group-api-v1.client.mixins.json;net/fabricmc/fabric/ap
+ i/client/itemgroup/v1/FabricCreativeInventoryScreen.class;net/fabricmc/
+ fabric/impl/client/itemgroup/FabricCreativeGuiComponents$ItemGroupButto
+ nWidget.class;net/fabricmc/fabric/impl/client/itemgroup/FabricCreativeG
+ uiComponents$Type.class;net/fabricmc/fabric/impl/client/itemgroup/Fabri
+ cCreativeGuiComponents.class;net/fabricmc/fabric/impl/client/itemgroup/
+ package-info.class;net/fabricmc/fabric/mixin/itemgroup/client/CreativeI
+ nventoryScreenMixin.class;net/fabricmc/fabric/mixin/itemgroup/client/pa
+ ckage-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroupEntries$1.clas
+ s
+SHA-256-Digest: f7r3fEM3N5JoUlooT4VWog2GBryw1ABX1N3sXjP538U=
+
+Name: assets/fabric/textures/gui/creative_buttons.png
+SHA-256-Digest: 8qh1vbIipFVWPOUWhHocmxq+BL3UgKYvJy4f6AL1b7M=
+
+Name: fabric-item-group-api-v1.client.mixins.json
+SHA-256-Digest: tAIr1JG5Y8mq4lM6qO2186gqzcHUeEkYf6Lo3myXYJI=
+
+Name: fabric-item-group-api-v1.accesswidener
+SHA-256-Digest: MSBtJNM3rdOKDHYbsMLBAR3OJgT5aQhitQx3gi0/B9c=
+
+Name: net/fabricmc/fabric/impl/client/itemgroup/FabricCreativeGuiCompone
+ nts$ItemGroupButtonWidget.class
+SHA-256-Digest: DcVZX91Bh+tV92TWQZYxJp6G13WVl1GDnVd9TyK3Du8=
+
+Name: assets/fabric/lang/es_cl.json
+SHA-256-Digest: iaFsnnb81TPctnHKkAgQsF6aF0HBuly+BnRzy8sXH/Y=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/ItemGroupsMixin.class
+SHA-256-Digest: /0NWgWBVZtn8zma1N4a69DY8D1HMdV1Y4yHEvqYSbf8=
+
+Name: assets/fabric/lang/es_mx.json
+SHA-256-Digest: iaFsnnb81TPctnHKkAgQsF6aF0HBuly+BnRzy8sXH/Y=
+
+Name: net/fabricmc/fabric/impl/itemgroup/ItemGroupEventsImpl.class
+SHA-256-Digest: AYlx6ihy9kvlRUkFHi5S91uFCk4uDp3AoklIzNTomuo=
+
+Name: assets/fabric/lang/it_it.json
+SHA-256-Digest: +2gIsQAc1bmrFxiCevbbicloucqGJY3MSaIEiPOySDc=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/client/package-info.class
+SHA-256-Digest: XRVB0QgjqSEZlWvYvqiVf1OsAdlOMdL0LXGHmrzF8IU=
+
+Name: net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents$ModifyEntries
+ .class
+SHA-256-Digest: gKa8+yNwWrWAFI6I0rdeGwHMldhPald+3oSgCYCdBFU=
+
+Name: net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents.class
+SHA-256-Digest: 9lotLx3ahVbj0Y2AiPuR29ocmOnH4KFljvOPNLEwT7c=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/client/CreativeInventoryScreen
+ Mixin.class
+SHA-256-Digest: TeFl2VEgVVS5GEt2qUh0CTQCJwTCAYholcfO1x5ZQU4=
+
+Name: net/fabricmc/fabric/impl/client/itemgroup/FabricCreativeGuiCompone
+ nts$Type.class
+SHA-256-Digest: bOnHOF6JzKXzt9jYXDk+h+W9Zad8fWBGZBDHzhMJ1XQ=
+
+Name: assets/fabric/lang/ms_my.json
+SHA-256-Digest: wsJSTbSXZygUH90gXl03H5PIWd2+wMCwP7OvnpqxX5U=
+
+Name: assets/fabric-item-group-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: assets/fabric/lang/eo_uy.json
+SHA-256-Digest: VplHK7NczWgiJksQQOoDuVPQvffG0R/WmkcGlD7yqPQ=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/package-info.class
+SHA-256-Digest: NdI9YpIRQ25Ner37xEF/gDMm3179qodMB4PuYVSRpbQ=
+
+Name: LICENSE-fabric-item-group-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: assets/fabric/lang/pl_pl.json
+SHA-256-Digest: YuDE1JKci0IxFl7n6xydCkBXqP5X9OZ/UMa4eiOmgwo=
+
+Name: assets/fabric/lang/es_es.json
+SHA-256-Digest: iaFsnnb81TPctnHKkAgQsF6aF0HBuly+BnRzy8sXH/Y=
+
+Name: assets/fabric/lang/ru_ru.json
+SHA-256-Digest: WzyehEHKuG9Uk706eR6u42dNix/QMu6/Q3VSpexQaNc=
+
+Name: fabric.mod.json
+SHA-256-Digest: MW1N+kGInT2CCX4S3DQh8gO7FacLSFhZDXtakh4RpyA=
+
+Name: assets/fabric/lang/tok.json
+SHA-256-Digest: CY/pG7PM7JQonuRpCkz0u8YoOT38yWMMqcuvmtGw2m0=
+
+Name: assets/fabric/lang/uk_ua.json
+SHA-256-Digest: 8Kfl7c23L1ARlbTdy6o42jG9tauNMBV8f7T2AqD+kGU=
+
+Name: net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroupEntries.class
+SHA-256-Digest: z3Qt1EmVNVm4FJWNKhtYXB8i1GUenJ8CDn0KG3cUrkM=
+
+Name: assets/fabric/lang/pt_br.json
+SHA-256-Digest: iaFsnnb81TPctnHKkAgQsF6aF0HBuly+BnRzy8sXH/Y=
+
+Name: assets/fabric/lang/fr_fr.json
+SHA-256-Digest: 9dG23Cnes5UdWR0WTKHv4Ela8N9z4/dtHH+JY5wKjMo=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/ItemGroupsMixin$1ItemGroupPosi
+ tion.class
+SHA-256-Digest: uER2a+mTAhQ4xQ8ZCCfTL2igJKwelMWvXDDGB+UvdKg=
+
+Name: assets/fabric/lang/ko_kr.json
+SHA-256-Digest: dNJ+RklmIMvaWe0b1ahyiLP9lisKYo9M+4jL/K5GBG0=
+
+Name: net/fabricmc/fabric/impl/itemgroup/FabricItemGroupImpl.class
+SHA-256-Digest: 0ANbdY55CjItJ6v9dLUlcHrbTCWL6veF9RPZj1LOxNg=
+
+Name: assets/fabric/lang/ja_jp.json
+SHA-256-Digest: bb+QwWRC7eq2WZLw8EMjanJtJje8U5yrORQrL4kcRDc=
+
+Name: net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroup.class
+SHA-256-Digest: FNeg01/aJ6SxJv3baUu0H6myrnClPdYE9PHwkxdTqOM=
+
+Name: assets/fabric/lang/nl_nl.json
+SHA-256-Digest: +2gIsQAc1bmrFxiCevbbicloucqGJY3MSaIEiPOySDc=
+
+Name: net/fabricmc/fabric/api/client/itemgroup/v1/FabricCreativeInventor
+ yScreen.class
+SHA-256-Digest: abqJmBsuLnpt62baRWj4gVjr+VKPsoxOrvNTDhzRclg=
+
+Name: assets/fabric/lang/zh_cn.json
+SHA-256-Digest: mPMbWCb/26JWQf49XX6eYuO0DifPj4JwImmqpXTiAak=
+
+Name: client-fabric-item-group-api-v1-refmap.json
+SHA-256-Digest: o5TSYjODOXq03BtrDWhJ3dNKbgNEuJlSyV2ssmFFacM=
+
+Name: assets/fabric/lang/bg_bg.json
+SHA-256-Digest: cWsIW4M4QI4b/oX46HXGAA4x/Ou2Wt9nItDIEV4peO8=
+
+Name: fabric-item-group-api-v1-refmap.json
+SHA-256-Digest: aqP67gMZlT5PWohCksp/JhHX/ixOrhNDbf91NoFRg7c=
+
+Name: assets/fabric/lang/sv_se.json
+SHA-256-Digest: Yrsv+Uvsgr4VmXGHPmw7untpiela4VzL9RR5nKVs7K0=
+
+Name: net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents$ModifyEntries
+ All.class
+SHA-256-Digest: zqWQ34dY5EDyyxfCz4k1njXOJgJDoneMI5CCS0rH18A=
+
+Name: assets/fabric/lang/fi_fi.json
+SHA-256-Digest: WdXdXGf29nmf4AXytHrh3ZaVm+Le7Tld5QxyqCxB1ac=
+
+Name: assets/fabric/lang/tt_ru.json
+SHA-256-Digest: OzKvFzO9YAzZMTn60TqjWIJbVdjZdFIMKFN0kNSIppo=
+
+Name: assets/fabric/lang/el_gr.json
+SHA-256-Digest: 26iiuSxnqOtj2Tvt6FMPj4pxfxzbchK24ScXQM5jE9w=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/ItemGroupAccessor.class
+SHA-256-Digest: fP41T4yCI1bJ10vyKEGn1xhOxi+7Td1ozbmRBXr6GIE=
+
+Name: net/fabricmc/fabric/mixin/itemgroup/ItemGroupMixin.class
+SHA-256-Digest: 8Kf4Ou2M/JrO5E3xRMfkaFJFoFPxLxED3MSxweR8fBY=
+
+Name: assets/fabric/lang/tr_tr.json
+SHA-256-Digest: 5U9DR7cyhtrmTMDIo4/EXtcEVY9Jm1KZdeR8iwUiVEQ=
+
+Name: net/fabricmc/fabric/impl/client/itemgroup/FabricCreativeGuiCompone
+ nts.class
+SHA-256-Digest: kz27lH+X51wws03bp67TGaAX7XSCAN+GYaCTi6aoVuA=
+
+Name: assets/fabric/lang/de_de.json
+SHA-256-Digest: 7h/BKnwGdBEaZJoh4UVumsceI67cBQ6MucFpA4+vSn8=
+
+Name: assets/fabric/lang/fa_ir.json
+SHA-256-Digest: SgU4WRRFsW3GpvF2OYwySWSjd1otX/s/rOjSaIo7WtU=
+
+Name: fabric-item-group-api-v1.mixins.json
+SHA-256-Digest: ckYslT3Z+XMgSofX6IF1m9IHBxF3LXJTBTemGOtbvqY=
+
+Name: assets/fabric/lang/en_us.json
+SHA-256-Digest: 9dG23Cnes5UdWR0WTKHv4Ela8N9z4/dtHH+JY5wKjMo=
+
+Name: net/fabricmc/fabric/impl/itemgroup/package-info.class
+SHA-256-Digest: CpuUOYhnGczLK5WRzWCjVKjVj3w07RltG1Sw3PeyqP8=
+
+Name: net/fabricmc/fabric/impl/itemgroup/FabricItemGroupBuilderImpl.clas
+ s
+SHA-256-Digest: WO0hxMHqOu9TJF3t25axcOZqjemhjD7Y0a4jR3lG5PQ=
+
+Name: assets/fabric/lang/is_is.json
+SHA-256-Digest: c+1VhtgYMo0gkwHWxanjyMzsc+6Ixx5eLotJqx4LYqE=
+
+Name: assets/fabric/lang/zh_tw.json
+SHA-256-Digest: bFlZOEzHNEu4oGmJLxtu96qeau1ghB7ZDzGPrfjTs+I=
+
+Name: assets/fabric/lang/vi_vn.json
+SHA-256-Digest: hKOCH1LvyLqAWKCaYYZJ2oGuVTRs9Nx7Ktc+U12tpbQ=
+
+Name: net/fabricmc/fabric/impl/client/itemgroup/package-info.class
+SHA-256-Digest: vcN1NEeGd3p1wy2ZikUTOS8LiiRJKJ7xLVZEd24DfjU=
+
+Name: programmer_art/assets/fabric/textures/gui/creative_buttons.png
+SHA-256-Digest: DYwLo83/3e4IbygMXv3i2m6xtONgYCo5tTQjZCJPYgo=
+
+Name: assets/fabric/lang/et_ee.json
+SHA-256-Digest: KuwoDYEUpi28AgsLP4rTxekrOsFGK44gNQ28tQAbDzI=
+

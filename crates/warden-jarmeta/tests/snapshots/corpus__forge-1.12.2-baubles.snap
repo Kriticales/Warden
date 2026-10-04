@@ -1,0 +1,32 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-baubles (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "baubles",
+      "version": "1.12-1.5.2",
+      "name": "Baubles",
+      "description": "Adding a touch of bling to Minecraft",
+      "authors": [
+        "Azanor"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.12"
+      }
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}

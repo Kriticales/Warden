@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 12.3.7+369cb3a477
+MixinConfigs: fabric-data-generation-api-v1.mixins.json
+

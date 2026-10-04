@@ -1,0 +1,12 @@
+{
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/velocity-native-3.2.0-SNAPSHOT.jar",
+      "dir": "e0"
+    }
+  ]
+}

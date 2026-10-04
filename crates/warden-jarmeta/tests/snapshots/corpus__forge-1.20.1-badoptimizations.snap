@@ -1,0 +1,227 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-badoptimizations (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "badoptimizations",
+      "version": "2.4.1",
+      "name": "BadOptimizations",
+      "description": "Optimization mod that focuses on things other than rendering",
+      "authors": [
+        "Thosea"
+      ],
+      "environment": "client",
+      "dependencies": [
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              "1.20.1"
+            ]
+          }
+        }
+      ],
+      "minecraft": {
+        "dialect": "fabric",
+        "predicates": [
+          "1.20.1"
+        ]
+      },
+      "mixins": [
+        "fabric-badoptimizations.mixins.json"
+      ]
+    },
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "badoptimizations",
+      "version": "2.4.1",
+      "name": "BadOptimizations",
+      "description": "Optimization mod that focuses on things other than rendering",
+      "authors": [
+        "Thosea"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "1.20.1"
+          },
+          "side": "client"
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "1.20.1"
+      },
+      "mixins": [
+        "forge-badoptimizations.mixins.json"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[1,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "forge-badoptimizations.mixins.json"
+    ]
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "com_github_llamalad7_mixinextras",
+            "version": "0.2.2",
+            "name": "MixinExtras",
+            "description": "Companion library to Mixin with lots of features to improve the compatibility and concision of your mixins!",
+            "authors": [
+              "LlamaLad7"
+            ],
+            "licenses": [
+              "MIT"
+            ],
+            "dependencies": [
+              {
+                "id": "fabricloader",
+                "kind": "required",
+                "range": {
+                  "dialect": "fabric",
+                  "predicates": [
+                    ">=0.14.11"
+                  ]
+                }
+              }
+            ],
+            "loaderVersion": {
+              "dialect": "fabric",
+              "predicates": [
+                ">=0.14.11"
+              ]
+            },
+            "mixins": [
+              "mixinextras.init.mixins.json"
+            ]
+          }
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/forge-mixinextras-forge-0.3.2.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "io.github.llamalad7",
+        "artifact": "mixinextras-forge",
+        "artifactVersion": "0.3.2",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.3.2,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "jarJarMetadata",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "mixinextras",
+            "version": "0.3.2",
+            "name": "MixinExtras",
+            "description": "Companion library to Mixin with lots of features to improve the compatibility and concision of your mixins!",
+            "authors": [
+              "LlamaLad7"
+            ],
+            "licenses": [
+              "MIT"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "*"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "mixinextras.init.mixins.json"
+          ],
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/MixinExtras-0.3.2.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "com.github.LlamaLad7",
+              "artifact": "MixinExtras",
+              "artifactVersion": "0.3.2",
+              "range": {
+                "dialect": "maven",
+                "spec": "[0.3.2,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {},
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

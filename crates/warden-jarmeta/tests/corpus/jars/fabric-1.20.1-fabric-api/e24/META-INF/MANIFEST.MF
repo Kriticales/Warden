@@ -1,0 +1,211 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-model-loading-api-v1;ass
+ ets/fabric-model-loading-api-v1/icon.png;client-fabric-model-loading-ap
+ i-v1-refmap.json;fabric-model-loading-api-v1.mixins.json;fabric.mod.jso
+ n;net/fabricmc/fabric/api/client/model/loading/v1/BlockStateResolver$Co
+ ntext.class;net/fabricmc/fabric/api/client/model/loading/v1/BlockStateR
+ esolver.class;net/fabricmc/fabric/api/client/model/loading/v1/Delegatin
+ gUnbakedModel.class;net/fabricmc/fabric/api/client/model/loading/v1/Fab
+ ricBakedModelManager.class;net/fabricmc/fabric/api/client/model/loading
+ /v1/ModelLoadingPlugin$Context.class;net/fabricmc/fabric/api/client/mod
+ el/loading/v1/ModelLoadingPlugin.class;net/fabricmc/fabric/api/client/m
+ odel/loading/v1/ModelModifier$AfterBake$Context.class;net/fabricmc/fabr
+ ic/api/client/model/loading/v1/ModelModifier$AfterBake.class;net/fabric
+ mc/fabric/api/client/model/loading/v1/ModelModifier$BeforeBake$Context.
+ class;net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$Bef
+ oreBake.class;net/fabricmc/fabric/api/client/model/loading/v1/ModelModi
+ fier$OnLoad$Context.class;net/fabricmc/fabric/api/client/model/loading/
+ v1/ModelModifier$OnLoad.class;net/fabricmc/fabric/api/client/model/load
+ ing/v1/ModelModifier.class;net/fabricmc/fabric/api/client/model/loading
+ /v1/ModelResolver$Context.class;net/fabricmc/fabric/api/client/model/lo
+ ading/v1/ModelResolver.class;net/fabricmc/fabric/api/client/model/loadi
+ ng/v1/PreparableModelLoadingPlugin$DataLoader.class;net/fabricmc/fabric
+ /api/client/model/loading/v1/PreparableModelLoadingPlugin.class;net/fab
+ ricmc/fabric/impl/client/model/loading/BlockStateResolverHolder.class;n
+ et/fabricmc/fabric/impl/client/model/loading/LegacyModelVariantProvider
+ .class;net/fabricmc/fabric/impl/client/model/loading/ModelLoaderHooks.c
+ lass;net/fabricmc/fabric/impl/client/model/loading/ModelLoaderPluginCon
+ textImpl$BlockKey.class;net/fabricmc/fabric/impl/client/model/loading/M
+ odelLoaderPluginContextImpl.class;net/fabricmc/fabric/impl/client/model
+ /loading/ModelLoadingEventDispatcher$AfterBakeModifierContext.class;net
+ /fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDispatcher$
+ BeforeBakeModifierContext.class;net/fabricmc/fabric/impl/client/model/l
+ oading/ModelLoadingEventDispatcher$BlockStateResolverContext.class;net/
+ fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDispatcher$M
+ odelResolverContext.class;net/fabricmc/fabric/impl/client/model/loading
+ /ModelLoadingEventDispatcher$OnLoadModifierContext.class;net/fabricmc/f
+ abric/impl/client/model/loading/ModelLoadingEventDispatcher.class;net/f
+ abricmc/fabric/impl/client/model/loading/ModelLoadingPluginManager$Prep
+ arablePluginHolder.class;net/fabricmc/fabric/impl/client/model/loading/
+ ModelLoadingPluginManager.class;net/fabricmc/fabric/impl/client/model/l
+ oading/package-info.class;net/fabricmc/fabric/mixin/client/model/loadin
+ g/BakedModelManagerMixin.class;net/fabricmc/fabric/mixin/client/model/l
+ oading/ModelLoaderBakerImplMixin.class;net/fabricmc/fabric/mixin/client
+ /model/loading/ModelLoaderMixin.class;net/fabricmc/fabric/mixin/client/
+ model/loading/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: client-fabric-model-loading-api-v1-refmap.json
+SHA-256-Digest: USTk//yNoHKwRpv4FkX3SU5d/qHDWsAL3/j63fptCIc=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/DelegatingUnbakedM
+ odel.class
+SHA-256-Digest: vmmZfYgJjD94HTR1domXgVmEFnNRaDJX3a+5vIPcorc=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelResolver.clas
+ s
+SHA-256-Digest: 9p5mto781uWG0Eul58LpsY1sYsRmBKE9PTSmzTq4MzY=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingPluginMa
+ nager$PreparablePluginHolder.class
+SHA-256-Digest: 7U79IeHAKQt1TDIrUIHM/cuMqxsDsLnn9lUpkMgaKYw=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$Afte
+ rBake$Context.class
+SHA-256-Digest: 4M2DuWEAeavhJWTdxyWTw9WmAWqgfOx2vpyh/mJtn38=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDis
+ patcher$OnLoadModifierContext.class
+SHA-256-Digest: s5biyLJRudPPstHRQr/qDeEBt9ff/jDOLfQ+GKman1o=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoaderHooks.cla
+ ss
+SHA-256-Digest: iPmD/qimZzyLMPmBcoeIHXORFdBgKwAAQ+rmmtrZEBw=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$OnLo
+ ad.class
+SHA-256-Digest: H4Aqg4HLHRBhi1lU7miU4XZcgCOfwE130M6L4H1LccM=
+
+Name: assets/fabric-model-loading-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/mixin/client/model/loading/ModelLoaderMixin.cl
+ ass
+SHA-256-Digest: WUAAb28HZyZ8fZJhu2dvpm3TwBbEBYgsU8ucYIO35qs=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDis
+ patcher$AfterBakeModifierContext.class
+SHA-256-Digest: lFoI+z4yEqkUx1MN7LqPrNDgx0cgBUnLVCzVE/XtLLI=
+
+Name: net/fabricmc/fabric/mixin/client/model/loading/BakedModelManagerMi
+ xin.class
+SHA-256-Digest: yx6/xDRj6VQKP1Y5NTCAsFbtsDowMj63FAvVyvNuYzI=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$Befo
+ reBake.class
+SHA-256-Digest: LXDFvNPpNXKBNG6TccVc/gVzrI5vuKag3XMdOF7tUyw=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelResolver$Cont
+ ext.class
+SHA-256-Digest: CwpITYFSlssjDr7u0fHElw/IyZ0X4nolaebWTFL5qBo=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier.clas
+ s
+SHA-256-Digest: PNnZ47dKdVJX7dBWSRHIycThODANkx8IfXfjzKjecfk=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDis
+ patcher$ModelResolverContext.class
+SHA-256-Digest: v56VEBaNKKvfNk1prmQuViwqUdwrZxUhWjwgCM0SiIc=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/PreparableModelLoa
+ dingPlugin.class
+SHA-256-Digest: elgkWIl3BRLsPOYj359QXstysANlmSYrq3a8Rc6O88g=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/package-info.class
+SHA-256-Digest: 5uOvo9ed/4vq2Nd+4o0/kWRnK4vjmBeV9tT7suhjEY8=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoaderPluginCon
+ textImpl$BlockKey.class
+SHA-256-Digest: qrUb8cgqawUd6UpR4P2phurcLBh0ESvCFd83MkSLg4Q=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/BlockStateResolver
+ .class
+SHA-256-Digest: zPxpAIKWZN/y7FS4BgO7h8rZcdwrMQx6qZy1TnaZ8d0=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDis
+ patcher$BeforeBakeModifierContext.class
+SHA-256-Digest: kJnz0CdfniRd4RPWVc2fOBbD5P9bhgSQKYEUCYkkytg=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/PreparableModelLoa
+ dingPlugin$DataLoader.class
+SHA-256-Digest: Q7JqcjUsf/ztUxovD4S/WfibX9t4k4vgCNTeuFGSZd8=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$Befo
+ reBake$Context.class
+SHA-256-Digest: 3GagiivxZldN4Y2RAGaL8JGFzeFggzC8oE/qXQbKmzo=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDis
+ patcher.class
+SHA-256-Digest: nfBGbMsh/+rIGaaTlbo1q/UjYJeRnpnvM0DU6SDmnHs=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingPluginMa
+ nager.class
+SHA-256-Digest: x3MvYUxhKafVLxcXfjeqejT4g2b44NrPULR30tueR0g=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelLoadingPlugin
+ .class
+SHA-256-Digest: GgfLL+BO9UxFg4I7N7qSWoczIn7Wx7lbW13gUL9i9dA=
+
+Name: net/fabricmc/fabric/mixin/client/model/loading/ModelLoaderBakerImp
+ lMixin.class
+SHA-256-Digest: b87So4I2yfH0ZRXbBeIhdbTPjIaHjW9yoJyYwb+8uMw=
+
+Name: LICENSE-fabric-model-loading-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelLoadingPlugin
+ $Context.class
+SHA-256-Digest: d9rNXGEHtAjULA1V1gsLZcgspmhTTy/nkqUNDqFvYg8=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoadingEventDis
+ patcher$BlockStateResolverContext.class
+SHA-256-Digest: waSdki2ucMeDr7d9Q846GjV3riIooLNVDDR25MU2cYM=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/LegacyModelVariantPr
+ ovider.class
+SHA-256-Digest: pSLluagAzHtBEgEXyHG1P9aW+1QAftNvvpPZ46kgn5s=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/ModelLoaderPluginCon
+ textImpl.class
+SHA-256-Digest: s0vRG7uziVJQ53EK/lrYH30qgeA38VZPJfu6jewZ4c4=
+
+Name: net/fabricmc/fabric/impl/client/model/loading/BlockStateResolverHo
+ lder.class
+SHA-256-Digest: 3hm5ewP2dglFgkyXmqTU82xjo2xx8ekICBpCGDQZECk=
+
+Name: net/fabricmc/fabric/mixin/client/model/loading/package-info.class
+SHA-256-Digest: Z00Trd1wczSRafy8DffCj7o+vE+ZUu+P1GWP0e4uAuA=
+
+Name: fabric.mod.json
+SHA-256-Digest: VR9AcyLuA5v1MK0/+atcaiXfjAacwy2QYNyCkjOFnfo=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/FabricBakedModelMa
+ nager.class
+SHA-256-Digest: Ka1rtWyl96jq+mc5VPQ0C+oc/oE0CwGP+9ymo5YEMYg=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/BlockStateResolver
+ $Context.class
+SHA-256-Digest: /H88ag3G4NwOhMHQf01s+pVvdGBXlraJIe+Uru1MRJQ=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$Afte
+ rBake.class
+SHA-256-Digest: s1rSNbbmy3JVwLgEh8piB9xbt6rdC9wheTroL5yviFQ=
+
+Name: fabric-model-loading-api-v1.mixins.json
+SHA-256-Digest: bKOdO8xYZfwNCw+Upd+3Is2jgRwg/Lqz+XWTtIbPqMo=
+
+Name: net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$OnLo
+ ad$Context.class
+SHA-256-Digest: ZrQkxfByiurbqYBOxp9KAdh4lz8h+E4tFfpE4m+3gpc=
+

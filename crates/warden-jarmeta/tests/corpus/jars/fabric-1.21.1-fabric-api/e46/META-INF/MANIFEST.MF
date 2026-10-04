@@ -1,0 +1,68 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-renderer-registries-v1;a
+ ssets/renderer-registries-v1/icon.png;fabric.mod.json;net/fabricmc/fabr
+ ic/api/client/rendereregistry/v1/BlockEntityRendererRegistry$1.class;ne
+ t/fabricmc/fabric/api/client/rendereregistry/v1/BlockEntityRendererRegi
+ stry.class;net/fabricmc/fabric/api/client/rendereregistry/v1/EntityMode
+ lLayerRegistry$TexturedModelDataProvider.class;net/fabricmc/fabric/api/
+ client/rendereregistry/v1/EntityModelLayerRegistry.class;net/fabricmc/f
+ abric/api/client/rendereregistry/v1/EntityRendererRegistry$1.class;net/
+ fabricmc/fabric/api/client/rendereregistry/v1/EntityRendererRegistry.cl
+ ass;net/fabricmc/fabric/api/client/rendereregistry/v1/LivingEntityFeatu
+ reRendererRegistrationCallback$RegistrationHelper.class;net/fabricmc/fa
+ bric/api/client/rendereregistry/v1/LivingEntityFeatureRendererRegistrat
+ ionCallback.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/EntityRendererRe
+ gistry.class
+SHA-256-Digest: DelEmzzqtYjgrjjJN2zA5/8crylHpVOqVkoyagSX/OE=
+
+Name: fabric.mod.json
+SHA-256-Digest: M/afQ3psWQbyKPGpKajCZ9uRYytNjgugIB/cNLKET2I=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/EntityRendererRe
+ gistry$1.class
+SHA-256-Digest: TnM67ogEV63/AFKWfwfJwtfcs1f0SmpUZTHoWCN39To=
+
+Name: assets/renderer-registries-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/BlockEntityRende
+ rerRegistry.class
+SHA-256-Digest: g9xGixS8ZU6EnuuV8hGE8VRSDYDm4+rGZ9GLCY3xM54=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/EntityModelLayer
+ Registry$TexturedModelDataProvider.class
+SHA-256-Digest: bAv08GA4eMMaxEJYs6bypzxqbSDQKbqizX2gKyRgdK8=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/BlockEntityRende
+ rerRegistry$1.class
+SHA-256-Digest: 497a1lrF/wbJSicQT3kGtbXyk8uKXBk7Kre4F70aUO0=
+
+Name: LICENSE-fabric-renderer-registries-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/LivingEntityFeat
+ ureRendererRegistrationCallback$RegistrationHelper.class
+SHA-256-Digest: F7wt2tcI6r1I3j0Ba6yRaszSNMMtBZIAB3SuDqYwkRs=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/LivingEntityFeat
+ ureRendererRegistrationCallback.class
+SHA-256-Digest: Ak6OYEMJG1dnqeR+HMd5DO0j6XMTPLmQY9lAgcWqloc=
+
+Name: net/fabricmc/fabric/api/client/rendereregistry/v1/EntityModelLayer
+ Registry.class
+SHA-256-Digest: sR27Pba5lrDaGSA2IYNgxIxN4s24UlMYr+OEZhoiFHc=
+

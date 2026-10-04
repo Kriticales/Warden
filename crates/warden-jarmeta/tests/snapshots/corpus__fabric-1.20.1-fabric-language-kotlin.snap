@@ -1,0 +1,403 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "fabric-1.20.1-fabric-language-kotlin (Minecraft 1.20.1, loader fabric)"
+---
+{
+  "descriptors": [
+    "fabricModJson",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "fabricModJson",
+      "loader": "fabric",
+      "id": "fabric-language-kotlin",
+      "version": "1.14.1+kotlin.2.4.20",
+      "name": "Fabric Language Kotlin",
+      "description": "Fabric language module for Kotlin.",
+      "authors": [
+        "FabricMC"
+      ],
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "dependencies": [
+        {
+          "id": "fabricloader",
+          "kind": "required",
+          "range": {
+            "dialect": "fabric",
+            "predicates": [
+              ">=0.19.5"
+            ]
+          }
+        }
+      ],
+      "loaderVersion": {
+        "dialect": "fabric",
+        "predicates": [
+          ">=0.19.5"
+        ]
+      }
+    }
+  ],
+  "manifest": {},
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/atomicfu-jvm-0.33.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_atomicfu-jvm",
+            "version": "0.33.0",
+            "name": "atomicfu-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "atomicfu",
+          "implementationVersion": "0.33.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlin-reflect-2.4.20.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlin_kotlin-reflect",
+            "version": "2.4.20",
+            "name": "kotlin-reflect"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-reflect",
+          "implementationVersion": "2.4.20",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 50,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlin-stdlib-2.4.20.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlin_kotlin-stdlib",
+            "version": "2.4.20",
+            "name": "kotlin-stdlib"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-stdlib",
+          "implementationVersion": "2.4.20",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlin-stdlib-jdk7-2.4.20.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlin_kotlin-stdlib-jdk7",
+            "version": "2.4.20",
+            "name": "kotlin-stdlib-jdk7"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-stdlib-jdk7",
+          "implementationVersion": "2.4.20",
+          "multiRelease": true
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlin-stdlib-jdk8-2.4.20.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlin_kotlin-stdlib-jdk8",
+            "version": "2.4.20",
+            "name": "kotlin-stdlib-jdk8"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlin-stdlib-jdk8",
+          "implementationVersion": "2.4.20",
+          "multiRelease": true
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm",
+            "version": "1.11.0",
+            "name": "kotlinx-coroutines-core-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-coroutines-core",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-coroutines-jdk8-1.11.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-coroutines-jdk8",
+            "version": "1.11.0",
+            "name": "kotlinx-coroutines-jdk8"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-coroutines-jdk8",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-datetime-jvm-0.8.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-datetime-jvm",
+            "version": "0.8.0",
+            "name": "kotlinx-datetime-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-datetime",
+          "implementationVersion": "0.8.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-io-bytestring-jvm-0.9.1.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm",
+            "version": "0.9.1",
+            "name": "kotlinx-io-bytestring-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-io-bytestring",
+          "implementationVersion": "0.9.1",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-io-core-jvm-0.9.1.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-io-core-jvm",
+            "version": "0.9.1",
+            "name": "kotlinx-io-core-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-io-core",
+          "implementationVersion": "0.9.1",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-serialization-cbor-jvm-1.11.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm",
+            "version": "1.11.0",
+            "name": "kotlinx-serialization-cbor-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-serialization-cbor",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-serialization-core-jvm-1.11.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-serialization-core-jvm",
+            "version": "1.11.0",
+            "name": "kotlinx-serialization-core-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-serialization-core",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jars/kotlinx-serialization-json-jvm-1.11.0.jar",
+      "declaredBy": "fabricModJson",
+      "metadata": {
+        "descriptors": [
+          "fabricModJson",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "fabricModJson",
+            "loader": "fabric",
+            "id": "org_jetbrains_kotlinx_kotlinx-serialization-json-jvm",
+            "version": "1.11.0",
+            "name": "kotlinx-serialization-json-jvm"
+          }
+        ],
+        "manifest": {
+          "implementationTitle": "kotlinx-serialization-json",
+          "implementationVersion": "1.11.0",
+          "multiRelease": true
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.0.41+683d4da877
+MixinConfigs: fabric-game-rule-api-v1.mixins.json,fabric-game-rule-api-v
+ 1.client.mixins.json
+

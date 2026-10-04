@@ -1,0 +1,17 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-notenoughitems (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "manifest"
+  ],
+  "manifest": {
+    "fmlCorePlugin": "codechicken.nei.asm.NEICorePlugin",
+    "fmlAccessTransformer": "nei_at.cfg"
+  },
+  "classVersion": {
+    "major": 50,
+    "minor": 0
+  }
+}

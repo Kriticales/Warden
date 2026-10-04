@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: connector
+Specification-Vendor: Sinytra
+Specification-Version: 1
+Implementation-Title: connector
+Implementation-Version: 2.0.0-beta.17+1.21.1
+Implementation-Vendor: Sinytra
+Automatic-Module-Name: org.sinytra.connector
+Fabric-Loader-Version: 0.19.3
+

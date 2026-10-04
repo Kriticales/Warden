@@ -1,0 +1,45 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+issueTrackerURL = "https://github.com/Sinytra/ForgifiedFabricAPI/issues"
+
+[[mods]]
+modId = "fabric_loot_api_v3"
+version = "${file.jarVersion}"
+displayName = "Forgified Fabric Loot API (v3)"
+logoFile = "assets/fabric-loot-api-v3/icon.png"
+authors = "Sinytra, FabricMC"
+description = "Hooks for manipulating loot tables."
+provides = ["fabric-loot-api-v3"]
+displayURL = "https://github.com/Sinytra/ForgifiedFabricAPI"
+
+[[dependencies.fabric_loot_api_v3]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.248,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_loot_api_v3]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_loot_api_v3]]
+modId = "fabric_api_base"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.fabric_loot_api_v3]]
+modId = "fabric_resource_loader_v0"
+type = "required"
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "fabric-loot-api-v3.mixins.json"

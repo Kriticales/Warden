@@ -1,0 +1,124 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: 
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/impl/lookup/entity/package-info.class
+SHA-256-Digest: 1KbSN5EGsWIF2MFe3unBaikI8CPD5CQSexVIFtdLuu8=
+
+Name: net/fabricmc/fabric/api/lookup/v1/block/BlockApiLookup$BlockApiPro
+ vider.class
+SHA-256-Digest: qUINpU8WVE/w8XgBB00FGh2UMU9TiCVJgIhZn7OCSCc=
+
+Name: net/fabricmc/fabric/impl/lookup/item/package-info.class
+SHA-256-Digest: OYQVmXCNveNRQnVtTyfhpVz10trmCuJKZyDEdf6OwAw=
+
+Name: net/fabricmc/fabric/api/lookup/v1/block/BlockApiLookup$BlockEntity
+ ApiProvider.class
+SHA-256-Digest: e4GWYnhRHY2K/saJu4pO5PEFUeXAEoB2xKLWDU7DxaM=
+
+Name: net/fabricmc/fabric/impl/lookup/block/BlockApiCacheImpl.class
+SHA-256-Digest: rzATGM+4UuJmPki0M7pzyUyCzHJXrBz5WMoIVLzJtaI=
+
+Name: net/fabricmc/fabric/impl/lookup/custom/ApiProviderHashMap.class
+SHA-256-Digest: ZtnbAvwvRLeAHIIR1Jo6Zzl67sE8kNVoNKJ0G6MXEnw=
+
+Name: net/fabricmc/fabric/impl/lookup/custom/package-info.class
+SHA-256-Digest: O2AqGm1YGItTHyTGfd744aFGm2qhDiLc3Ee/KKO2lts=
+
+Name: net/fabricmc/fabric/api/lookup/v1/custom/ApiProviderMap.class
+SHA-256-Digest: sXOr4ziasOGBYBcHhzF4CgTjbmX8m5aNx7kWYS31xyQ=
+
+Name: net/fabricmc/fabric/api/lookup/v1/item/ItemApiLookup.class
+SHA-256-Digest: kdDaMBZzUcU5X/85mKEyNDVVoIB1OegFt9t8vcsVhHU=
+
+Name: net/fabricmc/fabric/mixin/lookup/BlockEntityTypeAccessor.class
+SHA-256-Digest: ERR4mSah9Be1xGKGHfYhgF83zeyWZcvJn9HueabStok=
+
+Name: net/fabricmc/fabric/impl/lookup/entity/EntityApiLookupImpl.class
+SHA-256-Digest: nPURsAUKPbEkSW8c+fZmVTc8EwD8edc7574VvNlNMX0=
+
+Name: LICENSE-fabric-api-lookup-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/lookup/custom/ApiLookupMapImpl.class
+SHA-256-Digest: x/fYBpypmGePy016B6+5cu1+vTJ5AhXgvzSo3NYdT90=
+
+Name: net/fabricmc/fabric/impl/lookup/ApiLookupImpl.class
+SHA-256-Digest: 8JKBVV96FyqCujLWyfjBch24q/QvOtdskLau1a2x4zE=
+
+Name: net/fabricmc/fabric/impl/lookup/block/BlockApiLookupImpl.class
+SHA-256-Digest: f0iH+GvrxvQIxmZIHwrB0dfrQvM8YQq9p4nl/ny3kho=
+
+Name: net/fabricmc/fabric/mixin/lookup/package-info.class
+SHA-256-Digest: jhv4pEAcJFIw2wAojJCKmko4N7HRk655MX9zhd5NlSk=
+
+Name: net/fabricmc/fabric/impl/lookup/item/ItemApiLookupImpl.class
+SHA-256-Digest: D66ulxzvqq231Eiet9FzEPjf7aXhqSukmYlJ+yCM2DQ=
+
+Name: net/fabricmc/fabric/api/lookup/v1/custom/ApiLookupMap$LookupFactor
+ y.class
+SHA-256-Digest: 0j6Bnbw7hOhklA+lxT1RAD3DXr9NLxwpnvxaEPkz52s=
+
+Name: net/fabricmc/fabric/api/lookup/v1/custom/ApiLookupMap.class
+SHA-256-Digest: SpzGBWwWwEB70pCgOiG4SY/wlHmDLbqDO941qgYBZeQ=
+
+Name: net/fabricmc/fabric/impl/lookup/custom/ApiLookupMapImpl$StoredLook
+ up.class
+SHA-256-Digest: RGAvdjPulkUJ8WLuP2yshBod5fdWWyxhUnPAwjGezVA=
+
+Name: net/fabricmc/fabric/api/lookup/v1/block/BlockApiCache.class
+SHA-256-Digest: gn1exzengGoV/EJT4l++3EnoyW2QeFijvzIhOcARNDQ=
+
+Name: net/fabricmc/fabric/api/lookup/v1/entity/EntityApiLookup$EntityApi
+ Provider.class
+SHA-256-Digest: F6ab+GQuuSuieAND2fuutHzrggUmPpBG0NNVRzRTfI4=
+
+Name: net/fabricmc/fabric/api/lookup/v1/entity/EntityApiLookup.class
+SHA-256-Digest: /St2CKZSiQbHs4aGSyXEkR72PIUUF+Bv1ln0Qk+T8aM=
+
+Name: net/fabricmc/fabric/mixin/lookup/ServerWorldMixin.class
+SHA-256-Digest: JKk4h5Rkfm4lxof1jvH3OpNQdobq/+livhuI2LWzkTg=
+
+Name: fabric.mod.json
+SHA-256-Digest: FtQXduwkm4XJiOKuaDaGY5GcjQs1jrnPSN7XHZPHCMs=
+
+Name: assets/fabric-api-lookup-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/lookup/v1/item/ItemApiLookup$ItemApiProvid
+ er.class
+SHA-256-Digest: w2TALEOUzqD/F1AUqfNhk4AAWldJbUtrtb4s0G/FY+U=
+
+Name: fabric-api-lookup-api-v1-refmap.json
+SHA-256-Digest: RsalJvhySTG4AYwpBS8XDwxkCDenPzF/uP/816B8QXk=
+
+Name: fabric-api-lookup-api-v1.mixins.json
+SHA-256-Digest: HSvJvOGRHSiTW5HH5FJHuswcezXn4T6OV3nNfVZXxFk=
+
+Name: net/fabricmc/fabric/impl/lookup/block/ServerWorldCache.class
+SHA-256-Digest: +86aQ2Jcgo76dgFTJtHg1dAW94AaYei0VhTvYjJ+0YA=
+
+Name: net/fabricmc/fabric/api/lookup/v1/block/BlockApiLookup.class
+SHA-256-Digest: S1nTKtgQbvLtwr5HkKsiHFYJpI5i1BNvk2rMTOPUR0g=
+
+Name: net/fabricmc/fabric/impl/lookup/block/package-info.class
+SHA-256-Digest: 0p4DazzPup9jR2VvV/qv8TivfWvz5hOd49naq6jgt9s=
+
+Name: net/fabricmc/fabric/api/lookup/v1/custom/ApiLookupMap$LookupConstr
+ uctor.class
+SHA-256-Digest: I/H0WlpRaJsnzf2dXUjTxYnK0nqc74a6meCgFyUm9Ek=
+
+Name: net/fabricmc/fabric/impl/lookup/package-info.class
+SHA-256-Digest: jM6ISrIqJBqKz1Eja4go9lERZyKFotrM8dzeTS6H78A=
+

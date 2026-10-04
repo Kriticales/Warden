@@ -1,0 +1,112 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-command-api-v2-refmap.jso
+ n;fabric-command-api-v2.client.mixins.json;net/fabricmc/fabric/api/clie
+ nt/command/v2/ClientCommandManager.class;net/fabricmc/fabric/api/client
+ /command/v2/ClientCommandRegistrationCallback.class;net/fabricmc/fabric
+ /api/client/command/v2/FabricClientCommandSource.class;net/fabricmc/fab
+ ric/impl/command/client/ClientCommandInternals.class;net/fabricmc/fabri
+ c/impl/command/client/package-info.class;net/fabricmc/fabric/mixin/comm
+ and/client/ClientCommandSourceMixin.class;net/fabricmc/fabric/mixin/com
+ mand/client/ClientPlayNetworkHandlerMixin.class;net/fabricmc/fabric/mix
+ in/command/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/command/v2/FabricEntitySelectorReader.clas
+ s
+SHA-256-Digest: KP/WIE7nOYf27XPvvU3wvdkIaKUnYArBD1dpv8P/h50=
+
+Name: net/fabricmc/fabric/mixin/command/HelpCommandAccessor.class
+SHA-256-Digest: To4HeRbW7uuNi+xfalwISYh4GZHOnQHuYoBUPQKgsmg=
+
+Name: net/fabricmc/fabric/mixin/command/EntitySelectorReaderMixin.class
+SHA-256-Digest: A9ViQECJTlft4FP9R42O5OninvOTj7Td6G2vJSopP6Q=
+
+Name: net/fabricmc/fabric/mixin/command/CommandManagerMixin.class
+SHA-256-Digest: ISJmHJd/BmsKwFvoBr25TUBNVWD9BOfWrkHyYbdevMc=
+
+Name: net/fabricmc/fabric/api/client/command/v2/ClientCommandManager.cla
+ ss
+SHA-256-Digest: TEWcd8Nkk0vXCXSX6dve+EQ1zGmsQeqoakFAWAnVdc4=
+
+Name: net/fabricmc/fabric/impl/command/client/ClientCommandInternals.cla
+ ss
+SHA-256-Digest: dzlWngzWwwygA7z/bAtAk1u1agoFVVi4w7SIINCkYKw=
+
+Name: fabric-command-api-v2.client.mixins.json
+SHA-256-Digest: UwFWlXH7yNEPeAaRLXPQxT2nMfOTtAGEjB5x0oWUkRk=
+
+Name: net/fabricmc/fabric/mixin/command/ArgumentTypesAccessor.class
+SHA-256-Digest: xH3b8uuv5wtQyHCmsmB31RlM+kkw14V2RINiRGf93ME=
+
+Name: net/fabricmc/fabric/api/command/v2/CommandRegistrationCallback.cla
+ ss
+SHA-256-Digest: bBSe/IPceyZJ2ctuXJGJ7Rlky3BmrFEt+OrqiASvB/g=
+
+Name: net/fabricmc/fabric/mixin/command/client/ClientPlayNetworkHandlerM
+ ixin.class
+SHA-256-Digest: hF6q2YZi7LzW9pdcos3E2LZ8RS9gcum9eFe5jHv5hSw=
+
+Name: net/fabricmc/fabric/impl/command/client/package-info.class
+SHA-256-Digest: O0uWoiBnlPeCe2Fg+c+MqtsG0Ya1/hkc62GZmW4n6sk=
+
+Name: net/fabricmc/fabric/api/client/command/v2/ClientCommandRegistratio
+ nCallback.class
+SHA-256-Digest: eY8myap8LnvqRpfJXg1G32r35LBRk+suZczxA3O7qh8=
+
+Name: net/fabricmc/fabric/mixin/command/client/package-info.class
+SHA-256-Digest: Vop1+QFrtlr3KCJzimwebnOCNav55rXjLplpdzHTlsA=
+
+Name: fabric-command-api-v2.accesswidener
+SHA-256-Digest: OcYuE/v7g4bWJoKllIXjsn0BV2mgMLG894CUFZeD6Mw=
+
+Name: net/fabricmc/fabric/mixin/command/client/ClientCommandSourceMixin.
+ class
+SHA-256-Digest: v24bBu1ppaJ9ZWWO/BmZQtyRNhzvdU0WIJLLC/uQbjg=
+
+Name: net/fabricmc/fabric/api/client/command/v2/FabricClientCommandSourc
+ e.class
+SHA-256-Digest: Y/xznuyS8KVEVtWVn9h5CekMkZ+fVe8+Z+gdxE5UrPc=
+
+Name: net/fabricmc/fabric/api/command/v2/ArgumentTypeRegistry.class
+SHA-256-Digest: CjCs0fe/yxtCgEmmbjZkGA4bvn4RepvfNKF3QB85wA8=
+
+Name: fabric.mod.json
+SHA-256-Digest: kujyfBejNRM29iyid5VemV2j/J2duwxQMIIdxNEHYXs=
+
+Name: fabric-command-api-v2.mixins.json
+SHA-256-Digest: Zgk6Gjs4yVHNG72+qNaIeieE1PXrzexGofavosljL5Q=
+
+Name: net/fabricmc/fabric/mixin/command/package-info.class
+SHA-256-Digest: qBlTOHj+q/z8Gp1mk3Ttt/UzpZWdW61aA9xYMc+OiiE=
+
+Name: net/fabricmc/fabric/mixin/command/EntitySelectorOptionsAccessor.cl
+ ass
+SHA-256-Digest: KW6W2AYEVGE8ZDtsYZUdT5FfvMoNGJ+ih337JZDe2VE=
+
+Name: assets/fabric-command-api-v2/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/command/v2/EntitySelectorOptionRegistry.cl
+ ass
+SHA-256-Digest: bEoEDM5z8QL8VJedSK2KyMwWjuf+SVJs94rtdoKZBhg=
+
+Name: client-fabric-command-api-v2-refmap.json
+SHA-256-Digest: lO4/pMsX1H9NHefcRh3XFhfVBqZ+rVWrdBWsphIVVZg=
+
+Name: fabric-command-api-v2-refmap.json
+SHA-256-Digest: XMwt0KCPM77HaUS+tZ+2EnKMzkb4QGEEixlHSsFYo0w=
+
+Name: LICENSE-fabric-command-api-v2
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+

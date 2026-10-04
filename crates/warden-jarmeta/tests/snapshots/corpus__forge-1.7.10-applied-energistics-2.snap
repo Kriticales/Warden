@@ -1,0 +1,35 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.7.10-applied-energistics-2 (Minecraft 1.7.10, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "appliedenergistics2",
+      "version": "rv3-beta-6",
+      "name": "Applied Energistics 2",
+      "description": "A Mod about Matter, Energy and using them to conquer the world..",
+      "authors": [
+        "AlgorithmX2"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.7.10"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "appeng.transformer.AppEngCore",
+    "fmlCorePluginContainsMod": true
+  },
+  "classVersion": {
+    "major": 50,
+    "minor": 0
+  }
+}

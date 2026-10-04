@@ -1,0 +1,141 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-kotlin-for-forge (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "manifest": {
+    "fmlModType": "LIBRARY",
+    "automaticModuleName": "thedarkcolour.kotlinforforge"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/kfflang-4.12.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "thedarkcolour",
+        "artifact": "kfflang",
+        "artifactVersion": "4.12.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[4.12.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "LANGPROVIDER",
+          "implementationTitle": "kfflang",
+          "implementationVersion": "4.12.0",
+          "automaticModuleName": "thedarkcolour.kotlinforforge.kfflang"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kfflib-4.12.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "thedarkcolour",
+        "artifact": "kfflib",
+        "artifactVersion": "4.12.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[4.12.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "GAMELIBRARY",
+          "implementationTitle": "kfflib",
+          "implementationVersion": "4.12.0",
+          "automaticModuleName": "thedarkcolour.kotlinforforge.kfflib"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/kffmod-4.12.0.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "thedarkcolour",
+        "artifact": "kffmod",
+        "artifactVersion": "4.12.0",
+        "range": {
+          "dialect": "maven",
+          "spec": "[4.12.0,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "kotlinforforge",
+            "version": "4.12.0",
+            "name": "Kotlin For Forge",
+            "description": "Makes Kotlin forge-friendly",
+            "authors": [
+              "thedarkcolour"
+            ],
+            "licenses": [
+              "LGPL"
+            ],
+            "dependencies": [
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.19.3,1.21)"
+                }
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.19.3,1.21)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "kotlinforforge",
+          "version": {
+            "dialect": "maven",
+            "spec": "[4,)"
+          }
+        },
+        "manifest": {
+          "implementationTitle": "kffmod",
+          "implementationVersion": "4.12.0",
+          "automaticModuleName": "thedarkcolour.kotlinforforge.kffmod"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

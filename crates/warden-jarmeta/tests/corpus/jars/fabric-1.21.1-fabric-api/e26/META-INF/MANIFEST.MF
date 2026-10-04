@@ -1,0 +1,121 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: client-fabric-particles-v1-refmap.json;
+ fabric-particles-v1.client.mixins.json;net/fabricmc/fabric/api/client/p
+ article/v1/FabricSpriteProvider.class;net/fabricmc/fabric/api/client/pa
+ rticle/v1/ParticleFactoryRegistry$PendingParticleFactory.class;net/fabr
+ icmc/fabric/api/client/particle/v1/ParticleFactoryRegistry.class;net/fa
+ bricmc/fabric/api/client/particle/v1/ParticleRenderEvents$AllowBlockDus
+ tTint.class;net/fabricmc/fabric/api/client/particle/v1/ParticleRenderEv
+ ents.class;net/fabricmc/fabric/impl/client/particle/FabricSpriteProvide
+ rImpl.class;net/fabricmc/fabric/impl/client/particle/ParticleFactoryReg
+ istryImpl$DeferredParticleFactoryRegistry.class;net/fabricmc/fabric/imp
+ l/client/particle/ParticleFactoryRegistryImpl$DirectParticleFactoryRegi
+ stry.class;net/fabricmc/fabric/impl/client/particle/ParticleFactoryRegi
+ stryImpl.class;net/fabricmc/fabric/impl/client/particle/package-info.cl
+ ass;net/fabricmc/fabric/mixin/client/particle/BlockDustParticleMixin.cl
+ ass;net/fabricmc/fabric/mixin/client/particle/ParticleManagerAccessor$S
+ impleSpriteProviderAccessor.class;net/fabricmc/fabric/mixin/client/part
+ icle/ParticleManagerAccessor.class;net/fabricmc/fabric/mixin/client/par
+ ticle/ParticleManagerMixin.class;net/fabricmc/fabric/mixin/client/parti
+ cle/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/client/particle/v1/FabricSpriteProvider.cl
+ ass
+SHA-256-Digest: 6+GDW5/u7/+Gcexx2HMLPCcNUayOBTwJ2z5tKsxLZOs=
+
+Name: net/fabricmc/fabric/impl/client/particle/package-info.class
+SHA-256-Digest: 1Uqsgt7p4LSA+3T8IL+iD0lWcZF2DkNNTDrqr6e63Ls=
+
+Name: net/fabricmc/fabric/mixin/client/particle/package-info.class
+SHA-256-Digest: Ytsqje4AKA6NbCnbLowiWwt4aKGRF9WHzQZfUlUlbGQ=
+
+Name: net/fabricmc/fabric/mixin/client/particle/ParticleManagerAccessor$
+ SimpleSpriteProviderAccessor.class
+SHA-256-Digest: 3gvMAQLLb5Zb3/ZkHMG3RX7laONk+zfyXQNjbyxbl7I=
+
+Name: net/fabricmc/fabric/api/particle/v1/FabricParticleTypes$1.class
+SHA-256-Digest: Z9o81HR1qJ1xvcoVsoLlM/2iwIExIHbxDyiENaHDf/k=
+
+Name: client-fabric-particles-v1-refmap.json
+SHA-256-Digest: Ohi+XnC+ZhS/d8QhpxUwb9VC2B+Q+WRhnc4l46DFZPA=
+
+Name: assets/fabric-particles-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/particle/v1/FabricParticleTypes.class
+SHA-256-Digest: Xev6v+fCkd8CRUPX3phf3PNFUC6dY4sAzk9n0iPFQT0=
+
+Name: net/fabricmc/fabric/impl/client/particle/ParticleFactoryRegistryIm
+ pl.class
+SHA-256-Digest: 2Uxt3yWSgsFfmg7DlvOaVlxmzr+omApGdPHCABmUxF0=
+
+Name: net/fabricmc/fabric/mixin/client/particle/ParticleManagerAccessor.
+ class
+SHA-256-Digest: S4grO79YsowbsAvBYwElGtvreKOqPghF/L+wHTOcELM=
+
+Name: net/fabricmc/fabric/impl/client/particle/ParticleFactoryRegistryIm
+ pl$DirectParticleFactoryRegistry.class
+SHA-256-Digest: lHVE2Mltp4yrLLmPGf0T/cdSsSFQepIixj8ekOhSn20=
+
+Name: net/fabricmc/fabric/api/particle/v1/FabricParticleTypes$2.class
+SHA-256-Digest: yBYBoGqBNi15ZBT7hprlcx5d+Wc0w24q1bp7rQly7C8=
+
+Name: fabric-particles-v1.client.mixins.json
+SHA-256-Digest: R/+XFOWBqis46T20DBuNulgBHSCDO8tivQnpSV8NT/o=
+
+Name: net/fabricmc/fabric/mixin/client/particle/ParticleManagerMixin.cla
+ ss
+SHA-256-Digest: oQUqBwrSMp0Rb79Da0vQt7PeXnlCDQ4GRzjEx5Lmnhc=
+
+Name: LICENSE-fabric-particles-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/client/particle/v1/ParticleRenderEvents$Al
+ lowBlockDustTint.class
+SHA-256-Digest: YKxylNnuXKFRtYf6++vPxTzzfLYqbYwn+3Rirn4oTgg=
+
+Name: fabric.mod.json
+SHA-256-Digest: Q5UUbh/zeYtgEtwNuNFxCiRag4xAIJRel2WAMEqz6zM=
+
+Name: net/fabricmc/fabric/api/client/particle/v1/ParticleFactoryRegistry
+ .class
+SHA-256-Digest: IKduiAogffRNrNmFhVFy079wkJldi2i7kHgtAYXrBVo=
+
+Name: net/fabricmc/fabric/api/client/particle/v1/ParticleFactoryRegistry
+ $PendingParticleFactory.class
+SHA-256-Digest: u8zva43PYKT/fIs3JRfWV8ANAb9MgRLcao2ZCIlNhds=
+
+Name: fabric-particles-v1.accesswidener
+SHA-256-Digest: IP20c62xOGgnkM6ATQbIrSFsTMvyAzjD4/XwPrx8gnw=
+
+Name: net/fabricmc/fabric/mixin/client/particle/BlockDustParticleMixin.c
+ lass
+SHA-256-Digest: wuIMNgpI3znSBashqfGtYe7yZKFzgw+bsmALN6pY504=
+
+Name: net/fabricmc/fabric/impl/client/particle/FabricSpriteProviderImpl.
+ class
+SHA-256-Digest: Dx65tBahNYhD/tqA+A8NwE3++1kcnJfEGKjS4SvOviU=
+
+Name: net/fabricmc/fabric/impl/client/particle/ParticleFactoryRegistryIm
+ pl$DeferredParticleFactoryRegistry.class
+SHA-256-Digest: IyS7pPl5ZVb+CHvLzMHYakpFRqkaVnMmPWsewUwfwhE=
+
+Name: net/fabricmc/fabric/api/client/particle/v1/ParticleRenderEvents.cl
+ ass
+SHA-256-Digest: vmdo+vtr17BxN0qxDFpGH7hx5utUbcEvfrlJhvuzblU=
+
+Name: net/fabricmc/fabric/api/particle/v1/FabricParticleTypes$3.class
+SHA-256-Digest: ErU8AEPp87lB4VKnCHoseRF+7UEG2X+B1tH5FhtIv7U=
+

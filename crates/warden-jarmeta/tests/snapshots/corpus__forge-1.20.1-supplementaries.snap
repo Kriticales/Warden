@@ -1,0 +1,259 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-supplementaries (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "supplementaries",
+      "version": "1.20-3.1.43",
+      "name": "Supplementaries",
+      "description": "Many functional and useful Vanilla+ blocks",
+      "authors": [
+        "MehVahdJukaar, Plantkillable"
+      ],
+      "licenses": [
+        "Supplementaries Team License v.1.4"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[47.1,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20.1,1.20.2)"
+          },
+          "side": "client"
+        },
+        {
+          "id": "moonlight",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.20-2.16.26,]"
+          }
+        },
+        {
+          "id": "quark",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.19-3.4-404,]"
+          },
+          "ordering": "after"
+        },
+        {
+          "id": "create",
+          "kind": "optional",
+          "range": {
+            "dialect": "maven",
+            "spec": "[6.0.0,]"
+          },
+          "ordering": "after"
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.20.1,1.20.2)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[47.1,)"
+      },
+      "mixins": [
+        "supplementaries.mixins.json",
+        "supplementaries-common.mixins.json"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[4,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "supplementaries-common.mixins.json",
+      "supplementaries.mixins.json"
+    ]
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/mixinextras-forge-0.3.6.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "io.github.llamalad7",
+        "artifact": "mixinextras-forge",
+        "artifactVersion": "0.3.6",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.3.6,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "jarJarMetadata",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "mixinextras",
+            "version": "0.3.6",
+            "name": "MixinExtras",
+            "description": "Companion library to Mixin with lots of features to improve the compatibility and concision of your mixins!",
+            "authors": [
+              "LlamaLad7"
+            ],
+            "licenses": [
+              "MIT"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "*"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "mixinextras.init.mixins.json"
+          ],
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/MixinExtras-0.3.6.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "com.github.LlamaLad7",
+              "artifact": "MixinExtras",
+              "artifactVersion": "0.3.6",
+              "range": {
+                "dialect": "maven",
+                "spec": "[0.3.6,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {},
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "path": "META-INF/jars/mixinsquared-forge-0.1.1.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "com.github.bawnorton.mixinsquared",
+        "artifact": "mixinsquared-forge",
+        "artifactVersion": "0.1.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.1.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "jarJarMetadata",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "mixinsquared",
+            "version": "0.1.1",
+            "name": "MixinSquared",
+            "description": "Mixin library for mixin'ing into other mod's mixins",
+            "authors": [
+              "Bawnorton"
+            ],
+            "licenses": [
+              "MIT"
+            ]
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "*"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "mixinsquared.init.mixins.json"
+          ],
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 52,
+          "minor": 0
+        },
+        "nested": [
+          {
+            "path": "META-INF/jars/MixinSquared-0.1.1.jar",
+            "declaredBy": "jarJarMetadata",
+            "jarjar": {
+              "group": "com.github.Bawnorton",
+              "artifact": "MixinSquared",
+              "artifactVersion": "0.1.1",
+              "range": {
+                "dialect": "maven",
+                "spec": "[0.1.1,)"
+              }
+            },
+            "metadata": {
+              "descriptors": [
+                "manifest"
+              ],
+              "manifest": {},
+              "classVersion": {
+                "major": 52,
+                "minor": 0
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

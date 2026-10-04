@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Version: 1.3.33+561530ec77
+MixinConfigs: fabric-screen-handler-api-v1.mixins.json
+

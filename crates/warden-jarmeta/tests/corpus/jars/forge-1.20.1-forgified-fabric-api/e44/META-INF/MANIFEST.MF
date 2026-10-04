@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Version: 0.3.39+a6081afc77
+MixinConfigs: fabric-rendering-data-attachment-v1.mixins.json,fabric-ren
+ dering-data-attachment-v1.client.mixins.json
+

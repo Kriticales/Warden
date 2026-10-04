@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Apache-2.0"
+displayTest = "IGNORE_ALL_VERSION"
+
+[[mods]]
+  modId = "fabric_renderer_indigo"
+  version = "${file.jarVersion}"
+  displayName = "Fabric Renderer - Indigo"
+  logoFile = "assets/fabric-renderer-indigo/icon.png"
+  authors = "FabricMC"
+  description = "Default implementation of the Fabric Renderer API."
+provides = ["fabric-renderer-indigo"]
+
+    [[dependencies.fabric_renderer_indigo]]
+      modId = "forge"
+      mandatory = true
+      versionRange = "[47.1.3,)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_renderer_indigo]]
+      modId = "minecraft"
+      mandatory = true
+      versionRange = "[1.20.1,1.21)"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_renderer_indigo]]
+      modId = "fabric_api_base"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"
+
+    [[dependencies.fabric_renderer_indigo]]
+      modId = "fabric_renderer_api_v1"
+      mandatory = true
+      versionRange = "[0, )"
+      ordering = "NONE"
+      side = "BOTH"

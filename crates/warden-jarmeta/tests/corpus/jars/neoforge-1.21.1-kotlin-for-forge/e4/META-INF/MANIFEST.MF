@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Implementation-Title: kotlinx-coroutines-core
+Implementation-Version: 1.11.0
+Implementation-Vendor: JetBrains
+Premain-Class: kotlinx.coroutines.debug.internal.AgentPremain
+Can-Retransform-Classes: true
+Multi-Release: true
+

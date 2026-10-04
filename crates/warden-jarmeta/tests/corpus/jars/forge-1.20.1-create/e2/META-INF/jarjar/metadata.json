@@ -1,0 +1,15 @@
+{
+  "jars": [
+    {
+      "identifier": {
+        "group": "com.github.LlamaLad7",
+        "artifact": "MixinExtras"
+      },
+      "version": {
+        "range": "[0.4.1,)",
+        "artifactVersion": "0.4.1"
+      },
+      "path": "META-INF/jars/MixinExtras-0.4.1.jar"
+    }
+  ]
+}

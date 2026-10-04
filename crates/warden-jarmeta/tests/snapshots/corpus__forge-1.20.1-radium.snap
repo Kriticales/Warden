@@ -1,0 +1,68 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.20.1-radium (Minecraft 1.20.1, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "radium",
+      "version": "0.12.4+git.26c9d8e",
+      "name": "Radium",
+      "description": "A Forge port of mod designed to improve the general performance of Minecraft without breaking things",
+      "authors": [
+        "dima_dencep, NanoLive"
+      ],
+      "licenses": [
+        "LGPL-3.0-only"
+      ]
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "*"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "lithium.mixins.json"
+    ]
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jars/NanoLiveConfig-1.2.1.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "com.github.dima_dencep.mods",
+        "artifact": "NanoLiveConfig",
+        "artifactVersion": "1.2.1",
+        "range": {
+          "dialect": "maven",
+          "spec": "[1.2.1,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {},
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

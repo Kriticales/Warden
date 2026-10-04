@@ -1,0 +1,58 @@
+{
+	"schema_version": 1,
+	"quilt_loader": {
+		"group": "org.quiltmc.quilted-fabric-api",
+		"id": "quilted_fabric_object_builder_api_v1",
+		"version": "7.7.0+0.92.2-1.20.1",
+		"metadata": {
+			"name": "Quilted Fabric Object Builder API (v1)",
+			"description": "Builders for objects vanilla has locked down.",
+			"contributors": {
+				"The Quilt Project": "Owner",
+				"FabricMC": "Upstream Owner"
+			},
+			"contact": {
+				"homepage": "https://quiltmc.org",
+				"issues": "https://github.com/QuiltMC/quilted-fabric-api/issues",
+				"sources": "https://github.com/QuiltMC/quilted-fabric-api"
+			},
+			"license": "Apache-2.0",
+			"icon": "assets/quilted_fabric_object_builder_api_v1/icon.png"
+		},
+		"intermediate_mappings": "net.fabricmc:intermediary",
+		"depends": [
+			"quilt_loader",
+			"quilted_fabric_api_base",
+			"quilted_fabric_transitive_access_wideners_v1",
+			"quilt_advancement",
+			"quilt_block_entity",
+			"quilt_block_extensions",
+			"quilt_entity",
+			"quilt_point_of_interest",
+			"quilt_vehicle",
+			"quilt_villager"
+		],
+		"provides": [
+			{
+				"id": "fabric-object-builder-api-v1",
+				"version": "11.1.3"
+			}
+		]
+	},
+	"mixin": [
+		"quilted_fabric_object_builder_api_v1.mixins.json",
+		{
+			"config": "quilted_fabric_object_builder_api_v1.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"access_widener": "quilted_fabric_object_builder_api_v1.accesswidener",
+	"fabric-api:module-lifecycle": "deprecated",
+	"modmenu": {
+		"badges": [
+			"library"
+		],
+		"parent": "quilted_fabric_api"
+	}
+}
+

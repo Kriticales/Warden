@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Multi-Release: true
+Implementation-Vendor: JetBrains
+Implementation-Title: kotlinx-serialization-json
+Implementation-Version: 1.11.0
+

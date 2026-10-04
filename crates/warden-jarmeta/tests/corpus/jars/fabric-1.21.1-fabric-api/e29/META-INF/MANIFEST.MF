@@ -1,0 +1,177 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-renderer-api-v1;assets/f
+ abric-renderer-api-v1/icon.png;client-fabric-renderer-api-v1-refmap.jso
+ n;fabric-renderer-api-v1.debughud.mixins.json;fabric-renderer-api-v1.mi
+ xins.json;fabric.mod.json;net/fabricmc/fabric/api/renderer/v1/Renderer.
+ class;net/fabricmc/fabric/api/renderer/v1/RendererAccess.class;net/fabr
+ icmc/fabric/api/renderer/v1/material/BlendMode.class;net/fabricmc/fabri
+ c/api/renderer/v1/material/MaterialFinder.class;net/fabricmc/fabric/api
+ /renderer/v1/material/MaterialView.class;net/fabricmc/fabric/api/render
+ er/v1/material/RenderMaterial.class;net/fabricmc/fabric/api/renderer/v1
+ /material/ShadeMode.class;net/fabricmc/fabric/api/renderer/v1/mesh/Mesh
+ .class;net/fabricmc/fabric/api/renderer/v1/mesh/MeshBuilder.class;net/f
+ abricmc/fabric/api/renderer/v1/mesh/MutableQuadView.class;net/fabricmc/
+ fabric/api/renderer/v1/mesh/QuadEmitter$1.class;net/fabricmc/fabric/api
+ /renderer/v1/mesh/QuadEmitter.class;net/fabricmc/fabric/api/renderer/v1
+ /mesh/QuadView.class;net/fabricmc/fabric/api/renderer/v1/model/FabricBa
+ kedModel.class;net/fabricmc/fabric/api/renderer/v1/model/ForwardingBake
+ dModel.class;net/fabricmc/fabric/api/renderer/v1/model/ModelHelper.clas
+ s;net/fabricmc/fabric/api/renderer/v1/model/SpriteFinder.class;net/fabr
+ icmc/fabric/api/renderer/v1/model/WrapperBakedModel.class;net/fabricmc/
+ fabric/api/renderer/v1/render/RenderContext$BakedModelConsumer.class;ne
+ t/fabricmc/fabric/api/renderer/v1/render/RenderContext$QuadTransform.cl
+ ass;net/fabricmc/fabric/api/renderer/v1/render/RenderContext.class;net/
+ fabricmc/fabric/impl/renderer/RendererAccessImpl.class;net/fabricmc/fab
+ ric/impl/renderer/SpriteFinderImpl$Node.class;net/fabricmc/fabric/impl/
+ renderer/SpriteFinderImpl$SpriteFinderAccess.class;net/fabricmc/fabric/
+ impl/renderer/SpriteFinderImpl.class;net/fabricmc/fabric/impl/renderer/
+ VanillaModelEncoder.class;net/fabricmc/fabric/impl/renderer/package-inf
+ o.class;net/fabricmc/fabric/mixin/renderer/client/BakedModelMixin.class
+ ;net/fabricmc/fabric/mixin/renderer/client/MultipartBakedModelMixin.cla
+ ss;net/fabricmc/fabric/mixin/renderer/client/SpriteAtlasTextureMixin.cl
+ ass;net/fabricmc/fabric/mixin/renderer/client/WeightedBakedModelMixin.c
+ lass;net/fabricmc/fabric/mixin/renderer/client/debughud/DebugHudMixin.c
+ lass;net/fabricmc/fabric/mixin/renderer/client/debughud/package-info.cl
+ ass;net/fabricmc/fabric/mixin/renderer/client/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.7
+Fabric-Loom-Version: 1.6.11
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.21.1
+Fabric-Tiny-Remapper-Version: 0.10.1
+Fabric-Loader-Version: 0.15.11
+Fabric-Mixin-Version: 0.13.3+mixin.0.8.5
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: net/fabricmc/fabric/api/renderer/v1/mesh/QuadEmitter.class
+SHA-256-Digest: WlNPK8kV8fmRzAjXpEyJZYRNkUNq18ET2anO+kkKgi4=
+
+Name: net/fabricmc/fabric/api/renderer/v1/model/WrapperBakedModel.class
+SHA-256-Digest: SuX3Ccl8lyMHjYwdR3fz+MTNPN7OR1rasUl+CnysVNI=
+
+Name: net/fabricmc/fabric/impl/renderer/package-info.class
+SHA-256-Digest: 8QGfZPXY56AL9iTvBnzyui0sbfX482e26ri2ONWE7Y0=
+
+Name: net/fabricmc/fabric/api/renderer/v1/material/MaterialFinder.class
+SHA-256-Digest: QDBkQC2Sng7GZP0o1ok5muooXW8gTTzKxX/2NviW1y8=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/MultipartBakedModelMixin
+ .class
+SHA-256-Digest: xnzUm4buQm0BZE44zwP9z+ReVxJK3EBPXmWpLBTVGJQ=
+
+Name: net/fabricmc/fabric/api/renderer/v1/material/ShadeMode.class
+SHA-256-Digest: XM5ZCfCZ1UJaS0OSLuTyAgg8cel522vtMLYfUX51a0Q=
+
+Name: net/fabricmc/fabric/impl/renderer/SpriteFinderImpl$SpriteFinderAcc
+ ess.class
+SHA-256-Digest: pkJgqgJdP9Ni/vjgDmfKx3cPPLquPxlZaru0hNDsGO8=
+
+Name: net/fabricmc/fabric/api/renderer/v1/mesh/QuadEmitter$1.class
+SHA-256-Digest: vj2k4sdJMnKXdAyEZXKReWPe0LN9LiUZNesd4obm/7Q=
+
+Name: net/fabricmc/fabric/api/renderer/v1/mesh/QuadView.class
+SHA-256-Digest: W6OtJzS8WSE8wnB9Hsy7KPFQWlcWRim0nKxcP93AIZU=
+
+Name: LICENSE-fabric-renderer-api-v1
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/api/renderer/v1/material/RenderMaterial.class
+SHA-256-Digest: R/11y+kPqhgYxPDgHXBo5QC0VU/Ns5obcPIdRQbfUxs=
+
+Name: net/fabricmc/fabric/api/renderer/v1/model/SpriteFinder.class
+SHA-256-Digest: MLl7bEwdiQXagfGl8KseBIVIc1n3dGZ+KSt0KrwjTFU=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/WeightedBakedModelMixin.
+ class
+SHA-256-Digest: 4JU+j1mVqxlFrWEtuJDv9F5CCpopRpyy+Zl9NfGcfp8=
+
+Name: net/fabricmc/fabric/api/renderer/v1/render/RenderContext$BakedMode
+ lConsumer.class
+SHA-256-Digest: Snk/Tmzuf+soNYALqiqM27lJVtBn9fS2vYxXyA7xzIg=
+
+Name: fabric-renderer-api-v1.debughud.mixins.json
+SHA-256-Digest: HCaLQjM99dy+sPleC4zYMeyJcnDhiUzuyQk80zRbFu4=
+
+Name: net/fabricmc/fabric/api/renderer/v1/Renderer.class
+SHA-256-Digest: knvUwqFk2WRz1cEbL2BWvPA3aBYwIV7lJwyUA1Ck7i4=
+
+Name: client-fabric-renderer-api-v1-refmap.json
+SHA-256-Digest: Y+GN/deQx6GEyT4Y3UgOlJ/UrtAGQORCJk1yKcQlQns=
+
+Name: net/fabricmc/fabric/api/renderer/v1/model/FabricBakedModel.class
+SHA-256-Digest: lILJCMIChPlgVrCWU43Fa56ZWMflUQKH+w6hn6lZ2tw=
+
+Name: net/fabricmc/fabric/impl/renderer/SpriteFinderImpl.class
+SHA-256-Digest: lS+zRhQA5YhNVK9KnyMsnx7FSOTx7yxeOST9YViIyoo=
+
+Name: net/fabricmc/fabric/api/renderer/v1/RendererAccess.class
+SHA-256-Digest: 9JLfJahz00OQAYLkZ0vjoSRTueH5PbkZF/aAOaZBCfU=
+
+Name: net/fabricmc/fabric/api/renderer/v1/render/RenderContext.class
+SHA-256-Digest: MG9qyMxwdlsSH+ErOaO7Smaiq/1xmBx4vKLkfzsjTWQ=
+
+Name: net/fabricmc/fabric/impl/renderer/SpriteFinderImpl$Node.class
+SHA-256-Digest: AcEwgXX+bsMWm3HoCTuIMUvVT5wIISyeABeeI7sdxr0=
+
+Name: net/fabricmc/fabric/api/renderer/v1/material/BlendMode.class
+SHA-256-Digest: knvuH8z+yVjPFxHlgTv5f5pR28Y5fpEkh8p7LnW5KoA=
+
+Name: net/fabricmc/fabric/api/renderer/v1/material/MaterialView.class
+SHA-256-Digest: E2Z4SriBShjU00fGSq0EpsBTLlPJcUZmaI888RvEDO0=
+
+Name: net/fabricmc/fabric/api/renderer/v1/mesh/Mesh.class
+SHA-256-Digest: 510iCmYTHSfBwL8Nvmq6g02ZL5V/NGCms1aligAUeso=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/debughud/package-info.cl
+ ass
+SHA-256-Digest: zcv5LJRQpjtfHqEZ4HKFGmlZ2nFoZj94xkiho21E/Ww=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/debughud/DebugHudMixin.c
+ lass
+SHA-256-Digest: MU49O8lEHDGvp0xjtj1EhJ3iVNPVHTvoPLNvV0fnt3M=
+
+Name: assets/fabric-renderer-api-v1/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/api/renderer/v1/render/RenderContext$QuadTrans
+ form.class
+SHA-256-Digest: KTNlU9xHWrnriUcT7CrVIokE2neLMGIOVr0VQGoWAkI=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/package-info.class
+SHA-256-Digest: KSDL8uabvrW/zXD3XjqVCycKKhFkBngkq9CkS08irTo=
+
+Name: net/fabricmc/fabric/api/renderer/v1/model/ModelHelper.class
+SHA-256-Digest: IlC9RSScCVXKxSVHt0w0pii3G1klnBBQO9k6FTUMI0s=
+
+Name: net/fabricmc/fabric/api/renderer/v1/model/ForwardingBakedModel.cla
+ ss
+SHA-256-Digest: XwTx9XvgUC0IApXLA3OIQZR6rpaOGYmg3UJ7RwxlfT0=
+
+Name: net/fabricmc/fabric/api/renderer/v1/mesh/MutableQuadView.class
+SHA-256-Digest: YzE27Ynvv6Sow4VBs2e0x79eHbeE1JdV4zEXapNLg1Q=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/SpriteAtlasTextureMixin.
+ class
+SHA-256-Digest: v7BHNC9PzB+p9P4gzflrs2kjF6LQBCL4C7Ltkpx0ZSs=
+
+Name: fabric.mod.json
+SHA-256-Digest: utMYQW7GwvsLxYiNmRdsVvGwPJ/TjLa0dl7pRW7fwOU=
+
+Name: net/fabricmc/fabric/mixin/renderer/client/BakedModelMixin.class
+SHA-256-Digest: WuK1jTalr/ArzhmFXl0OJoJdkRjz25cWUmw2/P9QXIs=
+
+Name: net/fabricmc/fabric/impl/renderer/RendererAccessImpl.class
+SHA-256-Digest: PD1TXCKCkyVAzAGYO2V2/jjkx5mzIYwIV9ZLm7oa4rM=
+
+Name: net/fabricmc/fabric/impl/renderer/VanillaModelEncoder.class
+SHA-256-Digest: jqXrtPOX1jyLePrrGHta6YVucbHQjz9fgEE8/o9kX5I=
+
+Name: fabric-renderer-api-v1.mixins.json
+SHA-256-Digest: /4h/DNd/QfytGkKy06XYoal4/L/sAHLkOW6NGzmXuyU=
+
+Name: net/fabricmc/fabric/api/renderer/v1/mesh/MeshBuilder.class
+SHA-256-Digest: McfxKaK1U18pqcYnkzWKvSPXaxujnWg+zGpmm4Gbk5g=
+

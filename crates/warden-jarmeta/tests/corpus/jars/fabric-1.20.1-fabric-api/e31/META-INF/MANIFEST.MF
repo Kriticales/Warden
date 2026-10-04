@@ -1,0 +1,327 @@
+Manifest-Version: 1.0
+Fabric-Jar-Type: classes
+Fabric-Loom-Client-Only-Entries: LICENSE-fabric-renderer-indigo;assets/f
+ abric-renderer-indigo/icon.png;client-fabric-renderer-indigo-refmap.jso
+ n;fabric-renderer-indigo.accesswidener;fabric-renderer-indigo.mixins.js
+ on;fabric.mod.json;net/fabricmc/fabric/impl/client/indigo/Indigo$1.clas
+ s;net/fabricmc/fabric/impl/client/indigo/Indigo.class;net/fabricmc/fabr
+ ic/impl/client/indigo/IndigoMixinConfigPlugin.class;net/fabricmc/fabric
+ /impl/client/indigo/package-info.class;net/fabricmc/fabric/impl/client/
+ indigo/renderer/IndigoRenderer.class;net/fabricmc/fabric/impl/client/in
+ digo/renderer/accessor/AccessChunkRendererRegion.class;net/fabricmc/fab
+ ric/impl/client/indigo/renderer/accessor/package-info.class;net/fabricm
+ c/fabric/impl/client/indigo/renderer/aocalc/AoCalculator$1.class;net/fa
+ bricmc/fabric/impl/client/indigo/renderer/aocalc/AoCalculator.class;net
+ /fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoConfig.class;net/
+ fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoFace$Vertex2Float.
+ class;net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoFace$Wei
+ ghtFunction.class;net/fabricmc/fabric/impl/client/indigo/renderer/aocal
+ c/AoFace.class;net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/A
+ oFaceData.class;net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/
+ AoLuminanceFix.class;net/fabricmc/fabric/impl/client/indigo/renderer/ao
+ calc/AoVertexClampFunction.class;net/fabricmc/fabric/impl/client/indigo
+ /renderer/aocalc/VanillaAoHelper.class;net/fabricmc/fabric/impl/client/
+ indigo/renderer/aocalc/package-info.class;net/fabricmc/fabric/impl/clie
+ nt/indigo/renderer/helper/ColorHelper.class;net/fabricmc/fabric/impl/cl
+ ient/indigo/renderer/helper/GeometryHelper$1.class;net/fabricmc/fabric/
+ impl/client/indigo/renderer/helper/GeometryHelper.class;net/fabricmc/fa
+ bric/impl/client/indigo/renderer/helper/NormalHelper.class;net/fabricmc
+ /fabric/impl/client/indigo/renderer/helper/TextureHelper$VertexModifier
+ .class;net/fabricmc/fabric/impl/client/indigo/renderer/helper/TextureHe
+ lper.class;net/fabricmc/fabric/impl/client/indigo/renderer/helper/packa
+ ge-info.class;net/fabricmc/fabric/impl/client/indigo/renderer/material/
+ MaterialFinderImpl.class;net/fabricmc/fabric/impl/client/indigo/rendere
+ r/material/MaterialViewImpl.class;net/fabricmc/fabric/impl/client/indig
+ o/renderer/material/RenderMaterialImpl.class;net/fabricmc/fabric/impl/c
+ lient/indigo/renderer/material/package-info.class;net/fabricmc/fabric/i
+ mpl/client/indigo/renderer/mesh/EncodingFormat.class;net/fabricmc/fabri
+ c/impl/client/indigo/renderer/mesh/MeshBuilderImpl$Maker.class;net/fabr
+ icmc/fabric/impl/client/indigo/renderer/mesh/MeshBuilderImpl.class;net/
+ fabricmc/fabric/impl/client/indigo/renderer/mesh/MeshImpl.class;net/fab
+ ricmc/fabric/impl/client/indigo/renderer/mesh/MutableQuadViewImpl.class
+ ;net/fabricmc/fabric/impl/client/indigo/renderer/mesh/QuadViewImpl.clas
+ s;net/fabricmc/fabric/impl/client/indigo/renderer/mesh/package-info.cla
+ ss;net/fabricmc/fabric/impl/client/indigo/renderer/package-info.class;n
+ et/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractBlockRend
+ erContext$1.class;net/fabricmc/fabric/impl/client/indigo/renderer/rende
+ r/AbstractBlockRenderContext$2.class;net/fabricmc/fabric/impl/client/in
+ digo/renderer/render/AbstractBlockRenderContext$BakedModelConsumerImpl.
+ class;net/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractBl
+ ockRenderContext.class;net/fabricmc/fabric/impl/client/indigo/renderer/
+ render/AbstractRenderContext.class;net/fabricmc/fabric/impl/client/indi
+ go/renderer/render/BlockRenderContext$1.class;net/fabricmc/fabric/impl/
+ client/indigo/renderer/render/BlockRenderContext.class;net/fabricmc/fab
+ ric/impl/client/indigo/renderer/render/BlockRenderInfo.class;net/fabric
+ mc/fabric/impl/client/indigo/renderer/render/ChunkRenderInfo.class;net/
+ fabricmc/fabric/impl/client/indigo/renderer/render/ItemRenderContext$1.
+ class;net/fabricmc/fabric/impl/client/indigo/renderer/render/ItemRender
+ Context$BakedModelConsumerImpl.class;net/fabricmc/fabric/impl/client/in
+ digo/renderer/render/ItemRenderContext.class;net/fabricmc/fabric/impl/c
+ lient/indigo/renderer/render/TerrainRenderContext$1.class;net/fabricmc/
+ fabric/impl/client/indigo/renderer/render/TerrainRenderContext.class;ne
+ t/fabricmc/fabric/impl/client/indigo/renderer/render/package-info.class
+ ;net/fabricmc/fabric/mixin/client/indigo/renderer/BakedModelMixin.class
+ ;net/fabricmc/fabric/mixin/client/indigo/renderer/BlockModelRendererMix
+ in.class;net/fabricmc/fabric/mixin/client/indigo/renderer/ChunkBuilderB
+ uiltChunkRebuildTaskMixin.class;net/fabricmc/fabric/mixin/client/indigo
+ /renderer/ChunkRendererRegionMixin.class;net/fabricmc/fabric/mixin/clie
+ nt/indigo/renderer/ItemRendererMixin.class;net/fabricmc/fabric/mixin/cl
+ ient/indigo/renderer/package-info.class
+Fabric-Loom-Mixin-Remap-Type: mixin
+Fabric-Loom-Split-Environment: true
+Fabric-Gradle-Version: 8.5
+Fabric-Loom-Version: 1.5.4
+Fabric-Mixin-Compile-Extensions-Version: 0.6.0
+Fabric-Minecraft-Version: 1.20.1
+Fabric-Tiny-Remapper-Version: 0.10.0
+Fabric-Loader-Version: 0.16.10
+Fabric-Mixin-Version: 0.15.4+mixin.0.8.7
+Fabric-Mixin-Group: net.fabricmc
+Fabric-Mapping-Namespace: intermediary
+
+Name: client-fabric-renderer-indigo-refmap.json
+SHA-256-Digest: FHi+Drv+lgZ16vg7MSIBgGXtyufDXRsbDWvwHjNAt0o=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/TerrainRend
+ erContext.class
+SHA-256-Digest: TkXxWHyE690HVzdfpZ3ib4uMB4WyYgoy/bOCT76/uIs=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/ColorHelper
+ .class
+SHA-256-Digest: PO1iUATHvtfV6xs3+4y+azHBcIgo9QE6r0vr6dd8kuA=
+
+Name: net/fabricmc/fabric/impl/client/indigo/IndigoMixinConfigPlugin.cla
+ ss
+SHA-256-Digest: A5xjGCEfqERUj4uFQEycsobimRXAtpU/nUfHzkGRawI=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/NormalHelpe
+ r.class
+SHA-256-Digest: n5Oa6og7cr5sqxHaaYOX7/N5sOMwdeCZMFVEdKI+SyM=
+
+Name: net/fabricmc/fabric/mixin/client/indigo/renderer/ChunkRendererRegi
+ onMixin.class
+SHA-256-Digest: 4gqoO9SDu6biVZpUEjc7+LESmwXb4XlXFPrBGc9Dxh8=
+
+Name: net/fabricmc/fabric/mixin/client/indigo/renderer/BakedModelMixin.c
+ lass
+SHA-256-Digest: GTX+IOn7R5L8dETPzR1v73uBiyxD8Iy1dIa1uGcAYnI=
+
+Name: fabric-renderer-indigo.mixins.json
+SHA-256-Digest: tynuJm3E13GYzHeGGsUOnRf6nMx9EuQLrYjjA/O8veQ=
+
+Name: net/fabricmc/fabric/impl/client/indigo/Indigo$1.class
+SHA-256-Digest: e8g7bNqsWWspL2hIANw2XDJiguTDWFCXDSMNe2/yIdA=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/material/MaterialV
+ iewImpl.class
+SHA-256-Digest: UppwH8B56vamVCW4CWyNjfs3o3uuC8J5yNT1wXPGfHQ=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/BlockRender
+ Info.class
+SHA-256-Digest: Kwo5YOmjVGQKIxByhbd3K2xC8dfKn67/9TdOK5aBK/Q=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoVertexCla
+ mpFunction.class
+SHA-256-Digest: yAVgqz3KRC+0ZYHBpLEUGVktitiGx6q3KdIIsGFUdaA=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/MutableQuadVi
+ ewImpl.class
+SHA-256-Digest: cgeqUfmqZwbuKJm5p4g14CVJcVghMTUNvngn2GPS23w=
+
+Name: net/fabricmc/fabric/mixin/client/indigo/renderer/BlockModelRendere
+ rMixin.class
+SHA-256-Digest: h7yHzqAELHzDrQ/liDUa5+9nmYqV2Y9t5SZw0BGc4/k=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/package-inf
+ o.class
+SHA-256-Digest: MKd1adfU+PfIlEOVEfmAV3GOE5AgnmeHmauBH/79TcE=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/material/package-i
+ nfo.class
+SHA-256-Digest: 3RCqihOLb+k7EyQyfpUu5i9nZg5QBjE2RJi4FZQP+VI=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/BlockRender
+ Context.class
+SHA-256-Digest: t/QRA5+mAclH5VAEeM4TNNw2XhABPQz2Q1HTPsaPJik=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/EncodingForma
+ t.class
+SHA-256-Digest: 6UsZnVfCLK4psmv2uKNRlpxQ+9prAlh8gNs7k8hlzWk=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/ChunkRender
+ Info.class
+SHA-256-Digest: xB17tqibK+5irKkrr1aoUKXyCrHRkx0D//ZX3/EGVyU=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/MeshBuilderIm
+ pl$Maker.class
+SHA-256-Digest: Lt/nnyh8WmEUzkFY/8fX6uZvviy3yGim8ZvcK1Va5w8=
+
+Name: net/fabricmc/fabric/mixin/client/indigo/renderer/ItemRendererMixin
+ .class
+SHA-256-Digest: ROUkVfp4Fm5vOzsOnz0DQFFKaR65A6J6QaY3EcJ00oM=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/material/MaterialF
+ inderImpl.class
+SHA-256-Digest: vk0odxXq3xw7MHDw/tSmkvgEHmEmp/I9u20Bw4GRoYs=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoFace$Vert
+ ex2Float.class
+SHA-256-Digest: eDBuK4Q1z1K/zrZix3AoCw7q1upZ9DJQ7y3T95Mj4/k=
+
+Name: fabric.mod.json
+SHA-256-Digest: GUpa/NZ7j+db1BNROnz2FOkRls237SCDwImjQDcE3yw=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoConfig.cl
+ ass
+SHA-256-Digest: +zVL1YADF8Pffr/VZPF9dWw4DedTIdPSMga4zrnkwfg=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/GeometryHel
+ per$1.class
+SHA-256-Digest: +N74XD3oyoaLcVUor0wDIzcgKiqrvI4t51e7nOvbKDg=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/TextureHelp
+ er.class
+SHA-256-Digest: dg0pOofxxkPrQm9TDnwjJQHfcsWZsgHJXf2t96agNto=
+
+Name: net/fabricmc/fabric/mixin/client/indigo/renderer/package-info.clas
+ s
+SHA-256-Digest: LqgGsllMmZsh7lRKNbAyQ5/uL6Ak5Ozmc9b9m4L7Cu8=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractBlo
+ ckRenderContext$BakedModelConsumerImpl.class
+SHA-256-Digest: p0XuTvmB+yPxd4jQOVLRFO7hdRnf2gUgyxS+YC3OIAM=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/GeometryHel
+ per.class
+SHA-256-Digest: L7ztbVFoFnXmJ5QbYpz+PYJmajOAnFtx3RymBPQmA00=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/package-info.class
+SHA-256-Digest: HuIg28Yt/h20NC2ePwQnQlD8fftmKyu6nghZ5w0/phg=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoLuminance
+ Fix.class
+SHA-256-Digest: HJQkHME2CjfRd2hk/NWUw4lzPUZk5uEVELG5W10VEFE=
+
+Name: fabric-renderer-indigo.accesswidener
+SHA-256-Digest: gc3+P6KSuMxuQJ6P+7VJy5lbisX69bTST6JwMKPSLQw=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/accessor/package-i
+ nfo.class
+SHA-256-Digest: yRYFMmnabj9UMIClG8PsncPmU53K2SEuPrUyUfkYHv0=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/package-inf
+ o.class
+SHA-256-Digest: WXoCSoph3IkYgjpP+IkpBCJkIshuUwWjbzr2rqxl0/U=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/MeshImpl.clas
+ s
+SHA-256-Digest: k4/i+57r1P7+lAYlWxC5/DxDDLLUnbkkIWoM3V0mrPc=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/BlockRender
+ Context$1.class
+SHA-256-Digest: Oda8cJye/7iqJD0UQry0VR1LIYfD/qwmsB+CJ9lfi4Y=
+
+Name: assets/fabric-renderer-indigo/icon.png
+SHA-256-Digest: 0CAyOGNS2vzKNlujDuKHhoAmeEoybxUwWg9X7Ds1tEA=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoFaceData.
+ class
+SHA-256-Digest: qRafcM55+B7FKQNjBW1+Twz764IiVH9qdqbVAS0O4II=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/material/RenderMat
+ erialImpl.class
+SHA-256-Digest: jkn2qT63XGRCB+j8ebaFeIInZexXi4bakGbjBd0rSfE=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/IndigoRenderer.cla
+ ss
+SHA-256-Digest: 2xeD+fQjVauVaTxkYAUox6ijMTlikJqdJQ7GMzLZzPc=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoFace$Weig
+ htFunction.class
+SHA-256-Digest: Pwm1P2iU+KfcZDOJodfnWK/ArpWsutBMVgSWyOtWlGY=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/ItemRenderC
+ ontext.class
+SHA-256-Digest: BnsXIb9Aw4ykOKEVt/BKfMHX4gGjnEQtPDEGO2HrNpw=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractBlo
+ ckRenderContext.class
+SHA-256-Digest: C+zq4SuYJhbKewoe+5739zH7YjCt60HwGOD4NkH+JoU=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/QuadViewImpl.
+ class
+SHA-256-Digest: d7Qzrtz1fB43llWDgJjvoHRv7mLnOrhNMmOUZ/9ezwQ=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/TerrainRend
+ erContext$1.class
+SHA-256-Digest: UnCk0a0TMvEIukzwsMi6Zkh7RP2CMBsaxeTlKslskxY=
+
+Name: net/fabricmc/fabric/mixin/client/indigo/renderer/ChunkBuilderBuilt
+ ChunkRebuildTaskMixin.class
+SHA-256-Digest: hvqVFk368QiZ8d3tw/um78dvTqqj2b2wtQHeM9mk9io=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/MeshBuilderIm
+ pl.class
+SHA-256-Digest: n9H6u4BsnOrtAfHDSywpaMLROpqfDrKlhqiu4RoF4Ao=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoCalculato
+ r$1.class
+SHA-256-Digest: v+FAqCDj96xqHb1mP284Y02prJx8+Oa9rrg+kw+3fsI=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractBlo
+ ckRenderContext$1.class
+SHA-256-Digest: P08sLBYubXM2x3aYFSmb/OAeaj0wV4RhbLCAjkno+pw=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/helper/TextureHelp
+ er$VertexModifier.class
+SHA-256-Digest: tYFhasC8qu9YBnyAQLBv0hQfM3chs2G96Fimbr2piww=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/accessor/AccessChu
+ nkRendererRegion.class
+SHA-256-Digest: evtj2DVKRkq9zs7LioSinsi2Iw6lMlBe2KnZllEjnig=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoCalculato
+ r.class
+SHA-256-Digest: J42xSAei2dnLTOjUGMlN6d0gFw4mT21s7rXlzsJx+tA=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/package-inf
+ o.class
+SHA-256-Digest: hz2EE+Rm3gTmO0NFRPH1KMyYDCMJpt8ydCptzuW4om8=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/AoFace.clas
+ s
+SHA-256-Digest: 5gkhtVT2EMz4rRHl5ulq4pEF5wg99jsoPDMbPHgeKFM=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractRen
+ derContext.class
+SHA-256-Digest: LBJZvKFkdB585oN3BVh/QOIEbs7ARu86xct8keFDN+w=
+
+Name: LICENSE-fabric-renderer-indigo
+SHA-256-Digest: tAkwu8+AdEyGxGoSvJ2gVmQdcicWw3j1ZZueVV74M+E=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/ItemRenderC
+ ontext$BakedModelConsumerImpl.class
+SHA-256-Digest: RXvShy+9mvMyws0sVguwJ5xBdfFIFB4NRdPUurEz5zM=
+
+Name: net/fabricmc/fabric/impl/client/indigo/Indigo.class
+SHA-256-Digest: +xYTIWFHgkKyDEa/EI7cfXDPGqOKXmmMXrR49N93jdM=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/ItemRenderC
+ ontext$1.class
+SHA-256-Digest: IBfLjhiv861L6uLkLTeZjDdFPm72DHxiFbieHAw053A=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/aocalc/VanillaAoHe
+ lper.class
+SHA-256-Digest: SAnbBeya7jAJwFY0CVYHEHfpJkeY0y8sIBvmNg4lG90=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/render/AbstractBlo
+ ckRenderContext$2.class
+SHA-256-Digest: vGS0RqxZGMrLA7aaSJR4zwH07EJ4rj9P/2BTJVG8kFw=
+
+Name: net/fabricmc/fabric/impl/client/indigo/package-info.class
+SHA-256-Digest: A/xc16lBLYMjqOLT7J6wiqD2JV6O0LeWv5IDFssDqY0=
+
+Name: net/fabricmc/fabric/impl/client/indigo/renderer/mesh/package-info.
+ class
+SHA-256-Digest: cKKYyCW5G3bcNuYOv4ja19GasBH95t+ahMviX6lEqoQ=
+

@@ -1,0 +1,190 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.18.2-create (Minecraft 1.18.2, loader forge)"
+---
+{
+  "descriptors": [
+    "modsToml",
+    "jarJarMetadata",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "modsToml",
+      "loader": "forge",
+      "id": "create",
+      "version": "0.5.1.i",
+      "name": "Create",
+      "description": "Technology that empowers the player.",
+      "authors": [
+        "simibubi"
+      ],
+      "licenses": [
+        "MIT"
+      ],
+      "dependencies": [
+        {
+          "id": "forge",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[40.2.4,)"
+          }
+        },
+        {
+          "id": "minecraft",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[1.18.2,1.19)"
+          }
+        },
+        {
+          "id": "flywheel",
+          "kind": "required",
+          "range": {
+            "dialect": "maven",
+            "spec": "[0.6.11,0.6.12)"
+          },
+          "side": "client",
+          "ordering": "after"
+        }
+      ],
+      "minecraft": {
+        "dialect": "maven",
+        "spec": "[1.18.2,1.19)"
+      },
+      "loaderVersion": {
+        "dialect": "maven",
+        "spec": "[40.2.4,)"
+      }
+    }
+  ],
+  "languageLoader": {
+    "name": "javafml",
+    "version": {
+      "dialect": "maven",
+      "spec": "[40,)"
+    }
+  },
+  "manifest": {
+    "mixinConfigs": [
+      "create.mixins.json"
+    ],
+    "implementationTitle": "create-1.18.2",
+    "implementationVersion": "0.5.1.i"
+  },
+  "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "nested": [
+    {
+      "path": "META-INF/jarjar/Registrate-MC1.18.2-1.1.3.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "com.tterrag.registrate",
+        "artifact": "Registrate",
+        "artifactVersion": "MC1.18.2-1.1.3",
+        "range": {
+          "dialect": "maven",
+          "spec": "[MC1.18.2-1.1.3,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "manifest"
+        ],
+        "manifest": {
+          "fmlModType": "GAMELIBRARY"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    },
+    {
+      "path": "META-INF/jarjar/flywheel-forge-1.18.2-0.6.11-107.jar",
+      "declaredBy": "jarJarMetadata",
+      "jarjar": {
+        "group": "com.jozufozu.flywheel",
+        "artifact": "flywheel-forge-1.18.2",
+        "artifactVersion": "0.6.11-107",
+        "range": {
+          "dialect": "maven",
+          "spec": "[0.6.11,)"
+        }
+      },
+      "metadata": {
+        "descriptors": [
+          "modsToml",
+          "manifest"
+        ],
+        "mods": [
+          {
+            "source": "modsToml",
+            "loader": "forge",
+            "id": "flywheel",
+            "version": "0.6.11-107",
+            "name": "Flywheel",
+            "description": "A modern engine for modded minecraft.",
+            "authors": [
+              "Jozufozu, PepperCode1"
+            ],
+            "licenses": [
+              "MIT"
+            ],
+            "dependencies": [
+              {
+                "id": "forge",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[40.0.0,)"
+                },
+                "side": "client"
+              },
+              {
+                "id": "minecraft",
+                "kind": "required",
+                "range": {
+                  "dialect": "maven",
+                  "spec": "[1.18.2,1.19)"
+                },
+                "side": "client"
+              }
+            ],
+            "minecraft": {
+              "dialect": "maven",
+              "spec": "[1.18.2,1.19)"
+            },
+            "loaderVersion": {
+              "dialect": "maven",
+              "spec": "[40.0.0,)"
+            }
+          }
+        ],
+        "languageLoader": {
+          "name": "javafml",
+          "version": {
+            "dialect": "maven",
+            "spec": "[40,)"
+          }
+        },
+        "manifest": {
+          "mixinConfigs": [
+            "flywheel.mixins.json",
+            "flywheel.sodium.mixins.json"
+          ],
+          "implementationTitle": "flywheel-forge-1.18.2",
+          "implementationVersion": "0.6.11-107"
+        },
+        "classVersion": {
+          "major": 61,
+          "minor": 0
+        }
+      }
+    }
+  ]
+}

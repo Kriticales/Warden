@@ -1,0 +1,36 @@
+---
+source: crates/warden-jarmeta/tests/corpus.rs
+description: "forge-1.12.2-vintagefix (Minecraft 1.12.2, loader forge)"
+---
+{
+  "descriptors": [
+    "mcmodInfo",
+    "manifest"
+  ],
+  "mods": [
+    {
+      "source": "mcmodInfo",
+      "loader": "forge",
+      "id": "vintagefix",
+      "version": "0.7.1",
+      "name": "VintageFix",
+      "description": "A backport of FerriteCore to 1.12.2",
+      "authors": [
+        "embeddedt"
+      ],
+      "minecraft": {
+        "dialect": "exact",
+        "version": "1.12.2"
+      }
+    }
+  ],
+  "manifest": {
+    "fmlCorePlugin": "org.embeddedt.vintagefix.core.VintageFixCore",
+    "fmlCorePluginContainsMod": true,
+    "fmlAccessTransformer": "vintagefix_at.cfg"
+  },
+  "classVersion": {
+    "major": 52,
+    "minor": 0
+  }
+}
