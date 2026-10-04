@@ -1,6 +1,6 @@
 # Warden — Arquitetura técnica
 
-> Versão do documento: 1.3 (2026-10-02). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor; e na tarefa D5 com o **Warden 1.1 "Profissional"** (ADR-0039 a ADR-0047): crate `warden-security`, módulos novos e os ganchos que a v1 deixa prontos (§21).
+> Versão do documento: 1.4 (2026-10-04). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor; e na tarefa D5 com o **Warden 1.1 "Profissional"** (ADR-0039 a ADR-0047): crate `warden-security`, módulos novos e os ganchos que a v1 deixa prontos (§21); e na tarefa D6 com o **desenvolvimento direto no Windows** (ADR-0048): toolchain, `.gitattributes`, `xtask`, pastas de desenvolvimento e cofre de teste.
 > Público: agentes de implementação e orquestrador. O dono pode ler a §1 para ter a visão geral.
 > Fonte de verdade das decisões: `docs/decisions/` (ADRs citados como ADR-00NN). O que é produto está em `SPEC.md`; padrões obrigatórios em `QUALITY.md`; ordem de construção em `ROADMAP.md`.
 
@@ -63,7 +63,7 @@ Princípios:
 Warden/
 ├── Cargo.toml                    # workspace: membros, [workspace.dependencies], [workspace.lints]
 ├── Cargo.lock
-├── rust-toolchain.toml           # canal fixo (1.98.1), componentes rustfmt/clippy, alvo x86_64-pc-windows-msvc
+├── rust-toolchain.toml           # canal fixo (1.98.1), componentes rustfmt/clippy; alvo nativo (Windows MSVC; Linux na CI)
 ├── rustfmt.toml  clippy.toml  deny.toml  .config/nextest.toml
 ├── package.json  pnpm-workspace.yaml  pnpm-lock.yaml  .npmrc  .nvmrc   # Node 24, pnpm 12
 ├── .editorconfig  .gitattributes  .gitignore
@@ -102,7 +102,8 @@ Regras do monorepo:
 - Uma crate por domínio; crates não dependem de `tauri` (verificado por `cargo xtask check-deps`, que falha se alguma crate fora de `warden-app` tiver `tauri` na árvore de dependências).
 - Dependências e versões declaradas uma vez em `[workspace.dependencies]`; crates usam `dep.workspace = true`.
 - Lints declarados em `[workspace.lints]` (QUALITY §2); toda crate de domínio e a `warden-app` têm `[lints] workspace = true`. O `xtask` declara lints próprios (permite `println!` e `anyhow`).
-- `.gitattributes` da raiz: `* text=auto eol=lf`, exceto fixtures de packwiz (`crates/warden-packwiz/tests/fixtures/** -text`) e binários.
+- `.gitattributes` da raiz: `* text=auto eol=lf`, exceto `*.cmd` e `*.bat` (`eol=crlf`), fixtures de packwiz (`crates/warden-packwiz/tests/fixtures/** -text`) e binários. O git do repositório usa `core.autocrlf=false` (QUALITY §13.2).
+- O desenvolvimento é no Windows nativo e a CI roda também em Linux (ADR-0048): o `xtask` é o único ponto de automação e funciona nas duas plataformas, sem bash; a pasta `target` de cada worktree fica com até 100 caracteres de caminho (QUALITY §13.3).
 - Arquivos de registro compartilhados são **acréscimo-apenas** (uma linha por entrada), como `apps/desktop/src-tauri/src/commands/mod.rs` (registro de comandos), `apps/desktop/src/app/navigation.ts` e `apps/desktop/src/i18n/index.ts`. A lista completa está em ROADMAP §1. Conflitos neles são resolvidos pelo orquestrador na integração.
 
 ## 3. Crates Rust e dependências
@@ -136,7 +137,7 @@ Regras do monorepo:
 | `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação; P1 (D4): pacote para servidor nas duas variantes (§12.1). | core, packwiz, packwiz-cli, project |
 | `warden-secrets` | Armazenamento de segredos: cofre do sistema (`keyring`, padrão) ou arquivo `.env` na pasta de configuração (escolha do usuário, ADR-0025), migração entre os dois, `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
-| `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `win-dev`, `win-install` (F0-04); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes; L-07 acrescenta o `packwiz-installer.jar`); `notices` (A-02); `check-kits` (P1-18: valida kits e mods iniciais contra a API do Modrinth). | — (ferramenta) |
+| `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `preview` (F0-04: gera ou baixa da CI o instalador, instala e abre a versão de teste); `e2e-driver` (F0-06: `msedgedriver` da versão do WebView2); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes; L-07 acrescenta o `packwiz-installer.jar`); `notices` (A-02); `check-kits` (P1-18: valida kits e mods iniciais contra a API do Modrinth). | — (ferramenta) |
 
 Na 1.1 (§21), crescem também: `warden-diagnostics` (manutenção, lista de mods e versão do jogador, itens repetidos, categorias novas da saúde), `warden-jarmeta` (materiais, tags e geração de minério), `warden-perf` (histórico de desempenho), `warden-project` (notas e grupos, troca por substituto), `warden-discovery` (busca de parecidos) e `warden-versioning` (notas no resumo, checagens do Publicar).
 
@@ -904,6 +905,8 @@ Identificador do app: `dev.kriticales.warden`.
 | Configuração | `%APPDATA%\dev.kriticales.warden\` | `~/.config/dev.kriticales.warden/` | `settings.json` (com `schemaVersion`; D4: `eulaAcceptedAt`), `packs.json` (registro: id → caminho, último teste, preferências de teste do pack e, na D4, os perfis do teste e a última nota de saúde, repositório e visibilidade no GitHub), `.env` (só se o usuário escolher guardar as chaves em arquivo; §14). |
 | Dados locais | `%LOCALAPPDATA%\dev.kriticales.warden\` | `~/.local/share/dev.kriticales.warden/` | ver abaixo |
 
+Desenvolvimento (ADR-0048): só em build de debug, se `WARDEN_DATA_ROOT` estiver definida, a configuração e os dados locais ficam em `<WARDEN_DATA_ROOT>/config/` e `<WARDEN_DATA_ROOT>/data/`, e a instância única vale só entre cópias com a mesma pasta. `cargo xtask dev` usa `%LOCALAPPDATA%\Warden-dev\<worktree>\`; testes e E2E, uma pasta temporária. Assim o app de desenvolvimento nunca toca nas pastas do Warden instalado. Em build de release a variável não existe.
+
 Dentro de "dados locais":
 
 ```
@@ -955,7 +958,7 @@ ADR-0025 (substitui a ADR-0017).
   - **`keyring` (padrão):** Gerenciador de Credenciais no Windows, Secret Service no Linux; serviço `dev.kriticales.warden`, contas `curseforge-api-key`, `gemini-api-key`, `github-token`.
   - **`envfile`:** arquivo `.env` na pasta de configuração (§13), com `CURSEFORGE_API_KEY`, `GEMINI_API_KEY` e `GITHUB_TOKEN` (aspas simples, como o `.env` de desenvolvimento, porque a chave da CurseForge começa com `$2a$`). Escrita atômica (`.warden-tmp` + renomeação); no Linux, permissão `0600`. Leitura tolerante (linhas desconhecidas são preservadas e ignoradas).
 - **Troca de modo** (`secrets_backend_set`): para cada segredo, grava no destino, relê para conferir e só então apaga da origem; ao fim, grava o modo novo em `settings.json`. Falha no meio: o modo continua o antigo, e o que já foi copiado ao destino é apagado. Voltar para o cofre apaga o `.env`.
-- Há também uma implementação de teste em arquivo temporário, selecionável só em build de debug por `WARDEN_SECRET_BACKEND=file:<pasta>`, usada pelos testes e E2E no WSL e no runner Linux, onde não há Secret Service. O teste com o cofre real roda na CI Windows.
+- Há também uma implementação de teste em arquivo temporário, selecionável só em build de debug por `WARDEN_SECRET_BACKEND=file:<pasta>`, usada por `cargo xtask dev`, pelos testes e pelos E2E, tanto no Windows do desenvolvimento (para nunca tocar no cofre real do dono) quanto no runner Linux, onde não há Secret Service. O teste com o cofre real do Windows fica marcado `#[ignore = "cofre-real"]` e roda só na CI Windows; o roteiro manual dos marcos confere o cofre real com a versão instalada (ADR-0048).
 - Valores circulam como `secrecy::SecretString` (o `Debug` imprime `[REDACTED]`), são lidos só no momento do uso e nunca vão para a interface: a interface só conhece `secrets_status() → { backend, curseforge: bool, gemini: bool, github: bool }`.
 - Desenvolvimento: só em build de debug, se o armazenamento escolhido não tiver a chave, `warden-secrets` lê `CURSEFORGE_API_KEY`, `GEMINI_API_KEY` e `GITHUB_TOKEN` do ambiente. `cargo xtask dev` e `cargo xtask test-network` carregam o `.env` do **repositório** principal (descoberto por `git rev-parse --git-common-dir`, sem copiar o arquivo e sem imprimir valores). Esse `.env` de desenvolvimento não tem relação com o `.env` opcional da pasta de configuração. Em build de release a leitura do ambiente não existe (`#[cfg(debug_assertions)]`).
 - CI: testes de rede usam o segredo `CURSEFORGE_API_KEY` do GitHub Actions, só no workflow agendado/manual.
