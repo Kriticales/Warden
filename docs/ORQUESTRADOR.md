@@ -28,7 +28,7 @@ Este guia é para a sessão que conduz o projeto. Ele resume o papel, o dono, as
    - a chave da CurseForge fica no `.env` da raiz e nunca aparece em log, chat, commit ou página;
    - antes de integrar, procure a chave real no diff da branch (ver §5) e confirme zero ocorrências;
    - a senha do Linux do dono **nunca** é guardada em lugar nenhum.
-5. Instalar pacotes de sistema com sudo no WSL: o dono autorizou. No Windows, peça antes.
+5. Instalar programas no Windows: peça antes. O Warden não usa mais o WSL (§9).
 6. Integração no `main`: fast-forward quando der (`git merge --ff-only <branch>`), depois `git push origin main`.
 7. Commits terminam com `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 8. Mantenha atualizados: a tabela de tarefas (§8), a sua memória do Claude Code e a nota do ai-memory (§9).
@@ -150,15 +150,12 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 3. **Sinal verde para começar a construção:** onda 0 = F0-01 (esqueleto) + spikes S-R5-1 a S-R5-4.
    - o S-R5-4 precisa da **chave do Gemini**;
    - o S-R5-2 precisa de um **teste curto no Windows**.
-4. **Ajustar o plano ao desenvolvimento no Windows.** O ROADMAP e o QUALITY foram escritos para desenvolver no WSL e abrir o app no Windows (F0-04 "Abrir o app no Windows a partir do WSL", `cargo xtask win-dev`). Com o Orca no Windows, o natural é desenvolver direto no Windows e deixar o Linux só na CI.
-   - Proponha ao dono uma tarefa curta de documentação (D6) para revisar F0-01, F0-04, QUALITY e ARCHITECTURE nesse ponto **antes** da F0-01.
-   - Confira também os pré-requisitos do Tauri no Windows: Rust já está instalado; falta verificar o MSVC Build Tools e o WebView2.
+4. **Ajustar o plano ao desenvolvimento no Windows.** O ROADMAP e o QUALITY foram escritos para desenvolver no WSL e abrir o app no Windows (F0-04 "Abrir o app no Windows a partir do WSL", `cargo xtask win-dev`). Em 04/10/2026 o dono mandou migrar o projeto para o Windows: tarefa **D6** (documentação), antes da F0-01. Desenvolvimento direto no Windows; Linux só na CI.
+   - Pré-requisitos do Tauri no Windows conferidos em 03/10/2026: MSVC Build Tools 2022 (17.14), WebView2, Rust stable `x86_64-pc-windows-msvc`, Node 24 e pnpm 12. Nada falta.
 5. Ações do dono previstas no ROADMAP §2:
    - criar o segredo `CURSEFORGE_API_KEY` no GitHub Actions antes da F0-02 (o orquestrador pode fazer isso com o `gh`, lendo do `.env`, se o dono autorizar);
    - criar um token do GitHub antes da V-03.
-6. Limpezas oferecidas e não respondidas:
-   - apagar uns 15 GB de dados do spike no WSL (`~/.local/share/warden-spike`);
-   - remover o repositório apt quebrado do wslu no WSL.
+6. ~~Limpezas no WSL~~: feitas em 04/10/2026 com autorização do dono (ver §9).
 
 **Histórico de tarefas:**
 
@@ -173,6 +170,7 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 | R5A/R5B pesquisas avançadas | main | 11393ad |
 | D4 funções avançadas da v1 | docs/v1-completo | integrada (1d15a99) |
 | D5 Warden 1.1 Profissional | docs/v1-1-profissional | integrada (528352c) |
+| D6 desenvolvimento no Windows | docs/d6-desenvolvimento-windows | em andamento (despachada em 04/10/2026) |
 
 O histórico completo, com os ids do Superset, está em `mudanca-superset/pacote/orquestrador/state.md`.
 
@@ -188,12 +186,14 @@ O histórico completo, com os ids do Superset, está em `mudanca-superset/pacote
   - os comentários das páginas antigas.
 
   Veja `mudanca-superset/COMECE-AQUI.md`.
-- **Cópia antiga no WSL:** `/home/solel/.superset/projects/Warden` (Ubuntu). Ela fica como reserva, não trabalhe nela. Acesse com `wsl -e bash -lc "..."`.
-- **ai-memory:**
-  - o servidor continua no WSL (`127.0.0.1:49374`) e já está registrado no Claude Code do Windows; o WSL precisa estar aberto;
+- **WSL: o Warden não usa mais.** Em 04/10/2026, com autorização do dono, foram apagados do Ubuntu o checkout antigo, os worktrees do Superset, os dados do spike S1, a pesquisa R5 e a cópia dos arquivos do orquestrador. O que era único e pequeno (scripts dos experimentos do R5 e logs do spike) está em `mudanca-superset/pacote/wsl-sobras/`. A fonte apt quebrada do wslu foi movida para `/root/apt-removidos/`. O disco virtual do Ubuntu continua no C: (outros projetos ainda usam o WSL).
+- **ai-memory (nativo no Windows desde 04/10/2026):**
+  - binário em `%LOCALAPPDATA%\Programs\ai-memory\ai-memory.exe` (2.4.0), dados em `%LOCALAPPDATA%\ai-memory`;
+  - a tarefa agendada `ai-memory` sobe o servidor no logon do dono por `servidor.ps1`, que o religa se cair (registro em `logs\servidor-reinicios.log`);
+  - servidor em `127.0.0.1:49374`, com os hooks de captura no Claude Code do Windows; o serviço antigo do WSL está desabilitado;
   - use workspace `default` e project `Warden` em toda chamada;
   - páginas do projeto: `_rules/orquestracao-warden.md` (fixada) e `notes/estado-do-projeto.md`.
-- **Ferramentas no Windows:** git, gh (logado como Kriticales), node, pnpm, Rust (cargo/rustc) e o Claude Code. Java não está instalado; o motor do launcher baixa o Java do Minecraft sozinho.
+- **Ferramentas no Windows:** git, gh (logado como Kriticales), node, pnpm, Rust (cargo/rustc, `cargo-tauri`), MSVC Build Tools 2022, WebView2 e o Claude Code. Java não está instalado; o motor do launcher baixa o Java do Minecraft sozinho.
 - **Armadilhas:**
   - o protótipo só funciona servido por HTTP;
   - a CurseForge não permite guardar as respostas da API em cache persistente;
