@@ -25,7 +25,15 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `which` | 8.0.6 | MIT | `xtask` | Localizar `pnpm.cmd`/`node` no `PATH` do Windows. |
 | `base64` | 0.23.1 | MIT OR Apache-2.0 | `xtask` | Decodificar a chave embutida do packwiz para provar que ela não está no sidecar (F0-03). |
 | `sha2` | 0.10.9 | MIT OR Apache-2.0 | `xtask` | SHA-256 dos patches e dos executáveis no registro do `build-packwiz` (F0-03). Mesma versão que o Tauri já usa. |
-| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03). |
+| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05). |
+| `ulid` | 3.0.0 | MIT | `warden-core` | `PackId` e `OperationId` ordenáveis (ARCHITECTURE §13). |
+| `tokio-util` | 0.7.19 | MIT | `warden-core` | `CancellationToken` (ARCHITECTURE §15). |
+| `junction` | 2.1.0 | MIT | `warden-core` (testes, Windows) | Criar junções do NTFS nos testes do `resolve_inside`, sem `cmd /c mklink`. |
+| `secrecy` | 0.10.3 | MIT OR Apache-2.0 | `warden-secrets` | `SecretString`: o `Debug` não mostra o valor (QUALITY §9). |
+| `keyring-core` | 1.0.0 | MIT OR Apache-2.0 | `warden-secrets` | Cofre do sistema (ADR-0025); sucessor mantido do `keyring` 3. |
+| `windows-native-keyring-store` | 1.1.0 | MIT OR Apache-2.0 | `warden-secrets` (Windows) | Gerenciador de Credenciais do Windows para o `keyring-core`. |
+| `zbus-secret-service-keyring-store` | 1.0.1 | MIT OR Apache-2.0 | `warden-secrets` (Linux) | Secret Service do Linux para o `keyring-core` (só compila na CI). |
+| `tracing` | 0.1.44 | MIT | `warden-secrets`, `warden-app` | Registros com contexto (ARCHITECTURE §16). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

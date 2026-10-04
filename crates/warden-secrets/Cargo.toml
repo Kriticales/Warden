@@ -6,8 +6,31 @@ edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
+[features]
+# Pontos de falha da troca de modo (QUALITY §4.1). Nunca ligada no app.
+fault-injection = ["warden-core/fault-injection"]
+
 [dependencies]
+keyring-core.workspace = true
+secrecy.workspace = true
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tracing.workspace = true
 warden-core.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-native-keyring-store.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+zbus-secret-service-keyring-store = { workspace = true, features = ["rt-tokio-crypto-rust"] }
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+ulid.workspace = true
+warden-core = { workspace = true, features = ["fault-injection"] }
 
 [lints]
 workspace = true
