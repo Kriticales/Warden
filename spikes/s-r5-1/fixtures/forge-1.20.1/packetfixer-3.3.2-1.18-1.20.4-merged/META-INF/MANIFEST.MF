@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Specification-Title: Packet Fixer
+Specification-Vendor: TonimatasDEV
+Specification-Version: 3.3.2-1.18-1.20.4
+Implementation-Title: Packet Fixer
+Implementation-Version: 3.3.2-1.18-1.20.4
+Implementation-Vendor: TonimatasDEV
+Implementation-Timestamp: 2026-04-04T11:12:12.595662896Z
+MixinConfigs: packetfixer.v1_18.forge.mixins.json,packetfixer.v1_19.forg
+ e.mixins.json,packetfixer.v1_19_3.forge.mixins.json,packetfixer.v1_19_4
+ .forge.mixins.json,packetfixer.v1_20_2.forge.mixins.json
+

@@ -1,0 +1,7 @@
+# Nada de binários, jars, packs ou saídas grandes no git.
+/harness/target/
+*.jar
+*.mrpack
+/out/
+__pycache__/
+*.pyc

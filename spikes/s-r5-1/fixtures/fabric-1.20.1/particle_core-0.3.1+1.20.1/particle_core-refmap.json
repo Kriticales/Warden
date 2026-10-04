@@ -1,0 +1,158 @@
+{
+  "mappings": {
+    "me/fzzyhmstrs/particle_core/mixins/BillboardParticleMixin": {
+      "buildGeometry": "Lnet/minecraft/class_3940;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+      "net/minecraft/client/particle/BillboardParticle.getSize(F)F": "Lnet/minecraft/class_3940;method_18132(F)F"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/BillboardParticleVertexMixin": {
+      "buildGeometry": "Lnet/minecraft/class_3940;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+      "net/minecraft/client/render/VertexConsumer.color(FFFF)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22915(FFFF)Lnet/minecraft/class_4588;",
+      "net/minecraft/client/render/VertexConsumer.light(I)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22916(I)Lnet/minecraft/class_4588;",
+      "net/minecraft/client/render/VertexConsumer.next()V": "Lnet/minecraft/class_4588;method_1344()V",
+      "net/minecraft/client/render/VertexConsumer.texture(FF)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22913(FF)Lnet/minecraft/class_4588;",
+      "net/minecraft/client/render/VertexConsumer.vertex(DDD)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22912(DDD)Lnet/minecraft/class_4588;"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/FrustumAccessor": {
+      "frustumIntersection": "field_40823:Lorg/joml/FrustumIntersection;",
+      "x": "field_20995:D",
+      "y": "field_20996:D",
+      "z": "field_20997:D"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/LivingEntityMixin": {
+      "net/minecraft/world/World.addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V": "Lnet/minecraft/class_1937;method_8406(Lnet/minecraft/class_2394;DDDDDD)V",
+      "tickStatusEffects": "Lnet/minecraft/class_1309;method_6050()V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleAccessor": {
+      "x": "field_3874:D",
+      "y": "field_3854:D",
+      "z": "field_3871:D"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleBrightnessCacheMixin": {
+      "getBrightness": "Lnet/minecraft/class_703;method_3068(F)I",
+      "net/minecraft/client/render/WorldRenderer.getLightmapCoordinates(Lnet/minecraft/world/BlockRenderView;Lnet/minecraft/util/math/BlockPos;)I": "Lnet/minecraft/class_761;method_23794(Lnet/minecraft/class_1920;Lnet/minecraft/class_2338;)I"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerAsyncMixin": {
+      "<init>": "Lnet/minecraft/class_702;<init>(Lnet/minecraft/class_638;Lnet/minecraft/class_1060;)V",
+      "addParticle(Lnet/minecraft/client/particle/Particle;)V": "Lnet/minecraft/class_702;method_3058(Lnet/minecraft/class_703;)V",
+      "tick": "Lnet/minecraft/class_702;method_3057()V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerCachedLightMixin": {
+      "net/minecraft/client/particle/Particle.tick()V": "Lnet/minecraft/class_703;method_3070()V",
+      "tick": "Lnet/minecraft/class_702;method_3057()V",
+      "tickParticle": "Lnet/minecraft/class_702;method_3059(Lnet/minecraft/class_703;)V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerCachedPosMixin": {
+      "net/minecraft/client/particle/Particle.tick()V": "Lnet/minecraft/class_703;method_3070()V",
+      "tickParticle": "Lnet/minecraft/class_702;method_3059(Lnet/minecraft/class_703;)V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerCountMixin": {
+      "tick": "Lnet/minecraft/class_702;method_3057()V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerFrustumMixin": {
+      "Lnet/minecraft/client/particle/ParticleManager;addParticle(Lnet/minecraft/client/particle/Particle;)V": "Lnet/minecraft/class_702;method_3058(Lnet/minecraft/class_703;)V",
+      "addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)Lnet/minecraft/client/particle/Particle;": "Lnet/minecraft/class_702;method_3056(Lnet/minecraft/class_2394;DDDDDD)Lnet/minecraft/class_703;",
+      "net/minecraft/client/particle/Particle.buildGeometry(Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/client/render/Camera;F)V": "Lnet/minecraft/class_703;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+      "renderParticles": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerRenderDistanceMixin": {
+      "net/minecraft/client/particle/Particle.buildGeometry(Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/client/render/Camera;F)V": "Lnet/minecraft/class_703;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+      "renderParticles": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleManagerRotationMixin": {
+      "renderParticles": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/ParticleMoveAdjustMixin": {
+      "move(DDD)V": "Lnet/minecraft/class_703;method_3069(DDD)V",
+      "net/minecraft/entity/Entity.adjustMovementForCollisions(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Box;Lnet/minecraft/world/World;Ljava/util/List;)Lnet/minecraft/util/math/Vec3d;": "Lnet/minecraft/class_1297;method_20736(Lnet/minecraft/class_1297;Lnet/minecraft/class_243;Lnet/minecraft/class_238;Lnet/minecraft/class_1937;Ljava/util/List;)Lnet/minecraft/class_243;"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/WorldRendererDecreaseMixin": {
+      "getRandomParticleSpawnChance": "Lnet/minecraft/class_761;method_3268(Z)Lnet/minecraft/class_4066;",
+      "net/minecraft/client/option/SimpleOption.getValue()Ljava/lang/Object;": "Lnet/minecraft/class_7172;method_41753()Ljava/lang/Object;"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/WorldRendererFrustumMixin": {
+      "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
+    },
+    "me/fzzyhmstrs/particle_core/mixins/WorldRendererTypeMixin": {
+      "spawnParticle(Lnet/minecraft/particle/ParticleEffect;ZZDDDDDD)Lnet/minecraft/client/particle/Particle;": "Lnet/minecraft/class_761;method_3288(Lnet/minecraft/class_2394;ZZDDDDDD)Lnet/minecraft/class_703;"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "me/fzzyhmstrs/particle_core/mixins/BillboardParticleMixin": {
+        "buildGeometry": "Lnet/minecraft/class_3940;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+        "net/minecraft/client/particle/BillboardParticle.getSize(F)F": "Lnet/minecraft/class_3940;method_18132(F)F"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/BillboardParticleVertexMixin": {
+        "buildGeometry": "Lnet/minecraft/class_3940;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+        "net/minecraft/client/render/VertexConsumer.color(FFFF)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22915(FFFF)Lnet/minecraft/class_4588;",
+        "net/minecraft/client/render/VertexConsumer.light(I)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22916(I)Lnet/minecraft/class_4588;",
+        "net/minecraft/client/render/VertexConsumer.next()V": "Lnet/minecraft/class_4588;method_1344()V",
+        "net/minecraft/client/render/VertexConsumer.texture(FF)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22913(FF)Lnet/minecraft/class_4588;",
+        "net/minecraft/client/render/VertexConsumer.vertex(DDD)Lnet/minecraft/client/render/VertexConsumer;": "Lnet/minecraft/class_4588;method_22912(DDD)Lnet/minecraft/class_4588;"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/FrustumAccessor": {
+        "frustumIntersection": "field_40823:Lorg/joml/FrustumIntersection;",
+        "x": "field_20995:D",
+        "y": "field_20996:D",
+        "z": "field_20997:D"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/LivingEntityMixin": {
+        "net/minecraft/world/World.addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V": "Lnet/minecraft/class_1937;method_8406(Lnet/minecraft/class_2394;DDDDDD)V",
+        "tickStatusEffects": "Lnet/minecraft/class_1309;method_6050()V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleAccessor": {
+        "x": "field_3874:D",
+        "y": "field_3854:D",
+        "z": "field_3871:D"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleBrightnessCacheMixin": {
+        "getBrightness": "Lnet/minecraft/class_703;method_3068(F)I",
+        "net/minecraft/client/render/WorldRenderer.getLightmapCoordinates(Lnet/minecraft/world/BlockRenderView;Lnet/minecraft/util/math/BlockPos;)I": "Lnet/minecraft/class_761;method_23794(Lnet/minecraft/class_1920;Lnet/minecraft/class_2338;)I"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerAsyncMixin": {
+        "<init>": "Lnet/minecraft/class_702;<init>(Lnet/minecraft/class_638;Lnet/minecraft/class_1060;)V",
+        "addParticle(Lnet/minecraft/client/particle/Particle;)V": "Lnet/minecraft/class_702;method_3058(Lnet/minecraft/class_703;)V",
+        "tick": "Lnet/minecraft/class_702;method_3057()V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerCachedLightMixin": {
+        "net/minecraft/client/particle/Particle.tick()V": "Lnet/minecraft/class_703;method_3070()V",
+        "tick": "Lnet/minecraft/class_702;method_3057()V",
+        "tickParticle": "Lnet/minecraft/class_702;method_3059(Lnet/minecraft/class_703;)V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerCachedPosMixin": {
+        "net/minecraft/client/particle/Particle.tick()V": "Lnet/minecraft/class_703;method_3070()V",
+        "tickParticle": "Lnet/minecraft/class_702;method_3059(Lnet/minecraft/class_703;)V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerCountMixin": {
+        "tick": "Lnet/minecraft/class_702;method_3057()V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerFrustumMixin": {
+        "Lnet/minecraft/client/particle/ParticleManager;addParticle(Lnet/minecraft/client/particle/Particle;)V": "Lnet/minecraft/class_702;method_3058(Lnet/minecraft/class_703;)V",
+        "addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)Lnet/minecraft/client/particle/Particle;": "Lnet/minecraft/class_702;method_3056(Lnet/minecraft/class_2394;DDDDDD)Lnet/minecraft/class_703;",
+        "net/minecraft/client/particle/Particle.buildGeometry(Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/client/render/Camera;F)V": "Lnet/minecraft/class_703;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+        "renderParticles": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerRenderDistanceMixin": {
+        "net/minecraft/client/particle/Particle.buildGeometry(Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/client/render/Camera;F)V": "Lnet/minecraft/class_703;method_3074(Lnet/minecraft/class_4588;Lnet/minecraft/class_4184;F)V",
+        "renderParticles": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleManagerRotationMixin": {
+        "renderParticles": "Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/ParticleMoveAdjustMixin": {
+        "move(DDD)V": "Lnet/minecraft/class_703;method_3069(DDD)V",
+        "net/minecraft/entity/Entity.adjustMovementForCollisions(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Box;Lnet/minecraft/world/World;Ljava/util/List;)Lnet/minecraft/util/math/Vec3d;": "Lnet/minecraft/class_1297;method_20736(Lnet/minecraft/class_1297;Lnet/minecraft/class_243;Lnet/minecraft/class_238;Lnet/minecraft/class_1937;Ljava/util/List;)Lnet/minecraft/class_243;"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/WorldRendererDecreaseMixin": {
+        "getRandomParticleSpawnChance": "Lnet/minecraft/class_761;method_3268(Z)Lnet/minecraft/class_4066;",
+        "net/minecraft/client/option/SimpleOption.getValue()Ljava/lang/Object;": "Lnet/minecraft/class_7172;method_41753()Ljava/lang/Object;"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/WorldRendererFrustumMixin": {
+        "render": "Lnet/minecraft/class_761;method_22710(Lnet/minecraft/class_4587;FJZLnet/minecraft/class_4184;Lnet/minecraft/class_757;Lnet/minecraft/class_765;Lorg/joml/Matrix4f;)V"
+      },
+      "me/fzzyhmstrs/particle_core/mixins/WorldRendererTypeMixin": {
+        "spawnParticle(Lnet/minecraft/particle/ParticleEffect;ZZDDDDDD)Lnet/minecraft/client/particle/Particle;": "Lnet/minecraft/class_761;method_3288(Lnet/minecraft/class_2394;ZZDDDDDD)Lnet/minecraft/class_703;"
+      }
+    }
+  }
+}

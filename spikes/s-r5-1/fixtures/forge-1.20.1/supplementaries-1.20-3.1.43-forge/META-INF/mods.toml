@@ -1,0 +1,65 @@
+
+modLoader = "javafml"
+loaderVersion = "[4,)"
+
+license = "Supplementaries Team License v.1.4"
+issueTrackerURL = "https://github.com/MehVahdJukaar/supplementaries/issues"
+
+[[mixins]]
+    config = "supplementaries.mixins.json"
+[[mixins]]
+    config = "supplementaries-common.mixins.json"
+
+[[mods]]
+    modId = "supplementaries"
+    version = "1.20-3.1.43"
+    displayName = "Supplementaries"
+    logoFile = "icon.png"
+    authors = "MehVahdJukaar, Plantkillable"
+    credits = "Put a book named 'credits' inside a notice board"
+    description = '''Many functional and useful Vanilla+ blocks'''
+    modUrl = "https://www.curseforge.com/minecraft/mc-mods/supplementaries"
+    updateJSONURL = "https://api.modrinth.com/updates/supplementaries/forge_updates.json"
+    itemIcon = "supplementaries:globe" #catalogue icon
+
+[[dependencies.supplementaries]]
+    modId = "forge"
+    mandatory = true
+    versionRange = "[47.1,)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.supplementaries]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "[1.20.1,1.20.2)"
+    ordering = "NONE"
+    side = "CLIENT"
+
+[[dependencies.supplementaries]]
+    modId = "moonlight"
+    mandatory = true
+    versionRange = "[1.20-2.16.26,]"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.supplementaries]]
+    modId = "quark"
+    mandatory = false
+    versionRange = "[1.19-3.4-404,]"
+    ordering = "AFTER"
+    side = "BOTH"
+
+[[dependencies.supplementaries]]
+    modId = "create"
+    mandatory = false
+    versionRange = "[6.0.0,]"
+    ordering = "AFTER"
+    side = "BOTH"
+
+["lithium:options"]
+    mixin.block.moving_block_shapes = false
+
+["canary:options"]
+    mixin.block.moving_block_shapes = false
+

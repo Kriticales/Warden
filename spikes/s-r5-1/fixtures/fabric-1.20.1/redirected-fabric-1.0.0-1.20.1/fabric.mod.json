@@ -1,0 +1,45 @@
+{
+	"schemaVersion": 1,
+	"id": "redirected",
+	"name": "Redirected",
+	"version": "1.0.0",
+	"description": "Memory optimization mod that prevents duplication of Enum values.",
+	"authors": [
+		"Toni"
+	],
+	"contact": {
+		"sources": "https://github.com/txnimc/Redirected",
+		"issues": "https://github.com/txnimc/Redirected/issues"
+	},
+	"license": "LGPL",
+	"icon": "assets/redirected/textures/mod_logo.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"toni.redirected.Redirected"
+		],
+		"client": [
+			"toni.redirected.Redirected"
+		],
+		"fabric-datagen": [
+			"toni.redirected.foundation.data.RedirectedDatagen"
+		]
+	},
+	"mixins": [
+		"mixins.redirected_fabric_1.20.1.json"
+	],
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.discord": "https://discord.gg/kS7auUeYmc"
+			}
+		}
+	},
+	"accessWidener": "redirected.accesswidener",
+	"depends": {
+		"txnilib": "*",
+		"fabricloader": ">=0.15.0",
+		"minecraft": ">=1.20 <=1.20.1",
+		"fabric-api": "*"
+	}
+}

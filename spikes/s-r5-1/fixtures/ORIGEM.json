@@ -1,0 +1,304 @@
+{
+ "descricao": "Arquivos pequenos tirados de jars públicos do Modrinth (spike S-R5-1). Nada de dado pessoal.",
+ "arquivos": [
+  {
+   "fixture": "fabric-1.20.1/lithium-fabric-mc1.20.1-0.11.4/lithium.mixins.json",
+   "jar": "lithium-fabric-mc1.20.1-0.11.4.jar",
+   "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/iEcXOkz4/lithium-fabric-mc1.20.1-0.11.4.jar",
+   "sha1_do_jar": "048227ed60a3005cf9fa55880dfe0cf20b0ba680",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/lithium-fabric-mc1.20.1-0.11.4/fabric.mod.json",
+   "jar": "lithium-fabric-mc1.20.1-0.11.4.jar",
+   "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/iEcXOkz4/lithium-fabric-mc1.20.1-0.11.4.jar",
+   "sha1_do_jar": "048227ed60a3005cf9fa55880dfe0cf20b0ba680",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/modernfix-fabric-5.24.4+mc1.20.1/modernfix-fabric.mixins.json",
+   "jar": "modernfix-fabric-5.24.4+mc1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/nmDcB62a/versions/PSpecC1r/modernfix-fabric-5.24.4%2Bmc1.20.1.jar",
+   "sha1_do_jar": "3d20fa94c463113a24346ed544f4ca95c54bae8d",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/modernfix-fabric-5.24.4+mc1.20.1/modernfix-common.mixins.json",
+   "jar": "modernfix-fabric-5.24.4+mc1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/nmDcB62a/versions/PSpecC1r/modernfix-fabric-5.24.4%2Bmc1.20.1.jar",
+   "sha1_do_jar": "3d20fa94c463113a24346ed544f4ca95c54bae8d",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/ferritecore-6.0.1-fabric/fabric.mod.json",
+   "jar": "ferritecore-6.0.1-fabric.jar",
+   "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/unerR5MN/ferritecore-6.0.1-fabric.jar",
+   "sha1_do_jar": "8fa3b84fc5860dbc30fdf8cced02af68dffcf3fa",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/ferritecore-6.0.1-fabric/ferritecore.threaddetec.mixin.json",
+   "jar": "ferritecore-6.0.1-fabric.jar",
+   "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/unerR5MN/ferritecore-6.0.1-fabric.jar",
+   "sha1_do_jar": "8fa3b84fc5860dbc30fdf8cced02af68dffcf3fa",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/ferritecore-6.0.1-fabric/ferritecore.dedupmultipart.mixin.json",
+   "jar": "ferritecore-6.0.1-fabric.jar",
+   "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/unerR5MN/ferritecore-6.0.1-fabric.jar",
+   "sha1_do_jar": "8fa3b84fc5860dbc30fdf8cced02af68dffcf3fa",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/krypton-0.2.3/fabric.mod.json",
+   "jar": "krypton-0.2.3.jar",
+   "url": "https://cdn.modrinth.com/data/fQEb0iXm/versions/jiDwS0W1/krypton-0.2.3.jar",
+   "sha1_do_jar": "4d499819effd8afe811e5d93952fcc46765a00df",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/iris-1.7.6+mc1.20.1/mixins.iris.compat.sodium.json",
+   "jar": "iris-1.7.6+mc1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/YL57xq9U/versions/s5eFLITc/iris-1.7.6%2Bmc1.20.1.jar",
+   "sha1_do_jar": "880c0b9ce38bb4997645793407c1801df83f4233",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/iris-1.7.6+mc1.20.1/mixins.iris.json",
+   "jar": "iris-1.7.6+mc1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/YL57xq9U/versions/s5eFLITc/iris-1.7.6%2Bmc1.20.1.jar",
+   "sha1_do_jar": "880c0b9ce38bb4997645793407c1801df83f4233",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/sodium-fabric-0.5.13+mc1.20.1/sodium.mixins.json",
+   "jar": "sodium-fabric-0.5.13+mc1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/AANobbMI/versions/OihdIimA/sodium-fabric-0.5.13%2Bmc1.20.1.jar",
+   "sha1_do_jar": "bcdbf37d9494e405cba210d7a80ed58e756297b5",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/redirected-fabric-1.0.0-1.20.1/fabric.mod.json",
+   "jar": "redirected-fabric-1.0.0-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/hhnR8xqU/versions/QkgWbSnA/redirected-fabric-1.0.0-1.20.1.jar",
+   "sha1_do_jar": "3f7ced13e94394b12cb6d6092aba7cf0d884b748",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/redirected-fabric-1.0.0-1.20.1/mixins.redirected_fabric_1.20.1.json",
+   "jar": "redirected-fabric-1.0.0-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/hhnR8xqU/versions/QkgWbSnA/redirected-fabric-1.0.0-1.20.1.jar",
+   "sha1_do_jar": "3f7ced13e94394b12cb6d6092aba7cf0d884b748",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/sodium-extra-0.5.9+mc1.20.1/sodium-extra.mixins.json",
+   "jar": "sodium-extra-0.5.9+mc1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/PtjYWJkn/versions/mDbF0LZT/sodium-extra-0.5.9%2Bmc1.20.1.jar",
+   "sha1_do_jar": "0f97ec3f395b223848a63573b1a46cbecf97f19f",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/sodiumextras-fabric-1.0.7-1.20.1/mixins.sodiumextras.json",
+   "jar": "sodiumextras-fabric-1.0.7-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/vqqx0QiE/versions/FdVKLVds/sodiumextras-fabric-1.0.7-1.20.1.jar",
+   "sha1_do_jar": "415f6d815b673f6d719c55a7caaa44e03f62bf56",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/SubtleEffects-fabric-1.20.1-1.13.2/subtle_effects.mixins.json",
+   "jar": "SubtleEffects-fabric-1.20.1-1.13.2.jar",
+   "url": "https://cdn.modrinth.com/data/4q8UOK1d/versions/z2FCyolJ/SubtleEffects-fabric-1.20.1-1.13.2.jar",
+   "sha1_do_jar": "863b5b380e9e6836d7d872f900f65c4091fbef7e",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/particle_core-0.3.1+1.20.1/particle_core.mixins.json",
+   "jar": "particle_core-0.3.1+1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/RSeLon5O/versions/odCplXSY/particle_core-0.3.1%2B1.20.1.jar",
+   "sha1_do_jar": "36cd76d1d9f62a9f1883b4d2da3af40c01ff97ca",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/particle_core-0.3.1+1.20.1/particle_core-refmap.json",
+   "jar": "particle_core-0.3.1+1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/RSeLon5O/versions/odCplXSY/particle_core-0.3.1%2B1.20.1.jar",
+   "sha1_do_jar": "36cd76d1d9f62a9f1883b4d2da3af40c01ff97ca",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "fabric-1.20.1/fabric-api-0.92.7+1.20.1/fabric.mod.json",
+   "jar": "fabric-api-0.92.7+1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/L6LGItxd/fabric-api-0.92.7%2B1.20.1.jar",
+   "sha1_do_jar": "85117a1e8984a45c972b85571c8e075cee45039a",
+   "pack": "Better MC [FABRIC] - BMC2 v40 (https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy)"
+  },
+  {
+   "fixture": "forge-1.20.1/radium-mc1.20.1-0.12.4+git.26c9d8e/META-INF/MANIFEST.MF",
+   "jar": "radium-mc1.20.1-0.12.4+git.26c9d8e.jar",
+   "url": "https://cdn.modrinth.com/data/2gvRmQXx/versions/n947JjJH/radium-mc1.20.1-0.12.4%2Bgit.26c9d8e.jar",
+   "sha1_do_jar": "f5f5f792473bb7b85ec221f75c5afb3740afb13a",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/radium-mc1.20.1-0.12.4+git.26c9d8e/META-INF/mods.toml",
+   "jar": "radium-mc1.20.1-0.12.4+git.26c9d8e.jar",
+   "url": "https://cdn.modrinth.com/data/2gvRmQXx/versions/n947JjJH/radium-mc1.20.1-0.12.4%2Bgit.26c9d8e.jar",
+   "sha1_do_jar": "f5f5f792473bb7b85ec221f75c5afb3740afb13a",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/supplementaries-1.20-3.1.43-forge/META-INF/mods.toml",
+   "jar": "supplementaries-1.20-3.1.43-forge.jar",
+   "url": "https://cdn.modrinth.com/data/fFEIiSDQ/versions/S0TIJ1hU/supplementaries-1.20-3.1.43-forge.jar",
+   "sha1_do_jar": "326d65a29981de28016e3828370d68a8f63e1798",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/supplementaries-1.20-3.1.43-forge/META-INF/MANIFEST.MF",
+   "jar": "supplementaries-1.20-3.1.43-forge.jar",
+   "url": "https://cdn.modrinth.com/data/fFEIiSDQ/versions/S0TIJ1hU/supplementaries-1.20-3.1.43-forge.jar",
+   "sha1_do_jar": "326d65a29981de28016e3828370d68a8f63e1798",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/BadOptimizations-2.4.1-1.20.1/fabric.mod.json",
+   "jar": "BadOptimizations-2.4.1-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/g96Z4WVZ/versions/DIugITgU/BadOptimizations-2.4.1-1.20.1.jar",
+   "sha1_do_jar": "304007dcb0fb15ed1a1bc3771736470dafc5be0f",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/BadOptimizations-2.4.1-1.20.1/META-INF/mods.toml",
+   "jar": "BadOptimizations-2.4.1-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/g96Z4WVZ/versions/DIugITgU/BadOptimizations-2.4.1-1.20.1.jar",
+   "sha1_do_jar": "304007dcb0fb15ed1a1bc3771736470dafc5be0f",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/BadOptimizations-2.4.1-1.20.1/forge-badoptimizations.mixins.json",
+   "jar": "BadOptimizations-2.4.1-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/g96Z4WVZ/versions/DIugITgU/BadOptimizations-2.4.1-1.20.1.jar",
+   "sha1_do_jar": "304007dcb0fb15ed1a1bc3771736470dafc5be0f",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/BadOptimizations-2.4.1-1.20.1/fabric-badoptimizations.mixins.json",
+   "jar": "BadOptimizations-2.4.1-1.20.1.jar",
+   "url": "https://cdn.modrinth.com/data/g96Z4WVZ/versions/DIugITgU/BadOptimizations-2.4.1-1.20.1.jar",
+   "sha1_do_jar": "304007dcb0fb15ed1a1bc3771736470dafc5be0f",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/packetfixer-3.3.2-1.18-1.20.4-merged/META-INF/MANIFEST.MF",
+   "jar": "packetfixer-3.3.2-1.18-1.20.4-merged.jar",
+   "url": "https://cdn.modrinth.com/data/c7m1mi73/versions/9F4NGhGR/packetfixer-3.3.2-1.18-1.20.4-merged.jar",
+   "sha1_do_jar": "79ebc5e66a5ee3ce92afb340e693d506e97361a0",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/packetfixer-3.3.2-1.18-1.20.4-merged/fabric.mod.json",
+   "jar": "packetfixer-3.3.2-1.18-1.20.4-merged.jar",
+   "url": "https://cdn.modrinth.com/data/c7m1mi73/versions/9F4NGhGR/packetfixer-3.3.2-1.18-1.20.4-merged.jar",
+   "sha1_do_jar": "79ebc5e66a5ee3ce92afb340e693d506e97361a0",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "forge-1.20.1/packetfixer-3.3.2-1.18-1.20.4-merged/META-INF/mods.toml",
+   "jar": "packetfixer-3.3.2-1.18-1.20.4-merged.jar",
+   "url": "https://cdn.modrinth.com/data/c7m1mi73/versions/9F4NGhGR/packetfixer-3.3.2-1.18-1.20.4-merged.jar",
+   "sha1_do_jar": "79ebc5e66a5ee3ce92afb340e693d506e97361a0",
+   "pack": "Better MC [FORGE] - BMC4 v59 (https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs)"
+  },
+  {
+   "fixture": "neoforge-1.21.1/ferritecore-7.0.2-neoforge/META-INF/neoforge.mods.toml",
+   "jar": "ferritecore-7.0.2-neoforge.jar",
+   "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/CnpoQxCx/ferritecore-7.0.2-neoforge.jar",
+   "sha1_do_jar": "7279fc52c32a033acc2864a9bcb018b2e04bbd03",
+   "pack": "Better MC [NEOFORGE] BMC5 v31 (https://modrinth.com/modpack/better-mc-neoforge-bmc5/version/Mo8ro6Ra)"
+  },
+  {
+   "fixture": "neoforge-1.21.1/XaeroPlus-2.26.11+neoforge-1.21.1-WM1.39.9-MM25.2.6/META-INF/neoforge.mods.toml",
+   "jar": "XaeroPlus-2.26.11+neoforge-1.21.1-WM1.39.9-MM25.2.6.jar",
+   "url": "https://cdn.modrinth.com/data/EnPUzSTg/versions/VCX5odiU/XaeroPlus-2.26.11%2Bneoforge-1.21.1-WM1.39.9-MM25.2.6.jar",
+   "sha1_do_jar": "4eb80a7eec331968a16231a9601657b9eed01ad2",
+   "pack": "Better MC [NEOFORGE] BMC5 v31 (https://modrinth.com/modpack/better-mc-neoforge-bmc5/version/Mo8ro6Ra)"
+  },
+  {
+   "fixture": "neoforge-1.21.1/mes-1.3.5-1.21/mes-neoforge.mixins.json",
+   "jar": "mes-1.3.5-1.21.jar",
+   "url": "https://cdn.modrinth.com/data/r4PuRGfV/versions/JibtQYn5/mes-1.3.5-1.21.jar",
+   "sha1_do_jar": "25c7cfaf8676957810443cf0bbf857cac9ac225f",
+   "pack": "Better MC [NEOFORGE] BMC5 v31 (https://modrinth.com/modpack/better-mc-neoforge-bmc5/version/Mo8ro6Ra)"
+  },
+  {
+   "fixture": "neoforge-1.21.1/mes-1.3.5-1.21/mes-common.mixins.json",
+   "jar": "mes-1.3.5-1.21.jar",
+   "url": "https://cdn.modrinth.com/data/r4PuRGfV/versions/JibtQYn5/mes-1.3.5-1.21.jar",
+   "sha1_do_jar": "25c7cfaf8676957810443cf0bbf857cac9ac225f",
+   "pack": "Better MC [NEOFORGE] BMC5 v31 (https://modrinth.com/modpack/better-mc-neoforge-bmc5/version/Mo8ro6Ra)"
+  },
+  {
+   "fixture": "neoforge-1.21.1/lithium-neoforge-0.15.0+mc1.21.1/lithium.mixins.json",
+   "jar": "lithium-neoforge-0.15.0+mc1.21.1.jar",
+   "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/xYxpXTIt/lithium-neoforge-0.15.0%2Bmc1.21.1.jar",
+   "sha1_do_jar": "584c5a8186938dd58e43ecde316253e8e38f6650",
+   "pack": "Better MC [NEOFORGE] BMC5 v31 (https://modrinth.com/modpack/better-mc-neoforge-bmc5/version/Mo8ro6Ra)"
+  },
+  {
+   "fixture": "fabric-1.20.1/config/lithium.properties",
+   "origem": "overrides/config/lithium.properties do Better MC [FABRIC] - BMC2 v40",
+   "mrpack": "https://cdn.modrinth.com/data/shFhR8Vx/versions/M5BnAIQy/BMC2%20%5BFABRIC%5D%201.20.1%20v40.mrpack",
+   "mrpack_sha1": "326da0b267496f5d952118b7f8aa2bddcb7fc269"
+  },
+  {
+   "fixture": "fabric-1.20.1/config/modernfix-mixins.properties",
+   "origem": "overrides/config/modernfix-mixins.properties do Better MC [FABRIC] - BMC2 v40",
+   "mrpack": "https://cdn.modrinth.com/data/shFhR8Vx/versions/M5BnAIQy/BMC2%20%5BFABRIC%5D%201.20.1%20v40.mrpack",
+   "mrpack_sha1": "326da0b267496f5d952118b7f8aa2bddcb7fc269"
+  },
+  {
+   "fixture": "fabric-1.20.1/config/ferritecore.mixin.properties",
+   "origem": "overrides/config/ferritecore.mixin.properties do Better MC [FABRIC] - BMC2 v40",
+   "mrpack": "https://cdn.modrinth.com/data/shFhR8Vx/versions/M5BnAIQy/BMC2%20%5BFABRIC%5D%201.20.1%20v40.mrpack",
+   "mrpack_sha1": "326da0b267496f5d952118b7f8aa2bddcb7fc269"
+  },
+  {
+   "fixture": "forge-1.20.1/config/lithium.properties",
+   "origem": "overrides/config/lithium.properties do Better MC [FORGE] - BMC4 v59",
+   "mrpack": "https://cdn.modrinth.com/data/4BV47HRn/versions/bdRIjRgs/Better%20MC%20%5BFORGE%5D%201.20.1%201.20.1%20v59.mrpack",
+   "mrpack_sha1": "5f7db7a92268b8af9af50d24a5ac7fa5ab91bce4"
+  },
+  {
+   "fixture": "forge-1.20.1/config/modernfix-mixins.properties",
+   "origem": "overrides/config/modernfix-mixins.properties do Better MC [FORGE] - BMC4 v59",
+   "mrpack": "https://cdn.modrinth.com/data/4BV47HRn/versions/bdRIjRgs/Better%20MC%20%5BFORGE%5D%201.20.1%201.20.1%20v59.mrpack",
+   "mrpack_sha1": "5f7db7a92268b8af9af50d24a5ac7fa5ab91bce4"
+  },
+  {
+   "fixture": "forge-1.20.1/config/ferritecore-mixin.toml",
+   "origem": "overrides/config/ferritecore-mixin.toml do Better MC [FORGE] - BMC4 v59",
+   "mrpack": "https://cdn.modrinth.com/data/4BV47HRn/versions/bdRIjRgs/Better%20MC%20%5BFORGE%5D%201.20.1%201.20.1%20v59.mrpack",
+   "mrpack_sha1": "5f7db7a92268b8af9af50d24a5ac7fa5ab91bce4"
+  },
+  {
+   "fixture": "neoforge-1.21.1/config/lithium.properties",
+   "origem": "overrides/config/lithium.properties do Better MC [NEOFORGE] BMC5 v31",
+   "mrpack": "https://cdn.modrinth.com/data/B37WQ89b/versions/Mo8ro6Ra/Better%20MC%20%5BNEOFORGE%5D%20BMC5%20v31.mrpack",
+   "mrpack_sha1": "6c588ff5e7d186c9183686b7629918e5406feb9c"
+  },
+  {
+   "fixture": "neoforge-1.21.1/config/modernfix-mixins.properties",
+   "origem": "overrides/config/modernfix-mixins.properties do Better MC [NEOFORGE] BMC5 v31",
+   "mrpack": "https://cdn.modrinth.com/data/B37WQ89b/versions/Mo8ro6Ra/Better%20MC%20%5BNEOFORGE%5D%20BMC5%20v31.mrpack",
+   "mrpack_sha1": "6c588ff5e7d186c9183686b7629918e5406feb9c"
+  },
+  {
+   "fixture": "neoforge-1.21.1/config/ferritecore-mixin.toml",
+   "origem": "overrides/config/ferritecore-mixin.toml do Better MC [NEOFORGE] BMC5 v31",
+   "mrpack": "https://cdn.modrinth.com/data/B37WQ89b/versions/Mo8ro6Ra/Better%20MC%20%5BNEOFORGE%5D%20BMC5%20v31.mrpack",
+   "mrpack_sha1": "6c588ff5e7d186c9183686b7629918e5406feb9c"
+  }
+ ]
+}

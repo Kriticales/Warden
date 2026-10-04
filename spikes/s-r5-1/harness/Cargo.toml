@@ -1,0 +1,20 @@
+[package]
+name = "s-r5-1-harness"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Spike S-R5-1: protótipo do raio-x da R5A refeito e comparação com o intermed (código descartável)."
+
+[dependencies]
+cafebabe = "0.9"
+zip = { version = "8", default-features = false, features = ["deflate"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+windows-sys = { version = "0.61", features = ["Win32_System_ProcessStatus", "Win32_System_Threading", "Win32_Foundation"] }
+# intermed como biblioteca, commit fixado (o mesmo avaliado no relatório).
+intermed-mixin-intel = { git = "https://github.com/jarettr/intermed", rev = "7d90f2e557a2eb6fe954fad51d8454da913c5252" }
+intermed-doctor-core = { git = "https://github.com/jarettr/intermed", rev = "7d90f2e557a2eb6fe954fad51d8454da913c5252" }
+
+[profile.release]
+debug = 1

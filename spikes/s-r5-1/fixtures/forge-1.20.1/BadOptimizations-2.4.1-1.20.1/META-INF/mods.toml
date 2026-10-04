@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+issueTrackerURL="https://github.com/imthosea/BadOptimizations/issues"
+# Forge 1.20.4- requires mod icon to be in root folder
+logoFile="badoptimizations-icon.png"
+logoBlur=false
+
+[[mods]]
+modId="badoptimizations"
+version="2.4.1"
+displayName="BadOptimizations"
+authors="Thosea"
+description='''
+   Optimization mod that focuses on things other than rendering
+   '''
+[[dependencies.badoptimizations]]
+modId="minecraft"
+mandatory=true
+versionRange="1.20.1"
+ordering="NONE"
+side="CLIENT"
+
+[[mixins]]
+config = "forge-badoptimizations.mixins.json"
