@@ -17,12 +17,15 @@ fn cfg(url: &str) -> Config {
         thinking_level: None,
         escalonar_ferramentas: true,
         timeout: Duration::from_secs(10),
+        modo_chamada: "VALIDATED".into(),
+        instrucao_extra: None,
+        ferramentas_extras: false,
     }
 }
 
 fn final_simples() -> Value {
     mock::final_json(&json!({
-        "resumo": "ok", "semConclusao": false, "propostas": [],
+        "resumo": "O Rails 1.6.4 quebra com o Create 6.", "semConclusao": false, "propostas": [],
         "achados": [{ "afirmacao": "a", "mods": ["railways"], "confianca": "alta",
             "evidencias": [{ "id": "crash:s3", "citacao": "railways$tickBogeys" }] }]
     }))
@@ -153,11 +156,11 @@ fn modo_ferramenta_encerra_com_responder() {
         assert_eq!(nomes, 18);
         match i {
             0 => mock::chamadas(&[("get_crash_report", json!({ "session_id": "s3" }))]),
-            1 => mock::chamadas(&[("responder", json!({ "resumo": "ok", "semConclusao": false, "propostas": [],
+            1 => mock::chamadas(&[("responder", json!({ "resumo": "O Rails 1.6.4 quebra com o Create 6.", "semConclusao": false, "propostas": [],
                 "achados": [{ "afirmacao": "a", "mods": ["railways"], "confianca": "alta",
                     "evidencias": [{ "id": "crash:s3", "citacao": "railways$tickBogeys" }] }] }))]),
             2 => mock::chamadas(&[("diff_versions", json!({ "from": "v1.3", "to": "v1.4" }))]),
-            _ => mock::chamadas(&[("responder", json!({ "resumo": "2", "semConclusao": true, "propostas": [], "achados": [] }))]),
+            _ => mock::chamadas(&[("responder", json!({ "resumo": "Sem conclusão nesta pergunta.", "semConclusao": true, "propostas": [], "achados": [] }))]),
         }
     });
     let srv = Servidor::iniciar(roteiro);
@@ -230,4 +233,20 @@ fn gravacoes_reais_passam_no_simulado() {
         assert_eq!(r.conferencia.evidencias_validas, r.conferencia.evidencias_total, "{nome}");
         assert!(r.conferencia.evidencias_total >= 6);
     }
+}
+
+#[test]
+fn resposta_vazia_e_json_degenerado_sao_repetidos() {
+    let roteiro: Roteiro = Box::new(|i, _| match i {
+        0 => mock::chamadas(&[("get_crash_report", json!({ "session_id": "s3" }))]),
+        1 => json!({ "candidates": [{ "content": { "role": "model", "parts": [{ "text": "" }] }, "finishReason": "STOP" }] }),
+        2 => mock::final_json(&json!({ "resumo": "...", "achados": [], "propostas": [], "semConclusao": false })),
+        _ => final_simples(),
+    });
+    let srv = Servidor::iniciar(roteiro);
+    let mut c = Conversa::nova(cfg(&srv.url));
+    let r = c.perguntar("x").unwrap();
+    assert!(r.conferencia.achados[0].verificada);
+    let erros: Vec<_> = c.eventos.iter().filter_map(|e| e.erro.clone()).collect();
+    assert_eq!(erros, vec!["resposta vazia".to_string(), "JSON vazio".to_string()]);
 }

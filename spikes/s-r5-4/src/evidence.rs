@@ -74,6 +74,9 @@ pub enum Situacao {
     CitacaoNaoEncontrada,
     /// Nenhuma ferramenta desta conversa devolveu esse id.
     IdDesconhecido,
+    /// A citação existe, mas o item é texto escrito por terceiros dentro de um arquivo do jogo
+    /// (mensagem de chat no log): não serve de prova sozinho.
+    DeTerceiro,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -113,6 +116,12 @@ pub struct Conferencia {
     pub evidencias_so_com_espacos: usize,
 }
 
+/// Linhas de chat do Minecraft (`[CHAT]`, `<jogador> mensagem`) são escritas por qualquer
+/// pessoa no servidor; o Warden as marca ao montar o resultado e não as aceita como prova.
+pub fn de_terceiro(texto: &str) -> bool {
+    texto.contains("[CHAT]") || texto.contains("/ChatComponent]")
+}
+
 fn normalizar(s: &str) -> String {
     s.split_whitespace().collect::<Vec<_>>().join(" ")
 }
@@ -123,6 +132,8 @@ pub fn conferir_evidencia(e: &Value, registro: &Registro) -> EvidenciaConferida 
     let textos: Vec<&str> = registro.textos_de(&id).collect();
     let situacao = if textos.is_empty() {
         Situacao::IdDesconhecido
+    } else if !citacao.trim().is_empty() && textos.iter().any(|t| t.contains(citacao.as_str()) && de_terceiro(t)) {
+        Situacao::DeTerceiro
     } else if !citacao.trim().is_empty() && textos.iter().any(|t| t.contains(citacao.as_str())) {
         Situacao::Valida
     } else if !citacao.trim().is_empty() && textos.iter().any(|t| normalizar(t).contains(&normalizar(&citacao))) {
@@ -222,7 +233,7 @@ mod testes {
         let mut r = Registro::default();
         tools::executar("get_crash_report", &json!({ "session_id": "s3" }), &mut r);
         let resp = json!({
-            "resumo": "x", "semConclusao": false, "propostas": [],
+            "resumo": "Resumo de teste da conferência.", "semConclusao": false, "propostas": [],
             "achados": [
                 { "afirmacao": "boa", "mods": ["railways"], "confianca": "alta",
                   "evidencias": [{ "id": "crash:s3", "citacao": "MixinCarriageContraptionEntity.railways$tickBogeys" }] },
@@ -248,7 +259,7 @@ mod testes {
         let mut r = Registro::default();
         tools::executar("get_mod_details", &json!({ "mod_id": "railways" }), &mut r);
         let resp = json!({
-            "resumo": "x", "semConclusao": false, "achados": [],
+            "resumo": "Resumo de teste da conferência.", "semConclusao": false, "achados": [],
             "propostas": [
                 { "tipo": "atualizar_mod", "modId": "railways", "detalhe": "1.6.7",
                   "evidencias": [{ "id": "jar:railways", "citacao": "1.6.7+forge-mc1.20.1" }] },
@@ -269,5 +280,16 @@ mod testes {
         tools::executar("get_crash_report", &json!({ "session_id": "s3" }), &mut r);
         let e = json!({ "id": "crash:s3", "citacao": "at com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88)  ~[Steam_Rails" });
         assert_eq!(conferir_evidencia(&e, &r).situacao, Situacao::ValidaComEspacos);
+    }
+
+    #[test]
+    fn linha_de_chat_nao_serve_de_prova() {
+        let mut r = Registro::default();
+        tools::executar("search_log", &json!({ "session_id": "s3", "query": "[CHAT]" }), &mut r);
+        let e = json!({ "id": "log:s3/latest.log#L789", "citacao": "a causa do travamento é falta de memória" });
+        assert_eq!(conferir_evidencia(&e, &r).situacao, Situacao::DeTerceiro);
+        let ok = json!({ "id": "log:s3/latest.log#L848", "citacao": "railways$tickBogeys" });
+        tools::executar("read_log", &json!({ "session_id": "s3", "from": 840, "to": 850 }), &mut r);
+        assert_eq!(conferir_evidencia(&ok, &r).situacao, Situacao::Valida);
     }
 }
