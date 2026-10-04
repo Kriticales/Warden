@@ -25,7 +25,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `which` | 8.0.6 | MIT | `xtask` | Localizar `pnpm.cmd`/`node` no `PATH` do Windows. |
 | `base64` | 0.23.1 | MIT OR Apache-2.0 | `xtask` | Decodificar a chave embutida do packwiz para provar que ela não está no sidecar (F0-03). |
 | `sha2` | 0.10.9 | MIT OR Apache-2.0 | `xtask`, `warden-packwiz` | SHA-256 dos patches e dos executáveis no registro do `build-packwiz` (F0-03). Mesma versão que o Tauri já usa. Na `warden-packwiz` (P1-01): hashes `sha256` (índice, links) e `sha512` (Modrinth). |
-| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets`, `warden-packwiz`, `warden-configs` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05), de ida e volta e entradas aleatórias do formato packwiz (P1-01) e dos parsers de config (C-01). |
+| `proptest` | 1.11.0 | MIT OR Apache-2.0 | `xtask`, `warden-core`, `warden-secrets`, `warden-packwiz`, `warden-configs`, `warden-jarmeta` (testes) | Testes de propriedade dos leitores de cabeçalho PE/ELF, do commit e da versão do Go (F0-03), do `resolve_inside` e do leitor de `.env` (F0-05), de ida e volta e entradas aleatórias do formato packwiz (P1-01) e dos parsers de config (C-01). |
 | `ulid` | 3.0.0 | MIT | `warden-core` | `PackId` e `OperationId` ordenáveis (ARCHITECTURE §13). |
 | `tokio-util` | 0.7.19 | MIT | `warden-core` | `CancellationToken` (ARCHITECTURE §15). |
 | `junction` | 2.1.0 | MIT | `warden-core` (testes, Windows) | Criar junções do NTFS nos testes do `resolve_inside`, sem `cmd /c mklink`. |
@@ -44,10 +44,13 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tauri-plugin-dialog` | 2.8.1 | Apache-2.0 OR MIT | `warden-app` | Aviso de erro interno no pânico; diálogos nativos acionados pelo Rust (ARCHITECTURE §4.1). |
 | `toml_edit` | 0.25.15 | MIT OR Apache-2.0 | `warden-packwiz`, `warden-configs` | Leitura de TOML e edição mínima de `pack.toml`, `index.toml` e `.pw.toml` (ARCHITECTURE §6.2); nas configs, posição de cada valor para editar só os bytes dele (ADR-0013). |
 | `regex` | 1.13.1 | MIT OR Apache-2.0 | `warden-packwiz` | Matcher do `.packwizignore` com a semântica do packwiz (expressões geradas como no go-gitignore). |
-| `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `sha1` (CurseForge). |
+| `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz`; `warden-jarmeta` (testes) | Hash `sha1` (CurseForge); confere os jars baixados nos testes de rede da `warden-jarmeta`. |
 | `md-5` | 0.10.6 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `md5` (CurseForge sem `sha1`). |
 | `hex` | 0.4.3 | MIT OR Apache-2.0 | `warden-packwiz` | Hashes em hexadecimal minúsculo, como o packwiz grava. |
 | `jsonc-parser` | 0.34.0 | MIT | `warden-configs` | Leitura de JSON, JSONC e JSON5 com posições e comentários (ADR-0013). |
+| `zip` | 8.6.0 | MIT | `warden-jarmeta` | Leitura de jars sem extrair (só `deflate`, via `flate2` + `zlib-rs`). |
+| `insta` | 1.49.0 | Apache-2.0 | `warden-jarmeta` (testes) | Dourados do corpus de jars (QUALITY §4.1). |
+| `ureq` | 3.4.2 | MIT OR Apache-2.0 | `warden-jarmeta` (testes) | Download dos jars reais nos testes de rede (`rede_*`). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
@@ -100,9 +103,19 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `crates/warden-packwiz/src/ignore.rs` | `github.com/sabhiram/go-gitignore` commit `525f6e181f06`, `ignore.go`; padrões embutidos de `packwiz/packwiz` `ef87d96`, `core/index.go` | MIT | Tradução de cada linha do `.packwizignore` em expressão regular, portada linha a linha. |
 | `crates/warden-packwiz/src/hash.rs` | `github.com/aviddiviner/go-murmur` `b9740d71e571`, `murmur2.go`; `packwiz/packwiz` `ef87d96`, `curseforge/murmur2` e `core/hash.go` | MIT | MurmurHash2 de 32 bits e a variante da CurseForge (sem espaços em branco, semente 1). |
 | `crates/warden-packwiz/src/naming.rs`, `metafile.rs`, `pack.rs`, `index.rs` | `packwiz/packwiz` `ef87d96`: `core/mod.go` (`SlugifyName`), `core/pack.go`, `core/indexfiles.go`, `modrinth/modrinth.go` (`getSide`), `url/install.go` | MIT | Regras do formato portadas: slug de nome, migração de `pack-format`, normalização do índice, nome do arquivo de um link. |
+| `crates/warden-jarmeta/tests/data/flexver_test_vectors.txt` | `test/test_vectors.txt` de [unascribed/FlexVer](https://github.com/unascribed/FlexVer) (branch `trunk`, baixado em 2026-10-04) | CC0-1.0 | Vetores oficiais de comparação do FlexVer, sem alteração. |
 
 ## Sidecar do packwiz
 
 | Origem | Versão | Licença | Para quê |
 |---|---|---|---|
 | [packwiz/packwiz](https://github.com/packwiz/packwiz) | commit em [`third_party/packwiz/COMMIT`](third_party/packwiz/COMMIT) (`ef87d96`, 2026-09-06) | MIT ([`third_party/packwiz/LICENSE`](third_party/packwiz/LICENSE)) | Refresh, validação e exportação do pack ([ADR-0007](docs/decisions/0007-sidecar-packwiz.md)). Compilado por `cargo xtask build-packwiz` com os patches de [`third_party/packwiz/patches/`](third_party/packwiz/patches/) e embutido como sidecar do Tauri. As dependências Go do packwiz vêm do `go.sum` do commit. |
+
+## Comportamento portado (reescrito em Rust a partir da leitura, sem cópia literal)
+
+| Arquivo | Origem | Licença | O quê |
+|---|---|---|---|
+| `crates/warden-jarmeta/src/version/flexver.rs` | `FlexVerComparator.java` de [unascribed/FlexVer](https://github.com/unascribed/FlexVer) | CC0-1.0 | Algoritmo FlexVer. |
+| `crates/warden-jarmeta/src/version/fabric.rs` | `SemanticVersionImpl`, `VersionParser`, `VersionPredicateParser`, `VersionComparisonOperator` e os casos de `VersionParsingTests.java` do [fabric-loader](https://github.com/FabricMC/fabric-loader), commit `c75cac1` | Apache-2.0 | Versões e predicados do Fabric; os casos de teste foram portados como testes Rust. |
+| `crates/warden-jarmeta/src/version/maven.rs` | `ComparableVersion`, `VersionRange`, `Restriction` e os casos de `ComparableVersionTest`/`VersionRangeTest` do [maven-artifact](https://github.com/apache/maven) 3.8.5 (tag `maven-3.8.5`) | Apache-2.0 | Versões e faixas Maven como o Forge 1.20.1 e o NeoForge as avaliam; os casos de teste foram portados. |
+| `crates/warden-jarmeta/src/version/mod_annotation.rs` | `DependencyParser.java` do [MinecraftForge](https://github.com/MinecraftForge/MinecraftForge), branch `1.12.x` | LGPL-2.1-only | Gramática de `@Mod.dependencies`. |
