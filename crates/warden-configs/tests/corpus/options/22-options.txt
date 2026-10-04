@@ -1,0 +1,8 @@
+enableVsync:false
+fullscreen:true
+renderDistance:8
+maxFps:260
+guiScale:3
+renderClouds:true
+graphicsMode:0
+particles:1

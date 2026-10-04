@@ -1,0 +1,269 @@
+{
+	"images": {
+		
+		"bar": {
+			"image": "mainmenu:textures/elements/menuBar.png",
+			"posX": 0,
+			"posY": 0,
+			"width": 100,
+			"height": 4096,
+			"alignment": "column_top"
+		},
+		"logo": {
+			"image": "mainmenu:textures/elements/Logo1.png",
+			"posX": -75,
+			"posY": -62,
+			"width": 260,
+			"height": 154,
+			"imageWidth": 1264,
+			"imageHeight": 747,
+			"alignment": "column_logo"
+		},
+		"langoverlay": {
+			"image": "mainmenu:textures/elements/LangOff.png",
+			"hoverImage": "mainmenu:textures/elements/LangOn.png",
+			"posX": -25,
+			"posY": -33,
+			"width": 15,
+			"height": 15,
+			"alignment": "bottom_right"
+		},
+		"redditoverlay": {
+			"image": "mainmenu:textures/elements/Reddit.png",
+			"hoverImage": "mainmenu:textures/elements/Reddithover.png",
+			"posX": 40,
+			"posY": -13,
+			"width": 20,
+			"height": 20,
+			"alignment": "column_bottom"
+		},
+        "discordoverlay": {
+			"image": "mainmenu:textures/elements/Discord.png",
+			"hoverImage": "mainmenu:textures/elements/Discordhover.png",
+			"posX": 15,
+			"posY": -11,
+			"width": 18,
+			"height": 18,
+			"alignment": "column_bottom"
+		},
+		"patreonoverlay": {
+			"image": "mainmenu:textures/elements/Patreon.png",
+			"hoverImage": "mainmenu:textures/elements/Patreonhover.png",
+			"posX": 67,
+			"posY": -10,
+			"width": 17,
+			"height": 16,
+			"alignment": "column_bottom"
+		}
+	},
+	"buttons": {
+		"singleplayer": {
+			"text": "menu.singleplayer",
+			"normalTextColor": -1,
+			"hoverTextColor": 16758315,
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 18,
+			"posY": 5,
+			"width": 64,
+			"height": 15,
+			"imageWidth": 1000,
+			"imageHeight": 1,
+			"alignment": "column_center",
+			"action": {
+				"type": "openGui",
+				"gui": "singleplayer"
+			}
+		},
+		"multiplayer": {
+			"text": "menu.multiplayer",
+			"normalTextColor": -1,
+			"hoverTextColor": 16758315,
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 20,
+			"posY": 23,
+			"width": 60,
+			"height": 15,
+			"imageWidth": 1000,
+			"imageHeight": 1,
+			"alignment": "column_center",
+			"action": {
+				"type": "openGui",
+				"gui": "multiplayer"
+			}
+		},
+		"options": {
+			"text": "menu.options",
+			"normalTextColor": -1,
+			"hoverTextColor": 16758315,
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 20,
+			"posY": 41,
+			"width": 60,
+			"height": 15,
+			"imageWidth": 1000,
+			"imageHeight": 1,
+			"alignment": "column_center",
+			"action": {
+				"type": "openGui",
+				"gui": "options"
+			}
+		},
+		"mods": {
+			"text": "Mods (#modsloaded#/#modsactive#)",
+			"normalTextColor": -1,
+			"hoverTextColor": 16758315,
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 20,
+			"posY": 59,
+			"width": 60,
+			"height": 15,
+			"imageWidth": 1000,
+			"imageHeight": 1,
+			"alignment": "column_center",
+			"action": {
+				"type": "openGui",
+				"gui": "mods"
+			}
+		},
+		"quit": {
+			"text": "menu.quit",
+			"normalTextColor": 16728128,
+			"hoverTextColor": 16711680,
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 20,
+			"posY": 77,
+			"width": 60,
+			"height": 15,
+			"imageWidth": 1000,
+			"imageHeight": 1,
+			"alignment": "column_center",
+			"action": {
+				"type": "quit"
+			}
+		},
+		"lang": {
+			"text": "",
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": -25,
+			"posY": -33,
+			"width": 15,
+			"height": 15,
+			"imageWidth": 11,
+			"imageHeight": 11,
+			"alignment": "bottom_right",
+			"action": {
+                "type" : "openGui",
+                "gui" : "languages"
+            }
+        },
+		"discord": {
+			"text": "",
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 15,
+			"posY": -11,
+			"width": 18,
+			"height": 18,
+			"alignment": "column_bottom",
+			"action": {
+				"type": "openLink",
+				"link": "https://discord.com/invite/SZdz7JkuPJ"
+			}
+		},
+		"reddit": {
+			"text": "",
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 40,
+			"posY": -13,
+			"width": 20,
+			"height": 20,
+			"alignment": "column_bottom",
+			"action": {
+				"type": "openLink",
+				"link": "https://www.reddit.com/r/Lost_Era/"
+			}
+		},
+		"patreon": {
+			"text": "",
+			"texture": "mainmenu:textures/elements/Alpha.png",
+			"posX": 67,
+			"posY": -10,
+			"width": 17,
+			"height": 16,
+			"alignment": "column_bottom",
+			"action": {
+				"type": "openLink",
+				"link": "https://www.patreon.com/LostEra"
+			}
+		}
+		// "refresh":
+        // {
+        //     "text" : "",
+        //     "posX" : 0,
+        //     "posY" : 132,
+        //     "width" : 20,
+        //     "height" : 20,
+        //     "texture" : "custommainmenu:textures/gui/buttons.png",
+        //     "action" : 
+        //     {
+        //         "type" : "refresh"
+        //     }
+        // }
+	},
+	"texts": {
+		"mojang":
+        {
+            "text" : "Copyright Mojang AB. Do not distribute!",
+            "posX" : -199,
+            "posY" : -12,
+            "color" : 7368816,
+            "alignment" : "bottom_right"
+        },
+		"version": {
+			"text": "1.6.10",
+			"posX": 5,
+			"posY": -10,
+			"color": 7368816,
+			"alignment": "bottom_left",
+			"action": {
+				"type": "openLink",
+				"link": "https://modrinth.com/modpack/the-lost-era/versions"
+			}
+		}
+	},
+	"alignments": {
+		"column_top": {
+			"factorWidth": 0.14,
+			"factorHeight": 0.0
+		},
+		"column_logo": {
+			"factorWidth": 0.14,
+			"factorHeight": 0.20
+		},
+		"column_center": {
+			"factorWidth": 0.14,
+			"factorHeight": 0.48
+		},
+        "column_bottom": {
+			"factorWidth": 0.14,
+			"factorHeight": 0.93
+		}
+	},
+	"other": {
+		"background": {
+			"image": "",
+			"slideshow": {
+				"images": [
+					"mainmenu:textures/background/1.png",
+					"mainmenu:textures/background/2.png",
+					"mainmenu:textures/background/3.png",
+					"mainmenu:textures/background/4.png",
+					"mainmenu:textures/background/5.png",
+					"mainmenu:textures/background/6.png"
+				],
+				"displayDuration": 170,
+				"fadeDuration": 50,
+				"shuffle": true
+			}
+		}
+	}
+}

@@ -1,0 +1,8 @@
+version:3120
+maxFps:60
+graphicsMode:0
+renderDistance:6
+biomeBlendRadius:0
+ao:false
+showSubtitles:true
+autoJump:true
