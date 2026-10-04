@@ -1,0 +1,114 @@
+//! Estado do app, guardado pelo Tauri (`app.manage`) e recebido pelos comandos como
+//! `State<'_, AppState>` (ARCHITECTURE §15; QUALITY §11: o único estado global mutável).
+//!
+//! Registro acréscimo-apenas (ROADMAP §1): cada tarefa acrescenta o seu campo no fim da
+//! struct e a sua linha em [`AppState::open`].
+
+use std::sync::Arc;
+
+use warden_core::{AppPaths, remove_temp_files};
+use warden_secrets::{BackendOverride, Secrets, SecretsConfig};
+
+use crate::commands::secrets::SecretTesters;
+use crate::error::AppError;
+use crate::locks::PackLocks;
+use crate::logging::Logging;
+use crate::operations::{Notifier, OperationRegistry};
+use crate::settings::{LoadOutcome, SettingsStore};
+
+/// Estado do app.
+#[derive(Debug)]
+pub struct AppState {
+    /// Pastas do app.
+    pub paths: AppPaths,
+    /// `settings.json`.
+    pub settings: Arc<SettingsStore>,
+    /// Chaves e tokens.
+    pub secrets: Arc<Secrets>,
+    /// Quem sabe testar cada chave (ligado pelas tarefas das APIs).
+    pub secret_testers: SecretTesters,
+    /// Operações longas.
+    pub operations: OperationRegistry,
+    /// Travas por pack.
+    pub locks: PackLocks,
+    /// Registros (ausente nos testes).
+    pub logging: Option<Logging>,
+}
+
+impl AppState {
+    /// Abre o estado: cria as pastas básicas, apaga temporários de quedas anteriores, lê as
+    /// configurações e abre as chaves no modo gravado.
+    pub(crate) fn open(
+        paths: AppPaths,
+        keyring_override: Option<BackendOverride>,
+        notifier: Notifier,
+        logging: Option<Logging>,
+    ) -> Result<(Self, LoadOutcome), AppError> {
+        paths.create_base_dirs()?;
+        let removed = remove_temp_files(paths.config_dir())?;
+        if removed > 0 {
+            tracing::info!(removed, "temporários de uma gravação interrompida apagados");
+        }
+        let (settings, outcome) = SettingsStore::open(paths.settings_file())?;
+        if let Some(logging) = &logging {
+            logging.set_level(settings.get().log_level);
+        }
+        let secrets = Secrets::open(
+            SecretsConfig::for_app(paths.secrets_env_file(), keyring_override),
+            settings.get().secrets_backend,
+        );
+        Ok((
+            Self {
+                paths,
+                settings: Arc::new(settings),
+                secrets: Arc::new(secrets),
+                secret_testers: SecretTesters::default(),
+                operations: OperationRegistry::new(notifier),
+                locks: PackLocks::new(),
+                logging,
+            },
+            outcome,
+        ))
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use super::*;
+    use std::path::Path;
+    use warden_secrets::BackendKind;
+
+    /// Estado de teste numa pasta temporária, com o cofre de teste em arquivo.
+    pub(crate) fn test_state(root: &Path) -> AppState {
+        let paths = AppPaths::from_dev_root(root).unwrap();
+        let vault = BackendOverride::TestFile(root.join("cofre-de-teste"));
+        AppState::open(paths, Some(vault), Arc::new(|_| {}), None)
+            .unwrap()
+            .0
+    }
+
+    #[test]
+    fn abre_numa_pasta_vazia_sem_criar_settings() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        assert!(state.paths.logs_dir().is_dir());
+        assert!(!state.settings.exists());
+        assert_eq!(state.secrets.backend(), BackendKind::Keyring);
+    }
+
+    #[test]
+    fn apaga_temporarios_e_abre_no_modo_gravado() {
+        let dir = tempfile::tempdir().unwrap();
+        let config = dir.path().join("config");
+        std::fs::create_dir_all(&config).unwrap();
+        std::fs::write(config.join("settings.json.1-0.warden-tmp"), b"{").unwrap();
+        std::fs::write(
+            config.join("settings.json"),
+            r#"{"schemaVersion":1,"secretsBackend":"envfile"}"#,
+        )
+        .unwrap();
+        let state = test_state(dir.path());
+        assert!(!config.join("settings.json.1-0.warden-tmp").exists());
+        assert_eq!(state.secrets.backend(), BackendKind::Envfile);
+    }
+}

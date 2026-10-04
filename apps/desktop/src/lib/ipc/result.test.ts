@@ -9,6 +9,7 @@ const appError: AppError = {
   params: { nome: 'x' },
   detail: 'detalhe',
   retryable: false,
+  operationId: null,
 };
 
 describe('unwrap', () => {

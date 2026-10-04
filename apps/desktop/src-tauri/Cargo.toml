@@ -17,12 +17,23 @@ crate-type = ["rlib"]
 tauri-build.workspace = true
 
 [dependencies]
+async-trait.workspace = true
+secrecy.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 specta.workspace = true
 specta-typescript.workspace = true
 tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tauri-plugin-log.workspace = true
+tauri-plugin-opener.workspace = true
+tauri-plugin-single-instance.workspace = true
 tauri-specta.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync", "time"] }
+tracing.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber.workspace = true
 warden-core.workspace = true
 warden-packwiz.workspace = true
 warden-packwiz-cli.workspace = true
@@ -50,7 +61,9 @@ warden-export.workspace = true
 warden-secrets.workspace = true
 
 [dev-dependencies]
-serde_json.workspace = true
+tempfile.workspace = true
+warden-core = { workspace = true, features = ["fault-injection"] }
+warden-secrets = { workspace = true, features = ["fault-injection"] }
 
 [lints]
 workspace = true

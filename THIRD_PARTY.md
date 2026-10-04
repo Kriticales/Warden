@@ -14,7 +14,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `specta-typescript` | =0.0.12 | MIT | `warden-app` | Exportação do `bindings.ts`. |
 | `tauri-specta` | =2.0.0-rc.25 | MIT | `warden-app` | Comandos tipados e geração do `bindings.ts` (ADR-0018). Versão RC, fixada com `=`. |
 | `serde` | 1.0.229 | MIT OR Apache-2.0 | `warden-app`, `xtask` | Serialização. |
-| `serde_json` | 1.0.151 | MIT OR Apache-2.0 | `warden-app` (testes), `xtask` | JSON (relatório do `llvm-cov`, testes do contrato). |
+| `serde_json` | 1.0.151 | MIT OR Apache-2.0 | `warden-app`, `xtask` | JSON (`settings.json`, relatório do `llvm-cov`, testes do contrato). |
 | `thiserror` | 2.0.21 | MIT OR Apache-2.0 | `warden-app` | Erros tipados (ADR-0024). |
 | `anyhow` | 1.0.104 | MIT OR Apache-2.0 | `xtask` | Erros da ferramenta de desenvolvimento (QUALITY §2.1: só no xtask e em testes). |
 | `cargo_metadata` | 0.23.1 | MIT | `xtask` | Grafo de dependências (`check-deps`), pasta `target`, crates do workspace. |
@@ -34,6 +34,14 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `windows-native-keyring-store` | 1.1.0 | MIT OR Apache-2.0 | `warden-secrets` (Windows) | Gerenciador de Credenciais do Windows para o `keyring-core`. |
 | `zbus-secret-service-keyring-store` | 1.0.1 | MIT OR Apache-2.0 | `warden-secrets` (Linux) | Secret Service do Linux para o `keyring-core` (só compila na CI). |
 | `tracing` | 0.1.44 | MIT | `warden-secrets`, `warden-app` | Registros com contexto (ARCHITECTURE §16). |
+| `tracing-subscriber` | 0.3.23 | MIT | `warden-app` | Filtro recarregável, formato do arquivo e ponte da fachada `log` (`tracing-log`). |
+| `tracing-appender` | 0.2.5 | MIT | `warden-app` | Arquivo diário com 14 dias de retenção, gravado fora da thread do app. |
+| `tokio` | 1.53.2 | MIT | `warden-app` | Travas por pack (`RwLock` justo), cancelamento e testes de concorrência (ARCHITECTURE §15). |
+| `async-trait` | 0.1.92 | MIT OR Apache-2.0 | `warden-app` | Trait `SecretTester` (testar chaves) como objeto dinâmico. |
+| `tauri-plugin-single-instance` | 2.5.2 | Apache-2.0 OR MIT | `warden-app` | Instância única do app (ADR-0019). |
+| `tauri-plugin-log` | 2.10.0 | Apache-2.0 OR MIT | `warden-app` | Registros do frontend no mesmo arquivo (ARCHITECTURE §16). |
+| `tauri-plugin-opener` | 2.7.0 | Apache-2.0 OR MIT | `warden-app` | Abrir links `https:` no navegador (ARCHITECTURE §20). |
+| `tauri-plugin-dialog` | 2.8.1 | Apache-2.0 OR MIT | `warden-app` | Aviso de erro interno no pânico; diálogos nativos acionados pelo Rust (ARCHITECTURE §4.1). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

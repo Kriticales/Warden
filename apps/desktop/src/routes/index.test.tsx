@@ -12,7 +12,12 @@ function renderHome() {
 
 describe('página inicial', () => {
   it('F0-01 critério 2: mostra o texto do catálogo e a versão de app_info', async () => {
-    const info: AppInfo = { version: '0.1.0', commit: 'abc123def456' };
+    const info: AppInfo = {
+      version: '0.1.0',
+      commit: 'abc123def456',
+      platform: 'windows',
+      debugBuild: false,
+    };
     mockIPC((command) => (command === 'app_info' ? info : undefined));
 
     renderHome();
@@ -25,7 +30,12 @@ describe('página inicial', () => {
   });
 
   it('mostra só a versão quando o commit é desconhecido', async () => {
-    const info: AppInfo = { version: '0.1.0', commit: null };
+    const info: AppInfo = {
+      version: '0.1.0',
+      commit: null,
+      platform: 'windows',
+      debugBuild: false,
+    };
     mockIPC(() => info);
 
     renderHome();
@@ -39,6 +49,7 @@ describe('página inicial', () => {
       params: {},
       detail: 'falhou',
       retryable: false,
+      operationId: null,
     };
     // O IPC do Tauri rejeita com o AppError serializado, não com um Error. A rejeição só
     // acontece quando o teste manda, para o estado de carregamento ser visto antes.
