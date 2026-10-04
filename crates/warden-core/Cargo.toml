@@ -6,5 +6,27 @@ edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
+[features]
+# Pontos de falha para os testes de injeção de falha (QUALITY §4.1). Nunca ligada no app.
+fault-injection = []
+
+[dependencies]
+serde.workspace = true
+specta = { workspace = true, features = ["derive"] }
+specta-typescript.workspace = true
+thiserror.workspace = true
+tokio-util.workspace = true
+ulid.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+
+[target.'cfg(windows)'.dev-dependencies]
+# Junções do NTFS nos testes do `resolve_inside`, sem `cmd /c mklink` (QUALITY §13.7).
+junction.workspace = true
+
 [lints]
 workspace = true
