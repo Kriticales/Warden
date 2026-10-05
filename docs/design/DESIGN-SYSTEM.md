@@ -1,9 +1,9 @@
 # Warden: design system (direção Deep Dark)
 
 > Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3). Versão 1.2 (tarefa D5, 02/10/2026): componentes do Warden 1.1 "Profissional" (§4.2), padrões de tela da 1.1 (§5), verificação refeita (§7) e crítica da D5 (§8.4).
-> Galeria com todos os componentes e estados: `design/system/index.html`, publicada em https://app.superset.sh/page/warden-design-system-ysdscr (versão 3, D5)
-> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado em https://app.superset.sh/page/warden-prot-tipo-final-pri9am (versão 3, D5: 94 telas e diálogos; 30 da D4 e 13 do Warden 1.1, marcados com o selo "1.1")
-> Para republicar: `node design/tools/montar-publicacao.mjs` e `superset pages publish design/_publicado/<pasta>/ --page <id>`.
+> Galeria com todos os componentes e estados: `design/system/index.html`, publicada como Artifact do claude.ai em https://claude.ai/artifact/Uur9YtN2EtUhJBxKi7qUhr (versão 3, D5; a página antiga do Superset saiu do ar com a troca de ferramenta, link atualizado na D7)
+> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado como Artifact do claude.ai em https://claude.ai/artifact/JAPB9Nd8BhtNzMXgF6evhi (versão 3, D5: 94 telas e diálogos; 30 da D4 e 13 do Warden 1.1, marcados com o selo "1.1")
+> Para republicar: `node design/tools/montar-publicacao.mjs` e publicar a pasta gerada no mesmo Artifact (o orquestrador confere antes de mostrar ao dono; AGENTS.md, "Design").
 > Mapeamento para Tailwind CSS 4 + shadcn/ui: [`HANDOFF.md`](HANDOFF.md).
 > Estrutura que este sistema veste (obrigatória, aprovada): [`ESTRUTURA.md`](ESTRUTURA.md).
 

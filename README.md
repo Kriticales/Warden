@@ -13,7 +13,7 @@ Já instalados nesta máquina ([QUALITY §13.1](docs/QUALITY.md#131-pré-requisi
 - Rust pelo `rustup` (a versão, 1.98.1, é fixada pelo [`rust-toolchain.toml`](rust-toolchain.toml) e baixada sozinha);
 - Node 24 e pnpm 12;
 - git, com `core.autocrlf=false` neste repositório (o fim de linha é garantido pelo [`.gitattributes`](.gitattributes));
-- Go (para compilar o sidecar do packwiz, a partir da F0-03) e GitHub CLI (`gh`).
+- Go 1.24 ou mais novo (para compilar o sidecar do packwiz) e GitHub CLI (`gh`).
 
 Java não é pré-requisito: o launcher baixa o Java do Minecraft.
 
@@ -22,13 +22,15 @@ Java não é pré-requisito: o launcher baixa o Java do Minecraft.
 Toda a automação passa pelo `xtask`, escrito em Rust: os mesmos comandos funcionam no PowerShell do Windows e no Linux da CI.
 
 ```powershell
-cargo xtask setup        # ferramentas do cargo (versões fixadas) e dependências do pnpm; só no espaço do usuário
+cargo xtask setup        # ferramentas do cargo (versões fixadas), dependências do pnpm e o sidecar do packwiz; só no espaço do usuário
 cargo xtask dev          # abre o app no Windows (tauri dev), com pastas e cofre de teste próprios
 cargo xtask check        # portão de qualidade completo (QUALITY §12)
 cargo xtask check --fast # versão rápida, para cada commit
 ```
 
-Outros: `cargo xtask check-deps` (nenhuma crate de domínio depende do Tauri), `cargo xtask check-docs` (links internos dos documentos), `cargo xtask bindings` e `cargo xtask bindings --check` (o `bindings.ts` gerado do Rust), `cargo xtask coverage` (cobertura mínima da [QUALITY §4.2](docs/QUALITY.md#42-cobertura-mínima-linhas)) e `cargo xtask test-network` (testes contra as APIs reais, com o `.env`).
+O `check` precisa do sidecar do packwiz compilado: num worktree novo, rode `cargo xtask setup` (ou só `cargo xtask build-packwiz`, que compila o packwiz do commit fixado com os patches de [`third_party/packwiz/`](third_party/packwiz/README.md) e pula quando nada mudou). A primeira compilação precisa de internet.
+
+Outros: `cargo xtask build-packwiz` (o sidecar, com `--force` para recompilar), `cargo xtask check-deps` (nenhuma crate de domínio depende do Tauri), `cargo xtask check-docs` (links internos dos documentos), `cargo xtask bindings` e `cargo xtask bindings --check` (o `bindings.ts` gerado do Rust), `cargo xtask coverage` (cobertura mínima da [QUALITY §4.2](docs/QUALITY.md#42-cobertura-mínima-linhas)) e `cargo xtask test-network` (testes contra as APIs reais, com o `.env`).
 
 ### O app de desenvolvimento não toca nos seus dados
 

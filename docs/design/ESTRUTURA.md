@@ -3,7 +3,7 @@
 > Tarefa D2, 01/10/2026. **Aprovada pelo dono no mesmo dia: Alternativa A** (ver §0). A SPEC, a ARCHITECTURE, o ROADMAP, o QUALITY e as ADRs 0025 a 0029 já foram atualizados; este documento registra a proposta e o porquê.
 > **Tarefa D4, 01/10/2026:** as funções avançadas pedidas pelo dono (pesquisas R5A e R5B) entram na mesma estrutura, sem seção nova e sem abas. Onde fica cada uma e as poucas mudanças de nome estão na [§13](#13-funções-avançadas-d4-onde-fica-cada-uma); ela prevalece sobre as seções anteriores quando houver diferença.
 > **Tarefa D5, 02/10/2026:** as seis funções do **Warden 1.1 "Profissional"** (segurança dos mods, manutenção, travamento de um jogador, notas e grupos, itens repetidos, desempenho entre versões) entram na mesma estrutura, de novo sem seção nova e sem abas. Onde fica cada uma está na [§14](#14-warden-11-profissional-d5-onde-fica-cada-função); ela prevalece sobre as seções anteriores quando houver diferença.
-> Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet), publicado em https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl
+> Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet). A página publicada no Superset saiu do ar com a troca de ferramenta; a versão navegável aprovada, já com o visual, é o protótipo final: https://claude.ai/artifact/JAPB9Nd8BhtNzMXgF6evhi (design system: https://claude.ai/artifact/Uur9YtN2EtUhJBxKi7qUhr).
 > Base: `docs/SPEC.md` (telas T01 a T23), relatórios em `docs/research/` e o motivo da reprovação do protótipo D1.
 
 Este documento define **como se navega no Warden**, antes de qualquer estilo visual. Os rascunhos são em escala de cinza de propósito: a ideia é avaliar só a organização. A linguagem visual aprovada no D1 (paleta Warden, fontes pixel, menus estilo Minecraft) entra na etapa seguinte, por cima desta estrutura.
@@ -389,7 +389,7 @@ Nesta etapa, que é só estrutura em cinza, a regra vale para textos e organiza�
 
 ## 11. Como usar o rascunho clicável
 
-- Abrir `design/estrutura/index.html` no navegador, ou pelo link publicado (https://app.superset.sh/page/warden-estrutura-rascunho-zfldsl).
+- Abrir `design/estrutura/index.html` no navegador (o link antigo do Superset saiu do ar; a versão com o visual é o protótipo final, https://claude.ai/artifact/JAPB9Nd8BhtNzMXgF6evhi).
 - **Só a Alternativa A** (aprovada). A B saiu do rascunho; links antigos com `#B/…` abrem a mesma tela na A.
 - **Mapa** e **Fluxos** (links no topo): a árvore do app, as decisões do dono e os 5 fluxos com cada passo clicável.
 - **Índice à esquerda:** todas as telas, com a referência da SPEC (T01–T23).
