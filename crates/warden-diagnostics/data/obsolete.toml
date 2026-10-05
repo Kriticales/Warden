@@ -1,0 +1,41 @@
+[[obsolete]]
+id = "starlight-120"
+mod_id = "starlight"
+min_minecraft = "1.20"
+note = "O jogo já incorporou a maior parte desta melhoria de iluminação."
+
+[[obsolete]]
+id = "phosphor-120"
+mod_id = "phosphor"
+min_minecraft = "1.20"
+note = "Use o motor de iluminação do jogo nesta versão."
+
+[[obsolete]]
+id = "lazydfu-1194"
+mod_id = "lazydfu"
+min_minecraft = "1.19.4"
+note = "Esta otimização não é mais necessária nesta versão."
+
+[[obsolete]]
+id = "embeddium-neoforge-121"
+mod_id = "embeddium"
+loader = "neoforge"
+min_minecraft = "1.21"
+replacement = "sodium"
+note = "Sodium passou a ter versão para NeoForge."
+
+[[obsolete]]
+id = "rubidium-neoforge-121"
+mod_id = "rubidium"
+loader = "neoforge"
+min_minecraft = "1.21"
+replacement = "sodium"
+note = "Sodium passou a ter versão para NeoForge."
+
+[[obsolete]]
+id = "oculus-neoforge-121"
+mod_id = "oculus"
+loader = "neoforge"
+min_minecraft = "1.21"
+replacement = "iris"
+note = "Iris passou a ter versão para NeoForge."

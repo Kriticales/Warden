@@ -1,0 +1,20 @@
+# IDs de mods; pares de implementações alternativas não podem coexistir.
+[[category]]
+id = "renderizadores-modernos"
+members = ["sodium", "embeddium", "rubidium", "magnesium", "optifine"]
+note = "Renderizadores alternativos para o mesmo cliente."
+
+[[category]]
+id = "lithium-implementacoes"
+members = ["lithium", "radium", "canary"]
+note = "Implementações alternativas das otimizações do Lithium."
+
+[[category]]
+id = "sodium-ports-1122"
+members = ["vintagium", "relictium", "neonium", "celeritas"]
+note = "Ports alternativos do renderizador para Forge 1.12.2."
+
+[[category]]
+id = "motores-de-luz"
+members = ["starlight", "phosphor"]
+note = "Motores alternativos de iluminação."

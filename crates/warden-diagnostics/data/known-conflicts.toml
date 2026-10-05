@@ -1,0 +1,35 @@
+[[conflict]]
+id = "optifine-sodium"
+first = "optifine"
+second = "sodium"
+severity = "error"
+note = "OptiFine e Sodium substituem o mesmo renderizador."
+
+[[conflict]]
+id = "optifine-iris"
+first = "optifine"
+second = "iris"
+severity = "error"
+note = "Iris fornece shaders sem OptiFine."
+
+[[conflict]]
+id = "optifine-embeddium"
+first = "optifine"
+second = "embeddium"
+severity = "error"
+note = "OptiFine e Embeddium substituem o mesmo renderizador."
+
+[[conflict]]
+id = "optifine-modernfix"
+first = "optifine"
+second = "modernfix"
+severity = "warning"
+note = "Esta combinação tem incompatibilidades conhecidas."
+
+[[conflict]]
+id = "indium-sodium-06"
+first = "indium"
+second = "sodium"
+second_min_version = "0.6"
+severity = "error"
+note = "Sodium 0.6 ou posterior já inclui a função do Indium."
