@@ -10,6 +10,7 @@ mod coverage;
 mod deps;
 mod dev;
 mod docs;
+mod e2e;
 mod env_file;
 mod fixtures_packwiz;
 mod network;
@@ -73,6 +74,8 @@ enum Command {
         #[arg(long)]
         commit: Option<String>,
     },
+    /// Baixa o `msedgedriver` da versão do WebView2 (Windows) ou confere o `WebKitWebDriver` (Linux).
+    E2eDriver,
 }
 
 fn main() -> ExitCode {
@@ -90,6 +93,7 @@ fn main() -> ExitCode {
         Command::FixturesPackwiz { packwiz, commit } => {
             fixtures_packwiz::run(fixtures_packwiz::Options { packwiz, commit })
         }
+        Command::E2eDriver => e2e::run(),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
