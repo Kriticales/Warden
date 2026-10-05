@@ -1,0 +1,245 @@
+/*
+ * O que é só do app (não existe em `design/system/components.css`). Mesma regra do design
+ * system: nenhuma cor, tamanho, raio, sombra ou duração literais; tudo vem dos tokens.
+ */
+
+/* Tema escuro fixo (HANDOFF §1): não há tema claro. */
+:root {
+  color-scheme: dark;
+}
+
+/* A janela inteira é o app: a barra do app (ou o cabeçalho do pack) e o rodapé ficam fixos, e
+   só o conteúdo rola (HANDOFF §5). */
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  overflow: hidden;
+}
+.app {
+  height: 100vh;
+  min-height: 0;
+}
+.app__main:focus {
+  outline: none;
+}
+
+/* Aviso legal da Mojang/Microsoft (T01, T23). Igual ao do protótipo final. */
+.legal {
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-sunken);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-border-strong);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  letter-spacing: 0.02em;
+}
+
+/* Camadas do Radix: o conteúdo é posicionado pelo próprio Radix, então o tooltip e o menu não
+   usam o `position: absolute` da galeria. */
+[data-radix-popper-content-wrapper] > .tooltip {
+  position: relative;
+}
+
+/* Fila de toasts (Radix Toast): a lista não tem marcadores e fica acima do rodapé. */
+.toasts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  outline: none;
+}
+.toast[data-state='closed'] {
+  animation: fade-out var(--duration-base) var(--ease-out) forwards;
+}
+.toast[data-swipe='move'] {
+  transform: translateX(var(--radix-toast-swipe-move-x));
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Diálogo e painel lateral fechando (o Radix espera a animação terminar). */
+.scrim[data-state='closed'] {
+  animation: fade-out var(--duration-base) var(--ease-out) forwards;
+}
+
+/* Gaveta de Tarefas (T22). */
+.tasks__group {
+  display: grid;
+  gap: var(--space-2);
+}
+.tasks__list {
+  display: grid;
+  gap: var(--space-2);
+}
+.task {
+  display: grid;
+  gap: var(--space-2);
+}
+.task__actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.task__done {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  align-items: start;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}
+.task__done > .icon {
+  margin-top: 1px;
+}
+.task__done--ok > .icon {
+  color: var(--color-ok);
+}
+.task__done--failed > .icon {
+  color: var(--color-danger);
+}
+.task__done--cancelled > .icon {
+  color: var(--color-text-3);
+}
+.task__done-error {
+  grid-column: 2;
+}
+
+/* Painel de erro (ErrorPanel): o alerta de perigo com os detalhes técnicos recolhidos. */
+.errpanel__details {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+}
+.errpanel__details summary {
+  cursor: pointer;
+  width: max-content;
+  color: var(--color-text-2);
+  font-weight: var(--font-weight-semibold);
+}
+.errpanel__details summary:hover {
+  color: var(--color-text);
+}
+.errpanel__tech {
+  margin-top: var(--space-2);
+  display: grid;
+  gap: var(--space-2);
+}
+.errpanel__pre {
+  max-height: 240px;
+  overflow: auto;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-sunken);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Estado de carregamento (LoadingState). */
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-2);
+  font-size: var(--text-sm);
+}
+.loading--block {
+  display: flex;
+  padding: var(--space-6) 0;
+}
+
+/* Conteúdo remoto higienizado (SafeHtml, SafeMarkdown). */
+.prose {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+  overflow-wrap: anywhere;
+}
+.prose > * + * {
+  margin-top: var(--space-3);
+}
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-md);
+  line-height: var(--text-md--line-height);
+}
+.prose h1 {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}
+.prose ul {
+  list-style: square;
+  padding-left: var(--space-5);
+}
+.prose ol {
+  list-style: decimal;
+  padding-left: var(--space-5);
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+.prose pre {
+  overflow-x: auto;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-sunken);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-border);
+}
+.prose table {
+  border-collapse: collapse;
+}
+.prose th,
+.prose td {
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-thin) solid var(--color-border);
+}
+.prose blockquote {
+  padding-left: var(--space-3);
+  box-shadow: inset var(--border-bar) 0 0 var(--color-border-strong);
+}
+.prose details summary {
+  cursor: pointer;
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Vídeo incorporado vira miniatura com "Abrir no navegador" (ARCHITECTURE §18). */
+.embed {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  max-width: 480px;
+  padding: var(--space-3);
+  background: var(--color-surface-2);
+  box-shadow: inset 0 0 0 var(--border-thin) var(--color-border-strong);
+}
+.embed__thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--color-bg-sunken);
+}
+.embed__host {
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+}
+
+/* Página inicial provisória e "Sobre o Warden". */
+.about__links {
+  margin-top: var(--space-3);
+}

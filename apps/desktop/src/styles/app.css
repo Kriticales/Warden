@@ -1,0 +1,20 @@
+/*
+ * Estilos do app (HANDOFF §1). A fonte única é `design/system/`: os arquivos são importados de
+ * lá, sem cópia, para o app nunca divergir do design system. Os três temas são gerados por
+ * `node design/system/tools/build-tokens.mjs` a partir de `tokens.json` e não se editam à mão;
+ * `src/styles/design-system.test.ts` falha se os gerados estiverem desatualizados.
+ *
+ * Ordem: Tailwind (com o preflight), fontes embutidas (nada vem da internet), o `@theme` do
+ * Warden (zera as paletas padrão: `bg-blue-500` e `rounded-lg` deixam de existir), as
+ * variáveis do shadcn/ui, os componentes do design system como camada `components` e, por
+ * fim, o que é só do app.
+ */
+@import 'tailwindcss';
+@import '../../../../design/system/fonts/fonts.css';
+@import '../../../../design/system/tailwind-theme.css';
+@import '../../../../design/system/shadcn-theme.css';
+@import '../../../../design/system/components.css' layer(components);
+@import './warden.css' layer(components);
+
+/* Os componentes do app só existem em `src/`; o Tailwind não precisa varrer o resto. */
+@source not '../../../../design';

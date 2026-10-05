@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -7,7 +8,12 @@ const DEV_PORT = 1420;
 
 export default defineConfig({
   // O plugin do roteador vem antes do React (rotas por arquivo; routeTree.gen.ts gerado).
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
+  plugins: [
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    react(),
+    // Tailwind CSS 4, configurado por CSS em src/styles/app.css (HANDOFF §1).
+    tailwindcss(),
+  ],
   clearScreen: false,
   server: {
     port: DEV_PORT,
