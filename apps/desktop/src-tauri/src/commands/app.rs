@@ -259,7 +259,10 @@ fn nearest_existing_dir(path: &Path) -> Option<&Path> {
 #[tauri::command]
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // contrato do Tauri
-pub(crate) fn logs_reveal_folder(app: AppHandle, state: State<'_, AppState>) -> Result<(), AppError> {
+pub(crate) fn logs_reveal_folder(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
     let dir = state.paths.logs_dir();
     std::fs::create_dir_all(&dir).map_err(|error| CoreError::io("criar a pasta", &dir, error))?;
     app.opener()
@@ -428,7 +431,10 @@ mod tests {
         ] {
             let error = choose_packs_dir_impl(&state, Some(path.clone())).unwrap_err();
             assert_eq!(error.code, AppErrorCode::SettingsInvalid.into(), "{path:?}");
-            assert_eq!(error.params.get("field").map(String::as_str), Some("packsDir"));
+            assert_eq!(
+                error.params.get("field").map(String::as_str),
+                Some("packsDir")
+            );
             assert_eq!(reason(&error), Some(expected), "{path:?}");
         }
         assert!(!state.settings.exists());
