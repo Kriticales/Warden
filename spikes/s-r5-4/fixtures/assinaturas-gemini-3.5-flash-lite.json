@@ -1,0 +1,203 @@
+{
+  "origem": "Gravação real (spike S-R5-4, 2026-10-04): reação da API do Gemini a históricos com assinaturas alteradas. Sem cabeçalhos nem chave.",
+  "modelo": "gemini-3.5-flash-lite",
+  "resposta_com_chamadas_paralelas": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_findings",
+                "args": {},
+                "id": "call_1769563"
+              },
+              "thoughtSignature": "EmAKXgFpFH0TP1OgQAExf6J+b60DeP7C1AM5F8iX4tFKeWY1fNSz6BhYCcvsB3z7rRXxhIp+0Y1xLJoZnjvru51NhVmEVdJkI4IlLJ2iTG/736zvUhZalpt1r7O/H9Qp52M="
+            },
+            {
+              "functionCall": {
+                "name": "get_crash_report",
+                "args": {
+                  "session_id": "s3"
+                },
+                "id": "call_1769564"
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 1570,
+      "candidatesTokenCount": 31,
+      "totalTokenCount": 1601,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1570
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash-lite",
+    "responseId": "4NTCavChC92J6dkP2J3MkAc"
+  },
+  "variantes": [
+    {
+      "etapa": "chamada inicial 0",
+      "http": 200,
+      "resposta": {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "functionCall": {
+                    "name": "get_findings",
+                    "args": {},
+                    "id": "call_1769563"
+                  },
+                  "thoughtSignature": "EmAKXgFpFH0TP1OgQAExf6J+b60DeP7C1AM5F8iX4tFKeWY1fNSz6BhYCcvsB3z7rRXxhIp+0Y1xLJoZnjvru51NhVmEVdJkI4IlLJ2iTG/736zvUhZalpt1r7O/H9Qp52M="
+                },
+                {
+                  "functionCall": {
+                    "name": "get_crash_report",
+                    "args": {
+                      "session_id": "s3"
+                    },
+                    "id": "call_1769564"
+                  }
+                }
+              ],
+              "role": "model"
+            },
+            "finishReason": "STOP",
+            "index": 0,
+            "finishMessage": "Model generated function call(s)."
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 1570,
+          "candidatesTokenCount": 31,
+          "totalTokenCount": 1601,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1570
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.5-flash-lite",
+        "responseId": "4NTCavChC92J6dkP2J3MkAc"
+      }
+    },
+    {
+      "etapa": "sem assinatura",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_findings` , position 2. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura alterada (1 caractere)",
+      "http": 400,
+      "erro": "Invalid thought signature.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura movida para a 2a chamada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "respostas intercaladas",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_crash_report` , position 4. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura falsa documentada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "respostas na ordem inversa",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "chamadas na ordem inversa (assinatura na última)",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "intacto",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    }
+  ]
+}
