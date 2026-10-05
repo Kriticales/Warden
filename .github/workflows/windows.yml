@@ -1,0 +1,34 @@
+# Windows (reutilizável): o mesmo `cargo xtask check` do Linux, os testes com o cofre real do
+# Windows e o instalador NSIS como artefato `warden-windows-<sha>` (F0-02; QUALITY §12 e §13.6).
+#
+# Chamado pelo `ci.yml` (na `main`, em PRs com o rótulo `windows`, em push com `[ci windows]`
+# na mensagem do commit e manualmente) e pelo `nightly.yml` (toda noite; decisão D9).
+#
+# Testes com o cofre real: marcados `#[ignore = "cofre-real"]` e com `cofre_real` no nome, que
+# é o filtro usado aqui (o nextest não filtra pelo motivo do `ignore`). Só rodam nesta máquina
+# descartável, nunca no computador do dono. Sem nenhum teste assim, o passo falha, para o
+# filtro não ficar vazio sem ninguém perceber.
+
+name: Windows
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: check, cofre real e instalador
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: windows-latest
+      cache-key: windows
+      timeout-minutes: 120
+      run: |
+        cargo xtask check
+        cargo nextest run --workspace --locked --run-ignored only --no-tests=fail -E 'test(/cofre_real/)'
+        cd apps/desktop
+        cargo tauri build --ci --bundles nsis
+      artifact-name: warden-windows-${{ github.sha }}
+      artifact-path: target/release/bundle/nsis/*.exe

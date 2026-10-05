@@ -1,0 +1,164 @@
+# CI do Warden (F0-02; ADR-0022; QUALITY §12).
+#
+# Em todo push de qualquer branch, no Linux (ubuntu-24.04):
+#   - check: `cargo xtask check` (formatação, clippy, testes, deny, docs, bindings, lint,
+#     typecheck e testes do frontend), com o packwiz real obrigatório;
+#   - cobertura: `cargo xtask coverage` (mínimos da QUALITY §4.2);
+#   - e2e-linux: testes ponta a ponta com o app real, assim que o harness da F0-06 existir;
+#   - gitleaks (histórico inteiro, com `.gitleaks.toml`) e actionlint.
+#
+# Windows (`windows.yml`: check, cofre real e instalador NSIS como artefato
+# `warden-windows-<sha>`): na `main`, em PRs com o rótulo `windows`, em push com `[ci windows]`
+# na mensagem do commit e manualmente; à noite pelo `nightly.yml` (decisão D9).
+#
+# Eventos de pull request só servem ao Windows: os checks do Linux aparecem no PR pelo push
+# do mesmo commit, sem rodar duas vezes. Nenhum job daqui recebe segredos.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Um push novo cancela a execução anterior da mesma branch (menos na `main`, onde cada commit
+# gera o seu instalador). Rótulos de PR têm grupo próprio, para um rótulo qualquer não cancelar
+# a execução em andamento.
+concurrency:
+  group: >-
+    ci-${{ github.event_name == 'pull_request'
+    && format('pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'labeled' && github.event.label.name || 'codigo')
+    || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Linux · check
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: ubuntu-24.04
+      cache-key: linux-check
+      timeout-minutes: 90
+      run: cargo xtask check
+
+  cobertura:
+    name: Linux · cobertura
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: ubuntu-24.04
+      cache-key: linux-cobertura
+      timeout-minutes: 90
+      run: cargo xtask coverage
+
+  detectar-e2e:
+    name: Linux · E2E existe?
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      e2e: ${{ steps.detectar.outputs.e2e }}
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # O E2E liga sozinho quando o harness da F0-06 chegar: `apps/desktop/wdio.conf.ts` e o
+      # script `e2e` no `apps/desktop/package.json`.
+      - name: Detectar o harness de E2E
+        id: detectar
+        run: |
+          if [ -f apps/desktop/wdio.conf.ts ] && jq -e '.scripts.e2e' apps/desktop/package.json > /dev/null; then
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "e2e=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::E2E Linux pulado: ainda não há apps/desktop/wdio.conf.ts com o script e2e (F0-06)."
+          fi
+
+  e2e-linux:
+    name: Linux · E2E
+    needs: detectar-e2e
+    if: needs.detectar-e2e.outputs.e2e == 'true'
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: ubuntu-24.04
+      cache-key: linux-e2e
+      timeout-minutes: 60
+      e2e: true
+      # Build de debug do app (QUALITY §4.1 e §13.5), driver conferido pelo xtask e o
+      # WebKitGTK numa tela virtual (Xvfb).
+      run: |
+        cargo xtask e2e-driver
+        (cd apps/desktop && cargo tauri build --ci --debug --no-bundle)
+        xvfb-run --auto-servernum pnpm -C apps/desktop e2e
+
+  gitleaks:
+    name: gitleaks
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - name: Baixar o código (histórico inteiro)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Instalar o gitleaks (versão e SHA-256 fixados)
+        run: |
+          arquivo="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL --retry 5 --retry-all-errors -o "$RUNNER_TEMP/$arquivo" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$arquivo"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$arquivo" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/$arquivo" -C "$RUNNER_TEMP" gitleaks
+      - name: Procurar segredos no histórico
+        run: |
+          "$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --verbose --no-banner \
+            --exit-code 1 .
+
+  actionlint:
+    name: actionlint
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      ACTIONLINT_VERSION: 1.7.12
+      ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Instalar o actionlint (versão e SHA-256 fixados)
+        run: |
+          arquivo="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL --retry 5 --retry-all-errors -o "$RUNNER_TEMP/$arquivo" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$arquivo"
+          echo "${ACTIONLINT_SHA256}  $RUNNER_TEMP/$arquivo" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/$arquivo" -C "$RUNNER_TEMP" actionlint
+      # O shellcheck da imagem confere os scripts `run:`.
+      - name: Conferir os workflows
+        run: |
+          shellcheck --version
+          "$RUNNER_TEMP/actionlint" -color
+
+  windows:
+    name: Windows
+    if: >-
+      (github.event_name == 'push'
+        && (github.ref == 'refs/heads/main' || contains(github.event.head_commit.message, '[ci windows]')))
+      || github.event_name == 'workflow_dispatch'
+      || (github.event_name == 'pull_request'
+        && contains(github.event.pull_request.labels.*.name, 'windows')
+        && (github.event.action != 'labeled' || github.event.label.name == 'windows'))
+    uses: ./.github/workflows/windows.yml

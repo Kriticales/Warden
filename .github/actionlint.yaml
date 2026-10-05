@@ -1,0 +1,10 @@
+# Configuração do actionlint (F0-02). Roda no job `actionlint` do `ci.yml`, com o shellcheck da
+# imagem conferindo os scripts `run:`; localmente: `actionlint` na raiz do repositório.
+
+# Só máquinas do GitHub; nenhum runner próprio.
+self-hosted-runner:
+  labels: []
+
+# Nenhuma variável de repositório (`vars.*`) é usada; lista vazia faz o actionlint recusar
+# qualquer uma, para um nome errado não passar despercebido.
+config-variables: []
