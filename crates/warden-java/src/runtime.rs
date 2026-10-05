@@ -277,6 +277,7 @@ pub struct InstalledRuntime {
     /// Programa `java` com console (validação).
     pub java: PathBuf,
     /// Quando foi instalado (milissegundos desde 1970).
+    #[specta(type = specta_typescript::Number)]
     pub installed_at_ms: u64,
     /// Teto de atualização do canal (o `312` de "8 ≤ u312"); as atualizações respeitam o teto.
     pub update_cap: Option<u32>,

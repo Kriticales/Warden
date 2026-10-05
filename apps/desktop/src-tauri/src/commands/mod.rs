@@ -7,6 +7,7 @@
 pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
+pub(crate) mod java;
 pub(crate) mod secrets;
 
 use crate::events::{OperationUpdated, PackChanged};
@@ -29,6 +30,11 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             secrets::secrets_backend_set,
             catalog::catalog_minecraft_versions,
             catalog::catalog_loader_versions,
+            java::java_choice,
+            java::java_runtimes_list,
+            java::java_runtimes_check_updates,
+            java::java_runtime_remove,
+            java::java_runtimes_remove_unused,
         ])
         .events(tauri_specta::collect_events![OperationUpdated, PackChanged,])
 }
