@@ -121,10 +121,13 @@ jobs:
             "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$arquivo"
           echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$arquivo" | sha256sum --check --strict
           tar -xzf "$RUNNER_TEMP/$arquivo" -C "$RUNNER_TEMP" gitleaks
+      # Só o histórico deste commit (`HEAD`): o checkout com `fetch-depth: 0` traz todas as
+      # branches, e o padrão do gitleaks (`--all`) faria um segredo numa branch quebrar a CI
+      # das outras.
       - name: Procurar segredos no histórico
         run: |
           "$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --verbose --no-banner \
-            --exit-code 1 .
+            --log-opts=HEAD --exit-code 1 .
 
   actionlint:
     name: actionlint

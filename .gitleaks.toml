@@ -24,3 +24,7 @@ description = "Chave fictícia do teste do xtask: é o base64 de \"ABCDEFGHIJKLM
 targetRules = ["generic-api-key"]
 regexTarget = "secret"
 regexes = ['''^QUJDREVGR0hJSktMTU5PUFFSU1RVVldY$''']
+
+[[allowlists]]
+description = "Tokens inventados de propósito para testar a redação de segredos da D-02 (CurseForge, ghp_, github_pat_, AIza, JWT). Só esta pasta; no resto do repositório as mesmas formas continuam barradas."
+paths = ['''^crates[/\\]warden-diagnostics[/\\]tests[/\\]fixtures[/\\]redacao[/\\]''']

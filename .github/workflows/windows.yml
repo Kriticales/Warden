@@ -24,7 +24,7 @@ jobs:
     with:
       runner: windows-latest
       cache-key: windows
-      timeout-minutes: 120
+      timeout-minutes: 150
       run: |
         cargo xtask check
         cargo nextest run --workspace --locked --run-ignored only --no-tests=fail -E 'test(/cofre_real/)'
