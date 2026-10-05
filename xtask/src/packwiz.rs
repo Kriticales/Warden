@@ -1038,6 +1038,9 @@ mod tests {
         String::from_utf8(output.stdout).unwrap()
     }
 
+    /// Estraga o `.git` de um cache de teste.
+    type Corrupt = fn(&Path);
+
     #[test]
     fn cache_com_git_estragado_e_recriado_sem_tocar_no_repositorio_pai() {
         let git = find_program("git").unwrap();
@@ -1059,7 +1062,7 @@ mod tests {
             .to_owned();
 
         // Cada caso estraga o `.git` do cache de um jeito.
-        let corruptions: [(&str, fn(&Path)); 3] = [
+        let corruptions: [(&str, Corrupt); 3] = [
             ("pasta .git vazia", |git_dir| {
                 std::fs::create_dir_all(git_dir).unwrap();
             }),
