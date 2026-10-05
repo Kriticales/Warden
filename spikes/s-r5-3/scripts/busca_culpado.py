@@ -56,7 +56,11 @@ def _meta(z: zipfile.ZipFile) -> tuple[set[str], set[str]]:
                     provides.add(m["modId"])
             for _, deps in (t.get("dependencies") or {}).items():
                 for d in deps if isinstance(deps, list) else []:
-                    req = d.get("type", "").lower() == "required" or d.get("mandatory") is True
+                    # NeoForge: sem "type", a dependência é obrigatória; Forge usa "mandatory".
+                    if "type" in d:
+                        req = d["type"].lower() == "required"
+                    else:
+                        req = d.get("mandatory", True) is True
                     if req and "modId" in d:
                         requires.add(d["modId"])
     if "fabric.mod.json" in names:
@@ -95,6 +99,7 @@ def graph(mods_dir: Path):
                 missing.add(r)
             elif o != j:
                 deps[j].add(o)
+    graph.owner = owner
     return jars, deps, missing
 
 
@@ -226,6 +231,25 @@ def search(mods_dir: Path) -> None:
         print("sem mods também falha: não é mod")
         return
 
+    class Restart(Exception):
+        pass
+
+    REQ = re.compile(r"Mod (\S+) requires (\S+)")
+
+    def infer_edge(r) -> bool:
+        """R5A §3.4: dependência não declarada vira aresta inferida a partir do log."""
+        text = (DATA / "runs" / (r.get("capture") or "x")).read_text(encoding="utf-8", errors="replace") if r.get("capture") else ""
+        owner = graph.owner
+        added = False
+        for a, b in set(REQ.findall(text)):
+            ja, jb = owner.get(a), owner.get(b)
+            if ja and jb and ja != jb and jb not in deps[ja]:
+                deps[ja].add(jb)
+                inferred.append((ja, jb))
+                print(f"   dependência inferida do log: {ja} -> {jb} ({a} requires {b})")
+                added = True
+        return added
+
     def fails(subset, label):
         r = test(subset, label)
         if r["verdict"] == "falhou" and r["sig"] == target:
@@ -233,6 +257,8 @@ def search(mods_dir: Path) -> None:
         if r["verdict"] == "passou":
             return False
         print(f"   rodada inconclusiva ({r['verdict']}: {r['sig']})")
+        if infer_edge(r):
+            raise Restart()
         return None
 
     def bisect_prefix(seq, fixed, tag):
@@ -253,7 +279,17 @@ def search(mods_dir: Path) -> None:
                 lo = mid
         return hi
 
-    k = bisect_prefix(order, [], "b")
+    inferred = []
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            k = bisect_prefix(order, [], f"b{attempt}")
+            break
+        except Restart:
+            order, dependents = topo(jars, deps)
+            if attempt >= 5:
+                raise SystemExit("dependências inferidas demais")
     culprits = [order[k - 1]]
     print(f"último necessário: {culprits[0]} (posição {k} de {len(order)})")
     # Minimização para pares: busca entre os mods antes do culpado, com ele sempre ligado.
@@ -275,7 +311,8 @@ def search(mods_dir: Path) -> None:
     c2 = fails(without, "c2-pack-sem-o-culpado")
     total = time.monotonic() - t_start
     res = {"culpados": culprits, "conjunto_minimo": minimal, "confirma_falha": c1, "sem_culpado_passa": c2 is False,
-           "rodadas": len(rounds), "tempo_total_s": round(total, 1)}
+           "rodadas": len(rounds), "tempo_total_s": round(total, 1), "dependencias_inferidas": inferred,
+           "posicao_culpado": order.index(culprits[0]) + 1, "total_mods": len(order)}
     (DATA / "bisect-result.json").write_text(json.dumps(res, indent=1, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(res, indent=1, ensure_ascii=False))
 

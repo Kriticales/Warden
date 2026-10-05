@@ -1,0 +1,17 @@
+{
+ "culpados": [
+  "wardenfalhas-neoforge-1.0.0.jar",
+  "FarmersDelight-1.21.1-1.3.3.jar"
+ ],
+ "conjunto_minimo": [
+  "FarmersDelight-1.21.1-1.3.3.jar",
+  "wardenfalhas-neoforge-1.0.0.jar"
+ ],
+ "confirma_falha": true,
+ "sem_culpado_passa": true,
+ "rodadas": 20,
+ "tempo_total_s": 1615.3,
+ "dependencias_inferidas": [],
+ "posicao_culpado": 153,
+ "total_mods": 155
+}

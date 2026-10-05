@@ -16,7 +16,10 @@ para `$WARDEN_SPIKE_DATA` (padrão `C:\wt\s-r5-3\data`).
 | `scripts/scenarios.py` | Cenários de falha reais (dependência faltando, versão errada, outro loader, duplicado, mixin, crash, memória, Java errado, travado). |
 | `scripts/busca_culpado.py` | Busca do culpado de ponta a ponta no pack de ~150 mods (grafo, ordem topológica, prefixos, par, confirmação). |
 | `scripts/golden.py` | Recorta golden logs curtos de uma captura, com marcadores no lugar de dados pessoais. |
-| `fixtures/` | Golden logs para os testes da D-12 (ver o README de lá). |
+| `scripts/entrada.py` | Detector de entrada humana (teclado/mouse) durante cada rodada. |
+| `scripts/make_fixtures.py` | Gera os golden logs de `fixtures/` a partir das capturas. |
+| `fixtures/` | Golden logs para os testes da D-12 e da L-05 (ver o README de lá). |
+| `resultados/` | Resultados brutos (JSON por rodada) da matriz, dos cenários e da busca, com `<DADOS>` no lugar da pasta de dados. |
 
 ## Como reproduzir (PowerShell 7, Windows)
 
