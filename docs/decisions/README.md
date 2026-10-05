@@ -60,5 +60,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0054](0054-configs-json-com-jsonc-parser.md) | Configs JSON, JSONC e JSON5 com `jsonc-parser` 0.34 (complementa a 0013) | técnica |
 | [0055](0055-ia-modelo-padrao-e-resposta-final.md) | IA: modelo padrão Flash-Lite e resposta final pela ferramenta `responder` (complementa a 0030) | técnica |
 | [0056](0056-raio-x-de-mixins-implementacao-propria.md) | Raio-x de mixins com implementação própria (`cafebabe`) (complementa a 0034) | técnica |
+| [0057](0057-motor-do-launcher-portablemc.md) | Motor do launcher: `portablemc` 5.0.5, com processo e linha de comando do Warden (complementa a 0010) | técnica |
 
-As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.
+As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.

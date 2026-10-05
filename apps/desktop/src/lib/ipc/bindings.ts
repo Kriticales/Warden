@@ -680,7 +680,31 @@ export type JavaVersion = {
  */
 export type LauncherErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O nome do jogador não segue `^[A-Za-z0-9_]{3,16}$`. */
+"INVALID_PLAYER_NAME" | 
+/**  O pack não diz a versão exata do loader (vazia, "stable", "latest"…). */
+"LOADER_VERSION_MISSING" | 
+/**  A versão do Minecraft não existe (nem na Mojang, nem no loader). */
+"MINECRAFT_VERSION_NOT_FOUND" | 
+/**  A versão do loader não existe para essa versão do Minecraft. */
+"LOADER_VERSION_NOT_FOUND" | 
+/**  A instalação do loader (instalador do Forge/NeoForge) falhou. */
+"LOADER_INSTALL_FAILED" | 
+/**  Um ou mais arquivos do jogo não puderam ser baixados ou vieram corrompidos. */
+"DOWNLOAD_FAILED" | 
+/**  Os arquivos do jogo instalados estão inconsistentes (JSON da versão, bibliotecas). */
+"GAME_FILES_INVALID" | 
+/**  O Java não pôde ser usado para instalar ou abrir o jogo. */
+"JAVA_UNUSABLE" | 
+/**  O modo de entrada direta não existe nesta versão do jogo. */
+"QUICK_PLAY_UNSUPPORTED" | 
+/**  A linha de comando passa do limite do Windows e o Java não aceita arquivo de argumentos. */
+"COMMAND_TOO_LONG" | 
+/**  O processo do jogo não pôde ser iniciado. */
+"LAUNCH_FAILED" | 
+/**  O Warden não conseguiu controlar o processo do jogo (Job Object, grupo de processos). */
+"PROCESS_CONTROL_FAILED";
 
 /**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
 export type Loader = 
