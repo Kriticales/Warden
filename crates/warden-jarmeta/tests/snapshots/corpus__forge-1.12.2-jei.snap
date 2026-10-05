@@ -28,6 +28,10 @@ description: "forge-1.12.2-jei (Minecraft 1.12.2, loader forge)"
     "fmlAccessTransformer": "jei_at.cfg"
   },
   "classVersion": {
+    "major": 52,
+    "minor": 0
+  },
+  "maxClassVersion": {
     "major": 65,
     "minor": 0
   }

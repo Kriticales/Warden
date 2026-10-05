@@ -12,6 +12,12 @@ description: "neoforge-1.21.1-connector (Minecraft 1.21.1, loader neoforge)"
     "implementationVersion": "2.0.0-beta.17+1.21.1",
     "automaticModuleName": "org.sinytra.connector"
   },
+  "loaderServices": [
+    "cpw.mods.modlauncher.api.ITransformationService",
+    "net.neoforged.neoforgespi.coremod.ICoreMod",
+    "net.neoforged.neoforgespi.locating.IDependencyLocator",
+    "net.neoforged.neoforgespi.locating.IModFileCandidateLocator"
+  ],
   "classVersion": {
     "major": 65,
     "minor": 0

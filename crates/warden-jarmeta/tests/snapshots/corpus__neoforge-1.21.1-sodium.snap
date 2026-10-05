@@ -77,6 +77,10 @@ description: "neoforge-1.21.1-sodium (Minecraft 1.21.1, loader neoforge)"
     "fmlModType": "LIBRARY",
     "automaticModuleName": "sodium_service"
   },
+  "loaderServices": [
+    "net.neoforged.neoforgespi.earlywindow.GraphicsBootstrapper",
+    "net.neoforged.neoforgespi.locating.IModFileCandidateLocator"
+  ],
   "classVersion": {
     "major": 65,
     "minor": 0

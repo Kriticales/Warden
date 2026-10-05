@@ -181,6 +181,10 @@ description: "neoforge-1.21.1-kotlin-for-forge (Minecraft 1.21.1, loader neoforg
           "fmlModType": "LIBRARY",
           "implementationVersion": "5.12.0"
         },
+        "loaderServices": [
+          "net.minecraftforge.forgespi.language.IModLanguageProvider",
+          "net.neoforged.neoforgespi.language.IModLanguageLoader"
+        ],
         "classVersion": {
           "major": 65,
           "minor": 0

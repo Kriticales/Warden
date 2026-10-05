@@ -86,6 +86,9 @@ description: "forge-1.20.1-forgified-fabric-api (Minecraft 1.20.1, loader forge)
           "implementationVersion": "2.6.0+0.15.0+1.20.1",
           "automaticModuleName": "net.fabricmc.loader"
         },
+        "loaderServices": [
+          "net.minecraftforge.forgespi.language.IModLanguageProvider"
+        ],
         "classVersion": {
           "major": 61,
           "minor": 0

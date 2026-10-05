@@ -134,6 +134,10 @@ description: "fabric-1.21.1-appleskin (Minecraft 1.21.1, loader fabric)"
         ],
         "manifest": {},
         "classVersion": {
+          "major": 51,
+          "minor": 0
+        },
+        "maxClassVersion": {
           "major": 65,
           "minor": 0
         },

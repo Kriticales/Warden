@@ -12,7 +12,7 @@ description: "forge-1.20.1-kotlin-for-forge (Minecraft 1.20.1, loader forge)"
     "automaticModuleName": "thedarkcolour.kotlinforforge"
   },
   "classVersion": {
-    "major": 52,
+    "major": 50,
     "minor": 0
   },
   "nested": [
@@ -38,6 +38,10 @@ description: "forge-1.20.1-kotlin-for-forge (Minecraft 1.20.1, loader forge)"
           "implementationVersion": "4.12.0",
           "automaticModuleName": "thedarkcolour.kotlinforforge.kfflang"
         },
+        "loaderServices": [
+          "net.minecraftforge.forgespi.language.IModLanguageProvider",
+          "net.neoforged.neoforgespi.language.IModLanguageProvider"
+        ],
         "classVersion": {
           "major": 61,
           "minor": 0

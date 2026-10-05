@@ -1938,7 +1938,14 @@ description: "neoforge-1.21.1-forgified-fabric-api (Minecraft 1.21.1, loader neo
           "implementationVersion": "2.5.68+0.18.4+1.21.1",
           "automaticModuleName": "net.fabricmc.loader"
         },
+        "loaderServices": [
+          "net.neoforged.neoforgespi.language.IModLanguageLoader"
+        ],
         "classVersion": {
+          "major": 51,
+          "minor": 0
+        },
+        "maxClassVersion": {
           "major": 65,
           "minor": 0
         }

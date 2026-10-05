@@ -50,6 +50,7 @@ fn jar_fabric_com_jars_embutidos_em_cascata() {
     assert_eq!(module.id, "fabric-api");
     assert_eq!(module.provides, ["fabric"]);
     assert_eq!(module.minecraft, Some(VersionRange::fabric("~1.20.1")));
+    // Empate entre 61 e 52 (uma classe cada): fica a maior; a de META-INF/versions não conta.
     assert_eq!(
         meta.class_version,
         Some(ClassVersion {
@@ -57,6 +58,7 @@ fn jar_fabric_com_jars_embutidos_em_cascata() {
             minor: 0
         })
     );
+    assert_eq!(meta.max_class_version, None);
     assert_eq!(
         meta.class_version
             .and_then(ClassVersion::java_feature_version),
@@ -200,6 +202,68 @@ fn jarjar_do_forge_e_contained_deps_do_1_12() {
 }
 
 #[test]
+fn servicos_do_loader_e_mods_efetivos() {
+    let inner = JarBuilder::new()
+        .file(
+            "META-INF/mods.toml",
+            "[[mods]]
+modId=\"connectormod\"
+version=\"1.0\"
+",
+        )
+        .build();
+    let jar = JarBuilder::new()
+        .file(
+            "META-INF/MANIFEST.MF",
+            "Manifest-Version: 1.0
+Embedded-Dependencies-Mod: META-INF/jarjar/mod.jar
+",
+        )
+        .stored("META-INF/jarjar/mod.jar", &inner)
+        .file(
+            "META-INF/services/net.minecraftforge.forgespi.locating.IModLocator",
+            "x.Y
+",
+        )
+        .file(
+            "META-INF/services/cpw.mods.modlauncher.api.ITransformationService",
+            "x.Z
+",
+        )
+        .file(
+            "META-INF/services/java.sql.Driver",
+            "nao.conta
+",
+        )
+        .build();
+    let meta = read(&jar);
+    assert_eq!(
+        meta.loader_services,
+        [
+            "cpw.mods.modlauncher.api.ITransformationService",
+            "net.minecraftforge.forgespi.locating.IModLocator"
+        ]
+    );
+    assert!(meta.mods_for_loader(Loader::Forge).is_empty());
+    assert_eq!(
+        meta.effective_mods_for_loader(Loader::Forge)[0].id,
+        "connectormod"
+    );
+    assert!(meta.effective_mods_for_loader(Loader::Fabric).is_empty());
+
+    let library = JarBuilder::new()
+        .file(
+            "META-INF/jarjar/metadata.json",
+            r#"{"jars": [{"identifier": {"group": "g", "artifact": "a"}, "path": "META-INF/jarjar/a.jar"}]}"#,
+        )
+        .stored("META-INF/jarjar/a.jar", &inner)
+        .build();
+    let meta = read(&library);
+    assert_eq!(meta.effective_mods_for_loader(Loader::NeoForge).len(), 1);
+    assert!(meta.effective_mods_for_loader(Loader::Quilt).is_empty());
+}
+
+#[test]
 fn jar_sem_descritor_e_jar_vazio() {
     let meta = read(&JarBuilder::new().class("a/B.class", 52).build());
     assert!(meta.mods.is_empty());
@@ -238,6 +302,16 @@ fn classes_com_cabecalho_ruim_ou_curto_sao_ignoradas() {
         Some(52),
         "só a primeira classe"
     );
+    // Uma classe perdida mais nova não muda a predominante, mas aparece como máxima.
+    let meta = read(
+        &JarBuilder::new()
+            .class("a/A.class", 52)
+            .class("a/B.class", 52)
+            .class("java/x/Tags.class", 65)
+            .build(),
+    );
+    assert_eq!(meta.class_version.map(|v| v.major), Some(52));
+    assert_eq!(meta.max_class_version.map(|v| v.major), Some(65));
 }
 
 #[test]

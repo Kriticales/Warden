@@ -1,0 +1,2 @@
+org.sinytra.connector.service.ConnectorLoaderService
+io.github.steelwoolmc.mixintransmog.MixinTransformationService

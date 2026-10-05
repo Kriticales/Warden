@@ -48,4 +48,5 @@ pub use model::{
 };
 pub use range::{RangeDialect, RangeError, VersionRange};
 pub use read::{read_jar_bytes, read_jar_file};
+pub use version::maven::MavenFlavor;
 pub use version::mod_annotation::{ModAnnotationDependencies, parse_mod_dependencies};

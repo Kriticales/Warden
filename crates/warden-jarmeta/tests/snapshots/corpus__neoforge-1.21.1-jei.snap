@@ -156,6 +156,10 @@ description: "neoforge-1.21.1-jei (Minecraft 1.21.1, loader neoforge)"
           "implementationVersion": "0.5.12"
         },
         "classVersion": {
+          "major": 61,
+          "minor": 0
+        },
+        "maxClassVersion": {
           "major": 65,
           "minor": 0
         }

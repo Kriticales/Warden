@@ -47,6 +47,8 @@ struct CorpusEntry {
 struct Structure {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     class_version: Option<ClassVersion>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    max_class_version: Option<ClassVersion>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     nested: Vec<NestedDir>,
 }
@@ -93,26 +95,41 @@ fn loader(name: &str) -> Loader {
     }
 }
 
-/// Remonta um jar a partir da pasta extraída.
+/// Remonta um jar a partir da pasta extraída: cada arquivo vira uma entrada com o mesmo
+/// caminho, e cada pasta de jar embutido vira o jar remontado.
 fn rebuild(dir: &Path) -> Vec<u8> {
     let structure: Structure = fs::read_to_string(dir.join(STRUCTURE_FILE))
         .map(|t| serde_json::from_str(&t).expect("_estrutura.json válido"))
         .unwrap_or_default();
+    let nested_dirs: Vec<&str> = structure.nested.iter().map(|n| n.dir.as_str()).collect();
     let mut jar = JarBuilder::new();
-    for kind in DESCRIPTORS {
-        let path = dir.join(kind.path());
-        if path.is_file() {
-            jar = jar.file(kind.path(), fs::read(&path).expect("descritor"));
+    for (path, content) in read_tree(dir) {
+        let first = path
+            .components()
+            .next()
+            .and_then(|c| c.as_os_str().to_str());
+        if path == Path::new(STRUCTURE_FILE) || first.is_some_and(|f| nested_dirs.contains(&f)) {
+            continue;
         }
+        let name: Vec<&str> = path.iter().filter_map(|c| c.to_str()).collect();
+        jar = jar.file(&name.join("/"), content);
     }
     for nested in &structure.nested {
         jar = jar.stored(&nested.path, rebuild(&dir.join(&nested.dir)));
     }
-    if let Some(version) = structure.class_version {
-        let mut header = vec![0xCA, 0xFE, 0xBA, 0xBE];
-        header.extend_from_slice(&version.minor.to_be_bytes());
-        header.extend_from_slice(&version.major.to_be_bytes());
-        jar = jar.file("warden/Stub.class", header);
+    // Duas classes da versão predominante e uma da maior, para reproduzir as duas.
+    let stubs = [
+        ("warden/A.class", structure.class_version),
+        ("warden/B.class", structure.class_version),
+        ("warden/C.class", structure.max_class_version),
+    ];
+    for (name, version) in stubs {
+        if let Some(version) = version {
+            let mut header = vec![0xCA, 0xFE, 0xBA, 0xBE];
+            header.extend_from_slice(&version.minor.to_be_bytes());
+            header.extend_from_slice(&version.major.to_be_bytes());
+            jar = jar.file(name, header);
+        }
     }
     jar.build()
 }
@@ -128,8 +145,18 @@ fn extract(bytes: &[u8], meta: &JarMetadata) -> BTreeMap<PathBuf, Vec<u8>> {
             out.insert(PathBuf::from(kind.path()), content);
         }
     }
+    for service in &meta.loader_services {
+        let name = format!("META-INF/services/{service}");
+        let mut content = Vec::new();
+        zip.by_name(&name)
+            .expect("serviço")
+            .read_to_end(&mut content)
+            .expect("serviço");
+        out.insert(PathBuf::from(name), content);
+    }
     let mut structure = Structure {
         class_version: meta.class_version,
+        max_class_version: meta.max_class_version,
         nested: Vec::new(),
     };
     for nested in &meta.nested {

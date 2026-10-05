@@ -34,7 +34,7 @@ impl Default for Limits {
             max_nested_jar_bytes: 64 * 1024 * 1024,
             max_total_nested_bytes: 512 * 1024 * 1024,
             max_depth: 8,
-            max_class_headers: 4096,
+            max_class_headers: 512,
         }
     }
 }

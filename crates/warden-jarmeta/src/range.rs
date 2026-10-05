@@ -8,7 +8,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::version::fabric::{FabricVersion, VersionPredicate};
-use crate::version::maven::{MavenRange, MavenVersion};
+use crate::version::maven::{MavenFlavor, MavenRange};
 
 /// Faixa de versões declarada por um mod, guardada como texto com o dialeto.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -71,8 +71,14 @@ impl VersionRange {
         Self::Maven { spec: spec.into() }
     }
 
-    /// Confere se a faixa é aceita pelo loader, sem avaliar nenhuma versão.
+    /// Confere se a faixa é aceita pelo loader, sem avaliar nenhuma versão (faixas Maven com a
+    /// variante padrão, [`MavenFlavor::V3_8_5`]).
     pub fn validate(&self) -> Result<(), RangeError> {
+        self.validate_with(MavenFlavor::default())
+    }
+
+    /// Como [`VersionRange::validate`], com as regras Maven de uma variante.
+    pub fn validate_with(&self, flavor: MavenFlavor) -> Result<(), RangeError> {
         match self {
             Self::Any | Self::Exact { .. } => Ok(()),
             Self::Fabric { predicates } => {
@@ -85,18 +91,28 @@ impl VersionRange {
                 }
                 Ok(())
             }
-            Self::Maven { spec } => MavenRange::parse(spec).map(|_| ()).map_err(|e| RangeError {
-                dialect: RangeDialect::Maven,
-                spec: spec.clone(),
-                message: e.to_string(),
-            }),
+            Self::Maven { spec } => MavenRange::parse_with(spec, flavor)
+                .map(|_| ())
+                .map_err(|e| RangeError {
+                    dialect: RangeDialect::Maven,
+                    spec: spec.clone(),
+                    message: e.to_string(),
+                }),
         }
     }
 
-    /// `true` se `version` está na faixa, avaliada no dialeto da faixa.
+    /// `true` se `version` está na faixa, avaliada no dialeto da faixa (faixas Maven com a
+    /// variante padrão, [`MavenFlavor::V3_8_5`]; para o loader do pack, use
+    /// [`VersionRange::matches_with`] com [`MavenFlavor::for_forge`] ou
+    /// [`MavenFlavor::for_neoforge`]).
     ///
     /// Erro quando a faixa é inválida ou, no Fabric, quando a versão é vazia.
     pub fn matches(&self, version: &str) -> Result<bool, RangeError> {
+        self.matches_with(version, MavenFlavor::default())
+    }
+
+    /// Como [`VersionRange::matches`], com as regras Maven de uma variante.
+    pub fn matches_with(&self, version: &str, flavor: MavenFlavor) -> Result<bool, RangeError> {
         match self {
             Self::Any => Ok(true),
             Self::Exact { version: expected } => Ok(expected == version),
@@ -117,12 +133,12 @@ impl VersionRange {
                 Ok(any)
             }
             Self::Maven { spec } => {
-                let range = MavenRange::parse(spec).map_err(|e| RangeError {
+                let range = MavenRange::parse_with(spec, flavor).map_err(|e| RangeError {
                     dialect: RangeDialect::Maven,
                     spec: spec.clone(),
                     message: e.to_string(),
                 })?;
-                Ok(range.contains(&MavenVersion::parse(version)))
+                Ok(range.contains_text(version))
             }
         }
     }
@@ -172,6 +188,11 @@ mod tests {
         assert!(err.to_string().contains("[1.0"));
         assert!(VersionRange::maven("[1.0,2.0)").validate().is_ok());
         assert!(VersionRange::Any.validate().is_ok());
+        let open = VersionRange::maven("(,)");
+        assert!(open.validate().is_err());
+        assert!(open.validate_with(MavenFlavor::V3_8_8).is_ok());
+        assert_eq!(open.matches_with("1.0", MavenFlavor::V3_8_8), Ok(true));
+        assert!(open.matches("1.0").is_err());
     }
 
     #[test]

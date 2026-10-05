@@ -1,5 +1,9 @@
 {
   "classVersion": {
+    "major": 61,
+    "minor": 0
+  },
+  "maxClassVersion": {
     "major": 65,
     "minor": 0
   }

@@ -16,6 +16,7 @@ use serde_json::Value;
 use crate::lenient_json;
 use crate::model::{Dependency, DependencyKind, ModMetadata, Warning, WarningCode};
 use crate::range::VersionRange;
+use crate::version::maven::MavenFlavor;
 
 /// Junta os avisos de um leitor, com o caminho do arquivo.
 pub(crate) struct Sink<'a> {
@@ -51,11 +52,23 @@ impl Sink<'_> {
         }
     }
 
-    /// Confere a faixa e avisa se o loader a recusaria (a faixa é mantida no modelo).
+    /// Confere a faixa e avisa se o loader a recusaria (a faixa é mantida no modelo). Faixas
+    /// Maven são conferidas nas regras antigas (até o `maven-artifact` 3.8.5) e nas novas
+    /// (3.8.8 em diante), e o aviso diz quais loaders recusam.
     pub(crate) fn check_range(&mut self, owner: &str, range: &VersionRange) {
-        if let Err(e) = range.validate() {
-            self.warn(WarningCode::InvalidVersionRange, format!("{owner}: {e}"));
-        }
+        let old = range.validate_with(MavenFlavor::V3_8_5);
+        let new = range.validate_with(MavenFlavor::V3_8_8);
+        let detail = match (old, new) {
+            (Ok(()), Ok(())) => return,
+            (Err(e), Err(_)) => format!("{owner}: {e}"),
+            (Err(e), Ok(())) => format!(
+                "{owner}: {e} (recusada pelo Forge até 49.1.36 e pelo NeoForge até 21.4.61; aceita nos mais novos)"
+            ),
+            (Ok(()), Err(e)) => format!(
+                "{owner}: {e} (recusada pelo Forge 49.1.37+ e pelo NeoForge 21.4.62+; aceita nos mais antigos)"
+            ),
+        };
+        self.warn(WarningCode::InvalidVersionRange, detail);
     }
 }
 

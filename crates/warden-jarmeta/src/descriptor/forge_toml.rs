@@ -523,6 +523,30 @@ fantasma = []
         assert_eq!(codes.len(), 15, "{warnings:?}");
     }
 
+    /// Faixas que só algumas versões do loader aceitam (medido: Controlify para NeoForge 26.x
+    /// usa `(,)`).
+    #[test]
+    fn faixa_aceita_so_por_parte_dos_loaders() {
+        let (_, warnings) = read(
+            "[[mods]]
+modId = \"a\"
+[[dependencies.a]]
+modId = \"b\"
+type = \"optional\"
+versionRange = \"(,)\"
+[[dependencies.a]]
+modId = \"c\"
+type = \"optional\"
+versionRange = \"(1.0,1.00]\"
+",
+            DescriptorKind::NeoForgeModsToml,
+            None,
+        );
+        assert_eq!(warnings.len(), 2, "{warnings:?}");
+        assert!(warnings[0].detail.contains("aceita nos mais novos"));
+        assert!(warnings[1].detail.contains("aceita nos mais antigos"));
+    }
+
     #[test]
     fn toml_invalido_ou_sem_mods() {
         let (parsed, warnings) = read("modId = = 1", DescriptorKind::ModsToml, None);

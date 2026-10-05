@@ -12,6 +12,11 @@ description: "forge-1.20.1-connector (Minecraft 1.20.1, loader forge)"
     "implementationVersion": "1.0.0-beta.49+1.20.1",
     "automaticModuleName": "org.sinytra.connector"
   },
+  "loaderServices": [
+    "cpw.mods.modlauncher.api.ITransformationService",
+    "net.minecraftforge.forgespi.locating.IDependencyLocator",
+    "net.minecraftforge.forgespi.locating.IModLocator"
+  ],
   "classVersion": {
     "major": 61,
     "minor": 0

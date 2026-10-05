@@ -375,9 +375,19 @@ pub struct JarMetadata {
     /// Dados do manifesto, se houver.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest: Option<ManifestInfo>,
-    /// Maior versão de classe encontrada fora de `META-INF/versions/`.
+    /// Serviços de loader declarados em `META-INF/services/` (modlauncher, SPI do Forge e do
+    /// NeoForge): o jar se integra ao loader por código, como o Sinytra Connector e o Essential,
+    /// e pode não ter descritor de mod.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub loader_services: Vec<String>,
+    /// Versão de classe predominante (a mais frequente; no empate, a maior) entre as classes
+    /// lidas fora de `META-INF/versions/`: o Java para o qual o mod foi compilado.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub class_version: Option<ClassVersion>,
+    /// Maior versão de classe lida, só quando passa da predominante (uma classe mais nova pode
+    /// exigir um Java mais novo se for carregada; às vezes é só um arquivo esquecido no build).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_class_version: Option<ClassVersion>,
     /// Jars embutidos declarados.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nested: Vec<NestedJar>,

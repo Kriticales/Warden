@@ -273,7 +273,10 @@ fn read_archive<R: Read + Seek>(
         }
     }
     meta.manifest = manifest;
-    meta.class_version = class_version(&mut zip, limits.max_class_headers);
+    meta.loader_services = loader_services(&zip);
+    let (predominant, max) = class_versions(&mut zip, limits.max_class_headers);
+    meta.class_version = predominant;
+    meta.max_class_version = max.filter(|m| Some(*m) != predominant);
 
     let mut seen: Vec<String> = Vec::new();
     for (path, declared_by, jarjar) in nested {
@@ -353,8 +356,40 @@ fn read_nested<R: Read + Seek>(
     }
 }
 
-/// Maior versão de classe entre as primeiras `max` classes fora de `META-INF/versions/`.
-fn class_version<R: Read + Seek>(zip: &mut ZipArchive<R>, max: usize) -> Option<ClassVersion> {
+/// Prefixos das interfaces de serviço dos loaders (modlauncher e SPI do Forge, do NeoForge e
+/// do FML novo).
+const LOADER_SERVICE_PREFIXES: [&str; 4] = [
+    "cpw.mods.modlauncher.",
+    "net.minecraftforge.forgespi.",
+    "net.neoforged.neoforgespi.",
+    "net.neoforged.fml.",
+];
+
+/// Nomes dos serviços de loader em `META-INF/services/`, em ordem.
+fn loader_services<R: Read + Seek>(zip: &ZipArchive<R>) -> Vec<String> {
+    let mut out: Vec<String> = zip
+        .file_names()
+        .filter_map(|name| name.strip_prefix("META-INF/services/"))
+        .filter(|service| {
+            !service.is_empty()
+                && !service.contains('/')
+                && LOADER_SERVICE_PREFIXES
+                    .iter()
+                    .any(|p| service.starts_with(p))
+        })
+        .map(str::to_owned)
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Versões de classe entre as primeiras `max` classes fora de `META-INF/versions/`: a
+/// predominante (mais frequente; no empate, a maior) e a maior.
+fn class_versions<R: Read + Seek>(
+    zip: &mut ZipArchive<R>,
+    max: usize,
+) -> (Option<ClassVersion>, Option<ClassVersion>) {
     let candidates: Vec<usize> = (0..zip.len())
         .filter(|&i| {
             zip.name_for_index(i).is_some_and(|name| {
@@ -366,7 +401,8 @@ fn class_version<R: Read + Seek>(zip: &mut ZipArchive<R>, max: usize) -> Option<
         })
         .take(max)
         .collect();
-    let mut best: Option<ClassVersion> = None;
+    let mut counts: std::collections::BTreeMap<ClassVersion, usize> =
+        std::collections::BTreeMap::new();
     for index in candidates {
         let Ok(mut file) = zip.by_index(index) else {
             continue;
@@ -376,10 +412,14 @@ fn class_version<R: Read + Seek>(zip: &mut ZipArchive<R>, max: usize) -> Option<
             continue;
         }
         if let Some(version) = parse_class_header(header) {
-            best = Some(best.map_or(version, |b| b.max(version)));
+            *counts.entry(version).or_default() += 1;
         }
     }
-    best
+    let predominant = counts
+        .iter()
+        .max_by_key(|(version, count)| (**count, **version))
+        .map(|(version, _)| *version);
+    (predominant, counts.keys().next_back().copied())
 }
 
 /// Versão de um arquivo `.class` pelo cabeçalho (`CAFEBABE`, minor, major).
