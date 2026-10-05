@@ -224,7 +224,9 @@ pub fn clean_path(path: &str) -> String {
 }
 
 /// Confere que um caminho do índice (ou o `filename` de um metafile) fica dentro da pasta
-/// do pack: relativo, sem `..` depois de limpo e sem letra de unidade.
+/// do pack: relativo, sem `..` depois de limpo e sem letra de unidade. Recusa também o que o
+/// Windows gravaria com outro nome ou abriria como dispositivo, para o texto conferido ser o
+/// arquivo que de fato é gravado.
 pub fn check_relative_path(path: &str) -> Result<()> {
     let unsafe_path = |reason| Error::UnsafePath {
         path: path.chars().take(260).collect(),
@@ -252,6 +254,11 @@ pub fn check_relative_path(path: &str) -> Result<()> {
     if normalized.split('/').any(is_windows_device_name) {
         return Err(unsafe_path("caminho com nome reservado do Windows"));
     }
+    if normalized.split('/').any(is_trimmed_by_windows) {
+        return Err(unsafe_path(
+            "caminho com nome terminado em ponto ou espaço (o Windows o encurtaria)",
+        ));
+    }
     let cleaned = clean_path(&normalized);
     if cleaned == ".." || cleaned.starts_with("../") {
         return Err(unsafe_path("caminho sai da pasta do pack"));
@@ -262,8 +269,15 @@ pub fn check_relative_path(path: &str) -> Result<()> {
     Ok(())
 }
 
-/// `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`, com ou sem extensão: no Windows
-/// abrem um dispositivo em vez de um arquivo.
+/// Componente que o Win32 grava com outro nome: ele tira o ponto e os espaços do fim
+/// (`pack.toml.` vira `pack.toml`, `a/.. ` vira `a/`). `.` e `..` puros ficam com o
+/// [`clean_path`].
+fn is_trimmed_by_windows(segment: &str) -> bool {
+    !matches!(segment, "." | "..") && segment.ends_with(['.', ' '])
+}
+
+/// `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9` e os sobrescritos `COM¹`–`COM³`,
+/// `LPT¹`–`LPT³`, com ou sem extensão: no Windows abrem um dispositivo em vez de um arquivo.
 fn is_windows_device_name(segment: &str) -> bool {
     let stem = segment
         .split('.')
@@ -272,8 +286,11 @@ fn is_windows_device_name(segment: &str) -> bool {
         .trim_end_matches(' ')
         .to_ascii_uppercase();
     let numbered = |prefix: &str| {
-        stem.strip_prefix(prefix)
-            .is_some_and(|rest| rest.len() == 1 && matches!(rest.as_bytes()[0], b'1'..=b'9'))
+        let mut rest = stem.strip_prefix(prefix).unwrap_or_default().chars();
+        matches!(
+            (rest.next(), rest.next()),
+            (Some('1'..='9' | '\u{b9}' | '\u{b2}' | '\u{b3}'), None)
+        )
     };
     matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL") || numbered("COM") || numbered("LPT")
 }
@@ -338,6 +355,40 @@ mod tests {
             unreachable!();
         };
         assert_eq!(path.chars().count(), 260);
+    }
+
+    /// O Win32 tira o ponto e os espaços do fim de um componente (`pack.toml.` grava em
+    /// `pack.toml`, `a/.. ` vira `a/`) e trata `COM¹`–`COM³` e `LPT¹`–`LPT³` como dispositivos.
+    #[test]
+    fn nomes_que_o_windows_mudaria() {
+        for path in [
+            ".. /x",
+            ".. ",
+            "a/.. ",
+            "a/.. .",
+            "a/...",
+            ". /x",
+            "pack.toml.",
+            "index.toml ",
+            "mods/a.jar ",
+            "config./x",
+            "config /x",
+            "COM\u{b9}",
+            "x/lpt\u{b3}.txt",
+            "com\u{b2} .log",
+        ] {
+            assert!(check_relative_path(path).is_err(), "{path:?}");
+        }
+        // `⁴` (U+2074) não é dígito para o Windows: `..⁴` é um nome comum, dentro do pack.
+        for path in [
+            "..\u{2074}/x",
+            "...a",
+            ".minecraft/x",
+            "com\u{2074}",
+            "a. b/c",
+        ] {
+            assert!(check_relative_path(path).is_ok(), "{path:?}");
+        }
     }
 
     #[test]
