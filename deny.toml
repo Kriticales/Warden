@@ -24,6 +24,9 @@ allow = [
   "BSD-2-Clause",
   "BSD-3-Clause",
   "CC0-1.0",
+  # ISC (permissiva, equivalente à MIT): `ring`, `rustls-webpki` e `untrusted`, do TLS da
+  # `warden-http` (P1-03).
+  "ISC",
   "MIT",
   "MIT-0",
   "MPL-2.0",

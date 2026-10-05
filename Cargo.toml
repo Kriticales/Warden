@@ -47,9 +47,12 @@ warden-secrets = { path = "crates/warden-secrets" }
 anyhow = "1.0.104"
 async-trait = "0.1.92"
 base64 = "0.23.1"
+bytes = "1.12.1"
 cargo_metadata = "0.23.1"
 clap = { version = "4.6.7", features = ["derive"] }
+governor = { version = "0.10.4", default-features = false, features = ["std"] }
 hex = "0.4.3"
+httpdate = "1.0.3"
 insta = { version = "1.49.0", features = ["json"] }
 jsonc-parser = "0.34.0"
 junction = "2.1.0"
@@ -58,6 +61,10 @@ md-5 = "0.10.6"
 proptest = "1.11.0"
 pulldown-cmark = { version = "0.13.4", default-features = false }
 regex = "1.13.1"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+rustls = { version = "0.23.45", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-platform-verifier = "0.7.1"
 secrecy = "0.10.3"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
@@ -83,8 +90,10 @@ tracing-appender = "0.2.5"
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["env-filter", "fmt", "registry", "std", "tracing-log"] }
 ulid = "3.0.0"
 ureq = "3.4.2"
+url = "2.5.8"
 which = "8.0.6"
 windows-native-keyring-store = "1.1.0"
+wiremock = "0.6.5"
 zbus-secret-service-keyring-store = "1.0.1"
 zip = { version = "8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 

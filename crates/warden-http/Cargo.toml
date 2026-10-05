@@ -8,8 +8,32 @@ publish.workspace = true
 
 [dependencies]
 warden-core.workspace = true
+# Só o módulo `hash`: o murmur2 da CurseForge mora na P1-01 e é reaproveitado sem cópia.
+warden-packwiz.workspace = true
+bytes.workspace = true
+governor.workspace = true
+hex.workspace = true
+httpdate.workspace = true
+md-5.workspace = true
+reqwest.workspace = true
+rustls.workspace = true
+rustls-platform-verifier.workspace = true
+secrecy.workspace = true
 serde.workspace = true
+serde_json.workspace = true
+sha1.workspace = true
+sha2.workspace = true
 specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["fs", "io-util", "macros", "rt", "sync", "time"] }
+tracing.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true

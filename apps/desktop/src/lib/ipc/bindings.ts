@@ -247,7 +247,29 @@ export type ExportErrorCode =
  */
 export type HttpErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O servidor pediu para esperar (429) mais do que o Warden pode esperar sozinho. */
+"RATE_LIMITED" | 
+/**  O servidor respondeu com erro dele (5xx) mesmo depois das novas tentativas. */
+"SERVER_ERROR" | 
+/**  O endereço pedido não existe no servidor (404 ou 410). */
+"NOT_FOUND" | 
+/**  O servidor recusou o pedido com um código que o Warden não esperava. */
+"UNEXPECTED_STATUS" | 
+/**  A resposta veio num formato que o Warden não entende. */
+"INVALID_RESPONSE" | 
+/**  A resposta passou do tamanho máximo aceito. */
+"RESPONSE_TOO_LARGE" | 
+/**  O arquivo baixado não tem o hash esperado. */
+"HASH_MISMATCH" | 
+/**  O arquivo baixado não tem o tamanho esperado. */
+"SIZE_MISMATCH" | 
+/**  O link não pôde ser usado (não é http/https ou está malformado). */
+"INVALID_URL" | 
+/**  O servidor redirecionou vezes demais. */
+"TOO_MANY_REDIRECTS" | 
+/**  O servidor tentou redirecionar de https para http. */
+"INSECURE_REDIRECT";
 
 /**
  *  Códigos do domínio `import`. O código é contrato: renomear é mudança de contrato;

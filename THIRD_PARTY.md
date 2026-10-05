@@ -51,6 +51,14 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `zip` | 8.6.0 | MIT | `warden-jarmeta` | Leitura de jars sem extrair (só `deflate`, via `flate2` + `zlib-rs`). |
 | `insta` | 1.49.0 | Apache-2.0 | `warden-jarmeta` (testes) | Dourados do corpus de jars (QUALITY §4.1). |
 | `ureq` | 3.4.2 | MIT OR Apache-2.0 | `warden-jarmeta` (testes) | Download dos jars reais nos testes de rede (`rede_*`). |
+| `reqwest` | 0.13.5 | MIT OR Apache-2.0 | `warden-http` | Cliente HTTP (ARCHITECTURE §17), sem os recursos padrão: só `rustls-no-provider` (o TLS é montado pela `warden-http`). Mesma versão que o Tauri já usa. |
+| `rustls` | 0.23.45 | Apache-2.0 OR ISC OR MIT | `warden-http` | TLS com o provedor `ring` (já usado pelo `ureq` do `xtask`), sem OpenSSL nem `aws-lc` no Windows. |
+| `rustls-platform-verifier` | 0.7.1 | MIT OR Apache-2.0 | `warden-http` | Verificação de certificados pelo sistema (Windows e Linux), a mesma que o `reqwest` usa. |
+| `governor` | 0.10.4 | MIT | `warden-http` | Limitador por servidor (GCRA), com o relógio injetado do cliente (ARCHITECTURE §17). |
+| `httpdate` | 1.0.3 | MIT OR Apache-2.0 | `warden-http` | `Retry-After` em forma de data HTTP. |
+| `bytes` | 1.12.1 | MIT | `warden-http` | Pedaços do corpo das respostas (tipo do `reqwest`). |
+| `url` | 2.5.8 | MIT OR Apache-2.0 | `warden-http`, `warden-modrinth` | Links validados e montagem de consultas. |
+| `wiremock` | 0.6.5 | MIT OR Apache-2.0 | `warden-http`, `warden-modrinth` (testes) | Servidor HTTP simulado: 429, retomada com `Range`, limitador por servidor (QUALITY §4.1). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
