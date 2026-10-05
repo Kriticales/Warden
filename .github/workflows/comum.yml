@@ -154,6 +154,13 @@ jobs:
           # As ferramentas têm cache próprio, com chave pelas versões fixadas.
           cache-bin: "false"
 
+      # O rust-cache guarda a pasta `target` só em parte e pode devolver um `target/packwiz`
+      # incompleto (um `.git` sem o repositório). Com isso, o git do `build-packwiz` sobe até
+      # o repositório do Warden e faz checkout do packwiz nele. O sidecar vem só do cache
+      # próprio, logo abaixo.
+      - name: Descartar o target/packwiz do rust-cache
+        run: rm -rf target/packwiz
+
       - name: Cache dos módulos do Go
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -180,6 +187,10 @@ jobs:
           key: packwiz-v2-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('third_party/packwiz/**', 'xtask/src/packwiz.rs') }}
 
       - name: Sidecar do packwiz (com novas tentativas)
+        env:
+          # Segunda proteção: o git do clone do packwiz não procura repositório acima de
+          # `target`, então nunca alcança o repositório do Warden.
+          GIT_CEILING_DIRECTORIES: ${{ github.workspace }}/target
         run: |
           for tentativa in 1 2 3 4; do
             if cargo xtask build-packwiz; then
