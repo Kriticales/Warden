@@ -5,6 +5,7 @@
 //! linha de `collect_events!`.
 
 pub(crate) mod app;
+pub(crate) mod curseforge;
 pub(crate) mod secrets;
 
 use crate::events::{OperationUpdated, PackChanged};

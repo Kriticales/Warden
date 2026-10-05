@@ -160,7 +160,29 @@ export type CoreErrorCode =
  */
 export type CurseforgeErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  Não há chave da CurseForge configurada; nenhuma requisição foi feita. */
+"CURSEFORGE_KEY_MISSING" | 
+/**  A CurseForge recusou a chave (401 ou 403 da API). */
+"CURSEFORGE_KEY_INVALID" | 
+/**  O projeto (mod, resource pack, shader…) não existe ou não está disponível. */
+"MOD_NOT_FOUND" | 
+/**  O arquivo não existe ou não está disponível. */
+"FILE_NOT_FOUND" | 
+/**  O autor não deixa apps de terceiros baixarem o arquivo (distribuição bloqueada). */
+"DISTRIBUTION_BLOCKED" | 
+/**  A busca passou dos limites da API (página, 10 mil resultados, filtros demais). */
+"INVALID_QUERY" | 
+/**  A CurseForge não encontrou o endereço pedido. */
+"NOT_FOUND" | 
+/**  A CurseForge limitou as requisições (429) por mais tempo do que o Warden espera sozinho. */
+"RATE_LIMITED" | 
+/**  A CurseForge está fora do ar ou com erro (5xx). */
+"UNAVAILABLE" | 
+/**  A CurseForge recusou o pedido (4xx que não é de chave). */
+"REQUEST_REJECTED" | 
+/**  A CurseForge respondeu algo que o Warden não entende. */
+"INVALID_RESPONSE";
 
 /**
  *  Códigos do domínio `diagnostics`. O código é contrato: renomear é mudança de contrato;

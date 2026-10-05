@@ -57,12 +57,17 @@ impl AppState {
             SecretsConfig::for_app(paths.secrets_env_file(), keyring_override),
             settings.get().secrets_backend,
         );
+        let secret_testers = SecretTesters::default();
+        secret_testers.register(
+            warden_secrets::SecretKind::Curseforge,
+            Arc::new(crate::commands::curseforge::CurseforgeKeyTester::default()),
+        );
         Ok((
             Self {
                 paths,
                 settings: Arc::new(settings),
                 secrets: Arc::new(secrets),
-                secret_testers: SecretTesters::default(),
+                secret_testers,
                 operations: OperationRegistry::new(notifier),
                 locks: PackLocks::new(),
                 logging,
@@ -94,6 +99,7 @@ pub(crate) mod tests {
         assert!(state.paths.logs_dir().is_dir());
         assert!(!state.settings.exists());
         assert_eq!(state.secrets.backend(), BackendKind::Keyring);
+        assert!(format!("{:?}", state.secret_testers).contains("Curseforge"));
     }
 
     #[test]
