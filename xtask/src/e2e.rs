@@ -33,6 +33,29 @@ const DRIVER_BASE_URL: &str = "https://msedgedriver.microsoft.com";
 /// Limite do download (o zip tem uns 10 MB).
 const DOWNLOAD_LIMIT: u64 = 64 * 1024 * 1024;
 
+/// Argumentos do `curl` (o do Windows 10 e 11, em `System32`) para baixar `url` em `output`:
+/// falha em erro HTTP, segue redirecionamento, só HTTPS e com limite de tamanho. O `curl` evita
+/// uma pilha TLS no xtask (e a licença do `webpki-roots`, que o `deny.toml` não libera).
+pub fn curl_args(url: &str, output: &Path) -> Vec<std::ffi::OsString> {
+    let mut args: Vec<std::ffi::OsString> = [
+        "--fail",
+        "--location",
+        "--silent",
+        "--show-error",
+        "--proto",
+        "=https",
+        "--max-filesize",
+    ]
+    .into_iter()
+    .map(Into::into)
+    .collect();
+    args.push(DOWNLOAD_LIMIT.to_string().into());
+    args.push("--output".into());
+    args.push(output.as_os_str().to_os_string());
+    args.push(url.into());
+    args
+}
+
 /// Nome do arquivo com o caminho do driver nativo, dentro de `<target>/e2e/`.
 pub const NATIVE_DRIVER_FILE: &str = "native-driver.txt";
 
@@ -128,16 +151,16 @@ fn ensure_msedgedriver() -> Result<PathBuf> {
         .with_context(|| format!("falha ao criar {}", folder.display()))?;
     let url = driver_url(&version);
     println!("e2e-driver: baixando {url}");
-    let mut response = ureq::get(&url)
-        .call()
+    let zip_path = folder.join("edgedriver_win64.zip");
+    Cmd::new(find_program("curl")?)
+        .args(curl_args(&url, &zip_path))
+        .run()
         .with_context(|| format!("e2e-driver: falha ao baixar {url}"))?;
-    let bytes = response
-        .body_mut()
-        .with_config()
-        .limit(DOWNLOAD_LIMIT)
-        .read_to_vec()
-        .with_context(|| format!("e2e-driver: falha ao ler {url}"))?;
+    let bytes =
+        std::fs::read(&zip_path).with_context(|| format!("falha ao ler {}", zip_path.display()))?;
     extract_driver(&bytes, &driver)?;
+    std::fs::remove_file(&zip_path)
+        .with_context(|| format!("falha ao apagar {}", zip_path.display()))?;
     let got = installed_driver_version(&driver)?;
     ensure!(
         got == version,
@@ -212,6 +235,30 @@ mod tests {
         assert!(!is_chromium_version("154.0.4258"));
         assert!(!is_chromium_version("154.0.4258.a"));
         assert!(!is_chromium_version("154..4258.53"));
+    }
+
+    #[test]
+    fn curl_so_https_com_limite_e_falha_em_erro_http() {
+        let args: Vec<String> = curl_args("https://x/y.zip", Path::new("saida.zip"))
+            .into_iter()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(
+            args,
+            [
+                "--fail",
+                "--location",
+                "--silent",
+                "--show-error",
+                "--proto",
+                "=https",
+                "--max-filesize",
+                "67108864",
+                "--output",
+                "saida.zip",
+                "https://x/y.zip",
+            ]
+        );
     }
 
     #[test]
