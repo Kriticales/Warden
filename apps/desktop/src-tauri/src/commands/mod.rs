@@ -51,6 +51,10 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             app::settings_choose_packs_dir,
             app::logs_reveal_folder,
             window::window_set_maximize_area,
+            packs::pack_create_defaults,
+            packs::pack_create_check,
+            packs::pack_choose_folder,
+            packs::pack_reveal_folder,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

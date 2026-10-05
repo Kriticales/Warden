@@ -7,13 +7,12 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 use toml_edit::{DocumentMut, value};
 use warden_core::{PackId, remove_temp_files};
-use warden_packwiz::hygiene::{
-    GITATTRIBUTES_TEMPLATE, gitignore_template, packwizignore_template, scan_dir,
-};
+use warden_packwiz::hygiene::{GITATTRIBUTES_TEMPLATE, gitignore_template, packwizignore_template};
 use warden_packwiz::{Loader, read_pack};
 use warden_versioning::{Identity, InitialPoint, Moment, PackRepo};
 
 use crate::create::project_toml;
+use crate::hygiene::{HygieneFinding, findings};
 use crate::registry::{PackRecord, Registry};
 use crate::transaction::PackTransaction;
 use crate::{Error, ProjectErrorCode as Code, Result};
@@ -30,8 +29,8 @@ pub struct ImportPreview {
     pub minecraft: Option<String>,
     /// Loader ou `null` para vanilla.
     pub loader: Option<String>,
-    /// Arquivos que a higiene propõe limpar.
-    pub hygiene: Vec<String>,
+    /// Arquivos que a higiene propõe limpar, com tamanho e motivo (SPEC T04, passo 3).
+    pub hygiene: Vec<HygieneFinding>,
     /// Controles padrão ausentes; o bloco obrigatório é aplicado sempre.
     pub missing_controls: Vec<String>,
     /// Proposta para cada arquivo de controle ausente ou diferente.
@@ -92,10 +91,10 @@ pub fn preview(path: &Path) -> Result<ImportPreview> {
     let pack = read_pack(path).map_err(|e| Error::new(Code::InvalidPack, e.to_string()))?;
     let loaders = pack.pack.value.loaders();
     if loaders.len() > 1 {
-        return Err(Error::new(
-            Code::UnsupportedLoader,
-            "o pack contém mais de um loader",
-        ));
+        return Err(
+            Error::new(Code::UnsupportedLoader, "o pack contém mais de um loader")
+                .param("reason", "multiple"),
+        );
     }
     if let Some((loader, _)) = loaders.first()
         && matches!(loader, Loader::Quilt | Loader::LiteLoader)
@@ -112,13 +111,11 @@ pub fn preview(path: &Path) -> Result<ImportPreview> {
             .any(|key| key != "minecraft" && !Loader::ALL.iter().any(|loader| loader.key() == key))
     });
     if unknown_loader {
-        return Err(Error::new(Code::UnsupportedLoader, "loader desconhecido"));
+        return Err(
+            Error::new(Code::UnsupportedLoader, "loader desconhecido").param("reason", "unknown")
+        );
     }
-    let hygiene = scan_dir(path, pack.index.as_ref().ok().map(|index| &index.value))
-        .map_err(|e| Error::new(Code::InvalidPack, e.to_string()))?
-        .into_iter()
-        .map(|item| item.path)
-        .collect();
+    let hygiene = findings(path, pack.index.as_ref().ok().map(|index| &index.value))?;
     let missing_controls = [".gitattributes", ".packwizignore", ".gitignore"]
         .into_iter()
         .filter(|name| !path.join(name).exists())

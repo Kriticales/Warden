@@ -92,6 +92,20 @@ export const commands = {
 	 *  comando não faz nada.
 	 */
 	windowSetMaximizeArea: (area: MaximizeButtonArea) => typedError<null, AppError>(__TAURI_INVOKE("window_set_maximize_area", { area })),
+	/**  Autor e pasta padrão do assistente Criar pack. */
+	packCreateDefaults: () => __TAURI_INVOKE<CreateDefaults>("pack_create_defaults"),
+	/**
+	 *  Etapa "Nome e pasta": confere o nome e devolve a pasta final, recusando pasta com arquivos
+	 *  antes de qualquer escrita (CA-T03-04). `destination` vazio = `<pasta dos packs>/<nome>`.
+	 */
+	packCreateCheck: (name: string, destination: string | null) => typedError<string, AppError>(__TAURI_INVOKE("pack_create_check", { name, destination })),
+	/**
+	 *  Abre o diálogo nativo de pasta (ARCHITECTURE §20: diálogos são do Rust). `null` = o usuário
+	 *  desistiu. O caminho escolhido ainda passa pelas validações do comando que o usa.
+	 */
+	packChooseFolder: (purpose: FolderPurpose) => typedError<string | null, AppError>(__TAURI_INVOKE("pack_choose_folder", { purpose })),
+	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
+	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
 };
 
 /** Events */
@@ -244,6 +258,14 @@ export type CoreErrorCode =
 /**  Sem conexão com a internet (ou o servidor não respondeu). */
 "NETWORK_UNAVAILABLE";
 
+/**  O que o assistente Criar pack mostra antes de o usuário digitar (SPEC T03, etapa 1). */
+export type CreateDefaults = {
+	/**  Autor padrão: o nome do jogador configurado. */
+	author: string,
+	/**  Pasta onde os packs novos são criados. */
+	packsDir: string,
+};
+
 /**  Pedido final do assistente de criação. Mods iniciais são acrescentados pela P1-18. */
 export type CreatePack = {
 	/**  Nome, de 1 a 64 caracteres. */
@@ -383,6 +405,15 @@ export type ExportErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  Para que a pasta está sendo escolhida: decide o título do diálogo e onde ele abre. */
+export type FolderPurpose = 
+/**  Pasta de um pack novo (Criar pack). */
+"createDestination" | 
+/**  Pasta packwiz existente (Abrir ou importar…). */
+"openPack" | 
+/**  Nova pasta de um pack que sumiu (Localizar…). */
+"relocate";
+
 /**
  *  De quando é a lista e se veio do cache porque a fonte não respondeu (SPEC T03: "Lista de
  *  versões de <data>").
@@ -430,6 +461,25 @@ export type HttpErrorCode =
 /**  O servidor tentou redirecionar de https para http. */
 "INSECURE_REDIRECT";
 
+/**  Motivo de um item da higiene, sem texto: a frase fica no catálogo da interface. */
+export type HygieneCause = 
+/**  Casa com uma linha do modelo do Warden. */
+{ kind: "pattern"; 
+/**  A linha do modelo. */
+pattern: string; 
+/**  O grupo da linha. */
+group: HygieneGroup } | 
+/**  Item na raiz que não é arquivo de controle nem pasta de conteúdo conhecida. */
+{ kind: "unknownRootItem" } | 
+/**  Arquivo grande que não é jar. */
+{ kind: "largeFile" } | 
+/**  Pasta desconhecida com muitos arquivos. */
+{ kind: "cacheLikeFolder"; 
+/**  Quantos arquivos ela tem. */
+files: number } | 
+/**  Link simbólico ou junção. */
+{ kind: "symlink" };
+
 /**  Item da higiene, pronto para o IPC. */
 export type HygieneFinding = {
 	/**  Caminho relativo. */
@@ -440,9 +490,24 @@ export type HygieneFinding = {
 	onDisk: boolean,
 	/**  Está no índice distribuído. */
 	inIndex: boolean,
-	/**  Motivos legíveis. */
-	reasons: string[],
+	/**  Tamanho no disco em bytes (a soma dos arquivos, numa pasta); `0` fora do disco. */
+	bytes: number | null,
+	/**  Por que foi apontado; a interface escreve a frase. */
+	reasons: HygieneCause[],
 };
+
+/**  Grupo do padrão do modelo que apontou o item (ARCHITECTURE §6.4). */
+export type HygieneGroup = 
+/**  Bloco obrigatório (arquivos do próprio Warden). */
+"required" | 
+/**  Dados de execução do jogo e do launcher. */
+"runtime" | 
+/**  Segredos e arquivos de ferramentas. */
+"secretsAndTools" | 
+/**  Dados de servidor e do instalador. */
+"serverOnly" | 
+/**  Lixo em qualquer profundidade. */
+"anyDepth";
 
 /**
  *  Códigos do domínio `import`. O código é contrato: renomear é mudança de contrato;
@@ -462,8 +527,8 @@ export type ImportPreview = {
 	minecraft: string | null,
 	/**  Loader ou `null` para vanilla. */
 	loader: string | null,
-	/**  Arquivos que a higiene propõe limpar. */
-	hygiene: string[],
+	/**  Arquivos que a higiene propõe limpar, com tamanho e motivo (SPEC T04, passo 3). */
+	hygiene: HygieneFinding[],
 	/**  Controles padrão ausentes; o bloco obrigatório é aplicado sempre. */
 	missingControls: string[],
 	/**  Proposta para cada arquivo de controle ausente ou diferente. */

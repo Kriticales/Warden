@@ -5,7 +5,9 @@ use std::path::Path;
 
 use serde::Serialize;
 use warden_core::{CancellationToken, resolve_inside};
-use warden_packwiz::hygiene::{HygieneReason, TEMPLATE_SECTIONS, missing_patterns, scan_dir};
+use warden_packwiz::hygiene::{
+    HygieneReason, PatternCategory, TEMPLATE_SECTIONS, missing_patterns, scan_dir,
+};
 use warden_packwiz::{PackIndex, read_pack};
 use warden_packwiz_cli::Packwiz;
 use warden_versioning::{Identity, Moment, PackRepo, SafetyReason};
@@ -25,38 +27,130 @@ pub struct HygieneFinding {
     pub on_disk: bool,
     /// Está no índice distribuído.
     pub in_index: bool,
-    /// Motivos legíveis.
-    pub reasons: Vec<String>,
+    /// Tamanho no disco em bytes (a soma dos arquivos, numa pasta); `0` fora do disco.
+    pub bytes: f64,
+    /// Por que foi apontado; a interface escreve a frase.
+    pub reasons: Vec<HygieneCause>,
+}
+
+/// Grupo do padrão do modelo que apontou o item (ARCHITECTURE §6.4).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum HygieneGroup {
+    /// Bloco obrigatório (arquivos do próprio Warden).
+    Required,
+    /// Dados de execução do jogo e do launcher.
+    Runtime,
+    /// Segredos e arquivos de ferramentas.
+    SecretsAndTools,
+    /// Dados de servidor e do instalador.
+    ServerOnly,
+    /// Lixo em qualquer profundidade.
+    AnyDepth,
+}
+
+impl From<PatternCategory> for HygieneGroup {
+    fn from(category: PatternCategory) -> Self {
+        match category {
+            PatternCategory::Required => Self::Required,
+            PatternCategory::Runtime => Self::Runtime,
+            PatternCategory::SecretsAndTools => Self::SecretsAndTools,
+            PatternCategory::ServerOnly => Self::ServerOnly,
+            PatternCategory::AnyDepth => Self::AnyDepth,
+        }
+    }
+}
+
+/// Motivo de um item da higiene, sem texto: a frase fica no catálogo da interface.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase", tag = "kind")]
+pub enum HygieneCause {
+    /// Casa com uma linha do modelo do Warden.
+    Pattern {
+        /// A linha do modelo.
+        pattern: String,
+        /// O grupo da linha.
+        group: HygieneGroup,
+    },
+    /// Item na raiz que não é arquivo de controle nem pasta de conteúdo conhecida.
+    UnknownRootItem,
+    /// Arquivo grande que não é jar.
+    LargeFile,
+    /// Pasta desconhecida com muitos arquivos.
+    CacheLikeFolder {
+        /// Quantos arquivos ela tem.
+        files: u32,
+    },
+    /// Link simbólico ou junção.
+    Symlink,
 }
 
 /// Varre pasta e índice sem alterar o pack.
 pub fn scan(root: &Path) -> Result<Vec<HygieneFinding>> {
     let pack = read_pack(root).map_err(|e| Error::new(Code::InvalidPack, e.to_string()))?;
     let index: Option<&PackIndex> = pack.index.as_ref().ok().map(|i| &i.value);
+    findings(root, index)
+}
+
+/// Converte a varredura do `warden-packwiz` nos itens do IPC, com o tamanho de cada um.
+pub(crate) fn findings(root: &Path, index: Option<&PackIndex>) -> Result<Vec<HygieneFinding>> {
     scan_dir(root, index)
         .map_err(|e| Error::new(Code::InvalidPack, e.to_string()))
         .map(|items| {
             items
                 .into_iter()
                 .map(|item| HygieneFinding {
+                    bytes: if item.on_disk {
+                        size_on_disk(&root.join(&item.path))
+                    } else {
+                        0.0
+                    },
                     path: item.path,
                     is_dir: item.is_dir,
                     on_disk: item.on_disk,
                     in_index: item.in_index,
-                    reasons: item.reasons.iter().map(reason).collect(),
+                    reasons: item.reasons.iter().map(cause).collect(),
                 })
                 .collect()
         })
 }
 
-fn reason(reason: &HygieneReason) -> String {
+fn cause(reason: &HygieneReason) -> HygieneCause {
     match reason {
-        HygieneReason::MatchesPattern { pattern, .. } => format!("corresponde a {pattern}"),
-        HygieneReason::UnknownRootItem => "item desconhecido na raiz".to_owned(),
-        HygieneReason::LargeFile { bytes } => format!("arquivo grande ({bytes} bytes)"),
-        HygieneReason::CacheLikeFolder { files } => format!("pasta com {files} arquivos"),
-        HygieneReason::Symlink => "link simbólico".to_owned(),
+        HygieneReason::MatchesPattern { pattern, category } => HygieneCause::Pattern {
+            pattern: (*pattern).to_owned(),
+            group: (*category).into(),
+        },
+        HygieneReason::UnknownRootItem => HygieneCause::UnknownRootItem,
+        HygieneReason::LargeFile { .. } => HygieneCause::LargeFile,
+        HygieneReason::CacheLikeFolder { files } => HygieneCause::CacheLikeFolder {
+            files: u32::try_from(*files).unwrap_or(u32::MAX),
+        },
+        HygieneReason::Symlink => HygieneCause::Symlink,
     }
+}
+
+/// Tamanho de um arquivo, ou a soma dos arquivos de uma pasta (sem seguir links).
+#[allow(clippy::cast_precision_loss)] // tamanhos de arquivo cabem com folga em f64
+fn size_on_disk(path: &Path) -> f64 {
+    fn walk(path: &Path) -> u64 {
+        let Ok(meta) = fs::symlink_metadata(path) else {
+            return 0;
+        };
+        if meta.is_file() {
+            return meta.len();
+        }
+        if !meta.is_dir() {
+            return 0;
+        }
+        fs::read_dir(path).map_or(0, |entries| {
+            entries
+                .filter_map(std::result::Result::ok)
+                .map(|entry| walk(&entry.path()))
+                .sum()
+        })
+    }
+    walk(path) as f64
 }
 
 /// Apaga apenas os achados escolhidos, com ponto de segurança e `refresh` reversível.

@@ -75,6 +75,12 @@ impl AppState {
         let java = open_java(&paths)?;
         let packs = warden_project::registry::Registry::open(paths.packs_registry_file())
             .map_err(|error| AppError::from_domain(&error))?;
+        let packs = Arc::new(packs);
+        // A tabela de Java de Configurações lista os packs registrados (handoff da L-01).
+        let java_packs = JavaPackSources::default();
+        java_packs.register(Arc::new(crate::commands::packs::RegistryJavaPacks(
+            Arc::clone(&packs),
+        )));
         Ok((
             Self {
                 paths,
@@ -86,8 +92,8 @@ impl AppState {
                 logging,
                 catalog,
                 java,
-                java_packs: JavaPackSources::default(),
-                packs: Arc::new(packs),
+                java_packs,
+                packs,
             },
             outcome,
         ))

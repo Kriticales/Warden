@@ -48,13 +48,6 @@ pub struct CreatedPack {
 
 /// Confere campos e destino sem escrever nada.
 pub fn validate(request: &CreatePack, default_dir: &Path) -> Result<PathBuf> {
-    let name = request.name.trim();
-    if name.is_empty() || name.chars().count() > 64 || name.chars().any(char::is_control) {
-        return Err(Error::new(
-            Code::InvalidInput,
-            "nome deve ter de 1 a 64 caracteres",
-        ));
-    }
     if request.minecraft.trim().is_empty()
         || request.minecraft.len() > 64
         || request.minecraft.chars().any(char::is_control)
@@ -81,19 +74,40 @@ pub fn validate(request: &CreatePack, default_dir: &Path) -> Result<PathBuf> {
             "loader e versão precisam ser escolhidos juntos",
         ));
     }
-    let slug = slugify_name(name);
-    if slug.is_empty() {
-        return Err(Error::new(
-            Code::InvalidInput,
-            "nome não gera uma pasta válida",
-        ));
+    resolve_destination(&request.name, request.destination.as_deref(), default_dir)
+}
+
+/// Etapa "Nome e pasta" do assistente: confere o nome e devolve a pasta final (a escolhida, ou
+/// `<pasta dos packs>/<slug do nome>`), recusando destino com arquivos antes de qualquer escrita
+/// (CA-T03-04). Não escreve nada.
+pub fn resolve_destination(
+    name: &str,
+    destination: Option<&Path>,
+    default_dir: &Path,
+) -> Result<PathBuf> {
+    let name = name.trim();
+    if name.is_empty() || name.chars().count() > 64 || name.chars().any(char::is_control) {
+        return Err(
+            Error::new(Code::InvalidInput, "nome deve ter de 1 a 64 caracteres")
+                .param("field", "name"),
+        );
     }
-    let path = request
-        .destination
-        .clone()
-        .unwrap_or_else(|| default_dir.join(slug));
+    let path = if let Some(path) = destination {
+        path.to_path_buf()
+    } else {
+        let slug = slugify_name(name);
+        if slug.is_empty() {
+            return Err(
+                Error::new(Code::InvalidInput, "nome não gera uma pasta válida")
+                    .param("field", "name"),
+            );
+        }
+        default_dir.join(slug)
+    };
     if !path.is_absolute() || path.parent().is_none() {
-        return Err(Error::new(Code::InvalidInput, "destino deve ser absoluto"));
+        return Err(
+            Error::new(Code::InvalidInput, "destino deve ser absoluto").param("field", "path")
+        );
     }
     match fs::read_dir(&path) {
         Ok(entries) => {
@@ -105,6 +119,12 @@ pub fn validate(request: &CreatePack, default_dir: &Path) -> Result<PathBuf> {
             }
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) if e.kind() == std::io::ErrorKind::NotADirectory => {
+            return Err(
+                Error::new(Code::DestinationNotEmpty, path.display().to_string())
+                    .param("path", path.display().to_string()),
+            );
+        }
         Err(e) => return Err(Error::new(Code::Internal, e.to_string())),
     }
     Ok(path)
@@ -152,7 +172,10 @@ pub async fn create(
         tx.write(".packwizignore", packwizignore_template().into_bytes())?;
         tx.write(".gitignore", gitignore_template().into_bytes())?;
         tx.write(".warden/project.toml", project_toml(id).into_bytes())?;
-        tx.write("CHANGELOG.md", b"# Historico de versoes\n".to_vec())?;
+        tx.write(
+            "CHANGELOG.md",
+            "# Histórico de versões\n".as_bytes().to_vec(),
+        )?;
         tx.commit(packwiz, cancel).await?;
         PackRepo::init(
             &stage,
