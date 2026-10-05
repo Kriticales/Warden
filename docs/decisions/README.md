@@ -10,13 +10,13 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0004](0004-uso-privado-e-licencas.md) | Uso privado e política de licenças de terceiros | dono |
 | [0005](0005-versoes-e-loaders.md) | Versões do Minecraft e loaders suportados | dono |
 | [0006](0006-integracao-hibrida-packwiz.md) | Integração híbrida com o packwiz | dono + técnica |
-| [0007](0007-sidecar-packwiz.md) | packwiz como sidecar de commit fixado, chave da CurseForge em tempo de execução | dono + técnica |
+| [0007](0007-sidecar-packwiz.md) | packwiz como sidecar de commit fixado, chave da CurseForge em tempo de execução (patches: ver 0049) | dono + técnica |
 | [0008](0008-fontes-de-mods.md) | Fontes de mods (busca: ver 0027) | dono |
 | [0009](0009-exportacao-nativa-e-separacao.md) | Exportação nativa e separação entre projeto e instância | dono |
 | [0010](0010-launcher-offline-motor-abstrato.md) | Launcher integrado, só offline, com motor abstrato | dono + técnica |
 | [0011](0011-materializacao-propria.md) | Materialização do pack em Rust com conformidade ao packwiz-installer | técnica |
 | [0012](0012-gestao-de-java.md) | Gestão de Java (escolha da versão: ver 0029) | técnica |
-| [0013](0013-editor-de-configs.md) | Editor de configs com preservação de formato | dono + técnica |
+| [0013](0013-editor-de-configs.md) | Editor de configs com preservação de formato (JSON: ver 0054) | dono + técnica |
 | [0014](0014-diagnostico-e-ia.md) | Diagnóstico determinístico e IA com consentimento (IA: ver 0030) | dono |
 | [0015](0015-versionamento-sobre-git.md) | Versionamento simples sobre git embutido (GitHub: ver 0028) | dono + técnica |
 | [0016](0016-interface-pt-br.md) | Interface só em português do Brasil | dono + técnica |
@@ -27,17 +27,17 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0021](0021-layout-em-disco.md) | Layout em disco e metadados do Warden | técnica |
 | [0022](0022-testes-e-ci.md) | Estratégia de testes e CI | técnica |
 | [0023](0023-registros-e-privacidade.md) | Registros e privacidade | técnica |
-| [0024](0024-bibliotecas-rust.md) | Bibliotecas Rust principais | técnica |
+| [0024](0024-bibliotecas-rust.md) | Bibliotecas Rust principais (cofre: ver 0052; JSON: ver 0054) | técnica |
 | [0025](0025-segredos-cofre-ou-env.md) | Segredos: cofre do sistema por padrão, arquivo .env opcional | dono |
 | [0026](0026-estrutura-de-navegacao.md) | Estrutura de navegação do app (funções avançadas: ver 0036) | dono |
 | [0027](0027-busca-combinada.md) | Busca de mods combinada (Modrinth + CurseForge) | dono |
 | [0028](0028-publicacao-no-github.md) | Publicar versões no GitHub para distribuir o pack | dono |
 | [0029](0029-java-mais-novo-que-funciona.md) | Java: o mais novo que funciona, com o motivo à vista | dono |
-| [0030](0030-ia-com-ferramentas-e-conversas.md) | IA "médico" com ferramentas, conversas por pack e consentimento por conversa | dono |
+| [0030](0030-ia-com-ferramentas-e-conversas.md) | IA "médico" com ferramentas, conversas por pack e consentimento por conversa (modelo e resposta final: ver 0055) | dono |
 | [0031](0031-busca-do-culpado.md) | Busca do culpado por rodadas (bisseção respeitando dependências) | dono + técnica |
 | [0032](0032-servidor-local-sob-demanda.md) | Servidor local sob demanda e EULA do Minecraft | dono |
 | [0033](0033-mods-iniciais-e-kits.md) | Mods iniciais (spark e Crash Assistant), ferramentas do jogador e kits de desempenho | dono |
-| [0034](0034-analise-estatica-do-pack.md) | Análise estática do pack: raio-x de mixins, grafo e nota de saúde | técnica + dono |
+| [0034](0034-analise-estatica-do-pack.md) | Análise estática do pack: raio-x de mixins, grafo e nota de saúde (implementação do raio-x: ver 0056) | técnica + dono |
 | [0035](0035-importar-e-pacote-para-servidor.md) | Importar modpacks de outros apps e gerar o pacote para servidor | dono |
 | [0036](0036-funcoes-avancadas-na-estrutura.md) | Funções avançadas encaixadas na estrutura aprovada | dono |
 | [0037](0037-editor-de-scripts.md) | Editor de scripts KubeJS e CraftTweaker | dono + técnica |
@@ -51,6 +51,14 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0045](0045-funcoes-1-1-na-estrutura.md) | Funções da 1.1 encaixadas na estrutura aprovada | dono |
 | [0046](0046-itens-repetidos.md) | Itens repetidos: detecção estática e peso na saúde | dono + técnica |
 | [0047](0047-desempenho-entre-versoes.md) | Desempenho entre versões | técnica |
-| [0048](0048-desenvolvimento-no-windows.md) | Plataformas: Windows primeiro, desenvolvimento direto no Windows (substitui a 0003) | dono + técnica |
+| [0048](0048-desenvolvimento-no-windows.md) | Plataformas: Windows primeiro, desenvolvimento direto no Windows (substitui a 0003; isolamento: ver 0053) | dono + técnica |
+| [0049](0049-copia-fixa-do-packwiz-e-patches.md) | Cópia fixa do packwiz com patches nossos para cada defeito encontrado (complementa a 0007) | dono + técnica |
+| [0050](0050-instancia-pronta-para-o-prism.md) | Instância pronta para os jogadores no Prism Launcher | dono + técnica |
+| [0051](0051-mods-so-da-curseforge-ao-publicar.md) | Mods só da CurseForge: aviso ao publicar; chave de aplicativo e fork em segundo plano | dono |
+| [0052](0052-cofre-com-keyring-core.md) | Cofre do sistema com `keyring-core` 1.0 e persistência Local | técnica |
+| [0053](0053-isolamento-do-app-de-desenvolvimento.md) | Isolamento do app de desenvolvimento: cofre de teste automático e identificador próprio (complementa a 0048) | técnica |
+| [0054](0054-configs-json-com-jsonc-parser.md) | Configs JSON, JSONC e JSON5 com `jsonc-parser` 0.34 (complementa a 0013) | técnica |
+| [0055](0055-ia-modelo-padrao-e-resposta-final.md) | IA: modelo padrão Flash-Lite e resposta final pela ferramenta `responder` (complementa a 0030) | técnica |
+| [0056](0056-raio-x-de-mixins-implementacao-propria.md) | Raio-x de mixins com implementação própria (`cafebabe`) (complementa a 0034) | técnica |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher sai do spike S1 e será registrada num ADR novo pela tarefa L-02.
