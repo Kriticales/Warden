@@ -368,8 +368,7 @@ pub fn contains(haystack: &[u8], needle: &[u8]) -> bool {
 /// Lê, do clone no cache, a chave embutida no código **original** do commit (antes dos
 /// patches), e devolve as sequências que não podem existir no executável com patch.
 pub fn original_key_needles(git: &Path, source: &Path, commit: &str) -> Result<Vec<Vec<u8>>> {
-    let original = Cmd::new(git)
-        .cwd(source)
+    let original = cache_git(git, source)
         .args(["show", &format!("{commit}:{EMBEDDED_KEY_FILE}")])
         .read()
         .context("falha ao ler o código original do packwiz no cache")?;
@@ -453,8 +452,7 @@ fn build(force: bool) -> Result<()> {
 
     for (name, _) in read_patches(&layout.third_party)? {
         let patch = layout.third_party.join("patches").join(&name);
-        Cmd::new(&git)
-            .cwd(&source)
+        cache_git(&git, &source)
             .args(["apply", "--whitespace=error-all"])
             .args([patch.as_os_str()])
             .run()
@@ -527,36 +525,95 @@ fn check_go_version(go: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Deixa `source` com o commit pedido, sem mudanças locais. Baixa só esse commit (clone raso)
-/// quando ele ainda não está no cache.
-fn prepare_source(git: &Path, source: &Path, commit: &str) -> Result<()> {
+/// Git preso ao cache do packwiz: `--git-dir` e `--work-tree` explícitos e
+/// `GIT_CEILING_DIRECTORIES` no pai, para que um `.git` estragado no cache nunca faça o git
+/// subir até o repositório do Warden (onde `checkout --force` e `clean -fdx` apagariam o `.env`).
+fn cache_git(git: &Path, source: &Path) -> Cmd {
+    let mut git_dir = std::ffi::OsString::from("--git-dir=");
+    git_dir.push(source.join(".git"));
+    let mut work_tree = std::ffi::OsString::from("--work-tree=");
+    work_tree.push(source);
+    let ceiling = source.parent().unwrap_or(source);
+    Cmd::new(git)
+        .cwd(source)
+        .env("GIT_CEILING_DIRECTORIES", ceiling)
+        .args([git_dir, work_tree])
+}
+
+/// Diz se `source` é um repositório git sadio cuja raiz é a própria pasta do cache.
+fn cache_is_healthy(git: &Path, source: &Path) -> bool {
     if !source.join(".git").is_dir() {
+        return false;
+    }
+    let Ok(top) = cache_git(git, source)
+        .args(["rev-parse", "--show-toplevel"])
+        .read()
+    else {
+        return false;
+    };
+    match (
+        std::fs::canonicalize(top.trim()),
+        std::fs::canonicalize(source),
+    ) {
+        (Ok(top), Ok(source)) => top == source,
+        _ => false,
+    }
+}
+
+/// Garante em `source` um repositório git próprio; apaga e recria o cache se estiver estragado.
+fn ensure_cache_repo(git: &Path, source: &Path) -> Result<()> {
+    if !cache_is_healthy(git, source) {
         if source.exists() {
             std::fs::remove_dir_all(source)
                 .with_context(|| format!("falha ao limpar {}", source.display()))?;
         }
         std::fs::create_dir_all(source)
             .with_context(|| format!("falha ao criar {}", source.display()))?;
-        Cmd::new(git).cwd(source).args(["init", "-q"]).run()?;
+        Cmd::new(git)
+            .cwd(source)
+            .env("GIT_CEILING_DIRECTORIES", source.parent().unwrap_or(source))
+            .args(["init", "-q"])
+            .run()?;
+        ensure!(
+            cache_is_healthy(git, source),
+            "o repositório git recriado em {} não tem a própria pasta como raiz",
+            source.display()
+        );
     }
     // Fim de linha fixo no cache, para os patches se aplicarem igual em qualquer máquina.
-    let git_in = || Cmd::new(git).cwd(source);
-    git_in().args(["config", "core.autocrlf", "false"]).run()?;
-    git_in().args(["config", "core.eol", "lf"]).run()?;
-    let has_commit = git_in()
+    cache_git(git, source)
+        .args(["config", "core.autocrlf", "false"])
+        .run()?;
+    cache_git(git, source)
+        .args(["config", "core.eol", "lf"])
+        .run()?;
+    Ok(())
+}
+
+/// Deixa `source` com o commit pedido, sem mudanças locais. Baixa só esse commit (clone raso)
+/// quando ele ainda não está no cache.
+fn prepare_source(git: &Path, source: &Path, commit: &str) -> Result<()> {
+    prepare_source_from(git, source, REPO_URL, commit)
+}
+
+fn prepare_source_from(git: &Path, source: &Path, url: &str, commit: &str) -> Result<()> {
+    ensure_cache_repo(git, source)?;
+    let has_commit = cache_git(git, source)
         .args(["cat-file", "-e", &format!("{commit}^{{commit}}")])
         .read()
         .is_ok();
     if !has_commit {
-        git_in()
-            .args(["fetch", "-q", "--depth", "1", "--no-tags", REPO_URL, commit])
+        cache_git(git, source)
+            .args(["fetch", "-q", "--depth", "1", "--no-tags", url, commit])
             .run()
             .context("falha ao baixar o packwiz (a primeira compilação precisa de rede)")?;
     }
-    git_in()
+    cache_git(git, source)
         .args(["checkout", "-q", "--force", "--detach", commit])
         .run()?;
-    git_in().args(["clean", "-q", "-f", "-d", "-x"]).run()?;
+    cache_git(git, source)
+        .args(["clean", "-q", "-f", "-d", "-x"])
+        .run()?;
     Ok(())
 }
 
@@ -959,6 +1016,134 @@ mod tests {
                 .status()
                 .unwrap();
             assert!(output.success(), "{} não é ignorado", path.display());
+        }
+    }
+
+    /// Git de teste numa pasta descartável, sem depender da configuração global de quem roda.
+    fn test_git(dir: &Path, args: &[&str]) -> String {
+        let output = std::process::Command::new("git")
+            .current_dir(dir)
+            .args([
+                "-c",
+                "user.name=Teste",
+                "-c",
+                "user.email=teste@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "git {args:?}: {output:?}");
+        String::from_utf8(output.stdout).unwrap()
+    }
+
+    #[test]
+    fn cache_com_git_estragado_e_recriado_sem_tocar_no_repositorio_pai() {
+        let git = find_program("git").unwrap();
+        // Tudo numa pasta temporária: o "repositório pai" faz o papel do Warden.
+        let dir = tempfile::tempdir().unwrap();
+        let upstream = dir.path().join("upstream");
+        std::fs::create_dir_all(&upstream).unwrap();
+        test_git(&upstream, &["init", "-q"]);
+        std::fs::write(
+            upstream.join("main.go"),
+            "package main
+",
+        )
+        .unwrap();
+        test_git(&upstream, &["add", "main.go"]);
+        test_git(&upstream, &["commit", "-q", "-m", "upstream"]);
+        let commit = test_git(&upstream, &["rev-parse", "HEAD"])
+            .trim()
+            .to_owned();
+
+        // Cada caso estraga o `.git` do cache de um jeito.
+        let corruptions: [(&str, fn(&Path)); 3] = [
+            ("pasta .git vazia", |git_dir| {
+                std::fs::create_dir_all(git_dir).unwrap();
+            }),
+            ("HEAD inválido", |git_dir| {
+                std::fs::create_dir_all(git_dir.join("objects")).unwrap();
+                std::fs::create_dir_all(git_dir.join("refs")).unwrap();
+                std::fs::write(
+                    git_dir.join("HEAD"),
+                    "lixo
+",
+                )
+                .unwrap();
+            }),
+            (".git é um arquivo", |git_dir| {
+                std::fs::write(
+                    git_dir,
+                    "gitdir: /nao/existe
+",
+                )
+                .unwrap();
+            }),
+        ];
+        for (case, corrupt) in corruptions {
+            let parent = dir.path().join(format!("pai-{}", case.replace(' ', "-")));
+            std::fs::create_dir_all(&parent).unwrap();
+            test_git(&parent, &["init", "-q"]);
+            std::fs::write(
+                parent.join("versionado.txt"),
+                "original
+",
+            )
+            .unwrap();
+            test_git(&parent, &["add", "versionado.txt"]);
+            test_git(&parent, &["commit", "-q", "-m", "pai"]);
+            let parent_head = test_git(&parent, &["rev-parse", "HEAD"]);
+            std::fs::write(
+                parent.join(".env"),
+                "SEGREDO='nao apagar'
+",
+            )
+            .unwrap();
+            std::fs::write(
+                parent.join("versionado.txt"),
+                "mudança local
+",
+            )
+            .unwrap();
+
+            let source = parent.join("target").join("packwiz").join("src");
+            std::fs::create_dir_all(&source).unwrap();
+            std::fs::write(source.join("sobra.txt"), "x").unwrap();
+            corrupt(&source.join(".git"));
+
+            prepare_source_from(&git, &source, upstream.to_str().unwrap(), &commit)
+                .unwrap_or_else(|error| panic!("{case}: {error:#}"));
+
+            assert_eq!(
+                std::fs::read_to_string(parent.join(".env")).unwrap(),
+                "SEGREDO='nao apagar'
+",
+                "{case}: o arquivo não versionado do pai sumiu"
+            );
+            assert_eq!(
+                std::fs::read_to_string(parent.join("versionado.txt")).unwrap(),
+                "mudança local
+",
+                "{case}: a mudança local do pai foi desfeita"
+            );
+            assert_eq!(
+                test_git(&parent, &["rev-parse", "HEAD"]),
+                parent_head,
+                "{case}: o HEAD do pai mudou"
+            );
+            assert!(
+                source.join("main.go").is_file(),
+                "{case}: o cache não foi refeito"
+            );
+            assert!(!source.join("sobra.txt").exists(), "{case}: sobra no cache");
+            assert!(
+                cache_is_healthy(&git, &source),
+                "{case}: cache não ficou sadio"
+            );
+            // Segunda passada sobre o cache já sadio: reaproveita sem rede nem recriação.
+            prepare_source_from(&git, &source, "url-que-nao-deve-ser-usada", &commit).unwrap();
         }
     }
 
