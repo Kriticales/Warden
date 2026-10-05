@@ -527,7 +527,21 @@ export type InstalledRuntime = {
  */
 export type InstanceErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O `pack.toml` ou o `index.toml` do pack não puderam ser lidos. */
+"PACK_UNREADABLE" | 
+/**  O `pack.toml` não diz a versão do Minecraft. */
+"MINECRAFT_VERSION_MISSING" | 
+/**  O `pack.toml` não fixa a versão exata do loader (D7). */
+"LOADER_VERSION_NOT_EXACT" | 
+/**  O `pack.toml` tem mais de um loader. */
+"LOADER_AMBIGUOUS" | 
+/**  Alguns itens do pack não foram copiados para a instância. */
+"SYNC_INCOMPLETE" | 
+/**  O arquivo escolhido para um download manual não é o esperado (hash diferente). */
+"MANUAL_FILE_MISMATCH" | 
+/**  O cache de downloads (`cache/downloads/index.sqlite`) não pôde ser usado. */
+"CACHE_UNAVAILABLE";
 
 /**
  *  Códigos do domínio `jarmeta`. O código é contrato: renomear é mudança de contrato;

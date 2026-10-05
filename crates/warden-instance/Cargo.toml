@@ -13,8 +13,25 @@ warden-configs.workspace = true
 warden-modrinth.workspace = true
 warden-curseforge.workspace = true
 warden-http.workspace = true
+hex.workspace = true
+md-5.workspace = true
+rusqlite.workspace = true
 serde.workspace = true
+serde_json.workspace = true
+sha1.workspace = true
+sha2.workspace = true
 specta = { workspace = true, features = ["derive"] }
+specta-typescript.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["fs", "macros", "rt", "sync"] }
+tracing.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true
