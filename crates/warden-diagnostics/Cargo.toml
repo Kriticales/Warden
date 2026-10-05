@@ -15,6 +15,18 @@ warden-modrinth.workspace = true
 warden-curseforge.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+encoding_rs.workspace = true
+md-5.workspace = true
+regex.workspace = true
+secrecy.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+unicode-normalization.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
 
 [lints]
 workspace = true

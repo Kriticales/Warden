@@ -168,7 +168,11 @@ export type CurseforgeErrorCode =
  */
 export type DiagnosticsErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  A pasta da sessão de teste não existe mais (podada ou apagada por fora). */
+"SESSION_NOT_FOUND" | 
+/**  Uma regra extra de redação não é uma expressão regular válida. */
+"INVALID_REDACTION_RULE";
 
 /**
  *  Códigos do domínio `discovery`. O código é contrato: renomear é mudança de contrato;

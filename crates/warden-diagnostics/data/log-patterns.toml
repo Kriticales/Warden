@@ -1,0 +1,1347 @@
+# Catálogo de padrões de log da análise pós-crash (ARCHITECTURE §9.3; tarefa D-02).
+#
+# Embutido no binário (`include_str!`) e validado pelos testes da crate: ids únicos, códigos de
+# regra válidos, expressões que compilam, e todo `{parâmetro}` usado em itens e correções
+# existe como grupo nomeado.
+#
+# Fontes:
+# - "R2 #n": padrão n da tabela de docs/research/02-launcher-e-runtime.md §6.3 (montada a partir
+#   das mensagens-fonte dos loaders e da JVM).
+# - "codex": classe de problema do codex-minecraft (github.com/aternosorg/codex-minecraft,
+#   commit d7fb6a30b8dbe9d9f73c97e4ad7927a45c3173e9, MIT, Copyright (c) 2019-2025 Aternos GmbH),
+#   portada com atribuição em THIRD_PARTY.md. As expressões foram reescritas para a crate
+#   `regex` e para linhas já limpas (sem `§x`), conferidas com os logs de teste do próprio codex.
+# - "S-R5-3": sinais vistos nos testes reais do spike (docs/spikes/S-R5-3-marcadores-da-busca.md §5).
+#
+# Aviso de licença do codex-minecraft (MIT), mantido como pede a licença:
+#
+#   Copyright (c) 2019-2025 Aternos GmbH
+#
+#   Permission is hereby granted, free of charge, to any person obtaining a copy
+#   of this software and associated documentation files (the "Software"), to deal
+#   in the Software without restriction, including without limitation the rights
+#   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#   copies of the Software, and to permit persons to whom the Software is
+#   furnished to do so, subject to the following conditions:
+#
+#   The above copyright notice and this permission notice shall be included in all
+#   copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#   SOFTWARE.
+#
+# Campos de cada [[pattern]]:
+# - id: identificador estável (entra na assinatura do travamento, D-06).
+# - rule, severity, title_key: o Finding produzido (ARCHITECTURE §9.1). title_key é a chave
+#   i18n da frase na interface (catálogo `diagnostico` da D-03).
+# - class: "crash_report" | "loader_error" | "exception" | "generic": onde o sinal costuma estar;
+#   define a ordem (crash report > tela de erro do loader > exceção mais profunda > genéricos).
+#   Linhas dentro de um crash report (arquivo ou bloco no log) sempre contam como "crash_report".
+# - weight (1–100): quanto o padrão aponta a causa, entre achados da mesma classe.
+# - regex: expressão (crate `regex`) aplicada a cada linha limpa. Grupos nomeados viram
+#   parâmetros; o sufixo `__2`, `__3`… permite o mesmo parâmetro em alternativas.
+# - scope: "anywhere" (padrão) | "crash_report" (só dentro de crash report).
+# - loaders: loaders em que o padrão vale (vazio = todos). O loader vem do contexto ou do log.
+# - follow: [{ regex, within, required }]: procura nas linhas seguintes (até `within`) mais
+#   parâmetros; com required = true, sem essa linha o padrão não vale.
+# - unless: [{ regex, within }]: se casar nas linhas seguintes, o padrão não vale.
+# - only / except: { parâmetro = [valores] } (comparados em minúsculas).
+# - key: parâmetros que identificam o achado; achados com a mesma regra e a mesma chave viram um
+#   só, com as evidências juntas.
+# - cause = true: procura a causa mais profunda (`Caused by:`) da exceção que segue.
+# - frames = true: procura os mods citados na pilha que segue (jar, módulo ou handler de mixin).
+# - fallback = true: achado genérico, descartado quando há outro erro mais específico.
+# - suppresses: ids de padrões cujos achados este anula (ex.: F3+C anula o crash report).
+# - items / fixes: modelos com {parâmetro}; um modelo com parâmetro vazio é ignorado.
+
+version = 1
+
+# ---------------------------------------------------------------------------------------------
+# Crash report (R2 #1–#3; codex CrashReport/*)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "crash_report.description"
+origin = "R2 #1; codex CrashReportProblem"
+note = "Crash report do jogo: a descrição, a exceção e a causa mais profunda."
+rule = "E_CRASH_REPORT"
+severity = "error"
+title_key = "diagnostico.achados.crashReport"
+class = "crash_report"
+weight = 10
+scope = "crash_report"
+regex = '^Description: (?P<description>.+)$'
+follow = [
+  { regex = '^\s*(?P<exception>(?:[A-Za-z_$][\w$]*\.)+[\w$]*(?:Exception|Error|Throwable)[\w$]*(?::.*)?)$', within = 4 },
+]
+key = ["description", "exception_type"]
+cause = true
+frames = true
+
+[[pattern]]
+id = "crash_report.debug_crash"
+origin = "R2 #2"
+note = "F3+C: travamento pedido pelo jogador, não é problema."
+rule = "I_DEBUG_CRASH"
+severity = "info"
+title_key = "diagnostico.achados.debugCrash"
+class = "crash_report"
+weight = 100
+regex = 'Manually triggered debug crash'
+key = []
+suppresses = ["crash_report.description"]
+
+[[pattern]]
+id = "crash_report.ticking_entity"
+origin = "R2 #3; codex TickingEntityProblem"
+note = "Uma entidade do mundo quebrou ao ser atualizada; o tipo aponta o mod dono."
+rule = "E_TICKING_ENTITY"
+severity = "error"
+title_key = "diagnostico.achados.tickingEntity"
+class = "crash_report"
+weight = 80
+scope = "crash_report"
+regex = '^Description: Ticking entity$'
+follow = [
+  { regex = '^\s*Entity Type: (?P<entity_type>[^\s(]+)', within = 120 },
+  { regex = "^\\s*Entity's Exact location: (?P<location>.+)$", within = 120 },
+]
+key = ["entity_type"]
+cause = true
+frames = true
+
+[[pattern]]
+id = "crash_report.ticking_block_entity"
+origin = "R2 #3; codex TickingBlockEntityProblem"
+note = "Um bloco com dados (máquina, baú…) quebrou ao ser atualizado; o nome aponta o mod dono."
+rule = "E_TICKING_BLOCK_ENTITY"
+severity = "error"
+title_key = "diagnostico.achados.tickingBlockEntity"
+class = "crash_report"
+weight = 80
+scope = "crash_report"
+regex = '^Description: Ticking block entity$'
+follow = [
+  { regex = '^\s*Name: (?P<block_entity>[^\s/]+)', within = 120 },
+  { regex = '^\s*Block location: (?:World: )?\(?(?P<location>[^)]+)\)?', within = 120 },
+]
+key = ["block_entity"]
+cause = true
+frames = true
+
+[[pattern]]
+id = "server.ticking_entity"
+origin = "codex Vanilla TickingBlockEntityProblem"
+note = "Servidor: a mesma quebra ao atualizar entidade ou bloco, vista no log."
+rule = "E_TICKING_ENTITY"
+severity = "error"
+title_key = "diagnostico.achados.tickingEntity"
+class = "exception"
+weight = 60
+regex = 'ReportedException: Ticking (?P<what>block entity|entity)'
+key = []
+frames = true
+fallback = true
+
+# ---------------------------------------------------------------------------------------------
+# Dependências (R2 #4–#7, #13, #15, #17; codex ModDependencyProblem, FabricModDependencyProblem)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "forge.mandatory_dependency_missing"
+origin = "R2 #4; S-R5-3 (NeoForge 21.1.252, Forge 1.20.1)"
+note = "Lista do Forge/NeoForge 1.13+: dependência obrigatória que não está no pack."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 95
+loaders = ["forge", "neoforge"]
+regex = "Mod ID: '(?P<dependency>[^']+)', Requested by: '(?P<mod>[^']+)', Expected range: '(?P<range>[^']*)', Actual version: '\\[MISSING\\]'"
+except = { dependency = ["minecraft", "forge", "neoforge", "java", "fml", "javafml"] }
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}", version_range = "{range}" }]
+
+[[pattern]]
+id = "forge.mandatory_dependency_version"
+origin = "R2 #4"
+note = "Lista do Forge/NeoForge 1.13+: dependência presente, mas fora da faixa pedida."
+rule = "E_DEP_VERSION"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaVersaoErrada"
+class = "loader_error"
+weight = 90
+loaders = ["forge", "neoforge"]
+regex = "Mod ID: '(?P<dependency>[^']+)', Requested by: '(?P<mod>[^']+)', Expected range: '(?P<range>[^']*)', Actual version: '(?P<actual>[^\\['][^']*)'"
+except = { dependency = ["minecraft", "forge", "neoforge", "java", "fml", "javafml"] }
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }, { mod = "{dependency}" }]
+fixes = [{ kind = "update_item", mod = "{dependency}" }, { kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.mandatory_dependency_minecraft"
+origin = "R2 #4"
+note = "Lista do Forge/NeoForge 1.13+: o mod pede outra versão do Minecraft."
+rule = "E_MCVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoMinecraft"
+class = "loader_error"
+weight = 90
+loaders = ["forge", "neoforge"]
+regex = "Mod ID: '(?P<dependency>minecraft)', Requested by: '(?P<mod>[^']+)', Expected range: '(?P<range>[^']*)', Actual version: '(?P<actual>[^']*)'"
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }, { kind = "remove_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.mandatory_dependency_loader"
+origin = "R2 #4"
+note = "Lista do Forge/NeoForge 1.13+: o mod pede outra versão do loader."
+rule = "E_LOADERVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoLoader"
+class = "loader_error"
+weight = 90
+loaders = ["forge", "neoforge"]
+regex = "Mod ID: '(?P<dependency>forge|neoforge|fml|javafml)', Requested by: '(?P<mod>[^']+)', Expected range: '(?P<range>[^']*)', Actual version: '(?P<actual>[^']*)'"
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.requires_not_installed"
+origin = "R2 #5; codex ModDependencyProblem; S-R5-3"
+note = "Tela de erro do Forge/NeoForge: 'Mod X requires Y …' com 'Currently, Y is not installed'."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 95
+regex = '\bMod (?P<mod>[\w\-.]+) requires (?P<dependency>[\w\-.]+) (?P<range>.+?)\s*$'
+follow = [{ regex = '^\s*Currently, (?P<current>[\w\-.]+) is not installed', within = 2, required = true }]
+except = { dependency = ["minecraft", "forge", "neoforge", "java", "fml", "javafml"] }
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}", version_range = "{range}" }]
+
+[[pattern]]
+id = "forge.requires_wrong_version"
+origin = "R2 #5; codex ModDependencyProblem"
+note = "Tela de erro do Forge/NeoForge: dependência instalada numa versão fora da faixa."
+rule = "E_DEP_VERSION"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaVersaoErrada"
+class = "loader_error"
+weight = 90
+regex = '\bMod (?P<mod>[\w\-.]+) requires (?P<dependency>[\w\-.]+) (?P<range>.+?)\s*$'
+follow = [{ regex = '^\s*Currently, [\w\-.]+ is (?:installed version )?(?P<actual>[^\s,]+),?\s*$', within = 2, required = true }]
+except = { dependency = ["minecraft", "forge", "neoforge", "java", "fml", "javafml"] }
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }, { mod = "{dependency}" }]
+fixes = [{ kind = "update_item", mod = "{dependency}" }, { kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.requires_minecraft"
+origin = "R2 #5; codex ModDependencyProblem"
+note = "Tela de erro do Forge/NeoForge: o mod pede outra versão do Minecraft."
+rule = "E_MCVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoMinecraft"
+class = "loader_error"
+weight = 90
+regex = '\bMod (?P<mod>[\w\-.]+) requires (?P<dependency>minecraft) (?P<range>.+?)\s*$'
+follow = [{ regex = '^\s*Currently, [\w\-.]+ is (?:installed version )?(?P<actual>[^\s,]+),?\s*$', within = 2 }]
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }, { kind = "remove_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.requires_loader"
+origin = "R2 #5; codex ModDependencyProblem"
+note = "Tela de erro do Forge/NeoForge: o mod pede outra versão do loader."
+rule = "E_LOADERVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoLoader"
+class = "loader_error"
+weight = 90
+regex = '\bMod (?P<mod>[\w\-.]+) requires (?P<dependency>forge|neoforge|fml|javafml) (?P<range>.+?)\s*$'
+follow = [{ regex = '^\s*Currently, [\w\-.]+ is (?:installed version )?(?P<actual>[^\s,]+),?\s*$', within = 2 }]
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.missing_mods_exception"
+origin = "R2 #6; codex ModDependencyProblem"
+note = "Forge 1.8–1.12.2: MissingModsException com o mod e o que ele pede."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 95
+loaders = ["forge"]
+regex = 'MissingModsException: Mod (?P<mod>\S+) \((?P<mod_name>.*)\) requires \[(?P<dependency>[^@\]\s,]+)(?:@(?P<range>[\[(][^\])]*[\])]|[^\s,\]]+))?'
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}", version_range = "{range}" }]
+
+[[pattern]]
+id = "forge.requires_mods_available"
+origin = "R2 #7; codex ModDependencyProblem"
+note = "Forge 1.7.10–1.12.2: 'The mod X (Y) requires mods [Z] to be available'."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 95
+loaders = ["forge"]
+regex = 'The mod (?P<mod>\S+) \((?P<mod_name>[^)]+)\) requires mods \[(?P<dependency>[^@\],\s]+)(?:@[^\],]*)?(?:,[^\]]*)?\] to be available'
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}" }]
+
+[[pattern]]
+id = "fabric.dependency_missing"
+origin = "R2 #13; codex FabricModDependencyProblem; S-R5-3"
+note = "Fabric/Quilt (e mods Fabric no NeoForge pelo Connector): dependência que falta."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 95
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\)(?: (?P<mod_version>\\S+))? requires (?P<range>.+?) of (?:mod )?(?:'(?P<dependency_name>[^']+)' \\((?P<dependency>[^)\\s]+)\\)|(?P<dependency__2>[^\\s,']+)), which is missing!"
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}", version_range = "{range}" }]
+
+[[pattern]]
+id = "fabric.dependency_wrong_version"
+origin = "R2 #14; codex FabricModDependencyProblem; S-R5-3"
+note = "Fabric/Quilt: dependência presente numa versão que o mod não aceita."
+rule = "E_DEP_VERSION"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaVersaoErrada"
+class = "loader_error"
+weight = 90
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\)(?: (?P<mod_version>\\S+))? requires (?P<range>.+?) of (?:mod )?(?:'(?P<dependency_name>[^']+)' \\((?P<dependency>[^)\\s]+)\\)|(?P<dependency__2>[^\\s,']+)), but only the wrong versions? (?:is|are) present: (?P<actual>.+?)!$"
+except = { dependency = ["minecraft", "java"] }
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }, { mod = "{dependency}" }]
+fixes = [{ kind = "update_item", mod = "{dependency}" }, { kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "fabric.wrong_minecraft"
+origin = "codex FabricModIncompatibleMinecraftVersionProblem; S-R5-3"
+note = "Fabric/Quilt: o mod é de outra versão do Minecraft."
+rule = "E_MCVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoMinecraft"
+class = "loader_error"
+weight = 90
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\)(?: (?P<mod_version>\\S+))? requires (?P<range>.+?) of (?:mod )?'Minecraft' \\(minecraft\\), but only the wrong version is present: (?P<actual>.+?)!$"
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }, { kind = "remove_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "fabric.wrong_java"
+origin = "S-R5-3 (fab-outra-versao-mc)"
+note = "Fabric/Quilt: o mod declara uma versão mínima do Java maior que a do teste."
+rule = "E_JAVA"
+severity = "error"
+title_key = "diagnostico.achados.javaDoMod"
+class = "loader_error"
+weight = 90
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\)(?: (?P<mod_version>\\S+))? requires (?:version (?P<java_required>\\d+) or later|(?P<range>.+?)) of (?:mod )?'[^']*' \\(java\\), but only the wrong version is present: (?P<actual>.+?)!$"
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "change_java", major = "{java_required}" }]
+
+[[pattern]]
+id = "fabric.dependency_disabled_side"
+origin = "R2 #15"
+note = "Fabric: a dependência existe, mas está marcada só para o outro lado (cliente/servidor)."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaDoOutroLado"
+class = "loader_error"
+weight = 85
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\)(?: (?P<mod_version>\\S+))? requires .+? of (?:mod )?(?:'(?P<dependency_name>[^']+)' \\((?P<dependency>[^)\\s]+)\\)|(?P<dependency__2>[^\\s,']+)), which is disabled for this environment"
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }, { mod = "{dependency}" }]
+fixes = [{ kind = "set_side", mod = "{dependency}", side = "both" }]
+
+[[pattern]]
+id = "fabric.could_not_find_required_mod"
+origin = "R2 #17; codex FabricModDependencyProblem (short-error)"
+note = "Fabric 0.11 e anteriores: 'Could not find required mod'."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 95
+regex = 'Could not find required mod: (?P<mod>\S+) requires \{(?P<dependency>\S+) @ \[(?P<range>[^\]]*)\]\}'
+except = { dependency = ["minecraft", "java"] }
+key = ["mod", "dependency"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}", version_range = "{range}" }]
+
+[[pattern]]
+id = "fabric.could_not_find_minecraft"
+origin = "codex FabricModDependencyProblem (short-error)"
+note = "Fabric 0.11 e anteriores: o mod pede outra versão do Minecraft."
+rule = "E_MCVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoMinecraft"
+class = "loader_error"
+weight = 90
+regex = 'Could not find required mod: (?P<mod>\S+) requires \{minecraft @ \[(?P<range>[^\]]*)\]\}'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }, { kind = "remove_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.missing_mandatory_dependencies"
+origin = "codex ModDependencyProblem (forge-early-crash)"
+note = "Forge 1.17–1.18: 'Missing mandatory dependencies: x' (sem dizer quem pede)."
+rule = "E_MISSING_DEP"
+severity = "error"
+title_key = "diagnostico.achados.dependenciaFaltando"
+class = "loader_error"
+weight = 90
+loaders = ["forge", "neoforge"]
+regex = 'Missing mandatory dependencies: (?P<dependency>[\w\-.]+)(?P<others>(?:, ?[\w\-.]+)*)\s*$'
+key = ["dependency"]
+fixes = [{ kind = "add_dependency", mod_id = "{dependency}" }]
+
+# ---------------------------------------------------------------------------------------------
+# Duplicados e incompatíveis (R2 #8–#11, #16, #26; codex ModDuplicateProblem,
+# FabricDuplicateModProblem, FabricIncompatibleModsProblem, MultipleModulesExportProblem)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "forge.duplicate_mod_files"
+origin = "R2 #8; codex ModDuplicateProblem"
+note = "Forge moderno: o mesmo mod em mais de um arquivo."
+rule = "E_DUPLICATE_ID"
+severity = "error"
+title_key = "diagnostico.achados.modDuplicado"
+class = "loader_error"
+weight = 90
+regex = "Mod ID: ?'?(?P<mod>[^',\\s]+)'? from mod files: (?P<files>.+?)\\s*$"
+key = ["mod"]
+items = [{ jars = "{files}" }]
+fixes = [{ kind = "remove_item", jars_after_first = "{files}" }]
+
+[[pattern]]
+id = "forge.found_duplicate_mod"
+origin = "R2 #9; codex ModDuplicateProblem; S-R5-3 (Forge 1.12.2)"
+note = "Forge antigo: 'Found a duplicate mod X at [a, b]'."
+rule = "E_DUPLICATE_ID"
+severity = "error"
+title_key = "diagnostico.achados.modDuplicado"
+class = "loader_error"
+weight = 90
+regex = 'Found a duplicate mod (?P<mod>\S+) at \[(?P<files>.+)\]'
+key = ["mod"]
+items = [{ jars = "{files}" }]
+fixes = [{ kind = "remove_item", jars_after_first = "{files}" }]
+
+[[pattern]]
+id = "neoforge.present_in_multiple_files"
+origin = "R2 #10"
+note = "NeoForge: o mesmo mod em vários arquivos."
+rule = "E_DUPLICATE_ID"
+severity = "error"
+title_key = "diagnostico.achados.modDuplicado"
+class = "loader_error"
+weight = 90
+regex = 'Mod (?P<mod>\S+) is present in multiple files: (?P<files>.+?)\s*$'
+key = ["mod"]
+items = [{ jars = "{files}" }]
+fixes = [{ kind = "remove_item", jars_after_first = "{files}" }]
+
+[[pattern]]
+id = "fabric.duplicate_versions"
+origin = "R2 #11; codex FabricDuplicateModProblem"
+note = "Fabric: duas versões do mesmo id."
+rule = "E_DUPLICATE_ID"
+severity = "error"
+title_key = "diagnostico.achados.modDuplicado"
+class = "loader_error"
+weight = 90
+regex = "Duplicate versions for mod ID '(?P<mod>[^']+)': \\[(?P<files>.+)\\]"
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+
+[[pattern]]
+id = "fabric.duplicate_builtin"
+origin = "R2 #11"
+note = "Fabric: um mod do pack usa o id de um mod embutido no loader ou no jogo."
+rule = "E_DUPLICATE_ID"
+severity = "error"
+title_key = "diagnostico.achados.modDuplicado"
+class = "loader_error"
+weight = 85
+regex = "Mods? share ID with builtin mod.*?'(?P<mod>[^']+)'"
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+
+[[pattern]]
+id = "fabric.incompatible_with"
+origin = "R2 #16; codex FabricIncompatibleModsProblem"
+note = "Fabric: o mod declara que quebra com outro presente (breaks)."
+rule = "E_BREAKS"
+severity = "error"
+title_key = "diagnostico.achados.modsIncompativeis"
+class = "loader_error"
+weight = 90
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\) \\S+ is incompatible with .+? of (?:mod )?(?:'(?P<other_name>[^']+)' \\((?P<other>[^)\\s]+)\\)|(?P<other__2>[^\\s,']+)), "
+key = ["mod", "other"]
+items = [{ mod = "{mod}" }, { mod = "{other}" }]
+fixes = [{ kind = "remove_item", mod = "{other}" }, { kind = "remove_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "fabric.conflicts_with"
+origin = "R2 #16; codex FabricIncompatibleModsProblem"
+note = "Fabric: o mod declara conflito (conflicts) com outro presente."
+rule = "W_CONFLICTS"
+severity = "warning"
+title_key = "diagnostico.achados.modsEmConflito"
+class = "loader_error"
+weight = 60
+regex = "^\\s*- [Mm]od (?:'(?P<mod_name>[^']+)'|(?P<mod_name__2>\\S+)) \\((?P<mod>[^)\\s]+)\\) \\S+ conflicts with .+? of (?:mod )?(?:'(?P<other_name>[^']+)' \\((?P<other>[^)\\s]+)\\)|(?P<other__2>[^\\s,']+)), "
+key = ["mod", "other"]
+items = [{ mod = "{mod}" }, { mod = "{other}" }]
+
+[[pattern]]
+id = "jpms.modules_export_same_package"
+origin = "R2 #26; codex MultipleModulesExportProblem"
+note = "Forge/NeoForge 1.17+: dois jars trazem o mesmo pacote Java."
+rule = "E_PACKAGE_CONFLICT"
+severity = "error"
+title_key = "diagnostico.achados.pacoteRepetido"
+class = "exception"
+weight = 85
+regex = 'ResolutionException: Modules (?P<module>\S+) and (?P<other>\S+) export package (?P<package>\S+) to module'
+key = ["module", "other"]
+items = [{ mod = "{module}" }, { mod = "{other}" }]
+
+[[pattern]]
+id = "jpms.module_contains_package"
+origin = "R2 #26; codex MultipleModulesExportProblem"
+note = "Forge/NeoForge 1.17+: um módulo contém um pacote que outro exporta."
+rule = "E_PACKAGE_CONFLICT"
+severity = "error"
+title_key = "diagnostico.achados.pacoteRepetido"
+class = "exception"
+weight = 85
+regex = 'ResolutionException: Module (?P<module>\S+) contains package (?P<package>\S+), module (?P<other>\S+) exports package'
+key = ["module", "other"]
+items = [{ mod = "{module}" }, { mod = "{other}" }]
+
+[[pattern]]
+id = "jpms.invalid_module_name"
+origin = "R2 #27"
+note = "Forge 1.17+: o nome do arquivo do jar não serve como nome de módulo Java."
+rule = "E_INVALID_JAR_NAME"
+severity = "error"
+title_key = "diagnostico.achados.nomeDeJarInvalido"
+class = "exception"
+weight = 85
+regex = "(?:Unable to derive module descriptor for (?P<file>\\S+\\.jar)|Invalid module name: '(?P<segment>[^']*)' is not a Java identifier)"
+follow = [{ regex = "Invalid module name: '(?P<segment__2>[^']*)' is not a Java identifier", within = 3 }]
+key = []
+items = [{ jar = "{file}" }]
+
+# ---------------------------------------------------------------------------------------------
+# Loader e versão (R2 #20–#22; codex LanguageProviderVersionProblem, ModWrongMinecraftVersion)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "neoforge.jar_of_other_loader"
+origin = "R2 #20; S-R5-3 (neo-outro-loader)"
+note = "NeoForge/Forge: jar feito para outro loader; o loader pula o arquivo."
+rule = "E_LOADER"
+severity = "error"
+title_key = "diagnostico.achados.jarDeOutroLoader"
+class = "loader_error"
+weight = 90
+regex = 'File (?P<file>.+?\.jar) is a (?P<other_loader>Fabric|Quilt|LiteLoader) mod and cannot be loaded'
+key = ["file"]
+items = [{ jar = "{file}" }]
+fixes = [{ kind = "remove_item", jar = "{file}" }]
+
+[[pattern]]
+id = "neoforge.jar_for_forge"
+origin = "R2 #20"
+note = "NeoForge 1.20.2+: jar do Forge (ou de NeoForge antigo) que não pode ser carregado."
+rule = "E_LOADER"
+severity = "error"
+title_key = "diagnostico.achados.jarDeOutroLoader"
+class = "loader_error"
+weight = 90
+regex = '(?:File )?(?P<file>\S+?\.jar) is for Minecraft Forge or an older version of NeoForge'
+key = ["file"]
+items = [{ jar = "{file}" }]
+fixes = [{ kind = "remove_item", jar = "{file}" }]
+
+[[pattern]]
+id = "fabric.non_fabric_mods"
+origin = "S-R5-3 (fab-outro-loader)"
+note = "Fabric: jar de outro loader ignorado em silêncio; o jogo abre sem ele."
+rule = "E_LOADER"
+severity = "warning"
+title_key = "diagnostico.achados.jarIgnoradoPeloLoader"
+class = "generic"
+weight = 40
+regex = 'Found \d+ non-fabric mods?:'
+follow = [{ regex = '^\s*- (?P<file>\S+\.jar)\s*$', within = 2, required = true }]
+key = ["file"]
+items = [{ jar = "{file}" }]
+fixes = [{ kind = "remove_item", jar = "{file}" }]
+
+[[pattern]]
+id = "forge.language_provider"
+origin = "R2 #21; codex LanguageProviderVersionProblem"
+note = "Forge 1.13+: o mod precisa de outra versão do loader (provedor de linguagem)."
+rule = "E_LOADERVERSION"
+severity = "error"
+title_key = "diagnostico.achados.provedorDeLinguagem"
+class = "loader_error"
+weight = 90
+regex = 'Mod File (?P<file>[^/\n]+?) needs language provider (?P<provider>[\w\-]+):(?P<needed>.+?) to load'
+follow = [{ regex = 'We have found (?P<found>\S+)', within = 2 }]
+key = ["file"]
+items = [{ jar = "{file}" }]
+fixes = [{ kind = "update_item", jar = "{file}" }, { kind = "remove_item", jar = "{file}" }]
+
+[[pattern]]
+id = "forge.does_not_wish_to_run"
+origin = "R2 #22; codex ModWrongMinecraftVersionProblem"
+note = "Forge 1.12 e anteriores: o mod é de outra versão do Minecraft."
+rule = "E_MCVERSION"
+severity = "error"
+title_key = "diagnostico.achados.versaoDoMinecraft"
+class = "loader_error"
+weight = 90
+regex = 'The mod (?P<mod>\S+) does not wish to run in Minecraft version (?:Minecraft )?(?P<actual>[\d.]+)'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }, { kind = "remove_item", mod = "{mod}" }]
+
+# ---------------------------------------------------------------------------------------------
+# Mod que quebrou ao iniciar (R2 #18, #19; codex FabricEntryStageProblem, ModExceptionProblem,
+# ModFatalProblem)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "fabric.entrypoint"
+origin = "R2 #18; codex FabricEntryStageProblem"
+note = "Fabric/Quilt: o mod deu erro ao iniciar (entrypoint)."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "exception"
+weight = 80
+regex = "Could not execute entrypoint stage '(?P<stage>[^']+)' due to errors, provided by '(?P<mod>[^']+)'"
+key = ["mod"]
+cause = true
+frames = true
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.caught_exception_from"
+origin = "R2 #19; codex ModExceptionProblem"
+note = "Forge 1.12 e anteriores: exceção capturada de um mod."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "exception"
+weight = 80
+loaders = ["forge"]
+regex = 'Caught exception from (?:(?P<mod_name>[^(\n]+?) \((?P<mod>[^)\s]+)\)|(?P<mod__2>[\w\-.]+))\s*$'
+key = ["mod"]
+cause = true
+frames = true
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.failed_to_create_mod_instance"
+origin = "R2 #19; S-R5-3 (neo-dep-versao)"
+note = "Forge/NeoForge 1.13+: a classe principal do mod não pôde ser criada."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "exception"
+weight = 80
+regex = 'Failed to create mod instance\. ModID: (?P<mod>[^,\s]+),'
+key = ["mod"]
+cause = true
+frames = true
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.has_failed_to_load"
+origin = "codex ModFatalProblem"
+note = "Forge 1.7.10–1.12.2: 'X (id) has failed to load correctly'."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "loader_error"
+weight = 80
+regex = '^\s*(?P<mod_name>[^(\n]+?) \((?P<mod>[^)]+)\) has failed to load correctly'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.mod_state_errored"
+origin = "codex ModFatalProblem"
+note = "Forge 1.7.10–1.12.2: tabela de estados com o mod em erro (letra E no fim)."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "loader_error"
+weight = 75
+loaders = ["forge"]
+regex = '^\s*U[LCHIJAD]*E\s+(?P<mod>[\w\-]+)\{(?P<mod_version>[^}]+)\} \[(?P<mod_name>[^\]]+)\] \((?P<file>[^)]+)\)'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.mod_state_errored_table"
+origin = "codex ModFatalProblem"
+note = "Forge 1.12.2: tabela de estados em colunas com o mod em erro (letra E no fim)."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "loader_error"
+weight = 75
+loaders = ["forge"]
+regex = '^\s*\|\s*U?[LCHIJAD]*E\s*\|\s*(?P<mod>[\w\-]+)\s*\|\s*(?P<mod_version>[^|]+?)\s*\|\s*(?P<file>[^|]+?)\s*\|'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "forge.loading_errors_encountered"
+origin = "codex ModExceptionProblem"
+note = "Forge 1.13–1.16: 'X (id) encountered an error during …'."
+rule = "E_MOD_INIT"
+severity = "error"
+title_key = "diagnostico.achados.modQuebrouAoIniciar"
+class = "loader_error"
+weight = 75
+regex = '(?P<mod_name>[^(\n\[]+?) \((?P<mod>[^)\s]+)\) encountered an error during the (?P<stage>.+?) event phase'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+# ---------------------------------------------------------------------------------------------
+# Mixin (R2 #23–#25; codex FabricMixinProblem; S-R5-3)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "mixin.apply_for_mod_failed"
+origin = "R2 #23; S-R5-3 (fab-mixin, neo-mixin)"
+note = "Fabric/NeoForge: a alteração (mixin) de um mod não pôde ser aplicada."
+rule = "E_MIXIN"
+severity = "error"
+title_key = "diagnostico.achados.mixinFalhou"
+class = "exception"
+weight = 90
+regex = 'Mixin apply for mod (?P<mod>\S+) failed (?P<mixin_config>[\w.\-]+\.json):(?P<mixin>[\w.$/]+)(?: from mod \S+)? -> (?P<target>[\w.$/]+)'
+key = ["mixin_config"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }, { kind = "remove_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "mixin.apply_failed"
+origin = "R2 #23; S-R5-3 (forge-mixin)"
+note = "Forge: a alteração (mixin) não pôde ser aplicada; a config de mixin aponta o mod dono."
+rule = "E_MIXIN"
+severity = "error"
+title_key = "diagnostico.achados.mixinFalhou"
+class = "exception"
+weight = 90
+regex = 'Mixin (?:apply|prepare) failed (?P<mixin_config>[\w.\-]+\.json):(?P<mixin>[\w.$/]+) -> (?P<target>[\w.$/]+)'
+key = ["mixin_config"]
+
+[[pattern]]
+id = "mixin.apply_error"
+origin = "R2 #23; codex FabricMixinProblem; S-R5-3"
+note = "MixinApplyError com a config de mixin e, no Fabric, o mod dono."
+rule = "E_MIXIN"
+severity = "error"
+title_key = "diagnostico.achados.mixinFalhou"
+class = "exception"
+weight = 88
+regex = 'MixinApplyError: Mixin \[(?P<mixin_config>[\w.\-]+\.json):(?P<mixin>[\w.$/]+)(?: from mod (?P<mod>[^\]\s]+))?\] from phase \[(?P<phase>\w+)\] in config \[[^\]]+\] FAILED during (?P<stage>\w+)'
+key = ["mixin_config"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "update_item", mod = "{mod}" }]
+
+[[pattern]]
+id = "mixin.critical_injection_failure"
+origin = "R2 #24"
+note = "Injeção obrigatória sem alvo: o mod é de outra versão do jogo ou do mod que ele altera."
+rule = "E_MIXIN"
+severity = "error"
+title_key = "diagnostico.achados.mixinFalhou"
+class = "exception"
+weight = 70
+regex = 'Critical injection failure: (?P<detail>.+?)(?: in (?P<mixin_config>[\w.\-]+\.mixins\.json)|$)'
+key = ["mixin_config"]
+fallback = true
+
+[[pattern]]
+id = "mixin.transformer_error"
+origin = "R2 #25; codex FabricMixinProblem"
+note = "Erro crítico do Mixin; a linha 'from mod' que segue aponta o mod."
+rule = "E_MIXIN"
+severity = "error"
+title_key = "diagnostico.achados.mixinFalhou"
+class = "exception"
+weight = 60
+regex = 'MixinTransformerError: An unexpected critical error was encountered'
+follow = [{ regex = 'from mod (?P<mod>[^\s\]]+)', within = 40 }]
+key = []
+items = [{ mod = "{mod}" }]
+fallback = true
+
+# ---------------------------------------------------------------------------------------------
+# Java (R2 #28–#30; S-R5-3)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "java.unsupported_class_version"
+origin = "R2 #28; S-R5-3 (fab-java8)"
+note = "Java velho demais: a classe foi compilada para um Java mais novo (versão = classe − 44)."
+rule = "E_JAVA"
+severity = "error"
+title_key = "diagnostico.achados.javaVelho"
+class = "exception"
+weight = 95
+regex = 'UnsupportedClassVersionError: (?P<class>\S+) (?:has been compiled by a more recent version of the Java Runtime )?\(class file version (?P<class_version>\d+)(?:\.\d+)?\)(?:, this version of the Java Runtime only recognizes class file versions up to (?P<runtime_version>\d+))?'
+key = []
+fixes = [{ kind = "change_java", major = "{java_required}" }]
+
+[[pattern]]
+id = "java.unsupported_major_minor"
+origin = "R2 #28; S-R5-3 (neo-java17)"
+note = "Java velho demais (mensagem antiga ou do sistema de módulos)."
+rule = "E_JAVA"
+severity = "error"
+title_key = "diagnostico.achados.javaVelho"
+class = "exception"
+weight = 95
+regex = 'Unsupported major\.minor version (?P<class_version>\d+)(?:\.\d+)?'
+key = []
+fixes = [{ kind = "change_java", major = "{java_required}" }]
+
+[[pattern]]
+id = "java.launchwrapper_too_new"
+origin = "R2 #29; S-R5-3 (f112-java21)"
+note = "Java novo demais para o launchwrapper (Forge/vanilla 1.7.10–1.12.2): use o Java 8."
+rule = "E_JAVA"
+severity = "error"
+title_key = "diagnostico.achados.javaNovoDemais"
+class = "exception"
+weight = 95
+regex = '(?:AppClassLoader cannot be cast to (?:class )?java\.net\.URLClassLoader|NoSuchFieldException: ucp\b)'
+key = []
+fixes = [{ kind = "change_java", major = "8" }]
+
+[[pattern]]
+id = "java.manifest_entry_verifier"
+origin = "R2 #30"
+note = "Forge 1.16.5 antigo com Java 8u321 ou mais novo."
+rule = "E_JAVA"
+severity = "error"
+title_key = "diagnostico.achados.javaForge1165"
+class = "exception"
+weight = 95
+regex = 'NoSuchMethodError: .*sun\.security\.util\.ManifestEntryVerifier'
+key = []
+fixes = [{ kind = "change_java", major = "8" }]
+
+# ---------------------------------------------------------------------------------------------
+# Memória e argumentos da JVM (R2 #31, #33; S-R5-3)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "memory.out_of_memory"
+origin = "R2 #31; S-R5-3 (fab-memoria, neo-memoria)"
+note = "Falta de memória no Java (em qualquer thread)."
+rule = "E_OUT_OF_MEMORY"
+severity = "error"
+title_key = "diagnostico.achados.faltaDeMemoria"
+class = "exception"
+weight = 92
+regex = 'java\.lang\.OutOfMemoryError(?:: (?P<kind>[A-Za-z][\w ]*[\w]))?'
+key = []
+fixes = [{ kind = "change_memory" }]
+
+[[pattern]]
+id = "memory.native_insufficient"
+origin = "R2 #31"
+note = "Memória do computador insuficiente para o Java continuar."
+rule = "E_NATIVE_MEMORY"
+severity = "error"
+title_key = "diagnostico.achados.memoriaDoComputador"
+class = "crash_report"
+weight = 92
+regex = 'There is insufficient memory for the Java Runtime Environment to continue'
+key = []
+fixes = [{ kind = "change_memory" }]
+
+[[pattern]]
+id = "memory.could_not_reserve_heap"
+origin = "R2 #31"
+note = "O Java não conseguiu reservar a memória pedida (Java de 32 bits ou memória demais)."
+rule = "E_NATIVE_MEMORY"
+severity = "error"
+title_key = "diagnostico.achados.memoriaNaoReservada"
+class = "exception"
+weight = 92
+regex = 'Could not reserve enough space for (?P<size>\S+) object heap'
+key = []
+fixes = [{ kind = "change_memory" }, { kind = "change_java" }]
+
+[[pattern]]
+id = "jvm.invalid_max_heap"
+origin = "R2 #31"
+note = "Valor de memória máxima inválido nos argumentos."
+rule = "E_JVM_ARGUMENT"
+severity = "error"
+title_key = "diagnostico.achados.memoriaInvalida"
+class = "exception"
+weight = 92
+regex = 'Invalid maximum heap size: (?P<argument>\S+)'
+key = []
+fixes = [{ kind = "change_memory" }]
+
+[[pattern]]
+id = "jvm.unrecognized_option"
+origin = "R2 #33"
+note = "Argumento da JVM que este Java não conhece (ex.: opção de GC removida)."
+rule = "E_JVM_ARGUMENT"
+severity = "error"
+title_key = "diagnostico.achados.argumentoDaJvm"
+class = "exception"
+weight = 92
+regex = "(?:Unrecognized VM option '(?P<argument>[^']+)'|Unrecognized option: (?P<argument__2>\\S+))"
+key = ["argument"]
+fixes = [{ kind = "remove_jvm_argument", argument = "{argument}" }]
+
+# ---------------------------------------------------------------------------------------------
+# Vídeo e falhas nativas (R2 #32)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "graphics.pixel_format"
+origin = "R2 #32"
+note = "LWJGL 2 (até 1.12): driver de vídeo sem aceleração OpenGL."
+rule = "E_GRAPHICS_DRIVER"
+severity = "error"
+title_key = "diagnostico.achados.driverDeVideo"
+class = "exception"
+weight = 92
+regex = 'Pixel format not accelerated'
+key = []
+
+[[pattern]]
+id = "graphics.glfw_api_unavailable"
+origin = "R2 #32"
+note = "LWJGL 3: o driver não oferece a versão de OpenGL pedida (GLFW 65542/65543)."
+rule = "E_GRAPHICS_DRIVER"
+severity = "error"
+title_key = "diagnostico.achados.driverDeVideo"
+class = "exception"
+weight = 92
+regex = 'GLFW error (?P<code>6554[23]|0x1000[67])'
+key = []
+
+[[pattern]]
+id = "graphics.no_opengl"
+origin = "R2 #32"
+note = "O driver não parece suportar OpenGL."
+rule = "E_GRAPHICS_DRIVER"
+severity = "error"
+title_key = "diagnostico.achados.driverDeVideo"
+class = "exception"
+weight = 92
+regex = 'does not appear to support OpenGL'
+key = []
+
+[[pattern]]
+id = "graphics.native_frame_in_driver"
+origin = "R2 #32"
+note = "Queda nativa da JVM dentro do driver de vídeo (Intel, AMD ou NVIDIA)."
+rule = "E_GRAPHICS_DRIVER"
+severity = "error"
+title_key = "diagnostico.achados.driverDeVideo"
+class = "crash_report"
+weight = 95
+regex = '^#\s+C\s+\[(?P<module>(?:ig\w*|atio\w*|atig\w*|aticfx\w*|amdxc\w*|amdvlk\w*|nvoglv\w*|nvwgf\w*|nvd3dum\w*)\.dll)\+'
+key = []
+
+[[pattern]]
+id = "native.problematic_frame"
+origin = "R2 §6.1 (hs_err_pid)"
+note = "Queda nativa da JVM (relatório hs_err_pid): o quadro problemático diz onde."
+rule = "E_NATIVE_CRASH"
+severity = "error"
+title_key = "diagnostico.achados.quedaNativa"
+class = "crash_report"
+weight = 40
+regex = '^#\s+(?P<error>EXCEPTION_\w+|SIGSEGV|SIGBUS|SIGILL|SIGFPE|Internal Error)\b'
+follow = [{ regex = '^#\s+(?P<frame>[CjJvV]\s+\[.+)$', within = 8 }]
+key = []
+
+# ---------------------------------------------------------------------------------------------
+# Configs (R2 #34)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "config.failed_loading"
+origin = "R2 #34"
+note = "Forge/NeoForge: config TOML ilegível; a cópia do pack pode ser restaurada."
+rule = "E_CONFIG_CORRUPT"
+severity = "error"
+title_key = "diagnostico.achados.configCorrompida"
+class = "exception"
+weight = 92
+regex = 'Failed loading config file (?P<config>\S+) of type (?P<type>\S+) for modid (?P<mod>\S+)'
+key = ["config"]
+items = [{ mod = "{mod}" }]
+fixes = [{ kind = "restore_config", path = "{config}" }]
+
+[[pattern]]
+id = "config.parsing_exception"
+origin = "R2 #34"
+note = "Forge/NeoForge: erro de leitura de TOML (night-config)."
+rule = "E_CONFIG_CORRUPT"
+severity = "error"
+title_key = "diagnostico.achados.configCorrompida"
+class = "exception"
+weight = 70
+regex = 'com\.electronwill\.nightconfig\.core\.io\.ParsingException: (?P<detail>.+)'
+key = []
+fallback = true
+
+# ---------------------------------------------------------------------------------------------
+# Classes que faltam (R2 #35)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "class.no_class_def_found"
+origin = "R2 #35; S-R5-3 (neo-dep-versao)"
+note = "Classe que falta: dependência ausente, não declarada ou mod de outra versão."
+rule = "E_MISSING_CLASS"
+severity = "error"
+title_key = "diagnostico.achados.classeFaltando"
+class = "exception"
+weight = 45
+regex = 'NoClassDefFoundError: (?P<class>[\w/.$]+)'
+except = { class = ["could"] }
+key = ["class"]
+frames = true
+
+[[pattern]]
+id = "class.not_found_in_crash"
+origin = "R2 #35"
+note = "ClassNotFoundException no crash report ou como exceção fatal (fora disso é ruído comum)."
+rule = "E_MISSING_CLASS"
+severity = "error"
+title_key = "diagnostico.achados.classeFaltando"
+class = "exception"
+weight = 45
+scope = "crash_report"
+regex = 'ClassNotFoundException: (?P<class>[\w/.$]+)'
+key = ["class"]
+frames = true
+
+[[pattern]]
+id = "class.not_found_fatal"
+origin = "R2 #35"
+note = "ClassNotFoundException que derrubou a thread principal."
+rule = "E_MISSING_CLASS"
+severity = "error"
+title_key = "diagnostico.achados.classeFaltando"
+class = "exception"
+weight = 45
+regex = 'Exception in thread "main" java\.lang\.ClassNotFoundException: (?P<class>[\w/.$]+)'
+key = ["class"]
+
+# ---------------------------------------------------------------------------------------------
+# Mundo (S-R5-3; codex WorldMissingModProblem, WorldModVersionProblem, MissingDatapackModProblem,
+# Vanilla/*)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "world.could_not_place_player"
+origin = "S-R5-3 §5.2 (fab-entrar, neo-entrar, forge-entrar)"
+note = "Falha ao entrar no mundo: o jogo não fecha nem gera crash report; a exceção que segue é a causa."
+rule = "E_JOIN_WORLD"
+severity = "error"
+title_key = "diagnostico.achados.falhaAoEntrarNoMundo"
+class = "exception"
+weight = 85
+regex = "Couldn't place player in world"
+follow = [
+  { regex = '^\s*(?P<exception>(?:[A-Za-z_$][\w$]*\.)+[\w$]*(?:Exception|Error|Throwable)[\w$]*(?::.*)?)$', within = 6 },
+]
+key = []
+cause = true
+frames = true
+
+[[pattern]]
+id = "world.version_differences_missing"
+origin = "S-R5-3 §4.1 (neoforge-1.21.1-mundo-salvo-com-mod-ausente)"
+note = "NeoForge: o mundo foi salvo com um mod que não está mais no pack."
+rule = "W_WORLD_MISSING_MOD"
+severity = "warning"
+title_key = "diagnostico.achados.mundoComModAusente"
+class = "generic"
+weight = 50
+regex = 'The following mods have version differences that were not resolved:'
+follow = [{ regex = '(?P<mod>[\w\-]+) \(version (?P<saved>\S+) -> MISSING\)', within = 3, required = true }]
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+
+[[pattern]]
+id = "world.saved_with_missing_mod"
+origin = "codex WorldMissingModProblem"
+note = "Forge: o mundo foi salvo com um mod que não está mais no pack."
+rule = "W_WORLD_MISSING_MOD"
+severity = "warning"
+title_key = "diagnostico.achados.mundoComModAusente"
+class = "generic"
+weight = 50
+regex = 'This world was saved with mod (?P<mod>\w+) which appears to be missing, things may not work well'
+except = { mod = ["forge", "minecraft", "fml", "mcp"] }
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+
+[[pattern]]
+id = "world.saved_with_other_version"
+origin = "codex WorldModVersionProblem"
+note = "Forge: o mundo foi salvo com outra versão de um mod."
+rule = "W_WORLD_MOD_VERSION"
+severity = "warning"
+title_key = "diagnostico.achados.mundoComOutraVersao"
+class = "generic"
+weight = 30
+regex = 'This world was saved with mod (?P<mod>\w+) version (?P<saved>\S+) and it is now at version (?P<current>[^,]+), things may not work well'
+except = { mod = ["forge", "minecraft", "fml", "mcp"] }
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+
+[[pattern]]
+id = "world.missing_datapack_mod"
+origin = "codex MissingDatapackModProblem"
+note = "Forge: o mundo usa um pacote de dados de um mod que não está no pack."
+rule = "W_WORLD_MISSING_MOD"
+severity = "warning"
+title_key = "diagnostico.achados.mundoComModAusente"
+class = "generic"
+weight = 50
+regex = 'Missing data pack mod:(?P<mod>[\w\-]+)'
+key = ["mod"]
+items = [{ mod = "{mod}" }]
+
+[[pattern]]
+id = "world.fml_confirm"
+origin = "codex FmlConfirmProblem; S-R5-3 §4.3"
+note = "Servidor Forge 1.12.2 parado esperando /fml confirm (mundo com registros de mods ausentes)."
+rule = "W_FML_CONFIRM"
+severity = "warning"
+title_key = "diagnostico.achados.forgeEsperaConfirmacao"
+class = "generic"
+weight = 70
+regex = 'Run the command /fml confirm or (?:or )?/fml cancel to proceed'
+key = []
+
+[[pattern]]
+id = "world.aquatic_on_older_version"
+origin = "codex AquaticWorldOnOlderVersionProblem"
+note = "Mundo de uma versão mais nova (1.13+) aberto numa versão antiga."
+rule = "E_WORLD_NEWER_VERSION"
+severity = "error"
+title_key = "diagnostico.achados.mundoDeVersaoMaisNova"
+class = "exception"
+weight = 85
+regex = 'ChunkNibbleArrays should be 2048 bytes not: 0'
+key = []
+
+[[pattern]]
+id = "world.old_player_directory"
+origin = "codex OldPlayerDirectoryProblem"
+note = "Mundo antigo com a pasta de jogadores no formato velho."
+rule = "W_WORLD_OLD_FORMAT"
+severity = "warning"
+title_key = "diagnostico.achados.mundoFormatoAntigo"
+class = "generic"
+weight = 30
+regex = 'DETECTED OLD PLAYER DIRECTORY IN THE WORLD SAVE'
+key = []
+
+[[pattern]]
+id = "world.overworld_settings_missing"
+origin = "codex OverworldSettingsMissingProblem"
+note = "As configurações do mundo normal sumiram (pacote de dados ou mod de geração)."
+rule = "E_WORLD_SETTINGS"
+severity = "error"
+title_key = "diagnostico.achados.mundoSemConfiguracao"
+class = "exception"
+weight = 80
+regex = 'Overworld settings missing'
+key = []
+
+[[pattern]]
+id = "world.datapack_parsing"
+origin = "codex DatapackParsingProblem"
+note = "Um pacote de dados não pôde ser lido."
+rule = "E_DATAPACK"
+severity = "error"
+title_key = "diagnostico.achados.pacoteDeDadosInvalido"
+class = "exception"
+weight = 75
+regex = 'IllegalStateException: Failed to parse .+ from pack file/(?P<datapack>.+)$'
+key = ["datapack"]
+
+# ---------------------------------------------------------------------------------------------
+# Servidor (codex Vanilla/*)
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "server.malformed_encoding"
+origin = "codex MalformedEncodingProblem"
+note = "server.properties com escape \\uXXXX quebrado."
+rule = "E_SERVER_CONFIG"
+severity = "error"
+title_key = "diagnostico.achados.serverPropertiesInvalido"
+class = "exception"
+weight = 85
+regex = 'IllegalArgumentException: Malformed \\uxxxx encoding'
+key = []
+
+[[pattern]]
+id = "server.code_of_conduct_missing"
+origin = "codex CodeOfConductFolderMissingProblem"
+note = "Servidor: a pasta do código de conduta configurada não existe."
+rule = "E_SERVER_CONFIG"
+severity = "error"
+title_key = "diagnostico.achados.codigoDeConduta"
+class = "exception"
+weight = 85
+regex = 'Code of Conduct folder does not exist: (?P<path>.*)$'
+key = []
+
+[[pattern]]
+id = "server.auth_servers_unreachable"
+origin = "codex AuthServerProblem"
+note = "Servidores de autenticação da Mojang inacessíveis (sem efeito no perfil offline)."
+rule = "I_AUTH_UNREACHABLE"
+severity = "info"
+title_key = "diagnostico.achados.autenticacaoInacessivel"
+class = "generic"
+weight = 10
+regex = 'Failed to read from https://api\.minecraftservices\.com/publickeys due to Connect'
+key = []
+
+# ---------------------------------------------------------------------------------------------
+# Falhas genéricas do carregamento (S-R5-3 §3.1: a tela de erro do NeoForge/Forge parece "pronto")
+# ---------------------------------------------------------------------------------------------
+
+[[pattern]]
+id = "loader.pre_loading_phase"
+origin = "S-R5-3 §3.1"
+note = "NeoForge/Forge: erro na pré-carga; o jogo mostra a tela de erro e parece pronto."
+rule = "E_LOADING_FAILED"
+severity = "error"
+title_key = "diagnostico.achados.carregamentoFalhou"
+class = "loader_error"
+weight = 20
+regex = 'Error during pre-loading phase'
+key = []
+fallback = true
+
+[[pattern]]
+id = "loader.cowardly_refusing"
+origin = "S-R5-3 §3.1"
+note = "NeoForge/Forge: um mod ficou em estado quebrado e o carregamento parou."
+rule = "E_LOADING_FAILED"
+severity = "error"
+title_key = "diagnostico.achados.carregamentoFalhou"
+class = "loader_error"
+weight = 20
+regex = 'Cowardly refusing to send event (?P<event>\S+) to a broken mod state'
+key = []
+fallback = true
+
+[[pattern]]
+id = "loader.mod_loading_failed"
+origin = "S-R5-3 §5.2"
+note = "NeoForge/Forge: lista 'Mod loading has failed' / 'Loading errors encountered'."
+rule = "E_LOADING_FAILED"
+severity = "error"
+title_key = "diagnostico.achados.carregamentoFalhou"
+class = "loader_error"
+weight = 20
+regex = '(?:Mod loading has failed|Loading errors encountered:|Mod loading error has occurred|Mod loading failures have occurred)'
+key = []
+fallback = true
+
+[[pattern]]
+id = "loader.fabric_resolution_failed"
+origin = "R2 #12"
+note = "Fabric/Quilt: a resolução de mods falhou (cabeçalho da lista de problemas)."
+rule = "E_LOADING_FAILED"
+severity = "error"
+title_key = "diagnostico.achados.carregamentoFalhou"
+class = "loader_error"
+weight = 20
+regex = '(?:Incompatible mods? found!|Some of your mods are incompatible with the game or each other!|Incompatible mod set!|Mod resolution failed)'
+key = []
+fallback = true
+
+[[pattern]]
+id = "exception.main_thread"
+origin = "ARCHITECTURE §9.3 item 4 (exceção mais profunda)"
+note = "Exceção que derrubou a thread principal, fora de um crash report."
+rule = "E_FATAL_EXCEPTION"
+severity = "error"
+title_key = "diagnostico.achados.excecaoFatal"
+class = "exception"
+weight = 15
+regex = '^Exception in thread "(?P<thread>[^"]+)" (?P<exception>(?:[A-Za-z_$][\w$]*\.)+[\w$]*(?:Exception|Error|Throwable)[\w$]*(?::.*)?)$'
+key = ["exception_type"]
+cause = true
+frames = true
+fallback = true
+
+[[pattern]]
+id = "exception.game_crashed"
+origin = "ARCHITECTURE §9.3 item 4"
+note = "O jogo avisou que travou e gravou um crash report (o conteúdo vem do arquivo)."
+rule = "E_CRASH_REPORT"
+severity = "error"
+title_key = "diagnostico.achados.crashReportGravado"
+class = "generic"
+weight = 5
+regex = '#@!@# Game crashed! Crash report saved to: #@!@# (?P<crash_report>.+)$'
+key = []
+fallback = true
