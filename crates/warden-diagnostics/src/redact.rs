@@ -21,7 +21,7 @@
 //!
 //! Nomes (usuário, jogador, computador) com 4 caracteres ou mais são trocados em **qualquer**
 //! lugar, sem diferenciar maiúsculas, mesmo dentro de outra palavra (o spike S-R5-3 achou o
-//! usuário `solel` dentro de `StatusConsoleListener`): o texto fica um pouco feio, mas nada
+//! nome do usuário do Windows dentro de `StatusConsoleListener`): o texto fica um pouco feio, mas nada
 //! vaza. Nomes de 1 a 3 caracteres só são trocados como palavra inteira, senão o texto viraria
 //! sopa de marcadores. Cada nome é procurado também em NFD, como o Java no console do Windows
 //! o escreve em CP850 e CP1252, como UTF-8 lido como CP1252 (`JosÃ©`) e com `?` no lugar dos
@@ -1059,9 +1059,9 @@ mod tests {
         // Nome longo some até dentro de outra palavra (achado do spike S-R5-3).
         let output = clean(
             "WARN StatusConsoleListener",
-            &RedactionProfile::new().with_username("solel"),
+            &RedactionProfile::new().with_username("nsole"),
         );
-        assert_eq!(output, "WARN StatusCon<usuário>istener");
+        assert_eq!(output, "WARN StatusCo<usuário>Listener");
     }
 
     #[test]
