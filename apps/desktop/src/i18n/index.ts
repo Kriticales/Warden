@@ -11,6 +11,7 @@ import { comum } from './pt-BR/comum';
 import { navegacao } from './pt-BR/navegacao';
 import { sobre } from './pt-BR/sobre';
 import { tarefas } from './pt-BR/tarefas';
+import { java } from './pt-BR/java';
 
 export const defaultNS = 'comum';
 
@@ -20,6 +21,7 @@ export const resources = {
     navegacao,
     sobre,
     tarefas,
+    java,
   },
 } as const;
 

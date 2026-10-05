@@ -91,6 +91,8 @@ pub struct PackJavaUse {
     pub pack_id: PackId,
     /// Nome do pack.
     pub name: String,
+    /// Versão do Minecraft do pack.
+    pub minecraft: String,
     /// A escolha (major, motivo e o Java instalado, se houver).
     pub choice: JavaChoice,
 }
@@ -153,7 +155,7 @@ pub struct UpdateReport {
     pub updated: Vec<RuntimeUpdate>,
     /// Javas que já estavam na versão mais nova.
     pub up_to_date: Vec<RuntimeId>,
-    /// Javas que não puderam ser conferidos agora (fonte fora do ar), com o código do erro.
+    /// Javas que não puderam ser conferidos agora (fonte fora do ar).
     pub failed: Vec<RuntimeId>,
     /// Javas substituídos antes e removidos agora.
     pub removed: Vec<RuntimeId>,
@@ -351,7 +353,7 @@ impl JavaRuntimes {
         progress: &dyn ProgressSink,
         cancel: &CancellationToken,
     ) -> Result<InstalledRuntime> {
-        progress.stage(stages::RESOLVE, "java.stage.resolve");
+        progress.stage(stages::RESOLVE, "java:etapa.resolve");
         match self.find_temurin(requirement, cancel).await {
             Ok(build) => {
                 self.install_temurin(&build, requirement, progress, cancel)
@@ -439,7 +441,7 @@ impl JavaRuntimes {
         if let Some(existing) = self.inner.store.get(&id)? {
             return Ok(existing);
         }
-        progress.stage(stages::DOWNLOAD, "java.stage.download");
+        progress.stage(stages::DOWNLOAD, "java:etapa.download");
         let archive = self.inner.downloads_dir.join(&build.package_name);
         let request = DownloadRequest::new(build.link.clone(), &archive)
             .expect_hash(HashFormat::Sha256, build.sha256.clone())
@@ -477,7 +479,7 @@ impl JavaRuntimes {
         if cancel.is_cancelled() {
             return Err(Error::Cancelled);
         }
-        progress.stage(stages::EXTRACT, "java.stage.extract");
+        progress.stage(stages::EXTRACT, "java:etapa.extract");
         let temp = self.inner.store.create_temp_dir()?;
         let result = async {
             let source = archive_path.to_owned();
@@ -526,7 +528,7 @@ impl JavaRuntimes {
             return Ok(existing);
         }
         let entries = self.inner.mojang.manifest(component, Some(cancel)).await?;
-        progress.stage(stages::DOWNLOAD, "java.stage.download");
+        progress.stage(stages::DOWNLOAD, "java:etapa.download");
         let temp = self.inner.store.create_temp_dir()?;
         let result = async {
             self.inner
@@ -587,7 +589,7 @@ impl JavaRuntimes {
         requirement: JavaRequirement,
         progress: &dyn ProgressSink,
     ) -> Result<InstalledRuntime> {
-        progress.stage(stages::VALIDATE, "java.stage.validate");
+        progress.stage(stages::VALIDATE, "java:etapa.validate");
         let platform = self.inner.store.platform();
         let java = platform.java_in(temp);
         if !java.is_file() {
@@ -805,6 +807,7 @@ impl JavaRuntimes {
                     let use_ = PackJavaUse {
                         pack_id: pack.pack_id,
                         name: pack.name.clone(),
+                        minecraft: pack.request.minecraft.clone(),
                         choice,
                     };
                     let row = use_.choice.runtime.as_ref().and_then(|runtime| {

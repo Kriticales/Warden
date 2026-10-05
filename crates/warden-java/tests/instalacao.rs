@@ -614,6 +614,8 @@ fn pack(name: &str, minecraft: &str, loader: LoaderKind, version: &str) -> PackJ
 }
 
 #[tokio::test]
+// Um roteiro só, na ordem do critério: tabela, atualização com jogo aberto, jogo fecha, antiga sai.
+#[allow(clippy::too_many_lines)]
 async fn ca_t21_04_tabela_de_java_atualizacao_e_remocao_da_antiga() {
     let server = MockServer::start().await;
     publish_latest(&server, 17, "17.0.15", "jdk-17.0.15+6").await;
