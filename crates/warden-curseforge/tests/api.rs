@@ -57,7 +57,7 @@ async fn endereco_padrao_e_chave_fora_do_debug() {
 /// CA-2 da P1-04 (CA-T08-06 e CA-T21-02, parte de backend): sem chave, todo método devolve
 /// `CURSEFORGE_KEY_MISSING` sem nenhuma requisição.
 #[tokio::test]
-async fn p1_04_ca2_sem_chave_nenhuma_requisicao() {
+async fn p1_04_ca2_ca_t08_06_sem_chave_nenhuma_requisicao() {
     let s = common::setup_with_key(None).await;
     let c = &s.client;
     let file = warden_curseforge::File {
@@ -111,7 +111,7 @@ async fn p1_04_ca2_sem_chave_nenhuma_requisicao() {
 /// CA-2 da P1-04 (CA-T21-02): chave recusada (403 vazio do `CloudFront`, ou 401) vira
 /// `CURSEFORGE_KEY_INVALID`.
 #[tokio::test]
-async fn p1_04_ca2_chave_invalida() {
+async fn p1_04_ca2_ca_t21_02_chave_invalida() {
     let s = setup().await;
     Mock::given(method("GET"))
         .and(path("/v1/games/432"))
