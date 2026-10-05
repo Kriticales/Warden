@@ -1,0 +1,3 @@
+Using config file: C:\wt\p1-02\packwiz.toml
+Looking up CurseForge slug...
+Failed to search for project: failed to retrieve search results: WARDEN_CURSEFORGE_API_KEY ausente: a chave da CurseForge não foi informada. Defina a variável de ambiente WARDEN_CURSEFORGE_API_KEY com a sua chave da API da CurseForge

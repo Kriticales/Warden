@@ -1,0 +1,3 @@
+Using config file: C:\wt\p1-02\packwiz.toml
+Loading modpack...
+Index refreshed!
