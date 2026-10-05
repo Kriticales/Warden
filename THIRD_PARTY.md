@@ -62,6 +62,9 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `rusqlite` | 0.40.2 | MIT | `warden-modrinth` | Cache `metadata.sqlite` (ARCHITECTURE §13), com o SQLite embutido (`bundled`, domínio público). |
 | `windows` | 0.62.2 | MIT OR Apache-2.0 | `warden-packwiz-cli` (Windows) | Job Object com `KILL_ON_JOB_CLOSE`: cancelar o packwiz mata o processo e os filhos (ADR-0024). |
 | `rustix` | 1.1.5 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | `warden-packwiz-cli` (Linux) | `SIGKILL` no grupo de processos do packwiz, sem `unsafe`. |
+| `git2` | 0.21.0 | MIT OR Apache-2.0 | `warden-versioning` | Git embutido (ADR-0015): histórico de versões, tags, pontos de segurança e restauração. Sem as features `https` e `ssh` na V-01. |
+| `libgit2-sys` (transitiva, `vendored-libgit2`) | 0.18.8+1.9.7 | MIT OR Apache-2.0 (a crate); a libgit2 1.9.7 compilada junto é GPL-2.0 com exceção de linkagem | `warden-versioning` | A libgit2 é compilada com o compilador C do MSVC (o mesmo que o Rust já exige no Windows) e vai dentro do executável: o computador do usuário não precisa de git instalado. Inclui zlib (`libz-sys`, Zlib). |
+| `semver` | 1.0.28 | MIT OR Apache-2.0 | `warden-versioning` | Números de versão `SemVer` do pack: validação, ordem e sugestão (SPEC T16). Mesma versão que o Tauri já usa. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

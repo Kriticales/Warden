@@ -10,8 +10,22 @@ publish.workspace = true
 warden-core.workspace = true
 warden-packwiz.workspace = true
 warden-http.workspace = true
+# libgit2 compilada junto (`vendored-libgit2`), sem git instalado (ADR-0015). Sem `https` e
+# `ssh` por enquanto: a base (V-01) não fala com a rede; a publicação (V-03) liga o `https`.
+git2.workspace = true
+semver.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+
+[dev-dependencies]
+warden-core = { workspace = true, features = ["fault-injection"] }
+insta.workspace = true
+proptest.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+tempfile.workspace = true
 
 [lints]
 workspace = true
