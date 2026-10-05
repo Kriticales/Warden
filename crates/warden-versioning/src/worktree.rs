@@ -182,6 +182,47 @@ impl PackRepo {
             .ctx("gravar a árvore do ponto de segurança")
     }
 
+    /// Arquivos de um estado gravado (versão ou ponto de segurança), em ordem de caminho. Base
+    /// da exportação de uma versão salva (E-01; ARCHITECTURE §12). Para a pasta atual, grava
+    /// antes os conteúdos no repositório, como um ponto de segurança sem referência.
+    pub fn files_at(&self, snapshot: &crate::Snapshot) -> Result<Vec<String>> {
+        let tree = match self.resolve_snapshot(snapshot)? {
+            Side::Empty => return Ok(Vec::new()),
+            Side::Tree(id) => id,
+            Side::WorkingTree => self.snapshot_tree()?,
+        };
+        Ok(self.tree_files(tree)?.into_keys().collect())
+    }
+
+    /// Conteúdo inteiro de um arquivo de uma versão ou ponto de segurança (`None` se ele não
+    /// existe nesse estado). A pasta atual se lê direto do disco, então não é aceita aqui.
+    ///
+    /// Erros: [`Error::Internal`] para [`crate::Snapshot::WorkingTree`]; os de leitura.
+    pub fn read_file_at(&self, snapshot: &crate::Snapshot, path: &str) -> Result<Option<Vec<u8>>> {
+        let tree = match self.resolve_snapshot(snapshot)? {
+            Side::Empty => return Ok(None),
+            Side::Tree(id) => self.repo.find_tree(id).ctx("ler uma árvore")?,
+            Side::WorkingTree => {
+                return Err(Error::Internal(
+                    "read_file_at não lê a pasta atual; leia o arquivo do disco".into(),
+                ));
+            }
+        };
+        let entry = match tree.get_path(std::path::Path::new(path)) {
+            Ok(entry) => entry,
+            Err(error) if error.code() == git2::ErrorCode::NotFound => return Ok(None),
+            Err(error) => return Err(Error::git("ler um arquivo da versão", error)),
+        };
+        if entry.kind() != Some(ObjectType::Blob) {
+            return Ok(None);
+        }
+        let blob = self
+            .repo
+            .find_blob(entry.id())
+            .ctx("ler um arquivo da versão")?;
+        Ok(Some(blob.content().to_vec()))
+    }
+
     /// Árvore do commit do HEAD (`None` sem commits).
     pub(crate) fn head_tree_id(&self) -> Result<Option<Oid>> {
         Ok(self.head_commit()?.map(|commit| commit.tree_id()))

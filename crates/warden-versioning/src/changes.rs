@@ -511,7 +511,7 @@ impl PackRepo {
         }
     }
 
-    fn resolve_snapshot(&self, snapshot: &Snapshot) -> Result<Side> {
+    pub(crate) fn resolve_snapshot(&self, snapshot: &Snapshot) -> Result<Side> {
         Ok(match snapshot {
             Snapshot::Empty => Side::Empty,
             Snapshot::WorkingTree => Side::WorkingTree,

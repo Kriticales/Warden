@@ -273,3 +273,50 @@ fn versoes_em_ordem_da_maior_para_a_menor() {
         ["1.0.0", "1.0.0-beta.1", "0.10.0", "0.2.0", "0.1.0"]
     );
 }
+
+#[test]
+fn arvore_de_uma_versao_salva_para_a_exportacao() {
+    use warden_versioning::Snapshot;
+    let (pack, repo) = TestPack::versioned();
+    pack.write("config/ação.toml", b"a = 1\r\n");
+    save(&repo, "1.0.0", 1).unwrap();
+    pack.write("config/ação.toml", b"a = 2\n");
+    pack.write("config/novo.toml", b"novo\n");
+    pack.write("logs/latest.log", b"ignorado");
+
+    let v1 = Snapshot::Version("1.0.0".into());
+    let files = repo.files_at(&v1).unwrap();
+    assert_eq!(
+        files,
+        [
+            ".gitattributes",
+            ".gitignore",
+            "config/ação.toml",
+            "index.toml",
+            "pack.toml"
+        ]
+    );
+    assert_eq!(
+        repo.read_file_at(&v1, "config/ação.toml").unwrap().unwrap(),
+        b"a = 1\r\n"
+    );
+    assert_eq!(repo.read_file_at(&v1, "config/novo.toml").unwrap(), None);
+    assert_eq!(repo.read_file_at(&v1, "config").unwrap(), None);
+    assert!(
+        repo.read_file_at(&Snapshot::WorkingTree, "pack.toml")
+            .is_err()
+    );
+    assert_eq!(
+        repo.read_file_at(&Snapshot::Empty, "pack.toml").unwrap(),
+        None
+    );
+    assert!(repo.files_at(&Snapshot::Empty).unwrap().is_empty());
+    let now = repo.files_at(&Snapshot::WorkingTree).unwrap();
+    assert!(now.contains(&"config/novo.toml".to_owned()));
+    assert!(!now.contains(&"logs/latest.log".to_owned()));
+    assert!(matches!(
+        repo.files_at(&Snapshot::Version("3.0.0".into()))
+            .unwrap_err(),
+        Error::VersionNotFound { .. }
+    ));
+}

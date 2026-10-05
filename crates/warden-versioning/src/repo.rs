@@ -43,17 +43,30 @@ impl Identity {
     /// e-mail `<login>@users.noreply.github.com` quando o GitHub está configurado, senão
     /// [`LOCAL_EMAIL`] (ARCHITECTURE §11).
     #[must_use]
+    ///
+    /// `<`, `>` e quebras de linha saem do nome e do login (a libgit2 recusa assinaturas com
+    /// eles), para um autor como "Ana <ana@x>" não impedir de salvar versões.
     pub fn for_pack(author: &str, github_login: Option<&str>) -> Self {
-        let name = author.trim();
-        let name = if name.is_empty() { "Warden" } else { name };
-        let email = match github_login.map(str::trim) {
-            Some(login) if !login.is_empty() => format!("{login}@users.noreply.github.com"),
-            _ => LOCAL_EMAIL.to_owned(),
+        let clean = |text: &str| {
+            text.chars()
+                .filter(|c| !matches!(c, '<' | '>') && !c.is_control())
+                .collect::<String>()
+                .trim()
+                .to_owned()
         };
-        Self {
-            name: name.to_owned(),
-            email,
-        }
+        let name = clean(author);
+        let name = if name.is_empty() {
+            "Warden".to_owned()
+        } else {
+            name
+        };
+        let login = github_login.map(clean).unwrap_or_default();
+        let email = if login.is_empty() {
+            LOCAL_EMAIL.to_owned()
+        } else {
+            format!("{login}@users.noreply.github.com")
+        };
+        Self { name, email }
     }
 
     pub(crate) fn signature(&self, when: Moment) -> Result<Signature<'static>> {
@@ -332,5 +345,14 @@ mod tests {
         );
         assert_eq!(Identity::for_pack("  ", Some(" ")).name, "Warden");
         assert_eq!(Identity::for_pack("Ana", Some(" ")).email, LOCAL_EMAIL);
+        let odd = Identity::for_pack(
+            "Ana <ana@x>
+",
+            Some("<dono>"),
+        );
+        assert_eq!(odd.name, "Ana ana@x");
+        assert_eq!(odd.email, "dono@users.noreply.github.com");
+        assert!(odd.signature(Moment::new(0, 0)).is_ok());
+        assert_eq!(Identity::for_pack("<>", None).name, "Warden");
     }
 }
