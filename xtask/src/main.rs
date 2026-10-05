@@ -15,6 +15,7 @@ mod env_file;
 mod fixtures_packwiz;
 mod installer;
 mod network;
+mod notices;
 mod packwiz;
 mod setup;
 mod util;
@@ -79,6 +80,8 @@ enum Command {
     Installer,
     /// Baixa o `msedgedriver` da versão do WebView2 (Windows) ou confere o `WebKitWebDriver` (Linux).
     E2eDriver,
+    /// Gera os avisos de terceiros (Rust, npm, packwiz, fontes) exibidos em "Sobre o Warden".
+    Notices,
 }
 
 fn main() -> ExitCode {
@@ -98,6 +101,7 @@ fn main() -> ExitCode {
         }
         Command::E2eDriver => e2e::run(),
         Command::Installer => installer::run(),
+        Command::Notices => notices::run(),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

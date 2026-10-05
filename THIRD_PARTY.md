@@ -82,6 +82,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `cargo-llvm-cov` | 0.9.1 | Apache-2.0 OR MIT | Cobertura (QUALITY §4.2). |
 | `tauri-cli` | 2.12.1 | Apache-2.0 OR MIT | `cargo tauri dev` e `cargo tauri build`. |
 | `tauri-driver` | 2.1.0 | Apache-2.0 OR MIT | E2E com WebdriverIO (F0-06). |
+| `cargo-about` | 0.9.2 | MIT OR Apache-2.0 | Avisos de terceiros das crates Rust em "Sobre o Warden" (A-02). Instalado pelo próprio `cargo xtask notices`, com `--features cli`. |
 
 ## Pacotes npm (`apps/desktop`)
 

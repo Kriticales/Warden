@@ -1,5 +1,6 @@
 # Windows (reutilizável): o mesmo `cargo xtask check` do Linux, os testes com o cofre real do
-# Windows e o instalador NSIS como artefato `warden-windows-<sha>` (F0-02; QUALITY §12 e §13.6).
+# Windows e o instalador NSIS como artefato `warden-windows-<sha>` (F0-02; QUALITY §12 e §13.6),
+# com os avisos de terceiros de "Sobre o Warden" gerados antes (`cargo xtask notices`, A-02).
 #
 # Chamado pelo `ci.yml` (na `main`, em PRs com o rótulo `windows`, em push com `[ci windows]`
 # na mensagem do commit e manualmente) e pelo `nightly.yml` (toda noite; decisão D9).
@@ -28,6 +29,7 @@ jobs:
       run: |
         cargo xtask check
         cargo nextest run --workspace --locked --run-ignored only --no-tests=fail -E 'test(/cofre_real/)'
+        cargo xtask notices
         cd apps/desktop
         cargo tauri build --ci --bundles nsis
       artifact-name: warden-windows-${{ github.sha }}

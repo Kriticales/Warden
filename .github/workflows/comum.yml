@@ -143,9 +143,11 @@ jobs:
             ~/.cargo/bin/cargo-llvm-cov*
             ~/.cargo/bin/cargo-tauri*
             ~/.cargo/bin/tauri-driver*
+            ~/.cargo/bin/cargo-about*
             ~/.cargo/.crates.toml
             ~/.cargo/.crates2.json
-          key: ferramentas-${{ runner.os }}-${{ hashFiles('xtask/src/setup.rs', 'rust-toolchain.toml') }}
+          # O `cargo-about` é instalado pelo `cargo xtask notices` (versão em `notices.rs`).
+          key: ferramentas-${{ runner.os }}-${{ hashFiles('xtask/src/setup.rs', 'xtask/src/notices.rs', 'rust-toolchain.toml') }}
 
       - name: Cache do cargo e da pasta target
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
