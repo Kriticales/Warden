@@ -1,0 +1,23 @@
+  <log4j:Event logger="mixin" timestamp="1791158084482" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/<DADOS>/shared/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%23121!/ Service=ModLauncher Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158085580" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found gamelibrary file "mixinextras-neoforge-0.5.3.jar" [parent: neoforge-21.1.252-universal.jar, locator: jarinjar, reader: mod manifest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158086897" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Compatibility level set to JAVA_17]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791158086909" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, neoforge-21.1.252, --gameDir, <DADOS>\instances\s-neo-duplicado, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 17, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158087160" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Reference map 'comforts.refmap.json' for comforts.mixins.json could not be read. If this is a development environment you can ignore this message]]></log4j:Message>
+  </log4j:Event>
+WARN StatusConsoleListener Error parsing URI <DADOS>\shared\assets\log_configs\client-1.12.xml
+[19:54:51] [main/WARN] [os.ut.pl.wi.PerfDataUtil/]: Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8
+[19:54:52] [pool-8-thread-1/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.3).
+[19:54:59] [Render thread/INFO] [minecraft/Minecraft]: Setting user: WardenTest
+[19:55:00] [Render thread/INFO] [minecraft/Minecraft]: Backend library: LWJGL version 3.3.3+5
+[19:55:01] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.252, for MC 1.21.1
+[19:55:06] [Render thread/WARN] [minecraft/SoundEngine]: Missing sound for event: minecraft:item.goat_horn.play
+[19:55:06] [Render thread/WARN] [minecraft/SoundEngine]: Missing sound for event: minecraft:entity.goat.screaming.horn_break

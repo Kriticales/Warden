@@ -1,0 +1,5 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-outro-loader.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252 com jar Fabric (recorte sem a linha do pulo)"
+loader = "neoforge"
+minecraft = "1.21.1"
+achado = []

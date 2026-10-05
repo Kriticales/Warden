@@ -1,0 +1,25 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-ticking-block-entity-crash-report.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.16.5"
+
+[[achado]]
+regra = "E_TICKING_BLOCK_ENTITY"
+padrao = "crash_report.ticking_block_entity"
+arquivo = "crash-reports/crash.txt"
+linha = 5
+
+[achado.params]
+block_entity = "pipez:energy_pipe"
+location = "-298,68,14"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "crash-reports/crash.txt"
+linha = 5
+
+[achado.params]
+description = "Ticking block entity"
+exception = "java.lang.StackOverflowError: Ticking block entity"
+exception_type = "java.lang.StackOverflowError"

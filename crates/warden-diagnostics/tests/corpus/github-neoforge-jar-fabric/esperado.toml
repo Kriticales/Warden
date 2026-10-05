@@ -1,0 +1,13 @@
+origem = "issue pública https://github.com/SparkUniverse/Elementa/issues/160 (NeoForge 1.21.1), linha do log citada na issue"
+nota = "NeoForge pula um jar feito para Fabric"
+
+[[achado]]
+regra = "E_LOADER"
+padrao = "neoforge.jar_of_other_loader"
+arquivo = "latest.log"
+linha = 1
+itens = ["jar:elementa-695.jar"]
+
+[achado.params]
+file = 'D:\EnigmaNew\MTechElementa\.gradle\loom-cache\remapped_mods\loom_mappings_1_21_1_layered_hash_477322616_v2_neoforge_21_1_84_forge\gg\essential\elementa\695\elementa-695.jar'
+other_loader = "Fabric"

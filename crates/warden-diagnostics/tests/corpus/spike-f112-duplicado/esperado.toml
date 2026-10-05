@@ -1,0 +1,15 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/f112-duplicado.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.12.2, Comforts duas vezes"
+loader = "forge"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "E_DUPLICATE_ID"
+padrao = "forge.found_duplicate_mod"
+arquivo = "output.log"
+linha = 12
+itens = ["jar:comforts-1.12.2-1.4.1.3.jar", "jar:copia-1-comforts-1.12.2-1.4.1.3.jar"]
+
+[achado.params]
+files = '<DADOS>\instances\s-f112-duplicado\mods\comforts-1.12.2-1.4.1.3.jar, <DADOS>\instances\s-f112-duplicado\mods\copia-1-comforts-1.12.2-1.4.1.3.jar'
+mod = "comforts"

@@ -1,0 +1,17 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-conflicting-mods.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.19.4"
+
+[[achado]]
+regra = "W_CONFLICTS"
+padrao = "fabric.conflicts_with"
+arquivo = "latest.log"
+linha = 3
+itens = ["mod:mod-a"]
+
+[achado.params]
+mod = "mod-a"
+mod_name = "Mod A"
+other = "mod-a"
+other_name = "Mod A"

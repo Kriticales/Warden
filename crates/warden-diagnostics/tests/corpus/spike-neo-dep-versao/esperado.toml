@@ -1,0 +1,38 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-dep-versao.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252, Moonlight antigo"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_MOD_INIT"
+padrao = "forge.failed_to_create_mod_instance"
+arquivo = "output.log"
+linha = 46
+itens = ["mod:supplementaries", "jar:supplementaries-1.21.1-3.9.9-neoforge.jar", "mod:moonlight", "jar:moonlight-1.21.1-3.6.3-neoforge.jar"]
+
+[achado.params]
+cause = "java.lang.ClassNotFoundException: net.mehvahdjukaar.moonlight.api.platform.ClientHelper$EntityLayerEvent"
+cause_type = "java.lang.ClassNotFoundException"
+mod = "supplementaries"
+
+[[achado]]
+regra = "E_MISSING_CLASS"
+padrao = "class.no_class_def_found"
+arquivo = "output.log"
+linha = 94
+itens = ["mod:supplementaries", "jar:supplementaries-1.21.1-3.9.9-neoforge.jar", "mod:moonlight", "jar:moonlight-1.21.1-3.6.3-neoforge.jar"]
+
+[achado.params]
+class = "net/mehvahdjukaar/moonlight/api/platform/ClientHelper$EntityLayerEvent"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 80
+itens = ["mod:supplementaries", "jar:supplementaries-1.21.1-3.9.9-neoforge.jar", "mod:moonlight", "jar:moonlight-1.21.1-3.6.3-neoforge.jar"]
+
+[achado.params]
+description = "Mod loading failures have occurred; consult the issue messages for more details"
+exception = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException: Mod loading has failed"
+exception_type = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException"

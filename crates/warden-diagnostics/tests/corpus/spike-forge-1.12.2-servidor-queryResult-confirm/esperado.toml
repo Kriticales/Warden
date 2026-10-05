@@ -1,0 +1,5 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/mecanismos/forge-1.12.2-servidor-queryResult-confirm.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Servidor Forge 1.12.2 com -Dfml.queryResult=confirm"
+loader = "forge"
+minecraft = "1.12.2"
+achado = []

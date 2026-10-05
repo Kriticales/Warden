@@ -1,0 +1,39 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-mod-exception.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.7.10"
+
+[[achado]]
+regra = "E_MOD_INIT"
+padrao = "forge.mod_state_errored"
+arquivo = "latest.log"
+linha = 205
+itens = ["mod:xaerominimap"]
+
+[achado.params]
+cause = "java.lang.NullPointerException"
+cause_type = "java.lang.NullPointerException"
+file = "Xaeros_Minimap_1.16_Forge_1.7.10.jar"
+mod = "xaerominimap"
+mod_name = "Xaero's Minimap"
+mod_version = "1.16"
+
+[[achado]]
+regra = "E_MOD_INIT"
+padrao = "forge.caught_exception_from"
+arquivo = "latest.log"
+linha = 299
+itens = ["mod:discordchat"]
+
+[achado.params]
+mod = "discordchat"
+mod_name = "Discord Chat"
+
+[[achado]]
+regra = "E_MISSING_CLASS"
+padrao = "class.no_class_def_found"
+arquivo = "latest.log"
+linha = 208
+
+[achado.params]
+class = "net/minecraft/client/settings/KeyBinding"

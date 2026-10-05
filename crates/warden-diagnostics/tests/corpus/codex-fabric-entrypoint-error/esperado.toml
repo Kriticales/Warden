@@ -1,0 +1,17 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-entrypoint-error.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.18.2"
+
+[[achado]]
+regra = "E_MOD_INIT"
+padrao = "fabric.entrypoint"
+arquivo = "latest.log"
+linha = 48
+itens = ["mod:bfapi"]
+
+[achado.params]
+cause = "java.lang.NoSuchMethodError: net.minecraft.class_2370: method 'void <init>(net.minecraft.class_5321, com.mojang.serialization.Lifecycle)' not found"
+cause_type = "java.lang.NoSuchMethodError"
+mod = "bfapi"
+stage = "main"

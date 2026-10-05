@@ -1,0 +1,36 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-dep-versao.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1, Fabric API antiga"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_DEP_VERSION"
+padrao = "fabric.dependency_wrong_version"
+arquivo = "output.log"
+linha = 13
+itens = ["mod:moonlight", "mod:fabric-api"]
+
+[achado.params]
+actual = "0.83.0+1.20.1"
+dependency = "fabric-api"
+dependency_name = "Fabric API"
+mod = "moonlight"
+mod_name = "Moonlight"
+mod_version = "1.20-2.16.35"
+range = "version 0.86.0 or later"
+
+[[achado]]
+regra = "E_DEP_VERSION"
+padrao = "fabric.dependency_wrong_version"
+arquivo = "output.log"
+linha = 14
+itens = ["mod:supplementaries", "mod:fabric-api"]
+
+[achado.params]
+actual = "0.83.0+1.20.1"
+dependency = "fabric-api"
+dependency_name = "Fabric API"
+mod = "supplementaries"
+mod_name = "Supplementaries"
+mod_version = "1.20-3.1.43"
+range = "version 0.92.0+1.20.1 or later"

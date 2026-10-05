@@ -1,0 +1,16 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-iniciar.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252, exceção ao iniciar"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 26
+itens = ["mod:wardenfalhas", "jar:wardenfalhas-neoforge.jar"]
+
+[achado.params]
+description = "Initializing game"
+exception = "java.lang.IllegalStateException: Warden: falha de teste ao iniciar o cliente (wardenfalhas)"
+exception_type = "java.lang.IllegalStateException"

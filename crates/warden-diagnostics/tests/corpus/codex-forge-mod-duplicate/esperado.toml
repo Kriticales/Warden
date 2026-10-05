@@ -1,0 +1,15 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-mod-duplicate.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.7.10"
+
+[[achado]]
+regra = "E_DUPLICATE_ID"
+padrao = "forge.found_duplicate_mod"
+arquivo = "latest.log"
+linha = 309
+itens = ["jar:Baubles-1.7.10-1.0.1.10.jar"]
+
+[achado.params]
+files = "/aternos/server/mods/1.7.10/Baubles-1.7.10-1.0.1.10.jar, /aternos/server/mods/Baubles-1.7.10-1.0.1.10.jar"
+mod = "Baubles"

@@ -1,0 +1,15 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/mecanismos/neoforge-1.21.1-mundo-salvo-com-mod-ausente.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 1.21.1, mundo salvo com mod ausente"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.version_differences_missing"
+arquivo = "output.log"
+linha = 7
+itens = ["mod:comforts"]
+
+[achado.params]
+mod = "comforts"
+saved = "9.0.5+1.21.1"

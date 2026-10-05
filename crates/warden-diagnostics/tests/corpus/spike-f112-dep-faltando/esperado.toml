@@ -1,0 +1,17 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/f112-dep-faltando.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.12.2, Quark sem AutoRegLib"
+loader = "forge"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "output.log"
+linha = 12
+itens = ["mod:quark"]
+
+[achado.params]
+dependency = "autoreglib"
+mod = "quark"
+mod_name = "Quark"
+range = "[1.3-32,)"

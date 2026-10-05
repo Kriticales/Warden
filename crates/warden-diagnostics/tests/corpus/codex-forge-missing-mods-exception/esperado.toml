@@ -1,0 +1,17 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-missing-mods-exception.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 97
+itens = ["mod:helicopterpack"]
+
+[achado.params]
+dependency = "mts"
+mod = "helicopterpack"
+mod_name = "Hero Aviation Helicopter Pack (HA/HP)"
+range = "[19.0.0,)"

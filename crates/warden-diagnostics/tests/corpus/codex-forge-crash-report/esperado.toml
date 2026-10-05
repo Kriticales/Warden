@@ -1,0 +1,24 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-crash-report.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.10.2"
+
+[[achado]]
+regra = "E_TICKING_ENTITY"
+padrao = "crash_report.ticking_entity"
+arquivo = "crash-reports/crash.txt"
+linha = 12
+
+[achado.params]
+entity_type = "Item"
+location = "-37.80, 106.00, 82.88"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "crash-reports/crash.txt"
+linha = 12
+
+[achado.params]
+description = "Ticking entity"
+exception = "java.lang.NullPointerException: Ticking entity"
+exception_type = "java.lang.NullPointerException"

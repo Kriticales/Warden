@@ -1,0 +1,28 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/busca/tentativa1-falhou-diferente-dependencia.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 1.21.1, Continuity sem Fabric API (Connector)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.mandatory_dependency_missing"
+arquivo = "output.log"
+linha = 3
+itens = ["mod:continuity"]
+
+[achado.params]
+current = "fabric_api"
+dependency = "fabric_api"
+mod = "continuity"
+mod_name = "Continuity"
+mod_version = "3.0.0+1.21.neoforge"
+range = "any"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 19
+
+[achado.params]
+description = "Mod loading failures have occurred; consult the issue messages for more details"
+exception = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException: Mod loading has failed"
+exception_type = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException"

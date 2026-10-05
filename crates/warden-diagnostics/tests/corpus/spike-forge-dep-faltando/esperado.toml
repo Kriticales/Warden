@@ -1,0 +1,28 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/forge-dep-faltando.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.20.1, Supplementaries sem Moonlight"
+loader = "forge"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.mandatory_dependency_missing"
+arquivo = "output.log"
+linha = 41
+itens = ["mod:supplementaries"]
+
+[achado.params]
+current = "moonlight"
+dependency = "moonlight"
+mod = "supplementaries"
+range = "[1.20-2.16.26,]"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 130
+
+[achado.params]
+description = "Mod loading error has occurred"
+exception = "java.lang.Exception: Mod Loading has failed"
+exception_type = "java.lang.Exception"

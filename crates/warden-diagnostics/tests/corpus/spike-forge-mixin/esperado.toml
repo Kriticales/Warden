@@ -1,0 +1,15 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/forge-mixin.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.20.1, mixin sem alvo"
+loader = "forge"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_MIXIN"
+padrao = "mixin.apply_failed"
+arquivo = "output.log"
+linha = 43
+
+[achado.params]
+mixin = "MixinQuebrado"
+mixin_config = "wardenfalhas.mojmap.mixins.json"
+target = "net.minecraft.client.Minecraft"

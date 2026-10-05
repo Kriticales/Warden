@@ -1,0 +1,15 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/forge-entrar.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.20.1, falha ao entrar no mundo"
+loader = "forge"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_JOIN_WORLD"
+padrao = "world.could_not_place_player"
+arquivo = "output.log"
+linha = 102
+itens = ["mod:wardenfalhas"]
+
+[achado.params]
+exception = "java.lang.IllegalStateException: Warden: falha de teste ao entrar no mundo (wardenfalhas)"
+exception_type = "java.lang.IllegalStateException"

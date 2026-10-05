@@ -1,0 +1,53 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-missing-datapack-mod.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_WORLD_SETTINGS"
+padrao = "world.overworld_settings_missing"
+arquivo = "latest.log"
+linha = 306
+
+[achado.params]
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.version_differences_missing"
+arquivo = "latest.log"
+linha = 294
+itens = ["mod:commonnetworking"]
+
+[achado.params]
+mod = "commonnetworking"
+saved = "1.0.16-1.21.1"
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.missing_datapack_mod"
+arquivo = "latest.log"
+linha = 301
+itens = ["mod:terralith"]
+
+[achado.params]
+mod = "terralith"
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.missing_datapack_mod"
+arquivo = "latest.log"
+linha = 303
+itens = ["mod:journeymap_api"]
+
+[achado.params]
+mod = "journeymap_api"
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.missing_datapack_mod"
+arquivo = "latest.log"
+linha = 304
+itens = ["mod:journeymap"]
+
+[achado.params]
+mod = "journeymap"

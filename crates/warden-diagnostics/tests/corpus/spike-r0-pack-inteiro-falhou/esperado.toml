@@ -1,0 +1,15 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/busca/r0-pack-inteiro-falhou.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 1.21.1, pack de 155 mods, conflito plantado"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_JOIN_WORLD"
+padrao = "world.could_not_place_player"
+arquivo = "output.log"
+linha = 17
+itens = ["mod:wardenfalhas", "jar:wardenfalhas-neoforge-1.0.0.jar"]
+
+[achado.params]
+exception = "java.lang.IllegalStateException: Warden: conflito de teste com vectorwing.farmersdelight.FarmersDelight (wardenfalhas)"
+exception_type = "java.lang.IllegalStateException"

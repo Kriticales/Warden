@@ -1,0 +1,14 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-world-missing-mod.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.8.9"
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.saved_with_missing_mod"
+arquivo = "latest.log"
+linha = 329
+itens = ["mod:lucraftcore"]
+
+[achado.params]
+mod = "lucraftcore"

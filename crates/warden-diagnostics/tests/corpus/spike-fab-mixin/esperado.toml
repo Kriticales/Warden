@@ -1,0 +1,19 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-mixin.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1, mixin sem alvo (wardenfalhas)"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_MIXIN"
+padrao = "mixin.apply_for_mod_failed"
+arquivo = "output.log"
+linha = 22
+itens = ["mod:wardenfalhas"]
+
+[achado.params]
+mixin = "MixinQuebrado"
+mixin_config = "wardenfalhas.fabric.mixins.json"
+mod = "wardenfalhas"
+phase = "DEFAULT"
+stage = "APPLY"
+target = "net.minecraft.class_310"

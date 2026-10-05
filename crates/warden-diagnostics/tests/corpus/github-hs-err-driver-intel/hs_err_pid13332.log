@@ -1,0 +1,30 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ff9081c99ee, pid=13332, tid=7876
+#
+# JRE version: Java(TM) SE Runtime Environment (8.0_51-b16) (build 1.8.0_51-b16)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.51-b03 mixed mode windows-amd64 compressed oops)
+# Problematic frame:
+# C  [ig9icd64.dll+0x8599ee]
+#
+# Failed to write core dump. Minidumps are not enabled by default on client versions of Windows
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x0000000003014000):  JavaThread "Render thread" [_thread_in_native, id=7876, stack(0x0000000002f10000,0x0000000003010000)]
+
+siginfo: ExceptionCode=0xc0000005, reading address 0x0000000316f3b5c8
+
+Registers:
+RAX=0x00000000414e3800, RBX=0x0000000000000001, RCX=0x0000000030914eb8, RDX=0x0000000000000000
+RSP=0x000000000300a480, RBP=0x000000000300a5e0, RSI=0x00000000df58e400, RDI=0x0000000020a71c00
+R8 =0x000000010c81f5c8, R9 =0x000000000300a788, R10=0x00007ff90829c700, R11=0x000000000300a220
+R12=0x000000000300a770, R13=0x000000010b9ef388, R14=0x0000000000000000, R15=0x0000000000000001
+RIP=0x00007ff9081c99ee, EFLAGS=0x0000000000010206

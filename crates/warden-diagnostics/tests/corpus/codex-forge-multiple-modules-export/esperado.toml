@@ -1,0 +1,16 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-multiple-modules-export.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.18.1"
+
+[[achado]]
+regra = "E_PACKAGE_CONFLICT"
+padrao = "jpms.module_contains_package"
+arquivo = "latest.log"
+linha = 6
+itens = ["mod:roughlyenoughitems", "mod:jei"]
+
+[achado.params]
+module = "roughlyenoughitems"
+other = "jei"
+package = "mezz.jei.api.runtime"

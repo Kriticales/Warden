@@ -1,0 +1,13 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-travar.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1, jogo travado sem fechar"
+parado = true
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_GAME_FROZE"
+padrao = "session.froze"
+arquivo = "output.log"
+linha = 60
+
+[achado.params]

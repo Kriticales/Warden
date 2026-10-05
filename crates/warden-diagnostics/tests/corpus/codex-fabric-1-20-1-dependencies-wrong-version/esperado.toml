@@ -1,0 +1,34 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-1-20-1-dependencies-wrong-version.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "latest.log"
+linha = 14
+itens = ["mod:indium"]
+
+[achado.params]
+dependency = "fabric-renderer-api-v1"
+mod = "indium"
+mod_name = "Indium"
+mod_version = "1.0.27+mc1.20.1"
+range = "version 3.2.0 or later"
+
+[[achado]]
+regra = "E_DEP_VERSION"
+padrao = "fabric.dependency_wrong_version"
+arquivo = "latest.log"
+linha = 13
+itens = ["mod:indium", "mod:sodium"]
+
+[achado.params]
+actual = "0.4.10+build.27"
+dependency = "sodium"
+dependency_name = "Sodium"
+mod = "indium"
+mod_name = "Indium"
+mod_version = "1.0.27+mc1.20.1"
+range = "version 0.5.3"

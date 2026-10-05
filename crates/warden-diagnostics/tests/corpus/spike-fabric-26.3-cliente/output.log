@@ -1,0 +1,30 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791163000408" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 26.3 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791163007739" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791163007824" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.4.3-snapshot]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.sounds.SoundEngine" timestamp="1791163010715" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureAtlas" timestamp="1791163010740" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Created: 2048x2048x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791163011929" level="INFO" thread="Worker-Main-1">
+    <log4j:Message><![CDATA[Loaded 1866 advancements]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.server.IntegratedServer" timestamp="1791163012026" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Starting integrated minecraft server version 26.3]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.players.PlayerList" timestamp="1791163016635" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest[local:E:74bd8748] logged in with entity id 47 at (0.5, 101.0, -3.5)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791163016647" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[System chat: WardenTest joined the game]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791163016849" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 2 advancements]]></log4j:Message>
+  </log4j:Event>

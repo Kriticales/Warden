@@ -1,0 +1,46 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-outra-versao-mc.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1 com mods de 1.21"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "output.log"
+linha = 15
+itens = ["mod:comforts"]
+
+[achado.params]
+actual = "1.20.1"
+mod = "comforts"
+mod_name = "Comforts"
+mod_version = "9.0.5+1.21.1"
+range = "any version between 1.21 (inclusive) and 1.22- (exclusive)"
+
+[[achado]]
+regra = "E_JAVA"
+padrao = "fabric.wrong_java"
+arquivo = "output.log"
+linha = 16
+itens = ["mod:comforts"]
+
+[achado.params]
+actual = "17"
+java_required = "21"
+mod = "comforts"
+mod_name = "Comforts"
+mod_version = "9.0.5+1.21.1"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "output.log"
+linha = 17
+itens = ["mod:spectrelib"]
+
+[achado.params]
+actual = "1.20.1"
+mod = "spectrelib"
+mod_name = "SpectreLib"
+mod_version = "0.17.2+1.21"
+range = "any version between 1.21 (inclusive) and 1.22- (exclusive)"

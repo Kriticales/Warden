@@ -1,0 +1,29 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-ticking-entity-1-18-2.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.18.2"
+
+[[achado]]
+regra = "E_TICKING_ENTITY"
+padrao = "crash_report.ticking_entity"
+arquivo = "crash-reports/crash.txt"
+linha = 5
+itens = ["jar:village-employment-1.18.2-1.5.1.jar"]
+
+[achado.params]
+entity_type = "village_employment:illager_minion"
+location = "439.00, 71.94, 91.00"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "crash-reports/crash.txt"
+linha = 5
+itens = ["jar:village-employment-1.18.2-1.5.1.jar"]
+
+[achado.params]
+cause = "java.lang.RuntimeException: Attempted to load class net/mcreator/villageemployment/client/particle/OrbOfDominanceSmokeParticle for invalid dist DEDICATED_SERVER"
+cause_type = "java.lang.RuntimeException"
+description = "Ticking entity"
+exception = "java.lang.BootstrapMethodError: java.lang.RuntimeException: Attempted to load class net/mcreator/villageemployment/client/particle/OrbOfDominanceSmokeParticle for invalid dist DEDICATED_SERVER"
+exception_type = "java.lang.BootstrapMethodError"

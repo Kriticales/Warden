@@ -1,0 +1,30 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-26-2-client.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "26.2"
+
+[[achado]]
+regra = "E_MOD_INIT"
+padrao = "fabric.entrypoint"
+arquivo = "latest.log"
+linha = 228
+itens = ["mod:caxton"]
+
+[achado.params]
+cause = "java.util.NoSuchElementException: Symbol not found: caxton1_version"
+cause_type = "java.util.NoSuchElementException"
+mod = "caxton"
+stage = "client"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "latest.log"
+linha = 227
+
+[achado.params]
+cause = "java.util.NoSuchElementException: Symbol not found: caxton1_version"
+cause_type = "java.util.NoSuchElementException"
+description = "Initializing game"
+exception = "java.lang.RuntimeException: Could not execute entrypoint stage 'client' due to errors, provided by 'caxton' at 'xyz.flirora.caxton.fabric.CaxtonModGlyphContainerFlavor'!"
+exception_type = "java.lang.RuntimeException"

@@ -1,0 +1,32 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-version-range-dependency.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.18.2"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "latest.log"
+linha = 13
+itens = ["mod:fabric"]
+
+[achado.params]
+actual = "1.18.2"
+mod = "fabric"
+mod_name = "Fabric API"
+mod_version = "0.53.4+1.19"
+range = "any version between 1.19-alpha.22.18.a (inclusive) and 1.20- (exclusive)"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "latest.log"
+linha = 14
+itens = ["mod:fabric-command-api-v2"]
+
+[achado.params]
+actual = "1.18.2"
+mod = "fabric-command-api-v2"
+mod_name = "Fabric Command API (v2)"
+mod_version = "1.0.1+9ff28f4075"
+range = "any version between 1.19-alpha.22.11.a (inclusive) and 1.20- (exclusive)"

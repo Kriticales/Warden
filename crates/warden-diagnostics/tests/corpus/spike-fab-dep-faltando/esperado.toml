@@ -1,0 +1,46 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-dep-faltando.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1, Comforts sem Fabric API"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "output.log"
+linha = 14
+itens = ["mod:comforts"]
+
+[achado.params]
+dependency = "fabric-api"
+mod = "comforts"
+mod_name = "Comforts"
+mod_version = "6.4.0+1.20.1"
+range = "any version"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "output.log"
+linha = 15
+itens = ["mod:cardinal-components-base"]
+
+[achado.params]
+dependency = "fabric-api-base"
+mod = "cardinal-components-base"
+mod_name = "Cardinal Components API (base)"
+mod_version = "5.2.1"
+range = "version 0.1.2 or later"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "output.log"
+linha = 16
+itens = ["mod:cardinal-components-entity"]
+
+[achado.params]
+dependency = "fabric-api-base"
+mod = "cardinal-components-entity"
+mod_name = "Cardinal Components API (entities)"
+mod_version = "5.2.1"
+range = "any version"

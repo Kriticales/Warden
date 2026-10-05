@@ -1,0 +1,10 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/f112-java21.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.12.2 com Java 21"
+
+[[achado]]
+regra = "E_JAVA"
+padrao = "java.launchwrapper_too_new"
+arquivo = "output.log"
+linha = 1
+
+[achado.params]

@@ -1,0 +1,13 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-duplicate-mod.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+
+[[achado]]
+regra = "E_DUPLICATE_ID"
+padrao = "fabric.duplicate_versions"
+arquivo = "latest.log"
+linha = 3
+itens = ["mod:fabric"]
+
+[achado.params]
+files = "0.30.3+1.16 at /server/mods/fabric-api-0.30.3+1.16.jar"
+mod = "fabric"

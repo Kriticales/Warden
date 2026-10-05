@@ -1,0 +1,50 @@
+  <log4j:Event logger="cpw.mods.modlauncher.Launcher" timestamp="1791158114706" level="INFO" thread="main">
+    <log4j:Message><![CDATA[ModLauncher running: args [--fml.neoForgeVersion, 21.1.252, --fml.fmlVersion, 4.0.44, --fml.mcVersion, 1.21.1, --fml.neoFormVersion, 20240808.144430, --launchTarget, forgeclient, --username, WardenTest, --version, neoforge-21.1.252, --gameDir, <DADOS>\instances\s-neo-mixin, --assetsDir, <DADOS>\shared\assets, --assetIndex, 17, --uuid, <UUID>, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158115263" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/<DADOS>/shared/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%23121!/ Service=ModLauncher Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158115846" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found mod file "wardenfalhas-neoforge.jar" [locator: {mods folder locator at <DADOS>\instances\s-neo-mixin\mods}, reader: mod manifest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158115979" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found gamelibrary file "mixinextras-neoforge-0.5.3.jar" [parent: neoforge-21.1.252-universal.jar, locator: jarinjar, reader: mod manifest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158116763" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Compatibility level set to JAVA_17]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791158116771" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, neoforge-21.1.252, --gameDir, <DADOS>\instances\s-neo-mixin, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 17, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="MixinExtras|Service" timestamp="1791158117493" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.3).]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158117588" level="FATAL" thread="main">
+    <log4j:Message><![CDATA[Mixin apply for mod wardenfalhas failed wardenfalhas.mojmap.mixins.json:MixinQuebrado from mod wardenfalhas -> net.minecraft.client.Minecraft: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException Critical injection failure: @Inject annotation on warden$quebrado could not find any targets matching 'wardenMetodoQueNaoExiste' in net/minecraft/client/Minecraft. No refMap loaded. [INJECT_PREPARE Applicator Phase -> wardenfalhas.mojmap.mixins.json:MixinQuebrado from mod wardenfalhas -> Prepare Injections -> handler$zza000$wardenfalhas$warden$quebrado(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V -> Parse ->  -> Validate Targets]]]></log4j:Message>
+    <log4j:Throwable><![CDATA[org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException: Critical injection failure: @Inject annotation on warden$quebrado could not find any targets matching 'wardenMetodoQueNaoExiste' in net/minecraft/client/Minecraft. No refMap loaded. [INJECT_PREPARE Applicator Phase -> wardenfalhas.mojmap.mixins.json:MixinQuebrado from mod wardenfalhas -> Prepare Injections -> handler$zza000$wardenfalhas$warden$quebrado(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V -> Parse ->  -> Validate Targets]
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.selectors.TargetSelectors.validate(TargetSelectors.java:346)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.readAnnotation(InjectionInfo.java:369)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.<init>(InjectionInfo.java:340)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.<init>(InjectionInfo.java:331)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.CallbackInjectionInfo.<init>(CallbackInjectionInfo.java:48)
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo$InjectorEntry.create(InjectionInfo.java:196)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.parse(InjectionInfo.java:664)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinTargetContext.prepareInjections(MixinTargetContext.java:1399)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.prepareInjections(MixinApplicatorStandard.java:731)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.applyMixin(MixinApplicatorStandard.java:315)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.apply(MixinApplicatorStandard.java:246)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.TargetClassContext.apply(TargetClassContext.java:437)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.TargetClassContext.applyMixins(TargetClassContext.java:418)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:363)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClass(MixinTransformer.java:250)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.service.modlauncher.MixinTransformationHandler.processClass(MixinTransformationHandler.java:131)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.launch.MixinLaunchPluginLegacy.processClass(MixinLaunchPluginLegacy.java:131)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.serviceapi.ILaunchPluginService.processClassWithFlags(ILaunchPluginService.java:156)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.LaunchPluginHandler.offerClassNodeToPlugins(LaunchPluginHandler.java:94)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.ClassTransformer.transform(ClassTransformer.java:120)
+	... (cortado no golden log)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:363)
+	... 31 more

@@ -1,0 +1,21 @@
+origem = "issue pública https://github.com/siw201/siw201/issues/1 (hs_err_pid do Minecraft, Java 8u51, driver Intel), primeiras 30 linhas"
+nota = "Queda nativa da JVM dentro do driver de vídeo Intel (ig9icd64.dll)"
+
+[[achado]]
+regra = "E_GRAPHICS_DRIVER"
+padrao = "graphics.native_frame_in_driver"
+arquivo = "hs_err_pid13332.log"
+linha = 9
+
+[achado.params]
+module = "ig9icd64.dll"
+
+[[achado]]
+regra = "E_NATIVE_CRASH"
+padrao = "native.problematic_frame"
+arquivo = "hs_err_pid13332.log"
+linha = 4
+
+[achado.params]
+error = "EXCEPTION_ACCESS_VIOLATION"
+frame = "C  [ig9icd64.dll+0x8599ee]"

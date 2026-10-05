@@ -1,0 +1,15 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-entrar.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252, falha ao entrar no mundo"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_JOIN_WORLD"
+padrao = "world.could_not_place_player"
+arquivo = "output.log"
+linha = 24
+itens = ["mod:wardenfalhas", "jar:wardenfalhas-neoforge.jar"]
+
+[achado.params]
+exception = "java.lang.IllegalStateException: Warden: falha de teste ao entrar no mundo (wardenfalhas)"
+exception_type = "java.lang.IllegalStateException"

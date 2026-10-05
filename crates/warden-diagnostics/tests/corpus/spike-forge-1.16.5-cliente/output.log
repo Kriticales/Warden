@@ -1,0 +1,30 @@
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791152501834" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'fmlclient' with arguments [--version, forge-1.16.5-36.2.34, --gameDir, <DADOS>\instances\m-forge-1.16.5, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 1.16, --accessToken, ❄❄❄❄❄❄❄❄, --userType, , --versionType, release, --server, 127.0.0.1, --port, 25612]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791152507948" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791152508041" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.2.2 build 10]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.common.ForgeMod" timestamp="1791152508874" level="INFO" thread="modloading-worker-2">
+    <log4j:Message><![CDATA[Forge mod loading, version 36.2.34, for MC 1.16.5 with MCP 20210115.111550]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.audio.SoundEngine" timestamp="1791152514552" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.AtlasTexture" timestamp="1791152514817" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.gui.screen.ConnectingScreen" timestamp="1791152515509" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Connecting to 127.0.0.1, 25612]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.registries.GameData" timestamp="1791152518538" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Injecting existing registry data into this CLIENT instance]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.network.NetworkHooks" timestamp="1791152518859" level="INFO" thread="Netty Client IO #0">
+    <log4j:Message><![CDATA[Connected to a modded server.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementList" timestamp="1791152519749" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loaded 0 advancements]]></log4j:Message>
+  </log4j:Event>

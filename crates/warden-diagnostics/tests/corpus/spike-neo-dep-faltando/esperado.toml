@@ -1,0 +1,28 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-dep-faltando.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252, Supplementaries sem Moonlight"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.requires_not_installed"
+arquivo = "output.log"
+linha = 101
+itens = ["mod:supplementaries"]
+
+[achado.params]
+current = "moonlight"
+dependency = "moonlight"
+mod = "supplementaries"
+range = "1.21-3.6.4 or above"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 90
+
+[achado.params]
+description = "Mod loading failures have occurred; consult the issue messages for more details"
+exception = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException: Mod loading has failed"
+exception_type = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException"

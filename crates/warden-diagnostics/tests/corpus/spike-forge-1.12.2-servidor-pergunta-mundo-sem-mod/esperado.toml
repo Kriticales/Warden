@@ -1,0 +1,14 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/mecanismos/forge-1.12.2-servidor-pergunta-mundo-sem-mod.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Servidor Forge 1.12.2 esperando /fml confirm"
+loader = "forge"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "W_WORLD_MISSING_MOD"
+padrao = "world.saved_with_missing_mod"
+arquivo = "output.log"
+linha = 4
+itens = ["mod:comforts"]
+
+[achado.params]
+mod = "comforts"

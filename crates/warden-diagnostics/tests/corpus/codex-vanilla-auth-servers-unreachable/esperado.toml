@@ -1,0 +1,11 @@
+origem = "codex-minecraft `test/data/Vanilla/vanilla-auth-servers-unreachable.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.21"
+
+[[achado]]
+regra = "I_AUTH_UNREACHABLE"
+padrao = "server.auth_servers_unreachable"
+arquivo = "latest.log"
+linha = 3
+
+[achado.params]

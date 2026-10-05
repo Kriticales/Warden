@@ -1,0 +1,23 @@
+  <log4j:Event logger="mixin" timestamp="1791158335868" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/<DADOS>/shared/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%23121!/ Service=ModLauncher Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158336645" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found gamelibrary file "mixinextras-neoforge-0.5.3.jar" [parent: neoforge-21.1.252-universal.jar, locator: jarinjar, reader: mod manifest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158337371" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Compatibility level set to JAVA_17]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791158337379" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, neoforge-21.1.252, --gameDir, <DADOS>\instances\s-neo-travar, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 17, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release, --quickPlaySingleplayer, wardentest]]]></log4j:Message>
+  </log4j:Event>
+WARN StatusConsoleListener Error parsing URI <DADOS>\shared\assets\log_configs\client-1.12.xml
+[19:59:01] [main/WARN] [os.ut.pl.wi.PerfDataUtil/]: Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8
+[19:59:02] [pool-7-thread-1/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.3).
+[19:59:09] [Render thread/INFO] [minecraft/Minecraft]: Setting user: WardenTest
+[19:59:09] [Render thread/INFO] [minecraft/Minecraft]: Backend library: LWJGL version 3.3.3+5
+[19:59:10] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.252, for MC 1.21.1
+[19:59:13] [Render thread/WARN] [minecraft/SoundEngine]: Missing sound for event: minecraft:item.goat_horn.play
+[19:59:13] [Render thread/WARN] [minecraft/SoundEngine]: Missing sound for event: minecraft:entity.goat.screaming.horn_break
+[19:59:15] [Render thread/INFO] [minecraft/AdvancementTree]: Loaded 1399 advancements
+[19:59:16] [Server thread/INFO] [minecraft/IntegratedServer]: Starting integrated minecraft server version 1.21.1
+[19:59:17] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld

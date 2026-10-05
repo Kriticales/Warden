@@ -1,0 +1,17 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-mixin.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252, mixin sem alvo"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_MIXIN"
+padrao = "mixin.apply_for_mod_failed"
+arquivo = "output.log"
+linha = 23
+itens = ["mod:wardenfalhas"]
+
+[achado.params]
+mixin = "MixinQuebrado"
+mixin_config = "wardenfalhas.mojmap.mixins.json"
+mod = "wardenfalhas"
+target = "net.minecraft.client.Minecraft"

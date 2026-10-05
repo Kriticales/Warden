@@ -1,0 +1,16 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-iniciar.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1, exceção ao iniciar (wardenfalhas)"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 54
+itens = ["mod:wardenfalhas"]
+
+[achado.params]
+description = "Initializing game"
+exception = "java.lang.IllegalStateException: Warden: falha de teste ao iniciar o cliente (wardenfalhas)"
+exception_type = "java.lang.IllegalStateException"

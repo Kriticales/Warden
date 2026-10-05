@@ -1,0 +1,43 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-mod-loading-dependency.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.14.4"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.requires_not_installed"
+arquivo = "latest.log"
+linha = 106
+itens = ["mod:azurecompat"]
+
+[achado.params]
+current = "mmorpg"
+dependency = "mmorpg"
+mod = "azurecompat"
+range = "1 or above"
+
+[[achado]]
+regra = "E_LOADERVERSION"
+padrao = "forge.requires_loader"
+arquivo = "latest.log"
+linha = 134
+itens = ["mod:uteamcore"]
+
+[achado.params]
+actual = "28.1.117"
+dependency = "forge"
+mod = "uteamcore"
+range = "28.2.0 or above"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "forge.requires_minecraft"
+arquivo = "latest.log"
+linha = 159
+itens = ["mod:car"]
+
+[achado.params]
+actual = "1.15.2"
+dependency = "minecraft"
+mod = "car"
+range = "1.15.1"

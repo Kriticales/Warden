@@ -1,0 +1,54 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-missing-dependencies-2.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "latest.log"
+linha = 4
+itens = ["mod:modid"]
+
+[achado.params]
+dependency = "yet-another-mod"
+mod = "modid"
+mod_name = "Example Mod"
+range = "any version after 0.3.5"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "latest.log"
+linha = 6
+itens = ["mod:modid"]
+
+[achado.params]
+dependency = "fabric"
+mod = "modid"
+mod_name = "Example Mod"
+range = "any version"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "latest.log"
+linha = 8
+itens = ["mod:modid"]
+
+[achado.params]
+dependency = "other-mod"
+mod = "modid"
+mod_name = "Example Mod"
+range = "any version before 0.73"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "latest.log"
+linha = 10
+itens = ["mod:modid"]
+
+[achado.params]
+dependency = "specific"
+mod = "modid"
+mod_name = "Example Mod"
+range = "version 1.0.9"

@@ -1,0 +1,70 @@
+  <log4j:Event logger="cpw.mods.modlauncher.Launcher" timestamp="1791158956701" level="INFO" thread="main">
+    <log4j:Message><![CDATA[ModLauncher running: args [--launchTarget, forgeclient, --fml.forgeVersion, 47.4.10, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --username, WardenTest, --version, forge-1.20.1-47.4.10, --gameDir, <DADOS>\instances\s-forge-mixin, --assetsDir, <DADOS>\shared\assets, --assetIndex, 5, --uuid, <UUID>, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.FMLConfig" timestamp="1791158956954" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Configuration file <DADOS>\instances\s-forge-mixin\config\fml.toml is not correct. Correcting]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="EARLYDISPLAY" timestamp="1791158957233" level="INFO" thread="main">
+    <log4j:Message><![CDATA[If this message is the only thing at the bottom of your log before a crash, you probably have a driver issue.
+
+Possible solutions:
+A) Make sure Minecraft is set to prefer high performance graphics in the OS and/or driver control panel
+B) Check for driver updates on the graphics brand's website
+C) Try reinstalling your graphics drivers
+D) If still not working after trying all of the above, ask for further help on the Forge forums or Discord
+
+You can safely ignore this message if the game starts up successfully.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158957974" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/<DADOS>/shared/libraries/org/spongepowered/mixin/0.8.5/mixin-0.8.5.jar%23100!/ Service=ModLauncher Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158958234" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found mod file wardenfalhas-forge.jar of type MOD with provider {mods folder locator at <DADOS>\instances\s-forge-mixin\mods}]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158958780" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\fmlcore\1.20.1-47.4.10\fmlcore-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158958801" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\javafmllanguage\1.20.1-47.4.10\javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158958819" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\lowcodelanguage\1.20.1-47.4.10\lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158958826" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\mclanguage\1.20.1-47.4.10\mclanguage-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158962105" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Compatibility level set to JAVA_17]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791158962106" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, forge-1.20.1-47.4.10, --gameDir, <DADOS>\instances\s-forge-mixin, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 5, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158963694" level="FATAL" thread="main">
+    <log4j:Message><![CDATA[Mixin apply failed wardenfalhas.mojmap.mixins.json:MixinQuebrado -> net.minecraft.client.Minecraft: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException Critical injection failure: @Inject annotation on warden$quebrado could not find any targets matching 'wardenMetodoQueNaoExiste' in net.minecraft.client.Minecraft. No refMap loaded. [PREINJECT Applicator Phase -> wardenfalhas.mojmap.mixins.json:MixinQuebrado -> Prepare Injections ->  -> handler$zza000$warden$quebrado(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V -> Parse]]]></log4j:Message>
+    <log4j:Throwable><![CDATA[org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException: Critical injection failure: @Inject annotation on warden$quebrado could not find any targets matching 'wardenMetodoQueNaoExiste' in net.minecraft.client.Minecraft. No refMap loaded. [PREINJECT Applicator Phase -> wardenfalhas.mojmap.mixins.json:MixinQuebrado -> Prepare Injections ->  -> handler$zza000$warden$quebrado(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V -> Parse]
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.validateTargets(InjectionInfo.java:656)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.findTargets(InjectionInfo.java:587)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.readAnnotation(InjectionInfo.java:330)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.<init>(InjectionInfo.java:316)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.<init>(InjectionInfo.java:308)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.CallbackInjectionInfo.<init>(CallbackInjectionInfo.java:46)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo$InjectorEntry.create(InjectionInfo.java:149)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.parse(InjectionInfo.java:708)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinTargetContext.prepareInjections(MixinTargetContext.java:1311)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.prepareInjections(MixinApplicatorStandard.java:1042)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.applyMixin(MixinApplicatorStandard.java:393)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.apply(MixinApplicatorStandard.java:325)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.TargetClassContext.apply(TargetClassContext.java:383)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.TargetClassContext.applyMixins(TargetClassContext.java:365)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:363)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClass(MixinTransformer.java:250)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.service.modlauncher.MixinTransformationHandler.processClass(MixinTransformationHandler.java:131)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.launch.MixinLaunchPluginLegacy.processClass(MixinLaunchPluginLegacy.java:131)
+	... (cortado no golden log)
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:363)
+	... 30 more

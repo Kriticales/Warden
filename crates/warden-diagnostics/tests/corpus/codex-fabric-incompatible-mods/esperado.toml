@@ -1,0 +1,17 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-incompatible-mods.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.19.4"
+
+[[achado]]
+regra = "E_BREAKS"
+padrao = "fabric.incompatible_with"
+arquivo = "latest.log"
+linha = 13
+itens = ["mod:mod-a", "mod:fabric-api"]
+
+[achado.params]
+mod = "mod-a"
+mod_name = "Mod A"
+other = "fabric-api"
+other_name = "Fabric API"

@@ -1,0 +1,13 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-ptrlib-dependency.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "E_MISSING_CLASS"
+padrao = "class.no_class_def_found"
+arquivo = "latest.log"
+linha = 608
+
+[achado.params]
+class = "com/mia/craftstudio/IPackReaderCallback"

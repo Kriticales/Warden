@@ -1,0 +1,5 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/matriz/fabric-1.16.5-cliente.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.16.5, abriu e entrou no mundo"
+loader = "fabric"
+minecraft = "1.16.5"
+achado = []

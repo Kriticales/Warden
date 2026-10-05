@@ -1,0 +1,53 @@
+  <log4j:Event logger="FML" timestamp="1791149664812" level="ERROR" thread="Client thread">
+    <log4j:Message><![CDATA[Could not save the splash.properties file]]></log4j:Message>
+    <log4j:Throwable><![CDATA[java.io.FileNotFoundException: <DADOS>\instances\1.7.10-forge-1.7.10-10.13.4.1614-1.7.10\config\splash.properties (O sistema não pode encontrar o caminho especificado)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:270)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:213)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:162)
+	at java.io.FileWriter.<init>(FileWriter.java:90)
+	at cpw.mods.fml.client.SplashProgress.start(SplashProgress.java:151)
+	at cpw.mods.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:193)
+	at net.minecraft.client.Minecraft.func_71384_a(Minecraft.java:480)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:878)
+	at net.minecraft.client.main.Main.main(SourceFile:148)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="STDOUT" timestamp="1791149664827" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[[cpw.mods.fml.client.SplashProgress:start:188]: ---- Minecraft Crash Report ----
+// Hi. I'm Minecraft, and I'm a crashaholic.
+
+Time: 04/10/26 17:04
+Description: Loading screen debug info
+
+This is just a prompt for computer specs to be printed. THIS IS NOT A ERROR
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+	Minecraft Version: 1.7.10
+	Operating System: Windows 8.1 (amd64) version 6.3
+	Java Version: 1.8.0_51, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode), Oracle Corporation
+	Memory: 378980928 bytes (361 MB) / 556793856 bytes (531 MB) up to 7613186048 bytes (7260 MB)
+	JVM Flags: 0 total; 
+	AABB Pool Size: 0 (0 bytes; 0 MB) allocated, 0 (0 bytes; 0 MB) used
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	GL info: ' Vendor: 'ATI Technologies Inc.' Version: '4.6.0 Compatibility Profile Context 26.8.1.260810' Renderer: 'AMD Radeon RX 7600']]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureMap" timestamp="1791149671005" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Created: 16x16 textures/blocks-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureMap" timestamp="1791149671007" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Created: 16x16 textures/items-atlas]]></log4j:Message>
+  </log4j:Event>

@@ -1,0 +1,133 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-mod-dependency.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 17
+itens = ["mod:cofhcore"]
+
+[achado.params]
+dependency = "redstoneflux"
+mod = "cofhcore"
+mod_name = "CoFH Core"
+range = "[2.1.0,2.2.0)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 18
+itens = ["mod:thermaldynamics"]
+
+[achado.params]
+dependency = "codechickenlib"
+mod = "thermaldynamics"
+mod_name = "Thermal Dynamics"
+range = "[3.2.2,)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 19
+itens = ["mod:evilcraft"]
+
+[achado.params]
+dependency = "cyclopscore"
+mod = "evilcraft"
+mod_name = "EvilCraft"
+range = "[1.0.0,)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 20
+itens = ["mod:evilcraftcompat"]
+
+[achado.params]
+dependency = "cyclopscore"
+mod = "evilcraftcompat"
+mod_name = "EvilCraft-Compat"
+range = "[0.11.6,)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 21
+itens = ["mod:appliedenergistics2"]
+
+[achado.params]
+dependency = "forge"
+mod = "appliedenergistics2"
+mod_name = "Applied Energistics 2"
+range = "[14.23.5.2768,)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 22
+itens = ["mod:exnihilocreatio"]
+
+[achado.params]
+dependency = "forgelin"
+mod = "exnihilocreatio"
+mod_name = "Ex Nihilo Creatio"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 23
+itens = ["mod:claysoldiers"]
+
+[achado.params]
+dependency = "sanlib"
+mod = "claysoldiers"
+mod_name = "Clay Soldiers Mod"
+range = "[1.2.0,]"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 24
+itens = ["mod:biomesoplenty"]
+
+[achado.params]
+dependency = "forge"
+mod = "biomesoplenty"
+mod_name = "Biomes O' Plenty"
+range = "[14.23.5.2768,)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 25
+itens = ["mod:forgemultipartcbe"]
+
+[achado.params]
+dependency = "codechickenlib"
+mod = "forgemultipartcbe"
+mod_name = "Forge Multipart CBE"
+range = "[3.2.2,)"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.missing_mods_exception"
+arquivo = "latest.log"
+linha = 33
+itens = ["mod:dragonmounts"]
+
+[achado.params]
+dependency = "llibrary"
+mod = "dragonmounts"
+mod_name = "Dragon Mounts"
+range = "[1.7.9,)"

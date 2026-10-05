@@ -1,0 +1,27 @@
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791157086552" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791157086657" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.4.3+4]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.sounds.SoundEngine" timestamp="1791157090667" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureAtlas" timestamp="1791157090697" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Created: 2048x2048x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791157092501" level="INFO" thread="Worker-Main-4">
+    <log4j:Message><![CDATA[Loaded 1866 advancements]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.server.IntegratedServer" timestamp="1791157092671" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Starting integrated minecraft server version 26.3]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.players.PlayerList" timestamp="1791157097864" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest[local:E:7e17669e] logged in with entity id 53 at (6.5, 102.0, 7.5)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791157097883" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[System chat: WardenTest joined the game]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791157097998" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 2 advancements]]></log4j:Message>
+  </log4j:Event>

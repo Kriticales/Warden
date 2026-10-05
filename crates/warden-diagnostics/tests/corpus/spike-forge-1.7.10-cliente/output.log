@@ -1,0 +1,36 @@
+  <log4j:Event logger="FML" timestamp="1791152420922" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Forge Mod Loader version 7.99.40.1614 for Minecraft 1.7.10 loading]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791152425414" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791152426631" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[LWJGL Version: 2.9.1]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152433335" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureMap" timestamp="1791152433861" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Created: 16x16 textures/blocks-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152433914" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Forge Mod Loader has successfully loaded 3 mods]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.audio.SoundManager" timestamp="1791152433995" level="INFO" thread="Sound Library Loader">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureMap" timestamp="1791152434110" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Created: 512x256 textures/blocks-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.audio.SoundManager" timestamp="1791152435039" level="INFO" thread="Sound Library Loader">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.multiplayer.GuiConnecting" timestamp="1791152436123" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Connecting to 127.0.0.1, 25610]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152436261" level="INFO" thread="Netty Client IO #1">
+    <log4j:Message><![CDATA[Injecting existing block and item data into this client instance]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152436269" level="INFO" thread="Netty Client IO #1">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>

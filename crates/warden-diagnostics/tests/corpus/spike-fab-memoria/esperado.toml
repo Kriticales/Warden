@@ -1,0 +1,24 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/fab-memoria.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Fabric 1.20.1 com -Xmx160M"
+loader = "fabric"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_OUT_OF_MEMORY"
+padrao = "memory.out_of_memory"
+arquivo = "output.log"
+linha = 129
+
+[achado.params]
+kind = "Java heap space"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "output.log"
+linha = 127
+
+[achado.params]
+description = "Unexpected error"
+exception = "java.lang.OutOfMemoryError: Java heap space"
+exception_type = "java.lang.OutOfMemoryError"

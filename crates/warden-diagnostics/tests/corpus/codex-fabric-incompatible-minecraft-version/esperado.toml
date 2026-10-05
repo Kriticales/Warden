@@ -1,0 +1,60 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-incompatible-minecraft-version.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.16.5"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "latest.log"
+linha = 12
+itens = ["mod:fabric-api"]
+
+[achado.params]
+actual = "1.16.5"
+mod = "fabric-api"
+mod_name = "Fabric API"
+mod_version = "0.141.3+1.21.11"
+range = "any version between 1.21.11- (inclusive) and 1.21.12- (exclusive)"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "latest.log"
+linha = 13
+itens = ["mod:fabric-command-api-v2"]
+
+[achado.params]
+actual = "1.16.5"
+mod = "fabric-command-api-v2"
+mod_name = "Fabric Command API (v2)"
+mod_version = "2.4.7+6b42a6003e"
+range = "any version after 1.19-alpha.22.11.a"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "latest.log"
+linha = 14
+itens = ["mod:fabric-convention-tags-v1"]
+
+[achado.params]
+actual = "1.16.5"
+mod = "fabric-convention-tags-v1"
+mod_name = "Fabric Convention Tags"
+mod_version = "2.1.55+7f945d5b3e"
+range = "version 1.18.2 or later"
+
+[[achado]]
+regra = "E_MCVERSION"
+padrao = "fabric.wrong_minecraft"
+arquivo = "latest.log"
+linha = 15
+itens = ["mod:fabric-convention-tags-v2"]
+
+[achado.params]
+actual = "1.16.5"
+mod = "fabric-convention-tags-v2"
+mod_name = "Fabric Convention Tags (v2)"
+mod_version = "2.17.3+8ef948ba3e"
+range = "version 1.20.5-beta.1 or later"

@@ -1,0 +1,75 @@
+  <log4j:Event logger="mixin" timestamp="1791158580243" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/<DADOS>/shared/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%23121!/ Service=ModLauncher Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158580941" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found gamelibrary file "mixinextras-neoforge-0.5.3.jar" [parent: neoforge-21.1.252-universal.jar, locator: jarinjar, reader: mod manifest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158580941" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found library file "MixinSquared-0.3.7-beta.3.jar" [parent: mixinsquared-forge-0.3.7-beta.3.jar, locator: jarinjar]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.neoforged.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158580942" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found gamelibrary file "mixinsquared-forge-0.3.7-beta.3.jar" [parent: supplementaries-1.21.1-3.9.9-neoforge.jar, locator: jarinjar, reader: mod manifest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158581738" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Compatibility level set to JAVA_17]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158581746" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Compatibility level set to JAVA_21]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791158581755" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, neoforge-21.1.252, --gameDir, <DADOS>\instances\s-neo-memoria, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 17, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release, --quickPlaySingleplayer, wardentest]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158582875" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Error loading class: org/embeddedt/embeddium/impl/render/chunk/compile/pipeline/FluidRenderer (java.lang.ClassNotFoundException: org.embeddedt.embeddium.impl.render.chunk.compile.pipeline.FluidRenderer)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158582878" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Error loading class: net/raphimc/immediatelyfast/feature/map_atlas_generation/MapAtlasTexture (java.lang.ClassNotFoundException: net.raphimc.immediatelyfast.feature.map_atlas_generation.MapAtlasTexture)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158582879" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Error loading class: net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer (java.lang.ClassNotFoundException: net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.DefaultFluidRenderer)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158583026" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Error loading class: vectorwing/farmersdelight/common/block/TomatoBlock (java.lang.ClassNotFoundException: vectorwing.farmersdelight.common.block.TomatoBlock)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158583066" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Error loading class: traben/entity_model_features/models/parts/EMFModelPartCustom (java.lang.ClassNotFoundException: traben.entity_model_features.models.parts.EMFModelPartCustom)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="MixinExtras|Service" timestamp="1791158583414" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.3).]]></log4j:Message>
+  </log4j:Event>
+WARN StatusConsoleListener Error parsing URI <DADOS>\shared\assets\log_configs\client-1.12.xml
+[20:03:06] [main/WARN] [os.ut.pl.wi.PerfDataUtil/]: Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8
+[20:03:14] [Render thread/INFO] [minecraft/Minecraft]: Setting user: WardenTest
+[20:03:14] [Render thread/INFO] [minecraft/Minecraft]: Backend library: LWJGL version 3.3.3+5
+[20:03:14] [modloading-worker-0/INFO] [CodecUI/]: Codec construction mixins inactive (Codec, MapCodec, RecordCodecBuilder) - expected on NeoForge; using reflective schema inference (numeric ranges recovered, optional-field defaults not).
+[20:03:14] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.252, for MC 1.21.1
+[20:03:18] [Render thread/WARN] [mixin/]: Method overwrite conflict for containerTick in supplementaries-common.mixins.json:CartographyTableScreenMixin from mod supplementaries, previously written by net.mehvahdjukaar.moonlight.core.mixins.CartographyTableScreenMixin. Skipping method.
+[20:03:41] [Render thread/INFO] [minecraft/Minecraft]: Caught error loading resourcepacks, removing all selected resourcepacks
+java.util.concurrent.CompletionException: java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:315) ~[?:?] {re:mixin}
+	at java.base/java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:320) ~[?:?] {re:mixin}
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1770) ~[?:?] {}
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760) ~[?:?] {}
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387) ~[?:?] {}
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312) ~[?:?] {}
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843) ~[?:?] {}
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808) ~[?:?] {}
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188) ~[?:?] {}
+Caused by: java.lang.OutOfMemoryError: Java heap space
+[20:03:43] [modloading-worker-0/FATAL] [ne.ne.fm.ModLoader/LOADING]: Failed to wait for future Registration events, 1 errors found
+
+Exception: java.lang.OutOfMemoryError thrown from the UncaughtExceptionHandler in thread "Worker-Main-5"
+
+Exception: java.lang.OutOfMemoryError thrown from the UncaughtExceptionHandler in thread "JNA Cleaner"
+
+Exception: java.lang.OutOfMemoryError thrown from the UncaughtExceptionHandler in thread "Worker-Main-1"
+[20:04:15] [Worker-Main-14/WARN] [minecraft/Util]: Worker-Main-14 died
+java.lang.OutOfMemoryError: Java heap space
+[20:04:15] [Worker-Main-6/WARN] [minecraft/Util]: Worker-Main-6 died
+java.lang.OutOfMemoryError: Java heap space
+[20:04:15] [Worker-Main-14/ERROR] [minecraft/Util]: Caught exception in thread Thread[#108,Worker-Main-14,10,main]
+java.lang.OutOfMemoryError: Java heap space
+[20:04:15] [Worker-Main-6/ERROR] [minecraft/Util]: Caught exception in thread Thread[#100,Worker-Main-6,5,main]
+java.lang.OutOfMemoryError: Java heap space
+[20:04:16] [Render thread/ERROR] [minecraft/Minecraft]: Out of memory
+java.lang.OutOfMemoryError: Java heap space

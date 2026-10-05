@@ -1,0 +1,15 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-mod-fatal-1444.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.14.4"
+
+[[achado]]
+regra = "E_MOD_INIT"
+padrao = "forge.has_failed_to_load"
+arquivo = "latest.log"
+linha = 562
+itens = ["mod:backpacked"]
+
+[achado.params]
+mod = "backpacked"
+mod_name = "Backpacked"

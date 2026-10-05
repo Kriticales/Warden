@@ -1,0 +1,17 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-language-provider-version-above.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_LOADERVERSION"
+padrao = "forge.language_provider"
+arquivo = "latest.log"
+linha = 32
+itens = ["jar:ironchest-1.20.2-14.5.7.jar"]
+
+[achado.params]
+file = "ironchest-1.20.2-14.5.7.jar"
+found = "47"
+needed = "48 or above"
+provider = "javafml"

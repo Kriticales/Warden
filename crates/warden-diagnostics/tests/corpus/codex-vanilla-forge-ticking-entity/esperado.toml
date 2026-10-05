@@ -1,0 +1,12 @@
+origem = "codex-minecraft `test/data/Vanilla/vanilla-forge-ticking-entity.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.10.2"
+
+[[achado]]
+regra = "E_TICKING_ENTITY"
+padrao = "server.ticking_entity"
+arquivo = "latest.log"
+linha = 21
+
+[achado.params]
+what = "block entity"

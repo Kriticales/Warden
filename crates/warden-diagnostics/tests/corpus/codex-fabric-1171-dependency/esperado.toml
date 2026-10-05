@@ -1,0 +1,18 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-1171-dependency.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.17.1"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "fabric.dependency_missing"
+arquivo = "latest.log"
+linha = 14
+itens = ["mod:bewitchment"]
+
+[achado.params]
+dependency = "patchouli"
+mod = "bewitchment"
+mod_name = "Bewitchment"
+mod_version = "1.17-15"
+range = "any version"

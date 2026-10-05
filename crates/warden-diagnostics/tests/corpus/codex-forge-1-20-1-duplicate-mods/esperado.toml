@@ -1,0 +1,15 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-1-20-1-duplicate-mods.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "forge"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "E_DUPLICATE_ID"
+padrao = "forge.duplicate_mod_files"
+arquivo = "latest.log"
+linha = 27
+itens = ["jar:rubidium-mc1.20.1-0.7.1.jar", "jar:embeddium-0.3.31+mc1.20.1.jar"]
+
+[achado.params]
+files = "rubidium-mc1.20.1-0.7.1.jar, embeddium-0.3.31+mc1.20.1.jar"
+mod = "rubidium"

@@ -1,0 +1,11 @@
+origem = "codex-minecraft `test/data/Vanilla/vanilla-old-player-directory.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "W_WORLD_OLD_FORMAT"
+padrao = "world.old_player_directory"
+arquivo = "latest.log"
+linha = 7
+
+[achado.params]

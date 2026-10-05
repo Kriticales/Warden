@@ -1,0 +1,11 @@
+origem = "codex-minecraft `test/data/Vanilla/vanilla-aquatic-world-on-older-version.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.12.2"
+
+[[achado]]
+regra = "E_WORLD_NEWER_VERSION"
+padrao = "world.aquatic_on_older_version"
+arquivo = "latest.log"
+linha = 12
+
+[achado.params]

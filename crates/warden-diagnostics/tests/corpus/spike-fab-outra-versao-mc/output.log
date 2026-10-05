@@ -1,0 +1,24 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791157376822" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.20.1 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/Resolution" timestamp="1791157377004" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod resolution failed]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader" timestamp="1791157377022" level="ERROR" thread="main">
+    <log4j:Message><![CDATA[Incompatible mods found!]]></log4j:Message>
+    <log4j:Throwable><![CDATA[net.fabricmc.loader.impl.FormattedException: Some of your mods are incompatible with the game or each other!
+A potential solution has been determined, this may resolve your problem:
+	 - Replace mod 'Comforts' (comforts) 9.0.5+1.21.1 with any version that is compatible with:
+		 - minecraft 1.20.1
+		 - java 17
+More details:
+	 - Mod 'Comforts' (comforts) 9.0.5+1.21.1 requires any version between 1.21 (inclusive) and 1.22- (exclusive) of 'Minecraft' (minecraft), but only the wrong version is present: 1.20.1!
+	 - Mod 'Comforts' (comforts) 9.0.5+1.21.1 requires version 21 or later of 'OpenJDK 64-Bit Server VM' (java), but only the wrong version is present: 17!
+	 - Mod 'SpectreLib' (spectrelib) 0.17.2+1.21 requires any version between 1.21 (inclusive) and 1.22- (exclusive) of 'Minecraft' (minecraft), but only the wrong version is present: 1.20.1!
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:51)
+	at net.fabricmc.loader.impl.FabricLoaderImpl.load(FabricLoaderImpl.java:202)
+	at net.fabricmc.loader.impl.launch.knot.Knot.init(Knot.java:142)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:66)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+]]></log4j:Throwable>
+  </log4j:Event>

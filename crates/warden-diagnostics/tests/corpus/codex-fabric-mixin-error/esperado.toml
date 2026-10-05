@@ -1,0 +1,24 @@
+origem = "codex-minecraft `test/data/Vanilla/Fabric/fabric-mixin-error.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+loader = "fabric"
+minecraft = "1.21.4"
+
+[[achado]]
+regra = "E_MIXIN"
+padrao = "mixin.critical_injection_failure"
+arquivo = "latest.log"
+linha = 191
+
+[achado.params]
+detail = "Callback method setInWater(Z)Z"
+mixin_config = "expandability-common.mixins.json"
+
+[[achado]]
+regra = "E_MIXIN"
+padrao = "mixin.transformer_error"
+arquivo = "latest.log"
+linha = 185
+itens = ["mod:expandability"]
+
+[achado.params]
+mod = "expandability"

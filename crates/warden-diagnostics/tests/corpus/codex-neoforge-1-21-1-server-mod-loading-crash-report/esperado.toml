@@ -1,0 +1,27 @@
+origem = "codex-minecraft `test/data/Vanilla/NeoForge/neoforge-1-21-1-server-mod-loading-crash-report.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "E_MISSING_DEP"
+padrao = "forge.requires_not_installed"
+arquivo = "crash-reports/crash.txt"
+linha = 16
+itens = ["mod:yungsmenutweaks"]
+
+[achado.params]
+current = "yungsapi"
+dependency = "yungsapi"
+mod = "yungsmenutweaks"
+range = "1.21.1-NeoForge-5.1.2 or above"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "crash-reports/crash.txt"
+linha = 5
+
+[achado.params]
+description = "Mod loading failures have occurred; consult the issue messages for more details"
+exception = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException: Mod loading has failed"
+exception_type = "net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException"

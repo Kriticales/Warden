@@ -1,0 +1,12 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/falhas/neo-java17.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "NeoForge 21.1.252 com Java 17"
+
+[[achado]]
+regra = "E_JAVA"
+padrao = "java.unsupported_major_minor"
+arquivo = "output.log"
+linha = 3
+
+[achado.params]
+class_version = "65"
+java_required = "21"

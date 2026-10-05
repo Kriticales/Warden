@@ -1,0 +1,4 @@
+origem = "spike S-R5-3, `spikes/s-r5-3/fixtures/mecanismos/forge-1.7.10-falso-crash-report-splash.log` (branch `Kriticales/spike-s-r5-3-marcadores`)"
+nota = "Forge 1.7.10, crash report do SplashProgress (não é falha)"
+minecraft = "1.7.10"
+achado = []

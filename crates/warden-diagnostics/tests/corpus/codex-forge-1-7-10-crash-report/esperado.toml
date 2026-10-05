@@ -1,0 +1,14 @@
+origem = "codex-minecraft `test/data/Vanilla/Forge/forge-1-7-10-crash-report.log` (commit d7fb6a3, MIT)"
+nota = "nomes de pessoas trocados por fictícios"
+minecraft = "1.7.10"
+
+[[achado]]
+regra = "E_CRASH_REPORT"
+padrao = "crash_report.description"
+arquivo = "crash-reports/crash.txt"
+linha = 5
+
+[achado.params]
+description = "Exception in server tick loop"
+exception = 'java.lang.IllegalArgumentException: Tile entity of type gregtech.common.blocks.TileEntityOres (jar:file:/C:/Users/********/AppData/Roaming/PrismLauncher/instances/GT_New_Horizons_2.8.4_Java_17-25/.minecraft/mods/gregtech-5.09.51.482.jar!/gregtech/common/blocks/TileEntityOres.class) reports coordinates of (-227, 114, 613) that lie outside of the bounds of chunk (x=-16, z=39) in dimension 0 - ending up with illegal in-chunk coordinates of (29, 114, -11). Serialized NBT of the offending TE: {m:16036s,z:613,x:-227,id:"GT_TileEntity_Ores",y:114,n:1b}'
+exception_type = "java.lang.IllegalArgumentException"
