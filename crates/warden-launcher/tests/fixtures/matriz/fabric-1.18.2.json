@@ -1,0 +1,57 @@
+{
+  "spec": {
+    "minecraft": "1.18.2",
+    "loader": {
+      "kind": "fabric",
+      "version": "0.19.5"
+    }
+  },
+  "versionId": "fabric-1.18.2-0.19.5",
+  "hierarchy": [
+    "fabric-1.18.2-0.19.5",
+    "1.18.2"
+  ],
+  "releaseTime": "2022-02-28T10:42:45+00:00",
+  "mainClass": "net.fabricmc.loader.impl.launch.knot.KnotClient",
+  "jvmArgs": [
+    "-DFabricMcEmu= net.minecraft.client.main.Main ",
+    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump",
+    "-Dos.name=Windows 10",
+    "-Dos.version=10.0",
+    "-Djava.library.path=<SHARED>\\natives\\fabric-1.18.2-0.19.5-4b190e3a-668e-5e65-bef6-798b2c4706fa",
+    "-Dminecraft.launcher.brand=warden",
+    "-Dminecraft.launcher.version=0.1.0",
+    "-cp",
+    "<SHARED>\\libraries\\org\\ow2\\asm\\asm\\9.10.1\\asm-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-analysis\\9.10.1\\asm-analysis-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-commons\\9.10.1\\asm-commons-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-tree\\9.10.1\\asm-tree-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-util\\9.10.1\\asm-util-9.10.1.jar;<SHARED>\\libraries\\net\\fabricmc\\sponge-mixin\\0.17.4+mixin.0.8.7\\sponge-mixin-0.17.4+mixin.0.8.7.jar;<SHARED>\\libraries\\net\\fabricmc\\intermediary\\1.18.2\\intermediary-1.18.2.jar;<SHARED>\\libraries\\net\\fabricmc\\fabric-loader\\0.19.5\\fabric-loader-0.19.5.jar;<SHARED>\\libraries\\com\\mojang\\logging\\1.0.0\\logging-1.0.0.jar;<SHARED>\\libraries\\com\\mojang\\blocklist\\1.0.10\\blocklist-1.0.10.jar;<SHARED>\\libraries\\com\\mojang\\patchy\\2.2.10\\patchy-2.2.10.jar;<SHARED>\\libraries\\com\\github\\oshi\\oshi-core\\5.8.5\\oshi-core-5.8.5.jar;<SHARED>\\libraries\\net\\java\\dev\\jna\\jna\\5.10.0\\jna-5.10.0.jar;<SHARED>\\libraries\\net\\java\\dev\\jna\\jna-platform\\5.10.0\\jna-platform-5.10.0.jar;<SHARED>\\libraries\\org\\slf4j\\slf4j-api\\1.8.0-beta4\\slf4j-api-1.8.0-beta4.jar;<SHARED>\\libraries\\org\\apache\\logging\\log4j\\log4j-slf4j18-impl\\2.17.0\\log4j-slf4j18-impl-2.17.0.jar;<SHARED>\\libraries\\com\\ibm\\icu\\icu4j\\70.1\\icu4j-70.1.jar;<SHARED>\\libraries\\com\\mojang\\javabridge\\1.2.24\\javabridge-1.2.24.jar;<SHARED>\\libraries\\net\\sf\\jopt-simple\\jopt-simple\\5.0.4\\jopt-simple-5.0.4.jar;<SHARED>\\libraries\\io\\netty\\netty-all\\4.1.68.Final\\netty-all-4.1.68.Final.jar;<SHARED>\\libraries\\com\\google\\guava\\failureaccess\\1.0.1\\failureaccess-1.0.1.jar;<SHARED>\\libraries\\com\\google\\guava\\guava\\31.0.1-jre\\guava-31.0.1-jre.jar;<SHARED>\\libraries\\org\\apache\\commons\\commons-lang3\\3.12.0\\commons-lang3-3.12.0.jar;<SHARED>\\libraries\\commons-io\\commons-io\\2.11.0\\commons-io-2.11.0.jar;<SHARED>\\libraries\\commons-codec\\commons-codec\\1.15\\commons-codec-1.15.jar;<SHARED>\\libraries\\com\\mojang\\brigadier\\1.0.18\\brigadier-1.0.18.jar;<SHARED>\\libraries\\com\\mojang\\datafixerupper\\4.1.27\\datafixerupper-4.1.27.jar;<SHARED>\\libraries\\com\\google\\code\\gson\\gson\\2.8.9\\gson-2.8.9.jar;<SHARED>\\libraries\\com\\mojang\\authlib\\3.3.39\\authlib-3.3.39.jar;<SHARED>\\libraries\\org\\apache\\commons\\commons-compress\\1.21\\commons-compress-1.21.jar;<SHARED>\\libraries\\org\\apache\\httpcomponents\\httpclient\\4.5.13\\httpclient-4.5.13.jar;<SHARED>\\libraries\\commons-logging\\commons-logging\\1.2\\commons-logging-1.2.jar;<SHARED>\\libraries\\org\\apache\\httpcomponents\\httpcore\\4.4.14\\httpcore-4.4.14.jar;<SHARED>\\libraries\\it\\unimi\\dsi\\fastutil\\8.5.6\\fastutil-8.5.6.jar;<SHARED>\\libraries\\org\\apache\\logging\\log4j\\log4j-api\\2.17.0\\log4j-api-2.17.0.jar;<SHARED>\\libraries\\org\\apache\\logging\\log4j\\log4j-core\\2.17.0\\log4j-core-2.17.0.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl\\3.2.2\\lwjgl-3.2.2.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-jemalloc\\3.2.2\\lwjgl-jemalloc-3.2.2.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-openal\\3.2.2\\lwjgl-openal-3.2.2.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-opengl\\3.2.2\\lwjgl-opengl-3.2.2.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-glfw\\3.2.2\\lwjgl-glfw-3.2.2.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-stb\\3.2.2\\lwjgl-stb-3.2.2.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-tinyfd\\3.2.2\\lwjgl-tinyfd-3.2.2.jar;<SHARED>\\libraries\\com\\mojang\\text2speech\\1.12.4\\text2speech-1.12.4.jar;<SHARED>\\versions\\fabric-1.18.2-0.19.5\\fabric-1.18.2-0.19.5.jar",
+    "-Dlog4j.configurationFile=<SHARED>\\assets\\log_configs\\client-1.12.xml"
+  ],
+  "gameArgs": [
+    "--username",
+    "WardenPlayer",
+    "--version",
+    "fabric-1.18.2-0.19.5",
+    "--gameDir",
+    "<SHARED>\\engine-gamedir",
+    "--assetsDir",
+    "<SHARED>\\assets",
+    "--assetIndex",
+    "1.18",
+    "--uuid",
+    "049b34ddf8673b718ef15e61cfae8e28",
+    "--accessToken",
+    "",
+    "--clientId",
+    "",
+    "--xuid",
+    "",
+    "--userType",
+    "",
+    "--versionType",
+    "release"
+  ],
+  "gameDirPlaceholder": "<SHARED>\\engine-gamedir",
+  "logging": {
+    "kind": "mojang",
+    "file": "client-1.12.xml"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "spec": {
+    "minecraft": "1.20.1",
+    "loader": {
+      "kind": "fabric",
+      "version": "0.19.5"
+    }
+  },
+  "versionId": "fabric-1.20.1-0.19.5",
+  "hierarchy": [
+    "fabric-1.20.1-0.19.5",
+    "1.20.1"
+  ],
+  "releaseTime": "2023-06-12T13:25:51+00:00",
+  "mainClass": "net.fabricmc.loader.impl.launch.knot.KnotClient",
+  "jvmArgs": [
+    "-DFabricMcEmu= net.minecraft.client.main.Main ",
+    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump",
+    "-Djava.library.path=<SHARED>\\natives\\fabric-1.20.1-0.19.5-5307a8e0-218d-5244-9485-c38bb459139e",
+    "-Djna.tmpdir=<SHARED>\\natives\\fabric-1.20.1-0.19.5-5307a8e0-218d-5244-9485-c38bb459139e",
+    "-Dorg.lwjgl.system.SharedLibraryExtractPath=<SHARED>\\natives\\fabric-1.20.1-0.19.5-5307a8e0-218d-5244-9485-c38bb459139e",
+    "-Dio.netty.native.workdir=<SHARED>\\natives\\fabric-1.20.1-0.19.5-5307a8e0-218d-5244-9485-c38bb459139e",
+    "-Dminecraft.launcher.brand=warden",
+    "-Dminecraft.launcher.version=0.1.0",
+    "-cp",
+    "<SHARED>\\libraries\\org\\ow2\\asm\\asm\\9.10.1\\asm-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-analysis\\9.10.1\\asm-analysis-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-commons\\9.10.1\\asm-commons-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-tree\\9.10.1\\asm-tree-9.10.1.jar;<SHARED>\\libraries\\org\\ow2\\asm\\asm-util\\9.10.1\\asm-util-9.10.1.jar;<SHARED>\\libraries\\net\\fabricmc\\sponge-mixin\\0.17.4+mixin.0.8.7\\sponge-mixin-0.17.4+mixin.0.8.7.jar;<SHARED>\\libraries\\net\\fabricmc\\intermediary\\1.20.1\\intermediary-1.20.1.jar;<SHARED>\\libraries\\net\\fabricmc\\fabric-loader\\0.19.5\\fabric-loader-0.19.5.jar;<SHARED>\\libraries\\com\\github\\oshi\\oshi-core\\6.2.2\\oshi-core-6.2.2.jar;<SHARED>\\libraries\\com\\google\\code\\gson\\gson\\2.10\\gson-2.10.jar;<SHARED>\\libraries\\com\\google\\guava\\failureaccess\\1.0.1\\failureaccess-1.0.1.jar;<SHARED>\\libraries\\com\\google\\guava\\guava\\31.1-jre\\guava-31.1-jre.jar;<SHARED>\\libraries\\com\\ibm\\icu\\icu4j\\71.1\\icu4j-71.1.jar;<SHARED>\\libraries\\com\\mojang\\authlib\\4.0.43\\authlib-4.0.43.jar;<SHARED>\\libraries\\com\\mojang\\blocklist\\1.0.10\\blocklist-1.0.10.jar;<SHARED>\\libraries\\com\\mojang\\brigadier\\1.1.8\\brigadier-1.1.8.jar;<SHARED>\\libraries\\com\\mojang\\datafixerupper\\6.0.8\\datafixerupper-6.0.8.jar;<SHARED>\\libraries\\com\\mojang\\logging\\1.1.1\\logging-1.1.1.jar;<SHARED>\\libraries\\com\\mojang\\patchy\\2.2.10\\patchy-2.2.10.jar;<SHARED>\\libraries\\com\\mojang\\text2speech\\1.17.9\\text2speech-1.17.9.jar;<SHARED>\\libraries\\commons-codec\\commons-codec\\1.15\\commons-codec-1.15.jar;<SHARED>\\libraries\\commons-io\\commons-io\\2.11.0\\commons-io-2.11.0.jar;<SHARED>\\libraries\\commons-logging\\commons-logging\\1.2\\commons-logging-1.2.jar;<SHARED>\\libraries\\io\\netty\\netty-buffer\\4.1.82.Final\\netty-buffer-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-codec\\4.1.82.Final\\netty-codec-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-common\\4.1.82.Final\\netty-common-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-handler\\4.1.82.Final\\netty-handler-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-resolver\\4.1.82.Final\\netty-resolver-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-transport-classes-epoll\\4.1.82.Final\\netty-transport-classes-epoll-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-transport-native-unix-common\\4.1.82.Final\\netty-transport-native-unix-common-4.1.82.Final.jar;<SHARED>\\libraries\\io\\netty\\netty-transport\\4.1.82.Final\\netty-transport-4.1.82.Final.jar;<SHARED>\\libraries\\it\\unimi\\dsi\\fastutil\\8.5.9\\fastutil-8.5.9.jar;<SHARED>\\libraries\\net\\java\\dev\\jna\\jna-platform\\5.12.1\\jna-platform-5.12.1.jar;<SHARED>\\libraries\\net\\java\\dev\\jna\\jna\\5.12.1\\jna-5.12.1.jar;<SHARED>\\libraries\\net\\sf\\jopt-simple\\jopt-simple\\5.0.4\\jopt-simple-5.0.4.jar;<SHARED>\\libraries\\org\\apache\\commons\\commons-compress\\1.21\\commons-compress-1.21.jar;<SHARED>\\libraries\\org\\apache\\commons\\commons-lang3\\3.12.0\\commons-lang3-3.12.0.jar;<SHARED>\\libraries\\org\\apache\\httpcomponents\\httpclient\\4.5.13\\httpclient-4.5.13.jar;<SHARED>\\libraries\\org\\apache\\httpcomponents\\httpcore\\4.4.15\\httpcore-4.4.15.jar;<SHARED>\\libraries\\org\\apache\\logging\\log4j\\log4j-api\\2.19.0\\log4j-api-2.19.0.jar;<SHARED>\\libraries\\org\\apache\\logging\\log4j\\log4j-core\\2.19.0\\log4j-core-2.19.0.jar;<SHARED>\\libraries\\org\\apache\\logging\\log4j\\log4j-slf4j2-impl\\2.19.0\\log4j-slf4j2-impl-2.19.0.jar;<SHARED>\\libraries\\org\\joml\\joml\\1.10.5\\joml-1.10.5.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-glfw\\3.3.1\\lwjgl-glfw-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-glfw\\3.3.1\\lwjgl-glfw-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-glfw\\3.3.1\\lwjgl-glfw-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-glfw\\3.3.1\\lwjgl-glfw-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-jemalloc\\3.3.1\\lwjgl-jemalloc-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-jemalloc\\3.3.1\\lwjgl-jemalloc-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-jemalloc\\3.3.1\\lwjgl-jemalloc-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-jemalloc\\3.3.1\\lwjgl-jemalloc-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-openal\\3.3.1\\lwjgl-openal-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-openal\\3.3.1\\lwjgl-openal-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-openal\\3.3.1\\lwjgl-openal-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-openal\\3.3.1\\lwjgl-openal-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-opengl\\3.3.1\\lwjgl-opengl-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-opengl\\3.3.1\\lwjgl-opengl-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-opengl\\3.3.1\\lwjgl-opengl-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-opengl\\3.3.1\\lwjgl-opengl-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-stb\\3.3.1\\lwjgl-stb-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-stb\\3.3.1\\lwjgl-stb-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-stb\\3.3.1\\lwjgl-stb-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-stb\\3.3.1\\lwjgl-stb-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-tinyfd\\3.3.1\\lwjgl-tinyfd-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-tinyfd\\3.3.1\\lwjgl-tinyfd-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-tinyfd\\3.3.1\\lwjgl-tinyfd-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl-tinyfd\\3.3.1\\lwjgl-tinyfd-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl\\3.3.1\\lwjgl-3.3.1.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl\\3.3.1\\lwjgl-3.3.1-natives-windows.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl\\3.3.1\\lwjgl-3.3.1-natives-windows-arm64.jar;<SHARED>\\libraries\\org\\lwjgl\\lwjgl\\3.3.1\\lwjgl-3.3.1-natives-windows-x86.jar;<SHARED>\\libraries\\org\\slf4j\\slf4j-api\\2.0.1\\slf4j-api-2.0.1.jar;<SHARED>\\versions\\fabric-1.20.1-0.19.5\\fabric-1.20.1-0.19.5.jar",
+    "-Dlog4j.configurationFile=<SHARED>\\assets\\log_configs\\client-1.12.xml"
+  ],
+  "gameArgs": [
+    "--username",
+    "WardenPlayer",
+    "--version",
+    "fabric-1.20.1-0.19.5",
+    "--gameDir",
+    "<SHARED>\\engine-gamedir",
+    "--assetsDir",
+    "<SHARED>\\assets",
+    "--assetIndex",
+    "5",
+    "--uuid",
+    "049b34ddf8673b718ef15e61cfae8e28",
+    "--accessToken",
+    "",
+    "--clientId",
+    "",
+    "--xuid",
+    "",
+    "--userType",
+    "",
+    "--versionType",
+    "release"
+  ],
+  "gameDirPlaceholder": "<SHARED>\\engine-gamedir",
+  "logging": {
+    "kind": "mojang",
+    "file": "client-1.12.xml"
+  }
+}
