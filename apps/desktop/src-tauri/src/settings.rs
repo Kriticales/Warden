@@ -248,6 +248,12 @@ impl SettingsStore {
             .map(|_| ())
     }
 
+    /// Grava a pasta padrão dos packs (`None` = a do sistema). Só `settings_choose_packs_dir`
+    /// chama, depois de validar a pasta escolhida no diálogo nativo.
+    pub fn set_packs_dir(&self, dir: Option<PathBuf>) -> Result<Settings, AppError> {
+        self.modify(|settings| settings.packs_dir = dir)
+    }
+
     fn modify(&self, change: impl FnOnce(&mut Settings)) -> Result<Settings, AppError> {
         let mut state = self.lock();
         if state.read_only {

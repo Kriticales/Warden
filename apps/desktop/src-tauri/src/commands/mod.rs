@@ -46,6 +46,9 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             packs::pack_hygiene_scan,
             packs::pack_hygiene_fix,
             packs::pack_trash,
+            app::settings_status,
+            app::settings_choose_packs_dir,
+            app::logs_reveal_folder,
         ])
         .events(tauri_specta::collect_events![OperationUpdated, PackChanged,])
 }

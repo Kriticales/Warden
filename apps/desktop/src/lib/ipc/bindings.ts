@@ -70,6 +70,22 @@ export const commands = {
 	packHygieneFix: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("pack_hygiene_fix", { packId, paths })),
 	/**  Move um pack para a Lixeira depois de digitar o nome exato. */
 	packTrash: (packId: PackId, confirmation: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_trash", { packId, confirmation })),
+	/**  Primeira execução e pasta dos packs em uso. */
+	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
+	/**
+	 *  Abre o diálogo nativo de pasta, valida a escolhida e a grava como pasta dos packs
+	 *  (ARCHITECTURE §4.1: o caminho não vem da interface). `null` = o usuário desistiu.
+	 */
+	settingsChoosePacksDir: () => typedError<{
+	/**  O `settings.json` ainda não existe: o app abre na primeira execução (T01). */
+	firstRun: boolean,
+	/**  Pasta onde os packs novos são criados (a escolhida ou a padrão do sistema). */
+	packsDir: string,
+	/**  Pasta padrão do sistema (Documentos\Warden). */
+	defaultPacksDir: string,
+} | null, AppError>(__TAURI_INVOKE("settings_choose_packs_dir")),
+	/**  Abre a pasta dos registros no Explorador (Configurações → Privacidade e registros). */
+	logsRevealFolder: () => typedError<null, AppError>(__TAURI_INVOKE("logs_reveal_folder")),
 };
 
 /** Events */
@@ -1211,6 +1227,16 @@ export type SettingsPatch = {
 	updateCheckIntervalHours?: number | null,
 	/**  Memória do teste (512 a 65536 MB quando fixa). */
 	testMemory?: TestMemory | null,
+};
+
+/**  O que a interface precisa saber das configurações além do `settings.json` (T01, T21). */
+export type SettingsStatus = {
+	/**  O `settings.json` ainda não existe: o app abre na primeira execução (T01). */
+	firstRun: boolean,
+	/**  Pasta onde os packs novos são criados (a escolhida ou a padrão do sistema). */
+	packsDir: string,
+	/**  Pasta padrão do sistema (Documentos\Warden). */
+	defaultPacksDir: string,
 };
 
 /**  Memória padrão do teste (Configurações → Teste). */
