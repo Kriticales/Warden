@@ -270,13 +270,126 @@ proptest! {
         prop_assert_eq!(parsed, expected);
     }
 
+}
+
+/// Pedaços de caminho que já enganaram (ou poderiam enganar) a validação: `..` com espaço ou
+/// ponto no fim, sobrescritos, dispositivos, unidade, fluxo alternativo e separadores.
+fn path_segment() -> impl Strategy<Value = String> {
+    prop_oneof![
+        4 => "[a-zA-Z0-9_.-]{1,10}",
+        1 => Just(".".to_owned()),
+        1 => Just("..".to_owned()),
+        1 => Just(String::new()),
+        2 => "\\.{1,3}[ .]{1,3}",
+        1 => "[a-z]{1,6}[ .]{1,2}",
+        1 => "\\.\\.[\u{b2}\u{b3}\u{b9}\u{2074}\u{a0}\u{3000}\u{ff0e}]",
+        1 => "(?i)(con|nul|aux|prn|com[0-9\u{b9}\u{b2}\u{b3}]|lpt[0-9\u{b9}\u{b2}\u{b3}])( ?\\.[a-z]{1,3})?",
+        1 => "[a-zA-Z]:",
+        1 => "[a-z]{1,4}:[a-z]{1,4}",
+        1 => any::<String>().prop_map(|s| s.chars().take(6).collect()),
+    ]
+}
+
+fn pack_path() -> impl Strategy<Value = String> {
+    (
+        prop::collection::vec(path_segment(), 1..6),
+        prop::collection::vec(prop_oneof![Just("/"), Just("\\")], 6),
+    )
+        .prop_map(|(segments, separators)| {
+            let mut text = String::new();
+            for (index, segment) in segments.iter().enumerate() {
+                if index > 0 {
+                    text.push_str(separators[index]);
+                }
+                text.push_str(segment);
+            }
+            text
+        })
+}
+
+/// A propriedade do `check_relative_path`: o caminho aceito, depois de limpo, não sobe de
+/// pasta, não tem raiz nem `:`, e nenhum componente muda de nome no Windows. No Windows, o
+/// próprio sistema confere: o `GetFullPathNameW` (por trás de `std::path::absolute`) devolve a
+/// raiz seguida exatamente dos componentes limpos.
+fn assert_stays_inside(path: &str) -> std::result::Result<(), TestCaseError> {
+    if check_relative_path(path).is_err() {
+        return Ok(());
+    }
+    let cleaned = clean_path(&path.replace('\\', "/"));
+    prop_assert!(
+        !cleaned.starts_with('/') && !cleaned.contains(':'),
+        "{path:?}"
+    );
+    for component in cleaned.split('/') {
+        prop_assert!(
+            component != ".." && component != "." && !component.is_empty(),
+            "{path:?}"
+        );
+        prop_assert!(!component.ends_with(['.', ' ']), "{path:?}");
+    }
+    #[cfg(windows)]
+    {
+        let root = std::path::Path::new(r"C:\warden-raiz-do-teste");
+        let absolute = std::path::absolute(root.join(path)).unwrap();
+        let expected: std::path::PathBuf = std::iter::once(root.as_os_str())
+            .chain(cleaned.split('/').map(std::ffi::OsStr::new))
+            .collect();
+        prop_assert_eq!(absolute, expected, "{:?}", path);
+    }
+    Ok(())
+}
+
+/// Casos que já falharam ou que a pesquisa da normalização do Win32 apontou.
+#[test]
+fn caminhos_de_regressao() {
+    for path in [
+        ".. /x",
+        "..  /x",
+        ".. ./x",
+        "a/.. ",
+        "a/.. .",
+        "a/...",
+        "...",
+        ". /x",
+        "pack.toml.",
+        "index.toml ",
+        "config./x",
+        "config /x",
+        "..\u{2074}",
+        "..\u{2074}/x",
+        "..\u{a0}/x",
+        "..\u{ff0e}/x",
+        "\u{ff0e}\u{ff0e}/x",
+        "..a/b",
+        "COM\u{b9}",
+        "lpt\u{b3}.txt",
+        "com0",
+    ] {
+        assert_stays_inside(path).unwrap();
+    }
+    for path in [".. /x", "a/.. ", "pack.toml.", "config./x", "COM\u{b9}"] {
+        assert!(check_relative_path(path).is_err(), "{path:?}");
+    }
+}
+
+proptest! {
+    // Semente fixa: os mesmos 4096 casos em toda execução e em todas as máquinas. Um caso novo
+    // que falhar vira linha em `caminhos_de_regressao`.
+    #![proptest_config(ProptestConfig {
+        cases: 4096,
+        failure_persistence: None,
+        rng_seed: proptest::test_runner::RngSeed::Fixed(0x5741_5244_454e),
+        ..ProptestConfig::default()
+    })]
+
     #[test]
-    fn caminho_aceito_nunca_sai_do_pack(path in any::<String>()) {
-        if check_relative_path(&path).is_ok() {
-            let cleaned = clean_path(&path.replace('\\', "/"));
-            prop_assert!(!cleaned.starts_with("..") && !cleaned.starts_with('/'));
-            prop_assert!(!cleaned.contains(':'));
-        }
+    fn caminho_aceito_nunca_sai_do_pack(path in pack_path()) {
+        assert_stays_inside(&path)?;
+    }
+
+    #[test]
+    fn caminho_qualquer_nunca_sai_do_pack(path in any::<String>()) {
+        assert_stays_inside(&path)?;
         let cleaned = clean_path(&path);
         prop_assert_eq!(clean_path(&cleaned), cleaned);
     }
