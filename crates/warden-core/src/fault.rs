@@ -19,7 +19,7 @@ pub fn check(point: &'static str) -> io::Result<()> {
 
 /// Passa por um ponto de falha. Sem a feature `fault-injection`, nunca falha.
 #[cfg(not(any(test, feature = "fault-injection")))]
-#[inline(always)]
+#[inline]
 pub fn check(_point: &'static str) -> io::Result<()> {
     Ok(())
 }
