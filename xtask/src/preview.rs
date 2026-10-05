@@ -724,26 +724,33 @@ fn installed_dir(requested: Option<&Path>) -> Result<PathBuf> {
     Ok(PathBuf::from(local).join(PRODUCT_NAME))
 }
 
-/// Abre o Warden instalado, desligado deste terminal (fechar a janela não fecha o app).
+/// Quanto esperar o Warden aparecer depois de pedir ao Explorer para abri-lo.
+const OPEN_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// Abre o Warden instalado pelo Explorer, como um duplo clique. Aberto direto daqui, ele
+/// herdaria os canais de saída deste terminal: com a saída num pipe, o comando só terminaria
+/// quando o Warden fechasse.
 fn open(exe: &Path) -> Result<()> {
-    let mut command = Command::new(exe);
-    command
-        .current_dir(exe.parent().unwrap_or(Path::new(".")))
+    // O Explorer devolve 1 mesmo quando abre o programa; quem confirma é o `tasklist`.
+    Command::new("explorer.exe")
+        .arg(exe)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null());
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt as _;
-        const DETACHED_PROCESS: u32 = 0x0000_0008;
-        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
-        command.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
-    }
-    command
-        .spawn()
+        .stderr(Stdio::null())
+        .status()
         .with_context(|| format!("não foi possível abrir {}", exe.display()))?;
-    println!("preview: Warden aberto.");
-    Ok(())
+    let start = Instant::now();
+    while start.elapsed() < OPEN_TIMEOUT {
+        if !running_warden()?.is_empty() {
+            println!("preview: Warden aberto.");
+            return Ok(());
+        }
+        std::thread::sleep(Duration::from_millis(500));
+    }
+    bail!(
+        "o Warden foi instalado, mas não abriu em {} s. Abra-o pelo menu Iniciar; se não abrir,          mande esta mensagem ao orquestrador.",
+        OPEN_TIMEOUT.as_secs()
+    )
 }
 
 #[cfg(test)]
