@@ -194,7 +194,9 @@ mod tests {
     use crate::logging::with_file_logging;
     use crate::settings::LogLevel;
     use crate::state::tests::test_state;
-    use std::path::Path;
+    use std::io::ErrorKind;
+    use std::path::{Path, PathBuf};
+    use std::time::{Duration, Instant};
     use warden_secrets::{ExposeSecret as _, SecretsErrorCode};
 
     const CF: &str = "$2a$10$valorDeVarreduraDaCurseforge0000000";
@@ -205,33 +207,85 @@ mod tests {
         SecretString::from(text.to_owned())
     }
 
-    /// Todos os arquivos abaixo de `dir`, exceto os de `skip`.
-    fn files_under(dir: &Path, skip: &[&Path]) -> Vec<std::path::PathBuf> {
-        let mut files = Vec::new();
+    /// Arquivo lido pela varredura: caminho e conteúdo.
+    type Scanned = Vec<(PathBuf, Vec<u8>)>;
+
+    /// Prazo para a pasta parar de mudar por ação de outro processo.
+    const SCAN_DEADLINE: Duration = Duration::from_secs(10);
+
+    /// Lê todos os arquivos abaixo de `dir`, exceto os de `skip`.
+    ///
+    /// No Windows, outro processo pode criar e apagar arquivos na pasta por alguns
+    /// milissegundos depois que a operação terminou: com o Kaspersky ativo, apagar o `.env`
+    /// faz surgir um `config/.ENV.tmp` vazio, aberto com acesso exclusivo, que some em seguida
+    /// (1 em cada 5 execuções, em média). Se um arquivo listado some antes da leitura, ou se
+    /// outro processo o segura, a varredura recomeça do zero depois de uma pausa curta, até o
+    /// prazo. Nada é ignorado: o resultado é uma leitura completa de todo arquivo que existia
+    /// no fim.
+    fn read_all_under(dir: &Path, skip: &[&Path]) -> Scanned {
+        let deadline = Instant::now() + SCAN_DEADLINE;
+        loop {
+            match try_read_all_under(dir, skip) {
+                Ok(scanned) => return scanned,
+                Err((_, error)) if is_transient(&error) && Instant::now() < deadline => {
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+                Err((path, error)) => panic!("varredura: {}: {error}", path.display()),
+            }
+        }
+    }
+
+    /// Uma passada da varredura; o primeiro erro interrompe e diz em qual caminho.
+    fn try_read_all_under(
+        dir: &Path,
+        skip: &[&Path],
+    ) -> Result<Scanned, (PathBuf, std::io::Error)> {
+        let mut scanned = Vec::new();
         let mut pending = vec![dir.to_path_buf()];
         while let Some(current) = pending.pop() {
             if skip.iter().any(|skipped| current.starts_with(skipped)) {
                 continue;
             }
-            let Ok(entries) = std::fs::read_dir(&current) else {
-                continue;
+            let entries = match std::fs::read_dir(&current) {
+                Ok(entries) => entries,
+                // A pasta-raiz pode não existir (ex.: o cofre já esvaziado e apagado).
+                Err(error) if error.kind() == ErrorKind::NotFound && current == dir => {
+                    return Ok(scanned);
+                }
+                Err(error) => return Err((current, error)),
             };
             for entry in entries {
-                let path = entry.unwrap().path();
-                if path.is_dir() {
+                let entry = entry.map_err(|error| (current.clone(), error))?;
+                let path = entry.path();
+                let kind = entry.file_type().map_err(|error| (path.clone(), error))?;
+                if kind.is_dir() {
                     pending.push(path);
                 } else if !skip.iter().any(|skipped| path.starts_with(skipped)) {
-                    files.push(path);
+                    let bytes = std::fs::read(&path).map_err(|error| (path.clone(), error))?;
+                    scanned.push((path, bytes));
                 }
             }
         }
-        files
+        Ok(scanned)
     }
 
-    fn assert_no_secret_in(files: &[std::path::PathBuf]) {
-        for file in files {
-            let bytes = std::fs::read(file).unwrap();
-            let text = String::from_utf8_lossy(&bytes);
+    /// Erros de um arquivo que outro processo está criando, segurando ou apagando: sumiu
+    /// (`NotFound`), acesso negado enquanto a exclusão está pendente (5) e compartilhamento
+    /// ou trava em uso (32 e 33, `ERROR_SHARING_VIOLATION` e `ERROR_LOCK_VIOLATION`).
+    fn is_transient(error: &std::io::Error) -> bool {
+        error.kind() == ErrorKind::NotFound
+            || (cfg!(windows) && matches!(error.raw_os_error(), Some(5 | 32 | 33)))
+    }
+
+    /// Nenhum valor nos arquivos lidos e nenhum temporário da escrita atômica sobrando.
+    fn assert_no_secret_in(scanned: &Scanned) {
+        for (file, bytes) in scanned {
+            assert!(
+                !file.to_string_lossy().ends_with(warden_core::TEMP_SUFFIX),
+                "temporário sobrando: {}",
+                file.display()
+            );
+            let text = String::from_utf8_lossy(bytes);
             for value in [CF, GEMINI, GITHUB] {
                 assert!(
                     !text.contains(value),
@@ -267,7 +321,7 @@ mod tests {
             let status = state.secrets.status().unwrap();
             assert_eq!(status.backend, BackendKind::Keyring);
             assert!(status.curseforge && status.gemini && status.github);
-            assert_no_secret_in(&files_under(root, &[&vault]));
+            assert_no_secret_in(&read_all_under(root, &[&vault]));
 
             // Falha injetada no meio da troca: nada muda, nada se perde.
             {
@@ -291,8 +345,11 @@ mod tests {
             assert!(
                 env_text.contains(CF) && env_text.contains(GEMINI) && env_text.contains(GITHUB)
             );
-            assert!(files_under(&vault, &[]).is_empty(), "cofre não esvaziado");
-            assert_no_secret_in(&files_under(root, &[&env_file]));
+            assert!(
+                read_all_under(&vault, &[]).is_empty(),
+                "cofre não esvaziado"
+            );
+            assert_no_secret_in(&read_all_under(root, &[&env_file]));
             drop(state);
 
             // Reiniciar no modo `.env`.
@@ -315,16 +372,16 @@ mod tests {
                     .expose_secret(),
                 CF
             );
-            assert_no_secret_in(&files_under(root, &[&vault]));
+            assert_no_secret_in(&read_all_under(root, &[&vault]));
         });
 
         // Depois de gravados os registros (nível detalhado): nada nos registros nem no
         // `settings.json`.
-        let log_files = files_under(&logs, &[]);
+        let log_files = read_all_under(&logs, &[]);
         assert!(!log_files.is_empty(), "nenhum registro gravado");
         let log_text: String = log_files
             .iter()
-            .map(|file| std::fs::read_to_string(file).unwrap())
+            .map(|(_, bytes)| String::from_utf8_lossy(bytes))
             .collect();
         assert!(log_text.contains("chave gravada"), "{log_text}");
         assert!(log_text.contains("chaves movidas"), "{log_text}");
@@ -334,7 +391,7 @@ mod tests {
             settings.contains("\"secretsBackend\": \"keyring\""),
             "{settings}"
         );
-        assert_no_secret_in(&files_under(root, &[&vault]));
+        assert_no_secret_in(&read_all_under(root, &[&vault]));
     }
 
     #[test]
