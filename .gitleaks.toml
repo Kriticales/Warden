@@ -1,0 +1,26 @@
+# Configuração do gitleaks (F0-02): roda na CI em todo push e PR, sobre o histórico inteiro.
+#
+# Parte das regras padrão do gitleaks e acrescenta a chave da API da CurseForge, que nenhuma
+# regra padrão reconhece: tem o formato de um hash bcrypt, `$2a$10$` seguido de 53 caracteres
+# do alfabeto do bcrypt (60 no total; conferido na chave real, sem exibi-la).
+#
+# Testar localmente (PowerShell, com o gitleaks baixado para uma pasta temporária):
+#   gitleaks git --config .gitleaks.toml --redact --verbose .
+
+title = "Warden"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "curseforge-api-key"
+description = "Chave da API da CurseForge (formato bcrypt `$2a$10$...`)"
+regex = '''\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}'''
+keywords = ["$2a$", "$2b$", "$2y$"]
+
+# Falsos positivos conhecidos. Cada entrada diz o porquê; a lista só cresce com motivo.
+[[allowlists]]
+description = "Chave fictícia do teste do xtask: é o base64 de \"ABCDEFGHIJKLMNOPQRSTUVWX\" (xtask/src/packwiz.rs)."
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ['''^QUJDREVGR0hJSktMTU5PUFFSU1RVVldY$''']
