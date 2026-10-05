@@ -27,6 +27,8 @@ const PENDING: Record<string, string> = {
   secrets_remove: 'P1-13 (Configurações → Chaves e contas)',
   secrets_backend_get: 'P1-13 (Configurações → Chaves e contas)',
   secrets_backend_set: 'P1-13 (Configurações → Chaves e contas)',
+  catalog_minecraft_versions: 'P1-07 (Criar pack: versão do Minecraft)',
+  catalog_loader_versions: 'P1-07 (Criar pack: loader e versão)',
 };
 
 /** Nomes `snake_case` dos comandos em `collect_commands![…]`. */
