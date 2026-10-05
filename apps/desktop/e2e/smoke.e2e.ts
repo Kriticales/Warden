@@ -2,7 +2,9 @@
  * Fumaça (F0-06, critério 3): o app real abre com a moldura (barra do app, conteúdo, rodapé),
  * "Sobre o Warden" mostra a versão de `app_info` e o aviso legal, a gaveta de Tarefas abre pelo
  * rodapé (com o foco no título) e fecha com Esc devolvendo o foco ao indicador, e o axe não
- * acha violação séria nem crítica no WebView real (aqui o contraste é medido de verdade).
+ * acha violação séria nem crítica no WebView real (aqui o contraste é medido de verdade). No
+ * Windows, a barra de título própria (UI-01) aparece com os três botões e o maximizar alterna
+ * com Restaurar.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava capturas da janela nessa pasta.
  */
@@ -70,6 +72,22 @@ describe('fumaça', () => {
     );
     await expect($('footer.statusbar')).toHaveText(expect.stringContaining('Warden 0.1.0'));
     await screenshot('01-inicio');
+  });
+
+  it('no Windows, mostra a barra de título própria e maximiza e restaura', async () => {
+    const isWindows = await browser.execute(() => navigator.userAgent.includes('Windows'));
+    if (!isWindows) {
+      await expect($('[data-testid="titlebar"]')).not.toBeExisting();
+      return;
+    }
+    await expect($('[data-testid="titlebar"]')).toBeDisplayed();
+    await expect($('[data-testid="titlebar"]')).toHaveText(expect.stringContaining('Warden'));
+    await expect($('button[aria-label="Minimizar"]')).toBeDisplayed();
+    await expect($('button[aria-label="Fechar"]')).toBeDisplayed();
+    await $('button[aria-label="Maximizar"]').click();
+    await $('button[aria-label="Restaurar"]').waitForDisplayed();
+    await $('button[aria-label="Restaurar"]').click();
+    await $('button[aria-label="Maximizar"]').waitForDisplayed();
   });
 
   it('abre e fecha a gaveta de Tarefas pelo rodapé, pelo teclado', async () => {
