@@ -216,13 +216,13 @@ impl AdoptiumClient {
         platform: Platform,
         cancel: Option<&CancellationToken>,
     ) -> Result<Option<AdoptiumBuild>> {
-        let range = format!("[{major}.0.0,{major}.0.{})", max_update.saturating_add(1));
-        let mut url = self.url("assets/version/", &[])?;
-        // O intervalo vai no caminho, codificado (`[`, `,` e `)` não são seguros na URL).
-        url.path_segments_mut()
-            .map_err(|()| invalid("endereço base sem caminho"))?
-            .pop_if_empty()
-            .push(&range);
+        // O intervalo vai no caminho, já codificado como a API documenta e como foi conferido
+        // ao vivo: `[8.0.0,8.0.313)` → `%5B8.0.0%2C8.0.313%29`.
+        let above = max_update.saturating_add(1);
+        let mut url = self.url(
+            &format!("assets/version/%5B{major}.0.0%2C{major}.0.{above}%29"),
+            &[],
+        )?;
         url.query_pairs_mut().extend_pairs([
             ("architecture", platform.arch_key()),
             ("heap_size", "normal"),

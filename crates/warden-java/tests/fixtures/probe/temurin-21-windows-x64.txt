@@ -1,0 +1,57 @@
+Property settings:
+    file.encoding = UTF-8
+    file.separator = \
+    java.class.path = 
+    java.class.version = 65.0
+    java.home = C:\exemplo\jdk-21.0.12.1+1-jre
+    java.io.tmpdir = C:\Users\usuario\AppData\Local\Temp\
+    java.library.path = C:\exemplo\bin
+        <PATH removido>
+    java.runtime.name = OpenJDK Runtime Environment
+    java.runtime.version = 21.0.12.1+1-LTS
+    java.specification.name = Java Platform API Specification
+    java.specification.vendor = Oracle Corporation
+    java.specification.version = 21
+    java.vendor = Eclipse Adoptium
+    java.vendor.url = https://adoptium.net/
+    java.vendor.url.bug = https://github.com/adoptium/adoptium-support/issues
+    java.vendor.version = Temurin-21.0.12.1+1
+    java.version = 21.0.12.1
+    java.version.date = 2026-08-18
+    java.vm.compressedOopsMode = Zero based
+    java.vm.info = mixed mode, sharing
+    java.vm.name = OpenJDK 64-Bit Server VM
+    java.vm.specification.name = Java Virtual Machine Specification
+    java.vm.specification.vendor = Oracle Corporation
+    java.vm.specification.version = 21
+    java.vm.vendor = Eclipse Adoptium
+    java.vm.version = 21.0.12.1+1-LTS
+    jdk.debug = release
+    line.separator = \r \n 
+    native.encoding = Cp1252
+    os.arch = amd64
+    os.name = Windows 11
+    os.version = 10.0
+    path.separator = ;
+    stderr.encoding = Cp1252
+    stdout.encoding = Cp1252
+    sun.arch.data.model = 64
+    sun.boot.library.path = C:\exemplo\jdk-21.0.12.1+1-jre\bin
+    sun.cpu.endian = little
+    sun.cpu.isalist = amd64
+    sun.io.unicode.encoding = UnicodeLittle
+    sun.java.launcher = SUN_STANDARD
+    sun.jnu.encoding = Cp1252
+    sun.management.compiler = HotSpot 64-Bit Tiered Compilers
+    sun.os.patch.level = 
+    user.country = BR
+    user.dir = C:\exemplo
+    user.home = C:\Users\usuario
+    user.language = pt
+    user.name = usuario
+    user.script = 
+    user.variant = 
+
+openjdk version "21.0.12.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)

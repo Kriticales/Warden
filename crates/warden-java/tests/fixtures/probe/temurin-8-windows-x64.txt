@@ -1,0 +1,68 @@
+Property settings:
+    awt.toolkit = sun.awt.windows.WToolkit
+    file.encoding = Cp1252
+    file.encoding.pkg = sun.io
+    file.separator = \
+    java.awt.graphicsenv = sun.awt.Win32GraphicsEnvironment
+    java.awt.printerjob = sun.awt.windows.WPrinterJob
+    java.class.path = .
+    java.class.version = 52.0
+    java.endorsed.dirs = C:\exemplo\jdk8u504-b01-jre\lib\endorsed
+    java.ext.dirs = C:\exemplo\jdk8u504-b01-jre\lib\ext
+        C:\WINDOWS\Sun\Java\lib\ext
+    java.home = C:\exemplo\jdk8u504-b01-jre
+    java.io.tmpdir = C:\Users\usuario\AppData\Local\Temp\
+    java.library.path = C:\exemplo\bin
+        <PATH removido>
+    java.runtime.name = OpenJDK Runtime Environment
+    java.runtime.version = 1.8.0_504-b01
+    java.specification.maintenance.version = 6
+    java.specification.name = Java Platform API Specification
+    java.specification.vendor = Oracle Corporation
+    java.specification.version = 1.8
+    java.vendor = Temurin
+    java.vendor.url = https://adoptium.net/
+    java.vendor.url.bug = https://github.com/adoptium/adoptium-support/issues
+    java.version = 1.8.0_504
+    java.vm.info = mixed mode
+    java.vm.name = OpenJDK 64-Bit Server VM
+    java.vm.specification.name = Java Virtual Machine Specification
+    java.vm.specification.vendor = Oracle Corporation
+    java.vm.specification.version = 1.8
+    java.vm.vendor = Temurin
+    java.vm.version = 25.504-b01
+    line.separator = \r \n 
+    os.arch = amd64
+    os.name = Windows 11
+    os.version = 10.0
+    path.separator = ;
+    sun.arch.data.model = 64
+    sun.boot.class.path = C:\exemplo\jdk8u504-b01-jre\lib\resources.jar
+        C:\exemplo\jdk8u504-b01-jre\lib\rt.jar
+        C:\exemplo\jdk8u504-b01-jre\lib\sunrsasign.jar
+        C:\exemplo\jdk8u504-b01-jre\lib\jsse.jar
+        C:\exemplo\jdk8u504-b01-jre\lib\jce.jar
+        C:\exemplo\jdk8u504-b01-jre\lib\charsets.jar
+        C:\exemplo\jdk8u504-b01-jre\lib\jfr.jar
+        C:\exemplo\jdk8u504-b01-jre\classes
+    sun.boot.library.path = C:\exemplo\jdk8u504-b01-jre\bin
+    sun.cpu.endian = little
+    sun.cpu.isalist = amd64
+    sun.desktop = windows
+    sun.io.unicode.encoding = UnicodeLittle
+    sun.java.launcher = SUN_STANDARD
+    sun.jnu.encoding = Cp1252
+    sun.management.compiler = HotSpot 64-Bit Tiered Compilers
+    sun.os.patch.level = 
+    user.country = BR
+    user.dir = C:\exemplo
+    user.home = C:\Users\usuario
+    user.language = pt
+    user.name = usuario
+    user.script = 
+    user.timezone = 
+    user.variant = 
+
+openjdk version "1.8.0_504"
+OpenJDK Runtime Environment (Temurin)(build 1.8.0_504-b01)
+OpenJDK 64-Bit Server VM (Temurin)(build 25.504-b01, mixed mode)
