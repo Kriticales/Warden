@@ -5,3 +5,12 @@ packages:
 # Versões exatas no package.json; o lockfile fixa o resto.
 saveExact: true
 engineStrict: true
+
+# Scripts de instalação: só rodam os que estão aqui (pnpm bloqueia o resto).
+allowBuilds:
+  # Baixa o binário nativo do esbuild; o Vite não funciona sem ele.
+  esbuild: true
+  # Baixam drivers da internet na instalação; o `cargo xtask e2e-driver`
+  # já obtém o msedgedriver da versão certa do WebView2, e não usamos Firefox.
+  edgedriver: false
+  geckodriver: false
