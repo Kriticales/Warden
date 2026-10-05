@@ -1,0 +1,87 @@
+# Execução noturna do Warden (F0-02; ADR-0022; QUALITY §4.1 e §12). Roda na `main` toda noite
+# e manualmente (Actions → Noturno → Run workflow).
+#
+#   - rede: testes contra as APIs reais (`cargo xtask test-network`), com a chave da CurseForge
+#     dos segredos do repositório. É o único workflow que recebe segredos;
+#   - windows: check, cofre real e instalador do `windows.yml` (decisão D9);
+#   - conformidade no Windows: testes `conformance_*` com o packwiz-installer real e o Java 21;
+#   - E2E no Windows, assim que o harness da F0-06 existir.
+
+name: Noturno
+
+on:
+  schedule:
+    # 06:00 UTC (03:00 em Brasília), fora do horário de trabalho.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: noturno
+  cancel-in-progress: false
+
+jobs:
+  rede:
+    name: Linux · testes de rede
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: ubuntu-24.04
+      cache-key: linux-rede
+      timeout-minutes: 60
+      env-file: true
+      run: cargo xtask test-network
+    secrets:
+      CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
+  windows:
+    name: Windows
+    uses: ./.github/workflows/windows.yml
+
+  conformidade-windows:
+    name: Windows · conformidade
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: windows-latest
+      cache-key: windows-conformidade
+      timeout-minutes: 90
+      java: true
+      # Arquivos `tests/conformance_*.rs` (QUALITY §4.1); enquanto não existirem, só avisa.
+      run: cargo nextest run --workspace --locked --no-tests=warn -E 'binary(/^conformance_/)'
+
+  detectar-e2e:
+    name: Windows · E2E existe?
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      e2e: ${{ steps.detectar.outputs.e2e }}
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Detectar o harness de E2E
+        id: detectar
+        run: |
+          if [ -f apps/desktop/wdio.conf.ts ] && jq -e '.scripts.e2e' apps/desktop/package.json > /dev/null; then
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "e2e=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::E2E Windows pulado: ainda não há apps/desktop/wdio.conf.ts com o script e2e (F0-06)."
+          fi
+
+  e2e-windows:
+    name: Windows · E2E
+    needs: detectar-e2e
+    if: needs.detectar-e2e.outputs.e2e == 'true'
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: windows-latest
+      cache-key: windows-e2e
+      timeout-minutes: 90
+      # `e2e-driver` baixa o msedgedriver da mesma versão do WebView2 da máquina (QUALITY §13.5).
+      run: |
+        cargo xtask e2e-driver
+        (cd apps/desktop && cargo tauri build --ci --debug --no-bundle)
+        pnpm -C apps/desktop e2e

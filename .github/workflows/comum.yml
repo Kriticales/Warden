@@ -1,0 +1,224 @@
+# Job comum do Warden (reutilizável): prepara a máquina como o `cargo xtask setup` e roda os
+# comandos pedidos. Usado pelos jobs pesados do `ci.yml`, do `windows.yml` e do `nightly.yml`,
+# para que Linux e Windows se preparem do mesmo jeito (ADR-0022, ADR-0048, QUALITY §12).
+#
+# Preparação, nesta ordem:
+#   1. dependências do sistema (só Linux: WebKitGTK do Tauri; Xvfb e WebKitWebDriver se `e2e`);
+#   2. Rust da versão fixada no `rust-toolchain.toml`, Node do `.nvmrc`, pnpm do
+#      `packageManager`, Go e, se `java`, o Java 21;
+#   3. caches: ferramentas do `cargo install` (versões do `xtask/src/setup.rs`), dependências
+#      do cargo e pasta `target` (rust-cache), loja do pnpm, módulos do Go e o sidecar do
+#      packwiz, por commit do packwiz e SHA dos patches;
+#   4. `cargo xtask build-packwiz` com novas tentativas (o GitHub e o proxy do Go às vezes não
+#      respondem) e `cargo xtask setup`.
+#
+# Segredos: só o `nightly.yml` passa `CURSEFORGE_API_KEY`, e só quando `env-file` é true. O
+# valor vai para um `.env` na raiz (ignorado pelo git), que é o que o `cargo xtask
+# test-network` lê, e o arquivo é apagado no fim, mesmo com falha. Nada imprime o valor.
+
+name: Job comum
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: Máquina do GitHub (`ubuntu-24.04` ou `windows-latest`).
+        type: string
+        required: true
+      cache-key:
+        description: Nome do cache da pasta `target` (um por tipo de job, para não se misturarem).
+        type: string
+        required: true
+      run:
+        description: Comandos (bash, para em qualquer erro) rodados depois da preparação.
+        type: string
+        required: true
+      timeout-minutes:
+        description: Tempo-limite do job.
+        type: number
+        required: true
+      e2e:
+        description: Instala o Xvfb e o WebKitWebDriver (Linux) para os testes ponta a ponta.
+        type: boolean
+        default: false
+      java:
+        description: Instala o Java 21 (conformidade com o packwiz-installer real).
+        type: boolean
+        default: false
+      env-file:
+        description: Grava `CURSEFORGE_API_KEY` num `.env` temporário (testes de rede).
+        type: boolean
+        default: false
+      artifact-name:
+        description: Nome do artefato a publicar (vazio, nenhum).
+        type: string
+        default: ""
+      artifact-path:
+        description: Arquivos do artefato.
+        type: string
+        default: ""
+    secrets:
+      CURSEFORGE_API_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  # Na CI, falta do packwiz ou do Java é falha, não aviso (QUALITY §4.1).
+  WARDEN_REQUIRE_EXTERNALS: "1"
+  # Perfil do nextest que roda tudo e mostra todas as falhas (.config/nextest.toml).
+  NEXTEST_PROFILE: ci
+  # Versão do Go usada no sidecar; a mesma série da máquina de desenvolvimento.
+  GO_VERSION: "1.26.5"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  rodar:
+    name: rodar
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Dependências do sistema (Linux)
+        if: runner.os == 'Linux'
+        env:
+          E2E: ${{ inputs.e2e }}
+        run: |
+          pacotes=(build-essential file libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev)
+          if [ "$E2E" = "true" ]; then
+            pacotes+=(webkit2gtk-driver xvfb)
+          fi
+          sudo apt-get update -q
+          sudo apt-get install -q -y --no-install-recommends "${pacotes[@]}"
+
+      - name: Rust (versão do rust-toolchain.toml)
+        run: |
+          rustup toolchain install
+          rustc --version --verbose
+          cargo --version
+
+      - name: pnpm (versão do packageManager)
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Node (versão do .nvmrc) e cache do pnpm
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          # O go.sum é o do packwiz, que só existe depois do clone; o cache do Go é feito abaixo.
+          cache: false
+
+      - name: Java 21
+        if: inputs.java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Cache das ferramentas do cargo install
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          # Só os executáveis do `cargo xtask setup` e os registros do cargo install; o resto
+          # de ~/.cargo/bin (rustup, cargo) vem da imagem da máquina.
+          path: |
+            ~/.cargo/bin/cargo-nextest*
+            ~/.cargo/bin/cargo-deny*
+            ~/.cargo/bin/cargo-llvm-cov*
+            ~/.cargo/bin/cargo-tauri*
+            ~/.cargo/bin/tauri-driver*
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+          key: ferramentas-${{ runner.os }}-${{ hashFiles('xtask/src/setup.rs', 'rust-toolchain.toml') }}
+
+      - name: Cache do cargo e da pasta target
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: ${{ inputs.cache-key }}
+          # As ferramentas têm cache próprio, com chave pelas versões fixadas.
+          cache-bin: "false"
+
+      - name: Cache dos módulos do Go
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/AppData/Local/go-build
+          key: go-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('third_party/packwiz/COMMIT') }}
+          restore-keys: |
+            go-${{ runner.os }}-${{ env.GO_VERSION }}-
+
+      - name: Cache do sidecar do packwiz (por commit e patches)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          # Executáveis com patch, registro do build e o executável sem patch de referência;
+          # o `build-packwiz` confere os SHA-256 e recompila se algo não bater.
+          path: |
+            apps/desktop/src-tauri/binaries/packwiz-*
+            apps/desktop/src-tauri/binaries/packwiz.commit
+            apps/desktop/src-tauri/binaries/packwiz.build.toml
+            target/packwiz/referencia
+          key: packwiz-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('third_party/packwiz/**', 'xtask/src/packwiz.rs') }}
+
+      - name: Sidecar do packwiz (com novas tentativas)
+        run: |
+          for tentativa in 1 2 3 4; do
+            if cargo xtask build-packwiz; then
+              exit 0
+            fi
+            if [ "$tentativa" -lt 4 ]; then
+              espera=$((tentativa * 30))
+              echo "::warning::build-packwiz falhou (tentativa $tentativa de 4); nova tentativa em ${espera} s."
+              sleep "$espera"
+            fi
+          done
+          echo "::error::build-packwiz falhou 4 vezes; veja o registro acima (rede ou Go)."
+          exit 1
+
+      - name: cargo xtask setup
+        run: cargo xtask setup
+
+      - name: Chave da CurseForge num .env temporário
+        if: inputs.env-file
+        env:
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        run: |
+          if [ -z "$CURSEFORGE_API_KEY" ]; then
+            echo "::error::O segredo CURSEFORGE_API_KEY não chegou ao job."
+            exit 1
+          fi
+          umask 077
+          printf "CURSEFORGE_API_KEY='%s'\n" "$CURSEFORGE_API_KEY" > .env
+
+      - name: Rodar
+        run: ${{ inputs.run }}
+
+      - name: Apagar o .env temporário
+        if: always() && inputs.env-file
+        run: rm -f .env
+
+      - name: Publicar o artefato
+        if: inputs.artifact-name != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
+          if-no-files-found: error
+          retention-days: 30
