@@ -852,3 +852,56 @@ async fn duas_preparacoes_ao_mesmo_tempo_baixam_uma_vez() {
     assert_eq!(downloads, 1);
     assert_eq!(env.probe.calls.load(Ordering::SeqCst), 1);
 }
+
+#[tokio::test]
+async fn cancelar_a_atualizacao_no_meio_mantem_o_java_antigo_e_nao_deixa_sobra() {
+    let server = MockServer::start().await;
+    publish_latest(&server, 17, "17.0.15", "jdk-17.0.15+6").await;
+    let env = env(&base(&server), &no_mojang(&server));
+    let old17 = env
+        .runtimes
+        .ensure(req(17), &NoProgress, &CancellationToken::new())
+        .await
+        .unwrap();
+    // A atualização nova demora a chegar; o usuário cancela no meio.
+    server.reset().await;
+    let version = JavaVersion::new(17, 0, 20, 1, 1);
+    let (name, bytes) = jre_package(17, "17.0.20.1+1", "jdk-17.0.20.1+1-jre");
+    let link = format!("{}/dl/{name}", server.uri());
+    Mock::given(method("GET"))
+        .and(path("/v3/assets/latest/17/hotspot"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(serde_json::json!([latest_item(
+                &version,
+                "jdk-17.0.20.1+1",
+                &name,
+                &link,
+                &bytes
+            )])),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(format!("/dl/{name}")))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_bytes(bytes)
+                .set_delay(Duration::from_secs(30)),
+        )
+        .mount(&server)
+        .await;
+    let cancel = CancellationToken::new();
+    let trigger = cancel.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        trigger.cancel();
+    });
+    let error = env
+        .runtimes
+        .check_updates(&NoProgress, &cancel)
+        .await
+        .unwrap_err();
+    assert!(matches!(error, Error::Cancelled), "{error:?}");
+    assert_eq!(env.runtimes.installed().unwrap(), vec![old17.clone()]);
+    assert_eq!(env.runtime_dir_entries(), vec![old17.id.to_string()]);
+}

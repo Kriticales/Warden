@@ -114,21 +114,27 @@ pub(crate) async fn java_runtimes_check_updates(
     state: State<'_, AppState>,
 ) -> Result<UpdateReport, AppError> {
     let handle = state.operations.start(CHECK_UPDATES, None, true);
-    let java = state.java.clone();
     let token = handle.token().clone();
-    let result = handle
-        .run_cancellable(async {
-            let report = java.check_updates(&handle, &token).await?;
-            tracing::info!(
-                updated = report.updated.len(),
-                removed = report.removed.len(),
-                failed = report.failed.len(),
-                "atualizações do Java conferidas"
-            );
-            Ok(report)
-        })
-        .await;
+    // O cancelamento vai pelo token até a `warden-java`, que para entre as etapas e apaga a
+    // pasta temporária da instalação em andamento (descartar a tarefa no meio deixaria a
+    // pasta para a limpeza da próxima abertura).
+    let result = check_updates_impl(&state.java, &handle, &token).await;
     handle.finish(result)
+}
+
+async fn check_updates_impl(
+    java: &JavaRuntimes,
+    progress: &dyn warden_core::ProgressSink,
+    cancel: &warden_core::CancellationToken,
+) -> Result<UpdateReport, AppError> {
+    let report = java.check_updates(progress, cancel).await?;
+    tracing::info!(
+        updated = report.updated.len(),
+        removed = report.removed.len(),
+        failed = report.failed.len(),
+        "atualizações do Java conferidas"
+    );
+    Ok(report)
 }
 
 /// Remove um Java e devolve a tabela atualizada.
@@ -222,6 +228,20 @@ mod tests {
         let error = AppError::from(warden_java::Error::RuntimeInUse { id: "x".into() });
         assert_eq!(error.code, ErrorCode::Java(JavaErrorCode::RuntimeInUse));
         assert_eq!(error.params["id"], "x");
+    }
+
+    #[tokio::test]
+    async fn procurar_atualizacoes_sem_javas_nao_pede_nada() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let report = check_updates_impl(
+            &state.java,
+            &warden_core::NoProgress,
+            &warden_core::CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        assert!(report.updated.is_empty() && report.failed.is_empty());
     }
 
     #[test]
