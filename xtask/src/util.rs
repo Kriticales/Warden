@@ -234,7 +234,9 @@ mod tests {
 
     #[test]
     fn display_mostra_nome_do_programa_e_argumentos_sem_ambiente() {
-        let cmd = Cmd::new("C:\\x\\pnpm.cmd")
+        // Caminho montado com o separador da plataforma, para valer no Linux também.
+        let program = Path::new("x").join("pnpm.cmd");
+        let cmd = Cmd::new(&program)
             .args(["install", "--frozen-lockfile"])
             .env("SEGREDO", "valor");
         assert_eq!(cmd.display(), "pnpm install --frozen-lockfile");
