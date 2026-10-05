@@ -1,0 +1,32 @@
+---
+source: crates/warden-versioning/tests/packwiz_real.rs
+expression: "render_entry(&suggestion.version, \"2026-10-01\", \"\", &changes)"
+---
+## 2.0.0 — 2026-10-01
+
+### Atenção
+- Mods removidos podem apagar blocos ou itens de mundos existentes. Faça backup antes de atualizar.
+
+### Minecraft e loader
+- Fabric 0.16.14 removido
+- NeoForge 21.1.209 adicionado
+
+### Mods adicionados
+- FerriteCore ferritecore-7.0.3-neoforge.jar (Modrinth)
+
+### Mods removidos
+- Jade 🔍 Jade-1.21.1-Fabric-15.10.6.jar (CurseForge)
+- Lithium lithium-fabric-0.15.4+mc1.21.1.jar (Modrinth)
+- Mod Menu modmenu-11.0.5.jar (Modrinth)
+- Text Placeholder API placeholder-api-2.4.2+1.21.jar (link direto)
+
+### Mods atualizados
+- Sodium sodium-fabric-0.8.13+mc1.21.1.jar → sodium-neoforge-0.8.13+mc1.21.1.jar
+
+### Resource packs e shaders
+- Removido: Fresh Animations FreshAnimations\_v1.10.4.zip (Modrinth)
+- Removido: Complementary Shaders - Reimagined ComplementaryReimagined\_r5.9.3.zip (Modrinth)
+
+### Configs alteradas
+- config/exemplo.properties
+- options.txt
