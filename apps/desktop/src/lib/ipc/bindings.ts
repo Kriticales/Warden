@@ -661,7 +661,41 @@ mb: number };
  */
 export type VersioningErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  A pasta do pack ainda não tem histórico de versões. */
+"NOT_VERSIONED" | 
+/**  A pasta do pack já tem histórico de versões. */
+"ALREADY_VERSIONED" | 
+/**  O histórico pertence a outro usuário do Windows (proteção da libgit2). */
+"REPO_NOT_OWNED" | 
+/**  Outro programa está mexendo no histórico agora (arquivo de trava do git). */
+"REPO_LOCKED" | 
+/**  O histórico está no meio de uma operação feita por fora (merge, rebase…). */
+"REPO_BUSY" | 
+/**  O histórico não está numa linha de versões (HEAD destacado). */
+"DETACHED_HEAD" | 
+/**  O histórico tem conflitos não resolvidos. */
+"CONFLICTS" | 
+/**  O texto não é uma versão no formato X.Y.Z. */
+"INVALID_VERSION" | 
+/**  A versão pedida não é maior que a última salva. */
+"VERSION_NOT_GREATER" | 
+/**  Já existe uma versão salva com esse número. */
+"VERSION_EXISTS" | 
+/**  Nada mudou desde a última versão salva. */
+"NOTHING_CHANGED" | 
+/**  A versão pedida não existe no histórico. */
+"VERSION_NOT_FOUND" | 
+/**  O ponto de segurança pedido não existe. */
+"SAFETY_POINT_NOT_FOUND" | 
+/**  A versão já foi publicada e não pode deixar de ser versão final. */
+"VERSION_PUBLISHED" | 
+/**  Um arquivo do pack está aberto em outro programa (o jogo, o antivírus…). */
+"FILE_IN_USE" | 
+/**  A restauração falhou e o pack não pôde voltar sozinho ao estado anterior. */
+"ROLLBACK_FAILED" | 
+/**  Falha da biblioteca git ao ler ou gravar o histórico. */
+"GIT_FAILED";
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {
