@@ -68,6 +68,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `encoding_rs` | 0.8.42 | (Apache-2.0 OR MIT) AND BSD-3-Clause | `warden-diagnostics` | Recuo para Windows-1252 nas linhas de log que não são UTF-8 (ARCHITECTURE §7.4) e variantes de codificação dos nomes na redação (D-02). |
 | `unicode-normalization` | 0.1.25 | MIT OR Apache-2.0 | `warden-diagnostics` | Formas NFC/NFD dos nomes com acento na redação de dados pessoais (D-02). |
 | `quick-xml` | 0.42.0 | MIT | `warden-catalog` | Leitura do `maven-metadata.xml` do Forge (lista de versões). Mesma versão que já vinha pelo `plist` do Tauri. |
+| `flate2` | 1.1.10 | MIT OR Apache-2.0 | `warden-java` | Descompressão do `.tar.gz` do Temurin no Linux (já vinha como dependência do `zip`). |
+| `tar` | 0.4.46 | MIT OR Apache-2.0 | `warden-java` | Leitura do `.tar.gz` do Temurin no Linux, sem os atributos estendidos (`xattr`). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
@@ -123,6 +125,13 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `crates/warden-jarmeta/tests/data/flexver_test_vectors.txt` | `test/test_vectors.txt` de [unascribed/FlexVer](https://github.com/unascribed/FlexVer) (branch `trunk`, baixado em 2026-10-04) | CC0-1.0 | Vetores oficiais de comparação do FlexVer, sem alteração. |
 | `crates/warden-diagnostics/tests/corpus/codex-*/` | `test/data/` de [aternosorg/codex-minecraft](https://github.com/aternosorg/codex-minecraft), commit `d7fb6a30b8dbe9d9f73c97e4ad7927a45c3173e9` (Copyright (c) 2019-2025 Aternos GmbH) | MIT | Logs públicos do mclo.gs usados no corpus da análise pós-crash; nomes de pessoas trocados por fictícios (`tests/corpus/FIXTURES.md`); licença em `tests/corpus/LICENSE-codex-minecraft.txt`. |
 | `crates/warden-diagnostics/tests/corpus/github-*/` | logs citados em issues públicas do GitHub (links em `tests/corpus/FIXTURES.md`) | sem licença declarada; trechos curtos de log usados só como dado de teste | Queda nativa no driver de vídeo e jar Fabric no NeoForge. |
+
+## Java baixado pelo app na máquina do usuário (não redistribuído)
+
+| Origem | Licença | Para quê |
+|---|---|---|
+| Eclipse Temurin JRE 8, 17, 21 e 25 ([api.adoptium.net](https://api.adoptium.net/v3/), pacotes nos releases `adoptium/temurin*-binaries` do GitHub) | GPL-2.0 com Classpath Exception | Fonte padrão do Java do teste (ADR-0012), baixada pela `warden-java` e conferida pelo SHA-256 da API. |
+| Runtime Java oficial da Mojang (`piston-meta.mojang.com`, índice `java-runtime`) | Oracle Binary Code License (o `jre-legacy` 8u51 do Windows); GPL-2.0 com Classpath Exception (os demais) | Alternativa quando o Adoptium falha (ADR-0012), baixada arquivo a arquivo e conferida pelo SHA-1 do manifesto, como faz o launcher oficial. |
 
 ## Sidecar do packwiz
 

@@ -1,0 +1,93 @@
+# Tabela de compatibilidade do Java (ADR-0029; ARCHITECTURE §7.3; tarefa L-01).
+#
+# Embutida no binário (`include_str!`) e validada pelos testes da crate `warden-java`
+# (`compat.rs` e `tests/politica.rs`): cada regra tem um teste com o motivo esperado, as faixas
+# não se sobrepõem, cada major existe na lista `majors` e a lista bate com os LTS publicados pelo
+# Adoptium (teste de rede `rede_majors_da_tabela_existem_no_adoptium`).
+#
+# Como a política usa esta tabela (primeira regra que se aplica):
+#   a) Java escolhido pelo usuário em Ajustes do teste (fora da tabela);
+#   b/c) `[[loader_rule]]`: regras de loader que obrigam um Java (e, às vezes, um teto de
+#        atualização), na ordem do arquivo;
+#   d) `[[range]]`: o major MAIS NOVO de `java` para a faixa de versão do Minecraft (as faixas
+#      com `loaders` valem antes das gerais para aqueles loaders);
+#   e) sem faixa: `javaVersion.majorVersion` do JSON da versão (16 vira 17), ou 8 sem ele.
+#
+# Faixas: `minecraft_from` (inclusiva) até `minecraft_below` (exclusiva). Versões de lançamento,
+# comparadas número a número (`1.20` = `1.20.0`); uma pré-versão conta como a versão que antecede.
+#
+# Regra de manutenção (ADR-0029): uma faixa só ganha um major mais novo em `java` depois que a
+# matriz de versões (ROADMAP L-05) passar com ele. Ao acrescentar um major, acrescente também o
+# teste da regra em `tests/politica.rs`.
+#
+# Campos de texto:
+# - reason: código estável do motivo, traduzido pela interface (`JavaChoiceReason`).
+# - label: a faixa em texto curto para a interface ("1.17 a 1.20.4").
+# - motivo: o motivo em português, para quem lê esta tabela e para "Detalhes técnicos".
+# - fonte: de onde veio a regra.
+
+schema = 1
+
+# Majors que o Warden baixa: os LTS do Adoptium Temurin (R2 §2.3). O Java 16 não é publicado
+# pelo Adoptium; 1.17.x usa o 17, como faz o Prism (R2 §2.1).
+majors = [8, 17, 21, 25]
+
+[[loader_rule]]
+id = "forge-antigo-so-java-8"
+label = "até o 1.12.2"
+loader = "forge"
+minecraft_from = "1.0"
+minecraft_below = "1.13"
+java = 8
+reason = "FORGE_LEGACY_JAVA8"
+motivo = "O Forge do Minecraft 1.7.10 ao 1.12.2 só abre no Java 8: a partir do Java 9 ele trava ao iniciar (o launchwrapper converte o carregador de classes do sistema para URLClassLoader, o que falha com ClassCastException)."
+fonte = "R2 §2.1; SKCraft/Launcher#284; MultiMC/Launcher#5346"
+
+[[loader_rule]]
+id = "forge-1.16.5-anterior-ao-36.2.26"
+label = "1.16.5"
+loader = "forge"
+minecraft_from = "1.16.5"
+minecraft_below = "1.16.6"
+loader_below = "36.2.26"
+java = 8
+max_update = 312
+reason = "FORGE_1165_OLD"
+motivo = "O Forge 1.16.5 anterior ao 36.2.26 trava no Java 8u321 ou mais novo (NoSuchMethodError em ManifestEntryVerifier no modlauncher); por isso usa o Java 8 até a atualização 312."
+fonte = "R2 §2.1; Prism Launcher, Installing Java, 'Forge 1.16.5 and Java 8u321+'; TeamMoegMC/TheWinterRescue#44"
+
+[[range]]
+id = "ate-1.16.5"
+label = "até o 1.16.5"
+minecraft_from = "1.0"
+minecraft_below = "1.17"
+java = [8]
+motivo = "Do Minecraft 1.0 ao 1.16.5 o jogo pede o Java 8 (componente jre-legacy da Mojang), o único provado nessa faixa."
+fonte = "R2 §2.1 (javaVersion de todas as versões do manifesto)"
+
+[[range]]
+id = "1.17-a-1.20.4"
+label = "1.17 a 1.20.4"
+minecraft_from = "1.17"
+minecraft_below = "1.20.5"
+java = [17]
+motivo = "Do Minecraft 1.17 ao 1.20.4 o jogo pede o Java 17 (o 1.17.x pedia o 16, que o Adoptium não publica e que o 17 substitui); um Java mais novo ainda não foi provado nessa faixa."
+fonte = "R2 §2.1; meta do Prism (compatibleJavaMajors)"
+
+[[range]]
+id = "1.20.5-a-1.21.x"
+label = "1.20.5 a 1.21.x"
+minecraft_from = "1.20.5"
+minecraft_below = "1.22"
+java = [21]
+motivo = "Do Minecraft 1.20.5 ao 1.21.x o jogo pede o Java 21; um Java mais novo ainda não foi provado nessa faixa."
+fonte = "R2 §2.1"
+
+[[range]]
+id = "26.x"
+label = "26.x"
+minecraft_from = "26.0"
+minecraft_below = "27.0"
+java = [25]
+motivo = "As versões 26.x do Minecraft pedem o Java 25, o mais novo que o Warden baixa."
+fonte = "R2 §2.1 (java-runtime-epsilon)"
