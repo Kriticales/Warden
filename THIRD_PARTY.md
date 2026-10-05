@@ -59,6 +59,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `bytes` | 1.12.1 | MIT | `warden-http` | Pedaços do corpo das respostas (tipo do `reqwest`). |
 | `url` | 2.5.8 | MIT OR Apache-2.0 | `warden-http`, `warden-modrinth` | Links validados e montagem de consultas. |
 | `wiremock` | 0.6.5 | MIT OR Apache-2.0 | `warden-http`, `warden-modrinth` (testes) | Servidor HTTP simulado: 429, retomada com `Range`, limitador por servidor (QUALITY §4.1). |
+| `rusqlite` | 0.40.2 | MIT | `warden-modrinth` | Cache `metadata.sqlite` (ARCHITECTURE §13), com o SQLite embutido (`bundled`, domínio público). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

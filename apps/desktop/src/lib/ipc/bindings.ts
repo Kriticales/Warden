@@ -336,7 +336,23 @@ export type MixinErrorCode =
  */
 export type ModrinthErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O projeto não existe (ou não é público). */
+"PROJECT_NOT_FOUND" | 
+/**  A versão não existe. */
+"VERSION_NOT_FOUND" | 
+/**  O Modrinth não encontrou o endereço pedido. */
+"NOT_FOUND" | 
+/**  O Modrinth limitou as requisições (429) por mais tempo do que o Warden espera sozinho. */
+"RATE_LIMITED" | 
+/**  O Modrinth está fora do ar ou com erro (5xx). */
+"UNAVAILABLE" | 
+/**  O Modrinth recusou o pedido (4xx). */
+"REQUEST_REJECTED" | 
+/**  O Modrinth respondeu algo que o Warden não entende. */
+"INVALID_RESPONSE" | 
+/**  O cache local do Modrinth (`metadata.sqlite`) não pôde ser lido ou gravado. */
+"CACHE_UNAVAILABLE";
 
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;

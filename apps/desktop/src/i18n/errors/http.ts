@@ -23,8 +23,7 @@ export const http: Record<HttpErrorCode, string> = {
     'O arquivo baixado de {{host}} não é igual ao esperado e foi descartado. Tente baixar de novo; se continuar, o arquivo no servidor pode ter sido trocado.',
   SIZE_MISMATCH:
     'O arquivo baixado de {{host}} veio com o tamanho errado e foi descartado. Tente baixar de novo.',
-  INVALID_URL:
-    'O link {{url}} não pôde ser usado. Confira se ele começa com http:// ou https://.',
+  INVALID_URL: 'O link {{url}} não pôde ser usado. Confira se ele começa com http:// ou https://.',
   TOO_MANY_REDIRECTS:
     'O servidor {{host}} redirecionou o pedido vezes demais. Tente de novo mais tarde ou confira o link.',
   INSECURE_REDIRECT:
