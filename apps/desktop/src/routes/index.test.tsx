@@ -1,71 +1,84 @@
-import { createMemoryHistory } from '@tanstack/react-router';
-import { mockIPC } from '@tauri-apps/api/mocks';
-import { render, screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { App } from '../app/App';
-import type { AppError, AppInfo } from '../lib/ipc/bindings';
-
-function renderHome() {
-  render(<App history={createMemoryHistory({ initialEntries: ['/'] })} />);
-}
+import { axePage } from '../test/axe';
+import { ipcError, mockBackend } from '../test/backend';
+import { makeAppError, makeAppInfo } from '../test/factories';
+import { renderApp } from '../test/render';
 
 describe('página inicial', () => {
-  it('F0-01 critério 2: mostra o texto do catálogo e a versão de app_info', async () => {
-    const info: AppInfo = {
-      version: '0.1.0',
-      commit: 'abc123def456',
-      platform: 'windows',
-      debugBuild: false,
-    };
-    mockIPC((command) => (command === 'app_info' ? info : undefined));
+  it('mostra a moldura do app: barra, conteúdo e rodapé com Tarefas', async () => {
+    mockBackend();
+    renderApp('/');
 
-    renderHome();
-
-    expect(await screen.findByRole('heading', { level: 1, name: 'Warden' })).toBeDefined();
+    const header = await screen.findByRole('banner');
+    expect(within(header).getByText('Warden')).toBeDefined();
+    const main = screen.getByRole('main');
+    expect(main.id).toBe('conteudo');
     expect(
-      screen.getByText('Crie, teste e diagnostique modpacks no formato packwiz.'),
+      within(main).getByRole('heading', { level: 1, name: 'Boas-vindas ao Warden' }),
     ).toBeDefined();
-    expect(await screen.findByText('Versão 0.1.0 (abc123def456)')).toBeDefined();
+    expect(
+      within(main).getByText('Crie, teste e diagnostique modpacks no formato packwiz.'),
+    ).toBeDefined();
+    const footer = screen.getByRole('contentinfo');
+    expect(
+      within(footer).getByRole('button', { name: 'Nenhuma tarefa em andamento' }),
+    ).toBeDefined();
+    expect(await within(footer).findByText('Warden 0.1.0')).toBeDefined();
   });
 
-  it('mostra só a versão quando o commit é desconhecido', async () => {
-    const info: AppInfo = {
-      version: '0.1.0',
-      commit: null,
-      platform: 'windows',
-      debugBuild: false,
-    };
-    mockIPC(() => info);
+  it('F0-01 critério 2 e CA-T01-04: versão de app_info e o aviso legal em "Sobre o Warden"', async () => {
+    mockBackend({ app_info: () => makeAppInfo({ version: '0.1.0', commit: 'abc123def456' }) });
+    renderApp('/');
 
-    renderHome();
-
-    expect(await screen.findByText('Versão 0.1.0')).toBeDefined();
+    const about = await screen.findByRole('region', { name: 'Sobre o Warden' });
+    expect(await within(about).findByText('abc123def456')).toBeDefined();
+    expect(within(about).getByText('0.1.0')).toBeDefined();
+    expect(
+      within(about).getByText(
+        'NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.',
+      ),
+    ).toBeDefined();
   });
 
-  it('mostra o carregamento e depois o erro quando app_info falha', async () => {
-    const error: AppError = {
-      code: { domain: 'app', code: 'INTERNAL' },
-      params: {},
-      detail: 'falhou',
-      retryable: false,
-      operationId: null,
-    };
-    // O IPC do Tauri rejeita com o AppError serializado, não com um Error. A rejeição só
-    // acontece quando o teste manda, para o estado de carregamento ser visto antes.
-    let fail: () => void = () => undefined;
-    const pending = new Promise<never>((_, reject) => {
-      fail = () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        reject(error);
-      };
+  it('o primeiro Tab chega em "Pular para o conteúdo", que leva o foco ao <main>', async () => {
+    mockBackend();
+    renderApp('/');
+    const skip = await screen.findByRole('link', { name: 'Pular para o conteúdo' });
+    skip.focus();
+    skip.click();
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+    expect(await screen.findByText('Warden 0.1.0')).toBeDefined();
+  });
+
+  it('mostra o erro de app_info com "Tentar de novo" sem derrubar a tela', async () => {
+    mockBackend({
+      app_info: () => ipcError(makeAppError({ domain: 'core', code: 'TIMEOUT' })),
     });
-    mockIPC(() => pending);
+    renderApp('/');
+    expect(
+      await screen.findByText('A operação demorou demais e foi interrompida. Tente de novo.'),
+    ).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeDefined();
+    expect(within(screen.getByRole('banner')).getByText('Warden')).toBeDefined();
+  });
 
-    renderHome();
+  it('rota inexistente mostra a página em pt-BR com o caminho de volta', async () => {
+    mockBackend();
+    const { container } = renderApp('/nao-existe');
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Página não encontrada' }),
+    ).toBeDefined();
+    const back = screen.getByRole('link', { name: 'Voltar para o início' });
+    expect(back.getAttribute('href')).toBe('/');
+    expect(await axePage(container)).toHaveNoViolations();
+  });
 
-    expect((await screen.findByRole('status')).textContent).toBe('Lendo a versão do app…');
-    fail();
-    expect(await screen.findByText('Não foi possível ler a versão do app.')).toBeDefined();
+  it('passa no axe (tela inteira, com landmarks)', async () => {
+    mockBackend();
+    const { container } = renderApp('/');
+    await screen.findByText('abc123def456');
+    expect(await axePage(container)).toHaveNoViolations();
   });
 });

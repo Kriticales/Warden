@@ -70,6 +70,11 @@ export default defineConfig([
     },
   },
   {
+    // Testes descrevem dados de exemplo (títulos, nomes de mods, configs) direto no JSX.
+    files: ['src/**/*.test.tsx'],
+    rules: { 'i18next/no-literal-string': 'off' },
+  },
+  {
     files: ['src/lib/ipc/**'],
     rules: { 'no-restricted-imports': 'off' },
   },

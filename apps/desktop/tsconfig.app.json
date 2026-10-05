@@ -23,5 +23,7 @@
     "skipLibCheck": false,
     "useDefineForClassFields": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Testes que rodam no Node (leem arquivos do repositório) ficam no tsconfig.node.json.
+  "exclude": ["src/**/*.node.test.ts"]
 }

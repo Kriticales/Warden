@@ -1,40 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
-import { commands } from '../lib/ipc/bindings';
-import { unwrap } from '../lib/ipc/result';
+import { AppPage } from '../app/layout/AppPage';
+import { PageTitle } from '../app/layout/PageHead';
+import { AboutWarden } from '../features/about/components/AboutWarden';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 });
 
-/** Página inicial provisória (F0-01): nome, descrição e versão vinda de `app_info`. */
+/**
+ * Página inicial provisória (F0-06): a moldura do app com as boas-vindas e "Sobre o Warden".
+ * A lista "Meus packs" (T02) substitui este conteúdo quando existir.
+ */
 function HomePage() {
   const { t } = useTranslation();
-  const info = useQuery({
-    queryKey: ['app', 'info'],
-    queryFn: async () => unwrap(await commands.appInfo()),
-  });
-
-  let version: string;
-  if (info.isPending) {
-    version = t('app.carregandoVersao');
-  } else if (info.isError) {
-    version = t('app.versaoIndisponivel');
-  } else if (info.data.commit) {
-    version = t('app.versaoComCommit', { version: info.data.version, commit: info.data.commit });
-  } else {
-    version = t('app.versao', { version: info.data.version });
-  }
-
   return (
-    <main className="home">
-      <h1 className="home__title">{t('app.nome')}</h1>
-      <p className="home__description">{t('app.descricao')}</p>
-      <p className="home__version" role="status">
-        {version}
-      </p>
-    </main>
+    <AppPage narrow>
+      <div className="stack">
+        <div>
+          <PageTitle className="t-display-2xl">
+            <Trans i18nKey="app.boasVindas" components={{ hl: <span className="t-hl" /> }} />
+          </PageTitle>
+          <p className="t-2 measure mt-3">{t('app.descricao')}</p>
+        </div>
+        <AboutWarden />
+      </div>
+    </AppPage>
   );
 }

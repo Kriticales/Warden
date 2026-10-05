@@ -8,12 +8,18 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { comum } from './pt-BR/comum';
+import { navegacao } from './pt-BR/navegacao';
+import { sobre } from './pt-BR/sobre';
+import { tarefas } from './pt-BR/tarefas';
 
 export const defaultNS = 'comum';
 
 export const resources = {
   'pt-BR': {
     comum,
+    navegacao,
+    sobre,
+    tarefas,
   },
 } as const;
 
