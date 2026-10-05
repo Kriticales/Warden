@@ -1,0 +1,42 @@
+  <log4j:Event logger="FML" timestamp="1791152455085" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791152458060" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791152460826" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[LWJGL Version: 2.9.4]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152463275" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152463276" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152463278" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152463279" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.audio.SoundManager" timestamp="1791152464640" level="INFO" thread="Sound Library Loader">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureMap" timestamp="1791152469494" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Created: 512x512 textures-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152470207" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152470309" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Forge Mod Loader has successfully loaded 4 mods]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.multiplayer.GuiConnecting" timestamp="1791152472346" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Connecting to 127.0.0.1, 25611]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152472561" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Injecting existing registry data into this client instance]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791152472673" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Holder lookups applied]]></log4j:Message>
+  </log4j:Event>

@@ -1,0 +1,21 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791157334755" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.20.1 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/Resolution" timestamp="1791157335000" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod resolution failed]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader" timestamp="1791157335022" level="ERROR" thread="main">
+    <log4j:Message><![CDATA[Incompatible mods found!]]></log4j:Message>
+    <log4j:Throwable><![CDATA[net.fabricmc.loader.impl.FormattedException: Some of your mods are incompatible with the game or each other!
+A potential solution has been determined, this may resolve your problem:
+	 - Replace mod 'Fabric API' (fabric-api) 0.83.0+1.20.1 with mod 'Fabric API' (fabric-api), version 0.92.0+1.20.1 or later.
+More details:
+	 - Mod 'Moonlight' (moonlight) 1.20-2.16.35 requires version 0.86.0 or later of mod 'Fabric API' (fabric-api), but only the wrong version is present: 0.83.0+1.20.1!
+	 - Mod 'Supplementaries' (supplementaries) 1.20-3.1.43 requires version 0.92.0+1.20.1 or later of mod 'Fabric API' (fabric-api), but only the wrong version is present: 0.83.0+1.20.1!
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:51)
+	at net.fabricmc.loader.impl.FabricLoaderImpl.load(FabricLoaderImpl.java:202)
+	at net.fabricmc.loader.impl.launch.knot.Knot.init(Knot.java:142)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:66)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+]]></log4j:Throwable>
+  </log4j:Event>

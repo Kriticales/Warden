@@ -1,0 +1,152 @@
+  <log4j:Event logger="EARLYDISPLAY" timestamp="1791158834655" level="INFO" thread="main">
+    <log4j:Message><![CDATA[If this message is the only thing at the bottom of your log before a crash, you probably have a driver issue.
+
+Possible solutions:
+A) Make sure Minecraft is set to prefer high performance graphics in the OS and/or driver control panel
+B) Check for driver updates on the graphics brand's website
+C) Try reinstalling your graphics drivers
+D) If still not working after trying all of the above, ask for further help on the Forge forums or Discord
+
+You can safely ignore this message if the game starts up successfully.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="mixin" timestamp="1791158835606" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/<DADOS>/shared/libraries/org/spongepowered/mixin/0.8.5/mixin-0.8.5.jar%23100!/ Service=ModLauncher Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158836228" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\fmlcore\1.20.1-47.4.10\fmlcore-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158836236" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\javafmllanguage\1.20.1-47.4.10\javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158836242" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\lowcodelanguage\1.20.1-47.4.10\lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModFileParser" timestamp="1791158836248" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod file <DADOS>\shared\libraries\net\minecraftforge\mclanguage\1.20.1-47.4.10\mclanguage-1.20.1-47.4.10.jar is missing mods.toml file]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158836573" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found mod file MixinSquared-0.1.1.jar of type GAMELIBRARY with provider net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator@30814f43]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158836579" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found mod file MixinExtras-0.3.6.jar of type GAMELIBRARY with provider net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator@30814f43]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158836580" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found mod file mixinextras-forge-0.3.6.jar of type GAMELIBRARY with provider net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator@30814f43]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.moddiscovery.ModDiscoverer" timestamp="1791158836580" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Found mod file mixinsquared-forge-0.1.1.jar of type GAMELIBRARY with provider net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator@30814f43]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.loading.ModSorter" timestamp="1791158836662" level="ERROR" thread="main">
+    <log4j:Message><![CDATA[Missing or unsupported mandatory dependencies:
+	Mod ID: 'moonlight', Requested by: 'supplementaries', Expected range: '[1.20-2.16.26,]', Actual version: '[MISSING]']]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791158839571" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, forge-1.20.1-47.4.10, --gameDir, <DADOS>\instances\s-forge-dep-faltando, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 5, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="oshi.util.platform.windows.PerfDataUtil" timestamp="1791158846230" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791158863248" level="ERROR" thread="Render thread">
+    <log4j:Message><![CDATA[Failed to verify authentication]]></log4j:Message>
+    <log4j:Throwable><![CDATA[com.mojang.authlib.exceptions.InvalidCredentialsException: Status: 401
+	at MC-BOOTSTRAP/authlib@4.0.43/com.mojang.authlib.exceptions.MinecraftClientHttpException.toAuthenticationException(MinecraftClientHttpException.java:56)
+	at MC-BOOTSTRAP/authlib@4.0.43/com.mojang.authlib.yggdrasil.YggdrasilUserApiService.fetchProperties(YggdrasilUserApiService.java:156)
+	at MC-BOOTSTRAP/authlib@4.0.43/com.mojang.authlib.yggdrasil.YggdrasilUserApiService.<init>(YggdrasilUserApiService.java:55)
+	at MC-BOOTSTRAP/authlib@4.0.43/com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.createUserApiService(YggdrasilAuthenticationService.java:124)
+	at TRANSFORMER/minecraft@1.20.1/net.minecraft.client.Minecraft.m_193585_(Minecraft.java:649)
+	at TRANSFORMER/minecraft@1.20.1/net.minecraft.client.Minecraft.<init>(Minecraft.java:413)
+	at TRANSFORMER/minecraft@1.20.1/net.minecraft.client.main.Main.main(Main.java:182)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.CommonLaunchHandler.runTarget(CommonLaunchHandler.java:111)
+	at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.CommonLaunchHandler.clientService(CommonLaunchHandler.java:99)
+	at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.CommonClientLaunchHandler.lambda$makeService$0(CommonClientLaunchHandler.java:25)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandlerDecorator.launch(LaunchServiceHandlerDecorator.java:30)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:53)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:71)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.Launcher.run(Launcher.java:108)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.Launcher.main(Launcher.java:78)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.BootstrapLaunchConsumer.accept(BootstrapLaunchConsumer.java:26)
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.BootstrapLaunchConsumer.accept(BootstrapLaunchConsumer.java:23)
+	at cpw.mods.bootstraplauncher@1.1.2/cpw.mods.bootstraplauncher.BootstrapLauncher.main(BootstrapLauncher.java:141)
+Caused by: MinecraftClientHttpException[type=HTTP_ERROR, status=401, response=ErrorResponse[path='/player/attributes', error='null', details=null, errorMessage='null']]
+	... (cortado no golden log)
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791158863253" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791158863522" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.3.1 build 7]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.fml.ModLoader" timestamp="1791158863947" level="FATAL" thread="Render thread">
+    <log4j:Message><![CDATA[Error during pre-loading phase]]></log4j:Message>
+    <log4j:Throwable><![CDATA[net.minecraftforge.fml.ModLoadingException: Mod §esupplementaries§r requires §6moonlight§r §o1.20-2.16.26 or above§r
+§7Currently, §6moonlight§r§7 is §o§nnot installed
+	at LAYER PLUGIN/fmlcore@1.20.1-47.4.10/net.minecraftforge.fml.ModLoadingException.lambda$fromEarlyException$0(ModLoadingException.java:50)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:720)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at LAYER PLUGIN/fmlcore@1.20.1-47.4.10/net.minecraftforge.fml.ModLoader.<init>(ModLoader.java:96)
+	at LAYER PLUGIN/fmlcore@1.20.1-47.4.10/net.minecraftforge.fml.ModLoader.get(ModLoader.java:128)
+	at TRANSFORMER/forge@47.4.10/net.minecraftforge.client.loading.ClientModLoader.lambda$begin$1(ClientModLoader.java:66)
+	at TRANSFORMER/forge@47.4.10/net.minecraftforge.client.loading.ClientModLoader.lambda$createRunnableWithCatch$4(ClientModLoader.java:86)
+	at TRANSFORMER/forge@47.4.10/net.minecraftforge.client.loading.ClientModLoader.begin(ClientModLoader.java:66)
+	at TRANSFORMER/minecraft@1.20.1/net.minecraft.client.Minecraft.<init>(Minecraft.java:459)
+	... (cortado no golden log)
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.sounds.SoundEngine" timestamp="1791158869981" level="WARN" thread="Render thread">
+    <log4j:Message><![CDATA[Missing sound for event: minecraft:item.goat_horn.play]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.sounds.SoundEngine" timestamp="1791158869981" level="WARN" thread="Render thread">
+    <log4j:Message><![CDATA[Missing sound for event: minecraft:entity.goat.screaming.horn_break]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="oshi.util.platform.windows.WmiQueryHandler" timestamp="1791158872531" level="WARN" thread="Render thread">
+    <log4j:Message><![CDATA[COM exception: Invalid Query: SELECT PERCENTUSAGE FROM Win32_PerfRawData_PerfOS_PagingFile]]></log4j:Message>
+  </log4j:Event>
+Negative index in crash report handler (25/27)
+  <log4j:Event logger="net.minecraftforge.client.loading.ClientModLoader" timestamp="1791158872585" level="FATAL" thread="Render thread">
+    <log4j:Message><![CDATA[Crash report saved to <DADOS>\instances\s-forge-dep-faltando\crash-reports\crash-2026-10-04_20.07.52-fml.txt]]></log4j:Message>
+  </log4j:Event>
+---- Minecraft Crash Report ----
+// I let you down. Sorry :(
+
+Time: 2026-10-04 20:07:52
+Description: Mod loading error has occurred
+
+java.lang.Exception: Mod Loading has failed
+	at net.minecraftforge.logging.CrashReportExtender.dumpModLoadingCrashReport(CrashReportExtender.java:60) ~[forge-1.20.1-47.4.10-universal.jar%23163!/:?] {re:classloading}
+	at net.minecraftforge.client.loading.ClientModLoader.completeModLoading(ClientModLoader.java:135) ~[forge-1.20.1-47.4.10-universal.jar%23163!/:?] {re:classloading}
+	at net.minecraft.client.Minecraft.lambda$new$4(Minecraft.java:571) ~[client-1.20.1-20230612.114412-srg.jar%23158!/:?] {re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}
+	at net.minecraft.Util.m_137521_(Util.java:421) ~[client-1.20.1-20230612.114412-srg.jar%23158!/:?] {re:classloading}
+	at net.minecraft.client.Minecraft.lambda$new$5(Minecraft.java:564) ~[client-1.20.1-20230612.114412-srg.jar%23158!/:?] {re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}
+	at net.minecraftforge.client.loading.ForgeLoadingOverlay.m_88315_(ForgeLoadingOverlay.java:146) ~[forge-1.20.1-47.4.10-universal.jar%23163!/:?] {re:classloading}
+	at net.minecraft.client.renderer.GameRenderer.m_109093_(GameRenderer.java:954) ~[client-1.20.1-20230612.114412-srg.jar%23158!/:?] {re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}
+	at net.minecraft.client.Minecraft.m_91383_(Minecraft.java:1146) ~[client-1.20.1-20230612.114412-srg.jar%23158!/:?] {re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}
+	at net.minecraft.client.Minecraft.m_91374_(Minecraft.java:718) ~[client-1.20.1-20230612.114412-srg.jar%23158!/:?] {re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}
+	at net.minecraft.client.main.Main.main(Main.java:218) ~[forge-1.20.1-47.4.10.jar:?] {re:classloading,pl:runtimedistcleaner:A}
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?] {}
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?] {}
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?] {}
+	at java.lang.reflect.Method.invoke(Method.java:569) ~[?:?] {}
+	at net.minecraftforge.fml.loading.targets.CommonLaunchHandler.runTarget(CommonLaunchHandler.java:111) ~[fmlloader-1.20.1-47.4.10.jar:?] {}
+	at net.minecraftforge.fml.loading.targets.CommonLaunchHandler.clientService(CommonLaunchHandler.java:99) ~[fmlloader-1.20.1-47.4.10.jar:?] {}
+	at net.minecraftforge.fml.loading.targets.CommonClientLaunchHandler.lambda$makeService$0(CommonClientLaunchHandler.java:25) ~[fmlloader-1.20.1-47.4.10.jar:?] {}
+	at cpw.mods.modlauncher.LaunchServiceHandlerDecorator.launch(LaunchServiceHandlerDecorator.java:30) ~[modlauncher-10.0.9.jar:?] {}
+	at cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:53) ~[modlauncher-10.0.9.jar:?] {}
+	... (cortado no golden log)

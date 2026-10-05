@@ -1,0 +1,8 @@
+[17:50:15] [main/INFO] [FML]: Forge Mod Loader version 7.99.40.1614 for Minecraft 1.7.10 loading
+[17:50:18] [Server thread/INFO]: Starting minecraft server version 1.7.10
+[17:50:19] [Server thread/INFO]: Preparing start region for level 0
+[17:50:20] [Server thread/INFO]: Done (0,555s)! For help, type "help" or "?"
+[17:50:36] [Server thread/INFO]: WardenTest[/127.0.0.1:54574] logged in with entity id 388 at (32.5, 64.0, 242.5)
+[17:50:36] [Server thread/INFO]: WardenTest joined the game
+[17:50:41] [Server thread/INFO]: WardenTest lost connection: TranslatableComponent{key='disconnect.genericReason', args=[Internal Exception: java.io.IOException: Foi for�ado o cancelamento de uma conex�o existente pelo host remoto], siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null}}
+[17:50:41] [Server thread/INFO]: Stopping server

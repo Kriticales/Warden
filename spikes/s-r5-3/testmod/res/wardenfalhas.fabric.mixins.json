@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.kriticales.wardenfalhas.fabric",
+  "plugin": "dev.kriticales.wardenfalhas.FalhasPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": ["MixinJogador"],
+  "client": ["MixinQuebrado", "MixinIniciar"],
+  "injectors": { "defaultRequire": 1 }
+}

@@ -1,0 +1,38 @@
+  <log4j:Event logger="FML" timestamp="1791159277869" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading]]></log4j:Message>
+  </log4j:Event>
+2026-10-04 19:44:39,700 main WARN Error parsing URI <DADOS>\shared\assets\log_configs\client-1.12.xml
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791159282357" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791159285347" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[LWJGL Version: 2.9.4]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791159288344" level="FATAL" thread="Client thread">
+    <log4j:Message><![CDATA[Found a duplicate mod comforts at [<DADOS>\instances\s-f112-duplicado\mods\comforts-1.12.2-1.4.1.3.jar, <DADOS>\instances\s-f112-duplicado\mods\copia-1-comforts-1.12.2-1.4.1.3.jar]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791159288354" level="ERROR" thread="Client thread">
+    <log4j:Message><![CDATA[An exception was thrown, the game will display an error screen and halt.]]></log4j:Message>
+    <log4j:Throwable><![CDATA[Duplicate Mods:
+	comforts : <DADOS>\instances\s-f112-duplicado\mods\comforts-1.12.2-1.4.1.3.jar
+	comforts : <DADOS>\instances\s-f112-duplicado\mods\copia-1-comforts-1.12.2-1.4.1.3.jar
+
+net.minecraftforge.fml.common.DuplicateModsFoundException
+	at net.minecraftforge.fml.common.Loader.identifyDuplicates(Loader.java:466)
+	at net.minecraftforge.fml.common.Loader.identifyMods(Loader.java:428)
+	at net.minecraftforge.fml.common.Loader.loadMods(Loader.java:568)
+	at net.minecraftforge.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:232)
+	at net.minecraft.client.Minecraft.func_71384_a(Minecraft.java:467)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:378)
+	at net.minecraft.client.main.Main.main(SourceFile:123)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="com.mojang.realmsclient.client.RealmsClient" timestamp="1791159291075" level="INFO" thread="Realms Notification Availability checker #1">
+    <log4j:Message><![CDATA[Could not authorize you against Realms server: javax.ws.rs.BadRequestException: Invalid session]]></log4j:Message>
+  </log4j:Event>

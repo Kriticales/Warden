@@ -6,3 +6,5 @@ target/
 *.png
 *.class
 data/
+# Golden logs da D-12 (curtos, sem dados pessoais) entram no git
+!fixtures/**/*.log

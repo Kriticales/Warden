@@ -275,6 +275,10 @@ fn run_client(mc: &str, loader_arg: &str, a: Args) -> ExitCode {
         }
     };
     println!("== instalação/verificação em {:.1}s; java {}", t0.elapsed().as_secs_f64(), prepared.java.display());
+    if a.flag("--install-only") {
+        println!("== java-console {}", console_java(&prepared.java).display());
+        return ExitCode::SUCCESS;
+    }
 
     // Ajustes do Warden sobre o plano de lançamento (LaunchOptions na arquitetura).
     for p in a.all("--prop") {

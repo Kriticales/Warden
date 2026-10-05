@@ -111,6 +111,17 @@ pub fn is_fatal(line: &str) -> Option<&'static str> {
         "Could not find or load main class",
         "Error: Could not create the Java Virtual Machine",
         "Encountered an unexpected exception",
+        // Acrescentados com os cenários de falha do S-R5-3: o jogo não fecha nesses casos.
+        "Couldn't place player in world",
+        "Error during pre-loading phase",
+        "Missing or unsupported mandatory dependencies",
+        "Mixin apply failed",
+        "Mixin apply for mod",
+        "Incompatible mods found!",
+        "java.lang.OutOfMemoryError",
+        "MissingModsException",
+        "DuplicateModsFoundException",
+        "UnsupportedClassVersionError",
     ];
     if NOT_FATAL.iter().any(|n| line.contains(n)) {
         return None;
