@@ -6,6 +6,7 @@
 mod common;
 
 use common::{JarBuilder, fabric_mod_json};
+use warden_core::{CoreErrorCode, DomainCode, DomainError};
 use warden_jarmeta::{
     ClassVersion, DependencyKind, DescriptorKind, Environment, Error, JarmetaErrorCode, Limits,
     Loader, VersionRange, WarningCode, read_jar_bytes, read_jar_file,
@@ -434,9 +435,15 @@ fn jar_embutido_corrompido_vira_aviso() {
 #[test]
 fn jar_de_cima_corrompido_e_limites_viram_erro() {
     let err = read_jar_bytes(b"PK\x03\x04 lixo", &Limits::default()).expect_err("inválido");
-    assert_eq!(err.code(), JarmetaErrorCode::InvalidArchive);
+    assert_eq!(
+        err.code(),
+        DomainCode::Domain(JarmetaErrorCode::InvalidArchive)
+    );
     let err = read_jar_bytes(b"", &Limits::default()).expect_err("vazio");
-    assert_eq!(err.code(), JarmetaErrorCode::InvalidArchive);
+    assert_eq!(
+        err.code(),
+        DomainCode::Domain(JarmetaErrorCode::InvalidArchive)
+    );
 
     let jar = JarBuilder::new().file("a", "1").file("b", "2").build();
     let err = read_jar_bytes(
@@ -447,7 +454,10 @@ fn jar_de_cima_corrompido_e_limites_viram_erro() {
         },
     )
     .expect_err("entradas demais");
-    assert_eq!(err.code(), JarmetaErrorCode::LimitExceeded);
+    assert_eq!(
+        err.code(),
+        DomainCode::Domain(JarmetaErrorCode::LimitExceeded)
+    );
     let err = read_jar_bytes(
         &jar,
         &Limits {
@@ -484,15 +494,22 @@ fn leitura_do_disco() {
         },
     )
     .expect_err("limite");
-    assert_eq!(err.code(), JarmetaErrorCode::LimitExceeded);
+    assert_eq!(
+        err.code(),
+        DomainCode::Domain(JarmetaErrorCode::LimitExceeded)
+    );
     std::fs::write(&path, b"not a zip").expect("grava");
     let err = read_jar_file(&path, &Limits::default()).expect_err("inválido");
-    assert_eq!(err.code(), JarmetaErrorCode::InvalidArchive);
-    let err = read_jar_file(&dir.join("nao-existe.jar"), &Limits::default()).expect_err("ausente");
-    assert_eq!(err.code(), JarmetaErrorCode::ReadFailed);
     assert_eq!(
-        err.params().get("file").map(String::as_str),
-        Some("nao-existe.jar")
+        err.code(),
+        DomainCode::Domain(JarmetaErrorCode::InvalidArchive)
+    );
+    let err = read_jar_file(&dir.join("nao-existe.jar"), &Limits::default()).expect_err("ausente");
+    assert_eq!(err.code(), DomainCode::Core(CoreErrorCode::Io));
+    assert!(
+        err.params()
+            .get("path")
+            .is_some_and(|p| p.ends_with("nao-existe.jar"))
     );
     std::fs::remove_dir_all(&dir).expect("limpa");
 }

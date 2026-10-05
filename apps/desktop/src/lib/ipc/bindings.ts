@@ -271,7 +271,11 @@ export type InstanceErrorCode =
  */
 export type JarmetaErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O arquivo não é um zip/jar válido (corrompido, truncado ou de outro formato). */
+"INVALID_ARCHIVE" | 
+/**  O jar passa de um limite de segurança (tamanho, número de entradas). */
+"LIMIT_EXCEEDED";
 
 /**
  *  Códigos do domínio `java`. O código é contrato: renomear é mudança de contrato;

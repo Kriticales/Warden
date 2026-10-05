@@ -4,24 +4,25 @@
 //! limites de segurança do arquivo de cima. Problemas num descritor ou num jar embutido viram
 //! [`crate::Warning`] dentro do resultado, para nunca derrubar o diagnóstico (R3 §4.4).
 //!
-//! A ligação com `warden_core::DomainError` (trait da F0-05) fica para quando ela estiver na
-//! `main`; os métodos `code`, `params`, `detail` e `retryable` já seguem o contrato.
+//! [`Error`] implementa `warden_core::DomainError`: falha de disco usa o código comum `IO` do
+//! domínio `core`; os demais são do domínio `jarmeta` (frases em
+//! `apps/desktop/src/i18n/errors/jarmeta.ts`).
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+use warden_core::{CoreErrorCode, DomainCode, DomainError, error_chain};
 
-/// Código estável dos erros desta crate, para a frase traduzida na interface.
+/// Códigos do domínio `jarmeta`. O código é contrato: renomear é mudança de contrato;
+/// acrescentar é permitido (só acréscimo, ROADMAP §1).
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, specta::Type,
 )]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum JarmetaErrorCode {
-    /// Erro interno (bug).
+    /// Bug: invariante quebrada sem código específico.
     Internal,
-    /// Não deu para ler o arquivo do disco.
-    ReadFailed,
     /// O arquivo não é um zip/jar válido (corrompido, truncado ou de outro formato).
     InvalidArchive,
     /// O jar passa de um limite de segurança (tamanho, número de entradas).
@@ -77,40 +78,26 @@ pub enum Error {
     },
 }
 
-impl Error {
-    /// Código estável.
-    #[must_use]
-    pub fn code(&self) -> JarmetaErrorCode {
+impl DomainError for Error {
+    type Code = JarmetaErrorCode;
+
+    fn code(&self) -> DomainCode<JarmetaErrorCode> {
         match self {
-            Self::Read { .. } => JarmetaErrorCode::ReadFailed,
-            Self::InvalidArchive { .. } => JarmetaErrorCode::InvalidArchive,
-            Self::LimitExceeded { .. } => JarmetaErrorCode::LimitExceeded,
+            Self::Read { .. } => DomainCode::Core(CoreErrorCode::Io),
+            Self::InvalidArchive { .. } => DomainCode::Domain(JarmetaErrorCode::InvalidArchive),
+            Self::LimitExceeded { .. } => DomainCode::Domain(JarmetaErrorCode::LimitExceeded),
         }
     }
 
-    /// Valores para a frase traduzida.
-    #[must_use]
-    pub fn params(&self) -> BTreeMap<String, String> {
+    /// `path` (falha de disco), `limit` e `actual` (limite).
+    fn params(&self) -> BTreeMap<String, String> {
         let mut params = BTreeMap::new();
         match self {
             Self::Read { path, .. } => {
-                let name = path.file_name().map_or_else(
-                    || path.display().to_string(),
-                    |n| n.to_string_lossy().into_owned(),
-                );
-                params.insert("file".to_owned(), name);
+                params.insert("path".to_owned(), path.display().to_string());
             }
             Self::InvalidArchive { .. } => {}
-            Self::LimitExceeded {
-                kind,
-                limit,
-                actual,
-            } => {
-                let kind = serde_json::to_value(kind)
-                    .ok()
-                    .and_then(|v| v.as_str().map(str::to_owned))
-                    .unwrap_or_default();
-                params.insert("kind".to_owned(), kind);
+            Self::LimitExceeded { limit, actual, .. } => {
                 params.insert("limit".to_owned(), limit.to_string());
                 params.insert("actual".to_owned(), actual.to_string());
             }
@@ -118,15 +105,12 @@ impl Error {
         params
     }
 
-    /// Evidência técnica para "Detalhes técnicos".
-    #[must_use]
-    pub fn detail(&self) -> Option<String> {
-        Some(self.to_string())
+    fn detail(&self) -> Option<String> {
+        Some(error_chain(self))
     }
 
-    /// Nenhum destes erros melhora tentando de novo, exceto a leitura do disco.
-    #[must_use]
-    pub fn retryable(&self) -> bool {
+    /// Só a falha de disco pode passar tentando de novo (arquivo travado por outro programa).
+    fn retryable(&self) -> bool {
         matches!(self, Self::Read { .. })
     }
 }
@@ -141,10 +125,11 @@ mod tests {
             path: PathBuf::from("mods").join("sodium.jar"),
             source: std::io::Error::other("negado"),
         };
-        assert_eq!(read.code(), JarmetaErrorCode::ReadFailed);
-        assert_eq!(
-            read.params().get("file").map(String::as_str),
-            Some("sodium.jar")
+        assert_eq!(read.code(), DomainCode::Core(CoreErrorCode::Io));
+        assert!(
+            read.params()
+                .get("path")
+                .is_some_and(|p| p.ends_with("sodium.jar"))
         );
         assert!(read.retryable());
         assert!(read.detail().is_some_and(|d| d.contains("negado")));
@@ -152,7 +137,10 @@ mod tests {
         let invalid = Error::InvalidArchive {
             detail: "fim do diretório central não encontrado".into(),
         };
-        assert_eq!(invalid.code(), JarmetaErrorCode::InvalidArchive);
+        assert_eq!(
+            invalid.code(),
+            DomainCode::Domain(JarmetaErrorCode::InvalidArchive)
+        );
         assert!(invalid.params().is_empty());
         assert!(!invalid.retryable());
 
@@ -161,11 +149,11 @@ mod tests {
             limit: 10,
             actual: 11,
         };
-        assert_eq!(limit.code(), JarmetaErrorCode::LimitExceeded);
         assert_eq!(
-            limit.params().get("kind").map(String::as_str),
-            Some("entryCount")
+            limit.code(),
+            DomainCode::Domain(JarmetaErrorCode::LimitExceeded)
         );
+        assert_eq!(limit.params().get("actual").map(String::as_str), Some("11"));
         assert!(limit.to_string().contains("11 > 10"));
         let size = Error::LimitExceeded {
             kind: LimitKind::FileSize,
