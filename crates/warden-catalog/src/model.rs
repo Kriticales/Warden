@@ -64,7 +64,7 @@ impl Loader {
 pub struct Freshness {
     /// Quando a lista foi baixada da fonte (milissegundos desde 1970, UTC). Numa lista
     /// montada de várias respostas, a mais antiga.
-    #[specta(type = f64)]
+    #[specta(type = specta_typescript::Number)]
     pub fetched_at_ms: u64,
     /// `true` quando a fonte não respondeu (sem internet, fora do ar) e o catálogo usou o que
     /// estava guardado, mesmo vencido. A interface mostra a data.
@@ -83,7 +83,7 @@ impl Freshness {
 }
 
 /// Tipo de uma versão no manifesto da Mojang.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, specta::Type)]
 #[serde(rename_all = "snake_case")]
 pub enum MinecraftVersionKind {
     /// Versão final.
@@ -95,8 +95,21 @@ pub enum MinecraftVersionKind {
     /// Alfa antiga (2010).
     OldAlpha,
     /// Tipo que o Warden ainda não conhece.
-    #[serde(other)]
     Other,
+}
+
+impl MinecraftVersionKind {
+    /// O tipo pelo texto do campo `type` do manifesto; texto desconhecido vira [`Self::Other`].
+    #[must_use]
+    pub fn from_manifest(text: &str) -> Self {
+        match text {
+            "release" => Self::Release,
+            "snapshot" => Self::Snapshot,
+            "old_beta" => Self::OldBeta,
+            "old_alpha" => Self::OldAlpha,
+            _ => Self::Other,
+        }
+    }
 }
 
 /// Uma versão do Minecraft.
@@ -308,8 +321,14 @@ mod tests {
         assert_eq!(Loader::Fabric.source().to_string(), "Fabric");
         assert_eq!(Loader::Forge.source().to_string(), "Forge");
         assert_eq!(Source::Mojang.to_string(), "Mojang");
-        let kind: MinecraftVersionKind = serde_json::from_str("\"pending\"").unwrap();
-        assert_eq!(kind, MinecraftVersionKind::Other);
+        assert_eq!(
+            MinecraftVersionKind::from_manifest("pending"),
+            MinecraftVersionKind::Other
+        );
+        assert_eq!(
+            MinecraftVersionKind::from_manifest("old_alpha"),
+            MinecraftVersionKind::OldAlpha
+        );
         assert_eq!(
             serde_json::to_value(MinecraftVersionKind::OldBeta).unwrap(),
             "old_beta"

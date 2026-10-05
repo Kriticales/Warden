@@ -33,6 +33,8 @@ pub struct AppState {
     pub locks: PackLocks,
     /// Registros (ausente nos testes).
     pub logging: Option<Logging>,
+    /// Catálogo de versões do Minecraft e dos loaders (P1-05).
+    pub catalog: warden_catalog::Catalog,
 }
 
 impl AppState {
@@ -62,6 +64,7 @@ impl AppState {
             warden_secrets::SecretKind::Curseforge,
             Arc::new(crate::commands::curseforge::CurseforgeKeyTester::default()),
         );
+        let catalog = crate::commands::catalog::open_catalog(&paths)?;
         Ok((
             Self {
                 paths,
@@ -71,6 +74,7 @@ impl AppState {
                 operations: OperationRegistry::new(notifier),
                 locks: PackLocks::new(),
                 logging,
+                catalog,
             },
             outcome,
         ))

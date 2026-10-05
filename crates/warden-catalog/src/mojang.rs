@@ -49,8 +49,8 @@ struct RawLatest {
 #[derive(Deserialize)]
 struct RawEntry {
     id: String,
-    #[serde(rename = "type")]
-    kind: MinecraftVersionKind,
+    #[serde(rename = "type", default)]
+    kind: String,
     url: String,
     #[serde(default)]
     sha1: String,
@@ -79,7 +79,7 @@ pub(crate) fn parse_manifest(body: &[u8]) -> Result<Manifest, String> {
         }
         entries.push(ManifestEntry {
             id: entry.id,
-            kind: entry.kind,
+            kind: MinecraftVersionKind::from_manifest(&entry.kind),
             url: entry.url,
             sha1: entry.sha1.to_ascii_lowercase(),
             release_time: entry.release_time,

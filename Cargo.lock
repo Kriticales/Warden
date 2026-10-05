@@ -5698,6 +5698,7 @@ dependencies = [
  "warden-secrets",
  "warden-server",
  "warden-versioning",
+ "wiremock",
 ]
 
 [[package]]
@@ -5722,6 +5723,7 @@ dependencies = [
  "serde_json",
  "sha1",
  "specta",
+ "specta-typescript",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",

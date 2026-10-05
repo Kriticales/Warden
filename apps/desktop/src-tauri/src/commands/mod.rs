@@ -5,6 +5,7 @@
 //! linha de `collect_events!`.
 
 pub(crate) mod app;
+pub(crate) mod catalog;
 pub(crate) mod curseforge;
 pub(crate) mod secrets;
 
@@ -26,6 +27,8 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             secrets::secrets_remove,
             secrets::secrets_backend_get,
             secrets::secrets_backend_set,
+            catalog::catalog_minecraft_versions,
+            catalog::catalog_loader_versions,
         ])
         .events(tauri_specta::collect_events![OperationUpdated, PackChanged,])
 }

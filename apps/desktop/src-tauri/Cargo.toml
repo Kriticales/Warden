@@ -64,6 +64,7 @@ warden-secrets.workspace = true
 tempfile.workspace = true
 warden-core = { workspace = true, features = ["fault-injection"] }
 warden-secrets = { workspace = true, features = ["fault-injection"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true

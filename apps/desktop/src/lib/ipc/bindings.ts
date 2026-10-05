@@ -27,6 +27,16 @@ export const commands = {
 	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
 	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
 	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
+	/**
+	 *  As versões do Minecraft, na ordem oficial do manifesto da Mojang (da mais nova para a mais
+	 *  antiga), com o tipo de cada uma e a etiqueta "melhor esforço" antes da 1.7.10.
+	 */
+	catalogMinecraftVersions: (forceRefresh: boolean) => typedError<MinecraftVersions, AppError>(__TAURI_INVOKE("catalog_minecraft_versions", { forceRefresh })),
+	/**
+	 *  As versões de um loader para uma versão do Minecraft, da mais nova para a mais antiga, com
+	 *  a pré-selecionada. Lista vazia: o loader não existe para essa versão.
+	 */
+	catalogLoaderVersions: (loader: Loader, minecraft: string, forceRefresh: boolean) => typedError<LoaderVersions, AppError>(__TAURI_INVOKE("catalog_loader_versions", { loader, minecraft, forceRefresh })),
 };
 
 /** Events */
@@ -110,7 +120,21 @@ export type BisectErrorCode =
  */
 export type CatalogErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  A fonte (`params.source`) está fora do ar ou com erro (5xx) e não há lista no cache. */
+"SOURCE_UNAVAILABLE" | 
+/**  A fonte limitou as requisições (429) por mais tempo do que o Warden espera sozinho. */
+"RATE_LIMITED" | 
+/**  A fonte recusou o pedido ou não achou o endereço (4xx). */
+"REQUEST_REJECTED" | 
+/**  A fonte respondeu algo que o Warden não entende. */
+"INVALID_RESPONSE" | 
+/**  A versão do Minecraft (`params.id`) não existe no manifesto da Mojang. */
+"VERSION_NOT_FOUND" | 
+/**  O JSON da versão baixado não bate com o `sha1` do manifesto (`params.id`). */
+"VERSION_JSON_CORRUPTED" | 
+/**  O cache local do catálogo (`metadata.sqlite`) não pôde ser lido ou gravado. */
+"CACHE_UNAVAILABLE";
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -268,6 +292,23 @@ export type ExportErrorCode =
 "INTERNAL";
 
 /**
+ *  De quando é a lista e se veio do cache porque a fonte não respondeu (SPEC T03: "Lista de
+ *  versões de <data>").
+ */
+export type Freshness = {
+	/**
+	 *  Quando a lista foi baixada da fonte (milissegundos desde 1970, UTC). Numa lista
+	 *  montada de várias respostas, a mais antiga.
+	 */
+	fetchedAtMs: number,
+	/**
+	 *  `true` quando a fonte não respondeu (sem internet, fora do ar) e o catálogo usou o que
+	 *  estava guardado, mesmo vencido. A interface mostra a data.
+	 */
+	offline: boolean,
+};
+
+/**
  *  Códigos do domínio `http`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
@@ -341,12 +382,104 @@ export type LauncherErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
+export type Loader = 
+/**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
+"forge" | 
+/**  NeoForge (1.20.1 em diante). */
+"neoforge" | 
+/**  Fabric (1.14 em diante). */
+"fabric";
+
+/**  Uma versão de loader. */
+export type LoaderVersion = {
+	/**
+	 *  A versão como vai no `[versions]` do `pack.toml` (`10.13.4.1614`, `47.1.106`,
+	 *  `21.1.252`, `0.19.5`).
+	 */
+	version: string,
+	/**
+	 *  Coordenada Maven completa do artefato, que o launcher e o servidor usam para baixar o
+	 *  instalador (`net.minecraftforge:forge:1.7.10-10.13.4.1614-1.7.10`,
+	 *  `net.neoforged:forge:1.20.1-47.1.106`, `net.fabricmc:fabric-loader:0.19.5`).
+	 */
+	maven: string,
+	/**  Estável: o Fabric diz na meta; no NeoForge, sem `-beta`; no Forge, todas. */
+	stable: boolean,
+	/**  A "recomendada" do `promotions_slim.json` (só Forge). */
+	recommended: boolean,
+};
+
+/**
+ *  As versões de um loader para uma versão do Minecraft. Lista vazia: o loader não existe
+ *  para essa versão (CA-T03-03).
+ */
+export type LoaderVersions = {
+	/**  O loader. */
+	loader: Loader,
+	/**  A versão do Minecraft pedida. */
+	minecraft: string,
+	/**  Da mais nova para a mais antiga, sem as versões da lista de quebradas. */
+	versions: LoaderVersion[],
+	/**
+	 *  A versão pré-selecionada no assistente (SPEC T03): Forge, a recomendada ou, sem ela, a
+	 *  mais recente; NeoForge e Fabric, a mais recente estável ou, sem estável, a mais
+	 *  recente.
+	 */
+	preselected: string | null,
+	/**  De quando é a lista. */
+	freshness: Freshness,
+};
+
 /**  Nível de detalhe dos registros (Configurações → Privacidade e registros). */
 export type LogLevel = 
 /**  `info` para tudo. */
 "normal" | 
 /**  `debug` para o código do Warden. */
 "detailed";
+
+/**  Uma versão do Minecraft. */
+export type MinecraftVersion = {
+	/**  O id da Mojang (`1.20.1`, `26.3`, `26.4-snapshot-2`). */
+	id: string,
+	/**  Tipo. */
+	kind: MinecraftVersionKind,
+	/**  Data de lançamento, como a Mojang escreve (RFC 3339). */
+	releaseTime: string,
+	/**
+	 *  Anterior a 1.7.10 pela ordem do manifesto: aparece com a etiqueta "melhor esforço"
+	 *  (ADR-0005).
+	 */
+	bestEffort: boolean,
+};
+
+/**  Tipo de uma versão no manifesto da Mojang. */
+export type MinecraftVersionKind = 
+/**  Versão final. */
+"release" | 
+/**  Snapshot, pre-release ou release candidate (fora da v1, ADR-0005). */
+"snapshot" | 
+/**  Beta antiga (2010–2011). */
+"old_beta" | 
+/**  Alfa antiga (2010). */
+"old_alpha" | 
+/**  Tipo que o Warden ainda não conhece. */
+"other";
+
+/**
+ *  As versões do Minecraft, na ordem oficial do manifesto da Mojang (da mais nova para a mais
+ *  antiga). Nunca reordene por texto ou semver: existem `26.3` e `1.21.11`.
+ */
+export type MinecraftVersions = {
+	/**  Todas as versões, na ordem do manifesto. */
+	versions: MinecraftVersion[],
+	/**  `latest.release` do manifesto. */
+	latestRelease: string | null,
+	/**  `latest.snapshot` do manifesto. */
+	latestSnapshot: string | null,
+	/**  De quando é a lista. */
+	freshness: Freshness,
+};
 
 /**
  *  Códigos do domínio `mixin`. O código é contrato: renomear é mudança de contrato;
