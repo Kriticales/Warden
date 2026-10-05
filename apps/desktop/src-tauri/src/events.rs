@@ -2,7 +2,8 @@
 //!
 //! - Eventos globais (`app.emit`) são tipados com `tauri-specta` e registrados em
 //!   `commands::builder`. Esta tarefa cria `operation-updated` e `pack-changed`; as tarefas donas
-//!   de `game-state`, `server-state` e `ai-conversation-updated` acrescentam os seus aqui.
+//!   de `game-state`, `server-state` e `ai-conversation-updated` acrescentam os seus aqui;
+//!   a UI-01 acrescentou `title-bar-maximize`.
 //! - [`OperationEvent`] é o que passa pelo `Channel` de cada comando longo. As variantes
 //!   `PerfSample`, `Round` e `ToolCall` da ARCHITECTURE §4.3 entram com as tarefas donas
 //!   (L-08, D-10 e D-04): este arquivo é registro acréscimo-apenas para eventos e variantes.
@@ -44,6 +45,20 @@ pub struct PackChanged {
     pub pack_id: PackId,
     /// Partes alteradas.
     pub areas: Vec<PackArea>,
+}
+
+/// `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
+/// própria (UI-01). Sobre esse botão quem recebe o mouse é uma janela nativa transparente
+/// (`window_chrome`), para o Windows 11 mostrar o menu de encaixe; o evento devolve à interface
+/// o estado que ela desenha.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type, Event)]
+#[serde(rename_all = "camelCase")]
+#[tauri_specta(event_name = "title-bar-maximize")]
+pub struct TitleBarMaximize {
+    /// Mouse sobre o botão.
+    pub hovered: bool,
+    /// Botão do mouse apertado sobre o botão.
+    pub pressed: bool,
 }
 
 /// Origem de uma linha de log no canal.

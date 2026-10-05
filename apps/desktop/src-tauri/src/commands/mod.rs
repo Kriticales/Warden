@@ -10,8 +10,9 @@ pub(crate) mod curseforge;
 pub(crate) mod java;
 pub(crate) mod packs;
 pub(crate) mod secrets;
+pub(crate) mod window;
 
-use crate::events::{OperationUpdated, PackChanged};
+use crate::events::{OperationUpdated, PackChanged, TitleBarMaximize};
 
 /// Builder do `tauri-specta` com todos os comandos e eventos. Usado pelo app e pela geração
 /// do `bindings.ts`.
@@ -49,6 +50,11 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             app::settings_status,
             app::settings_choose_packs_dir,
             app::logs_reveal_folder,
+            window::window_set_maximize_area,
         ])
-        .events(tauri_specta::collect_events![OperationUpdated, PackChanged,])
+        .events(tauri_specta::collect_events![
+            OperationUpdated,
+            PackChanged,
+            TitleBarMaximize,
+        ])
 }

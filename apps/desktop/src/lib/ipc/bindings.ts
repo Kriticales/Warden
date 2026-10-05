@@ -86,12 +86,19 @@ export const commands = {
 } | null, AppError>(__TAURI_INVOKE("settings_choose_packs_dir")),
 	/**  Abre a pasta dos registros no Explorador (Configurações → Privacidade e registros). */
 	logsRevealFolder: () => typedError<null, AppError>(__TAURI_INVOKE("logs_reveal_folder")),
+	/**
+	 *  Informa onde está o botão maximizar da barra de título, para a janela nativa do menu de
+	 *  encaixe (Snap Layouts) ficar exatamente em cima dele. No Linux a barra é a do sistema e o
+	 *  comando não faz nada.
+	 */
+	windowSetMaximizeArea: (area: MaximizeButtonArea) => typedError<null, AppError>(__TAURI_INVOKE("window_set_maximize_area", { area })),
 };
 
 /** Events */
 export const events = {
 	operationUpdated: makeEvent<OperationUpdated>("operation-updated"),
 	packChanged: makeEvent<PackChanged>("pack-changed"),
+	titleBarMaximize: makeEvent<TitleBarMaximize>("title-bar-maximize"),
 };
 
 /* Types */
@@ -746,6 +753,21 @@ export type LogLevel =
 /**  `debug` para o código do Warden. */
 "detailed";
 
+/**
+ *  Onde está o botão maximizar, em pixels CSS, medido pela interface. A posição horizontal é a
+ *  distância até a borda direita da janela, que não muda quando a janela muda de largura.
+ */
+export type MaximizeButtonArea = {
+	/**  Distância da borda direita do botão até a borda direita da janela. */
+	right: number | null,
+	/**  Distância do topo do botão até o topo da janela. */
+	top: number | null,
+	/**  Largura do botão. */
+	width: number | null,
+	/**  Altura do botão. */
+	height: number | null,
+};
+
 /**  Uma versão do Minecraft. */
 export type MinecraftVersion = {
 	/**  O id da Mojang (`1.20.1`, `26.3`, `26.4-snapshot-2`). */
@@ -1247,6 +1269,19 @@ export type TestMemory =
 { mode: "fixed"; 
 /**  Memória máxima do Java, em MB. */
 mb: number };
+
+/**
+ *  `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
+ *  própria (UI-01). Sobre esse botão quem recebe o mouse é uma janela nativa transparente
+ *  (`window_chrome`), para o Windows 11 mostrar o menu de encaixe; o evento devolve à interface
+ *  o estado que ela desenha.
+ */
+export type TitleBarMaximize = {
+	/**  Mouse sobre o botão. */
+	hovered: boolean,
+	/**  Botão do mouse apertado sobre o botão. */
+	pressed: boolean,
+};
 
 /**  Resultado de "Procurar atualizações do Java". */
 export type UpdateReport = {

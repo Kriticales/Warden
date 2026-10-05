@@ -11,7 +11,8 @@
 //!    primeira;
 //! 3. liga os registros, o gancho de pânico, as configurações, o cofre e o registro de
 //!    operações;
-//! 4. cria a janela principal com o perfil do WebView dentro dos dados locais.
+//! 4. cria a janela principal com o perfil do WebView dentro dos dados locais e, no Windows,
+//!    com a barra de título própria (`window_chrome`).
 
 mod commands;
 mod error;
@@ -21,6 +22,7 @@ pub mod logging;
 pub mod operations;
 pub mod settings;
 pub mod state;
+mod window_chrome;
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -180,9 +182,12 @@ fn create_main_window(
         .iter()
         .find(|window| window.label == MAIN_WINDOW)
         .ok_or("janela principal ausente no tauri.conf.json")?;
-    tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
+    let window = tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
         .data_directory(webview_dir)
+        // No Windows a barra de título é a do Warden (UI-01; `window_chrome`).
+        .decorations(!window_chrome::CUSTOM_TITLE_BAR)
         .build()?;
+    window_chrome::attach(&window);
     Ok(())
 }
 
