@@ -8,8 +8,8 @@
 //! - recusa caminho vazio, absoluto (`/x`, `\x`), com unidade (`C:\x`, `C:x`), com prefixo
 //!   `\\?\` ou UNC (`\\servidor\pasta`), qualquer `..`, `:` (unidade ou fluxo alternativo do
 //!   NTFS), caracteres de controle e os proibidos no Windows (`<>"|?*`), nomes reservados do
-//!   Windows (`CON`, `NUL`, `COM1`…, com ou sem extensão) e componentes que terminam em ponto
-//!   ou espaço (o Windows os remove e o nome passaria a apontar para outro arquivo);
+//!   Windows (`CON`, `NUL`, `COM1`…, `COM¹`…, com ou sem extensão) e componentes que terminam
+//!   em ponto ou espaço (o Windows os remove e o nome passaria a apontar para outro arquivo);
 //! - `.` e separadores repetidos são ignorados;
 //! - depois de juntar com a raiz, segue links simbólicos e junções que já existam no caminho e
 //!   recusa se o destino real sair da raiz.
@@ -21,10 +21,12 @@ use crate::error::CoreError;
 /// Maior caminho relativo aceito (caracteres), bem acima do que um pack usa.
 const MAX_RELATIVE_LEN: usize = 1024;
 
-/// Nomes de dispositivo do Windows: abrir `CON.txt` abre o console, não um arquivo.
-const RESERVED_NAMES: [&str; 22] = [
+/// Nomes de dispositivo do Windows: abrir `CON.txt` abre o console, não um arquivo. O
+/// Windows também lê os sobrescritos `¹`, `²` e `³` como dígitos (`COM¹` é uma porta serial).
+const RESERVED_NAMES: [&str; 28] = [
     "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
-    "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+    "COM9", "COM¹", "COM²", "COM³", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8",
+    "LPT9", "LPT¹", "LPT²", "LPT³",
 ];
 
 /// Junta `relative` a `root` garantindo que o resultado fica dentro de `root`.
@@ -237,6 +239,34 @@ mod tests {
         assert!(is_rejected(root, &"a/".repeat(600)));
     }
 
+    /// Nomes que o Win32 mudaria: ponto ou espaço no fim (inclusive `.. ` e `...`) e os
+    /// dispositivos com dígito sobrescrito (`COM¹`–`COM³`, `LPT¹`–`LPT³`).
+    #[test]
+    fn recusa_nomes_que_o_windows_mudaria() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        for relative in [
+            ".. /x",
+            ".. ",
+            "a/.. ",
+            "a/.. .",
+            "a/...",
+            ". /x",
+            "pack.toml.",
+            "COM\u{b9}",
+            "x/lpt\u{b3}.txt",
+            "com\u{b2} .log",
+        ] {
+            assert!(
+                is_rejected(root, relative),
+                "{relative:?} deveria ser recusado"
+            );
+        }
+        for relative in ["..\u{2074}/x", "com\u{2074}", "lpt0", "a. b/c"] {
+            assert!(resolve_inside(root, relative).is_ok(), "{relative:?}");
+        }
+    }
+
     #[test]
     fn mensagem_traz_o_motivo_e_o_caminho() {
         let error = resolve_inside(Path::new("raiz"), "../segredo").unwrap_err();
@@ -348,8 +378,10 @@ mod tests {
             1 => Just("..".to_owned()),
             1 => Just(String::new()),
             1 => "[a-zA-Z]:",
-            1 => "(?i)(con|nul|aux|prn|com[1-9]|lpt[1-9])(\\.[a-z]{1,3})?",
+            1 => "(?i)(con|nul|aux|prn|com[1-9\u{b9}\u{b2}\u{b3}]|lpt[1-9\u{b9}\u{b2}\u{b3}])(\\.[a-z]{1,3})?",
             1 => "[a-z]{1,5}[. ]",
+            1 => "\\.{1,3}[ .]{1,3}",
+            1 => "\\.\\.[\u{b2}\u{b3}\u{b9}\u{2074}\u{a0}\u{3000}\u{ff0e}]",
             1 => "[a-z]{1,4}[<>\"|?*\\x00-\\x1f][a-z]{0,4}",
         ]
     }
@@ -386,14 +418,27 @@ mod tests {
     }
 
     proptest! {
-        #![proptest_config(ProptestConfig::with_cases(4096))]
+        // Semente fixa: os mesmos casos em toda execução e em todas as máquinas.
+        #![proptest_config(ProptestConfig {
+            cases: 4096,
+            rng_seed: proptest::test_runner::RngSeed::Fixed(0x5741_5244_454e),
+            ..ProptestConfig::default()
+        })]
 
         /// Critério 2 da F0-05: para qualquer entrada aceita, o resultado começa na raiz, não
-        /// tem `..`, unidade, prefixo nem raiz, e cada componente é um nome comum.
+        /// tem `..`, unidade, prefixo nem raiz, e cada componente é um nome comum. No Windows,
+        /// o próprio `GetFullPathNameW` (por trás de `std::path::absolute`) confirma que não
+        /// muda nenhum componente.
         #[test]
         fn f0_05_ca2_resultado_aceito_fica_sempre_dentro(relative in relative_path()) {
             let root = Path::new("raiz-inexistente-do-teste");
             if let Ok(resolved) = resolve_inside(root, &relative) {
+                #[cfg(windows)]
+                prop_assert_eq!(
+                    std::path::absolute(&resolved).unwrap(),
+                    std::path::absolute(root).unwrap().join(resolved.strip_prefix(root).unwrap()),
+                    "{:?}", relative
+                );
                 let rest = resolved.strip_prefix(root).unwrap();
                 prop_assert!(!rest.as_os_str().is_empty());
                 for component in rest.components() {
