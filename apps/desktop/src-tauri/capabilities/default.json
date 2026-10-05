@@ -1,11 +1,15 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissões da janela principal, mínimas (ARCHITECTURE §20): comandos do próprio app, eventos, registros do frontend e abrir links https no navegador. Sem shell, sem fs e sem diálogos pela interface: diálogos e acesso a arquivos passam por comandos do Rust.",
+  "description": "Permissões da janela principal, mínimas (ARCHITECTURE §20): comandos do próprio app, eventos, registros do frontend e abrir links https no navegador; os botões da barra de título própria (minimizar, maximizar ou restaurar, fechar e saber se está maximizada; UI-01). Sem shell, sem fs e sem diálogos pela interface: diálogos e acesso a arquivos passam por comandos do Rust.",
   "windows": ["main"],
   "permissions": [
     "core:event:default",
     "log:allow-log",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-is-maximized",
     {
       "identifier": "opener:allow-open-url",
       "allow": [{ "url": "https://*" }]

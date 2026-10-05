@@ -26,6 +26,106 @@ body {
   outline: none;
 }
 
+/* Barra de título da janela, só no Windows (UI-01; `TitleBar.tsx`). A barra inteira é região de
+   arraste nativa do WebView2; os botões não. Botões no estilo dos menus, discretos: bisel só no
+   hover; fechar fica vermelho. Janela sem foco: marca, nome e botões apagados. */
+.titlebar {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  height: var(--size-control-md);
+  background: var(--color-bg-sunken);
+  border-bottom: var(--border-thin) solid var(--color-border);
+  user-select: none;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+.titlebar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  color: var(--color-text-2);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.titlebar__mark {
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  image-rendering: pixelated;
+  flex: none;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+.titlebar__name {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-md);
+  line-height: var(--text-md--line-height);
+  letter-spacing: var(--tracking-display);
+  text-shadow: var(--shadow-pixel-text);
+}
+.titlebar__controls {
+  display: flex;
+  margin-left: auto;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+.titlebar__btn {
+  display: grid;
+  place-items: center;
+  width: var(--size-control-lg);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-2);
+  cursor: default;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.titlebar__btn:hover,
+.titlebar__btn.is-hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+  box-shadow: var(--inset-shadow-bevel);
+}
+.titlebar__btn:active,
+.titlebar__btn.is-press {
+  background: var(--color-surface-2);
+  box-shadow: var(--inset-shadow-bevel-press);
+}
+.titlebar__btn--close:hover,
+.titlebar__btn--close.is-hover {
+  background: var(--color-danger-solid);
+  color: var(--color-on-danger);
+}
+.titlebar__btn--close:active {
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+}
+.titlebar__btn:focus-visible {
+  outline: var(--border-block) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--border-block));
+}
+/* Pixels do desenho (10 × 10) em 1 px de tela cada, sem borrar. */
+.titlebar__glyph {
+  width: calc(var(--spacing) * 2.5);
+  height: calc(var(--spacing) * 2.5);
+  fill: currentColor;
+}
+.titlebar--inactive .titlebar__brand,
+.titlebar--inactive .titlebar__btn:not(:hover, .is-hover) {
+  color: var(--color-text-3);
+}
+.titlebar--inactive .titlebar__mark {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+.titlebar--inactive .titlebar__name {
+  text-shadow: none;
+}
+
 /* Aviso legal da Mojang/Microsoft (T01, T23). Igual ao do protótipo final. */
 .legal {
   padding: var(--space-4) var(--space-5);

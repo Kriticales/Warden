@@ -1,9 +1,16 @@
 /**
- * Textos da moldura do app: barra do app, rodapé e atalhos de navegação (ESTRUTURA; HANDOFF §7).
+ * Textos da moldura do app: barra de título, barra do app, rodapé e atalhos de navegação (ESTRUTURA; HANDOFF §7).
  */
 export const navegacao = {
   pularParaConteudo: 'Pular para o conteúdo',
   marca: 'Warden',
+  janela: {
+    grupo: 'Janela',
+    minimizar: 'Minimizar',
+    maximizar: 'Maximizar',
+    restaurar: 'Restaurar',
+    fechar: 'Fechar',
+  },
   configuracoes: 'Configurações',
   meusPacks: 'Meus packs',
   naoEncontrada: {
