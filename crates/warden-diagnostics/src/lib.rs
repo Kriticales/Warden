@@ -14,6 +14,7 @@
 mod error;
 pub mod model;
 pub mod postcrash;
+pub mod pretest;
 pub mod redact;
 
 pub use error::{DiagnosticsError, DiagnosticsErrorCode, Result};

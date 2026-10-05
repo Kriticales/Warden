@@ -1,0 +1,25 @@
+# Pack sintético quebrado para CA-T14-01 (sem jars de terceiros).
+minecraft = "1.21.1"
+loader = "neoforge"
+loader_version = "21.1.252"
+
+[[jar]]
+id = "sodium"
+descriptor = "neoforge"
+path = "mods/sodium.pw.toml"
+
+[[jar]]
+id = "sodium"
+descriptor = "neoforge"
+path = "mods/sodium-copia.pw.toml"
+
+[[jar]]
+id = "fabric_only"
+descriptor = "fabric"
+path = "mods/fabric-only.pw.toml"
+
+[[jar]]
+id = "outro_mc"
+descriptor = "neoforge"
+path = "mods/outro-mc.pw.toml"
+minecraft_range = "[1.20.1]"
