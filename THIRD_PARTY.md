@@ -71,6 +71,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `quick-xml` | 0.42.0 | MIT | `warden-catalog` | Leitura do `maven-metadata.xml` do Forge (lista de versões). Mesma versão que já vinha pelo `plist` do Tauri. |
 | `flate2` | 1.1.10 | MIT OR Apache-2.0 | `warden-java` | Descompressão do `.tar.gz` do Temurin no Linux (já vinha como dependência do `zip`). |
 | `tar` | 0.4.46 | MIT OR Apache-2.0 | `warden-java` | Leitura do `.tar.gz` do Temurin no Linux, sem os atributos estendidos (`xattr`). |
+| `portablemc` | =5.0.5 | Apache-2.0 | `warden-launcher` | Motor do launcher: instala Minecraft, bibliotecas, assets e loaders (Fabric, Quilt, Forge, NeoForge) e devolve a linha de comando (S1; ADR-0057). Versão exata. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

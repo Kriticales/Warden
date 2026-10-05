@@ -33,6 +33,9 @@ allow = [
   "Unicode-3.0",
   "Unlicense",
   "Zlib",
+  # bzip2-1.0.6 (permissiva, estilo BSD): `libbz2-rs-sys`, via `zip` 6 do `portablemc` (L-02,
+  # ADR-0057), que lê os instaladores do Forge/NeoForge.
+  "bzip2-1.0.6",
 ]
 confidence-threshold = 0.9
 
