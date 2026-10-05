@@ -27,7 +27,26 @@
     }
   },
   "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Kriticales",
+    "copyright": "Uso pessoal e privado. Não é um produto oficial do Minecraft.",
+    "category": "Utility",
+    "shortDescription": "Warden",
+    "longDescription": "Criar, editar, testar e diagnosticar modpacks de Minecraft no formato packwiz.",
     "externalBin": ["binaries/packwiz"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"]
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["PortugueseBR"],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico",
+        "sidebarImage": "icons/instalador-lateral.bmp",
+        "installerHooks": "nsis/hooks.nsh",
+        "compression": "lzma"
+      }
+    }
   }
 }
