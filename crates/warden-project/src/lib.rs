@@ -6,6 +6,12 @@
 //! Esqueleto criado pela tarefa F0-01. O conteúdo vem das tarefas que o `docs/ROADMAP.md`
 //! atribui a esta crate; a responsabilidade e os limites estão na ARCHITECTURE §3.
 
+pub mod create;
 mod error;
+pub mod hygiene;
+pub mod open;
+pub mod registry;
+pub mod transaction;
+pub mod trash;
 
-pub use error::ProjectErrorCode;
+pub use error::{Error, ProjectErrorCode, Result};

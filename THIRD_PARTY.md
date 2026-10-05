@@ -37,6 +37,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tracing-subscriber` | 0.3.23 | MIT | `warden-app` | Filtro recarregável, formato do arquivo e ponte da fachada `log` (`tracing-log`). |
 | `tracing-appender` | 0.2.5 | MIT | `warden-app` | Arquivo diário com 14 dias de retenção, gravado fora da thread do app. |
 | `tokio` | 1.53.2 | MIT | `warden-app` | Travas por pack (`RwLock` justo), cancelamento e testes de concorrência (ARCHITECTURE §15). |
+| `trash` | 5.2.9 | MIT | `warden-project` | Mover a pasta do pack para a Lixeira do sistema (P1-07). |
 | `async-trait` | 0.1.92 | MIT OR Apache-2.0 | `warden-app` | Trait `SecretTester` (testar chaves) como objeto dinâmico. |
 | `tauri-plugin-single-instance` | 2.5.2 | Apache-2.0 OR MIT | `warden-app` | Instância única do app (ADR-0019). |
 | `tauri-plugin-log` | 2.10.0 | Apache-2.0 OR MIT | `warden-app` | Registros do frontend no mesmo arquivo (ARCHITECTURE §16). |
