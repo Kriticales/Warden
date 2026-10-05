@@ -10,6 +10,7 @@ import { initReactI18next } from 'react-i18next';
 import { boasVindas } from './pt-BR/boas-vindas';
 import { comum } from './pt-BR/comum';
 import { configuracoes } from './pt-BR/configuracoes';
+import { licencas } from './pt-BR/licencas';
 import { navegacao } from './pt-BR/navegacao';
 import { sobre } from './pt-BR/sobre';
 import { tarefas } from './pt-BR/tarefas';
@@ -20,6 +21,7 @@ export const defaultNS = 'comum';
 export const resources = {
   'pt-BR': {
     comum,
+    licencas,
     navegacao,
     configuracoes,
     boasVindas,

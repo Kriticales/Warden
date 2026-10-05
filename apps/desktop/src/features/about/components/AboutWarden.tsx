@@ -15,6 +15,7 @@ import { Button } from '../../../components/ui/button';
 import { Tooltip } from '../../../components/ui/tooltip';
 import { openExternal } from '../../../lib/external';
 import { useAppInfo } from '../hooks/useAppInfo';
+import { ThirdPartyLicenses } from '../licenses/ThirdPartyLicenses';
 
 /** Página de apoio indicada pelo instalador do Forge (R2 §3.4). */
 export const FORGE_SUPPORT_URL = 'https://www.patreon.com/LexManos/';
@@ -77,6 +78,7 @@ export function AboutWarden({ headingLevel = 2 }: AboutWardenProps) {
         <p className="t-sm t-2">{t('offline')}</p>
       </div>
       <div className="btn-row about__links">
+        <ThirdPartyLicenses />
         <Tooltip content={t('apoiarForgeDica')}>
           <Button
             variant="link"
