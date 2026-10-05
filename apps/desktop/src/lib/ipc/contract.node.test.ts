@@ -19,14 +19,8 @@ const CONSUMERS = ['src/features', 'src/app', 'src/routes'];
 
 /** Comandos sem tela ainda, com a tarefa que vai usá-los. Só diminui. */
 const PENDING: Record<string, string> = {
-  settings_get: 'P1-13 (Configurações)',
-  settings_update: 'P1-13 (Configurações)',
-  secrets_status: 'P1-13 (Configurações → Chaves e contas)',
-  secrets_set: 'P1-13 (Configurações → Chaves e contas)',
-  secrets_test: 'P1-13 (Configurações → Chaves e contas)',
-  secrets_remove: 'P1-13 (Configurações → Chaves e contas)',
-  secrets_backend_get: 'P1-13 (Configurações → Chaves e contas)',
-  secrets_backend_set: 'P1-13 (Configurações → Chaves e contas)',
+  secrets_backend_get:
+    'sem tela: Configurações lê o modo em secrets_status.backend (P1-13); remover ou dar uso',
   catalog_minecraft_versions: 'P1-07 (tela, Claude)',
   catalog_loader_versions: 'P1-07 (tela, Claude)',
   packs_list: 'P1-07 (tela, Claude)',

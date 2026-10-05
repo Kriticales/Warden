@@ -7,7 +7,9 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { boasVindas } from './pt-BR/boas-vindas';
 import { comum } from './pt-BR/comum';
+import { configuracoes } from './pt-BR/configuracoes';
 import { navegacao } from './pt-BR/navegacao';
 import { sobre } from './pt-BR/sobre';
 import { tarefas } from './pt-BR/tarefas';
@@ -19,6 +21,8 @@ export const resources = {
   'pt-BR': {
     comum,
     navegacao,
+    configuracoes,
+    boasVindas,
     sobre,
     tarefas,
     java,

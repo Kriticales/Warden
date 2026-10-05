@@ -7,7 +7,7 @@
  * aparece antes de a página existir.
  */
 import type { LinkProps } from '@tanstack/react-router';
-import type { LucideIcon } from 'lucide-react';
+import { Settings, type LucideIcon } from 'lucide-react';
 
 /** Um destino da barra do app. */
 export interface AppBarLink {
@@ -18,4 +18,6 @@ export interface AppBarLink {
   icon: LucideIcon;
 }
 
-export const appBarLinks: readonly AppBarLink[] = [];
+export const appBarLinks: readonly AppBarLink[] = [
+  { to: '/configuracoes', labelKey: 'configuracoes', icon: Settings },
+];

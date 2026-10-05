@@ -4,8 +4,11 @@ import { Trans, useTranslation } from 'react-i18next';
 import { AppPage } from '../app/layout/AppPage';
 import { PageTitle } from '../app/layout/PageHead';
 import { AboutWarden } from '../features/about/components/AboutWarden';
+import { redirectOnFirstRun } from '../features/onboarding/firstRun';
 
 export const Route = createFileRoute('/')({
+  // Primeira execução (T01, P1-13): sem `settings.json`, o app abre nas boas-vindas.
+  beforeLoad: ({ context }) => redirectOnFirstRun(context.queryClient),
   component: HomePage,
 });
 

@@ -1,0 +1,80 @@
+/*
+ * Layout de Configurações (T21) e da primeira execução (T01), iguais ao protótipo final
+ * (`design/prototipo-final/prototipo.css`). Mesma regra do design system: só tokens.
+ */
+.settings {
+  /* 880 px, como no protótipo. */
+  max-width: calc(var(--space-16) * 13.75);
+}
+.settings__section + .settings__section {
+  margin-top: var(--space-4);
+}
+
+/* Uma linha por chave: nome, estado ou campo, ações. */
+.keyrow {
+  display: grid;
+  grid-template-columns: calc(var(--space-16) * 1.875) minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-thin) solid var(--color-border);
+}
+.keyrow:last-of-type {
+  border-bottom: 0;
+}
+.keyrow__feedback,
+.keyrow__steps {
+  grid-column: 2 / -1;
+}
+.keyrow__steps ol {
+  list-style: decimal;
+  padding-left: var(--space-5);
+}
+
+/* Primeira execução: assistente à esquerda, "Onde ficam as coisas" à direita. */
+.welcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(var(--size-section-menu) + var(--space-8));
+  gap: var(--space-8);
+  align-items: start;
+}
+.welcome__aside {
+  padding: var(--space-5);
+  background: var(--color-surface-1);
+  border: var(--border-thin) solid var(--color-border);
+}
+.welcome__aside .kv {
+  grid-template-columns: minmax(0, 1fr);
+}
+.wizard .steps {
+  margin: var(--space-2) 0 var(--space-6);
+}
+.wizard__field {
+  max-width: var(--size-dialog-sm);
+}
+.wizard__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: var(--border-thin) solid var(--color-border);
+}
+
+/* Campo com botão ao lado (pasta + "Escolher…"). */
+.field__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.field__row > .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Abaixo da largura do protótipo, a coluna lateral desce. */
+@media (max-width: 1180px) {
+  .welcome {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
