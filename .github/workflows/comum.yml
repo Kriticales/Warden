@@ -168,14 +168,16 @@ jobs:
       - name: Cache do sidecar do packwiz (por commit e patches)
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          # Executáveis com patch, registro do build e o executável sem patch de referência;
-          # o `build-packwiz` confere os SHA-256 e recompila se algo não bater.
+          # Executáveis com patch e registro do build, mais `target/packwiz` inteira: o
+          # executável sem patch de referência e o clone do packwiz com o `.git`, que os testes
+          # do sidecar usam para procurar a chave original. O `build-packwiz` confere os SHA-256
+          # e recompila se algo não bater. Mudou o que entra aqui? Troque o `v2` da chave.
           path: |
             apps/desktop/src-tauri/binaries/packwiz-*
             apps/desktop/src-tauri/binaries/packwiz.commit
             apps/desktop/src-tauri/binaries/packwiz.build.toml
-            target/packwiz/referencia
-          key: packwiz-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('third_party/packwiz/**', 'xtask/src/packwiz.rs') }}
+            target/packwiz
+          key: packwiz-v2-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('third_party/packwiz/**', 'xtask/src/packwiz.rs') }}
 
       - name: Sidecar do packwiz (com novas tentativas)
         run: |
