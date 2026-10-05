@@ -5867,10 +5867,23 @@ dependencies = [
 name = "warden-packwiz-cli"
 version = "0.1.0"
 dependencies = [
+ "junction",
+ "proptest",
+ "regex",
+ "rustix",
+ "secrecy",
  "serde",
+ "serde_json",
  "specta",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
  "warden-core",
  "warden-packwiz",
+ "windows",
+ "zip",
 ]
 
 [[package]]

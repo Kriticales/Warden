@@ -448,7 +448,28 @@ export type PackId = string;
  */
 export type PackwizCliErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O executável do packwiz não foi encontrado. */
+"BINARY_NOT_FOUND" | 
+/**  O sistema não deixou iniciar o packwiz. */
+"SPAWN_FAILED" | 
+/**  A pasta não tem `pack.toml`. */
+"PACK_FILE_MISSING" | 
+/**  O packwiz terminou com erro (código de saída diferente de zero). */
+"COMMAND_FAILED" | 
+/**  O packwiz disse que deu certo, mas os arquivos relidos não conferem. */
+"POSTCONDITION_FAILED" | 
+/**
+ *  O comando precisava da chave da CurseForge e ela não foi informada (mesmo texto do
+ *  código da `warden-curseforge`, sem o `_` que o `CurseForge` geraria).
+ */
+"CURSEFORGE_KEY_MISSING" | 
+/**  Há mods da CurseForge que só podem ser baixados à mão. */
+"MANUAL_DOWNLOADS_REQUIRED" | 
+/**  Um arquivo não pôde ser baixado e a exportação ficaria incompleta. */
+"DOWNLOAD_FAILED" | 
+/**  A pasta do pack tem um link simbólico ou junção, que o Warden não segue. */
+"LINK_IN_PACK";
 
 /**
  *  Códigos do domínio `packwiz`. O código é contrato: renomear é mudança de contrato;

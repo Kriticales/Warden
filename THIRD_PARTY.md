@@ -60,6 +60,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `url` | 2.5.8 | MIT OR Apache-2.0 | `warden-http`, `warden-modrinth` | Links validados e montagem de consultas. |
 | `wiremock` | 0.6.5 | MIT OR Apache-2.0 | `warden-http`, `warden-modrinth` (testes) | Servidor HTTP simulado: 429, retomada com `Range`, limitador por servidor (QUALITY §4.1). |
 | `rusqlite` | 0.40.2 | MIT | `warden-modrinth` | Cache `metadata.sqlite` (ARCHITECTURE §13), com o SQLite embutido (`bundled`, domínio público). |
+| `windows` | 0.62.2 | MIT OR Apache-2.0 | `warden-packwiz-cli` (Windows) | Job Object com `KILL_ON_JOB_CLOSE`: cancelar o packwiz mata o processo e os filhos (ADR-0024). |
+| `rustix` | 1.1.5 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT | `warden-packwiz-cli` (Linux) | `SIGKILL` no grupo de processos do packwiz, sem `unsafe`. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

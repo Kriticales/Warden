@@ -6,11 +6,49 @@ edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
+# Executável falso do packwiz, só para os testes de processo (árvore de processos, tempo-limite,
+# ambiente recebido). Não entra no app: a `warden-app` depende só da biblioteca.
+[[bin]]
+name = "packwiz-fake"
+path = "src/bin/packwiz_fake.rs"
+test = false
+doc = false
+
 [dependencies]
 warden-core.workspace = true
 warden-packwiz.workspace = true
+regex.workspace = true
+secrecy.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "process", "rt", "time"] }
+tracing.workspace = true
+zip.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+# Job Object: cancelar ou estourar o tempo-limite mata o packwiz e todos os filhos
+# (ARCHITECTURE §6.3 e §7.4; ADR-0024). O `unsafe` fica isolado em `src/process/windows.rs`.
+windows = { workspace = true, features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_JobObjects",
+  "Win32_System_Threading",
+] }
+
+[target.'cfg(unix)'.dependencies]
+# Grupo de processos: `kill_process_group` sem `unsafe`.
+rustix = { workspace = true, features = ["process"] }
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "process", "rt", "rt-multi-thread", "time"] }
+tracing-subscriber.workspace = true
+
+[target.'cfg(windows)'.dev-dependencies]
+junction.workspace = true
 
 [lints]
 workspace = true
