@@ -27,7 +27,7 @@ A janela não fecha sozinha: leia a última frase, que diz o que fazer. As mais 
 | Mensagem | O que fazer |
 |---|---|
 | O GitHub CLI (gh) não está conectado à sua conta | Abra o PowerShell, rode `gh auth login`, siga as instruções e tente de novo. |
-| Nenhuma execução da CI terminada com sucesso... | A versão nova ainda não ficou pronta (a CI leva uns 40 minutos) ou falhou. Espere, ou avise o orquestrador. |
+| Nenhuma execução da CI terminada com sucesso... | A versão nova ainda não ficou pronta (a CI leva pouco mais de uma hora depois de cada mudança) ou falhou. Espere, ou avise o orquestrador. |
 | O Warden não fechou em 20 s | O Warden pode estar perguntando algo na janela dele. Responda, feche o Warden e tente de novo. |
 
 Em todos esses casos **nada foi instalado** e nada mudou no computador.
