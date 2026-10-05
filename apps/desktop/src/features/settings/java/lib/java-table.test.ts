@@ -65,7 +65,7 @@ function decision(
   };
 }
 
-function use(
+function packUse(
   name: string,
   minecraft: string,
   automatic: JavaDecision,
@@ -124,7 +124,7 @@ describe('motivos', () => {
   });
 
   it('escolha do usuário prevalece no motivo da linha', () => {
-    const pack = use('A', '1.20.1', range17, null);
+    const pack = packUse('A', '1.20.1', range17, null);
     pack.choice.reason = 'USER_CHOICE';
     expect(choiceReason(pack.choice).key).toBe('motivo.USER_CHOICE');
     expect(decisionReason(decision('USER_CHOICE', 21)).key).toBe('motivo.USER_CHOICE');
@@ -159,17 +159,21 @@ describe('buildRows (CA-T21-04)', () => {
       {
         runtime: java17,
         packs: [
-          use('Vale Sereno', '1.20.1', range17, java17),
-          use('Create', '1.20.1', range17, java17),
+          packUse('Vale Sereno', '1.20.1', range17, java17),
+          packUse('Create', '1.20.1', range17, java17),
         ],
         inGame: false,
       },
       { runtime: oldJava17, packs: [], inGame: true },
-      { runtime: java8, packs: [use('Técnico Clássico', '1.7.10', legacy8, java8)], inGame: false },
+      {
+        runtime: java8,
+        packs: [packUse('Técnico Clássico', '1.7.10', legacy8, java8)],
+        inGame: false,
+      },
     ],
     packsToDownload: [
-      use('Novo', '26.3', decision('NEWEST_AVAILABLE', 25, { rangeLabel: '26.x' }), null),
-      use('Outro novo', '26.1', decision('NEWEST_AVAILABLE', 25, { rangeLabel: '26.x' }), null),
+      packUse('Novo', '26.3', decision('NEWEST_AVAILABLE', 25, { rangeLabel: '26.x' }), null),
+      packUse('Outro novo', '26.1', decision('NEWEST_AVAILABLE', 25, { rangeLabel: '26.x' }), null),
     ],
     unresolved: [],
     brokenCount: 0,
@@ -208,9 +212,9 @@ describe('buildRows (CA-T21-04)', () => {
         {
           runtime: java8,
           packs: [
-            use('A', '1.12.2', legacy8, java8),
-            use('B', '1.16.5', vanilla, java8),
-            use('C', '1.7.10', legacy8, java8),
+            packUse('A', '1.12.2', legacy8, java8),
+            packUse('B', '1.16.5', vanilla, java8),
+            packUse('C', '1.7.10', legacy8, java8),
           ],
           inGame: false,
         },
@@ -238,8 +242,8 @@ describe('buildRows (CA-T21-04)', () => {
     const rows = buildRows({
       runtimes: [],
       packsToDownload: [
-        use('Antigo', '1.16.5', capped, null),
-        use('Clássico', '1.7.10', legacy8, null),
+        packUse('Antigo', '1.16.5', capped, null),
+        packUse('Clássico', '1.7.10', legacy8, null),
       ],
       unresolved: [],
       brokenCount: 0,

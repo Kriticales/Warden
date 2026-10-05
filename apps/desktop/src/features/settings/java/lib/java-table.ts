@@ -15,11 +15,47 @@ import type {
   JavaVersion,
   PackJavaUse,
 } from '../../../../lib/ipc/bindings';
+import type { TFunction } from 'i18next';
+
+import type { java } from '../../../../i18n/pt-BR/java';
+
+/** Chave de um motivo no catálogo `java`. */
+export type ReasonKey = Exclude<
+  `motivo.${keyof typeof java.motivo}`,
+  'motivo.porQueNao' | 'motivo.escolhaIndisponivel'
+>;
 
 /** Uma frase do catálogo `java` com os parâmetros. */
 export interface ReasonText {
-  key: string;
-  params: Record<string, string | number>;
+  key: ReasonKey;
+  params: ReasonParams;
+}
+
+/** Parâmetros dos motivos: a faixa e o major (`NEWEST_PROVEN_FOR_RANGE`) ou o Java pedido pelo
+ * JSON da versão (`FROM_VERSION_JSON`). */
+export interface ReasonParams {
+  range?: string;
+  major?: number;
+  required?: number;
+}
+
+/** O texto de um motivo, com os parâmetros no lugar (catálogo `java`). */
+export function reasonLabel(t: TFunction<'java'>, reason: ReasonText): string {
+  switch (reason.key) {
+    case 'motivo.NEWEST_PROVEN_FOR_RANGE':
+      return t('motivo.NEWEST_PROVEN_FOR_RANGE', {
+        range: reason.params.range ?? '',
+        major: reason.params.major ?? 0,
+      });
+    case 'motivo.FROM_VERSION_JSON':
+      return t('motivo.FROM_VERSION_JSON', { required: reason.params.required ?? 0 });
+    case 'motivo.USER_CHOICE':
+    case 'motivo.FORGE_LEGACY_JAVA8':
+    case 'motivo.FORGE_1165_OLD':
+    case 'motivo.NEWEST_AVAILABLE':
+    case 'motivo.FROM_VERSION_JSON_ANTIGA':
+      return t(reason.key);
+  }
 }
 
 /** Versão curta: `8u312` no Java 8, `21.0.12.1` nos outros (igual ao `Display` do Rust). */
@@ -93,10 +129,10 @@ export interface JavaTableRow {
 
 function sameReason(a: ReasonText, b: ReasonText): boolean {
   if (a.key !== b.key) return false;
-  const keys = Object.keys(a.params);
   return (
-    keys.length === Object.keys(b.params).length &&
-    keys.every((name) => a.params[name] === b.params[name])
+    a.params.range === b.params.range &&
+    a.params.major === b.params.major &&
+    a.params.required === b.params.required
   );
 }
 
