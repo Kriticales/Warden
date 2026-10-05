@@ -15,6 +15,9 @@
 //!   `refs/warden/safety/*`.
 //! - Restauração transacional ([`PackRepo::restore`]): se falhar no meio, o pack volta ao
 //!   estado anterior completo.
+//! - Changelog estruturado ([`PackRepo::changes`]) a partir dos metafiles, com nomes legíveis
+//!   pelo [`VersionNameResolver`]; Markdown do `CHANGELOG.md` ([`changelog`]); sugestão `SemVer`
+//!   ([`suggest_version`], função pura).
 //!
 //! Git embutido com a `git2` (libgit2 compilada junto): o computador do usuário não precisa
 //! ter git instalado. No Windows a compilação usa o compilador C do MSVC, já exigido pelo
@@ -30,14 +33,21 @@
 // avisa ao criar a biblioteca de importação de cada executável de teste (inofensivo).
 #![cfg_attr(test, allow(linker_messages))]
 
+pub mod changelog;
+mod changes;
 mod error;
 mod moment;
 mod repo;
 mod restore;
 mod safety;
+mod suggest;
 mod versions;
 mod worktree;
 
+pub use changes::{
+    ChangeSet, FileNames, ItemCategory, ItemChange, ItemChangeKind, ItemSource, ItemVersion,
+    LoaderChange, Snapshot, ValueChange, VersionNameResolver, VersionRef,
+};
 pub use error::{Error, Result, VersioningErrorCode};
 pub use moment::Moment;
 pub use repo::{
@@ -45,6 +55,7 @@ pub use repo::{
 };
 pub use restore::{RestoreReport, RestoreTarget};
 pub use safety::{SAFETY_REF_PREFIX, SafetyPoint, SafetyReason};
+pub use suggest::{Bump, ChangeFacts, SuggestReason, VersionSuggestion, bump, suggest_version};
 pub use versions::{
     FINAL_REF_PREFIX, PUBLISH_TAG_PREFIX, SaveVersion, SavedVersion, parse_version, tag_name,
 };

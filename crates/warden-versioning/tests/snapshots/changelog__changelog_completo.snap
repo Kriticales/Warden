@@ -1,0 +1,22 @@
+---
+source: crates/warden-versioning/tests/changelog.rs
+assertion_line: 300
+expression: "render_entry(\"1.1.0\", \"2026-10-01\", \"Notas *livres* do usuário.\", &changes)"
+---
+## 1.1.0 — 2026-10-01
+
+Notas *livres* do usuário.
+
+### Mods adicionados
+- meu-mod-1.0.jar (arquivo local)
+
+### Resource packs e shaders
+- Adicionado: Complementary Reimagined r5.zip (arquivo local)
+- Atualizado: Faithful 32x faithful-f1.jar → faithful-f2.jar
+
+### Mods ajustados
+- Sodium (ajustes do item)
+
+### Configs alteradas
+- config/ação.toml
+- config/sodium-options.json

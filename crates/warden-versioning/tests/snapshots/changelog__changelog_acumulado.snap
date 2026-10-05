@@ -1,0 +1,18 @@
+---
+source: crates/warden-versioning/tests/changelog.rs
+assertion_line: 435
+expression: file.unwrap()
+---
+# Changelog
+
+## 2.0.0 — 2026-10-01
+
+terceira
+
+## 1.1.0 — 2026-10-01
+
+segunda
+
+## 1.0.0 — 2026-10-01
+
+primeira
