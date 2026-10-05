@@ -1,6 +1,6 @@
 # Warden — Padrão de qualidade obrigatório
 
-> Versão do documento: 1.4 (2026-10-04). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038); glossário, testes e privacidade do Warden 1.1 "Profissional" na tarefa D5 (ADR-0039 a ADR-0047); desenvolvimento direto no Windows na tarefa D6 (ADR-0048): §13 nova, testes, fim de linha e caminho do `.env`.
+> Versão do documento: 1.5 (2026-10-04). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038); glossário, testes e privacidade do Warden 1.1 "Profissional" na tarefa D5 (ADR-0039 a ADR-0047); desenvolvimento direto no Windows na tarefa D6 (ADR-0048): §13 nova, testes, fim de linha e caminho do `.env`; o que as ondas 0 e 1 ensinaram, na tarefa D7: TypeScript fixado e risco do ESLint (§2.2), convenção dos testes de rede (§4.1), sidecar antes do `check` (§12), pnpm, manifesto do Windows, antivírus que cria temporários e programas do Windows chamados pelo Git Bash (§13).
 > Vale para **todos** os agentes e para o orquestrador. Uma entrega que não cumpre este documento não é integrada.
 > Referências: `ARCHITECTURE.md` (estrutura), `SPEC.md` (critérios de aceite), `ROADMAP.md` (tarefas), `docs/decisions/` (ADRs).
 
@@ -79,6 +79,7 @@ missing_errors_doc = "allow"
   - `no-restricted-imports`: `@tauri-apps/api/core` (`invoke`) proibido fora de `src/lib/ipc/`;
   - `react/no-danger` (de `eslint-plugin-react`): erro, com exceção configurada só para o arquivo do componente `SafeHtml`.
 - `pnpm lint` com `--max-warnings 0`.
+- **Versões fixadas (F0-01):** TypeScript **6.0.3**, porque o `typescript-eslint` só aceita `< 6.1`; não atualize o TypeScript sem conferir a faixa do `typescript-eslint`. **Risco registrado:** o ESLint 9 está sem suporte e os plugins `eslint-plugin-jsx-a11y` e `eslint-plugin-react` estão parados; a troca fica para uma ADR futura (ARCHITECTURE §19.2). Até lá, nenhuma tarefa troca o linter nem tira regras.
 - Arquivos gerados (`bindings.ts`, `routeTree.gen.ts`) são excluídos do lint e da formatação, nunca editados à mão.
 
 ### 2.3 Outros
@@ -109,7 +110,7 @@ missing_errors_doc = "allow"
 | Dourado (golden) | `crates/*/tests/`, snapshots em `snapshots/` | `insta` | toda mudança |
 | Integração com packwiz real | `crates/*/tests/packwiz_*.rs` | `cargo nextest` + sidecar (`WARDEN_PACKWIZ_BIN`) | toda mudança |
 | Conformidade (packwiz-installer real, Java) | `crates/warden-instance/tests/conformance_*.rs`, `crates/warden-export/tests/conformance_*.rs` | Java 21 (CI: `actions/setup-java`), bootstrap fixado por versão e SHA-256, baixado pelo xtask para o cache | toda mudança no Linux; Windows à noite |
-| Rede (APIs reais) | testes marcados `#[ignore = "rede"]` | `cargo xtask test-network` | à noite e manual; local com `.env` |
+| Rede (APIs reais) | testes marcados `#[ignore = "rede"]` **e com nome começando por `rede_`** (o `cargo xtask test-network` filtra pelo nome, `test(/(^|::)rede_/)`, porque o nextest não filtra pelo motivo do `ignore`; convenção da F0-01) | `cargo xtask test-network` | à noite e manual; local com `.env` |
 | Jogo real (matriz de versões) | `crates/warden-launcher/tests/smoke_*.rs` | Linux + Xvfb + Mesa | semanal e manual; antes de cada marco |
 | Componente/tela | `apps/desktop/src/**/*.test.tsx` | Vitest + Testing Library + `mockIPC` + `vitest-axe` | toda mudança |
 | Ponta a ponta (E2E) | `apps/desktop/e2e/` | WebdriverIO + `tauri-driver` sobre build de debug (`tauri build --debug`), APIs simuladas por servidor local de fixtures, cofre de teste em arquivo e `WARDEN_DATA_ROOT` (§13.5) | local no Windows; na CI, Linux em toda mudança e Windows na `main` e à noite |
@@ -328,6 +329,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Comando | O que faz |
 |---|---|
 | `cargo xtask setup` | Instala dependências locais do projeto (pnpm install, compila o sidecar do packwiz, baixa o bootstrap do packwiz-installer para o cache). |
+| `cargo xtask build-packwiz` | Compila o sidecar do packwiz (pula se nada mudou). Desde a F0-03, **todo worktree novo e a CI rodam `setup` ou `build-packwiz` antes do `check`**: sem o sidecar, os testes que usam o packwiz real falham. O primeiro build precisa de rede (packwiz e módulos Go). |
 | `cargo xtask check` | Gate completo local: `cargo fmt --check`, `cargo clippy ... -D warnings`, `cargo nextest run --workspace`, `cargo test --doc`, `cargo deny check`, `cargo xtask check-deps`, `cargo xtask bindings --check`, `pnpm -C apps/desktop format:check`, `lint`, `typecheck`, `test`. |
 | `cargo xtask check --fast` | Formatação, clippy, testes unitários das crates alteradas, lint e typecheck. Usado a cada commit. |
 | `cargo xtask coverage` | Cobertura com os mínimos do §4.2. |
@@ -368,6 +370,7 @@ O Warden é desenvolvido direto no Windows nativo; o Linux só roda na CI (ADR-0
 - Medido na prova da D6 (app mínimo, sem o resto do Warden): primeira compilação de debug em 81 s; uma mudança pequena recompila em 8 s; build de release com instalador NSIS em 222 s; a pasta `target` ficou com 3,6 GB (debug e release). O Warden completo será bem maior: limpe a `target` de worktrees encerrados (`cargo clean`), tarefa do orquestrador.
 - **Antivírus:** a verificação em tempo real pode deixar a compilação bem mais lenta, porque cada arquivo novo da `target` é examinado. No momento da medição a proteção em tempo real do Defender estava desligada nesta máquina, então o efeito não foi medido. Excluir as pastas `target` da verificação é **decisão do dono**: nenhum agente adiciona exclusões, desliga a proteção ou roda `Add-MpPreference`.
 - O sidecar `packwiz.exe` e o instalador não têm assinatura digital (decisão D4): o SmartScreen e antivírus podem estranhar (ADR-0007, `docs/DEV-WINDOWS.md`).
+- **Manifesto do Windows nos testes (F0-01):** o `tauri-build` só embute o manifesto do Windows (Common Controls v6) nos executáveis do app; os executáveis de teste da `warden-app` ficavam sem ele e caíam com `STATUS_ENTRYPOINT_NOT_FOUND`. O `build.rs` da `warden-app` passa o manifesto pelo linker (`/MANIFESTINPUT`) para todos os alvos; não remova.
 - Avisos conhecidos: o `staticlib`/`cdylib` do modelo do Tauri gera aviso do linker no Windows (por isso a `warden-app` usa só `rlib`, F0-01); a `tauri-cli` 2.11 imprime um aviso de `STATIC_VCRUNTIME` obsoleto que vem dela própria e não falha o build.
 
 ### 13.5 Testes ponta a ponta
@@ -386,3 +389,13 @@ O Warden é desenvolvido direto no Windows nativo; o Linux só roda na CI (ADR-0
 - Toda automação passa pelo `xtask` (Rust), que funciona no PowerShell e no Linux da CI. Nada de script bash ou PowerShell como passo obrigatório; arquivos `.cmd` só como atalho de duplo clique que chama o `xtask` (F0-04).
 - Comandos de verificação nos relatórios e nos documentos são escritos para o PowerShell 7 (`&&` funciona; variável de ambiente com `$env:NOME = 'valor'`; caminhos com espaço entre aspas).
 - Testes que iniciam processos resolvem o executável com a extensão do Windows (`.exe`, `.cmd`) e passam argumentos em vetor, nunca por `cmd /c` ou `sh -c` (§9).
+- **Programas do Windows com opções `/x` pelo PowerShell (R6):** a ferramenta Bash dos agentes é o Git Bash, que converte argumentos começando por `/` em caminhos (`/i0` vira `C:/Program Files/Git/i0`). Na R6, isso fez o `avp.com` do Kaspersky ignorar as opções e **apagar conteúdo de jars de teste**. Chame programas do Windows que usam opções com barra (`avp.com`, `robocopy`, `taskkill`, `icacls`, instaladores com `/S`) pelo PowerShell; no Git Bash, só com `MSYS2_ARG_CONV_EXCL='*'`. No código do Warden isso não acontece (argumentos em vetor, sem shell).
+
+### 13.8 Pacotes do pnpm
+
+- O pnpm 12 recusa versões publicadas há **menos de um dia** (proteção contra pacotes comprometidos recém-publicados). Quando a versão mais nova for recusada, escolha a anterior; não abra exceção na configuração.
+
+### 13.9 Antivírus e arquivos temporários
+
+- O antivírus desta máquina (o Kaspersky, por inferência) cria arquivos temporários logo depois de o app apagar um arquivo, segura-os com acesso exclusivo e os apaga em 2 a 10 ms (por exemplo `config/.ENV.tmp` com 0 bytes depois de o `.env` ser apagado; achado da correção da F0-05, que fazia um teste falhar em 18% das execuções). Código e testes que varrem pastas (varredura de segredos, limpeza de `.warden-tmp`, inventário) **toleram** um arquivo que some ou está preso entre a listagem e a leitura (a varredura recomeça do zero, com prazo; na limpeza, "não encontrado" conta como já limpo) e **não ignoram** nenhum arquivo que exista no fim: a tolerância é para o sumiço, nunca um filtro por nome.
+- Nenhum agente mexe nas configurações do antivírus (§13.4).
