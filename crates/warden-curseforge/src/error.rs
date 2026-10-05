@@ -11,6 +11,7 @@
 //! e os erros desta crate só levam IDs, nomes de arquivo e o código HTTP.
 
 use std::collections::BTreeMap;
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 use warden_core::{DomainCode, DomainError, error_chain};
@@ -51,8 +52,9 @@ pub enum CurseforgeErrorCode {
     InvalidResponse,
 }
 
-/// Erro das funções desta crate.
-#[derive(Debug, thiserror::Error)]
+/// Erro das funções desta crate. O `Debug` é escrito à mão para a página do download manual
+/// (montada com dados da API) não ir para os registros por um `?error`.
+#[derive(thiserror::Error)]
 pub enum Error {
     /// Sem chave configurada (nenhuma requisição saiu).
     #[error("sem chave da CurseForge")]
@@ -77,10 +79,10 @@ pub enum Error {
         /// ID do arquivo.
         file_id: u64,
     },
-    /// Distribuição por terceiros desligada pelo autor.
+    /// Distribuição por terceiros desligada pelo autor. A página do download manual fica fora
+    /// da mensagem (que pode ir para os registros) e entra só nos "Detalhes técnicos".
     #[error(
-        "a CurseForge não deixa apps de terceiros baixarem o arquivo {file_id} do projeto {mod_id}{}",
-        page_suffix(.page_url.as_deref())
+        "a CurseForge não deixa apps de terceiros baixarem o arquivo {file_id} do projeto {mod_id}"
     )]
     DistributionBlocked {
         /// ID do projeto.
@@ -113,9 +115,40 @@ fn status_suffix(status: Option<u16>) -> String {
     )
 }
 
-fn page_suffix(page: Option<&str>) -> String {
-    page.map(|page| format!(" (página para baixar à mão: {page})"))
-        .unwrap_or_default()
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::KeyMissing => f.write_str("KeyMissing"),
+            Self::KeyInvalid { status } => f
+                .debug_struct("KeyInvalid")
+                .field("status", status)
+                .finish(),
+            Self::ModNotFound { id } => f.debug_struct("ModNotFound").field("id", id).finish(),
+            Self::FileNotFound { mod_id, file_id } => f
+                .debug_struct("FileNotFound")
+                .field("mod_id", mod_id)
+                .field("file_id", file_id)
+                .finish(),
+            Self::DistributionBlocked {
+                mod_id,
+                file_id,
+                file_name,
+                page_url,
+            } => f
+                .debug_struct("DistributionBlocked")
+                .field("mod_id", mod_id)
+                .field("file_id", file_id)
+                .field("file_name", file_name)
+                .field("page_url", &page_url.as_ref().map(|_| "[só em memória]"))
+                .finish(),
+            Self::InvalidQuery(reason) => f.debug_tuple("InvalidQuery").field(reason).finish(),
+            Self::Http(error) => f.debug_tuple("Http").field(error).finish(),
+            Self::InvalidResponse(reason) => {
+                f.debug_tuple("InvalidResponse").field(reason).finish()
+            }
+            Self::Internal(reason) => f.debug_tuple("Internal").field(reason).finish(),
+        }
+    }
 }
 
 /// Atalho para os resultados da crate.
@@ -220,6 +253,13 @@ impl DomainError for Error {
     fn detail(&self) -> Option<String> {
         match self {
             Self::KeyMissing => None,
+            Self::DistributionBlocked {
+                page_url: Some(page),
+                ..
+            } => Some(format!(
+                "{self}
+página para baixar à mão: {page}"
+            )),
             Self::Http(error) => error.detail(),
             _ => Some(error_chain(self)),
         }
@@ -418,6 +458,25 @@ mod tests {
         );
         assert_eq!(error.params()["file"], "entityculling.jar");
         assert!(error.detail().unwrap().contains("/files/7"));
+        assert!(!error.to_string().contains("/files/7"), "{error}");
+        let debug = format!("{error:?}");
+        assert!(!debug.contains("/files/7"), "{debug}");
+        assert!(debug.contains("entityculling.jar"), "{debug}");
+        for error in [
+            Error::KeyMissing,
+            Error::KeyInvalid { status: Some(401) },
+            Error::ModNotFound { id: 1 },
+            Error::FileNotFound {
+                mod_id: None,
+                file_id: 2,
+            },
+            Error::InvalidQuery("q".into()),
+            Error::Http(warden_http::Error::Cancelled),
+            Error::InvalidResponse("r".into()),
+            Error::Internal("i".into()),
+        ] {
+            assert!(!format!("{error:?}").is_empty());
+        }
         let error = Error::DistributionBlocked {
             mod_id: 1,
             file_id: 7,

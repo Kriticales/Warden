@@ -108,7 +108,7 @@ async fn p1_04_ca2_sem_chave_nenhuma_requisicao() {
     assert_eq!(c.request_count(), 0);
 }
 
-/// CA-2 da P1-04 (CA-T21-02): chave recusada (403 vazio da CloudFront, ou 401) vira
+/// CA-2 da P1-04 (CA-T21-02): chave recusada (403 vazio do `CloudFront`, ou 401) vira
 /// `CURSEFORGE_KEY_INVALID`.
 #[tokio::test]
 async fn p1_04_ca2_chave_invalida() {

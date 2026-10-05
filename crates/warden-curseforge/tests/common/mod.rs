@@ -12,6 +12,8 @@
     clippy::unwrap_used,
     clippy::expect_used,
     clippy::panic,
+    clippy::needless_pass_by_value,
+    clippy::cast_possible_truncation,
     dead_code,
     unreachable_pub
 )]
@@ -79,7 +81,7 @@ pub fn paged(items: Vec<Value>, total: u64) -> ResponseTemplate {
         }))
 }
 
-/// 403 vazio, como a CloudFront da CurseForge responde a uma chave recusada.
+/// 403 vazio, como o CDN (`CloudFront`) da CurseForge responde a uma chave recusada.
 pub fn forbidden() -> ResponseTemplate {
     ResponseTemplate::new(403)
 }
