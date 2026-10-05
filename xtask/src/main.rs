@@ -13,6 +13,7 @@ mod docs;
 mod e2e;
 mod env_file;
 mod fixtures_packwiz;
+mod installer;
 mod network;
 mod packwiz;
 mod setup;
@@ -74,6 +75,8 @@ enum Command {
         #[arg(long)]
         commit: Option<String>,
     },
+    /// Baixa o packwiz-installer (e o bootstrap) e um JRE Temurin fixados, para a conformidade da L-03.
+    Installer,
     /// Baixa o `msedgedriver` da versão do WebView2 (Windows) ou confere o `WebKitWebDriver` (Linux).
     E2eDriver,
 }
@@ -94,6 +97,7 @@ fn main() -> ExitCode {
             fixtures_packwiz::run(fixtures_packwiz::Options { packwiz, commit })
         }
         Command::E2eDriver => e2e::run(),
+        Command::Installer => installer::run(),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
