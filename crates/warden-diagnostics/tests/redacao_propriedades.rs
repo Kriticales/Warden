@@ -120,16 +120,19 @@ proptest! {
 
 #[test]
 fn ca_t14_04_maria_jogador_ip_e_chave_nao_aparecem() {
-    let key = "$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0";
-    let log = format!(
-        "[main/INFO]: Loading C:\\Users\\Maria\\AppData\\Roaming\\.minecraft\n\
-         [Render thread/INFO]: Setting user: Steve_BR\n\
-         [Server thread/INFO]: Steve_BR[/192.168.0.15:51234] logged in with entity id 7\n\
-         [main/INFO]: chave {key}\n"
-    );
+    // Segredos inventados ficam em tests/fixtures/redacao/segredos.toml, lidos em tempo de
+    // execução: embutidos no executável de testes, disparavam a heurística do antivírus.
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/redacao/segredos.toml");
+    let table: toml::Table = toml::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let key = table["chave_curseforge"].as_str().unwrap();
+    let log = table["log_sem_perfil"]
+        .as_str()
+        .unwrap()
+        .replace("{chave}", key);
     // Sem perfil: tudo vem do próprio texto (como num log de outro computador).
     let output = Redactor::new(RedactionProfile::new()).redact(&log).text;
-    for secret in ["Maria", "Steve_BR", "192.168.0.15", "$2a$10$"] {
+    for secret in ["Maria", "Steve_BR", "192.168.0.15", &key[..7]] {
         assert!(!output.contains(secret), "{secret} sobrou: {output}");
     }
 }

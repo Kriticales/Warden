@@ -1,0 +1,51 @@
+# Segredos inventados para os testes de redação (ARCHITECTURE §9.4; CA-T14-04).
+#
+# Ficam neste arquivo, lido pelos testes em tempo de execução, e não no código: com estes
+# textos embutidos no executável de testes, o antivírus do computador de desenvolvimento
+# (Kaspersky, heurística VHO:Trojan-Ransom.Win32.Convagent.gen) bloqueava a execução do
+# binário. Nenhum valor é real.
+
+# Forma de uma chave da CurseForge ($2a$10$ + 53 caracteres).
+chave_curseforge = '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0'
+
+# Tokens nas formas reconhecidas pela redação.
+github = 'ghp_0123456789abcdefghijABCDEFGHIJ'
+github_fino = 'github_pat_11ABCDEFG0123456789_abcdefghij'
+google = 'AIzaSyA0123456789abcdefghijklmnopqrstu'
+jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.dGVzdGVzdGVzdA'
+bearer = 'eyJhbGciOi.eyJzdWIiOi.c2lnbmF0dXJl'
+sessao = 'segredo-de-sessao'
+
+# CA-T14-04: {chave} é trocado por chave_curseforge.
+log_ca_t14_04 = '''
+[12:00:00] [main/INFO]: Loading from C:\Users\Maria\AppData\Roaming\.minecraft
+[12:00:01] [Render thread/INFO]: Setting user: Steve_BR
+[12:00:02] [Server thread/INFO]: Steve_BR[/192.168.0.15:51234] logged in with entity id 7
+x-api-key: {chave}
+'''
+
+# Log sem perfil (como de outro computador): {chave} é trocado por chave_curseforge.
+log_sem_perfil = '''
+[main/INFO]: Loading C:\Users\Maria\AppData\Roaming\.minecraft
+[Render thread/INFO]: Setting user: Steve_BR
+[Server thread/INFO]: Steve_BR[/192.168.0.15:51234] logged in with entity id 7
+[main/INFO]: chave {chave}
+'''
+
+# E-mails e segredos: {bearer}, {github}, {github_fino}, {google}, {jwt} e {sessao} são trocados pelos
+# valores acima.
+log_segredos = '''
+contato maria.silva+mods@exemplo.com.br
+token=abc123XYZ&x=1 Authorization: Bearer {bearer}
+{github} {github_fino}
+{google} "accessToken":"{sessao}"
+{jwt}
+Session ID is token:1234567890abcdef:0f1e2d3c
+'''
+
+# Argumentos de lançamento com dados da conta.
+log_jogador = '''
+--username, Kiko123, --uuid, 0f1e2d3c4b5a69788796a5b4c3d2e1f0, --accessToken, abc.def
+UUID of player Kiko123 is 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0
+kiko123 joined the game
+'''

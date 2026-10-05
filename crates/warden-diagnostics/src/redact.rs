@@ -945,8 +945,18 @@ mod tests {
         RedactionProfile::new()
     }
 
-    /// Forma de uma chave da CurseForge (`$2a$10$` + 53 caracteres), inventada.
-    const BCRYPT_LIKE: &str = "$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0";
+    /// Segredos inventados, lidos de `tests/fixtures/redacao/segredos.toml` em tempo de
+    /// execução: embutidos no executável de testes, disparavam a heurística do antivírus.
+    fn fixture(name: &str) -> String {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("redacao")
+            .join("segredos.toml");
+        let text = std::fs::read_to_string(&path).expect("fixture de redação");
+        let table: toml::Table = toml::from_str(&text).expect("fixture de redação válida");
+        table[name].as_str().expect("texto na fixture").to_owned()
+    }
 
     fn clean(text: &str, profile: &RedactionProfile) -> String {
         redact(text, profile).text
@@ -957,22 +967,15 @@ mod tests {
         let profile = profile()
             .with_username("Maria")
             .with_player("Steve_BR")
-            .with_secret(&SecretString::from(BCRYPT_LIKE));
-        let log = format!(
-            concat!(
-                "[12:00:00] [main/INFO]: Loading from C:\\Users\\Maria\\AppData\\Roaming\\.minecraft\n",
-                "[12:00:01] [Render thread/INFO]: Setting user: Steve_BR\n",
-                "[12:00:02] [Server thread/INFO]: Steve_BR[/192.168.0.15:51234] logged in with entity id 7\n",
-                "x-api-key: {}\n",
-            ),
-            BCRYPT_LIKE
-        );
+            .with_secret(&SecretString::from(fixture("chave_curseforge")));
+        let key = fixture("chave_curseforge");
+        let log = fixture("log_ca_t14_04").replace("{chave}", &key);
         let redacted = redact(&log, &profile);
         for secret in [
             "Maria",
             "Steve_BR",
             "192.168.0.15",
-            &BCRYPT_LIKE[..7],
+            &key[..7],
             "abcdefghijklmnopqrstuvwxyz",
         ] {
             assert!(
@@ -1063,12 +1066,8 @@ mod tests {
 
     #[test]
     fn jogador_e_uuid_do_proprio_log() {
-        let text = concat!(
-            "--username, Kiko123, --uuid, 0f1e2d3c4b5a69788796a5b4c3d2e1f0, --accessToken, abc.def\n",
-            "UUID of player Kiko123 is 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0\n",
-            "kiko123 joined the game\n",
-        );
-        let output = clean(text, &profile());
+        let text = fixture("log_jogador");
+        let output = clean(&text, &profile());
         assert!(!output.to_lowercase().contains("kiko123"), "{output}");
         assert!(!output.contains("0f1e2d3c"), "{output}");
         assert!(!output.contains("abc.def"), "{output}");
@@ -1141,26 +1140,18 @@ mod tests {
 
     #[test]
     fn emails_e_segredos() {
-        let github = "ghp_0123456789abcdefghijABCDEFGHIJ";
-        let github_fine = "github_pat_11ABCDEFG0123456789_abcdefghij";
-        let google = "AIzaSyA0123456789abcdefghijklmnopqrstu";
-        let jwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.dGVzdGVzdGVzdA";
-        let bearer = "eyJhbGciOi.eyJzdWIiOi.c2lnbmF0dXJl";
-        let text = format!(
-            concat!(
-                "contato maria.silva+mods@exemplo.com.br\n",
-                "token=abc123XYZ&x=1 Authorization: Bearer {bearer}\n",
-                "{github} {github_fine}\n",
-                "{google} \"accessToken\":\"segredo-de-sessao\"\n",
-                "{jwt}\n",
-                "Session ID is token:1234567890abcdef:0f1e2d3c\n",
-            ),
-            bearer = bearer,
-            github = github,
-            github_fine = github_fine,
-            google = google,
-            jwt = jwt,
-        );
+        let github = fixture("github");
+        let github_fine = fixture("github_fino");
+        let google = fixture("google");
+        let jwt = fixture("jwt");
+        let bearer = fixture("bearer");
+        let text = fixture("log_segredos")
+            .replace("{bearer}", &bearer)
+            .replace("{github_fino}", &github_fine)
+            .replace("{github}", &github)
+            .replace("{google}", &google)
+            .replace("{jwt}", &jwt)
+            .replace("{sessao}", &fixture("sessao"));
         let output = clean(&text, &profile());
         for secret in [
             "maria.silva",
@@ -1169,7 +1160,7 @@ mod tests {
             &github[..8],
             &github_fine[..13],
             &google[..8],
-            "segredo-de-sessao",
+            &fixture("sessao"),
             &jwt[jwt.len() - 10..],
             "1234567890abcdef",
         ] {
