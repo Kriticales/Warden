@@ -17,6 +17,7 @@ mod installer;
 mod network;
 mod notices;
 mod packwiz;
+mod preview;
 mod setup;
 mod util;
 
@@ -82,6 +83,18 @@ enum Command {
     E2eDriver,
     /// Gera os avisos de terceiros (Rust, npm, packwiz, fontes) exibidos em "Sobre o Warden".
     Notices,
+    /// Versão de teste para o dono no Windows: gera (ou baixa da CI) o instalador, instala e abre.
+    Preview {
+        /// Baixa o instalador da última execução da CI com sucesso, em vez de compilar.
+        #[arg(long)]
+        from_ci: bool,
+        /// Branch da CI (padrão: `main`).
+        #[arg(long, requires = "from_ci")]
+        branch: Option<String>,
+        /// Pasta de instalação (padrão: `%LOCALAPPDATA%\Warden` ou a da instalação anterior).
+        #[arg(long)]
+        install_dir: Option<std::path::PathBuf>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -102,6 +115,15 @@ fn main() -> ExitCode {
         Command::E2eDriver => e2e::run(),
         Command::Installer => installer::run(),
         Command::Notices => notices::run(),
+        Command::Preview {
+            from_ci,
+            branch,
+            install_dir,
+        } => preview::run(&preview::Options {
+            from_ci,
+            branch,
+            install_dir,
+        }),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
