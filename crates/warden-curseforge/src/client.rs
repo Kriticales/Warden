@@ -298,9 +298,10 @@ impl CurseforgeClient {
             }
         }
         for batch in missing.chunks(ID_BATCH) {
-            let projects: Envelope<Vec<Mod>> = self
-                .post("mods", &ModIdsBody { mod_ids: batch }, cancel)
-                .await?;
+            let projects: Envelope<Vec<Mod>> = none_found_is_empty(
+                self.post("mods", &ModIdsBody { mod_ids: batch }, cancel)
+                    .await,
+            )?;
             self.cache.put_projects(&projects.data);
             found.extend(
                 projects
@@ -395,9 +396,10 @@ impl CurseforgeClient {
             }
         }
         for batch in missing.chunks(ID_BATCH) {
-            let files: Envelope<Vec<File>> = self
-                .post("mods/files", &FileIdsBody { file_ids: batch }, cancel)
-                .await?;
+            let files: Envelope<Vec<File>> = none_found_is_empty(
+                self.post("mods/files", &FileIdsBody { file_ids: batch }, cancel)
+                    .await,
+            )?;
             self.cache.put_files(&files.data);
             found.extend(files.data.into_iter().map(|file| (file.id, file)));
         }
@@ -684,6 +686,15 @@ fn map_http_error(error: warden_http::Error) -> Error {
             body: None,
         }),
         other => Error::Http(other),
+    }
+}
+
+/// Nos lotes (`POST /mods` e `POST /mods/files`), a API responde 404 quando **nenhum** dos IDs
+/// existe, em vez de uma lista vazia (conferido em 05/10/2026).
+fn none_found_is_empty<T>(result: Result<Envelope<Vec<T>>>) -> Result<Envelope<Vec<T>>> {
+    match result {
+        Err(Error::Http(warden_http::Error::NotFound { .. })) => Ok(Envelope { data: Vec::new() }),
+        other => other,
     }
 }
 

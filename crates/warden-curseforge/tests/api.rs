@@ -330,6 +330,34 @@ async fn lotes_de_projetos_e_arquivos() {
     assert_eq!(requests(&s.server).await, 2);
 }
 
+/// Os lotes respondem 404 quando nenhum ID existe (API real, 05/10/2026): o resultado é vazio.
+#[tokio::test]
+async fn lote_sem_nenhum_encontrado() {
+    let s = setup().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(404))
+        .expect(3)
+        .mount(&s.server)
+        .await;
+    assert!(
+        s.client
+            .projects(&[999_999_999], None)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    assert!(s.client.files_by_id(&[1], None).await.unwrap().is_empty());
+    let report = s
+        .client
+        .distribution(&[FileRef::new(2, 1)], None)
+        .await
+        .unwrap();
+    assert_eq!(report[0].distribution, Distribution::Missing);
+    // Lista vazia não chega a pedir (a API responderia 400).
+    assert!(s.client.projects(&[], None).await.unwrap().is_empty());
+    assert!(s.client.files_by_id(&[], None).await.unwrap().is_empty());
+}
+
 #[tokio::test]
 async fn lotes_grandes_sao_divididos() {
     let s = setup().await;
