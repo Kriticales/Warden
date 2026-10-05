@@ -40,6 +40,8 @@ pub struct AppState {
     pub java: warden_java::JavaRuntimes,
     /// Quem lista os packs para a tabela de Java (registrado pela P1-07).
     pub java_packs: JavaPackSources,
+    /// Registro local dos packs (P1-07).
+    pub packs: Arc<warden_project::registry::Registry>,
 }
 
 impl AppState {
@@ -71,6 +73,8 @@ impl AppState {
         );
         let catalog = crate::commands::catalog::open_catalog(&paths)?;
         let java = open_java(&paths)?;
+        let packs = warden_project::registry::Registry::open(paths.packs_registry_file())
+            .map_err(|error| AppError::from_domain(&error))?;
         Ok((
             Self {
                 paths,
@@ -83,6 +87,7 @@ impl AppState {
                 catalog,
                 java,
                 java_packs: JavaPackSources::default(),
+                packs: Arc::new(packs),
             },
             outcome,
         ))

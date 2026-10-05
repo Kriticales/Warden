@@ -8,6 +8,7 @@ pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
 pub(crate) mod java;
+pub(crate) mod packs;
 pub(crate) mod secrets;
 
 use crate::events::{OperationUpdated, PackChanged};
@@ -35,6 +36,16 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             java::java_runtimes_check_updates,
             java::java_runtime_remove,
             java::java_runtimes_remove_unused,
+            packs::packs_list,
+            packs::pack_get,
+            packs::pack_create,
+            packs::pack_import_preview,
+            packs::pack_import,
+            packs::pack_relocate,
+            packs::pack_forget,
+            packs::pack_hygiene_scan,
+            packs::pack_hygiene_fix,
+            packs::pack_trash,
         ])
         .events(tauri_specta::collect_events![OperationUpdated, PackChanged,])
 }

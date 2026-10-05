@@ -50,6 +50,26 @@ export const commands = {
 	javaRuntimeRemove: (id: RuntimeId) => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtime_remove", { id })),
 	/**  "Remover Javas sem uso" e devolve a tabela atualizada. */
 	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
+	/**  Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos. */
+	packsList: () => __TAURI_INVOKE<PackRow[]>("packs_list"),
+	/**  Dados de um pack da lista. */
+	packGet: (packId: PackId) => typedError<PackRow, AppError>(__TAURI_INVOKE("pack_get", { packId })),
+	/**  Cria um pack vazio com versões confirmadas pelo catálogo e ponto inicial no histórico. */
+	packCreate: (request: CreatePack) => typedError<CreatedPack, AppError>(__TAURI_INVOKE("pack_create", { request })),
+	/**  Verifica uma pasta packwiz sem escrever nela. */
+	packImportPreview: (path: string) => typedError<ImportPreview, AppError>(__TAURI_INVOKE("pack_import_preview", { path })),
+	/**  Abre e registra uma pasta packwiz. `add_controls` aceita os arquivos de controle padrão. */
+	packImport: (path: string, addControls: boolean) => typedError<ImportedPack, AppError>(__TAURI_INVOKE("pack_import", { path, addControls })),
+	/**  Localiza a nova pasta de um pack perdido sem trocar seu histórico local. */
+	packRelocate: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_relocate", { packId, path })),
+	/**  Retira apenas do registro local. */
+	packForget: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_forget", { packId })),
+	/**  Itens que não devem entrar no pack distribuído. */
+	packHygieneScan: (packId: PackId) => typedError<HygieneFinding[], AppError>(__TAURI_INVOKE("pack_hygiene_scan", { packId })),
+	/**  Remove os itens escolhidos após criar ponto de segurança. */
+	packHygieneFix: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("pack_hygiene_fix", { packId, paths })),
+	/**  Move um pack para a Lixeira depois de digitar o nome exato. */
+	packTrash: (packId: PackId, confirmation: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_trash", { packId, confirmation })),
 };
 
 /** Events */
@@ -173,6 +193,16 @@ export type ConfigsErrorCode =
 /**  A releitura não confirmou a edição. */
 "EDIT_NOT_CONFIRMED";
 
+/**  Mudança proposta em um arquivo de controle, apresentada antes de aplicar. */
+export type ControlDiff = {
+	/**  Caminho relativo. */
+	path: string,
+	/**  Conteúdo atual, ou `null` se não existe. */
+	current: string | null,
+	/**  Conteúdo proposto, preservando padrões adicionais do usuário. */
+	suggested: string,
+};
+
 /**
  *  Códigos do domínio `core`, comuns a todas as crates. O código é contrato: renomear é
  *  mudança de contrato; acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -190,6 +220,32 @@ export type CoreErrorCode =
 "PATH_OUTSIDE_ROOT" | 
 /**  Sem conexão com a internet (ou o servidor não respondeu). */
 "NETWORK_UNAVAILABLE";
+
+/**  Pedido final do assistente de criação. Mods iniciais são acrescentados pela P1-18. */
+export type CreatePack = {
+	/**  Nome, de 1 a 64 caracteres. */
+	name: string,
+	/**  Autor. */
+	author: string,
+	/**  Descrição opcional. */
+	description: string,
+	/**  Pasta escolhida; vazia significa usar a pasta padrão e o slug do nome. */
+	destination: string | null,
+	/**  Id exato do manifesto da Mojang. */
+	minecraft: string,
+	/**  `None` = vanilla. */
+	loader: Loader | null,
+	/**  Versão exata do loader, obrigatória se houver loader. */
+	loaderVersion: string | null,
+};
+
+/**  Resultado de uma criação. */
+export type CreatedPack = {
+	/**  Identificador estável. */
+	id: PackId,
+	/**  Pasta final. */
+	path: string,
+};
 
 /**
  *  Códigos do domínio `curseforge`. O código é contrato: renomear é mudança de contrato;
@@ -351,6 +407,20 @@ export type HttpErrorCode =
 /**  O servidor tentou redirecionar de https para http. */
 "INSECURE_REDIRECT";
 
+/**  Item da higiene, pronto para o IPC. */
+export type HygieneFinding = {
+	/**  Caminho relativo. */
+	path: string,
+	/**  Pasta inteira. */
+	isDir: boolean,
+	/**  Existe no disco. */
+	onDisk: boolean,
+	/**  Está no índice distribuído. */
+	inIndex: boolean,
+	/**  Motivos legíveis. */
+	reasons: string[],
+};
+
 /**
  *  Códigos do domínio `import`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -358,6 +428,40 @@ export type HttpErrorCode =
 export type ImportErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**  Diagnóstico de uma pasta antes de importar, sem alterações no disco. */
+export type ImportPreview = {
+	/**  Pasta proposta. */
+	path: string,
+	/**  Nome do pack. */
+	name: string,
+	/**  Minecraft. */
+	minecraft: string | null,
+	/**  Loader ou `null` para vanilla. */
+	loader: string | null,
+	/**  Arquivos que a higiene propõe limpar. */
+	hygiene: string[],
+	/**  Controles padrão ausentes; o bloco obrigatório é aplicado sempre. */
+	missingControls: string[],
+	/**  Proposta para cada arquivo de controle ausente ou diferente. */
+	controlDiffs: ControlDiff[],
+	/**  Git existente em estado que impede alterações. */
+	readOnlyReason: string | null,
+};
+
+/**  Resultado da importação. */
+export type ImportedPack = {
+	/**  Identificador registrado. */
+	id: PackId,
+	/**  Pasta registrada. */
+	path: string,
+	/**  Um ID de uma cópia foi substituído. */
+	copiedIdReplaced: boolean,
+	/**  Linhas acrescentadas ao bloco obrigatório. */
+	requiredIgnoreAdded: string[],
+	/**  Estado somente leitura do git. */
+	readOnlyReason: string | null,
+};
 
 /**  Um Java instalado pelo Warden. */
 export type InstalledRuntime = {
@@ -811,6 +915,45 @@ export type PackJavaUse = {
 	choice: JavaChoice,
 };
 
+/**  Linha pronta para a lista, sem executar diagnóstico. */
+export type PackRow = {
+	/**  Identificador. */
+	id: PackId,
+	/**  Pasta. */
+	path: string,
+	/**  Nome legível, quando o manifesto puder ser lido. */
+	name: string,
+	/**  Versão do Minecraft. */
+	minecraft: string | null,
+	/**  Loader. */
+	loader: string | null,
+	/**  Versão do loader. */
+	loaderVersion: string | null,
+	/**  Versão do pack. */
+	version: string | null,
+	/**  Última alteração conhecida dos arquivos do pack, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+	/**  Estado da pasta. */
+	status: PackStatus,
+	/**  Detalhe técnico se o manifesto for inválido. */
+	detail: string | null,
+	/**  Motivo pelo qual o repositório só pode ser aberto para leitura. */
+	readOnlyReason: string | null,
+	/**  Quantidade de arquivos alterados desde a última versão salva. */
+	unsavedFiles: number,
+	/**  Último teste. */
+	lastTest: string | null,
+};
+
+/**  Situação de uma linha de Meus packs. */
+export type PackStatus = 
+/**  Pack legível e pasta presente. */
+"ready" | 
+/**  Pasta registrada não existe mais. */
+"folderMissing" | 
+/**  Manifesto não pôde ser lido. */
+"invalidPack";
+
 /**
  *  Códigos do domínio `packwizCli`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -894,13 +1037,32 @@ export type ProgressUnit =
 /**  Bytes (downloads, cópias). */
 "bytes";
 
-/**
- *  Códigos do domínio `project`. O código é contrato: renomear é mudança de contrato;
- *  acrescentar é permitido (só acréscimo, ROADMAP §1).
- */
+/**  Códigos do domínio `project`; somente acréscimos são compatíveis. */
 export type ProjectErrorCode = 
-/**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+/**  Invariante interna quebrada. */
+"INTERNAL" | 
+/**  Nome ou campo inválido. */
+"INVALID_INPUT" | 
+/**  Destino já contém arquivos. */
+"DESTINATION_NOT_EMPTY" | 
+/**  Pack não registrado. */
+"PACK_NOT_FOUND" | 
+/**  Pasta de um pack registrado desapareceu. */
+"FOLDER_MISSING" | 
+/**  Manifesto não é um packwiz válido. */
+"INVALID_PACK" | 
+/**  Loader não suportado ou múltiplo. */
+"UNSUPPORTED_LOADER" | 
+/**  A versão escolhida não pertence ao catálogo do loader. */
+"INVALID_LOADER_VERSION" | 
+/**  Pasta ou identificador já registrado. */
+"ALREADY_REGISTERED" | 
+/**  Arquivo mudou entre planejamento e escrita. */
+"PACK_CHANGED_EXTERNALLY" | 
+/**  Repositório está em estado somente leitura. */
+"READ_ONLY" | 
+/**  A confirmação para apagar não corresponde ao nome do pack. */
+"TRASH_CONFIRMATION";
 
 /**
  *  Identificador de um Java instalado: `<fonte>-<major>-<versão>-<processador>`, que também é
