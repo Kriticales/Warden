@@ -4,7 +4,7 @@ import {
   countItems,
   filterNotices,
   hasItem,
-  loadNotices,
+  loadNoticesFrom,
   NOTICES_SCHEMA,
   parseNotices,
 } from './notices';
@@ -53,11 +53,11 @@ describe('avisos de terceiros (formato)', () => {
   it('lê o arquivo gerado; sem arquivo, devolve null', async () => {
     const notices = makeNotices();
     await expect(
-      loadNotices({ './generated/avisos.json': () => Promise.resolve(notices) }),
+      loadNoticesFrom({ './generated/avisos.json': () => Promise.resolve(notices) }),
     ).resolves.toEqual(notices);
-    await expect(loadNotices({})).resolves.toBeNull();
+    await expect(loadNoticesFrom({})).resolves.toBeNull();
     await expect(
-      loadNotices({ './generated/avisos.json': () => Promise.resolve({ schema: 99 }) }),
+      loadNoticesFrom({ './generated/avisos.json': () => Promise.resolve({ schema: 99 }) }),
     ).resolves.toBeNull();
   });
 

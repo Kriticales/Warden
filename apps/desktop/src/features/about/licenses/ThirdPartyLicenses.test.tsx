@@ -128,6 +128,19 @@ describe('Licenças de terceiros (T23, A-02)', () => {
     expect(await within(second.dialog).findByText(/componentes de código aberto/)).toBeDefined();
   });
 
+  it('carregador padrão: abre a lista gerada ou explica que ela falta, nunca dá erro', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ThirdPartyLicenses />);
+    await user.click(screen.getByRole('button', { name: 'Licenças de terceiros' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Licenças de terceiros' });
+    expect(
+      await within(dialog).findByText(
+        /componentes de código aberto|Esta compilação do Warden foi feita sem a lista/,
+      ),
+    ).toBeDefined();
+    expect(within(dialog).queryByRole('button', { name: 'Tentar de novo' })).toBeNull();
+  });
+
   it('"Fechar" fecha o diálogo e devolve o foco ao link', async () => {
     const { user, dialog } = await openDialog(() => Promise.resolve(makeNotices()));
     const close = within(dialog).getAllByRole('button', { name: 'Fechar' });

@@ -74,16 +74,19 @@ type Loader = () => Promise<unknown>;
 
 const GENERATED = import.meta.glob<unknown>('./generated/avisos.json', { import: 'default' });
 
+/** Lê o primeiro módulo do glob; `null` se não houver nenhum ou se o formato não bater. */
+export async function loadNoticesFrom(modules: Record<string, Loader>): Promise<Notices | null> {
+  const load = Object.values(modules)[0];
+  if (!load) return null;
+  return parseNotices(await load());
+}
+
 /**
  * Lê os avisos gerados. `null`: o arquivo não existe nesta compilação ou não tem o formato
  * esperado (gerado por uma versão diferente do xtask).
  */
-export async function loadNotices(
-  modules: Record<string, Loader> = GENERATED,
-): Promise<Notices | null> {
-  const load = Object.values(modules)[0];
-  if (!load) return null;
-  return parseNotices(await load());
+export function loadNotices(): Promise<Notices | null> {
+  return loadNoticesFrom(GENERATED);
 }
 
 /** Quantos componentes há, somando os grupos. */

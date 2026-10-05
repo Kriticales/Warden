@@ -53,7 +53,11 @@ export function ThirdPartyLicenses({ load = loadNotices }: ThirdPartyLicensesPro
 
 function LicensesDialog({ load }: { load: () => Promise<Notices | null> }) {
   const { t } = useTranslation('licencas');
-  const query = useQuery({ queryKey: ['third-party-notices'], queryFn: load, staleTime: Infinity });
+  const query = useQuery({
+    queryKey: ['third-party-notices'], // Sem repassar o contexto do TanStack Query para quem lê.
+    queryFn: () => load(),
+    staleTime: Infinity,
+  });
 
   let body;
   if (query.isPending) {
