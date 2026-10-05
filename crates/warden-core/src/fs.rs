@@ -135,8 +135,18 @@ fn sync_parent(_path: &Path) -> io::Result<()> {
 }
 
 /// Apaga os `.warden-tmp` que sobraram em `dir` (não desce em subpastas). Devolve quantos
-/// apagou. Pasta inexistente não é erro.
+/// apagou. Pasta inexistente não é erro, nem um temporário que sumiu entre a listagem e a
+/// remoção (outro processo, como o antivírus, o apagou antes): ele já está limpo.
 pub fn remove_temp_files(dir: &Path) -> Result<usize, CoreError> {
+    remove_temp_files_with(dir, |path| fs::remove_file(path))
+}
+
+/// [`remove_temp_files`] com a remoção trocável, para os testes simularem o arquivo sumindo
+/// entre a listagem e a remoção.
+fn remove_temp_files_with(
+    dir: &Path,
+    mut remove: impl FnMut(&Path) -> io::Result<()>,
+) -> Result<usize, CoreError> {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(0),
@@ -152,8 +162,11 @@ pub fn remove_temp_files(dir: &Path) -> Result<usize, CoreError> {
         let is_file = entry.file_type().is_ok_and(|kind| kind.is_file());
         if is_temp && is_file {
             let path = entry.path();
-            fs::remove_file(&path).map_err(|e| CoreError::io("apagar", &path, e))?;
-            removed += 1;
+            match remove(&path) {
+                Ok(()) => removed += 1,
+                Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                Err(error) => return Err(CoreError::io("apagar", &path, error)),
+            }
         }
     }
     Ok(removed)
@@ -239,6 +252,42 @@ mod tests {
         );
         assert_eq!(fs::read(&path).unwrap(), b"original");
         assert!(dir.path().join("mantido.txt").exists());
+    }
+
+    /// Um temporário que outro processo apaga entre a listagem e a remoção não impede a
+    /// abertura: conta como já limpo, e os outros temporários são apagados.
+    #[test]
+    fn limpeza_aceita_temporario_que_sumiu_no_meio() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("a.json.1-0.warden-tmp"), b"x").unwrap();
+        fs::write(dir.path().join("b.json.1-1.warden-tmp"), b"x").unwrap();
+        let mut vanished = None;
+        let removed = remove_temp_files_with(dir.path(), |path| {
+            if vanished.is_none() {
+                // O primeiro some por fora antes da remoção do Warden.
+                fs::remove_file(path).unwrap();
+                vanished = Some(path.to_path_buf());
+            }
+            fs::remove_file(path)
+        })
+        .unwrap();
+        assert!(vanished.is_some());
+        assert_eq!(removed, 1);
+        assert!(temp_files(dir.path()).is_empty());
+    }
+
+    /// Outros erros na remoção continuam sendo erro, com o caminho.
+    #[test]
+    fn limpeza_mantem_os_outros_erros_de_remocao() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("a.json.1-0.warden-tmp"), b"x").unwrap();
+        let error = remove_temp_files_with(dir.path(), |_| {
+            Err(io::Error::from(io::ErrorKind::PermissionDenied))
+        })
+        .unwrap_err();
+        assert_eq!(error.code(), DomainCode::Core(CoreErrorCode::Io));
+        assert!(error.to_string().contains("apagar"), "{error}");
+        assert_eq!(temp_files(dir.path()).len(), 1);
     }
 
     #[test]
