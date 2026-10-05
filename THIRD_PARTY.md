@@ -67,6 +67,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `semver` | 1.0.28 | MIT OR Apache-2.0 | `warden-versioning` | Números de versão `SemVer` do pack: validação, ordem e sugestão (SPEC T16). Mesma versão que o Tauri já usa. |
 | `encoding_rs` | 0.8.42 | (Apache-2.0 OR MIT) AND BSD-3-Clause | `warden-diagnostics` | Recuo para Windows-1252 nas linhas de log que não são UTF-8 (ARCHITECTURE §7.4) e variantes de codificação dos nomes na redação (D-02). |
 | `unicode-normalization` | 0.1.25 | MIT OR Apache-2.0 | `warden-diagnostics` | Formas NFC/NFD dos nomes com acento na redação de dados pessoais (D-02). |
+| `quick-xml` | 0.42.0 | MIT | `warden-catalog` | Leitura do `maven-metadata.xml` do Forge (lista de versões). Mesma versão que já vinha pelo `plist` do Tauri. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
