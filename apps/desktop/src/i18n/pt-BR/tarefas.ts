@@ -50,5 +50,9 @@ export const tarefas = {
     cancelada: 'Cancelada: {{nome}}',
   },
   tipoDesconhecido: 'Tarefa do Warden',
-  tipos: {},
+  tipos: {
+    java: {
+      checkUpdates: 'Procurar atualizações do Java',
+    },
+  },
 } as const;

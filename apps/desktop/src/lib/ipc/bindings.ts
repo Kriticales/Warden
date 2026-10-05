@@ -37,6 +37,19 @@ export const commands = {
 	 *  a pré-selecionada. Lista vazia: o loader não existe para essa versão.
 	 */
 	catalogLoaderVersions: (loader: Loader, minecraft: string, forceRefresh: boolean) => typedError<LoaderVersions, AppError>(__TAURI_INVOKE("catalog_loader_versions", { loader, minecraft, forceRefresh })),
+	/**  O Java que o teste do pack vai usar e por quê (ADR-0029). */
+	javaChoice: (request: JavaChoiceRequest) => typedError<JavaChoice, AppError>(__TAURI_INVOKE("java_choice", { request })),
+	/**  A tabela de Java de Configurações. */
+	javaRuntimesList: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_list")),
+	/**
+	 *  "Procurar atualizações do Java": instala a atualização mais nova de cada Java instalado e
+	 *  remove as antigas que nenhum jogo usa.
+	 */
+	javaRuntimesCheckUpdates: () => typedError<UpdateReport, AppError>(__TAURI_INVOKE("java_runtimes_check_updates")),
+	/**  Remove um Java e devolve a tabela atualizada. */
+	javaRuntimeRemove: (id: RuntimeId) => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtime_remove", { id })),
+	/**  "Remover Javas sem uso" e devolve a tabela atualizada. */
+	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
 };
 
 /** Events */
@@ -346,6 +359,41 @@ export type ImportErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  Um Java instalado pelo Warden. */
+export type InstalledRuntime = {
+	/**  Identificador (nome da pasta). */
+	id: RuntimeId,
+	/**  Fonte. */
+	source: RuntimeSource,
+	/**  Versão, conferida executando o Java. */
+	version: JavaVersion,
+	/**  `java.vendor` informado pelo próprio Java ("Eclipse Adoptium", "Oracle Corporation"…). */
+	vendor: string,
+	/**  Nome da versão na fonte (`jdk-21.0.12.1+1`, `8u51-cacert462b08`). */
+	releaseName: string,
+	/**  Processador (`x64`). */
+	arch: string,
+	/**  Pasta do Java. */
+	home: string,
+	/**  Programa que abre o jogo (`javaw.exe` no Windows, `java` no Linux). */
+	launcher: string,
+	/**  Programa `java` com console (validação). */
+	java: string,
+	/**  Quando foi instalado (milissegundos desde 1970). */
+	installedAtMs: number,
+	/**  Teto de atualização do canal (o `312` de "8 ≤ u312"); as atualizações respeitam o teto. */
+	updateCap: number | null,
+	/**  Componente da Mojang (`java-runtime-delta`), quando a fonte é a Mojang. */
+	mojangComponent: string | null,
+	/**  SHA-256 do pacote baixado (Temurin). */
+	archiveSha256: string | null,
+	/**
+	 *  Java mais novo que substituiu este numa atualização; ele é removido quando nenhum jogo
+	 *  o estiver usando.
+	 */
+	supersededBy: RuntimeId | null,
+};
+
 /**
  *  Códigos do domínio `instance`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -366,13 +414,138 @@ export type JarmetaErrorCode =
 /**  O jar passa de um limite de segurança (tamanho, número de entradas). */
 "LIMIT_EXCEEDED";
 
+/**  Resultado completo de `java_choice`: o Java que o teste vai usar e por quê. */
+export type JavaChoice = {
+	/**  Major do Java que o teste vai usar. */
+	major: number,
+	/**  Teto de atualização, quando houver. */
+	maxUpdate: number | null,
+	/**  Motivo (`USER_CHOICE` quando o usuário escolheu e o Java existe). */
+	reason: JavaChoiceReason,
+	/**  O Java instalado que será usado; `None` = será baixado ao preparar o teste. */
+	runtime: InstalledRuntime | null,
+	/**  A decisão automática (sempre presente, para mostrar o motivo mesmo com escolha manual). */
+	automatic: JavaDecision,
+	/**  O usuário escolheu um Java que não está mais instalado; vale o automático. */
+	userChoiceUnavailable: boolean,
+};
+
+/**  Por que a política escolheu aquele Java. Código estável, traduzido pela interface. */
+export type JavaChoiceReason = 
+/**  O usuário escolheu este Java em Ajustes do teste. */
+"USER_CHOICE" | 
+/**  Forge até o 1.12.2: só abre no Java 8. */
+"FORGE_LEGACY_JAVA8" | 
+/**  Forge 1.16.5 anterior ao 36.2.26: Java 8 até a atualização 312. */
+"FORGE_1165_OLD" | 
+/**  O mais novo provado para a faixa, que não é o mais novo que o Warden baixa. */
+"NEWEST_PROVEN_FOR_RANGE" | 
+/**  O mais novo que o Warden baixa (sem explicação extra). */
+"NEWEST_AVAILABLE" | 
+/**  Versão sem faixa na tabela: o Java pedido pelo JSON da versão. */
+"FROM_VERSION_JSON";
+
+/**  Pedido de escolha do Java para um pack. */
+export type JavaChoiceRequest = {
+	/**  Versão do Minecraft do `pack.toml`. */
+	minecraft: string,
+	/**  Loader do pack. */
+	loader: LoaderKind,
+	/**  Versão exata do loader, quando houver. */
+	loaderVersion: string | null,
+	/**  O que o JSON da versão diz sobre o Java. */
+	versionJson: VersionJavaRequirement,
+	/**  Java escolhido pelo usuário em Ajustes do teste (`None` = Automático). */
+	userChoice: RuntimeId | null,
+};
+
+/**  Decisão da política, antes de olhar os Javas instalados. */
+export type JavaDecision = {
+	/**  O Java automático (o que a política escolhe sem a escolha do usuário). */
+	requirement: JavaRequirement,
+	/**  Motivo do Java automático. */
+	reason: JavaChoiceReason,
+	/**  Regra da tabela que decidiu, quando houver. */
+	ruleId: string | null,
+	/**  A faixa em texto curto ("1.17 a 1.20.4"), quando a decisão veio da tabela. */
+	rangeLabel: string | null,
+	/**  O motivo em português (texto da tabela), para "Detalhes técnicos". */
+	explanation: string,
+	/**  O major mais novo que o Warden baixa ("Por que não o Java N?"). */
+	newestMajor: number,
+	/**  O major pedido pelo JSON da versão, quando a decisão veio dele. */
+	versionJsonMajor: number | null,
+};
+
 /**
  *  Códigos do domínio `java`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type JavaErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  Este sistema ou processador não tem Java de 64 bits que o Warden saiba baixar. */
+"UNSUPPORTED_PLATFORM" | 
+/**  A fonte não publica o Java pedido para este sistema. */
+"NO_BUILD_AVAILABLE" | 
+/**  A fonte (Adoptium ou Mojang) está fora do ar, limitou os pedidos ou recusou o pedido. */
+"SOURCE_UNAVAILABLE" | 
+/**  A fonte respondeu algo que o Warden não entende. */
+"INVALID_RESPONSE" | 
+/**  O arquivo baixado não confere com o hash ou o tamanho informados pela fonte. */
+"DOWNLOAD_CORRUPTED" | 
+/**  O pacote do Java está corrompido, tem caminhos perigosos ou não tem o programa `java`. */
+"ARCHIVE_INVALID" | 
+/**  O Java não abriu ou não respondeu como um Java. */
+"VALIDATION_FAILED" | 
+/**  O Java é de 32 bits. */
+"NOT_64_BIT" | 
+/**  O Java instalado não é a versão pedida. */
+"UNEXPECTED_VERSION" | 
+/**  O Java pedido não está instalado. */
+"RUNTIME_NOT_FOUND" | 
+/**  O Java está sendo usado por um jogo aberto. */
+"RUNTIME_IN_USE" | 
+/**  A pasta do Java não pôde ser movida para o lugar (outro programa a segurou). */
+"INSTALL_BLOCKED" | 
+/**  Não há regra para esta versão do Minecraft e o JSON da versão não foi lido. */
+"VERSION_REQUIREMENT_UNKNOWN" | 
+/**  A tabela de compatibilidade embutida é inválida (bug). */
+"COMPATIBILITY_TABLE_INVALID";
+
+/**  A tabela de Java de Configurações (CA-T21-04). */
+export type JavaOverview = {
+	/**  Cada Java instalado. */
+	runtimes: RuntimeRow[],
+	/**  Packs cujo Java ainda não está instalado (será baixado no próximo teste). */
+	packsToDownload: PackJavaUse[],
+	/**  Packs sem decisão possível. */
+	unresolved: PackJavaUnresolved[],
+	/**  Pastas quebradas em `shared/runtimes/` (apagadas por "Remover Javas sem uso"). */
+	brokenCount: number,
+};
+
+/**  O Java que o pack precisa: o major e, às vezes, um teto de atualização. */
+export type JavaRequirement = {
+	/**  Major. */
+	major: number,
+	/**  Atualização máxima (o `312` de "8 ≤ u312"). */
+	maxUpdate: number | null,
+};
+
+/**  Versão de um Java. */
+export type JavaVersion = {
+	/**  Versão principal (8, 17, 21, 25…). */
+	major: number,
+	/**  Segundo número (quase sempre 0). */
+	minor: number,
+	/**  Atualização de segurança: o `312` de `8u312`, o `12` de `21.0.12`. */
+	security: number,
+	/**  Quarto número, usado em correções extras (`21.0.12.1`). */
+	patch: number,
+	/**  Número do build (`+1`, `-b07`); 0 quando não informado. */
+	build: number,
+};
 
 /**
  *  Códigos do domínio `launcher`. O código é contrato: renomear é mudança de contrato;
@@ -390,6 +563,21 @@ export type Loader =
 "neoforge" | 
 /**  Fabric (1.14 em diante). */
 "fabric";
+
+/**  Loader do pack, como a política do Java o vê. */
+export type LoaderKind = 
+/**  Sem loader. */
+"vanilla" | 
+/**  Fabric. */
+"fabric" | 
+/**  Forge. */
+"forge" | 
+/**  `NeoForge`. */
+"neoforge" | 
+/**  Quilt. */
+"quilt" | 
+/**  `LiteLoader`. */
+"liteloader";
 
 /**  Uma versão de loader. */
 export type LoaderVersion = {
@@ -601,6 +789,28 @@ export type PackChanged = {
  */
 export type PackId = string;
 
+/**  Um pack cujo Java não pôde ser decidido (versão sem regra e sem o JSON da versão). */
+export type PackJavaUnresolved = {
+	/**  Identificador do pack. */
+	packId: PackId,
+	/**  Nome do pack. */
+	name: string,
+	/**  Versão do Minecraft. */
+	minecraft: string,
+};
+
+/**  Um pack na tabela de Java, com o Java que ele usa e por quê. */
+export type PackJavaUse = {
+	/**  Identificador do pack. */
+	packId: PackId,
+	/**  Nome do pack. */
+	name: string,
+	/**  Versão do Minecraft do pack. */
+	minecraft: string,
+	/**  A escolha (major, motivo e o Java instalado, se houver). */
+	choice: JavaChoice,
+};
+
 /**
  *  Códigos do domínio `packwizCli`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -691,6 +901,42 @@ export type ProgressUnit =
 export type ProjectErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**
+ *  Identificador de um Java instalado: `<fonte>-<major>-<versão>-<processador>`, que também é
+ *  o nome da pasta (`temurin-21-21.0.12.1+1-x64`, `temurin-8-8u312-b07-x64`).
+ * 
+ *  Ao ler (inclusive pelo IPC), o texto passa por [`RuntimeId::parse`]: um id nunca vira um
+ *  caminho fora de `shared/runtimes/`.
+ */
+export type RuntimeId = string;
+
+/**  Uma linha da tabela de Java de Configurações. */
+export type RuntimeRow = {
+	/**  O Java. */
+	runtime: InstalledRuntime,
+	/**  Os packs que o usam, com o motivo. */
+	packs: PackJavaUse[],
+	/**  Se um jogo aberto está usando este Java. */
+	inGame: boolean,
+};
+
+/**  De onde veio o Java. */
+export type RuntimeSource = 
+/**  Eclipse Temurin, pelo Adoptium (fonte padrão). */
+"temurin" | 
+/**  Runtime oficial da Mojang (alternativa). */
+"mojang";
+
+/**  Uma atualização instalada. */
+export type RuntimeUpdate = {
+	/**  O Java antigo. */
+	from: RuntimeId,
+	/**  O Java novo. */
+	to: InstalledRuntime,
+	/**  Se o antigo já foi removido (não estava em uso). */
+	oldRemoved: boolean,
+};
 
 /**
  *  Códigos do domínio `scripts`. O código é contrato: renomear é mudança de contrato;
@@ -813,6 +1059,29 @@ export type TestMemory =
 { mode: "fixed"; 
 /**  Memória máxima do Java, em MB. */
 mb: number };
+
+/**  Resultado de "Procurar atualizações do Java". */
+export type UpdateReport = {
+	/**  Atualizações instaladas. */
+	updated: RuntimeUpdate[],
+	/**  Javas que já estavam na versão mais nova. */
+	upToDate: RuntimeId[],
+	/**  Javas que não puderam ser conferidos agora (fonte fora do ar). */
+	failed: RuntimeId[],
+	/**  Javas substituídos antes e removidos agora. */
+	removed: RuntimeId[],
+};
+
+/**  O que o JSON da versão do Minecraft diz sobre o Java (`javaVersion`). */
+export type VersionJavaRequirement = 
+/**  O JSON da versão não foi lido (a tabela costuma bastar). */
+{ kind: "notLoaded" } | 
+/**  O JSON não tem `javaVersion` (versões antigas): Java 8. */
+{ kind: "absent" } | 
+/**  `javaVersion.majorVersion`. */
+{ kind: "major"; 
+/**  O major pedido. */
+major: number };
 
 /**
  *  Códigos do domínio `versioning`. O código é contrato: renomear é mudança de contrato;

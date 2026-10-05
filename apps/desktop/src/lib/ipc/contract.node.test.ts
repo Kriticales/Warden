@@ -29,6 +29,7 @@ const PENDING: Record<string, string> = {
   secrets_backend_set: 'P1-13 (Configurações → Chaves e contas)',
   catalog_minecraft_versions: 'P1-07 (Criar pack: versão do Minecraft)',
   catalog_loader_versions: 'P1-07 (Criar pack: loader e versão)',
+  java_choice: 'P1-08 (Ajustes do teste: Java automático e o motivo) e L-04 (Testar)',
 };
 
 /** Nomes `snake_case` dos comandos em `collect_commands![…]`. */
