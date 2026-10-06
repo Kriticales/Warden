@@ -136,19 +136,22 @@ describe('Meus packs (T02)', () => {
     });
   });
 
-  it('Abrir leva à página do pack, com os dados de pack_get', async () => {
+  it('Abrir leva ao pack aberto (P1-08: abre em Mods), com os dados de pack_get', async () => {
     const user = userEvent.setup();
     const row = makePackRow({ name: 'Vale Sereno', unsavedFiles: 2 });
     packsBackend([row], {
       pack_get: () => row,
       pack_hygiene_scan: () => [],
+      inventory_list: () => ({ items: [], indexError: null }),
     });
     renderApp('/packs');
     await user.click(await screen.findByRole('button', { name: 'Abrir Vale Sereno' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
-    expect(screen.getByText('Minecraft 1.20.1 · Forge 47.3.0')).toBeDefined();
-    expect(screen.getByText('C:/Packs/vale-sereno')).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Meus packs' })).toBeDefined();
+    const header = screen.getByRole('banner', { name: 'Pack aberto' });
+    expect(header.textContent).toContain('Minecraft 1.20.1');
+    expect(header.textContent).toContain('Forge 47.3.0');
+    expect(within(header).getByRole('link', { name: 'Meus packs' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mods' })).toBeDefined();
   });
 
   it('menu ⋯ pelo teclado: Mostrar na pasta chama pack_reveal_folder', async () => {

@@ -91,6 +91,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `react`, `react-dom` | 19.3.0 | MIT | Interface (ADR-0002). |
 | `@tanstack/react-router` | 1.170.41 | MIT | Rotas por arquivo (ADR-0020). |
 | `@tanstack/react-query` | 5.104.1 | MIT | Dados do backend (ADR-0020). |
+| `@tanstack/react-virtual` | 3.14.12 | MIT | Lista de Mods virtualizada (SPEC T06: fluida com 500 itens). |
 | `i18next` | 26.4.2 | MIT | Catálogo de textos pt-BR (ADR-0016). |
 | `react-i18next` | 17.0.15 | MIT | i18next no React. |
 | `@tauri-apps/api` | 2.12.1 | Apache-2.0 OR MIT | IPC com o Rust; `mocks` nos testes. Mesma versão menor do `tauri`. |

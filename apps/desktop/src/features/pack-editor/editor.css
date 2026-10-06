@@ -1,0 +1,125 @@
+/*
+ * Pack aberto (T05), Mods (T06), detalhes do item (T07) e os diálogos de T11, igual ao
+ * protótipo final (`design/prototipo-final/prototipo.css`). Mesma regra do design system: só
+ * tokens.
+ */
+
+/* Avisos e barras acima da lista (protótipo: `.mods-banner`). */
+.mods-banner,
+.mods-selbar {
+  margin-bottom: var(--space-3);
+}
+.toolbar .inputwrap {
+  /* 280 px, como no protótipo. */
+  width: calc(var(--space-16) * 4.375);
+}
+
+/* Botão Testar provisório (L-04 traz o real): sem o pulso do sensor enquanto não testa. */
+.testbtn--disabled {
+  animation: none;
+}
+
+/* Seção ainda sem página: visível no menu, mas apagada. */
+.secmenu__item.is-unavailable {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.secmenu__item.is-unavailable:hover {
+  background: transparent;
+}
+
+/* Lista de Mods. */
+.modlist__skeleton {
+  padding: var(--space-4);
+}
+.modlist__spacer td,
+.modlist__spacer {
+  padding: 0;
+  border: 0;
+}
+.modrow__badtile {
+  display: grid;
+  place-items: center;
+  color: var(--color-danger-text);
+}
+.modrow__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+.modrow--invalid .modrow__desc {
+  max-width: none;
+  white-space: normal;
+}
+
+/* Detalhes do item. */
+.itemhead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.itemhead__icon {
+  object-fit: cover;
+}
+.itemhead__titles {
+  min-width: 0;
+}
+.itemhead__name {
+  overflow-wrap: anywhere;
+}
+.itemhead__meta {
+  margin-top: var(--space-1);
+}
+.itemhash {
+  overflow-wrap: anywhere;
+}
+.itemdesc__body {
+  margin-top: var(--space-2);
+}
+
+/* Remover: arquivos apagados. */
+.removelist {
+  margin-top: var(--space-2);
+  padding-left: var(--space-4);
+  list-style: square;
+}
+
+/* Ajustes do teste: avisos dos argumentos da JVM e o porquê do Java. */
+.jvmwarn {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-warn-text);
+}
+.jvmwarn li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.javawhy {
+  display: grid;
+  gap: var(--space-1);
+}
+.textarea--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+/* "Lado" no cabeçalho da tabela: um botão só para a dica (teclado e mouse). */
+.modlist__hint {
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-thin) dotted var(--color-text-3);
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+/* Seção indisponível é um botão: sem a aparência de botão. */
+button.secmenu__item {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+}

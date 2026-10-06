@@ -16,6 +16,7 @@ import { sobre } from './pt-BR/sobre';
 import { tarefas } from './pt-BR/tarefas';
 import { java } from './pt-BR/java';
 import { packs } from './pt-BR/packs';
+import { editor } from './pt-BR/editor';
 
 export const defaultNS = 'comum';
 
@@ -30,6 +31,7 @@ export const resources = {
     tarefas,
     java,
     packs,
+    editor,
   },
 } as const;
 

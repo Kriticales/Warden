@@ -24,7 +24,6 @@ const PENDING: Record<string, string> = {
   export_preview: 'E-01 (tela)',
   export_exclude: 'E-01 (tela)',
   export_run: 'E-01 (tela)',
-  java_choice: 'P1-08 (Ajustes do teste: Java automático e o motivo) e L-04 (Testar)',
 };
 
 /** Nomes `snake_case` dos comandos em `collect_commands![…]`. */

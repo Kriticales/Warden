@@ -1,16 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { PackLanding } from '../../../features/packs/components/PackLanding';
-
-/**
- * Página do pack, provisória (P1-07): o pack recém-criado ou aberto chega aqui. A P1-08
- * substitui este arquivo pelo editor do pack (layout com as 6 seções; abre em Mods).
- */
+/** O pack abre em Mods (SPEC T05). */
 export const Route = createFileRoute('/packs/$packId/')({
-  component: PackRoute,
+  beforeLoad: ({ params }) => {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error -- é assim que o TanStack Router redireciona
+    throw redirect({ to: '/packs/$packId/mods', params, replace: true });
+  },
 });
-
-function PackRoute() {
-  const { packId } = Route.useParams();
-  return <PackLanding packId={packId} />;
-}

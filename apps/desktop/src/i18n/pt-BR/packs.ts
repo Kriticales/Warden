@@ -285,17 +285,8 @@ export const packs = {
   pack: {
     voltar: 'Meus packs',
     sub: 'Minecraft {{mc}} · {{loader}}',
-    carregando: 'Lendo o pack…',
-    versao: 'Versão',
-    pasta: 'Pasta',
-    naoSalvas: 'Alterações não salvas',
-    editorTitulo: 'O editor do pack ainda não existe nesta versão de teste',
-    editorTexto:
-      'Mods, Configs, Problemas, Diagnóstico com IA, Histórico e Exportar entram nas próximas etapas. O pack já está criado e aparece em Meus packs.',
-    pastaSumiu: 'A pasta deste pack não foi encontrada.',
     limpar_one: 'Limpar {{count}} arquivo',
     limpar_other: 'Limpar {{count}} arquivos',
     limpando: 'Limpando…',
-    ilegivel: 'Não foi possível ler este pack.',
   },
 } as const;

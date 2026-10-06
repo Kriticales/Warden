@@ -54,5 +54,10 @@ export const tarefas = {
     java: {
       checkUpdates: 'Procurar atualizações do Java',
     },
+    inventory: {
+      setSide: 'Alterar lado',
+      remove: 'Remover do pack',
+      include: 'Incluir arquivos no pack',
+    },
   },
 } as const;
