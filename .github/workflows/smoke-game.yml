@@ -1,0 +1,80 @@
+# L-05: execução deliberada e pesada; não dispara em push/PR. Cada runner testa cinco
+# combinações em série, com Java/loader de versão fixa e Xvfb + Mesa/llvmpipe.
+name: Jogo real · matriz L-05
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  jogo:
+    name: Linux · matriz ${{ matrix.group }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: 1
+            combinations: forge-1.7.10,forge-1.12.2,forge-1.16.5,fabric-1.16.5,forge-1.18.2
+          - group: 2
+            combinations: fabric-1.18.2,forge-1.19.2,fabric-1.19.2,forge-1.20.1,neoforge-1.20.1
+          - group: 3
+            combinations: fabric-1.20.1,quilt-1.20.1,forge-1.21.1,neoforge-1.21.1,fabric-1.21.1
+          - group: 4
+            combinations: forge-26.2,neoforge-26.2,fabric-26.2,vanilla-26.3,fabric-26.3
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_TERM_COLOR: always
+      WARDEN_SMOKE_GAME: '1'
+      WARDEN_SMOKE_ONLY: ${{ matrix.combinations }}
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      ALSOFT_DRIVERS: 'null'
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Mesa, Xvfb e bibliotecas do jogo
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -q -y --no-install-recommends \
+            xvfb libgl1 libgl1-mesa-dri libasound2t64 libxrandr2 libxi6 \
+            libxcursor1 libxinerama1 libxtst6 libxrender1 libxxf86vm1
+
+      - name: Rust fixado pelo repositório
+        run: rustup toolchain install
+
+      - name: Cache de compilação
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: linux-smoke-game
+          cache-bin: 'false'
+
+      - name: Conferir os golden logs
+        run: cargo test -p warden-launcher --test smoke_logs
+
+      - name: Abrir cinco jogos em série e entrar no mundo
+        run: |
+          set -o pipefail
+          export WARDEN_LAUNCHER_DADOS="$RUNNER_TEMP/warden-l05"
+          xvfb-run --auto-servernum --server-args='-screen 0 1280x800x24' \
+            cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture \
+            2>&1 | tee "$RUNNER_TEMP/smoke-game-${{ matrix.group }}.log"
+
+      - name: Anexar tempos, logs e prova de configuração
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: smoke-game-linux-${{ matrix.group }}
+          path: |
+            ${{ runner.temp }}/smoke-game-${{ matrix.group }}.log
+            ${{ runner.temp }}/warden-l05/instances/**/client.log
+            ${{ runner.temp }}/warden-l05/instances/**/server.log
+            ${{ runner.temp }}/warden-l05/instances/**/minecraft/options.txt
+            ${{ runner.temp }}/warden-l05/instances/**/minecraft/quickplay.json
+          if-no-files-found: warn
+          retention-days: 30
