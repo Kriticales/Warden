@@ -6,7 +6,7 @@ A cada entrega você pode instalar a versão mais recente do Warden neste comput
 
 ## Jeito mais fácil: duplo clique
 
-1. Abra a pasta do projeto: `C:\Users\solel\orca\projects\Warden\scripts\`.
+1. Abra a pasta do projeto: `C:\Users\<seu usuário>\orca\projects\Warden\scripts\`.
 2. Dê **duplo clique** em `versao-de-teste.cmd`.
 3. Uma janela preta abre e mostra o que está acontecendo:
    - procura no GitHub a versão mais recente da `main` que passou em todos os testes;
