@@ -13,6 +13,6 @@ mod native;
 
 pub use error::{Error, ExportErrorCode, Result};
 pub use native::{
-    ExportFormat, ExportPreview, ExportResult, ExportSource, Preflight, PreviewFile, PreviewFolder,
-    exclude_from_pack, export, preview,
+    ExportAlert, ExportFormat, ExportPreview, ExportResult, ExportSource, Preflight, PreviewFile,
+    PreviewFolder, exclude_from_pack, export, preview,
 };

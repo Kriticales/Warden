@@ -2,12 +2,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 #![allow(linker_messages)]
 
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use warden_core::CancellationToken;
-use warden_export::{ExportFormat, ExportSource, export, preview};
+use warden_export::{ExportAlert, ExportFormat, ExportSource, export, preview};
 use warden_packwiz::{PackManifest, read_pack};
 use warden_packwiz_cli::{Packwiz, RunContext, check_conformance};
 use warden_project::hygiene;
@@ -80,6 +81,70 @@ fn check_installer(temp: &Path, out: &Path) {
             "instalador real ausente; rode cargo xtask installer"
         );
     }
+}
+
+#[test]
+fn previa_entrega_alertas_tipados_para_a_interface() {
+    let temp = tempfile::tempdir().unwrap();
+    let pack = temp.path();
+    fs::write(
+        pack.join("pack.toml"),
+        PackManifest::new("Teste", "1.21.1").to_toml_string(),
+    )
+    .unwrap();
+    fs::create_dir_all(pack.join("config")).unwrap();
+    fs::create_dir_all(pack.join("crash-reports")).unwrap();
+    fs::write(pack.join("options.txt"), b"lang:pt_br").unwrap();
+    fs::write(pack.join("extra.txt"), b"extra").unwrap();
+    fs::write(
+        pack.join("config/grande.bin"),
+        vec![0; 20 * 1024 * 1024 + 1],
+    )
+    .unwrap();
+    fs::write(pack.join("crash-reports/log.txt"), b"log").unwrap();
+    let mut index = "hash-format = \"sha256\"\n".to_owned();
+    for path in [
+        "options.txt",
+        "extra.txt",
+        "config/grande.bin",
+        "crash-reports/log.txt",
+    ] {
+        write!(
+            &mut index,
+            "\n[[files]]\nfile = \"{path}\"\nhash = \"{}\"\n",
+            "0".repeat(64)
+        )
+        .unwrap();
+    }
+    fs::write(pack.join("index.toml"), index).unwrap();
+
+    let result = preview(pack, &ExportSource::Current).unwrap();
+    let alerts = |path: &str| {
+        &result
+            .files
+            .iter()
+            .find(|file| file.path == path)
+            .unwrap()
+            .alerts
+    };
+    assert!(alerts("config/grande.bin").contains(&ExportAlert::LargeFile));
+    assert!(alerts("options.txt").contains(&ExportAlert::OptionsOverridesPreferences));
+    assert!(alerts("extra.txt").contains(&ExportAlert::LooseRootFile));
+    let finding = result
+        .preflight
+        .hygiene
+        .iter()
+        .find(|item| item.path == "crash-reports")
+        .unwrap();
+    for cause in &finding.reasons {
+        assert!(
+            alerts("crash-reports/log.txt").contains(&ExportAlert::Hygiene {
+                cause: cause.clone(),
+            })
+        );
+    }
+    let wire = serde_json::to_value(&result.files).unwrap();
+    assert_eq!(wire[0]["alerts"][0]["kind"], "largeFile");
 }
 
 async fn check_zip(pack: &Path, temp: &Path, cli: &Packwiz, cancel: &CancellationToken) {

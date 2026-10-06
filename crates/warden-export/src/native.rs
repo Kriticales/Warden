@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use warden_core::{CancellationToken, resolve_inside};
 use warden_packwiz::{PACK_FILE, PackIndex, PackManifest, check_relative_path};
 use warden_packwiz_cli::{Packwiz, RunContext, snapshot};
-use warden_project::hygiene::{self, HygieneFinding};
+use warden_project::hygiene::{self, HygieneCause, HygieneFinding};
 use warden_project::transaction::PackTransaction;
 use warden_versioning::{PackRepo, Snapshot};
 use zip::write::SimpleFileOptions;
@@ -39,8 +39,25 @@ pub enum ExportFormat {
     Zip,
 }
 
+/// Motivo de um alerta da prévia; a interface escolhe o texto exibido.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum ExportAlert {
+    /// Arquivo distribuído com mais de 20 MiB.
+    LargeFile,
+    /// `options.txt` sem `preserve` pode sobrescrever as preferências do jogador.
+    OptionsOverridesPreferences,
+    /// Arquivo distribuído diretamente na raiz do pack.
+    LooseRootFile,
+    /// Motivo identificado pela varredura de higiene do pack.
+    Hygiene {
+        /// Causa original da higiene.
+        cause: HygieneCause,
+    },
+}
+
 /// Um arquivo distribuído, em ordem de caminho.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PreviewFile {
     /// Caminho relativo, com `/`.
@@ -55,7 +72,7 @@ pub struct PreviewFile {
     /// Arquivo de `config/` ou `defaultconfigs/`.
     pub config: bool,
     /// Alertas deste arquivo.
-    pub alerts: Vec<String>,
+    pub alerts: Vec<ExportAlert>,
 }
 
 /// Contagem e tamanho por pasta, incluindo a raiz (`.`).
@@ -243,19 +260,25 @@ pub fn preview(root: &Path, source: &ExportSource) -> Result<ExportPreview> {
         let config = path.starts_with("config/") || path.starts_with("defaultconfigs/");
         let mut alerts = Vec::new();
         if bytes > 20 * 1024 * 1024 {
-            alerts.push("arquivo maior que 20 MB".into());
+            alerts.push(ExportAlert::LargeFile);
         }
         if path == "options.txt" && !index.entry(path).is_some_and(|entry| entry.preserve) {
-            alerts.push("options.txt pode substituir as preferências do jogador".into());
+            alerts.push(ExportAlert::OptionsOverridesPreferences);
         }
         if !matches!(path.as_str(), PACK_FILE | "index.toml") && !path.contains('/') {
-            alerts.push("arquivo solto na raiz do pack".into());
+            alerts.push(ExportAlert::LooseRootFile);
         }
         for finding in &hygiene {
             if finding.path == *path
                 || (finding.is_dir && path.starts_with(&format!("{}/", finding.path)))
             {
-                alerts.extend(finding.reasons.iter().cloned());
+                alerts.extend(
+                    finding
+                        .reasons
+                        .iter()
+                        .cloned()
+                        .map(|cause| ExportAlert::Hygiene { cause }),
+                );
             }
         }
         let root_total = folders.entry(".".into()).or_default();
