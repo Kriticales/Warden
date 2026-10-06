@@ -166,6 +166,36 @@ async fn wait_for_lines(events: &mut GameEvents, prefix: &str, count: usize) -> 
     found
 }
 
+/// Espera `count` linhas `filho <pid>` e devolve os pids. Os filhos também escrevem
+/// `filho vivo` a cada 200 ms: com a máquina carregada, o primeiro filho já bate antes de o
+/// último escrever o pid, então só contam as linhas cujo resto é um número.
+async fn wait_for_child_pids(events: &mut GameEvents, count: usize) -> Vec<u32> {
+    let mut pids = Vec::new();
+    let deadline = Instant::now() + Duration::from_secs(30);
+    while pids.len() < count {
+        let event = tokio::time::timeout(
+            deadline.saturating_duration_since(Instant::now()),
+            events.recv(),
+        )
+        .await
+        .expect("tempo esgotado esperando os filhos do jogo simulado")
+        .expect("o jogo simulado fechou antes da hora");
+        match event {
+            GameEvent::Line(line) => {
+                if let Some(pid) = line
+                    .text
+                    .strip_prefix("filho ")
+                    .and_then(|pid| pid.trim().parse::<u32>().ok())
+                {
+                    pids.push(pid);
+                }
+            }
+            GameEvent::Exited(exit) => panic!("o jogo simulado saiu antes da hora: {exit:?}"),
+        }
+    }
+    pids
+}
+
 /// Se um processo com esse pid ainda existe.
 fn process_alive(pid: u32) -> bool {
     if cfg!(windows) {
@@ -273,11 +303,7 @@ async fn parar_jogo_encerra_o_jogo_e_os_filhos_em_ate_5_segundos() {
     )
     .await
     .unwrap();
-    let children: Vec<u32> = wait_for_lines(&mut events, "filho ", 3)
-        .await
-        .iter()
-        .map(|line| line.trim_start_matches("filho ").trim().parse().unwrap())
-        .collect();
+    let children = wait_for_child_pids(&mut events, 3).await;
     let handle = game.handle();
     if let Some(active) = handle.active_processes() {
         // O jogo, os 3 filhos e o `conhost.exe` de cada `java` de console.
