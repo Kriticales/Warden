@@ -591,7 +591,11 @@ fn rede_indice_jars_reais() {
     eprintln!(
         "D-05: {} jars reais ({} com embutidos), sem cache {cold_time:?}, com cache {:?}",
         files.len(),
-        cold.index.items().iter().map(|(_, i)| i.jars.len()).sum::<usize>(),
+        cold.index
+            .items()
+            .iter()
+            .map(|(_, i)| i.jars.len())
+            .sum::<usize>(),
         start.elapsed()
     );
     assert!(cold.failures.is_empty());
