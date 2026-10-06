@@ -49,6 +49,7 @@ tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "net", "rt-multi-thread"] }
 warden-http.workspace = true
 warden-catalog.workspace = true
+warden-instance.workspace = true
 
 [lints]
 workspace = true

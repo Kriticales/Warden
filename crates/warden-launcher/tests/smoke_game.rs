@@ -24,6 +24,9 @@ use std::time::{Duration, Instant};
 use markers::Progress;
 use tokio::process::Command;
 use warden_core::{CancellationToken, NoProgress};
+use warden_instance::{
+    DownloadCache, InstanceDirs, MaterializeOptions, OnModified, Outcome, Sources, materialize,
+};
 use warden_java::JavaChoiceRequest;
 use warden_launcher::process::{GameEvent, GameProcess, SpawnOptions};
 use warden_launcher::{
@@ -57,6 +60,23 @@ fn copy_world(source: &Path, destination: &Path) {
     }
 }
 
+fn python() -> String {
+    std::env::var("WARDEN_SMOKE_PYTHON")
+        .unwrap_or_else(|_| if cfg!(windows) { "python" } else { "python3" }.into())
+}
+
+async fn pack_script(args: &[&str]) {
+    let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/matrix/pack.py");
+    let status = Command::new(python())
+        .arg(script)
+        .args(args)
+        .kill_on_drop(true)
+        .status()
+        .await
+        .unwrap();
+    assert!(status.success(), "pack.py {args:?}: {status}");
+}
+
 async fn prepare(combo: &comum::Combo, root: &Path, java: &Path, port: u16) -> PathBuf {
     let mode = if modern(combo.minecraft) {
         "world"
@@ -69,10 +89,8 @@ async fn prepare(combo: &comum::Combo, root: &Path, java: &Path, port: u16) -> P
         combo.name.to_owned()
     };
     let directory = root.join("servers").join(name);
-    let python = std::env::var("WARDEN_SMOKE_PYTHON")
-        .unwrap_or_else(|_| if cfg!(windows) { "python" } else { "python3" }.into());
     let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/matrix/prepare.py");
-    let mut child = Command::new(python)
+    let mut child = Command::new(python())
         .arg(script)
         .args([
             mode,
@@ -137,10 +155,49 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
         .install(&combo.spec(), &java, &NoProgress, &cancel)
         .await
         .unwrap();
-    let port = free_port();
-    let server_dir = prepare(combo, root, &java.java, port).await;
     let instance = root.join("instances").join(combo.name);
     let game_dir = instance.join("minecraft");
+    let pack_dir = root.join("packs").join(combo.name);
+    pack_script(&[
+        "create",
+        combo.name,
+        combo.minecraft,
+        combo.loader,
+        combo.version,
+        pack_dir.to_str().unwrap(),
+    ])
+    .await;
+    let sources = Sources {
+        http: comum::http(),
+        curseforge: None,
+        cache: Arc::new(DownloadCache::open(&root.join("cache/mods")).unwrap()),
+    };
+    let dirs = InstanceDirs {
+        game_dir: game_dir.clone(),
+        state_dir: instance.join("state"),
+    };
+    let materialized = materialize(
+        &sources,
+        &pack_dir,
+        &dirs,
+        &MaterializeOptions {
+            on_modified: OnModified::Overwrite,
+            ..MaterializeOptions::default()
+        },
+        &NoProgress,
+        &cancel,
+    )
+    .await
+    .unwrap();
+    match materialized {
+        Outcome::Done(report) => assert!(report.is_complete(), "{}: {report:?}", combo.name),
+        Outcome::NeedsReview(modified) => {
+            panic!("pack exige revisão: {}: {modified:?}", combo.name)
+        }
+    }
+    pack_script(&["verify", combo.name, game_dir.to_str().unwrap()]).await;
+    let port = free_port();
+    let server_dir = prepare(combo, root, &java.java, port).await;
     std::fs::create_dir_all(&game_dir).unwrap();
     std::fs::write(game_dir.join("options.txt"), "onboardAccessibility:false\n").unwrap();
     if combo.loader == "forge" {

@@ -6599,6 +6599,7 @@ dependencies = [
  "warden-catalog",
  "warden-core",
  "warden-http",
+ "warden-instance",
  "warden-java",
  "windows",
 ]

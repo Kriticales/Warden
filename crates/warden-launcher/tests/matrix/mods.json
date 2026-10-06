@@ -1,0 +1,154 @@
+{
+  "forge-1.7.10": {
+    "project": "ai-improvements",
+    "version": "Nv6G28rf",
+    "filename": "AIImprovements-1.7.10-0.0.1b8.jar",
+    "url": "https://cdn.modrinth.com/data/DSVgwcji/versions/Nv6G28rf/AIImprovements-1.7.10-0.0.1b8.jar",
+    "sha1": "08175b6a601003ca9968d06ff50db59c13a010c3",
+    "mixin": false
+  },
+  "forge-1.12.2": {
+    "project": "ai-improvements",
+    "version": "kOyZhvg3",
+    "filename": "AIImprovements-1.12-0.0.1b3.jar",
+    "url": "https://cdn.modrinth.com/data/DSVgwcji/versions/kOyZhvg3/AIImprovements-1.12-0.0.1b3.jar",
+    "sha1": "ef4b64cd4fc10522ead1f659b81e471af455c3fe",
+    "mixin": false
+  },
+  "forge-1.16.5": {
+    "project": "ferrite-core",
+    "version": "6gwDuh90",
+    "filename": "ferritecore-2.1.1-forge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/6gwDuh90/ferritecore-2.1.1-forge.jar",
+    "sha1": "3ae8dbe663156a8dec621d255856356444586905",
+    "mixin": true
+  },
+  "fabric-1.16.5": {
+    "project": "ferrite-core",
+    "version": "3UkWIj4a",
+    "filename": "ferritecore-2.1.1-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/3UkWIj4a/ferritecore-2.1.1-fabric.jar",
+    "sha1": "d099bf16b03666705173120d933facd0c0f33e44",
+    "mixin": true
+  },
+  "forge-1.18.2": {
+    "project": "ferrite-core",
+    "version": "fs07zE6w",
+    "filename": "ferritecore-4.2.2-forge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/fs07zE6w/ferritecore-4.2.2-forge.jar",
+    "sha1": "e9e0e711de47112dc53e24dc008da1f598834c4f",
+    "mixin": true
+  },
+  "fabric-1.18.2": {
+    "project": "ferrite-core",
+    "version": "776Z5oW9",
+    "filename": "ferritecore-4.2.1-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/4.2.1/ferritecore-4.2.1-fabric.jar",
+    "sha1": "d5d047374981d614c2a53422be751dc1491f9cd0",
+    "mixin": true
+  },
+  "forge-1.19.2": {
+    "project": "ferrite-core",
+    "version": "CtXsUUz6",
+    "filename": "ferritecore-5.0.3-forge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/CtXsUUz6/ferritecore-5.0.3-forge.jar",
+    "sha1": "59245ec84ca1e3639237f5a04fe6f7556a9ec2bb",
+    "mixin": true
+  },
+  "fabric-1.19.2": {
+    "project": "ferrite-core",
+    "version": "kwjHqfz7",
+    "filename": "ferritecore-5.0.3-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/kwjHqfz7/ferritecore-5.0.3-fabric.jar",
+    "sha1": "4a124f8205e39b84a156db2d1e435c5708328d7b",
+    "mixin": true
+  },
+  "forge-1.20.1": {
+    "project": "ferrite-core",
+    "version": "DG5Fn9Sz",
+    "filename": "ferritecore-6.0.1-forge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/DG5Fn9Sz/ferritecore-6.0.1-forge.jar",
+    "sha1": "417fb6ce8f52abf40bd9d0390371790f9576f8ba",
+    "mixin": true
+  },
+  "neoforge-1.20.1": {
+    "project": "ferrite-core",
+    "version": "DG5Fn9Sz",
+    "filename": "ferritecore-6.0.1-forge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/DG5Fn9Sz/ferritecore-6.0.1-forge.jar",
+    "sha1": "417fb6ce8f52abf40bd9d0390371790f9576f8ba",
+    "mixin": true
+  },
+  "fabric-1.20.1": {
+    "project": "ferrite-core",
+    "version": "unerR5MN",
+    "filename": "ferritecore-6.0.1-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/unerR5MN/ferritecore-6.0.1-fabric.jar",
+    "sha1": "8fa3b84fc5860dbc30fdf8cced02af68dffcf3fa",
+    "mixin": true
+  },
+  "quilt-1.20.1": {
+    "project": "ferrite-core",
+    "version": "unerR5MN",
+    "filename": "ferritecore-6.0.1-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/unerR5MN/ferritecore-6.0.1-fabric.jar",
+    "sha1": "8fa3b84fc5860dbc30fdf8cced02af68dffcf3fa",
+    "mixin": true
+  },
+  "forge-1.21.1": {
+    "project": "mouse-tweaks",
+    "version": "9IcJV4UJ",
+    "filename": "MouseTweaks-forge-mc1.21-2.26.jar",
+    "url": "https://cdn.modrinth.com/data/aC3cM3Vq/versions/9IcJV4UJ/MouseTweaks-forge-mc1.21-2.26.jar",
+    "sha1": "e1053f8c607714f5afc868d286e3155531763f3a",
+    "mixin": true
+  },
+  "neoforge-1.21.1": {
+    "project": "ferrite-core",
+    "version": "x7kQWVju",
+    "filename": "ferritecore-7.0.3-neoforge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/x7kQWVju/ferritecore-7.0.3-neoforge.jar",
+    "sha1": "9563692efb708b6b568df27a01ec52f6311928ef",
+    "mixin": true
+  },
+  "fabric-1.21.1": {
+    "project": "ferrite-core",
+    "version": "sOzRw3CG",
+    "filename": "ferritecore-7.0.3-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/sOzRw3CG/ferritecore-7.0.3-fabric.jar",
+    "sha1": "a8a6a34fcda177da2828cedef44e0e538cf78aad",
+    "mixin": true
+  },
+  "forge-26.2": {
+    "project": "mouse-tweaks",
+    "version": "A88Ep3CF",
+    "filename": "MouseTweaks-forge-mc26.2-2.31.jar",
+    "url": "https://cdn.modrinth.com/data/aC3cM3Vq/versions/A88Ep3CF/MouseTweaks-forge-mc26.2-2.31.jar",
+    "sha1": "52a1e87f809ec598d9122eee7fb84eaadd485019",
+    "mixin": true
+  },
+  "neoforge-26.2": {
+    "project": "ferrite-core",
+    "version": "LtVvw4uS",
+    "filename": "ferritecore-9.0.0-neoforge.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/LtVvw4uS/ferritecore-9.0.0-neoforge.jar",
+    "sha1": "b8bfb14ba6ce7068aae08c3a132ca40bda6bd143",
+    "mixin": true
+  },
+  "fabric-26.2": {
+    "project": "ferrite-core",
+    "version": "d5ddUdiB",
+    "filename": "ferritecore-9.0.0-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar",
+    "sha1": "eac76ff0f3753422c61b2c44487d0d195d88d4bc",
+    "mixin": true
+  },
+  "fabric-26.3": {
+    "project": "ferrite-core",
+    "version": "d5ddUdiB",
+    "filename": "ferritecore-9.0.0-fabric.jar",
+    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar",
+    "sha1": "eac76ff0f3753422c61b2c44487d0d195d88d4bc",
+    "mixin": true
+  }
+}

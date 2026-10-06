@@ -1,26 +1,23 @@
 # L-05 — execução manual no Windows
 
-Três execuções sequenciais em 06/10/2026, sem cliques na janela do jogo.
-Java e jogo baixados pela L-02; servidor local para 1.7.10 e Quick Play para 1.20.1/26.2.
+Três execuções sequenciais com pack mínimo e mod em 06/10/2026, sem cliques na janela do jogo.
+Java e jogo baixados pela L-02; packwiz materializado pela L-03; servidor local
+para 1.7.10 e Quick Play para 1.20.1/26.2. Cada JAR foi conferido pelo SHA-1
+e pelo conteúdo do ZIP após a materialização; os dois modernos contêm Mixin.
 Cada cliente foi encerrado automaticamente pelo `GameProcess` (`StoppedByUser`).
 Pasta de dados isolada em `%TEMP%`, fora do repositório; sem cofre real.
 
-| Combinação | Pronto | Mundo | Quick Play | Resultado |
-|---|---:|---:|---|---|
-| Forge 1.7.10 | 15,181 s | 29,673 s | não; servidor local | passou |
-| Forge 1.20.1 | 23,859 s | 35,177 s | sim; `quickplay.json` gravado | passou |
-| NeoForge 26.2 | 18,754 s | 26,199 s | sim; `quickplay.json` gravado | passou |
+| Combinação | Mod materializado | Pronto | Mundo | Quick Play | Resultado |
+|---|---|---:|---:|---|---|
+| Forge 1.7.10 | AI Improvements 0.0.1b8 | 12,480 s | 15,018 s | não; servidor local | passou |
+| Forge 1.20.1 | FerriteCore 6.0.1, com Mixin | 23,357 s | 31,762 s | sim; `quickplay.json` gravado | passou |
+| NeoForge 26.2 | FerriteCore 9.0.0, com Mixin | 16,652 s | 23,652 s | sim; `quickplay.json` gravado | passou |
 
-No primeiro teste, o tempo de mundo foi medido desde a abertura do **servidor**;
-o tempo de pronto, desde a abertura do cliente. O teste foi corrigido para medir
-os dois tempos desde o cliente nas próximas execuções. Os valores de Forge
-1.20.1 e NeoForge 26.2 já usam o relógio do cliente.
-
-Os três testes foram feitos com o loader sem mod adicional, como no spike S-R5-3.
-Na execução de Forge 1.20.1, o arquivo `forge-client.toml` gerado pelo jogo
-mostrou `showLoadWarnings = true`: o teste havia gravado a chave fora de `[client]`.
-A preparação foi corrigida para `[client]` e o teste agora confere `false`
-após o jogo; a correção não foi reexecutada para respeitar o limite de três aberturas.
+Os tempos começam na abertura do cliente. A configuração final do Forge 1.20.1
+contém `[client]` e `showLoadWarnings = false`; o teste a confere após fechar
+o jogo. Os três `options.txt` finais abaixo são idênticos aos arquivos produzidos
+nesta rodada com mod. O workflow Linux de 20 combinações ainda não foi disparado;
+o dono fará isso após a integração.
 
 ## Versão mais nova conferida
 

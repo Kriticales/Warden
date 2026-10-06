@@ -10,7 +10,12 @@ política de log4j por faixa. A política de log4j é um teste da configuração
 selecionada e da linha de comando; não injeta uma expressão JNDI no jogo.
 
 `smoke_game.rs` baixa o Java e o jogo pelos componentes existentes da L-02,
-prepara um servidor descartável com `prepare.py` e abre uma combinação por vez.
+cria o pack mínimo com `pack.py` e materializa o mod pela L-03 antes de abrir
+cada combinação. `mods.json` fixa URL, versão e SHA-1 de cada JAR no CDN do
+Modrinth; `pack.py` confere o hash e o arquivo de Mixin dentro do JAR
+materializado. Forge 1.7.10 e 1.12.2 usam AI Improvements, sem Mixin; as
+versões modernas usam FerriteCore ou Mouse Tweaks, com Mixin. Vanilla 26.3
+tem o pack sem mod. O teste prepara um servidor descartável com `prepare.py`.
 Em 1.20+ o servidor vanilla gera um mundo sem mods, copiado para `saves/`, e o
 cliente entra via Quick Play. Antes de 1.20 o servidor local do loader recebe
 o cliente via `--server/--port`. O teste exige os marcadores de pronto e de
@@ -39,8 +44,5 @@ $env:WARDEN_SMOKE_ONLY = 'neoforge-26.2'
 cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture
 ```
 
-O teste de jogo real usa o loader sem mod adicional, como a matriz de sucesso
-do S-R5-3. Não cobre materialização de pack nem um mod de teste com Mixin;
-essa lacuna precisa ser fechada antes de considerar provado o critério completo
-de CA-T13-01 para packs com mods. A conformidade da materialização em si é
-testada pela L-03 (`warden-instance`).
+As três execuções locais com mod estão em `relatorio-windows.md`. A matriz
+completa no Linux depende do disparo manual do workflow após a integração.
