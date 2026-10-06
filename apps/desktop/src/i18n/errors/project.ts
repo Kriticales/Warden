@@ -18,4 +18,5 @@ export const project: Record<ProjectErrorCode, string> = {
   PACK_CHANGED_EXTERNALLY: 'O pack mudou fora do Warden. Atualize e tente de novo.',
   READ_ONLY: 'O repositório está em um estado que permite apenas leitura.',
   TRASH_CONFIRMATION: 'Digite o nome exato do pack para enviá-lo à Lixeira.',
+  ITEM_NOT_FOUND: 'Este item não está mais no pack. Atualize a lista e tente de novo.',
 };

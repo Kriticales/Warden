@@ -87,6 +87,9 @@ struct RegistryData {
     extra: BTreeMap<String, Value>,
 }
 
+/// Campos fixos de [`PackRecord`] no JSON; não podem ser usados como chave de `extra`.
+const RESERVED_KEYS: [&str; 4] = ["id", "name", "path", "lastTest"];
+
 fn schema_version() -> u32 {
     1
 }
@@ -192,6 +195,52 @@ impl Registry {
         Ok(())
     }
 
+    /// Atualiza o nome legível guardado (usado quando a pasta some), preservando o resto.
+    pub fn rename(&self, id: PackId, name: &str) -> Result<()> {
+        self.update(id, |record| {
+            name.clone_into(&mut record.name);
+            Ok(())
+        })
+    }
+
+    /// Grava (`Some`) ou remove (`None`) uma preferência local em `extra`, preservando as
+    /// outras. Os nomes dos campos fixos do registro são recusados, porque `extra` é achatado
+    /// no JSON e duplicaria a chave.
+    pub fn set_extra(&self, id: PackId, key: &str, value: Option<Value>) -> Result<()> {
+        if key.is_empty() || RESERVED_KEYS.contains(&key) {
+            return Err(
+                Error::new(Code::InvalidInput, format!("chave reservada: {key:?}"))
+                    .param("field", "key"),
+            );
+        }
+        self.update(id, |record| {
+            match value {
+                Some(value) => {
+                    record.extra.insert(key.to_owned(), value);
+                }
+                None => {
+                    record.extra.remove(key);
+                }
+            }
+            Ok(())
+        })
+    }
+
+    /// Aplica uma mudança a um registro e grava; em falha, nada muda na memória.
+    fn update(&self, id: PackId, change: impl FnOnce(&mut PackRecord) -> Result<()>) -> Result<()> {
+        let mut data = self.data.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut updated = data.clone();
+        let item = updated
+            .packs
+            .iter_mut()
+            .find(|p| p.id == id)
+            .ok_or_else(|| Error::new(Code::PackNotFound, id.to_string()))?;
+        change(item)?;
+        self.save(&updated)?;
+        *data = updated;
+        Ok(())
+    }
+
     /// Monta a lista tolerando pasta ausente e manifesto inválido.
     pub fn list(&self) -> Vec<PackRow> {
         self.records().iter().map(row).collect()
@@ -274,4 +323,82 @@ fn modified_at_ms(path: &Path) -> Option<f64> {
     let time = fs::metadata(path).ok()?.modified().ok()?;
     let elapsed = time.duration_since(std::time::UNIX_EPOCH).ok()?;
     Some(elapsed.as_secs_f64() * 1000.0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn registry_with_pack(dir: &Path) -> (Registry, PackId) {
+        let registry = Registry::open(dir.join("packs.json")).unwrap();
+        let id = PackId::new();
+        let mut extra = BTreeMap::new();
+        extra.insert("futuro".to_owned(), Value::from(1));
+        registry
+            .insert(PackRecord {
+                id,
+                name: "Antigo".into(),
+                path: dir.join("pack"),
+                last_test: Some("ok".into()),
+                extra,
+            })
+            .unwrap();
+        (registry, id)
+    }
+
+    #[test]
+    fn rename_grava_e_preserva_os_outros_campos() {
+        let dir = tempfile::tempdir().unwrap();
+        let (registry, id) = registry_with_pack(dir.path());
+        registry.rename(id, "Novo").unwrap();
+        let reopened = Registry::open(dir.path().join("packs.json")).unwrap();
+        let record = reopened.get(id).unwrap();
+        assert_eq!(record.name, "Novo");
+        assert_eq!(record.last_test.as_deref(), Some("ok"));
+        assert_eq!(record.extra.get("futuro"), Some(&Value::from(1)));
+        assert_eq!(
+            registry.rename(PackId::new(), "x").unwrap_err().code,
+            Code::PackNotFound
+        );
+    }
+
+    #[test]
+    fn set_extra_grava_remove_e_recusa_chave_reservada() {
+        let dir = tempfile::tempdir().unwrap();
+        let (registry, id) = registry_with_pack(dir.path());
+        registry
+            .set_extra(
+                id,
+                "testSettings",
+                Some(serde_json::json!({ "memoryMb": 4096 })),
+            )
+            .unwrap();
+        let reopened = Registry::open(dir.path().join("packs.json")).unwrap();
+        let record = reopened.get(id).unwrap();
+        assert_eq!(record.extra["testSettings"]["memoryMb"], 4096);
+        assert_eq!(record.extra.get("futuro"), Some(&Value::from(1)));
+        registry.set_extra(id, "testSettings", None).unwrap();
+        let reopened = Registry::open(dir.path().join("packs.json")).unwrap();
+        let record = reopened.get(id).unwrap();
+        assert!(!record.extra.contains_key("testSettings"));
+        assert_eq!(record.extra.get("futuro"), Some(&Value::from(1)));
+        for key in ["name", "path", "id", "lastTest", ""] {
+            assert_eq!(
+                registry
+                    .set_extra(id, key, Some(Value::from(true)))
+                    .unwrap_err()
+                    .code,
+                Code::InvalidInput,
+                "{key}"
+            );
+        }
+        assert_eq!(registry.get(id).unwrap().name, "Antigo");
+        assert_eq!(
+            registry
+                .set_extra(PackId::new(), "x", None)
+                .unwrap_err()
+                .code,
+            Code::PackNotFound
+        );
+    }
 }

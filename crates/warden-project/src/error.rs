@@ -36,6 +36,8 @@ pub enum ProjectErrorCode {
     ReadOnly,
     /// A confirmação para apagar não corresponde ao nome do pack.
     TrashConfirmation,
+    /// O item pedido não está no inventário do pack.
+    ItemNotFound,
 }
 
 /// Erro do serviço de packs, com parâmetro opcional para a frase da interface.
