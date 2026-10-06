@@ -266,7 +266,14 @@ fn rust(builder: &mut Builder) -> Result<()> {
     // Com a saída redirecionada, o cargo-about recusa rodar no PowerShell: grava em arquivo.
     let output = dir.path().join("about.json");
     Cmd::cargo()
-        .args(["about", "generate", "--format", "json", "--offline", "--locked"])
+        .args([
+            "about",
+            "generate",
+            "--format",
+            "json",
+            "--offline",
+            "--locked",
+        ])
         .args(["-c"])
         .args([&config])
         .args(["-m"])
@@ -313,7 +320,10 @@ pub fn license_files(dir: &Path) -> Vec<PathBuf> {
                 .map(|name| name.to_string_lossy().to_uppercase())
                 .unwrap_or_default();
             let stem = name.split(['.', '-', '_']).next().unwrap_or_default();
-            matches!(stem, "LICENSE" | "LICENCE" | "UNLICENSE" | "COPYING" | "NOTICE")
+            matches!(
+                stem,
+                "LICENSE" | "LICENCE" | "UNLICENSE" | "COPYING" | "NOTICE"
+            )
         })
         .collect();
     files.sort();
@@ -474,8 +484,13 @@ pub fn readme_license_section(readme: &str) -> Option<String> {
         .take_while(|line| heading_level(line).is_none_or(|other| other > level))
         .filter(|line| !line.trim_start().starts_with("```"))
         .collect();
-    let text = body.join("
-").trim().to_owned();
+    let text = body
+        .join(
+            "
+",
+        )
+        .trim()
+        .to_owned();
     (!text.is_empty()).then_some(text)
 }
 
@@ -574,7 +589,9 @@ fn packwiz(builder: &mut Builder) -> Result<()> {
                 .as_deref()
                 .and_then(readme_license_section)
         {
-            item.license = guess_spdx(&section).unwrap_or_default().to_owned();
+            guess_spdx(&section)
+                .unwrap_or_default()
+                .clone_into(&mut item.license);
             item.texts.push(builder.text(&section));
         }
         if item.texts.is_empty() {
@@ -627,7 +644,8 @@ pub fn run() -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(&path, json.as_bytes()).with_context(|| format!("falha ao gravar {}", path.display()))?;
+    fs::write(&path, json.as_bytes())
+        .with_context(|| format!("falha ao gravar {}", path.display()))?;
     for group in &notices.groups {
         println!("notices: {} — {} itens", group.id, group.items.len());
     }
@@ -654,7 +672,10 @@ mod tests {
         let c = builder.text("Apache License");
         assert_eq!(a, b);
         assert_ne!(a, c);
-        assert_eq!(builder.finish().texts, ["MIT License\n\nPermission...", "Apache License"]);
+        assert_eq!(
+            builder.finish().texts,
+            ["MIT License\n\nPermission...", "Apache License"]
+        );
     }
 
     fn item(name: &str, version: &str) -> Item {
@@ -838,17 +859,32 @@ Permission is hereby granted, free of charge, to any person
 ainda dentro"
         );
         assert_eq!(guess_spdx(&section), Some("MIT"));
-        assert_eq!(readme_license_section("# x
+        assert_eq!(
+            readme_license_section(
+                "# x
 ## Licenses
 
 ## Fim
-"), None);
-        assert_eq!(readme_license_section("# x
+"
+            ),
+            None
+        );
+        assert_eq!(
+            readme_license_section(
+                "# x
 sem licença
-"), None);
-        assert_eq!(readme_license_section("#License
+"
+            ),
+            None
+        );
+        assert_eq!(
+            readme_license_section(
+                "#License
 texto
-"), None);
+"
+            ),
+            None
+        );
     }
 
     #[test]
@@ -883,7 +919,10 @@ texto
     #[test]
     fn reconhece_licencas_comuns() {
         let cases = [
-            ("Apache License\n Version 2.0, January 2004", Some("Apache-2.0")),
+            (
+                "Apache License\n Version 2.0, January 2004",
+                Some("Apache-2.0"),
+            ),
             ("Mozilla Public License Version 2.0", Some("MPL-2.0")),
             (
                 "MIT License\nPermission is hereby granted, free of charge, to any",
