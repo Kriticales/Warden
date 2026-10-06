@@ -464,7 +464,13 @@ pub(crate) mod tests {
         let (side, remove) = (side.await.unwrap(), remove.await.unwrap());
         assert!(remove.unwrap().contains(&"mods/mod-5.pw.toml".to_owned()));
         // Os dois terminaram, um depois do outro (a trava de escrita pôs o segundo na fila).
-        assert_eq!(side.unwrap().iter().filter(|p| p.ends_with(".pw.toml")).count(), 5);
+        assert_eq!(
+            side.unwrap()
+                .iter()
+                .filter(|p| p.ends_with(".pw.toml"))
+                .count(),
+            5
+        );
         let read = warden_packwiz::read_pack(&root).unwrap();
         let index = read.index.as_ref().unwrap();
         assert_eq!(index.value.metafiles().len(), 5);
