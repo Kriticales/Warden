@@ -49,7 +49,7 @@ describe('primeira execução', () => {
     await goToKeys(user);
     await user.click(screen.getByRole('button', { name: 'Concluir' }));
 
-    expect(await screen.findByRole('region', { name: 'Sobre o Warden' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
     expect(screen.queryByRole('list', { name: 'Etapas da primeira execução' })).toBeNull();
     expect(backend.state.exists).toBe(true);
     expect(backend.callsOf('settings_update').map((call) => call.args)).toEqual([
@@ -60,7 +60,7 @@ describe('primeira execução', () => {
   it('com settings.json o app abre direto no início', async () => {
     mockSettingsBackend({ exists: true });
     renderApp('/');
-    expect(await screen.findByRole('region', { name: 'Sobre o Warden' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Entendi' })).toBeNull();
   });
 
@@ -95,7 +95,7 @@ describe('primeira execução', () => {
     await user.click(screen.getByRole('button', { name: 'Próximo' }));
     await user.click(await screen.findByRole('button', { name: 'Próximo' }));
     await user.click(await screen.findByRole('button', { name: 'Concluir' }));
-    await screen.findByRole('region', { name: 'Sobre o Warden' });
+    await screen.findByRole('heading', { level: 1, name: 'Meus packs' });
     expect(backend.callsOf('settings_update')[0]?.args).toEqual({
       patch: { playerName: 'Ze_123' },
     });
@@ -108,7 +108,7 @@ describe('primeira execução', () => {
     await goToKeys(user);
     await user.type(screen.getByLabelText('Chave da CurseForge'), 'nao-vai');
     await user.click(screen.getByRole('button', { name: 'Pular, configuro depois' }));
-    await screen.findByRole('region', { name: 'Sobre o Warden' });
+    await screen.findByRole('heading', { level: 1, name: 'Meus packs' });
     expect(backend.callsOf('secrets_set')).toEqual([]);
     expect(backend.callsOf('secrets_backend_set')).toEqual([]);
     expect(backend.state.exists).toBe(true);
@@ -158,7 +158,7 @@ describe('primeira execução', () => {
     expect(backend.callsOf('secrets_backend_set')).toEqual([]);
 
     await user.click(screen.getByRole('button', { name: 'Concluir' }));
-    await screen.findByRole('region', { name: 'Sobre o Warden' });
+    await screen.findByRole('heading', { level: 1, name: 'Meus packs' });
     const order = backend.calls
       .map((call) => call.command)
       .filter((command) =>
@@ -204,7 +204,7 @@ describe('primeira execução', () => {
       { settings_status: () => ipcError(makeAppError({ domain: 'core', code: 'IO' })) },
     );
     renderApp('/');
-    expect(await screen.findByRole('region', { name: 'Sobre o Warden' })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
   });
 
   it('passa no axe (aviso e chaves)', async () => {

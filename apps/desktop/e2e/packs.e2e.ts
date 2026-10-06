@@ -21,6 +21,7 @@ import {
   readdirSync,
   readFileSync,
   renameSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
@@ -43,6 +44,7 @@ const DATA_ROOT = env('WARDEN_E2E_DATA_ROOT');
 const PICK_FILE = env('WARDEN_E2E_PICK_FOLDER');
 const OLD_PACK = join(DATA_ROOT, 'fora', 'pack-antigo');
 const MOVED_PACK = join(DATA_ROOT, 'fora', 'pack-antigo-movido');
+const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 
 async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
@@ -161,7 +163,19 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
   before(async () => {
     writeOldPack(OLD_PACK);
     pickNext('');
+    // Sem settings.json o app abre na primeira execução (P1-13, coberta em settings.e2e.ts):
+    // grava as configurações padrão e reabre o app (sessão nova = processo novo).
+    mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
+    writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
+    await browser.reloadSession();
     await browser.setWindowSize(1366, 860);
+  });
+
+  after(() => {
+    // Devolve a pasta de dados sem configurações e sem packs registrados: o settings.e2e.ts,
+    // que roda depois (ordem alfabética), começa pela primeira execução.
+    rmSync(SETTINGS_FILE, { force: true });
+    rmSync(join(DATA_ROOT, 'config', 'packs.json'), { force: true });
   });
 
   it('abre em Meus packs vazio, sem violação séria do axe', async () => {

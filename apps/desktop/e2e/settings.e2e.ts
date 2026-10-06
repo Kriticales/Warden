@@ -137,7 +137,7 @@ describe('primeira execução e Configurações', () => {
     await screenshot('04-chaves');
     expect(await seriousViolations()).toEqual([]);
     await $('button=Concluir').click();
-    await $('h2=Sobre o Warden').waitForDisplayed();
+    await $('h1=Meus packs').waitForDisplayed();
     await expect($('ol[aria-label="Etapas da primeira execução"]')).not.toBeExisting();
   });
 
@@ -153,7 +153,7 @@ describe('primeira execução e Configurações', () => {
 
   it('CA-T01-01 e CA-T21-01: reiniciar abre no início e a chave continua "Configurada"', async () => {
     await restartApp();
-    await $('h2=Sobre o Warden').waitForDisplayed();
+    await $('h1=Meus packs').waitForDisplayed();
     await expect($('ol[aria-label="Etapas da primeira execução"]')).not.toBeExisting();
     await openSettings();
     await expect(curseforgeRow()).toHaveText(expect.stringContaining('Configurada'));
