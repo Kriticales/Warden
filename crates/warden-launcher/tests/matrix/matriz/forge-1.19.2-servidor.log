@@ -1,0 +1,9 @@
+[18:28:32] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui]
+[18:28:41] [modloading-worker-0/INFO] [ne.mi.co.ForgeMod/FORGEMOD]: Forge mod loading, version 43.5.0, for MC 1.19.2 with MCP 20220805.130853
+[18:28:48] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.19.2
+[18:29:03] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[18:29:26] [Server thread/INFO] [minecraft/DedicatedServer]: Done (37.223s)! For help, type "help"
+[18:29:58] [Server thread/INFO] [minecraft/PlayerList]: WardenTest[/127.0.0.1:58828] logged in with entity id 183 at (-0.5, 105.0, 0.5)
+[18:29:58] [Server thread/INFO] [minecraft/MinecraftServer]: WardenTest joined the game
+[18:30:03] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: WardenTest lost connection: Disconnected
+[18:30:04] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server

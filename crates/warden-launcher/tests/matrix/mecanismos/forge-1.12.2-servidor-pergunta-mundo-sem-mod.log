@@ -1,0 +1,92 @@
+[17:30:53] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading
+[17:31:04] [Server thread/WARN] [FML]: Missing English translation for FML: assets/fml/lang/en_us.lang
+[17:31:11] [Server thread/INFO] [minecraft/DedicatedServer]: Preparing level "world-comforts"
+[17:31:11] [Server thread/ERROR] [FML.ModTracker]: This world was saved with mod comforts which appears to be missing, things may not work well
+[17:31:11] [Server thread/INFO] [FML]: Registry EntityEntry: Found a missing id from the world comforts:_entity_rest
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_black
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_light_blue
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_lime
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:rope
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_black
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_yellow
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_purple
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_lime
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_pink
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_magenta
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_red
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_blue
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_orange
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_red
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_blue
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_gray
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_white
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_cyan
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_purple
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_yellow
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_silver
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_green
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_white
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_brown
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_gray
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_light_blue
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_cyan
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_orange
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_pink
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_magenta
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_brown
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:hammock_green
+[17:31:11] [Server thread/INFO] [FML]: Registry Block: Found a missing id from the world comforts:sleeping_bag_silver
+[17:31:11] [Server thread/INFO] [FML]: Registry Item: Found a missing id from the world comforts:hammock
+[17:31:11] [Server thread/INFO] [FML]: Registry Item: Found a missing id from the world comforts:rope
+[17:31:11] [Server thread/INFO] [FML]: Registry Item: Found a missing id from the world comforts:sleeping_bag
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:_entity_rest: 0
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_yellow: 259
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_silver: 279
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_blue: 282
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_blue: 266
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:rope: 253
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_gray: 262
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_pink: 277
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_lime: 260
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_white: 271
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_gray: 278
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_yellow: 275
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_black: 286
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_cyan: 264
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_lime: 276
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_orange: 256
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_brown: 283
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_magenta: 273
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_brown: 267
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_orange: 272
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_red: 285
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_black: 270
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_white: 254
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_magenta: 257
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_red: 269
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_purple: 265
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_green: 268
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_pink: 261
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_green: 284
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_silver: 263
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_purple: 281
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_cyan: 280
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock_light_blue: 274
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag_light_blue: 258
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:rope: 4098
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:hammock: 4097
+[17:31:11] [Server thread/ERROR] [FML]:     comforts:sleeping_bag: 4096
+[17:31:11] [Server thread/WARN] [FML]: Forge Mod Loader detected missing registry entries.
+
+There are 37 missing entries in this save.
+If you continue the missing entries will get removed.
+A world backup will be automatically created in your saves directory.
+
+Missing minecraft:entities:
+    comforts:_entity_rest
+Missing minecraft:blocks:
+    comforts:hammock_white
+    comforts:sleeping_bag_red
+    comforts:hammock_black
+    comforts:sleeping_bag_light_blue
+	... (cortado no golden log)

@@ -1,0 +1,24 @@
+  <log4j:Event logger="net.neoforged.fml.loading.ModSorter" timestamp="1791161175715" level="ERROR" thread="main">
+    <log4j:Message><![CDATA[Missing or unsupported mandatory dependencies:
+	Mod ID: 'fabric_api', Requested by: 'continuity', Expected range: ' ', Actual version: '[MISSING]']]></log4j:Message>
+  </log4j:Event>
+[20:46:26] [Render thread/FATAL] [ne.ne.fm.ModLoader/CORE]: Error during pre-loading phase: Mod continuity requires fabric_api any
+Currently, fabric_api is not installed
+
+[20:46:26] [Render thread/FATAL] [ne.ne.fm.ModLoader/CORE]: Error during pre-loading phase: Some of your mods are incompatible with the game or each other!
+A potential solution has been determined, this may resolve your problem:
+   - Install fabric-api, version 0.100.1 or later.
+More details:
+   - mod Continuity (continuity) 3.0.0+1.21.neoforge requires version 0.100.1 or later of fabric-api, which is missing!
+[20:46:29] [Render thread/INFO] [minecraft/SoundEngine]: Sound engine started
+[20:46:29] [Render thread/INFO] [minecraft/TextureAtlas]: Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas
+---- Minecraft Crash Report ----
+// Hi. I'm Minecraft, and I'm a crashaholic.
+
+Time: 2026-10-04 20:46:30
+Description: Mod loading failures have occurred; consult the issue messages for more details
+
+net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException: Mod loading has failed
+
+
+	... (cortado no golden log)

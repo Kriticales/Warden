@@ -1,0 +1,22 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791151436451" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.20.1 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/Resolution" timestamp="1791151436681" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Mod resolution failed]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader" timestamp="1791151436692" level="ERROR" thread="main">
+    <log4j:Message><![CDATA[Incompatible mods found!]]></log4j:Message>
+    <log4j:Throwable><![CDATA[net.fabricmc.loader.impl.FormattedException: Some of your mods are incompatible with the game or each other!
+A potential solution has been determined, this may resolve your problem:
+	 - Install fabric-api, any version.
+	 - Install fabric-api-base, version 0.1.2 or later.
+More details:
+	 - Mod 'Comforts' (comforts) 6.4.0+1.20.1 requires any version of fabric-api, which is missing!
+	 - Mod 'Cardinal Components API (base)' (cardinal-components-base) 5.2.1 requires version 0.1.2 or later of fabric-api-base, which is missing!
+	 - Mod 'Cardinal Components API (entities)' (cardinal-components-entity) 5.2.1 requires any version of fabric-api-base, which is missing!
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:51)
+	at net.fabricmc.loader.impl.FabricLoaderImpl.load(FabricLoaderImpl.java:202)
+	at net.fabricmc.loader.impl.launch.knot.Knot.init(Knot.java:142)
+	... (cortado no golden log)
+]]></log4j:Throwable>
+  </log4j:Event>
