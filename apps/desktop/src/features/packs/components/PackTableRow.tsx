@@ -5,7 +5,6 @@
  */
 import { useNavigate } from '@tanstack/react-router';
 import {
-  CircleAlert,
   CircleCheck,
   CircleHelp,
   CircleX,
@@ -237,9 +236,7 @@ function MissingRow({ row, onDialog }: RowProps) {
           <NameTile seed={row.name} size="lg" />
           <div>
             <span className="t-strong">{row.name}</span>
-            <div className="t-xs t-danger">
-              <Icon icon={CircleAlert} size="sm" /> {t('linha.pastaSumiu', { path: row.path })}
-            </div>
+            <div className="t-xs t-danger">{t('linha.pastaSumiu', { path: row.path })}</div>
           </div>
         </div>
       </td>
@@ -276,9 +273,7 @@ function InvalidRow({ row, onDialog }: RowProps) {
           <NameTile seed={row.name || row.path} size="lg" />
           <div>
             <span className="t-strong">{row.name || row.path}</span>
-            <div className="t-xs t-danger">
-              <Icon icon={CircleAlert} size="sm" /> {t('linha.ilegivel')}
-            </div>
+            <div className="t-xs t-danger">{t('linha.ilegivel')}</div>
           </div>
         </div>
       </td>

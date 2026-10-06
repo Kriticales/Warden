@@ -87,11 +87,22 @@ export const config: WebdriverIO.Config = {
     }
     dataRoot = mkdtempSync(join(tmpdir(), 'warden-e2e-'));
     mockServer = await startMockServer();
+    // Diálogo nativo de pasta (P1-07): o WebDriver não o alcança; no lugar dele, o app lê a
+    // pasta escolhida deste arquivo, que os testes escrevem antes de cada escolha.
+    const pickFolder = join(dataRoot, 'pasta-escolhida.txt');
+    process.env.WARDEN_E2E_PICK_FOLDER = pickFolder;
+    process.env.WARDEN_E2E_DATA_ROOT = dataRoot;
     const env = {
       ...process.env,
       WARDEN_DATA_ROOT: dataRoot,
       WARDEN_SECRET_BACKEND: `file:${join(dataRoot, 'cofre-de-teste')}`,
       WARDEN_E2E_MOCK_URL: mockServer.url,
+      WARDEN_E2E_PICK_FOLDER: pickFolder,
+      // Catálogo de versões (P1-05) pelas respostas gravadas no servidor de fixtures.
+      WARDEN_API_BASE_MOJANG: mockServer.url,
+      WARDEN_API_BASE_FABRIC: mockServer.url,
+      WARDEN_API_BASE_FORGE: mockServer.url,
+      WARDEN_API_BASE_NEOFORGE: mockServer.url,
     };
     tauriDriver = spawn(
       'tauri-driver',

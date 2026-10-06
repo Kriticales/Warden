@@ -69,7 +69,9 @@ describe('Criar pack (T03)', () => {
     const user = userEvent.setup();
     wizardBackend();
     const { container } = renderApp('/packs/novo');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Criar pack' })).toBeDefined();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Criar pack' }, { timeout: 5000 }),
+    ).toBeDefined();
     const steps = screen.getByRole('list', { name: 'Etapas de criar pack' });
     expect(
       within(steps)

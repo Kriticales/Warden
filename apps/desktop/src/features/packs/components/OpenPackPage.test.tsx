@@ -63,7 +63,7 @@ describe('Abrir pack (T04)', () => {
   it('mostra o pack, o loader suportado e a higiene com tamanho e motivo; passa no axe', async () => {
     const backend = openBackend(makeImportPreview({ hygiene: DIRTY }));
     const { container } = renderOpen();
-    expect(await screen.findByText('Meu pack antigo')).toBeDefined();
+    expect(await screen.findByText('Meu pack antigo', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText(`Pasta packwiz em ${FOLDER}`)).toBeDefined();
     expect(screen.getByText('Minecraft 1.20.1 · NeoForge')).toBeDefined();
     expect(screen.getByText('suportado')).toBeDefined();

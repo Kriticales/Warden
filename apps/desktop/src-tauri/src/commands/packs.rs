@@ -22,8 +22,9 @@ use crate::commands::java::JavaPackSource;
 use crate::error::AppError;
 use crate::state::AppState;
 
-/// Em build de debug, o E2E troca o diálogo nativo de pasta (que o `WebDriver` não alcança) por
-/// esta pasta fixa.
+/// Em build de debug, o E2E troca o diálogo nativo de pasta (que o `WebDriver` não alcança) pelo
+/// caminho escrito no arquivo apontado por esta variável (lido a cada escolha; arquivo vazio =
+/// o usuário desistiu).
 #[cfg(debug_assertions)]
 const E2E_PICK_FOLDER_ENV: &str = "WARDEN_E2E_PICK_FOLDER";
 
@@ -293,8 +294,10 @@ pub(crate) async fn pack_choose_folder(
     purpose: FolderPurpose,
 ) -> Result<Option<PathBuf>, AppError> {
     #[cfg(debug_assertions)]
-    if let Some(path) = std::env::var_os(E2E_PICK_FOLDER_ENV).filter(|value| !value.is_empty()) {
-        return Ok(Some(PathBuf::from(path)));
+    if let Some(file) = std::env::var_os(E2E_PICK_FOLDER_ENV).filter(|value| !value.is_empty()) {
+        let picked = std::fs::read_to_string(&file).unwrap_or_default();
+        let picked = picked.trim();
+        return Ok((!picked.is_empty()).then(|| PathBuf::from(picked)));
     }
     let start = create_defaults(&state).packs_dir;
     let (sender, receiver) = tokio::sync::oneshot::channel();

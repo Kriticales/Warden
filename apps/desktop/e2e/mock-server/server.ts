@@ -13,6 +13,7 @@ const FIXTURES = join(import.meta.dirname, 'fixtures');
 
 const TYPES: Record<string, string> = {
   '.json': 'application/json; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
   '.jar': 'application/java-archive',
@@ -27,9 +28,50 @@ export interface MockServer {
   close: () => Promise<void>;
 }
 
+/**
+ * Respostas reais gravadas pelas crates, servidas no mesmo caminho da fonte oficial (o app
+ * aponta cada fonte para este servidor com `WARDEN_API_BASE_*`). Catálogo de versões (P1-05):
+ * `crates/warden-catalog/tests/fixtures/http/FIXTURES.md` diz de onde veio cada arquivo.
+ */
+const CATALOG = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'crates',
+  'warden-catalog',
+  'tests',
+  'fixtures',
+  'http',
+);
+const RECORDED: Record<string, string> = {
+  'mc/game/version_manifest_v2.json': join(CATALOG, '2026-10-05-mojang-version_manifest_v2.json'),
+  'v2/versions/game': join(CATALOG, '2026-10-05-fabric-versions-game.json'),
+  'v2/versions/loader': join(CATALOG, '2026-10-05-fabric-versions-loader.json'),
+  'net/minecraftforge/forge/maven-metadata.xml': join(
+    CATALOG,
+    '2026-10-05-forge-maven-metadata.xml',
+  ),
+  'net/minecraftforge/forge/promotions_slim.json': join(
+    CATALOG,
+    '2026-10-05-forge-promotions_slim.json',
+  ),
+  'api/maven/versions/releases/net/neoforged/neoforge': join(
+    CATALOG,
+    '2026-10-05-neoforge-versions-neoforge.json',
+  ),
+  'api/maven/versions/releases/net/neoforged/forge': join(
+    CATALOG,
+    '2026-10-05-neoforge-versions-forge.json',
+  ),
+};
+
 /** O arquivo de fixture para um caminho de URL, ou `null` se sair da pasta. */
 export function fixturePath(urlPath: string): string | null {
   const clean = decodeURIComponent(urlPath.split('?')[0] ?? '').replace(/^\/+/, '');
+  const recorded = RECORDED[clean];
+  if (recorded) return recorded;
   const withExtension = extname(clean) ? clean : `${clean}.json`;
   const resolved = normalize(join(FIXTURES, withExtension));
   return resolved.startsWith(FIXTURES + sep) ? resolved : null;

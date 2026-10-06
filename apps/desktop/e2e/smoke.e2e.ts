@@ -1,10 +1,10 @@
 /**
- * Fumaça (F0-06, critério 3): o app real abre com a moldura (barra do app, conteúdo, rodapé),
- * "Sobre o Warden" mostra a versão de `app_info` e o aviso legal, a gaveta de Tarefas abre pelo
- * rodapé (com o foco no título) e fecha com Esc devolvendo o foco ao indicador, e o axe não
- * acha violação séria nem crítica no WebView real (aqui o contraste é medido de verdade). No
- * Windows, a barra de título própria (UI-01) aparece com os três botões e o maximizar alterna
- * com Restaurar.
+ * Fumaça (F0-06, critério 3): o app real abre com a moldura (barra do app, conteúdo, rodapé)
+ * na tela inicial, Meus packs (P1-07); "Sobre o Warden", em Configurações, mostra a versão de
+ * `app_info` e o aviso legal; a gaveta de Tarefas abre pelo rodapé (com o foco no título) e
+ * fecha com Esc devolvendo o foco ao indicador, e o axe não acha violação séria nem crítica no
+ * WebView real (aqui o contraste é medido de verdade). No Windows, a barra de título própria
+ * (UI-01) aparece com os três botões e o maximizar alterna com Restaurar.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava capturas da janela nessa pasta.
  */
@@ -57,19 +57,13 @@ async function seriousViolations(): Promise<AxeViolation[]> {
 }
 
 describe('fumaça', () => {
-  it('abre o app com a moldura, a versão e o aviso legal', async () => {
-    // O título tem "Warden" num <span> aceso: o texto completo vem do elemento inteiro.
-    const title = $('h1*=Boas-vindas ao');
+  it('abre o app em Meus packs, com a moldura e a versão', async () => {
+    const title = $('h1=Meus packs');
     await title.waitForDisplayed();
-    await expect(title).toHaveText('Boas-vindas ao Warden');
     await expect($('header.topbar')).toBeDisplayed();
     await expect($('main#conteudo')).toBeDisplayed();
     const indicator = $('[data-testid="tasks-indicator"]');
     await expect(indicator).toHaveText('Nenhuma tarefa em andamento');
-    const legal = $('[data-testid="aviso-legal"]');
-    await expect(legal).toHaveText(
-      'NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.',
-    );
     await expect($('footer.statusbar')).toHaveText(expect.stringContaining('Warden 0.1.0'));
     await screenshot('01-inicio');
   });
@@ -104,11 +98,18 @@ describe('fumaça', () => {
     await expect(indicator).toBeFocused();
   });
 
-  it('mostra "Sobre o Warden" com a versão e o commit', async () => {
+  it('mostra "Sobre o Warden", em Configurações, com a versão e o aviso legal', async () => {
+    await $('header.topbar').$('a*=Configurações').click();
     const about = $('h2=Sobre o Warden');
+    await about.waitForExist();
     await about.scrollIntoView();
-    await expect($('dl.kv')).toHaveText(expect.stringContaining('0.1.0'));
+    await expect($('[data-testid="aviso-legal"]')).toHaveText(
+      'NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.',
+    );
+    await expect($('#sobre dl.kv')).toHaveText(expect.stringContaining('0.1.0'));
     await screenshot('03-sobre');
+    await $('header.topbar').$('a*=Meus packs').click();
+    await $('h1=Meus packs').waitForDisplayed();
   });
 
   it('em 1024 px (largura mínima do HANDOFF §5) nada estoura na horizontal', async () => {
@@ -118,7 +119,7 @@ describe('fumaça', () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBe(0);
-    await $('h1*=Boas-vindas ao').scrollIntoView();
+    await $('h1=Meus packs').scrollIntoView();
     await screenshot('04-inicio-1024');
     await $('[data-testid="tasks-indicator"]').click();
     await $('.drawer').waitForDisplayed();
