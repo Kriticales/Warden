@@ -70,6 +70,19 @@ export const commands = {
 	packHygieneFix: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("pack_hygiene_fix", { packId, paths })),
 	/**  Move um pack para a Lixeira depois de digitar o nome exato. */
 	packTrash: (packId: PackId, confirmation: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_trash", { packId, confirmation })),
+	/**  Lista exata da saída e avisos antes de exportar. */
+	exportPreview: (packId: PackId, source: ExportSource) => typedError<ExportPreview, AppError>(__TAURI_INVOKE("export_preview", { packId, source })),
+	/**  Adiciona uma regra ao `.packwizignore` e atualiza o índice. */
+	exportExclude: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("export_exclude", { packId, path })),
+	/**  Abre o diálogo nativo e gera a saída. `None` significa cancelamento do diálogo. */
+	exportRun: (packId: PackId, source: ExportSource, format: ExportFormat) => typedError<{
+	/**  Pasta ou arquivo escolhido no diálogo nativo. */
+	path: string,
+	/**  Arquivos distribuídos, em ordem. */
+	files: string[],
+	/**  Bytes da saída final (zip comprimido ou soma dos arquivos). */
+	bytes: number,
+} | null, AppError>(__TAURI_INVOKE("export_run", { packId, source, format })),
 	/**  Primeira execução e pasta dos packs em uso. */
 	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
 	/**
@@ -474,6 +487,19 @@ export type ErrorCode =
 /**  Scripts KubeJS e CraftTweaker (`warden-scripts`; D4). */
 { domain: "scripts"; code: ScriptsErrorCode };
 
+/**  Motivo de um alerta da prévia; a interface escolhe o texto exibido. */
+export type ExportAlert = 
+/**  Arquivo distribuído com mais de 20 MiB. */
+{ kind: "largeFile" } | 
+/**  `options.txt` sem `preserve` pode sobrescrever as preferências do jogador. */
+{ kind: "optionsOverridesPreferences" } | 
+/**  Arquivo distribuído diretamente na raiz do pack. */
+{ kind: "looseRootFile" } | 
+/**  Motivo identificado pela varredura de higiene do pack. */
+{ kind: "hygiene"; 
+/**  Causa original da higiene. */
+cause: HygieneCause };
+
 /**
  *  Códigos do domínio `export`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -481,6 +507,46 @@ export type ErrorCode =
 export type ExportErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**  Saída nativa. */
+export type ExportFormat = 
+/**  Diretório com a árvore do pack. */
+"folder" | 
+/**  Arquivo ZIP com a mesma árvore. */
+"zip";
+
+/**  Prévia lida dos mesmos bytes que a exportação vai considerar. */
+export type ExportPreview = {
+	/**  Arquivos exatos da saída (inclusive manifesto e índice). */
+	files: PreviewFile[],
+	/**  Pastas da árvore, com seus totais. */
+	folders: PreviewFolder[],
+	/**  Total de bytes dos arquivos da lista. */
+	bytes: number,
+	/**  Número de referências a mods/resource packs/shaders. */
+	references: number,
+	/**  Conferências e avisos. */
+	preflight: Preflight,
+};
+
+/**  Resultado persistido. */
+export type ExportResult = {
+	/**  Pasta ou arquivo escolhido no diálogo nativo. */
+	path: string,
+	/**  Arquivos distribuídos, em ordem. */
+	files: string[],
+	/**  Bytes da saída final (zip comprimido ou soma dos arquivos). */
+	bytes: number,
+};
+
+/**  Origem da exportação. Uma versão salva nunca lê a árvore de trabalho. */
+export type ExportSource = 
+/**  Estado atual do pack. */
+{ kind: "current" } | 
+/**  Tag `v<version>` validada por `warden-versioning`. */
+{ kind: "saved"; 
+/**  Número `SemVer` sem o prefixo `v`. */
+version: string };
 
 /**  Arquivo do item, sempre lido do pack (CA-T07-02). */
 export type FileInfo = {
@@ -1408,6 +1474,42 @@ export type Platform =
 "linux" | 
 /**  Outro (não suportado). */
 "other";
+
+/**  Avisos anteriores à exportação. */
+export type Preflight = {
+	/**  Arquivos suspeitos encontrados na pasta, inclusive fora do índice. */
+	hygiene: HygieneFinding[],
+	/**  O estado atual diverge da última versão salva. */
+	unsavedChanges: boolean,
+	/**  A contagem de erros de diagnóstico fica ausente até a API de D-01 existir. */
+	diagnosticErrors: number | null,
+};
+
+/**  Um arquivo distribuído, em ordem de caminho. */
+export type PreviewFile = {
+	/**  Caminho relativo, com `/`. */
+	path: string,
+	/**  Bytes reais da origem. */
+	bytes: number,
+	/**  Referência `.pw.toml`, sem o jar do mod. */
+	reference: boolean,
+	/**  Arquivo distribuído em bytes, sem ser referência nem controle. */
+	local: boolean,
+	/**  Arquivo de `config/` ou `defaultconfigs/`. */
+	config: boolean,
+	/**  Alertas deste arquivo. */
+	alerts: ExportAlert[],
+};
+
+/**  Contagem e tamanho por pasta, incluindo a raiz (`.`). */
+export type PreviewFolder = {
+	/**  Caminho relativo da pasta. */
+	path: string,
+	/**  Arquivos nesta pasta e nas subpastas. */
+	files: number,
+	/**  Soma dos tamanhos nesta pasta e nas subpastas. */
+	bytes: number,
+};
 
 /**  Quanto já foi feito. */
 export type Progress = {
