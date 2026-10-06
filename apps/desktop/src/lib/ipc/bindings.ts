@@ -70,19 +70,6 @@ export const commands = {
 	packHygieneFix: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("pack_hygiene_fix", { packId, paths })),
 	/**  Move um pack para a Lixeira depois de digitar o nome exato. */
 	packTrash: (packId: PackId, confirmation: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_trash", { packId, confirmation })),
-	/**  Lista exata da saída e avisos antes de exportar. */
-	exportPreview: (packId: PackId, source: ExportSource) => typedError<ExportPreview, AppError>(__TAURI_INVOKE("export_preview", { packId, source })),
-	/**  Adiciona uma regra ao `.packwizignore` e atualiza o índice. */
-	exportExclude: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("export_exclude", { packId, path })),
-	/**  Abre o diálogo nativo e gera a saída. `None` significa cancelamento do diálogo. */
-	exportRun: (packId: PackId, source: ExportSource, format: ExportFormat) => typedError<{
-	/**  Pasta ou arquivo escolhido no diálogo nativo. */
-	path: string,
-	/**  Arquivos distribuídos, em ordem. */
-	files: string[],
-	/**  Bytes da saída final (zip comprimido ou soma dos arquivos). */
-	bytes: number,
-} | null, AppError>(__TAURI_INVOKE("export_run", { packId, source, format })),
 	/**  Primeira execução e pasta dos packs em uso. */
 	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
 	/**
@@ -119,6 +106,45 @@ export const commands = {
 	packChooseFolder: (purpose: FolderPurpose) => typedError<string | null, AppError>(__TAURI_INVOKE("pack_choose_folder", { purpose })),
 	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
 	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
+	/**
+	 *  A lista de Mods: todos os itens do índice (mods, resource packs, shaders), os arquivos
+	 *  inválidos e os que estão fora do índice. Sempre lida do disco.
+	 */
+	inventoryList: (packId: PackId) => typedError<Inventory, AppError>(__TAURI_INVOKE("inventory_list", { packId })),
+	/**  Detalhes de um item (painel lateral). `path`: o caminho do item na lista. */
+	itemDetails: (packId: PackId, path: string) => typedError<ItemDetails, AppError>(__TAURI_INVOKE("item_details", { packId, path })),
+	/**
+	 *  Muda o lado de um ou vários itens: uma escrita só, com um único `packwiz refresh`.
+	 *  Devolve os arquivos alterados.
+	 */
+	itemsSetSide: (packId: PackId, paths: string[], side: SideChoice) => typedError<string[], AppError>(__TAURI_INVOKE("items_set_side", { packId, paths, side })),
+	/**  O que "Remover" vai apagar e quem depende dos itens (diálogo de confirmação). */
+	itemsRemovePlan: (packId: PackId, paths: string[]) => typedError<RemovalPlan, AppError>(__TAURI_INVOKE("items_remove_plan", { packId, paths })),
+	/**
+	 *  Remove os itens (apaga o `.pw.toml` ou o arquivo local e atualiza o índice). Devolve os
+	 *  arquivos apagados.
+	 */
+	itemsRemove: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("items_remove", { packId, paths })),
+	/**
+	 *  "Incluir no pack": põe no índice os arquivos que estão nas pastas do pack mas fora dele
+	 *  (um `packwiz refresh`, que respeita o `.packwizignore`).
+	 */
+	inventoryIncludeOutside: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("inventory_include_outside", { packId })),
+	/**  "Abrir no editor de texto": abre um arquivo do pack no programa padrão do sistema. */
+	itemOpenFile: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("item_open_file", { packId, path })),
+	/**  Nome, autor, descrição e versões do `pack.toml` (diálogo Informações do pack). */
+	packMetaGet: (packId: PackId) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_meta_get", { packId })),
+	/**  Grava nome, autor e descrição no `pack.toml`, mudando só as linhas alteradas. */
+	packUpdateMeta: (packId: PackId, update: MetaUpdate) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_update_meta", { packId, update })),
+	/**  Os ajustes do teste do pack e a situação da instância. */
+	packTestSettingsGet: (packId: PackId) => typedError<TestSettingsView, AppError>(__TAURI_INVOKE("pack_test_settings_get", { packId })),
+	/**  Grava os ajustes do teste (só em `packs.json`; o pack não muda). */
+	packTestSettingsSet: (packId: PackId, settings: TestSettings) => typedError<TestSettingsView, AppError>(__TAURI_INVOKE("pack_test_settings_set", { packId, settings })),
+	/**
+	 *  "Recriar instância de teste": apaga a instância do pack, que é refeita no próximo teste.
+	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
+	 */
+	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
 };
 
 /** Events */
@@ -335,6 +361,44 @@ export type CurseforgeErrorCode =
 /**  A CurseForge respondeu algo que o Warden não entende. */
 "INVALID_RESPONSE";
 
+/**  Um item que fica no pack mas depende de algum dos removidos. */
+export type Dependent = {
+	/**  Chave estável do item. */
+	key: string,
+	/**  Nome legível. */
+	name: string,
+	/**  Nomes dos itens removidos de que ele precisa. */
+	needs: string[],
+};
+
+/**  Formato da descrição longa. */
+export type DescriptionFormat = 
+/**  Markdown (Modrinth). */
+"markdown" | 
+/**  HTML (CurseForge); a interface higieniza antes de mostrar. */
+"html";
+
+/**  De onde vieram os detalhes. */
+export type DetailsSource = 
+/**
+ *  Dados atuais: buscados agora, ou do cache do Modrinth ainda dentro da validade (24 h),
+ *  sem precisar da rede.
+ */
+"live" | 
+/**  Cache do Modrinth vencido, usado porque a rede falhou. */
+"cache" | 
+/**  Sem internet e sem cache (a CurseForge sempre cai aqui sem rede). */
+"offline" | 
+/**  CurseForge sem chave (ou com a chave recusada). */
+"noKey" | 
+/**  Arquivo local ou link direto: não há fonte para consultar. */
+"none" | 
+/**
+ *  A fonte respondeu com erro (projeto removido, resposta inválida…); só os dados do
+ *  `.pw.toml` aparecem.
+ */
+"unavailable";
+
 /**
  *  Códigos do domínio `diagnostics`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -410,19 +474,6 @@ export type ErrorCode =
 /**  Scripts KubeJS e CraftTweaker (`warden-scripts`; D4). */
 { domain: "scripts"; code: ScriptsErrorCode };
 
-/**  Motivo de um alerta da prévia; a interface escolhe o texto exibido. */
-export type ExportAlert = 
-/**  Arquivo distribuído com mais de 20 MiB. */
-{ kind: "largeFile" } | 
-/**  `options.txt` sem `preserve` pode sobrescrever as preferências do jogador. */
-{ kind: "optionsOverridesPreferences" } | 
-/**  Arquivo distribuído diretamente na raiz do pack. */
-{ kind: "looseRootFile" } | 
-/**  Motivo identificado pela varredura de higiene do pack. */
-{ kind: "hygiene"; 
-/**  Causa original da higiene. */
-cause: HygieneCause };
-
 /**
  *  Códigos do domínio `export`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -431,45 +482,17 @@ export type ExportErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
-/**  Saída nativa. */
-export type ExportFormat = 
-/**  Diretório com a árvore do pack. */
-"folder" | 
-/**  Arquivo ZIP com a mesma árvore. */
-"zip";
-
-/**  Prévia lida dos mesmos bytes que a exportação vai considerar. */
-export type ExportPreview = {
-	/**  Arquivos exatos da saída (inclusive manifesto e índice). */
-	files: PreviewFile[],
-	/**  Pastas da árvore, com seus totais. */
-	folders: PreviewFolder[],
-	/**  Total de bytes dos arquivos da lista. */
-	bytes: number,
-	/**  Número de referências a mods/resource packs/shaders. */
-	references: number,
-	/**  Conferências e avisos. */
-	preflight: Preflight,
+/**  Arquivo do item, sempre lido do pack (CA-T07-02). */
+export type FileInfo = {
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  Formato do hash (`sha1`, `sha256`, `sha512`, `murmur2`…). */
+	hashFormat: string,
+	/**  Hash. */
+	hash: string,
+	/**  Link do download, quando o metafile tem um. */
+	url: string | null,
 };
-
-/**  Resultado persistido. */
-export type ExportResult = {
-	/**  Pasta ou arquivo escolhido no diálogo nativo. */
-	path: string,
-	/**  Arquivos distribuídos, em ordem. */
-	files: string[],
-	/**  Bytes da saída final (zip comprimido ou soma dos arquivos). */
-	bytes: number,
-};
-
-/**  Origem da exportação. Uma versão salva nunca lê a árvore de trabalho. */
-export type ExportSource = 
-/**  Estado atual do pack. */
-{ kind: "current" } | 
-/**  Tag `v<version>` validada por `warden-versioning`. */
-{ kind: "saved"; 
-/**  Número `SemVer` sem o prefixo `v`. */
-version: string };
 
 /**  Para que a pasta está sendo escolhida: decide o título do diálogo e onde ele abre. */
 export type FolderPurpose = 
@@ -673,6 +696,137 @@ export type InstanceErrorCode =
 "MANUAL_FILE_MISMATCH" | 
 /**  O cache de downloads (`cache/downloads/index.sqlite`) não pôde ser usado. */
 "CACHE_UNAVAILABLE";
+
+/**  O inventário do pack. */
+export type Inventory = {
+	/**
+	 *  Itens, por tipo (mods, resource packs, shaders, outros) e nome, sem diferenciar
+	 *  maiúsculas.
+	 */
+	items: InventoryItem[],
+	/**  Erro do índice ilegível (a lista fica vazia). */
+	indexError: string | null,
+};
+
+/**  Uma linha do inventário. */
+export type InventoryItem = {
+	/**
+	 *  Chave estável (gancho 1.1, ADR-0039): `modrinth:<projeto>`, `curseforge:<projeto>` ou
+	 *  `path:<caminho>`.
+	 */
+	key: string,
+	/**  Caminho relativo à pasta do pack, com `/`: o `.pw.toml`, ou o próprio arquivo. */
+	path: string,
+	/**  Tipo, pela pasta. */
+	kind: ItemKind,
+	/**  Situação do arquivo. */
+	state: ItemState,
+	/**
+	 *  Nome: o `name` do metafile; o nome do `.pw.toml` se ele for inválido; o nome do
+	 *  arquivo se for local.
+	 */
+	name: string,
+	/**  Nome do arquivo baixado ou guardado (`None` num metafile inválido). */
+	fileName: string | null,
+	/**
+	 *  Versão legível: o número da versão do Modrinth ou o nome do arquivo sem `.jar`/`.zip`.
+	 *  Nunca o ID do Modrinth nem o file-id da CurseForge (CA-T06-02).
+	 */
+	version: string | null,
+	/**  Fonte. */
+	source: ItemSource,
+	/**  Lado. */
+	side: ItemSide,
+	/**  Se o lado pode ser mudado (só metafile válido). */
+	sideEditable: boolean,
+	/**  Versão fixada (`pin = true`). */
+	pinned: boolean,
+	/**  Opcional para o jogador (`[option] optional = true`). */
+	optional: boolean,
+	/**  ID do projeto no Modrinth ou na CurseForge. */
+	projectId: string | null,
+	/**
+	 *  ID da versão do Modrinth ou do arquivo da CurseForge instalado. Uso interno (dependências,
+	 *  troca de versão); **nunca** deve ser mostrado como versão.
+	 */
+	sourceVersionId: string | null,
+	/**  Resumo do projeto (Modrinth), quando houver. */
+	summary: string | null,
+	/**  Ícone do projeto (Modrinth), quando houver. */
+	iconUrl: string | null,
+	/**  Detalhe técnico do arquivo inválido. */
+	error: string | null,
+};
+
+/**  Tudo o que o painel de detalhes mostra. */
+export type ItemDetails = {
+	/**  A linha do inventário (nome, lado, fonte…), sempre preenchida. */
+	item: InventoryItem,
+	/**  De onde vieram os dados da fonte. */
+	source: DetailsSource,
+	/**  Título. */
+	title: string,
+	/**  Autores (vazio no Modrinth: o cliente ainda não consulta a equipe). */
+	authors: string[],
+	/**  Página do projeto. */
+	pageUrl: string | null,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Resumo curto. */
+	summary: string | null,
+	/**  Descrição longa. */
+	description: string | null,
+	/**  Formato da descrição. */
+	descriptionFormat: DescriptionFormat,
+	/**  Versão instalada. */
+	version: VersionInfo | null,
+	/**  Arquivo, do `.pw.toml` (ou do índice, num arquivo local). */
+	file: FileInfo | null,
+	/**  Notas da versão instalada. */
+	changelog: string | null,
+};
+
+/**  Tipo do item, pela pasta em que está. */
+export type ItemKind = 
+/**  `mods/`. */
+"mod" | 
+/**  `resourcepacks/`. */
+"resourcePack" | 
+/**  `shaderpacks/`. */
+"shader" | 
+/**  Qualquer outra pasta. */
+"other";
+
+/**  Lado em que o item é instalado. */
+export type ItemSide = 
+/**  Cliente e servidor (inclusive `side` ausente). */
+"both" | 
+/**  Só cliente. */
+"client" | 
+/**  Só servidor. */
+"server" | 
+/**  Valor que o packwiz não conhece, ou metafile ilegível. */
+"unknown";
+
+/**  De onde o arquivo vem. */
+export type ItemSource = 
+/**  Metafile com `[update.modrinth]`. */
+"modrinth" | 
+/**  Metafile com `[update.curseforge]` ou `mode = "metadata:curseforge"`. */
+"curseforge" | 
+/**  Metafile só com o link do download. */
+"url" | 
+/**  Arquivo guardado no próprio pack (indexado direto ou fora do índice). */
+"local";
+
+/**  Situação do arquivo do item. */
+export type ItemState = 
+/**  Lido sem problemas. */
+"ok" | 
+/**  O metafile não pôde ser lido; o detalhe está em [`InventoryItem::error`]. */
+"invalid" | 
+/**  Arquivo na pasta que o índice não lista. */
+"outsideIndex";
 
 /**
  *  Códigos do domínio `jarmeta`. O código é contrato: renomear é mudança de contrato;
@@ -937,6 +1091,16 @@ export type MaximizeButtonArea = {
 	height: number | null,
 };
 
+/**  Campos editáveis em "Editar informações". */
+export type MetaUpdate = {
+	/**  Nome (sem espaços nas pontas, não vazio, até 100 caracteres). */
+	name: string,
+	/**  Autor (até 100 caracteres; vazio remove). */
+	author: string,
+	/**  Descrição (até 2000 caracteres; vazia remove). */
+	description: string,
+};
+
 /**  Uma versão do Minecraft. */
 export type MinecraftVersion = {
 	/**  O id da Mojang (`1.20.1`, `26.3`, `26.4-snapshot-2`). */
@@ -1122,6 +1286,24 @@ export type PackJavaUse = {
 	choice: JavaChoice,
 };
 
+/**  Informações do pack lidas do `pack.toml`. */
+export type PackMeta = {
+	/**  Nome. */
+	name: string,
+	/**  Autor (vazio se ausente). */
+	author: string,
+	/**  Descrição (vazia se ausente). */
+	description: string,
+	/**  Versão do pack. */
+	version: string,
+	/**  Versão do Minecraft. */
+	minecraft: string | null,
+	/**  Chave do loader (`fabric`, `forge`, `neoforge`…), quando há exatamente um. */
+	loader: string | null,
+	/**  Versão desse loader. */
+	loaderVersion: string | null,
+};
+
 /**  Linha pronta para a lista, sem executar diagnóstico. */
 export type PackRow = {
 	/**  Identificador. */
@@ -1227,42 +1409,6 @@ export type Platform =
 /**  Outro (não suportado). */
 "other";
 
-/**  Avisos anteriores à exportação. */
-export type Preflight = {
-	/**  Arquivos suspeitos encontrados na pasta, inclusive fora do índice. */
-	hygiene: HygieneFinding[],
-	/**  O estado atual diverge da última versão salva. */
-	unsavedChanges: boolean,
-	/**  A contagem de erros de diagnóstico fica ausente até a API de D-01 existir. */
-	diagnosticErrors: number | null,
-};
-
-/**  Um arquivo distribuído, em ordem de caminho. */
-export type PreviewFile = {
-	/**  Caminho relativo, com `/`. */
-	path: string,
-	/**  Bytes reais da origem. */
-	bytes: number,
-	/**  Referência `.pw.toml`, sem o jar do mod. */
-	reference: boolean,
-	/**  Arquivo distribuído em bytes, sem ser referência nem controle. */
-	local: boolean,
-	/**  Arquivo de `config/` ou `defaultconfigs/`. */
-	config: boolean,
-	/**  Alertas deste arquivo. */
-	alerts: ExportAlert[],
-};
-
-/**  Contagem e tamanho por pasta, incluindo a raiz (`.`). */
-export type PreviewFolder = {
-	/**  Caminho relativo da pasta. */
-	path: string,
-	/**  Arquivos nesta pasta e nas subpastas. */
-	files: number,
-	/**  Soma dos tamanhos nesta pasta e nas subpastas. */
-	bytes: number,
-};
-
 /**  Quanto já foi feito. */
 export type Progress = {
 	/**  Quantidade feita. */
@@ -1305,7 +1451,29 @@ export type ProjectErrorCode =
 /**  Repositório está em estado somente leitura. */
 "READ_ONLY" | 
 /**  A confirmação para apagar não corresponde ao nome do pack. */
-"TRASH_CONFIRMATION";
+"TRASH_CONFIRMATION" | 
+/**  O item pedido não está no inventário do pack. */
+"ITEM_NOT_FOUND";
+
+/**  O que a confirmação de remover mostra. */
+export type RemovalPlan = {
+	/**  Itens removidos, na ordem do inventário. */
+	targets: RemovalTarget[],
+	/**  Itens que dependem diretamente de algum removido, na ordem do inventário. */
+	dependents: Dependent[],
+};
+
+/**  Um item que será removido. */
+export type RemovalTarget = {
+	/**  Chave estável do item. */
+	key: string,
+	/**  Caminho do item relativo à pasta do pack. */
+	path: string,
+	/**  Nome legível. */
+	name: string,
+	/**  Arquivos que serão apagados (o `.pw.toml`, ou o arquivo local). */
+	files: string[],
+};
 
 /**
  *  Identificador de um Java instalado: `<fonte>-<major>-<versão>-<processador>`, que também é
@@ -1466,6 +1634,15 @@ export type SettingsStatus = {
 	defaultPacksDir: string,
 };
 
+/**  Lado escolhido na interface. */
+export type SideChoice = 
+/**  Cliente e servidor. */
+"both" | 
+/**  Só cliente. */
+"client" | 
+/**  Só servidor. */
+"server";
+
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -1474,6 +1651,29 @@ export type TestMemory =
 { mode: "fixed"; 
 /**  Memória máxima do Java, em MB. */
 mb: number };
+
+/**
+ *  Ajustes do teste de um pack neste computador. Campos que esta versão não conhece (de uma
+ *  versão mais nova, por exemplo os perfis da L-08) são preservados ao gravar.
+ */
+export type TestSettings = {
+	/**  Memória do teste: Automático ou valor fixo. */
+	memory?: TestMemory,
+	/**  Java escolhido pelo usuário (`null` = Automático). */
+	java?: RuntimeId | null,
+	/**  Argumentos extras da JVM, como o usuário digitou. */
+	jvmArgs?: string,
+};
+
+/**  O que o diálogo Ajustes do teste mostra. */
+export type TestSettingsView = {
+	/**  Os ajustes gravados (ou os padrões). */
+	settings: TestSettings,
+	/**  Se a instância de teste já existe (é criada no primeiro teste). */
+	instanceExists: boolean,
+	/**  Se a instância tem mundos de teste (`saves/` com algo dentro). */
+	hasWorlds: boolean,
+};
 
 /**
  *  `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
@@ -1498,6 +1698,22 @@ export type UpdateReport = {
 	failed: RuntimeId[],
 	/**  Javas substituídos antes e removidos agora. */
 	removed: RuntimeId[],
+};
+
+/**  Versão instalada. */
+export type VersionInfo = {
+	/**  Número legível. */
+	number: string,
+	/**  Versões do Minecraft. */
+	gameVersions: string[],
+	/**  Loaders, em minúsculas (`fabric`, `forge`…). */
+	loaders: string[],
+	/**  Data de publicação (RFC 3339). */
+	published: string | null,
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  Tamanho em bytes. */
+	sizeBytes: number | null,
 };
 
 /**  O que o JSON da versão do Minecraft diz sobre o Java (`javaVersion`). */

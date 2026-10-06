@@ -42,6 +42,8 @@ pub struct AppState {
     pub java_packs: JavaPackSources,
     /// Registro local dos packs (P1-07).
     pub packs: Arc<warden_project::registry::Registry>,
+    /// Cliente do Modrinth com o cache de metadados (P1-08: inventário e detalhes).
+    pub modrinth: warden_modrinth::ModrinthClient,
 }
 
 impl AppState {
@@ -81,6 +83,7 @@ impl AppState {
         java_packs.register(Arc::new(crate::commands::packs::RegistryJavaPacks(
             Arc::clone(&packs),
         )));
+        let modrinth = crate::commands::inventory::open_modrinth(&paths)?;
         Ok((
             Self {
                 paths,
@@ -94,6 +97,7 @@ impl AppState {
                 java,
                 java_packs,
                 packs,
+                modrinth,
             },
             outcome,
         ))

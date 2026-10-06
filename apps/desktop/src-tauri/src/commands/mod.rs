@@ -8,7 +8,9 @@ pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
 pub(crate) mod export;
+pub(crate) mod inventory;
 pub(crate) mod java;
+pub(crate) mod pack_meta;
 pub(crate) mod packs;
 pub(crate) mod secrets;
 pub(crate) mod window;
@@ -59,6 +61,18 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             packs::pack_create_check,
             packs::pack_choose_folder,
             packs::pack_reveal_folder,
+            inventory::inventory_list,
+            inventory::item_details,
+            inventory::items_set_side,
+            inventory::items_remove_plan,
+            inventory::items_remove,
+            inventory::inventory_include_outside,
+            inventory::item_open_file,
+            pack_meta::pack_meta_get,
+            pack_meta::pack_update_meta,
+            pack_meta::pack_test_settings_get,
+            pack_meta::pack_test_settings_set,
+            pack_meta::instance_recreate,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,
