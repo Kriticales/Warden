@@ -524,15 +524,21 @@ fn ca_d05_segunda_passagem_so_usa_o_cache() {
 
 #[test]
 #[ignore = "rede"]
+#[allow(clippy::print_stderr)] // O tempo medido com os jars reais vai para o relatório.
 fn rede_indice_jars_reais() {
     let update = std::env::var("WARDEN_JARMETA_ATUALIZAR_INDICE").is_ok_and(|v| v == "1");
     let cache = common::cache_dir("jarmeta-corpus");
     let mut computed: BTreeMap<String, Skeleton> = BTreeMap::new();
     let mut problems = Vec::new();
     let mut real: BTreeMap<String, (Loader, Vec<(Entry, JarIndex)>)> = BTreeMap::new();
+    let mut files = Vec::new();
     for entry in entries() {
         let bytes = common::download_cached(&entry.url, &entry.sha1, &cache)
             .unwrap_or_else(|e| panic!("{}: {e}", entry.nome));
+        files.push(PackJar::new(
+            item(&entry),
+            cache.join(format!("{}.jar", entry.sha1)),
+        ));
         let meta = read_jar_bytes(&bytes, &Limits::default())
             .unwrap_or_else(|e| panic!("{}: {e}", entry.nome));
         let index = index_jar_bytes(&bytes, &Limits::default())
@@ -574,6 +580,23 @@ fn rede_indice_jars_reais() {
             insta::assert_json_snapshot!(name.as_str(), summary(&index));
         });
     }
+    // Tempo de montar o índice dos jars reais, sem cache e com cache.
+    let index_cache = JarIndexCache::new(cache.join("jarindex-medicao"));
+    let _ = fs::remove_dir_all(index_cache.dir());
+    let start = std::time::Instant::now();
+    let cold = build_pack_index(&files, None, Some(&index_cache), &Limits::default());
+    let cold_time = start.elapsed();
+    let start = std::time::Instant::now();
+    let warm = build_pack_index(&files, None, Some(&index_cache), &Limits::default());
+    eprintln!(
+        "D-05: {} jars reais ({} com embutidos), sem cache {cold_time:?}, com cache {:?}",
+        files.len(),
+        cold.index.items().iter().map(|(_, i)| i.jars.len()).sum::<usize>(),
+        start.elapsed()
+    );
+    assert!(cold.failures.is_empty());
+    assert_eq!(warm.stats.jars_opened, 0);
+
     let (loader, jars) = &real["fabric-1.20.1"];
     let five = pack(*loader, jars, Some(&R5A_FABRIC));
     assert!(five.ambiguous_packages().len() <= 2);

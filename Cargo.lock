@@ -6426,6 +6426,7 @@ dependencies = [
  "warden-jarmeta",
  "warden-modrinth",
  "warden-packwiz",
+ "zip",
 ]
 
 [[package]]

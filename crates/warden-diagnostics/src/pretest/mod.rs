@@ -2,10 +2,15 @@
 //! a completa acrescenta metadados dos jars já copiados para a instância.
 //!
 //! O chamador resolve rede, arquivos e cache. Nenhuma regra baixa arquivos ou altera o pack.
+//! Na passagem completa, [`build_index`] monta os índices pacote → mod e config de mixin → mod
+//! (D-05) e [`attribute_mixin_owners`] liga as falhas de Mixin do pós-crash ao mod dono.
 
 mod curated;
+mod index_pass;
 mod mc_version;
 mod rules;
+
+pub use index_pass::{IndexPass, attribute_mixin_owners, build_index};
 
 use std::collections::HashMap;
 
