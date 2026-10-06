@@ -143,7 +143,8 @@ async function seriousViolations(): Promise<AxeViolation[]> {
 }
 
 async function backToList(): Promise<void> {
-  await $('header.topbar').$('a*=Meus packs').click();
+  // "← Meus packs" fica na barra do app ou, dentro de um pack (P1-08), no cabeçalho do pack.
+  await $('header.topbar, header.packhead').$('a*=Meus packs').click();
   await $('h1=Meus packs').waitForDisplayed();
 }
 

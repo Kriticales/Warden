@@ -103,6 +103,9 @@ export const config: WebdriverIO.Config = {
       WARDEN_API_BASE_FABRIC: mockServer.url,
       WARDEN_API_BASE_FORGE: mockServer.url,
       WARDEN_API_BASE_NEOFORGE: mockServer.url,
+      // Modrinth e CurseForge (P1-08): o inventário e os detalhes nunca vão à internet.
+      WARDEN_API_BASE_MODRINTH: `${mockServer.url}/modrinth/v2/`,
+      WARDEN_API_BASE_CURSEFORGE: `${mockServer.url}/curseforge/`,
     };
     tauriDriver = spawn(
       'tauri-driver',

@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
-import { showToast } from '../../../components/ui/toast';
 import type { InventoryItem, PackId } from '../../../lib/ipc/bindings';
 import { useRemovalPlan, useRemoveItems } from '../api';
 
@@ -66,7 +65,6 @@ export function RemoveDialog({ packId, items, onClose, onRemoved }: RemoveDialog
         if (!paths) return;
         await remove.mutateAsync(paths);
         onRemoved(paths);
-        showToast({ kind: 'ok', title: t('mods.remover.removidos', { count }) });
       }}
     >
       {plan.isError ? <ErrorPanel compact error={plan.error} /> : null}

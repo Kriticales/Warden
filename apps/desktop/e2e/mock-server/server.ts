@@ -45,6 +45,18 @@ const CATALOG = join(
   'fixtures',
   'http',
 );
+const MODRINTH = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'crates',
+  'warden-modrinth',
+  'tests',
+  'fixtures',
+  'http',
+);
 const RECORDED: Record<string, string> = {
   'mc/game/version_manifest_v2.json': join(CATALOG, '2026-10-05-mojang-version_manifest_v2.json'),
   'v2/versions/game': join(CATALOG, '2026-10-05-fabric-versions-game.json'),
@@ -65,6 +77,12 @@ const RECORDED: Record<string, string> = {
     CATALOG,
     '2026-10-05-neoforge-versions-forge.json',
   ),
+  // Modrinth (P1-08: inventário e detalhes), com o app em `WARDEN_API_BASE_MODRINTH=<url>/modrinth/v2/`.
+  // `crates/warden-modrinth/tests/fixtures/http/FIXTURES.md` diz de onde veio cada arquivo.
+  'modrinth/v2/projects': join(MODRINTH, '2026-10-04-projects-3.json'),
+  'modrinth/v2/versions': join(MODRINTH, '2026-10-04-versions-2.json'),
+  'modrinth/v2/project/AANobbMI': join(MODRINTH, '2026-10-04-project-sodium.json'),
+  'modrinth/v2/version/SMxNOGZ6': join(MODRINTH, '2026-10-04-version-SMxNOGZ6.json'),
 };
 
 /** O arquivo de fixture para um caminho de URL, ou `null` se sair da pasta. */

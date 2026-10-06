@@ -30,7 +30,6 @@ import type {
   PackId,
   SideChoice,
 } from '../../../lib/ipc/bindings';
-import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { usePack } from '../../packs/api';
 import { loaderName } from '../../packs/lib/pack-list';
 import { useIncludeOutside, useInventory, useOpenItemFile, useSetSide } from '../api';
@@ -192,27 +191,13 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
     });
   }, []);
 
+  // O resultado (sucesso ou falha) aparece no aviso da operação ("Concluída: Alterar lado"),
+  // que o app mostra para toda escrita no pack (T22).
   const changeSide = useCallback(
     (paths: string[], side: SideChoice) => {
-      setSide.mutate(
-        { paths, side },
-        {
-          onSuccess: (written) => {
-            // O resultado também lista o `.packwizignore` quando o bloco obrigatório foi posto.
-            const changed = written.filter((path) => path.endsWith('.pw.toml'));
-            showToast(
-              changed.length === 0
-                ? { kind: 'info', title: t('mods.selecao.ladoIgual') }
-                : { kind: 'ok', title: t('mods.selecao.ladoAlterado', { count: changed.length }) },
-            );
-          },
-          onError: (error) => {
-            showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
-          },
-        },
-      );
+      setSide.mutate({ paths, side });
     },
-    [setSide, t],
+    [setSide],
   );
   const onRowSide = useCallback(
     (path: string, side: SideChoice) => {
@@ -285,7 +270,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
                 setFilters({ ...NO_FILTERS, show: 'problems' });
               }}
             >
-              {t('mods.filtros.mostrarProblemas', { count: invalid + outside })}
+              {t('mods.verComProblemas', { count: invalid + outside })}
             </Button>
           }
         >
@@ -302,11 +287,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
               size="sm"
               loading={include.isPending}
               onClick={() => {
-                include.mutate(undefined, {
-                  onSuccess: () => {
-                    showToast({ kind: 'ok', title: t('mods.incluidos') });
-                  },
-                });
+                include.mutate();
               }}
             >
               {include.isPending ? t('mods.incluindo') : t('mods.incluir')}

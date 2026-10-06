@@ -3,7 +3,6 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorPanel } from '../../../../components/common/ErrorPanel';
-import { showToast } from '../../../../components/ui/toast';
 import { useSetSide } from '../../api';
 import { SIDE_CHOICES, UNKNOWN_SIDE } from '../../mods/ModRow';
 import type { DetailBlockProps } from '../blocks';
@@ -38,17 +37,7 @@ export function SideBlock({ packId, item }: DetailBlockProps) {
         onChange={(event) => {
           const side = SIDE_CHOICES.find((choice) => choice === event.target.value);
           if (!side) return;
-          setSide.mutate(
-            { paths: [item.path], side },
-            {
-              onSuccess: () => {
-                showToast({
-                  kind: 'ok',
-                  title: t('detalhes.ladoAlterado', { lado: t(`mods.lado.${side}`) }),
-                });
-              },
-            },
-          );
+          setSide.mutate({ paths: [item.path], side });
         }}
       >
         {item.side === 'unknown' ? (

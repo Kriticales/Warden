@@ -16,7 +16,9 @@ export function DescriptionBlock({ item, details }: DetailBlockProps) {
   const summary = details.summary ?? item.summary;
   const body = details.description;
   if (!body && !summary) {
-    return details.source === 'offline' || details.source === 'noKey' ? null : (
+    return details.source === 'offline' ||
+      details.source === 'noKey' ||
+      details.source === 'unavailable' ? null : (
       <p className="t-sm t-3">{t('detalhes.semDescricao')}</p>
     );
   }
@@ -24,11 +26,16 @@ export function DescriptionBlock({ item, details }: DetailBlockProps) {
     <div className="itemdesc">
       {summary ? <p className="t-sm t-2">{summary}</p> : null}
       {body ? (
-        details.descriptionFormat === 'html' ? (
-          <SafeHtml html={body} className="prose itemdesc__body" />
-        ) : (
-          <SafeMarkdown className="prose itemdesc__body">{body}</SafeMarkdown>
-        )
+        // A descrição do projeto costuma ser longa: fica recolhida, para versão, arquivo e lado
+        // aparecerem logo (protótipo `detailDrawer`).
+        <details className="disclosure">
+          <summary>{t('detalhes.descricaoCompleta')}</summary>
+          {details.descriptionFormat === 'html' ? (
+            <SafeHtml html={body} className="prose itemdesc__body" />
+          ) : (
+            <SafeMarkdown className="prose itemdesc__body">{body}</SafeMarkdown>
+          )}
+        </details>
       ) : null}
     </div>
   );

@@ -3,6 +3,7 @@
  * "Abrir página" (no navegador do sistema, só `https:`).
  */
 import { ExternalLink } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NameTile } from '../../../../components/common/PixelArt';
@@ -17,10 +18,20 @@ export function HeadBlock({ item, details }: DetailBlockProps) {
   const icon = details?.iconUrl ?? item.iconUrl;
   const authors = details?.authors ?? [];
   const page = details?.pageUrl;
+  // Sem internet (ou imagem quebrada), o ícone vira o desenho gerado do nome.
+  const [broken, setBroken] = useState<string | null>(null);
   return (
     <div className="itemhead">
-      {icon ? (
-        <img className="tile tile--xl itemhead__icon" src={icon} alt="" loading="lazy" />
+      {icon && broken !== icon ? (
+        <img
+          className="tile tile--xl itemhead__icon"
+          src={icon}
+          alt=""
+          loading="lazy"
+          onError={() => {
+            setBroken(icon);
+          }}
+        />
       ) : (
         <NameTile seed={item.name} size="xl" />
       )}

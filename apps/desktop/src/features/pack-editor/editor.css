@@ -10,8 +10,8 @@
   margin-bottom: var(--space-3);
 }
 .toolbar .inputwrap {
-  /* 280 px, como no protótipo. */
-  width: calc(var(--space-16) * 4.375);
+  /* 240 px: busca e os quatro filtros cabem numa linha em 1280 px. */
+  width: calc(var(--space-16) * 3.75);
 }
 
 /* Botão Testar provisório (L-04 traz o real): sem o pulso do sensor enquanto não testa. */
@@ -43,9 +43,8 @@
   color: var(--color-danger-text);
 }
 .modrow__actions {
-  display: flex;
+  display: inline-flex;
   gap: var(--space-3);
-  margin-top: var(--space-1);
 }
 .modrow--invalid .modrow__desc {
   max-width: none;

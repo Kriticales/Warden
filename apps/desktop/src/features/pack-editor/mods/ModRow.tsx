@@ -91,30 +91,30 @@ export const ModRow = memo(function ModRow({
                 {invalid ? item.path : item.name}
               </button>
               <ItemMarks item={item} />
+              {invalid ? (
+                <span className="modrow__actions">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      onShowError(item);
+                    }}
+                  >
+                    {t('mods.acoesInvalido.verErro')}
+                  </Button>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      onOpenFile(item.path);
+                    }}
+                  >
+                    {t('mods.acoesInvalido.abrirEditor')}
+                  </Button>
+                </span>
+              ) : null}
             </span>
             <span className="modrow__desc">{rowDescription(item, t)}</span>
-            {invalid ? (
-              <span className="modrow__actions">
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => {
-                    onShowError(item);
-                  }}
-                >
-                  {t('mods.acoesInvalido.verErro')}
-                </Button>
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => {
-                    onOpenFile(item.path);
-                  }}
-                >
-                  {t('mods.acoesInvalido.abrirEditor')}
-                </Button>
-              </span>
-            ) : null}
           </div>
         </div>
       </td>

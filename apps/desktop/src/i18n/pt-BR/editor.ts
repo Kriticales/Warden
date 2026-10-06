@@ -77,13 +77,13 @@ export const editor = {
       'O arquivo index.toml tem um erro, por isso a lista está vazia. Os arquivos dos mods continuam na pasta.',
     invalidos_one: '{{count}} arquivo do pack não pôde ser lido.',
     invalidos_other: '{{count}} arquivos do pack não puderam ser lidos.',
+    verComProblemas: 'Mostrar só os itens com problema ({{count}})',
     invalidosTexto: 'Cada um aparece na lista com o erro. O resto do pack continua funcionando.',
     fora_one: '{{count}} arquivo está na pasta, mas fora do índice do pack.',
     fora_other: '{{count}} arquivos estão na pasta, mas fora do índice do pack.',
     foraTexto: 'Arquivos fora do índice não vão para quem joga.',
     incluir: 'Incluir no pack',
     incluindo: 'Incluindo…',
-    incluidos: 'Arquivos incluídos no índice do pack.',
     filtros: {
       verComo: 'Ver como',
       lista: 'Lista',
@@ -110,7 +110,6 @@ export const editor = {
       resourcePack: 'Resource packs',
       shader: 'Shaders',
       other: 'Outros arquivos',
-      recolher: 'Recolher {{grupo}}',
     },
     tabela: {
       legenda: 'Itens do pack: {{grupo}}',
@@ -161,9 +160,6 @@ export const editor = {
       ladoPara: 'Mudar para: {{lado}}',
       remover: 'Remover',
       limpar: 'Limpar seleção',
-      ladoAlterado_one: 'Lado de {{count}} item alterado.',
-      ladoAlterado_other: 'Lado de {{count}} itens alterado.',
-      ladoIgual: 'Os itens já estavam nesse lado.',
       ladoNaoEditavel: 'Itens sem arquivo de referência (.pw.toml) não têm lado editável.',
     },
     remover: {
@@ -183,8 +179,6 @@ export const editor = {
       confirmarVarios_one: 'Remover {{count}} item',
       confirmarVarios_other: 'Remover {{count}} itens',
       removendo: 'Removendo…',
-      removidos_one: '{{count}} item removido do pack.',
-      removidos_other: '{{count}} itens removidos do pack.',
     },
   },
   detalhes: {
@@ -199,6 +193,7 @@ export const editor = {
     por: 'por {{autores}}',
     abrirPagina: 'Abrir página',
     semDescricao: 'Sem descrição.',
+    descricaoCompleta: 'Descrição completa',
     indisponivelOffline: 'Detalhes indisponíveis sem internet',
     indisponivelOfflineTexto:
       'Nome, arquivo, lado e hash abaixo vêm do arquivo do pack. Conecte-se para ver a descrição e a versão.',
@@ -222,7 +217,6 @@ export const editor = {
     ladoDica: 'Onde o item precisa estar instalado. Muda o arquivo do pack na hora.',
     ladoNaoEditavel:
       'Este item não tem arquivo de referência (.pw.toml); o lado não pode ser mudado aqui.',
-    ladoAlterado: 'Lado alterado para {{lado}}.',
     novidades: 'Novidades da versão {{version}}',
     remover: 'Remover',
     erroArquivo: 'Erro no arquivo',

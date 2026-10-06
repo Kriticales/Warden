@@ -180,7 +180,7 @@ describe('Mods (T06)', () => {
 
     // Só os inválidos: o arquivo com o erro e as ações Ver erro e Abrir no editor de texto.
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Com problemas (1)' }));
+    await user.click(screen.getByRole('button', { name: 'Mostrar só os itens com problema (1)' }));
     const row = screen.getByRole('button', { name: 'mods/sodium-extra.pw.toml' }).closest('tr');
     expect(row?.textContent).toContain('Arquivo inválido');
     await user.click(within(row as HTMLElement).getByRole('button', { name: 'Ver erro' }));
@@ -238,7 +238,6 @@ describe('Mods (T06)', () => {
       paths: ['mods/sodium.pw.toml'],
       side: 'both',
     });
-    expect(await screen.findByText('Lado de 1 item alterado.')).toBeDefined();
   });
 
   it('CA-T06-03 (interface): Alterar lado de vários manda todos numa chamada só', async () => {
@@ -261,8 +260,6 @@ describe('Mods (T06)', () => {
       paths: ['mods/sodium.pw.toml', 'mods/applied-energistics-2.pw.toml'],
       side: 'server',
     });
-    // O .packwizignore que o Warden completou não conta como item.
-    expect(await screen.findByText('Lado de 2 itens alterado.')).toBeDefined();
   });
 
   it('Remover mostra quem depende do item e só remove ao confirmar', async () => {
@@ -303,7 +300,9 @@ describe('Mods (T06)', () => {
     expect(backend.callsOf('items_remove')[0]?.args).toMatchObject({
       paths: ['mods/sodium.pw.toml'],
     });
-    expect(await screen.findByText('1 item removido do pack.')).toBeDefined();
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
   });
 
   it('arquivos fora do índice: aviso com "Incluir no pack"', async () => {
