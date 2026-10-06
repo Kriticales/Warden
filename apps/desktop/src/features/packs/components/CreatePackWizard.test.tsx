@@ -76,9 +76,7 @@ describe('Criar pack (T03)', () => {
         .getAllByRole('listitem')
         .map((item) => item.textContent),
     ).toEqual(['1Nome e pasta (agora)', '2Versão do Minecraft', '3Loader', '4Resumo']);
-    expect((screen.getByRole('button', { name: 'Próximo' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    );
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Próximo' }).disabled).toBe(true);
     expect(await screen.findByText('Em branco, fica “Jogador”, o nome do jogador configurado.'));
     await fillName(user);
     const folder = screen.getByRole('textbox', { name: 'Pasta' });
@@ -149,7 +147,7 @@ describe('Criar pack (T03)', () => {
     });
     expect(screen.getByRole('radio', { name: /NeoForge 47\.1\.106/ })).toBeDefined();
     expect(screen.getByRole('radio', { name: /Fabric 0\.16\.5/ })).toBeDefined();
-    expect((screen.getByRole('radio', { name: /Quilt/ }) as HTMLInputElement).disabled).toBe(true);
+    expect(screen.getByRole<HTMLInputElement>('radio', { name: /Quilt/ }).disabled).toBe(true);
     await user.click(screen.getByRole('button', { name: 'Escolher outra versão do Forge' }));
     await user.selectOptions(screen.getByRole('combobox', { name: 'Versão do Forge' }), '47.2.0');
     await next(user);
@@ -249,9 +247,7 @@ describe('Criar pack (T03)', () => {
         'Sem internet e sem uma cópia guardada da lista. Verifique a conexão e tente de novo.',
       ),
     ).toBeDefined();
-    expect((screen.getByRole('button', { name: 'Próximo' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    );
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Próximo' }).disabled).toBe(true);
     fail = false;
     await user.click(screen.getByRole('button', { name: 'Tentar de novo' }));
     expect(await screen.findByRole('radio', { name: '26.3' })).toBeDefined();
@@ -289,7 +285,7 @@ describe('Criar pack (T03)', () => {
     await next(user);
     await waitFor(async () => {
       expect(
-        ((await screen.findByRole('radio', { name: /NeoForge/ })) as HTMLInputElement).checked,
+        (await screen.findByRole<HTMLInputElement>('radio', { name: /NeoForge/ })).checked,
       ).toBe(true);
     });
     await next(user);

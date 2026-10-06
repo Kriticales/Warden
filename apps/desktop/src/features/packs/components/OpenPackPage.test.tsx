@@ -77,7 +77,7 @@ describe('Abrir pack (T04)', () => {
       '.packwiz.tomlvai para os jogadores512 Barquivo de outro programa',
     ]);
     for (const row of rows) {
-      expect((within(row).getByRole('checkbox') as HTMLInputElement).checked).toBe(true);
+      expect(within(row).getByRole<HTMLInputElement>('checkbox').checked).toBe(true);
     }
     expect(backend.callsOf('pack_import_preview')[0]?.args).toEqual({ path: FOLDER });
     // Verificar não escreve nada.
