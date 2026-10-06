@@ -190,6 +190,10 @@ pub(crate) fn pack_relocate(
     pack_id: PackId,
     path: PathBuf,
 ) -> Result<(), AppError> {
+    relocate_impl(&state, pack_id, path)
+}
+
+fn relocate_impl(state: &AppState, pack_id: PackId, path: PathBuf) -> Result<(), AppError> {
     ensure_directory(&path)?;
     warden_project::open::preview(&path).map_err(domain)?;
     state.packs.get(pack_id).map_err(domain)?;
@@ -363,4 +367,165 @@ fn ensure_directory(path: &Path) -> Result<(), AppError> {
         return Err(AppError::new(ProjectErrorCode::InvalidInput).with_param("field", "path"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+    use std::fs;
+
+    use warden_project::registry::PackRecord;
+
+    use super::*;
+    use crate::error::ErrorCode;
+    use crate::state::tests::test_state;
+
+    fn write_pack(dir: &Path, name: &str, minecraft: &str, loader: Option<(&str, &str)>) {
+        fs::create_dir_all(dir).unwrap();
+        let mut pack = warden_packwiz::PackManifest::new(name, minecraft);
+        if let Some((key, version)) = loader {
+            pack.versions
+                .get_or_insert_with(BTreeMap::new)
+                .insert(key.into(), version.into());
+        }
+        fs::write(dir.join("pack.toml"), pack.to_toml_string()).unwrap();
+        fs::write(
+            dir.join("index.toml"),
+            warden_packwiz::PackIndex::default().to_toml_string(),
+        )
+        .unwrap();
+    }
+
+    fn record(path: PathBuf, name: &str) -> PackRecord {
+        PackRecord {
+            id: PackId::new(),
+            name: name.into(),
+            path,
+            last_test: None,
+            extra: BTreeMap::new(),
+        }
+    }
+
+    #[test]
+    fn padroes_do_assistente_vem_das_configuracoes() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let defaults = create_defaults(&state);
+        assert_eq!(defaults.author, "Jogador");
+        assert_eq!(defaults.packs_dir, state.paths.default_packs_dir());
+        let json = serde_json::to_value(&defaults).unwrap();
+        assert!(json["packsDir"].is_string());
+    }
+
+    #[test]
+    fn conferencia_do_destino_nao_escreve_e_explica_o_problema() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let packs_dir = create_defaults(&state).packs_dir;
+        let check = |name: &str, destination: Option<PathBuf>| {
+            warden_project::create::resolve_destination(name, destination.as_deref(), &packs_dir)
+                .map_err(domain)
+        };
+        assert_eq!(
+            check("Vale Sereno", None).unwrap(),
+            packs_dir.join("vale-sereno")
+        );
+        assert!(!packs_dir.join("vale-sereno").exists());
+
+        let empty = check("  ", None).unwrap_err();
+        assert_eq!(
+            empty.code,
+            ErrorCode::Project(ProjectErrorCode::InvalidInput)
+        );
+        assert_eq!(empty.params["field"], "name");
+        let symbols = check("!!!", None).unwrap_err();
+        assert_eq!(symbols.params["field"], "name");
+
+        let relative = check("Vale", Some(PathBuf::from("pasta/relativa"))).unwrap_err();
+        assert_eq!(relative.params["field"], "path");
+
+        let full = dir.path().join("cheia");
+        fs::create_dir_all(&full).unwrap();
+        fs::write(full.join("algo.txt"), b"x").unwrap();
+        let not_empty = check("Vale", Some(full.clone())).unwrap_err();
+        assert_eq!(
+            not_empty.code,
+            ErrorCode::Project(ProjectErrorCode::DestinationNotEmpty)
+        );
+        assert_eq!(not_empty.params["path"], full.display().to_string());
+        // Uma pasta vazia serve.
+        let empty_dir = dir.path().join("vazia");
+        fs::create_dir_all(&empty_dir).unwrap();
+        assert_eq!(check("Vale", Some(empty_dir.clone())).unwrap(), empty_dir);
+    }
+
+    #[test]
+    fn tabela_de_java_recebe_os_packs_registrados() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let forge = dir.path().join("forge");
+        let vanilla = dir.path().join("vanilla");
+        write_pack(&forge, "Cobre", "1.12.2", Some(("forge", "14.23.5.2860")));
+        write_pack(&vanilla, "Puro", "1.21.1", None);
+        let forge_record = record(forge, "Cobre");
+        let forge_id = forge_record.id;
+        state.packs.insert(forge_record).unwrap();
+        state.packs.insert(record(vanilla, "Puro")).unwrap();
+        // Pasta sumida: sem como saber o Minecraft, fica de fora.
+        state
+            .packs
+            .insert(record(dir.path().join("sumiu"), "Sumiu"))
+            .unwrap();
+
+        // A fonte foi registrada ao abrir o estado (handoff da L-01).
+        let packs = state.java_packs.packs().unwrap();
+        assert_eq!(packs.len(), 2);
+        let cobre = packs.iter().find(|pack| pack.pack_id == forge_id).unwrap();
+        assert_eq!(cobre.name, "Cobre");
+        assert_eq!(
+            cobre.request,
+            JavaChoiceRequest::automatic("1.12.2", LoaderKind::Forge, Some("14.23.5.2860"))
+        );
+        let puro = packs.iter().find(|pack| pack.name == "Puro").unwrap();
+        assert_eq!(
+            puro.request,
+            JavaChoiceRequest::automatic("1.21.1", LoaderKind::Vanilla, None)
+        );
+    }
+
+    #[test]
+    fn localizar_com_a_pasta_de_outro_pack_diz_o_motivo() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let pack = dir.path().join("pack");
+        write_pack(&pack, "Vale", "1.20.1", None);
+        let other = dir.path().join("outro");
+        write_pack(&other, "Outro", "1.20.1", None);
+        fs::create_dir_all(other.join(".warden")).unwrap();
+        fs::write(
+            other.join(".warden/project.toml"),
+            warden_project::create::project_toml(PackId::new()),
+        )
+        .unwrap();
+        let rec = record(pack, "Vale");
+        let id = rec.id;
+        state.packs.insert(rec).unwrap();
+        let error = relocate_impl(&state, id, other).unwrap_err();
+        assert_eq!(
+            error.code,
+            ErrorCode::Project(ProjectErrorCode::InvalidPack)
+        );
+        assert_eq!(error.params["reason"], "otherPack");
+    }
+
+    #[test]
+    fn titulos_do_dialogo_de_pasta() {
+        assert!(FolderPurpose::OpenPack.title().contains("pack.toml"));
+        assert_ne!(
+            FolderPurpose::CreateDestination.title(),
+            FolderPurpose::Relocate.title()
+        );
+        let purpose: FolderPurpose = serde_json::from_str("\"createDestination\"").unwrap();
+        assert_eq!(purpose, FolderPurpose::CreateDestination);
+    }
 }

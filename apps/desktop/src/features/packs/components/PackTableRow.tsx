@@ -27,7 +27,7 @@ import {
   MenuContent,
   MenuItem,
   MenuSeparator,
-  MenuTrigger,
+  MenuIconTrigger,
 } from '../../../components/ui/menu';
 import { showToast } from '../../../components/ui/toast';
 import { Tooltip } from '../../../components/ui/tooltip';
@@ -160,12 +160,8 @@ function ReadyRow({ row, onDialog }: RowProps) {
             {t('lista.abrir')}
           </Button>
           <Menu>
-            <MenuTrigger asChild>
-              <Button size="sm" variant="ghost" iconOnly icon={Ellipsis}>
-                {t('lista.maisAcoes', { name: row.name })}
-              </Button>
-            </MenuTrigger>
-            <MenuContent label={t('lista.menuRotulo', { name: row.name })}>
+            <MenuIconTrigger icon={Ellipsis} label={t('lista.maisAcoes', { name: row.name })} />
+            <MenuContent>
               <MenuItem
                 icon={FolderOpen}
                 onSelect={() => {

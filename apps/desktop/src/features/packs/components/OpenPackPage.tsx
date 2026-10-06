@@ -202,7 +202,7 @@ function PreviewReady({
         <ControlsPanel preview={preview} checked={addControls} onCheckedChange={setAddControls} />
       ) : null}
 
-      {importPack.isError ? <ImportError error={importPack.error} action={chooseOther} /> : null}
+      {importPack.isError ? <ErrorPanel error={importPack.error} actions={chooseOther} /> : null}
       {fix.isError && imported !== null ? (
         <ErrorPanel
           error={fix.error}
@@ -273,20 +273,6 @@ function PreviewReady({
         <p className="t-sm t-3 text-right">{t('abrir.higiene.nenhumMarcado')}</p>
       ) : null}
     </div>
-  );
-}
-
-function ImportError({ error, action }: { error: unknown; action: ReactNode }) {
-  const { t } = useTranslation('packs');
-  const appError = commandError(error);
-  const already =
-    appError?.code.domain === 'project' && appError.code.code === 'ALREADY_REGISTERED';
-  return (
-    <ErrorPanel
-      error={error}
-      title={already ? t('abrir.jaRegistrado') : undefined}
-      actions={action}
-    />
   );
 }
 

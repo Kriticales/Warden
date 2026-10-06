@@ -248,3 +248,93 @@ fn collect_files(root: &Path, path: &Path, out: &mut Vec<String>) -> Result<()> 
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+
+    use super::*;
+
+    fn pack(dir: &Path) {
+        fs::write(
+            dir.join("pack.toml"),
+            warden_packwiz::PackManifest::new("Teste", "1.20.1").to_toml_string(),
+        )
+        .unwrap();
+        fs::write(
+            dir.join("index.toml"),
+            PackIndex::default().to_toml_string(),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn itens_trazem_tamanho_e_motivo_estruturado() {
+        let temp = tempfile::tempdir().unwrap();
+        pack(temp.path());
+        fs::create_dir_all(temp.path().join("config")).unwrap();
+        fs::write(temp.path().join("config/x.toml.bak"), b"1234").unwrap();
+        fs::create_dir_all(temp.path().join("logs")).unwrap();
+        fs::write(temp.path().join("logs/latest.log"), b"abc").unwrap();
+        fs::write(temp.path().join("logs/debug.log"), b"de").unwrap();
+        let found = scan(temp.path()).unwrap();
+
+        let bak = found
+            .iter()
+            .find(|i| i.path == "config/x.toml.bak")
+            .unwrap();
+        assert!((bak.bytes - 4.0).abs() < f64::EPSILON);
+        assert!(bak.reasons.contains(&HygieneCause::Pattern {
+            pattern: "*.bak".into(),
+            group: HygieneGroup::AnyDepth,
+        }));
+
+        let logs = found.iter().find(|i| i.path.starts_with("logs")).unwrap();
+        assert!(logs.is_dir);
+        // A pasta soma os arquivos de dentro.
+        assert!((logs.bytes - 5.0).abs() < f64::EPSILON);
+        assert!(logs.reasons.iter().any(|reason| matches!(
+            reason,
+            HygieneCause::Pattern {
+                group: HygieneGroup::Runtime,
+                ..
+            }
+        )));
+
+        // O formato que chega à interface.
+        let json = serde_json::to_value(bak).unwrap();
+        assert_eq!(json["reasons"][0]["kind"], "pattern");
+        assert_eq!(json["reasons"][0]["group"], "anyDepth");
+        assert_eq!(json["bytes"], 4.0);
+    }
+
+    #[test]
+    fn cada_motivo_da_varredura_vira_uma_causa() {
+        assert_eq!(
+            cause(&HygieneReason::UnknownRootItem),
+            HygieneCause::UnknownRootItem
+        );
+        assert_eq!(
+            cause(&HygieneReason::LargeFile { bytes: 10 }),
+            HygieneCause::LargeFile
+        );
+        assert_eq!(
+            cause(&HygieneReason::CacheLikeFolder { files: 812 }),
+            HygieneCause::CacheLikeFolder { files: 812 }
+        );
+        assert_eq!(cause(&HygieneReason::Symlink), HygieneCause::Symlink);
+        for (category, group) in [
+            (PatternCategory::Required, HygieneGroup::Required),
+            (PatternCategory::Runtime, HygieneGroup::Runtime),
+            (
+                PatternCategory::SecretsAndTools,
+                HygieneGroup::SecretsAndTools,
+            ),
+            (PatternCategory::ServerOnly, HygieneGroup::ServerOnly),
+            (PatternCategory::AnyDepth, HygieneGroup::AnyDepth),
+        ] {
+            assert_eq!(HygieneGroup::from(category), group);
+        }
+        assert!(size_on_disk(Path::new("nao/existe")).abs() < f64::EPSILON);
+    }
+}

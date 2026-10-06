@@ -29,6 +29,7 @@ export const packs = {
       alterado: 'Alterado',
       acoes: 'Ações',
     },
+    naoSalvas_zero: 'Nenhuma alteração não salva',
     naoSalvas_one: '{{count}} alteração não salva',
     naoSalvas_other: '{{count}} alterações não salvas',
     minecraft: 'Minecraft {{version}}',
@@ -39,7 +40,6 @@ export const packs = {
     abrir: 'Abrir',
     abrirNome: 'Abrir {{name}}',
     maisAcoes: 'Mais ações para {{name}}',
-    menuRotulo: 'Ações do pack {{name}}',
     semData: '—',
     hoje: 'hoje, {{time}}',
     ontem: 'ontem, {{time}}',
@@ -216,7 +216,6 @@ export const packs = {
     semPackToml: 'Esta pasta não tem um pack packwiz que o Warden consiga ler.',
     semPackTomlTexto:
       'Escolha a pasta que contém o pack.toml. Importar .mrpack, zip da CurseForge e instâncias do Prism ou do MultiMC ainda não está disponível.',
-    jaRegistrado: 'Este pack já está em Meus packs.',
     loaderSuportado: 'suportado',
     fatoLoader: 'Loader',
     fatoPasta: 'Pasta',

@@ -222,3 +222,39 @@ pub async fn create(
 pub fn project_toml(id: PackId) -> String {
     format!("schemaVersion = 1\nid = \"{id}\"\n")
 }
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+
+    use super::*;
+
+    #[test]
+    fn destino_padrao_vem_do_nome_e_nada_e_escrito() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = resolve_destination("Vale Sereno (Beta)", None, temp.path()).unwrap();
+        assert_eq!(path, temp.path().join("vale-sereno"));
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn recusas_dizem_o_campo() {
+        let temp = tempfile::tempdir().unwrap();
+        let long = "a".repeat(65);
+        for name in ["", "   ", long.as_str(), "nome\u{7}"] {
+            let error = resolve_destination(name, None, temp.path()).unwrap_err();
+            assert_eq!(error.code, Code::InvalidInput);
+            assert_eq!(error.params["field"], "name");
+        }
+        // 64 caracteres com acento contam como 64, não como bytes.
+        let accented = "é".repeat(64);
+        assert!(resolve_destination(&accented, Some(&temp.path().join("x")), temp.path()).is_ok());
+        let error =
+            resolve_destination("Vale", Some(Path::new("relativa")), temp.path()).unwrap_err();
+        assert_eq!(error.params["field"], "path");
+        let file = temp.path().join("arquivo");
+        fs::write(&file, b"x").unwrap();
+        let error = resolve_destination("Vale", Some(&file), temp.path()).unwrap_err();
+        assert_eq!(error.code, Code::DestinationNotEmpty);
+    }
+}
