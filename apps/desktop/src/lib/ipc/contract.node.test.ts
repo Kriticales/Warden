@@ -21,6 +21,9 @@ const CONSUMERS = ['src/features', 'src/app', 'src/routes'];
 const PENDING: Record<string, string> = {
   secrets_backend_get:
     'sem tela: Configurações lê o modo em secrets_status.backend (P1-13); remover ou dar uso',
+  export_preview: 'E-01 (tela)',
+  export_exclude: 'E-01 (tela)',
+  export_run: 'E-01 (tela)',
   java_choice: 'P1-08 (Ajustes do teste: Java automático e o motivo) e L-04 (Testar)',
 };
 

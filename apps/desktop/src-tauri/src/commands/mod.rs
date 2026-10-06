@@ -7,6 +7,7 @@
 pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
+pub(crate) mod export;
 pub(crate) mod java;
 pub(crate) mod packs;
 pub(crate) mod secrets;
@@ -47,6 +48,9 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             packs::pack_hygiene_scan,
             packs::pack_hygiene_fix,
             packs::pack_trash,
+            export::export_preview,
+            export::export_exclude,
+            export::export_run,
             app::settings_status,
             app::settings_choose_packs_dir,
             app::logs_reveal_folder,

@@ -11,8 +11,18 @@ warden-core.workspace = true
 warden-packwiz.workspace = true
 warden-packwiz-cli.workspace = true
 warden-project.workspace = true
+warden-versioning.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+zip.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+specta-typescript.workspace = true
+
+[dev-dependencies]
+git2.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [lints]
 workspace = true

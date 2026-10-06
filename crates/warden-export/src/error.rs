@@ -6,6 +6,7 @@
 //! `warden_core::DomainError`.
 
 use serde::{Deserialize, Serialize};
+use warden_core::{DomainCode, DomainError};
 
 /// Códigos do domínio `export`. O código é contrato: renomear é mudança de contrato;
 /// acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -16,4 +17,20 @@ use serde::{Deserialize, Serialize};
 pub enum ExportErrorCode {
     /// Bug: invariante quebrada sem código específico.
     Internal,
+}
+
+/// Falha de preparação ou gravação da exportação. Os detalhes não contêm segredos.
+#[derive(Debug, thiserror::Error)]
+#[error("{0}")]
+pub struct Error(pub String);
+
+/// Resultado das operações de exportação.
+pub type Result<T> = std::result::Result<T, Error>;
+
+impl DomainError for Error {
+    type Code = ExportErrorCode;
+
+    fn code(&self) -> DomainCode<Self::Code> {
+        DomainCode::Domain(ExportErrorCode::Internal)
+    }
 }
