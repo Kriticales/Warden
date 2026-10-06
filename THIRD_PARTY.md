@@ -115,6 +115,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `jsdom` | 30.1.1 | MIT | DOM nos testes. |
 | `@types/node` | 24.19.1 | MIT | Tipos do Node 24 (arquivos de configuração). |
 | `@types/react`, `@types/react-dom` | 19.3.0 | MIT | Tipos do React. |
+| `@radix-ui/react-dropdown-menu` | 2.1.17 | MIT | Menu ⋯ dos packs (shadcn `DropdownMenu`; HANDOFF §3). |
 
 ## Trechos copiados
 

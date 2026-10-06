@@ -1,0 +1,117 @@
+/*
+ * Layout de Meus packs (T02), Criar pack (T03) e Abrir pack (T04), igual ao protótipo final
+ * (`design/prototipo-final/prototipo.css`). Mesma regra do design system: só tokens.
+ */
+
+/* Meus packs: busca e ordenação acima da tabela. */
+.packs-tools {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+.packs-tools .inputwrap {
+  /* 300 px, como no protótipo. */
+  width: calc(var(--space-16) * 4.6875);
+}
+.packs-tools .select {
+  width: auto;
+}
+.packs-banner {
+  margin-bottom: var(--space-3);
+}
+.packrow__sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+/* Assistente Criar pack. */
+.wizard {
+  /* 720 px, como no protótipo. */
+  max-width: calc(var(--space-16) * 11.25);
+}
+.wizard .steps {
+  margin: var(--space-2) 0 var(--space-6);
+}
+.wizard__body {
+  /* 560 px: formulários e listas da etapa. */
+  max-width: calc(var(--space-16) * 8.75);
+}
+.wizard__body--wide {
+  /* 620 px: loaders e resumo. */
+  max-width: calc(var(--space-16) * 9.6875);
+}
+.wizard__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: var(--border-thin) solid var(--color-border);
+}
+.field__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.field__row > .input {
+  flex: 1 1 auto;
+}
+
+/* Lista de versões do Minecraft (etapa 2). */
+.verlist {
+  /* 320 px de altura, com rolagem própria. */
+  max-height: calc(var(--space-16) * 5);
+  overflow: auto;
+  border: var(--border-thin) solid var(--color-border);
+  background: var(--color-surface-1);
+}
+.verlist .check {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-thin) solid var(--color-border);
+}
+.verlist .check:has(input:checked) {
+  background: var(--color-primary-soft);
+  box-shadow: inset var(--border-bar) 0 0 var(--color-primary);
+}
+.verlist__note {
+  padding: var(--space-2) var(--space-3);
+}
+.verlist__search {
+  margin-bottom: var(--space-2);
+}
+
+/* Abrir pack: a coluna de leitura. */
+.openpack {
+  /* 820 px, como no protótipo. */
+  max-width: calc(var(--space-16) * 12.8125);
+}
+.openpack__actions {
+  margin-top: var(--space-3);
+}
+.controls__item + .controls__item {
+  margin-top: var(--space-2);
+}
+.controls__item > summary {
+  cursor: pointer;
+}
+
+/* Grupo de opções sem a moldura padrão do navegador. */
+.fieldset-bare {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Opção com controles dentro (versão do loader): o rótulo marca a opção e o rádio recebe o
+   clique direto, porque o resto da caixa não é um <label>. */
+.choice--split .check {
+  pointer-events: auto;
+}
+.choice--split > .grow > label {
+  cursor: pointer;
+}

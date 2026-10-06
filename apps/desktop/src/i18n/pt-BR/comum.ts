@@ -49,4 +49,8 @@ export const comum = {
   progresso: {
     concluido: '{{valor}}%',
   },
+  etapas: {
+    concluida: ' (concluída)',
+    agora: ' (agora)',
+  },
 } as const;

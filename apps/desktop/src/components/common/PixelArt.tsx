@@ -132,3 +132,49 @@ export function EmptyArt({
     </svg>
   );
 }
+
+/** FNV-1a de 32 bits, igual ao `hash()` de `components.js`. */
+function hash(text: string): number {
+  let h = 2166136261;
+  for (const char of text) {
+    h = Math.imul(h ^ char.charCodeAt(0), 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Ícone provisório 8×8, simétrico, gerado do nome (`tileSvg()` de `components.js`; HANDOFF:
+ * "Mod sem ícone na API"). O mesmo nome dá sempre o mesmo desenho.
+ */
+export function tilePixels(seed: string): Pixel[] {
+  const h = hash(seed);
+  const hue = h % 360;
+  const fg = `hsl(${String(hue)} 46% 52%)`;
+  const hi = `hsl(${String((hue + 30) % 360)} 60% 72%)`;
+  const pixels: Pixel[] = [[0, 0, 8, 8, `hsl(${String(hue)} 34% 18%)`]];
+  let bits = h;
+  for (let y = 1; y < 7; y += 1) {
+    for (let x = 1; x < 4; x += 1) {
+      bits = Math.imul(bits ^ (bits >>> 13), 0x5bd1e995) >>> 0;
+      const v = bits % 5;
+      if (v < 2) continue;
+      const color = v === 4 ? hi : fg;
+      pixels.push([x, y, 1, 1, color], [7 - x, y, 1, 1, color]);
+    }
+  }
+  return pixels;
+}
+
+/** Tamanho do ícone: 32 px (padrão), 24, 40 ou 56 px. */
+export type TileSize = 'sm' | 'md' | 'lg' | 'xl';
+
+/** Ícone de pack ou mod sem imagem própria: o desenho gerado do nome, decorativo. */
+export function NameTile({ seed, size = 'md' }: { seed: string; size?: TileSize }) {
+  return (
+    <span className={size === 'md' ? 'tile' : `tile tile--${size}`} aria-hidden="true">
+      <svg viewBox="0 0 8 8" shapeRendering="crispEdges" focusable="false">
+        <Pixels pixels={tilePixels(seed)} />
+      </svg>
+    </span>
+  );
+}

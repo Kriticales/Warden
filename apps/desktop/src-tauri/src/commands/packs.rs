@@ -195,6 +195,7 @@ pub(crate) fn pack_relocate(
     state.packs.get(pack_id).map_err(domain)?;
     if warden_project::open::project_id(&path).map_err(domain)? != Some(pack_id) {
         return Err(AppError::new(ProjectErrorCode::InvalidPack)
+            .with_param("reason", "otherPack")
             .with_detail("identificador da pasta não corresponde ao registro"));
     }
     state.packs.relocate(pack_id, path).map_err(domain)

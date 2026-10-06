@@ -139,7 +139,8 @@ body {
 
 /* Camadas do Radix: o conteúdo é posicionado pelo próprio Radix, então o tooltip e o menu não
    usam o `position: absolute` da galeria. */
-[data-radix-popper-content-wrapper] > .tooltip {
+[data-radix-popper-content-wrapper] > .tooltip,
+[data-radix-popper-content-wrapper] > .menu {
   position: relative;
 }
 

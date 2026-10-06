@@ -21,18 +21,6 @@ const CONSUMERS = ['src/features', 'src/app', 'src/routes'];
 const PENDING: Record<string, string> = {
   secrets_backend_get:
     'sem tela: Configurações lê o modo em secrets_status.backend (P1-13); remover ou dar uso',
-  catalog_minecraft_versions: 'P1-07 (tela, Claude)',
-  catalog_loader_versions: 'P1-07 (tela, Claude)',
-  packs_list: 'P1-07 (tela, Claude)',
-  pack_get: 'P1-07 (tela, Claude)',
-  pack_create: 'P1-07 (tela, Claude)',
-  pack_import_preview: 'P1-07 (tela, Claude)',
-  pack_import: 'P1-07 (tela, Claude)',
-  pack_relocate: 'P1-07 (tela, Claude)',
-  pack_forget: 'P1-07 (tela, Claude)',
-  pack_hygiene_scan: 'P1-07 (tela, Claude)',
-  pack_hygiene_fix: 'P1-07 (tela, Claude)',
-  pack_trash: 'P1-07 (tela, Claude)',
   java_choice: 'P1-08 (Ajustes do teste: Java automático e o motivo) e L-04 (Testar)',
 };
 
