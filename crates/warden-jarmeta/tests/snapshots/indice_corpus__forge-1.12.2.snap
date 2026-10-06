@@ -1,0 +1,12 @@
+---
+source: crates/warden-jarmeta/tests/indice_corpus.rs
+description: "Índice do grupo forge-1.12.2: pacotes ambíguos e dono de cada config de mixin"
+---
+{
+  "jars": 7,
+  "pacotes": 428,
+  "ambiguos": [],
+  "mixins": {
+    "mixin.mixinbooter.init.json": "mods/forge-1.12.2-mixinbooter.pw.toml → mixinbooter"
+  }
+}

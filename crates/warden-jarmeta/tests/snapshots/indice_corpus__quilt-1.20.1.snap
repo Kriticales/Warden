@@ -1,0 +1,117 @@
+---
+source: crates/warden-jarmeta/tests/indice_corpus.rs
+description: "Índice do grupo quilt-1.20.1: pacotes ambíguos e dono de cada config de mixin"
+---
+{
+  "jars": 2,
+  "pacotes": 568,
+  "ambiguos": [
+    {
+      "pacote": "net.fabricmc.fabric.api.registry",
+      "escolhido": "mods/quilt-1.20.1-qsl.pw.toml → quilted_fabric_api",
+      "candidatos": [
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_content_registries_v0-7.7.0.jar] → quilted_fabric_content_registries_v0",
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_commands_v0-7.7.0.jar] → quilted_fabric_commands_v0"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.fabric.api.util",
+      "escolhido": "mods/quilt-1.20.1-qsl.pw.toml → quilted_fabric_api",
+      "candidatos": [
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_api_base-7.7.0.jar] → quilted_fabric_api_base",
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_content_registries_v0-7.7.0.jar] → quilted_fabric_content_registries_v0"
+      ]
+    },
+    {
+      "pacote": "org.quiltmc.qsl.command.impl.client",
+      "escolhido": "mods/quilt-1.20.1-qsl.pw.toml → quilted_fabric_api",
+      "candidatos": [
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/command-6.3.0+1.20.1.jar] → quilt_command",
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/client_command-6.3.0+1.20.1.jar] → quilt_client_command"
+      ]
+    },
+    {
+      "pacote": "org.quiltmc.qsl.command.mixin",
+      "escolhido": "mods/quilt-1.20.1-qsl.pw.toml → quilted_fabric_api",
+      "candidatos": [
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/command-6.3.0+1.20.1.jar] → quilt_command",
+        "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/client_command-6.3.0+1.20.1.jar] → quilt_client_command"
+      ]
+    }
+  ],
+  "mixins": {
+    "qkl_library.mixins.json": "mods/quilt-1.20.1-qkl.pw.toml [META-INF/jars/quilt-kotlin-libraries-library-2.1.3+kt.1.9.10+flk.1.10.10.jar] → qkl_library",
+    "quilt_base.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/qsl_base-6.3.0+1.20.1.jar] → quilt_base",
+    "quilt_biome.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/biome-6.3.0+1.20.1.jar] → quilt_biome",
+    "quilt_block_content_registry.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/block_content_registry-6.3.0+1.20.1.jar] → quilt_block_content_registry",
+    "quilt_block_entity.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/block_entity-6.3.0+1.20.1.jar] → quilt_block_entity",
+    "quilt_block_extensions.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/block_extensions-6.3.0+1.20.1.jar] → quilt_block_extensions",
+    "quilt_chat.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/chat-6.3.0+1.20.1.jar] → quilt_chat",
+    "quilt_client_command.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/client_command-6.3.0+1.20.1.jar] → quilt_client_command",
+    "quilt_command.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/command-6.3.0+1.20.1.jar] → quilt_command",
+    "quilt_crash_info.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/crash_info-6.3.0+1.20.1.jar] → quilt_crash_info",
+    "quilt_dimension.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/dimension-6.3.0+1.20.1.jar] → quilt_dimension",
+    "quilt_entity.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/entity-6.3.0+1.20.1.jar] → quilt_entity",
+    "quilt_entity_events.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/entity_events-6.3.0+1.20.1.jar] → quilt_entity_events",
+    "quilt_entity_multipart.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/multipart-6.3.0+1.20.1.jar] → quilt_entity_multipart",
+    "quilt_entity_networking.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/entity_networking-6.3.0+1.20.1.jar] → quilt_entity_networking",
+    "quilt_entity_rendering.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/entity_rendering-6.3.0+1.20.1.jar] → quilt_entity_rendering",
+    "quilt_item_content_registry.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/item_content_registry-6.3.0+1.20.1.jar] → quilt_item_content_registry",
+    "quilt_item_extensions.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/item_extensions-6.3.0+1.20.1.jar] → quilt_item_extensions",
+    "quilt_item_setting.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/item_setting-6.3.0+1.20.1.jar] → quilt_item_setting",
+    "quilt_lifecycle_events.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/lifecycle_events-6.3.0+1.20.1.jar] → quilt_lifecycle_events",
+    "quilt_networking.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/networking-6.3.0+1.20.1.jar] → quilt_networking",
+    "quilt_point_of_interest.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/point_of_interest-6.3.0+1.20.1.jar] → quilt_point_of_interest",
+    "quilt_recipe.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/recipe-6.3.0+1.20.1.jar] → quilt_recipe",
+    "quilt_registry.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/registry-6.3.0+1.20.1.jar] → quilt_registry",
+    "quilt_registry_entry_attachment.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/registry_entry_attachment-6.3.0+1.20.1.jar] → quilt_registry_entry_attachment",
+    "quilt_resource_loader.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/resource_loader-6.3.0+1.20.1.jar] → quilt_resource_loader",
+    "quilt_screen.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/screen-6.3.0+1.20.1.jar] → quilt_screen",
+    "quilt_status_effect.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/status_effect-6.3.0+1.20.1.jar] → quilt_status_effect",
+    "quilt_surface_rule.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/surface_rule-6.3.0+1.20.1.jar] → quilt_surface_rule",
+    "quilt_tags.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/tags-6.3.0+1.20.1.jar] → quilt_tags",
+    "quilt_testing.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/testing-6.3.0+1.20.1.jar] → quilt_testing",
+    "quilt_tooltip.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/tooltip-6.3.0+1.20.1.jar] → quilt_tooltip",
+    "quilt_vehicle.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/vehicle-6.3.0+1.20.1.jar] → quilt_vehicle",
+    "quilt_villager.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/villager-6.3.0+1.20.1.jar] → quilt_villager",
+    "quilted_fabric_api_lookup_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_api_lookup_api_v1-7.7.0.jar] → quilted_fabric_api_lookup_api_v1",
+    "quilted_fabric_biome_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_biome_api_v1-7.7.0.jar] → quilted_fabric_biome_api_v1",
+    "quilted_fabric_block_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_block_api_v1-7.7.0.jar] → quilted_fabric_block_api_v1",
+    "quilted_fabric_block_view_api_v2.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_block_view_api_v2-7.7.0.jar] → quilted_fabric_block_view_api_v2",
+    "quilted_fabric_blockrenderlayer_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_blockrenderlayer_v1-7.7.0.jar] → quilted_fabric_blockrenderlayer_v1",
+    "quilted_fabric_command_api_v2.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_command_api_v2-7.7.0.jar] → quilted_fabric_command_api_v2",
+    "quilted_fabric_containers_v0.accurate.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_containers_v0-7.7.0.jar] → quilted_fabric_containers_v0",
+    "quilted_fabric_containers_v0.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_containers_v0-7.7.0.jar] → quilted_fabric_containers_v0",
+    "quilted_fabric_content_registries_v0.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_content_registries_v0-7.7.0.jar] → quilted_fabric_content_registries_v0",
+    "quilted_fabric_data_attachment_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_data_attachment_api_v1-7.7.0.jar] → quilted_fabric_data_attachment_api_v1",
+    "quilted_fabric_data_generation_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_data_generation_api_v1-7.7.0.jar] → quilted_fabric_data_generation_api_v1",
+    "quilted_fabric_dimensions_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_dimensions_v1-7.7.0.jar] → quilted_fabric_dimensions_v1",
+    "quilted_fabric_entity_events_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_entity_events_v1-7.7.0.jar] → quilted_fabric_entity_events_v1",
+    "quilted_fabric_events_interaction_v0.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_events_interaction_v0-7.7.0.jar] → quilted_fabric_events_interaction_v0",
+    "quilted_fabric_game_rule_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_game_rule_api_v1-7.7.0.jar] → quilted_fabric_game_rule_api_v1",
+    "quilted_fabric_item_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_item_api_v1-7.7.0.jar] → quilted_fabric_item_api_v1",
+    "quilted_fabric_item_group_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_item_group_api_v1-7.7.0.jar] → quilted_fabric_item_group_api_v1",
+    "quilted_fabric_key_binding_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_key_binding_api_v1-7.7.0.jar] → quilted_fabric_key_binding_api_v1",
+    "quilted_fabric_lifecycle_events_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_lifecycle_events_v1-7.7.0.jar] → quilted_fabric_lifecycle_events_v1",
+    "quilted_fabric_loot_api_v2.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_loot_api_v2-7.7.0.jar] → quilted_fabric_loot_api_v2",
+    "quilted_fabric_loot_tables_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_loot_tables_v1-7.7.0.jar] → quilted_fabric_loot_tables_v1",
+    "quilted_fabric_message_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_message_api_v1-7.7.0.jar] → quilted_fabric_message_api_v1",
+    "quilted_fabric_mining_level_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_mining_level_api_v1-7.7.0.jar] → quilted_fabric_mining_level_api_v1",
+    "quilted_fabric_model_loading_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_model_loading_api_v1-7.7.0.jar] → quilted_fabric_model_loading_api_v1",
+    "quilted_fabric_networking_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_networking_api_v1-7.7.0.jar] → quilted_fabric_networking_api_v1",
+    "quilted_fabric_object_builder_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_object_builder_api_v1-7.7.0.jar] → quilted_fabric_object_builder_api_v1",
+    "quilted_fabric_recipe_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_recipe_api_v1-7.7.0.jar] → quilted_fabric_recipe_api_v1",
+    "quilted_fabric_registry_sync_v0.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_registry_sync_v0-7.7.0.jar] → quilted_fabric_registry_sync_v0",
+    "quilted_fabric_renderer_api_v1.debughud.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_renderer_api_v1-7.7.0.jar] → quilted_fabric_renderer_api_v1",
+    "quilted_fabric_renderer_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_renderer_api_v1-7.7.0.jar] → quilted_fabric_renderer_api_v1",
+    "quilted_fabric_renderer_indigo.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_renderer_indigo-7.7.0.jar] → quilted_fabric_renderer_indigo",
+    "quilted_fabric_rendering_data_attachment_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_rendering_data_attachment_v1-7.7.0.jar] → quilted_fabric_rendering_data_attachment_v1",
+    "quilted_fabric_rendering_fluids_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_rendering_fluids_v1-7.7.0.jar] → quilted_fabric_rendering_fluids_v1",
+    "quilted_fabric_rendering_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_rendering_v1-7.7.0.jar] → quilted_fabric_rendering_v1",
+    "quilted_fabric_resource_conditions_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_resource_conditions_api_v1-7.7.0.jar] → quilted_fabric_resource_conditions_api_v1",
+    "quilted_fabric_resource_loader_v0.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_resource_loader_v0-7.7.0.jar] → quilted_fabric_resource_loader_v0",
+    "quilted_fabric_screen_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_screen_api_v1-7.7.0.jar] → quilted_fabric_screen_api_v1",
+    "quilted_fabric_screen_handler_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_screen_handler_api_v1-7.7.0.jar] → quilted_fabric_screen_handler_api_v1",
+    "quilted_fabric_transfer_api_v1.mixins.json": "mods/quilt-1.20.1-qsl.pw.toml [META-INF/jars/quilted_fabric_transfer_api_v1-7.7.0.jar] → quilted_fabric_transfer_api_v1"
+  }
+}

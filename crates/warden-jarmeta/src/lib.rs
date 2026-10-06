@@ -9,8 +9,11 @@
 //! Também traz os avaliadores de faixa nos três dialetos ([`VersionRange`]: Fabric, Maven e
 //! `@Mod.dependencies` em texto) e o `FlexVer` ([`version::flexver`]).
 //!
-//! Limites: a crate não decide nada sobre o pack (isso é do diagnóstico, `warden-diagnostics`),
-//! não acessa a rede e não guarda cache (os índices com cache por hash são da tarefa D-05).
+//! O módulo [`index`] monta os índices pacote → jar → mod e config de mixin → mod, com cache por
+//! hash do jar (D-05).
+//!
+//! Limites: a crate não decide nada sobre o pack (isso é do diagnóstico, `warden-diagnostics`) e
+//! não acessa a rede.
 //! Entrada é tratada como não confiável: nenhum pânico, nenhum arquivo descompactado além dos
 //! [`Limits`].
 //!
@@ -31,6 +34,7 @@
 
 mod descriptor;
 mod error;
+pub mod index;
 mod lenient_json;
 mod limits;
 mod model;

@@ -1,0 +1,14 @@
+---
+source: crates/warden-jarmeta/tests/indice_corpus.rs
+description: "Índice do grupo forge-1.18.2: pacotes ambíguos e dono de cada config de mixin"
+---
+{
+  "jars": 1,
+  "pacotes": 278,
+  "ambiguos": [],
+  "mixins": {
+    "create.mixins.json": "mods/forge-1.18.2-create.pw.toml → create",
+    "flywheel.mixins.json": "mods/forge-1.18.2-create.pw.toml [META-INF/jarjar/flywheel-forge-1.18.2-0.6.11-107.jar] → flywheel",
+    "flywheel.sodium.mixins.json": "mods/forge-1.18.2-create.pw.toml [META-INF/jarjar/flywheel-forge-1.18.2-0.6.11-107.jar] → flywheel"
+  }
+}

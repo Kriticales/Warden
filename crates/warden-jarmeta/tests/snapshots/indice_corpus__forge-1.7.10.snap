@@ -1,0 +1,17 @@
+---
+source: crates/warden-jarmeta/tests/indice_corpus.rs
+description: "Índice do grupo forge-1.7.10: pacotes ambíguos e dono de cada config de mixin"
+---
+{
+  "jars": 11,
+  "pacotes": 1249,
+  "ambiguos": [],
+  "mixins": {
+    "mixingasm.mixin.json": "mods/forge-1.7.10-unimixins.pw.toml → unimixins",
+    "mixins.angelica.json": "mods/forge-1.7.10-angelica.pw.toml → angelica",
+    "mixins.archaicfix.json": "mods/forge-1.7.10-archaicfix.pw.toml → archaicfix",
+    "mixins.gtnhlib.preinit.json": "mods/forge-1.7.10-gtnhlib.pw.toml → gtnhlib",
+    "mixins.gtnhmixins.json": "mods/forge-1.7.10-unimixins.pw.toml → unimixins",
+    "mixins.hodgepodge.json": "mods/forge-1.7.10-hodgepodge.pw.toml → hodgepodge"
+  }
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "nome": "fabric-1.20.1-modernfix",
+    "loaderAlvo": "fabric",
+    "minecraft": "1.20.1",
+    "fonte": "modrinth",
+    "projeto": "modernfix",
+    "versao": "5.25.2+mc1.20.1",
+    "arquivo": "modernfix-fabric-5.25.2+mc1.20.1.jar",
+    "url": "https://cdn.modrinth.com/data/nmDcB62a/versions/rPmgLeZC/modernfix-fabric-5.25.2%2Bmc1.20.1.jar",
+    "sha1": "be03b9eb570c1e9df7593e68623f0fecbd039460",
+    "tamanho": 545175,
+    "licenca": "LGPL-3.0-only",
+    "pagina": "https://modrinth.com/mod/modernfix/version/rPmgLeZC"
+  },
+  {
+    "nome": "neoforge-1.21.1-epic-fight",
+    "loaderAlvo": "neoforge",
+    "minecraft": "1.21.1",
+    "fonte": "modrinth",
+    "projeto": "epic-fight",
+    "versao": "21.17.3.1-mc1.21.1-neoforge",
+    "arquivo": "epic-fight-21.17.3.1-mc1.21.1-neoforge.jar",
+    "url": "https://cdn.modrinth.com/data/vu3NZ5Ma/versions/8HHhJt6i/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar",
+    "sha1": "fb199b7bbea2fc402da28ab586e73f47e32f8fc0",
+    "tamanho": 8578288,
+    "licenca": "GPL-3.0-or-later",
+    "pagina": "https://modrinth.com/mod/epic-fight/version/8HHhJt6i"
+  },
+  {
+    "nome": "forge-1.20.1-epic-fight",
+    "loaderAlvo": "forge",
+    "minecraft": "1.20.1",
+    "fonte": "modrinth",
+    "projeto": "epic-fight",
+    "versao": "20.14.17-mc1.20.1-forge",
+    "arquivo": "epic-fight-20.14.17-mc1.20.1-forge.jar",
+    "url": "https://cdn.modrinth.com/data/vu3NZ5Ma/versions/KEBfkBat/epic-fight-20.14.17-mc1.20.1-forge.jar",
+    "sha1": "faa8eddad9d80adb9c4ba81fd0a8a21c81989d3d",
+    "tamanho": 8071119,
+    "licenca": "GPL-3.0-or-later",
+    "pagina": "https://modrinth.com/mod/epic-fight/version/KEBfkBat"
+  }
+]

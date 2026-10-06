@@ -1,0 +1,427 @@
+---
+source: crates/warden-jarmeta/tests/indice_corpus.rs
+description: "Índice do grupo forge-1.20.1: pacotes ambíguos e dono de cada config de mixin"
+---
+{
+  "jars": 13,
+  "pacotes": 1757,
+  "ambiguos": [
+    {
+      "pacote": "com.llamalad7.mixinextras",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.ap",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.injector",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.injector.wrapoperation",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.lib.apache.commons",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.lib.apache.commons.builder",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.lib.apache.commons.tuple",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.service",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.sugar",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.sugar.impl",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.sugar.impl.handlers",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.sugar.impl.ref",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.sugar.impl.ref.generated",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.sugar.ref",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.transformer",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.utils",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.versions",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.wrapper",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "com.llamalad7.mixinextras.wrapper.factory",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar!/META-INF/jars/MixinExtras-0.4.1.jar] → mixinextras",
+        "mods/forge-1.20.1-badoptimizations.pw.toml [META-INF/jars/fabric-mixinextras-fabric-0.2.2.jar] → com_github_llamalad7_mixinextras"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.api",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.api",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.api.entrypoint",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.api.metadata",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.api.metadata.version",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.bootstrap",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.discovery",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.entrypoint",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.game",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.launch",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.lib.gson",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.metadata",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.util",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.util.log",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.impl.util.version",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.language",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.launch.common",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.metadata",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.util",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "net.fabricmc.loader.util.version",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    },
+    {
+      "pacote": "reloc.net.minecraftforge.srgutils",
+      "escolhido": null,
+      "candidatos": [
+        "mods/forge-1.20.1-connector.pw.toml → connectormod",
+        "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loader-2.6.0+0.15.0+1.20.1-full.jar] → fabric_api"
+      ]
+    }
+  ],
+  "mixins": {
+    "adapter.init.mixins.json": "mods/forge-1.20.1-connector.pw.toml [META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-mod.jar!/META-INF/jarjar/runtime-1.0.0+1.20.1.jar] → connectormod",
+    "connectormod.mixins.json": "mods/forge-1.20.1-connector.pw.toml [META-INF/jarjar/Connector-1.0.0-beta.49+1.20.1-mod.jar] → connectormod",
+    "create.mixins.json": "mods/forge-1.20.1-create.pw.toml → create",
+    "curios.mixins.json": "mods/forge-1.20.1-curios.pw.toml → curios",
+    "embeddium.mixins.json": "mods/forge-1.20.1-embeddium.pw.toml → embeddium",
+    "fabric-api-base.init.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-api-base-0.4.32+ef105b4977.jar] → fabric_api_base",
+    "fabric-api-lookup-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-api-lookup-api-v1-1.6.37+67f9824077.jar] → fabric_api_lookup_api_v1",
+    "fabric-badoptimizations.mixins.json": "mods/forge-1.20.1-badoptimizations.pw.toml → badoptimizations",
+    "fabric-biome-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-biome-api-v1-13.0.14+dc36698e77.jar] → fabric_biome_api_v1",
+    "fabric-block-view-api-v2.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-block-view-api-v2-1.0.3+53347ba977.jar] → fabric_block_view_api_v2",
+    "fabric-block-view-api-v2.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-block-view-api-v2-1.0.3+53347ba977.jar] → fabric_block_view_api_v2",
+    "fabric-blockrenderlayer-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-blockrenderlayer-v1-1.1.42+1d0da21e77.jar] → fabric_blockrenderlayer_v1",
+    "fabric-command-api-v2.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-command-api-v2-2.2.14+561530ec77.jar] → fabric_command_api_v2",
+    "fabric-command-api-v2.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-command-api-v2-2.2.14+561530ec77.jar] → fabric_command_api_v2",
+    "fabric-content-registries-v0.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-content-registries-v0-4.0.13+a670df1e77.jar] → fabric_content_registries_v0",
+    "fabric-data-attachment-api-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-data-attachment-api-v1-1.0.2+30ef839e77.jar] → fabric_data_attachment_api_v1",
+    "fabric-data-attachment-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-data-attachment-api-v1-1.0.2+30ef839e77.jar] → fabric_data_attachment_api_v1",
+    "fabric-data-generation-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-data-generation-api-v1-12.3.7+369cb3a477.jar] → fabric_data_generation_api_v1",
+    "fabric-entity-events-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-entity-events-v1-1.6.1+4ca7515277.jar] → fabric_entity_events_v1",
+    "fabric-entity-events-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-entity-events-v1-1.6.1+4ca7515277.jar] → fabric_entity_events_v1",
+    "fabric-events-interaction-v0.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-events-interaction-v0-0.6.5+0f26153f77.jar] → fabric_events_interaction_v0",
+    "fabric-events-interaction-v0.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-events-interaction-v0-0.6.5+0f26153f77.jar] → fabric_events_interaction_v0",
+    "fabric-game-rule-api-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-game-rule-api-v1-1.0.41+683d4da877.jar] → fabric_game_rule_api_v1",
+    "fabric-game-rule-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-game-rule-api-v1-1.0.41+683d4da877.jar] → fabric_game_rule_api_v1",
+    "fabric-item-api-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-item-api-v1-2.1.29+4d0bbcfa77.jar] → fabric_item_api_v1",
+    "fabric-item-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-item-api-v1-2.1.29+4d0bbcfa77.jar] → fabric_item_api_v1",
+    "fabric-item-group-api-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-item-group-api-v1-4.0.14+c9161c2d77.jar] → fabric_item_group_api_v1",
+    "fabric-item-group-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-item-group-api-v1-4.0.14+c9161c2d77.jar] → fabric_item_group_api_v1",
+    "fabric-key-binding-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-key-binding-api-v1-1.0.38+561530ec77.jar] → fabric_key_binding_api_v1",
+    "fabric-lifecycle-events-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-lifecycle-events-v1-2.2.23+afab492177.jar] → fabric_lifecycle_events_v1",
+    "fabric-lifecycle-events-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-lifecycle-events-v1-2.2.23+afab492177.jar] → fabric_lifecycle_events_v1",
+    "fabric-loot-api-v2.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-loot-api-v2-1.2.3+eb28f93e77.jar] → fabric_loot_api_v2",
+    "fabric-message-api-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-message-api-v1-5.1.10+52cc178c77.jar] → fabric_message_api_v1",
+    "fabric-message-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-message-api-v1-5.1.10+52cc178c77.jar] → fabric_message_api_v1",
+    "fabric-mining-level-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-mining-level-api-v1-2.1.52+561530ec77.jar] → fabric_mining_level_api_v1",
+    "fabric-model-loading-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-model-loading-api-v1-1.0.4+6274ab9d77.jar] → fabric_model_loading_api_v1",
+    "fabric-networking-api-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-networking-api-v1-1.3.14+fb7c822677.jar] → fabric_networking_api_v1",
+    "fabric-networking-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-networking-api-v1-1.3.14+fb7c822677.jar] → fabric_networking_api_v1",
+    "fabric-object-builder-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-object-builder-api-v1-11.1.5+f8c414ce77.jar] → fabric_object_builder_api_v1",
+    "fabric-particles-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-particles-v1-1.1.3+78e1ecb877.jar] → fabric_particles_v1",
+    "fabric-recipe-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-recipe-api-v1-1.0.24+514a076577.jar] → fabric_recipe_api_v1",
+    "fabric-registry-sync-v0.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-registry-sync-v0-2.3.6+1c0ea72177.jar] → fabric_registry_sync_v0",
+    "fabric-registry-sync-v0.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-registry-sync-v0-2.3.6+1c0ea72177.jar] → fabric_registry_sync_v0",
+    "fabric-renderer-api-v1.debughud.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-renderer-api-v1-3.2.2+cf68abbe77.jar] → fabric_renderer_api_v1",
+    "fabric-renderer-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-renderer-api-v1-3.2.2+cf68abbe77.jar] → fabric_renderer_api_v1",
+    "fabric-renderer-indigo.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-renderer-indigo-1.5.3+b5b2da4177.jar] → fabric_renderer_indigo",
+    "fabric-rendering-data-attachment-v1.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.39+a6081afc77.jar] → fabric_rendering_data_attachment_v1",
+    "fabric-rendering-data-attachment-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.39+a6081afc77.jar] → fabric_rendering_data_attachment_v1",
+    "fabric-rendering-fluids-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-rendering-fluids-v1-3.0.29+4ac5e37a77.jar] → fabric_rendering_fluids_v1",
+    "fabric-rendering-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-rendering-v1-3.0.9+66e9a48f77.jar] → fabric_rendering_v1",
+    "fabric-resource-conditions-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-resource-conditions-api-v1-2.3.9+996d00b277.jar] → fabric_resource_conditions_api_v1",
+    "fabric-resource-loader-v0.client.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-resource-loader-v0-0.11.12+4b4151c077.jar] → fabric_resource_loader_v0",
+    "fabric-resource-loader-v0.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-resource-loader-v0-0.11.12+4b4151c077.jar] → fabric_resource_loader_v0",
+    "fabric-screen-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-screen-api-v1-2.0.9+45a670a577.jar] → fabric_screen_api_v1",
+    "fabric-screen-handler-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-screen-handler-api-v1-1.3.33+561530ec77.jar] → fabric_screen_handler_api_v1",
+    "fabric-sound-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-sound-api-v1-1.0.14+4f23bd8477.jar] → fabric_sound_api_v1",
+    "fabric-transfer-api-v1.mixins.json": "mods/forge-1.20.1-forgified-fabric-api.pw.toml [META-INF/jarjar/fabric-transfer-api-v1-3.3.6+25eff73b77.jar] → fabric_transfer_api_v1",
+    "flywheel.backend.mixins.json": "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/flywheel-forge-1.20.1-1.0.5.jar] → flywheel",
+    "flywheel.impl.mixins.json": "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/flywheel-forge-1.20.1-1.0.5.jar] → flywheel",
+    "forge-badoptimizations.mixins.json": "mods/forge-1.20.1-badoptimizations.pw.toml → badoptimizations",
+    "geckolib.mixins.json": "mods/forge-1.20.1-geckolib.pw.toml → geckolib",
+    "lithium.mixins.json": "mods/forge-1.20.1-radium.pw.toml → radium",
+    "mixinextras.init.mixins.json": "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/mixinextras-forge-0.4.1.jar] → mixinextras",
+    "mixins.epicfight.json": "mods/forge-1.20.1-epic-fight.pw.toml → epicfight",
+    "mixinsquared.init.mixins.json": "mods/forge-1.20.1-supplementaries.pw.toml [META-INF/jars/mixinsquared-forge-0.1.1.jar] → mixinsquared",
+    "packetfixer.v1_18.fabric.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_18.forge.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_19.fabric.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_19.forge.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_19_3.fabric.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_19_3.forge.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_19_4.forge.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_20_2.fabric.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_20_2.forge.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "packetfixer.v1_20_2.neoforge.mixins.json": "mods/forge-1.20.1-packet-fixer.pw.toml → packetfixer",
+    "ponder-common.mixins.json": "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/Ponder-Forge-1.20.1-1.0.91.jar] → ponder",
+    "ponder.mixins.json": "mods/forge-1.20.1-create.pw.toml [META-INF/jarjar/Ponder-Forge-1.20.1-1.0.91.jar] → ponder",
+    "supplementaries-common.mixins.json": "mods/forge-1.20.1-supplementaries.pw.toml → supplementaries",
+    "supplementaries.mixins.json": "mods/forge-1.20.1-supplementaries.pw.toml → supplementaries"
+  }
+}
