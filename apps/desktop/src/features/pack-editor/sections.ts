@@ -6,8 +6,8 @@
  *   sempre exatamente estas 6 (CA-T05-03), nenhuma sétima e nenhuma aba. Só muda por ADR.
  * - `sectionPages`: a página de cada seção e o contador. **Registro acréscimo-apenas**
  *   (ROADMAP §1): a tarefa dona de cada seção acrescenta uma linha quando a rota existir
- *   (Configs: C-02; Problemas: D-03; ✦ Diagnóstico com IA: D-04; Histórico: V-02; Exportar:
- *   E-01). Seção sem página aparece no menu desabilitada, com o motivo na dica.
+ *   (Configs: C-02; Problemas: D-03; ✦ Diagnóstico com IA: D-04; Histórico: V-02, já
+ *   registrada; Exportar: E-01, já registrada). Seção sem página aparece no menu desabilitada, com o motivo na dica.
  *
  * `useCount` é um hook (chamado sempre, na mesma ordem, porque a lista é fixa): devolve o
  * contador da seção ou `null` para não mostrar nenhum.
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 
 import type { PackId } from '../../lib/ipc/bindings';
+import { useUnsavedCount } from '../versioning/count';
 import { useModsCount } from './mods/count';
 
 /** Identificador de uma seção do pack. */
@@ -68,6 +69,7 @@ export interface SectionPage {
 /** Registro acréscimo-apenas: uma linha por seção com página. */
 export const sectionPages: readonly SectionPage[] = [
   { section: 'mods', to: '/packs/$packId/mods', useCount: useModsCount },
+  { section: 'historico', to: '/packs/$packId/historico', useCount: useUnsavedCount },
   { section: 'exportar', to: '/packs/$packId/exportar' },
 ];
 

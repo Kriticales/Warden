@@ -62,6 +62,11 @@ export const tarefas = {
     export: {
       run: 'Exportar',
     },
+    versioning: {
+      save: 'Salvar versão',
+      restore: 'Voltar para uma versão',
+      discard: 'Descartar alteração',
+    },
   },
 } as const;
 
