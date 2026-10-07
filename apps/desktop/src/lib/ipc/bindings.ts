@@ -88,6 +88,28 @@ export const commands = {
 	 *  `export_run` gerou nesta sessão.
 	 */
 	exportReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("export_reveal", { path })),
+	/**
+	 *  O que a geração vai fazer: contagens, mods bloqueados com a troca possível e arquivos de
+	 *  terceiros que pedem confirmação. Só consulta as APIs; não baixa nem grava.
+	 */
+	prismAnalyze: (packId: PackId, source: ExportSource) => typedError<PrismAnalysis, AppError>(__TAURI_INVOKE("prism_analyze", { packId, source })),
+	/**  Abre o diálogo de destino e gera o `.mrpack`. `None` = a pessoa desistiu do diálogo. */
+	prismRun: (packId: PackId, source: ExportSource, options: PrismOptions) => typedError<{
+	/**  Arquivo `.mrpack` escolhido. */
+	path: string,
+	/**  Tamanho do arquivo. */
+	bytes: number,
+	/**  SHA-256 do arquivo, em hexadecimal. */
+	sha256: string,
+	/**  Arquivos baixados pelo Prism (`files[]`). */
+	files: number,
+	/**  Arquivos dentro de `overrides/`. */
+	overrides: number,
+	/**  Quantos itens o Prism vai listar como "não confiáveis". */
+	untrusted: number,
+} | null, AppError>(__TAURI_INVOKE("prism_run", { packId, source, options })),
+	/**  "Mostrar arquivo": só aceita arquivos que `prism_run` gerou nesta sessão. */
+	prismReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("prism_reveal", { path })),
 	/**  Primeira execução e pasta dos packs em uso. */
 	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
 	/**
@@ -519,7 +541,26 @@ export type ExportErrorCode =
 /**  O `packwiz refresh` mudou o pack na cópia: o índice estava desatualizado. */
 "PACK_OUT_OF_DATE" | 
 /**  O caminho tem colchetes, que o `.packwizignore` lê como padrão: excluir à mão. */
-"EXCLUDE_NEEDS_MANUAL_RULE";
+"EXCLUDE_NEEDS_MANUAL_RULE" | 
+/**  A instância pronta para o Prism exige `version` no `pack.toml`. */
+"PRISM_VERSION_REQUIRED" | 
+/**
+ *  Mod da CurseForge que o autor não deixa distribuir a apps de terceiros: o Prism não teria
+ *  como baixar. Pode haver troca pelo Modrinth.
+ */
+"PRISM_BLOCKED" | 
+/**  Há arquivos de terceiros que iriam dentro do arquivo e a pessoa não confirmou a licença. */
+"PRISM_LOCAL_NEEDS_CONFIRMATION" | 
+/**  Há mods da CurseForge e falta a chave para conferir se podem ser distribuídos. */
+"PRISM_CURSEFORGE_KEY_MISSING" | 
+/**  Modrinth ou CurseForge não responderam à conferência dos arquivos. */
+"PRISM_LOOKUP_FAILED" | 
+/**  Um arquivo do pack não pôde ser baixado ou conferido para entrar na instância. */
+"PRISM_DOWNLOAD_FAILED" | 
+/**  O arquivo gerado não passou na validação e foi descartado. */
+"PRISM_INVALID_OUTPUT" | 
+/**  O pack usa uma organização que a instância pronta não sabe reproduzir. */
+"PRISM_UNSUPPORTED_PACK";
 
 /**  Saída nativa. */
 export type ExportFormat = 
@@ -1522,6 +1563,93 @@ export type PreviewFolder = {
 	files: number,
 	/**  Soma dos tamanhos nesta pasta e nas subpastas. */
 	bytes: number,
+};
+
+/**  O que a geração vai fazer, antes de baixar nada além das conferências. */
+export type PrismAnalysis = {
+	/**  Versão do pack (`pack.toml`); vazia = a geração recusa. */
+	version: string,
+	/**  Versão do Minecraft. */
+	minecraft: string,
+	/**  Loader e versão exata, em texto (`Fabric 0.16.5`); vazio no vanilla. */
+	loader: string,
+	/**  Arquivos do Modrinth. */
+	modrinth: number,
+	/**  Arquivos da CurseForge. */
+	curseforge: number,
+	/**  Arquivos de link direto. */
+	links: number,
+	/**  Arquivos que vão dentro do arquivo (configs, scripts e arquivos locais). */
+	overrides: number,
+	/**  Quantos itens o Prism vai listar como "não confiáveis". */
+	untrusted: number,
+	/**  Há mods da CurseForge e falta a chave para conferir a distribuição. */
+	curseforgeKeyMissing: boolean,
+	/**  Mods que o Prism não conseguiria baixar. */
+	blocked: PrismBlockedMod[],
+	/**  Arquivos de terceiros (mods, resource packs e shaders locais) que pedem confirmação. */
+	localFiles: PrismLocalFile[],
+};
+
+/**  Mod da CurseForge que o Prism não conseguiria baixar. */
+export type PrismBlockedMod = {
+	/**  Caminho do `.pw.toml` no pack. */
+	path: string,
+	/**  Nome mostrado. */
+	name: string,
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  Página do arquivo na CurseForge, quando conhecida. */
+	pageUrl: string | null,
+	/**  O mesmo arquivo no Modrinth, quando existe. */
+	swap: PrismSwap | null,
+};
+
+/**  Arquivo de terceiros que iria dentro do arquivo gerado. */
+export type PrismLocalFile = {
+	/**  Caminho no pack. */
+	path: string,
+	/**  Tamanho em bytes. */
+	bytes: number,
+};
+
+/**  O que a pessoa decidiu antes de gerar. */
+export type PrismOptions = {
+	/**  Confirmou que pode distribuir os arquivos de terceiros que vão dentro do arquivo. */
+	confirmLocalFiles: boolean,
+	/**
+	 *  Caminhos dos `.pw.toml` de mods bloqueados que a pessoa quer trocar pelo Modrinth
+	 *  (a troca vale só para o arquivo gerado; o pack não muda).
+	 */
+	swaps: string[],
+};
+
+/**  Arquivo gerado. */
+export type PrismResult = {
+	/**  Arquivo `.mrpack` escolhido. */
+	path: string,
+	/**  Tamanho do arquivo. */
+	bytes: number,
+	/**  SHA-256 do arquivo, em hexadecimal. */
+	sha256: string,
+	/**  Arquivos baixados pelo Prism (`files[]`). */
+	files: number,
+	/**  Arquivos dentro de `overrides/`. */
+	overrides: number,
+	/**  Quantos itens o Prism vai listar como "não confiáveis". */
+	untrusted: number,
+};
+
+/**  O mesmo arquivo, encontrado no Modrinth. */
+export type PrismSwap = {
+	/**  Projeto no Modrinth. */
+	projectId: string,
+	/**  Versão no Modrinth. */
+	versionId: string,
+	/**  Número da versão, para mostrar. */
+	versionNumber: string,
+	/**  Nome do arquivo no Modrinth. */
+	fileName: string,
 };
 
 /**  Quanto já foi feito. */

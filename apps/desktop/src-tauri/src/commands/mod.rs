@@ -12,6 +12,7 @@ pub(crate) mod inventory;
 pub(crate) mod java;
 pub(crate) mod pack_meta;
 pub(crate) mod packs;
+pub(crate) mod prism;
 pub(crate) mod secrets;
 pub(crate) mod window;
 
@@ -54,6 +55,9 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             export::export_exclude,
             export::export_run,
             export::export_reveal,
+            prism::prism_analyze,
+            prism::prism_run,
+            prism::prism_reveal,
             app::settings_status,
             app::settings_choose_packs_dir,
             app::logs_reveal_folder,
