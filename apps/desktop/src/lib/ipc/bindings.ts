@@ -163,6 +163,33 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**  A configuração de opcional de um item (`null`: o item não é opcional). */
+	itemOptionGet: (packId: PackId, path: string) => typedError<{
+	/**  Texto mostrado ao jogador (pode ser vazio). */
+	description: string,
+	/**  Se vem ligado por padrão. */
+	default: boolean,
+} | null, AppError>(__TAURI_INVOKE("item_option_get", { packId, path })),
+	/**
+	 *  Marca (`settings`) ou desmarca (`null`) um item como opcional. Devolve os arquivos
+	 *  alterados; vazio quando já estava assim.
+	 */
+	itemSetOptional: (packId: PackId, path: string, settings: {
+	/**  Texto mostrado ao jogador (pode ser vazio). */
+	description: string,
+	/**  Se vem ligado por padrão. */
+	default: boolean,
+} | null) => typedError<string[], AppError>(__TAURI_INVOKE("item_set_optional", { packId, path, settings })),
+	/**  Fixa (`pinned = true`) ou solta a versão de um ou vários itens: uma escrita só. */
+	itemsSetPinned: (packId: PackId, paths: string[], pinned: boolean) => typedError<string[], AppError>(__TAURI_INVOKE("items_set_pinned", { packId, paths, pinned })),
+	/**  Os opcionais do pack e quais estão ligados na instância de teste. */
+	instanceOptionalChoicesGet: (packId: PackId) => typedError<OptionalChoice[], AppError>(__TAURI_INVOKE("instance_optional_choices_get", { packId })),
+	/**
+	 *  Grava quais opcionais ficam ligados na instância de teste (caminho do `.pw.toml` → ligado).
+	 *  Só vale para itens opcionais do pack; qualquer outro caminho é recusado. As escolhas
+	 *  antigas de itens que deixaram de ser opcionais saem. Não toca no pack.
+	 */
+	instanceSetOptionalChoices: (packId: PackId, choices: { [key in string]: boolean }) => typedError<null, AppError>(__TAURI_INVOKE("instance_set_optional_choices", { packId, choices })),
 };
 
 /** Events */
@@ -1316,6 +1343,28 @@ export type OperationState =
  *  T22).
  */
 export type OperationUpdated = OperationSnapshot;
+
+/**  A configuração de opcional de um item, como a interface a edita. */
+export type OptionSettings = {
+	/**  Texto mostrado ao jogador (pode ser vazio). */
+	description: string,
+	/**  Se vem ligado por padrão. */
+	default: boolean,
+};
+
+/**  Um opcional do pack com a escolha desta instância. */
+export type OptionalChoice = {
+	/**  Caminho do `.pw.toml`. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  Texto que o jogador veria. */
+	description: string,
+	/**  Se o pack o liga por padrão. */
+	default: boolean,
+	/**  Se está ligado na instância (a escolha gravada ou, sem ela, o padrão). */
+	enabled: boolean,
+};
 
 /**  Parte do pack que mudou, para a interface invalidar só o necessário. */
 export type PackArea = 
