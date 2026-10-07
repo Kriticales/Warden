@@ -22,6 +22,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use markers::Progress;
+use tokio::io::copy_bidirectional;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::process::Command;
 use warden_core::{CancellationToken, NoProgress};
 use warden_instance::{
@@ -197,6 +199,14 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     }
     pack_script(&["verify", combo.name, game_dir.to_str().unwrap()]).await;
     let port = free_port();
+    let proxy = if combo.name == "fabric-1.16.5" {
+        Some(TcpListener::bind("127.0.0.1:0").await.unwrap())
+    } else {
+        None
+    };
+    let client_port = proxy
+        .as_ref()
+        .map_or(port, |listener| listener.local_addr().unwrap().port());
     let server_dir = prepare(combo, root, &java.java, port).await;
     std::fs::create_dir_all(&game_dir).unwrap();
     // A opção surgiu em 1.19.4. Versões anteriores descartam a chave ao salvar.
@@ -246,7 +256,7 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         } else {
             QuickPlay::Multiplayer {
                 host: "127.0.0.1".into(),
-                port,
+                port: client_port,
             }
         }),
         quick_play_path: modern(combo.minecraft).then(|| "quickplay.json".into()),
@@ -323,6 +333,17 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         server = Some(running);
         server_events = Some(events);
     }
+    let proxy_task = proxy.map(|listener| {
+        tokio::spawn(async move {
+            let (mut client, _) = listener.accept().await.unwrap();
+            // No Xvfb, o Fabric 1.16.5 recebe chunks antes de terminar o atlas
+            // quando --server conecta imediatamente. Mantém o TCP aberto até a
+            // recarga de recursos avançar, então repassa a sessão real.
+            tokio::time::sleep(Duration::from_secs(15)).await;
+            let mut server = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+            let _ = copy_bidirectional(&mut client, &mut server).await;
+        })
+    });
     let opened = GameProcess::spawn(
         &command,
         SpawnOptions {
@@ -334,6 +355,9 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     let (client, mut client_events) = match opened {
         Ok(value) => value,
         Err(error) => {
+            if let Some(task) = proxy_task {
+                task.abort();
+            }
             if let Some(running) = server {
                 running.handle().stop().await;
                 let _ = running.wait().await;
@@ -392,6 +416,9 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     }
     client.handle().stop().await;
     let client_exit = client.wait().await.unwrap();
+    if let Some(task) = proxy_task {
+        task.abort();
+    }
     if let Some(running) = server {
         let _ = running.handle().send_line("stop").await;
         let _ = tokio::time::timeout(Duration::from_secs(30), running.handle().stop()).await;
