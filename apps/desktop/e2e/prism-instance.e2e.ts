@@ -116,7 +116,9 @@ async function step(name: string, action: () => Promise<void>): Promise<void> {
   try {
     await action();
   } catch (error) {
-    const body = await browser.execute(() => document.body.innerText.slice(0, 600));
+    const body = await browser.execute(() =>
+      (document.querySelector('main') ?? document.body).innerText.slice(0, 1200),
+    );
     throw new Error(`passo "${name}" falhou: ${String(error)}\ntela: ${body}`);
   }
 }
