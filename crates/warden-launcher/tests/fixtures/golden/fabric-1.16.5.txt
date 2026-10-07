@@ -4,6 +4,10 @@ pasta: C:\Warden\instances\PACK\minecraft
 -Xmx4096M
 -XX:ErrorFile=C:\Warden\instances\PACK\minecraft\hs_err_pid%p.log
 -Dlog4j2.formatMsgNoLookups=true
+-Dminecraft.api.auth.host=http://127.0.0.1:1
+-Dminecraft.api.account.host=http://127.0.0.1:1
+-Dminecraft.api.session.host=http://127.0.0.1:1
+-Dminecraft.api.services.host=http://127.0.0.1:1
 -DFabricMcEmu= net.minecraft.client.main.Main 
 -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump
 -Dos.name=Windows 10

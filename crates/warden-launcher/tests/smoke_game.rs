@@ -232,17 +232,6 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     if combo.name == "forge-1.12.2" {
         props.push(("fml.queryResult".into(), "confirm".into()));
     }
-    if combo.minecraft == "1.16.5" {
-        // O authlib 2 desabilita Multiplayer para o perfil offline quando a API
-        // responde com uma política restritiva; sem serviço, usa a política offline.
-        // EnvironmentParser só aceita a substituição quando os quatro hosts existem.
-        for name in ["auth", "account", "session", "services"] {
-            props.push((
-                format!("minecraft.api.{name}.host"),
-                "http://127.0.0.1:1".into(),
-            ));
-        }
-    }
     let options = LaunchOptions {
         game_dir: game_dir.clone(),
         state_dir: instance.join("state"),

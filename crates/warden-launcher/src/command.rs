@@ -178,6 +178,14 @@ pub fn build(game: &InstalledGame, opts: &LaunchOptions, os: TargetOs) -> Result
         // é a configuração escolhida na instalação (`InstalledGame::logging`).
         args.push("-Dlog4j2.formatMsgNoLookups=true".to_owned());
     }
+    if matches!(game.spec.minecraft.as_str(), "1.16.4" | "1.16.5") {
+        // O authlib 2 recebe uma política que bloqueia Multiplayer para perfis
+        // offline nessas versões. Sem os serviços remotos, usa a política offline.
+        // EnvironmentParser exige os quatro hosts para aceitar a substituição.
+        for name in ["auth", "account", "session", "services"] {
+            args.push(format!("-Dminecraft.api.{name}.host=http://127.0.0.1:1"));
+        }
+    }
     args.extend(
         opts.system_props
             .iter()
@@ -385,6 +393,41 @@ mod tests {
             !new.args
                 .iter()
                 .any(|arg| arg.contains("formatMsgNoLookups"))
+        );
+    }
+
+    #[test]
+    fn authlib_1_16_usa_politica_offline_para_multiplayer() {
+        for version in ["1.16.4", "1.16.5"] {
+            let mut installed = game("2021-01-15T16:05:32+00:00", &MODERN_ARGS);
+            installed.spec = GameSpec::new(
+                version,
+                LoaderSpec::Fabric {
+                    version: "0.19.5".into(),
+                },
+            )
+            .unwrap();
+            let command = build(&installed, &options(8), TargetOs::Windows).unwrap();
+            for name in ["auth", "account", "session", "services"] {
+                assert!(
+                    command
+                        .args
+                        .contains(&format!("-Dminecraft.api.{name}.host=http://127.0.0.1:1")),
+                    "{version}: host {name} ausente"
+                );
+            }
+        }
+        let modern = build(
+            &game("2023-06-12T13:25:51+00:00", &MODERN_ARGS),
+            &options(17),
+            TargetOs::Windows,
+        )
+        .unwrap();
+        assert!(
+            !modern
+                .args
+                .iter()
+                .any(|arg| arg.starts_with("-Dminecraft.api."))
         );
     }
 
