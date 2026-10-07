@@ -587,7 +587,7 @@ async fn jogo_real_chega_ao_menu_pelo_testar() {
     let started = Instant::now();
     let (task, seen) = spawn_test(&state, pack, TestRequest::default());
     let legacy_forge = game.loader == "forge" && game.minecraft == "1.12.2";
-    let deadline = Instant::now() + Duration::from_secs(45 * 60);
+    let deadline = Instant::now() + Duration::from_mins(45);
     let mut loaded_at = None;
     loop {
         let texts = seen.console_texts();
