@@ -14,7 +14,7 @@ use warden_project::transaction::PackTransaction;
 use warden_versioning::{PackRepo, Snapshot};
 use zip::write::SimpleFileOptions;
 
-use crate::{Error, Result};
+use crate::{Error, ExportErrorCode, Result};
 
 /// Origem da exportação. Uma versão salva nunca lê a árvore de trabalho.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -163,25 +163,29 @@ impl SourceReader {
                         .file_type()
                         .is_symlink()
                     {
-                        return Err(Error(format!("link simbólico no pack: {relative}")));
+                        return Err(Error::internal(format!(
+                            "link simbólico no pack: {relative}"
+                        )));
                     }
                 }
                 let metadata = fs::symlink_metadata(&path).map_err(err)?;
                 if !metadata.is_file() || metadata.file_type().is_symlink() {
-                    return Err(Error(format!("arquivo não é regular: {relative}")));
+                    return Err(Error::internal(format!(
+                        "arquivo não é regular: {relative}"
+                    )));
                 }
                 fs::read(path).map_err(err)
             }
             Self::Saved { repo, snapshot } => repo
                 .read_file_at(snapshot, relative)
                 .map_err(err)?
-                .ok_or_else(|| Error(format!("arquivo ausente na versão: {relative}"))),
+                .ok_or_else(|| Error::internal(format!("arquivo ausente na versão: {relative}"))),
         }
     }
 }
 
 fn err(error: impl std::fmt::Display) -> Error {
-    Error(error.to_string())
+    Error::internal(error.to_string())
 }
 
 fn indexed_files(reader: &SourceReader) -> Result<BTreeMap<String, Vec<u8>>> {
@@ -191,7 +195,7 @@ fn indexed_files(reader: &SourceReader) -> Result<BTreeMap<String, Vec<u8>>> {
         .value;
     // A tela e o contrato de publicação usam os dois nomes canônicos.
     if manifest.index.file != "index.toml" {
-        return Err(Error("o índice do pack precisa ser index.toml".into()));
+        return Err(Error::internal("o índice do pack precisa ser index.toml"));
     }
     let index_bytes = reader.read("index.toml")?;
     let index = PackIndex::parse(std::str::from_utf8(&index_bytes).map_err(err)?)
@@ -204,7 +208,7 @@ fn indexed_files(reader: &SourceReader) -> Result<BTreeMap<String, Vec<u8>>> {
     for entry in index.normalized_entries() {
         check_relative_path(&entry.file).map_err(err)?;
         if entry.file.contains('\\') {
-            return Err(Error(format!(
+            return Err(Error::internal(format!(
                 "separador inválido no índice: {}",
                 entry.file
             )));
@@ -215,10 +219,13 @@ fn indexed_files(reader: &SourceReader) -> Result<BTreeMap<String, Vec<u8>>> {
             || entry.file == ".git"
             || entry.file.starts_with(".git/")
         {
-            return Err(Error(format!("arquivo privado no índice: {}", entry.file)));
+            return Err(Error::internal(format!(
+                "arquivo privado no índice: {}",
+                entry.file
+            )));
         }
         if matches!(entry.file.as_str(), PACK_FILE | "index.toml") {
-            return Err(Error(format!(
+            return Err(Error::internal(format!(
                 "arquivo de controle repetido no índice: {}",
                 entry.file
             )));
@@ -331,13 +338,14 @@ pub async fn exclude_from_pack(
 ) -> Result<()> {
     check_relative_path(relative).map_err(err)?;
     if relative.contains(['[', ']']) {
-        return Err(Error(
-            "nome com colchetes exige exclusão manual no .packwizignore".into(),
+        return Err(Error::new(
+            ExportErrorCode::ExcludeNeedsManualRule,
+            "nome com colchetes exige exclusão manual no .packwizignore",
         ));
     }
     if matches!(relative, PACK_FILE | "index.toml") {
-        return Err(Error(
-            "não é possível excluir pack.toml ou index.toml".into(),
+        return Err(Error::internal(
+            "não é possível excluir pack.toml ou index.toml",
         ));
     }
     let reader = SourceReader::open(root, &ExportSource::Current)?;
@@ -347,7 +355,9 @@ pub async fn exclude_from_pack(
         .keys()
         .any(|path| path.starts_with(&format!("{relative}/")));
     if !is_file && !is_folder {
-        return Err(Error(format!("caminho fora do índice: {relative}")));
+        return Err(Error::internal(format!(
+            "caminho fora do índice: {relative}"
+        )));
     }
     let path = root.join(".packwizignore");
     let mut ignore = match fs::read_to_string(path) {
@@ -387,27 +397,31 @@ pub async fn export(
             .file_type()
             .is_symlink()
     {
-        return Err(Error("o destino não pode ser um link simbólico".into()));
+        return Err(Error::new(
+            ExportErrorCode::DestinationNotEmpty,
+            "o destino não pode ser um link simbólico",
+        ));
     }
     if destination.exists()
         && (format != ExportFormat::Folder
             || !destination.is_dir()
             || fs::read_dir(destination).map_err(err)?.next().is_some())
     {
-        return Err(Error(format!(
-            "o destino já existe: {}",
-            destination.display()
-        )));
+        return Err(Error::new(
+            ExportErrorCode::DestinationNotEmpty,
+            format!("o destino já existe: {}", destination.display()),
+        ));
     }
     let root_real = root.canonicalize().map_err(err)?;
     let parent_real = destination
         .parent()
-        .ok_or_else(|| Error("destino sem pasta pai".into()))?
+        .ok_or_else(|| Error::internal("destino sem pasta pai"))?
         .canonicalize()
         .map_err(err)?;
     if parent_real.starts_with(root_real) {
-        return Err(Error(
-            "o destino precisa ficar fora da pasta do pack".into(),
+        return Err(Error::new(
+            ExportErrorCode::DestinationInsidePack,
+            "o destino precisa ficar fora da pasta do pack",
         ));
     }
     fs::create_dir_all(staging_parent).map_err(err)?;
@@ -419,7 +433,7 @@ pub async fn export(
     let original = indexed_files(&reader)?;
     for (path, bytes) in &original {
         if cancel.is_cancelled() {
-            return Err(Error("exportação cancelada".into()));
+            return Err(Error::internal("exportação cancelada"));
         }
         let target = resolve_inside(stage.path(), path).map_err(err)?;
         if let Some(parent) = target.parent() {
@@ -440,10 +454,12 @@ pub async fn export(
         .map_err(err)?;
     let after = snapshot(stage.path(), |_| true).map_err(err)?;
     if before != after {
-        return Err(Error("a saída não é estável após packwiz refresh".into()));
+        return Err(Error::internal(
+            "a saída não é estável após packwiz refresh",
+        ));
     }
     if cancel.is_cancelled() {
-        return Err(Error("exportação cancelada".into()));
+        return Err(Error::internal("exportação cancelada"));
     }
     let files = refreshed.keys().cloned().collect::<Vec<_>>();
     let bytes = match format {
@@ -462,14 +478,18 @@ fn verify_refresh(
     refreshed: &BTreeMap<String, Vec<u8>>,
 ) -> Result<()> {
     if original.keys().ne(refreshed.keys()) {
-        return Err(Error(
-            "o refresh mudou a lista de arquivos; atualize o pack antes de exportar".into(),
+        return Err(Error::new(
+            ExportErrorCode::PackOutOfDate,
+            "o refresh mudou a lista de arquivos; atualize o pack antes de exportar",
         ));
     }
     if original.iter().any(|(path, bytes)| {
         !matches!(path.as_str(), PACK_FILE | "index.toml") && refreshed.get(path) != Some(bytes)
     }) {
-        return Err(Error("o refresh mudou um arquivo do pack".into()));
+        return Err(Error::new(
+            ExportErrorCode::PackOutOfDate,
+            "o refresh mudou um arquivo do pack",
+        ));
     }
     let parse_manifest = |files: &BTreeMap<String, Vec<u8>>| -> Result<PackManifest> {
         Ok(
@@ -482,8 +502,9 @@ fn verify_refresh(
     let new_manifest = parse_manifest(refreshed)?;
     old_manifest.index.hash.clone_from(&new_manifest.index.hash);
     if old_manifest != new_manifest {
-        return Err(Error(
-            "o refresh mudou o manifesto além do hash do índice".into(),
+        return Err(Error::new(
+            ExportErrorCode::PackOutOfDate,
+            "o refresh mudou o manifesto além do hash do índice",
         ));
     }
     let parse_index = |files: &BTreeMap<String, Vec<u8>>| -> Result<PackIndex> {
@@ -502,7 +523,10 @@ fn verify_refresh(
         entry.hash.clear();
     }
     if old_entries != new_entries {
-        return Err(Error("o refresh mudou o índice além dos hashes".into()));
+        return Err(Error::new(
+            ExportErrorCode::PackOutOfDate,
+            "o refresh mudou o índice além dos hashes",
+        ));
     }
     Ok(())
 }
@@ -521,7 +545,7 @@ fn write_folder(
         let mut total = 0_u64;
         for (relative, bytes) in files {
             if cancel.is_cancelled() {
-                return Err(Error("exportação cancelada".into()));
+                return Err(Error::internal("exportação cancelada"));
             }
             let path = resolve_inside(destination, relative).map_err(err)?;
             if let Some(parent) = path.parent() {
@@ -597,7 +621,7 @@ fn write_zip(
         }
         for (path, bytes) in files {
             if cancel.is_cancelled() {
-                return Err(Error("exportação cancelada".into()));
+                return Err(Error::internal("exportação cancelada"));
             }
             zip.start_file(path, options).map_err(err)?;
             zip.write_all(bytes).map_err(err)?;
@@ -697,6 +721,68 @@ mod tests {
         fs::write(&occupied, b"arquivo de outra pessoa").unwrap();
         assert!(write_zip(&occupied, &files, &CancellationToken::new()).is_err());
         assert_eq!(fs::read(occupied).unwrap(), b"arquivo de outra pessoa");
+    }
+
+    /// Os erros que a pessoa resolve sozinha têm código próprio: a interface explica cada um.
+    #[tokio::test]
+    async fn destino_ocupado_ou_dentro_do_pack_e_colchetes_tem_codigo_proprio() {
+        use warden_core::{DomainCode, DomainError as _};
+        let temp = tempfile::tempdir().unwrap();
+        let pack = temp.path().join("pack");
+        fs::create_dir_all(&pack).unwrap();
+        fixture(&pack);
+        // Nenhum dos casos chega a rodar o packwiz.
+        let cli = Packwiz::new(
+            temp.path().join("packwiz-inexistente"),
+            temp.path().join("cache"),
+            temp.path().join("packwiz.json"),
+        );
+        let cancel = CancellationToken::new();
+        let staging = temp.path().join("staging");
+        let code = |error: Error| error.code();
+
+        let occupied = temp.path().join("existente.zip");
+        fs::write(&occupied, b"de outra pessoa").unwrap();
+        let error = export(
+            &pack,
+            &ExportSource::Current,
+            ExportFormat::Zip,
+            &occupied,
+            &staging,
+            &cli,
+            &cancel,
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(
+            code(error),
+            DomainCode::Domain(ExportErrorCode::DestinationNotEmpty)
+        );
+        assert_eq!(fs::read(&occupied).unwrap(), b"de outra pessoa");
+
+        let error = export(
+            &pack,
+            &ExportSource::Current,
+            ExportFormat::Folder,
+            &pack.join("saida"),
+            &staging,
+            &cli,
+            &cancel,
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(
+            code(error),
+            DomainCode::Domain(ExportErrorCode::DestinationInsidePack)
+        );
+
+        let error = exclude_from_pack(&pack, "config/[a].txt", &cli, &cancel)
+            .await
+            .unwrap_err();
+        assert_eq!(
+            code(error),
+            DomainCode::Domain(ExportErrorCode::ExcludeNeedsManualRule)
+        );
     }
 
     #[test]

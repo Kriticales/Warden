@@ -17,12 +17,38 @@ use warden_core::{DomainCode, DomainError};
 pub enum ExportErrorCode {
     /// Bug: invariante quebrada sem código específico.
     Internal,
+    /// O destino escolhido já existe e não é uma pasta vazia (ou é um link simbólico).
+    DestinationNotEmpty,
+    /// O destino escolhido fica dentro da pasta do pack.
+    DestinationInsidePack,
+    /// O `packwiz refresh` mudou o pack na cópia: o índice estava desatualizado.
+    PackOutOfDate,
+    /// O caminho tem colchetes, que o `.packwizignore` lê como padrão: excluir à mão.
+    ExcludeNeedsManualRule,
 }
 
 /// Falha de preparação ou gravação da exportação. Os detalhes não contêm segredos.
 #[derive(Debug, thiserror::Error)]
-#[error("{0}")]
-pub struct Error(pub String);
+#[error("{message}")]
+pub struct Error {
+    code: ExportErrorCode,
+    message: String,
+}
+
+impl Error {
+    /// Falha com código específico.
+    pub fn new(code: ExportErrorCode, message: impl Into<String>) -> Self {
+        Self {
+            code,
+            message: message.into(),
+        }
+    }
+
+    /// Falha sem código específico (`INTERNAL`).
+    pub fn internal(message: impl Into<String>) -> Self {
+        Self::new(ExportErrorCode::Internal, message)
+    }
+}
 
 /// Resultado das operações de exportação.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -31,6 +57,6 @@ impl DomainError for Error {
     type Code = ExportErrorCode;
 
     fn code(&self) -> DomainCode<Self::Code> {
-        DomainCode::Domain(ExportErrorCode::Internal)
+        DomainCode::Domain(self.code)
     }
 }

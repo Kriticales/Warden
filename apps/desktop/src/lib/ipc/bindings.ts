@@ -83,6 +83,11 @@ export const commands = {
 	/**  Bytes da saída final (zip comprimido ou soma dos arquivos). */
 	bytes: number,
 } | null, AppError>(__TAURI_INVOKE("export_run", { packId, source, format })),
+	/**
+	 *  "Abrir pasta" do resultado: o Explorador com a saída selecionada. Só aceita caminhos que
+	 *  `export_run` gerou nesta sessão.
+	 */
+	exportReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("export_reveal", { path })),
 	/**  Primeira execução e pasta dos packs em uso. */
 	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
 	/**
@@ -506,7 +511,15 @@ cause: HygieneCause };
  */
 export type ExportErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O destino escolhido já existe e não é uma pasta vazia (ou é um link simbólico). */
+"DESTINATION_NOT_EMPTY" | 
+/**  O destino escolhido fica dentro da pasta do pack. */
+"DESTINATION_INSIDE_PACK" | 
+/**  O `packwiz refresh` mudou o pack na cópia: o índice estava desatualizado. */
+"PACK_OUT_OF_DATE" | 
+/**  O caminho tem colchetes, que o `.packwizignore` lê como padrão: excluir à mão. */
+"EXCLUDE_NEEDS_MANUAL_RULE";
 
 /**  Saída nativa. */
 export type ExportFormat = 
