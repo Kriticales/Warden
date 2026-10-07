@@ -65,6 +65,7 @@ use crate::downloads::{
 use crate::error::{Error, FailedItem, FailureReason, Result};
 use crate::manifest::{EntryOrigin, Manifest, ManifestEntry, ModrinthIds, modified_ns};
 use crate::optional_choices::OptionalChoices;
+use crate::player_tools::{PlayerToolsMode, excluded_paths};
 
 /// Identificador da etapa no progresso.
 pub const STAGE: &str = "syncPack";
@@ -154,6 +155,8 @@ pub struct MaterializeOptions {
     pub on_modified: OnModified,
     /// Opcionais.
     pub optionals: OptionalSelection,
+    /// Quais ferramentas do jogador (spark, Crash Assistant) entram (D16; [`crate::player_tools`]).
+    pub player_tools: PlayerToolsMode,
     /// Downloads simultâneos.
     pub max_parallel_downloads: usize,
 }
@@ -164,6 +167,7 @@ impl Default for MaterializeOptions {
             side: InstallSide::Client,
             on_modified: OnModified::Pause,
             optionals: OptionalSelection::Saved,
+            player_tools: PlayerToolsMode::Normal,
             max_parallel_downloads: 6,
         }
     }
@@ -220,6 +224,8 @@ pub struct Report {
     pub skipped_side: u32,
     /// Opcionais desligados.
     pub skipped_disabled: u32,
+    /// Ferramentas do jogador deixadas de fora deste tipo de teste (D16).
+    pub skipped_player_tools: u32,
     /// Itens com `preserve` que já existiam.
     pub preserved: u32,
     /// Mods da CurseForge que precisam de download manual (T20).
@@ -405,10 +411,16 @@ struct Plan {
     failed: Vec<FailedItem>,
     skipped_side: u32,
     skipped_disabled: u32,
+    skipped_player_tools: u32,
 }
 
 /// Lê o pack e monta a lista do que deve estar na instância.
-fn plan(pack_root: &Path, side: InstallSide, choices: &OptionalChoices) -> Result<Plan> {
+fn plan(
+    pack_root: &Path,
+    side: InstallSide,
+    choices: &OptionalChoices,
+    player_tools: &PlayerToolsMode,
+) -> Result<Plan> {
     let warden_packwiz::PackRead {
         pack,
         index,
@@ -437,7 +449,17 @@ fn plan(pack_root: &Path, side: InstallSide, choices: &OptionalChoices) -> Resul
     };
     let mut plan = Plan::default();
     let mut by_dest: BTreeMap<String, Item> = BTreeMap::new();
+    // Ferramentas do jogador que este tipo de teste não leva (D16): saem da lista e, se já
+    // estavam na instância, são removidas como qualquer item que saiu do pack.
+    let left_out = excluded_paths(pack_root, player_tools);
     for entry in index.normalized_entries() {
+        if left_out.contains(&clean_path(&format!(
+            "{}{}",
+            context.index_dir_rel, entry.file
+        ))) {
+            plan.skipped_player_tools += 1;
+            continue;
+        }
         match plan_entry(&context, &entry, &metafiles) {
             EntryPlan::Item(item) => {
                 by_dest.insert(item.dest.clone(), *item);
@@ -727,7 +749,8 @@ pub async fn materialize(
     };
     let side = options.side;
     let root = pack_root.to_path_buf();
-    let plan = blocking(move || plan(&root, side, &choices)).await?;
+    let player_tools = options.player_tools.clone();
+    let plan = blocking(move || plan(&root, side, &choices, &player_tools)).await?;
     check_cancel(cancel)?;
 
     fs::create_dir_all(&dirs.game_dir)
@@ -752,6 +775,7 @@ pub async fn materialize(
     let report = Report {
         skipped_side: plan.skipped_side,
         skipped_disabled: plan.skipped_disabled,
+        skipped_player_tools: plan.skipped_player_tools,
         ..Report::default()
     };
     let failed = plan.failed.clone();

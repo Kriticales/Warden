@@ -1,0 +1,100 @@
+# Mods iniciais do assistente Criar pack (ADR-0033; decisão D16; tarefa P1-18).
+#
+# Embutido no binário (`include_str!` em `src/initial_mods.rs`) e conferido por
+# `cargo xtask check-kits` (consulta a API do Modrinth por item e por faixa) e pelos testes da
+# crate. IDs do Modrinth, nunca slugs (o slug pode mudar). Itens só da CurseForge levam o ID do
+# projeto e nada mais (os termos da CurseForge não deixam guardar dados da API).
+#
+# Cada `[[tool]]` é uma ferramenta do jogador (`role` é a chave em `[player-tools]` de
+# `.warden/project.toml`). Cada `[[tool.band]]` é uma faixa: os loaders e as versões do Minecraft
+# (`from` inclusiva, `to` inclusiva, ambas opcionais) em que aquela fonte e aquele projeto valem.
+# A primeira faixa que serve ao pack é a usada. Nenhuma faixa: a ferramenta não é oferecida.
+#
+# Campos de uma faixa:
+# - source: `modrinth` ou `curseforge`.
+# - project: ID do projeto na fonte.
+# - side: `both`, `client` ou `server`; sem ele vale o lado que a fonte informa.
+# - old: versão antiga e sem atualizações (a interface mostra o aviso).
+# - version_label: versão conhecida, só para a interface quando a fonte não é consultada.
+# - with: itens que a ferramenta exige nesta faixa e que entram junto (a Fabric API no Fabric).
+#   O plano de dependências do Modrinth já os traria; ficam aqui para a gravação não depender
+#   disso e para o `check-kits` conferir o ID.
+#
+# `check` (por ferramenta) são as versões do Minecraft que o `check-kits` consulta para cada
+# faixa, além de `from` e `to`.
+
+schema = 1
+
+[[tool]]
+id = "spark"
+role = "spark"
+checked = true
+check = ["1.20.1", "1.21.1"]
+
+  [[tool.band]]
+  loaders = ["forge"]
+  from = "1.16.5"
+  source = "modrinth"
+  project = "l6YH9Als"
+  side = "both"
+
+  [[tool.band]]
+  loaders = ["fabric"]
+  from = "1.17.1"
+  source = "modrinth"
+  project = "l6YH9Als"
+  side = "both"
+  with = [{ source = "modrinth", project = "P7dR8mSH", name = "Fabric API" }]
+
+  [[tool.band]]
+  loaders = ["neoforge"]
+  from = "1.20.3"
+  source = "modrinth"
+  project = "l6YH9Als"
+  side = "both"
+
+  # spark para 1.7.10: só existe na CurseForge (CurseForge mod 361579).
+  [[tool.band]]
+  loaders = ["forge"]
+  from = "1.7.10"
+  to = "1.7.10"
+  source = "curseforge"
+  project = "361579"
+  side = "both"
+  old = true
+  version_label = "1.10.19"
+
+  # spark para 1.12.2: só existe na CurseForge.
+  [[tool.band]]
+  loaders = ["forge"]
+  from = "1.12.2"
+  to = "1.12.2"
+  source = "curseforge"
+  project = "361579"
+  side = "both"
+  old = true
+  version_label = "1.6.3"
+
+[[tool]]
+id = "crash-assistant"
+role = "crash-assistant"
+checked = true
+check = ["1.12.2", "1.16.5", "1.20.1", "1.21.1", "26.3"]
+
+  [[tool.band]]
+  loaders = ["forge"]
+  from = "1.7.10"
+  source = "modrinth"
+  project = "ix1qq8Ux"
+
+  [[tool.band]]
+  loaders = ["neoforge"]
+  from = "1.20.1"
+  source = "modrinth"
+  project = "ix1qq8Ux"
+
+  [[tool.band]]
+  loaders = ["fabric"]
+  from = "1.14.4"
+  source = "modrinth"
+  project = "ix1qq8Ux"

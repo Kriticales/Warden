@@ -24,3 +24,17 @@ declaram `incompatible` só com o Rubidium (`4ZqxOvjD`) e com o TexTrue's Embedd
 (`S1tndFDa`); nenhuma versão do Sodium para NeoForge 1.21.1 declara o Embeddium. O teste com dados
 reais usa o Rubidium; o caso "pack com Sodium" do critério é coberto com a mesma resposta do Embeddium
 acrescida de uma dependência `incompatible` com o Sodium, marcada no teste como simulada.
+
+## Mods iniciais (P1-18, `tests/initial_mods.rs`)
+
+Gravadas em 07/10/2026, do mesmo jeito (sem alteração, `include_changelog=false`):
+
+| Arquivo | Pedido |
+|---|---|
+| `2026-10-07-projects-initial.json` | `GET /projects?ids=["l6YH9Als","ix1qq8Ux"]` (spark e Crash Assistant) |
+| `2026-10-07-versions-spark-fabric-1.21.1.json` | `GET /project/l6YH9Als/version?loaders=["fabric"]&game_versions=["1.21.1"]` (a versão do Fabric **não declara** a Fabric API como dependência, por isso `initial-mods.toml` a lista em `with`) |
+| `2026-10-07-versions-crash-assistant-fabric-1.21.1.json` | `GET /project/ix1qq8Ux/version?…` (mesmos filtros) |
+| `2026-10-07-versions-crash-assistant-forge-1.12.2.json` | `GET /project/ix1qq8Ux/version?loaders=["forge"]&game_versions=["1.12.2"]` |
+
+A CurseForge não tem respostas gravadas aqui: os itens dela (spark 1.10.19 e 1.6.3) só aparecem
+desabilitados na oferta enquanto a fonte não estiver ligada (CA-T03-08).

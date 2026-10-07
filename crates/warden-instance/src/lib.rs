@@ -14,6 +14,8 @@
 //!   da origem de cada arquivo (gancho 1.1 da ADR-0039).
 //! - [`Manifest`], o que o Warden colocou na instância: `state/manifest.json`.
 //! - [`OptionalChoices`], as escolhas dos opcionais: `state/optional-choices.json`.
+//! - [`player_tools`]: o que das ferramentas do jogador (spark, Crash Assistant) entra em cada
+//!   tipo de teste (D16).
 //! - [`accept_manual_file`]: download manual de um mod bloqueado da CurseForge (T20).
 //!
 //! Limites: a rede é a da `warden-http` (P1-03) e a leitura do pack é a da `warden-packwiz`
@@ -26,6 +28,7 @@ mod error;
 mod manifest;
 mod materialize;
 mod optional_choices;
+pub mod player_tools;
 
 pub use blocked::{BlockedFile, accept_manual_file};
 pub use downloads::{
@@ -42,6 +45,7 @@ pub use materialize::{
     STAGE_LABEL, Sources, game_requirement, materialize,
 };
 pub use optional_choices::{OPTIONAL_CHOICES_FILE, OptionalChoices};
+pub use player_tools::PlayerToolsMode;
 
 /// Pastas temporárias dos testes: dentro de `WARDEN_DATA_ROOT` quando definida (ADR-0053),
 /// senão na pasta temporária do sistema.

@@ -1,0 +1,302 @@
+# Kits de desempenho (ADR-0033; R1 §2.3.5; tarefa P1-18).
+#
+# Embutido no binário (`include_str!` em `src/kits.rs`) e conferido por `cargo xtask check-kits`
+# (consulta a API do Modrinth por item e por versão da faixa) e pelos testes da crate. IDs do
+# Modrinth, nunca slugs. Itens só da CurseForge levam `source = "curseforge"` e o ID do projeto.
+#
+# Um kit vale para um loader e uma faixa de versões do Minecraft (`from` e `to` inclusivas, `to`
+# opcional). `check` são as versões que o `check-kits` consulta. Aplicar um kit passa sempre pelo
+# diálogo de dependências, com tudo visível: nada entra em silêncio. Cada item tem o lado que o
+# mod pede (`side`) e `checked` (se vem marcado). Um item `optional = true` vem desmarcado e
+# `note` diz por quê (códigos traduzidos pela interface).
+#
+# A lista de cada kit é a de R1 §2.3.5, conferida na API do Modrinth em 07/10/2026; o que a API
+# não mostra para a faixa vira aviso no `check-kits`, não erro.
+
+schema = 1
+
+[[kit]]
+id = "fabric-moderno"
+name = "Desempenho para Fabric 1.21 em diante"
+description = "Mods que aumentam os quadros por segundo e diminuem o uso de memória sem mudar o jogo."
+loader = "fabric"
+from = "1.21"
+check = ["1.21.1", "26.3"]
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "AANobbMI"
+  name = "Sodium"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "gvQqBUqZ"
+  name = "Lithium"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "uXXizFIs"
+  name = "FerriteCore"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "5ZwdcRci"
+  name = "ImmediatelyFast"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "NNAgCjsB"
+  name = "Entity Culling"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "51shyZVL"
+  name = "More Culling"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "LQ3K71Q1"
+  name = "Dynamic FPS"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "Ps1zyz6x"
+  name = "ScalableLux"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "g96Z4WVZ"
+  name = "BadOptimizations"
+  side = "client"
+
+  # C2ME muda a geração do mundo: opcional, desmarcado, com aviso (R1 §2.3.5).
+  [[kit.item]]
+  source = "modrinth"
+  project = "VSNURh3q"
+  name = "C2ME"
+  side = "both"
+  checked = false
+  note = "worldgen"
+
+[[kit]]
+id = "neoforge-moderno"
+name = "Desempenho para NeoForge 1.21.1 em diante"
+description = "Mods que aumentam os quadros por segundo e diminuem o uso de memória sem mudar o jogo."
+loader = "neoforge"
+from = "1.21.1"
+check = ["1.21.1", "26.3"]
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "AANobbMI"
+  name = "Sodium"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "YL57xq9U"
+  name = "Iris Shaders"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "gvQqBUqZ"
+  name = "Lithium"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "uXXizFIs"
+  name = "FerriteCore"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "nmDcB62a"
+  name = "ModernFix"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "5ZwdcRci"
+  name = "ImmediatelyFast"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "NNAgCjsB"
+  name = "Entity Culling"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "Ps1zyz6x"
+  name = "ScalableLux"
+  side = "both"
+
+[[kit]]
+id = "forge-1-20-1"
+name = "Desempenho para Forge 1.20.1"
+description = "Mods que aumentam os quadros por segundo e diminuem o uso de memória sem mudar o jogo."
+loader = "forge"
+from = "1.20.1"
+to = "1.20.1"
+check = ["1.20.1"]
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "sk9rgfiA"
+  name = "Embeddium"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "GchcoXML"
+  name = "Oculus"
+  side = "client"
+  checked = false
+  note = "shaders"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "nmDcB62a"
+  name = "ModernFix"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "uXXizFIs"
+  name = "FerriteCore"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "5ZwdcRci"
+  name = "ImmediatelyFast"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "NNAgCjsB"
+  name = "Entity Culling"
+  side = "client"
+
+  # Canary e Radium fazem o mesmo trabalho: o kit traz só o Canary (R1 §2.3.5).
+  [[kit.item]]
+  source = "modrinth"
+  project = "qa2H4BS9"
+  name = "Canary"
+  side = "both"
+
+[[kit]]
+id = "forge-1-18-a-1-19"
+name = "Desempenho para Forge 1.18.2 a 1.19.2"
+description = "Mods que aumentam os quadros por segundo e diminuem o uso de memória sem mudar o jogo."
+loader = "forge"
+from = "1.18.2"
+to = "1.19.2"
+check = ["1.18.2", "1.19.2"]
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "sk9rgfiA"
+  name = "Embeddium"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "nmDcB62a"
+  name = "ModernFix"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "uXXizFIs"
+  name = "FerriteCore"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "iRfIGC1s"
+  name = "Starlight (Forge)"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "NNAgCjsB"
+  name = "Entity Culling"
+  side = "client"
+
+[[kit]]
+id = "forge-1-12-2"
+name = "Desempenho para Forge 1.12.2"
+description = "Mods que corrigem o consumo de memória e o desempenho da 1.12.2."
+loader = "forge"
+from = "1.12.2"
+to = "1.12.2"
+check = ["1.12.2"]
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "e6vNsbAm"
+  name = "VintageFix"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "G1ckZuWK"
+  name = "MixinBooter"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "GBdcSrPi"
+  name = "Relictium"
+  side = "client"
+
+[[kit]]
+id = "forge-1-7-10"
+name = "Desempenho para Forge 1.7.10"
+description = "Mods que corrigem o consumo de memória e o desempenho da 1.7.10. Exigem Java 17 ou mais novo."
+loader = "forge"
+from = "1.7.10"
+to = "1.7.10"
+check = ["1.7.10"]
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "ghjoiQAl"
+  name = "UniMixins"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "6QQe8Ldy"
+  name = "Hodgepodge"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "xTJanN3v"
+  name = "ArchaicFix"
+  side = "both"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "XN5jnYB4"
+  name = "Angelica"
+  side = "client"
+
+  [[kit.item]]
+  source = "modrinth"
+  project = "eC4lt4Oy"
+  name = "lwjgl3ify"
+  side = "both"
