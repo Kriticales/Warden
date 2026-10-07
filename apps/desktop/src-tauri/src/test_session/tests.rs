@@ -605,6 +605,7 @@ async fn jogo_real_chega_ao_menu_pelo_testar() {
             "Missing or unsupported mandatory dependencies",
             "#@!@# Game crashed!",
             "Could not find or load main class",
+            "Uncaught exception in thread",
         ] {
             assert!(!has(signal), "sinal de falha no console: {signal}");
         }
