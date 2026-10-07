@@ -8,11 +8,19 @@ publish.workspace = true
 
 [dependencies]
 warden-core.workspace = true
+warden-curseforge.workspace = true
+warden-http.workspace = true
+warden-instance.workspace = true
+warden-modrinth.workspace = true
 warden-packwiz.workspace = true
 warden-packwiz-cli.workspace = true
 warden-project.workspace = true
 warden-versioning.workspace = true
+hex.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
 tempfile.workspace = true
+url.workspace = true
 thiserror.workspace = true
 zip.workspace = true
 serde.workspace = true
@@ -21,7 +29,9 @@ specta-typescript.workspace = true
 
 [dev-dependencies]
 git2.workspace = true
-serde_json.workspace = true
+secrecy.workspace = true
+sha1.workspace = true
+wiremock.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [lints]
