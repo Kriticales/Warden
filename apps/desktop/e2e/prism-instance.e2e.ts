@@ -161,7 +161,9 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
     });
     await step('formato Prism', async () => {
       await openPrismFormat();
-      await $('*=O pack ainda não tem versão').waitForDisplayed({ timeout: 30_000 });
+      await expect($('main')).toHaveText(expect.stringContaining('O pack ainda não tem versão'), {
+        wait: 30_000,
+      });
     });
     await expect($('button=Gerar instância…')).toBeDisabled();
     await screenshot('40-prism-sem-versao');
@@ -201,7 +203,12 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
     const out = join(OUT, 'pack-prism.mrpack');
     const before = readFileSync(out);
     writeFileSync(PICK_FILE, out);
-    await $('button=Gerar instância…').click();
+    // Um aviso ainda na tela pode cobrir o botão: o clique vai direto no elemento.
+    const generate = $('button=Gerar instância…');
+    await generate.waitForClickable({ timeout: 30_000 });
+    await browser.execute((button) => {
+      button.click();
+    }, generate);
     const panel = $('main .alert--danger');
     await panel.waitForDisplayed({ timeout: 60_000 });
     await expect(panel).toHaveText(expect.stringContaining('O destino escolhido já existe.'));
