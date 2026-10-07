@@ -28,8 +28,15 @@ faixas com servidor local.
 O workflow `.github/workflows/smoke-game.yml` é **somente manual**. Quatro
 runners Linux executam cinco combinações cada, em série, com Xvfb e Mesa.
 O artefato de cada runner inclui o log do teste, os logs de cliente/servidor,
-`options.txt` e `quickplay.json` quando existir. O workflow não é chamado pela
-CI de push nem pela CI de pull request.
+`options.txt`, `quickplay.json`, `latest.log` e relatórios de crash quando
+existirem. Cada combinação produz uma linha `RESUMO` e uma falha não impede
+as demais do grupo; o teste falha no fim se alguma combinação falhar.
+`onboardAccessibility` só é conferido nas versões da matriz a partir de
+1.20.1, pois a opção foi introduzida no Minecraft 1.19.4. No Linux, o teste
+desativa XRandR do LWJGL 2 no Forge 1.12.2 para evitar a consulta a um monitor
+inexistente no Xvfb e pede EGL ao SDL 3 no Minecraft 26.3 para contornar o
+visual GLX ausente no Mesa do runner. O workflow não é chamado pela CI de push
+nem pela CI de pull request.
 
 Para as três execuções locais pedidas no Windows, defina `CARGO_BUILD_JOBS=2`,
 `WARDEN_SMOKE_GAME=1`, `WARDEN_LAUNCHER_DADOS` numa pasta temporária isolada e

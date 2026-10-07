@@ -129,7 +129,7 @@ fn server_command(directory: &Path, java: &Path) -> LaunchCommand {
     }
 }
 
-async fn run_one(combo: &comum::Combo, root: &Path) {
+async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     let shared = root.join("shared");
     let java_service = comum::java_service(root);
     let cache = warden_catalog::CatalogCache::open(&root.join("cache/metadata.sqlite")).unwrap();
@@ -417,13 +417,7 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
             combo.name
         );
     }
-    println!(
-        "{}: pronto={} ms, mundo={} ms, saída={:?}",
-        combo.name,
-        progress.ready_ms.unwrap(),
-        progress.world_ms.unwrap(),
-        client_exit.outcome
-    );
+    (progress.ready_ms.unwrap(), progress.world_ms.unwrap())
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -444,18 +438,24 @@ async fn rede_matriz_jogo_real() {
         "WARDEN_SMOKE_ONLY não casa com a matriz"
     );
     let mut failures = Vec::new();
+    let mut summaries = Vec::new();
     for combo in selected {
         let name = combo.name;
         let combo = *combo;
         let root = root.clone();
         // Isola o panic de cada combinação para sempre executar as demais.
         match tokio::spawn(async move { run_one(&combo, &root).await }).await {
-            Ok(()) => println!("RESUMO {name}: OK"),
+            Ok((ready_ms, world_ms)) => summaries.push(format!(
+                "RESUMO {name}: OK; pronto={ready_ms} ms; mundo={world_ms} ms"
+            )),
             Err(error) => {
-                println!("RESUMO {name}: FALHOU: {error}");
+                summaries.push(format!("RESUMO {name}: FALHOU: {error}"));
                 failures.push(name);
             }
         }
+    }
+    for summary in summaries {
+        println!("{summary}");
     }
     assert!(failures.is_empty(), "combinações com falha: {failures:?}");
 }
