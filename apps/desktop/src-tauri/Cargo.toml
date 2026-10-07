@@ -59,6 +59,9 @@ warden-scripts.workspace = true
 warden-versioning.workspace = true
 warden-export.workspace = true
 warden-secrets.workspace = true
+# Resumo da árvore do pack testada (sessão do teste, L-04).
+sha2.workspace = true
+hex.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 # Janela nativa do menu de encaixe (Snap Layouts) sobre o botão maximizar da barra de título
@@ -67,6 +70,8 @@ windows = { workspace = true, features = [
   "Win32_Foundation",
   "Win32_Graphics_Gdi",
   "Win32_System_LibraryLoader",
+  # Memória total do computador (memória automática do teste, L-04).
+  "Win32_System_SystemInformation",
   "Win32_UI_HiDpi",
   "Win32_UI_Input_KeyboardAndMouse",
   "Win32_UI_WindowsAndMessaging",

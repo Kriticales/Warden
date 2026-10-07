@@ -13,9 +13,12 @@ pub(crate) mod java;
 pub(crate) mod pack_meta;
 pub(crate) mod packs;
 pub(crate) mod secrets;
+pub(crate) mod test;
 pub(crate) mod window;
 
-use crate::events::{OperationUpdated, PackChanged, TitleBarMaximize};
+use crate::events::{
+    GameQuitRequested, GameState, OperationUpdated, PackChanged, TitleBarMaximize,
+};
 
 /// Builder do `tauri-specta` com todos os comandos e eventos. Usado pelo app e pela geração
 /// do `bindings.ts`.
@@ -74,10 +77,24 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             pack_meta::pack_test_settings_get,
             pack_meta::pack_test_settings_set,
             pack_meta::instance_recreate,
+            test::test_start,
+            test::test_stop,
+            test::test_game_state,
+            test::test_live_console,
+            test::test_sessions_list,
+            test::test_session_get,
+            test::test_session_save_log,
+            test::test_artifact_open,
+            test::instance_reveal_folder,
+            test::instance_worlds_list,
+            test::instance_delete_worlds,
+            test::test_quit_app,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,
             PackChanged,
             TitleBarMaximize,
+            GameState,
+            GameQuitRequested,
         ])
 }

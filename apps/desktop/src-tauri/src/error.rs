@@ -254,6 +254,28 @@ pub enum AppErrorCode {
     SettingsInvalid,
     /// O `settings.json` foi gravado por uma versão mais nova do Warden; esta não o altera.
     SettingsNewerVersion,
+    /// Já existe um jogo aberto (ou em preparação) no Warden; um por vez (L-04). `params`:
+    /// `packId`, `packName`.
+    GameAlreadyRunning,
+    /// "Parar jogo" sem jogo aberto neste pack.
+    NoGameRunning,
+    /// O modo de teste pedido ainda não existe nesta versão (`params.mode`).
+    TestModeUnavailable,
+    /// Arquivos que o pack colocou na instância mudaram durante o teste anterior e seriam
+    /// substituídos (`params.count`, `params.files`).
+    TestInstanceChanged,
+    /// Mods da CurseForge precisam de download manual (`params.count`, `params.names`).
+    TestManualDownloads,
+    /// O loader do pack não é aceito pelo Testar (`params.loader`).
+    TestLoaderUnsupported,
+    /// A sessão de teste pedida não existe mais (`params.sessionId`).
+    TestSessionNotFound,
+    /// A instância de teste ainda não existe (o pack nunca foi testado).
+    TestInstanceMissing,
+    /// Aviso: memória acima de 8 GB com Java 8 (`params.memoryMb`).
+    TestMemoryHighJava8,
+    /// O arquivo pedido não é um arquivo de travamento da sessão (`params.path`).
+    TestArtifactInvalid,
 }
 
 #[cfg(test)]

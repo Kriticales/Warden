@@ -203,6 +203,14 @@ impl Registry {
         })
     }
 
+    /// Grava o resultado do último teste (`ok`, `crashed`; `None` apaga), registrado pela L-04.
+    pub fn set_last_test(&self, id: PackId, value: Option<&str>) -> Result<()> {
+        self.update(id, |record| {
+            record.last_test = value.map(ToOwned::to_owned);
+            Ok(())
+        })
+    }
+
     /// Grava (`Some`) ou remove (`None`) uma preferência local em `extra`, preservando as
     /// outras. Os nomes dos campos fixos do registro são recusados, porque `extra` é achatado
     /// no JSON e duplicaria a chave.
@@ -344,6 +352,21 @@ mod tests {
             })
             .unwrap();
         (registry, id)
+    }
+
+    #[test]
+    fn ultimo_teste_grava_e_preserva_os_outros_campos() {
+        let dir = tempfile::tempdir().unwrap();
+        let (registry, id) = registry_with_pack(dir.path());
+        registry.set_last_test(id, Some("crashed")).unwrap();
+        let reopened = Registry::open(dir.path().join("packs.json")).unwrap();
+        let record = reopened.get(id).unwrap();
+        assert_eq!(record.last_test.as_deref(), Some("crashed"));
+        assert_eq!(record.name, "Antigo");
+        assert_eq!(record.extra["futuro"], Value::from(1));
+        registry.set_last_test(id, None).unwrap();
+        assert_eq!(registry.get(id).unwrap().last_test, None);
+        assert!(registry.set_last_test(PackId::new(), Some("ok")).is_err());
     }
 
     #[test]

@@ -6273,9 +6273,11 @@ name = "warden-app"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "hex",
  "secrecy",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "specta",
  "specta-typescript",
  "tauri",
