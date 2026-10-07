@@ -8,12 +8,17 @@ publish.workspace = true
 
 [dependencies]
 warden-core.workspace = true
+warden-curseforge.workspace = true
+warden-modrinth.workspace = true
 warden-packwiz.workspace = true
 warden-packwiz-cli.workspace = true
 warden-project.workspace = true
 warden-versioning.workspace = true
+secrecy.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
+url.workspace = true
 zip.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
@@ -21,7 +26,10 @@ specta-typescript.workspace = true
 
 [dev-dependencies]
 git2.workspace = true
-serde_json.workspace = true
+sha1.workspace = true
+sha2.workspace = true
+warden-http.workspace = true
+wiremock.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [lints]
