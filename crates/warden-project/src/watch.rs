@@ -220,6 +220,7 @@ impl PackWatcher {
         let (sender, receiver) = mpsc::channel();
         let roots = roots_of(root);
         let callback_sender = sender.clone();
+        let worker_ledger = ledger.clone();
         let mut watcher = notify::recommended_watcher(move |result: notify::Result<Event>| {
             let Ok(event) = result else {
                 return;
@@ -238,9 +239,14 @@ impl PackWatcher {
         watcher
             .watch(root, RecursiveMode::Recursive)
             .map_err(|error| watch_error(&error))?;
+        let probe = RootProbe {
+            pack,
+            root: root.to_path_buf(),
+            ledger: worker_ledger,
+        };
         let worker = std::thread::Builder::new()
             .name("warden-pack-watch".into())
-            .spawn(move || run_worker(&receiver, config, &on_change))
+            .spawn(move || run_worker(&receiver, config, &probe, &on_change))
             .map_err(|error| Error::new(Code::Internal, error.to_string()))?;
         Ok(Self {
             watcher: Some(watcher),
@@ -305,39 +311,54 @@ fn areas_of(event: &Event, roots: &[PathBuf]) -> BTreeSet<Area> {
     found
 }
 
+/// Dados que o vigia usa para notar sozinho que a pasta do pack sumiu ou voltou: o Windows
+/// não avisa quando a própria pasta vigiada é apagada ou renomeada.
+struct RootProbe {
+    pack: PackId,
+    root: PathBuf,
+    ledger: WriteLedger,
+}
+
 fn run_worker(
     receiver: &mpsc::Receiver<Message>,
     config: WatchConfig,
+    probe: &RootProbe,
     on_change: &dyn Fn(Vec<Area>),
 ) {
     let mut pending: BTreeSet<Area> = BTreeSet::new();
     let mut first: Option<Instant> = None;
     let mut last = Instant::now();
+    let mut root_present = true;
     loop {
-        let message = match first {
-            None => match receiver.recv() {
-                Ok(message) => message,
-                Err(_) => return,
-            },
+        let wait = match first {
+            None => config.debounce,
             Some(started) => {
                 let deadline = (last + config.debounce).min(started + config.max_wait);
-                match receiver.recv_timeout(deadline.saturating_duration_since(Instant::now())) {
-                    Ok(message) => message,
-                    Err(RecvTimeoutError::Timeout) => {
-                        on_change(std::mem::take(&mut pending).into_iter().collect());
-                        first = None;
-                        continue;
-                    }
-                    Err(RecvTimeoutError::Disconnected) => return,
-                }
+                deadline.saturating_duration_since(Instant::now())
             }
         };
-        match message {
-            Message::Stop => return,
-            Message::Changed(areas) => {
+        match receiver.recv_timeout(wait) {
+            Ok(Message::Stop) | Err(RecvTimeoutError::Disconnected) => return,
+            Ok(Message::Changed(areas)) => {
                 pending.extend(areas);
                 last = Instant::now();
                 first.get_or_insert(last);
+            }
+            Err(RecvTimeoutError::Timeout) if first.is_some() => {
+                on_change(std::mem::take(&mut pending).into_iter().collect());
+                first = None;
+            }
+            Err(RecvTimeoutError::Timeout) => {
+                let present = probe.root.is_dir();
+                if present != root_present {
+                    root_present = present;
+                    let now = Instant::now();
+                    if !probe.ledger.covers(probe.pack, now) {
+                        pending.extend(ALL_AREAS);
+                        last = now;
+                        first = Some(now);
+                    }
+                }
             }
         }
     }
