@@ -19,7 +19,8 @@ import type { ComponentType } from 'react';
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
 import { HygieneAlert } from '../hygiene/HygieneAlert';
 import { SaveVersionButton } from './SaveVersionButton';
-import { TestButton } from './TestButton';
+import { PackChangedAlert } from '../../test/PackChangedAlert';
+import { TestButton } from '../../test/TestButton';
 
 /** O que todo componente do cabeçalho recebe. */
 export interface HeaderSlotProps {
@@ -44,6 +45,7 @@ export const headerSlots: readonly HeaderSlot[] = [
   { id: 'save', placement: 'actions', order: 100, component: SaveVersionButton },
   { id: 'test', placement: 'actions', order: 200, component: TestButton },
   { id: 'hygiene', placement: 'alerts', order: 100, component: HygieneAlert },
+  { id: 'test-pack-changed', placement: 'alerts', order: 200, component: PackChangedAlert },
 ];
 
 /** Os componentes de um lugar, na ordem. */

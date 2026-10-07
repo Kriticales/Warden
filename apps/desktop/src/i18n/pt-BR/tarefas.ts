@@ -51,6 +51,9 @@ export const tarefas = {
   },
   tipoDesconhecido: 'Tarefa do Warden',
   tipos: {
+    test: {
+      start: 'Testar o pack',
+    },
     java: {
       checkUpdates: 'Procurar atualizações do Java',
     },

@@ -1,0 +1,23 @@
+/*
+ * Console do jogo (SPEC T13): o visual vem de `.console*` no design system; aqui só o que a
+ * lista virtualizada precisa. O respiro de cima e de baixo do log passa para a lista (o
+ * virtualizador conta com ele ao rolar até o fim).
+ */
+.console__log--virtual {
+  padding: 0;
+}
+.console__rows {
+  position: relative;
+  width: 100%;
+}
+.console__rows > .console__line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.console__count {
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+  white-space: nowrap;
+}

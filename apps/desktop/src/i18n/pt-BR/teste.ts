@@ -1,0 +1,243 @@
+/**
+ * Testar e console (SPEC T13; protótipo `screens-test.js`; ROADMAP L-04).
+ *
+ * `launcher` e `test.stage` são as chaves que o backend manda como texto das etapas
+ * (`labelKey` da `warden-launcher` e da `warden-instance`); `etapa` são as do próprio Testar
+ * (`teste:etapa.*`). `console.*` com o nome de uma mensagem é o texto das linhas do Warden no
+ * console (`origin: warden`), com os valores que o backend manda.
+ */
+export const teste = {
+  botao: {
+    testar: 'Testar',
+    preparando: 'Testando… ver progresso',
+    aberto: 'Jogo aberto: ver teste',
+    maisOpcoes: 'Mais opções do teste',
+    outroJogo: 'Já existe um jogo em execução (pack {{pack}}).',
+  },
+  menu: {
+    verUltimo: 'Ver último teste',
+    verUltimoNunca: 'Este pack ainda não foi testado',
+    outrosTestes: 'Outros testes',
+    perfil: 'Perfil do teste',
+    instancia: 'Instância de teste',
+    abrirPasta: 'Abrir pasta da instância de teste',
+    apagarMundos: 'Apagar mundos de teste…',
+    recriar: 'Recriar instância de teste…',
+    semInstancia: 'Ainda não existe: ela é criada no primeiro teste',
+    comJogoAberto: 'Feche o jogo antes',
+  },
+  quando: {
+    hoje: 'hoje, {{hora}}',
+    ontem: 'ontem, {{hora}}',
+    data: '{{data}}, {{hora}}',
+  },
+  resultadoCurto: {
+    closedNormally: 'fechou normalmente',
+    crashed: 'travou',
+    stoppedByUser: 'encerrado por você',
+  },
+  etapas: {
+    rotulo: 'Etapas do teste',
+    preparar: 'Preparar o Minecraft',
+    copiar: 'Copiar o pack para o teste',
+    abrir: 'Abrir o jogo',
+  },
+  etapa: {
+    java: 'Escolhendo o Java',
+    abrir: 'Abrindo o jogo',
+  },
+  launcher: {
+    version: 'Lendo as versões do Minecraft e do loader',
+    verify: 'Conferindo os arquivos do jogo',
+    download: 'Baixando os arquivos do jogo',
+    loader: 'Instalando o loader (uma vez por versão)',
+    finalize: 'Preparando a abertura do jogo',
+  },
+  test: {
+    stage: {
+      syncPack: 'Copiando o pack para o teste',
+    },
+  },
+  preparo: {
+    titulo: 'Testando o pack',
+    sub: 'Etapa {{atual}} de {{total}} · começou às {{hora}}',
+    cancelar: 'Cancelar teste',
+    cancelando: 'Cancelando…',
+    aguarde: 'Começando…',
+    primeiraVez:
+      'Na primeira vez isso pode levar alguns minutos. Nos próximos testes, só o que mudou é baixado.',
+    falhou: 'O teste não começou',
+    tentarDeNovo: 'Tentar de novo',
+    cancelado: 'Teste cancelado.',
+  },
+  esteTeste: {
+    titulo: 'Este teste',
+    minecraft: 'Minecraft',
+    loader: 'Loader',
+    java: 'Java',
+    javaAuto: '{{major}} (automático)',
+    javaEscolhido: '{{major}} (escolhido em Ajustes)',
+    memoria: 'Memória',
+    memoriaAuto: 'Automática, pela quantidade de mods',
+    memoriaGb: '{{gb}} GB',
+    jogador: 'Jogador',
+    jogadorOffline: '{{nome}} (offline)',
+    ajustes: 'Ajustes do teste…',
+  },
+  jogo: {
+    titulo: 'Jogo aberto',
+    sub: 'Começou às {{hora}} · {{jogo}}',
+    parar: 'Parar jogo',
+    parando: 'Parando…',
+    abrirPasta: 'Abrir pasta da instância',
+    pararTitulo: 'Parar o jogo?',
+    pararTexto: 'O progresso não salvo do mundo de teste pode ser perdido.',
+    pararDica: 'Para sair salvando, feche pelo menu do próprio jogo.',
+    continuar: 'Continuar jogando',
+  },
+  resultado: {
+    closedNormally: 'O jogo fechou normalmente',
+    crashed: 'O jogo travou',
+    stoppedByUser: 'Encerrado por você',
+    sub: 'Teste de {{quando}} · {{duracao}} de jogo',
+    verConsole: 'Ver console',
+    ocultarConsole: 'Ocultar console',
+    testarDeNovo: 'Testar de novo',
+    abrirCrash: 'Abrir crash report',
+    abrirErroJava: 'Abrir relatório da queda do Java',
+    jogoDe: '{{jogo}} · Java {{java}}',
+    versaoDoPack: 'versão {{versao}} do pack',
+  },
+  porQueTravou: {
+    titulo: 'Por que travou',
+    codigo: 'O jogo fechou com o código {{codigo}} depois de {{duracao}}.',
+    semCodigo: 'O jogo fechou de repente depois de {{duracao}}.',
+    comRelatorio:
+      'O Minecraft gravou um crash report: ele diz em que ponto o jogo parou e quais mods estavam envolvidos.',
+    comErroJava:
+      'O próprio Java caiu (arquivo hs_err): isso costuma ser falta de memória do computador, driver de vídeo ou um mod com código nativo.',
+    ultimasLinhas: 'Últimas linhas com erro do console',
+    semLinhas: 'Nenhuma linha de erro no console.',
+  },
+  sessoes: {
+    titulo: 'Testes anteriores',
+    vazio: 'Os testes deste pack aparecem aqui depois do primeiro.',
+    carregando: 'Lendo os testes anteriores…',
+    erro: 'Não foi possível ler os testes anteriores.',
+    quando: 'Quando',
+    resultado: 'Resultado',
+    duracao: 'Duração',
+    versao: 'Versão do pack',
+    jogo: 'Jogo',
+    abrir: 'Ver teste de {{quando}}',
+    atual: 'mostrando',
+    limite:
+      'Ficam os 30 testes mais novos que fecharam normalmente; os que travaram ficam até ocuparem 500 MB.',
+  },
+  sessao: {
+    carregando: 'Lendo o teste…',
+    erro: 'Não foi possível ler este teste.',
+    voltarAoUltimo: 'Ver o último teste',
+    cortado: 'Mostrando as últimas 50.000 linhas. O log completo está em Salvar em arquivo….',
+  },
+  nenhum: {
+    titulo: 'Este pack ainda não foi testado',
+    texto:
+      'Clique em Testar para abrir o Minecraft com o pack. O Warden baixa o jogo, o loader e o Java na primeira vez.',
+  },
+  avisos: {
+    packMudou: 'O pack mudou desde o início do teste; as mudanças valem no próximo teste.',
+    verTeste: 'Ver teste',
+  },
+  fechar: {
+    titulo: 'Fechar o Warden com o jogo aberto?',
+    texto:
+      'O jogo do pack {{pack}} será encerrado junto. O progresso não salvo do mundo de teste pode ser perdido.',
+    continuar: 'Continuar no Warden',
+    confirmar: 'Fechar o jogo e o Warden',
+    fechando: 'Fechando o jogo…',
+  },
+  outroJogo: {
+    titulo: 'O {{pack}} está com o jogo aberto',
+    texto:
+      'Só dá para testar um pack por vez. Feche o jogo do {{pack}} ou volte para o teste dele.',
+    irParaTeste: 'Ir para o teste',
+    cancelar: 'Cancelar',
+  },
+  instanciaMudou: {
+    titulo_one: '{{count}} arquivo do pack mudou na instância de teste',
+    titulo_other: '{{count}} arquivos do pack mudaram na instância de teste',
+    texto:
+      'O jogo (ou você) mudou estes arquivos durante o teste anterior. Para testar, o Warden põe de volta a versão do pack. Se quiser guardar alguma mudança, copie o arquivo antes pela pasta da instância.',
+    substituir: 'Substituir e testar',
+    abrirPasta: 'Abrir pasta da instância',
+    cancelar: 'Cancelar',
+  },
+  mundos: {
+    titulo: 'Apagar mundos de teste?',
+    texto:
+      'Os mundos ficam só na instância de teste deste computador e nunca vão para o pack. Apagar não tem volta.',
+    nenhum: 'A instância de teste não tem mundos.',
+    lendo: 'Lendo os mundos…',
+    confirmar_one: 'Apagar {{count}} mundo',
+    confirmar_other: 'Apagar {{count}} mundos',
+    apagando: 'Apagando…',
+    feito_one: '{{count}} mundo de teste apagado.',
+    feito_other: '{{count}} mundos de teste apagados.',
+    cancelar: 'Cancelar',
+  },
+  console: {
+    rotulo: 'Console do jogo',
+    origemWarden: 'Warden',
+    estado: {
+      aoVivo: 'Ao vivo',
+      pausado: 'Rolagem pausada',
+      fechado: 'Jogo fechado',
+      esperando: 'Esperando o jogo abrir',
+    },
+    nivel: {
+      rotulo: 'Nível das linhas',
+      todas: 'Todas as linhas',
+      avisos: 'Só avisos e erros',
+      erros: 'Só erros',
+    },
+    niveis: {
+      trace: 'TRACE',
+      debug: 'DEBUG',
+      info: 'INFO',
+      warn: 'WARN',
+      error: 'ERROR',
+      fatal: 'FATAL',
+      warden: 'WARDEN',
+    },
+    buscar: 'Buscar no console',
+    pausar: 'Pausar rolagem',
+    retomar: 'Retomar rolagem',
+    copiarTudo: 'Copiar tudo',
+    copiarSelecao: 'Copiar seleção',
+    salvar: 'Salvar em arquivo…',
+    salvo: 'Console salvo em {{caminho}}',
+    copiado_one: '{{count}} linha copiada.',
+    copiado_other: '{{count}} linhas copiadas.',
+    selecaoCopiada: 'Seleção copiada.',
+    copiaFalhou: 'Não foi possível copiar. Selecione o texto e use Ctrl+C.',
+    novasLinhas_one: '{{count}} linha nova desde que você pausou.',
+    novasLinhas_other: '{{count}} linhas novas desde que você pausou.',
+    irParaFim: 'Ir para o fim',
+    vazio: 'Nenhuma linha ainda. A saída do jogo aparece aqui assim que ele começar a abrir.',
+    semResultado: 'Nenhuma linha com esse filtro.',
+    contagem: '{{mostradas}} de {{total}} linhas',
+    // Mensagens do Warden no console.
+    abrindo: 'Abrindo o jogo: {{jogo}}, Java {{java}}, {{memoria}} de memória.',
+    fechou: 'O jogo fechou normalmente depois de {{duracao}}.',
+    encerrado: 'Você encerrou o jogo depois de {{duracao}}.',
+    travou: 'O jogo fechou com o código {{codigo}} depois de {{duracao}}.',
+  },
+  duracao: {
+    segundos: '{{s}} s',
+    minutos: '{{m}} min',
+    minutosSegundos: '{{m}} min {{s}} s',
+    horas: '{{h}} h',
+    horasMinutos: '{{h}} h {{m}} min',
+  },
+} as const;

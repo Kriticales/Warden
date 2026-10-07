@@ -18,6 +18,7 @@ import { java } from './pt-BR/java';
 import { packs } from './pt-BR/packs';
 import { editor } from './pt-BR/editor';
 import { exportar } from './pt-BR/exportar';
+import { teste } from './pt-BR/teste';
 
 export const defaultNS = 'comum';
 
@@ -34,6 +35,7 @@ export const resources = {
     packs,
     editor,
     exportar,
+    teste,
   },
 } as const;
 
