@@ -204,11 +204,14 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
     const before = readFileSync(out);
     writeFileSync(PICK_FILE, out);
     // Um aviso ainda na tela pode cobrir o botão: o clique vai direto no elemento.
-    const generate = $('button=Gerar instância…');
-    await generate.waitForClickable({ timeout: 30_000 });
-    await browser.execute((button) => {
-      button.click();
-    }, generate);
+    await $('button=Gerar instância…').waitForClickable({ timeout: 30_000 });
+    const element = await $('button=Gerar instância…');
+    await browser.execute(
+      (button: HTMLElement) => {
+        button.click();
+      },
+      element as unknown as HTMLElement,
+    );
     const panel = $('main .alert--danger');
     await panel.waitForDisplayed({ timeout: 60_000 });
     await expect(panel).toHaveText(expect.stringContaining('O destino escolhido já existe.'));
