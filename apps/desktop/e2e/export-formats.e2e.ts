@@ -77,12 +77,13 @@ function pickNext(path: string): void {
 }
 
 function packwizBinary(): string {
-  const name = readdirSync(BINARIES).find(
-    (entry) =>
-      entry.startsWith('packwiz-') && !entry.includes('.build') && !entry.endsWith('.commit'),
-  );
-  if (!name) throw new Error('sidecar do packwiz ausente: rode cargo xtask build-packwiz');
-  return join(BINARIES, name);
+  const name =
+    process.platform === 'win32'
+      ? 'packwiz-x86_64-pc-windows-msvc.exe'
+      : 'packwiz-x86_64-unknown-linux-gnu';
+  const path = join(BINARIES, name);
+  if (!existsSync(path)) throw new Error('sidecar do packwiz ausente: rode cargo xtask setup');
+  return path;
 }
 
 /** O conteúdo de uma entrada de um zip (diretório central; `stored` ou `deflate`). */
