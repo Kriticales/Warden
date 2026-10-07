@@ -344,20 +344,20 @@ fn run_worker(
                 last = Instant::now();
                 first.get_or_insert(last);
             }
-            Err(RecvTimeoutError::Timeout) if first.is_some() => {
-                on_change(std::mem::take(&mut pending).into_iter().collect());
-                first = None;
-            }
             Err(RecvTimeoutError::Timeout) => {
+                let now = Instant::now();
                 let present = probe.root.is_dir();
                 if present != root_present {
                     root_present = present;
-                    let now = Instant::now();
                     if !probe.ledger.covers(probe.pack, now) {
                         pending.extend(ALL_AREAS);
-                        last = now;
-                        first = Some(now);
+                        first.get_or_insert(now);
                     }
+                }
+                // O tempo de espera da rajada acabou (ou a pasta sumiu agora): avisa.
+                if first.is_some() {
+                    on_change(std::mem::take(&mut pending).into_iter().collect());
+                    first = None;
                 }
             }
         }

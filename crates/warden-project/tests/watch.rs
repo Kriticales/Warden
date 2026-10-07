@@ -121,8 +121,21 @@ fn a05_pasta_do_pack_apagada_avisa_todas_as_areas() {
 
     fs::remove_dir_all(&root).unwrap();
 
-    let areas = receiver.recv_timeout(WITHIN).expect("sem aviso em 2 s");
-    assert_eq!(areas.len(), 4, "{areas:?}");
+    // O sistema pode contar os arquivos apagados antes da pasta: vale o que chegar em 2 s.
+    let deadline = Instant::now() + WITHIN;
+    let mut seen = Vec::new();
+    while let Some(left) = deadline.checked_duration_since(Instant::now()) {
+        let Ok(areas) = receiver.recv_timeout(left) else {
+            break;
+        };
+        seen.extend(areas);
+        if seen.contains(&Area::History) && seen.contains(&Area::Configs) {
+            break;
+        }
+    }
+    for area in [Area::Inventory, Area::Configs, Area::Meta, Area::History] {
+        assert!(seen.contains(&area), "faltou {area:?}: {seen:?}");
+    }
 }
 
 #[test]
