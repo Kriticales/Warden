@@ -133,7 +133,7 @@ async fn write_impl(
         let _lock = state.locks.write_for(pack_id, &handle).await;
         let root = origin_root(state, pack_id, origin)?;
         match cli {
-            Some(cli) => save_to_pack(&root, path, text, expected_hash, &cli, handle.token())
+            Some(cli) => save_to_pack(&root, path, text, expected_hash, cli, handle.token())
                 .await
                 .map_err(domain),
             None => save_to_instance(&root, path, text, expected_hash).map_err(domain),
