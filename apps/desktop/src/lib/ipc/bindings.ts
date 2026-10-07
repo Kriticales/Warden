@@ -163,6 +163,17 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**
+	 *  O que acontece se estes itens saírem do pack, e as relações diretas deles.
+	 * 
+	 *  `paths`: caminhos dos itens na lista (um ou vários). Erro `ITEM_NOT_FOUND` se algum não
+	 *  está no inventário.
+	 */
+	graphDependents: (packId: PackId, paths: string[]) => typedError<DependentsReport, AppError>(__TAURI_INVOKE("graph_dependents", { packId, paths })),
+	/**  Por que o item está no pack: "Você adicionou" ou a cadeia até um item do usuário. */
+	graphWhyInPack: (packId: PackId, path: string) => typedError<WhyReport, AppError>(__TAURI_INVOKE("graph_why_in_pack", { packId, path })),
+	/**  Bibliotecas (e itens) que nenhum item mantido usa mais. */
+	graphOrphans: (packId: PackId) => typedError<Orphan[], AppError>(__TAURI_INVOKE("graph_orphans", { packId })),
 };
 
 /** Events */
@@ -173,6 +184,16 @@ export const events = {
 };
 
 /* Types */
+/**  Um item que deixa de funcionar quando os alvos saem. */
+export type Affected = {
+	/**  O item. */
+	item: NodeRef,
+	/**  1 = depende direto de um alvo; 2 = depende de um item de nível 1; e assim por diante. */
+	depth: number,
+	/**  Os itens que somem (alvos ou afetados de nível menor) de que ele precisa. */
+	needs: NodeRef[],
+};
+
 /**
  *  Códigos do domínio `ai`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -262,6 +283,14 @@ export type CatalogErrorCode =
 "VERSION_JSON_CORRUPTED" | 
 /**  O cache local do catálogo (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
+
+/**  Um passo da cadeia "Por que está no pack". */
+export type ChainLink = {
+	/**  O item. */
+	item: NodeRef,
+	/**  Os outros itens do ciclo de dependência a que ele pertence (vazio fora de ciclo). */
+	cycle: NodeRef[],
+};
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -388,6 +417,46 @@ export type Dependent = {
 	/**  Nomes dos itens removidos de que ele precisa. */
 	needs: string[],
 };
+
+/**  Resposta de [`Graph::dependents`]. */
+export type DependentsReport = {
+	/**  Os itens consultados, na ordem pedida. */
+	targets: NodeRef[],
+	/**  O que o item declara (só com um alvo; vazio com vários). */
+	dependsOn: DependsOn[],
+	/**  Quem declara uma relação com os alvos, de qualquer tipo. */
+	usedBy: UsedBy[],
+	/**
+	 *  O que para de funcionar se os alvos saírem: o fecho transitivo das dependências
+	 *  obrigatórias e inferidas.
+	 */
+	affected: Affected[],
+};
+
+/**  "Depende de": uma relação que o item declara. */
+export type DependsOn = {
+	/**  Id do mod pedido. */
+	id: string,
+	/**  Tipo da relação. */
+	kind: RelationKind,
+	/**  Faixa de versões pedida, quando há. */
+	range: string | null,
+	/**  Se está no pack. */
+	state: DependsOnState,
+	/**  Quem satisfaz (vazio se falta ou se é do próprio item). */
+	providers: ProviderRef[],
+	/**  Nota da inferência, nas relações inferidas. */
+	note: string | null,
+};
+
+/**  Situação de uma dependência declarada. */
+export type DependsOnState = 
+/**  Algum item do pack satisfaz (ou, numa incompatibilidade, o outro item está no pack). */
+"inPack" | 
+/**  O próprio item traz quem satisfaz (jar-in-jar). */
+"own" | 
+/**  Nenhum item do pack satisfaz. */
+"missing";
 
 /**  Formato da descrição longa. */
 export type DescriptionFormat = 
@@ -1255,6 +1324,14 @@ export type ModrinthErrorCode =
 /**  O cache local do Modrinth (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
 
+/**  Um item do pack numa resposta. */
+export type NodeRef = {
+	/**  Caminho do item no pack. */
+	path: string,
+	/**  Nome para mostrar. */
+	name: string,
+};
+
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;
 
@@ -1316,6 +1393,14 @@ export type OperationState =
  *  T22).
  */
 export type OperationUpdated = OperationSnapshot;
+
+/**  Uma biblioteca (ou item) que nenhum item mantido usa mais. */
+export type Orphan = {
+	/**  O item. */
+	item: NodeRef,
+	/**  Itens que só o usam como opcional, recomendado ou sugerido. */
+	optionalUsers: NodeRef[],
+};
 
 /**  Parte do pack que mudou, para a interface invalidar só o necessário. */
 export type PackArea = 
@@ -1570,6 +1655,35 @@ export type ProjectErrorCode =
 /**  O item pedido não está no inventário do pack. */
 "ITEM_NOT_FOUND";
 
+/**  Quem satisfaz uma dependência. */
+export type ProviderRef = {
+	/**  O item do pack (o que embute, se o mod está embutido). */
+	item: NodeRef,
+	/**  Id do mod que satisfaz. */
+	modId: string,
+	/**  O mod está embutido dentro do item ("dentro de X"). */
+	embedded: boolean,
+	/**  Satisfaz por `provides`, com outro id. */
+	alias: boolean,
+};
+
+/**  Tipo de uma ligação entre itens. */
+export type RelationKind = 
+/**  Obrigatória (`depends`, `required`, `mandatory`; ou relação obrigatória da API). */
+"required" | 
+/**  Opcional. */
+"optional" | 
+/**  Recomendada (`recommends`). */
+"recommended" | 
+/**  Sugerida (`suggests`). */
+"suggested" | 
+/**  Incompatível: impede o carregamento (`breaks`, `incompatible`). */
+"breaks" | 
+/**  Conflito: só avisa (`conflicts`, `discouraged`). */
+"conflicts" | 
+/**  Dependência não declarada, inferida pela busca do culpado ou pelo log. */
+"inferred";
+
 /**  O que a confirmação de remover mostra. */
 export type RemovalPlan = {
 	/**  Itens removidos, na ordem do inventário. */
@@ -1815,6 +1929,22 @@ export type UpdateReport = {
 	removed: RuntimeId[],
 };
 
+/**  "Usado por": um item que declara uma relação com o item consultado. */
+export type UsedBy = {
+	/**  O item que declara a relação. */
+	item: NodeRef,
+	/**  Tipo da relação. */
+	kind: RelationKind,
+	/**  Faixa de versões pedida, quando há. */
+	range: string | null,
+	/**  Id que o item pede (o mod consultado ou um id que ele fornece). */
+	id: string,
+	/**  Quem satisfaz é um mod embutido no item consultado. */
+	embedded: boolean,
+	/**  Nota da inferência, nas relações inferidas. */
+	note: string | null,
+};
+
 /**  Versão instalada. */
 export type VersionInfo = {
 	/**  Número legível. */
@@ -1883,6 +2013,36 @@ export type VersioningErrorCode =
 "ROLLBACK_FAILED" | 
 /**  Falha da biblioteca git ao ler ou gravar o histórico. */
 "GIT_FAILED";
+
+/**  Por que um item está no pack. */
+export type Why = 
+/**  O usuário adicionou (pelo histórico). */
+{ kind: "userAdded"; 
+/**  Quando, se o histórico sabe. */
+at: string | null } | 
+/**  Sem histórico: nenhum outro item o exige, então foi escolha do usuário. */
+{ kind: "noDependents" } | 
+/**
+ *  Exigido por outros itens: cada cadeia vai do item até um adicionado pelo usuário,
+ *  da mais curta para a mais longa.
+ */
+{ kind: "requiredBy"; 
+/**  As cadeias (cada uma começa no próprio item e termina no item do usuário). */
+chains: ChainLink[][] } | 
+/**  Nenhum item mantido o exige: pode ser removido. */
+{ kind: "unused"; 
+/**  Itens que só o usam como opcional, recomendado ou sugerido. */
+optionalUsers: NodeRef[] };
+
+/**  Resposta de [`Graph::why_in_pack`]. */
+export type WhyReport = {
+	/**  O item consultado. */
+	item: NodeRef,
+	/**  A resposta. */
+	why: Why,
+	/**  Os outros itens do ciclo de dependência do item (vazio fora de ciclo). */
+	cycle: NodeRef[],
+};
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

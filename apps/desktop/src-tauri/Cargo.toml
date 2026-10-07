@@ -77,6 +77,7 @@ tempfile.workspace = true
 warden-core = { workspace = true, features = ["fault-injection"] }
 warden-secrets = { workspace = true, features = ["fault-injection"] }
 wiremock.workspace = true
+zip.workspace = true
 
 [lints]
 workspace = true

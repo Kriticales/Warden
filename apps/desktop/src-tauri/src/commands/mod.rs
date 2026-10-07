@@ -8,6 +8,7 @@ pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
 pub(crate) mod export;
+pub(crate) mod graph;
 pub(crate) mod inventory;
 pub(crate) mod java;
 pub(crate) mod pack_meta;
@@ -74,6 +75,9 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             pack_meta::pack_test_settings_get,
             pack_meta::pack_test_settings_set,
             pack_meta::instance_recreate,
+            graph::graph_dependents,
+            graph::graph_why_in_pack,
+            graph::graph_orphans,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,
