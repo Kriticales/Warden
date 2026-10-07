@@ -148,7 +148,10 @@ fn compile_merge(work: &Path) -> Result<()> {
     for name in ["integAPing: (", "integBPing: ("] {
         ensure!(generated.contains(name), "o bindings gerado não tem {name}");
     }
-    let help = cargo()
+    // O xtask em execução trava o próprio .exe no Windows: o --help roda noutra pasta target.
+    let help = Cmd::cargo()
+        .cwd(work)
+        .env("CARGO_TARGET_DIR", out.path().join("target-xtask"))
         .args(["run", "--quiet", "--locked", "-p", "xtask", "--", "--help"])
         .read()?;
     for name in ["integ-a", "integ-b"] {

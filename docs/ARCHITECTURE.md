@@ -89,7 +89,7 @@ Warden/
 │           ├── binaries/                      # sidecar packwiz gerado (ignorado pelo git)
 │           └── src/
 │               ├── main.rs  lib.rs  state.rs  error.rs  events.rs
-│               └── commands/{mod.rs, <domínio>.rs}
+│               └── commands/{mod.rs, <domínio>.rs}   # mod.rs só inclui o registro gerado pelo build.rs
 ├── crates/                                    # domínio (§3)
 ├── third_party/
 │   └── packwiz/                               # COMMIT, patches/, LICENSE, README.md (ADR-0007)
@@ -104,7 +104,7 @@ Regras do monorepo:
 - Lints declarados em `[workspace.lints]` (QUALITY §2); toda crate de domínio e a `warden-app` têm `[lints] workspace = true`. O `xtask` declara lints próprios (permite `println!` e `anyhow`).
 - `.gitattributes` da raiz: `* text=auto eol=lf`, exceto `*.cmd` e `*.bat` (`eol=crlf`), fixtures de packwiz (`crates/warden-packwiz/tests/fixtures/** -text`) e binários. O git do repositório usa `core.autocrlf=false` (QUALITY §13.2).
 - O desenvolvimento é no Windows nativo e a CI roda também em Linux (ADR-0048): o `xtask` é o único ponto de automação e funciona nas duas plataformas, sem bash; a pasta `target` de cada worktree fica com até 100 caracteres de caminho (QUALITY §13.3).
-- Arquivos de registro compartilhados são **acréscimo-apenas** (uma linha por entrada), como `apps/desktop/src-tauri/src/commands/mod.rs` (registro de comandos), `apps/desktop/src/app/navigation.ts` e `apps/desktop/src/i18n/index.ts`. A lista completa está em ROADMAP §1. Conflitos neles são resolvidos pelo orquestrador na integração.
+- **Registros sem conflito** (INFRA-01): comandos e eventos do IPC (`src-tauri/build.rs`), namespaces de i18n (`import.meta.glob`), subcomandos do xtask (`xtask/build.rs`) e as pendências da guarda de contrato são **descobertos pelos arquivos**: criar o arquivo basta, nenhuma lista central para editar (§4.1). Os registros que sobraram, **acréscimo-apenas** (uma linha por entrada), como `apps/desktop/src/app/navigation.ts`, estão em ROADMAP §1; conflitos neles são resolvidos pelo orquestrador. `cargo xtask check-integration` (também no `check`) prova que duas branches independentes integram sem conflito.
 
 ## 3. Crates Rust e dependências
 
@@ -147,7 +147,14 @@ Grafo sem ciclos; `warden-core` não depende de ninguém. Nenhuma crate de domí
 
 ### 4.1 Comandos
 
-- Declarados em `apps/desktop/src-tauri/src/commands/<domínio>.rs` com `#[tauri::command]` + `#[specta::specta]`; registrados em `commands/mod.rs`; tipos e funções TypeScript gerados em `apps/desktop/src/lib/ipc/bindings.ts` por `tauri-specta` (`cargo xtask bindings`; a CI falha se o arquivo estiver desatualizado).
+- Declarados em `apps/desktop/src-tauri/src/commands/<domínio>.rs` com `#[tauri::command]` + `#[specta::specta]`. **Não há lista para editar.** O `build.rs` (`build_registry.rs`) lê todos os `commands/*.rs` (ou `commands/<domínio>/mod.rs`), declara cada módulo e registra cada `fn` que tem `#[tauri::command]` escrito na coluna 0 (atributos indentados, de módulos de teste, não contam) num único `collect_commands![…]` (ordem: módulos em ordem alfabética, funções na ordem do arquivo). Eventos: toda `struct` com `#[tauri_specta(event_name = …)]` em `events.rs` ou em `commands/*.rs` entra em `collect_events![…]`. Comando novo = escrever a função no arquivo do domínio (ou criar o arquivo); duas branches que fazem isso não se tocam.
+  - *Por que build.rs e não listas por domínio:* o `tauri-specta` rc.25 não deixa mesclar `Commands` (os campos são privados e `Builder::commands` substitui o anterior), então várias `collect_commands!` não se concatenam; macros encadeadas voltariam a ter um ponto central. A descoberta por arquivo tira a lista do código.
+  - *Guarda de contrato* (`contract.node.test.ts`): lê os mesmos arquivos. Comando ainda sem tela leva, na linha logo acima de `#[tauri::command]`, `// pendente-na-ui: <TAREFA> <motivo>`; a nota fica no comando e só pode sair (comando usado com a nota também falha).
+  - *`bindings.ts`* continua **versionado** (o frontend, o typecheck e a guarda de contrato dependem dele sem compilar o Rust/WebKit) e conferido por `cargo xtask bindings --check` na CI. A ordem do arquivo é estável (por módulo), então duas branches raramente tocam o mesmo trecho; se tocarem, o `.gitattributes` (`merge=bindings`) aciona o driver instalado por `cargo xtask setup` (`git merge-file --ours`): o git fica com o texto de quem recebe o merge e **o `bindings --check` falha até alguém rodar `cargo xtask bindings` e incluir o arquivo no commit do merge**. Sem o driver (clone sem `setup`), o conflito aparece só nesse arquivo: `git checkout --ours <arquivo> && cargo xtask bindings`. Alternativa descartada: não versionar; obrigaria toda CI de frontend a compilar o Rust com as bibliotecas do WebKit.
+  - *i18n:* `src/i18n/index.ts` carrega `pt-BR/*.ts` por `import.meta.glob`; cada arquivo exporta `export const <nome>` (camelCase do arquivo) e termina com `declare module '../catalogo' { interface Catalogo { <nome>: typeof <nome> } }`, que mantém as chaves tipadas. `src/i18n/catalogo.node.test.ts` falha se um arquivo esquecer essa parte.
+  - *xtask:* `xtask/src/tasks/<nome_com_underscore>.rs` vira `cargo xtask <nome-com-hifen>` (`xtask/build.rs`): primeira linha `//!` = descrição, `pub struct Args` com `#[derive(clap::Args)]`, `pub fn run(args: Args) -> anyhow::Result<()>`. Os subcomandos antigos continuam em `main.rs`.
+  - *Verificação:* `cargo xtask check-integration [--compile]` cria duas branches de exemplo (comando, namespace, subcomando e mexida no mesmo trecho do `bindings.ts`), faz `git merge` num worktree descartável e falha se houver conflito; com `--compile`, regenera o bindings e confere os dois acréscimos. Tipos, guarda de contrato e `bindings --check` seguem valendo.
+  - Os tipos e funções TypeScript saem em `apps/desktop/src/lib/ipc/bindings.ts` por `tauri-specta` (`cargo xtask bindings`; a CI falha se o arquivo estiver desatualizado).
 - Nome: `<domínio>_<verbo>` em snake_case no Rust (`pack_create`); o TypeScript recebe `commands.packCreate(...)`.
 - Todo comando retorna `Result<T, AppError>`. Nada lança exceção pelo IPC.
 - Todo comando que atua num pack recebe `pack_id: PackId` como primeiro argumento.
@@ -197,7 +204,7 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 - `OperationKind` é **texto** (`"pack.create"`, `"test.start"`…; `specta` o exporta como `string`), para cada tarefa criar o seu tipo de operação sem mexer num enum central. `OperationSnapshot { id, kind, packId?, state, stage?, progress?, cancellable, startedAtMs, finishedAtMs?, error? }` é a carga de `operation-updated` e o item de `operations_list`.
 - `settings_update` recebe `SettingsPatch` (campos opcionais; campo ausente = não muda; campo desconhecido = erro): `playerName` (3 a 16 caracteres, letras sem acento, números e `_`), `logLevel`, `configDiffBeforeSave`, `showPrereleaseVersions`, `updateCheckIntervalHours` (0 a 720), `testMemory` (512 a 65536 MB quando fixa). `secretsBackend` muda só por `secrets_backend_set`, `packsDir` só por `settings_choose_packs_dir` e `eulaAcceptedAt` só pelos comandos da EULA. O `settings.json` preserva campos desconhecidos (de uma versão mais nova) ao gravar.
 - `secrets_test` devolve `SecretTestResult`: `{ status: "valid" }` ou `{ status: "notTestable" }` (ainda não há testador para aquela chave); chave recusada é erro do domínio da API (ex.: `curseforge.KEY_INVALID`). Os testadores são registrados por chave em `SecretTesters` pelas tarefas das APIs (P1-04, V-03, D-04).
-- `apps/desktop/src-tauri/src/events.rs` é registro **só de acréscimo** para eventos globais e para as variantes de `OperationEvent` (as da §4.3 que ainda não existem entram com as tarefas donas).
+- `apps/desktop/src-tauri/src/events.rs` guarda os eventos globais (descobertos pelo `build.rs`, §4.1; um evento novo pode também ficar no `commands/<domínio>.rs`) e as variantes de `OperationEvent` (**só acréscimo**) e para as variantes de `OperationEvent` (as da §4.3 que ainda não existem entram com as tarefas donas).
 
 ### 4.2 Eventos globais
 

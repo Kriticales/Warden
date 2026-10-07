@@ -27,13 +27,12 @@
 
 - **ID estável:** `F0-xx` (fundação), `P1-xx` (núcleo do pack), `L-xx` (launcher), `C-xx` (configs), `D-xx` (diagnóstico), `V-xx` (versionamento), `E-xx` (exportação), `A-xx` (acabamento), `W-xx` (Warden 1.1 "Profissional", fase 7, prioridade **1.1**), `S-R5-N` (spikes da D4, seção [Spikes da D4](#spikes-da-d4)). `S1` é o spike do motor do launcher, concluído fora deste plano (`docs/spikes/S1-motor-do-launcher.md`). As tarefas acrescentadas na D4 ficam na fase do assunto (P1-16 a P1-19, L-08 a L-12, C-05 a C-07, D-05 a D-14, E-03, A-07); as que já existiam e mudaram de escopo dizem "D4:" nas entregas. As tarefas da v1 que deixam um gancho pronto para a 1.1 dizem "Gancho 1.1:" nas entregas (custo mínimo, sem função visível; ADR-0039).
 - **Fases** agrupam por assunto; a **ordem real** é dada pelas dependências. Uma tarefa pode começar assim que as dependências estiverem integradas na `main` (ondas na §3).
-- **Posse:** arquivos e pastas que só aquela tarefa altera. Fora da posse, só os **registros acréscimo-apenas** (uma linha por entrada, conflitos resolvidos pelo orquestrador):
+- **Posse:** arquivos e pastas que só aquela tarefa altera. Fora da posse, só os **registros acréscimo-apenas** abaixo (uma linha por entrada, conflitos resolvidos pelo orquestrador). **Não são registros, e não se edita nada fora da sua posse para criá-los (INFRA-01; ARCHITECTURE §4.1):** comandos e eventos do IPC (escreva a função em `commands/<domínio>.rs`, ou crie o arquivo), namespaces de i18n (crie `i18n/pt-BR/<nome>.ts` com o `declare module '../catalogo'`), subcomandos do xtask (crie `xtask/src/tasks/<nome>.rs`) e a pendência de tela de um comando (`// pendente-na-ui: <TAREFA> <motivo>` acima do `#[tauri::command]`). Depois de integrar, o `bindings.ts` é regenerado com `cargo xtask bindings`:
   - `Cargo.toml` da raiz (`[workspace.dependencies]`) e `Cargo.lock`;
   - `apps/desktop/package.json` (dependências) e `pnpm-lock.yaml`;
   - `apps/desktop/src-tauri/Cargo.toml` (dependências);
-  - `apps/desktop/src-tauri/src/commands/mod.rs` (registro de comandos) e `src/state.rs` (campos do estado);
-  - `apps/desktop/src/app/navigation.ts`, `apps/desktop/src/i18n/index.ts`, `apps/desktop/src/i18n/errors/index.ts`;
-  - `xtask/src/main.rs` (registro de subcomandos);
+  - `apps/desktop/src-tauri/src/state.rs` (campos do estado);
+  - `apps/desktop/src/app/navigation.ts`, `apps/desktop/src/i18n/errors/index.ts`;
   - `lib.rs` das crates divididas entre várias tarefas (`warden-project`, `warden-instance`, `warden-diagnostics`, `warden-versioning`; D4: `warden-jarmeta`, `warden-configs`, `warden-launcher`, `warden-ai`, `warden-perf`, `warden-discovery`, `warden-export`; D5: `warden-security`): só declarações de módulos e reexportações;
   - `crates/warden-diagnostics/data/log-patterns.toml` (D4: um padrão por bloco, só acréscimo); D5: `crates/warden-diagnostics/data/health-score.toml` (só acréscimo de categorias; a W-11 é a dona das categorias da 1.1);
   - D4: `apps/desktop/src/features/test/menu-items.ts` (itens do menu ▾ do Testar, criado pela L-04), `apps/desktop/src/features/pack-editor/details/blocks.ts` (blocos do painel de detalhes do item, criado pela P1-08), `apps/desktop/src/features/diagnostics/problems-blocks.ts` (blocos da seção Problemas, criado pela D-03), `apps/desktop/src-tauri/src/ai_tools/mod.rs` (registro das ferramentas da IA, criado pela D-04);
@@ -41,7 +40,7 @@
   - `apps/desktop/src/features/pack-editor/header/slots.ts` e `apps/desktop/src/features/pack-editor/sections.ts` (botões/indicadores do cabeçalho e seções do menu do pack, criados pela P1-08);
   - `apps/desktop/src-tauri/src/test_hooks/mod.rs` (ganchos do Testar, criado pela L-04);
   - `apps/desktop/src/features/settings/sections.ts` (seções da tela de Configurações);
-  - `apps/desktop/src/lib/ipc/bindings.ts` (gerado; regenerar após integrar);
+  - `apps/desktop/src/lib/ipc/bindings.ts` (gerado e versionado; o driver de merge fica com o texto de quem recebe e `cargo xtask bindings` regenera; o `bindings --check` da CI barra o esquecimento);
   - `THIRD_PARTY.md` (uma seção por origem).
 - **Critérios de aceite** citam os CA da SPEC quando existem; os demais são específicos da tarefa.
 - **Verificação:** além dos comandos listados, toda tarefa roda `cargo xtask check` (QUALITY §12) e informa o resultado.
