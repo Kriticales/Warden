@@ -1,0 +1,78 @@
+/* Seção Exportar (SPEC T19): árvore do que vai e rodapé com a ação, como no protótipo. */
+.export-tree {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.9;
+  color: var(--color-text-2);
+}
+.export-tree b {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+.export-tree details > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+}
+.export-tree details > summary::-webkit-details-marker {
+  display: none;
+}
+.export-tree details > summary .icon {
+  color: var(--color-text-3);
+  transition: transform var(--duration-fast) linear;
+}
+.export-tree details[open] > summary .icon {
+  transform: rotate(90deg);
+}
+.export-tree details > summary:hover b {
+  color: var(--color-primary-text);
+}
+.export-files {
+  margin: 4px 0 8px 20px;
+  border-left: var(--border-thin) solid var(--color-border);
+}
+.export-files li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  min-height: 30px;
+}
+.export-files li:hover {
+  background: var(--color-surface-2);
+}
+.export-files .path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.export-alerts li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: var(--border-thin) solid var(--color-border);
+}
+.export-alerts li:first-child {
+  border-top: 0;
+}
+.export-rule {
+  display: block;
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+.export-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.export-alerts__icon {
+  flex-shrink: 0;
+  color: var(--color-warn);
+}

@@ -59,5 +59,8 @@ export const tarefas = {
       remove: 'Remover do pack',
       include: 'Incluir arquivos no pack',
     },
+    export: {
+      run: 'Exportar',
+    },
   },
 } as const;
