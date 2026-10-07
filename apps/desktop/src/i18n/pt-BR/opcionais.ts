@@ -37,7 +37,7 @@ export const opcionais = {
   teste: {
     titulo: 'Mods opcionais',
     texto:
-      'Escolha quais opcionais ficam ligados na instância de teste deste computador. Não entram no pack.',
+      'Escolha quais opcionais ficam ligados na instância de teste deste computador. Não entram no pack. Cada interruptor grava na hora.',
     nenhum: 'Este pack não tem mods opcionais.',
     padrao: 'Padrão do pack: {{estado}}',
     ligado: 'ligado',
