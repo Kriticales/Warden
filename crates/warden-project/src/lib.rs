@@ -7,6 +7,7 @@
 //! atribui a esta crate; a responsabilidade e os limites estão na ARCHITECTURE §3.
 
 pub mod add;
+pub mod configs;
 pub mod create;
 pub mod dedup;
 pub mod deps;
