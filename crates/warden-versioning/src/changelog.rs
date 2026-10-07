@@ -35,7 +35,7 @@
 
 use std::fmt::Write as _;
 
-use crate::changes::{ChangeSet, ItemCategory, ItemChange, ItemChangeKind, ItemSource};
+use crate::changes::{ChangeSet, ChangeSource, ItemCategory, ItemChange, ItemChangeKind};
 
 /// Título de um `CHANGELOG.md` novo.
 pub const CHANGELOG_TITLE: &str = "# Changelog";
@@ -64,13 +64,13 @@ pub fn escape_markdown(text: &str) -> String {
     escaped
 }
 
-fn source_label(source: ItemSource) -> &'static str {
+fn source_label(source: ChangeSource) -> &'static str {
     match source {
-        ItemSource::Modrinth => "Modrinth",
-        ItemSource::CurseForge => "CurseForge",
-        ItemSource::Url => "link direto",
-        ItemSource::Local => "arquivo local",
-        ItemSource::Unknown => "origem desconhecida",
+        ChangeSource::Modrinth => "Modrinth",
+        ChangeSource::CurseForge => "CurseForge",
+        ChangeSource::Url => "link direto",
+        ChangeSource::Local => "arquivo local",
+        ChangeSource::Unknown => "origem desconhecida",
     }
 }
 
