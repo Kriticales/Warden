@@ -42,7 +42,8 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -q -y --no-install-recommends \
-            xvfb libgl1 libgl1-mesa-dri libegl1 libegl-mesa0 imagemagick \
+            xvfb xserver-xorg-core xserver-xorg-video-dummy \
+            libgl1 libgl1-mesa-dri libegl1 libegl-mesa0 imagemagick \
             libasound2t64 libxrandr2 libxi6 x11-xserver-utils \
             libxcursor1 libxinerama1 libxtst6 libxrender1 libxxf86vm1
 
@@ -62,9 +63,51 @@ jobs:
         run: |
           set -o pipefail
           export WARDEN_LAUNCHER_DADOS="$RUNNER_TEMP/warden-l05"
-          xvfb-run --auto-servernum --server-args='-screen 0 1280x800x24 -dpi 96' \
-            bash -c 'xrandr --query; cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture' \
-            2>&1 | tee "$RUNNER_TEMP/smoke-game-${{ matrix.group }}.log"
+          if [ '${{ matrix.group }}' = '1' ]; then
+            cat > "$RUNNER_TEMP/xorg-dummy.conf" <<'EOF'
+          Section "ServerLayout"
+            Identifier "Warden"
+            Screen "Screen0"
+          EndSection
+          Section "Device"
+            Identifier "Video0"
+            Driver "dummy"
+            VideoRam 256000
+          EndSection
+          Section "Monitor"
+            Identifier "Monitor0"
+            HorizSync 28.0-80.0
+            VertRefresh 48.0-75.0
+            DisplaySize 340 210
+            Modeline "1280x800" 83.46 1280 1344 1480 1680 800 801 804 828 -HSync +VSync
+          EndSection
+          Section "Screen"
+            Identifier "Screen0"
+            Device "Video0"
+            Monitor "Monitor0"
+            DefaultDepth 24
+            SubSection "Display"
+              Depth 24
+              Modes "1280x800"
+            EndSubSection
+          EndSection
+          EOF
+            sudo Xorg :99 -config "$RUNNER_TEMP/xorg-dummy.conf" -noreset -nolisten tcp -ac \
+              -logfile "$RUNNER_TEMP/xorg-dummy.log" &
+            xorg_pid=$!
+            trap 'sudo kill "$xorg_pid" 2>/dev/null || true' EXIT
+            export DISPLAY=:99
+            for attempt in {1..30}; do
+              if xrandr --query 2>/dev/null | grep -q 'DUMMY0 connected'; then break; fi
+              sleep 1
+            done
+            xrandr --query || { cat "$RUNNER_TEMP/xorg-dummy.log"; exit 1; }
+            xrandr --query | grep -q 'DUMMY0 connected' || { cat "$RUNNER_TEMP/xorg-dummy.log"; exit 1; }
+            cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture
+          else
+            xvfb-run --auto-servernum --server-args='-screen 0 1280x800x24' \
+              bash -c 'xrandr --query; cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture'
+          fi 2>&1 | tee "$RUNNER_TEMP/smoke-game-${{ matrix.group }}.log"
 
       - name: Anexar tempos, logs e prova de configuração
         if: always()
@@ -81,5 +124,6 @@ jobs:
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/crash-reports/*.txt
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/hs_err_pid*.log
             ${{ runner.temp }}/warden-l05/instances/**/screen.png
+            ${{ runner.temp }}/xorg-dummy.log
           if-no-files-found: warn
           retention-days: 30
