@@ -9,6 +9,7 @@ pub(crate) mod catalog;
 pub(crate) mod curseforge;
 pub(crate) mod export;
 pub(crate) mod inventory;
+pub(crate) mod item_options;
 pub(crate) mod java;
 pub(crate) mod pack_meta;
 pub(crate) mod packs;
@@ -74,6 +75,11 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             pack_meta::pack_test_settings_get,
             pack_meta::pack_test_settings_set,
             pack_meta::instance_recreate,
+            item_options::item_option_get,
+            item_options::item_set_optional,
+            item_options::items_set_pinned,
+            item_options::instance_optional_choices_get,
+            item_options::instance_set_optional_choices,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

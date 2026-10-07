@@ -13,6 +13,8 @@ pub mod hygiene;
 pub mod inventory;
 pub mod meta;
 pub mod open;
+pub mod optional;
+pub mod pin;
 pub mod registry;
 pub mod remove;
 pub mod side;
