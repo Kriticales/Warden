@@ -157,6 +157,47 @@ export const commands = {
 	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
 	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
 	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
+	/**  Alterações não salvas e versões salvas do pack. */
+	historyGet: (packId: PackId) => typedError<HistoryView, AppError>(__TAURI_INVOKE("history_get", { packId })),
+	/**  "Ver diferenças para o estado atual": o que mudou da versão escolhida até agora. */
+	versionChanges: (packId: PackId, version: string) => typedError<ChangeSet, AppError>(__TAURI_INVOKE("version_changes", { packId, version })),
+	/**  Versão sugerida e changelog automático das alterações não salvas. */
+	versionSavePreview: (packId: PackId) => typedError<SavePreview, AppError>(__TAURI_INVOKE("version_save_preview", { packId })),
+	/**
+	 *  Confere se `version` pode ser salva agora: `SemVer` válido e maior que todas as já salvas
+	 *  (CA-T16-04). O erro traz a explicação.
+	 */
+	versionValidate: (packId: PackId, version: string) => typedError<null, AppError>(__TAURI_INVOKE("version_validate", { packId, version })),
+	/**
+	 *  Salva a versão: grava a versão no `pack.toml`, acrescenta a entrada no topo do
+	 *  `CHANGELOG.md`, atualiza o índice e registra no histórico (commit + tag). Local: nada vai ao
+	 *  GitHub.
+	 */
+	versionSave: (packId: PackId, request: SaveRequest) => typedError<SavedVersion, AppError>(__TAURI_INVOKE("version_save", { packId, request })),
+	/**
+	 *  Marca ou desmarca uma versão salva como versão final. Não muda nenhum arquivo do pack
+	 *  (CA-T16-05). Uma versão já publicada não pode deixar de ser final.
+	 */
+	versionSetFinal: (packId: PackId, version: string, isFinal: boolean) => typedError<null, AppError>(__TAURI_INVOKE("version_set_final", { packId, version, isFinal })),
+	/**
+	 *  "Voltar para esta versão": o pack passa a ficar igual à versão escolhida (arquivos que não
+	 *  existiam nela são removidos). O estado de antes fica num ponto de segurança; o histórico
+	 *  não é apagado.
+	 */
+	versionRestore: (packId: PackId, version: string, utcOffsetMinutes: number) => typedError<RestoreReport, AppError>(__TAURI_INVOKE("version_restore", { packId, version, utcOffsetMinutes })),
+	/**  Pontos de segurança do pack, do mais novo para o mais antigo. */
+	safetyPointsList: (packId: PackId) => typedError<SafetyPoint[], AppError>(__TAURI_INVOKE("safety_points_list", { packId })),
+	/**
+	 *  "Recuperar" um ponto de segurança: o pack volta ao estado guardado (e o estado de agora vira
+	 *  outro ponto de segurança).
+	 */
+	safetyPointRecover: (packId: PackId, name: string, utcOffsetMinutes: number) => typedError<RestoreReport, AppError>(__TAURI_INVOKE("safety_point_recover", { packId, name, utcOffsetMinutes })),
+	/**
+	 *  "Descartar" a alteração não salva de um arquivo de config: ele volta ao que era na última
+	 *  versão salva (ou é apagado, se não existia nela). Só vale para configs; itens (mods,
+	 *  resource packs e shaders) se desfazem pelo Mods ou voltando a uma versão.
+	 */
+	unsavedDiscard: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("unsaved_discard", { packId, path })),
 	/**
 	 *  Informa onde está o botão maximizar da barra de título, para a janela nativa do menu de
 	 *  encaixe (Snap Layouts) ficar exatamente em cima dele. No Linux a barra é a do sistema e o
@@ -241,6 +282,15 @@ export type BisectErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  Tamanho do incremento. */
+export type Bump = 
+/**  CORREÇÃO (`x.y.Z`). */
+"patch" | 
+/**  MENOR (`x.Y.0`). */
+"minor" | 
+/**  MAIOR (`X.0.0`). */
+"major";
+
 /**
  *  Códigos do domínio `catalog`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -262,6 +312,33 @@ export type CatalogErrorCode =
 "VERSION_JSON_CORRUPTED" | 
 /**  O cache local do catálogo (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
+
+/**  Tudo o que mudou entre dois estados do pack. */
+export type ChangeSet = {
+	/**  Versão do Minecraft, se mudou. */
+	minecraft: ValueChange | null,
+	/**  Loaders que mudaram. */
+	loaders: LoaderChange[],
+	/**  Itens que mudaram, por tipo, mudança e nome. */
+	items: ItemChange[],
+	/**  Configs alteradas (caminhos). */
+	configs: string[],
+	/**  Todos os arquivos alterados. */
+	files: FileChange[],
+};
+
+/**  De onde o item vem. */
+export type ChangeSource = 
+/**  Modrinth (`[update.modrinth]`). */
+"modrinth" | 
+/**  CurseForge (`[update.curseforge]`). */
+"curseForge" | 
+/**  Link direto (metafile sem fonte de atualização). */
+"url" | 
+/**  Arquivo local dentro do pack (sem metafile). */
+"local" | 
+/**  Metafile que não pôde ser lido. */
+"unknown";
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -561,6 +638,23 @@ export type ExportSource =
 /**  Número `SemVer` sem o prefixo `v`. */
 version: string };
 
+/**  Um arquivo alterado, com o caminho relativo à raiz do pack (separador `/`). */
+export type FileChange = {
+	/**  Caminho relativo (separador `/`). */
+	path: string,
+	/**  O que aconteceu. */
+	kind: FileChangeKind,
+};
+
+/**  O que aconteceu com um arquivo. */
+export type FileChangeKind = 
+/**  Arquivo novo. */
+"added" | 
+/**  Conteúdo alterado. */
+"modified" | 
+/**  Arquivo apagado. */
+"deleted";
+
 /**  Arquivo do item, sempre lido do pack (CA-T07-02). */
 export type FileInfo = {
 	/**  Nome do arquivo. */
@@ -597,6 +691,16 @@ export type Freshness = {
 	 *  estava guardado, mesmo vencido. A interface mostra a data.
 	 */
 	offline: boolean,
+};
+
+/**  O que a seção Histórico mostra. */
+export type HistoryView = {
+	/**  Alterações não salvas, contra a última versão salva. */
+	unsaved: ChangeSet,
+	/**  Última versão salva (`None` antes da primeira). */
+	lastVersion: string | null,
+	/**  Versões salvas da linha atual do pack, da mais nova para a mais antiga. */
+	versions: SavedVersion[],
 };
 
 /**
@@ -837,6 +941,51 @@ export type InventoryItem = {
 	error: string | null,
 };
 
+/**  Tipo de item, pela pasta. */
+export type ItemCategory = 
+/**  Mod (qualquer item fora de `resourcepacks/` e `shaderpacks/`). */
+"mod" | 
+/**  Resource pack (`resourcepacks/`). */
+"resourcePack" | 
+/**  Shader (`shaderpacks/`). */
+"shader";
+
+/**  Um item que mudou. */
+export type ItemChange = {
+	/**  O que aconteceu. */
+	kind: ItemChangeKind,
+	/**  Tipo, pela pasta. */
+	category: ItemCategory,
+	/**  De onde vem. */
+	source: ChangeSource,
+	/**  Nome exibido (título do projeto; nome do arquivo para itens locais). */
+	name: string,
+	/**  Caminho do metafile ou do arquivo (o novo; o antigo para removidos). */
+	path: string,
+	/**  ID do projeto no Modrinth ou na CurseForge. */
+	projectId: string | null,
+	/**
+	 *  Lado do item (`both`, `client`, `server`; vazio = `both`), do lado novo ou, para
+	 *  removidos, do antigo.
+	 */
+	side: string,
+	/**  Versão antes (removidos, atualizados e ajustados). */
+	old: ItemVersion | null,
+	/**  Versão depois (adicionados, atualizados e ajustados). */
+	new: ItemVersion | null,
+};
+
+/**  O que aconteceu com o item. */
+export type ItemChangeKind = 
+/**  Novo no pack. */
+"added" | 
+/**  Saiu do pack. */
+"removed" | 
+/**  Outra versão do mesmo projeto. */
+"updated" | 
+/**  Mesma versão, com o metafile alterado (lado, opcional, fixar versão…). */
+"adjusted";
+
 /**  Tudo o que o painel de detalhes mostra. */
 export type ItemDetails = {
 	/**  A linha do inventário (nome, lado, fonte…), sempre preenchida. */
@@ -906,6 +1055,16 @@ export type ItemState =
 "invalid" | 
 /**  Arquivo na pasta que o índice não lista. */
 "outsideIndex";
+
+/**  Uma versão de item com o nome legível. */
+export type ItemVersion = {
+	/**  Identificação da versão. */
+	reference: VersionRef,
+	/**  Nome do arquivo. */
+	filename: string,
+	/**  Nome legível ("0.6.0"); o nome do arquivo quando a fonte não informa. */
+	label: string,
+};
 
 /**
  *  Códigos do domínio `jarmeta`. O código é contrato: renomear é mudança de contrato;
@@ -1092,6 +1251,14 @@ export type Loader =
 "neoforge" | 
 /**  Fabric (1.14 em diante). */
 "fabric";
+
+/**  Mudança de um loader em `[versions]`. */
+export type LoaderChange = {
+	/**  Chave em `[versions]` (`fabric`, `neoforge`…). */
+	loader: string,
+	/**  Antes e depois. */
+	change: ValueChange,
+};
 
 /**  Loader do pack, como a política do Java o vê. */
 export type LoaderKind = 
@@ -1590,6 +1757,21 @@ export type RemovalTarget = {
 	files: string[],
 };
 
+/**  Resultado de uma restauração bem-sucedida. */
+export type RestoreReport = {
+	/**  Ponto de segurança com o estado de antes da restauração (CA-T17-03). */
+	safetyPoint: SafetyPoint,
+	/**  Arquivos gravados (novos ou com conteúdo trocado). */
+	written: string[],
+	/**  Arquivos apagados. */
+	deleted: string[],
+	/**
+	 *  Temporários que não puderam ser apagados no fim (o antivírus pode segurá-los por um
+	 *  instante); a limpeza de sobras `.warden-tmp` os apaga depois.
+	 */
+	leftoverTempFiles: string[],
+};
+
 /**
  *  Identificador de um Java instalado: `<fonte>-<major>-<versão>-<processador>`, que também é
  *  o nome da pasta (`temurin-21-21.0.12.1+1-x64`, `temurin-8-8u312-b07-x64`).
@@ -1624,6 +1806,64 @@ export type RuntimeUpdate = {
 	to: InstalledRuntime,
 	/**  Se o antigo já foi removido (não estava em uso). */
 	oldRemoved: boolean,
+};
+
+/**  Um ponto de segurança gravado. */
+export type SafetyPoint = {
+	/**  Nome (a referência sem o prefixo `refs/warden/safety/`). */
+	name: string,
+	/**  Motivo ("antes de voltar para 1.2.0"). */
+	reason: string,
+	/**  Data e hora da criação, RFC 3339. */
+	createdAt: string,
+	/**  Commit com a pasta do pack, em hexadecimal. */
+	commit: string,
+};
+
+/**  O que o diálogo Salvar versão mostra antes de salvar. */
+export type SavePreview = {
+	/**  O que mudou desde a última versão salva. */
+	changes: ChangeSet,
+	/**  Versão sugerida e o motivo (`None` quando nada mudou). */
+	suggestion: VersionSuggestion | null,
+	/**  Changelog automático em Markdown (sem as notas do usuário). */
+	body: string,
+	/**  Última versão salva da linha atual. */
+	lastVersion: string | null,
+	/**  Maior versão já salva no repositório: a nova precisa ser maior que ela. */
+	highestVersion: string | null,
+	/**  Há mods removidos que podem ter conteúdo nos mundos ("Atenção" no changelog). */
+	worldWarning: boolean,
+};
+
+/**  Pedido de "Salvar versão". */
+export type SaveRequest = {
+	/**  Número da versão (`1.5.0`). */
+	version: string,
+	/**  Notas do usuário, que entram no topo do changelog. */
+	notes: string,
+	/**  Já marcar como versão final. */
+	markFinal: boolean,
+	/**  Fuso do computador em minutos a leste do UTC (a data do `CHANGELOG.md` é a de lá). */
+	utcOffsetMinutes: number,
+};
+
+/**  Uma versão salva, como o Histórico mostra (SPEC T17). */
+export type SavedVersion = {
+	/**  Número da versão (`1.3.0`). */
+	version: string,
+	/**  Commit da versão, em hexadecimal. */
+	commit: string,
+	/**  Data da tag (ou do commit, em tags leves feitas por fora), RFC 3339. */
+	date: string,
+	/**  Mensagem da tag (o changelog da versão); vazia em tags leves. */
+	message: string,
+	/**  Marcada como versão final. */
+	isFinal: boolean,
+	/**  Já publicada para os jogadores (V-03). */
+	isPublished: boolean,
+	/**  Alcançável a partir do HEAD (falso para tags de outras branches de packs importados). */
+	reachable: boolean,
 };
 
 /**
@@ -1758,6 +1998,41 @@ export type SideChoice =
 /**  Só servidor. */
 "server";
 
+/**  Por que a versão foi sugerida (a interface monta a frase). */
+export type SuggestReason = 
+/**  Primeira versão salva: a versão do `pack.toml`. */
+{ kind: "firstVersion"; 
+/**  Versão lida do `pack.toml` (vazia se não houver). */
+packVersion: string; 
+/**  Se ela era `SemVer`; senão a sugestão é `0.1.0`. */
+valid: boolean } | 
+/**  Mudou a versão do Minecraft. */
+{ kind: "minecraftChanged" } | 
+/**  Mudou um loader (ou a versão dele). */
+{ kind: "loaderChanged" } | 
+/**  Removeu mods que não são "só cliente". */
+{ kind: "removedWorldMods"; 
+/**  Quantos. */
+count: number } | 
+/**  Adicionou ou removeu mods de geração de mundo. */
+{ kind: "worldgenChanged"; 
+/**  Quantos. */
+count: number } | 
+/**  Adicionou mods, resource packs ou shaders. */
+{ kind: "addedItems"; 
+/**  Quantos. */
+count: number } | 
+/**  Atualizou itens. */
+{ kind: "updatedItems"; 
+/**  Quantos. */
+count: number } | 
+/**  Mudou configs. */
+{ kind: "configsChanged"; 
+/**  Quantas. */
+count: number } | 
+/**  Outras mudanças (ajustes de itens, remoção de itens só cliente, arquivos de controle). */
+{ kind: "otherChanges" };
+
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -1815,6 +2090,14 @@ export type UpdateReport = {
 	removed: RuntimeId[],
 };
 
+/**  Uma mudança de valor (antes e depois; `None` = ausente). */
+export type ValueChange = {
+	/**  Antes. */
+	old: string | null,
+	/**  Depois. */
+	new: string | null,
+};
+
 /**  Versão instalada. */
 export type VersionInfo = {
 	/**  Número legível. */
@@ -1841,6 +2124,35 @@ export type VersionJavaRequirement =
 { kind: "major"; 
 /**  O major pedido. */
 major: number };
+
+/**  Identificação de uma versão de item, para o [`VersionNameResolver`]. */
+export type VersionRef = 
+/**  Versão do Modrinth. */
+{ kind: "modrinth"; 
+/**  ID do projeto. */
+projectId: string; 
+/**  ID da versão. */
+versionId: string } | 
+/**  Arquivo da CurseForge. */
+{ kind: "curseForge"; 
+/**  ID do projeto. */
+projectId: number; 
+/**  ID do arquivo. */
+fileId: number } | 
+/**  Só o arquivo (link direto ou arquivo local). */
+{ kind: "file"; 
+/**  Nome do arquivo. */
+filename: string };
+
+/**  Versão sugerida e o motivo. */
+export type VersionSuggestion = {
+	/**  Versão sugerida (`1.3.0`). */
+	version: string,
+	/**  Incremento aplicado (`None` na primeira versão). */
+	bump: Bump | null,
+	/**  Motivos, do mais forte para o mais fraco. */
+	reasons: SuggestReason[],
+};
 
 /**
  *  Códigos do domínio `versioning`. O código é contrato: renomear é mudança de contrato;
