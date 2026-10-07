@@ -38,6 +38,9 @@ pub enum ProjectErrorCode {
     TrashConfirmation,
     /// O item pedido não está no inventário do pack.
     ItemNotFound,
+    /// Uma fonte (Modrinth, CurseForge) não respondeu ou deu erro; parâmetro `source`
+    /// (SPEC T08; ARCHITECTURE §17).
+    SearchSourceUnavailable,
 }
 
 /// Erro do serviço de packs, com parâmetro opcional para a frase da interface.
@@ -78,5 +81,8 @@ impl DomainError for Error {
     }
     fn params(&self) -> BTreeMap<String, String> {
         self.params.clone()
+    }
+    fn retryable(&self) -> bool {
+        self.code == ProjectErrorCode::SearchSourceUnavailable
     }
 }

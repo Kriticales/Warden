@@ -21,10 +21,14 @@ serde_json.workspace = true
 specta = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 toml_edit.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+async-trait.workspace = true
+unicode-normalization.workspace = true
+tracing.workspace = true
 trash = "5"
 
 [dev-dependencies]
+wiremock.workspace = true
 tempfile.workspace = true
 git2.workspace = true
 

@@ -4,6 +4,7 @@
 //! e acrescenta os comandos numa linha própria de `collect_commands!`; eventos globais, numa
 //! linha de `collect_events!`.
 
+pub(crate) mod add;
 pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
@@ -74,6 +75,11 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             pack_meta::pack_test_settings_get,
             pack_meta::pack_test_settings_set,
             pack_meta::instance_recreate,
+            add::search_projects,
+            add::project_details,
+            add::project_versions,
+            add::add_plan,
+            add::add_apply,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

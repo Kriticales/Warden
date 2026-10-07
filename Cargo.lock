@@ -6689,6 +6689,7 @@ dependencies = [
 name = "warden-project"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "git2",
  "serde",
  "serde_json",
@@ -6697,7 +6698,9 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "toml_edit 0.25.15+spec-1.1.0",
+ "tracing",
  "trash",
+ "unicode-normalization",
  "warden-catalog",
  "warden-core",
  "warden-curseforge",
@@ -6707,6 +6710,7 @@ dependencies = [
  "warden-packwiz",
  "warden-packwiz-cli",
  "warden-versioning",
+ "wiremock",
 ]
 
 [[package]]

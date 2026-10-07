@@ -163,6 +163,19 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**  Uma página da busca combinada, filtrada pelo pack (versão do Minecraft, loader e tipo). */
+	searchProjects: (packId: PackId, request: SearchRequest) => typedError<SearchPage, AppError>(__TAURI_INVOKE("search_projects", { packId, request })),
+	/**  A pré-visualização de um projeto (cabeçalho, descrição e links). */
+	projectDetails: (packId: PackId, source: SourceId, projectId: string) => typedError<ProjectPreview, AppError>(__TAURI_INVOKE("project_details", { packId, source, projectId })),
+	/**  As versões de um projeto que servem para o pack, com a padrão do canal configurado. */
+	projectVersions: (packId: PackId, source: SourceId, projectId: string) => typedError<ProjectVersions, AppError>(__TAURI_INVOKE("project_versions", { packId, source, projectId })),
+	/**
+	 *  O plano de "Adicionar" para um ou vários itens: o que vai entrar, as dependências, o que já
+	 *  está no pack, conflitos e duplicados entre fontes. Nada é gravado.
+	 */
+	addPlan: (packId: PackId, request: AddPlanRequest) => typedError<AddPlan, AppError>(__TAURI_INVOKE("add_plan", { packId, request })),
+	/**  Grava os itens confirmados (ou todos, ou nenhum) e avisa a interface. */
+	addApply: (packId: PackId, request: AddApplyRequest) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_apply", { packId, request })),
 };
 
 /** Events */
@@ -173,6 +186,66 @@ export const events = {
 };
 
 /* Types */
+/**  O que gravar. */
+export type AddApplyRequest = {
+	/**  Os itens, na ordem da tela. */
+	items: ApplyItem[],
+};
+
+/**  Um item escolhido pelo usuário. */
+export type AddChoice = {
+	/**  A fonte escolhida. */
+	source: SourceId,
+	/**  ID do projeto na fonte. */
+	projectId: string,
+	/**  Versão escolhida no seletor; nenhuma: a mais nova compatível do canal. */
+	versionId?: string | null,
+};
+
+/**  O plano. */
+export type AddPlan = {
+	/**  Para qual pack. */
+	target: PlanTarget,
+	/**  Itens que podem entrar: os escolhidos primeiro, na ordem pedida; depois as dependências. */
+	nodes: PlanNode[],
+	/**  Já no pack. */
+	installed: PlanInstalled[],
+	/**  Sem versão compatível. */
+	missing: PlanMissing[],
+	/**  Incompatibilidades declaradas. */
+	conflicts: PlanConflict[],
+	/**  Já no pack por outra fonte. */
+	duplicates: PlanDuplicate[],
+	/**  Quantos itens o pack tem ("com os 128 itens que já estão no pack"). */
+	packItemCount: number,
+};
+
+/**  Pedido de plano: um ou vários itens (seleção múltipla, kit, mods de um modpack…). */
+export type AddPlanRequest = {
+	/**  Os itens escolhidos, na ordem da tela. */
+	items: AddChoice[],
+};
+
+/**  Resultado da gravação. */
+export type AddResult = {
+	/**  Itens que entraram. */
+	added: AddedItem[],
+	/**  Chaves dos itens que já estavam no pack pela mesma fonte (nada foi feito com eles). */
+	skipped: string[],
+	/**  Itens substituídos (apagados). */
+	removed: string[],
+};
+
+/**  Um item gravado. */
+export type AddedItem = {
+	/**  Chave estável (`modrinth:<projeto>`). */
+	key: string,
+	/**  Nome. */
+	title: string,
+	/**  Caminho do `.pw.toml` criado. */
+	path: string,
+};
+
 /**
  *  Códigos do domínio `ai`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -224,6 +297,20 @@ export type AppInfo = {
 	platform: Platform,
 	/**  Build de desenvolvimento (debug). */
 	debugBuild: boolean,
+};
+
+/**  Um item confirmado na tela de dependências, com a versão exata. */
+export type ApplyItem = {
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  ID da versão (Modrinth) ou do arquivo (CurseForge), como veio no plano. */
+	versionId: string,
+	/**  Lado escolhido; nenhum: o sugerido pela fonte. */
+	side?: SideChoice | null,
+	/**  Caminho do item do pack que este substitui ("Substituir pela versão do Modrinth"). */
+	replaces?: string | null,
 };
 
 /**  Onde as chaves ficam, gravado em `settings.json` como `secretsBackend`. */
@@ -286,6 +373,16 @@ export type ConfigsErrorCode =
 "DUPLICATE_EDIT" | 
 /**  A releitura não confirmou a edição. */
 "EDIT_NOT_CONFIRMED";
+
+/**  Um lado de uma incompatibilidade. */
+export type ConflictParty = {
+	/**  Chave do projeto. */
+	key: string,
+	/**  Nome. */
+	title: string,
+	/**  Caminho no pack, quando já está nele. */
+	path: string | null,
+};
 
 /**  Mudança proposta em um arquivo de controle, apresentada antes de aplicar. */
 export type ControlDiff = {
@@ -436,6 +533,22 @@ export type DiagnosticsErrorCode =
 export type DiscoveryErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**  Como um item do pack foi reconhecido como o mesmo projeto vindo de outra fonte. */
+export type DuplicateMatch = 
+/**  O mesmo projeto, identificado pelo hash do arquivo na outra fonte. */
+"project" | 
+/**  O mesmo arquivo (SHA-1). */
+"hash" | 
+/**  O mesmo nome ou slug. */
+"name";
+
+/**  Filtro **Ambiente**. */
+export type EnvironmentFilter = 
+/**  Funciona no cliente. */
+"client" | 
+/**  Funciona no servidor. */
+"server";
 
 /**  Código de erro com o domínio: `{ "domain": "app", "code": "INTERNAL" }` no JSON. */
 export type ErrorCode = 
@@ -1255,6 +1368,15 @@ export type ModrinthErrorCode =
 /**  O cache local do Modrinth (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
 
+/**  Papel de um item no plano. */
+export type NodeRole = 
+/**  Escolhido pelo usuário. */
+"chosen" | 
+/**  Dependência obrigatória de algum item do plano. */
+"required" | 
+/**  Dependência opcional de um item escolhido. */
+"optional";
+
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;
 
@@ -1479,6 +1601,119 @@ export type PerfErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  Incompatibilidade declarada (Modrinth `incompatible`, CurseForge "incompatível"). */
+export type PlanConflict = {
+	/**  O item do plano envolvido. */
+	item: ConflictParty,
+	/**  O outro: um item do pack ou outro item do plano. */
+	other: ConflictParty,
+	/**  O outro já está no pack (senão, é entre itens escolhidos agora). */
+	withPack: boolean,
+	/**  Chave de quem declarou a incompatibilidade. */
+	declaredBy: string,
+	/**  Motivo, quando o autor informa. */
+	reason: string | null,
+};
+
+/**
+ *  Um item do plano que já está no pack por outra fonte ou por link ("Este mod já está no
+ *  pack pela CurseForge.").
+ */
+export type PlanDuplicate = {
+	/**  Chave do item do plano. */
+	key: string,
+	/**  Caminho do item que já está no pack (vai no `replaces` do `add_apply`). */
+	existingPath: string,
+	/**  Nome no pack. */
+	existingTitle: string,
+	/**  Fonte do item do pack (nenhuma: link direto). */
+	existingSource: SourceId | null,
+	/**  Como foi achado. */
+	matchedBy: DuplicateMatch,
+};
+
+/**  Uma dependência (ou um item escolhido) que já está no pack. */
+export type PlanInstalled = {
+	/**  Chave do projeto pedido. */
+	key: string,
+	/**  Nome no pack. */
+	title: string,
+	/**  Caminho do item no pack. */
+	path: string,
+	/**
+	 *  Fonte do item no pack (nenhuma: link direto). Diferente da pedida quando o mesmo mod
+	 *  está no pack por outra fonte.
+	 */
+	packSource: SourceId | null,
+	/**  Era um dos itens escolhidos (ele não entra de novo). */
+	chosen: boolean,
+	/**  Chaves dos itens do plano que pedem este. */
+	requiredBy: string[],
+};
+
+/**  Um item sem versão para o pack ("Nenhuma versão de X para 1.20.1 Forge."). */
+export type PlanMissing = {
+	/**  Chave do projeto. */
+	key: string,
+	/**  Nome (o ID quando a fonte não informou). */
+	title: string,
+	/**  Papel que ele teria. */
+	role: NodeRole,
+	/**  Quem o pede. */
+	requiredBy: string[],
+};
+
+/**  Um item que pode entrar no pack. */
+export type PlanNode = {
+	/**  Chave estável (`modrinth:<projeto>`). */
+	key: string,
+	/**  Papel. */
+	role: NodeRole,
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  Slug. */
+	slug: string,
+	/**  Nome. */
+	title: string,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Tipo (pasta do pack). */
+	kind: ProjectKind,
+	/**  Versão resolvida (ID na fonte; vai para o `add_apply`). */
+	versionId: string,
+	/**  Versão legível. */
+	versionNumber: string,
+	/**  Canal da versão. */
+	channel: VersionChannel,
+	/**  A versão não é do canal configurado (não havia nenhuma do canal). */
+	outsideChannel: boolean,
+	/**
+	 *  A versão serve para o Minecraft e o loader do pack. Falso só quando o usuário escolheu
+	 *  uma versão incompatível (ela entra e aparece no diagnóstico).
+	 */
+	compatible: boolean,
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  Lado sugerido. */
+	side: SideChoice,
+	/**  Observação sobre o lado. */
+	sideNote: SideNote | null,
+	/**  Chaves dos itens do plano que exigem este. */
+	requiredBy: string[],
+	/**  Chaves dos itens escolhidos para os quais este é opcional. */
+	optionalFor: string[],
+};
+
+/**  Versão do Minecraft e loader do pack, para as frases ("para 1.20.1 Forge"). */
+export type PlanTarget = {
+	/**  Versão do Minecraft. */
+	minecraft: string,
+	/**  Loader do pack (`fabric`, `forge`…), se houver. */
+	loader: string | null,
+};
+
 /**  Sistema em que o app roda. */
 export type Platform = 
 /**  Windows (WebView2). */
@@ -1568,7 +1803,79 @@ export type ProjectErrorCode =
 /**  A confirmação para apagar não corresponde ao nome do pack. */
 "TRASH_CONFIRMATION" | 
 /**  O item pedido não está no inventário do pack. */
-"ITEM_NOT_FOUND";
+"ITEM_NOT_FOUND" | 
+/**
+ *  Uma fonte (Modrinth, CurseForge) não respondeu ou deu erro; parâmetro `source`
+ *  (SPEC T08; ARCHITECTURE §17).
+ */
+"SEARCH_SOURCE_UNAVAILABLE";
+
+/**
+ *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks chegam com a
+ *  P1-17.
+ */
+export type ProjectKind = 
+/**  Mods (`mods/`). */
+"mod" | 
+/**  Resource packs (`resourcepacks/`). */
+"resourcePack" | 
+/**  Shaders (`shaderpacks/`). */
+"shader";
+
+/**  Links do projeto (abrem no navegador). */
+export type ProjectLinks = {
+	/**  Página do projeto na fonte. */
+	page: string | null,
+	/**  Problemas conhecidos (issues). */
+	issues: string | null,
+	/**  Código. */
+	source: string | null,
+	/**  Wiki. */
+	wiki: string | null,
+	/**  Discord. */
+	discord: string | null,
+};
+
+/**  A pré-visualização de um projeto (coluna da direita da página Adicionar). */
+export type ProjectPreview = {
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  Slug. */
+	slug: string,
+	/**  Nome. */
+	title: string,
+	/**  Resumo. */
+	summary: string,
+	/**  Descrição longa (a interface higieniza; ARCHITECTURE §18). */
+	body: string,
+	/**  Formato da descrição. */
+	bodyFormat: DescriptionFormat,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Downloads. */
+	downloads: number | null,
+	/**  Última atualização (RFC 3339). */
+	updated: string,
+	/**  Licença (nome ou identificador SPDX), se informada. */
+	license: string | null,
+	/**  Lado informado pelo projeto. */
+	side: SideChoice | null,
+	/**  Links. */
+	links: ProjectLinks,
+};
+
+/**  As versões de um projeto que servem para o pack, a mais nova primeiro. */
+export type ProjectVersions = {
+	/**  As versões (vazia: nenhuma serve para o pack). */
+	versions: VersionOption[],
+	/**
+	 *  A versão padrão: a mais nova do canal configurado (ou a mais nova de todas, se não
+	 *  houver nenhuma do canal).
+	 */
+	defaultId: string | null,
+};
 
 /**  O que a confirmação de remover mostra. */
 export type RemovalPlan = {
@@ -1633,6 +1940,96 @@ export type RuntimeUpdate = {
 export type ScriptsErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**
+ *  Onde a busca continua: quantos itens de cada fonte já foram entregues. Opaco para a
+ *  interface, que só devolve o `next` da página anterior.
+ */
+export type SearchCursor = {
+	/**  Deslocamento de cada fonte. */
+	offsets: SourceOffset[],
+};
+
+/**  Uma página de resultados. */
+export type SearchPage = {
+	/**  Até [`PAGE_SIZE`] itens, já combinados. */
+	items: SearchResult[],
+	/**  As fontes consultadas nesta página. */
+	sources: SourceId[],
+	/**  Total aproximado (soma dos totais das fontes que responderam). */
+	total: number | null,
+	/**  Onde continuar; nenhum: acabou. */
+	next: SearchCursor | null,
+	/**  Fontes que ficaram de fora desta página, e por quê. */
+	warnings: SourceWarning[],
+};
+
+/**
+ *  Uma busca da página Adicionar. Os filtros travados (versão do Minecraft, loader e tipo)
+ *  vêm do pack, nunca da interface.
+ */
+export type SearchRequest = {
+	/**  Texto buscado (vazio: só os filtros). */
+	query?: string,
+	/**  Tipo. */
+	kind: ProjectKind,
+	/**  Ordem. */
+	sort?: SearchSort,
+	/**  Fonte. */
+	source?: SourceFilter,
+	/**  Ambiente (nenhum: qualquer). */
+	environment?: EnvironmentFilter | null,
+	/**
+	 *  "Mostrar também os sem versão compatível": tira os filtros de versão e loader (os
+	 *  itens sem versão para o pack aparecem marcados, sem caixa de seleção).
+	 */
+	includeIncompatible?: boolean,
+	/**  Página seguinte (`next` da anterior); nenhum: a primeira. */
+	cursor?: SearchCursor | null,
+};
+
+/**  Um resultado da busca combinada. */
+export type SearchResult = {
+	/**  Chave estável do item (a da fonte preferida, a mesma do inventário). */
+	key: string,
+	/**  As fontes do item, a preferida primeiro (Modrinth antes da CurseForge). */
+	sources: SourceRef[],
+	/**  Nome. */
+	title: string,
+	/**  Autor. */
+	author: string,
+	/**  Resumo. */
+	summary: string,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Downloads somados das fontes. */
+	downloads: number | null,
+	/**  Data da última atualização (RFC 3339). */
+	updated: string,
+	/**  Já está no pack (pelo projeto em qualquer uma das fontes): sem caixa de seleção. */
+	inPack: boolean,
+	/**
+	 *  Tem versão para o Minecraft e o loader do pack. Falso só com "Mostrar também os sem
+	 *  versão compatível".
+	 */
+	compatible: boolean,
+	/**
+	 *  CurseForge: o autor bloqueou downloads por apps de terceiros ("Download manual
+	 *  necessário").
+	 */
+	manualDownload: boolean,
+};
+
+/**  Ordem dos resultados. */
+export type SearchSort = 
+/**  Relevância: intercalada pela posição em cada fonte. */
+"relevance" | 
+/**  Mais baixados. */
+"downloads" | 
+/**  Atualizados recentemente. */
+"updated" | 
+/**  Mais novos. */
+"newest";
 
 /**  Um segredo que o Warden guarda. Não existe "ler segredo" pela interface. */
 export type SecretKind = 
@@ -1758,6 +2155,73 @@ export type SideChoice =
 /**  Só servidor. */
 "server";
 
+/**  Observação sobre o lado sugerido (ARCHITECTURE §6.2). */
+export type SideNote = 
+/**  "Funciona em qualquer um dos lados". */
+"eitherSide" | 
+/**  "Lado desconhecido — confira se é só de cliente". */
+"unknown";
+
+/**  Filtro **Fonte** ("Mais filtros"). */
+export type SourceFilter = 
+/**  Todas as fontes ativas. */
+"all" | 
+/**  Só o Modrinth. */
+"modrinth" | 
+/**  Só a CurseForge. */
+"curseforge";
+
+/**  Uma fonte de projetos. */
+export type SourceId = 
+/**  Modrinth (padrão quando o projeto está nas duas: informa o lado e tem cache local). */
+"modrinth" | 
+/**  CurseForge (P1-10). */
+"curseforge";
+
+/**  Deslocamento de uma fonte no [`SearchCursor`]. */
+export type SourceOffset = {
+	/**  A fonte. */
+	source: SourceId,
+	/**  Itens já entregues desta fonte. */
+	offset: number,
+	/**  A fonte não tem mais resultados. */
+	done: boolean,
+};
+
+/**  Referência de um resultado numa fonte. */
+export type SourceRef = {
+	/**  A fonte. */
+	source: SourceId,
+	/**  ID do projeto na fonte (o Modrinth usa o ID, nunca o slug, que pode mudar). */
+	projectId: string,
+	/**  Slug do projeto na fonte (para o link da página). */
+	slug: string,
+	/**  Downloads nesta fonte. */
+	downloads: number | null,
+};
+
+/**  Aviso de uma fonte que ficou de fora desta página. */
+export type SourceWarning = {
+	/**  A fonte. */
+	source: SourceId,
+	/**  Por quê. */
+	reason: SourceWarningReason,
+	/**  Detalhe técnico (sem segredos), para "Detalhes técnicos". */
+	detail: string | null,
+};
+
+/**  Por que uma fonte ficou de fora. */
+export type SourceWarningReason = 
+/**
+ *  Erro ou tempo esgotado (`SEARCH_SOURCE_UNAVAILABLE`): "Não foi possível buscar no
+ *  <fonte> agora." com **Tentar de novo**.
+ */
+"unavailable" | 
+/**  Sem chave da CurseForge: a fonte nem foi consultada (P1-10). */
+"keyMissing" | 
+/**  A CurseForge recusou a chave (P1-10). */
+"keyRejected";
+
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -1815,6 +2279,15 @@ export type UpdateReport = {
 	removed: RuntimeId[],
 };
 
+/**  Canal de uma versão. */
+export type VersionChannel = 
+/**  Estável. */
+"release" | 
+/**  Beta. */
+"beta" | 
+/**  Alpha. */
+"alpha";
+
 /**  Versão instalada. */
 export type VersionInfo = {
 	/**  Número legível. */
@@ -1841,6 +2314,22 @@ export type VersionJavaRequirement =
 { kind: "major"; 
 /**  O major pedido. */
 major: number };
+
+/**  Uma versão no seletor **Versão** da pré-visualização. */
+export type VersionOption = {
+	/**  ID na fonte (vai para o `add_plan`). */
+	id: string,
+	/**  Número legível. */
+	number: string,
+	/**  Canal. */
+	channel: VersionChannel,
+	/**  Data de publicação (RFC 3339). */
+	published: string,
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  SHA-1 do arquivo (comparação entre fontes, P1-10). */
+	sha1: string | null,
+};
 
 /**
  *  Códigos do domínio `versioning`. O código é contrato: renomear é mudança de contrato;
