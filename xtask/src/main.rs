@@ -117,7 +117,7 @@ fn main() -> ExitCode {
         Command::FixturesPackwiz { packwiz, commit } => {
             fixtures_packwiz::run(fixtures_packwiz::Options { packwiz, commit })
         }
-        Command::Auto(command) => tasks::dispatch(command),
+        Command::Auto(command) => tasks::dispatch(&command),
         Command::E2eDriver => e2e::run(),
         Command::Installer => installer::run(),
         Command::Notices => notices::run(),

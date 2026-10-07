@@ -19,27 +19,30 @@ fn main() {
         .unwrap_or_default();
     println!("cargo:rustc-env=WARDEN_COMMIT={}", commit.trim());
 
-    generate_registry();
+    if let Err(error) = generate_registry() {
+        println!("cargo:warning=registro de comandos falhou: {error}");
+        std::process::exit(1);
+    }
     build_tauri();
 }
 
 /// Gera `commands_registry.rs` (módulos, comandos e eventos do IPC) a partir de
 /// `src/commands/*.rs` e `src/events.rs` (ARCHITECTURE §4.1).
-fn generate_registry() {
+fn generate_registry() -> Result<(), String> {
     println!("cargo:rerun-if-changed=src/commands");
     println!("cargo:rerun-if-changed=src/events.rs");
     let manifest = absolute("");
     let modules = registry::discover(&manifest.join("src").join("commands"))
-        .expect("falha ao ler src/commands");
+        .map_err(|error| format!("falha ao ler src/commands: {error}"))?;
     for module in &modules {
         println!("cargo:rerun-if-changed={}", module.file.display());
     }
     let events = std::fs::read_to_string(manifest.join("src").join("events.rs"))
-        .expect("falha ao ler src/events.rs");
-    let out =
-        PathBuf::from(std::env::var_os("OUT_DIR").expect("OUT_DIR")).join("commands_registry.rs");
+        .map_err(|error| format!("falha ao ler src/events.rs: {error}"))?;
+    let out_dir = std::env::var_os("OUT_DIR").ok_or("OUT_DIR ausente")?;
+    let out = PathBuf::from(out_dir).join("commands_registry.rs");
     std::fs::write(out, registry::render(&modules, &events))
-        .expect("falha ao gravar commands_registry.rs");
+        .map_err(|error| format!("falha ao gravar commands_registry.rs: {error}"))
 }
 
 /// O `tauri-build` embute o manifesto do Windows (Common Controls v6) só nos executáveis

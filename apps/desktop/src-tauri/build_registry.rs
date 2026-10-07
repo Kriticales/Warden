@@ -171,6 +171,19 @@ pub struct PackChanged { pub a: u8 }
     }
 
     #[test]
+    fn descobre_os_modulos_reais() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/commands");
+        let modules = discover(&dir).unwrap();
+        let app = modules.iter().find(|m| m.name == "app").unwrap();
+        assert!(app.commands.contains(&"app_info".to_owned()));
+        assert!(modules.iter().all(|m| m.name != "mod"));
+        let names: Vec<_> = modules.iter().map(|m| m.name.clone()).collect();
+        let mut sorted = names.clone();
+        sorted.sort();
+        assert_eq!(names, sorted);
+    }
+
+    #[test]
     fn gera_modulos_comandos_e_eventos() {
         let modules = vec![CommandModule {
             name: "app".into(),

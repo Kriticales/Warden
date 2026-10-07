@@ -57,7 +57,7 @@ fn full_steps() -> Vec<Step> {
         ("bindings --check", Box::new(|| bindings::run(true))),
         (
             "check-integration",
-            Box::new(|| check_integration::run(check_integration::Args { compile: false })),
+            Box::new(|| check_integration::run(&check_integration::Args { compile: false })),
         ),
         ("pnpm format:check", pnpm_script("format:check")),
         ("pnpm lint", pnpm_script("lint")),

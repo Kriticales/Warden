@@ -78,8 +78,8 @@ fn add_feature(root: &Path, tag: &str) -> Result<()> {
         &format!(
             "//! Subcomando de exemplo da check-integration {tag}.\n\n\
              /// Sem argumentos.\n#[derive(clap::Args)]\npub struct Args {{}}\n\n\
-             #[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)]\n\
-             pub fn run(_args: Args) -> anyhow::Result<()> {{\n    Ok(())\n}}\n"
+             #[allow(clippy::unnecessary_wraps)]\n\
+             pub fn run(_args: &Args) -> anyhow::Result<()> {{\n    Ok(())\n}}\n"
         ),
     )?;
     // Mexida no mesmo trecho do bindings.ts nas duas branches: conflito de texto garantido.
@@ -162,7 +162,7 @@ fn compile_merge(work: &Path) -> Result<()> {
 }
 
 /// `cargo xtask check-integration`.
-pub fn run(args: Args) -> Result<()> {
+pub fn run(args: &Args) -> Result<()> {
     merge_driver::ensure()?;
     let root = workspace_root();
     let dir = tempfile::tempdir().context("falha ao criar pasta temporária")?;
