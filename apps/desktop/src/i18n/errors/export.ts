@@ -12,7 +12,7 @@ export const exportErrors: Record<ExportErrorCode, string> = {
   DESTINATION_INSIDE_PACK:
     'O destino fica dentro da pasta do pack. Escolha um lugar fora dela, para a exportação não entrar no próprio pack.',
   PACK_OUT_OF_DATE:
-    'O índice do pack está desatualizado: o packwiz mudaria arquivos ao conferir. Reabra o pack no Warden para atualizar o índice e exporte de novo. Nada foi gravado.',
+    'O índice do pack não confere com os arquivos da pasta: algo mudou fora do Warden. Em Mods, confira os arquivos fora do índice (Incluir no pack) e exporte de novo. Nada foi gravado.',
   EXCLUDE_NEEDS_MANUAL_RULE:
     'Este nome tem colchetes, que o .packwizignore lê como padrão. Para excluir este arquivo, acrescente a regra à mão no .packwizignore do pack.',
 };
