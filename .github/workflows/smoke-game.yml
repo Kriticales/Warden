@@ -62,7 +62,7 @@ jobs:
         run: |
           set -o pipefail
           export WARDEN_LAUNCHER_DADOS="$RUNNER_TEMP/warden-l05"
-          xvfb-run --auto-servernum --server-args='-screen 0 1280x800x24' \
+          xvfb-run --auto-servernum --server-args='-screen 0 1280x800x24 -dpi 96' \
             bash -c 'xrandr --query; cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture' \
             2>&1 | tee "$RUNNER_TEMP/smoke-game-${{ matrix.group }}.log"
 

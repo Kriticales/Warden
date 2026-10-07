@@ -231,10 +231,14 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     }
     if combo.name == "forge-1.12.2" {
         props.push(("fml.queryResult".into(), "confirm".into()));
-        if cfg!(target_os = "linux") {
-            // LWJGL 2 tenta ler o primeiro monitor XRandR; Xvfb não anuncia nenhum.
-            props.push(("LWJGL_DISABLE_XRANDR".into(), "true".into()));
-        }
+    }
+    if combo.minecraft == "1.16.5" {
+        // O authlib 2 desabilita Multiplayer para o perfil offline quando a API
+        // responde com uma política restritiva; sem serviço, usa a política offline.
+        props.push((
+            "minecraft.api.services.host".into(),
+            "http://127.0.0.1:1".into(),
+        ));
     }
     let options = LaunchOptions {
         game_dir: game_dir.clone(),
@@ -273,13 +277,13 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     }
     if combo.name == "forge-1.12.2" {
         assert!(argv.contains("-Dfml.queryResult=confirm"), "{}", combo.name);
-        if cfg!(target_os = "linux") {
-            assert!(
-                argv.contains("-DLWJGL_DISABLE_XRANDR=true"),
-                "{}",
-                combo.name
-            );
-        }
+    }
+    if combo.minecraft == "1.16.5" {
+        assert!(
+            argv.contains("-Dminecraft.api.services.host=http://127.0.0.1:1"),
+            "{}",
+            combo.name
+        );
     }
     command.env.push(("ALSOFT_DRIVERS".into(), "null".into()));
     if cfg!(target_os = "linux") && combo.minecraft == "26.3" {
