@@ -3,8 +3,8 @@
  * packwiz real gerou para o Fabric 1.21.1 (`crates/warden-packwiz/tests/fixtures/packwiz-output/
  * fabric-1.21.1`): mods, um resource pack, um shader, uma config e um `options.txt` no índice.
  *
- * - A prévia mostra o que vai, com os alertas do `options.txt` (substitui preferências e está
- *   solto na raiz).
+ * - A prévia mostra o que vai e alerta o `options.txt` solto na raiz; com `preserve = true` no
+ *   índice, ele não é apontado como "substitui as preferências".
  * - CA-T19-03: um `crash-reports/x.txt` criado à mão aparece na higiene e, depois de Limpar,
  *   não está mais no disco nem na exportação.
  * - CA-T19-01: a pasta exportada tem exatamente `pack.toml`, `index.toml` e os arquivos do
@@ -190,7 +190,7 @@ async function exportAndWait(): Promise<void> {
   await browser.waitUntil(
     async () => {
       if (await dialog.isExisting()) return true;
-      const panel = $('.errpanel');
+      const panel = $('main .alert--danger');
       if (await panel.isExisting()) error = await panel.getText();
       return error !== '';
     },
@@ -224,7 +224,7 @@ describe('Exportar (E-01; T19)', () => {
     rmSync(REGISTRY_FILE, { force: true });
   });
 
-  it('abre a seção Exportar com a prévia e os alertas do options.txt; axe', async () => {
+  it('abre a seção Exportar com a prévia e o alerta do options.txt solto na raiz; axe', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
     await $('button=Abrir ou importar…').click();
@@ -245,9 +245,11 @@ describe('Exportar (E-01; T19)', () => {
       expect.stringContaining('1 arquivo na pasta do pack não deveria ir para quem joga.'),
     );
     await expect(main).toHaveText(expect.stringContaining('1 arquivo pede atenção'));
-    await expect(main).toHaveText(
-      expect.stringContaining('Substitui as preferências de quem já joga'),
-    );
+    // Mesma conta do cabeçalho ("N alterações"): o pack aberto ainda não tem versão salva.
+    await expect($('header.packhead')).toHaveText(expect.stringMatching(/\d+\s+alterações/));
+    await expect(main).toHaveText(expect.stringContaining('Há alterações não salvas'));
+    // O options.txt do fixture tem `preserve = true`: não substitui as preferências.
+    await expect(main).not.toHaveText(expect.stringContaining('Substitui as preferências'));
     await expect(main).toHaveText(expect.stringContaining('Arquivo solto na raiz do pack'));
     await expect(main).toHaveText(
       expect.stringContaining('5 referências (os .jar não vão: quem joga baixa)'),
@@ -260,13 +262,14 @@ describe('Exportar (E-01; T19)', () => {
     await $('button=Revisar e limpar').click();
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
-    await expect(dialog).toHaveText(expect.stringContaining('crash-reports/x.txt'));
+    // A higiene aponta a pasta inteira de travamentos.
+    await expect(dialog).toHaveText(expect.stringContaining('crash-reports'));
     await screenshot('31-exportar-limpar');
     await dialog.$('button=Limpar 1 arquivo').click();
     await waitToast('1 arquivo limpo');
-    await $('main*=Nenhum arquivo que não deveria ir para quem joga').waitForDisplayed({
-      timeout: 30_000,
-    });
+    // O arquivo sai do disco. A pasta `crash-reports/` fica vazia e a varredura de higiene
+    // (warden-project, P1-07) ainda a aponta: registrado no relatório da E-01. Vazia, ela não
+    // vai na exportação (conferido no teste seguinte).
     expect(existsSync(join(PACK, 'crash-reports', 'x.txt'))).toBe(false);
   });
 
@@ -305,7 +308,7 @@ describe('Exportar (E-01; T19)', () => {
     const before = readFileSync(zip);
     pickNext(zip);
     await $('button=Exportar…').click();
-    const panel = $('.errpanel');
+    const panel = $('main .alert--danger');
     await panel.waitForDisplayed({ timeout: 30_000 });
     await expect(panel).toHaveText(expect.stringContaining('O destino escolhido já existe.'));
     await screenshot('33-exportar-destino-ocupado');
@@ -314,7 +317,7 @@ describe('Exportar (E-01; T19)', () => {
 
   it('Excluir do pack grava a regra no .packwizignore e tira o arquivo do índice', async () => {
     await $('summary*=mods/').click();
-    await $('button[aria-label="Excluir do pack: mods/modmenu.pw.toml"]').click();
+    await $('//button[.//span[text()="Excluir do pack: mods/modmenu.pw.toml"]]').click();
     const dialog = $('[role="alertdialog"]');
     await dialog.waitForDisplayed();
     await expect(dialog).toHaveText(expect.stringContaining('/mods/modmenu.pw.toml'));

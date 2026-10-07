@@ -247,9 +247,11 @@ pub fn preview(root: &Path, source: &ExportSource) -> Result<ExportPreview> {
     let (hygiene, unsaved_changes) = match source {
         ExportSource::Current => {
             let hygiene = hygiene::scan(root).map_err(err)?;
+            // A mesma conta do cabeçalho do pack ("N alterações"): desde a última versão
+            // salva, não desde o último ponto de segurança.
             let unsaved = PackRepo::open(root)
-                .and_then(|repo| repo.unsaved_changes())
-                .map_or(true, |changes| !changes.is_empty());
+                .and_then(|repo| repo.changes_since_last_version(&warden_versioning::FileNames))
+                .map_or(true, |changes| !changes.files.is_empty());
             (hygiene, unsaved)
         }
         ExportSource::Saved { .. } => (Vec::new(), false),

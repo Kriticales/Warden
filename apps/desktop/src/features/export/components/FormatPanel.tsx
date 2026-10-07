@@ -27,8 +27,7 @@ export function FormatPanel({
       <h2 className="panel__title panel__title--sans" id="ex-formato">
         {t('formato.titulo')}
       </h2>
-      <fieldset className="m-0 mt-3 border-0 p-0">
-        <legend className="sr-only">{t('formato.titulo')}</legend>
+      <fieldset className="m-0 mt-3 border-0 p-0" aria-labelledby="ex-formato">
         <div className="choice-list choice-list--2">
           {FORMATS.map((format) => (
             <Choice
