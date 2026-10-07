@@ -10,7 +10,7 @@
 #      do cargo e pasta `target` (rust-cache), loja do pnpm, módulos do Go e o sidecar do
 #      packwiz, por commit do packwiz e SHA dos patches;
 #   4. `cargo xtask build-packwiz` com novas tentativas (o GitHub e o proxy do Go às vezes não
-#      respondem) e `cargo xtask setup`.
+#      respondem), `cargo xtask setup` e, quando pedido, `cargo xtask installer`.
 #
 # Segredos: só o `nightly.yml` passa `CURSEFORGE_API_KEY`, e só quando `env-file` é true. O
 # valor vai para um `.env` na raiz (ignorado pelo git), que é o que o `cargo xtask
@@ -45,6 +45,10 @@ on:
         description: Instala o Java 21 (conformidade com o packwiz-installer real).
         type: boolean
         default: false
+      installer:
+        description: Prepara o packwiz-installer e o JRE fixados para os testes de conformidade.
+        type: boolean
+        default: false
       env-file:
         description: Grava `CURSEFORGE_API_KEY` num `.env` temporário (testes de rede).
         type: boolean
@@ -74,6 +78,8 @@ env:
   NEXTEST_PROFILE: ci
   # Versão do Go usada no sidecar; a mesma série da máquina de desenvolvimento.
   GO_VERSION: "1.26.5"
+  # Dentro de target (ignorado pelo git), com o mesmo caminho em cada runner do mesmo sistema.
+  WARDEN_INSTALLER_CACHE: ${{ github.workspace }}/target/warden-installer
 
 defaults:
   run:
@@ -209,6 +215,17 @@ jobs:
 
       - name: cargo xtask setup
         run: cargo xtask setup
+
+      - name: Cache do packwiz-installer e do JRE fixados
+        if: inputs.installer
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: target/warden-installer
+          key: installer-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('xtask/src/installer.rs') }}
+
+      - name: Preparar o instalador para os testes de conformidade
+        if: inputs.installer
+        run: cargo xtask installer
 
       - name: Chave da CurseForge num .env temporário
         if: inputs.env-file

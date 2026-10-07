@@ -28,3 +28,8 @@ regexes = ['''^QUJDREVGR0hJSktMTU5PUFFSU1RVVldY$''']
 [[allowlists]]
 description = "Tokens inventados de propósito para testar a redação de segredos da D-02 (CurseForge, ghp_, github_pat_, AIza, JWT). Só esta pasta; no resto do repositório as mesmas formas continuam barradas."
 paths = ['''^crates[/\\]warden-diagnostics[/\\]tests[/\\]fixtures[/\\]redacao[/\\]''']
+
+[[allowlists]]
+description = "JWT fictício usado no teste de redação da D-02 antes de ser movido para a fixture; só a regra jwt neste arquivo histórico."
+targetRules = ["jwt"]
+paths = ['''^crates[/\\]warden-diagnostics[/\\]src[/\\]redact\.rs$''']

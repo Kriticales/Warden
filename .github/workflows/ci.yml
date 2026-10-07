@@ -47,6 +47,7 @@ jobs:
       runner: ubuntu-24.04
       cache-key: linux-check
       timeout-minutes: 90
+      installer: true
       run: cargo xtask check
 
   cobertura:
@@ -57,6 +58,7 @@ jobs:
       runner: ubuntu-24.04
       cache-key: linux-cobertura
       timeout-minutes: 90
+      installer: true
       run: cargo xtask coverage
 
   detectar-e2e:

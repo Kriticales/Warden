@@ -47,6 +47,7 @@ jobs:
       cache-key: windows-conformidade
       timeout-minutes: 90
       java: true
+      installer: true
       # Arquivos `tests/conformance_*.rs` (QUALITY §4.1); enquanto não existirem, só avisa.
       run: cargo nextest run --workspace --locked --no-tests=warn -E 'binary(/^conformance_/)'
 

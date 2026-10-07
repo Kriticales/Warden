@@ -142,6 +142,7 @@ impl Tree {
 
     /// Processos vivos na árvore (só o Windows sabe contar; no Linux, `None`).
     #[allow(clippy::unnecessary_wraps)] // Some no Windows, None no Linux.
+    #[cfg_attr(unix, allow(clippy::unused_self))] // Só o Windows usa self.
     fn active_processes(&self) -> Option<u32> {
         #[cfg(windows)]
         {
