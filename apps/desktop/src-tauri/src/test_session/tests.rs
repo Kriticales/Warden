@@ -514,3 +514,124 @@ fn loader_do_pack_vira_o_do_launcher() {
         LoaderKind::Forge
     );
 }
+
+/// Uma combinação do roteiro com o jogo real.
+struct RealGame {
+    minecraft: &'static str,
+    loader: &'static str,
+    version: &'static str,
+}
+
+/// As combinações do CA-T13-01 nesta tarefa (a matriz completa é da L-05).
+const REAL_GAMES: [(&str, RealGame); 2] = [
+    (
+        "fabric-1.20.1",
+        RealGame {
+            minecraft: "1.20.1",
+            loader: "fabric",
+            version: "0.19.5",
+        },
+    ),
+    (
+        "forge-1.12.2",
+        RealGame {
+            minecraft: "1.12.2",
+            loader: "forge",
+            version: "14.23.5.2860",
+        },
+    ),
+];
+
+/// CA-T13-01 pelo Testar, com o Minecraft de verdade (roteiro no Windows; abre a janela do
+/// jogo): o pack mínimo passa por todas as etapas do Testar (Java baixado pela `warden-java`,
+/// jogo e loader pelo motor, cópia do pack) e chega ao menu principal (marcadores do S-R5-3:
+/// atlas e som; no Forge legado, também o "successfully loaded"), sem sinal de falha; depois o
+/// teste para o jogo. Uma combinação por vez:
+/// `WARDEN_TEST_REAL_GAME=fabric-1.20.1 cargo test -p warden-app --lib jogo_real -- --ignored
+/// --nocapture`. `WARDEN_TEST_REAL_ROOT` guarda os downloads entre rodadas.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[ignore = "abre o Minecraft de verdade e baixa centenas de MB"]
+#[allow(clippy::print_stdout)]
+async fn jogo_real_chega_ao_menu_pelo_testar() {
+    let Ok(wanted) = std::env::var("WARDEN_TEST_REAL_GAME") else {
+        eprintln!("WARDEN_TEST_REAL_GAME ausente: nada a fazer");
+        return;
+    };
+    let (_, game) = REAL_GAMES
+        .iter()
+        .find(|(name, _)| *name == wanted)
+        .unwrap_or_else(|| panic!("combinação desconhecida: {wanted}"));
+    let temp = tempfile::tempdir().unwrap();
+    let root = std::env::var_os("WARDEN_TEST_REAL_ROOT")
+        .map_or_else(|| temp.path().to_path_buf(), PathBuf::from);
+    let state = Arc::new(test_state(&root));
+    let pack_root = root.join("packs").join(&wanted);
+    std::fs::create_dir_all(&pack_root).unwrap();
+    let index = PackIndex::default().to_toml_string();
+    std::fs::write(pack_root.join("index.toml"), &index).unwrap();
+    let mut manifest = PackManifest::new("Pack mínimo", game.minecraft);
+    manifest.version = "1.0.0".into();
+    manifest.index.hash = sha256(index.as_bytes());
+    manifest
+        .versions
+        .get_or_insert_with(Default::default)
+        .insert(game.loader.into(), game.version.into());
+    std::fs::write(pack_root.join("pack.toml"), manifest.to_toml_string()).unwrap();
+    let pack = state
+        .packs
+        .records()
+        .into_iter()
+        .find(|record| record.path == pack_root)
+        .map_or_else(|| register(&state, &pack_root), |record| record.id);
+
+    let started = Instant::now();
+    let (task, seen) = spawn_test(&state, pack, TestRequest::default());
+    let legacy_forge = game.loader == "forge" && game.minecraft == "1.12.2";
+    let deadline = Instant::now() + Duration::from_secs(45 * 60);
+    let mut loaded_at = None;
+    loop {
+        let texts = seen.console_texts();
+        let has = |needle: &str| texts.iter().any(|text| text.contains(needle));
+        let atlas = if game.minecraft == "1.12.2" {
+            has("textures-atlas")
+        } else {
+            has("blocks.png-atlas")
+        };
+        let ready = atlas
+            && has("Sound engine started")
+            && (!legacy_forge || has("Forge Mod Loader has successfully loaded"));
+        for signal in [
+            "Error during pre-loading phase",
+            "Missing or unsupported mandatory dependencies",
+            "#@!@# Game crashed!",
+            "Could not find or load main class",
+        ] {
+            assert!(!has(signal), "sinal de falha no console: {signal}");
+        }
+        if ready {
+            loaded_at = Some(started.elapsed());
+            break;
+        }
+        if task.is_finished() || Instant::now() > deadline {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(500)).await;
+    }
+    let loaded_at = loaded_at.unwrap_or_else(|| {
+        let tail: Vec<String> = seen.console_texts().into_iter().rev().take(40).collect();
+        panic!("o jogo não chegou ao menu; últimas linhas: {tail:#?}")
+    });
+    // Alguns segundos no menu, como quem olha.
+    tokio::time::sleep(Duration::from_secs(5)).await;
+    state.tests.stop(pack).await.unwrap();
+    let summary = task.await.unwrap().unwrap();
+    assert_eq!(summary.outcome, Outcome::StoppedByUser);
+    println!(
+        "{wanted}: menu principal em {:.0} s desde o clique (Java {}, {} MB; sessão {}); {} linhas no console",
+        loaded_at.as_secs_f64(),
+        summary.java_major,
+        summary.memory_mb.unwrap_or_default(),
+        summary.id,
+        seen.console_texts().len()
+    );
+}
