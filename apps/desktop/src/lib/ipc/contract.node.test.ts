@@ -21,6 +21,8 @@ const CONSUMERS = ['src/features', 'src/app', 'src/routes'];
 const PENDING: Record<string, string> = {
   secrets_backend_get:
     'sem tela: Configurações lê o modo em secrets_status.backend (P1-13); remover ou dar uso',
+  graph_orphans:
+    'sem tela: a P1-15 oferece remover as bibliotecas sem uso ao remover um item; a D-11 lista no Grafo',
 };
 
 /** Nomes `snake_case` dos comandos em `collect_commands![…]`. */

@@ -107,7 +107,7 @@ pub(super) fn build(input: &GraphInput) -> Graph {
     let mut items: Vec<ItemNode> = Vec::new();
     let mut by_path: HashMap<String, usize> = HashMap::new();
     let mut declared: Vec<Vec<Declared>> = Vec::new();
-    let mut provides: Vec<Vec<Vec<String>>> = Vec::new();
+    let mut aliases_of: Vec<Vec<Vec<String>>> = Vec::new();
 
     for item in &input.items {
         if by_path.contains_key(&item.path) {
@@ -119,7 +119,7 @@ pub(super) fn build(input: &GraphInput) -> Graph {
             .map(|jar| collect(input.loader, jar))
             .unwrap_or_default();
         by_path.insert(item.path.clone(), items.len());
-        provides.push(
+        aliases_of.push(
             collected
                 .mods
                 .iter()
@@ -146,76 +146,10 @@ pub(super) fn build(input: &GraphInput) -> Graph {
         declared.push(collected.declared);
     }
 
-    // Índice id (minúsculas) → quem satisfaz, com os `provides` como apelidos.
-    let mut index: HashMap<String, Vec<Provider>> = HashMap::new();
-    for (i, node) in items.iter().enumerate() {
-        let own = node.mods.iter().map(|m| (&m.id, false));
-        let nested = node.embedded.iter().map(|m| (&m.id, true));
-        for (position, (id, embedded)) in own.chain(nested).enumerate() {
-            let mut push = |key: &str, alias: bool| {
-                let providers = index.entry(key.to_ascii_lowercase()).or_default();
-                let provider = Provider {
-                    item: i,
-                    mod_id: id.clone(),
-                    embedded,
-                    alias,
-                };
-                if !providers.contains(&provider) {
-                    providers.push(provider);
-                }
-            };
-            push(id, false);
-            for alias in &provides[i][position] {
-                push(alias, true);
-            }
-        }
-    }
+    let index = provider_index(&items, &aliases_of);
 
     for (i, decls) in declared.into_iter().enumerate() {
-        let mut requirements: Vec<Requirement> = Vec::new();
-        for decl in decls {
-            if builtin(&decl.id) {
-                continue;
-            }
-            let key = decl.id.to_ascii_lowercase();
-            if requirements
-                .iter()
-                .any(|known| known.kind == decl.kind && known.id.eq_ignore_ascii_case(&key))
-            {
-                continue;
-            }
-            let all = index.get(&key).map_or(&[][..], Vec::as_slice);
-            let own = all.iter().any(|provider| provider.item == i);
-            let mut providers: Vec<Provider> = all
-                .iter()
-                .filter(|provider| provider.item != i)
-                .cloned()
-                .collect();
-            providers.sort();
-            let state = if decl.kind.is_conflict() {
-                // Incompatibilidade só interessa quando o outro item está no pack.
-                if providers.is_empty() {
-                    continue;
-                }
-                State::InPack
-            } else if own {
-                providers.clear();
-                State::Own
-            } else if providers.is_empty() {
-                State::Missing
-            } else {
-                State::InPack
-            };
-            requirements.push(Requirement {
-                id: decl.id,
-                kind: decl.kind,
-                range: decl.range,
-                providers,
-                state,
-                note: None,
-            });
-        }
-        items[i].requirements = requirements;
+        items[i].requirements = resolve_requirements(i, decls, &index);
     }
 
     // Relações obrigatórias da API: valem para o que o jar não declarou (ou não existe).
@@ -238,6 +172,108 @@ pub(super) fn build(input: &GraphInput) -> Graph {
         add_edge(&mut items, from, to, RelationKind::Inferred, note);
     }
 
+    let (needs, needed_by) = adjacency(&items);
+    let component = strongly_connected(&needs);
+
+    let additions = input.additions.clone().map(|mut history| {
+        history.entries.retain(|path, _| by_path.contains_key(path));
+        history
+    });
+    Graph {
+        items,
+        by_path,
+        needs,
+        needed_by,
+        component,
+        additions,
+    }
+}
+
+/// Índice id (minúsculas) → quem satisfaz, com os `provides` como apelidos.
+fn provider_index(
+    items: &[ItemNode],
+    aliases_of: &[Vec<Vec<String>>],
+) -> HashMap<String, Vec<Provider>> {
+    let mut index: HashMap<String, Vec<Provider>> = HashMap::new();
+    for (i, node) in items.iter().enumerate() {
+        let own = node.mods.iter().map(|m| (&m.id, false));
+        let nested = node.embedded.iter().map(|m| (&m.id, true));
+        for (position, (id, embedded)) in own.chain(nested).enumerate() {
+            let mut push = |key: &str, alias: bool| {
+                let known = index.entry(key.to_ascii_lowercase()).or_default();
+                let provider = Provider {
+                    item: i,
+                    mod_id: id.clone(),
+                    embedded,
+                    alias,
+                };
+                if !known.contains(&provider) {
+                    known.push(provider);
+                }
+            };
+            push(id, false);
+            for alias in &aliases_of[i][position] {
+                push(alias, true);
+            }
+        }
+    }
+    index
+}
+
+/// Resolve as relações declaradas por um item contra o índice de fornecedores.
+fn resolve_requirements(
+    i: usize,
+    decls: Vec<Declared>,
+    index: &HashMap<String, Vec<Provider>>,
+) -> Vec<Requirement> {
+    let mut requirements: Vec<Requirement> = Vec::new();
+    for decl in decls {
+        if builtin(&decl.id) {
+            continue;
+        }
+        let key = decl.id.to_ascii_lowercase();
+        if requirements
+            .iter()
+            .any(|known| known.kind == decl.kind && known.id.eq_ignore_ascii_case(&key))
+        {
+            continue;
+        }
+        let all = index.get(&key).map_or(&[][..], Vec::as_slice);
+        let own = all.iter().any(|provider| provider.item == i);
+        let mut found: Vec<Provider> = all
+            .iter()
+            .filter(|provider| provider.item != i)
+            .cloned()
+            .collect();
+        found.sort();
+        let state = if decl.kind.is_conflict() {
+            // Incompatibilidade só interessa quando o outro item está no pack.
+            if found.is_empty() {
+                continue;
+            }
+            State::InPack
+        } else if own {
+            found.clear();
+            State::Own
+        } else if found.is_empty() {
+            State::Missing
+        } else {
+            State::InPack
+        };
+        requirements.push(Requirement {
+            id: decl.id,
+            kind: decl.kind,
+            range: decl.range,
+            providers: found,
+            state,
+            note: None,
+        });
+    }
+    requirements
+}
+
+/// Quem cada item exige (obrigatória ou inferida) e o inverso, sem repetir.
+fn adjacency(items: &[ItemNode]) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
     let n = items.len();
     let mut needs: Vec<Vec<usize>> = vec![Vec::new(); n];
     let mut needed_by: Vec<Vec<usize>> = vec![Vec::new(); n];
@@ -260,20 +296,7 @@ pub(super) fn build(input: &GraphInput) -> Graph {
         list.sort_unstable();
         list.dedup();
     }
-    let component = strongly_connected(&needs);
-
-    let additions = input.additions.clone().map(|mut history| {
-        history.entries.retain(|path, _| by_path.contains_key(path));
-        history
-    });
-    Graph {
-        items,
-        by_path,
-        needs,
-        needed_by,
-        component,
-        additions,
-    }
+    (needs, needed_by)
 }
 
 /// Acrescenta `from → to` a menos que `from` já exija `to` por uma relação declarada.

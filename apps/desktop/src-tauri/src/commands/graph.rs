@@ -18,6 +18,7 @@
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
 use std::collections::HashMap;
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
@@ -246,53 +247,38 @@ fn cache() -> &'static Mutex<HashMap<PackId, Cached>> {
     CACHE.get_or_init(Mutex::default)
 }
 
-/// O grafo do pack: do cache, se nada mudou, ou montado agora.
-async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, AppError> {
-    let (root, inventory, loader) = {
-        let _lock = state.locks.read(pack_id).await;
-        let root = pack_root(state, pack_id)?;
-        let inventory = warden_project::inventory::inventory(&root, Some(&state.modrinth))
-            .await
-            .map_err(domain)?;
-        let loader = warden_project::meta::read_meta(&root)
-            .map_err(domain)?
-            .loader;
-        (root, inventory, loader)
-    };
-    let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
-    let candidates = candidates(&inventory, &root, &game_dir);
-    let inferred_path = inferred_file(state, pack_id);
-
-    // Impressão digital: itens, jars (tamanho e data) e o arquivo das arestas inferidas.
-    let mut fingerprint = format!("{loader:?}\n");
-    for candidate in &candidates {
-        fingerprint.push_str(&format!(
+/// Impressão digital do que alimenta o grafo: itens, jars (tamanho e data) e o arquivo das
+/// arestas inferidas. Mudou algo, o grafo é refeito.
+fn fingerprint(loader: Option<&str>, candidates: &[Candidate], inferred_path: &Path) -> String {
+    let mut text = format!("{loader:?}\n");
+    for candidate in candidates {
+        let _ = write!(
+            text,
             "{}|{}|{:?}|",
             candidate.path, candidate.key, candidate.source_version
-        ));
+        );
         match existing(&candidate.jars) {
-            Some((_, len, modified)) => fingerprint.push_str(&format!("{len}:{modified}\n")),
-            None => fingerprint.push_str("-\n"),
+            Some((_, len, modified)) => {
+                let _ = writeln!(text, "{len}:{modified}");
+            }
+            None => text.push_str("-\n"),
         }
     }
-    match fs::metadata(&inferred_path) {
-        Ok(meta) => fingerprint.push_str(&format!(
-            "inferred:{}:{:?}",
-            meta.len(),
-            meta.modified().ok()
-        )),
-        Err(_) => fingerprint.push_str("inferred:-"),
-    }
-    {
-        let guard = cache().lock().unwrap_or_else(PoisonError::into_inner);
-        if let Some(hit) = guard.get(&pack_id)
-            && hit.fingerprint == fingerprint
-            && hit.built.elapsed() < CACHE_TTL
-        {
-            return Ok(Arc::clone(&hit.graph));
+    match fs::metadata(inferred_path) {
+        Ok(meta) => {
+            let _ = write!(text, "inferred:{}:{:?}", meta.len(), meta.modified().ok());
         }
+        Err(_) => text.push_str("inferred:-"),
     }
+    text
+}
 
+/// Lê os jars e junta, para os itens sem jar, as dependências obrigatórias da API.
+async fn load_items(
+    state: &AppState,
+    inventory: &Inventory,
+    candidates: &[Candidate],
+) -> Result<Vec<GraphItem>, AppError> {
     let jar_paths: Vec<(usize, PathBuf)> = candidates
         .iter()
         .enumerate()
@@ -312,7 +298,7 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
         .collect();
     let api: HashMap<String, Vec<String>> =
         if (0..candidates.len()).any(|index| !jar_of.contains_key(&index)) {
-            warden_project::remove::direct_dependencies(&inventory, Some(&state.modrinth))
+            warden_project::remove::direct_dependencies(inventory, Some(&state.modrinth))
                 .await
                 .into_iter()
                 .filter_map(|(key, needs)| {
@@ -347,6 +333,38 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
             }
         })
         .collect();
+    Ok(items)
+}
+
+/// O grafo do pack: do cache, se nada mudou, ou montado agora.
+async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, AppError> {
+    let (root, inventory, loader) = {
+        let _lock = state.locks.read(pack_id).await;
+        let root = pack_root(state, pack_id)?;
+        let inventory = warden_project::inventory::inventory(&root, Some(&state.modrinth))
+            .await
+            .map_err(domain)?;
+        let loader = warden_project::meta::read_meta(&root)
+            .map_err(domain)?
+            .loader;
+        (root, inventory, loader)
+    };
+    let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
+    let candidates = candidates(&inventory, &root, &game_dir);
+    let inferred_path = inferred_file(state, pack_id);
+
+    let fingerprint = fingerprint(loader.as_deref(), &candidates, &inferred_path);
+    {
+        let guard = cache().lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(hit) = guard.get(&pack_id)
+            && hit.fingerprint == fingerprint
+            && hit.built.elapsed() < CACHE_TTL
+        {
+            return Ok(Arc::clone(&hit.graph));
+        }
+    }
+
+    let items = load_items(state, &inventory, &candidates).await?;
 
     let inferred = match InferredStore::load(&inferred_path) {
         Ok(store) => store.edges,
@@ -393,9 +411,10 @@ mod tests {
             "modLoader=\"javafml\"\nloaderVersion=\"[47,)\"\nlicense=\"MIT\"\n[[mods]]\nmodId=\"{mod_id}\"\nversion=\"1.0\"\n"
         );
         for required in requires {
-            toml.push_str(&format!(
+            let _ = write!(
+                toml,
                 "[[dependencies.{mod_id}]]\nmodId=\"{required}\"\nmandatory=true\nversionRange=\"[1,)\"\nordering=\"NONE\"\nside=\"BOTH\"\n"
-            ));
+            );
         }
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         let mut zip = zip::ZipWriter::new(fs::File::create(path).unwrap());
