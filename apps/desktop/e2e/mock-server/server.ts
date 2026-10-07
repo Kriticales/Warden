@@ -83,6 +83,12 @@ const RECORDED: Record<string, string> = {
   'modrinth/v2/versions': join(MODRINTH, '2026-10-04-versions-2.json'),
   'modrinth/v2/project/AANobbMI': join(MODRINTH, '2026-10-04-project-sodium.json'),
   'modrinth/v2/version/SMxNOGZ6': join(MODRINTH, '2026-10-04-version-SMxNOGZ6.json'),
+  // Adicionar (P1-09): toda busca devolve a busca gravada por "sodium" (Fabric 1.21.1).
+  'modrinth/v2/search': join(MODRINTH, '2026-10-04-search-sodium-fabric-1.21.1.json'),
+  'modrinth/v2/project/AANobbMI/version': join(
+    MODRINTH,
+    '2026-10-04-project-sodium-versions-fabric-1.21.1.json',
+  ),
 };
 
 /** O arquivo de fixture para um caminho de URL, ou `null` se sair da pasta. */

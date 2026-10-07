@@ -4,9 +4,11 @@
  * múltipla com Alterar lado e Remover, lado editável na linha e os detalhes num painel lateral
  * (T07) sem sair da lista. Um arquivo ruim nunca derruba a lista.
  *
- * Adicionar (P1-09), Verificar atualizações (P1-12) e o modo Grafo (D-07/P1) chegam com as
- * tarefas donas; até lá os botões ficam indisponíveis, com o motivo na dica.
+ * Adicionar abre a página Adicionar (P1-09). Verificar atualizações (P1-12) e o modo Grafo
+ * (D-07/P1) chegam com as tarefas donas; até lá os botões ficam indisponíveis, com o motivo na
+ * dica.
  */
+import { Link } from '@tanstack/react-router';
 import { Plus, RefreshCw, Search } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +18,7 @@ import { EmptyState } from '../../../components/common/EmptyState';
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Skeleton } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
-import { Button } from '../../../components/ui/button';
+import { Button, buttonVariants } from '../../../components/ui/button';
 import { Dialog, DialogContent } from '../../../components/ui/dialog';
 import { Icon } from '../../../components/ui/icon';
 import { showToast } from '../../../components/ui/toast';
@@ -63,7 +65,7 @@ export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
   if (inventory.isPending) {
     return (
       <>
-        <ModsHead summary={t('mods.carregando')} />
+        <ModsHead packId={packId} summary={t('mods.carregando')} />
         <div className="tablewrap" aria-busy="true">
           <div className="stack-2 modlist__skeleton">
             {Array.from({ length: 8 }, (_, index) => (
@@ -77,7 +79,7 @@ export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
   if (inventory.isError) {
     return (
       <>
-        <ModsHead summary={null} />
+        <ModsHead packId={packId} summary={null} />
         <ErrorPanel
           error={inventory.error}
           onRetry={() => {
@@ -98,7 +100,7 @@ export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
 }
 
 /** Título da seção, o resumo e os botões Verificar atualizações e Adicionar. */
-function ModsHead({ summary }: { summary: string | null }) {
+function ModsHead({ packId, summary }: { packId: PackId; summary: string | null }) {
   const { t } = useTranslation('editor');
   return (
     <PageHead
@@ -109,24 +111,34 @@ function ModsHead({ summary }: { summary: string | null }) {
           <UnavailableButton icon={RefreshCw} reason={t('mods.verificarIndisponivel')}>
             {t('mods.verificarAtualizacoes')}
           </UnavailableButton>
-          <UnavailableButton icon={Plus} primary reason={t('mods.adicionarIndisponivel')}>
-            {t('mods.adicionar')}
-          </UnavailableButton>
+          <AddLink packId={packId}>{t('mods.adicionar')}</AddLink>
         </>
       }
     />
   );
 }
 
+/** "Adicionar": abre a página Adicionar do pack (SPEC T08), em tela cheia. */
+function AddLink({ packId, children }: { packId: PackId; children: string }) {
+  return (
+    <Link
+      to="/packs/$packId/adicionar"
+      params={{ packId }}
+      className={buttonVariants({ variant: 'primary' })}
+    >
+      <Icon icon={Plus} />
+      <span>{children}</span>
+    </Link>
+  );
+}
+
 /** Botão de uma função que ainda não chegou: visível, indisponível e com o motivo na dica. */
 function UnavailableButton({
   icon,
-  primary = false,
   reason,
   children,
 }: {
   icon: typeof Plus;
-  primary?: boolean;
   reason: string;
   children: string;
 }) {
@@ -134,7 +146,7 @@ function UnavailableButton({
     <Tooltip content={reason}>
       <Button
         icon={icon}
-        variant={primary ? 'primary' : 'secondary'}
+        variant="secondary"
         aria-disabled="true"
         onClick={(event) => {
           event.preventDefault();
@@ -226,7 +238,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
     const data = pack.data;
     return (
       <>
-        <ModsHead summary={summary} />
+        <ModsHead packId={packId} summary={summary} />
         <EmptyState
           glyph="plus"
           title={t('mods.vazio.titulo')}
@@ -239,11 +251,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
                 })
               : '',
           })}
-          actions={
-            <UnavailableButton icon={Plus} primary reason={t('mods.adicionarIndisponivel')}>
-              {t('mods.vazio.acao')}
-            </UnavailableButton>
-          }
+          actions={<AddLink packId={packId}>{t('mods.vazio.acao')}</AddLink>}
         />
       </>
     );
@@ -251,7 +259,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
 
   return (
     <>
-      <ModsHead summary={summary} />
+      <ModsHead packId={packId} summary={summary} />
       {inventory.indexError ? (
         <Alert kind="danger" className="mods-banner" title={t('mods.indiceIlegivel')}>
           <div className="alert__text">{t('mods.indiceIlegivelTexto')}</div>

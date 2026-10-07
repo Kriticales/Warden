@@ -1,0 +1,98 @@
+/*
+ * Página Adicionar em tela cheia (SPEC T08; ESTRUTURA N6), a partir de
+ * `design/prototipo-final/prototipo.css` (bloco "D4: página de descoberta em tela cheia").
+ * Três colunas: filtros, resultados e pré-visualização. A coluna de filtros que recolhe atrás
+ * de "Filtros" entre 1024 e 1180 px chega com a P1-16; aqui ela só fica mais estreita.
+ */
+.add-top {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: start;
+}
+.disc {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) minmax(320px, 400px);
+  gap: var(--space-4);
+  align-items: start;
+  margin-top: var(--space-4);
+}
+.disc__filters {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  background: var(--color-surface-1);
+  border: var(--border-thin) solid var(--color-border);
+  position: sticky;
+  top: 0;
+}
+.disc__fgroup .check {
+  font-size: var(--text-sm);
+}
+.filters-lock {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: var(--text-xs);
+  color: var(--color-text-3);
+}
+.filters-lock b {
+  color: var(--color-text-2);
+}
+.disc__main {
+  min-width: 0;
+}
+.disc__selbar {
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: var(--space-2);
+  background: var(--color-surface-2);
+  box-shadow:
+    inset 0 0 0 1px var(--color-primary-line),
+    var(--shadow-block-2);
+}
+.disc__preview {
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - var(--size-pack-header) - var(--size-statusbar) - 190px);
+  overflow-y: auto;
+}
+.disc__more {
+  padding: var(--space-2) 0;
+}
+.drow__icon {
+  width: 40px;
+  height: 40px;
+  image-rendering: auto;
+  object-fit: cover;
+}
+.preview__icon {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+.preview__section {
+  margin-top: var(--space-4);
+}
+.deps__group + .deps__group {
+  margin-top: var(--space-4);
+}
+.deps__installed {
+  color: var(--color-ok-text);
+}
+.packbody .app__main:has(.disc) {
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+@media (max-width: 1180px) {
+  .add-top {
+    grid-template-columns: 150px minmax(0, 1fr) auto;
+  }
+  .disc {
+    grid-template-columns: 180px minmax(0, 1fr) minmax(300px, 340px);
+    gap: var(--space-3);
+  }
+}
