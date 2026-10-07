@@ -19,4 +19,6 @@ export const project: Record<ProjectErrorCode, string> = {
   READ_ONLY: 'O repositório está em um estado que permite apenas leitura.',
   TRASH_CONFIRMATION: 'Digite o nome exato do pack para enviá-lo à Lixeira.',
   ITEM_NOT_FOUND: 'Este item não está mais no pack. Atualize a lista e tente de novo.',
+  SEARCH_SOURCE_UNAVAILABLE:
+    'Não foi possível falar com o {{source}} agora. Confira a internet e tente de novo.',
 };

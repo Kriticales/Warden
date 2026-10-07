@@ -62,5 +62,8 @@ export const tarefas = {
     export: {
       run: 'Exportar',
     },
+    add: {
+      apply: 'Adicionar ao pack',
+    },
   },
 } as const;
