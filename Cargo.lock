@@ -6320,6 +6320,7 @@ dependencies = [
  "warden-versioning",
  "windows",
  "wiremock",
+ "zip 8.6.0",
 ]
 
 [[package]]

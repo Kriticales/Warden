@@ -6,12 +6,15 @@
 //! - [`model`]: o achado ([`Finding`]) com evidência obrigatória, usado por todas as regras
 //!   (D-02; as regras pré-teste da D-01 usam o mesmo modelo).
 //! - [`postcrash`]: análise dos logs de uma sessão ou de qualquer texto de log (D-02).
+//! - [`graph`]: grafo de dependências e as consultas "quem depende", "por que está no pack" e
+//!   bibliotecas sem uso (D-07).
 //! - [`redact`]: redação de dados pessoais antes de qualquer envio (D-02).
 //!
 //! Limites: a crate não abre processos nem faz rede; recebe textos, pastas e metadados e
 //! devolve achados.
 
 mod error;
+pub mod graph;
 pub mod model;
 pub mod postcrash;
 pub mod pretest;
