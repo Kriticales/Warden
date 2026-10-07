@@ -76,5 +76,8 @@ jobs:
             ${{ runner.temp }}/warden-l05/instances/**/server.log
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/options.txt
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/quickplay.json
+            ${{ runner.temp }}/warden-l05/instances/**/minecraft/logs/latest.log
+            ${{ runner.temp }}/warden-l05/instances/**/minecraft/crash-reports/*.txt
+            ${{ runner.temp }}/warden-l05/instances/**/minecraft/hs_err_pid*.log
           if-no-files-found: warn
           retention-days: 30

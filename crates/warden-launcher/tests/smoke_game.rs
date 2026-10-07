@@ -199,7 +199,10 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     let port = free_port();
     let server_dir = prepare(combo, root, &java.java, port).await;
     std::fs::create_dir_all(&game_dir).unwrap();
-    std::fs::write(game_dir.join("options.txt"), "onboardAccessibility:false\n").unwrap();
+    // A opção surgiu em 1.19.4. Versões anteriores descartam a chave ao salvar.
+    if modern(combo.minecraft) {
+        std::fs::write(game_dir.join("options.txt"), "onboardAccessibility:false\n").unwrap();
+    }
     if combo.loader == "forge" {
         std::fs::create_dir_all(game_dir.join("config")).unwrap();
         std::fs::write(
@@ -228,6 +231,10 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     }
     if combo.name == "forge-1.12.2" {
         props.push(("fml.queryResult".into(), "confirm".into()));
+        if cfg!(target_os = "linux") {
+            // LWJGL 2 tenta ler o primeiro monitor XRandR; Xvfb não anuncia nenhum.
+            props.push(("LWJGL_DISABLE_XRANDR".into(), "true".into()));
+        }
     }
     let options = LaunchOptions {
         game_dir: game_dir.clone(),
@@ -266,8 +273,20 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     }
     if combo.name == "forge-1.12.2" {
         assert!(argv.contains("-Dfml.queryResult=confirm"), "{}", combo.name);
+        if cfg!(target_os = "linux") {
+            assert!(
+                argv.contains("-DLWJGL_DISABLE_XRANDR=true"),
+                "{}",
+                combo.name
+            );
+        }
     }
     command.env.push(("ALSOFT_DRIVERS".into(), "null".into()));
+    if cfg!(target_os = "linux") && combo.minecraft == "26.3" {
+        // SDL 3 usa GLX por padrão. O GLX do Xvfb/Mesa não oferece o visual
+        // pedido pelo RenderPearl; EGL usa o mesmo Mesa sem esse visual GLX.
+        command.env.push(("SDL_VIDEO_FORCE_EGL".into(), "1".into()));
+    }
     let mut server = None;
     let mut server_events = None;
     let mut progress = Progress::default();
@@ -389,15 +408,17 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     }
     assert!(client_exit.stop_requested, "{}", combo.name);
     let final_options = std::fs::read_to_string(game_dir.join("options.txt")).unwrap();
-    assert!(
-        final_options
-            .lines()
-            .any(|line| line == "onboardAccessibility:false"),
-        "{}: opção de acessibilidade ausente ao fechar",
-        combo.name
-    );
+    if modern(combo.minecraft) {
+        assert!(
+            final_options
+                .lines()
+                .any(|line| line == "onboardAccessibility:false"),
+            "{}: opção de acessibilidade ausente ao fechar",
+            combo.name
+        );
+    }
     println!(
-        "{}: pronto={} ms, mundo={} ms, saída={:?}, onboardAccessibility:false",
+        "{}: pronto={} ms, mundo={} ms, saída={:?}",
         combo.name,
         progress.ready_ms.unwrap(),
         progress.world_ms.unwrap(),
@@ -422,7 +443,19 @@ async fn rede_matriz_jogo_real() {
         !selected.is_empty(),
         "WARDEN_SMOKE_ONLY não casa com a matriz"
     );
+    let mut failures = Vec::new();
     for combo in selected {
-        run_one(combo, &root).await;
+        let name = combo.name;
+        let combo = *combo;
+        let root = root.clone();
+        // Isola o panic de cada combinação para sempre executar as demais.
+        match tokio::spawn(async move { run_one(&combo, &root).await }).await {
+            Ok(()) => println!("RESUMO {name}: OK"),
+            Err(error) => {
+                println!("RESUMO {name}: FALHOU: {error}");
+                failures.push(name);
+            }
+        }
     }
+    assert!(failures.is_empty(), "combinações com falha: {failures:?}");
 }
