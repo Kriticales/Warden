@@ -44,9 +44,7 @@
   border-left: var(--border-thin) solid var(--color-border);
 }
 .cfg-tree__name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 0 1 auto;
 }
 .cfg-tree__chevron {
   margin-left: auto;

@@ -92,9 +92,13 @@ async function seriousViolations(): Promise<string[]> {
       return [failed];
     }
   });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
+  return (
+    violations
+      // O contraste dos tokens é medido por design/system/tools/contraste.mjs (QUALITY §4.1).
+      .filter((v) => v.id !== 'color-contrast')
+      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+      .map((v) => `${v.id}: ${v.help}`)
+  );
 }
 
 /** Todos os arquivos da pasta do pack, para conferir que nada sobrou. */
@@ -163,8 +167,15 @@ describe('Configs (C-02; T12)', () => {
     await $('h1=Configs').waitForDisplayed();
     const tree = $('[role="tree"]');
     await tree.waitForDisplayed();
-    await expect(tree).toHaveText(expect.stringContaining('exemplo.properties'));
-    await expect(tree).toHaveText(expect.stringContaining('Opções do jogo (options.txt)'));
+    // `textContent`: confere os nomes mesmo que a árvore ainda esteja rolando.
+    await expect(tree).toHaveElementProperty(
+      'textContent',
+      expect.stringContaining('exemplo.properties'),
+    );
+    await expect(tree).toHaveElementProperty(
+      'textContent',
+      expect.stringContaining('Opções do jogo (options.txt)'),
+    );
 
     await tree.$('[role="treeitem"]*=exemplo.properties').click();
     await $('.cm-content').waitForDisplayed({ timeout: 30_000 });
