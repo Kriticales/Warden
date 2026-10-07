@@ -23,7 +23,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: warden-img:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: warden-img: http://warden-img.localhost; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'"
     }
   },
   "bundle": {

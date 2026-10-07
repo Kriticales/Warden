@@ -39,7 +39,7 @@ fn domain(error: warden_project::Error) -> AppError {
 
 /// Fontes da busca ligadas no app. Registro acréscimo-apenas: o Modrinth e a CurseForge (que,
 /// sem chave ou com a chave recusada, entra só como aviso, sem nenhuma requisição).
-fn search_sources(state: &AppState) -> Vec<ActiveSource> {
+pub(crate) fn search_sources(state: &AppState) -> Vec<ActiveSource> {
     vec![
         ActiveSource::Ready(Arc::new(ModrinthSearch::new(state.modrinth.clone()))),
         add_curseforge::search_source(state),
@@ -75,11 +75,24 @@ pub(crate) async fn search_projects(
         let root = pack_root(&state, pack_id)?;
         PackState::read(&root).map_err(domain)?
     };
-    warden_project::search::search(
+    // A categoria curada vira as categorias de cada fonte (P1-16; SPEC T08).
+    let category = match request.category.as_deref() {
+        None => None,
+        Some(id) => Some(
+            warden_discovery::categories::resolve(id, request.kind).ok_or_else(|| {
+                AppError::from_domain(&warden_project::Error::new(
+                    warden_project::ProjectErrorCode::InvalidInput,
+                    format!("categoria desconhecida: {id}"),
+                ))
+            })?,
+        ),
+    };
+    warden_project::search::search_in_category(
         &search_sources(&state),
         &pack.target,
         &pack.installed_keys(),
         &request,
+        category.as_ref(),
         &CancellationToken::new(),
     )
     .await

@@ -7,15 +7,16 @@
  * (T09) para o conjunto; depois de gravar, a busca continua aberta e os itens passam a mostrar
  * "Já no pack".
  *
- * O início com populares, atualizados e categorias (campo vazio) é da P1-16; aqui o campo vazio
- * mostra a busca sem texto, já filtrada para o pack. Um link colado no campo é lido no lugar da
- * busca: da CurseForge (P1-10), pelo packwiz numa cópia do pack (ARCHITECTURE §6.1); do
+ * Com o campo vazio e sem filtros, o início (P1-16): "Populares para <loader> <versão>" e
+ * "Atualizados recentemente", mais as categorias na coluna de filtros. Digitar, escolher uma
+ * categoria ou mexer num filtro troca o início pela busca. Um link colado no campo é lido no
+ * lugar da busca: da CurseForge (P1-10), pelo packwiz numa cópia do pack (ARCHITECTURE §6.1); do
  * Modrinth, pela API; direto `https://`, baixado uma vez; `http://`, recusado sem baixar nada
  * (P1-11). Arquivos escolhidos no computador ou arrastados para a janela abrem a lista de
  * arquivos (`local/`), com a identificação pelo hash e o bloqueio de loader ou versão.
  */
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft, FilePlus, Plus, RefreshCw, Search } from 'lucide-react';
+import { ArrowLeft, FilePlus, Plus, Search } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +24,6 @@ import { PageHead } from '../../app/layout/PageHead';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorPanel } from '../../components/common/ErrorPanel';
 import { Skeleton } from '../../components/common/LoadingState';
-import { Alert } from '../../components/ui/alert';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { Icon } from '../../components/ui/icon';
 import { cn } from '../../lib/cn';
@@ -36,20 +36,25 @@ import type {
   PackId,
   ProjectKind,
   SearchResult,
-  SourceWarning,
 } from '../../lib/ipc/bindings';
 import { useInventory } from '../pack-editor/api';
 import { usePack } from '../packs/api';
 import { useSearch } from './common/api';
-import { FiltersColumn, NO_FILTERS, type UserFilters } from './common/FiltersColumn';
+import {
+  activeFilterCount,
+  FiltersColumn,
+  NO_FILTERS,
+  type UserFilters,
+} from './common/FiltersColumn';
 import { isInPack, knownSources, mergePages, pageWarnings, sourceLabel } from './common/model';
-import { Preview } from './common/Preview';
 import { ResultRow } from './common/ResultRow';
 import { type PackTarget, useTargetText } from './common/text';
+import { WarningAlert } from './common/WarningAlert';
 import type { LinkPick } from './curseforge/api';
 import { resultOfLink } from './curseforge/link';
 import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
+import { DiscoverHome } from './discover/DiscoverHome';
 import { DirectLinkPanel } from './link/DirectLinkPanel';
 import { classifyLink } from './link/link';
 import { ModrinthLinkPanel, resultOfModrinthLink } from './link/ModrinthLinkPanel';
@@ -58,6 +63,7 @@ import { useChooseFiles } from './local/api';
 import { takePendingDrop, useDroppedFiles } from './local/dropped';
 import { LocalFilesPanel } from './local/LocalFilesPanel';
 import { preferredRef } from './modrinth/source';
+import { Preview } from './preview/Preview';
 import './common/add.css';
 
 export const PROJECT_KINDS: readonly ProjectKind[] = ['mod', 'resourcePack', 'shader'];
@@ -97,7 +103,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const linkUrl = typedLink !== null && debouncedLink === typedLink ? typedLink : null;
   const query = useDebounced(typedLink === null ? text.trim() : '', TYPING_DELAY_MS);
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
-  const search = useSearch(packId, { query, kind, ...filters });
+  // O início aparece com o campo vazio e sem nenhum filtro; qualquer um deles liga a busca.
+  const showHome = query === '' && text.trim() === '' && activeFilterCount(filters) === 0;
+  const search = useSearch(packId, { query, kind, ...filters }, !showHome);
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
   const [current, setCurrent] = useState<SearchResult | null>(null);
   const [request, setRequest] = useState<DependenciesRequest | null>(null);
@@ -198,7 +206,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   });
 
   const loading =
-    typedLink === null && (search.isPending || (search.isFetching && !search.isFetchingNextPage));
+    typedLink === null &&
+    !showHome &&
+    (search.isPending || (search.isFetching && !search.isFetchingNextPage));
 
   return (
     <div className="add-page">
@@ -225,6 +235,8 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             if (next) {
               setSelected(new Map());
               setCurrent(null);
+              // As categorias são de cada tipo: trocar o tipo volta os filtros ao começo.
+              setFilters(NO_FILTERS);
               onKindChange(next);
             }
           }}
@@ -286,7 +298,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
         </Button>
       </div>
 
-      {warnings.length > 0 ? (
+      {!showHome && warnings.length > 0 ? (
         <div className="stack-2 preview__section">
           {warnings.map((warning) => (
             <WarningAlert
@@ -300,8 +312,14 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
         </div>
       ) : null}
 
-      <div className="disc">
-        <FiltersColumn target={target} filters={filters} onChange={setFilters} sources={sources} />
+      <div className={cn('disc', showHome && !current && 'disc--start')}>
+        <FiltersColumn
+          kind={kind}
+          target={target}
+          filters={filters}
+          onChange={setFilters}
+          sources={sources}
+        />
         <div className="disc__main">
           {chooseFiles.isError ? (
             <ErrorPanel compact title={t('erro')} error={chooseFiles.error} />
@@ -351,6 +369,20 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               onProject={onLinkProject}
               onFile={onLinkFile}
               pick={linkProject?.url === linkUrl ? linkPick : null}
+            />
+          ) : showHome ? (
+            <DiscoverHome
+              packId={packId}
+              kind={kind}
+              target={target}
+              selected={selected}
+              currentKey={current?.key ?? null}
+              inventoryKeys={inventoryKeys}
+              onToggle={toggle}
+              onOpen={setCurrent}
+              onSeeMore={(sort) => {
+                setFilters({ ...filters, sort });
+              }}
             />
           ) : search.isPending ? (
             <ResultsSkeleton />
@@ -481,40 +513,6 @@ function StatusText({
   if (query === '') return <>{t('busca.vazio')}</>;
   const fontes = t(`busca.fontes.${sourceLabel(sources.map((source) => ({ source })))}`);
   return <>{t('busca.resultados', { count: total, query, fontes })}</>;
-}
-
-function WarningAlert({ warning, onRetry }: { warning: SourceWarning; onRetry: () => void }) {
-  const { t } = useTranslation('adicionar');
-  const fonte = t(`fonte.${warning.source}`);
-  if (warning.reason === 'unavailable') {
-    return (
-      <Alert
-        kind="warn"
-        title={t('avisos.indisponivel', { fonte })}
-        actions={
-          <Button size="sm" icon={RefreshCw} onClick={onRetry}>
-            {t('acoes.tentarDeNovo', { ns: 'comum' })}
-          </Button>
-        }
-      >
-        <p>{t('avisos.indisponivelTexto')}</p>
-      </Alert>
-    );
-  }
-  const missing = warning.reason === 'keyMissing';
-  return (
-    <Alert
-      kind="info"
-      title={missing ? t('avisos.semChave') : t('avisos.chaveRecusada')}
-      actions={
-        <Link to="/configuracoes" className={buttonVariants({ size: 'sm' })}>
-          {t('avisos.abrirConfiguracoes')}
-        </Link>
-      }
-    >
-      <p>{missing ? t('avisos.semChaveTexto') : t('avisos.chaveRecusadaTexto')}</p>
-    </Alert>
-  );
 }
 
 function ResultsSkeleton() {

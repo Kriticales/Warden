@@ -18,7 +18,7 @@ export const adicionar = {
   busca: {
     rotulo: 'Buscar',
     placeholder: 'Buscar pelo nome',
-    vazio: 'Mostrando os mais relevantes que funcionam no pack. Digite para buscar pelo nome.',
+    vazio: 'Mostrando o que funciona no pack. Digite para buscar pelo nome.',
     buscando: 'Buscando…',
     resultados_one: '{{count}} resultado para “{{query}}”, {{fontes}}',
     resultados_other: '{{count}} resultados para “{{query}}”, {{fontes}}',

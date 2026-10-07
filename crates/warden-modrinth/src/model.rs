@@ -139,8 +139,11 @@ pub struct License {
 /// Imagem da galeria.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GalleryImage {
-    /// Link da imagem.
+    /// Link da miniatura (350 px); a imagem inteira está em `raw_url`.
     pub url: String,
+    /// Link da imagem em tamanho original.
+    #[serde(default)]
+    pub raw_url: Option<String>,
     /// Destaque.
     #[serde(default)]
     pub featured: bool,
