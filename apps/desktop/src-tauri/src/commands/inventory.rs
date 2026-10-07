@@ -68,7 +68,7 @@ pub(crate) fn open_modrinth(paths: &AppPaths) -> Result<ModrinthClient, AppError
 
 /// Cliente da CurseForge com a chave do usuário (`None`: sem chave). Criado a cada uso, sem
 /// cache em disco (termos da CurseForge, SPEC T07).
-fn curseforge(state: &AppState) -> Result<CurseforgeClient, AppError> {
+pub(crate) fn curseforge(state: &AppState) -> Result<CurseforgeClient, AppError> {
     let key: Option<SecretString> = state
         .secrets
         .get(SecretKind::Curseforge)

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "E2ELITH01",
+    "project_id": "gvQqBUqZ",
+    "name": "mc1.21.1-0.15.5-fabric",
+    "version_number": "mc1.21.1-0.15.5-fabric",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-09-30T10:00:00Z",
+    "changelog": "## Lithium 0.15.5\n\n- Corrige um travamento ao carregar chunks.\n",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"
+        },
+        "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/E2ELITH01/lithium-fabric-0.15.5+mc1.21.1.jar",
+        "filename": "lithium-fabric-0.15.5+mc1.21.1.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  {
+    "id": "E2ELITH00",
+    "project_id": "gvQqBUqZ",
+    "name": "mc1.21.1-0.15.5-pre-fabric",
+    "version_number": "mc1.21.1-0.15.5-pre-fabric",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-20T10:00:00Z",
+    "changelog": "## Lithium 0.15.5-pre\n\n- Ajuste de desempenho.\n",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        },
+        "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/E2ELITH00/lithium-fabric-0.15.5-pre+mc1.21.1.jar",
+        "filename": "lithium-fabric-0.15.5-pre+mc1.21.1.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  {
+    "id": "N08Z8wog",
+    "project_id": "gvQqBUqZ",
+    "name": "lithium-fabric-0.15.4+mc1.21.1",
+    "version_number": "mc1.21.1-0.15.4-fabric",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "182064b00e6315e2255b857eaab8eb759e6b042ebd4cc8b855ff0d93f875a5a7188fac49f878d7b29d4ef7e6b6341190ad7f6f6f39f4a6d2c62003468b08e4c6"
+        },
+        "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/N08Z8wog/lithium-fabric-0.15.4+mc1.21.1.jar",
+        "filename": "lithium-fabric-0.15.4+mc1.21.1.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  }
+]

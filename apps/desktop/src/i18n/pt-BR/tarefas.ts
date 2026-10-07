@@ -62,5 +62,9 @@ export const tarefas = {
     export: {
       run: 'Exportar',
     },
+    updates: {
+      check: 'Verificar atualizações',
+      apply: 'Atualizar mods',
+    },
   },
 } as const;

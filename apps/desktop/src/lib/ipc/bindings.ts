@@ -163,6 +163,34 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**  O último relatório do pack, ou `null` se ainda não houve verificação neste uso do Warden. */
+	updatesReport: (packId: PackId) => typedError<{
+	/**  Quando a verificação terminou (RFC 3339). */
+	checkedAt: string,
+	/**  Um item por linha da lista de Mods que pode ser consultada, na ordem do inventário. */
+	items: UpdateItem[],
+	/**  Quantos itens têm atualização disponível. */
+	available: number,
+} | null, AppError>(__TAURI_INVOKE("updates_report", { packId })),
+	/**
+	 *  Verifica as atualizações do pack. No modo `auto`, devolve o relatório guardado se ele é
+	 *  mais novo que o intervalo das Configurações (0 = só quando o usuário pedir).
+	 */
+	updatesCheck: (packId: PackId, trigger: CheckTrigger) => typedError<{
+	/**  Quando a verificação terminou (RFC 3339). */
+	checkedAt: string,
+	/**  Um item por linha da lista de Mods que pode ser consultada, na ordem do inventário. */
+	items: UpdateItem[],
+	/**  Quantos itens têm atualização disponível. */
+	available: number,
+} | null, AppError>(__TAURI_INVOKE("updates_check", { packId, trigger })),
+	/**  A revisão de um ou mais itens com atualização disponível. */
+	updatesPlan: (packId: PackId, paths: string[]) => typedError<UpdatePlan, AppError>(__TAURI_INVOKE("updates_plan", { packId, paths })),
+	/**
+	 *  Atualiza os itens escolhidos para as versões que a revisão mostrou. Com mais de um item,
+	 *  cria antes um ponto de segurança. Devolve o que foi atualizado.
+	 */
+	updatesApply: (packId: PackId, selections: UpdateSelection[]) => typedError<AppliedUpdates, AppError>(__TAURI_INVOKE("updates_apply", { packId, selections })),
 };
 
 /** Events */
@@ -226,6 +254,28 @@ export type AppInfo = {
 	debugBuild: boolean,
 };
 
+/**  Um item que [`apply`] atualizou. */
+export type AppliedUpdate = {
+	/**  Caminho do metafile. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  Versão de antes, legível. */
+	from: string | null,
+	/**  Versão de agora, legível. */
+	to: string,
+	/**  ID da versão (ou arquivo) de agora. */
+	toId: string,
+};
+
+/**  O resultado de [`apply`]. */
+export type AppliedUpdates = {
+	/**  Itens atualizados. */
+	updated: AppliedUpdate[],
+	/**  Nome do ponto de segurança criado antes (quando pedido). */
+	safetyPoint: string | null,
+};
+
 /**  Onde as chaves ficam, gravado em `settings.json` como `secretsBackend`. */
 export type BackendKind = 
 /**  Cofre do sistema (padrão). */
@@ -262,6 +312,27 @@ export type CatalogErrorCode =
 "VERSION_JSON_CORRUPTED" | 
 /**  O cache local do catálogo (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
+
+/**  Uma versão nas novidades de um item. */
+export type ChangelogEntry = {
+	/**  Número da versão. */
+	version: string,
+	/**  Canal. */
+	channel: UpdateChannel,
+	/**  Data de publicação (RFC 3339). */
+	published: string | null,
+	/**  Notas (Markdown ou HTML, conforme `format`); a interface higieniza antes de mostrar. */
+	text: string | null,
+	/**  Formato das notas. */
+	format: DescriptionFormat,
+};
+
+/**  Quem pediu a verificação. */
+export type CheckTrigger = 
+/**  Ao abrir o pack: respeita o intervalo das Configurações. */
+"auto" | 
+/**  Botão "Verificar atualizações": sempre consulta. */
+"manual";
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -1231,6 +1302,16 @@ export type MixinErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  O relatório do pack inteiro. */
+export type ModUpdateReport = {
+	/**  Quando a verificação terminou (RFC 3339). */
+	checkedAt: string,
+	/**  Um item por linha da lista de Mods que pode ser consultada, na ordem do inventário. */
+	items: UpdateItem[],
+	/**  Quantos itens têm atualização disponível. */
+	available: number,
+};
+
 /**
  *  Códigos do domínio `modrinth`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -1254,6 +1335,38 @@ export type ModrinthErrorCode =
 "INVALID_RESPONSE" | 
 /**  O cache local do Modrinth (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
+
+/**  Uma incompatibilidade nova: a versão nova declara que não funciona com um item do pack. */
+export type NewConflict = {
+	/**  Item que seria atualizado. */
+	item: string,
+	/**  Item do pack com o qual a versão nova se declara incompatível. */
+	with: string,
+};
+
+/**  Uma dependência obrigatória que a versão nova pede e o pack ainda não tem. */
+export type NewDependency = {
+	/**  ID do projeto na fonte do item. */
+	projectId: string,
+	/**  Nome do projeto (o ID, se a fonte não deu). */
+	name: string,
+	/**  Fonte do projeto. */
+	source: ItemSource,
+	/**  Nomes dos itens da revisão que a exigem (uma dependência comum aparece uma vez). */
+	neededBy: string[],
+};
+
+/**  A versão que o item pode receber. */
+export type NewVersion = {
+	/**  ID da versão (Modrinth) ou do arquivo (CurseForge). Volta em [`UpdateSelection`]. */
+	id: string,
+	/**  Número legível. */
+	number: string,
+	/**  Canal. */
+	channel: UpdateChannel,
+	/**  Data de publicação (RFC 3339), quando a fonte informa. */
+	published: string | null,
+};
 
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;
@@ -1478,6 +1591,32 @@ export type PackwizErrorCode =
 export type PerfErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**  Um item da revisão. */
+export type PlanItem = {
+	/**  Chave estável. */
+	key: string,
+	/**  Caminho do metafile. */
+	path: string,
+	/**  Nome. */
+	name: string,
+	/**  Fonte. */
+	source: ItemSource,
+	/**  Versão instalada, legível. */
+	current: string | null,
+	/**  A versão nova. */
+	newVersion: NewVersion,
+	/**
+	 *  Novidades das versões do meio e da nova (Modrinth) ou da nova (CurseForge), da mais
+	 *  nova para a mais antiga.
+	 */
+	changelog: ChangelogEntry[],
+	/**
+	 *  O arquivo novo não pode ser baixado pelo Warden (a CurseForge bloqueia terceiros): o
+	 *  jogo vai pedir o download manual.
+	 */
+	manualDownload: boolean,
+};
 
 /**  Sistema em que o app roda. */
 export type Platform = 
@@ -1803,6 +1942,69 @@ export type TitleBarMaximize = {
 	pressed: boolean,
 };
 
+/**  Canal de uma versão. */
+export type UpdateChannel = 
+/**  Estável. */
+"release" | 
+/**  Beta. */
+"beta" | 
+/**  Alfa. */
+"alpha";
+
+/**  Uma linha do relatório. */
+export type UpdateItem = {
+	/**  Chave estável do item (`modrinth:<projeto>`, `curseforge:<projeto>` ou `path:<caminho>`). */
+	key: string,
+	/**  Caminho do `.pw.toml` (ou do arquivo) relativo à pasta do pack. */
+	path: string,
+	/**  Nome legível. */
+	name: string,
+	/**  Fonte. */
+	source: ItemSource,
+	/**  Estado. */
+	status: UpdateStatus,
+	/**
+	 *  ID da versão instalada quando foi consultado; a interface só confia no resultado se ele
+	 *  ainda for o do item (o pack pode ter mudado depois).
+	 */
+	currentId: string | null,
+	/**  Versão instalada, legível. */
+	current: string | null,
+	/**  A versão nova, quando `status` é `available`. */
+	newVersion: NewVersion | null,
+	/**  Motivo, quando `status` é `failed` ou `notChecked`. */
+	reason: UpdateReason | null,
+	/**  Detalhe técnico do erro, sem segredos. */
+	detail: string | null,
+};
+
+/**  O que a revisão mostra antes de aplicar. */
+export type UpdatePlan = {
+	/**  Itens, na ordem pedida. */
+	items: PlanItem[],
+	/**  Dependências obrigatórias novas que não estão no pack. */
+	newDependencies: NewDependency[],
+	/**  Incompatibilidades novas com itens do pack. */
+	conflicts: NewConflict[],
+};
+
+/**  Por que um item ficou sem resultado. */
+export type UpdateReason = 
+/**  Sem conexão, tempo esgotado, limite de requisições ou servidor fora do ar. */
+"offline" | 
+/**  Falta a chave da CurseForge (Configurações → Chaves e contas). */
+"keyMissing" | 
+/**  A CurseForge recusou a chave. */
+"keyInvalid" | 
+/**  A fonte respondeu algo que o Warden não entendeu ou recusou o pedido. */
+"service" | 
+/**  O Modrinth não conhece o arquivo exato do pack (hash desconhecido). */
+"fileUnknown" | 
+/**  O projeto ou o arquivo não está mais na plataforma. */
+"removed" | 
+/**  O `.pw.toml` usa um hash que a consulta em lote não aceita (só `sha1` e `sha512`). */
+"hashUnsupported";
+
 /**  Resultado de "Procurar atualizações do Java". */
 export type UpdateReport = {
 	/**  Atualizações instaladas. */
@@ -1814,6 +2016,29 @@ export type UpdateReport = {
 	/**  Javas substituídos antes e removidos agora. */
 	removed: RuntimeId[],
 };
+
+/**  Item e versão escolhidos para aplicar. */
+export type UpdateSelection = {
+	/**  Caminho do metafile. */
+	path: string,
+	/**  ID da versão nova que a revisão mostrou (`NewVersion::id`). */
+	toVersionId: string,
+};
+
+/**  Estado de um item na verificação. */
+export type UpdateStatus = 
+/**  A versão instalada é a mais nova compatível com o pack. */
+"upToDate" | 
+/**  Há uma versão mais nova (em [`UpdateItem::new_version`]). */
+"available" | 
+/**  Nunca foi consultado (por exemplo, a CurseForge sem chave). */
+"notChecked" | 
+/**  A consulta falhou; o motivo está em [`UpdateItem::reason`]. */
+"failed" | 
+/**  Arquivo local ou link direto: não há onde consultar. */
+"notApplicable" | 
+/**  Versão fixada: não é consultada nem entra em "Atualizar todos". */
+"pinned";
 
 /**  Versão instalada. */
 export type VersionInfo = {

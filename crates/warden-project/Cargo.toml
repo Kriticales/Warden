@@ -27,6 +27,7 @@ trash = "5"
 [dev-dependencies]
 tempfile.workspace = true
 git2.workspace = true
+wiremock.workspace = true
 
 [lints]
 workspace = true

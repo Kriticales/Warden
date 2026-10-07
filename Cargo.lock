@@ -6707,6 +6707,7 @@ dependencies = [
  "warden-packwiz",
  "warden-packwiz-cli",
  "warden-versioning",
+ "wiremock",
 ]
 
 [[package]]

@@ -165,7 +165,7 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | packs | `packs_list`, `pack_create`, `pack_import`, `pack_relocate`, `pack_reveal_folder`, `pack_forget`, `pack_trash` (P1), `pack_get`, `pack_update_meta`, `pack_hygiene_scan`, `pack_hygiene_fix` |
 | inventory | `inventory_list`, `item_details`, `items_set_side`, `items_remove_plan`, `items_remove`, `item_set_optional` (P1), `item_set_pin` (P1), `item_change_version_plan` (P1), `pack_change_loader_version_plan` (P1), `instance_set_optional_choices` (P1) |
 | search/add | `search_projects` (busca combinada; as fontes são internas), `project_details`, `project_versions`, `project_gallery` (P1), `project_changelog` (P1), `add_plan` (aceita vários itens), `add_apply`, `add_from_link_plan`, `add_local_files_plan` |
-| updates | `updates_check`, `updates_plan`, `updates_apply` |
+| updates | `updates_report` (último relatório do pack, só memória), `updates_check` (`trigger`: `auto` respeita o intervalo das Configurações; `manual` sempre consulta), `updates_plan`, `updates_apply` (P1-12: um ponto de segurança com mais de um item) |
 | configs | `config_tree`, `config_read`, `config_write`, `config_search` (P0), `config_structured_read` (P1, com metadados em camadas), `config_structured_apply` (P1), `config_restore_default` (P1), `config_set_preserve` (P1) |
 | test | `test_start` (com o perfil e o modo: normal, como o jogador recebe, com perfil de desempenho, como servidor), `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file` |
 | capture | `capture_changes`, `capture_apply`, `capture_discard` |

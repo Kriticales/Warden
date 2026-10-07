@@ -44,6 +44,8 @@ pub struct AppState {
     pub packs: Arc<warden_project::registry::Registry>,
     /// Cliente do Modrinth com o cache de metadados (P1-08: inventário e detalhes).
     pub modrinth: warden_modrinth::ModrinthClient,
+    /// Último relatório de atualizações de cada pack (P1-12; só memória).
+    pub update_reports: crate::commands::updates::UpdateReports,
 }
 
 impl AppState {
@@ -98,6 +100,7 @@ impl AppState {
                 java_packs,
                 packs,
                 modrinth,
+                update_reports: crate::commands::updates::UpdateReports::default(),
             },
             outcome,
         ))

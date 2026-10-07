@@ -56,6 +56,9 @@ export function deferred<T>(): Deferred<T> {
 const DEFAULTS: Record<string, Handler> = {
   app_info: () => makeAppInfo(),
   operations_list: () => [],
+  // Atualizações (P1-12): sem relatório e sem verificação automática.
+  updates_report: () => null,
+  updates_check: () => null,
   // A tela inicial é Meus packs (P1-07): sem packs, a lista vem vazia.
   packs_list: () => [],
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).

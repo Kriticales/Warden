@@ -1,0 +1,50 @@
+[
+  {
+    "id": "E2EFRESH01",
+    "project_id": "50dA9Sha",
+    "name": "v1.10.5",
+    "version_number": "v1.10.5",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-09-28T10:00:00Z",
+    "changelog": "Novas anima\u00e7\u00f5es de alde\u00f5es.",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "12121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212"
+        },
+        "url": "https://cdn.modrinth.com/data/50dA9Sha/versions/E2EFRESH01/FreshAnimations_v1.10.5.zip",
+        "filename": "FreshAnimations_v1.10.5.zip",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  {
+    "id": "xN57JJts",
+    "project_id": "50dA9Sha",
+    "name": "FreshAnimations_v1.10.4",
+    "version_number": "FreshAnimations_v1.10.4",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "41258f9bea1a773d823f9a014d0c08206e9e7b339bc538e1538211fff28fadd06878a836d292cbb636ed6829cd2801a509368ae3eb3ad4bedf42190a0d5f7a90"
+        },
+        "url": "https://cdn.modrinth.com/data/50dA9Sha/versions/xN57JJts/FreshAnimations_v1.10.4.zip",
+        "filename": "FreshAnimations_v1.10.4.zip",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  }
+]

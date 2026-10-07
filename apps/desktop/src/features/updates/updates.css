@@ -1,0 +1,7 @@
+/* Atualizações na lista de Mods (P1-12): botão e versão nova na célula da versão. */
+.modrow__update {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}

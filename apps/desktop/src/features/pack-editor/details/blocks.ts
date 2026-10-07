@@ -13,6 +13,7 @@
 import type { ComponentType } from 'react';
 
 import type { InventoryItem, ItemDetails, PackId } from '../../../lib/ipc/bindings';
+import { UpdateBlock } from '../../updates/UpdateBlock';
 import { ChangelogBlock } from './blocks/ChangelogBlock';
 import { DescriptionBlock } from './blocks/DescriptionBlock';
 import { HeadBlock } from './blocks/HeadBlock';
@@ -41,6 +42,7 @@ export interface DetailBlock {
 export const detailBlocks: readonly DetailBlock[] = [
   { id: 'cabecalho', order: 100, component: HeadBlock },
   { id: 'origem', order: 150, component: OriginBlock },
+  { id: 'atualizacao', order: 160, component: UpdateBlock },
   { id: 'descricao', order: 200, component: DescriptionBlock },
   { id: 'versao', order: 300, component: VersionBlock },
   { id: 'lado', order: 400, component: SideBlock },
