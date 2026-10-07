@@ -19,7 +19,7 @@ use common::{TestPack, at, identity};
 use warden_packwiz::Side;
 use warden_versioning::changelog::{WORLD_REMOVAL_WARNING, prepend_entry, render_entry};
 use warden_versioning::{
-    Bump, ChangeFacts, ChangeSet, FileNames, ItemCategory, ItemChangeKind, ItemSource, PackRepo,
+    Bump, ChangeFacts, ChangeSet, ChangeSource, FileNames, ItemCategory, ItemChangeKind, PackRepo,
     SaveVersion, Snapshot, SuggestReason, VersionNameResolver, VersionRef, suggest_version,
 };
 
@@ -177,7 +177,7 @@ fn ca_t16_02_remover_mod_cliente_e_servidor_sugere_maior_com_atencao() {
     let removed: Vec<_> = changes.items_of(ItemChangeKind::Removed).collect();
     assert_eq!(removed.len(), 1);
     assert_eq!(removed[0].name, "Just Enough Items");
-    assert_eq!(removed[0].source, ItemSource::CurseForge);
+    assert_eq!(removed[0].source, ChangeSource::CurseForge);
     assert_eq!(removed[0].side, "both");
     assert_eq!(changes.removed_world_mods().count(), 1);
 
@@ -266,7 +266,7 @@ fn resource_packs_shaders_locais_configs_e_ajustes() {
         changes.configs,
         ["config/ação.toml", "config/sodium-options.json"]
     );
-    let summary: Vec<(ItemCategory, ItemChangeKind, &str, ItemSource)> = changes
+    let summary: Vec<(ItemCategory, ItemChangeKind, &str, ChangeSource)> = changes
         .items
         .iter()
         .map(|item| (item.category, item.kind, item.name.as_str(), item.source))
@@ -278,25 +278,25 @@ fn resource_packs_shaders_locais_configs_e_ajustes() {
                 ItemCategory::Mod,
                 ItemChangeKind::Added,
                 "meu-mod-1.0.jar",
-                ItemSource::Local
+                ChangeSource::Local
             ),
             (
                 ItemCategory::Mod,
                 ItemChangeKind::Adjusted,
                 "Sodium",
-                ItemSource::Modrinth
+                ChangeSource::Modrinth
             ),
             (
                 ItemCategory::ResourcePack,
                 ItemChangeKind::Updated,
                 "Faithful 32x",
-                ItemSource::Modrinth
+                ChangeSource::Modrinth
             ),
             (
                 ItemCategory::Shader,
                 ItemChangeKind::Added,
                 "Complementary Reimagined r5.zip",
-                ItemSource::Local
+                ChangeSource::Local
             ),
         ]
     );
@@ -431,7 +431,7 @@ fn metafile_quebrado_nao_derruba_o_changelog() {
     pack.write("mods/quebrado.pw.toml", b"name = [\n");
     let changes = repo.changes_since_last_version(&names()).unwrap();
     assert_eq!(changes.items.len(), 1);
-    assert_eq!(changes.items[0].source, ItemSource::Unknown);
+    assert_eq!(changes.items[0].source, ChangeSource::Unknown);
     assert_eq!(changes.items[0].name, "quebrado");
     let entry = render_entry("1.0.1", "d", "", &changes);
     assert!(

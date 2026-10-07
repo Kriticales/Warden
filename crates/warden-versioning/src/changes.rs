@@ -50,7 +50,7 @@ pub enum ItemCategory {
 /// De onde o item vem.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum ItemSource {
+pub enum ChangeSource {
     /// Modrinth (`[update.modrinth]`).
     Modrinth,
     /// CurseForge (`[update.curseforge]`).
@@ -128,7 +128,7 @@ pub struct ItemChange {
     /// Tipo, pela pasta.
     pub category: ItemCategory,
     /// De onde vem.
-    pub source: ItemSource,
+    pub source: ChangeSource,
     /// Nome exibido (título do projeto; nome do arquivo para itens locais).
     pub name: String,
     /// Caminho do metafile ou do arquivo (o novo; o antigo para removidos).
@@ -273,7 +273,7 @@ struct Item {
     key: String,
     path: String,
     category: ItemCategory,
-    source: ItemSource,
+    source: ChangeSource,
     name: String,
     project_id: Option<String>,
     side: String,
@@ -296,7 +296,7 @@ fn metafile_item(path: &str, bytes: Vec<u8>) -> Item {
             key: format!("path:{path}"),
             path: path.to_owned(),
             category,
-            source: ItemSource::Unknown,
+            source: ChangeSource::Unknown,
             name: stem.clone(),
             project_id: None,
             side: String::new(),
@@ -321,7 +321,7 @@ fn metafile_item(path: &str, bytes: Vec<u8>) -> Item {
         if let Some((project, version)) = meta.modrinth_ids() {
             (
                 format!("modrinth:{project}"),
-                ItemSource::Modrinth,
+                ChangeSource::Modrinth,
                 Some(project.to_owned()),
                 VersionRef::Modrinth {
                     project_id: project.to_owned(),
@@ -332,7 +332,7 @@ fn metafile_item(path: &str, bytes: Vec<u8>) -> Item {
         } else if let Some((project, file)) = meta.curseforge_ids() {
             (
                 format!("curseforge:{project}"),
-                ItemSource::CurseForge,
+                ChangeSource::CurseForge,
                 Some(project.to_string()),
                 VersionRef::CurseForge {
                     project_id: project,
@@ -343,7 +343,7 @@ fn metafile_item(path: &str, bytes: Vec<u8>) -> Item {
         } else {
             (
                 format!("path:{path}"),
-                ItemSource::Url,
+                ChangeSource::Url,
                 None,
                 VersionRef::File {
                     filename: meta.filename.clone(),
@@ -372,7 +372,7 @@ fn local_item(path: &str, category: ItemCategory, bytes: Vec<u8>) -> Item {
         key: format!("path:{path}"),
         path: path.to_owned(),
         category,
-        source: ItemSource::Local,
+        source: ChangeSource::Local,
         name: filename.clone(),
         project_id: None,
         side: String::new(),
@@ -737,7 +737,7 @@ mod tests {
     #[test]
     fn metafile_ilegivel_vira_item_desconhecido() {
         let item = metafile_item("mods/quebrado.pw.toml", b"name = [".to_vec());
-        assert_eq!(item.source, ItemSource::Unknown);
+        assert_eq!(item.source, ChangeSource::Unknown);
         assert_eq!(item.name, "quebrado");
         assert_eq!(item.key, "path:mods/quebrado.pw.toml");
     }
@@ -747,7 +747,7 @@ mod tests {
         let mut items = vec![ItemChange {
             kind: ItemChangeKind::Added,
             category: ItemCategory::Mod,
-            source: ItemSource::Modrinth,
+            source: ChangeSource::Modrinth,
             name: "Sodium".into(),
             path: "mods/sodium.pw.toml".into(),
             project_id: Some("AANobbMI".into()),

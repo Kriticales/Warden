@@ -45,7 +45,7 @@ mod versions;
 mod worktree;
 
 pub use changes::{
-    ChangeSet, FileNames, ItemCategory, ItemChange, ItemChangeKind, ItemSource, ItemVersion,
+    ChangeSet, ChangeSource, FileNames, ItemCategory, ItemChange, ItemChangeKind, ItemVersion,
     LoaderChange, Snapshot, ValueChange, VersionNameResolver, VersionRef,
 };
 pub use error::{Error, Result, VersioningErrorCode};
