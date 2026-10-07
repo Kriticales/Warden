@@ -219,9 +219,9 @@ export const CATEGORIES: DiscoverCategory[] = [
 
 export function makeGallery(count = 3): GalleryItem[] {
   return Array.from({ length: count }, (_, index) => ({
-    thumbUrl: `https://cdn.modrinth.com/data/AANobbMI/images/img${index}_350.webp`,
-    url: `https://cdn.modrinth.com/data/AANobbMI/images/img${index}.webp`,
-    title: index === 2 ? null : `Captura ${index + 1}`,
+    thumbUrl: `https://cdn.modrinth.com/data/AANobbMI/images/img${String(index)}_350.webp`,
+    url: `https://cdn.modrinth.com/data/AANobbMI/images/img${String(index)}.webp`,
+    title: index === 2 ? null : `Captura ${String(index + 1)}`,
     description: index === 0 ? 'Iluminação suave debaixo d’água.' : null,
     featured: index === 0,
   }));
