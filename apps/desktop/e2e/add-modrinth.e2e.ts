@@ -126,6 +126,11 @@ async function waitToast(text: string): Promise<void> {
   expect(seen).toContain(text);
 }
 
+/** Texto completo de um elemento (inclusive opções de seletores e o que está fora da tela). */
+async function fullText(selector: string): Promise<string> {
+  return browser.execute((sel) => document.querySelector(sel)?.textContent ?? '', selector);
+}
+
 /** Os nomes dos resultados, na ordem. */
 async function resultNames(): Promise<string[]> {
   return browser.execute(() =>
@@ -147,9 +152,11 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
   });
 
   after(() => {
-    // Devolve a pasta de dados vazia para os testes que rodam depois.
+    // Devolve a pasta de dados vazia para os testes que rodam depois (inclusive o cache de
+    // metadados do Modrinth, que mudaria o que os detalhes do editor mostram).
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
+    rmSync(join(DATA_ROOT, 'cache'), { recursive: true, force: true });
   });
 
   it('Mods → Adicionar abre a página em tela cheia, com o menu recolhido', async () => {
@@ -181,12 +188,13 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
 
   it('a pré-visualização mostra a versão estável mais nova', async () => {
     await $('button.drow__name=Sodium').click();
-    await $('aside*=Descrição').waitForDisplayed({ timeout: 30_000 });
+    const preview = $('aside.disc__preview');
+    await preview.waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(
-      async () => (await $('aside').getText()).includes('(mais nova compatível)'),
+      async () => (await fullText('aside.disc__preview')).includes('(mais nova compatível)'),
       { timeout: 30_000, timeoutMsg: 'seletor de versão sem a versão padrão' },
     );
-    expect(await $('aside').getText()).toContain('mc1.21.1-0.8.13-fabric');
+    expect(await fullText('aside.disc__preview')).toContain('mc1.21.1-0.8.13-fabric');
     await screenshot('02-previa');
   });
 
@@ -198,8 +206,11 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
     await $('button=Adicionar 2 ao pack').click();
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
-    await dialog.$('*=O que você escolheu').waitForDisplayed({ timeout: 30_000 });
-    const text = await dialog.getText();
+    await browser.waitUntil(
+      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
+    );
+    const text = await fullText('[role="dialog"]');
     expect(text).toContain('Sodium');
     // O Sodium Extra não tem versão gravada para o pack: fica de fora, com o motivo.
     expect(text).toContain('Sem versão compatível');
