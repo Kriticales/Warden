@@ -6,6 +6,7 @@
 
 pub(crate) mod app;
 pub(crate) mod catalog;
+pub(crate) mod configs;
 pub(crate) mod curseforge;
 pub(crate) mod export;
 pub(crate) mod inventory;
@@ -74,6 +75,9 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             pack_meta::pack_test_settings_get,
             pack_meta::pack_test_settings_set,
             pack_meta::instance_recreate,
+            configs::config_tree,
+            configs::config_read,
+            configs::config_write,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

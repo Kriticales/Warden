@@ -8,6 +8,7 @@ publish.workspace = true
 
 [dependencies]
 warden-core.workspace = true
+warden-configs.workspace = true
 warden-packwiz.workspace = true
 warden-packwiz-cli.workspace = true
 warden-modrinth.workspace = true
@@ -18,6 +19,8 @@ warden-http.workspace = true
 warden-versioning.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
 specta = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 toml_edit.workspace = true
@@ -25,6 +28,7 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 trash = "5"
 
 [dev-dependencies]
+warden-core = { workspace = true, features = ["fault-injection"] }
 tempfile.workspace = true
 git2.workspace = true
 

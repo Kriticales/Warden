@@ -19,4 +19,10 @@ export const project: Record<ProjectErrorCode, string> = {
   READ_ONLY: 'O repositório está em um estado que permite apenas leitura.',
   TRASH_CONFIRMATION: 'Digite o nome exato do pack para enviá-lo à Lixeira.',
   ITEM_NOT_FOUND: 'Este item não está mais no pack. Atualize a lista e tente de novo.',
+  FILE_CHANGED_ON_DISK:
+    'Este arquivo foi alterado fora do Warden depois que você o abriu. Nada foi gravado. Escolha Recarregar, Ver diferenças ou Sobrescrever.',
+  CONFIG_NOT_FOUND:
+    'O arquivo {{path}} não existe mais. Atualize a lista de arquivos e escolha outro.',
+  CONFIG_NOT_EDITABLE:
+    'Este arquivo só abre para leitura (binário, acima de 2 MB ou fora de UTF-8), então o Warden não grava nele.',
 };

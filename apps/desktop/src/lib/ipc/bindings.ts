@@ -163,6 +163,19 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**
+	 *  Os arquivos da origem, em ordem de caminho. A instância só existe depois do primeiro teste
+	 *  (`available = false` antes disso).
+	 */
+	configTree: (packId: PackId, origin: ConfigOrigin) => typedError<ConfigFileList, AppError>(__TAURI_INVOKE("config_tree", { packId, origin })),
+	/**  Lê um arquivo: texto, `hash`, fim de linha e o motivo de só leitura, quando houver. */
+	configRead: (packId: PackId, origin: ConfigOrigin, path: string) => typedError<ConfigContent, AppError>(__TAURI_INVOKE("config_read", { packId, origin, path })),
+	/**
+	 *  Grava o texto do arquivo. `expected_hash` é o `hash` da última leitura: se o arquivo mudou
+	 *  no disco desde então, nada é gravado (`FILE_CHANGED_ON_DISK`). "Sobrescrever" é reler o
+	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
+	 */
+	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
 };
 
 /** Events */
@@ -262,6 +275,63 @@ export type CatalogErrorCode =
 "VERSION_JSON_CORRUPTED" | 
 /**  O cache local do catálogo (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
+
+/**  Um arquivo lido. */
+export type ConfigContent = {
+	/**  Caminho relativo à origem. */
+	path: string,
+	/**  Texto sem o BOM; `None` quando não há como mostrar. */
+	text: string | null,
+	/**  SHA-256 do arquivo inteiro (hexadecimal), para a concorrência otimista. */
+	hash: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  Fim de linha. */
+	lineEnding: LineEnding,
+	/**  Só leitura, e por quê. `None` = editável. */
+	readOnly: ReadOnlyReason | null,
+	/**  Última alteração, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+};
+
+/**  Um arquivo da árvore. */
+export type ConfigFile = {
+	/**  Caminho relativo à origem, com `/`. */
+	path: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  Última alteração, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+	/**  Se o arquivo parece binário (aparece sem edição). */
+	binary: boolean,
+};
+
+/**  Os arquivos de uma origem. */
+export type ConfigFileList = {
+	/**  A pasta da origem existe (a instância só existe depois do primeiro teste). */
+	available: boolean,
+	/**  Arquivos, em ordem de caminho. */
+	files: ConfigFile[],
+	/**  A lista foi cortada em [`MAX_LISTED_FILES`]. */
+	truncated: boolean,
+};
+
+/**  De onde vêm os arquivos mostrados. */
+export type ConfigOrigin = 
+/**  A pasta do pack (o que vai para os jogadores). */
+"pack" | 
+/**  A instância de teste (vale só para o teste; vira "O que mudou durante o teste"). */
+"instance";
+
+/**  Resultado de uma gravação. */
+export type ConfigSaved = {
+	/**  SHA-256 do arquivo depois da gravação (o `hash` esperado da próxima). */
+	hash: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  `false` quando o texto era igual ao do disco e nada foi gravado. */
+	changed: boolean,
+};
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -1084,6 +1154,15 @@ export type LauncherErrorCode =
 /**  O Warden não conseguiu controlar o processo do jogo (Job Object, grupo de processos). */
 "PROCESS_CONTROL_FAILED";
 
+/**  Fim de linha do arquivo. */
+export type LineEnding = 
+/**  `\n` (ou nenhuma quebra). */
+"lf" | 
+/**  `\r\n` em todas as linhas. */
+"crlf" | 
+/**  Mistura de fins de linha (ou `\r` solto). O editor preserva cada byte. */
+"mixed";
+
 /**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
 export type Loader = 
 /**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
@@ -1568,7 +1647,22 @@ export type ProjectErrorCode =
 /**  A confirmação para apagar não corresponde ao nome do pack. */
 "TRASH_CONFIRMATION" | 
 /**  O item pedido não está no inventário do pack. */
-"ITEM_NOT_FOUND";
+"ITEM_NOT_FOUND" | 
+/**  O arquivo de config mudou no disco desde que foi aberto (concorrência otimista, C-02). */
+"FILE_CHANGED_ON_DISK" | 
+/**  O arquivo de config pedido não existe mais. */
+"CONFIG_NOT_FOUND" | 
+/**  O arquivo de config só abre para leitura (binário, acima de 2 MB ou fora de UTF-8). */
+"CONFIG_NOT_EDITABLE";
+
+/**  Por que um arquivo abre só para leitura. */
+export type ReadOnlyReason = 
+/**  Binário (ex.: `servers.dat`): sem texto. */
+"binary" | 
+/**  Acima de [`MAX_EDIT_BYTES`]. O texto vem junto até [`MAX_VIEW_BYTES`]. */
+"tooLarge" | 
+/**  Não é UTF-8: o texto vem com os bytes inválidos trocados, só para olhar. */
+"notUtf8";
 
 /**  O que a confirmação de remover mostra. */
 export type RemovalPlan = {
