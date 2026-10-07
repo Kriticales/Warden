@@ -22,9 +22,10 @@ import { renderApp } from '../../test/render';
 import { editorBackend } from '../pack-editor/testing';
 import { makeSettings } from '../settings/testing';
 
-interface Disk {
-  [path: string]: { text: string; hash: string; lineEnding?: ConfigContent['lineEnding'] };
-}
+type Disk = Record<
+  string,
+  { text: string; hash: string; lineEnding?: ConfigContent['lineEnding'] }
+>;
 
 let counter = 0;
 function hashOf(text: string): string {
@@ -76,7 +77,7 @@ function openConfigs(path: string, options: Options = {}) {
         }
         const reason = options.readOnly?.[args.path as string] ?? null;
         return {
-          path: args.path,
+          path: args.path as string,
           text: file.text,
           hash: file.hash,
           size: file.text.length,
@@ -223,11 +224,11 @@ describe('Configs (T12)', () => {
     await type('\nmeu = 1');
     // Outro programa grava o arquivo; o Warden só descobre ao tentar salvar.
     const outside = '# Create\n[kinetics]\nmaxRotationSpeed = 999\n';
-    disks.pack![CREATE] = entry(outside);
+    disks.pack = { ...disks.pack, [CREATE]: entry(outside) };
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await screen.findByText('Este arquivo foi alterado fora do Warden.');
-    expect(disks.pack?.[CREATE]?.text).toBe(outside);
+    expect(disks.pack[CREATE]?.text).toBe(outside);
     expect(screen.getByRole('button', { name: 'Salvar' })).toHaveProperty('disabled', true);
 
     // Ver diferenças mostra o disco contra o texto da pessoa.
@@ -243,7 +244,7 @@ describe('Configs (T12)', () => {
     });
     await user.click(within(confirm).getByRole('button', { name: 'Sobrescrever o arquivo' }));
     await screen.findByText('create-common.toml salvo.');
-    expect(disks.pack?.[CREATE]?.text).toBe(`${CREATE_TEXT}\nmeu = 1`);
+    expect(disks.pack[CREATE]?.text).toBe(`${CREATE_TEXT}\nmeu = 1`);
     expect(backend.callsOf('config_write').length).toBeGreaterThanOrEqual(2);
   });
 
@@ -255,7 +256,7 @@ describe('Configs (T12)', () => {
     });
     await type('\nmeu = 1');
     const outside = '# novo\n';
-    disks.pack![CREATE] = entry(outside);
+    disks.pack = { ...disks.pack, [CREATE]: entry(outside) };
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
     await screen.findByText('Este arquivo foi alterado fora do Warden.');
 

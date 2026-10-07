@@ -112,9 +112,10 @@ fn leftovers(root: &Path) -> Vec<String> {
             if path.is_dir() {
                 pending.push(path);
             } else {
-                let name = path.file_name().unwrap().to_string_lossy().into_owned();
-                if name.ends_with(".bak") || name.ends_with(".warden-tmp") || name.ends_with(".tmp")
-                {
+                let extension = path
+                    .extension()
+                    .map(|ext| ext.to_string_lossy().to_lowercase());
+                if matches!(extension.as_deref(), Some("bak" | "warden-tmp" | "tmp")) {
                     found.push(path.display().to_string());
                 }
             }
@@ -172,9 +173,8 @@ fn ca_t12_01_abrir_e_salvar_sem_mudancas_devolve_os_mesmos_bytes_do_corpus() {
     }
     assert!(
         checked >= 100,
-        "só {checked} arquivos do corpus foram conferidos"
+        "só {checked} arquivos do corpus foram conferidos ({read_only} só leitura)"
     );
-    eprintln!("corpus: {checked} editáveis, {read_only} só leitura");
 }
 
 #[tokio::test]

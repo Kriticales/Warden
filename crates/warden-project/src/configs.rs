@@ -503,17 +503,16 @@ pub fn read_file(root: &Path, origin: ConfigOrigin, relative: &str) -> Result<Co
         });
     };
     let reason = read_only_reason(&bytes);
-    let text = match reason {
-        Some(ReadOnlyReason::Binary) => None,
-        _ => {
-            let decoded = String::from_utf8_lossy(&bytes);
-            Some(
-                decoded
-                    .strip_prefix('\u{feff}')
-                    .unwrap_or(&decoded)
-                    .to_owned(),
-            )
-        }
+    let text = if reason == Some(ReadOnlyReason::Binary) {
+        None
+    } else {
+        let decoded = String::from_utf8_lossy(&bytes);
+        Some(
+            decoded
+                .strip_prefix('\u{feff}')
+                .unwrap_or(&decoded)
+                .to_owned(),
+        )
     };
     let line_ending = text.as_deref().map_or(LineEnding::Lf, line_ending_of);
     Ok(ConfigContent {
