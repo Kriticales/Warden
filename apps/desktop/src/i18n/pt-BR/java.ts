@@ -100,3 +100,10 @@ export const java = {
     validate: 'Conferindo o Java',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    java: typeof java;
+  }
+}

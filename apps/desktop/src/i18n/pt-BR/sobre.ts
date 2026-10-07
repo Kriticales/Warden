@@ -17,3 +17,10 @@ export const sobre = {
   apoiarForgeDica:
     'O instalador do Forge pede apoio ao projeto. Abre o Patreon do autor no navegador.',
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    sobre: typeof sobre;
+  }
+}

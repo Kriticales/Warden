@@ -54,3 +54,10 @@ export const comum = {
     agora: ' (agora)',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    comum: typeof comum;
+  }
+}

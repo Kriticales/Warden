@@ -158,3 +158,10 @@ export const configuracoes = {
     dica: 'Os registros do Warden nunca guardam chaves. Antes de qualquer envio à IA, você vê o texto exato.',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    configuracoes: typeof configuracoes;
+  }
+}

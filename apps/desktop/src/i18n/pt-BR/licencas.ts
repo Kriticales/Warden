@@ -32,3 +32,10 @@ export const licencas = {
   semTexto: 'O pacote não traz o texto da licença.',
   fechar: 'Fechar',
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    licencas: typeof licencas;
+  }
+}

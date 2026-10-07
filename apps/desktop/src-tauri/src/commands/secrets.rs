@@ -123,6 +123,7 @@ pub(crate) async fn secrets_test(
 }
 
 /// Modo das chaves em uso.
+// pendente-na-ui: P1-13 sem tela: Configurações lê o modo em secrets_status.backend; remover ou dar uso
 #[tauri::command]
 #[specta::specta]
 #[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)] // contrato do Tauri

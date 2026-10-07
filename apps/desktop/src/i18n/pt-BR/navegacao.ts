@@ -24,3 +24,10 @@ export const navegacao = {
     versaoDesconhecida: 'Warden',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    navegacao: typeof navegacao;
+  }
+}

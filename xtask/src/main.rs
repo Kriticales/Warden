@@ -14,11 +14,13 @@ mod e2e;
 mod env_file;
 mod fixtures_packwiz;
 mod installer;
+mod merge_driver;
 mod network;
 mod notices;
 mod packwiz;
 mod preview;
 mod setup;
+mod tasks;
 mod util;
 
 use std::process::ExitCode;
@@ -84,6 +86,9 @@ enum Command {
     /// Gera os avisos de terceiros (Rust, npm, packwiz, fontes) exibidos em "Sobre o Warden".
     Notices,
     /// Versão de teste para o dono no Windows: gera (ou baixa da CI) o instalador, instala e abre.
+    // Subcomandos de xtask/src/tasks/*.rs (descobertos pelo build.rs; sem edição aqui).
+    #[command(flatten)]
+    Auto(tasks::AutoCommand),
     Preview {
         /// Baixa o instalador da última execução da CI com sucesso, em vez de compilar.
         #[arg(long)]
@@ -112,6 +117,7 @@ fn main() -> ExitCode {
         Command::FixturesPackwiz { packwiz, commit } => {
             fixtures_packwiz::run(fixtures_packwiz::Options { packwiz, commit })
         }
+        Command::Auto(command) => tasks::dispatch(command),
         Command::E2eDriver => e2e::run(),
         Command::Installer => installer::run(),
         Command::Notices => notices::run(),

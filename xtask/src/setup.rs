@@ -8,8 +8,8 @@
 
 use anyhow::{Context as _, Result};
 
-use crate::packwiz;
 use crate::util::{Cmd, find_program, warn_long_target};
+use crate::{merge_driver, packwiz};
 
 /// Ferramentas instaladas com `cargo install --locked`: (crate, versão).
 pub const TOOLS: &[(&str, &str)] = &[
@@ -51,6 +51,7 @@ pub fn run() -> Result<()> {
             .run()?;
     }
 
+    merge_driver::ensure()?;
     packwiz::run(false)?;
 
     Cmd::pnpm()?.args(["install", "--frozen-lockfile"]).run()?;

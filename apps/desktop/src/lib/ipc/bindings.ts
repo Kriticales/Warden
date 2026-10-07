@@ -11,22 +11,26 @@ export const commands = {
 	settingsGet: () => typedError<Settings, AppError>(__TAURI_INVOKE("settings_get")),
 	/**  Altera as configurações e devolve como ficaram. O nível dos registros vale na hora. */
 	settingsUpdate: (patch: SettingsPatch) => typedError<Settings, AppError>(__TAURI_INVOKE("settings_update", { patch })),
+	/**  Primeira execução e pasta dos packs em uso. */
+	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
+	/**
+	 *  Abre o diálogo nativo de pasta, valida a escolhida e a grava como pasta dos packs
+	 *  (ARCHITECTURE §4.1: o caminho não vem da interface). `null` = o usuário desistiu.
+	 */
+	settingsChoosePacksDir: () => typedError<{
+	/**  O `settings.json` ainda não existe: o app abre na primeira execução (T01). */
+	firstRun: boolean,
+	/**  Pasta onde os packs novos são criados (a escolhida ou a padrão do sistema). */
+	packsDir: string,
+	/**  Pasta padrão do sistema (Documentos\Warden). */
+	defaultPacksDir: string,
+} | null, AppError>(__TAURI_INVOKE("settings_choose_packs_dir")),
+	/**  Abre a pasta dos registros no Explorador (Configurações → Privacidade e registros). */
+	logsRevealFolder: () => typedError<null, AppError>(__TAURI_INVOKE("logs_reveal_folder")),
 	/**  Operações em andamento e as últimas concluídas (painel Tarefas). */
 	operationsList: () => typedError<OperationSnapshot[], AppError>(__TAURI_INVOKE("operations_list")),
 	/**  Pede o cancelamento de uma operação. */
 	operationCancel: (operationId: OperationId) => typedError<null, AppError>(__TAURI_INVOKE("operation_cancel", { operationId })),
-	/**  Onde as chaves ficam e quais estão configuradas. */
-	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
-	/**  Grava uma chave digitada e devolve o estado. */
-	secretsSet: (kind: SecretKind, value: string) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_set", { kind, value })),
-	/**  Testa uma chave na API dela. */
-	secretsTest: (kind: SecretKind) => typedError<SecretTestResult, AppError>(__TAURI_INVOKE("secrets_test", { kind })),
-	/**  Apaga uma chave e devolve o estado. */
-	secretsRemove: (kind: SecretKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_remove", { kind })),
-	/**  Modo das chaves em uso. */
-	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
-	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
-	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
 	/**
 	 *  As versões do Minecraft, na ordem oficial do manifesto da Mojang (da mais nova para a mais
 	 *  antiga), com o tipo de cada uma e a etiqueta "melhor esforço" antes da 1.7.10.
@@ -37,39 +41,6 @@ export const commands = {
 	 *  a pré-selecionada. Lista vazia: o loader não existe para essa versão.
 	 */
 	catalogLoaderVersions: (loader: Loader, minecraft: string, forceRefresh: boolean) => typedError<LoaderVersions, AppError>(__TAURI_INVOKE("catalog_loader_versions", { loader, minecraft, forceRefresh })),
-	/**  O Java que o teste do pack vai usar e por quê (ADR-0029). */
-	javaChoice: (request: JavaChoiceRequest) => typedError<JavaChoice, AppError>(__TAURI_INVOKE("java_choice", { request })),
-	/**  A tabela de Java de Configurações. */
-	javaRuntimesList: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_list")),
-	/**
-	 *  "Procurar atualizações do Java": instala a atualização mais nova de cada Java instalado e
-	 *  remove as antigas que nenhum jogo usa.
-	 */
-	javaRuntimesCheckUpdates: () => typedError<UpdateReport, AppError>(__TAURI_INVOKE("java_runtimes_check_updates")),
-	/**  Remove um Java e devolve a tabela atualizada. */
-	javaRuntimeRemove: (id: RuntimeId) => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtime_remove", { id })),
-	/**  "Remover Javas sem uso" e devolve a tabela atualizada. */
-	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
-	/**  Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos. */
-	packsList: () => __TAURI_INVOKE<PackRow[]>("packs_list"),
-	/**  Dados de um pack da lista. */
-	packGet: (packId: PackId) => typedError<PackRow, AppError>(__TAURI_INVOKE("pack_get", { packId })),
-	/**  Cria um pack vazio com versões confirmadas pelo catálogo e ponto inicial no histórico. */
-	packCreate: (request: CreatePack) => typedError<CreatedPack, AppError>(__TAURI_INVOKE("pack_create", { request })),
-	/**  Verifica uma pasta packwiz sem escrever nela. */
-	packImportPreview: (path: string) => typedError<ImportPreview, AppError>(__TAURI_INVOKE("pack_import_preview", { path })),
-	/**  Abre e registra uma pasta packwiz. `add_controls` aceita os arquivos de controle padrão. */
-	packImport: (path: string, addControls: boolean) => typedError<ImportedPack, AppError>(__TAURI_INVOKE("pack_import", { path, addControls })),
-	/**  Localiza a nova pasta de um pack perdido sem trocar seu histórico local. */
-	packRelocate: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_relocate", { packId, path })),
-	/**  Retira apenas do registro local. */
-	packForget: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_forget", { packId })),
-	/**  Itens que não devem entrar no pack distribuído. */
-	packHygieneScan: (packId: PackId) => typedError<HygieneFinding[], AppError>(__TAURI_INVOKE("pack_hygiene_scan", { packId })),
-	/**  Remove os itens escolhidos após criar ponto de segurança. */
-	packHygieneFix: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("pack_hygiene_fix", { packId, paths })),
-	/**  Move um pack para a Lixeira depois de digitar o nome exato. */
-	packTrash: (packId: PackId, confirmation: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_trash", { packId, confirmation })),
 	/**  Lista exata da saída e avisos antes de exportar. */
 	exportPreview: (packId: PackId, source: ExportSource) => typedError<ExportPreview, AppError>(__TAURI_INVOKE("export_preview", { packId, source })),
 	/**  Adiciona uma regra ao `.packwizignore` e atualiza o índice. */
@@ -88,42 +59,6 @@ export const commands = {
 	 *  `export_run` gerou nesta sessão.
 	 */
 	exportReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("export_reveal", { path })),
-	/**  Primeira execução e pasta dos packs em uso. */
-	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
-	/**
-	 *  Abre o diálogo nativo de pasta, valida a escolhida e a grava como pasta dos packs
-	 *  (ARCHITECTURE §4.1: o caminho não vem da interface). `null` = o usuário desistiu.
-	 */
-	settingsChoosePacksDir: () => typedError<{
-	/**  O `settings.json` ainda não existe: o app abre na primeira execução (T01). */
-	firstRun: boolean,
-	/**  Pasta onde os packs novos são criados (a escolhida ou a padrão do sistema). */
-	packsDir: string,
-	/**  Pasta padrão do sistema (Documentos\Warden). */
-	defaultPacksDir: string,
-} | null, AppError>(__TAURI_INVOKE("settings_choose_packs_dir")),
-	/**  Abre a pasta dos registros no Explorador (Configurações → Privacidade e registros). */
-	logsRevealFolder: () => typedError<null, AppError>(__TAURI_INVOKE("logs_reveal_folder")),
-	/**
-	 *  Informa onde está o botão maximizar da barra de título, para a janela nativa do menu de
-	 *  encaixe (Snap Layouts) ficar exatamente em cima dele. No Linux a barra é a do sistema e o
-	 *  comando não faz nada.
-	 */
-	windowSetMaximizeArea: (area: MaximizeButtonArea) => typedError<null, AppError>(__TAURI_INVOKE("window_set_maximize_area", { area })),
-	/**  Autor e pasta padrão do assistente Criar pack. */
-	packCreateDefaults: () => __TAURI_INVOKE<CreateDefaults>("pack_create_defaults"),
-	/**
-	 *  Etapa "Nome e pasta": confere o nome e devolve a pasta final, recusando pasta com arquivos
-	 *  antes de qualquer escrita (CA-T03-04). `destination` vazio = `<pasta dos packs>/<nome>`.
-	 */
-	packCreateCheck: (name: string, destination: string | null) => typedError<string, AppError>(__TAURI_INVOKE("pack_create_check", { name, destination })),
-	/**
-	 *  Abre o diálogo nativo de pasta (ARCHITECTURE §20: diálogos são do Rust). `null` = o usuário
-	 *  desistiu. O caminho escolhido ainda passa pelas validações do comando que o usa.
-	 */
-	packChooseFolder: (purpose: FolderPurpose) => typedError<string | null, AppError>(__TAURI_INVOKE("pack_choose_folder", { purpose })),
-	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
-	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
 	/**
 	 *  A lista de Mods: todos os itens do índice (mods, resource packs, shaders), os arquivos
 	 *  inválidos e os que estão fora do índice. Sempre lida do disco.
@@ -150,6 +85,19 @@ export const commands = {
 	inventoryIncludeOutside: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("inventory_include_outside", { packId })),
 	/**  "Abrir no editor de texto": abre um arquivo do pack no programa padrão do sistema. */
 	itemOpenFile: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("item_open_file", { packId, path })),
+	/**  O Java que o teste do pack vai usar e por quê (ADR-0029). */
+	javaChoice: (request: JavaChoiceRequest) => typedError<JavaChoice, AppError>(__TAURI_INVOKE("java_choice", { request })),
+	/**  A tabela de Java de Configurações. */
+	javaRuntimesList: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_list")),
+	/**
+	 *  "Procurar atualizações do Java": instala a atualização mais nova de cada Java instalado e
+	 *  remove as antigas que nenhum jogo usa.
+	 */
+	javaRuntimesCheckUpdates: () => typedError<UpdateReport, AppError>(__TAURI_INVOKE("java_runtimes_check_updates")),
+	/**  Remove um Java e devolve a tabela atualizada. */
+	javaRuntimeRemove: (id: RuntimeId) => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtime_remove", { id })),
+	/**  "Remover Javas sem uso" e devolve a tabela atualizada. */
+	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
 	/**  Nome, autor, descrição e versões do `pack.toml` (diálogo Informações do pack). */
 	packMetaGet: (packId: PackId) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_meta_get", { packId })),
 	/**  Grava nome, autor e descrição no `pack.toml`, mudando só as linhas alteradas. */
@@ -163,6 +111,58 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**  Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos. */
+	packsList: () => __TAURI_INVOKE<PackRow[]>("packs_list"),
+	/**  Dados de um pack da lista. */
+	packGet: (packId: PackId) => typedError<PackRow, AppError>(__TAURI_INVOKE("pack_get", { packId })),
+	/**  Autor e pasta padrão do assistente Criar pack. */
+	packCreateDefaults: () => __TAURI_INVOKE<CreateDefaults>("pack_create_defaults"),
+	/**
+	 *  Etapa "Nome e pasta": confere o nome e devolve a pasta final, recusando pasta com arquivos
+	 *  antes de qualquer escrita (CA-T03-04). `destination` vazio = `<pasta dos packs>/<nome>`.
+	 */
+	packCreateCheck: (name: string, destination: string | null) => typedError<string, AppError>(__TAURI_INVOKE("pack_create_check", { name, destination })),
+	/**  Cria um pack vazio com versões confirmadas pelo catálogo e ponto inicial no histórico. */
+	packCreate: (request: CreatePack) => typedError<CreatedPack, AppError>(__TAURI_INVOKE("pack_create", { request })),
+	/**  Verifica uma pasta packwiz sem escrever nela. */
+	packImportPreview: (path: string) => typedError<ImportPreview, AppError>(__TAURI_INVOKE("pack_import_preview", { path })),
+	/**  Abre e registra uma pasta packwiz. `add_controls` aceita os arquivos de controle padrão. */
+	packImport: (path: string, addControls: boolean) => typedError<ImportedPack, AppError>(__TAURI_INVOKE("pack_import", { path, addControls })),
+	/**  Localiza a nova pasta de um pack perdido sem trocar seu histórico local. */
+	packRelocate: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_relocate", { packId, path })),
+	/**  Retira apenas do registro local. */
+	packForget: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_forget", { packId })),
+	/**  Itens que não devem entrar no pack distribuído. */
+	packHygieneScan: (packId: PackId) => typedError<HygieneFinding[], AppError>(__TAURI_INVOKE("pack_hygiene_scan", { packId })),
+	/**  Remove os itens escolhidos após criar ponto de segurança. */
+	packHygieneFix: (packId: PackId, paths: string[]) => typedError<string[], AppError>(__TAURI_INVOKE("pack_hygiene_fix", { packId, paths })),
+	/**  Move um pack para a Lixeira depois de digitar o nome exato. */
+	packTrash: (packId: PackId, confirmation: string) => typedError<null, AppError>(__TAURI_INVOKE("pack_trash", { packId, confirmation })),
+	/**
+	 *  Abre o diálogo nativo de pasta (ARCHITECTURE §20: diálogos são do Rust). `null` = o usuário
+	 *  desistiu. O caminho escolhido ainda passa pelas validações do comando que o usa.
+	 */
+	packChooseFolder: (purpose: FolderPurpose) => typedError<string | null, AppError>(__TAURI_INVOKE("pack_choose_folder", { purpose })),
+	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
+	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
+	/**  Onde as chaves ficam e quais estão configuradas. */
+	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
+	/**  Grava uma chave digitada e devolve o estado. */
+	secretsSet: (kind: SecretKind, value: string) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_set", { kind, value })),
+	/**  Apaga uma chave e devolve o estado. */
+	secretsRemove: (kind: SecretKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_remove", { kind })),
+	/**  Testa uma chave na API dela. */
+	secretsTest: (kind: SecretKind) => typedError<SecretTestResult, AppError>(__TAURI_INVOKE("secrets_test", { kind })),
+	/**  Modo das chaves em uso. */
+	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
+	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
+	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
+	/**
+	 *  Informa onde está o botão maximizar da barra de título, para a janela nativa do menu de
+	 *  encaixe (Snap Layouts) ficar exatamente em cima dele. No Linux a barra é a do sistema e o
+	 *  comando não faz nada.
+	 */
+	windowSetMaximizeArea: (area: MaximizeButtonArea) => typedError<null, AppError>(__TAURI_INVOKE("window_set_maximize_area", { area })),
 };
 
 /** Events */

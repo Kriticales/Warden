@@ -290,3 +290,10 @@ export const packs = {
     limpando: 'Limpando…',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    packs: typeof packs;
+  }
+}

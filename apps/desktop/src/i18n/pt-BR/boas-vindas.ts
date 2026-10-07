@@ -53,3 +53,10 @@ export const boasVindas = {
     rodape: 'Nada disso vai para o GitHub sem você publicar uma versão.',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    boasVindas: typeof boasVindas;
+  }
+}

@@ -99,3 +99,10 @@ export const exportar = {
     mostrarArquivo: 'Mostrar o arquivo',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    exportar: typeof exportar;
+  }
+}

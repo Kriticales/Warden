@@ -1,40 +1,24 @@
 /**
  * Configuração do i18next: um único idioma, pt-BR (ADR-0016; ARCHITECTURE §18).
  *
- * Registro acréscimo-apenas (ROADMAP §1): cada área acrescenta uma linha de import e uma
- * linha em `resources`.
+ * Os namespaces não estão listados aqui: todo arquivo de `pt-BR/` é carregado por
+ * `import.meta.glob` e cada um exporta uma constante com o nome do namespace
+ * (`export const java = {…}`). Os tipos vêm de `catalogo.ts`, que cada arquivo estende com um
+ * `declare module`. Para criar um namespace, basta criar o arquivo (ROADMAP §1).
  */
-import i18n from 'i18next';
+import i18n, { type Resource } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { boasVindas } from './pt-BR/boas-vindas';
-import { comum } from './pt-BR/comum';
-import { configuracoes } from './pt-BR/configuracoes';
-import { licencas } from './pt-BR/licencas';
-import { navegacao } from './pt-BR/navegacao';
-import { sobre } from './pt-BR/sobre';
-import { tarefas } from './pt-BR/tarefas';
-import { java } from './pt-BR/java';
-import { packs } from './pt-BR/packs';
-import { editor } from './pt-BR/editor';
-import { exportar } from './pt-BR/exportar';
+import type { Catalogo } from './catalogo';
 
 export const defaultNS = 'comum';
 
+const modules = import.meta.glob<Record<string, unknown>>(['./pt-BR/*.ts', '!./pt-BR/*.test.ts'], {
+  eager: true,
+});
+
 export const resources = {
-  'pt-BR': {
-    comum,
-    licencas,
-    navegacao,
-    configuracoes,
-    boasVindas,
-    sobre,
-    tarefas,
-    java,
-    packs,
-    editor,
-    exportar,
-  },
+  'pt-BR': Object.assign({}, ...Object.values(modules)) as Catalogo,
 } as const;
 
 void i18n.use(initReactI18next).init({
@@ -43,7 +27,7 @@ void i18n.use(initReactI18next).init({
   supportedLngs: ['pt-BR'],
   defaultNS,
   ns: Object.keys(resources['pt-BR']),
-  resources,
+  resources: resources as unknown as Resource,
   initAsync: false,
   // O React já escapa o texto.
   interpolation: { escapeValue: false },

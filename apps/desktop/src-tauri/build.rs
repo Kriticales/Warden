@@ -7,6 +7,9 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+#[path = "build_registry.rs"]
+mod registry;
+
 fn main() {
     println!("cargo:rerun-if-env-changed=WARDEN_COMMIT");
     let commit = std::env::var("WARDEN_COMMIT")
@@ -16,7 +19,27 @@ fn main() {
         .unwrap_or_default();
     println!("cargo:rustc-env=WARDEN_COMMIT={}", commit.trim());
 
+    generate_registry();
     build_tauri();
+}
+
+/// Gera `commands_registry.rs` (módulos, comandos e eventos do IPC) a partir de
+/// `src/commands/*.rs` e `src/events.rs` (ARCHITECTURE §4.1).
+fn generate_registry() {
+    println!("cargo:rerun-if-changed=src/commands");
+    println!("cargo:rerun-if-changed=src/events.rs");
+    let manifest = absolute("");
+    let modules = registry::discover(&manifest.join("src").join("commands"))
+        .expect("falha ao ler src/commands");
+    for module in &modules {
+        println!("cargo:rerun-if-changed={}", module.file.display());
+    }
+    let events = std::fs::read_to_string(manifest.join("src").join("events.rs"))
+        .expect("falha ao ler src/events.rs");
+    let out =
+        PathBuf::from(std::env::var_os("OUT_DIR").expect("OUT_DIR")).join("commands_registry.rs");
+    std::fs::write(out, registry::render(&modules, &events))
+        .expect("falha ao gravar commands_registry.rs");
 }
 
 /// O `tauri-build` embute o manifesto do Windows (Common Controls v6) só nos executáveis

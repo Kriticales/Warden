@@ -295,3 +295,10 @@ export const editor = {
     efeito: 'Os ajustes passam a valer quando o teste do pack chegar ao Warden.',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    editor: typeof editor;
+  }
+}

@@ -11,6 +11,7 @@ use std::path::Path;
 
 use anyhow::{Result, bail};
 
+use crate::tasks::check_integration;
 use crate::util::{Cmd, desktop_dir, format_duration, timed, warn_long_target, workspace_root};
 use crate::{bindings, deps, docs};
 
@@ -54,6 +55,10 @@ fn full_steps() -> Vec<Step> {
         ("check-deps", Box::new(deps::run)),
         ("check-docs", Box::new(docs::run)),
         ("bindings --check", Box::new(|| bindings::run(true))),
+        (
+            "check-integration",
+            Box::new(|| check_integration::run(check_integration::Args { compile: false })),
+        ),
         ("pnpm format:check", pnpm_script("format:check")),
         ("pnpm lint", pnpm_script("lint")),
         ("pnpm typecheck", pnpm_script("typecheck")),

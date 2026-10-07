@@ -24,6 +24,11 @@ pub mod settings;
 pub mod state;
 mod window_chrome;
 
+/// Testes do gerador do registro de comandos (o mesmo arquivo roda no `build.rs`).
+#[cfg(test)]
+#[path = "../build_registry.rs"]
+mod build_registry;
+
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 

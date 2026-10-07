@@ -30,3 +30,8 @@ crates/warden-packwiz/tests/fixtures/** -text
 *.nbt binary
 *.dat binary
 *.sparkprofile binary
+
+# bindings.ts é gerado (cargo xtask bindings) e versionado. Conflito entre branches: o driver
+# `bindings` (instalado por `cargo xtask setup`) fica com a versão de quem recebe o merge; o
+# `bindings --check` falha até regenerar. Veja ARCHITECTURE §4.1.
+apps/desktop/src/lib/ipc/bindings.ts merge=bindings linguist-generated

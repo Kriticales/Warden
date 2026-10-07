@@ -64,3 +64,10 @@ export const tarefas = {
     },
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    tarefas: typeof tarefas;
+  }
+}
