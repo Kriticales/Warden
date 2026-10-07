@@ -231,7 +231,7 @@ fn untrusted_count(plan: &PackPlan) -> usize {
         + plan
             .overrides
             .keys()
-            .filter(|p| p.starts_with("mods/") && p.ends_with(".jar"))
+            .filter(|p| plan::is_loose_mod_jar(p))
             .count()
 }
 
@@ -414,6 +414,63 @@ fn env_for(side: &Side, optional: bool) -> IndexEnv {
     IndexEnv { client, server }
 }
 
+/// Uma linha de `files[]` por mod, resource pack ou shader de referência.
+async fn build_entries(
+    services: &PrismServices,
+    plan: &PackPlan,
+    swapped: &BTreeMap<usize, &SwapTarget>,
+    progress: &dyn ProgressSink,
+    cancel: &CancellationToken,
+) -> Result<Vec<IndexFile>> {
+    progress.stage(STAGE_RESOLVE, STAGE_RESOLVE_LABEL);
+    let total = plan.refs.len() as u64;
+    let mut files = Vec::with_capacity(plan.refs.len());
+    for (position, item) in plan.refs.iter().enumerate() {
+        if cancel.is_cancelled() {
+            return Err(cancelled());
+        }
+        progress.progress(Progress::items(position as u64, Some(total)));
+        let folder = item.dest.rsplit_once('/').map_or("", |(dir, _)| dir);
+        let (path, download, resolved) = if let Some(target) = swapped.get(&position) {
+            let path = if folder.is_empty() {
+                target.filename.clone()
+            } else {
+                format!("{folder}/{}", target.filename)
+            };
+            (
+                path,
+                target.url.clone(),
+                Resolved {
+                    sha1: target.sha1.clone(),
+                    sha512: target.sha512.clone(),
+                    size: target.size,
+                },
+            )
+        } else {
+            let resolved = resolve(services, item, progress, cancel).await?;
+            let download = match &item.source {
+                RefSource::Modrinth { url } | RefSource::Link { url } => url.clone(),
+                RefSource::Curseforge { file, .. } => {
+                    curseforge_cdn_url(&cdn_base(None)?, *file, &item.filename)?.into()
+                }
+            };
+            (item.dest.clone(), download, resolved)
+        };
+        files.push(IndexFile {
+            path,
+            hashes: IndexHashes {
+                sha1: resolved.sha1,
+                sha512: resolved.sha512,
+            },
+            env: env_for(&item.side, item.optional),
+            downloads: vec![download],
+            file_size: resolved.size,
+        });
+    }
+    progress.progress(Progress::items(total, Some(total)));
+    Ok(files)
+}
+
 /// Gera a instância pronta para o Prism em `destination` (arquivo novo, fora do pack), a partir
 /// da cópia de staging do pack, do estado atual ou de uma versão salva.
 ///
@@ -470,52 +527,7 @@ pub async fn export_prism(
         .with_param("mods", unresolved.join(", ")));
     }
 
-    progress.stage(STAGE_RESOLVE, STAGE_RESOLVE_LABEL);
-    let total = plan.refs.len() as u64;
-    let mut files = Vec::with_capacity(plan.refs.len());
-    for (position, item) in plan.refs.iter().enumerate() {
-        if cancel.is_cancelled() {
-            return Err(cancelled());
-        }
-        progress.progress(Progress::items(position as u64, Some(total)));
-        let folder = item.dest.rsplit_once('/').map_or("", |(dir, _)| dir);
-        let (path, download, resolved) = if let Some(target) = swapped.get(&position) {
-            let path = if folder.is_empty() {
-                target.filename.clone()
-            } else {
-                format!("{folder}/{}", target.filename)
-            };
-            (
-                path,
-                target.url.clone(),
-                Resolved {
-                    sha1: target.sha1.clone(),
-                    sha512: target.sha512.clone(),
-                    size: target.size,
-                },
-            )
-        } else {
-            let resolved = resolve(services, item, progress, cancel).await?;
-            let download = match &item.source {
-                RefSource::Modrinth { url } | RefSource::Link { url } => url.clone(),
-                RefSource::Curseforge { file, .. } => {
-                    curseforge_cdn_url(&cdn_base(None)?, *file, &item.filename)?.into()
-                }
-            };
-            (item.dest.clone(), download, resolved)
-        };
-        files.push(IndexFile {
-            path,
-            hashes: IndexHashes {
-                sha1: resolved.sha1,
-                sha512: resolved.sha512,
-            },
-            env: env_for(&item.side, item.optional),
-            downloads: vec![download],
-            file_size: resolved.size,
-        });
-    }
-    progress.progress(Progress::items(total, Some(total)));
+    let mut files = build_entries(services, &plan, &swapped, progress, cancel).await?;
     files.sort_by(|a, b| a.path.cmp(&b.path));
 
     let loader = plan

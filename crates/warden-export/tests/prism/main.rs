@@ -73,6 +73,7 @@ struct World {
     services: PrismServices,
 }
 
+#[allow(clippy::too_many_lines)] // Monta o pack e os três servidores simulados de uma vez.
 async fn world(with_key: bool, version: &str) -> Option<World> {
     let binary = sidecar()?;
     let temp_dir = tempfile::tempdir().unwrap();
@@ -83,7 +84,7 @@ async fn world(with_key: bool, version: &str) -> Option<World> {
 
     let mut manifest = PackManifest::new("Pack de Teste", "1.21.1");
     manifest.version = version.to_owned();
-    manifest.description = "Um pack para o Prism".to_owned();
+    "Um pack para o Prism".clone_into(&mut manifest.description);
     manifest
         .versions
         .get_or_insert_default()
@@ -276,7 +277,7 @@ fn code(error: &warden_export::Error) -> ExportErrorCode {
     use warden_core::{DomainCode, DomainError as _};
     match error.code() {
         DomainCode::Domain(code) => code,
-        other => panic!("código inesperado: {other:?}"),
+        other @ DomainCode::Core(_) => panic!("código inesperado: {other:?}"),
     }
 }
 
