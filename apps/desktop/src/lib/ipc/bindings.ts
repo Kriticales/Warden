@@ -88,6 +88,25 @@ export const commands = {
 	 *  `export_run` gerou nesta sessão.
 	 */
 	exportReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("export_reveal", { path })),
+	/**
+	 *  Lê o pack para o formato: o que se perde, o que pede decisão e o que impede de gerar.
+	 *  Não escreve nada.
+	 */
+	exportFormatAnalyze: (packId: PackId, source: ExportSource, format: LauncherFormat) => typedError<FormatAnalysis, AppError>(__TAURI_INVOKE("export_format_analyze", { packId, source, format })),
+	/**
+	 *  Abre o diálogo nativo, gera o arquivo, confere e grava. `None` = a pessoa desistiu do
+	 *  diálogo.
+	 */
+	exportFormatRun: (packId: PackId, source: ExportSource, format: LauncherFormat, choices: FormatChoices) => typedError<{
+	/**  O arquivo escolhido no diálogo nativo. */
+	path: string,
+	/**  Bytes do arquivo. */
+	bytes: number,
+	/**  Mods da CurseForge trocados pelo Modrinth. */
+	swapped: number,
+	/**  O que a validação conferiu. */
+	validation: FormatValidation,
+} | null, AppError>(__TAURI_INVOKE("export_format_run", { packId, source, format, choices })),
 	/**  Primeira execução e pasta dos packs em uso. */
 	settingsStatus: () => typedError<SettingsStatus, AppError>(__TAURI_INVOKE("settings_status")),
 	/**
@@ -519,7 +538,28 @@ export type ExportErrorCode =
 /**  O `packwiz refresh` mudou o pack na cópia: o índice estava desatualizado. */
 "PACK_OUT_OF_DATE" | 
 /**  O caminho tem colchetes, que o `.packwizignore` lê como padrão: excluir à mão. */
-"EXCLUDE_NEEDS_MANUAL_RULE";
+"EXCLUDE_NEEDS_MANUAL_RULE" | 
+/**  O `pack.toml` não tem `version`, que o `.mrpack` e o zip da CurseForge exigem. */
+"VERSION_REQUIRED" | 
+/**  Há arquivos de terceiros que iriam dentro do arquivo gerado e a pessoa não confirmou. */
+"EMBED_NEEDS_CONFIRMATION" | 
+/**
+ *  Mod da CurseForge cujo autor bloqueou apps de terceiros (ou que saiu da CurseForge) e
+ *  que não existe no Modrinth: o formato não pode levar o arquivo.
+ */
+"BLOCKED_BY_AUTHOR" | 
+/**  A troca pedida para o Modrinth não vale mais (o arquivo não tem equivalente). */
+"SWAP_NOT_AVAILABLE" | 
+/**  O formato precisa da chave da CurseForge para conferir ou embutir arquivos. */
+"CURSEFORGE_KEY_MISSING" | 
+/**  Modrinth ou CurseForge não responderam à conferência dos arquivos. */
+"LOOKUP_FAILED" | 
+/**  O packwiz não conseguiu gerar o arquivo. */
+"FORMAT_TOOL_FAILED" | 
+/**  O arquivo gerado não passou na validação e foi descartado. */
+"INVALID_OUTPUT" | 
+/**  O arquivo escolhido para validar não pôde ser lido como o formato esperado. */
+"UNREADABLE_ARCHIVE";
 
 /**  Saída nativa. */
 export type ExportFormat = 
@@ -581,6 +621,82 @@ export type FolderPurpose =
 "openPack" | 
 /**  Nova pasta de um pack que sumiu (Localizar…). */
 "relocate";
+
+/**  A leitura do pack para um formato: o que se perde, o que pede decisão e o que impede. */
+export type FormatAnalysis = {
+	/**  O formato analisado. */
+	format: LauncherFormat,
+	/**  Nome do pack (nome do arquivo gerado). */
+	name: string,
+	/**  `version` do `pack.toml`; `None` se faltar (o formato exige). */
+	version: string | null,
+	/**  Mods levados por referência (endereço de download, sem o jar). */
+	references: number,
+	/**  Arquivos de terceiros que iriam dentro do arquivo. */
+	embedded: number,
+	/**  O que o formato não guarda. */
+	losses: FormatLoss[],
+	/**  Só os arquivos que pedem decisão ou explicação. */
+	items: FormatItem[],
+};
+
+/**  As escolhas da pessoa antes de gerar. */
+export type FormatChoices = {
+	/**  Caminhos dos mods da CurseForge a trocar pelo Modrinth (só no arquivo gerado). */
+	swap: string[],
+	/**  A pessoa confirmou que pode embutir os arquivos de terceiros. */
+	confirmEmbed: boolean,
+	/**  `version` a usar quando o `pack.toml` não tem (só no arquivo gerado; o pack não muda). */
+	version: string | null,
+};
+
+/**  Resultado da exportação para outro launcher. */
+export type FormatExportResult = {
+	/**  O arquivo escolhido no diálogo nativo. */
+	path: string,
+	/**  Bytes do arquivo. */
+	bytes: number,
+	/**  Mods da CurseForge trocados pelo Modrinth. */
+	swapped: number,
+	/**  O que a validação conferiu. */
+	validation: FormatValidation,
+};
+
+/**  Um arquivo do pack que pede decisão ou explicação antes de gerar. */
+export type FormatItem = {
+	/**  Caminho do `.pw.toml` (ou do arquivo local), relativo ao pack. */
+	path: string,
+	/**  Nome mostrado. */
+	name: string,
+	/**  Nome do jar. */
+	filename: string,
+	/**  Origem. */
+	origin: ItemOrigin,
+	/**  Site do link direto, quando há. */
+	host: string | null,
+	/**  O que acontece. */
+	outcome: ItemOutcome,
+};
+
+/**  Uma perda, com a quantidade de itens do pack que ela atinge (0 = vale para o formato todo). */
+export type FormatLoss = {
+	/**  O que se perde. */
+	kind: LossKind,
+	/**  Quantos itens do pack são atingidos. */
+	count: number,
+};
+
+/**  O que a validação do arquivo gerado conferiu. */
+export type FormatValidation = {
+	/**  Entradas do zip. */
+	entries: number,
+	/**  Mods levados por referência. */
+	references: number,
+	/**  Arquivos dentro de `overrides/` (e `client-overrides/`, `server-overrides/`). */
+	overrides: number,
+	/**  Jars embutidos, com o caminho dentro do zip. */
+	embeddedJars: string[],
+};
 
 /**
  *  De quando é a lista e se veio do cache porque a fonte não respondeu (SPEC T03: "Lista de
@@ -876,6 +992,44 @@ export type ItemKind =
 /**  Qualquer outra pasta. */
 "other";
 
+/**  De onde vem um arquivo de mod do pack. */
+export type ItemOrigin = 
+/**  Referência do Modrinth. */
+"modrinth" | 
+/**  Referência da CurseForge. */
+"curseforge" | 
+/**  Link direto para outro site. */
+"link" | 
+/**  Arquivo local (`.jar` que está na pasta do pack). */
+"local";
+
+/**  O que acontece com um arquivo que pede atenção. */
+export type ItemOutcome = 
+/**
+ *  O mesmo arquivo (mesmo hash) existe no Modrinth: dá para trocar a fonte e levá-lo por
+ *  referência, sem embutir o jar.
+ */
+{ kind: "swap"; 
+/**  A CurseForge não deixa embutir este arquivo: a troca é o único caminho. */
+required: boolean; 
+/**  Projeto no Modrinth. */
+project_id: string; 
+/**  Versão no Modrinth. */
+version_id: string; 
+/**  Nome do arquivo no Modrinth. */
+filename: string } | 
+/**
+ *  O autor bloqueou apps de terceiros e o arquivo não existe no Modrinth: o formato não
+ *  pode levá-lo.
+ */
+{ kind: "blocked"; 
+/**  Página do arquivo na CurseForge, para o download manual. */
+page_url: string | null } | 
+/**  O arquivo não existe mais na CurseForge. */
+{ kind: "unavailable" } | 
+/**  O jar vai dentro do arquivo gerado; pede a confirmação de licença. */
+{ kind: "embed" };
+
 /**  Lado em que o item é instalado. */
 export type ItemSide = 
 /**  Cliente e servidor (inclusive `side` ausente). */
@@ -1084,6 +1238,13 @@ export type LauncherErrorCode =
 /**  O Warden não conseguiu controlar o processo do jogo (Job Object, grupo de processos). */
 "PROCESS_CONTROL_FAILED";
 
+/**  Formato de outro launcher, gerado pelo packwiz sobre uma cópia limpa do pack. */
+export type LauncherFormat = 
+/**  `.mrpack`: app do Modrinth e launchers compatíveis. */
+"mrpack" | 
+/**  `.zip` da CurseForge. */
+"curseforge";
+
 /**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
 export type Loader = 
 /**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
@@ -1154,6 +1315,25 @@ export type LogLevel =
 "normal" | 
 /**  `debug` para o código do Warden. */
 "detailed";
+
+/**  O que um formato não guarda; a interface escolhe o texto. */
+export type LossKind = 
+/**  Mods marcados só para cliente ou só para servidor perdem a marca. */
+"sideNotKept" | 
+/**  Mods só de servidor ficam de fora. */
+"serverOnlyLeft" | 
+/**  Texto e padrão dos opcionais não são guardados. */
+"optionalTexts" | 
+/**  Arquivos que o jogador pode manter (`preserve`) passam a ser sempre substituídos. */
+"preserve" | 
+/**  Mods fixados em uma versão perdem a fixação. */
+"pinned" | 
+/**  A fonte de atualização (Modrinth, CurseForge) não vai junto. */
+"updateSources" | 
+/**  Quem joga não recebe atualizações pelo link: cada versão é um arquivo novo. */
+"noAutoUpdate" | 
+/**  Configs vão sempre para todos os lados. */
+"configsEverywhere";
 
 /**
  *  Onde está o botão maximizar, em pixels CSS, medido pela interface. A posição horizontal é a

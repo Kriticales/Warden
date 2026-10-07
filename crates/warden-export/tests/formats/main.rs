@@ -6,7 +6,7 @@
 //! própria exportação preenche antes (o mesmo cache que o Warden usa): nenhum teste sai para a
 //! internet.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
-#![allow(linker_messages)]
+#![allow(linker_messages, clippy::print_stderr, clippy::too_many_lines)]
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -21,9 +21,9 @@ use sha2::{Digest as _, Sha256, Sha512};
 use warden_core::{CancellationToken, DomainCode, DomainError as _};
 use warden_curseforge::CurseforgeClient;
 use warden_export::{
-    ExportErrorCode, ExportSource, FormatChoices, FormatRequest, ItemOrigin, ItemOutcome,
-    LauncherFormat, Lookups, MrpackRules, analyze_format, export_format, read_mrpack,
-    validate_curseforge, validate_mrpack, CurseforgeRules,
+    CurseforgeRules, ExportErrorCode, ExportSource, FormatChoices, FormatRequest, ItemOrigin,
+    ItemOutcome, LauncherFormat, Lookups, MrpackRules, analyze_format, export_format, read_mrpack,
+    validate_curseforge, validate_mrpack,
 };
 use warden_http::{HttpClient, HttpConfig, ManualTimer};
 use warden_modrinth::ModrinthClient;
@@ -99,7 +99,7 @@ fn json_ok(value: Value) -> ResponseTemplate {
 }
 
 struct Fixture {
-    _temp: tempfile::TempDir,
+    temp: tempfile::TempDir,
     root: PathBuf,
     staging: PathBuf,
     packwiz: Packwiz,
@@ -267,7 +267,7 @@ async fn fixture(
 
     Fixture {
         staging: temp.path().join("staging"),
-        _temp: temp,
+        temp,
         root,
         packwiz,
         modrinth,
@@ -308,7 +308,10 @@ impl Fixture {
         }
     }
 
-    async fn analyze(&self, format: LauncherFormat) -> warden_export::Result<warden_export::FormatAnalysis> {
+    async fn analyze(
+        &self,
+        format: LauncherFormat,
+    ) -> warden_export::Result<warden_export::FormatAnalysis> {
         analyze_format(
             &self.root,
             &ExportSource::Current,
@@ -382,7 +385,13 @@ fn confirmed(swap: &[&str]) -> FormatChoices {
 #[tokio::test]
 async fn mrpack_com_modrinth_curseforge_link_e_local() {
     let Some(binary) = sidecar() else { return };
-    let f = fixture(&binary, "1.0.0", true, Some("https://edge.forgecdn.net/files/0/200/swap.jar")).await;
+    let f = fixture(
+        &binary,
+        "1.0.0",
+        true,
+        Some("https://edge.forgecdn.net/files/0/200/swap.jar"),
+    )
+    .await;
 
     let analysis = f.analyze(LauncherFormat::Mrpack).await.unwrap();
     assert_eq!(analysis.version.as_deref(), Some("1.0.0"));
@@ -403,33 +412,67 @@ async fn mrpack_com_modrinth_curseforge_link_e_local() {
     ));
     assert!(matches!(
         kinds[2],
-        ("mods/swap.pw.toml", ItemOrigin::Curseforge, ItemOutcome::Swap { required: false, .. })
+        (
+            "mods/swap.pw.toml",
+            ItemOrigin::Curseforge,
+            ItemOutcome::Swap {
+                required: false,
+                ..
+            }
+        )
     ));
     assert_eq!(analysis.embedded, 2);
     assert!(!analysis.has_blockers());
     // O formato guarda o lado por `env`: nada de "lado" nas perdas.
-    assert!(analysis.losses.iter().all(|loss| {
-        !matches!(loss.kind, warden_export::LossKind::SideNotKept)
-    }));
+    assert!(
+        analysis
+            .losses
+            .iter()
+            .all(|loss| { !matches!(loss.kind, warden_export::LossKind::SideNotKept) })
+    );
 
     let before = f.pack_snapshot();
-    let out = f._temp.path().join("saida.mrpack");
+    let out = f.temp.path().join("saida.mrpack");
 
     // Sem trocar e sem confirmar: o jar da CurseForge, o de link e o local iriam dentro.
-    let error = f.export(LauncherFormat::Mrpack, &FormatChoices::default(), &out).await.unwrap_err();
+    let error = f
+        .export(LauncherFormat::Mrpack, &FormatChoices::default(), &out)
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::EmbedNeedsConfirmation);
     assert!(!out.exists());
     // Trocando, ainda faltam o link e o jar local.
     let error = f
-        .export(LauncherFormat::Mrpack, &FormatChoices { swap: vec!["mods/swap.pw.toml".into()], ..FormatChoices::default() }, &out)
+        .export(
+            LauncherFormat::Mrpack,
+            &FormatChoices {
+                swap: vec!["mods/swap.pw.toml".into()],
+                ..FormatChoices::default()
+            },
+            &out,
+        )
         .await
         .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::EmbedNeedsConfirmation);
     // Troca pedida para um arquivo que não tem equivalente.
-    let error = f.export(LauncherFormat::Mrpack, &confirmed(&["mods/cdn.pw.toml"]), &out).await.unwrap_err();
+    let error = f
+        .export(
+            LauncherFormat::Mrpack,
+            &confirmed(&["mods/cdn.pw.toml"]),
+            &out,
+        )
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::SwapNotAvailable);
 
-    let result = f.export(LauncherFormat::Mrpack, &confirmed(&["mods/swap.pw.toml"]), &out).await.unwrap();
+    let result = f
+        .export(
+            LauncherFormat::Mrpack,
+            &confirmed(&["mods/swap.pw.toml"]),
+            &out,
+        )
+        .await
+        .unwrap();
     assert_eq!(result.swapped, 1);
     assert_eq!(result.validation.references, 2);
     assert_eq!(result.validation.overrides, 3); // config + jar de link + jar local
@@ -439,22 +482,40 @@ async fn mrpack_com_modrinth_curseforge_link_e_local() {
     assert_eq!(archive.index.version_id, "1.0.0");
     assert_eq!(archive.index.dependencies["minecraft"], "1.21.1");
     assert_eq!(archive.index.dependencies["fabric-loader"], "0.16.0");
-    let by_path: BTreeMap<_, _> = archive.index.files.iter().map(|file| (file.path.as_str(), file)).collect();
+    let by_path: BTreeMap<_, _> = archive
+        .index
+        .files
+        .iter()
+        .map(|file| (file.path.as_str(), file))
+        .collect();
     let cdn = by_path["mods/cdn.jar"];
-    assert_eq!(cdn.downloads, ["https://cdn.modrinth.com/data/CDNPRJ/versions/CDNVER/cdn.jar"]);
+    assert_eq!(
+        cdn.downloads,
+        ["https://cdn.modrinth.com/data/CDNPRJ/versions/CDNVER/cdn.jar"]
+    );
     assert_eq!(cdn.hashes["sha1"], sha1(CDN_JAR));
     assert_eq!(cdn.hashes["sha512"], sha512(CDN_JAR));
-    assert_eq!(cdn.file_size as usize, CDN_JAR.len());
+    assert_eq!(usize::try_from(cdn.file_size).unwrap(), CDN_JAR.len());
     let env = cdn.env.as_ref().unwrap();
-    assert_eq!((env.client.as_str(), env.server.as_str()), ("required", "unsupported"));
+    assert_eq!(
+        (env.client.as_str(), env.server.as_str()),
+        ("required", "unsupported")
+    );
     // A troca: o jar da CurseForge vai pelo endereço do Modrinth, não dentro do arquivo.
     let swapped = by_path["mods/swap.jar"];
-    assert_eq!(swapped.downloads, ["https://cdn.modrinth.com/data/SWAPPRJ/versions/SWAPVER/swap.jar"]);
+    assert_eq!(
+        swapped.downloads,
+        ["https://cdn.modrinth.com/data/SWAPPRJ/versions/SWAPVER/swap.jar"]
+    );
     assert_eq!(swapped.hashes["sha1"], sha1(SWAP_JAR));
     let mut zip = zip::ZipArchive::new(fs::File::open(&out).unwrap()).unwrap();
     assert!(zip.by_name("overrides/mods/swap.jar").is_err());
     let mut link = Vec::new();
-    std::io::Read::read_to_end(&mut zip.by_name("overrides/mods/link.jar").unwrap(), &mut link).unwrap();
+    std::io::Read::read_to_end(
+        &mut zip.by_name("overrides/mods/link.jar").unwrap(),
+        &mut link,
+    )
+    .unwrap();
     assert_eq!(link, LINK_JAR);
     assert!(zip.by_name("overrides/mods/local.jar").is_ok());
     assert!(zip.by_name("overrides/config/a.txt").is_ok());
@@ -465,7 +526,14 @@ async fn mrpack_com_modrinth_curseforge_link_e_local() {
 
     // O pack no Warden não mudou e o destino não é sobrescrito.
     assert_eq!(f.pack_snapshot(), before);
-    let error = f.export(LauncherFormat::Mrpack, &confirmed(&["mods/swap.pw.toml"]), &out).await.unwrap_err();
+    let error = f
+        .export(
+            LauncherFormat::Mrpack,
+            &confirmed(&["mods/swap.pw.toml"]),
+            &out,
+        )
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::DestinationNotEmpty);
 
     // O validador reprova o mesmo arquivo se a pessoa não tivesse confirmado o jar local.
@@ -484,28 +552,56 @@ async fn mrpack_com_modrinth_curseforge_link_e_local() {
 #[tokio::test]
 async fn zip_da_curseforge_com_mods_de_fora_so_com_confirmacao() {
     let Some(binary) = sidecar() else { return };
-    let f = fixture(&binary, "1.0.0", true, Some("https://edge.forgecdn.net/files/0/200/swap.jar")).await;
+    let f = fixture(
+        &binary,
+        "1.0.0",
+        true,
+        Some("https://edge.forgecdn.net/files/0/200/swap.jar"),
+    )
+    .await;
 
     let analysis = f.analyze(LauncherFormat::Curseforge).await.unwrap();
     assert_eq!(analysis.references, 1);
     // O mod do CDN do Modrinth, o de link e o jar local iriam dentro do zip.
-    let paths: Vec<_> = analysis.items.iter().map(|item| item.path.as_str()).collect();
-    assert_eq!(paths, ["mods/cdn.pw.toml", "mods/link.pw.toml", "mods/local.jar"]);
-    assert!(analysis.items.iter().all(|item| item.outcome == ItemOutcome::Embed));
+    let paths: Vec<_> = analysis
+        .items
+        .iter()
+        .map(|item| item.path.as_str())
+        .collect();
+    assert_eq!(
+        paths,
+        ["mods/cdn.pw.toml", "mods/link.pw.toml", "mods/local.jar"]
+    );
+    assert!(
+        analysis
+            .items
+            .iter()
+            .all(|item| item.outcome == ItemOutcome::Embed)
+    );
     assert!(analysis.losses.iter().any(|loss| {
         matches!(loss.kind, warden_export::LossKind::SideNotKept) && loss.count == 1
     }));
 
-    let out = f._temp.path().join("saida.zip");
-    let error = f.export(LauncherFormat::Curseforge, &FormatChoices::default(), &out).await.unwrap_err();
+    let out = f.temp.path().join("saida.zip");
+    let error = f
+        .export(LauncherFormat::Curseforge, &FormatChoices::default(), &out)
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::EmbedNeedsConfirmation);
     assert!(!out.exists());
 
-    let result = f.export(LauncherFormat::Curseforge, &confirmed(&[]), &out).await.unwrap();
+    let result = f
+        .export(LauncherFormat::Curseforge, &confirmed(&[]), &out)
+        .await
+        .unwrap();
     assert_eq!(result.validation.references, 1);
     assert_eq!(
         result.validation.embedded_jars,
-        ["overrides/mods/cdn.jar", "overrides/mods/link.jar", "overrides/mods/local.jar"]
+        [
+            "overrides/mods/cdn.jar",
+            "overrides/mods/link.jar",
+            "overrides/mods/local.jar"
+        ]
     );
     let mut zip = zip::ZipArchive::new(fs::File::open(&out).unwrap()).unwrap();
     let manifest: Value = serde_json::from_reader(zip.by_name("manifest.json").unwrap()).unwrap();
@@ -535,15 +631,22 @@ async fn mod_bloqueado_para_terceiros_sem_equivalente_impede_o_mrpack() {
     let f = fixture(&binary, "1.0.0", false, None).await;
     let analysis = f.analyze(LauncherFormat::Mrpack).await.unwrap();
     assert!(analysis.has_blockers());
-    let blocked = analysis.items.iter().find(|item| item.path == "mods/swap.pw.toml").unwrap();
+    let blocked = analysis
+        .items
+        .iter()
+        .find(|item| item.path == "mods/swap.pw.toml")
+        .unwrap();
     assert_eq!(
         blocked.outcome,
         ItemOutcome::Blocked {
             page_url: Some("https://www.curseforge.com/minecraft/mc-mods/mod-cf/files/200".into())
         }
     );
-    let out = f._temp.path().join("saida.mrpack");
-    let error = f.export(LauncherFormat::Mrpack, &confirmed(&[]), &out).await.unwrap_err();
+    let out = f.temp.path().join("saida.mrpack");
+    let error = f
+        .export(LauncherFormat::Mrpack, &confirmed(&[]), &out)
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::BlockedByAuthor);
     assert_eq!(error.params()["files"], "Mod da CurseForge");
     assert!(!out.exists());
@@ -557,25 +660,56 @@ async fn troca_e_obrigatoria_quando_a_curseforge_bloqueia_e_o_modrinth_tem() {
     let Some(binary) = sidecar() else { return };
     let f = fixture(&binary, "1.0.0", true, None).await;
     let analysis = f.analyze(LauncherFormat::Mrpack).await.unwrap();
-    let swap = analysis.items.iter().find(|item| item.path == "mods/swap.pw.toml").unwrap();
-    assert!(matches!(swap.outcome, ItemOutcome::Swap { required: true, .. }));
+    let swap = analysis
+        .items
+        .iter()
+        .find(|item| item.path == "mods/swap.pw.toml")
+        .unwrap();
+    assert!(matches!(
+        swap.outcome,
+        ItemOutcome::Swap { required: true, .. }
+    ));
     // Sem aceitar a troca, o mod não pode ir embutido.
-    let out = f._temp.path().join("saida.mrpack");
-    let error = f.export(LauncherFormat::Mrpack, &confirmed(&[]), &out).await.unwrap_err();
+    let out = f.temp.path().join("saida.mrpack");
+    let error = f
+        .export(LauncherFormat::Mrpack, &confirmed(&[]), &out)
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::BlockedByAuthor);
 }
 
 #[tokio::test]
 async fn sem_chave_da_curseforge_so_a_troca_pelo_modrinth_e_possivel() {
     let Some(binary) = sidecar() else { return };
-    let f = fixture(&binary, "1.0.0", true, Some("https://edge.forgecdn.net/files/0/200/swap.jar")).await;
-    let lookups = Lookups { modrinth: &f.modrinth, curseforge: None };
-    let analysis = analyze_format(&f.root, &ExportSource::Current, LauncherFormat::Mrpack, &lookups, &CancellationToken::new())
-        .await
-        .unwrap();
-    assert!(analysis.items.iter().any(|item| matches!(item.outcome, ItemOutcome::Swap { required: false, .. })));
+    let f = fixture(
+        &binary,
+        "1.0.0",
+        true,
+        Some("https://edge.forgecdn.net/files/0/200/swap.jar"),
+    )
+    .await;
+    let lookups = Lookups {
+        modrinth: &f.modrinth,
+        curseforge: None,
+    };
+    let analysis = analyze_format(
+        &f.root,
+        &ExportSource::Current,
+        LauncherFormat::Mrpack,
+        &lookups,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(analysis.items.iter().any(|item| matches!(
+        item.outcome,
+        ItemOutcome::Swap {
+            required: false,
+            ..
+        }
+    )));
     // Sem a troca e sem a chave, não há como saber se a CurseForge libera o arquivo.
-    let out = f._temp.path().join("saida.mrpack");
+    let out = f.temp.path().join("saida.mrpack");
     let error = export_format(
         &FormatRequest {
             root: &f.root,
@@ -598,16 +732,31 @@ async fn sem_chave_da_curseforge_so_a_troca_pelo_modrinth_e_possivel() {
 #[tokio::test]
 async fn version_e_exigida_e_informada_so_no_arquivo_gerado() {
     let Some(binary) = sidecar() else { return };
-    let f = fixture(&binary, "", true, Some("https://edge.forgecdn.net/files/0/200/swap.jar")).await;
+    let f = fixture(
+        &binary,
+        "",
+        true,
+        Some("https://edge.forgecdn.net/files/0/200/swap.jar"),
+    )
+    .await;
     let analysis = f.analyze(LauncherFormat::Mrpack).await.unwrap();
     assert_eq!(analysis.version, None);
-    let out = f._temp.path().join("saida.mrpack");
+    let out = f.temp.path().join("saida.mrpack");
     let mut choices = confirmed(&["mods/swap.pw.toml"]);
-    let error = f.export(LauncherFormat::Mrpack, &choices, &out).await.unwrap_err();
+    let error = f
+        .export(LauncherFormat::Mrpack, &choices, &out)
+        .await
+        .unwrap_err();
     assert_eq!(code(&error), ExportErrorCode::VersionRequired);
     choices.version = Some("  2.5.0  ".into());
     let before = f.pack_snapshot();
-    f.export(LauncherFormat::Mrpack, &choices, &out).await.unwrap();
+    f.export(LauncherFormat::Mrpack, &choices, &out)
+        .await
+        .unwrap();
     assert_eq!(read_mrpack(&out).unwrap().index.version_id, "2.5.0");
-    assert_eq!(f.pack_snapshot(), before, "o pack.toml do Warden não pode mudar");
+    assert_eq!(
+        f.pack_snapshot(),
+        before,
+        "o pack.toml do Warden não pode mudar"
+    );
 }

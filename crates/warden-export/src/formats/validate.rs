@@ -20,7 +20,8 @@ pub const MRPACK_INDEX: &str = "modrinth.index.json";
 /// Manifesto do zip da CurseForge.
 pub const CURSEFORGE_MANIFEST: &str = "manifest.json";
 /// Pastas de arquivos que o `.mrpack` copia para a instância.
-pub const MRPACK_OVERRIDE_DIRS: [&str; 3] = ["overrides/", "client-overrides/", "server-overrides/"];
+pub const MRPACK_OVERRIDE_DIRS: [&str; 3] =
+    ["overrides/", "client-overrides/", "server-overrides/"];
 
 /// Limite de leitura do JSON do índice (proteção contra zip malicioso).
 const MAX_JSON_BYTES: u64 = 32 * 1024 * 1024;
@@ -244,6 +245,7 @@ fn invalid(path: &Path, problems: &[String]) -> Error {
 
 /// Valida o `.mrpack`: zip legível, `modrinth.index.json` conforme a especificação, entradas
 /// com nomes seguros e `overrides/` só com o que as regras permitem.
+#[allow(clippy::too_many_lines)]
 pub fn validate_mrpack(path: &Path, rules: &MrpackRules) -> Result<FormatValidation> {
     let archive = read_mrpack(path)?;
     let index = &archive.index;
@@ -255,7 +257,10 @@ pub fn validate_mrpack(path: &Path, rules: &MrpackRules) -> Result<FormatValidat
         ));
     }
     if index.game != "minecraft" {
-        problems.push(format!("game deveria ser \"minecraft\" e é {:?}", index.game));
+        problems.push(format!(
+            "game deveria ser \"minecraft\" e é {:?}",
+            index.game
+        ));
     }
     if !index.dependencies.contains_key("minecraft") {
         problems.push("dependencies não tem a versão do Minecraft".to_owned());
@@ -431,7 +436,11 @@ pub fn validate_curseforge(path: &Path, rules: &CurseforgeRules) -> Result<Forma
             if minecraft.version.trim().is_empty() {
                 problems.push("minecraft.version está vazio".to_owned());
             }
-            if minecraft.mod_loaders.iter().any(|loader| loader.id.is_empty()) {
+            if minecraft
+                .mod_loaders
+                .iter()
+                .any(|loader| loader.id.is_empty())
+            {
                 problems.push("há um modLoader sem id".to_owned());
             }
         }
@@ -445,9 +454,8 @@ pub fn validate_curseforge(path: &Path, rules: &CurseforgeRules) -> Result<Forma
         if let Some(problem) = entry_name_problem(name) {
             problems.push(format!("a entrada {name:?} {problem}"));
         }
-        let known = name == CURSEFORGE_MANIFEST
-            || name == "modlist.html"
-            || name.starts_with("overrides/");
+        let known =
+            name == CURSEFORGE_MANIFEST || name == "modlist.html" || name.starts_with("overrides/");
         if !known {
             problems.push(format!("a entrada {name:?} não faz parte do formato"));
         }
@@ -580,10 +588,13 @@ mod tests {
             allowed_overrides: Some(BTreeSet::from(["config/a.txt".to_owned()])),
             allowed_jars: Some(BTreeSet::new()),
         };
-        let detail = warden_core::DomainError::detail(&validate_mrpack(&file, &rules).unwrap_err())
-            .unwrap();
+        let detail =
+            warden_core::DomainError::detail(&validate_mrpack(&file, &rules).unwrap_err()).unwrap();
         assert!(detail.contains("mods/b.jar está no arquivo"), "{detail}");
-        assert!(detail.contains("jar de terceiros sem a confirmação"), "{detail}");
+        assert!(
+            detail.contains("jar de terceiros sem a confirmação"),
+            "{detail}"
+        );
         assert!(detail.contains("sobe para fora"), "{detail}");
     }
 
@@ -643,9 +654,10 @@ mod tests {
             allowed_overrides: confirmed.allowed_overrides.clone(),
             allowed_jars: Some(BTreeSet::new()),
         };
-        let detail =
-            warden_core::DomainError::detail(&validate_curseforge(&file, &unconfirmed).unwrap_err())
-                .unwrap();
+        let detail = warden_core::DomainError::detail(
+            &validate_curseforge(&file, &unconfirmed).unwrap_err(),
+        )
+        .unwrap();
         assert!(detail.contains("sem a confirmação de licença"), "{detail}");
     }
 
@@ -660,7 +672,12 @@ mod tests {
             &validate_curseforge(&file, &CurseforgeRules::default()).unwrap_err(),
         )
         .unwrap();
-        for expected in ["manifestType", "manifestVersion", "falta a tabela minecraft", "projectID"] {
+        for expected in [
+            "manifestType",
+            "manifestVersion",
+            "falta a tabela minecraft",
+            "projectID",
+        ] {
             assert!(detail.contains(expected), "{expected}: {detail}");
         }
     }

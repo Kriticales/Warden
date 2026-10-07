@@ -159,7 +159,10 @@ pub async fn export_format(
     };
 
     let swap_set: BTreeSet<&str> = choices.swap.iter().map(String::as_str).collect();
-    if let Some(path) = swap_set.iter().find(|path| !plan.swaps.contains_key(**path)) {
+    if let Some(path) = swap_set
+        .iter()
+        .find(|path| !plan.swaps.contains_key(**path))
+    {
         return Err(Error::new(
             ExportErrorCode::SwapNotAvailable,
             format!("{path} não tem um equivalente no Modrinth"),
