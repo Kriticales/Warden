@@ -12,7 +12,8 @@ import { NameTile } from '../../../components/common/PixelArt';
 import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
 import { cn } from '../../../lib/cn';
-import type { InventoryItem, ItemSide, SideChoice } from '../../../lib/ipc/bindings';
+import type { InventoryItem, ItemSide, SideChoice, UpdateItem } from '../../../lib/ipc/bindings';
+import { RowUpdate } from '../../updates/RowUpdate';
 import { ItemMarks, SourceTag } from './marks';
 
 export const SIDE_CHOICES: readonly SideChoice[] = ['both', 'client', 'server'];
@@ -31,6 +32,9 @@ export interface ModRowProps {
   onSide: (path: string, side: SideChoice) => void;
   onShowError: (item: InventoryItem) => void;
   onOpenFile: (path: string) => void;
+  /** O resultado da verificação de atualizações para este item (P1-12). */
+  update?: UpdateItem | null | undefined;
+  onUpdate?: ((item: InventoryItem) => void) | undefined;
 }
 
 export const ModRow = memo(function ModRow({
@@ -43,6 +47,8 @@ export const ModRow = memo(function ModRow({
   onSide,
   onShowError,
   onOpenFile,
+  update = null,
+  onUpdate,
 }: ModRowProps) {
   const { t } = useTranslation('editor');
   const invalid = item.state === 'invalid';
@@ -122,6 +128,7 @@ export const ModRow = memo(function ModRow({
         <span className="modrow__ver">
           {item.version ?? (invalid ? '' : t('mods.tabela.semVersao'))}
         </span>
+        {onUpdate ? <RowUpdate item={item} update={update} onUpdate={onUpdate} /> : null}
       </td>
       <td>{invalid ? null : <SourceTag source={item.source} />}</td>
       <td>

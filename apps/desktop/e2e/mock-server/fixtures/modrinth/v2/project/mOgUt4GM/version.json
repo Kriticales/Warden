@@ -1,0 +1,50 @@
+[
+  {
+    "id": "E2EMENU01",
+    "project_id": "mOgUt4GM",
+    "name": "11.0.6",
+    "version_number": "11.0.6",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-09-29T10:00:00Z",
+    "changelog": "Compatibilidade com o Minecraft 1.21.1.",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+        },
+        "url": "https://cdn.modrinth.com/data/mOgUt4GM/versions/E2EMENU01/modmenu-11.0.6.jar",
+        "filename": "modmenu-11.0.6.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  {
+    "id": "6lgOkclV",
+    "project_id": "mOgUt4GM",
+    "name": "modmenu-11.0.5",
+    "version_number": "modmenu-11.0.5",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "92e8e96267ff18d320903090f2ad9b32408a218919f5a0d578e232ad774c89d49a34a8271806652be7d6283f24e98432bc4af7f95855e78b843f9100d68696c7"
+        },
+        "url": "https://cdn.modrinth.com/data/mOgUt4GM/versions/6lgOkclV/modmenu-11.0.5.jar",
+        "filename": "modmenu-11.0.5.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  }
+]

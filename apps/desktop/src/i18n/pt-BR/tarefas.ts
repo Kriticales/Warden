@@ -65,6 +65,10 @@ export const tarefas = {
     add: {
       apply: 'Adicionar ao pack',
     },
+    updates: {
+      check: 'Verificar atualizações',
+      apply: 'Atualizar mods',
+    },
   },
 } as const;
 

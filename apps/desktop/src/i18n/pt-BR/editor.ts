@@ -61,8 +61,6 @@ export const editor = {
     resumoOutros_other: '{{count}} outros arquivos',
     e: ' e ',
     adicionar: 'Adicionar',
-    verificarAtualizacoes: 'Verificar atualizações',
-    verificarIndisponivel: 'Verificar atualizações chega na próxima etapa do Warden.',
     carregando: 'Lendo o índice do pack…',
     vazio: {
       titulo: 'Nenhum mod ainda',
