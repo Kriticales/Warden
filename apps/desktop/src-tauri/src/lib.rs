@@ -22,6 +22,8 @@ pub mod logging;
 pub mod operations;
 pub mod settings;
 pub mod state;
+mod test_hooks;
+pub mod test_session;
 mod window_chrome;
 
 /// Testes do gerador do registro de comandos (o mesmo arquivo roda no `build.rs`).
@@ -72,6 +74,8 @@ pub fn run() -> Result<(), tauri::Error> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(builder.invoke_handler())
+        // Fechar o Warden com um jogo aberto pergunta antes (L-04, CA-T13-07).
+        .on_window_event(commands::test::on_window_event)
         .setup(move |app| {
             builder.mount_events(app);
             setup(app, dev_root.as_deref())?;
