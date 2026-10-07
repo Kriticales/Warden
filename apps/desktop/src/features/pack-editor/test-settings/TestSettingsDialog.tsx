@@ -42,6 +42,7 @@ import {
   whyNotNewest,
 } from '../../settings/java/lib/java-table';
 import { editorKeys, useRecreateInstance, useSaveTestSettings, useTestSettings } from '../api';
+import { OptionalChoicesSection } from '../item-options/OptionalChoicesSection';
 import { checkJvmArgs, type JvmArgWarning } from './jvm-args';
 
 /** Valores fixos oferecidos para a memória, em GB (os mesmos de Configurações → Teste). */
@@ -276,6 +277,8 @@ function SettingsForm({
       </div>
 
       {save.isError ? <ErrorPanel compact error={save.error} /> : null}
+      <hr className="sep" />
+      <OptionalChoicesSection packId={pack.id} />
       <hr className="sep" />
       <InstanceSection packId={pack.id} view={view} />
     </DialogContent>

@@ -41,6 +41,8 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
       cycle: [],
     }),
     pack_test_settings_get: () => makeTestSettingsView(),
+    item_option_get: () => null,
+    instance_optional_choices_get: () => [],
     java_choice: () => makeChoice(DECISIONS.forge1201),
     java_runtimes_list: () => ({
       runtimes: [],

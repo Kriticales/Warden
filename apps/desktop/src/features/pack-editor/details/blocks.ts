@@ -3,9 +3,10 @@
  * D4): cada tarefa acrescenta uma linha com o seu bloco, na posição dada por `order`.
  *
  * Os blocos da P1-08, de cima para baixo: cabeçalho (100), aviso de origem (150), descrição
- * (200), versão instalada e arquivo (300), lado (400) e novidades da versão (800). Reservados:
- * 500 para "Depende de / Usado por / Por que está no pack" (D-07) e 600 para "O que este mod
- * altera no jogo" (raio-x, D-10). Os da 1.1 (nota e grupos, segurança, manutenção) usam o mesmo
+ * (200), versão instalada e arquivo (300), lado (400) e novidades da versão (800). A P1-14
+ * acrescentou "Mais opções" (900: fixar versão e opcional). Reservados: 500 para "Depende de /
+ * Usado por / Por que está no pack" (D-07) e 600 para "O que este mod altera no jogo" (raio-x,
+ * D-10). Os da 1.1 (nota e grupos, segurança, manutenção) usam o mesmo
  * registro.
  *
  * Um bloco devolve `null` quando não tem o que mostrar para aquele item.
@@ -19,6 +20,7 @@ import { DependenciesBlock } from './dependencies/DependenciesBlock';
 import { DescriptionBlock } from './blocks/DescriptionBlock';
 import { HeadBlock } from './blocks/HeadBlock';
 import { OriginBlock } from './blocks/OriginBlock';
+import { ItemOptionsBlock } from '../item-options/ItemOptionsBlock';
 import { SideBlock } from './blocks/SideBlock';
 import { VersionBlock } from './blocks/VersionBlock';
 
@@ -49,6 +51,7 @@ export const detailBlocks: readonly DetailBlock[] = [
   { id: 'lado', order: 400, component: SideBlock },
   { id: 'dependencias', order: 500, component: DependenciesBlock },
   { id: 'novidades', order: 800, component: ChangelogBlock },
+  { id: 'mais-opcoes', order: 900, component: ItemOptionsBlock },
 ];
 
 /** Os blocos na ordem do painel. */
