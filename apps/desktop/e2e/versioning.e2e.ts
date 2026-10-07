@@ -154,7 +154,18 @@ async function refocus(): Promise<void> {
   });
 }
 
+/** Fecha os avisos (toasts): eles ficam no canto de baixo e cobririam os botões da página. */
+async function dismissToasts(): Promise<void> {
+  await browser.execute(() => {
+    for (const close of document.querySelectorAll<HTMLButtonElement>('.toast button:last-child')) {
+      close.click();
+    }
+  });
+  await browser.pause(300);
+}
+
 async function openSection(name: string, heading: string): Promise<void> {
+  await dismissToasts();
   await $('nav[aria-label="Seções do pack"]').$(`a*=${name}`).click();
   await $(`h1=${heading}`).waitForDisplayed({ timeout: 30_000 });
 }
@@ -351,6 +362,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     beforeRestore = treeHashes();
     expect(beforeRestore).not.toEqual(at100);
 
+    await dismissToasts();
     await $('#versao-1-0-0').$('button=Voltar para esta versão').click();
     const confirm = $('[role="alertdialog"]');
     await confirm.waitForDisplayed();
@@ -369,6 +381,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     expect(git('tag', '-l')).toBe('v1.0.0\nv1.0.1');
 
     // O estado de antes está no ponto de segurança.
+    await dismissToasts();
     await $('button=Pontos de segurança…').click();
     const points = $('[role="dialog"]*=Pontos de segurança');
     await points.waitForDisplayed();
