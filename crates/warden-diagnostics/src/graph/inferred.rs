@@ -68,7 +68,10 @@ impl InferredStore {
             Err(error) => return Err(DiagnosticsError::io(path, error)),
         };
         serde_json::from_str(&text).map_err(|error| {
-            DiagnosticsError::Internal(format!("arestas inferidas ilegíveis em {path:?}: {error}"))
+            DiagnosticsError::Internal(format!(
+                "arestas inferidas ilegíveis em {}: {error}",
+                path.display()
+            ))
         })
     }
 

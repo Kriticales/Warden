@@ -15,6 +15,7 @@ import type { ComponentType } from 'react';
 import type { InventoryItem, ItemDetails, PackId } from '../../../lib/ipc/bindings';
 import { UpdateBlock } from '../../updates/UpdateBlock';
 import { ChangelogBlock } from './blocks/ChangelogBlock';
+import { DependenciesBlock } from './dependencies/DependenciesBlock';
 import { DescriptionBlock } from './blocks/DescriptionBlock';
 import { HeadBlock } from './blocks/HeadBlock';
 import { OriginBlock } from './blocks/OriginBlock';
@@ -46,6 +47,7 @@ export const detailBlocks: readonly DetailBlock[] = [
   { id: 'descricao', order: 200, component: DescriptionBlock },
   { id: 'versao', order: 300, component: VersionBlock },
   { id: 'lado', order: 400, component: SideBlock },
+  { id: 'dependencias', order: 500, component: DependenciesBlock },
   { id: 'novidades', order: 800, component: ChangelogBlock },
 ];
 
