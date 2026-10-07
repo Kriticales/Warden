@@ -235,10 +235,13 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     if combo.minecraft == "1.16.5" {
         // O authlib 2 desabilita Multiplayer para o perfil offline quando a API
         // responde com uma política restritiva; sem serviço, usa a política offline.
-        props.push((
-            "minecraft.api.services.host".into(),
-            "http://127.0.0.1:1".into(),
-        ));
+        // EnvironmentParser só aceita a substituição quando os quatro hosts existem.
+        for name in ["auth", "account", "session", "services"] {
+            props.push((
+                format!("minecraft.api.{name}.host"),
+                "http://127.0.0.1:1".into(),
+            ));
+        }
     }
     let options = LaunchOptions {
         game_dir: game_dir.clone(),
@@ -279,11 +282,13 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         assert!(argv.contains("-Dfml.queryResult=confirm"), "{}", combo.name);
     }
     if combo.minecraft == "1.16.5" {
-        assert!(
-            argv.contains("-Dminecraft.api.services.host=http://127.0.0.1:1"),
-            "{}",
-            combo.name
-        );
+        for name in ["auth", "account", "session", "services"] {
+            assert!(
+                argv.contains(&format!("-Dminecraft.api.{name}.host=http://127.0.0.1:1")),
+                "{}: host {name} ausente",
+                combo.name
+            );
+        }
     }
     command.env.push(("ALSOFT_DRIVERS".into(), "null".into()));
     if cfg!(target_os = "linux") && combo.minecraft == "26.3" {
