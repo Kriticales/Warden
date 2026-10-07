@@ -12,6 +12,11 @@ import {
   makePackRow,
 } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
+import {
+  FABRIC_KIT,
+  FABRIC_OFFER,
+  makeInitialResult,
+} from '../create/initial-mods/initial-mods.fixtures';
 
 const PACKS_DIR = 'C:/Users/jogador/Documents/Warden';
 
@@ -52,6 +57,9 @@ function wizardBackend(extra: Record<string, Handler> = {}) {
     }),
     pack_get: () => makePackRow({ id: '01JA0000000000000000000099', name: 'Vale Sereno' }),
     pack_hygiene_scan: () => [],
+    initial_mods_offer: () => FABRIC_OFFER,
+    initial_mods_apply: () => makeInitialResult(),
+    kits_list: () => [FABRIC_KIT],
     ...extra,
   });
 }
@@ -77,7 +85,13 @@ describe('Criar pack (T03)', () => {
       within(steps)
         .getAllByRole('listitem')
         .map((item) => item.textContent),
-    ).toEqual(['1Nome e pasta (agora)', '2Versão do Minecraft', '3Loader', '4Resumo']);
+    ).toEqual([
+      '1Nome e pasta (agora)',
+      '2Versão do Minecraft',
+      '3Loader',
+      '4Mods iniciais',
+      '5Resumo',
+    ]);
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Próximo' }).disabled).toBe(true);
     expect(await screen.findByText('Em branco, fica “Jogador”, o nome do jogador configurado.'));
     await fillName(user);
@@ -154,13 +168,41 @@ describe('Criar pack (T03)', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Versão do Forge' }), '47.2.0');
     await next(user);
 
+    // Etapa 4: spark e Crash Assistant vêm marcados (D16); o kit, não.
+    const spark = await screen.findByRole<HTMLInputElement>('checkbox', {
+      name: 'Adicionar spark',
+    });
+    await waitFor(() => {
+      expect(spark.checked).toBe(true);
+    });
+    expect(
+      screen.getByRole<HTMLInputElement>('checkbox', { name: 'Adicionar Crash Assistant' }).checked,
+    ).toBe(true);
+    await next(user);
+
     // Resumo.
     expect(await screen.findByText('Minecraft 1.20.1 · Forge 47.2.0 · por Jogador')).toBeDefined();
     expect(screen.getByText(`${PACKS_DIR}/vale-sereno`)).toBeDefined();
     expect(screen.getByText('0.1.0')).toBeDefined();
+    expect(
+      screen.getByText(
+        'Mods iniciais: spark, Crash Assistant, com a config do Crash Assistant sem envio de dados ao autor',
+      ),
+    ).toBeDefined();
     await user.click(screen.getByRole('button', { name: 'Criar pack' }));
 
     expect(await screen.findByText('“Vale Sereno” criado.')).toBeDefined();
+    // Depois do "Pack criado", num ponto único, os mods iniciais entram pelo mesmo caminho de Adicionar.
+    expect(await screen.findByText('3 mods iniciais adicionados')).toBeDefined();
+    expect(backend.callsOf('initial_mods_apply')).toEqual([
+      {
+        command: 'initial_mods_apply',
+        args: {
+          packId: '01JA0000000000000000000099',
+          request: { tools: ['spark', 'crash-assistant'], kit: null },
+        },
+      },
+    ]);
     expect(await screen.findByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
     expect(backend.callsOf('pack_create')).toEqual([
       {
@@ -178,6 +220,102 @@ describe('Criar pack (T03)', () => {
         },
       },
     ]);
+  });
+
+  /** Percorre o assistente até a etapa "Mods iniciais" de um pack Fabric 1.21.1. */
+  async function toModsStep(user: ReturnType<typeof userEvent.setup>) {
+    await fillName(user);
+    await next(user);
+    await user.click(await screen.findByRole('radio', { name: '1.21.1' }));
+    await next(user);
+    await user.click(await screen.findByRole('radio', { name: /^Fabric/ }));
+    await next(user);
+    await screen.findByRole('checkbox', { name: 'Adicionar spark' });
+  }
+
+  it('CA-T03-07 (interface): desmarcar os dois cria o pack sem gravar mods iniciais', async () => {
+    const user = userEvent.setup();
+    const backend = wizardBackend();
+    renderApp('/packs/novo');
+    await toModsStep(user);
+    await waitFor(() => {
+      expect(
+        screen.getByRole<HTMLInputElement>('checkbox', { name: 'Adicionar spark' }).checked,
+      ).toBe(true);
+    });
+    await user.click(screen.getByRole('checkbox', { name: 'Adicionar spark' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Adicionar Crash Assistant' }));
+    await next(user);
+    expect(await screen.findByText('Nenhum mod inicial')).toBeDefined();
+    await user.click(screen.getByRole('button', { name: 'Criar pack' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
+    expect(backend.callsOf('pack_create')).toHaveLength(1);
+    expect(backend.callsOf('initial_mods_apply')).toHaveLength(0);
+  });
+
+  it('o kit escolhido vai junto no pedido e aparece no resumo', async () => {
+    const user = userEvent.setup();
+    const backend = wizardBackend();
+    renderApp('/packs/novo');
+    await toModsStep(user);
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: 'Adicionar o kit Desempenho para Fabric 1.21 em diante',
+      }),
+    );
+    await next(user);
+    expect(
+      await screen.findByText(
+        /Mods iniciais: spark, Crash Assistant, kit Desempenho para Fabric 1\.21 em diante \(4 mods\)/,
+      ),
+    ).toBeDefined();
+    await user.click(screen.getByRole('button', { name: 'Criar pack' }));
+    await waitFor(() => {
+      expect(backend.callsOf('initial_mods_apply')).toHaveLength(1);
+    });
+    expect(backend.callsOf('initial_mods_apply')[0]?.args.request).toEqual({
+      tools: ['spark', 'crash-assistant'],
+      kit: { id: 'fabric-moderno', projects: ['AANobbMI', 'gvQqBUqZ', 'uXXizFIs', '5ZwdcRci'] },
+    });
+  });
+
+  it('se os mods iniciais não entrarem, o pack já criado abre com o aviso', async () => {
+    const user = userEvent.setup();
+    const backend = wizardBackend({
+      initial_mods_apply: () =>
+        ipcError(
+          makeAppError(
+            { domain: 'project', code: 'SEARCH_SOURCE_UNAVAILABLE' },
+            { params: { source: 'Modrinth' }, retryable: true },
+          ),
+        ),
+    });
+    renderApp('/packs/novo');
+    await toModsStep(user);
+    await next(user);
+    await user.click(await screen.findByRole('button', { name: 'Criar pack' }));
+    expect(
+      await screen.findByText(
+        'O pack foi criado, mas os mods iniciais não entraram. Adicione-os pela página Mods.',
+      ),
+    ).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
+    expect(backend.callsOf('pack_create')).toHaveLength(1);
+  });
+
+  it('itens que ficaram de fora são nomeados no aviso', async () => {
+    const user = userEvent.setup();
+    wizardBackend({
+      initial_mods_apply: () =>
+        makeInitialResult({ added: [], leftOut: ['spark'], playerTools: [] }),
+    });
+    renderApp('/packs/novo');
+    await toModsStep(user);
+    await next(user);
+    await user.click(await screen.findByRole('button', { name: 'Criar pack' }));
+    expect(
+      await screen.findByText('Ficaram de fora: spark. Dá para adicionar depois pela página Mods.'),
+    ).toBeDefined();
   });
 
   it('CA-T03-03: NeoForge não aparece para 1.19.2; Fabric não aparece para 1.12.2', async () => {
@@ -211,6 +349,9 @@ describe('Criar pack (T03)', () => {
     await next(user);
     await user.click(await screen.findByRole('radio', { name: /Nenhum \(vanilla\)/ }));
     await next(user);
+    // Sem loader não há mods: a etapa explica e não consulta nada.
+    expect(await screen.findByText('Este pack não tem loader')).toBeDefined();
+    await next(user);
     expect(await screen.findByText('Minecraft 1.21.1 · vanilla · por Jogador')).toBeDefined();
     await user.click(screen.getByRole('button', { name: 'Criar pack' }));
     await waitFor(() => {
@@ -220,6 +361,9 @@ describe('Criar pack (T03)', () => {
         loaderVersion: null,
       });
     });
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
+    expect(backend.callsOf('initial_mods_offer')).toHaveLength(0);
+    expect(backend.callsOf('initial_mods_apply')).toHaveLength(0);
   });
 
   it('sem internet e sem lista guardada: o erro com "Tentar de novo", que recarrega', async () => {
@@ -290,6 +434,8 @@ describe('Criar pack (T03)', () => {
         (await screen.findByRole<HTMLInputElement>('radio', { name: /NeoForge/ })).checked,
       ).toBe(true);
     });
+    await next(user);
+    await screen.findByRole('checkbox', { name: 'Adicionar spark' });
     await next(user);
     await user.click(await screen.findByRole('button', { name: 'Criar pack' }));
     expect(
