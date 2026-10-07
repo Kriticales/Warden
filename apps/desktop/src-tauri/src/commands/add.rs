@@ -45,12 +45,12 @@ fn search_sources(state: &AppState) -> Vec<ActiveSource> {
 }
 
 /// Fontes do plano e da gravação. A P1-10 acrescenta a CurseForge.
-fn add_sources(state: &AppState) -> AddSources {
+pub(crate) fn add_sources(state: &AppState) -> AddSources {
     AddSources::new().with(Arc::new(ModrinthAdd::new(state.modrinth.clone())))
 }
 
 /// Canais aceitos por padrão (Configurações: versões beta e alpha).
-fn channel_policy(state: &AppState) -> ChannelPolicy {
+pub(crate) fn channel_policy(state: &AppState) -> ChannelPolicy {
     ChannelPolicy {
         allow_prerelease: state.settings.get().show_prerelease_versions,
     }

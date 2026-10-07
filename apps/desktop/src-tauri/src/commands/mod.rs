@@ -9,6 +9,7 @@ pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
 pub(crate) mod export;
+pub(crate) mod initial_mods;
 pub(crate) mod inventory;
 pub(crate) mod java;
 pub(crate) mod pack_meta;
@@ -80,6 +81,9 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             add::project_versions,
             add::add_plan,
             add::add_apply,
+            initial_mods::initial_mods_offer,
+            initial_mods::initial_mods_apply,
+            initial_mods::kits_list,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

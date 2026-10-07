@@ -6,6 +6,7 @@
 
 mod bindings;
 mod check;
+mod check_kits;
 mod coverage;
 mod deps;
 mod dev;
@@ -52,6 +53,15 @@ enum Command {
     CheckDeps,
     /// Confere os links internos dos arquivos Markdown.
     CheckDocs,
+    /// Confere os dados dos mods iniciais e dos kits contra a API do Modrinth (rede).
+    CheckKits {
+        /// `initial-mods.toml` a conferir (padrão: o do repositório).
+        #[arg(long)]
+        initial_mods: Option<std::path::PathBuf>,
+        /// `kits.toml` a conferir (padrão: o do repositório).
+        #[arg(long)]
+        kits: Option<std::path::PathBuf>,
+    },
     /// Gera o bindings.ts a partir dos comandos da warden-app.
     Bindings {
         /// Só confere se o arquivo versionado está atualizado.
@@ -105,6 +115,9 @@ fn main() -> ExitCode {
         Command::Check { fast } => check::run(fast),
         Command::CheckDeps => deps::run(),
         Command::CheckDocs => docs::run(),
+        Command::CheckKits { initial_mods, kits } => {
+            check_kits::run(&check_kits::Options { initial_mods, kits })
+        }
         Command::Bindings { check } => bindings::run(check),
         Command::Coverage => coverage::run(),
         Command::TestNetwork => network::run(),

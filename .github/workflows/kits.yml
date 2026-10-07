@@ -1,0 +1,41 @@
+# Conferência semanal dos mods iniciais e dos kits de desempenho (P1-18; ADR-0033).
+#
+# `cargo xtask check-kits` consulta a API do Modrinth para cada item e cada faixa de
+# `crates/warden-project/data/{initial-mods,kits}.toml`:
+#   - ID que não existe, ou consulta que não pôde ser feita: o job falha;
+#   - item sem versão para a faixa: aviso no relatório, que aparece no resumo do job.
+# Os itens da CurseForge não são conferidos aqui: só o `nightly.yml` recebe segredos (F0-02), então
+# viram uma nota no relatório; na máquina de desenvolvimento, com o `.env`, eles são conferidos.
+# Roda toda segunda-feira, a cada mudança nos dados e à mão (Actions →
+# Kits → Run workflow). Não faz parte do `cargo xtask check`, porque depende da rede.
+
+name: Kits
+
+on:
+  schedule:
+    # Segunda-feira, 07:00 UTC (04:00 em Brasília).
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+  push:
+    paths:
+      - "crates/warden-project/data/initial-mods.toml"
+      - "crates/warden-project/data/kits.toml"
+      - "xtask/src/check_kits.rs"
+      - ".github/workflows/kits.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kits-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conferir:
+    name: Linux · check-kits
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: ubuntu-24.04
+      cache-key: linux-kits
+      timeout-minutes: 30
+      run: cargo xtask check-kits
