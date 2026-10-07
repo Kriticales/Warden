@@ -37,9 +37,13 @@ const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 
 function packwizBinary(): string {
+  const suffix = process.platform === 'win32' ? 'windows-msvc.exe' : 'linux-gnu';
   const name = readdirSync(BINARIES).find(
     (entry) =>
-      entry.startsWith('packwiz-') && !entry.includes('.build') && !entry.endsWith('.commit'),
+      entry.startsWith('packwiz-') &&
+      entry.endsWith(suffix) &&
+      !entry.includes('.build') &&
+      !entry.endsWith('.commit'),
   );
   if (!name) throw new Error('sidecar do packwiz ausente: rode cargo xtask build-packwiz');
   return join(BINARIES, name);
