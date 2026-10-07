@@ -58,6 +58,9 @@ const DEFAULTS: Record<string, Handler> = {
   operations_list: () => [],
   // A tela inicial é Meus packs (P1-07): sem packs, a lista vem vazia.
   packs_list: () => [],
+  // Vigia de mudanças externas do pack aberto (A-05).
+  pack_watch_start: () => null,
+  pack_watch_stop: () => null,
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,

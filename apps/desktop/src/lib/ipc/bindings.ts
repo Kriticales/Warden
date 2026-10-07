@@ -163,6 +163,14 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
+	/**
+	 *  Começa a vigiar a pasta do pack (a tela do pack chama ao abrir). Mudanças feitas por outros
+	 *  programas chegam como `pack-changed` com `external: true`. Chamadas repetidas contam
+	 *  aberturas: o vigia só para quando todas pedirem `pack_watch_stop`.
+	 */
+	packWatchStart: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_watch_start", { packId })),
+	/**  Para de vigiar a pasta do pack (a tela do pack chama ao sair). */
+	packWatchStop: (packId: PackId) => __TAURI_INVOKE<void>("pack_watch_stop", { packId }),
 };
 
 /** Events */
@@ -1328,12 +1336,14 @@ export type PackArea =
 /**  Histórico de versões. */
 "history";
 
-/**  `pack-changed`: o pack mudou (escrita do Warden ou mudança externa). */
+/**  `pack-changed`: o pack mudou (escrita do Warden ou mudança externa, A-05). */
 export type PackChanged = {
 	/**  Pack alterado. */
 	packId: PackId,
 	/**  Partes alteradas. */
 	areas: PackArea[],
+	/**  A mudança veio de fora do Warden (editor, `git pull`): a interface avisa o usuário. */
+	external: boolean,
 };
 
 /**

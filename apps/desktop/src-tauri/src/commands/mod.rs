@@ -13,6 +13,7 @@ pub(crate) mod java;
 pub(crate) mod pack_meta;
 pub(crate) mod packs;
 pub(crate) mod secrets;
+pub(crate) mod watch;
 pub(crate) mod window;
 
 use crate::events::{OperationUpdated, PackChanged, TitleBarMaximize};
@@ -74,6 +75,8 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             pack_meta::pack_test_settings_get,
             pack_meta::pack_test_settings_set,
             pack_meta::instance_recreate,
+            watch::pack_watch_start,
+            watch::pack_watch_stop,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

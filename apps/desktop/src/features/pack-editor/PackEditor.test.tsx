@@ -132,9 +132,60 @@ describe('pack aberto (T05)', () => {
 
     // E o evento pack-changed (escrita do Warden) também.
     inventory = makeInventory([AE2]);
-    await act(() => backend.emit('pack-changed', { packId: row.id, areas: ['inventory'] }));
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: false }),
+    );
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: 'Sodium' })).toBeNull();
+    });
+  });
+
+  it('CA-T05-01 (A-05): mudança externa recarrega a seção aberta, sem trocar de seção, e avisa', async () => {
+    let inventory = makeInventory([SODIUM]);
+    const { backend, url, row } = editorBackend({ handlers: { inventory_list: () => inventory } });
+    await openMods(url);
+    // O vigia da pasta é ligado ao abrir o pack.
+    expect(backend.callsOf('pack_watch_start').map((call) => call.args.packId)).toEqual([row.id]);
+
+    inventory = makeInventory([SODIUM, AE2]);
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: true }),
+    );
+
+    expect(await screen.findByRole('button', { name: 'Applied Energistics 2' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Mods' })).toBeDefined();
+    expect(await screen.findByText('O pack foi alterado fora do Warden')).toBeDefined();
+    expect(screen.getByText('A tela mostra o que está no disco agora.')).toBeDefined();
+  });
+
+  it('A-05: escrita do próprio Warden recarrega, mas não mostra o aviso de mudança externa', async () => {
+    let inventory = makeInventory([SODIUM]);
+    const { backend, url, row } = editorBackend({ handlers: { inventory_list: () => inventory } });
+    await openMods(url);
+
+    inventory = makeInventory([AE2]);
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: false }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Sodium' })).toBeNull();
+    });
+    expect(screen.queryByText('O pack foi alterado fora do Warden')).toBeNull();
+  });
+
+  it('A-05: mudança externa de outro pack não avisa; sair do pack desliga o vigia', async () => {
+    const { backend, url, row } = editorBackend();
+    const view = renderApp(url);
+    await screen.findByRole('searchbox', { name: 'Buscar no pack' }, { timeout: 10_000 });
+    await act(() =>
+      backend.emit('pack-changed', { packId: 'outro-pack', areas: ['inventory'], external: true }),
+    );
+    expect(screen.queryByText('O pack foi alterado fora do Warden')).toBeNull();
+
+    view.unmount();
+    await waitFor(() => {
+      expect(backend.callsOf('pack_watch_stop').map((call) => call.args.packId)).toEqual([row.id]);
     });
   });
 });

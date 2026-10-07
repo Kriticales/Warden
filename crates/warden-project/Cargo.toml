@@ -16,6 +16,7 @@ warden-catalog.workspace = true
 warden-jarmeta.workspace = true
 warden-http.workspace = true
 warden-versioning.workspace = true
+notify.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 specta = { workspace = true, features = ["derive"] }

@@ -205,7 +205,7 @@ Emitidos com `app.emit` para quem estiver ouvindo; tipados com `tauri-specta` (`
 
 | Evento | Carga | Uso |
 |---|---|---|
-| `pack-changed` | `{ packId, areas: ("inventory" \| "configs" \| "meta" \| "history")[] }` | Invalida queries do TanStack Query. Emitido após qualquer escrita do Warden e após mudança externa detectada (P1). |
+| `pack-changed` | `{ packId, areas: ("inventory" \| "configs" \| "meta" \| "history")[], external }` | Invalida queries do TanStack Query. Emitido após qualquer escrita do Warden e após mudança externa detectada (P1); `external` vale `true` só no segundo caso e faz a interface avisar o usuário. |
 | `operation-updated` | `OperationSnapshot` | Painel Tarefas (T22). |
 | `game-state` | `{ packId, state: "preparing" \| "running" \| "bisecting" \| "exited", sessionId, profile }` | Cabeçalho do pack ("Buscando o culpado: ver progresso" no estado `bisecting`), bloqueio de "um jogo por vez" (a busca do culpado e o servidor local contam como jogo). |
 | `server-state` | `{ packId, state: "installing" \| "starting" \| "ready" \| "stopping" \| "stopped", port }` | Tela do teste com servidor (T27). |
@@ -1014,7 +1014,7 @@ ADR-0025 (substitui a ADR-0017).
 - **Um jogo por vez** no app (estado global em `warden-app`); a trava do pack **não** fica presa enquanto o jogo roda, só durante a materialização. A busca do culpado e o servidor local contam como "jogo" para essa regra (D4); a busca segura a trava de leitura do pack só ao calcular a ordem, e cada rodada trabalha numa cópia (`bisect/`).
 - **Tempos-limite:** HTTP (conexão 10 s, resposta 30 s, download sem limite total mas com 30 s sem dados), sidecar (§6.3), processors do Forge (10 min), validação de Java (20 s).
 - **Instância única do app:** `tauri-plugin-single-instance`.
-- **Mudanças externas (P1):** `notify` com espera de 500 ms na pasta do pack; eventos causados pelo próprio Warden são descartados por "fichas de escrita" registradas pela `PackTransaction`; o resto vira `pack-changed`.
+- **Mudanças externas (P1, A-05):** `notify` direto (sem o `notify-debouncer-full`) na pasta do pack aberto, em `warden-project::watch`; os eventos viram áreas (`classify`: `pack.toml` → Meta e Inventário, `index.toml`/`.pw.toml`/`mods/` → Inventário, `.git/HEAD` e `.git/refs` → Histórico, o resto → Configs; ruído do `.git`, `.lock`, `.tmp` e `.warden-tmp` é ignorado) e saem como um único `pack-changed` com `external: true` quando a pasta fica quieta por 500 ms (no máximo 1,2 s numa rajada contínua). As escritas do próprio Warden são descartadas por um `WriteLedger` por pack: a trava de escrita (`PackLocks::write`/`write_for`) abre um `WriteScope` enquanto dura, mais uma folga de 750 ms para os eventos atrasados do sistema. Isso cobre a `PackTransaction`, o `packwiz refresh` e o git sem exigir ficha por arquivo; uma mudança externa que caia dentro de uma escrita do Warden é lida de qualquer modo, porque o `pack-changed` do próprio Warden faz a interface reler o disco. A tela do pack liga o vigia ao abrir (`pack_watch_start`, contado por abertura) e desliga ao sair (`pack_watch_stop`).
 
 ## 16. Registros (logging)
 
@@ -1092,7 +1092,7 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 | NBT (P2) | `fastnbt` | `servers.dat` não comprimido. |
 | Logs | `tracing`, `tracing-subscriber`, `tracing-appender` | Spans com contexto de operação. |
 | Regex / XML / encoding | `regex`, `quick-xml`, `encoding_rs` | Análise de logs e stream log4j. |
-| Vigiar pastas (P1) | `notify` + `notify-debouncer-full` | Mudanças externas. |
+| Vigiar pastas (P1) | `notify` (espera própria, A-05) | Mudanças externas. |
 | Ids | `ulid`, `uuid` | `PackId` ordenável; UUID offline. |
 | Versões | `semver`; FlexVer e faixas Maven próprias | R3 §5.6. |
 | Windows | `windows` (Job Objects) | Encerramento da árvore de processos. |

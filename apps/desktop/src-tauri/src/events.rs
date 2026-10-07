@@ -36,7 +36,7 @@ pub enum PackArea {
     History,
 }
 
-/// `pack-changed`: o pack mudou (escrita do Warden ou mudança externa).
+/// `pack-changed`: o pack mudou (escrita do Warden ou mudança externa, A-05).
 #[derive(Debug, Clone, Serialize, specta::Type, Event)]
 #[serde(rename_all = "camelCase")]
 #[tauri_specta(event_name = "pack-changed")]
@@ -45,6 +45,8 @@ pub struct PackChanged {
     pub pack_id: PackId,
     /// Partes alteradas.
     pub areas: Vec<PackArea>,
+    /// A mudança veio de fora do Warden (editor, `git pull`): a interface avisa o usuário.
+    pub external: bool,
 }
 
 /// `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
@@ -163,11 +165,12 @@ mod tests {
         let json = serde_json::to_value(PackChanged {
             pack_id: pack,
             areas: vec![PackArea::Inventory, PackArea::History],
+            external: false,
         })
         .unwrap();
         assert_eq!(
             json,
-            serde_json::json!({ "packId": "01J9ZQ0000000000000000000A", "areas": ["inventory", "history"] })
+            serde_json::json!({ "packId": "01J9ZQ0000000000000000000A", "areas": ["inventory", "history"], "external": false })
         );
     }
 }

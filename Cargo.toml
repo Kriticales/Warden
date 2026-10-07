@@ -61,6 +61,7 @@ jsonc-parser = "0.34.0"
 junction = "2.1.0"
 keyring-core = "1.0.0"
 md-5 = "0.10.6"
+notify = { version = "8.2.0", default-features = false, features = ["macos_fsevent"] }
 proptest = "1.11.0"
 # Motor do launcher (S1, ADR-0057): versão exata, cada atualização passa pela matriz L-05.
 portablemc = "=5.0.5"

@@ -22,6 +22,7 @@ pub mod logging;
 pub mod operations;
 pub mod settings;
 pub mod state;
+pub mod watcher;
 mod window_chrome;
 
 use std::path::{Path, PathBuf};

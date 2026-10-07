@@ -18,5 +18,6 @@ pub mod remove;
 pub mod side;
 pub mod transaction;
 pub mod trash;
+pub mod watch;
 
 pub use error::{Error, ProjectErrorCode, Result};

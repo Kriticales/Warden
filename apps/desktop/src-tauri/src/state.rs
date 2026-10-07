@@ -16,6 +16,7 @@ use crate::locks::PackLocks;
 use crate::logging::Logging;
 use crate::operations::{Notifier, OperationRegistry};
 use crate::settings::{LoadOutcome, SettingsStore};
+use crate::watcher::PackWatchers;
 
 /// Estado do app.
 #[derive(Debug)]
@@ -44,6 +45,8 @@ pub struct AppState {
     pub packs: Arc<warden_project::registry::Registry>,
     /// Cliente do Modrinth com o cache de metadados (P1-08: inventário e detalhes).
     pub modrinth: warden_modrinth::ModrinthClient,
+    /// Vigias de mudanças externas dos packs abertos (A-05).
+    pub watchers: PackWatchers,
 }
 
 impl AppState {
@@ -98,6 +101,7 @@ impl AppState {
                 java_packs,
                 packs,
                 modrinth,
+                watchers: PackWatchers::new(),
             },
             outcome,
         ))

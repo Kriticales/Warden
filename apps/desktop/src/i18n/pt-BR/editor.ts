@@ -34,6 +34,10 @@ export const editor = {
     ilegivel: 'Não foi possível ler este pack',
     ilegivelTexto: 'O pack.toml tem um erro. Corrija o arquivo e abra o pack de novo.',
   },
+  mudancaExterna: {
+    titulo: 'O pack foi alterado fora do Warden',
+    texto: 'A tela mostra o que está no disco agora.',
+  },
   secoes: {
     rotulo: 'Seções do pack',
     indisponivel: 'Ainda não disponível nesta versão do Warden.',
