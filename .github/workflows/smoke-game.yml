@@ -42,7 +42,8 @@ jobs:
         run: |
           sudo apt-get update -q
           sudo apt-get install -q -y --no-install-recommends \
-            xvfb libgl1 libgl1-mesa-dri libasound2t64 libxrandr2 libxi6 \
+            xvfb libgl1 libgl1-mesa-dri libegl1 libegl-mesa0 imagemagick \
+            libasound2t64 libxrandr2 libxi6 x11-xserver-utils \
             libxcursor1 libxinerama1 libxtst6 libxrender1 libxxf86vm1
 
       - name: Rust fixado pelo repositório
@@ -62,7 +63,7 @@ jobs:
           set -o pipefail
           export WARDEN_LAUNCHER_DADOS="$RUNNER_TEMP/warden-l05"
           xvfb-run --auto-servernum --server-args='-screen 0 1280x800x24' \
-            cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture \
+            bash -c 'xrandr --query; cargo test -p warden-launcher --test smoke_game -- --ignored --nocapture' \
             2>&1 | tee "$RUNNER_TEMP/smoke-game-${{ matrix.group }}.log"
 
       - name: Anexar tempos, logs e prova de configuração
@@ -79,5 +80,6 @@ jobs:
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/logs/latest.log
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/crash-reports/*.txt
             ${{ runner.temp }}/warden-l05/instances/**/minecraft/hs_err_pid*.log
+            ${{ runner.temp }}/warden-l05/instances/**/screen.png
           if-no-files-found: warn
           retention-days: 30

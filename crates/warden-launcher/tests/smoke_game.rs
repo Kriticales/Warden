@@ -372,6 +372,23 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
             }
         }
     }).await;
+    if cfg!(target_os = "linux") && !progress.passed(!modern(combo.minecraft)) {
+        let screenshot = instance.join("screen.png");
+        match tokio::time::timeout(
+            Duration::from_secs(10),
+            Command::new("import")
+                .args(["-window", "root", "-silent"])
+                .arg(&screenshot)
+                .status(),
+        )
+        .await
+        {
+            Ok(Ok(status)) if status.success() => {
+                eprintln!("{}: tela salva em {}", combo.name, screenshot.display())
+            }
+            other => eprintln!("{}: falha ao capturar tela: {other:?}", combo.name),
+        }
+    }
     if matches!(&result, Ok(Ok(()))) && progress.passed(!modern(combo.minecraft)) {
         tokio::time::sleep(Duration::from_secs(2)).await;
     }
@@ -407,8 +424,11 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         );
     }
     assert!(client_exit.stop_requested, "{}", combo.name);
-    let final_options = std::fs::read_to_string(game_dir.join("options.txt")).unwrap();
     if modern(combo.minecraft) {
+        let final_options =
+            std::fs::read_to_string(game_dir.join("options.txt")).unwrap_or_else(|error| {
+                panic!("{}: options.txt ausente ao fechar: {error}", combo.name)
+            });
         assert!(
             final_options
                 .lines()
