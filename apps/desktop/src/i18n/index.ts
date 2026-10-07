@@ -19,6 +19,7 @@ import { packs } from './pt-BR/packs';
 import { editor } from './pt-BR/editor';
 import { exportar } from './pt-BR/exportar';
 import { adicionar } from './pt-BR/adicionar';
+import { modsIniciais } from './pt-BR/mods-iniciais';
 
 export const defaultNS = 'comum';
 
@@ -36,6 +37,7 @@ export const resources = {
     editor,
     exportar,
     adicionar,
+    modsIniciais,
   },
 } as const;
 

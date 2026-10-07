@@ -65,5 +65,8 @@ export const tarefas = {
     add: {
       apply: 'Adicionar ao pack',
     },
+    'initial-mods': {
+      apply: 'Adicionar os mods iniciais',
+    },
   },
 } as const;

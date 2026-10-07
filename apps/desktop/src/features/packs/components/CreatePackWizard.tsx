@@ -1,15 +1,17 @@
 /**
  * Criar pack (SPEC T03; protótipo `criar-1` a `criar-5`): assistente com Nome e pasta, Versão
- * do Minecraft, Loader e Resumo. A etapa "Mods iniciais" é da P1-18, que a acrescenta em
- * `STEP_KEYS` entre Loader e Resumo (ROADMAP P1-07, D4).
+ * do Minecraft, Loader, Mods iniciais (P1-18) e Resumo.
  *
  * Nada é escrito antes de "Criar pack": a etapa 1 só confere o destino (`pack_create_check`,
  * CA-T03-04) e as versões vêm do catálogo (`catalog_*`), que o Rust confere de novo ao criar.
+ * Os mods iniciais escolhidos entram num ponto único, depois do "Pack criado"
+ * (`initial_mods_apply`, o mesmo caminho de Adicionar): se não entrarem, o pack já existe e o
+ * aviso diz como adicioná-los pela página Mods.
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AppPage } from '../../../app/layout/AppPage';
@@ -17,10 +19,13 @@ import { PageHead } from '../../../app/layout/PageHead';
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Steps } from '../../../components/common/Steps';
 import { Button } from '../../../components/ui/button';
-import { showToast } from '../../../components/ui/toast';
-import type { Loader } from '../../../lib/ipc/bindings';
+import { showToast, type ToastInput } from '../../../components/ui/toast';
+import type { Loader, PackId } from '../../../lib/ipc/bindings';
 import { commandError } from '../../../lib/ipc/query';
 import { createCheckQuery, useCreatePack } from '../api';
+import { InitialModsStep } from '../create/initial-mods/InitialModsStep';
+import { useInitialModsApply } from '../create/initial-mods/api';
+import { type InitialChoice, toRequest } from '../create/initial-mods/model';
 import { LoaderStep } from './create/LoaderStep';
 import { MinecraftStep } from './create/MinecraftStep';
 import { NameStep } from './create/NameStep';
@@ -28,7 +33,7 @@ import { SummaryStep } from './create/SummaryStep';
 import { checkProblem, type Draft } from './create/draft';
 import '../packs.css';
 
-const STEP_KEYS = ['nome', 'minecraft', 'loader', 'resumo'] as const;
+const STEP_KEYS = ['nome', 'minecraft', 'loader', 'mods', 'resumo'] as const;
 type StepKey = (typeof STEP_KEYS)[number];
 
 const EMPTY: Draft = {
@@ -40,18 +45,26 @@ const EMPTY: Draft = {
   loader: null,
   loaderVersion: null,
   loaderReady: false,
+  initial: null,
 };
 
 export function CreatePackWizard() {
   const { t } = useTranslation('packs');
+  const { t: tMods } = useTranslation('modsIniciais');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const create = useCreatePack();
+  const applyInitial = useInitialModsApply();
+  const [finishing, setFinishing] = useState(false);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [checking, setChecking] = useState(false);
   const [nameError, setNameError] = useState<unknown>(null);
   const key: StepKey = STEP_KEYS[step] ?? 'nome';
+
+  const setInitial = useCallback((initial: InitialChoice) => {
+    setDraft((current) => ({ ...current, initial }));
+  }, []);
 
   const update = (patch: Partial<Draft>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -66,8 +79,10 @@ export function CreatePackWizard() {
         return draft.minecraft !== null;
       case 'loader':
         return draft.loaderReady && (draft.loader === null || draft.loaderVersion !== null);
+      case 'mods':
+        return true;
       case 'resumo':
-        return !create.isPending;
+        return !create.isPending && !finishing;
     }
   })();
 
@@ -114,8 +129,7 @@ export function CreatePackWizard() {
       },
       {
         onSuccess: (created) => {
-          showToast({ kind: 'ok', title: t('criar.feito', { name: draft.name.trim() }) });
-          void navigate({ to: '/packs/$packId', params: { packId: created.id } });
+          void finish(created.id);
         },
         onError: (error) => {
           // Destino que ganhou arquivos depois da etapa 1: volta para ela com o motivo.
@@ -126,6 +140,40 @@ export function CreatePackWizard() {
         },
       },
     );
+  };
+
+  /**
+   * Depois do "Pack criado": grava os mods iniciais e abre o pack. Se eles não entrarem, o pack
+   * já existe; o aviso diz isso e o pack abre do mesmo jeito.
+   */
+  const finish = async (packId: PackId) => {
+    const name = draft.name.trim();
+    const request = draft.initial === null ? null : toRequest(draft.initial);
+    let toast: ToastInput = { kind: 'ok', title: t('criar.feito', { name }) };
+    if (request !== null) {
+      setFinishing(true);
+      try {
+        const result = await applyInitial.mutateAsync({ packId, request });
+        toast = {
+          kind: result.leftOut.length > 0 ? 'warn' : 'ok',
+          title: t('criar.feito', { name }),
+          text:
+            result.leftOut.length > 0
+              ? tMods('resultado.ficaramDeFora', { nomes: result.leftOut.join(', ') })
+              : tMods('resultado.feito', { count: result.added.length }),
+        };
+      } catch {
+        toast = {
+          kind: 'warn',
+          title: t('criar.feito', { name }),
+          text: tMods('resultado.falhou'),
+        };
+      } finally {
+        setFinishing(false);
+      }
+    }
+    showToast(toast);
+    void navigate({ to: '/packs/$packId', params: { packId } });
   };
 
   const stepNames = STEP_KEYS.map((name) => t(`criar.etapa.${name}`));
@@ -152,7 +200,13 @@ export function CreatePackWizard() {
               value={draft.minecraft}
               onChange={(minecraft) => {
                 if (minecraft !== draft.minecraft) {
-                  update({ minecraft, loader: null, loaderVersion: null, loaderReady: false });
+                  update({
+                    minecraft,
+                    loader: null,
+                    loaderVersion: null,
+                    loaderReady: false,
+                    initial: null,
+                  });
                 }
               }}
             />
@@ -164,8 +218,16 @@ export function CreatePackWizard() {
               version={draft.loaderVersion}
               ready={draft.loaderReady}
               onChange={(loader: Loader | null, loaderVersion: string | null) => {
-                update({ loader, loaderVersion, loaderReady: true });
+                update({ loader, loaderVersion, loaderReady: true, initial: null });
               }}
+            />
+          ) : null}
+          {key === 'mods' && draft.minecraft !== null ? (
+            <InitialModsStep
+              minecraft={draft.minecraft}
+              loader={draft.loader}
+              choice={draft.initial}
+              onChange={setInitial}
             />
           ) : null}
           {key === 'resumo' ? <SummaryStep draft={draft} /> : null}
