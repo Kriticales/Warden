@@ -111,6 +111,16 @@ function readIndex(path: string): Record<string, unknown> {
   return JSON.parse(text) as Record<string, unknown>;
 }
 
+/** Se o passo falhar, o erro diz qual foi e o que a tela mostrava (o CI não guarda capturas). */
+async function step(name: string, action: () => Promise<void>): Promise<void> {
+  try {
+    await action();
+  } catch (error) {
+    const body = await browser.execute(() => document.body.innerText.slice(0, 600));
+    throw new Error(`passo "${name}" falhou: ${String(error)}\ntela: ${body}`);
+  }
+}
+
 async function openPrismFormat(): Promise<void> {
   await $('nav[aria-label="Seções do pack"]').$('a*=Exportar').click();
   await $('h1=Exportar').waitForDisplayed();
@@ -137,14 +147,20 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
   });
 
   it('sem versão no pack: avisa e não deixa gerar', async () => {
-    await $('h2=Você ainda não tem packs').waitForDisplayed();
-    writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
-    await $('button=Abrir pack').click();
-    await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
-    await openPrismFormat();
-    await $('*=O pack ainda não tem versão').waitForDisplayed({ timeout: 60_000 });
+    await step('lista vazia', async () => {
+      await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 20_000 });
+    });
+    await step('abrir o pack', async () => {
+      writeFileSync(PICK_FILE, PACK);
+      await $('button=Abrir ou importar…').click();
+      await $('h1=Abrir pack').waitForDisplayed({ timeout: 20_000 });
+      await $('button=Abrir pack').click();
+      await $('h1=Mods').waitForDisplayed({ timeout: 30_000 });
+    });
+    await step('formato Prism', async () => {
+      await openPrismFormat();
+      await $('*=O pack ainda não tem versão').waitForDisplayed({ timeout: 30_000 });
+    });
     await expect($('button=Gerar instância…')).toBeDisabled();
     await screenshot('40-prism-sem-versao');
   });
@@ -176,6 +192,7 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
     expect(index.dependencies).toEqual({ minecraft: '1.21.1', 'fabric-loader': '0.16.5' });
     expect(zipEntries(out)).toEqual(['modrinth.index.json', 'overrides/config/a.txt']);
     await dialog.$('button=Fechar').click();
+    await $('[role="dialog"]').waitForExist({ reverse: true });
   });
 
   it('destino ocupado: explica o que fazer e não sobrescreve', async () => {
