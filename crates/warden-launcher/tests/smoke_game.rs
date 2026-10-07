@@ -384,7 +384,7 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         .await
         {
             Ok(Ok(status)) if status.success() => {
-                eprintln!("{}: tela salva em {}", combo.name, screenshot.display())
+                eprintln!("{}: tela salva em {}", combo.name, screenshot.display());
             }
             other => eprintln!("{}: falha ao capturar tela: {other:?}", combo.name),
         }
