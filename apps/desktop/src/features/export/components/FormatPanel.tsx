@@ -8,19 +8,24 @@ import { useTranslation } from 'react-i18next';
 import type { ExportFormat } from '../../../lib/ipc/bindings';
 import { Choice } from '../../settings/components/fields';
 
-const FORMATS: readonly { value: ExportFormat; key: 'pasta' | 'zip' }[] = [
+/** Os formatos do `export_run` e a instância pronta para o Prism (comando próprio, E-04). */
+export type ExportChoice = ExportFormat | 'prism';
+
+const FORMATS: readonly { value: ExportChoice; key: 'pasta' | 'zip' | 'prism' }[] = [
   { value: 'folder', key: 'pasta' },
   { value: 'zip', key: 'zip' },
+  { value: 'prism', key: 'prism' },
 ];
 
 export function FormatPanel({
   value,
   onChange,
 }: {
-  value: ExportFormat;
-  onChange: (format: ExportFormat) => void;
+  value: ExportChoice;
+  onChange: (format: ExportChoice) => void;
 }) {
   const { t } = useTranslation('exportar');
+  const { t: tPrism } = useTranslation('instanciaPrism');
   const name = useId();
   return (
     <section className="panel" aria-labelledby="ex-formato">
@@ -33,8 +38,14 @@ export function FormatPanel({
             <Choice
               key={format.value}
               name={name}
-              title={t(`formato.${format.key}.titulo`)}
-              desc={t(`formato.${format.key}.desc`)}
+              title={
+                format.key === 'prism'
+                  ? tPrism('formato.titulo')
+                  : t(`formato.${format.key}.titulo`)
+              }
+              desc={
+                format.key === 'prism' ? tPrism('formato.desc') : t(`formato.${format.key}.desc`)
+              }
               checked={value === format.value}
               onSelect={() => {
                 onChange(format.value);
