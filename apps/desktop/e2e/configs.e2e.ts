@@ -214,7 +214,13 @@ describe('Configs (C-02; T12)', () => {
     await $('button=Salvar').click();
     await $('[role="dialog"]*=Salvar exemplo.properties?').$('button=Salvar').click();
 
-    await $('*=Este arquivo foi alterado fora do Warden.').waitForDisplayed({ timeout: 30_000 });
+    await browser.waitUntil(async () => await $('.cfg-editor .alert--danger').isExisting(), {
+      timeout: 30_000,
+      timeoutMsg: `o aviso de alteração externa não apareceu; tela: ${await $('main').getText()}`,
+    });
+    await expect($('.cfg-editor .alert--danger')).toHaveText(
+      expect.stringContaining('Este arquivo foi alterado fora do Warden.'),
+    );
     expect(readFileSync(CONFIG, 'utf8')).toBe(outside);
     await screenshot('42-configs-conflito');
 
