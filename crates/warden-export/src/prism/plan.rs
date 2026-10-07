@@ -112,6 +112,14 @@ impl PackPlan {
     }
 }
 
+/// Se o caminho é de um `.jar` solto em `mods/` (o Prism lista entre os não confiáveis).
+pub(super) fn is_loose_mod_jar(path: &str) -> bool {
+    path.starts_with("mods/")
+        && std::path::Path::new(path)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("jar"))
+}
+
 /// Chave do loader em `dependencies` do `.mrpack`.
 pub(super) fn mrpack_loader_key(loader: &str) -> Option<&'static str> {
     match loader {

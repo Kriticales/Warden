@@ -59,6 +59,52 @@ fn is_hex(text: &str, len: usize) -> bool {
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
+/// Confere `files[]`: devolve quantos são e quantos o Prism lista como não confiáveis.
+fn check_files(json: &Value, expect: &Expect<'_>) -> Result<(usize, usize)> {
+    let files = json["files"]
+        .as_array()
+        .ok_or_else(|| invalid("faltam os files"))?;
+    let mut seen = BTreeSet::new();
+    let mut untrusted = 0;
+    for file in files {
+        let path = file["path"].as_str().unwrap_or_default();
+        if !safe_path(path) || !seen.insert(path.to_owned()) {
+            return Err(invalid(format!("caminho inválido ou repetido: {path}")));
+        }
+        if !expect.file_paths.contains(path) {
+            return Err(invalid(format!("arquivo fora do pack: {path}")));
+        }
+        let hashes = &file["hashes"];
+        if !is_hex(hashes["sha1"].as_str().unwrap_or_default(), 40)
+            || !is_hex(hashes["sha512"].as_str().unwrap_or_default(), 128)
+        {
+            return Err(invalid(format!("{path}: sha1/sha512 inválidos")));
+        }
+        if file["fileSize"].as_u64().unwrap_or(0) == 0 {
+            return Err(invalid(format!("{path}: fileSize ausente")));
+        }
+        for side in ["client", "server"] {
+            let value = file["env"][side].as_str().unwrap_or("required");
+            if !matches!(value, "required" | "optional" | "unsupported") {
+                return Err(invalid(format!("{path}: env.{side} = {value}")));
+            }
+        }
+        let downloads = file["downloads"].as_array().filter(|d| !d.is_empty());
+        let downloads = downloads.ok_or_else(|| invalid(format!("{path}: sem downloads")))?;
+        let mut trusted = true;
+        for download in downloads {
+            let url = download.as_str().and_then(|u| Url::parse(u).ok());
+            let url = url.ok_or_else(|| invalid(format!("{path}: endereço inválido")))?;
+            if url.scheme() != "https" || url.host_str().is_none() {
+                return Err(invalid(format!("{path}: o Prism só baixa por https")));
+            }
+            trusted &= url.host_str() == Some(MODRINTH_CDN_HOST);
+        }
+        untrusted += usize::from(!trusted);
+    }
+    Ok((files.len(), untrusted))
+}
+
 /// Confere o conteúdo do zip.
 pub(super) fn validate(bytes: &[u8], expect: &Expect<'_>) -> Result<Checked> {
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes))
@@ -114,47 +160,7 @@ pub(super) fn validate(bytes: &[u8], expect: &Expect<'_>) -> Result<Checked> {
     {
         return Err(invalid("a versão do loader não confere com o pack.toml"));
     }
-    let files = json["files"]
-        .as_array()
-        .ok_or_else(|| invalid("faltam os files"))?;
-    let mut seen = BTreeSet::new();
-    let mut untrusted = 0;
-    for file in files {
-        let path = file["path"].as_str().unwrap_or_default();
-        if !safe_path(path) || !seen.insert(path.to_owned()) {
-            return Err(invalid(format!("caminho inválido ou repetido: {path}")));
-        }
-        if !expect.file_paths.contains(path) {
-            return Err(invalid(format!("arquivo fora do pack: {path}")));
-        }
-        let hashes = &file["hashes"];
-        if !is_hex(hashes["sha1"].as_str().unwrap_or_default(), 40)
-            || !is_hex(hashes["sha512"].as_str().unwrap_or_default(), 128)
-        {
-            return Err(invalid(format!("{path}: sha1/sha512 inválidos")));
-        }
-        if file["fileSize"].as_u64().unwrap_or(0) == 0 {
-            return Err(invalid(format!("{path}: fileSize ausente")));
-        }
-        for side in ["client", "server"] {
-            let value = file["env"][side].as_str().unwrap_or("required");
-            if !matches!(value, "required" | "optional" | "unsupported") {
-                return Err(invalid(format!("{path}: env.{side} = {value}")));
-            }
-        }
-        let downloads = file["downloads"].as_array().filter(|d| !d.is_empty());
-        let downloads = downloads.ok_or_else(|| invalid(format!("{path}: sem downloads")))?;
-        let mut trusted = true;
-        for download in downloads {
-            let url = download.as_str().and_then(|u| Url::parse(u).ok());
-            let url = url.ok_or_else(|| invalid(format!("{path}: endereço inválido")))?;
-            if url.scheme() != "https" || url.host_str().is_none() {
-                return Err(invalid(format!("{path}: o Prism só baixa por https")));
-            }
-            trusted &= url.host_str() == Some(MODRINTH_CDN_HOST);
-        }
-        untrusted += usize::from(!trusted);
-    }
+    let (files, mut untrusted) = check_files(&json, expect)?;
     for path in &overrides {
         if !expect.override_paths.contains(path) || expect.file_paths.contains(path) {
             return Err(invalid(format!(
@@ -162,13 +168,13 @@ pub(super) fn validate(bytes: &[u8], expect: &Expect<'_>) -> Result<Checked> {
             )));
         }
         // O Prism lista jars soltos em overrides/mods/ entre os não confiáveis.
-        untrusted += usize::from(path.starts_with("mods/") && path.ends_with(".jar"));
+        untrusted += usize::from(super::plan::is_loose_mod_jar(path));
     }
     if overrides.len() != expect.override_paths.len() {
         return Err(invalid("faltam arquivos em overrides/"));
     }
     Ok(Checked {
-        files: files.len(),
+        files,
         overrides: overrides.len(),
         untrusted,
     })
