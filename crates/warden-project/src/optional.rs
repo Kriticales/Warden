@@ -37,8 +37,11 @@ impl OptionSettings {
     fn validated(&self) -> Result<ModOption> {
         let description = self.description.trim();
         let invalid = |reason: &str| {
-            Error::new(Code::InvalidInput, format!("descrição do opcional: {reason}"))
-                .param("field", "description")
+            Error::new(
+                Code::InvalidInput,
+                format!("descrição do opcional: {reason}"),
+            )
+            .param("field", "description")
         };
         if description.chars().count() > DESCRIPTION_MAX_CHARS {
             return Err(invalid("longa demais").param("max", DESCRIPTION_MAX_CHARS.to_string()));

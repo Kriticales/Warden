@@ -254,7 +254,7 @@ mod tests {
             view.iter().map(|c| c.enabled).collect::<Vec<_>>(),
             [false, true]
         );
-        assert_eq!(view[0].default, true);
+        assert!(view[0].default);
     }
 
     #[test]
@@ -263,7 +263,7 @@ mod tests {
         let mut choices = BTreeMap::new();
         choices.insert("mods/a.pw.toml".to_owned(), false);
         let merged = merge_choices(&items, &choices).unwrap();
-        assert_eq!(merged.choices["mods/a.pw.toml"], false);
+        assert!(!merged.choices["mods/a.pw.toml"]);
         choices.insert("mods/outro.pw.toml".to_owned(), true);
         let error = merge_choices(&items, &choices).unwrap_err();
         assert_eq!(error.params["field"], "choices");

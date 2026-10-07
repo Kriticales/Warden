@@ -193,7 +193,9 @@ async function openTestSettings(handlers: Parameters<typeof editorBackend>[0]) {
   await screen.findByRole('heading', { level: 1, name: 'Mods' }, { timeout: 10_000 });
   const user = userEvent.setup();
   await user.click(screen.getByRole('button', { name: 'Mais opções do teste' }));
-  await user.click(await screen.findByRole('menuitem', { name: /Ajustes do teste neste computador/ }));
+  await user.click(
+    await screen.findByRole('menuitem', { name: /Ajustes do teste neste computador/ }),
+  );
   const dialog = await screen.findByRole('dialog', { name: 'Ajustes do teste neste computador' });
   return { ...setup, dialog, user };
 }

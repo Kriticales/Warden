@@ -151,7 +151,12 @@ async fn ca_t11_02_marcar_como_opcional_grava_option_com_descricao_e_padrao() {
     // Só a tabela [option] foi acrescentada: nenhuma linha antiga mudou.
     assert_eq!(
         changed_lines(&before, &after),
-        ["[option]", "optional = true", "description = \"Sombras bonitas\"", "default = true"]
+        [
+            "[option]",
+            "optional = true",
+            "description = \"Sombras bonitas\"",
+            "default = true"
+        ]
     );
     for line in before.lines() {
         assert!(after.contains(line), "{line}");
@@ -160,13 +165,22 @@ async fn ca_t11_02_marcar_como_opcional_grava_option_com_descricao_e_padrao() {
         option_of(&pack, "mods/mod00.pw.toml").unwrap(),
         Some(settings("Sombras bonitas", true))
     );
-    assert_eq!(fs::read(pack.join(".packwizignore")).unwrap(), ignore_before);
+    assert_eq!(
+        fs::read(pack.join(".packwizignore")).unwrap(),
+        ignore_before
+    );
     assert_refresh_is_noop(&cli, &pack).await;
 
     // `default = false` não grava a chave `default` (o packwiz a omite).
-    set_optional(&pack, "mods/mod01.pw.toml", Some(&settings("", false)), &cli, &cancel)
-        .await
-        .unwrap();
+    set_optional(
+        &pack,
+        "mods/mod01.pw.toml",
+        Some(&settings("", false)),
+        &cli,
+        &cancel,
+    )
+    .await
+    .unwrap();
     let second = fs::read_to_string(pack.join("mods/mod01.pw.toml")).unwrap();
     assert!(second.contains("optional = true"));
     assert!(!second.contains("default"));
@@ -273,17 +287,16 @@ async fn fixar_versao_grava_so_a_linha_pin_e_soltar_volta_ao_original() {
     assert_refresh_is_noop(&cli, &pack).await;
 
     // Repetir não grava; soltar um só deixa os outros fixados.
-    assert!(set_pins(&pack, &paths, true, &cli, &cancel)
-        .await
-        .unwrap()
-        .is_empty());
+    assert!(
+        set_pins(&pack, &paths, true, &cli, &cancel)
+            .await
+            .unwrap()
+            .is_empty()
+    );
     set_pins(&pack, &paths[..1], false, &cli, &cancel)
         .await
         .unwrap();
-    assert_eq!(
-        fs::read_to_string(pack.join(&paths[0])).unwrap(),
-        before[0]
-    );
+    assert_eq!(fs::read_to_string(pack.join(&paths[0])).unwrap(), before[0]);
     assert_eq!(pinned_paths(&pack).unwrap(), paths[1..]);
     assert_refresh_is_noop(&cli, &pack).await;
 

@@ -89,7 +89,7 @@ export function ItemOptionsBlock({ packId, item }: DetailBlockProps) {
             key={JSON.stringify(settings)}
             settings={settings}
             saving={setOptional.isPending}
-            error={setOptional.isError ? setOptional.error : null}
+            error={setOptional.isError ? setOptional.error : undefined}
             onSave={(next) => {
               setOptional.mutate(next, {
                 onSuccess: () => {
@@ -100,7 +100,7 @@ export function ItemOptionsBlock({ packId, item }: DetailBlockProps) {
           />
         ) : null}
 
-        <Alert kind="warn" compact role="note" title={t('avisoFormatosTitulo')}>
+        <Alert kind="warn" compact title={t('avisoFormatosTitulo')}>
           <div className="alert__text">{t('avisoFormatos')}</div>
         </Alert>
       </div>
@@ -116,7 +116,7 @@ function OptionForm({
 }: {
   settings: OptionSettings;
   saving: boolean;
-  error: Parameters<typeof ErrorPanel>[0]['error'] | null;
+  error: unknown;
   onSave: (settings: OptionSettings) => void;
 }) {
   const { t } = useTranslation('opcionais');
@@ -175,7 +175,7 @@ function OptionForm({
         />
         <div className="field__hint">{t('opcional.padraoDica')}</div>
       </div>
-      {error ? <ErrorPanel compact error={error} /> : null}
+      {error !== undefined && error !== null ? <ErrorPanel compact error={error} /> : null}
       <div className="btn-row">
         <Button
           type="submit"
