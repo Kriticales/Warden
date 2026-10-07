@@ -1,0 +1,263 @@
+# Mapeamento curado de categorias (SPEC T08; ARCHITECTURE §17.1).
+#
+# Junta as categorias do Modrinth e da CurseForge sob um nome só, em português. Uma categoria
+# sem par numa das fontes filtra apenas a fonte que a tem (a lista vazia significa "sem par").
+#
+# - `id`: estável (vai para a interface e para os testes); renomear é mudança de contrato.
+# - `kinds`: onde a categoria aparece (`mod`, `resourcePack`, `shader`).
+# - `modrinth`: nomes de `GET /v2/tag/category`.
+# - `curseforge`: IDs de `GET /v1/categories?gameId=432&classId=<classe>` (6 mods, 12 resource
+#   packs, 6552 shaders). Os IDs de mods vêm da documentação pública da CurseForge; os
+#   resource packs e shaders da CurseForge ainda não têm par (só o Modrinth filtra).
+#   Confira com `cargo xtask check-kits`/o painel de categorias quando houver chave.
+
+# ---------- Mods ----------
+
+[[category]]
+id = "tecnologia"
+name = "Tecnologia"
+kinds = ["mod"]
+modrinth = ["technology"]
+curseforge = [412]
+
+[[category]]
+id = "magia"
+name = "Magia"
+kinds = ["mod"]
+modrinth = ["magic"]
+curseforge = [419]
+
+[[category]]
+id = "aventura"
+name = "Aventura e RPG"
+kinds = ["mod"]
+modrinth = ["adventure"]
+curseforge = [422]
+
+[[category]]
+id = "armazenamento"
+name = "Armazenamento"
+kinds = ["mod"]
+modrinth = ["storage"]
+curseforge = [420]
+
+[[category]]
+id = "comida"
+name = "Comida"
+kinds = ["mod"]
+modrinth = ["food"]
+curseforge = [436]
+
+[[category]]
+id = "criaturas"
+name = "Criaturas"
+kinds = ["mod"]
+modrinth = ["mobs"]
+curseforge = [411]
+
+[[category]]
+id = "geracao-do-mundo"
+name = "Geração de mundo"
+kinds = ["mod"]
+modrinth = ["worldgen"]
+curseforge = [406]
+
+[[category]]
+id = "equipamento"
+name = "Armas, armaduras e ferramentas"
+kinds = ["mod"]
+modrinth = ["equipment"]
+curseforge = [434]
+
+[[category]]
+id = "decoracao"
+name = "Decoração e visual"
+kinds = ["mod"]
+modrinth = ["decoration"]
+curseforge = [424]
+
+[[category]]
+id = "bibliotecas"
+name = "Bibliotecas"
+kinds = ["mod"]
+modrinth = ["library"]
+curseforge = [421]
+
+[[category]]
+id = "utilidades"
+name = "Utilidades"
+kinds = ["mod"]
+modrinth = ["utility"]
+curseforge = [5191]
+
+[[category]]
+id = "servidor"
+name = "Servidor e gerenciamento"
+kinds = ["mod"]
+modrinth = ["management"]
+curseforge = [435]
+
+[[category]]
+id = "mapas"
+name = "Mapas e informação"
+kinds = ["mod"]
+modrinth = []
+curseforge = [423]
+
+[[category]]
+id = "redstone"
+name = "Redstone"
+kinds = ["mod"]
+modrinth = []
+curseforge = [4558]
+
+[[category]]
+id = "desempenho"
+name = "Desempenho"
+kinds = ["mod"]
+modrinth = ["optimization"]
+curseforge = []
+
+[[category]]
+id = "mecanicas"
+name = "Mecânicas do jogo"
+kinds = ["mod"]
+modrinth = ["game-mechanics"]
+curseforge = []
+
+[[category]]
+id = "transporte"
+name = "Transporte"
+kinds = ["mod"]
+modrinth = ["transportation"]
+curseforge = []
+
+[[category]]
+id = "economia"
+name = "Economia"
+kinds = ["mod"]
+modrinth = ["economy"]
+curseforge = []
+
+[[category]]
+id = "social"
+name = "Social"
+kinds = ["mod"]
+modrinth = ["social"]
+curseforge = []
+
+[[category]]
+id = "minijogos"
+name = "Minijogos"
+kinds = ["mod"]
+modrinth = ["minigame"]
+curseforge = []
+
+[[category]]
+id = "educacao"
+name = "Educação"
+kinds = ["mod"]
+modrinth = []
+curseforge = [5299]
+
+# ---------- Resource packs ----------
+
+[[category]]
+id = "rp-combate"
+name = "Combate"
+kinds = ["resourcePack"]
+modrinth = ["combat"]
+curseforge = []
+
+[[category]]
+id = "rp-decoracao"
+name = "Decoração"
+kinds = ["resourcePack"]
+modrinth = ["decoration"]
+curseforge = []
+
+[[category]]
+id = "rp-mods"
+name = "Para mods"
+kinds = ["resourcePack"]
+modrinth = ["modded"]
+curseforge = []
+
+[[category]]
+id = "rp-realista"
+name = "Realista"
+kinds = ["resourcePack"]
+modrinth = ["realistic"]
+curseforge = []
+
+[[category]]
+id = "rp-simples"
+name = "Simples"
+kinds = ["resourcePack"]
+modrinth = ["simplistic"]
+curseforge = []
+
+[[category]]
+id = "rp-tematico"
+name = "Temático"
+kinds = ["resourcePack"]
+modrinth = ["themed"]
+curseforge = []
+
+[[category]]
+id = "rp-ajustes"
+name = "Ajustes"
+kinds = ["resourcePack"]
+modrinth = ["tweaks"]
+curseforge = []
+
+[[category]]
+id = "rp-utilidades"
+name = "Utilidades"
+kinds = ["resourcePack"]
+modrinth = ["utility"]
+curseforge = []
+
+[[category]]
+id = "rp-como-o-original"
+name = "Parecido com o original"
+kinds = ["resourcePack"]
+modrinth = ["vanilla-like"]
+curseforge = []
+
+# ---------- Shaders ----------
+
+[[category]]
+id = "sh-cartoon"
+name = "Desenho animado"
+kinds = ["shader"]
+modrinth = ["cartoon"]
+curseforge = []
+
+[[category]]
+id = "sh-fantasia"
+name = "Fantasia"
+kinds = ["shader"]
+modrinth = ["fantasy"]
+curseforge = []
+
+[[category]]
+id = "sh-realista"
+name = "Realista"
+kinds = ["shader"]
+modrinth = ["realistic"]
+curseforge = []
+
+[[category]]
+id = "sh-semirrealista"
+name = "Semirrealista"
+kinds = ["shader"]
+modrinth = ["semi-realistic"]
+curseforge = []
+
+[[category]]
+id = "sh-como-o-original"
+name = "Parecido com o original"
+kinds = ["shader"]
+modrinth = ["vanilla-like"]
+curseforge = []

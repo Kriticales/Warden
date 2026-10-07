@@ -401,6 +401,7 @@ async fn ca_t08_01_buscar_sodium_e_adicionar_grava_referencia_do_modrinth() {
             source: SourceFilter::All,
             environment: None,
             include_incompatible: false,
+            category: None,
             cursor: None,
         },
         &CancellationToken::new(),

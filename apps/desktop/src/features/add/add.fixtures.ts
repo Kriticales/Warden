@@ -4,6 +4,10 @@
  */
 import type {
   AddPlan,
+  DependencyInfo,
+  DiscoverCategory,
+  DiscoverHome,
+  GalleryItem,
   PlanNode,
   ProjectPreview,
   ProjectVersions,
@@ -190,6 +194,47 @@ export function makePlan(overrides: Partial<AddPlan> = {}): AddPlan {
     conflicts: [],
     duplicates: [],
     packItemCount: 4,
+    ...overrides,
+  };
+}
+
+/** O início da descoberta (CA-T08-10): populares e atualizados para o pack. */
+export function makeHome(overrides: Partial<DiscoverHome> = {}): DiscoverHome {
+  return {
+    popular: [SODIUM, MODMENU],
+    updated: [APPLESKIN],
+    popularInPack: [],
+    sources: ['modrinth'],
+    warnings: [],
+    ...overrides,
+  };
+}
+
+/** Categorias curadas (uma só da CurseForge e uma só do Modrinth). */
+export const CATEGORIES: DiscoverCategory[] = [
+  { id: 'tecnologia', name: 'Tecnologia', sources: ['modrinth', 'curseforge'] },
+  { id: 'magia', name: 'Magia', sources: ['modrinth', 'curseforge'] },
+  { id: 'desempenho', name: 'Desempenho', sources: ['modrinth'] },
+];
+
+export function makeGallery(count = 3): GalleryItem[] {
+  return Array.from({ length: count }, (_, index) => ({
+    thumbUrl: `https://cdn.modrinth.com/data/AANobbMI/images/img${index}_350.webp`,
+    url: `https://cdn.modrinth.com/data/AANobbMI/images/img${index}.webp`,
+    title: index === 2 ? null : `Captura ${index + 1}`,
+    description: index === 0 ? 'Iluminação suave debaixo d’água.' : null,
+    featured: index === 0,
+  }));
+}
+
+export function makeDependency(overrides: Partial<DependencyInfo> = {}): DependencyInfo {
+  return {
+    kind: 'required',
+    source: 'modrinth',
+    projectId: 'P7dR8mSH',
+    title: 'Fabric API',
+    iconUrl: null,
+    inPack: false,
     ...overrides,
   };
 }

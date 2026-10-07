@@ -11,8 +11,23 @@ warden-core.workspace = true
 warden-http.workspace = true
 warden-modrinth.workspace = true
 warden-curseforge.workspace = true
+warden-project.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+toml.workspace = true
+async-trait.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "time", "sync"] }
+base64.workspace = true
+url.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+wiremock.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+tempfile.workspace = true
+warden-packwiz.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

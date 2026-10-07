@@ -8,7 +8,36 @@
  */
 import DOMPurify from 'dompurify';
 
+import { imageSrc } from './ipc/image-src';
 import { ALLOWED_TAGS, EMBED_ATTRIBUTE, embedSource } from './sanitize';
+
+/** Servidores de imagem da CurseForge: passam pelo protocolo `warden-img://` (só memória). */
+const CURSEFORGE_IMAGE_HOSTS = ['forgecdn.net', 'curseforge.com'];
+
+/**
+ * O endereço pelo protocolo `warden-img://` de uma imagem da CurseForge, para o cache de disco
+ * do WebView não guardar dados da API (ARCHITECTURE §17.1). Imagens de outros servidores (e
+ * qualquer coisa que não seja `https:`) ficam como estão: o proxy do Rust recusaria.
+ */
+function proxiedImage(src: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(src.trim());
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase();
+  const fromCurseForge = CURSEFORGE_IMAGE_HOSTS.some(
+    (known) => host === known || host.endsWith(`.${known}`),
+  );
+  if (url.protocol !== 'https:' || !fromCurseForge) return null;
+  const bytes = new TextEncoder().encode(url.href);
+  const token = btoa(String.fromCharCode(...bytes))
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/=+$/, '');
+  return imageSrc(`warden-img://localhost/${token}`);
+}
 
 const ALLOWED_ATTR = [
   'href',
@@ -36,6 +65,13 @@ function getPurifier(): ReturnType<typeof DOMPurify> {
     // `warden-img:` só vale em imagem; link só com `https:`.
     if (data.attrName === 'href' && !/^https:/i.test(data.attrValue)) {
       data.keepAttr = false;
+    }
+  });
+  // Depois da conferência dos atributos: o endereço do proxy não é `https:`.
+  instance.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'IMG') {
+      const proxied = proxiedImage(node.getAttribute('src') ?? '');
+      if (proxied) node.setAttribute('src', proxied);
     }
   });
   purifier = instance;

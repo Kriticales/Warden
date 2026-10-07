@@ -1,13 +1,14 @@
 /**
- * Pré-visualização de um resultado (SPEC T08; protótipo `preview`): cabeçalho (ícone, nome,
- * autor, fontes, downloads, atualização, licença, lado), seletores **Fonte** (só quando o
- * projeto está nas duas) e **Versão** (a mais nova compatível do canal configurado por padrão),
- * **Adicionar ao pack**, a descrição higienizada (ARCHITECTURE §18: `rehype-raw` antes do
- * `rehype-sanitize`; vídeo vira miniatura com "Abrir no navegador", nunca `iframe`) e os links.
- * Galeria, versões com changelog e dependências na própria página chegam com a P1-16.
+ * Pré-visualização de um resultado (SPEC T08; protótipo `preview`): uma página rolável, sem
+ * abas, com o índice fixo "Descrição · Galeria · Versões · Dependências · Links". Cabeçalho
+ * (ícone, nome, autor, fontes, downloads, atualização, licença, lado), seletores **Fonte** (só
+ * quando o projeto está nas duas) e **Versão** (a mais nova compatível do canal configurado por
+ * padrão) e **Adicionar ao pack**; depois a descrição higienizada (ARCHITECTURE §18:
+ * `rehype-raw` antes do `rehype-sanitize`; vídeo vira miniatura com "Abrir no navegador", nunca
+ * `iframe`), a galeria, as versões com notas sob demanda, as dependências e os links (P1-16).
  */
 import { ExternalLink, Layers, Monitor, Plus, Server } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
@@ -29,11 +30,18 @@ import type {
   SourceId,
   VersionOption,
 } from '../../../lib/ipc/bindings';
+import { useProjectDetails, useProjectVersions } from '../common/api';
+import { formatCount } from '../common/model';
+import { ProjectIcon } from '../common/ResultRow';
+import { type PackTarget, SourceMark, useAgoText, useTargetText } from '../common/text';
 import { modrinthPageUrl, preferredRef } from '../modrinth/source';
-import { useProjectDetails, useProjectVersions } from './api';
-import { formatCount } from './model';
-import { ProjectIcon } from './ResultRow';
-import { type PackTarget, SourceMark, useAgoText, useTargetText } from './text';
+import { Dependencies } from './Dependencies';
+import { Gallery } from './Gallery';
+import { Versions } from './Versions';
+
+/** As partes da página, na ordem do índice. */
+const PARTS = ['descricao', 'galeria', 'versoes', 'dependencias', 'links'] as const;
+type Part = (typeof PARTS)[number];
 
 const SIDE_ICONS = { both: Layers, client: Monitor, server: Server } as const;
 const LINKS: readonly (keyof ProjectLinks)[] = ['issues', 'source', 'wiki', 'discord', 'page'];
@@ -60,7 +68,9 @@ export function Preview({ packId, result, inPack, kind, target, onAdd }: Preview
   const versions = useProjectVersions(packId, source, projectId);
   const chosenVersion = versionId ?? versions.data?.defaultId ?? null;
   const agoText = useAgoText();
+  const { t: td } = useTranslation('descoberta');
   const id = useId();
+  const sections = useRef<Partial<Record<Part, HTMLElement | null>>>({});
   const preview = details.data;
   const summaryParams = {
     author: result.author,
@@ -156,7 +166,28 @@ export function Preview({ packId, result, inPack, kind, target, onAdd }: Preview
         )}
       </div>
 
-      <section className="preview__section" aria-labelledby={`${id}-desc`}>
+      <nav className="anchors preview__index" aria-label={td('indice.rotulo')}>
+        {PARTS.map((part) => (
+          <button
+            key={part}
+            type="button"
+            className="anchors__link"
+            onClick={() => {
+              sections.current[part]?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            }}
+          >
+            {td(`indice.${part}`)}
+          </button>
+        ))}
+      </nav>
+
+      <section
+        className="preview__section"
+        aria-labelledby={`${id}-desc`}
+        ref={(node) => {
+          sections.current.descricao = node;
+        }}
+      >
         <h3 className="field__label" id={`${id}-desc`}>
           {t('previa.descricao')}
         </h3>
@@ -176,7 +207,64 @@ export function Preview({ packId, result, inPack, kind, target, onAdd }: Preview
         )}
       </section>
 
-      <section className="preview__section" aria-labelledby={`${id}-links`}>
+      <section
+        className="preview__section"
+        aria-labelledby={`${id}-gal`}
+        ref={(node) => {
+          sections.current.galeria = node;
+        }}
+      >
+        <h3 className="field__label" id={`${id}-gal`}>
+          {td('galeria.titulo')}
+        </h3>
+        <Gallery packId={packId} source={source} projectId={projectId} />
+      </section>
+
+      <section
+        className="preview__section"
+        aria-labelledby={`${id}-vers`}
+        ref={(node) => {
+          sections.current.versoes = node;
+        }}
+      >
+        <h3 className="field__label" id={`${id}-vers`}>
+          {td('indice.versoes')}
+        </h3>
+        {versions.data ? (
+          <Versions
+            packId={packId}
+            source={source}
+            projectId={projectId}
+            versions={versions.data}
+            target={target}
+            chosenId={chosenVersion}
+            onChoose={setVersionId}
+          />
+        ) : versions.isError ? null : (
+          <LoadingState inline label={t('previa.versoesCarregando')} />
+        )}
+      </section>
+
+      <section
+        className="preview__section"
+        aria-labelledby={`${id}-deps`}
+        ref={(node) => {
+          sections.current.dependencias = node;
+        }}
+      >
+        <h3 className="field__label" id={`${id}-deps`}>
+          {td('dependencias.titulo')}
+        </h3>
+        <Dependencies packId={packId} source={source} versionId={chosenVersion} />
+      </section>
+
+      <section
+        className="preview__section"
+        aria-labelledby={`${id}-links`}
+        ref={(node) => {
+          sections.current.links = node;
+        }}
+      >
         <h3 className="field__label" id={`${id}-links`}>
           {t('previa.links')}
         </h3>

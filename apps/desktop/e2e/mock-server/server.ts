@@ -105,6 +105,11 @@ export async function startMockServer(): Promise<MockServer> {
   const requests: string[] = [];
   const server: Server = createServer((request, response) => {
     const path = request.url ?? '/';
+    // Os testes consultam o que o app pediu (contagem de requisições por fonte, P1-16).
+    if (path.startsWith('/__requests')) {
+      response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(requests));
+      return;
+    }
     requests.push(`${request.method ?? 'GET'} ${path}`);
     const file = fixturePath(path);
     if (!file) {

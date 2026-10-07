@@ -8,6 +8,7 @@ pub(crate) mod add;
 pub(crate) mod app;
 pub(crate) mod catalog;
 pub(crate) mod curseforge;
+pub(crate) mod discover;
 pub(crate) mod export;
 pub(crate) mod inventory;
 pub(crate) mod java;
@@ -80,6 +81,11 @@ pub(crate) fn builder() -> tauri_specta::Builder<tauri::Wry> {
             add::project_versions,
             add::add_plan,
             add::add_apply,
+            discover::discover_home,
+            discover::discover_categories,
+            discover::project_gallery,
+            discover::version_notes,
+            discover::version_dependencies,
         ])
         .events(tauri_specta::collect_events![
             OperationUpdated,

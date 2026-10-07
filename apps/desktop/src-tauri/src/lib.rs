@@ -17,6 +17,7 @@
 mod commands;
 mod error;
 pub mod events;
+mod img_protocol;
 pub mod locks;
 pub mod logging;
 pub mod operations;
@@ -53,7 +54,7 @@ pub fn run() -> Result<(), tauri::Error> {
     }
 
     let builder = commands::builder();
-    tauri::Builder::default()
+    img_protocol::register(tauri::Builder::default())
         // A instância única vem primeiro, para a segunda cópia sair antes de abrir qualquer
         // outra coisa.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {

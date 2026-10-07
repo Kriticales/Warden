@@ -52,6 +52,14 @@ pub fn modrinth_query(query: &SourceQuery) -> SearchQuery {
             facets = facets.loaders(&loaders);
         }
     }
+    if let Some(category) = &query.category {
+        facets = facets.any_of(
+            category
+                .modrinth
+                .iter()
+                .map(|name| format!("categories:{name}")),
+        );
+    }
     facets = match query.environment {
         None => facets,
         Some(EnvironmentFilter::Client) => {
@@ -223,6 +231,7 @@ mod tests {
             sort: SearchSort::Downloads,
             environment: Some(EnvironmentFilter::Client),
             include_incompatible,
+            category: None,
             target: target(),
             offset: 40,
             limit: 20,
@@ -257,5 +266,23 @@ mod tests {
             param(&all, "facets"),
             r#"[["project_type:mod"],["client_side:required","client_side:optional"]]"#
         );
+    }
+
+    #[test]
+    fn categoria_curada_vira_um_grupo_ou_de_categorias_do_modrinth() {
+        let mut with_category = query(ProjectKind::Mod, false);
+        with_category.category = Some(crate::search::CategoryFilter {
+            modrinth: vec!["technology".into(), "storage".into()],
+            curseforge: vec![412],
+        });
+        let facets = param(&modrinth_query(&with_category), "facets");
+        // Um grupo "ou" com as categorias mapeadas, depois do loader e antes do ambiente.
+        assert!(
+            facets.contains(r#"["categories:technology","categories:storage"]"#),
+            "{facets}"
+        );
+        // Sem categoria escolhida, nada é acrescentado.
+        let without = param(&modrinth_query(&query(ProjectKind::Mod, false)), "facets");
+        assert!(!without.contains("technology"));
     }
 }

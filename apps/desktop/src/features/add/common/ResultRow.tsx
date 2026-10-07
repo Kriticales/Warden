@@ -11,6 +11,7 @@ import { NameTile } from '../../../components/common/PixelArt';
 import { Icon } from '../../../components/ui/icon';
 import { cn } from '../../../lib/cn';
 import type { SearchResult } from '../../../lib/ipc/bindings';
+import { imageSrc } from '../../../lib/ipc/image-src';
 import { formatCount } from './model';
 import { InPackTag, SourceMark, useAgoText } from './text';
 
@@ -40,7 +41,7 @@ export function ProjectIcon({
   return (
     <img
       className={cn('tile', className)}
-      src={url}
+      src={imageSrc(url) ?? undefined}
       alt=""
       loading="lazy"
       onError={() => {

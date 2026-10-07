@@ -92,6 +92,7 @@ export const config: WebdriverIO.Config = {
     const pickFolder = join(dataRoot, 'pasta-escolhida.txt');
     process.env.WARDEN_E2E_PICK_FOLDER = pickFolder;
     process.env.WARDEN_E2E_DATA_ROOT = dataRoot;
+    process.env.WARDEN_E2E_MOCK_URL = mockServer.url;
     const env = {
       ...process.env,
       WARDEN_DATA_ROOT: dataRoot,

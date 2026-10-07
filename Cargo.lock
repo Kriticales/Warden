@@ -6433,12 +6433,24 @@ dependencies = [
 name = "warden-discovery"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "base64 0.23.1",
  "serde",
+ "serde_json",
  "specta",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "toml 1.1.6+spec-1.1.0",
+ "tracing",
+ "url",
  "warden-core",
  "warden-curseforge",
  "warden-http",
  "warden-modrinth",
+ "warden-packwiz",
+ "warden-project",
+ "wiremock",
 ]
 
 [[package]]

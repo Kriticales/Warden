@@ -211,9 +211,35 @@ pub struct SearchRequest {
     /// itens sem versão para o pack aparecem marcados, sem caixa de seleção).
     #[serde(default)]
     pub include_incompatible: bool,
+    /// Categoria curada escolhida na coluna de filtros (`id` do mapeamento da `warden-discovery`);
+    /// nenhuma: todas. O app a resolve em [`CategoryFilter`] antes de buscar.
+    #[serde(default)]
+    pub category: Option<String>,
     /// Página seguinte (`next` da anterior); nenhum: a primeira.
     #[serde(default)]
     pub cursor: Option<SearchCursor>,
+}
+
+/// Uma categoria curada já traduzida para as categorias de cada fonte (SPEC T08: "categoria sem
+/// par filtra só a fonte que a tem"). Uma lista vazia significa que a fonte não tem par: ela
+/// fica de fora da busca com categoria.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CategoryFilter {
+    /// Categorias do Modrinth (valem como "ou").
+    pub modrinth: Vec<String>,
+    /// IDs de categoria da CurseForge (valem como "ou").
+    pub curseforge: Vec<u32>,
+}
+
+impl CategoryFilter {
+    /// Se a fonte tem par para a categoria.
+    #[must_use]
+    pub fn applies_to(&self, source: SourceId) -> bool {
+        match source {
+            SourceId::Modrinth => !self.modrinth.is_empty(),
+            SourceId::Curseforge => !self.curseforge.is_empty(),
+        }
+    }
 }
 
 /// Referência de um resultado numa fonte.
@@ -366,6 +392,8 @@ pub struct SourceQuery {
     pub environment: Option<EnvironmentFilter>,
     /// Sem os filtros de versão e loader.
     pub include_incompatible: bool,
+    /// Categoria escolhida, traduzida para esta busca (nenhuma: todas).
+    pub category: Option<CategoryFilter>,
     /// O que o pack aceita.
     pub target: PackTarget,
     /// A partir de qual item.
@@ -621,12 +649,40 @@ pub async fn search(
     request: &SearchRequest,
     cancel: &CancellationToken,
 ) -> Result<SearchPage> {
-    search_with_timeout(sources, target, installed, request, cancel, SOURCE_TIMEOUT).await
+    search_in_category(sources, target, installed, request, None, cancel).await
+}
+
+/// Como [`search`], restrita a uma categoria curada. As fontes sem par para a categoria nem são
+/// consultadas (nem avisadas): a categoria filtra só quem a tem.
+pub async fn search_in_category(
+    sources: &[ActiveSource],
+    target: &PackTarget,
+    installed: &InstalledKeys,
+    request: &SearchRequest,
+    category: Option<&CategoryFilter>,
+    cancel: &CancellationToken,
+) -> Result<SearchPage> {
+    search_with_timeout(
+        sources,
+        target,
+        installed,
+        request,
+        category,
+        cancel,
+        SOURCE_TIMEOUT,
+    )
+    .await
 }
 
 /// A consulta repassada a uma fonte.
-fn source_query(request: &SearchRequest, target: &PackTarget, offset: u32) -> SourceQuery {
+fn source_query(
+    request: &SearchRequest,
+    target: &PackTarget,
+    category: Option<&CategoryFilter>,
+    offset: u32,
+) -> SourceQuery {
     SourceQuery {
+        category: category.cloned(),
         query: request.query.trim().to_owned(),
         kind: request.kind,
         sort: request.sort,
@@ -721,6 +777,7 @@ pub(crate) async fn search_with_timeout(
     target: &PackTarget,
     installed: &InstalledKeys,
     request: &SearchRequest,
+    category: Option<&CategoryFilter>,
     cancel: &CancellationToken,
     timeout: Duration,
 ) -> Result<SearchPage> {
@@ -729,6 +786,13 @@ pub(crate) async fn search_with_timeout(
     let mut queried = Vec::new();
     let mut previous_offsets = Vec::new();
     for active in sources {
+        let id = match active {
+            ActiveSource::Off(source, _) => *source,
+            ActiveSource::Ready(source) => source.id(),
+        };
+        if category.is_some_and(|category| !category.applies_to(id)) {
+            continue;
+        }
         match active {
             ActiveSource::Off(source, reason) => {
                 if request.source.allows(*source) {
@@ -757,7 +821,7 @@ pub(crate) async fn search_with_timeout(
                 queried.push(id);
                 tasks.spawn(run_source(
                     Arc::clone(source),
-                    source_query(request, target, offset),
+                    source_query(request, target, category, offset),
                     cancel.clone(),
                     timeout,
                 ));
@@ -936,6 +1000,7 @@ mod tests {
             source: SourceFilter::All,
             environment: None,
             include_incompatible: false,
+            category: None,
             cursor,
         }
     }
@@ -963,6 +1028,7 @@ mod tests {
             &target(),
             &InstalledKeys::from(["curseforge:c-JEI".to_owned()]),
             request,
+            None,
             &CancellationToken::new(),
             Duration::from_millis(200),
         )

@@ -40,14 +40,18 @@ export const addKeys = {
     [...queryKeys.packArea(packId, 'inventory'), 'addPlan', choices] as const,
 };
 
-/** Busca combinada, 20 itens por página, seguindo o `next` de cada página. */
-export function useSearch(packId: PackId, filters: SearchFilters) {
+/**
+ * Busca combinada, 20 itens por página, seguindo o `next` de cada página. `enabled` falso
+ * enquanto o início da descoberta está à vista (campo vazio, sem filtros).
+ */
+export function useSearch(packId: PackId, filters: SearchFilters, enabled = true) {
   return useInfiniteQuery({
     queryKey: addKeys.search(packId, filters),
     queryFn: async ({ pageParam }): Promise<SearchPage> =>
       unwrap(await commands.searchProjects(packId, { ...filters, cursor: pageParam })),
     initialPageParam: null as SearchCursor | null,
     getNextPageParam: (last) => last.next,
+    enabled,
     staleTime: SEARCH_STALE_MS,
   });
 }

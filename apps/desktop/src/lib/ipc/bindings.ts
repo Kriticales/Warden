@@ -176,6 +176,21 @@ export const commands = {
 	addPlan: (packId: PackId, request: AddPlanRequest) => typedError<AddPlan, AppError>(__TAURI_INVOKE("add_plan", { packId, request })),
 	/**  Grava os itens confirmados (ou todos, ou nenhum) e avisa a interface. */
 	addApply: (packId: PackId, request: AddApplyRequest) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_apply", { packId, request })),
+	/**  O início da descoberta: "Populares para <loader> <versão>" e "Atualizados recentemente". */
+	discoverHome: (packId: PackId, kind: ProjectKind) => typedError<DiscoverHome, AppError>(__TAURI_INVOKE("discover_home", { packId, kind })),
+	/**  As categorias curadas do tipo de projeto. Sem a CurseForge ligada, só as que o Modrinth tem. */
+	discoverCategories: (kind: ProjectKind) => typedError<DiscoverCategory[], AppError>(__TAURI_INVOKE("discover_categories", { kind })),
+	/**  A galeria do projeto (miniaturas e imagens inteiras). */
+	projectGallery: (packId: PackId, source: SourceId, projectId: string) => typedError<GalleryItem[], AppError>(__TAURI_INVOKE("project_gallery", { packId, source, projectId })),
+	/**  As notas (changelog) de uma versão; pedidas só ao abrir a linha dela. */
+	versionNotes: (packId: PackId, source: SourceId, projectId: string, versionId: string) => typedError<{
+	/**  O texto (a interface higieniza como a descrição; ARCHITECTURE §18). */
+	body: string,
+	/**  Formato do texto. */
+	format: DescriptionFormat,
+} | null, AppError>(__TAURI_INVOKE("version_notes", { packId, source, projectId, versionId })),
+	/**  As dependências da versão, cada uma com "Já no pack" ou "Será adicionada". */
+	versionDependencies: (packId: PackId, source: SourceId, versionId: string) => typedError<VersionDependencies, AppError>(__TAURI_INVOKE("version_dependencies", { packId, source, versionId })),
 };
 
 /** Events */
@@ -476,6 +491,31 @@ export type CurseforgeErrorCode =
 /**  A CurseForge respondeu algo que o Warden não entende. */
 "INVALID_RESPONSE";
 
+/**  Uma dependência declarada pela versão. */
+export type DependencyInfo = {
+	/**  Obrigatória, opcional ou incompatível. */
+	kind: DependencyKind,
+	/**  Fonte do projeto da dependência. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  Nome (o ID, se a fonte não souber o projeto). */
+	title: string,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Já está no pack. */
+	inPack: boolean,
+};
+
+/**  Tipo de uma dependência declarada. */
+export type DependencyKind = 
+/**  Obrigatória. */
+"required" | 
+/**  Opcional. */
+"optional" | 
+/**  Incompatível. */
+"incompatible";
+
 /**  Um item que fica no pack mas depende de algum dos removidos. */
 export type Dependent = {
 	/**  Chave estável do item. */
@@ -525,6 +565,30 @@ export type DiagnosticsErrorCode =
 "SESSION_NOT_FOUND" | 
 /**  Uma regra extra de redação não é uma expressão regular válida. */
 "INVALID_REDACTION_RULE";
+
+/**  Uma categoria da lista de filtros. */
+export type DiscoverCategory = {
+	/**  Identificador estável (o que a busca recebe). */
+	id: string,
+	/**  Nome em português. */
+	name: string,
+	/**  As fontes que têm par para a categoria (a lista nunca é vazia). */
+	sources: SourceId[],
+};
+
+/**  O início da descoberta. */
+export type DiscoverHome = {
+	/**  Os mais baixados para o pack. */
+	popular: SearchResult[],
+	/**  Os atualizados há menos tempo para o pack. */
+	updated: SearchResult[],
+	/**  Nomes dos mais baixados que já estão no pack (ficam fora de `popular`). */
+	popularInPack: string[],
+	/**  As fontes consultadas. */
+	sources: SourceId[],
+	/**  Fontes que ficaram de fora, e por quê. */
+	warnings: SourceWarning[],
+};
 
 /**
  *  Códigos do domínio `discovery`. O código é contrato: renomear é mudança de contrato;
@@ -710,6 +774,23 @@ export type Freshness = {
 	 *  estava guardado, mesmo vencido. A interface mostra a data.
 	 */
 	offline: boolean,
+};
+
+/**  Uma imagem da galeria do projeto. */
+export type GalleryItem = {
+	/**
+	 *  Miniatura para a tira da galeria (o endereço do Modrinth direto; o da CurseForge pelo
+	 *  protocolo `warden-img://`, ARCHITECTURE §17.1).
+	 */
+	thumbUrl: string,
+	/**  A imagem inteira, mostrada grande sobre a página ao clicar na miniatura. */
+	url: string,
+	/**  Título, se o autor deu um. */
+	title: string | null,
+	/**  Descrição, se houver. */
+	description: string | null,
+	/**  A imagem de destaque do projeto. */
+	featured: boolean,
 };
 
 /**
@@ -1984,6 +2065,11 @@ export type SearchRequest = {
 	 *  itens sem versão para o pack aparecem marcados, sem caixa de seleção).
 	 */
 	includeIncompatible?: boolean,
+	/**
+	 *  Categoria curada escolhida na coluna de filtros (`id` do mapeamento da `warden-discovery`);
+	 *  nenhuma: todas. O app a resolve em [`CategoryFilter`] antes de buscar.
+	 */
+	category?: string | null,
 	/**  Página seguinte (`next` da anterior); nenhum: a primeira. */
 	cursor?: SearchCursor | null,
 };
@@ -2288,6 +2374,12 @@ export type VersionChannel =
 /**  Alpha. */
 "alpha";
 
+/**  As dependências de uma versão. */
+export type VersionDependencies = {
+	/**  Obrigatórias, depois opcionais, depois incompatíveis. */
+	items: DependencyInfo[],
+};
+
 /**  Versão instalada. */
 export type VersionInfo = {
 	/**  Número legível. */
@@ -2314,6 +2406,14 @@ export type VersionJavaRequirement =
 { kind: "major"; 
 /**  O major pedido. */
 major: number };
+
+/**  As notas de uma versão. */
+export type VersionNotes = {
+	/**  O texto (a interface higieniza como a descrição; ARCHITECTURE §18). */
+	body: string,
+	/**  Formato do texto. */
+	format: DescriptionFormat,
+};
 
 /**  Uma versão no seletor **Versão** da pré-visualização. */
 export type VersionOption = {

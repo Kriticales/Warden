@@ -17,7 +17,9 @@ import { makeInventory, SODIUM as SODIUM_ITEM } from '../pack-editor/editor.fixt
 import { editorBackend } from '../pack-editor/testing';
 import {
   APPLESKIN,
+  CATEGORIES,
   LITHIUM,
+  makeHome,
   makeNode,
   makePage,
   makePlan,
@@ -47,14 +49,23 @@ function setup(handlers: Record<string, Handler> = {}) {
       search_projects: () => makePage([SODIUM, MODMENU, APPLESKIN, IRIS, LITHIUM, OLD_MOD]),
       project_details: () => makePreview({ title: 'Mod Menu', projectId: 'mOgUt4GM' }),
       project_versions: () => makeVersions(),
+      discover_home: () => makeHome(),
+      discover_categories: () => CATEGORIES,
       ...handlers,
     },
   });
 }
 
-async function openAdd(url: string) {
+/** Abre a página; com `query`, digita no campo (sem texto o início da descoberta aparece). */
+async function openAdd(url: string, query?: string) {
   renderApp(`${url}/adicionar`);
-  return screen.findByRole('heading', { level: 1, name: 'Adicionar ao pack' }, { timeout: 10_000 });
+  const heading = await screen.findByRole(
+    'heading',
+    { level: 1, name: 'Adicionar ao pack' },
+    { timeout: 10_000 },
+  );
+  if (query) await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar' }), query);
+  return heading;
 }
 
 function results() {
@@ -85,7 +96,10 @@ describe('página Adicionar', () => {
         .getByRole('button', { name: 'Escolher arquivo do computador…' })
         .getAttribute('aria-disabled'),
     ).toBe('true');
-    await results();
+    // Campo vazio e sem filtros: o início da descoberta, não a busca.
+    expect(
+      await screen.findByRole('heading', { name: 'Populares para Minecraft 1.21.1 com Fabric' }),
+    ).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
@@ -112,6 +126,7 @@ describe('página Adicionar', () => {
       source: 'all',
       environment: null,
       includeIncompatible: false,
+      category: null,
       cursor: null,
     });
     // Sodium está no inventário; Lithium vem marcado pela busca.
@@ -150,7 +165,7 @@ describe('página Adicionar', () => {
       removed: [],
     };
     const { url, backend } = setup({ add_plan: () => plan, add_apply: () => added });
-    await openAdd(url);
+    await openAdd(url, 'mod');
     const list = await results();
     for (const name of ['Mod Menu', 'AppleSkin', 'Iris']) {
       await userEvent.click(within(list).getByRole('checkbox', { name: `Selecionar ${name}` }));
@@ -186,7 +201,7 @@ describe('página Adicionar', () => {
     const { url, backend } = setup({
       add_plan: () => makePlan({ nodes: [makeNode()] }),
     });
-    await openAdd(url);
+    await openAdd(url, 'mod');
     const list = await results();
     await userEvent.click(within(list).getByRole('button', { name: 'Mod Menu' }));
     const preview = await screen.findByRole('complementary', {
@@ -205,7 +220,7 @@ describe('página Adicionar', () => {
       warnings: [{ source: 'curseforge', reason: 'unavailable', detail: 'erro 500' }],
     });
     const { url, backend } = setup({ search_projects: () => page });
-    await openAdd(url);
+    await openAdd(url, 'mod');
     await results();
     expect(screen.getByText('Não foi possível buscar no CurseForge agora.')).toBeDefined();
     const before = backend.callsOf('search_projects').length;
@@ -225,7 +240,7 @@ describe('página Adicionar', () => {
           ),
         ),
     });
-    await openAdd(url);
+    await openAdd(url, 'mod');
     expect(
       await screen.findByText(
         'Não foi possível falar com o Modrinth agora. Confira a internet e tente de novo.',
@@ -238,8 +253,8 @@ describe('página Adicionar', () => {
 
   it('nada encontrado: oferece mostrar também os sem versão compatível', async () => {
     const { url, backend } = setup({ search_projects: () => makePage([]) });
-    await openAdd(url);
-    expect(await screen.findByText('Nada encontrado')).toBeDefined();
+    await openAdd(url, 'xyz');
+    expect(await screen.findByText('Nada encontrado para “xyz”')).toBeDefined();
     await userEvent.click(
       screen.getByRole('button', { name: 'Mostrar também os sem versão compatível' }),
     );
