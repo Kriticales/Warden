@@ -68,6 +68,7 @@ export interface SectionPage {
 /** Registro acréscimo-apenas: uma linha por seção com página. */
 export const sectionPages: readonly SectionPage[] = [
   { section: 'mods', to: '/packs/$packId/mods', useCount: useModsCount },
+  { section: 'configs', to: '/packs/$packId/configs' },
   { section: 'exportar', to: '/packs/$packId/exportar' },
 ];
 

@@ -101,13 +101,7 @@ export function filterFiles(files: readonly ConfigFile[], query: string): Config
 
 /** Linguagem do realce de sintaxe. */
 export type EditorLanguage =
-  | 'toml'
-  | 'json'
-  | 'yaml'
-  | 'properties'
-  | 'javascript'
-  | 'typescript'
-  | 'plain';
+  'toml' | 'json' | 'yaml' | 'properties' | 'javascript' | 'typescript' | 'plain';
 
 /** A linguagem pelo nome do arquivo (SPEC T12: TOML, JSON, JSON5, YAML, `.properties`, `.cfg`, JS). */
 export function languageOf(path: string): EditorLanguage {
@@ -153,7 +147,10 @@ export function formatKey(
       return 'javascript';
     case 'plain':
       return 'texto';
-    default:
+    case 'toml':
+    case 'json':
+    case 'yaml':
+    case 'properties':
       return language;
   }
 }

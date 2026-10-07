@@ -85,10 +85,10 @@ describe('pack aberto (T05)', () => {
     ]);
     const mods = within(sectionMenu()).getByRole('link', { name: /Mods/ });
     expect(mods.getAttribute('aria-current')).toBe('page');
-    // Mods tem o contador de itens; as seções ainda sem página aparecem indisponíveis (Exportar
-    // já tem página, E-01).
+    // Mods tem o contador de itens; as seções ainda sem página aparecem indisponíveis (Configs e Exportar
+    // já têm página, C-02 e E-01).
     expect(within(mods).getByLabelText('4 itens')).toBeDefined();
-    expect(sectionMenu().querySelectorAll('[aria-disabled="true"]')).toHaveLength(4);
+    expect(sectionMenu().querySelectorAll('[aria-disabled="true"]')).toHaveLength(3);
 
     const { container } = { container: document.body };
     expect(await axePage(container)).toHaveNoViolations();
