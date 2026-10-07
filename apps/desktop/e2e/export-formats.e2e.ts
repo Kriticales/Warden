@@ -141,8 +141,19 @@ async function seriousViolations(): Promise<string[]> {
     .map((v) => `${v.id}: ${v.help}`);
 }
 
+/** Fecha os avisos que cobrem o canto da tela e atrapalham o clique. */
+async function closeToasts(): Promise<void> {
+  await browser.execute(() => {
+    for (const close of document.querySelectorAll<HTMLButtonElement>('.toast button:last-child')) {
+      close.click();
+    }
+  });
+  await browser.pause(400);
+}
+
 /** Clica em Exportar… e espera o diálogo do resultado. */
 async function exportAndWait(): Promise<void> {
+  await closeToasts();
   await $('button=Exportar…').click();
   const dialog = $('[role="dialog"]*=Arquivo exportado');
   let error = '';
@@ -296,6 +307,7 @@ describe('Exportar para outros launchers (E-02; T19)', () => {
     const file = join(OUT, 'pack-curseforge.zip');
     const before = readFileSync(file);
     pickNext(file);
+    await closeToasts();
     await $('button=Exportar…').click();
     const panel = $('main .alert--danger');
     await panel.waitForDisplayed({ timeout: 30_000 });
