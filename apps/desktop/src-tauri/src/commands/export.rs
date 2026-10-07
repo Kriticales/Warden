@@ -138,7 +138,9 @@ pub(crate) fn export_reveal(app: AppHandle, path: PathBuf) -> Result<(), AppErro
         .unwrap_or_else(std::sync::PoisonError::into_inner)
         .contains(&path);
     if !known {
-        return Err(AppError::internal("caminho que não é uma exportação desta sessão"));
+        return Err(AppError::internal(
+            "caminho que não é uma exportação desta sessão",
+        ));
     }
     app.opener()
         .reveal_item_in_dir(&path)
