@@ -217,7 +217,7 @@ describe('pré-visualização', () => {
       versionId: 'BETA0001',
     });
     await userEvent.click(within(beta).getByRole('button', { name: 'Usar esta versão' }));
-    expect((screen.getByRole('combobox', { name: 'Versão' }) as HTMLSelectElement).value).toBe(
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Versão' }).value).toBe(
       'BETA0001',
     );
     await userEvent.click(screen.getByRole('button', { name: 'Adicionar ao pack' }));

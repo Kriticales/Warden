@@ -156,7 +156,7 @@ describe('início da descoberta', () => {
   });
 
   it('trocar o tipo volta os filtros (as categorias são de cada tipo)', async () => {
-    const { url, backend } = setup({
+    const { url } = setup({
       discover_categories: (args) =>
         args.kind === 'shader'
           ? [{ id: 'sh-realista', name: 'Realista', sources: ['modrinth'] }]
