@@ -16,6 +16,7 @@ use crate::locks::PackLocks;
 use crate::logging::Logging;
 use crate::operations::{Notifier, OperationRegistry};
 use crate::settings::{LoadOutcome, SettingsStore};
+use crate::watcher::PackWatchers;
 
 /// Estado do app.
 #[derive(Debug)]
@@ -50,6 +51,8 @@ pub struct AppState {
     pub update_reports: crate::commands::updates::UpdateReports,
     /// Downloads manuais da CurseForge em espera, por pack (L-06; só memória).
     pub(crate) manual_downloads: Arc<crate::commands::cf_blocked::ManualDownloadsHub>,
+    /// Vigias de mudanças externas dos packs abertos (A-05).
+    pub watchers: PackWatchers,
 }
 
 impl AppState {
@@ -108,6 +111,7 @@ impl AppState {
                 tests,
                 update_reports: crate::commands::updates::UpdateReports::default(),
                 manual_downloads: Arc::default(),
+                watchers: PackWatchers::new(),
             },
             outcome,
         ))

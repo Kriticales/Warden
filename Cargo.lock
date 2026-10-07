@@ -6796,6 +6796,7 @@ dependencies = [
  "async-trait",
  "git2",
  "hex",
+ "notify",
  "secrecy",
  "serde",
  "serde_json",

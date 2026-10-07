@@ -29,5 +29,6 @@ pub mod side;
 pub mod transaction;
 pub mod trash;
 pub mod updates;
+pub mod watch;
 
 pub use error::{Error, ProjectErrorCode, Result};

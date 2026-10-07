@@ -10,19 +10,26 @@ use std::sync::{Arc, Mutex, PoisonError};
 
 use tokio::sync::{OwnedRwLockReadGuard, OwnedRwLockWriteGuard, RwLock};
 use warden_core::PackId;
+use warden_project::watch::{WriteLedger, WriteScope};
 
 use crate::operations::OperationHandle;
 
 /// Trava de leitura de um pack (solta ao sair de escopo).
 pub type PackReadGuard = OwnedRwLockReadGuard<()>;
 
-/// Trava de escrita de um pack (solta ao sair de escopo).
-pub type PackWriteGuard = OwnedRwLockWriteGuard<()>;
+/// Trava de escrita de um pack (solta ao sair de escopo). Enquanto existe, o vigia de mudanças
+/// externas (A-05) trata os eventos do pack como escritas do próprio Warden.
+#[derive(Debug)]
+pub struct PackWriteGuard {
+    _lock: OwnedRwLockWriteGuard<()>,
+    _scope: WriteScope,
+}
 
 /// As travas de todos os packs.
 #[derive(Debug, Default)]
 pub struct PackLocks {
     locks: Mutex<HashMap<PackId, Arc<RwLock<()>>>>,
+    ledger: WriteLedger,
 }
 
 impl PackLocks {
@@ -30,6 +37,19 @@ impl PackLocks {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Registro das escritas do Warden, lido pelo vigia de mudanças externas.
+    #[must_use]
+    pub fn ledger(&self) -> &WriteLedger {
+        &self.ledger
+    }
+
+    fn write_guard(&self, pack: PackId, lock: OwnedRwLockWriteGuard<()>) -> PackWriteGuard {
+        PackWriteGuard {
+            _lock: lock,
+            _scope: self.ledger.begin(pack),
+        }
     }
 
     fn lock_for(&self, pack: PackId) -> Arc<RwLock<()>> {
@@ -47,7 +67,8 @@ impl PackLocks {
 
     /// Trava de escrita.
     pub async fn write(&self, pack: PackId) -> PackWriteGuard {
-        self.lock_for(pack).write_owned().await
+        let lock = self.lock_for(pack).write_owned().await;
+        self.write_guard(pack, lock)
     }
 
     /// Trava de leitura para uma operação: se precisar esperar, a operação aparece como
@@ -68,12 +89,12 @@ impl PackLocks {
     pub async fn write_for(&self, pack: PackId, operation: &OperationHandle) -> PackWriteGuard {
         let lock = self.lock_for(pack);
         if let Ok(guard) = Arc::clone(&lock).try_write_owned() {
-            return guard;
+            return self.write_guard(pack, guard);
         }
         operation.set_waiting_for_lock(true);
         let guard = lock.write_owned().await;
         operation.set_waiting_for_lock(false);
-        guard
+        self.write_guard(pack, guard)
     }
 
     /// Quantos packs têm trava em uso (testes).
@@ -266,5 +287,23 @@ mod tests {
         let held = locks.read(PackId::new()).await;
         assert!(locks.tracked() <= 2, "{} travas guardadas", locks.tracked());
         drop(held);
+    }
+
+    /// A-05: enquanto a trava de escrita existe, o vigia trata o pack como em escrita do
+    /// Warden; leituras e outros packs não.
+    #[tokio::test]
+    async fn a05_trava_de_escrita_marca_o_pack_no_registro_de_escritas() {
+        let locks = PackLocks::new();
+        let pack = PackId::new();
+        let now = std::time::Instant::now;
+        assert!(!locks.ledger().covers(pack, now()));
+        drop(locks.read(pack).await);
+        assert!(!locks.ledger().covers(pack, now()));
+        let guard = locks.write(pack).await;
+        assert!(locks.ledger().covers(pack, now()));
+        assert!(!locks.ledger().covers(PackId::new(), now()));
+        drop(guard);
+        // Logo depois ainda vale (folga para os eventos atrasados do sistema).
+        assert!(locks.ledger().covers(pack, now()));
     }
 }
