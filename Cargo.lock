@@ -6446,18 +6446,26 @@ name = "warden-export"
 version = "0.1.0"
 dependencies = [
  "git2",
+ "secrecy",
  "serde",
  "serde_json",
+ "sha1",
+ "sha2 0.10.9",
  "specta",
  "specta-typescript",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
+ "url",
  "warden-core",
+ "warden-curseforge",
+ "warden-http",
+ "warden-modrinth",
  "warden-packwiz",
  "warden-packwiz-cli",
  "warden-project",
  "warden-versioning",
+ "wiremock",
  "zip 8.6.0",
 ]
 

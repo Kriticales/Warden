@@ -132,13 +132,13 @@ pub struct ExportResult {
     pub bytes: u64,
 }
 
-enum SourceReader {
+pub(crate) enum SourceReader {
     Current(PathBuf),
     Saved { repo: PackRepo, snapshot: Snapshot },
 }
 
 impl SourceReader {
-    fn open(root: &Path, source: &ExportSource) -> Result<Self> {
+    pub(crate) fn open(root: &Path, source: &ExportSource) -> Result<Self> {
         match source {
             ExportSource::Current => Ok(Self::Current(root.to_path_buf())),
             ExportSource::Saved { version } => {
@@ -150,7 +150,7 @@ impl SourceReader {
         }
     }
 
-    fn read(&self, relative: &str) -> Result<Vec<u8>> {
+    pub(crate) fn read(&self, relative: &str) -> Result<Vec<u8>> {
         check_relative_path(relative).map_err(err)?;
         match self {
             Self::Current(root) => {
@@ -184,11 +184,11 @@ impl SourceReader {
     }
 }
 
-fn err(error: impl std::fmt::Display) -> Error {
+pub(crate) fn err(error: impl std::fmt::Display) -> Error {
     Error::internal(error.to_string())
 }
 
-fn indexed_files(reader: &SourceReader) -> Result<BTreeMap<String, Vec<u8>>> {
+pub(crate) fn indexed_files(reader: &SourceReader) -> Result<BTreeMap<String, Vec<u8>>> {
     let manifest_bytes = reader.read(PACK_FILE)?;
     let manifest = PackManifest::parse(std::str::from_utf8(&manifest_bytes).map_err(err)?)
         .map_err(err)?
@@ -383,49 +383,24 @@ pub async fn exclude_from_pack(
     Ok(())
 }
 
-/// Gera pasta ou zip determinístico. `destination` deve estar vazio/inexistente.
-pub async fn export(
+/// Cópia limpa do pack (só `pack.toml`, `index.toml` e os arquivos do índice) já conferida
+/// com o `packwiz refresh`: a base da exportação nativa e dos formatos de outros launchers.
+pub(crate) struct Staged {
+    /// Pasta temporária da cópia; apagada ao sair de escopo.
+    pub(crate) dir: tempfile::TempDir,
+    /// Os arquivos da cópia depois do refresh, por caminho relativo.
+    pub(crate) files: BTreeMap<String, Vec<u8>>,
+}
+
+/// Monta a cópia de staging, roda `refresh --build` nela e confere que o pack já estava em dia
+/// (ARCHITECTURE §12, passos 2 e 3).
+pub(crate) async fn prepare_stage(
     root: &Path,
     source: &ExportSource,
-    format: ExportFormat,
-    destination: &Path,
     staging_parent: &Path,
     packwiz: &Packwiz,
     cancel: &CancellationToken,
-) -> Result<ExportResult> {
-    if destination.exists()
-        && fs::symlink_metadata(destination)
-            .map_err(err)?
-            .file_type()
-            .is_symlink()
-    {
-        return Err(Error::new(
-            ExportErrorCode::DestinationNotEmpty,
-            "o destino não pode ser um link simbólico",
-        ));
-    }
-    if destination.exists()
-        && (format != ExportFormat::Folder
-            || !destination.is_dir()
-            || fs::read_dir(destination).map_err(err)?.next().is_some())
-    {
-        return Err(Error::new(
-            ExportErrorCode::DestinationNotEmpty,
-            format!("o destino já existe: {}", destination.display()),
-        ));
-    }
-    let root_real = root.canonicalize().map_err(err)?;
-    let parent_real = destination
-        .parent()
-        .ok_or_else(|| Error::internal("destino sem pasta pai"))?
-        .canonicalize()
-        .map_err(err)?;
-    if parent_real.starts_with(root_real) {
-        return Err(Error::new(
-            ExportErrorCode::DestinationInsidePack,
-            "o destino precisa ficar fora da pasta do pack",
-        ));
-    }
+) -> Result<Staged> {
     fs::create_dir_all(staging_parent).map_err(err)?;
     let stage = tempfile::Builder::new()
         .prefix("export-")
@@ -463,6 +438,68 @@ pub async fn export(
     if cancel.is_cancelled() {
         return Err(Error::internal("exportação cancelada"));
     }
+    Ok(Staged {
+        dir: stage,
+        files: refreshed,
+    })
+}
+
+/// O destino precisa ser novo (ou, para pasta, uma pasta vazia), não ser link simbólico e ficar
+/// fora da pasta do pack.
+pub(crate) fn check_destination(
+    root: &Path,
+    destination: &Path,
+    folder_allowed: bool,
+) -> Result<()> {
+    if destination.exists()
+        && fs::symlink_metadata(destination)
+            .map_err(err)?
+            .file_type()
+            .is_symlink()
+    {
+        return Err(Error::new(
+            ExportErrorCode::DestinationNotEmpty,
+            "o destino não pode ser um link simbólico",
+        ));
+    }
+    if destination.exists()
+        && (!folder_allowed
+            || !destination.is_dir()
+            || fs::read_dir(destination).map_err(err)?.next().is_some())
+    {
+        return Err(Error::new(
+            ExportErrorCode::DestinationNotEmpty,
+            format!("o destino já existe: {}", destination.display()),
+        ));
+    }
+    let root_real = root.canonicalize().map_err(err)?;
+    let parent_real = destination
+        .parent()
+        .ok_or_else(|| Error::internal("destino sem pasta pai"))?
+        .canonicalize()
+        .map_err(err)?;
+    if parent_real.starts_with(root_real) {
+        return Err(Error::new(
+            ExportErrorCode::DestinationInsidePack,
+            "o destino precisa ficar fora da pasta do pack",
+        ));
+    }
+    Ok(())
+}
+
+/// Gera pasta ou zip determinístico. `destination` deve estar vazio/inexistente.
+pub async fn export(
+    root: &Path,
+    source: &ExportSource,
+    format: ExportFormat,
+    destination: &Path,
+    staging_parent: &Path,
+    packwiz: &Packwiz,
+    cancel: &CancellationToken,
+) -> Result<ExportResult> {
+    check_destination(root, destination, format == ExportFormat::Folder)?;
+    let staged = prepare_stage(root, source, staging_parent, packwiz, cancel).await?;
+    let refreshed = staged.files;
     let files = refreshed.keys().cloned().collect::<Vec<_>>();
     let bytes = match format {
         ExportFormat::Folder => write_folder(destination, &refreshed, cancel)?,
