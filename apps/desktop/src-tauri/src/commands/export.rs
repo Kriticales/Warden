@@ -22,13 +22,21 @@ const EXPORT_RUN: OperationKind = OperationKind::new("export.run");
 /// escrito no arquivo apontado por esta variável, como em `pack_choose_folder` (arquivo vazio =
 /// o usuário desistiu).
 #[cfg(debug_assertions)]
-const E2E_PICK_FOLDER_ENV: &str = "WARDEN_E2E_PICK_FOLDER";
+pub(super) const E2E_PICK_FOLDER_ENV: &str = "WARDEN_E2E_PICK_FOLDER";
 
 /// Saídas geradas nesta sessão: "Abrir pasta" só mostra um destes caminhos, nunca um caminho
 /// qualquer vindo da interface (ARCHITECTURE §20).
 static EXPORTED: LazyLock<Mutex<HashSet<PathBuf>>> = LazyLock::new(Mutex::default);
 
-fn pack_path(state: &AppState, id: PackId) -> Result<PathBuf, AppError> {
+/// Registra uma saída gerada nesta sessão, para o "Abrir pasta" do resultado.
+pub(super) fn remember_export(path: &Path) {
+    EXPORTED
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .insert(path.to_path_buf());
+}
+
+pub(super) fn pack_path(state: &AppState, id: PackId) -> Result<PathBuf, AppError> {
     state
         .packs
         .get(id)
@@ -36,7 +44,7 @@ fn pack_path(state: &AppState, id: PackId) -> Result<PathBuf, AppError> {
         .map_err(|error| AppError::from_domain(&error))
 }
 
-fn packwiz(state: &AppState) -> Result<Packwiz, AppError> {
+pub(super) fn packwiz(state: &AppState) -> Result<Packwiz, AppError> {
     let binary = Packwiz::locate_binary().map_err(|error| AppError::from_domain(&error))?;
     Ok(Packwiz::new(
         binary,
@@ -112,10 +120,7 @@ pub(crate) async fn export_run(
     )
     .await
     .map(|result| {
-        EXPORTED
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .insert(result.path.clone());
+        remember_export(&result.path);
         Some(result)
     })
     .map_err(|error| {

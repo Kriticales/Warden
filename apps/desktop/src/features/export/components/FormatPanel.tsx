@@ -1,46 +1,53 @@
 /**
- * "2. Formato" (SPEC T19): pasta packwiz ou arquivo .zip do pack packwiz. Os formatos de
- * outros launchers (P1) chegam com a E-02 em `features/export/formats/`.
+ * "2. Formato" (SPEC T19): pasta packwiz, arquivo .zip do pack packwiz e, na v1 (P1), os
+ * formatos de outros launchers (.mrpack e zip da CurseForge; E-02, `features/export/formats/`).
  */
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { ExportFormat } from '../../../lib/ipc/bindings';
 import { Choice } from '../../settings/components/fields';
-
-const FORMATS: readonly { value: ExportFormat; key: 'pasta' | 'zip' }[] = [
-  { value: 'folder', key: 'pasta' },
-  { value: 'zip', key: 'zip' },
-];
+import type { UiFormat } from '../model';
 
 export function FormatPanel({
   value,
   onChange,
 }: {
-  value: ExportFormat;
-  onChange: (format: ExportFormat) => void;
+  value: UiFormat;
+  onChange: (format: UiFormat) => void;
 }) {
-  const { t } = useTranslation('exportar');
+  const { t } = useTranslation(['exportar', 'exportarFormatos']);
   const name = useId();
+  const choice = (format: UiFormat, title: string, desc: string) => (
+    <Choice
+      key={format}
+      name={name}
+      title={title}
+      desc={desc}
+      checked={value === format}
+      onSelect={() => {
+        onChange(format);
+      }}
+    />
+  );
   return (
     <section className="panel" aria-labelledby="ex-formato">
       <h2 className="panel__title panel__title--sans" id="ex-formato">
-        {t('formato.titulo')}
+        {t('exportar:formato.titulo')}
       </h2>
       <fieldset className="m-0 mt-3 border-0 p-0" aria-labelledby="ex-formato">
         <div className="choice-list choice-list--2">
-          {FORMATS.map((format) => (
-            <Choice
-              key={format.value}
-              name={name}
-              title={t(`formato.${format.key}.titulo`)}
-              desc={t(`formato.${format.key}.desc`)}
-              checked={value === format.value}
-              onSelect={() => {
-                onChange(format.value);
-              }}
-            />
-          ))}
+          {choice('folder', t('exportar:formato.pasta.titulo'), t('exportar:formato.pasta.desc'))}
+          {choice('zip', t('exportar:formato.zip.titulo'), t('exportar:formato.zip.desc'))}
+          {choice(
+            'mrpack',
+            t('exportarFormatos:formato.mrpack.titulo'),
+            t('exportarFormatos:formato.mrpack.desc'),
+          )}
+          {choice(
+            'curseforge',
+            t('exportarFormatos:formato.curseforge.titulo'),
+            t('exportarFormatos:formato.curseforge.desc'),
+          )}
         </div>
       </fieldset>
     </section>

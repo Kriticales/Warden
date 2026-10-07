@@ -129,8 +129,7 @@ pub(crate) fn read_contents(files: &BTreeMap<String, Vec<u8>>) -> Result<Content
 fn mrpack_direct(m: &PackMod) -> bool {
     let mode = m.meta.download.mode.as_str();
     (mode.is_empty() || mode == "url")
-        && m
-            .host
+        && m.host
             .as_deref()
             .is_some_and(|host| MRPACK_HOSTS.contains(&host))
 }
@@ -208,9 +207,9 @@ async fn resolve_curseforge(
         return Ok(Vec::new());
     }
     let ids = |m: &PackMod| -> Result<(u32, u32)> {
-        m.meta.curseforge_ids().ok_or_else(|| {
-            Error::internal(format!("{} não tem [update.curseforge]", m.path))
-        })
+        m.meta
+            .curseforge_ids()
+            .ok_or_else(|| Error::internal(format!("{} não tem [update.curseforge]", m.path)))
     };
     let mut hashes: Vec<Option<String>> = candidates.iter().map(|m| sha1_of(m)).collect();
     // O hash do metafile pode não ser sha1 (md5, murmur2): a CurseForge devolve o sha1.
@@ -258,7 +257,10 @@ async fn resolve_curseforge(
             .distribution(&refs, Some(cancel))
             .await
             .map_err(|error| lookup_failed("a CurseForge", &error))?;
-        found.into_iter().map(|item| Some(item.distribution)).collect()
+        found
+            .into_iter()
+            .map(|item| Some(item.distribution))
+            .collect()
     } else {
         vec![None; candidates.len()]
     };
@@ -299,7 +301,9 @@ fn losses(format: LauncherFormat, contents: &Contents) -> Vec<FormatLoss> {
             list.push(item(kind, count));
         }
     };
-    let optional = count(contents, |m| m.meta.option.as_ref().is_some_and(|o| o.optional));
+    let optional = count(contents, |m| {
+        m.meta.option.as_ref().is_some_and(|o| o.optional)
+    });
     match format {
         LauncherFormat::Mrpack => {
             counted(LossKind::OptionalTexts, optional);
@@ -366,10 +370,11 @@ pub(crate) async fn plan(
         match format {
             LauncherFormat::Mrpack if mrpack_direct(m) => references += 1,
             LauncherFormat::Mrpack if m.meta.curseforge_ids().is_some() => candidates.push(m),
-            LauncherFormat::Mrpack => push_embed(m, &mut embeds, &mut items),
             LauncherFormat::Curseforge if !m.meta.side.on_client() => {}
             LauncherFormat::Curseforge if m.meta.curseforge_ids().is_some() => references += 1,
-            LauncherFormat::Curseforge => push_embed(m, &mut embeds, &mut items),
+            LauncherFormat::Mrpack | LauncherFormat::Curseforge => {
+                push_embed(m, &mut embeds, &mut items);
+            }
         }
     }
     let verdicts = resolve_curseforge(&candidates, lookups, cancel).await?;
