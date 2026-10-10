@@ -8,20 +8,8 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { ChangeSet, ItemChange } from '../../../lib/ipc/bindings';
+import { loaderName } from '../../packs/lib/pack-list';
 import { groupChanges, hasOnlyControlFiles } from '../model';
-
-const LOADER_NAMES: Record<string, string> = {
-  forge: 'Forge',
-  neoforge: 'NeoForge',
-  fabric: 'Fabric',
-  quilt: 'Quilt',
-  'legacy-fabric': 'Legacy Fabric',
-  liteloader: 'LiteLoader',
-};
-
-function loaderLabel(key: string): string {
-  return LOADER_NAMES[key] ?? key;
-}
 
 export interface ChangeListProps {
   changes: ChangeSet;
@@ -60,7 +48,7 @@ export function ChangeList({ changes, renderConfigAction }: ChangeListProps) {
   }
   for (const loader of changes.loaders) {
     const { old: from, new: to } = loader.change;
-    const name = loaderLabel(loader.loader);
+    const name = loaderName(loader.loader);
     if (from !== null && to !== null) {
       platform.push(t('mudancas.loaderTroca', { loader: name, de: from, para: to }));
     } else if (to !== null) {

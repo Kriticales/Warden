@@ -310,7 +310,7 @@ describe('Histórico (T17)', () => {
     expect(await screen.findByText('Ainda não há pontos de segurança neste pack.')).toBeDefined();
   });
 
-  it('descartar a alteração de uma config pede confirmação e chama unsaved_discard', async () => {
+  it('descartar uma config que existia na última versão diz que ela volta a ser como era', async () => {
     const user = userEvent.setup();
     const unsaved = makeChangeSet({ configs: ['config/create-common.toml'] });
     const { backend } = await openHistory(threeVersions({ unsaved }), {
@@ -322,7 +322,10 @@ describe('Histórico (T17)', () => {
     const dialog = await screen.findByRole('alertdialog', {
       name: 'Descartar a alteração de config/create-common.toml?',
     });
-    expect(dialog.textContent).toContain('O que você mudou nele desde então se perde.');
+    expect(dialog.textContent).toContain(
+      'O arquivo volta a ser como era na última versão salva. O que você mudou nele desde então se perde.',
+    );
+    expect(dialog.textContent).not.toContain('será apagado');
     await user.click(within(dialog).getByRole('button', { name: 'Descartar alteração' }));
     await waitFor(() => {
       expect(backend.callsOf('unsaved_discard')[0]?.args).toMatchObject({
@@ -330,6 +333,52 @@ describe('Histórico (T17)', () => {
       });
     });
     expect(await screen.findByText('Alteração descartada')).toBeDefined();
+  });
+
+  it('descartar uma config que não existia na última versão avisa que o arquivo será apagado', async () => {
+    const user = userEvent.setup();
+    const unsaved = makeChangeSet({
+      configs: ['config/depois.toml', 'config/create-common.toml'],
+      files: [
+        { path: 'config/depois.toml', kind: 'added' },
+        { path: 'config/create-common.toml', kind: 'modified' },
+      ],
+    });
+    const { backend } = await openHistory(threeVersions({ unsaved }), {
+      unsaved_discard: () => null,
+    });
+    await user.click(
+      screen.getByRole('button', { name: 'Descartar a alteração de config/depois.toml' }),
+    );
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Descartar a alteração de config/depois.toml?',
+    });
+    expect(dialog.textContent).toContain(
+      'Este arquivo não existia na última versão salva, então ele será apagado.',
+    );
+    expect(dialog.textContent).not.toContain('volta a ser como era');
+    await user.click(within(dialog).getByRole('button', { name: 'Descartar alteração' }));
+    await waitFor(() => {
+      expect(backend.callsOf('unsaved_discard')[0]?.args).toMatchObject({
+        path: 'config/depois.toml',
+      });
+    });
+  });
+
+  it('descartar uma config apagada desde a última versão diz que ela volta a ser como era', async () => {
+    const user = userEvent.setup();
+    const unsaved = makeChangeSet({
+      configs: ['config/antiga.toml'],
+      files: [{ path: 'config/antiga.toml', kind: 'deleted' }],
+    });
+    await openHistory(threeVersions({ unsaved }));
+    await user.click(
+      screen.getByRole('button', { name: 'Descartar a alteração de config/antiga.toml' }),
+    );
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Descartar a alteração de config/antiga.toml?',
+    });
+    expect(dialog.textContent).toContain('O arquivo volta a ser como era na última versão salva.');
   });
 
   it('antes da primeira versão não há para onde descartar', async () => {
