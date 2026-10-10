@@ -32,8 +32,7 @@ fn generate_registry() -> Result<(), String> {
     println!("cargo:rerun-if-changed=src/commands");
     println!("cargo:rerun-if-changed=src/events.rs");
     let manifest = absolute("");
-    let modules = registry::discover(&manifest.join("src").join("commands"))
-        .map_err(|error| format!("falha ao ler src/commands: {error}"))?;
+    let modules = registry::discover(&manifest.join("src").join("commands"))?;
     for module in &modules {
         println!("cargo:rerun-if-changed={}", module.file.display());
     }
@@ -41,7 +40,7 @@ fn generate_registry() -> Result<(), String> {
         .map_err(|error| format!("falha ao ler src/events.rs: {error}"))?;
     let out_dir = std::env::var_os("OUT_DIR").ok_or("OUT_DIR ausente")?;
     let out = PathBuf::from(out_dir).join("commands_registry.rs");
-    std::fs::write(out, registry::render(&modules, &events))
+    std::fs::write(out, registry::render(&modules, &events)?)
         .map_err(|error| format!("falha ao gravar commands_registry.rs: {error}"))
 }
 
