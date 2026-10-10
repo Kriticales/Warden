@@ -32,6 +32,8 @@ import { join, relative } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
+import { dismissToasts } from './toasts';
+
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -64,12 +66,7 @@ async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
   mkdirSync(SCREENSHOTS, { recursive: true });
   // Os avisos (toasts) das etapas anteriores cobririam a tela: saem antes da captura.
-  await browser.execute(() => {
-    for (const close of document.querySelectorAll<HTMLButtonElement>('.toast button:last-child')) {
-      close.click();
-    }
-  });
-  await browser.pause(400);
+  await dismissToasts();
   await browser.saveScreenshot(join(SCREENSHOTS, `${name}.png`));
 }
 
