@@ -81,6 +81,8 @@ windows = { workspace = true, features = [
 tempfile.workspace = true
 warden-core = { workspace = true, features = ["fault-injection"] }
 warden-secrets = { workspace = true, features = ["fault-injection"] }
+# Servidor HTTP mínimo dos testes do Testar (sem internet de verdade: a porta fecha).
+tokio = { workspace = true, features = ["io-util", "net"] }
 wiremock.workspace = true
 
 [lints]
