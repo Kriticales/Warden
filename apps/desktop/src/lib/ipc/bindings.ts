@@ -5,6 +5,19 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 
 /** Commands */
 export const commands = {
+	/**  Uma página da busca combinada, filtrada pelo pack (versão do Minecraft, loader e tipo). */
+	searchProjects: (packId: PackId, request: SearchRequest) => typedError<SearchPage, AppError>(__TAURI_INVOKE("search_projects", { packId, request })),
+	/**  A pré-visualização de um projeto (cabeçalho, descrição e links). */
+	projectDetails: (packId: PackId, source: SourceId, projectId: string) => typedError<ProjectPreview, AppError>(__TAURI_INVOKE("project_details", { packId, source, projectId })),
+	/**  As versões de um projeto que servem para o pack, com a padrão do canal configurado. */
+	projectVersions: (packId: PackId, source: SourceId, projectId: string) => typedError<ProjectVersions, AppError>(__TAURI_INVOKE("project_versions", { packId, source, projectId })),
+	/**
+	 *  O plano de "Adicionar" para um ou vários itens: o que vai entrar, as dependências, o que já
+	 *  está no pack, conflitos e duplicados entre fontes. Nada é gravado.
+	 */
+	addPlan: (packId: PackId, request: AddPlanRequest) => typedError<AddPlan, AppError>(__TAURI_INVOKE("add_plan", { packId, request })),
+	/**  Grava os itens confirmados (ou todos, ou nenhum) e avisa a interface. */
+	addApply: (packId: PackId, request: AddApplyRequest) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_apply", { packId, request })),
 	/**  Informa a versão, o commit e a plataforma do app. */
 	appInfo: () => typedError<AppInfo, AppError>(__TAURI_INVOKE("app_info")),
 	/**  Configurações atuais. */
