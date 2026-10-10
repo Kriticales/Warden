@@ -1,15 +1,18 @@
 //! Simula a integração de duas branches independentes (comando, i18n, xtask e bindings) e falha se o merge conflitar.
 //!
-//! Cria um worktree descartável a partir do `HEAD`, abre duas branches que acrescentam, cada
-//! uma, um comando do IPC, um namespace de i18n e um subcomando do xtask, mais uma mexida no
-//! mesmo trecho do `bindings.ts`, e faz `git merge`. Passa só se o merge terminar sem
-//! conflito. Com `--compile`, também compila o resultado: regenera o bindings (precisa conter
-//! os dois comandos) e confere que o xtask lista os dois subcomandos.
+//! Cria um worktree descartável (`HEAD` destacado) a partir do `HEAD`, faz dois commits irmãos
+//! que acrescentam, cada um, um comando do IPC, um namespace de i18n e um subcomando do xtask,
+//! mais uma mexida no mesmo trecho do `bindings.ts`, e faz `git merge` de um no outro. Passa
+//! só se o merge terminar sem conflito. Com `--compile`, também compila o resultado: regenera o
+//! bindings (precisa conter os dois comandos) e confere que o xtask lista os dois subcomandos.
 //!
-//! Só olha o que está **commitado** no `HEAD`.
+//! Só olha o que está **commitado** no `HEAD`. Não cria branch nem outra ref compartilhada:
+//! os commits da simulação ficam só no `HEAD` do worktree temporário, que tem pasta e nome
+//! únicos. Assim várias execuções (de worktrees diferentes) podem rodar ao mesmo tempo, e a
+//! limpeza remove só o worktree da própria execução.
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result, bail, ensure};
 
@@ -96,16 +99,16 @@ fn add_feature(root: &Path, tag: &str) -> Result<()> {
 }
 
 fn simulate(work: &Path, compile: bool) -> Result<()> {
-    git(work, &["switch", "-q", "-c", "xtask-sim-a"])?;
+    // Tudo em `HEAD` destacado: os commits só existem no HEAD deste worktree.
     add_feature(work, "a")?;
+    let commit_a = git(work, &["rev-parse", "HEAD"])?;
     git(work, &["switch", "-q", "--detach", "HEAD~1"])?;
-    git(work, &["switch", "-q", "-c", "xtask-sim-b"])?;
     add_feature(work, "b")?;
 
-    if let Err(error) = git(work, &["merge", "--no-edit", "xtask-sim-a"]) {
+    if let Err(error) = git(work, &["merge", "--no-edit", commit_a.trim()]) {
         let conflicts = git(work, &["diff", "--name-only", "--diff-filter=U"]).unwrap_or_default();
         bail!(
-            "o merge das duas branches de exemplo conflitou:\n{error:#}\narquivos em conflito:\n{conflicts}\n\
+            "o merge dos dois commits de exemplo conflitou:\n{error:#}\narquivos em conflito:\n{conflicts}\n\
              Um registro compartilhado voltou a exigir edição manual (ARCHITECTURE §4.1)."
         );
     }
@@ -161,19 +164,47 @@ fn compile_merge(work: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Worktree temporário desta execução; ao sair (sucesso, erro ou pânico) remove só ele.
+struct Worktree {
+    root: PathBuf,
+    path: PathBuf,
+    // A pasta (`TempDir`) só é apagada depois do `drop`, que roda o `git worktree remove`.
+    _dir: tempfile::TempDir,
+}
+
+impl Worktree {
+    fn add(root: &Path) -> Result<Self> {
+        let dir = tempfile::Builder::new()
+            .prefix("warden-check-integration-")
+            .tempdir()
+            .context("falha ao criar pasta temporária")?;
+        // Nome único também no registro de worktrees do repositório (`.git/worktrees/<nome>`).
+        let name = dir
+            .path()
+            .file_name()
+            .context("pasta temporária sem nome")?
+            .to_owned();
+        let path = dir.path().join(name);
+        let path_text = path.to_string_lossy().into_owned();
+        git(root, &["worktree", "add", "-q", "--detach", &path_text, "HEAD"])?;
+        Ok(Self {
+            root: root.to_owned(),
+            path,
+            _dir: dir,
+        })
+    }
+}
+
+impl Drop for Worktree {
+    fn drop(&mut self) {
+        let path = self.path.to_string_lossy().into_owned();
+        let _ = git(&self.root, &["worktree", "remove", "--force", &path]);
+    }
+}
+
 /// `cargo xtask check-integration`.
 pub fn run(args: &Args) -> Result<()> {
     merge_driver::ensure()?;
-    let root = workspace_root();
-    let dir = tempfile::tempdir().context("falha ao criar pasta temporária")?;
-    let work = dir.path().join("wt");
-    let work_text = work.to_string_lossy().into_owned();
-    git(&root, &["worktree", "add", "-q", "--detach", &work_text, "HEAD"])?;
-    let result = simulate(&work, args.compile);
-    // Limpeza sempre, mesmo com falha.
-    let _ = git(&root, &["worktree", "remove", "--force", &work_text]);
-    for branch in ["xtask-sim-a", "xtask-sim-b"] {
-        let _ = git(&root, &["branch", "-D", branch]);
-    }
-    result
+    let worktree = Worktree::add(&workspace_root())?;
+    simulate(&worktree.path, args.compile)
 }
