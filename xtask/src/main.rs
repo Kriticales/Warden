@@ -86,9 +86,6 @@ enum Command {
     /// Gera os avisos de terceiros (Rust, npm, packwiz, fontes) exibidos em "Sobre o Warden".
     Notices,
     /// Versão de teste para o dono no Windows: gera (ou baixa da CI) o instalador, instala e abre.
-    // Subcomandos de xtask/src/tasks/*.rs (descobertos pelo build.rs; sem edição aqui).
-    #[command(flatten)]
-    Auto(tasks::AutoCommand),
     Preview {
         /// Baixa o instalador da última execução da CI com sucesso, em vez de compilar.
         #[arg(long)]
@@ -100,6 +97,9 @@ enum Command {
         #[arg(long)]
         install_dir: Option<std::path::PathBuf>,
     },
+    // Subcomandos de xtask/src/tasks/*.rs (descobertos pelo build.rs; sem edição aqui).
+    #[command(flatten)]
+    Auto(tasks::AutoCommand),
 }
 
 fn main() -> ExitCode {
@@ -137,5 +137,31 @@ fn main() -> ExitCode {
             eprintln!("\nerro: {error:#}");
             ExitCode::FAILURE
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::CommandFactory as _;
+
+    use super::Cli;
+
+    #[test]
+    fn todo_subcomando_tem_descricao_no_help() {
+        let cli = Cli::command();
+        let sem_descricao: Vec<_> = cli
+            .get_subcommands()
+            .filter(|sub| {
+                sub.get_about()
+                    .is_none_or(|about| about.to_string().trim().is_empty())
+            })
+            .map(|sub| sub.get_name().to_owned())
+            .collect();
+        assert!(
+            sem_descricao.is_empty(),
+            "subcomandos sem descrição: {sem_descricao:?}"
+        );
+        assert!(cli.find_subcommand("preview").is_some());
+        assert!(cli.find_subcommand("check-integration").is_some());
     }
 }
