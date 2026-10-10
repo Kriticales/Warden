@@ -25,6 +25,7 @@ use markers::Progress;
 use tokio::io::copy_bidirectional;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::process::Command;
+use tokio::sync::oneshot;
 use warden_core::{CancellationToken, NoProgress};
 use warden_instance::{
     DownloadCache, InstanceDirs, MaterializeOptions, OnModified, Outcome, Sources, materialize,
@@ -199,6 +200,12 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     }
     pack_script(&["verify", combo.name, game_dir.to_str().unwrap()]).await;
     let port = free_port();
+    // No Fabric 1.16.5, `--server` conecta antes de o cliente recarregar os recursos
+    // ("Connecting to" sai antes de "Reloading ResourceManager"). Com o Mesa por
+    // software a recarga leva segundos; os chunks chegam com o gerenciador de modelos
+    // vazio, o cliente lança NullPointerException e trava ao desenhar o primeiro bloco
+    // (run 11 do smoke-game, 07/10/2026). Um proxy local segura a conexão até o
+    // marcador de pronto do cliente (som + atlas de blocos), que é o fim dessa recarga.
     let proxy = if combo.name == "fabric-1.16.5" {
         Some(TcpListener::bind("127.0.0.1:0").await.unwrap())
     } else {
@@ -333,13 +340,27 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         server = Some(running);
         server_events = Some(events);
     }
+    let (ready_signal, ready_wait) = oneshot::channel::<()>();
+    let mut ready_signal = proxy.is_some().then_some(ready_signal);
     let proxy_task = proxy.map(|listener| {
+        let name = combo.name;
         tokio::spawn(async move {
             let (mut client, _) = listener.accept().await.unwrap();
-            // No Xvfb, o Fabric 1.16.5 recebe chunks antes de terminar o atlas
-            // quando --server conecta imediatamente. Mantém o TCP aberto até a
-            // recarga de recursos avançar, então repassa a sessão real.
-            tokio::time::sleep(Duration::from_secs(15)).await;
+            let held = Instant::now();
+            // O cliente desiste do login após 30 s sem resposta (ReadTimeoutHandler);
+            // o prazo fica abaixo disso. Sem o marcador, repassa assim mesmo para a
+            // falha real aparecer no log em vez de virar um timeout do proxy.
+            match tokio::time::timeout(Duration::from_secs(25), ready_wait).await {
+                Ok(Ok(())) => eprintln!(
+                    "{name}: conexão liberada ao ficar pronto, após {} ms",
+                    held.elapsed().as_millis()
+                ),
+                // O laço do cliente terminou sem o marcador; o teste já registra o motivo.
+                Ok(Err(_)) => return,
+                Err(_) => eprintln!(
+                    "{name}: cliente não ficou pronto em 25 s com a conexão aberta; repassando sem esperar mais"
+                ),
+            }
             let mut server = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
             let _ = copy_bidirectional(&mut client, &mut server).await;
         })
@@ -372,6 +393,11 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
                 event = client_events.recv() => match event {
                     Some(GameEvent::Line(line)) => {
                         progress.observe(combo.minecraft, combo.loader, &line, false);
+                        if progress.ready_ms.is_some()
+                            && let Some(signal) = ready_signal.take()
+                        {
+                            let _ = signal.send(());
+                        }
                     }
                     Some(GameEvent::Exited(exit)) => return Err(format!("cliente saiu antes do mundo: {exit:?}")),
                     None => return Err("saída do cliente acabou".to_owned()),

@@ -26,6 +26,19 @@ uma pasta de testes isolada. Os diretórios do usuário e o cofre real não são
 usados. Os tempos de pronto e mundo começam na abertura do cliente, mesmo nas
 faixas com servidor local.
 
+Nas faixas com `--server`, o cliente conecta enquanto recarrega os recursos:
+"Connecting to" sai junto de "Reloading ResourceManager". "Pronto" é o fim dessa
+recarga (som e atlas de blocos); "mundo" é o primeiro "logged in with entity id",
+do cliente ou do servidor. Por isso "mundo" pode sair antes de "pronto": no
+fabric-1.18.2 o servidor aceitou o login cerca de 5 s antes de o cliente criar o
+atlas, e o cliente 1.18 aguarda a recarga antes de desenhar os chunks. O cliente
+Fabric 1.16.5 não aguarda: com o Mesa por software, os chunks chegam com o
+gerenciador de modelos vazio e o jogo trava com `NullPointerException` ao desenhar
+o primeiro bloco. Só nessa combinação, um proxy local do teste segura a conexão
+até o marcador de pronto do cliente, com prazo de 25 s (abaixo dos 30 s em que o
+cliente desiste do login); sem o marcador, o proxy registra o motivo e repassa a
+conexão, para a falha real aparecer.
+
 O workflow `.github/workflows/smoke-game.yml` é **somente manual**. Quatro
 runners Linux executam cinco combinações cada, em série, com Xvfb e Mesa.
 O artefato de cada runner inclui o log do teste, os logs de cliente/servidor,
