@@ -33,6 +33,8 @@ import { join, relative } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
+import { dismissToasts } from './toasts';
+
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -66,12 +68,7 @@ const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
   mkdirSync(SCREENSHOTS, { recursive: true });
-  await browser.execute(() => {
-    for (const close of document.querySelectorAll<HTMLButtonElement>('.toast button:last-child')) {
-      close.click();
-    }
-  });
-  await browser.pause(400);
+  await dismissToasts();
   await browser.saveScreenshot(join(SCREENSHOTS, `${name}.png`));
 }
 
@@ -184,6 +181,7 @@ async function waitToast(text: string): Promise<void> {
 
 /** Clica em Exportar… e espera o diálogo do resultado. */
 async function exportAndWait(): Promise<void> {
+  await dismissToasts();
   await $('button=Exportar…').click();
   const dialog = $('[role="dialog"]*=Pack exportado');
   let error = '';
@@ -307,6 +305,7 @@ describe('Exportar (E-01; T19)', () => {
     const zip = join(OUT, 'pack.zip');
     const before = readFileSync(zip);
     pickNext(zip);
+    await dismissToasts();
     await $('button=Exportar…').click();
     const panel = $('main .alert--danger');
     await panel.waitForDisplayed({ timeout: 30_000 });
