@@ -127,6 +127,20 @@ pub(crate) struct TestSessions {
     busy: watch::Sender<bool>,
     engine: Arc<dyn LauncherEngine>,
     fake: Option<FakeGame>,
+    #[cfg(test)]
+    launch_tweak: Option<LaunchTweak>,
+}
+
+/// Ajuste da abertura, só nos testes: o roteiro com o jogo real entra no mundo como a matriz
+/// da L-05 (Quick Play ou servidor local, `fabric.noGui`, áudio nulo). No app, entrar direto
+/// no mundo é do perfil do teste (L-08).
+#[cfg(test)]
+#[derive(Clone)]
+pub(crate) struct LaunchTweak {
+    /// Muda as opções antes da linha de comando ser montada.
+    pub(crate) options: Arc<dyn Fn(&mut warden_launcher::LaunchOptions) + Send + Sync>,
+    /// Variáveis de ambiente acrescentadas ao jogo.
+    pub(crate) env: Vec<(String, String)>,
 }
 
 impl std::fmt::Debug for TestSessions {
@@ -159,7 +173,16 @@ impl TestSessions {
             busy: watch::channel(false).0,
             engine,
             fake,
+            #[cfg(test)]
+            launch_tweak: None,
         }
+    }
+
+    /// O mesmo, com a abertura ajustada (testes).
+    #[cfg(test)]
+    pub(crate) fn with_launch_tweak(mut self, tweak: LaunchTweak) -> Self {
+        self.launch_tweak = Some(tweak);
+        self
     }
 
     fn lock(&self) -> MutexGuard<'_, Option<Active>> {
@@ -470,7 +493,7 @@ impl Runner<'_> {
                         .engine
                         .install(&spec, &java, self.handle, self.handle.token())
                         .await
-                        .map_err(|error| AppError::from_domain(&error))
+                        .map_err(|error| install_error(&error))
                 })
                 .await?
         };
@@ -567,7 +590,8 @@ impl Runner<'_> {
         }
         let player = OfflineProfile::from_name(&global.player_name)
             .map_err(|error| AppError::from_domain(&error))?;
-        let options = launch_options(PlanInput {
+        #[cfg_attr(not(test), expect(unused_mut, reason = "só os testes ajustam"))]
+        let mut options = launch_options(PlanInput {
             game_dir: prepared.dirs.game_dir.clone(),
             state_dir: prepared.dirs.state_dir.clone(),
             java: prepared.java.clone(),
@@ -584,12 +608,21 @@ impl Runner<'_> {
             prepared.java.major,
             options.extra_jvm_args.clone(),
         );
-        let command = self
+        #[cfg(test)]
+        if let Some(tweak) = &self.state.tests.launch_tweak {
+            (tweak.options)(&mut options);
+        }
+        #[cfg_attr(not(test), expect(unused_mut, reason = "só os testes ajustam"))]
+        let mut command = self
             .state
             .tests
             .engine
             .command(&prepared.game, &options)
             .map_err(|error| AppError::from_domain(&error))?;
+        #[cfg(test)]
+        if let Some(tweak) = &self.state.tests.launch_tweak {
+            command.env.extend(tweak.env.iter().cloned());
+        }
         Ok(Launch {
             command,
             memory,
@@ -904,6 +937,16 @@ fn game_spec(requirement: &GameRequirement) -> Result<GameSpec, AppError> {
         }
     };
     GameSpec::new(&requirement.minecraft, loader).map_err(|error| AppError::from_domain(&error))
+}
+
+/// O erro da instalação do jogo. Quando faltam arquivos que não puderam ser baixados (sem
+/// internet), a mensagem diz quais são (SPEC T13); o resto segue o erro do motor.
+fn install_error(error: &warden_launcher::Error) -> AppError {
+    let mut app = AppError::from_domain(error);
+    if !error.missing_files().is_empty() {
+        app.code = AppErrorCode::TestGameFilesMissing.into();
+    }
+    app
 }
 
 /// O loader para a política de Java.

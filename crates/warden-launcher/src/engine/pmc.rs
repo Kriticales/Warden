@@ -80,6 +80,7 @@ impl ForgeArtifactResolver for CatalogForgeResolver {
             .await
             .map_err(|error| Error::DownloadFailed {
                 engine: error_chain(&error),
+                missing: Vec::new(),
             })?;
         Ok(versions.get(version).map(|item| {
             item.maven
@@ -361,17 +362,27 @@ enum FailureKind {
 struct EngineFailure {
     kind: FailureKind,
     chain: String,
+    /// Os arquivos do lote de downloads que falharam.
+    missing: Vec<PathBuf>,
 }
 
 fn failure(kind: FailureKind, error: &(dyn std::error::Error + 'static)) -> RawError {
     let mut chain = error_chain(error);
+    let mut missing = Vec::new();
     if let Some(batch) = find_batch(error) {
-        for entry in batch.iter_errors().take(5) {
-            chain.push_str("\n- ");
-            chain.push_str(&error_chain(entry));
+        for (index, entry) in batch.iter_errors().enumerate() {
+            if index < 5 {
+                chain.push_str("\n- ");
+                chain.push_str(&error_chain(entry));
+            }
+            missing.push(entry.file().to_path_buf());
         }
     }
-    RawError::Engine(EngineFailure { kind, chain })
+    RawError::Engine(EngineFailure {
+        kind,
+        chain,
+        missing,
+    })
 }
 
 /// O lote de downloads com erro, quando a falha é dele.
@@ -518,7 +529,11 @@ fn translate(error: RawError, spec: &GameSpec, java: &Path) -> Error {
     let RawError::Engine(failure) = error else {
         return Error::Cancelled;
     };
-    let EngineFailure { kind, chain } = failure;
+    let EngineFailure {
+        kind,
+        chain,
+        missing,
+    } = failure;
     let loader = spec.loader.label().to_owned();
     let minecraft = spec.minecraft.as_str().to_owned();
     match kind {
@@ -536,8 +551,14 @@ fn translate(error: RawError, spec: &GameSpec, java: &Path) -> Error {
             path: java.to_path_buf(),
             message: chain,
         },
-        _ if looks_like_network(&chain) => Error::NetworkUnavailable { engine: chain },
-        FailureKind::Download => Error::DownloadFailed { engine: chain },
+        _ if looks_like_network(&chain) => Error::NetworkUnavailable {
+            engine: chain,
+            missing,
+        },
+        FailureKind::Download => Error::DownloadFailed {
+            engine: chain,
+            missing,
+        },
         FailureKind::LoaderInstall => Error::LoaderInstallFailed {
             loader,
             engine: chain,
@@ -758,6 +779,7 @@ mod tests {
             RawError::Engine(EngineFailure {
                 kind,
                 chain: chain.into(),
+                missing: Vec::new(),
             })
         };
         assert!(matches!(
@@ -784,6 +806,21 @@ mod tests {
             ),
             Error::NetworkUnavailable { .. }
         ));
+        // Sem conexão, os arquivos que faltaram seguem até a mensagem.
+        let offline = translate(
+            RawError::Engine(EngineFailure {
+                kind: FailureKind::Download,
+                chain: "download: 1 errors over 1 entries\ncausa: tcp connect error".into(),
+                missing: vec![PathBuf::from("libraries/net/sf/jopt-simple-5.0.4.jar")],
+            }),
+            &spec,
+            java,
+        );
+        assert_eq!(
+            offline.missing_files(),
+            [PathBuf::from("libraries/net/sf/jopt-simple-5.0.4.jar")]
+        );
+        assert!(matches!(offline, Error::NetworkUnavailable { .. }));
         assert!(matches!(
             translate(
                 engine(FailureKind::LoaderInstall, "processor failed"),

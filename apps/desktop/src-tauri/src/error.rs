@@ -276,6 +276,10 @@ pub enum AppErrorCode {
     TestMemoryHighJava8,
     /// O arquivo pedido não é um arquivo de travamento da sessão (`params.path`).
     TestArtifactInvalid,
+    /// Faltam arquivos do Minecraft (ou do loader) e não deu para baixá-los, em geral por
+    /// falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
+    /// nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
+    TestGameFilesMissing,
 }
 
 #[cfg(test)]
