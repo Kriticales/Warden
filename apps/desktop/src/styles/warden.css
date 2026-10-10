@@ -168,6 +168,43 @@ body {
   animation: fade-out var(--duration-base) var(--ease-out) forwards;
 }
 
+/* Entrada de diálogo, painel lateral e menu sem animar `opacity`. A opacidade de um ancestral
+   entra na conta de contraste (WCAG 1.4.3): durante os 200–320 ms da entrada o texto ficaria com
+   contraste ~1,2:1 e o axe reprovaria o que está pronto para o usuário. O deslize continua; o
+   "aparecer" passa para a cor de fundo do véu, que não afeta o texto dos filhos. */
+.scrim {
+  animation: scrim-in var(--duration-base) var(--ease-out);
+}
+@keyframes scrim-in {
+  from {
+    background-color: transparent;
+  }
+}
+.dialog {
+  animation: dialog-slide var(--duration-slow) var(--ease-out);
+}
+@keyframes dialog-slide {
+  from {
+    transform: translateY(12px);
+  }
+}
+.drawer {
+  animation: drawer-slide var(--duration-slow) var(--ease-out);
+}
+@keyframes drawer-slide {
+  from {
+    transform: translateX(24px);
+  }
+}
+.menu {
+  animation: menu-slide var(--duration-base) var(--ease-out);
+}
+@keyframes menu-slide {
+  from {
+    transform: translateY(-4px);
+  }
+}
+
 /* Gaveta de Tarefas (T22). */
 .tasks__group {
   display: grid;
