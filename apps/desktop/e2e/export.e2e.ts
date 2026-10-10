@@ -127,9 +127,10 @@ function zipEntries(path: string): string[] {
 }
 
 function packwizBinary(): string {
+  // Uma pasta de binários pode ter o de mais de uma plataforma: vale o do sistema que roda o teste.
+  const suffix = process.platform === 'win32' ? '-windows-msvc.exe' : '-linux-gnu';
   const name = readdirSync(BINARIES).find(
-    (entry) =>
-      entry.startsWith('packwiz-') && !entry.includes('.build') && !entry.endsWith('.commit'),
+    (entry) => entry.startsWith('packwiz-') && entry.endsWith(suffix),
   );
   if (!name) throw new Error('sidecar do packwiz ausente: rode cargo xtask build-packwiz');
   return join(BINARIES, name);
@@ -315,6 +316,7 @@ describe('Exportar (E-01; T19)', () => {
   });
 
   it('Excluir do pack grava a regra no .packwizignore e tira o arquivo do índice', async () => {
+    await dismissToasts();
     await $('summary*=mods/').click();
     await $('//button[.//span[text()="Excluir do pack: mods/modmenu.pw.toml"]]').click();
     const dialog = $('[role="alertdialog"]');
