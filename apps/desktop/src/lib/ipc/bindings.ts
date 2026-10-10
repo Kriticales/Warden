@@ -291,7 +291,13 @@ export type AppErrorCode =
 /**  Aviso: memória acima de 8 GB com Java 8 (`params.memoryMb`). */
 "TEST_MEMORY_HIGH_JAVA8" | 
 /**  O arquivo pedido não é um arquivo de travamento da sessão (`params.path`). */
-"TEST_ARTIFACT_INVALID";
+"TEST_ARTIFACT_INVALID" | 
+/**
+ *  Faltam arquivos do Minecraft (ou do loader) e não deu para baixá-los, em geral por
+ *  falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
+ *  nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
+ */
+"TEST_GAME_FILES_MISSING";
 
 /**  Versão e commit do app em execução. */
 export type AppInfo = {

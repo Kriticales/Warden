@@ -97,12 +97,18 @@ pub enum Error {
     DownloadFailed {
         /// Mensagem do motor (cadeia completa).
         engine: String,
+        /// Os arquivos do jogo que não foram baixados (vazio quando a falha não é de um
+        /// arquivo).
+        missing: Vec<PathBuf>,
     },
     /// Sem conexão durante a instalação.
     #[error("sem conexão ao instalar o jogo: {engine}")]
     NetworkUnavailable {
         /// Mensagem do motor (cadeia completa).
         engine: String,
+        /// Os arquivos do jogo que faltam e não puderam ser baixados (SPEC T13: sem internet,
+        /// a mensagem diz exatamente o que falta).
+        missing: Vec<PathBuf>,
     },
     /// Arquivos do jogo inconsistentes.
     #[error("arquivos do jogo inválidos: {message}")]
@@ -183,6 +189,23 @@ impl Error {
     }
 }
 
+/// Até quantos nomes de arquivo entram no parâmetro `names` (o resto vai em `more`; a lista
+/// completa fica nos detalhes técnicos).
+const NAMES_IN_MESSAGE: usize = 5;
+
+impl Error {
+    /// Os arquivos do jogo que faltaram numa instalação que não conseguiu baixá-los.
+    #[must_use]
+    pub fn missing_files(&self) -> &[PathBuf] {
+        match self {
+            Self::DownloadFailed { missing, .. } | Self::NetworkUnavailable { missing, .. } => {
+                missing
+            }
+            _ => &[],
+        }
+    }
+}
+
 impl DomainError for Error {
     type Code = LauncherErrorCode;
 
@@ -240,6 +263,26 @@ impl DomainError for Error {
             }
             Self::JavaUnusable { path, .. } => put("path", path.display().to_string()),
             Self::CommandTooLong { java_major, .. } => put("javaMajor", java_major.to_string()),
+            Self::DownloadFailed { missing, .. } | Self::NetworkUnavailable { missing, .. }
+                if !missing.is_empty() =>
+            {
+                put("count", missing.len().to_string());
+                let names: Vec<String> = missing
+                    .iter()
+                    .take(NAMES_IN_MESSAGE)
+                    .map(|path| {
+                        path.file_name().map_or_else(
+                            || path.display().to_string(),
+                            |name| name.to_string_lossy().into_owned(),
+                        )
+                    })
+                    .collect();
+                put("names", names.join(", "));
+                put(
+                    "more",
+                    missing.len().saturating_sub(NAMES_IN_MESSAGE).to_string(),
+                );
+            }
             Self::Core(error) => return error.params(),
             _ => {}
         }
@@ -247,10 +290,15 @@ impl DomainError for Error {
     }
 
     fn detail(&self) -> Option<String> {
-        match self {
-            Self::Core(error) => error.detail(),
-            _ => Some(error_chain(self)),
+        if let Self::Core(error) = self {
+            return error.detail();
         }
+        let mut text = error_chain(self);
+        for path in self.missing_files() {
+            text.push_str("\nfalta: ");
+            text.push_str(&path.display().to_string());
+        }
+        Some(text)
     }
 
     fn retryable(&self) -> bool {
@@ -282,6 +330,7 @@ mod tests {
         );
         let network = Error::NetworkUnavailable {
             engine: "tcp connect error".into(),
+            missing: Vec::new(),
         };
         assert_eq!(
             network.code(),
@@ -290,6 +339,33 @@ mod tests {
         assert!(network.retryable());
         let io = Error::io("gravar", "x", io::Error::other("disco"));
         assert_eq!(io.code(), DomainCode::Core(CoreErrorCode::Io));
+    }
+
+    #[test]
+    fn arquivos_que_faltam_viram_parametros_e_detalhe() {
+        let missing: Vec<PathBuf> = (1..=7)
+            .map(|index| PathBuf::from(format!("libraries/a/lib-{index}.jar")))
+            .collect();
+        let error = Error::NetworkUnavailable {
+            engine: "tcp connect error".into(),
+            missing: missing.clone(),
+        };
+        assert_eq!(error.missing_files(), missing.as_slice());
+        let params = error.params();
+        assert_eq!(params["count"], "7");
+        assert_eq!(
+            params["names"],
+            "lib-1.jar, lib-2.jar, lib-3.jar, lib-4.jar, lib-5.jar"
+        );
+        assert_eq!(params["more"], "2");
+        let detail = error.detail().unwrap();
+        assert!(detail.contains("falta: libraries/a/lib-7.jar"), "{detail}");
+        let none = Error::NetworkUnavailable {
+            engine: "dns error".into(),
+            missing: Vec::new(),
+        };
+        assert!(none.params().is_empty());
+        assert!(none.missing_files().is_empty());
     }
 
     #[test]
