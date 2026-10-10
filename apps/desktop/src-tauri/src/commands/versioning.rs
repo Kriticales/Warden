@@ -604,9 +604,24 @@ async fn restore_core(
             let identity = identity(&root);
             blocking(move || PackRepo::open(&root)?.restore(&target, &identity, when)).await?
         };
-        // O nome do pack pode ser outro na versão de destino: o registro local acompanha.
-        if let Ok(meta) = read_meta(&root) {
-            let _ = state.packs.rename(pack_id, &meta.name);
+        // O nome do pack pode ser outro na versão de destino: o registro local acompanha. O
+        // pack já voltou, então uma falha aqui não desfaz nem invalida a operação: no pior caso a
+        // lista de "Meus packs" mostra o nome antigo. O motivo vai ao log.
+        match read_meta(&root) {
+            Ok(meta) => {
+                if let Err(rename_error) = state.packs.rename(pack_id, &meta.name) {
+                    tracing::warn!(
+                        %pack_id,
+                        %rename_error,
+                        "não foi possível atualizar o nome do pack no registro depois de voltar"
+                    );
+                }
+            }
+            Err(meta_error) => tracing::warn!(
+                %pack_id,
+                %meta_error,
+                "não foi possível ler o pack.toml depois de voltar; o nome no registro fica como estava"
+            ),
         }
         Ok(report)
     }

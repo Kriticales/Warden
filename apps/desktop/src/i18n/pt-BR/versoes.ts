@@ -25,7 +25,6 @@ export const versoes = {
     antes:
       'Este pack ainda não foi publicado. Salve uma versão marcada como versão final e publique: os jogadores recebem pelo link do pack.',
     indisponivel: 'A publicação no GitHub ainda não está disponível nesta versão do Warden.',
-    publicar: 'Publicar versão',
     publicarVersao: 'Publicar versão {{version}}',
   },
   estado: {
@@ -41,7 +40,6 @@ export const versoes = {
     outro: '{{data}}, {{hora}}',
   },
   naoSalvas: {
-    titulo: 'Alterações não salvas',
     resumo_one: '{{count}} alteração desde a {{version}}',
     resumo_other: '{{count}} alterações desde a {{version}}',
     resumoInicio_one: '{{count}} alteração desde a criação do pack',
@@ -85,10 +83,7 @@ export const versoes = {
     changelog: 'Changelog da versão {{version}}',
     semChangelog: 'Esta versão não tem changelog gravado.',
     verDiferencas: 'Ver diferenças para o estado atual',
-    exportar: 'Exportar esta versão',
     semResumo: 'Sem mudanças registradas',
-    resumoItens_one: '{{count}} item',
-    resumoItens_other: '{{count}} itens',
     resumoAdicionados_one: '{{count}} mod adicionado',
     resumoAdicionados_other: '{{count}} mods adicionados',
     resumoRemovidos_one: '{{count}} removido',
@@ -146,6 +141,8 @@ export const versoes = {
     titulo: 'Descartar a alteração de {{path}}?',
     textoExistia:
       'O arquivo volta a ser como era na última versão salva. O que você mudou nele desde então se perde.',
+    textoNovo:
+      'Este arquivo não existia na última versão salva, então ele será apagado. O que está nele agora se perde.',
     confirmar: 'Descartar alteração',
     descartando: 'Descartando…',
     feito: 'Alteração descartada',
@@ -184,7 +181,6 @@ export const versoes = {
     cancelar: 'Cancelar',
     salvar: 'Salvar versão {{version}}',
     salvando: 'Salvando…',
-    invalida: 'Esse número de versão não pode ser salvo.',
     verificando: 'Conferindo o número…',
   },
   motivo: {

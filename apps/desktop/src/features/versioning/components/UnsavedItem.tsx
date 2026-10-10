@@ -29,6 +29,11 @@ export function UnsavedItem({ packId, changes, lastVersion, canWrite, onSave }: 
   const discard = useDiscardFile(packId);
   const [discarding, setDiscarding] = useState<string | null>(null);
   const count = changes.files.length;
+  // Uma config que não existia na última versão salva é apagada ao descartar; as outras voltam
+  // a ser como eram (as apagadas desde então voltam a existir).
+  const discardingIsNew =
+    discarding !== null &&
+    changes.files.some((file) => file.path === discarding && file.kind === 'added');
 
   if (count === 0) {
     return (
@@ -87,7 +92,7 @@ export function UnsavedItem({ packId, changes, lastVersion, canWrite, onSave }: 
           }
         }}
         title={t('descartar.titulo', { path: discarding ?? '' })}
-        description={t('descartar.textoExistia')}
+        description={discardingIsNew ? t('descartar.textoNovo') : t('descartar.textoExistia')}
         confirmLabel={t('descartar.confirmar')}
         confirmingLabel={t('descartar.descartando')}
         onConfirm={async () => {

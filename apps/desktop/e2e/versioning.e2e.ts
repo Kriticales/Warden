@@ -410,6 +410,13 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await expect(dialog).toHaveText(
       expect.stringContaining('Descartar a alteração de config/depois.toml?'),
     );
+    // O arquivo não existia na última versão salva: a confirmação diz que ele será apagado.
+    await expect(dialog).toHaveText(
+      expect.stringContaining(
+        'Este arquivo não existia na última versão salva, então ele será apagado.',
+      ),
+    );
+    await expect(dialog).not.toHaveText(expect.stringContaining('volta a ser como era'));
     await screenshot('47-descartar');
     await dialog.$('button=Descartar alteração').click();
     await waitToast('Alteração descartada');

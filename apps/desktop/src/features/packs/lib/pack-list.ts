@@ -9,6 +9,7 @@ const LOADER_NAMES: Record<string, string> = {
   neoforge: 'NeoForge',
   fabric: 'Fabric',
   quilt: 'Quilt',
+  'legacy-fabric': 'Legacy Fabric',
   liteloader: 'LiteLoader',
 };
 
