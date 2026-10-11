@@ -3,8 +3,9 @@
 //! Uma busca consulta as fontes ativas ao mesmo tempo (cada uma com tempo-limite próprio) e
 //! entrega **uma** página de até [`PAGE_SIZE`] itens já combinados:
 //!
-//! - **Fontes plugáveis:** cada fonte implementa [`SearchSource`]. A P1-09 liga o Modrinth
-//!   ([`modrinth::ModrinthSearch`]); a P1-10 acrescenta a CurseForge sem mudar este motor.
+//! - **Fontes plugáveis:** cada fonte implementa [`SearchSource`]. O Modrinth
+//!   ([`modrinth::ModrinthSearch`]) e a CurseForge ([`curseforge::CurseforgeSearch`]) ligam sem
+//!   mudar este motor.
 //! - **Ordem** ([`merge`]): relevância intercalada pela posição em cada fonte; downloads,
 //!   atualização e novos mesclados pelos números de cada fonte.
 //! - **Sem duplicatas:** o mesmo projeto nas duas fontes (mesmo autor e mesmo slug ou nome
@@ -16,6 +17,7 @@
 //!   (`SEARCH_SOURCE_UNAVAILABLE`). Só quando **todas** as fontes consultadas falham a busca
 //!   devolve erro.
 
+pub mod curseforge;
 pub mod merge;
 pub mod modrinth;
 
