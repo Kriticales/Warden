@@ -102,14 +102,13 @@ pub fn parse_link(text: &str) -> Option<CurseforgeLink> {
     let class = class_by_path(segments.next()?)?;
     let slug = segments.next()?.to_owned();
     match (segments.next(), segments.next(), segments.next()) {
-        (None, _, _) => Some(CurseforgeLink::Project { class, slug }),
         (Some("files" | "download"), Some(id), None) => Some(CurseforgeLink::File {
             class,
             slug,
             file_id: id.parse().ok()?,
         }),
-        // Abas do projeto (`/files`, `/relations/dependencies`…): é o projeto.
-        (Some(_), _, _) => Some(CurseforgeLink::Project { class, slug }),
+        // Sem nada depois do slug, ou nas abas do projeto (`/files`, `/relations/dependencies`…).
+        _ => Some(CurseforgeLink::Project { class, slug }),
     }
 }
 
@@ -300,17 +299,17 @@ fn imported(staging: &Path, metafiles: &[String]) -> crate::Result<ImportedLink>
 mod tests {
     use super::*;
 
-    fn project(class: ProjectClass, slug: &str) -> Option<CurseforgeLink> {
-        Some(CurseforgeLink::Project {
+    fn project(class: ProjectClass, slug: &str) -> CurseforgeLink {
+        CurseforgeLink::Project {
             class,
             slug: slug.into(),
-        })
+        }
     }
 
     #[test]
     fn reconhece_links_de_projeto() {
         let jei = "https://www.curseforge.com/minecraft/mc-mods/jei";
-        assert_eq!(parse_link(jei), project(ProjectClass::Mod, "jei"));
+        assert_eq!(parse_link(jei), Some(project(ProjectClass::Mod, "jei")));
         // Barra final, espaços, consulta e as abas do projeto são o mesmo projeto.
         for text in [
             "https://www.curseforge.com/minecraft/mc-mods/jei/",
@@ -322,17 +321,17 @@ mod tests {
         ] {
             assert_eq!(
                 parse_link(text),
-                project(ProjectClass::Mod, "jei"),
+                Some(project(ProjectClass::Mod, "jei")),
                 "{text}"
             );
         }
         assert_eq!(
             parse_link("https://www.curseforge.com/minecraft/texture-packs/faithful-32x"),
-            project(ProjectClass::ResourcePack, "faithful-32x")
+            Some(project(ProjectClass::ResourcePack, "faithful-32x"))
         );
         assert_eq!(
             parse_link("https://www.curseforge.com/minecraft/shaders/complementary"),
-            project(ProjectClass::Shader, "complementary")
+            Some(project(ProjectClass::Shader, "complementary"))
         );
     }
 

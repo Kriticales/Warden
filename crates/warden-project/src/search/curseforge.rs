@@ -92,8 +92,8 @@ pub fn hit_compatible(project: &Mod, kind: ProjectKind, target: &PackTarget) -> 
     })
 }
 
-fn non_empty(value: &Option<String>) -> Option<String> {
-    value.clone().filter(|v| !v.trim().is_empty())
+fn non_empty(value: Option<&String>) -> Option<String> {
+    value.cloned().filter(|v| !v.trim().is_empty())
 }
 
 /// A pré-visualização a partir do projeto da CurseForge e da descrição (HTML).
@@ -101,7 +101,7 @@ fn non_empty(value: &Option<String>) -> Option<String> {
 pub fn preview_of(project: &Mod, body: String) -> ProjectPreview {
     let updated = [&project.date_modified, &project.date_released]
         .into_iter()
-        .find_map(non_empty)
+        .find_map(|date| non_empty(date.as_ref()))
         .unwrap_or_default();
     ProjectPreview {
         source: SourceId::Curseforge,
@@ -118,10 +118,10 @@ pub fn preview_of(project: &Mod, body: String) -> ProjectPreview {
         license: None,
         side: None,
         links: ProjectLinks {
-            page: non_empty(&project.links.website_url),
-            issues: non_empty(&project.links.issues_url),
-            source: non_empty(&project.links.source_url),
-            wiki: non_empty(&project.links.wiki_url),
+            page: non_empty(project.links.website_url.as_ref()),
+            issues: non_empty(project.links.issues_url.as_ref()),
+            source: non_empty(project.links.source_url.as_ref()),
+            wiki: non_empty(project.links.wiki_url.as_ref()),
             discord: None,
         },
     }
@@ -186,10 +186,9 @@ impl SearchSource for CurseforgeSearch {
             .mods
             .into_iter()
             .map(|project| {
-                let compatible = query
-                    .include_incompatible
-                    .then(|| hit_compatible(&project, query.kind, &query.target))
-                    .unwrap_or(true);
+                // Com os filtros travados o servidor já só devolve o que serve para o pack.
+                let compatible = !query.include_incompatible
+                    || hit_compatible(&project, query.kind, &query.target);
                 SourceHit {
                     reference: SourceRef {
                         source: SourceId::Curseforge,
@@ -205,9 +204,9 @@ impl SearchSource for CurseforgeSearch {
                     icon_url: icon_of(&project),
                     updated: [&project.date_modified, &project.date_released]
                         .into_iter()
-                        .find_map(non_empty)
+                        .find_map(|date| non_empty(date.as_ref()))
                         .unwrap_or_default(),
-                    created: non_empty(&project.date_created).unwrap_or_default(),
+                    created: non_empty(project.date_created.as_ref()).unwrap_or_default(),
                     manual_download: project.is_distribution_blocked(),
                     summary: project.summary,
                     title: project.name,
