@@ -217,7 +217,11 @@ describe('revisão e aplicação (T10)', () => {
     expect(dialog.querySelector('script')).toBeNull();
     expect(backend.callsOf('updates_apply')).toHaveLength(0);
 
+    expect(within(dialog).queryByText('Nenhuma dependência nova.')).toBeNull();
+
     await user.click(within(dialog).getByRole('checkbox', { name: 'Atualizar Alfa' }));
+    // Com um item marcado não há ponto de segurança: a revisão não o promete.
+    expect(within(dialog).queryByText(/ponto de segurança/)).toBeNull();
     await user.click(within(dialog).getByRole('button', { name: 'Atualizar Gama' }));
     await waitFor(() => {
       expect(backend.callsOf('updates_apply')).toHaveLength(1);
@@ -251,6 +255,10 @@ describe('revisão e aplicação (T10)', () => {
     // As novidades vêm recolhidas, mas estão na revisão.
     expect(await within(dialog).findByText('Notas da 1.1')).toBeDefined();
     expect(within(dialog).queryByText(/ponto de segurança/)).toBeNull();
+    expect(within(dialog).getByText('Nenhuma dependência nova.')).toBeDefined();
+    expect(
+      within(dialog).getByText('Nenhuma incompatibilidade nova com o que já está no pack.'),
+    ).toBeDefined();
     await user.click(within(dialog).getByRole('button', { name: 'Atualizar Alfa' }));
     await waitFor(() => {
       expect(backend.callsOf('updates_apply')[0]?.args).toMatchObject({

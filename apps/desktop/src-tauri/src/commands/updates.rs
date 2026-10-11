@@ -142,9 +142,14 @@ pub(crate) async fn updates_check(
             curseforge: Some(&curseforge),
             prereleases: settings.show_prerelease_versions,
         };
-        warden_project::updates::check(&root, &context, Some(&token))
+        let report = warden_project::updates::check(&root, &context, Some(&token))
             .await
-            .map_err(domain)
+            .map_err(domain)?;
+        // Cancelada, a verificação deixaria tudo em "Não foi possível verificar": não guarda.
+        if token.is_cancelled() {
+            return Err(AppError::cancelled());
+        }
+        Ok(report)
     }
     .await;
     let result = match handle {

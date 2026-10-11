@@ -17,8 +17,6 @@ export const atualizacoes = {
     atualizar: 'Atualizar',
     atualizarPara: 'Atualizar {{name}} para {{version}}',
     paraVersao: 'para {{version}}',
-    semConsulta: 'Arquivo local ou link direto: o Warden não tem onde consultar.',
-    fixadoDica: 'Versão fixada: não entra em Atualizar todos.',
   },
   motivo: {
     offline: 'Sem conexão com a plataforma, ou ela não respondeu a tempo.',
@@ -67,7 +65,6 @@ export const atualizacoes = {
     item: 'Item',
     agora: 'Agora',
     nova: 'Nova',
-    novidades: 'Novidades',
     verNovidades: 'Ver novidades',
     semNovidades: 'A fonte não trouxe notas para esta versão.',
     incluir: 'Atualizar {{name}}',
@@ -86,6 +83,8 @@ export const atualizacoes = {
     conflitosTitulo_one: 'A versão nova se declara incompatível com {{count}} mod do pack.',
     conflitosTitulo_other: 'A versão nova se declara incompatível com {{count}} mods do pack.',
     conflitoLinha: '{{item}} não funciona com {{com}}',
+    semDependencias: 'Nenhuma dependência nova.',
+    semConflitos: 'Nenhuma incompatibilidade nova com o que já está no pack.',
     pontoDeSeguranca:
       'Antes de aplicar, o Warden guarda um ponto de segurança. Se algo der errado, você volta ao estado de agora.',
     cancelar: 'Cancelar',
@@ -93,8 +92,6 @@ export const atualizacoes = {
     confirmarVarios: 'Atualizar {{count}} itens',
     confirmando: 'Atualizando…',
     nenhumMarcado: 'Marque pelo menos um item.',
-    desatualizada:
-      'O pack mudou depois da verificação. Verifique as atualizações de novo para revisar.',
     concluidoUm: '{{name}} foi atualizado para {{version}}.',
     concluidoVarios_one: '{{count}} item atualizado. Ponto de segurança criado antes.',
     concluidoVarios_other: '{{count}} itens atualizados. Ponto de segurança criado antes.',

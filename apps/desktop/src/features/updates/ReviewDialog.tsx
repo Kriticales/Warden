@@ -5,6 +5,7 @@
  * confirmar. Serve para um item (Atualizar) e para vários (Revisar e atualizar, Atualizar
  * selecionados).
  */
+import { CircleCheck } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +16,7 @@ import { SafeMarkdown } from '../../components/common/SafeMarkdown';
 import { Alert } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
+import { Icon } from '../../components/ui/icon';
 import { showToast } from '../../components/ui/toast';
 import type {
   AppliedUpdates,
@@ -174,7 +176,8 @@ function ReviewBody({
               </tbody>
             </table>
           </div>
-          {paths.length > 1 ? <p className="t-sm t-3">{t('revisao.pontoDeSeguranca')}</p> : null}
+          <NothingNew plan={plan.data} />
+          {chosen.length > 1 ? <p className="t-sm t-3">{t('revisao.pontoDeSeguranca')}</p> : null}
         </div>
       ) : null}
       {apply.isError ? <ErrorPanel compact error={apply.error} /> : null}
@@ -250,6 +253,28 @@ function Changelog({ entries }: { entries: readonly ChangelogEntry[] }) {
         </section>
       ))}
     </div>
+  );
+}
+
+/** Sem dependências nem incompatibilidades novas, a revisão diz isso (protótipo `updateDialog`). */
+function NothingNew({ plan }: { plan: UpdatePlan }) {
+  const { t } = useTranslation('atualizacoes');
+  if (plan.newDependencies.length > 0 && plan.conflicts.length > 0) return null;
+  return (
+    <ul className="checklist">
+      {plan.newDependencies.length === 0 ? (
+        <li className="is-ok">
+          <Icon icon={CircleCheck} />
+          <span>{t('revisao.semDependencias')}</span>
+        </li>
+      ) : null}
+      {plan.conflicts.length === 0 ? (
+        <li className="is-ok">
+          <Icon icon={CircleCheck} />
+          <span>{t('revisao.semConflitos')}</span>
+        </li>
+      ) : null}
+    </ul>
   );
 }
 

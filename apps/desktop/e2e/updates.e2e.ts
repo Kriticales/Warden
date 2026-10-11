@@ -10,8 +10,8 @@
  *   o link direto e a CurseForge (sem chave) não ganham botão Atualizar (CA-T10-02).
  * - Atualizar um item mostra a versão de agora e a nova, as novidades, e grava só a referência
  *   no `.pw.toml` (lado e nome ficam), com o índice atualizado.
- * - Revisar e atualizar (um item desmarcado) cria o ponto de segurança antes e depois a
- *   faixa some; nada some do pack.
+ * - Revisar e atualizar cria o ponto de segurança antes e depois a faixa some; nada some do
+ *   pack.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
