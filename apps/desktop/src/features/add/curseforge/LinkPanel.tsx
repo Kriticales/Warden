@@ -91,7 +91,7 @@ export function CurseforgeLinkPanel({ packId, url, onProject, onFile }: Cursefor
       actions={
         <Button
           size="sm"
-          icon={isFile ? Plus : undefined}
+          {...(isFile ? { icon: Plus } : {})}
           onClick={() => {
             open(link.data);
           }}

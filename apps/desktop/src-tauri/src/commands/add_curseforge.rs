@@ -147,7 +147,7 @@ pub(crate) fn search_source(state: &AppState) -> ActiveSource {
     match client(key.clone()) {
         Ok(client) => ActiveSource::Ready(Arc::new(Watched {
             inner: CurseforgeSearch::new(client),
-            key: key,
+            key,
         })),
         Err(error) => {
             tracing::warn!(code = %error.code, "cliente da CurseForge indisponível");
