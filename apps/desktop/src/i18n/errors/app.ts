@@ -1,7 +1,8 @@
 import type { AppErrorCode } from '../../lib/ipc/bindings';
+import type { ErrorPhrases } from './plural';
 
 /** Frases dos erros do domínio `app`: o que aconteceu + o que fazer (QUALITY §3). */
-export const app: Record<AppErrorCode, string> = {
+export const app: ErrorPhrases<AppErrorCode> = {
   INTERNAL:
     'Algo deu errado dentro do Warden. Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
   OPERATION_NOT_FOUND: 'Essa tarefa não existe mais. Abra Tarefas de novo para ver a lista atual.',
@@ -29,5 +30,9 @@ export const app: Record<AppErrorCode, string> = {
     'O teste vai usar {{memoryMb}} MB com o Java 8. Acima de 8 GB, o Java 8 costuma travar o jogo por segundos nas limpezas de memória. Se acontecer, diminua a memória em Ajustes do teste.',
   TEST_ARTIFACT_INVALID: 'Esse arquivo não faz parte deste teste ou foi apagado.',
   TEST_GAME_FILES_MISSING:
+    'Faltam arquivos do Minecraft para abrir o teste e não foi possível baixá-los: {{names}}. Confira a internet e tente de novo; a lista completa está nos detalhes técnicos.',
+  TEST_GAME_FILES_MISSING_one:
+    'Falta {{count}} arquivo do Minecraft para abrir o teste e não foi possível baixá-lo: {{names}}. Confira a internet e tente de novo; o caminho completo está nos detalhes técnicos.',
+  TEST_GAME_FILES_MISSING_other:
     'Faltam {{count}} arquivos do Minecraft para abrir o teste e não foi possível baixá-los: {{names}}. Confira a internet e tente de novo; a lista completa está nos detalhes técnicos.',
 };

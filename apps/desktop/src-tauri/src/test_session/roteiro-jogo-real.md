@@ -53,8 +53,8 @@ Repita com `WARDEN_TEST_REAL_GAME=forge-1.12.2`. O proxy morto bloqueia o Warden
 Use `cargo test`, não o nextest, que encerra testes de mais de 3 minutos.
 
 A rodada sem internet também esconde o jar do jogo (`versions/<id>/<id>.jar`), testa de novo e
-confere que o Testar para antes de abrir o jogo com `app.TEST_GAME_FILES_MISSING` ("Faltam 1
-arquivos do Minecraft para abrir o teste e não foi possível baixá-los: <arquivo>…"); o jar volta
+confere que o Testar para antes de abrir o jogo com `app.TEST_GAME_FILES_MISSING` ("Falta 1
+arquivo do Minecraft para abrir o teste e não foi possível baixá-lo: <arquivo>…"); o jar volta
 no fim.
 
 Atrás de um proxy que troca o certificado (como o contêiner da nuvem), o `env -u

@@ -29,4 +29,26 @@ describe('errorMessages', () => {
     const unknown = { domain: 'core', code: 'NAO_EXISTE' } as unknown as ErrorCode;
     expect(errorMessage(unknown)).toBe(errorMessages.app.INTERNAL);
   });
+
+  it('com count, escolhe CÓDIGO_one/CÓDIGO_other; sem as formas, a frase do código', () => {
+    const code: ErrorCode = { domain: 'app', code: 'TEST_GAME_FILES_MISSING' };
+    expect(errorMessage(code, 1)).toBe(errorMessages.app.TEST_GAME_FILES_MISSING_one);
+    expect(errorMessage(code, 3)).toBe(errorMessages.app.TEST_GAME_FILES_MISSING_other);
+    expect(errorMessage(code)).toBe(errorMessages.app.TEST_GAME_FILES_MISSING);
+    const semPlural: ErrorCode = { domain: 'core', code: 'CANCELLED' };
+    expect(errorMessage(semPlural, 2)).toBe('Operação cancelada.');
+  });
+
+  it('cada CÓDIGO_one/CÓDIGO_other tem o par e o código base', () => {
+    for (const byCode of Object.values(errorMessages)) {
+      const keys = Object.keys(byCode);
+      for (const key of keys.filter((k) => /_(one|other)$/.test(k))) {
+        const base = key.replace(/_(one|other)$/, '');
+        expect(keys).toContain(base);
+        expect(keys).toContain(`${base}_one`);
+        expect(keys).toContain(`${base}_other`);
+        expect(byCode[key as keyof typeof byCode]).toContain('{{count}}');
+      }
+    }
+  });
 });

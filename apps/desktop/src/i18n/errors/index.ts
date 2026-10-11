@@ -1,11 +1,14 @@
 /**
  * Frases dos erros por domínio (ARCHITECTURE §5). Cada domínio tem o seu arquivo, tipado como
- * `Record<CódigoDoDomínio, string>`: o TypeScript falha se faltar uma tradução.
+ * `Record<CódigoDoDomínio, string>`: o TypeScript falha se faltar uma tradução. Uma frase com
+ * número pode ter também `CÓDIGO_one`/`CÓDIGO_other`, como no i18next (`pt-BR/exportar.ts`):
+ * com um `count` nos parâmetros, `errorMessage` usa a forma que concorda com ele.
  *
  * Registro acréscimo-apenas (ROADMAP §1): uma linha de import e uma linha em `errorMessages`
  * por domínio.
  */
 import type { ErrorCode } from '../../lib/ipc/bindings';
+import type { ErrorPhrases } from './plural';
 
 import { app } from './app';
 import { core } from './core';
@@ -35,7 +38,7 @@ import { importErrors } from './import';
 import { scripts } from './scripts';
 
 type ErrorMessages = {
-  [Domain in ErrorCode['domain']]: Record<Extract<ErrorCode, { domain: Domain }>['code'], string>;
+  [Domain in ErrorCode['domain']]: ErrorPhrases<Extract<ErrorCode, { domain: Domain }>['code']>;
 };
 
 export const errorMessages: ErrorMessages = {
@@ -67,8 +70,18 @@ export const errorMessages: ErrorMessages = {
   scripts,
 };
 
-/** Frase pt-BR de um código de erro; código desconhecido cai na frase de `app.INTERNAL`. */
-export function errorMessage(code: ErrorCode): string {
+const pluralRules = new Intl.PluralRules('pt-BR');
+
+/**
+ * Frase pt-BR de um código de erro; código desconhecido cai na frase de `app.INTERNAL`. Com
+ * `count`, usa `CÓDIGO_one`/`CÓDIGO_other` quando o domínio os tem (a mesma regra de plural do
+ * i18next); sem eles, a frase do código.
+ */
+export function errorMessage(code: ErrorCode, count?: number): string {
   const byCode: Partial<Record<string, string>> = errorMessages[code.domain];
-  return byCode[code.code] ?? errorMessages.app.INTERNAL;
+  const plural =
+    count === undefined
+      ? undefined
+      : (byCode[`${code.code}_${pluralRules.select(count)}`] ?? byCode[`${code.code}_other`]);
+  return plural ?? byCode[code.code] ?? errorMessages.app.INTERNAL;
 }
