@@ -417,10 +417,10 @@ fn add_sources(modrinth: &MockServer, curseforge: &MockServer) -> AddSources {
         ))))
 }
 
-fn choice(source: SourceId, project: impl ToString) -> AddChoice {
+fn choice(source: SourceId, project: impl std::fmt::Display) -> AddChoice {
     AddChoice {
         source,
-        project_id: project.to_string(),
+        project_id: format!("{project}"),
         version_id: None,
     }
 }
