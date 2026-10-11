@@ -6,8 +6,10 @@
  * apontam o app para `WARDEN_E2E_MOCK_URL`.
  */
 import { readFile } from 'node:fs/promises';
-import { createServer, type Server } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { extname, join, normalize, sep } from 'node:path';
+
+import { curseforgeReply } from './curseforge';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
 
@@ -23,7 +25,7 @@ const TYPES: Record<string, string> = {
 export interface MockServer {
   /** `http://127.0.0.1:<porta>`. */
   url: string;
-  /** Caminhos pedidos, na ordem. */
+  /** Caminhos pedidos, na ordem. Os testes (outro processo) leem pelo `GET /__requests`. */
   requests: string[];
   close: () => Promise<void>;
 }
@@ -101,11 +103,44 @@ export function fixturePath(urlPath: string): string | null {
   return resolved.startsWith(FIXTURES + sep) ? resolved : null;
 }
 
+/** A CurseForge simulada (P1-10): respostas montadas em `curseforge.ts`, nada em disco. */
+function serveCurseforge(request: IncomingMessage, response: ServerResponse, path: string): void {
+  const chunks: Buffer[] = [];
+  request.on('data', (chunk: Buffer) => chunks.push(chunk));
+  request.on('end', () => {
+    const route = (path.split('?')[0] ?? '').slice('/curseforge/'.length);
+    const key = request.headers['x-api-key'];
+    const reply = curseforgeReply(
+      request.method ?? 'GET',
+      route,
+      Array.isArray(key) ? key[0] : key,
+      Buffer.concat(chunks).toString('utf8'),
+    );
+    response
+      .writeHead(reply?.status ?? 404, { 'content-type': 'application/json; charset=utf-8' })
+      .end(JSON.stringify(reply?.body ?? {}));
+  });
+}
+
 export async function startMockServer(): Promise<MockServer> {
   const requests: string[] = [];
   const server: Server = createServer((request, response) => {
     const path = request.url ?? '/';
+    // Os testes rodam em outro processo: veem o registro (e o zeram) por aqui.
+    if (path === '/__requests') {
+      response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(requests));
+      return;
+    }
+    if (path === '/__reset') {
+      requests.length = 0;
+      response.writeHead(204).end();
+      return;
+    }
     requests.push(`${request.method ?? 'GET'} ${path}`);
+    if (path.startsWith('/curseforge/')) {
+      serveCurseforge(request, response, path);
+      return;
+    }
     const file = fixturePath(path);
     if (!file) {
       response.writeHead(400).end();
