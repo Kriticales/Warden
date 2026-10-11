@@ -26,18 +26,21 @@ uma pasta de testes isolada. Os diretórios do usuário e o cofre real não são
 usados. Os tempos de pronto e mundo começam na abertura do cliente, mesmo nas
 faixas com servidor local.
 
-Nas faixas com `--server`, o cliente conecta enquanto recarrega os recursos:
-"Connecting to" sai junto de "Reloading ResourceManager". "Pronto" é o fim dessa
-recarga (som e atlas de blocos); "mundo" é o primeiro "logged in with entity id",
-do cliente ou do servidor. Por isso "mundo" pode sair antes de "pronto": no
-fabric-1.18.2 o servidor aceitou o login cerca de 5 s antes de o cliente criar o
-atlas, e o cliente 1.18 aguarda a recarga antes de desenhar os chunks. O cliente
-Fabric 1.16.5 não aguarda: com o Mesa por software, os chunks chegam com o
-gerenciador de modelos vazio e o jogo trava com `NullPointerException` ao desenhar
-o primeiro bloco. Só nessa combinação, um proxy local do teste segura a conexão
-até o marcador de pronto do cliente, com prazo de 25 s (abaixo dos 30 s em que o
-cliente desiste do login); sem o marcador, o proxy registra o motivo e repassa a
-conexão, para a falha real aparecer.
+Nas faixas com `--server`, o Fabric 1.16.5 e o 1.18.2 conectam enquanto o
+cliente recarrega os recursos: "Connecting to" sai junto de "Reloading
+ResourceManager". O servidor aceita o login e manda chunks antes do fim da
+recarga; foi isso que fez "mundo" (24 s) sair antes de "pronto" (37 s) no
+fabric-1.18.2 do run 13. Com o Mesa por software a recarga leva segundos, e o
+cliente pode travar ao desenhar com modelos (1.16.5) ou shaders (1.18.2) ainda
+nulos (`NullPointerException`; o relatório de crash diz `Finished: No` na última
+recarga). Forge e Fabric 1.19.2 só conectam depois da recarga. Por isso, nas
+faixas com `--server` a partir de 1.16.5, um proxy local do teste segura a
+conexão até o fim da recarga do cliente: o atlas `mob_effects.png-atlas`, o
+último que o vanilla cria, pois aplica as etapas da recarga na ordem de registro.
+Quando o marcador já saiu, a conexão passa direto. O prazo é de 25 s, abaixo dos
+30 s em que o cliente desiste do login; sem o marcador, o proxy registra o motivo
+e repassa a conexão, para a falha real aparecer. Com isso, "mundo" sempre vem
+depois de "pronto" nessas faixas.
 
 O workflow `.github/workflows/smoke-game.yml` é **somente manual**. Quatro
 runners Linux executam cinco combinações cada, em série, com Xvfb e Mesa.

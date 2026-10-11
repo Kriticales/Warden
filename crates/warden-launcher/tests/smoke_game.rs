@@ -200,13 +200,14 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     }
     pack_script(&["verify", combo.name, game_dir.to_str().unwrap()]).await;
     let port = free_port();
-    // No Fabric 1.16.5, `--server` conecta antes de o cliente recarregar os recursos
-    // ("Connecting to" sai antes de "Reloading ResourceManager"). Com o Mesa por
-    // software a recarga leva segundos; os chunks chegam com o gerenciador de modelos
-    // vazio, o cliente lança NullPointerException e trava ao desenhar o primeiro bloco
-    // (run 11 do smoke-game, 07/10/2026). Um proxy local segura a conexão até o
-    // marcador de pronto do cliente (som + atlas de blocos), que é o fim dessa recarga.
-    let proxy = if combo.name == "fabric-1.16.5" {
+    // No Fabric 1.16.5 e 1.18.2, `--server` conecta enquanto o cliente ainda recarrega
+    // os recursos ("Connecting to" sai junto de "Reloading ResourceManager"). Com o Mesa
+    // por software a recarga leva segundos; os chunks chegam antes e o cliente trava ao
+    // desenhar com modelos (1.16.5, run 11) ou shaders (1.18.2, run 14) ainda nulos. Um
+    // proxy local segura a conexão até o fim da recarga (`Progress::reloaded_ms`). Forge
+    // e Fabric 1.19.2 já conectam depois desse marcador e passam direto; 1.7.10 e 1.12.2
+    // não têm o marcador e conectam direto no servidor.
+    let proxy = if !modern(combo.minecraft) && !matches!(combo.minecraft, "1.7.10" | "1.12.2") {
         Some(TcpListener::bind("127.0.0.1:0").await.unwrap())
     } else {
         None
@@ -340,8 +341,8 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
         server = Some(running);
         server_events = Some(events);
     }
-    let (ready_signal, ready_wait) = oneshot::channel::<()>();
-    let mut ready_signal = proxy.is_some().then_some(ready_signal);
+    let (reloaded_signal, reloaded_wait) = oneshot::channel::<()>();
+    let mut reloaded_signal = proxy.is_some().then_some(reloaded_signal);
     let proxy_task = proxy.map(|listener| {
         let name = combo.name;
         tokio::spawn(async move {
@@ -350,15 +351,15 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
             // O cliente desiste do login após 30 s sem resposta (ReadTimeoutHandler);
             // o prazo fica abaixo disso. Sem o marcador, repassa assim mesmo para a
             // falha real aparecer no log em vez de virar um timeout do proxy.
-            match tokio::time::timeout(Duration::from_secs(25), ready_wait).await {
+            match tokio::time::timeout(Duration::from_secs(25), reloaded_wait).await {
                 Ok(Ok(())) => eprintln!(
-                    "{name}: conexão liberada ao ficar pronto, após {} ms",
+                    "{name}: conexão liberada no fim da recarga, após {} ms",
                     held.elapsed().as_millis()
                 ),
                 // O laço do cliente terminou sem o marcador; o teste já registra o motivo.
                 Ok(Err(_)) => return,
                 Err(_) => eprintln!(
-                    "{name}: cliente não ficou pronto em 25 s com a conexão aberta; repassando sem esperar mais"
+                    "{name}: recarga não terminou em 25 s com a conexão aberta; repassando sem esperar mais"
                 ),
             }
             let mut server = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
@@ -393,8 +394,8 @@ async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
                 event = client_events.recv() => match event {
                     Some(GameEvent::Line(line)) => {
                         progress.observe(combo.minecraft, combo.loader, &line, false);
-                        if progress.ready_ms.is_some()
-                            && let Some(signal) = ready_signal.take()
+                        if progress.reloaded_ms.is_some()
+                            && let Some(signal) = reloaded_signal.take()
                         {
                             let _ = signal.send(());
                         }

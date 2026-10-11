@@ -40,6 +40,28 @@ fn as_vinte_combinacoes_chegam_ao_menu_e_ao_mundo() {
 }
 
 #[test]
+fn recarga_termina_no_atlas_dos_efeitos_e_so_no_cliente() {
+    let log = "Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas\n\
+               Sound engine started\n\
+               Created: 256x256x0 minecraft:textures/atlas/particles.png-atlas\n\
+               Created: 256x128x0 minecraft:textures/atlas/mob_effects.png-atlas\n";
+    let lines = parse_fixture(log);
+    let mut server = Progress::default();
+    for line in &lines {
+        server.observe("1.18.2", "fabric", line, true);
+    }
+    assert!(server.reloaded_ms.is_none(), "{server:?}");
+    let mut client = Progress::default();
+    for line in &lines[..3] {
+        client.observe("1.18.2", "fabric", line, false);
+    }
+    // Pronto (som + atlas de blocos) chega antes do fim da recarga.
+    assert!(client.ready_ms.is_some() && client.reloaded_ms.is_none());
+    client.observe("1.18.2", "fabric", &lines[3], false);
+    assert_eq!(client.reloaded_ms, Some(lines[3].elapsed_ms));
+}
+
+#[test]
 fn atlas_vazio_e_falso_crash_do_forge_1_7_10_nao_antecipam_pronto() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/matrix/mecanismos");
     let log = read(&root, "forge-1.7.10-falso-crash-report-splash.log");
