@@ -180,7 +180,13 @@ fn spawn_test(
     (task, seen)
 }
 
-/// Espera o jogo abrir (e a primeira linha chegar).
+/// Espera o jogo simulado (modo `filhos`) abrir e avisar no console que os filhos já estão
+/// abertos ("pai <pid> abriu N filhos").
+///
+/// Espera essa linha, e não "uma linha qualquer depois de `console.abrindo`": a JVM pode
+/// escrever antes do programa (com `JAVA_TOOL_OPTIONS` definida, sai no stderr a linha
+/// `Picked up JAVA_TOOL_OPTIONS: …`), e aí o teste pararia o jogo antes de os filhos
+/// existirem e de a linha deles chegar.
 async fn wait_running(state: &AppState, seen: &Seen) {
     let deadline = Instant::now() + Duration::from_secs(30);
     loop {
@@ -188,7 +194,11 @@ async fn wait_running(state: &AppState, seen: &Seen) {
             .tests
             .current()
             .is_some_and(|game| game.state == GamePhase::Running);
-        if running && seen.console_texts().len() > 1 {
+        let children_open = seen
+            .console_texts()
+            .iter()
+            .any(|text| text.starts_with("pai ") && text.contains(" filhos"));
+        if running && children_open {
             return;
         }
         assert!(
