@@ -8,7 +8,8 @@
  * "Já no pack".
  *
  * O início com populares, atualizados e categorias (campo vazio) é da P1-16; aqui o campo vazio
- * mostra a busca sem texto, já filtrada para o pack. Link colado no campo é da P1-11.
+ * mostra a busca sem texto, já filtrada para o pack. Link da CurseForge colado no campo (P1-10)
+ * é lido pelo backend no lugar da busca; os outros links e arquivos são da P1-11.
  */
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FilePlus, Plus, RefreshCw, Search } from 'lucide-react';
@@ -26,6 +27,7 @@ import { Tooltip } from '../../components/ui/tooltip';
 import { cn } from '../../lib/cn';
 import type {
   AddResult,
+  LinkTarget,
   PackId,
   ProjectKind,
   SearchResult,
@@ -39,6 +41,8 @@ import { isInPack, knownSources, mergePages, pageWarnings, sourceLabel } from '.
 import { Preview } from './common/Preview';
 import { ResultRow } from './common/ResultRow';
 import { type PackTarget, useTargetText } from './common/text';
+import { parseCurseforgeLink, resultOfLink } from './curseforge/link';
+import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
 import { preferredRef } from './modrinth/source';
 import './common/add.css';
@@ -72,7 +76,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const pack = usePack(packId);
   const inventory = useInventory(packId);
   const [text, setText] = useState('');
-  const query = useDebounced(text.trim(), TYPING_DELAY_MS);
+  // Um link da CurseForge não é um nome para buscar: o backend lê o link (P1-10).
+  const linkUrl = parseCurseforgeLink(text) === null ? null : text.trim();
+  const query = useDebounced(linkUrl === null ? text.trim() : '', TYPING_DELAY_MS);
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
   const search = useSearch(packId, { query, kind, ...filters });
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
@@ -117,7 +123,21 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     setRequest(null);
   };
 
-  const loading = search.isPending || (search.isFetching && !search.isFetchingNextPage);
+  const onLinkProject = (found: LinkTarget) => {
+    if (found.kind !== kind) onKindChange(found.kind);
+    setSelected(new Map());
+    setCurrent(resultOfLink(found));
+  };
+
+  const onLinkFile = (found: LinkTarget) => {
+    setRequest({
+      choices: [{ source: 'curseforge', projectId: found.projectId, versionId: found.fileId }],
+      titles: [found.title],
+    });
+  };
+
+  const loading =
+    linkUrl === null && (search.isPending || (search.isFetching && !search.isFetchingNextPage));
 
   return (
     <div className="add-page">
@@ -220,7 +240,15 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
       <div className="disc">
         <FiltersColumn target={target} filters={filters} onChange={setFilters} sources={sources} />
         <div className="disc__main">
-          {search.isPending ? (
+          {linkUrl !== null ? (
+            <CurseforgeLinkPanel
+              key={linkUrl}
+              packId={packId}
+              url={linkUrl}
+              onProject={onLinkProject}
+              onFile={onLinkFile}
+            />
+          ) : search.isPending ? (
             <ResultsSkeleton />
           ) : search.isError ? (
             <ErrorPanel

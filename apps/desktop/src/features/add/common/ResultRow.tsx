@@ -3,7 +3,7 @@
  * seleção (sem caixa quando já está no pack; desabilitada sem versão para o pack), ícone, nome
  * que abre a pré-visualização, autor, resumo, fonte, downloads, atualização e as marcas.
  */
-import { CircleMinus, Download } from 'lucide-react';
+import { CircleMinus } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +11,7 @@ import { NameTile } from '../../../components/common/PixelArt';
 import { Icon } from '../../../components/ui/icon';
 import { cn } from '../../../lib/cn';
 import type { SearchResult } from '../../../lib/ipc/bindings';
+import { ManualDownloadTag } from '../curseforge/ManualDownloadNotice';
 import { formatCount } from './model';
 import { InPackTag, SourceMark, useAgoText } from './text';
 
@@ -115,10 +116,7 @@ export const ResultRow = memo(function ResultRow({
             {t('resultado.semVersao')}
           </span>
         ) : result.manualDownload ? (
-          <span className="tag tag--warn" title={t('resultado.downloadManualDica')}>
-            <Icon icon={Download} />
-            {t('resultado.downloadManual')}
-          </span>
+          <ManualDownloadTag />
         ) : null}
       </span>
     </li>
