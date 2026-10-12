@@ -121,6 +121,28 @@ describe('bloco Dependências dos detalhes (D-07)', () => {
     expect(drawer.textContent).not.toContain('Se você remover');
   });
 
+  it('quem declara o item incompatível não aparece em "Usado por"', async () => {
+    const { drawer } = await openDrawer(
+      LIB,
+      {
+        ...emptyReport,
+        usedBy: [
+          {
+            item: node('Rival'),
+            kind: 'breaks',
+            range: null,
+            id: 'lib',
+            embedded: false,
+            note: null,
+          },
+        ],
+      },
+      { item: node('Lib'), why: { kind: 'noDependents' }, cycle: [] },
+    );
+    expect(await within(drawer).findByText('Nenhum mod do pack')).toBeDefined();
+    expect(drawer.textContent).not.toContain('Rival');
+  });
+
   it('biblioteca sem uso diz que pode ser removida (CA-T06-06)', async () => {
     const { drawer } = await openDrawer(LIB, emptyReport, {
       item: node('Lib'),

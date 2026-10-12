@@ -32,7 +32,6 @@ export const grafo = {
   fornecidoPorEmbutido: 'dentro de {{nome}}',
   fornecidoComoAlias: 'como {{id}}',
   dentroDesteMod: 'dentro deste mod',
-  versoes: 'versões {{faixa}}',
   porque: {
     voce: 'Você adicionou',
     voceEm: 'Você adicionou em {{data}}',
@@ -47,8 +46,6 @@ export const grafo = {
   },
   afetados_one: '{{count}} mod para de funcionar: {{nomes}}',
   afetados_other: '{{count}} mods param de funcionar: {{nomes}}',
-  nenhumAfetado: 'Nenhum outro item para de funcionar.',
-  erro: 'Não foi possível ler as dependências deste item',
 } as const;
 
 // Registro do namespace (veja ../catalogo.ts).

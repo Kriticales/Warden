@@ -126,12 +126,14 @@ function DependsOnList({ report }: { report: DependentsReport }) {
 
 function UsedByList({ report }: { report: DependentsReport }) {
   const { t } = useTranslation('grafo');
-  if (report.usedBy.length === 0) {
+  // "Usado por" são os itens que dependem deste; quem o declara incompatível não o usa.
+  const users = report.usedBy.filter((use) => !isIncompatible(use.kind));
+  if (users.length === 0) {
     return <span className="t-3">{t('nenhumModUsa')}</span>;
   }
   return (
     <ul className="stack-2">
-      {report.usedBy.map((use) => (
+      {users.map((use) => (
         <li key={`${use.item.path}:${use.kind}:${use.id}`}>
           <span>{use.item.name}</span> <span className="t-3">· {t(`tipo.${use.kind}`)}</span>
           {use.embedded ? <span className="t-3"> · {t('dentroDesteMod')}</span> : null}
