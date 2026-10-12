@@ -30,7 +30,6 @@ export const adicionarArquivo = {
   },
   arquivo: {
     escolher: 'Escolher arquivo do computador…',
-    escolhendo: 'Esperando a escolha dos arquivos…',
     lista: 'Arquivos para adicionar',
     voltar: 'Voltar para a busca',
     lendo_one: 'Lendo {{count}} arquivo e procurando no Modrinth e na CurseForge…',
@@ -39,13 +38,10 @@ export const adicionarArquivo = {
     ignorados_one: '{{count}} item não é .jar nem .zip e ficou de fora.',
     ignorados_other: '{{count}} itens não são .jar nem .zip e ficaram de fora.',
     nenhum: 'Nenhum arquivo .jar ou .zip foi escolhido.',
-    tamanho: '{{size}}',
     doLink: 'Baixado de {{host}}',
-    modVersao: '{{name}} {{version}}',
     loaders: 'Para {{loaders}}',
     minecraft: 'Minecraft {{range}}',
     tipo: 'Tipo',
-    tipoPergunta: 'Que tipo de arquivo é este?',
     tipoOpcoes: {
       mod: 'Mod',
       resourcePack: 'Resource pack',
@@ -107,9 +103,6 @@ export const adicionarArquivo = {
     badName: 'O nome do arquivo {{name}} não pode ser usado no pack. Renomeie o arquivo.',
     notFile: '{{name}} não é um arquivo.',
     expired: 'O arquivo escolhido expirou. Escolha o arquivo de novo.',
-  },
-  soltar: {
-    paraAdicionar: 'Arquivos soltos aqui entram em “Adicionar arquivo local”.',
   },
 } as const;
 
