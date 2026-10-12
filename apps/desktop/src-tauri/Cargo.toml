@@ -84,6 +84,7 @@ warden-secrets = { workspace = true, features = ["fault-injection"] }
 # Servidor HTTP mínimo dos testes do Testar (sem internet de verdade: a porta fecha).
 tokio = { workspace = true, features = ["io-util", "net"] }
 wiremock.workspace = true
+zip.workspace = true
 
 [lints]
 workspace = true
