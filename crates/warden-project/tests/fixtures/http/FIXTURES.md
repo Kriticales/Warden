@@ -38,3 +38,15 @@ Gravadas em 07/10/2026, do mesmo jeito (sem alteração, `include_changelog=fals
 
 A CurseForge não tem respostas gravadas aqui: os itens dela (spark 1.10.19 e 1.6.3) só aparecem
 desabilitados na oferta enquanto a fonte não estiver ligada (CA-T03-08).
+
+## Adicionar por link e arquivo local (P1-11, `tests/add_local.rs`)
+
+Gravada em 12/10/2026, do mesmo jeito (sem alteração):
+
+| Arquivo | Pedido |
+|---|---|
+| `2026-10-12-version_files-sha512-sodium.json` | `POST /version_files` com `{"hashes":["8614a374…" (sha512 do arquivo de `SMxNOGZ6`, Sodium 0.8.13 para Fabric 1.21.1), "0000…0000"],"algorithm":"sha512"}` (o hash zerado não volta) |
+
+Os jars dos testes são sintéticos (os de terceiros não são versionados): para "o jar é o Sodium",
+o `/version_files` simulado devolve a versão gravada do Sodium para o hash do jar sintético, e o
+teste com esta resposta usa o sha512 real do arquivo. O teste `rede_*` baixa o jar real.

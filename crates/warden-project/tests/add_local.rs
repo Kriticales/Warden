@@ -651,6 +651,65 @@ async fn ca_t08_04_jar_identificado_vira_referencia() {
     assert_conforming(&root, &cli).await;
 }
 
+/// A resposta real gravada do `/version_files` (sha512 do arquivo do Sodium `SMxNOGZ6`) é
+/// entendida: o arquivo com esse hash é o Sodium do Modrinth, compatível com Fabric 1.21.1.
+#[tokio::test]
+async fn resposta_gravada_do_version_files_por_sha512() {
+    let recorded: Value = serde_json::from_str(
+        &fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures/http/2026-10-12-version_files-sha512-sodium.json"),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let version = modrinth_fixture(&format!("version-{SODIUM_VERSION}"));
+    let sha512 = version["files"][0]["hashes"]["sha512"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v2/version_files"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(recorded))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/v2/projects"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(modrinth_fixture("projects-3")))
+        .mount(&server)
+        .await;
+    let facts = FileFacts {
+        file_name: "sodium-fabric-0.8.13+mc1.21.1.jar".into(),
+        size: 1,
+        sha1: String::new(),
+        sha256: String::new(),
+        sha512,
+        murmur2: 0,
+    };
+    let mut manifest = PackManifest::new("Teste", "1.21.1");
+    manifest.set_loader_version(Loader::Fabric, "0.16.5");
+    let identified = identify(
+        HashLookup {
+            modrinth: Some(&modrinth_client(&server)),
+            curseforge: None,
+        },
+        &[facts],
+        &PackTarget::from_manifest(&manifest).unwrap(),
+        &CancellationToken::new(),
+    )
+    .await;
+    let [found] = identified.matches[0].as_slice() else {
+        panic!("{identified:?}");
+    };
+    assert_eq!(
+        (found.project_id.as_str(), found.version_id.as_str()),
+        (SODIUM, SODIUM_VERSION)
+    );
+    assert_eq!(found.title, "Sodium");
+    assert!(found.compatible);
+}
+
 /// Com a chave, a CurseForge também é consultada pela impressão digital; sem ela, nenhuma
 /// requisição vai para a CurseForge. Fonte fora do ar não é erro: fica em `failed`.
 #[tokio::test]
