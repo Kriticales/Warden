@@ -67,6 +67,11 @@ export const tarefas = {
     },
     add: {
       apply: 'Adicionar ao pack',
+      // P1-11: link do Modrinth, link direto e arquivo do computador.
+      modrinthLink: 'Ler o link do Modrinth',
+      directLink: 'Baixar o link',
+      localInspect: 'Ler arquivos do computador',
+      localApply: 'Adicionar arquivos ao pack',
     },
     versioning: {
       save: 'Salvar versão',

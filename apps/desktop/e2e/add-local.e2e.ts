@@ -136,7 +136,7 @@ async function typeInField(text: string): Promise<void> {
   const field = $('input[type="search"]');
   await field.waitForDisplayed();
   await field.clearValue();
-  await field.setValue(text);
+  if (text !== '') await field.setValue(text);
 }
 
 async function openPack(folder: string, title: string): Promise<void> {
