@@ -110,4 +110,3 @@ describe('detalhes do item (details/blocks.ts)', () => {
     ]);
   });
 });
-});
