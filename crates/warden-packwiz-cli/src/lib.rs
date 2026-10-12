@@ -27,7 +27,8 @@ mod runner;
 mod staging;
 
 pub use command::{
-    CURSEFORGE_KEY_ENV, ExportSide, INHERITED_ENV, Invocation, PackwizCommand, Stdin, Timeouts,
+    CURSEFORGE_API_ENV, CURSEFORGE_KEY_ENV, ExportSide, INHERITED_ENV, Invocation, PackwizCommand,
+    Stdin, Timeouts,
 };
 pub use conformance::{
     ConformanceReport, Difference, check_conformance, file_differences, index_differences,
