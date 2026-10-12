@@ -34,6 +34,7 @@ import {
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
+import { Key } from 'webdriverio';
 
 import { seriousViolationSummaries } from './axe';
 import { DIRECT_LINK, directJar, fabricJar, sodiumJar } from './mock-server/jars';
@@ -132,11 +133,20 @@ async function waitToast(text: string): Promise<void> {
 }
 
 /** Troca o texto do campo único (o WebDriver digita letra a letra). */
+/**
+ * Troca o texto do campo único. O `clearValue` do WebDriver não dispara o evento `input` que o
+ * React ouve (o campo voltaria com o texto antigo): o texto sai como o usuário o apaga.
+ */
 async function typeInField(text: string): Promise<void> {
   const field = $('input[type="search"]');
   await field.waitForDisplayed();
-  await field.clearValue();
-  if (text !== '') await field.setValue(text);
+  await field.click();
+  await browser.keys([Key.Ctrl, 'a']);
+  await browser.keys(Key.Backspace);
+  await browser.waitUntil(async () => (await field.getValue()) === '', {
+    timeoutMsg: 'o campo único não ficou vazio',
+  });
+  if (text !== '') await field.addValue(text);
 }
 
 async function openPack(folder: string, title: string): Promise<void> {
