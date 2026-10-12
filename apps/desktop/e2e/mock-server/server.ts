@@ -108,7 +108,7 @@ function serveCurseforge(request: IncomingMessage, response: ServerResponse, pat
   const chunks: Buffer[] = [];
   request.on('data', (chunk: Buffer) => chunks.push(chunk));
   request.on('end', () => {
-    const route = (path.split('?')[0] ?? '').slice('/curseforge/'.length);
+    const route = path.slice('/curseforge/'.length);
     const key = request.headers['x-api-key'];
     const reply = curseforgeReply(
       request.method ?? 'GET',

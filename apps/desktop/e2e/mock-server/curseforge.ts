@@ -127,8 +127,8 @@ function ids(body: string, field: string): number[] {
 }
 
 /**
- * Responde a uma requisição à CurseForge simulada. `path` é o caminho depois de `/curseforge/`
- * (por exemplo `mods/search`). Devolve `null` para o que não existe.
+ * Responde a uma requisição à CurseForge simulada. `path` é o caminho depois de `/curseforge/`,
+ * com a consulta (por exemplo `mods/search?slug=jei`). Devolve `null` para o que não existe.
  */
 export function curseforgeReply(
   method: string,
@@ -138,8 +138,15 @@ export function curseforgeReply(
 ): Reply | null {
   if (key === CHAVE_COM_ERRO) return { status: 500, body: { error: 'simulado' } };
   if (!key || key === CHAVE_RECUSADA) return { status: 403, body: {} };
-  const route = path.replace(/^\/+|\/+$/g, '');
-  if (method === 'GET' && route === 'mods/search') return { status: 200, body: paged(PROJECTS) };
+  const url = new URL(path, 'http://curseforge.invalid/');
+  const route = url.pathname.replace(/^\/+|\/+$/g, '');
+  if (method === 'GET' && route === 'mods/search') {
+    // Pelo slug (link de projeto), como a API: só o projeto daquele slug, inclusive o do link.
+    const slug = url.searchParams.get('slug');
+    if (slug !== null)
+      return { status: 200, body: paged(ALL_PROJECTS.filter((p) => p.slug === slug)) };
+    return { status: 200, body: paged(PROJECTS) };
+  }
   if (method === 'POST' && route === 'mods') {
     const wanted = ids(body, 'modIds');
     return { status: 200, body: { data: ALL_PROJECTS.filter((p) => wanted.includes(p.id)) } };

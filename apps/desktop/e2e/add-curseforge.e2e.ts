@@ -337,7 +337,12 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
       timeout: 30_000,
       timeoutMsg: 'o seletor de versão não apareceu',
     });
+    // Um link lido por vez: digitar o link não lê cada pedaço dele.
+    expect(
+      (await curseforgeRequests()).filter((request) => request.includes('slug=')),
+    ).toHaveLength(1);
     await screenshot('06-link-de-projeto');
+    await dismissToasts();
     await preview.$('button=Adicionar ao pack').click();
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed({ timeout: 60_000 });
