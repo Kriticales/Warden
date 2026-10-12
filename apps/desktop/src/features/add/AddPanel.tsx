@@ -187,8 +187,14 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     setAdded((count) => count + result.added.length);
   };
 
+  // A lista de arquivos ocupa o lugar dos resultados: a pré-visualização aberta fecha.
+  const openLocal = (files: LocalFilesDropped) => {
+    setCurrent(null);
+    setLocal(files);
+  };
+
   useDroppedFiles((dropped) => {
-    if (dropped.files.length > 0 || dropped.ignored > 0) setLocal(dropped);
+    if (dropped.files.length > 0 || dropped.ignored > 0) openLocal(dropped);
   });
 
   const loading =
@@ -271,7 +277,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
           onClick={() => {
             chooseFiles.mutate(undefined, {
               onSuccess: (files) => {
-                if (files.length > 0) setLocal({ files, ignored: 0 });
+                if (files.length > 0) openLocal({ files, ignored: 0 });
               },
             });
           }}

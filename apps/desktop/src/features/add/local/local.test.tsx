@@ -357,6 +357,36 @@ describe('links colados no campo único', () => {
     ).toBe(true);
   });
 
+  it('arquivos soltos fecham a pré-visualização aberta', async () => {
+    const target: ModrinthLinkTarget = {
+      projectId: 'AANobbMI',
+      title: 'Sodium',
+      kind: 'mod',
+      versionId: null,
+    };
+    const { url, backend } = setup(FABRIC, {
+      add_link_modrinth: () => target,
+      add_local_inspect: () => inspected('D1', report()),
+    });
+    await openAdd(url);
+    await paste('https://modrinth.com/mod/sodium');
+    await waitFor(
+      () => {
+        expect(backend.callsOf('project_details')).not.toHaveLength(0);
+      },
+      { timeout: 10_000 },
+    );
+    expect(screen.queryByText(/Escolha um resultado/)).toBeNull();
+    await backend.emit('local-files-dropped', {
+      files: [{ token: 'D1', fileName: 'sodium.jar' }],
+      ignored: 0,
+    });
+    expect(
+      await screen.findByRole('list', { name: 'Arquivos para adicionar' }, { timeout: 10_000 }),
+    ).toBeDefined();
+    expect(screen.getByText(/Escolha um resultado/)).toBeDefined();
+  });
+
   it('link de versão do Modrinth abre o diálogo com aquela versão', async () => {
     const target: ModrinthLinkTarget = {
       projectId: 'AANobbMI',
