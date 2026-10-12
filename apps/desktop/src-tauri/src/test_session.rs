@@ -129,6 +129,9 @@ pub(crate) struct TestSessions {
     fake: Option<FakeGame>,
     #[cfg(test)]
     launch_tweak: Option<LaunchTweak>,
+    /// Endereço da CurseForge simulada (testes dos downloads manuais, L-06).
+    #[cfg(test)]
+    pub(crate) curseforge_base: Option<String>,
 }
 
 /// Ajuste da abertura, só nos testes: o roteiro com o jogo real entra no mundo como a matriz
@@ -175,6 +178,8 @@ impl TestSessions {
             fake,
             #[cfg(test)]
             launch_tweak: None,
+            #[cfg(test)]
+            curseforge_base: None,
         }
     }
 
@@ -182,6 +187,13 @@ impl TestSessions {
     #[cfg(test)]
     pub(crate) fn with_launch_tweak(mut self, tweak: LaunchTweak) -> Self {
         self.launch_tweak = Some(tweak);
+        self
+    }
+
+    /// O mesmo, com a CurseForge simulada (testes).
+    #[cfg(test)]
+    pub(crate) fn with_curseforge_base(mut self, base: String) -> Self {
+        self.curseforge_base = Some(base);
         self
     }
 
@@ -513,9 +525,10 @@ impl Runner<'_> {
         })
     }
 
-    /// Passo 3: copia o pack para a instância de teste.
+    /// Passo 3: copia o pack para a instância de teste. Mods da CurseForge bloqueados para
+    /// apps de terceiros abrem os downloads manuais (T20; `commands::cf_blocked`, L-06): o
+    /// teste espera todos chegarem ao cache de downloads e copia de novo, sozinho.
     async fn sync_instance(&self, pack_root: &Path, dirs: &InstanceDirs) -> Result<(), AppError> {
-        let _read = self.state.locks.read_for(self.pack_id, self.handle).await;
         let sources = materialize_sources(self.state)?;
         let options = MaterializeOptions {
             on_modified: if self.request.replace_instance_changes {
@@ -525,11 +538,47 @@ impl Runner<'_> {
             },
             ..MaterializeOptions::default()
         };
+        loop {
+            let report = self
+                .materialize_once(&sources, pack_root, dirs, &options)
+                .await?;
+            if report.blocked.is_empty() {
+                tracing::info!(
+                    written = report.written,
+                    downloaded = report.downloaded,
+                    removed = report.removed,
+                    unchanged = report.unchanged,
+                    "instância de teste sincronizada"
+                );
+                return Ok(());
+            }
+            // A trava do pack fica livre durante a espera (a pessoa pode demorar).
+            self.state
+                .manual_downloads
+                .wait(
+                    self.pack_id,
+                    report.blocked,
+                    Arc::clone(&sources.cache),
+                    self.handle,
+                )
+                .await?;
+        }
+    }
+
+    /// Uma materialização com a trava de leitura do pack.
+    async fn materialize_once(
+        &self,
+        sources: &Sources,
+        pack_root: &Path,
+        dirs: &InstanceDirs,
+        options: &MaterializeOptions,
+    ) -> Result<warden_instance::Report, AppError> {
+        let _read = self.state.locks.read_for(self.pack_id, self.handle).await;
         let outcome = warden_instance::materialize(
-            &sources,
+            sources,
             pack_root,
             dirs,
-            &options,
+            options,
             self.handle,
             self.handle.token(),
         )
@@ -551,24 +600,7 @@ impl Runner<'_> {
         if let Some(error) = report.incomplete_error() {
             return Err(AppError::from_domain(&error));
         }
-        if !report.blocked.is_empty() {
-            let names: Vec<&str> = report
-                .blocked
-                .iter()
-                .map(|file| file.name.as_str())
-                .collect();
-            return Err(AppError::new(AppErrorCode::TestManualDownloads)
-                .with_param("count", names.len().to_string())
-                .with_param("names", names.join(", ")));
-        }
-        tracing::info!(
-            written = report.written,
-            downloaded = report.downloaded,
-            removed = report.removed,
-            unchanged = report.unchanged,
-            "instância de teste sincronizada"
-        );
-        Ok(())
+        Ok(report)
     }
 
     /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste.
@@ -968,6 +1000,15 @@ fn materialize_sources(state: &AppState) -> Result<Sources, AppError> {
     .map_err(|error| AppError::from_domain(&error))?;
     let key = state.secrets.get(warden_secrets::SecretKind::Curseforge)?;
     let curseforge = match key {
+        #[cfg(test)]
+        Some(key) if state.tests.curseforge_base.is_some() => Some(
+            warden_curseforge::CurseforgeClient::with_base_url(
+                http.clone(),
+                state.tests.curseforge_base.as_deref().unwrap_or_default(),
+                Some(key),
+            )
+            .map_err(|error| AppError::from_domain(&error))?,
+        ),
         Some(key) => Some(
             warden_curseforge::CurseforgeClient::new(http.clone(), Some(key))
                 .map_err(|error| AppError::from_domain(&error))?,

@@ -280,6 +280,11 @@ pub enum AppErrorCode {
     /// falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
     /// nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
     TestGameFilesMissing,
+    /// O download manual pedido não está mais na lista (o teste foi cancelado ou já
+    /// continuou; L-06).
+    ManualDownloadNotWaiting,
+    /// O mod bloqueado não tem a página de download conhecida (L-06).
+    ManualDownloadNoPage,
 }
 
 #[cfg(test)]

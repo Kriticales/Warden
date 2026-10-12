@@ -104,6 +104,31 @@ export const commands = {
 	 *  a pré-selecionada. Lista vazia: o loader não existe para essa versão.
 	 */
 	catalogLoaderVersions: (loader: Loader, minecraft: string, forceRefresh: boolean) => typedError<LoaderVersions, AppError>(__TAURI_INVOKE("catalog_loader_versions", { loader, minecraft, forceRefresh })),
+	/**  A lista de downloads manuais do pack (vazia quando o teste não está esperando nenhum). */
+	cfBlockedList: (packId: PackId) => __TAURI_INVOKE<ManualDownloadItem[]>("cf_blocked_list", { packId }),
+	/**
+	 *  "Selecionar arquivo baixado…": abre o diálogo de arquivo na pasta Downloads e confere o
+	 *  arquivo escolhido pelo hash. `null` = a pessoa desistiu. Arquivo errado volta com o estado
+	 *  `wrongFile` (nada é copiado). Erros: `app.MANUAL_DOWNLOAD_NOT_WAITING`, falha ao ler o
+	 *  arquivo.
+	 */
+	cfBlockedProvideFile: (packId: PackId, metafile: string) => typedError<{
+	/**  Caminho do metafile no pack (identifica o item). */
+	metafile: string,
+	/**  Nome do mod. */
+	name: string,
+	/**  Nome do arquivo esperado. */
+	fileName: string,
+	/**  Se há a página do download no site (o endereço não sai do backend). */
+	hasPage: boolean,
+	/**  Estado. */
+	status: ManualDownloadStatus,
+} | null, AppError>(__TAURI_INVOKE("cf_blocked_provide_file", { packId, metafile })),
+	/**
+	 *  "Abrir página de download": a página do arquivo no site da CurseForge, no navegador.
+	 *  Erros: `app.MANUAL_DOWNLOAD_NOT_WAITING`, `app.MANUAL_DOWNLOAD_NO_PAGE`.
+	 */
+	cfBlockedOpenPage: (packId: PackId, metafile: string) => typedError<null, AppError>(__TAURI_INVOKE("cf_blocked_open_page", { packId, metafile })),
 	/**
 	 *  Os arquivos da origem, em ordem de caminho. A instância só existe depois do primeiro teste
 	 *  (`available = false` antes disso).
@@ -559,7 +584,14 @@ export type AppErrorCode =
  *  falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
  *  nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
  */
-"TEST_GAME_FILES_MISSING";
+"TEST_GAME_FILES_MISSING" | 
+/**
+ *  O download manual pedido não está mais na lista (o teste foi cancelado ou já
+ *  continuou; L-06).
+ */
+"MANUAL_DOWNLOAD_NOT_WAITING" | 
+/**  O mod bloqueado não tem a página de download conhecida (L-06). */
+"MANUAL_DOWNLOAD_NO_PAGE";
 
 /**  Versão e commit do app em execução. */
 export type AppInfo = {
@@ -1256,6 +1288,13 @@ export type FolderPurpose =
 "openPack" | 
 /**  Nova pasta de um pack que sumiu (Localizar…). */
 "relocate";
+
+/**  Como um item foi encontrado. */
+export type FoundVia = 
+/**  A pessoa escolheu o arquivo ("Selecionar arquivo baixado…"). */
+"selected" | 
+/**  O Warden achou o arquivo na pasta Downloads. */
+"downloadsFolder";
 
 /**
  *  De quando é a lista e se veio do cache porque a fonte não respondeu (SPEC T03: "Lista de
@@ -2157,6 +2196,42 @@ export type LogSource =
 "server" | 
 /**  O sidecar do packwiz. */
 "packwiz";
+
+/**  Um item da lista, como a interface mostra. */
+export type ManualDownloadItem = {
+	/**  Caminho do metafile no pack (identifica o item). */
+	metafile: string,
+	/**  Nome do mod. */
+	name: string,
+	/**  Nome do arquivo esperado. */
+	fileName: string,
+	/**  Se há a página do download no site (o endereço não sai do backend). */
+	hasPage: boolean,
+	/**  Estado. */
+	status: ManualDownloadStatus,
+};
+
+/**  Estado de um item da lista. */
+export type ManualDownloadStatus = 
+/**  Esperando o arquivo. */
+{ state: "waiting" } | 
+/**  Arquivo certo, já no cache de downloads. */
+{ state: "found"; 
+/**  Como foi encontrado. */
+via: FoundVia } | 
+/**  O último arquivo escolhido não é o certo (hash diferente). Continua esperando. */
+{ state: "wrongFile"; 
+/**  Nome do arquivo escolhido (só o nome, sem a pasta). */
+chosenFile: string };
+
+/**
+ *  `manual-downloads-changed`: a lista de downloads manuais do pack mudou (apareceu, um item
+ *  mudou de estado ou acabou).
+ */
+export type ManualDownloadsChanged = {
+	/**  O pack. */
+	packId: PackId,
+};
 
 /**
  *  Onde está o botão maximizar, em pixels CSS, medido pela interface. A posição horizontal é a

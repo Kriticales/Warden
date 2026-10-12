@@ -60,6 +60,11 @@ fn java_major(java: &Path) -> u32 {
 
 /// Estado de teste com o jogo simulado no lugar do motor.
 fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+    fake_state_with(root, None)
+}
+
+/// O mesmo, com a CurseForge simulada em `curseforge_base` (L-06).
+fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<AppState>> {
     let Some(java) = java() else {
         eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste do jogo simulado pulado");
         return None;
@@ -67,10 +72,14 @@ fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     let mut state = test_state(root);
     let engine = PortableMcEngine::new(EngineDirs::under(&root.join("shared")), None);
     let major = java_major(&java);
-    state.tests = Arc::new(TestSessions::with_engine(
+    let mut sessions = TestSessions::with_engine(
         Arc::new(engine),
         Some(FakeGame::new(class_dir(), java, major)),
-    ));
+    );
+    if let Some(base) = curseforge_base {
+        sessions = sessions.with_curseforge_base(base);
+    }
+    state.tests = Arc::new(sessions);
     Some(Arc::new(state))
 }
 
@@ -1233,4 +1242,234 @@ async fn ca_t13_01_jogo_real_entra_no_mundo_pelo_testar() {
         summary.id,
         seen.console_texts().len()
     );
+}
+
+/// Metafile de um mod da CurseForge (`metadata:curseforge`, hash sha1).
+fn curseforge_metafile(name: &str, filename: &str, project: u64, file: u64, jar: &[u8]) -> String {
+    format!(
+        "name = \"{name}\"\nfilename = \"{filename}\"\nside = \"both\"\n\n[download]\n\
+         hash-format = \"sha1\"\nhash = \"{}\"\nmode = \"metadata:curseforge\"\n\n\
+         [update]\n[update.curseforge]\nfile-id = {file}\nproject-id = {project}\n",
+        sha1_hex(jar)
+    )
+}
+
+fn sha1_hex(bytes: &[u8]) -> String {
+    warden_packwiz::hash::hash_bytes(warden_packwiz::HashFormat::Sha1, bytes)
+}
+
+/// CurseForge simulada: o arquivo existe, mas o autor bloqueou o download por apps de
+/// terceiros (sem `downloadUrl`), e o projeto tem a página no site.
+async fn blocked_curseforge(
+    project: u64,
+    file: u64,
+    filename: &str,
+    jar: &[u8],
+) -> wiremock::MockServer {
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+    let server = MockServer::start().await;
+    let data = |value: serde_json::Value| {
+        ResponseTemplate::new(200)
+            .insert_header("content-type", "application/json; charset=utf-8")
+            .set_body_json(serde_json::json!({ "data": value }))
+    };
+    Mock::given(method("POST"))
+        .and(path("/v1/mods/files"))
+        .respond_with(data(serde_json::json!([{
+            "id": file,
+            "gameId": 432,
+            "modId": project,
+            "isAvailable": true,
+            "displayName": filename,
+            "fileName": filename,
+            "releaseType": 1,
+            "fileStatus": 4,
+            "hashes": [{ "value": sha1_hex(jar), "algo": 1 }],
+            "fileDate": "2026-09-19T11:47:57.347Z",
+            "fileLength": jar.len(),
+            "downloadCount": 7,
+            "downloadUrl": null,
+            "gameVersions": ["1.20.1"],
+            "dependencies": [],
+            "fileFingerprint": warden_packwiz::hash::curseforge_fingerprint(jar),
+        }])))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/mods"))
+        .respond_with(data(serde_json::json!([{
+            "id": project,
+            "gameId": 432,
+            "name": "Entity Culling",
+            "slug": "entityculling",
+            "links": { "websiteUrl": "https://www.curseforge.com/minecraft/mc-mods/entityculling" },
+            "summary": "",
+            "status": 4,
+            "downloadCount": 1,
+            "classId": 6,
+            "authors": [],
+            "allowModDistribution": false,
+            "isAvailable": true,
+        }])))
+        .mount(&server)
+        .await;
+    server
+}
+
+/// Estado com a CurseForge simulada e a chave, e um pack com o Entity Culling bloqueado.
+fn blocked_pack(
+    dir: &Path,
+    server: &wiremock::MockServer,
+    jar: &[u8],
+) -> Option<(Arc<AppState>, PackId, PathBuf)> {
+    let state = fake_state_with(dir, Some(format!("{}/v1/", server.uri())))?;
+    state
+        .secrets
+        .set(
+            warden_secrets::SecretKind::Curseforge,
+            &secrecy::SecretString::from("chave-de-teste".to_owned()),
+        )
+        .unwrap();
+    let root = dir.join("pack");
+    let meta = curseforge_metafile(
+        "Entity Culling",
+        "entityculling-1.0.jar",
+        448_233,
+        6_000_001,
+        jar,
+    );
+    write_pack(
+        &root,
+        &[
+            ("mods/entityculling.pw.toml", meta.as_bytes()),
+            ("config/a.toml", b"x = 1"),
+        ],
+        "acentos",
+    );
+    let pack = register(&state, &root);
+    Some((state, pack, root))
+}
+
+/// CA-T20-01 e CA-T20-02 pelo app inteiro, com o jogo simulado: um mod da CurseForge bloqueado
+/// para apps de terceiros não derruba o teste. A etapa "Copiar o pack para o teste" publica a
+/// lista e espera; o arquivo errado (numa pasta com espaço e acento) é recusado sem cópia; com
+/// o certo, o teste continua sozinho, o mod chega à instância e o jogo abre. A pasta do pack
+/// não recebe jar nenhum, e o teste seguinte acha o arquivo no cache, sem esperar.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn ca_t20_01_e_02_mod_bloqueado_espera_o_arquivo_certo_e_o_teste_continua() {
+    use warden_instance::{FoundVia, ManualDownloadStatus};
+    let dir = tempfile::tempdir().unwrap();
+    let jar = b"jar do Entity Culling".to_vec();
+    let server = blocked_curseforge(448_233, 6_000_001, "entityculling-1.0.jar", &jar).await;
+    let Some((state, pack, root)) = blocked_pack(dir.path(), &server, &jar) else {
+        return;
+    };
+    let (task, seen) = spawn_test(&state, pack, TestRequest::default());
+
+    // O teste para na lista e espera, sem abrir o jogo.
+    let deadline = Instant::now() + Duration::from_secs(30);
+    while state.manual_downloads.list(pack).is_empty() {
+        assert!(Instant::now() < deadline, "a lista não apareceu em 30 s");
+        assert!(!task.is_finished(), "o teste terminou em vez de esperar");
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    let items = state.manual_downloads.list(pack);
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0].name, "Entity Culling");
+    assert_eq!(items[0].file_name, "entityculling-1.0.jar");
+    assert!(items[0].has_page);
+    assert_eq!(
+        state.tests.current().map(|game| game.state),
+        Some(GamePhase::Preparing)
+    );
+    assert!(seen.events.lock().unwrap().iter().any(|event| matches!(
+        event,
+        OperationEvent::Stage { stage, .. } if stage == crate::commands::cf_blocked::STAGE_MANUAL
+    )));
+
+    // Arquivo errado: recusado, nada copiado, o teste continua esperando.
+    let downloads = dir.path().join("Meus Downloads").join("Mods é ação");
+    std::fs::create_dir_all(&downloads).unwrap();
+    let wrong = downloads.join("entityculling-1.0 (1).jar");
+    std::fs::write(&wrong, b"outro jar qualquer").unwrap();
+    let item = state
+        .manual_downloads
+        .provide(pack, &items[0].metafile, wrong)
+        .await
+        .unwrap();
+    assert_eq!(
+        item.status,
+        ManualDownloadStatus::WrongFile {
+            chosen_file: "entityculling-1.0 (1).jar".to_owned()
+        }
+    );
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    assert!(!task.is_finished());
+
+    // Arquivo certo: o teste continua sozinho e o jogo abre.
+    let right = downloads.join("entityculling-1.0.jar");
+    std::fs::write(&right, &jar).unwrap();
+    let item = state
+        .manual_downloads
+        .provide(pack, &items[0].metafile, right.clone())
+        .await
+        .unwrap();
+    assert_eq!(
+        item.status,
+        ManualDownloadStatus::Found {
+            via: FoundVia::Selected
+        }
+    );
+    let summary = tokio::time::timeout(Duration::from_secs(60), task)
+        .await
+        .expect("o teste continuou e terminou")
+        .unwrap()
+        .unwrap();
+    assert_eq!(summary.outcome, Outcome::ClosedNormally);
+    assert!(seen.phases().contains(&GamePhase::Running), "o jogo abriu");
+    assert!(state.manual_downloads.list(pack).is_empty());
+    let game_dir = InstanceDirs::for_pack(&state.paths, pack).game_dir;
+    assert_eq!(
+        std::fs::read(game_dir.join("mods/entityculling-1.0.jar")).unwrap(),
+        jar
+    );
+    assert!(right.exists(), "o arquivo escolhido fica onde estava");
+
+    // CA-T20-02: a pasta do pack não contém o jar.
+    let jars: Vec<PathBuf> = walk(&root)
+        .into_iter()
+        .filter(|path| path.extension().is_some_and(|ext| ext == "jar"))
+        .collect();
+    assert!(jars.is_empty(), "{jars:?}");
+
+    // O teste seguinte acha o arquivo no cache: nada a esperar.
+    std::fs::remove_file(game_dir.join("mods/entityculling-1.0.jar")).unwrap();
+    let (sink, _) = sink();
+    let again = tokio::time::timeout(
+        Duration::from_secs(60),
+        run_test(&state, pack, TestRequest::default(), sink),
+    )
+    .await
+    .expect("o segundo teste não esperou downloads manuais")
+    .unwrap();
+    assert_eq!(again.outcome, Outcome::ClosedNormally);
+    assert!(game_dir.join("mods/entityculling-1.0.jar").is_file());
+}
+
+/// Todos os arquivos de uma pasta, recursivamente.
+fn walk(root: &Path) -> Vec<PathBuf> {
+    let mut found = Vec::new();
+    let mut pending = vec![root.to_path_buf()];
+    while let Some(dir) = pending.pop() {
+        for entry in std::fs::read_dir(&dir).unwrap().flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                pending.push(path);
+            } else {
+                found.push(path);
+            }
+        }
+    }
+    found
 }
