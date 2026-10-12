@@ -152,11 +152,4 @@ describe('Ajustes do teste neste computador (T11)', () => {
     });
     expect(await screen.findByText('Ajustes do teste salvos.')).toBeDefined();
   });
-
-  it('o botão Testar principal ainda não testa e diz por quê', async () => {
-    const { url } = editorBackend();
-    await openPack(url);
-    const test = screen.getByRole('button', { name: 'Testar' });
-    expect(test.getAttribute('aria-disabled')).toBe('true');
-  });
 });

@@ -3,7 +3,7 @@
 //! - Eventos globais (`app.emit`) são tipados com `tauri-specta` e registrados em
 //!   `commands::builder`. Esta tarefa cria `operation-updated` e `pack-changed`; as tarefas donas
 //!   de `game-state`, `server-state` e `ai-conversation-updated` acrescentam os seus aqui;
-//!   a UI-01 acrescentou `title-bar-maximize`.
+//!   a UI-01 acrescentou `title-bar-maximize`; a L-04, `game-state` e `game-quit-requested`.
 //! - [`OperationEvent`] é o que passa pelo `Channel` de cada comando longo. As variantes
 //!   `PerfSample`, `Round` e `ToolCall` da ARCHITECTURE §4.3 entram com as tarefas donas
 //!   (L-08, D-10 e D-04): este arquivo é registro acréscimo-apenas para eventos e variantes.
@@ -14,6 +14,7 @@ use warden_core::{OperationId, PackId, Progress};
 
 use crate::error::AppError;
 use crate::operations::{OperationKind, OperationSnapshot};
+use crate::test_session::ConsoleLine;
 
 /// `operation-updated`: uma operação mudou de estado, etapa ou progresso (painel Tarefas,
 /// T22).
@@ -59,6 +60,53 @@ pub struct TitleBarMaximize {
     pub hovered: bool,
     /// Botão do mouse apertado sobre o botão.
     pub pressed: bool,
+}
+
+/// Situação do jogo de um pack (`game-state`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum GamePhase {
+    /// Preparando o teste (Java, Minecraft, cópia do pack).
+    Preparing,
+    /// Jogo aberto.
+    Running,
+    /// Busca do culpado em andamento (D-10).
+    Bisecting,
+    /// O jogo fechou (último aviso da sessão).
+    Exited,
+}
+
+/// `game-state`: o teste de um pack mudou de situação (cabeçalho do pack e "um jogo por vez";
+/// L-04). Só existe um jogo por vez no Warden inteiro.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type, Event)]
+#[serde(rename_all = "camelCase")]
+#[tauri_specta(event_name = "game-state")]
+pub struct GameState {
+    /// O pack testado.
+    pub pack_id: PackId,
+    /// Nome do pack ("Já existe um jogo em execução (pack X)").
+    pub pack_name: String,
+    /// Situação.
+    pub state: GamePhase,
+    /// A sessão gravada (nome da pasta), a partir da abertura do jogo.
+    pub session_id: Option<String>,
+    /// A operação do teste (painel Tarefas).
+    pub operation_id: Option<OperationId>,
+    /// Perfil do teste (`None` = o Padrão; os perfis são da L-08).
+    pub profile: Option<String>,
+    /// Início do teste (milissegundos desde 1970).
+    #[specta(type = specta_typescript::Number)]
+    pub started_at_ms: u64,
+}
+
+/// `game-quit-requested`: pediram para fechar o Warden com um jogo aberto. A interface
+/// pergunta antes ("Fechar o Warden encerra o jogo"); confirmar chama `test_quit_app`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type, Event)]
+#[serde(rename_all = "camelCase")]
+#[tauri_specta(event_name = "game-quit-requested")]
+pub struct GameQuitRequested {
+    /// O jogo aberto.
+    pub game: GameState,
 }
 
 /// Origem de uma linha de log no canal.
@@ -117,6 +165,26 @@ pub enum OperationEvent {
     },
     /// Terminou; o resultado vem no retorno do comando.
     Finished,
+    /// Linhas do console do teste (L-04), em lotes de até 50 ms.
+    Console {
+        /// As linhas, numeradas na sessão.
+        lines: Vec<ConsoleLine>,
+    },
+    /// Amostra de desempenho do jogo, a cada 1 s (ARCHITECTURE §7.7). O canal do teste já a
+    /// transporta; quem envia é a L-10.
+    #[serde(rename_all = "camelCase")]
+    PerfSample {
+        /// RAM do processo, em MB.
+        rss_mb: u32,
+        /// Memória do jogo usada (heap da JVM), em MB.
+        heap_used_mb: Option<u32>,
+        /// Memória máxima do jogo, em MB.
+        heap_max_mb: Option<u32>,
+        /// Coletas de memória até agora.
+        gc_count: Option<u32>,
+        /// Tempo parado em coletas, em ms.
+        gc_ms: Option<u32>,
+    },
 }
 
 #[cfg(test)]

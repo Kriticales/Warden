@@ -25,6 +25,8 @@ const EXE = process.platform === 'win32' ? '.exe' : '';
 const APPLICATION = join(TARGET, 'debug', `warden-app${EXE}`);
 const NATIVE_DRIVER_FILE = join(TARGET, 'e2e', 'native-driver.txt');
 const DRIVER_PORT = 4444;
+/** O jogo simulado dos testes da `warden-launcher` (Testar, L-04). */
+const FAKE_GAME_DIR = join(ROOT, 'crates', 'warden-launcher', 'tests', 'fixtures', 'java');
 
 let tauriDriver: ChildProcess | null = null;
 let mockServer: MockServer | null = null;
@@ -35,6 +37,27 @@ function nativeDriver(): string {
     throw new Error('Driver nativo ausente: rode `cargo xtask e2e-driver` antes.');
   }
   return readFileSync(NATIVE_DRIVER_FILE, 'utf8').trim();
+}
+
+/**
+ * O Java do jogo simulado (`WARDEN_TEST_JAVA` ou o de `JAVA_HOME`) e o major dele, lido do
+ * arquivo `release`. Sem Java, o E2E do Testar avisa e pula.
+ */
+function testJava(): { java: string; major: string } | null {
+  const explicit = process.env.WARDEN_TEST_JAVA;
+  const home = process.env.JAVA_HOME;
+  const java = explicit ?? (home ? join(home, 'bin', `java${EXE}`) : null);
+  if (!java || !existsSync(java)) return null;
+  let major = '17';
+  try {
+    const release = readFileSync(join(java, '..', '..', 'release'), 'utf8');
+    const version = /^JAVA_VERSION="([^"]+)"/m.exec(release)?.[1] ?? '';
+    const [first, second] = version.split('.');
+    major = first === '1' ? (second ?? '8') : (first ?? '17');
+  } catch {
+    // Sem `release`: fica 17, o Java dos testes da CI.
+  }
+  return { java, major };
 }
 
 /** Espera o `tauri-driver` aceitar conexões. */
@@ -92,6 +115,12 @@ export const config: WebdriverIO.Config = {
     const pickFolder = join(dataRoot, 'pasta-escolhida.txt');
     process.env.WARDEN_E2E_PICK_FOLDER = pickFolder;
     process.env.WARDEN_E2E_DATA_ROOT = dataRoot;
+    // Testar (L-04): o jogo simulado no lugar do Minecraft, e o "Salvar em arquivo…" do
+    // console pelo caminho escrito neste arquivo.
+    const saveFile = join(dataRoot, 'arquivo-escolhido.txt');
+    process.env.WARDEN_E2E_SAVE_FILE = saveFile;
+    const java = testJava();
+    process.env.WARDEN_E2E_HAS_JAVA = java ? '1' : '';
     const env = {
       ...process.env,
       WARDEN_DATA_ROOT: dataRoot,
@@ -106,6 +135,14 @@ export const config: WebdriverIO.Config = {
       // Modrinth e CurseForge (P1-08): o inventário e os detalhes nunca vão à internet.
       WARDEN_API_BASE_MODRINTH: `${mockServer.url}/modrinth/v2/`,
       WARDEN_API_BASE_CURSEFORGE: `${mockServer.url}/curseforge/`,
+      WARDEN_E2E_SAVE_FILE: saveFile,
+      ...(java
+        ? {
+            WARDEN_E2E_FAKE_GAME: FAKE_GAME_DIR,
+            WARDEN_E2E_JAVA: java.java,
+            WARDEN_E2E_JAVA_MAJOR: java.major,
+          }
+        : {}),
     };
     tauriDriver = spawn(
       'tauri-driver',

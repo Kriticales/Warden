@@ -1,0 +1,59 @@
+/* Tela do teste (SPEC T13; protótipo `screens-test.js` e `prototipo.css`): etapas,
+   preparação em duas colunas, console com altura própria e o resultado. */
+.test-steps {
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-1);
+  border: var(--border-thin) solid var(--color-border);
+}
+.prep {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--space-5);
+  align-items: start;
+}
+.prep .panel__title {
+  margin-bottom: 10px;
+}
+@media (max-width: 900px) {
+  .prep {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* O console do jogo aberto ocupa o resto da área do pack. */
+.run-console {
+  height: calc(100vh - 420px);
+  min-height: 300px;
+}
+.run-console > .console,
+.result-console > .console {
+  height: 100%;
+}
+.run-console .console__log,
+.result-console .console__log {
+  min-height: 0;
+}
+.result-console {
+  height: 420px;
+}
+.test-errors {
+  max-height: 220px;
+}
+.result-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.test-page .table tr.is-selected td:first-child {
+  box-shadow: inset var(--border-bar) 0 0 var(--color-primary);
+}
+.test-page .table tr.is-selected {
+  background: var(--color-primary-soft);
+}
+.changed-files,
+.worlds-list {
+  display: grid;
+  gap: 2px;
+  max-height: 200px;
+  overflow: auto;
+  font-size: var(--text-sm);
+}

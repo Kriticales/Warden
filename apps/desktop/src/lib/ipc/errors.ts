@@ -4,7 +4,7 @@
  * - `toAppError` reconhece um `AppError` em qualquer erro que chegue a um componente: o
  *   `CommandError` de `unwrap`, a rejeição crua do IPC ou o próprio objeto.
  * - `appErrorMessage` devolve a frase do catálogo `i18n/errors/<domínio>.ts` com os `params`
- *   no lugar de `{{nome}}`.
+ *   no lugar de `{{nome}}` (e a forma `_one`/`_other` que concorda com o `count`, se houver).
  * - `technicalDetails` monta o texto de "Detalhes técnicos" (código, detalhe e tarefa), que é o
  *   que o botão Copiar copia.
  */
@@ -56,10 +56,16 @@ export function toAppError(error: unknown): AppError {
   };
 }
 
-/** Frase pt-BR de um erro, com os parâmetros preenchidos. */
+/** O `count` dos parâmetros, quando é um número inteiro (escolhe o plural da frase). */
+function countParam(params: AppError['params']): number | undefined {
+  const text = params.count;
+  return text !== undefined && /^\d+$/.test(text) ? Number(text) : undefined;
+}
+
+/** Frase pt-BR de um erro, com os parâmetros preenchidos e o plural que concorda com `count`. */
 export function appErrorMessage(error: AppError): string {
   const missing = i18n.t('erro.parametroAusente');
-  return errorMessage(error.code).replace(
+  return errorMessage(error.code, countParam(error.params)).replace(
     PLACEHOLDER,
     (_, name: string) => error.params[name] ?? missing,
   );

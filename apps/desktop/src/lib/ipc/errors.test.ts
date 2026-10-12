@@ -57,6 +57,20 @@ describe('appErrorMessage', () => {
     expect(message).toContain('em valor desconhecido.');
     expect(message).not.toContain('{{');
   });
+
+  it('concorda com o count: "Falta 1 arquivo", "Faltam 2 arquivos" (_one/_other)', () => {
+    const missing = (params: Record<string, string>) =>
+      appErrorMessage(makeAppError({ domain: 'app', code: 'TEST_GAME_FILES_MISSING' }, { params }));
+    expect(missing({ count: '1', names: 'client.jar' })).toMatch(
+      /^Falta 1 arquivo do Minecraft .* baixá-lo: client\.jar\./,
+    );
+    expect(missing({ count: '2', names: 'a.jar, b.jar' })).toMatch(
+      /^Faltam 2 arquivos do Minecraft .* baixá-los: a\.jar, b\.jar\./,
+    );
+    // Sem count (ou com um count que não é número), a frase sem número.
+    expect(missing({ names: 'a.jar' })).toMatch(/^Faltam arquivos do Minecraft/);
+    expect(missing({ count: 'muitos', names: 'a.jar' })).toMatch(/^Faltam arquivos do Minecraft/);
+  });
 });
 
 describe('detalhes técnicos', () => {

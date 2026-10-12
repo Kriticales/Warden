@@ -44,6 +44,8 @@ pub struct AppState {
     pub packs: Arc<warden_project::registry::Registry>,
     /// Cliente do Modrinth com o cache de metadados (P1-08: inventário e detalhes).
     pub modrinth: warden_modrinth::ModrinthClient,
+    /// O jogo do Testar, um por vez, e o motor do launcher (L-04).
+    pub(crate) tests: Arc<crate::test_session::TestSessions>,
 }
 
 impl AppState {
@@ -84,6 +86,7 @@ impl AppState {
             Arc::clone(&packs),
         )));
         let modrinth = crate::commands::inventory::open_modrinth(&paths)?;
+        let tests = Arc::new(crate::test_session::TestSessions::new(&paths, &catalog));
         Ok((
             Self {
                 paths,
@@ -98,6 +101,7 @@ impl AppState {
                 java_packs,
                 packs,
                 modrinth,
+                tests,
             },
             outcome,
         ))

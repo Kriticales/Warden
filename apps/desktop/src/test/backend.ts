@@ -58,6 +58,10 @@ const DEFAULTS: Record<string, Handler> = {
   operations_list: () => [],
   // A tela inicial é Meus packs (P1-07): sem packs, a lista vem vazia.
   packs_list: () => [],
+  // Testar (L-04): nenhum jogo aberto e nenhum teste gravado.
+  test_game_state: () => null,
+  test_sessions_list: () => [],
+  test_live_console: () => [],
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,
