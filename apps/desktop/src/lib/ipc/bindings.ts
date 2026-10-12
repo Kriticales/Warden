@@ -75,6 +75,19 @@ export const commands = {
 	 *  a pré-selecionada. Lista vazia: o loader não existe para essa versão.
 	 */
 	catalogLoaderVersions: (loader: Loader, minecraft: string, forceRefresh: boolean) => typedError<LoaderVersions, AppError>(__TAURI_INVOKE("catalog_loader_versions", { loader, minecraft, forceRefresh })),
+	/**
+	 *  Os arquivos da origem, em ordem de caminho. A instância só existe depois do primeiro teste
+	 *  (`available = false` antes disso).
+	 */
+	configTree: (packId: PackId, origin: ConfigOrigin) => typedError<ConfigFileList, AppError>(__TAURI_INVOKE("config_tree", { packId, origin })),
+	/**  Lê um arquivo: texto, `hash`, fim de linha e o motivo de só leitura, quando houver. */
+	configRead: (packId: PackId, origin: ConfigOrigin, path: string) => typedError<ConfigContent, AppError>(__TAURI_INVOKE("config_read", { packId, origin, path })),
+	/**
+	 *  Grava o texto do arquivo. `expected_hash` é o `hash` da última leitura: se o arquivo mudou
+	 *  no disco desde então, nada é gravado (`FILE_CHANGED_ON_DISK`). "Sobrescrever" é reler o
+	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
+	 */
+	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
 	/**  Lista exata da saída e avisos antes de exportar. */
 	exportPreview: (packId: PackId, source: ExportSource) => typedError<ExportPreview, AppError>(__TAURI_INVOKE("export_preview", { packId, source })),
 	/**  Adiciona uma regra ao `.packwizignore` e atualiza o índice. */
@@ -632,6 +645,63 @@ export type CheckTrigger =
 "auto" | 
 /**  Botão "Verificar atualizações": sempre consulta. */
 "manual";
+
+/**  Um arquivo lido. */
+export type ConfigContent = {
+	/**  Caminho relativo à origem. */
+	path: string,
+	/**  Texto sem o BOM; `None` quando não há como mostrar. */
+	text: string | null,
+	/**  SHA-256 do arquivo inteiro (hexadecimal), para a concorrência otimista. */
+	hash: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  Fim de linha. */
+	lineEnding: LineEnding,
+	/**  Só leitura, e por quê. `None` = editável. */
+	readOnly: ReadOnlyReason | null,
+	/**  Última alteração, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+};
+
+/**  Um arquivo da árvore. */
+export type ConfigFile = {
+	/**  Caminho relativo à origem, com `/`. */
+	path: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  Última alteração, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+	/**  Se o arquivo parece binário (aparece sem edição). */
+	binary: boolean,
+};
+
+/**  Os arquivos de uma origem. */
+export type ConfigFileList = {
+	/**  A pasta da origem existe (a instância só existe depois do primeiro teste). */
+	available: boolean,
+	/**  Arquivos, em ordem de caminho. */
+	files: ConfigFile[],
+	/**  A lista foi cortada em [`MAX_LISTED_FILES`]. */
+	truncated: boolean,
+};
+
+/**  De onde vêm os arquivos mostrados. */
+export type ConfigOrigin = 
+/**  A pasta do pack (o que vai para os jogadores). */
+"pack" | 
+/**  A instância de teste (vale só para o teste; vira "O que mudou durante o teste"). */
+"instance";
+
+/**  Resultado de uma gravação. */
+export type ConfigSaved = {
+	/**  SHA-256 do arquivo depois da gravação (o `hash` esperado da próxima). */
+	hash: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  `false` quando o texto era igual ao do disco e nada foi gravado. */
+	changed: boolean,
+};
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -2499,7 +2569,13 @@ export type ProjectErrorCode =
  *  Uma fonte (Modrinth, CurseForge) não respondeu ou deu erro; parâmetro `source`
  *  (SPEC T08; ARCHITECTURE §17).
  */
-"SEARCH_SOURCE_UNAVAILABLE";
+"SEARCH_SOURCE_UNAVAILABLE" | 
+/**  O arquivo de config mudou no disco desde que foi aberto (concorrência otimista, C-02). */
+"FILE_CHANGED_ON_DISK" | 
+/**  O arquivo de config pedido não existe mais. */
+"CONFIG_NOT_FOUND" | 
+/**  O arquivo de config só abre para leitura (binário, acima de 2 MB ou fora de UTF-8). */
+"CONFIG_NOT_EDITABLE";
 
 /**
  *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks chegam com a

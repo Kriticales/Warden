@@ -29,7 +29,7 @@ import {
 } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
 
-import { frasesDoEditor } from '../../../i18n/pt-BR/configs';
+import { frasesDoEditor } from '../../../i18n/codemirror';
 import type { EditorLanguage } from '../model';
 
 function languageExtension(language: EditorLanguage): Extension {
