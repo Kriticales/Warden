@@ -5,8 +5,8 @@
  *   `CommandError` de `unwrap`, a rejeição crua do IPC ou o próprio objeto.
  * - `appErrorMessage` devolve a frase do catálogo `i18n/errors/<domínio>.ts` com os `params`
  *   no lugar de `{{nome}}` (e a forma `_one`/`_other` que concorda com o `count`, se houver).
- * - `appErrorMessage` também guarda o erro como o último mostrado (`last-error.ts`), que o
- *   "Relatar problema" (UI-02) inclui no relato.
+ * - `appErrorMessage` também anota a frase com o código (`last-error.ts`): quando a frase
+ *   aparece num erro na tela, o "Relatar problema" (UI-02) leva o código junto.
  * - `technicalDetails` monta o texto de "Detalhes técnicos" (código, detalhe e tarefa), que é o
  *   que o botão Copiar copia.
  */
@@ -14,7 +14,7 @@ import i18n from '../../i18n';
 import { errorMessage } from '../../i18n/errors';
 import { describeError } from '../log';
 import type { AppError, ErrorCode } from './bindings';
-import { rememberShownError } from './last-error';
+import { notePhrase } from './last-error';
 import { CommandError } from './result';
 
 const PLACEHOLDER = /\{\{\s*([\w.]+)\s*\}\}/g;
@@ -72,7 +72,7 @@ export function errorCodeText(code: ErrorCode): string {
 
 /**
  * Frase pt-BR de um erro, com os parâmetros preenchidos e o plural que concorda com `count`.
- * Quem chama mostra a frase na tela: ela fica guardada como o último erro mostrado.
+ * A frase fica anotada com o código, para o "Relatar problema" reconhecer o erro mostrado.
  */
 export function appErrorMessage(error: AppError): string {
   const missing = i18n.t('erro.parametroAusente');
@@ -80,7 +80,7 @@ export function appErrorMessage(error: AppError): string {
     PLACEHOLDER,
     (_, name: string) => error.params[name] ?? missing,
   );
-  rememberShownError(errorCodeText(error.code), message);
+  notePhrase(errorCodeText(error.code), message);
   return message;
 }
 

@@ -36,7 +36,11 @@ function fakePreview(
       { label: 'Pack aberto', value: 'nenhum' },
       {
         label: 'Último erro mostrado',
-        value: input.lastError ? `${input.lastError.code}: ${input.lastError.message}` : 'nenhum',
+        value: input.lastError
+          ? input.lastError.code === null
+            ? input.lastError.message
+            : `${input.lastError.code}: ${input.lastError.message}`
+          : 'nenhum',
       },
     ],
     logLines: input.includeLog ? 12 : 0,

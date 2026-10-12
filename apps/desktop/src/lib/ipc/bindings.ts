@@ -3214,8 +3214,8 @@ export type SettingsStatus = {
 
 /**  Último erro que a interface mostrou. */
 export type ShownError = {
-	/**  `domínio.CÓDIGO`. */
-	code: string,
+	/**  `domínio.CÓDIGO`, quando o erro mostrado veio de um `AppError`. */
+	code: string | null,
 	/**  A frase mostrada. */
 	message: string,
 };

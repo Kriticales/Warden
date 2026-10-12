@@ -9,10 +9,11 @@
  */
 import * as ToastPrimitive from '@radix-ui/react-toast';
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X, type LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { create } from 'zustand';
 
+import { useRememberShownError } from '../../lib/ipc/last-error';
 import { Button } from './button';
 import { Icon } from './icon';
 
@@ -85,6 +86,9 @@ const ICONS: Record<ToastKind, LucideIcon> = {
 function ToastView({ toast }: { toast: ToastItem }) {
   const { t } = useTranslation();
   const dismiss = useToastStore((state) => state.dismiss);
+  const textRef = useRef<HTMLDivElement>(null);
+  // Toast de erro entra no "Relatar problema" como o último erro mostrado (UI-02).
+  useRememberShownError(textRef, toast.kind === 'danger');
   return (
     <ToastPrimitive.Root
       className={`toast toast--${toast.kind}`}
@@ -95,7 +99,7 @@ function ToastView({ toast }: { toast: ToastItem }) {
       }}
     >
       <Icon icon={ICONS[toast.kind]} />
-      <div className="toast__text">
+      <div className="toast__text" ref={textRef}>
         <ToastPrimitive.Title asChild>
           <strong>{toast.title}</strong>
         </ToastPrimitive.Title>

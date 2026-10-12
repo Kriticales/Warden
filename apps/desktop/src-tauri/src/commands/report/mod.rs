@@ -48,8 +48,8 @@ const E2E_OPEN_URL_ENV: &str = "WARDEN_E2E_OPEN_URL";
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ShownError {
-    /// `domínio.CÓDIGO`.
-    pub(crate) code: String,
+    /// `domínio.CÓDIGO`, quando o erro mostrado veio de um `AppError`.
+    pub(crate) code: Option<String>,
     /// A frase mostrada.
     pub(crate) message: String,
 }
@@ -219,7 +219,10 @@ fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) ->
     let error_text = input
         .last_error
         .as_ref()
-        .map(|error| format!("`{}`: {}", error.code.trim(), error.message.trim()));
+        .map(|error| match error.code.as_deref().map(str::trim) {
+            Some(code) if !code.is_empty() => format!("`{code}`: {}", error.message.trim()),
+            _ => error.message.trim().to_owned(),
+        });
     let mut environment = vec![
         ("Warden".to_owned(), version_text(&collected.info)),
         ("Sistema".to_owned(), collected.system),
@@ -510,7 +513,7 @@ mod tests {
             screen: "Pack › Mods".into(),
             pack_id: None,
             last_error: Some(ShownError {
-                code: "app.INTERNAL".into(),
+                code: Some("app.INTERNAL".into()),
                 message: format!(r"Não deu para ler C:\Users\{USER}\Documents\pack.toml"),
             }),
         }
@@ -633,6 +636,36 @@ mod tests {
             labels,
             ["Warden", "Sistema", "Tela", "Pack aberto", "Último erro mostrado"]
         );
+    }
+
+    #[test]
+    fn ultimo_erro_com_e_sem_codigo() {
+        let collected = || Collected {
+            info: info(),
+            system: "Linux".into(),
+            pack: None,
+            log: None,
+        };
+        let mut with_code = input();
+        with_code.last_error = Some(ShownError {
+            code: Some("core.TIMEOUT".into()),
+            message: "A operação demorou demais.".into(),
+        });
+        let report = preview(&with_code, collected(), &test_redactor());
+        assert!(report
+            .body
+            .contains("- **Último erro mostrado:** `core.TIMEOUT`: A operação demorou demais."));
+
+        // Erro da própria interface (sem `AppError`): só a frase.
+        let mut without_code = input();
+        without_code.last_error = Some(ShownError {
+            code: None,
+            message: "Não deu para copiar o console.".into(),
+        });
+        let report = preview(&without_code, collected(), &test_redactor());
+        assert!(report
+            .body
+            .contains("- **Último erro mostrado:** Não deu para copiar o console."));
     }
 
     #[test]
