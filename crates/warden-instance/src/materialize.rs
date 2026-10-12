@@ -1238,7 +1238,7 @@ async fn run_downloads(
     cancel: &CancellationToken,
 ) -> Result<Vec<(usize, Fetched)>> {
     let semaphore = Arc::new(Semaphore::new(options.max_parallel_downloads.max(1)));
-    let mut tasks = JoinSet::new();
+    let mut tasks = JoinSet::<DownloadOutcome>::new();
     for pending in downloads {
         let semaphore = Arc::clone(&semaphore);
         let http = sources.http.clone();
@@ -1259,11 +1259,28 @@ async fn run_downloads(
             (pending.item, pending.curseforge, url, result)
         });
     }
+    collect_downloads(tasks, items, failed, cancel).await
+}
+
+/// Resultado de uma tarefa de download: item, se é da CurseForge, endereço e resultado.
+type DownloadOutcome = (usize, bool, String, Result<Fetched>);
+
+/// Recolhe os downloads conforme terminam. Ao ver o cancelamento, aborta os que faltam e
+/// devolve [`Error::Cancelled`].
+async fn collect_downloads(
+    mut tasks: JoinSet<DownloadOutcome>,
+    items: &[Item],
+    failed: &mut Vec<FailedItem>,
+    cancel: &CancellationToken,
+) -> Result<Vec<(usize, Fetched)>> {
     let mut done = Vec::new();
     let mut cancelled = false;
+    let mut aborted = false;
     while let Some(joined) = tasks.join_next().await {
         let (index, curseforge, url, result) = match joined {
             Ok(value) => value,
+            // Abortada por nós depois do cancelamento: é cancelamento. Pânico segue interno.
+            Err(error) if error.is_cancelled() && aborted => continue,
             Err(error) => return Err(Error::Internal(format!("tarefa de download: {error}"))),
         };
         match result {
@@ -1281,8 +1298,9 @@ async fn run_downloads(
                 }));
             }
         }
-        if cancel.is_cancelled() {
+        if cancel.is_cancelled() && !aborted {
             cancelled = true;
+            aborted = true;
             tasks.abort_all();
         }
     }
@@ -1455,5 +1473,44 @@ mod tests {
         assert_eq!(InstallSide::Server.wants(&Side::Client), Some(false));
         assert_eq!(InstallSide::Server.wants(&Side::Server), Some(true));
         assert_eq!(InstallSide::Client.wants(&Side::Other("x".into())), None);
+    }
+
+    /// A corrida de CA-T22-01: um download termina depois do cancelamento enquanto outro ainda
+    /// não terminou (esperando a vez no semáforo, ou acordado pelo cancelamento mas ainda não
+    /// executado). A coleta vê o cancelamento e aborta o outro; o `JoinError` dessa tarefa
+    /// abortada é cancelamento, não erro interno.
+    #[tokio::test]
+    async fn cancelar_com_download_pendente_devolve_cancelado() {
+        let cancel = CancellationToken::new();
+        cancel.cancel();
+        let mut tasks = JoinSet::<DownloadOutcome>::new();
+        tasks.spawn(async { (0, false, String::new(), Err(Error::Cancelled)) });
+        tasks.spawn(async {
+            std::future::pending::<()>().await;
+            unreachable!()
+        });
+        let mut failed = Vec::new();
+        let error = collect_downloads(tasks, &[], &mut failed, &cancel)
+            .await
+            .unwrap_err();
+        assert!(matches!(error, Error::Cancelled), "{error:?}");
+        assert!(failed.is_empty());
+    }
+
+    /// Uma tarefa que entra em pânico continua sendo erro interno, mesmo com o cancelamento.
+    #[tokio::test]
+    async fn panico_de_download_continua_erro_interno() {
+        for cancelled in [false, true] {
+            let cancel = CancellationToken::new();
+            if cancelled {
+                cancel.cancel();
+            }
+            let mut tasks = JoinSet::<DownloadOutcome>::new();
+            tasks.spawn(async { panic!("download quebrou") });
+            let error = collect_downloads(tasks, &[], &mut Vec::new(), &cancel)
+                .await
+                .unwrap_err();
+            assert!(matches!(error, Error::Internal(_)), "{error:?}");
+        }
     }
 }
