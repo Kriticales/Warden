@@ -427,7 +427,10 @@ fn read_log_tail(logs_dir: &Path, max: usize) -> Vec<String> {
         .filter(|path| {
             path.file_name()
                 .and_then(|name| name.to_str())
-                .is_some_and(|name| name.starts_with("warden") && name.ends_with(".log"))
+                .is_some_and(|name| name.starts_with("warden"))
+                && path
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("log"))
         })
         .collect();
     // O nome tem a data: em ordem alfabética, o mais novo fica por último.
@@ -660,7 +663,7 @@ mod tests {
     #[test]
     fn le_as_ultimas_linhas_dos_registros() {
         let dir = tempfile::tempdir().unwrap();
-        let old: String = (0..5).map(|n| format!("ontem {n}\n")).collect();
+        let old = "ontem 0\nontem 1\nontem 2\nontem 3\nontem 4\n";
         std::fs::write(dir.path().join("warden.2026-10-11.log"), old).unwrap();
         std::fs::write(dir.path().join("warden.2026-10-12.log"), "hoje 0\n\nhoje 1\n").unwrap();
         std::fs::write(dir.path().join("outro.txt"), "não é registro\n").unwrap();
