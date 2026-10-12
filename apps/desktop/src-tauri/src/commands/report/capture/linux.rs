@@ -3,7 +3,8 @@
 //!
 //! A janela é a de nível de cima que tem o `_NET_WM_PID` do processo (o GTK grava esse
 //! atributo), está visível e é a maior delas (o GTK também marca janelas auxiliares, que
-//! nunca ficam visíveis). O `GetImage` lê o conteúdo dela, não o da tela.
+//! nunca ficam visíveis). O `GetImage` lê o conteúdo dela, não o da tela; sem compositor, o
+//! X11 só entrega a parte da janela que está dentro da tela, e é essa parte que vira o print.
 
 use x11rb::connection::Connection as _;
 use x11rb::protocol::xproto::{AtomEnum, ConnectionExt as _, ImageFormat, ImageOrder, MapState, Window};
@@ -76,8 +77,22 @@ pub(super) fn capture_window_of_process(pid: u32) -> Result<Screenshot, CaptureE
     }
     let (window, width, height) = best.ok_or(CaptureError::WindowNotFound)?;
 
+    let screen_size = connection.get_geometry(root).map_err(platform)?.reply().map_err(platform)?;
+    let origin = connection
+        .translate_coordinates(window, root, 0, 0)
+        .map_err(platform)?
+        .reply()
+        .map_err(platform)?;
+    let part = visible_part(
+        (origin.dst_x, origin.dst_y, width, height),
+        (screen_size.width, screen_size.height),
+    )
+    .ok_or(CaptureError::Size {
+        width: 0,
+        height: 0,
+    })?;
     let image = connection
-        .get_image(ImageFormat::Z_PIXMAP, window, 0, 0, width, height, u32::MAX)
+        .get_image(ImageFormat::Z_PIXMAP, window, part.x, part.y, part.width, part.height, u32::MAX)
         .map_err(platform)?
         .reply()
         .map_err(platform)?;
@@ -87,8 +102,8 @@ pub(super) fn capture_window_of_process(pid: u32) -> Result<Screenshot, CaptureE
         .find(|format| format.depth == image.depth)
         .ok_or_else(|| CaptureError::PixelFormat(format!("profundidade {}", image.depth)))?;
     let layout = Layout {
-        width: u32::from(width),
-        height: u32::from(height),
+        width: u32::from(part.width),
+        height: u32::from(part.height),
         depth: image.depth,
         bits_per_pixel: format.bits_per_pixel,
         scanline_pad: format.scanline_pad,
@@ -96,6 +111,38 @@ pub(super) fn capture_window_of_process(pid: u32) -> Result<Screenshot, CaptureE
     };
     let rgba = rgba_from_zpixmap(&image.data, &layout)?;
     Screenshot::new(layout.width, layout.height, rgba)
+}
+
+/// Retângulo da janela, em coordenadas da própria janela.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Part {
+    x: i16,
+    y: i16,
+    width: u16,
+    height: u16,
+}
+
+/// A parte da janela (posição na tela e tamanho) que fica dentro da tela; `None` se nada fica.
+fn visible_part(window: (i16, i16, u16, u16), screen: (u16, u16)) -> Option<Part> {
+    let (x, y, width, height) = window;
+    let clip = |start: i16, size: u16, limit: u16| -> Option<(i16, u16)> {
+        let start = i32::from(start);
+        let first = start.max(0);
+        let last = (start + i32::from(size)).min(i32::from(limit));
+        (last > first).then(|| {
+            let offset = i16::try_from(first - start).unwrap_or(i16::MAX);
+            let length = u16::try_from(last - first).unwrap_or(0);
+            (offset, length)
+        })
+    };
+    let (offset_x, visible_width) = clip(x, width, screen.0)?;
+    let (offset_y, visible_height) = clip(y, height, screen.1)?;
+    Some(Part {
+        x: offset_x,
+        y: offset_y,
+        width: visible_width,
+        height: visible_height,
+    })
 }
 
 /// Como os pixels vêm no `ZPixmap`.
@@ -194,6 +241,20 @@ mod tests {
             rgba_from_zpixmap(&[0; 4], &layout(2, 1)),
             Err(CaptureError::Platform(_))
         ));
+    }
+
+    #[test]
+    fn so_a_parte_dentro_da_tela() {
+        let whole = |x, y, width, height| Some(Part { x, y, width, height });
+        // Inteira na tela.
+        assert_eq!(visible_part((10, 20, 800, 600), (1920, 1080)), whole(0, 0, 800, 600));
+        // Passa da direita e de baixo (janela de 1366 numa tela de 1280).
+        assert_eq!(visible_part((0, 0, 1366, 860), (1280, 1024)), whole(0, 0, 1280, 860));
+        // Começa fora, à esquerda e em cima.
+        assert_eq!(visible_part((-100, -50, 400, 300), (1280, 1024)), whole(100, 50, 300, 250));
+        // Toda fora.
+        assert_eq!(visible_part((2000, 0, 400, 300), (1280, 1024)), None);
+        assert_eq!(visible_part((0, 0, 0, 300), (1280, 1024)), None);
     }
 
     #[test]

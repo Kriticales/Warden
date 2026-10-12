@@ -329,9 +329,12 @@ describe('Relatar problema', () => {
   });
 
   it('CA-UI03-04: com "Copiar um print desta tela", o print da janela sai antes de abrir o navegador', async () => {
+    // Sem compositor (Xvfb), o X11 só entrega a parte da janela dentro da tela.
     const size = await browser.execute(() => ({
-      width: Math.round(window.innerWidth * window.devicePixelRatio),
-      height: Math.round(window.innerHeight * window.devicePixelRatio),
+      width: Math.round(Math.min(window.innerWidth, window.screen.width) * window.devicePixelRatio),
+      height: Math.round(
+        Math.min(window.innerHeight, window.screen.height) * window.devicePixelRatio,
+      ),
     }));
     await $('[data-testid="report-button"]').click();
     await dialog().waitForDisplayed();
@@ -348,8 +351,8 @@ describe('Relatar problema', () => {
     expect(existsSync(CAPTURE_FILE)).toBe(true);
     const shot = readPam(CAPTURE_FILE);
     // Só a janela do Warden: o tamanho é o da janela (com folga para bordas), não o da tela.
-    expect(shot.width).toBeGreaterThanOrEqual(size.width);
-    expect(shot.height).toBeGreaterThanOrEqual(size.height);
+    expect(shot.width).toBeGreaterThanOrEqual(size.width - 64);
+    expect(shot.height).toBeGreaterThanOrEqual(size.height - 64);
     expect(shot.width).toBeLessThanOrEqual(size.width + 64);
     expect(shot.height).toBeLessThanOrEqual(size.height + 64);
     expect(shot.colors).toBeGreaterThan(1);
@@ -365,6 +368,7 @@ describe('Relatar problema', () => {
     await $('h1=Configurações').waitForDisplayed();
     await browser.keys(['Control', 'Shift', 'e']);
     await dialog().waitForDisplayed();
+    await expand('O que o Warden coleta sozinho');
     const collected = $('[data-testid="report-collected"]');
     await collected.waitForDisplayed();
     await expect(collected).toHaveText(expect.stringContaining('Configurações'));
