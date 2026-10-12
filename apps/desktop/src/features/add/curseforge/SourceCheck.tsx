@@ -37,7 +37,7 @@ export function SourceCheck({ packId, sources, source, chosenSha1 }: SourceCheck
   }
   return (
     <Alert kind="warn" compact title={t('conferencia.diferente')} role="status">
-      <p>{t('conferencia.diferenteTexto', { fonte: tAdd(`fonte.${other.source}`) })}</p>
+      <p>{t('conferencia.diferenteTexto', { fonte: tAdd(`busca.fontes.${other.source}`) })}</p>
     </Alert>
   );
 }

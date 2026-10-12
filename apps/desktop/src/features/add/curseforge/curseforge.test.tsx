@@ -90,7 +90,7 @@ describe('pré-visualização com a CurseForge', () => {
     expect(
       await screen.findByText('O arquivo desta versão não é o mesmo nas duas fontes.'),
     ).toBeDefined();
-    expect(screen.getByText(/Nenhuma versão no CurseForge tem o mesmo SHA-1\./)).toBeDefined();
+    expect(screen.getByText(/Nenhuma versão da CurseForge tem o mesmo SHA-1\./)).toBeDefined();
   });
 
   it('trocar para a CurseForge confere a versão dela contra o Modrinth', async () => {
@@ -103,7 +103,7 @@ describe('pré-visualização com a CurseForge', () => {
     await screen.findByText('O arquivo desta versão não é o mesmo nas duas fontes.');
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Fonte' }), 'curseforge');
     expect(
-      await screen.findByText('Nenhuma versão no Modrinth tem o mesmo SHA-1.', { exact: false }),
+      await screen.findByText('Nenhuma versão do Modrinth tem o mesmo SHA-1.', { exact: false }),
     ).toBeDefined();
   });
 
@@ -154,6 +154,7 @@ const JEI: LinkTarget = {
   title: 'Just Enough Items (JEI)',
   kind: 'mod',
   fileId: null,
+  manualDownload: false,
 };
 
 describe('link da CurseForge no campo único', () => {

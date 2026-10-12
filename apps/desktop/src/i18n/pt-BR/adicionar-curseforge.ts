@@ -17,7 +17,7 @@ export const adicionarCurseforge = {
     igual: 'O arquivo desta versão é o mesmo no Modrinth e na CurseForge (o SHA-1 confere).',
     diferente: 'O arquivo desta versão não é o mesmo nas duas fontes.',
     diferenteTexto:
-      'Nenhuma versão no {{fonte}} tem o mesmo SHA-1. Escolha a fonte que você prefere e confira a versão antes de adicionar.',
+      'Nenhuma versão {{fonte}} tem o mesmo SHA-1. Escolha a fonte que você prefere e confira a versão antes de adicionar.',
   },
   link: {
     lendo: 'Lendo o link da CurseForge…',
