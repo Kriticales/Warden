@@ -166,11 +166,19 @@ export interface EditorOptions {
   onCursor: (line: number, column: number) => void;
 }
 
+/** Troca os fins de linha de um texto colado pelos do arquivo aberto. */
+export function sameLineBreaks(text: string, state: EditorState): string {
+  return text.replace(/\r\n?|\n/g, state.lineBreak);
+}
+
 /** O estado inicial do editor (um novo por arquivo aberto). */
 export function createEditorState(options: EditorOptions): EditorState {
   const { doc, language, readOnly, lineSeparator, ariaLabel, onChange, onCursor } = options;
   const extensions: Extension[] = [
     EditorState.lineSeparator.of(lineSeparator),
+    // Com o separador fixo, o CodeMirror só quebra linha nele: um texto colado com outro fim de
+    // linha ficaria com `\n` (ou `\r\n`) solto no meio da linha e no arquivo gravado.
+    EditorView.clipboardInputFilter.of(sameLineBreaks),
     lineNumbers(),
     highlightActiveLineGutter(),
     highlightActiveLine(),

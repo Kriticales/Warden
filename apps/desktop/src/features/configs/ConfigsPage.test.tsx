@@ -249,6 +249,32 @@ describe('Configs (T12)', () => {
     expect(screen.getByText(/CRLF/)).toBeDefined();
   });
 
+  it('texto colado com outro fim de linha entra com o fim de linha do arquivo', async () => {
+    const user = userEvent.setup();
+    const original = '# a\r\nx = 1\r\n';
+    const { backend } = openConfigs(`?arquivo=${CREATE}`, {
+      pack: { [CREATE]: entry(original, 'crlf') },
+      diff: false,
+    });
+    const textbox = await editorText();
+    const view = EditorView.findFromDOM(textbox.closest<HTMLElement>('.cm-editor') ?? textbox);
+    if (!view) throw new Error('editor do CodeMirror não encontrado');
+    act(() => {
+      view.dispatch({ selection: { anchor: view.state.doc.length } });
+    });
+    // Colar de verdade: o evento passa pelo tratamento de colar do CodeMirror.
+    const paste = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(paste, 'clipboardData', {
+      value: { getData: (type: string) => (type === 'text/plain' ? 'y = 2\nz = 3\n' : '') },
+    });
+    act(() => {
+      textbox.dispatchEvent(paste);
+    });
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await screen.findByText('create-common.toml salvo.');
+    expect(backend.callsOf('config_write')[0]?.args.text).toBe(`${original}y = 2\r\nz = 3\r\n`);
+  });
+
   it('CA-T12-03: arquivo alterado por fora → aviso, nada é gravado sem escolha', async () => {
     const user = userEvent.setup();
     const { backend, disks } = openConfigs(`?arquivo=${CREATE}`, {
