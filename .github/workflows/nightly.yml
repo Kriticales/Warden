@@ -31,6 +31,9 @@ jobs:
       cache-key: linux-rede
       timeout-minutes: 60
       env-file: true
+      # `rede_conformidade_com_mod_real_do_modrinth` roda o packwiz-installer real com o JRE
+      # fixado (`cargo xtask installer`); sem eles, `WARDEN_REQUIRE_EXTERNALS=1` faz o teste falhar.
+      installer: true
       run: cargo xtask test-network
     secrets:
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}

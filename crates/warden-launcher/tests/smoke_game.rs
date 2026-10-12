@@ -408,10 +408,13 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "rede: abre o jogo real e baixa servidores"]
 async fn rede_matriz_jogo_real() {
-    assert!(
-        comum::env_on("WARDEN_SMOKE_GAME"),
-        "defina WARDEN_SMOKE_GAME=1"
-    );
+    // Pega o filtro `rede_` do `cargo xtask test-network` (Noturno), mas só abre o jogo no
+    // workflow da matriz L-05, que define a variável; fora dele, avisa e sai, como os outros
+    // testes pesados da matriz (`rede_matriz.rs`).
+    if !comum::env_on("WARDEN_SMOKE_GAME") {
+        eprintln!("AVISO: defina WARDEN_SMOKE_GAME=1 para abrir o jogo real da matriz L-05.");
+        return;
+    }
     let only = std::env::var("WARDEN_SMOKE_ONLY").unwrap_or_default();
     let (root, _temp) = comum::data_root();
     let selected: Vec<_> = comum::MATRIX
