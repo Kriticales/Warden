@@ -15,7 +15,7 @@ use warden_project::ProjectErrorCode as Code;
 use warden_project::create::{CreatePack, create};
 use warden_project::inventory::inventory;
 use warden_project::optional::{OptionSettings, option_of, optional_items, set_optional};
-use warden_project::pin::{pinned_paths, set_pins};
+use warden_project::pin::set_pins;
 use warden_project::registry::Registry;
 
 fn binary() -> Option<PathBuf> {
@@ -118,6 +118,18 @@ fn changed_lines(before: &str, after: &str) -> Vec<String> {
         .lines()
         .filter(|line| !before.contains(line))
         .map(str::to_owned)
+        .collect()
+}
+
+/// Os itens fixados, como o inventário (e "Atualizar todos") os vê.
+async fn pinned(pack: &Path) -> Vec<String> {
+    inventory(pack, None)
+        .await
+        .unwrap()
+        .items
+        .into_iter()
+        .filter(|i| i.pinned)
+        .map(|i| i.path)
         .collect()
 }
 
@@ -274,16 +286,7 @@ async fn fixar_versao_grava_so_a_linha_pin_e_soltar_volta_ao_original() {
         let new = fs::read_to_string(pack.join(path)).unwrap();
         assert_eq!(changed_lines(old, &new), ["pin = true"], "{path}");
     }
-    assert_eq!(pinned_paths(&pack).unwrap(), paths);
-    let inv = inventory(&pack, None).await.unwrap();
-    assert_eq!(
-        inv.items
-            .iter()
-            .filter(|i| i.pinned)
-            .map(|i| i.path.clone())
-            .collect::<Vec<_>>(),
-        paths
-    );
+    assert_eq!(pinned(&pack).await, paths);
     assert_refresh_is_noop(&cli, &pack).await;
 
     // Repetir não grava; soltar um só deixa os outros fixados.
@@ -297,7 +300,7 @@ async fn fixar_versao_grava_so_a_linha_pin_e_soltar_volta_ao_original() {
         .await
         .unwrap();
     assert_eq!(fs::read_to_string(pack.join(&paths[0])).unwrap(), before[0]);
-    assert_eq!(pinned_paths(&pack).unwrap(), paths[1..]);
+    assert_eq!(pinned(&pack).await, paths[1..]);
     assert_refresh_is_noop(&cli, &pack).await;
 
     let error = set_pins(&pack, &["mods/x.pw.toml".into()], true, &cli, &cancel)

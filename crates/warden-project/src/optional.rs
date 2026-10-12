@@ -17,6 +17,7 @@ use warden_packwiz::edit::set_metafile_option;
 use warden_packwiz_cli::Packwiz;
 
 use crate::inventory::{ItemState, scan};
+use crate::pin::not_editable;
 use crate::transaction::PackTransaction;
 use crate::{Error, ProjectErrorCode as Code, Result};
 
@@ -148,14 +149,6 @@ pub async fn set_optional(
     let mut tx = PackTransaction::new(root.to_path_buf());
     tx.write(&item.path, edited.into_bytes())?;
     tx.commit(packwiz, cancel).await
-}
-
-fn not_editable(path: &str) -> Error {
-    Error::new(
-        Code::InvalidInput,
-        format!("{path} não é um metafile válido do índice"),
-    )
-    .param("path", path)
 }
 
 #[cfg(test)]

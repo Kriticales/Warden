@@ -15,17 +15,6 @@ use crate::inventory::{ItemState, scan};
 use crate::transaction::PackTransaction;
 use crate::{Error, ProjectErrorCode as Code, Result};
 
-/// Os caminhos dos itens fixados, em ordem. É a lista que "Atualizar todos" precisa pular.
-pub fn pinned_paths(root: &Path) -> Result<Vec<String>> {
-    Ok(scan(root)?
-        .inventory
-        .items
-        .into_iter()
-        .filter(|item| item.state == ItemState::Ok && item.pinned)
-        .map(|item| item.path)
-        .collect())
-}
-
 /// Fixa ou solta a versão dos metafiles dados (caminhos relativos à pasta do pack). Os que já
 /// estão no estado pedido ficam como estão; sem nada a mudar, o packwiz nem é chamado e o
 /// resultado é vazio. Devolve os arquivos gravados.
@@ -74,7 +63,8 @@ pub async fn set_pins(
     tx.commit(packwiz, cancel).await
 }
 
-fn not_editable(path: &str) -> Error {
+/// Caminho que não é um metafile válido do índice (também usado por [`crate::optional`]).
+pub(crate) fn not_editable(path: &str) -> Error {
     Error::new(
         Code::InvalidInput,
         format!("{path} não é um metafile válido do índice"),
