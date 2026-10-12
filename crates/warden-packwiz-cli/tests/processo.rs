@@ -18,8 +18,8 @@ use warden_core::{
     CancellationToken, CoreErrorCode, DomainCode, DomainError, Progress, ProgressSink,
 };
 use warden_packwiz_cli::{
-    BINARY_NAME, CURSEFORGE_KEY_ENV, CurseForgeTarget, Error, ExportSide, INHERITED_ENV, Packwiz,
-    PackwizCliErrorCode, PackwizCommand, RunContext, Timeouts,
+    BINARY_NAME, CURSEFORGE_API_ENV, CURSEFORGE_KEY_ENV, CurseForgeTarget, Error, ExportSide,
+    INHERITED_ENV, Packwiz, PackwizCliErrorCode, PackwizCommand, RunContext, Timeouts,
 };
 
 /// Chave falsa, com cara de chave da CurseForge, só destes testes.
@@ -216,6 +216,44 @@ async fn chave_vazia_nao_vai_para_o_ambiente() {
             .any(|line| line.starts_with(&format!("env={CURSEFORGE_KEY_ENV}=")))
     );
     assert!(dump.contains(&"arg=--".to_owned()));
+}
+
+/// O endereço trocado da CurseForge (patch 0002) só vai ao packwiz quando alguém chama
+/// `with_curseforge_api` (o app só chama em build de debug), e só nos comandos da CurseForge.
+/// Sem a chamada, nem uma `WARDEN_API_BASE_CURSEFORGE` no ambiente do Warden chega ao packwiz:
+/// a chave nunca vai para outro endereço.
+#[tokio::test]
+async fn endereco_da_curseforge_so_com_with_curseforge_api() {
+    let add = PackwizCommand::CurseForgeAddUrl {
+        url: "https://www.curseforge.com/minecraft/mc-mods/jei/files/1".into(),
+    };
+    let refresh = PackwizCommand::Refresh { build: false };
+    let base = "http://127.0.0.1:1/v1";
+    let key = SecretString::from(FAKE_KEY.to_owned());
+    let api_line = format!("env={CURSEFORGE_API_ENV}=");
+    for (with_api, command, expected) in [
+        (false, &add, None),
+        (true, &add, Some(base)),
+        (true, &refresh, None),
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let pack = temp.path().join("pack");
+        fake_pack(&pack, "mode=dump\n");
+        let mut packwiz = packwiz(fake_binary(), temp.path());
+        if with_api {
+            packwiz = packwiz.with_curseforge_api(base);
+        }
+        let cancel = CancellationToken::new();
+        packwiz
+            .run(&pack, command, Some(&key), RunContext::new(&cancel))
+            .await
+            .unwrap();
+        let dump = dump(&pack);
+        let seen = dump
+            .iter()
+            .find_map(|line| line.strip_prefix(api_line.as_str()));
+        assert_eq!(seen, expected, "{command:?} com endereço: {with_api}");
+    }
 }
 
 #[tokio::test]
