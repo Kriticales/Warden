@@ -5,6 +5,8 @@
 //! `apps/desktop/src/i18n/errors/export.ts` e o `enum Error`, que implementa
 //! `warden_core::DomainError`.
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 use warden_core::{DomainCode, DomainError};
 
@@ -25,6 +27,25 @@ pub enum ExportErrorCode {
     PackOutOfDate,
     /// O caminho tem colchetes, que o `.packwizignore` lê como padrão: excluir à mão.
     ExcludeNeedsManualRule,
+    /// O `pack.toml` não tem `version`, que o `.mrpack` e o zip da CurseForge exigem.
+    VersionRequired,
+    /// Há arquivos de terceiros que iriam dentro do arquivo gerado e a pessoa não confirmou.
+    EmbedNeedsConfirmation,
+    /// Mod da CurseForge cujo autor bloqueou apps de terceiros (ou que saiu da CurseForge) e
+    /// que não existe no Modrinth: o formato não pode levar o arquivo.
+    BlockedByAuthor,
+    /// A troca pedida para o Modrinth não vale mais (o arquivo não tem equivalente).
+    SwapNotAvailable,
+    /// O formato precisa da chave da CurseForge para conferir ou embutir arquivos.
+    CurseforgeKeyMissing,
+    /// Modrinth ou CurseForge não responderam à conferência dos arquivos.
+    LookupFailed,
+    /// O packwiz não conseguiu gerar o arquivo.
+    FormatToolFailed,
+    /// O arquivo gerado não passou na validação e foi descartado.
+    InvalidOutput,
+    /// O arquivo escolhido para validar não pôde ser lido como o formato esperado.
+    UnreadableArchive,
 }
 
 /// Falha de preparação ou gravação da exportação. Os detalhes não contêm segredos.
@@ -33,6 +54,8 @@ pub enum ExportErrorCode {
 pub struct Error {
     code: ExportErrorCode,
     message: String,
+    params: BTreeMap<String, String>,
+    detail: Option<String>,
 }
 
 impl Error {
@@ -41,7 +64,23 @@ impl Error {
         Self {
             code,
             message: message.into(),
+            params: BTreeMap::new(),
+            detail: None,
         }
+    }
+
+    /// Acrescenta um valor para a frase traduzida.
+    #[must_use]
+    pub fn with_param(mut self, name: &str, value: impl Into<String>) -> Self {
+        self.params.insert(name.to_owned(), value.into());
+        self
+    }
+
+    /// Acrescenta o detalhe técnico (sem segredos).
+    #[must_use]
+    pub fn with_detail(mut self, detail: impl Into<String>) -> Self {
+        self.detail = Some(detail.into());
+        self
     }
 
     /// Falha sem código específico (`INTERNAL`).
@@ -58,5 +97,15 @@ impl DomainError for Error {
 
     fn code(&self) -> DomainCode<Self::Code> {
         DomainCode::Domain(self.code)
+    }
+
+    fn params(&self) -> BTreeMap<String, String> {
+        self.params.clone()
+    }
+
+    fn detail(&self) -> Option<String> {
+        self.detail
+            .clone()
+            .or_else(|| Some(warden_core::error_chain(self)))
     }
 }

@@ -3,7 +3,21 @@
  * um grupo por pasta de primeiro nível (com contagem, referências e tamanho) e os arquivos soltos
  * na raiz; e a lista plana dos alertas, para o painel "pedem atenção".
  */
-import type { ExportAlert, ExportPreview, PreviewFile } from '../../lib/ipc/bindings';
+import type {
+  ExportAlert,
+  ExportFormat,
+  ExportPreview,
+  LauncherFormat,
+  PreviewFile,
+} from '../../lib/ipc/bindings';
+
+/** O que a pessoa escolhe em "2. Formato": pasta e zip (E-01) ou o formato de outro launcher. */
+export type UiFormat = ExportFormat | LauncherFormat;
+
+/** Se o formato é de outro launcher (E-02): tem leitura, decisões e conferência próprias. */
+export function isLauncherFormat(format: UiFormat): format is LauncherFormat {
+  return format === 'mrpack' || format === 'curseforge';
+}
 
 /** Manifesto e índice: vão sempre e não podem ser excluídos. */
 export const CONTROL_FILES = ['pack.toml', 'index.toml'] as const;
