@@ -437,6 +437,7 @@ export const events = {
 	gameQuitRequested: makeEvent<GameQuitRequested>("game-quit-requested"),
 	gameState: makeEvent<GameState>("game-state"),
 	localFilesDropped: makeEvent<LocalFilesDropped>("local-files-dropped"),
+	manualDownloadsChanged: makeEvent<ManualDownloadsChanged>("manual-downloads-changed"),
 	operationUpdated: makeEvent<OperationUpdated>("operation-updated"),
 	packChanged: makeEvent<PackChanged>("pack-changed"),
 	titleBarMaximize: makeEvent<TitleBarMaximize>("title-bar-maximize"),
