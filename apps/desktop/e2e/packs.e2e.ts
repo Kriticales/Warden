@@ -228,7 +228,7 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     await wizardNext();
 
     await $('.packcard__meta*=Minecraft 1.20.1 · Forge').waitForDisplayed();
-    await expect($('.checklist li*=Nenhum mod inicial')).toBeDisplayed();
+    await expect($('.checklist').$('li*=Nenhum mod inicial')).toBeDisplayed();
     await screenshot('05-criar-resumo');
     await wizardNext('Criar pack');
 
@@ -391,8 +391,11 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     const spark = $('input[aria-label="Adicionar spark"]');
     const crash = $('input[aria-label="Adicionar Crash Assistant"]');
     await browser.waitUntil(async () => (await spark.isSelected()) && (await crash.isSelected()));
-    await expect($('.drow*=spark')).toHaveText(expect.stringContaining('1.10.109-fabric'));
-    await expect($('.drow*=spark')).toHaveText(expect.stringContaining('Traz junto: Fabric API'));
+    // As linhas de descrição têm `line-clamp` e o WebKitWebDriver não as conta como texto
+    // visível: confere o `textContent`.
+    const sparkRow = String(await $('.drow*=spark').getProperty('textContent'));
+    expect(sparkRow).toContain('1.10.109-fabric');
+    expect(sparkRow).toContain('Traz junto: Fabric API');
     const violations = await seriousViolations();
     expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
     await screenshot('14-criar-mods-iniciais');
@@ -408,8 +411,8 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
 
     await $('.packcard__meta*=Minecraft 1.21.1 · Fabric').waitForDisplayed();
     await expect(
-      $(
-        '.checklist span=Mods iniciais: Crash Assistant, com a config do Crash Assistant sem envio de dados ao autor',
+      $('.checklist').$(
+        'span=Mods iniciais: Crash Assistant, com a config do Crash Assistant sem envio de dados ao autor',
       ),
     ).toBeDisplayed();
     await screenshot('15-criar-resumo-mods-iniciais');
