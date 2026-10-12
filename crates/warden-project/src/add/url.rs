@@ -34,7 +34,7 @@ pub enum ModrinthLink {
     Version {
         /// Slug ou ID do projeto.
         project: String,
-        /// Número da versão ("mc1.21.1-0.6.0-fabric") ou ID ("SMxNOGZ6").
+        /// Número da versão (`mc1.21.1-0.6.0-fabric`) ou ID (`SMxNOGZ6`).
         version: String,
     },
 }

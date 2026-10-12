@@ -171,6 +171,16 @@ pub(crate) fn add_source(state: &AppState) -> Option<Arc<dyn AddSource>> {
     Some(Arc::new(CurseforgeAdd::new(client)))
 }
 
+/// O cliente da CurseForge para identificar arquivos pela impressão digital (P1-11): só com
+/// chave que a API não recusou; sem ela, nenhuma requisição vai para a CurseForge.
+pub(crate) fn lookup_client(state: &AppState) -> Option<CurseforgeClient> {
+    let key = stored_key(state).ok().flatten()?;
+    if is_rejected(&key) {
+        return None;
+    }
+    client(key).ok()
+}
+
 fn domain(error: warden_project::Error) -> AppError {
     AppError::from_domain(&error)
 }

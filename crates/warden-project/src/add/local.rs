@@ -241,8 +241,8 @@ pub struct InPack {
 pub struct FileReport {
     /// Nome do arquivo.
     pub file_name: String,
-    /// Tamanho em bytes.
-    pub size: u64,
+    /// Tamanho em bytes (no máximo [`MAX_FILE_BYTES`], que cabe num `u32`).
+    pub size: u32,
     /// SHA-256 (a tela devolve na gravação: o arquivo não pode ter mudado).
     pub sha256: String,
     /// Tipo pelo conteúdo (nenhum: não deu para saber; a tela pede).
@@ -458,7 +458,7 @@ pub fn inspect(root: &Path, bytes: &[u8], facts: &FileFacts) -> Result<FileRepor
     let in_pack = find_in_pack(root, facts, content.kind)?;
     Ok(FileReport {
         file_name: facts.file_name.clone(),
-        size: facts.size,
+        size: u32::try_from(facts.size).unwrap_or(u32::MAX),
         sha256: facts.sha256.clone(),
         kind: content.kind,
         archive: content.archive,
@@ -493,7 +493,7 @@ fn find_in_pack(
             })
             .or_else(|| scan.hashes.get(&item.path).cloned());
         let same_file = hash.is_some_and(|(format, hash)| {
-            HashFormat::parse(&format).ok().is_some_and(|format| {
+            HashFormat::parse(&format).is_ok_and(|format| {
                 facts
                     .hash(format)
                     .is_some_and(|ours| !hash.is_empty() && hash_matches(format, &hash, &ours))
@@ -727,6 +727,26 @@ fn display_name(content: &Content, file_name: &str) -> String {
         })
 }
 
+/// O `.pw.toml` de um link direto (como o `packwiz url add`), com um nome único no pack.
+fn link_metafile(
+    item: &LocalAdd,
+    link: &str,
+    title: &str,
+    facts: &FileFacts,
+    taken: &mut Vec<String>,
+) -> Result<(String, Vec<u8>)> {
+    let mut metafile = Metafile::url(title, link, &facts.sha256)
+        .map_err(|e| Error::new(Code::InvalidInput, e.to_string()).param("field", "link"))?;
+    metafile.side = item.side.side();
+    let slug = Some(slugify_name(title))
+        .filter(|slug| !slug.is_empty())
+        .unwrap_or_else(|| slugify_name(&facts.file_name));
+    let stem = unique_metafile_stem(&slug, MetafileSource::Url, taken.iter().map(String::as_str));
+    taken.push(stem.clone());
+    let path = format!("{}/{stem}{METAFILE_SUFFIX}", item.kind.folder());
+    Ok((path, metafile.to_toml_string().into_bytes()))
+}
+
 /// Grava os arquivos confirmados numa transação só (um `packwiz refresh`): o arquivo do
 /// computador é copiado para a pasta do tipo; o do link direto vira um `.pw.toml` com
 /// `[download]`. Ou todos entram, ou nenhum.
@@ -806,21 +826,8 @@ pub async fn add_local_apply(
                 path
             }
             Some(link) => {
-                let mut metafile = Metafile::url(&title, link, &facts.sha256).map_err(|e| {
-                    Error::new(Code::InvalidInput, e.to_string()).param("field", "link")
-                })?;
-                metafile.side = item.side.side();
-                let slug = Some(slugify_name(&title))
-                    .filter(|slug| !slug.is_empty())
-                    .unwrap_or_else(|| slugify_name(&name));
-                let stem = unique_metafile_stem(
-                    &slug,
-                    MetafileSource::Url,
-                    taken.iter().map(String::as_str),
-                );
-                taken.push(stem.clone());
-                let path = format!("{}/{stem}{METAFILE_SUFFIX}", item.kind.folder());
-                tx.write(&path, metafile.to_toml_string().into_bytes())?;
+                let (path, toml) = link_metafile(item, link, &title, &facts, &mut taken)?;
+                tx.write(&path, toml)?;
                 path
             }
         };

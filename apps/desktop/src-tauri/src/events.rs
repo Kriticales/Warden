@@ -3,7 +3,8 @@
 //! - Eventos globais (`app.emit`) são tipados com `tauri-specta` e registrados em
 //!   `commands::builder`. Esta tarefa cria `operation-updated` e `pack-changed`; as tarefas donas
 //!   de `game-state`, `server-state` e `ai-conversation-updated` acrescentam os seus aqui;
-//!   a UI-01 acrescentou `title-bar-maximize`; a L-04, `game-state` e `game-quit-requested`.
+//!   a UI-01 acrescentou `title-bar-maximize`; a L-04, `game-state` e `game-quit-requested`; a
+//!   P1-11, `local-files-dropped`.
 //! - [`OperationEvent`] é o que passa pelo `Channel` de cada comando longo. As variantes
 //!   `PerfSample`, `Round` e `ToolCall` da ARCHITECTURE §4.3 entram com as tarefas donas
 //!   (L-08, D-10 e D-04): este arquivo é registro acréscimo-apenas para eventos e variantes.
@@ -60,6 +61,18 @@ pub struct TitleBarMaximize {
     pub hovered: bool,
     /// Botão do mouse apertado sobre o botão.
     pub pressed: bool,
+}
+
+/// `local-files-dropped`: arquivos soltos sobre a janela (P1-11; SPEC T06 e T08). Só os
+/// `.jar`/`.zip` viram tokens; a interface nunca recebe os caminhos.
+#[derive(Debug, Clone, Serialize, specta::Type, Event)]
+#[serde(rename_all = "camelCase")]
+#[tauri_specta(event_name = "local-files-dropped")]
+pub struct LocalFilesDropped {
+    /// Os arquivos aceitos.
+    pub files: Vec<crate::commands::add_local::LocalFileRef>,
+    /// Quantos ficaram de fora (pastas, outros tipos de arquivo).
+    pub ignored: u32,
 }
 
 /// Situação do jogo de um pack (`game-state`).

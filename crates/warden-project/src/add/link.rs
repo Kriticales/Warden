@@ -32,7 +32,7 @@ use crate::{Error, ProjectErrorCode as Code, Result};
 pub const MAX_DIRECT_BYTES: u64 = 256 * 1024 * 1024;
 
 /// Tempo máximo do download de um link direto, do começo ao fim.
-pub const DIRECT_TIMEOUT: Duration = Duration::from_secs(10 * 60);
+pub const DIRECT_TIMEOUT: Duration = Duration::from_mins(10);
 
 /// O que um link do Modrinth aponta, para a tela.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
