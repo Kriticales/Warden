@@ -30,6 +30,8 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 async-trait.workspace = true
 unicode-normalization.workspace = true
 tracing.workspace = true
+url.workspace = true
+zip.workspace = true
 trash = "5"
 
 [dev-dependencies]
@@ -37,6 +39,7 @@ wiremock.workspace = true
 warden-core = { workspace = true, features = ["fault-injection"] }
 tempfile.workspace = true
 git2.workspace = true
+warden-diagnostics.workspace = true
 
 [lints]
 workspace = true

@@ -14,12 +14,17 @@
 //!   (um `packwiz refresh`): ou todos entram, ou nenhum.
 //!
 //! Cada fonte implementa [`AddSource`]: o Modrinth ([`modrinth::ModrinthAdd`]) e a CurseForge
-//! ([`curseforge::CurseforgeAdd`]). O link da CurseForge está em [`link_curseforge`].
+//! ([`curseforge::CurseforgeAdd`]). O link da CurseForge está em [`link_curseforge`]; a
+//! classificação dos links colados ([`url`]), os links do Modrinth e diretos ([`link`]) e o
+//! arquivo do computador ([`local`]) são da P1-11.
 
 pub mod curseforge;
+pub mod link;
 pub mod link_curseforge;
+pub mod local;
 pub mod modrinth;
 pub mod plan;
+pub mod url;
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
@@ -384,7 +389,7 @@ fn metafile_source(source: SourceId) -> MetafileSource {
 
 /// Nomes base dos `.pw.toml` que já existem nas pastas de conteúdo, mesmo fora do índice
 /// (um arquivo novo nunca pode sobrescrever outro).
-fn stems_on_disk(root: &Path) -> Vec<String> {
+pub(crate) fn stems_on_disk(root: &Path) -> Vec<String> {
     let mut stems = Vec::new();
     for kind in [
         ProjectKind::Mod,
