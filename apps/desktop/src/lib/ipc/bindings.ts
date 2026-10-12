@@ -118,6 +118,37 @@ export const commands = {
 	/**  Bibliotecas (e itens) que nenhum item mantido usa mais. */
 	graphOrphans: (packId: PackId) => typedError<Orphan[], AppError>(__TAURI_INVOKE("graph_orphans", { packId })),
 	/**
+	 *  O que a etapa "Mods iniciais" mostra: spark e Crash Assistant (e a Fabric API no Fabric), com
+	 *  a versão de cada um. Vanilla não oferece nada. Se o Modrinth não responder, o erro é
+	 *  `SEARCH_SOURCE_UNAVAILABLE` e a etapa deixa seguir sem os mods.
+	 */
+	initialModsOffer: (minecraft: string, loader: 
+/**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
+"forge" | 
+/**  NeoForge (1.20.1 em diante). */
+"neoforge" | 
+/**  Fabric (1.14 em diante). */
+"fabric" | null) => typedError<InitialOffer, AppError>(__TAURI_INVOKE("initial_mods_offer", { minecraft, loader })),
+	/**
+	 *  Grava os mods iniciais marcados (e o kit escolhido) no pack e avisa a interface. Duas
+	 *  transações sob a mesma trava: os itens (todos ou nenhum) e, depois, a config do Crash
+	 *  Assistant e `[player-tools]`; se a segunda falhar, o erro volta e os itens já gravados ficam no
+	 *  pack. Itens sem versão para o pack ou de uma fonte desligada ficam de fora e voltam em
+	 *  `leftOut`; o pack continua válido.
+	 */
+	initialModsApply: (packId: PackId, request: InitialModsRequest) => typedError<InitialModsResult, AppError>(__TAURI_INVOKE("initial_mods_apply", { packId, request })),
+	/**
+	 *  Os kits de desempenho do loader e da versão do Minecraft (nenhum para vanilla ou para uma
+	 *  faixa sem kit). Dados embutidos: não usa a rede.
+	 */
+	kitsList: (minecraft: string, loader: 
+/**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
+"forge" | 
+/**  NeoForge (1.20.1 em diante). */
+"neoforge" | 
+/**  Fabric (1.14 em diante). */
+"fabric" | null) => __TAURI_INVOKE<Kit[]>("kits_list", { minecraft, loader }),
+	/**
 	 *  A lista de Mods: todos os itens do índice (mods, resource packs, shaders), os arquivos
 	 *  inválidos e os que estão fora do índice. Sempre lida do disco.
 	 */
@@ -1352,6 +1383,32 @@ export type ImportedPack = {
 	readOnlyReason: string | null,
 };
 
+/**  O que gravar depois do "Pack criado". */
+export type InitialModsRequest = {
+	/**  Identificadores das ferramentas marcadas. */
+	tools: string[],
+	/**  Kit de desempenho escolhido. */
+	kit?: KitChoice | null,
+};
+
+/**  O que foi gravado. */
+export type InitialModsResult = {
+	/**  Itens que entraram (os escolhidos e as dependências obrigatórias). */
+	added: AddedItem[],
+	/**  Nomes dos itens que não entraram (sem versão para o pack ou fonte desligada). */
+	leftOut: string[],
+	/**  Se a config inicial do Crash Assistant foi gravada. */
+	crashAssistantConfig: boolean,
+	/**  Papéis marcados em `[player-tools]`. */
+	playerTools: string[],
+};
+
+/**  A etapa "Mods iniciais" para um Minecraft e um loader. */
+export type InitialOffer = {
+	/**  Os itens oferecidos, na ordem dos dados. */
+	items: OfferItem[],
+};
+
 /**  Um Java instalado pelo Warden. */
 export type InstalledRuntime = {
 	/**  Identificador (nome da pasta). */
@@ -1740,6 +1797,42 @@ export type JavaVersion = {
 	build: number,
 };
 
+/**  Um kit oferecido ao pack. */
+export type Kit = {
+	/**  Identificador estável. */
+	id: string,
+	/**  Nome. */
+	name: string,
+	/**  Frase curta. */
+	description: string,
+	/**  Mods. */
+	items: KitItem[],
+};
+
+/**  Um kit escolhido no assistente: o `id` e os itens que continuaram marcados. */
+export type KitChoice = {
+	/**  Identificador do kit. */
+	id: string,
+	/**  IDs dos projetos marcados (todos da fonte do item). */
+	projects: string[],
+};
+
+/**  Um mod de um kit, como a interface o mostra. */
+export type KitItem = {
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  Nome. */
+	name: string,
+	/**  Lado. */
+	side: SideChoice | null,
+	/**  Vem marcado. */
+	checked: boolean,
+	/**  Código da observação (`worldgen`, `shaders`). */
+	note: string | null,
+};
+
 /**
  *  Códigos do domínio `launcher`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -2055,6 +2148,30 @@ export type NodeRole =
 "required" | 
 /**  Dependência opcional de um item escolhido. */
 "optional";
+
+/**  Um item da etapa "Mods iniciais". */
+export type OfferItem = {
+	/**  Identificador da ferramenta (`spark`, `crash-assistant`). */
+	id: string,
+	/**  Vem marcada. */
+	checked: boolean,
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto na fonte. */
+	projectId: string,
+	/**  Nome (o da fonte quando ela respondeu; senão, o dos dados). */
+	title: string,
+	/**  Versão que será usada ("1.14.1"), quando conhecida. */
+	version: string | null,
+	/**  Versão antiga e sem atualizações (a interface mostra o aviso). */
+	old: boolean,
+	/**  Lado fixado nos dados. */
+	side: SideChoice | null,
+	/**  Nomes dos itens que entram junto (a Fabric API no Fabric). */
+	with: string[],
+	/**  Por que não pode ser marcado. */
+	unavailable: Unavailable | null,
+};
 
 /**  Evento do canal de uma operação longa (`Channel<OperationEvent>`). */
 export type OperationEvent = 
@@ -3259,6 +3376,13 @@ export type TitleBarMaximize = {
 	/**  Botão do mouse apertado sobre o botão. */
 	pressed: boolean,
 };
+
+/**  Por que um item não pode ser marcado. */
+export type Unavailable = 
+/**  Item da CurseForge e a CurseForge não está ligada (sem chave). */
+"curseforgeOff" | 
+/**  A fonte não tem versão para este Minecraft e loader. */
+"noVersion";
 
 /**  Canal de uma versão. */
 export type UpdateChannel = 

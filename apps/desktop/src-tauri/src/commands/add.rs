@@ -47,7 +47,7 @@ fn search_sources(state: &AppState) -> Vec<ActiveSource> {
 }
 
 /// Fontes do plano e da gravação: o Modrinth e, com chave válida, a CurseForge.
-fn add_sources(state: &AppState) -> AddSources {
+pub(crate) fn add_sources(state: &AppState) -> AddSources {
     let sources = AddSources::new().with(Arc::new(ModrinthAdd::new(state.modrinth.clone())));
     match add_curseforge::add_source(state) {
         Some(curseforge) => sources.with(curseforge),
@@ -56,7 +56,7 @@ fn add_sources(state: &AppState) -> AddSources {
 }
 
 /// Canais aceitos por padrão (Configurações: versões beta e alpha).
-fn channel_policy(state: &AppState) -> ChannelPolicy {
+pub(crate) fn channel_policy(state: &AppState) -> ChannelPolicy {
     ChannelPolicy {
         allow_prerelease: state.settings.get().show_prerelease_versions,
     }

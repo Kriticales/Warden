@@ -59,6 +59,18 @@ const MODRINTH = join(
   'fixtures',
   'http',
 );
+const PROJECT = join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'crates',
+  'warden-project',
+  'tests',
+  'fixtures',
+  'http',
+);
 const RECORDED: Record<string, string> = {
   'mc/game/version_manifest_v2.json': join(CATALOG, '2026-10-05-mojang-version_manifest_v2.json'),
   'v2/versions/game': join(CATALOG, '2026-10-05-fabric-versions-game.json'),
@@ -81,8 +93,7 @@ const RECORDED: Record<string, string> = {
   ),
   // Modrinth (P1-08: inventário e detalhes), com o app em `WARDEN_API_BASE_MODRINTH=<url>/modrinth/v2/`.
   // `crates/warden-modrinth/tests/fixtures/http/FIXTURES.md` diz de onde veio cada arquivo.
-  'modrinth/v2/projects': join(MODRINTH, '2026-10-04-projects-3.json'),
-  'modrinth/v2/versions': join(MODRINTH, '2026-10-04-versions-2.json'),
+  // `/projects?ids=` e `/versions?ids=` são respondidos por `byIds` (abaixo).
   'modrinth/v2/project/AANobbMI': join(MODRINTH, '2026-10-04-project-sodium.json'),
   'modrinth/v2/version/SMxNOGZ6': join(MODRINTH, '2026-10-04-version-SMxNOGZ6.json'),
   // Adicionar (P1-09): toda busca devolve a busca gravada por "sodium" (Fabric 1.21.1).
@@ -91,7 +102,61 @@ const RECORDED: Record<string, string> = {
     MODRINTH,
     '2026-10-04-project-sodium-versions-fabric-1.21.1.json',
   ),
+  // Mods iniciais (P1-18): spark, Crash Assistant e Fabric API para Fabric 1.21.1
+  // (`crates/warden-project/tests/fixtures/http/FIXTURES.md`). Para outro loader ou versão, o
+  // app descarta as versões que não servem, e o item aparece "Sem versão para este pack".
+  'modrinth/v2/project/l6YH9Als/version': join(
+    PROJECT,
+    '2026-10-07-versions-spark-fabric-1.21.1.json',
+  ),
+  'modrinth/v2/project/ix1qq8Ux/version': join(
+    PROJECT,
+    '2026-10-07-versions-crash-assistant-fabric-1.21.1.json',
+  ),
+  'modrinth/v2/project/P7dR8mSH/version': join(
+    PROJECT,
+    '2026-10-07-versions-fabric-api-fabric-1.21.1.json',
+  ),
 };
+
+/**
+ * `GET /projects?ids=[…]` e `GET /versions?ids=[…]`: como a API, devolve só os pedidos (por ID
+ * ou slug), tirados da união das respostas gravadas.
+ */
+const BY_IDS: Record<string, string[]> = {
+  'modrinth/v2/projects': [
+    join(MODRINTH, '2026-10-04-projects-3.json'),
+    join(PROJECT, '2026-10-07-projects-initial.json'),
+    join(PROJECT, '2026-10-07-projects-add.json'),
+  ],
+  'modrinth/v2/versions': [
+    join(MODRINTH, '2026-10-04-versions-2.json'),
+    join(PROJECT, '2026-10-07-versions-spark-fabric-1.21.1.json'),
+    join(PROJECT, '2026-10-07-versions-crash-assistant-fabric-1.21.1.json'),
+    join(PROJECT, '2026-10-07-versions-fabric-api-fabric-1.21.1.json'),
+  ],
+};
+
+/** A resposta de `BY_IDS` para o caminho, ou `null` se o caminho não for um deles. */
+async function byIds(urlPath: string): Promise<string | null> {
+  const url = new URL(urlPath, 'http://fixtures');
+  const files = BY_IDS[decodeURIComponent(url.pathname).replace(/^\/+/, '')];
+  if (!files) return null;
+  const wanted = JSON.parse(url.searchParams.get('ids') ?? '[]') as string[];
+  const seen = new Set<string>();
+  const found: unknown[] = [];
+  for (const file of files) {
+    const items = JSON.parse(await readFile(file, 'utf8')) as { id: string; slug?: string }[];
+    for (const item of items) {
+      if (seen.has(item.id)) continue;
+      if (wanted.includes(item.id) || (item.slug !== undefined && wanted.includes(item.slug))) {
+        seen.add(item.id);
+        found.push(item);
+      }
+    }
+  }
+  return JSON.stringify(found);
+}
 
 /** O arquivo de fixture para um caminho de URL, ou `null` se sair da pasta. */
 export function fixturePath(urlPath: string): string | null {
@@ -122,6 +187,24 @@ function serveCurseforge(request: IncomingMessage, response: ServerResponse, pat
   });
 }
 
+/** Serve o arquivo de fixture do caminho (404 se não existir; 400 se sair da pasta). */
+function serveFile(path: string, response: ServerResponse): void {
+  const file = fixturePath(path);
+  if (!file) {
+    response.writeHead(400).end();
+    return;
+  }
+  readFile(file)
+    .then((body) => {
+      response
+        .writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
+        .end(body);
+    })
+    .catch(() => {
+      response.writeHead(404).end();
+    });
+}
+
 export async function startMockServer(): Promise<MockServer> {
   const requests: string[] = [];
   const server: Server = createServer((request, response) => {
@@ -141,19 +224,16 @@ export async function startMockServer(): Promise<MockServer> {
       serveCurseforge(request, response, path);
       return;
     }
-    const file = fixturePath(path);
-    if (!file) {
-      response.writeHead(400).end();
-      return;
-    }
-    readFile(file)
+    void byIds(path)
       .then((body) => {
-        response
-          .writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
-          .end(body);
+        if (body === null) {
+          serveFile(path, response);
+        } else {
+          response.writeHead(200, { 'content-type': TYPES['.json'] }).end(body);
+        }
       })
       .catch(() => {
-        response.writeHead(404).end();
+        response.writeHead(500).end();
       });
   });
   await new Promise<void>((resolve) => {
