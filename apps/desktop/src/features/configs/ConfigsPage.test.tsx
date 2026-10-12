@@ -377,6 +377,41 @@ describe('Configs (T12)', () => {
     expect(screen.queryByRole('button', { name: 'Salvar' })).toBeNull();
   });
 
+  it('mostra os demais arquivos do pack; servers.dat aparece como binário, sem edição', async () => {
+    const user = userEvent.setup();
+    openConfigs('', {
+      pack: {
+        [CREATE]: entry(CREATE_TEXT),
+        'options.txt': entry('fov:70\n'),
+        'notas.txt': entry('lembrar\n'),
+        'patchouli_books/guia/livro.json': entry('{}\n'),
+        'servers.dat': entry('\u0000'),
+      },
+      readOnly: { 'servers.dat': 'binary' },
+    });
+    const tree = await screen.findByRole('tree', { name: 'Arquivos' }, { timeout: 10_000 });
+    expect(within(tree).getByRole('treeitem', { name: /notas\.txt/ })).toBeDefined();
+    expect(within(tree).getByRole('treeitem', { name: /patchouli_books\/guia/ })).toBeDefined();
+    const servers = within(tree).getByRole('treeitem', { name: /servers\.dat/ });
+    expect(servers.textContent).toContain('binário, sem edição');
+    expect(within(tree).getByRole('treeitem', { name: /notas\.txt/ }).textContent).not.toContain(
+      'binário',
+    );
+
+    await user.click(servers);
+    expect(
+      await screen.findAllByText(
+        'Arquivo binário (como servers.dat): o Warden não mostra nem edita.',
+      ),
+    ).not.toHaveLength(0);
+    expect(screen.queryByRole('textbox', { name: /^Conteúdo de / })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Salvar' })).toBeNull();
+
+    // Os de texto abrem no editor.
+    await user.click(within(tree).getByRole('treeitem', { name: /notas\.txt/ }));
+    await screen.findByRole('textbox', { name: 'Conteúdo de notas.txt' });
+  });
+
   it('instância de teste: mostra o aviso fixo e grava na origem da instância', async () => {
     const user = userEvent.setup();
     const { backend } = openConfigs('?origem=instancia&arquivo=config/a.toml', {

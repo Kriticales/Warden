@@ -2,9 +2,11 @@
 //!
 //! Três partes, todas sobre o disco:
 //!
-//! - [`list_files`]: os arquivos de texto que o editor mostra, por origem ([`ConfigOrigin`]).
-//!   Só entram as pastas de configs e scripts; `mods/`, o `pack.toml` e o índice nunca passam
-//!   por aqui.
+//! - [`list_files`]: os arquivos que o editor mostra, por origem ([`ConfigOrigin`]). No pack:
+//!   as pastas de configs e scripts, `options.txt` e os demais arquivos que vão para quem joga
+//!   (o que o `.packwizignore` não deixa de fora), binários inclusive, que aparecem sem edição.
+//!   O que o packwiz gerencia (`pack.toml`, o índice, os `.pw.toml`), as pastas de itens
+//!   (`mods/`, `resourcepacks/`, `shaderpacks/`) e os arquivos ocultos nunca passam por aqui.
 //! - [`read_file`]: o texto de um arquivo com o `hash` do conteúdo (SHA-256), o fim de linha e o
 //!   motivo de abrir só para leitura (binário, fora de UTF-8, acima de 2 MB).
 //! - [`save_to_pack`] e [`save_to_instance`]: gravam o texto do usuário com **concorrência
@@ -28,6 +30,7 @@ use sha2::{Digest as _, Sha256};
 use warden_core::{
     CancellationToken, TEMP_SUFFIX, atomic_write, remove_temp_files, resolve_inside,
 };
+use warden_packwiz::{METAFILE_SUFFIX, PACK_FILE, PACKWIZIGNORE_FILE, PackManifest, PackwizIgnore};
 use warden_packwiz_cli::Packwiz;
 
 use crate::transaction::PackTransaction;
@@ -53,6 +56,12 @@ const INSTANCE_DIRS: [&str; 2] = ["config", "defaultconfigs"];
 
 /// Arquivos soltos na raiz (as opções do jogo e do `OptiFine`).
 const ROOT_FILES: [&str; 3] = ["options.txt", "optionsof.txt", "optionsshaders.txt"];
+
+/// Pastas do pack com os itens (T06): o packwiz as gerencia pelos `.pw.toml`.
+const ITEM_DIRS: [&str; 3] = ["mods", "resourcepacks", "shaderpacks"];
+
+/// O índice quando o `pack.toml` não diz outro.
+const DEFAULT_INDEX_FILE: &str = "index.toml";
 
 /// De onde vêm os arquivos mostrados.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
@@ -160,8 +169,12 @@ fn size_u32(size: u64) -> u32 {
 // Caminhos permitidos
 // ---------------------------------------------------------------------------------------------
 
-/// Divide o caminho em componentes sem `.` e vazios; `..` é recusado.
+/// Divide o caminho em componentes sem `.` e vazios. Recusa `..`, caminho absoluto (`/…`,
+/// `\\…`) e `:` (letra de unidade e fluxo alternativo do NTFS).
 fn components(relative: &str) -> Result<Vec<&str>> {
+    if relative.starts_with(['/', '\\']) || relative.contains(':') {
+        return Err(invalid_path(relative));
+    }
     let mut parts = Vec::new();
     for part in relative.split(['/', '\\']) {
         match part {
@@ -221,52 +234,118 @@ fn is_hidden(parts: &[&str]) -> bool {
             || lower.starts_with("tmp"))
 }
 
-/// Se o arquivo (ou a pasta) pode aparecer na origem.
-fn is_listed(origin: ConfigOrigin, parts: &[&str]) -> bool {
-    let (Some(first), Some(last)) = (parts.first(), parts.last()) else {
-        return false;
-    };
-    if is_hidden(parts) {
-        return false;
+/// O que decide quais arquivos de uma origem o editor mostra.
+struct Scope {
+    /// Só no pack: as regras de quem joga (`None` na instância).
+    pack: Option<PackRules>,
+}
+
+/// O que é do pack além das pastas de configs (SPEC T12: "demais arquivos de texto do pack").
+struct PackRules {
+    /// O `.packwizignore` com os padrões embutidos do packwiz: o que casa não vai para quem
+    /// joga, então não é do pack (vale também dentro das pastas de configs).
+    ignore: PackwizIgnore,
+    /// O índice declarado no `pack.toml` (gerenciado pelo packwiz).
+    index: String,
+}
+
+impl Scope {
+    /// As regras da origem. No pack, lê o `.packwizignore` e o `pack.toml` da `root`; se um
+    /// deles falta ou não se lê, valem os padrões do packwiz e o `index.toml`.
+    fn new(root: &Path, origin: ConfigOrigin) -> Self {
+        let pack = (origin == ConfigOrigin::Pack).then(|| {
+            let packwizignore = fs::read_to_string(root.join(PACKWIZIGNORE_FILE)).ok();
+            let index = fs::read_to_string(root.join(PACK_FILE))
+                .ok()
+                .and_then(|text| PackManifest::parse(&text).ok())
+                .map(|parsed| parsed.value.index.file.trim_start_matches("./").to_owned())
+                .filter(|file| !file.is_empty())
+                .unwrap_or_else(|| DEFAULT_INDEX_FILE.to_owned());
+            PackRules {
+                ignore: PackwizIgnore::for_pack(packwizignore.as_deref()),
+                index,
+            }
+        });
+        Self { pack }
     }
-    if parts.len() == 1 {
-        return ROOT_FILES.iter().any(|name| is(last, name));
+
+    /// Se o arquivo pode aparecer na origem.
+    fn is_listed(&self, parts: &[&str]) -> bool {
+        let (Some(first), Some(last)) = (parts.first(), parts.last()) else {
+            return false;
+        };
+        if is_hidden(parts) {
+            return false;
+        }
+        match &self.pack {
+            None => {
+                if parts.len() == 1 {
+                    return ROOT_FILES.iter().any(|name| is(last, name));
+                }
+                INSTANCE_DIRS.iter().any(|dir| is(first, dir))
+                    || (is(first, "saves") && parts.len() >= 4 && is(parts[2], "serverconfig"))
+            }
+            Some(rules) => {
+                if is_packwiz_metadata(rules, parts) {
+                    return false;
+                }
+                let shown = (parts.len() == 1 && ROOT_FILES.iter().any(|name| is(last, name)))
+                    || (parts.len() > 1 && PACK_DIRS.iter().any(|dir| is(first, dir)))
+                    || is_other_pack_path(parts);
+                shown && !rules.ignore.is_excluded(&parts.join("/"))
+            }
+        }
     }
-    match origin {
-        ConfigOrigin::Pack => PACK_DIRS.iter().any(|dir| is(first, dir)),
-        ConfigOrigin::Instance => {
-            INSTANCE_DIRS.iter().any(|dir| is(first, dir))
-                || (is(first, "saves") && parts.len() >= 4 && is(parts[2], "serverconfig"))
+
+    /// Se uma pasta pode conter arquivos listados (a varredura só desce nelas).
+    fn is_descendable(&self, parts: &[&str]) -> bool {
+        if parts
+            .iter()
+            .any(|part| is(part, ".probe") || is(part, ".vscode"))
+        {
+            return false;
+        }
+        let Some(first) = parts.first() else {
+            return false;
+        };
+        if let Some(rules) = &self.pack {
+            return (PACK_DIRS.iter().any(|dir| is(first, dir)) || is_other_pack_path(parts))
+                && !rules.ignore.matches(&parts.join("/"));
+        }
+        if INSTANCE_DIRS.iter().any(|dir| is(first, dir)) {
+            return true;
+        }
+        if !is(first, "saves") {
+            return false;
+        }
+        match parts.len() {
+            1 | 2 => true,
+            _ => is(parts[2], "serverconfig"),
         }
     }
 }
 
-/// Se uma pasta pode conter arquivos listados (a varredura só desce nelas).
-fn is_descendable(origin: ConfigOrigin, parts: &[&str]) -> bool {
-    if parts
-        .iter()
-        .any(|part| is(part, ".probe") || is(part, ".vscode"))
-    {
+/// `pack.toml`, o índice (o declarado e o `index.toml` da raiz) e os `.pw.toml`: o packwiz
+/// gerencia, o editor nunca mostra.
+fn is_packwiz_metadata(rules: &PackRules, parts: &[&str]) -> bool {
+    let Some(last) = parts.last() else {
         return false;
-    }
+    };
+    (parts.len() == 1 && (is(last, PACK_FILE) || is(last, DEFAULT_INDEX_FILE)))
+        || is(&parts.join("/"), &rules.index)
+        || last.to_ascii_lowercase().ends_with(METAFILE_SUFFIX)
+}
+
+/// Fora das pastas de configs: o que não é oculto (`.git/`, `.warden/`, `.packwizignore`…)
+/// nem fica nas pastas de itens. As pastas de configs não são arquivos soltos da raiz.
+fn is_other_pack_path(parts: &[&str]) -> bool {
     let Some(first) = parts.first() else {
         return false;
     };
-    match origin {
-        ConfigOrigin::Pack => PACK_DIRS.iter().any(|dir| is(first, dir)),
-        ConfigOrigin::Instance => {
-            if INSTANCE_DIRS.iter().any(|dir| is(first, dir)) {
-                return true;
-            }
-            if !is(first, "saves") {
-                return false;
-            }
-            match parts.len() {
-                1 | 2 => true,
-                _ => is(parts[2], "serverconfig"),
-            }
-        }
+    if parts.len() == 1 && PACK_DIRS.iter().any(|dir| is(first, dir)) {
+        return false;
     }
+    !ITEM_DIRS.iter().any(|dir| is(first, dir)) && !parts.iter().any(|part| part.starts_with('.'))
 }
 
 /// Valida o caminho pedido pela interface e devolve o caminho no disco e o normalizado.
@@ -276,7 +355,7 @@ fn resolve(
     relative: &str,
 ) -> Result<(std::path::PathBuf, String)> {
     let parts = components(relative)?;
-    if !is_listed(origin, &parts) {
+    if !Scope::new(root, origin).is_listed(&parts) {
         return Err(invalid_path(relative));
     }
     let normalized = parts.join("/");
@@ -328,6 +407,7 @@ pub fn list_files(root: &Path, origin: ConfigOrigin) -> Result<ConfigFileList> {
             truncated: false,
         });
     }
+    let scope = Scope::new(root, origin);
     let mut files = Vec::new();
     let mut truncated = false;
     let mut pending: Vec<Vec<String>> = vec![Vec::new()];
@@ -350,12 +430,12 @@ pub fn list_files(root: &Path, origin: ConfigOrigin) -> Result<ConfigFileList> {
             let mut parts: Vec<&str> = dir.iter().map(String::as_str).collect();
             parts.push(&name);
             if kind.is_dir() {
-                if is_descendable(origin, &parts) {
+                if scope.is_descendable(&parts) {
                     let mut next = dir.clone();
                     next.push(name);
                     pending.push(next);
                 }
-            } else if kind.is_file() && is_listed(origin, &parts) {
+            } else if kind.is_file() && scope.is_listed(&parts) {
                 let Ok(metadata) = entry.metadata() else {
                     continue;
                 };
@@ -687,7 +767,7 @@ mod tests {
     }
 
     #[test]
-    fn lista_so_as_pastas_de_config_do_pack() {
+    fn lista_as_pastas_de_config_do_pack() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
         for path in [
@@ -722,10 +802,108 @@ mod tests {
                 "config/spark/spark.json",
                 "defaultconfigs/x.toml",
                 "kubejs/server_scripts/receitas.js",
+                "notas.txt",
                 "options.txt",
                 "scripts/a.zs",
             ]
         );
+    }
+
+    #[test]
+    fn lista_os_demais_arquivos_do_pack_sem_o_que_o_packwiz_gerencia() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        write(
+            root,
+            "pack.toml",
+            b"name = \"P\"\npack-format = \"packwiz:1.1.0\"\n[index]\nfile = \"meta/indice.toml\"\nhash-format = \"sha256\"\nhash = \"\"\n[versions]\nminecraft = \"1.20.1\"\n",
+        );
+        write(
+            root,
+            ".packwizignore",
+            warden_packwiz::hygiene::packwizignore_template().as_bytes(),
+        );
+        write(root, "servers.dat", &[10, 0, 0, 1, 0]);
+        for path in [
+            "notas.txt",
+            "Options.TXT",
+            "patchouli_books/guia/pt_br/entries/a.json",
+            "datapacks/meu/pack.mcmeta",
+            "meta/indice.toml",
+            "meta/outro.toml",
+            "index.toml",
+            "mods/sodium.pw.toml",
+            "mods/local.jar",
+            "resourcepacks/faithful.pw.toml",
+            "shaderpacks/bsl.zip",
+            "datapacks/meu.pw.toml",
+            ".git/config",
+            ".warden/estado.json",
+            ".gitignore",
+            "README.md",
+            "CHANGELOG.md",
+            "logs/latest.log",
+            "saves/Mundo/level.dat",
+            "server-overrides/server.properties",
+            "servers.dat_old",
+            "export.zip",
+            "pack.mrpack",
+            "config/a.toml",
+            "config/b.toml.bak",
+            "config/c.pw.toml",
+            "kubejs/probe/tipos.d.ts",
+            "kubejs/server_scripts/a.js",
+        ] {
+            write(root, path, b"x");
+        }
+        let list = list_files(root, ConfigOrigin::Pack).unwrap();
+        assert_eq!(
+            names(&list),
+            [
+                "config/a.toml",
+                "datapacks/meu/pack.mcmeta",
+                "kubejs/server_scripts/a.js",
+                "meta/outro.toml",
+                "notas.txt",
+                "Options.TXT",
+                "patchouli_books/guia/pt_br/entries/a.json",
+                "servers.dat",
+            ]
+        );
+        let servers = list.files.iter().find(|f| f.path == "servers.dat").unwrap();
+        assert!(servers.binary);
+
+        // O que aparece se lê; o servers.dat aparece sem edição.
+        let text = read_file(root, ConfigOrigin::Pack, "notas.txt").unwrap();
+        assert_eq!(text.text.as_deref(), Some("x"));
+        let binary = read_file(root, ConfigOrigin::Pack, "servers.dat").unwrap();
+        assert_eq!(binary.read_only, Some(ReadOnlyReason::Binary));
+        assert_eq!(binary.text, None);
+        // O que não aparece nem se lê.
+        for path in [
+            "meta/indice.toml",
+            "mods/local.jar",
+            ".warden/estado.json",
+            ".packwizignore",
+            "README.md",
+            "logs/latest.log",
+            "saves/Mundo/level.dat",
+            "datapacks/meu.pw.toml",
+        ] {
+            let error = read_file(root, ConfigOrigin::Pack, path).unwrap_err();
+            assert_eq!(error.code, Code::InvalidInput, "{path}");
+        }
+    }
+
+    #[test]
+    fn sem_pack_toml_nem_packwizignore_valem_os_padroes_do_packwiz() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        for path in ["index.toml", "a.json", ".gitignore", "x.zip", "sub/y.zip"] {
+            write(root, path, b"x");
+        }
+        let list = list_files(root, ConfigOrigin::Pack).unwrap();
+        assert_eq!(names(&list), ["a.json", "sub/y.zip"]);
     }
 
     #[test]
