@@ -127,7 +127,8 @@ function OptionForm({
   const problem =
     Array.from(trimmed).length > DESCRIPTION_MAX
       ? t('opcional.muitoLongo', { max: DESCRIPTION_MAX })
-      : /[\r\n\t]/.test(trimmed)
+      : // Caractere de controle (quebra de linha, tabulação…), como `char::is_control` do Rust.
+        /\p{Cc}/u.test(trimmed)
         ? t('opcional.umaLinha')
         : null;
   const changed = trimmed !== settings.description || byDefault !== settings.default;

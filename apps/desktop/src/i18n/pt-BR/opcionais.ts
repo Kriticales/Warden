@@ -29,7 +29,6 @@ export const opcionais = {
     salvo: 'Opção salva.',
     muitoLongo: 'Use no máximo {{max}} caracteres.',
     umaLinha: 'Escreva em uma linha só.',
-    semArquivo: 'Este item não tem arquivo de referência (.pw.toml); não pode ser opcional.',
   },
   avisoFormatos:
     'O app do Modrinth instala todos os opcionais; o formato da CurseForge não suporta lado.',
@@ -42,9 +41,6 @@ export const opcionais = {
     padrao: 'Padrão do pack: {{estado}}',
     ligado: 'ligado',
     desligado: 'desligado',
-    salvando: 'Salvando…',
-    salvo: 'Opcionais do teste salvos.',
-    voltarPadrao: 'Voltar ao padrão do pack',
     lista: 'Mods opcionais do pack',
     carregando: 'Lendo os opcionais…',
     aplicaNoProximo: 'Vale a partir do próximo teste.',
