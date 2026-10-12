@@ -567,8 +567,6 @@ export type AppErrorCode =
  *  substituídos (`params.count`, `params.files`).
  */
 "TEST_INSTANCE_CHANGED" | 
-/**  Mods da CurseForge precisam de download manual (`params.count`, `params.names`). */
-"TEST_MANUAL_DOWNLOADS" | 
 /**  O loader do pack não é aceito pelo Testar (`params.loader`). */
 "TEST_LOADER_UNSUPPORTED" | 
 /**  A sessão de teste pedida não existe mais (`params.sessionId`). */

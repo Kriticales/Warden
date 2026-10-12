@@ -18,8 +18,6 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Este tipo de teste ainda não está disponível nesta versão do Warden. Use o Testar normal.',
   TEST_INSTANCE_CHANGED:
     'Arquivos do pack mudaram na instância de teste durante o teste anterior e seriam substituídos pela versão do pack: {{files}}. Substitua para testar, ou copie antes o que quiser guardar.',
-  TEST_MANUAL_DOWNLOADS:
-    'A CurseForge não deixa outros apps baixarem estes mods: {{names}}. Baixe-os pelo site e mostre ao Warden onde estão, na tela do teste.',
   TEST_LOADER_UNSUPPORTED:
     'O Warden não testa packs com {{loader}}. Use Forge, NeoForge ou Fabric.',
   TEST_SESSION_NOT_FOUND:

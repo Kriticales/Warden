@@ -264,8 +264,6 @@ pub enum AppErrorCode {
     /// Arquivos que o pack colocou na instância mudaram durante o teste anterior e seriam
     /// substituídos (`params.count`, `params.files`).
     TestInstanceChanged,
-    /// Mods da CurseForge precisam de download manual (`params.count`, `params.names`).
-    TestManualDownloads,
     /// O loader do pack não é aceito pelo Testar (`params.loader`).
     TestLoaderUnsupported,
     /// A sessão de teste pedida não existe mais (`params.sessionId`).
