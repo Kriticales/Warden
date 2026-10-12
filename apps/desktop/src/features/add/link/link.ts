@@ -21,6 +21,9 @@ const MODRINTH_TYPES = new Set([
 ]);
 const MAX_LINK_CHARS = 2048;
 const SEGMENT = /^[A-Za-z0-9._+%-]{1,128}$/;
+// Nomes que o Windows reserva e o maior nome de arquivo aceito no pack (em bytes).
+const RESERVED_NAMES = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+const MAX_FILE_NAME_BYTES = 200;
 
 function hasScheme(text: string, scheme: string): boolean {
   return text.slice(0, scheme.length + 3).toLowerCase() === `${scheme}://`;
@@ -60,8 +63,10 @@ export function directFileName(url: URL): string | null {
     return null;
   }
   if (!/\.(jar|zip)$/i.test(name)) return null;
-  // Os mesmos caracteres que o backend recusa num nome de arquivo do pack.
+  // As mesmas regras do backend para um nome de arquivo do pack (`safe_file_name`).
   if (name.startsWith('.') || /[\\/:*?"<>|]/.test(name) || /\p{Cc}/u.test(name)) return null;
+  if (new TextEncoder().encode(name).length > MAX_FILE_NAME_BYTES) return null;
+  if (RESERVED_NAMES.test(name.split('.')[0] ?? '')) return null;
   return name;
 }
 

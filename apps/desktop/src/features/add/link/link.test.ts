@@ -48,6 +48,9 @@ describe('classificação dos links (mesma regra do backend)', () => {
       'https://example.com/page.html',
       'https://user:senha@example.com/mod.jar',
       'https://example.com/a%3Ab.jar',
+      'https://example.com/con.jar',
+      'https://example.com/LPT1.tar.zip',
+      `https://example.com/${'ç'.repeat(99)}.jar`,
       'ftp://example.com/mod.jar',
       `https://example.com/${'a'.repeat(2048)}.jar`,
     ]) {
