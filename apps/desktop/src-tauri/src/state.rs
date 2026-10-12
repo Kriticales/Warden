@@ -48,6 +48,10 @@ pub struct AppState {
     pub(crate) tests: Arc<crate::test_session::TestSessions>,
     /// Último relatório de atualizações de cada pack (P1-12; só memória).
     pub update_reports: crate::commands::updates::UpdateReports,
+    /// Login do GitHub (UI-03).
+    pub(crate) github: Arc<crate::commands::github_login::GithubSession>,
+    /// Prints do relato aberto (UI-03; só memória).
+    pub(crate) report_draft: crate::commands::report::ReportDraft,
 }
 
 impl AppState {
@@ -89,11 +93,16 @@ impl AppState {
         )));
         let modrinth = crate::commands::inventory::open_modrinth(&paths)?;
         let tests = Arc::new(crate::test_session::TestSessions::new(&paths, &catalog));
+        let secrets = Arc::new(secrets);
+        let github = Arc::new(crate::commands::github_login::GithubSession::open(
+            &paths,
+            Arc::clone(&secrets),
+        )?);
         Ok((
             Self {
                 paths,
                 settings: Arc::new(settings),
-                secrets: Arc::new(secrets),
+                secrets,
                 secret_testers,
                 operations: OperationRegistry::new(notifier),
                 locks: PackLocks::new(),
@@ -105,6 +114,8 @@ impl AppState {
                 modrinth,
                 tests,
                 update_reports: crate::commands::updates::UpdateReports::default(),
+                github,
+                report_draft: crate::commands::report::ReportDraft::default(),
             },
             outcome,
         ))

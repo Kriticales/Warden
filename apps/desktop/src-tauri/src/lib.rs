@@ -75,10 +75,13 @@ pub fn run() -> Result<(), tauri::Error> {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(builder.invoke_handler())
         // Fechar o Warden com um jogo aberto pergunta antes (L-04, CA-T13-07); arquivos soltos
-        // sobre a janela vão para "Adicionar arquivo local" (P1-11).
+        // sobre a janela vão para os prints do relato aberto (UI-03) ou, sem ele, para
+        // "Adicionar arquivo local" (P1-11).
         .on_window_event(|window, event| {
             commands::test::on_window_event(window, event);
-            commands::add_local::on_window_event(window, event);
+            if !commands::report::on_window_event(window, event) {
+                commands::add_local::on_window_event(window, event);
+            }
         })
         .setup(move |app| {
             builder.mount_events(app);

@@ -1,16 +1,26 @@
-//! Montagem do relato de problema (UI-02): o corpo em Markdown, o corte do registro para o
-//! endereço caber no limite e o endereço da issue nova no GitHub.
+//! Montagem do relato de problema (UI-02 e UI-03): o corpo em Markdown, o corte do registro
+//! para caber no limite e o endereço da issue nova no GitHub.
 //!
 //! Tudo aqui recebe texto **já redigido** ([`ReportParts`]); a redação fica em `mod.rs`.
-//! O corpo que vai no endereço é exatamente o que a pré-visualização mostra.
+//! Dois limites: o do endereço de "Abrir no GitHub" ([`fit`], 7.500 caracteres no endereço) e o
+//! do corpo da issue criada pela API ([`fit_direct`], [`MAX_DIRECT_BODY_CHARS`]). Nos dois
+//! casos o corpo é exatamente o que a pré-visualização mostra (no envio direto, com o endereço
+//! de cada print no lugar do aviso).
 
 use std::fmt::Write as _;
 
 /// Repositório que recebe os relatos. É o único lugar com este endereço.
 pub(crate) const REPOSITORY_URL: &str = "https://github.com/Kriticales/Warden";
 
-/// Rótulo das issues abertas pelo relato (já existe no repositório).
+/// Rótulo das issues abertas pelo relato.
 pub(crate) const REPORT_LABEL: &str = "relato-do-dono";
+
+/// Maior corpo enviado pela API. O GitHub aceita até 65.536 caracteres; a folga cobre a
+/// troca do aviso de cada print pelo endereço.
+pub(crate) const MAX_DIRECT_BODY_CHARS: usize = 60_000;
+
+/// No lugar do endereço de um print, antes do envio.
+pub(crate) const PRINT_PENDING: &str = "endereço do print, depois do envio";
 
 /// Maior endereço aceito. Endereços muito longos falham no navegador ou no GitHub.
 pub(crate) const MAX_URL_CHARS: usize = 7_500;
@@ -38,19 +48,30 @@ pub(crate) fn new_issue_url() -> String {
 pub(crate) struct ReportParts {
     /// Título da issue.
     pub(crate) title: String,
-    /// "O que você fez".
-    pub(crate) what_you_did: String,
-    /// "O que aconteceu".
-    pub(crate) what_happened: String,
-    /// "O que você esperava".
-    pub(crate) what_you_expected: String,
+    /// Categoria, como a interface escreve ("Erro").
+    pub(crate) category: String,
+    /// Labels da issue (`relato-do-dono` e a da categoria).
+    pub(crate) labels: Vec<String>,
+    /// "Descrição".
+    pub(crate) description: String,
+    /// Prints: nome e, depois do envio, o endereço.
+    pub(crate) prints: Vec<PrintRef>,
     /// Dados coletados sozinhos: rótulo e valor, na ordem.
     pub(crate) environment: Vec<(String, String)>,
     /// Últimas linhas do registro, da mais antiga para a mais nova; `None` = não incluir.
     pub(crate) log: Option<Vec<String>>,
 }
 
-/// O que precisou ser cortado para o endereço caber.
+/// Um print no corpo.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct PrintRef {
+    /// Nome limpo do arquivo.
+    pub(crate) name: String,
+    /// Endereço que mostra a imagem; `None` antes do envio.
+    pub(crate) url: Option<String>,
+}
+
+/// O que precisou ser cortado para caber.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Cut {
     /// Nada: o relato inteiro está no endereço.
@@ -78,11 +99,57 @@ pub(crate) struct FittedReport {
     pub(crate) log_lines: usize,
 }
 
+/// O corpo da issue criada pela API, cortado para caber em [`MAX_DIRECT_BODY_CHARS`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct FittedBody {
+    /// Título.
+    pub(crate) title: String,
+    /// Corpo.
+    pub(crate) body: String,
+    /// O que foi cortado.
+    pub(crate) cut: Cut,
+    /// Linhas do registro que ficaram no corpo.
+    pub(crate) log_lines: usize,
+}
+
 /// Monta o relato e corta o que for preciso para o endereço caber em [`MAX_URL_CHARS`]:
 /// primeiro as linhas mais antigas do registro, depois (só se nem sem registro couber) o fim
 /// do texto.
 pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
     let title = truncate_chars(parts.title.trim(), MAX_TITLE_CHARS);
+    let fitted = fit_with(parts, |body| {
+        issue_url(&title, &parts.labels, body).chars().count() <= MAX_URL_CHARS
+    });
+    FittedReport {
+        url: issue_url(&title, &parts.labels, &fitted.body),
+        title,
+        body: fitted.body,
+        full_body: fitted.full_body,
+        cut: fitted.cut,
+        log_lines: fitted.log_lines,
+    }
+}
+
+/// Monta o corpo da issue criada pela API (UI-03), cortado da mesma forma para caber em
+/// [`MAX_DIRECT_BODY_CHARS`].
+pub(crate) fn fit_direct(parts: &ReportParts) -> FittedBody {
+    let fitted = fit_with(parts, |body| body.chars().count() <= MAX_DIRECT_BODY_CHARS);
+    FittedBody {
+        title: truncate_chars(parts.title.trim(), MAX_TITLE_CHARS),
+        body: fitted.body,
+        cut: fitted.cut,
+        log_lines: fitted.log_lines,
+    }
+}
+
+struct Fitted {
+    body: String,
+    full_body: String,
+    cut: Cut,
+    log_lines: usize,
+}
+
+fn fit_with(parts: &ReportParts, fits: impl Fn(&str) -> bool) -> Fitted {
     let log: Vec<String> = parts
         .log
         .iter()
@@ -90,21 +157,17 @@ pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
         .map(|line| truncate_line(line))
         .collect();
     let full_body = body(parts, parts.log.as_ref().map(|_| LogView::All(&log)));
-    let full_url = issue_url(&title, &full_body);
-    if full_url.chars().count() <= MAX_URL_CHARS {
-        return FittedReport {
-            title,
+    if fits(&full_body) {
+        return Fitted {
             body: full_body.clone(),
             full_body,
-            url: full_url,
             cut: Cut::None,
             log_lines: log.len(),
         };
     }
 
-    // Quantas linhas mais novas cabem (busca binária: mais linhas, endereço maior).
+    // Quantas linhas mais novas cabem (busca binária: mais linhas, texto maior).
     let with_newest = |kept: usize| body(parts, Some(LogView::Newest(&log, kept)));
-    let fits = |body: &str| issue_url(&title, body).chars().count() <= MAX_URL_CHARS;
     if parts.log.is_some() && fits(&with_newest(0)) {
         let (mut low, mut high) = (0, log.len());
         while low < high {
@@ -115,11 +178,8 @@ pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
                 high = middle - 1;
             }
         }
-        let body = with_newest(low);
-        return FittedReport {
-            url: issue_url(&title, &body),
-            title,
-            body,
+        return Fitted {
+            body: with_newest(low),
             full_body,
             cut: Cut::Log,
             log_lines: low,
@@ -146,11 +206,8 @@ pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
             high = middle - 1;
         }
     }
-    let body = cut_at(low);
-    FittedReport {
-        url: issue_url(&title, &body),
-        title,
-        body,
+    Fitted {
+        body: cut_at(low),
         full_body,
         cut: Cut::Text,
         log_lines: 0,
@@ -168,14 +225,16 @@ enum LogView<'a> {
 /// O corpo da issue em Markdown. Seções opcionais vazias não aparecem.
 fn body(parts: &ReportParts, log: Option<LogView<'_>>) -> String {
     let mut text = String::new();
-    for (heading, value) in [
-        ("O que você fez", &parts.what_you_did),
-        ("O que aconteceu", &parts.what_happened),
-        ("O que você esperava", &parts.what_you_expected),
-    ] {
-        let value = value.trim();
-        if !value.is_empty() {
-            let _ = write!(text, "### {heading}\n\n{value}\n\n");
+    let _ = write!(text, "**Categoria:** {}\n\n", parts.category.trim());
+    let description = parts.description.trim();
+    if !description.is_empty() {
+        let _ = write!(text, "### Descrição\n\n{description}\n\n");
+    }
+    if !parts.prints.is_empty() {
+        text.push_str("### Prints\n\n");
+        for (index, print) in parts.prints.iter().enumerate() {
+            let target = print.url.as_deref().unwrap_or(PRINT_PENDING);
+            let _ = write!(text, "![Print {}: {}]({target})\n\n", index + 1, print.name);
         }
     }
     text.push_str("### Ambiente\n\n");
@@ -207,7 +266,7 @@ fn body(parts: &ReportParts, log: Option<LogView<'_>>) -> String {
         }
     }
     text.push_str(
-        "_Relato aberto pelo botão \"Relatar problema\" do Warden. Pastas pessoais, nomes e \
+        "_Relato feito pelo botão \"Relatar problema\" do Warden. Pastas pessoais, nomes e \
          chaves foram trocados por marcadores como `<usuário>` e `<segredo>`._\n",
     );
     text
@@ -229,13 +288,13 @@ fn fence_for(lines: &[String]) -> String {
     "`".repeat(longest.max(2) + 1)
 }
 
-/// Endereço da issue nova com título, corpo e rótulo.
-pub(crate) fn issue_url(title: &str, body: &str) -> String {
+/// Endereço da issue nova com título, corpo e rótulos.
+pub(crate) fn issue_url(title: &str, labels: &[String], body: &str) -> String {
     format!(
         "{}?title={}&labels={}&body={}",
         new_issue_url(),
         encode(title),
-        encode(REPORT_LABEL),
+        encode(&labels.join(",")),
         encode(body)
     )
 }
@@ -276,9 +335,10 @@ mod tests {
     fn parts(log: Option<Vec<String>>) -> ReportParts {
         ReportParts {
             title: "O Testar travou".into(),
-            what_you_did: "Cliquei em Testar".into(),
-            what_happened: "Nada abriu".into(),
-            what_you_expected: String::new(),
+            category: "Erro".into(),
+            labels: vec![REPORT_LABEL.into(), "categoria: erro".into()],
+            description: "Cliquei em Testar e nada abriu".into(),
+            prints: Vec::new(),
             environment: vec![
                 ("Warden".into(), "0.1.0".into()),
                 ("Tela".into(), "Pack › Mods".into()),
@@ -319,12 +379,55 @@ mod tests {
         assert_eq!(fitted.cut, Cut::None);
         assert_eq!(fitted.body, fitted.full_body);
         assert_eq!(fitted.log_lines, 2);
-        let expected = "### O que você fez\n\nCliquei em Testar\n\n\
-             ### O que aconteceu\n\nNada abriu\n\n\
+        let expected = "**Categoria:** Erro\n\n\
+             ### Descrição\n\nCliquei em Testar e nada abriu\n\n\
              ### Ambiente\n\n- **Warden:** 0.1.0\n- **Tela:** Pack › Mods\n\n\
              ### Registros do Warden (últimas linhas)\n\n```text\nlinha 1\nlinha 2\n```\n\n";
         assert!(fitted.body.starts_with(expected), "{}", fitted.body);
-        assert!(!fitted.body.contains("O que você esperava"));
+        assert!(!fitted.body.contains("### Prints"));
+        // Descrição vazia não aparece.
+        let mut empty = parts(None);
+        empty.description = "  ".into();
+        assert!(!fit(&empty).body.contains("Descrição"));
+    }
+
+    #[test]
+    fn prints_antes_do_envio_e_com_endereco() {
+        let mut with_prints = parts(None);
+        with_prints.prints = vec![
+            PrintRef {
+                name: "tela.png".into(),
+                url: None,
+            },
+            PrintRef {
+                name: "erro.jpg".into(),
+                url: Some("https://github.com/Kriticales/Warden/blob/relatos-anexos/anexos/a.jpg?raw=true".into()),
+            },
+        ];
+        let fitted = fit_direct(&with_prints);
+        assert_eq!(fitted.cut, Cut::None);
+        assert!(fitted.body.contains(&format!(
+            "### Prints\n\n![Print 1: tela.png]({PRINT_PENDING})\n\n\
+             ![Print 2: erro.jpg](https://github.com/Kriticales/Warden/blob/relatos-anexos/anexos/a.jpg?raw=true)\n\n### Ambiente"
+        )), "{}", fitted.body);
+    }
+
+    #[test]
+    fn corpo_direto_tem_o_registro_inteiro_ate_o_limite_do_github() {
+        let log: Vec<String> = (1..=400)
+            .map(|n| format!("2026-10-12T10:00:00Z INFO warden: linha número {n:03}"))
+            .collect();
+        let fitted = fit_direct(&parts(Some(log)));
+        // Cabe no corpo da API (mas não caberia no endereço).
+        assert_eq!(fitted.cut, Cut::None);
+        assert_eq!(fitted.log_lines, 400);
+        assert!(fitted.body.contains("linha número 001"));
+        let huge: Vec<String> = (0..2_000).map(|n| format!("{n:05} {}", "x".repeat(200))).collect();
+        let fitted = fit_direct(&parts(Some(huge)));
+        assert_eq!(fitted.cut, Cut::Log);
+        assert!(fitted.body.chars().count() <= MAX_DIRECT_BODY_CHARS);
+        assert!(fitted.body.contains("01999 "));
+        assert!(fitted.body.contains(LOG_CUT_MARK));
     }
 
     #[test]
@@ -336,7 +439,7 @@ mod tests {
                 .starts_with("https://github.com/Kriticales/Warden/issues/new?title=")
         );
         assert_eq!(query(&fitted.url, "title"), "O Testar travou");
-        assert_eq!(query(&fitted.url, "labels"), "relato-do-dono");
+        assert_eq!(query(&fitted.url, "labels"), "relato-do-dono,categoria: erro");
         assert_eq!(query(&fitted.url, "body"), fitted.body);
         assert!(!fitted.body.contains("Registros do Warden"));
         assert!(fitted.url.is_ascii());
@@ -379,13 +482,18 @@ mod tests {
                 fitted.log_lines + 1,
             )),
         );
-        assert!(issue_url(&fitted.title, &one_more).chars().count() > MAX_URL_CHARS);
+        assert!(
+            issue_url(&fitted.title, &more.labels, &one_more)
+                .chars()
+                .count()
+                > MAX_URL_CHARS
+        );
     }
 
     #[test]
     fn texto_enorme_corta_o_texto_e_tira_o_registro() {
         let mut big = parts(Some(vec!["linha".into()]));
-        big.what_happened = "ação é ".repeat(2_000);
+        big.description = "ação é ".repeat(2_000);
         let fitted = fit(&big);
         assert_eq!(fitted.cut, Cut::Text);
         assert!(fitted.url.chars().count() <= MAX_URL_CHARS);

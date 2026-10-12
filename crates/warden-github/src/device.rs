@@ -161,7 +161,12 @@ pub async fn wait_for_token(
             ],
             Some(cancel),
         )
-        .await?;
+        .await
+        .map_err(|error| match error {
+            // Cancelado no meio da consulta: o mesmo que cancelado na espera.
+            Error::Http(warden_http::Error::Cancelled) => Error::Cancelled,
+            other => other,
+        })?;
         match reply.error.as_deref() {
             None => return tokens(reply),
             Some("authorization_pending") => on_event(WaitEvent::Pending),

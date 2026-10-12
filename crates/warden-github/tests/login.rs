@@ -346,3 +346,37 @@ async fn resposta_sem_token_e_invalida() {
     .unwrap_err();
     assert!(matches!(error, Error::InvalidResponse(_)), "{error:?}");
 }
+
+#[tokio::test]
+async fn ca_ui03_03_cancelar_no_meio_da_consulta() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/site/login/oauth/access_token"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({ "error": "authorization_pending" }))
+                .set_delay(Duration::from_secs(30)),
+        )
+        .mount(&server)
+        .await;
+    let (http, timer) = client();
+    let cancel = CancellationToken::new();
+    let later = cancel.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        later.cancel();
+    });
+    let started = std::time::Instant::now();
+    let error = wait_for_token(
+        &http,
+        &endpoints(&server),
+        &code(5, 900),
+        &timer,
+        &cancel,
+        |_| {},
+    )
+    .await
+    .unwrap_err();
+    assert!(matches!(error, Error::Cancelled), "{error:?}");
+    assert!(started.elapsed() < Duration::from_secs(10));
+}

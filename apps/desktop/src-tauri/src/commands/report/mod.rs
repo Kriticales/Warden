@@ -1,37 +1,63 @@
-//! Comandos do domínio `report`: "Relatar problema" (UI-02).
+//! Comandos do domínio `report`: "Relatar problema" (UI-02 e UI-03).
 //!
-//! O relato vira uma issue do GitHub já preenchida, que a pessoa confere e envia no navegador:
-//! nada sai do computador sem o clique em "Abrir no GitHub", e quem envia é a própria pessoa,
-//! na página do GitHub.
+//! O relato vira uma issue do GitHub no repositório do Warden. Nada sai do computador sem um
+//! clique: com o login do GitHub, **Enviar** cria a issue pela API, com os prints (UI-03);
+//! sem login, **Abrir no GitHub** abre a issue nova já preenchida, e quem envia é a própria
+//! pessoa, na página do GitHub (UI-02).
 //!
-//! - `problem_report_preview`: junta o que a pessoa escreveu com o que o Warden coleta sozinho
-//!   (versão e commit, sistema, tela, pack aberto, último erro mostrado e as últimas linhas
-//!   dos registros), passa **tudo** pela redação (`warden_diagnostics::Redactor`, com os
-//!   valores reais das chaves do cofre) e devolve o corpo exato, o endereço e o que precisou
-//!   ser cortado para o endereço caber (`body.rs`).
-//! - `problem_report_open`: abre no navegador padrão o endereço que a pré-visualização
-//!   mostrou. Só aceita a página de issue nova do repositório do Warden.
+//! - `problem_report_preview`: junta o que a pessoa escreveu (categoria, título, descrição e
+//!   o nome dos prints) com o que o Warden coleta sozinho (versão e commit, sistema, tela, pack
+//!   aberto, último erro mostrado e as últimas linhas dos registros), passa **tudo** pela
+//!   redação (`warden_diagnostics::Redactor`, com os valores reais das chaves do cofre, os
+//!   tokens do login inclusive) e devolve os dois corpos exatos (o do envio direto e o do
+//!   endereço), o endereço e o que precisou ser cortado (`body.rs`).
+//! - `problem_report_send`: monta de novo o relato (nunca usa texto vindo da interface sem
+//!   redação) e envia pela API (`send.rs`), com o progresso no canal da operação.
+//! - `problem_report_open`: abre no navegador padrão a issue nova que a pré-visualização
+//!   mostrou ou a issue criada. Só aceita essas páginas do repositório do Warden.
+//! - Prints (`attachments.rs`): `problem_report_draft` abre e fecha o rascunho,
+//!   `problem_report_attach` (colar), `problem_report_choose_images` (diálogo),
+//!   `problem_report_detach` (Remover) e o evento `report-images-dropped` (arrastar).
 
+mod attachments;
 mod body;
+mod send;
 
 use std::fmt::Write as _;
 use std::io::{Read as _, Seek as _, SeekFrom};
 use std::sync::Arc;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use base64::Engine as _;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, State};
+use tauri::ipc::Channel;
+use tauri::{AppHandle, Manager as _, State, WebviewWindow};
+use tauri_plugin_dialog::DialogExt as _;
 use tauri_plugin_opener::OpenerExt as _;
+use tauri_specta::Event as _;
 use warden_core::PackId;
 use warden_diagnostics::{RedactionProfile, Redactor};
+use warden_github::{Endpoints, Label};
 use warden_secrets::Secrets;
 
 use crate::commands::app::{AppInfo, Platform, app_info};
 use crate::commands::inventory::pack_root;
 use crate::error::AppError;
+use crate::events::OperationEvent;
+use crate::operations::OperationKind;
 use crate::state::AppState;
 
-use body::{Cut, MAX_URL_CHARS, ReportParts, fit, new_issue_url};
+pub(crate) use attachments::{ReportDraft, ReportImage, ReportImagesAdded};
+use body::{Cut, MAX_URL_CHARS, PrintRef, REPORT_LABEL, ReportParts, fit, fit_direct, new_issue_url};
+pub(crate) use send::ProblemReportSent;
+
+/// Operação do envio direto (painel Tarefas).
+const SEND: OperationKind = OperationKind::new("report.send");
+
+/// Em build de debug, o E2E troca o diálogo de imagens pelos caminhos deste arquivo (um por
+/// linha), como em "Adicionar arquivo local".
+#[cfg(debug_assertions)]
+const E2E_PICK_FILES_ENV: &str = "WARDEN_E2E_PICK_FILES";
 
 /// Linhas dos registros lidas (as mais novas).
 const LOG_LINES: usize = 200;
@@ -54,18 +80,80 @@ pub(crate) struct ShownError {
     pub(crate) message: String,
 }
 
+/// Categoria do relato (UI-03).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ReportCategory {
+    /// Erro.
+    Error,
+    /// Sugestão.
+    Suggestion,
+    /// Visual ou texto.
+    VisualOrText,
+    /// Lentidão.
+    Slowness,
+    /// Outro.
+    Other,
+}
+
+impl ReportCategory {
+    /// Nome como a interface escreve.
+    const fn name(self) -> &'static str {
+        match self {
+            Self::Error => "Erro",
+            Self::Suggestion => "Sugestão",
+            Self::VisualOrText => "Visual ou texto",
+            Self::Slowness => "Lentidão",
+            Self::Other => "Outro",
+        }
+    }
+
+    /// Cor da label no GitHub.
+    const fn color(self) -> &'static str {
+        match self {
+            Self::Error => "d73a4a",
+            Self::Suggestion => "a2eeef",
+            Self::VisualOrText => "fbca04",
+            Self::Slowness => "f9d0c4",
+            Self::Other => "c5def5",
+        }
+    }
+
+    /// `categoria: erro`.
+    fn label_name(self) -> String {
+        format!("categoria: {}", self.name().to_lowercase())
+    }
+
+    fn label(self) -> Label {
+        Label {
+            name: self.label_name(),
+            color: self.color().to_owned(),
+            description: format!("Relato do Warden na categoria \"{}\"", self.name()),
+        }
+    }
+}
+
+/// A label de todos os relatos.
+fn report_label() -> Label {
+    Label {
+        name: REPORT_LABEL.to_owned(),
+        color: "1d76db".to_owned(),
+        description: "Relato enviado pelo botão \"Relatar problema\" do Warden".to_owned(),
+    }
+}
+
 /// O que a pessoa escreveu e o que a interface sabe (tela e pack abertos, último erro).
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProblemReportInput {
-    /// Título (obrigatório para abrir; a pré-visualização aceita vazio).
+    /// Categoria.
+    pub(crate) category: ReportCategory,
+    /// Título (obrigatório para enviar; a pré-visualização aceita vazio).
     pub(crate) title: String,
-    /// "O que você fez".
-    pub(crate) what_you_did: String,
-    /// "O que aconteceu".
-    pub(crate) what_happened: String,
-    /// "O que você esperava".
-    pub(crate) what_you_expected: String,
+    /// "Descrição".
+    pub(crate) description: String,
+    /// Prints do rascunho (tokens de `problem_report_attach`), na ordem; só no envio direto.
+    pub(crate) attachments: Vec<String>,
     /// "Incluir os registros do Warden".
     pub(crate) include_log: bool,
     /// Tela atual, nos termos da interface ("Pack › Mods").
@@ -104,7 +192,13 @@ pub(crate) struct ReportField {
 pub(crate) struct ProblemReportPreview {
     /// Título da issue, redigido.
     pub(crate) title: String,
-    /// Corpo que vai no endereço, redigido.
+    /// Labels da issue.
+    pub(crate) labels: Vec<String>,
+    /// Corpo do envio direto (UI-03), redigido, com os prints antes do envio.
+    pub(crate) direct_body: String,
+    /// Linhas dos registros no corpo do envio direto.
+    pub(crate) direct_log_lines: u32,
+    /// Corpo que vai no endereço de "Abrir no GitHub", redigido (sem os prints).
     pub(crate) body: String,
     /// Endereço da issue nova (`problem_report_open` abre este).
     pub(crate) url: String,
@@ -133,6 +227,7 @@ pub(crate) async fn problem_report_preview(
         }
         None => None,
     };
+    let prints = state.report_draft.names(&input.attachments);
     let player = state.settings.get().player_name;
     let secrets = Arc::clone(&state.secrets);
     let logs_dir = state.paths.logs_dir();
@@ -140,49 +235,259 @@ pub(crate) async fn problem_report_preview(
     // O cofre do sistema e o disco ficam fora da thread do IPC.
     tauri::async_runtime::spawn_blocking(move || {
         let redactor = redactor(&player, &secrets);
-        let log = input
-            .include_log
-            .then(|| read_log_tail(&logs_dir, LOG_LINES));
-        let collected = Collected {
-            system: system_text(info.platform),
-            info,
-            pack,
-            log,
-        };
+        let collected = collect(&input, info, pack, &logs_dir, prints);
         Ok(preview(&input, collected, &redactor))
     })
     .await
     .map_err(|error| AppError::internal(format!("relato interrompido: {error}")))?
 }
 
-/// Abre o endereço da pré-visualização no navegador padrão.
+/// Envia o relato direto pela API do GitHub (UI-03). O texto é montado e redigido de novo
+/// aqui; o progresso vai no canal da operação ("Enviando print 1 de 2…").
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn problem_report_send(
+    state: State<'_, AppState>,
+    input: ProblemReportInput,
+    on_event: Channel<OperationEvent>,
+) -> Result<ProblemReportSent, AppError> {
+    let operation = state.operations.start(SEND, None, false).with_events(move |event| {
+        // O diálogo pode ter fechado; o envio continua até o fim.
+        let _ = on_event.send(event);
+    });
+    let result = async {
+        if input.title.trim().is_empty() {
+            return Err(AppError::internal("relato: título vazio no envio"));
+        }
+        let prepared = prepare(&state, &input).await?;
+        let sent = send::send(&state.github, &prepared, &operation).await?;
+        // Enviado: o rascunho de prints acabou.
+        for image in &prepared.images {
+            state.report_draft.remove(&image.id);
+        }
+        tracing::info!(numero = sent.number, prints = prepared.images.len(), "relato enviado");
+        Ok(sent)
+    }
+    .await;
+    operation.finish(result)
+}
+
+/// Monta o relato do envio direto, redigido, com os prints do rascunho.
+async fn prepare(state: &AppState, input: &ProblemReportInput) -> Result<send::Prepared, AppError> {
+    let pack = match input.pack_id {
+        Some(pack_id) => {
+            let _lock = state.locks.read(pack_id).await;
+            Some(pack_text(state, pack_id))
+        }
+        None => None,
+    };
+    let images = state.report_draft.images(&input.attachments)?;
+    let names = images.iter().map(|image| image.name.clone()).collect();
+    let player = state.settings.get().player_name;
+    let secrets = Arc::clone(&state.secrets);
+    let logs_dir = state.paths.logs_dir();
+    let info = app_info()?;
+    let category = input.category;
+    let input = input.clone();
+    let parts = tauri::async_runtime::spawn_blocking(move || {
+        let redactor = redactor(&player, &secrets);
+        let collected = collect(&input, info, pack, &logs_dir, names);
+        redacted_parts(&input, collected, &redactor).0
+    })
+    .await
+    .map_err(|error| AppError::internal(format!("relato interrompido: {error}")))?;
+    Ok(send::Prepared {
+        labels: vec![report_label(), category.label()],
+        parts,
+        images,
+    })
+}
+
+/// Abre ou fecha o rascunho de prints do diálogo (os dois esvaziam). Com ele aberto, arquivos
+/// soltos sobre a janela vão para os prints.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)] // contrato do Tauri
+pub(crate) fn problem_report_draft(state: State<'_, AppState>, open: bool) -> Result<(), AppError> {
+    state.report_draft.reset(open);
+    Ok(())
+}
+
+/// Acrescenta um print colado (Ctrl+V): o conteúdo vem em base64.
 #[tauri::command]
 #[specta::specta]
 #[allow(clippy::needless_pass_by_value)] // contrato do Tauri
-pub(crate) fn problem_report_open(app: AppHandle, url: String) -> Result<(), AppError> {
-    check_url(&url)?;
+pub(crate) fn problem_report_attach(
+    state: State<'_, AppState>,
+    name: String,
+    data: String,
+) -> Result<ReportImage, AppError> {
+    // Recusa o grande demais antes de decodificar (base64: 4 caracteres a cada 3 bytes).
+    if data.len() > attachments::MAX_IMAGE_BYTES / 3 * 4 + 8 {
+        return Err(AppError::new(crate::error::AppErrorCode::ReportImageTooLarge)
+            .with_param("name", attachments::clean_name(&name))
+            .with_param(
+                "maxMb",
+                (attachments::MAX_IMAGE_BYTES / 1024 / 1024).to_string(),
+            ));
+    }
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(data.trim())
+        .map_err(|_| {
+            AppError::new(crate::error::AppErrorCode::ReportImageInvalid)
+                .with_param("name", attachments::clean_name(&name))
+        })?;
+    state.report_draft.add(&name, bytes)
+}
+
+/// "Escolher imagens…": o diálogo nativo (PNG e JPEG).
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn problem_report_choose_images(
+    app: AppHandle,
+    window: WebviewWindow,
+    state: State<'_, AppState>,
+) -> Result<ReportImagesAdded, AppError> {
+    let paths = pick_images(&app, &window).await?;
+    let draft_paths = paths.clone();
+    let added = state.report_draft.add_files(&draft_paths);
+    tracing::info!(
+        aceitos = added.added.len(),
+        recusados = added.refused.len(),
+        "imagens escolhidas para o relato"
+    );
+    Ok(added)
+}
+
+/// "Remover" um print.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)] // contrato do Tauri
+pub(crate) fn problem_report_detach(state: State<'_, AppState>, token: String) -> Result<(), AppError> {
+    state.report_draft.remove(&token);
+    Ok(())
+}
+
+/// `report-images-dropped`: imagens soltas sobre a janela com o diálogo do relato aberto.
+#[derive(Debug, Clone, Serialize, specta::Type, tauri_specta::Event)]
+#[serde(transparent)]
+#[tauri_specta(event_name = "report-images-dropped")]
+pub(crate) struct ReportImagesDropped(pub(crate) ReportImagesAdded);
+
+/// Arquivos soltos sobre a janela com o diálogo do relato aberto viram prints (e não vão para
+/// "Adicionar arquivo local"). Devolve se tratou o evento.
+pub(crate) fn on_window_event(window: &tauri::Window, event: &tauri::WindowEvent) -> bool {
+    let tauri::WindowEvent::DragDrop(tauri::DragDropEvent::Drop { paths, .. }) = event else {
+        return false;
+    };
+    let Some(state) = window.app_handle().try_state::<AppState>() else {
+        return false;
+    };
+    if !state.report_draft.is_open() || paths.is_empty() {
+        return false;
+    }
+    let added = state.report_draft.add_files(paths);
+    tracing::info!(
+        aceitos = added.added.len(),
+        recusados = added.refused.len(),
+        "imagens soltas no relato"
+    );
+    if let Err(error) = ReportImagesDropped(added).emit(window.app_handle()) {
+        tracing::warn!(%error, "evento report-images-dropped não enviado");
+    }
+    true
+}
+
+async fn pick_images(app: &AppHandle, window: &WebviewWindow) -> Result<Vec<PathBuf>, AppError> {
+    #[cfg(debug_assertions)]
+    if let Some(file) = std::env::var_os(E2E_PICK_FILES_ENV).filter(|value| !value.is_empty()) {
+        let picked = std::fs::read_to_string(&file).unwrap_or_default();
+        return Ok(picked
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+            .map(PathBuf::from)
+            .collect());
+    }
+    let (sender, receiver) = tokio::sync::oneshot::channel();
+    app.dialog()
+        .file()
+        .set_title("Escolha os prints para o relato")
+        .add_filter("Imagens PNG e JPEG", &["png", "jpg", "jpeg"])
+        .set_parent(window)
+        .pick_files(move |picked| {
+            // Quem esperava pode ter ido embora (janela fechada); não há o que fazer.
+            let _ = sender.send(
+                picked
+                    .unwrap_or_default()
+                    .into_iter()
+                    .filter_map(|path| path.into_path().ok())
+                    .collect::<Vec<_>>(),
+            );
+        });
+    receiver
+        .await
+        .map_err(|error| AppError::internal(format!("diálogo de imagens interrompido: {error}")))
+}
+
+/// O que o Warden coleta sozinho (sem redação).
+fn collect(
+    input: &ProblemReportInput,
+    info: AppInfo,
+    pack: Option<String>,
+    logs_dir: &Path,
+    prints: Vec<String>,
+) -> Collected {
+    Collected {
+        system: system_text(info.platform),
+        info,
+        pack,
+        log: input
+            .include_log
+            .then(|| read_log_tail(logs_dir, LOG_LINES)),
+        prints,
+    }
+}
+
+/// Abre no navegador padrão a issue nova da pré-visualização ou a issue criada.
+#[tauri::command]
+#[specta::specta]
+#[allow(clippy::needless_pass_by_value)] // contrato do Tauri
+pub(crate) fn problem_report_open(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    url: String,
+) -> Result<(), AppError> {
+    check_url(&url, state.github.endpoints())?;
     tracing::info!(chars = url.len(), "relato de problema aberto no navegador");
+    open_in_browser(&app, &url)
+}
+
+/// Abre um endereço no navegador padrão. Em build de debug, com `WARDEN_E2E_OPEN_URL`, grava
+/// o endereço nesse arquivo em vez de abrir (E2E).
+pub(crate) fn open_in_browser(app: &AppHandle, url: &str) -> Result<(), AppError> {
     #[cfg(debug_assertions)]
     if let Some(file) = std::env::var_os(E2E_OPEN_URL_ENV).filter(|value| !value.is_empty()) {
-        return std::fs::write(&file, &url)
+        return std::fs::write(&file, url)
             .map_err(|error| AppError::internal(format!("E2E: gravar o endereço: {error}")));
     }
     app.opener()
-        .open_url(&url, None::<&str>)
-        .map_err(|error| AppError::internal(format!("abrir o relato no navegador: {error}")))
+        .open_url(url, None::<&str>)
+        .map_err(|error| AppError::internal(format!("abrir no navegador: {error}")))
 }
 
-/// Só a página de issue nova do Warden, dentro do limite e sem espaços.
-fn check_url(url: &str) -> Result<(), AppError> {
+/// Só a página de issue nova do Warden (dentro do limite e sem espaços) ou a página de uma
+/// issue do Warden.
+fn check_url(url: &str, endpoints: &Endpoints) -> Result<(), AppError> {
     let prefix = format!("{}?", new_issue_url());
-    if url.starts_with(&prefix)
+    let new_issue = url.starts_with(&prefix)
         && url.len() <= MAX_URL_CHARS
-        && url.bytes().all(|byte| byte.is_ascii_graphic())
-    {
+        && url.bytes().all(|byte| byte.is_ascii_graphic());
+    if new_issue || endpoints.is_issue_page(url) {
         Ok(())
     } else {
         Err(AppError::internal(
-            "relato: endereço fora da página de issue nova do Warden",
+            "relato: endereço fora das páginas de issue do Warden",
         ))
     }
 }
@@ -212,10 +517,47 @@ struct Collected {
     system: String,
     pack: Option<String>,
     log: Option<Vec<String>>,
+    /// Nomes dos prints, na ordem.
+    prints: Vec<String>,
 }
 
-/// Redige cada pedaço (com os nomes que o texto inteiro revela) e monta o relato.
+/// Monta o relato redigido e os dois corpos.
 fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) -> ProblemReportPreview {
+    let (parts, environment) = redacted_parts(input, collected, base);
+    let direct = fit_direct(&parts);
+    // "Abrir no GitHub" não leva prints: o GitHub não aceita imagens pelo endereço.
+    let fitted = fit(&ReportParts {
+        prints: Vec::new(),
+        ..parts.clone()
+    });
+    ProblemReportPreview {
+        title: fitted.title,
+        labels: parts.labels,
+        direct_body: direct.body,
+        direct_log_lines: u32::try_from(direct.log_lines).unwrap_or(u32::MAX),
+        body: fitted.body,
+        url: fitted.url,
+        full_body: fitted.full_body,
+        cut: match fitted.cut {
+            Cut::None => ReportCut::None,
+            Cut::Log => ReportCut::Log,
+            Cut::Text => ReportCut::Text,
+        },
+        environment: environment
+            .into_iter()
+            .map(|(label, value)| ReportField { label, value })
+            .collect(),
+        log_lines: u32::try_from(fitted.log_lines).unwrap_or(u32::MAX),
+    }
+}
+
+/// Redige cada pedaço (com os nomes que o texto inteiro revela) e devolve as partes do relato
+/// e o coletado, redigido.
+fn redacted_parts(
+    input: &ProblemReportInput,
+    collected: Collected,
+    base: &Redactor,
+) -> (ReportParts, Vec<(String, String)>) {
     let error_text = input
         .last_error
         .as_ref()
@@ -241,13 +583,12 @@ fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) ->
     // Um nome que só aparece num pedaço (uma linha antiga do registro) some de todos.
     let everything = [
         input.title.as_str(),
-        &input.what_you_did,
-        &input.what_happened,
-        &input.what_you_expected,
+        &input.description,
         log_text.as_deref().unwrap_or_default(),
     ]
     .into_iter()
     .chain(environment.iter().map(|(_, value)| value.as_str()))
+    .chain(collected.prints.iter().map(String::as_str))
     .collect::<Vec<_>>()
     .join("\n");
     let redactor = base.learning_from(&everything);
@@ -258,29 +599,21 @@ fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) ->
     }
     let parts = ReportParts {
         title: clean(&input.title),
-        what_you_did: clean(&input.what_you_did),
-        what_happened: clean(&input.what_happened),
-        what_you_expected: clean(&input.what_you_expected),
+        category: input.category.name().to_owned(),
+        labels: vec![REPORT_LABEL.to_owned(), input.category.label_name()],
+        description: clean(&input.description),
+        prints: collected
+            .prints
+            .iter()
+            .map(|name| PrintRef {
+                name: attachments::clean_name(&clean(name)),
+                url: None,
+            })
+            .collect(),
         environment: environment.clone(),
         log: log_text.map(|text| clean(&text).lines().map(str::to_owned).collect()),
     };
-    let fitted = fit(&parts);
-    ProblemReportPreview {
-        title: fitted.title,
-        body: fitted.body,
-        url: fitted.url,
-        full_body: fitted.full_body,
-        cut: match fitted.cut {
-            Cut::None => ReportCut::None,
-            Cut::Log => ReportCut::Log,
-            Cut::Text => ReportCut::Text,
-        },
-        environment: environment
-            .into_iter()
-            .map(|(label, value)| ReportField { label, value })
-            .collect(),
-        log_lines: u32::try_from(fitted.log_lines).unwrap_or(u32::MAX),
-    }
+    (parts, environment)
 }
 
 fn non_empty(text: &str, fallback: &str) -> String {
@@ -505,10 +838,10 @@ mod tests {
 
     fn input() -> ProblemReportInput {
         ProblemReportInput {
+            category: ReportCategory::Error,
             title: format!("Travou na pasta do {USER}"),
-            what_you_did: "Cliquei em Testar".into(),
-            what_happened: format!("O {COMPUTER} mostrou um erro"),
-            what_you_expected: "O jogo abrir".into(),
+            description: format!("Cliquei em Testar e o {COMPUTER} mostrou um erro"),
+            attachments: Vec::new(),
             include_log: true,
             screen: "Pack › Mods".into(),
             pack_id: None,
@@ -589,6 +922,7 @@ mod tests {
             system: "Ubuntu 24.04 LTS (Linux 6.8.0)".into(),
             pack: Some(format!("Pack do {USER} · Minecraft 1.20.1 · Fabric 0.16.5")),
             log: Some(log_with_private_data()),
+            prints: Vec::new(),
         };
         let report = preview(&input(), collected, &test_redactor());
         let url = decoded_url(&report.url);
@@ -612,6 +946,78 @@ mod tests {
         assert!(url.ends_with(&format!("body={}", report.body)));
     }
 
+    /// UI-03: categoria e descrição nos dois corpos; os prints só no corpo do envio direto;
+    /// as labels no endereço.
+    #[test]
+    fn categoria_prints_e_labels() {
+        let collected = Collected {
+            info: info(),
+            system: "Linux".into(),
+            pack: None,
+            log: None,
+            prints: vec![format!("tela do {USER}.png"), "erro.jpg".into()],
+        };
+        let mut sugestion = input();
+        sugestion.category = ReportCategory::Suggestion;
+        sugestion.include_log = false;
+        let report = preview(&sugestion, collected, &test_redactor());
+        assert_eq!(report.labels, ["relato-do-dono", "categoria: sugestão"]);
+        assert!(report.direct_body.starts_with("**Categoria:** Sugestão\n\n### Descrição\n\n"));
+        assert!(report.body.starts_with("**Categoria:** Sugestão\n\n### Descrição\n\n"));
+        assert!(report.direct_body.contains("![Print 1: tela do usuário.png]("), "{}", report.direct_body);
+        assert!(report.direct_body.contains("![Print 2: erro.jpg]("));
+        assert!(!report.body.contains("### Prints"));
+        assert!(!report.direct_body.contains(USER));
+        let url = decoded_url(&report.url);
+        assert!(url.contains("&labels=relato-do-dono,categoria: sugestão&"), "{url}");
+        let names: Vec<_> = [
+            ReportCategory::Error,
+            ReportCategory::Suggestion,
+            ReportCategory::VisualOrText,
+            ReportCategory::Slowness,
+            ReportCategory::Other,
+        ]
+        .iter()
+        .map(|category| category.label().name)
+        .collect();
+        assert_eq!(
+            names,
+            [
+                "categoria: erro",
+                "categoria: sugestão",
+                "categoria: visual ou texto",
+                "categoria: lentidão",
+                "categoria: outro"
+            ]
+        );
+        assert_eq!(report_label().name, "relato-do-dono");
+    }
+
+    /// CA-UI03-09: os tokens do login (no cofre) somem do corpo, mesmo colados no texto.
+    #[tokio::test]
+    async fn ca_ui03_09_tokens_do_login_sao_redigidos() {
+        use crate::commands::github_login::tests::{CLIENT_ID, access, refresh, session, signed_in};
+        let dir = tempfile::tempdir().unwrap();
+        let server = wiremock::MockServer::start().await;
+        let (_, secrets) = session(dir.path(), &server, CLIENT_ID);
+        signed_in(dir.path(), &secrets, 3_600);
+        let mut leaking = input();
+        leaking.description = format!("token {} e renovação {}", access(1), refresh(1));
+        let collected = Collected {
+            info: info(),
+            system: "Linux".into(),
+            pack: None,
+            log: Some(vec![format!("Authorization: Bearer {}", access(1))]),
+            prints: Vec::new(),
+        };
+        let report = preview(&leaking, collected, &redactor("Steve", &secrets));
+        for text in [&report.direct_body, &report.body, &report.full_body, &report.url] {
+            assert!(!text.contains(&access(1)) && !text.contains(&refresh(1)), "{text}");
+            assert!(!text.contains("ghu_") && !text.contains("ghr_"), "{text}");
+        }
+        assert!(report.direct_body.contains("<segredo>"));
+    }
+
     #[test]
     fn ambiente_coletado_aparece_no_corpo() {
         let collected = Collected {
@@ -619,6 +1025,7 @@ mod tests {
             system: "Ubuntu 24.04 LTS (Linux 6.8.0)".into(),
             pack: None,
             log: None,
+            prints: Vec::new(),
         };
         let mut without_log = input();
         without_log.include_log = false;
@@ -645,6 +1052,7 @@ mod tests {
             system: "Linux".into(),
             pack: None,
             log: None,
+            prints: Vec::new(),
         };
         let mut with_code = input();
         with_code.last_error = Some(ShownError {
@@ -679,6 +1087,7 @@ mod tests {
             system: "Linux".into(),
             pack: None,
             log: Some(log),
+            prints: Vec::new(),
         };
         let report = preview(&input(), collected, &test_redactor());
         assert_eq!(report.cut, ReportCut::Log);
@@ -690,7 +1099,7 @@ mod tests {
                 assert!(!text.contains(&secret), "{secret:?} vazou");
             }
         }
-        check_url(&report.url).unwrap();
+        check_url(&report.url, &Endpoints::official().unwrap()).unwrap();
     }
 
     #[test]
@@ -731,6 +1140,7 @@ mod tests {
             system: "Linux".into(),
             pack: None,
             log: Some(read_log_tail(&logs, LOG_LINES)),
+            prints: Vec::new(),
         };
         let report = preview(&input(), collected, &test_redactor());
         assert_eq!(report.log_lines, 7);
@@ -759,13 +1169,19 @@ mod tests {
 
     #[test]
     fn so_abre_a_pagina_de_issue_nova_do_warden() {
+        let endpoints = Endpoints::official().unwrap();
+        let check_url = |url: &str| super::check_url(url, &endpoints);
         check_url("https://github.com/Kriticales/Warden/issues/new?title=a&body=b").unwrap();
+        // UI-03: a issue criada também abre ("Ver no GitHub").
+        check_url("https://github.com/Kriticales/Warden/issues/42").unwrap();
         for url in [
             "https://github.com/outro/repo/issues/new?title=a",
             "https://github.com/Kriticales/Warden/issues/new",
             "https://github.com/Kriticales/Warden/issues/new?title=a b",
             "http://github.com/Kriticales/Warden/issues/new?title=a",
             "https://github.com/Kriticales/Warden/issues/new@evil.com?x",
+            "https://github.com/Kriticales/Warden/issues/42/../../outro",
+            "https://github.com/Kriticales/Outro/issues/42",
         ] {
             assert!(check_url(url).is_err(), "{url}");
         }
@@ -838,10 +1254,10 @@ mod tests {
     #[test]
     fn entrada_em_camel_case() {
         let input: ProblemReportInput = serde_json::from_value(serde_json::json!({
+            "category": "visualOrText",
             "title": "t",
-            "whatYouDid": "a",
-            "whatHappened": "b",
-            "whatYouExpected": "c",
+            "description": "d",
+            "attachments": ["abc"],
             "includeLog": false,
             "screen": "Meus packs",
             "packId": null,
@@ -849,6 +1265,8 @@ mod tests {
         }))
         .unwrap();
         assert_eq!(input.screen, "Meus packs");
+        assert_eq!(input.category, ReportCategory::VisualOrText);
+        assert_eq!(input.attachments, ["abc"]);
         assert_eq!(serde_json::to_value(ReportCut::Log).unwrap(), "log");
     }
 }

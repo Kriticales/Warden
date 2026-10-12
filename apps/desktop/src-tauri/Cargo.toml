@@ -59,6 +59,10 @@ warden-scripts.workspace = true
 warden-versioning.workspace = true
 warden-export.workspace = true
 warden-secrets.workspace = true
+# Login do GitHub e envio do relato direto (UI-03).
+warden-github.workspace = true
+# Prints colados no relato chegam em base64 pelo IPC (UI-03).
+base64.workspace = true
 # Resumo da árvore do pack testada (sessão do teste, L-04).
 sha2.workspace = true
 hex.workspace = true

@@ -221,6 +221,8 @@ error_domains! {
     Import(warden_import::ImportErrorCode) = "import",
     /// Scripts KubeJS e CraftTweaker (`warden-scripts`; D4).
     Scripts(warden_scripts::ScriptsErrorCode) = "scripts",
+    /// API do GitHub: login e envio do relato (`warden-github`; UI-03).
+    Github(warden_github::GithubErrorCode) = "github",
 }
 
 impl From<NoDomainCode> for ErrorCode {
@@ -280,6 +282,13 @@ pub enum AppErrorCode {
     /// falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
     /// nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
     TestGameFilesMissing,
+    /// O arquivo escolhido para o relato não é PNG nem JPEG (`params.name`; UI-03).
+    ReportImageInvalid,
+    /// A imagem passa do limite por print (`params.name`, `params.maxMb`; UI-03).
+    ReportImageTooLarge,
+    /// O relato já tem o máximo de prints ou de tamanho somado (`params.max`,
+    /// `params.maxTotalMb`; UI-03).
+    ReportImagesLimit,
 }
 
 #[cfg(test)]
@@ -347,6 +356,7 @@ mod tests {
                 "discovery",
                 "import",
                 "scripts",
+                "github",
             ]
         );
         for code in ErrorCode::all_internal() {
