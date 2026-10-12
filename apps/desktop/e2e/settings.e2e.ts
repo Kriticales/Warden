@@ -16,14 +16,13 @@
  *
  * Roda antes da fumaça (ordem alfabética dos arquivos) e deixa o app configurado.
  */
-import { mkdirSync, readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolationSummaries } from './axe';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 /** Valor falso: nunca é uma chave de verdade. */
 const FAKE_KEY = 'e2e-chave-falsa-0123456789';
@@ -32,34 +31,6 @@ async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
   mkdirSync(SCREENSHOTS, { recursive: true });
   await browser.saveScreenshot(join(SCREENSHOTS, `settings-${name}.png`));
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')
-    .map((violation) => `${violation.id}: ${violation.help}`);
 }
 
 /** Reinicia o app (sessão nova do WebDriver = processo novo, mesma pasta de dados). */
@@ -99,7 +70,7 @@ describe('primeira execução e Configurações', () => {
     // Sem menu: a barra não tem o link de Configurações.
     await expect($('header.topbar').$('a*=Configurações')).not.toBeExisting();
     await screenshot('01-aviso');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await $('button=Entendi').click();
   });
 
@@ -135,7 +106,7 @@ describe('primeira execução e Configurações', () => {
     await fields[0]?.waitForDisplayed();
     await fields[0]?.setValue(FAKE_KEY);
     await screenshot('04-chaves');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await $('button=Concluir').click();
     await $('h1=Meus packs').waitForDisplayed();
     await expect($('ol[aria-label="Etapas da primeira execução"]')).not.toBeExisting();
@@ -148,7 +119,7 @@ describe('primeira execução e Configurações', () => {
     const html = await browser.execute(() => document.documentElement.outerHTML);
     expect(html.includes(FAKE_KEY)).toBe(false);
     await screenshot('05-configuracoes');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('CA-T01-01 e CA-T21-01: reiniciar abre no início e a chave continua "Configurada"', async () => {

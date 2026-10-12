@@ -24,13 +24,12 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolationSummaries } from './axe';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -76,27 +75,6 @@ function read(path: string): string {
 /** A linha da lista de Mods de um item, pelo nome. */
 function modRow(name: string) {
   return $(`tr.modrow*=${name}`);
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: {
-        run: (
-          options: object,
-        ) => Promise<{ violations: { id: string; impact: string | null; help: string }[] }>;
-      };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      return [{ id: 'axe-falhou', impact: 'critical', help: 'o axe não rodou' }];
-    }
-  });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
 }
 
 async function waitToast(text: string): Promise<void> {
@@ -165,7 +143,7 @@ describe('Atualizações dos mods (P1-12)', () => {
     }
     await expect(modRow('Sodium')).toHaveText(expect.stringContaining('Fixado'));
     await screenshot('30-atualizacoes-faixa');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('Atualizar um item: mostra agora e nova, as novidades, e grava só a referência (CA-T10-02)', async () => {
@@ -181,7 +159,7 @@ describe('Atualizações dos mods (P1-12)', () => {
     expect(text).toContain('mc1.21.1-0.15.4-fabric');
     expect(text).toContain('Corrige um travamento ao carregar chunks.');
     await screenshot('31-atualizar-um-item');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await dialog.$('button=Atualizar Lithium').click();
     await waitToast('Lithium foi atualizado para mc1.21.1-0.15.5-fabric.');
     const after = read('mods/lithium.pw.toml');
@@ -208,7 +186,7 @@ describe('Atualizações dos mods (P1-12)', () => {
     });
     await expect(dialog).toHaveText(expect.stringContaining('ponto de segurança'));
     await screenshot('32-revisar-e-atualizar');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await dialog.$('button=Atualizar 2 itens').click();
     await waitToast('2 itens atualizados. Ponto de segurança criado antes.');
     expect(read('mods/modmenu.pw.toml')).toContain('version = "E2EMENU01"');

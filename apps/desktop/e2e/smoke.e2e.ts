@@ -8,52 +8,19 @@
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava capturas da janela nessa pasta.
  */
-import { mkdirSync, readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolations } from './axe';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
   mkdirSync(SCREENSHOTS, { recursive: true });
   await browser.saveScreenshot(join(SCREENSHOTS, `${name}.png`));
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-  nodes: { target: string[] }[];
-}
-
-/** Roda o axe-core dentro do WebView e devolve as violações sérias e críticas. */
-async function seriousViolations(): Promise<AxeViolation[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      const result = await axe.run({ resultTypes: ['violations'] });
-      return result.violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-        nodes: [],
-      };
-      return [failed];
-    }
-  });
-  return violations.filter(
-    (violation) => violation.impact === 'serious' || violation.impact === 'critical',
-  );
 }
 
 describe('fumaça', () => {
