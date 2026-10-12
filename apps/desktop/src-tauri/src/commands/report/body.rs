@@ -1,5 +1,6 @@
-//! Montagem do relato de problema (UI-02): o corpo em Markdown, o corte do registro para o
-//! endereço caber no limite e o endereço da issue nova no GitHub.
+//! Montagem do relato de problema (UI-02; categoria e descrição única da UI-03): o corpo em
+//! Markdown, o corte do registro para o endereço caber no limite e o endereço da issue nova no
+//! GitHub, com os rótulos.
 //!
 //! Tudo aqui recebe texto **já redigido** ([`ReportParts`]); a redação fica em `mod.rs`.
 //! O corpo que vai no endereço é exatamente o que a pré-visualização mostra.
@@ -11,6 +12,9 @@ pub(crate) const REPOSITORY_URL: &str = "https://github.com/Kriticales/Warden";
 
 /// Rótulo das issues abertas pelo relato (já existe no repositório).
 pub(crate) const REPORT_LABEL: &str = "relato-do-dono";
+
+/// Prefixo do rótulo da categoria (`categoria: erro`; os cinco já existem no repositório).
+pub(crate) const CATEGORY_LABEL_PREFIX: &str = "categoria: ";
 
 /// Maior endereço aceito. Endereços muito longos falham no navegador ou no GitHub.
 pub(crate) const MAX_URL_CHARS: usize = 7_500;
@@ -33,17 +37,53 @@ pub(crate) fn new_issue_url() -> String {
     format!("{REPOSITORY_URL}/issues/new")
 }
 
+/// Marca no lugar da descrição vazia.
+pub(crate) const NO_DESCRIPTION: &str = "_Sem descrição._";
+
+/// Categoria do relato (UI-03): abre o corpo (`## Erro`) e vira o rótulo `categoria: erro`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum ReportCategory {
+    /// "Erro": algo quebrou ou deu erro.
+    #[default]
+    Error,
+    /// "Visual ou texto": aparência, texto errado.
+    Visual,
+    /// "Lentidão": demora ou trava.
+    Slowness,
+    /// "Sugestão": ideia ou melhoria.
+    Suggestion,
+    /// "Outro": qualquer outra coisa.
+    Other,
+}
+
+impl ReportCategory {
+    /// Nome como a interface escreve ("Visual ou texto").
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::Error => "Erro",
+            Self::Visual => "Visual ou texto",
+            Self::Slowness => "Lentidão",
+            Self::Suggestion => "Sugestão",
+            Self::Other => "Outro",
+        }
+    }
+
+    /// Rótulo da issue ("categoria: visual ou texto").
+    pub(crate) fn label(self) -> String {
+        format!("{CATEGORY_LABEL_PREFIX}{}", self.name().to_lowercase())
+    }
+}
+
 /// Os pedaços do relato, já redigidos.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub(crate) struct ReportParts {
+    /// Categoria.
+    pub(crate) category: ReportCategory,
     /// Título da issue.
     pub(crate) title: String,
-    /// "O que você fez".
-    pub(crate) what_you_did: String,
-    /// "O que aconteceu".
-    pub(crate) what_happened: String,
-    /// "O que você esperava".
-    pub(crate) what_you_expected: String,
+    /// Descrição (opcional).
+    pub(crate) description: String,
     /// Dados coletados sozinhos: rótulo e valor, na ordem.
     pub(crate) environment: Vec<(String, String)>,
     /// Últimas linhas do registro, da mais antiga para a mais nova; `None` = não incluir.
@@ -70,8 +110,10 @@ pub(crate) struct FittedReport {
     pub(crate) body: String,
     /// Corpo com o registro inteiro (vai para a área de transferência quando houve corte).
     pub(crate) full_body: String,
-    /// Endereço da issue nova, com título, corpo e rótulo.
+    /// Endereço da issue nova, com título, corpo e rótulos.
     pub(crate) url: String,
+    /// Rótulos da issue, na ordem do endereço.
+    pub(crate) labels: Vec<String>,
     /// O que foi cortado.
     pub(crate) cut: Cut,
     /// Linhas do registro que ficaram no corpo.
@@ -83,6 +125,8 @@ pub(crate) struct FittedReport {
 /// do texto.
 pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
     let title = truncate_chars(parts.title.trim(), MAX_TITLE_CHARS);
+    let labels = labels(parts.category);
+    let issue_url = |title: &str, body: &str| issue_url(title, &labels, body);
     let log: Vec<String> = parts
         .log
         .iter()
@@ -97,6 +141,7 @@ pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
             body: full_body.clone(),
             full_body,
             url: full_url,
+            labels,
             cut: Cut::None,
             log_lines: log.len(),
         };
@@ -121,6 +166,7 @@ pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
             title,
             body,
             full_body,
+            labels,
             cut: Cut::Log,
             log_lines: low,
         };
@@ -152,6 +198,7 @@ pub(crate) fn fit(parts: &ReportParts) -> FittedReport {
         title,
         body,
         full_body,
+        labels,
         cut: Cut::Text,
         log_lines: 0,
     }
@@ -165,19 +212,16 @@ enum LogView<'a> {
     Newest(&'a [String], usize),
 }
 
-/// O corpo da issue em Markdown. Seções opcionais vazias não aparecem.
+/// O corpo da issue em Markdown: a categoria como título (`## Erro`) e a descrição embaixo.
 fn body(parts: &ReportParts, log: Option<LogView<'_>>) -> String {
     let mut text = String::new();
-    for (heading, value) in [
-        ("O que você fez", &parts.what_you_did),
-        ("O que aconteceu", &parts.what_happened),
-        ("O que você esperava", &parts.what_you_expected),
-    ] {
-        let value = value.trim();
-        if !value.is_empty() {
-            let _ = write!(text, "### {heading}\n\n{value}\n\n");
-        }
-    }
+    let description = parts.description.trim();
+    let description = if description.is_empty() {
+        NO_DESCRIPTION
+    } else {
+        description
+    };
+    let _ = write!(text, "## {}\n\n{description}\n\n", parts.category.name());
     text.push_str("### Ambiente\n\n");
     for (label, value) in &parts.environment {
         let _ = writeln!(text, "- **{label}:** {value}");
@@ -229,13 +273,18 @@ fn fence_for(lines: &[String]) -> String {
     "`".repeat(longest.max(2) + 1)
 }
 
-/// Endereço da issue nova com título, corpo e rótulo.
-pub(crate) fn issue_url(title: &str, body: &str) -> String {
+/// Rótulos da issue: o do relato e o da categoria.
+pub(crate) fn labels(category: ReportCategory) -> Vec<String> {
+    vec![REPORT_LABEL.to_owned(), category.label()]
+}
+
+/// Endereço da issue nova com título, corpo e rótulos (separados por vírgula, codificada).
+pub(crate) fn issue_url(title: &str, labels: &[String], body: &str) -> String {
     format!(
         "{}?title={}&labels={}&body={}",
         new_issue_url(),
         encode(title),
-        encode(REPORT_LABEL),
+        encode(&labels.join(",")),
         encode(body)
     )
 }
@@ -275,10 +324,9 @@ mod tests {
 
     fn parts(log: Option<Vec<String>>) -> ReportParts {
         ReportParts {
+            category: ReportCategory::Error,
             title: "O Testar travou".into(),
-            what_you_did: "Cliquei em Testar".into(),
-            what_happened: "Nada abriu".into(),
-            what_you_expected: String::new(),
+            description: "Cliquei em Testar e nada abriu".into(),
             environment: vec![
                 ("Warden".into(), "0.1.0".into()),
                 ("Tela".into(), "Pack › Mods".into()),
@@ -314,21 +362,58 @@ mod tests {
     }
 
     #[test]
-    fn corpo_com_secoes_ambiente_e_registro() {
+    fn corpo_abre_com_a_categoria_e_a_descricao() {
         let fitted = fit(&parts(Some(vec!["linha 1".into(), "linha 2".into()])));
         assert_eq!(fitted.cut, Cut::None);
         assert_eq!(fitted.body, fitted.full_body);
         assert_eq!(fitted.log_lines, 2);
-        let expected = "### O que você fez\n\nCliquei em Testar\n\n\
-             ### O que aconteceu\n\nNada abriu\n\n\
+        let expected = "## Erro\n\nCliquei em Testar e nada abriu\n\n\
              ### Ambiente\n\n- **Warden:** 0.1.0\n- **Tela:** Pack › Mods\n\n\
              ### Registros do Warden (últimas linhas)\n\n```text\nlinha 1\nlinha 2\n```\n\n";
         assert!(fitted.body.starts_with(expected), "{}", fitted.body);
-        assert!(!fitted.body.contains("O que você esperava"));
+        // Os três campos da UI-02 não existem mais.
+        for old in ["O que você fez", "O que aconteceu", "O que você esperava"] {
+            assert!(!fitted.body.contains(old), "{old}");
+        }
     }
 
     #[test]
-    fn endereco_tem_titulo_corpo_e_rotulo() {
+    fn descricao_vazia_vira_marca() {
+        let mut empty = parts(None);
+        empty.category = ReportCategory::Suggestion;
+        empty.description = "  \n ".into();
+        let fitted = fit(&empty);
+        assert!(
+            fitted.body.starts_with(&format!("## Sugestão\n\n{NO_DESCRIPTION}\n\n### Ambiente")),
+            "{}",
+            fitted.body
+        );
+    }
+
+    #[test]
+    fn cada_categoria_tem_nome_e_rotulo() {
+        let all = [
+            (ReportCategory::Error, "Erro", "categoria: erro"),
+            (ReportCategory::Visual, "Visual ou texto", "categoria: visual ou texto"),
+            (ReportCategory::Slowness, "Lentidão", "categoria: lentidão"),
+            (ReportCategory::Suggestion, "Sugestão", "categoria: sugestão"),
+            (ReportCategory::Other, "Outro", "categoria: outro"),
+        ];
+        for (category, name, label) in all {
+            assert_eq!(category.name(), name);
+            assert_eq!(category.label(), label);
+            let mut report = parts(None);
+            report.category = category;
+            let fitted = fit(&report);
+            assert!(fitted.body.starts_with(&format!("## {name}\n\n")), "{}", fitted.body);
+            assert_eq!(fitted.labels, ["relato-do-dono", label]);
+            assert_eq!(query(&fitted.url, "labels"), format!("relato-do-dono,{label}"));
+        }
+        assert_eq!(ReportCategory::default(), ReportCategory::Error);
+    }
+
+    #[test]
+    fn endereco_tem_titulo_corpo_e_rotulos_codificados() {
         let fitted = fit(&parts(None));
         assert!(
             fitted
@@ -336,7 +421,22 @@ mod tests {
                 .starts_with("https://github.com/Kriticales/Warden/issues/new?title=")
         );
         assert_eq!(query(&fitted.url, "title"), "O Testar travou");
-        assert_eq!(query(&fitted.url, "labels"), "relato-do-dono");
+        assert_eq!(query(&fitted.url, "labels"), "relato-do-dono,categoria: erro");
+        // Vírgula, dois-pontos e espaço codificados: o endereço não tem espaço nem `,` solto.
+        assert!(
+            fitted
+                .url
+                .contains("&labels=relato-do-dono%2Ccategoria%3A%20erro&"),
+            "{}",
+            fitted.url
+        );
+        let mut slow = parts(None);
+        slow.category = ReportCategory::Slowness;
+        let slow_url = fit(&slow).url;
+        assert!(
+            slow_url.contains("&labels=relato-do-dono%2Ccategoria%3A%20lentid%C3%A3o&"),
+            "{slow_url}"
+        );
         assert_eq!(query(&fitted.url, "body"), fitted.body);
         assert!(!fitted.body.contains("Registros do Warden"));
         assert!(fitted.url.is_ascii());
@@ -379,13 +479,37 @@ mod tests {
                 fitted.log_lines + 1,
             )),
         );
-        assert!(issue_url(&fitted.title, &one_more).chars().count() > MAX_URL_CHARS);
+        assert!(
+            issue_url(&fitted.title, &fitted.labels, &one_more)
+                .chars()
+                .count()
+                > MAX_URL_CHARS
+        );
+    }
+
+    #[test]
+    fn corte_respeita_o_limite_com_qualquer_categoria() {
+        let log: Vec<String> = (1..=400)
+            .map(|n| format!("2026-10-12T10:00:00Z INFO warden: linha número {n:03}"))
+            .collect();
+        for category in [ReportCategory::Visual, ReportCategory::Slowness, ReportCategory::Other] {
+            let mut report = parts(Some(log.clone()));
+            report.category = category;
+            let fitted = fit(&report);
+            assert_eq!(fitted.cut, Cut::Log);
+            assert!(fitted.url.chars().count() <= MAX_URL_CHARS);
+            assert_eq!(
+                query(&fitted.url, "labels"),
+                format!("relato-do-dono,{}", category.label())
+            );
+            assert!(fitted.body.contains("linha número 400"));
+        }
     }
 
     #[test]
     fn texto_enorme_corta_o_texto_e_tira_o_registro() {
         let mut big = parts(Some(vec!["linha".into()]));
-        big.what_happened = "ação é ".repeat(2_000);
+        big.description = "ação é ".repeat(2_000);
         let fitted = fit(&big);
         assert_eq!(fitted.cut, Cut::Text);
         assert!(fitted.url.chars().count() <= MAX_URL_CHARS);

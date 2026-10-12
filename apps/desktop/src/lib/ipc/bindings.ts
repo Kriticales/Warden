@@ -472,6 +472,12 @@ export const commands = {
 	problemReportPreview: (input: ProblemReportInput) => typedError<ProblemReportPreview, AppError>(__TAURI_INVOKE("problem_report_preview", { input })),
 	/**  Abre o endereço da pré-visualização no navegador padrão. */
 	problemReportOpen: (url: string) => typedError<null, AppError>(__TAURI_INVOKE("problem_report_open", { url })),
+	/**
+	 *  Copia para a área de transferência um print só da janela do Warden (UI-03). A interface
+	 *  esconde o diálogo antes de chamar e o mostra de novo depois. Qualquer falha volta como
+	 *  erro, e a interface abre a issue mesmo assim, dizendo que o print não foi copiado.
+	 */
+	problemReportCapture: () => typedError<CapturedImage, AppError>(__TAURI_INVOKE("problem_report_capture")),
 	/**  Onde as chaves ficam e quais estão configuradas. */
 	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
 	/**  Grava uma chave digitada e devolve o estado. */
@@ -3865,14 +3871,12 @@ export type PrismSwap = {
 
 /**  O que a pessoa escreveu e o que a interface sabe (tela e pack abertos, último erro). */
 export type ProblemReportInput = {
+	/**  Categoria (abre o corpo e vira o rótulo da issue). */
+	category: ReportCategory,
 	/**  Título (obrigatório para abrir; a pré-visualização aceita vazio). */
 	title: string,
-	/**  "O que você fez". */
-	whatYouDid: string,
-	/**  "O que aconteceu". */
-	whatHappened: string,
-	/**  "O que você esperava". */
-	whatYouExpected: string,
+	/**  Descrição (opcional). */
+	description: string,
 	/**  "Incluir os registros do Warden". */
 	includeLog: boolean,
 	/**  Tela atual, nos termos da interface ("Pack › Mods"). */
@@ -3891,6 +3895,8 @@ export type ProblemReportPreview = {
 	body: string,
 	/**  Endereço da issue nova (`problem_report_open` abre este). */
 	url: string,
+	/**  Rótulos da issue, como vão no endereço (`relato-do-dono`, `categoria: erro`). */
+	labels: string[],
 	/**
 	 *  Corpo completo, com todas as linhas lidas dos registros (para a área de transferência
 	 *  quando algo foi cortado).
@@ -4085,6 +4091,19 @@ export type RemovalTarget = {
 	/**  Arquivos que serão apagados (o `.pw.toml`, ou o arquivo local). */
 	files: string[],
 };
+
+/**  Categoria do relato (UI-03): abre o corpo (`## Erro`) e vira o rótulo `categoria: erro`. */
+export type ReportCategory = 
+/**  "Erro": algo quebrou ou deu erro. */
+"error" | 
+/**  "Visual ou texto": aparência, texto errado. */
+"visual" | 
+/**  "Lentidão": demora ou trava. */
+"slowness" | 
+/**  "Sugestão": ideia ou melhoria. */
+"suggestion" | 
+/**  "Outro": qualquer outra coisa. */
+"other";
 
 /**  O que precisou ser cortado para o endereço caber. */
 export type ReportCut = 

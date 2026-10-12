@@ -1,4 +1,5 @@
-//! Comandos do domínio `report`: "Relatar problema" (UI-02).
+//! Comandos do domínio `report`: "Relatar problema" (UI-02; categoria, descrição única e
+//! print da janela na UI-03).
 //!
 //! O relato vira uma issue do GitHub já preenchida, que a pessoa confere e envia no navegador:
 //! nada sai do computador sem o clique em "Abrir no GitHub", e quem envia é a própria pessoa,
@@ -11,8 +12,11 @@
 //!   ser cortado para o endereço caber (`body.rs`).
 //! - `problem_report_open`: abre no navegador padrão o endereço que a pré-visualização
 //!   mostrou. Só aceita a página de issue nova do repositório do Warden.
+//! - `problem_report_capture`: copia para a área de transferência um print só da janela do
+//!   Warden (a interface esconde o diálogo antes; `capture.rs`).
 
 mod body;
+mod capture;
 
 use std::fmt::Write as _;
 use std::io::{Read as _, Seek as _, SeekFrom};
@@ -20,7 +24,7 @@ use std::sync::Arc;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager as _, State};
 use tauri_plugin_opener::OpenerExt as _;
 use warden_core::PackId;
 use warden_diagnostics::{RedactionProfile, Redactor};
@@ -31,7 +35,9 @@ use crate::commands::inventory::pack_root;
 use crate::error::AppError;
 use crate::state::AppState;
 
+pub(crate) use body::ReportCategory;
 use body::{Cut, MAX_URL_CHARS, ReportParts, fit, new_issue_url};
+use capture::{CapturedImage, NativeCapture, TauriClipboard, capture_to_clipboard};
 
 /// Linhas dos registros lidas (as mais novas).
 const LOG_LINES: usize = 200;
@@ -43,6 +49,11 @@ const LOG_TAIL_BYTES: u64 = 256 * 1024;
 /// endereço é gravado nele em vez de abrir.
 #[cfg(debug_assertions)]
 const E2E_OPEN_URL_ENV: &str = "WARDEN_E2E_OPEN_URL";
+
+/// Em build de debug, o E2E confere o print pelo arquivo apontado por esta variável: a imagem
+/// copiada também é gravada nele (PAM).
+#[cfg(debug_assertions)]
+const E2E_CAPTURE_FILE_ENV: &str = "WARDEN_E2E_CAPTURE_FILE";
 
 /// Último erro que a interface mostrou.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
@@ -58,14 +69,12 @@ pub(crate) struct ShownError {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProblemReportInput {
+    /// Categoria (abre o corpo e vira o rótulo da issue).
+    pub(crate) category: ReportCategory,
     /// Título (obrigatório para abrir; a pré-visualização aceita vazio).
     pub(crate) title: String,
-    /// "O que você fez".
-    pub(crate) what_you_did: String,
-    /// "O que aconteceu".
-    pub(crate) what_happened: String,
-    /// "O que você esperava".
-    pub(crate) what_you_expected: String,
+    /// Descrição (opcional).
+    pub(crate) description: String,
     /// "Incluir os registros do Warden".
     pub(crate) include_log: bool,
     /// Tela atual, nos termos da interface ("Pack › Mods").
@@ -108,6 +117,8 @@ pub(crate) struct ProblemReportPreview {
     pub(crate) body: String,
     /// Endereço da issue nova (`problem_report_open` abre este).
     pub(crate) url: String,
+    /// Rótulos da issue, como vão no endereço (`relato-do-dono`, `categoria: erro`).
+    pub(crate) labels: Vec<String>,
     /// Corpo completo, com todas as linhas lidas dos registros (para a área de transferência
     /// quando algo foi cortado).
     pub(crate) full_body: String,
@@ -170,6 +181,42 @@ pub(crate) fn problem_report_open(app: AppHandle, url: String) -> Result<(), App
     app.opener()
         .open_url(&url, None::<&str>)
         .map_err(|error| AppError::internal(format!("abrir o relato no navegador: {error}")))
+}
+
+/// Copia para a área de transferência um print só da janela do Warden (UI-03). A interface
+/// esconde o diálogo antes de chamar e o mostra de novo depois. Qualquer falha volta como
+/// erro, e a interface abre a issue mesmo assim, dizendo que o print não foi copiado.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn problem_report_capture(app: AppHandle) -> Result<CapturedImage, AppError> {
+    let window = app
+        .get_webview_window(crate::MAIN_WINDOW)
+        .ok_or_else(|| AppError::internal("relato: janela principal não encontrada"))?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let captured = capture_to_clipboard(&NativeCapture::new(window), &TauriClipboard::new(&app));
+        match captured {
+            Ok((size, shot)) => {
+                tracing::info!(width = size.width, height = size.height, "relato: print copiado");
+                #[cfg(debug_assertions)]
+                if let Some(file) =
+                    std::env::var_os(E2E_CAPTURE_FILE_ENV).filter(|value| !value.is_empty())
+                {
+                    std::fs::write(&file, shot.to_pam()).map_err(|error| {
+                        AppError::internal(format!("E2E: gravar o print: {error}"))
+                    })?;
+                }
+                #[cfg(not(debug_assertions))]
+                drop(shot);
+                Ok(size)
+            }
+            Err(error) => {
+                tracing::warn!(%error, "relato: print não copiado");
+                Err(AppError::internal(format!("relato: print não copiado: {error}")))
+            }
+        }
+    })
+    .await
+    .map_err(|error| AppError::internal(format!("relato: print interrompido: {error}")))?
 }
 
 /// Só a página de issue nova do Warden, dentro do limite e sem espaços.
@@ -241,9 +288,7 @@ fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) ->
     // Um nome que só aparece num pedaço (uma linha antiga do registro) some de todos.
     let everything = [
         input.title.as_str(),
-        &input.what_you_did,
-        &input.what_happened,
-        &input.what_you_expected,
+        &input.description,
         log_text.as_deref().unwrap_or_default(),
     ]
     .into_iter()
@@ -257,10 +302,9 @@ fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) ->
         *value = clean(value);
     }
     let parts = ReportParts {
+        category: input.category,
         title: clean(&input.title),
-        what_you_did: clean(&input.what_you_did),
-        what_happened: clean(&input.what_happened),
-        what_you_expected: clean(&input.what_you_expected),
+        description: clean(&input.description),
         environment: environment.clone(),
         log: log_text.map(|text| clean(&text).lines().map(str::to_owned).collect()),
     };
@@ -269,6 +313,7 @@ fn preview(input: &ProblemReportInput, collected: Collected, base: &Redactor) ->
         title: fitted.title,
         body: fitted.body,
         url: fitted.url,
+        labels: fitted.labels,
         full_body: fitted.full_body,
         cut: match fitted.cut {
             Cut::None => ReportCut::None,
@@ -505,10 +550,9 @@ mod tests {
 
     fn input() -> ProblemReportInput {
         ProblemReportInput {
+            category: ReportCategory::Error,
             title: format!("Travou na pasta do {USER}"),
-            what_you_did: "Cliquei em Testar".into(),
-            what_happened: format!("O {COMPUTER} mostrou um erro"),
-            what_you_expected: "O jogo abrir".into(),
+            description: format!("Cliquei em Testar e o {COMPUTER} mostrou um erro"),
             include_log: true,
             screen: "Pack › Mods".into(),
             pack_id: None,
@@ -607,6 +651,8 @@ mod tests {
         assert!(report.body.contains("<computador>"));
         assert_eq!(report.cut, ReportCut::None);
         assert_eq!(report.log_lines, 7);
+        assert!(report.body.starts_with("## Erro\n\nCliquei em Testar e o <computador>"));
+        assert_eq!(report.labels, ["relato-do-dono", "categoria: erro"]);
         // O endereço leva exatamente o título e o corpo da pré-visualização.
         assert!(url.contains(&format!("title={}&", report.title)));
         assert!(url.ends_with(&format!("body={}", report.body)));
@@ -838,10 +884,9 @@ mod tests {
     #[test]
     fn entrada_em_camel_case() {
         let input: ProblemReportInput = serde_json::from_value(serde_json::json!({
+            "category": "slowness",
             "title": "t",
-            "whatYouDid": "a",
-            "whatHappened": "b",
-            "whatYouExpected": "c",
+            "description": "a",
             "includeLog": false,
             "screen": "Meus packs",
             "packId": null,
@@ -849,6 +894,15 @@ mod tests {
         }))
         .unwrap();
         assert_eq!(input.screen, "Meus packs");
+        assert_eq!(input.category, ReportCategory::Slowness);
         assert_eq!(serde_json::to_value(ReportCut::Log).unwrap(), "log");
+        for (text, category) in [
+            ("error", ReportCategory::Error),
+            ("visual", ReportCategory::Visual),
+            ("suggestion", ReportCategory::Suggestion),
+            ("other", ReportCategory::Other),
+        ] {
+            assert_eq!(serde_json::from_value::<ReportCategory>(text.into()).unwrap(), category);
+        }
     }
 }
