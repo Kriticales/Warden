@@ -27,15 +27,13 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join, relative } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
+import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -103,34 +101,6 @@ function folderHash(dir: string): string {
   };
   walk(dir);
   return hash.digest('hex');
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
 }
 
 /** A linha da lista de Mods de um item, pelo nome. */
@@ -213,7 +183,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     ]);
     await expect($('h1=Mods')).toExist();
     await screenshot('20-pack-aberto-mods');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('versão legível pelo cache do Modrinth e pelo arquivo; nunca um ID (CA-T06-02)', async () => {
@@ -252,7 +222,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     expect(text).toContain('Detalhes do mod');
     expect(text).toContain('sodium-fabric-0.8.13+mc1.21.1.jar');
     await screenshot('21-detalhes-modrinth');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await closeOverlay();
   });
 
@@ -283,7 +253,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     const name = $(`[id="${nameId ?? ''}"]`);
     await browser.waitUntil(async () => (await name.getValue()) === 'Fixture Fabric');
     await screenshot('23-informacoes-do-pack');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await name.setValue('Vale Fabric');
     await dialog.$('button=Salvar').click();
     await $('h1=Vale Fabric').waitForDisplayed({ timeout: 30_000 });
@@ -299,7 +269,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     await dialog.$('option=Automático: Java 21').waitForExist({ timeout: 30_000 });
     await expect(dialog).toHaveText(expect.stringContaining('Por que não o Java 25?'));
     await screenshot('24-ajustes-do-teste');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     const memoryId = await dialog.$('label=Memória do teste').getAttribute('for');
     await $(`[id="${memoryId ?? ''}"]`).selectByAttribute('value', '6144');
     await dialog.$('button=Salvar ajustes').click();
@@ -343,7 +313,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     await expect(modRow('solto-1.0.jar')).toHaveText(expect.stringMatching(/fora do índice/i));
     await expect(modRow('Sodium')).toExist();
     await screenshot('26-mods-com-problemas');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('em 1024 px (largura mínima) o pack aberto não estoura na horizontal', async () => {

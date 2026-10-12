@@ -7,15 +7,19 @@
 //! atribui a esta crate; a responsabilidade e os limites estão na ARCHITECTURE §3.
 
 pub mod add;
+pub mod configs;
 pub mod create;
 pub mod dedup;
 pub mod deps;
 pub mod details;
 mod error;
 pub mod hygiene;
+pub mod initial_mods;
 pub mod inventory;
+pub mod kits;
 pub mod meta;
 pub mod open;
+pub mod player_tools;
 pub mod registry;
 pub mod remove;
 pub mod search;

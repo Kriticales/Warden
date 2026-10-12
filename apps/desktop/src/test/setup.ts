@@ -25,6 +25,15 @@ if (typeof window !== 'undefined' && !('hasPointerCapture' in Element.prototype)
   });
 }
 
+// O jsdom não mede texto: o CodeMirror (editor de configs) pergunta pelos retângulos do Range.
+if (typeof Range !== 'undefined' && !('getClientRects' in Range.prototype)) {
+  const rect = { x: 0, y: 0, width: 0, height: 0, top: 0, right: 0, bottom: 0, left: 0 };
+  Object.assign(Range.prototype, {
+    getClientRects: () => [],
+    getBoundingClientRect: () => ({ ...rect, toJSON: () => rect }),
+  });
+}
+
 afterEach(() => {
   // Testes de ferramentas (`@vitest-environment node`) não têm `window`.
   if (typeof window !== 'undefined') {

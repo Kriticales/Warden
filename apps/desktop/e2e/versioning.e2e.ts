@@ -28,13 +28,12 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join, relative } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolationSummaries } from './axe';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -98,34 +97,6 @@ function treeHashes(dir: string = PACK): Record<string, string> {
 
 function git(...args: string[]): string {
   return execFileSync('git', ['-C', PACK, ...args], { encoding: 'utf8' }).trim();
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
 }
 
 async function waitToast(text: string): Promise<void> {
@@ -242,7 +213,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await expect(main).toHaveText(expect.stringContaining('desde a criação do pack'));
     await expect(main).toHaveText(expect.stringContaining('Publicação para os jogadores'));
     await screenshot('40-historico-vazio');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('CA-T16-01 e CA-T16-03: sugere a versão do pack, salva como versão final e deixa o git limpo; axe', async () => {
@@ -255,7 +226,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await dialog.$('textarea').setValue('Primeira versão do Vale');
     await dialog.$('label*=Marcar como versão final').click();
     await screenshot('41-salvar-versao');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
 
     const save = dialog.$('button*=Salvar versão 1.0.0');
     await save.waitForEnabled({ timeout: 15_000 });
@@ -293,7 +264,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await expect($('main')).toHaveText(expect.stringContaining('Nada mudou desde a versão 1.0.0.'));
     await expect($('header.packhead')).not.toHaveText(expect.stringMatching(/\d+\s+alterações/));
     await screenshot('43-historico');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('CA-T16-04: 0.9.0 depois da 1.0.0 é recusado com a explicação e 1.0.1 salva (só configs: correção)', async () => {

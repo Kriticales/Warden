@@ -120,6 +120,7 @@ export const packs = {
       nome: 'Nome e pasta',
       minecraft: 'Versão do Minecraft',
       loader: 'Loader',
+      mods: 'Mods iniciais',
       resumo: 'Resumo',
     },
     cancelar: 'Cancelar',

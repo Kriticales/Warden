@@ -2,6 +2,7 @@
  * O rascunho do assistente Criar pack e a leitura dos erros da etapa "Nome e pasta".
  */
 import type { AppError, Loader } from '../../../../lib/ipc/bindings';
+import type { InitialChoice } from '../../create/initial-mods/model';
 
 export interface Draft {
   name: string;
@@ -16,6 +17,8 @@ export interface Draft {
   loaderVersion: string | null;
   /** O loader já foi escolhido (ou pré-selecionado) para a versão do Minecraft atual. */
   loaderReady: boolean;
+  /** Mods iniciais e kit (etapa 4); `null` até a etapa carregar a oferta e preencher o padrão. */
+  initial: InitialChoice | null;
 }
 
 /** O que há de errado no nome ou na pasta, com a chave do texto em `packs.criar`. */

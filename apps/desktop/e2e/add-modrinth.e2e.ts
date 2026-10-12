@@ -17,13 +17,12 @@
  */
 import { createHash } from 'node:crypto';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolationSummaries } from './axe';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -79,34 +78,6 @@ function removeSodium(): void {
     join(PACK, 'pack.toml'),
     read('pack.toml').replace(/^hash = "[0-9a-f]+"$/m, `hash = "${hash}"`),
   );
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
 }
 
 /** Espera um aviso (toast) com o texto; um aviso de erro falha na hora, com a frase. */
@@ -182,7 +153,7 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
     await browser.waitUntil(async () => (await resultNames()).length >= 3);
     const names = await resultNames();
     expect(names.slice(0, 3)).toContain('Sodium');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('01-busca');
   });
 

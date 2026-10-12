@@ -77,6 +77,9 @@ export const tarefas = {
       check: 'Verificar atualizações',
       apply: 'Atualizar mods',
     },
+    'initial-mods': {
+      apply: 'Adicionar os mods iniciais',
+    },
   },
 } as const;
 

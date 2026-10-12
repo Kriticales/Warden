@@ -75,6 +75,19 @@ export const commands = {
 	 *  a pré-selecionada. Lista vazia: o loader não existe para essa versão.
 	 */
 	catalogLoaderVersions: (loader: Loader, minecraft: string, forceRefresh: boolean) => typedError<LoaderVersions, AppError>(__TAURI_INVOKE("catalog_loader_versions", { loader, minecraft, forceRefresh })),
+	/**
+	 *  Os arquivos da origem, em ordem de caminho. A instância só existe depois do primeiro teste
+	 *  (`available = false` antes disso).
+	 */
+	configTree: (packId: PackId, origin: ConfigOrigin) => typedError<ConfigFileList, AppError>(__TAURI_INVOKE("config_tree", { packId, origin })),
+	/**  Lê um arquivo: texto, `hash`, fim de linha e o motivo de só leitura, quando houver. */
+	configRead: (packId: PackId, origin: ConfigOrigin, path: string) => typedError<ConfigContent, AppError>(__TAURI_INVOKE("config_read", { packId, origin, path })),
+	/**
+	 *  Grava o texto do arquivo. `expected_hash` é o `hash` da última leitura: se o arquivo mudou
+	 *  no disco desde então, nada é gravado (`FILE_CHANGED_ON_DISK`). "Sobrescrever" é reler o
+	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
+	 */
+	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
 	/**  Lista exata da saída e avisos antes de exportar. */
 	exportPreview: (packId: PackId, source: ExportSource) => typedError<ExportPreview, AppError>(__TAURI_INVOKE("export_preview", { packId, source })),
 	/**  Adiciona uma regra ao `.packwizignore` e atualiza o índice. */
@@ -104,6 +117,37 @@ export const commands = {
 	graphWhyInPack: (packId: PackId, path: string) => typedError<WhyReport, AppError>(__TAURI_INVOKE("graph_why_in_pack", { packId, path })),
 	/**  Bibliotecas (e itens) que nenhum item mantido usa mais. */
 	graphOrphans: (packId: PackId) => typedError<Orphan[], AppError>(__TAURI_INVOKE("graph_orphans", { packId })),
+	/**
+	 *  O que a etapa "Mods iniciais" mostra: spark e Crash Assistant (e a Fabric API no Fabric), com
+	 *  a versão de cada um. Vanilla não oferece nada. Se o Modrinth não responder, o erro é
+	 *  `SEARCH_SOURCE_UNAVAILABLE` e a etapa deixa seguir sem os mods.
+	 */
+	initialModsOffer: (minecraft: string, loader: 
+/**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
+"forge" | 
+/**  NeoForge (1.20.1 em diante). */
+"neoforge" | 
+/**  Fabric (1.14 em diante). */
+"fabric" | null) => typedError<InitialOffer, AppError>(__TAURI_INVOKE("initial_mods_offer", { minecraft, loader })),
+	/**
+	 *  Grava os mods iniciais marcados (e o kit escolhido) no pack e avisa a interface. Duas
+	 *  transações sob a mesma trava: os itens (todos ou nenhum) e, depois, a config do Crash
+	 *  Assistant e `[player-tools]`; se a segunda falhar, o erro volta e os itens já gravados ficam no
+	 *  pack. Itens sem versão para o pack ou de uma fonte desligada ficam de fora e voltam em
+	 *  `leftOut`; o pack continua válido.
+	 */
+	initialModsApply: (packId: PackId, request: InitialModsRequest) => typedError<InitialModsResult, AppError>(__TAURI_INVOKE("initial_mods_apply", { packId, request })),
+	/**
+	 *  Os kits de desempenho do loader e da versão do Minecraft (nenhum para vanilla ou para uma
+	 *  faixa sem kit). Dados embutidos: não usa a rede.
+	 */
+	kitsList: (minecraft: string, loader: 
+/**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
+"forge" | 
+/**  NeoForge (1.20.1 em diante). */
+"neoforge" | 
+/**  Fabric (1.14 em diante). */
+"fabric" | null) => __TAURI_INVOKE<Kit[]>("kits_list", { minecraft, loader }),
 	/**
 	 *  A lista de Mods: todos os itens do índice (mods, resource packs, shaders), os arquivos
 	 *  inválidos e os que estão fora do índice. Sempre lida do disco.
@@ -632,6 +676,63 @@ export type CheckTrigger =
 "auto" | 
 /**  Botão "Verificar atualizações": sempre consulta. */
 "manual";
+
+/**  Um arquivo lido. */
+export type ConfigContent = {
+	/**  Caminho relativo à origem. */
+	path: string,
+	/**  Texto sem o BOM; `None` quando não há como mostrar. */
+	text: string | null,
+	/**  SHA-256 do arquivo inteiro (hexadecimal), para a concorrência otimista. */
+	hash: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  Fim de linha. */
+	lineEnding: LineEnding,
+	/**  Só leitura, e por quê. `None` = editável. */
+	readOnly: ReadOnlyReason | null,
+	/**  Última alteração, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+};
+
+/**  Um arquivo da árvore. */
+export type ConfigFile = {
+	/**  Caminho relativo à origem, com `/`. */
+	path: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  Última alteração, em milissegundos Unix. */
+	modifiedAtMs: number | null,
+	/**  Se o arquivo parece binário (aparece sem edição). */
+	binary: boolean,
+};
+
+/**  Os arquivos de uma origem. */
+export type ConfigFileList = {
+	/**  A pasta da origem existe (a instância só existe depois do primeiro teste). */
+	available: boolean,
+	/**  Arquivos, em ordem de caminho. */
+	files: ConfigFile[],
+	/**  A lista foi cortada em [`MAX_LISTED_FILES`]. */
+	truncated: boolean,
+};
+
+/**  De onde vêm os arquivos mostrados. */
+export type ConfigOrigin = 
+/**  A pasta do pack (o que vai para os jogadores). */
+"pack" | 
+/**  A instância de teste (vale só para o teste; vira "O que mudou durante o teste"). */
+"instance";
+
+/**  Resultado de uma gravação. */
+export type ConfigSaved = {
+	/**  SHA-256 do arquivo depois da gravação (o `hash` esperado da próxima). */
+	hash: string,
+	/**  Tamanho em bytes. */
+	size: number,
+	/**  `false` quando o texto era igual ao do disco e nada foi gravado. */
+	changed: boolean,
+};
 
 /**
  *  Códigos do domínio `configs`. O código é contrato: renomear é mudança de contrato;
@@ -1282,6 +1383,32 @@ export type ImportedPack = {
 	readOnlyReason: string | null,
 };
 
+/**  O que gravar depois do "Pack criado". */
+export type InitialModsRequest = {
+	/**  Identificadores das ferramentas marcadas. */
+	tools: string[],
+	/**  Kit de desempenho escolhido. */
+	kit?: KitChoice | null,
+};
+
+/**  O que foi gravado. */
+export type InitialModsResult = {
+	/**  Itens que entraram (os escolhidos e as dependências obrigatórias). */
+	added: AddedItem[],
+	/**  Nomes dos itens que não entraram (sem versão para o pack ou fonte desligada). */
+	leftOut: string[],
+	/**  Se a config inicial do Crash Assistant foi gravada. */
+	crashAssistantConfig: boolean,
+	/**  Papéis marcados em `[player-tools]`. */
+	playerTools: string[],
+};
+
+/**  A etapa "Mods iniciais" para um Minecraft e um loader. */
+export type InitialOffer = {
+	/**  Os itens oferecidos, na ordem dos dados. */
+	items: OfferItem[],
+};
+
 /**  Um Java instalado pelo Warden. */
 export type InstalledRuntime = {
 	/**  Identificador (nome da pasta). */
@@ -1670,6 +1797,42 @@ export type JavaVersion = {
 	build: number,
 };
 
+/**  Um kit oferecido ao pack. */
+export type Kit = {
+	/**  Identificador estável. */
+	id: string,
+	/**  Nome. */
+	name: string,
+	/**  Frase curta. */
+	description: string,
+	/**  Mods. */
+	items: KitItem[],
+};
+
+/**  Um kit escolhido no assistente: o `id` e os itens que continuaram marcados. */
+export type KitChoice = {
+	/**  Identificador do kit. */
+	id: string,
+	/**  IDs dos projetos marcados (todos da fonte do item). */
+	projects: string[],
+};
+
+/**  Um mod de um kit, como a interface o mostra. */
+export type KitItem = {
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  Nome. */
+	name: string,
+	/**  Lado. */
+	side: SideChoice | null,
+	/**  Vem marcado. */
+	checked: boolean,
+	/**  Código da observação (`worldgen`, `shaders`). */
+	note: string | null,
+};
+
 /**
  *  Códigos do domínio `launcher`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -1701,6 +1864,15 @@ export type LauncherErrorCode =
 "LAUNCH_FAILED" | 
 /**  O Warden não conseguiu controlar o processo do jogo (Job Object, grupo de processos). */
 "PROCESS_CONTROL_FAILED";
+
+/**  Fim de linha do arquivo. */
+export type LineEnding = 
+/**  `\n` (ou nenhuma quebra). */
+"lf" | 
+/**  `\r\n` em todas as linhas. */
+"crlf" | 
+/**  Mistura de fins de linha (ou `\r` solto). O editor preserva cada byte. */
+"mixed";
 
 /**
  *  O que o link aponta, resolvido: a tela abre a pré-visualização (link de projeto) ou o
@@ -1976,6 +2148,30 @@ export type NodeRole =
 "required" | 
 /**  Dependência opcional de um item escolhido. */
 "optional";
+
+/**  Um item da etapa "Mods iniciais". */
+export type OfferItem = {
+	/**  Identificador da ferramenta (`spark`, `crash-assistant`). */
+	id: string,
+	/**  Vem marcada. */
+	checked: boolean,
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto na fonte. */
+	projectId: string,
+	/**  Nome (o da fonte quando ela respondeu; senão, o dos dados). */
+	title: string,
+	/**  Versão que será usada ("1.14.1"), quando conhecida. */
+	version: string | null,
+	/**  Versão antiga e sem atualizações (a interface mostra o aviso). */
+	old: boolean,
+	/**  Lado fixado nos dados. */
+	side: SideChoice | null,
+	/**  Nomes dos itens que entram junto (a Fabric API no Fabric). */
+	with: string[],
+	/**  Por que não pode ser marcado. */
+	unavailable: Unavailable | null,
+};
 
 /**  Evento do canal de uma operação longa (`Channel<OperationEvent>`). */
 export type OperationEvent = 
@@ -2499,7 +2695,13 @@ export type ProjectErrorCode =
  *  Uma fonte (Modrinth, CurseForge) não respondeu ou deu erro; parâmetro `source`
  *  (SPEC T08; ARCHITECTURE §17).
  */
-"SEARCH_SOURCE_UNAVAILABLE";
+"SEARCH_SOURCE_UNAVAILABLE" | 
+/**  O arquivo de config mudou no disco desde que foi aberto (concorrência otimista, C-02). */
+"FILE_CHANGED_ON_DISK" | 
+/**  O arquivo de config pedido não existe mais. */
+"CONFIG_NOT_FOUND" | 
+/**  O arquivo de config só abre para leitura (binário, acima de 2 MB ou fora de UTF-8). */
+"CONFIG_NOT_EDITABLE";
 
 /**
  *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks chegam com a
@@ -2579,6 +2781,15 @@ export type ProviderRef = {
 	/**  Satisfaz por `provides`, com outro id. */
 	alias: boolean,
 };
+
+/**  Por que um arquivo abre só para leitura. */
+export type ReadOnlyReason = 
+/**  Binário (ex.: `servers.dat`): sem texto. */
+"binary" | 
+/**  Acima de [`MAX_EDIT_BYTES`]. O texto vem junto até [`MAX_VIEW_BYTES`]. */
+"tooLarge" | 
+/**  Não é UTF-8: o texto vem com os bytes inválidos trocados, só para olhar. */
+"notUtf8";
 
 /**  Tipo de uma ligação entre itens. */
 export type RelationKind = 
@@ -3165,6 +3376,13 @@ export type TitleBarMaximize = {
 	/**  Botão do mouse apertado sobre o botão. */
 	pressed: boolean,
 };
+
+/**  Por que um item não pode ser marcado. */
+export type Unavailable = 
+/**  Item da CurseForge e a CurseForge não está ligada (sem chave). */
+"curseforgeOff" | 
+/**  A fonte não tem versão para este Minecraft e loader. */
+"noVersion";
 
 /**  Canal de uma versão. */
 export type UpdateChannel = 
