@@ -11,9 +11,12 @@
 //! `reason = insecure`).
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
+use std::path::PathBuf;
+use std::sync::Once;
+
 use tauri::State;
 use tauri::ipc::Channel;
-use warden_core::PackId;
+use warden_core::{OperationId, PackId};
 use warden_http::{HttpClient, HttpConfig};
 use warden_project::ProjectErrorCode;
 use warden_project::add::link::{
@@ -90,6 +93,22 @@ pub(crate) async fn add_link_modrinth(
     operation.finish(result)
 }
 
+/// Pasta dos downloads de link direto (`<cache>/links/<operação>`). Um download que a tela não
+/// adicionou nem descartou (o app fechou com a lista aberta) fica de uma sessão para outra: a
+/// pasta inteira é apagada antes do primeiro download de cada sessão.
+fn link_staging(state: &AppState, operation: OperationId) -> PathBuf {
+    static CLEANED: Once = Once::new();
+    let base = state.paths.cache_dir().join("links");
+    CLEANED.call_once(|| {
+        if let Err(error) = std::fs::remove_dir_all(&base)
+            && error.kind() != std::io::ErrorKind::NotFound
+        {
+            tracing::warn!(error = %error.kind(), "downloads antigos de links não apagados");
+        }
+    });
+    base.join(operation.to_string())
+}
+
 fn via() -> Option<warden_http::Url> {
     #[cfg(debug_assertions)]
     {
@@ -124,7 +143,7 @@ pub(crate) async fn add_link_download(
             // A tela pode ter saído; o download continua até o fim ou o cancelamento.
             let _ = on_event.send(event);
         });
-    let staging = state.paths.staging_dir(operation.id());
+    let staging = link_staging(&state, operation.id());
     let result = async {
         let http = HttpClient::new(HttpConfig::for_version(env!("CARGO_PKG_VERSION")))
             .map_err(|e| AppError::from_domain(&e))?;
