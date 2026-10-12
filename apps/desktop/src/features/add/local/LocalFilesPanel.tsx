@@ -15,6 +15,7 @@ import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
+import { showToast } from '../../../components/ui/toast';
 import type {
   AddResult,
   AppError,
@@ -96,6 +97,13 @@ export function LocalFilesPanel({
       onSuccess: (result) => {
         const path = result.added[0]?.path ?? result.skipped[0] ?? '';
         setAdded((now) => new Map(now).set(file.token, path));
+        if (result.added.length > 0) {
+          showToast({
+            kind: 'ok',
+            title: t('adicionado', { count: result.added.length }),
+            text: `${result.added.map((entry) => entry.title).join(', ')}.`,
+          });
+        }
         onAdded(result);
       },
       onError: (error: CommandError) => {

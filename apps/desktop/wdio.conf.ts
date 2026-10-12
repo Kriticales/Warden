@@ -122,6 +122,9 @@ export const config: WebdriverIO.Config = {
     // Relatar problema (UI-02): o endereço que abriria no navegador vai para este arquivo.
     const openUrlFile = join(dataRoot, 'endereco-aberto.txt');
     process.env.WARDEN_E2E_OPEN_URL = openUrlFile;
+    // Adicionar arquivo local (P1-11): o diálogo nativo de arquivos lê daqui (um por linha).
+    const pickFiles = join(dataRoot, 'arquivos-escolhidos.txt');
+    process.env.WARDEN_E2E_PICK_FILES = pickFiles;
     const java = testJava();
     process.env.WARDEN_E2E_HAS_JAVA = java ? '1' : '';
     // Os testes leem o registro de requisições do servidor de fixtures (`GET /__requests`).
@@ -142,6 +145,9 @@ export const config: WebdriverIO.Config = {
       WARDEN_API_BASE_CURSEFORGE: `${mockServer.url}/curseforge/`,
       WARDEN_E2E_SAVE_FILE: saveFile,
       WARDEN_E2E_OPEN_URL: openUrlFile,
+      WARDEN_E2E_PICK_FILES: pickFiles,
+      // O link direto `https://…` vai para o mesmo caminho no servidor de fixtures (P1-11).
+      WARDEN_E2E_DIRECT_VIA: `${mockServer.url}/direto/`,
       ...(java
         ? {
             WARDEN_E2E_FAKE_GAME: FAKE_GAME_DIR,
