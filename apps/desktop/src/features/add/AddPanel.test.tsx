@@ -79,12 +79,12 @@ describe('página Adicionar', () => {
     expect(screen.getByRole('link', { name: 'Voltar para Mods' })).toBeDefined();
     expect(screen.getByText('Minecraft 1.21.1 com Fabric')).toBeDefined();
     expect(screen.getByRole('combobox', { name: 'Tipo' })).toBeDefined();
-    // Escolher arquivo chega com a P1-11: visível e indisponível.
+    // Escolher arquivo (P1-11): disponível; o fluxo está em `local/local.test.tsx`.
     expect(
       screen
         .getByRole('button', { name: 'Escolher arquivo do computador…' })
         .getAttribute('aria-disabled'),
-    ).toBe('true');
+    ).toBeNull();
     await results();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
