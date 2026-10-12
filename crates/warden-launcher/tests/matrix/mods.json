@@ -24,11 +24,11 @@
     "mixin": true
   },
   "fabric-1.16.5": {
-    "project": "ferrite-core",
-    "version": "3UkWIj4a",
-    "filename": "ferritecore-2.1.1-fabric.jar",
-    "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/3UkWIj4a/ferritecore-2.1.1-fabric.jar",
-    "sha1": "d099bf16b03666705173120d933facd0c0f33e44",
+    "project": "modmenu",
+    "version": "aShj7736",
+    "filename": "modmenu-1.16.23.jar",
+    "url": "https://cdn.modrinth.com/data/mOgUt4GM/versions/1.16.23/modmenu-1.16.23.jar",
+    "sha1": "62f87d6d548da07c46687baa09fb29daf0510870",
     "mixin": true
   },
   "forge-1.18.2": {

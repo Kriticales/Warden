@@ -8,6 +8,11 @@ pub(crate) struct Progress {
     pub(crate) ready_ms: Option<u64>,
     pub(crate) world_ms: Option<u64>,
     pub(crate) server_ready_ms: Option<u64>,
+    /// Fim da recarga inicial de recursos do cliente (1.14+). O vanilla aplica as etapas
+    /// da recarga na ordem de registro, cada uma após a anterior; o atlas dos efeitos
+    /// de status é o último criado nas faixas com `--server` a partir de 1.16.5. Antes
+    /// disso, chunks recebidos podem ser desenhados com modelos ou shaders ainda nulos.
+    pub(crate) reloaded_ms: Option<u64>,
     pub(crate) failure: Option<&'static str>,
     sound: bool,
     atlas: bool,
@@ -31,6 +36,9 @@ impl Progress {
                 self.world_ms.get_or_insert(line.elapsed_ms);
             }
             return;
+        }
+        if message.contains("mob_effects.png-atlas") {
+            self.reloaded_ms.get_or_insert(line.elapsed_ms);
         }
         self.sound |= message.contains("Sound engine started");
         self.fml_loaded |= message.contains("Forge Mod Loader has successfully loaded");

@@ -70,7 +70,14 @@ def verify(name, game_dir):
         files = archive.namelist()
         assert archive.testzip() is None, jar
         if mod["mixin"]:
-            assert any(path.endswith(".mixins.json") or path.endswith(".mixin.json") for path in files), jar
+            configs = [path for path in files if path.endswith((".mixins.json", ".mixin.json"))]
+            if "fabric.mod.json" in files:
+                metadata = json.loads(archive.read("fabric.mod.json"))
+                for declared in metadata.get("mixins", []):
+                    config = declared if isinstance(declared, str) else declared.get("config")
+                    if config in files:
+                        configs.append(config)
+            assert configs, jar
         else:
             assert "mcmod.info" in files, jar
     print(f"mod materializado: {name}: {mod['filename']}")

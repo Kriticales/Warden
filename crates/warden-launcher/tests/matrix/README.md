@@ -14,7 +14,8 @@ cria o pack mínimo com `pack.py` e materializa o mod pela L-03 antes de abrir
 cada combinação. `mods.json` fixa URL, versão e SHA-1 de cada JAR no CDN do
 Modrinth; `pack.py` confere o hash e o arquivo de Mixin dentro do JAR
 materializado. Forge 1.7.10 e 1.12.2 usam AI Improvements, sem Mixin; as
-versões modernas usam FerriteCore ou Mouse Tweaks, com Mixin. Vanilla 26.3
+versões modernas usam FerriteCore, Mod Menu (Fabric 1.16.5) ou Mouse Tweaks,
+com Mixin. Vanilla 26.3
 tem o pack sem mod. O teste prepara um servidor descartável com `prepare.py`.
 Em 1.20+ o servidor vanilla gera um mundo sem mods, copiado para `saves/`, e o
 cliente entra via Quick Play. Antes de 1.20 o servidor local do loader recebe
@@ -25,11 +26,35 @@ uma pasta de testes isolada. Os diretórios do usuário e o cofre real não são
 usados. Os tempos de pronto e mundo começam na abertura do cliente, mesmo nas
 faixas com servidor local.
 
+Nas faixas com `--server`, o Fabric 1.16.5 e o 1.18.2 conectam enquanto o
+cliente recarrega os recursos: "Connecting to" sai junto de "Reloading
+ResourceManager". O servidor aceita o login e manda chunks antes do fim da
+recarga; foi isso que fez "mundo" (24 s) sair antes de "pronto" (37 s) no
+fabric-1.18.2 do run 13. Com o Mesa por software a recarga leva segundos, e o
+cliente pode travar ao desenhar com modelos (1.16.5) ou shaders (1.18.2) ainda
+nulos (`NullPointerException`; o relatório de crash diz `Finished: No` na última
+recarga). Forge e Fabric 1.19.2 só conectam depois da recarga. Por isso, nas
+faixas com `--server` a partir de 1.16.5, um proxy local do teste segura a
+conexão até o fim da recarga do cliente: o atlas `mob_effects.png-atlas`, o
+último que o vanilla cria, pois aplica as etapas da recarga na ordem de registro.
+Quando o marcador já saiu, a conexão passa direto. O prazo é de 25 s, abaixo dos
+30 s em que o cliente desiste do login; sem o marcador, o proxy registra o motivo
+e repassa a conexão, para a falha real aparecer. Com isso, "mundo" sempre vem
+depois de "pronto" nessas faixas.
+
 O workflow `.github/workflows/smoke-game.yml` é **somente manual**. Quatro
 runners Linux executam cinco combinações cada, em série, com Xvfb e Mesa.
 O artefato de cada runner inclui o log do teste, os logs de cliente/servidor,
-`options.txt` e `quickplay.json` quando existir. O workflow não é chamado pela
-CI de push nem pela CI de pull request.
+`options.txt`, `quickplay.json`, `latest.log`, capturas de falhas e relatórios de crash quando
+existirem. Cada combinação produz uma linha `RESUMO` e uma falha não impede
+as demais do grupo; o teste falha no fim se alguma combinação falhar.
+`onboardAccessibility` só é conferido nas versões da matriz a partir de
+1.20.1, pois a opção foi introduzida no Minecraft 1.19.4. No Linux, o Xvfb
+recebe DPI explícito para o LWJGL 2 e o Minecraft 26.3 usa EGL com a biblioteca
+Mesa instalada no runner. O launcher direciona os quatro hosts do authlib 2
+para loopback em 1.16.4/1.16.5 para o perfil offline poder entrar no servidor
+local. O workflow não é chamado pela CI de push
+nem pela CI de pull request.
 
 Para as três execuções locais pedidas no Windows, defina `CARGO_BUILD_JOBS=2`,
 `WARDEN_SMOKE_GAME=1`, `WARDEN_LAUNCHER_DADOS` numa pasta temporária isolada e

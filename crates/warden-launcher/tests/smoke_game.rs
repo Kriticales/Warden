@@ -22,7 +22,10 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use markers::Progress;
+use tokio::io::copy_bidirectional;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::process::Command;
+use tokio::sync::oneshot;
 use warden_core::{CancellationToken, NoProgress};
 use warden_instance::{
     DownloadCache, InstanceDirs, MaterializeOptions, OnModified, Outcome, Sources, materialize,
@@ -129,7 +132,7 @@ fn server_command(directory: &Path, java: &Path) -> LaunchCommand {
     }
 }
 
-async fn run_one(combo: &comum::Combo, root: &Path) {
+async fn run_one(combo: &comum::Combo, root: &Path) -> (u64, u64) {
     let shared = root.join("shared");
     let java_service = comum::java_service(root);
     let cache = warden_catalog::CatalogCache::open(&root.join("cache/metadata.sqlite")).unwrap();
@@ -197,9 +200,27 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     }
     pack_script(&["verify", combo.name, game_dir.to_str().unwrap()]).await;
     let port = free_port();
+    // No Fabric 1.16.5 e 1.18.2, `--server` conecta enquanto o cliente ainda recarrega
+    // os recursos ("Connecting to" sai junto de "Reloading ResourceManager"). Com o Mesa
+    // por software a recarga leva segundos; os chunks chegam antes e o cliente trava ao
+    // desenhar com modelos (1.16.5, run 11) ou shaders (1.18.2, run 14) ainda nulos. Um
+    // proxy local segura a conexão até o fim da recarga (`Progress::reloaded_ms`). Forge
+    // e Fabric 1.19.2 já conectam depois desse marcador e passam direto; 1.7.10 e 1.12.2
+    // não têm o marcador e conectam direto no servidor.
+    let proxy = if !modern(combo.minecraft) && !matches!(combo.minecraft, "1.7.10" | "1.12.2") {
+        Some(TcpListener::bind("127.0.0.1:0").await.unwrap())
+    } else {
+        None
+    };
+    let client_port = proxy
+        .as_ref()
+        .map_or(port, |listener| listener.local_addr().unwrap().port());
     let server_dir = prepare(combo, root, &java.java, port).await;
     std::fs::create_dir_all(&game_dir).unwrap();
-    std::fs::write(game_dir.join("options.txt"), "onboardAccessibility:false\n").unwrap();
+    // A opção surgiu em 1.19.4. Versões anteriores descartam a chave ao salvar.
+    if modern(combo.minecraft) {
+        std::fs::write(game_dir.join("options.txt"), "onboardAccessibility:false\n").unwrap();
+    }
     if combo.loader == "forge" {
         std::fs::create_dir_all(game_dir.join("config")).unwrap();
         std::fs::write(
@@ -243,7 +264,7 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
         } else {
             QuickPlay::Multiplayer {
                 host: "127.0.0.1".into(),
-                port,
+                port: client_port,
             }
         }),
         quick_play_path: modern(combo.minecraft).then(|| "quickplay.json".into()),
@@ -267,7 +288,21 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     if combo.name == "forge-1.12.2" {
         assert!(argv.contains("-Dfml.queryResult=confirm"), "{}", combo.name);
     }
+    if combo.minecraft == "1.16.5" {
+        for name in ["auth", "account", "session", "services"] {
+            assert!(
+                argv.contains(&format!("-Dminecraft.api.{name}.host=http://127.0.0.1:1")),
+                "{}: host {name} ausente",
+                combo.name
+            );
+        }
+    }
     command.env.push(("ALSOFT_DRIVERS".into(), "null".into()));
+    if cfg!(target_os = "linux") && combo.minecraft == "26.3" {
+        // SDL 3 usa GLX por padrão. O GLX do Xvfb/Mesa não oferece o visual
+        // pedido pelo RenderPearl; EGL usa o mesmo Mesa sem esse visual GLX.
+        command.env.push(("SDL_VIDEO_FORCE_EGL".into(), "1".into()));
+    }
     let mut server = None;
     let mut server_events = None;
     let mut progress = Progress::default();
@@ -306,6 +341,31 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
         server = Some(running);
         server_events = Some(events);
     }
+    let (reloaded_signal, reloaded_wait) = oneshot::channel::<()>();
+    let mut reloaded_signal = proxy.is_some().then_some(reloaded_signal);
+    let proxy_task = proxy.map(|listener| {
+        let name = combo.name;
+        tokio::spawn(async move {
+            let (mut client, _) = listener.accept().await.unwrap();
+            let held = Instant::now();
+            // O cliente desiste do login após 30 s sem resposta (ReadTimeoutHandler);
+            // o prazo fica abaixo disso. Sem o marcador, repassa assim mesmo para a
+            // falha real aparecer no log em vez de virar um timeout do proxy.
+            match tokio::time::timeout(Duration::from_secs(25), reloaded_wait).await {
+                Ok(Ok(())) => eprintln!(
+                    "{name}: conexão liberada no fim da recarga, após {} ms",
+                    held.elapsed().as_millis()
+                ),
+                // O laço do cliente terminou sem o marcador; o teste já registra o motivo.
+                Ok(Err(_)) => return,
+                Err(_) => eprintln!(
+                    "{name}: recarga não terminou em 25 s com a conexão aberta; repassando sem esperar mais"
+                ),
+            }
+            let mut server = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+            let _ = copy_bidirectional(&mut client, &mut server).await;
+        })
+    });
     let opened = GameProcess::spawn(
         &command,
         SpawnOptions {
@@ -317,6 +377,9 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
     let (client, mut client_events) = match opened {
         Ok(value) => value,
         Err(error) => {
+            if let Some(task) = proxy_task {
+                task.abort();
+            }
             if let Some(running) = server {
                 running.handle().stop().await;
                 let _ = running.wait().await;
@@ -331,6 +394,11 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
                 event = client_events.recv() => match event {
                     Some(GameEvent::Line(line)) => {
                         progress.observe(combo.minecraft, combo.loader, &line, false);
+                        if progress.reloaded_ms.is_some()
+                            && let Some(signal) = reloaded_signal.take()
+                        {
+                            let _ = signal.send(());
+                        }
                     }
                     Some(GameEvent::Exited(exit)) => return Err(format!("cliente saiu antes do mundo: {exit:?}")),
                     None => return Err("saída do cliente acabou".to_owned()),
@@ -353,11 +421,31 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
             }
         }
     }).await;
+    if cfg!(target_os = "linux") && !progress.passed(!modern(combo.minecraft)) {
+        let screenshot = instance.join("screen.png");
+        match tokio::time::timeout(
+            Duration::from_secs(10),
+            Command::new("import")
+                .args(["-window", "root", "-silent"])
+                .arg(&screenshot)
+                .status(),
+        )
+        .await
+        {
+            Ok(Ok(status)) if status.success() => {
+                eprintln!("{}: tela salva em {}", combo.name, screenshot.display());
+            }
+            other => eprintln!("{}: falha ao capturar tela: {other:?}", combo.name),
+        }
+    }
     if matches!(&result, Ok(Ok(()))) && progress.passed(!modern(combo.minecraft)) {
         tokio::time::sleep(Duration::from_secs(2)).await;
     }
     client.handle().stop().await;
     let client_exit = client.wait().await.unwrap();
+    if let Some(task) = proxy_task {
+        task.abort();
+    }
     if let Some(running) = server {
         let _ = running.handle().send_line("stop").await;
         let _ = tokio::time::timeout(Duration::from_secs(30), running.handle().stop()).await;
@@ -388,21 +476,20 @@ async fn run_one(combo: &comum::Combo, root: &Path) {
         );
     }
     assert!(client_exit.stop_requested, "{}", combo.name);
-    let final_options = std::fs::read_to_string(game_dir.join("options.txt")).unwrap();
-    assert!(
-        final_options
-            .lines()
-            .any(|line| line == "onboardAccessibility:false"),
-        "{}: opção de acessibilidade ausente ao fechar",
-        combo.name
-    );
-    println!(
-        "{}: pronto={} ms, mundo={} ms, saída={:?}, onboardAccessibility:false",
-        combo.name,
-        progress.ready_ms.unwrap(),
-        progress.world_ms.unwrap(),
-        client_exit.outcome
-    );
+    if modern(combo.minecraft) {
+        let final_options =
+            std::fs::read_to_string(game_dir.join("options.txt")).unwrap_or_else(|error| {
+                panic!("{}: options.txt ausente ao fechar: {error}", combo.name)
+            });
+        assert!(
+            final_options
+                .lines()
+                .any(|line| line == "onboardAccessibility:false"),
+            "{}: opção de acessibilidade ausente ao fechar",
+            combo.name
+        );
+    }
+    (progress.ready_ms.unwrap(), progress.world_ms.unwrap())
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -422,7 +509,25 @@ async fn rede_matriz_jogo_real() {
         !selected.is_empty(),
         "WARDEN_SMOKE_ONLY não casa com a matriz"
     );
+    let mut failures = Vec::new();
+    let mut summaries = Vec::new();
     for combo in selected {
-        run_one(combo, &root).await;
+        let name = combo.name;
+        let combo = *combo;
+        let root = root.clone();
+        // Isola o panic de cada combinação para sempre executar as demais.
+        match tokio::spawn(async move { run_one(&combo, &root).await }).await {
+            Ok((ready_ms, world_ms)) => summaries.push(format!(
+                "RESUMO {name}: OK; pronto={ready_ms} ms; mundo={world_ms} ms"
+            )),
+            Err(error) => {
+                summaries.push(format!("RESUMO {name}: FALHOU: {error}"));
+                failures.push(name);
+            }
+        }
     }
+    for summary in summaries {
+        println!("{summary}");
+    }
+    assert!(failures.is_empty(), "combinações com falha: {failures:?}");
 }

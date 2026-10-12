@@ -13,7 +13,7 @@ pub fn decode_line(bytes: &[u8]) -> String {
     if let Ok(text) = std::str::from_utf8(bytes) {
         text.to_owned()
     } else {
-        let (text, _, _) = WINDOWS_1252.decode(bytes);
+        let (text, _) = WINDOWS_1252.decode_without_bom_handling(bytes);
         text.into_owned()
     }
 }
@@ -44,6 +44,9 @@ mod tests {
         assert_eq!(decode_line(&cp1252), "ação é útil");
         // Aspas e travessão do 1252 (0x93, 0x94, 0x96).
         assert_eq!(decode_line(&[0x93, 0x6F, 0x69, 0x94, 0x20, 0x96]), "“oi” –");
+        // Estes bytes parecem BOM UTF-16, mas a linha usa Windows-1252.
+        assert_eq!(decode_line(&[0xFE, 0xFF, 0]), "þÿ\0");
+        assert_eq!(decode_line(&[0xFF, 0xFE, 0]), "ÿþ\0");
     }
 
     #[test]
@@ -63,8 +66,9 @@ mod tests {
         #[test]
         fn bytes_quaisquer_nunca_falham(bytes in proptest::collection::vec(any::<u8>(), 0..200)) {
             let text = decode_line(&bytes);
-            let replaced = text.contains(char::REPLACEMENT_CHARACTER);
-            prop_assert!(!replaced || std::str::from_utf8(&bytes).is_ok());
+            // Windows-1252 não define estes cinco bytes; só eles podem virar U+FFFD.
+            let undefined_cp1252 = bytes.iter().any(|byte| [0x81, 0x8D, 0x8F, 0x90, 0x9D].contains(byte));
+            prop_assert!(!text.contains(char::REPLACEMENT_CHARACTER) || std::str::from_utf8(&bytes).is_ok() || undefined_cp1252);
         }
     }
 }
