@@ -806,6 +806,16 @@ impl Redactor {
         found
     }
 
+    /// Redator que também conhece os nomes e UUIDs que `text` revela. Serve para redigir em
+    /// pedaços um texto maior (o relato de problema, UI-02) sem perder um nome que só aparece
+    /// num pedaço que nem chega a sair (uma linha antiga cortada do registro).
+    #[must_use]
+    pub fn learning_from(&self, text: &str) -> Self {
+        Self {
+            profile: self.discover(text),
+        }
+    }
+
     /// Redige o texto. Nunca falha: entrada qualquer, saída sem os dados da tabela.
     #[must_use]
     pub fn redact(&self, text: &str) -> Redacted {
@@ -1030,6 +1040,21 @@ mod tests {
             &profile(),
         );
         assert!(!output.to_lowercase().contains("fernanda"), "{output}");
+    }
+
+    #[test]
+    fn redator_que_aprende_com_outro_texto() {
+        let redactor = Redactor::new(RedactionProfile::new());
+        // O nome só aparece no caminho de uma linha que não vai ser redigida junto.
+        let learned = redactor.learning_from(r"lendo C:\Users\Mariazinha\pack");
+        assert_eq!(
+            learned.redact("Mariazinha abriu o pack").text,
+            "<usuário> abriu o pack"
+        );
+        assert_eq!(
+            redactor.redact("Mariazinha abriu o pack").text,
+            "Mariazinha abriu o pack"
+        );
     }
 
     #[test]
