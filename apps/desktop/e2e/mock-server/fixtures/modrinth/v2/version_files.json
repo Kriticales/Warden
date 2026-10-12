@@ -1,0 +1,98 @@
+{
+  "182064b00e6315e2255b857eaab8eb759e6b042ebd4cc8b855ff0d93f875a5a7188fac49f878d7b29d4ef7e6b6341190ad7f6f6f39f4a6d2c62003468b08e4c6": {
+    "id": "N08Z8wog",
+    "project_id": "gvQqBUqZ",
+    "name": "lithium-fabric-0.15.4+mc1.21.1",
+    "version_number": "mc1.21.1-0.15.4-fabric",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "182064b00e6315e2255b857eaab8eb759e6b042ebd4cc8b855ff0d93f875a5a7188fac49f878d7b29d4ef7e6b6341190ad7f6f6f39f4a6d2c62003468b08e4c6"
+        },
+        "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/N08Z8wog/lithium-fabric-0.15.4+mc1.21.1.jar",
+        "filename": "lithium-fabric-0.15.4+mc1.21.1.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  "92e8e96267ff18d320903090f2ad9b32408a218919f5a0d578e232ad774c89d49a34a8271806652be7d6283f24e98432bc4af7f95855e78b843f9100d68696c7": {
+    "id": "6lgOkclV",
+    "project_id": "mOgUt4GM",
+    "name": "modmenu-11.0.5",
+    "version_number": "modmenu-11.0.5",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "92e8e96267ff18d320903090f2ad9b32408a218919f5a0d578e232ad774c89d49a34a8271806652be7d6283f24e98432bc4af7f95855e78b843f9100d68696c7"
+        },
+        "url": "https://cdn.modrinth.com/data/mOgUt4GM/versions/6lgOkclV/modmenu-11.0.5.jar",
+        "filename": "modmenu-11.0.5.jar",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  "41258f9bea1a773d823f9a014d0c08206e9e7b339bc538e1538211fff28fadd06878a836d292cbb636ed6829cd2801a509368ae3eb3ad4bedf42190a0d5f7a90": {
+    "id": "xN57JJts",
+    "project_id": "50dA9Sha",
+    "name": "FreshAnimations_v1.10.4",
+    "version_number": "FreshAnimations_v1.10.4",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "41258f9bea1a773d823f9a014d0c08206e9e7b339bc538e1538211fff28fadd06878a836d292cbb636ed6829cd2801a509368ae3eb3ad4bedf42190a0d5f7a90"
+        },
+        "url": "https://cdn.modrinth.com/data/50dA9Sha/versions/xN57JJts/FreshAnimations_v1.10.4.zip",
+        "filename": "FreshAnimations_v1.10.4.zip",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  },
+  "45304b1d7862afdb2177b7e6226fc9c6737911d17a4ad46cc9c519ca4deb935f05072cd337cd8b19a15bb8062b57b54eceec7bdee4cd572d94858e2946d37d85": {
+    "id": "Bqen1mJX",
+    "project_id": "HVnmMxH1",
+    "name": "ComplementaryReimagined_r5.9.3",
+    "version_number": "ComplementaryReimagined_r5.9.3",
+    "version_type": "release",
+    "game_versions": ["1.21.1"],
+    "loaders": ["fabric"],
+    "date_published": "2026-08-01T00:00:00Z",
+    "changelog": "",
+    "files": [
+      {
+        "hashes": {
+          "sha1": "0000000000000000000000000000000000000000",
+          "sha512": "45304b1d7862afdb2177b7e6226fc9c6737911d17a4ad46cc9c519ca4deb935f05072cd337cd8b19a15bb8062b57b54eceec7bdee4cd572d94858e2946d37d85"
+        },
+        "url": "https://cdn.modrinth.com/data/HVnmMxH1/versions/Bqen1mJX/ComplementaryReimagined_r5.9.3.zip",
+        "filename": "ComplementaryReimagined_r5.9.3.zip",
+        "primary": true,
+        "size": 100
+      }
+    ],
+    "dependencies": []
+  }
+}

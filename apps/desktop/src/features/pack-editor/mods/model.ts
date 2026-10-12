@@ -14,8 +14,10 @@ export interface ModsFilters {
   kind: ItemKind | null;
   source: ItemSource | null;
   side: ItemSide | null;
-  show: 'all' | 'problems' | 'pinned' | 'optional';
+  show: 'all' | 'problems' | 'updates' | 'pinned' | 'optional';
 }
+
+const NO_UPDATES: ReadonlySet<string> = new Set();
 
 export const NO_FILTERS: ModsFilters = {
   search: '',
@@ -53,7 +55,12 @@ export function normalize(text: string): string {
     .toLowerCase();
 }
 
-export function matches(item: InventoryItem, filters: ModsFilters): boolean {
+/** `updatable`: caminhos dos itens com atualização disponível (do relatório da P1-12). */
+export function matches(
+  item: InventoryItem,
+  filters: ModsFilters,
+  updatable: ReadonlySet<string> = NO_UPDATES,
+): boolean {
   const search = normalize(filters.search.trim());
   if (
     search !== '' &&
@@ -70,6 +77,8 @@ export function matches(item: InventoryItem, filters: ModsFilters): boolean {
       return true;
     case 'problems':
       return hasProblem(item);
+    case 'updates':
+      return updatable.has(item.path);
     case 'pinned':
       return item.pinned;
     case 'optional':

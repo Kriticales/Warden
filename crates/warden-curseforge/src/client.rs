@@ -376,6 +376,30 @@ impl CurseforgeClient {
         Ok(file.data)
     }
 
+    /// Notas de um arquivo em HTML (`GET /mods/{modId}/files/{fileId}/changelog`), só em
+    /// memória por quem chama (termos da CurseForge). Erro: [`Error::FileNotFound`].
+    pub async fn file_changelog(
+        &self,
+        mod_id: u64,
+        file_id: u64,
+        cancel: Option<&CancellationToken>,
+    ) -> Result<String> {
+        let text: Envelope<String> = self
+            .get(
+                &format!("mods/{mod_id}/files/{file_id}/changelog"),
+                &[],
+                cancel,
+            )
+            .await
+            .map_err(|error| {
+                not_found(error, || Error::FileNotFound {
+                    mod_id: Some(mod_id),
+                    file_id,
+                })
+            })?;
+        Ok(text.data)
+    }
+
     /// Arquivos pelos IDs (`POST /mods/files`), em lotes, com cache em memória. A API omite os
     /// que não existem; a ordem é a do pedido.
     pub async fn files_by_id(

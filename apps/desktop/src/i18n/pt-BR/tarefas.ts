@@ -73,6 +73,10 @@ export const tarefas = {
       restore: 'Voltar para uma versão',
       discard: 'Descartar alteração',
     },
+    updates: {
+      check: 'Verificar atualizações',
+      apply: 'Atualizar mods',
+    },
   },
 } as const;
 

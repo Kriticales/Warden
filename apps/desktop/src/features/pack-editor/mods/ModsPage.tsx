@@ -4,12 +4,12 @@
  * múltipla com Alterar lado e Remover, lado editável na linha e os detalhes num painel lateral
  * (T07) sem sair da lista. Um arquivo ruim nunca derruba a lista.
  *
- * Adicionar abre a página Adicionar (P1-09). Verificar atualizações (P1-12) e o modo Grafo
- * (D-07/P1) chegam com as tarefas donas; até lá os botões ficam indisponíveis, com o motivo na
- * dica.
+ * Adicionar abre a página Adicionar (P1-09); Verificar atualizações e Atualizar são da P1-12
+ * (`features/updates`). O modo Grafo (D-07/P1) chega com a tarefa dona; até lá o botão fica
+ * indisponível, com o motivo na dica.
  */
 import { Link } from '@tanstack/react-router';
-import { Plus, RefreshCw, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -33,6 +33,11 @@ import type {
   SideChoice,
 } from '../../../lib/ipc/bindings';
 import { usePack } from '../../packs/api';
+import { useAutoCheckUpdates, useUpdatesReport } from '../../updates/api';
+import { CheckButton } from '../../updates/CheckButton';
+import { reportItem, updatableItems } from '../../updates/model';
+import { ReviewDialog } from '../../updates/ReviewDialog';
+import { UpdatesBanner } from '../../updates/UpdatesBanner';
 import { loaderName } from '../../packs/lib/pack-list';
 import { useIncludeOutside, useInventory, useOpenItemFile, useSetSide } from '../api';
 import { ItemDrawer } from '../details/ItemDrawer';
@@ -61,6 +66,7 @@ export interface ModsPageProps {
 export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
   const { t } = useTranslation('editor');
   const inventory = useInventory(packId);
+  useAutoCheckUpdates(packId);
 
   if (inventory.isPending) {
     return (
@@ -108,9 +114,7 @@ function ModsHead({ packId, summary }: { packId: PackId; summary: string | null 
       sub={summary}
       actions={
         <>
-          <UnavailableButton icon={RefreshCw} reason={t('mods.verificarIndisponivel')}>
-            {t('mods.verificarAtualizacoes')}
-          </UnavailableButton>
+          <CheckButton packId={packId} />
           <AddLink packId={packId}>{t('mods.adicionar')}</AddLink>
         </>
       }
@@ -132,32 +136,6 @@ function AddLink({ packId, children }: { packId: PackId; children: string }) {
   );
 }
 
-/** Botão de uma função que ainda não chegou: visível, indisponível e com o motivo na dica. */
-function UnavailableButton({
-  icon,
-  reason,
-  children,
-}: {
-  icon: typeof Plus;
-  reason: string;
-  children: string;
-}) {
-  return (
-    <Tooltip content={reason}>
-      <Button
-        icon={icon}
-        variant="secondary"
-        aria-disabled="true"
-        onClick={(event) => {
-          event.preventDefault();
-        }}
-      >
-        {children}
-      </Button>
-    </Tooltip>
-  );
-}
-
 interface ModsListProps {
   packId: PackId;
   inventory: Inventory;
@@ -174,21 +152,25 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [removing, setRemoving] = useState<InventoryItem[] | null>(null);
   const [errorOf, setErrorOf] = useState<InventoryItem | null>(null);
+  const [updating, setUpdating] = useState<InventoryItem[] | null>(null);
+  const updates = useUpdatesReport(packId);
   const setSide = useSetSide(packId);
   const include = useIncludeOutside(packId);
   const openFile = useOpenItemFile(packId);
 
   const items = inventory.items;
   const counts = useMemo(() => countByKind(items), [items]);
+  const updatable = useMemo(() => updatableItems(updates.data, items), [updates.data, items]);
+  const updatablePaths = useMemo(() => new Set(updatable.map((item) => item.path)), [updatable]);
   const groups = useMemo(
     () =>
       groupByKind(
         sortItems(
-          items.filter((item) => matches(item, filters)),
+          items.filter((item) => matches(item, filters, updatablePaths)),
           sort,
         ),
       ),
-    [items, filters, sort],
+    [items, filters, sort, updatablePaths],
   );
   const invalid = items.filter((item) => item.state === 'invalid').length;
   const outside = items.filter((item) => item.state === 'outsideIndex').length;
@@ -219,6 +201,9 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
   );
   const onShowError = useCallback((item: InventoryItem) => {
     setErrorOf(item);
+  }, []);
+  const onUpdateItem = useCallback((item: InventoryItem) => {
+    setUpdating([item]);
   }, []);
   const onOpenFile = useCallback(
     (path: string) => {
@@ -306,7 +291,20 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
           {include.isError ? <ErrorPanel compact error={include.error} /> : null}
         </Alert>
       ) : null}
-      <Toolbar filters={filters} onChange={setFilters} items={items} />
+      <UpdatesBanner
+        packId={packId}
+        report={updates.data}
+        items={items}
+        onReview={() => {
+          setUpdating(updatable);
+        }}
+      />
+      <Toolbar
+        filters={filters}
+        onChange={setFilters}
+        items={items}
+        updatableCount={updatable.length}
+      />
       {chosen.length > 0 ? (
         <SelectionBar
           items={chosen}
@@ -319,6 +317,10 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
           }}
           onRemove={() => {
             setRemoving(chosen);
+          }}
+          updatable={chosen.filter((item) => updatablePaths.has(item.path)).length}
+          onUpdate={() => {
+            setUpdating(chosen.filter((item) => updatablePaths.has(item.path)));
           }}
           onClear={() => {
             setSelected(new Set());
@@ -384,6 +386,8 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
                   onSide={onRowSide}
                   onShowError={onShowError}
                   onOpenFile={onOpenFile}
+                  update={reportItem(updates.data, item)}
+                  onUpdate={onUpdateItem}
                 />
               )}
             />
@@ -398,6 +402,17 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
         }}
         onRemove={(item) => {
           setRemoving([item]);
+        }}
+      />
+      <ReviewDialog
+        packId={packId}
+        items={updating}
+        onClose={() => {
+          setUpdating(null);
+        }}
+        onApplied={(applied) => {
+          const done = applied.updated.map((entry) => entry.path);
+          setSelected((current) => new Set([...current].filter((path) => !done.includes(path))));
         }}
       />
       <RemoveDialog
@@ -460,19 +475,22 @@ function summaryText(t: EditorT, counts: Record<ItemKind, number>): string {
 const KINDS: readonly ItemKind[] = ['mod', 'resourcePack', 'shader', 'other'];
 const SOURCES: readonly ItemSource[] = ['modrinth', 'curseforge', 'url', 'local'];
 const SIDES: readonly ItemSide[] = ['both', 'client', 'server'];
-const SHOW: readonly ModsFilters['show'][] = ['all', 'problems', 'pinned', 'optional'];
+const SHOW: readonly ModsFilters['show'][] = ['all', 'problems', 'updates', 'pinned', 'optional'];
 
 /** Busca e filtros (SPEC T06: caixas de seleção, nunca abas) e "Ver como: Lista · Grafo". */
 function Toolbar({
   filters,
   onChange,
   items,
+  updatableCount,
 }: {
   filters: ModsFilters;
   onChange: (filters: ModsFilters) => void;
   items: readonly InventoryItem[];
+  updatableCount: number;
 }) {
   const { t } = useTranslation('editor');
+  const { t: tUpdates } = useTranslation('atualizacoes');
   const problems = items.filter((item) => item.state !== 'ok').length;
   const pinned = items.filter((item) => item.pinned).length;
   const optional = items.filter((item) => item.optional).length;
@@ -572,9 +590,11 @@ function Toolbar({
               ? t('mods.filtros.mostrarTudo')
               : show === 'problems'
                 ? t('mods.filtros.mostrarProblemas', { count: problems })
-                : show === 'pinned'
-                  ? t('mods.filtros.mostrarFixados', { count: pinned })
-                  : t('mods.filtros.mostrarOpcionais', { count: optional })}
+                : show === 'updates'
+                  ? tUpdates('filtro', { count: updatableCount })
+                  : show === 'pinned'
+                    ? t('mods.filtros.mostrarFixados', { count: pinned })
+                    : t('mods.filtros.mostrarOpcionais', { count: optional })}
           </option>
         ))}
       </select>

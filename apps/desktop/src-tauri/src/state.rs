@@ -46,6 +46,8 @@ pub struct AppState {
     pub modrinth: warden_modrinth::ModrinthClient,
     /// O jogo do Testar, um por vez, e o motor do launcher (L-04).
     pub(crate) tests: Arc<crate::test_session::TestSessions>,
+    /// Último relatório de atualizações de cada pack (P1-12; só memória).
+    pub update_reports: crate::commands::updates::UpdateReports,
 }
 
 impl AppState {
@@ -102,6 +104,7 @@ impl AppState {
                 packs,
                 modrinth,
                 tests,
+                update_reports: crate::commands::updates::UpdateReports::default(),
             },
             outcome,
         ))
