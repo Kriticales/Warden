@@ -33,6 +33,7 @@ import type {
   SideChoice,
 } from '../../../lib/ipc/bindings';
 import { usePack } from '../../packs/api';
+import { useDropToAdd } from '../../add/local/dropped';
 import { useAutoCheckUpdates, useUpdatesReport } from '../../updates/api';
 import { CheckButton } from '../../updates/CheckButton';
 import { reportItem, updatableItems } from '../../updates/model';
@@ -67,6 +68,8 @@ export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
   const { t } = useTranslation('editor');
   const inventory = useInventory(packId);
   useAutoCheckUpdates(packId);
+  // Arquivos `.jar`/`.zip` soltos na lista abrem "Adicionar arquivo local" (T08; P1-11).
+  useDropToAdd(packId);
 
   if (inventory.isPending) {
     return (

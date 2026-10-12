@@ -8,9 +8,11 @@
  * "Já no pack".
  *
  * O início com populares, atualizados e categorias (campo vazio) é da P1-16; aqui o campo vazio
- * mostra a busca sem texto, já filtrada para o pack. Link da CurseForge colado no campo (P1-10)
- * é lido pelo backend no lugar da busca, e o que ele aponta entra pelo packwiz numa cópia do
- * pack (ARCHITECTURE §6.1); os outros links e arquivos são da P1-11.
+ * mostra a busca sem texto, já filtrada para o pack. Um link colado no campo é lido no lugar da
+ * busca: da CurseForge (P1-10), pelo packwiz numa cópia do pack (ARCHITECTURE §6.1); do
+ * Modrinth, pela API; direto `https://`, baixado uma vez; `http://`, recusado sem baixar nada
+ * (P1-11). Arquivos escolhidos no computador ou arrastados para a janela abrem a lista de
+ * arquivos (`local/`), com a identificação pelo hash e o bloqueio de loader ou versão.
  */
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FilePlus, Plus, RefreshCw, Search } from 'lucide-react';
@@ -24,11 +26,13 @@ import { Skeleton } from '../../components/common/LoadingState';
 import { Alert } from '../../components/ui/alert';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { Icon } from '../../components/ui/icon';
-import { Tooltip } from '../../components/ui/tooltip';
 import { cn } from '../../lib/cn';
 import type {
   AddResult,
+  HashMatch,
   LinkTarget,
+  LocalFilesDropped,
+  ModrinthLinkTarget,
   PackId,
   ProjectKind,
   SearchResult,
@@ -43,9 +47,16 @@ import { Preview } from './common/Preview';
 import { ResultRow } from './common/ResultRow';
 import { type PackTarget, useTargetText } from './common/text';
 import type { LinkPick } from './curseforge/api';
-import { parseCurseforgeLink, resultOfLink } from './curseforge/link';
+import { resultOfLink } from './curseforge/link';
 import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
+import { DirectLinkPanel } from './link/DirectLinkPanel';
+import { classifyLink } from './link/link';
+import { ModrinthLinkPanel, resultOfModrinthLink } from './link/ModrinthLinkPanel';
+import { RefusedLink } from './link/RefusedLink';
+import { useChooseFiles } from './local/api';
+import { takePendingDrop, useDroppedFiles } from './local/dropped';
+import { LocalFilesPanel } from './local/LocalFilesPanel';
 import { preferredRef } from './modrinth/source';
 import './common/add.css';
 
@@ -78,8 +89,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const pack = usePack(packId);
   const inventory = useInventory(packId);
   const [text, setText] = useState('');
-  // Um link da CurseForge não é um nome para buscar: o backend lê o link (P1-10).
-  const typedLink = parseCurseforgeLink(text) === null ? null : text.trim();
+  // Um link não é um nome para buscar: cada tipo de link tem o seu painel.
+  const linkKind = classifyLink(text);
+  const typedLink = linkKind === null ? null : text.trim();
   // O link também espera a última tecla: digitado letra a letra, cada pedaço seria lido.
   const debouncedLink = useDebounced(typedLink, TYPING_DELAY_MS);
   const linkUrl = typedLink !== null && debouncedLink === typedLink ? typedLink : null;
@@ -93,6 +105,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   // O projeto do link aberto na pré-visualização, e a versão escolhida lá para o packwiz ler.
   const [linkProject, setLinkProject] = useState<{ url: string; projectId: string } | null>(null);
   const [linkPick, setLinkPick] = useState<LinkPick | null>(null);
+  // Arquivos do computador (escolhidos ou arrastados), aberto no lugar dos resultados.
+  const [local, setLocal] = useState<LocalFilesDropped | null>(() => takePendingDrop());
+  const chooseFiles = useChooseFiles(packId);
   const id = useId();
 
   const target: PackTarget = {
@@ -146,6 +161,41 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
       titles: [found.title],
     });
   };
+
+  const onModrinthProject = (found: ModrinthLinkTarget) => {
+    if (found.kind !== kind) onKindChange(found.kind);
+    setSelected(new Map());
+    setCurrent(resultOfModrinthLink(found));
+  };
+
+  const onModrinthVersion = (found: ModrinthLinkTarget) => {
+    setRequest({
+      choices: [{ source: 'modrinth', projectId: found.projectId, versionId: found.versionId }],
+      titles: [found.title],
+    });
+  };
+
+  // Arquivo achado pelo hash: a referência entra pelo caminho normal, sem copiar o jar.
+  const onReference = (match: HashMatch) => {
+    setRequest({
+      choices: [{ source: match.source, projectId: match.projectId, versionId: match.versionId }],
+      titles: [match.title],
+    });
+  };
+
+  const onFilesAdded = (result: AddResult) => {
+    setAdded((count) => count + result.added.length);
+  };
+
+  // A lista de arquivos ocupa o lugar dos resultados: a pré-visualização aberta fecha.
+  const openLocal = (files: LocalFilesDropped) => {
+    setCurrent(null);
+    setLocal(files);
+  };
+
+  useDroppedFiles((dropped) => {
+    if (dropped.files.length > 0 || dropped.ignored > 0) openLocal(dropped);
+  });
 
   const loading =
     typedLink === null && (search.isPending || (search.isFetching && !search.isFetchingNextPage));
@@ -221,17 +271,19 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             </div>
           </div>
         </div>
-        <Tooltip content={t('arquivo.indisponivel')}>
-          <Button
-            icon={FilePlus}
-            aria-disabled="true"
-            onClick={(event) => {
-              event.preventDefault();
-            }}
-          >
-            {t('arquivo.escolher')}
-          </Button>
-        </Tooltip>
+        <Button
+          icon={FilePlus}
+          loading={chooseFiles.isPending}
+          onClick={() => {
+            chooseFiles.mutate(undefined, {
+              onSuccess: (files) => {
+                if (files.length > 0) openLocal({ files, ignored: 0 });
+              },
+            });
+          }}
+        >
+          {t('arquivo.escolher')}
+        </Button>
       </div>
 
       {warnings.length > 0 ? (
@@ -251,8 +303,46 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
       <div className="disc">
         <FiltersColumn target={target} filters={filters} onChange={setFilters} sources={sources} />
         <div className="disc__main">
-          {typedLink !== null && linkUrl === null ? (
+          {chooseFiles.isError ? (
+            <ErrorPanel compact title={t('erro')} error={chooseFiles.error} />
+          ) : null}
+          {local !== null ? (
+            <LocalFilesPanel
+              key={local.files.map((file) => file.token).join(',')}
+              packId={packId}
+              files={local.files}
+              ignored={local.ignored}
+              target={target}
+              onReference={onReference}
+              onAdded={onFilesAdded}
+              onBack={() => {
+                setLocal(null);
+              }}
+            />
+          ) : linkKind === 'insecure' || linkKind === 'unsupported' ? (
+            <RefusedLink kind={linkKind} />
+          ) : typedLink !== null && linkUrl === null ? (
             <ResultsSkeleton />
+          ) : linkUrl !== null && linkKind === 'modrinth' ? (
+            <ModrinthLinkPanel
+              key={linkUrl}
+              packId={packId}
+              url={linkUrl}
+              onProject={onModrinthProject}
+              onVersion={onModrinthVersion}
+            />
+          ) : linkUrl !== null && linkKind === 'direct' ? (
+            <DirectLinkPanel
+              key={linkUrl}
+              packId={packId}
+              url={linkUrl}
+              target={target}
+              onReference={onReference}
+              onAdded={onFilesAdded}
+              onBack={() => {
+                setText('');
+              }}
+            />
           ) : linkUrl !== null ? (
             <CurseforgeLinkPanel
               key={linkUrl}

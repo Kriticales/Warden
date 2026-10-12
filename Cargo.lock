@@ -6709,10 +6709,12 @@ dependencies = [
  "tracing",
  "trash",
  "unicode-normalization",
+ "url",
  "warden-catalog",
  "warden-configs",
  "warden-core",
  "warden-curseforge",
+ "warden-diagnostics",
  "warden-http",
  "warden-jarmeta",
  "warden-modrinth",
@@ -6720,6 +6722,7 @@ dependencies = [
  "warden-packwiz-cli",
  "warden-versioning",
  "wiremock",
+ "zip 8.6.0",
 ]
 
 [[package]]

@@ -10,6 +10,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { extname, join, normalize, sep } from 'node:path';
 
 import { curseforgeReply } from './curseforge';
+import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
 
@@ -95,6 +96,8 @@ const RECORDED: Record<string, string> = {
   // `crates/warden-modrinth/tests/fixtures/http/FIXTURES.md` diz de onde veio cada arquivo.
   // `/projects?ids=` e `/versions?ids=` são respondidos por `byIds` (abaixo).
   'modrinth/v2/project/AANobbMI': join(MODRINTH, '2026-10-04-project-sodium.json'),
+  // Link do Modrinth colado no campo (P1-11): o projeto pelo slug.
+  'modrinth/v2/project/sodium': join(MODRINTH, '2026-10-04-project-sodium.json'),
   'modrinth/v2/version/SMxNOGZ6': join(MODRINTH, '2026-10-04-version-SMxNOGZ6.json'),
   // Adicionar (P1-09): toda busca devolve a busca gravada por "sodium" (Fabric 1.21.1).
   'modrinth/v2/search': join(MODRINTH, '2026-10-04-search-sodium-fabric-1.21.1.json'),
@@ -187,6 +190,35 @@ function serveCurseforge(request: IncomingMessage, response: ServerResponse, pat
   });
 }
 
+/**
+ * `POST /version_files` do Modrinth: a resposta de `fixtures/modrinth/v2/version_files.json`
+ * (atualizações, P1-12) e, quando o pedido traz o sha512 do jar sintético do Sodium
+ * (`jars.ts`; Adicionar arquivo local, P1-11), também a versão gravada do Sodium.
+ */
+function serveVersionFiles(request: IncomingMessage, response: ServerResponse): void {
+  const chunks: Buffer[] = [];
+  request.on('data', (chunk: Buffer) => chunks.push(chunk));
+  request.on('end', () => {
+    void (async () => {
+      const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') as {
+        hashes?: string[];
+      };
+      const known = sha512(sodiumJar);
+      const found = JSON.parse(
+        await readFile(join(FIXTURES, 'modrinth', 'v2', 'version_files.json'), 'utf8'),
+      ) as Record<string, unknown>;
+      if (body.hashes?.includes(known)) {
+        found[known] = JSON.parse(
+          await readFile(join(MODRINTH, '2026-10-04-version-SMxNOGZ6.json'), 'utf8'),
+        ) as unknown;
+      }
+      response.writeHead(200, { 'content-type': TYPES['.json'] }).end(JSON.stringify(found));
+    })().catch(() => {
+      response.writeHead(500).end();
+    });
+  });
+}
+
 /** Serve o arquivo de fixture do caminho (404 se não existir; 400 se sair da pasta). */
 function serveFile(path: string, response: ServerResponse): void {
   const file = fixturePath(path);
@@ -222,6 +254,15 @@ export async function startMockServer(): Promise<MockServer> {
     requests.push(`${request.method ?? 'GET'} ${path}`);
     if (path.startsWith('/curseforge/')) {
       serveCurseforge(request, response, path);
+      return;
+    }
+    if (request.method === 'POST' && path.split('?')[0] === '/modrinth/v2/version_files') {
+      serveVersionFiles(request, response);
+      return;
+    }
+    // O link direto `https://files.example.com/…` (P1-11), com o app em `WARDEN_E2E_DIRECT_VIA`.
+    if (path === DIRECT_PATH) {
+      response.writeHead(200, { 'content-type': TYPES['.jar'] }).end(directJar);
       return;
     }
     void byIds(path)

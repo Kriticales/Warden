@@ -1,0 +1,18 @@
+/*
+ * Arquivos do computador na página Adicionar (P1-11): um cartão por arquivo, com as classes do
+ * design system (`panel`, `alert`, `field`).
+ */
+.local-files {
+  display: grid;
+  gap: var(--space-3);
+}
+.local-files__head {
+  flex-wrap: wrap;
+}
+.local-file__head {
+  min-width: 0;
+}
+.local-file__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

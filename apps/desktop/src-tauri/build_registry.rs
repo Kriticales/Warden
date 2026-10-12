@@ -201,7 +201,8 @@ pub(crate) fn render(modules: &[CommandModule], events_source: &str) -> Result<S
         let _ = writeln!(out, "#[path = {path:?}]\npub(crate) mod {};", module.name);
     }
     out.push_str(
-        "\npub(crate) fn commands() -> tauri_specta::Commands<tauri::Wry> {\n    \
+        "\n// Uma linha por comando: a lista cresce com o app.\n#[allow(clippy::too_many_lines)]\n\
+         pub(crate) fn commands() -> tauri_specta::Commands<tauri::Wry> {\n    \
          tauri_specta::collect_commands![\n",
     );
     for module in modules {

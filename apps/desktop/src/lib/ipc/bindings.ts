@@ -39,6 +39,35 @@ export const commands = {
 	 *  Sem chave da CurseForge: erro `CURSEFORGE_KEY_MISSING`, sem nenhuma requisição.
 	 */
 	curseforgeLinkImport: (packId: PackId, projectId: string, fileId: string) => typedError<LinkTarget, AppError>(__TAURI_INVOKE("curseforge_link_import", { packId, projectId, fileId })),
+	/**
+	 *  Lê o link do Modrinth colado no campo único: o projeto (a tela abre a pré-visualização) ou a
+	 *  versão exata (a tela abre o diálogo de dependências com ela).
+	 */
+	addLinkModrinth: (packId: PackId, url: string) => typedError<ModrinthLinkTarget, AppError>(__TAURI_INVOKE("add_link_modrinth", { packId, url })),
+	/**
+	 *  Baixa o link direto `https://` uma vez (até 256 MiB e 10 minutos; cancelável pelo ID que
+	 *  chega no canal). O arquivo vira um token para `add_local_inspect` e `add_local_apply`. Nada é
+	 *  gravado no pack; falhou ou foi cancelado, o download é apagado.
+	 */
+	addLinkDownload: (packId: PackId, url: string, onEvent: Channel<OperationEvent>) => typedError<LocalFileRef, AppError>(__TAURI_INVOKE("add_link_download", { packId, url, onEvent })),
+	/**
+	 *  "Escolher arquivo do computador…": o diálogo nativo (vários `.jar`/`.zip`). Vazio: o
+	 *  usuário desistiu.
+	 */
+	addLocalChooseFiles: (packId: PackId) => typedError<LocalFileRef[], AppError>(__TAURI_INVOKE("add_local_choose_files", { packId })),
+	/**
+	 *  Lê cada arquivo (metadados, compatibilidade com o pack, se o pack já o tem) e procura pelo
+	 *  hash no Modrinth e, com a chave, na CurseForge. Erros de um arquivo ficam no resultado dele.
+	 */
+	addLocalInspect: (packId: PackId, tokens: string[]) => typedError<LocalFileResult[], AppError>(__TAURI_INVOKE("add_local_inspect", { packId, tokens })),
+	/**
+	 *  Grava os arquivos confirmados: copiados para a pasta do tipo (ou, do link direto, a
+	 *  referência com o link e o `sha256`), numa transação com um `packwiz refresh`. Ou todos
+	 *  entram, ou nenhum. Os tokens gravados são esquecidos.
+	 */
+	addLocalApply: (packId: PackId, items: LocalApplyItem[]) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_local_apply", { packId, items })),
+	/**  Esquece arquivos que a tela não vai adicionar (e apaga o download do link direto). */
+	addLocalDiscard: (tokens: string[]) => __TAURI_INVOKE<void>("add_local_discard", { tokens }),
 	/**  Informa a versão, o commit e a plataforma do app. */
 	appInfo: () => typedError<AppInfo, AppError>(__TAURI_INVOKE("app_info")),
 	/**  Configurações atuais. */
@@ -382,6 +411,7 @@ export const commands = {
 export const events = {
 	gameQuitRequested: makeEvent<GameQuitRequested>("game-quit-requested"),
 	gameState: makeEvent<GameState>("game-state"),
+	localFilesDropped: makeEvent<LocalFilesDropped>("local-files-dropped"),
 	operationUpdated: makeEvent<OperationUpdated>("operation-updated"),
 	packChanged: makeEvent<PackChanged>("pack-changed"),
 	titleBarMaximize: makeEvent<TitleBarMaximize>("title-bar-maximize"),
@@ -1190,6 +1220,34 @@ export type FileInfo = {
 	url: string | null,
 };
 
+/**  O que a tela mostra de um arquivo antes de adicionar. */
+export type FileReport = {
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  Tamanho em bytes (no máximo [`MAX_FILE_BYTES`], que cabe num `u32`). */
+	size: number,
+	/**  SHA-256 (a tela devolve na gravação: o arquivo não pode ter mudado). */
+	sha256: string,
+	/**  Tipo pelo conteúdo (nenhum: não deu para saber; a tela pede). */
+	kind: ProjectKind | null,
+	/**  O arquivo é um zip legível. */
+	archive: boolean,
+	/**  Metadados do mod, se o jar tem descritor. */
+	modInfo: JarModInfo | null,
+	/**  Por que não serve para o pack (vazio: serve, ou não deu para saber). */
+	incompatible: Incompatibility[],
+	/**  Lado sugerido pelos metadados. */
+	side: SideChoice,
+	/**  Observação sobre o lado. */
+	sideNote: SideNote | null,
+	/**  O mesmo arquivo nas fontes, o Modrinth primeiro. */
+	matches: HashMatch[],
+	/**  Fontes em que a procura pelo hash falhou (fora do ar, tempo esgotado). */
+	lookupFailed: SourceId[],
+	/**  O pack já tem este arquivo, ou outro com o mesmo nome na mesma pasta. */
+	inPack: InPack | null,
+};
+
 /**  Para que a pasta está sendo escolhida: decide o título do diálogo e onde ele abre. */
 export type FolderPurpose = 
 /**  Pasta de um pack novo (Criar pack). */
@@ -1255,6 +1313,24 @@ export type GameState = {
 	profile: string | null,
 	/**  Início do teste (milissegundos desde 1970). */
 	startedAtMs: number,
+};
+
+/**  O arquivo achado pelo hash numa fonte ("Este arquivo é o Sodium 0.6.0 do Modrinth."). */
+export type HashMatch = {
+	/**  A fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  ID da versão (Modrinth) ou do arquivo (CurseForge). */
+	versionId: string,
+	/**  Nome do projeto. */
+	title: string,
+	/**  Versão legível. */
+	versionNumber: string,
+	/**  Tipo do projeto (nenhum: tipo que a página Adicionar não aceita). */
+	kind: ProjectKind | null,
+	/**  A versão serve para o Minecraft e o loader do pack, pelos dados da fonte. */
+	compatible: boolean,
 };
 
 /**  O que a seção Histórico mostra. */
@@ -1386,6 +1462,34 @@ export type ImportedPack = {
 	/**  Estado somente leitura do git. */
 	readOnlyReason: string | null,
 };
+
+/**  Um item do pack que já tem o mesmo arquivo, ou o mesmo nome de arquivo. */
+export type InPack = {
+	/**  Caminho do item no pack. */
+	path: string,
+	/**  Nome no pack. */
+	name: string,
+	/**  É o mesmo arquivo (pelo hash); senão, só o nome do arquivo coincide. */
+	sameFile: boolean,
+};
+
+/**
+ *  Por que o arquivo não serve para o pack (SPEC T08: "Loader ou versão do Minecraft
+ *  incompatíveis").
+ */
+export type Incompatibility = 
+/**  O jar é de outro loader. */
+{ kind: "loader"; 
+/**  Loaders do jar. */
+found: string[]; 
+/**  Loader do pack. */
+pack: string } | 
+/**  O jar não aceita a versão do Minecraft do pack. */
+{ kind: "minecraft"; 
+/**  Versões aceitas, como o jar escreve. */
+accepts: string; 
+/**  Versão do pack. */
+pack: string };
 
 /**  O que gravar depois do "Pack criado". */
 export type InitialModsRequest = {
@@ -1654,6 +1758,20 @@ export type ItemVersion = {
 	filename: string,
 	/**  Nome legível ("0.6.0"); o nome do arquivo quando a fonte não informa. */
 	label: string,
+};
+
+/**  Metadados do mod lidos do jar. */
+export type JarModInfo = {
+	/**  ID do mod (`sodium`). */
+	id: string,
+	/**  Nome legível, se o jar informa. */
+	name: string | null,
+	/**  Versão do mod, se o jar informa. */
+	version: string | null,
+	/**  Loaders para os quais o jar traz descritor (`fabric`, `quilt`, `forge`, `neoforge`). */
+	loaders: string[],
+	/**  Versões do Minecraft aceitas, como o jar escreve (`>=1.21 <1.22`, `[1.20.1,1.21)`). */
+	minecraft: string | null,
 };
 
 /**
@@ -1970,6 +2088,52 @@ export type LoaderVersions = {
 	freshness: Freshness,
 };
 
+/**
+ *  Como a tela confirma um arquivo (a tela não conhece caminhos: o app troca o `token` pelo
+ *  caminho que ele mesmo guardou).
+ */
+export type LocalApplyItem = {
+	/**  O arquivo lido antes (`add_local_inspect` ou `add_link_download`). */
+	token: string,
+	/**  O SHA-256 do relatório. */
+	sha256: string,
+	/**  Tipo escolhido. */
+	kind: ProjectKind,
+	/**  Lado escolhido; nenhum: o sugerido. */
+	side?: SideChoice | null,
+	/**  "Adicionar mesmo assim". */
+	acceptIncompatible?: boolean,
+};
+
+/**  Um arquivo que a tela pode adicionar. */
+export type LocalFileRef = {
+	/**  Identificador opaco do arquivo nesta sessão. */
+	token: string,
+	/**  Nome do arquivo (sem a pasta). */
+	fileName: string,
+};
+
+/**  O resultado da leitura de um arquivo. */
+export type LocalFileResult = {
+	/**  O token pedido. */
+	token: string,
+	/**  O relatório, se o arquivo pôde ser lido. */
+	report: FileReport | null,
+	/**  Por que não pôde. */
+	error: AppError | null,
+};
+
+/**
+ *  `local-files-dropped`: arquivos soltos sobre a janela (P1-11; SPEC T06 e T08). Só os
+ *  `.jar`/`.zip` viram tokens; a interface nunca recebe os caminhos.
+ */
+export type LocalFilesDropped = {
+	/**  Os arquivos aceitos. */
+	files: LocalFileRef[],
+	/**  Quantos ficaram de fora (pastas, outros tipos de arquivo). */
+	ignored: number,
+};
+
 /**  Nível de detalhe dos registros (Configurações → Privacidade e registros). */
 export type LogLevel = 
 /**  `info` para tudo. */
@@ -2103,6 +2267,18 @@ export type ModrinthErrorCode =
 "INVALID_RESPONSE" | 
 /**  O cache local do Modrinth (`metadata.sqlite`) não pôde ser lido ou gravado. */
 "CACHE_UNAVAILABLE";
+
+/**  O que um link do Modrinth aponta, para a tela. */
+export type ModrinthLinkTarget = {
+	/**  ID do projeto no Modrinth. */
+	projectId: string,
+	/**  Nome. */
+	title: string,
+	/**  Tipo. */
+	kind: ProjectKind,
+	/**  ID da versão, quando o link era de versão. */
+	versionId: string | null,
+};
 
 /**  Uma incompatibilidade nova: a versão nova declara que não funciona com um item do pack. */
 export type NewConflict = {

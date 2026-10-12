@@ -30,7 +30,6 @@ export const adicionar = {
   },
   arquivo: {
     escolher: 'Escolher arquivo do computador…',
-    indisponivel: 'Adicionar arquivos do computador chega na próxima etapa do Warden.',
   },
   filtros: {
     rotulo: 'Filtros',
