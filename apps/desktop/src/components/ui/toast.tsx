@@ -35,6 +35,8 @@ export interface ToastInput {
   title: ReactNode;
   text?: ReactNode;
   action?: ToastAction;
+  /** Fica na tela até a pessoa fechar ou usar a ação (algo que não pode se perder). */
+  persistent?: boolean;
 }
 
 export interface ToastItem extends ToastInput {
@@ -93,7 +95,7 @@ function ToastView({ toast }: { toast: ToastItem }) {
     <ToastPrimitive.Root
       className={`toast toast--${toast.kind}`}
       type={toast.kind === 'danger' ? 'foreground' : 'background'}
-      duration={TOAST_DURATION_MS}
+      duration={toast.persistent === true ? Number.POSITIVE_INFINITY : TOAST_DURATION_MS}
       onOpenChange={(open) => {
         if (!open) dismiss(toast.id);
       }}
