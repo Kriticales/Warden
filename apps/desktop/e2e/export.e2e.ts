@@ -28,15 +28,13 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join, relative } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
+import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -136,34 +134,6 @@ function packwizBinary(): string {
   return join(BINARIES, name);
 }
 
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
-}
-
 async function waitToast(text: string): Promise<void> {
   let seen = '';
   await browser.waitUntil(
@@ -254,7 +224,7 @@ describe('Exportar (E-01; T19)', () => {
       expect.stringContaining('5 referências (os .jar não vão: quem joga baixa)'),
     );
     await screenshot('30-exportar');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('CA-T19-03: Revisar e limpar tira o crash-reports/x.txt', async () => {

@@ -19,16 +19,14 @@
  */
 import { createHash } from 'node:crypto';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
+import { seriousViolationSummaries } from './axe';
 import { CF_LINK, CHAVE_BOA, CHAVE_COM_ERRO, CHAVE_RECUSADA } from './mock-server/curseforge';
 import { dismissToasts } from './toasts';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -96,34 +94,6 @@ function removeSodium(): void {
     join(PACK, 'pack.toml'),
     read('pack.toml').replace(/^hash = "[0-9a-f]+"$/m, `hash = "${hash}"`),
   );
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-    .map((v) => `${v.id}: ${v.help}`);
 }
 
 /** Espera um aviso (toast) com o texto; um aviso de erro falha na hora, com a frase. */
@@ -233,7 +203,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     await expect($('a=Abrir Configurações')).toBeDisplayed();
     expect(await row('Sodium').getText()).not.toContain('CurseForge');
     expect(await curseforgeRequests()).toEqual([]);
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('01-sem-chave');
   });
 
@@ -250,7 +220,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     expect(await row('Mod Bloqueado').getText()).toContain('Download manual necessário');
     // A chave do usuário foi a que a CurseForge recebeu.
     expect((await curseforgeRequests()).length).toBeGreaterThan(0);
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('02-com-chave');
   });
 
@@ -394,7 +364,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     await $('button.drow__name=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
     await expect($('button=Tentar de novo')).toBeDisplayed();
     await screenshot('08-fonte-com-erro');
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('voltar para Mods mostra os itens da CurseForge na lista', async () => {

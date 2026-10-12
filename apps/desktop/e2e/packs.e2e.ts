@@ -25,13 +25,12 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join, relative } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolations } from './axe';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -114,32 +113,6 @@ function folderHash(dir: string): string {
   };
   walk(dir);
   return hash.digest('hex');
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<AxeViolation[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
 }
 
 async function backToList(): Promise<void> {
