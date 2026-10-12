@@ -285,18 +285,28 @@ pub async fn export_format(
             &output,
             &MrpackRules {
                 strict: true,
-                allowed_overrides: Some(allowed_overrides),
+                allowed_overrides: Some(allowed_overrides.clone()),
                 allowed_jars: Some(allowed_jars),
             },
         )?,
         LauncherFormat::Curseforge => validate_curseforge(
             &output,
             &CurseforgeRules {
-                allowed_overrides: Some(allowed_overrides),
+                allowed_overrides: Some(allowed_overrides.clone()),
                 allowed_jars: Some(allowed_jars),
             },
         )?,
     };
+    let expected_references = match format {
+        LauncherFormat::Mrpack => plan.analysis.references + swap_set.len(),
+        LauncherFormat::Curseforge => plan.analysis.references,
+    };
+    check_complete(
+        &output,
+        &validation,
+        expected_references,
+        allowed_overrides.len(),
+    )?;
     let bytes = copy_new(&output, destination)?;
     Ok(FormatExportResult {
         path: destination.to_path_buf(),
@@ -304,6 +314,46 @@ pub async fn export_format(
         swapped: swap_set.len(),
         validation,
     })
+}
+
+/// O validador garante que nada sobra no arquivo; aqui, que nada falta: todos os mods por
+/// referência e todos os arquivos do pack (configs e embutidos confirmados) estão lá.
+fn check_complete(
+    output: &Path,
+    validation: &FormatValidation,
+    references: usize,
+    overrides: usize,
+) -> Result<()> {
+    let mut problems = Vec::new();
+    if validation.references != references {
+        problems.push(format!(
+            "o arquivo leva {} mod(s) por referência e deveria levar {references}",
+            validation.references
+        ));
+    }
+    if validation.overrides != overrides {
+        problems.push(format!(
+            "o arquivo tem {} arquivo(s) em overrides e deveria ter {overrides}",
+            validation.overrides
+        ));
+    }
+    if problems.is_empty() {
+        return Ok(());
+    }
+    Err(Error::new(
+        ExportErrorCode::InvalidOutput,
+        format!("{} está incompleto", output.display()),
+    )
+    .with_param("count", problems.len().to_string())
+    .with_detail(format!(
+        "O arquivo gerado reprovou em {} conferência(s):\n{}",
+        problems.len(),
+        problems
+            .iter()
+            .map(|problem| format!("- {problem}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    )))
 }
 
 /// Copia `from` para `to`, que não pode existir; se a cópia falhar, não deixa pedaço.
@@ -322,4 +372,29 @@ fn copy_new(from: &Path, to: &Path) -> Result<u64> {
         let _ = fs::remove_file(to);
     }
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn arquivo_sem_um_mod_ou_um_override_esta_incompleto() {
+        let validation = FormatValidation {
+            entries: 4,
+            references: 2,
+            overrides: 1,
+            embedded_jars: Vec::new(),
+        };
+        let path = Path::new("pack.mrpack");
+        check_complete(path, &validation, 2, 1).unwrap();
+        let error = check_complete(path, &validation, 3, 2).unwrap_err();
+        assert_eq!(
+            warden_core::DomainError::code(&error),
+            warden_core::DomainCode::Domain(ExportErrorCode::InvalidOutput)
+        );
+        let detail = warden_core::DomainError::detail(&error).unwrap();
+        assert!(detail.contains("deveria levar 3"), "{detail}");
+        assert!(detail.contains("deveria ter 2"), "{detail}");
+    }
 }
