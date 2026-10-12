@@ -174,6 +174,35 @@ export const commands = {
 	inventoryIncludeOutside: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("inventory_include_outside", { packId })),
 	/**  "Abrir no editor de texto": abre um arquivo do pack no programa padrão do sistema. */
 	itemOpenFile: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("item_open_file", { packId, path })),
+	/**  A configuração de opcional de um item (`null`: o item não é opcional). */
+	itemOptionGet: (packId: PackId, path: string) => typedError<{
+	/**  Texto mostrado ao jogador (pode ser vazio). */
+	description: string,
+	/**  Se vem ligado por padrão. */
+	default: boolean,
+} | null, AppError>(__TAURI_INVOKE("item_option_get", { packId, path })),
+	/**
+	 *  Marca (`settings`) ou desmarca (`null`) um item como opcional. Devolve os arquivos
+	 *  alterados; vazio quando já estava assim.
+	 */
+	itemSetOptional: (packId: PackId, path: string, settings: {
+	/**  Texto mostrado ao jogador (pode ser vazio). */
+	description: string,
+	/**  Se vem ligado por padrão. */
+	default: boolean,
+} | null) => typedError<string[], AppError>(__TAURI_INVOKE("item_set_optional", { packId, path, settings })),
+	/**  Fixa (`pinned = true`) ou solta a versão de um ou vários itens: uma escrita só. */
+	itemsSetPinned: (packId: PackId, paths: string[], pinned: boolean) => typedError<string[], AppError>(__TAURI_INVOKE("items_set_pinned", { packId, paths, pinned })),
+	/**  Os opcionais do pack e quais estão ligados na instância de teste. */
+	instanceOptionalChoicesGet: (packId: PackId) => typedError<OptionalChoice[], AppError>(__TAURI_INVOKE("instance_optional_choices_get", { packId })),
+	/**
+	 *  Grava quais opcionais ficam ligados na instância de teste (caminho do `.pw.toml` → ligado).
+	 *  Só vale para itens opcionais do pack; qualquer outro caminho é recusado. Só fica gravado o
+	 *  que difere do padrão do pack (o resto continua seguindo o "ligado por padrão", mesmo que ele
+	 *  mude depois); as escolhas antigas de itens que deixaram de ser opcionais saem. Não toca no
+	 *  pack.
+	 */
+	instanceSetOptionalChoices: (packId: PackId, choices: { [key in string]: boolean }) => typedError<null, AppError>(__TAURI_INVOKE("instance_set_optional_choices", { packId, choices })),
 	/**  O Java que o teste do pack vai usar e por quê (ADR-0029). */
 	javaChoice: (request: JavaChoiceRequest) => typedError<JavaChoice, AppError>(__TAURI_INVOKE("java_choice", { request })),
 	/**  A tabela de Java de Configurações. */
@@ -2286,6 +2315,28 @@ export type OperationState =
  *  T22).
  */
 export type OperationUpdated = OperationSnapshot;
+
+/**  A configuração de opcional de um item, como a interface a edita. */
+export type OptionSettings = {
+	/**  Texto mostrado ao jogador (pode ser vazio). */
+	description: string,
+	/**  Se vem ligado por padrão. */
+	default: boolean,
+};
+
+/**  Um opcional do pack com a escolha desta instância. */
+export type OptionalChoice = {
+	/**  Caminho do `.pw.toml`. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  Texto que o jogador veria. */
+	description: string,
+	/**  Se o pack o liga por padrão. */
+	default: boolean,
+	/**  Se está ligado na instância (a escolha gravada ou, sem ela, o padrão). */
+	enabled: boolean,
+};
 
 /**  Uma biblioteca (ou item) que nenhum item mantido usa mais. */
 export type Orphan = {

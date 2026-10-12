@@ -46,3 +46,10 @@ export const opcionais = {
     aplicaNoProximo: 'Vale a partir do próximo teste.',
   },
 } as const;
+
+// Registro do namespace (veja ../catalogo.ts).
+declare module '../catalogo' {
+  interface Catalogo {
+    opcionais: typeof opcionais;
+  }
+}

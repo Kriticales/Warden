@@ -6,8 +6,7 @@
  * (200), versão instalada e arquivo (300), lado (400) e novidades da versão (800). A P1-14
  * acrescentou "Mais opções" (900: fixar versão e opcional). Reservados: 500 para "Depende de /
  * Usado por / Por que está no pack" (D-07) e 600 para "O que este mod altera no jogo" (raio-x,
- * D-10). Os da 1.1 (nota e grupos, segurança, manutenção) usam o mesmo
- * registro.
+ * D-10). Os da 1.1 (nota e grupos, segurança, manutenção) usam o mesmo registro.
  *
  * Um bloco devolve `null` quando não tem o que mostrar para aquele item.
  */
@@ -15,12 +14,12 @@ import type { ComponentType } from 'react';
 
 import type { InventoryItem, ItemDetails, PackId } from '../../../lib/ipc/bindings';
 import { UpdateBlock } from '../../updates/UpdateBlock';
+import { ItemOptionsBlock } from '../item-options/ItemOptionsBlock';
 import { ChangelogBlock } from './blocks/ChangelogBlock';
 import { DependenciesBlock } from './dependencies/DependenciesBlock';
 import { DescriptionBlock } from './blocks/DescriptionBlock';
 import { HeadBlock } from './blocks/HeadBlock';
 import { OriginBlock } from './blocks/OriginBlock';
-import { ItemOptionsBlock } from '../item-options/ItemOptionsBlock';
 import { SideBlock } from './blocks/SideBlock';
 import { VersionBlock } from './blocks/VersionBlock';
 
