@@ -85,6 +85,7 @@ specta-typescript = "=0.0.12"
 tar = { version = "0.4.46", default-features = false }
 tauri = "2.12.1"
 tauri-build = "2.7.1"
+tauri-plugin-clipboard-manager = "2.4.2"
 tauri-plugin-dialog = "2.8.1"
 tauri-plugin-log = "2.10.0"
 tauri-plugin-opener = "2.7.0"
@@ -107,6 +108,7 @@ which = "8.0.6"
 windows = "0.62.2"
 windows-native-keyring-store = "1.1.0"
 wiremock = "0.6.5"
+x11rb = "0.13.2"
 zbus-secret-service-keyring-store = "1.0.1"
 zip = { version = "8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 

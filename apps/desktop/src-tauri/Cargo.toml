@@ -24,6 +24,7 @@ serde_json.workspace = true
 specta.workspace = true
 specta-typescript.workspace = true
 tauri.workspace = true
+tauri-plugin-clipboard-manager.workspace = true
 tauri-plugin-dialog.workspace = true
 tauri-plugin-log.workspace = true
 tauri-plugin-opener.workspace = true
@@ -65,12 +66,18 @@ hex.workspace = true
 # "Ignorar este aviso neste pack" em `.warden/project.toml`, preservando o resto (D-03).
 toml_edit.workspace = true
 
+[target.'cfg(target_os = "linux")'.dependencies]
+# Print da janela do Warden no X11 (Relatar problema, UI-03). Sem `unsafe`, sem biblioteca C.
+x11rb.workspace = true
+
 [target.'cfg(windows)'.dependencies]
 # Janela nativa do menu de encaixe (Snap Layouts) sobre o botão maximizar da barra de título
 # própria (UI-01). O `unsafe` fica isolado em `src/window_chrome/windows.rs`.
 windows = { workspace = true, features = [
   "Win32_Foundation",
   "Win32_Graphics_Gdi",
+  # `PrintWindow`: print da janela do Warden (Relatar problema, UI-03).
+  "Win32_Storage_Xps",
   "Win32_System_LibraryLoader",
   # Memória total do computador (memória automática do teste, L-04).
   "Win32_System_SystemInformation",
