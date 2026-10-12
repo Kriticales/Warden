@@ -3,7 +3,11 @@
  * de verdade, o git de verdade e o catálogo pelas respostas gravadas (servidor de fixtures).
  *
  * - Criar pack Forge 1.20.1 pelo assistente: a pasta tem `pack.toml` com as versões escolhidas
- *   e o repositório git, e o pack abre.
+ *   e o repositório git, e o pack abre. Sem versão dos mods iniciais para Forge no servidor
+ *   simulado, a etapa "Mods iniciais" mostra os dois sem versão e o pack nasce sem mods.
+ * - Criar pack Fabric 1.21.1 com a etapa "Mods iniciais" (P1-18; CA-T03-07): spark e Crash
+ *   Assistant vêm marcados com a versão; desmarcar o spark grava só o Crash Assistant, com a
+ *   config inicial e `[player-tools]`, e nada do spark nem da Fabric API que viria com ele.
  * - Abrir um pack packwiz com três arquivos que não deveriam ir para os jogadores: "Limpar"
  *   apaga os três (CA-T04-01) e registra o pack com `.warden/project.toml`.
  * - Pasta renomeada por fora vira "Pasta não encontrada"; "Localizar…" com a pasta nova
@@ -211,7 +215,20 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     await screenshot('04-criar-loader');
     await wizardNext();
 
+    // Etapa "Mods iniciais" (P1-18): o servidor simulado só tem versões para Fabric 1.21.1, então
+    // spark e Crash Assistant aparecem sem versão para este pack, desmarcados e desabilitados.
+    await $('legend*=Recomendados para Minecraft 1.20.1 com Forge').waitForDisplayed();
+    for (const name of ['spark', 'Crash Assistant']) {
+      const box = $(`input[aria-label="Adicionar ${name}"]`);
+      await expect(box).toBeDisabled();
+      await expect(box).not.toBeSelected();
+    }
+    await expect($$('span.tag=Sem versão para este pack')).toBeElementsArrayOfSize(2);
+    await screenshot('05-criar-mods-iniciais-sem-versao');
+    await wizardNext();
+
     await $('.packcard__meta*=Minecraft 1.20.1 · Forge').waitForDisplayed();
+    await expect($('.checklist li*=Nenhum mod inicial')).toBeDisplayed();
     await screenshot('05-criar-resumo');
     await wizardNext('Criar pack');
 
@@ -222,6 +239,8 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     expect(manifest).toMatch(/forge = "47\.[\d.]+"/);
     expect(existsSync(join(created, '.git'))).toBe(true);
     expect(existsSync(join(created, '.warden', 'project.toml'))).toBe(true);
+    // Nenhum mod inicial: o pack nasce sem nenhum `.pw.toml`.
+    expect(existsSync(join(created, 'mods'))).toBe(false);
     await screenshot('06-pack-criado');
   });
 
@@ -346,5 +365,78 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     process.stdout.write(`CA-T02-01: lista com 51 packs em ${shownAtMs.toFixed(0)} ms\n`);
     expect(shownAtMs).toBeLessThan(1000);
     await screenshot('13-meus-packs-51');
+  });
+
+  it('Fabric 1.21.1: desmarcar o spark grava só o Crash Assistant, com a config (P1-18)', async () => {
+    await $('button=Criar pack').click();
+    await $('h1=Criar pack').waitForDisplayed();
+    const nameId = await $('label=Nome do pack').getAttribute('for');
+    await $(`[id="${nameId ?? ''}"]`).setValue('Bosque Fundo');
+    const folder = $('input.input--mono');
+    await browser.waitUntil(async () => (await folder.getValue()).endsWith('bosque-fundo'));
+    await wizardNext();
+
+    await $('input[type="search"]').waitForDisplayed();
+    await $('input[type="search"]').setValue('1.21.1');
+    await $('label.check=1.21.1').click();
+    await wizardNext();
+
+    await $('span.choice__title=Fabric').click();
+    await browser.waitUntil(() => $('.choice--split*=Fabric').$('input').isSelected());
+    await wizardNext();
+
+    // Spark e Crash Assistant chegam marcados (D16), com a versão que será usada; o spark traz a
+    // Fabric API junto.
+    await $('legend*=Recomendados para Minecraft 1.21.1 com Fabric').waitForDisplayed();
+    const spark = $('input[aria-label="Adicionar spark"]');
+    const crash = $('input[aria-label="Adicionar Crash Assistant"]');
+    await browser.waitUntil(async () => (await spark.isSelected()) && (await crash.isSelected()));
+    await expect($('.drow*=spark')).toHaveText(expect.stringContaining('1.10.109-fabric'));
+    await expect($('.drow*=spark')).toHaveText(expect.stringContaining('Traz junto: Fabric API'));
+    const violations = await seriousViolations();
+    expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+    await screenshot('14-criar-mods-iniciais');
+
+    // Desmarcar e marcar de novo volta ao estado; desmarcar de vez tira o spark do pedido.
+    await spark.click();
+    await expect(spark).not.toBeSelected();
+    await crash.click();
+    await expect(crash).not.toBeSelected();
+    await crash.click();
+    await expect(crash).toBeSelected();
+    await wizardNext();
+
+    await $('.packcard__meta*=Minecraft 1.21.1 · Fabric').waitForDisplayed();
+    await expect(
+      $(
+        '.checklist span=Mods iniciais: Crash Assistant, com a config do Crash Assistant sem envio de dados ao autor',
+      ),
+    ).toBeDisplayed();
+    await screenshot('15-criar-resumo-mods-iniciais');
+    await wizardNext('Criar pack');
+
+    await $('h1=Bosque Fundo').waitForDisplayed({ timeout: 60_000 });
+    const created = join(DATA_ROOT, 'packs', 'bosque-fundo');
+    const manifest = readFileSync(join(created, 'pack.toml'), 'utf8');
+    expect(manifest).toContain('minecraft = "1.21.1"');
+    expect(manifest).toMatch(/fabric = "[\d.]+"/);
+    expect(existsSync(join(created, '.git'))).toBe(true);
+
+    // Só o Crash Assistant entrou, pelo Modrinth, e está no índice.
+    const mods = readdirSync(join(created, 'mods')).sort();
+    expect(mods).toEqual(['crash-assistant.pw.toml']);
+    const metafile = readFileSync(join(created, 'mods', 'crash-assistant.pw.toml'), 'utf8');
+    expect(metafile).toContain('[update.modrinth]');
+    expect(metafile).toContain('mod-id = "ix1qq8Ux"');
+    expect(readFileSync(join(created, 'index.toml'), 'utf8')).toContain(
+      'mods/crash-assistant.pw.toml',
+    );
+    // Ferramenta do jogador marcada e config inicial sem envio de dados ao autor.
+    const project = readFileSync(join(created, '.warden', 'project.toml'), 'utf8');
+    expect(project).toContain('[player-tools]');
+    expect(project).toContain('crash-assistant = "mods/crash-assistant.pw.toml"');
+    expect(project).not.toContain('spark');
+    expect(existsSync(join(created, 'config', 'crash_assistant', 'config.toml'))).toBe(true);
+    await screenshot('16-pack-criado-com-mods-iniciais');
   });
 });
