@@ -234,6 +234,10 @@ export const commands = {
 	packChooseFolder: (purpose: FolderPurpose) => typedError<string | null, AppError>(__TAURI_INVOKE("pack_choose_folder", { purpose })),
 	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
 	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
+	/**  Monta a pré-visualização do relato. */
+	problemReportPreview: (input: ProblemReportInput) => typedError<ProblemReportPreview, AppError>(__TAURI_INVOKE("problem_report_preview", { input })),
+	/**  Abre o endereço da pré-visualização no navegador padrão. */
+	problemReportOpen: (url: string) => typedError<null, AppError>(__TAURI_INVOKE("problem_report_open", { url })),
 	/**  Onde as chaves ficam e quais estão configuradas. */
 	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
 	/**  Grava uma chave digitada e devolve o estado. */
@@ -2646,6 +2650,47 @@ export type PreviewFolder = {
 	bytes: number,
 };
 
+/**  O que a pessoa escreveu e o que a interface sabe (tela e pack abertos, último erro). */
+export type ProblemReportInput = {
+	/**  Título (obrigatório para abrir; a pré-visualização aceita vazio). */
+	title: string,
+	/**  "O que você fez". */
+	whatYouDid: string,
+	/**  "O que aconteceu". */
+	whatHappened: string,
+	/**  "O que você esperava". */
+	whatYouExpected: string,
+	/**  "Incluir os registros do Warden". */
+	includeLog: boolean,
+	/**  Tela atual, nos termos da interface ("Pack › Mods"). */
+	screen: string,
+	/**  Pack aberto, se houver. */
+	packId: PackId | null,
+	/**  Último erro mostrado, se houver. */
+	lastError: ShownError | null,
+};
+
+/**  A pré-visualização: exatamente o que vai para o GitHub. */
+export type ProblemReportPreview = {
+	/**  Título da issue, redigido. */
+	title: string,
+	/**  Corpo que vai no endereço, redigido. */
+	body: string,
+	/**  Endereço da issue nova (`problem_report_open` abre este). */
+	url: string,
+	/**
+	 *  Corpo completo, com todas as linhas lidas dos registros (para a área de transferência
+	 *  quando algo foi cortado).
+	 */
+	fullBody: string,
+	/**  O que foi cortado. */
+	cut: ReportCut,
+	/**  Dados coletados sozinhos, redigidos. */
+	environment: ReportField[],
+	/**  Linhas dos registros no corpo. */
+	logLines: number,
+};
+
 /**  Quanto já foi feito. */
 export type Progress = {
 	/**  Quantidade feita. */
@@ -2826,6 +2871,23 @@ export type RemovalTarget = {
 	name: string,
 	/**  Arquivos que serão apagados (o `.pw.toml`, ou o arquivo local). */
 	files: string[],
+};
+
+/**  O que precisou ser cortado para o endereço caber. */
+export type ReportCut = 
+/**  Nada. */
+"none" | 
+/**  As linhas mais antigas dos registros. */
+"log" | 
+/**  Os registros e o fim do texto escrito. */
+"text";
+
+/**  Um dado coletado sozinho, já redigido. */
+export type ReportField = {
+	/**  Rótulo ("Sistema"). */
+	label: string,
+	/**  Valor ("Windows 11 (10.0.26100)"). */
+	value: string,
 };
 
 /**  Resultado de uma restauração bem-sucedida. */
@@ -3148,6 +3210,14 @@ export type SettingsStatus = {
 	packsDir: string,
 	/**  Pasta padrão do sistema (Documentos\Warden). */
 	defaultPacksDir: string,
+};
+
+/**  Último erro que a interface mostrou. */
+export type ShownError = {
+	/**  `domínio.CÓDIGO`. */
+	code: string,
+	/**  A frase mostrada. */
+	message: string,
 };
 
 /**  Lado escolhido na interface. */
