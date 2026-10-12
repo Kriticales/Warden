@@ -1327,7 +1327,7 @@ Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e 
 **Diálogo:**
 
 - **Título** (obrigatório; sem ele, **Abrir no GitHub** fica desabilitado e o campo diz por quê), **O que você fez**, **O que aconteceu** e **O que você esperava** (opcionais) e a caixa **Incluir os registros do app** (marcada).
-- **Coletado pelo Warden** (mostrado, sem edição): versão e commit do app; sistema e versão ("Windows 11 (10.0.26100.4061)"); a tela em que o diálogo abriu, nos termos da interface ("Pack › Mods"); o pack aberto (nome, versão do Minecraft, loader e versão); o último erro mostrado (código `domínio.CÓDIGO` e a frase); e, com a caixa marcada, as últimas linhas dos registros do Warden.
+- **Coletado pelo Warden** (mostrado, sem edição): versão e commit do app; sistema e versão ("Windows 11 (10.0.26100.4061)"); a tela em que o diálogo abriu, nos termos da interface ("Pack › Mods"); o pack aberto (nome, versão do Minecraft, loader e versão); o último erro mostrado (a frase de qualquer aviso ou toast de erro e, quando vem de um erro do app, o código `domínio.CÓDIGO`); e, com a caixa marcada, as últimas linhas dos registros do Warden.
 - **Pré-visualização** com o título e o texto exatos que vão para o GitHub, depois da redação (ARCHITECTURE §9.4): pastas pessoais, nomes do usuário, do jogador e do computador, e-mails, IPs, chaves nos formatos conhecidos e os valores reais das chaves guardadas viram marcadores (`<usuário>`, `<segredo>`…).
 - Aviso: "Este repositório é público: o relato fica visível para qualquer pessoa." e a dica de colar um print direto na issue, no GitHub.
 
@@ -1335,7 +1335,7 @@ Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e 
 
 | CA | Critério |
 |---|---|
-| CA-UI02-01 | O botão aparece em todas as telas (barra de título no Windows, rodapé no Linux) com dica que cita o atalho; o diálogo tem os quatro campos e a caixa marcada; sem título, **Abrir no GitHub** fica desabilitado; foco no título do diálogo ao abrir, rótulos ligados aos campos e Esc fecha; sem violação séria do `axe` (componente e E2E). |
+| CA-UI02-01 | O botão aparece em todas as telas (barra de título no Windows, rodapé no Linux) com dica que cita o atalho; o diálogo tem os quatro campos e a caixa marcada; sem título, **Abrir no GitHub** fica desabilitado; foco no título do diálogo ao abrir, rótulos ligados aos campos e Esc fecha; ao fechar, o foco volta ao botão (ou, aberto pelo atalho, ao que estava focado antes); sem violação séria do `axe` (componente e E2E). |
 | CA-UI02-02 | O endereço aberto é a página de issue nova do repositório do Warden (uma constante só no código), com o título e o corpo idênticos aos da pré-visualização e `labels=relato-do-dono`; o comando de abrir recusa qualquer outro endereço (teste de backend e E2E com a abertura interceptada). |
 | CA-UI02-03 | Com um registro grande, o endereço fica com no máximo 7.500 caracteres, as linhas que ficam são as mais novas e a marca de corte aparece; o relato completo vai para a área de transferência e a tela diz que dá para colar na issue (teste de backend e de componente). |
 | CA-UI02-04 | Um registro com o caminho da pasta do usuário, uma chave no formato da CurseForge (`$2a$…`), um `AIza…`, um `ghp_…`, o nome do computador e o valor real de uma chave do cofre não deixa nenhum desses textos no título, no corpo nem no endereço, codificado ou não (teste de backend e E2E). |
