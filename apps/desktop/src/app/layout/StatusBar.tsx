@@ -1,7 +1,9 @@
 /**
  * Rodapé de todas as telas (do app e do pack): o indicador de Tarefas, que abre a gaveta T22,
- * e a versão do Warden. O indicador mostra se há tarefas em andamento (carregador) ou se
- * alguma falhou desde a última vez que a gaveta foi aberta (ícone de erro).
+ * "Relatar problema" quando a janela usa a barra de título do sistema (Linux; no Windows ele
+ * fica na barra de título própria, UI-02) e a versão do Warden. O indicador mostra se há
+ * tarefas em andamento (carregador) ou se alguma falhou desde a última vez que a gaveta foi
+ * aberta (ícone de erro).
  */
 import { CircleAlert, List } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -9,8 +11,10 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '../../components/ui/icon';
 import { Loader } from '../../components/ui/loader';
 import { useAppInfo } from '../../features/about/hooks/useAppInfo';
+import { ReportButton } from '../../features/report/ReportButton';
 import { indicatorState, type TasksIndicatorState } from '../tasks/operations';
 import { TasksDrawer } from '../tasks/TasksDrawer';
+import { usesCustomTitleBar } from './TitleBar';
 import { useTasksUi } from '../tasks/tasks-store';
 import { useOperations } from '../tasks/useOperations';
 
@@ -60,6 +64,7 @@ export function StatusBar() {
           </button>
         }
       />
+      {usesCustomTitleBar() ? null : <ReportButton place="statusbar" />}
       <span className="statusbar__end">
         {info.data
           ? t('rodape.versao', { version: info.data.version })

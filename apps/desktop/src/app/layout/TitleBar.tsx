@@ -11,12 +11,15 @@
  * botões funcionam normalmente.
  *
  * Janela sem foco: a barra fica apagada, como as do sistema.
+ *
+ * Antes dos botões da janela fica "Relatar problema" (UI-02), fora da região de arraste.
  */
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { BrandMark } from '../../components/common/PixelArt';
+import { ReportButton } from '../../features/report/ReportButton';
 import { cn } from '../../lib/cn';
 import { commands, events, type TitleBarMaximize } from '../../lib/ipc/bindings';
 import { subscribe, useTauriEvent } from '../../lib/ipc/events';
@@ -133,6 +136,9 @@ export function TitleBar() {
         <BrandMark className="titlebar__mark" />
         <span className="titlebar__name">{t('marca')}</span>
       </span>
+      <div className="titlebar__actions">
+        <ReportButton place="titlebar" />
+      </div>
       <div className="titlebar__controls" role="group" aria-label={t('janela.grupo')}>
         <button
           type="button"
