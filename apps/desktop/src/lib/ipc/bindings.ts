@@ -1282,6 +1282,32 @@ export type ImportedPack = {
 	readOnlyReason: string | null,
 };
 
+/**  O que gravar depois do "Pack criado". */
+export type InitialModsRequest = {
+	/**  Identificadores das ferramentas marcadas. */
+	tools: string[],
+	/**  Kit de desempenho escolhido. */
+	kit?: KitChoice | null,
+};
+
+/**  O que foi gravado. */
+export type InitialModsResult = {
+	/**  Itens que entraram (os escolhidos e as dependências obrigatórias). */
+	added: AddedItem[],
+	/**  Nomes dos itens que não entraram (sem versão para o pack ou fonte desligada). */
+	leftOut: string[],
+	/**  Se a config inicial do Crash Assistant foi gravada. */
+	crashAssistantConfig: boolean,
+	/**  Papéis marcados em `[player-tools]`. */
+	playerTools: string[],
+};
+
+/**  A etapa "Mods iniciais" para um Minecraft e um loader. */
+export type InitialOffer = {
+	/**  Os itens oferecidos, na ordem dos dados. */
+	items: OfferItem[],
+};
+
 /**  Um Java instalado pelo Warden. */
 export type InstalledRuntime = {
 	/**  Identificador (nome da pasta). */
@@ -1668,6 +1694,42 @@ export type JavaVersion = {
 	patch: number,
 	/**  Número do build (`+1`, `-b07`); 0 quando não informado. */
 	build: number,
+};
+
+/**  Um kit oferecido ao pack. */
+export type Kit = {
+	/**  Identificador estável. */
+	id: string,
+	/**  Nome. */
+	name: string,
+	/**  Frase curta. */
+	description: string,
+	/**  Mods. */
+	items: KitItem[],
+};
+
+/**  Um kit escolhido no assistente: o `id` e os itens que continuaram marcados. */
+export type KitChoice = {
+	/**  Identificador do kit. */
+	id: string,
+	/**  IDs dos projetos marcados (todos da fonte do item). */
+	projects: string[],
+};
+
+/**  Um mod de um kit, como a interface o mostra. */
+export type KitItem = {
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID do projeto. */
+	projectId: string,
+	/**  Nome. */
+	name: string,
+	/**  Lado. */
+	side: SideChoice | null,
+	/**  Vem marcado. */
+	checked: boolean,
+	/**  Código da observação (`worldgen`, `shaders`). */
+	note: string | null,
 };
 
 /**
