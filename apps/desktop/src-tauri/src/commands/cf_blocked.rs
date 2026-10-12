@@ -42,12 +42,6 @@ pub(crate) const STAGE_MANUAL: &str = "syncPack.manual";
 /// Texto da etapa.
 const STAGE_MANUAL_LABEL: &str = "downloadsManuais:etapa";
 
-/// Em build de debug, o E2E troca o diálogo de escolher arquivo (que o `WebDriver` não
-/// alcança) pelo caminho escrito neste arquivo.
-const E2E_PICK_FILE_ENV: &str = "WARDEN_E2E_PICK_FILE";
-/// Em build de debug, a pasta observada no lugar da pasta Downloads do sistema (E2E).
-const DOWNLOADS_DIR_ENV: &str = "WARDEN_DOWNLOADS_DIR";
-
 /// `manual-downloads-changed`: a lista de downloads manuais do pack mudou (apareceu, um item
 /// mudou de estado ou acabou).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type, Event)]
@@ -309,10 +303,8 @@ impl Drop for Registered<'_> {
     }
 }
 
-/// Liga a central ao app: o evento `manual-downloads-changed` e a pasta Downloads do sistema
-/// (em debug, `WARDEN_DOWNLOADS_DIR` a substitui).
-pub(crate) fn connect(hub: &ManualDownloadsHub, app: AppHandle, system_downloads: Option<PathBuf>) {
-    let downloads = downloads_override().or(system_downloads);
+/// Liga a central ao app: o evento `manual-downloads-changed` e a pasta Downloads do sistema.
+pub(crate) fn connect(hub: &ManualDownloadsHub, app: AppHandle, downloads: Option<PathBuf>) {
     hub.connect(
         Arc::new(move |pack_id| {
             if let Err(error) = (ManualDownloadsChanged { pack_id }).emit(&app) {
@@ -321,19 +313,6 @@ pub(crate) fn connect(hub: &ManualDownloadsHub, app: AppHandle, system_downloads
         }),
         downloads,
     );
-}
-
-fn downloads_override() -> Option<PathBuf> {
-    #[cfg(debug_assertions)]
-    {
-        std::env::var_os(DOWNLOADS_DIR_ENV)
-            .filter(|value| !value.is_empty())
-            .map(PathBuf::from)
-    }
-    #[cfg(not(debug_assertions))]
-    {
-        None
-    }
 }
 
 /// A lista de downloads manuais do pack (vazia quando o teste não está esperando nenhum).
@@ -371,12 +350,6 @@ async fn pick_file(
     hub: &ManualDownloadsHub,
     expected: &BlockedFile,
 ) -> Result<Option<PathBuf>, AppError> {
-    #[cfg(debug_assertions)]
-    if let Some(file) = std::env::var_os(E2E_PICK_FILE_ENV).filter(|value| !value.is_empty()) {
-        let picked = std::fs::read_to_string(&file).unwrap_or_default();
-        let picked = picked.trim();
-        return Ok((!picked.is_empty()).then(|| PathBuf::from(picked)));
-    }
     let (sender, receiver) = tokio::sync::oneshot::channel();
     let mut dialog = app
         .dialog()
