@@ -48,6 +48,10 @@ interface Options {
   minecraft?: string;
   diff?: boolean;
   readOnly?: Record<string, ConfigContent['readOnly']>;
+  /** A primeira leitura de `config_tree` falha. */
+  treeErrorOnce?: boolean;
+  /** `config_write` falha com um erro que não é de alteração por fora. */
+  writeError?: boolean;
 }
 
 function isBinary(options: Options, path: string): boolean {
@@ -59,11 +63,16 @@ function openConfigs(path: string, options: Options = {}) {
     'pack' | 'instance',
     Disk | null
   >;
+  let treeFailures = 0;
   const { backend, url } = editorBackend({
     pack: { loader: options.loader ?? 'forge', minecraft: options.minecraft ?? '1.20.1' },
     handlers: {
       settings_get: () => makeSettings({ configDiffBeforeSave: options.diff ?? true }),
       config_tree: (args) => {
+        if (options.treeErrorOnce && treeFailures === 0) {
+          treeFailures += 1;
+          return ipcError(makeAppError(undefined, { detail: 'disco' }));
+        }
         const disk = disks[args.origin as 'pack' | 'instance'];
         return {
           available: disk !== null,
@@ -91,6 +100,9 @@ function openConfigs(path: string, options: Options = {}) {
         } satisfies ConfigContent;
       },
       config_write: (args) => {
+        if (options.writeError) {
+          return ipcError(makeAppError(undefined, { detail: 'disco' }));
+        }
         const disk = disks[args.origin as 'pack' | 'instance'] ?? {};
         const file = disk[args.path as string];
         if (!file || file.hash !== args.expectedHash) {
@@ -164,6 +176,33 @@ describe('Configs (T12)', () => {
     );
     await screen.findByText('Ainda não existe uma instância de teste');
     expect(screen.getByText('Você está editando a instância de teste, não o pack.')).toBeDefined();
+  });
+
+  it('estados de erro: lista que não se lê, arquivo que sumiu e gravação que falha', async () => {
+    const user = userEvent.setup();
+    openConfigs(`?arquivo=${CREATE}`, {
+      pack: { [CREATE]: entry(CREATE_TEXT) },
+      treeErrorOnce: true,
+      writeError: true,
+      diff: false,
+    });
+    // A lista falha e "Tentar de novo" a relê.
+    await screen.findByText('Não foi possível ler os arquivos.');
+    await user.click(screen.getByRole('button', { name: 'Tentar de novo' }));
+    await screen.findByRole('treeitem', { name: /create-common\.toml/ });
+
+    // A gravação falha sem ser por alteração externa: o erro aparece e o texto continua.
+    await type('# x');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await screen.findByText('Não foi possível salvar create-common.toml.');
+    expect(screen.queryByText('Este arquivo foi alterado fora do Warden.')).toBeNull();
+    expect(screen.getByText('1 linha alterada, ainda não salva')).toBeDefined();
+  });
+
+  it('arquivo que não existe mais mostra o erro no lugar do editor', async () => {
+    openConfigs('?arquivo=config/sumiu.toml', { pack: { [CREATE]: entry(CREATE_TEXT) } });
+    await screen.findByText('Não foi possível abrir config/sumiu.toml.');
+    expect(screen.queryByRole('textbox', { name: /^Conteúdo de / })).toBeNull();
   });
 
   it('abre o arquivo, salva mostrando as diferenças e grava com o hash da leitura', async () => {
