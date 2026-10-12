@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use secrecy::SecretString;
+use secrecy::{ExposeSecret as _, SecretString};
 use tauri::{AppHandle, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt as _;
 use warden_core::{CancellationToken, PackId};
@@ -15,7 +15,6 @@ use warden_export::{
     ExportSource, FormatAnalysis, FormatChoices, FormatExportResult, FormatRequest, LauncherFormat,
     Lookups,
 };
-use warden_http::{HttpClient, HttpConfig};
 use warden_secrets::SecretKind;
 
 #[cfg(debug_assertions)]
@@ -31,23 +30,21 @@ fn domain(error: &warden_export::Error) -> AppError {
     AppError::from_domain(error)
 }
 
-/// A chave da CurseForge e o cliente dela; `None` sem chave (a conferência da distribuição
-/// fica de fora e a tela avisa).
+/// A chave da CurseForge e o cliente dela (o mesmo do inventário); `None` sem chave (a
+/// conferência da distribuição fica de fora e a tela avisa).
 fn curseforge(
     state: &AppState,
 ) -> Result<(Option<SecretString>, Option<CurseforgeClient>), AppError> {
     let key = state
         .secrets
         .get(SecretKind::Curseforge)
-        .map_err(|error| AppError::from_domain(&error))?;
-    let Some(secret) = key else {
-        return Ok((None, None));
+        .map_err(|error| AppError::from_domain(&error))?
+        .filter(|key| !key.expose_secret().trim().is_empty());
+    let client = match key {
+        Some(_) => Some(super::inventory::curseforge(state)?),
+        None => None,
     };
-    let http = HttpClient::new(HttpConfig::for_version(env!("CARGO_PKG_VERSION")))
-        .map_err(|error| AppError::from_domain(&error))?;
-    let client = CurseforgeClient::new(http, Some(secret.clone()))
-        .map_err(|error| AppError::from_domain(&error))?;
-    Ok((Some(secret), Some(client)))
+    Ok((key, client))
 }
 
 /// Lê o pack para o formato: o que se perde, o que pede decisão e o que impede de gerar.
