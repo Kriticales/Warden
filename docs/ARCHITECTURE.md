@@ -175,7 +175,7 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | initial-mods/kits | `initial_mods_offer` (etapa "Mods iniciais" do Criar pack: spark, Crash Assistant e a Fabric API no Fabric, com a versão de cada um; não precisa de pack), `initial_mods_apply` (depois do "Pack criado": `add_plan` + `add_apply` num ponto único, config inicial do Crash Assistant e `[player-tools]`), `kits_list` (kits de desempenho do loader e da versão, dados embutidos, sem rede) |
 | updates | `updates_report` (último relatório do pack, só memória), `updates_check` (`trigger`: `auto` respeita o intervalo das Configurações; `manual` sempre consulta), `updates_plan`, `updates_apply` (P1-12: um ponto de segurança com mais de um item) |
 | configs | `config_tree`, `config_read`, `config_write`, `config_search` (P0), `config_structured_read` (P1, com metadados em camadas), `config_structured_apply` (P1), `config_restore_default` (P1), `config_set_preserve` (P1) |
-| test | `test_start` (com o perfil e o modo: normal, como o jogador recebe, com perfil de desempenho, como servidor), `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file` |
+| test | `test_start` (com o perfil e o modo: normal, como o jogador recebe, com perfil de desempenho, como servidor), `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file`, `cf_blocked_open_page` (L-06: o diálogo de arquivo e o endereço da página ficam no backend) |
 | capture | `capture_changes`, `capture_apply`, `capture_discard` |
 | diagnostics | `diagnostics_run`, `diagnostics_report_get`, `diagnostics_ignore` (P1) |
 | ai | `ai_sources_list` (P1: último travamento, outras sessões), `ai_conversation_preview` (P1: texto inicial e o que a IA poderá consultar; aceita sessão ou arquivo escolhido pelo diálogo nativo), `ai_conversation_start` (P1, com as permissões escolhidas), `ai_conversation_send` (P1), `ai_conversations_list`, `ai_conversation_get`, `ai_conversation_delete` (P1), `ai_proposal_apply`, `ai_proposal_discard` (P1) |
@@ -218,6 +218,7 @@ Emitidos com `app.emit` para quem estiver ouvindo; tipados com `tauri-specta` (`
 | `game-state` | `{ packId, state: "preparing" \| "running" \| "bisecting" \| "exited", sessionId, profile }` | Cabeçalho do pack ("Buscando o culpado: ver progresso" no estado `bisecting`), bloqueio de "um jogo por vez" (a busca do culpado e o servidor local contam como jogo). |
 | `server-state` | `{ packId, state: "installing" \| "starting" \| "ready" \| "stopping" \| "stopped", port }` | Tela do teste com servidor (T27). |
 | `ai-conversation-updated` | `{ packId, conversationId }` | Lista de conversas e a conversa aberta. |
+| `manual-downloads-changed` | `{ packId }` | A lista de downloads manuais da CurseForge do teste mudou (T20, L-06): a tela do teste relê `cf_blocked_list`. |
 
 ### 4.3 Canais por operação
 
