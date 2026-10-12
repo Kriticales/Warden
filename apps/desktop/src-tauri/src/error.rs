@@ -264,8 +264,6 @@ pub enum AppErrorCode {
     /// Arquivos que o pack colocou na instância mudaram durante o teste anterior e seriam
     /// substituídos (`params.count`, `params.files`).
     TestInstanceChanged,
-    /// Mods da CurseForge precisam de download manual (`params.count`, `params.names`).
-    TestManualDownloads,
     /// O loader do pack não é aceito pelo Testar (`params.loader`).
     TestLoaderUnsupported,
     /// A sessão de teste pedida não existe mais (`params.sessionId`).
@@ -280,6 +278,11 @@ pub enum AppErrorCode {
     /// falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
     /// nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
     TestGameFilesMissing,
+    /// O download manual pedido não está mais na lista (o teste foi cancelado ou já
+    /// continuou; L-06).
+    ManualDownloadNotWaiting,
+    /// O mod bloqueado não tem a página de download conhecida (L-06).
+    ManualDownloadNoPage,
 }
 
 #[cfg(test)]

@@ -26,6 +26,7 @@ import { javaRequest } from '../../pack-editor/test-settings/TestSettingsDialog'
 import { loaderName } from '../../packs/lib/pack-list';
 import { useSettings } from '../../settings/api';
 import { useRevealInstance, useSaveSessionLog } from '../api';
+import { ManualDownloads, useManualDownloads } from '../blocked/ManualDownloads';
 import { Console } from '../console/Console';
 import { currentStep, orderedSteps, stepLabel } from '../steps';
 import { useGame, useTestStore, type TestRun } from '../store';
@@ -76,15 +77,19 @@ export function PrepareView({ run, pack }: { run: TestRun; pack: PackRow }) {
   const progress = run.progress;
   const percent = progress?.total ? Math.min(100, (progress.current / progress.total) * 100) : null;
   const label = (run.stage ? stageText(run.stage.labelKey) : null) ?? t('preparo.aguarde');
+  // Mods da CurseForge para baixar à mão (T20, L-06): o teste espera a pessoa.
+  const manual = useManualDownloads(run.packId).data ?? [];
+  const { t: tManual } = useTranslation('downloadsManuais');
+  const position = { atual: Math.min(current + 1, steps.length), total: steps.length };
   return (
     <>
       <PageHead
         title={t('preparo.titulo')}
-        sub={t('preparo.sub', {
-          atual: Math.min(current + 1, steps.length),
-          total: steps.length,
-          hora: formatTime(run.startedAtMs),
-        })}
+        sub={
+          manual.length > 0
+            ? tManual('sub', position)
+            : t('preparo.sub', { ...position, hora: formatTime(run.startedAtMs) })
+        }
         actions={
           <Button
             variant="ghost"
@@ -99,18 +104,22 @@ export function PrepareView({ run, pack }: { run: TestRun; pack: PackRow }) {
         }
       />
       <TestSteps run={run} />
-      <div className="prep">
-        <div className="panel panel--strong stack">
-          <ProgressBar
-            value={percent}
-            label={label}
-            meta={progress ? progressText(progress) : undefined}
-          />
-          <Warnings run={run} />
-          <p className="t-sm t-3">{t('preparo.primeiraVez')}</p>
+      {manual.length > 0 ? (
+        <ManualDownloads packId={run.packId} items={manual} />
+      ) : (
+        <div className="prep">
+          <div className="panel panel--strong stack">
+            <ProgressBar
+              value={percent}
+              label={label}
+              meta={progress ? progressText(progress) : undefined}
+            />
+            <Warnings run={run} />
+            <p className="t-sm t-3">{t('preparo.primeiraVez')}</p>
+          </div>
+          <ThisTest pack={pack} />
         </div>
-        <ThisTest pack={pack} />
-      </div>
+      )}
     </>
   );
 }

@@ -124,6 +124,12 @@ fn setup(app: &mut tauri::App, dev_root: Option<&Path>) -> Result<(), Box<dyn st
     let webview_dir = paths.webview_dir();
     let (state, outcome) = AppState::open(paths, keyring_override, notifier, logging)?;
     tracing::info!(?outcome, "configurações lidas");
+    // Downloads manuais da CurseForge (L-06): o evento e a pasta Downloads observada.
+    commands::cf_blocked::connect(
+        &state.manual_downloads,
+        app.handle().clone(),
+        app.path().download_dir().ok(),
+    );
     app.manage(state);
 
     create_main_window(app, webview_dir)?;

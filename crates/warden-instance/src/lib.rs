@@ -17,6 +17,9 @@
 //! - [`player_tools`]: o que das ferramentas do jogador (spark, Crash Assistant) entra em cada
 //!   tipo de teste (D16).
 //! - [`accept_manual_file`]: download manual de um mod bloqueado da CurseForge (T20).
+//! - [`ManualDownloads`], [`provide_file`] e [`DownloadsWatch`]: a lista da T20 com o estado de
+//!   cada item, o arquivo escolhido conferido pelo hash antes de qualquer cópia e o vigia da
+//!   pasta Downloads (L-06).
 //!
 //! Limites: a rede é a da `warden-http` (P1-03) e a leitura do pack é a da `warden-packwiz`
 //! (P1-01); esta crate não abre o jogo nem instala o loader (é o motor da `warden-launcher`,
@@ -26,6 +29,7 @@ mod blocked;
 mod downloads;
 mod error;
 mod manifest;
+mod manual_downloads;
 mod materialize;
 mod optional_choices;
 pub mod player_tools;
@@ -38,6 +42,11 @@ pub use downloads::{
 pub use error::{Error, FailedItem, FailureReason, InstanceErrorCode, Result};
 pub use manifest::{
     EntryOrigin, MANIFEST_FILE, MANIFEST_SCHEMA, Manifest, ManifestEntry, ModrinthIds, modified_ns,
+};
+pub use manual_downloads::{
+    DownloadsWatch, FoundVia, MAX_WATCHED_FILE_BYTES, ManualDownloadItem, ManualDownloadStatus,
+    ManualDownloads, SETTLE, WatchContext, display_name, file_matches, find_by_name, identify,
+    is_candidate, provide_file,
 };
 pub use materialize::{
     GameRequirement, InstallSide, InstanceDirs, LoaderRequirement, MaterializeOptions,

@@ -48,6 +48,8 @@ pub struct AppState {
     pub(crate) tests: Arc<crate::test_session::TestSessions>,
     /// Último relatório de atualizações de cada pack (P1-12; só memória).
     pub update_reports: crate::commands::updates::UpdateReports,
+    /// Downloads manuais da CurseForge em espera, por pack (L-06; só memória).
+    pub(crate) manual_downloads: Arc<crate::commands::cf_blocked::ManualDownloadsHub>,
 }
 
 impl AppState {
@@ -105,6 +107,7 @@ impl AppState {
                 modrinth,
                 tests,
                 update_reports: crate::commands::updates::UpdateReports::default(),
+                manual_downloads: Arc::default(),
             },
             outcome,
         ))

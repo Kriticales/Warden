@@ -18,8 +18,6 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Este tipo de teste ainda não está disponível nesta versão do Warden. Use o Testar normal.',
   TEST_INSTANCE_CHANGED:
     'Arquivos do pack mudaram na instância de teste durante o teste anterior e seriam substituídos pela versão do pack: {{files}}. Substitua para testar, ou copie antes o que quiser guardar.',
-  TEST_MANUAL_DOWNLOADS:
-    'A CurseForge não deixa outros apps baixarem estes mods: {{names}}. Baixe-os pelo site e coloque na pasta Downloads; a ajuda para isso chega numa próxima versão do Warden.',
   TEST_LOADER_UNSUPPORTED:
     'O Warden não testa packs com {{loader}}. Use Forge, NeoForge ou Fabric.',
   TEST_SESSION_NOT_FOUND:
@@ -35,4 +33,8 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Falta {{count}} arquivo do Minecraft para abrir o teste e não foi possível baixá-lo: {{names}}. Confira a internet e tente de novo; o caminho completo está nos detalhes técnicos.',
   TEST_GAME_FILES_MISSING_other:
     'Faltam {{count}} arquivos do Minecraft para abrir o teste e não foi possível baixá-los: {{names}}. Confira a internet e tente de novo; a lista completa está nos detalhes técnicos.',
+  MANUAL_DOWNLOAD_NOT_WAITING:
+    'Este mod não está mais esperando o download manual: o teste foi cancelado ou já continuou.',
+  MANUAL_DOWNLOAD_NO_PAGE:
+    'O Warden não sabe a página de download deste mod. Procure o mod pelo nome no site da CurseForge e baixe o arquivo indicado.',
 };
