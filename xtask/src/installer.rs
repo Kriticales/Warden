@@ -230,6 +230,12 @@ fn ensure_jre(dir: &Path) -> Result<PathBuf> {
         "installer: esperava uma pasta no topo do JRE, achei {}",
         top.len()
     );
+    // Sobra incompleta (sem o `java`), por exemplo restaurada em parte pelo cache da pasta
+    // `target` na CI: o `rename` não substitui uma pasta que não está vazia.
+    if jre_dir.exists() {
+        fs::remove_dir_all(&jre_dir)
+            .with_context(|| format!("falha ao apagar {}", jre_dir.display()))?;
+    }
     fs::rename(&top[0], &jre_dir)
         .with_context(|| format!("falha ao renomear para {}", jre_dir.display()))?;
     fs::remove_dir_all(&staging)?;
