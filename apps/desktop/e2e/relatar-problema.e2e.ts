@@ -184,7 +184,15 @@ describe('Relatar problema', () => {
     expect(leaks(url)).toEqual([]);
     expect(leaks(decodeURIComponent(url))).toEqual([]);
 
-    await expect($('div*=Relato aberto no navegador')).toBeDisplayed();
+    await browser.waitUntil(
+      async () =>
+        browser.execute(() =>
+          Array.from(document.querySelectorAll('.toast')).some((toast) =>
+            toast.textContent.includes('Relato aberto no navegador'),
+          ),
+        ),
+      { timeoutMsg: 'o aviso "Relato aberto no navegador" não apareceu' },
+    );
     await dialog().waitForDisplayed({ reverse: true });
   });
 
