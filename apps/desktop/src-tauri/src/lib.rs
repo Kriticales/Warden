@@ -187,13 +187,36 @@ fn create_main_window(
         .iter()
         .find(|window| window.label == MAIN_WINDOW)
         .ok_or("janela principal ausente no tauri.conf.json")?;
-    let window = tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
+    let mut builder = tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
         .data_directory(webview_dir)
         // No Windows a barra de título é a do Warden (UI-01; `window_chrome`).
-        .decorations(!window_chrome::CUSTOM_TITLE_BAR)
-        .build()?;
+        .decorations(!window_chrome::CUSTOM_TITLE_BAR);
+    if cfg!(all(windows, debug_assertions))
+        && let Some(args) = webview2_args_with(
+            std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
+                .ok()
+                .as_deref(),
+        )
+    {
+        builder = builder.additional_browser_args(&args);
+    }
+    let window = builder.build()?;
     window_chrome::attach(&window);
     Ok(())
+}
+
+/// Argumentos padrão que o wry passa ao WebView2 quando o app não passa nenhum.
+const WRY_DEFAULT_WEBVIEW2_ARGS: &str = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection \
+     --autoplay-policy=no-user-gesture-required";
+
+/// Argumentos do WebView2 com os de `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` no fim (só em
+/// build de debug no Windows; QUALITY §13.5). O `msedgedriver` do E2E liga a depuração remota
+/// por essa variável, mas o wry sempre passa os argumentos pela API e o WebView2 deixa a
+/// variável de fora: sem `--remote-debugging-port`, o driver não acha o `DevToolsActivePort`.
+/// Os da variável vêm por último para prevalecerem quando repetem uma opção.
+fn webview2_args_with(extra: Option<&str>) -> Option<String> {
+    let extra = extra.map(str::trim).filter(|extra| !extra.is_empty())?;
+    Some(format!("{WRY_DEFAULT_WEBVIEW2_ARGS} {extra}"))
 }
 
 /// Gera o `bindings.ts` (tipos e chamadas TypeScript) em `path`. Usado por
@@ -214,6 +237,18 @@ mod tests {
             paths.webview_dir(),
             dir.path().join("data").join("EBWebView")
         );
+    }
+
+    #[test]
+    fn argumentos_do_webview2_do_e2e_vem_depois_dos_padrao() {
+        assert_eq!(webview2_args_with(None), None);
+        assert_eq!(webview2_args_with(Some("  ")), None);
+        let args = webview2_args_with(Some(" --remote-debugging-port=0 ")).unwrap();
+        assert!(
+            args.starts_with("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection ")
+        );
+        assert!(args.contains(" --autoplay-policy=no-user-gesture-required "));
+        assert!(args.ends_with(" --remote-debugging-port=0"));
     }
 
     #[test]
