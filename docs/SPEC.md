@@ -1318,6 +1318,29 @@ Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e 
 | CA-T33-04 | Nenhuma métrica é gravada na pasta do pack nem enviada pela rede (inspeção da pasta do pack e servidor simulado que reprova qualquer requisição durante o uso da página). |
 | CA-T33-05 | O gráfico tem a tabela equivalente, os selos de aviso têm ícone e palavra, e a página passa no `axe` sem violações (teste de componente). |
 
+### Relatar problema (UI-02)
+
+**Objetivo:** o dono relata um problema do Warden sem sair do app, com o que for preciso para achar a causa, e confere tudo antes de enviar. O relato vira uma **issue do GitHub já preenchida** no repositório do Warden, com o rótulo `relato-do-dono`; o orquestrador lê essas issues e despacha as correções. Tarefa fora do plano original, pedida pelo dono no uso real (ROADMAP UI-02).
+
+**Onde:** botão **Relatar problema** (ícone e texto, com dica) sempre à mão: na barra de título própria do Warden no Windows (UI-01), antes dos botões da janela; no Linux, onde a janela usa a barra do sistema, no rodapé, ao lado de Tarefas. Atalho **Ctrl+Shift+E** em qualquer tela (o F1 fica livre para uma ajuda futura; o Ctrl+Shift+E não é usado pelo WebView2 nem pelo WebKitGTK).
+
+**Diálogo:**
+
+- **Título** (obrigatório; sem ele, **Abrir no GitHub** fica desabilitado e o campo diz por quê), **O que você fez**, **O que aconteceu** e **O que você esperava** (opcionais) e a caixa **Incluir os registros do app** (marcada).
+- **Coletado pelo Warden** (mostrado, sem edição): versão e commit do app; sistema e versão ("Windows 11 (10.0.26100.4061)"); a tela em que o diálogo abriu, nos termos da interface ("Pack › Mods"); o pack aberto (nome, versão do Minecraft, loader e versão); o último erro mostrado (a frase de qualquer aviso ou toast de erro e, quando vem de um erro do app, o código `domínio.CÓDIGO`); e, com a caixa marcada, as últimas linhas dos registros do Warden.
+- **Pré-visualização** com o título e o texto exatos que vão para o GitHub, depois da redação (ARCHITECTURE §9.4): pastas pessoais, nomes do usuário, do jogador e do computador, e-mails, IPs, chaves nos formatos conhecidos e os valores reais das chaves guardadas viram marcadores (`<usuário>`, `<segredo>`…).
+- Aviso: "Este repositório é público: o relato fica visível para qualquer pessoa." e a dica de colar um print direto na issue, no GitHub.
+
+**Envio:** **Abrir no GitHub** abre no navegador padrão a página de issue nova do repositório com `title`, `body` e `labels=relato-do-dono`; quem envia é o dono, na página do GitHub. Nada sai do computador antes desse clique. O endereço tem no máximo 7.500 caracteres: se não couber, saem primeiro as linhas mais antigas do registro (marcadas com "… (linhas anteriores cortadas)"); se nem sem registro couber, o fim do texto é cortado. Quando algo foi cortado, a tela avisa antes e, no clique, o relato completo vai para a área de transferência para o dono colar na issue.
+
+| CA | Critério |
+|---|---|
+| CA-UI02-01 | O botão aparece em todas as telas (barra de título no Windows, rodapé no Linux) com dica que cita o atalho; o diálogo tem os quatro campos e a caixa marcada; sem título, **Abrir no GitHub** fica desabilitado; foco no título do diálogo ao abrir, rótulos ligados aos campos e Esc fecha; ao fechar, o foco volta ao botão (ou, aberto pelo atalho, ao que estava focado antes); sem violação séria do `axe` (componente e E2E). |
+| CA-UI02-02 | O endereço aberto é a página de issue nova do repositório do Warden (uma constante só no código), com o título e o corpo idênticos aos da pré-visualização e `labels=relato-do-dono`; o comando de abrir recusa qualquer outro endereço (teste de backend e E2E com a abertura interceptada). |
+| CA-UI02-03 | Com um registro grande, o endereço fica com no máximo 7.500 caracteres, as linhas que ficam são as mais novas e a marca de corte aparece; o relato completo vai para a área de transferência e a tela diz que dá para colar na issue (teste de backend e de componente). |
+| CA-UI02-04 | Um registro com o caminho da pasta do usuário, uma chave no formato da CurseForge (`$2a$…`), um `AIza…`, um `ghp_…`, o nome do computador e o valor real de uma chave do cofre não deixa nenhum desses textos no título, no corpo nem no endereço, codificado ou não (teste de backend e E2E). |
+| CA-UI02-05 | O atalho Ctrl+Shift+E abre o diálogo de qualquer tela; o coletado mostra a tela em que ele abriu, nos termos da interface, e o último erro mostrado antes de abrir (componente e E2E). |
+
 ---
 
 ## 7. Regras que valem para o app inteiro
@@ -1329,7 +1352,7 @@ Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e 
 5. **Nada de botão morto.** Toda ação visível funciona ou está desabilitada com dica explicando por quê.
 6. **Teclado e acessibilidade.** Toda ação acessível por teclado, foco visível, contraste AA, textos alternativos em ícones com função.
 7. **Uma janela.** Só uma cópia do Warden aberta por vez; abrir de novo foca a janela existente.
-8. **Privacidade.** Nada é enviado a terceiros além das chamadas necessárias às APIs (Mojang, Modrinth, CurseForge, Adoptium, Maven dos loaders, GitHub e, com o consentimento da conversa, Gemini e a busca de issues no GitHub). Sem telemetria. O Warden nunca faz upload de perfis do spark nem de logs para serviços de colagem. (1.1) A checagem de segurança envia só hashes de arquivos ao Modrinth e à CurseForge, nunca o arquivo; a análise do travamento de um jogador só **baixa** o log do link que você colou (mclo.gs e os outros da T30), pelo Rust; as métricas de desempenho nunca saem do computador.
+8. **Privacidade.** Nada é enviado a terceiros além das chamadas necessárias às APIs (Mojang, Modrinth, CurseForge, Adoptium, Maven dos loaders, GitHub e, com o consentimento da conversa, Gemini e a busca de issues no GitHub). Sem telemetria. O **Relatar problema** (UI-02) só abre no navegador a issue já preenchida e redigida, que o próprio dono envia. O Warden nunca faz upload de perfis do spark nem de logs para serviços de colagem. (1.1) A checagem de segurança envia só hashes de arquivos ao Modrinth e à CurseForge, nunca o arquivo; a análise do travamento de um jogador só **baixa** o log do link que você colou (mclo.gs e os outros da T30), pelo Rust; as métricas de desempenho nunca saem do computador.
 9. **Linguagem.** Português do Brasil, "você", frases curtas, sem gírias técnicas não explicadas (QUALITY §8).
 10. **O pesado só sob demanda.** Servidor local, busca do culpado e perfil de desempenho só rodam quando o usuário pede, sempre com pausar ou cancelar e com uma explicação do que está acontecendo. O ▶ Testar continua fazendo só o teste normal (decisão D18).
 11. **Tudo que roda em rede local fica em 127.0.0.1.** Servidor local, servidor de arquivos do teste "como o jogador recebe" e chamadas ao servidor web do KubeJS nunca escutam nem chamam fora do próprio computador.
@@ -1471,3 +1494,4 @@ Recomendações das pesquisas e dos spikes que **ainda não foram decididas**. N
 | T32 (1.1) | W-09 |
 | T33 (1.1) | W-10 |
 | T06, T07, T14, T16, T17, T18 (partes 1.1) | W-02, W-05, W-07, W-08, W-09, W-10 (cada uma registra o seu bloco); W-11 (saúde do pack com as categorias novas e painel Verificações do pack); W-12 (revisão e fluxos de ponta a ponta da 1.1) |
+| Relatar problema | UI-02 |

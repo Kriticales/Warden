@@ -1,6 +1,7 @@
 /**
  * Aviso dentro da página (shadcn `Alert` com as classes `.alert`; HANDOFF §3). Ícone e texto,
- * nunca só a cor. Só o de perigo usa `role="alert"` (lido na hora pelo leitor de tela).
+ * nunca só a cor. Só o de perigo usa `role="alert"` (lido na hora pelo leitor de tela) e entra
+ * no "Relatar problema" como o último erro mostrado (UI-02; `last-error.ts`).
  */
 import {
   CircleAlert,
@@ -10,9 +11,10 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 
 import { cn } from '../../lib/cn';
+import { useRememberShownError } from '../../lib/ipc/last-error';
 import { Icon } from './icon';
 
 export type AlertKind = 'info' | 'ok' | 'warn' | 'danger' | 'neutral' | 'ai';
@@ -50,13 +52,15 @@ export function Alert({
   className,
 }: AlertProps) {
   const effectiveRole = role ?? (kind === 'danger' ? 'alert' : undefined);
+  const textRef = useRef<HTMLDivElement>(null);
+  useRememberShownError(textRef, kind === 'danger');
   return (
     <div
       className={cn('alert', `alert--${kind}`, compact && 'alert--compact', className)}
       role={effectiveRole === 'none' ? undefined : effectiveRole}
     >
       <Icon icon={ICONS[kind]} />
-      <div>
+      <div ref={textRef}>
         {title ? <div className="alert__title">{title}</div> : null}
         {children}
       </div>

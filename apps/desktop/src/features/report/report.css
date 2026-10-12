@@ -1,0 +1,69 @@
+/* "Relatar problema" (UI-02). Mesma regra do design system: só tokens. */
+.report__textarea {
+  min-height: calc(var(--spacing) * 16);
+}
+/* Rótulo e valor em pares, dentro da grade do `.kv`. */
+.report__kv {
+  display: contents;
+}
+.report__kv dd {
+  overflow-wrap: anywhere;
+}
+.report__label {
+  margin-bottom: calc(-1 * var(--space-1));
+}
+.report__title {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.report__body {
+  max-height: calc(var(--spacing) * 64);
+  overflow-wrap: anywhere;
+}
+/* Botão da barra de título (Windows; UI-01) e do rodapé (Linux). */
+.titlebar__actions {
+  display: flex;
+  margin-left: auto;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+.titlebar__actions + .titlebar__controls {
+  margin-left: 0;
+}
+.titlebar__report {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: default;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.titlebar__report:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+  box-shadow: var(--inset-shadow-bevel);
+}
+.titlebar__report:active {
+  background: var(--color-surface-2);
+  box-shadow: var(--inset-shadow-bevel-press);
+}
+.titlebar__report:focus-visible {
+  outline: var(--border-block) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--border-block));
+}
+.titlebar--inactive .titlebar__report:not(:hover) {
+  color: var(--color-text-3);
+}
+.statusbar__report {
+  margin-left: auto;
+}
+.statusbar__report + .statusbar__end {
+  margin-left: 0;
+}

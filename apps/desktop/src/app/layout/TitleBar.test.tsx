@@ -3,6 +3,8 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { TooltipProvider } from '../../components/ui/tooltip';
+import { useReportDialog } from '../../features/report/store';
 import { axePage } from '../../test/axe';
 import { mockBackend, type Handler } from '../../test/backend';
 import { TitleBar, usesCustomTitleBar } from './TitleBar';
@@ -22,6 +24,15 @@ function windowBackend(handlers: Record<string, Handler> = {}) {
   });
 }
 
+/** A barra com o provedor de dicas do app (o "Relatar problema" tem dica). */
+function renderTitleBar() {
+  return render(
+    <TooltipProvider>
+      <TitleBar />
+    </TooltipProvider>,
+  );
+}
+
 beforeEach(() => {
   mockWindows('main');
 });
@@ -38,9 +49,21 @@ describe('usesCustomTitleBar', () => {
 });
 
 describe('TitleBar', () => {
+  it('"Relatar problema" fica antes dos botões da janela e abre o diálogo (UI-02)', async () => {
+    windowBackend();
+    const user = userEvent.setup();
+    renderTitleBar();
+    const report = screen.getByRole('button', { name: 'Relatar problema' });
+    expect(report.getAttribute('aria-keyshortcuts')).toBe('Control+Shift+E');
+    expect(report.closest('[role="group"]')).toBeNull();
+    await user.click(report);
+    expect(useReportDialog.getState().open).toBe(true);
+    useReportDialog.setState({ open: false });
+  });
+
   it('mostra a marca e os botões com rótulos em português, sem problemas de acessibilidade', async () => {
     windowBackend();
-    const { container } = render(<TitleBar />);
+    const { container } = renderTitleBar();
     expect(screen.getByText('Warden')).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Janela' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Minimizar' })).toBeTruthy();
@@ -51,15 +74,18 @@ describe('TitleBar', () => {
 
   it('janela maximizada: o botão vira Restaurar', async () => {
     windowBackend({ 'plugin:window|is_maximized': () => true });
-    render(<TitleBar />);
+    renderTitleBar();
     expect(await screen.findByRole('button', { name: 'Restaurar' })).toBeTruthy();
   });
 
   it('os botões minimizam, maximizam e fecham, também pelo teclado', async () => {
     const backend = windowBackend();
     const user = userEvent.setup();
-    render(<TitleBar />);
+    renderTitleBar();
 
+    // "Relatar problema" vem antes dos botões da janela.
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Relatar problema' }));
     await user.tab();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Minimizar' }));
     await user.tab();
@@ -81,7 +107,7 @@ describe('TitleBar', () => {
     vi.spyOn(HTMLButtonElement.prototype, 'getBoundingClientRect').mockReturnValue(
       DOMRect.fromRect({ x: 1184, y: 0, width: 48, height: 36 }),
     );
-    render(<TitleBar />);
+    renderTitleBar();
     await waitFor(() => {
       expect(backend.callsOf('window_set_maximize_area')).toEqual([
         {
@@ -94,13 +120,13 @@ describe('TitleBar', () => {
 
   it('sem medida (botão invisível), não informa nada', () => {
     const backend = windowBackend();
-    render(<TitleBar />);
+    renderTitleBar();
     expect(backend.callsOf('window_set_maximize_area')).toHaveLength(0);
   });
 
   it('desenha o hover e o aperto do maximizar que chegam do Rust', async () => {
     const backend = windowBackend();
-    render(<TitleBar />);
+    renderTitleBar();
     const maximize = await screen.findByRole('button', { name: 'Maximizar' });
     // A assinatura é assíncrona: emite até ela existir.
     await waitFor(async () => {
@@ -117,7 +143,7 @@ describe('TitleBar', () => {
 
   it('janela sem foco fica apagada', () => {
     windowBackend();
-    render(<TitleBar />);
+    renderTitleBar();
     const bar = screen.getByTestId('titlebar');
     act(() => {
       window.dispatchEvent(new FocusEvent('focus'));

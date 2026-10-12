@@ -119,6 +119,9 @@ export const config: WebdriverIO.Config = {
     // console pelo caminho escrito neste arquivo.
     const saveFile = join(dataRoot, 'arquivo-escolhido.txt');
     process.env.WARDEN_E2E_SAVE_FILE = saveFile;
+    // Relatar problema (UI-02): o endereço que abriria no navegador vai para este arquivo.
+    const openUrlFile = join(dataRoot, 'endereco-aberto.txt');
+    process.env.WARDEN_E2E_OPEN_URL = openUrlFile;
     const java = testJava();
     process.env.WARDEN_E2E_HAS_JAVA = java ? '1' : '';
     // Os testes leem o registro de requisições do servidor de fixtures (`GET /__requests`).
@@ -138,6 +141,7 @@ export const config: WebdriverIO.Config = {
       WARDEN_API_BASE_MODRINTH: `${mockServer.url}/modrinth/v2/`,
       WARDEN_API_BASE_CURSEFORGE: `${mockServer.url}/curseforge/`,
       WARDEN_E2E_SAVE_FILE: saveFile,
+      WARDEN_E2E_OPEN_URL: openUrlFile,
       ...(java
         ? {
             WARDEN_E2E_FAKE_GAME: FAKE_GAME_DIR,

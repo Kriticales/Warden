@@ -5,6 +5,8 @@
  *   `CommandError` de `unwrap`, a rejeição crua do IPC ou o próprio objeto.
  * - `appErrorMessage` devolve a frase do catálogo `i18n/errors/<domínio>.ts` com os `params`
  *   no lugar de `{{nome}}` (e a forma `_one`/`_other` que concorda com o `count`, se houver).
+ * - `appErrorMessage` também anota a frase com o código (`last-error.ts`): quando a frase
+ *   aparece num erro na tela, o "Relatar problema" (UI-02) leva o código junto.
  * - `technicalDetails` monta o texto de "Detalhes técnicos" (código, detalhe e tarefa), que é o
  *   que o botão Copiar copia.
  */
@@ -12,6 +14,7 @@ import i18n from '../../i18n';
 import { errorMessage } from '../../i18n/errors';
 import { describeError } from '../log';
 import type { AppError, ErrorCode } from './bindings';
+import { notePhrase } from './last-error';
 import { CommandError } from './result';
 
 const PLACEHOLDER = /\{\{\s*([\w.]+)\s*\}\}/g;
@@ -62,18 +65,23 @@ function countParam(params: AppError['params']): number | undefined {
   return text !== undefined && /^\d+$/.test(text) ? Number(text) : undefined;
 }
 
-/** Frase pt-BR de um erro, com os parâmetros preenchidos e o plural que concorda com `count`. */
-export function appErrorMessage(error: AppError): string {
-  const missing = i18n.t('erro.parametroAusente');
-  return errorMessage(error.code, countParam(error.params)).replace(
-    PLACEHOLDER,
-    (_, name: string) => error.params[name] ?? missing,
-  );
-}
-
 /** `domínio.CÓDIGO`, como aparece em "Detalhes técnicos". */
 export function errorCodeText(code: ErrorCode): string {
   return `${code.domain}.${code.code}`;
+}
+
+/**
+ * Frase pt-BR de um erro, com os parâmetros preenchidos e o plural que concorda com `count`.
+ * A frase fica anotada com o código, para o "Relatar problema" reconhecer o erro mostrado.
+ */
+export function appErrorMessage(error: AppError): string {
+  const missing = i18n.t('erro.parametroAusente');
+  const message = errorMessage(error.code, countParam(error.params)).replace(
+    PLACEHOLDER,
+    (_, name: string) => error.params[name] ?? missing,
+  );
+  notePhrase(errorCodeText(error.code), message);
+  return message;
 }
 
 /** Texto de "Detalhes técnicos": o que o botão Copiar leva para a área de transferência. */
