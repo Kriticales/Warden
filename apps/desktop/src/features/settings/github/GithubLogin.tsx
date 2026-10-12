@@ -219,7 +219,7 @@ function Waiting({
         {t('codigo.instrucao', { minutos: Math.max(1, Math.round(code.expiresInSeconds / 60)) })}
       </p>
       <div className="stack-2">
-        <span className="t-xs t-3" id={labelId}>
+        <span className="github-login__code-label t-xs t-3" id={labelId}>
           {t('codigo.rotulo')}
         </span>
         <output

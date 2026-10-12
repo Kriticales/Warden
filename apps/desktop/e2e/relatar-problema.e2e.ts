@@ -329,9 +329,12 @@ function filesUnder(dir: string): string[] {
 const loginSection = () => $('[data-testid="github-login"]');
 
 async function goToSettings(): Promise<void> {
-  const link = $('header.topbar').$('a*=Configurações');
-  await link.waitForClickable();
-  await link.click();
+  // O teste anterior pode ter deixado o app em Configurações (o link fica marcado como atual).
+  if (!(await $('h1=Configurações').isDisplayed())) {
+    const link = $('header.topbar').$('a*=Configurações');
+    await link.waitForClickable();
+    await link.click();
+  }
   await $('h1=Configurações').waitForDisplayed();
   await loginSection().scrollIntoView();
   await loginSection().waitForDisplayed();
