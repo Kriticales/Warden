@@ -1772,6 +1772,15 @@ export type LauncherErrorCode =
 /**  O Warden não conseguiu controlar o processo do jogo (Job Object, grupo de processos). */
 "PROCESS_CONTROL_FAILED";
 
+/**  Fim de linha do arquivo. */
+export type LineEnding = 
+/**  `\n` (ou nenhuma quebra). */
+"lf" | 
+/**  `\r\n` em todas as linhas. */
+"crlf" | 
+/**  Mistura de fins de linha (ou `\r` solto). O editor preserva cada byte. */
+"mixed";
+
 /**
  *  O que o link aponta, resolvido: a tela abre a pré-visualização (link de projeto) ou o
  *  diálogo de dependências com o arquivo exato (link de arquivo).
@@ -2655,6 +2664,15 @@ export type ProviderRef = {
 	/**  Satisfaz por `provides`, com outro id. */
 	alias: boolean,
 };
+
+/**  Por que um arquivo abre só para leitura. */
+export type ReadOnlyReason = 
+/**  Binário (ex.: `servers.dat`): sem texto. */
+"binary" | 
+/**  Acima de [`MAX_EDIT_BYTES`]. O texto vem junto até [`MAX_VIEW_BYTES`]. */
+"tooLarge" | 
+/**  Não é UTF-8: o texto vem com os bytes inválidos trocados, só para olhar. */
+"notUtf8";
 
 /**  Tipo de uma ligação entre itens. */
 export type RelationKind = 
