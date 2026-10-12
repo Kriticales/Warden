@@ -23,6 +23,8 @@ export const adicionarCurseforge = {
     lendo: 'Lendo o link da CurseForge…',
     lendoArquivo: 'O packwiz está lendo o arquivo numa cópia do pack. Nada foi gravado no pack.',
     erro: 'Não foi possível ler este link da CurseForge.',
+    lendoEscolhido: 'Lendo a versão escolhida da CurseForge…',
+    erroEscolhido: 'Não foi possível ler a versão escolhida da CurseForge.',
     projetoLido: 'Link de {{name}} lido.',
     arquivoLido: 'Link do arquivo de {{name}} lido.',
     verProjeto: 'Ver {{name}}',

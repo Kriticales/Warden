@@ -9,7 +9,8 @@
  *
  * O início com populares, atualizados e categorias (campo vazio) é da P1-16; aqui o campo vazio
  * mostra a busca sem texto, já filtrada para o pack. Link da CurseForge colado no campo (P1-10)
- * é lido pelo backend no lugar da busca; os outros links e arquivos são da P1-11.
+ * é lido pelo backend no lugar da busca, e o que ele aponta entra pelo packwiz numa cópia do
+ * pack (ARCHITECTURE §6.1); os outros links e arquivos são da P1-11.
  */
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FilePlus, Plus, RefreshCw, Search } from 'lucide-react';
@@ -41,6 +42,7 @@ import { isInPack, knownSources, mergePages, pageWarnings, sourceLabel } from '.
 import { Preview } from './common/Preview';
 import { ResultRow } from './common/ResultRow';
 import { type PackTarget, useTargetText } from './common/text';
+import type { LinkPick } from './curseforge/api';
 import { parseCurseforgeLink, resultOfLink } from './curseforge/link';
 import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
@@ -85,6 +87,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const [current, setCurrent] = useState<SearchResult | null>(null);
   const [request, setRequest] = useState<DependenciesRequest | null>(null);
   const [added, setAdded] = useState(0);
+  // O projeto do link aberto na pré-visualização, e a versão escolhida lá para o packwiz ler.
+  const [linkProject, setLinkProject] = useState<{ url: string; projectId: string } | null>(null);
+  const [linkPick, setLinkPick] = useState<LinkPick | null>(null);
   const id = useId();
 
   const target: PackTarget = {
@@ -126,10 +131,13 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const onLinkProject = (found: LinkTarget) => {
     if (found.kind !== kind) onKindChange(found.kind);
     setSelected(new Map());
+    setLinkPick(null);
+    if (linkUrl !== null) setLinkProject({ url: linkUrl, projectId: found.projectId });
     setCurrent(resultOfLink(found));
   };
 
   const onLinkFile = (found: LinkTarget) => {
+    setLinkPick(null);
     setRequest({
       choices: [{ source: 'curseforge', projectId: found.projectId, versionId: found.fileId }],
       titles: [found.title],
@@ -247,6 +255,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               url={linkUrl}
               onProject={onLinkProject}
               onFile={onLinkFile}
+              pick={linkProject?.url === linkUrl ? linkPick : null}
             />
           ) : search.isPending ? (
             <ResultsSkeleton />
@@ -327,7 +336,18 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             kind={kind}
             target={target}
             onAdd={(choice, title) => {
-              setRequest({ choices: [choice], titles: [title] });
+              // Do link de projeto: quem lê a versão escolhida é o packwiz (CA-T08-03).
+              const fileId = choice.versionId;
+              const fromLink =
+                linkUrl !== null &&
+                linkProject?.url === linkUrl &&
+                choice.source === 'curseforge' &&
+                choice.projectId === linkProject.projectId;
+              if (fromLink && typeof fileId === 'string') {
+                setLinkPick({ projectId: choice.projectId, fileId });
+              } else {
+                setRequest({ choices: [choice], titles: [title] });
+              }
             }}
           />
         ) : (

@@ -7,6 +7,9 @@
 //! - `curseforge_link_resolve`: o link da CurseForge colado no campo único. Link de projeto:
 //!   achado pela API. Link de arquivo: lido pelo packwiz numa cópia do pack (o pack de verdade
 //!   não é tocado) e seguido pelo caminho normal (`add_plan` e `add_apply`).
+//! - `curseforge_link_import`: o arquivo escolhido na pré-visualização de um link de projeto,
+//!   lido pelo packwiz numa cópia do pack (`--addon-id`/`--file-id`) e seguido pelo mesmo
+//!   caminho (ARCHITECTURE §6.1; CA-T08-03).
 //!
 //! Finos: leem a chave, pegam a trava do pack e chamam a `warden-project`.
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
@@ -23,13 +26,15 @@ use warden_http::{HttpClient, HttpConfig, SystemTimer};
 use warden_project::add::AddSource;
 use warden_project::add::curseforge::CurseforgeAdd;
 use warden_project::add::link_curseforge::{
-    CurseforgeLink, LinkError, LinkTarget, import_file_link, parse_link, resolve_project,
+    CurseforgeLink, LinkError, LinkTarget, import_file_link, import_project_file,
+    parse_link, resolve_project,
 };
 use warden_project::search::curseforge::CurseforgeSearch;
 use warden_project::search::{
     ActiveSource, ProjectPreview, SearchSource, SourceFailure, SourceId, SourcePage, SourceQuery,
     SourceWarningReason,
 };
+use warden_packwiz_cli::Packwiz;
 use warden_project::{ProjectErrorCode, Result as ProjectResult};
 use warden_secrets::SecretKind;
 
@@ -170,6 +175,28 @@ fn domain(error: warden_project::Error) -> AppError {
     AppError::from_domain(&error)
 }
 
+/// O packwiz do link. Em build de debug, aponta a CurseForge dele para o mesmo endereço de
+/// `WARDEN_API_BASE_CURSEFORGE` que o app usa (servidor de fixtures dos E2E; ARCHITECTURE
+/// §17.1); em release, sempre a API oficial.
+fn link_packwiz(state: &AppState) -> Result<Packwiz, AppError> {
+    let packwiz = packwiz(state)?;
+    #[cfg(debug_assertions)]
+    if let Some(base) = std::env::var(warden_curseforge::BASE_URL_ENV)
+        .ok()
+        .filter(|base| !base.trim().is_empty())
+    {
+        return Ok(packwiz.with_curseforge_api(base));
+    }
+    Ok(packwiz)
+}
+
+fn link_error(error: LinkError) -> AppError {
+    match error {
+        LinkError::Project(error) => domain(error),
+        LinkError::Packwiz(error) => AppError::from_domain(&error),
+    }
+}
+
 /// Lê o link da CurseForge colado no campo único e diz o que ele aponta.
 ///
 /// - Link de **projeto**: o projeto, achado pela API; a tela abre a pré-visualização com o
@@ -213,19 +240,60 @@ pub(crate) async fn curseforge_link_resolve(
                 import_file_link(
                     &root,
                     &staging,
-                    &packwiz(&state)?,
+                    &link_packwiz(&state)?,
                     Some(&key),
                     url.trim(),
                     operation.token(),
                 )
                 .await
                 .map(|imported| imported.target())
-                .map_err(|error| match error {
-                    LinkError::Project(error) => domain(error),
-                    LinkError::Packwiz(error) => AppError::from_domain(&error),
-                })
+                .map_err(link_error)
             }
         }
+    }
+    .await;
+    let result = if operation.is_cancelled() {
+        Err(AppError::cancelled())
+    } else {
+        result
+    };
+    operation.finish(result)
+}
+
+/// Lê pelo packwiz, numa cópia do pack, o arquivo escolhido na pré-visualização de um link de
+/// projeto da CurseForge (`curseforge add --addon-id --file-id`; ARCHITECTURE §6.1). A tela
+/// segue com o arquivo exato pelo caminho normal (diálogo de dependências, `add_plan` e
+/// `add_apply`). Nada é gravado no pack.
+///
+/// Sem chave da CurseForge: erro `CURSEFORGE_KEY_MISSING`, sem nenhuma requisição.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn curseforge_link_import(
+    state: State<'_, AppState>,
+    pack_id: PackId,
+    project_id: String,
+    file_id: String,
+) -> Result<LinkTarget, AppError> {
+    let key = stored_key(&state)?.ok_or_else(|| {
+        AppError::from_domain(&warden_curseforge::Error::KeyMissing)
+    })?;
+    let operation = state.operations.start(LINK, Some(pack_id), true);
+    let result = async {
+        let _lock = state.locks.read_for(pack_id, &operation).await;
+        let root = pack_root(&state, pack_id)?;
+        let staging = state.paths.staging_dir(operation.id());
+        import_project_file(
+            &root,
+            &staging,
+            &link_packwiz(&state)?,
+            Some(&key),
+            &project_id,
+            &file_id,
+            operation.token(),
+        )
+        .await
+        .map(|imported| imported.target())
+        .map_err(link_error)
     }
     .await;
     let result = if operation.is_cancelled() {

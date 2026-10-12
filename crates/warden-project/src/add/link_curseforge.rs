@@ -1,17 +1,20 @@
 //! Link da CurseForge colado no campo único de "Adicionar" (SPEC T08 "Link"; ARCHITECTURE
-//! §6.1; ADR-0006).
+//! §6.1; ADR-0006; CA-T08-03).
 //!
-//! Dois tipos de link:
+//! Dois tipos de link, e nos dois quem lê o item é o **packwiz**, numa cópia do pack: ele
+//! sobrescreve arquivos em silêncio, então nunca roda no pack de verdade (ARCHITECTURE §6.1).
+//! Ele responde `n` à pergunta das dependências, que o Warden resolve sozinho pela API.
 //!
 //! - **Projeto** (`https://www.curseforge.com/minecraft/mc-mods/jei`): [`resolve_project`]
 //!   acha o projeto pelo slug na API e a tela abre a pré-visualização com o seletor de versão,
-//!   igual à busca. O que entra no pack é o que o usuário escolher, pelo caminho normal
-//!   (`add_plan` e `add_apply`, que escrevem o mesmo `.pw.toml` do packwiz).
-//! - **Arquivo** (`…/jei/files/4712345`): quem lê o link é o **packwiz**, numa cópia do pack
-//!   ([`import_file_link`]). O packwiz sobrescreve arquivos em silêncio, então ele nunca roda
-//!   no pack de verdade (ARCHITECTURE §6.1); responde `n` à pergunta das dependências, que o
-//!   Warden resolve sozinho pela API. Da cópia sai o projeto e o arquivo exatos, que seguem
-//!   pelo caminho normal: o diálogo de dependências, os conflitos e a gravação atômica.
+//!   igual à busca. O arquivo escolhido vai ao packwiz por [`import_project_file`]
+//!   (`curseforge add --addon-id --file-id`), para ele nunca escolher a versão sozinho.
+//! - **Arquivo** (`…/jei/files/4712345`): [`import_file_link`] passa o link ao packwiz
+//!   (`curseforge add <link>`).
+//!
+//! Da cópia sai o projeto e o arquivo exatos ([`ImportedLink`]), que seguem pelo caminho
+//! normal: o diálogo de dependências, os conflitos e a gravação atômica (`add_plan` e
+//! `add_apply`, que escrevem o mesmo `.pw.toml` do packwiz, exceto o lado, que é do Warden).
 //!
 //! Só links `https://` são aceitos; qualquer outro texto devolve `None` e quem chama tenta os
 //! outros formatos (Modrinth, link direto, P1-11).
@@ -237,9 +240,9 @@ pub enum LinkError {
     Packwiz(#[from] warden_packwiz_cli::Error),
 }
 
-/// Lê um link de **arquivo** pelo packwiz, numa cópia do pack em `staging_dir` (que não pode
-/// ter conteúdo; é apagada ao fim). Nada é gravado no pack: devolve o projeto e o arquivo
-/// exatos para seguirem pelo caminho normal.
+/// Lê um link de **arquivo** pelo packwiz (`curseforge add <link>`), numa cópia do pack em
+/// `staging_dir` (que não pode ter conteúdo; é apagada ao fim). Nada é gravado no pack: devolve
+/// o projeto e o arquivo exatos para seguirem pelo caminho normal.
 ///
 /// Erros: os do packwiz ([`LinkError::Packwiz`]: chave ausente ou recusada, link inválido,
 /// tempo esgotado) e [`Code::Internal`] se o packwiz não escreveu um `.pw.toml` da CurseForge.
@@ -251,14 +254,63 @@ pub async fn import_file_link(
     url: &str,
     cancel: &CancellationToken,
 ) -> Result<ImportedLink, LinkError> {
+    let target = CurseForgeTarget::Url(url.to_owned());
+    import(root, staging_dir, packwiz, key, &target, cancel).await
+}
+
+/// Lê pelo packwiz o arquivo que o usuário escolheu na pré-visualização de um link de
+/// **projeto** (`curseforge add --addon-id <projeto> --file-id <arquivo>`), numa cópia do pack
+/// em `staging_dir`, como [`import_file_link`]. O packwiz nunca escolhe a versão sozinho.
+///
+/// Erros: os de [`import_file_link`]; [`Code::InvalidInput`] se os IDs não são números da
+/// CurseForge; [`Code::Internal`] se o packwiz devolveu outro projeto ou outro arquivo.
+pub async fn import_project_file(
+    root: &Path,
+    staging_dir: &Path,
+    packwiz: &Packwiz,
+    key: Option<&SecretString>,
+    project_id: &str,
+    file_id: &str,
+    cancel: &CancellationToken,
+) -> Result<ImportedLink, LinkError> {
+    let id = |field: &str, value: &str| {
+        value.trim().parse::<u32>().map_err(|_| {
+            Error::new(
+                Code::InvalidInput,
+                format!("{field} da CurseForge inválido: {value}"),
+            )
+            .param("field", field)
+        })
+    };
+    let target = CurseForgeTarget::Ids {
+        addon_id: id("projectId", project_id)?,
+        file_id: id("fileId", file_id)?,
+    };
+    let imported = import(root, staging_dir, packwiz, key, &target, cancel).await?;
+    if imported.project_id != project_id.trim() || imported.file_id != file_id.trim() {
+        return Err(Error::new(
+            Code::Internal,
+            format!(
+                "o packwiz devolveu {}/{} no lugar de {project_id}/{file_id}",
+                imported.project_id, imported.file_id
+            ),
+        )
+        .into());
+    }
+    Ok(imported)
+}
+
+async fn import(
+    root: &Path,
+    staging_dir: &Path,
+    packwiz: &Packwiz,
+    key: Option<&SecretString>,
+    target: &CurseForgeTarget,
+    cancel: &CancellationToken,
+) -> Result<ImportedLink, LinkError> {
     let staging = Staging::copy_from(root, staging_dir)?;
     let report = packwiz
-        .curseforge_add(
-            staging.path(),
-            &CurseForgeTarget::Url(url.to_owned()),
-            key,
-            RunContext::new(cancel),
-        )
+        .curseforge_add(staging.path(), target, key, RunContext::new(cancel))
         .await?;
     imported(staging.path(), &report.metafiles).map_err(LinkError::Project)
 }

@@ -30,6 +30,15 @@ export const commands = {
 	 *  Sem chave da CurseForge: erro `CURSEFORGE_KEY_MISSING`, sem nenhuma requisição.
 	 */
 	curseforgeLinkResolve: (packId: PackId, url: string) => typedError<LinkTarget, AppError>(__TAURI_INVOKE("curseforge_link_resolve", { packId, url })),
+	/**
+	 *  Lê pelo packwiz, numa cópia do pack, o arquivo escolhido na pré-visualização de um link de
+	 *  projeto da CurseForge (`curseforge add --addon-id --file-id`; ARCHITECTURE §6.1). A tela
+	 *  segue com o arquivo exato pelo caminho normal (diálogo de dependências, `add_plan` e
+	 *  `add_apply`). Nada é gravado no pack.
+	 * 
+	 *  Sem chave da CurseForge: erro `CURSEFORGE_KEY_MISSING`, sem nenhuma requisição.
+	 */
+	curseforgeLinkImport: (packId: PackId, projectId: string, fileId: string) => typedError<LinkTarget, AppError>(__TAURI_INVOKE("curseforge_link_import", { packId, projectId, fileId })),
 	/**  Informa a versão, o commit e a plataforma do app. */
 	appInfo: () => typedError<AppInfo, AppError>(__TAURI_INVOKE("app_info")),
 	/**  Configurações atuais. */
