@@ -14,6 +14,14 @@ import './report.css';
 /** Gancho dos testes. */
 const TEST_ID = 'report-button';
 
+/** O botão na tela (só um existe: na barra de título ou no rodapé). */
+let current: HTMLButtonElement | null = null;
+
+/** O botão "Relatar problema" na tela, para o foco voltar a ele ao fechar o diálogo. */
+export function reportButtonElement(): HTMLButtonElement | null {
+  return current;
+}
+
 export interface ReportButtonProps {
   /** Onde o botão fica: barra de título ou rodapé. */
   place: 'titlebar' | 'statusbar';
@@ -33,6 +41,9 @@ export function ReportButton({ place }: ReportButtonProps) {
         )}
         aria-keyshortcuts="Control+Shift+E"
         data-testid={TEST_ID}
+        ref={(element) => {
+          current = element;
+        }}
         onClick={openReportDialog}
       >
         <Icon icon={MessageSquareWarning} size="sm" />

@@ -23,6 +23,7 @@ import { log } from '../../lib/log';
 import { Checkbox, TextField } from '../settings/components/fields';
 import { useDebouncedValue } from '../versioning/api';
 import { useOpenReport, useReportPreview } from './api';
+import { reportButtonElement } from './ReportButton';
 import { screenOf } from './screen';
 import { closeReportDialog, useReportDialog } from './store';
 import './report.css';
@@ -152,6 +153,8 @@ function ReportForm() {
       title={t('titulo')}
       description={t('descricao')}
       size="lg"
+      // Aberto pelo atalho sem nada focado: o foco volta ao botão "Relatar problema".
+      returnFocusTo={reportButtonElement}
       footer={
         <>
           <DialogClose asChild>

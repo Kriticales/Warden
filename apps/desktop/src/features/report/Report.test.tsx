@@ -4,8 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import i18n from '../../i18n';
 import type { ProblemReportInput, ProblemReportPreview } from '../../lib/ipc/bindings';
+import { showToast, useToastStore } from '../../components/ui/toast';
 import { appErrorMessage } from '../../lib/ipc/errors';
-import { forgetShownError, lastShownError } from '../../lib/ipc/last-error';
+import { forgetShownError } from '../../lib/ipc/last-error';
 import { axeComponent } from '../../test/axe';
 import { ipcError, mockBackend, type Handler } from '../../test/backend';
 import { makeAppError } from '../../test/factories';
@@ -63,9 +64,15 @@ async function openFromButton() {
   return { user, dialog: await screen.findByRole('dialog', { name: 'Relatar problema' }) };
 }
 
+/** Aperta o atalho Ctrl+Shift+E. */
+function pressShortcut() {
+  fireEvent.keyDown(window, { key: 'E', code: 'KeyE', ctrlKey: true, shiftKey: true });
+}
+
 afterEach(() => {
   closeReportDialog();
   forgetShownError();
+  useToastStore.getState().clear();
   vi.restoreAllMocks();
 });
 
@@ -199,8 +206,13 @@ describe('Relatar problema (UI-02)', () => {
     const user = userEvent.setup();
     renderApp('/packs');
     await screen.findByRole('button', { name: 'Relatar problema' });
-    appErrorMessage(makeAppError({ domain: 'core', code: 'TIMEOUT' }));
-    fireEvent.keyDown(window, { key: 'E', code: 'KeyE', ctrlKey: true, shiftKey: true });
+    // Um erro mostrado num toast (como o TestPage e o WhyCrashed fazem).
+    showToast({
+      kind: 'danger',
+      title: appErrorMessage(makeAppError({ domain: 'core', code: 'TIMEOUT' })),
+    });
+    await screen.findByText('A operação demorou demais e foi interrompida. Tente de novo.');
+    pressShortcut();
     const dialog = await screen.findByRole('dialog', { name: 'Relatar problema' });
     await waitFor(() => {
       expect(lastInput(backend).lastError).toEqual({
@@ -212,6 +224,60 @@ describe('Relatar problema (UI-02)', () => {
     await user.keyboard('{Escape}');
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Relatar problema' })).toBeNull();
+    });
+  });
+
+  it('CA-UI02-01: fechado com Esc ou Cancelar, o foco volta ao botão "Relatar problema"', async () => {
+    reportBackend();
+    const { user } = await openFromButton();
+    const button = screen.getByRole('button', { name: 'Relatar problema', hidden: true });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Relatar problema' })).toBeNull();
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(button);
+    });
+
+    await user.click(button);
+    const dialog = await screen.findByRole('dialog', { name: 'Relatar problema' });
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Relatar problema' })).toBeNull();
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(button);
+    });
+  });
+
+  it('aberto pelo atalho, o foco volta ao que estava focado; sem nada focado, ao botão', async () => {
+    reportBackend();
+    const user = userEvent.setup();
+    renderApp('/packs');
+    const button = await screen.findByRole('button', { name: 'Relatar problema' });
+    const tasks = screen.getByTestId('tasks-indicator');
+
+    tasks.focus();
+    pressShortcut();
+    await screen.findByRole('dialog', { name: 'Relatar problema' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Relatar problema' })).toBeNull();
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(tasks);
+    });
+
+    tasks.blur();
+    expect(document.activeElement).toBe(document.body);
+    pressShortcut();
+    await screen.findByRole('dialog', { name: 'Relatar problema' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Relatar problema' })).toBeNull();
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(button);
     });
   });
 });
@@ -247,11 +313,5 @@ describe('peças do relato', () => {
     });
     expect(screenOf([{ routeId: '/outra', params: {} }], t).screen).toBe('Tela não identificada');
     expect(screenOf([], t).screen).toBe('Tela não identificada');
-  });
-
-  it('a frase de erro mostrada fica guardada como a última', () => {
-    expect(lastShownError()).toBeNull();
-    appErrorMessage(makeAppError({ domain: 'core', code: 'TIMEOUT' }));
-    expect(lastShownError()?.code).toBe('core.TIMEOUT');
   });
 });

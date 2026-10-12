@@ -8,7 +8,9 @@
  *   pré-visualização e o rótulo `relato-do-dono`;
  * - CA-UI02-04: um registro com a pasta do usuário, chaves nos formatos da CurseForge, do
  *   Gemini e do GitHub e o nome do computador não deixa nada disso no corpo nem no endereço;
- * - CA-UI02-05: o atalho Ctrl+Shift+E abre o diálogo de outra tela, e Esc fecha.
+ * - CA-UI02-05: o atalho Ctrl+Shift+E abre o diálogo de outra tela, e Esc fecha;
+ * - foco: fechado, o foco volta ao botão (aberto por ele) ou ao que estava focado antes do
+ *   atalho (sem nada focado, ao botão).
  *
  * O navegador não abre: com `WARDEN_E2E_OPEN_URL` (`wdio.conf.ts`), o app grava nesse arquivo
  * o endereço que abriria.
@@ -96,6 +98,34 @@ const dialog = () => $('[role="dialog"]');
 const openButton = () => $('[data-testid="report-open"]');
 const previewBody = () => $('[data-testid="report-preview-body"]');
 
+/**
+ * Marca o elemento focado agora (`data-e2e-focado`); devolve `false` se nada está focado.
+ */
+async function markFocused(): Promise<boolean> {
+  return browser.execute(() => {
+    const active = document.activeElement;
+    if (!active || active === document.body) return false;
+    active.setAttribute('data-e2e-focado', '');
+    return true;
+  });
+}
+
+/** Quem está focado: `marcado`, o `data-testid` ou o nome da tag (`BODY` se nada). */
+async function focused(): Promise<string> {
+  return browser.execute(() => {
+    const active = document.activeElement;
+    if (!active) return 'nenhum';
+    if (active.hasAttribute('data-e2e-focado')) return 'marcado';
+    return active.getAttribute('data-testid') ?? active.tagName;
+  });
+}
+
+/** Fecha o diálogo com Esc e espera ele sumir. */
+async function closeWithEscape(): Promise<void> {
+  await browser.keys(['Escape']);
+  await dialog().waitForDisplayed({ reverse: true });
+}
+
 /** Texto exato da pré-visualização do corpo (o `<pre>`). */
 async function previewText(): Promise<string> {
   return browser.execute(
@@ -148,6 +178,25 @@ describe('Relatar problema', () => {
     await previewBody().waitForDisplayed();
     await expect(openButton()).toBeDisabled();
     expect(await seriousViolations()).toEqual([]);
+  });
+
+  it('fechado com Esc ou Cancelar, o foco volta ao botão "Relatar problema"', async () => {
+    await closeWithEscape();
+    await browser.waitUntil(async () => (await focused()) === 'report-button', {
+      timeoutMsg: 'o foco não voltou ao botão depois do Esc',
+    });
+    const button = $('[data-testid="report-button"]');
+    await button.click();
+    await dialog().waitForDisplayed();
+    await $('button=Cancelar').click();
+    await dialog().waitForDisplayed({ reverse: true });
+    await browser.waitUntil(async () => (await focused()) === 'report-button', {
+      timeoutMsg: 'o foco não voltou ao botão depois do Cancelar',
+    });
+    // O próximo teste continua com o diálogo aberto.
+    await button.click();
+    await dialog().waitForDisplayed();
+    await previewBody().waitForDisplayed();
   });
 
   it('CA-UI02-02 e CA-UI02-04: a pré-visualização é o que o navegador recebe, sem dados pessoais', async () => {
@@ -207,7 +256,32 @@ describe('Relatar problema', () => {
     await collected.waitForDisplayed();
     await expect(collected).toHaveText(expect.stringContaining('Configurações'));
     await screenshot('02-atalho');
-    await browser.keys(['Escape']);
-    await dialog().waitForDisplayed({ reverse: true });
+    await closeWithEscape();
+  });
+
+  it('aberto pelo atalho, o foco volta ao que estava focado; sem nada focado, ao botão', async () => {
+    const tasks = $('[data-testid="tasks-indicator"]');
+    await browser.execute(() => {
+      document.querySelector<HTMLElement>('[data-testid="tasks-indicator"]')?.focus();
+    });
+    expect(await markFocused()).toBe(true);
+    await expect(tasks).toBeFocused();
+    await browser.keys(['Control', 'Shift', 'e']);
+    await dialog().waitForDisplayed();
+    await closeWithEscape();
+    await browser.waitUntil(async () => (await focused()) === 'marcado', {
+      timeoutMsg: 'o foco não voltou ao elemento focado antes do atalho',
+    });
+
+    await browser.execute(() => {
+      (document.activeElement as HTMLElement | null)?.blur();
+    });
+    expect(await focused()).toBe('BODY');
+    await browser.keys(['Control', 'Shift', 'e']);
+    await dialog().waitForDisplayed();
+    await closeWithEscape();
+    await browser.waitUntil(async () => (await focused()) === 'report-button', {
+      timeoutMsg: 'sem nada focado antes, o foco não foi para o botão',
+    });
   });
 });

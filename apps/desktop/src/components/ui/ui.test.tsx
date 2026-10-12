@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Pencil, Save } from 'lucide-react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { axeComponent } from '../../test/axe';
@@ -127,6 +128,68 @@ describe('Dialog', () => {
     await user.keyboard('{Escape}');
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull();
+    });
+  });
+
+  it('aberto por estado (sem DialogTrigger), o foco volta ao que estava focado ao abrir', async () => {
+    const user = userEvent.setup();
+    function ByState() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <input aria-label="Busca" />
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(true);
+            }}
+          >
+            Abrir pelo estado
+          </button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent title="Por estado" />
+          </Dialog>
+        </>
+      );
+    }
+    renderWithProviders(<ByState />);
+    const opener = screen.getByRole('button', { name: 'Abrir pelo estado' });
+    await user.click(opener);
+    await screen.findByRole('dialog', { name: 'Por estado' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    // O Radix sozinho deixaria o foco no <body> (ele só devolve ao DialogTrigger).
+    await waitFor(() => {
+      expect(document.activeElement).toBe(opener);
+    });
+  });
+
+  it('sem nada focado ao abrir, o foco volta para returnFocusTo', async () => {
+    const user = userEvent.setup();
+    function Unfocused() {
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <button type="button">Plano B</button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent
+              title="Sem quem abriu"
+              returnFocusTo={() => screen.getByRole('button', { name: 'Plano B', hidden: true })}
+            />
+          </Dialog>
+        </>
+      );
+    }
+    renderWithProviders(<Unfocused />);
+    await screen.findByRole('dialog', { name: 'Sem quem abriu' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Plano B' }));
     });
   });
 
