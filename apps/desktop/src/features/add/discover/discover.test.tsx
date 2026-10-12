@@ -14,12 +14,15 @@ import { makeAppError } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
 import { makeInventory, SODIUM as SODIUM_ITEM } from '../../pack-editor/editor.fixtures';
 import { editorBackend } from '../../pack-editor/testing';
+import { FABRIC_KIT } from '../../packs/create/initial-mods/initial-mods.fixtures';
 import {
   APPLESKIN,
   CATEGORIES,
   LITHIUM,
   makeHome,
+  makeNode,
   makePage,
+  makePlan,
   makePreview,
   makeVersions,
   MODMENU,
@@ -40,6 +43,7 @@ function setup(handlers: Record<string, Handler> = {}) {
       project_versions: () => makeVersions(),
       project_gallery: () => [],
       version_dependencies: () => ({ items: [] }),
+      kits_list: () => [],
       ...handlers,
     },
   });
@@ -111,6 +115,37 @@ describe('início da descoberta', () => {
     expect(
       await screen.findByRole('complementary', { name: 'Pré-visualização: Mod Menu' }),
     ).toBeDefined();
+  });
+
+  it('"Kits de desempenho" (P1-18) no início de mods: "Adicionar kit" abre o diálogo de dependências', async () => {
+    const { url, backend } = setup({
+      kits_list: () => [FABRIC_KIT],
+      add_plan: () => makePlan({ nodes: [makeNode({ title: 'Sodium' })] }),
+    });
+    await openAdd(url);
+    expect(await screen.findByRole('heading', { name: 'Kits de desempenho' })).toBeDefined();
+    // O kit é o da faixa do pack (loader e versão do pack aberto).
+    expect(backend.callsOf('kits_list')[0]?.args).toEqual({
+      minecraft: '1.20.1',
+      loader: 'forge',
+    });
+    await userEvent.click(await screen.findByRole('button', { name: 'Adicionar kit' }));
+    expect(await screen.findByRole('dialog')).toBeDefined();
+    await waitFor(() => {
+      expect(backend.callsOf('add_plan')).toHaveLength(1);
+    });
+    expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
+  it('o início de shaders não mostra kits (são listas de mods)', async () => {
+    const { url, backend } = setup({ kits_list: () => [FABRIC_KIT] });
+    await openAdd(url);
+    await screen.findByRole('heading', { name: 'Kits de desempenho' });
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Tipo' }), 'shader');
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Kits de desempenho' })).toBeNull();
+    });
+    expect(backend.callsOf('kits_list')).toHaveLength(1);
   });
 
   it('"Ver mais" dos populares abre a busca ordenada por downloads', async () => {

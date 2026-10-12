@@ -15,6 +15,8 @@ import { renderApp, renderWithProviders } from '../../../test/render';
 import { makeInventory, SODIUM as SODIUM_ITEM } from '../../pack-editor/editor.fixtures';
 import { editorBackend } from '../../pack-editor/testing';
 import {
+  CATEGORIES,
+  makeHome,
   makeNode,
   makePage,
   makePlan,
@@ -24,7 +26,7 @@ import {
   MODMENU,
   ref,
 } from '../add.fixtures';
-import { Preview } from '../common/Preview';
+import { Preview } from '../preview/Preview';
 
 const SHA = '003c114c85ca88ef3362e018deb6aca0c682d6a1';
 const TARGET = { minecraft: '1.21.1', loader: 'fabric' };
@@ -132,6 +134,9 @@ function setup(handlers: Record<string, Handler> = {}) {
     pack: PACK,
     inventory: makeInventory([SODIUM_ITEM]),
     handlers: {
+      discover_home: () => makeHome({ popular: [MODMENU], updated: [] }),
+      discover_categories: () => CATEGORIES,
+      kits_list: () => [],
       search_projects: () => makePage([MODMENU]),
       project_details: () =>
         makePreview({ title: 'Just Enough Items (JEI)', body: 'Texto simples.' }),
@@ -144,7 +149,8 @@ function setup(handlers: Record<string, Handler> = {}) {
 async function openAdd(url: string) {
   renderApp(`${url}/adicionar`);
   await screen.findByRole('heading', { level: 1, name: 'Adicionar ao pack' }, { timeout: 10_000 });
-  await screen.findByRole('list', { name: 'Resultados' });
+  // Campo vazio: o início da descoberta (P1-16).
+  await screen.findByRole('region', { name: 'Início da descoberta' });
 }
 
 const FILE_LINK = 'https://www.curseforge.com/minecraft/mc-mods/jei/files/4712345';
@@ -283,7 +289,14 @@ describe('link da CurseForge no campo único', () => {
   it('o aviso de chave ausente ou recusada continua sem consultar a CurseForge', async () => {
     const page = (reason: 'keyMissing' | 'keyRejected'): SearchPage =>
       makePage([MODMENU], { warnings: [{ source: 'curseforge', reason, detail: null }] });
-    const missing = setup({ search_projects: () => page('keyMissing') });
+    const missing = setup({
+      search_projects: () => page('keyMissing'),
+      discover_home: () =>
+        makeHome({
+          popular: [MODMENU],
+          warnings: [{ source: 'curseforge', reason: 'keyMissing', detail: null }],
+        }),
+    });
     await openAdd(missing.url);
     expect(screen.getByText('Mostrando só o Modrinth.')).toBeDefined();
     expect(

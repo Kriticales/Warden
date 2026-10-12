@@ -50,6 +50,7 @@ function setup(handlers: Record<string, Handler> = {}) {
       project_details: () => makePreview({ title: 'Mod Menu', projectId: 'mOgUt4GM' }),
       project_versions: () => makeVersions(),
       discover_home: () => makeHome(),
+      kits_list: () => [],
       discover_categories: () => CATEGORIES,
       ...handlers,
     },
