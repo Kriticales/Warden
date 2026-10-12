@@ -22,6 +22,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
+import { Key } from 'webdriverio';
 
 import { seriousViolationSummaries } from './axe';
 import { CF_LINK, CHAVE_BOA, CHAVE_COM_ERRO, CHAVE_RECUSADA } from './mock-server/curseforge';
@@ -132,11 +133,30 @@ async function resetRequests(): Promise<void> {
   await fetch(`${MOCK_URL}/__reset`, { method: 'POST' });
 }
 
-/** Busca um texto novo (outra consulta, para não vir do cache de 5 minutos da tela). */
+/**
+ * Busca um texto novo (outra consulta, para não vir do cache de 5 minutos da tela).
+ *
+ * Não usa o `setValue`: ele limpa o campo pelo WebDriver (sem evento `input`, que o React não
+ * vê) e só depois digita. Se a tela renderizar nesse intervalo (os resultados da busca anterior
+ * chegando), o React devolve ao campo o texto antigo e o novo é digitado depois dele
+ * ("sodiumsodium recusada"). Aqui o texto sai como o usuário o apaga, e a digitação só começa
+ * com o campo vazio também para o React.
+ */
 async function searchFor(text: string): Promise<void> {
   const field = $('input[type="search"]');
-  await field.setValue(text);
-  await browser.waitUntil(async () => (await field.getValue()) === text);
+  await field.click();
+  await browser.keys([Key.Ctrl, 'a']);
+  await browser.keys(Key.Backspace);
+  await browser.waitUntil(async () => (await field.getValue()) === '', {
+    timeoutMsg: 'o campo de busca não ficou vazio',
+  });
+  await field.addValue(text);
+  let seen = '';
+  await browser
+    .waitUntil(async () => (seen = await field.getValue()) === text)
+    .catch(() => {
+      throw new Error(`o campo de busca ficou com "${seen}" em vez de "${text}"`);
+    });
 }
 
 /** A linha de resultado com este nome. */
