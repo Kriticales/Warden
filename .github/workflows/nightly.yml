@@ -85,7 +85,10 @@ jobs:
       cache-key: windows-e2e
       timeout-minutes: 90
       # `e2e-driver` baixa o msedgedriver da mesma versão do WebView2 da máquina (QUALITY §13.5).
+      # A tela do runner é de 1024×768 e o Windows às vezes limita a janela a ela, ignorando o
+      # `setWindowSize(1366, 860)` dos testes; por isso a resolução sobe para 1920×1080 antes.
       run: |
+        powershell -NoProfile -Command '$ErrorActionPreference = "Stop"; Set-DisplayResolution -Width 1920 -Height 1080 -Force'
         cargo xtask e2e-driver
         (cd apps/desktop && cargo tauri build --ci --debug --no-bundle)
         pnpm -C apps/desktop e2e
