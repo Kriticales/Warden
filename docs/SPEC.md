@@ -1349,7 +1349,7 @@ Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e 
 
 **Entrar com o GitHub** (Configurações → Chaves e contas, depois das chaves):
 
-- Desconectado: **Entrar com o GitHub** e o texto "Para enviar relatos direto do Warden. O token fica guardado no mesmo lugar das chaves.".
+- Desconectado: **Entrar com o GitHub** e o texto "Para enviar relatos direto do Warden, sem abrir o navegador. O token fica guardado no mesmo lugar das chaves e é renovado sozinho.".
 - Ao clicar: o código de 8 letras em letra grande ("WDJB-MJHT"), com **Copiar código**; **Abrir o GitHub** abre `github.com/login/device` no navegador; "Aguardando você aprovar no GitHub…" com **Cancelar**. O progresso é anunciado (`aria-live`).
 - Aprovado: "Conectado como <login>" e **Sair do GitHub** (apaga o token e o token de renovação do cofre). Recusado, código vencido ou cancelado: a frase do que aconteceu e **Entrar com o GitHub** de novo.
 - Enquanto o Warden não tiver o identificador do GitHub App (constante vazia), o botão fica desabilitado com a explicação "O login com o GitHub ainda não foi configurado nesta versão do Warden. Use Abrir no GitHub no relato.".
@@ -1361,9 +1361,9 @@ Com um unificador no pack, a linha vira **Unificado pelo AlmostUnified** (ok) e 
 - **Título** (obrigatório) e **Descrição** (opcional, várias linhas, com a dica "O que você fez, o que aconteceu e o que esperava").
 - **Prints** (só com login): colar (Ctrl+V com o diálogo aberto), arrastar sobre o diálogo ou **Escolher imagens…**. Só PNG e JPEG (pelo conteúdo, não pela extensão), até **10 MB por imagem** e **5 por relato** (25 MB no total). Cada um aparece em miniatura com o nome, o tamanho e **Remover**. Aviso fixo: "Os prints vão para o repositório do Warden e ficam visíveis como o relato. Confira se não mostram dados pessoais.". Sem login, no lugar dos prints, a dica da UI-02 de colar o print na issue, no GitHub.
 - **Incluir os registros do app**, **Coletado pelo Warden** e a **pré-visualização** como na UI-02. A pré-visualização mostra o corpo exato que vai para a issue; com prints, a seção "Prints" lista cada um, e o endereço de cada imagem entra no lugar do nome depois do envio.
-- Com login: **Enviar** (desabilitado sem título, com o motivo). Sem login: o aviso "Entre com o GitHub nas Configurações para enviar direto", com o link para a seção, e **Abrir no GitHub**, como hoje.
+- Com login: **Enviar** (desabilitado sem título, com o motivo). Sem login: o aviso "Entre com o GitHub nas Configurações para enviar direto, com prints.", com **Ir para Configurações**, e **Abrir no GitHub**, como hoje.
 
-**Envio:** cria as labels que faltarem (`relato-do-dono` e a da categoria), envia cada print para `anexos/<id>.<ext>` na branch `relatos-anexos` do repositório do Warden (criada a partir de um commit órfão se não existir, sem tocar no `main`), cria a issue com o título, o corpo e as duas labels e mostra "Relato enviado (#número)" com **Ver no GitHub**. O endereço da API e o repositório são constantes do Warden; o envio não aceita outro destino. O progresso ("Enviando print 1 de 2…", "Criando a issue…") é anunciado.
+**Envio:** cria as labels que faltarem (`relato-do-dono` e a da categoria), envia cada print para `anexos/<id>.<ext>` na branch `relatos-anexos` do repositório do Warden (criada a partir de um commit órfão se não existir, sem tocar no `main`), cria a issue com o título, o corpo e as duas labels e mostra, no próprio diálogo, "Relato enviado (#número)" com **Ver no GitHub** e **Concluir**. O endereço da API e o repositório são constantes do Warden; o envio não aceita outro destino. O progresso ("Enviando print 1 de 2…", "Criando a issue…") é anunciado.
 
 **Falhas:** sem internet, login vencido, sem permissão, repositório não encontrado, limite da API do GitHub e imagem grande demais têm frase própria, com o que fazer. O rascunho (categoria, textos, prints e a caixa dos registros) nunca se perde: o diálogo continua aberto com **Tentar de novo** e **Abrir no GitHub**. Fechar o diálogo descarta o rascunho, como na UI-02.
 

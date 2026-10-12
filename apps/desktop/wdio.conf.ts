@@ -17,6 +17,7 @@ import { createConnection } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
+import { GITHUB_CLIENT_ID } from './e2e/mock-server/github';
 import { startMockServer, type MockServer } from './e2e/mock-server/server';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -143,6 +144,10 @@ export const config: WebdriverIO.Config = {
       // Modrinth e CurseForge (P1-08): o inventário e os detalhes nunca vão à internet.
       WARDEN_API_BASE_MODRINTH: `${mockServer.url}/modrinth/v2/`,
       WARDEN_API_BASE_CURSEFORGE: `${mockServer.url}/curseforge/`,
+      // GitHub (UI-03): o login pelo device flow e o envio do relato, simulados.
+      WARDEN_API_BASE_GITHUB: `${mockServer.url}/github/api/`,
+      WARDEN_LOGIN_BASE_GITHUB: `${mockServer.url}/github/site/`,
+      WARDEN_GITHUB_CLIENT_ID: GITHUB_CLIENT_ID,
       WARDEN_E2E_SAVE_FILE: saveFile,
       WARDEN_E2E_OPEN_URL: openUrlFile,
       WARDEN_E2E_PICK_FILES: pickFiles,

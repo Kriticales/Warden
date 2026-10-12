@@ -12,15 +12,34 @@
  * - foco: fechado, o foco volta ao botão (aberto por ele) ou ao que estava focado antes do
  *   atalho (sem nada focado, ao botão).
  *
+ *
+ * UI-03, com o GitHub simulado (`e2e/mock-server/github.ts`):
+ *
+ * - CA-UI03-02: "Entrar com o GitHub" mostra o código, abre só a página do dispositivo e
+ *   conecta depois da aprovação; "Sair do GitHub" apaga o login;
+ * - CA-UI03-05: com o login, o relato vai direto, com categoria e um print escolhido, e a
+ *   tela mostra "Relato enviado (#número)" com o link;
+ * - CA-UI03-08: uma falha mantém o rascunho e "Tentar de novo" envia;
+ * - CA-UI03-09: nenhum token nos registros, no corpo da issue nem no cofre depois de sair.
+ *
  * O navegador não abre: com `WARDEN_E2E_OPEN_URL` (`wdio.conf.ts`), o app grava nesse arquivo
- * o endereço que abriria.
+ * o endereço que abriria. O diálogo de imagens lê os caminhos de `WARDEN_E2E_PICK_FILES`.
  */
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
+
+import {
+  E2E_ACCESS_TOKEN,
+  E2E_DEVICE_CODE,
+  E2E_LOGIN,
+  E2E_REFRESH_TOKEN,
+  E2E_USER_CODE,
+  type GithubState,
+} from './mock-server/github';
 
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
@@ -34,6 +53,16 @@ function env(name: string): string {
 
 const DATA_ROOT = env('WARDEN_E2E_DATA_ROOT');
 const OPENED_FILE = env('WARDEN_E2E_OPEN_URL');
+const PICK_FILES = env('WARDEN_E2E_PICK_FILES');
+const MOCK_URL = env('WARDEN_E2E_MOCK_URL');
+const LOGIN_FILE = join(DATA_ROOT, 'config', 'github-login.json');
+const VAULT_DIR = join(DATA_ROOT, 'cofre-de-teste');
+/** Um PNG de 1×1 de verdade (o Rust confere o conteúdo). */
+const PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
+const PRINT_FILE = join(DATA_ROOT, 'print-e2e.png');
 const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const LOGS_DIR = join(DATA_ROOT, 'data', 'logs');
 /** Um registro "do futuro": é o arquivo mais novo da pasta, lido primeiro pelo relato. */
@@ -157,14 +186,6 @@ describe('Relatar problema', () => {
     await $('h1=Meus packs').waitForDisplayed();
   });
 
-  after(() => {
-    // Devolve a pasta de dados como estava: o settings.e2e.ts, que roda depois (ordem
-    // alfabética), começa pela primeira execução.
-    rmSync(SETTINGS_FILE, { force: true });
-    rmSync(FAKE_LOG, { force: true });
-    rmSync(OPENED_FILE, { force: true });
-  });
-
   it('CA-UI02-01: o botão abre o diálogo; sem título não abre o GitHub; sem violação séria', async () => {
     const button = $('[data-testid="report-button"]');
     await button.waitForClickable();
@@ -201,7 +222,7 @@ describe('Relatar problema', () => {
 
   it('CA-UI02-02 e CA-UI02-04: a pré-visualização é o que o navegador recebe, sem dados pessoais', async () => {
     await $('[data-testid="report-title"]').setValue('E2E: o Testar fechou sozinho');
-    await $('[data-testid="report-happened"]').setValue('A janela do jogo fechou na hora.');
+    await $('[data-testid="report-description"]').setValue('A janela do jogo fechou na hora.');
     await browser.waitUntil(async () => (await previewText()).includes('fechou na hora'), {
       timeoutMsg: 'a pré-visualização não acompanhou o texto',
     });
@@ -228,7 +249,7 @@ describe('Relatar problema', () => {
     expect(url.length).toBeLessThanOrEqual(7500);
     const params = new URL(url).searchParams;
     expect(params.get('title')).toBe('E2E: o Testar fechou sozinho');
-    expect(params.get('labels')).toBe('relato-do-dono');
+    expect(params.get('labels')).toBe('relato-do-dono,categoria: erro');
     expect(params.get('body')).toBe(body);
     expect(leaks(url)).toEqual([]);
     expect(leaks(decodeURIComponent(url))).toEqual([]);
@@ -284,4 +305,198 @@ describe('Relatar problema', () => {
       timeoutMsg: 'sem nada focado antes, o foco não foi para o botão',
     });
   });
+});
+
+/** Lê o estado do GitHub simulado (ou manda um controle: `approve`, `fail-next-issue`). */
+async function github(control?: string, body?: object): Promise<GithubState> {
+  const response = await fetch(`${MOCK_URL}/__github${control ? `/${control}` : ''}`, {
+    method: control ? 'POST' : 'GET',
+    body: body ? JSON.stringify(body) : null,
+  });
+  return (await response.json()) as GithubState;
+}
+
+/** Os tokens e o código secreto do GitHub simulado: nada disso pode vazar. */
+const GITHUB_SECRETS = [E2E_ACCESS_TOKEN, E2E_REFRESH_TOKEN, E2E_DEVICE_CODE];
+
+function filesUnder(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory() ? filesUnder(join(dir, entry.name)) : [join(dir, entry.name)],
+  );
+}
+
+const loginSection = () => $('[data-testid="github-login"]');
+
+async function goToSettings(): Promise<void> {
+  const link = $('header.topbar').$('a*=Configurações');
+  await link.waitForClickable();
+  await link.click();
+  await $('h1=Configurações').waitForDisplayed();
+  await loginSection().scrollIntoView();
+  await loginSection().waitForDisplayed();
+}
+
+async function openReportByShortcut(): Promise<void> {
+  await browser.keys(['Control', 'Shift', 'e']);
+  await dialog().waitForDisplayed();
+  await previewBody().waitForDisplayed();
+}
+
+const sendButton = () => $('[data-testid="report-send"]');
+
+describe('Relatar problema direto no GitHub (UI-03)', () => {
+  before(async () => {
+    await github('reset');
+    writeFileSync(PRINT_FILE, PNG);
+    writeFileSync(PICK_FILES, `${PRINT_FILE}\n`);
+    rmSync(OPENED_FILE, { force: true });
+  });
+
+  it('CA-UI03-02: Entrar com o GitHub mostra o código, abre só a página do dispositivo e conecta', async () => {
+    await goToSettings();
+    const section = loginSection();
+    const enter = section.$('button=Entrar com o GitHub');
+    await enter.waitForClickable();
+    await enter.click();
+    const code = $('[data-testid="github-login-code"]');
+    await code.waitForDisplayed();
+    await expect(code).toHaveText(E2E_USER_CODE);
+    await expect(section.$('span*=Aguardando você aprovar no GitHub')).toBeDisplayed();
+    expect(await seriousViolations()).toEqual([]);
+    await screenshot('03-codigo-do-github');
+
+    await section.$('button=Abrir o GitHub').click();
+    await browser.waitUntil(() => existsSync(OPENED_FILE), {
+      timeoutMsg: 'o app não pediu para abrir a página do GitHub',
+    });
+    expect(readFileSync(OPENED_FILE, 'utf8')).toBe(`${MOCK_URL}/github/site/login/device`);
+    rmSync(OPENED_FILE, { force: true });
+
+    // A pessoa aprova no GitHub; a próxima consulta (a cada 5 s) traz o token.
+    await github('approve');
+    await section.$(`span=Conectado como ${E2E_LOGIN}`).waitForDisplayed({ timeout: 30_000 });
+    expect(existsSync(LOGIN_FILE)).toBe(true);
+    const loginFile = readFileSync(LOGIN_FILE, 'utf8');
+    for (const secret of GITHUB_SECRETS) expect(loginFile).not.toContain(secret);
+  });
+
+  it('CA-UI03-05: com o login, envia com categoria e print e mostra o número da issue', async () => {
+    await openReportByShortcut();
+    await $('[data-testid="report-category"]').selectByAttribute('value', 'suggestion');
+    await $('[data-testid="report-title"]').setValue('E2E: um botão para copiar o console');
+    await $('[data-testid="report-description"]').setValue('Seria bom copiar tudo de uma vez.');
+    await $('[data-testid="report-choose-images"]').click();
+    const thumb = $('img[alt="Print 1: print-e2e.png"]');
+    await thumb.waitForDisplayed();
+    await expect(
+      $('div*=Os prints vão para o repositório do Warden e ficam visíveis como o relato.'),
+    ).toBeDisplayed();
+    await browser.waitUntil(
+      async () => (await previewText()).includes('![Print 1: print-e2e.png]'),
+      {
+        timeoutMsg: 'a pré-visualização não mostrou o print',
+      },
+    );
+    expect(await previewText()).toContain('**Categoria:** Sugestão');
+    expect(await seriousViolations()).toEqual([]);
+    await screenshot('04-relato-com-print');
+
+    await sendButton().waitForEnabled();
+    await sendButton().click();
+    const sent = $('[data-testid="report-sent"]');
+    await sent.waitForDisplayed({ timeout: 30_000 });
+    await expect(sent).toHaveText(expect.stringContaining('Relato enviado (#101)'));
+
+    const state = await github();
+    expect(state.labels).toEqual(['relato-do-dono', 'categoria: sugestão']);
+    expect(state.branch).toBe(true);
+    expect(state.orphanCommits).toBe(1);
+    expect(state.files).toHaveLength(1);
+    expect(state.files[0]?.branch).toBe('relatos-anexos');
+    expect(state.files[0]?.path).toMatch(/^anexos\/[0-9a-f]{20}\.png$/);
+    expect(state.files[0]?.bytes).toBe(PNG.length);
+    const issue = state.issues[0];
+    expect(issue?.title).toBe('E2E: um botão para copiar o console');
+    expect(issue?.labels).toEqual(['relato-do-dono', 'categoria: sugestão']);
+    const body = issue?.body ?? '';
+    expect(body.startsWith('**Categoria:** Sugestão')).toBe(true);
+    expect(body).toContain('Seria bom copiar tudo de uma vez.');
+    expect(body).toContain(
+      `![Print 1: print-e2e.png](${MOCK_URL}/github/site/Kriticales/Warden/blob/relatos-anexos/${state.files[0]?.path ?? ''}?raw=true)`,
+    );
+    // CA-UI03-09: nada de token nem de dados pessoais no corpo.
+    for (const secret of GITHUB_SECRETS) expect(body).not.toContain(secret);
+    expect(leaks(body)).toEqual([]);
+
+    await $('button=Ver no GitHub').click();
+    await browser.waitUntil(() => existsSync(OPENED_FILE), {
+      timeoutMsg: 'o app não pediu para abrir a issue',
+    });
+    expect(readFileSync(OPENED_FILE, 'utf8')).toBe(
+      `${MOCK_URL}/github/site/Kriticales/Warden/issues/101`,
+    );
+    rmSync(OPENED_FILE, { force: true });
+    await $('button=Concluir').click();
+    await dialog().waitForDisplayed({ reverse: true });
+  });
+
+  it('CA-UI03-08: uma falha mantém o rascunho, e Tentar de novo envia', async () => {
+    await github('fail-next-issue', { status: 403 });
+    await openReportByShortcut();
+    await $('[data-testid="report-title"]').setValue('E2E: limite da API');
+    await sendButton().waitForEnabled();
+    await sendButton().click();
+    await $('div*=O GitHub limitou os pedidos do Warden por um tempo.').waitForDisplayed({
+      timeout: 30_000,
+    });
+    await expect($('[data-testid="report-title"]')).toHaveValue('E2E: limite da API');
+    await expect($('button=Abrir no GitHub')).toBeDisplayed();
+    expect(await seriousViolations()).toEqual([]);
+    await screenshot('05-falha-no-envio');
+    await $('button=Tentar de novo').click();
+    const sent = $('[data-testid="report-sent"]');
+    await sent.waitForDisplayed({ timeout: 30_000 });
+    await expect(sent).toHaveText(expect.stringContaining('Relato enviado (#102)'));
+    expect((await github()).issues.map((issue) => issue.title)).toEqual([
+      'E2E: um botão para copiar o console',
+      'E2E: limite da API',
+    ]);
+    await $('button=Concluir').click();
+    await dialog().waitForDisplayed({ reverse: true });
+  });
+
+  it('CA-UI03-09: nenhum token nos registros do Warden', () => {
+    const files = filesUnder(LOGS_DIR);
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const text = readFileSync(file, 'utf8');
+      for (const secret of GITHUB_SECRETS) {
+        expect(text.includes(secret)).toBe(false);
+      }
+    }
+  });
+
+  it('CA-UI03-02: Sair do GitHub apaga o login e os dois tokens', async () => {
+    await goToSettings();
+    const section = loginSection();
+    await section.$('button=Sair do GitHub').click();
+    await section.$('button=Entrar com o GitHub').waitForDisplayed();
+    expect(existsSync(LOGIN_FILE)).toBe(false);
+    for (const file of filesUnder(VAULT_DIR)) {
+      const text = readFileSync(file, 'utf8');
+      for (const secret of GITHUB_SECRETS) expect(text.includes(secret)).toBe(false);
+    }
+  });
+});
+
+after(() => {
+  // Devolve a pasta de dados como estava: o settings.e2e.ts, que roda depois (ordem
+  // alfabética), começa pela primeira execução.
+  rmSync(SETTINGS_FILE, { force: true });
+  rmSync(FAKE_LOG, { force: true });
+  rmSync(OPENED_FILE, { force: true });
+  rmSync(PRINT_FILE, { force: true });
+  rmSync(PICK_FILES, { force: true });
+  rmSync(LOGIN_FILE, { force: true });
 });

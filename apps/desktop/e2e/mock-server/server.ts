@@ -10,6 +10,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { extname, join, normalize, sep } from 'node:path';
 
 import { curseforgeReply } from './curseforge';
+import { githubReply, githubState, resetGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
@@ -190,6 +191,58 @@ function serveCurseforge(request: IncomingMessage, response: ServerResponse, pat
   });
 }
 
+/** O GitHub simulado (UI-03): respostas montadas em `github.ts`, com estado. */
+function serveGithub(
+  request: IncomingMessage,
+  response: ServerResponse,
+  path: string,
+  base: string,
+): void {
+  const chunks: Buffer[] = [];
+  request.on('data', (chunk: Buffer) => chunks.push(chunk));
+  request.on('end', () => {
+    const authorization = request.headers.authorization;
+    const reply = githubReply(
+      request.method ?? 'GET',
+      path.slice('/github/'.length),
+      authorization,
+      Buffer.concat(chunks).toString('utf8'),
+      base,
+    );
+    response
+      .writeHead(reply?.status ?? 404, {
+        'content-type': 'application/json; charset=utf-8',
+        ...(reply?.headers ?? {}),
+      })
+      .end(JSON.stringify(reply?.body ?? { message: 'Not Found' }));
+  });
+}
+
+/** Controles do GitHub simulado para os testes (outro processo). */
+function serveGithubControl(
+  request: IncomingMessage,
+  response: ServerResponse,
+  path: string,
+): void {
+  const chunks: Buffer[] = [];
+  request.on('data', (chunk: Buffer) => chunks.push(chunk));
+  request.on('end', () => {
+    if (path === '/__github/approve') {
+      githubState.current.approved = true;
+    } else if (path === '/__github/reset') {
+      resetGithub();
+    } else if (path === '/__github/fail-next-issue') {
+      const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') as {
+        status?: number;
+      };
+      githubState.current.failNextIssue = body.status ?? 500;
+    }
+    response
+      .writeHead(200, { 'content-type': 'application/json' })
+      .end(JSON.stringify(githubState.current));
+  });
+}
+
 /**
  * `POST /version_files` do Modrinth: a resposta de `fixtures/modrinth/v2/version_files.json`
  * (atualizações, P1-12) e, quando o pedido traz o sha512 do jar sintético do Sodium
@@ -251,7 +304,15 @@ export async function startMockServer(): Promise<MockServer> {
       response.writeHead(204).end();
       return;
     }
+    if (path.startsWith('/__github')) {
+      serveGithubControl(request, response, path);
+      return;
+    }
     requests.push(`${request.method ?? 'GET'} ${path}`);
+    if (path.startsWith('/github/')) {
+      serveGithub(request, response, path, `http://${request.headers.host ?? '127.0.0.1'}`);
+      return;
+    }
     if (path.startsWith('/curseforge/')) {
       serveCurseforge(request, response, path);
       return;
