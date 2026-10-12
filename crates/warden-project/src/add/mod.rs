@@ -13,9 +13,11 @@
 //!   como o packwiz escreveria e grava tudo numa única [`crate::transaction::PackTransaction`]
 //!   (um `packwiz refresh`): ou todos entram, ou nenhum.
 //!
-//! Cada fonte implementa [`AddSource`]: o Modrinth ([`modrinth::ModrinthAdd`]) nesta tarefa,
-//! a CurseForge na P1-10.
+//! Cada fonte implementa [`AddSource`]: o Modrinth ([`modrinth::ModrinthAdd`]) e a CurseForge
+//! ([`curseforge::CurseforgeAdd`]). O link da CurseForge está em [`link_curseforge`].
 
+pub mod curseforge;
+pub mod link_curseforge;
 pub mod modrinth;
 pub mod plan;
 

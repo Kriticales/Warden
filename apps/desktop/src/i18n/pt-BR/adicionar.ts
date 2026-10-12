@@ -74,9 +74,6 @@ export const adicionar = {
     downloads: '{{value}} downloads',
     atualizado: 'atualizado {{when}}',
     jaNoPack: 'Já no pack',
-    downloadManual: 'Download manual',
-    downloadManualDica:
-      'O autor bloqueou downloads por outros apps. Quem joga vai precisar baixar este arquivo à mão.',
     semVersao: 'Sem versão para o seu pack',
     iconeDe: 'Ícone de {{name}}',
     carregarMais: 'Carregar mais',

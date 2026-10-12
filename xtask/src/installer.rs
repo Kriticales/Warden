@@ -125,10 +125,25 @@ fn sha256_file(path: &Path) -> Result<String> {
     Ok(text)
 }
 
+/// Diz se `path` é um arquivo com o SHA-256 `sha256`. Se houver outra coisa no lugar (arquivo
+/// com hash errado ou uma pasta, como a que um cache parcial da CI pode devolver), apaga para
+/// que o download possa ocupar o caminho.
+fn reuse_or_clear_file(path: &Path, sha256: &str) -> Result<bool> {
+    if path.is_file() {
+        if sha256_file(path)? == sha256 {
+            return Ok(true);
+        }
+        fs::remove_file(path).with_context(|| format!("falha ao apagar {}", path.display()))?;
+    } else if path.is_dir() {
+        fs::remove_dir_all(path).with_context(|| format!("falha ao apagar {}", path.display()))?;
+    }
+    Ok(false)
+}
+
 /// Garante `pinned` em `dir` com o hash certo e devolve o caminho.
 fn ensure_pinned(dir: &Path, pinned: &Pinned) -> Result<PathBuf> {
     let path = dir.join(pinned.file_name);
-    if path.is_file() && sha256_file(&path)? == pinned.sha256 {
+    if reuse_or_clear_file(&path, pinned.sha256)? {
         println!("installer: {} já está no cache.", pinned.file_name);
         return Ok(path);
     }
@@ -188,14 +203,33 @@ fn extract_zip(archive_path: &Path, destination: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Devolve o `java` de `jre_dir` se a pasta está completa. Se a pasta existe sem ele (o
+/// `rust-cache` da CI devolve a pasta `target` só em parte, sem os `.exe`), apaga a pasta
+/// para que a extração possa ocupar o caminho: renomear para uma pasta não vazia falha.
+fn reuse_or_clear_jre(jre_dir: &Path) -> Result<Option<PathBuf>> {
+    let java = java_executable(jre_dir);
+    if java.is_file() {
+        return Ok(Some(java));
+    }
+    if jre_dir.exists() {
+        println!(
+            "installer: {} está incompleta (sem o java); extraindo de novo.",
+            jre_dir.display()
+        );
+        fs::remove_dir_all(jre_dir)
+            .with_context(|| format!("falha ao apagar {}", jre_dir.display()))?;
+    }
+    Ok(None)
+}
+
 /// Garante o JRE extraído em `<dir>/jre-<versão>/` e devolve o caminho do `java`.
 fn ensure_jre(dir: &Path) -> Result<PathBuf> {
     let jre_dir = dir.join(format!("jre-{JRE_RELEASE}"));
-    let java = java_executable(&jre_dir);
-    if java.is_file() {
+    if let Some(java) = reuse_or_clear_jre(&jre_dir)? {
         println!("installer: JRE {JRE_RELEASE} já está no cache.");
         return Ok(java);
     }
+    let java = java_executable(&jre_dir);
     let pinned = if cfg!(windows) {
         JRE_WINDOWS
     } else {
@@ -305,5 +339,75 @@ mod tests {
     fn java_dentro_de_bin() {
         let java = java_executable(Path::new("jre"));
         assert!(java.starts_with(Path::new("jre").join("bin")));
+    }
+
+    #[test]
+    fn jre_completo_e_reaproveitado() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let jre_dir = temp.path().join("jre");
+        let java = java_executable(&jre_dir);
+        fs::create_dir_all(java.parent().context("sem pasta pai")?)?;
+        fs::write(&java, b"java")?;
+        fs::write(jre_dir.join("release"), b"x")?;
+        assert_eq!(reuse_or_clear_jre(&jre_dir)?, Some(java.clone()));
+        assert!(java.is_file());
+        assert!(jre_dir.join("release").is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn jre_incompleto_e_apagado() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let jre_dir = temp.path().join("jre");
+        // Como o rust-cache devolve: as bibliotecas e a pasta `bin`, mas sem o `java`.
+        fs::create_dir_all(jre_dir.join("bin"))?;
+        fs::create_dir_all(jre_dir.join("lib"))?;
+        fs::write(jre_dir.join("lib").join("modules"), b"x")?;
+        assert_eq!(reuse_or_clear_jre(&jre_dir)?, None);
+        assert!(!jre_dir.exists());
+        // A extração seguinte consegue renomear para o caminho.
+        let staged = temp.path().join("jdk-jre");
+        fs::create_dir_all(&staged)?;
+        fs::rename(&staged, &jre_dir)?;
+        Ok(())
+    }
+
+    #[test]
+    fn jre_ausente_nao_e_erro() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        assert_eq!(reuse_or_clear_jre(&temp.path().join("jre"))?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn arquivo_fixado_com_hash_certo_e_reaproveitado() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("a.jar");
+        fs::write(&path, b"conteudo")?;
+        let sha = sha256_file(&path)?;
+        assert!(reuse_or_clear_file(&path, &sha)?);
+        assert!(path.is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn arquivo_fixado_com_hash_errado_e_apagado() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("a.jar");
+        fs::write(&path, b"truncado")?;
+        assert!(!reuse_or_clear_file(&path, &"0".repeat(64))?);
+        assert!(!path.exists());
+        Ok(())
+    }
+
+    #[test]
+    fn pasta_no_lugar_do_arquivo_fixado_e_apagada() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("a.jar");
+        fs::create_dir_all(path.join("sobra"))?;
+        assert!(!reuse_or_clear_file(&path, &"0".repeat(64))?);
+        assert!(!path.exists());
+        assert!(!reuse_or_clear_file(&path, &"0".repeat(64))?);
+        Ok(())
     }
 }

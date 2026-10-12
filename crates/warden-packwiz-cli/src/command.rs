@@ -23,6 +23,11 @@ use warden_packwiz::PACK_FILE;
 /// Variável de ambiente lida pelo sidecar com o patch 0001.
 pub const CURSEFORGE_KEY_ENV: &str = "WARDEN_CURSEFORGE_API_KEY";
 
+/// Variável com outro endereço da API da CurseForge, que o packwiz do Warden lê (patch 0002 de
+/// `third_party/packwiz/`; mesmo nome e formato do `warden-curseforge`). Só os testes a usam:
+/// ver [`crate::Packwiz::with_curseforge_api`].
+pub const CURSEFORGE_API_ENV: &str = "WARDEN_API_BASE_CURSEFORGE";
+
 /// Variáveis do ambiente do Warden repassadas ao packwiz; todas as outras são apagadas
 /// (ARCHITECTURE §6.3). Inclui `PACKWIZ_*`, que o `viper` do packwiz leria como opções.
 pub const INHERITED_ENV: [&str; 8] = [

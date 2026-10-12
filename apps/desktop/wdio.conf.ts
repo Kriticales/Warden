@@ -121,6 +121,8 @@ export const config: WebdriverIO.Config = {
     process.env.WARDEN_E2E_SAVE_FILE = saveFile;
     const java = testJava();
     process.env.WARDEN_E2E_HAS_JAVA = java ? '1' : '';
+    // Os testes leem o registro de requisições do servidor de fixtures (`GET /__requests`).
+    process.env.WARDEN_E2E_MOCK_URL = mockServer.url;
     const env = {
       ...process.env,
       WARDEN_DATA_ROOT: dataRoot,

@@ -8,7 +8,9 @@
  * "Já no pack".
  *
  * O início com populares, atualizados e categorias (campo vazio) é da P1-16; aqui o campo vazio
- * mostra a busca sem texto, já filtrada para o pack. Link colado no campo é da P1-11.
+ * mostra a busca sem texto, já filtrada para o pack. Link da CurseForge colado no campo (P1-10)
+ * é lido pelo backend no lugar da busca, e o que ele aponta entra pelo packwiz numa cópia do
+ * pack (ARCHITECTURE §6.1); os outros links e arquivos são da P1-11.
  */
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FilePlus, Plus, RefreshCw, Search } from 'lucide-react';
@@ -26,6 +28,7 @@ import { Tooltip } from '../../components/ui/tooltip';
 import { cn } from '../../lib/cn';
 import type {
   AddResult,
+  LinkTarget,
   PackId,
   ProjectKind,
   SearchResult,
@@ -39,6 +42,9 @@ import { isInPack, knownSources, mergePages, pageWarnings, sourceLabel } from '.
 import { Preview } from './common/Preview';
 import { ResultRow } from './common/ResultRow';
 import { type PackTarget, useTargetText } from './common/text';
+import type { LinkPick } from './curseforge/api';
+import { parseCurseforgeLink, resultOfLink } from './curseforge/link';
+import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
 import { preferredRef } from './modrinth/source';
 import './common/add.css';
@@ -72,13 +78,21 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const pack = usePack(packId);
   const inventory = useInventory(packId);
   const [text, setText] = useState('');
-  const query = useDebounced(text.trim(), TYPING_DELAY_MS);
+  // Um link da CurseForge não é um nome para buscar: o backend lê o link (P1-10).
+  const typedLink = parseCurseforgeLink(text) === null ? null : text.trim();
+  // O link também espera a última tecla: digitado letra a letra, cada pedaço seria lido.
+  const debouncedLink = useDebounced(typedLink, TYPING_DELAY_MS);
+  const linkUrl = typedLink !== null && debouncedLink === typedLink ? typedLink : null;
+  const query = useDebounced(typedLink === null ? text.trim() : '', TYPING_DELAY_MS);
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
   const search = useSearch(packId, { query, kind, ...filters });
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
   const [current, setCurrent] = useState<SearchResult | null>(null);
   const [request, setRequest] = useState<DependenciesRequest | null>(null);
   const [added, setAdded] = useState(0);
+  // O projeto do link aberto na pré-visualização, e a versão escolhida lá para o packwiz ler.
+  const [linkProject, setLinkProject] = useState<{ url: string; projectId: string } | null>(null);
+  const [linkPick, setLinkPick] = useState<LinkPick | null>(null);
   const id = useId();
 
   const target: PackTarget = {
@@ -117,7 +131,24 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     setRequest(null);
   };
 
-  const loading = search.isPending || (search.isFetching && !search.isFetchingNextPage);
+  const onLinkProject = (found: LinkTarget) => {
+    if (found.kind !== kind) onKindChange(found.kind);
+    setSelected(new Map());
+    setLinkPick(null);
+    if (linkUrl !== null) setLinkProject({ url: linkUrl, projectId: found.projectId });
+    setCurrent(resultOfLink(found));
+  };
+
+  const onLinkFile = (found: LinkTarget) => {
+    setLinkPick(null);
+    setRequest({
+      choices: [{ source: 'curseforge', projectId: found.projectId, versionId: found.fileId }],
+      titles: [found.title],
+    });
+  };
+
+  const loading =
+    typedLink === null && (search.isPending || (search.isFetching && !search.isFetchingNextPage));
 
   return (
     <div className="add-page">
@@ -220,7 +251,18 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
       <div className="disc">
         <FiltersColumn target={target} filters={filters} onChange={setFilters} sources={sources} />
         <div className="disc__main">
-          {search.isPending ? (
+          {typedLink !== null && linkUrl === null ? (
+            <ResultsSkeleton />
+          ) : linkUrl !== null ? (
+            <CurseforgeLinkPanel
+              key={linkUrl}
+              packId={packId}
+              url={linkUrl}
+              onProject={onLinkProject}
+              onFile={onLinkFile}
+              pick={linkProject?.url === linkUrl ? linkPick : null}
+            />
+          ) : search.isPending ? (
             <ResultsSkeleton />
           ) : search.isError ? (
             <ErrorPanel
@@ -299,7 +341,18 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             kind={kind}
             target={target}
             onAdd={(choice, title) => {
-              setRequest({ choices: [choice], titles: [title] });
+              // Do link de projeto: quem lê a versão escolhida é o packwiz (CA-T08-03).
+              const fileId = choice.versionId;
+              const fromLink =
+                linkUrl !== null &&
+                linkProject?.url === linkUrl &&
+                choice.source === 'curseforge' &&
+                choice.projectId === linkProject.projectId;
+              if (fromLink && typeof fileId === 'string') {
+                setLinkPick({ projectId: choice.projectId, fileId });
+              } else {
+                setRequest({ choices: [choice], titles: [title] });
+              }
             }}
           />
         ) : (

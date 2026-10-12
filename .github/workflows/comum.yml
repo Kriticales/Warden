@@ -162,12 +162,16 @@ jobs:
           # As ferramentas têm cache próprio, com chave pelas versões fixadas.
           cache-bin: "false"
 
-      # O rust-cache guarda a pasta `target` só em parte e pode devolver um `target/packwiz`
-      # incompleto (um `.git` sem o repositório). Com isso, o git do `build-packwiz` sobe até
-      # o repositório do Warden e faz checkout do packwiz nele. O sidecar vem só do cache
-      # próprio, logo abaixo.
-      - name: Descartar o target/packwiz do rust-cache
-        run: rm -rf target/packwiz
+      # O rust-cache guarda a pasta `target` só em parte e devolve pastas incompletas que têm
+      # cache próprio mais abaixo:
+      # - `target/packwiz` (um `.git` sem o repositório): o git do `build-packwiz` subiria até
+      #   o repositório do Warden e faria checkout do packwiz nele;
+      # - `target/warden-installer` (o `jre-<versão>` sem o `bin/java.exe`): quando o cache do
+      #   instalador falha, o `cargo xtask installer` extrai o JRE de novo e o renomear para a
+      #   pasta que já existe falhava. O xtask agora apaga a pasta incompleta; descartar aqui
+      #   evita que a sobra do rust-cache se misture com o cache próprio.
+      - name: Descartar o target/packwiz e o target/warden-installer do rust-cache
+        run: rm -rf target/packwiz target/warden-installer
 
       - name: Cache dos módulos do Go
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

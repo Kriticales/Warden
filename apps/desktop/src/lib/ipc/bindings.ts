@@ -18,6 +18,27 @@ export const commands = {
 	addPlan: (packId: PackId, request: AddPlanRequest) => typedError<AddPlan, AppError>(__TAURI_INVOKE("add_plan", { packId, request })),
 	/**  Grava os itens confirmados (ou todos, ou nenhum) e avisa a interface. */
 	addApply: (packId: PackId, request: AddApplyRequest) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_apply", { packId, request })),
+	/**
+	 *  Lê o link da CurseForge colado no campo único e diz o que ele aponta.
+	 * 
+	 *  - Link de **projeto**: o projeto, achado pela API; a tela abre a pré-visualização com o
+	 *    seletor de versão.
+	 *  - Link de **arquivo**: o packwiz lê o link numa cópia do pack (responde `n` à pergunta das
+	 *    dependências); a tela abre o diálogo de dependências com aquele arquivo exato. Nada é
+	 *    gravado no pack.
+	 * 
+	 *  Sem chave da CurseForge: erro `CURSEFORGE_KEY_MISSING`, sem nenhuma requisição.
+	 */
+	curseforgeLinkResolve: (packId: PackId, url: string) => typedError<LinkTarget, AppError>(__TAURI_INVOKE("curseforge_link_resolve", { packId, url })),
+	/**
+	 *  Lê pelo packwiz, numa cópia do pack, o arquivo escolhido na pré-visualização de um link de
+	 *  projeto da CurseForge (`curseforge add --addon-id --file-id`; ARCHITECTURE §6.1). A tela
+	 *  segue com o arquivo exato pelo caminho normal (diálogo de dependências, `add_plan` e
+	 *  `add_apply`). Nada é gravado no pack.
+	 * 
+	 *  Sem chave da CurseForge: erro `CURSEFORGE_KEY_MISSING`, sem nenhuma requisição.
+	 */
+	curseforgeLinkImport: (packId: PackId, projectId: string, fileId: string) => typedError<LinkTarget, AppError>(__TAURI_INVOKE("curseforge_link_import", { packId, projectId, fileId })),
 	/**  Informa a versão, o commit e a plataforma do app. */
 	appInfo: () => typedError<AppInfo, AppError>(__TAURI_INVOKE("app_info")),
 	/**  Configurações atuais. */
@@ -1680,6 +1701,26 @@ export type LauncherErrorCode =
 "LAUNCH_FAILED" | 
 /**  O Warden não conseguiu controlar o processo do jogo (Job Object, grupo de processos). */
 "PROCESS_CONTROL_FAILED";
+
+/**
+ *  O que o link aponta, resolvido: a tela abre a pré-visualização (link de projeto) ou o
+ *  diálogo de dependências com o arquivo exato (link de arquivo).
+ */
+export type LinkTarget = {
+	/**  ID do projeto na CurseForge. */
+	projectId: string,
+	/**  Nome. */
+	title: string,
+	/**  Tipo. */
+	kind: ProjectKind,
+	/**  ID do arquivo, quando o link era de arquivo. */
+	fileId: string | null,
+	/**
+	 *  O autor bloqueou downloads por outros apps ("Download manual necessário"). Só o link de
+	 *  projeto informa (a pré-visualização mostra o aviso); no de arquivo é sempre `false`.
+	 */
+	manualDownload: boolean,
+};
 
 /**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
 export type Loader = 
