@@ -41,6 +41,12 @@ pub enum ProjectErrorCode {
     /// Uma fonte (Modrinth, CurseForge) não respondeu ou deu erro; parâmetro `source`
     /// (SPEC T08; ARCHITECTURE §17).
     SearchSourceUnavailable,
+    /// O arquivo de config mudou no disco desde que foi aberto (concorrência otimista, C-02).
+    FileChangedOnDisk,
+    /// O arquivo de config pedido não existe mais.
+    ConfigNotFound,
+    /// O arquivo de config só abre para leitura (binário, acima de 2 MB ou fora de UTF-8).
+    ConfigNotEditable,
 }
 
 /// Erro do serviço de packs, com parâmetro opcional para a frase da interface.

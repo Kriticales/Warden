@@ -70,6 +70,7 @@ export interface SectionPage {
 export const sectionPages: readonly SectionPage[] = [
   { section: 'mods', to: '/packs/$packId/mods', useCount: useModsCount },
   { section: 'historico', to: '/packs/$packId/historico', useCount: useUnsavedCount },
+  { section: 'configs', to: '/packs/$packId/configs' },
   { section: 'exportar', to: '/packs/$packId/exportar' },
 ];
 
