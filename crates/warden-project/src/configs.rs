@@ -497,9 +497,11 @@ fn not_found(relative: &str) -> Error {
     .param("path", relative)
 }
 
-fn io_error(path: &Path, error: &std::io::Error) -> Error {
+/// Erro de leitura. O "não existe mais" leva o caminho relativo (vai para a frase da interface,
+/// sem a pasta do usuário); o resto leva o caminho no disco, para o log.
+fn io_error(path: &Path, relative: &str, error: &std::io::Error) -> Error {
     if error.kind() == std::io::ErrorKind::NotFound {
-        return not_found(&path.display().to_string());
+        return not_found(relative);
     }
     Error::new(Code::Internal, format!("{}: {error}", path.display()))
 }
@@ -513,16 +515,16 @@ struct OnDisk {
 }
 
 fn load(path: &Path, relative: &str) -> Result<OnDisk> {
-    let metadata = fs::metadata(path).map_err(|error| io_error(path, &error))?;
+    let metadata = fs::metadata(path).map_err(|error| io_error(path, relative, &error))?;
     if !metadata.is_file() {
         return Err(not_found(relative));
     }
     let size = metadata.len();
-    let mut file = fs::File::open(path).map_err(|error| io_error(path, &error))?;
+    let mut file = fs::File::open(path).map_err(|error| io_error(path, relative, &error))?;
     if size <= MAX_VIEW_BYTES {
         let mut bytes = Vec::with_capacity(usize::try_from(size).unwrap_or(0));
         file.read_to_end(&mut bytes)
-            .map_err(|error| io_error(path, &error))?;
+            .map_err(|error| io_error(path, relative, &error))?;
         return Ok(OnDisk {
             hash: hash_bytes(&bytes),
             size: bytes.len() as u64,
@@ -536,7 +538,7 @@ fn load(path: &Path, relative: &str) -> Result<OnDisk> {
     loop {
         let read = file
             .read(&mut buffer)
-            .map_err(|error| io_error(path, &error))?;
+            .map_err(|error| io_error(path, relative, &error))?;
         if read == 0 {
             break;
         }
@@ -984,6 +986,10 @@ mod tests {
         }
         let error = read_file(root, ConfigOrigin::Pack, "config/nao-existe.toml").unwrap_err();
         assert_eq!(error.code, Code::ConfigNotFound);
+        assert_eq!(
+            error.params.get("path").map(String::as_str),
+            Some("config/nao-existe.toml")
+        );
     }
 
     #[test]
