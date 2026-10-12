@@ -1,12 +1,14 @@
 //! Leitura dos cabeçalhos de limite de requisições: `Retry-After` (segundos ou data HTTP) e
 //! `X-Ratelimit-Reset`/`X-Ratelimit-Remaining` do Modrinth (segundos até o fim da janela;
-//! R3 §3.1).
+//! R3 §3.1) e do GitHub (o `X-Ratelimit-Reset` dele é o instante do fim da janela, em segundos
+//! desde 1970; UI-03).
 
 use std::time::{Duration, SystemTime};
 
 use reqwest::header::{HeaderMap, RETRY_AFTER};
 
-/// `X-Ratelimit-Reset`: segundos até a janela recomeçar.
+/// `X-Ratelimit-Reset`: segundos até a janela recomeçar (Modrinth) ou o instante em que ela
+/// recomeça, em segundos desde 1970 (GitHub).
 pub const RATELIMIT_RESET: &str = "x-ratelimit-reset";
 /// `X-Ratelimit-Remaining`: requisições que ainda cabem na janela.
 pub const RATELIMIT_REMAINING: &str = "x-ratelimit-remaining";
@@ -37,10 +39,20 @@ pub fn retry_after(headers: &HeaderMap, now: SystemTime) -> Option<Duration> {
     })
 }
 
-/// Espera até o fim da janela, por `X-Ratelimit-Reset`.
+/// A partir deste valor, o `X-Ratelimit-Reset` é um instante (segundos desde 1970, como no
+/// GitHub), não uma espera: nenhum servidor pede para esperar mais de 30 anos.
+const RESET_IS_TIMESTAMP_FROM: Duration = Duration::from_secs(1_000_000_000);
+
+/// Espera até o fim da janela, por `X-Ratelimit-Reset` (`now` é o relógio de parede, para
+/// converter o instante do GitHub; instante já passado = sem espera).
 #[must_use]
-pub fn ratelimit_reset(headers: &HeaderMap) -> Option<Duration> {
-    header_str(headers, RATELIMIT_RESET).and_then(seconds)
+pub fn ratelimit_reset(headers: &HeaderMap, now: SystemTime) -> Option<Duration> {
+    let value = header_str(headers, RATELIMIT_RESET).and_then(seconds)?;
+    if value < RESET_IS_TIMESTAMP_FROM {
+        return Some(value);
+    }
+    let at = SystemTime::UNIX_EPOCH.checked_add(value)?;
+    Some(at.duration_since(now).unwrap_or(Duration::ZERO))
 }
 
 /// Se a janela acabou (`X-Ratelimit-Remaining: 0`).
@@ -52,7 +64,7 @@ pub fn ratelimit_exhausted(headers: &HeaderMap) -> bool {
 /// Espera que o servidor pediu: o maior entre `Retry-After` e `X-Ratelimit-Reset`.
 #[must_use]
 pub fn requested_wait(headers: &HeaderMap, now: SystemTime) -> Option<Duration> {
-    match (retry_after(headers, now), ratelimit_reset(headers)) {
+    match (retry_after(headers, now), ratelimit_reset(headers, now)) {
         (Some(a), Some(b)) => Some(a.max(b)),
         (a, b) => a.or(b),
     }
@@ -106,20 +118,36 @@ mod tests {
             ("x-ratelimit-remaining", "0"),
             ("x-ratelimit-limit", "300"),
         ]);
-        assert_eq!(ratelimit_reset(&map), Some(Duration::from_secs(12)));
+        assert_eq!(
+            ratelimit_reset(&map, SystemTime::now()),
+            Some(Duration::from_secs(12))
+        );
         assert!(ratelimit_exhausted(&map));
         assert!(!ratelimit_exhausted(&headers(&[(
             "x-ratelimit-remaining",
             "5"
         )])));
         assert_eq!(
-            ratelimit_reset(&headers(&[("x-ratelimit-reset", "1.5")])),
+            ratelimit_reset(&headers(&[("x-ratelimit-reset", "1.5")]), SystemTime::now()),
             Some(Duration::from_millis(1500))
         );
         assert_eq!(
-            ratelimit_reset(&headers(&[("x-ratelimit-reset", "NaN")])),
+            ratelimit_reset(&headers(&[("x-ratelimit-reset", "NaN")]), SystemTime::now()),
             None
         );
+    }
+
+    #[test]
+    fn cabecalhos_do_github_tem_o_instante_do_fim_da_janela() {
+        let now = SystemTime::UNIX_EPOCH + Duration::from_secs(1_760_000_000);
+        let map = headers(&[
+            ("x-ratelimit-reset", "1760000600"),
+            ("x-ratelimit-remaining", "0"),
+        ]);
+        assert_eq!(ratelimit_reset(&map, now), Some(Duration::from_secs(600)));
+        assert_eq!(requested_wait(&map, now), Some(Duration::from_secs(600)));
+        let past = headers(&[("x-ratelimit-reset", "1759999000")]);
+        assert_eq!(ratelimit_reset(&past, now), Some(Duration::ZERO));
     }
 
     #[test]

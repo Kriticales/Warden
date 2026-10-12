@@ -111,18 +111,20 @@ impl HttpClient {
         Request::new(self.clone(), Method::HEAD, url)
     }
 
+    /// Requisição com qualquer método (`PUT`, `PATCH`…). Só `GET` e `HEAD` são repetidos
+    /// sozinhos; as demais, só se marcadas com [`Request::idempotent`].
+    #[must_use]
+    pub fn request(&self, method: Method, url: Url) -> Request {
+        let idempotent = method == Method::GET || method == Method::HEAD;
+        let mut request = Request::new(self.clone(), method, url);
+        request.idempotent = idempotent;
+        request
+    }
+
     /// `POST` com corpo JSON. Não é repetido sozinho, a menos que se marque
     /// [`Request::idempotent`] (consultas como `POST /version_files`).
     pub fn post_json<T: Serialize + ?Sized>(&self, url: Url, body: &T) -> Result<Request> {
-        let body = serde_json::to_vec(body)
-            .map_err(|e| Error::Internal(format!("corpo JSON da requisição: {e}")))?;
-        let mut request = Request::new(self.clone(), Method::POST, url);
-        request.idempotent = false;
-        request.body = Some(body);
-        request
-            .headers
-            .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-        Ok(request)
+        self.request(Method::POST, url).json_body(body)
     }
 
     /// Segue os redirecionamentos de `url` com `HEAD` e **sem** `Range`, e devolve o endereço
@@ -229,6 +231,38 @@ impl Request {
         self
     }
 
+    /// Corpo JSON (com `Content-Type: application/json`).
+    pub fn json_body<T: Serialize + ?Sized>(mut self, body: &T) -> Result<Self> {
+        let body = serde_json::to_vec(body)
+            .map_err(|e| Error::Internal(format!("corpo JSON da requisição: {e}")))?;
+        self.body = Some(body);
+        self.headers
+            .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        Ok(self)
+    }
+
+    /// Corpo de formulário (`application/x-www-form-urlencoded`). Valores secretos (como um
+    /// token de renovação) vão no corpo, nunca no endereço, que aparece nos registros.
+    #[must_use]
+    pub fn form_body(mut self, fields: &[(&str, &str)]) -> Self {
+        let body = url::form_urlencoded::Serializer::new(String::new())
+            .extend_pairs(fields)
+            .finish();
+        self.body = Some(body.into_bytes());
+        self.headers.insert(
+            CONTENT_TYPE,
+            HeaderValue::from_static("application/x-www-form-urlencoded"),
+        );
+        self
+    }
+
+    /// Troca o tempo-limite total desta requisição (um envio grande numa conexão lenta).
+    #[must_use]
+    pub fn timeout(mut self, timeout: Duration) -> Self {
+        self.timeout = Some(timeout);
+        self
+    }
+
     /// Troca o maior corpo aceito.
     #[must_use]
     pub fn max_body(mut self, bytes: u64) -> Self {
@@ -241,6 +275,13 @@ impl Request {
     pub async fn send(self) -> Result<Response> {
         let response = self.send_raw().await?;
         response.error_for_status().await
+    }
+
+    /// Manda com o limitador e as novas tentativas (429 e 5xx, quando permitidas), mas devolve
+    /// a resposta seja qual for o código: quem chama decide o que cada código quer dizer (APIs
+    /// que respondem 200 com erro no corpo, ou 403 que pode ser limite ou permissão).
+    pub async fn send_unchecked(self) -> Result<Response> {
+        self.send_raw().await
     }
 
     /// Manda e lê o corpo inteiro (até o limite).
@@ -286,9 +327,13 @@ impl Request {
                         "resposta HTTP"
                     );
                     if ratelimit_exhausted(headers)
-                        && let Some(reset) = ratelimit_reset(headers)
+                        && let Some(reset) = ratelimit_reset(headers, (inner.wall_clock)())
                     {
-                        inner.limiter.block(&host, reset);
+                        // Nunca mais que a maior espera aceita: a janela de uma hora do GitHub
+                        // não pode deixar o próximo pedido parado sem aviso.
+                        inner
+                            .limiter
+                            .block(&host, reset.min(inner.config.max_rate_limit_wait));
                     }
                     if status == StatusCode::TOO_MANY_REQUESTS {
                         let requested = requested_wait(headers, (inner.wall_clock)());

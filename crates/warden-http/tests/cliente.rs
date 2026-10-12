@@ -502,3 +502,128 @@ async fn tempo_esgotado_vira_timeout() {
         "{error}"
     );
 }
+
+#[tokio::test]
+async fn put_com_json_nao_repete_e_manda_o_corpo() {
+    let server = MockServer::start().await;
+    Mock::given(method("PUT"))
+        .and(path("/arquivo"))
+        .and(header("content-type", "application/json"))
+        .respond_with(ResponseTemplate::new(503))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let (client, timer) = client();
+    let error = client
+        .request(warden_http::Method::PUT, url(&server, "/arquivo"))
+        .json_body(&json!({ "a": 1 }))
+        .unwrap()
+        .send()
+        .await
+        .unwrap_err();
+    assert!(
+        matches!(error, Error::ServerError { status: 503, .. }),
+        "{error:?}"
+    );
+    assert!(timer.sleeps().is_empty());
+    let received = server.received_requests().await.unwrap();
+    assert_eq!(received[0].body, br#"{"a":1}"#);
+}
+
+#[tokio::test]
+async fn formulario_vai_no_corpo_e_nao_no_endereco() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/form"))
+        .and(header("content-type", "application/x-www-form-urlencoded"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("ok"))
+        .mount(&server)
+        .await;
+    let (client, _) = client();
+    let response = client
+        .request(warden_http::Method::POST, url(&server, "/form"))
+        .form_body(&[("client_id", "abc"), ("refresh_token", "r&s=t ç")])
+        .timeout(Duration::from_secs(5))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.final_url().query(), None);
+    let received = server.received_requests().await.unwrap();
+    assert_eq!(
+        String::from_utf8(received[0].body.clone()).unwrap(),
+        "client_id=abc&refresh_token=r%26s%3Dt+%C3%A7"
+    );
+}
+
+#[tokio::test]
+async fn send_unchecked_devolve_4xx_sem_virar_erro_e_repete_5xx() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/proibido"))
+        .respond_with(ResponseTemplate::new(403).insert_header("x-ratelimit-remaining", "0"))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/fora"))
+        .respond_with(ResponseTemplate::new(502))
+        .expect(4)
+        .mount(&server)
+        .await;
+    let (client, _) = client();
+    let response = client
+        .get(url(&server, "/proibido"))
+        .send_unchecked()
+        .await
+        .unwrap();
+    assert_eq!(response.status().as_u16(), 403);
+    assert_eq!(response.headers()["x-ratelimit-remaining"], "0");
+    let response = client
+        .get(url(&server, "/fora"))
+        .send_unchecked()
+        .await
+        .unwrap();
+    assert_eq!(response.status().as_u16(), 502);
+}
+
+#[tokio::test]
+async fn janela_do_github_de_uma_hora_nao_prende_o_proximo_pedido() {
+    let server = MockServer::start().await;
+    let reset = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+        + 3_600;
+    Mock::given(method("GET"))
+        .and(path("/limite"))
+        .respond_with(
+            ResponseTemplate::new(403)
+                .insert_header("x-ratelimit-remaining", "0")
+                .insert_header("x-ratelimit-reset", reset.to_string().as_str()),
+        )
+        .mount(&server)
+        .await;
+    let (client, timer) = client();
+    let response = client
+        .get(url(&server, "/limite"))
+        .send_unchecked()
+        .await
+        .unwrap();
+    assert_eq!(response.status().as_u16(), 403);
+    drop(response);
+    let _ = client
+        .get(url(&server, "/limite"))
+        .send_unchecked()
+        .await
+        .unwrap();
+    // O segundo pedido esperou no máximo a maior espera aceita (2 min), não uma hora.
+    assert!(
+        timer.total_slept() <= Duration::from_secs(120),
+        "{:?}",
+        timer.sleeps()
+    );
+    assert!(
+        timer.total_slept() >= Duration::from_secs(119),
+        "{:?}",
+        timer.sleeps()
+    );
+}

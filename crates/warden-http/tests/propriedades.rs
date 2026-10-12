@@ -32,7 +32,7 @@ proptest! {
         ]);
         let now = SystemTime::UNIX_EPOCH + Duration::from_secs(now);
         let wait = requested_wait(&map, now);
-        let parts = [retry_after(&map, now), ratelimit_reset(&map)];
+        let parts = [retry_after(&map, now), ratelimit_reset(&map, now)];
         // A espera pedida é a maior das duas.
         prop_assert_eq!(wait, parts.iter().flatten().max().copied());
         let _ = ratelimit_exhausted(&map);
@@ -41,9 +41,19 @@ proptest! {
     #[test]
     fn segundos_inteiros_sao_lidos_exatos(seconds in 0_u64..1_000_000) {
         let map = headers(&[("x-ratelimit-reset", seconds.to_string())]);
-        prop_assert_eq!(ratelimit_reset(&map), Some(Duration::from_secs(seconds)));
+        prop_assert_eq!(ratelimit_reset(&map, SystemTime::now()), Some(Duration::from_secs(seconds)));
         let map = headers(&[("retry-after", seconds.to_string())]);
         prop_assert_eq!(retry_after(&map, SystemTime::now()), Some(Duration::from_secs(seconds)));
+    }
+
+    #[test]
+    fn reset_do_github_e_um_instante(now in 1_700_000_000_u64..3_000_000_000, ahead in 0_u64..7_200) {
+        let map = headers(&[("x-ratelimit-reset", (now + ahead).to_string())]);
+        let clock = SystemTime::UNIX_EPOCH + Duration::from_secs(now);
+        prop_assert_eq!(ratelimit_reset(&map, clock), Some(Duration::from_secs(ahead)));
+        // Instante que já passou: nada a esperar.
+        let later = clock + Duration::from_secs(ahead + 1);
+        prop_assert_eq!(ratelimit_reset(&map, later), Some(Duration::ZERO));
     }
 
     #[test]
