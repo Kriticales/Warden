@@ -37,8 +37,10 @@ interface MutableDir {
   files: FileNode[];
 }
 
-function finish(dir: MutableDir): DirNode {
-  const dirs = [...dir.dirs.values()].map(finish).sort((a, b) => compareNames(a.name, b.name));
+function finish(dir: MutableDir, isRoot = false): DirNode {
+  const dirs = [...dir.dirs.values()]
+    .map((child) => finish(child))
+    .sort((a, b) => compareNames(a.name, b.name));
   const files = [...dir.files].sort((a, b) => compareNames(a.name, b.name));
   let node: DirNode = {
     kind: 'dir',
@@ -47,8 +49,9 @@ function finish(dir: MutableDir): DirNode {
     children: [...dirs, ...files],
     count: dirs.reduce((sum, child) => sum + child.count, 0) + files.length,
   };
-  // Pasta com uma única subpasta e nenhum arquivo: junta os nomes.
-  while (node.children.length === 1 && node.children[0]?.kind === 'dir') {
+  // Pasta com uma única subpasta e nenhum arquivo: junta os nomes. A raiz não é pasta da
+  // árvore: juntá-la escondia a pasta de cima ("config/a.toml" aparecia como "a.toml").
+  while (!isRoot && node.children.length === 1 && node.children[0]?.kind === 'dir') {
     const only: DirNode = node.children[0];
     node = { ...only, name: `${node.name}/${only.name}` };
   }
@@ -76,7 +79,7 @@ export function buildTree(files: readonly ConfigFile[]): TreeNode[] {
     }
     dir.files.push({ kind: 'file', name, path: file.path, file });
   }
-  return finish(root).children;
+  return finish(root, true).children;
 }
 
 /** Texto sem acento e em minúsculas, para o filtro. */

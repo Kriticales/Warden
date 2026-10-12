@@ -52,6 +52,11 @@ describe('árvore de arquivos', () => {
     expect(config?.kind === 'dir' && config.count).toBe(5);
   });
 
+  it('uma pasta só no topo continua aparecendo como pasta', () => {
+    expect(names(buildTree([file('config/a.toml'), file('config/b.toml')]))).toEqual(['config/']);
+    expect(names(buildTree([file('config/create/x.toml')]))).toEqual(['config/create/']);
+  });
+
   it('o filtro ignora maiúsculas e acentos e exige todas as palavras', () => {
     expect(filterFiles(files, 'JEI').map((f) => f.path)).toEqual(['config/jei/jei-client.ini']);
     expect(filterFiles(files, 'mundo server').map((f) => f.path)).toEqual([
