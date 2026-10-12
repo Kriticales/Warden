@@ -5,9 +5,11 @@
 //!
 //! - [`offer`]: o que a etapa "Mods iniciais" mostra para um (versão do Minecraft, loader), com a
 //!   versão que seria usada. Não precisa de pack: a etapa vem antes de criá-lo.
-//! - [`apply`]: depois do "Pack criado", planeja e grava os itens marcados pelo mesmo caminho de
-//!   "Adicionar" (`add_plan` + `add_apply`, uma só transação), grava a config inicial do Crash
-//!   Assistant e marca as ferramentas do jogador em `.warden/project.toml`. Um ponto único.
+//! - [`apply`]: depois do "Pack criado", um ponto único em duas transações seguidas. A primeira
+//!   é a de "Adicionar" (`add_plan` + `add_apply`): grava todos os itens marcados ou nenhum. A
+//!   segunda, só se a primeira gravou alguma ferramenta do jogador, grava a config inicial do
+//!   Crash Assistant e a tabela `[player-tools]` de `.warden/project.toml`. Se a segunda falhar,
+//!   os mods já gravados ficam no pack (válido), sem a marcação de ferramenta e sem a config.
 
 use std::cmp::Ordering;
 use std::path::Path;
@@ -132,6 +134,8 @@ impl Band {
 pub struct ToolData {
     /// Identificador (`spark`, `crash-assistant`).
     pub id: String,
+    /// Nome mostrado ao usuário ("Crash Assistant") quando a fonte não informa o dela.
+    pub name: String,
     /// Papel em `[player-tools]`.
     pub role: String,
     /// Vem marcada no assistente.
@@ -183,6 +187,9 @@ impl InitialModsData {
             if !seen.insert(tool.id.as_str()) {
                 return Err(bad(format!("ferramenta {} repetida", tool.id)));
             }
+            if tool.name.trim().is_empty() {
+                return Err(bad(format!("{} sem nome", tool.id)));
+            }
             if tool.band.is_empty() {
                 return Err(bad(format!("{} sem faixas", tool.id)));
             }
@@ -227,8 +234,9 @@ fn check_band(tool: &str, band: &Band) -> std::result::Result<(), String> {
     Ok(())
 }
 
-/// O ID do Modrinth tem 8 letras e números; o da CurseForge é um número.
-fn valid_project_id(id: &str, source: DataSource) -> bool {
+/// O ID do Modrinth tem 8 letras e números; o da CurseForge é um número. Vale também para os
+/// kits (`kits.rs`).
+pub(crate) fn valid_project_id(id: &str, source: DataSource) -> bool {
     match source {
         DataSource::Modrinth => id.len() == 8 && id.chars().all(|c| c.is_ascii_alphanumeric()),
         DataSource::Curseforge => !id.is_empty() && id.chars().all(|c| c.is_ascii_digit()),
@@ -320,7 +328,7 @@ pub struct OfferItem {
     pub source: SourceId,
     /// ID do projeto na fonte.
     pub project_id: String,
-    /// Nome (o da fonte quando ela respondeu; senão, o identificador).
+    /// Nome (o da fonte quando ela respondeu; senão, o dos dados).
     pub title: String,
     /// Versão que será usada ("1.14.1"), quando conhecida.
     pub version: Option<String>,
@@ -417,7 +425,7 @@ pub async fn offer_with(
             checked: tool.checked,
             source,
             project_id: band.project.clone(),
-            title: tool.id.clone(),
+            title: tool.name.clone(),
             version: band.version_label.clone(),
             old: band.old,
             side: band.side.map(DataSide::choice),
@@ -480,6 +488,10 @@ pub struct InitialModsResult {
 /// ferramentas do jogador. Itens sem versão para o pack ou de uma fonte desligada ficam de fora e
 /// voltam em [`InitialModsResult::left_out`]; o pack continua válido.
 ///
+/// São duas transações (veja o início do módulo): os itens entram juntos pelo `add_apply`; depois,
+/// numa segunda transação, a config do Crash Assistant e `[player-tools]`. Um erro na segunda
+/// volta como erro, com os itens da primeira já gravados no pack.
+///
 /// Erros: os do plano e da gravação ([`Code::SearchSourceUnavailable`] quando o Modrinth não
 /// responde, e nada é gravado) e [`Code::InvalidInput`] com ferramenta ou kit desconhecido.
 pub async fn apply(
@@ -533,7 +545,12 @@ pub async fn apply(
     )
     .await?;
     for missing in &plan.missing {
-        left_out.push(missing.title.clone());
+        // O nome dos dados quando o item é um dos pedidos (a fonte pode não ter informado o dela).
+        let name = choices
+            .iter()
+            .find(|(choice, _)| choice.source.key(&choice.project_id) == missing.key)
+            .map_or_else(|| missing.title.clone(), |(_, wanted)| wanted.name.clone());
+        left_out.push(name);
     }
     let mut apply_items = Vec::new();
     for node in &plan.nodes {
@@ -610,7 +627,7 @@ fn wanted_items(
         wanted.push(Wanted {
             source: band.source.source(),
             project: band.project.clone(),
-            name: tool.id.clone(),
+            name: tool.name.clone(),
             side: band.side.map(DataSide::choice),
             role: Some(tool.role.clone()),
         });
@@ -759,7 +776,7 @@ mod tests {
 
     #[test]
     fn dados_invalidos_sao_recusados() {
-        let base = "schema = 1\n[[tool]]\nid = \"x\"\nrole = \"x\"\nchecked = true\n[[tool.band]]\nloaders = [\"forge\"]\nsource = \"modrinth\"\n";
+        let base = "schema = 1\n[[tool]]\nid = \"x\"\nname = \"X\"\nrole = \"x\"\nchecked = true\n[[tool.band]]\nloaders = [\"forge\"]\nsource = \"modrinth\"\n";
         assert!(InitialModsData::parse(&format!("{base}project = \"l6YH9Als\"\n")).is_ok());
         for bad in [
             "project = \"curto\"\n",

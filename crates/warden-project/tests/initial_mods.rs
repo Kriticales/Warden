@@ -525,6 +525,38 @@ async fn item_de_fonte_desligada_fica_de_fora_e_o_resto_entra() {
 }
 
 #[tokio::test]
+async fn item_que_a_fonte_nao_conhece_fica_de_fora_com_o_nome_e_nao_o_identificador() {
+    // O Modrinth não devolve o Crash Assistant (projeto apagado, por exemplo): o aviso mostra o
+    // nome da ferramenta ("Crash Assistant"), nunca o ID do projeto nem o identificador dos dados.
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    new_pack(root, "1.21.1", Loader::Fabric).await;
+    let Some(cli) = packwiz(root) else {
+        return;
+    };
+    let api = Api::start().await;
+    Mock::given(method("GET"))
+        .and(path("/v2/projects"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(Vec::<Value>::new()))
+        .with_priority(1)
+        .mount(&api.server)
+        .await;
+    let result = apply(
+        root,
+        &api.sources(),
+        ChannelPolicy::default(),
+        &request(&["crash-assistant"]),
+        &cli,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(result.added.is_empty());
+    assert_eq!(result.left_out, ["Crash Assistant"]);
+    assert!(player_tools::read(root).unwrap().is_empty());
+}
+
+#[tokio::test]
 async fn kit_escolhido_entra_junto_com_os_mods_iniciais_pelo_mesmo_caminho() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path();

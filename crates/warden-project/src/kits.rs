@@ -9,7 +9,9 @@ use std::sync::OnceLock;
 
 use serde::{Deserialize, Serialize};
 
-use crate::initial_mods::{DataSide, DataSource, KitChoice, compare_versions, version_in_range};
+use crate::initial_mods::{
+    DataSide, DataSource, KitChoice, compare_versions, valid_project_id, version_in_range,
+};
 use crate::search::SourceId;
 use crate::side::SideChoice;
 use crate::{Error, ProjectErrorCode as Code, Result};
@@ -123,16 +125,7 @@ impl KitsData {
             }
             let mut projects = std::collections::BTreeSet::new();
             for item in &kit.item {
-                let valid = match item.source {
-                    DataSource::Modrinth => {
-                        item.project.len() == 8
-                            && item.project.chars().all(|c| c.is_ascii_alphanumeric())
-                    }
-                    DataSource::Curseforge => {
-                        !item.project.is_empty() && item.project.chars().all(|c| c.is_ascii_digit())
-                    }
-                };
-                if !valid {
+                if !valid_project_id(&item.project, item.source) {
                     return Err(bad(format!(
                         "{}: ID inválido em {}: {}",
                         kit.id, item.name, item.project

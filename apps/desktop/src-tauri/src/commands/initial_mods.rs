@@ -2,9 +2,10 @@
 //!
 //! - `initial_mods_offer`: a etapa "Mods iniciais" do Criar pack para um Minecraft e um loader
 //!   (antes de o pack existir).
-//! - `initial_mods_apply`: o ponto único, depois do "Pack criado": grava os itens marcados pelo
-//!   mesmo caminho de "Adicionar" (`add_plan` + `add_apply`), a config inicial do Crash
-//!   Assistant e as ferramentas do jogador.
+//! - `initial_mods_apply`: o ponto único, depois do "Pack criado", em duas transações seguidas
+//!   sob a mesma trava do pack: os itens marcados pelo mesmo caminho de "Adicionar" (`add_plan` +
+//!   `add_apply`, todos ou nenhum) e, depois, a config inicial do Crash Assistant e as
+//!   ferramentas do jogador.
 //! - `kits_list`: os kits de desempenho que servem ao loader e à versão (dados embutidos, sem
 //!   rede). Aplicar um kit num pack existente passa pelo `add_plan`/`add_apply` e pelo diálogo
 //!   de dependências da P1-09.
@@ -62,8 +63,10 @@ pub(crate) async fn initial_mods_offer(
     .map_err(domain)
 }
 
-/// Grava os mods iniciais marcados (e o kit escolhido) no pack, numa só transação, e avisa a
-/// interface. Itens sem versão para o pack ou de uma fonte desligada ficam de fora e voltam em
+/// Grava os mods iniciais marcados (e o kit escolhido) no pack e avisa a interface. Duas
+/// transações sob a mesma trava: os itens (todos ou nenhum) e, depois, a config do Crash
+/// Assistant e `[player-tools]`; se a segunda falhar, o erro volta e os itens já gravados ficam no
+/// pack. Itens sem versão para o pack ou de uma fonte desligada ficam de fora e voltam em
 /// `leftOut`; o pack continua válido.
 #[tauri::command]
 #[specta::specta]
