@@ -412,7 +412,11 @@ impl DetailSource for CurseforgeDetails {
         let Some(file_id) = numeric(version_id) else {
             return Ok(None);
         };
-        match self.client.file_changelog(mod_id, file_id, Some(cancel)).await {
+        match self
+            .client
+            .file_changelog(mod_id, file_id, Some(cancel))
+            .await
+        {
             Ok(body) if body.trim().is_empty() => Ok(None),
             Ok(body) => Ok(Some(VersionNotes {
                 body,

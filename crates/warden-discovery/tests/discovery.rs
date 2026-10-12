@@ -12,11 +12,10 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use warden_core::CancellationToken;
-use warden_discovery::home::{HOME_ITEMS, home};
 use warden_curseforge::CurseforgeClient;
+use warden_discovery::home::{HOME_ITEMS, home};
 use warden_discovery::preview::{
-    CurseforgeDetails, DetailSources, ModrinthDetails, gallery, version_dependencies,
-    version_notes,
+    CurseforgeDetails, DetailSources, ModrinthDetails, gallery, version_dependencies, version_notes,
 };
 use warden_http::{HttpClient, HttpConfig};
 use warden_modrinth::{MetadataCache, ModrinthClient};
@@ -557,9 +556,12 @@ async fn ca_t08_13_na_curseforge_o_changelog_so_e_pedido_ao_abrir_a_linha() {
     )
     .await
     .unwrap();
-    assert!(cf.requests("/v1/mods/").await.iter().all(|request| {
-        !request.url.path().ends_with("/changelog")
-    }));
+    assert!(
+        cf.requests("/v1/mods/")
+            .await
+            .iter()
+            .all(|request| { !request.url.path().ends_with("/changelog") })
+    );
     let notes = version_notes(
         &sources,
         SourceId::Curseforge,
