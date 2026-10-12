@@ -164,6 +164,18 @@ const FORGE_1_7_10: On = On {
     loader: "Forge",
     loader_type: 1,
 };
+/// Como os arquivos antigos da CurseForge vêm de verdade (o NEI 1.7.10, por exemplo): só a
+/// versão do Minecraft em `gameVersions`, sem nenhuma tag de loader.
+const SEM_TAG_1_7_10: On = On {
+    minecraft: "1.7.10",
+    loader: "",
+    loader_type: 1,
+};
+const FABRIC_1_7_10: On = On {
+    minecraft: "1.7.10",
+    loader: "Fabric",
+    loader_type: 4,
+};
 
 fn cf_file(mod_id: u64, file_id: u64, name: &str, sha1: &str, deps: &[(u64, u32)]) -> Value {
     cf_file_on(FABRIC_1_21_1, mod_id, file_id, name, sha1, deps)
@@ -177,17 +189,28 @@ fn cf_file_on(
     sha1: &str,
     deps: &[(u64, u32)],
 ) -> Value {
+    let (tags, sortable) = if on.loader.is_empty() {
+        (
+            json!([on.minecraft]),
+            json!([{"gameVersionName": on.minecraft, "gameVersion": on.minecraft, "gameVersionTypeId": 5}]),
+        )
+    } else {
+        (
+            json!(["Client", on.minecraft, on.loader, "Server"]),
+            json!([
+                {"gameVersionName": on.minecraft, "gameVersion": on.minecraft, "gameVersionTypeId": 75125},
+                {"gameVersionName": on.loader, "gameVersion": "", "gameVersionTypeId": 68441}
+            ]),
+        )
+    };
     json!({
         "id": file_id, "gameId": 432, "modId": mod_id, "isAvailable": true,
         "displayName": name, "fileName": name, "releaseType": 1, "fileStatus": 4,
         "hashes": [{"value": sha1, "algo": 1}],
         "fileDate": "2026-09-19T11:47:57.347Z", "fileLength": 1000, "downloadCount": 7,
         "downloadUrl": format!("https://edge.forgecdn.net/files/{file_id}/{name}"),
-        "gameVersions": ["Client", on.minecraft, on.loader, "Server"],
-        "sortableGameVersions": [
-            {"gameVersionName": on.minecraft, "gameVersion": on.minecraft, "gameVersionTypeId": 75125},
-            {"gameVersionName": on.loader, "gameVersion": "", "gameVersionTypeId": 68441}
-        ],
+        "gameVersions": tags,
+        "sortableGameVersions": sortable,
         "dependencies": deps.iter()
             .map(|(id, relation)| json!({"modId": id, "relationType": relation}))
             .collect::<Vec<_>>(),
@@ -949,8 +972,9 @@ fn nei_files() -> Vec<Value> {
     let on = FORGE_1_7_10;
     let sha1 = |digit: char| digit.to_string().repeat(40);
     vec![
+        // O NEI e o CodeChickenCore vêm como na API real: sem a tag "Forge".
         cf_file_on(
-            on,
+            SEM_TAG_1_7_10,
             CF_NEI,
             CF_NEI * 10,
             "NotEnoughItems-1.7.10-1.0.5.120-universal.jar",
@@ -958,7 +982,7 @@ fn nei_files() -> Vec<Value> {
             &[(CF_CCC, 3)],
         ),
         cf_file_on(
-            on,
+            SEM_TAG_1_7_10,
             CF_CCC,
             CF_CCC * 10,
             "CodeChickenCore-1.7.10-1.0.7.47-universal.jar",
@@ -1076,6 +1100,99 @@ async fn ca_t08_02_nei_da_curseforge_num_pack_forge_1_7_10() {
     let index = fs::read_to_string(root.join("index.toml")).unwrap();
     assert!(!index.contains("roughly-enough-items"), "{index}");
     assert!(!index.contains("nei-addons"), "{index}");
+    assert_conforming(root).await;
+}
+
+/// Num pack Forge 1.7.10, o arquivo da CurseForge sem nenhuma tag de loader (como os antigos
+/// vêm de verdade) é compatível e é gravado; o arquivo marcado só "Fabric" continua de fora,
+/// sem versão para o pack.
+#[tokio::test]
+async fn arquivo_sem_tag_de_loader_entra_num_pack_forge_1_7_10_e_o_so_fabric_nao() {
+    let modrinth = modrinth_empty().await;
+    let curseforge = MockServer::start().await;
+    let sha1 = |digit: char| digit.to_string().repeat(40);
+    curseforge_mock(
+        &curseforge,
+        vec![
+            cf_project_on(
+                SEM_TAG_1_7_10,
+                CF_NEI,
+                "notenoughitems",
+                "Not Enough Items",
+                "chicken_bones",
+                false,
+            ),
+            cf_project_on(
+                FABRIC_1_7_10,
+                CF_REI,
+                "so-fabric",
+                "Só Fabric",
+                "Outra",
+                false,
+            ),
+        ],
+        vec![
+            cf_file_on(
+                SEM_TAG_1_7_10,
+                CF_NEI,
+                CF_NEI * 10,
+                "NotEnoughItems-1.7.10-1.0.5.120-universal.jar",
+                &sha1('a'),
+                &[],
+            ),
+            cf_file_on(
+                FABRIC_1_7_10,
+                CF_REI,
+                CF_REI * 10,
+                "so-fabric-1.7.10.jar",
+                &sha1('d'),
+                &[],
+            ),
+        ],
+    )
+    .await;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    pack(root, "1.7.10", Loader::Forge);
+    refresh(root).await;
+
+    let sources = add_sources(&modrinth, &curseforge);
+    let plan = plan_of(
+        &sources,
+        root,
+        vec![
+            choice(SourceId::Curseforge, CF_NEI),
+            choice(SourceId::Curseforge, CF_REI),
+        ],
+    )
+    .await;
+    let nodes: Vec<(String, String)> = plan
+        .nodes
+        .iter()
+        .map(|node| (node.project_id.clone(), node.version_id.clone()))
+        .collect();
+    assert_eq!(nodes, [(CF_NEI.to_string(), (CF_NEI * 10).to_string())]);
+    let missing: Vec<&str> = plan.missing.iter().map(|item| item.key.as_str()).collect();
+    assert_eq!(missing, [format!("curseforge:{CF_REI}")]);
+
+    let Some(cli) = packwiz(root) else { return };
+    let result = add_apply(
+        root,
+        &sources,
+        &confirm_default(&plan),
+        &cli,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    let paths: Vec<&str> = result.added.iter().map(|item| item.path.as_str()).collect();
+    assert_eq!(paths, ["mods/notenoughitems.pw.toml"]);
+    let text = fs::read_to_string(root.join("mods/notenoughitems.pw.toml")).unwrap();
+    assert!(
+        text.contains(&format!("file-id = {}", CF_NEI * 10)),
+        "{text}"
+    );
+    assert!(!root.join("mods/so-fabric.pw.toml").exists());
     assert_conforming(root).await;
 }
 

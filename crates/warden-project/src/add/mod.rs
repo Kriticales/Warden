@@ -198,9 +198,41 @@ impl SourceVersion {
             || self
                 .loaders
                 .iter()
-                .any(|loader| loaders.contains(&loader.to_ascii_lowercase()));
+                .any(|loader| loaders.contains(&loader.to_ascii_lowercase()))
+            || self.forge_without_tag(&loaders, target);
         game && loader
     }
+
+    /// Arquivo da CurseForge sem nenhuma tag de loader num pack Forge até o Minecraft 1.13.
+    ///
+    /// Os arquivos antigos da CurseForge (o NEI da 1.7.10, por exemplo) trazem só a versão do
+    /// Minecraft em `gameVersions`, sem "Forge". O packwiz (`matchLoaderTypeFileInfo` em
+    /// `curseforge/curseforge.go`) aceita para qualquer loader o arquivo que não declara
+    /// nenhum. O Warden é mais estrito: aceita só quando o pack usa Forge e a versão do
+    /// Minecraft em comum é 1.13 ou anterior, quando o Forge era o único loader e não há
+    /// ambiguidade. Um arquivo que declara outro loader (só "Fabric", por exemplo) continua
+    /// incompatível, e o Modrinth sempre informa os loaders.
+    fn forge_without_tag(&self, loaders: &[String], target: &PackTarget) -> bool {
+        self.source == SourceId::Curseforge
+            && self.loaders.is_empty()
+            && loaders
+                .iter()
+                .any(|loader| loader == warden_packwiz::Loader::Forge.key())
+            && self.game_versions.iter().any(|version| {
+                target.game_versions.contains(version) && forge_only_minecraft(version)
+            })
+    }
+}
+
+/// Se a versão do Minecraft é 1.13 ou anterior, quando só o Forge existia ("1.7.10", "1.12.2").
+fn forge_only_minecraft(version: &str) -> bool {
+    let mut parts = version.split('.');
+    let major = parts.next().and_then(|part| part.parse::<u32>().ok());
+    let minor = parts.next().and_then(|part| {
+        let digits: String = part.chars().take_while(char::is_ascii_digit).collect();
+        digits.parse::<u32>().ok()
+    });
+    matches!((major, minor), (Some(1), Some(minor)) if minor <= 13)
 }
 
 /// O que uma fonte precisa saber fazer para o plano e a gravação. Implementada pelo Modrinth
@@ -592,5 +624,45 @@ mod tests {
         let mut old = version("3", VersionChannel::Release);
         old.game_versions = vec!["1.19.2".into()];
         assert!(!old.compatible(Some(ProjectKind::Mod), &target));
+    }
+
+    #[test]
+    fn arquivo_da_curseforge_sem_loader_serve_para_forge_ate_1_13() {
+        let target = |minecraft: &str, loader| PackTarget {
+            minecraft: minecraft.into(),
+            game_versions: vec![minecraft.into()],
+            loaders: vec![loader],
+        };
+        let untagged = |minecraft: &str| SourceVersion {
+            source: SourceId::Curseforge,
+            game_versions: vec![minecraft.into()],
+            loaders: Vec::new(),
+            ..version("1", VersionChannel::Release)
+        };
+        let forge = warden_packwiz::Loader::Forge;
+        let mod_kind = Some(ProjectKind::Mod);
+        // Antes da 1.14 só havia o Forge: o arquivo sem tag é dele.
+        for minecraft in ["1.7.10", "1.12.2", "1.13", "1.13.2"] {
+            assert!(
+                untagged(minecraft).compatible(mod_kind, &target(minecraft, forge)),
+                "{minecraft}"
+            );
+        }
+        // Da 1.14 em diante há Fabric: sem tag, não dá para saber.
+        assert!(!untagged("1.14.4").compatible(mod_kind, &target("1.14.4", forge)));
+        assert!(!untagged("1.20.1").compatible(mod_kind, &target("1.20.1", forge)));
+        // Só para o Forge.
+        let fabric = warden_packwiz::Loader::Fabric;
+        assert!(!untagged("1.7.10").compatible(mod_kind, &target("1.7.10", fabric)));
+        // A versão do Minecraft continua tendo de bater.
+        assert!(!untagged("1.7.2").compatible(mod_kind, &target("1.7.10", forge)));
+        // Um arquivo que declara outro loader continua incompatível.
+        let mut fabric_only = untagged("1.7.10");
+        fabric_only.loaders = vec!["fabric".into()];
+        assert!(!fabric_only.compatible(mod_kind, &target("1.7.10", forge)));
+        // O Modrinth sempre informa os loaders: a regra é só da CurseForge.
+        let mut modrinth = untagged("1.7.10");
+        modrinth.source = SourceId::Modrinth;
+        assert!(!modrinth.compatible(mod_kind, &target("1.7.10", forge)));
     }
 }
