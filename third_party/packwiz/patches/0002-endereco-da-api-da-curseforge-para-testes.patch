@@ -1,0 +1,44 @@
+Warden: endereço da API da CurseForge trocável por variável de ambiente, para testes (ADR-0049).
+
+Os testes de integração e os E2E do Warden rodam contra uma CurseForge simulada (os termos da
+CurseForge proíbem guardar respostas dela no repositório, e a CI não tem chave). O Warden já
+troca o endereço da API em build de debug pela variável WARDEN_API_BASE_CURSEFORGE
+(ARCHITECTURE §17.1); este patch faz o packwiz ler a mesma variável, no mesmo formato (o
+endereço que substitui "https://api.curseforge.com/v1"), para que o `curseforge add` do link
+da CurseForge seja testado com o packwiz real. Vazia ou ausente: o endereço oficial, como
+antes. O Warden só repassa a variável ao packwiz em build de debug (o processo do packwiz
+roda com o ambiente limpo), então o instalador nunca a usa.
+
+Base: packwiz/packwiz no commit de third_party/packwiz/COMMIT, depois do patch 0001. Aplicar
+com `git apply`.
+
+diff --git a/curseforge/request.go b/curseforge/request.go
+index 739fa42..0b8febd 100644
+--- a/curseforge/request.go
++++ b/curseforge/request.go
+@@ -38,2 +38,15 @@ func cfApiKey() (string, error) {
+ 
++// Warden: endereço da API trocável, para os testes do Warden falarem com uma CurseForge
++// simulada. Mesma variável e mesmo formato do Warden (o endereço que substitui
++// "https://api.curseforge.com/v1"). Vazia: o endereço oficial.
++const cfApiBaseEnv = "WARDEN_API_BASE_CURSEFORGE"
++
++func cfApiUrl(endpoint string) string {
++	base := strings.TrimRight(strings.TrimSpace(os.Getenv(cfApiBaseEnv)), "/")
++	if base == "" {
++		return "https://" + cfApiServer + endpoint
++	}
++	return base + strings.TrimPrefix(endpoint, "/v1")
++}
++
+ type cfApiClient struct {
+@@ -45,3 +58,3 @@ var cfDefaultClient = cfApiClient{&http.Client{}}
+ func (c *cfApiClient) makeGet(endpoint string) (*http.Response, error) {
+-	req, err := http.NewRequest("GET", "https://"+cfApiServer+endpoint, nil)
++	req, err := http.NewRequest("GET", cfApiUrl(endpoint), nil)
+ 	if err != nil {
+@@ -70,3 +83,3 @@ func (c *cfApiClient) makeGet(endpoint string) (*http.Response, error) {
+ func (c *cfApiClient) makePost(endpoint string, body io.Reader) (*http.Response, error) {
+-	req, err := http.NewRequest("POST", "https://"+cfApiServer+endpoint, body)
++	req, err := http.NewRequest("POST", cfApiUrl(endpoint), body)
+ 	if err != nil {

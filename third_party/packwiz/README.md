@@ -34,6 +34,12 @@ Nada usa mais a chave embutida do packwiz: a função que decodificava `cfApiKey
 
 Quem chama o packwiz (P1-02) define `WARDEN_CURSEFORGE_API_KEY` só nos comandos que falam com a CurseForge e reconhece a falta da chave pelo começo da mensagem acima (constante `MISSING_KEY_MESSAGE` do `xtask/src/packwiz.rs`).
 
+### `0002-endereco-da-api-da-curseforge-para-testes.patch`
+
+Em `curseforge/request.go`, o endereço da API da CurseForge passa a poder ser trocado pela variável de ambiente `WARDEN_API_BASE_CURSEFORGE`, a mesma que o Warden usa em build de debug para apontar a CurseForge para o servidor de fixtures (ARCHITECTURE §17.1), no mesmo formato: o endereço que substitui `https://api.curseforge.com/v1`. Vazia ou ausente, vale o endereço oficial, como antes.
+
+Serve para testar com o packwiz real, contra uma CurseForge simulada, o `curseforge add` do link da CurseForge (P1-10, CA-T08-03): os termos da CurseForge proíbem guardar respostas dela no repositório e a CI não tem chave. O processo do packwiz roda com o ambiente limpo; a `warden-packwiz-cli` só põe a variável quando alguém chama `Packwiz::with_curseforge_api`, e o app só chama em build de debug. O instalador nunca a usa. Os testes `link::*` de `crates/warden-project/tests/add_curseforge.rs` falham sem o patch (o packwiz iria à API oficial com uma chave falsa).
+
 ## Build
 
 ```powershell
