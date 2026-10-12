@@ -46,17 +46,41 @@ pub fn is_https(url: &str) -> bool {
     Url::parse(url).is_ok_and(|url| url.scheme() == "https" && url.host_str().is_some())
 }
 
-/// Se o link é `https:` de um dos servidores da CurseForge (o próprio ou um subdomínio).
+/// Se o link é `https:` de um dos servidores da CurseForge (o próprio ou um subdomínio), ou,
+/// só em build de debug, do servidor de fixtures dos E2E ([`fixture_origin`]).
 fn from_curseforge(original: &str) -> bool {
     Url::parse(original).is_ok_and(|url| {
-        url.scheme() == "https"
+        let official = url.scheme() == "https"
             && url.host_str().is_some_and(|host| {
                 let host = host.to_ascii_lowercase();
                 ALLOWED_HOSTS
                     .iter()
                     .any(|allowed| host == *allowed || host.ends_with(&format!(".{allowed}")))
-            })
+            });
+        official || fixture_origin().is_some_and(|origin| same_origin(&url, &origin))
     })
+}
+
+/// A origem do servidor de fixtures dos E2E: a de `WARDEN_API_BASE_CURSEFORGE`, só em build de
+/// debug (como a própria API da CurseForge simulada). Em release, nenhuma.
+fn fixture_origin() -> Option<Url> {
+    #[cfg(debug_assertions)]
+    {
+        std::env::var(warden_curseforge::BASE_URL_ENV)
+            .ok()
+            .and_then(|base| Url::parse(base.trim()).ok())
+            .filter(|base| base.host_str().is_some())
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        None
+    }
+}
+
+fn same_origin(url: &Url, origin: &Url) -> bool {
+    url.scheme() == origin.scheme()
+        && url.host_str() == origin.host_str()
+        && url.port_or_known_default() == origin.port_or_known_default()
 }
 
 /// O endereço `warden-img://` de uma imagem da CurseForge. `None` se o link não for `https:`
@@ -169,6 +193,9 @@ impl ImageProxy {
     }
 
     fn host_allowed(&self, url: &Url) -> bool {
+        if fixture_origin().is_some_and(|origin| same_origin(url, &origin)) {
+            return true;
+        }
         let Some(host) = url.host_str().map(str::to_ascii_lowercase) else {
             return false;
         };
@@ -289,6 +316,20 @@ mod tests {
         assert!(proxy_url("https://example.com/a.png").is_none());
         assert!(proxy_url("https://evil-forgecdn.net/a.png").is_none());
         assert!(proxy_url("https://forgecdn.net/a.png").is_some());
+    }
+
+    #[test]
+    fn mesma_origem_confere_esquema_servidor_e_porta() {
+        let origin = Url::parse("http://127.0.0.1:4000/curseforge/").unwrap();
+        let ok = Url::parse("http://127.0.0.1:4000/curseforge-img/a.png").unwrap();
+        assert!(same_origin(&ok, &origin));
+        for other in [
+            "http://127.0.0.1:4001/a.png",
+            "https://127.0.0.1:4000/a.png",
+            "http://localhost:4000/a.png",
+        ] {
+            assert!(!same_origin(&Url::parse(other).unwrap(), &origin), "{other}");
+        }
     }
 
     #[test]

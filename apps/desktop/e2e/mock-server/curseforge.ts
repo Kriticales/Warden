@@ -10,7 +10,11 @@
  * - `CHAVE_COM_ERRO`: 500 em tudo (a CurseForge fora do ar);
  * - qualquer outra: respostas normais;
  * - sem chave: 403 (o app não deve mandar nada sem chave; o teste confere pelo registro).
+ *
+ * As capturas de tela do "Mod Só da CurseForge" (galeria da P1-16) são servidas por este mesmo
+ * servidor em `/curseforge-img/` (PNG gerado aqui), e o app as busca pelo `warden-img://`.
  */
+import { crc32, deflateSync } from 'node:zlib';
 
 export const CHAVE_RECUSADA = 'chave-recusada-do-e2e';
 export const CHAVE_COM_ERRO = 'chave-com-erro-do-e2e';
@@ -31,6 +35,42 @@ export const CF_LINK = 900_004;
 
 /** SHA-1 do arquivo estável do Sodium para Fabric 1.21.1 no Modrinth (`SMxNOGZ6`). */
 const SODIUM_SHA1 = '003c114c85ca88ef3362e018deb6aca0c682d6a1';
+
+/** Caminho das imagens simuladas da CurseForge neste servidor. */
+export const CF_IMAGE_PREFIX = '/curseforge-img/';
+
+function chunk(type: string, data: Buffer): Buffer {
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(body));
+  return Buffer.concat([length, body, crc]);
+}
+
+/** Um PNG de uma cor só (RGB, 8 bits), do tamanho dado. */
+function png(width: number, height: number, rgb: [number, number, number]): Buffer {
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
+  header.set([8, 2, 0, 0, 0], 8);
+  const row = Buffer.concat([Buffer.from([0]), Buffer.from(Array(width).fill(rgb).flat())]);
+  const pixels = Buffer.concat(Array<Buffer>(height).fill(row));
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(pixels)),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
+/** A imagem simulada do caminho (`/curseforge-img/<nome>.png`), ou `null`. */
+export function curseforgeImage(path: string): Buffer | null {
+  const name = path.slice(CF_IMAGE_PREFIX.length);
+  if (name === 'print-1.png') return png(320, 180, [30, 90, 110]);
+  if (name === 'print-1-thumb.png') return png(160, 90, [30, 90, 110]);
+  return null;
+}
 
 interface Reply {
   status: number;
@@ -104,6 +144,26 @@ const FILES = [
   file(CF_LINK, 'mod-do-link-1.0.jar', '4'.repeat(40)),
 ];
 
+/**
+ * O projeto com as capturas de tela, como a API devolve na busca e no projeto. Só o "Mod Só da
+ * CurseForge" tem uma, servida por este servidor (`origin`).
+ */
+function withScreenshots(found: ReturnType<typeof project>, origin: string) {
+  const screenshots =
+    found.id === CF_ONLY
+      ? [
+          {
+            id: 1,
+            title: 'Base com o mod',
+            description: 'Captura simulada',
+            thumbnailUrl: `${origin}${CF_IMAGE_PREFIX}print-1-thumb.png`,
+            url: `${origin}${CF_IMAGE_PREFIX}print-1.png`,
+          },
+        ]
+      : [];
+  return { ...found, screenshots };
+}
+
 function paged<T>(items: T[]) {
   return {
     data: items,
@@ -135,6 +195,7 @@ export function curseforgeReply(
   path: string,
   key: string | undefined,
   body: string,
+  origin: string,
 ): Reply | null {
   if (key === CHAVE_COM_ERRO) return { status: 500, body: { error: 'simulado' } };
   if (!key || key === CHAVE_RECUSADA) return { status: 403, body: {} };
@@ -144,12 +205,24 @@ export function curseforgeReply(
     // Pelo slug (link de projeto), como a API: só o projeto daquele slug, inclusive o do link.
     const slug = url.searchParams.get('slug');
     if (slug !== null)
-      return { status: 200, body: paged(ALL_PROJECTS.filter((p) => p.slug === slug)) };
-    return { status: 200, body: paged(PROJECTS) };
+      return {
+        status: 200,
+        body: paged(
+          ALL_PROJECTS.filter((p) => p.slug === slug).map((p) => withScreenshots(p, origin)),
+        ),
+      };
+    return { status: 200, body: paged(PROJECTS.map((p) => withScreenshots(p, origin))) };
   }
   if (method === 'POST' && route === 'mods') {
     const wanted = ids(body, 'modIds');
-    return { status: 200, body: { data: ALL_PROJECTS.filter((p) => wanted.includes(p.id)) } };
+    return {
+      status: 200,
+      body: {
+        data: ALL_PROJECTS.filter((p) => wanted.includes(p.id)).map((p) =>
+          withScreenshots(p, origin),
+        ),
+      },
+    };
   }
   if (method === 'POST' && route === 'mods/files') {
     const wanted = ids(body, 'fileIds');
@@ -165,6 +238,10 @@ export function curseforgeReply(
     const found = FILES.find((f) => f.modId === Number(oneFile[1]) && f.id === Number(oneFile[2]));
     return found ? { status: 200, body: { data: found } } : { status: 404, body: {} };
   }
+  const changelog = /^mods\/(\d+)\/files\/(\d+)\/changelog$/.exec(route);
+  if (method === 'GET' && changelog) {
+    return { status: 200, body: { data: '<p>Notas simuladas desta versão.</p>' } };
+  }
   const description = /^mods\/(\d+)\/description$/.exec(route);
   if (method === 'GET' && description) {
     return { status: 200, body: { data: '<p>Descrição simulada da CurseForge.</p>' } };
@@ -172,7 +249,9 @@ export function curseforgeReply(
   const one = /^mods\/(\d+)$/.exec(route);
   if (method === 'GET' && one) {
     const found = ALL_PROJECTS.find((p) => p.id === Number(one[1]));
-    return found ? { status: 200, body: { data: found } } : { status: 404, body: {} };
+    return found
+      ? { status: 200, body: { data: withScreenshots(found, origin) } }
+      : { status: 404, body: {} };
   }
   return null;
 }

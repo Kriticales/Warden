@@ -1,15 +1,19 @@
 /**
- * Descoberta no app real (P1-16; SPEC T08, CA-T08-10 e CA-T08-13), com o packwiz de verdade e as
- * respostas gravadas do Modrinth (servidor de fixtures; nada vai à internet).
+ * Descoberta no app real (P1-16; SPEC T08, CA-T08-10 e CA-T08-13), com o packwiz de verdade, as
+ * respostas gravadas do Modrinth e a CurseForge simulada (servidor de fixtures; nada vai à
+ * internet).
  *
  * - Campo vazio: "Populares para Minecraft 1.21.1 com Fabric", "Atualizados recentemente" e as
  *   categorias, com no máximo 3 requisições ao Modrinth e nenhuma à CurseForge (sem chave).
  * - A categoria "Tecnologia" filtra a busca pela categoria mapeada do Modrinth.
- * - Pré-visualização completa: índice, galeria com a imagem grande, versões com as notas pedidas
- *   só ao abrir a linha e dependências.
+ * - Pré-visualização completa: índice, galeria (no Modrinth, as miniaturas e o visualizador; na
+ *   CurseForge, com a chave, a imagem grande servida pelo `warden-img://` a partir do servidor de
+ *   fixtures, sem depender da rede), versões com as notas pedidas só ao abrir a linha e
+ *   dependências.
  * - Abaixo de 1180 px a coluna de filtros recolhe atrás do botão "Filtros".
- * - Depois da sessão, a pasta de dados do WebView não guarda nenhuma resposta da CurseForge nem
- *   endereço `warden-img://` (o cache de disco do WebView não pode ter dados da API).
+ * - Depois da sessão com imagens da CurseForge, a pasta de dados do WebView não guarda nenhuma
+ *   resposta da CurseForge nem endereço `warden-img://` (o cache de disco do WebView não pode ter
+ *   dados da API).
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -26,6 +30,9 @@ import {
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
+import { Key } from 'webdriverio';
+
+import { CHAVE_BOA } from './mock-server/curseforge';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -54,6 +61,8 @@ const PACK = join(DATA_ROOT, 'fora', 'pack-descoberta');
 const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 const WEBVIEW_DIR = join(DATA_ROOT, 'data', 'EBWebView');
+/** Onde o cofre de teste (arquivo) guarda a chave da CurseForge (`WARDEN_SECRET_BACKEND`). */
+const KEY_FILE = join(DATA_ROOT, 'cofre-de-teste', 'curseforge-api-key');
 
 async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
@@ -131,6 +140,7 @@ describe('Descoberta (P1-16)', () => {
   });
 
   after(() => {
+    rmSync(KEY_FILE, { force: true });
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
     rmSync(join(DATA_ROOT, 'cache'), { recursive: true, force: true });
@@ -183,20 +193,22 @@ describe('Descoberta (P1-16)', () => {
     expect(await fullText('aside.disc__preview nav[aria-label="Partes desta página"]')).toContain(
       'Galeria',
     );
-    // Galeria: miniaturas; clicar abre a imagem grande sobre a página.
+    // Galeria do Modrinth: miniaturas; clicar abre o visualizador sobre a página. (A imagem do
+    // Modrinth vem do CDN dele, na internet; a imagem grande carregada é conferida na CurseForge,
+    // abaixo, com o servidor de fixtures.)
     const thumb = $('aside.disc__preview .gallery .gallery__item');
     await thumb.waitForDisplayed({ timeout: 30_000 });
     await thumb.click();
-    await $('[role="dialog"] img.gallery__big').waitForDisplayed({ timeout: 15_000 });
-    await screenshot('03-galeria');
+    await $('[role="dialog"]').$('span*=Imagem 1 de 6').waitForDisplayed({ timeout: 15_000 });
     await browser.keys('Escape');
     await $('[role="dialog"]').waitForExist({ reverse: true });
 
-    // Versões: nada de notas até abrir a linha.
+    // Versões: nada de notas até abrir a linha. A primeira linha é a versão escolhida, que as
+    // Dependências já leram (com as notas, por `/versions?ids=`); a segunda ainda não foi lida.
     const asked = async () =>
       (await mockRequests()).filter((line) => line.includes('/modrinth/v2/version/')).length;
     const askedBefore = await asked();
-    const firstVersion = $('aside.disc__preview ul.versions summary');
+    const firstVersion = $('aside.disc__preview ul.versions li:nth-child(2) summary');
     await firstVersion.waitForDisplayed({ timeout: 30_000 });
     expect(await asked()).toBe(askedBefore);
     await firstVersion.click();
@@ -210,6 +222,69 @@ describe('Descoberta (P1-16)', () => {
     expect(deps).toContain('Obrigatória');
     expect(deps).toContain('Incompatível');
     await screenshot('04-previa-completa');
+  });
+
+  it('CA-T08-13: na CurseForge, a galeria abre a imagem grande pelo warden-img:// e as notas esperam a linha', async () => {
+    mkdirSync(join(DATA_ROOT, 'cofre-de-teste'), { recursive: true });
+    writeFileSync(KEY_FILE, CHAVE_BOA);
+    const field = $('input[type="search"]');
+    await field.click();
+    await field.addValue('mod');
+    await $('button.drow__name=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
+    await $('button.drow__name=Mod Só da CurseForge').click();
+    await $('aside.disc__preview')
+      .$('h2=Mod Só da CurseForge')
+      .waitForDisplayed({ timeout: 30_000 });
+
+    const thumb = $('aside.disc__preview .gallery .gallery__item');
+    await thumb.waitForDisplayed({ timeout: 30_000 });
+    // A miniatura vem pelo protocolo, carregada (não é o endereço do servidor de imagens).
+    const thumbSrc = await $('aside.disc__preview .gallery .gallery__item img').getAttribute('src');
+    expect(thumbSrc).toMatch(/warden-img/);
+    expect(thumbSrc).not.toContain('curseforge-img');
+    await thumb.click();
+    const big = $('[role="dialog"] img.gallery__big');
+    await big.waitForDisplayed({ timeout: 15_000 });
+    await browser.waitUntil(
+      async () =>
+        browser.execute(() => {
+          const img = document.querySelector<HTMLImageElement>('[role="dialog"] img.gallery__big');
+          return img !== null && img.complete && img.naturalWidth === 320;
+        }),
+      { timeout: 15_000, timeoutMsg: 'a imagem grande da CurseForge não carregou' },
+    );
+    await screenshot('03-galeria');
+    await browser.keys('Escape');
+    await $('[role="dialog"]').waitForExist({ reverse: true });
+
+    const changelogs = async () =>
+      (await mockRequests()).filter((line) =>
+        /\/curseforge\/mods\/\d+\/files\/\d+\/changelog/.test(line),
+      ).length;
+    const before = await changelogs();
+    const firstVersion = $('aside.disc__preview ul.versions summary');
+    await firstVersion.waitForDisplayed({ timeout: 30_000 });
+    expect(await changelogs()).toBe(before);
+    await firstVersion.click();
+    await browser.waitUntil(async () => (await changelogs()) > before, {
+      timeout: 30_000,
+      timeoutMsg: 'as notas da CurseForge não foram pedidas ao abrir a linha',
+    });
+    // As notas (HTML da CurseForge) aparecem higienizadas na linha aberta.
+    await $('aside.disc__preview ul.versions')
+      .$('p=Notas simuladas desta versão.')
+      .waitForDisplayed({
+        timeout: 30_000,
+      });
+    await screenshot('04b-previa-curseforge');
+
+    // Volta ao início, sem a pré-visualização da CurseForge aberta.
+    await field.click();
+    await browser.keys([Key.Ctrl, 'a']);
+    await browser.keys(Key.Backspace);
+    await $('h2=Populares para Minecraft 1.21.1 com Fabric').waitForDisplayed({ timeout: 30_000 });
+    await $('button.drow__name=Sodium').click();
+    await $('aside.disc__preview').$('h2=Sodium').waitForDisplayed({ timeout: 30_000 });
   });
 
   it('abaixo de 1180 px a coluna de filtros recolhe atrás do botão "Filtros"', async () => {

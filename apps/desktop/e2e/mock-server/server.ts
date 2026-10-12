@@ -9,7 +9,7 @@ import { readFile } from 'node:fs/promises';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { extname, join, normalize, sep } from 'node:path';
 
-import { curseforgeReply } from './curseforge';
+import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
@@ -183,6 +183,7 @@ function serveCurseforge(request: IncomingMessage, response: ServerResponse, pat
       route,
       Array.isArray(key) ? key[0] : key,
       Buffer.concat(chunks).toString('utf8'),
+      `http://${request.headers.host ?? '127.0.0.1'}`,
     );
     response
       .writeHead(reply?.status ?? 404, { 'content-type': 'application/json; charset=utf-8' })
@@ -252,6 +253,12 @@ export async function startMockServer(): Promise<MockServer> {
       return;
     }
     requests.push(`${request.method ?? 'GET'} ${path}`);
+    if (path.startsWith(CF_IMAGE_PREFIX)) {
+      const image = curseforgeImage(path);
+      if (image) response.writeHead(200, { 'content-type': 'image/png' }).end(image);
+      else response.writeHead(404).end();
+      return;
+    }
     if (path.startsWith('/curseforge/')) {
       serveCurseforge(request, response, path);
       return;
