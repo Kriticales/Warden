@@ -29,6 +29,8 @@ import type {
   SourceId,
   VersionOption,
 } from '../../../lib/ipc/bindings';
+import { ManualDownloadNotice } from '../curseforge/ManualDownloadNotice';
+import { SourceCheck } from '../curseforge/SourceCheck';
 import { modrinthPageUrl, preferredRef } from '../modrinth/source';
 import { useProjectDetails, useProjectVersions } from './api';
 import { formatCount } from './model';
@@ -139,6 +141,17 @@ export function Preview({ packId, result, inPack, kind, target, onAdd }: Preview
           target={target}
           onChange={setVersionId}
         />
+        {result.sources.length > 1 ? (
+          <SourceCheck
+            packId={packId}
+            sources={result.sources}
+            source={source}
+            chosenSha1={versions.data?.versions.find((v) => v.id === chosenVersion)?.sha1 ?? null}
+          />
+        ) : null}
+        {source === 'curseforge' && result.manualDownload ? (
+          <ManualDownloadNotice name={result.title} />
+        ) : null}
         {inPack ? (
           <Alert kind="ok" compact title={t('previa.jaNoPack')} role="status" />
         ) : (

@@ -1,7 +1,7 @@
 //! Comandos de busca e adição (ARCHITECTURE §4.1 "search/add"; SPEC T08 e T09; P1-09).
 //!
-//! - `search_projects`: a busca combinada (as fontes são internas; a CurseForge entra na
-//!   P1-10), já filtrada pelo pack e com "Já no pack".
+//! - `search_projects`: a busca combinada (as fontes são internas: Modrinth e CurseForge), já
+//!   filtrada pelo pack e com "Já no pack".
 //! - `project_details` e `project_versions`: a pré-visualização e o seletor de versão.
 //! - `add_plan`: o plano de um ou vários itens (dependências, conflitos, duplicados), sem
 //!   gravar nada.
@@ -23,6 +23,7 @@ use warden_project::search::{
     ActiveSource, ProjectPreview, ProjectVersions, SearchPage, SearchRequest, SourceId,
 };
 
+use crate::commands::add_curseforge;
 use crate::commands::inventory::{notify_changed, pack_root, packwiz};
 use crate::error::AppError;
 use crate::events::PackArea;
@@ -36,17 +37,22 @@ fn domain(error: warden_project::Error) -> AppError {
     AppError::from_domain(&error)
 }
 
-/// Fontes da busca ligadas no app. Registro acréscimo-apenas: a P1-10 acrescenta a CurseForge
-/// (ou o aviso de chave ausente ou recusada).
+/// Fontes da busca ligadas no app. Registro acréscimo-apenas: o Modrinth e a CurseForge (que,
+/// sem chave ou com a chave recusada, entra só como aviso, sem nenhuma requisição).
 fn search_sources(state: &AppState) -> Vec<ActiveSource> {
-    vec![ActiveSource::Ready(Arc::new(ModrinthSearch::new(
-        state.modrinth.clone(),
-    )))]
+    vec![
+        ActiveSource::Ready(Arc::new(ModrinthSearch::new(state.modrinth.clone()))),
+        add_curseforge::search_source(state),
+    ]
 }
 
-/// Fontes do plano e da gravação. A P1-10 acrescenta a CurseForge.
+/// Fontes do plano e da gravação: o Modrinth e, com chave válida, a CurseForge.
 fn add_sources(state: &AppState) -> AddSources {
-    AddSources::new().with(Arc::new(ModrinthAdd::new(state.modrinth.clone())))
+    let sources = AddSources::new().with(Arc::new(ModrinthAdd::new(state.modrinth.clone())));
+    match add_curseforge::add_source(state) {
+        Some(curseforge) => sources.with(curseforge),
+        None => sources,
+    }
 }
 
 /// Canais aceitos por padrão (Configurações: versões beta e alpha).

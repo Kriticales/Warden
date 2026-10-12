@@ -24,7 +24,9 @@ use warden_packwiz::{
     HashFormat, METAFILE_SUFFIX, Metafile, PACK_FILE, PackIndex, PackManifest, Value,
 };
 
-use crate::command::{CURSEFORGE_KEY_ENV, ExportSide, Invocation, PackwizCommand, Stdin, Timeouts};
+use crate::command::{
+    CURSEFORGE_API_ENV, CURSEFORGE_KEY_ENV, ExportSide, Invocation, PackwizCommand, Stdin, Timeouts,
+};
 use crate::error::{DETAIL_LINES, Error, Result};
 use crate::output::{
     Decoded, LineDecoder, failed_downloads, manual_downloads, mentions_missing_key, redact,
@@ -55,6 +57,7 @@ pub struct Packwiz {
     cache_dir: PathBuf,
     config_file: PathBuf,
     timeouts: Timeouts,
+    curseforge_api: Option<String>,
 }
 
 /// Contexto de uma execução: cancelamento, progresso e quem quer ver cada linha.
@@ -176,7 +179,17 @@ impl Packwiz {
             cache_dir,
             config_file,
             timeouts: Timeouts::default(),
+            curseforge_api: None,
         }
+    }
+
+    /// Aponta os comandos da CurseForge para outro endereço da API (a CurseForge simulada dos
+    /// testes; [`CURSEFORGE_API_ENV`]). O app só chama em build de debug, com o endereço de
+    /// `WARDEN_API_BASE_CURSEFORGE` (ARCHITECTURE §17.1).
+    #[must_use]
+    pub fn with_curseforge_api(mut self, base: impl Into<String>) -> Self {
+        self.curseforge_api = Some(base.into());
+        self
     }
 
     /// Troca os tempos-limite.
@@ -475,6 +488,11 @@ impl Packwiz {
             && let Some(secret) = secret
         {
             process.env(CURSEFORGE_KEY_ENV, secret);
+        }
+        if invocation.pass_curseforge_key
+            && let Some(base) = &self.curseforge_api
+        {
+            process.env(CURSEFORGE_API_ENV, base);
         }
         ProcessTree::configure(&mut process);
         process
