@@ -140,17 +140,53 @@ fn http() -> HttpClient {
 
 // --- A CurseForge simulada --------------------------------------------------------------
 
+/// Versão do Minecraft e loader de um arquivo simulado: nome no `gameVersions` e o tipo da
+/// CurseForge (1 Forge, 4 Fabric).
+#[derive(Clone, Copy)]
+struct On {
+    minecraft: &'static str,
+    loader: &'static str,
+    loader_type: u32,
+}
+
+const FABRIC_1_21_1: On = On {
+    minecraft: "1.21.1",
+    loader: "Fabric",
+    loader_type: 4,
+};
+const FORGE_1_20_1: On = On {
+    minecraft: "1.20.1",
+    loader: "Forge",
+    loader_type: 1,
+};
+const FORGE_1_7_10: On = On {
+    minecraft: "1.7.10",
+    loader: "Forge",
+    loader_type: 1,
+};
+
 fn cf_file(mod_id: u64, file_id: u64, name: &str, sha1: &str, deps: &[(u64, u32)]) -> Value {
+    cf_file_on(FABRIC_1_21_1, mod_id, file_id, name, sha1, deps)
+}
+
+fn cf_file_on(
+    on: On,
+    mod_id: u64,
+    file_id: u64,
+    name: &str,
+    sha1: &str,
+    deps: &[(u64, u32)],
+) -> Value {
     json!({
         "id": file_id, "gameId": 432, "modId": mod_id, "isAvailable": true,
         "displayName": name, "fileName": name, "releaseType": 1, "fileStatus": 4,
         "hashes": [{"value": sha1, "algo": 1}],
         "fileDate": "2026-09-19T11:47:57.347Z", "fileLength": 1000, "downloadCount": 7,
         "downloadUrl": format!("https://edge.forgecdn.net/files/{file_id}/{name}"),
-        "gameVersions": ["Client", "1.21.1", "Fabric", "Server"],
+        "gameVersions": ["Client", on.minecraft, on.loader, "Server"],
         "sortableGameVersions": [
-            {"gameVersionName": "1.21.1", "gameVersion": "1.21.1", "gameVersionTypeId": 75125},
-            {"gameVersionName": "Fabric", "gameVersion": "", "gameVersionTypeId": 68441}
+            {"gameVersionName": on.minecraft, "gameVersion": on.minecraft, "gameVersionTypeId": 75125},
+            {"gameVersionName": on.loader, "gameVersion": "", "gameVersionTypeId": 68441}
         ],
         "dependencies": deps.iter()
             .map(|(id, relation)| json!({"modId": id, "relationType": relation}))
@@ -160,15 +196,19 @@ fn cf_file(mod_id: u64, file_id: u64, name: &str, sha1: &str, deps: &[(u64, u32)
 }
 
 fn cf_project(id: u64, slug: &str, name: &str, author: &str, blocked: bool) -> Value {
+    cf_project_on(FABRIC_1_21_1, id, slug, name, author, blocked)
+}
+
+fn cf_project_on(on: On, id: u64, slug: &str, name: &str, author: &str, blocked: bool) -> Value {
     json!({
         "id": id, "gameId": 432, "name": name, "slug": slug,
         "links": {"websiteUrl": format!("https://www.curseforge.com/minecraft/mc-mods/{slug}")},
         "summary": format!("Resumo de {name}"), "status": 4, "downloadCount": 1_000,
-        "classId": 6, "authors": [{"id": 1, "name": author}],
+        "classId": 6, "primaryCategoryId": 423, "authors": [{"id": 1, "name": author}],
         "logo": {"thumbnailUrl": "https://media.forgecdn.net/x.png", "url": "https://media.forgecdn.net/x.png"},
         "latestFilesIndexes": [{
-            "gameVersion": "1.21.1", "fileId": id * 10, "filename": "a.jar",
-            "releaseType": 1, "modLoader": 4
+            "gameVersion": on.minecraft, "fileId": id * 10, "filename": "a.jar",
+            "releaseType": 1, "modLoader": on.loader_type
         }],
         "dateCreated": "2020-01-01T00:00:00Z", "dateModified": "2026-10-01T00:00:00Z",
         "allowModDistribution": !blocked, "isAvailable": true
@@ -264,15 +304,32 @@ async fn curseforge_server(behavior: Cf) -> MockServer {
         }
         Cf::Ok => {}
     }
-    let projects = cf_projects();
-    let files = cf_files();
+    curseforge_mock(&server, cf_projects(), cf_files()).await;
+    server
+}
+
+/// A CurseForge simulada com estes projetos e arquivos: a busca (filtrada pelo slug, quando há
+/// um, como a API faz), os projetos e os arquivos, em lote e um a um (os do packwiz).
+async fn curseforge_mock(server: &MockServer, projects: Vec<Value>, files: Vec<Value>) {
+    let all = projects.clone();
     Mock::given(method("GET"))
         .and(path("/v1/mods/search"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-            "data": projects,
-            "pagination": {"index": 0, "pageSize": 20, "resultCount": 4, "totalCount": 4}
-        })))
-        .mount(&server)
+        .respond_with(move |request: &Request| {
+            let slug = request
+                .url
+                .query_pairs()
+                .find(|(key, _)| key == "slug")
+                .map(|(_, value)| value.into_owned());
+            let found: Vec<&Value> = all
+                .iter()
+                .filter(|project| slug.as_ref().is_none_or(|slug| project["slug"] == slug.as_str()))
+                .collect();
+            ResponseTemplate::new(200).set_body_json(json!({
+                "data": found,
+                "pagination": {"index": 0, "pageSize": 20, "resultCount": found.len(), "totalCount": found.len()}
+            }))
+        })
+        .mount(server)
         .await;
     let all = projects.clone();
     Mock::given(method("POST"))
@@ -285,7 +342,26 @@ async fn curseforge_server(behavior: Cf) -> MockServer {
                 .collect();
             ResponseTemplate::new(200).set_body_json(json!({ "data": found }))
         })
-        .mount(&server)
+        .mount(server)
+        .await;
+    let all = projects;
+    Mock::given(method("GET"))
+        .and(path_regex(r"^/v1/mods/\d+$"))
+        .respond_with(move |request: &Request| {
+            let id: u64 = request
+                .url
+                .path()
+                .split('/')
+                .nth(3)
+                .unwrap()
+                .parse()
+                .unwrap();
+            all.iter().find(|project| project["id"] == id).map_or_else(
+                || ResponseTemplate::new(404),
+                |project| ResponseTemplate::new(200).set_body_json(json!({ "data": project })),
+            )
+        })
+        .mount(server)
         .await;
     let all = files.clone();
     Mock::given(method("POST"))
@@ -298,9 +374,9 @@ async fn curseforge_server(behavior: Cf) -> MockServer {
                 .collect();
             ResponseTemplate::new(200).set_body_json(json!({ "data": found }))
         })
-        .mount(&server)
+        .mount(server)
         .await;
-    let all = files;
+    let all = files.clone();
     Mock::given(method("GET"))
         .and(path_regex(r"^/v1/mods/\d+/files$"))
         .respond_with(move |request: &Request| {
@@ -311,9 +387,24 @@ async fn curseforge_server(behavior: Cf) -> MockServer {
                 "pagination": {"index": 0, "pageSize": 50, "resultCount": found.len(), "totalCount": found.len()}
             }))
         })
-        .mount(&server)
+        .mount(server)
         .await;
-    server
+    let all = files;
+    Mock::given(method("GET"))
+        .and(path_regex(r"^/v1/mods/\d+/files/\d+$"))
+        .respond_with(move |request: &Request| {
+            let mut parts = request.url.path().split('/');
+            let project: u64 = parts.nth(3).unwrap().parse().unwrap();
+            let file: u64 = parts.nth(1).unwrap().parse().unwrap();
+            all.iter()
+                .find(|found| found["modId"] == project && found["id"] == file)
+                .map_or_else(
+                    || ResponseTemplate::new(404),
+                    |found| ResponseTemplate::new(200).set_body_json(json!({ "data": found })),
+                )
+        })
+        .mount(server)
+        .await;
 }
 
 fn curseforge_client(server: &MockServer, key: Option<&str>) -> CurseforgeClient {
@@ -326,6 +417,19 @@ fn curseforge_client(server: &MockServer, key: Option<&str>) -> CurseforgeClient
 }
 
 // --- O Modrinth simulado ----------------------------------------------------------------
+
+/// Um Modrinth que não acha nada (os mods de Forge dos testes só existem na CurseForge).
+async fn modrinth_empty() -> MockServer {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/v2/search"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "hits": [], "offset": 0, "limit": 20, "total_hits": 0
+        })))
+        .mount(&server)
+        .await;
+    server
+}
 
 async fn modrinth_server(down: bool) -> MockServer {
     let server = MockServer::start().await;
@@ -380,12 +484,16 @@ fn fabric_target(root: &Path) -> PackTarget {
 }
 
 async fn run_search(sources: &[ActiveSource], target: &PackTarget) -> SearchPage {
+    search_for(sources, target, "sodium").await
+}
+
+async fn search_for(sources: &[ActiveSource], target: &PackTarget, query: &str) -> SearchPage {
     search(
         sources,
         target,
         &InstalledKeys::new(),
         &SearchRequest {
-            query: "sodium".into(),
+            query: query.into(),
             kind: ProjectKind::Mod,
             sort: SearchSort::Relevance,
             source: SourceFilter::All,
@@ -722,10 +830,10 @@ async fn ca_t08_08_cada_fonte_grava_o_seu_metafile() {
     }
 }
 
-/// CA-T08-02: o item da CurseForge que o usuário clicou entra, com a dependência obrigatória
-/// dele (pela CurseForge) e a opcional de fora; uma gravação, um `refresh`.
+/// O item da CurseForge que o usuário clicou entra, com a dependência obrigatória dele (pela
+/// CurseForge) e a opcional de fora; uma gravação, um `refresh`.
 #[tokio::test]
-async fn ca_t08_02_mod_so_da_curseforge_entra_com_a_dependencia_obrigatoria() {
+async fn mod_so_da_curseforge_entra_com_a_dependencia_obrigatoria() {
     let modrinth = modrinth_server(false).await;
     let curseforge = curseforge_server(Cf::Ok).await;
     let sources = add_sources(&modrinth, &curseforge);
@@ -791,6 +899,184 @@ async fn ca_t08_02_mod_so_da_curseforge_entra_com_a_dependencia_obrigatoria() {
     .unwrap();
     assert!(again.added.is_empty());
     assert_eq!(again.skipped.len(), 2);
+}
+
+/// NEI, a biblioteca dele e dois resultados parecidos, todos de Forge 1.7.10 e só na CurseForge.
+const CF_NEI: u64 = 910_001;
+const CF_CCC: u64 = 910_002;
+const CF_NEI_ADDONS: u64 = 910_003;
+const CF_REI: u64 = 910_004;
+
+fn nei_projects() -> Vec<Value> {
+    let on = FORGE_1_7_10;
+    vec![
+        cf_project_on(
+            on,
+            CF_NEI_ADDONS,
+            "nei-addons",
+            "NEI Addons",
+            "Outro",
+            false,
+        ),
+        cf_project_on(
+            on,
+            CF_REI,
+            "roughly-enough-items",
+            "Roughly Enough Items",
+            "Outra",
+            false,
+        ),
+        cf_project_on(
+            on,
+            CF_NEI,
+            "notenoughitems",
+            "Not Enough Items",
+            "chicken_bones",
+            false,
+        ),
+        cf_project_on(
+            on,
+            CF_CCC,
+            "codechickencore",
+            "CodeChickenCore",
+            "chicken_bones",
+            false,
+        ),
+    ]
+}
+
+fn nei_files() -> Vec<Value> {
+    let on = FORGE_1_7_10;
+    let sha1 = |digit: char| digit.to_string().repeat(40);
+    vec![
+        cf_file_on(
+            on,
+            CF_NEI,
+            CF_NEI * 10,
+            "NotEnoughItems-1.7.10-1.0.5.120-universal.jar",
+            &sha1('a'),
+            &[(CF_CCC, 3)],
+        ),
+        cf_file_on(
+            on,
+            CF_CCC,
+            CF_CCC * 10,
+            "CodeChickenCore-1.7.10-1.0.7.47-universal.jar",
+            &sha1('b'),
+            &[],
+        ),
+        cf_file_on(
+            on,
+            CF_NEI_ADDONS,
+            CF_NEI_ADDONS * 10,
+            "neiaddons-1.7.10-1.12.jar",
+            &sha1('c'),
+            &[(CF_NEI, 3)],
+        ),
+        cf_file_on(on, CF_REI, CF_REI * 10, "rei-1.7.10.jar", &sha1('d'), &[]),
+    ]
+}
+
+/// CA-T08-02: num pack Forge 1.7.10, buscar "not enough items" e escolher o NEI (resultado da
+/// CurseForge) adiciona o NEI, e não outro resultado; a biblioteca obrigatória entra junto.
+#[tokio::test]
+async fn ca_t08_02_nei_da_curseforge_num_pack_forge_1_7_10() {
+    let modrinth = modrinth_empty().await;
+    let curseforge = MockServer::start().await;
+    curseforge_mock(&curseforge, nei_projects(), nei_files()).await;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    pack(root, "1.7.10", Loader::Forge);
+    refresh(root).await;
+    let target = PackTarget::read(root).unwrap();
+
+    let page = search_for(
+        &both(&modrinth, &curseforge, Some(KEY)),
+        &target,
+        "not enough items",
+    )
+    .await;
+    let titles: Vec<&str> = page.items.iter().map(|item| item.title.as_str()).collect();
+    assert!(titles.contains(&"Roughly Enough Items"), "{titles:?}");
+    let nei = page
+        .items
+        .iter()
+        .find(|item| item.title == "Not Enough Items")
+        .unwrap();
+    assert_eq!(nei.key, format!("curseforge:{CF_NEI}"));
+    assert_eq!(nei.sources.len(), 1);
+    assert_eq!(nei.sources[0].source, SourceId::Curseforge);
+    assert!(nei.compatible);
+    // A busca pediu à CurseForge os filtros do pack: Minecraft 1.7.10 e Forge.
+    let requests = curseforge.received_requests().await.unwrap();
+    let query = requests
+        .iter()
+        .find(|request| request.url.path() == "/v1/mods/search")
+        .unwrap()
+        .url
+        .query()
+        .unwrap_or_default()
+        .to_owned();
+    assert!(
+        query.contains("gameVersion=1.7.10") && query.contains("modLoaderType=1"),
+        "{query}"
+    );
+
+    // Escolher o NEI: o plano é o NEI e a biblioteca dele, nada mais.
+    let sources = add_sources(&modrinth, &curseforge);
+    let plan = plan_of(
+        &sources,
+        root,
+        vec![choice(SourceId::Curseforge, &nei.sources[0].project_id)],
+    )
+    .await;
+    let nodes: Vec<(String, NodeRole)> = plan
+        .nodes
+        .iter()
+        .map(|node| (node.project_id.clone(), node.role))
+        .collect();
+    assert_eq!(
+        nodes,
+        [
+            (CF_NEI.to_string(), NodeRole::Chosen),
+            (CF_CCC.to_string(), NodeRole::Required)
+        ]
+    );
+    assert_eq!(plan.nodes[0].version_id, (CF_NEI * 10).to_string());
+
+    let Some(cli) = packwiz(root) else { return };
+    let result = add_apply(
+        root,
+        &sources,
+        &confirm_default(&plan),
+        &cli,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    let paths: Vec<&str> = result.added.iter().map(|item| item.path.as_str()).collect();
+    assert_eq!(
+        paths,
+        [
+            "mods/notenoughitems.pw.toml",
+            "mods/codechickencore.pw.toml"
+        ]
+    );
+    let text = fs::read_to_string(root.join("mods/notenoughitems.pw.toml")).unwrap();
+    assert!(text.contains("name = \"Not Enough Items\""), "{text}");
+    assert!(
+        text.contains("filename = \"NotEnoughItems-1.7.10-1.0.5.120-universal.jar\""),
+        "{text}"
+    );
+    assert!(text.contains(&format!("project-id = {CF_NEI}")), "{text}");
+    assert!(
+        text.contains(&format!("file-id = {}", CF_NEI * 10)),
+        "{text}"
+    );
+    let index = fs::read_to_string(root.join("index.toml")).unwrap();
+    assert!(!index.contains("roughly-enough-items"), "{index}");
+    assert!(!index.contains("nei-addons"), "{index}");
+    assert_conforming(root).await;
 }
 
 /// Sem a CurseForge ligada (sem chave), pedir um item dela é `SEARCH_SOURCE_UNAVAILABLE` e nada
@@ -866,134 +1152,386 @@ async fn metafile_da_curseforge_tem_o_formato_do_packwiz() {
 
 // --- Link da CurseForge -----------------------------------------------------------------
 
-#[cfg(unix)]
 mod link {
-    use std::os::unix::fs::PermissionsExt as _;
-
+    use warden_core::{DomainCode, DomainError as _};
+    use warden_packwiz_cli::PackwizCliErrorCode;
     use warden_project::add::link_curseforge::{
-        CurseforgeLink, LinkError, import_file_link, parse_link, resolve_project,
+        CurseforgeLink, LinkError, import_file_link, import_project_file, parse_link,
+        resolve_project,
     };
 
     use super::*;
 
-    /// Um "packwiz" de mentira que se comporta como o `curseforge add` do JEI: confere a
-    /// resposta `n` da entrada padrão, escreve o `.pw.toml` e imprime uma linha.
-    fn fake_packwiz(dir: &Path, answer_ok: bool) -> Packwiz {
-        let script = dir.join("packwiz-falso");
-        let metafile = r#"name = "Just Enough Items (JEI)"
-filename = "jei-1.20.1-forge-15.20.0.106.jar"
-side = "both"
+    /// JEI na CurseForge: duas versões de Forge 1.20.1 (a mais nova é a padrão).
+    const CF_JEI: u64 = 238_222;
+    const JEI_NEW: u64 = 4_712_345;
+    const JEI_OLD: u64 = 4_600_001;
+    const JEI_NEW_SHA1: &str = "abcdef0123456789abcdef0123456789abcdef01";
 
-[download]
-hash-format = "sha1"
-hash = "abcdef0123456789abcdef0123456789abcdef01"
-mode = "metadata:curseforge"
-
-[update]
-[update.curseforge]
-file-id = 4712345
-project-id = 238222
-"#;
-        let text = format!(
-            "#!/bin/sh\nread answer\nif [ \"$answer\" != \"n\" ]; then echo \"resposta $answer\" >&2; exit 3; fi\n\
-             {}mkdir -p mods\ncat > mods/jei.pw.toml <<'FIM'\n{metafile}FIM\necho 'Project added!'\n",
-            if answer_ok { "" } else { "exit 4\n" }
+    fn jei_project() -> Value {
+        let mut project = cf_project_on(
+            FORGE_1_20_1,
+            CF_JEI,
+            "jei",
+            "Just Enough Items (JEI)",
+            "mezz",
+            false,
         );
-        fs::write(&script, text).unwrap();
-        fs::set_permissions(&script, fs::Permissions::from_mode(0o755)).unwrap();
-        Packwiz::new(script, dir.join("cache"), dir.join("config.toml"))
+        project["latestFilesIndexes"][0]["fileId"] = json!(JEI_NEW);
+        project
     }
 
-    /// O link de arquivo passa pelo packwiz numa cópia (o pack de verdade fica como estava), com
-    /// a resposta `n` às dependências; o que sai vai pelo caminho normal e dá o mesmo `.pw.toml`.
-    #[tokio::test]
-    async fn ca_t08_03_link_de_arquivo_e_lido_pelo_packwiz_em_staging() {
-        let temp = tempfile::tempdir().unwrap();
-        let root = temp.path().join("pack");
-        pack(&root, "1.20.1", Loader::Forge);
-        let before = fs::read_to_string(root.join("index.toml")).unwrap();
-        let cli = fake_packwiz(temp.path(), true);
-        let staging = temp.path().join("staging");
-        let url = "https://www.curseforge.com/minecraft/mc-mods/jei/files/4712345";
+    fn jei_files() -> Vec<Value> {
+        let mut old = cf_file_on(
+            FORGE_1_20_1,
+            CF_JEI,
+            JEI_OLD,
+            "jei-1.20.1-forge-15.2.0.27.jar",
+            "0123456789012345678901234567890123456789",
+            &[],
+        );
+        old["fileDate"] = json!("2026-01-10T10:00:00.000Z");
+        vec![
+            cf_file_on(
+                FORGE_1_20_1,
+                CF_JEI,
+                JEI_NEW,
+                "jei-1.20.1-forge-15.20.0.106.jar",
+                JEI_NEW_SHA1,
+                &[],
+            ),
+            old,
+        ]
+    }
 
-        let imported = import_file_link(
-            &root,
-            &staging,
-            &cli,
-            Some(&SecretString::from(KEY.to_owned())),
-            url,
+    async fn jei_server() -> MockServer {
+        let server = MockServer::start().await;
+        curseforge_mock(&server, vec![jei_project()], jei_files()).await;
+        server
+    }
+
+    /// O packwiz real (sidecar), com a CurseForge apontada para o servidor simulado.
+    fn real_packwiz(dir: &Path, server: &MockServer) -> Option<Packwiz> {
+        Some(
+            Packwiz::new(
+                binary()?,
+                dir.join("packwiz-cache"),
+                dir.join("packwiz-config.toml"),
+            )
+            .with_curseforge_api(format!("{}/v1", server.uri())),
+        )
+    }
+
+    fn key() -> SecretString {
+        SecretString::from(KEY.to_owned())
+    }
+
+    /// Pack Forge 1.20.1 vazio e já com o `refresh` do packwiz.
+    async fn forge_pack(root: &Path, cli: &Packwiz) {
+        pack(root, "1.20.1", Loader::Forge);
+        cli.refresh(root, false, RunContext::new(&CancellationToken::new()))
+            .await
+            .unwrap();
+    }
+
+    fn jei_sources(curseforge: &MockServer, modrinth: &MockServer) -> AddSources {
+        add_sources(modrinth, curseforge)
+    }
+
+    /// Grava no pack, pelo caminho normal, o que o plano pede.
+    async fn apply(root: &Path, sources: &AddSources, items: Vec<AddChoice>, cli: &Packwiz) {
+        let plan = plan_of(sources, root, items).await;
+        add_apply(
+            root,
+            sources,
+            &confirm_default(&plan),
+            cli,
             &CancellationToken::new(),
         )
         .await
         .unwrap();
-        assert_eq!(imported.project_id, "238222");
-        assert_eq!(imported.file_id, "4712345");
-        assert_eq!(imported.kind, ProjectKind::Mod);
-        assert_eq!(imported.target().title, "Just Enough Items (JEI)");
-        let choice = imported.choice();
-        assert_eq!(choice.source, SourceId::Curseforge);
-        assert_eq!(choice.version_id.as_deref(), Some("4712345"));
-
-        // O pack de verdade não foi tocado, e a cópia foi apagada.
-        assert!(!root.join("mods").exists());
-        assert_eq!(fs::read_to_string(root.join("index.toml")).unwrap(), before);
-        assert!(!staging.join("pack.toml").exists());
-
-        // Pelo caminho normal sai o mesmo `.pw.toml` (o lado é do Warden: ambos).
-        let project = warden_project::add::SourceProject {
-            source: SourceId::Curseforge,
-            id: "238222".into(),
-            slug: "jei".into(),
-            title: "Just Enough Items (JEI)".into(),
-            kind: Some(ProjectKind::Mod),
-            icon_url: None,
-            side: None,
-        };
-        let version = warden_project::add::SourceVersion {
-            source: SourceId::Curseforge,
-            id: "4712345".into(),
-            project_id: "238222".into(),
-            number: "jei".into(),
-            channel: warden_project::add::VersionChannel::Release,
-            published: String::new(),
-            game_versions: vec!["1.20.1".into()],
-            loaders: vec!["forge".into()],
-            file: Some(warden_project::add::SourceFile {
-                name: "jei-1.20.1-forge-15.20.0.106.jar".into(),
-                url: String::new(),
-                sha1: Some("abcdef0123456789abcdef0123456789abcdef01".into()),
-                sha512: None,
-            }),
-            side: SideChoice::Both,
-            side_note: None,
-            dependencies: Vec::new(),
-        };
-        let client = curseforge_client(&curseforge_server(Cf::Ok).await, Some(KEY));
-        let ours = CurseforgeAdd::new(client)
-            .metafile(&project, &version, SideChoice::Both)
-            .unwrap();
-        assert_eq!(ours.to_toml_string(), imported.metafile.to_toml_string());
     }
 
-    /// O packwiz recusa o link: o erro dele chega, e nada fica no pack.
+    fn requested(requests: &[Request], wanted: &str) -> bool {
+        requests.iter().any(|request| request.url.path() == wanted)
+    }
+
+    /// CA-T08-03: colar o link do projeto do JEI num pack Forge 1.20.1 abre a pré-visualização
+    /// (projeto achado pelo slug, versão padrão a mais nova); a versão escolhida é lida pelo
+    /// packwiz real (`--addon-id`/`--file-id`) numa cópia do pack e entra pelo caminho normal. O
+    /// resultado é idêntico ao de adicionar o JEI pela busca da CurseForge.
+    #[tokio::test]
+    async fn ca_t08_03_link_de_projeto_passa_pelo_packwiz_e_da_o_mesmo_que_a_busca() {
+        let curseforge = jei_server().await;
+        let modrinth = modrinth_empty().await;
+        let temp = tempfile::tempdir().unwrap();
+        let Some(cli) = real_packwiz(temp.path(), &curseforge) else {
+            return;
+        };
+        let sources = jei_sources(&curseforge, &modrinth);
+        let cancel = CancellationToken::new();
+
+        // Pelo link.
+        let by_link = temp.path().join("pelo-link");
+        forge_pack(&by_link, &cli).await;
+        let before = fs::read_to_string(by_link.join("index.toml")).unwrap();
+        let link = parse_link("https://www.curseforge.com/minecraft/mc-mods/jei").unwrap();
+        let target = resolve_project(&curseforge_client(&curseforge, Some(KEY)), &link, &cancel)
+            .await
+            .unwrap();
+        assert_eq!(target.project_id, CF_JEI.to_string());
+        assert_eq!(target.file_id, None);
+        let versions = project_versions(
+            &sources,
+            &PackTarget::read(&by_link).unwrap(),
+            ChannelPolicy::default(),
+            SourceId::Curseforge,
+            &target.project_id,
+            &cancel,
+        )
+        .await
+        .unwrap();
+        assert_eq!(versions.versions.len(), 2);
+        let chosen = versions.default_id.unwrap();
+        assert_eq!(chosen, JEI_NEW.to_string());
+        curseforge.reset().await;
+        curseforge_mock(&curseforge, vec![jei_project()], jei_files()).await;
+
+        let staging = temp.path().join("copia");
+        let imported = import_project_file(
+            &by_link,
+            &staging,
+            &cli,
+            Some(&key()),
+            &target.project_id,
+            &chosen,
+            &cancel,
+        )
+        .await
+        .unwrap();
+        assert_eq!(imported.project_id, CF_JEI.to_string());
+        assert_eq!(imported.file_id, JEI_NEW.to_string());
+        assert_eq!(imported.kind, ProjectKind::Mod);
+        // Foi o packwiz que leu: ele pede o projeto e o arquivo um a um (o Warden pede em lote).
+        let requests = curseforge.received_requests().await.unwrap();
+        assert!(
+            requested(&requests, &format!("/v1/mods/{CF_JEI}")),
+            "{requests:?}"
+        );
+        assert!(requested(
+            &requests,
+            &format!("/v1/mods/{CF_JEI}/files/{JEI_NEW}")
+        ));
+        // A cópia foi apagada e o pack de verdade não foi tocado.
+        assert!(!staging.join("pack.toml").exists());
+        assert!(!by_link.join("mods").exists());
+        assert_eq!(
+            fs::read_to_string(by_link.join("index.toml")).unwrap(),
+            before
+        );
+        apply(&by_link, &sources, vec![imported.choice()], &cli).await;
+        let from_link = fs::read_to_string(by_link.join("mods/jei.pw.toml")).unwrap();
+
+        // Pela busca da CurseForge.
+        let by_search = temp.path().join("pela-busca");
+        forge_pack(&by_search, &cli).await;
+        let page = search_for(
+            &both(&modrinth, &curseforge, Some(KEY)),
+            &PackTarget::read(&by_search).unwrap(),
+            "jei",
+        )
+        .await;
+        let jei = page
+            .items
+            .iter()
+            .find(|item| item.key == format!("curseforge:{CF_JEI}"))
+            .unwrap();
+        apply(
+            &by_search,
+            &sources,
+            vec![choice(SourceId::Curseforge, &jei.sources[0].project_id)],
+            &cli,
+        )
+        .await;
+        let from_search = fs::read_to_string(by_search.join("mods/jei.pw.toml")).unwrap();
+
+        assert_eq!(from_link, from_search);
+        // E é o `.pw.toml` que o próprio packwiz escreveu na cópia (o lado padrão é o mesmo).
+        assert_eq!(from_link, imported.metafile.to_toml_string());
+        assert!(
+            from_link.contains(&format!("file-id = {JEI_NEW}")),
+            "{from_link}"
+        );
+        assert!(
+            from_link.contains(&format!("hash = \"{JEI_NEW_SHA1}\"")),
+            "{from_link}"
+        );
+        assert_conforming(&by_link).await;
+        assert_conforming(&by_search).await;
+    }
+
+    /// O packwiz recebe a versão escolhida na pré-visualização, mesmo que não seja a mais nova:
+    /// ele nunca escolhe a versão sozinho.
+    #[tokio::test]
+    async fn versao_escolhida_no_link_de_projeto_e_a_que_entra() {
+        let curseforge = jei_server().await;
+        let modrinth = modrinth_empty().await;
+        let temp = tempfile::tempdir().unwrap();
+        let Some(cli) = real_packwiz(temp.path(), &curseforge) else {
+            return;
+        };
+        let root = temp.path().join("pack");
+        forge_pack(&root, &cli).await;
+        let imported = import_project_file(
+            &root,
+            &temp.path().join("copia"),
+            &cli,
+            Some(&key()),
+            &CF_JEI.to_string(),
+            &JEI_OLD.to_string(),
+            &CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(imported.file_id, JEI_OLD.to_string());
+        assert_eq!(imported.metafile.filename, "jei-1.20.1-forge-15.2.0.27.jar");
+        apply(
+            &root,
+            &jei_sources(&curseforge, &modrinth),
+            vec![imported.choice()],
+            &cli,
+        )
+        .await;
+        let text = fs::read_to_string(root.join("mods/jei.pw.toml")).unwrap();
+        assert!(text.contains(&format!("file-id = {JEI_OLD}")), "{text}");
+        assert_conforming(&root).await;
+    }
+
+    /// O link de arquivo também é lido pelo packwiz real numa cópia, e dá o mesmo `.pw.toml`.
+    #[tokio::test]
+    async fn link_de_arquivo_e_lido_pelo_packwiz_em_staging() {
+        let curseforge = jei_server().await;
+        let modrinth = modrinth_empty().await;
+        let temp = tempfile::tempdir().unwrap();
+        let Some(cli) = real_packwiz(temp.path(), &curseforge) else {
+            return;
+        };
+        let root = temp.path().join("pack");
+        forge_pack(&root, &cli).await;
+        let before = fs::read_to_string(root.join("index.toml")).unwrap();
+        let staging = temp.path().join("copia");
+        let imported = import_file_link(
+            &root,
+            &staging,
+            &cli,
+            Some(&key()),
+            &format!("https://www.curseforge.com/minecraft/mc-mods/jei/files/{JEI_NEW}"),
+            &CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(imported.project_id, CF_JEI.to_string());
+        assert_eq!(imported.file_id, JEI_NEW.to_string());
+        assert_eq!(imported.target().title, "Just Enough Items (JEI)");
+        assert_eq!(imported.choice().version_id, Some(JEI_NEW.to_string()));
+        assert!(!staging.join("pack.toml").exists());
+        assert!(!root.join("mods").exists());
+        assert_eq!(fs::read_to_string(root.join("index.toml")).unwrap(), before);
+
+        apply(
+            &root,
+            &jei_sources(&curseforge, &modrinth),
+            vec![imported.choice()],
+            &cli,
+        )
+        .await;
+        let text = fs::read_to_string(root.join("mods/jei.pw.toml")).unwrap();
+        assert_eq!(text, imported.metafile.to_toml_string());
+        assert_conforming(&root).await;
+    }
+
+    /// O packwiz não acha o arquivo: o erro dele chega, e nada fica no pack.
     #[tokio::test]
     async fn falha_do_packwiz_no_link_chega_como_erro_do_packwiz() {
+        let curseforge = jei_server().await;
         let temp = tempfile::tempdir().unwrap();
+        let Some(cli) = real_packwiz(temp.path(), &curseforge) else {
+            return;
+        };
         let root = temp.path().join("pack");
-        pack(&root, "1.20.1", Loader::Forge);
-        let cli = fake_packwiz(temp.path(), false);
-        let error = import_file_link(
+        forge_pack(&root, &cli).await;
+        let error = import_project_file(
             &root,
-            &temp.path().join("staging"),
+            &temp.path().join("copia"),
             &cli,
-            Some(&SecretString::from(KEY.to_owned())),
-            "https://www.curseforge.com/minecraft/mc-mods/jei/files/4712345",
+            Some(&key()),
+            &CF_JEI.to_string(),
+            "1",
             &CancellationToken::new(),
         )
         .await
         .unwrap_err();
         assert!(matches!(error, LinkError::Packwiz(_)), "{error:?}");
         assert!(!root.join("mods").exists());
+    }
+
+    /// Sem chave, o packwiz falha antes de sair da máquina: nenhuma requisição à CurseForge.
+    #[tokio::test]
+    async fn sem_chave_o_link_nao_faz_requisicao() {
+        let curseforge = jei_server().await;
+        let temp = tempfile::tempdir().unwrap();
+        let Some(cli) = real_packwiz(temp.path(), &curseforge) else {
+            return;
+        };
+        let root = temp.path().join("pack");
+        forge_pack(&root, &cli).await;
+        let error = import_project_file(
+            &root,
+            &temp.path().join("copia"),
+            &cli,
+            None,
+            &CF_JEI.to_string(),
+            &JEI_NEW.to_string(),
+            &CancellationToken::new(),
+        )
+        .await
+        .unwrap_err();
+        let LinkError::Packwiz(error) = error else {
+            panic!("{error:?}")
+        };
+        assert_eq!(
+            error.code(),
+            DomainCode::Domain(PackwizCliErrorCode::CurseForgeKeyMissing)
+        );
+        assert_eq!(curseforge_requests(&curseforge).await, 0);
+    }
+
+    /// IDs que não são da CurseForge são recusados antes do packwiz.
+    #[tokio::test]
+    async fn ids_invalidos_sao_recusados_antes_do_packwiz() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("pack");
+        pack(&root, "1.20.1", Loader::Forge);
+        let cli = Packwiz::new(
+            temp.path().join("nao-existe"),
+            temp.path().join("cache"),
+            temp.path().join("config.toml"),
+        );
+        let error = import_project_file(
+            &root,
+            &temp.path().join("copia"),
+            &cli,
+            Some(&key()),
+            "jei",
+            "1",
+            &CancellationToken::new(),
+        )
+        .await
+        .unwrap_err();
+        let LinkError::Project(error) = error else {
+            panic!("{error:?}")
+        };
+        assert_eq!(error.code, warden_project::ProjectErrorCode::InvalidInput);
     }
 
     /// O link de projeto é achado na API pelo slug; a versão é escolhida na pré-visualização.
@@ -1039,5 +1577,171 @@ project-id = 238222
             .await
             .unwrap_err();
         assert_eq!(error.code, warden_project::ProjectErrorCode::InvalidInput);
+    }
+}
+
+// --- Rede (`cargo xtask test-network`) ----------------------------------------------------
+
+/// As APIs reais, com a chave do `.env` (`CURSEFORGE_API_KEY`) e o sidecar real do packwiz.
+mod rede {
+    use warden_project::add::link_curseforge::{import_project_file, parse_link, resolve_project};
+
+    use super::*;
+
+    fn key() -> SecretString {
+        SecretString::from(std::env::var("CURSEFORGE_API_KEY").expect("CURSEFORGE_API_KEY ausente"))
+    }
+
+    fn real_sources() -> (Vec<ActiveSource>, AddSources, CurseforgeClient) {
+        let modrinth =
+            ModrinthClient::new(http(), Some(MetadataCache::in_memory(None).unwrap())).unwrap();
+        let curseforge = CurseforgeClient::new(http(), Some(key())).unwrap();
+        let search = vec![
+            ActiveSource::Ready(Arc::new(ModrinthSearch::new(modrinth.clone()))),
+            ActiveSource::Ready(Arc::new(CurseforgeSearch::new(curseforge.clone()))),
+        ];
+        let add = AddSources::new()
+            .with(Arc::new(ModrinthAdd::new(modrinth)))
+            .with(Arc::new(CurseforgeAdd::new(curseforge.clone())));
+        (search, add, curseforge)
+    }
+
+    fn cli(dir: &Path) -> Packwiz {
+        Packwiz::new(
+            binary().expect("sidecar packwiz ausente"),
+            dir.join("packwiz-cache"),
+            dir.join("packwiz-config.toml"),
+        )
+    }
+
+    async fn forge_pack(root: &Path, minecraft: &str, cli: &Packwiz) {
+        pack(root, minecraft, Loader::Forge);
+        cli.refresh(root, false, RunContext::new(&CancellationToken::new()))
+            .await
+            .unwrap();
+    }
+
+    async fn apply(root: &Path, sources: &AddSources, items: Vec<AddChoice>, cli: &Packwiz) {
+        let plan = plan_of(sources, root, items).await;
+        add_apply(
+            root,
+            sources,
+            &confirm_default(&plan),
+            cli,
+            &CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+    }
+
+    /// CA-T08-02 com as APIs reais: "not enough items" num pack Forge 1.7.10 acha o NEI na
+    /// CurseForge, e escolhê-lo grava o NEI (`notenoughitems`), não outro resultado.
+    #[tokio::test]
+    #[ignore = "rede"]
+    async fn rede_ca_t08_02_nei_num_pack_forge_1_7_10() {
+        let (search_sources, sources, _) = real_sources();
+        let temp = tempfile::tempdir().unwrap();
+        let cli = cli(temp.path());
+        let root = temp.path().join("pack");
+        forge_pack(&root, "1.7.10", &cli).await;
+        let page = search_for(
+            &search_sources,
+            &PackTarget::read(&root).unwrap(),
+            "not enough items",
+        )
+        .await;
+        assert!(page.warnings.is_empty(), "{:?}", page.warnings);
+        let nei = page
+            .items
+            .iter()
+            .find_map(|item| {
+                item.sources.iter().find(|source| {
+                    source.source == SourceId::Curseforge && source.slug == "notenoughitems"
+                })
+            })
+            .unwrap_or_else(|| panic!("NEI não veio da CurseForge: {:#?}", page.items))
+            .clone();
+        apply(
+            &root,
+            &sources,
+            vec![choice(SourceId::Curseforge, &nei.project_id)],
+            &cli,
+        )
+        .await;
+        let text = fs::read_to_string(root.join("mods/notenoughitems.pw.toml")).unwrap();
+        assert!(
+            text.contains(&format!("project-id = {}", nei.project_id)),
+            "{text}"
+        );
+        assert!(text.contains("mode = \"metadata:curseforge\""), "{text}");
+        assert_conforming(&root).await;
+    }
+
+    /// CA-T08-03 com as APIs reais: o link do projeto do JEI num pack Forge 1.20.1, com a versão
+    /// padrão lida pelo packwiz (`--addon-id`/`--file-id`), dá o mesmo `.pw.toml` que a busca.
+    #[tokio::test]
+    #[ignore = "rede"]
+    async fn rede_ca_t08_03_link_do_jei_igual_a_busca() {
+        let (search_sources, sources, client) = real_sources();
+        let temp = tempfile::tempdir().unwrap();
+        let cli = cli(temp.path());
+        let cancel = CancellationToken::new();
+
+        let by_link = temp.path().join("pelo-link");
+        forge_pack(&by_link, "1.20.1", &cli).await;
+        let link = parse_link("https://www.curseforge.com/minecraft/mc-mods/jei").unwrap();
+        let target = resolve_project(&client, &link, &cancel).await.unwrap();
+        assert_eq!(target.project_id, "238222");
+        let versions = project_versions(
+            &sources,
+            &PackTarget::read(&by_link).unwrap(),
+            ChannelPolicy::default(),
+            SourceId::Curseforge,
+            &target.project_id,
+            &cancel,
+        )
+        .await
+        .unwrap();
+        let chosen = versions.default_id.unwrap();
+        let imported = import_project_file(
+            &by_link,
+            &temp.path().join("copia"),
+            &cli,
+            Some(&key()),
+            &target.project_id,
+            &chosen,
+            &cancel,
+        )
+        .await
+        .unwrap();
+        apply(&by_link, &sources, vec![imported.choice()], &cli).await;
+        let from_link = fs::read_to_string(by_link.join("mods/jei.pw.toml")).unwrap();
+
+        let by_search = temp.path().join("pela-busca");
+        forge_pack(&by_search, "1.20.1", &cli).await;
+        let page = search_for(
+            &search_sources,
+            &PackTarget::read(&by_search).unwrap(),
+            "jei",
+        )
+        .await;
+        let found = page
+            .items
+            .iter()
+            .flat_map(|item| &item.sources)
+            .find(|source| source.source == SourceId::Curseforge && source.project_id == "238222")
+            .unwrap_or_else(|| panic!("JEI não veio da CurseForge: {:#?}", page.items))
+            .clone();
+        apply(
+            &by_search,
+            &sources,
+            vec![choice(SourceId::Curseforge, &found.project_id)],
+            &cli,
+        )
+        .await;
+        let from_search = fs::read_to_string(by_search.join("mods/jei.pw.toml")).unwrap();
+        assert_eq!(from_link, from_search);
+        assert_eq!(from_link, imported.metafile.to_toml_string());
+        assert_conforming(&by_link).await;
     }
 }

@@ -23,6 +23,11 @@ export const CF_ONLY = 900_001;
 export const CF_LIB = 900_002;
 /** Mod com a distribuição por terceiros bloqueada. */
 export const CF_BLOCKED = 900_003;
+/**
+ * Mod que entra pelo link do projeto (CA-T08-03). Fica fora da busca, para não mudar o que os
+ * outros passos veem; o app e o packwiz o acham pelo ID.
+ */
+export const CF_LINK = 900_004;
 
 /** SHA-1 do arquivo estável do Sodium para Fabric 1.21.1 no Modrinth (`SMxNOGZ6`). */
 const SODIUM_SHA1 = '003c114c85ca88ef3362e018deb6aca0c682d6a1';
@@ -88,11 +93,15 @@ const PROJECTS = [
   project(CF_BLOCKED, 'mod-bloqueado', 'Mod Bloqueado', 'Outro', true),
 ];
 
+/** Os da busca e o do link. */
+const ALL_PROJECTS = [...PROJECTS, project(CF_LINK, 'mod-do-link', 'Mod do Link', 'Autora')];
+
 const FILES = [
   file(CF_SODIUM, 'sodium-fabric-0.6.0+mc1.21.1.jar', SODIUM_SHA1),
   file(CF_ONLY, 'mod-so-da-curseforge-1.0.jar', '1'.repeat(40), [[CF_LIB, 3]]),
   file(CF_LIB, 'biblioteca-1.0.jar', '2'.repeat(40)),
   file(CF_BLOCKED, 'mod-bloqueado-1.0.jar', '3'.repeat(40)),
+  file(CF_LINK, 'mod-do-link-1.0.jar', '4'.repeat(40)),
 ];
 
 function paged<T>(items: T[]) {
@@ -133,7 +142,7 @@ export function curseforgeReply(
   if (method === 'GET' && route === 'mods/search') return { status: 200, body: paged(PROJECTS) };
   if (method === 'POST' && route === 'mods') {
     const wanted = ids(body, 'modIds');
-    return { status: 200, body: { data: PROJECTS.filter((p) => wanted.includes(p.id)) } };
+    return { status: 200, body: { data: ALL_PROJECTS.filter((p) => wanted.includes(p.id)) } };
   }
   if (method === 'POST' && route === 'mods/files') {
     const wanted = ids(body, 'fileIds');
@@ -143,13 +152,19 @@ export function curseforgeReply(
   if (method === 'GET' && files) {
     return { status: 200, body: paged(FILES.filter((f) => f.modId === Number(files[1]))) };
   }
+  // Um arquivo só: é o que o packwiz pede no `curseforge add --addon-id --file-id`.
+  const oneFile = /^mods\/(\d+)\/files\/(\d+)$/.exec(route);
+  if (method === 'GET' && oneFile) {
+    const found = FILES.find((f) => f.modId === Number(oneFile[1]) && f.id === Number(oneFile[2]));
+    return found ? { status: 200, body: { data: found } } : { status: 404, body: {} };
+  }
   const description = /^mods\/(\d+)\/description$/.exec(route);
   if (method === 'GET' && description) {
     return { status: 200, body: { data: '<p>Descrição simulada da CurseForge.</p>' } };
   }
   const one = /^mods\/(\d+)$/.exec(route);
   if (method === 'GET' && one) {
-    const found = PROJECTS.find((p) => p.id === Number(one[1]));
+    const found = ALL_PROJECTS.find((p) => p.id === Number(one[1]));
     return found ? { status: 200, body: { data: found } } : { status: 404, body: {} };
   }
   return null;

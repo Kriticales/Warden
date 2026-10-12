@@ -208,6 +208,60 @@ describe('link da CurseForge no campo único', () => {
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
+  it('CA-T08-03: link de projeto: a versão escolhida é lida pelo packwiz e abre o diálogo', async () => {
+    const plan = makePlan({
+      nodes: [
+        makeNode({ projectId: '238222', title: 'Just Enough Items (JEI)', source: 'curseforge' }),
+      ],
+    });
+    const { url, backend } = setup({
+      curseforge_link_resolve: () => JEI,
+      project_versions: () => versionsWith(SHA, '4712345'),
+      curseforge_link_import: () => ({ ...JEI, fileId: '4712345' }),
+      add_plan: () => plan,
+    });
+    await openAdd(url);
+    await userEvent.click(screen.getByRole('searchbox', { name: 'Buscar' }));
+    await userEvent.paste(PROJECT_LINK);
+    const preview = await screen.findByRole('complementary', {
+      name: 'Pré-visualização: Just Enough Items (JEI)',
+    });
+    await within(preview).findByRole('combobox', { name: 'Versão' });
+    await userEvent.click(within(preview).getByRole('button', { name: 'Adicionar ao pack' }));
+    await screen.findByRole('dialog', { name: 'Adicionar Just Enough Items (JEI)' });
+    // O arquivo escolhido foi lido pelo packwiz (`--addon-id`/`--file-id`) antes do plano.
+    expect(backend.callsOf('curseforge_link_import')).toHaveLength(1);
+    expect(backend.callsOf('curseforge_link_import')[0]?.args).toMatchObject({
+      projectId: '238222',
+      fileId: '4712345',
+    });
+    expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
+      items: [{ source: 'curseforge', projectId: '238222', versionId: '4712345' }],
+    });
+  });
+
+  it('link de projeto: falha do packwiz mostra o erro e não abre o diálogo', async () => {
+    const { url, backend } = setup({
+      curseforge_link_resolve: () => JEI,
+      project_versions: () => versionsWith(SHA, '4712345'),
+      curseforge_link_import: () =>
+        ipcError(makeAppError({ domain: 'packwizCli', code: 'COMMAND_FAILED' })),
+    });
+    await openAdd(url);
+    await userEvent.click(screen.getByRole('searchbox', { name: 'Buscar' }));
+    await userEvent.paste(PROJECT_LINK);
+    const preview = await screen.findByRole('complementary', {
+      name: 'Pré-visualização: Just Enough Items (JEI)',
+    });
+    await within(preview).findByRole('combobox', { name: 'Versão' });
+    await userEvent.click(within(preview).getByRole('button', { name: 'Adicionar ao pack' }));
+    expect(
+      await screen.findByText('Não foi possível ler a versão escolhida da CurseForge.'),
+    ).toBeDefined();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(backend.callsOf('add_plan')).toHaveLength(0);
+  });
+
   it('sem chave: o erro diz o que fazer e oferece Abrir Configurações', async () => {
     const { url } = setup({
       curseforge_link_resolve: () =>

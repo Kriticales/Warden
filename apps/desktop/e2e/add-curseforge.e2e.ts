@@ -10,6 +10,8 @@
  *   CurseForge vem marcado "CurseForge" e o bloqueado "Download manual necessário" (CA-T08-08).
  * - A pré-visualização confere o SHA-1; escolher a CurseForge grava `mode = "metadata:curseforge"`.
  * - Um mod da CurseForge entra com a dependência obrigatória dele, numa gravação só.
+ * - Link do projeto colado no campo: a pré-visualização abre, e a versão escolhida é lida pelo
+ *   packwiz (`--addon-id`/`--file-id`) numa cópia do pack antes de entrar (CA-T08-03).
  * - Chave recusada: aviso certo e a CurseForge não é mais consultada; fonte com erro: aviso com
  *   "Tentar de novo" e os resultados do Modrinth (CA-T08-09).
  *
@@ -22,7 +24,7 @@ import { join } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
 
-import { CHAVE_BOA, CHAVE_COM_ERRO, CHAVE_RECUSADA } from './mock-server/curseforge';
+import { CF_LINK, CHAVE_BOA, CHAVE_COM_ERRO, CHAVE_RECUSADA } from './mock-server/curseforge';
 import { dismissToasts } from './toasts';
 
 const require = createRequire(import.meta.url);
@@ -320,6 +322,46 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     expect(await $('body').getText()).toContain('Voltar para Mods · 3 adicionados');
   });
 
+  it('CA-T08-03: link de projeto da CurseForge: a versão escolhida passa pelo packwiz', async () => {
+    await dismissToasts();
+    await resetRequests();
+    const before = read('index.toml');
+    await searchFor('https://www.curseforge.com/minecraft/mc-mods/mod-do-link');
+    const preview = $('aside.disc__preview');
+    await preview.waitForDisplayed({ timeout: 30_000 });
+    await browser.waitUntil(
+      async () => (await fullText('aside.disc__preview')).includes('Mod do Link'),
+      { timeout: 30_000, timeoutMsg: 'a pré-visualização do link não abriu' },
+    );
+    await browser.waitUntil(async () => (await preview.$$('select').length) > 0, {
+      timeout: 30_000,
+      timeoutMsg: 'o seletor de versão não apareceu',
+    });
+    await screenshot('06-link-de-projeto');
+    await preview.$('button=Adicionar ao pack').click();
+    const dialog = $('[role="dialog"]');
+    await dialog.waitForDisplayed({ timeout: 60_000 });
+    await browser.waitUntil(
+      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
+    );
+    // Quem leu a versão foi o packwiz, numa cópia: ele pede o arquivo um a um.
+    const requests = await curseforgeRequests();
+    expect(requests).toContain(
+      `GET /curseforge/mods/${String(CF_LINK)}/files/${String(CF_LINK * 10)}`,
+    );
+    expect(read('index.toml')).toBe(before);
+    await dialog.$('button=Adicionar 1 item').click();
+    await waitToast('1 item adicionado ao pack');
+    await dialog.waitForExist({ reverse: true });
+    const text = read('mods/mod-do-link.pw.toml');
+    expect(text).toContain('mode = "metadata:curseforge"');
+    expect(text).toContain(`project-id = ${String(CF_LINK)}`);
+    expect(text).toContain(`file-id = ${String(CF_LINK * 10)}`);
+    expect(read('index.toml')).toContain('mods/mod-do-link.pw.toml');
+    await searchFor('sodium');
+  });
+
   it('chave recusada: aviso certo e a CurseForge não é mais consultada', async () => {
     await dismissToasts();
     setKey(CHAVE_RECUSADA);
@@ -329,7 +371,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
       'Confira em Configurações. Mostrando só o Modrinth.',
     );
     await $('button.drow__name=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
-    await screenshot('06-chave-recusada');
+    await screenshot('07-chave-recusada');
     // A segunda busca com a mesma chave nem pergunta à CurseForge.
     await resetRequests();
     await searchFor('sodium de novo');
@@ -346,7 +388,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     });
     await $('button.drow__name=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
     await expect($('button=Tentar de novo')).toBeDisplayed();
-    await screenshot('07-fonte-com-erro');
+    await screenshot('08-fonte-com-erro');
     expect(await seriousViolations()).toEqual([]);
   });
 
