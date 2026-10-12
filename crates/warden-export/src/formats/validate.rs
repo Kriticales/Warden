@@ -184,7 +184,7 @@ fn is_hex(text: &str, length: usize) -> bool {
 }
 
 /// Confere as entradas de override: nome seguro, só arquivos permitidos, nenhum jar sem
-/// confirmação. Devolve os arquivos (sem o prefixo) e os jars embutidos.
+/// confirmação. Devolve os arquivos (sem o prefixo) e os jars embutidos, em ordem.
 fn check_overrides(
     entries: &[String],
     prefixes: &[&str],
@@ -223,6 +223,8 @@ fn check_overrides(
             }
         }
     }
+    // A ordem das entradas depende de quando cada download do packwiz terminou.
+    jars.sort();
     (count, jars)
 }
 

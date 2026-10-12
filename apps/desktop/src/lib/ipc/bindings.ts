@@ -1369,7 +1369,7 @@ export type FormatValidation = {
 	references: number,
 	/**  Arquivos dentro de `overrides/` (e `client-overrides/`, `server-overrides/`). */
 	overrides: number,
-	/**  Jars embutidos, com o caminho dentro do zip. */
+	/**  Jars embutidos, com o caminho dentro do zip, em ordem alfabética. */
 	embeddedJars: string[],
 };
 

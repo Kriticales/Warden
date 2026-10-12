@@ -178,7 +178,7 @@ pub struct FormatValidation {
     /// Arquivos dentro de `overrides/` (e `client-overrides/`, `server-overrides/`).
     #[specta(type = specta_typescript::Number)]
     pub overrides: usize,
-    /// Jars embutidos, com o caminho dentro do zip.
+    /// Jars embutidos, com o caminho dentro do zip, em ordem alfabética.
     pub embedded_jars: Vec<String>,
 }
 
