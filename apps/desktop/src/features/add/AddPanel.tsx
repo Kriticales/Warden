@@ -383,6 +383,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               onSeeMore={(sort) => {
                 setFilters({ ...filters, sort });
               }}
+              onAdded={(result) => {
+                setAdded((count) => count + result.added.length);
+              }}
             />
           ) : search.isPending ? (
             <ResultsSkeleton />

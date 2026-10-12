@@ -3,7 +3,8 @@
  * campo vazio, as listas "Populares para <loader> <versão>" e "Atualizados recentemente", já
  * filtradas para o pack. Listas (nunca grade de cartões), com a mesma linha da busca: caixa de
  * seleção, abrir a pré-visualização e "Já no pack". O que já está no pack não ocupa lugar nas
- * listas; os nomes dos mais baixados que já entraram aparecem numa nota.
+ * listas; os nomes dos mais baixados que já entraram aparecem numa nota. Para mods, os "Kits de
+ * desempenho" da P1-18 vêm depois das listas (cada kit abre o diálogo de dependências).
  */
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,12 +13,23 @@ import { EmptyState } from '../../../components/common/EmptyState';
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Skeleton } from '../../../components/common/LoadingState';
 import { Button } from '../../../components/ui/button';
-import type { PackId, ProjectKind, SearchResult, SearchSort } from '../../../lib/ipc/bindings';
+import type {
+  AddResult,
+  Loader,
+  PackId,
+  ProjectKind,
+  SearchResult,
+  SearchSort,
+} from '../../../lib/ipc/bindings';
 import { isInPack } from '../common/model';
 import { ResultRow } from '../common/ResultRow';
 import { type PackTarget, useTargetText } from '../common/text';
 import { WarningAlert } from '../common/WarningAlert';
+import { KitsList } from '../kits/KitsList';
 import { useDiscoverHome } from './api';
+
+/** Os loaders que têm kits (o pack guarda o loader como texto). */
+const KIT_LOADERS: readonly Loader[] = ['forge', 'neoforge', 'fabric'];
 
 export interface DiscoverHomeProps {
   packId: PackId;
@@ -30,6 +42,8 @@ export interface DiscoverHomeProps {
   onOpen: (result: SearchResult) => void;
   /** "Ver mais": abre a busca completa já ordenada. */
   onSeeMore: (sort: SearchSort) => void;
+  /** Depois de gravar um kit pelo diálogo de dependências. */
+  onAdded?: (result: AddResult) => void;
 }
 
 export function DiscoverHome({
@@ -42,6 +56,7 @@ export function DiscoverHome({
   onToggle,
   onOpen,
   onSeeMore,
+  onAdded,
 }: DiscoverHomeProps) {
   const { t } = useTranslation('descoberta');
   const alvo = useTargetText(target);
@@ -53,6 +68,17 @@ export function DiscoverHome({
       ),
     [home.data],
   );
+
+  // Os kits são listas de mods prontas (dados embutidos, sem rede).
+  const kits =
+    kind === 'mod' && target.minecraft !== '' ? (
+      <KitsList
+        packId={packId}
+        minecraft={target.minecraft}
+        loader={KIT_LOADERS.find((loader) => loader === target.loader) ?? null}
+        onAdded={onAdded}
+      />
+    ) : null;
 
   if (home.isPending) return <HomeSkeleton />;
   if (home.isError) {
@@ -86,6 +112,7 @@ export function DiscoverHome({
           title={t('inicio.vazio')}
           text={t('inicio.vazioTexto', { alvo })}
         />
+        {kits}
       </div>
     );
   }
@@ -152,6 +179,7 @@ export function DiscoverHome({
           {list(updated, updatedTitle)}
         </section>
       ) : null}
+      {kits}
     </div>
   );
 }
