@@ -96,6 +96,11 @@ async function mockRequests(): Promise<string[]> {
   return (await response.json()) as string[];
 }
 
+/** Zera o registro do servidor de fixtures (os specs anteriores também falam com ele). */
+async function resetRequests(): Promise<void> {
+  await fetch(`${MOCK_URL}/__reset`, { method: 'POST' });
+}
+
 /** Os textos dos botões de nome de uma lista de resultados. */
 async function names(listLabel: string): Promise<string[]> {
   return browser.execute(
@@ -135,6 +140,8 @@ describe('Descoberta (P1-16)', () => {
     writeFileSync(PICK_FILE, '');
     mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
     writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
+    rmSync(KEY_FILE, { force: true });
+    await resetRequests();
     await browser.reloadSession();
     await browser.setWindowSize(1366, 860);
   });
