@@ -65,6 +65,8 @@ const DEFAULTS: Record<string, Handler> = {
   test_game_state: () => null,
   test_sessions_list: () => [],
   test_live_console: () => [],
+  // Downloads manuais da CurseForge (L-06): nenhum esperando.
+  cf_blocked_list: () => [],
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,
