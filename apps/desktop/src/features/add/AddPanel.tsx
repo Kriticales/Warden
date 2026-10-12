@@ -79,8 +79,11 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const inventory = useInventory(packId);
   const [text, setText] = useState('');
   // Um link da CurseForge não é um nome para buscar: o backend lê o link (P1-10).
-  const linkUrl = parseCurseforgeLink(text) === null ? null : text.trim();
-  const query = useDebounced(linkUrl === null ? text.trim() : '', TYPING_DELAY_MS);
+  const typedLink = parseCurseforgeLink(text) === null ? null : text.trim();
+  // O link também espera a última tecla: digitado letra a letra, cada pedaço seria lido.
+  const debouncedLink = useDebounced(typedLink, TYPING_DELAY_MS);
+  const linkUrl = typedLink !== null && debouncedLink === typedLink ? typedLink : null;
+  const query = useDebounced(typedLink === null ? text.trim() : '', TYPING_DELAY_MS);
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
   const search = useSearch(packId, { query, kind, ...filters });
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
@@ -145,7 +148,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   };
 
   const loading =
-    linkUrl === null && (search.isPending || (search.isFetching && !search.isFetchingNextPage));
+    typedLink === null && (search.isPending || (search.isFetching && !search.isFetchingNextPage));
 
   return (
     <div className="add-page">
@@ -248,7 +251,9 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
       <div className="disc">
         <FiltersColumn target={target} filters={filters} onChange={setFilters} sources={sources} />
         <div className="disc__main">
-          {linkUrl !== null ? (
+          {typedLink !== null && linkUrl === null ? (
+            <ResultsSkeleton />
+          ) : linkUrl !== null ? (
             <CurseforgeLinkPanel
               key={linkUrl}
               packId={packId}
