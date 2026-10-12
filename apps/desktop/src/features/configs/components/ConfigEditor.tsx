@@ -157,7 +157,8 @@ export function ConfigEditor({
     [onGuard],
   );
 
-  // Ctrl+S em qualquer ponto da tela (dentro do editor, o CodeMirror já trata).
+  // Ctrl+S em qualquer ponto da tela, dentro do editor inclusive: o CodeMirror não tem atalho
+  // próprio para salvar, e o evento sobe até aqui. Um só ouvinte = uma só gravação.
   const save = useRef(requestSave);
   useEffect(() => {
     save.current = requestSave;
@@ -315,7 +316,6 @@ export function ConfigEditor({
           onCursor={(line, column) => {
             setCursor({ line, column });
           }}
-          onSave={requestSave}
         />
       )}
 

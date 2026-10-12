@@ -164,12 +164,11 @@ export interface EditorOptions {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
-  onSave: () => void;
 }
 
 /** O estado inicial do editor (um novo por arquivo aberto). */
 export function createEditorState(options: EditorOptions): EditorState {
-  const { doc, language, readOnly, lineSeparator, ariaLabel, onChange, onCursor, onSave } = options;
+  const { doc, language, readOnly, lineSeparator, ariaLabel, onChange, onCursor } = options;
   const extensions: Extension[] = [
     EditorState.lineSeparator.of(lineSeparator),
     lineNumbers(),
@@ -196,19 +195,8 @@ export function createEditorState(options: EditorOptions): EditorState {
         onCursor(line.number, head - line.from + 1);
       }
     }),
-    keymap.of([
-      {
-        key: 'Mod-s',
-        preventDefault: true,
-        run: () => {
-          onSave();
-          return true;
-        },
-      },
-      ...searchKeymap,
-      ...historyKeymap,
-      ...defaultKeymap,
-    ]),
+    // Ctrl+S fica com o `ConfigEditor`, que o ouve na janela inteira (uma gravação só).
+    keymap.of([...searchKeymap, ...historyKeymap, ...defaultKeymap]),
   ];
   if (readOnly) {
     extensions.push(EditorState.readOnly.of(true), EditorView.editable.of(false));

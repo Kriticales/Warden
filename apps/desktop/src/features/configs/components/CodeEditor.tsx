@@ -30,7 +30,6 @@ export interface CodeEditorProps {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
-  onSave: () => void;
   ref?: Ref<CodeEditorHandle>;
 }
 
@@ -56,17 +55,16 @@ export function CodeEditor({
   ariaLabel,
   onChange,
   onCursor,
-  onSave,
   ref,
 }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   // Os callbacks mudam a cada render; o editor chama sempre a versão mais nova.
-  const callbacks = useRef({ onChange, onCursor, onSave });
+  const callbacks = useRef({ onChange, onCursor });
   const savedRef = useRef(saved);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => {
-    callbacks.current = { onChange, onCursor, onSave };
+    callbacks.current = { onChange, onCursor };
     savedRef.current = saved;
   });
 
@@ -100,9 +98,6 @@ export function CodeEditor({
         },
         onCursor: (line, column) => {
           callbacks.current.onCursor(line, column);
-        },
-        onSave: () => {
-          callbacks.current.onSave();
         },
       }),
     });

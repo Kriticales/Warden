@@ -37,8 +37,8 @@ function entry(text: string, lineEnding: ConfigContent['lineEnding'] = 'lf') {
   return { text, hash: hashOf(text), lineEnding };
 }
 
-function listed(path: string): ConfigFile {
-  return { path, size: 10, modifiedAtMs: 1, binary: false };
+function listed(path: string, binary = false): ConfigFile {
+  return { path, size: 10, modifiedAtMs: 1, binary };
 }
 
 interface Options {
@@ -48,6 +48,10 @@ interface Options {
   minecraft?: string;
   diff?: boolean;
   readOnly?: Record<string, ConfigContent['readOnly']>;
+}
+
+function isBinary(options: Options, path: string): boolean {
+  return options.readOnly?.[path] === 'binary';
 }
 
 function openConfigs(path: string, options: Options = {}) {
@@ -63,7 +67,7 @@ function openConfigs(path: string, options: Options = {}) {
         const disk = disks[args.origin as 'pack' | 'instance'];
         return {
           available: disk !== null,
-          files: Object.keys(disk ?? {}).map(listed),
+          files: Object.keys(disk ?? {}).map((path) => listed(path, isBinary(options, path))),
           truncated: false,
         };
       },
@@ -78,7 +82,7 @@ function openConfigs(path: string, options: Options = {}) {
         const reason = options.readOnly?.[args.path as string] ?? null;
         return {
           path: args.path as string,
-          text: file.text,
+          text: reason === 'binary' ? null : file.text,
           hash: file.hash,
           size: file.text.length,
           lineEnding: file.lineEnding ?? 'lf',
@@ -199,6 +203,36 @@ describe('Configs (T12)', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
     await screen.findByText('create-common.toml salvo.');
     expect(backend.callsOf('config_write')).toHaveLength(1);
+  });
+
+  it('Ctrl+S grava uma vez só, dentro do editor e fora dele', async () => {
+    const user = userEvent.setup();
+    const { backend, disks } = openConfigs(`?arquivo=${CREATE}`, {
+      pack: { [CREATE]: entry(CREATE_TEXT) },
+      diff: false,
+    });
+
+    // Dentro do editor: o atalho chega primeiro ao CodeMirror e depois sobe até a janela.
+    await type('# um');
+    const textbox = await editorText();
+    act(() => {
+      textbox.focus();
+    });
+    await user.keyboard('{Control>}s{/Control}');
+    await screen.findByText('Sem alterações');
+    expect(backend.callsOf('config_write')).toHaveLength(1);
+    expect(disks.pack?.[CREATE]?.text).toBe(`${CREATE_TEXT}# um`);
+
+    // Fora do editor: a árvore com o foco.
+    await type('\n# dois');
+    act(() => {
+      screen.getByRole('treeitem', { name: /create-common\.toml/ }).focus();
+    });
+    await user.keyboard('{Control>}s{/Control}');
+    await screen.findByText('Sem alterações');
+    expect(backend.callsOf('config_write')).toHaveLength(2);
+    expect(disks.pack?.[CREATE]?.text).toBe(`${CREATE_TEXT}# um\n# dois`);
+    expect(screen.queryByText('Este arquivo foi alterado fora do Warden.')).toBeNull();
   });
 
   it('preserva o fim de linha CRLF ao gravar (bytes do que não foi editado)', async () => {
