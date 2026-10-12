@@ -585,7 +585,24 @@ pub async fn apply(
         cancel,
     )
     .await?;
-    let marked = mark_player_tools(root, &choices, &result.added, packwiz, cancel).await?;
+    // A versão do Crash Assistant que entrou decide as chaves da config inicial.
+    let crash_assistant_version = choices
+        .iter()
+        .filter(|(_, wanted)| wanted.role.as_deref() == Some(ROLE_CRASH_ASSISTANT))
+        .find_map(|(choice, _)| {
+            let key = choice.source.key(&choice.project_id);
+            plan.nodes.iter().find(|node| node.key == key)
+        })
+        .map(|node| node.version_number.as_str());
+    let marked = mark_player_tools(
+        root,
+        &choices,
+        &result.added,
+        crash_assistant_version,
+        packwiz,
+        cancel,
+    )
+    .await?;
     Ok(InitialModsResult {
         added: result.added,
         left_out,
@@ -662,11 +679,13 @@ struct Marked {
     roles: Vec<String>,
 }
 
-/// Grava a config inicial do Crash Assistant e a tabela `[player-tools]`.
+/// Grava a config inicial do Crash Assistant (para a versão que entrou; só se o pack ainda não
+/// tiver uma) e a tabela `[player-tools]`.
 async fn mark_player_tools(
     root: &Path,
     choices: &[(AddChoice, Wanted)],
     added: &[AddedItem],
+    crash_assistant_version: Option<&str>,
     packwiz: &Packwiz,
     cancel: &CancellationToken,
 ) -> Result<Marked> {
@@ -699,7 +718,8 @@ async fn mark_player_tools(
     if write_config {
         tx.write(
             CRASH_ASSISTANT_CONFIG,
-            player_tools::crash_assistant_config().into_bytes(),
+            player_tools::crash_assistant_config(crash_assistant_version.unwrap_or_default())
+                .into_bytes(),
         )?;
     }
     tx.commit(packwiz, cancel).await?;

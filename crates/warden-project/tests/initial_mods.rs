@@ -108,6 +108,11 @@ struct Api {
 
 impl Api {
     async fn start() -> Self {
+        Self::start_with(fixture("versions-crash-assistant-forge-1.12.2")).await
+    }
+
+    /// Como [`Api::start`], com as versões do Crash Assistant para o Forge dadas.
+    async fn start_with(forge_crash_assistant: Value) -> Self {
         let server = MockServer::start().await;
         let mut projects = list(&fixture("projects-initial"));
         projects.extend(list(&fixture("projects-add")));
@@ -142,7 +147,7 @@ impl Api {
                 .await;
         }
         // Crash Assistant para o Forge 1.12.2 (a oferta da etapa).
-        let old = fixture("versions-crash-assistant-forge-1.12.2");
+        let old = forge_crash_assistant;
         versions.extend(list(&old));
         Mock::given(method("GET"))
             .and(path(format!("/v2/project/{CRASH_ASSISTANT}/version")))
@@ -390,11 +395,16 @@ async fn criar_fabric_1_21_1_grava_spark_fabric_api_crash_assistant_config_e_fer
     // O lado do spark foi fixado em "cliente e servidor"; o Crash Assistant segue o da fonte.
     let spark = fs::read_to_string(root.join("mods/spark.pw.toml")).unwrap();
     assert!(!spark.contains("side = \"client\""), "{spark}");
-    // Config inicial: sem envio ao autor, sem link de terceiros e sem verificação de pirataria.
-    let config = fs::read_to_string(root.join(player_tools::CRASH_ASSISTANT_CONFIG)).unwrap();
-    assert!(config.contains("send_uploaded_logs_data_to_kostromdan_dev = false"));
-    assert!(config.contains("wrap_link = false"));
-    assert!(config.contains("enabled = false"));
+    // Config inicial da 1.11.12: sem envio ao autor, link do próprio mclo.gs (texto, como o mod
+    // espera) e sem verificação de pirataria; sem a chave antiga.
+    let config = crash_assistant_config(root);
+    assert_eq!(
+        config["general"]["send_uploaded_logs_data_to_kostromdan_dev"].as_bool(),
+        Some(false)
+    );
+    assert_eq!(config["general"]["wrap_link"].as_str(), Some("mclo.gs"));
+    assert!(config["general"].get("upload_to").is_none());
+    assert_eq!(config["piracy"]["enabled"].as_bool(), Some(false));
     // Ferramentas do jogador, sem perder o resto do project.toml.
     let project = fs::read_to_string(root.join(".warden/project.toml")).unwrap();
     assert!(project.contains("id = \"01JABCDEFGHJKMNPQRSTVWXYZ0\""));
@@ -419,6 +429,90 @@ async fn criar_fabric_1_21_1_grava_spark_fabric_api_crash_assistant_config_e_fer
     .await
     .unwrap();
     assert!(report.is_conforming(), "{:#?}", report.differences);
+}
+
+/// A config do Crash Assistant gravada no pack, lida como TOML.
+fn crash_assistant_config(root: &Path) -> toml_edit::DocumentMut {
+    fs::read_to_string(root.join(player_tools::CRASH_ASSISTANT_CONFIG))
+        .unwrap()
+        .parse()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn crash_assistant_anterior_a_1_11_12_ganha_upload_to_em_texto() {
+    // Só versões antigas no servidor simulado: entra a 1.11.11, que ainda lê `upload_to`.
+    let old: Vec<Value> = list(&fixture("versions-crash-assistant-forge-1.12.2"))
+        .into_iter()
+        .filter(|version| {
+            warden_project::initial_mods::compare_versions(
+                version["version_number"].as_str().unwrap(),
+                player_tools::CRASH_ASSISTANT_WRAP_LINK_SINCE,
+            ) == Some(std::cmp::Ordering::Less)
+        })
+        .collect();
+    assert_eq!(old[0]["version_number"], "1.11.11");
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    new_pack(root, "1.12.2", Loader::Forge).await;
+    let Some(cli) = packwiz(root) else {
+        return;
+    };
+    let api = Api::start_with(Value::Array(old)).await;
+    let result = apply(
+        root,
+        &api.sources(),
+        ChannelPolicy::default(),
+        &request(&["crash-assistant"]),
+        &cli,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(result.crash_assistant_config);
+    let pw = fs::read_to_string(root.join("mods/crash-assistant.pw.toml")).unwrap();
+    assert!(pw.contains("1.11.11"), "{pw}");
+    let config = crash_assistant_config(root);
+    assert_eq!(config["general"]["upload_to"].as_str(), Some("mclo.gs"));
+    // As chaves da 1.11.12 vão junto, com o tipo certo, para valerem depois de uma atualização.
+    assert_eq!(config["general"]["wrap_link"].as_str(), Some("mclo.gs"));
+    assert_eq!(
+        config["general"]["send_uploaded_logs_data_to_kostromdan_dev"].as_bool(),
+        Some(false)
+    );
+    assert_eq!(config["piracy"]["enabled"].as_bool(), Some(false));
+}
+
+#[tokio::test]
+async fn config_do_crash_assistant_que_o_pack_ja_tem_fica_como_esta() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    new_pack(root, "1.21.1", Loader::Fabric).await;
+    let Some(cli) = packwiz(root) else {
+        return;
+    };
+    let own = "[general]\nwrap_link = \"gnomebot.dev\"\n";
+    write(root, player_tools::CRASH_ASSISTANT_CONFIG, own);
+    cli.refresh(root, false, RunContext::new(&CancellationToken::new()))
+        .await
+        .unwrap();
+    let api = Api::start().await;
+    let result = apply(
+        root,
+        &api.sources(),
+        ChannelPolicy::default(),
+        &request(&["crash-assistant"]),
+        &cli,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(!result.crash_assistant_config);
+    assert_eq!(result.player_tools, ["crash-assistant"]);
+    assert_eq!(
+        fs::read_to_string(root.join(player_tools::CRASH_ASSISTANT_CONFIG)).unwrap(),
+        own
+    );
 }
 
 #[tokio::test]
