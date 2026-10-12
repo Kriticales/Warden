@@ -22,6 +22,7 @@ import { Button, buttonVariants } from '../../../components/ui/button';
 import { CommandError } from '../../../lib/ipc/result';
 import type { LinkTarget, PackId } from '../../../lib/ipc/bindings';
 import { type LinkPick, useCurseforgeLink, useCurseforgeLinkImport } from './api';
+import { parseCurseforgeLink } from './link';
 
 export interface CurseforgeLinkPanelProps {
   packId: PackId;
@@ -77,7 +78,10 @@ export function CurseforgeLinkPanel({
     return (
       <div className="stack-2 preview__section" aria-busy="true">
         <LoadingState inline label={t('link.lendo')} />
-        <p className="t-xs t-3">{t('link.lendoArquivo')}</p>
+        {/* Só o link de arquivo passa pelo packwiz aqui; o de projeto é achado pela API. */}
+        {parseCurseforgeLink(url) === 'file' ? (
+          <p className="t-xs t-3">{t('link.lendoArquivo')}</p>
+        ) : null}
       </div>
     );
   }
