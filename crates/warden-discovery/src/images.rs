@@ -46,10 +46,25 @@ pub fn is_https(url: &str) -> bool {
     Url::parse(url).is_ok_and(|url| url.scheme() == "https" && url.host_str().is_some())
 }
 
-/// O endereço `warden-img://` de uma imagem remota. `None` se o link não for `https:`.
+/// Se o link é `https:` de um dos servidores da CurseForge (o próprio ou um subdomínio).
+fn from_curseforge(original: &str) -> bool {
+    Url::parse(original).is_ok_and(|url| {
+        url.scheme() == "https"
+            && url.host_str().is_some_and(|host| {
+                let host = host.to_ascii_lowercase();
+                ALLOWED_HOSTS
+                    .iter()
+                    .any(|allowed| host == *allowed || host.ends_with(&format!(".{allowed}")))
+            })
+    })
+}
+
+/// O endereço `warden-img://` de uma imagem da CurseForge. `None` se o link não for `https:`
+/// de um servidor da CurseForge (o proxy o recusaria).
 #[must_use]
 pub fn proxy_url(original: &str) -> Option<String> {
-    is_https(original).then(|| format!("{SCHEME}://localhost/{}", URL_SAFE_NO_PAD.encode(original)))
+    from_curseforge(original)
+        .then(|| format!("{SCHEME}://localhost/{}", URL_SAFE_NO_PAD.encode(original)))
 }
 
 /// O link original de um token do proxy.
@@ -270,6 +285,10 @@ mod tests {
         );
         assert!(proxy_url("http://media.forgecdn.net/a.png").is_none());
         assert!(proxy_url("javascript:alert(1)").is_none());
+        // Só servidores da CurseForge; um nome parecido não engana.
+        assert!(proxy_url("https://example.com/a.png").is_none());
+        assert!(proxy_url("https://evil-forgecdn.net/a.png").is_none());
+        assert!(proxy_url("https://forgecdn.net/a.png").is_some());
     }
 
     #[test]
