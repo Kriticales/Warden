@@ -191,13 +191,60 @@ fn create_main_window(
         .iter()
         .find(|window| window.label == MAIN_WINDOW)
         .ok_or("janela principal ausente no tauri.conf.json")?;
-    let window = tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
+    let mut builder = tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
         .data_directory(webview_dir)
         // No Windows a barra de título é a do Warden (UI-01; `window_chrome`).
-        .decorations(!window_chrome::CUSTOM_TITLE_BAR)
-        .build()?;
+        .decorations(!window_chrome::CUSTOM_TITLE_BAR);
+    if cfg!(all(windows, debug_assertions))
+        && let Some(args) = webview2_args_with(
+            std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
+                .ok()
+                .as_deref(),
+        )
+    {
+        builder = builder.additional_browser_args(&args);
+    }
+    let window = builder.build()?;
     window_chrome::attach(&window);
     Ok(())
+}
+
+/// Recursos que o wry desliga no WebView2 quando o app não passa argumentos próprios (menu
+/// flutuante, PDF e `SmartScreen`).
+const WRY_DISABLED_FEATURES: &[&str] = &["msWebOOUI", "msPdfOOUI", "msSmartScreenProtection"];
+
+/// Demais argumentos padrão do wry.
+const WRY_DEFAULT_ARGS: &[&str] = &["--autoplay-policy=no-user-gesture-required"];
+
+/// Argumentos do WebView2 com os de `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` (só em build de
+/// debug no Windows; QUALITY §13.5). O `msedgedriver` do E2E liga a depuração remota por essa
+/// variável, mas o wry sempre passa os argumentos pela API e o WebView2 deixa a variável de
+/// fora: sem `--remote-debugging-port`, o driver não acha o `DevToolsActivePort`.
+///
+/// O Chromium só considera o último `--disable-features`, e o `msedgedriver` passa o dele;
+/// por isso as listas viram uma só. Sem isso, o `SmartScreen` volta a conferir a navegação
+/// inicial e a página demora de 1 s a dezenas de segundos para chegar.
+fn webview2_args_with(extra: Option<&str>) -> Option<String> {
+    let extra = extra.map(str::trim).filter(|extra| !extra.is_empty())?;
+    let mut features: Vec<&str> = WRY_DISABLED_FEATURES.to_vec();
+    let mut args: Vec<&str> = WRY_DEFAULT_ARGS.to_vec();
+    for arg in extra.split_whitespace() {
+        match arg.strip_prefix("--disable-features=") {
+            Some(list) => {
+                for feature in list.split(',').filter(|feature| !feature.is_empty()) {
+                    if !features.contains(&feature) {
+                        features.push(feature);
+                    }
+                }
+            }
+            None => args.push(arg),
+        }
+    }
+    Some(format!(
+        "--disable-features={} {}",
+        features.join(","),
+        args.join(" ")
+    ))
 }
 
 /// Gera o `bindings.ts` (tipos e chamadas TypeScript) em `path`. Usado por
@@ -218,6 +265,24 @@ mod tests {
             paths.webview_dir(),
             dir.path().join("data").join("EBWebView")
         );
+    }
+
+    #[test]
+    fn argumentos_do_webview2_do_e2e_mantem_os_padrao_do_wry() {
+        assert_eq!(webview2_args_with(None), None);
+        assert_eq!(webview2_args_with(Some("  ")), None);
+        let args = webview2_args_with(Some(
+            " --disable-features=IgnoreDuplicateNavs,Prewarm --enable-automation \
+             --remote-debugging-port=0 --disable-features=msPdfOOUI ",
+        ))
+        .unwrap();
+        assert_eq!(
+            args,
+            "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,\
+             IgnoreDuplicateNavs,Prewarm --autoplay-policy=no-user-gesture-required \
+             --enable-automation --remote-debugging-port=0"
+        );
+        assert_eq!(args.matches("--disable-features=").count(), 1);
     }
 
     #[test]
