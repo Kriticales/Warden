@@ -205,18 +205,42 @@ fn create_main_window(
     Ok(())
 }
 
-/// Argumentos padrão que o wry passa ao WebView2 quando o app não passa nenhum.
-const WRY_DEFAULT_WEBVIEW2_ARGS: &str = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection \
-     --autoplay-policy=no-user-gesture-required";
+/// Recursos que o wry desliga no WebView2 quando o app não passa argumentos próprios (menu
+/// flutuante, PDF e `SmartScreen`).
+const WRY_DISABLED_FEATURES: &[&str] = &["msWebOOUI", "msPdfOOUI", "msSmartScreenProtection"];
 
-/// Argumentos do WebView2 com os de `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` no fim (só em
-/// build de debug no Windows; QUALITY §13.5). O `msedgedriver` do E2E liga a depuração remota
-/// por essa variável, mas o wry sempre passa os argumentos pela API e o WebView2 deixa a
-/// variável de fora: sem `--remote-debugging-port`, o driver não acha o `DevToolsActivePort`.
-/// Os da variável vêm por último para prevalecerem quando repetem uma opção.
+/// Demais argumentos padrão do wry.
+const WRY_DEFAULT_ARGS: &[&str] = &["--autoplay-policy=no-user-gesture-required"];
+
+/// Argumentos do WebView2 com os de `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` (só em build de
+/// debug no Windows; QUALITY §13.5). O `msedgedriver` do E2E liga a depuração remota por essa
+/// variável, mas o wry sempre passa os argumentos pela API e o WebView2 deixa a variável de
+/// fora: sem `--remote-debugging-port`, o driver não acha o `DevToolsActivePort`.
+///
+/// O Chromium só considera o último `--disable-features`, e o `msedgedriver` passa o dele;
+/// por isso as listas viram uma só. Sem isso, o `SmartScreen` volta a conferir a navegação
+/// inicial e a página demora de 1 s a dezenas de segundos para chegar.
 fn webview2_args_with(extra: Option<&str>) -> Option<String> {
     let extra = extra.map(str::trim).filter(|extra| !extra.is_empty())?;
-    Some(format!("{WRY_DEFAULT_WEBVIEW2_ARGS} {extra}"))
+    let mut features: Vec<&str> = WRY_DISABLED_FEATURES.to_vec();
+    let mut args: Vec<&str> = WRY_DEFAULT_ARGS.to_vec();
+    for arg in extra.split_whitespace() {
+        match arg.strip_prefix("--disable-features=") {
+            Some(list) => {
+                for feature in list.split(',').filter(|feature| !feature.is_empty()) {
+                    if !features.contains(&feature) {
+                        features.push(feature);
+                    }
+                }
+            }
+            None => args.push(arg),
+        }
+    }
+    Some(format!(
+        "--disable-features={} {}",
+        features.join(","),
+        args.join(" ")
+    ))
 }
 
 /// Gera o `bindings.ts` (tipos e chamadas TypeScript) em `path`. Usado por
@@ -240,15 +264,21 @@ mod tests {
     }
 
     #[test]
-    fn argumentos_do_webview2_do_e2e_vem_depois_dos_padrao() {
+    fn argumentos_do_webview2_do_e2e_mantem_os_padrao_do_wry() {
         assert_eq!(webview2_args_with(None), None);
         assert_eq!(webview2_args_with(Some("  ")), None);
-        let args = webview2_args_with(Some(" --remote-debugging-port=0 ")).unwrap();
-        assert!(
-            args.starts_with("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection ")
+        let args = webview2_args_with(Some(
+            " --disable-features=IgnoreDuplicateNavs,Prewarm --enable-automation \
+             --remote-debugging-port=0 --disable-features=msPdfOOUI ",
+        ))
+        .unwrap();
+        assert_eq!(
+            args,
+            "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,\
+             IgnoreDuplicateNavs,Prewarm --autoplay-policy=no-user-gesture-required \
+             --enable-automation --remote-debugging-port=0"
         );
-        assert!(args.contains(" --autoplay-policy=no-user-gesture-required "));
-        assert!(args.ends_with(" --remote-debugging-port=0"));
+        assert_eq!(args.matches("--disable-features=").count(), 1);
     }
 
     #[test]
