@@ -36,6 +36,7 @@ import { perf } from './perf';
 import { discovery } from './discovery';
 import { importErrors } from './import';
 import { scripts } from './scripts';
+import { github } from './github';
 
 type ErrorMessages = {
   [Domain in ErrorCode['domain']]: ErrorPhrases<Extract<ErrorCode, { domain: Domain }>['code']>;
@@ -68,6 +69,7 @@ export const errorMessages: ErrorMessages = {
   discovery,
   import: importErrors,
   scripts,
+  github,
 };
 
 const pluralRules = new Intl.PluralRules('pt-BR');

@@ -122,4 +122,10 @@ export function packsDirProblem(error: AppError | null): string | null {
   return null;
 }
 
-export const SECRET_KINDS: readonly SecretKind[] = ['curseforge', 'gemini', 'github'];
+/**
+ * As chaves que aparecem como linha em Chaves e contas e na primeira execução. O token de
+ * renovação do login do GitHub (`githubRefresh`, UI-03) só existe com o login e não é linha.
+ */
+export type KeyKind = Exclude<SecretKind, 'githubRefresh'>;
+
+export const SECRET_KINDS: readonly KeyKind[] = ['curseforge', 'gemini', 'github'];

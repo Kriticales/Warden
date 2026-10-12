@@ -49,7 +49,13 @@ export function mockSettingsBackend(
   const state: FakeState = {
     settings: makeSettings(),
     exists: true,
-    secrets: { backend: 'keyring', curseforge: false, gemini: false, github: false },
+    secrets: {
+      backend: 'keyring',
+      curseforge: false,
+      gemini: false,
+      github: false,
+      githubRefresh: false,
+    },
     ...initial,
   };
   const status = (): SettingsStatus => ({

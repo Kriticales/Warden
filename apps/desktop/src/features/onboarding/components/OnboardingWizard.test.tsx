@@ -190,7 +190,13 @@ describe('primeira execução', () => {
 
   it('reaberto com chaves já salvas, avisa que em branco mantém a chave', async () => {
     mockSettingsBackend({
-      secrets: { backend: 'keyring', curseforge: true, gemini: false, github: false },
+      secrets: {
+        backend: 'keyring',
+        curseforge: true,
+        gemini: false,
+        github: false,
+        githubRefresh: false,
+      },
     });
     const user = userEvent.setup();
     renderApp('/boas-vindas');

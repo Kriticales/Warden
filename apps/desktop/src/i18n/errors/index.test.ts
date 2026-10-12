@@ -5,9 +5,9 @@ import type { ErrorCode } from '../../lib/ipc/bindings';
 import { errorMessage, errorMessages } from './index';
 
 describe('errorMessages', () => {
-  it('tem os 26 domínios da ARCHITECTURE §5, cada um com INTERNAL', () => {
+  it('tem os 27 domínios da ARCHITECTURE §5 (com o github da UI-03), cada um com INTERNAL', () => {
     const domains = Object.keys(errorMessages);
-    expect(domains).toHaveLength(26);
+    expect(domains).toHaveLength(27);
     for (const domain of domains) {
       const code = { domain, code: 'INTERNAL' } as ErrorCode;
       expect(errorMessage(code)).toMatch(/\.$/);

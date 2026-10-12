@@ -21,7 +21,7 @@ function oneCodePerDomain(): ErrorCode[] {
 describe('ErrorPanel', () => {
   it('F0-06 critério 2: frase traduzida de um AppError de cada domínio e o código nos detalhes', () => {
     const codes = oneCodePerDomain();
-    expect(codes).toHaveLength(26);
+    expect(codes).toHaveLength(27);
     for (const code of codes) {
       const phrase = (errorMessages[code.domain] as Record<string, string>)[code.code] ?? '';
       const { unmount } = renderWithProviders(

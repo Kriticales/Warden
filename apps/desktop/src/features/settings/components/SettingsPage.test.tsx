@@ -181,7 +181,15 @@ describe('Configurações', () => {
 
     it('CA-T21-02: "Testar" com chave inválida mostra "A CurseForge recusou a chave."', async () => {
       mockSettingsBackend(
-        { secrets: { backend: 'keyring', curseforge: true, gemini: false, github: false } },
+        {
+          secrets: {
+            backend: 'keyring',
+            curseforge: true,
+            gemini: false,
+            github: false,
+            githubRefresh: false,
+          },
+        },
         {
           secrets_test: () =>
             ipcError(makeAppError({ domain: 'curseforge', code: 'CURSEFORGE_KEY_INVALID' })),
@@ -196,7 +204,15 @@ describe('Configurações', () => {
 
     it('"Testar" com chave aceita mostra "Funcionando"; sem testador, explica', async () => {
       mockSettingsBackend(
-        { secrets: { backend: 'keyring', curseforge: true, gemini: true, github: false } },
+        {
+          secrets: {
+            backend: 'keyring',
+            curseforge: true,
+            gemini: true,
+            github: false,
+            githubRefresh: false,
+          },
+        },
         {
           secrets_test: ({ kind }) =>
             kind === 'curseforge' ? { status: 'valid' } : { status: 'notTestable' },
@@ -217,7 +233,13 @@ describe('Configurações', () => {
 
     it('Substituir mostra o campo de novo; Cancelar volta a "Configurada" sem gravar', async () => {
       const backend = mockSettingsBackend({
-        secrets: { backend: 'keyring', curseforge: false, gemini: false, github: true },
+        secrets: {
+          backend: 'keyring',
+          curseforge: false,
+          gemini: false,
+          github: true,
+          githubRefresh: false,
+        },
       });
       const user = userEvent.setup();
       await openSettings();
@@ -233,7 +255,13 @@ describe('Configurações', () => {
 
     it('Remover pede confirmação e apaga a chave', async () => {
       const backend = mockSettingsBackend({
-        secrets: { backend: 'keyring', curseforge: false, gemini: true, github: false },
+        secrets: {
+          backend: 'keyring',
+          curseforge: false,
+          gemini: true,
+          github: false,
+          githubRefresh: false,
+        },
       });
       const user = userEvent.setup();
       await openSettings();
@@ -426,7 +454,13 @@ describe('Configurações', () => {
 
   it('passa no axe (página inteira, com chaves configuradas e o aviso do .env)', async () => {
     mockSettingsBackend({
-      secrets: { backend: 'envfile', curseforge: true, gemini: false, github: true },
+      secrets: {
+        backend: 'envfile',
+        curseforge: true,
+        gemini: false,
+        github: true,
+        githubRefresh: false,
+      },
     });
     const { container } = renderApp('/configuracoes');
     await screen.findByText('As chaves estão num arquivo de texto.');

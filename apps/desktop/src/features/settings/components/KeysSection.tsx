@@ -18,11 +18,12 @@ import { LoadingState } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import { showToast } from '../../../components/ui/toast';
-import type { BackendKind, SecretKind, SecretTestResult } from '../../../lib/ipc/bindings';
+import type { BackendKind, SecretTestResult } from '../../../lib/ipc/bindings';
 import { openExternal } from '../../../lib/external';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import {
   SECRET_KINDS,
+  type KeyKind,
   useRemoveSecret,
   useSecretsStatus,
   useSetSecret,
@@ -37,7 +38,7 @@ import { SettingsPanel } from './SettingsPanel';
 const BACKEND_GROUP = 'secrets-backend';
 
 /** Onde criar cada chave. */
-export const KEY_PAGES: Record<SecretKind, string> = {
+export const KEY_PAGES: Record<KeyKind, string> = {
   curseforge: 'https://console.curseforge.com/#/api-keys',
   gemini: 'https://aistudio.google.com/apikey',
   github: 'https://github.com/settings/personal-access-tokens/new',
@@ -87,7 +88,7 @@ export function KeysSection() {
 
 type TestOutcome = { kind: 'result'; result: SecretTestResult } | { kind: 'error'; error: unknown };
 
-function KeyRow({ kind, configured }: { kind: SecretKind; configured: boolean }) {
+function KeyRow({ kind, configured }: { kind: KeyKind; configured: boolean }) {
   const { t } = useTranslation('configuracoes');
   const stepsId = useId();
   const name = t(`chaves.nomes.${kind}`);

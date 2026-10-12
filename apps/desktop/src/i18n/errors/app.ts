@@ -35,4 +35,10 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Falta {{count}} arquivo do Minecraft para abrir o teste e não foi possível baixá-lo: {{names}}. Confira a internet e tente de novo; o caminho completo está nos detalhes técnicos.',
   TEST_GAME_FILES_MISSING_other:
     'Faltam {{count}} arquivos do Minecraft para abrir o teste e não foi possível baixá-los: {{names}}. Confira a internet e tente de novo; a lista completa está nos detalhes técnicos.',
+  REPORT_IMAGE_INVALID:
+    '{{name}} não é uma imagem PNG nem JPEG. Tire o print de novo ou salve a imagem nesses formatos.',
+  REPORT_IMAGE_TOO_LARGE:
+    '{{name}} passa de {{maxMb}} MB. Corte a imagem ou salve em JPEG e tente de novo.',
+  REPORT_IMAGES_LIMIT:
+    'O relato já tem o máximo de prints ({{max}}, até {{maxTotalMb}} MB somados). Remova um para acrescentar {{name}}.',
 };

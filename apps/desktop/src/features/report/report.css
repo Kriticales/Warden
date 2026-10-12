@@ -67,3 +67,32 @@
 .statusbar__report + .statusbar__end {
   margin-left: 0;
 }
+/* Prints do relato (UI-03): miniatura, nome e tamanho, e "Remover". */
+.report__prints {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.report__print {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  background: var(--color-surface-2);
+  box-shadow: var(--inset-shadow-bevel);
+}
+.report__thumb {
+  width: calc(var(--spacing) * 24);
+  height: calc(var(--spacing) * 14);
+  object-fit: cover;
+  background: var(--color-surface-1);
+}
+.report__print-name {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

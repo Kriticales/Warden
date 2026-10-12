@@ -85,6 +85,9 @@ export const tarefas = {
     'initial-mods': {
       apply: 'Adicionar os mods iniciais',
     },
+    report: {
+      send: 'Enviar relato ao GitHub',
+    },
   },
 } as const;
 

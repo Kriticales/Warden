@@ -65,6 +65,10 @@ const DEFAULTS: Record<string, Handler> = {
   test_game_state: () => null,
   test_sessions_list: () => [],
   test_live_console: () => [],
+  // Login do GitHub (UI-03): sem o identificador do GitHub App, como no app sem configurar.
+  github_login_status: () => ({ available: false, login: null, waiting: false }),
+  // Relatar problema (UI-03): o rascunho de prints abre e fecha com o diálogo.
+  problem_report_draft: () => null,
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,
