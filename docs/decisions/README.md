@@ -61,5 +61,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0055](0055-ia-modelo-padrao-e-resposta-final.md) | IA: modelo padrão Flash-Lite e resposta final pela ferramenta `responder` (complementa a 0030) | técnica |
 | [0056](0056-raio-x-de-mixins-implementacao-propria.md) | Raio-x de mixins com implementação própria (`cafebabe`) (complementa a 0034) | técnica |
 | [0057](0057-motor-do-launcher-portablemc.md) | Motor do launcher: `portablemc` 5.0.5, com processo e linha de comando do Warden (complementa a 0010) | técnica |
+| [0058](0058-patch-do-endereco-da-curseforge-no-packwiz.md) | Patch 0002 do packwiz: endereço da API da CurseForge trocável, só para testes (exceção à 0049) | técnica |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.
