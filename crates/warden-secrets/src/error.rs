@@ -172,6 +172,7 @@ const fn kind_param(kind: SecretKind) -> &'static str {
         SecretKind::Curseforge => "curseforge",
         SecretKind::Gemini => "gemini",
         SecretKind::Github => "github",
+        SecretKind::GithubRefresh => "githubRefresh",
     }
 }
 

@@ -178,6 +178,7 @@ impl Secrets {
             curseforge: store.get(SecretKind::Curseforge)?.is_some(),
             gemini: store.get(SecretKind::Gemini)?.is_some(),
             github: store.get(SecretKind::Github)?.is_some(),
+            github_refresh: store.get(SecretKind::GithubRefresh)?.is_some(),
         })
     }
 
@@ -422,6 +423,7 @@ mod tests {
     const CF: &str = "$2a$10$chave-de-teste-da-curseforge";
     const GEMINI: &str = "AIza-chave-de-teste";
     const GITHUB: &str = "ghp_token_de_teste";
+    const GITHUB_REFRESH: &str = "ghr_renovacao_de_teste";
 
     fn secret(text: &str) -> SecretString {
         SecretString::from(text.to_owned())
@@ -439,6 +441,9 @@ mod tests {
         secrets.set(SecretKind::Curseforge, &secret(CF)).unwrap();
         secrets.set(SecretKind::Gemini, &secret(GEMINI)).unwrap();
         secrets.set(SecretKind::Github, &secret(GITHUB)).unwrap();
+        secrets
+            .set(SecretKind::GithubRefresh, &secret(GITHUB_REFRESH))
+            .unwrap();
     }
 
     fn value(secrets: &Secrets, kind: SecretKind) -> Option<String> {
@@ -485,7 +490,8 @@ mod tests {
                 backend: BackendKind::Keyring,
                 curseforge: true,
                 gemini: false,
-                github: false
+                github: false,
+                github_refresh: false,
             }
         );
         assert_eq!(value(&secrets, SecretKind::Curseforge).as_deref(), Some(CF));
