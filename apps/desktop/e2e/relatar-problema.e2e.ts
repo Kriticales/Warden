@@ -356,7 +356,9 @@ describe('Relatar problema', () => {
     expect(shot.width).toBeLessThanOrEqual(size.width + 64);
     expect(shot.height).toBeLessThanOrEqual(size.height + 64);
     expect(shot.colors).toBeGreaterThan(1);
-    await waitForToast('Cole o print (Ctrl+V) na issue e clique em "Submit new issue".');
+    // Com os registros longos dos outros testes, o relato é cortado e o aviso ganha o botão
+    // "Copiar relato completo"; os dois começam igual.
+    await waitForToast('Cole o print (Ctrl+V) na issue');
     await dialog().waitForDisplayed({ reverse: true });
     rmSync(CAPTURE_FILE, { force: true });
   });
