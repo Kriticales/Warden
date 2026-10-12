@@ -2,9 +2,9 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import type { CreatePack, Loader } from '../../../lib/ipc/bindings';
+import type { CreatePack, InitialOffer, Loader } from '../../../lib/ipc/bindings';
 import { axePage } from '../../../test/axe';
-import { ipcError, mockBackend, type Handler } from '../../../test/backend';
+import { deferred, ipcError, mockBackend, type Handler } from '../../../test/backend';
 import {
   makeAppError,
   makeLoaderVersions,
@@ -305,17 +305,95 @@ describe('Criar pack (T03)', () => {
 
   it('itens que ficaram de fora são nomeados no aviso', async () => {
     const user = userEvent.setup();
+    // O Rust devolve o nome da ferramenta ("Crash Assistant"), não o identificador.
     wizardBackend({
       initial_mods_apply: () =>
-        makeInitialResult({ added: [], leftOut: ['spark'], playerTools: [] }),
+        makeInitialResult({ added: [], leftOut: ['Crash Assistant'], playerTools: [] }),
     });
     renderApp('/packs/novo');
     await toModsStep(user);
     await next(user);
     await user.click(await screen.findByRole('button', { name: 'Criar pack' }));
     expect(
-      await screen.findByText('Ficaram de fora: spark. Dá para adicionar depois pela página Mods.'),
+      await screen.findByText(
+        'Ficaram de fora: Crash Assistant. Dá para adicionar depois pela página Mods.',
+      ),
     ).toBeDefined();
+    expect(screen.queryByText(/crash-assistant/)).toBeNull();
+  });
+
+  it('"Próximo" espera a oferta de mods iniciais chegar antes de seguir', async () => {
+    const user = userEvent.setup();
+    const offer = deferred<InitialOffer>();
+    const backend = wizardBackend({ initial_mods_offer: () => offer.promise });
+    renderApp('/packs/novo');
+    await fillName(user);
+    await next(user);
+    await user.click(await screen.findByRole('radio', { name: '1.21.1' }));
+    await next(user);
+    await user.click(await screen.findByRole('radio', { name: /^Fabric/ }));
+    await next(user);
+
+    // Consultando: seguir agora criaria o pack sem os mods que a tela vai mostrar marcados.
+    expect(await screen.findByText('Consultando os mods iniciais…')).toBeDefined();
+    const proximo = screen.getByRole<HTMLButtonElement>('button', { name: 'Próximo' });
+    expect(proximo.disabled).toBe(true);
+    await user.click(proximo);
+    expect(screen.queryByText('Nenhum mod inicial')).toBeNull();
+
+    offer.resolve(FABRIC_OFFER);
+    const spark = await screen.findByRole<HTMLInputElement>('checkbox', {
+      name: 'Adicionar spark',
+    });
+    await waitFor(() => {
+      expect(spark.checked).toBe(true);
+    });
+    await waitFor(() => {
+      expect(proximo.disabled).toBe(false);
+    });
+    await next(user);
+    expect(await screen.findByText(/^Mods iniciais: spark, Crash Assistant/)).toBeDefined();
+    await user.click(screen.getByRole('button', { name: 'Criar pack' }));
+    await waitFor(() => {
+      expect(backend.callsOf('initial_mods_apply')).toHaveLength(1);
+    });
+    expect(backend.callsOf('initial_mods_apply')[0]?.args.request).toEqual({
+      tools: ['spark', 'crash-assistant'],
+      kit: null,
+    });
+  });
+
+  it('sem acesso ao Modrinth, a etapa avisa e deixa seguir sem os mods', async () => {
+    const user = userEvent.setup();
+    const backend = wizardBackend({
+      initial_mods_offer: () =>
+        ipcError(
+          makeAppError(
+            { domain: 'project', code: 'SEARCH_SOURCE_UNAVAILABLE' },
+            { params: { source: 'Modrinth' }, retryable: true },
+          ),
+        ),
+    });
+    renderApp('/packs/novo');
+    await fillName(user);
+    await next(user);
+    await user.click(await screen.findByRole('radio', { name: '1.21.1' }));
+    await next(user);
+    await user.click(await screen.findByRole('radio', { name: /^Fabric/ }));
+    await next(user);
+    expect(
+      await screen.findByText('Não foi possível consultar os mods iniciais agora'),
+    ).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Próximo' }).disabled).toBe(
+        false,
+      );
+    });
+    await next(user);
+    expect(await screen.findByText('Nenhum mod inicial')).toBeDefined();
+    await user.click(screen.getByRole('button', { name: 'Criar pack' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
+    expect(backend.callsOf('initial_mods_apply')).toHaveLength(0);
   });
 
   it('CA-T03-03: NeoForge não aparece para 1.19.2; Fabric não aparece para 1.12.2', async () => {

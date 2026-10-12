@@ -80,7 +80,9 @@ export function CreatePackWizard() {
       case 'loader':
         return draft.loaderReady && (draft.loader === null || draft.loaderVersion !== null);
       case 'mods':
-        return true;
+        // Espera a oferta chegar (ou falhar): a etapa preenche a escolha com o padrão. Seguir
+        // antes disso criaria o pack sem os mods que a tela mostra marcados.
+        return draft.loader === null || draft.initial !== null;
       case 'resumo':
         return !create.isPending && !finishing;
     }

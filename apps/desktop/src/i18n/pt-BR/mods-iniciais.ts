@@ -35,7 +35,6 @@ export const modsIniciais = {
     },
   },
   selecionar: 'Adicionar {{name}}',
-  versao: 'Versão {{version}}',
   junto: 'Traz junto: {{names}}',
   antiga: 'Versão antiga, sem atualizações',
   antigaDica:
@@ -80,7 +79,6 @@ export const modsIniciais = {
     itensMarcados_other: '{{count}} mods marcados',
   },
   resumo: {
-    titulo: 'Mods iniciais',
     nenhum: 'Nenhum mod inicial',
     lista: 'Mods iniciais: {{nomes}}',
     config: 'config do Crash Assistant sem envio de dados ao autor',
