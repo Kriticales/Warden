@@ -109,11 +109,7 @@ function ItemBody({
           </p>
           <Checkbox
             label={t('troca.rotulo')}
-            desc={
-              swapped
-                ? t('troca.destino', { projeto: outcome.project_id, arquivo: outcome.filename })
-                : t('troca.semTroca')
-            }
+            desc={swapped ? t('troca.destino', { arquivo: outcome.filename }) : t('troca.semTroca')}
             checked={swapped}
             disabled={isSwapRequired(item)}
             onChange={onSwap}

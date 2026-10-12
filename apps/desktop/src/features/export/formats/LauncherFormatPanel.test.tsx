@@ -130,7 +130,7 @@ describe('Exportar: formatos de outros launchers (T19, P1)', () => {
     });
     const swap = await screen.findByRole('checkbox', { name: /Trocar pelo Modrinth/ });
     expect(swap).toHaveProperty('checked', true);
-    expect(screen.getByText(/Projeto u6dRKJwZ, arquivo jei-modrinth.jar/)).toBeDefined();
+    expect(screen.getByText(/No Modrinth: jei-modrinth.jar/)).toBeDefined();
     expect(screen.queryByRole('checkbox', { name: /Tenho permissão/ })).toBeNull();
 
     // Com a troca, vai direto.

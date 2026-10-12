@@ -78,7 +78,7 @@ export const exportarFormatos = {
     opcional:
       'O mesmo arquivo existe no Modrinth (mesmo hash). Trocando, ele vai por referência, sem o jar dentro do arquivo.',
     rotulo: 'Trocar pelo Modrinth',
-    destino: 'Projeto {{projeto}}, arquivo {{arquivo}}',
+    destino: 'No Modrinth: {{arquivo}}',
     semTroca: 'Sem a troca, o jar vai dentro do arquivo e conta como arquivo de terceiros.',
   },
   bloqueado: {
