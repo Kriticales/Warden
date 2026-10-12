@@ -522,6 +522,7 @@ async fn search_for(sources: &[ActiveSource], target: &PackTarget, query: &str) 
             source: SourceFilter::All,
             environment: None,
             include_incompatible: false,
+            category: None,
             cursor: None,
         },
         &CancellationToken::new(),

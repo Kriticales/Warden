@@ -161,13 +161,19 @@ pub(crate) fn search_source(state: &AppState) -> ActiveSource {
     }
 }
 
-/// A CurseForge no plano e na gravação: ligada só com chave que a API não recusou.
-pub(crate) fn add_source(state: &AppState) -> Option<Arc<dyn AddSource>> {
+/// O cliente da CurseForge para quem só usa a fonte com chave que a API não recusou (plano,
+/// gravação e detalhes da pré-visualização).
+pub(crate) fn ready_client(state: &AppState) -> Option<CurseforgeClient> {
     let key = stored_key(state).ok().flatten()?;
     if is_rejected(&key) {
         return None;
     }
-    let client = client(key).ok()?;
+    client(key).ok()
+}
+
+/// A CurseForge no plano e na gravação: ligada só com chave que a API não recusou.
+pub(crate) fn add_source(state: &AppState) -> Option<Arc<dyn AddSource>> {
+    let client = ready_client(state)?;
     Some(Arc::new(CurseforgeAdd::new(client)))
 }
 

@@ -1,10 +1,12 @@
 //! Partes da pré-visualização completa (SPEC T08, P1; ARCHITECTURE §17.1): galeria, notas de
 //! versão (changelog) sob demanda e dependências com "Já no pack" / "Será adicionada".
 //!
-//! - **Galeria e notas** vêm de uma [`DetailSource`] (Modrinth aqui; a CurseForge entra com a
-//!   P1-10 sem mudar o resto). No Modrinth a galeria sai do projeto, que o cache de 24 h do
+//! - **Galeria e notas** vêm de uma [`DetailSource`] ([`ModrinthDetails`] e
+//!   [`CurseforgeDetails`]). No Modrinth a galeria sai do projeto, que o cache de 24 h do
 //!   `warden-modrinth` já guarda junto com a descrição (zero requisição a mais depois da
-//!   pré-visualização). As notas são pedidas **só quando a linha da versão é aberta**.
+//!   pré-visualização). Na CurseForge as capturas também saem do projeto (cache em memória do
+//!   `warden-curseforge`) e vão para a interface pelo protocolo `warden-img://` (só memória).
+//!   As notas são pedidas **só quando a linha da versão é aberta**.
 //! - **Dependências** usam as mesmas fontes de "Adicionar" (`AddSources`): lê as declaradas na
 //!   versão e confere o inventário do pack.
 
@@ -13,6 +15,7 @@ use std::sync::Arc;
 
 use serde::Serialize;
 use warden_core::CancellationToken;
+use warden_curseforge::CurseforgeClient;
 use warden_modrinth::ModrinthClient;
 use warden_project::add::{AddSources, DependencyKind};
 use warden_project::details::DescriptionFormat;
@@ -322,5 +325,101 @@ impl DetailSource for ModrinthDetails {
                 body,
                 format: DescriptionFormat::Markdown,
             }))
+    }
+}
+
+/// A CurseForge como fonte de detalhes. As imagens vão pelo protocolo `warden-img://` e as
+/// notas (HTML) só ficam em memória (termos da CurseForge; ARCHITECTURE §17.1).
+#[derive(Debug, Clone)]
+pub struct CurseforgeDetails {
+    client: CurseforgeClient,
+}
+
+impl CurseforgeDetails {
+    /// Fonte com o cliente do app (com a chave do usuário).
+    #[must_use]
+    pub fn new(client: CurseforgeClient) -> Self {
+        Self { client }
+    }
+}
+
+fn curseforge_unavailable(error: &warden_curseforge::Error) -> Error {
+    Error::new(Code::SearchSourceUnavailable, error.to_string()).param("source", "CurseForge")
+}
+
+fn curseforge_not_found(project_id: &str) -> Error {
+    Error::new(
+        Code::ItemNotFound,
+        format!("projeto {project_id} não encontrado na CurseForge"),
+    )
+    .param("path", project_id)
+}
+
+/// ID numérico da CurseForge.
+fn numeric(id: &str) -> Option<u64> {
+    id.trim().parse().ok()
+}
+
+#[async_trait::async_trait]
+impl DetailSource for CurseforgeDetails {
+    fn id(&self) -> SourceId {
+        SourceId::Curseforge
+    }
+
+    async fn gallery(
+        &self,
+        project_id: &str,
+        cancel: &CancellationToken,
+    ) -> Result<Vec<GalleryItem>> {
+        let id = numeric(project_id).ok_or_else(|| curseforge_not_found(project_id))?;
+        let project = match self.client.project(id, Some(cancel)).await {
+            Ok(project) => project,
+            Err(warden_curseforge::Error::ModNotFound { .. }) => {
+                return Err(curseforge_not_found(project_id));
+            }
+            Err(error) => return Err(curseforge_unavailable(&error)),
+        };
+        Ok(project
+            .screenshots
+            .into_iter()
+            .filter_map(|shot| {
+                let url = images::proxy_url(shot.url.as_deref()?)?;
+                let thumb_url = shot
+                    .thumbnail_url
+                    .as_deref()
+                    .and_then(images::proxy_url)
+                    .unwrap_or_else(|| url.clone());
+                Some(GalleryItem {
+                    thumb_url,
+                    url,
+                    title: shot.title.filter(|title| !title.trim().is_empty()),
+                    description: shot
+                        .description
+                        .filter(|description| !description.trim().is_empty()),
+                    featured: false,
+                })
+            })
+            .collect())
+    }
+
+    async fn notes(
+        &self,
+        project_id: &str,
+        version_id: &str,
+        cancel: &CancellationToken,
+    ) -> Result<Option<VersionNotes>> {
+        let mod_id = numeric(project_id).ok_or_else(|| curseforge_not_found(project_id))?;
+        let Some(file_id) = numeric(version_id) else {
+            return Ok(None);
+        };
+        match self.client.file_changelog(mod_id, file_id, Some(cancel)).await {
+            Ok(body) if body.trim().is_empty() => Ok(None),
+            Ok(body) => Ok(Some(VersionNotes {
+                body,
+                format: DescriptionFormat::Html,
+            })),
+            Err(warden_curseforge::Error::FileNotFound { .. }) => Ok(None),
+            Err(error) => Err(curseforge_unavailable(&error)),
+        }
     }
 }

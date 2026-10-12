@@ -30,7 +30,10 @@ export function useDiscoverHome(packId: PackId, kind: ProjectKind, enabled: bool
 /** As categorias curadas do tipo (sem rede: é o mapeamento embutido no app). */
 export function useDiscoverCategories(kind: ProjectKind) {
   return useQuery({
-    ...commandQuery(discoverKeys.categories(kind), () => commands.discoverCategories(kind)),
+    ...commandQuery(discoverKeys.categories(kind), async () => ({
+      status: 'ok' as const,
+      data: await commands.discoverCategories(kind),
+    })),
     staleTime: Infinity,
   });
 }

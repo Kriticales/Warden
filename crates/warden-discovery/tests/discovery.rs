@@ -1,21 +1,22 @@
 //! Aceite da descoberta (P1-16; SPEC T08, CA-T08-10 e CA-T08-13): início com no máximo 3
 //! requisições por fonte, categorias que filtram só a fonte que as tem e a pré-visualização
 //! completa (galeria, notas sob demanda, dependências), contra um Modrinth simulado com
-//! respostas reais gravadas e uma segunda fonte simulada que conta as chamadas (a CurseForge
-//! entra no app com a P1-10).
+//! respostas reais gravadas e uma CurseForge simulada (respostas montadas aqui, nada em disco,
+//! pelos termos da CurseForge), as duas contando as requisições.
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde_json::{Value, json};
 use warden_core::CancellationToken;
 use warden_discovery::home::{HOME_ITEMS, home};
+use warden_curseforge::CurseforgeClient;
 use warden_discovery::preview::{
-    DetailSources, ModrinthDetails, gallery, version_dependencies, version_notes,
+    CurseforgeDetails, DetailSources, ModrinthDetails, gallery, version_dependencies,
+    version_notes,
 };
 use warden_http::{HttpClient, HttpConfig};
 use warden_modrinth::{MetadataCache, ModrinthClient};
@@ -23,11 +24,12 @@ use warden_packwiz::Loader;
 use warden_project::add::AddSources;
 use warden_project::add::DependencyKind;
 use warden_project::add::modrinth::ModrinthAdd;
+use warden_project::details::DescriptionFormat;
+use warden_project::search::curseforge::CurseforgeSearch;
 use warden_project::search::modrinth::ModrinthSearch;
 use warden_project::search::{
-    ActiveSource, CategoryFilter, InstalledKeys, PackTarget, ProjectKind, ProjectPreview,
-    SearchRequest, SearchSort, SearchSource, SourceFailure, SourceFilter, SourceHit, SourceId,
-    SourcePage, SourceQuery, SourceRef, SourceWarningReason, search_in_category,
+    ActiveSource, CategoryFilter, InstalledKeys, PackTarget, ProjectKind, SearchRequest,
+    SearchSort, SourceFilter, SourceId, SourceWarningReason, search_in_category,
 };
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -95,66 +97,98 @@ impl Api {
     }
 }
 
-/// Outra fonte (faz o papel da CurseForge): conta as chamadas e guarda a última consulta.
-struct Counting {
-    calls: AtomicUsize,
-    last: std::sync::Mutex<Option<SourceQuery>>,
-    fail: bool,
+/// A CurseForge simulada: busca com 12 projetos, um projeto com capturas e as notas de um
+/// arquivo. Com `fail`, toda resposta é erro 500.
+struct Cf {
+    server: MockServer,
+    client: CurseforgeClient,
 }
 
-impl Counting {
-    fn new(fail: bool) -> Arc<Self> {
-        Arc::new(Self {
-            calls: AtomicUsize::new(0),
-            last: std::sync::Mutex::new(None),
-            fail,
-        })
-    }
+const CF_PROJECT: u64 = 238_222;
+const CF_FILE: u64 = 5_000_001;
+
+fn cf_mod(index: u32) -> Value {
+    json!({
+        "id": 1_000 + index, "gameId": 432, "name": format!("Mod da CurseForge {index}"),
+        "slug": format!("cf-mod-{index}"), "summary": "resumo", "status": 4,
+        "downloadCount": 1_000 - index, "classId": 6,
+        "authors": [{"id": index, "name": format!("autor{index}")}],
+        "logo": {"thumbnailUrl": "https://media.forgecdn.net/avatars/1/logo.png",
+                 "url": "https://media.forgecdn.net/avatars/1/logo.png"},
+        "latestFilesIndexes": [{"gameVersion": "1.21.1", "fileId": 10 + index,
+                                "filename": "a.jar", "releaseType": 1, "modLoader": 4}],
+        "dateCreated": "2026-01-01T00:00:00Z",
+        "dateModified": format!("2026-10-{:02}T00:00:00Z", 20 - index),
+        "allowModDistribution": true, "isAvailable": true
+    })
 }
 
-#[async_trait::async_trait]
-impl SearchSource for Counting {
-    fn id(&self) -> SourceId {
-        SourceId::Curseforge
-    }
-
-    async fn preview(
-        &self,
-        _project_id: &str,
-        _cancel: &CancellationToken,
-    ) -> warden_project::Result<ProjectPreview> {
-        unreachable!("o início não pede pré-visualização")
-    }
-
-    async fn search(
-        &self,
-        query: &SourceQuery,
-        _cancel: &CancellationToken,
-    ) -> Result<SourcePage, SourceFailure> {
-        self.calls.fetch_add(1, Ordering::SeqCst);
-        *self.last.lock().unwrap() = Some(query.clone());
-        if self.fail {
-            return Err(SourceFailure::unavailable("simulado: erro 500"));
+impl Cf {
+    async fn start(fail: bool) -> Self {
+        let server = MockServer::start().await;
+        if fail {
+            Mock::given(method("GET"))
+                .respond_with(ResponseTemplate::new(500))
+                .mount(&server)
+                .await;
+        } else {
+            let mods: Vec<Value> = (0..12).map(cf_mod).collect();
+            Mock::given(method("GET"))
+                .and(path("/v1/mods/search"))
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                    "data": mods,
+                    "pagination": {"index": 0, "pageSize": 20, "resultCount": 12, "totalCount": 12}
+                })))
+                .mount(&server)
+                .await;
+            let mut project = cf_mod(0);
+            project["id"] = json!(CF_PROJECT);
+            project["screenshots"] = json!([
+                {"id": 1, "title": "Base", "description": "",
+                 "thumbnailUrl": "https://media.forgecdn.net/attachments/thumbnails/1/256/base.png",
+                 "url": "https://media.forgecdn.net/attachments/1/base.png"},
+                {"id": 2, "title": "", "description": "Fora da CurseForge",
+                 "thumbnailUrl": "https://example.com/t.png", "url": "https://example.com/x.png"}
+            ]);
+            Mock::given(method("GET"))
+                .and(path(format!("/v1/mods/{CF_PROJECT}")))
+                .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": project})))
+                .mount(&server)
+                .await;
+            Mock::given(method("GET"))
+                .and(path(format!(
+                    "/v1/mods/{CF_PROJECT}/files/{CF_FILE}/changelog"
+                )))
+                .respond_with(
+                    ResponseTemplate::new(200)
+                        .set_body_json(json!({"data": "<p>Corrige a mochila sumindo</p>"})),
+                )
+                .mount(&server)
+                .await;
         }
-        let hits = (0..12)
-            .map(|index| SourceHit {
-                reference: SourceRef {
-                    source: SourceId::Curseforge,
-                    project_id: format!("cf{index}"),
-                    slug: format!("cf-mod-{index}"),
-                    downloads: 1000.0 - f64::from(index),
-                },
-                title: format!("Mod da CurseForge {index}"),
-                author: format!("autor{index}"),
-                summary: "resumo".into(),
-                icon_url: None,
-                updated: format!("2026-10-{:02}T00:00:00Z", 20 - index),
-                created: "2026-01-01T00:00:00Z".into(),
-                compatible: true,
-                manual_download: false,
-            })
-            .collect();
-        Ok(SourcePage { hits, total: 12 })
+        let mut config = HttpConfig::for_version("1");
+        config.max_retries = 0;
+        let client = CurseforgeClient::with_base_url(
+            HttpClient::new(config).unwrap(),
+            &format!("{}/v1", server.uri()),
+            Some("chave-de-teste".to_owned().into()),
+        )
+        .unwrap();
+        Self { server, client }
+    }
+
+    fn source(&self) -> ActiveSource {
+        ActiveSource::Ready(Arc::new(CurseforgeSearch::new(self.client.clone())))
+    }
+
+    async fn requests(&self, prefix: &str) -> Vec<wiremock::Request> {
+        self.server
+            .received_requests()
+            .await
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|request| request.url.path().starts_with(prefix))
+            .collect()
     }
 }
 
@@ -170,11 +204,8 @@ fn param(request: &wiremock::Request, name: &str) -> String {
 #[tokio::test]
 async fn inicio_usa_no_maximo_tres_requisicoes_por_fonte() {
     let api = Api::with_search().await;
-    let counting = Counting::new(false);
-    let sources = [
-        api.modrinth_source(),
-        ActiveSource::Ready(counting.clone() as Arc<dyn SearchSource>),
-    ];
+    let cf = Cf::start(false).await;
+    let sources = [api.modrinth_source(), cf.source()];
     let page = home(
         &sources,
         &target(),
@@ -187,7 +218,19 @@ async fn inicio_usa_no_maximo_tres_requisicoes_por_fonte() {
 
     let searches = api.requests("/v2/search").await;
     assert!(searches.len() <= 3, "Modrinth recebeu {}", searches.len());
-    assert!(counting.calls.load(Ordering::SeqCst) <= 3);
+    let cf_searches = cf.requests("/v1/mods/search").await;
+    assert!(
+        !cf_searches.is_empty() && cf_searches.len() <= 3,
+        "CurseForge recebeu {}",
+        cf_searches.len()
+    );
+    // Na CurseForge também só a busca, já travada para o pack.
+    assert_eq!(
+        cf.server.received_requests().await.unwrap().len(),
+        cf_searches.len()
+    );
+    assert_eq!(param(&cf_searches[0], "gameVersion"), "1.21.1");
+    assert_eq!(param(&cf_searches[0], "modLoaderType"), "4");
     // Nada além da busca: sem a lista de categorias, que é o mapeamento curado.
     assert_eq!(
         api.server.received_requests().await.unwrap().len(),
@@ -237,11 +280,8 @@ async fn inicio_deixa_de_fora_o_que_ja_esta_no_pack_e_cita_os_nomes() {
 #[tokio::test]
 async fn inicio_com_uma_fonte_fora_traz_a_outra_e_o_aviso() {
     let api = Api::with_search().await;
-    let counting = Counting::new(true);
-    let sources = [
-        api.modrinth_source(),
-        ActiveSource::Ready(counting.clone() as Arc<dyn SearchSource>),
-    ];
+    let cf = Cf::start(true).await;
+    let sources = [api.modrinth_source(), cf.source()];
     let page = home(
         &sources,
         &target(),
@@ -294,11 +334,8 @@ fn request() -> SearchRequest {
 #[tokio::test]
 async fn categoria_filtra_as_duas_fontes_pelas_categorias_mapeadas() {
     let api = Api::with_search().await;
-    let counting = Counting::new(false);
-    let sources = [
-        api.modrinth_source(),
-        ActiveSource::Ready(counting.clone() as Arc<dyn SearchSource>),
-    ];
+    let cf = Cf::start(false).await;
+    let sources = [api.modrinth_source(), cf.source()];
     let filter = warden_discovery::categories::resolve("tecnologia", ProjectKind::Mod).unwrap();
     search_in_category(
         &sources,
@@ -313,18 +350,16 @@ async fn categoria_filtra_as_duas_fontes_pelas_categorias_mapeadas() {
     let searches = api.requests("/v2/search").await;
     assert_eq!(searches.len(), 1);
     assert!(param(&searches[0], "facets").contains(r#"["categories:technology"]"#));
-    let seen = counting.last.lock().unwrap().clone().unwrap();
-    assert_eq!(seen.category.unwrap().curseforge, [412]);
+    let cf_searches = cf.requests("/v1/mods/search").await;
+    assert_eq!(cf_searches.len(), 1);
+    assert_eq!(param(&cf_searches[0], "categoryId"), "412");
 }
 
 #[tokio::test]
 async fn categoria_sem_par_filtra_so_a_fonte_que_a_tem() {
     let api = Api::with_search().await;
-    let counting = Counting::new(false);
-    let sources = [
-        api.modrinth_source(),
-        ActiveSource::Ready(counting.clone() as Arc<dyn SearchSource>),
-    ];
+    let cf = Cf::start(false).await;
+    let sources = [api.modrinth_source(), cf.source()];
     // "Desempenho" só existe no Modrinth.
     let filter = warden_discovery::categories::resolve("desempenho", ProjectKind::Mod).unwrap();
     let page = search_in_category(
@@ -337,7 +372,7 @@ async fn categoria_sem_par_filtra_so_a_fonte_que_a_tem() {
     )
     .await
     .unwrap();
-    assert_eq!(counting.calls.load(Ordering::SeqCst), 0);
+    assert!(cf.server.received_requests().await.unwrap().is_empty());
     assert_eq!(page.sources, [SourceId::Modrinth]);
     assert!(page.warnings.is_empty());
     assert_eq!(CategoryFilter::default().curseforge.len(), 0);
@@ -485,4 +520,74 @@ async fn dependencias_marcam_ja_no_pack_e_o_que_sera_adicionado() {
     assert!(fabric.in_pack, "Fabric API já está no pack");
     assert!(!placeholder.in_pack, "Placeholder API será adicionada");
     assert_ne!(fabric.title, fabric.project_id, "o nome vem do projeto");
+}
+
+#[tokio::test]
+async fn galeria_da_curseforge_vai_pelo_protocolo_warden_img() {
+    let cf = Cf::start(false).await;
+    let sources = DetailSources::new().with(Arc::new(CurseforgeDetails::new(cf.client.clone())));
+    let items = gallery(
+        &sources,
+        SourceId::Curseforge,
+        &CF_PROJECT.to_string(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    // A captura de fora dos servidores da CurseForge fica de fora (o proxy a recusaria).
+    assert_eq!(items.len(), 1);
+    assert!(items[0].url.starts_with("warden-img://localhost/"));
+    assert!(items[0].thumb_url.starts_with("warden-img://localhost/"));
+    assert_ne!(items[0].thumb_url, items[0].url);
+    assert!(!items[0].url.contains("forgecdn"));
+    assert_eq!(items[0].title.as_deref(), Some("Base"));
+    assert_eq!(items[0].description, None);
+}
+
+#[tokio::test]
+async fn ca_t08_13_na_curseforge_o_changelog_so_e_pedido_ao_abrir_a_linha() {
+    let cf = Cf::start(false).await;
+    let sources = DetailSources::new().with(Arc::new(CurseforgeDetails::new(cf.client.clone())));
+    // A galeria (parte da pré-visualização) não pede notas.
+    gallery(
+        &sources,
+        SourceId::Curseforge,
+        &CF_PROJECT.to_string(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(cf.requests("/v1/mods/").await.iter().all(|request| {
+        !request.url.path().ends_with("/changelog")
+    }));
+    let notes = version_notes(
+        &sources,
+        SourceId::Curseforge,
+        &CF_PROJECT.to_string(),
+        &CF_FILE.to_string(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    assert_eq!(notes.body, "<p>Corrige a mochila sumindo</p>");
+    assert_eq!(notes.format, DescriptionFormat::Html);
+    let changelogs: Vec<_> = cf
+        .requests("/v1/mods/")
+        .await
+        .into_iter()
+        .filter(|request| request.url.path().ends_with("/changelog"))
+        .collect();
+    assert_eq!(changelogs.len(), 1);
+    // Arquivo que a CurseForge não conhece (404): nenhuma nota, sem erro.
+    let none = version_notes(
+        &sources,
+        SourceId::Curseforge,
+        &CF_PROJECT.to_string(),
+        "999",
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert_eq!(none, None);
 }

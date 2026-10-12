@@ -15,12 +15,14 @@ use warden_core::{CancellationToken, PackId};
 use warden_discovery::categories::DiscoverCategory;
 use warden_discovery::home::DiscoverHome;
 use warden_discovery::preview::{
-    DetailSources, GalleryItem, ModrinthDetails, VersionDependencies, VersionNotes,
+    CurseforgeDetails, DetailSources, GalleryItem, ModrinthDetails, VersionDependencies,
+    VersionNotes,
 };
 use warden_project::add::plan::PackState;
-use warden_project::search::{ProjectKind, SourceId};
+use warden_project::search::{ActiveSource, ProjectKind, SourceId};
 
 use crate::commands::add::{add_sources, search_sources};
+use crate::commands::add_curseforge::ready_client;
 use crate::commands::inventory::pack_root;
 use crate::error::AppError;
 use crate::state::AppState;
@@ -29,10 +31,15 @@ fn domain(error: warden_project::Error) -> AppError {
     AppError::from_domain(&error)
 }
 
-/// Fontes de detalhe ligadas no app. Registro acréscimo-apenas: a P1-10 acrescenta a
-/// CurseForge (galeria e notas pelo protocolo `warden-img://`).
+/// Fontes de detalhe ligadas no app: o Modrinth e, com chave válida, a CurseForge (galeria pelo
+/// protocolo `warden-img://`, notas só em memória).
 fn detail_sources(state: &AppState) -> DetailSources {
-    DetailSources::new().with(Arc::new(ModrinthDetails::new(state.modrinth.clone())))
+    let sources =
+        DetailSources::new().with(Arc::new(ModrinthDetails::new(state.modrinth.clone())));
+    match ready_client(state) {
+        Some(client) => sources.with(Arc::new(CurseforgeDetails::new(client))),
+        None => sources,
+    }
 }
 
 /// O início da descoberta: "Populares para <loader> <versão>" e "Atualizados recentemente".
@@ -60,19 +67,17 @@ pub(crate) async fn discover_home(
 }
 
 /// As categorias curadas do tipo de projeto. Sem a CurseForge ligada, só as que o Modrinth tem.
+/// Nunca falha: o mapeamento é embutido no app.
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn discover_categories(
     state: State<'_, AppState>,
     kind: ProjectKind,
-) -> Result<Vec<DiscoverCategory>, AppError> {
-    let curseforge_on = search_sources(&state).iter().any(|source| {
-        matches!(source, warden_project::search::ActiveSource::Ready(ready) if ready.id() == SourceId::Curseforge)
-    });
-    Ok(warden_discovery::categories::categories(
-        kind,
-        curseforge_on,
-    ))
+) -> Vec<DiscoverCategory> {
+    let curseforge_on = search_sources(&state).iter().any(
+        |source| matches!(source, ActiveSource::Ready(ready) if ready.id() == SourceId::Curseforge),
+    );
+    warden_discovery::categories::categories(kind, curseforge_on)
 }
 
 /// A galeria do projeto (miniaturas e imagens inteiras).

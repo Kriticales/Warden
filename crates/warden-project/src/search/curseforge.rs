@@ -14,8 +14,8 @@
 
 use warden_core::CancellationToken;
 use warden_curseforge::{
-    CurseforgeClient, MAX_GAME_VERSIONS, MAX_SEARCH_WINDOW, Mod, ModLoaderType, SearchQuery,
-    SortField, SortOrder,
+    CurseforgeClient, MAX_CATEGORY_IDS, MAX_GAME_VERSIONS, MAX_SEARCH_WINDOW, Mod, ModLoaderType,
+    SearchQuery, SortField, SortOrder,
 };
 
 use super::{
@@ -64,6 +64,12 @@ pub fn curseforge_query(query: &SourceQuery) -> SearchQuery {
         }
         for loader in loader_types(&query.target, query.kind) {
             search = search.loader(loader);
+        }
+    }
+    // Categoria curada (P1-16): as da CurseForge valem como "ou".
+    if let Some(category) = &query.category {
+        for id in category.curseforge.iter().take(MAX_CATEGORY_IDS) {
+            search = search.category(*id);
         }
     }
     let (field, order) = match query.sort {
@@ -244,6 +250,7 @@ mod tests {
             sort: SearchSort::Downloads,
             environment: None,
             include_incompatible,
+            category: None,
             target: target(),
             offset: 40,
             limit: 20,
@@ -275,6 +282,31 @@ mod tests {
         assert_eq!(param(&all, "gameVersion"), None);
         assert_eq!(param(&all, "modLoaderType"), None);
         assert_eq!(param(&all, "classId").as_deref(), Some("6"));
+    }
+
+    #[test]
+    fn categoria_curada_vira_as_categorias_da_curseforge() {
+        let mut one = query(ProjectKind::Mod, false);
+        one.category = Some(crate::search::CategoryFilter {
+            modrinth: vec!["technology".into()],
+            curseforge: vec![412],
+        });
+        assert_eq!(
+            param(&curseforge_query(&one), "categoryId").as_deref(),
+            Some("412")
+        );
+        let mut many = query(ProjectKind::Mod, false);
+        many.category = Some(crate::search::CategoryFilter {
+            modrinth: Vec::new(),
+            curseforge: vec![412, 4558],
+        });
+        let search = curseforge_query(&many);
+        search.validate().unwrap();
+        assert_eq!(param(&search, "categoryIds").as_deref(), Some("[412,4558]"));
+        // Sem categoria escolhida, nenhum filtro de categoria.
+        let none = curseforge_query(&query(ProjectKind::Mod, false));
+        assert_eq!(param(&none, "categoryId"), None);
+        assert_eq!(param(&none, "categoryIds"), None);
     }
 
     #[test]
