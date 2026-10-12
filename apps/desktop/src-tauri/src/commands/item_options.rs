@@ -187,8 +187,10 @@ fn choices_view(items: Vec<OptionalItem>, saved: &OptionalChoices) -> Vec<Option
 }
 
 /// Grava quais opcionais ficam ligados na instância de teste (caminho do `.pw.toml` → ligado).
-/// Só vale para itens opcionais do pack; qualquer outro caminho é recusado. As escolhas
-/// antigas de itens que deixaram de ser opcionais saem. Não toca no pack.
+/// Só vale para itens opcionais do pack; qualquer outro caminho é recusado. Só fica gravado o
+/// que difere do padrão do pack (o resto continua seguindo o "ligado por padrão", mesmo que ele
+/// mude depois); as escolhas antigas de itens que deixaram de ser opcionais saem. Não toca no
+/// pack.
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn instance_set_optional_choices(
@@ -213,10 +215,12 @@ fn merge_choices(
 ) -> Result<OptionalChoices, AppError> {
     let mut merged = OptionalChoices::default();
     for (path, enabled) in choices {
-        if !items.iter().any(|item| &item.path == path) {
+        let Some(item) = items.iter().find(|item| &item.path == path) else {
             return Err(invalid("choices").with_param("path", path));
+        };
+        if *enabled != item.default {
+            merged.set(path, *enabled);
         }
-        merged.set(path, *enabled);
     }
     Ok(merged)
 }
@@ -258,11 +262,14 @@ mod tests {
     }
 
     #[test]
-    fn so_aceita_caminhos_de_itens_opcionais() {
-        let items = vec![item("mods/a.pw.toml", true)];
+    fn grava_so_o_que_difere_do_padrao_e_so_de_itens_opcionais() {
+        let items = vec![item("mods/a.pw.toml", true), item("mods/b.pw.toml", false)];
         let mut choices = BTreeMap::new();
         choices.insert("mods/a.pw.toml".to_owned(), false);
+        choices.insert("mods/b.pw.toml".to_owned(), false);
         let merged = merge_choices(&items, &choices).unwrap();
+        // Só o que difere do padrão fica gravado: "b" segue o padrão do pack se ele mudar.
+        assert_eq!(merged.choices.len(), 1);
         assert!(!merged.choices["mods/a.pw.toml"]);
         choices.insert("mods/outro.pw.toml".to_owned(), true);
         let error = merge_choices(&items, &choices).unwrap_err();
