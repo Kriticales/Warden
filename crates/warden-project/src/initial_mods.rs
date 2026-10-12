@@ -20,7 +20,7 @@ use warden_core::CancellationToken;
 use warden_packwiz::Loader;
 use warden_packwiz_cli::Packwiz;
 
-use crate::add::plan::{AddPlanRequest, NodeRole, add_plan};
+use crate::add::plan::{AddPlanRequest, NodeRole, PlanNode, add_plan};
 use crate::add::{
     AddApplyRequest, AddChoice, AddSources, AddedItem, ApplyItem, ChannelPolicy, SourceProject,
     SourceVersion,
@@ -585,20 +585,11 @@ pub async fn apply(
         cancel,
     )
     .await?;
-    // A versão do Crash Assistant que entrou decide as chaves da config inicial.
-    let crash_assistant_version = choices
-        .iter()
-        .filter(|(_, wanted)| wanted.role.as_deref() == Some(ROLE_CRASH_ASSISTANT))
-        .find_map(|(choice, _)| {
-            let key = choice.source.key(&choice.project_id);
-            plan.nodes.iter().find(|node| node.key == key)
-        })
-        .map(|node| node.version_number.as_str());
     let marked = mark_player_tools(
         root,
         &choices,
         &result.added,
-        crash_assistant_version,
+        role_version(&choices, &plan.nodes, ROLE_CRASH_ASSISTANT),
         packwiz,
         cancel,
     )
@@ -609,6 +600,23 @@ pub async fn apply(
         crash_assistant_config: marked.config,
         player_tools: marked.roles,
     })
+}
+
+/// A versão legível (`version_number`) com que entrou a ferramenta do papel dado; a do Crash
+/// Assistant decide as chaves da config inicial.
+fn role_version<'a>(
+    choices: &[(AddChoice, Wanted)],
+    nodes: &'a [PlanNode],
+    role: &str,
+) -> Option<&'a str> {
+    choices
+        .iter()
+        .filter(|(_, wanted)| wanted.role.as_deref() == Some(role))
+        .find_map(|(choice, _)| {
+            let key = choice.source.key(&choice.project_id);
+            nodes.iter().find(|node| node.key == key)
+        })
+        .map(|node| node.version_number.as_str())
 }
 
 /// Um item a pedir ao plano.
