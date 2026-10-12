@@ -93,13 +93,9 @@ async function seriousViolations(): Promise<string[]> {
       return [failed];
     }
   });
-  return (
-    violations
-      // O contraste dos tokens é medido por design/system/tools/contraste.mjs (QUALITY §4.1).
-      .filter((v) => v.id !== 'color-contrast')
-      .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-      .map((v) => `${v.id}: ${v.help}`)
-  );
+  return violations
+    .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+    .map((v) => `${v.id}: ${v.help}`);
 }
 
 /** Todos os arquivos da pasta do pack, para conferir que nada sobrou. */
