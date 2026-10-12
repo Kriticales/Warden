@@ -43,7 +43,7 @@ export interface DiscoverHomeProps {
   /** "Ver mais": abre a busca completa já ordenada. */
   onSeeMore: (sort: SearchSort) => void;
   /** Depois de gravar um kit pelo diálogo de dependências. */
-  onAdded?: (result: AddResult) => void;
+  onAdded: (result: AddResult) => void;
 }
 
 export function DiscoverHome({
