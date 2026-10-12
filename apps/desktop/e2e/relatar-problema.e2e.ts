@@ -1,11 +1,15 @@
 /**
- * "Relatar problema" no app real (UI-02):
+ * "Relatar problema" no app real (UI-02, redesenhado na UI-03):
  *
- * - CA-UI02-01: o botão (no Linux, no rodapé) abre o diálogo; sem título, "Abrir no GitHub"
- *   fica desabilitado; o diálogo passa no axe sem violação séria;
- * - CA-UI02-02: a pré-visualização mostra o que foi escrito e o que o Warden coletou, e o
- *   navegador recebe a página de issue nova do Warden com o título, o corpo exato da
- *   pré-visualização e o rótulo `relato-do-dono`;
+ * - CA-UI02-01 e CA-UI03-08: o botão (no Linux, no rodapé) abre o diálogo; sem título, "Abrir
+ *   no GitHub" fica desabilitado; o diálogo passa no axe sem violação séria, fechado e com os
+ *   recolhidos abertos;
+ * - CA-UI02-02, CA-UI03-01, CA-UI03-06 e CA-UI03-07: categoria, título e descrição; os passos
+ *   do envio à vista; a pré-visualização (recolhida) mostra o que foi escrito e o que o Warden
+ *   coletou, e o navegador recebe a página de issue nova do Warden com o título, o corpo exato
+ *   da pré-visualização e os rótulos `relato-do-dono` e `categoria: <nome>`;
+ * - CA-UI03-04: com "Copiar um print desta tela", o app copia o print da janela (no build de
+ *   debug, gravado também em `WARDEN_E2E_CAPTURE_FILE`) antes de abrir o navegador;
  * - CA-UI02-04: um registro com a pasta do usuário, chaves nos formatos da CurseForge, do
  *   Gemini e do GitHub e o nome do computador não deixa nada disso no corpo nem no endereço;
  * - CA-UI02-05: o atalho Ctrl+Shift+E abre o diálogo de outra tela, e Esc fecha;
@@ -34,6 +38,7 @@ function env(name: string): string {
 
 const DATA_ROOT = env('WARDEN_E2E_DATA_ROOT');
 const OPENED_FILE = env('WARDEN_E2E_OPEN_URL');
+const CAPTURE_FILE = env('WARDEN_E2E_CAPTURE_FILE');
 const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const LOGS_DIR = join(DATA_ROOT, 'data', 'logs');
 /** Um registro "do futuro": é o arquivo mais novo da pasta, lido primeiro pelo relato. */
@@ -96,7 +101,67 @@ async function seriousViolations(): Promise<string[]> {
 
 const dialog = () => $('[role="dialog"]');
 const openButton = () => $('[data-testid="report-open"]');
-const previewBody = () => $('[data-testid="report-preview-body"]');
+
+/** Espera a pré-visualização (recolhida) ficar pronta. */
+async function waitForPreview(): Promise<void> {
+  await browser.waitUntil(async () => (await previewText()) !== '', {
+    timeoutMsg: 'a pré-visualização não foi montada',
+  });
+}
+
+/** Abre um dos recolhidos pelo texto do `<summary>`. */
+async function expand(summary: string): Promise<void> {
+  const details = $(`summary=${summary}`);
+  await details.waitForClickable();
+  await details.click();
+}
+
+/** Lê o cabeçalho de um PAM (`P7`): largura, altura e quantas cores diferentes há na imagem. */
+function readPam(path: string): { width: number; height: number; colors: number } {
+  const bytes = readFileSync(path);
+  const end = bytes.indexOf('ENDHDR\n');
+  const header = bytes.subarray(0, end).toString('latin1');
+  const number = (name: string) => Number(new RegExp(`${name} (\\d+)`).exec(header)?.[1] ?? 0);
+  const width = number('WIDTH');
+  const height = number('HEIGHT');
+  const pixels = bytes.subarray(end + 'ENDHDR\n'.length);
+  if (pixels.length !== width * height * 4) {
+    throw new Error(
+      `PAM com ${String(pixels.length)} bytes para ${String(width)}×${String(height)}`,
+    );
+  }
+  const colors = new Set<number>();
+  for (let offset = 0; offset < pixels.length && colors.size < 50; offset += 4 * 97) {
+    colors.add(pixels.readUInt32BE(offset));
+  }
+  return { width, height, colors: colors.size };
+}
+
+/** Clica em "Abrir no GitHub" e devolve o endereço que o app mandou abrir. */
+async function openAndReadUrl(): Promise<string> {
+  rmSync(OPENED_FILE, { force: true });
+  await openButton().waitForEnabled();
+  await openButton().click();
+  await browser.waitUntil(() => existsSync(OPENED_FILE), {
+    timeoutMsg: 'o app não pediu para abrir o navegador',
+  });
+  return readFileSync(OPENED_FILE, 'utf8');
+}
+
+/** Espera o aviso com este texto. */
+async function waitForToast(text: string): Promise<void> {
+  await browser.waitUntil(
+    async () =>
+      browser.execute(
+        (wanted) =>
+          Array.from(document.querySelectorAll('.toast')).some((toast) =>
+            toast.textContent.includes(wanted),
+          ),
+        text,
+      ),
+    { timeoutMsg: `o aviso "${text}" não apareceu` },
+  );
+}
 
 /**
  * Marca o elemento focado agora (`data-e2e-focado`); devolve `false` se nada está focado.
@@ -152,6 +217,7 @@ describe('Relatar problema', () => {
       ].join('\n'),
     );
     rmSync(OPENED_FILE, { force: true });
+    rmSync(CAPTURE_FILE, { force: true });
     await browser.reloadSession();
     await browser.setWindowSize(1366, 860);
     await $('h1=Meus packs').waitForDisplayed();
@@ -163,9 +229,10 @@ describe('Relatar problema', () => {
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(FAKE_LOG, { force: true });
     rmSync(OPENED_FILE, { force: true });
+    rmSync(CAPTURE_FILE, { force: true });
   });
 
-  it('CA-UI02-01: o botão abre o diálogo; sem título não abre o GitHub; sem violação séria', async () => {
+  it('CA-UI02-01, CA-UI03-06 e CA-UI03-08: o botão abre o diálogo; sem título não abre o GitHub; sem violação séria', async () => {
     const button = $('[data-testid="report-button"]');
     await button.waitForClickable();
     await expect(button).toHaveText('Relatar problema');
@@ -173,11 +240,22 @@ describe('Relatar problema', () => {
     await dialog().waitForDisplayed();
     await expect($('h2=Relatar problema')).toBeDisplayed();
     await expect(
-      $('div*=Este repositório é público: o relato fica visível para qualquer pessoa.'),
+      $('span=O repositório é público: o relato fica visível para qualquer pessoa.'),
     ).toBeDisplayed();
-    await previewBody().waitForDisplayed();
+    await expect($('legend=Categoria')).toBeDisplayed();
+    expect(
+      await browser.execute(
+        () => document.querySelector<HTMLInputElement>('input[type="radio"]:checked')?.value,
+      ),
+    ).toBe('error');
+    const steps = await $('[data-testid="report-steps"]').getText();
+    expect(steps).toContain('Abrir no GitHub');
+    expect(steps).toContain('Colar os prints');
+    expect(steps).toContain('Submit new issue');
+    await waitForPreview();
     await expect(openButton()).toBeDisabled();
     expect(await seriousViolations()).toEqual([]);
+    await screenshot('00-aberto');
   });
 
   it('fechado com Esc ou Cancelar, o foco volta ao botão "Relatar problema"', async () => {
@@ -198,53 +276,86 @@ describe('Relatar problema', () => {
     // O próximo teste continua com o diálogo aberto.
     await button.click();
     await dialog().waitForDisplayed();
-    await previewBody().waitForDisplayed();
+    await waitForPreview();
   });
 
-  it('CA-UI02-02 e CA-UI02-04: a pré-visualização é o que o navegador recebe, sem dados pessoais', async () => {
-    await $('[data-testid="report-title"]').setValue('E2E: o Testar fechou sozinho');
-    await $('[data-testid="report-happened"]').setValue('A janela do jogo fechou na hora.');
-    await browser.waitUntil(async () => (await previewText()).includes('fechou na hora'), {
+  it('CA-UI02-02, CA-UI02-04, CA-UI03-01 e CA-UI03-07: categoria e rótulos; a pré-visualização é o que o navegador recebe, sem dados pessoais', async () => {
+    await $('span=Visual ou texto').click();
+    await $('[data-testid="report-title"]').setValue('E2E: botão cortado na tela de Exportar');
+    await $('[data-testid="report-description"]').setValue('O botão aparece cortado pela metade.');
+    await browser.waitUntil(async () => (await previewText()).includes('cortado pela metade'), {
       timeoutMsg: 'a pré-visualização não acompanhou o texto',
     });
+    await expect($('[data-testid="report-count"]')).toHaveText(
+      expect.stringContaining('36 / 4000'),
+    );
+    await expand('O que o Warden coleta sozinho');
+    await expand('Ver como a issue vai ficar');
     const collected = await $('[data-testid="report-collected"]').getText();
     expect(collected).toContain('Meus packs');
     expect(collected).toContain('Warden');
     const body = await previewText();
+    expect(body.startsWith('## Visual ou texto\n\nO botão aparece cortado pela metade.')).toBe(
+      true,
+    );
     expect(body).toContain('última linha do registro de teste');
     expect(body).toContain('<segredo>');
     expect(body).toContain('<usuário>');
     expect(leaks(body)).toEqual([]);
     await expect($('[data-testid="report-preview-title"]')).toHaveText(
-      'E2E: o Testar fechou sozinho',
+      'E2E: botão cortado na tela de Exportar',
     );
+    await expect($('[data-testid="report-preview-labels"]')).toHaveText(
+      expect.stringContaining('categoria: visual ou texto'),
+    );
+    expect(await seriousViolations()).toEqual([]);
     await screenshot('01-preenchido');
 
-    await openButton().waitForEnabled();
-    await openButton().click();
-    await browser.waitUntil(() => existsSync(OPENED_FILE), {
-      timeoutMsg: 'o app não pediu para abrir o navegador',
-    });
-    const url = readFileSync(OPENED_FILE, 'utf8');
+    const url = await openAndReadUrl();
     expect(url.startsWith(ISSUE_PREFIX)).toBe(true);
     expect(url.length).toBeLessThanOrEqual(7500);
+    expect(url).toContain('&labels=relato-do-dono%2Ccategoria%3A%20visual%20ou%20texto&');
     const params = new URL(url).searchParams;
-    expect(params.get('title')).toBe('E2E: o Testar fechou sozinho');
-    expect(params.get('labels')).toBe('relato-do-dono');
+    expect(params.get('title')).toBe('E2E: botão cortado na tela de Exportar');
+    expect(params.get('labels')).toBe('relato-do-dono,categoria: visual ou texto');
     expect(params.get('body')).toBe(body);
     expect(leaks(url)).toEqual([]);
     expect(leaks(decodeURIComponent(url))).toEqual([]);
+    // Sem o print marcado, nada de captura.
+    expect(existsSync(CAPTURE_FILE)).toBe(false);
 
-    await browser.waitUntil(
-      async () =>
-        browser.execute(() =>
-          Array.from(document.querySelectorAll('.toast')).some((toast) =>
-            toast.textContent.includes('Relato aberto no navegador'),
-          ),
-        ),
-      { timeoutMsg: 'o aviso "Relato aberto no navegador" não apareceu' },
-    );
+    await waitForToast('Relato aberto no navegador');
     await dialog().waitForDisplayed({ reverse: true });
+  });
+
+  it('CA-UI03-04: com "Copiar um print desta tela", o print da janela sai antes de abrir o navegador', async () => {
+    const size = await browser.execute(() => ({
+      width: Math.round(window.innerWidth * window.devicePixelRatio),
+      height: Math.round(window.innerHeight * window.devicePixelRatio),
+    }));
+    await $('[data-testid="report-button"]').click();
+    await dialog().waitForDisplayed();
+    await waitForPreview();
+    await $('span=Lentidão').click();
+    await $('[data-testid="report-screenshot"] input[type="checkbox"]').click();
+    await $('[data-testid="report-title"]').setValue('E2E: abrir o pack demora');
+    await browser.waitUntil(async () => (await previewText()).startsWith('## Lentidão'), {
+      timeoutMsg: 'a pré-visualização não mudou de categoria',
+    });
+    const url = await openAndReadUrl();
+    expect(new URL(url).searchParams.get('labels')).toBe('relato-do-dono,categoria: lentidão');
+    // O print saiu antes do endereço: o arquivo já existe quando o navegador "abre".
+    expect(existsSync(CAPTURE_FILE)).toBe(true);
+    const shot = readPam(CAPTURE_FILE);
+    // Só a janela do Warden: o tamanho é o da janela (com folga para bordas), não o da tela.
+    expect(shot.width).toBeGreaterThanOrEqual(size.width);
+    expect(shot.height).toBeGreaterThanOrEqual(size.height);
+    expect(shot.width).toBeLessThanOrEqual(size.width + 64);
+    expect(shot.height).toBeLessThanOrEqual(size.height + 64);
+    expect(shot.colors).toBeGreaterThan(1);
+    await waitForToast('Cole o print (Ctrl+V) na issue e clique em "Submit new issue".');
+    await dialog().waitForDisplayed({ reverse: true });
+    rmSync(CAPTURE_FILE, { force: true });
   });
 
   it('CA-UI02-05: o atalho Ctrl+Shift+E abre o diálogo em outra tela, e Esc fecha', async () => {
