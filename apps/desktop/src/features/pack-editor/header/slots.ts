@@ -4,7 +4,7 @@
  *
  * Lugares (`placement`):
  * - `actions`: à direita do nome, em ordem crescente de `order`. A P1-08 registra o
- *   "Salvar versão · N alterações" (`save`, que a V-02 troca pelo botão que abre o diálogo
+ *   "Salvar versão · N alterações" (`save`, que a V-02 trocou pelo botão que abre o diálogo
  *   Salvar versão) e o "▶ Testar ▾" provisório (`test`, que a L-04 troca pelo botão real com
  *   os estados "Testando… ver progresso" e "● Jogo aberto: ver teste").
  * - `alerts`: avisos passageiros abaixo do nome ("Mudanças do teste para revisar", da C-03;
@@ -17,8 +17,8 @@
 import type { ComponentType } from 'react';
 
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
+import { SaveVersionButton } from '../../versioning/components/SaveVersionButton';
 import { HygieneAlert } from '../hygiene/HygieneAlert';
-import { SaveVersionButton } from './SaveVersionButton';
 import { TestButton } from './TestButton';
 
 /** O que todo componente do cabeçalho recebe. */

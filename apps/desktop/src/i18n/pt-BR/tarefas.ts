@@ -65,6 +65,11 @@ export const tarefas = {
     add: {
       apply: 'Adicionar ao pack',
     },
+    versioning: {
+      save: 'Salvar versão',
+      restore: 'Voltar para uma versão',
+      discard: 'Descartar alteração',
+    },
   },
 } as const;
 
