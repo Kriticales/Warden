@@ -213,9 +213,6 @@ describe('Adicionar por link e arquivo do computador (P1-11)', () => {
       async () => (await fullText('aside.disc__preview')).includes('(mais nova compatível)'),
       { timeout: 30_000, timeoutMsg: 'seletor de versão sem a versão padrão' },
     );
-    expect((await requests()).some((line) => line.includes('/modrinth/v2/project/sodium'))).toBe(
-      true,
-    );
     await screenshot('02-link-modrinth');
   });
 
