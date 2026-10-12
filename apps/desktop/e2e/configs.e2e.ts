@@ -3,13 +3,14 @@
  * real gerou para o Fabric 1.21.1 (`crates/warden-packwiz/tests/fixtures/packwiz-output/
  * fabric-1.21.1`): tem `config/exemplo.properties` e um `options.txt` no índice.
  *
- * - A árvore mostra os arquivos do pack; abrir um arquivo põe o caminho na URL e o texto no editor.
+ * - A árvore mostra os arquivos do pack (sem o `pack.toml` e o `index.toml`); abrir um arquivo põe o caminho na URL e o texto no editor.
  * - CA-T12-01: abrir e salvar sem mudanças não toca no disco (Salvar fica desabilitado).
  * - Salvar mostra as diferenças, grava só o que mudou (o resto, byte a byte) e o `index.toml`
  *   passa a ter o hash novo (a gravação passa pelo `packwiz refresh`).
  * - CA-T12-05: depois de salvar não sobra `.bak` nem `.warden-tmp` na pasta do pack.
  * - CA-T12-03: arquivo alterado por fora → o aviso aparece e nada é gravado sem escolha.
  * - Alterações não salvas: trocar de arquivo pede confirmação.
+ * - Ctrl+S com o foco no editor salva uma vez (o atalho sobe do CodeMirror até a janela).
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -176,6 +177,10 @@ describe('Configs (C-02; T12)', () => {
       'textContent',
       expect.stringContaining('Opções do jogo (options.txt)'),
     );
+    // O que o packwiz gerencia não aparece.
+    const names = await tree.getProperty('textContent');
+    expect(String(names)).not.toContain('pack.toml');
+    expect(String(names)).not.toContain('index.toml');
 
     await tree.$('[role="treeitem"]*=exemplo.properties').click();
     await $('.cm-content').waitForDisplayed({ timeout: 30_000 });
@@ -245,5 +250,19 @@ describe('Configs (C-02; T12)', () => {
     await $('[role="alertdialog"]*=Sair sem salvar?').$('button=Descartar alterações').click();
     await expect($('.editor__file')).toHaveText('options.txt');
     expect(readFileSync(CONFIG, 'utf8')).toBe('chave=de-fora\n');
+  });
+
+  it('Ctrl+S com o foco no editor salva uma vez, sem conflito', async () => {
+    await $('[role="treeitem"]*=exemplo.properties').click();
+    await expect($('.editor__file')).toHaveText('config/exemplo.properties');
+    await typeAtEnd('atalho=1');
+    await browser.keys(['Control', 's']);
+    const dialog = $('[role="dialog"]*=Salvar exemplo.properties?');
+    await dialog.waitForDisplayed();
+    await dialog.$('button=Salvar').click();
+    // O aviso de "salvo" do teste anterior pode ainda estar na tela: espera o rodapé.
+    await expect($('.editor__foot')).toHaveText(expect.stringContaining('Sem alterações'));
+    expect(readFileSync(CONFIG, 'utf8')).toBe('chave=de-fora\natalho=1');
+    expect(await $('.cfg-editor .alert--danger').isExisting()).toBe(false);
   });
 });
