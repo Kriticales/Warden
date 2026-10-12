@@ -62,5 +62,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0056](0056-raio-x-de-mixins-implementacao-propria.md) | Raio-x de mixins com implementação própria (`cafebabe`) (complementa a 0034) | técnica |
 | [0057](0057-motor-do-launcher-portablemc.md) | Motor do launcher: `portablemc` 5.0.5, com processo e linha de comando do Warden (complementa a 0010) | técnica |
 | [0058](0058-patch-do-endereco-da-curseforge-no-packwiz.md) | Patch 0002 do packwiz: endereço da API da CurseForge trocável, só para testes (exceção à 0049) | técnica |
+| [0059](0059-relato-direto-com-login-do-github.md) | Relato enviado direto ao GitHub: login por device flow de um GitHub App (complementa a 0025) | dono |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.
