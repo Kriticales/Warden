@@ -328,7 +328,10 @@ mod tests {
             "https://127.0.0.1:4000/a.png",
             "http://localhost:4000/a.png",
         ] {
-            assert!(!same_origin(&Url::parse(other).unwrap(), &origin), "{other}");
+            assert!(
+                !same_origin(&Url::parse(other).unwrap(), &origin),
+                "{other}"
+            );
         }
     }
 
