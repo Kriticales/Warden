@@ -6465,6 +6465,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "warden-github"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "secrecy",
+ "serde",
+ "serde_json",
+ "specta",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "warden-core",
+ "warden-http",
+ "wiremock",
+]
+
+[[package]]
 name = "warden-http"
 version = "0.1.0"
 dependencies = [

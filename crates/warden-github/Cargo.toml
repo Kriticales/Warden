@@ -1,0 +1,28 @@
+[package]
+name = "warden-github"
+description = "Cliente da API do GitHub: login por device flow de um GitHub App e envio do relato ao repositório do Warden."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+warden-core.workspace = true
+warden-http.workspace = true
+base64.workspace = true
+secrecy.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "time"] }
+tracing.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tracing-subscriber.workspace = true
+wiremock.workspace = true
+
+[lints]
+workspace = true

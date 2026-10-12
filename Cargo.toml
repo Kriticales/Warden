@@ -41,6 +41,7 @@ warden-scripts = { path = "crates/warden-scripts" }
 warden-versioning = { path = "crates/warden-versioning" }
 warden-export = { path = "crates/warden-export" }
 warden-secrets = { path = "crates/warden-secrets" }
+warden-github = { path = "crates/warden-github" }
 
 # Externas, em ordem alfabética. Versões exatas ficam no Cargo.lock; aqui, o mínimo compatível.
 # `specta`, `specta-typescript` e `tauri-specta` são RC e ficam fixados com `=` (ADR-0018).
