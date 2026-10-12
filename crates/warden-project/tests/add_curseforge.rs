@@ -1542,7 +1542,7 @@ mod link {
             .and(path("/v1/mods/search"))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "data": [
-                    cf_project(1, "sodium-extra", "Sodium Extra", "x", false),
+                    cf_project(1, "sodium-extra", "Sodium Extra", "x", true),
                     cf_project(CF_SODIUM, "sodium", "Sodium", "jellysquid3", false)
                 ],
                 "pagination": {"index": 0, "pageSize": 5, "resultCount": 2, "totalCount": 2}
@@ -1559,6 +1559,7 @@ mod link {
         assert_eq!(target.title, "Sodium");
         assert_eq!(target.file_id, None);
         assert_eq!(target.choice().version_id, None);
+        assert!(!target.manual_download);
         let query: Vec<_> = curseforge
             .received_requests()
             .await
@@ -1570,6 +1571,13 @@ mod link {
             query[0].contains("slug=sodium") && query[0].contains("classId=6"),
             "{query:?}"
         );
+
+        // O autor bloqueou downloads por outros apps: a pré-visualização do link avisa.
+        let blocked = parse_link("https://www.curseforge.com/minecraft/mc-mods/sodium-extra");
+        let target = resolve_project(&client, &blocked.unwrap(), &CancellationToken::new())
+            .await
+            .unwrap();
+        assert!(target.manual_download);
 
         // Um modpack não entra pela página Adicionar.
         let modpack = parse_link("https://www.curseforge.com/minecraft/modpacks/algum").unwrap();

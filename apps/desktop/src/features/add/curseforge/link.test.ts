@@ -51,8 +51,10 @@ describe('links da CurseForge', () => {
       title: 'Just Enough Items (JEI)',
       kind: 'mod',
       fileId: null,
+      manualDownload: true,
     });
     expect(result.key).toBe('curseforge:238222');
+    expect(result.manualDownload).toBe(true);
     expect(result.sources).toEqual([
       { source: 'curseforge', projectId: '238222', slug: '', downloads: 0 },
     ]);

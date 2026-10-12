@@ -128,6 +128,9 @@ pub struct LinkTarget {
     pub kind: ProjectKind,
     /// ID do arquivo, quando o link era de arquivo.
     pub file_id: Option<String>,
+    /// O autor bloqueou downloads por outros apps ("Download manual necessário"). Só o link de
+    /// projeto informa (a pré-visualização mostra o aviso); no de arquivo é sempre `false`.
+    pub manual_download: bool,
 }
 
 impl LinkTarget {
@@ -187,6 +190,7 @@ pub async fn resolve_project(
     };
     Ok(LinkTarget {
         project_id: project.id.to_string(),
+        manual_download: project.is_distribution_blocked(),
         title: project.name,
         kind,
         file_id,
@@ -215,6 +219,7 @@ impl ImportedLink {
             title: self.metafile.name.clone(),
             kind: self.kind,
             file_id: Some(self.file_id.clone()),
+            manual_download: false,
         }
     }
 

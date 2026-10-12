@@ -1646,6 +1646,11 @@ export type LinkTarget = {
 	kind: ProjectKind,
 	/**  ID do arquivo, quando o link era de arquivo. */
 	fileId: string | null,
+	/**
+	 *  O autor bloqueou downloads por outros apps ("Download manual necessário"). Só o link de
+	 *  projeto informa (a pré-visualização mostra o aviso); no de arquivo é sempre `false`.
+	 */
+	manualDownload: boolean,
 };
 
 /**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
