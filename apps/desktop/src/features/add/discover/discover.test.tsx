@@ -190,6 +190,18 @@ describe('início da descoberta', () => {
     expect(radio.closest('label')?.textContent).toContain('Só no Modrinth');
   });
 
+  it('sem a CurseForge ligada, nenhuma categoria leva a nota "Só no Modrinth"', async () => {
+    const { url } = setup({
+      discover_categories: () =>
+        CATEGORIES.map((category) => ({ ...category, sources: ['modrinth' as const] })),
+    });
+    await openAdd(url);
+    const filters = await screen.findByRole('complementary', { name: 'Filtros' });
+    const tech = await within(filters).findByRole('radio', { name: 'Tecnologia' });
+    expect(tech.closest('label')?.textContent).toBe('Tecnologia');
+    expect(within(filters).queryByText(/Só no Modrinth/)).toBeNull();
+  });
+
   it('trocar o tipo volta os filtros (as categorias são de cada tipo)', async () => {
     const { url } = setup({
       discover_categories: (args) =>

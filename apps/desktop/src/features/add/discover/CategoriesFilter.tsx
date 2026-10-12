@@ -23,6 +23,9 @@ export function CategoriesFilter({ kind, value, onChange }: CategoriesFilterProp
   if (categories.isError) return <p className="t-xs t-3">{t('categorias.erro')}</p>;
   if (categories.isPending) return <p className="t-xs t-3">{t('categorias.carregando')}</p>;
   if (categories.data.length === 0) return null;
+  // "Só no X" só faz sentido com as duas fontes ligadas: sem a CurseForge, toda categoria é
+  // só do Modrinth e a nota seria ruído.
+  const activeSources = new Set(categories.data.flatMap((category) => category.sources)).size;
   return (
     <fieldset className="disc__fgroup">
       <legend className="field__label">{t('categorias.titulo')}</legend>
@@ -50,7 +53,7 @@ export function CategoriesFilter({ kind, value, onChange }: CategoriesFilterProp
             />
             <span>
               {category.name}
-              {category.sources.length === 1 ? (
+              {category.sources.length < activeSources ? (
                 <span className="t-3">
                   {' · '}
                   {t('categorias.soUmaFonte', {
