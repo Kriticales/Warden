@@ -282,5 +282,11 @@ describe('pré-visualização', () => {
     expect(imageSrc(null)).toBeNull();
     // Fora do app não há conversor do Tauri: o endereço original volta, sem quebrar.
     expect(imageSrc('warden-img://localhost/abc')).toContain('abc');
+    // Ícone da CurseForge (busca, início, pré-visualização) nunca vai direto ao WebView.
+    const icon = 'https://media.forgecdn.net/avatars/1/2/logo.png';
+    const proxied = imageSrc(icon);
+    expect(proxied).toMatch(/^warden-img:\/\/localhost\//);
+    expect(proxied).not.toContain('forgecdn');
+    expect(imageSrc('http://media.forgecdn.net/a.png')).toBe('http://media.forgecdn.net/a.png');
   });
 });
