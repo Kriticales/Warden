@@ -19,6 +19,8 @@ pub mod inventory;
 pub mod kits;
 pub mod meta;
 pub mod open;
+pub mod optional;
+pub mod pin;
 pub mod player_tools;
 pub mod registry;
 pub mod remove;

@@ -77,7 +77,7 @@ describe('cabeçalho do pack (header/slots.ts)', () => {
 });
 
 describe('detalhes do item (details/blocks.ts)', () => {
-  it('blocos na ordem: a D-07 ocupa o 500, com espaço para o raio-x (600)', () => {
+  it('blocos na ordem: a D-07 ocupa o 500 e a P1-14 o 900, com espaço para o raio-x (600)', () => {
     expect(orderedBlocks().map((block) => block.id)).toEqual([
       'cabecalho',
       'origem',
@@ -87,6 +87,7 @@ describe('detalhes do item (details/blocks.ts)', () => {
       'lado',
       'dependencias',
       'novidades',
+      'mais-opcoes',
     ]);
     const orders = detailBlocks.map((block) => block.order);
     expect(orders.includes(500)).toBe(true);
@@ -107,6 +108,7 @@ describe('detalhes do item (details/blocks.ts)', () => {
       'dependencias',
       'raio-x',
       'novidades',
+      'mais-opcoes',
     ]);
   });
 });
