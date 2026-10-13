@@ -112,7 +112,7 @@ pub(crate) struct CaptureIdentified {
 fn read_new_items(
     view: &CaptureView,
     game_dir: &Path,
-) -> Result<Vec<(String, FileFacts)>, AppError> {
+) -> Vec<(String, FileFacts)> {
     let mut read = Vec::new();
     for item in &view.files {
         let file = &item.file;
@@ -130,7 +130,7 @@ fn read_new_items(
         let name = file.path.rsplit('/').next().unwrap_or(&file.path);
         read.push((file.path.clone(), FileFacts::of(name, &bytes)));
     }
-    Ok(read)
+    read
 }
 
 /// Procura pelo hash os mods, resource packs e shaders colocados à mão na instância.
@@ -152,7 +152,7 @@ pub(crate) async fn capture_identify(
                 else {
                     return Ok(Vec::new());
                 };
-                read_new_items(&view, &dirs.game_dir)
+                Ok(read_new_items(&view, &dirs.game_dir))
             })
             .await?;
             (target, read)
@@ -377,6 +377,7 @@ mod tests {
     /// instância, CA-T12-04) mudando arquivos, a captura, o Testar recusado enquanto há
     /// mudanças para revisar, e "Trazer" gravando no pack pela `PackTransaction`.
     #[tokio::test]
+    #[allow(clippy::too_many_lines)] // um roteiro só, do teste ao pack
     async fn ca_t12_04_e_trazer_para_o_pack() {
         let Some(binary) = packwiz_binary() else {
             return;

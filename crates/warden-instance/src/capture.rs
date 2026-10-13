@@ -302,6 +302,214 @@ struct Now {
     stored: bool,
 }
 
+/// O que mudou: caminho → estado no início (`None`: novo) e agora (`None`: sumiu).
+type Changed<'a> = BTreeMap<String, (Option<&'a FileState>, Option<Now>)>;
+
+/// Os arquivos que mudaram desde a linha de base: tamanho e data diferentes, confirmados pelo
+/// SHA-256; mais os que sumiram.
+fn changed_files<'a>(
+    dirs: &InstanceDirs,
+    baseline: &'a Baseline,
+    blobs: &BlobStore,
+) -> Result<Changed<'a>, Error> {
+    let seen = scan(&dirs.game_dir, CaptureIgnore::builtin())?;
+    let mut changed = Changed::new();
+    for (path, now) in &seen {
+        let before = baseline.files.get(path);
+        if let Some(before) = before
+            && before.size == now.size
+            && before.modified_ns == now.modified_ns
+        {
+            continue;
+        }
+        let Some(current) = read_now(dirs, blobs, path, now.size)? else {
+            continue;
+        };
+        if before.is_some_and(|before| before.sha256 == current.sha256) {
+            continue;
+        }
+        changed.insert(path.clone(), (before, Some(current)));
+    }
+    for (path, before) in &baseline.files {
+        if !seen.contains_key(path) {
+            changed.insert(path.clone(), (Some(before), None));
+        }
+    }
+    Ok(changed)
+}
+
+/// Monta a lista da captura, arquivo por arquivo.
+struct Collector<'a> {
+    baseline: &'a Baseline,
+    manifest: Manifest,
+    layout: PackLayout,
+    blobs: BlobStore,
+    files: Vec<CapturedFile>,
+    restored: Vec<String>,
+    reformatted: u32,
+    aggregated: BTreeSet<String>,
+}
+
+impl Collector<'_> {
+    /// Classifica um arquivo que mudou (SPEC T15, "Grupos").
+    fn add(
+        &mut self,
+        path: &str,
+        before: Option<&FileState>,
+        now: Option<&Now>,
+    ) -> Result<(), Error> {
+        let managed = self.manifest.files.get(path);
+        let from_pack = managed.is_some_and(|entry| entry.origin == EntryOrigin::Pack);
+        let change = match (before, now) {
+            (None, _) => CaptureChange::Added,
+            (Some(_), Some(_)) => CaptureChange::Modified,
+            (Some(_), None) => CaptureChange::Removed,
+        };
+        let mut file = CapturedFile {
+            path: path.to_owned(),
+            group: CaptureGroup::Generated,
+            change,
+            selected: false,
+            pack_path: Some(path.to_owned()),
+            values: Vec::new(),
+            options: Vec::new(),
+            hidden_volatile: 0,
+            text: false,
+            before_sha256: before.map(|state| state.sha256.clone()),
+            after_sha256: now.map(|now| now.sha256.clone()),
+            size: now.map_or(0, |now| now.size),
+            managed: managed.is_some(),
+        };
+
+        if let Some(item) = folder_item(path) {
+            // Datapacks e resource packs em pasta: um item por pasta, só se ela é nova.
+            let prefix = format!("{}/", item.path);
+            let existed = self
+                .baseline
+                .files
+                .keys()
+                .any(|known| known.starts_with(&prefix));
+            if change == CaptureChange::Added
+                && !existed
+                && self.aggregated.insert(item.path.clone())
+            {
+                file.path = item.path;
+                file.group = item.group;
+                file.pack_path = None;
+                file.size = 0;
+                file.after_sha256 = None;
+                self.files.push(file);
+            }
+            return Ok(());
+        }
+        if let Some(group) = item_group(path) {
+            // Mod, resource pack ou datapack (arquivo único): nunca copiado.
+            let interesting = match group {
+                CaptureGroup::Mod => change != CaptureChange::Modified || managed.is_none(),
+                _ => change == CaptureChange::Added,
+            };
+            if interesting {
+                file.group = group;
+                file.pack_path = None;
+                self.files.push(file);
+            }
+            return Ok(());
+        }
+        if let Some(rest) = world_config_rest(path) {
+            if change == CaptureChange::Removed {
+                return Ok(());
+            }
+            file.group = CaptureGroup::WorldConfig;
+            file.pack_path = Some(format!("defaultconfigs/{rest}"));
+        } else if path == OPTIONS_FILE && change == CaptureChange::Modified {
+            file.group = CaptureGroup::Options;
+        } else if from_pack && change != CaptureChange::Added {
+            file.group = CaptureGroup::PackConfig;
+            file.selected = change == CaptureChange::Modified;
+            if let Some(start) = self.baseline.pack.get(path) {
+                file.pack_path = Some(start.pack_path.clone());
+            }
+        } else if change == CaptureChange::Removed {
+            // Arquivo que não veio do pack e sumiu: nada a trazer.
+            return Ok(());
+        }
+        self.add_contents(file, before, now, from_pack)
+    }
+
+    /// Compara o conteúdo (por valor, ou por chave no `options.txt`) e guarda o arquivo, a não
+    /// ser que só a formatação ou chaves voláteis tenham mudado.
+    fn add_contents(
+        &mut self,
+        mut file: CapturedFile,
+        before: Option<&FileState>,
+        now: Option<&Now>,
+        from_pack: bool,
+    ) -> Result<(), Error> {
+        let before_bytes = match before {
+            Some(state) if state.stored => self.blobs.get(&state.sha256)?,
+            _ => None,
+        };
+        let after_bytes = match now {
+            Some(now) if now.stored => self.blobs.get(&now.sha256)?,
+            _ => None,
+        };
+        file.text =
+            text_of(before_bytes.as_deref()).is_some() || text_of(after_bytes.as_deref()).is_some();
+        let both = before_bytes.as_deref().zip(after_bytes.as_deref());
+
+        if file.group == CaptureGroup::Options {
+            let Some((old, new)) = both else {
+                // Sem o texto dos dois lados, o arquivo inteiro aparece como alterado.
+                file.group = if from_pack {
+                    CaptureGroup::PackConfig
+                } else {
+                    CaptureGroup::Generated
+                };
+                file.selected = false;
+                self.files.push(file);
+                return Ok(());
+            };
+            let (options, hidden) = options_diff(old, new);
+            if options.is_empty() {
+                // Só chaves voláteis: não aparece.
+                self.skip_reformatted(&file.path, from_pack);
+                return Ok(());
+            }
+            file.selected = options.iter().any(|option| option.selected);
+            file.options = options;
+            file.hidden_volatile = hidden;
+            file.pack_path = Some(match self.baseline.pack.get(&file.path) {
+                Some(start) if from_pack => start.pack_path.clone(),
+                _ => format!("{}{OPTIONS_FILE}", self.layout.index_dir),
+            });
+            self.files.push(file);
+            return Ok(());
+        }
+
+        if file.change == CaptureChange::Modified
+            && let Some((old, new)) = both
+            && let Some(format) = ConfigFormat::detect(Path::new(&file.path), new)
+            && let Ok(diff) = compare(format, old, new)
+        {
+            if diff.is_same_values() {
+                self.skip_reformatted(&file.path, from_pack);
+                return Ok(());
+            }
+            file.values = diff.changes.iter().map(value_change).collect();
+        }
+        self.files.push(file);
+        Ok(())
+    }
+
+    /// Só a formatação mudou: não aparece, e a config do pack volta à versão do pack.
+    fn skip_reformatted(&mut self, path: &str, from_pack: bool) {
+        self.reformatted += 1;
+        if from_pack && !self.layout.preserved.contains(path) {
+            self.restored.push(path.to_owned());
+        }
+    }
+}
+
 /// Compara a instância com a linha de base depois que o jogo fechou, grava a captura e devolve
 /// à versão do pack as configs do pack que só foram reformatadas. Sem linha de base (o jogo não
 /// chegou a abrir), `None`.
@@ -315,174 +523,27 @@ pub fn capture_after_exit(
     let Some(baseline) = Baseline::load(&dirs.state_dir)? else {
         return Ok(None);
     };
-    let manifest = Manifest::load(&dirs.state_dir)?;
-    let layout = pack_layout(pack_root);
     let blobs = BlobStore::of(&dirs.state_dir);
-    let seen = scan(&dirs.game_dir, CaptureIgnore::builtin())?;
-
-    // Os caminhos que mudaram, com o estado de agora (`None` = sumiu).
-    let mut changed: BTreeMap<String, (Option<&FileState>, Option<Now>)> = BTreeMap::new();
-    for (path, now) in &seen {
-        let before = baseline.files.get(path);
-        if let Some(before) = before
-            && before.size == now.size
-            && before.modified_ns == now.modified_ns
-        {
-            continue;
-        }
-        let Some(current) = read_now(dirs, &blobs, path, now.size)? else {
-            continue;
-        };
-        if before.is_some_and(|before| before.sha256 == current.sha256) {
-            continue;
-        }
-        changed.insert(path.clone(), (before, Some(current)));
-    }
-    for (path, before) in &baseline.files {
-        if !seen.contains_key(path) {
-            changed.insert(path.clone(), (Some(before), None));
-        }
-    }
-
-    let mut files = Vec::new();
-    let mut restored = Vec::new();
-    let mut reformatted = 0_u32;
-    let mut aggregated: BTreeSet<String> = BTreeSet::new();
+    let changed = changed_files(dirs, &baseline, &blobs)?;
+    let mut collector = Collector {
+        baseline: &baseline,
+        manifest: Manifest::load(&dirs.state_dir)?,
+        layout: pack_layout(pack_root),
+        blobs,
+        files: Vec::new(),
+        restored: Vec::new(),
+        reformatted: 0,
+        aggregated: BTreeSet::new(),
+    };
     for (path, (before, now)) in &changed {
-        let managed = manifest.files.get(path);
-        let from_pack = managed.is_some_and(|entry| entry.origin == EntryOrigin::Pack);
-        let change = match (before, now) {
-            (None, _) => CaptureChange::Added,
-            (Some(_), Some(_)) => CaptureChange::Modified,
-            (Some(_), None) => CaptureChange::Removed,
-        };
-        let mut file = CapturedFile {
-            path: path.clone(),
-            group: CaptureGroup::Generated,
-            change,
-            selected: false,
-            pack_path: Some(path.clone()),
-            values: Vec::new(),
-            options: Vec::new(),
-            hidden_volatile: 0,
-            text: false,
-            before_sha256: before.map(|state| state.sha256.clone()),
-            after_sha256: now.as_ref().map(|now| now.sha256.clone()),
-            size: now.as_ref().map_or(0, |now| now.size),
-            managed: managed.is_some(),
-        };
-
-        if let Some(item) = folder_item(path) {
-            // Datapacks e resource packs em pasta: um item por pasta, só se ela é nova.
-            let existed = baseline
-                .files
-                .keys()
-                .any(|known| known.starts_with(&format!("{}/", item.path)));
-            if change == CaptureChange::Added && !existed && aggregated.insert(item.path.clone()) {
-                file.path = item.path;
-                file.group = item.group;
-                file.pack_path = None;
-                file.size = 0;
-                file.after_sha256 = None;
-                files.push(file);
-            }
-            continue;
-        }
-        if let Some(group) = item_group(path) {
-            // Mod, resource pack ou datapack (arquivo único): nunca copiado.
-            let interesting = match group {
-                CaptureGroup::Mod => change != CaptureChange::Modified || managed.is_none(),
-                _ => change == CaptureChange::Added,
-            };
-            if interesting {
-                file.group = group;
-                file.pack_path = None;
-                files.push(file);
-            }
-            continue;
-        }
-        if let Some(rest) = world_config_rest(path) {
-            if change == CaptureChange::Removed {
-                continue;
-            }
-            file.group = CaptureGroup::WorldConfig;
-            file.pack_path = Some(format!("defaultconfigs/{rest}"));
-        } else if path == OPTIONS_FILE && change == CaptureChange::Modified {
-            file.group = CaptureGroup::Options;
-        } else if from_pack && change != CaptureChange::Added {
-            file.group = CaptureGroup::PackConfig;
-            file.selected = change == CaptureChange::Modified;
-            if let Some(start) = baseline.pack.get(path) {
-                file.pack_path = Some(start.pack_path.clone());
-            }
-        } else if change == CaptureChange::Removed {
-            // Arquivo que não veio do pack e sumiu: nada a trazer.
-            continue;
-        }
-
-        let before_bytes = match before {
-            Some(state) if state.stored => blobs.get(&state.sha256)?,
-            _ => None,
-        };
-        let after_bytes = match now {
-            Some(now) if now.stored => blobs.get(&now.sha256)?,
-            _ => None,
-        };
-        file.text =
-            text_of(before_bytes.as_deref()).is_some() || text_of(after_bytes.as_deref()).is_some();
-
-        if file.group == CaptureGroup::Options {
-            let (Some(old), Some(new)) = (before_bytes.as_deref(), after_bytes.as_deref()) else {
-                // Sem o texto dos dois lados, o arquivo inteiro aparece como alterado.
-                file.group = if from_pack {
-                    CaptureGroup::PackConfig
-                } else {
-                    CaptureGroup::Generated
-                };
-                file.selected = false;
-                files.push(file);
-                continue;
-            };
-            let (options, hidden) = options_diff(old, new);
-            if options.is_empty() {
-                // Só chaves voláteis: não aparece.
-                reformatted += 1;
-                if from_pack && !layout.preserved.contains(path) {
-                    restored.push(path.clone());
-                }
-                continue;
-            }
-            file.selected = options.iter().any(|option| option.selected);
-            file.options = options;
-            file.hidden_volatile = hidden;
-            if from_pack {
-                if let Some(start) = baseline.pack.get(path) {
-                    file.pack_path = Some(start.pack_path.clone());
-                }
-            } else {
-                file.pack_path = Some(format!("{}{OPTIONS_FILE}", layout.index_dir));
-            }
-            files.push(file);
-            continue;
-        }
-
-        if change == CaptureChange::Modified
-            && let (Some(old), Some(new)) = (before_bytes.as_deref(), after_bytes.as_deref())
-            && let Some(format) = ConfigFormat::detect(Path::new(path), new)
-            && let Ok(diff) = compare(format, old, new)
-        {
-            if diff.is_same_values() {
-                reformatted += 1;
-                if from_pack && !layout.preserved.contains(path) {
-                    restored.push(path.clone());
-                }
-                continue;
-            }
-            file.values = diff.changes.iter().map(value_change).collect();
-        }
-        files.push(file);
+        collector.add(path, *before, now.as_ref())?;
     }
-
+    let Collector {
+        mut files,
+        restored,
+        reformatted,
+        ..
+    } = collector;
     files.sort_by(|a, b| {
         group_rank(a.group)
             .cmp(&group_rank(b.group))

@@ -5,7 +5,12 @@
 //! uma sessão de jogo) e confere a captura, o que vai para o pack e se a próxima cópia do pack
 //! passa sem pedir revisão.
 
-#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::too_many_lines
+)]
 
 mod conformance_support;
 
