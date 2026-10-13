@@ -22,6 +22,7 @@ pub mod open;
 pub mod optional;
 pub mod pin;
 pub mod player_tools;
+pub mod preserve;
 pub mod registry;
 pub mod remove;
 pub mod search;

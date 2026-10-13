@@ -11,8 +11,9 @@
 //!
 //! Limites: arquivos acima de [`MAX_STRUCTURED_BYTES`], fora de UTF-8 ou que o parser não aceita
 //! ficam só no editor de texto (o erro diz o motivo). Metadados lidos aqui: comentário de cada
-//! chave, faixa e valores permitidos; padrões são da C-06 (`defaults.rs`), as camadas do
-//! formulário da C-04 (`meta/`); a busca em todas as configs (C-05) está em [`index`].
+//! chave, faixa e valores permitidos; padrões com restaurar são da C-06 (`defaults.rs`), as
+//! camadas do formulário estão em [`meta`] (C-04) e a busca em todas as configs (C-05) está em
+//! [`index`].
 
 mod annotations;
 mod compare;
@@ -21,6 +22,7 @@ mod error;
 mod format;
 pub(crate) mod formats;
 pub mod index;
+pub mod meta;
 mod path;
 mod text;
 mod tree;
