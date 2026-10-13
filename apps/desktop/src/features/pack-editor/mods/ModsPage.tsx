@@ -5,8 +5,8 @@
  * (T07) sem sair da lista. Um arquivo ruim nunca derruba a lista.
  *
  * Adicionar abre a página Adicionar (P1-09); Verificar atualizações e Atualizar são da P1-12
- * (`features/updates`). O modo Grafo (D-07/P1) chega com a tarefa dona; até lá o botão fica
- * indisponível, com o motivo na dica.
+ * (`features/updates`). "Ver como: Grafo" troca a lista pelo grafo de dependências
+ * (`features/pack-editor/graph`, D-11), com o mesmo painel de detalhes e os mesmos diálogos.
  */
 import { Link } from '@tanstack/react-router';
 import { Plus, Search } from 'lucide-react';
@@ -22,7 +22,6 @@ import { Button, buttonVariants } from '../../../components/ui/button';
 import { Dialog, DialogContent } from '../../../components/ui/dialog';
 import { Icon } from '../../../components/ui/icon';
 import { showToast } from '../../../components/ui/toast';
-import { Tooltip } from '../../../components/ui/tooltip';
 import type {
   Inventory,
   InventoryItem,
@@ -42,6 +41,8 @@ import { UpdatesBanner } from '../../updates/UpdatesBanner';
 import { loaderName } from '../../packs/lib/pack-list';
 import { useIncludeOutside, useInventory, useOpenItemFile, useSetSide } from '../api';
 import { ItemDrawer } from '../details/ItemDrawer';
+import { GraphView } from '../graph/GraphView';
+import { ViewAs, type ModsView } from '../graph/ViewAs';
 import { ItemGroupTable } from './ItemGroupTable';
 import {
   countByKind,
@@ -62,9 +63,25 @@ export interface ModsPageProps {
   /** Caminho do item com os detalhes abertos (da busca da rota), ou `null`. */
   openItem: string | null;
   onOpenItem: (path: string | null) => void;
+  /** "Ver como": lista ou grafo (`?ver=grafo`). */
+  view?: ModsView;
+  /** Mod no centro do grafo (`?centro=`), ou `null` para o primeiro. */
+  center?: string | null;
+  onView?: (view: ModsView) => void;
+  onCenter?: (path: string) => void;
 }
 
-export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
+const noop = () => undefined;
+
+export function ModsPage({
+  packId,
+  openItem,
+  onOpenItem,
+  view = 'lista',
+  center = null,
+  onView = noop,
+  onCenter = noop,
+}: ModsPageProps) {
   const { t } = useTranslation('editor');
   const inventory = useInventory(packId);
   useAutoCheckUpdates(packId);
@@ -104,6 +121,10 @@ export function ModsPage({ packId, openItem, onOpenItem }: ModsPageProps) {
       inventory={inventory.data}
       openItem={openItem}
       onOpenItem={onOpenItem}
+      view={view}
+      center={center}
+      onView={onView}
+      onCenter={onCenter}
     />
   );
 }
@@ -144,9 +165,22 @@ interface ModsListProps {
   inventory: Inventory;
   openItem: string | null;
   onOpenItem: (path: string | null) => void;
+  view: ModsView;
+  center: string | null;
+  onView: (view: ModsView) => void;
+  onCenter: (path: string) => void;
 }
 
-function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
+function ModsList({
+  packId,
+  inventory,
+  openItem,
+  onOpenItem,
+  view,
+  center,
+  onView,
+  onCenter,
+}: ModsListProps) {
   const { t } = useTranslation('editor');
   const pack = usePack(packId);
   const [filters, setFilters] = useState<ModsFilters>(NO_FILTERS);
@@ -222,7 +256,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
   const detailItem = openItem ? items.find((item) => item.path === openItem) : undefined;
   const summary = summaryText(t, counts);
 
-  if (items.length === 0 && !inventory.indexError) {
+  if (items.length === 0 && !inventory.indexError && view === 'lista') {
     const data = pack.data;
     return (
       <>
@@ -246,9 +280,8 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
     );
   }
 
-  return (
+  const listBody = (
     <>
-      <ModsHead packId={packId} summary={summary} />
       {inventory.indexError ? (
         <Alert kind="danger" className="mods-banner" title={t('mods.indiceIlegivel')}>
           <div className="alert__text">{t('mods.indiceIlegivelTexto')}</div>
@@ -308,6 +341,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
         onChange={setFilters}
         items={items}
         updatableCount={updatable.length}
+        onView={onView}
       />
       {chosen.length > 0 ? (
         <SelectionBar
@@ -398,6 +432,24 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
           );
         })
       )}
+    </>
+  );
+
+  return (
+    <>
+      <ModsHead packId={packId} summary={summary} />
+      {view === 'grafo' ? (
+        <GraphView
+          packId={packId}
+          items={items}
+          center={center}
+          onCenter={onCenter}
+          onView={onView}
+          onOpenItem={onOpenItem}
+        />
+      ) : (
+        listBody
+      )}
       <ItemDrawer
         packId={packId}
         item={detailItem ?? null}
@@ -487,11 +539,13 @@ function Toolbar({
   onChange,
   items,
   updatableCount,
+  onView,
 }: {
   filters: ModsFilters;
   onChange: (filters: ModsFilters) => void;
   items: readonly InventoryItem[];
   updatableCount: number;
+  onView: (view: ModsView) => void;
 }) {
   const { t } = useTranslation('editor');
   const { t: tUpdates } = useTranslation('atualizacoes');
@@ -500,27 +554,7 @@ function Toolbar({
   const optional = items.filter((item) => item.optional).length;
   return (
     <div className="toolbar" role="search">
-      <span className="row">
-        <span className="t-xs t-3" id="ver-como">
-          {t('mods.filtros.verComo')}
-        </span>
-        <span className="segmented" role="radiogroup" aria-labelledby="ver-como">
-          <button type="button" role="radio" aria-checked="true" tabIndex={0}>
-            {t('mods.filtros.lista')}
-          </button>
-          <Tooltip content={t('mods.filtros.grafoIndisponivel')}>
-            <button
-              type="button"
-              role="radio"
-              aria-checked="false"
-              aria-disabled="true"
-              tabIndex={-1}
-            >
-              {t('mods.filtros.grafo')}
-            </button>
-          </Tooltip>
-        </span>
-      </span>
+      <ViewAs view="lista" onChange={onView} />
       <div className="inputwrap">
         <Icon icon={Search} />
         <input

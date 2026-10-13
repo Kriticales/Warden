@@ -1,0 +1,73 @@
+/*
+ * Modo Grafo de Mods (D-11). O grafo focado usa os componentes `.graph`, `.gnode`, `.gcenter`
+ * e `.gedge` do design system (`design/system/components.css`); aqui ficam só os ajustes da
+ * versão React: colunas variáveis (1 ou 2 níveis), listas sem marcador, o nó do centro como
+ * botão e o diálogo do pack inteiro.
+ */
+.graph .gcol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gcol__more {
+  position: absolute;
+  bottom: calc(-1 * var(--space-5));
+  left: 0;
+  right: 0;
+}
+.graph .gnode,
+.graph .gcenter {
+  font: inherit;
+}
+.gnode--missing {
+  border-style: dashed;
+  color: var(--color-text-2);
+}
+.gnode__alert {
+  flex: none;
+  color: var(--color-danger-text);
+}
+.gcenter {
+  border: 0;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+.gcenter__txt {
+  display: grid;
+  min-width: 0;
+}
+.graph__legend {
+  margin: var(--space-4) 0 0;
+  list-style: none;
+}
+.grafo-palavras,
+.grafo-ligacoes {
+  margin-top: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+.grafo-inteiro {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+.grafo-inteiro__desenho {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+.grafo-inteiro__canvas {
+  height: min(60vh, 560px);
+  background: var(--color-bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--color-border-strong);
+}
+.grafo-inteiro__lista {
+  max-height: min(60vh, 560px);
+  overflow: auto;
+}
+.grafo-inteiro__lista ul {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}

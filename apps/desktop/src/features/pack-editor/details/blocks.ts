@@ -14,6 +14,7 @@ import type { ComponentType } from 'react';
 
 import type { InventoryItem, ItemDetails, PackId } from '../../../lib/ipc/bindings';
 import { UpdateBlock } from '../../updates/UpdateBlock';
+import { GraphLinkBlock } from '../graph/GraphLinkBlock';
 import { ItemOptionsBlock } from '../item-options/ItemOptionsBlock';
 import { ChangelogBlock } from './blocks/ChangelogBlock';
 import { DependenciesBlock } from './dependencies/DependenciesBlock';
@@ -49,6 +50,7 @@ export const detailBlocks: readonly DetailBlock[] = [
   { id: 'versao', order: 300, component: VersionBlock },
   { id: 'lado', order: 400, component: SideBlock },
   { id: 'dependencias', order: 500, component: DependenciesBlock },
+  { id: 'ver-no-grafo', order: 510, component: GraphLinkBlock },
   { id: 'novidades', order: 800, component: ChangelogBlock },
   { id: 'mais-opcoes', order: 900, component: ItemOptionsBlock },
 ];

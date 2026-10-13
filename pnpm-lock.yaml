@@ -243,6 +243,12 @@ importers:
       clsx:
         specifier: 2.1.1
         version: 2.1.1
+      cytoscape:
+        specifier: 3.34.3
+        version: 3.34.3
+      cytoscape-dagre:
+        specifier: 4.0.1
+        version: 4.0.1(cytoscape@3.34.3)
       dompurify:
         specifier: 3.4.16
         version: 3.4.16
@@ -2562,6 +2568,15 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  cytoscape-dagre@4.0.1:
+    resolution: {integrity: sha512-hyNdh8Vp1nwzBcjHnM4c71G81bFhPmQYLXD2HM9AZIvl+8TrMzWEOPW45hF/XOBQiEguPcDQzi6VrXR1XBcXOA==}
+    peerDependencies:
+      cytoscape: ^3.2.22
+
+  cytoscape@3.34.3:
+    resolution: {integrity: sha512-yfYGhRcGAntq6YBD583j4n0Eg3jIxvWmZtz/5uz9UYkeIStSlMxuUja+ec5j3iBD8nv1rwaOAYMW09tBdkSeaQ==}
+    engines: {node: '>=0.10'}
 
   damerau-levenshtein@1.0.8:
     resolution: {integrity: sha512-sdQSFB7+llfUcQHUQO3+B8ERRj0Oa4w9POWMI/puGtuf7gFywGmkaLCElnudfTiKZV+NvHqL0ifzdrI8Ro7ESA==}
@@ -7455,6 +7470,12 @@ snapshots:
   css-what@6.2.2: {}
 
   csstype@3.2.3: {}
+
+  cytoscape-dagre@4.0.1(cytoscape@3.34.3):
+    dependencies:
+      cytoscape: 3.34.3
+
+  cytoscape@3.34.3: {}
 
   damerau-levenshtein@1.0.8: {}
 

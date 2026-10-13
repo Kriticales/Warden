@@ -82,7 +82,6 @@ export const editor = {
       verComo: 'Ver como',
       lista: 'Lista',
       grafo: 'Grafo',
-      grafoIndisponivel: 'O grafo de dependências chega numa próxima etapa do Warden.',
       buscar: 'Buscar no pack',
       tipo: 'Tipo',
       tipoTodos: 'Tipo: todos',

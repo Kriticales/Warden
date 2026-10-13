@@ -137,6 +137,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `dompurify` | 3.4.16 | MPL-2.0 OR Apache-2.0 | Higiene de HTML vindo das APIs (`sanitize-html.ts`). |
 | `@tauri-apps/plugin-opener` | 2.7.0 | MIT OR Apache-2.0 | Abrir links `https:` no navegador (lado JavaScript do `tauri-plugin-opener`). |
 | `tailwindcss`, `@tailwindcss/vite` | 4.3.3 | MIT | Utilitários CSS do tema shadcn (`design/system/tailwind-theme.css`) no build. |
+| `cytoscape` | 3.34.3 | MIT | "Ver o pack inteiro" em Mods: o desenho de todos os mods em canvas (D-11; ARCHITECTURE §19.2). Carregado só quando o desenho abre. |
+| `cytoscape-dagre` | 4.0.1 | MIT | Layout em camadas do "Ver o pack inteiro" (D-11). Traz embutido o `@dagrejs/dagre` 3 (MIT) com o `@dagrejs/graphlib` (MIT); sem dependências próprias no lockfile. |
 
 ## Trechos copiados
 

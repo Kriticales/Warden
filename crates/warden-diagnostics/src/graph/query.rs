@@ -200,7 +200,7 @@ impl Graph {
         nodes
     }
 
-    fn index_of(&self, path: &str) -> std::result::Result<usize, UnknownItem> {
+    pub(super) fn index_of(&self, path: &str) -> std::result::Result<usize, UnknownItem> {
         self.by_path
             .get(path)
             .copied()

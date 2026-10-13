@@ -156,7 +156,7 @@ function WhyText({ report }: { report: WhyReport }) {
   );
 }
 
-function whyLine(line: WhyLine, t: TFunction<'grafo'>) {
+export function whyLine(line: WhyLine, t: TFunction<'grafo'>) {
   switch (line.kind) {
     case 'user':
       return line.at === null
