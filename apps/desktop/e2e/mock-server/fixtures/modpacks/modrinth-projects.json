@@ -1,0 +1,21 @@
+[
+  {
+    "id": "MPleve01",
+    "slug": "pacote-leve",
+    "project_type": "modpack",
+    "title": "Pacote Leve",
+    "description": "Um modpack leve para Fabric 1.21.1.",
+    "categories": ["optimization"],
+    "loaders": ["fabric"],
+    "game_versions": ["1.21.1"],
+    "status": "approved",
+    "downloads": 12345,
+    "license": {
+      "id": "MIT",
+      "name": "MIT License",
+      "url": null
+    },
+    "client_side": "required",
+    "server_side": "optional"
+  }
+]

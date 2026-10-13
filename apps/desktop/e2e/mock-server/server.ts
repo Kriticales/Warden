@@ -12,6 +12,7 @@ import { extname, join, normalize, sep } from 'node:path';
 import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
 import { githubState, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
+import { modpackReply } from './modpacks';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
 
@@ -132,6 +133,8 @@ const BY_IDS: Record<string, string[]> = {
     join(MODRINTH, '2026-10-04-projects-3.json'),
     join(PROJECT, '2026-10-07-projects-initial.json'),
     join(PROJECT, '2026-10-07-projects-add.json'),
+    // Navegar por modpacks (P1-17): o projeto do modpack simulado do Modrinth (`modpacks.ts`).
+    join(FIXTURES, 'modpacks', 'modrinth-projects.json'),
   ],
   'modrinth/v2/versions': [
     join(MODRINTH, '2026-10-04-versions-2.json'),
@@ -263,6 +266,20 @@ export async function startMockServer(): Promise<MockServer> {
       return;
     }
     requests.push(`${request.method ?? 'GET'} ${path}`);
+    // Navegar por modpacks (P1-17): busca, versão, API e arquivo dos modpacks simulados.
+    const apiKey = request.headers['x-api-key'];
+    const range = request.headers.range;
+    const modpack = modpackReply(
+      request.method ?? 'GET',
+      path,
+      Array.isArray(apiKey) ? apiKey[0] : apiKey,
+      range,
+      base(),
+    );
+    if (modpack) {
+      response.writeHead(modpack.status, modpack.headers).end(modpack.body);
+      return;
+    }
     if (path.startsWith(CF_IMAGE_PREFIX)) {
       const image = curseforgeImage(path);
       if (image) response.writeHead(200, { 'content-type': 'image/png' }).end(image);
