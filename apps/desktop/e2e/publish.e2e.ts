@@ -139,7 +139,7 @@ describe('Publicar versão no GitHub (V-03; T18)', () => {
     await $('header.topbar').$('a*=Meus packs').click();
     writeFileSync(PICK_FILE, PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
 
