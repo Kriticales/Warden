@@ -3,8 +3,12 @@
  * componente só o cria, o recria quando o arquivo (ou a leitura do disco) muda e avisa o que
  * o usuário digitou. `resetKey` identifica a leitura: mudou a chave, o texto volta a ser o
  * `initial`. `ref` expõe os comandos que a barra do editor chama.
+ *
+ * `extensions` (o editor de scripts, C-07) fica num `Compartment`: trocar a lista reconfigura
+ * o editor sem recriá-lo nem perder o que foi digitado.
  */
 import { openSearchPanel } from '@codemirror/search';
+import { Compartment, EditorSelection, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react';
 
@@ -17,6 +21,10 @@ export interface CodeEditorHandle {
   focus: () => void;
   /** Troca todo o texto (Desfazer as alterações). */
   replaceAll: (text: string) => void;
+  /** Leva o cursor à linha (e coluna) e foca o editor. */
+  gotoLine: (line: number, column?: number) => void;
+  /** O `EditorView` aberto (trechos prontos do editor de scripts). */
+  view: () => EditorView | null;
 }
 
 export interface CodeEditorProps {
@@ -30,6 +38,7 @@ export interface CodeEditorProps {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
+  extensions?: Extension;
   ref?: Ref<CodeEditorHandle>;
 }
 
@@ -55,10 +64,13 @@ export function CodeEditor({
   ariaLabel,
   onChange,
   onCursor,
+  extensions,
   ref,
 }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
+  const extra = useRef(new Compartment());
+  const extensionsRef = useRef<Extension>(extensions ?? []);
   // Os callbacks mudam a cada render; o editor chama sempre a versão mais nova.
   const callbacks = useRef({ onChange, onCursor });
   const savedRef = useRef(saved);
@@ -99,6 +111,7 @@ export function CodeEditor({
         onCursor: (line, column) => {
           callbacks.current.onCursor(line, column);
         },
+        extra: extra.current.of(extensionsRef.current),
       }),
     });
     view.current = editor;
@@ -111,6 +124,12 @@ export function CodeEditor({
     // Recriar só quando o arquivo muda: o texto digitado vive no CodeMirror, não nas props.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey, language, readOnly, lineSeparator, ariaLabel]);
+
+  // Extensões novas: reconfigura sem recriar.
+  useEffect(() => {
+    extensionsRef.current = extensions ?? [];
+    view.current?.dispatch({ effects: extra.current.reconfigure(extensionsRef.current) });
+  }, [extensions]);
 
   // O texto salvo mudou (gravou): remarca as linhas.
   useEffect(() => {
@@ -137,6 +156,21 @@ export function CodeEditor({
         current.dispatch({ changes: { from: 0, to: current.state.doc.length, insert: text } });
       }
     },
+    gotoLine: (line, column = 1) => {
+      const current = view.current;
+      if (!current) {
+        return;
+      }
+      const doc = current.state.doc;
+      const target = doc.line(Math.min(Math.max(line, 1), doc.lines));
+      const position = Math.min(target.from + Math.max(column - 1, 0), target.to);
+      current.dispatch({
+        selection: EditorSelection.cursor(position),
+        effects: EditorView.scrollIntoView(position, { y: 'center' }),
+      });
+      current.focus();
+    },
+    view: () => view.current,
   }));
 
   return <div className="cfg-code" ref={host} />;

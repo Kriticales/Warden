@@ -1,0 +1,26 @@
+/* Editor de scripts (SPEC T26): o que não existe em `design/system/components.css`. */
+.script-note {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-thin) solid var(--color-border);
+}
+
+.script-bar__reason {
+  display: inline-flex;
+}
+
+.scripterr__empty {
+  padding: var(--space-2) var(--space-3);
+}
+
+.scripterr__loc--none {
+  color: var(--color-text-3);
+}
+
+.scripterr__level {
+  margin-right: var(--space-2);
+}
+
+.scripterr__loc:focus-visible {
+  outline: var(--border-block) solid var(--color-focus);
+  outline-offset: 2px;
+}

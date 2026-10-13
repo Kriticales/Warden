@@ -71,6 +71,13 @@ const DEFAULTS: Record<string, Handler> = {
   cf_blocked_list: () => [],
   // O que mudou durante o teste (C-03): nenhuma captura.
   capture_get: () => null,
+  // Editor de scripts (C-07): pack sem KubeJS nem CraftTweaker.
+  scripts_info: () => ({
+    env: { kubejs: null, crafttweaker: null },
+    kubejsSnippets: [],
+    crafttweakerSnippets: [],
+    instanceReady: false,
+  }),
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,

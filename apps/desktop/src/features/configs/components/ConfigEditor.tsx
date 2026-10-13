@@ -9,9 +9,23 @@
  *
  * O texto vive no CodeMirror; aqui só se guarda a cópia para saber se há alterações. A leitura
  * em que o texto se baseia (`base`) só muda por escolha da pessoa ou depois de gravar.
+ *
+ * `addon` é o ponto de extensão do editor de scripts (C-07; SPEC T26): extensões do CodeMirror,
+ * peças na barra, um aviso, um painel abaixo do texto e o nome do formato no rodapé.
  */
+import type { Extension } from '@codemirror/state';
+import type { EditorView } from '@codemirror/view';
 import { Info, RotateCcw, Save, Search, TriangleAlert } from 'lucide-react';
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
@@ -27,6 +41,42 @@ import { commandError } from '../../../lib/ipc/query';
 import { useConfigWrite } from '../api';
 import { baseName, formatKey, languageOf, noticesFor } from '../model';
 import { CodeEditor, changedLineNumbers, type CodeEditorHandle } from './CodeEditor';
+
+/** O que o editor oferece às peças do `addon`. */
+export interface EditorAddonApi {
+  dirty: boolean;
+  saving: boolean;
+  /** Grava sem perguntar nada. `true` se gravou (ou nada havia a gravar). */
+  save: () => Promise<boolean>;
+  gotoLine: (line: number, column?: number) => void;
+  view: () => EditorView | null;
+}
+
+/** Ponto de extensão do editor (o editor de scripts, C-07). */
+export interface EditorAddon {
+  extensions: Extension;
+  /** Depois da etiqueta da origem. */
+  barStart?: (api: EditorAddonApi) => ReactNode;
+  /** Antes de Buscar e Salvar. */
+  barEnd?: (api: EditorAddonApi) => ReactNode;
+  /** Abaixo dos avisos. */
+  notice?: (api: EditorAddonApi) => ReactNode;
+  /** Entre o texto e o rodapé. */
+  panel?: (api: EditorAddonApi) => ReactNode;
+  /** Formato no rodapé ("JavaScript · KubeJS 6"). */
+  formatLabel?: string;
+}
+
+/** Uma peça do `addon` (desenhada como componente, para ler a API só no próprio render). */
+function AddonSlot({
+  render,
+  api,
+}: {
+  render: ((api: EditorAddonApi) => ReactNode) | undefined;
+  api: EditorAddonApi;
+}) {
+  return render ? <>{render(api)}</> : null;
+}
 
 /** O que a página usa para não perder alterações ao trocar de arquivo ou de seção. */
 export interface EditorGuard {
@@ -45,6 +95,7 @@ export interface ConfigEditorProps {
   /** Mostrar as diferenças antes de gravar (Configurações). */
   showDiff: boolean;
   onGuard: (guard: EditorGuard | null) => void;
+  addon?: EditorAddon | null;
   ref?: Ref<CodeEditorHandle>;
 }
 
@@ -63,6 +114,7 @@ export function ConfigEditor({
   minecraft,
   showDiff,
   onGuard,
+  addon = null,
   ref,
 }: ConfigEditorProps) {
   const { t } = useTranslation('configs');
@@ -72,6 +124,8 @@ export function ConfigEditor({
     openSearch: () => editor.current?.openSearch(),
     focus: () => editor.current?.focus(),
     replaceAll: (text) => editor.current?.replaceAll(text),
+    gotoLine: (line, column) => editor.current?.gotoLine(line, column),
+    view: () => editor.current?.view() ?? null,
   }));
 
   const name = baseName(file.path);
@@ -176,6 +230,19 @@ export function ConfigEditor({
     };
   }, []);
 
+  const addonSave = useCallback(async () => {
+    const current = latest.current;
+    return current.dirty ? current.doWrite(current.hash, current.text) : true;
+  }, []);
+  const addonGotoLine = useCallback((line: number, column?: number) => {
+    editor.current?.gotoLine(line, column);
+  }, []);
+  const addonView = useCallback(() => editor.current?.view() ?? null, []);
+  const api = useMemo<EditorAddonApi>(
+    () => ({ dirty, saving, save: addonSave, gotoLine: addonGotoLine, view: addonView }),
+    [dirty, saving, addonSave, addonGotoLine, addonView],
+  );
+
   const changedLines = dirty ? changedLineNumbers(base.text, text).length : 0;
   const notices = noticesFor({ path: file.path, origin, loader, minecraft });
   const writeError =
@@ -192,7 +259,9 @@ export function ConfigEditor({
         <span className={origin === 'instance' ? 'tag tag--warn' : 'tag tag--plain'}>
           {origin === 'instance' ? t('instancia.etiqueta') : t('pack.etiqueta')}
         </span>
+        <AddonSlot render={addon?.barStart} api={api} />
         <span className="grow" />
+        <AddonSlot render={addon?.barEnd} api={api} />
         {readOnly ? null : (
           <>
             <Button
@@ -295,6 +364,7 @@ export function ConfigEditor({
           ))}
         </ul>
       ) : null}
+      <AddonSlot render={addon?.notice} api={api} />
 
       {file.text === null ? (
         <p className="cfg-editor__empty t-sm t-2">
@@ -316,8 +386,10 @@ export function ConfigEditor({
           onCursor={(line, column) => {
             setCursor({ line, column });
           }}
+          {...(addon ? { extensions: addon.extensions } : {})}
         />
       )}
+      <AddonSlot render={addon?.panel} api={api} />
 
       <div className="editor__foot">
         {dirty ? (
@@ -332,7 +404,7 @@ export function ConfigEditor({
         <span className="grow" />
         <span>
           {t('editor.rodape', {
-            formato: t(`formato.${format}`),
+            formato: addon?.formatLabel ?? t(`formato.${format}`),
             fimDeLinha: t(`fimDeLinha.${lineEndingKey}`),
             linha: cursor.line,
             coluna: cursor.column,

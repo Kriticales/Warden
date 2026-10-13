@@ -30,6 +30,7 @@ import { useConfigFile, useConfigTree } from './api';
 import { ConfigEditor, type EditorGuard } from './components/ConfigEditor';
 import { FileTree } from './components/FileTree';
 import { buildTree, filterFiles } from './model';
+import { useScriptAddon } from './scripts/useScriptAddon';
 import './configs.css';
 
 const ORIGINS = ['pack', 'instance'] as const satisfies readonly ConfigOrigin[];
@@ -84,6 +85,32 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
       arquivo: nextPath,
     });
   };
+
+  // Scripts KubeJS e CraftTweaker abrem com os recursos do editor de scripts (C-07; T26).
+  const onOpenFile = useCallback(
+    (next: string) => {
+      onNavigate({
+        ...(origin === 'instance' ? { origem: 'instancia' as const } : {}),
+        arquivo: next,
+      });
+    },
+    [origin, onNavigate],
+  );
+  const onOpenInInstance = useCallback(
+    (next: string) => {
+      onNavigate({ origem: 'instancia', arquivo: next });
+    },
+    [onNavigate],
+  );
+  const scriptAddon = useScriptAddon({
+    packId,
+    origin,
+    path,
+    loader: pack.data?.loader ?? null,
+    minecraft: pack.data?.minecraft ?? null,
+    onOpenFile,
+    onOpenInInstance,
+  });
 
   return (
     <div className="stack cfg-page">
@@ -207,6 +234,7 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
               minecraft={pack.data?.minecraft ?? null}
               showDiff={settings.data?.configDiffBeforeSave ?? true}
               onGuard={onGuard}
+              addon={scriptAddon}
             />
           )}
         </div>

@@ -164,6 +164,8 @@ export interface EditorOptions {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
+  /** Extensões de quem usa o editor (o editor de scripts, C-07), num `Compartment`. */
+  extra?: Extension;
 }
 
 /** Troca os fins de linha de um texto colado pelos do arquivo aberto. */
@@ -173,7 +175,7 @@ export function sameLineBreaks(text: string, state: EditorState): string {
 
 /** O estado inicial do editor (um novo por arquivo aberto). */
 export function createEditorState(options: EditorOptions): EditorState {
-  const { doc, language, readOnly, lineSeparator, ariaLabel, onChange, onCursor } = options;
+  const { doc, language, readOnly, lineSeparator, ariaLabel, onChange, onCursor, extra } = options;
   const extensions: Extension[] = [
     EditorState.lineSeparator.of(lineSeparator),
     // Com o separador fixo, o CodeMirror só quebra linha nele: um texto colado com outro fim de
@@ -191,6 +193,7 @@ export function createEditorState(options: EditorOptions): EditorState {
     syntaxHighlighting(highlight),
     languageExtension(language),
     changedLines,
+    extra ?? [],
     theme,
     EditorView.contentAttributes.of({ 'aria-label': ariaLabel, spellcheck: 'false' }),
     EditorView.updateListener.of((update) => {

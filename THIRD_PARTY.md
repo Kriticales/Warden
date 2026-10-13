@@ -134,6 +134,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `dompurify` | 3.4.16 | MPL-2.0 OR Apache-2.0 | Higiene de HTML vindo das APIs (`sanitize-html.ts`). |
 | `@tauri-apps/plugin-opener` | 2.7.0 | MIT OR Apache-2.0 | Abrir links `https:` no navegador (lado JavaScript do `tauri-plugin-opener`). |
 | `tailwindcss`, `@tailwindcss/vite` | 4.3.3 | MIT | Utilitários CSS do tema shadcn (`design/system/tailwind-theme.css`) no build. |
+| `@codemirror/autocomplete` | 6.20.3 | MIT | Autocompletar de IDs e trechos prontos do editor de scripts (C-07; ARCHITECTURE §10.2). |
 
 ## Trechos copiados
 
@@ -170,6 +171,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `crates/warden-jarmeta/src/version/maven.rs` | `ComparableVersion`, `VersionRange`, `Restriction` e os casos de `ComparableVersionTest`/`VersionRangeTest` do [maven-artifact](https://github.com/apache/maven) 3.6.0, 3.6.3, 3.8.5, 3.8.8 e 3.9.9 (tags `maven-*`); cópia antiga das mesmas classes no FML do [MinecraftForge](https://github.com/MinecraftForge/MinecraftForge) (branches `1.7.10` e `1.12.x`) | Apache-2.0; LGPL-2.1-only (FML) | Versões e faixas Maven em cada variante que o Forge e o NeoForge usam; os casos de teste foram portados. |
 | `crates/warden-jarmeta/src/version/mod_annotation.rs` | `DependencyParser.java` do [MinecraftForge](https://github.com/MinecraftForge/MinecraftForge), branch `1.12.x` | LGPL-2.1-only | Gramática de `@Mod.dependencies`. |
 | `crates/warden-diagnostics/data/log-patterns.toml` | classes de problema de `src/Analysis/Problem/` (CrashReport, Fabric, Forge, Vanilla) do [aternosorg/codex-minecraft](https://github.com/aternosorg/codex-minecraft), commit `d7fb6a30b8dbe9d9f73c97e4ad7927a45c3173e9` (Copyright (c) 2019-2025 Aternos GmbH) | MIT | Padrões de log da análise pós-crash: as expressões foram reescritas para a crate `regex` e para linhas limpas; a origem de cada padrão está no campo `origin`. Os demais padrões vêm da pesquisa R2 §6.3 (mensagens-fonte dos loaders) e do spike S-R5-3. |
+| `apps/desktop/src/features/configs/scripts/zenscript.ts` | `language/syntaxes/zenscript.tmLanguage.json` de [Yesterday17/ZenScript](https://github.com/Yesterday17/ZenScript) (commit `9d5e6b7`, lido em 2026-10-13; Copyright (c) 2018 Yesterday17) | MIT | Palavras-chave, tipos, diretivas de pré-processador, comentários e colchetes de ID do ZenScript, reescritos como `StreamLanguage` do CodeMirror 6 (C-07). |
 | `apps/desktop/src-tauri/src/window_chrome/windows.rs` | `src/snap.rs` do [clarifei/tauri-plugin-frame](https://github.com/clarifei/tauri-plugin-frame) 1.1.8 | MIT | Técnica do menu de encaixe numa barra de título própria: janela filha transparente sobre o maximizar que responde `HTMAXBUTTON` e devolve hover e clique à interface. Reescrita com a crate `windows`, sem o plugin (ele injeta botões e scripts próprios na página). |
 
 ## Fontes embutidas (`design/system/fonts/`)
