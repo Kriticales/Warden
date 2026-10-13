@@ -118,6 +118,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `@types/node` | 24.19.1 | MIT | Tipos do Node 24 (arquivos de configuração). |
 | `@types/react`, `@types/react-dom` | 19.3.0 | MIT | Tipos do React. |
 | `@radix-ui/react-dropdown-menu` | 2.1.17 | MIT | Menu ⋯ dos packs (shadcn `DropdownMenu`; HANDOFF §3). |
+| `cytoscape` | 3.34.3 | MIT | "Ver o pack inteiro" em Mods: o desenho de todos os mods em canvas (D-11; ARCHITECTURE §19.2). Carregado só quando o desenho abre. |
+| `cytoscape-dagre` | 4.0.1 | MIT | Layout em camadas do "Ver o pack inteiro" (D-11). Traz embutido o `@dagrejs/dagre` 3 (MIT) com o `@dagrejs/graphlib` (MIT); sem dependências próprias no lockfile. |
 
 ## Trechos copiados
 
