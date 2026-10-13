@@ -1,0 +1,38 @@
+# Bibliotecas: mods de que muitos outros dependem só para usar a API (D-10; S-R5-1 §6 item 7).
+#
+# O rebaixador "o mod declara o outro como dependência" (compatibilidade intencional) não vale
+# quando o outro é uma destas: o Debugify depende da Fabric API em geral, não para conviver com
+# a correção que os dois fazem no mesmo ponto. Ids como os descritores declaram (os módulos da
+# Fabric API começam com `fabric-` e entram pela regra do prefixo em `src/overlap.rs`).
+
+ids = [
+  "fabric",
+  "fabric-api",
+  "fabric_api",
+  "forgified-fabric-api",
+  "architectury",
+  "cloth-config",
+  "cloth_config",
+  "cloth-config2",
+  "balm",
+  "puzzleslib",
+  "puzzles_lib",
+  "geckolib",
+  "geckolib3",
+  "kotlinforforge",
+  "fabric-language-kotlin",
+  "owo",
+  "owo-lib",
+  "moonlight",
+  "collective",
+  "resourcefullib",
+  "yet_another_config_lib_v3",
+  "yet-another-config-lib",
+  "connector",
+  "connectormod",
+  "porting_lib",
+  "forge",
+  "neoforge",
+  "quilted_fabric_api",
+  "qsl",
+]

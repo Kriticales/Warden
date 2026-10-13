@@ -1,0 +1,983 @@
+{
+ "pack": "Better MC [FORGE] - BMC4 v59",
+ "link": "https://modrinth.com/modpack/better-mc-forge-bmc4/version/bdRIjRgs",
+ "resumo": {
+  "alteracoes": 5586,
+  "anotacoes": {
+   "Accessor": 1125,
+   "Inject": 3568,
+   "Invoker": 247,
+   "Mixin": 4119,
+   "ModifyArg": 148,
+   "ModifyConstant": 162,
+   "ModifyExpressionValue": 102,
+   "ModifyReceiver": 3,
+   "ModifyReturnValue": 77,
+   "ModifyVariable": 165,
+   "Overwrite": 233,
+   "Redirect": 506,
+   "Shadow": 588,
+   "WrapMethod": 22,
+   "WrapOperation": 253,
+   "WrapWithCondition": 80
+  },
+  "cache": null,
+  "classes_alteradas_por_2_mais": 520,
+  "classes_de_mixin": 4119,
+  "configs": 566,
+  "erros": 3,
+  "ferramenta": "prototipo-r5a",
+  "jars_aninhados": 316,
+  "jars_topo": 309,
+  "medio_ou_alto_com_require": 19,
+  "metodos_alterados_por_2_mais": 497,
+  "mixinsquared_presente": true,
+  "pasta": "<packs>/forge-1.20.1/mods",
+  "pico_memoria_mb": 40.4375,
+  "refinado": {
+   "classes_de_mixin_removidas_por_opcao": 1,
+   "metodos_alterados_por_2_mais": 497,
+   "opcoes_desligadas": {
+    "lista": [
+     "canary:mixin.block.moving_block_shapes",
+     "lithium:mixin.block.moving_block_shapes",
+     "lithium:mixin.entity.collisions",
+     "lithium:mixin.world.block_entity_ticking.sleeping",
+     "modernfix:mixin.feature.branding",
+     "modernfix:mixin.feature.warn_missing_perf_mods"
+    ],
+    "por_descritores": 2,
+    "total": 6
+   },
+   "risco_base": {
+    "Alto": 9,
+    "Baixo": 477,
+    "Medio": 11
+   },
+   "risco_com_rebaixadores": {
+    "Alto": 1,
+    "Baixo": 483,
+    "Medio": 13
+   },
+   "tempo_cruzamento_ms": 38.512
+  },
+  "risco_base": {
+   "Alto": 9,
+   "Baixo": 474,
+   "Medio": 14
+  },
+  "risco_com_rebaixadores": {
+   "Alto": 1,
+   "Baixo": 478,
+   "Medio": 18
+  },
+  "risco_rebaixadores_somados": {
+   "Alto": 1,
+   "Baixo": 478,
+   "Medio": 18
+  },
+  "tempo_ms": {
+   "cruzamento": 43.1637,
+   "leitura": 3234.3651,
+   "total": 3277.5290999999997
+  },
+  "threads": 1
+ },
+ "sobreposicoes_r5a": [
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "immediatelyfast:Redirect@MixinMapRenderer_MapTexture[1100,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}",
+    "moonlight:WrapOperation@MapInstanceMixin[900,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "immediatelyfast",
+    "moonlight"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/gui/MapRenderer$MapInstance"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "nochatreports:ModifyVariable@MixinChatComponent[1000]{INVOKE:Lnet/minecraft/client/gui/components/ComponentRenderUtils;m_94005_(Lnet/minecraft/network/chat/FormattedText;ILnet/minecraft/client/gui/Font;)Ljava/util/List;}",
+    "nochatreports:ModifyArg@MixinChatComponent[1000]{INVOKE:Lnet/minecraft/client/gui/components/ComponentRenderUtils;m_94005_(Lnet/minecraft/network/chat/FormattedText;ILnet/minecraft/client/gui/Font;)Ljava/util/List;}",
+    "chat_heads:ModifyArg@ChatComponentMixin2[10100,plugin]{INVOKE:Lnet/minecraft/client/gui/components/ComponentRenderUtils;m_94005_(Lnet/minecraft/network/chat/FormattedText;ILnet/minecraft/client/gui/Font;)Ljava/util/List;}"
+   ],
+   "method": "m_240465_",
+   "owners": [
+    "chat_heads",
+    "longerchathistory",
+    "nochatreports"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/gui/components/ChatComponent"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "nbt_ac:ModifyArg@SuggestionsListMixin[1000]{INVOKE:Lnet/minecraft/client/gui/GuiGraphics;m_280488_(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)I}",
+    "chat_heads:ModifyArg@CommandSuggestionSuggestionsListMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/gui/GuiGraphics;m_280488_(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)I}"
+   ],
+   "method": "m_280328_",
+   "owners": [
+    "chat_heads",
+    "nbt_ac"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/gui/components/CommandSuggestions$SuggestionsList"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "blueprint:Redirect@ClientLevelMixin[1000]{INVOKE:Lnet/minecraft/world/level/block/Block;m_214162_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}",
+    "subtle_effects:Inject@ClientLevelMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/Block;m_214162_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}"
+   ],
+   "method": "m_233612_",
+   "owners": [
+    "blueprint",
+    "subtle_effects",
+    "yungscavebiomes"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/multiplayer/ClientLevel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "oculus:Redirect@MixinLevelRenderer[1000]{INVOKE:Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;)V}",
+    "txnilib/fabric_rendering_v1:Inject@WorldRendererMixin[1000]{INVOKE:Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;)V}"
+   ],
+   "method": "m_109599_",
+   "owners": [
+    "citadel",
+    "colorwheel",
+    "fancymenu",
+    "notenoughanimations",
+    "oculus",
+    "particle_effects",
+    "patchouli",
+    "sodiumdynamiclights",
+    "supplementaries",
+    "txnilib",
+    "vanillin",
+    "xaeroplus"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/LevelRenderer"
+  },
+  {
+   "base": "Alto",
+   "demoters": [],
+   "final_one": "Alto",
+   "final_stacked": "Alto",
+   "involved": [
+    "badoptimizations:Redirect@MixinWorldRenderer[700,plugin]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;m_46942_(F)F}",
+    "citadel:Redirect@LevelRendererMixin[1000]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;m_46942_(F)F}"
+   ],
+   "method": "m_202423_",
+   "owners": [
+    "badoptimizations",
+    "citadel",
+    "oculus",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/LevelRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "txnilib/fabric_renderer_indigo:Redirect@ChunkBuilderBuiltChunkRebuildTaskMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;Lnet/minecraftforge/client/model/data/ModelData;Lnet/minecraft/client/renderer/RenderType;)V}",
+    "oculus:Inject@MixinChunkRebuildTask[999]{INVOKE:Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;Lnet/minecraftforge/client/model/data/ModelData;Lnet/minecraft/client/renderer/RenderType;)V}"
+   ],
+   "method": "m_234467_",
+   "owners": [
+    "blue_skies",
+    "oculus",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "entity_texture_features:ModifyArg@MixinEndCrystalRenderer[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/MultiBufferSource;m_6299_(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;}",
+    "transparent:ModifyArg@EndCrystalRendererMixin[1000]{INVOKE:Lnet/minecraft/client/renderer/MultiBufferSource;m_6299_(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;}"
+   ],
+   "method": "m_7392_",
+   "owners": [
+    "entity_texture_features",
+    "transparent"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/EndCrystalRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "radium:Redirect@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;m_222972_(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}",
+    "neruina:WrapOperation@ServerLevelMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;m_222972_(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}"
+   ],
+   "method": "m_8714_",
+   "owners": [
+    "friendsandfoes",
+    "neruina",
+    "radium",
+    "sereneseasons",
+    "snowrealmagic"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/server/level/ServerLevel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: `einstein/subtle_effects/mixin/common/entity/MobMixin` referencia classes de moonlight"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "moonlight:Redirect@EntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/entity/Mob;m_20165_(D)D}",
+    "subtle_effects:WrapOperation@MobMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/entity/Mob;m_20165_(D)D}"
+   ],
+   "method": "m_21373_",
+   "owners": [
+    "moonlight",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/entity/Mob"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: supplementaries declara quark como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "quark:ModifyVariable@CrossbowMultishotMixin[1000,plugin]{STORE:}",
+    "supplementaries:ModifyVariable@CrossbowItemRopeMixin[1000,plugin]{STORE:}"
+   ],
+   "method": "m_40859_",
+   "owners": [
+    "quark",
+    "supplementaries"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/item/CrossbowItem"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}",
+    "radium:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "m_47505_",
+   "owners": [
+    "modernfix",
+    "radium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/biome/Biome"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_55530_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_55616_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@PistonBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_60177_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonBaseBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@PistonHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_60431_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonStructureResolver"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Redirect@AbstractBlockStateCacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}",
+    "redirected:Redirect@CacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "modernfix",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "radium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "m_63084_",
+   "owners": [
+    "ferritecore",
+    "radium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "radium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "m_63120_",
+   "owners": [
+    "ferritecore",
+    "radium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "redirected:Redirect@VinesFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "repurposed_structures:Inject@NoVinesInStructuresMixin[1000]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_142674_",
+   "owners": [
+    "betterjungletemples",
+    "redirected",
+    "repurposed_structures"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/feature/VinesFeature"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "zeta:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/ServerLevelAccessor;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}",
+    "blueprint:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/ServerLevelAccessor;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}"
+   ],
+   "method": "m_226762_",
+   "owners": [
+    "blueprint",
+    "zeta"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/structure/StructurePiece"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "zeta:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/WorldGenLevel;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}",
+    "blueprint:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/WorldGenLevel;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}"
+   ],
+   "method": "m_73434_",
+   "owners": [
+    "blueprint",
+    "zeta"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/structure/StructurePiece"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "zeta:ModifyVariable@StructureTemplateMixin[1000]{FIELD:Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate$StructureBlockInfo;f_74677_:Lnet/minecraft/nbt/CompoundTag;}",
+    "blueprint:ModifyVariable@StructureTemplateMixin[1000]{FIELD:Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate$StructureBlockInfo;f_74677_:Lnet/minecraft/nbt/CompoundTag;}"
+   ],
+   "method": "m_230328_",
+   "owners": [
+    "betterdungeons",
+    "betterjungletemples",
+    "betterwitchhuts",
+    "blueprint",
+    "cataclysm",
+    "formations",
+    "lithostitched",
+    "moogs_structures",
+    "repurposed_structures",
+    "structure_layout_optimizer",
+    "underlay",
+    "villagesandpillages",
+    "zeta"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate"
+  }
+ ],
+ "sobreposicoes_refinadas": [
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "immediatelyfast:Redirect@MixinMapRenderer_MapTexture[1100,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}",
+    "moonlight:WrapOperation@MapInstanceMixin[900,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "immediatelyfast",
+    "moonlight"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/gui/MapRenderer$MapInstance"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "blueprint:Redirect@ClientLevelMixin[1000]{INVOKE:Lnet/minecraft/world/level/block/Block;m_214162_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}",
+    "subtle_effects:Inject@ClientLevelMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/Block;m_214162_(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}"
+   ],
+   "method": "m_233612_",
+   "owners": [
+    "blueprint",
+    "subtle_effects",
+    "yungscavebiomes"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/multiplayer/ClientLevel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: o plugin/config de oculus cita txnilib"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "oculus:Redirect@MixinLevelRenderer[1000]{INVOKE:Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;)V}",
+    "txnilib/fabric_rendering_v1:Inject@WorldRendererMixin[1000]{INVOKE:Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;)V}"
+   ],
+   "method": "m_109599_",
+   "owners": [
+    "citadel",
+    "colorwheel",
+    "fancymenu",
+    "notenoughanimations",
+    "oculus",
+    "particle_effects",
+    "patchouli",
+    "sodiumdynamiclights",
+    "supplementaries",
+    "txnilib",
+    "vanillin",
+    "xaeroplus"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/LevelRenderer"
+  },
+  {
+   "base": "Alto",
+   "demoters": [],
+   "final_one": "Alto",
+   "final_stacked": "Alto",
+   "involved": [
+    "badoptimizations:Redirect@MixinWorldRenderer[700,plugin]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;m_46942_(F)F}",
+    "citadel:Redirect@LevelRendererMixin[1000]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;m_46942_(F)F}"
+   ],
+   "method": "m_202423_",
+   "owners": [
+    "badoptimizations",
+    "citadel",
+    "oculus",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/LevelRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: o plugin/config de oculus cita txnilib"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "txnilib/fabric_renderer_indigo:Redirect@ChunkBuilderBuiltChunkRebuildTaskMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;Lnet/minecraftforge/client/model/data/ModelData;Lnet/minecraft/client/renderer/RenderType;)V}",
+    "oculus:Inject@MixinChunkRebuildTask[999]{INVOKE:Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;Lnet/minecraftforge/client/model/data/ModelData;Lnet/minecraft/client/renderer/RenderType;)V}"
+   ],
+   "method": "m_234467_",
+   "owners": [
+    "blue_skies",
+    "oculus",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "radium:Redirect@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;m_222972_(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}",
+    "neruina:WrapOperation@ServerLevelMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;m_222972_(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}"
+   ],
+   "method": "m_8714_",
+   "owners": [
+    "friendsandfoes",
+    "neruina",
+    "radium",
+    "sereneseasons",
+    "snowrealmagic"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/server/level/ServerLevel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: `einstein/subtle_effects/mixin/common/entity/MobMixin` referencia classes de moonlight"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "moonlight:Redirect@EntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/entity/Mob;m_20165_(D)D}",
+    "subtle_effects:WrapOperation@MobMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/entity/Mob;m_20165_(D)D}"
+   ],
+   "method": "m_21373_",
+   "owners": [
+    "moonlight",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/entity/Mob"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: supplementaries declara quark como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "quark:ModifyVariable@CrossbowMultishotMixin[1000,plugin]{STORE:}",
+    "supplementaries:ModifyVariable@CrossbowItemRopeMixin[1000,plugin]{STORE:}"
+   ],
+   "method": "m_40859_",
+   "owners": [
+    "quark",
+    "supplementaries"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/item/CrossbowItem"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de modernfix cita radium"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "modernfix:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}",
+    "radium:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "m_47505_",
+   "owners": [
+    "modernfix",
+    "radium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/biome/Biome"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_55530_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_55616_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@PistonBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_60177_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonBaseBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "radium:Redirect@PistonHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_60431_",
+   "owners": [
+    "radium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonStructureResolver"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Redirect@AbstractBlockStateCacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}",
+    "redirected:Redirect@CacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "modernfix",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de radium cita ferritecore"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "radium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "m_63084_",
+   "owners": [
+    "ferritecore",
+    "radium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de radium cita ferritecore"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "radium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "m_63120_",
+   "owners": [
+    "ferritecore",
+    "radium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "redirected:Redirect@VinesFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "repurposed_structures:Inject@NoVinesInStructuresMixin[1000]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "m_142674_",
+   "owners": [
+    "betterjungletemples",
+    "redirected",
+    "repurposed_structures"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/feature/VinesFeature"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "zeta:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/ServerLevelAccessor;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}",
+    "blueprint:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/ServerLevelAccessor;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}"
+   ],
+   "method": "m_226762_",
+   "owners": [
+    "blueprint",
+    "zeta"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/structure/StructurePiece"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "zeta:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/WorldGenLevel;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}",
+    "blueprint:ModifyVariable@StructurePieceMixin[1000]{INVOKE:Lnet/minecraft/world/level/WorldGenLevel;m_7731_(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z}"
+   ],
+   "method": "m_73434_",
+   "owners": [
+    "blueprint",
+    "zeta"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/structure/StructurePiece"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "zeta:ModifyVariable@StructureTemplateMixin[1000]{FIELD:Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate$StructureBlockInfo;f_74677_:Lnet/minecraft/nbt/CompoundTag;}",
+    "blueprint:ModifyVariable@StructureTemplateMixin[1000]{FIELD:Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate$StructureBlockInfo;f_74677_:Lnet/minecraft/nbt/CompoundTag;}"
+   ],
+   "method": "m_230328_",
+   "owners": [
+    "betterdungeons",
+    "betterjungletemples",
+    "betterwitchhuts",
+    "blueprint",
+    "cataclysm",
+    "formations",
+    "lithostitched",
+    "moogs_structures",
+    "repurposed_structures",
+    "structure_layout_optimizer",
+    "underlay",
+    "villagesandpillages",
+    "zeta"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate"
+  }
+ ]
+}
