@@ -101,6 +101,11 @@ export function FieldRow({ field, onEdit }: FieldRowProps) {
   }
 
   const submit = (text: string) => {
+    // Sair do campo sem mudar nada não regrava (uma lista com `""` viraria lista vazia).
+    if (text === current) {
+      setProblem(null);
+      return;
+    }
     const control = field.control;
     if (control.type === 'number') {
       const found = checkNumber(text, control.integer, field.range);

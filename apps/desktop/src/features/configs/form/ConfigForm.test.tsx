@@ -103,6 +103,12 @@ const SNIPPETS_FORM: ConfigForm = {
     { kind: 'snippet', path: ['longa'], key: 'longa', line: 2, reason: 'multilineValue' },
     { kind: 'snippet', path: ['sozinha'], key: 'sozinha', line: 4, reason: 'keyWithoutValue' },
     { kind: 'snippet', path: ['lista'], key: 'lista', line: 5, reason: 'listLayout' },
+    field({
+      key: 'vazios',
+      line: 6,
+      value: { type: 'list', value: [''] },
+      control: { type: 'list', item: 'text' },
+    }),
   ],
 };
 
@@ -364,7 +370,7 @@ describe('Formulário de configs (T12, C-04)', () => {
 
   it('valor em várias linhas, chave sem "=" e lista sem leitura item por item ficam no texto', async () => {
     const user = userEvent.setup();
-    open(SNIPPETS, {
+    const { backend } = open(SNIPPETS, {
       pack: { [SNIPPETS]: entry('a=1\nlonga=um \\\n  dois\n\nsozinha\nlista=x\n') },
     });
     const form = await toForm(user);
@@ -381,6 +387,10 @@ describe('Formulário de configs (T12, C-04)', () => {
         'Lista escrita de um jeito que o formulário não edita item por item: edite no texto. (linha 5)',
       ),
     ).toBeDefined();
+    // Entrar e sair da lista sem mudar nada não regrava (o item `""` ficaria de fora).
+    await user.click(within(form).getByRole('textbox', { name: 'vazios' }));
+    await user.tab();
+    expect(backend.callsOf('config_form_apply')).toEqual([]);
     await user.click(
       within(form).getByRole('button', { name: 'Editar este trecho como texto (longa)' }),
     );
