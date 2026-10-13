@@ -101,13 +101,18 @@ impl PlayerConfig {
 /// De onde o jogador recebe o pack.
 struct Origin {
     source: PlayerSource,
-    link: Url,
+    /// O link do pack publicado (`None`: o pack exportado agora, servido aqui).
+    link: Option<Url>,
     /// SHA-256 do `pack.toml` da última publicação.
     published_sha256: Option<String>,
-    /// O servidor do pack exportado agora (vive até o instalador terminar).
-    server: Option<LocalPackServer>,
-    /// A cópia exportada em `cache/staging/` (apagada junto).
-    staging: Option<StagingGuard>,
+}
+
+/// O link que o instalador usa e, para o pack exportado agora, o servidor e a cópia, que
+/// vivem até o instalador terminar.
+struct Served {
+    link: Url,
+    _server: Option<LocalPackServer>,
+    _staging: Option<StagingGuard>,
 }
 
 /// Apaga a cópia exportada do pack ao sair de escopo (também em erro ou cancelamento).
@@ -219,7 +224,18 @@ impl Runner<'_> {
         work_dir: PathBuf,
     ) -> Result<Receipt, AppError> {
         let origin = self.origin(pack_root).await?;
-        let pack_toml = self.fetch_pack_toml(&origin.link).await?;
+        let pack_toml = if let Some(link) = &origin.link {
+            self.fetch_pack_toml(link).await?
+        } else {
+            // O mesmo `pack.toml` que a exportação vai servir.
+            let file = pack_root.join("pack.toml");
+            blocking(move || {
+                std::fs::read(&file).map_err(|error| {
+                    AppError::internal(format!("ler o pack.toml do pack: {}", error.kind()))
+                })
+            })
+            .await?
+        };
         let manifest = PackManifest::parse(&String::from_utf8_lossy(&pack_toml))
             .map_err(|error| AppError::from_domain(&error))?
             .value;
@@ -228,10 +244,18 @@ impl Runner<'_> {
         let spec = game_spec(&requirement)?;
         let (java, java_id, lease) = self.choose_java(&requirement, &spec).await?;
         let game = self.install_game(&spec, &java, pack_root).await?;
+        let served = match origin.link {
+            Some(link) => Served {
+                link,
+                _server: None,
+                _staging: None,
+            },
+            None => self.serve_export(pack_root).await?,
+        };
         let installed = self
-            .install(pack_root, dirs, &java.java, &origin.link, work_dir)
+            .install(pack_root, dirs, &java.java, &served.link, work_dir)
             .await?;
-        drop((origin.server, origin.staging));
+        drop(served);
 
         let received_version =
             Some(manifest.version.trim().to_owned()).filter(|version| !version.is_empty());
@@ -274,7 +298,8 @@ impl Runner<'_> {
         })
     }
 
-    /// O link do pack publicado ou, sem publicação, o pack exportado agora servido aqui.
+    /// O link do pack publicado ou, sem publicação (ou com o repositório privado, cujo link não
+    /// abre para os jogadores), o aviso de que o pack exportado agora vai ser servido aqui.
     async fn origin(&self, pack_root: &Path) -> Result<Origin, AppError> {
         let link = crate::commands::github::stored_link(self.state, self.pack_id)?;
         let root = pack_root.to_path_buf();
@@ -293,8 +318,7 @@ impl Runner<'_> {
         })
         .await?;
         if let (Some(link), Some((version, pack_toml))) = (link.filter(|l| !l.private), published) {
-            let endpoints = self.endpoints();
-            let text = endpoints.pack_link(&link.repo());
+            let text = self.endpoints().pack_link(&link.repo());
             let url = Url::parse(&text)
                 .map_err(|error| AppError::internal(format!("link do pack: {error}")))?;
             return Ok(Origin {
@@ -302,14 +326,21 @@ impl Runner<'_> {
                     link: text,
                     version: Some(version.to_string()),
                 },
-                link: url,
+                link: Some(url),
                 published_sha256: Some(hex::encode(Sha256::digest(&pack_toml))),
-                server: None,
-                staging: None,
             });
         }
         self.handle
             .warn(AppError::new(AppErrorCode::TestPlayerLocalSource));
+        Ok(Origin {
+            source: PlayerSource::Local,
+            link: None,
+            published_sha256: None,
+        })
+    }
+
+    /// Exporta o estado atual e serve só em `127.0.0.1`.
+    async fn serve_export(&self, pack_root: &Path) -> Result<Served, AppError> {
         let staging = StagingGuard(self.state.paths.staging_dir(self.handle.id()));
         let exported = self.export_now(pack_root, &staging.0).await?;
         let server = LocalPackServer::start(exported)
@@ -318,12 +349,10 @@ impl Runner<'_> {
         let link = server
             .link("pack.toml")
             .map_err(|error| AppError::from_domain(&error))?;
-        Ok(Origin {
-            source: PlayerSource::Local,
+        Ok(Served {
             link,
-            published_sha256: None,
-            server: Some(server),
-            staging: Some(staging),
+            _server: Some(server),
+            _staging: Some(staging),
         })
     }
 
