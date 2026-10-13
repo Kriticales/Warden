@@ -25,9 +25,10 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { inflateRawSync } from 'node:zlib';
 
 import { $, browser, expect } from '@wdio/globals';
+
+import { zipEntry } from './zip';
 
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
@@ -84,33 +85,6 @@ function packwizBinary(): string {
   const path = join(BINARIES, name);
   if (!existsSync(path)) throw new Error('sidecar do packwiz ausente: rode cargo xtask setup');
   return path;
-}
-
-/** O conteúdo de uma entrada de um zip (diretório central; `stored` ou `deflate`). */
-function zipEntry(path: string, name: string): Buffer | null {
-  const zip = readFileSync(path);
-  let end = zip.length - 22;
-  while (end >= 0 && zip.readUInt32LE(end) !== 0x06054b50) end -= 1;
-  if (end < 0) throw new Error('zip sem diretório central');
-  const count = zip.readUInt16LE(end + 10);
-  let offset = zip.readUInt32LE(end + 16);
-  for (let i = 0; i < count; i += 1) {
-    expect(zip.readUInt32LE(offset)).toBe(0x02014b50);
-    const method = zip.readUInt16LE(offset + 10);
-    const size = zip.readUInt32LE(offset + 20);
-    const nameLength = zip.readUInt16LE(offset + 28);
-    const extra = zip.readUInt16LE(offset + 30);
-    const comment = zip.readUInt16LE(offset + 32);
-    const local = zip.readUInt32LE(offset + 42);
-    const entry = zip.toString('utf8', offset + 46, offset + 46 + nameLength);
-    if (entry === name) {
-      const start = local + 30 + zip.readUInt16LE(local + 26) + zip.readUInt16LE(local + 28);
-      const data = zip.subarray(start, start + size);
-      return method === 0 ? Buffer.from(data) : inflateRawSync(data);
-    }
-    offset += 46 + nameLength + extra + comment;
-  }
-  return null;
 }
 
 interface AxeViolation {

@@ -10,7 +10,7 @@ export default mergeConfig(
       // Teto para a carga fria do app inteiro no primeiro render de cada arquivo, sob carga.
       testTimeout: 15_000,
       setupFiles: ['./src/test/setup.ts'],
-      include: ['src/**/*.test.{ts,tsx}', '*.test.ts'],
+      include: ['src/**/*.test.{ts,tsx}', '*.test.ts', 'e2e/**/*.test.ts'],
       restoreMocks: true,
       coverage: {
         provider: 'v8',

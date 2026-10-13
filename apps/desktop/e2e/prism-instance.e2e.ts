@@ -20,6 +20,8 @@ import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
+import { zipEntries, zipEntry } from './zip';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -83,31 +85,10 @@ async function screenshot(name: string): Promise<void> {
   await browser.saveScreenshot(join(SCREENSHOTS, `${name}.png`));
 }
 
-/** Nomes das entradas de arquivo de um zip (diretório central). */
-function zipEntries(path: string): string[] {
-  const zip = readFileSync(path);
-  let end = zip.length - 22;
-  while (end >= 0 && zip.readUInt32LE(end) !== 0x06054b50) end -= 1;
-  if (end < 0) throw new Error('zip sem diretório central');
-  const count = zip.readUInt16LE(end + 10);
-  let offset = zip.readUInt32LE(end + 16);
-  const names: string[] = [];
-  for (let i = 0; i < count; i += 1) {
-    const nameLength = zip.readUInt16LE(offset + 28);
-    const extra = zip.readUInt16LE(offset + 30);
-    const comment = zip.readUInt16LE(offset + 32);
-    names.push(zip.toString('utf8', offset + 46, offset + 46 + nameLength));
-    offset += 46 + nameLength + extra + comment;
-  }
-  return names.sort();
-}
-
-/** Lê o `modrinth.index.json` de um `.mrpack` com o `unzip` do sistema (ou `tar` no Windows). */
+/** O `modrinth.index.json` de um `.mrpack`. */
 function readIndex(path: string): Record<string, unknown> {
-  const text =
-    process.platform === 'win32'
-      ? execFileSync('tar', ['-xOf', path, 'modrinth.index.json'], { encoding: 'utf8' })
-      : execFileSync('unzip', ['-p', path, 'modrinth.index.json'], { encoding: 'utf8' });
+  const text = zipEntry(path, 'modrinth.index.json')?.toString('utf8');
+  if (text === undefined) throw new Error(`${path} sem modrinth.index.json`);
   return JSON.parse(text) as Record<string, unknown>;
 }
 
