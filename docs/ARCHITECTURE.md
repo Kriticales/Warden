@@ -178,6 +178,7 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | test | `test_start` (com o perfil e o modo: normal, como o jogador recebe, com perfil de desempenho, como servidor), `test_stop`, `test_session_get`, `test_sessions_list`, `instance_reveal_folder`, `instance_recreate`, `cf_blocked_list`, `cf_blocked_provide_file`, `cf_blocked_open_page` (L-06: o diálogo de arquivo e o endereço da página ficam no backend) |
 | capture | `capture_changes`, `capture_apply`, `capture_discard` |
 | diagnostics | `diagnostics_run`, `diagnostics_report_get`, `diagnostics_ignore` (P1) |
+| console | `console_grouped` (grupos por mod ou "Só problemas" de uma sessão do Testar, com os itens dos grupos abertos até um limite), `console_grouped_lines` (linhas originais de um item ou grupo: "Copiar" e o stack trace aberto) (P1, D-09; §9.8) |
 | ai | `ai_sources_list` (P1: último travamento, outras sessões), `ai_conversation_preview` (P1: texto inicial e o que a IA poderá consultar; aceita sessão ou arquivo escolhido pelo diálogo nativo), `ai_conversation_start` (P1, com as permissões escolhidas), `ai_conversation_send` (P1), `ai_conversations_list`, `ai_conversation_get`, `ai_conversation_delete` (P1), `ai_proposal_apply`, `ai_proposal_discard` (P1) |
 | graph | `graph_dependents` (P0: transitivos), `graph_why_in_pack` (P0), `graph_orphans` (P0), `graph_focus` (P1: nós e ligações em volta de um item) |
 | xray | `xray_mod` (P1: inventário e sobreposições de um mod), `xray_overlaps` (P1: todas as sobreposições do pack) |
@@ -799,11 +800,11 @@ Usados pelo console agrupado (§9.8), pelo padrão de falha de Mixin (§9.3), pe
 ### 9.8 Console agrupado (P1)
 
 `warden-diagnostics::console`, sobre as `LogLine` do supervisor (o `output.log` continua bruto):
-- **Atribuição** de cada linha a um mod, nesta ordem: jar no frame do stack trace (Forge 1.17+: `~[arquivo.jar%23NN!/:versão]`), módulo no frame (NeoForge 1.20.5+: `TRANSFORMER/modid@versão/`), nome do *handler* do mixin no Fabric (`handler$<uid>$<modid>$<método>`), "Mixins in Stacktrace", nome do logger (quando é um modid conhecido) e índice pacote → mod (§9.6). Sem sinal: grupo "Desconhecido"; classes do jogo e do loader: "Jogo e loader".
+- **Atribuição** de cada linha a um mod, nesta ordem: jar no frame do stack trace (Forge 1.17+: `~[arquivo.jar%23NN!/:versão]`), módulo no frame (NeoForge 1.20.5+: `TRANSFORMER/modid@versão/`), nome do *handler* do mixin no Fabric (`handler$<uid>$<modid>$<método>`), "Mixins in Stacktrace", config de mixin citada na mensagem (ou o `for mod <id>` do próprio Mixin), nome do logger (quando é um modid conhecido; classes abreviadas como `ne.ne.ne.co.X` pelo mesmo índice) e índice pacote → mod (§9.6). Sem sinal: grupo "Desconhecido"; classes do jogo e do loader: "Jogo e loader".
 - **Normalização:** números, coordenadas, UUIDs, hexadecimais e caminhos viram marcadores (`Missing texture for {id} at {n}`); o hash do modelo agrupa repetições com contagem, primeira e última hora.
 - **Stack trace** é um item só, recolhido, com a primeira linha de mod em destaque (pulando frames do Java, do jogo e do loader).
 - **Ruído conhecido:** `data/log-noise.toml` (mesmo formato do catálogo de padrões) marca linhas inofensivas ("comum, geralmente inofensivo").
-- A interface recebe os grupos já calculados, atualizados em lotes; nada de agrupamento no frontend.
+- A interface recebe os grupos já calculados, atualizados em lotes; nada de agrupamento no frontend. D-09: o agrupador de cada sessão lê o `output.log` a partir de onde parou (com o jogo aberto, a interface pede de novo a cada segundo; só as últimas 3 sessões ficam em memória) e devolve os itens só dos grupos abertos, até um limite ("Mostrar mais"); a forma da linha é reversível (os valores trocados ficam por ocorrência), então "Copiar" devolve as linhas originais. Medido: 50.000 linhas agrupadas em cerca de 0,7 s no build de depuração (teste `desempenho_50_mil_linhas`). "Só problemas" esconde também o ruído conhecido.
 
 ## 10. Configs
 
