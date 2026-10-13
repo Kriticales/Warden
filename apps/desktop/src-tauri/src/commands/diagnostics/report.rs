@@ -79,7 +79,8 @@ pub(crate) struct ReportFinding {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct DiagnosticsReport {
-    /// Passagem.
+    /// Passagem que valeu: "Verificar agora" e a "Verificação final" pedem a completa, que vira
+    /// rápida quando ainda falta o jar de algum mod.
     pub(crate) pass: CheckPass,
     /// Quando a verificação terminou (milissegundos desde 1970).
     #[specta(type = specta_typescript::Number)]

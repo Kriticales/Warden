@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import { EmptyState } from '../../../components/common/EmptyState';
 import { ProgressBar } from '../../../components/common/ProgressBar';
+import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import { showToast } from '../../../components/ui/toast';
 import type { ReportFinding, Severity } from '../../../lib/ipc/bindings';
@@ -71,6 +72,11 @@ export function FindingsBlock({ packId, report, checking }: ProblemsBlockProps) 
 
   return (
     <div className="stack-3 diag-findings">
+      {report.pass === 'quick' ? (
+        <Alert kind="neutral" compact>
+          {t('secao.rapida')}
+        </Alert>
+      ) : null}
       {visible.length === 0 ? (
         <EmptyState
           kind="ok"

@@ -143,6 +143,13 @@ pub(crate) struct Built {
     pub(crate) mod_names: HashMap<String, String>,
 }
 
+impl Built {
+    /// A passagem que valeu (a completa vira rápida quando falta o jar de algum mod).
+    pub(crate) fn pass(&self) -> Pass {
+        self.input.pass
+    }
+}
+
 /// Monta a entrada de uma passagem. `None` quando o pack não tem loader conhecido ou versão
 /// do Minecraft (vanilla: não há regras de mods para conferir).
 pub(crate) async fn build_input(
@@ -162,46 +169,32 @@ pub(crate) async fn build_input(
         snapshot.items.iter().filter(|item| checked(item)).collect();
     let api = api_metadata(state, &candidates).await;
 
-    let mut jars: HashMap<String, JarMetadata> = HashMap::new();
+    let mut jars = if pass == Pass::Complete {
+        read_pack_jars(state, pack_id, snapshot, &candidates).await?
+    } else {
+        HashMap::new()
+    };
+
+    // Sem o jar de algum mod (pack nunca testado, mod novo que ainda não foi baixado), a
+    // passagem completa daria aquele mod como ausente e acusaria dependências que estão no
+    // pack: vale a rápida, e a completa fica para a "Verificação final" do Testar.
+    let mut pass = pass;
     if pass == Pass::Complete {
-        let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
-        let paths: Vec<(usize, PathBuf)> = candidates
+        let mods = candidates
             .iter()
-            .enumerate()
-            .filter(|(_, item)| item.kind == ItemKind::Mod)
-            .filter_map(|(index, item)| {
-                let mut places = jar_locations(item, &snapshot.root, &game_dir);
-                // O arquivo guardado no pack é a verdade; a cópia da instância pode ser velha.
-                places.reverse();
-                existing(&places).map(|(path, _, _)| (index, path.clone()))
-            })
-            .collect();
-        let read = tokio::task::spawn_blocking(move || read_jars(paths))
-            .await
-            .map_err(|error| AppError::internal(format!("ler os jars do pack: {error}")))?;
-        for (index, meta) in read {
-            if let Some(item) = candidates.get(index) {
-                jars.insert(item.path.clone(), meta);
-            }
+            .filter(|item| item.kind == ItemKind::Mod)
+            .count();
+        if jars.len() < mods {
+            tracing::info!(
+                mods,
+                jars = jars.len(),
+                "faltam jars de mods; verificação rápida no lugar da completa"
+            );
+            pass = Pass::Quick;
         }
     }
 
-    let mut mod_paths = HashMap::new();
-    let mut mod_names = HashMap::new();
-    for item in &candidates {
-        if let Some(jar) = jars.get(&item.path) {
-            for meta in jar.effective_mods_for_loader(loader) {
-                mod_paths
-                    .entry(meta.id.clone())
-                    .or_insert_with(|| item.path.clone());
-                if let Some(name) = meta.name.as_ref().filter(|name| !name.trim().is_empty()) {
-                    mod_names
-                        .entry(meta.id.clone())
-                        .or_insert_with(|| name.clone());
-                }
-            }
-        }
-    }
+    let (mod_paths, mod_names) = mod_maps(loader, &candidates, &jars);
 
     let items = candidates
         .iter()
@@ -246,6 +239,61 @@ pub(crate) async fn build_input(
         mod_paths,
         mod_names,
     }))
+}
+
+/// Os jars dos mods: o arquivo guardado no pack ou, para os baixados, a cópia da instância de
+/// teste com o nome do metafile (um mod atualizado tem outro nome e fica sem jar).
+async fn read_pack_jars(
+    state: &AppState,
+    pack_id: PackId,
+    snapshot: &PackSnapshot,
+    candidates: &[&InventoryItem],
+) -> Result<HashMap<String, JarMetadata>, AppError> {
+    let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
+    let paths: Vec<(usize, PathBuf)> = candidates
+        .iter()
+        .enumerate()
+        .filter(|(_, item)| item.kind == ItemKind::Mod)
+        .filter_map(|(index, item)| {
+            let mut places = jar_locations(item, &snapshot.root, &game_dir);
+            // O arquivo guardado no pack é a verdade; a cópia da instância pode ser velha.
+            places.reverse();
+            existing(&places).map(|(path, _, _)| (index, path.clone()))
+        })
+        .collect();
+    let read = tokio::task::spawn_blocking(move || read_jars(paths))
+        .await
+        .map_err(|error| AppError::internal(format!("ler os jars do pack: {error}")))?;
+    Ok(read
+        .into_iter()
+        .filter_map(|(index, meta)| Some((candidates.get(index)?.path.clone(), meta)))
+        .collect())
+}
+
+/// Mod id → caminho do item e mod id → nome declarado, pelos jars lidos.
+fn mod_maps(
+    loader: Loader,
+    candidates: &[&InventoryItem],
+    jars: &HashMap<String, JarMetadata>,
+) -> (HashMap<String, String>, HashMap<String, String>) {
+    let mut mod_paths = HashMap::new();
+    let mut mod_names = HashMap::new();
+    for item in candidates {
+        let Some(jar) = jars.get(&item.path) else {
+            continue;
+        };
+        for meta in jar.effective_mods_for_loader(loader) {
+            mod_paths
+                .entry(meta.id.clone())
+                .or_insert_with(|| item.path.clone());
+            if let Some(name) = meta.name.as_ref().filter(|name| !name.trim().is_empty()) {
+                mod_names
+                    .entry(meta.id.clone())
+                    .or_insert_with(|| name.clone());
+            }
+        }
+    }
+    (mod_paths, mod_names)
 }
 
 fn file_name_of(path: &str) -> String {

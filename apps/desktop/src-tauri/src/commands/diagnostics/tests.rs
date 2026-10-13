@@ -233,6 +233,32 @@ async fn completa_acha_dependencia_que_falta_e_ignorar_grava_no_pack() {
     assert!(last_report(&state, pack).unwrap().unwrap().stale);
 }
 
+/// Mod do pack sem jar ainda (acabou de entrar pela correção "Adicionar dependência" e não foi
+/// baixado): "Verificar agora" não o dá como ausente; vale a passagem rápida, e a completa
+/// fica para a "Verificação final" do Testar.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn sem_o_jar_de_um_mod_a_completa_vira_rapida() {
+    let Some((dir, mut state, cli)) = setup() else {
+        return;
+    };
+    let _server = modrinth(&mut state).await;
+    let jar = meu_mod_jar();
+    let meta = sodium_metafile("client");
+    let (pack, _root) = fabric_pack(
+        &state,
+        dir.path(),
+        &cli,
+        &[
+            ("mods/meu-mod.jar", &jar),
+            ("mods/sodium.pw.toml", meta.as_bytes()),
+        ],
+    )
+    .await;
+    let report = check(&state, pack, CheckPass::Complete, None).await.unwrap();
+    assert_eq!(report.pass, CheckPass::Quick);
+    assert!(!rules(&report).contains(&"E_MISSING_DEP"), "{report:#?}");
+}
+
 /// "Mudar lado" de ponta a ponta: o Modrinth diz que o Sodium só funciona no cliente e o pack o
 /// manda para os dois lados (`W_SIDE` com a correção "Só cliente"); o "Alterar lado" da lista
 /// de Mods grava `side = "client"` e a verificação seguinte não acha mais o problema.

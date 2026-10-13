@@ -33,6 +33,8 @@ export const diagnostico = {
     resumoVazio: 'Última verificação {{quando}}',
     agora: 'agora há pouco',
     tambem: 'A verificação também roda sozinha ao clicar em Testar.',
+    rapida:
+      'Alguns mods ainda não foram baixados para o teste, então os arquivos deles não foram lidos. A verificação completa roda ao clicar em Testar.',
     verificarAgora: 'Verificar agora',
     verificandoMeta:
       'Dependências, versões, Java, duplicatas e conflitos conhecidos, com os dados do pack, das fontes e dos arquivos dos mods.',

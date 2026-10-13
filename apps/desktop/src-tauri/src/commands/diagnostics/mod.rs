@@ -172,9 +172,14 @@ pub(crate) async fn check(
     let player = state.settings.get().player_name;
     let redactor = crate::commands::report::redactor(&player, &state.secrets);
 
+    let mut pass = pass;
     let (findings, checked_mods) = match built {
         None => (Vec::new(), false),
         Some(built) => {
+            pass = match built.pass() {
+                Pass::Quick => CheckPass::Quick,
+                Pass::Complete => CheckPass::Complete,
+            };
             let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
             let cache_dir = state.paths.cache_dir();
             let input = built.input;
