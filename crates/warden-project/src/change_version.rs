@@ -190,7 +190,7 @@ async fn installed(subject: &Subject<'_>, cancel: &CancellationToken) -> Option<
 }
 
 /// `true` se `candidate` é mais antiga que `installed`: pela data de publicação (RFC 3339 em
-/// UTC, até o segundo) e, com a mesma data, pela posição na lista (mais nova primeiro).
+/// UTC, até o segundo). Com a mesma data, ou sem data, não é.
 fn is_older(candidate: &SourceVersion, installed: &SourceVersion) -> bool {
     let date = |text: &str| text.get(..19).map(str::to_owned);
     match (date(&candidate.published), date(&installed.published)) {
