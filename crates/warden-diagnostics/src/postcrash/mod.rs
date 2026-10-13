@@ -35,6 +35,9 @@ pub use collect::{MTIME_TOLERANCE, SessionFiles, analyze_session, collect_sessio
 pub use text::{HEAD_BYTES, TAIL_BYTES, strip_formatting};
 
 pub(crate) use text::fixed_regex as text_fixed_regex;
+// D-06: a assinatura do travamento (`crate::signature`) lê a pilha do achado principal.
+pub(crate) use stack::{crash_blocks, deepest_cause, mods_in, stack_range};
+pub(crate) use text::CleanLine;
 
 use crate::error::{DiagnosticsError, Result};
 use crate::model::Finding;
@@ -153,6 +156,11 @@ impl LogSource {
     #[must_use]
     pub fn line_count(&self) -> usize {
         self.lines.len()
+    }
+
+    /// As linhas limpas, como a análise as lê (D-06: a assinatura do travamento).
+    pub(crate) fn clean_lines(&self) -> Vec<CleanLine> {
+        text::clean_lines(&self.lines)
     }
 }
 
