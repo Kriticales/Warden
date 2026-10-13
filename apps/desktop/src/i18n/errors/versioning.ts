@@ -51,8 +51,7 @@ export const versioning: Record<VersioningErrorCode, string> = {
     'A versão tem arquivos que não podem ir para os jogadores. Limpe esses arquivos, salve uma versão nova e publique essa.',
   GITHUB_NOT_LINKED:
     'Este pack ainda não tem repositório no GitHub. Abra Publicar versão no Histórico para criar ou escolher um.',
-  GITHUB_OFFLINE:
-    'Sem conexão com o GitHub. Confira a internet e tente de novo.',
+  GITHUB_OFFLINE: 'Sem conexão com o GitHub. Confira a internet e tente de novo.',
   GITHUB_TOKEN_REJECTED: 'O GitHub recusou o token. Gere um novo e salve em Configurações.',
   GITHUB_PERMISSION_MISSING:
     'O token do GitHub não tem a permissão {{permission}} (leitura e escrita). Gere um token com ela e salve em Configurações.',
