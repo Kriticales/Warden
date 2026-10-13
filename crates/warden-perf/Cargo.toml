@@ -8,15 +8,18 @@ publish.workspace = true
 
 [dependencies]
 warden-core.workspace = true
+# Os achados de memória (L-11) são achados do diagnóstico, com evidência.
+warden-diagnostics.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
 
 [target.'cfg(windows)'.dependencies]
-# RAM do processo e da árvore dele (ARCHITECTURE §7.7). O `unsafe` fica isolado em
-# `src/process/windows.rs`.
+# RAM do processo e da árvore dele (ARCHITECTURE §7.7) e o *file mapping* do `hsperfdata`
+# (L-11). O `unsafe` fica isolado em `src/process/windows.rs` e `src/hsperf/windows.rs`.
 windows = { workspace = true, features = [
   "Win32_Foundation",
   "Win32_System_Diagnostics_ToolHelp",
+  "Win32_System_Memory",
   "Win32_System_ProcessStatus",
   "Win32_System_Threading",
 ] }
@@ -24,6 +27,7 @@ windows = { workspace = true, features = [
 [dev-dependencies]
 proptest.workspace = true
 serde_json.workspace = true
+tempfile.workspace = true
 # Os golden logs da matriz L-05 passam pelo mesmo leitor de log da supervisão do jogo.
 warden-launcher.workspace = true
 

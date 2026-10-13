@@ -1,0 +1,3 @@
+# Fixtures binárias do hsperfdata e a saída do jstat com o CRLF original do Windows: bytes
+# intocados (o teste compara os deslocamentos e as colunas).
+* -text

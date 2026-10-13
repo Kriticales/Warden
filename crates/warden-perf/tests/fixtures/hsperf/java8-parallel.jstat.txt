@@ -1,0 +1,2 @@
+    S0C         S1C         S0U         S1U          EC           EU           OC           OU          MC         MU       CCSC      CCSU     YGC     YGCT     FGC    FGCT     CGC    CGCT       GCT   
+    21504,0     21504,0         0,0     21493,1     131584,0      79608,1     349696,0     107298,2     4864,0     3078,5     512,0     322,9      1     0,050     0     0,000     -         -     0,050
