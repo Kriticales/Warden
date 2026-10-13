@@ -156,7 +156,9 @@ async function openPack(folder: string, title: string): Promise<void> {
   await $('button=Abrir pack').click();
   await $(`h1=${title}`).waitForDisplayed({ timeout: 60_000 });
   await $('h1=Mods').waitForDisplayed();
-  await $('a=Adicionar').waitForDisplayed({ timeout: 30_000 });
+  // Enquanto a lista carrega, o "Adicionar" do cabeçalho é outro elemento, trocado quando a
+  // lista chega: um clique que cai nessa troca se perde. Clica com a lista já na tela.
+  await $('tr.modrow').waitForDisplayed({ timeout: 30_000 });
   await $('a=Adicionar').click();
   await $('h1=Adicionar ao pack').waitForDisplayed();
 }
