@@ -312,7 +312,9 @@ fn curseforge_items(tree: &PublishTree) -> Vec<CfItem> {
     tree.iter()
         .filter(|(path, _)| path.ends_with(".pw.toml"))
         .filter_map(|(path, bytes)| {
-            let metafile = Metafile::parse(std::str::from_utf8(bytes).ok()?).ok()?.value;
+            let metafile = Metafile::parse(std::str::from_utf8(bytes).ok()?)
+                .ok()?
+                .value;
             let (project, file) = metafile.curseforge_ids()?;
             let sha1 = metafile
                 .download
@@ -404,7 +406,11 @@ impl CurseforgeCheck {
             let Some(project) = projects.iter().find(|p| p.id == u64::from(item.project)) else {
                 continue;
             };
-            let author = project.authors.first().map(|a| a.name.as_str()).unwrap_or_default();
+            let author = project
+                .authors
+                .first()
+                .map(|a| a.name.as_str())
+                .unwrap_or_default();
             let query = SourceQuery {
                 query: project.name.clone(),
                 kind: ProjectKind::Mod,
@@ -415,7 +421,10 @@ impl CurseforgeCheck {
                 offset: 0,
                 limit: 10,
             };
-            let Ok(results) = self.modrinth.search(&modrinth_query(&query), Some(cancel)).await
+            let Ok(results) = self
+                .modrinth
+                .search(&modrinth_query(&query), Some(cancel))
+                .await
             else {
                 continue;
             };
@@ -437,13 +446,18 @@ impl CurseforgeCheck {
             }) else {
                 continue;
             };
-            let Ok(found) = add.projects(std::slice::from_ref(&hit.project_id), cancel).await else {
+            let Ok(found) = add
+                .projects(std::slice::from_ref(&hit.project_id), cancel)
+                .await
+            else {
                 continue;
             };
             let Some(source_project) = found.first() else {
                 continue;
             };
-            let Ok(versions) = add.compatible_versions(source_project, target, cancel).await
+            let Ok(versions) = add
+                .compatible_versions(source_project, target, cancel)
+                .await
             else {
                 continue;
             };
@@ -495,7 +509,11 @@ impl PublishCheck for CurseforgeCheck {
                 .iter()
                 .map(|item| FileRef::new(u64::from(item.project), u64::from(item.file)))
                 .collect();
-            match self.curseforge.distribution(&refs, Some(context.cancel)).await {
+            match self
+                .curseforge
+                .distribution(&refs, Some(context.cancel))
+                .await
+            {
                 Ok(answers) => {
                     for (item, answer) in items.iter().zip(answers) {
                         if !matches!(answer.distribution, Distribution::Allowed { .. }) {
@@ -528,7 +546,10 @@ impl PublishCheck for CurseforgeCheck {
             .and_then(|text| PackManifest::parse(text).ok())
             .map(|parsed| parsed.value);
         if let Some(target) = manifest.and_then(|m| PackTarget::from_manifest(&m).ok()) {
-            swaps.extend(self.same_project(&without_same, &target, context.cancel).await);
+            swaps.extend(
+                self.same_project(&without_same, &target, context.cancel)
+                    .await,
+            );
         }
         let to_mod = |item: &CfItem| PublishMod {
             path: item.path.clone(),
@@ -595,8 +616,10 @@ impl PublishCheck for UntestedCheck {
         "untested"
     }
     async fn run(&self, context: &PublishContext<'_>) -> Vec<PublishFinding> {
-        let (Some(pack), Some(index)) = (context.tree.get("pack.toml"), context.tree.get("index.toml"))
-        else {
+        let (Some(pack), Some(index)) = (
+            context.tree.get("pack.toml"),
+            context.tree.get("index.toml"),
+        ) else {
             return vec![PublishFinding::Untested];
         };
         let hash = crate::test_session::pack_tree_hash_of(pack, "index.toml", index);
@@ -622,7 +645,11 @@ fn stored_secrets(state: &AppState) -> Vec<SecretString> {
 
 /// As conferências da v1, na ordem do diálogo. Registro acréscimo-apenas (gancho 1.1): a W-03
 /// acrescenta "Segurança dos mods" e "Manutenção dos mods" aqui.
-fn checks(state: &AppState, pack_id: PackId, hygiene: Vec<HygieneFinding>) -> Result<PublishChecks<PublishFinding>, AppError> {
+fn checks(
+    state: &AppState,
+    pack_id: PackId,
+    hygiene: Vec<HygieneFinding>,
+) -> Result<PublishChecks<PublishFinding>, AppError> {
     Ok(vec![
         Arc::new(SecretsCheck {
             stored: stored_secrets(state),
@@ -760,12 +787,18 @@ pub(crate) async fn publish_run(
         let _lock = state.locks.write_for(pack_id, &operation).await;
         let root = pack_root(&state, pack_id)?;
         let when = moment_now(request.utc_offset_minutes)?;
-        let link = stored_link(&state, pack_id)?.ok_or_else(|| {
-            domain(warden_versioning::Error::GithubNotLinked)
-        })?;
+        let link = stored_link(&state, pack_id)?
+            .ok_or_else(|| domain(warden_versioning::Error::GithubNotLinked))?;
         check_publishable(&root, &request.version).await?;
         let cancel = operation.token().clone();
-        let tree = version_tree(&state, &inventory::packwiz(&state)?, &root, &request.version, &cancel).await?;
+        let tree = version_tree(
+            &state,
+            &inventory::packwiz(&state)?,
+            &root,
+            &request.version,
+            &cancel,
+        )
+        .await?;
         if let Some(found) = scan_secrets(&tree.files, &stored_secrets(&state)).first() {
             return Err(domain(warden_versioning::Error::PublishSecretFound {
                 path: found.path.clone(),
@@ -777,7 +810,8 @@ pub(crate) async fn publish_run(
                 count: tree.hygiene.len(),
             }));
         }
-        let (_, notes) = release_notes(&state, &root, &request.version, &request.player_notes).await?;
+        let (_, notes) =
+            release_notes(&state, &root, &request.version, &request.player_notes).await?;
         let client = client(&state).await?;
         let login = client.user(Some(&cancel)).await.map_err(domain)?;
         let meta = read_meta(&root).map_err(|error| AppError::from_domain(&error))?;
@@ -839,7 +873,6 @@ pub(crate) async fn publish_retry_release(
     notify_changed(&app, pack_id, vec![PackArea::History]);
     result
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -940,11 +973,18 @@ mod tests {
             duration_ms: 1000,
             artifacts: CrashArtifacts::default(),
         };
-        let mut record =
-            SessionRecord::from_exit(started, &exit, &spec, 17, None, std::path::Path::new("jogo"));
-        record
-            .extra
-            .insert("packTree".into(), json!({ "hash": hash, "head": null, "unsavedFiles": 0 }));
+        let mut record = SessionRecord::from_exit(
+            started,
+            &exit,
+            &spec,
+            17,
+            None,
+            std::path::Path::new("jogo"),
+        );
+        record.extra.insert(
+            "packTree".into(),
+            json!({ "hash": hash, "head": null, "unsavedFiles": 0 }),
+        );
         session.write_record(&record).unwrap();
     }
 
@@ -965,20 +1005,29 @@ mod tests {
         else {
             return;
         };
-        let plan = plan_impl(&state, &cli, pack_id, "1.0.0".into()).await.unwrap();
+        let plan = plan_impl(&state, &cli, pack_id, "1.0.0".into())
+            .await
+            .unwrap();
         assert!(plan.blocked);
         assert!(plan.findings.iter().any(|finding| matches!(
             finding,
             PublishFinding::SecretFound { path, line } if path == "config/x.toml" && *line == 2
         )));
-        assert!(plan.findings.iter().any(|f| matches!(f, PublishFinding::Untested)));
+        assert!(
+            plan.findings
+                .iter()
+                .any(|f| matches!(f, PublishFinding::Untested))
+        );
         assert_eq!(plan.files, 4, "pack.toml, index.toml e as duas configs");
         assert!(plan.notes.contains("config/ok.toml"), "{}", plan.notes);
         assert_eq!(plan.last_published, None);
         assert!(plan.link.is_none() && !plan.token_configured && plan.remote.is_none());
         let json = serde_json::to_value(&plan.findings[0]).unwrap();
         assert_eq!(json["kind"], "secretFound");
-        assert!(!serde_json::to_string(&plan).unwrap().contains(GHP), "o valor nunca vai à interface");
+        assert!(
+            !serde_json::to_string(&plan).unwrap().contains(GHP),
+            "o valor nunca vai à interface"
+        );
     }
 
     #[tokio::test]
@@ -995,12 +1044,23 @@ mod tests {
         let hash = crate::test_session::pack_tree_hash_of(&pack, "index.toml", &index);
         // Um teste que travou com o mesmo conteúdo não conta.
         record_closed_session(&state, pack_id, &hash, Outcome::Crashed);
-        let plan = plan_impl(&state, &cli, pack_id, "1.0.0".into()).await.unwrap();
-        assert!(plan.findings.iter().any(|f| matches!(f, PublishFinding::Untested)));
-        record_closed_session(&state, pack_id, &hash, Outcome::ClosedNormally);
-        let plan = plan_impl(&state, &cli, pack_id, "1.0.0".into()).await.unwrap();
+        let plan = plan_impl(&state, &cli, pack_id, "1.0.0".into())
+            .await
+            .unwrap();
         assert!(
-            !plan.findings.iter().any(|f| matches!(f, PublishFinding::Untested)),
+            plan.findings
+                .iter()
+                .any(|f| matches!(f, PublishFinding::Untested))
+        );
+        record_closed_session(&state, pack_id, &hash, Outcome::ClosedNormally);
+        let plan = plan_impl(&state, &cli, pack_id, "1.0.0".into())
+            .await
+            .unwrap();
+        assert!(
+            !plan
+                .findings
+                .iter()
+                .any(|f| matches!(f, PublishFinding::Untested)),
             "{:?}",
             plan.findings
         );
@@ -1016,8 +1076,13 @@ mod tests {
         else {
             return;
         };
-        PackRepo::open(&root).unwrap().set_final("1.0.0", false).unwrap();
-        let error = plan_impl(&state, &cli, pack_id, "1.0.0".into()).await.unwrap_err();
+        PackRepo::open(&root)
+            .unwrap()
+            .set_final("1.0.0", false)
+            .unwrap();
+        let error = plan_impl(&state, &cli, pack_id, "1.0.0".into())
+            .await
+            .unwrap_err();
         assert_eq!(
             serde_json::to_value(error.code).unwrap(),
             json!({ "domain": "versioning", "code": "NOT_FINAL" })
@@ -1140,7 +1205,10 @@ mod tests {
         assert_eq!(names, vec!["Just Enough Items", "Xaero's Minimap"]);
         assert!(mods[0].swap.as_ref().is_some_and(|swap| swap.same_file));
         assert!(mods[1].swap.is_none());
-        assert!(!findings.iter().any(PublishFindingKind::blocks), "não bloqueia");
+        assert!(
+            !findings.iter().any(PublishFindingKind::blocks),
+            "não bloqueia"
+        );
     }
 
     #[tokio::test]
@@ -1183,8 +1251,8 @@ mod tests {
         let http = HttpClient::new(HttpConfig::for_version("1")).unwrap();
         let modrinth =
             ModrinthClient::with_base_url(http, &format!("{}/v2", server.uri()), None).unwrap();
-        let sources = warden_project::add::AddSources::new()
-            .with(Arc::new(ModrinthAdd::new(modrinth)));
+        let sources =
+            warden_project::add::AddSources::new().with(Arc::new(ModrinthAdd::new(modrinth)));
         // O que a interface manda no "Trocar pelo Modrinth" (o mesmo `add_apply` do Adicionar).
         let request: warden_project::add::AddApplyRequest = serde_json::from_value(json!({
             "items": [{"source": "modrinth", "projectId": "PJ", "versionId": "vJ",

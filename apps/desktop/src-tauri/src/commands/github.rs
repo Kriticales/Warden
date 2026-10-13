@@ -110,7 +110,11 @@ fn http() -> Result<HttpClient, AppError> {
 
 /// Cliente da API com um token dado.
 pub(crate) fn client_with(token: SecretString) -> Result<GithubClient, AppError> {
-    Ok(GithubClient::new(http()?, GithubEndpoints::from_env(), token))
+    Ok(GithubClient::new(
+        http()?,
+        GithubEndpoints::from_env(),
+        token,
+    ))
 }
 
 /// Cliente da API com o token do cofre. Erro `secrets.*` se o token não estiver salvo.
@@ -123,7 +127,10 @@ pub(crate) async fn client(state: &AppState) -> Result<GithubClient, AppError> {
 }
 
 /// O repositório gravado para o pack.
-pub(crate) fn stored_link(state: &AppState, pack_id: PackId) -> Result<Option<StoredLink>, AppError> {
+pub(crate) fn stored_link(
+    state: &AppState,
+    pack_id: PackId,
+) -> Result<Option<StoredLink>, AppError> {
     let record = state
         .packs
         .get(pack_id)
@@ -179,9 +186,10 @@ async fn status_impl(state: &AppState, pack_id: PackId) -> Result<GithubStatus, 
     .await
     .map_err(|error| AppError::internal(format!("estado da publicação: {error}")))??;
     let manifest = manifest(&root);
-    let name = manifest
-        .as_ref()
-        .map_or_else(|| state.packs.get(pack_id).map(|r| r.name).unwrap_or_default(), |m| m.name.clone());
+    let name = manifest.as_ref().map_or_else(
+        || state.packs.get(pack_id).map(|r| r.name).unwrap_or_default(),
+        |m| m.name.clone(),
+    );
     let loader = manifest.as_ref().and_then(|m| {
         let versions = m.versions.as_ref()?;
         ["neoforge", "forge", "fabric", "quilt"]
@@ -202,7 +210,9 @@ async fn status_impl(state: &AppState, pack_id: PackId) -> Result<GithubStatus, 
         published,
         token_configured,
         suggested_name: default_repo_name(&name),
-        minecraft: manifest.as_ref().and_then(|m| m.minecraft_version().map(ToOwned::to_owned)),
+        minecraft: manifest
+            .as_ref()
+            .and_then(|m| m.minecraft_version().map(ToOwned::to_owned)),
         loader,
     })
 }
@@ -370,8 +380,16 @@ mod tests {
         );
         let after = status_impl(&state, pack_id).await.unwrap();
         let link = after.link.unwrap();
-        assert!(link.pack_link.ends_with("/dono/vale/main/pack.toml"), "{}", link.pack_link);
-        assert!(!serde_json::to_string(&record.extra).unwrap().contains(TOKEN));
+        assert!(
+            link.pack_link.ends_with("/dono/vale/main/pack.toml"),
+            "{}",
+            link.pack_link
+        );
+        assert!(
+            !serde_json::to_string(&record.extra)
+                .unwrap()
+                .contains(TOKEN)
+        );
 
         // Vincular um existente troca o repositório e mostra a visibilidade dele.
         let linked = setup_impl(
