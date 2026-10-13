@@ -42,3 +42,13 @@ paths = [
   '''^crates[/\\]warden-versioning[/\\]src[/\\]publish[/\\]secrets\.rs$''',
   '''^apps[/\\]desktop[/\\]e2e[/\\]mock-server[/\\]github\.ts$''',
 ]
+
+[[allowlists]]
+description = "Tokens inventados do servidor web do KubeJS 7 nos testes da C-07 (base64 de frases de teste; o servidor é simulado). Só estes valores exatos."
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = [
+  '''^dG9rZW4tc2VjcmV0by1kby1rdWJlanM$''',
+  '''^dG9rZW4tZG8tc2Vydmlkb3Itd2ViLWRvLWt1YmVqcy1lMmU$''',
+  '''^c2VncmVkby1kby1rdWJlanMtcGFyYS10ZXN0ZXM_$''',
+]
