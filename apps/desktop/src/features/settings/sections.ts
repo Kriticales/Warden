@@ -17,6 +17,7 @@ import { GeneralSection } from './components/GeneralSection';
 import { KeysSection } from './components/KeysSection';
 import { LogsSection } from './components/LogsSection';
 import { TestSection } from './components/TestSection';
+import { StorageSection } from './storage/components/StorageSection';
 
 export interface SettingsSection {
   /** Identificador estável (também a âncora `#<id>` da seção). */
@@ -31,6 +32,6 @@ export const settingsSections: readonly SettingsSection[] = [
   { id: 'teste', Component: TestSection },
   { id: 'editor', Component: ConfigEditorSection },
   { id: 'registros', Component: LogsSection },
-  // A-06: { id: 'armazenamento', Component: StorageSection },
+  { id: 'armazenamento', Component: StorageSection },
   { id: 'sobre', Component: AboutWarden },
 ];

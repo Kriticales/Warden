@@ -42,6 +42,7 @@ describe('Configurações', () => {
       'Teste',
       'Editor de configs',
       'Privacidade e registros',
+      'Armazenamento',
       'Sobre o Warden',
     ]);
     // A própria página não repete o link para si; "Meus packs" volta para o início.

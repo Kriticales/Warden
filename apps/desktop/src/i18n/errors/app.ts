@@ -46,4 +46,12 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Este mod não está mais esperando o download manual: o teste foi cancelado ou já continuou.',
   MANUAL_DOWNLOAD_NO_PAGE:
     'O Warden não sabe a página de download deste mod. Procure o mod pelo nome no site da CurseForge e baixe o arquivo indicado.',
+  STORAGE_GAME_RUNNING:
+    'O cache não foi limpo porque o jogo do pack {{packName}} está aberto. Feche o jogo e tente de novo.',
+  STORAGE_OPERATION_RUNNING:
+    'O cache não foi limpo porque há tarefas em andamento. Espere elas terminarem (veja em Tarefas) e tente de novo.',
+  STORAGE_OPERATION_RUNNING_one:
+    'O cache não foi limpo porque há {{count}} tarefa em andamento. Espere ela terminar (veja em Tarefas) e tente de novo.',
+  STORAGE_OPERATION_RUNNING_other:
+    'O cache não foi limpo porque há {{count}} tarefas em andamento. Espere elas terminarem (veja em Tarefas) e tente de novo.',
 };

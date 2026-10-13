@@ -294,6 +294,10 @@ pub enum AppErrorCode {
     ManualDownloadNotWaiting,
     /// O mod bloqueado não tem a página de download conhecida (L-06).
     ManualDownloadNoPage,
+    /// "Limpar cache" com um jogo aberto ou em preparação (A-06). `params`: `packName`.
+    StorageGameRunning,
+    /// "Limpar cache" com outra tarefa em andamento (A-06). `params`: `count`.
+    StorageOperationRunning,
 }
 
 #[cfg(test)]
