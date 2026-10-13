@@ -26,11 +26,16 @@ export const diagnosticsKeys = {
     [...queryKeys.pack(packId), 'test', 'crash', sessionId] as const,
 };
 
-/** O último relatório (`null`: nunca verificado). Sempre relido ao abrir a tela. */
-export function useDiagnosticsReport(packId: PackId) {
+/**
+ * O último relatório (`null`: nunca verificado). Sempre relido ao abrir a tela; com
+ * `refetchOnMount: false` (as marcas das linhas da lista de Mods, que montam e desmontam ao
+ * rolar), só a primeira leitura e as invalidações buscam de novo.
+ */
+export function useDiagnosticsReport(packId: PackId, { refetchOnMount = true } = {}) {
   return useQuery({
     ...commandQuery(diagnosticsKeys.report(packId), () => commands.diagnosticsReportGet(packId)),
     staleTime: 0,
+    refetchOnMount,
   });
 }
 

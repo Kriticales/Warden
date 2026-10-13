@@ -52,7 +52,7 @@ function ProblemBadge({ packId, problem }: { packId: PackId; problem: ItemProble
 }
 
 function Mark({ packId, path }: { packId: PackId; path: string }) {
-  const report = useDiagnosticsReport(packId);
+  const report = useDiagnosticsReport(packId, { refetchOnMount: false });
   const problem = report.data ? problemsByPath(report.data.findings).get(path) : undefined;
   return problem ? <ProblemBadge packId={packId} problem={problem} /> : null;
 }

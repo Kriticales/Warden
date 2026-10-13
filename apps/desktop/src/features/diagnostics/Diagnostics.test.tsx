@@ -4,6 +4,7 @@
  * contador no menu), marcas na lista de Mods, "Por que travou" no resultado do teste e o
  * diálogo de erros do Testar. Os critérios estão no nome de cada teste.
  */
+import { QueryClient } from '@tanstack/react-query';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -15,8 +16,10 @@ import { makeAppError } from '../../test/factories';
 import { renderApp } from '../../test/render';
 import { makeInventory, makeItem } from '../pack-editor/editor.fixtures';
 import { editorBackend } from '../pack-editor/testing';
+import { invalidateAfterTest } from '../test/api';
 import { useTestStore } from '../test/store';
 import { gameLine, makeSession, makeSessionView } from '../test/test.fixtures';
+import { diagnosticsKeys } from './api';
 import {
   CRASH_CAUSE,
   MISSING_DEP,
@@ -247,6 +250,14 @@ describe('marcas na lista de Mods (T06)', () => {
     const sodium = screen.getByText('Sodium').closest('tr');
     if (!sodium) throw new Error('linha do Sodium');
     expect(within(sodium).getByRole('link', { name: /^Aviso:/ })).toBeDefined();
+  });
+
+  it('o fim de um teste relê o relatório (o pré-teste gravou outro): contador e marcas mudam', async () => {
+    const queryClient = new QueryClient();
+    const packId = 'pack-1';
+    queryClient.setQueryData(diagnosticsKeys.report(packId), makeReport());
+    await invalidateAfterTest(queryClient, packId);
+    expect(queryClient.getQueryState(diagnosticsKeys.report(packId))?.isInvalidated).toBe(true);
   });
 });
 
