@@ -32,7 +32,7 @@ use crate::state::AppState;
 pub(crate) const TEST_SETTINGS_KEY: &str = "testSettings";
 
 /// Tamanho máximo dos argumentos extras da JVM, em caracteres.
-const MAX_JVM_ARGS: usize = 4000;
+pub(crate) const MAX_JVM_ARGS: usize = 4000;
 
 fn domain(error: warden_project::Error) -> AppError {
     AppError::from_domain(&error)
@@ -152,7 +152,9 @@ pub(crate) fn pack_test_settings_set(
     test_settings_view(&state, pack_id)
 }
 
-fn write_test_settings(
+/// Confere e grava os ajustes do teste (do perfil Padrão, L-08), preservando os campos que
+/// esta versão não conhece.
+pub(crate) fn write_test_settings(
     state: &AppState,
     pack_id: PackId,
     mut settings: TestSettings,

@@ -24,6 +24,7 @@ pub mod operations;
 pub mod settings;
 pub mod state;
 mod test_hooks;
+mod test_profiles;
 pub mod test_session;
 mod window_chrome;
 
