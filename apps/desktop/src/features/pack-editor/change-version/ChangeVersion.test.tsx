@@ -431,7 +431,10 @@ describe('Remover com a cadeia e as dependências sem uso (CA-T06-06)', () => {
     expect(kotlin.checked).toBe(false);
     expect(await axePage(document.body)).toHaveNoViolations();
 
+    expect(within(dialog).queryByText('mods/kotlin.pw.toml')).toBeNull();
     await user.click(kotlin);
+    // O arquivo da dependência marcada entra na lista do que é apagado.
+    expect(within(dialog).getByText('mods/kotlin.pw.toml')).toBeDefined();
     await user.click(within(dialog).getByRole('button', { name: 'Remover 2 itens' }));
     await waitFor(() => {
       expect(backend.callsOf('items_remove')).toHaveLength(1);

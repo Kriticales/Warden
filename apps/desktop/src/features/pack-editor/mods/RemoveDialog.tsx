@@ -47,8 +47,9 @@ export function RemoveDialog({ packId, items, onClose, onRemoved }: RemoveDialog
     description = t('mods.remover.dependentesVarios', { count: dependents.length, nomes: names });
   }
 
-  const files = plan.data?.targets.flatMap((target) => target.files) ?? [];
   const extra = orphans.filter((path) => plan.data?.orphans.some((orphan) => orphan.path === path));
+  // As dependências sem uso marcadas também são apagadas (o `.pw.toml` ou o arquivo local).
+  const files = [...(plan.data?.targets.flatMap((target) => target.files) ?? []), ...extra];
   const total = count + extra.length;
   return (
     <ConfirmDialog
