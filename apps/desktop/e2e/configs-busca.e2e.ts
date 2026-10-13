@@ -102,12 +102,20 @@ async function waitTitle(text: string, timeout = 30_000): Promise<void> {
   );
 }
 
-/** Troca o texto do campo de busca. `setValue` digita tecla por tecla, como a pessoa (o
- * `browser.keys` do WebKitWebDriver perde letras repetidas, como o "ee" de "creeperzinho"). */
+/**
+ * Troca o texto do campo de busca: Esc limpa (o atalho do próprio campo, que passa pelo React;
+ * o `clearValue` do WebDriver muda só o DOM e o React devolve o texto antigo) e `addValue`
+ * digita tecla por tecla (o `browser.keys` do WebKitWebDriver perde letras repetidas, como o
+ * "ee" de "creeperzinho").
+ */
 async function search(text: string): Promise<void> {
   const box = $('input[aria-label="Buscar em todas as configs"]');
   await box.click();
-  await box.setValue(text);
+  if ((await box.getValue()) !== '') {
+    await browser.keys(['Escape']);
+    await expect(box).toHaveValue('');
+  }
+  await box.addValue(text);
   await expect(box).toHaveValue(text);
 }
 
