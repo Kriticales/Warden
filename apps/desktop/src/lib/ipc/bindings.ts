@@ -3009,7 +3009,30 @@ export type IdGroup = {
  */
 export type ImportErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O arquivo ou a pasta não é nenhum dos formatos que o Warden importa. */
+"UNKNOWN_FORMAT" | 
+/**  O arquivo está corrompido ou incompleto (zip ilegível, índice inválido). */
+"UNREADABLE" | 
+/**
+ *  O arquivo tem caminhos perigosos (`..`, caminho absoluto ou letra de drive): recusado
+ *  sem criar nada (CA-T24-02).
+ */
+"UNSAFE_PATH" | 
+/**  O modpack usa um loader que o Warden não suporta (Quilt, `LiteLoader`) ou mais de um. */
+"UNSUPPORTED_LOADER" | 
+/**  Zip da CurseForge sem a chave da CurseForge: nenhuma requisição foi feita. */
+"CURSEFORGE_KEY_MISSING" | 
+/**  O packwiz não conseguiu ler o zip da CurseForge. */
+"CURSEFORGE_IMPORT_FAILED" | 
+/**  O arquivo é grande demais ou tem entradas demais (proteção contra *zip bomb*). */
+"TOO_LARGE" | 
+/**  O arquivo de origem mudou entre a revisão e a importação. */
+"SOURCE_CHANGED" | 
+/**  A revisão expirou (o app foi reaberto ou passou muito tempo): leia o arquivo de novo. */
+"PLAN_EXPIRED" | 
+/**  O modpack não diz a versão do Minecraft. */
+"MINECRAFT_MISSING";
 
 /**  Diagnóstico de uma pasta antes de importar, sem alterações no disco. */
 export type ImportPreview = {

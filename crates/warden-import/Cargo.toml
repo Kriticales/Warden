@@ -14,8 +14,27 @@ warden-modrinth.workspace = true
 warden-curseforge.workspace = true
 warden-http.workspace = true
 warden-jarmeta.workspace = true
+warden-project.workspace = true
+warden-export.workspace = true
+warden-instance.workspace = true
+warden-versioning.workspace = true
+secrecy.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+toml.workspace = true
+tracing.workspace = true
+url.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+hex.workspace = true
+sha1.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true
