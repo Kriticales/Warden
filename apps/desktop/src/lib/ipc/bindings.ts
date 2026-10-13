@@ -169,6 +169,24 @@ export const commands = {
 	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
 	 */
 	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
+	/**  O formulário de `path` com o texto atual do editor (que pode ter alterações não salvas). */
+	configForm: (packId: PackId, path: string, text: string) => typedError<ConfigForm, AppError>(__TAURI_INVOKE("config_form", { packId, path, text })),
+	/**
+	 *  Aplica as edições do formulário ao texto e devolve o texto novo. Só os bytes dos valores
+	 *  mudam; se a conferência falhar, nada volta (`EDIT_NOT_CONFIRMED`) e a interface abre o texto.
+	 */
+	configFormApply: (path: string, text: string, edits: FormEdit[]) => typedError<string, AppError>(__TAURI_INVOKE("config_form_apply", { path, text, edits })),
+	/**  Se a config do pack está no índice e com "Não substituir se o jogador já tiver". */
+	configPreserve: (packId: PackId, path: string) => typedError<PreserveState, AppError>(__TAURI_INVOKE("config_preserve", { packId, path })),
+	/**  Liga ou desliga "Não substituir se o jogador já tiver". `false` quando já estava assim. */
+	configSetPreserve: (packId: PackId, path: string, preserve: boolean) => typedError<boolean, AppError>(__TAURI_INVOKE("config_set_preserve", { packId, path, preserve })),
+	/**
+	 *  Copia um `config/*-server.toml` para `defaultconfigs/`. Sem `overwrite`, um destino
+	 *  diferente não é tocado e a resposta pede a confirmação.
+	 */
+	configCopyToDefaultconfigs: (packId: PackId, path: string, overwrite: boolean) => typedError<CopyOutcome, AppError>(__TAURI_INVOKE("config_copy_to_defaultconfigs", { packId, path, overwrite })),
+	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
+	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId })),
 	/**  "Verificar agora": confere o pack e grava o relatório. */
 	diagnosticsRun: (packId: PackId) => typedError<DiagnosticsReport, AppError>(__TAURI_INVOKE("diagnostics_run", { packId })),
 	/**  O último relatório do pack (`None`: nunca verificado neste computador). */
@@ -523,6 +541,12 @@ export const commands = {
 	problemReportPreview: (input: ProblemReportInput) => typedError<ProblemReportPreview, AppError>(__TAURI_INVOKE("problem_report_preview", { input })),
 	/**  Abre o endereço da pré-visualização no navegador padrão. */
 	problemReportOpen: (url: string) => typedError<null, AppError>(__TAURI_INVOKE("problem_report_open", { url })),
+	/**
+	 *  Copia para a área de transferência um print só da janela do Warden (UI-03). A interface
+	 *  esconde o diálogo antes de chamar e o mostra de novo depois. Qualquer falha volta como
+	 *  erro, e a interface abre a issue mesmo assim, dizendo que o print não foi copiado.
+	 */
+	problemReportCapture: () => typedError<CapturedImage, AppError>(__TAURI_INVOKE("problem_report_capture")),
 	/**  Onde as chaves ficam e quais estão configuradas. */
 	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
 	/**  Grava uma chave digitada e devolve o estado. */
@@ -680,6 +704,7 @@ export const commands = {
 
 /** Events */
 export const events = {
+	configIndexChanged: makeEvent<ConfigIndexChanged>("config-index-changed"),
 	gameQuitRequested: makeEvent<GameQuitRequested>("game-quit-requested"),
 	gameState: makeEvent<GameState>("game-state"),
 	localFilesDropped: makeEvent<LocalFilesDropped>("local-files-dropped"),
@@ -1182,6 +1207,14 @@ export type CapturedFile = {
 	managed: boolean,
 };
 
+/**  Tamanho do print copiado. */
+export type CapturedImage = {
+	/**  Largura em pixels. */
+	width: number,
+	/**  Altura em pixels. */
+	height: number,
+};
+
 /**
  *  Códigos do domínio `catalog`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -1274,6 +1307,15 @@ export type CheckTrigger =
 /**  Botão "Verificar atualizações": sempre consulta. */
 "manual";
 
+/**  Quanto o formulário confia no tipo e nos limites do campo. */
+export type Confidence = 
+/**  Declarado pelo arquivo, ou tipo inequívoco pelo valor. */
+"high" | 
+/**  Tipo pelo valor que poderia ser outro (número decimal, texto). */
+"medium" | 
+/**  Deduzido das frases do comentário ou do jeito do valor. */
+"low";
+
 /**  Um arquivo lido. */
 export type ConfigContent = {
 	/**  Caminho relativo à origem. */
@@ -1290,6 +1332,30 @@ export type ConfigContent = {
 	readOnly: ReadOnlyReason | null,
 	/**  Última alteração, em milissegundos Unix. */
 	modifiedAtMs: number | null,
+};
+
+/**  Um campo editável. */
+export type ConfigField = {
+	/**  Caminho da chave (o que volta na edição). */
+	path: FieldKey[],
+	/**  A chave real, para mostrar (`kinetics.maxRotationSpeed`). */
+	key: string,
+	/**  Linha da chave (começa em 1). */
+	line: number,
+	/**  Valor atual. */
+	value: FormValue,
+	/**  Controle. */
+	control: FieldControl,
+	/**  Confiança no controle e nos limites. */
+	confidence: Confidence,
+	/**  O comentário do arquivo, sem as linhas de metadados. */
+	description: string | null,
+	/**  Faixa permitida. */
+	range: FieldRange | null,
+	/**  Padrão. */
+	default: FieldDefault | null,
+	/**  Rótulo do jar. */
+	label: FieldLabel | null,
 };
 
 /**  Um arquivo da árvore. */
@@ -1314,6 +1380,28 @@ export type ConfigFileList = {
 	truncated: boolean,
 };
 
+/**  O formulário de um arquivo. */
+export type ConfigForm = {
+	/**  Se o formulário serve. */
+	availability: FormAvailability,
+	/**  Linhas do formulário (vazio quando só texto). */
+	items: FormItem[],
+};
+
+/**  `config-index-changed`: o índice de uma origem terminou a primeira leitura ou mudou. */
+export type ConfigIndexChanged = {
+	/**  Pack. */
+	packId: PackId,
+	/**  Origem do índice. */
+	origin: ConfigOrigin,
+	/**  Situação depois da mudança. */
+	status: IndexStatus,
+	/**  Arquivos que entraram, mudaram ou saíram (0 na primeira leitura de uma origem vazia). */
+	changedFiles: number,
+	/**  Foi a primeira leitura, não uma mudança de arquivo. */
+	first: boolean,
+};
+
 /**  De onde vêm os arquivos mostrados. */
 export type ConfigOrigin = 
 /**  A pasta do pack (o que vai para os jogadores). */
@@ -1329,6 +1417,68 @@ export type ConfigSaved = {
 	size: number,
 	/**  `false` quando o texto era igual ao do disco e nada foi gravado. */
 	changed: boolean,
+};
+
+/**  Os resultados de um arquivo. */
+export type ConfigSearchGroup = {
+	/**  Caminho relativo à origem. */
+	path: string,
+	/**  Mod dono do arquivo, deduzido do caminho (`config/create-common.toml` → `create`). */
+	modId: string | null,
+	/**  Resultados, na ordem das linhas (cortados em [`SearchQuery::max_hits_per_file`]). */
+	hits: ConfigSearchHit[],
+	/**  Quantos resultados o arquivo tem, contando os cortados. */
+	total: number,
+};
+
+/**  Um resultado: uma chave (ou uma linha) de um arquivo. */
+export type ConfigSearchHit = {
+	/**  Linha da chave no arquivo (começa em 1). Clicar abre o arquivo nela. */
+	line: number,
+	/**  Onde a pontuação foi maior. */
+	field: HitField,
+	/**  Nome da chave com o caminho das seções (`geral.spawnRate`); `None` numa linha de texto. */
+	key: MarkedText | null,
+	/**  Rótulo traduzido do mod (P1; chega com a C-04). */
+	label: MarkedText | null,
+	/**  Valor (`None` em seções e linhas de texto). */
+	value: MarkedText | null,
+	/**  Trecho do comentário (só quando o comentário casou). */
+	comment: MarkedText | null,
+	/**  A linha inteira, nos arquivos sem leitor estruturado. */
+	text: MarkedText | null,
+};
+
+/**  Um mod com resultados, para o filtro "Só deste mod". */
+export type ConfigSearchMod = {
+	/**  Id deduzido do caminho dos arquivos. */
+	id: string,
+	/**  Quantos resultados ele tem (sem o filtro de mod). */
+	hits: number,
+};
+
+/**  Resposta de `config_search`. */
+export type ConfigSearchResponse = {
+	/**  Situação do índice no momento da busca. */
+	status: IndexStatus,
+	/**  Resultados (`None` na busca vazia e na cancelada). */
+	results: ConfigSearchResults | null,
+	/**  Uma busca mais nova da mesma origem chegou antes desta terminar. */
+	cancelled: boolean,
+};
+
+/**  Resultado de uma busca. */
+export type ConfigSearchResults = {
+	/**  Arquivos com resultado, do mais relevante para o menos. */
+	groups: ConfigSearchGroup[],
+	/**  Resultados ao todo (com o filtro de mod, contando os cortados). */
+	totalHits: number,
+	/**  Arquivos com resultado (com o filtro de mod). */
+	totalFiles: number,
+	/**  Algum resultado ficou de fora pelos limites. */
+	truncated: boolean,
+	/**  Mods com resultado, por id, para o filtro (sem o filtro de mod). */
+	mods: ConfigSearchMod[],
 };
 
 /**
@@ -1433,6 +1583,21 @@ export type ControlDiff = {
 	/**  Conteúdo proposto, preservando padrões adicionais do usuário. */
 	suggested: string,
 };
+
+/**  Resultado de "Copiar para defaultconfigs/". */
+export type CopyOutcome = 
+/**  Copiado (e o índice atualizado). */
+{ kind: "copied"; 
+/**  Caminho do arquivo criado ou substituído. */
+target: string } | 
+/**  O destino já tem exatamente o mesmo conteúdo; nada foi gravado. */
+{ kind: "alreadySame"; 
+/**  Caminho do destino. */
+target: string } | 
+/**  O destino existe com outro conteúdo; nada foi gravado. Repita com `overwrite`. */
+{ kind: "needsOverwrite"; 
+/**  Caminho do destino. */
+target: string };
 
 /**
  *  Códigos do domínio `core`, comuns a todas as crates. O código é contrato: renomear é
@@ -1941,6 +2106,73 @@ export type ExportSource =
 /**  Número `SemVer` sem o prefixo `v`. */
 version: string };
 
+/**  O controle que o formulário mostra. */
+export type FieldControl = 
+/**  Liga/desliga. */
+{ type: "toggle" } | 
+/**  Número, com o limite quando há. */
+{ type: "number"; 
+/**  Só inteiros. */
+integer: boolean; 
+/**  Mínimo (da faixa). */
+min: number | null; 
+/**  Máximo (da faixa). */
+max: number | null } | 
+/**  Uma opção de uma lista fechada. */
+{ type: "options"; 
+/**  Os valores aceitos. */
+values: string[] } | 
+/**  Texto livre. */
+{ type: "text" } | 
+/**  Lista de valores. */
+{ type: "list"; 
+/**  Tipo dos itens. */
+item: ListItemKind } | 
+/**
+ *  Cor `#RRGGBB`, deduzida do valor. Com oito dígitos o canal alfa pode vir na frente ou
+ *  atrás (cada mod escolhe), então esse valor fica como texto.
+ */
+{ type: "color" };
+
+/**  Padrão da chave. */
+export type FieldDefault = {
+	/**  O padrão como o arquivo escreve. */
+	value: string,
+	/**  Tirado de uma frase do comentário (camada 3), não de um metadado do arquivo. */
+	inferred: boolean,
+};
+
+/**  Um passo do caminho de uma chave, como a interface manda e recebe. */
+export type FieldKey = 
+/**  Nome de chave ou seção. */
+string | 
+/**  Posição numa lista. */
+number;
+
+/**  Rótulo do arquivo de idioma do jar. */
+export type FieldLabel = {
+	/**  O nome bonito. */
+	text: string,
+	/**  A ajuda, quando o mod tem. */
+	tooltip: string | null,
+	/**  A chave de tradução usada. */
+	translationKey: string,
+	/**  Idioma do rótulo. */
+	locale: LangLocale,
+};
+
+/**  Faixa permitida. */
+export type FieldRange = {
+	/**  Mínimo. */
+	min: number | null,
+	/**  Máximo. */
+	max: number | null,
+	/**  Como o arquivo escreve (`1 ~ 64`, `between 1 and 64`). */
+	text: string,
+	/**  Tirada de uma frase do comentário (camada 3), não de um metadado do arquivo. */
+	inferred: boolean,
+};
+
 /**  Um arquivo alterado, com o caminho relativo à raiz do pack (separador `/`). */
 export type FileChange = {
 	/**  Caminho relativo (separador `/`). */
@@ -2081,6 +2313,80 @@ export type FolderPurpose =
 "openPack" | 
 /**  Nova pasta de um pack que sumiu (Localizar…). */
 "relocate";
+
+/**  Se o formulário serve para o arquivo. */
+export type FormAvailability = 
+/**  O formulário serve. */
+{ kind: "ready" } | 
+/**  Só o editor de texto, com o motivo. */
+{ kind: "textOnly"; 
+/**  Motivo. */
+reason: TextOnlyReason };
+
+/**  Uma edição pedida pelo formulário. */
+export type FormEdit = {
+	/**  Caminho da chave. */
+	path: FieldKey[],
+	/**  Valor novo. */
+	value: FormValue,
+};
+
+/**  Uma linha do formulário, na ordem do arquivo. */
+export type FormItem = 
+/**  Título de seção. */
+{
+	kind: "section",
+} & FormSection | 
+/**  Campo editável. */
+{
+	kind: "field",
+} & ConfigField | 
+/**  Trecho só em texto. */
+{
+	kind: "snippet",
+} & FormSnippet;
+
+/**  Um título de seção. */
+export type FormSection = {
+	/**  Caminho da seção. */
+	path: FieldKey[],
+	/**  Caminho para mostrar (`kinetics.fluids`). */
+	key: string,
+	/**  Linha (começa em 1). */
+	line: number,
+	/**  Comentário acima da seção. */
+	description: string | null,
+};
+
+/**  Um trecho que o formulário não edita: o botão leva ao editor de texto na linha. */
+export type FormSnippet = {
+	/**  Caminho do trecho. */
+	path: FieldKey[],
+	/**  Caminho para mostrar. */
+	key: string,
+	/**  Linha (começa em 1). */
+	line: number,
+	/**  Motivo. */
+	reason: SnippetReason,
+};
+
+/**
+ *  Valor de um campo. Números vão como texto, para não perder precisão no caminho (um `long`
+ *  do Java não cabe num número do JavaScript).
+ */
+export type FormValue = 
+/**  Liga/desliga. */
+{ type: "bool"; value: boolean } | 
+/**  Inteiro, em texto (`"-3"`). */
+{ type: "integer"; value: string } | 
+/**  Número com casas decimais, em texto (`"1.5"`). */
+{ type: "float"; value: string } | 
+/**  Texto. */
+{ type: "string"; value: string } | 
+/**  Data e hora do TOML, em texto. */
+{ type: "datetime"; value: string } | 
+/**  Lista de valores simples, cada um em texto. */
+{ type: "list"; value: string[] };
 
 /**  A leitura do pack para um formato: o que se perde, o que pede decisão e o que impede. */
 export type FormatAnalysis = {
@@ -2309,6 +2615,19 @@ export type HistoryView = {
 	versions: SavedVersion[],
 };
 
+/**  Onde um resultado casou. A ordem é a da pontuação: chave > rótulo > comentário > valor. */
+export type HitField = 
+/**  Valor da chave. */
+"value" | 
+/**  Linha de um arquivo sem leitor estruturado (YAML, SNBT, scripts, texto). */
+"line" | 
+/**  Comentário da chave. */
+"comment" | 
+/**  Rótulo traduzido do mod (P1; C-04). Ainda não preenchido. */
+"label" | 
+/**  Nome da chave (com o caminho das seções). */
+"key";
+
 /**
  *  Códigos do domínio `http`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -2456,6 +2775,20 @@ pack: string } |
 accepts: string; 
 /**  Versão do pack. */
 pack: string };
+
+/**  Situação do índice de uma origem. */
+export type IndexStatus = {
+	/**  A pasta da origem existe (a instância só existe depois do primeiro teste). */
+	available: boolean,
+	/**  A primeira leitura de todos os arquivos terminou. */
+	ready: boolean,
+	/**  Arquivos já lidos. */
+	indexedFiles: number,
+	/**  Arquivos da origem (0 enquanto a lista não foi lida). */
+	totalFiles: number,
+	/**  Chaves e linhas no índice. */
+	entries: number,
+};
 
 /**  O que gravar depois do "Pack criado". */
 export type InitialModsRequest = {
@@ -2979,6 +3312,13 @@ export type KitItem = {
 	note: string | null,
 };
 
+/**  Idioma de um rótulo. */
+export type LangLocale = 
+/**  `pt_br.json`. */
+"ptBr" | 
+/**  `en_us.json`. */
+"enUs";
+
 /**
  *  Códigos do domínio `launcher`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -3046,6 +3386,17 @@ export type LinkTarget = {
 	 */
 	manualDownload: boolean,
 };
+
+/**  Tipo dos itens de uma lista. */
+export type ListItemKind = 
+/**  Texto. */
+"text" | 
+/**  Inteiro. */
+"integer" | 
+/**  Número com casas decimais. */
+"float" | 
+/**  Liga/desliga (`true`/`false`). */
+"bool";
 
 /**  Os tempos de um teste, em milissegundos desde a abertura do processo. */
 export type LoadTimes = {
@@ -3250,6 +3601,23 @@ chosenFile: string };
 export type ManualDownloadsChanged = {
 	/**  O pack. */
 	packId: PackId,
+};
+
+/**  Um pedaço de texto, destacado ou não. */
+export type MarkedPart = {
+	/**  O texto. */
+	text: string,
+	/**  Faz parte do que casou com a busca. */
+	marked: boolean,
+};
+
+/**
+ *  Texto com os trechos que casaram destacados. Um texto longo vem cortado em volta do primeiro
+ *  trecho, com "…" no lugar do que ficou de fora.
+ */
+export type MarkedText = {
+	/**  Os pedaços, na ordem do texto. */
+	parts: MarkedPart[],
 };
 
 /**
@@ -3954,6 +4322,17 @@ export type Preflight = {
 	diagnosticErrors: number | null,
 };
 
+/**  A opção "não substituir" de um arquivo do pack. */
+export type PreserveState = {
+	/**
+	 *  O arquivo está no índice (só então a opção vale; um arquivo novo entra no índice ao
+	 *  salvar).
+	 */
+	inIndex: boolean,
+	/**  `preserve = true` no índice. */
+	preserve: boolean,
+};
+
 /**  Um arquivo distribuído, em ordem de caminho. */
 export type PreviewFile = {
 	/**  Caminho relativo, com `/`. */
@@ -4079,14 +4458,12 @@ export type PrismSwap = {
 
 /**  O que a pessoa escreveu e o que a interface sabe (tela e pack abertos, último erro). */
 export type ProblemReportInput = {
+	/**  Categoria (abre o corpo e vira o rótulo da issue). */
+	category: ReportCategory,
 	/**  Título (obrigatório para abrir; a pré-visualização aceita vazio). */
 	title: string,
-	/**  "O que você fez". */
-	whatYouDid: string,
-	/**  "O que aconteceu". */
-	whatHappened: string,
-	/**  "O que você esperava". */
-	whatYouExpected: string,
+	/**  Descrição (opcional). */
+	description: string,
 	/**  "Incluir os registros do Warden". */
 	includeLog: boolean,
 	/**  Tela atual, nos termos da interface ("Pack › Mods"). */
@@ -4105,6 +4482,8 @@ export type ProblemReportPreview = {
 	body: string,
 	/**  Endereço da issue nova (`problem_report_open` abre este). */
 	url: string,
+	/**  Rótulos da issue, como vão no endereço (`relato-do-dono`, `categoria: erro`). */
+	labels: string[],
 	/**
 	 *  Corpo completo, com todas as linhas lidas dos registros (para a área de transferência
 	 *  quando algo foi cortado).
@@ -4466,6 +4845,19 @@ export type RepoRef = {
 	/**  Nome. */
 	name: string,
 };
+
+/**  Categoria do relato (UI-03): abre o corpo (`## Erro`) e vira o rótulo `categoria: erro`. */
+export type ReportCategory = 
+/**  "Erro": algo quebrou ou deu erro. */
+"error" | 
+/**  "Visual ou texto": aparência, texto errado. */
+"visual" | 
+/**  "Lentidão": demora ou trava. */
+"slowness" | 
+/**  "Sugestão": ideia ou melhoria. */
+"suggestion" | 
+/**  "Outro": qualquer outra coisa. */
+"other";
 
 /**  O que precisou ser cortado para o endereço caber. */
 export type ReportCut = 
@@ -4898,6 +5290,29 @@ export type SideNote =
 /**  "Lado desconhecido — confira se é só de cliente". */
 "unknown";
 
+/**  Por que um trecho só se edita como texto. */
+export type SnippetReason = 
+/**  Lista de objetos ou tabelas. */
+"listOfObjects" | 
+/**  Lista com listas dentro, ou com itens de tipos diferentes. */
+"complexList" | 
+/**  Valor `null` (o tipo certo é desconhecido). */
+"nullValue" | 
+/**  Seção funda demais. */
+"tooDeep" | 
+/**
+ *  Valor escrito em várias linhas (linha continuada com `\\` no `.properties`, texto de
+ *  várias linhas do TOML): pelo formulário ele viraria uma linha só.
+ */
+"multilineValue" | 
+/**  Lista escrita de um jeito que o formulário não consegue editar item por item. */
+"listLayout" | 
+/**
+ *  Chave do `.properties` sozinha na linha, sem `=` nem valor: dar um valor e depois
+ *  apagá-lo deixaria um `=` que não estava lá.
+ */
+"keyWithoutValue";
+
 /**  Fonte de metadados de uma API. */
 export type Source = 
 /**  Modrinth. */
@@ -5225,6 +5640,29 @@ width: number;
 height: number } | 
 /**  Tela cheia (`--fullscreen`). */
 { mode: "fullscreen" };
+
+/**  Por que o arquivo abre só no editor de texto. */
+export type TextOnlyReason = 
+/**  Formato sem formulário (YAML, scripts, texto solto...). */
+{ code: "unsupportedFormat" } | 
+/**  `.cfg` que não é do `Configuration` do Forge. */
+{ code: "notForgeCfg" } | 
+/**  Acima de 2 MB. */
+{ code: "tooLarge" } | 
+/**  Não é UTF-8. */
+{ code: "notUtf8" } | 
+/**  O texto não segue o formato. */
+{ code: "parseFailed"; 
+/**  Linha. */
+line: number; 
+/**  Coluna. */
+column: number } | 
+/**  A leitura de teste não volta idêntica: reescrever esta chave mudaria o arquivo. */
+{ code: "notIdentical"; 
+/**  A primeira chave com problema. */
+key: string } | 
+/**  O arquivo não tem nenhuma chave. */
+{ code: "noKeys" };
 
 /**
  *  `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
