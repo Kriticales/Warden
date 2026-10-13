@@ -42,7 +42,7 @@ pub const SIDECAR: &str = "packwiz.exe";
 pub const ARTIFACT_PREFIX: &str = "warden-windows-";
 
 /// Chave de desinstalação que o instalador NSIS do Tauri grava para o usuário atual.
-const UNINSTALL_KEY: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Warden";
+pub const UNINSTALL_KEY: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Warden";
 
 /// Quantas execuções da CI listar, e de quantas com sucesso conferir os artefatos.
 const RUNS_TO_LIST: u32 = 30;
@@ -517,7 +517,7 @@ pub fn parse_tasklist(output: &str, image: &str) -> Vec<u32> {
         .collect()
 }
 
-fn running_warden() -> Result<Vec<u32>> {
+pub fn running_warden() -> Result<Vec<u32>> {
     let output = Command::new("tasklist")
         .args([
             "/FI",
@@ -651,7 +651,7 @@ pub fn compare(before: &Snapshot, after: &Snapshot) -> Vec<String> {
 // --- Instalação ------------------------------------------------------------------------------
 
 /// Roda o instalador em modo silencioso, só para o usuário atual (sem administrador).
-fn install(installer: &Path, dir: Option<&Path>) -> Result<()> {
+pub fn install(installer: &Path, dir: Option<&Path>) -> Result<()> {
     let mut command = Command::new(installer);
     command.arg("/S");
     let mut shown = format!("{} /S", installer.display());
@@ -700,7 +700,7 @@ pub fn parse_reg_value(output: &str, name: &str) -> Option<String> {
     })
 }
 
-fn reg_value(key: &str, name: &str) -> Option<String> {
+pub fn reg_value(key: &str, name: &str) -> Option<String> {
     let output = Command::new("reg")
         .args(["query", key, "/v", name])
         .stderr(Stdio::null())
