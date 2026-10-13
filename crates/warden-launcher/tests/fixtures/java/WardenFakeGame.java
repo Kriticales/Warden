@@ -28,6 +28,10 @@ import java.util.UUID;
  *   args               escreve cada argumento recebido, um por linha, entre colchetes;
  *   sair N             sai com o código N;
  *   crash              grava crash-reports/crash-teste-client.txt e sai com -1;
+ *   crash-npe          grava um crash report "Ticking entity" com NullPointerException num mod,
+ *                      com números (linhas da pilha, índice do jar, coordenadas, horário e
+ *                      nome do arquivo) diferentes a cada execução, e sai com -1 (D-06: a
+ *                      mesma causa com números diferentes vira uma linha só em Travamentos);
  *   uuid NOME...       escreve o UUID offline de cada nome, como o Minecraft calcula.
  */
 public final class WardenFakeGame {
@@ -123,6 +127,26 @@ public final class WardenFakeGame {
             writer.write("---- Minecraft Crash Report ----\nDescription: Initializing game\n");
             writer.close();
             System.out.println("#@!@# Game crashed! Crash report saved to: crash-reports" + File.separator + "crash-teste-client.txt");
+            System.exit(-1);
+        } else if (mode.equals("crash-npe")) {
+            long n = (System.nanoTime() / 1000L) % 9000L + Long.parseLong(pid()) % 1000L;
+            File dir = new File("crash-reports");
+            dir.mkdirs();
+            String name = "crash-npe-" + pid() + "-client.txt";
+            Writer writer = new OutputStreamWriter(new FileOutputStream(new File(dir, name)), "UTF-8");
+            writer.write("---- Minecraft Crash Report ----\n"
+                    + "// Who set us up the TNT?\n\n"
+                    + "Time: 2026-10-13 12:" + (n % 60) + ":" + (n % 59) + "\n"
+                    + "Description: Ticking entity\n\n"
+                    + "java.lang.NullPointerException: Cannot invoke \"Object.hashCode()\" because \"<local" + (n % 7) + ">\" is null\n"
+                    + "\tat com.example.meumod.EntityTicker.tick(EntityTicker.java:" + (40 + n) + ") ~[meumod-1.0.jar%23" + (100 + n) + "!/:?]\n"
+                    + "\tat net.minecraft.world.level.Level.guardEntityTick(Level.java:" + (500 + n) + ") ~[client-1.20.1-srg.jar%23185!/:?]\n\n"
+                    + "-- Entity being ticked --\n"
+                    + "Details:\n"
+                    + "\tEntity Type: meumod:golem (com.example.meumod.Golem)\n"
+                    + "\tEntity's Exact location: " + (n * 3) + ".50, 64.00, -" + n + ".25\n");
+            writer.close();
+            System.out.println("#@!@# Game crashed! Crash report saved to: crash-reports" + File.separator + name);
             System.exit(-1);
         } else if (mode.equals("uuid")) {
             for (int i = 1; i < args.length; i++) {
