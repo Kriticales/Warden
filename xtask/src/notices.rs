@@ -15,14 +15,22 @@
 //! - **Fontes:** as fontes embutidas (`design/system/fonts/OFL-*.txt`).
 //!
 //! Textos iguais são guardados uma vez só. O JSON não leva nenhum caminho local.
+//!
+//! Antes de gravar, confere a lista ([`verify`]) e falha se: algum componente ficou sem licença
+//! (nem expressão SPDX nem texto); faltar um dos componentes cujo crédito aparece em Sobre
+//! ([`REQUIRED`]); alguma dependência direta do app (Rust ou npm) não estiver nos avisos ou não
+//! estiver registrada no `THIRD_PARTY.md` com a mesma licença; o packwiz ou uma fonte embutida
+//! não estiver no `THIRD_PARTY.md`. O `cargo xtask check` roda esta tarefa.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result, bail};
+use cargo_metadata::{DependencyKind, Metadata};
 use serde::{Deserialize, Serialize};
 
+use crate::deps;
 use crate::packwiz::{Layout, TARGETS, host_target};
 use crate::setup::installed;
 use crate::util::{Cmd, desktop_dir, find_program, workspace_root};
@@ -630,6 +638,208 @@ fn fonts(builder: &mut Builder) -> Result<()> {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Conferência
+
+/// Componentes que precisam estar nos avisos: os créditos de Sobre dependem deles (o do motor do
+/// launcher só aparece quando a crate está na lista) e, sem eles, a geração saiu incompleta.
+pub const REQUIRED: &[(&str, &str)] = &[
+    ("rust", "tauri"),
+    ("rust", "portablemc"),
+    ("npm", "react"),
+    ("packwiz", "packwiz"),
+];
+
+/// Pacote do app (a `warden-app`): raiz das dependências que vão no executável.
+const APP_PACKAGE: &str = "warden-app";
+
+/// Dependências diretas que vão dentro do app, por grupo dos avisos.
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct Direct {
+    /// Dependências normais das crates do workspace ligadas à `warden-app` (sem as do próprio
+    /// workspace).
+    pub rust: BTreeSet<String>,
+    /// `dependencies` do `apps/desktop/package.json`.
+    pub npm: BTreeSet<String>,
+}
+
+/// Dependências normais (não as de build nem as de teste) das crates do workspace alcançáveis a
+/// partir da `warden-app`.
+pub fn direct_rust_dependencies(metadata: &Metadata) -> BTreeSet<String> {
+    let members: BTreeMap<&str, &cargo_metadata::Package> = metadata
+        .workspace_packages()
+        .into_iter()
+        .map(|package| (package.name.as_str(), package))
+        .collect();
+    let mut seen = BTreeSet::new();
+    let mut pending = vec![APP_PACKAGE];
+    let mut external = BTreeSet::new();
+    while let Some(name) = pending.pop() {
+        if !seen.insert(name) {
+            continue;
+        }
+        let Some(package) = members.get(name) else {
+            continue;
+        };
+        for dependency in &package.dependencies {
+            if dependency.kind != DependencyKind::Normal {
+                continue;
+            }
+            if let Some((member, _)) = members.get_key_value(dependency.name.as_str()) {
+                pending.push(member);
+            } else {
+                external.insert(dependency.name.clone());
+            }
+        }
+    }
+    external
+}
+
+/// `dependencies` de um `package.json`.
+pub fn direct_npm_dependencies(package_json: &str) -> Result<BTreeSet<String>> {
+    let value: serde_json::Value =
+        serde_json::from_str(package_json).context("package.json inválido")?;
+    Ok(value
+        .get("dependencies")
+        .and_then(serde_json::Value::as_object)
+        .map(|deps| deps.keys().cloned().collect())
+        .unwrap_or_default())
+}
+
+/// Componentes registrados numa seção do `THIRD_PARTY.md` (a que começa com `## <titulo>`):
+/// cada nome entre crases da primeira coluna de uma tabela → a coluna "Licença" da linha.
+pub fn registered(markdown: &str, title: &str) -> BTreeMap<String, String> {
+    let mut found = BTreeMap::new();
+    let mut inside = false;
+    let mut license_column = None;
+    for line in markdown.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            inside = heading.starts_with(title);
+            license_column = None;
+            continue;
+        }
+        if !inside || !line.starts_with('|') {
+            continue;
+        }
+        let cells: Vec<&str> = line
+            .trim()
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect();
+        let Some(column) = license_column else {
+            license_column = cells.iter().position(|cell| *cell == "Licença");
+            continue;
+        };
+        if cells
+            .iter()
+            .all(|cell| cell.chars().all(|c| c == '-' || c == ':'))
+        {
+            continue;
+        }
+        let license = cells.get(column).copied().unwrap_or_default();
+        for name in cells[0].split('`').skip(1).step_by(2) {
+            found
+                .entry(name.to_owned())
+                .or_insert_with(|| license.to_owned());
+        }
+    }
+    found
+}
+
+/// Identificadores de uma expressão SPDX, sem os operadores e sem a ordem: `(MIT OR
+/// Apache-2.0)` e `Apache-2.0 OR MIT` dão o mesmo conjunto.
+pub fn license_ids(expression: &str) -> BTreeSet<String> {
+    expression
+        .split(|c: char| c.is_whitespace() || c == '(' || c == ')')
+        .filter(|word| !word.is_empty() && !matches!(*word, "OR" | "AND" | "WITH"))
+        .map(str::to_owned)
+        .collect()
+}
+
+/// Problemas da lista gerada, uma frase por problema (vazia: tudo certo).
+pub fn verify(notices: &Notices, direct: &Direct, third_party: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    let group = |id: &str| notices.groups.iter().find(|group| group.id == id);
+
+    for group in &notices.groups {
+        for item in &group.items {
+            if item.license.trim().is_empty() && item.texts.is_empty() {
+                problems.push(format!(
+                    "{} {}@{}: sem licença (nem expressão SPDX nem texto)",
+                    group.id, item.name, item.version
+                ));
+            }
+        }
+    }
+
+    for (id, name) in REQUIRED {
+        if !group(id).is_some_and(|group| group.items.iter().any(|item| item.name == *name)) {
+            problems.push(format!("{id} {name}: faltou nos avisos"));
+        }
+    }
+
+    for (id, names, title) in [
+        ("rust", &direct.rust, "Crates Rust"),
+        ("npm", &direct.npm, "Pacotes npm"),
+    ] {
+        let rows = registered(third_party, title);
+        let items: Vec<&Item> = group(id)
+            .map(|group| group.items.iter().collect())
+            .unwrap_or_default();
+        for name in names {
+            let versions: Vec<&&Item> = items.iter().filter(|item| item.name == *name).collect();
+            if versions.is_empty() {
+                problems.push(format!(
+                    "{id} {name}: dependência direta do app fora dos avisos"
+                ));
+            }
+            let Some(license) = rows.get(name) else {
+                problems.push(format!(
+                    "{id} {name}: dependência direta do app sem linha em \"{title}\" no THIRD_PARTY.md"
+                ));
+                continue;
+            };
+            let expected = license_ids(license);
+            if !versions.is_empty()
+                && !versions
+                    .iter()
+                    .any(|item| license_ids(&item.license) == expected)
+            {
+                let found: Vec<&str> = versions.iter().map(|item| item.license.as_str()).collect();
+                problems.push(format!(
+                    "{id} {name}: licença no THIRD_PARTY.md ({license}) diferente da detectada ({})",
+                    found.join("; ")
+                ));
+            }
+        }
+    }
+
+    if !third_party.contains("packwiz/packwiz") {
+        problems.push("packwiz: sem registro no THIRD_PARTY.md".to_owned());
+    }
+    let fonts = registered(third_party, "Fontes");
+    for (_, name) in FONTS {
+        if !fonts.contains_key(*name) {
+            problems.push(format!(
+                "fontes {name}: sem linha em \"Fontes\" no THIRD_PARTY.md"
+            ));
+        }
+    }
+    problems
+}
+
+/// Dependências diretas do app, lidas do workspace.
+fn direct() -> Result<Direct> {
+    let metadata = deps::metadata(&workspace_root().join("Cargo.toml"))?;
+    let package_json = fs::read_to_string(desktop_dir().join("package.json"))
+        .context("falha ao ler apps/desktop/package.json")?;
+    Ok(Direct {
+        rust: direct_rust_dependencies(&metadata),
+        npm: direct_npm_dependencies(&package_json)?,
+    })
+}
+
+// ---------------------------------------------------------------------------------------------
 
 /// `cargo xtask notices`.
 pub fn run() -> Result<()> {
@@ -639,6 +849,16 @@ pub fn run() -> Result<()> {
     packwiz(&mut builder)?;
     fonts(&mut builder)?;
     let notices = builder.finish();
+    let third_party = fs::read_to_string(workspace_root().join("THIRD_PARTY.md"))
+        .context("falha ao ler o THIRD_PARTY.md")?;
+    let problems = verify(&notices, &direct()?, &third_party);
+    if !problems.is_empty() {
+        bail!(
+            "avisos de terceiros incompletos ({}):\n  - {}",
+            problems.len(),
+            problems.join("\n  - ")
+        );
+    }
     let json = serde_json::to_string(&notices)?;
     let path = output_path();
     if let Some(parent) = path.parent() {
@@ -998,6 +1218,242 @@ CC0 1.0 Universal",
                 "groups": [{"id": "rust", "items": [{"name": "a", "version": "1", "license": "MIT", "texts": [0]}]}],
                 "texts": ["MIT"]
             })
+        );
+    }
+
+    // --- Conferência ------------------------------------------------------------------------
+
+    const THIRD_PARTY: &str = "\
+# Terceiros
+
+## Crates Rust (crates.io)
+
+| Crate | Versão | Licença | Usada em | Para quê |
+|---|---|---|---|---|
+| `tauri` | 2 | Apache-2.0 OR MIT | `warden-app` | App. |
+| `portablemc` | =5.0.5 | Apache-2.0 | `warden-launcher` | Motor. |
+
+## Ferramentas instaladas por `cargo xtask setup`
+
+| Ferramenta | Versão | Licença | Para quê |
+|---|---|---|---|
+| `cargo-about` | 0.9.2 | MIT | Avisos. |
+
+## Pacotes npm (`apps/desktop`)
+
+| Pacote | Versão | Licença | Para quê |
+|---|---|---|---|
+| `react`, `react-dom` | 19 | MIT | Interface. |
+
+## Sidecar do packwiz
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [packwiz/packwiz](https://github.com/packwiz/packwiz) | ef87d96 | MIT | Refresh. |
+
+## Fontes embutidas (`design/system/fonts/`)
+
+| Fonte | Licença | Para quê |
+|---|---|---|
+| `IBM Plex Mono` | OFL-1.1 | Mono. |
+| `Manrope` | OFL-1.1 | Texto. |
+| `Pixelify Sans` | OFL-1.1 | Títulos. |
+";
+
+    fn licensed(name: &str, license: &str) -> Item {
+        Item {
+            name: name.into(),
+            version: "1".into(),
+            license: license.into(),
+            url: None,
+            texts: vec![0],
+        }
+    }
+
+    /// Avisos completos, coerentes com `THIRD_PARTY`.
+    fn complete() -> (Notices, Direct) {
+        let notices = Notices {
+            schema: SCHEMA,
+            groups: vec![
+                Group {
+                    id: "rust",
+                    items: vec![
+                        licensed("tauri", "MIT OR Apache-2.0"),
+                        licensed("portablemc", "Apache-2.0"),
+                    ],
+                },
+                Group {
+                    id: "npm",
+                    items: vec![licensed("react", "MIT")],
+                },
+                Group {
+                    id: "packwiz",
+                    items: vec![licensed("packwiz", "MIT")],
+                },
+            ],
+            texts: vec!["MIT".into()],
+        };
+        let direct = Direct {
+            rust: ["tauri", "portablemc"].map(String::from).into(),
+            npm: ["react"].map(String::from).into(),
+        };
+        (notices, direct)
+    }
+
+    #[test]
+    fn avisos_completos_passam() {
+        let (notices, direct) = complete();
+        assert_eq!(verify(&notices, &direct, THIRD_PARTY), Vec::<String>::new());
+    }
+
+    #[test]
+    fn componente_sem_licenca_falha() {
+        let (mut notices, direct) = complete();
+        notices.groups[1].items.push(Item {
+            name: "sem-nada".into(),
+            version: "2.0.0".into(),
+            license: String::new(),
+            url: None,
+            texts: vec![],
+        });
+        // Só a expressão SPDX (pacote npm sem arquivo LICENSE) ainda vale como licença.
+        notices.groups[1].items.push(Item {
+            texts: vec![],
+            ..licensed("so-spdx", "MIT")
+        });
+        assert_eq!(
+            verify(&notices, &direct, THIRD_PARTY),
+            ["npm sem-nada@2.0.0: sem licença (nem expressão SPDX nem texto)"]
+        );
+    }
+
+    #[test]
+    fn falta_o_motor_do_launcher_ou_o_packwiz() {
+        let (mut notices, mut direct) = complete();
+        notices.groups[0]
+            .items
+            .retain(|item| item.name != "portablemc");
+        notices.groups.retain(|group| group.id != "packwiz");
+        direct.rust.remove("portablemc");
+        assert_eq!(
+            verify(&notices, &direct, THIRD_PARTY),
+            [
+                "rust portablemc: faltou nos avisos",
+                "packwiz packwiz: faltou nos avisos"
+            ]
+        );
+    }
+
+    #[test]
+    fn dependencia_direta_fora_do_third_party_ou_dos_avisos_falha() {
+        let (notices, mut direct) = complete();
+        direct.npm.insert("zustand".into());
+        direct.rust.insert("serde".into());
+        assert_eq!(
+            verify(&notices, &direct, THIRD_PARTY),
+            [
+                "rust serde: dependência direta do app fora dos avisos",
+                "rust serde: dependência direta do app sem linha em \"Crates Rust\" no THIRD_PARTY.md",
+                "npm zustand: dependência direta do app fora dos avisos",
+                "npm zustand: dependência direta do app sem linha em \"Pacotes npm\" no THIRD_PARTY.md",
+            ]
+        );
+    }
+
+    #[test]
+    fn licenca_diferente_do_third_party_falha() {
+        let (mut notices, direct) = complete();
+        notices.groups[1].items[0].license = "Apache-2.0".into();
+        assert_eq!(
+            verify(&notices, &direct, THIRD_PARTY),
+            ["npm react: licença no THIRD_PARTY.md (MIT) diferente da detectada (Apache-2.0)"]
+        );
+    }
+
+    #[test]
+    fn packwiz_e_fontes_precisam_de_registro() {
+        let (notices, direct) = complete();
+        let sem = THIRD_PARTY
+            .replace(
+                "[packwiz/packwiz](https://github.com/packwiz/packwiz)",
+                "packwiz",
+            )
+            .replace("| `Manrope` | OFL-1.1 | Texto. |\n", "");
+        assert_eq!(
+            verify(&notices, &direct, &sem),
+            [
+                "packwiz: sem registro no THIRD_PARTY.md",
+                "fontes Manrope: sem linha em \"Fontes\" no THIRD_PARTY.md"
+            ]
+        );
+    }
+
+    #[test]
+    fn registro_le_so_a_secao_pedida_e_varios_nomes_por_linha() {
+        let npm = registered(THIRD_PARTY, "Pacotes npm");
+        assert_eq!(
+            npm.into_iter().collect::<Vec<_>>(),
+            [
+                ("react".to_owned(), "MIT".to_owned()),
+                ("react-dom".to_owned(), "MIT".to_owned())
+            ]
+        );
+        let rust = registered(THIRD_PARTY, "Crates Rust");
+        assert!(rust.contains_key("tauri") && !rust.contains_key("cargo-about"));
+        assert!(
+            !rust.contains_key("warden-app"),
+            "só a primeira coluna conta"
+        );
+    }
+
+    #[test]
+    fn identificadores_spdx_sem_ordem_nem_parenteses() {
+        assert_eq!(
+            license_ids("(MIT OR Apache-2.0)"),
+            license_ids("Apache-2.0 OR MIT")
+        );
+        assert_eq!(
+            license_ids("Apache-2.0 WITH LLVM-exception OR MIT"),
+            ["Apache-2.0", "LLVM-exception", "MIT"]
+                .map(String::from)
+                .into()
+        );
+        assert_ne!(license_ids("MIT"), license_ids("MIT OR Apache-2.0"));
+    }
+
+    #[test]
+    fn dependencias_npm_so_as_de_producao() {
+        let json = r#"{"dependencies": {"react": "19"}, "devDependencies": {"vitest": "5"}}"#;
+        assert_eq!(
+            direct_npm_dependencies(json).unwrap(),
+            ["react"].map(String::from).into()
+        );
+        assert!(direct_npm_dependencies("{}").unwrap().is_empty());
+    }
+
+    #[test]
+    fn dependencias_rust_do_app_vem_do_workspace_real() {
+        let metadata = deps::metadata(&workspace_root().join("Cargo.toml")).unwrap();
+        let direct = direct_rust_dependencies(&metadata);
+        // Da própria warden-app e de crates do workspace ligadas a ela (o motor do launcher).
+        assert!(direct.contains("tauri"));
+        assert!(direct.contains("portablemc"));
+        // Nem crates do workspace, nem as só de teste, nem as do xtask.
+        assert!(!direct.iter().any(|name| name.starts_with("warden-")));
+        assert!(!direct.contains("proptest"));
+        assert!(!direct.contains("wiremock"));
+        assert!(!direct.contains("clap"));
+    }
+
+    #[test]
+    fn third_party_do_repositorio_tem_as_fontes_e_o_packwiz() {
+        let markdown = fs::read_to_string(workspace_root().join("THIRD_PARTY.md")).unwrap();
+        let fonts = registered(&markdown, "Fontes");
+        assert!(FONTS.iter().all(|(_, name)| fonts.contains_key(*name)));
+        assert!(markdown.contains("packwiz/packwiz"));
+        assert_eq!(
+            registered(&markdown, "Pacotes npm")["dompurify"],
+            "MPL-2.0 OR Apache-2.0"
         );
     }
 }
