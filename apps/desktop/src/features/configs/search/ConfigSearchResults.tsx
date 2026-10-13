@@ -103,6 +103,12 @@ function Hit({
   );
 }
 
+/** Identidade de um resultado: a linha não basta (tabela inline e JSON numa linha só têm várias
+ * chaves na mesma linha). */
+function hitKey(hit: ConfigSearchHit): string {
+  return `${String(hit.line)}:${hit.key?.parts.map((part) => part.text).join('') ?? ''}`;
+}
+
 function Group({
   group,
   onOpen,
@@ -120,7 +126,7 @@ function Group({
         <span className="count count--text">{NUMBER.format(group.total)}</span>
       </div>
       {group.hits.map((hit) => (
-        <Hit key={hit.line} path={group.path} hit={hit} onOpen={onOpen} />
+        <Hit key={hitKey(hit)} path={group.path} hit={hit} onOpen={onOpen} />
       ))}
       {hidden > 0 ? (
         <p className="t-xs t-3 cfg-search__more">{t('maisNoArquivo', { count: hidden })}</p>
