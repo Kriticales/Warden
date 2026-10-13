@@ -115,6 +115,20 @@ pub fn has_log(dir: &Path) -> bool {
     })
 }
 
+/// Se `path` fica dentro de `base`, sem diferenciar maiúsculas (o registro e as variáveis de
+/// ambiente do Windows podem trazer a mesma pasta com outra caixa) nem o tipo da barra.
+pub fn is_inside(path: &Path, base: &Path) -> bool {
+    let normalize = |path: &Path| {
+        path.to_string_lossy()
+            .replace('/', "\\")
+            .trim_end_matches('\\')
+            .to_lowercase()
+    };
+    let (path, base) = (normalize(path), normalize(base));
+    path.strip_prefix(&base)
+        .is_some_and(|rest| rest.starts_with('\\'))
+}
+
 fn env_dir(name: &str) -> Option<PathBuf> {
     std::env::var_os(name).map(PathBuf::from)
 }
@@ -290,7 +304,7 @@ pub fn run(args: &Args) -> Result<()> {
     let dir = PathBuf::from(location);
     let local = env_dir("LOCALAPPDATA").context("LOCALAPPDATA não definida")?;
     ensure!(
-        dir.starts_with(&local),
+        is_inside(&dir, &local),
         r"a instalação não ficou dentro de %LOCALAPPDATA% (instalação por usuário)"
     );
     for file in [MAIN_BINARY, SIDECAR] {
@@ -393,6 +407,16 @@ mod tests {
         assert!(!has_log(dir.path()));
         std::fs::write(dir.path().join("warden.2026-10-13.log"), "INFO configurações lidas").unwrap();
         assert!(has_log(dir.path()));
+    }
+
+    #[test]
+    fn pasta_instalada_dentro_de_localappdata_sem_diferenciar_maiusculas() {
+        let local = Path::new(r"C:\Users\Runner\AppData\Local");
+        assert!(is_inside(Path::new(r"c:\users\runner\appdata\local\Warden"), local));
+        assert!(is_inside(Path::new("C:/Users/Runner/AppData/Local/Warden/"), local));
+        assert!(!is_inside(Path::new(r"C:\Users\Runner\AppData\LocalLow\Warden"), local));
+        assert!(!is_inside(Path::new(r"C:\Program Files\Warden"), local));
+        assert!(!is_inside(local, local));
     }
 
     #[test]
