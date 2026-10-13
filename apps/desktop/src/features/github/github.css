@@ -1,0 +1,49 @@
+/* Publicar versão (SPEC T18; protótipo `publicado` e `historico`): só o que o design system não
+   traz pronto. Mesmas regras do protótipo aprovado (`.linkbox`, `.howto`). */
+.linkbox {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.linkbox .input {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.howto {
+  counter-reset: how;
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.howto li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--space-2);
+}
+.howto li::before {
+  counter-increment: how;
+  content: counter(how);
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: var(--color-surface-3);
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-extrabold);
+  font-size: var(--text-xs);
+  color: var(--color-primary-text);
+  clip-path: var(--shape-notch-sm);
+}
+.publish__mods {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-2);
+}
+.publish__mod {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}

@@ -20,13 +20,6 @@ export const versoes = {
     pontosDica: 'cópias automáticas feitas antes de ações que apagam ou substituem',
     somenteLeitura: 'Este pack não pode ser alterado agora: {{motivo}}',
   },
-  publicacao: {
-    titulo: 'Publicação para os jogadores',
-    antes:
-      'Este pack ainda não foi publicado. Salve uma versão marcada como versão final e publique: os jogadores recebem pelo link do pack.',
-    indisponivel: 'A publicação no GitHub ainda não está disponível nesta versão do Warden.',
-    publicarVersao: 'Publicar versão {{version}}',
-  },
   estado: {
     naoSalvas: 'Não salvas',
     salva: 'Só salva',

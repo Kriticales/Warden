@@ -10,6 +10,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { extname, join, normalize, sep } from 'node:path';
 
 import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
+import { githubState, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
@@ -240,11 +241,20 @@ function serveFile(path: string, response: ServerResponse): void {
 
 export async function startMockServer(): Promise<MockServer> {
   const requests: string[] = [];
+  let port = 0;
+  const base = () => `http://127.0.0.1:${String(port)}`;
   const server: Server = createServer((request, response) => {
     const path = request.url ?? '/';
     // Os testes rodam em outro processo: veem o registro (e o zeram) por aqui.
     if (path === '/__requests') {
       response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(requests));
+      return;
+    }
+    // O GitHub simulado (V-03): repositórios e Releases criados pelo app.
+    if (path === '/__github') {
+      response
+        .writeHead(200, { 'content-type': 'application/json' })
+        .end(JSON.stringify(githubState()));
       return;
     }
     if (path === '/__reset') {
@@ -261,6 +271,10 @@ export async function startMockServer(): Promise<MockServer> {
     }
     if (path.startsWith('/curseforge/')) {
       serveCurseforge(request, response, path);
+      return;
+    }
+    if (path.startsWith('/github/')) {
+      serveGithub(request, response, path, base());
       return;
     }
     if (request.method === 'POST' && path.split('?')[0] === '/modrinth/v2/version_files') {
@@ -291,6 +305,7 @@ export async function startMockServer(): Promise<MockServer> {
   if (!address || typeof address === 'string') {
     throw new Error('servidor de fixtures sem porta');
   }
+  port = address.port;
   return {
     url: `http://127.0.0.1:${String(address.port)}`,
     requests,
