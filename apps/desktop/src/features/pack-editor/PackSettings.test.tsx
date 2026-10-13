@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { JavaChoice } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
+import { deferred } from '../../test/backend';
 import { renderApp } from '../../test/render';
 import { DECISIONS, makeChoice, makeMeta } from './editor.fixtures';
 import { makeProfilesView } from '../test/profiles/profiles.fixtures';
@@ -45,6 +46,45 @@ describe('Informações do pack (T11)', () => {
     });
     expect(backend.callsOf('pack_update_meta')[0]?.args).toMatchObject({
       update: { name: 'Vale Novo', author: 'Kriticales', description: 'Pack calmo.' },
+    });
+    expect(await screen.findByText('Informações do pack salvas.')).toBeDefined();
+  });
+
+  it('fecha depois de salvar mesmo se o aviso de mudança refizer o formulário antes da resposta', async () => {
+    // O `pack-changed` do Rust pode chegar antes da resposta do `pack_update_meta`: o nome novo
+    // é relido, o formulário é refeito (a chave dele é o nome) e o diálogo ainda tem de fechar.
+    let saved = makeMeta({ author: 'Kriticales' });
+    const reply = deferred<unknown>();
+    const { backend, row, url } = editorBackend({
+      handlers: {
+        pack_meta_get: () => saved,
+        pack_update_meta: ({ update }) => {
+          saved = makeMeta(update as Record<string, string>);
+          return reply.promise;
+        },
+      },
+    });
+    await openPack(url);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Editar informações' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Informações do pack' });
+    const name = await within(dialog).findByRole<HTMLInputElement>('textbox', { name: 'Nome' });
+    await user.clear(name);
+    await user.type(name, 'Vale Novo');
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+    await waitFor(() => {
+      expect(backend.callsOf('pack_update_meta')).toHaveLength(1);
+    });
+    await backend.emit('pack-changed', { packId: row.id, areas: ['meta'] });
+    // O formulário refeito com o nome gravado não está mais "Salvando…".
+    await waitFor(() => {
+      const remade = screen.getByRole('dialog', { name: 'Informações do pack' });
+      expect(remade).not.toBe(dialog);
+      expect(within(remade).getByRole('button', { name: 'Salvar' })).toBeDefined();
+    });
+    reply.resolve(saved);
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Informações do pack' })).toBeNull();
     });
     expect(await screen.findByText('Informações do pack salvas.')).toBeDefined();
   });

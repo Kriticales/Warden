@@ -106,15 +106,19 @@ function InfoForm({ pack, meta, onDone }: { pack: PackRow; meta: PackMeta; onDon
       onDone();
       return;
     }
-    update.mutate(
-      { name: name.trim(), author: author.trim(), description: description.trim() },
-      {
-        onSuccess: () => {
+    // `mutateAsync`, não `mutate` com `onSuccess`: o `pack-changed` pode reler o nome antes da
+    // resposta e refazer o formulário (a chave dele é o nome); o `onSuccess` do `mutate` some
+    // com o formulário antigo e o diálogo não fecharia. A promessa resolve do mesmo jeito.
+    update
+      .mutateAsync({ name: name.trim(), author: author.trim(), description: description.trim() })
+      .then(
+        () => {
           showToast({ kind: 'ok', title: t('informacoes.salvo') });
           onDone();
         },
-      },
-    );
+        // O erro aparece no formulário (`update.error`).
+        () => undefined,
+      );
   };
 
   return (
