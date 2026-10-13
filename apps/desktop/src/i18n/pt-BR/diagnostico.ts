@@ -271,7 +271,7 @@ export const diagnostico = {
     crashReport: {
       titulo: 'O jogo travou: {{description}}',
       texto:
-        'O Minecraft gravou um crash report com o erro {{exception}}. Ele diz em que ponto o jogo parou; os mods citados nele são os primeiros suspeitos.',
+        'O Minecraft gravou um crash report. Ele diz em que ponto o jogo parou; os mods citados nele são os primeiros suspeitos.',
     },
     debugCrash: {
       titulo: 'Travamento pedido no jogo (F3 + C)',
