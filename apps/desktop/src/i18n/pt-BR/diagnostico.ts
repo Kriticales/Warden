@@ -264,6 +264,11 @@ export const diagnostico = {
       texto:
         'O autor não deixa outros apps baixarem este arquivo. Quem jogar o pack vai precisar baixá-lo à mão.',
     },
+    W_MIXIN_OVERLAP: {
+      titulo: '{{nome}} e {{outro}} alteram o mesmo ponto do jogo',
+      texto:
+        'Os dois mudam {{ponto}}$t(raioX:aviso.maisPartes, {"count": {{mais}} }) ($t(raioX:aviso.risco.{{risco}})). Muitas vezes é de propósito; se o jogo travar ou uma função de um deles sumir, comece por eles.$t(raioX:aviso.travamento.{{travamento}}) Este aviso nunca impede o teste.',
+    },
   },
   achados: {
     crashReport: {

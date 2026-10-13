@@ -241,14 +241,12 @@ pub fn findings(overlaps: &[Overlap]) -> Result<Vec<Finding>> {
             primary,
         )
         .with_param("ponto", first.label())
-        .with_param("pontos", points.len().to_string())
+        .with_param("mais", (points.len() - 1).to_string())
         .with_param("risco", if risk == Risk::High { "alto" } else { "medio" });
-        if points
+        let crashed = points
             .iter()
-            .any(|p| p.elevators.iter().any(|e| matches!(e, Elevator::Crash(_))))
-        {
-            finding = finding.with_param("travamento", "sim");
-        }
+            .any(|p| p.elevators.iter().any(|e| matches!(e, Elevator::Crash(_))));
+        finding = finding.with_param("travamento", if crashed { "sim" } else { "nao" });
         for item in items {
             finding = finding.with_item(ItemRef::Metafile {
                 path: item.to_owned(),
@@ -391,9 +389,11 @@ mod tests {
         assert_eq!(ab.rule().as_str(), RULE);
         assert_eq!(ab.severity(), Severity::Warning, "nunca bloqueia");
         assert_eq!(ab.param("ponto"), Some("LevelRenderer.render"));
-        assert_eq!(ab.param("pontos"), Some("2"));
+        assert_eq!(ab.param("mais"), Some("1"));
         assert_eq!(ab.param("risco"), Some("alto"));
         assert_eq!(ab.param("travamento"), Some("sim"));
+        assert_eq!(found[1].param("travamento"), Some("nao"));
+        assert_eq!(found[1].param("mais"), Some("0"));
         assert_eq!(ab.items().len(), 2);
         assert!(ab.evidence().iter().any(|e| matches!(e,
             Evidence::JarMetadata { file_in_jar, excerpt, .. }

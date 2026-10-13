@@ -1,0 +1,44 @@
+/* Raio-x de mixins nos detalhes do item (D-10). Os cartões das sobreposições (`.mixins`,
+   `.mixin`) vêm de `design/system/components.css`; aqui só o espaçamento do bloco e o painel de
+   "Ver todas as alterações". Só tokens (mesma regra do `warden.css`). */
+.xray > * + * {
+  margin-top: var(--space-2);
+}
+.xray__summary {
+  margin: var(--space-1) 0 var(--space-2);
+}
+.xray__actions {
+  margin-top: var(--space-2);
+}
+
+/* "Ver todas as alterações" abre por cima do painel de detalhes, no mesmo lugar: sem escurecer
+   nem deslizar de novo, parece o mesmo painel trocando de conteúdo. */
+.scrim--drawer:has(.xray-all) {
+  background: transparent;
+}
+.drawer:has(.xray-all) {
+  animation: none;
+}
+.xray-all > * + * {
+  margin-top: var(--space-3);
+}
+.xray-all .toolbar {
+  margin-bottom: 0;
+}
+.xray-all .inputwrap {
+  flex: 1 1 12rem;
+  width: auto;
+}
+.xray-all__part {
+  font-size: var(--text-xs);
+  word-break: break-all;
+}
+.xray-all__kind {
+  font-size: var(--text-xs);
+}
+.xray-all__others {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
