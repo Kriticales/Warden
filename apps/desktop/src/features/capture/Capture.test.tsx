@@ -218,12 +218,13 @@ describe('O que mudou durante o teste no resultado (T15)', () => {
 
   it('Descartar tudo pede confirmação, descarta e mostra o resumo', async () => {
     let capture: CaptureView | null = makeCapture();
-    const { backend, url } = setup(() => capture, {
+    const { backend, url, row } = setup(() => capture, {
       capture_discard: () => {
         capture = { ...makeCapture(), status: { kind: 'discarded' }, needsReview: false };
         return 1;
       },
     });
+    const spy = vi.spyOn(QueryClient.prototype, 'invalidateQueries');
     const user = userEvent.setup();
     const block = await openResult(url);
     await user.click(within(block).getByRole('button', { name: 'Descartar tudo' }));
@@ -237,6 +238,13 @@ describe('O que mudou durante o teste no resultado (T15)', () => {
       ),
     ).toBeDefined();
     expect(backend.callsOf('capture_discard')[0]?.args).toMatchObject({ sessionId: SESSION });
+    // As configs do pack voltam na instância de teste: a origem "Instância de teste" de Configs
+    // é relida.
+    expect(spy.mock.calls.map(([filters]) => filters?.queryKey)).toContainEqual([
+      'pack',
+      row.id,
+      'configs',
+    ]);
   });
 
   it('nada mudou: só uma linha; sessão de outro teste: nada', async () => {

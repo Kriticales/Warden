@@ -4,8 +4,9 @@
  *
  * Dados sempre atuais: trazer muda o pack (configs, `options.txt`, índice), então invalida tudo
  * o que é do pack (linha com "Salvar versão · N alterações", configs, alterações não salvas no
- * Histórico, a própria captura e o aviso do cabeçalho) e a lista de Meus packs. Descartar muda só
- * a captura (o resultado do teste e o aviso do cabeçalho leem a mesma chave).
+ * Histórico, a própria captura e o aviso do cabeçalho) e a lista de Meus packs. Descartar muda a
+ * captura (o resultado do teste e o aviso do cabeçalho leem a mesma chave) e apaga da instância
+ * de teste as configs do pack que mudaram (a origem "Instância de teste" de Configs).
  */
 import { useQuery } from '@tanstack/react-query';
 
@@ -17,6 +18,7 @@ import {
 } from '../../lib/ipc/bindings';
 import { queryKeys } from '../../lib/ipc/keys';
 import { commandQuery, useCommandMutation, type CommandMutationOptions } from '../../lib/ipc/query';
+import { configsKeys } from '../configs/api';
 import { packsKeys } from '../packs/api';
 import { useTestRun } from '../test/store';
 
@@ -91,6 +93,6 @@ export function useCaptureApply(
 /** "Descartar". */
 export function useCaptureDiscard(packId: PackId) {
   return useCommandMutation((sessionId: string) => commands.captureDiscard(packId, sessionId), {
-    invalidates: [captureKeys.all(packId)],
+    invalidates: [captureKeys.all(packId), configsKeys.all(packId)],
   });
 }
