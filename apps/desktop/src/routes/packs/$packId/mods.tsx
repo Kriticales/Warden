@@ -9,6 +9,7 @@ interface ModsSearch {
 
 /** Seção Mods (SPEC T06), com os detalhes do item num painel lateral (T07). */
 export const Route = createFileRoute('/packs/$packId/mods')({
+  staticData: { contentWidth: 'wide' },
   validateSearch: (search: Record<string, unknown>): ModsSearch =>
     typeof search.item === 'string' && search.item !== '' ? { item: search.item } : {},
   component: ModsRoute,

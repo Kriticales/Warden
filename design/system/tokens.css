@@ -157,6 +157,8 @@
   --size-dialog-md: 600px;
   --size-dialog-lg: 780px;
   --size-content-max: 1180px;
+  --size-content-read: 880px;
+  --size-content-wide: 1600px;
   --size-window-min-w: 1024px;
 
   /* z */

@@ -108,7 +108,7 @@ Coluna “Classes” = classes de `components.css` que o componente aplica. Colu
 | `SidePanel` | shadcn `Sheet side="right"` | `.drawer` | | Detalhes do mod, Tarefas |
 | `Menu` | shadcn `DropdownMenu` | `.menu`, `.menu__item`, `--danger`, `.menu__desc` | | Itens com uma linha de descrição quando ajudam |
 | `Tooltip` | shadcn `Tooltip` | `.tooltip` | | Atraso de abertura ~400 ms; também no foco |
-| `EmptyState` | — | `.empty`, `--ok/--error/--compact`, `.empty__art` | `glyph`, `title`, `text`, `actions` | Ilustração em pixel (`art()` em `components.js`) |
+| `EmptyState` | — | `.empty`, `--ok/--error/--compact/--center`, `.empty__art` | `glyph`, `title`, `text`, `actions`, `centered` | Ilustração em pixel (`art()` em `components.js`). `centered` (D38): vazio de página inteira, no meio da área abaixo do cabeçalho, com a ilustração em cima |
 | `Skeleton` | shadcn `Skeleton` | `.skeleton--line/--tile/--btn` | | Mesma forma do conteúdo final |
 | `Timeline` | — | `.timeline`, `.tl-item--unsaved/saved/final/published` | | `<ol>` |
 | `AIAnswer` | — | `.ai-block`, `--loading`, `.meter` | `cause`, `confidence`, `mods`, `steps` | Aviso fixo “A IA pode errar.” |
@@ -180,6 +180,7 @@ Coluna “Classes” = classes de `components.css` que o componente aplica. Colu
 | Faixa | O que muda |
 |---|---|
 | ≥ 1181 px | Padrão: menu de seções 252 px; conteúdo até 1180 px; padding 32 px |
+| Telas largas (D38) | A coluna de conteúdo fica **centralizada** na área principal, com a largura do que mostra: `--size-content-read` (880 px) para leitura e formulários (Configurações), `--size-content-max` (1180 px) no padrão e `--size-content-wide` (1600 px) para listas e grades (Meus packs, Mods, Adicionar). O cabeçalho de página e as ações dele ficam na mesma coluna. No app: `AppPage width="read"/"wide"` e, dentro do pack, `staticData: { contentWidth: 'wide' }` na rota da seção |
 | 1024 a 1180 px | Menu de seções 236 px; descrição do mod até 210 px; “Salvar versão · 5” (sem a palavra “alterações”, que continua no `aria-label`); padding 20 px; busca da lista 220 px |
 | < 1024 px | Não suportado: a janela tem mínimo de 1024 × 640 (configurar no `tauri.conf.json`) |
 

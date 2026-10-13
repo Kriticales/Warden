@@ -5,23 +5,23 @@
  */
 import type { ReactNode } from 'react';
 
-import { cn } from '../../lib/cn';
+import { contentClass, type ContentWidth } from './content';
 import { MAIN_ID } from './focus';
 import { TopBar, type TopBarProps } from './TopBar';
 
 export interface AppPageProps extends TopBarProps {
   children: ReactNode;
-  /** Conteúdo estreito (até 760 px), para formulários e textos. */
-  narrow?: boolean;
+  /** Largura da coluna de conteúdo, sempre centralizada (HANDOFF §5). Padrão: `default`. */
+  width?: ContentWidth;
 }
 
-export function AppPage({ children, narrow = false, ...topBar }: AppPageProps) {
+export function AppPage({ children, width = 'default', ...topBar }: AppPageProps) {
   return (
     <>
       <TopBar {...topBar} />
       <div className="app__body">
-        <main className={cn('app__main', narrow && 'app__main--narrow')} id={MAIN_ID} tabIndex={-1}>
-          <div className="content">{children}</div>
+        <main className="app__main" id={MAIN_ID} tabIndex={-1}>
+          <div className={contentClass(width)}>{children}</div>
         </main>
       </div>
     </>

@@ -1,9 +1,11 @@
 /**
  * Meus packs, Criar pack e Abrir pack no app real (P1-07; SPEC T02, T03 e T04), com o packwiz
  * de verdade, o git de verdade e o catálogo pelas respostas gravadas (servidor de fixtures).
+ * Criar pack e Abrir pack são diálogos por cima de Meus packs (decisão D38).
  *
- * - Criar pack Forge 1.20.1 pelo assistente: a pasta tem `pack.toml` com as versões escolhidas
- *   e o repositório git, e o pack abre. Sem versão dos mods iniciais para Forge no servidor
+ * - Criar pack Forge 1.20.1 pelo assistente: em 1.20.1 o NeoForge vem marcado como
+ *   "Recomendado" (D39) e a ordem é NeoForge, Forge, Fabric, Quilt, Nenhum; escolhido o Forge, a
+ *   pasta tem `pack.toml` com as versões escolhidas e o repositório git, e o pack abre. Sem versão dos mods iniciais para Forge no servidor
  *   simulado, a etapa "Mods iniciais" mostra os dois sem versão e o pack nasce sem mods.
  * - Criar pack Fabric 1.21.1 com a etapa "Mods iniciais" (P1-18; CA-T03-07): spark e Crash
  *   Assistant vêm marcados com a versão; desmarcar o spark grava só o Crash Assistant, com a
@@ -130,9 +132,12 @@ function menuItem(text: string) {
   return $('[role="menu"]').$(`div*=${text}`);
 }
 
-/** Clica no botão primário do assistente ("Próximo" ou "Criar pack"). */
+/** O diálogo Criar pack (D38). */
+const wizard = () => $('[role="dialog"]');
+
+/** Clica no botão primário do assistente ("Próximo" ou "Criar pack"), no rodapé do diálogo. */
 async function wizardNext(label = 'Próximo'): Promise<void> {
-  const button = $('.wizard__foot').$(`button*=${label}`);
+  const button = wizard().$('.dialog__foot').$(`button*=${label}`);
   await button.waitForEnabled();
   await button.click();
 }
@@ -165,7 +170,9 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
 
   it('cria um pack Forge 1.20.1 pelo assistente, com o catálogo de versões', async () => {
     await $('button=Criar pack').click();
-    await $('h1=Criar pack').waitForDisplayed();
+    await wizard().$('h2=Criar pack').waitForDisplayed();
+    // Diálogo por cima de Meus packs, não uma tela própria.
+    await expect($('h1=Meus packs')).toExist();
     const nameId = await $('label=Nome do pack').getAttribute('for');
     await $(`[id="${nameId ?? ''}"]`).setValue('Vale Sereno');
     // A pasta acompanha o nome, dentro da pasta dos packs.
@@ -174,18 +181,29 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     await screenshot('02-criar-nome-e-pasta');
     await wizardNext();
 
-    const search = $('input[type="search"]');
+    const search = wizard().$('input[type="search"]');
     await search.waitForDisplayed();
     await screenshot('03-criar-versao-do-minecraft');
     await search.setValue('1.20.1');
     await $('label.check*=1.20.1').click();
     await wizardNext();
 
-    const forge = $('.choice*=Forge');
-    await forge.waitForDisplayed();
-    await browser.waitUntil(() => $('.choice input:checked').isExisting());
-    await expect($('.choice*=Quilt')).toExist();
+    // NeoForge > Forge > Fabric > outros > vanilla (D39): o NeoForge é o recomendado e vem marcado.
+    const neoforge = $('.choice--split*=NeoForge');
+    await neoforge.waitForDisplayed();
+    await browser.waitUntil(() => neoforge.$('input').isSelected());
+    await expect(neoforge.$('span.tag=Recomendado')).toBeDisplayed();
+    await expect($$('span.tag=Recomendado')).toBeElementsArrayOfSize(1);
+    const titles = await $$('.choice .choice__title').map((title) => title.getText());
+    expect(titles).toEqual(['NeoForge', 'Forge', 'Fabric', 'Quilt', 'Nenhum (vanilla)']);
     await screenshot('04-criar-loader');
+    const violations = await seriousViolations();
+    expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+    await $('span.choice__title=Forge').click();
+    const forge = $(
+      '//div[contains(@class,"choice--split")][.//span[@class="choice__title" and normalize-space()="Forge"]]',
+    );
+    await browser.waitUntil(() => forge.$('input').isSelected());
     await wizardNext();
 
     // Etapa "Mods iniciais" (P1-18): o servidor simulado só tem versões para Fabric 1.21.1, então
@@ -221,7 +239,7 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     await backToList();
     pickNext(OLD_PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('h2*=3 arquivos não deveriam ir para quem joga o pack').waitForDisplayed();
     await expect($('td.path*=config/x.toml.bak')).toExist();
     await expect($('td.path*=packwiz-installer-bootstrap.jar')).toExist();
@@ -342,15 +360,15 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
 
   it('Fabric 1.21.1: desmarcar o spark grava só o Crash Assistant, com a config (P1-18)', async () => {
     await $('button=Criar pack').click();
-    await $('h1=Criar pack').waitForDisplayed();
+    await wizard().$('h2=Criar pack').waitForDisplayed();
     const nameId = await $('label=Nome do pack').getAttribute('for');
     await $(`[id="${nameId ?? ''}"]`).setValue('Bosque Fundo');
     const folder = $('input.input--mono');
     await browser.waitUntil(async () => (await folder.getValue()).endsWith('bosque-fundo'));
     await wizardNext();
 
-    await $('input[type="search"]').waitForDisplayed();
-    await $('input[type="search"]').setValue('1.21.1');
+    await wizard().$('input[type="search"]').waitForDisplayed();
+    await wizard().$('input[type="search"]').setValue('1.21.1');
     await $('label.check=1.21.1').click();
     await wizardNext();
 

@@ -1,7 +1,9 @@
 /**
  * Estado vazio (HANDOFF §3; DESIGN-SYSTEM §6): o que é, por que está vazio e o que fazer.
  * Variantes: padrão (tracejado), `ok` (nada de errado), `error` (falha ao carregar) e
- * `compact` (dentro de painéis e gavetas). Ilustração em pixel com um símbolo.
+ * `compact` (dentro de painéis e gavetas). Ilustração em pixel com um símbolo. `centered`
+ * serve ao estado vazio de uma página inteira: fica no meio da área abaixo do cabeçalho, com a
+ * ilustração em cima (relato do dono, issue #1).
  */
 import type { ReactNode } from 'react';
 
@@ -20,6 +22,8 @@ export interface EmptyStateProps {
   kind?: EmptyKind;
   glyph?: Glyph;
   compact?: boolean;
+  /** No meio da área da página (estado vazio de uma página inteira). */
+  centered?: boolean;
   /** Nível do título, para seguir a hierarquia da página. Padrão: 2. */
   headingLevel?: 2 | 3 | 4;
   className?: string | undefined;
@@ -35,6 +39,7 @@ export function EmptyState({
   kind = 'default',
   glyph = 'box',
   compact = false,
+  centered = false,
   headingLevel = 2,
   className,
 }: EmptyStateProps) {
@@ -45,6 +50,7 @@ export function EmptyState({
         'empty',
         kind !== 'default' && `empty--${kind}`,
         compact && 'empty--compact',
+        centered && 'empty--center',
         className,
       )}
     >

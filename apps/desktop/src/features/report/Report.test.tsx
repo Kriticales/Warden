@@ -315,6 +315,14 @@ describe('peças do relato', () => {
       screen: 'Pack › Mods',
       packId: 'abc',
     });
+    // Criar pack e Abrir pack são diálogos de Meus packs, abertos pela busca (D38).
+    expect(screenOf([{ routeId: '/packs/', params: {}, search: {} }], t).screen).toBe('Meus packs');
+    expect(screenOf([{ routeId: '/packs/', params: {}, search: { criar: true } }], t).screen).toBe(
+      'Meus packs › Criar pack',
+    );
+    expect(
+      screenOf([{ routeId: '/packs/', params: {}, search: { pasta: 'D:/Packs/x' } }], t).screen,
+    ).toBe('Meus packs › Abrir ou importar');
     expect(screenOf([{ routeId: '/outra', params: {} }], t).screen).toBe('Tela não identificada');
     expect(screenOf([], t).screen).toBe('Tela não identificada');
   });

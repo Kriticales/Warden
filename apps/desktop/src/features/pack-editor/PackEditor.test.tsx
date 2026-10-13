@@ -332,6 +332,10 @@ describe('Mods (T06)', () => {
     expect(
       screen.getByText(/O pack Vale Sereno é para Minecraft 1\.20\.1 com Forge 47\.3\.0\./),
     ).toBeDefined();
+    // Centralizado na área da seção, numa coluna larga (relato do dono, issue #1).
+    const empty = screen.getByRole('heading', { name: 'Nenhum mod ainda' }).closest('.empty');
+    expect(empty?.classList.contains('empty--center')).toBe(true);
+    expect(empty?.parentElement?.classList.contains('content--wide')).toBe(true);
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 });

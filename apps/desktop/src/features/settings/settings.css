@@ -2,10 +2,7 @@
  * Layout de Configurações (T21) e da primeira execução (T01), iguais ao protótipo final
  * (`design/prototipo-final/prototipo.css`). Mesma regra do design system: só tokens.
  */
-.settings {
-  /* 880 px, como no protótipo. */
-  max-width: calc(var(--space-16) * 13.75);
-}
+/* A largura (880 px, como no protótipo) vem da coluna de leitura (`AppPage width="read"`). */
 .settings__section + .settings__section {
   margin-top: var(--space-4);
 }

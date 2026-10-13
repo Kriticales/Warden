@@ -160,7 +160,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
 
     await $('h1=Fixture Fabric').waitForDisplayed({ timeout: 60_000 });

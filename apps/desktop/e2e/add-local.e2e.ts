@@ -152,7 +152,7 @@ async function typeInField(text: string): Promise<void> {
 async function openPack(folder: string, title: string): Promise<void> {
   writeFileSync(PICK_FOLDER, folder);
   await $('button=Abrir ou importar…').click();
-  await $('h1=Abrir pack').waitForDisplayed();
+  await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
   await $('button=Abrir pack').click();
   await $(`h1=${title}`).waitForDisplayed({ timeout: 60_000 });
   await $('h1=Mods').waitForDisplayed();

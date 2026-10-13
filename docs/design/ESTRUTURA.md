@@ -217,8 +217,8 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T02 | Lista de packs | **Meus packs** (tela inicial). Lista em linhas, com Minecraft/loader, versão, último teste, não salvas e data. |
 | T02 | Estados vazio, pasta sumiu, pack ilegível | Na própria lista. Pasta sumiu: linha com **Localizar…** e **Remover da lista**. |
 | T02 | Mostrar na pasta, Remover da lista, Apagar pack (P1) | Menu **⋯** de cada pack (escondido). |
-| T03 | Criar pack (4 etapas) | Assistente em tela cheia a partir de Meus packs. No fim abre o pack em Mods (A) ou no Painel (B), vazio, com **Adicionar mods**. |
-| T04 | Abrir pack existente + limpeza | Botão em Meus packs → escolher pasta → tela de verificação com a lista de arquivos a limpar, **Agora não** e **Limpar N arquivos e abrir**. |
+| T03 | Criar pack (5 etapas) | Assistente num **diálogo** por cima de Meus packs (D38; antes era tela cheia). No fim abre o pack em Mods (A) ou no Painel (B), vazio, com **Adicionar mods**. |
+| T04 | Abrir pack existente + limpeza | Botão em Meus packs → escolher pasta → **diálogo** de verificação por cima de Meus packs (D38) com a lista de arquivos a limpar, **Agora não** e **Limpar N arquivos e abrir**. |
 | T05 | Cabeçalho do pack | Cabeçalho fixo em todas as telas do pack: ← Meus packs, nome, Minecraft/loader/versão, avisos do momento, Salvar versão, Testar. |
 | T05 | Indicadores (não salvas, mudanças do teste, problemas, jogo em execução) | Não salvas: no botão Salvar versão. Mudanças do teste: aviso no cabeçalho. Problemas: contador no menu (A) ou aviso no cabeçalho (B). Jogo em execução: o botão Testar vira "● Jogo aberto: ver teste". |
 | T05 | Abas do pack | Substituídas por 6 seções (A) ou painel + páginas (B). Ver §7. |
@@ -361,7 +361,7 @@ Feita com a skill `design:design-critique`, olhando como um usuário leigo, sobr
 | Na A, depois que o jogo fechava e o usuário saía da tela, não havia caminho óbvio para rever o último teste (console, o que mudou). | Moderada | **Ver último teste** entrou no menu ▾ do Testar. Na B, também em Situação. |
 | "Trazer selecionados para o pack" levava direto ao Histórico, o que desorienta: "por que vim parar aqui?". | Moderada | Agora aparece uma confirmação dizendo onde as mudanças foram parar, com **Salvar versão** e **Continuar editando**. |
 | A grade de cartões idênticos em Meus packs e as 4 caixas iguais no painel da B tinham "cara de feito por IA" (pedido do dono) e mostravam pouca informação por pack. | Moderada | Meus packs virou uma lista densa em linhas, mais fácil de comparar. O painel da B ficou assimétrico: coluna principal com a prévia da lista de mods e configs; coluna lateral com situação, versões e exportar. |
-| Estados vazios centralizados, com texto "de vitrine". | Pequena | Alinhados à esquerda, com texto direto: o que é, por que está vazio, o que fazer. |
+| Estados vazios centralizados, com texto "de vitrine". | Pequena | Alinhados à esquerda, com texto direto: o que é, por que está vazio, o que fazer. **Revisto pelo dono (D38, 13/10/2026):** o vazio de página inteira (Meus packs sem packs, pack sem mods) fica centralizado na área; o texto continua direto. |
 | Excesso de travessões nos textos. | Pequena | Trocados por dois-pontos, parênteses ou "·". |
 
 ### 10.2 Achados mantidos de propósito (para o dono avaliar)
@@ -414,8 +414,8 @@ Depois de aprovar a estrutura, o dono pediu uma ferramenta **completa** de cria�
 ```
 MEUS PACKS ................................ nível do APP
 ├── coluna nova: Saúde (nota do pack: "36 · Crítico")
-├── Criar pack (5 etapas: Nome e pasta · Versão do Minecraft · Loader · Mods iniciais · Resumo)
-├── Abrir ou importar… (pasta packwiz, .mrpack, zip da CurseForge, instância do Prism ou da CurseForge)
+├── Criar pack (diálogo, D38; 5 etapas: Nome e pasta · Versão do Minecraft · Loader · Mods iniciais · Resumo)
+├── Abrir ou importar… (diálogo, D38; pasta packwiz, .mrpack, zip da CurseForge, instância do Prism ou da CurseForge)
 │   └── Importar modpack (verificação: convertido, arquivo local, revisar, lixo que não entra)
 ├── Configurações (+ "EULA do Minecraft" em Teste)
 └── PACK ABERTO ........................... nível do PACK
@@ -504,6 +504,7 @@ MEUS PACKS ................................ nível do APP
 | N8 | **Mods** ganha o seletor "Ver como: Lista · Grafo". | Modo de exibição dos mesmos dados (regra 3). |
 | N9 | A tela do teste ganha a faixa de desempenho, o seletor "Mostrar" do console, "Mostrando: Servidor · Jogo" quando há servidor, e o modo **Busca do culpado**. | Tudo isso é sobre um teste em andamento ou já feito; o lugar natural é a tela do teste. |
 | N10 | **Exportar** ganha o formato "Pacote para servidor (.zip)". | Decisão do dono (D22). |
+| N11 | **Criar pack** e **Abrir pack** deixam de ser telas próprias e abrem como **diálogo** por cima de Meus packs (rotas `/packs/novo` e `/packs/abrir` saem; o diálogo vem da busca de `/packs`: `?criar`, `?pasta=`). | Decisão do dono (D38, relato na issue #1): são passos curtos que partem da lista e voltam para ela; a lista continua à vista por trás. |
 
 Nenhuma sétima seção, nenhuma aba. A ADR-0036 registra estas mudanças.
 

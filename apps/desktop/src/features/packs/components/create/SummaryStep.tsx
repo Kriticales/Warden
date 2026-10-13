@@ -54,7 +54,7 @@ export function SummaryStep({ draft }: { draft: Draft }) {
           withCrashAssistant ? `, com a ${tMods('resumo.config')}` : ''
         }`;
   return (
-    <div className="wizard__body--wide stack">
+    <div className="newpack__step stack">
       <div className="packcard">
         <NameTile seed={name} size="xl" />
         <div className="packcard__name">{name}</div>

@@ -208,7 +208,7 @@ describe('Exportar para outros launchers (E-02; T19)', () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
     await $('nav[aria-label="Seções do pack"]').$('a*=Exportar').click();

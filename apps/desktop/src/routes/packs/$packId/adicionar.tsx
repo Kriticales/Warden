@@ -13,7 +13,7 @@ interface AddSearch {
  * recolhido para ícones enquanto ela está aberta.
  */
 export const Route = createFileRoute('/packs/$packId/adicionar')({
-  staticData: { packMenu: 'compact' },
+  staticData: { packMenu: 'compact', contentWidth: 'wide' },
   validateSearch: (search: Record<string, unknown>): AddSearch => {
     const tipo = PROJECT_KINDS.find((kind) => kind === search.tipo);
     return tipo ? { tipo } : {};
