@@ -1,0 +1,13 @@
+/* Faixa de desempenho do teste: o visual vem do design system (`.perf` em
+   design/system/components.css, protótipo `W.perfStrip`). Aqui só o que a L-10 muda. */
+
+/* Só as medidas do processo (sem a coluna larga da memória do jogo, que vem com a L-11):
+   colunas iguais. */
+.perf--process {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* A faixa ocupa altura acima do console do jogo aberto. */
+.perf ~ .run-console {
+  height: calc(100vh - 500px);
+}
