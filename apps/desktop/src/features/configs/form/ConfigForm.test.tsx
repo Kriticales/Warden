@@ -366,6 +366,13 @@ describe('Formulário de configs (T12, C-04)', () => {
     await waitFor(() => {
       expect(screen.getByText(/linha 3, coluna 1/)).toBeDefined();
     });
+    // O pedido vale uma vez: voltar ao formulário e ao texto não puxa de novo o foco para a linha.
+    await user.click(screen.getByRole('radio', { name: 'Formulário' }));
+    await screen.findByRole('group', { name: `Campos de ${CREATE}` });
+    const text = screen.getByRole('radio', { name: 'Texto' });
+    await user.click(text);
+    await screen.findByRole('textbox', { name: `Conteúdo de ${CREATE}` });
+    expect(document.activeElement).toBe(text);
   });
 
   it('valor em várias linhas, chave sem "=" e lista sem leitura item por item ficam no texto', async () => {

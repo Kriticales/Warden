@@ -93,7 +93,6 @@ export function ConfigEditor({
     openSearch: () => editor.current?.openSearch(),
     focus: () => editor.current?.focus(),
     replaceAll: (text) => editor.current?.replaceAll(text),
-    revealLine: (line) => editor.current?.revealLine(line),
   }));
 
   const name = baseName(file.path);
@@ -125,14 +124,17 @@ export function ConfigEditor({
     mode === 'form' &&
     fallback === null &&
     (formState.status === 'loading' || formState.status === 'error');
-  // "Editar este trecho como texto": a linha a mostrar quando o texto abrir.
-  const [pendingLine, setPendingLine] = useState<number | null>(null);
-  useEffect(() => {
-    if (pendingLine !== null && !showForm && editor.current) {
-      editor.current.revealLine(pendingLine);
-      setPendingLine(null);
-    }
-  }, [pendingLine, showForm]);
+  // "Editar este trecho como texto": a linha a mostrar quando o texto abrir. Vale até chegar
+  // um pedido novo da página (`over` guarda qual era o dela); os números são negativos para não
+  // coincidir com os da página.
+  const [textLine, setTextLine] = useState<(LineRequest & { over: number | undefined }) | null>(
+    null,
+  );
+  const nextLine: LineRequest | null =
+    textLine !== null && textLine.over === goTo?.request ? textLine : goTo;
+  // O pedido já atendido não vai para o editor recriado ao voltar do formulário para o texto.
+  const [appliedLine, setAppliedLine] = useState<number | null>(null);
+  const lineTarget = nextLine !== null && nextLine.request !== appliedLine ? nextLine : null;
 
   const reloadFrom = (content: ConfigContent) => {
     const next = { text: content.text ?? '', hash: content.hash };
@@ -373,7 +375,11 @@ export function ConfigEditor({
           text={text}
           onText={setText}
           onOpenText={(line) => {
-            setPendingLine(line);
+            setTextLine((previous) => ({
+              line,
+              request: Math.min(previous?.request ?? 0, 0) - 1,
+              over: goTo?.request,
+            }));
             setEditorMode('text');
           }}
           onFallback={setFallback}
@@ -400,7 +406,8 @@ export function ConfigEditor({
           onCursor={(line, column) => {
             setCursor({ line, column });
           }}
-          goTo={goTo}
+          goTo={lineTarget}
+          onGoTo={setAppliedLine}
         />
       )}
 

@@ -17,11 +17,13 @@ export interface CodeEditorHandle {
   focus: () => void;
   /** Troca todo o texto (Desfazer as alterações). */
   replaceAll: (text: string) => void;
-  /** Põe o cursor no começo da linha (começa em 1), rola até ela e foca o editor. */
-  revealLine: (line: number) => void;
 }
 
-/** Ir para uma linha (começa em 1). `request` muda a cada pedido, mesmo para a mesma linha. */
+/**
+ * Ir para uma linha (começa em 1). `request` muda a cada pedido, mesmo para a mesma linha. É o
+ * único "ir para a linha" do editor: vale também para o editor que acabou de ser criado (arquivo
+ * novo, ou o texto aberto a partir do formulário).
+ */
 export interface LineRequest {
   line: number;
   request: number;
@@ -38,8 +40,13 @@ export interface CodeEditorProps {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
-  /** Põe o cursor no começo da linha, centralizada, e o foco no editor. */
+  /** Põe o cursor no começo da linha, centralizada, e o foco no editor; uma vez por pedido. */
   goTo?: LineRequest | null;
+  /**
+   * Avisa que o pedido foi atendido. Quem recria o editor (formulário ↔ texto) para de mandar o
+   * pedido atendido, e o editor novo não volta para a linha antiga.
+   */
+  onGoTo?: (request: number) => void;
   ref?: Ref<CodeEditorHandle>;
 }
 
@@ -66,16 +73,17 @@ export function CodeEditor({
   onChange,
   onCursor,
   goTo = null,
+  onGoTo,
   ref,
 }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   // Os callbacks mudam a cada render; o editor chama sempre a versão mais nova.
-  const callbacks = useRef({ onChange, onCursor });
+  const callbacks = useRef({ onChange, onCursor, onGoTo });
   const savedRef = useRef(saved);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => {
-    callbacks.current = { onChange, onCursor };
+    callbacks.current = { onChange, onCursor, onGoTo };
     savedRef.current = saved;
   });
 
@@ -140,6 +148,9 @@ export function CodeEditor({
       effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
     });
     current.focus();
+    if (goToRequest !== undefined) {
+      callbacks.current.onGoTo?.(goToRequest);
+    }
   }, [resetKey, goToLine, goToRequest]);
 
   // O texto salvo mudou (gravou): remarca as linhas.
@@ -165,15 +176,6 @@ export function CodeEditor({
       const current = view.current;
       if (current) {
         current.dispatch({ changes: { from: 0, to: current.state.doc.length, insert: text } });
-      }
-    },
-    revealLine: (line) => {
-      const current = view.current;
-      if (current) {
-        const doc = current.state.doc;
-        const position = doc.line(Math.min(Math.max(line, 1), doc.lines)).from;
-        current.dispatch({ selection: { anchor: position }, scrollIntoView: true });
-        current.focus();
       }
     },
   }));
