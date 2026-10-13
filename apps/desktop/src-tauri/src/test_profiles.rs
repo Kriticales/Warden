@@ -207,6 +207,9 @@ struct StoredProfile {
 #[serde(rename_all = "camelCase", default)]
 struct Stored {
     active: Option<String>,
+    /// O maior número de id já dado (`perfil-N`), para um id apagado nunca voltar (as sessões
+    /// gravam o id do perfil).
+    last_id: u32,
     default: DefaultExtras,
     profiles: Vec<StoredProfile>,
     #[serde(flatten)]
@@ -389,15 +392,18 @@ fn is_world_name(name: &str) -> bool {
         && !name.contains(['/', '\\', '\0', ':'])
 }
 
-/// O próximo id livre (`perfil-1`, `perfil-2`…).
-fn next_id(stored: &Stored) -> String {
+/// O próximo id livre (`perfil-1`, `perfil-2`…), nunca o de um perfil apagado; anota o
+/// número dado em `last_id`.
+fn next_id(stored: &mut Stored) -> String {
     let highest = stored
         .profiles
         .iter()
         .filter_map(|item| item.profile.id.strip_prefix("perfil-")?.parse::<u32>().ok())
         .max()
-        .unwrap_or(0);
-    format!("perfil-{}", highest + 1)
+        .unwrap_or(0)
+        .max(stored.last_id);
+    stored.last_id = highest.saturating_add(1);
+    format!("perfil-{}", stored.last_id)
 }
 
 /// Cria um perfil com `name` e `fields` (não fica ativo). Erros: nome inválido ou repetido,
@@ -418,7 +424,7 @@ pub(crate) fn create_profile(
     let fields = check_fields(fields)?;
     let mut stored = read_stored(state, pack_id)?;
     let profile = TestProfile {
-        id: next_id(&stored),
+        id: next_id(&mut stored),
         name,
         fields,
     };
@@ -516,6 +522,16 @@ pub(crate) fn save_profiles(
             .ok_or_else(|| not_found(&profile.id))?;
         item.profile.name = name;
         item.profile.fields = fields;
+    }
+    // Cada nome foi conferido contra os gravados; dois do mesmo lote também não podem repetir.
+    let mut names: Vec<String> = Vec::new();
+    for item in &stored.profiles {
+        let lower = item.profile.name.to_lowercase();
+        if names.contains(&lower) {
+            return Err(AppError::new(AppErrorCode::TestProfileNameTaken)
+                .with_param("name", &item.profile.name));
+        }
+        names.push(lower);
     }
     if let Some(settings) = settings {
         write_test_settings(state, pack_id, settings)?;
@@ -695,6 +711,10 @@ mod tests {
         assert_eq!(profiles.profiles.len(), 2);
         let third = create_profile(&state, pack, "Outro", fixed(6)).unwrap();
         assert_eq!(third.id, "perfil-3");
+        // Nem o do último perfil criado: as sessões antigas guardam o id.
+        delete_profile(&state, pack, "perfil-3").unwrap();
+        let fourth = create_profile(&state, pack, "Mais um", fixed(6)).unwrap();
+        assert_eq!(fourth.id, "perfil-4");
     }
 
     #[test]
@@ -806,6 +826,20 @@ mod tests {
         assert_eq!(
             saved.profiles[1].fields.optionals,
             Some(BTreeMap::from([("mods/a.pw.toml".into(), false)]))
+        );
+
+        // Dois perfis com o mesmo nome no mesmo lote: recusado, nada é gravado.
+        create_profile(&state, pack, "Shaders", fixed(8)).unwrap();
+        let mut profiles = profiles_of(&state, pack).unwrap().profiles;
+        profiles[1].name = "Igual".into();
+        profiles[2].name = "igual".into();
+        assert_eq!(
+            code(&save_profiles(&state, pack, profiles).unwrap_err()),
+            ErrorCode::App(AppErrorCode::TestProfileNameTaken)
+        );
+        assert_eq!(
+            profiles_of(&state, pack).unwrap().profiles[1].name,
+            "PC fraquinho"
         );
     }
 
