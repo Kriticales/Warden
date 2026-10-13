@@ -7,7 +7,7 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { InventoryItem } from '../../lib/ipc/bindings';
+import type { InventoryItem, PackRow } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
 import { renderApp } from '../../test/render';
 import {
@@ -158,6 +158,58 @@ describe('pack aberto (T05)', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Mods' })).toBeDefined();
     expect(await screen.findByText('O pack foi alterado fora do Warden')).toBeDefined();
     expect(screen.getByText('A tela mostra o que está no disco agora.')).toBeDefined();
+  });
+
+  it('A-05: mudança externa relê o cabeçalho (nome, versões, alterações) e nota a pasta sumida', async () => {
+    let row: PackRow | undefined;
+    // O backend devolve sempre a linha atual do pack, a que o teste troca.
+    const opened = editorBackend({
+      pack: { version: '1.4.2' },
+      handlers: { pack_get: () => row, packs_list: () => (row ? [row] : []) },
+    });
+    const { backend, url } = opened;
+    row = opened.row;
+    await openMods(url);
+    const header = screen.getByRole('banner', { name: 'Pack aberto' });
+    expect(within(header).getByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
+
+    // Outro programa editou o pack.toml (o vigia manda Meta e Inventário) e mais 3 arquivos.
+    row = {
+      ...row,
+      name: 'Vale Sombrio',
+      minecraft: '1.20.4',
+      loaderVersion: '49.0.30',
+      version: '1.5.0',
+      unsavedFiles: 3,
+    };
+    await act(() =>
+      backend.emit('pack-changed', {
+        packId: opened.row.id,
+        areas: ['meta', 'inventory'],
+        external: true,
+      }),
+    );
+    expect(
+      await within(header).findByRole('heading', { level: 1, name: 'Vale Sombrio' }),
+    ).toBeDefined();
+    expect(header.textContent).toContain('Minecraft 1.20.4');
+    expect(header.textContent).toContain('Forge 49.0.30');
+    expect(header.textContent).toContain('versão 1.5.0');
+    expect(
+      within(header).getByRole('button', { name: 'Salvar versão, 3 alterações não salvas' }),
+    ).toBeDefined();
+
+    // A pasta do pack foi apagada: o vigia manda todas as áreas.
+    row = { ...row, status: 'folderMissing' };
+    await act(() =>
+      backend.emit('pack-changed', {
+        packId: opened.row.id,
+        areas: ['inventory', 'configs', 'meta', 'history'],
+        external: true,
+      }),
+    );
+    expect(await screen.findByText('A pasta deste pack não foi encontrada')).toBeDefined();
+    expect(screen.queryByRole('navigation', { name: 'Seções do pack' })).toBeNull();
   });
 
   it('A-05: escrita do próprio Warden recarrega, mas não mostra o aviso de mudança externa', async () => {

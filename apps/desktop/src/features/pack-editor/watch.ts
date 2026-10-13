@@ -2,10 +2,13 @@
  * Mudanças externas no pack aberto (SPEC T05; ARCHITECTURE §15; ROADMAP A-05).
  *
  * Enquanto a tela do pack está aberta, o Rust vigia a pasta. Quando outro programa mexe nela
- * (editor de texto, `git pull`), ele emite `pack-changed` com `external: true`: a invalidação
- * das queries já acontece na raiz do app (`usePackChangedInvalidation`), sem trocar de seção;
- * aqui fica o aviso discreto de que a tela foi atualizada.
+ * (editor de texto, `git pull`), ele emite `pack-changed` com `external: true`: as áreas que
+ * mudaram já são invalidadas na raiz do app (`usePackChangedInvalidation`), sem trocar de seção.
+ * Aqui ficam o resto do que a tela mostra do pack (a linha do cabeçalho, a lista de Meus packs e
+ * a higiene, que as escritas do próprio Warden invalidam pelas mutations) e o aviso discreto de
+ * que a tela foi atualizada.
  */
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,10 +16,12 @@ import { dismissToast, showToast } from '../../components/ui/toast';
 import { log } from '../../lib/log';
 import { commands, events, type PackId } from '../../lib/ipc/bindings';
 import { useTauriEvent } from '../../lib/ipc/events';
+import { packsKeys } from '../packs/api';
 
 /** Liga o vigia da pasta do pack enquanto o componente estiver montado. */
 export function usePackWatch(packId: PackId): void {
   const { t } = useTranslation('editor');
+  const queryClient = useQueryClient();
   const toast = useRef<number | null>(null);
 
   useEffect(() => {
@@ -36,6 +41,10 @@ export function usePackWatch(packId: PackId): void {
   useTauriEvent(events.packChanged, (change) => {
     if (!change.external || change.packId !== packId) {
       return;
+    }
+    // Nome, versões, "Salvar versão · N alterações" e "Pasta não encontrada" vêm da linha.
+    for (const queryKey of [packsKeys.row(packId), packsKeys.list, packsKeys.hygiene(packId)]) {
+      void queryClient.invalidateQueries({ queryKey });
     }
     // Rajadas seguidas mostram um aviso só.
     if (toast.current !== null) {
