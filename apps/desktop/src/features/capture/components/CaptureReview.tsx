@@ -10,6 +10,7 @@ import {
   GitCompare,
   Globe,
   Image,
+  Package,
   Puzzle,
   Settings,
   type LucideIcon,
@@ -21,7 +22,7 @@ import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
 import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
 import { showToast } from '../../../components/ui/toast';
-import type { CaptureFileView, CaptureView, PackId } from '../../../lib/ipc/bindings';
+import type { CaptureFileView, CaptureGroup, CaptureView, PackId } from '../../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { useCaptureApply, useCaptureDiscard } from '../api';
 import {
@@ -37,6 +38,13 @@ import { ConflictItem } from './ConflictItem';
 import { KeyDiff } from './KeyDiff';
 import { ManualItems } from './ManualItems';
 import { TextDiffDialog } from './TextDiffDialog';
+
+/** Grupos que nunca vão para o pack (SPEC T15): cada um com o seu título. */
+const MANUAL_GROUPS = [
+  { group: 'mod', icon: Puzzle },
+  { group: 'resource', icon: Image },
+  { group: 'datapack', icon: Package },
+] as const satisfies readonly { group: CaptureGroup; icon: LucideIcon }[];
 
 export interface CaptureReviewProps {
   packId: PackId;
@@ -124,7 +132,6 @@ export function CaptureReview({ packId, view, onApplied }: CaptureReviewProps) {
     apply.mutate(buildRequest(view, selection));
   };
 
-  const manual = [...groups.byGroup.mod, ...groups.byGroup.resource, ...groups.byGroup.datapack];
   const options = groups.options;
 
   return (
@@ -236,21 +243,22 @@ export function CaptureReview({ packId, view, onApplied }: CaptureReviewProps) {
             )}
           </Group>
         ) : null}
-        {manual.length > 0 ? (
-          <Group
-            icon={manual.some((item) => item.file.group === 'mod') ? Puzzle : Image}
-            title={
-              groups.byGroup.mod.length > 0
-                ? t('grupos.mod')
-                : groups.byGroup.resource.length > 0
-                  ? t('grupos.resource')
-                  : t('grupos.datapack')
-            }
-            count={manual.length}
-          >
-            <ManualItems packId={packId} sessionId={view.sessionId} items={manual} />
-          </Group>
-        ) : null}
+        {MANUAL_GROUPS.map(({ group, icon }) =>
+          groups.byGroup[group].length > 0 ? (
+            <Group
+              key={group}
+              icon={icon}
+              title={t(`grupos.${group}`)}
+              count={groups.byGroup[group].length}
+            >
+              <ManualItems
+                packId={packId}
+                sessionId={view.sessionId}
+                items={groups.byGroup[group]}
+              />
+            </Group>
+          ) : null,
+        )}
         {groups.byGroup.generated.length > 0 ? (
           <details className="disclosure">
             <summary>{t('grupos.generated', { count: groups.byGroup.generated.length })}</summary>

@@ -397,7 +397,18 @@ describe('conflito de três vias (CA-T15-05)', () => {
 
 describe('mods colocados à mão (CA-T15-04)', () => {
   it('nunca têm caixa de marcar: o reconhecido oferece adicionar pelo caminho normal', async () => {
-    const { backend, url } = setup(() => makeCapture(), {
+    const shader = fileView({
+      path: 'shaderpacks/BSL.zip',
+      group: 'resource',
+      change: 'added',
+      selected: false,
+      packPath: null,
+      values: [],
+      text: false,
+      managed: false,
+    });
+    const capture = makeCapture();
+    const { backend, url } = setup(() => ({ ...capture, files: [...capture.files, shader] }), {
       add_plan: () => ipcError(makeAppError({ domain: 'app', code: 'INTERNAL' })),
     });
     const user = userEvent.setup();
@@ -407,6 +418,12 @@ describe('mods colocados à mão (CA-T15-04)', () => {
       .closest('section');
     if (!group) throw new Error('grupo dos mods ausente');
     expect(within(group).queryByRole('checkbox')).toBeNull();
+    expect(within(group).queryByText(/BSL\.zip/)).toBeNull();
+    // Resource packs e shaders no grupo deles, com o título deles.
+    const resources = within(block).getByText('Resource packs e shaders novos').closest('section');
+    if (!resources) throw new Error('grupo dos resource packs ausente');
+    expect(within(resources).getAllByText(/BSL\.zip/).length).toBeGreaterThan(0);
+    expect(within(resources).queryByRole('checkbox')).toBeNull();
     expect(
       await within(block).findByText(
         'jei-1.20.1-forge-15.20.0.112.jar é Just Enough Items 15.20.0.112, do Modrinth. O arquivo não é copiado.',
