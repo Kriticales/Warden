@@ -86,6 +86,8 @@ jobs:
       runner: windows-latest
       cache-key: windows-e2e
       timeout-minutes: 90
+      # "Testar como o jogador recebe" (L-07) roda o packwiz-installer real dos jars fixados.
+      installer: true
       # `e2e-driver` baixa o msedgedriver da mesma versão do WebView2 da máquina (QUALITY §13.5).
       # A tela do runner é de 1024×768 e o Windows às vezes limita a janela a ela, ignorando o
       # `setWindowSize(1366, 860)` dos testes; por isso a resolução sobe para 1920×1080 antes.

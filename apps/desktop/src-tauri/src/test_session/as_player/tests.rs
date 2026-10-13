@@ -506,6 +506,12 @@ async fn pack_nao_publicado_vem_do_pack_exportado_agora() {
     assert_eq!(report.source, PlayerSource::Local);
     assert!(!report.outdated);
     assert_eq!(report.crash_assistant, Some(true));
+    let kinds: Vec<_> = report
+        .items
+        .iter()
+        .map(|item| (item.kind, item.path.as_str()))
+        .collect();
+    assert_eq!(kinds, [(PlayerItemKind::Optional, "mods/zoom.jar")]);
     assert!(
         !ctx.state.paths.cache_dir().join("staging").exists()
             || fs::read_dir(ctx.state.paths.cache_dir().join("staging"))
