@@ -67,7 +67,9 @@ export function ProfilePicker({
     if (!naming) return null;
     const name = naming.value.trim();
     if (name === '') return t('nomeVazio');
-    if (name.length > MAX_PROFILE_NAME) return t('nomeLongo', { max: MAX_PROFILE_NAME });
+    // Em caracteres, como o backend (`chars().count()`), não em unidades UTF-16.
+    if (Array.from(name).length > MAX_PROFILE_NAME)
+      return t('nomeLongo', { max: MAX_PROFILE_NAME });
     const lower = name.toLowerCase();
     const taken =
       lower === t('padrao').toLowerCase() ||

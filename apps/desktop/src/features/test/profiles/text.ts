@@ -5,6 +5,7 @@
  */
 import i18n from '../../../i18n';
 import type { TestMemory, TestProfile } from '../../../lib/ipc/bindings';
+import { BLOCKS_MEMORY_READING } from '../../pack-editor/test-settings/jvm-args';
 import { formatMemory } from '../text';
 
 /** Id do perfil Padrão (o mesmo do backend). */
@@ -15,9 +16,6 @@ export const MAX_PROFILE_NAME = 40;
 
 /** Acima desta fração da memória do computador, a memória do teste gera aviso (SPEC T11). */
 const MEMORY_WARN_SHARE = 0.75;
-
-/** Argumentos que impedem o Warden de ler a memória do jogo (ADR-0038). */
-export const PERF_FLAGS = ['-XX:+PerfDisableSharedMem', '-XX:-UsePerfData'] as const;
 
 const t = i18n.getFixedT(null, 'perfis');
 
@@ -60,7 +58,7 @@ export function memoryAboveRam(memory: TestMemory, computerMb: number | null): b
  */
 export function removePerfFlags(text: string): string {
   let result = text;
-  for (const flag of PERF_FLAGS) {
+  for (const flag of BLOCKS_MEMORY_READING) {
     const escaped = flag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     result = result.replace(new RegExp(`(^|\\s+)${escaped}(?=\\s|$)`, 'g'), '');
   }
