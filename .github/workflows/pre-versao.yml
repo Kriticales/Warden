@@ -1,0 +1,243 @@
+# Pré-versão de fim de marco no GitHub Releases (INFRA-02; decisão do dono de 13/10/2026).
+#
+# Só manual (Actions → Pré-versão → Run workflow, na branch `main`), pelo orquestrador, quando
+# um marco fecha. Nada roda a cada push. Entradas:
+#   - marco: o número do marco (1 a 6, ROADMAP §13);
+#   - ref: o commit do `main` (vazio, o `main` atual).
+#
+# Jobs:
+#   1. conferir: o `ref` está no `main`, a CI desse commit terminou verde e a tag
+#      `v<versão do app>-marco.<N>` ainda não existe (`cargo xtask pre-versao --dry-run`);
+#   2. windows: o mesmo `windows.yml` da CI (check, cofre real e instalador NSIS), no `ref`;
+#   3. publicar: cria a tag no `ref` (a API recusa se ela já existir, sem sobrescrever) e a
+#      Release marcada como pré-versão, com o `.exe` e as notas de `cargo xtask pre-versao`
+#      (`docs/pre-versoes/marco-<N>.md`, como instalar, o SmartScreen e o SHA-256).
+#
+# O `xtask` e as notas vêm do `main` em que o workflow foi disparado (um marco antigo ganha
+# notas escritas depois); a versão e o instalador vêm do `ref`. Permissões: `contents: read`,
+# mais `actions: read` na conferência (ler a execução da CI) e `contents: write` só no job que
+# cria a tag e a Release. Nenhum segredo além do `GITHUB_TOKEN`.
+
+name: Pré-versão
+
+on:
+  workflow_dispatch:
+    inputs:
+      marco:
+        description: Número do marco que fechou (1 a 6).
+        type: choice
+        required: true
+        options: ["1", "2", "3", "4", "5", "6"]
+      ref:
+        description: Commit do main (vazio, o main atual).
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-versao
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  conferir:
+    name: Conferir commit, CI e tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Disparado da main?
+        if: github.ref != 'refs/heads/main'
+        env:
+          REF_ATUAL: ${{ github.ref }}
+        run: |
+          echo "::error::Dispare a pré-versão a partir da branch main (foi de $REF_ATUAL)."
+          exit 1
+
+      - name: Baixar o código (main, histórico inteiro)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolver o commit e conferir que está no main
+        id: commit
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          ref="${REF:-origin/main}"
+          if ! sha=$(git rev-parse --verify --quiet "${ref}^{commit}"); then
+            echo "::error::O ref '$ref' não é um commit deste repositório."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$sha" origin/main; then
+            echo "::error::O commit $sha não está no main; a pré-versão só sai de commits do main."
+            exit 1
+          fi
+          echo "Commit da pré-versão: $sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Conferir que a CI desse commit terminou verde
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          execucao=$(gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+            -f head_sha="$SHA" -f branch=main -f event=push -F per_page=20 \
+            --jq '.workflow_runs | sort_by(.created_at) | last // empty | [.status, (.conclusion // "-"), .html_url] | @tsv')
+          if [ -z "$execucao" ]; then
+            echo "::error::Não há execução da CI no main para o commit $SHA (a CI roda no último commit de cada push). Escolha um commit com CI."
+            exit 1
+          fi
+          IFS=$'\t' read -r estado conclusao endereco <<< "$execucao"
+          if [ "$estado" != "completed" ]; then
+            echo "::error::A CI do commit $SHA ainda não terminou ($estado): $endereco"
+            exit 1
+          fi
+          if [ "$conclusao" != "success" ]; then
+            echo "::error::A CI do commit $SHA não passou ($conclusao): $endereco"
+            exit 1
+          fi
+          echo "CI verde: $endereco"
+
+      - name: Rust (versão do rust-toolchain.toml)
+        run: rustup toolchain install
+
+      - name: Montar a tag e as notas (teste a seco) e conferir que a tag não existe
+        id: tag
+        env:
+          MARCO: ${{ inputs.marco }}
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/alvo" "$SHA"
+          saida="$RUNNER_TEMP/pre-versao"
+          cargo xtask pre-versao --marco "$MARCO" --commit "$SHA" --alvo "$RUNNER_TEMP/alvo" \
+            --saida "$saida" --dry-run
+          tag=$(cat "$saida/tag.txt")
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::A tag $tag já existe; a pré-versão não é sobrescrita. Apague a tag e a release à mão, se for o caso."
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Pré-versão $tag (prévia das notas)"
+            echo
+            cat "$saida/notas.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  windows:
+    name: Windows
+    needs: conferir
+    uses: ./.github/workflows/windows.yml
+    with:
+      ref: ${{ needs.conferir.outputs.sha }}
+
+  publicar:
+    name: Publicar a pré-versão
+    needs: [conferir, windows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Baixar o código (main)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Baixar o código (commit da pré-versão)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.conferir.outputs.sha }}
+          path: target/pre-versao-alvo
+          persist-credentials: false
+
+      - name: Baixar o instalador do job Windows
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: warden-windows-${{ needs.conferir.outputs.sha }}
+          path: target/pre-versao-instalador
+
+      - name: Rust (versão do rust-toolchain.toml)
+        run: rustup toolchain install
+
+      - name: Montar a tag e as notas
+        id: notas
+        env:
+          MARCO: ${{ inputs.marco }}
+          SHA: ${{ needs.conferir.outputs.sha }}
+          TAG_CONFERIDA: ${{ needs.conferir.outputs.tag }}
+        run: |
+          shopt -s nullglob
+          instaladores=(target/pre-versao-instalador/*.exe)
+          if [ "${#instaladores[@]}" -ne 1 ]; then
+            echo "::error::Esperava um instalador .exe no artefato, achei ${#instaladores[@]}."
+            exit 1
+          fi
+          saida="$RUNNER_TEMP/pre-versao"
+          cargo xtask pre-versao --marco "$MARCO" --commit "$SHA" --alvo target/pre-versao-alvo \
+            --instalador "${instaladores[0]}" --saida "$saida"
+          tag=$(cat "$saida/tag.txt")
+          if [ "$tag" != "$TAG_CONFERIDA" ]; then
+            echo "::error::A tag mudou entre a conferência ($TAG_CONFERIDA) e a publicação ($tag)."
+            exit 1
+          fi
+          {
+            echo "tag=$tag"
+            echo "instalador=${instaladores[0]}"
+            echo "saida=$saida"
+          } >> "$GITHUB_OUTPUT"
+
+      # Criar a referência pela API é atômico: se a tag já existir, o GitHub responde 422 e
+      # nada é sobrescrito.
+      - name: Criar a tag (sem sobrescrever)
+        id: criar-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.conferir.outputs.sha }}
+          TAG: ${{ steps.notas.outputs.tag }}
+        run: |
+          if ! gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f ref="refs/tags/$TAG" -f sha="$SHA" --silent; then
+            echo "::error::Não foi possível criar a tag $TAG (ela já existe?). Nada foi sobrescrito."
+            exit 1
+          fi
+
+      - name: Criar a Release como pré-versão
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.notas.outputs.tag }}
+          INSTALADOR: ${{ steps.notas.outputs.instalador }}
+          SAIDA: ${{ steps.notas.outputs.saida }}
+        run: |
+          gh release create "$TAG" "$INSTALADOR" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --prerelease --latest=false --title "$(cat "$SAIDA/titulo.txt")" \
+            --notes-file "$SAIDA/notas.md"
+          endereco=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
+          echo "Pré-versão publicada: $endereco"
+          echo "## Pré-versão publicada: [$TAG]($endereco)" >> "$GITHUB_STEP_SUMMARY"
+
+      # A tag criada acima sem Release (falha no envio do .exe, por exemplo) impediria uma nova
+      # tentativa; só a tag desta execução é apagada.
+      - name: Desfazer a tag se a Release falhou
+        if: failure() && steps.criar-tag.outcome == 'success' && steps.release.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.notas.outputs.tag }}
+        run: |
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" --silent
+          echo "::warning::A Release falhou; a tag $TAG criada nesta execução foi apagada. Rode de novo."
