@@ -187,6 +187,20 @@ export const commands = {
 	configCopyToDefaultconfigs: (packId: PackId, path: string, overwrite: boolean) => typedError<CopyOutcome, AppError>(__TAURI_INVOKE("config_copy_to_defaultconfigs", { packId, path, overwrite })),
 	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
 	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId })),
+	/**  Os travamentos do pack, agrupados pela causa. */
+	crashesList: (packId: PackId) => typedError<CrashList, AppError>(__TAURI_INVOKE("crashes_list", { packId })),
+	/**
+	 *  Um grupo de travamentos pelo `hash` da assinatura (`None`: não existe mais, por exemplo
+	 *  depois de apagar os mais antigos).
+	 */
+	crashGet: (packId: PackId, signature: string) => typedError<{
+	/**  O grupo. */
+	group: CrashGroupView,
+	/**  Cada vez, da mais nova para a mais antiga. */
+	occurrences: CrashOccurrence[],
+} | null, AppError>(__TAURI_INVOKE("crash_get", { packId, signature })),
+	/**  Apaga os travamentos mais antigos que passam do limite de espaço. Devolve quantos apagou. */
+	crashesPrune: (packId: PackId) => typedError<number, AppError>(__TAURI_INVOKE("crashes_prune", { packId })),
 	/**  "Verificar agora": confere o pack e grava o relatório. */
 	diagnosticsRun: (packId: PackId) => typedError<DiagnosticsReport, AppError>(__TAURI_INVOKE("diagnostics_run", { packId })),
 	/**  O último relatório do pack (`None`: nunca verificado neste computador). */
@@ -1708,6 +1722,14 @@ export type CoreErrorCode =
 /**  Sem conexão com a internet (ou o servidor não respondeu). */
 "NETWORK_UNAVAILABLE";
 
+/**  Um grupo com cada vez que travou. */
+export type CrashDetail = {
+	/**  O grupo. */
+	group: CrashGroupView,
+	/**  Cada vez, da mais nova para a mais antiga. */
+	occurrences: CrashOccurrence[],
+};
+
 /**  "Por que travou" de uma sessão. */
 export type CrashDiagnosis = {
 	/**  A sessão. */
@@ -1723,6 +1745,113 @@ export type CrashDiagnosis = {
 	sources: CrashSource[],
 };
 
+/**  Uma linha de Travamentos: as vezes que o jogo travou com a mesma causa. */
+export type CrashGroupView = {
+	/**  A assinatura (o `hash` identifica o grupo). */
+	signature: CrashSignature,
+	/**  Quantas vezes travou. */
+	count: number,
+	/**  Primeira vez (milissegundos desde 1970). */
+	firstAtMs: number,
+	/**  Última vez. */
+	lastAtMs: number,
+	/**  Versões do pack em que travou, da mais antiga para a mais nova. */
+	versions: CrashVersion[],
+	/**  Quantas vezes por origem. */
+	origins: CrashOriginCount[],
+	/**  A situação. */
+	situation: CrashSituation,
+	/**  A sessão mais nova (o resultado do teste que "Ver o que causou" abre). */
+	latestSessionId: string,
+	/**  "Por que travou" da sessão mais nova, quando foi gravado. */
+	diagnosis: CrashDiagnosis | null,
+	/**  Busca do culpado e conversas ligadas. */
+	links: CrashLinks,
+};
+
+/**
+ *  O que está ligado ao grupo: rodadas da busca do culpado (D-12) e conversas com a IA (D-04).
+ *  Vazio até essas tarefas existirem.
+ */
+export type CrashLinks = {
+	/**  Buscas do culpado deste travamento. */
+	culpritSearches: string[],
+	/**  Conversas com a IA sobre este travamento. */
+	conversations: string[],
+};
+
+/**  Travamentos do pack. */
+export type CrashList = {
+	/**  Os grupos, do que travou por último para o que travou primeiro. */
+	groups: CrashGroupView[],
+	/**  A retenção. */
+	retention: CrashRetention,
+};
+
+/**  Uma vez em que travou. */
+export type CrashOccurrence = {
+	/**  A sessão. */
+	sessionId: string,
+	/**  Quando começou. */
+	startedAtMs: number,
+	/**  A versão do pack. */
+	version: CrashVersion,
+	/**  Código de saída. */
+	exitCode: number | null,
+	/**  A origem. */
+	origin: CrashOrigin,
+};
+
+/**  De onde veio o travamento. */
+export type CrashOrigin = 
+/**  Um teste do Warden. */
+"test";
+
+/**  Quantas vezes por origem. */
+export type CrashOriginCount = {
+	/**  A origem. */
+	origin: CrashOrigin,
+	/**  Quantas vezes. */
+	count: number,
+};
+
+/**  O estado dos travamentos guardados. */
+export type CrashRetention = {
+	/**  O limite de espaço dos travamentos guardados, por pack. */
+	budgetBytes: number,
+	/**  Os travamentos guardados passaram de 90% do limite. */
+	nearLimit: boolean,
+	/**  Quantas sessões (as mais antigas) passam do limite e podem ser apagadas. */
+	overBudget: number,
+};
+
+/**  A assinatura de um travamento. */
+export type CrashSignature = {
+	/**  [`SIGNATURE_VERSION`] das regras que calcularam o hash. */
+	version: number,
+	/**  Hash estável das partes abaixo (16 dígitos hexadecimais). Agrupa os travamentos. */
+	hash: string,
+	/**  Id do padrão do catálogo do achado principal (`None`: nenhum padrão reconheceu). */
+	rule: string | null,
+	/**  Tipo da exceção (`java.lang.NullPointerException`). */
+	exception: string | null,
+	/**  Primeiro frame de mod, normalizado (`com.example.Foo.tick`). */
+	frame: string | null,
+	/**  Mods citados, normalizados e em ordem (`mod:balm`, `jar:create`). */
+	mods: string[],
+};
+
+/**  A situação de um grupo. */
+export type CrashSituation = 
+/**  "Não voltou a acontecer desde a versão X". */
+{ kind: "resolved"; 
+/**  A versão em que o jogo fechou normalmente depois do último travamento. */
+since: CrashVersion } | 
+/**  "Causa encontrada". */
+{ kind: "causeFound" } | 
+/**  "Causa não encontrada". */
+{ kind: "causeUnknown" };
+
 /**  Um arquivo lido na análise. */
 export type CrashSource = {
 	/**  Nome relativo à sessão (`logs/latest.log`, `crash-reports/crash-….txt`). */
@@ -1731,6 +1860,14 @@ export type CrashSource = {
 	kind: SourceKind,
 	/**  Linhas lidas. */
 	lines: number,
+};
+
+/**  Uma versão do pack em que travou. */
+export type CrashVersion = {
+	/**  `version` do `pack.toml` (`None`: sem versão). */
+	version: string | null,
+	/**  Havia alterações não salvas como versão. */
+	unsaved: boolean,
 };
 
 /**  O que o assistente Criar pack mostra antes de o usuário digitar (SPEC T03, etapa 1). */

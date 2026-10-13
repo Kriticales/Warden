@@ -17,11 +17,12 @@
 //! [`HookContext::ignore_pack_errors`]). Erro no `after_exit` não perde a sessão: vira aviso.
 //!
 //! **Registro acréscimo-apenas** (ROADMAP §1): cada tarefa declara o seu módulo
-//! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10) e
-//! acrescenta uma linha em [`registered`]. [`registered`] é chamado a cada teste: cada gancho
+//! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10,
+//! `crash_history.rs` da D-06) e acrescenta uma linha em [`registered`]. [`registered`] é chamado a cada teste: cada gancho
 //! pode guardar o estado do teste em andamento.
 
 mod capture;
+mod crash_history;
 mod diagnostics;
 mod perf;
 
@@ -141,6 +142,8 @@ pub(crate) fn registered() -> Vec<Arc<dyn TestHooks>> {
         Arc::new(capture::CaptureHooks),
         // L-10: RAM do processo e tempos até carregar e entrar no mundo.
         Arc::new(perf::PerfHook::default()),
+        // D-06: assinatura do travamento, para a lista de Travamentos.
+        Arc::new(crash_history::CrashHistoryHook),
     ]
 }
 
@@ -151,7 +154,7 @@ mod tests {
     #[test]
     fn ganchos_registrados_em_ordem() {
         let names: Vec<&str> = registered().iter().map(|hook| hook.name()).collect();
-        assert_eq!(names, ["diagnostics", "capture", "perf"]);
+        assert_eq!(names, ["diagnostics", "capture", "perf", "crash_history"]);
     }
 
     #[test]
