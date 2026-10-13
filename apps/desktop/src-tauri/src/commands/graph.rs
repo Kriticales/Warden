@@ -136,7 +136,7 @@ fn candidates(inventory: &Inventory, root: &Path, game_dir: &Path) -> Vec<Candid
 
 /// Onde está o jar do item: `<instância>/minecraft/<pasta do metafile>/<arquivo>`; o arquivo
 /// guardado no próprio pack também vale direto da pasta do pack.
-fn jar_locations(item: &InventoryItem, root: &Path, game_dir: &Path) -> Vec<PathBuf> {
+pub(crate) fn jar_locations(item: &InventoryItem, root: &Path, game_dir: &Path) -> Vec<PathBuf> {
     let mut places = Vec::new();
     let Some(file_name) = item.file_name.as_deref() else {
         return places;
@@ -179,7 +179,7 @@ fn loader_of(key: Option<&str>) -> Loader {
 }
 
 /// Primeiro local que existe como arquivo, com tamanho e data (para a impressão digital).
-fn existing(places: &[PathBuf]) -> Option<(&PathBuf, u64, u128)> {
+pub(crate) fn existing(places: &[PathBuf]) -> Option<(&PathBuf, u64, u128)> {
     places.iter().find_map(|path| {
         let meta = fs::metadata(path).ok().filter(fs::Metadata::is_file)?;
         let modified = meta
@@ -192,7 +192,7 @@ fn existing(places: &[PathBuf]) -> Option<(&PathBuf, u64, u128)> {
 }
 
 /// Lê os jars em paralelo (vários mods por thread), tolerando os ilegíveis.
-fn read_jars(paths: Vec<(usize, PathBuf)>) -> Vec<(usize, JarMetadata)> {
+pub(crate) fn read_jars(paths: Vec<(usize, PathBuf)>) -> Vec<(usize, JarMetadata)> {
     if paths.is_empty() {
         return Vec::new();
     }

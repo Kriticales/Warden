@@ -11,7 +11,8 @@
 //!   `session.json`.
 //!
 //! Erro num gancho `before_*` interrompe o teste com esse erro (o diálogo com Corrigir e Testar
-//! mesmo assim é da D-03). Erro no `after_exit` não perde a sessão: vira aviso.
+//! mesmo assim é da D-03: com "Testar mesmo assim", o pedido chega com
+//! [`HookContext::ignore_pack_errors`]). Erro no `after_exit` não perde a sessão: vira aviso.
 //!
 //! **Registro acréscimo-apenas** (ROADMAP §1): cada tarefa declara o seu módulo
 //! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10) e
@@ -27,11 +28,16 @@ use warden_launcher::process::GameExit;
 
 use crate::error::AppError;
 use crate::operations::OperationHandle;
+use crate::state::AppState;
 use crate::test_session::TestMode;
+
+mod diagnostics;
 
 /// O teste em andamento, como os ganchos o veem.
 #[allow(dead_code)] // lidos pelos ganchos das tarefas donas (D-03, C-03)
 pub(crate) struct HookContext<'a> {
+    /// O estado do app (serviços, pastas, cofre).
+    pub(crate) state: &'a AppState,
     /// O pack.
     pub(crate) pack_id: PackId,
     /// A pasta do pack.
@@ -42,6 +48,8 @@ pub(crate) struct HookContext<'a> {
     pub(crate) mode: TestMode,
     /// A operação do teste: etapas, progresso, avisos e cancelamento.
     pub(crate) operation: &'a OperationHandle,
+    /// "Testar mesmo assim": os erros do pré-teste não interrompem o teste (D-03).
+    pub(crate) ignore_pack_errors: bool,
 }
 
 /// Como o jogo terminou.
@@ -82,7 +90,7 @@ pub(crate) trait TestHooks: Send + Sync {
 
 /// Os ganchos registrados, na ordem em que rodam. Uma linha por tarefa.
 pub(crate) fn registered() -> Vec<Arc<dyn TestHooks>> {
-    vec![]
+    vec![Arc::new(diagnostics::DiagnosticsHooks)]
 }
 
 #[cfg(test)]
@@ -90,7 +98,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sem_ganchos_o_teste_passa_direto() {
-        assert!(registered().is_empty());
+    fn ganchos_registrados_em_ordem() {
+        let names: Vec<_> = registered().iter().map(|hook| hook.name()).collect();
+        assert_eq!(names, ["diagnostics"]);
     }
 }

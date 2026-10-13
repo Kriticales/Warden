@@ -673,6 +673,13 @@ export type AppErrorCode =
  */
 "TEST_GAME_FILES_MISSING" | 
 /**
+ *  O pré-teste achou erros que podem impedir o jogo de abrir (D-03). `params`: `count`
+ *  (erros que valem, sem os ignorados) e `step` (`check`: "Verificar o pack"; `final`:
+ *  "Verificação final"). Os achados ficam no último relatório (`diagnostics_report_get`);
+ *  "Testar mesmo assim" repete o pedido com `ignorePackErrors`.
+ */
+"TEST_PACK_HAS_ERRORS" | 
+/**
  *  O download manual pedido não está mais na lista (o teste foi cancelado ou já
  *  continuou; L-06).
  */
@@ -822,6 +829,13 @@ export type ChangelogEntry = {
 	/**  Formato das notas. */
 	format: DescriptionFormat,
 };
+
+/**  Passagem que gerou o relatório. */
+export type CheckPass = 
+/**  Com os dados do pack e das APIs (antes de baixar). */
+"quick" | 
+/**  Também com os jars (depois de copiar o pack para a instância). */
+"complete";
 
 /**  Quem pediu a verificação. */
 export type CheckTrigger = 
@@ -1007,6 +1021,31 @@ export type CoreErrorCode =
 "PATH_OUTSIDE_ROOT" | 
 /**  Sem conexão com a internet (ou o servidor não respondeu). */
 "NETWORK_UNAVAILABLE";
+
+/**  "Por que travou" de uma sessão. */
+export type CrashDiagnosis = {
+	/**  A sessão. */
+	sessionId: string,
+	/**
+	 *  Algum padrão conhecido apontou a causa (sem isso: "Não encontramos a causa
+	 *  automaticamente").
+	 */
+	foundCause: boolean,
+	/**  Achados, do mais provável ao menos provável. */
+	findings: ReportFinding[],
+	/**  Arquivos lidos. */
+	sources: CrashSource[],
+};
+
+/**  Um arquivo lido na análise. */
+export type CrashSource = {
+	/**  Nome relativo à sessão (`logs/latest.log`, `crash-reports/crash-….txt`). */
+	name: string,
+	/**  Tipo. */
+	kind: SourceKind,
+	/**  Linhas lidas. */
+	lines: number,
+};
 
 /**  O que o assistente Criar pack mostra antes de o usuário digitar (SPEC T03, etapa 1). */
 export type CreateDefaults = {
@@ -1290,6 +1329,48 @@ export type ErrorCode =
 /**  Scripts KubeJS e CraftTweaker (`warden-scripts`; D4). */
 { domain: "scripts"; code: ScriptsErrorCode };
 
+/**  O que sustenta um achado. Toda evidência aponta o trecho exato. */
+export type Evidence = 
+/**  Metadados lidos de um jar. */
+{ kind: "jarMetadata"; 
+/**  O item. */
+item: ItemRef; 
+/**  Arquivo dentro do jar (`fabric.mod.json`, `META-INF/mods.toml`…). */
+fileInJar: string; 
+/**  O trecho. */
+excerpt: string } | 
+/**  Campo de uma resposta de API. */
+{ kind: "api"; 
+/**  A fonte. */
+source: Source; 
+/**  Endereço consultado. */
+url: string; 
+/**  Campo que sustenta o achado. */
+field: string } | 
+/**  Linha de um log, crash report ou relatório da JVM. */
+{ kind: "log"; 
+/**
+ *  Nome do arquivo relativo à sessão (`logs/latest.log`, `output.log`,
+ *  `crash-reports/crash-….txt`), nunca um caminho absoluto.
+ */
+file: string; 
+/**  Número da linha no arquivo original (começa em 1). */
+line: number; 
+/**  A linha, limpa de códigos `§` e ANSI, com no máximo [`MAX_EXCERPT_CHARS`]. */
+excerpt: string } | 
+/**  Regra da lista curada. */
+{ kind: "curated"; 
+/**  Id da regra na lista. */
+ruleId: string; 
+/**  Nota da lista. */
+note: string } | 
+/**  Trecho de um arquivo do pack. */
+{ kind: "packFile"; 
+/**  Caminho relativo ao pack. */
+path: string; 
+/**  O trecho. */
+excerpt: string };
+
 /**  Motivo de um alerta da prévia; a interface escolhe o texto exibido. */
 export type ExportAlert = 
 /**  Arquivo distribuído com mais de 20 MiB. */
@@ -1455,6 +1536,32 @@ export type FileReport = {
 	/**  O pack já tem este arquivo, ou outro com o mesmo nome na mesma pasta. */
 	inPack: InPack | null,
 };
+
+/**  Um achado do diagnóstico, com evidência obrigatória. */
+export type Finding = {
+	rule: RuleCode,
+	severity: Severity,
+	titleKey: string,
+	params: { [key in string]: string },
+	items: ItemRef[],
+	evidence: Evidence[],
+	fixes: SuggestedFix[],
+};
+
+/**
+ *  Lado escolhido numa correção de lado.
+ * 
+ *  O tipo se chama `FindingSide` porque o `SideChoice` da `warden-project` (o "Alterar lado" da
+ *  lista de Mods) já usa esse nome no `bindings.ts` (D-03); [`SideChoice`] continua valendo
+ *  aqui dentro.
+ */
+export type FindingSide = 
+/**  Só cliente. */
+"client" | 
+/**  Só servidor. */
+"server" | 
+/**  Cliente e servidor. */
+"both";
 
 /**  Para que a pasta está sendo escolhida: decide o título do diálogo e onde ele abre. */
 export type FolderPurpose = 
@@ -2064,6 +2171,26 @@ page_url: string | null } |
 { kind: "unavailable" } | 
 /**  O jar vai dentro do arquivo gerado; pede a confirmação de licença. */
 { kind: "embed" };
+
+/**
+ *  Item envolvido num achado.
+ * 
+ *  O pré-teste conhece o metafile do pack; a análise de um log só conhece o que o log diz (id
+ *  do mod ou nome do jar). Quem mostra o achado liga o id ou o jar ao item do pack.
+ */
+export type ItemRef = 
+/**  Item do pack pelo caminho do metafile (`mods/sodium.pw.toml`) ou do arquivo. */
+{ kind: "metafile"; 
+/**  Caminho relativo à raiz do pack, com `/`. */
+path: string } | 
+/**  Mod pelo id declarado no jar (`modid`, `id` do `fabric.mod.json`). */
+{ kind: "modId"; 
+/**  O id. */
+id: string } | 
+/**  Arquivo de mod pelo nome do jar, como aparece no log. */
+{ kind: "jarFile"; 
+/**  Nome do arquivo, sem pastas. */
+name: string };
 
 /**  Lado em que o item é instalado. */
 export type ItemSide = 
@@ -3583,6 +3710,36 @@ export type ReportField = {
 	value: string,
 };
 
+/**  Um achado como a interface mostra. */
+export type ReportFinding = {
+	/**
+	 *  Identificador estável no pack: regra e itens (`W_SIDE|mods/xaero.pw.toml`). É o que
+	 *  "Ignorar este aviso neste pack" grava.
+	 */
+	id: string,
+	/**  O achado (com as evidências e as correções sugeridas), já redigido. */
+	finding: Finding,
+	/**  Os itens de `finding.items`, na mesma ordem, ligados ao pack. */
+	items: ReportItem[],
+	/**  Padrão do catálogo de logs que gerou o achado (só no pós-crash). */
+	pattern: string | null,
+	/**
+	 *  Nomes dos projetos citados nas correções pelo id (a dependência que falta, quando a
+	 *  fonte a conhece).
+	 */
+	labels: { [key in string]: string },
+	/**  Ignorado por você neste pack (não bloqueia o teste nem conta no contador). */
+	ignored: boolean,
+};
+
+/**  Um item citado num achado, ligado ao pack quando dá. */
+export type ReportItem = {
+	/**  Caminho do item no pack (`None`: o mod não está no pack, ou o log não diz qual é). */
+	path: string | null,
+	/**  Nome para mostrar: o do pack, o declarado no jar ou o id/arquivo do log. */
+	name: string,
+};
+
 /**  Resultado de uma restauração bem-sucedida. */
 export type RestoreReport = {
 	/**  Ponto de segurança com o estado de antes da restauração (CA-T17-03). */
@@ -3597,6 +3754,15 @@ export type RestoreReport = {
 	 */
 	leftoverTempFiles: string[],
 };
+
+/**
+ *  Código estável de uma regra (`E_MISSING_DEP`, `W_SIDE`, `I_PRERELEASE`…).
+ * 
+ *  Formato: letra da gravidade padrão (`E`, `W` ou `I`), sublinhado e palavras em maiúsculas
+ *  separadas por sublinhado. O código é contrato com a interface e com as assinaturas de
+ *  travamento: renomear é mudança de contrato.
+ */
+export type RuleCode = string;
 
 /**
  *  Identificador de um Java instalado: `<fonte>-<major>-<versão>-<processador>`, que também é
@@ -3910,6 +4076,15 @@ export type SettingsStatus = {
 	defaultPacksDir: string,
 };
 
+/**  Gravidade do achado. */
+export type Severity = 
+/**  Bloqueia o teste por padrão (pré-teste) ou é a causa provável do travamento. */
+"error" | 
+/**  Merece atenção, mas não impede o jogo de abrir. */
+"warning" | 
+/**  Informação. */
+"info";
+
 /**  Último erro que a interface mostrou. */
 export type ShownError = {
 	/**  `domínio.CÓDIGO`, quando o erro mostrado veio de um `AppError`. */
@@ -3934,6 +4109,13 @@ export type SideNote =
 /**  "Lado desconhecido — confira se é só de cliente". */
 "unknown";
 
+/**  Fonte de metadados de uma API. */
+export type Source = 
+/**  Modrinth. */
+"modrinth" | 
+/**  CurseForge. */
+"curseForge";
+
 /**  Filtro **Fonte** ("Mais filtros"). */
 export type SourceFilter = 
 /**  Todas as fontes ativas. */
@@ -3949,6 +4131,24 @@ export type SourceId =
 "modrinth" | 
 /**  CurseForge (P1-10). */
 "curseforge";
+
+/**
+ *  Tipo de arquivo analisado. A ordem é a preferência da evidência principal quando o mesmo
+ *  achado aparece em mais de um arquivo.
+ */
+export type SourceKind = 
+/**  `crash-reports/crash-*.txt`. */
+"crashReport" | 
+/**  `hs_err_pid*.log` (queda nativa da JVM). */
+"jvmCrash" | 
+/**  `logs/latest.log`. */
+"latestLog" | 
+/**  `output.log` da sessão (tudo o que saiu dos pipes, inclusive antes do log4j). */
+"output" | 
+/**  `logs/debug.log` ou `logs/fml-client-latest.log`. */
+"debugLog" | 
+/**  Texto solto (log escolhido no computador, de um jogador…). */
+"text";
 
 /**  Deslocamento de uma fonte no [`SearchCursor`]. */
 export type SourceOffset = {
@@ -4029,6 +4229,52 @@ count: number } |
 /**  Outras mudanças (ajustes de itens, remoção de itens só cliente, arquivos de controle). */
 { kind: "otherChanges" };
 
+/**
+ *  Correção sugerida. Nunca tem efeito sozinha: a interface leva aos fluxos normais, com
+ *  confirmação (SPEC T14).
+ */
+export type SuggestedFix = 
+/**  Adicionar a dependência (busca pelo id nas fontes). */
+{ kind: "addDependency"; 
+/**  Id do mod que falta. */
+modId: string; 
+/**  Faixa de versões pedida, como o log ou o jar escreve. */
+versionRange: string | null } | 
+/**  Remover o item. */
+{ kind: "removeItem"; 
+/**  O item. */
+item: ItemRef } | 
+/**  Atualizar o item (ou trocar de versão). */
+{ kind: "updateItem"; 
+/**  O item. */
+item: ItemRef } | 
+/**  Mudar o lado do item. */
+{ kind: "setSide"; 
+/**  O item. */
+item: ItemRef; 
+/**  O lado novo. */
+side: FindingSide } | 
+/**  Trocar o Java do teste. */
+{ kind: "changeJava"; 
+/**  Versão principal exigida (8, 17, 21…), quando o log diz. */
+major: number | null } | 
+/**  Aumentar a memória do teste. */
+{ kind: "changeMemory" } | 
+/**  Tirar um argumento da JVM dos ajustes do teste. */
+{ kind: "removeJvmArgument"; 
+/**  O argumento, como aparece no log. */
+argument: string } | 
+/**  Restaurar uma config a partir da versão do pack. */
+{ kind: "restoreConfig"; 
+/**  Caminho da config, como aparece no log. */
+path: string } | 
+/**  Restaurar o padrão de uma chave de config (C-06). */
+{ kind: "restoreDefault"; 
+/**  Caminho da config, relativo ao pack. */
+path: string; 
+/**  Caminho da chave. */
+key: string };
+
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -4063,6 +4309,11 @@ export type TestRequest = {
 	 *  anterior (resposta ao `app.TEST_INSTANCE_CHANGED`).
 	 */
 	replaceInstanceChanges?: boolean,
+	/**
+	 *  "Testar mesmo assim": testar apesar dos erros do pré-teste (resposta ao
+	 *  `app.TEST_PACK_HAS_ERRORS`, D-03).
+	 */
+	ignorePackErrors?: boolean,
 };
 
 /**  Uma sessão gravada, como a interface mostra. */

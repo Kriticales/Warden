@@ -189,7 +189,7 @@ fn check_url(url: &str) -> Result<(), AppError> {
 
 /// Redator com o ambiente (usuário, computador), o nome do jogador e os valores reais das
 /// chaves guardadas.
-fn redactor(player: &str, secrets: &Secrets) -> Redactor {
+pub(crate) fn redactor(player: &str, secrets: &Secrets) -> Redactor {
     let mut profile = RedactionProfile::from_environment();
     if !player.trim().is_empty() {
         profile = profile.with_player(player);
