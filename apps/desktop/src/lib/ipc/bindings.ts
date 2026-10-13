@@ -392,6 +392,13 @@ export const commands = {
 	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
 	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
 	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
+	/**  O espaço usado pelo cache, pelos arquivos do Minecraft, pelos Javas e pelas instâncias. */
+	storageUsage: () => typedError<StorageUsage, AppError>(__TAURI_INVOKE("storage_usage")),
+	/**
+	 *  "Limpar cache": apaga o cache sem tocar em instâncias, mundos, Javas, arquivos do Minecraft
+	 *  nem nos packs.
+	 */
+	storageClearCache: () => typedError<CacheCleared, AppError>(__TAURI_INVOKE("storage_clear_cache")),
 	/**  Testa o pack. Volta quando o jogo fecha, com a sessão gravada. */
 	testStart: (packId: PackId, request: TestRequest, onEvent: Channel<OperationEvent>) => typedError<TestSessionSummary, AppError>(__TAURI_INVOKE("test_start", { packId, request, onEvent })),
 	/**  "Parar jogo" (ou cancelar a preparação). Volta quando o jogo saiu (até 5 s, CA-T13-02). */
@@ -678,7 +685,11 @@ export type AppErrorCode =
  */
 "MANUAL_DOWNLOAD_NOT_WAITING" | 
 /**  O mod bloqueado não tem a página de download conhecida (L-06). */
-"MANUAL_DOWNLOAD_NO_PAGE";
+"MANUAL_DOWNLOAD_NO_PAGE" | 
+/**  "Limpar cache" com um jogo aberto ou em preparação (A-06). `params`: `packName`. */
+"STORAGE_GAME_RUNNING" | 
+/**  "Limpar cache" com outra tarefa em andamento (A-06). `params`: `count`. */
+"STORAGE_OPERATION_RUNNING";
 
 /**  Versão e commit do app em execução. */
 export type AppInfo = {
@@ -751,6 +762,17 @@ export type Bump =
 "minor" | 
 /**  MAIOR (`X.0.0`). */
 "major";
+
+/**  Resultado de "Limpar cache". */
+export type CacheCleared = {
+	/**  Bytes liberados. */
+	freed: number,
+	/**
+	 *  Itens que não deu para apagar (em uso por outro programa, sem permissão); ficam para a
+	 *  próxima limpeza.
+	 */
+	skipped: number,
+};
 
 /**
  *  Códigos do domínio `catalog`. O código é contrato: renomear é mudança de contrato;
@@ -3993,6 +4015,18 @@ export type SourceWarningReason =
 "keyMissing" | 
 /**  A CurseForge recusou a chave (P1-10). */
 "keyRejected";
+
+/**  Espaço usado pelo Warden no disco, em bytes. */
+export type StorageUsage = {
+	/**  Cache (`cache/`): downloads, cache do packwiz e temporários. "Limpar cache" apaga. */
+	cache: number,
+	/**  Arquivos do Minecraft e dos loaders (`shared/`, sem os Javas). */
+	minecraft: number,
+	/**  Javas instalados pelo Warden (`shared/runtimes/`). */
+	javas: number,
+	/**  Instâncias de teste, com os mundos (`instances/`). */
+	instances: number,
+};
 
 /**  Por que a versão foi sugerida (a interface monta a frase). */
 export type SuggestReason = 
