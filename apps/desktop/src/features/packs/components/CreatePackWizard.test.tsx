@@ -585,7 +585,7 @@ describe('Criar pack (T03)', () => {
     });
   });
 
-  it('Cancelar sem nada preenchido fecha direto e devolve o foco ao botão Criar pack', async () => {
+  it('CA-T03-10: Cancelar sem nada preenchido fecha direto e devolve o foco ao botão Criar pack', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend();
     renderApp('/packs');
@@ -605,7 +605,7 @@ describe('Criar pack (T03)', () => {
     expect(backend.callsOf('pack_create')).toHaveLength(0);
   });
 
-  it('Esc com algo preenchido pede confirmação; "Continuar criando" mantém o rascunho', async () => {
+  it('CA-T03-10: Esc com algo preenchido pede confirmação; "Continuar criando" mantém o rascunho', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend();
     renderApp('/packs');
@@ -667,7 +667,7 @@ describe('Criar pack (T03)', () => {
   });
 });
 
-describe('Criar pack: loader recomendado (D39: NeoForge > Forge > Fabric > outros > vanilla)', () => {
+describe('CA-T03-09: loader recomendado (D39: NeoForge > Forge > Fabric > outros > vanilla)', () => {
   /** Vai até a etapa Loader na versão pedida e espera a pré-seleção. */
   async function toLoaderStep(minecraft: string) {
     const user = userEvent.setup();
