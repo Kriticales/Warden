@@ -651,6 +651,121 @@ async fn arquivo_mudado_na_instancia_pede_confirmacao() {
     assert_eq!(std::fs::read(&config).unwrap(), b"x = 3");
 }
 
+/// Um jar Fabric de "Meu Mod", que exige o Sodium (que não está no pack).
+fn meu_mod_jar() -> Vec<u8> {
+    use std::io::Write as _;
+    let json = serde_json::json!({
+        "schemaVersion": 1,
+        "id": "meumod",
+        "version": "1.0.0",
+        "depends": { "sodium": "*" }
+    });
+    let mut bytes = std::io::Cursor::new(Vec::new());
+    let mut zip = zip::ZipWriter::new(&mut bytes);
+    zip.start_file("fabric.mod.json", zip::write::SimpleFileOptions::default())
+        .unwrap();
+    zip.write_all(json.to_string().as_bytes()).unwrap();
+    zip.finish().unwrap();
+    bytes.into_inner()
+}
+
+/// O pack de `write_pack`, com o Fabric 0.16.10 no `pack.toml`.
+fn use_fabric(root: &Path) {
+    let text = std::fs::read_to_string(root.join("pack.toml")).unwrap();
+    let mut manifest = PackManifest::parse(&text).unwrap().value;
+    manifest
+        .versions
+        .get_or_insert_with(BTreeMap::new)
+        .insert("fabric".into(), "0.16.10".into());
+    std::fs::write(root.join("pack.toml"), manifest.to_toml_string()).unwrap();
+}
+
+/// D-03 pelo Testar inteiro, com o jogo simulado: "Verificar o pack" (rápida) passa, a
+/// "Verificação final" (completa, com o jar copiado para a instância) acha a dependência que
+/// falta e para o teste com `app.TEST_PACK_HAS_ERRORS` antes de abrir o jogo; "Testar mesmo
+/// assim" abre o jogo, que trava, e o resultado tem "Por que travou" (CA-T13-06): a análise
+/// gravada no `session.json` aponta o crash report com o arquivo e a linha.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn d03_erros_do_pre_teste_param_o_teste_e_testar_mesmo_assim_mostra_por_que_travou() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    let jar = meu_mod_jar();
+    write_pack(&root, &[("mods/meu-mod.jar", &jar)], "crash");
+    use_fabric(&root);
+    let pack = register(&state, &root);
+
+    let (first, seen) = sink();
+    let error = run_test(&state, pack, TestRequest::default(), first)
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error.code,
+        ErrorCode::App(AppErrorCode::TestPackHasErrors),
+        "{error:?}"
+    );
+    assert_eq!(error.params["count"], "1");
+    assert_eq!(error.params["step"], "final");
+    let stages: Vec<String> = seen
+        .events
+        .lock()
+        .unwrap()
+        .iter()
+        .filter_map(|event| match event {
+            OperationEvent::Stage { stage, .. } => Some(stage.clone()),
+            _ => None,
+        })
+        .collect();
+    let check = stages.iter().position(|stage| stage == "test.check");
+    let last = stages.iter().position(|stage| stage == "test.finalCheck");
+    assert!(
+        check.is_some() && last.is_some() && check < last,
+        "{stages:?}"
+    );
+    assert!(
+        !stages.iter().any(|stage| stage == STAGE_LAUNCH),
+        "o jogo não abriu: {stages:?}"
+    );
+    assert!(sessions_of(&state.paths, pack).unwrap().is_empty());
+
+    let request = TestRequest {
+        ignore_pack_errors: true,
+        ..TestRequest::default()
+    };
+    let (second, _) = sink();
+    let summary = run_test(&state, pack, request, second).await.unwrap();
+    assert_eq!(summary.outcome, Outcome::Crashed);
+    let session = session_dir(&state.paths, pack, &summary.id).unwrap();
+    let record = session.read_record().unwrap();
+    assert!(record.extra.contains_key("diagnosis"), "{:?}", record.extra);
+    let diagnosis =
+        crate::commands::diagnostics::crash::crash_of_session(&state, pack, &summary.id)
+            .await
+            .unwrap();
+    assert!(diagnosis.found_cause, "{diagnosis:#?}");
+    let primary = &diagnosis.findings[0];
+    assert_eq!(primary.finding.rule().as_str(), "E_CRASH_REPORT");
+    let warden_diagnostics::Evidence::Log {
+        file,
+        line,
+        excerpt,
+    } = primary.finding.primary_evidence()
+    else {
+        panic!("esperava a linha do crash report: {primary:?}");
+    };
+    assert_eq!(file, "crash-reports/crash-teste-client.txt");
+    assert_eq!(*line, 2);
+    assert!(excerpt.contains("Initializing game"), "{excerpt}");
+    assert!(
+        diagnosis
+            .sources
+            .iter()
+            .any(|source| source.name == "output.log")
+    );
+}
+
 /// Os modos das outras tarefas (L-07, L-09, L-12) ainda são recusados.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn modo_ainda_inexistente_e_recusado() {
