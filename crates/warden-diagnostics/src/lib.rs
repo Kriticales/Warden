@@ -9,16 +9,20 @@
 //! - [`graph`]: grafo de dependências e as consultas "quem depende", "por que está no pack" e
 //!   bibliotecas sem uso (D-07).
 //! - [`redact`]: redação de dados pessoais antes de qualquer envio (D-02).
+//! - [`signature`] e [`crash_history`]: assinatura de travamento e travamentos agrupados pela
+//!   causa (D-06).
 //!
 //! Limites: a crate não abre processos nem faz rede; recebe textos, pastas e metadados e
 //! devolve achados.
 
+pub mod crash_history;
 mod error;
 pub mod graph;
 pub mod model;
 pub mod postcrash;
 pub mod pretest;
 pub mod redact;
+pub mod signature;
 
 pub use error::{DiagnosticsError, DiagnosticsErrorCode, Result};
 pub use model::{
@@ -31,3 +35,4 @@ pub use postcrash::{
     collect_session,
 };
 pub use redact::{ExtraRule, Placeholder, Redacted, RedactionProfile, Redactor, redact};
+pub use signature::{CrashSignature, SIGNATURE_VERSION, signature};
