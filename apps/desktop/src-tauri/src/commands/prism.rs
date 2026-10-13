@@ -6,19 +6,16 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 
-use secrecy::SecretString;
 use tauri::{AppHandle, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt as _;
 use tauri_plugin_opener::OpenerExt as _;
 use warden_core::{CancellationToken, PackId};
-use warden_curseforge::CurseforgeClient;
 use warden_export::{ExportSource, PrismAnalysis, PrismOptions, PrismResult, PrismServices};
 use warden_http::{HttpClient, HttpConfig};
 use warden_instance::DownloadCache;
 use warden_packwiz::PackManifest;
-use warden_packwiz_cli::Packwiz;
-use warden_secrets::SecretKind;
 
+use super::inventory::{self, pack_root};
 use crate::error::AppError;
 use crate::operations::OperationKind;
 use crate::state::AppState;
@@ -33,32 +30,10 @@ const E2E_PICK_FOLDER_ENV: &str = "WARDEN_E2E_PICK_FOLDER";
 /// Arquivos gerados nesta sessão: "Mostrar arquivo" só abre um destes (ARCHITECTURE §20).
 static GENERATED: LazyLock<Mutex<HashSet<PathBuf>>> = LazyLock::new(Mutex::default);
 
-fn pack_root(state: &AppState, id: PackId) -> Result<PathBuf, AppError> {
-    state
-        .packs
-        .get(id)
-        .map(|record| record.path)
-        .map_err(|error| AppError::from_domain(&error))
-}
-
-fn packwiz(state: &AppState) -> Result<Packwiz, AppError> {
-    let binary = Packwiz::locate_binary().map_err(|error| AppError::from_domain(&error))?;
-    Ok(Packwiz::new(
-        binary,
-        state.paths.packwiz_cache_dir(),
-        state.paths.packwiz_config_file(),
-    ))
-}
-
 fn services(state: &AppState) -> Result<PrismServices, AppError> {
+    let curseforge = inventory::curseforge(state)?;
     let http = HttpClient::new(HttpConfig::for_version(env!("CARGO_PKG_VERSION")))
         .map_err(|error| AppError::from_domain(&error))?;
-    let key: Option<SecretString> = state
-        .secrets
-        .get(SecretKind::Curseforge)
-        .map_err(|error| AppError::from_domain(&error))?;
-    let curseforge =
-        CurseforgeClient::new(http.clone(), key).map_err(|error| AppError::from_domain(&error))?;
     let cache = DownloadCache::open(&state.paths.downloads_cache_dir())
         .map_err(|error| AppError::from_domain(&error))?;
     Ok(PrismServices::new(
@@ -117,7 +92,7 @@ pub(crate) async fn prism_run(
         &source,
         &destination,
         &state.paths.cache_dir().join("staging"),
-        &packwiz(&state)?,
+        &inventory::packwiz(&state)?,
         &services,
         &options,
         &operation,
