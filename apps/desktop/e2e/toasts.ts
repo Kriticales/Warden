@@ -8,11 +8,19 @@
 import { browser } from '@wdio/globals';
 
 export async function dismissToasts(): Promise<void> {
-  await browser.execute(() => {
-    for (const close of document.querySelectorAll<HTMLButtonElement>('.toast button:last-child')) {
-      close.click();
-    }
-  });
-  // Os avisos saem com uma animação de fade-out (200 ms).
-  await browser.pause(400);
+  // Fecha os que estão na tela (e os que chegarem enquanto isso) até não sobrar nenhum: eles
+  // saem com uma animação de fade-out (200 ms) e só então deixam a página.
+  await browser.waitUntil(
+    async () =>
+      browser.execute(() => {
+        const toasts = document.querySelectorAll('.toast');
+        for (const toast of toasts) {
+          if (toast.getAttribute('data-state') !== 'closed') {
+            toast.querySelector<HTMLButtonElement>('button:last-child')?.click();
+          }
+        }
+        return toasts.length === 0;
+      }),
+    { timeout: 5_000, interval: 50, timeoutMsg: 'os avisos não saíram da tela depois de fechados' },
+  );
 }

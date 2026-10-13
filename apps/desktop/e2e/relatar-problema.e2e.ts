@@ -248,6 +248,11 @@ describe('Relatar problema', () => {
   });
 
   it('CA-UI02-05: o atalho Ctrl+Shift+E abre o diálogo em outra tela, e Esc fecha', async () => {
+    // Fechado o diálogo, o foco volta a "Relatar problema" e a dica dele abre. No Windows o
+    // botão fica na barra de título e a dica sai para baixo, por cima de Configurações; o Esc
+    // esconde a dica, como faria a pessoa.
+    await browser.keys(['Escape']);
+    await $('.tooltip').waitForExist({ reverse: true });
     const link = $('header.topbar').$('a*=Configurações');
     await link.waitForClickable();
     await link.click();
