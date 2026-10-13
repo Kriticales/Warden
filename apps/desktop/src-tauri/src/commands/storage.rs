@@ -8,7 +8,9 @@
 //!   cache do packwiz, cópias temporárias, índices…). Nunca toca em `instances/` (instâncias e
 //!   mundos), em `shared/` nem nas pastas dos packs. Recusa com `app.STORAGE_GAME_RUNNING`
 //!   enquanto houver um jogo aberto (ou em preparação) e com `app.STORAGE_OPERATION_RUNNING`
-//!   enquanto houver outra tarefa em andamento.
+//!   enquanto houver outra tarefa em andamento. A conferência é feita no pedido; um teste
+//!   começado nos segundos da limpeza (é preciso sair de Configurações para isso) pode perder
+//!   um download em andamento, e o erro dele oferece Tentar de novo.
 //!
 //! O banco de metadados (`cache/metadata.sqlite`, com o Modrinth e o catálogo de versões) fica:
 //! o app o mantém aberto do começo ao fim, e apagá-lo por baixo da conexão não libera nada no
@@ -248,11 +250,18 @@ fn clear_cache(cache: &Path, protected: &[PathBuf]) -> Result<CacheCleared, AppE
         } else {
             0
         };
-        // `remove_dir_all` não segue links simbólicos: um link é apagado, não o destino.
+        // `remove_dir_all` não segue links simbólicos: um link é apagado, não o destino. No
+        // Windows, um link para pasta (ou junção) sai com `remove_dir`, que também não entra nele.
         let removed = if metadata.is_dir() {
             std::fs::remove_dir_all(&path)
         } else {
-            std::fs::remove_file(&path)
+            std::fs::remove_file(&path).or_else(|error| {
+                if metadata.is_symlink() {
+                    std::fs::remove_dir(&path)
+                } else {
+                    Err(error)
+                }
+            })
         };
         match removed {
             Ok(()) => cleared.freed = cleared.freed.saturating_add(size),
