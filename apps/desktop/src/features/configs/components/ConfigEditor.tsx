@@ -9,6 +9,9 @@
  *
  * O texto vive no CodeMirror; aqui só se guarda a cópia para saber se há alterações. A leitura
  * em que o texto se baseia (`base`) só muda por escolha da pessoa ou depois de gravar.
+ *
+ * Formulário (C-04, `../form/`): o mesmo texto visto como campos. A edição pelo formulário troca
+ * o texto daqui (com só o valor mudado), e salvar segue o mesmo caminho do texto.
  */
 import { Info, RotateCcw, Save, Search, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
@@ -25,6 +28,16 @@ import { formatBytes } from '../../../lib/format';
 import type { ConfigContent, ConfigOrigin, PackId } from '../../../lib/ipc/bindings';
 import { commandError } from '../../../lib/ipc/query';
 import { useConfigWrite } from '../api';
+import {
+  ConfigFormView,
+  FallbackNotice,
+  FormPending,
+  ModeSwitch,
+  TextOnlyNotice,
+  useFormEditor,
+} from '../form/ConfigForm';
+import { CopyToDefaultconfigs, PreserveOption } from '../form/FileActions';
+import { setEditorMode, useEditorMode } from '../form/model';
 import { baseName, formatKey, languageOf, noticesFor } from '../model';
 import { CodeEditor, changedLineNumbers, type CodeEditorHandle } from './CodeEditor';
 
@@ -72,6 +85,7 @@ export function ConfigEditor({
     openSearch: () => editor.current?.openSearch(),
     focus: () => editor.current?.focus(),
     replaceAll: (text) => editor.current?.replaceAll(text),
+    revealLine: (line) => editor.current?.revealLine(line),
   }));
 
   const name = baseName(file.path);
@@ -88,6 +102,29 @@ export function ConfigEditor({
   const conflict = external && dirty;
   const language = languageOf(file.path);
   const lineSeparator = file.lineEnding === 'crlf' ? '\r\n' : '\n';
+  const [mode] = useEditorMode();
+  const formState = useFormEditor({
+    packId,
+    path: file.path,
+    text,
+    editable: !readOnly && file.text !== null,
+    active: mode === 'form',
+  });
+  // A edição pelo formulário não foi confirmada: este arquivo fica no texto, com o motivo.
+  const [fallback, setFallback] = useState<unknown>(null);
+  const showForm = mode === 'form' && formState.status === 'ready' && fallback === null;
+  const formWaiting =
+    mode === 'form' &&
+    fallback === null &&
+    (formState.status === 'loading' || formState.status === 'error');
+  // "Editar este trecho como texto": a linha a mostrar quando o texto abrir.
+  const [pendingLine, setPendingLine] = useState<number | null>(null);
+  useEffect(() => {
+    if (pendingLine !== null && !showForm && editor.current) {
+      editor.current.revealLine(pendingLine);
+      setPendingLine(null);
+    }
+  }, [pendingLine, showForm]);
 
   const reloadFrom = (content: ConfigContent) => {
     const next = { text: content.text ?? '', hash: content.hash };
@@ -195,14 +232,24 @@ export function ConfigEditor({
         <span className="grow" />
         {readOnly ? null : (
           <>
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={Search}
-              onClick={() => editor.current?.openSearch()}
-            >
-              {t('editor.buscar')}
-            </Button>
+            <ModeSwitch
+              mode={mode}
+              state={formState}
+              onChange={(next) => {
+                setFallback(null);
+                setEditorMode(next);
+              }}
+            />
+            {showForm || formWaiting ? null : (
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={Search}
+                onClick={() => editor.current?.openSearch()}
+              >
+                {t('editor.buscar')}
+              </Button>
+            )}
             {dirty ? (
               <Button
                 size="sm"
@@ -291,12 +338,41 @@ export function ConfigEditor({
                 <Info className="icon icon--sm" aria-hidden="true" />
               )}
               {t(`avisos.${notice}`)}
+              {notice === 'serverconfig' ? (
+                <CopyToDefaultconfigs packId={packId} path={file.path} dirty={dirty} />
+              ) : notice === 'options' ? (
+                <PreserveOption packId={packId} path={file.path} />
+              ) : null}
             </li>
           ))}
         </ul>
       ) : null}
 
-      {file.text === null ? (
+      {mode === 'form' && fallback !== null ? (
+        <div className="cfg-editor__notice">
+          <FallbackNotice error={fallback} />
+        </div>
+      ) : mode === 'form' && formState.status === 'textOnly' && formState.reason ? (
+        <div className="cfg-editor__notice">
+          <TextOnlyNotice reason={formState.reason} />
+        </div>
+      ) : null}
+
+      {showForm ? (
+        <ConfigFormView
+          form={formState.form}
+          path={file.path}
+          text={text}
+          onText={setText}
+          onOpenText={(line) => {
+            setPendingLine(line);
+            setEditorMode('text');
+          }}
+          onFallback={setFallback}
+        />
+      ) : formWaiting ? (
+        <FormPending state={formState} />
+      ) : file.text === null ? (
         <p className="cfg-editor__empty t-sm t-2">
           {t(`somenteLeitura.${file.readOnly === 'tooLarge' ? 'tooLargeSemTexto' : 'binary'}`, {
             tamanho: formatBytes(file.size),
@@ -306,7 +382,7 @@ export function ConfigEditor({
         <CodeEditor
           ref={editor}
           resetKey={`${file.path}:${origin}:${String(resetKey)}`}
-          initial={base.text}
+          initial={text}
           saved={base.text}
           language={language}
           readOnly={readOnly}
@@ -437,7 +513,11 @@ export function ConfigEditor({
         description={t('descartarDialogo.texto')}
         confirmLabel={t('descartarDialogo.confirmar')}
         onConfirm={() => {
-          editor.current?.replaceAll(base.text);
+          if (editor.current) {
+            editor.current.replaceAll(base.text);
+          } else {
+            setText(base.text);
+          }
           setDialog('none');
         }}
       />

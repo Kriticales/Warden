@@ -17,6 +17,8 @@ export interface CodeEditorHandle {
   focus: () => void;
   /** Troca todo o texto (Desfazer as alterações). */
   replaceAll: (text: string) => void;
+  /** Põe o cursor no começo da linha (começa em 1), rola até ela e foca o editor. */
+  revealLine: (line: number) => void;
 }
 
 export interface CodeEditorProps {
@@ -135,6 +137,15 @@ export function CodeEditor({
       const current = view.current;
       if (current) {
         current.dispatch({ changes: { from: 0, to: current.state.doc.length, insert: text } });
+      }
+    },
+    revealLine: (line) => {
+      const current = view.current;
+      if (current) {
+        const doc = current.state.doc;
+        const position = doc.line(Math.min(Math.max(line, 1), doc.lines)).from;
+        current.dispatch({ selection: { anchor: position }, scrollIntoView: true });
+        current.focus();
       }
     },
   }));

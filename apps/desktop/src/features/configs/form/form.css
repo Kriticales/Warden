@@ -1,0 +1,33 @@
+/* Modo formulário do editor de configs (C-04; `.cfgform` do design system). */
+.cfg-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+}
+.cfg-form .cfgform__desc p {
+  margin: 0;
+}
+.cfg-form .cfgform__comment {
+  white-space: pre-line;
+}
+.cfgform__color {
+  gap: var(--space-2);
+}
+.cfgform__color input[type='color'] {
+  flex: none;
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: var(--border-thin) solid var(--color-border-strong);
+  background: none;
+}
+.cfg-editor__notices li .btn {
+  margin-left: auto;
+  flex: none;
+}
+.cfg-preserve {
+  margin-left: auto;
+  flex: none;
+  max-width: 320px;
+}
