@@ -162,6 +162,10 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
   after(() => {
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
+    // Os outros specs (o do Testar) contam com uma instância só em `instances/`.
+    if (existsSync(join(DATA_ROOT, 'data', 'instances'))) {
+      rmSync(join(instanceGameDir(), '..'), { recursive: true, force: true });
+    }
   });
 
   it('abre o pack', async () => {
