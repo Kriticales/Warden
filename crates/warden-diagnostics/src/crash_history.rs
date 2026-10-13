@@ -14,6 +14,7 @@
 //!
 //! Limites: só agrupa o que recebe. Ler as sessões do disco e a retenção ficam com o app.
 
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
@@ -132,16 +133,37 @@ impl CrashGroup {
     }
 }
 
+/// Tamanho do nome da pasta de uma sessão (`AAAA-MM-DD_HH-MM-SS`); a segunda sessão no mesmo
+/// segundo ganha `-2`, a décima `-10`.
+const SESSION_FOLDER_LEN: usize = 19;
+
+/// Ordem cronológica de duas sessões: pelo início e, no empate, pelo nome da pasta com o
+/// sufixo numérico (`…-2` antes de `…-10`, que na ordem do texto viria antes).
+#[must_use]
+pub fn session_order(a_started_ms: u64, a_id: &str, b_started_ms: u64, b_id: &str) -> Ordering {
+    a_started_ms
+        .cmp(&b_started_ms)
+        .then_with(|| folder_key(a_id).cmp(&folder_key(b_id)))
+}
+
+/// O nome da pasta separado do sufixo de repetição no mesmo segundo (sem sufixo: 1).
+fn folder_key(id: &str) -> (&str, u64) {
+    if let Some((base, suffix)) = id.rsplit_once('-')
+        && base.len() == SESSION_FOLDER_LEN
+        && !suffix.is_empty()
+        && suffix.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        return (base, suffix.parse().unwrap_or(u64::MAX));
+    }
+    (id, 1)
+}
+
 /// Agrupa as sessões que travaram (e têm assinatura) pela assinatura. Os grupos vêm do que
 /// travou por último para o que travou primeiro.
 #[must_use]
 pub fn group_crashes(sessions: &[SessionEntry]) -> Vec<CrashGroup> {
     let mut ordered: Vec<&SessionEntry> = sessions.iter().collect();
-    ordered.sort_by(|a, b| {
-        a.started_at_ms
-            .cmp(&b.started_at_ms)
-            .then_with(|| a.id.cmp(&b.id))
-    });
+    ordered.sort_by(|a, b| session_order(a.started_at_ms, &a.id, b.started_at_ms, &b.id));
 
     let mut order: Vec<String> = Vec::new();
     let mut members: HashMap<String, Vec<&SessionEntry>> = HashMap::new();
@@ -161,11 +183,7 @@ pub fn group_crashes(sessions: &[SessionEntry]) -> Vec<CrashGroup> {
         .filter_map(|hash| members.get(hash))
         .filter_map(|crashed| build_group(crashed, &ordered))
         .collect();
-    groups.sort_by(|a, b| {
-        b.last_at_ms
-            .cmp(&a.last_at_ms)
-            .then_with(|| b.latest().cmp(a.latest()))
-    });
+    groups.sort_by(|a, b| session_order(b.last_at_ms, b.latest(), a.last_at_ms, a.latest()));
     groups
 }
 
@@ -201,7 +219,12 @@ fn build_group(crashed: &[&SessionEntry], all: &[&SessionEntry]) -> Option<Crash
         .filter_map(|session| session.pack.tree.as_deref())
         .collect();
     let fixed_in = all.iter().find(|session| {
-        (session.started_at_ms, &session.id) > (last.started_at_ms, &last.id)
+        session_order(
+            session.started_at_ms,
+            &session.id,
+            last.started_at_ms,
+            &last.id,
+        ) == Ordering::Greater
             && session.end == SessionEnd::ClosedNormally
             && session
                 .pack
@@ -241,7 +264,7 @@ mod tests {
     use super::*;
 
     fn signature(hash: &str) -> CrashSignature {
-        CrashSignature::new(Some(hash.to_owned()), None, None, Vec::new())
+        CrashSignature::new(Some(hash.to_owned()), None, None, Vec::new(), Vec::new())
     }
 
     fn pack(version: &str, tree: &str) -> PackState {
@@ -379,6 +402,25 @@ mod tests {
         assert_eq!(
             groups[0].sessions,
             ["2026-10-01_10-00-00-2", "2026-10-01_10-00-00"]
+        );
+        // A décima sessão do mesmo segundo é mais nova que a segunda (no texto, `-10` < `-2`).
+        let groups = group_crashes(&[
+            crash("2026-10-01_10-00-00-10", 5, "x", PackState::default()),
+            crash("2026-10-01_10-00-00-2", 5, "x", PackState::default()),
+            crash("2026-10-01_10-00-00-9", 5, "y", PackState::default()),
+        ]);
+        assert_eq!(
+            groups[0].sessions,
+            ["2026-10-01_10-00-00-10", "2026-10-01_10-00-00-2"]
+        );
+        assert_eq!(groups[1].sessions, ["2026-10-01_10-00-00-9"]);
+        assert_eq!(
+            session_order(5, "2026-10-01_10-00-00-10", 5, "2026-10-01_10-00-00-2"),
+            Ordering::Greater
+        );
+        assert_eq!(
+            session_order(4, "2026-10-01_10-00-00-10", 5, "2026-10-01_10-00-00"),
+            Ordering::Less
         );
     }
 
