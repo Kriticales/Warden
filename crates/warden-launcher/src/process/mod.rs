@@ -153,6 +153,19 @@ impl Tree {
             None
         }
     }
+
+    /// Pico da memória reservada pela árvore (Job Object; no Linux, `None`).
+    #[cfg_attr(unix, allow(clippy::unused_self))] // Só o Windows usa self.
+    fn peak_memory(&self) -> Option<u64> {
+        #[cfg(windows)]
+        {
+            self.job.peak_memory()
+        }
+        #[cfg(unix)]
+        {
+            None
+        }
+    }
 }
 
 /// Estado compartilhado entre o processo, as alças e a tarefa que vigia a saída.
@@ -215,6 +228,14 @@ impl GameHandle {
     #[must_use]
     pub fn active_processes(&self) -> Option<u32> {
         self.control.tree.active_processes()
+    }
+
+    /// Pico da memória reservada pelo jogo e pelos filhos juntos, em bytes (Windows, pelo
+    /// Job Object; `None` no Linux). Continua legível depois que o jogo sai, enquanto houver
+    /// uma alça (L-10, ARCHITECTURE §7.7).
+    #[must_use]
+    pub fn peak_memory_bytes(&self) -> Option<u64> {
+        self.control.tree.peak_memory()
     }
 
     /// Se o processo principal já saiu.
