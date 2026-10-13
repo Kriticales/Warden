@@ -346,7 +346,7 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
 
 /// O grafo do pack e a entrada de que ele foi montado. Pega a trava de leitura do pack só
 /// para ler o inventário e o loader; quem já está com ela usa [`graph_parts_from`].
-pub(crate) async fn pack_graph_parts(
+async fn pack_graph_parts(
     state: &AppState,
     pack_id: PackId,
 ) -> Result<(Arc<Graph>, Arc<GraphInput>), AppError> {
