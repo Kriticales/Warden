@@ -224,10 +224,11 @@ jobs:
           INSTALADOR: ${{ steps.notas.outputs.instalador }}
           SAIDA: ${{ steps.notas.outputs.saida }}
         run: |
-          gh release create "$TAG" "$INSTALADOR" --repo "$GITHUB_REPOSITORY" --verify-tag \
+          # O endereço sai do próprio `create`: uma consulta à parte que falhasse depois da
+          # Release publicada faria o passo seguinte apagar a tag dela.
+          endereco=$(gh release create "$TAG" "$INSTALADOR" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --prerelease --latest=false --title "$(cat "$SAIDA/titulo.txt")" \
-            --notes-file "$SAIDA/notas.md"
-          endereco=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url)
+            --notes-file "$SAIDA/notas.md")
           echo "Pré-versão publicada: $endereco"
           echo "## Pré-versão publicada: [$TAG]($endereco)" >> "$GITHUB_STEP_SUMMARY"
 
