@@ -1357,6 +1357,82 @@ export type FolderPurpose =
 /**  Nova pasta de um pack que sumiu (Localizar…). */
 "relocate";
 
+/**  A leitura do pack para um formato: o que se perde, o que pede decisão e o que impede. */
+export type FormatAnalysis = {
+	/**  O formato analisado. */
+	format: LauncherFormat,
+	/**  Nome do pack (nome do arquivo gerado). */
+	name: string,
+	/**  `version` do `pack.toml`; `None` se faltar (o formato exige). */
+	version: string | null,
+	/**  Mods levados por referência (endereço de download, sem o jar). */
+	references: number,
+	/**  Arquivos de terceiros que iriam dentro do arquivo. */
+	embedded: number,
+	/**  O que o formato não guarda. */
+	losses: FormatLoss[],
+	/**  Só os arquivos que pedem decisão ou explicação. */
+	items: FormatItem[],
+};
+
+/**  As escolhas da pessoa antes de gerar. */
+export type FormatChoices = {
+	/**  Caminhos dos mods da CurseForge a trocar pelo Modrinth (só no arquivo gerado). */
+	swap: string[],
+	/**  A pessoa confirmou que pode embutir os arquivos de terceiros. */
+	confirmEmbed: boolean,
+	/**  `version` a usar quando o `pack.toml` não tem (só no arquivo gerado; o pack não muda). */
+	version: string | null,
+};
+
+/**  Resultado da exportação para outro launcher. */
+export type FormatExportResult = {
+	/**  O arquivo escolhido no diálogo nativo. */
+	path: string,
+	/**  Bytes do arquivo. */
+	bytes: number,
+	/**  Mods da CurseForge trocados pelo Modrinth. */
+	swapped: number,
+	/**  O que a validação conferiu. */
+	validation: FormatValidation,
+};
+
+/**  Um arquivo do pack que pede decisão ou explicação antes de gerar. */
+export type FormatItem = {
+	/**  Caminho do `.pw.toml` (ou do arquivo local), relativo ao pack. */
+	path: string,
+	/**  Nome mostrado. */
+	name: string,
+	/**  Nome do jar. */
+	filename: string,
+	/**  Origem. */
+	origin: ItemOrigin,
+	/**  Site do link direto, quando há. */
+	host: string | null,
+	/**  O que acontece. */
+	outcome: ItemOutcome,
+};
+
+/**  Uma perda, com a quantidade de itens do pack que ela atinge (0 = vale para o formato todo). */
+export type FormatLoss = {
+	/**  O que se perde. */
+	kind: LossKind,
+	/**  Quantos itens do pack são atingidos. */
+	count: number,
+};
+
+/**  O que a validação do arquivo gerado conferiu. */
+export type FormatValidation = {
+	/**  Entradas do zip. */
+	entries: number,
+	/**  Mods levados por referência. */
+	references: number,
+	/**  Arquivos dentro de `overrides/` (e `client-overrides/`, `server-overrides/`). */
+	overrides: number,
+	/**  Jars embutidos, com o caminho dentro do zip, em ordem alfabética. */
+	embeddedJars: string[],
+};
+
 /**  Como um item foi encontrado. */
 export type FoundVia = 
 /**  A pessoa escolheu o arquivo ("Selecionar arquivo baixado…"). */
@@ -2309,6 +2385,25 @@ export type LogSource =
 "server" | 
 /**  O sidecar do packwiz. */
 "packwiz";
+
+/**  O que um formato não guarda; a interface escolhe o texto. */
+export type LossKind = 
+/**  Mods marcados só para cliente ou só para servidor perdem a marca. */
+"sideNotKept" | 
+/**  Mods só de servidor ficam de fora. */
+"serverOnlyLeft" | 
+/**  Texto e padrão dos opcionais não são guardados. */
+"optionalTexts" | 
+/**  Arquivos que o jogador pode manter (`preserve`) passam a ser sempre substituídos. */
+"preserve" | 
+/**  Mods fixados em uma versão perdem a fixação. */
+"pinned" | 
+/**  A fonte de atualização (Modrinth, CurseForge) não vai junto. */
+"updateSources" | 
+/**  Quem joga não recebe atualizações pelo link: cada versão é um arquivo novo. */
+"noAutoUpdate" | 
+/**  Configs vão sempre para todos os lados. */
+"configsEverywhere";
 
 /**  Um item da lista, como a interface mostra. */
 export type ManualDownloadItem = {
