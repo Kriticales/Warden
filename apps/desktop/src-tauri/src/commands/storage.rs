@@ -403,12 +403,11 @@ mod tests {
 
     #[test]
     fn sem_nada_baixado_tudo_e_zero() {
+        // Pastas de dados que o app nunca abriu (nenhuma das quatro existe ainda).
         let dir = tempfile::tempdir().unwrap();
-        let state = test_state(dir.path());
-        std::fs::remove_dir_all(state.paths.cache_dir()).unwrap();
-        std::fs::remove_dir_all(state.paths.instances_dir()).ok();
+        let paths = warden_core::AppPaths::from_dev_root(dir.path()).unwrap();
         assert_eq!(
-            measure(&UsageDirs::of(&state.paths)),
+            measure(&UsageDirs::of(&paths)),
             StorageUsage {
                 cache: 0,
                 minecraft: 0,
