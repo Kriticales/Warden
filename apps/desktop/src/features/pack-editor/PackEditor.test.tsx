@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { InventoryItem, PackRow } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
 import { renderApp } from '../../test/render';
+import { makeChangeSet, makeHistory } from '../versioning/versioning.fixtures';
 import {
   AE2,
   INVALID,
@@ -210,6 +211,61 @@ describe('pack aberto (T05)', () => {
     );
     expect(await screen.findByText('A pasta deste pack não foi encontrada')).toBeDefined();
     expect(screen.queryByRole('navigation', { name: 'Seções do pack' })).toBeNull();
+  });
+
+  it('A-05: config editada por fora relê as alterações não salvas do Histórico, sem sair dele', async () => {
+    let history = makeHistory({ lastVersion: '1.4.2' });
+    const { backend, row } = editorBackend({
+      pack: { version: '1.4.2' },
+      handlers: { history_get: () => history },
+    });
+    renderApp(`/packs/${row.id}/historico`);
+    expect(
+      await screen.findByText('Nada mudou desde a versão 1.4.2.', {}, { timeout: 10_000 }),
+    ).toBeDefined();
+
+    history = makeHistory({
+      lastVersion: '1.4.2',
+      unsaved: makeChangeSet({ configs: ['config/create-common.toml'] }),
+    });
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['configs'], external: true }),
+    );
+
+    expect(await screen.findByText('config/create-common.toml')).toBeDefined();
+    expect(screen.queryByText('Nada mudou desde a versão 1.4.2.')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Histórico' })).toBeDefined();
+  });
+
+  it('A-05: mod editado por fora relê a prévia do Exportar, sem sair dele', async () => {
+    let unsavedChanges = false;
+    const { backend, row } = editorBackend({
+      handlers: {
+        export_preview: () => ({
+          files: [],
+          folders: [],
+          bytes: 0,
+          references: 0,
+          preflight: { hygiene: [], unsavedChanges, diagnosticErrors: null },
+        }),
+      },
+    });
+    renderApp(`/packs/${row.id}/exportar`);
+    expect(
+      await screen.findByText(
+        'Sem alterações não salvas: a exportação é igual à última versão salva.',
+        {},
+        { timeout: 10_000 },
+      ),
+    ).toBeDefined();
+
+    unsavedChanges = true;
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: true }),
+    );
+
+    expect(await screen.findByText(/^Há alterações não salvas/)).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Exportar' })).toBeDefined();
   });
 
   it('A-05: escrita do próprio Warden recarrega, mas não mostra o aviso de mudança externa', async () => {

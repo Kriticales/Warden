@@ -2,11 +2,17 @@
  * Mudanças externas no pack aberto (SPEC T05; ARCHITECTURE §15; ROADMAP A-05).
  *
  * Enquanto a tela do pack está aberta, o Rust vigia a pasta. Quando outro programa mexe nela
- * (editor de texto, `git pull`), ele emite `pack-changed` com `external: true`: as áreas que
- * mudaram já são invalidadas na raiz do app (`usePackChangedInvalidation`), sem trocar de seção.
- * Aqui ficam o resto do que a tela mostra do pack (a linha do cabeçalho, a lista de Meus packs e
- * a higiene, que as escritas do próprio Warden invalidam pelas mutations) e o aviso discreto de
- * que a tela foi atualizada.
+ * (editor de texto, `git pull`), ele emite `pack-changed` com `external: true` e as áreas que
+ * mudaram; a raiz do app invalida essas áreas (`usePackChangedInvalidation`), sem trocar de seção.
+ *
+ * As áreas não bastam numa mudança externa: muita coisa que a tela mostra do pack fica fora delas
+ * (a linha do cabeçalho, a higiene, as alterações não salvas do Histórico, a prévia e as análises
+ * do Exportar, os opcionais...). As escritas do próprio Warden cuidam disso pelas `invalidates`
+ * de cada mutation; uma mudança por fora não passa por nenhuma. Por isso a regra aqui é uma só:
+ * invalidar tudo o que está sob o prefixo do pack (`queryKeys.pack`), mais a lista de Meus packs,
+ * que fica fora dele. Só as consultas da tela aberta são relidas na hora; as outras ficam velhas
+ * e são relidas quando voltarem à tela. Uma consulta nova do pack entra na regra sozinha, desde
+ * que a chave comece pelo prefixo (ARCHITECTURE §18).
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
@@ -16,6 +22,7 @@ import { dismissToast, showToast } from '../../components/ui/toast';
 import { log } from '../../lib/log';
 import { commands, events, type PackId } from '../../lib/ipc/bindings';
 import { useTauriEvent } from '../../lib/ipc/events';
+import { queryKeys } from '../../lib/ipc/keys';
 import { packsKeys } from '../packs/api';
 
 /** Liga o vigia da pasta do pack enquanto o componente estiver montado. */
@@ -42,8 +49,8 @@ export function usePackWatch(packId: PackId): void {
     if (!change.external || change.packId !== packId) {
       return;
     }
-    // Nome, versões, "Salvar versão · N alterações" e "Pasta não encontrada" vêm da linha.
-    for (const queryKey of [packsKeys.row(packId), packsKeys.list, packsKeys.hygiene(packId)]) {
+    // Tudo do pack (cabeçalho, seções, Histórico, Exportar...) e a lista de Meus packs.
+    for (const queryKey of [queryKeys.pack(packId), packsKeys.list]) {
       void queryClient.invalidateQueries({ queryKey });
     }
     // Rajadas seguidas mostram um aviso só.
