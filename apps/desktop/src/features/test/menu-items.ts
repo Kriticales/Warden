@@ -21,6 +21,7 @@ import type { ComponentType } from 'react';
 import i18n from '../../i18n';
 import type { GameState, PackId, PackRow, TestSessionSummary } from '../../lib/ipc/bindings';
 import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDialog';
+import { playerMenuItem } from './clean/menu';
 import { DeleteWorldsDialog } from './dialogs/DeleteWorldsDialog';
 import { RecreateInstanceDialog } from './dialogs/RecreateInstanceDialog';
 import { ProfileMenuItems } from './profiles/ProfileMenuItems';
@@ -122,6 +123,8 @@ export const testMenuItems: readonly TestMenuEntry[] = [
     },
   },
   { id: 'profiles', group: 'profile', order: 100, component: ProfileMenuItems },
+  // L-07: "Testar como o jogador recebe".
+  playerMenuItem,
   {
     id: 'settings',
     group: 'profile',

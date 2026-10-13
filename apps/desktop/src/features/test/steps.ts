@@ -38,7 +38,8 @@ export const testSteps: readonly TestStep[] = [
     id: 'sync',
     order: 300,
     labelKey: 'teste:etapas.copiar',
-    matches: (stage) => stage === 'syncPack',
+    // "Como o jogador recebe" (L-07): exportar e instalar pelo link ocupam este passo.
+    matches: (stage) => stage === 'syncPack' || stage.startsWith('test.player.'),
   },
   {
     id: 'final-check',

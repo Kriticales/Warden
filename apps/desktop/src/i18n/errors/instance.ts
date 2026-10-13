@@ -22,4 +22,8 @@ export const instance: Record<InstanceErrorCode, string> = {
     'Este não é o arquivo certo. Baixe {{file}} pela página indicada e escolha esse arquivo.',
   CACHE_UNAVAILABLE:
     'O Warden não conseguiu usar a pasta de downloads guardados. Feche outros programas que possam estar usando essa pasta e tente de novo.',
+  INSTALLER_UNAVAILABLE:
+    'O Warden não conseguiu baixar o instalador do jogador ({{file}}). Confira a internet e tente de novo.',
+  PLAYER_INSTALL_FAILED:
+    'O instalador do jogador não conseguiu instalar o pack pelo link: {{reason}}. Quem jogar o pack teria o mesmo problema; confira o pack publicado e tente de novo.',
 };
