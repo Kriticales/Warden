@@ -25,6 +25,7 @@ import {
   type TestSessionSummary,
 } from '../../lib/ipc/bindings';
 import { operationChannel } from '../../lib/ipc/channel';
+import { applyPerfSample, type PerfState } from './perf-strip/model';
 
 /** Linhas guardadas por teste (SPEC T13: "Mostra até 50.000 linhas na tela"). */
 export const MAX_CONSOLE_LINES = 50_000;
@@ -45,6 +46,8 @@ export interface TestRun {
   warnings: AppError[];
   error: AppError | null;
   result: TestSessionSummary | null;
+  /** Desempenho ao vivo (faixa acima do console; L-10). */
+  perf: PerfState | null;
   startedAtMs: number;
   stopping: boolean;
   /** Teste reencontrado depois de a interface recarregar: sem canal, o console vem por
@@ -89,6 +92,7 @@ function newRun(packId: PackId, request: TestRequest): TestRun {
     warnings: [],
     error: null,
     result: null,
+    perf: null,
     startedAtMs: Date.now(),
     stopping: false,
     adopted: false,
@@ -127,8 +131,9 @@ export function applyEvent(run: TestRun, event: OperationEvent): TestRun {
         status: run.status === 'preparing' ? 'running' : run.status,
         lines: appendLines(run.lines, event.lines),
       };
-    case 'log':
     case 'perfSample':
+      return { ...run, perf: applyPerfSample(event) };
+    case 'log':
     case 'finished':
       return run;
   }

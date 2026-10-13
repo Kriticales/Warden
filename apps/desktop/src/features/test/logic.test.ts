@@ -22,6 +22,7 @@ function run(overrides: Partial<TestRun> = {}): TestRun {
     warnings: [],
     error: null,
     result: null,
+    perf: null,
     startedAtMs: 0,
     stopping: false,
     adopted: false,

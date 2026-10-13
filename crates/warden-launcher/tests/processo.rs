@@ -309,6 +309,14 @@ async fn parar_jogo_encerra_o_jogo_e_os_filhos_em_ate_5_segundos() {
         // O jogo, os 3 filhos e o `conhost.exe` de cada `java` de console.
         assert!(active >= 4, "o jogo e os 3 filhos no Job Object: {active}");
     }
+    // O pico de memória do job (L-10): 4 JVMs reservam bem mais de 16 MB; no Linux não há.
+    let peak = handle.peak_memory_bytes();
+    if cfg!(windows) {
+        let peak = peak.expect("pico do job no Windows");
+        assert!(peak > 16 * 1024 * 1024, "pico do job: {peak}");
+    } else {
+        assert_eq!(peak, None);
+    }
     let started = Instant::now();
     handle.stop().await;
     let (_, exit) = collect(&mut events, Duration::from_secs(5)).await;

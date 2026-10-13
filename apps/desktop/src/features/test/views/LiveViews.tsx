@@ -28,6 +28,7 @@ import { useSettings } from '../../settings/api';
 import { useRevealInstance, useSaveSessionLog } from '../api';
 import { ManualDownloads, useManualDownloads } from '../blocked/ManualDownloads';
 import { Console } from '../console/Console';
+import { LivePerfStrip } from '../perf-strip/PerfStrip';
 import { currentStep, orderedSteps, stepLabel } from '../steps';
 import { useGame, useTestStore, type TestRun } from '../store';
 import { formatMemory, stageText } from '../text';
@@ -214,6 +215,7 @@ export function RunningView({ run, pack }: { run: TestRun; pack: PackRow }) {
       />
       <TestSteps run={run} />
       <div className="stack-3">
+        <LivePerfStrip run={run} />
         <Warnings run={run} />
         <div className="run-console">
           <Console

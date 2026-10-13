@@ -59,7 +59,7 @@ use crate::error::{AppError, AppErrorCode};
 use crate::events::{GamePhase, GameState, OperationEvent};
 use crate::operations::{OperationHandle, OperationKind};
 use crate::state::AppState;
-use crate::test_hooks::{ExitContext, HookContext, TestHooks};
+use crate::test_hooks::{ExitContext, GameContext, HookContext, TestHooks};
 
 /// Tipo da operação do teste.
 pub(crate) const TEST_START: OperationKind = OperationKind::new("test.start");
@@ -447,6 +447,7 @@ impl Runner<'_> {
 
     fn hook_context<'b>(&'b self, pack_root: &'b Path, dirs: &'b InstanceDirs) -> HookContext<'b> {
         HookContext {
+            paths: &self.state.paths,
             pack_id: self.pack_id,
             pack_root,
             dirs,
@@ -700,6 +701,8 @@ impl Runner<'_> {
             active.state.session_id = Some(session_id.clone());
             active.game = Some(game.clone());
         });
+        self.game_started(hooks, &prepared, &process, &game, &session)
+            .await;
         self.console(vec![ConsoleLine::warden(
             "console.abrindo",
             ConsoleLevel::Info,
@@ -719,7 +722,7 @@ impl Runner<'_> {
                 game.stop().await;
             })
         };
-        let exit = self.supervise(events, started_ms).await;
+        let exit = self.supervise(hooks, events, started_ms).await;
         stop_on_cancel.abort();
         let exit = match exit {
             Some(exit) => exit,
@@ -729,7 +732,6 @@ impl Runner<'_> {
                 .map_err(|error| AppError::from_domain(&error))?,
         };
         self.console(vec![exit_line(&exit, now_ms())]);
-        let hook_fields = self.after_exit(hooks, &prepared, &exit, &session).await;
 
         let extras = SessionExtras {
             session_id: session_id.clone(),
@@ -758,10 +760,37 @@ impl Runner<'_> {
             &prepared.dirs.game_dir,
         );
         extras.apply(&mut record);
+        let hook_fields = self
+            .after_exit(hooks, &prepared, &exit, &session, &record)
+            .await;
         record.extra.extend(hook_fields);
         let summary = TestSessionSummary::from_record(&session_id, &record);
         self.finish_session(&session, &record, &sessions_dir, exit.outcome)?;
         Ok(summary)
+    }
+
+    /// Passo 5: ganchos `on_game_started`, logo depois de abrir o jogo.
+    async fn game_started(
+        &self,
+        hooks: &[Arc<dyn TestHooks>],
+        prepared: &Prepared,
+        process: &GameProcess,
+        game: &GameHandle,
+        session: &SessionDir,
+    ) {
+        let context = self.hook_context(&prepared.pack_root, &prepared.dirs);
+        let game_context = GameContext {
+            pid: process.pid(),
+            started_at: process.started_at(),
+            game,
+            spec: &prepared.spec,
+            pack_version: prepared.pack_version.as_deref(),
+            session_dir: session.path(),
+            events: &self.sink.events,
+        };
+        for hook in hooks {
+            hook.on_game_started(&context, &game_context).await;
+        }
     }
 
     /// Passo 6: ganchos `after_exit`. Um erro vira aviso; a sessão é gravada do mesmo jeito.
@@ -771,6 +800,7 @@ impl Runner<'_> {
         prepared: &Prepared,
         exit: &GameExit,
         session: &SessionDir,
+        record: &SessionRecord,
     ) -> serde_json::Map<String, serde_json::Value> {
         let context = self.hook_context(&prepared.pack_root, &prepared.dirs);
         let mut fields = serde_json::Map::new();
@@ -778,6 +808,7 @@ impl Runner<'_> {
             let exit_context = ExitContext {
                 exit,
                 session_dir: session.path(),
+                record,
             };
             match hook.after_exit(&context, &exit_context).await {
                 Ok(more) => fields.extend(more),
@@ -787,8 +818,14 @@ impl Runner<'_> {
         fields
     }
 
-    /// Lê os eventos do jogo até ele sair, mandando as linhas em lotes.
-    async fn supervise(&self, mut events: GameEvents, started_ms: u64) -> Option<GameExit> {
+    /// Lê os eventos do jogo até ele sair, mandando as linhas em lotes (e cada uma aos
+    /// ganchos).
+    async fn supervise(
+        &self,
+        hooks: &[Arc<dyn TestHooks>],
+        mut events: GameEvents,
+        started_ms: u64,
+    ) -> Option<GameExit> {
         let mut pending: Vec<ConsoleLine> = Vec::new();
         let mut ticker = tokio::time::interval(CONSOLE_BATCH);
         ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
@@ -796,6 +833,9 @@ impl Runner<'_> {
             tokio::select! {
                 event = events.recv() => match event {
                     Some(GameEvent::Line(line)) => {
+                        for hook in hooks {
+                            hook.on_game_line(&line);
+                        }
                         pending.push(ConsoleLine::from_game(line, Some(started_ms)));
                     }
                     Some(GameEvent::Exited(exit)) => {

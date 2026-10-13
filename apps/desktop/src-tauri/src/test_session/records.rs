@@ -162,6 +162,9 @@ pub(crate) struct TestSessionSummary {
     pub(crate) crash_reports: Vec<String>,
     /// `hs_err_pid*.log`, relativos à pasta do jogo.
     pub(crate) hs_err_files: Vec<String>,
+    /// Desempenho: pico de RAM, "Abriu em" e a comparação (L-10; `None` nas sessões de
+    /// antes dela).
+    pub(crate) perf: Option<warden_perf::SessionPerf>,
 }
 
 impl TestSessionSummary {
@@ -204,6 +207,7 @@ impl TestSessionSummary {
             mode,
             crash_reports: paths(&record.artifacts.crash_reports),
             hs_err_files: paths(&record.artifacts.hs_err_files),
+            perf: crate::test_hooks::session_perf(record),
         }
     }
 }
@@ -335,6 +339,16 @@ mod tests {
         assert_eq!(summary.memory_mb, Some(6144));
         assert_eq!(summary.crash_reports, vec!["crash-reports/crash.txt"]);
         assert_eq!(summary.mode, TestMode::Normal);
+        // Sessão de antes da L-10: sem desempenho.
+        assert_eq!(summary.perf, None);
+        record.extra.insert(
+            "perf".into(),
+            serde_json::json!({ "peakRssMb": 4300, "loadedMs": 102_000, "samples": 60 }),
+        );
+        let perf = TestSessionSummary::from_record("x", &record).perf.unwrap();
+        assert_eq!(perf.peak_rss_mb, Some(4300));
+        assert_eq!(perf.times.loaded_ms, Some(102_000));
+        assert_eq!(perf.times.world_ms, None);
         assert_eq!(last_test_value(summary.outcome), "crashed");
         assert_eq!(last_test_value(Outcome::StoppedByUser), "ok");
     }

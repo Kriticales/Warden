@@ -2629,6 +2629,14 @@ export type LinkTarget = {
 	manualDownload: boolean,
 };
 
+/**  Os tempos de um teste, em milissegundos desde a abertura do processo. */
+export type LoadTimes = {
+	/**  Até o jogo carregar (menu principal). */
+	loadedMs: number | null,
+	/**  Até entrar no mundo (quando entrou). */
+	worldMs: number | null,
+};
+
 /**  Loaders do catálogo (ADR-0005). O texto é o mesmo do `[versions]` do `pack.toml`. */
 export type Loader = 
 /**  Forge (todas as versões, inclusive 1.7.10 e 1.12.2). */
@@ -3028,13 +3036,13 @@ export type OperationEvent =
 /**  Identificador no registro de operações. */
 operationId: OperationId; 
 /**  Tipo da operação. */
-kind: OperationKind }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; labelKey?: never; lines?: never; rssMb?: never; stage?: never } | 
+kind: OperationKind }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Começou uma etapa. */
 ({ type: "stage"; 
 /**  Identificador estável da etapa. */
 stage: string; 
 /**  Chave do texto da etapa no catálogo. */
-labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; lines?: never; operationId?: never; rssMb?: never } | 
+labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; worldMs?: never } | 
 /**  Andamento. */
 {
 	type: "progress",
@@ -3042,24 +3050,32 @@ labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?
 /**  Linhas de console (em lotes). */
 ({ type: "log"; 
 /**  As linhas. */
-lines: LogLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; operationId?: never; rssMb?: never; stage?: never } | 
+lines: LogLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Problema que não interrompe a operação. */
 ({ type: "warning"; 
 /**  O problema. */
-error: AppError }) & { gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; rssMb?: never; stage?: never } | 
+error: AppError }) & { gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Terminou; o resultado vem no retorno do comando. */
-({ type: "finished" }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; rssMb?: never; stage?: never } | 
+({ type: "finished" }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Linhas do console do teste (L-04), em lotes de até 50 ms. */
 ({ type: "console"; 
 /**  As linhas, numeradas na sessão. */
-lines: ConsoleLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; operationId?: never; rssMb?: never; stage?: never } | 
+lines: ConsoleLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**
- *  Amostra de desempenho do jogo, a cada 1 s (ARCHITECTURE §7.7). O canal do teste já a
- *  transporta; quem envia é a L-10.
+ *  Amostra de desempenho do jogo, a cada 1 s e quando um tempo de carregamento muda
+ *  (ARCHITECTURE §7.7; L-10, `test_hooks/perf.rs`).
  */
 ({ type: "perfSample"; 
-/**  RAM do processo, em MB. */
-rssMb: number; 
+/**  RAM do processo e dos filhos, em MB (`None` antes da primeira medição). */
+rssMb: number | null; 
+/**  Pico da RAM do processo até agora, em MB (`None` antes da primeira medição). */
+peakRssMb: number | null; 
+/**  Tempo até o jogo carregar, em ms desde a abertura do processo. */
+loadedMs: number | null; 
+/**  Tempo até entrar no mundo, em ms. */
+worldMs: number | null; 
+/**  A última sessão de outra versão do pack, para "18 s a mais que na 1.4.2". */
+previous: PreviousLoad | null; 
 /**  Memória do jogo usada (heap da JVM), em MB. */
 heapUsedMb: number | null; 
 /**  Memória máxima do jogo, em MB. */
@@ -3514,6 +3530,16 @@ export type PreviewFolder = {
 	files: number,
 	/**  Soma dos tamanhos nesta pasta e nas subpastas. */
 	bytes: number,
+};
+
+/**  A sessão de outra versão do pack com que o tempo é comparado. */
+export type PreviousLoad = {
+	/**  A sessão (nome da pasta). */
+	sessionId: string,
+	/**  A versão do pack daquela sessão. */
+	packVersion: string,
+	/**  Quanto ela levou para carregar. */
+	loadedMs: number,
 };
 
 /**  O que a geração vai fazer, antes de baixar nada além das conferências. */
@@ -4113,6 +4139,21 @@ export type ServerErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**
+ *  O desempenho de uma sessão de teste, gravado no `session.json` (campo `perf`) e mostrado
+ *  no resultado ("Abriu em …").
+ */
+export type SessionPerf = {
+	/**  Pico da RAM do processo (com os filhos), em MB. `None` sem nenhuma amostra. */
+	peakRssMb?: number | null,
+	/**  Pico da memória reservada pelo jogo e pelos filhos (Job Object do Windows), em MB. */
+	peakCommitMb?: number | null,
+	/**  Amostras de memória recebidas. */
+	samples?: number,
+	/**  A última sessão de outra versão do pack que carregou, para a diferença. */
+	previous?: PreviousLoad | null,
+} & LoadTimes;
+
 /**  Configurações do app. */
 export type Settings = {
 	/**  Versão do formato. */
@@ -4371,6 +4412,11 @@ export type TestSessionSummary = {
 	crashReports: string[],
 	/**  `hs_err_pid*.log`, relativos à pasta do jogo. */
 	hsErrFiles: string[],
+	/**
+	 *  Desempenho: pico de RAM, "Abriu em" e a comparação (L-10; `None` nas sessões de
+	 *  antes dela).
+	 */
+	perf: SessionPerf | null,
 };
 
 /**  Uma sessão gravada com o console dela. */

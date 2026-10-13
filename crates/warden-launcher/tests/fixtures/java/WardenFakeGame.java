@@ -21,6 +21,10 @@ import java.util.UUID;
  *                      stdout, e fica vivo escrevendo um batimento;
  *   dormir             filho: escreve o pid e um batimento a cada 200 ms, para sempre;
  *   travar             escreve "pronto" e fica parado num laço sem fim (jogo travado);
+ *   marcadores MS      espera MS ms, escreve os marcadores de "carregou" do Minecraft 1.13+
+ *                      (som e atlas de blocos), espera mais MS/2 ms, escreve o de "entrou no
+ *                      mundo", ocupa 64 MB de memória e fica vivo escrevendo um batimento
+ *                      (L-10, tempos de carregamento e RAM do processo);
  *   args               escreve cada argumento recebido, um por linha, entre colchetes;
  *   sair N             sai com o código N;
  *   crash              grava crash-reports/crash-teste-client.txt e sai com -1;
@@ -83,6 +87,26 @@ public final class WardenFakeGame {
                 if (counter == Long.MIN_VALUE) {
                     System.out.println(counter);
                 }
+            }
+        } else if (mode.equals("marcadores")) {
+            long delay = Long.parseLong(args[1]);
+            System.out.println("[main/INFO]: Jogo simulado " + pid() + " carregando");
+            System.out.flush();
+            Thread.sleep(delay);
+            System.out.println("[Render thread/INFO]: Sound engine started");
+            System.out.println("[Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas");
+            System.out.flush();
+            Thread.sleep(delay / 2);
+            System.out.println("[Server thread/INFO]: Jogador[local:E:1] logged in with entity id 1 at (0.5, 64.0, 0.5)");
+            System.out.flush();
+            byte[] memory = new byte[64 * 1024 * 1024];
+            for (int i = 0; i < memory.length; i += 4096) {
+                memory[i] = 1;
+            }
+            while (true) {
+                Thread.sleep(200);
+                System.out.println("jogo vivo " + memory.length);
+                System.out.flush();
             }
         } else if (mode.equals("args")) {
             for (int i = 1; i < args.length; i++) {

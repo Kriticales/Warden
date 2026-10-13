@@ -91,6 +91,28 @@ impl Job {
         }
     }
 
+    /// Pico da memória reservada (*commit*) pelos processos do job juntos, em bytes
+    /// (`PeakJobMemoryUsed`; ARCHITECTURE §7.7). `None` se a consulta falhar.
+    pub(super) fn peak_memory(&self) -> Option<u64> {
+        let mut info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION::default();
+        let size = u32::try_from(size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>()).ok()?;
+        // SAFETY: `info` é uma `JOBOBJECT_EXTENDED_LIMIT_INFORMATION` válida e gravável, viva
+        // durante a chamada, `size` é o tamanho exato dela, como a classe
+        // `JobObjectExtendedLimitInformation` exige; o tamanho devolvido não é pedido
+        // (`None`), e o handle do job está aberto até o `Drop`.
+        unsafe {
+            QueryInformationJobObject(
+                Some(self.raw()),
+                JobObjectExtendedLimitInformation,
+                (&raw mut info).cast::<c_void>(),
+                size,
+                None,
+            )
+        }
+        .ok()?;
+        Some(info.PeakJobMemoryUsed as u64)
+    }
+
     /// Encerra todos os processos do job. Falha (job já vazio) é ignorada.
     pub(super) fn terminate(&self) {
         // SAFETY: o handle do job está aberto até o `Drop`.
