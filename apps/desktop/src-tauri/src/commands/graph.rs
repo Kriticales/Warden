@@ -71,7 +71,7 @@ pub(crate) async fn graph_why_in_pack(
 }
 
 /// Bibliotecas (e itens) que nenhum item mantido usa mais.
-// pendente-na-ui: P1-15 oferece remover as bibliotecas sem uso ao remover um item; a D-11 lista no Grafo
+// pendente-na-ui: D-11 lista as bibliotecas sem uso no Grafo (o remover da P1-15 usa o grafo direto)
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn graph_orphans(
@@ -107,19 +107,19 @@ fn unknown(error: UnknownItem) -> AppError {
 }
 
 /// Um item do inventário que entra no grafo.
-struct Candidate {
-    path: String,
+pub(crate) struct Candidate {
+    pub(crate) path: String,
     key: String,
-    name: String,
+    pub(crate) name: String,
     /// Onde procurar o jar, em ordem: instância de teste e, para arquivo do próprio pack, a
     /// pasta do pack.
-    jars: Vec<PathBuf>,
+    pub(crate) jars: Vec<PathBuf>,
     /// Chave do item no Modrinth (versão instalada) para o cache de metadados.
     source_version: Option<String>,
 }
 
 /// Mods do inventário (resource packs, shaders e arquivos soltos não têm dependências de mod).
-fn candidates(inventory: &Inventory, root: &Path, game_dir: &Path) -> Vec<Candidate> {
+pub(crate) fn candidates(inventory: &Inventory, root: &Path, game_dir: &Path) -> Vec<Candidate> {
     inventory
         .items
         .iter()
@@ -167,7 +167,7 @@ fn is_jar(name: &str) -> bool {
         .is_some_and(|extension| extension.eq_ignore_ascii_case("jar"))
 }
 
-fn loader_of(key: Option<&str>) -> Loader {
+pub(crate) fn loader_of(key: Option<&str>) -> Loader {
     match key {
         Some("fabric") => Loader::Fabric,
         Some("quilt") => Loader::Quilt,
@@ -241,6 +241,8 @@ struct Cached {
     fingerprint: String,
     built: Instant,
     graph: Arc<Graph>,
+    /// A entrada do grafo (a P1-15 monta o grafo sem os itens que vão sair).
+    input: Arc<GraphInput>,
 }
 
 fn cache() -> &'static Mutex<HashMap<PackId, Cached>> {
@@ -339,6 +341,14 @@ async fn load_items(
 
 /// O grafo do pack: do cache, se nada mudou, ou montado agora.
 async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, AppError> {
+    Ok(pack_graph_parts(state, pack_id).await?.0)
+}
+
+/// O grafo do pack e a entrada de que ele foi montado.
+pub(crate) async fn pack_graph_parts(
+    state: &AppState,
+    pack_id: PackId,
+) -> Result<(Arc<Graph>, Arc<GraphInput>), AppError> {
     let (root, inventory, loader) = {
         let _lock = state.locks.read(pack_id).await;
         let root = pack_root(state, pack_id)?;
@@ -361,7 +371,7 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
             && hit.fingerprint == fingerprint
             && hit.built.elapsed() < CACHE_TTL
         {
-            return Ok(Arc::clone(&hit.graph));
+            return Ok((Arc::clone(&hit.graph), Arc::clone(&hit.input)));
         }
     }
 
@@ -374,12 +384,13 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
             Vec::new()
         }
     };
-    let graph = Arc::new(Graph::build(&GraphInput {
+    let input = Arc::new(GraphInput {
         loader: loader_of(loader.as_deref()),
         items,
         additions: None,
         inferred,
-    }));
+    });
+    let graph = Arc::new(Graph::build(&input));
     cache()
         .lock()
         .unwrap_or_else(PoisonError::into_inner)
@@ -389,9 +400,10 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
                 fingerprint,
                 built: Instant::now(),
                 graph: Arc::clone(&graph),
+                input: Arc::clone(&input),
             },
         );
-    Ok(graph)
+    Ok((graph, input))
 }
 
 #[cfg(test)]

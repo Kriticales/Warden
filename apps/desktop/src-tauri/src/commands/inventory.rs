@@ -184,7 +184,8 @@ pub(crate) async fn set_side_impl(
     handle.finish(result)
 }
 
-/// O que "Remover" vai apagar e quem depende dos itens (diálogo de confirmação).
+/// O que "Remover" vai apagar, o que deixa de funcionar (a cadeia inteira, pelo grafo da D-07)
+/// e as dependências que ficam sem uso (diálogo de confirmação; P1-15).
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn items_remove_plan(
@@ -198,9 +199,10 @@ pub(crate) async fn items_remove_plan(
     let inventory = warden_project::inventory::inventory(&root, Some(&state.modrinth))
         .await
         .map_err(domain)?;
-    let dependencies =
-        warden_project::remove::direct_dependencies(&inventory, Some(&state.modrinth)).await;
-    warden_project::remove::removal_plan(&inventory, &paths, &dependencies).map_err(domain)
+    let (affected, orphans) =
+        crate::commands::versions_change::removal_queries(&state, pack_id, &inventory, &paths)
+            .await?;
+    warden_project::remove::removal_plan(&inventory, &paths, &affected, orphans).map_err(domain)
 }
 
 /// Remove os itens (apaga o `.pw.toml` ou o arquivo local e atualiza o índice). Devolve os

@@ -12,6 +12,7 @@ use warden_modrinth::{DependencyType, ModrinthClient};
 use warden_packwiz_cli::Packwiz;
 
 use crate::inventory::{Inventory, InventoryItem, ItemSource, ItemState, modrinth_versions, scan};
+use crate::orphans::OrphanOffer;
 use crate::transaction::PackTransaction;
 use crate::{Error, ProjectErrorCode as Code, Result};
 
@@ -29,16 +30,21 @@ pub struct RemovalTarget {
     pub files: Vec<String>,
 }
 
-/// Um item que fica no pack mas depende de algum dos removidos.
+/// Um item que fica no pack mas deixa de funcionar sem os removidos: depende de algum deles,
+/// direta ou indiretamente (quem depende de quem depende dele).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Dependent {
     /// Chave estável do item.
     pub key: String,
+    /// Caminho do item no pack.
+    pub path: String,
     /// Nome legível.
     pub name: String,
-    /// Nomes dos itens removidos de que ele precisa.
+    /// Nomes dos itens que somem (removidos ou dependentes de nível menor) de que ele precisa.
     pub needs: Vec<String>,
+    /// 1 = depende direto de um removido; 2 = depende de um item de nível 1; e assim por diante.
+    pub depth: u32,
 }
 
 /// O que a confirmação de remover mostra.
@@ -47,8 +53,23 @@ pub struct Dependent {
 pub struct RemovalPlan {
     /// Itens removidos, na ordem do inventário.
     pub targets: Vec<RemovalTarget>,
-    /// Itens que dependem diretamente de algum removido, na ordem do inventário.
+    /// Itens que deixam de funcionar, da cadeia inteira: primeiro os diretos, depois os de
+    /// nível 2 e assim por diante (cada nível em ordem de nome).
     pub dependents: Vec<Dependent>,
+    /// Dependências que ficam sem uso e podem sair junto (P1).
+    pub orphans: Vec<OrphanOffer>,
+}
+
+/// Um item que deixa de funcionar se os alvos saírem, como o grafo da D-07 responde
+/// (`warden_diagnostics::graph::Affected`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AffectedItem {
+    /// Caminho do item.
+    pub path: String,
+    /// Nível na cadeia (1 = direto).
+    pub depth: u32,
+    /// Nomes dos itens que somem de que ele precisa.
+    pub needs: Vec<String>,
 }
 
 /// Dependências obrigatórias diretas: chave do item → chaves dos itens de que ele precisa.
@@ -108,14 +129,20 @@ pub async fn direct_dependencies(
     map
 }
 
-/// Monta a confirmação: os alvos e os dependentes **diretos** que ficam no pack.
+/// Monta a confirmação: os alvos, o que deixa de funcionar (a cadeia inteira) e as
+/// dependências que ficam sem uso.
 ///
-/// A P1-15 troca os dependentes diretos pela consulta transitiva do modelo de dependências da
-/// D-07 (cadeia inteira, `provides` e jar-in-jar; CA-T06-06).
+/// `affected` é o fecho transitivo das dependências do grafo da D-07 (`Graph::dependents`, que
+/// considera `provides` e jar-in-jar; CA-T06-06) e `orphans`, o resultado de
+/// [`crate::orphans::orphans_after_removal`]. Afetado que não está no inventário ou que também
+/// é alvo fica de fora.
+///
+/// Erro [`Code::ItemNotFound`] (parâmetro `path`) se um caminho não está no inventário.
 pub fn removal_plan(
     inventory: &Inventory,
     paths: &[String],
-    dependencies: &DependencyMap,
+    affected: &[AffectedItem],
+    orphans: Vec<OrphanOffer>,
 ) -> Result<RemovalPlan> {
     let mut wanted = BTreeSet::new();
     for path in paths {
@@ -127,30 +154,26 @@ pub fn removal_plan(
         .iter()
         .filter(|item| wanted.contains(&item.path))
         .collect();
-    let target_names: HashMap<&str, &str> = targets
+    let dependents = affected
         .iter()
-        .map(|item| (item.key.as_str(), item.name.as_str()))
-        .collect();
-    let dependents = inventory
-        .items
-        .iter()
-        .filter(|item| !wanted.contains(&item.path))
-        .filter_map(|item| {
-            let needs: Vec<String> = dependencies
-                .get(&item.key)?
+        .filter(|affected| !wanted.contains(&affected.path))
+        .filter_map(|affected| {
+            let item = inventory
+                .items
                 .iter()
-                .filter_map(|key| {
-                    target_names
-                        .get(key.as_str())
-                        .map(|name| (*name).to_owned())
-                })
-                .collect();
-            (!needs.is_empty()).then(|| Dependent {
+                .find(|item| item.path == affected.path)?;
+            Some(Dependent {
                 key: item.key.clone(),
+                path: item.path.clone(),
                 name: item.name.clone(),
-                needs,
+                needs: affected.needs.clone(),
+                depth: affected.depth,
             })
         })
+        .collect();
+    let orphans = orphans
+        .into_iter()
+        .filter(|orphan| !wanted.contains(&orphan.path))
         .collect();
     Ok(RemovalPlan {
         targets: targets
@@ -163,6 +186,7 @@ pub fn removal_plan(
             })
             .collect(),
         dependents,
+        orphans,
     })
 }
 
@@ -230,8 +254,16 @@ mod tests {
         }
     }
 
+    fn affected(path: &str, depth: u32, needs: &[&str]) -> AffectedItem {
+        AffectedItem {
+            path: path.into(),
+            depth,
+            needs: needs.iter().map(|n| (*n).to_owned()).collect(),
+        }
+    }
+
     #[test]
-    fn plano_lista_dependentes_diretos_fora_dos_alvos() {
+    fn plano_lista_a_cadeia_inteira_fora_dos_alvos() {
         let inventory = Inventory {
             items: vec![
                 item("modrinth:a", "A"),
@@ -241,36 +273,52 @@ mod tests {
             ],
             index_error: None,
         };
-        let mut deps = DependencyMap::new();
-        deps.insert("modrinth:a".into(), vec!["modrinth:b".into()]);
-        deps.insert("modrinth:b".into(), vec!["modrinth:c".into()]);
-        deps.insert(
-            "modrinth:d".into(),
-            vec!["modrinth:c".into(), "modrinth:b".into()],
-        );
-        let plan = removal_plan(&inventory, &["mods/C.pw.toml".into()], &deps).unwrap();
+        // A → B → C e D → C: remover C quebra B e D (nível 1) e A (nível 2), na ordem do grafo.
+        let chain = [
+            affected("mods/B.pw.toml", 1, &["C"]),
+            affected("mods/D.pw.toml", 1, &["C"]),
+            affected("mods/A.pw.toml", 2, &["B"]),
+            affected("mods/fora.pw.toml", 2, &["C"]),
+        ];
+        let plan =
+            removal_plan(&inventory, &["mods/C.pw.toml".into()], &chain, Vec::new()).unwrap();
         assert_eq!(plan.targets.len(), 1);
         assert_eq!(plan.targets[0].files, ["mods/C.pw.toml"]);
-        let names: Vec<(&str, &[String])> = plan
+        let names: Vec<(&str, u32, &[String])> = plan
             .dependents
             .iter()
-            .map(|d| (d.name.as_str(), d.needs.as_slice()))
+            .map(|d| (d.name.as_str(), d.depth, d.needs.as_slice()))
             .collect();
         assert_eq!(
             names,
-            [("B", &["C".to_owned()][..]), ("D", &["C".to_owned()][..])]
+            [
+                ("B", 1, &["C".to_owned()][..]),
+                ("D", 1, &["C".to_owned()][..]),
+                ("A", 2, &["B".to_owned()][..]),
+            ]
         );
-        // Removendo B e C juntos, só A e D dependem deles (B sai da lista de dependentes).
+        assert_eq!(plan.dependents[2].key, "modrinth:a");
+        // Removendo B e C juntos, B sai da lista de dependentes (é alvo).
         let plan = removal_plan(
             &inventory,
             &["mods/B.pw.toml".into(), "mods/C.pw.toml".into()],
-            &deps,
+            &chain,
+            vec![OrphanOffer {
+                key: "modrinth:b".into(),
+                path: "mods/B.pw.toml".into(),
+                name: "B".into(),
+                optional_users: Vec::new(),
+            }],
         )
         .unwrap();
         let names: Vec<&str> = plan.dependents.iter().map(|d| d.name.as_str()).collect();
-        assert_eq!(names, ["A", "D"]);
-        assert_eq!(plan.dependents[1].needs, ["C", "B"]);
-        let error = removal_plan(&inventory, &["mods/X.pw.toml".into()], &deps).unwrap_err();
+        assert_eq!(names, ["D", "A"]);
+        assert!(
+            plan.orphans.is_empty(),
+            "um alvo nunca é oferecido como órfão"
+        );
+        let error =
+            removal_plan(&inventory, &["mods/X.pw.toml".into()], &chain, Vec::new()).unwrap_err();
         assert_eq!(error.code, Code::ItemNotFound);
         assert_eq!(error.params["path"], "mods/X.pw.toml");
     }
