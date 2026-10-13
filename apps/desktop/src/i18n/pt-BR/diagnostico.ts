@@ -76,7 +76,6 @@ export const diagnostico = {
     ignoradoToast: 'Este aviso fica ignorado neste pack.',
     voltouToast: 'O aviso voltou a valer neste pack.',
     verItem: 'Ver {{nome}}',
-    foraDoPack: 'não está no pack',
   },
   evidencia: {
     jar: 'O arquivo {{arquivo}} de {{item}} diz:',
@@ -88,7 +87,6 @@ export const diagnostico = {
   },
   correcao: {
     adicionar: 'Adicionar {{nome}}',
-    adicionarProcurando: 'Procurando {{nome}}…',
     adicionarNaoAchou:
       'O Warden não achou {{nome}} no Modrinth. Procure pelo nome em Adicionar e escolha a versão para o pack.',
     abrirAdicionar: 'Abrir Adicionar',
