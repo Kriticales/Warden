@@ -15,12 +15,13 @@ const MIB = 1024 * 1024;
 
 export function makeSignature(overrides: Partial<CrashSignature> = {}): CrashSignature {
   return {
-    version: 1,
+    version: 2,
     hash: '0a1b2c3d4e5f6071',
     rule: 'crash_report.ticking_entity',
     exception: 'java.lang.NullPointerException',
     frame: 'com.example.meumod.EntityTicker.tick',
     mods: ['jar:meumod'],
+    subject: [],
     ...overrides,
   };
 }
@@ -64,7 +65,7 @@ export const BALM_GROUP = makeGroup({
 export function makeCrashList(overrides: Partial<CrashList> = {}): CrashList {
   return {
     groups: [makeGroup()],
-    retention: { budgetBytes: 500 * MIB, nearLimit: false, overBudget: 0 },
+    retention: { budgetBytes: 500 * MIB, nearLimit: false, overLimit: false, prunable: [] },
     ...overrides,
   };
 }
