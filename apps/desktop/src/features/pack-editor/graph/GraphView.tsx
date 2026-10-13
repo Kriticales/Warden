@@ -37,6 +37,9 @@ function graphMods(items: readonly InventoryItem[]): InventoryItem[] {
 
 export function GraphView({ packId, items, center, onCenter, onView, onOpenItem }: GraphViewProps) {
   const { t } = useTranslation('grafoDesenho');
+  const { t: tEditor } = useTranslation('editor');
+  const centerSub = (item: InventoryItem | undefined) =>
+    item ? [item.version, tEditor(`mods.fonte.${item.source}`)].filter(Boolean).join(' · ') : null;
   const mods = graphMods(items);
   const [depth, setDepth] = useState<Depth>(1);
   const [search, setSearch] = useState('');
@@ -131,7 +134,11 @@ export function GraphView({ packId, items, center, onCenter, onView, onOpenItem 
         <LoadingState inline label={t('carregando')} />
       ) : (
         <div className="stack">
-          <FocusedGraph report={focus.data} onOpen={onOpenItem} />
+          <FocusedGraph
+            report={focus.data}
+            centerSub={centerSub(mods.find((item) => item.path === chosen))}
+            onOpen={onOpenItem}
+          />
           <InWords packId={packId} report={focus.data} />
           <EdgeList report={focus.data} />
           <OrphansNote orphans={orphans.data ?? []} onOpen={onOpenItem} />

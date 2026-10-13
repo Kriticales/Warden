@@ -149,6 +149,7 @@ describe('modo Grafo de Mods (D-11)', () => {
     // As embutidas ficam dentro do nó do Create.
     const center = within(graph).getByRole('button', { name: /^Create/ });
     expect(center.textContent).toContain('Dentro dele: flywheel e registrate');
+    expect(center.textContent).toContain('1.0.0 · Modrinth');
     // Tipo de cada ligação no nó e na legenda.
     expect(within(graph).getByRole('button', { name: /^JEI/ }).textContent).toContain('opcional');
     expect(within(graph).getByRole('button', { name: /^Rival/ }).textContent).toContain(

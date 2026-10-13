@@ -28,10 +28,12 @@ const GUTTER = 72;
 
 export interface FocusedGraphProps {
   report: FocusReport;
+  /** Linha de baixo do nó do centro ("0.5.1.j · Modrinth"). */
+  centerSub?: string | null;
   onOpen: (path: string) => void;
 }
 
-export function FocusedGraph({ report, onOpen }: FocusedGraphProps) {
+export function FocusedGraph({ report, centerSub = null, onOpen }: FocusedGraphProps) {
   const { t } = useTranslation('grafoDesenho');
   const { t: tKind } = useTranslation('grafo');
   const layout = layoutFocus(report);
@@ -59,6 +61,7 @@ export function FocusedGraph({ report, onOpen }: FocusedGraphProps) {
             height={layout.height}
             y={layout.y}
             relation={layout.relation}
+            centerSub={centerSub}
             onOpen={onOpen}
             t={t}
             tKind={tKind}
@@ -95,12 +98,23 @@ interface ColumnProps {
   height: number;
   y: Map<string, number>;
   relation: Map<string, FocusEdge>;
+  centerSub: string | null;
   onOpen: (path: string) => void;
   t: DrawT;
   tKind: KindT;
 }
 
-function ColumnWithGutter({ column, gutter, height, y, relation, onOpen, t, tKind }: ColumnProps) {
+function ColumnWithGutter({
+  column,
+  gutter,
+  height,
+  y,
+  relation,
+  centerSub,
+  onOpen,
+  t,
+  tKind,
+}: ColumnProps) {
   return (
     <>
       {gutter ? (
@@ -130,6 +144,7 @@ function ColumnWithGutter({ column, gutter, height, y, relation, onOpen, t, tKin
             <CenterNode
               node={column.nodes[0]}
               top={y.get(column.nodes[0].key) ?? 0}
+              sub={centerSub}
               onOpen={onOpen}
               t={t}
             />
@@ -220,11 +235,13 @@ function GraphNode({
 function CenterNode({
   node,
   top,
+  sub,
   onOpen,
   t,
 }: {
   node: FocusNode;
   top: number;
+  sub: string | null;
   onOpen: (path: string) => void;
   t: DrawT;
 }) {
@@ -242,7 +259,11 @@ function CenterNode({
       <NameTile seed={node.label} size="lg" />
       <span className="gcenter__txt">
         <span className="gcenter__name">{node.label}</span>
-        {node.library ? <span className="gcenter__sub">{t('no.biblioteca')}</span> : null}
+        {sub || node.library ? (
+          <span className="gcenter__sub">
+            {[sub, node.library ? t('no.biblioteca') : null].filter(Boolean).join(' · ')}
+          </span>
+        ) : null}
         {inside ? (
           <span className="gcenter__inside">
             <Icon icon={Box} size="sm" />
