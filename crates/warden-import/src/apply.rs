@@ -81,10 +81,10 @@ pub(crate) fn project_document(id: PackId, plan: &ImportPlan) -> Result<String> 
         .map(|item| ReviewRecord {
             path: &item.path,
             reason: match item.reason {
-                crate::model::ReviewReason::UnknownSide => "unknownSide",
-                crate::model::ReviewReason::Optional => "optional",
-                crate::model::ReviewReason::OptionalDisabled => "optionalDisabled",
-                crate::model::ReviewReason::ClientOverride => "clientOverride",
+                crate::model::ImportReviewReason::UnknownSide => "unknownSide",
+                crate::model::ImportReviewReason::Optional => "optional",
+                crate::model::ImportReviewReason::OptionalDisabled => "optionalDisabled",
+                crate::model::ImportReviewReason::ClientOverride => "clientOverride",
             },
         })
         .collect();

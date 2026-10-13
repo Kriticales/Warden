@@ -20,7 +20,10 @@ use crate::build::{Draft, RawFile, RefDraft};
 use crate::common::{manifest, split_path};
 use crate::curseforge::PREFERENCES;
 use crate::error::{Error, Result};
-use crate::model::{Content, ExcludedItem, ExcludedReason, ImportProfile, ItemSource, SourceKind};
+use crate::model::{
+    Content, ImportExcludedItem, ImportExcludedReason, ImportFormat, ImportItemSource,
+    ImportProfile,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -131,7 +134,7 @@ pub(crate) fn analyze(source: &mut Source, origin: &Path, root: &str) -> Result<
     let name = cfg.get("name").cloned().unwrap_or_default();
     let pack = manifest(&name, &fallback, &minecraft, &loaders)?;
     let mut draft = Draft::new(
-        SourceKind::Prism,
+        ImportFormat::Prism,
         origin.to_path_buf(),
         root.to_owned(),
         pack,
@@ -179,11 +182,11 @@ pub(crate) fn analyze(source: &mut Source, origin: &Path, root: &str) -> Result<
                     let metafile = parsed.value;
                     let update = metafile.update.as_ref();
                     let source_kind = if update.is_some_and(|u| u.contains_key("modrinth")) {
-                        ItemSource::Modrinth
+                        ImportItemSource::Modrinth
                     } else if update.is_some_and(|u| u.contains_key("curseforge")) {
-                        ItemSource::Curseforge
+                        ImportItemSource::Curseforge
                     } else {
-                        ItemSource::Url
+                        ImportItemSource::Url
                     };
                     draft.references.push(RefDraft {
                         dir: folder.to_owned(),
@@ -217,11 +220,11 @@ pub(crate) fn analyze(source: &mut Source, origin: &Path, root: &str) -> Result<
     draft.excluded.extend(
         outside
             .into_iter()
-            .map(|(path, (is_dir, files))| ExcludedItem {
+            .map(|(path, (is_dir, files))| ImportExcludedItem {
                 path,
                 is_dir,
                 files,
-                reason: ExcludedReason::OtherLauncher,
+                reason: ImportExcludedReason::OtherLauncher,
                 can_include: false,
             }),
     );

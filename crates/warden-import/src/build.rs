@@ -15,8 +15,9 @@ use crate::archive::{EntryKind, Source};
 use crate::error::Result;
 use crate::lookup::{JarFacts, Stores, identify};
 use crate::model::{
-    Content, ExcludedItem, ExcludedReason, ImportPlan, ImportProfile, ImportSummary, ItemSource,
-    LocalItem, LocalJar, PackLicense, ReferenceItem, ReviewItem, ReviewReason, SourceKind,
+    Content, ImportExcludedItem, ImportExcludedReason, ImportFormat, ImportItemSource,
+    ImportLicense, ImportLocalFile, ImportPlan, ImportProfile, ImportReference, ImportReviewItem,
+    ImportReviewReason, ImportSummary, LocalJar,
 };
 
 /// Um item que vira `.pw.toml`.
@@ -27,9 +28,9 @@ pub(crate) struct RefDraft {
     /// Base do nome do arquivo (slug do projeto).
     pub(crate) slug: String,
     pub(crate) metafile: Metafile,
-    pub(crate) source: ItemSource,
+    pub(crate) source: ImportItemSource,
     pub(crate) by_hash: bool,
-    pub(crate) review: Option<ReviewReason>,
+    pub(crate) review: Option<ImportReviewReason>,
     /// Nome base que o modpack já trazia (instância do Prism), mantido se estiver livre.
     pub(crate) stem: Option<String>,
 }
@@ -42,20 +43,20 @@ pub(crate) struct RawFile {
     pub(crate) content: Content,
     pub(crate) size: u64,
     pub(crate) kind: EntryKind,
-    pub(crate) review: Option<ReviewReason>,
+    pub(crate) review: Option<ImportReviewReason>,
 }
 
 /// O que o módulo do formato entrega.
 #[derive(Debug)]
 pub(crate) struct Draft {
-    pub(crate) kind: SourceKind,
+    pub(crate) kind: ImportFormat,
     pub(crate) origin: PathBuf,
     pub(crate) root: String,
     pub(crate) manifest: PackManifest,
-    pub(crate) license: Option<PackLicense>,
+    pub(crate) license: Option<ImportLicense>,
     pub(crate) references: Vec<RefDraft>,
     pub(crate) raw: Vec<RawFile>,
-    pub(crate) excluded: Vec<ExcludedItem>,
+    pub(crate) excluded: Vec<ImportExcludedItem>,
     pub(crate) preferences: BTreeMap<String, Content>,
     pub(crate) profile: Option<ImportProfile>,
     pub(crate) staging: Option<PathBuf>,
@@ -64,7 +65,7 @@ pub(crate) struct Draft {
 
 impl Draft {
     pub(crate) fn new(
-        kind: SourceKind,
+        kind: ImportFormat,
         origin: PathBuf,
         root: String,
         manifest: PackManifest,
@@ -86,16 +87,16 @@ impl Draft {
     }
 }
 
-fn excluded_reason(reason: &HygieneReason) -> Option<ExcludedReason> {
+fn excluded_reason(reason: &HygieneReason) -> Option<ImportExcludedReason> {
     match reason {
         HygieneReason::MatchesPattern { category, .. } => Some(match category {
-            PatternCategory::Runtime => ExcludedReason::Runtime,
-            PatternCategory::SecretsAndTools => ExcludedReason::Tools,
-            PatternCategory::ServerOnly => ExcludedReason::ServerData,
-            PatternCategory::AnyDepth | PatternCategory::Required => ExcludedReason::Junk,
+            PatternCategory::Runtime => ImportExcludedReason::Runtime,
+            PatternCategory::SecretsAndTools => ImportExcludedReason::Tools,
+            PatternCategory::ServerOnly => ImportExcludedReason::ServerData,
+            PatternCategory::AnyDepth | PatternCategory::Required => ImportExcludedReason::Junk,
         }),
-        HygieneReason::Symlink => Some(ExcludedReason::Symlink),
-        HygieneReason::UnknownRootItem => Some(ExcludedReason::UnknownRoot),
+        HygieneReason::Symlink => Some(ImportExcludedReason::Symlink),
+        HygieneReason::UnknownRootItem => Some(ImportExcludedReason::UnknownRoot),
         HygieneReason::CacheLikeFolder { .. } | HygieneReason::LargeFile { .. } => None,
     }
 }
@@ -116,7 +117,7 @@ type Includable = BTreeMap<String, Vec<(String, Content)>>;
 /// O resultado da higiene: os itens que não entram, os que a pessoa pode marcar e as
 /// referências (pelo destino do arquivo) que caíram em lixo.
 struct Hygiene {
-    excluded: Vec<ExcludedItem>,
+    excluded: Vec<ImportExcludedItem>,
     includable: Includable,
     dropped_refs: HashSet<usize>,
 }
@@ -162,20 +163,20 @@ fn hygiene(raw: &mut Vec<RawFile>, refs: &[String]) -> Hygiene {
         size: 0,
     }));
     let capture = CaptureIgnore::builtin();
-    let mut items: Vec<ExcludedItem> = Vec::new();
+    let mut items: Vec<ImportExcludedItem> = Vec::new();
     for finding in scan_entries(&entries, None) {
-        let reasons: Vec<ExcludedReason> =
+        let reasons: Vec<ImportExcludedReason> =
             finding.reasons.iter().filter_map(excluded_reason).collect();
         let Some(&first) = reasons
             .iter()
-            .find(|reason| **reason != ExcludedReason::UnknownRoot)
+            .find(|reason| **reason != ImportExcludedReason::UnknownRoot)
             .or_else(|| reasons.first())
         else {
             continue;
         };
         let mut can_include = reasons
             .iter()
-            .all(|reason| *reason == ExcludedReason::UnknownRoot);
+            .all(|reason| *reason == ImportExcludedReason::UnknownRoot);
         let mut reason = first;
         // Item desconhecido que a captura sempre ignora (§8.4) é dado de execução.
         if can_include
@@ -186,9 +187,9 @@ fn hygiene(raw: &mut Vec<RawFile>, refs: &[String]) -> Hygiene {
             })
         {
             can_include = false;
-            reason = ExcludedReason::Runtime;
+            reason = ImportExcludedReason::Runtime;
         }
-        items.push(ExcludedItem {
+        items.push(ImportExcludedItem {
             path: finding.path,
             is_dir: finding.is_dir,
             files: 0,
@@ -220,11 +221,11 @@ fn hygiene(raw: &mut Vec<RawFile>, refs: &[String]) -> Hygiene {
         if let Some((path, is_dir)) = cut
             && !items.iter().any(|item| item.path == path)
         {
-            items.push(ExcludedItem {
+            items.push(ImportExcludedItem {
                 path,
                 is_dir,
                 files: 0,
-                reason: ExcludedReason::Runtime,
+                reason: ImportExcludedReason::Runtime,
                 can_include: false,
             });
         }
@@ -341,11 +342,11 @@ pub(crate) async fn finish(
     excluded.extend(
         reserved_items
             .into_iter()
-            .map(|(path, (is_dir, files))| ExcludedItem {
+            .map(|(path, (is_dir, files))| ImportExcludedItem {
                 path,
                 is_dir,
                 files,
-                reason: ExcludedReason::OtherLauncher,
+                reason: ImportExcludedReason::OtherLauncher,
                 can_include: false,
             }),
     );
@@ -383,7 +384,7 @@ pub(crate) async fn finish(
             Ok(found) => {
                 let mut metafile = found.metafile;
                 let mut review = None;
-                if file.review == Some(ReviewReason::ClientOverride) {
+                if file.review == Some(ImportReviewReason::ClientOverride) {
                     metafile.side = Side::Client;
                 } else if file.review.is_some() {
                     review = file.review;
@@ -400,7 +401,7 @@ pub(crate) async fn finish(
                 removed.insert(position);
             }
             Err(reason) => {
-                local_files.push(LocalItem {
+                local_files.push(ImportLocalFile {
                     path: file.path.clone(),
                     name: file_name(&file.path),
                     reason,
@@ -421,7 +422,7 @@ pub(crate) async fn finish(
         .collect();
     for file in &raw {
         if let Some(reason) = file.review {
-            review_raw.push(ReviewItem {
+            review_raw.push(ImportReviewItem {
                 path: file.path.clone(),
                 name: file_name(&file.path),
                 reason,
@@ -439,9 +440,9 @@ pub(crate) async fn finish(
     let mut review = Vec::new();
     for item in &draft.references {
         let source = match item.source {
-            ItemSource::Modrinth => MetafileSource::Modrinth,
-            ItemSource::Curseforge => MetafileSource::CurseForge,
-            ItemSource::Url => MetafileSource::Url,
+            ImportItemSource::Modrinth => MetafileSource::Modrinth,
+            ImportItemSource::Curseforge => MetafileSource::CurseForge,
+            ImportItemSource::Url => MetafileSource::Url,
         };
         let slug = {
             let slug = warden_packwiz::slugify_name(&item.slug);
@@ -467,13 +468,13 @@ pub(crate) async fn finish(
             Content::Bytes(item.metafile.to_toml_string().into_bytes()),
         );
         if let Some(reason) = item.review {
-            review.push(ReviewItem {
+            review.push(ImportReviewItem {
                 path: path.clone(),
                 name: item.metafile.name.clone(),
                 reason,
             });
         }
-        references.push(ReferenceItem {
+        references.push(ImportReference {
             path,
             name: item.metafile.name.clone(),
             source: item.source,
@@ -634,23 +635,26 @@ mod tests {
                 "options.txt"
             ]
         );
-        let by_path: BTreeMap<&str, &ExcludedItem> = excluded
+        let by_path: BTreeMap<&str, &ImportExcludedItem> = excluded
             .iter()
             .map(|item| (item.path.as_str(), item))
             .collect();
         assert_eq!(by_path[".mixin.out"].files, 2);
-        assert_eq!(by_path[".mixin.out"].reason, ExcludedReason::Runtime);
+        assert_eq!(by_path[".mixin.out"].reason, ImportExcludedReason::Runtime);
         assert!(!by_path[".mixin.out"].can_include);
         assert_eq!(
             by_path["config/create-client-1.toml.bak"].reason,
-            ExcludedReason::Junk
+            ImportExcludedReason::Junk
         );
-        assert_eq!(by_path["mods/.connector"].reason, ExcludedReason::Runtime);
+        assert_eq!(
+            by_path["mods/.connector"].reason,
+            ImportExcludedReason::Runtime
+        );
         assert_eq!(by_path["mods/.connector"].files, 2);
-        assert_eq!(by_path["cache"].reason, ExcludedReason::UnknownRoot);
+        assert_eq!(by_path["cache"].reason, ImportExcludedReason::UnknownRoot);
         assert!(by_path["cache"].can_include);
         assert!(by_path["emi.json"].can_include);
-        assert_eq!(by_path["logs"].reason, ExcludedReason::Runtime);
+        assert_eq!(by_path["logs"].reason, ImportExcludedReason::Runtime);
         assert!(!by_path["local"].can_include);
         assert!(!by_path["hotbar.nbt"].can_include);
         assert_eq!(includable["cache"].len(), 1);

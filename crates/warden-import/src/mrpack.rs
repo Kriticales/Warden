@@ -30,12 +30,19 @@ use crate::build::{Draft, RawFile, RefDraft};
 use crate::common::{manifest, split_path, stem};
 use crate::error::{Error, ImportErrorCode as Code, Result};
 use crate::lookup::{Stores, modpack_license};
-use crate::model::{Content, ExcludedItem, ExcludedReason, ItemSource, ReviewReason, SourceKind};
+use crate::model::{
+    Content, ImportExcludedItem, ImportExcludedReason, ImportFormat, ImportItemSource,
+    ImportReviewReason,
+};
 
 const INDEX: &str = "modrinth.index.json";
-const OVERRIDES: [(&str, &str, Option<ReviewReason>); 3] = [
+const OVERRIDES: [(&str, &str, Option<ImportReviewReason>); 3] = [
     ("overrides/", "", None),
-    ("client-overrides/", "", Some(ReviewReason::ClientOverride)),
+    (
+        "client-overrides/",
+        "",
+        Some(ImportReviewReason::ClientOverride),
+    ),
     ("server-overrides/", "server-overrides/", None),
 ];
 
@@ -176,7 +183,12 @@ fn url_metafile(item: &Pending) -> Metafile {
     }
 }
 
-fn reference(item: &Pending, mut metafile: Metafile, slug: String, source: ItemSource) -> RefDraft {
+fn reference(
+    item: &Pending,
+    mut metafile: Metafile,
+    slug: String,
+    source: ImportItemSource,
+) -> RefDraft {
     metafile.side = item.env.side.clone();
     let mut review = None;
     if item.env.optional {
@@ -185,10 +197,10 @@ fn reference(item: &Pending, mut metafile: Metafile, slug: String, source: ItemS
             description: String::new(),
             default: true,
         });
-        review = Some(ReviewReason::Optional);
+        review = Some(ImportReviewReason::Optional);
     }
     if item.env.unknown {
-        review = Some(ReviewReason::UnknownSide);
+        review = Some(ImportReviewReason::UnknownSide);
     }
     RefDraft {
         dir: item.dir.clone(),
@@ -248,7 +260,7 @@ pub(crate) async fn analyze(
         .trim()
         .clone_into(&mut pack.description);
     let mut draft = Draft::new(
-        SourceKind::Mrpack,
+        ImportFormat::Mrpack,
         origin.to_path_buf(),
         String::new(),
         pack,
@@ -298,7 +310,7 @@ pub(crate) async fn analyze(
                 &pending,
                 url_metafile(&pending),
                 stem(&pending.filename),
-                ItemSource::Url,
+                ImportItemSource::Url,
             ));
         }
     }
@@ -351,7 +363,7 @@ pub(crate) async fn analyze(
                     &item,
                     url_metafile(&item),
                     stem(&item.filename),
-                    ItemSource::Url,
+                    ImportItemSource::Url,
                 )),
             }
         }
@@ -399,7 +411,7 @@ pub(crate) async fn analyze(
         );
         draft
             .references
-            .push(reference(&item, metafile, slug, ItemSource::Modrinth));
+            .push(reference(&item, metafile, slug, ImportItemSource::Modrinth));
     }
 
     // CDN da CurseForge, com a chave: referência à CurseForge.
@@ -454,15 +466,18 @@ pub(crate) async fn analyze(
                         },
                         item.env.side.clone(),
                     );
-                    draft
-                        .references
-                        .push(reference(&item, metafile, slug, ItemSource::Curseforge));
+                    draft.references.push(reference(
+                        &item,
+                        metafile,
+                        slug,
+                        ImportItemSource::Curseforge,
+                    ));
                 }
                 _ => draft.references.push(reference(
                     &item,
                     url_metafile(&item),
                     stem(&item.filename),
-                    ItemSource::Url,
+                    ImportItemSource::Url,
                 )),
             }
         }
@@ -500,11 +515,11 @@ pub(crate) async fn analyze(
     draft.excluded.extend(
         outside
             .into_iter()
-            .map(|(path, (is_dir, files))| ExcludedItem {
+            .map(|(path, (is_dir, files))| ImportExcludedItem {
                 path,
                 is_dir,
                 files,
-                reason: ExcludedReason::OtherLauncher,
+                reason: ImportExcludedReason::OtherLauncher,
                 can_include: false,
             }),
     );

@@ -5,13 +5,13 @@ use std::path::Path;
 
 use crate::archive::{Source, display_name};
 use crate::error::{Error, ImportErrorCode as Code, Result};
-use crate::model::SourceKind;
+use crate::model::ImportFormat;
 
 /// O formato e a subpasta onde ele começa (zip de instância do Prism com a instância dentro de
 /// uma pasta).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Detected {
-    pub(crate) kind: SourceKind,
+    pub(crate) kind: ImportFormat,
     pub(crate) root: String,
 }
 
@@ -29,23 +29,23 @@ pub(crate) fn detect_source(source: &mut Source, is_dir: bool) -> Result<Detecte
     };
     if is_dir {
         if source.has_file("pack.toml") {
-            return found(SourceKind::Packwiz);
+            return found(ImportFormat::Packwiz);
         }
         if is_prism(source) {
-            return found(SourceKind::Prism);
+            return found(ImportFormat::Prism);
         }
         if source.has_file("minecraftinstance.json") {
-            return found(SourceKind::CurseforgeApp);
+            return found(ImportFormat::CurseforgeApp);
         }
     } else {
         if source.has_file("modrinth.index.json") {
-            return found(SourceKind::Mrpack);
+            return found(ImportFormat::Mrpack);
         }
         if source.has_file("manifest.json") {
-            return found(SourceKind::CurseforgeZip);
+            return found(ImportFormat::CurseforgeZip);
         }
         if is_prism(source) {
-            return found(SourceKind::Prism);
+            return found(ImportFormat::Prism);
         }
         // Zip exportado pelo Prism/MultiMC: a instância fica dentro de uma pasta.
         let tops: std::collections::BTreeSet<String> = source
@@ -57,7 +57,7 @@ pub(crate) fn detect_source(source: &mut Source, is_dir: bool) -> Result<Detecte
             let has = |name: &str| source.has_file(&format!("{top}/{name}"));
             if has("instance.cfg") && has("mmc-pack.json") {
                 return Ok(Detected {
-                    kind: SourceKind::Prism,
+                    kind: ImportFormat::Prism,
                     root: top.clone(),
                 });
             }
@@ -106,7 +106,7 @@ pub(crate) fn open(path: &Path) -> Result<(Source, Detected)> {
 /// O formato da origem em `path` (arquivo ou pasta).
 ///
 /// Erros: os de [`open`].
-pub fn detect(path: &Path) -> Result<SourceKind> {
+pub fn detect(path: &Path) -> Result<ImportFormat> {
     open(path).map(|(_, detected)| detected.kind)
 }
 
@@ -136,11 +136,11 @@ mod tests {
         let t = temp.path();
         // A extensão não importa.
         zip_with(&t.join("a.zip"), &["modrinth.index.json"]);
-        assert_eq!(detect(&t.join("a.zip")).unwrap(), SourceKind::Mrpack);
+        assert_eq!(detect(&t.join("a.zip")).unwrap(), ImportFormat::Mrpack);
         zip_with(&t.join("b.mrpack"), &["manifest.json", "overrides/x"]);
         assert_eq!(
             detect(&t.join("b.mrpack")).unwrap(),
-            SourceKind::CurseforgeZip
+            ImportFormat::CurseforgeZip
         );
         zip_with(
             &t.join("c.zip"),
@@ -151,7 +151,7 @@ mod tests {
             ],
         );
         let (_, detected) = open(&t.join("c.zip")).unwrap();
-        assert_eq!(detected.kind, SourceKind::Prism);
+        assert_eq!(detected.kind, ImportFormat::Prism);
         assert_eq!(detected.root, "Inst");
         zip_with(&t.join("d.zip"), &["outra/coisa.txt"]);
         assert_eq!(
@@ -168,11 +168,11 @@ mod tests {
         fs::create_dir_all(&dir).unwrap();
         assert_eq!(detect(&dir).unwrap_err().code(), Code::UnknownFormat);
         fs::write(dir.join("minecraftinstance.json"), b"{}").unwrap();
-        assert_eq!(detect(&dir).unwrap(), SourceKind::CurseforgeApp);
+        assert_eq!(detect(&dir).unwrap(), ImportFormat::CurseforgeApp);
         fs::write(dir.join("instance.cfg"), b"").unwrap();
         fs::write(dir.join("mmc-pack.json"), b"{}").unwrap();
-        assert_eq!(detect(&dir).unwrap(), SourceKind::Prism);
+        assert_eq!(detect(&dir).unwrap(), ImportFormat::Prism);
         fs::write(dir.join("pack.toml"), b"").unwrap();
-        assert_eq!(detect(&dir).unwrap(), SourceKind::Packwiz);
+        assert_eq!(detect(&dir).unwrap(), ImportFormat::Packwiz);
     }
 }

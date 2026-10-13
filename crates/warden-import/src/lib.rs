@@ -33,8 +33,9 @@ pub use detect::detect;
 pub use error::{Error, ImportErrorCode, Result};
 pub use lookup::Stores;
 pub use model::{
-    ExcludedItem, ExcludedReason, ImportPlan, ImportProfile, ImportSummary, ItemSource, LocalItem,
-    LocalReason, PackLicense, ReferenceItem, ReviewItem, ReviewReason, SourceKind,
+    ImportExcludedItem, ImportExcludedReason, ImportFormat, ImportItemSource, ImportLicense,
+    ImportLocalFile, ImportLocalReason, ImportPlan, ImportProfile, ImportReference,
+    ImportReviewItem, ImportReviewReason, ImportSummary,
 };
 use warden_core::CancellationToken;
 
@@ -63,7 +64,7 @@ pub async fn analyze(
     let mut source = source.within(&detected.root);
     let stores = services.stores;
     let draft = match detected.kind {
-        SourceKind::Packwiz => {
+        ImportFormat::Packwiz => {
             return Err(Error::new(
                 ImportErrorCode::UnknownFormat,
                 "pasta packwiz: abre pelo Abrir pack",
@@ -71,12 +72,12 @@ pub async fn analyze(
             .with_param("name", source.file_name())
             .with_param("kind", "packwiz"));
         }
-        SourceKind::Mrpack => mrpack::analyze(&mut source, path, stores, cancel).await?,
-        SourceKind::CurseforgeZip => {
+        ImportFormat::Mrpack => mrpack::analyze(&mut source, path, stores, cancel).await?,
+        ImportFormat::CurseforgeZip => {
             curseforge::analyze_zip(&mut source, path, stores, &services.curseforge, cancel).await?
         }
-        SourceKind::Prism => prism::analyze(&mut source, path, &detected.root)?,
-        SourceKind::CurseforgeApp => {
+        ImportFormat::Prism => prism::analyze(&mut source, path, &detected.root)?,
+        ImportFormat::CurseforgeApp => {
             curseforge::analyze_app(&mut source, path, stores, cancel).await?
         }
     };

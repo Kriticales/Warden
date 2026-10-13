@@ -21,8 +21,9 @@ use warden_core::{CancellationToken, NoProgress};
 use warden_curseforge::{CurseforgeClient, SecretString};
 use warden_http::{HttpClient, HttpConfig, ManualTimer};
 use warden_import::{
-    CurseforgeTools, ExcludedReason, ImportErrorCode, ImportPlan, ImportRequest, ImportServices,
-    ItemSource, LocalReason, ReviewReason, SourceKind, Stores, analyze, apply,
+    CurseforgeTools, ImportErrorCode, ImportExcludedReason, ImportFormat, ImportItemSource,
+    ImportLocalReason, ImportPlan, ImportRequest, ImportReviewReason, ImportServices, Stores,
+    analyze, apply,
 };
 use warden_modrinth::ModrinthClient;
 use warden_packwiz::{Metafile, PackIndex, PackManifest, Side, read_pack};
@@ -318,7 +319,7 @@ async fn ca_t24_01_mrpack_real_do_create_plus() {
     .await
     .unwrap();
     let summary = &plan.summary;
-    assert_eq!(summary.kind, SourceKind::Mrpack);
+    assert_eq!(summary.kind, ImportFormat::Mrpack);
     assert_eq!(summary.name, "Create+");
     assert_eq!(summary.version, "6.0.0 Alpha D");
     assert_eq!(summary.minecraft, "1.21.1");
@@ -333,23 +334,23 @@ async fn ca_t24_01_mrpack_real_do_create_plus() {
         summary
             .references
             .iter()
-            .all(|item| item.source == ItemSource::Modrinth && !item.by_hash)
+            .all(|item| item.source == ImportItemSource::Modrinth && !item.by_hash)
     );
 
     // O lixo não entra.
-    let excluded: BTreeMap<&str, ExcludedReason> = summary
+    let excluded: BTreeMap<&str, ImportExcludedReason> = summary
         .excluded
         .iter()
         .map(|item| (item.path.as_str(), item.reason))
         .collect();
-    assert_eq!(excluded[".mixin.out"], ExcludedReason::Runtime);
-    assert_eq!(excluded["mods/.connector"], ExcludedReason::Runtime);
-    assert_eq!(excluded["xmcl.json"], ExcludedReason::OtherLauncher);
+    assert_eq!(excluded[".mixin.out"], ImportExcludedReason::Runtime);
+    assert_eq!(excluded["mods/.connector"], ImportExcludedReason::Runtime);
+    assert_eq!(excluded["xmcl.json"], ImportExcludedReason::OtherLauncher);
     assert_eq!(
         excluded["config/create-client-1.toml.bak"],
-        ExcludedReason::Junk
+        ImportExcludedReason::Junk
     );
-    assert_eq!(excluded["cache"], ExcludedReason::UnknownRoot);
+    assert_eq!(excluded["cache"], ImportExcludedReason::UnknownRoot);
     let connector = summary
         .excluded
         .iter()
@@ -359,7 +360,7 @@ async fn ca_t24_01_mrpack_real_do_create_plus() {
     assert_eq!(connector.files, 3);
 
     // env desconhecido: Cliente e servidor, para revisar; opcional: marcado, para revisar.
-    let review: BTreeMap<&str, ReviewReason> = summary
+    let review: BTreeMap<&str, ImportReviewReason> = summary
         .review
         .iter()
         .map(|item| (item.path.as_str(), item.reason))
@@ -369,13 +370,16 @@ async fn ca_t24_01_mrpack_real_do_create_plus() {
         .iter()
         .find(|item| item.name == "Projeto statuseffectbars")
         .unwrap();
-    assert_eq!(review[unknown.path.as_str()], ReviewReason::UnknownSide);
+    assert_eq!(
+        review[unknown.path.as_str()],
+        ImportReviewReason::UnknownSide
+    );
     let optional = summary
         .references
         .iter()
         .find(|item| item.name == "Projeto appleskin")
         .unwrap();
-    assert_eq!(review[optional.path.as_str()], ReviewReason::Optional);
+    assert_eq!(review[optional.path.as_str()], ImportReviewReason::Optional);
     assert_eq!(review.len(), 2);
 
     // O jar solto não está em loja nenhuma (sem chave, só o Modrinth foi consultado).
@@ -384,7 +388,10 @@ async fn ca_t24_01_mrpack_real_do_create_plus() {
         summary.local_files[0].path,
         "mods/sablephysicscompat-1.3.0.jar"
     );
-    assert_eq!(summary.local_files[0].reason, LocalReason::NoCurseforgeKey);
+    assert_eq!(
+        summary.local_files[0].reason,
+        ImportLocalReason::NoCurseforgeKey
+    );
 
     let Some(cli) = cli else { return };
     let registry = Registry::open(temp.path().join("dados/packs.json")).unwrap();
@@ -671,7 +678,7 @@ async fn ca_t24_04_instancia_do_prism() {
     .await
     .unwrap();
     let summary = &plan.summary;
-    assert_eq!(summary.kind, SourceKind::Prism);
+    assert_eq!(summary.kind, ImportFormat::Prism);
     assert_eq!(summary.name, "Vale Sereno no Prism");
     assert_eq!(summary.minecraft, "1.21.1");
     assert_eq!(summary.loader.as_deref(), Some("fabric"));
@@ -693,7 +700,10 @@ async fn ca_t24_04_instancia_do_prism() {
     assert_eq!(refs["mods/solto.pw.toml"], ("Mod Solto", true));
     assert_eq!(summary.local_files.len(), 1);
     assert_eq!(summary.local_files[0].path, "mods/caseiro.jar");
-    assert_eq!(summary.local_files[0].reason, LocalReason::NoCurseforgeKey);
+    assert_eq!(
+        summary.local_files[0].reason,
+        ImportLocalReason::NoCurseforgeKey
+    );
     let excluded: Vec<&str> = summary
         .excluded
         .iter()
@@ -1229,26 +1239,32 @@ async fn ca_t24_03_zip_da_curseforge_pelo_packwiz_com_o_lado_do_modrinth() {
         .await
         .unwrap();
     let summary = &plan.summary;
-    assert_eq!(summary.kind, SourceKind::CurseforgeZip);
+    assert_eq!(summary.kind, ImportFormat::CurseforgeZip);
     assert_eq!(summary.name, "Cozy Create");
     assert_eq!(summary.loader.as_deref(), Some("forge"));
     assert_eq!(summary.loader_version.as_deref(), Some("47.3.0"));
     assert_eq!(summary.profile.as_ref().unwrap().memory_mb, Some(6144));
-    let refs: BTreeMap<&str, ItemSource> = summary
+    let refs: BTreeMap<&str, ImportItemSource> = summary
         .references
         .iter()
         .map(|item| (item.path.as_str(), item.source))
         .collect();
-    assert_eq!(refs.get("mods/jei.pw.toml"), Some(&ItemSource::Curseforge));
+    assert_eq!(
+        refs.get("mods/jei.pw.toml"),
+        Some(&ImportItemSource::Curseforge)
+    );
     assert_eq!(
         refs.get("mods/mod-opcional.pw.toml"),
-        Some(&ItemSource::Curseforge)
+        Some(&ImportItemSource::Curseforge)
     );
     assert_eq!(summary.review.len(), 1);
     assert_eq!(summary.review[0].path, "mods/mod-opcional.pw.toml");
-    assert_eq!(summary.review[0].reason, ReviewReason::OptionalDisabled);
+    assert_eq!(
+        summary.review[0].reason,
+        ImportReviewReason::OptionalDisabled
+    );
     assert_eq!(summary.local_files.len(), 1);
-    assert_eq!(summary.local_files[0].reason, LocalReason::NotFound);
+    assert_eq!(summary.local_files[0].reason, ImportLocalReason::NotFound);
     let excluded: Vec<&str> = summary
         .excluded
         .iter()
@@ -1345,11 +1361,11 @@ async fn instancia_do_app_da_curseforge_sem_consultar_a_curseforge() {
     .await
     .unwrap();
     let summary = &plan.summary;
-    assert_eq!(summary.kind, SourceKind::CurseforgeApp);
+    assert_eq!(summary.kind, ImportFormat::CurseforgeApp);
     assert_eq!(summary.loader_version.as_deref(), Some("47.3.0"));
     assert_eq!(summary.references.len(), 1);
     assert_eq!(summary.references[0].path, "mods/just-enough-items.pw.toml");
-    assert_eq!(summary.references[0].source, ItemSource::Curseforge);
+    assert_eq!(summary.references[0].source, ImportItemSource::Curseforge);
     assert!(summary.local_files.is_empty());
     assert_eq!(summary.preferences, vec!["options.txt".to_owned()]);
     let profile = summary.profile.clone().unwrap();

@@ -27,7 +27,8 @@ use crate::common::{manifest, split_path, stem};
 use crate::error::{Error, ImportErrorCode as Code, Result};
 use crate::lookup::{Stores, modrinth_sides};
 use crate::model::{
-    Content, ExcludedItem, ExcludedReason, ImportProfile, ItemSource, ReviewReason, SourceKind,
+    Content, ImportExcludedItem, ImportExcludedReason, ImportFormat, ImportItemSource,
+    ImportProfile, ImportReviewReason,
 };
 
 /// O que o zip da CurseForge precisa além das lojas.
@@ -91,14 +92,14 @@ pub(crate) fn parse_loader(id: &str) -> Option<(Loader, String)> {
     (!version.is_empty()).then(|| (loader, version.to_owned()))
 }
 
-fn source_of(metafile: &Metafile) -> ItemSource {
+fn source_of(metafile: &Metafile) -> ImportItemSource {
     let update = metafile.update.as_ref();
     if update.is_some_and(|u| u.contains_key("modrinth")) {
-        ItemSource::Modrinth
+        ImportItemSource::Modrinth
     } else if update.is_some_and(|u| u.contains_key("curseforge")) {
-        ItemSource::Curseforge
+        ImportItemSource::Curseforge
     } else {
-        ItemSource::Url
+        ImportItemSource::Url
     }
 }
 
@@ -275,7 +276,7 @@ async fn read_staging(
     cancel: &CancellationToken,
 ) -> Result<Draft> {
     let mut draft = Draft::new(
-        SourceKind::CurseforgeZip,
+        ImportFormat::CurseforgeZip,
         origin.to_path_buf(),
         String::new(),
         pack,
@@ -303,7 +304,7 @@ async fn read_staging(
                 .option
                 .as_ref()
                 .filter(|option| option.optional && !option.default)
-                .map(|_| ReviewReason::OptionalDisabled);
+                .map(|_| ImportReviewReason::OptionalDisabled);
             draft.references.push(RefDraft {
                 dir,
                 slug: stem_name.to_owned(),
@@ -348,11 +349,11 @@ async fn read_staging(
     draft.excluded.extend(
         outside
             .into_iter()
-            .map(|(path, (is_dir, files))| ExcludedItem {
+            .map(|(path, (is_dir, files))| ImportExcludedItem {
                 path,
                 is_dir,
                 files,
-                reason: ExcludedReason::OtherLauncher,
+                reason: ImportExcludedReason::OtherLauncher,
                 can_include: false,
             }),
     );
@@ -447,7 +448,7 @@ pub(crate) async fn analyze_app(
         .collect();
     let pack = manifest(&instance.name, &display_name(origin), &minecraft, &loaders)?;
     let mut draft = Draft::new(
-        SourceKind::CurseforgeApp,
+        ImportFormat::CurseforgeApp,
         origin.to_path_buf(),
         String::new(),
         pack,
@@ -502,7 +503,7 @@ pub(crate) async fn analyze_app(
                 },
                 Side::Both,
             ),
-            source: ItemSource::Curseforge,
+            source: ImportItemSource::Curseforge,
             by_hash: false,
             review: None,
             stem: None,
@@ -519,11 +520,11 @@ pub(crate) async fn analyze_app(
             entry.name.as_str(),
             "minecraftinstance.json" | ".curseclient"
         ) {
-            draft.excluded.push(ExcludedItem {
+            draft.excluded.push(ImportExcludedItem {
                 path: entry.name.clone(),
                 is_dir: false,
                 files: 1,
-                reason: ExcludedReason::OtherLauncher,
+                reason: ImportExcludedReason::OtherLauncher,
                 can_include: false,
             });
             continue;

@@ -194,7 +194,7 @@ fn domain(error: warden_project::Error) -> AppError {
 /// O packwiz do link. Em build de debug, aponta a CurseForge dele para o mesmo endereço de
 /// `WARDEN_API_BASE_CURSEFORGE` que o app usa (servidor de fixtures dos E2E; ARCHITECTURE
 /// §17.1); em release, sempre a API oficial.
-fn link_packwiz(state: &AppState) -> Result<Packwiz, AppError> {
+pub(crate) fn link_packwiz(state: &AppState) -> Result<Packwiz, AppError> {
     let packwiz = packwiz(state)?;
     #[cfg(debug_assertions)]
     if let Some(base) = std::env::var(warden_curseforge::BASE_URL_ENV)

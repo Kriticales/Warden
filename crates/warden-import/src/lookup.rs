@@ -15,7 +15,7 @@ use warden_packwiz::hash::{curseforge_fingerprint, hash_bytes};
 use warden_packwiz::{CurseForgeFile, HashFormat, Metafile, ModrinthFile, Side};
 use warden_project::add::modrinth::{project_side, side_of};
 
-use crate::model::{ItemSource, LocalReason, PackLicense};
+use crate::model::{ImportItemSource, ImportLicense, ImportLocalReason};
 
 /// Os clientes das lojas. `curseforge` só existe com a chave.
 #[derive(Clone, Copy)]
@@ -49,7 +49,7 @@ impl JarFacts {
 /// Um jar reconhecido numa loja.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Found {
-    pub(crate) source: ItemSource,
+    pub(crate) source: ImportItemSource,
     pub(crate) slug: String,
     pub(crate) metafile: Metafile,
 }
@@ -57,7 +57,7 @@ pub(crate) struct Found {
 /// O resultado da procura de vários jars, na ordem pedida.
 #[derive(Debug, Default)]
 pub(crate) struct Identified {
-    pub(crate) found: Vec<Result<Found, LocalReason>>,
+    pub(crate) found: Vec<Result<Found, ImportLocalReason>>,
     pub(crate) unavailable: Vec<String>,
 }
 
@@ -131,7 +131,7 @@ async fn modrinth_found(
                 side_of_version(version, project),
             );
             Some(Found {
-                source: ItemSource::Modrinth,
+                source: ImportItemSource::Modrinth,
                 slug,
                 metafile,
             })
@@ -191,7 +191,7 @@ async fn curseforge_found(
         result.insert(
             *position,
             Found {
-                source: ItemSource::Curseforge,
+                source: ImportItemSource::Curseforge,
                 slug,
                 metafile,
             },
@@ -252,11 +252,11 @@ pub(crate) async fn identify(
         .into_iter()
         .map(|item| {
             item.ok_or(if modrinth_failed || curseforge_failed {
-                LocalReason::LookupFailed
+                ImportLocalReason::LookupFailed
             } else if stores.curseforge.is_none() {
-                LocalReason::NoCurseforgeKey
+                ImportLocalReason::NoCurseforgeKey
             } else {
-                LocalReason::NotFound
+                ImportLocalReason::NotFound
             })
         })
         .collect();
@@ -333,7 +333,7 @@ const FREE_LICENSES: [&str; 21] = [
 
 /// Uma licença do Modrinth no formato da tela.
 #[must_use]
-pub(crate) fn license_of(license: &warden_modrinth::License) -> Option<PackLicense> {
+pub(crate) fn license_of(license: &warden_modrinth::License) -> Option<ImportLicense> {
     let id = license.id.trim();
     if id.is_empty() {
         return None;
@@ -351,7 +351,7 @@ pub(crate) fn license_of(license: &warden_modrinth::License) -> Option<PackLicen
     } else {
         license.name.trim().to_owned()
     };
-    Some(PackLicense {
+    Some(ImportLicense {
         id: id.to_owned(),
         name,
         free,
@@ -363,7 +363,7 @@ pub(crate) async fn modpack_license(
     client: Option<&ModrinthClient>,
     sha512: &str,
     cancel: &CancellationToken,
-) -> Option<PackLicense> {
+) -> Option<ImportLicense> {
     let client = client?;
     let versions = client
         .version_files(&[sha512.to_owned()], HashAlgorithm::Sha512, Some(cancel))

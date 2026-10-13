@@ -10,7 +10,7 @@ use warden_packwiz::PackManifest;
 /// Formato reconhecido pelo conteúdo (ARCHITECTURE §12.2).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum SourceKind {
+pub enum ImportFormat {
     /// Pasta com `pack.toml`: segue para Abrir pack (T04).
     Packwiz,
     /// `.mrpack` (`modrinth.index.json`).
@@ -24,7 +24,7 @@ pub enum SourceKind {
     CurseforgeApp,
 }
 
-impl SourceKind {
+impl ImportFormat {
     /// Nome curto gravado em `.warden/project.toml`.
     #[must_use]
     pub fn key(self) -> &'static str {
@@ -41,7 +41,7 @@ impl SourceKind {
 /// De onde vem um item que virou referência.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum ItemSource {
+pub enum ImportItemSource {
     /// Modrinth (`[update.modrinth]`).
     Modrinth,
     /// CurseForge (`[update.curseforge]`).
@@ -53,13 +53,13 @@ pub enum ItemSource {
 /// Um item que vira `.pw.toml` (referência à fonte).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ReferenceItem {
+pub struct ImportReference {
     /// Caminho do `.pw.toml` no pack novo.
     pub path: String,
     /// Nome do mod.
     pub name: String,
     /// Fonte.
-    pub source: ItemSource,
+    pub source: ImportItemSource,
     /// Jar solto identificado pelo hash (não vinha como referência no modpack).
     pub by_hash: bool,
 }
@@ -67,7 +67,7 @@ pub struct ReferenceItem {
 /// Por que um jar fica como arquivo local.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum LocalReason {
+pub enum ImportLocalReason {
     /// Não está no Modrinth nem na CurseForge.
     NotFound,
     /// Não está no Modrinth e a CurseForge não foi consultada (sem chave).
@@ -79,19 +79,19 @@ pub enum LocalReason {
 /// Um jar que entra no pack como arquivo.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct LocalItem {
+pub struct ImportLocalFile {
     /// Caminho no pack novo.
     pub path: String,
     /// Nome do arquivo.
     pub name: String,
     /// Motivo.
-    pub reason: LocalReason,
+    pub reason: ImportLocalReason,
 }
 
 /// Por que um item precisa de revisão.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum ReviewReason {
+pub enum ImportReviewReason {
     /// `env` fora da especificação (`unknown`): entra como Cliente e servidor.
     UnknownSide,
     /// Opcional no modpack: entra opcional e marcado.
@@ -105,19 +105,19 @@ pub enum ReviewReason {
 /// Um item para revisar.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ReviewItem {
+pub struct ImportReviewItem {
     /// Caminho no pack novo.
     pub path: String,
     /// Nome.
     pub name: String,
     /// Motivo.
-    pub reason: ReviewReason,
+    pub reason: ImportReviewReason,
 }
 
 /// Por que algo não entra no pack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum ExcludedReason {
+pub enum ImportExcludedReason {
     /// Dados de execução do jogo ou do launcher (logs, mundos, caches de mods).
     Runtime,
     /// Segredos e arquivos de ferramentas.
@@ -137,7 +137,7 @@ pub enum ExcludedReason {
 /// Algo que não entra no pack.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ExcludedItem {
+pub struct ImportExcludedItem {
     /// Caminho (relativo ao pack novo, ou ao modpack quando está fora das pastas do jogo).
     pub path: String,
     /// Se é uma pasta (cobre tudo dentro dela).
@@ -145,7 +145,7 @@ pub struct ExcludedItem {
     /// Quantos arquivos.
     pub files: u32,
     /// Motivo.
-    pub reason: ExcludedReason,
+    pub reason: ImportExcludedReason,
     /// Se a pessoa pode marcar para entrar mesmo assim.
     pub can_include: bool,
 }
@@ -153,7 +153,7 @@ pub struct ExcludedItem {
 /// Licença do modpack, quando a fonte informa.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct PackLicense {
+pub struct ImportLicense {
     /// Identificador SPDX (ou `LicenseRef-…`).
     pub id: String,
     /// Nome legível.
@@ -177,7 +177,7 @@ pub struct ImportProfile {
 #[serde(rename_all = "camelCase")]
 pub struct ImportSummary {
     /// Formato.
-    pub kind: SourceKind,
+    pub kind: ImportFormat,
     /// Nome do arquivo ou da pasta de origem (sem o caminho).
     pub file_name: String,
     /// Nome do modpack.
@@ -191,15 +191,15 @@ pub struct ImportSummary {
     /// Versão do loader.
     pub loader_version: Option<String>,
     /// Licença do projeto, quando a fonte informa.
-    pub license: Option<PackLicense>,
+    pub license: Option<ImportLicense>,
     /// Viram referência.
-    pub references: Vec<ReferenceItem>,
+    pub references: Vec<ImportReference>,
     /// Ficam como arquivo local.
-    pub local_files: Vec<LocalItem>,
+    pub local_files: Vec<ImportLocalFile>,
     /// Para revisar.
-    pub review: Vec<ReviewItem>,
+    pub review: Vec<ImportReviewItem>,
     /// Não entram.
-    pub excluded: Vec<ExcludedItem>,
+    pub excluded: Vec<ImportExcludedItem>,
     /// Arquivos copiados para o pack (configs, scripts…).
     pub files: u32,
     /// Arquivos que vão para `server-overrides/`.
