@@ -118,6 +118,22 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `@types/node` | 24.19.1 | MIT | Tipos do Node 24 (arquivos de configuração). |
 | `@types/react`, `@types/react-dom` | 19.3.0 | MIT | Tipos do React. |
 | `@radix-ui/react-dropdown-menu` | 2.1.17 | MIT | Menu ⋯ dos packs (shadcn `DropdownMenu`; HANDOFF §3). |
+| `@codemirror/state`, `@codemirror/view`, `@codemirror/commands`, `@codemirror/language`, `@codemirror/search` | 6.7.6, 6.43.13, 6.11.1, 6.12.4, 6.7.2 | MIT | Editor de texto das configs (C-01/C-02): estado, vista, atalhos, realce e busca. Registradas na A-02, que passou a conferir as dependências diretas contra este arquivo. |
+| `@codemirror/lang-javascript`, `@codemirror/lang-json`, `@codemirror/lang-yaml`, `@codemirror/legacy-modes` | 6.2.5, 6.0.2, 6.1.3, 6.5.4 | MIT | Linguagens do editor de configs: JSON, YAML, JavaScript e TypeScript; TOML e `.properties` pelos modos antigos. |
+| `@lezer/highlight` | 1.2.5 | MIT | Etiquetas de realce do editor de configs, com as cores do tema. |
+| `@radix-ui/react-dialog`, `@radix-ui/react-alert-dialog` | 1.1.23 | MIT | Diálogos e confirmações (shadcn `Dialog`/`AlertDialog`; HANDOFF §3). |
+| `@radix-ui/react-progress` | 1.1.16 | MIT | Barra de progresso acessível (`ProgressBar`). |
+| `@radix-ui/react-slot` | 1.3.3 | MIT | `asChild` dos botões (shadcn `Button`). |
+| `@radix-ui/react-toast` | 1.2.23 | MIT | Avisos passageiros (shadcn `Toast`). |
+| `@radix-ui/react-tooltip` | 1.2.16 | MIT | Dicas dos botões (shadcn `Tooltip`). |
+| `class-variance-authority` | 0.7.1 | Apache-2.0 | Variantes dos componentes (shadcn). |
+| `clsx` | 2.1.1 | MIT | Montagem de classes CSS. |
+| `lucide-react` | 1.51.0 | ISC | Ícones da interface. |
+| `zustand` | 5.0.15 | MIT | Estado local da interface (avisos, tarefas, relatório de problema). |
+| `react-markdown`, `remark-gfm`, `rehype-raw`, `rehype-sanitize` | 10.1.0, 4.0.1, 7.0.0, 6.0.0 | MIT | Markdown seguro (`SafeMarkdown`: descrições de mods, changelogs e respostas da IA), com HTML higienizado. |
+| `dompurify` | 3.4.16 | MPL-2.0 OR Apache-2.0 | Higiene de HTML vindo das APIs (`sanitize-html.ts`). |
+| `@tauri-apps/plugin-opener` | 2.7.0 | MIT OR Apache-2.0 | Abrir links `https:` no navegador (lado JavaScript do `tauri-plugin-opener`). |
+| `tailwindcss`, `@tailwindcss/vite` | 4.3.3 | MIT | Utilitários CSS do tema shadcn (`design/system/tailwind-theme.css`) no build. |
 
 ## Trechos copiados
 
@@ -155,3 +171,11 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `crates/warden-jarmeta/src/version/mod_annotation.rs` | `DependencyParser.java` do [MinecraftForge](https://github.com/MinecraftForge/MinecraftForge), branch `1.12.x` | LGPL-2.1-only | Gramática de `@Mod.dependencies`. |
 | `crates/warden-diagnostics/data/log-patterns.toml` | classes de problema de `src/Analysis/Problem/` (CrashReport, Fabric, Forge, Vanilla) do [aternosorg/codex-minecraft](https://github.com/aternosorg/codex-minecraft), commit `d7fb6a30b8dbe9d9f73c97e4ad7927a45c3173e9` (Copyright (c) 2019-2025 Aternos GmbH) | MIT | Padrões de log da análise pós-crash: as expressões foram reescritas para a crate `regex` e para linhas limpas; a origem de cada padrão está no campo `origin`. Os demais padrões vêm da pesquisa R2 §6.3 (mensagens-fonte dos loaders) e do spike S-R5-3. |
 | `apps/desktop/src-tauri/src/window_chrome/windows.rs` | `src/snap.rs` do [clarifei/tauri-plugin-frame](https://github.com/clarifei/tauri-plugin-frame) 1.1.8 | MIT | Técnica do menu de encaixe numa barra de título própria: janela filha transparente sobre o maximizar que responde `HTMAXBUTTON` e devolve hover e clique à interface. Reescrita com a crate `windows`, sem o plugin (ele injeta botões e scripts próprios na página). |
+
+## Fontes embutidas (`design/system/fonts/`)
+
+| Fonte | Licença | Para quê |
+|---|---|---|
+| `IBM Plex Mono` | OFL-1.1 ([`OFL-IBMPlexMono.txt`](design/system/fonts/OFL-IBMPlexMono.txt)) | Console, versões, caminhos, configs e diff (DESIGN-SYSTEM §3). |
+| `Manrope` | OFL-1.1 ([`OFL-Manrope.txt`](design/system/fonts/OFL-Manrope.txt)) | Texto de leitura, botões, campos e tabelas (DESIGN-SYSTEM §3). |
+| `Pixelify Sans` | OFL-1.1 ([`OFL-PixelifySans.txt`](design/system/fonts/OFL-PixelifySans.txt)) | Títulos curtos, menu de seções e Testar (DESIGN-SYSTEM §3). |
