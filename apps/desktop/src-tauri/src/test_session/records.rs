@@ -66,9 +66,9 @@ pub(crate) struct ProfileSignature {
     pub(crate) java_major: u32,
     /// Argumentos da JVM do teste (com o coletor padrão).
     pub(crate) jvm_args: Vec<String>,
-    /// Janela (os perfis com tamanho de janela são da L-08).
+    /// Janela do perfil (`1280x720`, `fullscreen`; `None` = a do jogo).
     pub(crate) window: Option<String>,
-    /// Ao abrir o jogo: `menu` (entrar direto no mundo é da L-08).
+    /// Ao abrir o jogo: `menu` ou `world` (entrar direto no mundo de teste, L-08).
     pub(crate) on_open: &'static str,
     /// SHA-256 dos campos acima.
     pub(crate) hash: String,
@@ -81,6 +81,8 @@ impl ProfileSignature {
         java: String,
         java_major: u32,
         jvm_args: Vec<String>,
+        window: Option<String>,
+        on_open: &'static str,
     ) -> Self {
         let mut signature = Self {
             memory_mb: memory.mb,
@@ -88,8 +90,8 @@ impl ProfileSignature {
             java,
             java_major,
             jvm_args,
-            window: None,
-            on_open: "menu",
+            window,
+            on_open,
             hash: String::new(),
         };
         let canonical = serde_json::to_vec(&signature).unwrap_or_default();
@@ -282,14 +284,30 @@ mod tests {
             mb: 4096,
             auto: true,
         };
-        let a = ProfileSignature::new(memory, "auto".into(), 17, vec!["-XX:+UseG1GC".into()]);
-        let b = ProfileSignature::new(memory, "auto".into(), 17, vec!["-XX:+UseG1GC".into()]);
-        let c = ProfileSignature::new(memory, "auto".into(), 21, vec!["-XX:+UseG1GC".into()]);
+        let sign = |major: u32, window: Option<String>, on_open: &'static str| {
+            ProfileSignature::new(
+                memory,
+                "auto".into(),
+                major,
+                vec!["-XX:+UseG1GC".into()],
+                window,
+                on_open,
+            )
+        };
+        let a = sign(17, None, "menu");
+        let b = sign(17, None, "menu");
+        let c = sign(21, None, "menu");
         assert_eq!(a.hash, b.hash);
         assert_ne!(a.hash, c.hash);
         let json = serde_json::to_value(&a).unwrap();
         assert_eq!(json["onOpen"], "menu");
         assert_eq!(json["memoryMb"], 4096);
+        // Janela e "Ao abrir o jogo" do perfil (L-08) entram na assinatura.
+        let world = sign(17, Some("1280x720".into()), "world");
+        assert_ne!(a.hash, world.hash);
+        let json = serde_json::to_value(&world).unwrap();
+        assert_eq!(json["onOpen"], "world");
+        assert_eq!(json["window"], "1280x720");
     }
 
     #[test]

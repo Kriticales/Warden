@@ -1473,3 +1473,197 @@ fn walk(root: &Path) -> Vec<PathBuf> {
     }
     found
 }
+
+/// O jogo simulado com as opções da abertura guardadas em `seen_options` (L-08).
+fn fake_state_watching(
+    root: &Path,
+    seen_options: Arc<StdMutex<Option<warden_launcher::LaunchOptions>>>,
+) -> Option<Arc<AppState>> {
+    let Some(java) = java() else {
+        eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste do jogo simulado pulado");
+        return None;
+    };
+    let mut state = test_state(root);
+    let engine = PortableMcEngine::new(EngineDirs::under(&root.join("shared")), None);
+    let major = java_major(&java);
+    let sessions = TestSessions::with_engine(
+        Arc::new(engine),
+        Some(FakeGame::new(class_dir(), java, major)),
+    )
+    .with_launch_tweak(LaunchTweak {
+        options: Arc::new(move |options| {
+            *seen_options.lock().unwrap() = Some(options.clone());
+        }),
+        env: Vec::new(),
+    });
+    state.tests = Arc::new(sessions);
+    Some(Arc::new(state))
+}
+
+/// Hash de todos os arquivos de uma pasta (caminho relativo + conteúdo).
+fn folder_hash(root: &Path) -> String {
+    let mut files = walk(root);
+    files.sort();
+    let mut hasher = Sha256::new();
+    for file in files {
+        hasher.update(
+            file.strip_prefix(root)
+                .unwrap()
+                .to_string_lossy()
+                .as_bytes(),
+        );
+        hasher.update(std::fs::read(&file).unwrap());
+    }
+    hex::encode(hasher.finalize())
+}
+
+fn warnings(seen: &Seen) -> Vec<ErrorCode> {
+    seen.events
+        .lock()
+        .unwrap()
+        .iter()
+        .filter_map(|event| match event {
+            OperationEvent::Warning { error } => Some(error.code),
+            _ => None,
+        })
+        .collect()
+}
+
+/// CA-T11-04 pelo app inteiro: criar o perfil "PC fraco (4 GB)", escolhê-lo (menu ▾) e testar
+/// abre o jogo com 4 GB (`-Xmx4096M`, a linha de comando está no golden de `test_profiles`),
+/// com a janela do perfil; o `game-state` e a sessão levam o perfil; nenhum arquivo do pack
+/// muda (hash da pasta antes e depois).
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn ca_t11_04_perfil_escolhido_vale_no_teste_e_o_pack_nao_muda() {
+    let dir = tempfile::tempdir().unwrap();
+    let seen_options = Arc::new(StdMutex::new(None));
+    let Some(state) = fake_state_watching(dir.path(), Arc::clone(&seen_options)) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, &[], "args");
+    let pack = register(&state, &root);
+    let before = folder_hash(&root);
+
+    let fields = crate::test_profiles::ProfileFields {
+        memory: crate::settings::TestMemory::Fixed { mb: 4096 },
+        window: crate::test_profiles::TestWindow::Size {
+            width: 1280,
+            height: 720,
+        },
+        jvm_args: "-XX:+PerfDisableSharedMem".into(),
+        ..Default::default()
+    };
+    let profile =
+        crate::test_profiles::create_profile(&state, pack, "PC fraco (4 GB)", fields).unwrap();
+    crate::test_profiles::select_profile(&state, pack, &profile.id).unwrap();
+
+    let (sink, seen) = sink();
+    let summary = run_test(&state, pack, TestRequest::default(), sink)
+        .await
+        .unwrap();
+    assert_eq!(summary.memory_mb, Some(4096));
+    let options = seen_options
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("opções da abertura");
+    assert_eq!(options.memory_mb, 4096);
+    assert_eq!(options.quick_play, None);
+    let texts = seen.console_texts().join("\n");
+    assert!(
+        texts.contains("[--width]\n[1280]\n[--height]\n[720]"),
+        "{texts}"
+    );
+    assert!(
+        seen.states
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|game| game.profile.as_deref() == Some(profile.id.as_str()))
+    );
+    let record: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(
+            session_dir(&state.paths, pack, &summary.id)
+                .unwrap()
+                .path()
+                .join(SESSION_FILE),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(record["profile"], profile.id.as_str());
+    assert_eq!(record["profileSignature"]["window"], "1280x720");
+    // 4 GB é também a memória automática de um pack pequeno: o que prova o perfil é o valor
+    // fixo (não automático) na assinatura.
+    assert_eq!(record["profileSignature"]["memoryAuto"], false);
+    assert_eq!(record["profileSignature"]["memoryMb"], 4096);
+    // `W_PERF_FLAGS`: o argumento que impede ler a memória vira aviso do teste.
+    assert!(warnings(&seen).contains(&ErrorCode::App(AppErrorCode::TestPerfFlags)));
+    assert_eq!(folder_hash(&root), before, "o pack não pode mudar");
+}
+
+/// CA-T11-05 pelo app inteiro (pack 1.20.1): com "Entrar direto no mundo de teste", o jogo
+/// recebe `--quickPlaySingleplayer` com a pasta do mundo jogado por último; sem mundo ainda, o
+/// teste abre no menu e avisa.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn ca_t11_05_entrar_direto_no_mundo_de_teste() {
+    let dir = tempfile::tempdir().unwrap();
+    let seen_options = Arc::new(StdMutex::new(None));
+    let Some(state) = fake_state_watching(dir.path(), Arc::clone(&seen_options)) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, &[], "args");
+    let pack = register(&state, &root);
+    let mut profiles = crate::test_profiles::profiles_of(&state, pack)
+        .unwrap()
+        .profiles;
+    profiles[0].fields.on_launch = crate::test_profiles::OnLaunch::World { world: None };
+    crate::test_profiles::save_profiles(&state, pack, profiles).unwrap();
+
+    // Sem mundo de teste: menu principal, com aviso.
+    let (events, seen) = sink();
+    run_test(&state, pack, TestRequest::default(), events)
+        .await
+        .unwrap();
+    assert!(warnings(&seen).contains(&ErrorCode::App(AppErrorCode::TestQuickPlayNoWorld)));
+    assert!(
+        !seen
+            .console_texts()
+            .iter()
+            .any(|text| text.contains("quickPlay"))
+    );
+
+    // Com mundo: entra direto nele.
+    let world = InstanceDirs::for_pack(&state.paths, pack)
+        .game_dir
+        .join("saves")
+        .join("Mundo de teste");
+    std::fs::create_dir_all(&world).unwrap();
+    std::fs::write(world.join("level.dat"), b"nbt").unwrap();
+    let (events, seen) = sink();
+    run_test(&state, pack, TestRequest::default(), events)
+        .await
+        .unwrap();
+    let texts = seen.console_texts().join("\n");
+    assert!(
+        texts.contains("[--quickPlaySingleplayer]\n[Mundo de teste]"),
+        "{texts}"
+    );
+    assert!(warnings(&seen).is_empty(), "{:?}", warnings(&seen));
+    let options = seen_options.lock().unwrap().clone().unwrap();
+    assert_eq!(
+        options.quick_play,
+        Some(warden_launcher::QuickPlay::Singleplayer {
+            world: "Mundo de teste".into()
+        })
+    );
+    // 1.20.1 não tem a tela de boas-vindas que segura o Quick Play: o options.txt fica como está.
+    assert!(
+        !InstanceDirs::for_pack(&state.paths, pack)
+            .game_dir
+            .join("options.txt")
+            .exists()
+    );
+}
