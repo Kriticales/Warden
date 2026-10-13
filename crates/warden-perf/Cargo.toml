@@ -11,5 +11,21 @@ warden-core.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
 
+[target.'cfg(windows)'.dependencies]
+# RAM do processo e da árvore dele (ARCHITECTURE §7.7). O `unsafe` fica isolado em
+# `src/process/windows.rs`.
+windows = { workspace = true, features = [
+  "Win32_Foundation",
+  "Win32_System_Diagnostics_ToolHelp",
+  "Win32_System_ProcessStatus",
+  "Win32_System_Threading",
+] }
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+# Os golden logs da matriz L-05 passam pelo mesmo leitor de log da supervisão do jogo.
+warden-launcher.workspace = true
+
 [lints]
 workspace = true
