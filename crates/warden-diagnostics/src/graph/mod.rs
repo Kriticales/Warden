@@ -23,6 +23,7 @@
 //! - [`Graph::why_in_pack`]: "Você adicionou" ou a cadeia até um item adicionado pelo usuário
 //!   (CA-T07-03).
 //! - [`Graph::orphans`]: bibliotecas que nenhum item mantido usa mais.
+//! - [`Graph::focus`] e [`Graph::whole`]: o subgrafo para o desenho em Mods (D-11).
 //!
 //! O histórico de adições ([`AdditionHistory`]) é opcional. Com ele, "adicionado pelo usuário"
 //! é exato; sem ele, vale a regra da R5A: quem nenhum outro item exige foi escolhido pelo
@@ -32,6 +33,7 @@
 //! A crate não abre jars nem faz rede: o chamador monta a [`GraphInput`].
 
 mod build;
+mod focus;
 mod inferred;
 pub mod libraries;
 mod query;
@@ -39,6 +41,7 @@ mod query;
 #[cfg(test)]
 mod tests;
 
+pub use focus::{FocusEdge, FocusNode, FocusReport, MAX_FOCUS_DEPTH};
 pub use inferred::{InferredEdge, InferredSource, InferredStore};
 pub use query::{
     Affected, ChainLink, DependentsReport, DependsOn, DependsOnState, NodeRef, Orphan, ProviderRef,

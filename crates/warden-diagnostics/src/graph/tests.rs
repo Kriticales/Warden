@@ -8,7 +8,7 @@ use warden_jarmeta::{JarMetadata, Loader};
 use super::*;
 
 /// Um mod no formato do NeoForge, com as dependências `(id, tipo)` e os `provides`.
-fn module(id: &str, deps: &[(&str, &str)], provides: &[&str]) -> serde_json::Value {
+pub(super) fn module(id: &str, deps: &[(&str, &str)], provides: &[&str]) -> serde_json::Value {
     json!({
         "source": "neoForgeModsToml",
         "loader": "neoForge",
@@ -21,7 +21,10 @@ fn module(id: &str, deps: &[(&str, &str)], provides: &[&str]) -> serde_json::Val
     })
 }
 
-fn jar_json(module: &serde_json::Value, nested: &[serde_json::Value]) -> serde_json::Value {
+pub(super) fn jar_json(
+    module: &serde_json::Value,
+    nested: &[serde_json::Value],
+) -> serde_json::Value {
     json!({
         "descriptors": ["neoForgeModsToml"],
         "mods": [module],
@@ -37,7 +40,7 @@ fn jar(id: &str, deps: &[(&str, &str)]) -> JarMetadata {
     serde_json::from_value(jar_json(&module(id, deps, &[]), &[])).unwrap()
 }
 
-fn item(id: &str, deps: &[(&str, &str)]) -> GraphItem {
+pub(super) fn item(id: &str, deps: &[(&str, &str)]) -> GraphItem {
     GraphItem {
         path: format!("mods/{id}.pw.toml"),
         name: id.to_owned(),
@@ -46,7 +49,7 @@ fn item(id: &str, deps: &[(&str, &str)]) -> GraphItem {
     }
 }
 
-fn input(items: Vec<GraphItem>) -> GraphInput {
+pub(super) fn input(items: Vec<GraphItem>) -> GraphInput {
     GraphInput {
         loader: Loader::NeoForge,
         items,
@@ -55,7 +58,7 @@ fn input(items: Vec<GraphItem>) -> GraphInput {
     }
 }
 
-fn path(id: &str) -> String {
+pub(super) fn path(id: &str) -> String {
     format!("mods/{id}.pw.toml")
 }
 
@@ -116,7 +119,7 @@ fn ca_t06_06_remover_c_lista_b_e_a_na_cadeia() {
 }
 
 /// Item cujo jar se declara biblioteca (`FMLModType: LIBRARY`).
-fn library(id: &str, deps: &[(&str, &str)]) -> GraphItem {
+pub(super) fn library(id: &str, deps: &[(&str, &str)]) -> GraphItem {
     let mut library = item(id, deps);
     library.jar = serde_json::from_value(json!({
         "descriptors": ["neoForgeModsToml"],
