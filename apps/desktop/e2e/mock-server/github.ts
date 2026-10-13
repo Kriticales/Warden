@@ -168,18 +168,28 @@ function pkt(text: string): Buffer {
   return Buffer.from(`${(text.length + 4).toString(16).padStart(4, '0')}${text}`);
 }
 
-/** `git receive-pack --stateless-rpc` com a entrada dada; devolve a saída inteira. */
-function receivePack(dir: string, args: string[], input: Buffer): Promise<Buffer> {
+/**
+ * `git receive-pack --stateless-rpc` com a entrada dada (`null`: sem entrada, como no
+ * `--advertise-refs`, que não lê nada e sai logo); devolve a saída inteira.
+ */
+function receivePack(dir: string, args: string[], input: Buffer | null): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const child = spawn('git', ['receive-pack', '--stateless-rpc', ...args, dir]);
+    const child = spawn('git', ['receive-pack', '--stateless-rpc', ...args, dir], {
+      stdio: [input === null ? 'ignore' : 'pipe', 'pipe', 'inherit'],
+    });
     const out: Buffer[] = [];
-    child.stdout.on('data', (chunk: Buffer) => out.push(chunk));
+    child.stdout?.on('data', (chunk: Buffer) => out.push(chunk));
     child.on('error', reject);
     child.on('close', (code) => {
       if (code === 0) resolve(Buffer.concat(out));
       else reject(new Error(`git receive-pack saiu com ${String(code)}`));
     });
-    child.stdin.end(input);
+    if (input !== null && child.stdin) {
+      // Se o git sair antes de ler tudo, o erro vem pelo código de saída, não por um EPIPE
+      // que derrubaria o servidor de fixtures.
+      child.stdin.on('error', () => undefined);
+      child.stdin.end(input);
+    }
   });
 }
 
@@ -200,7 +210,7 @@ async function serveGit(
   }
   const action = match[2] ?? '';
   if (request.method === 'GET' && action === 'info/refs?service=git-receive-pack') {
-    const refs = await receivePack(repo.dir, ['--advertise-refs'], Buffer.alloc(0));
+    const refs = await receivePack(repo.dir, ['--advertise-refs'], null);
     response
       .writeHead(200, { 'content-type': 'application/x-git-receive-pack-advertisement' })
       .end(Buffer.concat([pkt('# service=git-receive-pack\n'), Buffer.from('0000'), refs]));
