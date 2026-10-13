@@ -5,6 +5,8 @@
 //!   diálogo de remover).
 //! - `graph_why_in_pack`: "Por que está no pack" (CA-T07-03).
 //! - `graph_orphans`: bibliotecas que nenhum item mantido usa mais.
+//! - `graph_focus` (D-11): o subgrafo de até 2 níveis em volta de um item, ou o pack inteiro,
+//!   para o modo Grafo de Mods.
 //!
 //! Finos: montam o grafo da `warden-diagnostics` com o que o app tem (o inventário, os jars da
 //! instância de teste e, para os itens sem jar, as dependências obrigatórias do Modrinth) e
@@ -27,7 +29,8 @@ use std::time::{Duration, Instant, SystemTime};
 use tauri::State;
 use warden_core::PackId;
 use warden_diagnostics::graph::{
-    DependentsReport, Graph, GraphInput, GraphItem, InferredStore, Orphan, UnknownItem, WhyReport,
+    DependentsReport, FocusReport, Graph, GraphInput, GraphItem, InferredStore, Orphan,
+    UnknownItem, WhyReport,
 };
 use warden_instance::InstanceDirs;
 use warden_jarmeta::{JarMetadata, Limits, Loader};
@@ -71,7 +74,6 @@ pub(crate) async fn graph_why_in_pack(
 }
 
 /// Bibliotecas (e itens) que nenhum item mantido usa mais.
-// pendente-na-ui: P1-15 oferece remover as bibliotecas sem uso ao remover um item; a D-11 lista no Grafo
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn graph_orphans(
@@ -79,6 +81,32 @@ pub(crate) async fn graph_orphans(
     pack_id: PackId,
 ) -> Result<Vec<Orphan>, AppError> {
     orphans_impl(&state, pack_id).await
+}
+
+/// O desenho do grafo em Mods (D-11): com `path`, o item no centro com até `depth` níveis de
+/// cada lado (1 ou 2); sem `path`, o pack inteiro ("Ver o pack inteiro").
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn graph_focus(
+    state: State<'_, AppState>,
+    pack_id: PackId,
+    path: Option<String>,
+    depth: u8,
+) -> Result<FocusReport, AppError> {
+    focus_impl(&state, pack_id, path.as_deref(), depth).await
+}
+
+async fn focus_impl(
+    state: &AppState,
+    pack_id: PackId,
+    path: Option<&str>,
+    depth: u8,
+) -> Result<FocusReport, AppError> {
+    let graph = pack_graph(state, pack_id).await?;
+    match path {
+        Some(path) => graph.focus(path, depth).map_err(unknown),
+        None => Ok(graph.whole()),
+    }
 }
 
 async fn dependents_impl(
@@ -512,6 +540,37 @@ mod tests {
         assert_eq!(missing.params["path"], "mods/nao-existe.pw.toml");
         let empty = dependents_impl(&state, id, &[]).await.unwrap_err();
         assert_eq!(empty.params["field"], "paths");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn foco_e_pack_inteiro_saem_do_mesmo_grafo() {
+        let Some((_dir, state, id, _cli)) = setup().await else {
+            return;
+        };
+        let report = focus_impl(&state, id, Some("mods/mod-1.pw.toml"), 2)
+            .await
+            .unwrap();
+        let levels: Vec<(&str, i8)> = report
+            .nodes
+            .iter()
+            .map(|node| (node.label.as_str(), node.level))
+            .collect();
+        assert_eq!(levels, vec![("Mod 2", -1), ("Mod 1", 0), ("Mod 0", 1)]);
+        assert_eq!(report.edges.len(), 2);
+        assert!(report.edges.iter().all(|e| e.kind == RelationKind::Required));
+
+        let whole = focus_impl(&state, id, None, 0).await.unwrap();
+        assert!(whole.center.is_none());
+        assert_eq!(whole.nodes.len(), 3);
+        assert_eq!(whole.total_items, 3);
+
+        let missing = focus_impl(&state, id, Some("mods/nao-existe.pw.toml"), 2)
+            .await
+            .unwrap_err();
+        assert_eq!(
+            missing.code,
+            ErrorCode::Project(ProjectErrorCode::ItemNotFound)
+        );
     }
 
     #[test]

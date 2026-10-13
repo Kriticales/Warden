@@ -301,6 +301,11 @@ export const commands = {
 	/**  Bibliotecas (e itens) que nenhum item mantido usa mais. */
 	graphOrphans: (packId: PackId) => typedError<Orphan[], AppError>(__TAURI_INVOKE("graph_orphans", { packId })),
 	/**
+	 *  O desenho do grafo em Mods (D-11): com `path`, o item no centro com até `depth` níveis de
+	 *  cada lado (1 ou 2); sem `path`, o pack inteiro ("Ver o pack inteiro").
+	 */
+	graphFocus: (packId: PackId, path: string | null, depth: number) => typedError<FocusReport, AppError>(__TAURI_INVOKE("graph_focus", { packId, path, depth })),
+	/**
 	 *  O que a etapa "Mods iniciais" mostra: spark e Crash Assistant (e a Fabric API no Fabric), com
 	 *  a versão de cada um. Vanilla não oferece nada. Se o Modrinth não responder, o erro é
 	 *  `SEARCH_SOURCE_UNAVAILABLE` e a etapa deixa seguir sem os mods.
@@ -1929,6 +1934,55 @@ export type FindingSide =
 "server" | 
 /**  Cliente e servidor. */
 "both";
+
+/**  Uma ligação do desenho: `from` declara a relação com `to`. */
+export type FocusEdge = {
+	/**  Chave do nó que declara. */
+	from: string,
+	/**  Chave do nó que satisfaz (ou que falta, ou com que é incompatível). */
+	to: string,
+	/**  Tipo da relação. */
+	kind: RelationKind,
+	/**  Faixa de versões pedida, quando há. */
+	range: string | null,
+	/**  Id do mod embutido em `to` que satisfaz a relação ("dentro de X"), quando é o caso. */
+	embedded: string | null,
+	/**  Nota da inferência, nas relações inferidas. */
+	note: string | null,
+};
+
+/**  Um nó do desenho. */
+export type FocusNode = {
+	/**  Identidade do nó nas ligações: o caminho do item ou `falta:<id>`. */
+	key: string,
+	/**  O item do pack; `None` para uma dependência que falta. */
+	item: NodeRef | null,
+	/**  Nome para mostrar (o do item ou o id do mod que falta). */
+	label: string,
+	/**
+	 *  0 = centro (ou todos, no pack inteiro); negativo = o que o centro exige (−1 direto,
+	 *  −2 do nível −1); positivo = quem depende do centro (1 direto, 2 do nível 1).
+	 */
+	level: number,
+	/**  Ids dos mods embutidos no item (jar-in-jar), que ficam dentro do nó. */
+	embedded: string[],
+	/**  O item é uma biblioteca (agrupadas no pack inteiro). */
+	library: boolean,
+};
+
+/**  Resposta de [`Graph::focus`] e [`Graph::whole`]. */
+export type FocusReport = {
+	/**  O item no centro; `None` no pack inteiro. */
+	center: NodeRef | null,
+	/**  Níveis de cada lado (0 no pack inteiro). */
+	depth: number,
+	/**  Os nós, por nível e depois por nome. */
+	nodes: FocusNode[],
+	/**  As ligações, sem repetir. */
+	edges: FocusEdge[],
+	/**  Quantos itens o grafo do pack tem. */
+	totalItems: number,
+};
 
 /**  Para que a pasta está sendo escolhida: decide o título do diálogo e onde ele abre. */
 export type FolderPurpose = 
