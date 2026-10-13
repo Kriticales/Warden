@@ -1473,3 +1473,191 @@ fn walk(root: &Path) -> Vec<PathBuf> {
     }
     found
 }
+
+/// As amostras de desempenho que passaram pelo canal.
+fn perf_samples(seen: &Seen) -> Vec<OperationEvent> {
+    seen.events
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|event| matches!(event, OperationEvent::PerfSample { .. }))
+        .cloned()
+        .collect()
+}
+
+/// Espera uma amostra com os dois tempos e a RAM medida depois de o jogo simulado (modo
+/// `marcadores`) ocupar os 64 MB, o que ele faz logo depois de entrar no mundo.
+async fn wait_loaded_and_measured(seen: &Seen) {
+    let deadline = Instant::now() + Duration::from_secs(30);
+    loop {
+        let ready = perf_samples(seen).iter().any(|event| {
+            matches!(
+                event,
+                OperationEvent::PerfSample {
+                    rss_mb: Some(rss),
+                    loaded_ms: Some(_),
+                    world_ms: Some(_),
+                    ..
+                } if *rss >= 64
+            )
+        });
+        if ready {
+            return;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "sem amostra com RAM e tempos em 30 s"
+        );
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+}
+
+/// Um teste com o jogo simulado no modo `marcadores`, parado depois de carregar e de uma
+/// amostra completa.
+async fn test_with_markers(state: &Arc<AppState>, pack: PackId) -> (TestSessionSummary, Arc<Seen>) {
+    let (task, seen) = spawn_test(state, pack, TestRequest::default());
+    wait_loaded_and_measured(&seen).await;
+    state.tests.stop(pack).await.unwrap();
+    let summary = tokio::time::timeout(Duration::from_secs(10), task)
+        .await
+        .expect("o teste não terminou")
+        .unwrap()
+        .unwrap();
+    (summary, seen)
+}
+
+/// CA-T13-09: toda sessão grava o pico de RAM do processo e os tempos até carregar e até
+/// entrar no mundo; com o jogo aberto, as amostras passam pelo canal a cada 1 s e param quando
+/// o jogo fecha; a sessão de outra versão do pack vira a comparação; cada teste acrescenta uma
+/// linha no histórico `perf/<pack-id>.jsonl` (gancho 1.1).
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, &[], "marcadores 300");
+    let pack = register(&state, &root);
+
+    let (first, seen) = test_with_markers(&state, pack).await;
+    let perf = first.perf.clone().expect("desempenho na sessão");
+    // 64 MB ocupados pelo jogo simulado, mais a própria JVM.
+    let peak = perf.peak_rss_mb.expect("pico de RAM");
+    assert!(peak >= 64, "pico de {peak} MB");
+    let loaded = perf.times.loaded_ms.expect("abriu em");
+    let world = perf.times.world_ms.expect("entrou no mundo");
+    assert!(loaded >= 300, "carregou em {loaded} ms");
+    assert!(
+        world >= loaded + 150,
+        "mundo em {world} ms, carregou em {loaded} ms"
+    );
+    assert!(perf.samples >= 1);
+    assert_eq!(perf.previous, None, "primeira sessão: nada para comparar");
+    if cfg!(windows) {
+        assert!(perf.peak_commit_mb.is_some_and(|mb| mb >= 64), "{perf:?}");
+    }
+    // As amostras param quando o jogo fecha.
+    let after_exit = perf_samples(&seen).len();
+    tokio::time::sleep(Duration::from_millis(1500)).await;
+    assert_eq!(perf_samples(&seen).len(), after_exit);
+    // Nada além da RAM e dos tempos nesta tarefa (a memória da JVM é da L-11).
+    let Some(OperationEvent::PerfSample {
+        heap_used_mb,
+        peak_rss_mb,
+        ..
+    }) = perf_samples(&seen).last().cloned()
+    else {
+        unreachable!()
+    };
+    assert_eq!(heap_used_mb, None);
+    assert!(peak_rss_mb.is_some_and(|mb| mb <= peak));
+
+    // O session.json tem o campo; a lista de sessões lê o mesmo.
+    let session = session_dir(&state.paths, pack, &first.id).unwrap();
+    let json: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(session.path().join(SESSION_FILE)).unwrap()).unwrap();
+    assert_eq!(json["perf"]["loadedMs"], loaded);
+    assert_eq!(json["perf"]["peakRssMb"], peak);
+    assert_eq!(sessions_of(&state.paths, pack).unwrap()[0].perf, first.perf);
+
+    // Outra versão do pack, mais lenta para carregar.
+    let manifest = std::fs::read_to_string(root.join("pack.toml")).unwrap();
+    assert!(manifest.contains("version = \"1.0.0\""), "{manifest}");
+    std::fs::write(
+        root.join("pack.toml"),
+        manifest.replace("version = \"1.0.0\"", "version = \"1.1.0\""),
+    )
+    .unwrap();
+    std::fs::write(root.join(fake::ARGS_FILE), "marcadores 1500").unwrap();
+    let (second, seen) = test_with_markers(&state, pack).await;
+    let perf = second.perf.clone().unwrap();
+    let previous = perf.previous.clone().expect("comparação com a 1.0.0");
+    assert_eq!(previous.pack_version, "1.0.0");
+    assert_eq!(previous.session_id, first.id);
+    assert_eq!(previous.loaded_ms, loaded);
+    let delta = perf.loaded_delta_ms().unwrap();
+    assert!(delta >= 600, "deveria ser bem mais lento: {delta} ms");
+    // A comparação já vai ao vivo, na faixa.
+    assert!(perf_samples(&seen).iter().any(|event| matches!(
+        event,
+        OperationEvent::PerfSample { previous: Some(p), .. } if p.pack_version == "1.0.0"
+    )));
+
+    // Histórico: uma linha por teste, com os campos do contrato da 1.1.
+    let history = std::fs::read_to_string(state.paths.perf_file(pack)).unwrap();
+    let lines: Vec<serde_json::Value> = history
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(lines.len(), 2);
+    assert_eq!(lines[0]["sessao"], first.id.as_str());
+    assert_eq!(lines[0]["modo"], "normal");
+    assert_eq!(lines[0]["carregou_ms"], loaded);
+    assert_eq!(lines[0]["ram_pico_mb"], peak);
+    assert_eq!(lines[0]["primeira_abertura"], true);
+    assert_eq!(lines[1]["primeira_abertura"], false);
+    assert_eq!(lines[1]["resultado"], "stoppedByUser");
+    assert_eq!(lines[0]["perfil"]["id"], "default");
+    for line in &lines {
+        for key in ["data", "computador", "arvore"] {
+            assert!(
+                line[key].as_str().is_some_and(|text| !text.is_empty()),
+                "{key}: {line}"
+            );
+        }
+        assert!(
+            line["perfil"]["assinatura"]
+                .as_str()
+                .is_some_and(|hash| hash.starts_with("sha256:"))
+        );
+    }
+    // A poda das sessões não toca no histórico.
+    assert!(
+        !state
+            .paths
+            .perf_file(pack)
+            .starts_with(InstanceDirs::for_pack(&state.paths, pack).state_dir)
+    );
+}
+
+/// Um jogo que fecha sozinho antes de carregar grava a sessão sem "Abriu em" e sem travar a
+/// medição.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn jogo_que_fecha_logo_grava_sem_tempos() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, &[], "sair 0");
+    let pack = register(&state, &root);
+    let (sink, _) = sink();
+    let summary = run_test(&state, pack, TestRequest::default(), sink)
+        .await
+        .unwrap();
+    assert_eq!(summary.outcome, Outcome::ClosedNormally);
+    let perf = summary.perf.expect("o campo existe mesmo sem tempos");
+    assert_eq!(perf.times, warden_perf::LoadTimes::default());
+    assert_eq!(perf.previous, None);
+}

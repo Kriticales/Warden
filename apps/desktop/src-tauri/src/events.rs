@@ -183,12 +183,20 @@ pub enum OperationEvent {
         /// As linhas, numeradas na sessão.
         lines: Vec<ConsoleLine>,
     },
-    /// Amostra de desempenho do jogo, a cada 1 s (ARCHITECTURE §7.7). O canal do teste já a
-    /// transporta; quem envia é a L-10.
+    /// Amostra de desempenho do jogo, a cada 1 s e quando um tempo de carregamento muda
+    /// (ARCHITECTURE §7.7; L-10, `test_hooks/perf.rs`).
     #[serde(rename_all = "camelCase")]
     PerfSample {
-        /// RAM do processo, em MB.
-        rss_mb: u32,
+        /// RAM do processo e dos filhos, em MB (`None` antes da primeira medição).
+        rss_mb: Option<u32>,
+        /// Pico da RAM do processo até agora, em MB (`None` antes da primeira medição).
+        peak_rss_mb: Option<u32>,
+        /// Tempo até o jogo carregar, em ms desde a abertura do processo.
+        loaded_ms: Option<u32>,
+        /// Tempo até entrar no mundo, em ms.
+        world_ms: Option<u32>,
+        /// A última sessão de outra versão do pack, para "18 s a mais que na 1.4.2".
+        previous: Option<warden_perf::PreviousLoad>,
         /// Memória do jogo usada (heap da JVM), em MB.
         heap_used_mb: Option<u32>,
         /// Memória máxima do jogo, em MB.
