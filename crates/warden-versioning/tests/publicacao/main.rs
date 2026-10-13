@@ -21,7 +21,7 @@ use std::fmt::Write as _;
 use std::sync::{Arc, Mutex};
 
 use common::{TestPack, at, identity};
-use servidor::{FakeGithub, LOGIN, TOKEN};
+use servidor::{FakeGithub, LOGIN, PushFault, TOKEN};
 use sha2::{Digest as _, Sha256};
 use warden_core::{CancellationToken, DomainError as _};
 use warden_packwiz::{PackIndex, PackManifest, Side};
@@ -498,7 +498,7 @@ async fn main_que_muda_durante_o_envio_vira_divergencia_e_nada_e_registrado() {
     save(&ctx.repo(), &ctx.pack, "1.1.0", 20, true);
 
     // A main muda entre a leitura das referências e o envio: o servidor recusa a troca.
-    ctx.github.state.lock().unwrap().race_main = true;
+    ctx.github.state.lock().unwrap().next_push = Some(PushFault::RaceMain);
     let error = ctx.publish("1.1.0", "").await.unwrap_err();
     assert!(matches!(error, Error::RemoteDiverged { .. }), "{error:?}");
     assert_eq!(ctx.github.main_log(&ctx.repo_ref)[0], "Editado no site");
@@ -521,7 +521,7 @@ async fn envio_que_chegou_mas_perdeu_a_resposta_e_registrado_ao_repetir_sem_dupl
     ctx.pack.write("config/a.toml", b"a = 2\n");
     save(&ctx.repo(), &ctx.pack, "1.1.0", 20, true);
 
-    ctx.github.state.lock().unwrap().lose_push_response = true;
+    ctx.github.state.lock().unwrap().next_push = Some(PushFault::LoseResponse);
     let error = ctx.publish("1.1.0", "Segunda.").await.unwrap_err();
     assert!(matches!(error, Error::GithubFailed { .. }), "{error:?}");
     let refs = ctx.github.refs(&ctx.repo_ref);

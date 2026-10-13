@@ -42,6 +42,15 @@ pub struct Release {
     pub body: String,
 }
 
+/// Uma falha preparada para o próximo `git-receive-pack`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PushFault {
+    /// Alguém muda a `main` pelo site logo antes do envio chegar.
+    RaceMain,
+    /// O envio é aplicado, mas a resposta se perde (502).
+    LoseResponse,
+}
+
 #[derive(Default)]
 pub struct State {
     /// `dono/repo` → (pasta do repositório nu, privado).
@@ -54,10 +63,8 @@ pub struct State {
     pub deny_push: bool,
     /// Responde 403 na criação de repositório.
     pub deny_create: bool,
-    /// Alguém muda a `main` pelo site logo antes do próximo `git-receive-pack` chegar.
-    pub race_main: bool,
-    /// O próximo `git-receive-pack` é aplicado, mas a resposta se perde (502).
-    pub lose_push_response: bool,
+    /// Falha do próximo `git-receive-pack`.
+    pub next_push: Option<PushFault>,
 }
 
 pub struct FakeGithub {
@@ -247,101 +254,105 @@ impl Handler {
                 .set_body_bytes(body);
         }
         if action == "git-receive-pack" {
-            if self.state.lock().unwrap().deny_push {
-                return ResponseTemplate::new(403);
-            }
-            let data = &request.body;
-            let mut offset = 0;
-            let mut commands = Vec::new();
-            let mut atomic = false;
-            loop {
-                let len = usize::from_str_radix(
-                    std::str::from_utf8(&data[offset..offset + 4]).unwrap(),
-                    16,
-                )
-                .unwrap();
-                if len == 0 {
-                    offset += 4;
-                    break;
-                }
-                let line = String::from_utf8_lossy(&data[offset + 4..offset + len]).to_string();
-                let mut split = line.split('\0');
-                let command = split.next().unwrap().trim_end().to_owned();
-                if let Some(caps) = split.next() {
-                    atomic |= caps.split_whitespace().any(|cap| cap == "atomic");
-                }
-                let line = command;
-                let parts: Vec<String> = line.split(' ').map(ToOwned::to_owned).collect();
-                commands.push((parts[0].clone(), parts[1].clone(), parts[2].clone()));
-                offset += len;
-            }
-            let pack = &data[offset..];
-            if !pack.is_empty() {
-                let odb = repo.odb().unwrap();
-                let mut writer = odb.packwriter().unwrap();
-                writer.write_all(pack).unwrap();
-                writer.commit().unwrap();
-            }
-            if std::mem::take(&mut self.state.lock().unwrap().race_main) {
-                let main = repo
-                    .find_reference("refs/heads/main")
-                    .unwrap()
-                    .peel_to_commit()
+            return self.receive_pack(request, &repo);
+        }
+        ResponseTemplate::new(404)
+    }
+
+    /// `git-receive-pack`: grava o pacote e atualiza as referências como o servidor real
+    /// (troca protegida, `atomic`, as mesmas respostas de recusa).
+    fn receive_pack(&self, request: &Request, repo: &git2::Repository) -> ResponseTemplate {
+        if self.state.lock().unwrap().deny_push {
+            return ResponseTemplate::new(403);
+        }
+        let data = &request.body;
+        let mut offset = 0;
+        let mut commands = Vec::new();
+        let mut atomic = false;
+        loop {
+            let len =
+                usize::from_str_radix(std::str::from_utf8(&data[offset..offset + 4]).unwrap(), 16)
                     .unwrap();
-                let sig = git2::Signature::now("Outra pessoa", "x@y").unwrap();
-                let tree = main.tree().unwrap();
-                repo.commit(
-                    Some("refs/heads/main"),
-                    &sig,
-                    &sig,
-                    "Editado no site",
-                    &tree,
-                    &[&main],
-                )
+            if len == 0 {
+                offset += 4;
+                break;
+            }
+            let line = String::from_utf8_lossy(&data[offset + 4..offset + len]).to_string();
+            let mut split = line.split('\0');
+            let command = split.next().unwrap().trim_end().to_owned();
+            if let Some(caps) = split.next() {
+                atomic |= caps.split_whitespace().any(|cap| cap == "atomic");
+            }
+            let parts: Vec<String> = command.split(' ').map(ToOwned::to_owned).collect();
+            commands.push((parts[0].clone(), parts[1].clone(), parts[2].clone()));
+            offset += len;
+        }
+        let pack = &data[offset..];
+        if !pack.is_empty() {
+            let odb = repo.odb().unwrap();
+            let mut writer = odb.packwriter().unwrap();
+            writer.write_all(pack).unwrap();
+            writer.commit().unwrap();
+        }
+        let fault = self.state.lock().unwrap().next_push.take();
+        if fault == Some(PushFault::RaceMain) {
+            let main = repo
+                .find_reference("refs/heads/main")
+                .unwrap()
+                .peel_to_commit()
                 .unwrap();
-            }
-            let current = |name: &str| {
-                repo.find_reference(name)
-                    .ok()
-                    .and_then(|r| r.target())
-                    .map_or_else(|| "0".repeat(40), |oid| oid.to_string())
-            };
-            let mut body = Vec::new();
-            pkt(&mut body, "unpack ok\n");
-            // Como o `git-receive-pack` real: com `atomic`, uma referência recusada recusa todas.
-            if atomic && commands.iter().any(|(old, _, name)| current(name) != *old) {
-                for (_, _, name) in &commands {
-                    pkt(&mut body, &format!("ng {name} atomic transaction failed\n"));
-                }
-                body.extend_from_slice(b"0000");
-                return ResponseTemplate::new(200)
-                    .insert_header("content-type", "application/x-git-receive-pack-result")
-                    .set_body_bytes(body);
-            }
-            for (old, new, name) in commands {
-                if current(&name) != old {
-                    // A mesma resposta do `git-receive-pack` real (o motivo detalhado vai para
-                    // o canal de erro: "cannot lock ref …: is at … but expected …").
-                    pkt(&mut body, &format!("ng {name} failed to update ref\n"));
-                    continue;
-                }
-                let new = git2::Oid::from_str(&new).unwrap();
-                assert!(
-                    repo.find_object(new, None).is_ok(),
-                    "objeto {new} não chegou"
-                );
-                repo.reference(&name, new, true, "receive-pack").unwrap();
-                pkt(&mut body, &format!("ok {name}\n"));
+            let sig = git2::Signature::now("Outra pessoa", "x@y").unwrap();
+            let tree = main.tree().unwrap();
+            repo.commit(
+                Some("refs/heads/main"),
+                &sig,
+                &sig,
+                "Editado no site",
+                &tree,
+                &[&main],
+            )
+            .unwrap();
+        }
+        let current = |name: &str| {
+            repo.find_reference(name)
+                .ok()
+                .and_then(|r| r.target())
+                .map_or_else(|| "0".repeat(40), |oid| oid.to_string())
+        };
+        let mut body = Vec::new();
+        pkt(&mut body, "unpack ok\n");
+        // Como o `git-receive-pack` real: com `atomic`, uma referência recusada recusa todas.
+        if atomic && commands.iter().any(|(old, _, name)| current(name) != *old) {
+            for (_, _, name) in &commands {
+                pkt(&mut body, &format!("ng {name} atomic transaction failed\n"));
             }
             body.extend_from_slice(b"0000");
-            if std::mem::take(&mut self.state.lock().unwrap().lose_push_response) {
-                return ResponseTemplate::new(502);
-            }
             return ResponseTemplate::new(200)
                 .insert_header("content-type", "application/x-git-receive-pack-result")
                 .set_body_bytes(body);
         }
-        ResponseTemplate::new(404)
+        for (old, new, name) in commands {
+            if current(&name) != old {
+                // A mesma resposta do `git-receive-pack` real (o motivo detalhado vai para
+                // o canal de erro: "cannot lock ref …: is at … but expected …").
+                pkt(&mut body, &format!("ng {name} failed to update ref\n"));
+                continue;
+            }
+            let new = git2::Oid::from_str(&new).unwrap();
+            assert!(
+                repo.find_object(new, None).is_ok(),
+                "objeto {new} não chegou"
+            );
+            repo.reference(&name, new, true, "receive-pack").unwrap();
+            pkt(&mut body, &format!("ok {name}\n"));
+        }
+        body.extend_from_slice(b"0000");
+        if fault == Some(PushFault::LoseResponse) {
+            return ResponseTemplate::new(502);
+        }
+        ResponseTemplate::new(200)
+            .insert_header("content-type", "application/x-git-receive-pack-result")
+            .set_body_bytes(body)
     }
 
     fn raw(&self, route: &str) -> ResponseTemplate {
