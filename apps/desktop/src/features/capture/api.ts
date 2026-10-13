@@ -9,9 +9,14 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { commands, type CaptureApplyRequest, type PackId } from '../../lib/ipc/bindings';
+import {
+  commands,
+  type CaptureApplied,
+  type CaptureApplyRequest,
+  type PackId,
+} from '../../lib/ipc/bindings';
 import { queryKeys } from '../../lib/ipc/keys';
-import { commandQuery, useCommandMutation } from '../../lib/ipc/query';
+import { commandQuery, useCommandMutation, type CommandMutationOptions } from '../../lib/ipc/query';
 import { packsKeys } from '../packs/api';
 import { useTestRun } from '../test/store';
 
@@ -65,11 +70,21 @@ export function useCaptureTexts(packId: PackId, sessionId: string, path: string,
   });
 }
 
-/** "Trazer selecionados para o pack". */
-export function useCaptureApply(packId: PackId) {
+/**
+ * "Trazer selecionados para o pack". Os avisos vão nas opções do hook, não no `mutate`: a
+ * captura relida já vem resolvida e a tela de revisão sai antes de um callback do `mutate`
+ * rodar.
+ */
+export function useCaptureApply(
+  packId: PackId,
+  options: Pick<
+    CommandMutationOptions<CaptureApplied, CaptureApplyRequest>,
+    'onSuccess' | 'onError'
+  > = {},
+) {
   return useCommandMutation(
     (request: CaptureApplyRequest) => commands.captureApply(packId, request),
-    { invalidates: [queryKeys.pack(packId), packsKeys.list] },
+    { ...options, invalidates: [queryKeys.pack(packId), packsKeys.list] },
   );
 }
 

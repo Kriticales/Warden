@@ -74,7 +74,14 @@ export function CaptureReview({ packId, view, onApplied }: CaptureReviewProps) {
   const [selection, setSelection] = useState<Selection>(() => initialSelection(view));
   const [diffPath, setDiffPath] = useState<string | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
-  const apply = useCaptureApply(packId);
+  const apply = useCaptureApply(packId, {
+    onSuccess: (result) => {
+      onApplied(result.count);
+    },
+    onError: (error) => {
+      showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
+    },
+  });
   const discard = useCaptureDiscard(packId);
   const groups = groupsOf(view);
   const count = selectedCount(selection);
@@ -114,14 +121,7 @@ export function CaptureReview({ packId, view, onApplied }: CaptureReviewProps) {
   };
 
   const onApply = () => {
-    apply.mutate(buildRequest(view, selection), {
-      onSuccess: (result) => {
-        onApplied(result.count);
-      },
-      onError: (error) => {
-        showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
-      },
-    });
+    apply.mutate(buildRequest(view, selection));
   };
 
   const manual = [...groups.byGroup.mod, ...groups.byGroup.resource, ...groups.byGroup.datapack];
