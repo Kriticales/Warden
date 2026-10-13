@@ -83,11 +83,10 @@ pub struct FindingContext<'a> {
 }
 
 /// A memória do jogo para a faixa, a cada amostra.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct HeapLive {
     /// Memória do jogo usada agora, em MB (no Java 25 com Serial ou Parallel, a da última
-    /// coleta: veja `atLastGc`).
+    /// coleta: veja [`HeapDetails::at_last_gc`]).
     pub used_mb: u32,
     /// Máximo, em MB.
     pub max_mb: u32,
@@ -95,6 +94,14 @@ pub struct HeapLive {
     pub gc_count: u32,
     /// Tempo parado em coletas até agora, em ms.
     pub gc_ms: u32,
+    /// O resto do que a faixa mostra.
+    pub details: HeapDetails,
+}
+
+/// O que a faixa mostra da memória do jogo além dos números.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct HeapDetails {
     /// O coletor conta pausas (ZGC, Shenandoah): a faixa diz "Pausas de coleta".
     pub counts_pauses: bool,
     /// A memória mostrada é a da última coleta (Java 25 com Serial ou Parallel).
@@ -338,12 +345,14 @@ impl HeapTracker {
             max_mb: to_mb(self.max_bytes()),
             gc_count: clamp_u32(last.gc_count),
             gc_ms: clamp_u32(last.gc_time_ms),
-            counts_pauses: self.info.is_some_and(|info| info.collector.counts_pauses()),
-            at_last_gc: self.info.is_some_and(JvmInfo::updates_only_on_gc)
-                && self.after_gc.is_some(),
-            series_mb: self.series.iter().map(|&(_, used)| to_mb(used)).collect(),
-            low_heap_s,
-            suggested_mb: low_heap_s.map(|_| self.suggested_mb()),
+            details: HeapDetails {
+                counts_pauses: self.info.is_some_and(|info| info.collector.counts_pauses()),
+                at_last_gc: self.info.is_some_and(JvmInfo::updates_only_on_gc)
+                    && self.after_gc.is_some(),
+                series_mb: self.series.iter().map(|&(_, used)| to_mb(used)).collect(),
+                low_heap_s,
+                suggested_mb: low_heap_s.map(|_| self.suggested_mb()),
+            },
         })
     }
 
@@ -524,7 +533,7 @@ mod tests {
         short.push(0, reading(1000, 0, 0), G1);
         high_for(&mut short, 1, 59, 3800);
         assert!(short.findings(CONTEXT).is_empty());
-        assert_eq!(short.live().unwrap().low_heap_s, None);
+        assert_eq!(short.live().unwrap().details.low_heap_s, None);
 
         let mut long = tracker(4096);
         long.push(0, reading(1000, 0, 0), G1);
@@ -545,8 +554,8 @@ mod tests {
                 if session_id == CONTEXT.session_id && metric == "heapAfterGc" && values["seconds"] == "70"
         ));
         let live = long.live().unwrap();
-        assert_eq!(live.low_heap_s, Some(70));
-        assert_eq!(live.suggested_mb, Some(6144));
+        assert_eq!(live.details.low_heap_s, Some(70));
+        assert_eq!(live.details.suggested_mb, Some(6144));
     }
 
     #[test]
@@ -661,12 +670,12 @@ mod tests {
         let mut tracker = tracker(1024);
         // Antes de qualquer coleta, o `used` parado em 0: mostra o que há.
         tracker.push(0, reading(0, 0, 0), info);
-        assert!(!tracker.live().unwrap().at_last_gc);
+        assert!(!tracker.live().unwrap().details.at_last_gc);
         tracker.push(1000, reading(300, 1, 5), info);
         // O eden "parado" depois da coleta: a faixa fica com o valor da coleta.
         tracker.push(2000, reading(120, 1, 5), info);
         let live = tracker.live().unwrap();
-        assert!(live.at_last_gc);
+        assert!(live.details.at_last_gc);
         assert_eq!(live.used_mb, 300);
         assert_eq!(live.max_mb, 1024);
     }
@@ -678,10 +687,10 @@ mod tests {
             tracker.push(second * 1000, reading(second, 0, 0), G1);
         }
         let live = tracker.live().unwrap();
-        assert_eq!(live.series_mb.len(), SERIES_LEN);
+        assert_eq!(live.details.series_mb.len(), SERIES_LEN);
         // A última coluna é a de 390 s a 399 s (o maior valor, 399).
-        assert_eq!(live.series_mb.last(), Some(&399));
-        assert_eq!(live.series_mb[SERIES_LEN - 2], 389);
+        assert_eq!(live.details.series_mb.last(), Some(&399));
+        assert_eq!(live.details.series_mb[SERIES_LEN - 2], 389);
     }
 
     #[test]
@@ -696,7 +705,7 @@ mod tests {
             }),
         );
         let live = tracker.live().unwrap();
-        assert!(live.counts_pauses);
+        assert!(live.details.counts_pauses);
         assert_eq!(live.max_mb, 4096);
         let summary = tracker.summary().unwrap();
         assert_eq!(summary.peak_used_mb, 100);

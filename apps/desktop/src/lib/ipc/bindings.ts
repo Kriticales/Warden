@@ -2269,7 +2269,18 @@ note: string } |
 /**  Caminho relativo ao pack. */
 path: string; 
 /**  O trecho. */
-excerpt: string };
+excerpt: string } | 
+/**
+ *  Medida do Warden durante um teste (memória da JVM e coletas, L-11). Só números: nada do
+ *  `hsperfdata` cru.
+ */
+{ kind: "measurement"; 
+/**  A sessão do teste em que foi medido (`2026-10-13_14-02-11`). */
+sessionId: string; 
+/**  O que foi medido (`heapAfterGc`, `gcTime`, `heapPeak`). */
+metric: string; 
+/**  Os números medidos, pelo nome (`percent`, `seconds`, `maxMb`…). */
+values: { [key in string]: string } };
 
 /**  Motivo de um alerta da prévia; a interface escolhe o texto exibido. */
 export type ExportAlert = 
@@ -2883,6 +2894,58 @@ export type HashMatch = {
 	/**  A versão serve para o Minecraft e o loader do pack, pelos dados da fonte. */
 	compatible: boolean,
 };
+
+/**  O que a faixa mostra da memória do jogo além dos números. */
+export type HeapDetails = {
+	/**  O coletor conta pausas (ZGC, Shenandoah): a faixa diz "Pausas de coleta". */
+	countsPauses: boolean,
+	/**  A memória mostrada é a da última coleta (Java 25 com Serial ou Parallel). */
+	atLastGc: boolean,
+	/**
+	 *  Os últimos 5 minutos: uma coluna por 15 s (o maior valor dela), em MB, da mais velha para
+	 *  a mais nova.
+	 */
+	seriesMb: number[],
+	/**
+	 *  Há quantos segundos a memória depois das coletas está acima de 90% do máximo, quando já
+	 *  passou de 1 minuto (o aviso ao vivo do `W_LOW_HEAP`).
+	 */
+	lowHeapS: number | null,
+	/**  A memória sugerida para o aviso, em MB. */
+	suggestedMb: number | null,
+};
+
+/**  A memória do jogo no fim do teste, gravada na sessão. */
+export type HeapSummary = {
+	/**  Pico da memória do jogo, em MB. */
+	peakUsedMb?: number,
+	/**  Máximo, em MB. */
+	maxMb?: number,
+	/**  Coletas (ou pausas). */
+	gcCount?: number,
+	/**  Tempo parado em coletas, em ms. */
+	gcMs?: number,
+	/**  O coletor conta pausas. */
+	countsPauses?: boolean,
+	/**  Amostras com leitura. */
+	readings?: number,
+};
+
+/**
+ *  Por que a memória do jogo não pôde ser lida (S-R5-2 §7; ARCHITECTURE §7.7). De fora não dá
+ *  para distinguir uma JVM sem esse recurso (`OpenJ9`) de um nome de usuário ou pasta temporária
+ *  fora da code page do Windows: o Warden só diz o argumento quando ele está no teste.
+ */
+export type HeapUnavailable = 
+/**
+ *  Os argumentos do teste desligam a leitura (`-XX:+PerfDisableSharedMem`,
+ *  `-XX:-UsePerfData`).
+ */
+{ kind: "argument"; 
+/**  O argumento, como está no teste. */
+argument: string } | 
+/**  O Java do teste não publica a memória do jogo. */
+{ kind: "notPublished" };
 
 /**  O que a seção Histórico mostra. */
 export type HistoryView = {
@@ -4297,13 +4360,13 @@ export type OperationEvent =
 /**  Identificador no registro de operações. */
 operationId: OperationId; 
 /**  Tipo da operação. */
-kind: OperationKind }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+kind: OperationKind }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Começou uma etapa. */
 ({ type: "stage"; 
 /**  Identificador estável da etapa. */
 stage: string; 
 /**  Chave do texto da etapa no catálogo. */
-labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; worldMs?: never } | 
+labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; worldMs?: never } | 
 /**  Andamento. */
 {
 	type: "progress",
@@ -4311,17 +4374,17 @@ labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?
 /**  Linhas de console (em lotes). */
 ({ type: "log"; 
 /**  As linhas. */
-lines: LogLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+lines: LogLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Problema que não interrompe a operação. */
 ({ type: "warning"; 
 /**  O problema. */
-error: AppError }) & { gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+error: AppError }) & { gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Terminou; o resultado vem no retorno do comando. */
-({ type: "finished" }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+({ type: "finished" }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Linhas do console do teste (L-04), em lotes de até 50 ms. */
 ({ type: "console"; 
 /**  As linhas, numeradas na sessão. */
-lines: ConsoleLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+lines: ConsoleLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**
  *  Amostra de desempenho do jogo, a cada 1 s e quando um tempo de carregamento muda
  *  (ARCHITECTURE §7.7; L-10, `test_hooks/perf.rs`).
@@ -4344,7 +4407,14 @@ heapMaxMb: number | null;
 /**  Coletas de memória até agora. */
 gcCount: number | null; 
 /**  Tempo parado em coletas, em ms. */
-gcMs: number | null }) & { error?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; stage?: never };
+gcMs: number | null; 
+/**
+ *  O resto da memória do jogo (gráfico, "Pausas de coleta", o aviso de memória quase
+ *  cheia), com leitura (L-11).
+ */
+heap: HeapDetails | null; 
+/**  Por que não há leitura da memória do jogo (`None`: há, ou ainda está procurando). */
+heapUnavailable: HeapUnavailable | null }) & { error?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; stage?: never };
 
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;
@@ -5948,6 +6018,15 @@ export type SessionPerf = {
 	samples?: number,
 	/**  A última sessão de outra versão do pack que carregou, para a diferença. */
 	previous?: PreviousLoad | null,
+	/**  A memória do jogo (heap da JVM): `None` sem leitura e nas sessões de antes da L-11. */
+	heap?: HeapSummary | null,
+	/**
+	 *  Por que não houve leitura da memória do jogo (`None`: houve, ou a sessão é de antes da
+	 *  L-11).
+	 */
+	heapUnavailable?: HeapUnavailable | null,
+	/**  Os achados de memória do teste (`W_LOW_HEAP`, `W_LONG_GC`, `I_HEAP_OVERSIZED`). */
+	findings?: Finding[],
 } & LoadTimes;
 
 /**  Configurações do app. */

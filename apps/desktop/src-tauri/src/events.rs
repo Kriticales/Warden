@@ -207,6 +207,11 @@ pub enum OperationEvent {
         gc_count: Option<u32>,
         /// Tempo parado em coletas, em ms.
         gc_ms: Option<u32>,
+        /// O resto da memória do jogo (gráfico, "Pausas de coleta", o aviso de memória quase
+        /// cheia), com leitura (L-11).
+        heap: Option<warden_perf::HeapDetails>,
+        /// Por que não há leitura da memória do jogo (`None`: há, ou ainda está procurando).
+        heap_unavailable: Option<warden_perf::HeapUnavailable>,
     },
 }
 

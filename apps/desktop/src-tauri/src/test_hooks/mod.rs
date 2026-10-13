@@ -83,6 +83,15 @@ pub(crate) struct GameContext<'a> {
     pub(crate) session_dir: &'a Path,
     /// O canal do teste, para eventos ao vivo (`PerfSample`).
     pub(crate) events: &'a Arc<dyn Fn(OperationEvent) + Send + Sync>,
+    /// A memória do teste (`-Xmx`), em MB.
+    pub(crate) memory_mb: u32,
+    /// A memória automática do Warden para o tamanho do pack, em MB (a sugestão dos avisos de
+    /// memória, L-11).
+    pub(crate) pack_suggestion_mb: u32,
+    /// Os argumentos da JVM do teste, como foram para a linha de comando.
+    pub(crate) jvm_args: &'a [String],
+    /// As variáveis de ambiente que o Warden acrescentou ao processo do jogo.
+    pub(crate) game_env: &'a [(String, String)],
 }
 
 /// Como o jogo terminou.

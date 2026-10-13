@@ -9,14 +9,23 @@
 //! A medição para sozinha quando o processo principal sai (o "Parar jogo" e o cancelamento
 //! encerram o jogo) e, de todo jeito, no `after_exit` (ou se o teste terminar sem ele).
 //!
+//! **Memória do jogo** (L-11; S-R5-2): na mesma amostra, [`JvmHeap`] lê o `hsperfdata` da JVM
+//! do jogo (sem JDK e sem mexer no jogo) e o [`HeapTracker`] acumula a memória, as coletas, o
+//! gráfico e os achados de memória. Com `-XX:+PerfDisableSharedMem` ou `-XX:-UsePerfData` nos
+//! argumentos, a amostra já sai com o motivo; sem essas flags e sem leitura em
+//! [`NOT_PUBLISHED_AFTER`], "o Java deste teste não publica a memória do jogo". O `hsperfdata`
+//! é solto na amostra em que o processo sai. Do `hsperfdata` só saem números: nada dele vai para
+//! o log nem para a sessão.
+//!
 //! No fim, a sessão grava o campo `perf` ([`SessionPerf`]: pico de RAM, pico do Job Object no
-//! Windows, tempos e a última sessão de outra versão do pack no mesmo modo) e acrescenta uma
-//! linha em `perf/<pack-id>.jsonl` nos dados locais (gancho 1.1, ARCHITECTURE §21.6;
-//! ADR-0039 e ADR-0047), que a poda das sessões não apaga.
+//! Windows, tempos, a última sessão de outra versão do pack no mesmo modo, a memória do jogo e
+//! os achados de memória) e acrescenta uma linha em `perf/<pack-id>.jsonl` nos dados locais
+//! (gancho 1.1, ARCHITECTURE §21.6; ADR-0039 e ADR-0047), que a poda das sessões não apaga.
 
 use std::io::Write as _;
 use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
+use std::time::SystemTime;
 
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -27,10 +36,14 @@ use warden_launcher::log::LogLine;
 use warden_launcher::outcome::Outcome;
 use warden_launcher::process::GameHandle;
 use warden_launcher::session::{SessionRecord, list_sessions};
+use warden_perf::findings::FindingContext;
+use warden_perf::hsperf::game_temp_dirs;
+use warden_perf::hsperf::{HeapReading, JvmInfo};
 use warden_perf::load_time::{PastSession, previous_of_other_version};
-use warden_perf::process::to_mb;
+use warden_perf::process::{MemorySample, to_mb};
 use warden_perf::{
-    LoadTracker, Loader, MemoryStats, PreviousLoad, ProcessTree, SAMPLE_INTERVAL, SessionPerf,
+    HeapTracker, HeapUnavailable, JvmHeap, LoadTracker, Loader, MemoryStats, PreviousLoad,
+    ProcessTree, SAMPLE_INTERVAL, SessionPerf, TrackerConfig,
 };
 
 use super::{ExitContext, GameContext, HookContext, TestHooks};
@@ -40,6 +53,12 @@ use crate::test_session::TestMode;
 
 /// Campo do `session.json` com o desempenho.
 pub(crate) const PERF_FIELD: &str = "perf";
+
+/// Sem as flags que desligam a leitura e sem `hsperfdata` até aqui, a JVM do teste não publica a
+/// memória (`OpenJ9`, nome de usuário ou pasta temporária fora da code page do Windows). O buffer
+/// fica legível ~50–70 ms depois de a JVM abrir (S-R5-2 §8); 10 s cobrem um disco lento ou o
+/// antivírus olhando o Java.
+pub(crate) const NOT_PUBLISHED_AFTER: std::time::Duration = std::time::Duration::from_secs(10);
 
 /// O gancho de desempenho de um teste.
 #[derive(Default)]
@@ -63,6 +82,11 @@ struct Live {
     stats: MemoryStats,
     tracker: LoadTracker,
     previous: Option<PreviousLoad>,
+    /// A memória do jogo (L-11).
+    heap: HeapTracker,
+    /// Por que não há leitura da memória do jogo (decidido no começo, pelas flags, ou depois de
+    /// [`NOT_PUBLISHED_AFTER`] sem leitura).
+    heap_unavailable: Option<HeapUnavailable>,
 }
 
 impl Live {
@@ -70,18 +94,29 @@ impl Live {
     fn event(&self) -> OperationEvent {
         let measured = self.stats.samples > 0;
         let times = self.tracker.times();
+        let heap = self.heap.live();
         OperationEvent::PerfSample {
             rss_mb: measured.then(|| self.stats.rss_mb()),
             peak_rss_mb: measured.then(|| self.stats.peak_rss_mb()),
             loaded_ms: times.loaded_ms,
             world_ms: times.world_ms,
             previous: self.previous.clone(),
-            heap_used_mb: None,
-            heap_max_mb: None,
-            gc_count: None,
-            gc_ms: None,
+            heap_used_mb: heap.as_ref().map(|heap| heap.used_mb),
+            heap_max_mb: heap.as_ref().map(|heap| heap.max_mb),
+            gc_count: heap.as_ref().map(|heap| heap.gc_count),
+            gc_ms: heap.as_ref().map(|heap| heap.gc_ms),
+            heap: heap.map(|heap| heap.details),
+            heap_unavailable: self.heap_unavailable.clone(),
         }
     }
+}
+
+/// O motivo já conhecido no começo: um argumento do teste que desliga a leitura.
+fn blocking_argument(jvm_args: &[String]) -> Option<HeapUnavailable> {
+    crate::test_profiles::perf_flags(jvm_args)
+        .into_iter()
+        .next()
+        .map(|argument| HeapUnavailable::Argument { argument })
 }
 
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -127,16 +162,27 @@ impl TestHooks for PerfHook {
         .await
         .ok()
         .flatten();
+        let heap_unavailable = blocking_argument(game.jvm_args);
         let live = Arc::new(Mutex::new(Live {
             stats: MemoryStats::default(),
             tracker: LoadTracker::new(game.spec.minecraft.as_str(), loader(&game.spec.loader)),
             previous,
+            heap: HeapTracker::new(TrackerConfig {
+                xmx_mb: Some(game.memory_mb),
+                pack_suggestion_mb: Some(game.pack_suggestion_mb),
+            }),
+            heap_unavailable: heap_unavailable.clone(),
         }));
         let sampler = tokio::spawn(sample_loop(SamplerInput {
             live: Arc::clone(&live),
             pid: game.pid,
             game: game.game.clone(),
             events: Arc::clone(game.events),
+            // Com uma flag que desliga a leitura, nem procura (não há o que achar).
+            heap: heap_unavailable
+                .is_none()
+                .then(|| JvmHeap::new(game.pid, game_temp_dirs(game.game_env))),
+            started_at: game.started_at,
         }));
         let previous = lock(&self.running).replace(Running {
             live,
@@ -177,14 +223,28 @@ impl TestHooks for PerfHook {
         };
         running.sampler.abort();
         let _ = running.sampler.await;
+        let session_id = exit
+            .record
+            .extra
+            .get("sessionId")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_owned();
         let perf = {
             let live = lock(&running.live);
+            let times = live.tracker.times();
             SessionPerf {
                 peak_rss_mb: (live.stats.samples > 0).then(|| live.stats.peak_rss_mb()),
                 peak_commit_mb: running.game.peak_memory_bytes().map(to_mb),
-                times: live.tracker.times(),
+                times,
                 samples: live.stats.samples,
                 previous: live.previous.clone(),
+                heap: live.heap.summary(),
+                heap_unavailable: live.heap_unavailable.clone(),
+                findings: live.heap.findings(FindingContext {
+                    session_id: &session_id,
+                    loaded: times.loaded_ms.is_some(),
+                }),
             }
         };
         tracing::info!(
@@ -192,6 +252,9 @@ impl TestHooks for PerfHook {
             loaded_ms = ?perf.times.loaded_ms,
             world_ms = ?perf.times.world_ms,
             samples = perf.samples,
+            heap_peak_mb = ?perf.heap.as_ref().map(|heap| heap.peak_used_mb),
+            heap_unavailable = ?perf.heap_unavailable,
+            memory_findings = perf.findings.len(),
             "desempenho do teste"
         );
         let line = history_line(&perf, exit.record, context.mode);
@@ -219,6 +282,33 @@ struct SamplerInput {
     pid: u32,
     game: GameHandle,
     events: Events,
+    /// A leitura da memória do jogo (`None`: um argumento do teste a desliga).
+    heap: Option<JvmHeap>,
+    /// Quando o processo abriu (o tempo das amostras de memória conta daqui).
+    started_at: SystemTime,
+}
+
+/// Uma amostra: a RAM do processo e, quando há, a memória do jogo com o que se sabe da JVM.
+type Measured = (MemorySample, Option<(HeapReading, Option<JvmInfo>)>);
+
+/// O que cada amostra mede, fora da thread do async.
+struct Meter {
+    tree: ProcessTree,
+    heap: Option<JvmHeap>,
+}
+
+impl Meter {
+    /// A RAM do processo e, quando há, a memória do jogo. `None` quando o processo saiu: o
+    /// `hsperfdata` é solto nessa mesma amostra.
+    fn sample(&mut self) -> Option<Measured> {
+        match self.heap.as_mut() {
+            Some(heap) => {
+                let (memory, reading) = heap.sample(&mut self.tree)?;
+                Some((memory, reading.map(|reading| (reading, heap.info()))))
+            }
+            None => Some((self.tree.sample()?, None)),
+        }
+    }
 }
 
 /// Mede a cada [`SAMPLE_INTERVAL`] até o processo principal sair.
@@ -228,15 +318,17 @@ async fn sample_loop(input: SamplerInput) {
         pid,
         game,
         events,
+        heap,
+        started_at,
     } = input;
-    let Ok(Some(mut tree)) = tokio::task::spawn_blocking(move || ProcessTree::open(pid)).await
-    else {
+    let Ok(Some(tree)) = tokio::task::spawn_blocking(move || ProcessTree::open(pid)).await else {
         tracing::info!(
             pid,
             "processo do jogo não pôde ser aberto para medir a memória"
         );
         return;
     };
+    let mut meter = Meter { tree, heap };
     let mut ticker = tokio::time::interval(SAMPLE_INTERVAL);
     ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     loop {
@@ -245,20 +337,35 @@ async fn sample_loop(input: SamplerInput) {
             break;
         }
         let Ok((back, sample)) = tokio::task::spawn_blocking(move || {
-            let sample = tree.sample();
-            (tree, sample)
+            let sample = meter.sample();
+            (meter, sample)
         })
         .await
         else {
             break;
         };
-        tree = back;
-        let Some(sample) = sample else {
+        meter = back;
+        let Some((memory, heap)) = sample else {
             break;
         };
+        let elapsed = started_at.elapsed().unwrap_or_default();
         let event = {
             let mut live = lock(&live);
-            live.stats.push(sample);
+            live.stats.push(memory);
+            match heap {
+                Some((reading, info)) => {
+                    let elapsed_ms = u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX);
+                    live.heap.push(elapsed_ms, reading, info);
+                }
+                None if live.heap_unavailable.is_none()
+                    && !live.heap.has_readings()
+                    && elapsed >= NOT_PUBLISHED_AFTER =>
+                {
+                    tracing::info!(pid, "a JVM do jogo não publica a memória (hsperfdata)");
+                    live.heap_unavailable = Some(HeapUnavailable::NotPublished);
+                }
+                None => {}
+            }
             live.event()
         };
         events(event);
@@ -346,6 +453,9 @@ struct HistoryLine {
     #[serde(skip_serializing_if = "Option::is_none")]
     mundo_ms: Option<u32>,
     ram_pico_mb: Option<u32>,
+    /// Pico da memória do jogo (heap da JVM), em MB (L-11).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    heap_pico_mb: Option<u32>,
     perfil: HistoryProfile,
     computador: Option<String>,
     arvore: Option<String>,
@@ -374,6 +484,7 @@ fn history_line(perf: &SessionPerf, record: &SessionRecord, mode: TestMode) -> H
         carregou_ms: perf.times.loaded_ms,
         mundo_ms: perf.times.world_ms,
         ram_pico_mb: perf.peak_rss_mb,
+        heap_pico_mb: perf.heap.as_ref().map(|heap| heap.peak_used_mb),
         perfil: HistoryProfile {
             id: text(extra.get("profile")).unwrap_or_else(|| "default".to_owned()),
             nome: None,

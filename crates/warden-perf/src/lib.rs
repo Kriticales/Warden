@@ -22,7 +22,7 @@ pub mod process;
 use serde::{Deserialize, Serialize};
 
 pub use error::PerfErrorCode;
-pub use findings::{HeapLive, HeapSummary, HeapTracker, TrackerConfig};
+pub use findings::{HeapDetails, HeapLive, HeapSummary, HeapTracker, TrackerConfig};
 pub use hsperf::JvmHeap;
 pub use load_time::{LoadTimes, LoadTracker, Loader, PreviousLoad};
 pub use process::{MemorySample, MemoryStats, ProcessTree};
