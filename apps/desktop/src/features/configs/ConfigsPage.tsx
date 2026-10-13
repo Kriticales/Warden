@@ -2,6 +2,10 @@
  * Seção Configs do pack (SPEC T12; protótipo `configs`): à esquerda a origem dos arquivos, o
  * filtro por nome e a árvore; à direita o editor de texto do arquivo escolhido.
  *
+ * Acima da árvore, "Buscar em todas as configs" (C-05): enquanto a busca está ativa, os
+ * resultados ficam no lugar do editor (que continua montado, com as alterações não salvas), e
+ * clicar num resultado abre o arquivo na linha da chave (`linha` na URL).
+ *
  * O arquivo e a origem escolhidos moram na URL (`arquivo`, `origem`), então voltar do navegador,
  * trocar de seção e abrir a partir de outra tela passam todos pelo mesmo caminho. Com alterações
  * não salvas, qualquer saída (outro arquivo, outra origem, outra seção, fechar o app) pede
@@ -27,9 +31,12 @@ import type { ConfigOrigin, PackId } from '../../lib/ipc/bindings';
 import { usePack } from '../packs/api';
 import { useSettings } from '../settings/api';
 import { useConfigFile, useConfigTree } from './api';
+import type { LineRequest } from './components/CodeEditor';
 import { ConfigEditor, type EditorGuard } from './components/ConfigEditor';
 import { FileTree } from './components/FileTree';
 import { buildTree, filterFiles } from './model';
+import { ConfigSearchField } from './search/ConfigSearchField';
+import { ConfigSearchResults } from './search/ConfigSearchResults';
 import './configs.css';
 
 const ORIGINS = ['pack', 'instance'] as const satisfies readonly ConfigOrigin[];
@@ -39,6 +46,8 @@ export interface ConfigsSearch {
   origem?: 'instancia';
   /** Caminho do arquivo aberto. */
   arquivo?: string;
+  /** Linha para ir no arquivo aberto (resultado da busca em todas as configs). */
+  linha?: number;
 }
 
 export interface ConfigsPageProps {
@@ -56,6 +65,13 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
   const tree = useConfigTree(packId, origin);
   const file = useConfigFile(packId, origin, path);
   const [filter, setFilter] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [resultsOpen, setResultsOpen] = useState(false);
+  // Cada clique num resultado é um pedido novo, mesmo para a mesma linha.
+  const [lineRequest, setLineRequest] = useState(0);
+  const searching = resultsOpen && searchText.trim() !== '';
+  const goTo: LineRequest | null =
+    search.linha === undefined ? null : { line: search.linha, request: lineRequest };
 
   // As alterações não salvas do editor aberto; a referência é para a guarda ler o valor atual.
   const guard = useRef<EditorGuard | null>(null);
@@ -66,7 +82,14 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
   }, []);
 
   const blocker = useBlocker({
-    shouldBlockFn: () => guard.current?.dirty ?? false,
+    // Ir para outra linha do mesmo arquivo não sai dele.
+    shouldBlockFn: ({ current, next }) =>
+      (guard.current?.dirty ?? false) &&
+      !(
+        current.pathname === next.pathname &&
+        (current.search as ConfigsSearch).arquivo === (next.search as ConfigsSearch).arquivo &&
+        (current.search as ConfigsSearch).origem === (next.search as ConfigsSearch).origem
+      ),
     enableBeforeUnload: () => guard.current?.dirty ?? false,
     withResolver: true,
   });
@@ -78,11 +101,17 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
   const visible = nodes.length > 0;
   const filtering = filter.trim() !== '';
 
-  const select = (nextPath: string) => {
+  const select = (nextPath: string, line?: number) => {
     onNavigate({
       ...(origin === 'instance' ? { origem: 'instancia' as const } : {}),
       arquivo: nextPath,
+      ...(line === undefined ? {} : { linha: line }),
     });
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setResultsOpen(false);
   };
 
   return (
@@ -110,6 +139,19 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
               </option>
             ))}
           </select>
+          <ConfigSearchField
+            packId={packId}
+            origin={origin}
+            value={searchText}
+            onChange={(value) => {
+              setSearchText(value);
+              setResultsOpen(true);
+            }}
+            onFocus={() => {
+              setResultsOpen(true);
+            }}
+            onClear={clearSearch}
+          />
           <div className="cfg-filter">
             <Search className="icon icon--sm" aria-hidden="true" />
             <input
@@ -167,7 +209,20 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
           )}
         </div>
 
-        <div className="cfg-layout__main">
+        <div className={searching ? 'cfg-layout__main is-searching' : 'cfg-layout__main'}>
+          {searching ? (
+            <ConfigSearchResults
+              packId={packId}
+              origin={origin}
+              query={searchText}
+              onOpen={(nextPath, line) => {
+                setResultsOpen(false);
+                setLineRequest((count) => count + 1);
+                select(nextPath, line);
+              }}
+              onClear={clearSearch}
+            />
+          ) : null}
           {tree.isSuccess && !tree.data.available ? (
             <EmptyState
               glyph="dots"
@@ -207,6 +262,7 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
               minecraft={pack.data?.minecraft ?? null}
               showDiff={settings.data?.configDiffBeforeSave ?? true}
               onGuard={onGuard}
+              goTo={goTo}
             />
           )}
         </div>

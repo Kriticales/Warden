@@ -26,7 +26,12 @@ import type { ConfigContent, ConfigOrigin, PackId } from '../../../lib/ipc/bindi
 import { commandError } from '../../../lib/ipc/query';
 import { useConfigWrite } from '../api';
 import { baseName, formatKey, languageOf, noticesFor } from '../model';
-import { CodeEditor, changedLineNumbers, type CodeEditorHandle } from './CodeEditor';
+import {
+  CodeEditor,
+  changedLineNumbers,
+  type CodeEditorHandle,
+  type LineRequest,
+} from './CodeEditor';
 
 /** O que a página usa para não perder alterações ao trocar de arquivo ou de seção. */
 export interface EditorGuard {
@@ -45,6 +50,8 @@ export interface ConfigEditorProps {
   /** Mostrar as diferenças antes de gravar (Configurações). */
   showDiff: boolean;
   onGuard: (guard: EditorGuard | null) => void;
+  /** Linha para ir (resultado da busca em todas as configs, C-05). */
+  goTo?: LineRequest | null;
   ref?: Ref<CodeEditorHandle>;
 }
 
@@ -63,6 +70,7 @@ export function ConfigEditor({
   minecraft,
   showDiff,
   onGuard,
+  goTo = null,
   ref,
 }: ConfigEditorProps) {
   const { t } = useTranslation('configs');
@@ -316,6 +324,7 @@ export function ConfigEditor({
           onCursor={(line, column) => {
             setCursor({ line, column });
           }}
+          goTo={goTo}
         />
       )}
 
