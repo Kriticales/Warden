@@ -159,8 +159,8 @@ Estrutura aprovada pelo dono em 01/10/2026 (ADR-0026; detalhes e justificativas 
 
 ```
 Primeira execução (T01) ──► Meus packs (T02, com a coluna Saúde) ... nível do APP
-                               ├── Criar pack (T03, 5 etapas com Mods iniciais)
-                               ├── Abrir ou importar… (T04; importar de outros apps: T24)
+                               ├── Criar pack (T03, 5 etapas com Mods iniciais; diálogo, D38)
+                               ├── Abrir ou importar… (T04, diálogo, D38; importar de outros apps: T24)
                                ├── Configurações (T21), com "Sobre o Warden" (T23)
                                └── [abrir um pack] ──► Pack aberto (T05) ...... nível do PACK
                                      Cabeçalho: ← Meus packs · nome · Editar informações (T11)
@@ -242,7 +242,7 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
 **Ações:** Abrir; **Criar pack** (T03); **Abrir ou importar…** (T04, e T24 para arquivos de outros apps); **Configurações** (T21), no topo; menu **⋯** de cada pack: Mostrar na pasta, Remover da lista (não apaga arquivos), Apagar pack (P1: move para a Lixeira após digitar o nome do pack).
 
 **Estados:**
-- Vazio: "Você ainda não tem packs." com os botões Criar pack e Abrir ou importar….
+- Vazio: "Você ainda não tem packs." com os botões Criar pack e Abrir ou importar…, centralizado na área abaixo do título (D38).
 - Pasta sumiu: linha em destaque "Pasta não encontrada" com **Localizar…** (escolher a nova pasta) e **Remover da lista**.
 - Pack inválido (`pack.toml` ilegível): linha "Não foi possível ler este pack" com **Ver detalhes** (erro técnico) e **Mostrar na pasta**.
 
@@ -260,10 +260,12 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
 
 **Objetivo:** criar um pack novo, pronto para receber mods.
 
+**Onde:** botão **Criar pack** de Meus packs. O assistente abre num **diálogo** por cima da lista, não numa tela própria (D38): o foco fica preso nele; Esc, ✕, clique fora e **Cancelar** fecham, e, com algo já preenchido, pedem confirmação antes ("Descartar o pack novo?"); ao fechar, o foco volta ao botão que abriu; a etapa alta rola dentro do diálogo, com os botões sempre à vista.
+
 **Passos do assistente** (5 etapas: Nome e pasta · Versão do Minecraft · Loader · Mods iniciais · Resumo):
 1. **Nome e pasta:** nome (obrigatório, 1–64 caracteres), autor (padrão: nome configurado), descrição (opcional), pasta de destino (padrão `<pasta dos packs>\<nome-em-minúsculas-com-hífens>`). A pasta precisa não existir ou estar vazia.
 2. **Versão do Minecraft:** lista das versões *release*, da mais nova para a mais antiga, ordenada pela ordem oficial da Mojang (nunca por comparação de texto; existem versões como `26.3`). Busca por texto. Versões anteriores a 1.7.10 com etiqueta "melhor esforço". Snapshots não aparecem na v1.
-3. **Loader:** Forge, NeoForge, Fabric ou "Nenhum (vanilla)". Só aparecem os loaders que existem para a versão escolhida (NeoForge 1.20.1+; Fabric 1.14+; Forge conforme o repositório oficial). Versão do loader pré-selecionada: Forge "recomendada" (ou a mais recente se não houver recomendada), NeoForge a mais recente estável (sem `-beta`), Fabric a mais recente estável. Lista completa disponível em "Escolher outra versão".
+3. **Loader:** NeoForge, Forge, Fabric, Quilt (desabilitado, "ainda não suportado") e "Nenhum (vanilla)", **nesta ordem, do melhor para o pior** (D39). Só aparecem os loaders que existem para a versão escolhida (NeoForge 1.20.1+; Fabric 1.14+; Forge conforme o repositório oficial). O primeiro que existe nessa ordem ganha a etiqueta **Recomendado** e vem **marcado**; sem nenhum, vem marcado "Nenhum (vanilla)". Versão do loader pré-selecionada: Forge a "recomendada" do `promotions_slim.json` (ou a mais recente se não houver recomendada), NeoForge a mais recente estável (sem `-beta`), Fabric a mais recente estável. Lista completa disponível em "Escolher outra versão"; só ali aparece qual versão o Forge indica ("indicada pelo Forge"), sem confundir com o loader recomendado.
 4. **Mods iniciais** (ADR-0033; decisão D16): **spark** (mede o que deixa o jogo lento; lado "Cliente e servidor") e **Crash Assistant** (mostra uma janela clara para o jogador quando o jogo trava; o envio de dados ao autor do mod vem desligado; fica fora dos seus testes normais) já vêm **marcados**, cada um com uma frase dizendo para que serve e com a versão que será usada; dá para desmarcar. Em Fabric, o spark traz a Fabric API junto. Em 1.7.10 e 1.12.2, o spark é uma versão antiga da CurseForge, com o aviso "versão antiga, sem atualizações" (sem chave da CurseForge, o item aparece desabilitado com o motivo). Abaixo, **Kit de desempenho** (P1), desmarcado: escolher um kit da faixa mostra os mods que ele traz. Sem internet: a etapa mostra "Não foi possível consultar os mods iniciais agora" e deixa seguir sem eles.
 5. **Resumo** e botão **Criar pack**. Depois de criar, o pack abre em Mods com os mods iniciais escolhidos (ou vazio, com **Adicionar mods**). Os mods iniciais entram pelo mesmo caminho de adicionar (T09), num ponto único depois do "Pack criado".
 
@@ -283,6 +285,8 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
 | CA-T03-01 | Criar um pack Forge 1.7.10 (`10.13.4.1614`) gera `[versions] forge = "10.13.4.1614"` e `minecraft = "1.7.10"`, e `packwiz refresh` roda nele com saída 0 e sem diferença nos arquivos (teste de integração contra o packwiz real). |
 | CA-T03-02 | O mesmo vale para Forge 1.12.2, Forge 1.20.1, NeoForge 1.20.1, NeoForge 1.21.1, Fabric 1.20.1, Fabric na versão mais nova e "Nenhum (vanilla)". |
 | CA-T03-03 | NeoForge não aparece para 1.19.2; Fabric não aparece para 1.12.2. |
+| CA-T03-09 | Na etapa Loader, os cartões seguem a ordem NeoForge, Forge, Fabric, Quilt, Nenhum, e só o primeiro loader que existe tem a etiqueta "Recomendado" e vem marcado: Forge em 1.7.10, 1.12.2 e 1.19.2; NeoForge em 1.20.1 e 1.21.1; Fabric numa versão em que só ele existe; "Nenhum (vanilla)" marcado, sem etiqueta, quando nenhum existe (D39). |
+| CA-T03-10 | Criar pack abre como diálogo por cima de Meus packs; Esc com algo preenchido pede confirmação e "Continuar criando" mantém o que foi preenchido; ao fechar, o foco volta ao botão **Criar pack** (D38). |
 | CA-T03-04 | Destino não vazio é recusado antes de qualquer escrita, com mensagem explicando. |
 | CA-T03-05 | Depois de criar, a pasta contém exatamente os arquivos listados acima mais `.git/`; nenhum outro arquivo. |
 | CA-T03-06 | Falha no meio da criação (simulada em teste) não deixa pasta parcial: ou o pack completo existe, ou a pasta volta ao estado anterior. |
@@ -295,7 +299,7 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
 
 **Objetivo:** trazer para o Warden um pack packwiz que já existe (por exemplo, criado pelos apps anteriores ou clonado do GitHub).
 
-**Onde:** botão **Abrir ou importar…** de Meus packs (decisão D20). O Warden reconhece o que foi escolhido pelo conteúdo: pasta com `pack.toml` segue este fluxo; `.mrpack`, zip da CurseForge ou instância do Prism, MultiMC ou do app da CurseForge seguem para **Importar modpack** (T24).
+**Onde:** botão **Abrir ou importar…** de Meus packs (decisão D20). Depois de escolher a pasta, a verificação abre num **diálogo** por cima da lista, como o Criar pack (D38); enquanto o Warden escreve (abrir, limpar), o diálogo não fecha. O Warden reconhece o que foi escolhido pelo conteúdo: pasta com `pack.toml` segue este fluxo; `.mrpack`, zip da CurseForge ou instância do Prism, MultiMC ou do app da CurseForge seguem para **Importar modpack** (T24).
 
 **Fluxo:**
 1. Escolher a pasta que contém `pack.toml`.
@@ -1405,7 +1409,7 @@ Revisado na tarefa D4 (decisão D15): saíram desta lista o teste com servidor d
 
 ## 10. Decisões do dono
 
-Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exceção de D1. D10 a D14 vieram da revisão da estrutura (tarefa D2), no mesmo dia; D14 alterou D2. D15 a D26 vieram das pesquisas R5A e R5B (tarefa D4), também no mesmo dia. D27 a D32 são as seis funções que o dono aprovou em 02/10/2026, ao perguntar o que faltava para o Warden ser um gerenciador de mods profissional; D33 é a decisão do orquestrador de entregá-las como uma versão nova do app (tarefa D5). D34 a D37 são decisões do dono de 04/10/2026 sobre a pesquisa R7 e a cópia do packwiz, aplicadas na tarefa D7. Os detalhes de cada uma foram definidos na D5 a partir de pesquisa e estão nas telas e ADRs citadas.
+Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exceção de D1. D10 a D14 vieram da revisão da estrutura (tarefa D2), no mesmo dia; D14 alterou D2. D15 a D26 vieram das pesquisas R5A e R5B (tarefa D4), também no mesmo dia. D27 a D32 são as seis funções que o dono aprovou em 02/10/2026, ao perguntar o que faltava para o Warden ser um gerenciador de mods profissional; D33 é a decisão do orquestrador de entregá-las como uma versão nova do app (tarefa D5). D34 a D37 são decisões do dono de 04/10/2026 sobre a pesquisa R7 e a cópia do packwiz, aplicadas na tarefa D7. D38 e D39 vieram do primeiro relato do dono com o app em uso (issue #1), em 13/10/2026, aplicadas na tarefa RELATO-1. Os detalhes de cada uma foram definidos na D5 a partir de pesquisa e estão nas telas e ADRs citadas.
 
 | # | Pergunta | Decisão |
 |---|---|---|
@@ -1446,6 +1450,8 @@ Respondidas pelo dono em 01/10/2026. O dono aceitou as recomendações, com exce
 | D35 | Avisar ao publicar sobre mods que só existem na CurseForge? (R7, decisão 4) | **Sim, na v1**, como aviso que não bloqueia, com a troca pelo Modrinth quando o mesmo mod existir lá; motivo: a CurseForge anunciou exigir chave nos downloads e o packwiz-installer dos jogadores não manda chave (R7 §8.3, risco R1) (T18, ADR-0051). Decidida em 04/10/2026. |
 | D36 | Pedir a chave oficial "de aplicativo" à CurseForge e fazer fork do packwiz-installer? | **Em segundo plano, fora do escopo por enquanto** (§9, ADR-0051). Decidida em 04/10/2026. |
 | D37 | Como tratar a cópia do packwiz? | **Cópia fixa + patches nossos** (ADR-0007); todo defeito do packwiz que o Warden achar vira patch documentado (ou contorno documentado) em `third_party/packwiz` (ADR-0049). Decidida em 04/10/2026. |
+| D38 | O app em tela cheia (relato do dono, issue #1)? | **Pensado também para tela cheia** (o dono usa o Warden maximizado em 1920×1080): a coluna de conteúdo fica **centralizada**, com largura de leitura para formulários (Configurações), padrão para o resto e larga para listas e grades (Meus packs, Mods, Adicionar), com as ações do cabeçalho na mesma coluna; os estados vazios de página inteira (Meus packs sem packs, pack sem mods) ficam **no centro** da área; **Criar pack** (T03) e **Abrir pack** (T04) abrem como **diálogo** por cima de Meus packs, não como tela própria (HANDOFF §5, ESTRUTURA). Decidida em 13/10/2026. |
+| D39 | Qual loader recomendar em Criar pack? (relato do dono, issue #1) | **O melhor para a versão, do melhor para o pior: NeoForge > Forge > Fabric > outros loaders > vanilla.** O primeiro que existe na versão ganha a etiqueta "Recomendado" e vem marcado; a "recomendada" do Forge só decide qual versão do Forge vem escolhida e aparece só em "Escolher outra versão" (T03, item 3; CA-T03-09). Decidida em 13/10/2026. |
 
 ### Decisões pendentes do dono
 

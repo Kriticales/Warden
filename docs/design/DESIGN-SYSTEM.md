@@ -157,6 +157,7 @@ Base de 4 px: `--space-1` (4) a `--space-16` (64): 4, 8, 12, 16, 20, 24, 32, 40,
 | Rodapé | `--size-statusbar` | 30 px |
 | Painel lateral | `--size-drawer` | 440 px |
 | Diálogos | `--size-dialog-sm/md/lg` | 480 / 600 / 780 px |
+| Coluna de conteúdo (centralizada) | `--size-content-read/max/wide` | 880 (formulários) / 1180 (padrão) / 1600 px (listas e grades) |
 | Janela mínima | `--size-window-min-w` | 1024 px |
 
 Respiro padrão: 24 px em volta do conteúdo, 16 a 20 px dentro de painéis, 8 px entre controles da mesma barra.
@@ -260,7 +261,7 @@ Todos estão na galeria com os estados. As funções em `components.js` têm o m
 | **Painel lateral** | Detalhes sem perder o lugar, Tarefas | — | Formulários longos |
 | Menu suspenso | ▾ do Testar, ⋯ de um pack | item com descrição, perigo, desabilitado, separador | Ações frequentes escondidas |
 | **Tooltip** | O que não cabe no rótulo; botões só de ícone | — | Repetir o rótulo |
-| **Estado vazio** | Lista sem itens, sem resultado, nenhum problema, erro de carregamento | 4 variantes | Texto de vitrine, centralizado |
+| **Estado vazio** | Lista sem itens, sem resultado, nenhum problema, erro de carregamento | 4 variantes; centralizado (ilustração em cima, no meio da área) só no vazio de página inteira, como Meus packs sem packs e pack sem mods (D38) | Texto de vitrine |
 | **Skeleton** | Carregamento com forma conhecida | — | Spinner girando no meio da tela |
 | **Tabela** | Dados para comparar | ordenável, numérica | — |
 | **Linha do tempo** | Histórico | não salvas, só salva, versão final, publicada, aberta com detalhes | — |
