@@ -1839,6 +1839,11 @@ export type CrashSignature = {
 	frame: string | null,
 	/**  Mods citados, normalizados e em ordem (`mod:balm`, `jar:create`). */
 	mods: string[],
+	/**
+	 *  O sujeito do achado, normalizado (`description=rendering overlay`,
+	 *  `entity_type=alpha:golem`, `entity_class=com.alpha.Golem`, `mixin_config=x.mixins.json`).
+	 */
+	subject?: string[],
 };
 
 /**  A situação de um grupo. */

@@ -39,6 +39,18 @@ pub(crate) use text::fixed_regex as text_fixed_regex;
 pub(crate) use stack::{crash_blocks, deepest_cause, mods_in, stack_range};
 pub(crate) use text::CleanLine;
 
+/// O que identifica o achado de um padrão do catálogo (D-06: o sujeito da assinatura do
+/// travamento): os parâmetros da `key`, na ordem do catálogo, e se o padrão é genérico
+/// (`fallback`). Padrão desconhecido: nenhum parâmetro, não genérico.
+pub(crate) fn pattern_identity(id: &str) -> (&'static [String], bool) {
+    catalog::embedded()
+        .ok()
+        .and_then(|catalog| catalog.patterns.iter().find(|pattern| pattern.id == id))
+        .map_or((&[], false), |pattern| {
+            (pattern.key.as_slice(), pattern.fallback)
+        })
+}
+
 use crate::error::{DiagnosticsError, Result};
 use crate::model::Finding;
 use text::RawLine;
