@@ -142,13 +142,6 @@ export const diagnostico = {
     copiarFalhou: 'Não deu para copiar o relatório.',
   },
   /** "Último travamento" na seção Problemas (até a D-06 trazer a lista de Travamentos). */
-  ultimo: {
-    titulo: 'Último travamento',
-    quando: 'Teste de {{quando}} · versão {{versao}}',
-    quandoSemVersao: 'Teste de {{quando}}',
-    ver: 'Ver o que causou',
-    nenhum: 'Nenhum teste deste pack travou.',
-  },
   /** Relatório copiado ("Copiar relatório"), em texto simples. */
   relatorio: {
     cabecalho: 'Warden: por que o jogo travou',
