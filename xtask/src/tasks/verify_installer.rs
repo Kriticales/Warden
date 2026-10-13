@@ -110,7 +110,9 @@ pub fn has_log(dir: &Path) -> bool {
                 && path
                     .extension()
                     .is_some_and(|ext| ext.eq_ignore_ascii_case("log"))
-                && entry.metadata().is_ok_and(|meta| meta.len() > 0)
+                // `fs::metadata` abre o arquivo: o tamanho da listagem da pasta (`DirEntry`) só é
+                // atualizado no NTFS quando quem grava fecha o arquivo, e o app ainda está aberto.
+                && std::fs::metadata(entry.path()).is_ok_and(|meta| meta.len() > 0)
         })
     })
 }
@@ -209,13 +211,37 @@ fn wait_until(timeout: Duration, mut done: impl FnMut() -> Result<bool>) -> Resu
     }
 }
 
-/// Pastas de dados do app (o que a desinstalação mantém).
-fn data_dirs() -> Vec<PathBuf> {
+/// Pastas de dados do app (o que a desinstalação mantém): rótulo → caminho.
+fn data_dirs() -> Vec<(String, PathBuf)> {
     ["APPDATA", "LOCALAPPDATA"]
         .into_iter()
-        .filter_map(env_dir)
-        .map(|dir| dir.join(IDENTIFIER))
+        .filter_map(|name| Some((format!(r"%{name}%\{IDENTIFIER}"), env_dir(name)?.join(IDENTIFIER))))
         .collect()
+}
+
+/// O que há em cada pasta de registros, para a mensagem de erro (só nomes e tamanhos).
+pub fn describe_logs(dirs: &[(String, PathBuf)]) -> String {
+    dirs.iter()
+        .map(|(label, dir)| {
+            let Ok(entries) = std::fs::read_dir(dir) else {
+                return format!(r"{label}\logs: não existe");
+            };
+            let mut files: Vec<String> = entries
+                .filter_map(Result::ok)
+                .map(|entry| {
+                    let size = std::fs::metadata(entry.path()).map_or(0, |meta| meta.len());
+                    format!("{} ({size} bytes)", entry.file_name().to_string_lossy())
+                })
+                .collect();
+            files.sort();
+            if files.is_empty() {
+                format!(r"{label}\logs: vazia")
+            } else {
+                format!(r"{label}\logs: {}", files.join(", "))
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
 }
 
 fn open_and_close(exe: &Path) -> Result<()> {
@@ -225,17 +251,24 @@ fn open_and_close(exe: &Path) -> Result<()> {
         .stderr(Stdio::null())
         .spawn()
         .context("não foi possível abrir o Warden instalado")?;
-    let logs: Vec<PathBuf> = data_dirs().into_iter().map(|dir| dir.join("logs")).collect();
+    let logs: Vec<(String, PathBuf)> = data_dirs()
+        .into_iter()
+        .map(|(label, dir)| (label, dir.join("logs")))
+        .collect();
     let opened = wait_until(OPEN_TIMEOUT, || {
         if let Some(status) = child.try_wait()? {
-            bail!("o Warden instalado fechou sozinho ao abrir ({status})");
+            bail!(
+                "o Warden instalado fechou sozinho ao abrir ({status}); {}",
+                describe_logs(&logs)
+            );
         }
-        Ok(logs.iter().any(|dir| has_log(dir)))
+        Ok(logs.iter().any(|(_, dir)| has_log(dir)))
     })?;
     ensure!(
         opened,
-        "o Warden instalado não gravou nenhum registro em {} s",
-        OPEN_TIMEOUT.as_secs()
+        "o Warden instalado não gravou nenhum registro em {} s ({})",
+        OPEN_TIMEOUT.as_secs(),
+        describe_logs(&logs)
     );
     ensure!(
         !running_warden()?.is_empty(),
@@ -417,6 +450,25 @@ mod tests {
         assert!(!is_inside(Path::new(r"C:\Users\Runner\AppData\LocalLow\Warden"), local));
         assert!(!is_inside(Path::new(r"C:\Program Files\Warden"), local));
         assert!(!is_inside(local, local));
+    }
+
+    #[test]
+    fn descricao_dos_registros_so_com_rotulo_nome_e_tamanho() {
+        let dir = tempfile::tempdir().unwrap();
+        let logs = dir.path().join("logs");
+        std::fs::create_dir(&logs).unwrap();
+        let dirs = vec![
+            ("%LOCALAPPDATA%\\x".to_owned(), logs.clone()),
+            ("%APPDATA%\\x".to_owned(), dir.path().join("nao-existe")),
+        ];
+        assert_eq!(
+            describe_logs(&dirs),
+            "%LOCALAPPDATA%\\x\\logs: vazia; %APPDATA%\\x\\logs: não existe"
+        );
+        std::fs::write(logs.join("warden.2026-10-13.log"), "abc").unwrap();
+        let text = describe_logs(&dirs);
+        assert!(text.starts_with("%LOCALAPPDATA%\\x\\logs: warden.2026-10-13.log (3 bytes)"));
+        assert!(!text.contains(&*dir.path().to_string_lossy()), "{text}");
     }
 
     #[test]
