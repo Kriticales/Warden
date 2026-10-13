@@ -72,7 +72,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `flate2` | 1.1.10 | MIT OR Apache-2.0 | `warden-java` | Descompressão do `.tar.gz` do Temurin no Linux (já vinha como dependência do `zip`). |
 | `tar` | 0.4.46 | MIT OR Apache-2.0 | `warden-java` | Leitura do `.tar.gz` do Temurin no Linux, sem os atributos estendidos (`xattr`). |
 | `portablemc` | =5.0.5 | Apache-2.0 | `warden-launcher` | Motor do launcher: instala Minecraft, bibliotecas, assets e loaders (Fabric, Quilt, Forge, NeoForge) e devolve a linha de comando (S1; ADR-0057). Versão exata. |
-| `notify` | 8.2.0 | CC0-1.0 | `warden-instance` | Observar a pasta Downloads nos downloads manuais da CurseForge (L-06, P1). A espera entre eventos é a do próprio vigia (sem o `notify-debouncer-full`): só importa quando o arquivo para de mudar. |
+| `notify` | 8.2.0 | CC0-1.0 | `warden-instance`, `warden-configs` | Observar a pasta Downloads nos downloads manuais da CurseForge (L-06, P1). A espera entre eventos é a do próprio vigia (sem o `notify-debouncer-full`): só importa quando o arquivo para de mudar. Na `warden-configs` (C-05): observar a pasta da origem para o índice da busca em todas as configs se atualizar sozinho, com a espera do último aviso feita pelo próprio índice. |
+| `nucleo-matcher` | 0.3.1 | MPL-2.0 | `warden-configs` | Busca em todas as configs (C-05; ARCHITECTURE §10.1): comparação aproximada sem diferenciar maiúsculas nem acentos, com pontuação e posições dos trechos que casaram. Usada sem modificação (MPL-2.0 só pede o código-fonte dos arquivos da biblioteca que forem alterados). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 

@@ -61,6 +61,8 @@ jsonc-parser = "0.34.0"
 junction = "2.1.0"
 keyring-core = "1.0.0"
 md-5 = "0.10.6"
+# Busca em todas as configs (C-05; ARCHITECTURE §10.1).
+nucleo-matcher = "0.3.1"
 # Observar a pasta Downloads nos downloads manuais da CurseForge (L-06, P1).
 notify = "8.2.0"
 proptest = "1.11.0"
