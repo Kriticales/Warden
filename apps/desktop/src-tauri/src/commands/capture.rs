@@ -327,13 +327,15 @@ mod tests {
     };
     use warden_launcher::outcome::{CrashArtifacts, Outcome as GameOutcome};
     use warden_launcher::process::GameExit;
+    use warden_launcher::session::SessionRecord;
+    use warden_launcher::{GameSpec, LoaderSpec};
     use warden_project::configs::{ConfigOrigin, read_file, save_to_instance};
 
     use super::*;
     use crate::commands::inventory::tests::{packwiz_binary, registered_pack, test_packwiz};
     use crate::error::ErrorCode;
     use crate::state::tests::test_state;
-    use crate::test_hooks::{ExitContext, HookContext, registered};
+    use crate::test_hooks::{ExitContext, HookContext, TestHooks, registered};
     use crate::test_session::TestMode;
 
     fn sha(bytes: &[u8]) -> String {
@@ -373,6 +375,20 @@ mod tests {
         }
     }
 
+    /// O registro da sessão que o Testar passa aos ganchos no fim (L-10).
+    fn record(exit: &GameExit, game_dir: &Path) -> SessionRecord {
+        let spec = GameSpec::new("1.20.1", LoaderSpec::Vanilla).unwrap();
+        SessionRecord::from_exit(std::time::SystemTime::now(), exit, &spec, 17, None, game_dir)
+    }
+
+    /// O gancho da captura, entre os registrados (os outros têm testes próprios).
+    fn capture_hook() -> Arc<dyn TestHooks> {
+        registered()
+            .into_iter()
+            .find(|hook| hook.name() == "capture")
+            .unwrap()
+    }
+
     /// O Testar inteiro pelos ganchos: linha de base, o jogo (e o editor de configs da
     /// instância, CA-T12-04) mudando arquivos, a captura, o Testar recusado enquanto há
     /// mudanças para revisar, e "Trazer" gravando no pack pela `PackTransaction`.
@@ -397,16 +413,19 @@ mod tests {
         let dirs = InstanceDirs::for_pack(&state.paths, id);
         materialize(&root, &dirs, &dir.path().join("cache")).await;
 
-        let hooks = registered();
+        let hooks = [capture_hook()];
         let operation = state
             .operations
             .start(OperationKind::new("test.start"), Some(id), true);
         let context = HookContext {
+            state: &state,
+            paths: &state.paths,
             pack_id: id,
             pack_root: &root,
             dirs: &dirs,
             mode: TestMode::Normal,
             operation: &operation,
+            ignore_pack_errors: false,
         };
         for hook in &hooks {
             hook.before_prepare(&context).await.unwrap();
@@ -432,9 +451,11 @@ mod tests {
 
         let session_dir = dir.path().join("sessoes/2026-10-13_14-20-00");
         let exit = exit();
+        let record = record(&exit, &dirs.game_dir);
         let exit_context = ExitContext {
             exit: &exit,
             session_dir: &session_dir,
+            record: &record,
         };
         let mut fields = serde_json::Map::new();
         for hook in &hooks {
@@ -518,16 +539,20 @@ mod tests {
             .operations
             .start(OperationKind::new("test.start"), Some(id), true);
         let context = HookContext {
+            state: &state,
+            paths: &state.paths,
             pack_id: id,
             pack_root: &root,
             dirs: &dirs,
             mode: TestMode::Normal,
             operation: &operation,
+            ignore_pack_errors: false,
         };
-        let hooks = registered();
+        let hooks = [capture_hook()];
         hooks[0].before_launch(&context).await.unwrap();
         fs::write(dirs.game_dir.join("config/a.toml"), "a = 22\n").unwrap();
         let exit = exit();
+        let record = record(&exit, &dirs.game_dir);
         let session_dir = dir.path().join("sessoes/s1");
         hooks[0]
             .after_exit(
@@ -535,6 +560,7 @@ mod tests {
                 &ExitContext {
                     exit: &exit,
                     session_dir: &session_dir,
+                    record: &record,
                 },
             )
             .await
