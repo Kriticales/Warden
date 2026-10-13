@@ -9,6 +9,8 @@
 //! Também traz os avaliadores de faixa nos três dialetos ([`VersionRange`]: Fabric, Maven e
 //! `@Mod.dependencies` em texto) e o `FlexVer` ([`version::flexver`]).
 //!
+//! O módulo [`lang`] lê os rótulos de config dos arquivos de idioma do jar (C-04).
+//!
 //! O módulo [`index`] monta os índices pacote → jar → mod e config de mixin → mod, com cache por
 //! hash do jar (D-05).
 //!
@@ -35,6 +37,7 @@
 mod descriptor;
 mod error;
 pub mod index;
+pub mod lang;
 mod lenient_json;
 mod limits;
 mod model;
