@@ -468,6 +468,23 @@ mod tests {
         zip.finish().unwrap();
     }
 
+    /// Um jar do NeoForge (`neoforge.mods.toml`, 1.20.5 em diante) que declara `mod_id` e a
+    /// faixa de versões do NeoForge.
+    fn neoforge_jar(path: &Path, mod_id: &str, neoforge: &str) {
+        let toml = format!(
+            "modLoader=\"javafml\"\nloaderVersion=\"[4,)\"\nlicense=\"MIT\"\n[[mods]]\nmodId=\"{mod_id}\"\nversion=\"1.0\"\n[[dependencies.{mod_id}]]\nmodId=\"neoforge\"\ntype=\"required\"\nversionRange=\"{neoforge}\"\nordering=\"NONE\"\nside=\"BOTH\"\n"
+        );
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut zip = zip::ZipWriter::new(fs::File::create(path).unwrap());
+        zip.start_file(
+            "META-INF/neoforge.mods.toml",
+            zip::write::SimpleFileOptions::default(),
+        )
+        .unwrap();
+        zip.write_all(toml.as_bytes()).unwrap();
+        zip.finish().unwrap();
+    }
+
     /// Pack Forge 1.20.1 com três mods registrado no estado.
     async fn setup() -> Option<(tempfile::TempDir, AppState, PackId, PathBuf, Packwiz)> {
         setup_with(&[("forge", "47.2.0")]).await
@@ -615,6 +632,47 @@ mod tests {
             .filter(|(a, b)| a != b)
             .collect();
         assert_eq!(diff, [("forge = \"47.2.0\"", "forge = \"47.1.3\"")]);
+    }
+
+    /// NeoForge: a faixa vem do `neoforge.mods.toml` (dependência `neoforge`, `type =
+    /// "required"`), e gravar muda só a linha `neoforge` (a do Minecraft fica).
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn loader_neoforge_mostra_antes_o_que_quebra_e_grava_so_a_linha() {
+        let Some((_dir, state, id, root, _cli)) =
+            setup_with(&[("minecraft", "1.21.1"), ("neoforge", "21.1.95")]).await
+        else {
+            return;
+        };
+        let mods = mods_dir(&state, id);
+        neoforge_jar(&mods.join("mod-0-1.0.0.jar"), "novo", "[21.1.90,)");
+        neoforge_jar(&mods.join("mod-1-1.0.0.jar"), "antigo", "[21.1.0,21.1.80)");
+        let inventory = warden_project::inventory::inventory(&root, None).await.unwrap();
+        let check = check_loader(&state, id, &root, &inventory, "21.1.77").await.unwrap();
+        assert_eq!(check.loader, "neoforge");
+        assert_eq!((check.from.as_str(), check.to.as_str()), ("21.1.95", "21.1.77"));
+        let breaks: Vec<(&str, Option<&str>)> = check
+            .breaks
+            .iter()
+            .map(|i| (i.name.as_str(), i.requires.as_deref()))
+            .collect();
+        assert_eq!(breaks, [("Mod 0", Some("[21.1.90,)"))]);
+        let fixes: Vec<&str> = check.fixes.iter().map(|i| i.name.as_str()).collect();
+        assert_eq!(fixes, ["Mod 1"]);
+        assert_eq!(check.checked, 2);
+        assert_eq!(check.unchecked, ["Mod 2"]);
+
+        let before = fs::read_to_string(root.join("pack.toml")).unwrap();
+        let set = set_loader_impl(&state, id, "21.1.95", "21.1.77").await.unwrap();
+        assert!(set.changed.changed);
+        assert_eq!(set.check, check);
+        let after = fs::read_to_string(root.join("pack.toml")).unwrap();
+        let diff: Vec<(&str, &str)> = before
+            .lines()
+            .zip(after.lines())
+            .filter(|(a, b)| a != b)
+            .collect();
+        assert_eq!(diff, [("neoforge = \"21.1.95\"", "neoforge = \"21.1.77\"")]);
+        assert!(after.contains("minecraft = \"1.21.1\""));
     }
 
     /// Servidor HTTP local no lugar do Modrinth que só responde (`[]`) depois de liberado.
