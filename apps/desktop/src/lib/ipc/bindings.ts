@@ -142,6 +142,71 @@ export const commands = {
 	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
 	 */
 	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
+	/**  "Verificar agora": confere o pack e grava o relatório. */
+	diagnosticsRun: (packId: PackId) => typedError<DiagnosticsReport, AppError>(__TAURI_INVOKE("diagnostics_run", { packId })),
+	/**  O último relatório do pack (`None`: nunca verificado neste computador). */
+	diagnosticsReportGet: (packId: PackId) => typedError<{
+	/**
+	 *  Passagem que valeu: "Verificar agora" e a "Verificação final" pedem a completa, que vira
+	 *  rápida quando ainda falta o jar de algum mod.
+	 */
+	pass: CheckPass,
+	/**  Quando a verificação terminou (milissegundos desde 1970). */
+	checkedAtMs: number,
+	/**  Itens conferidos (mods, resource packs e shaders). */
+	itemCount: number,
+	/**  O pack tem loader e versão do Minecraft conhecidos (vanilla: nada a conferir). */
+	checkedMods: boolean,
+	/**  Achados, do mais grave ao menos grave. */
+	findings: ReportFinding[],
+	/**  Resumo do `pack.toml` e do índice na hora da verificação. */
+	packHash: string | null,
+	/**  O pack mudou depois desta verificação (calculado de novo a cada leitura). */
+	stale: boolean,
+} | null, AppError>(__TAURI_INVOKE("diagnostics_report_get", { packId })),
+	/**  "Ignorar este aviso neste pack" (ou desfazer). Devolve o relatório atualizado. */
+	diagnosticsIgnore: (packId: PackId, findingId: string, ignored: boolean) => typedError<{
+	/**
+	 *  Passagem que valeu: "Verificar agora" e a "Verificação final" pedem a completa, que vira
+	 *  rápida quando ainda falta o jar de algum mod.
+	 */
+	pass: CheckPass,
+	/**  Quando a verificação terminou (milissegundos desde 1970). */
+	checkedAtMs: number,
+	/**  Itens conferidos (mods, resource packs e shaders). */
+	itemCount: number,
+	/**  O pack tem loader e versão do Minecraft conhecidos (vanilla: nada a conferir). */
+	checkedMods: boolean,
+	/**  Achados, do mais grave ao menos grave. */
+	findings: ReportFinding[],
+	/**  Resumo do `pack.toml` e do índice na hora da verificação. */
+	packHash: string | null,
+	/**  O pack mudou depois desta verificação (calculado de novo a cada leitura). */
+	stale: boolean,
+} | null, AppError>(__TAURI_INVOKE("diagnostics_ignore", { packId, findingId, ignored })),
+	/**  "Por que travou" de uma sessão do Testar. Erros: `app.TEST_SESSION_NOT_FOUND`. */
+	diagnosticsCrashGet: (packId: PackId, sessionId: string) => typedError<CrashDiagnosis, AppError>(__TAURI_INVOKE("diagnostics_crash_get", { packId, sessionId })),
+	/**
+	 *  O projeto do mod que falta (`modId`: id do mod no jar ou id do projeto na fonte que
+	 *  declarou a dependência). `None`: a fonte não conhece o mod (a interface leva à busca).
+	 */
+	diagnosticsDependencyFind: (packId: PackId, modId: string, source: 
+/**  Modrinth (padrão quando o projeto está nas duas: informa o lado e tem cache local). */
+"modrinth" | 
+/**  CurseForge (P1-10). */
+"curseforge" | null) => typedError<{
+	/**  A fonte. */
+	source: SourceId,
+	/**  ID do projeto na fonte (o `AddChoice` do diálogo de dependências). */
+	projectId: string,
+	/**  Nome do projeto. */
+	name: string,
+} | null, AppError>(__TAURI_INVOKE("diagnostics_dependency_find", { packId, modId, source })),
+	/**
+	 *  "Copiar relatório": o texto sem dados pessoais (nome de usuário do computador, jogador,
+	 *  IPs, e-mails, chaves).
+	 */
+	diagnosticsRedact: (packId: PackId, text: string) => typedError<string, AppError>(__TAURI_INVOKE("diagnostics_redact", { packId, text })),
 	/**  O início da descoberta: "Populares para <loader> <versão>" e "Atualizados recentemente". */
 	discoverHome: (packId: PackId, kind: ProjectKind) => typedError<DiscoverHome, AppError>(__TAURI_INVOKE("discover_home", { packId, kind })),
 	/**
@@ -1111,6 +1176,16 @@ export type CurseforgeErrorCode =
 /**  A CurseForge respondeu algo que o Warden não entende. */
 "INVALID_RESPONSE";
 
+/**  O projeto que resolve uma dependência que falta. */
+export type DependencyCandidate = {
+	/**  A fonte. */
+	source: SourceId,
+	/**  ID do projeto na fonte (o `AddChoice` do diálogo de dependências). */
+	projectId: string,
+	/**  Nome do projeto. */
+	name: string,
+};
+
 /**  Uma dependência declarada pela versão. */
 export type DependencyInfo = {
 	/**  Obrigatória, opcional ou incompatível. */
@@ -1225,6 +1300,27 @@ export type DiagnosticsErrorCode =
 "SESSION_NOT_FOUND" | 
 /**  Uma regra extra de redação não é uma expressão regular válida. */
 "INVALID_REDACTION_RULE";
+
+/**  O último relatório do pré-teste de um pack. */
+export type DiagnosticsReport = {
+	/**
+	 *  Passagem que valeu: "Verificar agora" e a "Verificação final" pedem a completa, que vira
+	 *  rápida quando ainda falta o jar de algum mod.
+	 */
+	pass: CheckPass,
+	/**  Quando a verificação terminou (milissegundos desde 1970). */
+	checkedAtMs: number,
+	/**  Itens conferidos (mods, resource packs e shaders). */
+	itemCount: number,
+	/**  O pack tem loader e versão do Minecraft conhecidos (vanilla: nada a conferir). */
+	checkedMods: boolean,
+	/**  Achados, do mais grave ao menos grave. */
+	findings: ReportFinding[],
+	/**  Resumo do `pack.toml` e do índice na hora da verificação. */
+	packHash: string | null,
+	/**  O pack mudou depois desta verificação (calculado de novo a cada leitura). */
+	stale: boolean,
+};
 
 /**  Uma categoria da lista de filtros. */
 export type DiscoverCategory = {
