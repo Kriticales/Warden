@@ -26,6 +26,7 @@ pub mod state;
 mod test_hooks;
 mod test_profiles;
 pub mod test_session;
+pub mod watcher;
 mod window_chrome;
 
 /// Testes do gerador do registro de comandos (o mesmo arquivo roda no `build.rs`).

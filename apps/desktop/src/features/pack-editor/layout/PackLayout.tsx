@@ -21,6 +21,7 @@ import { Alert } from '../../../components/ui/alert';
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
 import { usePack } from '../../packs/api';
 import { PackHeader } from '../header/PackHeader';
+import { usePackWatch } from '../watch';
 import { SectionMenu } from './SectionMenu';
 import '../editor.css';
 
@@ -54,6 +55,7 @@ export function PackLayout({ packId }: { packId: PackId }) {
   const pack = usePack(packId);
   const compact = useCompactMenu();
   const width = useContentWidth();
+  usePackWatch(packId);
   const back = { to: '/packs', label: t('cabecalho.voltar') } as const;
 
   if (pack.isPending) {

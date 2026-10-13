@@ -7,9 +7,10 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { InventoryItem } from '../../lib/ipc/bindings';
+import type { InventoryItem, PackRow } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
 import { renderApp } from '../../test/render';
+import { makeChangeSet, makeHistory } from '../versioning/versioning.fixtures';
 import {
   AE2,
   INVALID,
@@ -134,9 +135,167 @@ describe('pack aberto (T05)', () => {
 
     // E o evento pack-changed (escrita do Warden) também.
     inventory = makeInventory([AE2]);
-    await act(() => backend.emit('pack-changed', { packId: row.id, areas: ['inventory'] }));
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: false }),
+    );
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: 'Sodium' })).toBeNull();
+    });
+  });
+
+  it('CA-T05-01 (A-05): mudança externa recarrega a seção aberta, sem trocar de seção, e avisa', async () => {
+    let inventory = makeInventory([SODIUM]);
+    const { backend, url, row } = editorBackend({ handlers: { inventory_list: () => inventory } });
+    await openMods(url);
+    // O vigia da pasta é ligado ao abrir o pack.
+    expect(backend.callsOf('pack_watch_start').map((call) => call.args.packId)).toEqual([row.id]);
+
+    inventory = makeInventory([SODIUM, AE2]);
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: true }),
+    );
+
+    expect(await screen.findByRole('button', { name: 'Applied Energistics 2' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Mods' })).toBeDefined();
+    expect(await screen.findByText('O pack foi alterado fora do Warden')).toBeDefined();
+    expect(screen.getByText('A tela mostra o que está no disco agora.')).toBeDefined();
+  });
+
+  it('A-05: mudança externa relê o cabeçalho (nome, versões, alterações) e nota a pasta sumida', async () => {
+    let row: PackRow | undefined;
+    // O backend devolve sempre a linha atual do pack, a que o teste troca.
+    const opened = editorBackend({
+      pack: { version: '1.4.2' },
+      handlers: { pack_get: () => row, packs_list: () => (row ? [row] : []) },
+    });
+    const { backend, url } = opened;
+    row = opened.row;
+    await openMods(url);
+    const header = screen.getByRole('banner', { name: 'Pack aberto' });
+    expect(within(header).getByRole('heading', { level: 1, name: 'Vale Sereno' })).toBeDefined();
+
+    // Outro programa editou o pack.toml (o vigia manda Meta e Inventário) e mais 3 arquivos.
+    row = {
+      ...row,
+      name: 'Vale Sombrio',
+      minecraft: '1.20.4',
+      loaderVersion: '49.0.30',
+      version: '1.5.0',
+      unsavedFiles: 3,
+    };
+    await act(() =>
+      backend.emit('pack-changed', {
+        packId: opened.row.id,
+        areas: ['meta', 'inventory'],
+        external: true,
+      }),
+    );
+    expect(
+      await within(header).findByRole('heading', { level: 1, name: 'Vale Sombrio' }),
+    ).toBeDefined();
+    expect(header.textContent).toContain('Minecraft 1.20.4');
+    expect(header.textContent).toContain('Forge 49.0.30');
+    expect(header.textContent).toContain('versão 1.5.0');
+    expect(
+      within(header).getByRole('button', { name: 'Salvar versão, 3 alterações não salvas' }),
+    ).toBeDefined();
+
+    // A pasta do pack foi apagada: o vigia manda todas as áreas.
+    row = { ...row, status: 'folderMissing' };
+    await act(() =>
+      backend.emit('pack-changed', {
+        packId: opened.row.id,
+        areas: ['inventory', 'configs', 'meta', 'history'],
+        external: true,
+      }),
+    );
+    expect(await screen.findByText('A pasta deste pack não foi encontrada')).toBeDefined();
+    expect(screen.queryByRole('navigation', { name: 'Seções do pack' })).toBeNull();
+  });
+
+  it('A-05: config editada por fora relê as alterações não salvas do Histórico, sem sair dele', async () => {
+    let history = makeHistory({ lastVersion: '1.4.2' });
+    const { backend, row } = editorBackend({
+      pack: { version: '1.4.2' },
+      handlers: { history_get: () => history },
+    });
+    renderApp(`/packs/${row.id}/historico`);
+    expect(
+      await screen.findByText('Nada mudou desde a versão 1.4.2.', {}, { timeout: 10_000 }),
+    ).toBeDefined();
+
+    history = makeHistory({
+      lastVersion: '1.4.2',
+      unsaved: makeChangeSet({ configs: ['config/create-common.toml'] }),
+    });
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['configs'], external: true }),
+    );
+
+    expect(await screen.findByText('config/create-common.toml')).toBeDefined();
+    expect(screen.queryByText('Nada mudou desde a versão 1.4.2.')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Histórico' })).toBeDefined();
+  });
+
+  it('A-05: mod editado por fora relê a prévia do Exportar, sem sair dele', async () => {
+    let unsavedChanges = false;
+    const { backend, row } = editorBackend({
+      handlers: {
+        export_preview: () => ({
+          files: [],
+          folders: [],
+          bytes: 0,
+          references: 0,
+          preflight: { hygiene: [], unsavedChanges, diagnosticErrors: null },
+        }),
+      },
+    });
+    renderApp(`/packs/${row.id}/exportar`);
+    expect(
+      await screen.findByText(
+        'Sem alterações não salvas: a exportação é igual à última versão salva.',
+        {},
+        { timeout: 10_000 },
+      ),
+    ).toBeDefined();
+
+    unsavedChanges = true;
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: true }),
+    );
+
+    expect(await screen.findByText(/^Há alterações não salvas/)).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Exportar' })).toBeDefined();
+  });
+
+  it('A-05: escrita do próprio Warden recarrega, mas não mostra o aviso de mudança externa', async () => {
+    let inventory = makeInventory([SODIUM]);
+    const { backend, url, row } = editorBackend({ handlers: { inventory_list: () => inventory } });
+    await openMods(url);
+
+    inventory = makeInventory([AE2]);
+    await act(() =>
+      backend.emit('pack-changed', { packId: row.id, areas: ['inventory'], external: false }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Sodium' })).toBeNull();
+    });
+    expect(screen.queryByText('O pack foi alterado fora do Warden')).toBeNull();
+  });
+
+  it('A-05: mudança externa de outro pack não avisa; sair do pack desliga o vigia', async () => {
+    const { backend, url, row } = editorBackend();
+    const view = renderApp(url);
+    await screen.findByRole('searchbox', { name: 'Buscar no pack' }, { timeout: 10_000 });
+    await act(() =>
+      backend.emit('pack-changed', { packId: 'outro-pack', areas: ['inventory'], external: true }),
+    );
+    expect(screen.queryByText('O pack foi alterado fora do Warden')).toBeNull();
+
+    view.unmount();
+    await waitFor(() => {
+      expect(backend.callsOf('pack_watch_stop').map((call) => call.args.packId)).toEqual([row.id]);
     });
   });
 });

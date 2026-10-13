@@ -49,6 +49,44 @@ describe('Informações do pack (T11)', () => {
     expect(await screen.findByText('Informações do pack salvas.')).toBeDefined();
   });
 
+  it('fecha ao salvar mesmo quando o pack-changed da gravação relê o pack.toml antes da resposta', async () => {
+    let meta = makeMeta();
+    const opened = editorBackend({
+      handlers: {
+        pack_meta_get: () => meta,
+        // Como o Rust: grava, avisa `pack-changed` (Meta) e só então responde. A resposta espera
+        // a releitura, para o formulário refazer (nome novo) antes de o comando terminar.
+        pack_update_meta: async ({ update }) => {
+          meta = makeMeta(update as Record<string, string>);
+          const reads = opened.backend.callsOf('pack_meta_get').length;
+          await opened.backend.emit('pack-changed', {
+            packId: opened.row.id,
+            areas: ['meta'],
+            external: false,
+          });
+          await waitFor(() => {
+            expect(opened.backend.callsOf('pack_meta_get').length).toBeGreaterThan(reads);
+          });
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          return meta;
+        },
+      },
+    });
+    await openPack(opened.url);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Editar informações' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Informações do pack' });
+    const name = await within(dialog).findByRole<HTMLInputElement>('textbox', { name: 'Nome' });
+    await user.clear(name);
+    await user.type(name, 'Vale Novo');
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByText('Informações do pack salvas.')).toBeDefined();
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Informações do pack' })).toBeNull();
+    });
+  });
+
   it('nome vazio não grava e diz o que falta', async () => {
     const { backend, url } = editorBackend();
     await openPack(url);

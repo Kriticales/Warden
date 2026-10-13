@@ -74,7 +74,7 @@ describe('useTauriEvent', () => {
     renderHook(() => {
       useTauriEvent(events.packChanged, handler);
     });
-    const change: PackChanged = { packId: 'p1', areas: ['configs'] };
+    const change: PackChanged = { packId: 'p1', areas: ['configs'], external: false };
     await waitFor(async () => {
       await backend.emit('pack-changed', change);
       expect(handler).toHaveBeenCalledWith(change);
@@ -86,7 +86,11 @@ describe('pack-changed', () => {
   it('invalida só as áreas que mudaram', async () => {
     const client = createQueryClient();
     const invalidate = vi.spyOn(client, 'invalidateQueries');
-    await invalidatePackChange(client, { packId: 'p1', areas: ['inventory', 'history'] });
+    await invalidatePackChange(client, {
+      packId: 'p1',
+      areas: ['inventory', 'history'],
+      external: false,
+    });
     expect(invalidate.mock.calls).toEqual([
       [{ queryKey: queryKeys.packArea('p1', 'inventory') }],
       [{ queryKey: queryKeys.packArea('p1', 'history') }],
@@ -96,7 +100,7 @@ describe('pack-changed', () => {
   it('sem áreas, invalida o pack inteiro', async () => {
     const client = createQueryClient();
     const invalidate = vi.spyOn(client, 'invalidateQueries');
-    await invalidatePackChange(client, { packId: 'p2', areas: [] });
+    await invalidatePackChange(client, { packId: 'p2', areas: [], external: false });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['pack', 'p2'] });
   });
 
@@ -117,7 +121,7 @@ describe('pack-changed', () => {
       },
     );
     await waitFor(async () => {
-      await backend.emit('pack-changed', { packId: 'p1', areas: ['configs'] });
+      await backend.emit('pack-changed', { packId: 'p1', areas: ['configs'], external: false });
       expect(client.getQueryState(['pack', 'p1', 'configs', 'arvore'])?.isInvalidated).toBe(true);
     });
     expect(client.getQueryState(['pack', 'p1', 'inventory'])?.isInvalidated).toBe(false);

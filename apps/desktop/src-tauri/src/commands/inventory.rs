@@ -96,7 +96,13 @@ pub(crate) fn pack_root(state: &AppState, pack_id: PackId) -> Result<PathBuf, Ap
 
 /// Avisa a interface de que uma parte do pack mudou (invalida as queries dessa área).
 pub(crate) fn notify_changed(app: &AppHandle, pack_id: PackId, areas: Vec<PackArea>) {
-    if let Err(error) = (PackChanged { pack_id, areas }).emit(app) {
+    if let Err(error) = (PackChanged {
+        pack_id,
+        areas,
+        external: false,
+    })
+    .emit(app)
+    {
         tracing::warn!(%error, "não foi possível avisar a interface da mudança do pack");
     }
 }

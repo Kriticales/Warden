@@ -20,6 +20,7 @@ import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
+import { dismissToasts } from './toasts';
 import { zipEntries, zipEntry } from './zip';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -152,6 +153,13 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
 
   it('com versão: gera o .mrpack, confere o conteúdo e o SHA-256 do resultado', async () => {
     writePack('1.2.0');
+    // O pack está aberto: o vigia (A-05) nota a escrita por fora e avisa. O aviso fica no canto
+    // de baixo, sobre Gerar instância…; espera ele aparecer para fechar antes de clicar.
+    await expect($('.toast')).toHaveText(
+      expect.stringContaining('O pack foi alterado fora do Warden'),
+      { wait: 20_000 },
+    );
+    await dismissToasts();
     await browser.refresh();
     await $('h1=Exportar').waitForDisplayed({ timeout: 60_000 });
     await $('label*=Instância pronta para o Prism').click();
@@ -161,6 +169,7 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
 
     const out = join(OUT, 'pack-prism.mrpack');
     writeFileSync(PICK_FILE, out);
+    await dismissToasts();
     await $('button=Gerar instância…').click();
     const dialog = $('[role="dialog"]*=Instância pronta para o Prism gerada');
     await dialog.waitForDisplayed({ timeout: 120_000 });

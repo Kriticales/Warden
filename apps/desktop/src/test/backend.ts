@@ -71,6 +71,9 @@ const DEFAULTS: Record<string, Handler> = {
   cf_blocked_list: () => [],
   // O que mudou durante o teste (C-03): nenhuma captura.
   capture_get: () => null,
+  // Vigia de mudanças externas do pack aberto (A-05).
+  pack_watch_start: () => null,
+  pack_watch_stop: () => null,
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,
