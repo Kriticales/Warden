@@ -1,0 +1,61 @@
+/*
+ * Console agrupado (D-09): o visual vem de `.cgroup`, `.cline` e `.cstack` no design system
+ * (`consoleGroups` do protótipo); aqui só o que a lista virtualizada e os botões precisam.
+ */
+.cgrouped__rows {
+  position: relative;
+  width: 100%;
+}
+.cgrouped__row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.cgrouped__row > .cline {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.65;
+  color: var(--color-console-text);
+}
+.cgrouped__row > .cgroup__head {
+  border-bottom: var(--border-thin) solid var(--color-border);
+}
+.cgroup__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cline__group {
+  margin-right: var(--space-2);
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-2);
+}
+.cline__time {
+  font-family: var(--font-ui);
+  color: var(--color-console-muted);
+}
+.cstack__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 0 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--color-console-muted);
+  font-family: var(--font-ui);
+  font-size: inherit;
+  cursor: pointer;
+}
+.cstack__toggle:hover {
+  color: var(--color-text);
+}
