@@ -376,6 +376,28 @@ export const commands = {
 } | null, AppError>(__TAURI_INVOKE("prism_run", { packId, source, options })),
 	/**  "Mostrar arquivo": só aceita arquivos que `prism_run` gerou nesta sessão. */
 	prismReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("prism_reveal", { path })),
+	/**  Os perfis do teste do pack. */
+	testProfilesGet: (packId: PackId) => typedError<TestProfilesView, AppError>(__TAURI_INVOKE("test_profiles_get", { packId })),
+	/**
+	 *  "Novo perfil": cria um perfil com o nome e os ajustes dados (o diálogo manda os que estão
+	 *  na tela). O perfil novo não fica ativo. Erros: `project.INVALID_INPUT` (`field`),
+	 *  `app.TEST_PROFILE_NAME_TAKEN`, `app.TEST_PROFILE_LIMIT`.
+	 */
+	testProfileCreate: (packId: PackId, name: string, fields: ProfileFields) => typedError<TestProfile, AppError>(__TAURI_INVOKE("test_profile_create", { packId, name, fields })),
+	/**
+	 *  "Renomear". Erros: `app.TEST_PROFILE_DEFAULT_LOCKED`, `app.TEST_PROFILE_NOT_FOUND`,
+	 *  `app.TEST_PROFILE_NAME_TAKEN`, `project.INVALID_INPUT`.
+	 */
+	testProfileRename: (packId: PackId, profileId: string, name: string) => typedError<null, AppError>(__TAURI_INVOKE("test_profile_rename", { packId, profileId, name })),
+	/**
+	 *  "Apagar". Se era o ativo, o Padrão passa a ser. Erros: `app.TEST_PROFILE_DEFAULT_LOCKED`,
+	 *  `app.TEST_PROFILE_NOT_FOUND`.
+	 */
+	testProfileDelete: (packId: PackId, profileId: string) => typedError<null, AppError>(__TAURI_INVOKE("test_profile_delete", { packId, profileId })),
+	/**  Escolhe o perfil que o Testar usa (menu ▾). Erros: `app.TEST_PROFILE_NOT_FOUND`. */
+	testProfileSelect: (packId: PackId, profileId: string) => typedError<null, AppError>(__TAURI_INVOKE("test_profile_select", { packId, profileId })),
+	/**  "Salvar ajustes": grava os perfis que mudaram no diálogo e devolve como ficaram. */
+	testProfilesSave: (packId: PackId, profiles: TestProfile[]) => typedError<TestProfilesView, AppError>(__TAURI_INVOKE("test_profiles_save", { packId, profiles })),
 	/**  Monta a pré-visualização do relato. */
 	problemReportPreview: (input: ProblemReportInput) => typedError<ProblemReportPreview, AppError>(__TAURI_INVOKE("problem_report_preview", { input })),
 	/**  Abre o endereço da pré-visualização no navegador padrão. */
@@ -678,7 +700,35 @@ export type AppErrorCode =
  */
 "MANUAL_DOWNLOAD_NOT_WAITING" | 
 /**  O mod bloqueado não tem a página de download conhecida (L-06). */
-"MANUAL_DOWNLOAD_NO_PAGE";
+"MANUAL_DOWNLOAD_NO_PAGE" | 
+/**  O perfil do teste pedido não existe mais (`params.profileId`; L-08). */
+"TEST_PROFILE_NOT_FOUND" | 
+/**  Já existe um perfil do teste com esse nome (`params.name`; L-08). */
+"TEST_PROFILE_NAME_TAKEN" | 
+/**  O perfil Padrão não pode ser renomeado nem apagado (L-08). */
+"TEST_PROFILE_DEFAULT_LOCKED" | 
+/**  O pack já tem o máximo de perfis do teste (`params.max`; L-08). */
+"TEST_PROFILE_LIMIT" | 
+/**
+ *  Aviso `W_PERF_FLAGS`: argumentos do teste impedem o Warden de ler a memória do jogo
+ *  (`params.args`; ADR-0038, L-08).
+ */
+"TEST_PERF_FLAGS" | 
+/**
+ *  Aviso: a memória do teste passa de 75% da memória do computador (`params.memoryMb`,
+ *  `params.totalMb`; L-08).
+ */
+"TEST_MEMORY_ABOVE_RAM" | 
+/**
+ *  Aviso: "Entrar direto no mundo de teste" sem mundo de teste na instância; o jogo abre
+ *  no menu (L-08).
+ */
+"TEST_QUICK_PLAY_NO_WORLD" | 
+/**
+ *  Aviso: a versão do Minecraft do pack não aceita entrar direto no mundo; o jogo abre no
+ *  menu (`params.minecraft`; L-08).
+ */
+"TEST_QUICK_PLAY_UNSUPPORTED";
 
 /**  Versão e commit do app em execução. */
 export type AppInfo = {
@@ -2761,6 +2811,15 @@ export type OfferItem = {
 	unavailable: Unavailable | null,
 };
 
+/**  "Ao abrir o jogo". */
+export type OnLaunch = 
+/**  Ir para o menu principal. */
+{ mode: "menu" } | 
+/**  Entrar direto no mundo de teste (Quick Play; Minecraft 1.20 ou mais novo). */
+{ mode: "world"; 
+/**  Pasta do mundo em `saves/` (`None` = o último jogado). */
+world: string | null };
+
 /**  Evento do canal de uma operação longa (`Channel<OperationEvent>`). */
 export type OperationEvent = 
 /**  A operação começou. */
@@ -3384,6 +3443,25 @@ export type ProblemReportPreview = {
 	logLines: number,
 };
 
+/**  Os campos de um perfil, sem id nem nome. */
+export type ProfileFields = {
+	/**  Memória do teste: Automático ou valor fixo. */
+	memory: TestMemory,
+	/**  Java escolhido (`null` = Automático). */
+	java: RuntimeId | null,
+	/**  Argumentos extras da JVM, como o usuário digitou. */
+	jvmArgs: string,
+	/**
+	 *  Mods opcionais ligados (caminho do `.pw.toml` → ligado). `null` = as escolhas da
+	 *  instância (as do Padrão).
+	 */
+	optionals: { [key in string]: boolean } | null,
+	/**  Janela do jogo. */
+	window: TestWindow,
+	/**  Ao abrir o jogo. */
+	onLaunch: OnLaunch,
+};
+
 /**  Quanto já foi feito. */
 export type Progress = {
 	/**  Quantidade feita. */
@@ -3519,6 +3597,15 @@ export type ProviderRef = {
 	/**  Satisfaz por `provides`, com outro id. */
 	alias: boolean,
 };
+
+/**  Se a versão aceita entrar direto num mundo (Quick Play singleplayer). */
+export type QuickPlaySupport = 
+/**  1.20 ou mais nova (ou snapshot a partir do `23w14a`). */
+"supported" | 
+/**  Anterior à 1.20: só o menu principal. */
+"tooOld" | 
+/**  Versão que o Warden não reconhece. */
+"unknown";
 
 /**  Por que um arquivo abre só para leitura. */
 export type ReadOnlyReason = 
@@ -4052,11 +4139,33 @@ export type TestMode =
 /**  Testar como servidor (L-09). */
 "server";
 
+/**  Um perfil do teste. */
+export type TestProfile = {
+	/**  Id estável (`default` para o Padrão). */
+	id: string,
+	/**  Nome dado pelo usuário (vazio no Padrão: a interface mostra "Padrão"). */
+	name: string,
+} & ProfileFields;
+
+/**  O que o diálogo Ajustes do teste e o menu ▾ mostram dos perfis. */
+export type TestProfilesView = {
+	/**  Id do perfil ativo (o que o Testar usa). */
+	active: string,
+	/**  Os perfis, com o Padrão (`default`) primeiro. */
+	profiles: TestProfile[],
+	/**  Memória total do computador, em MB (`null` se não deu para ler). */
+	computerMemoryMb: number | null,
+	/**  Versão do Minecraft do pack (`null` se o `pack.toml` não diz). */
+	minecraft: string | null,
+	/**  Se essa versão aceita entrar direto no mundo (Quick Play, 1.20+). */
+	quickPlay: QuickPlaySupport,
+};
+
 /**  O pedido de teste. */
 export type TestRequest = {
 	/**  Modo. */
 	mode?: TestMode,
-	/**  Perfil do teste (`None` = Padrão; os perfis são da L-08). */
+	/**  Perfil do teste (id; `None` = o perfil ativo do pack, escolhido no menu ▾; L-08). */
 	profile?: string | null,
 	/**
 	 *  Substituir pela versão do pack os arquivos que mudaram na instância durante o teste
@@ -4131,6 +4240,19 @@ export type TestSettingsView = {
 	/**  Se a instância tem mundos de teste (`saves/` com algo dentro). */
 	hasWorlds: boolean,
 };
+
+/**  Tamanho da janela do jogo. */
+export type TestWindow = 
+/**  O tamanho que o jogo escolhe (854 × 480). */
+{ mode: "default" } | 
+/**  Largura e altura fixas (`--width`/`--height`). */
+{ mode: "size"; 
+/**  Largura, em pixels. */
+width: number; 
+/**  Altura, em pixels. */
+height: number } | 
+/**  Tela cheia (`--fullscreen`). */
+{ mode: "fullscreen" };
 
 /**
  *  `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
