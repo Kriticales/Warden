@@ -1,0 +1,103 @@
+# Ruído conhecido do console agrupado (ARCHITECTURE §9.8; tarefa D-09).
+#
+# Linhas que assustam mas são inofensivas: ganham o selo "comum, geralmente inofensivo" no modo
+# Agrupado por mod e não aparecem em "Só problemas". Nada disso altera o log gravado.
+#
+# Mesmo formato do catálogo de padrões (`log-patterns.toml`): embutido no binário
+# (`include_str!`) e validado pelos testes da crate (ids únicos, expressões que compilam, origem
+# e nota preenchidas, e cada regra casa com o exemplo real que traz).
+#
+# Campos de cada [[pattern]]:
+# - id: identificador estável.
+# - origin: de onde a linha veio. "L-05 <arquivo>" é um recorte real da matriz de testes
+#   (`crates/warden-launcher/tests/matrix/`, capturado no Windows em 04/10/2026; veja o
+#   `SOURCE.md` de lá); "código: <projeto> <arquivo>" é a mensagem tirada do código-fonte.
+# - note: por que é inofensiva.
+# - regex: expressão (crate `regex`) aplicada à primeira linha da mensagem, como saiu do jogo.
+# - example: uma linha real que a regra tem de reconhecer (conferido pelos testes).
+
+version = 1
+
+[[pattern]]
+id = "offline.verify_authentication"
+origin = "L-05 falhas/fab-entrar.log, falhas/forge-entrar.log"
+note = "Perfil offline: o servidor integrado não confere a conta na Mojang. Acontece em todo teste do Warden."
+regex = '^Failed to verify authentication$'
+example = "Failed to verify authentication"
+
+[[pattern]]
+id = "offline.profile_properties"
+origin = "L-05 falhas/neo-dep-faltando.log"
+note = "Perfil offline: não há propriedades (skin) da conta para buscar."
+regex = "^Couldn't look up profile properties for "
+example = "Couldn't look up profile properties for <UUID>"
+
+[[pattern]]
+id = "offline.yggdrasil_key"
+origin = "L-05 falhas/neo-dep-faltando.log"
+note = "Perfil offline: sem a chave pública de assinatura de chat, que só existe com conta online."
+regex = '^Failed to request yggdrasil public key'
+example = "Failed to request yggdrasil public key"
+
+[[pattern]]
+id = "sound.missing_event"
+origin = "L-05 falhas/fab-entrar.log, falhas/neo-entrar.log, falhas/forge-entrar.log"
+note = "Som registrado sem arquivo no pacote de sons (a própria Mojang deixa alguns, como o do chifre de cabra). O jogo só não toca aquele som."
+regex = '^Missing sound for event: '
+example = "Missing sound for event: minecraft:item.goat_horn.play"
+
+[[pattern]]
+id = "windows.pdh_counter"
+origin = "L-05 falhas/fab-entrar.log, falhas/neo-entrar.log"
+note = "A biblioteca OSHI não achou um contador de desempenho do Windows usado só no relatório do sistema."
+regex = '^Failed to add PDH Counter: '
+example = 'Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8'
+
+[[pattern]]
+id = "forge.library_without_mods_toml"
+origin = "L-05 falhas/forge-entrar.log"
+note = "As bibliotecas do próprio Forge (fmlcore, javafmllanguage…) não são mods e não têm mods.toml."
+regex = '^Mod file .*(?:fmlcore|javafmllanguage|lowcodelanguage|mclanguage)-[^ ]+\.jar is missing mods\.toml file'
+example = 'Mod file <DADOS>\shared\libraries\net\minecraftforge\fmlcore\1.20.1-47.4.10\fmlcore-1.20.1-47.4.10.jar is missing mods.toml file'
+
+[[pattern]]
+id = "forge.config_key_corrected"
+origin = "L-05 falhas/forge-entrar.log"
+note = "Config nova, criada agora: o Forge preenche as chaves que faltam com o valor padrão."
+regex = '^Incorrect key \S+ was corrected from null to its default'
+example = "Incorrect key server.removeErroringBlockEntities was corrected from null to its default, false. "
+
+[[pattern]]
+id = "java.prefer_ipv6_property"
+origin = "L-05 falhas/forge-entrar.log"
+note = "Aviso do Netty sobre uma propriedade do Java vazia; ele usa o padrão."
+regex = "^Unable to parse the boolean system property 'java\\.net\\.preferIPv6Addresses'"
+example = "Unable to parse the boolean system property 'java.net.preferIPv6Addresses':system - using the default value: false"
+
+[[pattern]]
+id = "forge.splash_properties"
+origin = "L-05 mecanismos/forge-1.7.10-falso-crash-report-splash.log"
+note = "O Forge 1.7.10 não conseguiu gravar a preferência da tela de carregamento; não afeta o jogo."
+regex = '^Could not save the splash\.properties file'
+example = "Could not save the splash.properties file"
+
+[[pattern]]
+id = "fml.missing_english_translation"
+origin = "L-05 mecanismos/forge-1.12.2-servidor-pergunta-mundo-sem-mod.log"
+note = "O FML procura um arquivo de tradução que ele mesmo não traz."
+regex = '^Missing English translation for FML'
+example = "Missing English translation for FML: assets/fml/lang/en_us.lang"
+
+[[pattern]]
+id = "mixin.refmap_not_read"
+origin = "L-05 falhas/neo-duplicado.log"
+note = "O mod não traz o refmap porque não precisa dele nesta versão; o próprio Mixin diz que pode ser ignorado."
+regex = "^Reference map '[^']+' for \\S+ could not be read"
+example = "Reference map 'comforts.refmap.json' for comforts.mixins.json could not be read. If this is a development environment you can ignore this message"
+
+[[pattern]]
+id = "modlauncher.error_loading_optional_class"
+origin = "L-05 falhas/neo-memoria.log, falhas/neo-dep-versao.log"
+note = "Um mod procura a classe de outro mod opcional (compatibilidade); sem o outro mod, a classe não existe e o mod segue sem a integração."
+regex = '^Error loading class: \S+ \(java\.lang\.ClassNotFoundException: '
+example = "Error loading class: vectorwing/farmersdelight/common/block/TomatoBlock (java.lang.ClassNotFoundException: vectorwing.farmersdelight.common.block.TomatoBlock)"

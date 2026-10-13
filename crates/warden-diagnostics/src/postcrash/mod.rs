@@ -23,7 +23,7 @@ mod analyze;
 mod catalog;
 mod collect;
 mod context;
-mod stack;
+pub(crate) mod stack;
 mod text;
 
 use std::path::Path;
