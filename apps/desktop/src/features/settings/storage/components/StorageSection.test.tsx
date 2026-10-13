@@ -17,6 +17,8 @@ const GB = 1024 * MB;
 function usage(overrides: Partial<StorageUsage> = {}): StorageUsage {
   return {
     cache: Math.round(1.8 * GB),
+    // O banco de metadados (que fica) é o resto do cache.
+    clearable: Math.round(1.7 * GB),
     minecraft: Math.round(2.4 * GB),
     javas: 610 * MB,
     instances: Math.round(3.1 * GB),
@@ -97,8 +99,8 @@ describe('Configurações → Armazenamento (T21, A-06)', () => {
     const backend = mockBackend({
       storage_usage: () => current,
       storage_clear_cache: (): CacheCleared => {
-        current = usage({ cache: 64 * 1024 });
-        return { freed: Math.round(1.8 * GB), skipped: 0 };
+        current = usage({ cache: 64 * 1024, clearable: 0 });
+        return { freed: Math.round(1.7 * GB), skipped: 0 };
       },
     });
     renderWithProviders(<StorageSection />);
@@ -107,11 +109,11 @@ describe('Configurações → Armazenamento (T21, A-06)', () => {
     const dialog = await screen.findByRole('alertdialog', { name: 'Limpar o cache?' });
     expect(
       within(dialog).getByText(
-        'Apaga os arquivos baixados guardados e os temporários (1,8 GB). Instâncias de teste, mundos, Javas, arquivos do Minecraft e os seus packs ficam. O próximo teste baixa de novo só o que faltar.',
+        'Apaga os arquivos baixados guardados e os temporários (1,7 GB). Instâncias de teste, mundos, Javas, arquivos do Minecraft e os seus packs ficam. O próximo teste baixa de novo só o que faltar.',
       ),
     ).toBeDefined();
     await user.click(within(dialog).getByRole('button', { name: 'Limpar cache' }));
-    expect(await screen.findByText('Cache limpo: 1,8 GB liberados.')).toBeDefined();
+    expect(await screen.findByText('Cache limpo: 1,7 GB liberados.')).toBeDefined();
     await waitFor(() => {
       expect(values()['Cache de downloads']).toBe('64,0 KB');
     });

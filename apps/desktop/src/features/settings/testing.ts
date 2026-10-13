@@ -83,7 +83,7 @@ export function mockSettingsBackend(
     secrets_test: () => ({ status: 'valid' }),
     logs_reveal_folder: () => null,
     // Armazenamento (A-06): nada baixado ainda.
-    storage_usage: () => ({ cache: 0, minecraft: 0, javas: 0, instances: 0 }),
+    storage_usage: () => ({ cache: 0, clearable: 0, minecraft: 0, javas: 0, instances: 0 }),
     ...handlers,
   });
   return Object.assign(backend, { state });

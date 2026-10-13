@@ -48,7 +48,7 @@ export function StorageSection() {
       ) : (
         <UsageList usage={usage.data ?? null} />
       )}
-      <ClearCache cacheBytes={usage.data?.cache ?? null} />
+      <ClearCache cacheBytes={usage.data?.clearable ?? null} />
     </SettingsPanel>
   );
 }
@@ -84,6 +84,7 @@ function useBlockedReason(): string | null {
   return null;
 }
 
+/** `cacheBytes`: o que a limpeza apaga (o banco de metadados, aberto pelo app, fica). */
 function ClearCache({ cacheBytes }: { cacheBytes: number | null }) {
   const { t } = useTranslation('armazenamento');
   const hintId = useId();

@@ -4020,6 +4020,8 @@ export type SourceWarningReason =
 export type StorageUsage = {
 	/**  Cache (`cache/`): downloads, cache do packwiz e temporários. "Limpar cache" apaga. */
 	cache: number,
+	/**  A parte do cache que "Limpar cache" apaga (sem o banco de metadados, que fica). */
+	clearable: number,
 	/**  Arquivos do Minecraft e dos loaders (`shared/`, sem os Javas). */
 	minecraft: number,
 	/**  Javas instalados pelo Warden (`shared/runtimes/`). */

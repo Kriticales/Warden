@@ -43,6 +43,9 @@ pub(crate) struct StorageUsage {
     /// Cache (`cache/`): downloads, cache do packwiz e temporários. "Limpar cache" apaga.
     #[specta(type = specta_typescript::Number)]
     pub(crate) cache: u64,
+    /// A parte do cache que "Limpar cache" apaga (sem o banco de metadados, que fica).
+    #[specta(type = specta_typescript::Number)]
+    pub(crate) clearable: u64,
     /// Arquivos do Minecraft e dos loaders (`shared/`, sem os Javas).
     #[specta(type = specta_typescript::Number)]
     pub(crate) minecraft: u64,
@@ -174,8 +177,16 @@ fn measure(dirs: &UsageDirs) -> StorageUsage {
         let minecraft = scope.spawn(|| dir_size(&dirs.shared, Some(&dirs.runtimes)));
         let javas = scope.spawn(|| dir_size(&dirs.runtimes, None));
         let instances = scope.spawn(|| dir_size(&dirs.instances, None));
+        let cache = cache.join().unwrap_or(0);
+        let kept: u64 = KEPT_IN_CACHE
+            .iter()
+            .filter_map(|name| std::fs::symlink_metadata(dirs.cache.join(name)).ok())
+            .filter(std::fs::Metadata::is_file)
+            .map(|metadata| metadata.len())
+            .sum();
         StorageUsage {
-            cache: cache.join().unwrap_or(0),
+            cache,
+            clearable: cache.saturating_sub(kept),
             minecraft: minecraft.join().unwrap_or(0),
             javas: javas.join().unwrap_or(0),
             instances: instances.join().unwrap_or(0),
@@ -382,6 +393,7 @@ mod tests {
             usage,
             StorageUsage {
                 cache: metadata + 1_253,
+                clearable: 1_253,
                 minecraft: 27_512,
                 javas: 49_000,
                 instances: 6_244,
@@ -410,6 +422,7 @@ mod tests {
             measure(&UsageDirs::of(&paths)),
             StorageUsage {
                 cache: 0,
+                clearable: 0,
                 minecraft: 0,
                 javas: 0,
                 instances: 0,
@@ -458,6 +471,8 @@ mod tests {
             "só o banco de metadados, aberto pelo app, fica"
         );
         assert_eq!(before.cache - after.cache, cleared.freed);
+        assert_eq!(before.clearable, cleared.freed, "a confirmação mostra o que sai");
+        assert_eq!(after.clearable, 0);
         assert_eq!(after.instances, before.instances);
         assert_eq!(after.javas, before.javas);
         assert_eq!(after.minecraft, before.minecraft);
