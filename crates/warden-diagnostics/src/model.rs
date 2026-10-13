@@ -119,11 +119,15 @@ pub enum ItemRef {
 }
 
 /// Lado escolhido numa correção de lado.
+///
+/// O tipo se chama `FindingSide` porque o `SideChoice` da `warden-project` (o "Alterar lado" da
+/// lista de Mods) já usa esse nome no `bindings.ts` (D-03); [`SideChoice`] continua valendo
+/// aqui dentro.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, specta::Type,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum SideChoice {
+pub enum FindingSide {
     /// Só cliente.
     Client,
     /// Só servidor.
@@ -131,6 +135,9 @@ pub enum SideChoice {
     /// Cliente e servidor.
     Both,
 }
+
+/// Nome antigo de [`FindingSide`].
+pub type SideChoice = FindingSide;
 
 /// Correção sugerida. Nunca tem efeito sozinha: a interface leva aos fluxos normais, com
 /// confirmação (SPEC T14).

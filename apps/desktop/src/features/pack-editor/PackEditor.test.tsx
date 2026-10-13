@@ -86,11 +86,11 @@ describe('pack aberto (T05)', () => {
     const mods = within(sectionMenu()).getByRole('link', { name: /Mods/ });
     expect(mods.getAttribute('aria-current')).toBe('page');
     // Mods tem o contador de itens; as seções ainda sem página aparecem indisponíveis (Configs,
-    // Exportar e Histórico já têm página, C-02, E-01 e V-02). O Histórico conta as alterações
-    // não salvas.
+    // Problemas, Exportar e Histórico já têm página, C-02, D-03, E-01 e V-02; falta a da IA). O
+    // Histórico conta as alterações não salvas.
     expect(within(mods).getByLabelText('4 itens')).toBeDefined();
     expect(within(sectionMenu()).getByLabelText('5 alterações não salvas')).toBeDefined();
-    expect(sectionMenu().querySelectorAll('[aria-disabled="true"]')).toHaveLength(2);
+    expect(sectionMenu().querySelectorAll('[aria-disabled="true"]')).toHaveLength(1);
 
     const { container } = { container: document.body };
     expect(await axePage(container)).toHaveNoViolations();

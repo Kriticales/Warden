@@ -22,8 +22,8 @@ pub mod redact;
 
 pub use error::{DiagnosticsError, DiagnosticsErrorCode, Result};
 pub use model::{
-    Evidence, Finding, ItemRef, MAX_EXCERPT_CHARS, RuleCode, Severity, SideChoice, Source,
-    SuggestedFix,
+    Evidence, Finding, FindingSide, ItemRef, MAX_EXCERPT_CHARS, RuleCode, Severity, SideChoice,
+    Source, SuggestedFix,
 };
 pub use postcrash::{
     Analysis, AnalysisContext, AnalyzedSource, LogLoader, LogSource, PostCrashFinding,

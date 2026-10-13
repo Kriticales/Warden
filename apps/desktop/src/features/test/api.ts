@@ -12,6 +12,7 @@ import { queryKeys } from '../../lib/ipc/keys';
 import { commandQuery, useCommandMutation } from '../../lib/ipc/query';
 import { unwrap } from '../../lib/ipc/result';
 import { log } from '../../lib/log';
+import { diagnosticsKeys } from '../diagnostics/api';
 import { isActive, useTestStore } from './store';
 
 /** Tipo da operação do teste (`OperationKind` no Rust). */
@@ -73,10 +74,14 @@ export function useOpenArtifact(packId: PackId) {
   );
 }
 
-/** Depois que um teste termina, a lista de sessões e a linha do pack (último teste) mudam. */
+/**
+ * Depois que um teste termina, a lista de sessões, a linha do pack (último teste) e o relatório
+ * do diagnóstico (o pré-teste grava um novo: contador de Problemas e marcas em Mods; D-03) mudam.
+ */
 export function invalidateAfterTest(queryClient: QueryClient, packId: PackId): Promise<void> {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: testKeys.sessions(packId) }),
+    queryClient.invalidateQueries({ queryKey: diagnosticsKeys.report(packId) }),
     queryClient.invalidateQueries({ queryKey: ['packs'] }),
     queryClient.invalidateQueries({ queryKey: [...queryKeys.pack(packId), 'testSettings'] }),
   ]).then(() => undefined);

@@ -107,6 +107,9 @@ pub(crate) struct TestRequest {
     /// Substituir pela versão do pack os arquivos que mudaram na instância durante o teste
     /// anterior (resposta ao `app.TEST_INSTANCE_CHANGED`).
     pub(crate) replace_instance_changes: bool,
+    /// "Testar mesmo assim": testar apesar dos erros do pré-teste (resposta ao
+    /// `app.TEST_PACK_HAS_ERRORS`, D-03).
+    pub(crate) ignore_pack_errors: bool,
 }
 
 /// O teste ativo.
@@ -447,12 +450,14 @@ impl Runner<'_> {
 
     fn hook_context<'b>(&'b self, pack_root: &'b Path, dirs: &'b InstanceDirs) -> HookContext<'b> {
         HookContext {
+            state: self.state,
             paths: &self.state.paths,
             pack_id: self.pack_id,
             pack_root,
             dirs,
             mode: self.request.mode,
             operation: self.handle,
+            ignore_pack_errors: self.request.ignore_pack_errors,
         }
     }
 

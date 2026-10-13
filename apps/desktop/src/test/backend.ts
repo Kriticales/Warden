@@ -65,6 +65,8 @@ const DEFAULTS: Record<string, Handler> = {
   test_game_state: () => null,
   test_sessions_list: () => [],
   test_live_console: () => [],
+  // Diagnóstico (D-03): o pack nunca foi verificado.
+  diagnostics_report_get: () => null,
   // Downloads manuais da CurseForge (L-06): nenhum esperando.
   cf_blocked_list: () => [],
   // O que mudou durante o teste (C-03): nenhuma captura.

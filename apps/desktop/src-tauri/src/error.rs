@@ -289,6 +289,11 @@ pub enum AppErrorCode {
     /// falta de internet (`params.count`, `params.names`, `params.more`; a lista completa vai
     /// nos detalhes técnicos). SPEC T13: sem internet, a mensagem diz exatamente o que falta.
     TestGameFilesMissing,
+    /// O pré-teste achou erros que podem impedir o jogo de abrir (D-03). `params`: `count`
+    /// (erros que valem, sem os ignorados) e `step` (`check`: "Verificar o pack"; `final`:
+    /// "Verificação final"). Os achados ficam no último relatório (`diagnostics_report_get`);
+    /// "Testar mesmo assim" repete o pedido com `ignorePackErrors`.
+    TestPackHasErrors,
     /// O download manual pedido não está mais na lista (o teste foi cancelado ou já
     /// continuou; L-06).
     ManualDownloadNotWaiting,

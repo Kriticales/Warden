@@ -44,6 +44,7 @@ import {
   type TestRun,
 } from './store';
 import { PrepareView, RunningView } from './views/LiveViews';
+import { PackErrorsView } from './verification/PackErrorsView';
 import { ResultView } from './views/ResultView';
 import { SessionsTable } from './views/SessionsTable';
 import './test.css';
@@ -212,6 +213,10 @@ function FailedView({
   const reveal = useRevealInstance(packId);
   const navigate = useNavigate();
   const code = `${error.code.domain}.${error.code.code}`;
+
+  if (code === 'app.TEST_PACK_HAS_ERRORS') {
+    return <PackErrorsView packId={packId} error={error} request={run.request} onRetry={onRetry} />;
+  }
 
   if (code === 'app.TEST_CAPTURE_PENDING') {
     return (

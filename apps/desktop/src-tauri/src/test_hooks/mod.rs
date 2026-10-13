@@ -13,7 +13,8 @@
 //!   `session.json`.
 //!
 //! Erro num gancho `before_*` interrompe o teste com esse erro (o diálogo com Corrigir e Testar
-//! mesmo assim é da D-03). Erro no `after_exit` não perde a sessão: vira aviso.
+//! mesmo assim é da D-03: com "Testar mesmo assim", o pedido chega com
+//! [`HookContext::ignore_pack_errors`]). Erro no `after_exit` não perde a sessão: vira aviso.
 //!
 //! **Registro acréscimo-apenas** (ROADMAP §1): cada tarefa declara o seu módulo
 //! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10) e
@@ -21,6 +22,7 @@
 //! pode guardar o estado do teste em andamento.
 
 mod capture;
+mod diagnostics;
 mod perf;
 
 pub(crate) use perf::session_perf;
@@ -40,11 +42,14 @@ use warden_launcher::session::SessionRecord;
 use crate::error::AppError;
 use crate::events::OperationEvent;
 use crate::operations::OperationHandle;
+use crate::state::AppState;
 use crate::test_session::TestMode;
 
 /// O teste em andamento, como os ganchos o veem.
 #[allow(dead_code)] // lidos pelos ganchos das tarefas donas (D-03, C-03)
 pub(crate) struct HookContext<'a> {
+    /// O estado do app (serviços, pastas, cofre).
+    pub(crate) state: &'a AppState,
     /// As pastas do app (dados locais, cache).
     pub(crate) paths: &'a AppPaths,
     /// O pack.
@@ -57,6 +62,8 @@ pub(crate) struct HookContext<'a> {
     pub(crate) mode: TestMode,
     /// A operação do teste: etapas, progresso, avisos e cancelamento.
     pub(crate) operation: &'a OperationHandle,
+    /// "Testar mesmo assim": os erros do pré-teste não interrompem o teste (D-03).
+    pub(crate) ignore_pack_errors: bool,
 }
 
 /// O jogo que acabou de abrir.
@@ -128,6 +135,8 @@ pub(crate) trait TestHooks: Send + Sync {
 /// Os ganchos registrados, na ordem em que rodam. Uma linha por tarefa.
 pub(crate) fn registered() -> Vec<Arc<dyn TestHooks>> {
     vec![
+        // D-03: pré-teste (rápido) e verificação final; "Por que travou" no fim.
+        Arc::new(diagnostics::DiagnosticsHooks),
         // C-03: linha de base antes de abrir o jogo e o que mudou durante o teste.
         Arc::new(capture::CaptureHooks),
         // L-10: RAM do processo e tempos até carregar e entrar no mundo.
@@ -142,7 +151,7 @@ mod tests {
     #[test]
     fn ganchos_registrados_em_ordem() {
         let names: Vec<&str> = registered().iter().map(|hook| hook.name()).collect();
-        assert_eq!(names, ["capture", "perf"]);
+        assert_eq!(names, ["diagnostics", "capture", "perf"]);
     }
 
     #[test]

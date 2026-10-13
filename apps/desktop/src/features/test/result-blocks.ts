@@ -10,8 +10,8 @@ import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
 import { CaptureBlock } from '../capture/CaptureBlock';
+import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PerfSummary } from './perf-strip/PerfStrip';
-import { WhyCrashed } from './views/WhyCrashed';
 
 export interface ResultBlockProps {
   packId: PackId;

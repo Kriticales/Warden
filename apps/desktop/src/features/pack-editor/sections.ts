@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 
 import type { PackId } from '../../lib/ipc/bindings';
+import { useProblemsCount } from '../diagnostics/count';
 import { useUnsavedCount } from '../versioning/count';
 import { useModsCount } from './mods/count';
 
@@ -72,6 +73,7 @@ export const sectionPages: readonly SectionPage[] = [
   { section: 'historico', to: '/packs/$packId/historico', useCount: useUnsavedCount },
   { section: 'configs', to: '/packs/$packId/configs' },
   { section: 'exportar', to: '/packs/$packId/exportar' },
+  { section: 'problemas', to: '/packs/$packId/problemas', useCount: useProblemsCount },
 ];
 
 /** A página registrada de uma seção, se houver. */

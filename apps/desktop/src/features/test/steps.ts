@@ -22,6 +22,12 @@ export interface TestStep {
 /** Registro acréscimo-apenas: uma linha por etapa. */
 export const testSteps: readonly TestStep[] = [
   {
+    id: 'check',
+    order: 100,
+    labelKey: 'diagnostico:etapas.verificar',
+    matches: (stage) => stage === 'test.check',
+  },
+  {
     id: 'prepare',
     order: 200,
     labelKey: 'teste:etapas.preparar',
@@ -33,6 +39,12 @@ export const testSteps: readonly TestStep[] = [
     order: 300,
     labelKey: 'teste:etapas.copiar',
     matches: (stage) => stage === 'syncPack',
+  },
+  {
+    id: 'final-check',
+    order: 400,
+    labelKey: 'diagnostico:etapas.final',
+    matches: (stage) => stage === 'test.finalCheck',
   },
   {
     id: 'launch',
