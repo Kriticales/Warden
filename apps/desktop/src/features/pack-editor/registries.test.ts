@@ -57,12 +57,13 @@ describe('seções do pack (sections.ts)', () => {
 });
 
 describe('cabeçalho do pack (header/slots.ts)', () => {
-  it('a P1-08 registra Salvar versão e Testar (ações) e o aviso de higiene; a C-03, as mudanças do teste para revisar; a L-04, o aviso do pack mudado no teste', () => {
+  it('a P1-08 registra Salvar versão e Testar (ações) e o aviso de higiene; a C-03, as mudanças do teste para revisar; a L-04, o aviso do pack mudado no teste; a V-03, os diálogos do Publicar versão', () => {
     expect(slotsFor('actions').map((slot) => slot.id)).toEqual(['save', 'test']);
     expect(slotsFor('alerts').map((slot) => slot.id)).toEqual([
       'hygiene',
       'capture-review',
       'test-pack-changed',
+      'publish',
     ]);
     const ids = headerSlots.map((slot) => slot.id);
     expect(new Set(ids).size).toBe(ids.length);

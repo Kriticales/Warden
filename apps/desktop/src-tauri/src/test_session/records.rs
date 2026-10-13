@@ -41,15 +41,21 @@ pub(crate) struct PackTree {
 ///
 /// Erros: disco (o `pack.toml` ou o índice não puderam ser lidos).
 pub(crate) fn pack_tree_hash(root: &Path, index_file: &str) -> std::io::Result<String> {
+    let pack = std::fs::read(root.join("pack.toml"))?;
+    let index = std::fs::read(root.join(index_file))?;
+    Ok(pack_tree_hash_of(&pack, index_file, &index))
+}
+
+/// [`pack_tree_hash`] a partir dos bytes (a publicação, V-03, calcula o da versão salva).
+pub(crate) fn pack_tree_hash_of(pack: &[u8], index_file: &str, index: &[u8]) -> String {
     let mut hasher = Sha256::new();
-    for name in ["pack.toml", index_file] {
-        let bytes = std::fs::read(root.join(name))?;
+    for (name, bytes) in [("pack.toml", pack), (index_file, index)] {
         hasher.update(name.as_bytes());
         hasher.update([0]);
         hasher.update(u64::try_from(bytes.len()).unwrap_or(u64::MAX).to_le_bytes());
-        hasher.update(&bytes);
+        hasher.update(bytes);
     }
-    Ok(format!("sha256:{}", hex::encode(hasher.finalize())))
+    format!("sha256:{}", hex::encode(hasher.finalize()))
 }
 
 /// A assinatura do perfil do teste (gancho 1.1).

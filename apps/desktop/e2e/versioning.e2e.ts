@@ -260,7 +260,8 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await item.waitForDisplayed({ timeout: 30_000 });
     await expect(item).toHaveText(expect.stringContaining('Versão final · não publicada'));
     await expect(item).toHaveText(expect.stringContaining('Primeira versão do Vale'));
-    await expect(item.$('button*=Publicar versão 1.0.0')).toHaveAttribute('aria-disabled', 'true');
+    // Publicar (V-03) fica disponível na versão final; o E2E da publicação cobre o fluxo.
+    await expect(item.$('button*=Publicar versão 1.0.0')).toBeEnabled();
     await expect($('main')).toHaveText(expect.stringContaining('Nada mudou desde a versão 1.0.0.'));
     await expect($('header.packhead')).not.toHaveText(expect.stringMatching(/\d+\s+alterações/));
     await screenshot('43-historico');

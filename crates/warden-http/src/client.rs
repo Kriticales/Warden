@@ -125,6 +125,19 @@ impl HttpClient {
         Ok(request)
     }
 
+    /// `POST` com corpo binário e o `Content-Type` dado (o envio de versões pelo protocolo
+    /// "smart HTTP" do git, V-03). Não é repetido sozinho.
+    #[must_use]
+    pub fn post_bytes(&self, url: Url, content_type: &'static str, body: Vec<u8>) -> Request {
+        let mut request = Request::new(self.clone(), Method::POST, url);
+        request.idempotent = false;
+        request.body = Some(body);
+        request
+            .headers
+            .insert(CONTENT_TYPE, HeaderValue::from_static(content_type));
+        request
+    }
+
     /// Segue os redirecionamentos de `url` com `HEAD` e **sem** `Range`, e devolve o endereço
     /// final. Usado antes de pedir partes de um arquivo: o `edge.forgecdn.net` responde 404 a
     /// um `GET` com `Range`, mas redireciona normalmente sem ele. Servidor que recusa `HEAD`
@@ -226,6 +239,14 @@ impl Request {
     #[must_use]
     pub fn cancel(mut self, token: &CancellationToken) -> Self {
         self.cancel = Some(token.clone());
+        self
+    }
+
+    /// Troca o tempo total da requisição (`None`: sem limite total, só o de leitura). Para
+    /// envios grandes, que passam dos 30 s das chamadas de API.
+    #[must_use]
+    pub fn total_timeout(mut self, timeout: Option<Duration>) -> Self {
+        self.timeout = timeout;
         self
     }
 

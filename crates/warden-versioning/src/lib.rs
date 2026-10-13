@@ -24,9 +24,12 @@
 //! Rust; nada é instalado. Nenhuma configuração global de fim de linha vale nos repositórios
 //! criados pelo Warden (`core.autocrlf = false`); o `.gitattributes` do pack manda.
 //!
+//! - Publicação no GitHub ([`publish`], [`github`]; V-03): linha de publicação própria,
+//!   envio protegido pelo protocolo "smart HTTP" do git e Release pela API REST.
+//!
 //! Limites: esta crate só toca no repositório e, na restauração, nos arquivos do pack que a
 //! versão de destino define. Gravar `pack.toml` e `CHANGELOG.md` é da `PackTransaction`
-//! (P1-07/V-02); publicar no GitHub é da V-03. As operações são bloqueantes (a `warden-app`
+//! (P1-07/V-02). As operações são bloqueantes (a `warden-app`
 //! as chama em `spawn_blocking`) e esperam a trava de escrita do pack (ARCHITECTURE §15).
 
 // A libgit2 compilada com o MSVC declara as funções com `__declspec(dllexport)`, e o linker
@@ -36,7 +39,9 @@
 pub mod changelog;
 mod changes;
 mod error;
+pub mod github;
 mod moment;
+pub mod publish;
 mod repo;
 mod restore;
 mod safety;

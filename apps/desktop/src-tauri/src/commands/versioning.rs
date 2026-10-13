@@ -77,7 +77,7 @@ where
 
 /// Agora, no fuso do computador (que a interface informa; `utc_offset_minutes` é o
 /// deslocamento em relação ao UTC, positivo a leste).
-fn moment_now(utc_offset_minutes: i32) -> Result<Moment, AppError> {
+pub(crate) fn moment_now(utc_offset_minutes: i32) -> Result<Moment, AppError> {
     if !(-MAX_UTC_OFFSET_MINUTES..=MAX_UTC_OFFSET_MINUTES).contains(&utc_offset_minutes) {
         return Err(invalid("utcOffsetMinutes"));
     }
@@ -185,7 +185,7 @@ async fn worldgen_projects(client: &ModrinthClient, changes: &ChangeSet) -> Hash
 
 /// O que mudou entre dois estados do pack, com as versões dos itens do Modrinth em nome
 /// legível (`1.4.2`) e as demais pelo nome do arquivo.
-async fn changes_between(
+pub(crate) async fn changes_between(
     modrinth: Option<&ModrinthClient>,
     root: &Path,
     old: Snapshot,

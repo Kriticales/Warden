@@ -12,6 +12,7 @@ import {
   makeMeta,
   makeTestSettingsView,
 } from './editor.fixtures';
+import { makeGithubStatus } from '../github/github.fixtures';
 
 export interface EditorBackendOptions {
   pack?: Partial<PackRow>;
@@ -25,6 +26,8 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
     packs_list: () => [row],
     pack_get: () => row,
     pack_hygiene_scan: () => [],
+    // Publicação (V-03): pack ainda não publicado.
+    github_status: () => makeGithubStatus(),
     inventory_list: () => inventory ?? makeInventory(),
     pack_meta_get: () =>
       makeMeta({

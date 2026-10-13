@@ -88,9 +88,9 @@ describe('Histórico (T17)', () => {
     const final = within(item('1.4.2'));
     expect(final.getByText('Versão final · não publicada')).toBeDefined();
     expect(final.getByText('1 atualizado')).toBeDefined();
-    // Publicar é da V-03: o botão existe, indisponível, com o motivo na dica.
+    // Publicar (V-03): o botão da versão final está disponível.
     const publish = final.getByRole('button', { name: 'Publicar versão 1.4.2' });
-    expect(publish.getAttribute('aria-disabled')).toBe('true');
+    expect(publish.getAttribute('aria-disabled')).toBeNull();
     expect(final.getByRole('button', { name: 'Desmarcar versão final' })).toBeDefined();
     // A versão mais nova, com o pack igual a ela, não oferece voltar para si mesma.
     expect(final.queryByRole('button', { name: 'Voltar para a versão 1.4.2' })).toBeNull();
@@ -113,7 +113,9 @@ describe('Histórico (T17)', () => {
   it('o espaço da publicação explica como os jogadores recebem, sem publicar nada', async () => {
     await openHistory(threeVersions());
     const panel = screen.getByRole('region', { name: 'Publicação para os jogadores' });
-    expect(panel.textContent).toContain('Este pack ainda não foi publicado.');
+    await waitFor(() => {
+      expect(panel.textContent).toContain('Este pack ainda não foi publicado.');
+    });
   });
 
   it('alterações não salvas: lista o que mudou e abre Salvar versão', async () => {
@@ -544,7 +546,7 @@ describe('Salvar versão (T16)', () => {
     await waitSavable(dialog, '1.5.0');
   });
 
-  it('salvar como versão final envia o pedido, avisa e oferece Publicar versão (indisponível)', async () => {
+  it('salvar como versão final envia o pedido, avisa e oferece Publicar versão', async () => {
     // Como no backend de verdade: depois de salvar, a prévia passa a dizer que nada mudou, e o
     // aviso de próximos passos aparece mesmo assim.
     let saved = false;
@@ -580,12 +582,18 @@ describe('Salvar versão (T16)', () => {
       within(notice)
         .getByRole('button', { name: 'Publicar versão 1.5.0' })
         .getAttribute('aria-disabled'),
-    ).toBe('true');
+    ).toBeNull();
     expect(
       within(notice).getByRole('link', { name: 'Exportar arquivo' }).getAttribute('href'),
     ).toContain('/exportar');
     // O "Fechar" do rodapé e o ✕ do canto.
     expect(within(notice).getAllByRole('button', { name: 'Fechar' })).toHaveLength(2);
+    // Publicar (V-03) fecha o aviso e abre a publicação no lugar dele.
+    await user.click(within(notice).getByRole('button', { name: 'Publicar versão 1.5.0' }));
+    await screen.findByRole('dialog', { name: 'Primeira publicação deste pack' });
+    expect(
+      screen.queryByRole('dialog', { name: 'Versão 1.5.0 salva como versão final' }),
+    ).toBeNull();
   });
 
   it('salvar sem marcar como final não oferece Publicar versão', async () => {

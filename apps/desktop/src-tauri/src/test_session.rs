@@ -49,7 +49,9 @@ use warden_launcher::{
 pub(crate) use self::console::{ConsoleBuffer, read_output_log};
 pub use self::console::{ConsoleLevel, ConsoleLine, ConsoleOrigin, ConsoleStream};
 pub(crate) use self::launch_plan::{choose_memory, launch_options};
-pub(crate) use self::records::{TestSessionSummary, last_test_value, pack_tree_hash};
+pub(crate) use self::records::{
+    TestSessionSummary, last_test_value, pack_tree_hash, pack_tree_hash_of,
+};
 
 use self::fake::FakeGame;
 use self::launch_plan::{JAVA8_WARN_ABOVE_MB, PlanInput};

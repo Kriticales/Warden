@@ -410,7 +410,9 @@ function SavedNotice({
             <Icon icon={Package} />
             <span>{t('salva.exportar')}</span>
           </Link>
-          {version.isFinal ? <Publish packId={packId} version={version.version} size="md" /> : null}
+          {version.isFinal ? (
+            <Publish packId={packId} version={version.version} size="md" onOpen={onClose} />
+          ) : null}
         </>
       }
     >
