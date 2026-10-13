@@ -122,6 +122,9 @@ export const config: WebdriverIO.Config = {
     // Relatar problema (UI-02): o endereço que abriria no navegador vai para este arquivo.
     const openUrlFile = join(dataRoot, 'endereco-aberto.txt');
     process.env.WARDEN_E2E_OPEN_URL = openUrlFile;
+    // Relatar problema (UI-03): o print copiado também vai para este arquivo (PAM).
+    const captureFile = join(dataRoot, 'print-da-janela.pam');
+    process.env.WARDEN_E2E_CAPTURE_FILE = captureFile;
     // Adicionar arquivo local (P1-11): o diálogo nativo de arquivos lê daqui (um por linha).
     const pickFiles = join(dataRoot, 'arquivos-escolhidos.txt');
     process.env.WARDEN_E2E_PICK_FILES = pickFiles;
@@ -145,6 +148,7 @@ export const config: WebdriverIO.Config = {
       WARDEN_API_BASE_CURSEFORGE: `${mockServer.url}/curseforge/`,
       WARDEN_E2E_SAVE_FILE: saveFile,
       WARDEN_E2E_OPEN_URL: openUrlFile,
+      WARDEN_E2E_CAPTURE_FILE: captureFile,
       WARDEN_E2E_PICK_FILES: pickFiles,
       // GitHub (V-03): API, servidor git e `raw.githubusercontent.com` simulados.
       WARDEN_API_BASE_GITHUB: `${mockServer.url}/github/api/`,

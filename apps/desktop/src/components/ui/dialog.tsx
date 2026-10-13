@@ -34,6 +34,10 @@ export interface DialogContentProps {
   footerSplit?: boolean;
   /** Para onde o foco volta ao fechar quando nada estava focado ao abrir. */
   returnFocusTo?: () => HTMLElement | null;
+  /** Conteúdo à direita do título, antes do ✕ (um atalho, por exemplo). */
+  aside?: ReactNode;
+  /** Classe extra do fundo escurecido (`.scrim`), que contém o diálogo. */
+  overlayClassName?: string;
   children?: ReactNode;
 }
 
@@ -50,14 +54,23 @@ export function DialogContent({
   footer,
   footerSplit = false,
   returnFocusTo,
+  aside,
+  overlayClassName,
   children,
 }: DialogContentProps) {
   const { t } = useTranslation();
   const titleRef = useRef<HTMLHeadingElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const close = (
+    <DialogPrimitive.Close asChild>
+      <Button variant="ghost" size="sm" iconOnly icon={X}>
+        {t('acoes.fechar')}
+      </Button>
+    </DialogPrimitive.Close>
+  );
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="scrim">
+      <DialogPrimitive.Overlay className={cn('scrim', overlayClassName)}>
         <DialogPrimitive.Content
           className={cn('dialog', size !== 'md' && `dialog--${size}`)}
           // Sem descrição, o Radix pede `aria-describedby` explícito (vazio).
@@ -88,11 +101,14 @@ export function DialogContent({
                 </DialogPrimitive.Description>
               ) : null}
             </div>
-            <DialogPrimitive.Close asChild>
-              <Button variant="ghost" size="sm" iconOnly icon={X}>
-                {t('acoes.fechar')}
-              </Button>
-            </DialogPrimitive.Close>
+            {aside ? (
+              <div className="row">
+                {aside}
+                {close}
+              </div>
+            ) : (
+              close
+            )}
           </div>
           <div className="dialog__body">{children}</div>
           {footer ? (

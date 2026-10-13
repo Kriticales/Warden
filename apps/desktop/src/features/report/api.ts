@@ -1,12 +1,13 @@
 /**
- * Comandos do relato (UI-02): a pré-visualização (montada e redigida no Rust) e a abertura no
- * navegador do endereço que a pré-visualização mostrou.
+ * Comandos do relato (UI-02 e UI-03): a pré-visualização (montada e redigida no Rust), o print
+ * da janela e a abertura no navegador do endereço que a pré-visualização mostrou.
  */
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { commands, type ProblemReportInput } from '../../lib/ipc/bindings';
 import { useCommandMutation } from '../../lib/ipc/query';
 import { unwrap } from '../../lib/ipc/result';
+import { log } from '../../lib/log';
 
 export const reportKeys = {
   preview: (input: ProblemReportInput) => ['app', 'problemReport', input] as const,
@@ -29,4 +30,18 @@ export function useReportPreview(input: ProblemReportInput) {
 /** Abre o endereço da pré-visualização no navegador padrão. */
 export function useOpenReport() {
   return useCommandMutation((url: string) => commands.problemReportOpen(url));
+}
+
+/**
+ * Copia para a área de transferência um print só da janela do Warden (UI-03). Quem chama
+ * esconde o diálogo antes. Devolve `false` (e registra o motivo) se o print não saiu.
+ */
+export async function copyWindowScreenshot(): Promise<boolean> {
+  try {
+    unwrap(await commands.problemReportCapture());
+    return true;
+  } catch (cause) {
+    log.warn('relato: o print da janela não foi copiado', cause);
+    return false;
+  }
 }

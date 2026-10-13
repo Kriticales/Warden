@@ -36,6 +36,11 @@ allow = [
   # bzip2-1.0.6 (permissiva, estilo BSD): `libbz2-rs-sys`, via `zip` 6 do `portablemc` (L-02,
   # ADR-0057), que lê os instaladores do Forge/NeoForge.
   "bzip2-1.0.6",
+  # BSL-1.0 (Boost; permissiva, sem exigência de aviso no binário): `clipboard-win` e
+  # `error-code`, da `arboard` no Windows, pelo `tauri-plugin-clipboard-manager` (UI-03).
+  # Registrada em THIRD_PARTY.md. Fica nesta lista, e não numa exceção por crate, porque o
+  # `cargo xtask notices` (A-02) passa ao `cargo-about` só as licenças desta lista.
+  "BSL-1.0",
 ]
 confidence-threshold = 0.9
 

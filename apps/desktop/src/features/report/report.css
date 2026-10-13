@@ -1,6 +1,160 @@
-/* "Relatar problema" (UI-02). Mesma regra do design system: só tokens. */
-.report__textarea {
-  min-height: calc(var(--spacing) * 16);
+/* "Relatar problema" (UI-02; redesenho da UI-03). Mesma regra do design system: só tokens. */
+.report__flag {
+  color: var(--color-primary-text);
+}
+.report__shortcut {
+  display: inline-flex;
+  align-items: center;
+}
+/* Enquanto o print é tirado, o diálogo e o fundo escurecido somem da janela. */
+.report-scrim--capturing {
+  visibility: hidden;
+}
+
+/* Categoria: cinco blocos de rádio (a aparência do `.choice`, em coluna). */
+.report__categories {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.report__category-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+@media (max-width: 720px) {
+  .report__category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.report__category {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-thin) solid var(--color-border-strong);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  cursor: pointer;
+}
+.report__category:hover {
+  border-color: var(--color-border-control);
+  background: var(--color-surface-3);
+}
+.report__category:has(input:checked) {
+  border-color: var(--color-primary-line);
+  background: var(--color-primary-soft);
+  box-shadow: inset 0 calc(-1 * var(--border-block)) 0 var(--color-primary);
+  color: var(--color-primary-text);
+}
+.report__category:has(input:focus-visible) {
+  outline: var(--border-block) solid var(--color-focus);
+  outline-offset: 2px;
+}
+.report__category-name {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+.report__category-desc {
+  color: var(--color-text-3);
+  font-size: var(--text-xs);
+  line-height: 1.3;
+}
+
+.report__description {
+  min-height: calc(var(--spacing) * 28);
+}
+.report__count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.report__new {
+  margin-left: var(--space-1);
+}
+
+/* Os três passos do envio. */
+.report__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--border-thin) solid var(--color-border);
+  background: var(--color-surface-2);
+}
+.report__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+}
+.report__steps li + li {
+  border-left: var(--border-thin) solid var(--color-border);
+}
+@media (max-width: 720px) {
+  .report__steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .report__steps li + li {
+    border-top: var(--border-thin) solid var(--color-border);
+    border-left: 0;
+  }
+}
+.report__step-number {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: calc(var(--spacing) * 5.5);
+  height: calc(var(--spacing) * 5.5);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 var(--border-thin) var(--color-primary-press);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Rodapé: o aviso de repositório público, pequeno, à esquerda. */
+.report__public {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 46ch;
+}
+.report__public .icon {
+  color: var(--color-warn-text);
+}
+
+/* Recolhidos: o coletado e a pré-visualização. */
+.report__collected dd {
+  color: var(--color-text-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.report__preview {
+  padding: var(--space-3) var(--space-4);
+}
+.report__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.report__gh-label {
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid var(--color-border-strong);
+  background: var(--color-surface-3);
+  color: var(--color-text-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
 }
 /* Rótulo e valor em pares, dentro da grade do `.kv`. */
 .report__kv {
@@ -13,6 +167,7 @@
   margin-bottom: calc(-1 * var(--space-1));
 }
 .report__title {
+  font-weight: var(--font-weight-bold);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

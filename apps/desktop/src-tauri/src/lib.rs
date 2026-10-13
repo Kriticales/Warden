@@ -76,6 +76,9 @@ pub fn run() -> Result<(), tauri::Error> {
         )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        // Print da janela no "Relatar problema" (UI-03); só o Rust usa (sem permissão na
+        // interface).
+        .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(builder.invoke_handler())
         // Fechar o Warden com um jogo aberto pergunta antes (L-04, CA-T13-07); arquivos soltos
         // sobre a janela vão para "Adicionar arquivo local" (P1-11).
