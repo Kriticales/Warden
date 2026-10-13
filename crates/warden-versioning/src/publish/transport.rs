@@ -83,9 +83,18 @@ fn protocol_error(text: impl Into<String>) -> Error {
     Error::Internal(format!("protocolo git: {}", text.into()))
 }
 
-/// Lê o anúncio de referências de `info/refs`: nome → id.
-pub(crate) fn parse_advertisement(body: &[u8]) -> Result<BTreeMap<String, Oid>> {
-    let mut refs = BTreeMap::new();
+/// O anúncio de `info/refs`: as referências do servidor e se ele aceita o envio atômico.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub(crate) struct Advertisement {
+    /// Nome → id.
+    pub(crate) refs: BTreeMap<String, Oid>,
+    /// O servidor anuncia `atomic`: todas as referências do envio mudam juntas, ou nenhuma.
+    pub(crate) atomic: bool,
+}
+
+/// Lê o anúncio de referências de `info/refs`.
+pub(crate) fn parse_advertisement(body: &[u8]) -> Result<Advertisement> {
+    let mut advertisement = Advertisement::default();
     let mut started = false;
     for line in read_pkt_lines(body)? {
         let Some(line) = line else {
@@ -99,7 +108,11 @@ pub(crate) fn parse_advertisement(body: &[u8]) -> Result<BTreeMap<String, Oid>> 
             continue;
         }
         let text = String::from_utf8_lossy(&line);
-        let text = text.split('\0').next().unwrap_or_default().trim_end();
+        let mut parts = text.split('\0');
+        let text = parts.next().unwrap_or_default().trim_end();
+        if let Some(capabilities) = parts.next() {
+            advertisement.atomic |= capabilities.split_whitespace().any(|cap| cap == "atomic");
+        }
         let Some((id, name)) = text.split_once(' ') else {
             return Err(protocol_error(format!("referência malformada: {text}")));
         };
@@ -107,13 +120,14 @@ pub(crate) fn parse_advertisement(body: &[u8]) -> Result<BTreeMap<String, Oid>> 
             continue;
         }
         let oid = Oid::from_str(id).map_err(|_| protocol_error(format!("id inválido: {id}")))?;
-        refs.insert(name.to_owned(), oid);
+        advertisement.refs.insert(name.to_owned(), oid);
     }
-    Ok(refs)
+    Ok(advertisement)
 }
 
-/// Corpo do `POST git-receive-pack`: os comandos, o `flush` e o pacote.
-pub(crate) fn receive_pack_request(updates: &[RefUpdate], pack: &[u8]) -> Vec<u8> {
+/// Corpo do `POST git-receive-pack`: os comandos, o `flush` e o pacote. Com `atomic`, o
+/// servidor aplica todas as referências ou nenhuma (a tag nunca entra sem a `main`).
+pub(crate) fn receive_pack_request(updates: &[RefUpdate], pack: &[u8], atomic: bool) -> Vec<u8> {
     let mut body = Vec::new();
     for (i, update) in updates.iter().enumerate() {
         let old = update
@@ -121,7 +135,11 @@ pub(crate) fn receive_pack_request(updates: &[RefUpdate], pack: &[u8]) -> Vec<u8
             .map_or_else(|| ZERO.to_owned(), |oid| oid.to_string());
         let mut line = format!("{old} {} {}", update.new, update.name);
         if i == 0 {
-            line.push_str("\0report-status agent=warden");
+            line.push_str(if atomic {
+                "\0report-status atomic agent=warden"
+            } else {
+                "\0report-status agent=warden"
+            });
         }
         line.push('\n');
         pkt_line(&mut body, line.as_bytes());
@@ -194,11 +212,12 @@ impl<'a> GitRemote<'a> {
             })
     }
 
-    /// As referências do servidor (`refs/heads/main`, `refs/tags/v1.0.0`…).
+    /// As referências do servidor (`refs/heads/main`, `refs/tags/v1.0.0`…) e as capacidades
+    /// que importam.
     ///
     /// Erros: [`Error::GithubTokenRejected`], [`Error::GithubPermissionMissing`] (envio),
     /// [`Error::GithubRepoNotFound`], [`Error::GithubOffline`].
-    pub(crate) async fn refs(&self, cancel: &CancellationToken) -> Result<BTreeMap<String, Oid>> {
+    pub(crate) async fn advertisement(&self, cancel: &CancellationToken) -> Result<Advertisement> {
         const ACTION: &str = "ler o repositório no GitHub";
         let url = self.endpoint("info/refs?service=git-receive-pack")?;
         let request = self.auth(self.client.http().get(url))?.cancel(cancel);
@@ -211,19 +230,20 @@ impl<'a> GitRemote<'a> {
     }
 
     /// Envia o pacote e atualiza as referências, cada uma só se o valor antigo ainda for o
-    /// do servidor.
+    /// do servidor (todas juntas quando o servidor aceita `atomic`).
     ///
     /// Erros: [`Error::RemoteDiverged`] se alguma referência mudou no servidor;
-    /// [`Error::PushRejected`] para outra recusa; os de [`GitRemote::refs`].
+    /// [`Error::PushRejected`] para outra recusa; os de [`GitRemote::advertisement`].
     pub(crate) async fn push(
         &self,
         updates: &[RefUpdate],
         pack: &[u8],
+        atomic: bool,
         cancel: &CancellationToken,
     ) -> Result<()> {
         const ACTION: &str = "enviar a versão";
         let url = self.endpoint("git-receive-pack")?;
-        let body = receive_pack_request(updates, pack);
+        let body = receive_pack_request(updates, pack, atomic);
         let request = self
             .client
             .http()
@@ -239,33 +259,29 @@ impl<'a> GitRemote<'a> {
                 http_error(error, ACTION, GithubPermission::Push, Some(self.repo))
             })?;
         let report = parse_report(&response)?;
-        for update in updates {
-            match report.get(&update.name) {
-                Some(Ok(())) => {}
-                Some(Err(reason))
-                    if reason.contains("stale")
-                        || reason.contains("fetch first")
-                        || reason.contains("non-fast-forward")
-                        || reason.contains("failed to lock")
-                        || reason.contains("already exists") =>
-                {
-                    return Err(Error::RemoteDiverged {
-                        repo: self.repo.full_name(),
-                    });
-                }
-                Some(Err(reason)) => {
-                    return Err(Error::PushRejected {
-                        reason: format!("{}: {reason}", update.name),
-                    });
-                }
-                None => {
-                    return Err(Error::PushRejected {
-                        reason: format!("{}: sem resposta do servidor", update.name),
-                    });
-                }
-            }
+        let refused = updates
+            .iter()
+            .find_map(|update| match report.get(&update.name) {
+                Some(Ok(())) => None,
+                Some(Err(reason)) => Some(format!("{}: {reason}", update.name)),
+                None => Some(format!("{}: sem resposta do servidor", update.name)),
+            });
+        let Some(reason) = refused else {
+            return Ok(());
+        };
+        // O motivo da recusa é texto livre do servidor (o `git-receive-pack` diz só "failed
+        // to update ref" ou "atomic transaction failed"): a divergência se confere relendo as
+        // referências.
+        let now = self.advertisement(cancel).await?.refs;
+        if updates
+            .iter()
+            .any(|update| now.get(&update.name).copied() != update.old)
+        {
+            return Err(Error::RemoteDiverged {
+                repo: self.repo.full_name(),
+            });
         }
-        Ok(())
+        Err(Error::PushRejected { reason })
     }
 }
 
@@ -298,7 +314,9 @@ mod tests {
             format!("{ZERO} capabilities^{{}}\0report-status ofs-delta\n").as_bytes(),
         );
         body.extend_from_slice(b"0000");
-        assert!(parse_advertisement(&body).unwrap().is_empty());
+        let empty = parse_advertisement(&body).unwrap();
+        assert!(empty.refs.is_empty());
+        assert!(!empty.atomic);
 
         let id = "1111111111111111111111111111111111111111";
         let mut body = Vec::new();
@@ -306,11 +324,13 @@ mod tests {
         body.extend_from_slice(b"0000");
         pkt_line(
             &mut body,
-            format!("{id} refs/heads/main\0report-status\n").as_bytes(),
+            format!("{id} refs/heads/main\0report-status atomic ofs-delta\n").as_bytes(),
         );
         pkt_line(&mut body, format!("{id} refs/tags/v1.0.0\n").as_bytes());
         body.extend_from_slice(b"0000");
-        let refs = parse_advertisement(&body).unwrap();
+        let advertisement = parse_advertisement(&body).unwrap();
+        assert!(advertisement.atomic);
+        let refs = advertisement.refs;
         assert_eq!(refs.len(), 2);
         assert_eq!(refs["refs/heads/main"].to_string(), id);
     }
@@ -333,9 +353,12 @@ mod tests {
                 },
             ],
             b"PACK",
+            true,
         );
         let text = String::from_utf8_lossy(&body);
-        assert!(text.contains(&format!("{old} {new} refs/heads/main\0report-status")));
+        assert!(text.contains(&format!(
+            "{old} {new} refs/heads/main\0report-status atomic agent=warden"
+        )));
         assert!(text.contains(&format!("{ZERO} {new} refs/tags/v1.0.0\n")));
         assert_eq!(text.matches("report-status").count(), 1);
         assert!(text.ends_with("0000PACK"));

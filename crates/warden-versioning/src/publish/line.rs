@@ -67,6 +67,26 @@ pub struct PreparedPublication {
     pub notes: String,
 }
 
+/// Nome e notas da Release de uma publicação: o título do commit e a mensagem da tag (vazia
+/// quando a tag só repete o título, como em [`PackRepo::prepare_publication`]).
+fn release_text(commit: &git2::Commit<'_>, tag: &git2::Tag<'_>) -> (String, String) {
+    let name = commit
+        .summary()
+        .ok()
+        .flatten()
+        .unwrap_or_default()
+        .to_owned();
+    let message = String::from_utf8_lossy(tag.message_bytes().unwrap_or_default())
+        .trim_end()
+        .to_owned();
+    let body = if message == name {
+        String::new()
+    } else {
+        message
+    };
+    (name, body)
+}
+
 /// Pedido de publicação de uma versão final.
 #[derive(Debug, Clone, Copy)]
 pub struct PublishRequest<'a> {
@@ -390,25 +410,50 @@ impl PackRepo {
             .ctx("ler a publicação")?
             .into_tag()
             .map_err(|_| Error::Internal("publicação sem tag anotada".into()))?;
-        let name = tag
+        let commit = tag
             .target()
             .ctx("ler a publicação")?
             .peel_to_commit()
-            .ctx("ler a publicação")?
-            .summary()
-            .ok()
-            .flatten()
-            .unwrap_or_default()
-            .to_owned();
-        let message = String::from_utf8_lossy(tag.message_bytes().unwrap_or_default())
-            .trim_end()
-            .to_owned();
-        let body = if message == name {
-            String::new()
-        } else {
-            message
+            .ctx("ler a publicação")?;
+        Ok(release_text(&commit, &tag))
+    }
+
+    /// A publicação de `version` que um envio anterior deixou no GitHub sem que ela fosse
+    /// registrada aqui (o servidor aceitou, mas a resposta se perdeu no caminho): a `main` do
+    /// GitHub é um commit montado aqui sobre a ponta da linha, e a tag da versão lá é a tag
+    /// anotada daqui que aponta para ele. Nesse caso não há o que enviar de novo; basta
+    /// registrar a publicação e criar a Release.
+    ///
+    /// Erros: falhas do git.
+    pub(crate) fn unrecorded_publication(
+        &self,
+        version: &Version,
+        remote_main: Option<Oid>,
+        remote_tag: Option<Oid>,
+    ) -> Result<Option<PreparedPublication>> {
+        let (Some(main), Some(tag)) = (remote_main, remote_tag) else {
+            return Ok(None);
         };
-        Ok((name, body))
+        let (Ok(tag), Ok(commit)) = (self.repo.find_tag(tag), self.repo.find_commit(main)) else {
+            return Ok(None);
+        };
+        let parent = self.publish_line_tip()?;
+        let parents: Vec<Oid> = commit.parent_ids().collect();
+        if tag.target_id() != main
+            || tag.name().ok() != Some(tag_name(version).as_str())
+            || parents != parent.into_iter().collect::<Vec<_>>()
+        {
+            return Ok(None);
+        }
+        let (release_name, notes) = release_text(&commit, &tag);
+        Ok(Some(PreparedPublication {
+            version: version.clone(),
+            commit: main,
+            tag: tag.id(),
+            parent,
+            release_name,
+            notes,
+        }))
     }
 
     /// Conteúdo de um arquivo num commit.

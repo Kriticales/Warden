@@ -489,6 +489,78 @@ async fn divergencia_bloqueia_e_a_substituicao_so_vale_para_o_commit_visto() {
 }
 
 #[tokio::test]
+async fn main_que_muda_durante_o_envio_vira_divergencia_e_nada_e_registrado() {
+    let ctx = Ctx::new().await;
+    ctx.pack.write("config/a.toml", b"a = 1\n");
+    save(&ctx.repo(), &ctx.pack, "1.0.0", 10, true);
+    ctx.publish("1.0.0", "").await.unwrap();
+    ctx.pack.write("config/a.toml", b"a = 2\n");
+    save(&ctx.repo(), &ctx.pack, "1.1.0", 20, true);
+
+    // A main muda entre a leitura das referências e o envio: o servidor recusa a troca.
+    ctx.github.state.lock().unwrap().race_main = true;
+    let error = ctx.publish("1.1.0", "").await.unwrap_err();
+    assert!(matches!(error, Error::RemoteDiverged { .. }), "{error:?}");
+    assert_eq!(ctx.github.main_log(&ctx.repo_ref)[0], "Editado no site");
+    assert!(
+        !ctx.github
+            .refs(&ctx.repo_ref)
+            .contains_key("refs/tags/v1.1.0"),
+        "a tag da versão também não entra"
+    );
+    assert!(!ctx.repo().versions().unwrap()[0].is_published);
+    assert_eq!(ctx.github.releases().len(), 1);
+}
+
+#[tokio::test]
+async fn envio_que_chegou_mas_perdeu_a_resposta_e_registrado_ao_repetir_sem_duplicar() {
+    let ctx = Ctx::new().await;
+    ctx.pack.write("config/a.toml", b"a = 1\n");
+    save(&ctx.repo(), &ctx.pack, "1.0.0", 10, true);
+    ctx.publish("1.0.0", "Primeira.").await.unwrap();
+    ctx.pack.write("config/a.toml", b"a = 2\n");
+    save(&ctx.repo(), &ctx.pack, "1.1.0", 20, true);
+
+    ctx.github.state.lock().unwrap().lose_push_response = true;
+    let error = ctx.publish("1.1.0", "Segunda.").await.unwrap_err();
+    assert!(matches!(error, Error::GithubFailed { .. }), "{error:?}");
+    let refs = ctx.github.refs(&ctx.repo_ref);
+    assert!(
+        refs.contains_key("refs/tags/v1.1.0"),
+        "o servidor aplicou o envio"
+    );
+    assert!(
+        !ctx.repo().versions().unwrap()[0].is_published,
+        "aqui não registrou"
+    );
+
+    // Repetir não acusa divergência nem envia outra vez: registra e cria a Release.
+    let published = ctx.publish("1.1.0", "Segunda.").await.unwrap();
+    assert_eq!(published.notes, "Segunda.");
+    assert_eq!(ctx.github.refs(&ctx.repo_ref), refs, "nada enviado de novo");
+    assert_eq!(
+        ctx.github.main_log(&ctx.repo_ref),
+        vec!["Vale Sereno 1.1.0", "Vale Sereno 1.0.0"]
+    );
+    let releases = ctx.github.releases();
+    assert_eq!(releases.len(), 2);
+    assert_eq!(releases[1].name, "Vale Sereno 1.1.0");
+    assert_eq!(releases[1].body, "Segunda.");
+    let repo = ctx.repo();
+    assert!(repo.versions().unwrap()[0].is_published);
+    assert_eq!(
+        repo.publish_line_tip().unwrap().unwrap().to_string(),
+        refs["refs/heads/main"]
+    );
+    assert!(
+        repo.published_versions()
+            .unwrap()
+            .iter()
+            .all(|v| !v.release_pending)
+    );
+}
+
+#[tokio::test]
 async fn repositorio_existente_com_conteudo_e_divergencia_na_primeira_publicacao() {
     let ctx = Ctx::new().await;
     let bare = ctx.github.bare(&ctx.repo_ref);
