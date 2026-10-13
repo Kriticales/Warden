@@ -114,7 +114,6 @@ export const packs = {
   },
   criar: {
     titulo: 'Criar pack',
-    onde: 'Criar pack',
     etapas: 'Etapas de criar pack',
     etapa: {
       nome: 'Nome e pasta',
@@ -130,6 +129,12 @@ export const packs = {
     criar: 'Criar pack',
     criando: 'Criando pack…',
     feito: '“{{name}}” criado.',
+    descartar: {
+      titulo: 'Descartar o pack novo?',
+      texto: 'O que você preencheu no assistente se perde. Nada foi gravado no disco ainda.',
+      confirmar: 'Descartar pack novo',
+      continuar: 'Continuar criando',
+    },
     nome: {
       rotulo: 'Nome do pack',
       dica: 'De 1 a 64 caracteres. Vira o nome da pasta.',
@@ -170,9 +175,11 @@ export const packs = {
     },
     loader: {
       legenda: 'Loader',
-      disponiveis: 'Só aparecem os loaders que existem para o Minecraft {{mc}}.',
+      disponiveis:
+        'Só aparecem os loaders que existem para o Minecraft {{mc}}. O recomendado é o melhor deles nesta versão: NeoForge, depois Forge, depois Fabric.',
       carregando: 'Consultando os loaders para o Minecraft {{mc}}…',
-      recomendada: 'Recomendada',
+      recomendado: 'Recomendado',
+      indicadaPeloForge: 'indicada pelo Forge',
       instavel: 'instável',
       outraVersao: 'Escolher outra versão do {{loader}}',
       versaoRotulo: 'Versão do {{loader}}',
@@ -203,10 +210,7 @@ export const packs = {
   },
   abrir: {
     titulo: 'Abrir pack',
-    onde: 'Abrir ou importar',
     sub: 'Pasta packwiz em {{path}}',
-    semPasta: 'Escolha a pasta de um pack packwiz (a pasta que tem o pack.toml).',
-    escolherPasta: 'Escolher pasta…',
     escolherOutra: 'Escolher outra pasta',
     lendo: 'Lendo o pack',
     lendoMeta: 'pack.toml, index.toml e os arquivos da pasta',
@@ -284,7 +288,6 @@ export const packs = {
     link: 'link simbólico (o packwiz não segue)',
   },
   pack: {
-    voltar: 'Meus packs',
     sub: 'Minecraft {{mc}} · {{loader}}',
     limpar_one: 'Limpar {{count}} arquivo',
     limpar_other: 'Limpar {{count}} arquivos',

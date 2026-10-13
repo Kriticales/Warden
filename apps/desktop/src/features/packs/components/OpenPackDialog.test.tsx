@@ -53,16 +53,17 @@ function openBackend(preview: ImportPreview | Handler, extra: Record<string, Han
   });
 }
 
+/** Meus packs com o diálogo Abrir pack da pasta escolhida (D38). */
 function renderOpen() {
-  return renderApp(`/packs/abrir?pasta=${encodeURIComponent(FOLDER)}`);
+  return renderApp(`/packs?pasta=${encodeURIComponent(FOLDER)}`);
 }
 
 const WRITES = ['pack_import', 'pack_hygiene_fix', 'pack_create', 'pack_relocate'];
 
-describe('Abrir pack (T04)', () => {
+describe('Abrir pack (T04), em diálogo sobre Meus packs', () => {
   it('mostra o pack, o loader suportado e a higiene com tamanho e motivo; passa no axe', async () => {
     const backend = openBackend(makeImportPreview({ hygiene: DIRTY }));
-    const { container } = renderOpen();
+    renderOpen();
     expect(await screen.findByText('Meu pack antigo', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText(`Pasta packwiz em ${FOLDER}`)).toBeDefined();
     expect(screen.getByText('Minecraft 1.20.1 · NeoForge')).toBeDefined();
@@ -82,7 +83,7 @@ describe('Abrir pack (T04)', () => {
     expect(backend.callsOf('pack_import_preview')[0]?.args).toEqual({ path: FOLDER });
     // Verificar não escreve nada.
     expect(backend.calls.filter((call) => WRITES.includes(call.command))).toEqual([]);
-    expect(await axePage(container)).toHaveNoViolations();
+    expect(await axePage(document.body)).toHaveNoViolations();
   });
 
   it('CA-T04-01 (interface): "Limpar" registra o pack e limpa os três marcados', async () => {
@@ -145,7 +146,7 @@ describe('Abrir pack (T04)', () => {
         ),
       ),
     );
-    const { container } = renderOpen();
+    renderOpen();
     expect(
       await screen.findByText('Este pack usa Quilt, que o Warden ainda não suporta.'),
     ).toBeDefined();
@@ -156,7 +157,7 @@ describe('Abrir pack (T04)', () => {
     ).toBeDefined();
     expect(screen.getByRole('button', { name: 'Escolher outra pasta' })).toBeDefined();
     expect(backend.calls.filter((call) => WRITES.includes(call.command))).toEqual([]);
-    expect(await axePage(container)).toHaveNoViolations();
+    expect(await axePage(document.body)).toHaveNoViolations();
   });
 
   it('mais de um loader e pasta sem pack.toml têm frases próprias', async () => {
@@ -272,12 +273,32 @@ describe('Abrir pack (T04)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Meu pack antigo' })).toBeDefined();
   });
 
-  it('sem pasta escolhida, oferece escolher', async () => {
-    mockBackend();
-    renderApp('/packs/abrir');
+  it('abre como diálogo por cima de Meus packs; Cancelar fecha sem escrever nada', async () => {
+    const user = userEvent.setup();
+    const backend = openBackend(makeImportPreview({ hygiene: DIRTY }));
+    renderOpen();
+    const dialog = await screen.findByRole('dialog', { name: 'Abrir pack' });
+    // Meus packs continua embaixo.
     expect(
-      await screen.findByText('Escolha a pasta de um pack packwiz (a pasta que tem o pack.toml).'),
+      await screen.findByRole('heading', { level: 1, name: 'Meus packs', hidden: true }),
     ).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Escolher pasta…' })).toBeDefined();
+    await within(dialog).findByText('Meu pack antigo');
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    expect(screen.getByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
+    expect(backend.calls.filter((call) => WRITES.includes(call.command))).toEqual([]);
+  });
+
+  it('Esc fecha o diálogo', async () => {
+    const user = userEvent.setup();
+    openBackend(makeImportPreview());
+    renderOpen();
+    await screen.findByRole('dialog', { name: 'Abrir pack' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
   });
 });

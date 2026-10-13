@@ -38,7 +38,7 @@ export function MinecraftStep({ value, onChange }: MinecraftStepProps) {
 
   if (versions.isPending) {
     return (
-      <div className="wizard__body">
+      <div className="newpack__step">
         <ProgressBar value={null} label={t('criar.minecraft.carregando')} />
       </div>
     );
@@ -87,7 +87,7 @@ function VersionList({
   const releases = data.versions.filter((version) => version.kind === 'release');
   const shown = needle === '' ? releases : releases.filter((v) => v.id.includes(needle));
   return (
-    <div className="wizard__body">
+    <div className="newpack__step">
       {data.freshness.offline ? (
         <Alert
           kind="info"

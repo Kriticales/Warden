@@ -58,7 +58,7 @@ export function InitialModsStep({ minecraft, loader, choice, onChange }: Initial
 
   if (loader === null) {
     return (
-      <div className="wizard__body--wide stack">
+      <div className="newpack__step stack">
         <Alert kind="info" title={t('semLoader.titulo')}>
           <p>{t('semLoader.texto')}</p>
         </Alert>
@@ -68,7 +68,7 @@ export function InitialModsStep({ minecraft, loader, choice, onChange }: Initial
 
   const current = choice ?? NO_INITIAL;
   return (
-    <div className="wizard__body--wide stack">
+    <div className="newpack__step stack">
       <p className="t-sm t-2">{t('intro')}</p>
       {offer.isPending ? (
         <LoadingState label={t('carregando')} />

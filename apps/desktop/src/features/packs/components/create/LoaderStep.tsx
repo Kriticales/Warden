@@ -1,9 +1,11 @@
 /**
- * Etapa 3, "Loader" (T03): Forge, NeoForge, Fabric ou Nenhum (vanilla). Só aparecem os
+ * Etapa 3, "Loader" (T03): NeoForge, Forge, Fabric, Quilt (desabilitado, com o motivo) e
+ * Nenhum (vanilla), nesta ordem, do melhor para o pior (decisão D39 do dono). Só aparecem os
  * loaders que existem para a versão escolhida (lista vazia no catálogo = o loader não existe;
- * CA-T03-03). A versão vem pré-selecionada pelo catálogo (Forge "recomendada", NeoForge e
- * Fabric a estável mais nova); "Escolher outra versão" mostra a lista completa. Quilt aparece
- * desabilitado, com o motivo.
+ * CA-T03-03). O primeiro que existe ganha a etiqueta "Recomendado" e vem marcado. A versão do
+ * loader vem pré-selecionada pelo catálogo (a indicada pelo Forge, a estável mais nova do
+ * NeoForge e do Fabric); "Escolher outra versão" mostra a lista completa, e só ali aparece qual
+ * versão o Forge indica.
  */
 import { useQueries } from '@tanstack/react-query';
 import { useEffect, useId, useState } from 'react';
@@ -16,7 +18,8 @@ import type { Loader, LoaderVersions } from '../../../../lib/ipc/bindings';
 import { loaderVersionsQuery } from '../../api';
 import { loaderName } from '../../lib/pack-list';
 
-const LOADERS: readonly Loader[] = ['forge', 'neoforge', 'fabric'];
+/** Do melhor para o pior (D39): o primeiro que existe na versão é o recomendado. */
+const LOADERS: readonly Loader[] = ['neoforge', 'forge', 'fabric'];
 
 export interface LoaderStepProps {
   minecraft: string;
@@ -46,7 +49,8 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
   });
   const available = LOADERS.filter((key) => lists.has(key));
 
-  // Ao chegar na etapa, marca o primeiro loader que existe (ou vanilla, se nenhum existir).
+  // Ao chegar na etapa, marca o recomendado: o primeiro loader que existe, na ordem do dono
+  // (ou vanilla, se nenhum existir).
   const first = available[0];
   const firstList = first ? lists.get(first) : undefined;
   const failed = results.some((result) => result.isError);
@@ -63,7 +67,7 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
   };
 
   return (
-    <div className="wizard__body--wide">
+    <div className="newpack__step">
       <p className="t-sm t-2 mb-3">{t('criar.loader.disponiveis', { mc: minecraft })}</p>
       <fieldset className="fieldset-bare" aria-busy={pending || undefined}>
         <legend className="sr-only">{t('criar.loader.legenda')}</legend>
@@ -94,6 +98,7 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
                 name={name}
                 loader={key}
                 list={list}
+                recommended={key === first && !pending && !failed}
                 checked={loader === key}
                 version={loader === key ? version : null}
                 onSelect={() => {
@@ -107,19 +112,19 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
           })}
           <SimpleChoice
             name={name}
+            title={t('criar.loader.quilt')}
+            desc={t('criar.loader.quiltDesc')}
+            checked={false}
+            disabled
+          />
+          <SimpleChoice
+            name={name}
             title={t('criar.loader.vanilla')}
             desc={t('criar.loader.vanillaDesc')}
             checked={loader === null && ready}
             onSelect={() => {
               choose(null);
             }}
-          />
-          <SimpleChoice
-            name={name}
-            title={t('criar.loader.quilt')}
-            desc={t('criar.loader.quiltDesc')}
-            checked={false}
-            disabled
           />
         </div>
       </fieldset>
@@ -189,6 +194,7 @@ function LoaderChoice({
   name,
   loader,
   list,
+  recommended,
   checked,
   version,
   onSelect,
@@ -197,6 +203,8 @@ function LoaderChoice({
   name: string;
   loader: Loader;
   list: LoaderVersions;
+  /** O melhor loader que existe nesta versão do Minecraft (D39). */
+  recommended: boolean;
   checked: boolean;
   version: string | null;
   onSelect: () => void;
@@ -206,7 +214,6 @@ function LoaderChoice({
   const [picking, setPicking] = useState(false);
   const selectId = useId();
   const shownVersion = version ?? defaultVersion(list);
-  const entry = list.versions.find((item) => item.version === shownVersion);
   return (
     <div className="choice choice--split">
       <span className="check">
@@ -222,8 +229,8 @@ function LoaderChoice({
         <label htmlFor={`${selectId}-radio`} className="block">
           <span className="choice__title">{loaderName(loader)}</span>{' '}
           <span className="t-mono t-sm t-2">{shownVersion}</span>{' '}
-          {entry?.recommended ? (
-            <span className="tag tag--ok">{t('criar.loader.recomendada')}</span>
+          {recommended ? (
+            <span className="tag tag--ok">{t('criar.loader.recomendado')}</span>
           ) : null}
           <span className="choice__desc block">{t(`criar.loader.${loader}`)}</span>
         </label>
@@ -244,7 +251,7 @@ function LoaderChoice({
                 {list.versions.map((item) => (
                   <option key={item.version} value={item.version}>
                     {item.version}
-                    {item.recommended ? ` · ${t('criar.loader.recomendada')}` : ''}
+                    {item.recommended ? ` · ${t('criar.loader.indicadaPeloForge')}` : ''}
                     {item.stable ? '' : ` · ${t('criar.loader.instavel')}`}
                   </option>
                 ))}

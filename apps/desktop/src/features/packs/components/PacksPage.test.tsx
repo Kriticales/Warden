@@ -47,6 +47,12 @@ describe('Meus packs (T02)', () => {
     ).toBeDefined();
     expect(screen.getByRole('button', { name: 'Criar pack' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Abrir ou importar…' })).toBeDefined();
+    // Centralizado na tela, numa coluna larga (relato do dono, issue #1).
+    const empty = screen
+      .getByRole('heading', { name: 'Você ainda não tem packs' })
+      .closest('.empty');
+    expect(empty?.classList.contains('empty--center')).toBe(true);
+    expect(empty?.parentElement?.classList.contains('content--wide')).toBe(true);
     expect(await axePage(container)).toHaveNoViolations();
   });
 
@@ -333,8 +339,8 @@ describe('Meus packs (T02)', () => {
     // Espera a lista chegar: enquanto ela é lida, o botão é o do cabeçalho.
     await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
     await user.click(screen.getByRole('button', { name: 'Abrir ou importar…' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Abrir pack' })).toBeDefined();
-    expect(await screen.findByText('Meu pack antigo')).toBeDefined();
+    const dialog = await screen.findByRole('dialog', { name: 'Abrir pack' });
+    expect(await within(dialog).findByText('Meu pack antigo')).toBeDefined();
     expect(backend.callsOf('pack_choose_folder')[0]?.args).toEqual({ purpose: 'openPack' });
     expect(backend.callsOf('pack_import_preview')[0]?.args).toEqual({
       path: 'D:/Packs/meu-pack-antigo',

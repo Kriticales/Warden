@@ -78,7 +78,7 @@ export function NameStep({ draft, onChange, submitError }: NameStepProps) {
   };
 
   return (
-    <div className="wizard__body stack">
+    <div className="newpack__step stack">
       <Field
         id={ids.name}
         label={t('criar.nome.rotulo')}

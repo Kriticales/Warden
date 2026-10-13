@@ -7,10 +7,12 @@
  *
  * A lista vem do registro (`packs_list`) sem rodar diagnóstico; nada aqui escreve na pasta de
  * um pack, exceto "Apagar pack", que só manda a pasta para a Lixeira depois de digitar o nome.
+ *
+ * Criar pack (T03) e Abrir pack (T04) abrem como diálogo por cima da lista (decisão D38), pela
+ * busca da rota (`?criar`, `?pasta=`). Ao fechar, o foco volta ao botão que abriu.
  */
-import { useNavigate } from '@tanstack/react-router';
 import { FolderOpen, Plus, Search } from 'lucide-react';
-import { useDeferredValue, useState } from 'react';
+import { useDeferredValue, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AppPage } from '../../../app/layout/AppPage';
@@ -28,6 +30,8 @@ import type { PackRow } from '../../../lib/ipc/bindings';
 import { usePacksList, useForgetPack, useTrashPack } from '../api';
 import { useOpenOrImport } from '../hooks/useOpenOrImport';
 import { filterRows, SORT_ORDERS, sortRows, type SortOrder } from '../lib/pack-list';
+import { CreatePackWizard } from './CreatePackWizard';
+import { OpenPackDialog } from './OpenPackDialog';
 import { PackDetailsDialog } from './PackDetailsDialog';
 import { PackTableRow } from './PackTableRow';
 import '../packs.css';
@@ -40,25 +44,49 @@ export type RowDialog =
 
 const ORDER_LABEL = { modified: 'alterados', name: 'nome', lastTest: 'teste' } as const;
 
-export function PacksPage() {
+/** Diálogo aberto por cima de Meus packs (a busca da rota `/packs`). */
+export interface PacksDialogs {
+  /** Criar pack (T03). */
+  criar?: true;
+  /** Abrir pack (T04) com esta pasta. */
+  pasta?: string;
+}
+
+export interface PacksPageProps {
+  search: PacksDialogs;
+  /** Abre ou fecha os diálogos (troca a busca da rota). */
+  onSearch: (search: PacksDialogs) => void;
+}
+
+export function PacksPage({ search, onSearch }: PacksPageProps) {
   const { t } = useTranslation('packs');
   const list = usePacksList();
-  const navigate = useNavigate();
   const openOrImport = useOpenOrImport();
+  const createRef = useRef<HTMLButtonElement>(null);
+  const openRef = useRef<HTMLButtonElement>(null);
+  const closeDialog = () => {
+    onSearch({});
+  };
 
   const openButton = (
     <Tooltip content={t('lista.abrirOuImportarDica')}>
-      <Button icon={FolderOpen} loading={openOrImport.pending} onClick={openOrImport.start}>
+      <Button
+        ref={openRef}
+        icon={FolderOpen}
+        loading={openOrImport.pending}
+        onClick={openOrImport.start}
+      >
         {openOrImport.pending ? t('lista.escolhendoPasta') : t('lista.abrirOuImportar')}
       </Button>
     </Tooltip>
   );
   const createButton = (
     <Button
+      ref={createRef}
       variant="primary"
       icon={Plus}
       onClick={() => {
-        void navigate({ to: '/packs/novo' });
+        onSearch({ criar: true });
       }}
     >
       {t('lista.criar')}
@@ -96,6 +124,7 @@ export function PacksPage() {
       <>
         <PageHead title={t('lista.titulo')} />
         <EmptyState
+          centered
           glyph="plus"
           title={t('lista.vazio.titulo')}
           text={t('lista.vazio.texto')}
@@ -121,7 +150,22 @@ export function PacksPage() {
     );
   }
 
-  return <AppPage>{body}</AppPage>;
+  return (
+    <AppPage width="wide">
+      {body}
+      {search.criar ? (
+        <CreatePackWizard onClose={closeDialog} returnFocusTo={() => createRef.current} />
+      ) : null}
+      {search.pasta !== undefined ? (
+        <OpenPackDialog
+          key={search.pasta}
+          path={search.pasta}
+          onClose={closeDialog}
+          returnFocusTo={() => openRef.current}
+        />
+      ) : null}
+    </AppPage>
+  );
 }
 
 function PackList({ rows }: { rows: PackRow[] }) {

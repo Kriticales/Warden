@@ -27,29 +27,22 @@
   gap: var(--space-1) var(--space-2);
 }
 
-/* Assistente Criar pack. */
-.wizard {
-  /* 720 px, como no protótipo. */
-  max-width: calc(var(--space-16) * 11.25);
+/* Criar pack (diálogo): as etapas no alto, separadas da etapa atual por uma linha. A largura
+   vem do diálogo (780 px); o corpo rola sozinho quando a etapa é alta. */
+.newpack__steps {
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-thin) solid var(--color-border);
 }
-.wizard .steps {
-  margin: var(--space-2) 0 var(--space-6);
+.newpack__steps + .newpack__form {
+  margin-top: var(--space-5);
 }
-.wizard__body {
-  /* 560 px: formulários e listas da etapa. */
-  max-width: calc(var(--space-16) * 8.75);
+/* Altura fixa (672 px, ou a janela menos a margem): o diálogo não muda de tamanho nem de lugar
+   entre as etapas; o rodapé com Voltar e Próximo fica sempre no mesmo ponto. */
+.dialog:has(.newpack__steps) {
+  height: min(calc(var(--space-16) * 10.5), calc(100vh - var(--space-16)));
 }
-.wizard__body--wide {
-  /* 620 px: loaders e resumo. */
-  max-width: calc(var(--space-16) * 9.6875);
-}
-.wizard__foot {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
-  border-top: var(--border-thin) solid var(--color-border);
+.dialog:has(.newpack__steps) .dialog__body {
+  flex: 1 1 auto;
 }
 .field__row {
   display: flex;
@@ -84,14 +77,6 @@
   margin-bottom: var(--space-2);
 }
 
-/* Abrir pack: a coluna de leitura. */
-.openpack {
-  /* 820 px, como no protótipo. */
-  max-width: calc(var(--space-16) * 12.8125);
-}
-.openpack__actions {
-  margin-top: var(--space-3);
-}
 .controls__item + .controls__item {
   margin-top: var(--space-2);
 }
@@ -99,10 +84,11 @@
   cursor: pointer;
 }
 
-/* Grupo de opções sem a moldura padrão do navegador. */
+/* Grupo de opções sem a moldura padrão do navegador. Só a margem lateral do navegador sai: a
+   de cima fica com o ritmo da pilha (`.stack`), que este arquivo, fora das camadas, anularia. */
 .fieldset-bare {
   min-width: 0;
-  margin: 0;
+  margin-inline: 0;
   padding: 0;
   border: 0;
 }

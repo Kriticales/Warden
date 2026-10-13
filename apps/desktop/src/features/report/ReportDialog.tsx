@@ -86,6 +86,7 @@ function ReportForm() {
       router.state.matches.map((match) => ({
         routeId: match.routeId,
         params: match.params,
+        search: match.search,
       })),
       t,
     ),

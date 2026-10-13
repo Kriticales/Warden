@@ -1,6 +1,7 @@
 /**
  * "Abrir ou importar…" (T02, T04; decisão D20): abre o diálogo nativo de pasta e leva a
- * pasta escolhida para a página Abrir pack, que verifica antes de escrever qualquer coisa.
+ * pasta escolhida para o diálogo Abrir pack, por cima de Meus packs (decisão D38), que
+ * verifica antes de escrever qualquer coisa.
  * Desistir do diálogo não faz nada.
  */
 import { useNavigate } from '@tanstack/react-router';
@@ -16,7 +17,7 @@ export function useOpenOrImport() {
     choose.mutate('openPack', {
       onSuccess: (path) => {
         if (path !== null) {
-          void navigate({ to: '/packs/abrir', search: { pasta: path } });
+          void navigate({ to: '/packs', search: { pasta: path } });
         }
       },
       onError: (error) => {

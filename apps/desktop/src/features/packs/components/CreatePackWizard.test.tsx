@@ -64,6 +64,33 @@ function wizardBackend(extra: Record<string, Handler> = {}) {
   });
 }
 
+/** Meus packs com o diálogo Criar pack aberto (D38). */
+function renderWizard() {
+  return renderApp('/packs?criar=true');
+}
+
+/** Os cartões da etapa Loader, na ordem da tela, com a etiqueta quando há. */
+function loaderCards(): string[] {
+  const group = screen.getByRole('group', { name: 'Loader' });
+  return within(group)
+    .getAllByRole('radio')
+    .map((radio) => {
+      const card = radio.closest('.choice');
+      const title = card?.querySelector('.choice__title')?.textContent ?? '';
+      const tag = card?.querySelector('.tag')?.textContent;
+      return tag ? `${title} (${tag})` : title;
+    });
+}
+
+/** O cartão marcado na etapa Loader. */
+function checkedLoader(): string {
+  const group = screen.getByRole('group', { name: 'Loader' });
+  const radio = within(group)
+    .getAllByRole<HTMLInputElement>('radio')
+    .find((item) => item.checked);
+  return radio?.closest('.choice')?.querySelector('.choice__title')?.textContent ?? '';
+}
+
 async function fillName(user: ReturnType<typeof userEvent.setup>, name = 'Vale Sereno') {
   await user.type(await screen.findByRole('textbox', { name: 'Nome do pack' }), name);
 }
@@ -76,10 +103,14 @@ describe('Criar pack (T03)', () => {
   it('etapa 1: pasta acompanha o nome, autor padrão no exemplo; passa no axe', async () => {
     const user = userEvent.setup();
     wizardBackend();
-    const { container } = renderApp('/packs/novo');
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Criar pack' }, { timeout: 5000 }),
-    ).toBeDefined();
+    renderWizard();
+    // Diálogo por cima de Meus packs (D38), com o foco no título.
+    const dialog = await screen.findByRole('dialog', { name: 'Criar pack' }, { timeout: 5000 });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        within(dialog).getByRole('heading', { name: 'Criar pack' }),
+      );
+    });
     const steps = screen.getByRole('list', { name: 'Etapas de criar pack' });
     expect(
       within(steps)
@@ -99,7 +130,8 @@ describe('Criar pack (T03)', () => {
     await waitFor(() => {
       expect((folder as HTMLInputElement).value).toBe(`${PACKS_DIR}/vale-sereno`);
     });
-    expect(await axePage(container)).toHaveNoViolations();
+    // O diálogo fica num portal fora do contêiner: a página inteira entra no axe.
+    expect(await axePage(document.body)).toHaveNoViolations();
   });
 
   it('CA-T03-04 (interface): pasta com arquivos é recusada na etapa 1, com a explicação', async () => {
@@ -113,7 +145,7 @@ describe('Criar pack (T03)', () => {
           ),
         ),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     expect(
       await screen.findByText(
@@ -132,7 +164,7 @@ describe('Criar pack (T03)', () => {
   it('cria um pack Forge 1.20.1 com as versões do catálogo e abre o pack', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend();
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await user.type(screen.getByRole('textbox', { name: 'Descrição (opcional)' }), 'Calmo');
     await next(user);
@@ -156,16 +188,26 @@ describe('Criar pack (T03)', () => {
     await user.click(within(list).getByRole('radio', { name: '1.20.1' }));
     await next(user);
 
-    // Etapa 3: Forge pré-selecionado na recomendada.
-    const forge = await screen.findByRole('radio', { name: /Forge 47\.3\.0 Recomendada/ });
+    // Etapa 3: NeoForge é o recomendado em 1.20.1 e vem marcado (D39); o Forge mostra a
+    // versão indicada por ele, sem etiqueta.
+    const neoforge = await screen.findByRole('radio', { name: /^NeoForge 47\.1\.106 Recomendado/ });
     await waitFor(() => {
-      expect((forge as HTMLInputElement).checked).toBe(true);
+      expect((neoforge as HTMLInputElement).checked).toBe(true);
     });
-    expect(screen.getByRole('radio', { name: /NeoForge 47\.1\.106/ })).toBeDefined();
-    expect(screen.getByRole('radio', { name: /Fabric 0\.16\.5/ })).toBeDefined();
+    const forge = screen.getByRole('radio', { name: /^Forge 47\.3\.0/ });
+    expect(forge.closest('.choice')?.querySelector('.tag')).toBeNull();
+    expect(screen.getByRole('radio', { name: /^Fabric 0\.16\.5/ })).toBeDefined();
     expect(screen.getByRole<HTMLInputElement>('radio', { name: /Quilt/ }).disabled).toBe(true);
+    await user.click(forge);
+    // Só dentro de "Escolher outra versão" aparece qual versão o Forge indica.
     await user.click(screen.getByRole('button', { name: 'Escolher outra versão do Forge' }));
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Versão do Forge' }), '47.2.0');
+    const versions = screen.getByRole('combobox', { name: 'Versão do Forge' });
+    expect(
+      within(versions)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['47.3.0 · indicada pelo Forge', '47.2.0']);
+    await user.selectOptions(versions, '47.2.0');
     await next(user);
 
     // Etapa 4: spark e Crash Assistant vêm marcados (D16); o kit, não.
@@ -236,7 +278,7 @@ describe('Criar pack (T03)', () => {
   it('CA-T03-07 (interface): desmarcar os dois cria o pack sem gravar mods iniciais', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend();
-    renderApp('/packs/novo');
+    renderWizard();
     await toModsStep(user);
     await waitFor(() => {
       expect(
@@ -256,7 +298,7 @@ describe('Criar pack (T03)', () => {
   it('o kit escolhido vai junto no pedido e aparece no resumo', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend();
-    renderApp('/packs/novo');
+    renderWizard();
     await toModsStep(user);
     await user.click(
       screen.getByRole('checkbox', {
@@ -290,7 +332,7 @@ describe('Criar pack (T03)', () => {
           ),
         ),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await toModsStep(user);
     await next(user);
     await user.click(await screen.findByRole('button', { name: 'Criar pack' }));
@@ -310,7 +352,7 @@ describe('Criar pack (T03)', () => {
       initial_mods_apply: () =>
         makeInitialResult({ added: [], leftOut: ['Crash Assistant'], playerTools: [] }),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await toModsStep(user);
     await next(user);
     await user.click(await screen.findByRole('button', { name: 'Criar pack' }));
@@ -326,7 +368,7 @@ describe('Criar pack (T03)', () => {
     const user = userEvent.setup();
     const offer = deferred<InitialOffer>();
     const backend = wizardBackend({ initial_mods_offer: () => offer.promise });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await next(user);
     await user.click(await screen.findByRole('radio', { name: '1.21.1' }));
@@ -374,7 +416,7 @@ describe('Criar pack (T03)', () => {
           ),
         ),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await next(user);
     await user.click(await screen.findByRole('radio', { name: '1.21.1' }));
@@ -399,7 +441,7 @@ describe('Criar pack (T03)', () => {
   it('CA-T03-03: NeoForge não aparece para 1.19.2; Fabric não aparece para 1.12.2', async () => {
     const user = userEvent.setup();
     wizardBackend();
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await next(user);
     await user.click(await screen.findByRole('radio', { name: '1.19.2' }));
@@ -407,7 +449,7 @@ describe('Criar pack (T03)', () => {
     expect(await screen.findByRole('radio', { name: /^Forge/ })).toBeDefined();
     expect(screen.getByRole('radio', { name: /^Fabric/ })).toBeDefined();
     expect(screen.queryByRole('radio', { name: /^NeoForge/ })).toBeNull();
-    expect(screen.getByText('Só aparecem os loaders que existem para o Minecraft 1.19.2.'));
+    expect(screen.getByText(/^Só aparecem os loaders que existem para o Minecraft 1\.19\.2\./));
 
     await user.click(screen.getByRole('button', { name: 'Voltar' }));
     await user.click(await screen.findByRole('radio', { name: '1.12.2' }));
@@ -420,7 +462,7 @@ describe('Criar pack (T03)', () => {
   it('cria um pack vanilla sem loader', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend();
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user, 'Puro');
     await next(user);
     await user.click(await screen.findByRole('radio', { name: '1.21.1' }));
@@ -458,7 +500,7 @@ describe('Criar pack (T03)', () => {
             )
           : makeMinecraftVersions(),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await next(user);
     expect(
@@ -485,7 +527,7 @@ describe('Criar pack (T03)', () => {
           freshness: { fetchedAtMs: new Date(2026, 8, 30).getTime(), offline: true },
         }),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await next(user);
     expect(await screen.findByText('Lista de versões de 30/09/2026')).toBeDefined();
@@ -502,7 +544,7 @@ describe('Criar pack (T03)', () => {
           ),
         ),
     });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await next(user);
     await screen.findByRole('radio', { name: '26.3' });
@@ -527,7 +569,7 @@ describe('Criar pack (T03)', () => {
   it('"Escolher…" usa o diálogo nativo; "Usar a pasta padrão" volta para a automática', async () => {
     const user = userEvent.setup();
     const backend = wizardBackend({ pack_choose_folder: () => 'D:/Packs/novo' });
-    renderApp('/packs/novo');
+    renderWizard();
     await fillName(user);
     await user.click(screen.getByRole('button', { name: 'Escolher…' }));
     const folder = screen.getByRole('textbox', { name: 'Pasta' });
@@ -543,12 +585,154 @@ describe('Criar pack (T03)', () => {
     });
   });
 
-  it('Cancelar volta para Meus packs sem criar nada', async () => {
+  it('Cancelar sem nada preenchido fecha direto e devolve o foco ao botão Criar pack', async () => {
     const user = userEvent.setup();
-    const backend = wizardBackend({ packs_list: () => [] });
-    renderApp('/packs/novo');
-    await user.click(await screen.findByRole('button', { name: 'Cancelar' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
+    const backend = wizardBackend();
+    renderApp('/packs');
+    // Espera a lista chegar: enquanto ela é lida, o botão é o do cabeçalho.
+    await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
+    await user.click(screen.getByRole('button', { name: 'Criar pack' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Criar pack' });
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Criar pack' }));
+    });
     expect(backend.callsOf('pack_create')).toHaveLength(0);
+  });
+
+  it('Esc com algo preenchido pede confirmação; "Continuar criando" mantém o rascunho', async () => {
+    const user = userEvent.setup();
+    const backend = wizardBackend();
+    renderApp('/packs');
+    await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
+    await user.click(screen.getByRole('button', { name: 'Criar pack' }));
+    await screen.findByRole('dialog', { name: 'Criar pack' });
+    await fillName(user);
+    await next(user);
+    await screen.findByRole('radio', { name: '26.3' });
+
+    await user.keyboard('{Escape}');
+    const confirm = await screen.findByRole('alertdialog', { name: 'Descartar o pack novo?' });
+    expect(
+      within(confirm).getByText(
+        'O que você preencheu no assistente se perde. Nada foi gravado no disco ainda.',
+      ),
+    ).toBeDefined();
+    await user.click(within(confirm).getByRole('button', { name: 'Continuar criando' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
+    // Continua na etapa 2, com o nome guardado.
+    expect(screen.getByRole('dialog', { name: 'Criar pack' })).toBeDefined();
+    expect(screen.getByRole('radio', { name: '26.3' })).toBeDefined();
+    await user.click(screen.getByRole('button', { name: 'Voltar' }));
+    expect(
+      (await screen.findByRole<HTMLInputElement>('textbox', { name: 'Nome do pack' })).value,
+    ).toBe('Vale Sereno');
+
+    // ✕ também pergunta; "Descartar pack novo" fecha e o foco volta ao botão que abriu.
+    await user.click(screen.getByRole('button', { name: 'Fechar' }));
+    const again = await screen.findByRole('alertdialog', { name: 'Descartar o pack novo?' });
+    await user.click(within(again).getByRole('button', { name: 'Descartar pack novo' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Criar pack' }));
+    });
+    expect(backend.callsOf('pack_create')).toHaveLength(0);
+    expect(backend.callsOf('pack_create_check').length).toBeGreaterThan(0);
+  });
+
+  it('a etapa alta rola dentro do diálogo; o rodapé com os botões fica fixo', async () => {
+    const user = userEvent.setup();
+    wizardBackend();
+    renderWizard();
+    await fillName(user);
+    await next(user);
+    const dialog = await screen.findByRole('dialog', { name: 'Criar pack' });
+    const list = await within(dialog).findByRole('group', { name: 'Versão do Minecraft' });
+    // A etapa fica no corpo (que rola) e os botões no rodapé, fora dele.
+    const body = list.closest('.dialog__body');
+    expect(body).not.toBeNull();
+    const foot = within(dialog).getByRole('button', { name: 'Próximo' }).closest('.dialog__foot');
+    expect(foot).not.toBeNull();
+    expect(body?.contains(foot ?? null)).toBe(false);
+  });
+});
+
+describe('Criar pack: loader recomendado (D39: NeoForge > Forge > Fabric > outros > vanilla)', () => {
+  /** Vai até a etapa Loader na versão pedida e espera a pré-seleção. */
+  async function toLoaderStep(minecraft: string) {
+    const user = userEvent.setup();
+    await fillName(user);
+    await next(user);
+    const exact = new RegExp(`^${minecraft.replaceAll('.', '\\.')}\\b`);
+    await user.click(await screen.findByRole('radio', { name: exact }));
+    await next(user);
+    await waitFor(() => {
+      expect(checkedLoader()).not.toBe('');
+    });
+  }
+
+  it.each([
+    ['1.7.10', ['Forge (Recomendado)', 'Quilt', 'Nenhum (vanilla)'], 'Forge'],
+    ['1.12.2', ['Forge (Recomendado)', 'Quilt', 'Nenhum (vanilla)'], 'Forge'],
+    [
+      '1.20.1',
+      ['NeoForge (Recomendado)', 'Forge', 'Fabric', 'Quilt', 'Nenhum (vanilla)'],
+      'NeoForge',
+    ],
+    [
+      '1.21.1',
+      ['NeoForge (Recomendado)', 'Forge', 'Fabric', 'Quilt', 'Nenhum (vanilla)'],
+      'NeoForge',
+    ],
+    ['1.19.2', ['Forge (Recomendado)', 'Fabric', 'Quilt', 'Nenhum (vanilla)'], 'Forge'],
+  ])('Minecraft %s: ordem e etiqueta dos loaders', async (minecraft, cards, checked) => {
+    wizardBackend();
+    renderWizard();
+    await toLoaderStep(minecraft);
+    expect(loaderCards()).toEqual(cards);
+    expect(checkedLoader()).toBe(checked);
+  });
+
+  it('versão em que só o Fabric saiu: Fabric é o recomendado e vem marcado', async () => {
+    wizardBackend({
+      catalog_loader_versions: ({ loader, minecraft }) =>
+        makeLoaderVersions(
+          loader as Loader,
+          minecraft as string,
+          loader === 'fabric' ? ['0.18.1'] : [],
+        ),
+    });
+    renderWizard();
+    await toLoaderStep('26.3');
+    expect(loaderCards()).toEqual(['Fabric (Recomendado)', 'Quilt', 'Nenhum (vanilla)']);
+    expect(checkedLoader()).toBe('Fabric');
+  });
+
+  it('sem nenhum loader na versão: vanilla vem marcado, sem etiqueta', async () => {
+    wizardBackend({
+      catalog_loader_versions: ({ loader, minecraft }) =>
+        makeLoaderVersions(loader as Loader, minecraft as string, []),
+    });
+    renderWizard();
+    await toLoaderStep('26.3');
+    expect(loaderCards()).toEqual(['Quilt', 'Nenhum (vanilla)']);
+    expect(checkedLoader()).toBe('Nenhum (vanilla)');
+  });
+
+  it('a etapa Loader passa no axe', async () => {
+    wizardBackend();
+    renderWizard();
+    await toLoaderStep('1.21.1');
+    expect(await axePage(document.body)).toHaveNoViolations();
   });
 });
