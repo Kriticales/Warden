@@ -193,16 +193,35 @@ pub(crate) async fn items_remove_plan(
     pack_id: PackId,
     paths: Vec<String>,
 ) -> Result<RemovalPlan, AppError> {
-    ensure_paths(&paths)?;
+    remove_plan_impl(&state, pack_id, &paths).await
+}
+
+/// A trava de leitura é pega uma vez só, aqui; as consultas do grafo recebem o que foi lido
+/// com ela (pedir a mesma trava de novo trava se uma escrita entrar na fila no meio).
+pub(crate) async fn remove_plan_impl(
+    state: &AppState,
+    pack_id: PackId,
+    paths: &[String],
+) -> Result<RemovalPlan, AppError> {
+    ensure_paths(paths)?;
     let _lock = state.locks.read(pack_id).await;
-    let root = pack_root(&state, pack_id)?;
+    let root = pack_root(state, pack_id)?;
     let inventory = warden_project::inventory::inventory(&root, Some(&state.modrinth))
         .await
         .map_err(domain)?;
-    let (affected, orphans) =
-        crate::commands::versions_change::removal_queries(&state, pack_id, &inventory, &paths)
-            .await?;
-    warden_project::remove::removal_plan(&inventory, &paths, &affected, orphans).map_err(domain)
+    let loader = warden_project::meta::read_meta(&root)
+        .map_err(domain)?
+        .loader;
+    let (affected, orphans) = crate::commands::versions_change::removal_queries(
+        state,
+        pack_id,
+        &root,
+        &inventory,
+        loader.as_deref(),
+        paths,
+    )
+    .await?;
+    warden_project::remove::removal_plan(&inventory, paths, &affected, orphans).map_err(domain)
 }
 
 /// Remove os itens (apaga o `.pw.toml` ou o arquivo local e atualiza o índice). Devolve os

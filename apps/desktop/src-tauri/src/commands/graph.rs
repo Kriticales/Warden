@@ -344,7 +344,8 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
     Ok(pack_graph_parts(state, pack_id).await?.0)
 }
 
-/// O grafo do pack e a entrada de que ele foi montado.
+/// O grafo do pack e a entrada de que ele foi montado. Pega a trava de leitura do pack só
+/// para ler o inventário e o loader; quem já está com ela usa [`graph_parts_from`].
 pub(crate) async fn pack_graph_parts(
     state: &AppState,
     pack_id: PackId,
@@ -360,11 +361,25 @@ pub(crate) async fn pack_graph_parts(
             .loader;
         (root, inventory, loader)
     };
+    graph_parts_from(state, pack_id, &root, &inventory, loader.as_deref()).await
+}
+
+/// O grafo montado com o que já foi lido do pack (do cache, se nada mudou). Não pede a trava
+/// do pack: a trava não é reentrante (o `RwLock` do Tokio é justo, e uma escrita na fila entre
+/// duas leituras do mesmo comando trava as duas para sempre), então quem chama lê o pack com a
+/// trava dele e passa o resultado.
+pub(crate) async fn graph_parts_from(
+    state: &AppState,
+    pack_id: PackId,
+    root: &Path,
+    inventory: &Inventory,
+    loader: Option<&str>,
+) -> Result<(Arc<Graph>, Arc<GraphInput>), AppError> {
     let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
-    let candidates = candidates(&inventory, &root, &game_dir);
+    let candidates = candidates(inventory, root, &game_dir);
     let inferred_path = inferred_file(state, pack_id);
 
-    let fingerprint = fingerprint(loader.as_deref(), &candidates, &inferred_path);
+    let fingerprint = fingerprint(loader, &candidates, &inferred_path);
     {
         let guard = cache().lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(hit) = guard.get(&pack_id)
@@ -375,7 +390,7 @@ pub(crate) async fn pack_graph_parts(
         }
     }
 
-    let items = load_items(state, &inventory, &candidates).await?;
+    let items = load_items(state, inventory, &candidates).await?;
 
     let inferred = match InferredStore::load(&inferred_path) {
         Ok(store) => store.edges,
@@ -385,7 +400,7 @@ pub(crate) async fn pack_graph_parts(
         }
     };
     let input = Arc::new(GraphInput {
-        loader: loader_of(loader.as_deref()),
+        loader: loader_of(loader),
         items,
         additions: None,
         inferred,

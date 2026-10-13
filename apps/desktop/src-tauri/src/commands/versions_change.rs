@@ -35,7 +35,7 @@ use warden_project::orphans::{GraphOrphan, OrphanOffer, orphans_after_removal};
 use warden_project::remove::AffectedItem;
 
 use crate::commands::add::add_sources;
-use crate::commands::graph::{candidates, existing, loader_of, pack_graph_parts, read_jars};
+use crate::commands::graph::{candidates, existing, graph_parts_from, loader_of, read_jars};
 use crate::commands::inventory::{notify_changed, pack_root, packwiz};
 use crate::error::AppError;
 use crate::events::PackArea;
@@ -361,13 +361,18 @@ fn range_text(range: &VersionRange) -> Option<String> {
 /// O que deixa de funcionar se `paths` saírem (a cadeia inteira, com `provides` e jar-in-jar)
 /// e as dependências que ficam sem uso, pelo grafo da D-07. Itens fora do grafo (resource
 /// packs, shaders, arquivos inválidos) não têm dependentes.
+///
+/// Não pede a trava do pack: quem chama já está com a de leitura e passa o que leu com ela
+/// (`root`, `inventory` e o `loader` do `pack.toml`).
 pub(crate) async fn removal_queries(
     state: &AppState,
     pack_id: PackId,
+    root: &Path,
     inventory: &Inventory,
+    loader: Option<&str>,
     paths: &[String],
 ) -> Result<(Vec<AffectedItem>, Vec<OrphanOffer>), AppError> {
-    let (graph, input) = pack_graph_parts(state, pack_id).await?;
+    let (graph, input) = graph_parts_from(state, pack_id, root, inventory, loader).await?;
     let targets: Vec<String> = paths
         .iter()
         .map(|path| warden_packwiz::clean_path(&path.replace('\\', "/")))
@@ -465,13 +470,22 @@ mod tests {
 
     /// Pack Forge 1.20.1 com três mods registrado no estado.
     async fn setup() -> Option<(tempfile::TempDir, AppState, PackId, PathBuf, Packwiz)> {
+        setup_with(&[("forge", "47.2.0")]).await
+    }
+
+    /// Pack com três mods registrado no estado e estas linhas em `[versions]`.
+    async fn setup_with(
+        versions: &[(&str, &str)],
+    ) -> Option<(tempfile::TempDir, AppState, PackId, PathBuf, Packwiz)> {
         let binary = packwiz_binary()?;
         let dir = tempfile::tempdir().unwrap();
         let state = test_state(dir.path());
         let cli = test_packwiz(&state, binary);
         let (id, root) = registered_pack(&state, dir.path(), &cli, 3).await;
-        let text = fs::read_to_string(root.join("pack.toml")).unwrap();
-        let text = warden_packwiz::edit::set_pack_version(&text, "forge", Some("47.2.0")).unwrap();
+        let mut text = fs::read_to_string(root.join("pack.toml")).unwrap();
+        for (key, version) in versions {
+            text = warden_packwiz::edit::set_pack_version(&text, key, Some(version)).unwrap();
+        }
         fs::write(root.join("pack.toml"), text).unwrap();
         Some((dir, state, id, root, cli))
     }
@@ -488,7 +502,11 @@ mod tests {
     ) -> warden_project::remove::RemovalPlan {
         let inventory = warden_project::inventory::inventory(root, None).await.unwrap();
         let paths: Vec<String> = paths.iter().map(|p| (*p).to_owned()).collect();
-        let (affected, orphans) = removal_queries(state, id, &inventory, &paths).await.unwrap();
+        let loader = warden_project::meta::read_meta(root).unwrap().loader;
+        let (affected, orphans) =
+            removal_queries(state, id, root, &inventory, loader.as_deref(), &paths)
+                .await
+                .unwrap();
         warden_project::remove::removal_plan(&inventory, &paths, &affected, orphans).unwrap()
     }
 
@@ -597,5 +615,116 @@ mod tests {
             .filter(|(a, b)| a != b)
             .collect();
         assert_eq!(diff, [("forge = \"47.2.0\"", "forge = \"47.1.3\"")]);
+    }
+
+    /// Servidor HTTP local no lugar do Modrinth que só responde (`[]`) depois de liberado.
+    /// Avisa quando a primeira requisição chega: o comando está dentro da trava de leitura,
+    /// esperando a rede.
+    async fn modrinth_gate() -> (
+        String,
+        tokio::sync::oneshot::Receiver<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ) {
+        use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = format!("http://{}/v2/", listener.local_addr().unwrap());
+        let (arrived_tx, arrived_rx) = tokio::sync::oneshot::channel();
+        let (release_tx, release_rx) = tokio::sync::oneshot::channel::<()>();
+        tokio::spawn(async move {
+            let mut arrived = Some(arrived_tx);
+            let mut release = Some(release_rx);
+            loop {
+                let Ok((mut socket, _)) = listener.accept().await else {
+                    return;
+                };
+                let mut request = Vec::new();
+                let mut buffer = [0_u8; 1024];
+                while !request.windows(4).any(|w| w == b"\r\n\r\n") {
+                    match socket.read(&mut buffer).await {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => request.extend_from_slice(&buffer[..n]),
+                    }
+                }
+                if let Some(arrived) = arrived.take() {
+                    let _ = arrived.send(());
+                }
+                if let Some(release) = release.take() {
+                    let _ = release.await;
+                }
+                let _ = socket
+                    .write_all(
+                        b"HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: 2\r\nconnection: close\r\n\r\n[]",
+                    )
+                    .await;
+                let _ = socket.shutdown().await;
+            }
+        });
+        (base, arrived_rx, release_tx)
+    }
+
+    /// A trava do pack não é reentrante: o `RwLock` do Tokio é justo, então uma escrita que
+    /// entra na fila enquanto o "Remover" está com a leitura passa na frente de uma segunda
+    /// leitura do mesmo comando, e as duas esperariam uma pela outra para sempre. O plano de
+    /// remover pega a trava uma vez só: termina, e a escrita entra depois.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn plano_de_remover_nao_trava_com_escrita_na_fila() {
+        const LIMIT: std::time::Duration = std::time::Duration::from_secs(10);
+        let Some((_dir, mut state, id, _root, _cli)) = setup().await else {
+            return;
+        };
+        let (base, arrived, release) = modrinth_gate().await;
+        let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version("1")).unwrap();
+        state.modrinth = warden_modrinth::ModrinthClient::with_base_url(http, &base, None).unwrap();
+        let state = std::sync::Arc::new(state);
+
+        let plan = {
+            let state = std::sync::Arc::clone(&state);
+            tokio::spawn(async move {
+                let paths = ["mods/mod-0.pw.toml".to_owned()];
+                crate::commands::inventory::remove_plan_impl(&state, id, &paths).await
+            })
+        };
+        // O comando está com a trava de leitura, esperando o Modrinth.
+        tokio::time::timeout(LIMIT, arrived)
+            .await
+            .expect("o plano de remover não consultou o Modrinth")
+            .unwrap();
+
+        // Uma escrita no mesmo pack (atualizar, adicionar, fixar versão) entra na fila.
+        let write = {
+            let state = std::sync::Arc::clone(&state);
+            tokio::spawn(async move {
+                drop(state.locks.write(id).await);
+            })
+        };
+        // Espera a escrita estar mesmo na fila: com ela esperando, uma leitura nova não entra.
+        tokio::time::timeout(LIMIT, async {
+            loop {
+                let mut read = Box::pin(state.locks.read(id));
+                let entered = std::future::poll_fn(|context| {
+                    std::task::Poll::Ready(std::future::Future::poll(read.as_mut(), context).is_ready())
+                })
+                .await;
+                if !entered {
+                    break;
+                }
+                drop(read);
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("a escrita não entrou na fila");
+
+        release.send(()).unwrap();
+        let plan = tokio::time::timeout(LIMIT, plan)
+            .await
+            .expect("o plano de remover travou com uma escrita na fila (trava pedida duas vezes)")
+            .unwrap()
+            .unwrap();
+        assert_eq!(plan.targets.len(), 1);
+        tokio::time::timeout(LIMIT, write)
+            .await
+            .expect("a escrita não entrou depois do plano")
+            .unwrap();
     }
 }
