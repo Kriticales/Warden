@@ -282,7 +282,6 @@ export const editor = {
     salvar: 'Salvar ajustes',
     salvando: 'Salvando…',
     salvo: 'Ajustes do teste salvos.',
-    efeito: 'Os ajustes passam a valer quando o teste do pack chegar ao Warden.',
   },
 } as const;
 

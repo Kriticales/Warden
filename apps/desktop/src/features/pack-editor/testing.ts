@@ -5,6 +5,7 @@
 import type { Inventory, PackRow } from '../../lib/ipc/bindings';
 import { mockBackend, type Handler } from '../../test/backend';
 import { makePackRow } from '../../test/factories';
+import { makeProfilesView } from '../test/profiles/profiles.fixtures';
 import {
   DECISIONS,
   makeChoice,
@@ -41,6 +42,8 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
       cycle: [],
     }),
     pack_test_settings_get: () => makeTestSettingsView(),
+    // Perfis do teste (L-08): só o Padrão.
+    test_profiles_get: () => makeProfilesView({ minecraft: row.minecraft }),
     item_option_get: () => null,
     instance_optional_choices_get: () => [],
     java_choice: () => makeChoice(DECISIONS.forge1201),

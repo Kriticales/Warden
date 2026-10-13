@@ -2,14 +2,21 @@
  * Ajustes do teste neste computador (SPEC T11): memória, Java do teste (Automático, com o
  * motivo da escolha e "Por que não o Java N?", ou um Java instalado), argumentos extras da JVM
  * (com avisos) e "Recriar instância de teste". Ficam em `packs.json`, não entram no pack e não
- * contam como alteração não salva. Aberto pelo menu ▾ do Testar; a L-08 acrescenta os perfis.
+ * contam como alteração não salva. Aberto pelo menu ▾ do Testar.
+ *
+ * Perfis do teste (L-08): no topo, o seletor Perfil (Padrão e os criados) com Novo perfil,
+ * Renomear e Apagar. Cada perfil tem memória, Java, argumentos, mods opcionais, janela e "Ao
+ * abrir o jogo". O diálogo guarda um rascunho por perfil (trocar de perfil no seletor não perde
+ * o que foi mudado) e "Salvar ajustes" grava todos os que mudaram. Memória acima de 75% da RAM
+ * gera aviso; argumentos que impedem a leitura de memória (`W_PERF_FLAGS`) ganham "Remover
+ * estes argumentos".
  *
  * O Java automático vem de `java_choice` (política da L-01; ADR-0029): para o Forge 1.20.1,
  * "Automático: Java 17" com o porquê de não usar o mais novo; para a versão mais nova do
  * Minecraft, o Java mais novo, sem explicação extra (CA-T11-03).
  */
 import { useQuery } from '@tanstack/react-query';
-import { RotateCcw, TriangleAlert } from 'lucide-react';
+import { Eraser, RotateCcw, TriangleAlert } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -28,8 +35,10 @@ import {
   type LoaderKind,
   type PackId,
   type PackRow,
+  type ProfileFields,
   type TestMemory,
-  type TestSettings,
+  type TestProfile,
+  type TestProfilesView,
   type TestSettingsView,
 } from '../../../lib/ipc/bindings';
 import { commandQuery } from '../../../lib/ipc/query';
@@ -41,9 +50,15 @@ import {
   versionText,
   whyNotNewest,
 } from '../../settings/java/lib/java-table';
-import { editorKeys, useRecreateInstance, useSaveTestSettings, useTestSettings } from '../api';
+import { useSaveProfiles, useTestProfiles } from '../../test/profiles/api';
+import { DEFAULT_PROFILE, memoryAboveRam, removePerfFlags } from '../../test/profiles/text';
+import { formatMemory } from '../../test/text';
+import { editorKeys, useRecreateInstance, useTestSettings } from '../api';
 import { OptionalChoicesSection } from '../item-options/OptionalChoicesSection';
 import { checkJvmArgs, type JvmArgWarning } from './jvm-args';
+import { OnLaunchField, WindowField } from './LaunchFields';
+import { ProfileOptionals } from './ProfileOptionals';
+import { ProfilePicker } from './ProfilePicker';
 
 /** Valores fixos oferecidos para a memória, em GB (os mesmos de Configurações → Teste). */
 const MEMORY_GB = [4, 6, 8, 12, 16] as const;
@@ -75,24 +90,28 @@ export interface TestSettingsDialogProps {
 export function TestSettingsDialog({ packId, pack, open, onOpenChange }: TestSettingsDialogProps) {
   const { t } = useTranslation('editor');
   const view = useTestSettings(packId, open);
+  const profiles = useTestProfiles(packId, open);
+  const failed = view.isError ? view : profiles.isError ? profiles : null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open ? (
-        view.isSuccess ? (
+        view.isSuccess && profiles.isSuccess ? (
           <SettingsForm
             pack={pack}
             view={view.data}
+            profiles={profiles.data}
             onDone={() => {
               onOpenChange(false);
             }}
           />
         ) : (
           <DialogContent title={t('ajustesTeste.titulo')}>
-            {view.isError ? (
+            {failed ? (
               <ErrorPanel
-                error={view.error}
+                error={failed.error}
                 onRetry={() => {
                   void view.refetch();
+                  void profiles.refetch();
                 }}
               />
             ) : (
@@ -109,35 +128,74 @@ function memoryValue(memory: TestMemory): string {
   return memory.mode === 'auto' ? AUTO : String(memory.mb);
 }
 
+/** Os perfis do servidor com os rascunhos do diálogo por cima (perfis novos entram, apagados
+ * saem; o nome vem sempre do servidor, que é onde Renomear grava). */
+function mergeDrafts(
+  server: TestProfile[],
+  drafts: Partial<Record<string, TestProfile>>,
+): TestProfile[] {
+  return server.map((profile) => {
+    const draft = drafts[profile.id];
+    return draft ? { ...draft, name: profile.name } : profile;
+  });
+}
+
+/** Os campos de um perfil (sem id e nome). */
+function fieldsOf(profile: TestProfile): ProfileFields {
+  return {
+    memory: profile.memory,
+    java: profile.java,
+    jvmArgs: profile.jvmArgs,
+    optionals: profile.optionals,
+    window: profile.window,
+    onLaunch: profile.onLaunch,
+  };
+}
+
 function SettingsForm({
   pack,
   view,
+  profiles,
   onDone,
 }: {
   pack: PackRow;
   view: TestSettingsView;
+  profiles: TestProfilesView;
   onDone: () => void;
 }) {
   const { t } = useTranslation('editor');
+  const { t: tp } = useTranslation('perfis');
   const memoryId = useId();
   const javaId = useId();
   const argsId = useId();
-  // Campos ausentes (gravados por outra versão) valem como o padrão.
-  const [memory, setMemory] = useState<TestMemory>(view.settings.memory ?? { mode: 'auto' });
-  const [java, setJava] = useState<string | null>(view.settings.java ?? null);
-  const [jvmArgs, setJvmArgs] = useState(view.settings.jvmArgs ?? '');
-  const save = useSaveTestSettings(pack.id);
+  const [drafts, setDrafts] = useState<Partial<Record<string, TestProfile>>>({});
+  const [editing, setEditing] = useState(profiles.active);
+  const list = mergeDrafts(profiles.profiles, drafts);
+  // O Padrão sempre existe (é o primeiro): vale quando o editado foi apagado por fora.
+  const current = list.find((profile) => profile.id === editing) ?? list[0];
+  const save = useSaveProfiles(pack.id);
   const runtimes = useJavaRuntimes();
+  // Campos ausentes (gravados por outra versão) valem como o padrão.
+  const memory: TestMemory = current?.memory ?? { mode: 'auto' };
+  const java = current?.java ?? null;
+  const jvmArgs = current?.jvmArgs ?? '';
   const choice = useQuery({
     ...commandQuery([...editorKeys.testSettings(pack.id), 'java', java ?? AUTO], () =>
       commands.javaChoice(javaRequest(pack, java)),
     ),
     staleTime: 0,
   });
+  if (!current) return null;
+
+  const update = (change: Partial<ProfileFields>) => {
+    setDrafts((previous) => ({ ...previous, [current.id]: { ...current, ...change } }));
+  };
 
   const installed: InstalledRuntime[] = runtimes.data?.runtimes.map((row) => row.runtime) ?? [];
   const major = choice.data?.major ?? null;
   const warnings = checkJvmArgs(jvmArgs, major);
+  const blocksMemoryReading = warnings.some((warning) => warning.kind === 'leituraMemoria');
+  const memoryHigh = memoryAboveRam(memory, profiles.computerMemoryMb);
 
   const memoryOptions: { value: string; label: string }[] = [
     { value: AUTO, label: t('ajustesTeste.memoriaAuto') },
@@ -154,8 +212,8 @@ function SettingsForm({
   }
 
   const submit = () => {
-    const settings: TestSettings = { memory, java, jvmArgs };
-    save.mutate(settings, {
+    const changed = list.filter((profile) => drafts[profile.id] !== undefined);
+    save.mutate(changed, {
       onSuccess: () => {
         showToast({ kind: 'ok', title: t('ajustesTeste.salvo') });
         onDone();
@@ -178,7 +236,23 @@ function SettingsForm({
         </>
       }
     >
-      <p className="t-xs t-3">{t('ajustesTeste.efeito')}</p>
+      <p className="t-xs t-3">{tp('efeito')}</p>
+      <ProfilePicker
+        packId={pack.id}
+        profiles={list}
+        active={profiles.active}
+        editing={current.id}
+        onEdit={setEditing}
+        draft={fieldsOf(current)}
+        onCreated={(profile) => {
+          setEditing(profile.id);
+        }}
+        onDeleted={(id) => {
+          setDrafts((previous) => ({ ...previous, [id]: undefined }));
+          setEditing(DEFAULT_PROFILE);
+        }}
+      />
+      <hr className="sep" />
       <div className="field">
         <label className="field__label" htmlFor={memoryId}>
           {t('ajustesTeste.memoria')}
@@ -187,10 +261,12 @@ function SettingsForm({
           id={memoryId}
           className="select"
           value={memoryValue(memory)}
-          aria-describedby={`${memoryId}-hint`}
+          aria-describedby={`${memoryId}-hint${memoryHigh ? ` ${memoryId}-aviso` : ''}`}
           onChange={(event) => {
             const value = event.target.value;
-            setMemory(value === AUTO ? { mode: 'auto' } : { mode: 'fixed', mb: Number(value) });
+            update({
+              memory: value === AUTO ? { mode: 'auto' } : { mode: 'fixed', mb: Number(value) },
+            });
           }}
         >
           {memoryOptions.map((option) => (
@@ -199,6 +275,14 @@ function SettingsForm({
             </option>
           ))}
         </select>
+        {memoryHigh && profiles.computerMemoryMb !== null ? (
+          <ul className="jvmwarn" id={`${memoryId}-aviso`}>
+            <li>
+              <Icon icon={TriangleAlert} size="sm" />
+              <span>{tp('memoriaAlta', { total: formatMemory(profiles.computerMemoryMb) })}</span>
+            </li>
+          </ul>
+        ) : null}
         <div className="field__hint" id={`${memoryId}-hint`}>
           {t('ajustesTeste.memoriaDica')}
         </div>
@@ -215,7 +299,7 @@ function SettingsForm({
           aria-describedby={`${javaId}-hint`}
           onChange={(event) => {
             const value = event.target.value;
-            setJava(value === AUTO ? null : value);
+            update({ java: value === AUTO ? null : value });
           }}
         >
           <option value={AUTO}>
@@ -245,6 +329,22 @@ function SettingsForm({
         </div>
       </div>
 
+      <OnLaunchField
+        packId={pack.id}
+        value={current.onLaunch}
+        onChange={(onLaunch) => {
+          update({ onLaunch });
+        }}
+        quickPlay={profiles.quickPlay}
+        minecraft={profiles.minecraft}
+      />
+      <WindowField
+        value={current.window}
+        onChange={(window) => {
+          update({ window });
+        }}
+      />
+
       <div className="field">
         <label className="field__label" htmlFor={argsId}>
           {t('ajustesTeste.argumentos')}{' '}
@@ -258,7 +358,7 @@ function SettingsForm({
           value={jvmArgs}
           aria-describedby={`${argsId}-hint${warnings.length > 0 ? ` ${argsId}-avisos` : ''}`}
           onChange={(event) => {
-            setJvmArgs(event.target.value);
+            update({ jvmArgs: event.target.value });
           }}
         />
         {warnings.length > 0 ? (
@@ -271,6 +371,19 @@ function SettingsForm({
             ))}
           </ul>
         ) : null}
+        {blocksMemoryReading ? (
+          <div className="btn-row">
+            <Button
+              size="sm"
+              icon={Eraser}
+              onClick={() => {
+                update({ jvmArgs: removePerfFlags(jvmArgs) });
+              }}
+            >
+              {tp('removerArgumentos')}
+            </Button>
+          </div>
+        ) : null}
         <div className="field__hint" id={`${argsId}-hint`}>
           {t('ajustesTeste.argumentosDica')}
         </div>
@@ -278,7 +391,17 @@ function SettingsForm({
 
       {save.isError ? <ErrorPanel compact error={save.error} /> : null}
       <hr className="sep" />
-      <OptionalChoicesSection packId={pack.id} />
+      {current.id === DEFAULT_PROFILE ? (
+        <OptionalChoicesSection packId={pack.id} />
+      ) : (
+        <ProfileOptionals
+          packId={pack.id}
+          value={current.optionals}
+          onChange={(optionals) => {
+            update({ optionals });
+          }}
+        />
+      )}
       <hr className="sep" />
       <InstanceSection packId={pack.id} view={view} />
     </DialogContent>

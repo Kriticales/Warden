@@ -9,13 +9,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import {
-  commands,
-  type MetaUpdate,
-  type PackId,
-  type SideChoice,
-  type TestSettings,
-} from '../../lib/ipc/bindings';
+import { commands, type MetaUpdate, type PackId, type SideChoice } from '../../lib/ipc/bindings';
 import { queryKeys } from '../../lib/ipc/keys';
 import { commandQuery, useCommandMutation } from '../../lib/ipc/query';
 import { packsKeys } from '../packs/api';
@@ -124,13 +118,6 @@ export function useUpdateMeta(packId: PackId) {
   return useCommandMutation((update: MetaUpdate) => commands.packUpdateMeta(packId, update), {
     invalidates: [queryKeys.packArea(packId, 'meta'), packsKeys.row(packId), packsKeys.list],
   });
-}
-
-export function useSaveTestSettings(packId: PackId) {
-  return useCommandMutation(
-    (settings: TestSettings) => commands.packTestSettingsSet(packId, settings),
-    { invalidates: [editorKeys.testSettings(packId)] },
-  );
 }
 
 export function useRecreateInstance(packId: PackId) {
