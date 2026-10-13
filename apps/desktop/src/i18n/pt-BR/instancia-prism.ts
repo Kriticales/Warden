@@ -10,7 +10,6 @@ export const instanciaPrism = {
   carregando: 'Conferindo os mods do pack…',
   erroAnalise: 'Não foi possível conferir os mods do pack.',
   explicacao: {
-    titulo: 'O que o jogador vai ver',
     texto:
       'O Prism vai pedir para o jogador confirmar os mods que não vêm do Modrinth. Esta instância não se atualiza sozinha: cada versão nova é um arquivo novo.',
   },
@@ -53,7 +52,6 @@ export const instanciaPrism = {
     trocado: 'Será trocado por {{arquivo}} ({{versao}}) do Modrinth.',
     desfazer: 'Desfazer a troca de {{nome}}',
     semTroca: 'Este arquivo não existe no Modrinth.',
-    pagina: 'Página do arquivo',
     desfazerCurto: 'Desfazer troca',
     trocarNome: 'Trocar {{nome}} pelo Modrinth',
   },
@@ -84,7 +82,6 @@ export const instanciaPrism = {
     resumo:
       '{{arquivos}} para o Prism baixar e {{overrides}} dentro do arquivo ({{tamanho}}), salvo em',
     sha: 'SHA-256',
-    copiarSha: 'Copiar o SHA-256',
     conferido: 'Conferido.',
     conferidoTexto:
       'O arquivo passou na conferência do formato .mrpack e nas regras do Prism: caminhos seguros, endereços https, conferência e tamanho de cada arquivo.',

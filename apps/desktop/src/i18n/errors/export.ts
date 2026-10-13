@@ -26,7 +26,7 @@ export const exportErrors: Record<ExportErrorCode, string> = {
   PRISM_LOOKUP_FAILED:
     'Não foi possível conferir os mods no Modrinth ou na CurseForge. Veja a conexão com a internet e tente de novo. Nada foi gravado.',
   PRISM_DOWNLOAD_FAILED:
-    'Não foi possível baixar ou conferir o arquivo de {{name}} para conferir e registrar cada um. Veja a conexão e tente de novo; se continuar, atualize ou troque o mod. Nada foi gravado.',
+    'Não foi possível baixar ou conferir o arquivo de {{name}}. Veja a conexão e tente de novo; se continuar, atualize ou troque o mod. Nada foi gravado.',
   PRISM_INVALID_OUTPUT:
     'O arquivo gerado não passou na conferência e foi descartado. Copie os detalhes técnicos e registre o problema. Nada foi gravado.',
   PRISM_UNSUPPORTED_PACK:
