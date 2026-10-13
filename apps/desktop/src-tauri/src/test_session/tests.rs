@@ -1589,7 +1589,9 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
         manifest.replace("version = \"1.0.0\"", "version = \"1.1.0\""),
     )
     .unwrap();
-    std::fs::write(root.join(fake::ARGS_FILE), "marcadores 1500").unwrap();
+    // Bem mais lenta: a partida da JVM varia alguns segundos entre máquinas e entre a primeira
+    // abertura e as seguintes.
+    std::fs::write(root.join(fake::ARGS_FILE), "marcadores 6000").unwrap();
     let (second, seen) = test_with_markers(&state, pack).await;
     let perf = second.perf.clone().unwrap();
     let previous = perf.previous.clone().expect("comparação com a 1.0.0");
@@ -1597,7 +1599,7 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
     assert_eq!(previous.session_id, first.id);
     assert_eq!(previous.loaded_ms, loaded);
     let delta = perf.loaded_delta_ms().unwrap();
-    assert!(delta >= 600, "deveria ser bem mais lento: {delta} ms");
+    assert!(delta >= 3000, "deveria ser bem mais lento: {delta} ms");
     // A comparação já vai ao vivo, na faixa.
     assert!(perf_samples(&seen).iter().any(|event| matches!(
         event,

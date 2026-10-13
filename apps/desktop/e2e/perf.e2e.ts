@@ -194,7 +194,9 @@ describe('Desempenho em todo teste (L-10; CA-T13-09)', function () {
   });
 
   it('outra versão do pack, mais lenta: a diferença aparece ao vivo e no resultado', async () => {
-    writePack('1.1.0', 'marcadores 2500');
+    // Bem mais lenta: a partida da JVM varia alguns segundos entre máquinas (na CI, a primeira
+    // abertura levou ~3 s mesmo pedindo 0,3 s).
+    writePack('1.1.0', 'marcadores 8000');
     await $('main').$('button=Testar de novo').click();
     await waitHeading('Jogo aberto');
     const text = await waitStripText(['a mais que na 1.0.0']);
