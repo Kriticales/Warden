@@ -217,7 +217,12 @@ fn trechos_que_so_se_editam_como_texto() {
         ]
     );
     assert_eq!(fields(&json).len(), 1);
-    assert!(!json.items.iter().any(|item| matches!(item, FormItem::Section(_))));
+    assert!(
+        !json
+            .items
+            .iter()
+            .any(|item| matches!(item, FormItem::Section(_)))
+    );
 
     let mut deep = String::new();
     for level in 0..=MAX_FORM_DEPTH {
