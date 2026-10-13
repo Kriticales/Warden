@@ -34,6 +34,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
+import { zipEntries } from './zip';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -102,26 +103,6 @@ function expectedFiles(pack: string): string[] {
   const index = readFileSync(join(pack, 'index.toml'), 'utf8');
   const files = [...index.matchAll(/^file = "([^"]+)"/gm)].map((match) => match[1] ?? '');
   return ['index.toml', 'pack.toml', ...files].sort();
-}
-
-/** Nomes das entradas de arquivo de um zip (diretório central; sem as entradas de pasta). */
-function zipEntries(path: string): string[] {
-  const zip = readFileSync(path);
-  let end = zip.length - 22;
-  while (end >= 0 && zip.readUInt32LE(end) !== 0x06054b50) end -= 1;
-  if (end < 0) throw new Error('zip sem diretório central');
-  const count = zip.readUInt16LE(end + 10);
-  let offset = zip.readUInt32LE(end + 16);
-  const names: string[] = [];
-  for (let i = 0; i < count; i += 1) {
-    expect(zip.readUInt32LE(offset)).toBe(0x02014b50);
-    const nameLength = zip.readUInt16LE(offset + 28);
-    const extra = zip.readUInt16LE(offset + 30);
-    const comment = zip.readUInt16LE(offset + 32);
-    names.push(zip.toString('utf8', offset + 46, offset + 46 + nameLength));
-    offset += 46 + nameLength + extra + comment;
-  }
-  return names.filter((name) => !name.endsWith('/')).sort();
 }
 
 function packwizBinary(): string {

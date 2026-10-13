@@ -29,6 +29,8 @@ import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
+import { dismissToasts } from './toasts';
+
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -115,6 +117,8 @@ function allFiles(dir: string): string[] {
 /** Acrescenta texto ao fim do documento do CodeMirror aberto (digitação real no editor). */
 async function typeAtEnd(text: string): Promise<void> {
   const content = $('.cm-content');
+  // O aviso de "salvo" da etapa anterior fica sobre o editor.
+  await dismissToasts();
   await content.click();
   await browser.keys(['Control', 'End']);
   await browser.keys(text.split(''));
