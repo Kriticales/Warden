@@ -11,6 +11,14 @@
 .cfg-search__filters {
   margin-bottom: var(--space-3);
 }
+.cfg-search__filters .select {
+  width: auto;
+  max-width: 100%;
+}
+/* O campo já tem o botão "Limpar busca"; o X nativo do WebKit seria um segundo. */
+.cfg-search__input::-webkit-search-cancel-button {
+  appearance: none;
+}
 .cfg-search__more {
   margin-top: var(--space-1);
 }

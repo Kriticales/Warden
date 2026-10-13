@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
 import type { ConfigOrigin, PackId } from '../../../lib/ipc/bindings';
 import { useConfigIndexEvents, useConfigSearch } from './api';
+import './search.css';
 
 export interface ConfigSearchFieldProps {
   packId: PackId;
@@ -35,7 +36,7 @@ export function ConfigSearchField({
     <div className="cfg-filter">
       <Search className="icon icon--sm" aria-hidden="true" />
       <input
-        className="input input--sm"
+        className="input input--sm cfg-search__input"
         type="search"
         value={value}
         placeholder={t('campo')}

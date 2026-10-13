@@ -156,13 +156,15 @@ export function ConfigSearchResults({
       <div className="panel__head">
         <div>
           <h2 className="panel__title panel__title--sans" id="cfg-search-title" aria-live="polite">
-            {results
-              ? t('titulo', {
-                  resultados: t('resultados', { count: results.totalHits }),
-                  arquivos: t('arquivos', { count: results.totalFiles }),
-                  busca: label,
-                })
-              : t('buscando')}
+            {!results
+              ? t('buscando')
+              : results.totalHits === 0
+                ? t('nada', { busca: label })
+                : t('titulo', {
+                    resultados: t('resultados', { count: results.totalHits }),
+                    arquivos: t('arquivos', { count: results.totalFiles }),
+                    busca: label,
+                  })}
           </h2>
           <p className="t-xs t-3 cfg-search__help">{t('ajuda')}</p>
         </div>
@@ -216,13 +218,7 @@ export function ConfigSearchResults({
       ) : !results ? (
         <LoadingState label={t('buscando')} />
       ) : results.groups.length === 0 ? (
-        <EmptyState
-          compact
-          glyph="dots"
-          title={t('nada', { busca: label })}
-          text={t('nadaTexto')}
-          headingLevel={3}
-        />
+        <p className="t-sm t-2">{t('nadaTexto')}</p>
       ) : (
         <>
           <div className="hits">
