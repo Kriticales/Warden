@@ -41,6 +41,11 @@ pub enum InstanceErrorCode {
     ManualFileMismatch,
     /// O cache de downloads (`cache/downloads/index.sqlite`) não pôde ser usado.
     CacheUnavailable,
+    /// O packwiz-installer (ou o bootstrap) não pôde ser baixado ou veio com outro hash
+    /// (L-07).
+    InstallerUnavailable,
+    /// O instalador do jogador falhou ao instalar o pack pelo link (L-07).
+    PlayerInstallFailed,
 }
 
 /// Por que um item do pack não foi copiado.
@@ -180,6 +185,21 @@ pub enum Error {
     /// Falha no download de um arquivo para o cache (fora da materialização).
     #[error(transparent)]
     Http(#[from] warden_http::Error),
+    /// Um jar do instalador do jogador não pôde ser baixado ou não conferiu (L-07).
+    #[error("o {file} não pôde ser baixado")]
+    InstallerUnavailable {
+        /// Nome do jar no cache.
+        file: String,
+        /// O erro do download.
+        #[source]
+        source: Box<warden_http::Error>,
+    },
+    /// O instalador do jogador não terminou a instalação (L-07).
+    #[error("o instalador do jogador falhou: {reason}")]
+    PlayerInstallFailed {
+        /// O motivo, numa frase curta da saída do installer, sem caminhos da máquina.
+        reason: String,
+    },
     /// Invariante quebrada.
     #[error("erro interno: {0}")]
     Internal(String),
@@ -226,12 +246,15 @@ impl DomainError for Error {
             Self::Incomplete { .. } => InstanceErrorCode::SyncIncomplete,
             Self::ManualFileMismatch { .. } => InstanceErrorCode::ManualFileMismatch,
             Self::Cache { .. } => InstanceErrorCode::CacheUnavailable,
+            Self::InstallerUnavailable { .. } => InstanceErrorCode::InstallerUnavailable,
+            Self::PlayerInstallFailed { .. } => InstanceErrorCode::PlayerInstallFailed,
             Self::Internal(_) => InstanceErrorCode::Internal,
         })
     }
 
     /// Parâmetros: `path` (falha de disco), `loader` e `version`, `loaders`, `count` e `names`
-    /// (itens que faltaram, até cinco nomes, mais `more` com o resto), `file` (download manual).
+    /// (itens que faltaram, até cinco nomes, mais `more` com o resto), `file` (download manual
+    /// e jar do instalador do jogador), `reason` (falha do instalador do jogador).
     fn params(&self) -> BTreeMap<String, String> {
         let mut params = BTreeMap::new();
         let mut put = |name: &str, value: String| {
@@ -260,6 +283,8 @@ impl DomainError for Error {
                 );
             }
             Self::ManualFileMismatch { expected_file, .. } => put("file", expected_file.clone()),
+            Self::InstallerUnavailable { file, .. } => put("file", file.clone()),
+            Self::PlayerInstallFailed { reason } => put("reason", reason.clone()),
             _ => {}
         }
         params
@@ -282,6 +307,7 @@ impl DomainError for Error {
     fn retryable(&self) -> bool {
         match self {
             Self::Http(error) => error.retryable(),
+            Self::InstallerUnavailable { source, .. } => source.retryable(),
             Self::Core(error) => error.retryable(),
             Self::Incomplete { items } => {
                 !items.is_empty() && items.iter().all(|item| item.reason.retryable())
@@ -366,6 +392,28 @@ mod tests {
             DomainCode::Domain(InstanceErrorCode::ManualFileMismatch)
         );
         assert_eq!(manual.params()["file"], "jei.jar");
+    }
+
+    #[test]
+    fn instalador_do_jogador() {
+        let unavailable = Error::InstallerUnavailable {
+            file: "packwiz-installer-0.5.14.jar".to_owned(),
+            source: Box::new(warden_http::Error::Internal("x".to_owned())),
+        };
+        assert_eq!(
+            unavailable.code(),
+            DomainCode::Domain(InstanceErrorCode::InstallerUnavailable)
+        );
+        assert_eq!(unavailable.params()["file"], "packwiz-installer-0.5.14.jar");
+        let failed = Error::PlayerInstallFailed {
+            reason: "java.net.UnknownHostException: raw.githubusercontent.com".to_owned(),
+        };
+        assert_eq!(
+            failed.code(),
+            DomainCode::Domain(InstanceErrorCode::PlayerInstallFailed)
+        );
+        assert!(failed.params()["reason"].contains("UnknownHost"));
+        assert!(!failed.retryable());
     }
 
     #[test]

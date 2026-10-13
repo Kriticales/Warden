@@ -575,3 +575,30 @@ pub fn cf_data(value: Value) -> ResponseTemplate {
         .insert_header("content-type", "application/json; charset=utf-8")
         .set_body_json(json!({ "data": value }))
 }
+
+/// Cliente da CurseForge real, com a chave de `CURSEFORGE_API_KEY` (testes `rede_*`).
+pub fn curseforge_client() -> CurseforgeClient {
+    let key = std::env::var("CURSEFORGE_API_KEY")
+        .expect("CURSEFORGE_API_KEY ausente: rode pelo `cargo xtask test-network`");
+    let http = HttpClient::new(HttpConfig::default()).unwrap();
+    CurseforgeClient::with_base_url(
+        http,
+        warden_curseforge::DEFAULT_BASE_URL,
+        Some(SecretString::from(key)),
+    )
+    .unwrap()
+}
+
+/// O arquivo principal de um projeto da CurseForge, como metafile `metadata:curseforge`.
+pub async fn curseforge_mod(client: &CurseforgeClient, slug: &str, project: u64) -> TestMod {
+    let found = client.project(project, None).await.unwrap();
+    let file = client
+        .file(project, found.main_file_id, None)
+        .await
+        .unwrap();
+    let sha1 = file.sha1().expect("arquivo sem sha1");
+    TestMod::real(slug, &file.file_name, HashFormat::Sha1, &sha1, None).curseforge(
+        u32::try_from(project).unwrap(),
+        u32::try_from(file.id).unwrap(),
+    )
+}
