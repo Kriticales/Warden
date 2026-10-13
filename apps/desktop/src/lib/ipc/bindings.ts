@@ -875,6 +875,17 @@ export type Bump =
 /**  MAIOR (`X.0.0`). */
 "major";
 
+/**  Resultado de "Limpar cache". */
+export type CacheCleared = {
+	/**  Bytes liberados. */
+	freed: number,
+	/**
+	 *  Itens que não deu para apagar (em uso por outro programa, sem permissão); ficam para a
+	 *  próxima limpeza.
+	 */
+	skipped: number,
+};
+
 /**  O resultado de "Trazer selecionados para o pack". */
 export type CaptureApplied = {
 	/**  Quantas mudanças foram para o pack. */
