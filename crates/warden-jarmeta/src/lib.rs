@@ -10,7 +10,8 @@
 //! `@Mod.dependencies` em texto) e o `FlexVer` ([`version::flexver`]).
 //!
 //! O módulo [`index`] monta os índices pacote → jar → mod e config de mixin → mod, com cache por
-//! hash do jar (D-05).
+//! hash do jar (D-05). O módulo [`assets`] lista os IDs de itens, blocos, tags e receitas de um
+//! jar para o editor de scripts (C-07).
 //!
 //! Limites: a crate não decide nada sobre o pack (isso é do diagnóstico, `warden-diagnostics`) e
 //! não acessa a rede.
@@ -32,6 +33,7 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
+pub mod assets;
 mod descriptor;
 mod error;
 pub mod index;

@@ -1,0 +1,14 @@
+[06:03:23] [INIT] KubeJS 2001.6.5-build.26; MC 2001 fabric
+[06:03:23] [INIT] Loaded plugins:
+[06:03:23] [INIT] - dev.latvian.mods.kubejs.fabric.BuiltinKubeJSFabricPlugin
+[06:03:23] [INFO] Loaded script server_scripts:receitas.js in 0.002 s
+[06:03:23] [INFO] Loaded 1/1 KubeJS server scripts in 0.019 s with 0 errors and 0 warnings
+[06:03:23] [INFO] Scripts loaded
+[06:03:23] [INFO] Initializing recipe event...
+[06:03:25] [INFO] Processing recipes...
+[06:03:25] [INFO] Found 1174 recipes in 71.30 ms
+[06:03:25] [ERROR] ! receitas.js#16: Failed to create recipe for type 'kubejs:shapeless': ItemStack 'result' can't be empty!
+[06:03:25] [ERROR] ! receitas.js#18: Error in 'ServerEvents.recipes': TypeError: Cannot find function shapless in object dev.latvian.mods.kubejs.recipe.RecipesEventJS@16678136.
+[06:03:25] [INFO] Posted recipe events in 26.60 ms
+[06:03:25] [INFO] Added 2 recipes, removed 0 recipes, modified 0 recipes, with 1 failed recipes in 33.65 ms
+[06:03:27] [INFO] Server resource reload complete!

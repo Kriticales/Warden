@@ -1,0 +1,65 @@
+# Trechos prontos do KubeJS 6 (Minecraft 1.19.2 e 1.20.1). Formato em `kubejs-5.toml`.
+ferramenta = "kubejs"
+min = 6
+max = 6
+
+[[trecho]]
+id = "receita-com-forma"
+tipo = "server"
+corpo = """
+ServerEvents.recipes(event => {
+  event.shaped('${minecraft:stone}', [
+    'AAA',
+    'ABA',
+    'AAA'
+  ], {
+    A: '${minecraft:cobblestone}',
+    B: '${minecraft:coal}'
+  })
+})
+"""
+
+[[trecho]]
+id = "receita-sem-forma"
+tipo = "server"
+corpo = """
+ServerEvents.recipes(event => {
+  event.shapeless('${minecraft:stone}', ['${minecraft:cobblestone}', '${minecraft:coal}'])
+})
+"""
+
+[[trecho]]
+id = "remover-receita"
+tipo = "server"
+corpo = """
+ServerEvents.recipes(event => {
+  event.remove({ output: '${minecraft:stone}' })
+})
+"""
+
+[[trecho]]
+id = "tag-de-item"
+tipo = "server"
+corpo = """
+ServerEvents.tags('item', event => {
+  event.add('${forge:ingots/copper}', '${minecraft:copper_ingot}')
+})
+"""
+
+[[trecho]]
+id = "item-novo"
+tipo = "startup"
+corpo = """
+StartupEvents.registry('item', event => {
+  event.create('${meu_item}')
+})
+"""
+
+[[trecho]]
+id = "dica-de-item"
+tipo = "client"
+corpo = """
+ItemEvents.tooltip(event => {
+  event.add('${minecraft:stone}', '${Texto da dica}')
+})
+"""

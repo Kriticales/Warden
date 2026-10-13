@@ -1,0 +1,68 @@
+# Trechos prontos do KubeJS até a linha 5 (Minecraft 1.16.5 a 1.19; eventos `onEvent`).
+# Cada `id` tem o nome na interface em `apps/desktop/src/i18n/pt-BR/scripts.ts` (trechos.*).
+# `tipo` é a pasta em que o trecho funciona (startup, server ou client). O corpo usa os campos
+# do CodeMirror: `${texto}` é um campo que o Tab percorre.
+ferramenta = "kubejs"
+min = 1
+max = 5
+
+[[trecho]]
+id = "receita-com-forma"
+tipo = "server"
+corpo = """
+onEvent('recipes', event => {
+  event.shaped('${minecraft:stone}', [
+    'AAA',
+    'ABA',
+    'AAA'
+  ], {
+    A: '${minecraft:cobblestone}',
+    B: '${minecraft:coal}'
+  })
+})
+"""
+
+[[trecho]]
+id = "receita-sem-forma"
+tipo = "server"
+corpo = """
+onEvent('recipes', event => {
+  event.shapeless('${minecraft:stone}', ['${minecraft:cobblestone}', '${minecraft:coal}'])
+})
+"""
+
+[[trecho]]
+id = "remover-receita"
+tipo = "server"
+corpo = """
+onEvent('recipes', event => {
+  event.remove({ output: '${minecraft:stone}' })
+})
+"""
+
+[[trecho]]
+id = "tag-de-item"
+tipo = "server"
+corpo = """
+onEvent('tags.items', event => {
+  event.add('${forge:ingots/copper}', '${minecraft:copper_ingot}')
+})
+"""
+
+[[trecho]]
+id = "item-novo"
+tipo = "startup"
+corpo = """
+onEvent('item.registry', event => {
+  event.create('${meu_item}')
+})
+"""
+
+[[trecho]]
+id = "dica-de-item"
+tipo = "client"
+corpo = """
+onEvent('item.tooltip', tooltip => {
+  tooltip.add('${minecraft:stone}', '${Texto da dica}')
+})
+"""

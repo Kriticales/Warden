@@ -1,0 +1,6 @@
+[05:54:34] [INIT] KubeJS 2001.6.5-build.26; MC 2001 fabric
+[05:54:34] [INIT] Loaded plugins:
+[05:54:34] [INIT] - dev.latvian.mods.kubejs.fabric.BuiltinKubeJSFabricPlugin
+[05:54:34] [INFO] Loaded script startup_scripts:itens.js in 0.032 s
+[05:54:34] [INFO] Loaded 1/1 KubeJS startup scripts in 0.214 s with 0 errors and 0 warnings
+[05:54:34] [ERROR] ! itens.js#3: Error in 'StartupEvents.registry': TypeError: Cannot find function criar in object dev.latvian.mods.kubejs.registry.RegistryEventJS@1caeefaa.
