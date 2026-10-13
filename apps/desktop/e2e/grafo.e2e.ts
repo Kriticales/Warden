@@ -142,7 +142,15 @@ describe('Mods no modo Grafo (D-11)', () => {
     expect(links).toContain('Sodium precisa de Lithium · obrigatória');
     expect(links).toContain('Sodium recomenda Mod Menu · recomendada');
     expect(links).toContain('Jade 🔍 precisa de Sodium · obrigatória');
-    const words = await fullText('section[aria-labelledby="grafo-palavras"]');
+    // "Se você remover" vem de outra consulta (a dos dependentes): espera ela chegar.
+    let words = '';
+    await browser.waitUntil(
+      async () => {
+        words = await fullText('section[aria-labelledby="grafo-palavras"]');
+        return words.includes('Se você remover');
+      },
+      { timeout: 30_000, timeoutMsg: `"Se você remover" não apareceu (${words})` },
+    );
     expect(words).toContain('Se você remover o Sodium, 1 mod para de funcionar: Jade 🔍');
     await screenshot('60-mods-grafo');
     expect(await seriousViolationSummaries()).toEqual([]);
@@ -163,9 +171,20 @@ describe('Mods no modo Grafo (D-11)', () => {
     await browser.keys('Enter');
     const drawer = $('[role="dialog"]');
     await drawer.waitForDisplayed();
+    // Os blocos dos detalhes carregam aos poucos e empurram o link: espera as dependências
+    // chegarem (o bloco logo acima do link) antes de clicar.
+    await browser.waitUntil(
+      async () => (await fullText('[role="dialog"]')).includes('Depende de'),
+      {
+        timeout: 30_000,
+        timeoutMsg: 'as dependências do Jade não carregaram nos detalhes',
+      },
+    );
+    await dismissToasts();
     const link = drawer.$('a=Ver no grafo');
-    await link.waitForDisplayed();
+    await link.waitForClickable();
     await link.click();
+    await drawer.waitForExist({ reverse: true });
     await graphOf('Jade 🔍').waitForDisplayed({ timeout: 30_000 });
     await expect($('button[role="radio"][aria-checked="true"]')).toHaveText('Grafo');
   });
