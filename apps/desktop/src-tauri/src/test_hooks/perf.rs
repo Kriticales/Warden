@@ -15,7 +15,7 @@
 //! ADR-0039 e ADR-0047), que a poda das sessões não apaga.
 
 use std::io::Write as _;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use serde::Serialize;
@@ -110,20 +110,33 @@ impl TestHooks for PerfHook {
     }
 
     async fn on_game_started(&self, context: &HookContext<'_>, game: &GameContext<'_>) {
+        // A comparação sai das sessões gravadas (poucos arquivos pequenos), fora da thread do
+        // async; as linhas do jogo esperam no canal enquanto isso.
+        let sessions_dir = context.dirs.state_dir.join("sessions");
+        let current_session = game.session_dir.to_path_buf();
+        let mode = context.mode;
+        let pack_version = game.pack_version.map(ToOwned::to_owned);
+        let previous = tokio::task::spawn_blocking(move || {
+            previous_load(
+                &sessions_dir,
+                &current_session,
+                mode,
+                pack_version.as_deref(),
+            )
+        })
+        .await
+        .ok()
+        .flatten();
         let live = Arc::new(Mutex::new(Live {
             stats: MemoryStats::default(),
             tracker: LoadTracker::new(game.spec.minecraft.as_str(), loader(&game.spec.loader)),
-            previous: None,
+            previous,
         }));
         let sampler = tokio::spawn(sample_loop(SamplerInput {
             live: Arc::clone(&live),
             pid: game.pid,
             game: game.game.clone(),
             events: Arc::clone(game.events),
-            sessions_dir: context.dirs.state_dir.join("sessions"),
-            current_session: game.session_dir.to_path_buf(),
-            mode: context.mode,
-            pack_version: game.pack_version.map(ToOwned::to_owned),
         }));
         let previous = lock(&self.running).replace(Running {
             live,
@@ -187,7 +200,7 @@ impl TestHooks for PerfHook {
         match written {
             Ok(Ok(())) => {}
             Ok(Err(error)) => {
-                tracing::warn!(%error, "linha do histórico de desempenho não gravada")
+                tracing::warn!(%error, "linha do histórico de desempenho não gravada");
             }
             Err(error) => tracing::warn!(%error, "histórico de desempenho interrompido"),
         }
@@ -206,10 +219,6 @@ struct SamplerInput {
     pid: u32,
     game: GameHandle,
     events: Events,
-    sessions_dir: PathBuf,
-    current_session: PathBuf,
-    mode: TestMode,
-    pack_version: Option<String>,
 }
 
 /// Mede a cada [`SAMPLE_INTERVAL`] até o processo principal sair.
@@ -219,24 +228,7 @@ async fn sample_loop(input: SamplerInput) {
         pid,
         game,
         events,
-        sessions_dir,
-        current_session,
-        mode,
-        pack_version,
     } = input;
-    let previous = tokio::task::spawn_blocking(move || {
-        previous_load(
-            &sessions_dir,
-            &current_session,
-            mode,
-            pack_version.as_deref(),
-        )
-    })
-    .await
-    .ok()
-    .flatten();
-    lock(&live).previous = previous;
-
     let Ok(Some(mut tree)) = tokio::task::spawn_blocking(move || ProcessTree::open(pid)).await
     else {
         tracing::info!(
