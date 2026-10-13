@@ -232,6 +232,12 @@ describe('Formulário de configs (T12, C-04)', () => {
     expect(within(form).getByRole('switch', { name: 'kinetics.enabled' })).toBeDefined();
     expect(backend.callsOf('config_form')[0]?.args.text).toBe(CREATE_TEXT);
     expect(screen.queryByRole('button', { name: 'Buscar e substituir' })).toBeNull();
+    // O aviso do NeoForge (chaves apagadas e valores corrigidos) continua no formulário.
+    expect(
+      screen.getByText(
+        'Valores fora da faixa voltam ao padrão e chaves que o mod não conhece são apagadas quando o jogo abre.',
+      ),
+    ).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 

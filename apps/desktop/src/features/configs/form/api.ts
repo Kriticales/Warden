@@ -32,6 +32,8 @@ export function useConfigForm(packId: PackId, path: string, text: string, enable
     // Enquanto o formulário do texto novo chega, os campos continuam na tela.
     placeholderData: keepPreviousData,
     staleTime: 30_000,
+    // A chave leva o texto inteiro (até 2 MB): formulários de textos antigos saem logo do cache.
+    gcTime: 10_000,
     enabled,
   });
 }
