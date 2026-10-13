@@ -14,6 +14,7 @@ import { Icon } from '../../../components/ui/icon';
 import { cn } from '../../../lib/cn';
 import type { InventoryItem, ItemSide, SideChoice, UpdateItem } from '../../../lib/ipc/bindings';
 import { RowUpdate } from '../../updates/RowUpdate';
+import { ProblemMark } from '../../diagnostics/components/ProblemMark';
 import { ItemMarks, SourceTag } from './marks';
 
 export const SIDE_CHOICES: readonly SideChoice[] = ['both', 'client', 'server'];
@@ -97,6 +98,7 @@ export const ModRow = memo(function ModRow({
                 {invalid ? item.path : item.name}
               </button>
               <ItemMarks item={item} />
+              <ProblemMark path={item.path} />
               {invalid ? (
                 <span className="modrow__actions">
                   <Button

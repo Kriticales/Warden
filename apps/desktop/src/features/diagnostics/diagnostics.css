@@ -1,0 +1,37 @@
+/* Seção Problemas, "Por que travou" e o diálogo de erros do Testar (D-03). Só o que não existe
+   em `design/system/components.css` (`.issue`, `.badge`, `.group-title`). */
+.issue--ignored {
+  opacity: 0.72;
+}
+.issue--ignored .issue__title {
+  text-decoration: line-through;
+}
+.issue__items {
+  margin-top: var(--space-1);
+}
+.issue__proofs {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.issue__excerpt {
+  margin-top: var(--space-1);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 12rem;
+  overflow: auto;
+}
+.badge--link {
+  text-decoration: none;
+}
+.badge--link:hover,
+.badge--link:focus-visible {
+  filter: brightness(1.15);
+}
+.diag-progress {
+  max-width: 720px;
+}
+.diag-dialog__list {
+  display: grid;
+  gap: var(--space-2);
+}

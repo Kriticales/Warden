@@ -33,6 +33,8 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Falta {{count}} arquivo do Minecraft para abrir o teste e não foi possível baixá-lo: {{names}}. Confira a internet e tente de novo; o caminho completo está nos detalhes técnicos.',
   TEST_GAME_FILES_MISSING_other:
     'Faltam {{count}} arquivos do Minecraft para abrir o teste e não foi possível baixá-los: {{names}}. Confira a internet e tente de novo; a lista completa está nos detalhes técnicos.',
+  TEST_PACK_HAS_ERRORS:
+    'O Warden encontrou erros no pack que podem impedir o jogo de abrir. Corrija em Problemas ou escolha testar mesmo assim.',
   MANUAL_DOWNLOAD_NOT_WAITING:
     'Este mod não está mais esperando o download manual: o teste foi cancelado ou já continuou.',
   MANUAL_DOWNLOAD_NO_PAGE:

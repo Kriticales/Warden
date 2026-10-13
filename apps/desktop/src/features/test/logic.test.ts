@@ -81,11 +81,20 @@ describe('estado do teste pelo canal', () => {
 describe('indicador de etapas', () => {
   it('avança pelas etapas do backend e nunca volta; com o jogo aberto, tudo concluído', () => {
     const steps = orderedSteps();
-    expect(steps.map((step) => step.id)).toEqual(['prepare', 'sync', 'launch']);
+    // "Verificar o pack" e "Verificação final" são da D-03 (`test.check`, `test.finalCheck`).
+    expect(steps.map((step) => step.id)).toEqual([
+      'check',
+      'prepare',
+      'sync',
+      'final-check',
+      'launch',
+    ]);
     expect(currentStep([], false)).toBe(0);
-    expect(currentStep(['test.java', 'launcher.download'], false)).toBe(0);
-    expect(currentStep(['launcher.download', 'syncPack'], false)).toBe(1);
-    expect(currentStep(['syncPack', 'test.launch', 'java.resolve'], false)).toBe(2);
+    expect(currentStep(['test.check'], false)).toBe(0);
+    expect(currentStep(['test.check', 'test.java', 'launcher.download'], false)).toBe(1);
+    expect(currentStep(['launcher.download', 'syncPack'], false)).toBe(2);
+    expect(currentStep(['syncPack', 'test.finalCheck'], false)).toBe(3);
+    expect(currentStep(['syncPack', 'test.launch', 'java.resolve'], false)).toBe(4);
     expect(currentStep(['syncPack'], true)).toBe(steps.length);
   });
 });

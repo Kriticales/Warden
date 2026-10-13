@@ -8,7 +8,7 @@
 import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
-import { WhyCrashed } from './views/WhyCrashed';
+import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 
 export interface ResultBlockProps {
   packId: PackId;
