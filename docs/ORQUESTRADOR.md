@@ -57,6 +57,12 @@ Este guia é para a sessão que conduz o projeto. Ele resume o papel, o dono, as
    - código: rode a suíte e o lint que a tarefa definiu no ROADMAP e julgue pelo código de saída.
 5. **Integrar** no `main`, enviar ao GitHub e mover o card do worktree para concluído no Orca (`orca worktree set ... --workspace-status completed`).
 6. **Reportar ao dono:** o que entrou, o que você conferiu e as decisões pendentes dele, cada uma com a sua recomendação.
+7. **Fechou o marco? Rode a pré-versão** (decisão do dono de 13/10/2026; INFRA-02). Só no fim de cada marco do ROADMAP §13, nunca a cada integração:
+   - escreva `docs/pre-versoes/marco-<N>.md` a partir do `docs/pre-versoes/MODELO.md` (o que o marco entrega e o que testar, em linguagem simples) e integre no `main`;
+   - confira o texto: `cargo xtask pre-versao --marco <N> --dry-run`;
+   - espere a CI do commit do `main` terminar verde e dispare: `gh workflow run pre-versao.yml --ref main -f marco=<N>` (ou `-f ref=<sha>` para outro commit do `main`; pelo site: Actions → Pré-versão → Run workflow);
+   - acompanhe com `gh run watch`. O workflow recusa commit fora do `main`, CI vermelha ou tag repetida (`v<versão>-marco.<N>`) e não sobrescreve nada; para refazer, apague a Release e a tag à mão, com o aval do dono;
+   - mande ao dono o link da pré-versão (https://github.com/Kriticales/Warden/releases).
 
 ## 5. Conferências rápidas (PowerShell)
 

@@ -4,6 +4,19 @@
 
 A cada entrega você pode instalar a versão mais recente do Warden neste computador para testar. Instalar de novo **atualiza** o Warden e **não apaga** seus packs, configurações nem chaves.
 
+## Versão de fim de marco: página Releases
+
+Quando um marco fecha, o orquestrador publica o instalador como **pré-versão** na página **Releases** do GitHub: https://github.com/Kriticales/Warden/releases. Só as versões de fim de marco vão para lá (nada a cada mudança), e não precisa estar logado.
+
+1. Abra a página e procure a pré-versão do marco (por exemplo **Warden 0.1.0 · Marco 1: Montar packs (pré-versão)**).
+2. Leia as notas: elas dizem o que o marco entrega e o que testar.
+3. Em **Assets**, clique em `Warden_<versão>_x64-setup.exe` para baixar e dê duplo clique nele. Como ele vem pelo navegador, o Windows deve mostrar o aviso explicado em [O aviso "O Windows protegeu o computador"](#o-aviso-o-windows-protegeu-o-computador).
+4. Encontrou um problema? No Warden, use o botão **Relatar problema** (ou **Ctrl+Shift+E**).
+
+As notas trazem o SHA-256 do instalador, para conferir que o arquivo é o certo (`Get-FileHash .\Warden_<versão>_x64-setup.exe -Algorithm SHA256` no PowerShell).
+
+Para testar o que entrou **entre** os marcos, use o duplo clique abaixo, que pega a versão mais recente da `main`.
+
 ## Jeito mais fácil: duplo clique
 
 1. Abra a pasta do projeto: `C:\Users\<seu usuário>\orca\projects\Warden\scripts\`.
@@ -56,7 +69,7 @@ A versão de outra branch só existe se a CI do Windows rodou nela: na `main` el
 O instalador do Warden **não tem assinatura digital**. A assinatura é um certificado pago que prova quem fez o programa, e a decisão D4 do projeto foi não comprar um, porque o Warden é só para você. Por isso o Windows pode desconfiar dele.
 
 - **Pelo duplo clique ou pelo `cargo xtask preview`**, o aviso normalmente **não aparece**: o instalador é baixado pelo `gh` (ou gerado aqui), e o Windows só desconfia de arquivos baixados pelo navegador.
-- **Se você baixar o instalador pelo navegador** (por exemplo, da página da CI no GitHub) e der duplo clique nele, aparece uma tela azul **"O Windows protegeu o computador"**. Para instalar mesmo assim:
+- **Se você baixar o instalador pelo navegador** (da página Releases ou da página da CI no GitHub) e der duplo clique nele, aparece uma tela azul **"O Windows protegeu o computador"**. Para instalar mesmo assim:
   1. clique em **Mais informações**;
   2. confira que o aplicativo é `Warden_..._x64-setup.exe` e o fornecedor aparece como **Fornecedor desconhecido**;
   3. clique em **Executar assim mesmo**.
@@ -95,6 +108,8 @@ Seus packs em `Documentos\Warden\` e as chaves no Gerenciador de Credenciais **n
 4. Se o Warden abriu e o problema foi dentro dele: o arquivo de registro mais recente de `%LOCALAPPDATA%\dev.kriticales.warden\logs\`. Os registros não guardam suas chaves.
 
 ## Para os agentes
+
+- **Pré-versões de fim de marco** (INFRA-02): workflow `.github/workflows/pre-versao.yml`, só manual, disparado pelo orquestrador (passo em `docs/ORQUESTRADOR.md` §4). Ele confere que o commit está no `main` e que a CI dele passou, gera o instalador pelo mesmo `windows.yml` da CI, cria a tag `v<versão>-marco.<N>` (nunca sobrescreve) e a Release marcada como pré-versão, com o `.exe` e as notas de `cargo xtask pre-versao` (`docs/pre-versoes/marco-<N>.md`, modelo em `docs/pre-versoes/MODELO.md`). Teste a seco local: `cargo xtask pre-versao --marco <N> --dry-run`.
 
 - O comando é o `cargo xtask preview` (`xtask/src/preview.rs`). Com `--from-ci`, escolhe a execução mais recente da branch que **terminou com sucesso** e ainda tem o artefato `warden-windows-<sha>` do `windows.yml` (válido por 30 dias), baixa o instalador para `<target>/preview/warden-windows-<sha>/` e instala. Sem a opção, roda `cargo xtask build-packwiz` e `cargo tauri build --bundles nsis` e usa o instalador de `<target>/release/bundle/nsis/`.
 - A instalação é `Warden_<versão>_x64-setup.exe /S`, só para o usuário atual. `--install-dir <pasta>` instala em outra pasta (`/D=`), útil para testar sem tocar na instalação do dono. Depois do teste, desinstale com `<pasta>\uninstall.exe /S` **e** apague a chave `HKCU\Software\kriticales\Warden`: o desinstalador a mantém (ela guarda a pasta da instalação), e a próxima instalação sem `--install-dir` voltaria para a pasta de teste (conferido na F0-04).
