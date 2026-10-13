@@ -152,6 +152,17 @@ describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
   });
 
   after(() => {
+    // A instância de teste deste pack sai junto: os outros E2E do Testar usam a única que houver.
+    if (existsSync(REGISTRY_FILE)) {
+      const registry = JSON.parse(readFileSync(REGISTRY_FILE, 'utf8')) as {
+        packs?: { id: string; path: string }[];
+      };
+      for (const pack of registry.packs ?? []) {
+        if (pack.path === PACK) {
+          rmSync(join(DATA_ROOT, 'data', 'instances', pack.id), { recursive: true, force: true });
+        }
+      }
+    }
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
   });
