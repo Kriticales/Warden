@@ -502,3 +502,46 @@ async fn tempo_esgotado_vira_timeout() {
         "{error}"
     );
 }
+
+#[tokio::test]
+async fn post_binario_manda_o_corpo_e_o_tipo_e_nao_repete() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/git-receive-pack"))
+        .and(header(
+            "content-type",
+            "application/x-git-receive-pack-request",
+        ))
+        .respond_with(|request: &Request| {
+            ResponseTemplate::new(200).set_body_bytes(request.body.clone())
+        })
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/falha"))
+        .respond_with(ResponseTemplate::new(503))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let (client, timer) = client();
+    let body = client
+        .post_bytes(
+            url(&server, "/git-receive-pack"),
+            "application/x-git-receive-pack-request",
+            b"0000PACK\x00\x01".to_vec(),
+        )
+        .total_timeout(Some(Duration::from_secs(600)))
+        .bytes()
+        .await
+        .unwrap();
+    assert_eq!(body, b"0000PACK\x00\x01");
+    let error = client
+        .post_bytes(url(&server, "/falha"), "application/octet-stream", vec![1])
+        .total_timeout(None)
+        .send()
+        .await
+        .unwrap_err();
+    assert!(matches!(error, Error::ServerError { .. }), "{error}");
+    assert!(timer.sleeps().is_empty(), "envio não é repetido sozinho");
+}

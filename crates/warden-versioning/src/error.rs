@@ -61,6 +61,38 @@ pub enum VersioningErrorCode {
     RollbackFailed,
     /// Falha da biblioteca git ao ler ou gravar o histórico.
     GitFailed,
+    /// Só versões finais podem ser publicadas (V-03).
+    NotFinal,
+    /// A versão já foi publicada.
+    AlreadyPublished,
+    /// A versão é menor que a última publicada.
+    PublishNotNewer,
+    /// O conteúdo a publicar tem algo com cara de chave ou token.
+    PublishSecretFound,
+    /// Uma conferência que bloqueia a publicação reprovou (higiene, segredo).
+    PublishBlocked,
+    /// O pack ainda não tem repositório no GitHub.
+    GithubNotLinked,
+    /// Sem conexão com o GitHub.
+    GithubOffline,
+    /// O GitHub recusou o token (inválido ou expirado).
+    GithubTokenRejected,
+    /// O token não tem a permissão necessária.
+    GithubPermissionMissing,
+    /// O repositório não existe (ou o token não o enxerga).
+    GithubRepoNotFound,
+    /// Já existe um repositório com esse nome.
+    GithubRepoNameTaken,
+    /// O nome do repositório não é válido.
+    GithubInvalidRepoName,
+    /// O GitHub tem mudanças que não estão aqui.
+    RemoteDiverged,
+    /// O GitHub recusou o envio.
+    PushRejected,
+    /// Os arquivos foram enviados, mas a Release não foi criada.
+    ReleasePending,
+    /// Resposta inesperada do GitHub.
+    GithubFailed,
 }
 
 /// Erro das operações de versionamento.
@@ -208,6 +240,130 @@ pub enum Error {
         source: git2::Error,
     },
 
+    /// Publicar uma versão que não é final.
+    #[error("a versão {version} não é versão final")]
+    NotFinal {
+        /// Versão pedida.
+        version: String,
+    },
+
+    /// A versão já está na linha de publicação.
+    #[error("a versão {version} já foi publicada")]
+    AlreadyPublished {
+        /// Versão pedida.
+        version: String,
+    },
+
+    /// Publicar uma versão menor que a última publicada faria os jogadores voltarem.
+    #[error("a versão {version} é menor que a última publicada ({last})")]
+    PublishNotNewer {
+        /// Versão pedida.
+        version: String,
+        /// Última versão publicada.
+        last: String,
+    },
+
+    /// Algo com cara de chave ou token no conteúdo a publicar.
+    #[error("algo que parece uma chave em {path}, linha {line}")]
+    PublishSecretFound {
+        /// Arquivo, relativo à raiz do pack.
+        path: String,
+        /// Linha (a partir de 1).
+        line: u32,
+    },
+
+    /// Uma conferência que bloqueia reprovou.
+    #[error("a publicação está bloqueada: {count} conferência(s) reprovada(s)")]
+    PublishBlocked {
+        /// Quantos achados bloqueiam.
+        count: usize,
+    },
+
+    /// O pack ainda não tem repositório no GitHub.
+    #[error("o pack ainda não tem repositório no GitHub")]
+    GithubNotLinked,
+
+    /// Sem conexão com o GitHub.
+    #[error("sem conexão com o GitHub ao {action}")]
+    GithubOffline {
+        /// O que se tentava fazer.
+        action: &'static str,
+        /// Erro HTTP.
+        #[source]
+        source: Box<warden_http::Error>,
+    },
+
+    /// O GitHub respondeu 401.
+    #[error("o GitHub recusou o token ao {action}")]
+    GithubTokenRejected {
+        /// O que se tentava fazer.
+        action: &'static str,
+    },
+
+    /// O token não tem a permissão para a ação.
+    #[error("o token não tem a permissão {permission:?} ao {action}")]
+    GithubPermissionMissing {
+        /// Permissão que falta.
+        permission: crate::github::GithubPermission,
+        /// O que se tentava fazer.
+        action: &'static str,
+    },
+
+    /// Repositório inexistente (ou invisível para o token).
+    #[error("o repositório {repo} não existe ou o token não tem acesso a ele")]
+    GithubRepoNotFound {
+        /// `dono/nome`.
+        repo: String,
+    },
+
+    /// Nome de repositório já usado na conta.
+    #[error("já existe um repositório {repo}")]
+    GithubRepoNameTaken {
+        /// `dono/nome`.
+        repo: String,
+    },
+
+    /// Nome de repositório inválido.
+    #[error("nome de repositório inválido: {name:?}")]
+    GithubInvalidRepoName {
+        /// Texto recebido.
+        name: String,
+    },
+
+    /// A `main` do GitHub não é a última publicação do Warden.
+    #[error("o GitHub ({repo}) tem mudanças que não estão aqui")]
+    RemoteDiverged {
+        /// `dono/nome`.
+        repo: String,
+    },
+
+    /// O servidor recusou a atualização das referências.
+    #[error("o GitHub recusou o envio: {reason}")]
+    PushRejected {
+        /// Motivo dado pelo servidor.
+        reason: String,
+    },
+
+    /// O envio foi feito; a Release não.
+    #[error("a versão {version} foi enviada, mas a Release não foi criada")]
+    ReleasePending {
+        /// Versão publicada.
+        version: String,
+        /// A falha da Release.
+        #[source]
+        source: Box<Error>,
+    },
+
+    /// Resposta inesperada do GitHub.
+    #[error("falha do GitHub ao {action}")]
+    GithubFailed {
+        /// O que se tentava fazer.
+        action: &'static str,
+        /// Erro HTTP ou de protocolo.
+        #[source]
+        source: Box<warden_http::Error>,
+    },
+
     /// Falha de disco ou caminho recusado.
     #[error(transparent)]
     Core(#[from] CoreError),
@@ -270,6 +426,22 @@ impl DomainError for Error {
             Self::RollbackFailed { .. } => Code::RollbackFailed,
             Self::Git { .. } => Code::GitFailed,
             Self::Internal(_) => Code::Internal,
+            Self::NotFinal { .. } => Code::NotFinal,
+            Self::AlreadyPublished { .. } => Code::AlreadyPublished,
+            Self::PublishNotNewer { .. } => Code::PublishNotNewer,
+            Self::PublishSecretFound { .. } => Code::PublishSecretFound,
+            Self::PublishBlocked { .. } => Code::PublishBlocked,
+            Self::GithubNotLinked => Code::GithubNotLinked,
+            Self::GithubOffline { .. } => Code::GithubOffline,
+            Self::GithubTokenRejected { .. } => Code::GithubTokenRejected,
+            Self::GithubPermissionMissing { .. } => Code::GithubPermissionMissing,
+            Self::GithubRepoNotFound { .. } => Code::GithubRepoNotFound,
+            Self::GithubRepoNameTaken { .. } => Code::GithubRepoNameTaken,
+            Self::GithubInvalidRepoName { .. } => Code::GithubInvalidRepoName,
+            Self::RemoteDiverged { .. } => Code::RemoteDiverged,
+            Self::PushRejected { .. } => Code::PushRejected,
+            Self::ReleasePending { .. } => Code::ReleasePending,
+            Self::GithubFailed { .. } => Code::GithubFailed,
             Self::Core(core) => return core.code().map_core(),
         })
     }
@@ -288,8 +460,11 @@ impl DomainError for Error {
             Self::InvalidVersion { version, .. }
             | Self::VersionExists { version }
             | Self::VersionNotFound { version }
-            | Self::VersionPublished { version } => put("version", version.clone()),
-            Self::VersionNotGreater { version, last } => {
+            | Self::VersionPublished { version }
+            | Self::NotFinal { version }
+            | Self::AlreadyPublished { version }
+            | Self::ReleasePending { version, .. } => put("version", version.clone()),
+            Self::VersionNotGreater { version, last } | Self::PublishNotNewer { version, last } => {
                 put("version", version.clone());
                 put("last", last.clone());
             }
@@ -298,7 +473,9 @@ impl DomainError for Error {
                     put("last", last.clone());
                 }
             }
-            Self::SafetyPointNotFound { name } => put("name", name.clone()),
+            Self::SafetyPointNotFound { name } | Self::GithubInvalidRepoName { name } => {
+                put("name", name.clone());
+            }
             Self::FileInUse { path, .. } => put("path", path.clone()),
             Self::RollbackFailed {
                 safety_point,
@@ -308,9 +485,27 @@ impl DomainError for Error {
                 put("safetyPoint", safety_point.clone());
                 put("paths", paths.join(", "));
             }
-            Self::Core(core) => return core.params(),
-            Self::RepoLocked { .. } | Self::DetachedHead | Self::Git { .. } | Self::Internal(_) => {
+            Self::PublishSecretFound { path, line } => {
+                put("path", path.clone());
+                put("line", line.to_string());
             }
+            Self::PublishBlocked { count } => put("count", count.to_string()),
+            Self::GithubPermissionMissing { permission, .. } => {
+                put("permission", permission.as_str().to_owned());
+            }
+            Self::GithubRepoNotFound { repo }
+            | Self::GithubRepoNameTaken { repo }
+            | Self::RemoteDiverged { repo } => put("repo", repo.clone()),
+            Self::PushRejected { reason } => put("reason", reason.clone()),
+            Self::Core(core) => return core.params(),
+            Self::RepoLocked { .. }
+            | Self::DetachedHead
+            | Self::Git { .. }
+            | Self::Internal(_)
+            | Self::GithubNotLinked
+            | Self::GithubOffline { .. }
+            | Self::GithubTokenRejected { .. }
+            | Self::GithubFailed { .. } => {}
         }
         params
     }
@@ -324,7 +519,11 @@ impl DomainError for Error {
 
     fn retryable(&self) -> bool {
         match self {
-            Self::RepoLocked { .. } | Self::FileInUse { .. } => true,
+            Self::RepoLocked { .. }
+            | Self::FileInUse { .. }
+            | Self::GithubOffline { .. }
+            | Self::ReleasePending { .. } => true,
+            Self::GithubFailed { source, .. } => source.retryable(),
             Self::Core(core) => core.retryable(),
             _ => false,
         }
@@ -499,6 +698,104 @@ mod tests {
                 &[],
             ),
             (Error::Internal("x".into()), Code::Internal, &[]),
+            (
+                Error::NotFinal {
+                    version: "1.0.0".into(),
+                },
+                Code::NotFinal,
+                &["version"],
+            ),
+            (
+                Error::AlreadyPublished {
+                    version: "1.0.0".into(),
+                },
+                Code::AlreadyPublished,
+                &["version"],
+            ),
+            (
+                Error::PublishNotNewer {
+                    version: "1.0.0".into(),
+                    last: "1.1.0".into(),
+                },
+                Code::PublishNotNewer,
+                &["last", "version"],
+            ),
+            (
+                Error::PublishSecretFound {
+                    path: "config/x.toml".into(),
+                    line: 3,
+                },
+                Code::PublishSecretFound,
+                &["line", "path"],
+            ),
+            (
+                Error::PublishBlocked { count: 2 },
+                Code::PublishBlocked,
+                &["count"],
+            ),
+            (Error::GithubNotLinked, Code::GithubNotLinked, &[]),
+            (
+                Error::GithubOffline {
+                    action: "x",
+                    source: Box::new(warden_http::Error::Cancelled),
+                },
+                Code::GithubOffline,
+                &[],
+            ),
+            (
+                Error::GithubTokenRejected { action: "x" },
+                Code::GithubTokenRejected,
+                &[],
+            ),
+            (
+                Error::GithubPermissionMissing {
+                    permission: crate::github::GithubPermission::Release,
+                    action: "x",
+                },
+                Code::GithubPermissionMissing,
+                &["permission"],
+            ),
+            (
+                Error::GithubRepoNotFound { repo: "a/b".into() },
+                Code::GithubRepoNotFound,
+                &["repo"],
+            ),
+            (
+                Error::GithubRepoNameTaken { repo: "a/b".into() },
+                Code::GithubRepoNameTaken,
+                &["repo"],
+            ),
+            (
+                Error::GithubInvalidRepoName { name: "a b".into() },
+                Code::GithubInvalidRepoName,
+                &["name"],
+            ),
+            (
+                Error::RemoteDiverged { repo: "a/b".into() },
+                Code::RemoteDiverged,
+                &["repo"],
+            ),
+            (
+                Error::PushRejected { reason: "r".into() },
+                Code::PushRejected,
+                &["reason"],
+            ),
+            (
+                Error::ReleasePending {
+                    version: "1.0.0".into(),
+                    source: Box::new(Error::GithubNotLinked),
+                },
+                Code::ReleasePending,
+                &["version"],
+            ),
+            (
+                Error::GithubFailed {
+                    action: "x",
+                    source: Box::new(warden_http::Error::Internal("y".into())),
+                },
+                Code::GithubFailed,
+                &[],
+            ),
         ];
         for (error, code, keys) in cases {
             assert_eq!(error.code(), DomainCode::Domain(code), "{error}");
