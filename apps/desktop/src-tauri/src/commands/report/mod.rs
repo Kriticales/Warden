@@ -55,6 +55,28 @@ const E2E_OPEN_URL_ENV: &str = "WARDEN_E2E_OPEN_URL";
 #[cfg(debug_assertions)]
 const E2E_CAPTURE_FILE_ENV: &str = "WARDEN_E2E_CAPTURE_FILE";
 
+/// Permissão extra do E2E (só no build de debug e só com [`E2E_CAPTURE_FILE_ENV`] definida):
+/// ler o tamanho real da área da janela (`innerSize`, em pixels físicos), para o CA-UI03-04
+/// conferir o print contra a janela de verdade. No Windows o `setWindowSize` do `msedgedriver`
+/// muda só a área do `WebView2`, não a janela, e a página não sabe o tamanho real dela.
+#[cfg(debug_assertions)]
+const E2E_CAPABILITY: &str = r#"{
+  "identifier": "e2e-tamanho-da-janela",
+  "description": "Só no E2E do build de debug: ler o tamanho real da janela (CA-UI03-04).",
+  "windows": ["main"],
+  "permissions": ["core:window:allow-inner-size"]
+}"#;
+
+/// No E2E (build de debug com [`E2E_CAPTURE_FILE_ENV`]), libera a leitura do tamanho real da
+/// janela ([`E2E_CAPABILITY`]). Fora do E2E, não faz nada.
+#[cfg(debug_assertions)]
+pub(crate) fn grant_e2e_capability(app: &tauri::App) -> Result<(), tauri::Error> {
+    if std::env::var_os(E2E_CAPTURE_FILE_ENV).is_some_and(|value| !value.is_empty()) {
+        app.add_capability(E2E_CAPABILITY)?;
+    }
+    Ok(())
+}
+
 /// Último erro que a interface mostrou.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]

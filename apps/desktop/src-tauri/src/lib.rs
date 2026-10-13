@@ -138,6 +138,8 @@ fn setup(app: &mut tauri::App, dev_root: Option<&Path>) -> Result<(), Box<dyn st
     );
     app.manage(state);
 
+    #[cfg(debug_assertions)]
+    commands::report::grant_e2e_capability(app)?;
     create_main_window(app, webview_dir)?;
     Ok(())
 }

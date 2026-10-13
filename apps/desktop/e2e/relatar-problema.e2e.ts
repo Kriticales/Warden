@@ -361,13 +361,25 @@ describe('Relatar problema', () => {
   });
 
   it('CA-UI03-04: com "Copiar um print desta tela", o print da janela sai antes de abrir o navegador', async () => {
+    // O tamanho real da área da janela, em pixels físicos, pelo Tauri (`innerSize`; o build de
+    // debug libera a leitura no E2E). O tamanho da página não serve: no Windows o
+    // `setWindowSize` do msedgedriver muda só a área do WebView2, e a janela fica como estava.
     // Sem compositor (Xvfb), o X11 só entrega a parte da janela dentro da tela.
-    const size = await browser.execute(() => ({
-      width: Math.round(Math.min(window.innerWidth, window.screen.width) * window.devicePixelRatio),
-      height: Math.round(
-        Math.min(window.innerHeight, window.screen.height) * window.devicePixelRatio,
-      ),
-    }));
+    const size = await browser.execute(async () => {
+      const internals = (
+        window as unknown as {
+          __TAURI_INTERNALS__: {
+            invoke: (cmd: string, args: object) => Promise<{ width: number; height: number }>;
+          };
+        }
+      ).__TAURI_INTERNALS__;
+      const inner = await internals.invoke('plugin:window|inner_size', { label: 'main' });
+      const ratio = window.devicePixelRatio;
+      return {
+        width: Math.min(inner.width, Math.round(window.screen.width * ratio)),
+        height: Math.min(inner.height, Math.round(window.screen.height * ratio)),
+      };
+    });
     await $('[data-testid="report-button"]').click();
     await dialog().waitForDisplayed();
     await waitForPreview();
