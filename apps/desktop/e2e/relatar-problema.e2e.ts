@@ -486,7 +486,8 @@ describe('Relatar problema', () => {
     await $('[data-testid="report-collected"]').waitForDisplayed();
     await $('[data-testid="report-preview-body"]').waitForDisplayed();
 
-    // Categoria: o foco no rádio marcado, as setas andam pelo grupo (e dão a volta).
+    // Categoria: com o foco no rádio marcado, as setas andam pelo grupo nos dois sentidos (dar
+    // a volta do último para o primeiro depende do motor: o WebView2 dá, o WebKitGTK não).
     expect(await previewText()).toMatch(/^## Erro\n/);
     await browser.execute(() => {
       document
@@ -496,12 +497,15 @@ describe('Relatar problema', () => {
     expect(await checkedCategory()).toEqual({ value: 'error', focused: true });
     await arrowTo('ArrowRight', 'visual', 'Visual ou texto');
     await arrowTo('ArrowRight', 'slowness', 'Lentidão');
-    await arrowTo('ArrowLeft', 'visual', 'Visual ou texto');
-    await arrowTo('ArrowLeft', 'error', 'Erro');
-    await arrowTo('ArrowLeft', 'other', 'Outro');
+    await arrowTo('ArrowRight', 'suggestion', 'Sugestão');
+    await arrowTo('ArrowRight', 'other', 'Outro');
     await expect($('[data-testid="report-preview-labels"]')).toHaveText(
       expect.stringContaining('categoria: outro'),
     );
+    await arrowTo('ArrowLeft', 'suggestion', 'Sugestão');
+    await arrowTo('ArrowLeft', 'slowness', 'Lentidão');
+    await arrowTo('ArrowLeft', 'visual', 'Visual ou texto');
+    await arrowTo('ArrowLeft', 'error', 'Erro');
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('03-teclado');
     await closeWithEscape();
