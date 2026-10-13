@@ -6446,6 +6446,7 @@ dependencies = [
  "toml_edit 0.25.15+spec-1.1.0",
  "warden-core",
  "warden-jarmeta",
+ "zip 8.6.0",
 ]
 
 [[package]]

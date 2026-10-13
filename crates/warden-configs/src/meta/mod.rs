@@ -415,6 +415,10 @@ fn items(document: &ConfigDocument, path: &str, labels: Option<&ConfigLang>) -> 
             collapsed = None;
         }
         if entry.kind == EntryKind::Section {
+            // O objeto da raiz do JSON não é uma seção para mostrar.
+            if entry.path.is_empty() {
+                continue;
+            }
             let reason = if list_parents.contains(&entry.path) {
                 Some(SnippetReason::ListOfObjects)
             } else if entry.path.len() > MAX_FORM_DEPTH {
