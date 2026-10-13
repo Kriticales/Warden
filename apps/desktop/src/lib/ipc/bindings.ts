@@ -94,6 +94,33 @@ export const commands = {
 	operationsList: () => typedError<OperationSnapshot[], AppError>(__TAURI_INVOKE("operations_list")),
 	/**  Pede o cancelamento de uma operação. */
 	operationCancel: (operationId: OperationId) => typedError<null, AppError>(__TAURI_INVOKE("operation_cancel", { operationId })),
+	/**  A captura do último teste do pack (`None`: nenhum teste ainda, ou o jogo não chegou a abrir). */
+	captureGet: (packId: PackId) => typedError<{
+	/**  A sessão do teste. */
+	sessionId: string,
+	/**  Situação. */
+	status: CaptureStatus,
+	/**  Se o Testar pergunta antes e o cabeçalho avisa. */
+	needsReview: boolean,
+	/**  Quantos arquivos o jogo só reformatou. */
+	reformatted: number,
+	/**  As mudanças. */
+	files: CaptureFileView[],
+} | null, AppError>(__TAURI_INVOKE("capture_get", { packId })),
+	/**  Procura pelo hash os mods, resource packs e shaders colocados à mão na instância. */
+	captureIdentify: (packId: PackId) => typedError<CaptureIdentified, AppError>(__TAURI_INVOKE("capture_identify", { packId })),
+	/**  As três versões de um arquivo da captura. */
+	captureTexts: (packId: PackId, sessionId: string, path: string) => typedError<CaptureTexts, AppError>(__TAURI_INVOKE("capture_texts", { packId, sessionId, path })),
+	/**
+	 *  "Trazer selecionados para o pack": grava só o escolhido. Se o pack ou o jogo mudaram depois
+	 *  que a lista foi mostrada, nada é gravado (`app.CAPTURE_STALE`).
+	 */
+	captureApply: (packId: PackId, request: CaptureApplyRequest) => typedError<CaptureApplied, AppError>(__TAURI_INVOKE("capture_apply", { packId, request })),
+	/**
+	 *  "Descartar": as configs do pack que mudaram no jogo voltam à versão do pack no próximo
+	 *  teste. Devolve quantos arquivos voltam.
+	 */
+	captureDiscard: (packId: PackId, sessionId: string) => typedError<number, AppError>(__TAURI_INVOKE("capture_discard", { packId, sessionId })),
 	/**
 	 *  As versões do Minecraft, na ordem oficial do manifesto da Mojang (da mais nova para a mais
 	 *  antiga), com o tipo de cada uma e a etiqueta "melhor esforço" antes da 1.7.10.
@@ -662,6 +689,19 @@ export type AppErrorCode =
 "TEST_SESSION_NOT_FOUND" | 
 /**  A instância de teste ainda não existe (o pack nunca foi testado). */
 "TEST_INSTANCE_MISSING" | 
+/**
+ *  Mudanças do teste anterior esperam revisão; testar de novo as desfaria
+ *  (`params.sessionId`, o teste delas).
+ */
+"TEST_CAPTURE_PENDING" | 
+/**  Não há mudanças desse teste para revisar (outro teste começou depois). */
+"CAPTURE_NOT_FOUND" | 
+/**  As mudanças desse teste já foram revisadas (trazidas ou descartadas). */
+"CAPTURE_RESOLVED" | 
+/**  Um arquivo mudou (no pack ou no jogo) depois que a lista foi mostrada (`params.path`). */
+"CAPTURE_STALE" | 
+/**  O item escolhido não pode ser trazido para o pack (`params.path`). */
+"CAPTURE_INVALID" | 
 /**  Aviso: memória acima de 8 GB com Java 8 (`params.memoryMb`). */
 "TEST_MEMORY_HIGH_JAVA8" | 
 /**  O arquivo pedido não é um arquivo de travamento da sessão (`params.path`). */
@@ -751,6 +791,215 @@ export type Bump =
 "minor" | 
 /**  MAIOR (`X.0.0`). */
 "major";
+
+/**  O resultado de "Trazer selecionados para o pack". */
+export type CaptureApplied = {
+	/**  Quantas mudanças foram para o pack. */
+	count: number,
+	/**  Arquivos do pack que mudaram. */
+	files: string[],
+};
+
+/**  "Trazer selecionados para o pack". */
+export type CaptureApplyRequest = {
+	/**  A sessão do teste (a captura tem de ser dela). */
+	sessionId: string,
+	/**  Os arquivos escolhidos (o `options.txt` vai em `optionKeys`). */
+	files: CaptureDecision[],
+	/**  As chaves escolhidas do `options.txt`. */
+	optionKeys: string[],
+	/**  SHA-256 do `options.txt` do pack quando a lista foi mostrada. */
+	expectedOptionsSha256: string | null,
+};
+
+/**  O que aconteceu com o arquivo. */
+export type CaptureChange = 
+/**  Não existia no início do teste. */
+"added" | 
+/**  Mudou. */
+"modified" | 
+/**  Sumiu. */
+"removed";
+
+/**  O arquivo do pack mudou durante o teste (CA-T15-05). */
+export type CaptureConflict = {
+	/**
+	 *  O que mudou no pack desde o início do teste, por valor (formatos conhecidos; no
+	 *  `options.txt`, as chaves).
+	 */
+	packValues: CaptureValue[],
+	/**
+	 *  Se "Juntar as duas" é possível: formato conhecido e as chaves mudadas no jogo não foram
+	 *  mexidas no pack.
+	 */
+	mergeable: boolean,
+};
+
+/**  A decisão sobre um arquivo da captura. */
+export type CaptureDecision = {
+	/**  Caminho na instância (o `path` do [`CapturedFile`]). */
+	path: string,
+	/**  O que fazer. */
+	resolution: CaptureResolution,
+	/**
+	 *  SHA-256 do arquivo do pack quando a lista foi mostrada (`None`: não existia). Se o
+	 *  pack mudou depois disso, nada é gravado ([`CaptureError::Stale`]).
+	 */
+	expectedPackSha256: string | null,
+};
+
+/**  Um arquivo da captura com o lado do pack lido agora. */
+export type CaptureFileView = {
+	/**  A mudança no jogo. */
+	file: CapturedFile,
+	/**
+	 *  SHA-256 do arquivo de destino no pack agora (`None`: não existe). Volta no pedido de
+	 *  "Trazer" para conferir que o pack não mudou depois.
+	 */
+	packSha256: string | null,
+	/**  O conflito, se o arquivo também mudou no pack durante o teste. */
+	conflict: CaptureConflict | null,
+};
+
+/**  Grupo de uma mudança (SPEC T15, "Grupos"). */
+export type CaptureGroup = 
+/**  Config (ou script) que veio do pack e mudou no jogo. Marcado. */
+"packConfig" | 
+/**  O `options.txt`, chave a chave. */
+"options" | 
+/**  Config de mundo (`saves/<mundo>/serverconfig/`), com destino em `defaultconfigs/`. */
+"worldConfig" | 
+/**  Arquivo criado (ou mudado) pelos mods que não está no pack. Desmarcado. */
+"generated" | 
+/**  Mod colocado ou removido à mão em `mods/`: nunca copiado. */
+"mod" | 
+/**  Resource pack ou shader novo: nunca copiado. */
+"resource" | 
+/**  Datapack num mundo: só informativo. */
+"datapack";
+
+/**  O resultado de `capture_identify`. */
+export type CaptureIdentified = {
+	/**  Um por arquivo procurado. */
+	items: CaptureMatch[],
+	/**  Fontes em que a procura falhou (sem internet, servidor fora do ar). */
+	failed: SourceId[],
+};
+
+/**  Um arquivo colocado à mão, procurado pelo hash. */
+export type CaptureMatch = {
+	/**  Caminho na instância. */
+	path: string,
+	/**  O primeiro achado (Modrinth antes da CurseForge); `None`: não reconhecido. */
+	found: HashMatch | null,
+};
+
+/**  Uma chave do `options.txt` que mudou. */
+export type CaptureOption = {
+	/**  A chave (`renderDistance`, `key_key.jump`). */
+	key: string,
+	/**  Valor no início do teste, como está no arquivo (`None`: a chave não existia). */
+	before: string | null,
+	/**  Valor agora. */
+	after: string,
+	/**  Pré-seleção: marcada se a chave já existia. */
+	selected: boolean,
+};
+
+/**  O que fazer com um arquivo escolhido. */
+export type CaptureResolution = 
+/**  Trazer a versão do jogo ("Usar a do jogo", no conflito). */
+{ kind: "take" } | 
+/**  Conflito: manter a do pack (a mudança do jogo é descartada). */
+{ kind: "keepPack" } | 
+/**  Conflito: juntar as duas (as chaves mudadas são diferentes). */
+{ kind: "merge" } | 
+/**  Conflito: o texto combinado à mão no editor. */
+{ kind: "edited"; 
+/**  O texto final. */
+text: string };
+
+/**  Situação da captura. */
+export type CaptureStatus = 
+/**  Esperando a pessoa decidir. */
+{ kind: "pending" } | 
+/**  "Trazer selecionados para o pack" feito. */
+{ kind: "applied"; 
+/**  Quantas mudanças foram para o pack. */
+count: number } | 
+/**  "Descartar" feito. */
+{ kind: "discarded" };
+
+/**  As três versões de um arquivo, para "Ver diferença de texto" e "Editar e combinar". */
+export type CaptureTexts = {
+	/**  No início do teste (`None`: não existia ou não é texto). */
+	base: string | null,
+	/**  No jogo agora. */
+	instance: string | null,
+	/**  No pack agora. */
+	pack: string | null,
+	/**  SHA-256 do pack lido (para gravar o texto combinado). */
+	packSha256: string | null,
+	/**  Fim de linha do arquivo (`\r\n` ou `\n`). */
+	lineEnding: string,
+};
+
+/**  Uma chave que mudou de valor (para mostrar "chave: antes → depois"). */
+export type CaptureValue = {
+	/**  A chave, como aparece no arquivo (`general.maxStack`). */
+	key: string,
+	/**  Valor antes (`None`: a chave não existia). */
+	before: string | null,
+	/**  Valor depois (`None`: a chave sumiu). */
+	after: string | null,
+};
+
+/**  A captura como a tela a mostra. */
+export type CaptureView = {
+	/**  A sessão do teste. */
+	sessionId: string,
+	/**  Situação. */
+	status: CaptureStatus,
+	/**  Se o Testar pergunta antes e o cabeçalho avisa. */
+	needsReview: boolean,
+	/**  Quantos arquivos o jogo só reformatou. */
+	reformatted: number,
+	/**  As mudanças. */
+	files: CaptureFileView[],
+};
+
+/**  Um arquivo que mudou durante o teste. */
+export type CapturedFile = {
+	/**
+	 *  Caminho na instância (relativo à pasta do jogo, com `/`). Para datapacks e resource
+	 *  packs em pasta, a pasta (`saves/Mundo/datapacks/meu`).
+	 */
+	path: string,
+	/**  Grupo. */
+	group: CaptureGroup,
+	/**  O que aconteceu. */
+	change: CaptureChange,
+	/**  Pré-seleção (SPEC T15). */
+	selected: boolean,
+	/**  Para onde vai no pack, se for trazido (`None`: nunca é copiado). */
+	packPath: string | null,
+	/**  Diferença por valor (formatos conhecidos). */
+	values: CaptureValue[],
+	/**  Chaves do `options.txt` (só no grupo `options`). */
+	options: CaptureOption[],
+	/**  Quantas chaves voláteis do `options.txt` mudaram e ficam escondidas. */
+	hiddenVolatile: number,
+	/**  Se há texto dos dois lados para "Ver diferença de texto". */
+	text: boolean,
+	/**  SHA-256 no início do teste. */
+	beforeSha256: string | null,
+	/**  SHA-256 agora. */
+	afterSha256: string | null,
+	/**  Tamanho agora (0 se sumiu). */
+	size: number,
+	/**  Se o arquivo veio do pack (está no manifesto da instância). */
+	managed: boolean,
+};
 
 /**
  *  Códigos do domínio `catalog`. O código é contrato: renomear é mudança de contrato;

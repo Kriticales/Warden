@@ -16,10 +16,10 @@ use std::time::{Duration, SystemTime};
 
 use conformance_support::{TestPack, dirs, materialize_ok, sources, temp_dir};
 use warden_instance::{
-    ApplyRequest, CaptureError, CaptureGroup, CaptureStatus, ChangeKind, FileDecision,
-    InstanceDirs, MaterializeOptions, OnModified, Outcome, Resolution, capture_after_exit,
-    capture_texts, capture_view, discard, finish_apply, load_capture, materialize, plan_apply,
-    take_baseline,
+    CaptureApplyRequest, CaptureChange, CaptureDecision, CaptureError, CaptureGroup,
+    CaptureResolution, CaptureStatus, InstanceDirs, MaterializeOptions, OnModified, Outcome,
+    capture_after_exit, capture_texts, capture_view, discard, finish_apply, load_capture,
+    materialize, plan_apply, take_baseline,
 };
 
 const OPTIONS: &str = "version:3465\nrenderDistance:12\nguiScale:0\nlang:en_us\nfullscreen:false\nkey_key.jump:key.keyboard.space\n";
@@ -169,7 +169,7 @@ async fn distancia_de_renderizacao_vira_uma_linha_no_options_do_pack() {
     assert_eq!(options.hidden_volatile, 3);
     assert!(capture.needs_review());
 
-    let request = ApplyRequest {
+    let request = CaptureApplyRequest {
         session_id: "sessao-1".into(),
         files: Vec::new(),
         option_keys: vec!["renderDistance".into()],
@@ -275,18 +275,18 @@ async fn jar_na_pasta_de_mods_nunca_vai_para_o_pack() {
         [("mods/jei-1.20.1-forge 15.jar", CaptureGroup::Mod)]
     );
     let jar = &capture.files[0];
-    assert_eq!(jar.change, ChangeKind::Added);
+    assert_eq!(jar.change, CaptureChange::Added);
     assert_eq!(jar.pack_path, None);
     assert!(!jar.selected);
     assert!(!capture.needs_review());
     let error = plan_apply(
         &lab.instance,
         &lab.pack,
-        &ApplyRequest {
+        &CaptureApplyRequest {
             session_id: "sessao-1".into(),
-            files: vec![FileDecision {
+            files: vec![CaptureDecision {
                 path: "mods/jei-1.20.1-forge 15.jar".into(),
-                resolution: Resolution::Take,
+                resolution: CaptureResolution::Take,
                 expected_pack_sha256: None,
             }],
             option_keys: Vec::new(),
@@ -345,9 +345,9 @@ async fn conflito_de_tres_vias_quando_pack_e_jogo_mudam() {
     assert_eq!(texts.pack.as_deref(), Some(pack_edit.as_str()));
     assert!(texts.instance.unwrap().contains("FANCY"));
 
-    let decision = |resolution, sha| ApplyRequest {
+    let decision = |resolution, sha| CaptureApplyRequest {
         session_id: "sessao-1".into(),
-        files: vec![FileDecision {
+        files: vec![CaptureDecision {
             path: "config/sodium-options.json".into(),
             resolution,
             expected_pack_sha256: sha,
@@ -359,7 +359,10 @@ async fn conflito_de_tres_vias_quando_pack_e_jogo_mudam() {
     let stale = plan_apply(
         &lab.instance,
         &lab.pack,
-        &decision(Resolution::Merge, view.files[0].file.before_sha256.clone()),
+        &decision(
+            CaptureResolution::Merge,
+            view.files[0].file.before_sha256.clone(),
+        ),
     )
     .unwrap_err();
     assert!(matches!(stale, CaptureError::Stale { .. }), "{stale:?}");
@@ -367,7 +370,7 @@ async fn conflito_de_tres_vias_quando_pack_e_jogo_mudam() {
     let plan = plan_apply(
         &lab.instance,
         &lab.pack,
-        &decision(Resolution::Merge, view.files[0].pack_sha256.clone()),
+        &decision(CaptureResolution::Merge, view.files[0].pack_sha256.clone()),
     )
     .unwrap();
     let merged = String::from_utf8(plan.writes["config/sodium-options.json"].clone()).unwrap();
@@ -377,7 +380,10 @@ async fn conflito_de_tres_vias_quando_pack_e_jogo_mudam() {
     let keep = plan_apply(
         &lab.instance,
         &lab.pack,
-        &decision(Resolution::KeepPack, view.files[0].pack_sha256.clone()),
+        &decision(
+            CaptureResolution::KeepPack,
+            view.files[0].pack_sha256.clone(),
+        ),
     )
     .unwrap();
     assert!(keep.writes.is_empty());
@@ -504,15 +510,15 @@ async fn trazer_so_o_escolhido_e_o_resto_volta_ao_pack() {
         .iter()
         .map(|file| (file.file.path.clone(), file.pack_sha256.clone()))
         .collect();
-    let take = |path: &str| FileDecision {
+    let take = |path: &str| CaptureDecision {
         path: path.into(),
-        resolution: Resolution::Take,
+        resolution: CaptureResolution::Take,
         expected_pack_sha256: sha[path].clone(),
     };
     let plan = plan_apply(
         &lab.instance,
         &lab.pack,
-        &ApplyRequest {
+        &CaptureApplyRequest {
             session_id: "sessao-1".into(),
             files: vec![
                 take("config/Pasta com espaço/ação-client.toml"),
@@ -596,7 +602,7 @@ async fn opcoes_fora_do_pack_criam_options_so_com_as_chaves_escolhidas() {
     let plan = plan_apply(
         &lab.instance,
         &lab.pack,
-        &ApplyRequest {
+        &CaptureApplyRequest {
             session_id: "sessao-1".into(),
             files: Vec::new(),
             option_keys: vec!["guiScale".into()],

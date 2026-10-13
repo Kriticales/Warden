@@ -46,10 +46,10 @@ pub use baseline::{
 };
 pub use blocked::{BlockedFile, accept_manual_file};
 pub use capture::{
-    ApplyPlan, ApplyRequest, CAPTURE_FILE, Capture, CaptureError, CaptureGroup, CaptureOutcome,
-    CaptureStatus, CapturedFile, ChangeKind, FileDecision, OptionChange, Resolution,
-    VOLATILE_OPTIONS, ValueChange, capture_after_exit, discard, finish_apply, load_capture,
-    plan_apply, set_option_lines,
+    ApplyPlan, CAPTURE_FILE, Capture, CaptureApplyRequest, CaptureChange, CaptureDecision,
+    CaptureError, CaptureGroup, CaptureOption, CaptureOutcome, CaptureResolution, CaptureStatus,
+    CaptureValue, CapturedFile, VOLATILE_OPTIONS, capture_after_exit, discard, finish_apply,
+    load_capture, plan_apply, set_option_lines,
 };
 pub use downloads::{
     CachedFile, DownloadCache, Fetched, FileOrigin, INCOMING_DIR, INDEX_FILE, OriginSource,
@@ -72,7 +72,7 @@ pub use materialize::{
 pub use optional_choices::{OPTIONAL_CHOICES_FILE, OptionalChoices};
 pub use player_tools::PlayerToolsMode;
 pub use three_way::{
-    CaptureTexts, CaptureView, FileView, PackConflict, capture_texts, capture_view, merge,
+    CaptureConflict, CaptureFileView, CaptureTexts, CaptureView, capture_texts, capture_view, merge,
 };
 
 /// Pastas temporárias dos testes: dentro de `WARDEN_DATA_ROOT` quando definida (ADR-0053),

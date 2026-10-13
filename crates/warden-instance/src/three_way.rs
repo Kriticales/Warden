@@ -8,7 +8,7 @@
 //!
 //! O lado do pack é lido na hora ([`capture_view`]): a captura gravada só tem o lado do jogo, e
 //! o pack pode mudar depois que o jogo fechou. "Trazer" confere o SHA-256 do pack mostrado
-//! ([`crate::FileDecision::expected_pack_sha256`]).
+//! ([`crate::CaptureDecision::expected_pack_sha256`]).
 
 use std::fs;
 use std::io;
@@ -20,8 +20,8 @@ use warden_core::resolve_inside;
 
 use crate::baseline::{Baseline, BlobStore, instance_path, read_pack_file, sha256_hex};
 use crate::capture::{
-    CaptureError, CaptureGroup, CaptureStatus, CapturedFile, ChangeKind, ValueChange, load_capture,
-    option_values, text_of, value_change,
+    CaptureChange, CaptureError, CaptureGroup, CaptureStatus, CaptureValue, CapturedFile,
+    load_capture, option_values, text_of, value_change,
 };
 use crate::error::Error;
 use crate::materialize::InstanceDirs;
@@ -29,10 +29,10 @@ use crate::materialize::InstanceDirs;
 /// O arquivo do pack mudou durante o teste (CA-T15-05).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct PackConflict {
+pub struct CaptureConflict {
     /// O que mudou no pack desde o início do teste, por valor (formatos conhecidos; no
     /// `options.txt`, as chaves).
-    pub pack_values: Vec<ValueChange>,
+    pub pack_values: Vec<CaptureValue>,
     /// Se "Juntar as duas" é possível: formato conhecido e as chaves mudadas no jogo não foram
     /// mexidas no pack.
     pub mergeable: bool,
@@ -41,14 +41,14 @@ pub struct PackConflict {
 /// Um arquivo da captura com o lado do pack lido agora.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct FileView {
+pub struct CaptureFileView {
     /// A mudança no jogo.
     pub file: CapturedFile,
     /// SHA-256 do arquivo de destino no pack agora (`None`: não existe). Volta no pedido de
     /// "Trazer" para conferir que o pack não mudou depois.
     pub pack_sha256: Option<String>,
     /// O conflito, se o arquivo também mudou no pack durante o teste.
-    pub conflict: Option<PackConflict>,
+    pub conflict: Option<CaptureConflict>,
 }
 
 /// A captura como a tela a mostra.
@@ -64,7 +64,7 @@ pub struct CaptureView {
     /// Quantos arquivos o jogo só reformatou.
     pub reformatted: u32,
     /// As mudanças.
-    pub files: Vec<FileView>,
+    pub files: Vec<CaptureFileView>,
 }
 
 /// As três versões de um arquivo, para "Ver diferença de texto" e "Editar e combinar".
@@ -95,7 +95,7 @@ pub fn capture_view(dirs: &InstanceDirs, pack_root: &Path) -> Result<Option<Capt
     let pending = capture.status == CaptureStatus::Pending;
     let mut files = Vec::with_capacity(capture.files.len());
     for file in &capture.files {
-        let mut view = FileView {
+        let mut view = CaptureFileView {
             file: file.clone(),
             pack_sha256: None,
             conflict: None,
@@ -122,7 +122,7 @@ fn conflict(
     baseline: Option<&Baseline>,
     file: &CapturedFile,
     pack_now: Option<&[u8]>,
-) -> Result<Option<PackConflict>, Error> {
+) -> Result<Option<CaptureConflict>, Error> {
     if !matches!(file.group, CaptureGroup::PackConfig | CaptureGroup::Options) {
         return Ok(None);
     }
@@ -140,17 +140,17 @@ fn conflict(
     if file.group == CaptureGroup::Options {
         let old = option_values(pack_start.as_deref().unwrap_or_default());
         let new = option_values(pack_now.unwrap_or_default());
-        let pack_values: Vec<ValueChange> = new
+        let pack_values: Vec<CaptureValue> = new
             .iter()
             .filter(|(key, value)| old.get(*key) != Some(*value))
-            .map(|(key, value)| ValueChange {
+            .map(|(key, value)| CaptureValue {
                 key: key.clone(),
                 before: old.get(key).cloned(),
                 after: Some(value.clone()),
             })
             .collect();
         // As chaves do jogo vão por cima, uma a uma: sempre dá para juntar.
-        return Ok(Some(PackConflict {
+        return Ok(Some(CaptureConflict {
             pack_values,
             mergeable: true,
         }));
@@ -163,8 +163,8 @@ fn conflict(
         _ => Vec::new(),
     };
     let mergeable =
-        file.change == ChangeKind::Modified && merge_bytes(blobs, file, pack_now)?.is_some();
-    Ok(Some(PackConflict {
+        file.change == CaptureChange::Modified && merge_bytes(blobs, file, pack_now)?.is_some();
+    Ok(Some(CaptureConflict {
         pack_values,
         mergeable,
     }))

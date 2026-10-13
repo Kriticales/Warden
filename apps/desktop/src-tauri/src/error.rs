@@ -270,6 +270,17 @@ pub enum AppErrorCode {
     TestSessionNotFound,
     /// A instância de teste ainda não existe (o pack nunca foi testado).
     TestInstanceMissing,
+    /// Mudanças do teste anterior esperam revisão; testar de novo as desfaria
+    /// (`params.sessionId`, o teste delas).
+    TestCapturePending,
+    /// Não há mudanças desse teste para revisar (outro teste começou depois).
+    CaptureNotFound,
+    /// As mudanças desse teste já foram revisadas (trazidas ou descartadas).
+    CaptureResolved,
+    /// Um arquivo mudou (no pack ou no jogo) depois que a lista foi mostrada (`params.path`).
+    CaptureStale,
+    /// O item escolhido não pode ser trazido para o pack (`params.path`).
+    CaptureInvalid,
     /// Aviso: memória acima de 8 GB com Java 8 (`params.memoryMb`).
     TestMemoryHighJava8,
     /// O arquivo pedido não é um arquivo de travamento da sessão (`params.path`).

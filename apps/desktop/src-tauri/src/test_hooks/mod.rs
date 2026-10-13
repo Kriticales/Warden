@@ -17,6 +17,8 @@
 //! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10) e
 //! acrescenta uma linha em [`registered`]. Sem ganchos, o teste passa direto.
 
+mod capture;
+
 use std::path::Path;
 use std::sync::Arc;
 
@@ -82,7 +84,7 @@ pub(crate) trait TestHooks: Send + Sync {
 
 /// Os ganchos registrados, na ordem em que rodam. Uma linha por tarefa.
 pub(crate) fn registered() -> Vec<Arc<dyn TestHooks>> {
-    vec![]
+    vec![Arc::new(capture::CaptureHooks)]
 }
 
 #[cfg(test)]
@@ -90,7 +92,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sem_ganchos_o_teste_passa_direto() {
-        assert!(registered().is_empty());
+    fn ganchos_registrados_em_ordem() {
+        let names: Vec<&str> = registered().iter().map(|hook| hook.name()).collect();
+        assert_eq!(names, ["capture"]);
     }
 }

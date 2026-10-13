@@ -88,7 +88,7 @@ pub enum CaptureGroup {
 /// O que aconteceu com o arquivo.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum ChangeKind {
+pub enum CaptureChange {
     /// Não existia no início do teste.
     Added,
     /// Mudou.
@@ -100,7 +100,7 @@ pub enum ChangeKind {
 /// Uma chave que mudou de valor (para mostrar "chave: antes → depois").
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ValueChange {
+pub struct CaptureValue {
     /// A chave, como aparece no arquivo (`general.maxStack`).
     pub key: String,
     /// Valor antes (`None`: a chave não existia).
@@ -112,7 +112,7 @@ pub struct ValueChange {
 /// Uma chave do `options.txt` que mudou.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct OptionChange {
+pub struct CaptureOption {
     /// A chave (`renderDistance`, `key_key.jump`).
     pub key: String,
     /// Valor no início do teste, como está no arquivo (`None`: a chave não existia).
@@ -133,15 +133,15 @@ pub struct CapturedFile {
     /// Grupo.
     pub group: CaptureGroup,
     /// O que aconteceu.
-    pub change: ChangeKind,
+    pub change: CaptureChange,
     /// Pré-seleção (SPEC T15).
     pub selected: bool,
     /// Para onde vai no pack, se for trazido (`None`: nunca é copiado).
     pub pack_path: Option<String>,
     /// Diferença por valor (formatos conhecidos).
-    pub values: Vec<ValueChange>,
+    pub values: Vec<CaptureValue>,
     /// Chaves do `options.txt` (só no grupo `options`).
-    pub options: Vec<OptionChange>,
+    pub options: Vec<CaptureOption>,
     /// Quantas chaves voláteis do `options.txt` mudaram e ficam escondidas.
     pub hidden_volatile: u32,
     /// Se há texto dos dois lados para "Ver diferença de texto".
@@ -151,6 +151,7 @@ pub struct CapturedFile {
     /// SHA-256 agora.
     pub after_sha256: Option<String>,
     /// Tamanho agora (0 se sumiu).
+    #[specta(type = specta_typescript::Number)]
     pub size: u64,
     /// Se o arquivo veio do pack (está no manifesto da instância).
     pub managed: bool,
@@ -351,9 +352,9 @@ pub fn capture_after_exit(
         let managed = manifest.files.get(path);
         let from_pack = managed.is_some_and(|entry| entry.origin == EntryOrigin::Pack);
         let change = match (before, now) {
-            (None, _) => ChangeKind::Added,
-            (Some(_), Some(_)) => ChangeKind::Modified,
-            (Some(_), None) => ChangeKind::Removed,
+            (None, _) => CaptureChange::Added,
+            (Some(_), Some(_)) => CaptureChange::Modified,
+            (Some(_), None) => CaptureChange::Removed,
         };
         let mut file = CapturedFile {
             path: path.clone(),
@@ -377,7 +378,7 @@ pub fn capture_after_exit(
                 .files
                 .keys()
                 .any(|known| known.starts_with(&format!("{}/", item.path)));
-            if change == ChangeKind::Added && !existed && aggregated.insert(item.path.clone()) {
+            if change == CaptureChange::Added && !existed && aggregated.insert(item.path.clone()) {
                 file.path = item.path;
                 file.group = item.group;
                 file.pack_path = None;
@@ -390,8 +391,8 @@ pub fn capture_after_exit(
         if let Some(group) = item_group(path) {
             // Mod, resource pack ou datapack (arquivo único): nunca copiado.
             let interesting = match group {
-                CaptureGroup::Mod => change != ChangeKind::Modified || managed.is_none(),
-                _ => change == ChangeKind::Added,
+                CaptureGroup::Mod => change != CaptureChange::Modified || managed.is_none(),
+                _ => change == CaptureChange::Added,
             };
             if interesting {
                 file.group = group;
@@ -401,20 +402,20 @@ pub fn capture_after_exit(
             continue;
         }
         if let Some(rest) = world_config_rest(path) {
-            if change == ChangeKind::Removed {
+            if change == CaptureChange::Removed {
                 continue;
             }
             file.group = CaptureGroup::WorldConfig;
             file.pack_path = Some(format!("defaultconfigs/{rest}"));
-        } else if path == OPTIONS_FILE && change == ChangeKind::Modified {
+        } else if path == OPTIONS_FILE && change == CaptureChange::Modified {
             file.group = CaptureGroup::Options;
-        } else if from_pack && change != ChangeKind::Added {
+        } else if from_pack && change != CaptureChange::Added {
             file.group = CaptureGroup::PackConfig;
-            file.selected = change == ChangeKind::Modified;
+            file.selected = change == CaptureChange::Modified;
             if let Some(start) = baseline.pack.get(path) {
                 file.pack_path = Some(start.pack_path.clone());
             }
-        } else if change == ChangeKind::Removed {
+        } else if change == CaptureChange::Removed {
             // Arquivo que não veio do pack e sumiu: nada a trazer.
             continue;
         }
@@ -465,7 +466,7 @@ pub fn capture_after_exit(
             continue;
         }
 
-        if change == ChangeKind::Modified
+        if change == CaptureChange::Modified
             && let (Some(old), Some(new)) = (before_bytes.as_deref(), after_bytes.as_deref())
             && let Some(format) = ConfigFormat::detect(Path::new(path), new)
             && let Ok(diff) = compare(format, old, new)
@@ -586,14 +587,14 @@ pub(crate) fn text_of(bytes: Option<&[u8]>) -> Option<&str> {
     std::str::from_utf8(bytes).ok()
 }
 
-pub(crate) fn value_change(change: &SemanticChange) -> ValueChange {
+pub(crate) fn value_change(change: &SemanticChange) -> CaptureValue {
     match change {
-        SemanticChange::Added { path, value } => ValueChange {
+        SemanticChange::Added { path, value } => CaptureValue {
             key: path.to_string(),
             before: None,
             after: Some(value.to_string()),
         },
-        SemanticChange::Removed { path, value } => ValueChange {
+        SemanticChange::Removed { path, value } => CaptureValue {
             key: path.to_string(),
             before: Some(value.to_string()),
             after: None,
@@ -602,7 +603,7 @@ pub(crate) fn value_change(change: &SemanticChange) -> ValueChange {
             path,
             before,
             after,
-        } => ValueChange {
+        } => CaptureValue {
             key: path.to_string(),
             before: Some(before.to_string()),
             after: Some(after.to_string()),
@@ -625,7 +626,7 @@ pub(crate) fn option_values(bytes: &[u8]) -> BTreeMap<String, String> {
 
 /// Chaves do `options.txt` que mudaram, sem as voláteis, na ordem do arquivo novo; e quantas
 /// voláteis mudaram.
-fn options_diff(before: &[u8], after: &[u8]) -> (Vec<OptionChange>, u32) {
+fn options_diff(before: &[u8], after: &[u8]) -> (Vec<CaptureOption>, u32) {
     let old = option_values(before);
     let mut changes = Vec::new();
     let mut hidden = 0_u32;
@@ -651,7 +652,7 @@ fn options_diff(before: &[u8], after: &[u8]) -> (Vec<OptionChange>, u32) {
             hidden += 1;
             continue;
         }
-        changes.push(OptionChange {
+        changes.push(CaptureOption {
             key: key.to_owned(),
             before: previous.cloned(),
             after: value.clone(),
@@ -750,7 +751,7 @@ fn managed_changes(capture: &Capture, layout: &PackLayout) -> Vec<String> {
     capture
         .files
         .iter()
-        .filter(|file| file.managed && file.change != ChangeKind::Added)
+        .filter(|file| file.managed && file.change != CaptureChange::Added)
         .filter(|file| matches!(file.group, CaptureGroup::PackConfig | CaptureGroup::Options))
         .filter(|file| !layout.preserved.contains(&file.path))
         .map(|file| file.path.clone())
@@ -778,7 +779,7 @@ pub fn discard(
 /// O que fazer com um arquivo escolhido.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", tag = "kind")]
-pub enum Resolution {
+pub enum CaptureResolution {
     /// Trazer a versão do jogo ("Usar a do jogo", no conflito).
     Take,
     /// Conflito: manter a do pack (a mudança do jogo é descartada).
@@ -795,11 +796,11 @@ pub enum Resolution {
 /// A decisão sobre um arquivo da captura.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct FileDecision {
+pub struct CaptureDecision {
     /// Caminho na instância (o `path` do [`CapturedFile`]).
     pub path: String,
     /// O que fazer.
-    pub resolution: Resolution,
+    pub resolution: CaptureResolution,
     /// SHA-256 do arquivo do pack quando a lista foi mostrada (`None`: não existia). Se o
     /// pack mudou depois disso, nada é gravado ([`CaptureError::Stale`]).
     pub expected_pack_sha256: Option<String>,
@@ -808,11 +809,11 @@ pub struct FileDecision {
 /// "Trazer selecionados para o pack".
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ApplyRequest {
+pub struct CaptureApplyRequest {
     /// A sessão do teste (a captura tem de ser dela).
     pub session_id: String,
     /// Os arquivos escolhidos (o `options.txt` vai em `optionKeys`).
-    pub files: Vec<FileDecision>,
+    pub files: Vec<CaptureDecision>,
     /// As chaves escolhidas do `options.txt`.
     pub option_keys: Vec<String>,
     /// SHA-256 do `options.txt` do pack quando a lista foi mostrada.
@@ -839,7 +840,7 @@ pub struct ApplyPlan {
 pub fn plan_apply(
     dirs: &InstanceDirs,
     pack_root: &Path,
-    request: &ApplyRequest,
+    request: &CaptureApplyRequest,
 ) -> Result<ApplyPlan, CaptureError> {
     let capture = pending_capture(dirs, &request.session_id)?;
     let blobs = BlobStore::of(&dirs.state_dir);
@@ -864,9 +865,9 @@ pub fn plan_apply(
             return Err(CaptureError::Stale { path: pack_target });
         }
         match &decision.resolution {
-            Resolution::KeepPack => continue,
-            Resolution::Take => {
-                if file.change == ChangeKind::Removed {
+            CaptureResolution::KeepPack => continue,
+            CaptureResolution::Take => {
+                if file.change == CaptureChange::Removed {
                     if pack_now.is_some() {
                         plan.deletes.push(pack_target);
                     }
@@ -875,7 +876,7 @@ pub fn plan_apply(
                     plan.writes.insert(pack_target, bytes);
                 }
             }
-            Resolution::Merge => {
+            CaptureResolution::Merge => {
                 let merged =
                     three_way::merge_file(&blobs, file, pack_now.as_deref())?.ok_or_else(|| {
                         CaptureError::NotMergeable {
@@ -884,7 +885,7 @@ pub fn plan_apply(
                     })?;
                 plan.writes.insert(pack_target, merged);
             }
-            Resolution::Edited { text } => {
+            CaptureResolution::Edited { text } => {
                 let mut bytes = Vec::new();
                 if pack_now
                     .as_deref()
@@ -1022,13 +1023,13 @@ mod tests {
         assert_eq!(
             changes,
             [
-                OptionChange {
+                CaptureOption {
                     key: "renderDistance".into(),
                     before: Some("12".into()),
                     after: "16".into(),
                     selected: true,
                 },
-                OptionChange {
+                CaptureOption {
                     key: "key_key.jump".into(),
                     before: None,
                     after: "key.keyboard.space".into(),
