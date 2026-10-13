@@ -14,20 +14,23 @@
  *   Gemini e do GitHub e o nome do computador não deixa nada disso no corpo nem no endereço;
  * - CA-UI02-05: o atalho Ctrl+Shift+E abre o diálogo de outra tela, e Esc fecha;
  * - foco: fechado, o foco volta ao botão (aberto por ele) ou ao que estava focado antes do
- *   atalho (sem nada focado, ao botão).
+ *   atalho (sem nada focado, ao botão);
+ * - CA-UI03-07 e CA-UI03-08 pelo teclado: os recolhidos abrem e fecham com Enter e Espaço no
+ *   `<summary>`; as setas trocam de categoria (e o corpo da pré-visualização acompanha); o
+ *   atalho do cabeçalho tem texto para leitor de tela.
  *
  * O navegador não abre: com `WARDEN_E2E_OPEN_URL` (`wdio.conf.ts`), o app grava nesse arquivo
  * o endereço que abriria.
  */
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
-const require = createRequire(import.meta.url);
-const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+import { seriousViolationSummaries } from './axe';
+import { dismissToasts } from './toasts';
+
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
 function env(name: string): string {
@@ -69,34 +72,6 @@ async function screenshot(name: string): Promise<void> {
   mkdirSync(SCREENSHOTS, { recursive: true });
   await browser.pause(250);
   await browser.saveScreenshot(join(SCREENSHOTS, `relato-${name}.png`));
-}
-
-interface AxeViolation {
-  id: string;
-  impact: string | null;
-  help: string;
-}
-
-async function seriousViolations(): Promise<string[]> {
-  await browser.execute(AXE_SOURCE);
-  const violations = await browser.execute(async () => {
-    const { axe } = window as unknown as {
-      axe: { run: (options: object) => Promise<{ violations: AxeViolation[] }> };
-    };
-    try {
-      return (await axe.run({ resultTypes: ['violations'] })).violations;
-    } catch {
-      const failed: AxeViolation = {
-        id: 'axe-falhou',
-        impact: 'critical',
-        help: 'o axe não rodou',
-      };
-      return [failed];
-    }
-  });
-  return violations
-    .filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')
-    .map((violation) => `${violation.id}: ${violation.help}`);
 }
 
 const dialog = () => $('[role="dialog"]');
@@ -191,6 +166,60 @@ async function closeWithEscape(): Promise<void> {
   await dialog().waitForDisplayed({ reverse: true });
 }
 
+/** Põe o foco no `<summary>` com este texto (como o Tab faria, sem depender da ordem). */
+async function focusSummary(text: string): Promise<void> {
+  const focusedNow = await browser.execute((wanted) => {
+    const summary = Array.from(document.querySelectorAll<HTMLElement>('summary')).find(
+      (element) => element.textContent === wanted,
+    );
+    summary?.focus();
+    return summary !== undefined && document.activeElement === summary;
+  }, text);
+  if (!focusedNow) throw new Error(`o resumo "${text}" não recebeu o foco`);
+}
+
+/** Se o `<details>` do `<summary>` com este texto está aberto. */
+async function isExpanded(text: string): Promise<boolean | null> {
+  return browser.execute((wanted) => {
+    const summary = Array.from(document.querySelectorAll('summary')).find(
+      (element) => element.textContent === wanted,
+    );
+    return summary?.closest('details')?.open ?? null;
+  }, text);
+}
+
+/** Espera o `<details>` do `<summary>` com este texto ficar aberto (ou fechado). */
+async function waitExpanded(text: string, open: boolean): Promise<void> {
+  await browser.waitUntil(async () => (await isExpanded(text)) === open, {
+    timeoutMsg: `"${text}" não ficou ${open ? 'aberto' : 'fechado'} pelo teclado`,
+  });
+}
+
+/** A categoria marcada e se o foco está nela (o rádio). */
+async function checkedCategory(): Promise<{ value: string | null; focused: boolean }> {
+  return browser.execute(() => {
+    const checked = document.querySelector<HTMLInputElement>(
+      '[role="dialog"] input[type="radio"]:checked',
+    );
+    return { value: checked?.value ?? null, focused: checked === document.activeElement };
+  });
+}
+
+/** Aperta uma seta e espera a categoria e o corpo da pré-visualização acompanharem. */
+async function arrowTo(key: 'ArrowLeft' | 'ArrowRight', value: string, name: string) {
+  await browser.keys([key]);
+  await browser.waitUntil(
+    async () => {
+      const category = await checkedCategory();
+      return category.value === value && category.focused;
+    },
+    { timeoutMsg: `${key} não marcou a categoria "${value}"` },
+  );
+  await browser.waitUntil(async () => (await previewText()).startsWith(`## ${name}\n`), {
+    timeoutMsg: `a pré-visualização não mudou para "## ${name}"`,
+  });
+}
+
 /** Texto exato da pré-visualização do corpo (o `<pre>`). */
 async function previewText(): Promise<string> {
   return browser.execute(
@@ -254,7 +283,7 @@ describe('Relatar problema', () => {
     expect(steps).toContain('Submit new issue');
     await waitForPreview();
     await expect(openButton()).toBeDisabled();
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('00-aberto');
   });
 
@@ -309,7 +338,7 @@ describe('Relatar problema', () => {
     await expect($('[data-testid="report-preview-labels"]')).toHaveText(
       expect.stringContaining('categoria: visual ou texto'),
     );
-    expect(await seriousViolations()).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('01-preenchido');
 
     const url = await openAndReadUrl();
@@ -327,6 +356,8 @@ describe('Relatar problema', () => {
 
     await waitForToast('Relato aberto no navegador');
     await dialog().waitForDisplayed({ reverse: true });
+    // O aviso fica no canto de baixo, perto do botão do rodapé que o próximo teste clica.
+    await dismissToasts();
   });
 
   it('CA-UI03-04: com "Copiar um print desta tela", o print da janela sai antes de abrir o navegador', async () => {
@@ -361,6 +392,8 @@ describe('Relatar problema', () => {
     // "Copiar relato completo"; os dois começam igual.
     await waitForToast('Cole o print (Ctrl+V) na issue');
     await dialog().waitForDisplayed({ reverse: true });
+    // Com o relato cortado, o aviso fica na tela até ser fechado (CA-UI03-05).
+    await dismissToasts();
     rmSync(CAPTURE_FILE, { force: true });
   });
 
@@ -403,5 +436,74 @@ describe('Relatar problema', () => {
     await browser.waitUntil(async () => (await focused()) === 'report-button', {
       timeoutMsg: 'sem nada focado antes, o foco não foi para o botão',
     });
+  });
+
+  it('CA-UI03-07 e CA-UI03-08: pelo teclado, os recolhidos abrem com Enter e Espaço e as setas trocam de categoria', async () => {
+    await $('[data-testid="report-button"]').click();
+    await dialog().waitForDisplayed();
+    await waitForPreview();
+
+    // O atalho do cabeçalho: o leitor de tela ouve "Atalho: Ctrl+Shift+E"; quem vê, só a tecla.
+    const shortcut = await browser.execute(() => {
+      const kbd = document.querySelector('[role="dialog"] kbd');
+      const holder = kbd?.parentElement;
+      const hidden = holder?.querySelector('.sr-only');
+      const box = hidden?.getBoundingClientRect();
+      return {
+        text: holder?.textContent ?? null,
+        hiddenText: hidden?.textContent ?? null,
+        hiddenSize: box ? box.width * box.height : null,
+        hiddenAria: hidden?.closest('[aria-hidden="true"]') !== null,
+      };
+    });
+    expect(shortcut).toEqual({
+      text: 'Atalho: Ctrl+Shift+E',
+      hiddenText: 'Atalho: ',
+      hiddenSize: 1,
+      hiddenAria: false,
+    });
+    await expect($('[data-testid="report-button"]')).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Control+Shift+E',
+    );
+
+    // Recolhidos: Enter abre e fecha; Espaço também.
+    for (const summary of ['O que o Warden coleta sozinho', 'Ver como a issue vai ficar']) {
+      expect(await isExpanded(summary)).toBe(false);
+      await focusSummary(summary);
+      await browser.keys(['Enter']);
+      await waitExpanded(summary, true);
+      await browser.keys(['Enter']);
+      await waitExpanded(summary, false);
+      await browser.keys([' ']);
+      await waitExpanded(summary, true);
+      await browser.keys([' ']);
+      await waitExpanded(summary, false);
+      // Fica aberto para a próxima parte (e o axe medir os recolhidos abertos).
+      await browser.keys([' ']);
+      await waitExpanded(summary, true);
+    }
+    await $('[data-testid="report-collected"]').waitForDisplayed();
+    await $('[data-testid="report-preview-body"]').waitForDisplayed();
+
+    // Categoria: o foco no rádio marcado, as setas andam pelo grupo (e dão a volta).
+    expect(await previewText()).toMatch(/^## Erro\n/);
+    await browser.execute(() => {
+      document
+        .querySelector<HTMLInputElement>('[role="dialog"] input[type="radio"]:checked')
+        ?.focus();
+    });
+    expect(await checkedCategory()).toEqual({ value: 'error', focused: true });
+    await arrowTo('ArrowRight', 'visual', 'Visual ou texto');
+    await arrowTo('ArrowRight', 'slowness', 'Lentidão');
+    await arrowTo('ArrowLeft', 'visual', 'Visual ou texto');
+    await arrowTo('ArrowLeft', 'error', 'Erro');
+    await arrowTo('ArrowLeft', 'other', 'Outro');
+    await expect($('[data-testid="report-preview-labels"]')).toHaveText(
+      expect.stringContaining('categoria: outro'),
+    );
+    expect(await seriousViolationSummaries()).toEqual([]);
+    await screenshot('03-teclado');
+    await closeWithEscape();
   });
 });
