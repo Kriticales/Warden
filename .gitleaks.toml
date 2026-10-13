@@ -33,3 +33,12 @@ paths = ['''^crates[/\\]warden-diagnostics[/\\]tests[/\\]fixtures[/\\]redacao[/\
 description = "JWT fictício usado no teste de redação da D-02 antes de ser movido para a fixture; só a regra jwt neste arquivo histórico."
 targetRules = ["jwt"]
 paths = ['''^crates[/\\]warden-diagnostics[/\\]src[/\\]redact\.rs$''']
+
+[[allowlists]]
+description = "Tokens inventados para testar a publicação da V-03 (varredura de segredos que bloqueia publicar, token que nunca vaza, GitHub simulado dos testes e do E2E). Só estes arquivos e só as regras github-pat e jwt."
+targetRules = ["github-pat", "jwt"]
+paths = [
+  '''^crates[/\\]warden-versioning[/\\]tests[/\\]publicacao[/\\]''',
+  '''^crates[/\\]warden-versioning[/\\]src[/\\]publish[/\\]secrets\.rs$''',
+  '''^apps[/\\]desktop[/\\]e2e[/\\]mock-server[/\\]github\.ts$''',
+]
