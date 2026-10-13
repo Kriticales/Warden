@@ -13,7 +13,7 @@
 import { EditorView } from '@codemirror/view';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type {
   ConfigSearchGroup,
@@ -371,6 +371,45 @@ describe('Buscar em todas as configs (C-05)', () => {
       expect(searches(backend).filter((query) => query === 'spawn').length).toBeGreaterThan(count);
     });
     expect(backend.callsOf('config_tree').length).toBe(tree);
+  });
+
+  it('várias chaves na mesma linha (tabela inline) aparecem todas, sem chave repetida', async () => {
+    const user = userEvent.setup();
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const inline: ConfigSearchGroup = {
+      path: CREATE,
+      modId: 'create',
+      hits: [hit(2, 'spawn.spawnA', '1'), hit(2, 'spawn.spawnB', '2')],
+      total: 2,
+    };
+    openConfigs('', { answer: (args) => results(args.query === 'spawn' ? [inline] : []) });
+    await user.type(await searchBox(), 'spawn');
+    const group = await screen.findByRole('region', { name: CREATE });
+    expect(within(group).getAllByRole('button')).toHaveLength(2);
+    const repeated = errors.mock.calls.some((call) => String(call[0]).includes('same key'));
+    errors.mockRestore();
+    expect(repeated).toBe(false);
+  });
+
+  it('o arquivo relido depois de uma edição por fora não volta o cursor nem o foco para a linha', async () => {
+    const user = userEvent.setup();
+    const { backend, url, disk } = openConfigs(`?arquivo=${CREATE}&linha=4`);
+    await screen.findByText(/linha 4, coluna 1/);
+    const box = await searchBox();
+    await user.click(box);
+    expect(document.activeElement).toBe(box);
+
+    disk[CREATE] = `${CREATE_TEXT}novo = 1\n`;
+    const packId = url.split('/').at(-1) ?? '';
+    await act(async () => {
+      await backend.emit('pack-changed', { packId, areas: [] });
+    });
+    await waitFor(async () => {
+      expect((await editorView()).state.sliceDoc()).toContain('novo = 1');
+    });
+    const view = await editorView();
+    expect(view.state.doc.lineAt(view.state.selection.main.head).number).toBe(1);
+    expect(document.activeElement).toBe(box);
   });
 
   it('o editor com alterações não salvas continua montado enquanto a busca está aberta', async () => {

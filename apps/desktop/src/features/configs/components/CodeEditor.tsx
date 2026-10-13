@@ -121,14 +121,17 @@ export function CodeEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey, language, readOnly, lineSeparator, ariaLabel]);
 
-  // Ir para a linha pedida (também logo depois de criar o editor de um arquivo novo).
+  // Ir para a linha pedida (também logo depois de criar o editor de um arquivo novo). Cada
+  // pedido vale uma vez: recarregar o arquivo (edição por fora) não puxa o cursor nem o foco.
   const goToLine = goTo?.line;
   const goToRequest = goTo?.request;
+  const appliedRequest = useRef<number | null>(null);
   useEffect(() => {
     const current = view.current;
-    if (!current || goToLine === undefined) {
+    if (!current || goToLine === undefined || goToRequest === appliedRequest.current) {
       return;
     }
+    appliedRequest.current = goToRequest ?? null;
     const line = current.state.doc.line(Math.min(Math.max(goToLine, 1), current.state.doc.lines));
     current.dispatch({
       selection: { anchor: line.from },
