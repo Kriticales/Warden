@@ -417,6 +417,7 @@ impl CurseforgeCheck {
                 sort: SearchSort::Relevance,
                 environment: None,
                 include_incompatible: false,
+                category: None,
                 target: target.clone(),
                 offset: 0,
                 limit: 10,
