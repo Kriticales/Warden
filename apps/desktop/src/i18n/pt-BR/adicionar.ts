@@ -14,6 +14,7 @@ export const adicionar = {
     mod: 'Tipo: Mods',
     resourcePack: 'Tipo: Resource packs',
     shader: 'Tipo: Shaders',
+    modpack: 'Tipo: Modpacks',
   },
   busca: {
     rotulo: 'Buscar',

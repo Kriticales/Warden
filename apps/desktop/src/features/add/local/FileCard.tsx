@@ -30,7 +30,8 @@ import { loaderName } from '../../packs/lib/pack-list';
 import { type PackTarget, useTargetText } from '../common/text';
 import { initialKind, loaderList, referenceMatch } from './model';
 
-const KINDS: readonly ProjectKind[] = ['mod', 'resourcePack', 'shader'];
+// Um arquivo do computador nunca entra como modpack (o Tipo = Modpacks só busca e abre).
+const KINDS = ['mod', 'resourcePack', 'shader'] as const satisfies readonly ProjectKind[];
 
 export interface FileCardProps {
   file: LocalFileRef;
@@ -314,5 +315,7 @@ export function folderOf(kind: ProjectKind): string {
       return 'resourcepacks';
     case 'shader':
       return 'shaderpacks';
+    case 'modpack':
+      return 'modpacks';
   }
 }

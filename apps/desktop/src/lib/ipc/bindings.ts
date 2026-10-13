@@ -436,6 +436,11 @@ export const commands = {
 	javaRuntimeRemove: (id: RuntimeId) => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtime_remove", { id })),
 	/**  "Remover Javas sem uso" e devolve a tabela atualizada. */
 	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
+	/**
+	 *  Os mods de um modpack, com "Já no seu pack", "Compatível", "Sem versão para o seu pack" e
+	 *  "Arquivo fora das lojas".
+	 */
+	modpackContents: (packId: PackId, source: SourceId, projectId: string) => typedError<ModpackContents, AppError>(__TAURI_INVOKE("modpack_contents", { packId, source, projectId })),
 	/**  Nome, autor, descrição e versões do `pack.toml` (diálogo Informações do pack). */
 	packMetaGet: (packId: PackId) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_meta_get", { packId })),
 	/**  Grava nome, autor e descrição no `pack.toml`, mudando só as linhas alteradas. */
@@ -1980,7 +1985,22 @@ export type DiscoverHome = {
  */
 export type DiscoveryErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**
+ *  O autor do modpack da CurseForge bloqueou apps de terceiros (`downloadUrl` nulo); parâmetro
+ *  `page` com a página do modpack, quando conhecida (P1-17).
+ */
+"MODPACK_BLOCKED" | 
+/**
+ *  O servidor não aceita leitura por partes e o arquivo do modpack passa de 200 MB; parâmetro
+ *  `size` em MB (SPEC CA-T08-15; P1-17).
+ */
+"MODPACK_TOO_LARGE" | 
+/**
+ *  O arquivo do modpack não pôde ser lido (zip inválido, sem `modrinth.index.json` ou
+ *  `manifest.json`, ou sem versões) (P1-17).
+ */
+"MODPACK_UNREADABLE";
 
 /**  Como um item do pack foi reconhecido como o mesmo projeto vindo de outra fonte. */
 export type DuplicateMatch = 
@@ -3903,6 +3923,90 @@ export type ModUpdateReport = {
 	available: number,
 };
 
+/**  A lista de mods de um modpack, para o painel da direita da página de descoberta. */
+export type ModpackContents = {
+	/**  Fonte do modpack. */
+	source: SourceId,
+	/**  ID do projeto do modpack. */
+	projectId: string,
+	/**  Nome do modpack. */
+	title: string,
+	/**  A versão do modpack lida (número legível). */
+	versionNumber: string,
+	/**  Versões do Minecraft da versão do modpack. */
+	gameVersions: string[],
+	/**  Loaders da versão do modpack (`neoforge`, `fabric`…). */
+	loaders: string[],
+	/**
+	 *  A versão do modpack é da mesma versão do Minecraft e do mesmo loader do pack: "a mesma do
+	 *  modpack (testada junto)" é o padrão do seletor **Versão**.
+	 */
+	sameTarget: boolean,
+	/**  Licença do projeto do modpack. */
+	license: ModpackLicense,
+	/**  Página do modpack na fonte. */
+	pageUrl: string | null,
+	/**
+	 *  Os mods, os compatíveis primeiro, depois os que já estão no pack, os sem versão e os
+	 *  arquivos fora das lojas (cada grupo em ordem alfabética).
+	 */
+	mods: ModpackMod[],
+	/**
+	 *  O servidor não aceitou leitura por partes e o arquivo do modpack foi baixado inteiro (para
+	 *  a memória): a interface avisa.
+	 */
+	wholeDownload: boolean,
+};
+
+/**  A licença do projeto do modpack. */
+export type ModpackLicense = {
+	/**  Nome ou identificador SPDX, quando a fonte informa (a CurseForge não informa). */
+	name: string | null,
+	/**
+	 *  Licença livre conhecida (as configs e arquivos do modpack podem ser reaproveitados com as
+	 *  condições dela). Falso também quando a licença não é informada: a interface avisa.
+	 */
+	free: boolean,
+};
+
+/**  Um mod do modpack. */
+export type ModpackMod = {
+	/**  Chave estável na lista (`modrinth:<projeto>`, `curseforge:<projeto>` ou `arquivo:<nome>`). */
+	key: string,
+	/**  Fonte (nenhuma: arquivo fora das lojas). */
+	source: SourceId | null,
+	/**  ID do projeto na fonte. */
+	projectId: string | null,
+	/**
+	 *  A versão que o modpack usa (Modrinth: ID da versão; CurseForge: ID do arquivo), quando
+	 *  conhecida. Vai para o `add_plan` com "a mesma do modpack".
+	 */
+	versionId: string | null,
+	/**  Nome. */
+	title: string,
+	/**  Resumo. */
+	summary: string,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Nome do arquivo (o único dado de um arquivo fora das lojas). */
+	fileName: string | null,
+	/**  Estado para o pack aberto. */
+	state: ModpackModState,
+	/**  Caminho do item que já está no pack (com [`ModpackModState::InPack`]). */
+	packPath: string | null,
+};
+
+/**  O estado de um mod do modpack para o pack aberto. */
+export type ModpackModState = 
+/**  Tem versão para o Minecraft e o loader do pack: com caixa de seleção. */
+"compatible" | 
+/**  Já está no pack (pelo projeto na mesma fonte ou pela deduplicação entre fontes): sem caixa. */
+"inPack" | 
+/**  Sem versão para o pack: desabilitado, com o motivo. */
+"noVersion" | 
+/**  Jar dentro do modpack, fora das lojas: desabilitado (o Warden não copia jars de terceiros). */
+"external";
+
 /**
  *  Códigos do domínio `modrinth`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -4790,8 +4894,8 @@ export type ProjectErrorCode =
 "CONFIG_NOT_EDITABLE";
 
 /**
- *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks chegam com a
- *  P1-17.
+ *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks (P1-17) só são
+ *  buscados e abertos para trazer mods deles: nunca entram no pack como item.
  */
 export type ProjectKind = 
 /**  Mods (`mods/`). */
@@ -4799,7 +4903,9 @@ export type ProjectKind =
 /**  Resource packs (`resourcepacks/`). */
 "resourcePack" | 
 /**  Shaders (`shaderpacks/`). */
-"shader";
+"shader" | 
+/**  Modpacks (P1-17): Modrinth `project_type:modpack`, CurseForge `classId=4471`. */
+"modpack";
 
 /**  Links do projeto (abrem no navegador). */
 export type ProjectLinks = {
