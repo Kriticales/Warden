@@ -172,7 +172,7 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
     await browser.waitUntil(async () => (await open.isExisting()) || (await notNow.isExisting()), {

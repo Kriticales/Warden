@@ -171,7 +171,7 @@ describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FOLDER, PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
     await browser.waitUntil(async () => (await open.isExisting()) || (await notNow.isExisting()), {
