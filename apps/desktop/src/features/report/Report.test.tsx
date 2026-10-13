@@ -229,7 +229,7 @@ describe('Relatar problema (UI-02 e UI-03)', () => {
     await user.type(within(dialog).getByLabelText(/^Descrição/), 'Nada abriu');
     await user.click(within(dialog).getByRole('checkbox', { name: /Incluir os registros do app/ }));
 
-    // Recolhidos: o coletado e a pré-visualização só abrem no clique.
+    // Recolhidos: o coletado e a pré-visualização começam fechados (o teclado, no teste abaixo).
     const collected = within(dialog).getByText('O que o Warden coleta sozinho').closest('details');
     const issue = within(dialog).getByText('Ver como a issue vai ficar').closest('details');
     expect(collected?.open).toBe(false);
@@ -273,6 +273,45 @@ describe('Relatar problema (UI-02 e UI-03)', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Relatar problema' })).toBeNull();
     });
+  });
+
+  it('CA-UI03-07: os recolhidos são resumos nativos, alcançados pelo Tab', async () => {
+    // Abrir com Enter e Espaço é do próprio `<summary>` no WebView, e o jsdom não simula isso:
+    // a abertura pelo teclado é conferida no E2E (relatar-problema.e2e.ts).
+    reportBackend();
+    const { user, dialog } = await openFromButton();
+    await within(dialog).findByTestId('report-preview-body');
+    const summaries = ['O que o Warden coleta sozinho', 'Ver como a issue vai ficar'].map((text) =>
+      within(dialog).getByText(text),
+    );
+    for (const summary of summaries) {
+      expect(summary.tagName).toBe('SUMMARY');
+      const details = summary.closest('details');
+      expect(details?.open).toBe(false);
+      expect(details?.firstElementChild).toBe(summary);
+    }
+    const [collected, issue] = summaries;
+    collected?.focus();
+    expect(document.activeElement).toBe(collected);
+    await user.tab();
+    expect(document.activeElement).toBe(issue);
+  });
+
+  it('CA-UI03-08: o atalho do cabeçalho tem texto para leitor de tela', async () => {
+    reportBackend();
+    const { dialog } = await openFromButton();
+    const key = within(dialog).getByText('Ctrl+Shift+E');
+    expect(key.tagName).toBe('KBD');
+    const holder = key.parentElement;
+    expect(holder?.textContent).toBe('Atalho: Ctrl+Shift+E');
+    // "Atalho:" só para o leitor de tela; quem vê lê só a tecla.
+    expect(holder?.querySelector('.sr-only')?.textContent).toBe('Atalho: ');
+    expect(holder?.closest('[aria-hidden="true"]')).toBeNull();
+    expect(
+      screen
+        .getByRole('button', { name: 'Relatar problema', hidden: true })
+        .getAttribute('aria-keyshortcuts'),
+    ).toBe('Control+Shift+E');
   });
 
   it('CA-UI03-06: os três passos do envio ficam à vista, numerados', async () => {
