@@ -3,7 +3,7 @@
  * partir do início do teste, lado a lado, e a escolha: "Manter a do pack", "Usar a do jogo",
  * "Juntar as duas" (quando as chaves mudadas são diferentes) e "Editar e combinar".
  */
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DiffView } from '../../../components/common/DiffView';
@@ -13,7 +13,11 @@ import { Button } from '../../../components/ui/button';
 import type { CaptureFileView, CaptureResolution, PackId } from '../../../lib/ipc/bindings';
 import { Choice } from '../../settings/components/fields';
 import { useCaptureTexts } from '../api';
-import { MergeEditorDialog } from './MergeEditorDialog';
+
+// O editor (CodeMirror) só carrega quando a pessoa escolhe "Editar e combinar".
+const MergeEditorDialog = lazy(() =>
+  import('./MergeEditorDialog').then((module) => ({ default: module.MergeEditorDialog })),
+);
 
 export interface ConflictItemProps {
   packId: PackId;
@@ -113,18 +117,20 @@ export function ConflictItem({ packId, sessionId, view, choice, onChoose }: Conf
         ) : null}
       </div>
       {editing && texts.isSuccess ? (
-        <MergeEditorDialog
-          path={path}
-          texts={texts.data}
-          initial={edited}
-          onUse={(text) => {
-            setEditing(false);
-            onChoose({ kind: 'edited', text });
-          }}
-          onCancel={() => {
-            setEditing(false);
-          }}
-        />
+        <Suspense fallback={<LoadingState inline label={t('conflito.carregando')} />}>
+          <MergeEditorDialog
+            path={path}
+            texts={texts.data}
+            initial={edited}
+            onUse={(text) => {
+              setEditing(false);
+              onChoose({ kind: 'edited', text });
+            }}
+            onCancel={() => {
+              setEditing(false);
+            }}
+          />
+        </Suspense>
       ) : null}
     </div>
   );
