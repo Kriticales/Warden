@@ -31,7 +31,7 @@ export const diagnostico = {
     resumo_one: '{{count}} encontrado · última verificação {{quando}}',
     resumo_other: '{{count}} encontrados · última verificação {{quando}}',
     resumoVazio: 'Última verificação {{quando}}',
-    agora: 'agora há pouco',
+    agora: 'há pouco',
     tambem: 'A verificação também roda sozinha ao clicar em Testar.',
     rapida:
       'Alguns mods ainda não foram baixados para o teste, então os arquivos deles não foram lidos. A verificação completa roda ao clicar em Testar.',

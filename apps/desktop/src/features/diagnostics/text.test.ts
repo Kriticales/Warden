@@ -88,7 +88,7 @@ describe('frases dos achados', () => {
 
   it('"há quanto tempo"', () => {
     const now = Date.UTC(2026, 9, 13, 12, 0, 0);
-    expect(formatAgo(now - 10_000, now)).toBe('agora há pouco');
+    expect(formatAgo(now - 10_000, now)).toBe('há pouco');
     expect(formatAgo(now - 3 * 60_000, now)).toBe('há 3 minutos');
     expect(formatAgo(now - 2 * 3_600_000, now)).toBe('há 2 horas');
     expect(formatAgo(now - 26 * 3_600_000, now)).toBe('ontem');
