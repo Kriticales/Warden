@@ -85,7 +85,8 @@ fn pixel_count(width: u32, height: u32) -> usize {
 /// para os registros.
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub(crate) enum CaptureError {
-    /// A janela do Warden não foi achada (Wayland sem X11, janela fechada).
+    /// A janela do Warden não foi achada (Wayland sem X11; no Windows, janela já fechada e
+    /// sem HWND).
     #[error("a janela do Warden não foi encontrada")]
     WindowNotFound,
     /// Janela vazia (minimizada) ou grande demais.
@@ -96,7 +97,9 @@ pub(crate) enum CaptureError {
         /// Altura lida.
         height: u32,
     },
-    /// Formato de pixel que o Warden não lê.
+    /// Formato de pixel que o Warden não lê. Só no X11: no Windows o `GetDIBits` já entrega
+    /// 32 bits por pixel.
+    #[cfg(target_os = "linux")]
     #[error("formato de pixel sem suporte: {0}")]
     PixelFormat(String),
     /// Falha do sistema ao capturar.
@@ -164,10 +167,10 @@ impl NativeCapture {
 impl WindowCapture for NativeCapture {
     #[cfg(windows)]
     fn capture(&self) -> Result<Screenshot, CaptureError> {
-        let hwnd = self
-            .window
-            .hwnd()
-            .map_err(|error| CaptureError::Platform(format!("janela sem HWND: {error}")))?;
+        let hwnd = self.window.hwnd().map_err(|error| {
+            tracing::warn!(%error, "print da janela: janela sem HWND");
+            CaptureError::WindowNotFound
+        })?;
         let (width, height, bgra) = windows::print_client_area(hwnd.0 as isize)?;
         Screenshot::new(width, height, opaque_rgba_from_bgra(&bgra))
     }

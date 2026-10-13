@@ -108,10 +108,14 @@ pub(super) fn print_client_area(hwnd: isize) -> Result<(u32, u32, Vec<u8>), Capt
         return Err(platform("CreateCompatibleBitmap", "bitmap nulo"));
     }
 
-    // SAFETY: DC e bitmap válidos; o objeto anterior volta para o DC logo depois do print,
-    // antes de qualquer saída da função.
+    // SAFETY: DC e bitmap válidos (conferidos acima).
+    let previous = unsafe { SelectObject(memory_dc.0, HGDIOBJ::from(bitmap.0)) };
+    if previous.is_invalid() {
+        return Err(platform("SelectObject", "o bitmap não entrou no DC"));
+    }
+    // SAFETY: DC com o bitmap selecionado logo acima; o objeto anterior volta para o DC logo
+    // depois do print, antes de qualquer saída da função.
     let printed = unsafe {
-        let previous = SelectObject(memory_dc.0, HGDIOBJ::from(bitmap.0));
         let printed = PrintWindow(
             hwnd,
             memory_dc.0,
