@@ -130,7 +130,9 @@ impl ScriptFile {
 /// Um mod lido de um jar (ou só do nome do arquivo).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DetectedMod {
-    /// Id do mod no descritor (`None` quando o jar ainda não foi lido).
+    /// Id do mod no descritor (`None` quando o jar não pôde ser lido). Um jar lido entra com o
+    /// id de cada mod que declara, mesmo os que não são ferramentas de scripts: um addon como o
+    /// KubeJS Create (`kubejs_create`) fica de fora pelo id, não pelo nome.
     pub id: Option<String>,
     /// Versão no descritor.
     pub version: Option<String>,
@@ -138,64 +140,90 @@ pub struct DetectedMod {
     pub file_name: String,
 }
 
-/// Detecta as ferramentas na lista de mods do pack. O descritor ganha do nome do arquivo.
+/// Loaders que aparecem logo depois do nome da ferramenta no nome do arquivo
+/// (`kubejs-forge-…`, `CraftTweaker-neoforge-…`).
+const LOADERS: [&str; 4] = ["forge", "neoforge", "fabric", "quilt"];
+
+/// A ferramenta pelo nome do arquivo, só para jars que não puderam ser lidos. O nome precisa
+/// ser o da ferramenta seguido do loader ou da versão (`kubejs-forge-2001.6.5…`,
+/// `kubejs-1.12.2-…`, `CraftTweaker2-1.12-4.1.20`): addons como `kubejs-create-…`,
+/// `kubejs-thermal-…` e `kubejs_additions-…` não passam.
+fn tool_from_file_name(file_name: &str) -> Option<ScriptTool> {
+    let lower = file_name.to_ascii_lowercase();
+    let stem = lower.strip_suffix(".jar").unwrap_or(&lower);
+    let mut parts = stem.split(['-', '_']);
+    let tool = match parts.next()? {
+        "kubejs" => ScriptTool::Kubejs,
+        "crafttweaker" | "crafttweaker2" => ScriptTool::Crafttweaker,
+        _ => return None,
+    };
+    let next = parts.next()?;
+    let loader_or_version =
+        LOADERS.contains(&next) || next.starts_with(|c: char| c.is_ascii_digit());
+    loader_or_version.then_some(tool)
+}
+
+/// De onde veio a ferramenta: o descritor do jar ganha do nome do arquivo.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Evidence {
+    FileName,
+    Descriptor,
+}
+
+/// Detecta as ferramentas na lista de mods do pack. O descritor ganha do nome do arquivo, e
+/// a ordem da lista não importa: um jar identificado pelo id do mod ganha de um adivinhado pelo
+/// nome; entre dois do mesmo tipo, ganha o que tem a versão lida.
 #[must_use]
 pub fn detect(mods: &[DetectedMod]) -> ScriptEnv {
     let mut env = ScriptEnv::default();
+    let mut evidence: [Option<Evidence>; 2] = [None, None];
     for module in mods {
-        let lower_name = module.file_name.to_ascii_lowercase();
         let id = module.id.as_deref().map(str::to_ascii_lowercase);
-        let tool = match id.as_deref() {
-            Some(KUBEJS_ID) => Some(ScriptTool::Kubejs),
-            Some(CRAFTTWEAKER_ID) => Some(ScriptTool::Crafttweaker),
-            None if lower_name.starts_with("kubejs-") || lower_name.starts_with("kubejs_") => {
-                Some(ScriptTool::Kubejs)
-            }
-            None if lower_name.starts_with("crafttweaker") => Some(ScriptTool::Crafttweaker),
-            _ => None,
-        };
-        let Some(tool) = tool else {
-            continue;
+        let (tool, found_by) = match id.as_deref() {
+            Some(KUBEJS_ID) => (ScriptTool::Kubejs, Evidence::Descriptor),
+            Some(CRAFTTWEAKER_ID) => (ScriptTool::Crafttweaker, Evidence::Descriptor),
+            Some(_) => continue,
+            None => match tool_from_file_name(&module.file_name) {
+                Some(tool) => (tool, Evidence::FileName),
+                None => continue,
+            },
         };
         let usable = module
             .version
             .as_deref()
             .filter(|version| !version.contains("${") && !version.trim().is_empty());
-        let (major, version) = match tool {
-            ScriptTool::Kubejs => usable.and_then(kubejs_major).map_or_else(
-                || {
-                    let from_name = file_version(&module.file_name, ScriptTool::Kubejs);
-                    (
-                        from_name.as_ref().map(|(m, _)| *m),
-                        from_name.map(|(_, v)| v),
-                    )
-                },
-                |major| (Some(major), usable.map(ToOwned::to_owned)),
-            ),
-            ScriptTool::Crafttweaker => usable.and_then(crafttweaker_major).map_or_else(
-                || {
-                    let from_name = file_version(&module.file_name, ScriptTool::Crafttweaker);
-                    (
-                        from_name.as_ref().map(|(m, _)| *m),
-                        from_name.map(|(_, v)| v),
-                    )
-                },
-                |major| (Some(major), usable.map(ToOwned::to_owned)),
-            ),
+        let major_of = match tool {
+            ScriptTool::Kubejs => kubejs_major,
+            ScriptTool::Crafttweaker => crafttweaker_major,
         };
+        let (major, version) = usable.and_then(major_of).map_or_else(
+            || {
+                let from_name = file_version(&module.file_name, tool);
+                (
+                    from_name.as_ref().map(|(m, _)| *m),
+                    from_name.map(|(_, v)| v),
+                )
+            },
+            |major| (Some(major), usable.map(ToOwned::to_owned)),
+        );
         let found = ToolVersion {
             tool,
             major,
             version,
         };
-        let slot = match tool {
-            ScriptTool::Kubejs => &mut env.kubejs,
-            ScriptTool::Crafttweaker => &mut env.crafttweaker,
+        let (slot, slot_evidence) = match tool {
+            ScriptTool::Kubejs => (&mut env.kubejs, &mut evidence[0]),
+            ScriptTool::Crafttweaker => (&mut env.crafttweaker, &mut evidence[1]),
         };
-        // Um jar com versão lida ganha de outro sem (addons como `kubejs-create` não entram,
-        // porque o id deles é outro).
-        if slot.as_ref().is_none_or(|old| old.major.is_none()) {
+        let better = match (slot.as_ref(), *slot_evidence) {
+            (Some(old), Some(old_by)) => {
+                found_by > old_by || (found_by == old_by && old.major.is_none() && major.is_some())
+            }
+            _ => true,
+        };
+        if better {
             *slot = Some(found);
+            *slot_evidence = Some(found_by);
         }
     }
     env
@@ -356,6 +384,86 @@ mod tests {
         ]);
         assert_eq!(env, ScriptEnv::default());
         assert!(env.tool_for("kubejs/server_scripts/a.js").is_none());
+    }
+
+    /// KubeJS 6 com o KubeJS Create: o packwiz lista `kubejs-create` antes de `kubejs`, e o
+    /// addon não pode virar "KubeJS 2", nem lido (id `kubejs_create`) nem só pelo nome.
+    #[test]
+    fn kubejs_com_addons_em_qualquer_ordem() {
+        let kubejs = jar(
+            Some("kubejs"),
+            Some("2001.6.5-build.26"),
+            "kubejs-forge-2001.6.5-build.26.jar",
+        );
+        let addons = [
+            jar(
+                Some("kubejs_create"),
+                Some("2001.2.5-build.2"),
+                "kubejs-create-forge-2001.2.5-build.2.jar",
+            ),
+            jar(
+                Some("kubejs_thermal"),
+                Some("2001.1.10-build.3"),
+                "kubejs-thermal-forge-2001.1.10-build.3.jar",
+            ),
+            jar(Some("probejs"), Some("6.0.1"), "probejs-6.0.1-forge.jar"),
+            jar(
+                Some("kubejsadditions"),
+                Some("4.3.3"),
+                "kubejsadditions-forge-4.3.3.jar",
+            ),
+            // Jars que não puderam ser lidos: só o nome.
+            jar(None, None, "kubejs-create-forge-2001.2.5-build.2.jar"),
+            jar(None, None, "kubejs-thermal-forge-2001.1.10-build.3.jar"),
+            jar(None, None, "kubejs_additions-forge-1.20.1-4.3.3.jar"),
+        ];
+        for addon in &addons {
+            for order in [
+                vec![addon.clone(), kubejs.clone()],
+                vec![kubejs.clone(), addon.clone()],
+            ] {
+                let env = detect(&order);
+                let found = env.kubejs.unwrap();
+                assert_eq!(found.major, Some(6), "{addon:?}");
+                assert_eq!(found.version.as_deref(), Some("2001.6.5-build.26"));
+            }
+            // Sozinho, o addon não é o KubeJS.
+            assert_eq!(detect(std::slice::from_ref(addon)), ScriptEnv::default());
+        }
+        // Todos juntos, nas duas ordens.
+        let mut all: Vec<DetectedMod> = addons.to_vec();
+        all.push(kubejs.clone());
+        assert_eq!(detect(&all).kubejs.unwrap().major, Some(6));
+        all.reverse();
+        assert_eq!(detect(&all).kubejs.unwrap().major, Some(6));
+    }
+
+    /// O nome do arquivo só vale quando o jar não foi lido, e o descritor ganha dele em qualquer
+    /// ordem.
+    #[test]
+    fn descritor_ganha_do_nome_em_qualquer_ordem() {
+        let unread = jar(None, None, "kubejs-forge-2001.6.5-build.26.jar");
+        let read = jar(
+            Some("kubejs"),
+            Some("2101.7.2-build.377"),
+            "kubejs-neoforge-2101.7.2-build.377.jar",
+        );
+        assert_eq!(
+            detect(&[unread.clone(), read.clone()]).kubejs.unwrap().major,
+            Some(7)
+        );
+        assert_eq!(detect(&[read, unread]).kubejs.unwrap().major, Some(7));
+        assert_eq!(
+            detect(&[jar(None, None, "kubejs-1.12.2-1.0.0.jar")])
+                .kubejs
+                .map(|tool| tool.tool),
+            Some(ScriptTool::Kubejs)
+        );
+        assert!(
+            detect(&[jar(None, None, "CraftTweaker2-1.12-4.1.20.jar")])
+                .crafttweaker
+                .is_some()
+        );
     }
 
     #[test]

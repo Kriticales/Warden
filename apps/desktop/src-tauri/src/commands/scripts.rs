@@ -172,28 +172,22 @@ fn detect_tools(jars: &[PackJarFile]) -> ScriptEnv {
         if !name.contains("kubejs") && !name.contains("crafttweaker") {
             continue;
         }
-        let mut found = false;
-        if let Ok(meta) = read_jar_file(&jar.path, &Limits::default()) {
-            for module in meta.mods {
-                let id = module.id.to_ascii_lowercase();
-                if id == warden_scripts::detect::KUBEJS_ID
-                    || id == warden_scripts::detect::CRAFTTWEAKER_ID
-                {
-                    found = true;
-                    mods.push(DetectedMod {
-                        id: Some(module.id),
-                        version: module.version,
-                        file_name: jar.file_name.clone(),
-                    });
-                }
+        // Um jar lido entra com o id de cada mod que declara: o `detect` reconhece o KubeJS e
+        // o CraftTweaker pelo id e deixa de fora os addons (`kubejs_create`, `probejs`…). Só um
+        // jar que não pôde ser lido cai no nome do arquivo.
+        match read_jar_file(&jar.path, &Limits::default()) {
+            Ok(meta) if !meta.mods.is_empty() => {
+                mods.extend(meta.mods.into_iter().map(|module| DetectedMod {
+                    id: Some(module.id),
+                    version: module.version,
+                    file_name: jar.file_name.clone(),
+                }));
             }
-        }
-        if !found {
-            mods.push(DetectedMod {
+            _ => mods.push(DetectedMod {
                 id: None,
                 version: None,
                 file_name: jar.file_name.clone(),
-            });
+            }),
         }
     }
     detect(&mods)
@@ -595,6 +589,68 @@ mod tests {
         let (state, id, root) = pack_with_local_jars(dir.path(), "${file.jarVersion}");
         let (_, env) = read_env(&state.paths, &root, id).unwrap();
         assert_eq!(env.kubejs.unwrap().major, Some(6));
+    }
+
+    fn addon_jar(mod_id: &str, version: &str) -> Vec<u8> {
+        jar_bytes(&[(
+            "META-INF/mods.toml",
+            &format!(
+                "modLoader=\"javafml\"\nloaderVersion=\"[47,)\"\nlicense=\"LGPL\"\n[[mods]]\nmodId=\"{mod_id}\"\nversion=\"{version}\"\n[[dependencies.{mod_id}]]\nmodId=\"kubejs\"\nmandatory=true\nversionRange=\"[2001.6,)\"\nordering=\"AFTER\"\nside=\"BOTH\"\n"
+            ),
+        )])
+    }
+
+    /// Defeito da 1ª revisão: KubeJS 6 com o KubeJS Create (e outros addons comuns) aparecia
+    /// como "KubeJS 2", porque o packwiz lista `kubejs-create` antes de `kubejs`. O pack real,
+    /// nas duas ordens do `index.toml`.
+    #[test]
+    fn kubejs_6_com_addons_nas_duas_ordens() {
+        let addons = [
+            (
+                "kubejs-create-forge-2001.2.5-build.2.jar",
+                "kubejs_create",
+                "2001.2.5-build.2",
+            ),
+            (
+                "kubejs-thermal-forge-2001.1.10-build.3.jar",
+                "kubejs_thermal",
+                "2001.1.10-build.3",
+            ),
+            ("probejs-6.0.1-forge.jar", "probejs", "6.0.1"),
+            (
+                "kubejsadditions-forge-4.3.3.jar",
+                "kubejsadditions",
+                "4.3.3",
+            ),
+        ];
+        for reverse in [false, true] {
+            let dir = tempfile::tempdir().unwrap();
+            let (state, id, root) = pack_with_local_jars(dir.path(), "2001.6.5-build.26");
+            let mut files = vec!["mods/kubejs-forge-2001.6.5-build.26.jar".to_owned()];
+            for (file, mod_id, version) in addons {
+                fs::write(root.join("mods").join(file), addon_jar(mod_id, version)).unwrap();
+                files.push(format!("mods/{file}"));
+            }
+            files.sort();
+            if reverse {
+                files.reverse();
+            }
+            let index: String = files
+                .iter()
+                .map(|file| format!("\n[[files]]\nfile = \"{file}\"\nhash = \"\"\n"))
+                .collect();
+            fs::write(
+                root.join("index.toml"),
+                format!("hash-format = \"sha256\"\n{index}"),
+            )
+            .unwrap();
+            let (pack, env) = read_env(&state.paths, &root, id).unwrap();
+            assert_eq!(pack_jars(&state.paths, &root, &pack, id).len(), 5);
+            let kubejs = env.kubejs.unwrap();
+            assert_eq!(kubejs.major, Some(6), "ordem invertida: {reverse}");
+            assert_eq!(kubejs.version.as_deref(), Some("2001.6.5-build.26"));
+            assert!(env.crafttweaker.is_none());
+        }
     }
 
     #[test]
