@@ -5,6 +5,7 @@
 import type { Inventory, PackRow } from '../../lib/ipc/bindings';
 import { mockBackend, type Handler } from '../../test/backend';
 import { makePackRow } from '../../test/factories';
+import { makeProfilesView } from '../test/profiles/profiles.fixtures';
 import {
   DECISIONS,
   makeChoice,
@@ -12,6 +13,7 @@ import {
   makeMeta,
   makeTestSettingsView,
 } from './editor.fixtures';
+import { makeGithubStatus } from '../github/github.fixtures';
 
 export interface EditorBackendOptions {
   pack?: Partial<PackRow>;
@@ -25,6 +27,8 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
     packs_list: () => [row],
     pack_get: () => row,
     pack_hygiene_scan: () => [],
+    // Publicação (V-03): pack ainda não publicado.
+    github_status: () => makeGithubStatus(),
     inventory_list: () => inventory ?? makeInventory(),
     pack_meta_get: () =>
       makeMeta({
@@ -41,6 +45,8 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
       cycle: [],
     }),
     pack_test_settings_get: () => makeTestSettingsView(),
+    // Perfis do teste (L-08): só o Padrão.
+    test_profiles_get: () => makeProfilesView({ minecraft: row.minecraft }),
     item_option_get: () => null,
     instance_optional_choices_get: () => [],
     java_choice: () => makeChoice(DECISIONS.forge1201),

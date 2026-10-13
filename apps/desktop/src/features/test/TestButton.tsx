@@ -30,11 +30,14 @@ import type { HeaderSlotProps } from '../pack-editor/header/slots';
 import { useRevealInstance, useTestSessions } from './api';
 import {
   TEST_MENU_GROUPS,
+  isMenuBlock,
   itemsOf,
   testDialogs,
   testMenuItems,
   type TestMenuContext,
 } from './menu-items';
+import { useTestProfiles } from './profiles/api';
+import { DEFAULT_PROFILE, shortProfileName } from './profiles/text';
 import { isActive, useGame, useTestRun, useTestStore } from './store';
 
 export type TestButtonState = 'ready' | 'preparing' | 'running';
@@ -60,6 +63,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dialog, setDialog] = useState<string | null>(null);
   const [otherOpen, setOtherOpen] = useState(false);
+  const profiles = useTestProfiles(packId);
 
   const here = game?.packId === packId ? game : null;
   const other = game && game.packId !== packId ? game : null;
@@ -93,10 +97,15 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
     preparing: t('botao.preparando'),
     running: t('botao.aberto'),
   }[state];
+  // Perfil do teste fora do Padrão: "Testar · PC fraco" (L-08).
+  const activeProfile =
+    state === 'ready' && profiles.data && profiles.data.active !== DEFAULT_PROFILE
+      ? profiles.data.profiles.find((profile) => profile.id === profiles.data.active)
+      : undefined;
 
   return (
     <>
-      <div className={cn('testbtn', `testbtn--${state}`)}>
+      <div className={cn('testbtn', `testbtn--${state}`, activeProfile && 'testbtn--profile')}>
         <span className="testbtn__antenna" aria-hidden="true">
           <i />
           <i />
@@ -116,6 +125,15 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
             <Icon icon={Play} className="icon--fill" />
           )}
           <span>{label}</span>
+          {activeProfile ? (
+            <>
+              {/* O espaço separa as palavras também no nome acessível ("Testar PC fraco"). */}{' '}
+              <span className="testbtn__profile">
+                <span aria-hidden="true">· </span>
+                {shortProfileName(activeProfile)}
+              </span>
+            </>
+          ) : null}
           {state === 'preparing' ? (
             <span className="testbtn__progress" aria-hidden="true">
               <span style={{ '--p': `${String(percent ?? 12)}%` } as CSSProperties} />
@@ -215,19 +233,23 @@ function TestMenu({ packId, pack, openTest, openDialog }: TestMenuProps) {
               {t(group.titleKey as 'menu.perfil')}
             </MenuPrimitive.Label>
           ) : null}
-          {group.items.map((item) => (
-            <MenuItem
-              key={item.id}
-              icon={item.icon}
-              description={item.description?.(context) ?? undefined}
-              disabled={item.disabled?.(context) ?? false}
-              onSelect={() => {
-                item.onSelect(context);
-              }}
-            >
-              {item.label(context)}
-            </MenuItem>
-          ))}
+          {group.items.map((item) =>
+            isMenuBlock(item) ? (
+              <item.component key={item.id} context={context} />
+            ) : (
+              <MenuItem
+                key={item.id}
+                icon={item.icon}
+                description={item.description?.(context) ?? undefined}
+                disabled={item.disabled?.(context) ?? false}
+                onSelect={() => {
+                  item.onSelect(context);
+                }}
+              >
+                {item.label(context)}
+              </MenuItem>
+            ),
+          )}
         </Fragment>
       ))}
     </MenuContent>

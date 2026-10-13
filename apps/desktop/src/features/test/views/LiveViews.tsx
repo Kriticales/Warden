@@ -21,12 +21,14 @@ import { commands, type PackRow } from '../../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { commandQuery } from '../../../lib/ipc/query';
 import { progressText } from '../../../app/tasks/operation-text';
-import { editorKeys, useTestSettings } from '../../pack-editor/api';
+import { editorKeys } from '../../pack-editor/api';
 import { javaRequest } from '../../pack-editor/test-settings/TestSettingsDialog';
 import { loaderName } from '../../packs/lib/pack-list';
 import { useSettings } from '../../settings/api';
 import { useRevealInstance, useSaveSessionLog } from '../api';
 import { ManualDownloads, useManualDownloads } from '../blocked/ManualDownloads';
+import { useTestProfiles } from '../profiles/api';
+import { DEFAULT_PROFILE, profileName } from '../profiles/text';
 import { Console } from '../console/Console';
 import { LivePerfStrip } from '../perf-strip/PerfStrip';
 import { currentStep, orderedSteps, stepLabel } from '../steps';
@@ -125,19 +127,25 @@ export function PrepareView({ run, pack }: { run: TestRun; pack: PackRow }) {
   );
 }
 
-/** O painel "Este teste": jogo, Java, memória e jogador. */
+/** O painel "Este teste": jogo, perfil, Java, memória e jogador. */
 function ThisTest({ pack }: { pack: PackRow }) {
   const { t } = useTranslation('teste');
-  const settings = useTestSettings(pack.id);
+  const { t: tp } = useTranslation('perfis');
+  const profiles = useTestProfiles(pack.id);
+  const game = useGame();
   const app = useSettings();
-  const userJava = settings.data?.settings.java ?? null;
+  // O perfil deste teste (o do jogo em preparação; sem jogo, o ativo).
+  const profileId =
+    game?.packId === pack.id ? (game.profile ?? DEFAULT_PROFILE) : profiles.data?.active;
+  const profile = profiles.data?.profiles.find((item) => item.id === profileId);
+  const userJava = profile?.java ?? null;
   const choice = useQuery({
     ...commandQuery([...editorKeys.testSettings(pack.id), 'java', userJava ?? 'auto'], () =>
       commands.javaChoice(javaRequest(pack, userJava)),
     ),
-    enabled: settings.isSuccess,
+    enabled: profiles.isSuccess,
   });
-  const memory = settings.data?.settings.memory;
+  const memory = profile?.memory;
   return (
     <aside className="panel" aria-labelledby="this-test-title">
       <div className="panel__title panel__title--sans" id="this-test-title">
@@ -150,6 +158,12 @@ function ThisTest({ pack }: { pack: PackRow }) {
           <>
             <dt>{t('esteTeste.loader')}</dt>
             <dd>{`${loaderName(pack.loader)} ${pack.loaderVersion ?? ''}`.trim()}</dd>
+          </>
+        ) : null}
+        {profile && profile.id !== DEFAULT_PROFILE ? (
+          <>
+            <dt>{tp('esteTeste')}</dt>
+            <dd>{profileName(profile)}</dd>
           </>
         ) : null}
         <dt>{t('esteTeste.java')}</dt>

@@ -56,4 +56,18 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'O cache não foi limpo porque há {{count}} tarefa em andamento. Espere ela terminar (veja em Tarefas) e tente de novo.',
   STORAGE_OPERATION_RUNNING_other:
     'O cache não foi limpo porque há {{count}} tarefas em andamento. Espere elas terminarem (veja em Tarefas) e tente de novo.',
+  TEST_PROFILE_NOT_FOUND:
+    'Esse perfil do teste não existe mais. Abra Ajustes do teste para ver os perfis atuais.',
+  TEST_PROFILE_NAME_TAKEN: 'Já existe um perfil chamado "{{name}}". Escolha outro nome.',
+  TEST_PROFILE_DEFAULT_LOCKED: 'O perfil Padrão não pode ser renomeado nem apagado.',
+  TEST_PROFILE_LIMIT:
+    'Este pack já tem {{max}} perfis do teste. Apague um perfil que não usa para criar outro.',
+  TEST_PERF_FLAGS:
+    'Os argumentos {{args}} impedem o Warden de ler a memória do jogo neste teste. Para ver a memória, remova-os em Ajustes do teste.',
+  TEST_MEMORY_ABOVE_RAM:
+    'O teste vai usar {{memoryMb}} MB, mais de 75% da memória deste computador ({{totalMb}} MB). O computador pode ficar lento ou o jogo pode fechar. Se acontecer, diminua a memória em Ajustes do teste.',
+  TEST_QUICK_PLAY_NO_WORLD:
+    'O jogo vai abrir no menu principal porque ainda não há mundo de teste nesta instância. Crie um mundo no jogo: nos próximos testes, ele abre direto.',
+  TEST_QUICK_PLAY_UNSUPPORTED:
+    'O jogo vai abrir no menu principal: entrar direto no mundo só funciona no Minecraft 1.20 ou mais novo, e este pack usa o {{minecraft}}.',
 };

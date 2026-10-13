@@ -12,8 +12,10 @@ use std::path::Path;
 use anyhow::{Result, bail};
 
 use crate::tasks::check_integration;
-use crate::util::{Cmd, desktop_dir, format_duration, timed, warn_long_target, workspace_root};
-use crate::{bindings, deps, docs};
+use crate::util::{
+    Cmd, desktop_dir, find_program, format_duration, timed, warn_long_target, workspace_root,
+};
+use crate::{bindings, deps, docs, notices};
 
 type Step = (&'static str, Box<dyn FnOnce() -> Result<()>>);
 
@@ -59,11 +61,22 @@ fn full_steps() -> Vec<Step> {
             "check-integration",
             Box::new(|| check_integration::run(&check_integration::Args { compile: false })),
         ),
+        // Avisos de terceiros de "Sobre o Warden" conferidos contra o THIRD_PARTY.md, e os
+        // ícones do app e do instalador gerados do `warden.svg` atual (A-02).
+        ("notices", Box::new(notices::run)),
+        ("ícones", Box::new(icons_check)),
         ("pnpm format:check", pnpm_script("format:check")),
         ("pnpm lint", pnpm_script("lint")),
         ("pnpm typecheck", pnpm_script("typecheck")),
         ("pnpm test", pnpm_script("test")),
     ]
+}
+
+fn icons_check() -> Result<()> {
+    Cmd::new(find_program("node")?)
+        .cwd(desktop_dir().join("src-tauri").join("icons"))
+        .args(["gerar-icones.mjs", "--check"])
+        .run()
 }
 
 fn clippy() -> Result<()> {

@@ -91,6 +91,9 @@ export const tarefas = {
       discard: 'Descartar mudanças do teste',
       identify: 'Procurar mods colocados à mão',
     },
+    publish: {
+      run: 'Publicar versão',
+    },
   },
 } as const;
 

@@ -18,6 +18,7 @@ import type { ComponentType } from 'react';
 
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
 import { CaptureAlert } from '../../capture/CaptureAlert';
+import { PublishHost } from '../../github/PublishHost';
 import { PackChangedAlert } from '../../test/PackChangedAlert';
 import { TestButton } from '../../test/TestButton';
 import { SaveVersionButton } from '../../versioning/components/SaveVersionButton';
@@ -48,6 +49,9 @@ export const headerSlots: readonly HeaderSlot[] = [
   { id: 'hygiene', placement: 'alerts', order: 100, component: HygieneAlert },
   { id: 'capture-review', placement: 'alerts', order: 150, component: CaptureAlert },
   { id: 'test-pack-changed', placement: 'alerts', order: 200, component: PackChangedAlert },
+  // V-03: os diálogos do Publicar versão (não desenha nada no cabeçalho; ficam aqui porque o
+  // cabeçalho está em todas as seções e o botão da versão some ao publicar).
+  { id: 'publish', placement: 'alerts', order: 900, component: PublishHost },
 ];
 
 /** Os componentes de um lugar, na ordem. */

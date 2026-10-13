@@ -12,6 +12,8 @@
  *
  * Um item que abre um diálogo pede `context.openDialog(id)`; o diálogo fica em `testDialogs`
  * (também acréscimo-apenas), fora do menu, para continuar aberto depois que o menu fecha.
+ * Um bloco com vários itens montados na hora (os perfis, itens de rádio, L-08) entra como
+ * `TestMenuBlock`, desenhado pelo próprio componente dentro do menu.
  */
 import { FolderOpen, History, RotateCcw, Settings, Trash2, type LucideIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
@@ -21,6 +23,7 @@ import type { GameState, PackId, PackRow, TestSessionSummary } from '../../lib/i
 import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDialog';
 import { DeleteWorldsDialog } from './dialogs/DeleteWorldsDialog';
 import { RecreateInstanceDialog } from './dialogs/RecreateInstanceDialog';
+import { ProfileMenuItems } from './profiles/ProfileMenuItems';
 import { formatWhen, outcomeShort } from './text';
 
 export type TestMenuGroup = 'last' | 'other' | 'profile' | 'instance';
@@ -65,6 +68,24 @@ export interface TestMenuItem {
   onSelect: (context: TestMenuContext) => void;
 }
 
+/** Vários itens desenhados por um componente (ex.: os perfis do teste, itens de rádio). */
+export interface TestMenuBlock {
+  /** Identificador estável. */
+  id: string;
+  group: TestMenuGroup;
+  /** Posição dentro do grupo (crescente). */
+  order: number;
+  component: ComponentType<{ context: TestMenuContext }>;
+}
+
+/** Uma linha do registro: um item ou um bloco. */
+export type TestMenuEntry = TestMenuItem | TestMenuBlock;
+
+/** Se a linha é um bloco. */
+export function isMenuBlock(entry: TestMenuEntry): entry is TestMenuBlock {
+  return 'component' in entry;
+}
+
 /** Um diálogo aberto por um item do menu. */
 export interface TestDialog {
   id: string;
@@ -84,7 +105,7 @@ function gameHere(context: TestMenuContext): boolean {
 }
 
 /** Registro acréscimo-apenas: uma linha por item. */
-export const testMenuItems: readonly TestMenuItem[] = [
+export const testMenuItems: readonly TestMenuEntry[] = [
   {
     id: 'last-test',
     group: 'last',
@@ -100,6 +121,7 @@ export const testMenuItems: readonly TestMenuItem[] = [
       if (lastSession) openTest(lastSession.id);
     },
   },
+  { id: 'profiles', group: 'profile', order: 100, component: ProfileMenuItems },
   {
     id: 'settings',
     group: 'profile',
@@ -159,7 +181,7 @@ export const testDialogs: readonly TestDialog[] = [
 /** Os itens de um grupo, na ordem. */
 export function itemsOf(
   group: TestMenuGroup,
-  items: readonly TestMenuItem[] = testMenuItems,
-): TestMenuItem[] {
+  items: readonly TestMenuEntry[] = testMenuItems,
+): TestMenuEntry[] {
   return items.filter((item) => item.group === group).sort((a, b) => a.order - b.order);
 }
