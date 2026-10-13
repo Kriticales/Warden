@@ -80,6 +80,8 @@ export interface InstanceSyncNoteProps {
   path: string;
   pending: boolean;
   reloading: boolean;
+  /** A ferramenta não recarrega com o jogo aberto (CraftTweaker do 1.12.2): sem Recarregar. */
+  restart: boolean;
   onReload: () => void;
   onOverwrite: (previousHash: string, reload: boolean) => void;
   onOpenInInstance: () => void;
@@ -91,6 +93,7 @@ export function InstanceSyncNote({
   path,
   pending,
   reloading,
+  restart,
   onReload,
   onOverwrite,
   onOpenInInstance,
@@ -114,15 +117,19 @@ export function InstanceSyncNote({
           role="status"
           title={t('copia.titulo')}
           actions={
-            <>
-              <Button size="sm" icon={RefreshCw} loading={reloading} onClick={onReload}>
-                {t('barra.recarregar')}
-              </Button>
-              {close}
-            </>
+            restart ? (
+              close
+            ) : (
+              <>
+                <Button size="sm" icon={RefreshCw} loading={reloading} onClick={onReload}>
+                  {t('barra.recarregar')}
+                </Button>
+                {close}
+              </>
+            )
           }
         >
-          {t('copia.texto')}
+          {restart ? t('copia.textoReiniciar') : t('copia.texto')}
         </Alert>
       </div>
     );

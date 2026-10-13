@@ -669,6 +669,36 @@ describe('editor de scripts (T26)', () => {
     expect(backend.callsOf('scripts_info')).toHaveLength(0);
   });
 
+  it('CraftTweaker do 1.12.2 com o jogo aberto: salvar no pack copia e não oferece recarregar', async () => {
+    const user = userEvent.setup();
+    const { backend, disks } = openScript(`?arquivo=${ZS}`, {
+      game: 'running',
+      files: { [ZS]: '// Receitas\n' },
+      instanceFiles: { [ZS]: '// Receitas\n' },
+      route: { kind: 'restartGame' },
+      info: {
+        env: {
+          kubejs: null,
+          crafttweaker: { tool: 'crafttweaker', major: 4, version: '4.1.20' },
+        },
+        kubejsSnippets: [],
+        crafttweakerSnippets: [],
+      },
+    });
+    const editor = await view(ZS);
+    act(() => {
+      editor.dispatch({ changes: { from: 0, insert: '// topo\n' } });
+    });
+    await user.keyboard('{Control>}s{/Control}');
+    const note = await screen.findByText('Salvo no pack e copiado para a instância de teste.');
+    expect(disks.instance?.[ZS]).toMatch(/^\/\/ topo/);
+    const alert = note.closest<HTMLElement>('.alert');
+    if (!alert) throw new Error('aviso não encontrado');
+    expect(within(alert).getByText(/não recarrega: feche o jogo e teste de novo/)).toBeDefined();
+    expect(within(alert).queryByRole('button', { name: 'Recarregar no jogo' })).toBeNull();
+    expect(backend.callsOf('scripts_reload')).toHaveLength(0);
+  });
+
   it('CraftTweaker: ZenScript com realce, versão na barra e IDs no colchete', async () => {
     openScript(`?arquivo=${ZS}`, {
       files: { [ZS]: '// Receitas\nrecipes.remove(<item:minecraft:stone>);\n' },

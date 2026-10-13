@@ -184,6 +184,7 @@ export function useScriptAddon({
             path={path}
             pending={sync.pending}
             reloading={reload.pending}
+            restart={route.data?.kind === 'restartGame'}
             onReload={() => {
               sync.closeNote();
               void run(path);

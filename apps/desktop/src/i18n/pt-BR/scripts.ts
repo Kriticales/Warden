@@ -50,6 +50,8 @@ export const scripts = {
   copia: {
     titulo: 'Salvo no pack e copiado para a instância de teste.',
     texto: 'Recarregue para o jogo aberto usar o script novo.',
+    textoReiniciar:
+      'O CraftTweaker do Minecraft 1.12.2 não recarrega: feche o jogo e teste de novo para ver a mudança.',
   },
   conflito: {
     titulo: 'O script na instância de teste foi mudado direto nela.',
