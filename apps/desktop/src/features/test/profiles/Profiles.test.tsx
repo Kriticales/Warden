@@ -30,7 +30,10 @@ interface Setup {
 
 async function openPack({ pack, profiles, handlers = {} }: Setup = {}) {
   const state = profilesHandlers(profiles);
-  const setup = editorBackend({ pack, handlers: { ...state.handlers, ...handlers } });
+  const setup = editorBackend({
+    ...(pack ? { pack } : {}),
+    handlers: { ...state.handlers, ...handlers },
+  });
   renderApp(setup.url);
   await screen.findByRole('heading', { level: 1, name: 'Mods' }, { timeout: 10_000 });
   return { ...setup, view: state.view, user: userEvent.setup() };
@@ -397,15 +400,14 @@ describe('mods opcionais por perfil', () => {
 
 describe('"Este teste" na tela do teste', () => {
   it('mostra o perfil do jogo em preparação, com a memória dele', async () => {
-    let packId = '';
+    let packId = '' as PackRow['id'];
     const state = profilesHandlers(
       makeProfilesView({ active: 'perfil-1', profiles: [makeProfile('default', ''), WEAK] }),
     );
     const setup = editorBackend({
       handlers: {
         ...state.handlers,
-        test_game_state: () =>
-          makeGame(packId as PackRow['id'], 'preparing', { profile: 'perfil-1' }),
+        test_game_state: () => makeGame(packId, 'preparing', { profile: 'perfil-1' }),
       },
     });
     packId = setup.row.id;

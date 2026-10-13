@@ -313,8 +313,6 @@ export const commands = {
 	packUpdateMeta: (packId: PackId, update: MetaUpdate) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_update_meta", { packId, update })),
 	/**  Os ajustes do teste do pack e a situação da instância. */
 	packTestSettingsGet: (packId: PackId) => typedError<TestSettingsView, AppError>(__TAURI_INVOKE("pack_test_settings_get", { packId })),
-	/**  Grava os ajustes do teste (só em `packs.json`; o pack não muda). */
-	packTestSettingsSet: (packId: PackId, settings: TestSettings) => typedError<TestSettingsView, AppError>(__TAURI_INVOKE("pack_test_settings_set", { packId, settings })),
 	/**
 	 *  "Recriar instância de teste": apaga a instância do pack, que é refeita no próximo teste.
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.

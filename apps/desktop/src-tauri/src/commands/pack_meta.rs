@@ -3,9 +3,10 @@
 //! - `pack_meta_get` / `pack_update_meta`: nome, autor e descrição, gravados no `pack.toml`
 //!   (só a linha que mudou; CA-T11-01). O nome também atualiza o registro local, para Meus
 //!   packs mostrar o nome novo mesmo se a pasta sumir depois.
-//! - `pack_test_settings_get` / `pack_test_settings_set`: memória, Java e argumentos da JVM do
-//!   teste. Ficam em `packs.json` (dado deste computador, ADR-0025), nunca no pack, e não contam
-//!   como alteração não salva. O efeito no jogo chega com o Testar (L-04), que os lê daqui.
+//! - `pack_test_settings_get`: memória, Java e argumentos da JVM do perfil Padrão do teste,
+//!   mais a situação da instância. Ficam em `packs.json` (dado deste computador, ADR-0025),
+//!   nunca no pack, e não contam como alteração não salva. Gravar é pelo `test_profiles_save`
+//!   (L-08), que usa [`write_test_settings`] para o Padrão.
 //! - `instance_recreate`: "Recriar instância de teste" (apaga a instância; os mundos de teste
 //!   ficam se o usuário pedir). O Testar (L-04) reaproveita este comando no menu ▾.
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
@@ -138,18 +139,6 @@ pub(crate) fn read_test_settings(
         .get(TEST_SETTINGS_KEY)
         .and_then(|value| serde_json::from_value(value.clone()).ok())
         .unwrap_or_default())
-}
-
-/// Grava os ajustes do teste (só em `packs.json`; o pack não muda).
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn pack_test_settings_set(
-    state: State<'_, AppState>,
-    pack_id: PackId,
-    settings: TestSettings,
-) -> Result<TestSettingsView, AppError> {
-    write_test_settings(&state, pack_id, settings)?;
-    test_settings_view(&state, pack_id)
 }
 
 /// Confere e grava os ajustes do teste (do perfil Padrão, L-08), preservando os campos que
