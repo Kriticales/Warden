@@ -6526,6 +6526,7 @@ name = "warden-export"
 version = "0.1.0"
 dependencies = [
  "git2",
+ "hex",
  "secrecy",
  "serde",
  "serde_json",
@@ -6540,6 +6541,7 @@ dependencies = [
  "warden-core",
  "warden-curseforge",
  "warden-http",
+ "warden-instance",
  "warden-modrinth",
  "warden-packwiz",
  "warden-packwiz-cli",

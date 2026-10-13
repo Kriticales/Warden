@@ -20,6 +20,7 @@ import { FormatPanel } from './components/FormatPanel';
 import { LauncherFormatPanel } from './formats/LauncherFormatPanel';
 import { isLauncherFormat, type UiFormat } from './model';
 import { PreflightPanel } from './components/PreflightPanel';
+import { PrismPanel } from './prism/PrismPanel';
 import './export.css';
 
 export function ExportPage({ packId }: { packId: PackId }) {
@@ -46,7 +47,9 @@ export function ExportPage({ packId }: { packId: PackId }) {
         <>
           <PreflightPanel packId={packId} preflight={preview.data.preflight} readOnly={readOnly} />
           <FormatPanel value={format} onChange={setFormat} />
-          {isLauncherFormat(format) ? (
+          {format === 'prism' ? (
+            <PrismPanel packId={packId} readOnly={readOnly} />
+          ) : isLauncherFormat(format) ? (
             <LauncherFormatPanel
               key={format}
               packId={packId}

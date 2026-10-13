@@ -46,6 +46,23 @@ pub enum ExportErrorCode {
     InvalidOutput,
     /// O arquivo escolhido para validar não pôde ser lido como o formato esperado.
     UnreadableArchive,
+    /// A instância pronta para o Prism exige `version` no `pack.toml`.
+    PrismVersionRequired,
+    /// Mod da CurseForge que o autor não deixa distribuir a apps de terceiros: o Prism não teria
+    /// como baixar. Pode haver troca pelo Modrinth.
+    PrismBlocked,
+    /// Há arquivos de terceiros que iriam dentro do arquivo e a pessoa não confirmou a licença.
+    PrismLocalNeedsConfirmation,
+    /// Há mods da CurseForge e falta a chave para conferir se podem ser distribuídos.
+    PrismCurseforgeKeyMissing,
+    /// Modrinth ou CurseForge não responderam à conferência dos arquivos.
+    PrismLookupFailed,
+    /// Um arquivo do pack não pôde ser baixado ou conferido para entrar na instância.
+    PrismDownloadFailed,
+    /// O arquivo gerado não passou na validação e foi descartado.
+    PrismInvalidOutput,
+    /// O pack usa uma organização que a instância pronta não sabe reproduzir.
+    PrismUnsupportedPack,
 }
 
 /// Falha de preparação ou gravação da exportação. Os detalhes não contêm segredos.
@@ -81,6 +98,12 @@ impl Error {
     pub fn with_detail(mut self, detail: impl Into<String>) -> Self {
         self.detail = Some(detail.into());
         self
+    }
+
+    /// Se a falha tem este código.
+    #[must_use]
+    pub fn is_code(&self, code: ExportErrorCode) -> bool {
+        self.code == code
     }
 
     /// Falha sem código específico (`INTERNAL`).

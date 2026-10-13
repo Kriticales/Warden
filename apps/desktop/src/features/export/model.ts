@@ -11,8 +11,11 @@ import type {
   PreviewFile,
 } from '../../lib/ipc/bindings';
 
-/** O que a pessoa escolhe em "2. Formato": pasta e zip (E-01) ou o formato de outro launcher. */
-export type UiFormat = ExportFormat | LauncherFormat;
+/**
+ * O que a pessoa escolhe em "2. Formato": pasta e zip (E-01), o formato de outro launcher (E-02)
+ * ou a instância pronta para o Prism (comando próprio, E-04).
+ */
+export type UiFormat = ExportFormat | LauncherFormat | 'prism';
 
 /** Se o formato é de outro launcher (E-02): tem leitura, decisões e conferência próprias. */
 export function isLauncherFormat(format: UiFormat): format is LauncherFormat {

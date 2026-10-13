@@ -33,4 +33,20 @@ export const exportErrors: Record<ExportErrorCode, string> = {
     'O arquivo gerado não passou na conferência e foi descartado. Copie os detalhes técnicos e registre o problema. Nada foi gravado.',
   UNREADABLE_ARCHIVE:
     'Não foi possível ler este arquivo como o formato esperado. Confira se ele é um .mrpack ou um zip da CurseForge inteiro.',
+  PRISM_VERSION_REQUIRED:
+    'O pack ainda não tem versão. Salve uma versão em Salvar versão (ou preencha a versão no pack.toml) e gere a instância de novo. Nada foi gravado.',
+  PRISM_BLOCKED:
+    'Estes mods da CurseForge não deixam apps de terceiros baixar o arquivo: {{mods}}. O Prism não conseguiria baixá-los. Use Trocar pelo Modrinth quando houver, ou tire o mod do pack. Nada foi gravado.',
+  PRISM_LOCAL_NEEDS_CONFIRMATION:
+    'Arquivos de terceiros vão dentro da instância e falta a sua confirmação. Marque que você pode distribuí-los e gere de novo. Nada foi gravado.',
+  PRISM_CURSEFORGE_KEY_MISSING:
+    'O pack tem mods da CurseForge e falta a chave para conferir se podem ser distribuídos. Digite a chave em Configurações e gere de novo. Nada foi gravado.',
+  PRISM_LOOKUP_FAILED:
+    'Não foi possível conferir os mods no Modrinth ou na CurseForge. Veja a conexão com a internet e tente de novo. Nada foi gravado.',
+  PRISM_DOWNLOAD_FAILED:
+    'Não foi possível baixar ou conferir o arquivo de {{name}}. Veja a conexão e tente de novo; se continuar, atualize ou troque o mod. Nada foi gravado.',
+  PRISM_INVALID_OUTPUT:
+    'O arquivo gerado não passou na conferência e foi descartado. Copie os detalhes técnicos e registre o problema. Nada foi gravado.',
+  PRISM_UNSUPPORTED_PACK:
+    'Este pack usa algo que a instância pronta para o Prism não sabe reproduzir (veja os detalhes técnicos). Use a pasta ou o zip do pack. Nada foi gravado.',
 };

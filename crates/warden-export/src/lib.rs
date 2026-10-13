@@ -11,6 +11,7 @@
 mod error;
 mod formats;
 mod native;
+mod prism;
 
 pub use error::{Error, ExportErrorCode, Result};
 pub use formats::{
@@ -23,4 +24,9 @@ pub use formats::{
 pub use native::{
     ExportAlert, ExportFormat, ExportPreview, ExportResult, ExportSource, Preflight, PreviewFile,
     PreviewFolder, exclude_from_pack, export, preview,
+};
+pub use prism::{
+    PrismAnalysis, PrismBlockedMod, PrismLocalFile, PrismOptions, PrismResult, PrismServices,
+    PrismSwap, STAGE_RESOLVE, STAGE_RESOLVE_LABEL, analyze_prism, curseforge_file_url,
+    export_prism,
 };
