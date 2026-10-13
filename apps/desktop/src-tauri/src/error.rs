@@ -303,6 +303,26 @@ pub enum AppErrorCode {
     StorageGameRunning,
     /// "Limpar cache" com outra tarefa em andamento (A-06). `params`: `count`.
     StorageOperationRunning,
+    /// O perfil do teste pedido não existe mais (`params.profileId`; L-08).
+    TestProfileNotFound,
+    /// Já existe um perfil do teste com esse nome (`params.name`; L-08).
+    TestProfileNameTaken,
+    /// O perfil Padrão não pode ser renomeado nem apagado (L-08).
+    TestProfileDefaultLocked,
+    /// O pack já tem o máximo de perfis do teste (`params.max`; L-08).
+    TestProfileLimit,
+    /// Aviso `W_PERF_FLAGS`: argumentos do teste impedem o Warden de ler a memória do jogo
+    /// (`params.args`; ADR-0038, L-08).
+    TestPerfFlags,
+    /// Aviso: a memória do teste passa de 75% da memória do computador (`params.memoryMb`,
+    /// `params.totalMb`; L-08).
+    TestMemoryAboveRam,
+    /// Aviso: "Entrar direto no mundo de teste" sem mundo de teste na instância; o jogo abre
+    /// no menu (L-08).
+    TestQuickPlayNoWorld,
+    /// Aviso: a versão do Minecraft do pack não aceita entrar direto no mundo; o jogo abre no
+    /// menu (`params.minecraft`; L-08).
+    TestQuickPlayUnsupported,
 }
 
 #[cfg(test)]

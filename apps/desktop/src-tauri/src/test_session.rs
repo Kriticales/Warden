@@ -31,7 +31,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::watch;
 use warden_core::{AppPaths, CancellationToken, PackId, ProgressSink as _};
 use warden_instance::{
-    DownloadCache, GameRequirement, InstanceDirs, MaterializeOptions, OnModified, Sources,
+    DownloadCache, GameRequirement, InstanceDirs, MaterializeOptions, OnModified, OptionalChoices,
+    OptionalSelection, Sources,
 };
 use warden_java::{JavaChoiceRequest, LoaderKind, RuntimeLease};
 use warden_launcher::outcome::Outcome;
@@ -48,13 +49,14 @@ use warden_launcher::{
 
 pub(crate) use self::console::{ConsoleBuffer, read_output_log};
 pub use self::console::{ConsoleLevel, ConsoleLine, ConsoleOrigin, ConsoleStream};
-pub(crate) use self::launch_plan::{choose_memory, launch_options};
+pub(crate) use self::launch_plan::{PlanInput, choose_memory, launch_options};
 pub(crate) use self::records::{
     TestSessionSummary, last_test_value, pack_tree_hash, pack_tree_hash_of,
 };
+pub(crate) use self::system::total_memory_mb;
 
 use self::fake::FakeGame;
-use self::launch_plan::{JAVA8_WARN_ABOVE_MB, PlanInput};
+use self::launch_plan::JAVA8_WARN_ABOVE_MB;
 use self::records::{PackTree, ProfileSignature, SessionExtras};
 use self::system::MachineFingerprint;
 use crate::error::{AppError, AppErrorCode};
@@ -62,6 +64,7 @@ use crate::events::{GamePhase, GameState, OperationEvent};
 use crate::operations::{OperationHandle, OperationKind};
 use crate::state::AppState;
 use crate::test_hooks::{ExitContext, GameContext, HookContext, TestHooks};
+use crate::test_profiles::{OnLaunch, TestProfile};
 
 /// Tipo da operação do teste.
 pub(crate) const TEST_START: OperationKind = OperationKind::new("test.start");
@@ -104,7 +107,7 @@ pub(crate) enum TestMode {
 pub(crate) struct TestRequest {
     /// Modo.
     pub(crate) mode: TestMode,
-    /// Perfil do teste (`None` = Padrão; os perfis são da L-08).
+    /// Perfil do teste (id; `None` = o perfil ativo do pack, escolhido no menu ▾; L-08).
     pub(crate) profile: Option<String>,
     /// Substituir pela versão do pack os arquivos que mudaram na instância durante o teste
     /// anterior (resposta ao `app.TEST_INSTANCE_CHANGED`).
@@ -355,13 +358,14 @@ pub(crate) async fn run_test(
         .packs
         .get(pack_id)
         .map_err(|error| AppError::from_domain(&error))?;
+    let profile = crate::test_profiles::resolve(state, pack_id, request.profile.as_deref())?;
     let initial = GameState {
         pack_id,
         pack_name: record.name.clone(),
         state: GamePhase::Preparing,
         session_id: None,
         operation_id: None,
-        profile: request.profile.clone(),
+        profile: (!profile.is_default()).then(|| profile.id.clone()),
         started_at_ms: now_ms(),
     };
     let tests = &state.tests;
@@ -380,6 +384,7 @@ pub(crate) async fn run_test(
         state,
         pack_id,
         request,
+        profile,
         sink,
         handle: &handle,
     }
@@ -399,6 +404,8 @@ struct Prepared {
     game: InstalledGame,
     java: JavaRuntime,
     java_id: Option<String>,
+    /// O mundo do Quick Play (perfil com "Entrar direto no mundo de teste"; L-08).
+    quick_play_world: Option<String>,
     _lease: Option<RuntimeLease>,
 }
 
@@ -407,6 +414,8 @@ struct Runner<'a> {
     state: &'a AppState,
     pack_id: PackId,
     request: TestRequest,
+    /// O perfil do teste (L-08).
+    profile: TestProfile,
     sink: TestSink,
     handle: &'a OperationHandle,
 }
@@ -470,13 +479,12 @@ impl Runner<'_> {
         let spec = game_spec(&info.requirement)?;
         let fake = self.state.tests.fake.clone();
 
-        let settings = crate::commands::pack_meta::read_test_settings(self.state, self.pack_id)?;
         let (java, java_id, lease) = if let Some(fake) = &fake {
             (fake.java(), None, None)
         } else {
             self.handle.stage(STAGE_JAVA, STAGE_JAVA_LABEL);
             let request = JavaChoiceRequest {
-                user_choice: settings.java.clone(),
+                user_choice: self.profile.fields.java.clone(),
                 ..JavaChoiceRequest::automatic(
                     &info.requirement.minecraft,
                     loader_kind(&spec.loader),
@@ -519,6 +527,7 @@ impl Runner<'_> {
         };
 
         self.sync_instance(&pack_root, &dirs).await?;
+        let quick_play_world = self.prepare_quick_play(&spec, &dirs).await?;
         Ok(Prepared {
             pack_root,
             dirs,
@@ -529,7 +538,54 @@ impl Runner<'_> {
             game,
             java,
             java_id,
+            quick_play_world,
             _lease: lease,
+        })
+    }
+
+    /// "Entrar direto no mundo de teste" (L-08): o mundo do Quick Play, ou `None` (menu
+    /// principal) com um aviso quando a versão não aceita ou não há mundo. Na 1.21+, grava
+    /// `onboardAccessibility:false` no `options.txt` antes da linha de base da captura (os
+    /// ganchos `before_launch` vêm depois), porque a tela de boas-vindas de acessibilidade
+    /// segura o Quick Play (S-R5-3 §4.1).
+    async fn prepare_quick_play(
+        &self,
+        spec: &GameSpec,
+        dirs: &InstanceDirs,
+    ) -> Result<Option<String>, AppError> {
+        let OnLaunch::World { world } = &self.profile.fields.on_launch else {
+            return Ok(None);
+        };
+        let minecraft = spec.minecraft.as_str().to_owned();
+        if !warden_launcher::quick_play::quick_play_support(&minecraft).is_supported() {
+            self.handle.warn(
+                AppError::new(AppErrorCode::TestQuickPlayUnsupported)
+                    .with_param("minecraft", &minecraft),
+            );
+            return Ok(None);
+        }
+        let game_dir = dirs.game_dir.clone();
+        let wanted = world.clone();
+        blocking(move || {
+            let Some(world) = crate::test_profiles::quick_play_world(&game_dir, wanted.as_deref())
+            else {
+                return Ok(None);
+            };
+            if warden_launcher::quick_play::needs_accessibility_onboarding_off(&minecraft) {
+                warden_launcher::quick_play::disable_accessibility_onboarding(&game_dir).map_err(
+                    |error| {
+                        AppError::internal(format!("gravar o options.txt da instância: {error}"))
+                    },
+                )?;
+            }
+            Ok(Some(world))
+        })
+        .await
+        .inspect(|world| {
+            if world.is_none() {
+                self.handle
+                    .warn(AppError::new(AppErrorCode::TestQuickPlayNoWorld));
+            }
         })
     }
 
@@ -544,6 +600,15 @@ impl Runner<'_> {
             } else {
                 OnModified::Pause
             },
+            // Perfil com escolhas próprias de opcionais (L-08); sem elas, as da instância.
+            optionals: self
+                .profile
+                .fields
+                .optionals
+                .clone()
+                .map_or(OptionalSelection::Saved, |choices| {
+                    OptionalSelection::Explicit(OptionalChoices { choices })
+                }),
             ..MaterializeOptions::default()
         };
         loop {
@@ -614,7 +679,7 @@ impl Runner<'_> {
     /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste.
     fn plan_launch(&self, prepared: &Prepared) -> Result<Launch, AppError> {
         let global = self.state.settings.get();
-        let settings = crate::commands::pack_meta::read_test_settings(self.state, self.pack_id)?;
+        let settings = &self.profile.fields;
         let machine = MachineFingerprint::current();
         let memory = choose_memory(
             settings.memory,
@@ -628,9 +693,15 @@ impl Runner<'_> {
                     .with_param("memoryMb", memory.mb.to_string()),
             );
         }
+        if !memory.auto && crate::test_profiles::memory_above_ram(memory.mb, machine.memory_mb) {
+            self.handle.warn(
+                AppError::new(AppErrorCode::TestMemoryAboveRam)
+                    .with_param("memoryMb", memory.mb.to_string())
+                    .with_param("totalMb", machine.memory_mb.unwrap_or_default().to_string()),
+            );
+        }
         let player = OfflineProfile::from_name(&global.player_name)
             .map_err(|error| AppError::from_domain(&error))?;
-        #[cfg_attr(not(test), expect(unused_mut, reason = "só os testes ajustam"))]
         let mut options = launch_options(PlanInput {
             game_dir: prepared.dirs.game_dir.clone(),
             state_dir: prepared.dirs.state_dir.clone(),
@@ -639,6 +710,13 @@ impl Runner<'_> {
             user_jvm_args: settings.jvm_args.clone(),
             player,
         });
+        crate::test_profiles::apply_quick_play(&mut options, prepared.quick_play_world.as_deref());
+        let perf_flags = crate::test_profiles::perf_flags(&options.extra_jvm_args);
+        if !perf_flags.is_empty() {
+            self.handle.warn(
+                AppError::new(AppErrorCode::TestPerfFlags).with_param("args", perf_flags.join(" ")),
+            );
+        }
         let signature = ProfileSignature::new(
             memory,
             settings
@@ -647,18 +725,20 @@ impl Runner<'_> {
                 .map_or_else(|| "auto".to_owned(), ToString::to_string),
             prepared.java.major,
             options.extra_jvm_args.clone(),
+            settings.window.signature(),
+            settings.on_launch.signature(),
         );
         #[cfg(test)]
         if let Some(tweak) = &self.state.tests.launch_tweak {
             (tweak.options)(&mut options);
         }
-        #[cfg_attr(not(test), expect(unused_mut, reason = "só os testes ajustam"))]
         let mut command = self
             .state
             .tests
             .engine
             .command(&prepared.game, &options)
             .map_err(|error| AppError::from_domain(&error))?;
+        crate::test_profiles::append_window(&mut command, settings.window);
         #[cfg(test)]
         if let Some(tweak) = &self.state.tests.launch_tweak {
             command.env.extend(tweak.env.iter().cloned());
@@ -745,11 +825,7 @@ impl Runner<'_> {
             pack_id: self.pack_id,
             started_at_ms: started_ms,
             mode: self.request.mode,
-            profile: self
-                .request
-                .profile
-                .clone()
-                .unwrap_or_else(|| "default".into()),
+            profile: self.profile.id.clone(),
             pack_tree: prepared.pack_tree.clone(),
             memory: launch.memory,
             java_runtime: prepared.java_id.clone(),

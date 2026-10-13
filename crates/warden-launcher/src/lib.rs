@@ -11,6 +11,8 @@
 //!   linhas decodificadas em UTF-8 com recuo para Windows-1252 ([`decode`]), eventos do log4j
 //!   em XML e texto na mesma saída ([`log`]), Job Object no Windows e grupo de processos no
 //!   Linux, classificação da saída ([`outcome`]).
+//! - [`quick_play`]: se a versão aceita entrar direto no mundo, antes de instalar (Ajustes do
+//!   teste, L-08), e a tela de boas-vindas de acessibilidade que segura o Quick Play na 1.21+.
 //! - [`session`]: cada abertura grava `output.log` e `session.json` em
 //!   `instances/<id>/state/sessions/<data-hora>/`.
 //!
@@ -26,6 +28,7 @@ pub mod log;
 pub mod offline;
 pub mod outcome;
 pub mod process;
+pub mod quick_play;
 mod range;
 pub mod session;
 mod spec;
@@ -36,6 +39,7 @@ pub use engine::{
 };
 pub use error::{Error, LauncherErrorCode, Result};
 pub use offline::{OfflineProfile, OfflineUuid, PlayerName};
+pub use quick_play::QuickPlaySupport;
 pub use spec::{
     ArgFile, GameSpec, InstalledGame, JavaRuntime, LaunchCommand, LaunchOptions, LoaderSpec,
     LoggingConfig, MinecraftVersionId, QuickPlay,

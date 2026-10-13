@@ -48,7 +48,10 @@ export function splitArgs(text: string): { args: string[]; unbalanced: boolean }
 const MEMORY = /^-Xm[xs]\d+[kKmMgG]?$/;
 
 /** Impedem o Warden de ler a memória do jogo durante o teste (ADR-0038). */
-const BLOCKS_MEMORY_READING = new Set(['-XX:+PerfDisableSharedMem', '-XX:-UsePerfData']);
+export const BLOCKS_MEMORY_READING: ReadonlySet<string> = new Set([
+  '-XX:+PerfDisableSharedMem',
+  '-XX:-UsePerfData',
+]);
 
 /** Opção da JVM → major do Java em que deixou de existir. */
 const REMOVED: readonly [RegExp, number][] = [

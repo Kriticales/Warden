@@ -8,7 +8,8 @@ import { describe, expect, it } from 'vitest';
 import type { JavaChoice } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
 import { renderApp } from '../../test/render';
-import { DECISIONS, makeChoice, makeMeta, makeTestSettingsView } from './editor.fixtures';
+import { DECISIONS, makeChoice, makeMeta } from './editor.fixtures';
+import { makeProfilesView } from '../test/profiles/profiles.fixtures';
 import { editorBackend } from './testing';
 
 async function openPack(url: string) {
@@ -67,8 +68,7 @@ async function openTestSettings(choice: JavaChoice, pack: Record<string, unknown
     pack,
     handlers: {
       java_choice: () => choice,
-      pack_test_settings_set: ({ settings }) =>
-        makeTestSettingsView({ settings: settings as never }),
+      test_profiles_save: () => makeProfilesView(),
     },
   });
   await openPack(setup.url);
@@ -141,14 +141,18 @@ describe('Ajustes do teste neste computador (T11)', () => {
     );
     await user.click(within(dialog).getByRole('button', { name: 'Salvar ajustes' }));
     await waitFor(() => {
-      expect(backend.callsOf('pack_test_settings_set')).toHaveLength(1);
+      expect(backend.callsOf('test_profiles_save')).toHaveLength(1);
     });
-    expect(backend.callsOf('pack_test_settings_set')[0]?.args).toMatchObject({
-      settings: {
-        memory: { mode: 'fixed', mb: 6144 },
-        java: null,
-        jvmArgs: '-XX:+UseG1GC -XX:+UseConcMarkSweepGC',
-      },
+    // O perfil Padrão (L-08): o backend grava memória, Java e argumentos em `testSettings`.
+    expect(backend.callsOf('test_profiles_save')[0]?.args).toMatchObject({
+      profiles: [
+        {
+          id: 'default',
+          memory: { mode: 'fixed', mb: 6144 },
+          java: null,
+          jvmArgs: '-XX:+UseG1GC -XX:+UseConcMarkSweepGC',
+        },
+      ],
     });
     expect(await screen.findByText('Ajustes do teste salvos.')).toBeDefined();
   });
