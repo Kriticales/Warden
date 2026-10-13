@@ -9,7 +9,12 @@
 //!
 //! Imprime o tempo da leitura, os números do cruzamento por risco e as sobreposições de risco
 //! médio ou alto agrupadas por par de mods (como o aviso `W_MIXIN_OVERLAP` agrupa).
-#![allow(clippy::print_stdout, clippy::print_stderr, clippy::too_many_lines, missing_docs)]
+#![allow(
+    clippy::print_stdout,
+    clippy::print_stderr,
+    clippy::too_many_lines,
+    missing_docs
+)]
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;

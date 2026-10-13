@@ -1,6 +1,8 @@
 //! "Dois mods alteram o mesmo ponto do jogo" (`W_MIXIN_OVERLAP`; SPEC T14, CA-T14-09; ARCHITECTURE
-//! §9.6; D-10): o raio-x de mixins da `warden-mixin` sobre os jars da instância, com os dados
-//! curados daqui (`data/mixin-known-compatible.toml` e os conflitos de `known-conflicts.toml`).
+//! §9.6; D-10): o raio-x de mixins da `warden-mixin` sobre os jars do pack, com os dados curados
+//! daqui (`data/mixin-known-compatible.toml` e os conflitos de `known-conflicts.toml`). O chamador
+//! acha os jars (instância de teste e arquivos guardados no pack) e chama [`xray`] na passagem
+//! completa; [`findings`] faz os avisos. O mesmo [`xray`] serve ao raio-x dos detalhes do item.
 //!
 //! **Só aviso**, nunca bloqueia o teste. Um aviso por grupo de mods (os itens que disputam os
 //! mesmos pontos), com a evidência de cada ponto: a config de mixin e o tipo de alteração de cada
@@ -14,12 +16,11 @@ use std::sync::OnceLock;
 
 use serde::Deserialize;
 use warden_jarmeta::{Limits, Loader};
-use warden_mixin::cache::XrayCache;
 use warden_mixin::options::{disabled_by_pack_configs, options_data};
 use warden_mixin::overlap::{CrashCitation, CrossContext, CuratedPair, Elevator, Overlap, Risk};
 use warden_mixin::pack::{CacheSlot, PackJar, PackXray, scan_pack};
 
-use super::{Input, Pass, curated};
+use super::curated;
 use crate::model::{Evidence, Finding, ItemRef, RuleCode, Severity};
 use crate::{DiagnosticsError, Result};
 
@@ -150,71 +151,6 @@ pub fn xray(
     let scan = scan_pack(jars, loader, cache, &Limits::default());
     tracing::debug!(stats = ?scan.stats, "raio-x de mixins lido");
     Ok(PackXray::build(scan, &context))
-}
-
-/// Os jars de mods do pack na instância (`mods/x.pw.toml` → `<instância>/mods/<arquivo>`), só os
-/// que existem.
-#[must_use]
-pub fn instance_jars(input: &Input, instance_dir: &Path) -> Vec<PackJar> {
-    input
-        .items
-        .iter()
-        .filter(|item| {
-            Path::new(&item.filename)
-                .extension()
-                .is_some_and(|e| e.eq_ignore_ascii_case("jar"))
-        })
-        .filter_map(|item| {
-            let folder = item.path.rsplit_once('/').map_or("", |(folder, _)| folder);
-            let relative = if folder.is_empty() {
-                item.filename.clone()
-            } else {
-                format!("{folder}/{}", item.filename)
-            };
-            let path = warden_core::resolve_inside(instance_dir, &relative).ok()?;
-            path.is_file().then(|| PackJar {
-                item: item.path.clone(),
-                path,
-            })
-        })
-        .collect()
-}
-
-/// Na passagem completa, o raio-x dos jars da instância e os avisos dele.
-///
-/// `cache_dir` é a pasta `cache/` dos dados do Warden (o arquivo fica em `cache/xray/<chave>.bin`);
-/// `crash`, as citações do último travamento.
-///
-/// # Errors
-///
-/// Dado curado inválido (falha de desenvolvimento).
-pub fn analyze(
-    input: &Input,
-    instance_dir: &Path,
-    cache_dir: &Path,
-    cache_key: &str,
-    crash: Vec<CrashCitation>,
-) -> Result<Vec<Finding>> {
-    if input.pass != Pass::Complete {
-        return Ok(Vec::new());
-    }
-    let jars = instance_jars(input, instance_dir);
-    if jars.len() < 2 {
-        return Ok(Vec::new());
-    }
-    let cache = XrayCache::in_cache_dir(cache_dir);
-    let config_dir = instance_dir.join("config");
-    let xray = xray(
-        &jars,
-        input.pack.loader,
-        Some(&config_dir),
-        Some(CacheSlot {
-            cache: &cache,
-            key: cache_key,
-        }),
-        crash,
-    )?;
-    findings(&xray.overlaps)
 }
 
 #[allow(clippy::expect_used)] // Literal deste módulo, conferido pelos testes.

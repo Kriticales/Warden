@@ -183,9 +183,16 @@ pub(crate) async fn check(
             let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
             let cache_dir = state.paths.cache_dir();
             let input = built.input;
+            // Raio-x de mixins (D-10): "alteram o mesmo ponto do jogo", só aviso.
+            let xray = (input.pass == Pass::Complete).then(|| {
+                crate::commands::xray::PretestXray::new(state, pack_id, &snapshot.items, &snapshot.root)
+            });
             let findings = tokio::task::spawn_blocking(move || {
-                let findings = warden_diagnostics::pretest::analyze(&input)
+                let mut findings = warden_diagnostics::pretest::analyze(&input)
                     .map_err(|error| AppError::from_domain(&error))?;
+                if let Some(xray) = xray {
+                    findings.extend(xray.findings(input.pack.loader)?);
+                }
                 // Passagem completa com a instância pronta: monta (ou confere no cache) o índice
                 // de pacotes e configs de mixin, usado depois pela análise de um travamento.
                 if input.pass == Pass::Complete && game_dir.is_dir() {
