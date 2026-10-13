@@ -13,6 +13,9 @@
  *   linha 16 e clicar leva à linha.
  * - CA-T26-03: com o KubeJS 7, Recarregar no jogo chama `POST /api/reload/server` com o token
  *   lido da instância de teste; o token não aparece na tela, nos registros nem no pack.
+ * - Com o jogo aberto, salvar um script **no pack** grava no pack, copia para a instância de
+ *   teste e recarrega (Salvar e recarregar); uma mudança feita direto na instância não é
+ *   apagada sem a pessoa escolher Substituir.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -434,6 +437,56 @@ describe('Editor de scripts (C-07; T26)', function () {
     expect(allText(join(DATA_ROOT, 'data', 'logs'))).not.toContain(TOKEN);
     expect(allText(join(DATA_ROOT, 'config'))).not.toContain(TOKEN);
     expect(allText(PACK)).not.toContain(TOKEN);
+  });
+
+  it('no pack com o jogo aberto: Salvar e recarregar grava no pack, copia para a instância e recarrega', async () => {
+    if (!kubejs) throw new Error('o teste do KubeJS 7 não rodou');
+    const game = instanceGameDir();
+    await dismissToasts();
+    await $('select[aria-label="Origem dos arquivos"]').selectByVisibleText(
+      'Mostrando: arquivos do pack',
+    );
+    await openFile('receitas.js');
+    await $('.alert*=Salvar grava no pack e copia o script').waitForDisplayed({ timeout: 30_000 });
+    await $('.cm-content').click();
+    await browser.keys(['Control', 'End']);
+    await browser.keys('Enter');
+    await typeSlowly('// salvo pelo pack');
+    const saveAndReload = $('button=Salvar e recarregar');
+    await saveAndReload.waitForDisplayed({ timeout: 15_000 });
+    await dismissToasts();
+    await saveAndReload.click();
+    await waitToast('Scripts recarregados no jogo');
+    expect(kubejs.reloads).toHaveLength(2);
+    const packText = readFileSync(join(PACK, RECEITAS), 'utf8');
+    expect(packText).toContain('// salvo pelo pack');
+    expect(readFileSync(join(game, RECEITAS), 'utf8')).toBe(packText);
+    await screenshot('66-scripts-salvar-no-pack');
+
+    // Mudança feita direto na instância: o Warden salva no pack e pergunta antes de substituir.
+    writeFileSync(join(game, RECEITAS), '// mexido na instância\n');
+    await $('.cm-content').click();
+    await browser.keys(['Control', 'End']);
+    await browser.keys('Enter');
+    await typeSlowly('// outro');
+    await browser.keys(['Control', 's']);
+    const conflict = $('.alert*=O script na instância de teste foi mudado direto nela.');
+    await conflict.waitForDisplayed({ timeout: 30_000 });
+    expect(readFileSync(join(PACK, RECEITAS), 'utf8')).toContain('// outro');
+    expect(readFileSync(join(game, RECEITAS), 'utf8')).toBe('// mexido na instância\n');
+    expect(kubejs.reloads).toHaveLength(2);
+    await dismissToasts();
+    expect(await seriousViolationSummaries()).toEqual([]);
+    await screenshot('67-scripts-instancia-mexida');
+    await conflict.$('button=Substituir na instância').click();
+    await browser.waitUntil(
+      () =>
+        readFileSync(join(game, RECEITAS), 'utf8') === readFileSync(join(PACK, RECEITAS), 'utf8'),
+      { timeout: 30_000, timeoutMsg: 'a instância não recebeu o script do pack' },
+    );
+    await $('.alert*=Salvo no pack e copiado para a instância de teste.').waitForDisplayed({
+      timeout: 30_000,
+    });
   });
 
   it('Parar jogo', async () => {

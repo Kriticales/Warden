@@ -9,6 +9,7 @@
 //! - [`web`]: o cliente do servidor web local do KubeJS 7 (token lido só aqui);
 //! - [`reload`]: o caminho certo para "Recarregar no jogo" e o ponto de extensão do console do
 //!   servidor local (L-09);
+//! - [`sync`]: a cópia do script salvo no pack para a instância de teste com o jogo aberto;
 //! - [`vscode`]: "Abrir no VS Code".
 //!
 //! Limites: a crate não conhece o pack (quem chama monta a lista de jars e passa as pastas) e
@@ -20,6 +21,7 @@ pub mod ids;
 pub mod problems;
 pub mod reload;
 pub mod snippets;
+pub mod sync;
 pub mod vscode;
 pub mod web;
 

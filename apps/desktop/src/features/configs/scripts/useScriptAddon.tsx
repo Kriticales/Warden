@@ -4,16 +4,20 @@
  * `EditorAddon` do `ConfigEditor` com o realce, o autocompletar de IDs, a barra, o aviso de
  * recarga e o painel "Erros dos scripts". Pack sem a ferramenta (ou arquivo que não é script):
  * `null`, e o arquivo abre como texto comum.
+ *
+ * Com o jogo aberto, salvar um script do pack o copia para a instância de teste (`onSaved`) e
+ * oferece recarregar; veja `instanceSync.tsx`.
  */
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import type { ConfigOrigin, PackId } from '../../../lib/ipc/bindings';
-import type { EditorAddon, EditorAddonApi } from '../components/ConfigEditor';
+import type { AddonSaved, EditorAddon, EditorAddonApi } from '../components/ConfigEditor';
 import { useGameKey, useReloadRoute, useScriptIds, useScriptProblems, useScriptsInfo } from './api';
 import { scriptExtensions, setErrorLines, setIds } from './extensions';
+import { InstanceSyncNote, useInstanceSync } from './instanceSync';
 import {
   errorLines,
   flattenIds,
@@ -84,6 +88,24 @@ export function useScriptAddon({
   const route = useReloadRoute(packId, active ? path : null);
   const game = useGameKey(packId);
   const reload = useReloadAction(packId);
+  const sync = useInstanceSync(packId);
+  const { copy } = sync;
+  const running = game === 'running';
+  // A gravação em curso veio de "Salvar e recarregar"; e se a instância ficou com o texto salvo.
+  const reloadAfterSave = useRef(false);
+  const synced = useRef(false);
+
+  const onSaved = useCallback(
+    async ({ previousHash }: AddonSaved) => {
+      synced.current = false;
+      if (origin !== 'pack' || !running || path === null) return;
+      synced.current = await copy(path, previousHash, {
+        overwrite: false,
+        reload: reloadAfterSave.current,
+      });
+    },
+    [origin, running, path, copy],
+  );
 
   const options = useMemo(() => (ids.data ? flattenIds(ids.data) : []), [ids.data]);
   const extensions = useMemo(
@@ -104,8 +126,21 @@ export function useScriptAddon({
     const name = toolName(kind, tool);
     const list = problemsFor(problems.data?.problems ?? [], kind, path);
     const marks = errorLines(list, path);
-    const running = game === 'running';
+    const run = reload.run;
+    const saveAndReload = async (api: EditorAddonApi) => {
+      reloadAfterSave.current = true;
+      let saved: boolean;
+      try {
+        saved = await api.save();
+      } finally {
+        reloadAfterSave.current = false;
+      }
+      if (saved && (origin === 'instance' || synced.current)) {
+        await run(path);
+      }
+    };
     return {
+      onSaved,
       extensions,
       formatLabel: formatLabel(kind, tool),
       barStart: () => <ScriptTag label={toolLabel(kind, tool, loader, minecraft)} />,
@@ -113,12 +148,12 @@ export function useScriptAddon({
         <ScriptActions
           api={api}
           packId={packId}
-          origin={origin}
           snippets={snippetsFor(info.data, kind, path)}
           route={route.data}
           instanceReady={info.data.instanceReady}
           reloading={reload.pending}
-          onReload={() => reload.run(path)}
+          onReload={() => run(path)}
+          onSaveAndReload={() => saveAndReload(api)}
         />
       ),
       notice: () => (
@@ -144,6 +179,26 @@ export function useScriptAddon({
               </Alert>
             </div>
           ) : null}
+          <InstanceSyncNote
+            note={sync.note}
+            path={path}
+            pending={sync.pending}
+            reloading={reload.pending}
+            onReload={() => {
+              sync.closeNote();
+              void run(path);
+            }}
+            onOverwrite={(previousHash, then) => {
+              void copy(path, previousHash, { overwrite: true, reload: then }).then((ok) =>
+                ok && then ? run(path) : undefined,
+              );
+            }}
+            onOpenInInstance={() => {
+              sync.closeNote();
+              onOpenInInstance(path);
+            }}
+            onClose={sync.closeNote}
+          />
           <ReloadNoteView note={reload.note} tool={name} onClose={reload.closeNote} />
         </>
       ),
@@ -175,7 +230,10 @@ export function useScriptAddon({
     problems,
     route.data,
     reload,
-    game,
+    sync,
+    copy,
+    onSaved,
+    running,
     origin,
     packId,
     loader,

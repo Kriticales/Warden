@@ -7,6 +7,8 @@
 //! - `scripts_problems`: os erros e avisos do último teste (logs da instância) ou, com o jogo
 //!   aberto e o KubeJS 7, ao vivo;
 //! - `scripts_reload_route` e `scripts_reload`: o caminho de "Recarregar no jogo" e a recarga;
+//! - `scripts_copy_to_instance`: com o jogo aberto, copia para a instância de teste o script
+//!   que acabou de ser salvo no pack, sem apagar uma mudança feita direto na instância;
 //! - `scripts_open_vscode`: abre a pasta do jogo da instância de teste no VS Code.
 //!
 //! Os jars vêm do cache de downloads (pelo hash do metafile, sem abrir o jogo), da pasta da
@@ -34,13 +36,18 @@ use warden_scripts::reload::{
     ReloadContext, ReloadOutcome, ReloadRoute, ServerConsole, execute, plan_reload,
 };
 use warden_scripts::snippets::{Snippet, snippets_for};
+use warden_scripts::sync::{InstanceCopy, copy_to_instance};
 use warden_scripts::web::{KubejsWeb, read_web_server_config};
 use warden_scripts::{vscode, web};
 
 use crate::commands::inventory::pack_root;
 use crate::error::{AppError, AppErrorCode};
 use crate::events::GamePhase;
+use crate::operations::OperationKind;
 use crate::state::AppState;
+
+/// Copiar um script salvo no pack para a instância de teste.
+pub(crate) const SCRIPTS_COPY: OperationKind = OperationKind::new("scripts.copyToInstance");
 
 /// As ferramentas de scripts do pack e os trechos prontos de cada uma.
 #[derive(Debug, Clone, Serialize, specta::Type)]
@@ -411,6 +418,35 @@ pub(crate) async fn scripts_reload(
     execute(route, web.as_ref(), console.as_deref())
         .await
         .map_err(domain)
+}
+
+/// Depois de salvar o script `path` no pack com o jogo aberto, copia o texto para a instância
+/// de teste (SPEC T26: "salvar grava na instância de teste"). `previous_hash` é o `hash` do
+/// arquivo do pack antes de salvar: a instância só é substituída se ainda tinha esse texto, se
+/// não tinha o arquivo ou com `overwrite` (a pessoa escolheu substituir). Uma mudança feita
+/// direto na instância volta como [`InstanceCopy::InstanceChanged`], sem nada gravado.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn scripts_copy_to_instance(
+    state: State<'_, AppState>,
+    pack_id: PackId,
+    path: String,
+    previous_hash: String,
+    overwrite: bool,
+) -> Result<InstanceCopy, AppError> {
+    let handle = state.operations.start(SCRIPTS_COPY, Some(pack_id), false);
+    let result = async {
+        let _lock = state.locks.write_for(pack_id, &handle).await;
+        let root = pack_root(&state, pack_id)?;
+        let game = game_dir(&state.paths, pack_id);
+        tauri::async_runtime::spawn_blocking(move || {
+            copy_to_instance(&root, &game, &path, &previous_hash, overwrite).map_err(domain)
+        })
+        .await
+        .map_err(join_error)?
+    }
+    .await;
+    handle.finish(result)
 }
 
 /// Abre a pasta do jogo da instância de teste no VS Code.

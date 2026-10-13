@@ -1,7 +1,8 @@
 /**
  * Peças da barra do editor de scripts (SPEC T26; protótipo `scripts`): a etiqueta com a versão
  * ("KubeJS 6 · Forge 1.20.1"), "Trechos prontos ▾", "Recarregar no jogo" (ou "Salvar e
- * recarregar", com alterações na instância de teste) e "Abrir no VS Code".
+ * recarregar", com alterações não salvas e o jogo aberto, no pack ou na instância de teste) e
+ * "Abrir no VS Code".
  *
  * Botão indisponível fica com `aria-disabled` (continua focável) e o motivo na dica e no nome
  * descrito, como pede a SPEC ("desabilitado com o motivo").
@@ -15,7 +16,7 @@ import { Button, type ButtonProps } from '../../../components/ui/button';
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/ui/menu';
 import { showToast } from '../../../components/ui/toast';
 import { Tooltip } from '../../../components/ui/tooltip';
-import type { ConfigOrigin, PackId, ReloadRoute, Snippet } from '../../../lib/ipc/bindings';
+import type { PackId, ReloadRoute, Snippet } from '../../../lib/ipc/bindings';
 import type { scripts as scriptTexts } from '../../../i18n/pt-BR/scripts';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import type { EditorAddonApi } from '../components/ConfigEditor';
@@ -67,12 +68,13 @@ function ReasonButton({
 export interface ScriptActionsProps {
   api: EditorAddonApi;
   packId: PackId;
-  origin: ConfigOrigin;
   snippets: readonly Snippet[];
   route: ReloadRoute | undefined;
   instanceReady: boolean;
   reloading: boolean;
   onReload: () => Promise<void>;
+  /** Salva (no pack, copiando para a instância de teste; ou na instância) e recarrega. */
+  onSaveAndReload: () => Promise<void>;
 }
 
 /** Recarregar é possível (mesmo que só mostrando o comando). */
@@ -83,12 +85,12 @@ export function canReload(route: ReloadRoute | undefined): boolean {
 export function ScriptActions({
   api,
   packId,
-  origin,
   snippets,
   route,
   instanceReady,
   reloading,
   onReload,
+  onSaveAndReload,
 }: ScriptActionsProps) {
   const { t } = useTranslation('scripts');
   const vscode = useOpenVsCode(packId);
@@ -101,7 +103,7 @@ export function ScriptActions({
     view.focus();
   };
 
-  const saveAndReload = origin === 'instance' && api.dirty && canReload(route);
+  const saveAndReload = api.dirty && canReload(route);
 
   return (
     <>
@@ -134,7 +136,7 @@ export function ScriptActions({
           icon={Save}
           loading={reloading || api.saving}
           onClick={() => {
-            void api.save().then((saved) => (saved ? onReload() : undefined));
+            void onSaveAndReload();
           }}
         >
           {reloading ? t('barra.recarregando') : t('barra.salvarERecarregar')}

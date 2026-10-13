@@ -44,8 +44,20 @@ export const scripts = {
   jogoAberto: {
     titulo: 'O jogo está aberto com a instância de teste.',
     texto:
-      'O que você salvar aqui vale no próximo teste. Para recarregar agora, edite o script na instância de teste.',
+      'Salvar grava no pack e copia o script para a instância de teste; depois é só recarregar no jogo. Uma mudança feita direto na instância não é apagada sem perguntar.',
     acao: 'Editar na instância de teste',
+  },
+  copia: {
+    titulo: 'Salvo no pack e copiado para a instância de teste.',
+    texto: 'Recarregue para o jogo aberto usar o script novo.',
+  },
+  conflito: {
+    titulo: 'O script na instância de teste foi mudado direto nela.',
+    texto:
+      'O Warden salvou no pack e não mexeu na instância. Substitua para o jogo aberto usar o texto do pack, ou abra o da instância para comparar.',
+    substituir: 'Substituir na instância',
+    substituirERecarregar: 'Substituir na instância e recarregar',
+    abrir: 'Abrir o da instância',
   },
   erros: {
     titulo: 'Erros dos scripts',

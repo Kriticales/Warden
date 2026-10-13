@@ -65,6 +65,20 @@ export interface EditorAddon {
   panel?: (api: EditorAddonApi) => ReactNode;
   /** Formato no rodapé ("JavaScript · KubeJS 6"). */
   formatLabel?: string;
+  /**
+   * Depois de cada gravação bem-sucedida, com o `hash` do arquivo antes e depois. A gravação só
+   * termina (e `save` só responde) quando a promessa termina: o editor de scripts copia aqui o
+   * script salvo no pack para a instância de teste com o jogo aberto.
+   */
+  onSaved?: (saved: AddonSaved) => Promise<void>;
+}
+
+/** O que `onSaved` recebe. */
+export interface AddonSaved {
+  /** `hash` da leitura em que o texto se baseava (o arquivo antes de gravar). */
+  previousHash: string;
+  /** `hash` depois de gravar. */
+  hash: string;
 }
 
 /** Uma peça do `addon` (desenhada como componente, para ler a API só no próprio render). */
@@ -128,6 +142,12 @@ export function ConfigEditor({
     view: () => editor.current?.view() ?? null,
   }));
 
+  // O `addon` mais novo, sem refazer a gravação quando ele muda.
+  const onSaved = useRef(addon?.onSaved);
+  useEffect(() => {
+    onSaved.current = addon?.onSaved;
+  });
+
   const name = baseName(file.path);
   const readOnly = file.readOnly !== null;
   const [base, setBase] = useState({ text: file.text ?? '', hash: file.hash });
@@ -170,6 +190,7 @@ export function ConfigEditor({
           kind: saved.changed ? 'ok' : 'info',
           title: t(saved.changed ? 'editor.salvoToast' : 'editor.semMudanca', { arquivo: name }),
         });
+        await onSaved.current?.({ previousHash: expectedHash, hash: saved.hash });
         return true;
       } catch {
         setDialog('none');

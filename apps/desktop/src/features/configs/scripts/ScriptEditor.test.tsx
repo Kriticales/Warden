@@ -13,6 +13,8 @@
  *   Copiar; com o servidor local, mostra a resposta do servidor;
  * - sem jogo aberto, Recarregar fica indisponível com o motivo; Abrir no VS Code;
  * - Salvar e recarregar na instância de teste; aviso no pack com o jogo aberto;
+ * - no pack com o jogo aberto, salvar copia o script para a instância de teste e oferece
+ *   recarregar, sem apagar uma mudança feita direto na instância;
  * - pack sem KubeJS: o arquivo abre como texto comum; CraftTweaker com ZenScript.
  */
 import { startCompletion } from '@codemirror/autocomplete';
@@ -32,7 +34,7 @@ import type {
   ScriptProblems,
   ScriptsInfo,
 } from '../../../lib/ipc/bindings';
-import { axePage } from '../../../test/axe';
+import { axeComponent, axePage } from '../../../test/axe';
 import { ipcError } from '../../../test/backend';
 import { makeAppError } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
@@ -140,6 +142,10 @@ function openScript(search: string, options: Options = {}) {
   const hashes: Record<string, number> = {};
   const hashOf = (origin: string, path: string) =>
     `${origin}:${path}:${String(hashes[`${origin}:${path}`] ?? 0)}`;
+  // O texto de cada `hash` do pack, para a cópia saber o que o arquivo era antes de salvar.
+  const packTexts: Record<string, string> = {};
+  // Quantas vezes a lista e a captura tinham sido lidas quando a cópia aconteceu.
+  const atCopy: { tree: number; capture: number }[] = [];
   let packId = '' as PackId;
   const { backend, url, row } = editorBackend({
     pack: { loader: options.loader ?? 'forge', minecraft: '1.20.1' },
@@ -166,6 +172,7 @@ function openScript(search: string, options: Options = {}) {
         if (text === undefined) {
           return ipcError(makeAppError({ domain: 'project', code: 'CONFIG_NOT_FOUND' }));
         }
+        if (origin === 'pack') packTexts[hashOf(origin, path)] = text;
         return {
           path,
           text,
@@ -182,7 +189,27 @@ function openScript(search: string, options: Options = {}) {
         const disk = disks[origin] ?? {};
         disk[path] = args.text as string;
         hashes[`${origin}:${path}`] = (hashes[`${origin}:${path}`] ?? 0) + 1;
+        if (origin === 'pack') packTexts[hashOf(origin, path)] = args.text as string;
         return { hash: hashOf(origin, path), size: 1, changed: true };
+      },
+      // Como `warden_scripts::sync::copy_to_instance`.
+      scripts_copy_to_instance: (args) => {
+        atCopy.push({
+          tree: backend.callsOf('config_tree').length,
+          capture: backend.callsOf('capture_get').length,
+        });
+        const path = args.path as string;
+        const instance = disks.instance;
+        if (instance === null) return 'noInstance';
+        const text = disks.pack?.[path] ?? '';
+        const current = instance[path];
+        if (current === text) return 'unchanged';
+        const before = packTexts[args.previousHash as string];
+        if (!args.overwrite && current !== undefined && current !== before) {
+          return 'instanceChanged';
+        }
+        instance[path] = text;
+        return 'copied';
       },
       scripts_info: () =>
         ({
@@ -217,7 +244,7 @@ function openScript(search: string, options: Options = {}) {
     useTestStore.setState({ game: makeGame(row.id, options.game) });
   }
   renderApp(`${url}/configs${search}`);
-  return { backend, disks, row };
+  return { backend, disks, row, atCopy };
 }
 
 function copy(): ReloadRoute {
@@ -480,6 +507,145 @@ describe('editor de scripts (T26)', () => {
     await user.click(screen.getByRole('button', { name: 'Editar na instância de teste' }));
     await screen.findByText('Você está editando a instância de teste, não o pack.');
     await view();
+  });
+
+  it('no pack com o jogo aberto: Salvar e recarregar grava no pack, copia para a instância e recarrega', async () => {
+    const user = userEvent.setup();
+    const { backend, disks } = openScript(`?arquivo=${RECEITAS}`, {
+      game: 'running',
+      instanceFiles: { [RECEITAS]: RECEITAS_TEXT },
+      route: copy(),
+      outcome: () => ({ route: copy(), response: [] }),
+    });
+    const editor = await view();
+    const readHash = `pack:${RECEITAS}:0`;
+    act(() => {
+      editor.dispatch({ changes: { from: editor.state.doc.length, insert: '// novo\n' } });
+    });
+    await user.click(await screen.findByRole('button', { name: 'Salvar e recarregar' }));
+    await waitFor(() => {
+      expect(backend.callsOf('scripts_reload')).toHaveLength(1);
+    });
+    expect(backend.callsOf('config_write')[0]?.args).toMatchObject({ origin: 'pack' });
+    expect(backend.callsOf('scripts_copy_to_instance')[0]?.args).toMatchObject({
+      path: RECEITAS,
+      previousHash: readHash,
+      overwrite: false,
+    });
+    expect(disks.pack?.[RECEITAS]).toContain('// novo');
+    expect(disks.instance?.[RECEITAS]).toContain('// novo');
+    await screen.findByText('No KubeJS 6, recarregar precisa de um comando no jogo.');
+  });
+
+  it('no pack com o jogo aberto: salvar copia para a instância, oferece recarregar e relê o que mostra a instância', async () => {
+    const user = userEvent.setup();
+    const { backend, disks, atCopy } = openScript(`?arquivo=${RECEITAS}`, {
+      game: 'running',
+      instanceFiles: { [RECEITAS]: RECEITAS_TEXT },
+      route: copy(),
+      outcome: () => ({ route: copy(), response: [] }),
+    });
+    const editor = await view();
+    act(() => {
+      editor.dispatch({ changes: { from: 0, insert: '// topo\n' } });
+    });
+    await user.keyboard('{Control>}s{/Control}');
+    await screen.findByText('Salvo no pack e copiado para a instância de teste.');
+    expect(disks.instance?.[RECEITAS]).toMatch(/^\/\/ topo/);
+    expect(backend.callsOf('scripts_reload')).toHaveLength(0);
+    // Dados na tela sempre atuais: a lista de Configs e "O que mudou durante o teste" (o aviso
+    // do cabeçalho) são relidos depois da cópia, não só depois de gravar no pack.
+    expect(atCopy).toHaveLength(1);
+    const moment = atCopy[0] ?? { tree: 0, capture: 0 };
+    await waitFor(() => {
+      expect(backend.callsOf('config_tree').length).toBeGreaterThan(moment.tree);
+      expect(backend.callsOf('capture_get').length).toBeGreaterThan(moment.capture);
+    });
+    const note = screen.getByText('Salvo no pack e copiado para a instância de teste.');
+    const alert = note.closest<HTMLElement>('.alert');
+    if (!alert) throw new Error('aviso não encontrado');
+    await user.click(within(alert).getByRole('button', { name: 'Recarregar no jogo' }));
+    await waitFor(() => {
+      expect(backend.callsOf('scripts_reload')).toHaveLength(1);
+    });
+    expect(screen.queryByText('Salvo no pack e copiado para a instância de teste.')).toBeNull();
+    // A instância mostra o texto copiado.
+    await user.click(screen.getByRole('button', { name: 'Editar na instância de teste' }));
+    await screen.findByText('Você está editando a instância de teste, não o pack.');
+    await waitFor(async () => {
+      expect((await view()).state.doc.toString()).toMatch(/^\/\/ topo/);
+    });
+  });
+
+  it('no pack com o jogo aberto: não apaga a mudança feita direto na instância sem perguntar', async () => {
+    const user = userEvent.setup();
+    const { backend, disks } = openScript(`?arquivo=${RECEITAS}`, {
+      game: 'running',
+      instanceFiles: { [RECEITAS]: '// mexido na instância\n' },
+      route: copy(),
+      outcome: () => ({ route: copy(), response: [] }),
+    });
+    const editor = await view();
+    act(() => {
+      editor.dispatch({ changes: { from: editor.state.doc.length, insert: '// novo\n' } });
+    });
+    await user.click(await screen.findByRole('button', { name: 'Salvar e recarregar' }));
+    const title = await screen.findByText('O script na instância de teste foi mudado direto nela.');
+    expect(disks.pack?.[RECEITAS]).toContain('// novo');
+    expect(disks.instance?.[RECEITAS]).toBe('// mexido na instância\n');
+    expect(backend.callsOf('scripts_reload')).toHaveLength(0);
+    const alert = title.closest<HTMLElement>('.alert');
+    if (!alert) throw new Error('aviso não encontrado');
+    expect(await axeComponent(alert)).toHaveNoViolations();
+    await user.click(
+      within(alert).getByRole('button', { name: 'Substituir na instância e recarregar' }),
+    );
+    await waitFor(() => {
+      expect(backend.callsOf('scripts_reload')).toHaveLength(1);
+    });
+    expect(backend.callsOf('scripts_copy_to_instance')[1]?.args).toMatchObject({
+      overwrite: true,
+    });
+    expect(disks.instance?.[RECEITAS]).toContain('// novo');
+    expect(screen.queryByText('O script na instância de teste foi mudado direto nela.')).toBeNull();
+  });
+
+  it('no pack com o jogo aberto, mudança na instância: Abrir o da instância', async () => {
+    const user = userEvent.setup();
+    openScript(`?arquivo=${RECEITAS}`, {
+      game: 'running',
+      instanceFiles: { [RECEITAS]: '// mexido na instância\n' },
+      route: copy(),
+    });
+    const editor = await view();
+    act(() => {
+      editor.dispatch({ changes: { from: 0, insert: '// a\n' } });
+    });
+    await user.keyboard('{Control>}s{/Control}');
+    await screen.findByText('O script na instância de teste foi mudado direto nela.');
+    await user.click(screen.getByRole('button', { name: 'Abrir o da instância' }));
+    await screen.findByText('Você está editando a instância de teste, não o pack.');
+    await waitFor(async () => {
+      expect((await view()).state.doc.toString()).toBe('// mexido na instância\n');
+    });
+  });
+
+  it('no pack sem jogo aberto: salvar não mexe na instância', async () => {
+    const user = userEvent.setup();
+    const { backend, disks } = openScript(`?arquivo=${RECEITAS}`, {
+      instanceFiles: { [RECEITAS]: RECEITAS_TEXT },
+    });
+    const editor = await view();
+    act(() => {
+      editor.dispatch({ changes: { from: 0, insert: '// a\n' } });
+    });
+    await user.keyboard('{Control>}s{/Control}');
+    await waitFor(() => {
+      expect(disks.pack?.[RECEITAS]).toMatch(/^\/\/ a/);
+    });
+    expect(backend.callsOf('scripts_copy_to_instance')).toHaveLength(0);
+    expect(disks.instance?.[RECEITAS]).toBe(RECEITAS_TEXT);
+    expect(screen.queryByRole('button', { name: 'Salvar e recarregar' })).toBeNull();
   });
 
   it('pack sem KubeJS: o script abre como texto comum', async () => {

@@ -9,13 +9,17 @@
  *   jogo deste pack, e cada mudança (abriu, fechou) os relê. Com o KubeJS 7 e o jogo aberto, os
  *   erros vêm ao vivo e são relidos a cada poucos segundos.
  * - Recarregar relê os erros (o jogo acabou de rodar os scripts de novo).
+ * - Copiar um script salvo no pack para a instância de teste relê tudo o que mostra a instância:
+ *   a lista e os arquivos de Configs (origem Instância) e "O que mudou durante o teste".
  */
 import { useQuery } from '@tanstack/react-query';
 
 import { commands, type PackId } from '../../../lib/ipc/bindings';
 import { queryKeys } from '../../../lib/ipc/keys';
 import { commandQuery, useCommandMutation } from '../../../lib/ipc/query';
+import { captureKeys } from '../../capture/api';
 import { useGame } from '../../test/store';
+import { configsKeys } from '../api';
 
 /** De quanto em quanto tempo os erros ao vivo são relidos. */
 export const LIVE_PROBLEMS_INTERVAL_MS = 5000;
@@ -88,4 +92,21 @@ export function useReloadScripts(packId: PackId) {
 /** "Abrir no VS Code". */
 export function useOpenVsCode(packId: PackId) {
   return useCommandMutation(() => commands.scriptsOpenVscode(packId));
+}
+
+export interface CopyRequest {
+  path: string;
+  /** `hash` do arquivo do pack antes de salvar. */
+  previousHash: string;
+  /** A pessoa escolheu substituir o texto da instância. */
+  overwrite: boolean;
+}
+
+/** Copia para a instância de teste o script que acabou de ser salvo no pack. */
+export function useCopyToInstance(packId: PackId) {
+  return useCommandMutation(
+    ({ path, previousHash, overwrite }: CopyRequest) =>
+      commands.scriptsCopyToInstance(packId, path, previousHash, overwrite),
+    { invalidates: [configsKeys.all(packId), captureKeys.all(packId)] },
+  );
 }
