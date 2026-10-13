@@ -93,21 +93,28 @@ async function textOf(selector: string): Promise<string> {
   );
 }
 
-/** Espera o texto da faixa conter tudo o que foi pedido e nada do que não pode mais aparecer. */
+/**
+ * Espera o texto da faixa casar com tudo o que foi pedido e não ter nada do que não pode mais
+ * aparecer. Na falha, a mensagem traz o último texto lido.
+ */
 async function waitStripText(
-  parts: readonly string[],
+  parts: readonly (string | RegExp)[],
   absent: readonly string[] = ['medindo…', 'carregando…', 'ainda não entrou num mundo'],
 ): Promise<string> {
   let text = '';
-  await browser.waitUntil(
-    async () => {
-      text = await textOf(LIVE_STRIP);
-      return (
-        parts.every((part) => text.includes(part)) && !absent.some((part) => text.includes(part))
-      );
-    },
-    { timeout: 30_000, timeoutMsg: `a faixa não mostrou ${parts.join(', ')}: ${text}` },
-  );
+  const matches = (part: string | RegExp) =>
+    typeof part === 'string' ? text.includes(part) : part.test(text);
+  try {
+    await browser.waitUntil(
+      async () => {
+        text = await textOf(LIVE_STRIP);
+        return parts.every(matches) && !absent.some((part) => text.includes(part));
+      },
+      { timeout: 30_000 },
+    );
+  } catch {
+    throw new Error(`a faixa não mostrou ${parts.join(', ')}: ${JSON.stringify(text)}`);
+  }
   return text;
 }
 
@@ -170,8 +177,9 @@ describe('Desempenho em todo teste (L-10; CA-T13-09)', function () {
     await testButton().click();
     await waitHeading('Jogo aberto');
     await $(LIVE_STRIP).waitForExist({ timeout: 30_000 });
-    // RAM medida (com o pico), carregou em menos de 1 s e entrou no mundo.
-    const text = await waitStripText(['pico de', 'Abriu em\nmenos de 1 s']);
+    // RAM medida (com o pico), carregou e entrou no mundo. O tempo conta desde a abertura do
+    // processo, com a partida da JVM: menos de 1 s numa máquina rápida, alguns segundos na CI.
+    const text = await waitStripText(['pico de', /Abriu em\n(menos de 1 s|\d+ s)/]);
     expect(text).toMatch(/RAM do processo\n\d+(,\d)? (MB|GB)\npico de/);
     expect(text).toMatch(/Entrou no mundo em\n(menos de 1 s|\d+ s)/);
     await screenshot('49-faixa-de-desempenho');
@@ -180,7 +188,7 @@ describe('Desempenho em todo teste (L-10; CA-T13-09)', function () {
     await stopGame();
     await $(RESULT_BLOCK).waitForExist();
     const block = await textOf(RESULT_BLOCK);
-    expect(block).toContain('Abriu em\nmenos de 1 s');
+    expect(block).toMatch(/Abriu em\n(menos de 1 s|\d+ s)/);
     expect(block).toMatch(/Pico de RAM do processo\n\d+(,\d)? (MB|GB)/);
     expect(await seriousViolations()).toEqual([]);
   });
