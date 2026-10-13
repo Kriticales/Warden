@@ -163,11 +163,13 @@ impl<'g> Builder<'g> {
             .enumerate()
             .map(|(position, node)| (node.key.as_str(), position))
             .collect();
+        // Toda ponta de ligação é um nó; o `usize::MAX` só evita o índice que pode estourar.
+        let position = |key: &str| order.get(key).copied().unwrap_or(usize::MAX);
         let mut edges = self.edges;
         edges.sort_by(|a, b| {
-            order[a.from.as_str()]
-                .cmp(&order[b.from.as_str()])
-                .then_with(|| order[a.to.as_str()].cmp(&order[b.to.as_str()]))
+            position(&a.from)
+                .cmp(&position(&b.from))
+                .then_with(|| position(&a.to).cmp(&position(&b.to)))
                 .then_with(|| a.kind.cmp(&b.kind))
         });
         FocusReport {
