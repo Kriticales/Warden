@@ -24,3 +24,8 @@
   outline: var(--border-block) solid var(--color-focus);
   outline-offset: 2px;
 }
+
+.scripterr:focus-visible {
+  outline: var(--border-block) solid var(--color-focus);
+  outline-offset: -2px;
+}

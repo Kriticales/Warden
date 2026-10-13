@@ -195,7 +195,13 @@ export function createEditorState(options: EditorOptions): EditorState {
     changedLines,
     extra ?? [],
     theme,
-    EditorView.contentAttributes.of({ 'aria-label': ariaLabel, spellcheck: 'false' }),
+    // `tabindex`: o axe só conta a área rolável como alcançável pelo teclado com um filho
+    // focável declarado (o `contenteditable` não basta; `scrollable-region-focusable`).
+    EditorView.contentAttributes.of({
+      'aria-label': ariaLabel,
+      spellcheck: 'false',
+      tabindex: '0',
+    }),
     EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         onChange(update.state.sliceDoc());

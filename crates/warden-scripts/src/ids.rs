@@ -151,12 +151,12 @@ impl IdCache {
             sha256: sha256.to_owned(),
             ids: ids.clone(),
         };
-        let result = std::fs::create_dir_all(&self.dir)
-            .map_err(|e| e.to_string())
-            .and_then(|()| serde_json::to_vec(&cached).map_err(|e| e.to_string()))
-            .and_then(|json| warden_core::atomic_write(&path, &json).map_err(|e| e.to_string()));
-        if let Err(error) = result {
-            tracing::debug!(%error, "não deu para gravar o cache de IDs dos scripts");
+        let saved = std::fs::create_dir_all(&self.dir).is_ok()
+            && serde_json::to_vec(&cached)
+                .is_ok_and(|json| warden_core::atomic_write(&path, &json).is_ok());
+        if !saved {
+            // Sem detalhe: o erro de disco traz o caminho da pasta de dados.
+            tracing::debug!("não deu para gravar o cache de IDs dos scripts");
         }
     }
 }
@@ -222,7 +222,12 @@ pub fn build_ids(jars: &[ScriptJar], cache: Option<&IdCache>, limits: &Limits) -
                     ids
                 }
                 Err(error) => {
-                    tracing::debug!(%error, origem = %jar.source, "jar sem IDs para os scripts");
+                    // Só o código: a mensagem da `warden-jarmeta` traz o caminho do arquivo.
+                    tracing::debug!(
+                        codigo = ?warden_core::DomainError::code(&error),
+                        origem = %jar.source,
+                        "jar sem IDs para os scripts"
+                    );
                     unread.push(jar.source.clone());
                     continue;
                 }

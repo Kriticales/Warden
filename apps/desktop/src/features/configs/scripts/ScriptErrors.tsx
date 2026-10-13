@@ -87,7 +87,12 @@ export function ScriptErrors({
   };
 
   return (
-    <section className="scripterr" aria-labelledby={titleId}>
+    <section
+      className="scripterr"
+      aria-labelledby={titleId}
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- região rolável: o teclado precisa chegar nela
+      tabIndex={0}
+    >
       <div className="scripterr__head">
         <h2 className="scripterr__title" id={titleId}>
           <CircleAlert className="icon icon--sm" aria-hidden="true" />
