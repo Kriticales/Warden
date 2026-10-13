@@ -136,7 +136,7 @@ describe('Testar e console (L-04; T13)', function () {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     // O jar local e o arquivo do jogo simulado podem aparecer na higiene: abre sem limpar.
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

@@ -155,7 +155,7 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
     await step('abrir o pack', async () => {
       writeFileSync(PICK_FILE, PACK);
       await $('button=Abrir ou importar…').click();
-      await $('h1=Abrir pack').waitForDisplayed({ timeout: 20_000 });
+      await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed({ timeout: 20_000 });
       await $('button=Abrir pack').click();
       await $('h1=Mods').waitForDisplayed({ timeout: 30_000 });
     });
