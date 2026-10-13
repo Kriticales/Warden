@@ -39,4 +39,35 @@ export const versioning: Record<VersioningErrorCode, string> = {
     'Não foi possível voltar o pack e nem desfazer tudo: {{paths}} ficaram diferentes. O estado de antes está guardado no ponto de segurança {{safetyPoint}}; recupere esse ponto para voltar ao que era.',
   GIT_FAILED:
     'O Warden não conseguiu ler ou gravar o histórico de versões do pack. Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
+  // Publicar versão (V-03, SPEC T18).
+  NOT_FINAL:
+    'A versão {{version}} não é versão final. Marque-a como versão final no Histórico para poder publicar.',
+  ALREADY_PUBLISHED: 'A versão {{version}} já foi publicada para os jogadores.',
+  PUBLISH_NOT_NEWER:
+    'A versão {{version}} é menor que a última publicada, {{last}}: os jogadores voltariam para trás. Publique uma versão maior que {{last}}.',
+  PUBLISH_SECRET_FOUND:
+    'Encontramos algo que parece uma chave em {{path}}, linha {{line}}. Remova antes de publicar.',
+  PUBLISH_BLOCKED:
+    'A versão tem arquivos que não podem ir para os jogadores. Limpe esses arquivos, salve uma versão nova e publique essa.',
+  GITHUB_NOT_LINKED:
+    'Este pack ainda não tem repositório no GitHub. Abra Publicar versão no Histórico para criar ou escolher um.',
+  GITHUB_OFFLINE:
+    'Sem conexão com o GitHub. Confira a internet e tente de novo.',
+  GITHUB_TOKEN_REJECTED: 'O GitHub recusou o token. Gere um novo e salve em Configurações.',
+  GITHUB_PERMISSION_MISSING:
+    'O token do GitHub não tem a permissão {{permission}} (leitura e escrita). Gere um token com ela e salve em Configurações.',
+  GITHUB_REPO_NOT_FOUND:
+    'O repositório {{repo}} não existe no GitHub ou o token não tem acesso a ele. Confira o nome e o acesso do token em Configurações.',
+  GITHUB_REPO_NAME_TAKEN:
+    'Já existe um repositório {{repo}} na sua conta. Escolha outro nome ou use Usar um repositório que já existe.',
+  GITHUB_INVALID_REPO_NAME:
+    '"{{name}}" não serve como nome de repositório. Use letras sem acento, números, ponto, hífen ou sublinhado.',
+  REMOTE_DIVERGED:
+    'O GitHub ({{repo}}) tem mudanças que não estão aqui: alguém mexeu no repositório por fora do Warden. Substitua o GitHub pelo que está aqui ou cancele.',
+  PUSH_REJECTED:
+    'O GitHub recusou o envio da versão. Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
+  RELEASE_PENDING:
+    'A versão {{version}} foi enviada aos jogadores, mas a página da versão no GitHub (Release) não foi criada. Use Tentar de novo para criar só a Release.',
+  GITHUB_FAILED:
+    'O GitHub respondeu de um jeito inesperado. Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
 };

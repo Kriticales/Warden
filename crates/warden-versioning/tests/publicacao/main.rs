@@ -597,7 +597,7 @@ async fn permissoes_e_token_recusado_no_envio() {
         ),
         "{error:?}"
     );
-    assert_eq!(error.params()["permission"], "push");
+    assert_eq!(error.params()["permission"], "Contents");
     assert!(
         !ctx.repo().versions().unwrap()[0].is_published,
         "nada registrado"

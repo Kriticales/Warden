@@ -79,6 +79,10 @@ impl AppState {
             warden_secrets::SecretKind::Curseforge,
             Arc::new(crate::commands::curseforge::CurseforgeKeyTester::default()),
         );
+        secret_testers.register(
+            warden_secrets::SecretKind::Github,
+            Arc::new(crate::commands::github::GithubTokenTester),
+        );
         let catalog = crate::commands::catalog::open_catalog(&paths)?;
         let java = open_java(&paths)?;
         let packs = warden_project::registry::Registry::open(paths.packs_registry_file())

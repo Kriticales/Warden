@@ -62,6 +62,8 @@ warden-secrets.workspace = true
 # Resumo da árvore do pack testada (sessão do teste, L-04).
 sha2.workspace = true
 hex.workspace = true
+# Pasta temporária da árvore da versão a publicar (V-03).
+tempfile.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 # Janela nativa do menu de encaixe (Snap Layouts) sobre o botão maximizar da barra de título
@@ -84,6 +86,7 @@ warden-secrets = { workspace = true, features = ["fault-injection"] }
 # Servidor HTTP mínimo dos testes do Testar (sem internet de verdade: a porta fecha).
 tokio = { workspace = true, features = ["io-util", "net"] }
 wiremock.workspace = true
+sha1.workspace = true
 zip.workspace = true
 
 [lints]

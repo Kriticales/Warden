@@ -197,6 +197,17 @@ export const commands = {
 	/**  O que a validação conferiu. */
 	validation: FormatValidation,
 } | null, AppError>(__TAURI_INVOKE("export_format_run", { packId, source, format, choices })),
+	/**  Repositório, visibilidade, versões publicadas e link do pack. Não usa a rede. */
+	githubStatus: (packId: PackId) => typedError<GithubStatus, AppError>(__TAURI_INVOKE("github_status", { packId })),
+	/**
+	 *  Primeira publicação: cria o repositório (público por padrão) ou vincula um existente, e
+	 *  grava em `packs.json`.
+	 * 
+	 *  Erros: `versioning.GITHUB_REPO_NAME_TAKEN`, `GITHUB_INVALID_REPO_NAME`,
+	 *  `GITHUB_REPO_NOT_FOUND`, `GITHUB_PERMISSION_MISSING`, `GITHUB_TOKEN_REJECTED`,
+	 *  `GITHUB_OFFLINE`; `secrets.*` sem token.
+	 */
+	githubSetup: (packId: PackId, setup: GithubSetup) => typedError<GithubLinkView, AppError>(__TAURI_INVOKE("github_setup", { packId, setup })),
 	/**
 	 *  O que acontece se estes itens saírem do pack, e as relações diretas deles.
 	 * 
@@ -376,6 +387,21 @@ export const commands = {
 } | null, AppError>(__TAURI_INVOKE("prism_run", { packId, source, options })),
 	/**  "Mostrar arquivo": só aceita arquivos que `prism_run` gerou nesta sessão. */
 	prismReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("prism_reveal", { path })),
+	/**
+	 *  O diálogo "Publicar a versão X para os jogadores": avisos, bloqueios, notas e a situação
+	 *  do GitHub. Não muda nada.
+	 */
+	publishPlan: (packId: PackId, version: string) => typedError<PublishPlan, AppError>(__TAURI_INVOKE("publish_plan", { packId, version })),
+	/**
+	 *  Publica a versão final: confere de novo o que bloqueia, envia e cria a Release.
+	 * 
+	 *  Erros: `versioning.PUBLISH_SECRET_FOUND` / `PUBLISH_BLOCKED` (nada enviado),
+	 *  `GITHUB_NOT_LINKED`, `REMOTE_DIVERGED`, `RELEASE_PENDING` (enviado; só a Release falhou) e
+	 *  os do GitHub.
+	 */
+	publishRun: (packId: PackId, request: PublishRunRequest) => typedError<Published, AppError>(__TAURI_INVOKE("publish_run", { packId, request })),
+	/**  "Tentar de novo" de uma versão publicada com a Release pendente: cria só a Release. */
+	publishRetryRelease: (packId: PackId, version: string) => typedError<Published, AppError>(__TAURI_INVOKE("publish_retry_release", { packId, version })),
 	/**  Monta a pré-visualização do relato. */
 	problemReportPreview: (input: ProblemReportInput) => typedError<ProblemReportPreview, AppError>(__TAURI_INVOKE("problem_report_preview", { input })),
 	/**  Abre o endereço da pré-visualização no navegador padrão. */
@@ -822,6 +848,13 @@ export type ChangelogEntry = {
 	/**  Formato das notas. */
 	format: DescriptionFormat,
 };
+
+/**  Por que uma conferência não rodou. */
+export type CheckFailure = 
+/**  Sem a chave da CurseForge em Configurações. */
+"keyMissing" | 
+/**  Sem conexão ou o servidor não respondeu. */
+"unreachable";
 
 /**  Quem pediu a verificação. */
 export type CheckTrigger = 
@@ -1621,6 +1654,47 @@ export type GameState = {
 	profile: string | null,
 	/**  Início do teste (milissegundos desde 1970). */
 	startedAtMs: number,
+};
+
+/**  O repositório como a interface mostra. */
+export type GithubLinkView = {
+	/**  `dono/nome`. */
+	repo: RepoRef,
+	/**  Privado ("só backup": o link não funciona para os jogadores). */
+	private: boolean,
+	/**  Página do repositório. */
+	repoUrl: string,
+	/**  Link do pack (`…/main/pack.toml`). */
+	packLink: string,
+};
+
+/**  O que fazer na primeira publicação. */
+export type GithubSetup = 
+/**  Criar um repositório na conta do token. */
+{ kind: "create"; 
+/**  Nome do repositório. */
+name: string; 
+/**  Privado ("só backup"). */
+private: boolean } | 
+/**  Usar um repositório que já existe (`dono/nome`). */
+{ kind: "link"; 
+/**  `dono/nome` ou o endereço do repositório. */
+repo: string };
+
+/**  A área "Publicação para os jogadores" do Histórico. */
+export type GithubStatus = {
+	/**  O repositório do pack (`None` antes da primeira publicação). */
+	link: GithubLinkView | null,
+	/**  Versões publicadas, da mais nova para a mais antiga. */
+	published: PublishedVersion[],
+	/**  O token do GitHub está salvo em Configurações. */
+	tokenConfigured: boolean,
+	/**  Nome sugerido para o repositório (nome do pack em minúsculas com hífens). */
+	suggestedName: string,
+	/**  Minecraft do pack (passo a passo dos jogadores). */
+	minecraft: string | null,
+	/**  Loader e versão do pack (`Fabric 0.16.9`). */
+	loader: string | null,
 };
 
 /**  O arquivo achado pelo hash numa fonte ("Este arquivo é o Sodium 0.6.0 do Modrinth."). */
@@ -2688,6 +2762,25 @@ export type ModrinthLinkTarget = {
 	versionId: string | null,
 };
 
+/**  Uma troca possível pelo Modrinth. */
+export type ModrinthSwap = {
+	/**  Projeto no Modrinth. */
+	projectId: string,
+	/**  Versão no Modrinth. */
+	versionId: string,
+	/**  Número da versão (`0.5.1`). */
+	versionNumber: string,
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**
+	 *  O mesmo arquivo (mesmo SHA-1); falso: a versão compatível do mesmo projeto, mostrada
+	 *  antes de trocar.
+	 */
+	sameFile: boolean,
+	/**  O lado do item hoje (a troca mantém). */
+	side: SideChoice,
+};
+
 /**  Uma incompatibilidade nova: a versão nova declara que não funciona com um item do pack. */
 export type NewConflict = {
 	/**  Item que seria atualizado. */
@@ -3520,6 +3613,112 @@ export type ProviderRef = {
 	alias: boolean,
 };
 
+/**  Qual conferência não pôde rodar. */
+export type PublishCheckId = 
+/**  Distribuição dos mods da CurseForge. */
+"curseforgeDistribution" | 
+/**  Mods só da CurseForge (equivalentes no Modrinth). */
+"curseforgeOnly";
+
+/**
+ *  Um achado das conferências antes de publicar. Os que bloqueiam são
+ *  [`PublishFinding::SecretFound`] e [`PublishFinding::Hygiene`]; os demais são avisos
+ *  ("Publicar mesmo assim"). Registro acréscimo-apenas: a W-03 acrescenta os da 1.1.
+ */
+export type PublishFinding = 
+/**  Algo com cara de chave ou token: arquivo e linha. */
+{ kind: "secretFound"; 
+/**  Arquivo. */
+path: string; 
+/**  Linha. */
+line: number } | 
+/**  Arquivo que a higiene reprova (os mesmos do T04 e do T19). */
+{ kind: "hygiene"; 
+/**  O achado. */
+finding: HygieneFinding } | 
+/**  Mods da CurseForge com distribuição bloqueada. */
+{ kind: "curseforgeBlocked"; 
+/**  Os mods. */
+mods: PublishMod[] } | 
+/**  Mods que só existem na CurseForge (D35, ADR-0051). */
+{ kind: "curseforgeOnly"; 
+/**  Os mods. */
+mods: PublishMod[] } | 
+/**  Nenhum teste que fechou normalmente usou exatamente o conteúdo da versão. */
+{ kind: "untested" } | 
+/**  Uma conferência não pôde rodar. */
+{ kind: "checkFailed"; 
+/**  Qual. */
+check: PublishCheckId; 
+/**  Por quê. */
+reason: CheckFailure };
+
+/**  Um mod da CurseForge citado num aviso. */
+export type PublishMod = {
+	/**  Metafile, relativo à pasta do pack. */
+	path: string,
+	/**  Nome. */
+	name: string,
+	/**  A troca pelo Modrinth, quando existe. */
+	swap: ModrinthSwap | null,
+};
+
+/**  O que o diálogo "Publicar a versão X para os jogadores" mostra. */
+export type PublishPlan = {
+	/**  Versão. */
+	version: string,
+	/**  Última versão publicada (base das notas). */
+	lastPublished: string | null,
+	/**  Notas geradas (sem o recado para os jogadores). */
+	notes: string,
+	/**  Avisos e bloqueios, na ordem das conferências. */
+	findings: PublishFinding[],
+	/**  Algum achado bloqueia. */
+	blocked: boolean,
+	/**  Arquivos que vão para o GitHub (sem `CHANGELOG.md` e `.gitattributes`). */
+	files: number,
+	/**  O repositório (`None`: primeira publicação). */
+	link: GithubLinkView | null,
+	/**  O token do GitHub está salvo. */
+	tokenConfigured: boolean,
+	/**  A `main` do GitHub comparada com a última publicação daqui (com repositório e token). */
+	remote: RemoteStatus | null,
+};
+
+/**  Pedido de `publish_run`. */
+export type PublishRunRequest = {
+	/**  Versão final. */
+	version: string,
+	/**  "Recado para os jogadores" (opcional), no topo das notas. */
+	playerNotes: string,
+	/**  "Substituir o GitHub pelo que está aqui", para o commit que a pessoa viu. */
+	replaceRemote: ReplaceRemote | null,
+	/**  Fuso do computador, em minutos (data do `CHANGELOG.md`). */
+	utcOffsetMinutes: number,
+};
+
+/**  Uma publicação feita. */
+export type Published = {
+	/**  Versão publicada. */
+	version: string,
+	/**  Link do pack (`…/main/pack.toml`). */
+	packLink: string,
+	/**  A Release criada (o id serve à E-04). */
+	release: ReleaseInfo,
+	/**  Notas da versão (para "Copiar texto das notas da versão"). */
+	notes: string,
+};
+
+/**  Uma versão publicada, como o Histórico mostra. */
+export type PublishedVersion = {
+	/**  Número da versão. */
+	version: string,
+	/**  Data da publicação, RFC 3339. */
+	date: string,
+	/**  Enviada, mas a Release não foi criada. */
+	releasePending: boolean,
+};
+
 /**  Por que um arquivo abre só para leitura. */
 export type ReadOnlyReason = 
 /**  Binário (ex.: `servers.dat`): sem texto. */
@@ -3546,6 +3745,22 @@ export type RelationKind =
 /**  Dependência não declarada, inferida pela busca do culpado ou pelo log. */
 "inferred";
 
+/**  Uma Release criada. */
+export type ReleaseInfo = {
+	/**  Id (a E-04 anexa a instância pronta para o Prism por ele). */
+	id: number,
+	/**  Página da Release. */
+	htmlUrl: string,
+};
+
+/**  A `main` do GitHub comparada com a última publicação deste computador. */
+export type RemoteStatus = {
+	/**  Commit da `main` do GitHub (`None`: repositório vazio). */
+	remoteMain: string | null,
+	/**  A `main` do GitHub é a última publicação daqui (ou os dois estão vazios). */
+	inSync: boolean,
+};
+
 /**  O que a confirmação de remover mostra. */
 export type RemovalPlan = {
 	/**  Itens removidos, na ordem do inventário. */
@@ -3564,6 +3779,23 @@ export type RemovalTarget = {
 	name: string,
 	/**  Arquivos que serão apagados (o `.pw.toml`, ou o arquivo local). */
 	files: string[],
+};
+
+/**
+ *  Confirmação de "Substituir o GitHub pelo que está aqui": só vale se a `main` do GitHub
+ *  ainda for a que a pessoa viu.
+ */
+export type ReplaceRemote = {
+	/**  Commit da `main` do GitHub quando a divergência foi mostrada (`None`: vazia). */
+	expectedMain: string | null,
+};
+
+/**  Um repositório, `dono/nome`. */
+export type RepoRef = {
+	/**  Dono (usuário ou organização). */
+	owner: string,
+	/**  Nome. */
+	name: string,
 };
 
 /**  O que precisou ser cortado para o endereço caber. */
@@ -4409,7 +4641,39 @@ export type VersioningErrorCode =
 /**  A restauração falhou e o pack não pôde voltar sozinho ao estado anterior. */
 "ROLLBACK_FAILED" | 
 /**  Falha da biblioteca git ao ler ou gravar o histórico. */
-"GIT_FAILED";
+"GIT_FAILED" | 
+/**  Só versões finais podem ser publicadas (V-03). */
+"NOT_FINAL" | 
+/**  A versão já foi publicada. */
+"ALREADY_PUBLISHED" | 
+/**  A versão é menor que a última publicada. */
+"PUBLISH_NOT_NEWER" | 
+/**  O conteúdo a publicar tem algo com cara de chave ou token. */
+"PUBLISH_SECRET_FOUND" | 
+/**  Uma conferência que bloqueia a publicação reprovou (higiene, segredo). */
+"PUBLISH_BLOCKED" | 
+/**  O pack ainda não tem repositório no GitHub. */
+"GITHUB_NOT_LINKED" | 
+/**  Sem conexão com o GitHub. */
+"GITHUB_OFFLINE" | 
+/**  O GitHub recusou o token (inválido ou expirado). */
+"GITHUB_TOKEN_REJECTED" | 
+/**  O token não tem a permissão necessária. */
+"GITHUB_PERMISSION_MISSING" | 
+/**  O repositório não existe (ou o token não o enxerga). */
+"GITHUB_REPO_NOT_FOUND" | 
+/**  Já existe um repositório com esse nome. */
+"GITHUB_REPO_NAME_TAKEN" | 
+/**  O nome do repositório não é válido. */
+"GITHUB_INVALID_REPO_NAME" | 
+/**  O GitHub tem mudanças que não estão aqui. */
+"REMOTE_DIVERGED" | 
+/**  O GitHub recusou o envio. */
+"PUSH_REJECTED" | 
+/**  Os arquivos foram enviados, mas a Release não foi criada. */
+"RELEASE_PENDING" | 
+/**  Resposta inesperada do GitHub. */
+"GITHUB_FAILED";
 
 /**  Por que um item está no pack. */
 export type Why = 

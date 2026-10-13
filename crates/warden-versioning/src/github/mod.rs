@@ -41,13 +41,13 @@ pub enum GithubPermission {
 }
 
 impl GithubPermission {
-    /// Nome estável, usado no parâmetro da frase do erro.
+    /// Nome da permissão como aparece na página de tokens "fine-grained" do GitHub (o
+    /// parâmetro da frase do erro: é o que a pessoa procura lá).
     #[must_use]
-    pub fn as_str(self) -> &'static str {
+    pub fn github_name(self) -> &'static str {
         match self {
-            Self::CreateRepo => "createRepo",
-            Self::Push => "push",
-            Self::Release => "release",
+            Self::CreateRepo => "Administration",
+            Self::Push | Self::Release => "Contents",
         }
     }
 }

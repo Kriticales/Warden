@@ -491,7 +491,7 @@ impl DomainError for Error {
             }
             Self::PublishBlocked { count } => put("count", count.to_string()),
             Self::GithubPermissionMissing { permission, .. } => {
-                put("permission", permission.as_str().to_owned());
+                put("permission", permission.github_name().to_owned());
             }
             Self::GithubRepoNotFound { repo }
             | Self::GithubRepoNameTaken { repo }
