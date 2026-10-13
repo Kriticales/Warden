@@ -1,0 +1,32 @@
+# Mods que alteram o mesmo ponto do jogo e são conhecidos como compatíveis (D-10; S-R5-1 §5.3 e
+# §6 item 6; ARCHITECTURE §9.6). Um par daqui rebaixa a sobreposição um nível no raio-x de
+# mixins, com o motivo "par conhecido como compatível" e a origem.
+#
+# Cada [[par]]: `primeiro` e `segundo` são listas de ids de mod (as versões do mesmo mod para
+# cada loader); vale qualquer id de um lado com qualquer do outro. `origem` diz como se sabe.
+# Acrescentar: um bloco por par, com o teste de esquema de `pretest/mixin_overlap.rs` passando.
+
+# Gravidade mínima para a sobreposição virar o aviso W_MIXIN_OVERLAP na seção Problemas:
+# "medio" (alto ou médio, regra atual da ARCHITECTURE §9.6) ou "alto". A proposta do S-R5-1 de
+# mostrar só o alto está pendente do dono (SPEC §10); a troca é esta linha.
+risco_minimo_do_aviso = "medio"
+
+[[par]]
+primeiro = ["lithium", "radium", "canary"]
+segundo = ["redirected"]
+origem = "S-R5-1 §5.3: os dois trocam Direction.values() por um vetor em cache em redstone e pistões; o Mixin pula um e o efeito é o mesmo (12 casos nos 3 packs Better MC)."
+
+[[par]]
+primeiro = ["modernfix"]
+segundo = ["redirected"]
+origem = "S-R5-1 §5.3: os dois guardam o vetor de values() em BlockStateBase$Cache; mesmo efeito."
+
+[[par]]
+primeiro = ["modernfix"]
+segundo = ["noisium"]
+origem = "S-R5-1 §5.3: mesma otimização em MaterialRuleList#calculate; o ModernFix usa prioridade 100 de propósito para perder para o Noisium."
+
+[[par]]
+primeiro = ["stfu"]
+segundo = ["charm"]
+origem = "S-R5-1 §5.3: as duas opções desligam o mesmo aviso em ClientPacketListener#handleServerData."
