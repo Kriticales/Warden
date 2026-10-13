@@ -228,6 +228,7 @@ function ModsList({ packId, inventory, openItem, onOpenItem }: ModsListProps) {
       <>
         <ModsHead packId={packId} summary={summary} />
         <EmptyState
+          centered
           glyph="plus"
           title={t('mods.vazio.titulo')}
           text={t('mods.vazio.texto', {
