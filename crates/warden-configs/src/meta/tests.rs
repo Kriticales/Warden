@@ -457,3 +457,48 @@ fn valores_que_o_formulario_nao_regrava_sem_perder_o_jeito() {
         [("t", SnippetReason::MultilineValue)]
     );
 }
+
+#[test]
+fn tirar_itens_separados_mantem_o_comentario_de_cada_item() {
+    let text = "{\n  \"lista\": [\n    \"a\", // do a\n    \"b\", // do b\n    \"c\", // do c\n    \"d\" // do d\n  ]\n}\n";
+    let list =
+        |items: &[&str]| FormValue::List(items.iter().map(|item| (*item).to_owned()).collect());
+    let edit = |text: &str, value: FormValue| {
+        apply_form_edits(
+            "config/x.json5",
+            text,
+            &[FormEdit {
+                path: keys(&["lista"]),
+                value,
+            }],
+        )
+        .unwrap()
+    };
+    let out = edit(text, list(&["b", "d"]));
+    assert_eq!(
+        out,
+        "{\n  \"lista\": [\n    \"b\", // do b\n    \"d\" // do d\n  ]\n}\n"
+    );
+    // Trocar dois itens separados também mexe só nas linhas deles.
+    let out = edit(text, list(&["x", "b", "y", "d"]));
+    assert_eq!(
+        out,
+        "{\n  \"lista\": [\n    \"x\", // do a\n    \"b\", // do b\n    \"y\", // do c\n    \"d\" // do d\n  ]\n}\n"
+    );
+    assert_eq!(edit(&out, list(&["a", "b", "c", "d"])), text);
+}
+
+#[test]
+fn esvaziar_lista_com_comentario_de_bloco_nao_deixa_linha_em_branco() {
+    let text = "{\n  \"lista\": [\n    \"a\", /* um */\n    \"b\"\n  ]\n}\n";
+    let out = apply_form_edits(
+        "config/x.json5",
+        text,
+        &[FormEdit {
+            path: keys(&["lista"]),
+            value: FormValue::List(Vec::new()),
+        }],
+    )
+    .unwrap();
+    assert_eq!(out, "{\n  \"lista\": [\n  ]\n}\n");
+}

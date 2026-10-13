@@ -140,13 +140,14 @@ pub fn apply_form_edits(path: &str, text: &str, edits: &[FormEdit]) -> Result<St
     }
     let mut current = text.to_owned();
     for edit in edits {
-        current = apply_one(format, &current, edit)?;
+        current = apply_one(format, &current, edit, true)?;
     }
     Ok(current)
 }
 
-/// Uma edição: relê o texto (as posições mudam a cada edição) e troca o valor da chave.
-fn apply_one(format: ConfigFormat, text: &str, edit: &FormEdit) -> Result<String> {
+/// Uma edição: relê o texto (as posições mudam a cada edição) e troca o valor da chave. Com
+/// `in_steps`, uma lista com itens iguais no meio muda um trecho de cada vez.
+fn apply_one(format: ConfigFormat, text: &str, edit: &FormEdit, in_steps: bool) -> Result<String> {
     let document = ConfigDocument::parse(format, text.as_bytes())?;
     let key = from_keys(&edit.path);
     let entry = document
@@ -164,6 +165,7 @@ fn apply_one(format: ConfigFormat, text: &str, edit: &FormEdit) -> Result<String
         entry,
         key: &key,
         span,
+        in_steps,
     };
     let out = match current {
         ConfigValue::List(items) => edited.list(items, &edit.value)?,
@@ -185,6 +187,8 @@ struct Edit<'e> {
     entry: &'e ConfigEntry,
     key: &'e KeyPath,
     span: TextSpan,
+    /// Lista com itens iguais no meio: um trecho de cada vez ([`Edit::steps`]).
+    in_steps: bool,
 }
 
 impl Edit<'_> {
@@ -282,6 +286,11 @@ impl Edit<'_> {
             .take(room)
             .take_while(|(a, b)| a.same_as(b))
             .count();
+        // Itens iguais também no meio (tirar o primeiro e o terceiro de uma vez): uma mudança
+        // por trecho, para cada item que fica manter a própria linha e o próprio comentário.
+        if let Some(steps) = self.steps(items, &wanted, typed, &layout, head + tail) {
+            return steps;
+        }
         let replaced = (old - head - tail).min(new - head - tail);
         let removed = old - head - tail - replaced;
 
@@ -337,6 +346,76 @@ impl Edit<'_> {
         attempt(&render(false)?).ok_or_else(|| {
             not_confirmed("a releitura da lista não confirmou a mudança item por item")
         })
+    }
+
+    /// A mudança da lista em passos, um trecho contíguo por vez, quando a maior sequência de
+    /// itens iguais (nas duas listas, na mesma ordem) passa de `kept`, os iguais do começo e do
+    /// fim. `None` quando um passo só basta.
+    fn steps(
+        &self,
+        items: &[ConfigValue],
+        wanted: &[ConfigValue],
+        typed: &[String],
+        layout: &list::ListLayout,
+        kept: usize,
+    ) -> Option<Result<String>> {
+        if !self.in_steps {
+            return None;
+        }
+        let (old, new) = (items.len(), wanted.len());
+        // `common[i][j]`: a maior sequência comum entre `items[i..]` e `wanted[j..]`.
+        let mut common = vec![vec![0_usize; new + 1]; old + 1];
+        for i in (0..old).rev() {
+            for j in (0..new).rev() {
+                common[i][j] = if items[i].same_as(&wanted[j]) {
+                    common[i + 1][j + 1] + 1
+                } else {
+                    common[i + 1][j].max(common[i][j + 1])
+                };
+            }
+        }
+        if common[0][0] <= kept {
+            return None;
+        }
+        // Os trechos entre os itens que ficam: (início, fim) na lista antiga e na nova.
+        let mut gaps = Vec::new();
+        let (mut i, mut j, mut from) = (0, 0, (0, 0));
+        while i < old && j < new {
+            if items[i].same_as(&wanted[j]) && common[i][j] == common[i + 1][j + 1] + 1 {
+                gaps.push((from.0..i, from.1..j));
+                i += 1;
+                j += 1;
+                from = (i, j);
+            } else if common[i + 1][j] >= common[i][j + 1] {
+                i += 1;
+            } else {
+                j += 1;
+            }
+        }
+        gaps.push((from.0..old, from.1..new));
+        // A lista de agora como a pessoa a escreveria: o texto de cada item no arquivo.
+        let mut current: Vec<String> = items
+            .iter()
+            .zip(&layout.items)
+            .map(|(item, span)| super::plain_text(item, self.text.get(span.start..span.end)))
+            .collect();
+        let mut text = self.text.to_owned();
+        // Do fim para o começo: as posições dos trechos anteriores não mudam.
+        for (before, after) in gaps.into_iter().rev() {
+            if before.is_empty() && after.is_empty() {
+                continue;
+            }
+            current.splice(before, typed.get(after).unwrap_or(&[]).iter().cloned());
+            let step = FormEdit {
+                path: super::to_keys(self.key),
+                value: FormValue::List(current.clone()),
+            };
+            text = match apply_one(self.format(), &text, &step, false) {
+                Ok(text) => text,
+                Err(error) => return Some(Err(error)),
+            };
+        }
+        Some(Ok(text))
     }
 
     /// Texto de um item novo, no estilo de `model` (o item que ele substitui ou um vizinho).

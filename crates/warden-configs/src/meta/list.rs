@@ -558,6 +558,26 @@ fn remove(text: &str, layout: &ListLayout, from: usize, count: usize) -> Vec<Spl
         // Todos os itens.
         (None, None) => (first.start, last.comma.map_or(last.end, |comma| comma + 1)),
     };
+    // A linha ficaria só com espaços (itens sozinhos numa linha com um comentário `/* */`):
+    // sai a linha inteira.
+    let open = match layout.shape {
+        ListShape::Brackets { open, .. } => open,
+        ListShape::CfgLines { start, .. } => start,
+    };
+    let (line, rest) = (line_start(text, start), line_end(text.as_bytes(), end));
+    let blank = |range: std::ops::Range<usize>| {
+        text.get(range).is_some_and(|part| {
+            part.trim_end_matches('\r')
+                .trim_matches([' ', '\t'])
+                .is_empty()
+        })
+    };
+    let (start, end) =
+        if line >= open && blank(line..start) && blank(end..rest) && rest < text.len() {
+            (line, rest + 1)
+        } else {
+            (start, end)
+        };
     splices.push(Splice {
         start,
         end,
