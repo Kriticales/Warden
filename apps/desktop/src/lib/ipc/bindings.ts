@@ -142,6 +142,8 @@ export const commands = {
 	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
 	 */
 	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
+	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
+	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId })),
 	/**  O início da descoberta: "Populares para <loader> <versão>" e "Atualizados recentemente". */
 	discoverHome: (packId: PackId, kind: ProjectKind) => typedError<DiscoverHome, AppError>(__TAURI_INVOKE("discover_home", { packId, kind })),
 	/**
@@ -522,6 +524,7 @@ export const commands = {
 
 /** Events */
 export const events = {
+	configIndexChanged: makeEvent<ConfigIndexChanged>("config-index-changed"),
 	gameQuitRequested: makeEvent<GameQuitRequested>("game-quit-requested"),
 	gameState: makeEvent<GameState>("game-state"),
 	localFilesDropped: makeEvent<LocalFilesDropped>("local-files-dropped"),
@@ -870,6 +873,20 @@ export type ConfigFileList = {
 	truncated: boolean,
 };
 
+/**  `config-index-changed`: o índice de uma origem terminou a primeira leitura ou mudou. */
+export type ConfigIndexChanged = {
+	/**  Pack. */
+	packId: PackId,
+	/**  Origem do índice. */
+	origin: ConfigOrigin,
+	/**  Situação depois da mudança. */
+	status: IndexStatus,
+	/**  Arquivos que entraram, mudaram ou saíram (0 na primeira leitura de uma origem vazia). */
+	changedFiles: number,
+	/**  Foi a primeira leitura, não uma mudança de arquivo. */
+	first: boolean,
+};
+
 /**  De onde vêm os arquivos mostrados. */
 export type ConfigOrigin = 
 /**  A pasta do pack (o que vai para os jogadores). */
@@ -885,6 +902,68 @@ export type ConfigSaved = {
 	size: number,
 	/**  `false` quando o texto era igual ao do disco e nada foi gravado. */
 	changed: boolean,
+};
+
+/**  Os resultados de um arquivo. */
+export type ConfigSearchGroup = {
+	/**  Caminho relativo à origem. */
+	path: string,
+	/**  Mod dono do arquivo, deduzido do caminho (`config/create-common.toml` → `create`). */
+	modId: string | null,
+	/**  Resultados, na ordem das linhas (cortados em [`SearchQuery::max_hits_per_file`]). */
+	hits: ConfigSearchHit[],
+	/**  Quantos resultados o arquivo tem, contando os cortados. */
+	total: number,
+};
+
+/**  Um resultado: uma chave (ou uma linha) de um arquivo. */
+export type ConfigSearchHit = {
+	/**  Linha da chave no arquivo (começa em 1). Clicar abre o arquivo nela. */
+	line: number,
+	/**  Onde a pontuação foi maior. */
+	field: HitField,
+	/**  Nome da chave com o caminho das seções (`geral.spawnRate`); `None` numa linha de texto. */
+	key: MarkedText | null,
+	/**  Rótulo traduzido do mod (P1; chega com a C-04). */
+	label: MarkedText | null,
+	/**  Valor (`None` em seções e linhas de texto). */
+	value: MarkedText | null,
+	/**  Trecho do comentário (só quando o comentário casou). */
+	comment: MarkedText | null,
+	/**  A linha inteira, nos arquivos sem leitor estruturado. */
+	text: MarkedText | null,
+};
+
+/**  Um mod com resultados, para o filtro "Só deste mod". */
+export type ConfigSearchMod = {
+	/**  Id deduzido do caminho dos arquivos. */
+	id: string,
+	/**  Quantos resultados ele tem (sem o filtro de mod). */
+	hits: number,
+};
+
+/**  Resposta de `config_search`. */
+export type ConfigSearchResponse = {
+	/**  Situação do índice no momento da busca. */
+	status: IndexStatus,
+	/**  Resultados (`None` na busca vazia e na cancelada). */
+	results: ConfigSearchResults | null,
+	/**  Uma busca mais nova da mesma origem chegou antes desta terminar. */
+	cancelled: boolean,
+};
+
+/**  Resultado de uma busca. */
+export type ConfigSearchResults = {
+	/**  Arquivos com resultado, do mais relevante para o menos. */
+	groups: ConfigSearchGroup[],
+	/**  Resultados ao todo (com o filtro de mod, contando os cortados). */
+	totalHits: number,
+	/**  Arquivos com resultado (com o filtro de mod). */
+	totalFiles: number,
+	/**  Algum resultado ficou de fora pelos limites. */
+	truncated: boolean,
+	/**  Mods com resultado, por id, para o filtro (sem o filtro de mod). */
+	mods: ConfigSearchMod[],
 };
 
 /**
@@ -1651,6 +1730,19 @@ export type HistoryView = {
 	versions: SavedVersion[],
 };
 
+/**  Onde um resultado casou. A ordem é a da pontuação: chave > rótulo > comentário > valor. */
+export type HitField = 
+/**  Valor da chave. */
+"value" | 
+/**  Linha de um arquivo sem leitor estruturado (YAML, SNBT, scripts, texto). */
+"line" | 
+/**  Comentário da chave. */
+"comment" | 
+/**  Rótulo traduzido do mod (P1; C-04). Ainda não preenchido. */
+"label" | 
+/**  Nome da chave (com o caminho das seções). */
+"key";
+
 /**
  *  Códigos do domínio `http`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -1798,6 +1890,20 @@ pack: string } |
 accepts: string; 
 /**  Versão do pack. */
 pack: string };
+
+/**  Situação do índice de uma origem. */
+export type IndexStatus = {
+	/**  A pasta da origem existe (a instância só existe depois do primeiro teste). */
+	available: boolean,
+	/**  A primeira leitura de todos os arquivos terminou. */
+	ready: boolean,
+	/**  Arquivos já lidos. */
+	indexedFiles: number,
+	/**  Arquivos da origem (0 enquanto a lista não foi lida). */
+	totalFiles: number,
+	/**  Chaves e linhas no índice. */
+	entries: number,
+};
 
 /**  O que gravar depois do "Pack criado". */
 export type InitialModsRequest = {
@@ -2564,6 +2670,23 @@ chosenFile: string };
 export type ManualDownloadsChanged = {
 	/**  O pack. */
 	packId: PackId,
+};
+
+/**  Um pedaço de texto, destacado ou não. */
+export type MarkedPart = {
+	/**  O texto. */
+	text: string,
+	/**  Faz parte do que casou com a busca. */
+	marked: boolean,
+};
+
+/**
+ *  Texto com os trechos que casaram destacados. Um texto longo vem cortado em volta do primeiro
+ *  trecho, com "…" no lugar do que ficou de fora.
+ */
+export type MarkedText = {
+	/**  Os pedaços, na ordem do texto. */
+	parts: MarkedPart[],
 };
 
 /**

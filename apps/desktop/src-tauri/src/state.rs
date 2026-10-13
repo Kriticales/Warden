@@ -50,6 +50,8 @@ pub struct AppState {
     pub update_reports: crate::commands::updates::UpdateReports,
     /// Downloads manuais da CurseForge em espera, por pack (L-06; só memória).
     pub(crate) manual_downloads: Arc<crate::commands::cf_blocked::ManualDownloadsHub>,
+    /// Índices da busca em todas as configs, por origem (C-05; só memória).
+    pub(crate) config_search: Arc<crate::commands::configs_search::ConfigSearchHub>,
 }
 
 impl AppState {
@@ -108,6 +110,7 @@ impl AppState {
                 tests,
                 update_reports: crate::commands::updates::UpdateReports::default(),
                 manual_downloads: Arc::default(),
+                config_search: Arc::default(),
             },
             outcome,
         ))
