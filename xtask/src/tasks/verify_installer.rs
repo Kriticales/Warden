@@ -21,7 +21,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant, UNIX_EPOCH};
 
 use anyhow::{Context as _, Result, bail, ensure};
@@ -244,6 +244,8 @@ pub fn describe_logs(dirs: &[(String, PathBuf)]) -> String {
         .join("; ")
 }
 
+/// Abre o Warden instalado, espera o primeiro registro e fecha. Fecha mesmo quando a espera
+/// falha, para não deixar o app aberto no runner.
 fn open_and_close(exe: &Path) -> Result<()> {
     let mut child = Command::new(exe)
         .stdin(Stdio::null())
@@ -251,6 +253,13 @@ fn open_and_close(exe: &Path) -> Result<()> {
         .stderr(Stdio::null())
         .spawn()
         .context("não foi possível abrir o Warden instalado")?;
+    let opened = wait_opened(&mut child);
+    let closed = close(&mut child);
+    opened.and(closed)
+}
+
+/// Espera o Warden aberto gravar o primeiro registro.
+fn wait_opened(child: &mut Child) -> Result<()> {
     let logs: Vec<(String, PathBuf)> = data_dirs()
         .into_iter()
         .map(|(label, dir)| (label, dir.join("logs")))
@@ -275,7 +284,11 @@ fn open_and_close(exe: &Path) -> Result<()> {
         "o Warden instalado não aparece no tasklist"
     );
     println!("verify-installer: o Warden instalado abriu e gravou o primeiro registro.");
+    Ok(())
+}
 
+/// Fecha o Warden (e os processos filhos, como o WebView2) e espera ele sumir do tasklist.
+fn close(child: &mut Child) -> Result<()> {
     let _ = Command::new("taskkill")
         .args(["/F", "/T", "/IM", MAIN_BINARY])
         .stdout(Stdio::null())
@@ -353,8 +366,11 @@ pub fn run(args: &Args) -> Result<()> {
     );
     println!("verify-installer: instalado por usuário, sem administrador.");
 
-    open_and_close(&dir.join(MAIN_BINARY))?;
-    uninstall(&dir)?;
+    // Desinstala mesmo se o Warden não abriu, para não deixar a instalação no runner; o erro
+    // que aparece é o da abertura.
+    let opened = open_and_close(&dir.join(MAIN_BINARY));
+    let uninstalled = uninstall(&dir);
+    opened.and(uninstalled)?;
 
     let after = inventory()?;
     let left = residues(&before, &after, &[IDENTIFIER]);
