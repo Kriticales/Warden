@@ -285,13 +285,13 @@ Convenção dos CA: "Dado / Quando / Então" condensado numa frase. "Mensagem" s
 | CA-T03-01 | Criar um pack Forge 1.7.10 (`10.13.4.1614`) gera `[versions] forge = "10.13.4.1614"` e `minecraft = "1.7.10"`, e `packwiz refresh` roda nele com saída 0 e sem diferença nos arquivos (teste de integração contra o packwiz real). |
 | CA-T03-02 | O mesmo vale para Forge 1.12.2, Forge 1.20.1, NeoForge 1.20.1, NeoForge 1.21.1, Fabric 1.20.1, Fabric na versão mais nova e "Nenhum (vanilla)". |
 | CA-T03-03 | NeoForge não aparece para 1.19.2; Fabric não aparece para 1.12.2. |
-| CA-T03-09 | Na etapa Loader, os cartões seguem a ordem NeoForge, Forge, Fabric, Quilt, Nenhum, e só o primeiro loader que existe tem a etiqueta "Recomendado" e vem marcado: Forge em 1.7.10, 1.12.2 e 1.19.2; NeoForge em 1.20.1 e 1.21.1; Fabric numa versão em que só ele existe; "Nenhum (vanilla)" marcado, sem etiqueta, quando nenhum existe (D39). |
-| CA-T03-10 | Criar pack abre como diálogo por cima de Meus packs; Esc com algo preenchido pede confirmação e "Continuar criando" mantém o que foi preenchido; ao fechar, o foco volta ao botão **Criar pack** (D38). |
 | CA-T03-04 | Destino não vazio é recusado antes de qualquer escrita, com mensagem explicando. |
 | CA-T03-05 | Depois de criar, a pasta contém exatamente os arquivos listados acima mais `.git/`; nenhum outro arquivo. |
 | CA-T03-06 | Falha no meio da criação (simulada em teste) não deixa pasta parcial: ou o pack completo existe, ou a pasta volta ao estado anterior. |
 | CA-T03-07 | Criar um pack Fabric 1.21.1 com os mods iniciais marcados grava `.pw.toml` do spark, da Fabric API e do Crash Assistant, a config inicial do Crash Assistant com o envio ao autor desligado e o Crash Assistant listado como ferramenta do jogador em `.warden/project.toml`; desmarcar os dois cria o pack sem nenhum `.pw.toml` (teste de integração com servidor simulado). |
 | CA-T03-08 | Num pack Forge 1.7.10 e num Forge 1.12.2, a etapa Mods iniciais oferece o spark da CurseForge com o aviso "versão antiga, sem atualizações"; sem chave da CurseForge, o item aparece desabilitado com o motivo e a criação continua. |
+| CA-T03-09 | Na etapa Loader, os cartões seguem a ordem NeoForge, Forge, Fabric, Quilt, Nenhum, e só o primeiro loader que existe tem a etiqueta "Recomendado" e vem marcado: Forge em 1.7.10, 1.12.2 e 1.19.2; NeoForge em 1.20.1 e 1.21.1; Fabric numa versão em que só ele existe; "Nenhum (vanilla)" marcado, sem etiqueta, quando nenhum existe (D39). |
+| CA-T03-10 | Criar pack abre como diálogo por cima de Meus packs; Esc com algo preenchido pede confirmação e "Continuar criando" mantém o que foi preenchido; ao fechar, o foco volta ao botão **Criar pack** (D38). |
 
 ---
 
