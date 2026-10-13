@@ -21,6 +21,7 @@ use warden_versioning::{Identity, InitialPoint, Moment, PackRepo};
 
 use crate::archive::Source;
 use crate::build::{read_content, read_detached};
+use crate::common::redact;
 use crate::error::{Error, ImportErrorCode as Code, Result};
 use crate::model::{Content, ImportPlan, LocalJar};
 
@@ -242,7 +243,7 @@ pub async fn apply(
                     cancelled()
                 } else {
                     Error::internal("o packwiz refresh falhou no pack importado")
-                        .with_detail(error.to_string())
+                        .with_detail(redact(&error.to_string(), &[&stage, &parent]))
                 }
             })?;
         let report = check_conformance(
@@ -257,7 +258,7 @@ pub async fn apply(
                 cancelled()
             } else {
                 Error::internal("a conferência do pack importado falhou")
-                    .with_detail(error.to_string())
+                    .with_detail(redact(&error.to_string(), &[&stage, &request.scratch]))
             }
         })?;
         if !report.is_conforming() {
@@ -275,7 +276,12 @@ pub async fn apply(
             &Identity::for_pack(&manifest.author, None),
             Moment::now_utc(),
         )
-        .map_err(|error| Error::internal(format!("histórico do pack: {error}")))?;
+        .map_err(|error| {
+            Error::internal(format!(
+                "histórico do pack: {}",
+                redact(&error.to_string(), &[&stage, &parent])
+            ))
+        })?;
         let existed = path.is_dir();
         if existed {
             fs::remove_dir(&path).map_err(|error| io("trocar", "a pasta do pack", &error))?;
@@ -298,7 +304,10 @@ pub async fn apply(
             if existed {
                 let _ = fs::create_dir(&path);
             }
-            return Err(Error::internal(format!("registro do pack: {error}")));
+            return Err(Error::internal(format!(
+                "registro do pack: {}",
+                redact(&error.to_string(), &[&path, &parent])
+            )));
         }
         Ok(ImportedPack {
             id,

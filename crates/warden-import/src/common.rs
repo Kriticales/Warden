@@ -80,6 +80,23 @@ pub(crate) fn stem(file_name: &str) -> String {
     )
 }
 
+/// Tira as pastas dadas de um texto (saída do packwiz, erro do git), para nenhuma mensagem levar
+/// a pasta do usuário (QUALITY §10).
+pub(crate) fn redact(text: &str, paths: &[&std::path::Path]) -> String {
+    let mut text = text.to_owned();
+    for path in paths {
+        for form in [
+            path.display().to_string(),
+            path.display().to_string().replace('\\', "/"),
+        ] {
+            if !form.is_empty() {
+                text = text.replace(&form, "<pasta>");
+            }
+        }
+    }
+    text
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::unwrap_used)]
@@ -113,5 +130,17 @@ mod tests {
             manifest("X", "Y", " ", &[]).unwrap_err().code(),
             Code::MinecraftMissing
         );
+    }
+
+    #[test]
+    fn redacao_tira_as_pastas() {
+        let text = super::redact(
+            "falhou em /home/ana/cache/staging/import-1/mods e /home/ana/Downloads/x.zip",
+            &[
+                std::path::Path::new("/home/ana/cache/staging/import-1"),
+                std::path::Path::new("/home/ana/Downloads/x.zip"),
+            ],
+        );
+        assert_eq!(text, "falhou em <pasta>/mods e <pasta>");
     }
 }

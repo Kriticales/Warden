@@ -23,7 +23,7 @@ use warden_packwiz_cli::{Packwiz, RunContext};
 
 use crate::archive::{EntryKind, Source, display_name};
 use crate::build::{Draft, RawFile, RefDraft};
-use crate::common::{manifest, split_path, stem};
+use crate::common::{manifest, redact, split_path, stem};
 use crate::error::{Error, ImportErrorCode as Code, Result};
 use crate::lookup::{Stores, modrinth_sides};
 use crate::model::{
@@ -130,22 +130,6 @@ async fn fix_sides(refs: &mut [RefDraft], stores: Stores<'_>, cancel: &Cancellat
         }
     }
     true
-}
-
-/// Tira a pasta da cópia e da origem de um texto do packwiz (privacidade, QUALITY §10).
-fn redact(text: &str, paths: &[&Path]) -> String {
-    let mut text = text.to_owned();
-    for path in paths {
-        for form in [
-            path.display().to_string(),
-            path.display().to_string().replace('\\', "/"),
-        ] {
-            if !form.is_empty() {
-                text = text.replace(&form, "<pasta>");
-            }
-        }
-    }
-    text
 }
 
 /// Lê o zip da CurseForge pelo packwiz numa cópia de staging.
@@ -586,17 +570,5 @@ mod tests {
         );
         assert_eq!(parse_loader("forge-"), None);
         assert_eq!(parse_loader("risugami-1"), None);
-    }
-
-    #[test]
-    fn redacao_tira_as_pastas() {
-        let text = redact(
-            "falhou em /home/ana/cache/staging/import-1/mods e /home/ana/Downloads/x.zip",
-            &[
-                Path::new("/home/ana/cache/staging/import-1"),
-                Path::new("/home/ana/Downloads/x.zip"),
-            ],
-        );
-        assert_eq!(text, "falhou em <pasta>/mods e <pasta>");
     }
 }
