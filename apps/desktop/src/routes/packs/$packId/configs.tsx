@@ -9,6 +9,9 @@ export const Route = createFileRoute('/packs/$packId/configs')({
     ...(typeof search.arquivo === 'string' && search.arquivo !== ''
       ? { arquivo: search.arquivo }
       : {}),
+    ...(typeof search.linha === 'number' && Number.isInteger(search.linha) && search.linha > 0
+      ? { linha: search.linha }
+      : {}),
   }),
   component: ConfigsRoute,
 });

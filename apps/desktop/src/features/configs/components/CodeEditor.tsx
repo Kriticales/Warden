@@ -19,6 +19,12 @@ export interface CodeEditorHandle {
   replaceAll: (text: string) => void;
 }
 
+/** Ir para uma linha (começa em 1). `request` muda a cada pedido, mesmo para a mesma linha. */
+export interface LineRequest {
+  line: number;
+  request: number;
+}
+
 export interface CodeEditorProps {
   resetKey: string;
   initial: string;
@@ -30,6 +36,8 @@ export interface CodeEditorProps {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
+  /** Põe o cursor no começo da linha, centralizada, e o foco no editor. */
+  goTo?: LineRequest | null;
   ref?: Ref<CodeEditorHandle>;
 }
 
@@ -55,6 +63,7 @@ export function CodeEditor({
   ariaLabel,
   onChange,
   onCursor,
+  goTo = null,
   ref,
 }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
@@ -111,6 +120,25 @@ export function CodeEditor({
     // Recriar só quando o arquivo muda: o texto digitado vive no CodeMirror, não nas props.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey, language, readOnly, lineSeparator, ariaLabel]);
+
+  // Ir para a linha pedida (também logo depois de criar o editor de um arquivo novo). Cada
+  // pedido vale uma vez: recarregar o arquivo (edição por fora) não puxa o cursor nem o foco.
+  const goToLine = goTo?.line;
+  const goToRequest = goTo?.request;
+  const appliedRequest = useRef<number | null>(null);
+  useEffect(() => {
+    const current = view.current;
+    if (!current || goToLine === undefined || goToRequest === appliedRequest.current) {
+      return;
+    }
+    appliedRequest.current = goToRequest ?? null;
+    const line = current.state.doc.line(Math.min(Math.max(goToLine, 1), current.state.doc.lines));
+    current.dispatch({
+      selection: { anchor: line.from },
+      effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
+    });
+    current.focus();
+  }, [resetKey, goToLine, goToRequest]);
 
   // O texto salvo mudou (gravou): remarca as linhas.
   useEffect(() => {

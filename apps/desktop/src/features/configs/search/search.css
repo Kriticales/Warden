@@ -1,0 +1,36 @@
+/* Buscar em todas as configs (SPEC T12; protótipo `configs-busca`). Os resultados usam `.hits` e
+   `.hit` do design system; aqui só o encaixe no lugar do editor. */
+.cfg-search {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.cfg-search__help {
+  margin-top: 2px;
+}
+.cfg-search__filters {
+  margin-bottom: var(--space-3);
+}
+.cfg-search__filters .select {
+  width: auto;
+  max-width: 100%;
+}
+/* O campo já tem o botão "Limpar busca"; o X nativo do WebKit seria um segundo. */
+.cfg-search__input::-webkit-search-cancel-button {
+  appearance: none;
+}
+.cfg-search__more {
+  margin-top: var(--space-1);
+}
+.cfg-search .hit__line {
+  grid-column: 2;
+  justify-self: end;
+}
+/* O contorno do foco por dentro: o painel rola e cortaria o de fora. */
+.cfg-search .hit:focus-visible {
+  outline-offset: -2px;
+}
+/* O editor continua montado (e com as alterações não salvas) enquanto os resultados aparecem. */
+.cfg-layout__main.is-searching > :not(.cfg-search) {
+  display: none;
+}

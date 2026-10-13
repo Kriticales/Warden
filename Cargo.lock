@@ -3325,6 +3325,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nucleo-matcher"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf33f538733d1a5a3494b836ba913207f14d9d4a1d3cd67030c5061bdd2cac85"
+dependencies = [
+ "memchr",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "num"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6649,10 +6659,13 @@ name = "warden-configs"
 version = "0.1.0"
 dependencies = [
  "jsonc-parser",
+ "notify",
+ "nucleo-matcher",
  "proptest",
  "serde",
  "serde_json",
  "specta",
+ "tempfile",
  "thiserror 2.0.21",
  "toml_edit 0.25.15+spec-1.1.0",
  "warden-core",

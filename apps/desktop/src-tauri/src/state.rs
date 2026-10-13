@@ -53,6 +53,8 @@ pub struct AppState {
     pub(crate) manual_downloads: Arc<crate::commands::cf_blocked::ManualDownloadsHub>,
     /// Vigias de mudanças externas dos packs abertos (A-05).
     pub watchers: PackWatchers,
+    /// Índices da busca em todas as configs, por origem (C-05; só memória).
+    pub(crate) config_search: Arc<crate::commands::configs_search::ConfigSearchHub>,
 }
 
 impl AppState {
@@ -116,6 +118,7 @@ impl AppState {
                 update_reports: crate::commands::updates::UpdateReports::default(),
                 manual_downloads: Arc::default(),
                 watchers: PackWatchers::new(),
+                config_search: Arc::default(),
             },
             outcome,
         ))

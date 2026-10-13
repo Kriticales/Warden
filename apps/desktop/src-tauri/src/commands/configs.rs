@@ -35,7 +35,7 @@ fn domain(error: warden_project::Error) -> AppError {
 }
 
 /// A pasta da origem: o pack, ou a pasta do jogo da instância de teste (`minecraft/`).
-fn origin_root(
+pub(crate) fn origin_root(
     state: &AppState,
     pack_id: PackId,
     origin: ConfigOrigin,
