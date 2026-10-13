@@ -38,7 +38,6 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tracing-appender` | 0.2.5 | MIT | `warden-app` | Arquivo diário com 14 dias de retenção, gravado fora da thread do app. |
 | `tokio` | 1.53.2 | MIT | `warden-app` | Travas por pack (`RwLock` justo), cancelamento e testes de concorrência (ARCHITECTURE §15). |
 | `trash` | 5.2.9 | MIT | `warden-project` | Mover a pasta do pack para a Lixeira do sistema (P1-07). |
-| `notify` | 8.2.0 | CC0-1.0 | `warden-project` | Vigiar a pasta do pack aberto e recarregar quando outro programa a altera (A-05). |
 | `async-trait` | 0.1.92 | MIT OR Apache-2.0 | `warden-app` | Trait `SecretTester` (testar chaves) como objeto dinâmico. |
 | `tauri-plugin-single-instance` | 2.5.2 | Apache-2.0 OR MIT | `warden-app` | Instância única do app (ADR-0019). |
 | `tauri-plugin-log` | 2.10.0 | Apache-2.0 OR MIT | `warden-app` | Registros do frontend no mesmo arquivo (ARCHITECTURE §16). |
@@ -73,7 +72,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `flate2` | 1.1.10 | MIT OR Apache-2.0 | `warden-java` | Descompressão do `.tar.gz` do Temurin no Linux (já vinha como dependência do `zip`). |
 | `tar` | 0.4.46 | MIT OR Apache-2.0 | `warden-java` | Leitura do `.tar.gz` do Temurin no Linux, sem os atributos estendidos (`xattr`). |
 | `portablemc` | =5.0.5 | Apache-2.0 | `warden-launcher` | Motor do launcher: instala Minecraft, bibliotecas, assets e loaders (Fabric, Quilt, Forge, NeoForge) e devolve a linha de comando (S1; ADR-0057). Versão exata. |
-| `notify` | 8.2.0 | CC0-1.0 | `warden-instance` | Observar a pasta Downloads nos downloads manuais da CurseForge (L-06, P1). A espera entre eventos é a do próprio vigia (sem o `notify-debouncer-full`): só importa quando o arquivo para de mudar. |
+| `notify` | 8.2.0 | CC0-1.0 | `warden-instance`, `warden-project` | Observar a pasta Downloads nos downloads manuais da CurseForge (L-06, P1) e vigiar a pasta do pack aberto para recarregar quando outro programa a altera (A-05). A espera entre eventos é a do próprio vigia (sem o `notify-debouncer-full`): só importa quando o arquivo para de mudar. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
