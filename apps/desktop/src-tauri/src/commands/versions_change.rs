@@ -175,15 +175,28 @@ pub(crate) async fn loader_version_set(
     expected_from: String,
     version: String,
 ) -> Result<LoaderVersionSet, AppError> {
+    let set = set_loader_impl(&state, pack_id, &expected_from, &version).await?;
+    if set.changed.changed {
+        notify_changed(&app, pack_id, vec![PackArea::Meta, PackArea::Inventory]);
+    }
+    Ok(set)
+}
+
+async fn set_loader_impl(
+    state: &AppState,
+    pack_id: PackId,
+    expected_from: &str,
+    version: &str,
+) -> Result<LoaderVersionSet, AppError> {
     let handle = state.operations.start(LOADER, Some(pack_id), false);
     let result = async {
         let (root, changed, inventory) = {
             let _lock = state.locks.write_for(pack_id, &handle).await;
-            let root = pack_root(&state, pack_id)?;
+            let root = pack_root(state, pack_id)?;
             let changed = warden_project::loader_version::set_loader_version(
                 &root,
-                &expected_from,
-                &version,
+                expected_from,
+                version,
             )
             .await
             .map_err(domain)?;
@@ -194,16 +207,12 @@ pub(crate) async fn loader_version_set(
         };
         // O diagnóstico rápido do loader, com a versão gravada contra a de antes.
         let check =
-            check_loader_between(&state, pack_id, &root, &inventory, &changed.from, &changed.to)
+            check_loader_between(state, pack_id, &root, &inventory, &changed.from, &changed.to)
                 .await?;
         Ok(LoaderVersionSet { changed, check })
     }
     .await;
-    let set = handle.finish(result)?;
-    if set.changed.changed {
-        notify_changed(&app, pack_id, vec![PackArea::Meta, PackArea::Inventory]);
-    }
-    Ok(set)
+    handle.finish(result)
 }
 
 /// A verificação contra `to`, comparada com a versão atual do pack.
@@ -410,4 +419,183 @@ fn graph_orphans(graph: &Graph) -> Vec<GraphOrphan> {
                 .collect(),
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fmt::Write as _;
+    use std::fs;
+    use std::io::Write as _;
+
+    use warden_packwiz_cli::Packwiz;
+
+    use super::*;
+    use crate::commands::inventory::tests::{packwiz_binary, registered_pack, test_packwiz};
+    use crate::error::ErrorCode;
+    use crate::state::tests::test_state;
+
+    /// Um jar do Forge com um `mods.toml` que declara `mod_id`, as dependências obrigatórias e,
+    /// opcionalmente, a faixa de versões do Forge.
+    fn forge_jar(path: &Path, mod_id: &str, requires: &[&str], forge: Option<&str>) {
+        let mut toml = format!(
+            "modLoader=\"javafml\"\nloaderVersion=\"[47,)\"\nlicense=\"MIT\"\n[[mods]]\nmodId=\"{mod_id}\"\nversion=\"1.0\"\n"
+        );
+        let mut write_dep = |id: &str, range: &str| {
+            let _ = write!(
+                toml,
+                "[[dependencies.{mod_id}]]\nmodId=\"{id}\"\nmandatory=true\nversionRange=\"{range}\"\nordering=\"NONE\"\nside=\"BOTH\"\n"
+            );
+        };
+        if let Some(range) = forge {
+            write_dep("forge", range);
+        }
+        for required in requires {
+            write_dep(required, "[1,)");
+        }
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let mut zip = zip::ZipWriter::new(fs::File::create(path).unwrap());
+        zip.start_file(
+            "META-INF/mods.toml",
+            zip::write::SimpleFileOptions::default(),
+        )
+        .unwrap();
+        zip.write_all(toml.as_bytes()).unwrap();
+        zip.finish().unwrap();
+    }
+
+    /// Pack Forge 1.20.1 com três mods registrado no estado.
+    async fn setup() -> Option<(tempfile::TempDir, AppState, PackId, PathBuf, Packwiz)> {
+        let binary = packwiz_binary()?;
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let cli = test_packwiz(&state, binary);
+        let (id, root) = registered_pack(&state, dir.path(), &cli, 3).await;
+        let text = fs::read_to_string(root.join("pack.toml")).unwrap();
+        let text = warden_packwiz::edit::set_pack_version(&text, "forge", Some("47.2.0")).unwrap();
+        fs::write(root.join("pack.toml"), text).unwrap();
+        Some((dir, state, id, root, cli))
+    }
+
+    fn mods_dir(state: &AppState, id: PackId) -> PathBuf {
+        InstanceDirs::for_pack(&state.paths, id).game_dir.join("mods")
+    }
+
+    async fn plan(
+        state: &AppState,
+        id: PackId,
+        root: &Path,
+        paths: &[&str],
+    ) -> warden_project::remove::RemovalPlan {
+        let inventory = warden_project::inventory::inventory(root, None).await.unwrap();
+        let paths: Vec<String> = paths.iter().map(|p| (*p).to_owned()).collect();
+        let (affected, orphans) = removal_queries(state, id, &inventory, &paths).await.unwrap();
+        warden_project::remove::removal_plan(&inventory, &paths, &affected, orphans).unwrap()
+    }
+
+    /// CA-T06-06 pelo app: A → B → C com B e C bibliotecas. Remover C lista B e A (a cadeia);
+    /// remover A oferece B e C como sem uso (`provides` e jar-in-jar são cobertos pelos testes
+    /// do grafo da D-07, que esta consulta usa).
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn ca_t06_06_cadeia_inteira_e_bibliotecas_que_ficam_sem_uso() {
+        let Some((_dir, state, id, root, _cli)) = setup().await else {
+            return;
+        };
+        let mods = mods_dir(&state, id);
+        forge_jar(&mods.join("mod-0-1.0.0.jar"), "meumod", &["kotlinforforge"], None);
+        forge_jar(&mods.join("mod-1-1.0.0.jar"), "kotlinforforge", &["architectury"], None);
+        forge_jar(&mods.join("mod-2-1.0.0.jar"), "architectury", &[], None);
+
+        let removing_c = plan(&state, id, &root, &["mods/mod-2.pw.toml"]).await;
+        let chain: Vec<(&str, u32, &[String])> = removing_c
+            .dependents
+            .iter()
+            .map(|d| (d.name.as_str(), d.depth, d.needs.as_slice()))
+            .collect();
+        assert_eq!(
+            chain,
+            [
+                ("Mod 1", 1, &["Mod 2".to_owned()][..]),
+                ("Mod 0", 2, &["Mod 1".to_owned()][..]),
+            ]
+        );
+        assert!(removing_c.orphans.is_empty());
+
+        let removing_a = plan(&state, id, &root, &["mods/mod-0.pw.toml"]).await;
+        assert!(removing_a.dependents.is_empty());
+        let orphans: Vec<&str> = removing_a.orphans.iter().map(|o| o.name.as_str()).collect();
+        assert_eq!(orphans, ["Mod 1", "Mod 2"]);
+        assert_eq!(removing_a.orphans[0].path, "mods/mod-1.pw.toml");
+
+        // Removendo A e a primeira biblioteca juntas, só a segunda fica sem uso.
+        let both = plan(&state, id, &root, &["mods/mod-0.pw.toml", "mods/mod-1.pw.toml"]).await;
+        let orphans: Vec<&str> = both.orphans.iter().map(|o| o.name.as_str()).collect();
+        assert_eq!(orphans, ["Mod 2"]);
+    }
+
+    /// Dois itens fornecem o mesmo mod: tirar só um deles não quebra quem precisa dele.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn quem_tem_outro_fornecedor_nao_quebra() {
+        let Some((_dir, state, id, root, _cli)) = setup().await else {
+            return;
+        };
+        let mods = mods_dir(&state, id);
+        forge_jar(&mods.join("mod-0-1.0.0.jar"), "geckolib", &[], None);
+        forge_jar(&mods.join("mod-1-1.0.0.jar"), "usuario", &["geckolib"], None);
+        forge_jar(&mods.join("mod-2-1.0.0.jar"), "geckolib", &[], None);
+        let one = plan(&state, id, &root, &["mods/mod-2.pw.toml"]).await;
+        assert!(one.dependents.is_empty());
+        let both = plan(&state, id, &root, &["mods/mod-0.pw.toml", "mods/mod-2.pw.toml"]).await;
+        let names: Vec<&str> = both.dependents.iter().map(|d| d.name.as_str()).collect();
+        assert_eq!(names, ["Mod 1"]);
+        // Resource pack, shader ou arquivo fora do grafo: sem dependentes, sem erro.
+        let none = plan(&state, id, &root, &[]).await;
+        assert!(none.dependents.is_empty() && none.orphans.is_empty());
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn loader_mostra_antes_o_que_quebra_e_grava_so_a_linha() {
+        let Some((_dir, state, id, root, _cli)) = setup().await else {
+            return;
+        };
+        let mods = mods_dir(&state, id);
+        forge_jar(&mods.join("mod-0-1.0.0.jar"), "novo", &[], Some("[47.2,)"));
+        forge_jar(&mods.join("mod-1-1.0.0.jar"), "antigo", &[], Some("[47.1,47.2)"));
+        // mod-2 sem jar: não verificado.
+        let inventory = warden_project::inventory::inventory(&root, None).await.unwrap();
+        let check = check_loader(&state, id, &root, &inventory, "47.1.3").await.unwrap();
+        assert_eq!(check.loader, "forge");
+        assert_eq!((check.from.as_str(), check.to.as_str()), ("47.2.0", "47.1.3"));
+        let breaks: Vec<(&str, Option<&str>)> = check
+            .breaks
+            .iter()
+            .map(|i| (i.name.as_str(), i.requires.as_deref()))
+            .collect();
+        assert_eq!(breaks, [("Mod 0", Some("[47.2,)"))]);
+        let fixes: Vec<&str> = check.fixes.iter().map(|i| i.name.as_str()).collect();
+        assert_eq!(fixes, ["Mod 1"]);
+        assert!(check.still_broken.is_empty());
+        assert_eq!(check.checked, 2);
+        assert_eq!(check.unchecked, ["Mod 2"]);
+
+        let before = fs::read_to_string(root.join("pack.toml")).unwrap();
+        // A versão mostrada no diálogo não é mais a do pack: nada muda.
+        let outdated = set_loader_impl(&state, id, "47.0.0", "47.1.3").await.unwrap_err();
+        assert_eq!(
+            outdated.code,
+            ErrorCode::Project(warden_project::ProjectErrorCode::PackChangedExternally)
+        );
+        assert_eq!(fs::read_to_string(root.join("pack.toml")).unwrap(), before);
+
+        let set = set_loader_impl(&state, id, "47.2.0", "47.1.3").await.unwrap();
+        assert!(set.changed.changed);
+        // A verificação rápida roda de novo depois de gravar, contra a versão gravada.
+        assert_eq!(set.check, check);
+        let after = fs::read_to_string(root.join("pack.toml")).unwrap();
+        let diff: Vec<(&str, &str)> = before
+            .lines()
+            .zip(after.lines())
+            .filter(|(a, b)| a != b)
+            .collect();
+        assert_eq!(diff, [("forge = \"47.2.0\"", "forge = \"47.1.3\"")]);
+    }
 }
