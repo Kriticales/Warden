@@ -53,6 +53,10 @@ on:
         description: Grava `CURSEFORGE_API_KEY` num `.env` temporário (testes de rede).
         type: boolean
         default: false
+      ref:
+        description: Commit a baixar (vazio, o do evento). Usado pelo `pre-versao.yml`.
+        type: string
+        default: ""
       artifact-name:
         description: Nome do artefato a publicar (vazio, nenhum).
         type: string
@@ -94,6 +98,7 @@ jobs:
       - name: Baixar o código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
 
       - name: Dependências do sistema (Linux)
