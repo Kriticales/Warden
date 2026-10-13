@@ -35,7 +35,7 @@ export function LastCrashBlock({ packId }: ProblemsBlockProps) {
   }
   return (
     <section className="panel stack-2" aria-labelledby="diag-last-crash">
-      <h2 className="group-title" id="diag-last-crash">
+      <h2 className="panel__title" id="diag-last-crash">
         {t('ultimo.titulo')}
       </h2>
       <div className="row row--between row--wrap row--gap-3">

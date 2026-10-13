@@ -1,7 +1,8 @@
 /* Seção Problemas, "Por que travou" e o diálogo de erros do Testar (D-03). Só o que não existe
    em `design/system/components.css` (`.issue`, `.badge`, `.group-title`). */
 .issue--ignored {
-  opacity: 0.72;
+  /* 0,8 mantém o texto secundário (`t-3`) acima de 4,5:1 sobre o cartão (WCAG AA). */
+  opacity: 0.8;
 }
 .issue--ignored .issue__title {
   text-decoration: line-through;
