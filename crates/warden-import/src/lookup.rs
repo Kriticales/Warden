@@ -404,7 +404,11 @@ mod tests {
         let custom = license_of(&license("LicenseRef-Custom", "Minha licença")).unwrap();
         assert!(!custom.free);
         assert_eq!(custom.name, "Minha licença");
-        assert!(!license_of(&license("PolyForm-Shield-1.0.0", "")).unwrap().free);
+        assert!(
+            !license_of(&license("PolyForm-Shield-1.0.0", ""))
+                .unwrap()
+                .free
+        );
         assert!(license_of(&license("", "")).is_none());
     }
 }

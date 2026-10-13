@@ -80,8 +80,11 @@ fn unknown(file_name: &str) -> Error {
 /// [`Code::TooLarge`].
 pub(crate) fn open(path: &Path) -> Result<(Source, Detected)> {
     let metadata = std::fs::metadata(path).map_err(|error| {
-        Error::new(Code::Unreadable, format!("{}: {}", display_name(path), error.kind()))
-            .with_param("name", display_name(path))
+        Error::new(
+            Code::Unreadable,
+            format!("{}: {}", display_name(path), error.kind()),
+        )
+        .with_param("name", display_name(path))
     })?;
     let is_dir = metadata.is_dir();
     let mut source = if is_dir {
@@ -135,10 +138,17 @@ mod tests {
         zip_with(&t.join("a.zip"), &["modrinth.index.json"]);
         assert_eq!(detect(&t.join("a.zip")).unwrap(), SourceKind::Mrpack);
         zip_with(&t.join("b.mrpack"), &["manifest.json", "overrides/x"]);
-        assert_eq!(detect(&t.join("b.mrpack")).unwrap(), SourceKind::CurseforgeZip);
+        assert_eq!(
+            detect(&t.join("b.mrpack")).unwrap(),
+            SourceKind::CurseforgeZip
+        );
         zip_with(
             &t.join("c.zip"),
-            &["Inst/instance.cfg", "Inst/mmc-pack.json", "Inst/.minecraft/x"],
+            &[
+                "Inst/instance.cfg",
+                "Inst/mmc-pack.json",
+                "Inst/.minecraft/x",
+            ],
         );
         let (_, detected) = open(&t.join("c.zip")).unwrap();
         assert_eq!(detected.kind, SourceKind::Prism);

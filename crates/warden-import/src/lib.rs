@@ -33,8 +33,8 @@ pub use detect::detect;
 pub use error::{Error, ImportErrorCode, Result};
 pub use lookup::Stores;
 pub use model::{
-    ExcludedItem, ExcludedReason, ImportPlan, ImportProfile, ImportSummary, ItemSource,
-    LocalItem, LocalReason, PackLicense, ReferenceItem, ReviewItem, ReviewReason, SourceKind,
+    ExcludedItem, ExcludedReason, ImportPlan, ImportProfile, ImportSummary, ItemSource, LocalItem,
+    LocalReason, PackLicense, ReferenceItem, ReviewItem, ReviewReason, SourceKind,
 };
 use warden_core::CancellationToken;
 
@@ -73,8 +73,7 @@ pub async fn analyze(
         }
         SourceKind::Mrpack => mrpack::analyze(&mut source, path, stores, cancel).await?,
         SourceKind::CurseforgeZip => {
-            curseforge::analyze_zip(&mut source, path, stores, &services.curseforge, cancel)
-                .await?
+            curseforge::analyze_zip(&mut source, path, stores, &services.curseforge, cancel).await?
         }
         SourceKind::Prism => prism::analyze(&mut source, path, &detected.root)?,
         SourceKind::CurseforgeApp => {

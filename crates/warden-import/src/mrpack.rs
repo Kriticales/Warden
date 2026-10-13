@@ -85,7 +85,9 @@ pub(crate) fn modrinth_cdn(url: &Url) -> Option<(String, String, String)> {
     }
     let segments: Vec<&str> = url.path_segments()?.collect();
     match segments.as_slice() {
-        ["data", project, "versions", version, file] if !project.is_empty() && !version.is_empty() => {
+        ["data", project, "versions", version, file]
+            if !project.is_empty() && !version.is_empty() =>
+        {
             let file = url::form_urlencoded::parse(format!("a={file}").as_bytes())
                 .next()
                 .map(|(_, value)| value.into_owned())?;
@@ -292,9 +294,12 @@ pub(crate) async fn analyze(
         } else if let Some(file_id) = curseforge_cdn(&url).filter(|_| stores.curseforge.is_some()) {
             by_curseforge.push((pending, file_id));
         } else {
-            draft
-                .references
-                .push(reference(&pending, url_metafile(&pending), stem(&pending.filename), ItemSource::Url));
+            draft.references.push(reference(
+                &pending,
+                url_metafile(&pending),
+                stem(&pending.filename),
+                ItemSource::Url,
+            ));
         }
     }
 
@@ -308,7 +313,9 @@ pub(crate) async fn analyze(
                         index
                             .files
                             .iter()
-                            .find(|file| file.path == crate::common::join(&item.dir, &item.filename))
+                            .find(|file| {
+                                file.path == crate::common::join(&item.dir, &item.filename)
+                            })
                             .and_then(|file| file.hashes.get("sha1"))
                             .and_then(|hash| valid_hex(hash, 40))
                     })
@@ -355,7 +362,10 @@ pub(crate) async fn analyze(
     if let Some(client) = stores.modrinth
         && !modrinth.is_empty()
     {
-        let mut ids: Vec<String> = modrinth.iter().map(|(_, project, _)| project.clone()).collect();
+        let mut ids: Vec<String> = modrinth
+            .iter()
+            .map(|(_, project, _)| project.clone())
+            .collect();
         ids.sort();
         ids.dedup();
         match client.projects(&ids, Some(cancel)).await {
@@ -423,7 +433,10 @@ pub(crate) async fn analyze(
                 .and_then(|hash| valid_hex(hash, 40));
             let file = files.iter().find(|file| file.id == file_id);
             let ids = file.and_then(|file| {
-                Some((u32::try_from(file.mod_id).ok()?, u32::try_from(file.id).ok()?))
+                Some((
+                    u32::try_from(file.mod_id).ok()?,
+                    u32::try_from(file.id).ok()?,
+                ))
             });
             match (file, ids, sha1) {
                 (Some(file), Some((project_id, file_id)), Some(sha1)) => {
@@ -484,13 +497,17 @@ pub(crate) async fn analyze(
             outside.entry(top).or_insert((is_dir, 0)).1 += 1;
         }
     }
-    draft.excluded.extend(outside.into_iter().map(|(path, (is_dir, files))| ExcludedItem {
-        path,
-        is_dir,
-        files,
-        reason: ExcludedReason::OtherLauncher,
-        can_include: false,
-    }));
+    draft.excluded.extend(
+        outside
+            .into_iter()
+            .map(|(path, (is_dir, files))| ExcludedItem {
+                path,
+                is_dir,
+                files,
+                reason: ExcludedReason::OtherLauncher,
+                can_include: false,
+            }),
+    );
 
     // Licença do modpack, se ele está publicado no Modrinth (pelo sha512 do próprio arquivo).
     if let Ok(mut file) = std::fs::File::open(origin)

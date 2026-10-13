@@ -106,14 +106,23 @@ fn source_of(metafile: &Metafile) -> ItemSource {
 async fn fix_sides(refs: &mut [RefDraft], stores: Stores<'_>, cancel: &CancellationToken) -> bool {
     let sha1s: Vec<String> = refs
         .iter()
-        .filter(|item| item.metafile.download.hash_format.eq_ignore_ascii_case("sha1"))
+        .filter(|item| {
+            item.metafile
+                .download
+                .hash_format
+                .eq_ignore_ascii_case("sha1")
+        })
         .map(|item| item.metafile.download.hash.to_ascii_lowercase())
         .collect();
     let Some(sides) = modrinth_sides(stores.modrinth, &sha1s, cancel).await else {
         return false;
     };
     for item in refs {
-        if item.metafile.download.hash_format.eq_ignore_ascii_case("sha1")
+        if item
+            .metafile
+            .download
+            .hash_format
+            .eq_ignore_ascii_case("sha1")
             && let Some(side) = sides.get(&item.metafile.download.hash.to_ascii_lowercase())
         {
             item.metafile.side = side.clone();
@@ -126,7 +135,10 @@ async fn fix_sides(refs: &mut [RefDraft], stores: Stores<'_>, cancel: &Cancellat
 fn redact(text: &str, paths: &[&Path]) -> String {
     let mut text = text.to_owned();
     for path in paths {
-        for form in [path.display().to_string(), path.display().to_string().replace('\\', "/")] {
+        for form in [
+            path.display().to_string(),
+            path.display().to_string().replace('\\', "/"),
+        ] {
             if !form.is_empty() {
                 text = text.replace(&form, "<pasta>");
             }
@@ -154,7 +166,12 @@ pub(crate) async fn analyze_zip(
         .iter()
         .filter_map(|loader| parse_loader(&loader.id))
         .collect();
-    let mut pack = manifest(&zip.name, &stem(source.file_name()), &zip.minecraft.version, &loaders)?;
+    let mut pack = manifest(
+        &zip.name,
+        &stem(source.file_name()),
+        &zip.minecraft.version,
+        &loaders,
+    )?;
     let Some(key) = tools.key.filter(|_| stores.curseforge.is_some()) else {
         return Err(Error::new(
             Code::CurseforgeKeyMissing,
@@ -189,7 +206,10 @@ pub(crate) async fn analyze_zip(
                 &error.detail().unwrap_or_else(|| error.to_string()),
                 &[&staging, &absolute],
             );
-            if matches!(error, warden_packwiz_cli::Error::CurseForgeKeyMissing { .. }) {
+            if matches!(
+                error,
+                warden_packwiz_cli::Error::CurseForgeKeyMissing { .. }
+            ) {
                 return Err(Error::new(
                     Code::CurseforgeKeyMissing,
                     "o packwiz não recebeu a chave da CurseForge",
@@ -204,8 +224,16 @@ pub(crate) async fn analyze_zip(
             )
             .with_detail(detail));
         }
-        read_staging(&staging, source, origin, pack_after(&staging, pack.clone()), &zip, stores, cancel)
-            .await
+        read_staging(
+            &staging,
+            source,
+            origin,
+            pack_after(&staging, pack.clone()),
+            &zip,
+            stores,
+            cancel,
+        )
+        .await
     }
     .await;
     match result {
@@ -221,7 +249,10 @@ pub(crate) async fn analyze_zip(
 }
 
 /// O `pack.toml` que o packwiz deixou (com as versões acertadas), ou o nosso.
-fn pack_after(staging: &Path, fallback: warden_packwiz::PackManifest) -> warden_packwiz::PackManifest {
+fn pack_after(
+    staging: &Path,
+    fallback: warden_packwiz::PackManifest,
+) -> warden_packwiz::PackManifest {
     std::fs::read_to_string(staging.join("pack.toml"))
         .ok()
         .and_then(|text| warden_packwiz::PackManifest::parse(&text).ok())
@@ -252,7 +283,10 @@ async fn read_staging(
     let mut copy = Source::open_dir(staging)?;
     for entry in copy.entries()? {
         if entry.kind == EntryKind::Dir
-            || matches!(entry.name.as_str(), "pack.toml" | "index.toml" | ".packwizignore")
+            || matches!(
+                entry.name.as_str(),
+                "pack.toml" | "index.toml" | ".packwizignore"
+            )
         {
             continue;
         }
@@ -293,7 +327,10 @@ async fn read_staging(
         draft.unavailable.push("Modrinth".to_owned());
     }
     // O que o zip traz fora dos overrides (lista de mods em HTML etc.) não entra.
-    let overrides = zip.overrides.clone().unwrap_or_else(|| "overrides".to_owned());
+    let overrides = zip
+        .overrides
+        .clone()
+        .unwrap_or_else(|| "overrides".to_owned());
     let mut outside: BTreeMap<String, (bool, u32)> = BTreeMap::new();
     for entry in source.entries()? {
         if entry.kind == EntryKind::Dir || entry.name == "manifest.json" {
@@ -308,13 +345,17 @@ async fn read_staging(
             .or_insert((entry.name.contains('/'), 0))
             .1 += 1;
     }
-    draft.excluded.extend(outside.into_iter().map(|(path, (is_dir, files))| ExcludedItem {
-        path,
-        is_dir,
-        files,
-        reason: ExcludedReason::OtherLauncher,
-        can_include: false,
-    }));
+    draft.excluded.extend(
+        outside
+            .into_iter()
+            .map(|(path, (is_dir, files))| ExcludedItem {
+                path,
+                is_dir,
+                files,
+                reason: ExcludedReason::OtherLauncher,
+                can_include: false,
+            }),
+    );
     if let Some(ram) = zip.minecraft.recommended_ram.filter(|ram| *ram >= 512) {
         draft.profile = Some(ImportProfile {
             memory_mb: Some(ram),
@@ -420,12 +461,19 @@ pub(crate) async fn analyze_app(
         else {
             continue;
         };
-        if file.file_name.is_empty() || crate::archive::unsafe_reason(&file.file_name).is_some() || file.file_name.contains('/') {
+        if file.file_name.is_empty()
+            || crate::archive::unsafe_reason(&file.file_name).is_some()
+            || file.file_name.contains('/')
+        {
             continue;
         }
         let dir = ["mods", "resourcepacks", "shaderpacks"]
             .into_iter()
-            .find(|dir| entries.iter().any(|e| e.name == format!("{dir}/{}", file.file_name)))
+            .find(|dir| {
+                entries
+                    .iter()
+                    .any(|e| e.name == format!("{dir}/{}", file.file_name))
+            })
             .unwrap_or("mods");
         let sha1 = file
             .hashes
@@ -467,7 +515,10 @@ pub(crate) async fn analyze_app(
         if entry.kind == EntryKind::Dir {
             continue;
         }
-        if matches!(entry.name.as_str(), "minecraftinstance.json" | ".curseclient") {
+        if matches!(
+            entry.name.as_str(),
+            "minecraftinstance.json" | ".curseclient"
+        ) {
             draft.excluded.push(ExcludedItem {
                 path: entry.name.clone(),
                 is_dir: false,
@@ -492,7 +543,11 @@ pub(crate) async fn analyze_app(
         });
     }
     let memory = instance.allocated_memory.filter(|mb| *mb >= 512);
-    let args = instance.java_args_override.unwrap_or_default().trim().to_owned();
+    let args = instance
+        .java_args_override
+        .unwrap_or_default()
+        .trim()
+        .to_owned();
     if memory.is_some() || !args.is_empty() {
         draft.profile = Some(ImportProfile {
             memory_mb: memory,
@@ -508,17 +563,26 @@ mod tests {
 
     #[test]
     fn loaders_da_curseforge() {
-        assert_eq!(parse_loader("forge-47.2.0"), Some((Loader::Forge, "47.2.0".into())));
+        assert_eq!(
+            parse_loader("forge-47.2.0"),
+            Some((Loader::Forge, "47.2.0".into()))
+        );
         assert_eq!(
             parse_loader("neoforge-21.1.172"),
             Some((Loader::NeoForge, "21.1.172".into()))
         );
-        assert_eq!(parse_loader("fabric-0.16.5"), Some((Loader::Fabric, "0.16.5".into())));
+        assert_eq!(
+            parse_loader("fabric-0.16.5"),
+            Some((Loader::Fabric, "0.16.5".into()))
+        );
         assert_eq!(
             parse_loader("fabric-0.16.5-1.21.1"),
             Some((Loader::Fabric, "0.16.5".into()))
         );
-        assert_eq!(parse_loader("quilt-0.26.0"), Some((Loader::Quilt, "0.26.0".into())));
+        assert_eq!(
+            parse_loader("quilt-0.26.0"),
+            Some((Loader::Quilt, "0.26.0".into()))
+        );
         assert_eq!(parse_loader("forge-"), None);
         assert_eq!(parse_loader("risugami-1"), None);
     }

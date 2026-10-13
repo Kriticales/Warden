@@ -20,9 +20,7 @@ use crate::build::{Draft, RawFile, RefDraft};
 use crate::common::{manifest, split_path};
 use crate::curseforge::PREFERENCES;
 use crate::error::{Error, Result};
-use crate::model::{
-    Content, ExcludedItem, ExcludedReason, ImportProfile, ItemSource, SourceKind,
-};
+use crate::model::{Content, ExcludedItem, ExcludedReason, ImportProfile, ItemSource, SourceKind};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,7 +44,11 @@ pub(crate) fn parse_cfg(text: &str) -> BTreeMap<String, String> {
     let mut map = BTreeMap::new();
     for line in text.lines() {
         let line = line.trim();
-        if line.is_empty() || line.starts_with('[') || line.starts_with(';') || line.starts_with('#') {
+        if line.is_empty()
+            || line.starts_with('[')
+            || line.starts_with(';')
+            || line.starts_with('#')
+        {
             continue;
         }
         let Some((key, value)) = line.split_once('=') else {
@@ -128,7 +130,12 @@ pub(crate) fn analyze(source: &mut Source, origin: &Path, root: &str) -> Result<
     };
     let name = cfg.get("name").cloned().unwrap_or_default();
     let pack = manifest(&name, &fallback, &minecraft, &loaders)?;
-    let mut draft = Draft::new(SourceKind::Prism, origin.to_path_buf(), root.to_owned(), pack);
+    let mut draft = Draft::new(
+        SourceKind::Prism,
+        origin.to_path_buf(),
+        root.to_owned(),
+        pack,
+    );
     draft.profile = profile_of(&cfg);
 
     let game = [".minecraft", "minecraft"]
@@ -156,13 +163,14 @@ pub(crate) fn analyze(source: &mut Source, origin: &Path, root: &str) -> Result<
         let path = path.to_owned();
         // Metadados packwiz que o Prism grava em `<pasta>/.index/`.
         let (dir, file) = split_path(&path);
-        if let Some(folder) = dir.strip_suffix("/.index").or_else(|| (dir == ".index").then_some(""))
+        if let Some(folder) = dir
+            .strip_suffix("/.index")
+            .or_else(|| (dir == ".index").then_some(""))
             && entry.kind == EntryKind::File
         {
             if let Some(stem) = metafile_stem(&file) {
-                let text = String::from_utf8(source.read(&entry.name)?).map_err(|_| {
-                    Error::internal(format!("{path} não é texto"))
-                })?;
+                let text = String::from_utf8(source.read(&entry.name)?)
+                    .map_err(|_| Error::internal(format!("{path} não é texto")))?;
                 if let Ok(parsed) = Metafile::parse(&text)
                     && !parsed.value.filename.is_empty()
                     && crate::archive::unsafe_reason(&parsed.value.filename).is_none()
@@ -206,13 +214,17 @@ pub(crate) fn analyze(source: &mut Source, origin: &Path, root: &str) -> Result<
             review: None,
         });
     }
-    draft.excluded.extend(outside.into_iter().map(|(path, (is_dir, files))| ExcludedItem {
-        path,
-        is_dir,
-        files,
-        reason: ExcludedReason::OtherLauncher,
-        can_include: false,
-    }));
+    draft.excluded.extend(
+        outside
+            .into_iter()
+            .map(|(path, (is_dir, files))| ExcludedItem {
+                path,
+                is_dir,
+                files,
+                reason: ExcludedReason::OtherLauncher,
+                can_include: false,
+            }),
+    );
     Ok(draft)
 }
 
@@ -233,7 +245,9 @@ mod tests {
                 jvm_args: "-XX:+UseG1GC -Dx=\"y\"".into(),
             })
         );
-        let off = parse_cfg("OverrideMemory=false\nMaxMemAlloc=6144\nOverrideJavaArgs=false\nJvmArgs=-Xss4m\n");
+        let off = parse_cfg(
+            "OverrideMemory=false\nMaxMemAlloc=6144\nOverrideJavaArgs=false\nJvmArgs=-Xss4m\n",
+        );
         assert_eq!(profile_of(&off), None);
         assert_eq!(profile_of(&parse_cfg("MaxMemAlloc=100\n")), None);
     }

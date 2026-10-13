@@ -8,10 +8,11 @@ use crate::error::{Error, ImportErrorCode as Code, Result};
 /// nenhum; Quilt e `LiteLoader` recusados com o nome; mais de um recusado.
 pub(crate) fn check_loaders(loaders: &[(Loader, String)]) -> Result<()> {
     if loaders.len() > 1 {
-        return Err(
-            Error::new(Code::UnsupportedLoader, "o modpack declara mais de um loader")
-                .with_param("reason", "multiple"),
-        );
+        return Err(Error::new(
+            Code::UnsupportedLoader,
+            "o modpack declara mais de um loader",
+        )
+        .with_param("reason", "multiple"));
     }
     if let Some((loader, _)) = loaders.first()
         && matches!(loader, Loader::Quilt | Loader::LiteLoader)
@@ -41,7 +42,11 @@ pub(crate) fn manifest(
     }
     check_loaders(loaders)?;
     let name = name.trim();
-    let name = if name.is_empty() { fallback_name.trim() } else { name };
+    let name = if name.is_empty() {
+        fallback_name.trim()
+    } else {
+        name
+    };
     let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
     let mut manifest = PackManifest::new(&name, minecraft);
     for (loader, version) in loaders {
@@ -69,9 +74,10 @@ pub(crate) fn join(dir: &str, name: &str) -> String {
 
 /// Nome do arquivo sem a extensão (nome provisório do pack).
 pub(crate) fn stem(file_name: &str) -> String {
-    std::path::Path::new(file_name)
-        .file_stem()
-        .map_or_else(|| file_name.to_owned(), |stem| stem.to_string_lossy().into_owned())
+    std::path::Path::new(file_name).file_stem().map_or_else(
+        || file_name.to_owned(),
+        |stem| stem.to_string_lossy().into_owned(),
+    )
 }
 
 #[cfg(test)]
@@ -87,11 +93,8 @@ mod tests {
         let quilt = check_loaders(&[(Loader::Quilt, "0.26".into())]).unwrap_err();
         assert_eq!(quilt.code(), Code::UnsupportedLoader);
         assert_eq!(quilt.params()["loader"], "quilt");
-        let two = check_loaders(&[
-            (Loader::Forge, "1".into()),
-            (Loader::Fabric, "2".into()),
-        ])
-        .unwrap_err();
+        let two = check_loaders(&[(Loader::Forge, "1".into()), (Loader::Fabric, "2".into())])
+            .unwrap_err();
         assert_eq!(two.params()["reason"], "multiple");
     }
 

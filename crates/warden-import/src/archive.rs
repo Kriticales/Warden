@@ -61,7 +61,10 @@ pub fn unsafe_reason(name: &str) -> Option<&'static str> {
     if name.split('/').any(|segment| segment == "..") {
         return Some("parent");
     }
-    if name.chars().any(|c| c == '\0' || (c.is_control() && c != '\t')) {
+    if name
+        .chars()
+        .any(|c| c == '\0' || (c.is_control() && c != '\t'))
+    {
         return Some("control");
     }
     None
@@ -69,9 +72,12 @@ pub fn unsafe_reason(name: &str) -> Option<&'static str> {
 
 /// Recusa de caminho perigoso, com o caminho (relativo ao modpack) para a frase.
 pub(crate) fn unsafe_path(name: &str, reason: &str) -> Error {
-    Error::new(Code::UnsafePath, format!("caminho perigoso no modpack: {name}"))
-        .with_param("path", name)
-        .with_param("reason", reason)
+    Error::new(
+        Code::UnsafePath,
+        format!("caminho perigoso no modpack: {name}"),
+    )
+    .with_param("path", name)
+    .with_param("reason", reason)
 }
 
 fn unreadable(file_name: &str, reason: impl std::fmt::Display) -> Error {
@@ -153,7 +159,10 @@ impl Source {
             }
             total = total.saturating_add(entry.size());
             if total > MAX_TOTAL_BYTES {
-                return Err(too_large(&file_name, "conteúdo descompactado grande demais"));
+                return Err(too_large(
+                    &file_name,
+                    "conteúdo descompactado grande demais",
+                ));
             }
             index.insert(name, position);
         }
@@ -303,7 +312,10 @@ impl Source {
     /// Lê e interpreta um JSON da origem.
     ///
     /// Erros: os de [`Self::read`] e [`Code::Unreadable`] para JSON inválido.
-    pub(crate) fn read_json<T: for<'de> serde::Deserialize<'de>>(&mut self, name: &str) -> Result<T> {
+    pub(crate) fn read_json<T: for<'de> serde::Deserialize<'de>>(
+        &mut self,
+        name: &str,
+    ) -> Result<T> {
         let bytes = self.read(name)?;
         let file_name = self.file_name().to_owned();
         serde_json::from_slice(&bytes)
@@ -478,7 +490,10 @@ mod tests {
     fn zip_com_entrada_perigosa_e_recusado_inteiro() {
         let temp = tempfile::tempdir().unwrap();
         let path = temp.path().join("mau.zip");
-        zip_with(&path, &["overrides/config/a.toml", "overrides/../../fora.txt"]);
+        zip_with(
+            &path,
+            &["overrides/config/a.toml", "overrides/../../fora.txt"],
+        );
         let error = Source::open_zip(&path).unwrap_err();
         assert_eq!(error.code(), Code::UnsafePath);
         assert_eq!(error.params()["path"], "overrides/../../fora.txt");
@@ -508,10 +523,7 @@ mod tests {
             ]
         );
         assert_eq!(source.read("instance.cfg").unwrap(), b"x");
-        assert_eq!(
-            source.read("../x").unwrap_err().code(),
-            Code::UnsafePath
-        );
+        assert_eq!(source.read("../x").unwrap_err().code(), Code::UnsafePath);
     }
 
     #[test]
@@ -521,7 +533,11 @@ mod tests {
         fs::write(&path, b"nada de zip").unwrap();
         let error = Source::open_zip(&path).unwrap_err();
         assert_eq!(error.code(), Code::Unreadable);
-        assert!(!error.to_string().contains(&temp.path().display().to_string()));
+        assert!(
+            !error
+                .to_string()
+                .contains(&temp.path().display().to_string())
+        );
         assert!(error.to_string().contains("quebrado.mrpack"));
     }
 
@@ -537,7 +553,11 @@ mod tests {
         std::os::unix::fs::symlink(temp.path().join("fora"), root.join("link")).unwrap();
         let mut source = Source::open_dir(&root).unwrap();
         let entries = source.entries().unwrap();
-        assert!(entries.iter().any(|e| e.name == "link" && e.kind == EntryKind::Symlink));
+        assert!(
+            entries
+                .iter()
+                .any(|e| e.name == "link" && e.kind == EntryKind::Symlink)
+        );
         assert!(!entries.iter().any(|e| e.name.starts_with("link/")));
         assert!(source.read("link/segredo.txt").is_err());
     }

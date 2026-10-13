@@ -162,8 +162,11 @@ pub async fn apply(
 
     let result = async {
         // O conteúdo: arquivos do plano, os itens marcados e, se a pessoa quis, as preferências.
-        let mut files: BTreeMap<&str, &Content> =
-            plan.files.iter().map(|(path, content)| (path.as_str(), content)).collect();
+        let mut files: BTreeMap<&str, &Content> = plan
+            .files
+            .iter()
+            .map(|(path, content)| (path.as_str(), content))
+            .collect();
         for item in &request.include {
             if let Some(list) = plan.includable.get(item) {
                 for (path, content) in list {
@@ -205,12 +208,28 @@ pub async fn apply(
         let mut manifest = plan.manifest.clone();
         request.name.trim().clone_into(&mut manifest.name);
         write_file(&stage, "pack.toml", manifest.to_toml_string().as_bytes())?;
-        write_file(&stage, "index.toml", PackIndex::default().to_toml_string().as_bytes())?;
+        write_file(
+            &stage,
+            "index.toml",
+            PackIndex::default().to_toml_string().as_bytes(),
+        )?;
         write_file(&stage, ".gitattributes", GITATTRIBUTES_TEMPLATE.as_bytes())?;
-        write_file(&stage, ".packwizignore", packwizignore_template().as_bytes())?;
+        write_file(
+            &stage,
+            ".packwizignore",
+            packwizignore_template().as_bytes(),
+        )?;
         write_file(&stage, ".gitignore", gitignore_template().as_bytes())?;
-        write_file(&stage, ".warden/project.toml", project_document(id, plan)?.as_bytes())?;
-        write_file(&stage, "CHANGELOG.md", "# Histórico de versões\n".as_bytes())?;
+        write_file(
+            &stage,
+            ".warden/project.toml",
+            project_document(id, plan)?.as_bytes(),
+        )?;
+        write_file(
+            &stage,
+            "CHANGELOG.md",
+            "# Histórico de versões\n".as_bytes(),
+        )?;
         if cancel.is_cancelled() {
             return Err(cancelled());
         }
@@ -237,12 +256,15 @@ pub async fn apply(
             if cancel.is_cancelled() {
                 cancelled()
             } else {
-                Error::internal("a conferência do pack importado falhou").with_detail(error.to_string())
+                Error::internal("a conferência do pack importado falhou")
+                    .with_detail(error.to_string())
             }
         })?;
         if !report.is_conforming() {
-            return Err(Error::internal("o pack importado não passou na conferência do packwiz")
-                .with_detail(format!("{:?}", report.differences)));
+            return Err(
+                Error::internal("o pack importado não passou na conferência do packwiz")
+                    .with_detail(format!("{:?}", report.differences)),
+            );
         }
         if cancel.is_cancelled() {
             return Err(cancelled());

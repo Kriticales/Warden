@@ -8,9 +8,7 @@ use std::path::PathBuf;
 
 use warden_core::CancellationToken;
 use warden_instance::CaptureIgnore;
-use warden_packwiz::hygiene::{
-    FsEntry, FsKind, HygieneReason, PatternCategory, scan_entries,
-};
+use warden_packwiz::hygiene::{FsEntry, FsKind, HygieneReason, PatternCategory, scan_entries};
 use warden_packwiz::{Metafile, MetafileSource, PackManifest, Side, unique_metafile_stem};
 
 use crate::archive::{EntryKind, Source};
@@ -65,7 +63,12 @@ pub(crate) struct Draft {
 }
 
 impl Draft {
-    pub(crate) fn new(kind: SourceKind, origin: PathBuf, root: String, manifest: PackManifest) -> Self {
+    pub(crate) fn new(
+        kind: SourceKind,
+        origin: PathBuf,
+        root: String,
+        manifest: PackManifest,
+    ) -> Self {
         Self {
             kind,
             origin,
@@ -98,7 +101,11 @@ fn excluded_reason(reason: &HygieneReason) -> Option<ExcludedReason> {
 }
 
 fn covers(item: &str, is_dir: bool, path: &str) -> bool {
-    path == item || (is_dir && path.len() > item.len() && path.starts_with(item) && path.as_bytes()[item.len()] == b'/')
+    path == item
+        || (is_dir
+            && path.len() > item.len()
+            && path.starts_with(item)
+            && path.as_bytes()[item.len()] == b'/')
 }
 
 /// Higiene: separa o que não entra. Devolve os itens excluídos e, para os que a pessoa pode
@@ -106,10 +113,33 @@ fn covers(item: &str, is_dir: bool, path: &str) -> bool {
 /// Arquivos cobertos por cada item que a pessoa pode marcar para entrar.
 type Includable = BTreeMap<String, Vec<(String, Content)>>;
 
+/// O resultado da higiene: os itens que não entram, os que a pessoa pode marcar e as
+/// referências (pelo destino do arquivo) que caíram em lixo.
+struct Hygiene {
+    excluded: Vec<ExcludedItem>,
+    includable: Includable,
+    dropped_refs: HashSet<usize>,
+}
+
+/// Higiene sobre os arquivos e sobre o destino das referências (um `.mrpack` real lista em
+/// `files[]` um jar de `mods/.connector/temp/`). Referência só sai por lixo de verdade; item
+/// desconhecido na raiz não a tira.
 #[allow(clippy::too_many_lines)]
-fn hygiene(raw: &mut Vec<RawFile>) -> (Vec<ExcludedItem>, Includable) {
+fn hygiene(raw: &mut Vec<RawFile>, refs: &[String]) -> Hygiene {
     let mut entries: Vec<FsEntry> = Vec::new();
     let mut dirs = BTreeSet::new();
+    for path in refs {
+        let mut parent = path.as_str();
+        while let Some((up, _)) = parent.rsplit_once('/') {
+            dirs.insert(up.to_owned());
+            parent = up;
+        }
+        entries.push(FsEntry {
+            path: path.clone(),
+            kind: FsKind::File,
+            size: 0,
+        });
+    }
     for file in raw.iter() {
         let mut parent = file.path.as_str();
         while let Some((up, _)) = parent.rsplit_once('/') {
@@ -143,8 +173,9 @@ fn hygiene(raw: &mut Vec<RawFile>) -> (Vec<ExcludedItem>, Includable) {
         else {
             continue;
         };
-        let mut can_include =
-            reasons.iter().all(|reason| *reason == ExcludedReason::UnknownRoot);
+        let mut can_include = reasons
+            .iter()
+            .all(|reason| *reason == ExcludedReason::UnknownRoot);
         let mut reason = first;
         // Item desconhecido que a captura sempre ignora (§8.4) é dado de execução.
         if can_include
@@ -218,9 +249,23 @@ fn hygiene(raw: &mut Vec<RawFile>) -> (Vec<ExcludedItem>, Includable) {
         }
     }
     *raw = kept;
+    let mut dropped_refs = HashSet::new();
+    for (position, path) in refs.iter().enumerate() {
+        if let Some(item) = items
+            .iter_mut()
+            .find(|item| !item.can_include && covers(&item.path, item.is_dir, path))
+        {
+            item.files += 1;
+            dropped_refs.insert(position);
+        }
+    }
     items.retain(|item| item.files > 0);
     items.sort_by(|a, b| a.path.cmp(&b.path));
-    (items, includable)
+    Hygiene {
+        excluded: items,
+        includable,
+        dropped_refs,
+    }
 }
 
 fn is_loose_jar(path: &str) -> bool {
@@ -252,7 +297,9 @@ pub(crate) async fn finish(
         .iter()
         .map(|item| crate::common::join(&item.dir, &item.metafile.filename))
         .collect();
-    draft.raw.retain(|file| !reference_files.contains(&file.path));
+    draft
+        .raw
+        .retain(|file| !reference_files.contains(&file.path));
     // Só um arquivo por caminho (o último vence, como no launcher: client-overrides depois).
     let mut by_path: BTreeMap<String, RawFile> = BTreeMap::new();
     for file in draft.raw.drain(..) {
@@ -274,14 +321,34 @@ pub(crate) async fn finish(
             true
         }
     });
-    let (mut excluded, includable) = hygiene(&mut draft.raw);
-    excluded.extend(reserved_items.into_iter().map(|(path, (is_dir, files))| ExcludedItem {
-        path,
-        is_dir,
-        files,
-        reason: ExcludedReason::OtherLauncher,
-        can_include: false,
-    }));
+    let ref_paths: Vec<String> = draft
+        .references
+        .iter()
+        .map(|item| crate::common::join(&item.dir, &item.metafile.filename))
+        .collect();
+    let Hygiene {
+        mut excluded,
+        includable,
+        dropped_refs,
+    } = hygiene(&mut draft.raw, &ref_paths);
+    draft.references = draft
+        .references
+        .into_iter()
+        .enumerate()
+        .filter(|(position, _)| !dropped_refs.contains(position))
+        .map(|(_, item)| item)
+        .collect();
+    excluded.extend(
+        reserved_items
+            .into_iter()
+            .map(|(path, (is_dir, files))| ExcludedItem {
+                path,
+                is_dir,
+                files,
+                reason: ExcludedReason::OtherLauncher,
+                can_include: false,
+            }),
+    );
     excluded.append(&mut draft.excluded);
 
     // Jars soltos em mods/: pelo hash no Modrinth e na CurseForge.
@@ -384,7 +451,11 @@ pub(crate) async fn finish(
                 slug
             }
         };
-        let slug = if slug.is_empty() { "item".to_owned() } else { slug };
+        let slug = if slug.is_empty() {
+            "item".to_owned()
+        } else {
+            slug
+        };
         let stem = match &item.stem {
             Some(stem) if !taken.iter().any(|t| t.eq_ignore_ascii_case(stem)) => stem.clone(),
             _ => unique_metafile_stem(&slug, source, taken.iter().map(String::as_str)),
@@ -488,12 +559,24 @@ pub(crate) fn read_content(source: &mut Source, content: &Content) -> Result<Vec
 /// Caminhos que nenhum modpack pode gravar: os arquivos de controle e as pastas do Warden e do
 /// git (um `overrides/.git/hooks/…` executaria código no próximo commit).
 pub(crate) fn reserved(path: &str) -> bool {
-    let first = path.split('/').next().unwrap_or_default().to_ascii_lowercase();
+    let first = path
+        .split('/')
+        .next()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
     matches!(
         first.as_str(),
-        ".git" | ".warden" | "pack.toml" | "index.toml" | ".packwizignore" | ".gitignore"
-            | ".gitattributes" | "changelog.md"
-    ) || path.split('/').any(|segment| segment.eq_ignore_ascii_case(".git"))
+        ".git"
+            | ".warden"
+            | "pack.toml"
+            | "index.toml"
+            | ".packwizignore"
+            | ".gitignore"
+            | ".gitattributes"
+            | "changelog.md"
+    ) || path
+        .split('/')
+        .any(|segment| segment.eq_ignore_ascii_case(".git"))
 }
 
 #[cfg(test)]
@@ -528,7 +611,20 @@ mod tests {
             raw("server-overrides/server.properties"),
             raw("options.txt"),
         ];
-        let (excluded, includable) = hygiene(&mut files);
+        let Hygiene {
+            excluded,
+            includable,
+            dropped_refs,
+        } = hygiene(
+            &mut files,
+            &[
+                "mods/.connector/temp/x$y.jar".to_owned(),
+                "mods/create.jar".to_owned(),
+                "cache/z.jar".to_owned(),
+            ],
+        );
+        // Referência em lixo sai; em pasta desconhecida, fica.
+        assert_eq!(dropped_refs, HashSet::from([0]));
         let kept: Vec<&str> = files.iter().map(|f| f.path.as_str()).collect();
         assert_eq!(
             kept,
@@ -538,13 +634,19 @@ mod tests {
                 "options.txt"
             ]
         );
-        let by_path: BTreeMap<&str, &ExcludedItem> =
-            excluded.iter().map(|item| (item.path.as_str(), item)).collect();
+        let by_path: BTreeMap<&str, &ExcludedItem> = excluded
+            .iter()
+            .map(|item| (item.path.as_str(), item))
+            .collect();
         assert_eq!(by_path[".mixin.out"].files, 2);
         assert_eq!(by_path[".mixin.out"].reason, ExcludedReason::Runtime);
         assert!(!by_path[".mixin.out"].can_include);
-        assert_eq!(by_path["config/create-client-1.toml.bak"].reason, ExcludedReason::Junk);
+        assert_eq!(
+            by_path["config/create-client-1.toml.bak"].reason,
+            ExcludedReason::Junk
+        );
         assert_eq!(by_path["mods/.connector"].reason, ExcludedReason::Runtime);
+        assert_eq!(by_path["mods/.connector"].files, 2);
         assert_eq!(by_path["cache"].reason, ExcludedReason::UnknownRoot);
         assert!(by_path["cache"].can_include);
         assert!(by_path["emi.json"].can_include);
