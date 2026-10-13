@@ -8,7 +8,7 @@ import type { ComponentType } from 'react';
 
 import type { DiagnosticsReport, PackId } from '../../lib/ipc/bindings';
 import { FindingsBlock } from './components/FindingsBlock';
-import { LastCrashBlock } from './crash/LastCrashBlock';
+import { CrashesBlock } from './crashes/CrashesBlock';
 
 export interface ProblemsBlockProps {
   packId: PackId;
@@ -27,7 +27,8 @@ export interface ProblemsBlock {
 /** Registro acréscimo-apenas: uma linha por bloco. */
 export const problemsBlocks: readonly ProblemsBlock[] = [
   { id: 'findings', order: 200, component: FindingsBlock },
-  { id: 'last-crash', order: 300, component: LastCrashBlock },
+  // D-06: a lista de Travamentos, no lugar do "Último travamento" da D-03.
+  { id: 'crashes', order: 300, component: CrashesBlock },
 ];
 
 export function orderedProblemsBlocks(

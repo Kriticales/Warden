@@ -220,22 +220,6 @@ describe('seção Problemas (T14)', () => {
     expect(screen.getByRole('heading', { name: 'Nenhum problema encontrado' })).toBeDefined();
     expect(within(sectionMenu()).queryByLabelText(/problema/)).toBeNull();
   });
-
-  it('"Último travamento" leva ao resultado do teste que travou', async () => {
-    const crashed = makeSession({ outcome: 'crashed', exitCode: 255 });
-    const { url } = setup({
-      test_sessions_list: () => [crashed],
-      diagnostics_crash_get: () => makeDiagnosis(),
-    });
-    await openProblems(url);
-    const block = await screen.findByRole('region', { name: 'Último travamento' });
-    expect(
-      await within(block).findByText('Waystones precisa de balm, que não está no pack'),
-    ).toBeDefined();
-    expect(
-      within(block).getByRole('link', { name: 'Ver o que causou' }).getAttribute('href'),
-    ).toContain(`sessao=${crashed.id}`);
-  });
 });
 
 describe('marcas na lista de Mods (T06)', () => {

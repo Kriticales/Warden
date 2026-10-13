@@ -1,0 +1,18 @@
+/* Travamentos na seção Problemas (D-06). Só o que não existe em `design/system/components.css`
+   (`.table`, `.status`, `.group-title`). */
+.diag-crashes__status {
+  /* "Não voltou a acontecer desde a 1.4.1" quebra a linha em vez de alargar a tabela. */
+  white-space: normal;
+}
+.diag-crashes__actions {
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-width: 150px;
+}
+.diag-crashes__occurrences {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
