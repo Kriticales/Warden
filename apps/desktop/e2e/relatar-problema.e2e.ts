@@ -266,8 +266,9 @@ describe('Relatar problema', () => {
     const button = $('[data-testid="report-button"]');
     await button.click();
     await dialog().waitForDisplayed();
-    // A pré-visualização chega depois e aumenta o diálogo: clicar antes disso pode errar o botão.
-    await previewBody().waitForDisplayed();
+    // O que o Warden coletou chega depois e mexe na altura do diálogo: clicar antes disso pode
+    // errar o botão.
+    await waitForPreview();
     await $('button=Cancelar').click();
     await dialog().waitForDisplayed({ reverse: true });
     await browser.waitUntil(async () => (await focused()) === 'report-button', {
