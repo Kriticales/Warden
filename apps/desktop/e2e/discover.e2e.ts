@@ -30,9 +30,10 @@ import {
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
-import { Key } from 'webdriverio';
+import { type ChainablePromiseElement, Key } from 'webdriverio';
 
 import { CHAVE_BOA } from './mock-server/curseforge';
+import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -117,6 +118,76 @@ async function fullText(selector: string): Promise<string> {
   return browser.execute((sel) => document.querySelector(sel)?.textContent ?? '', selector);
 }
 
+/**
+ * Espera todas as imagens da pré-visualização terminarem (carregadas ou com erro).
+ *
+ * A descrição e a galeria do Modrinth trazem imagens do CDN dele (internet), com
+ * `loading="lazy"` e sem tamanho reservado. O clique do WebDriver vai para um ponto da tela: se
+ * uma imagem acima do alvo chega entre a rolagem e o clique, o conteúdo desce e o clique cai em
+ * outro lugar (visto na descrição do Sodium, que empurrou a galeria 200 px). Aqui as imagens são
+ * pedidas todas de uma vez e o teste só clica com o layout parado.
+ */
+async function settlePreviewImages(): Promise<void> {
+  await browser.waitUntil(
+    async () =>
+      browser.execute(() => {
+        const images = Array.from(
+          document.querySelectorAll<HTMLImageElement>('aside.disc__preview img'),
+        );
+        for (const image of images) image.loading = 'eager';
+        return images.every((image) => image.complete);
+      }),
+    { timeout: 30_000, timeoutMsg: 'as imagens da pré-visualização não terminaram de carregar' },
+  );
+}
+
+/**
+ * Clica num elemento da pré-visualização com as imagens paradas, o elemento no meio da coluna
+ * e a posição dele igual em duas leituras seguidas (uma seção que termina de carregar acima dele
+ * também empurra o conteúdo).
+ */
+async function clickInPreview(element: ChainablePromiseElement): Promise<void> {
+  await settlePreviewImages();
+  const target = await element.getElement();
+  let last = '';
+  await browser.waitUntil(
+    async () => {
+      const now = await browser.execute((node) => {
+        node.scrollIntoView({ block: 'center' });
+        const rect = node.getBoundingClientRect();
+        return `${String(rect.x)},${String(rect.y)}`;
+      }, target);
+      const stable = now === last;
+      last = now;
+      return stable;
+    },
+    { interval: 150, timeoutMsg: 'o elemento da pré-visualização não parou no lugar' },
+  );
+  await element.click();
+}
+
+/**
+ * Abre a linha de uma versão na pré-visualização e espera o `<details>` aberto.
+ *
+ * Antes, fecha os avisos: eles ficam fixos no canto de baixo à direita, por cima da coluna da
+ * pré-visualização, e o clique que cai num aviso é interceptado. A linha vai para o meio da
+ * coluna, longe do canto dos avisos e da barra de status. Só depois de a linha estar aberta o
+ * teste confere o pedido das notas: um clique que não abriu a linha falha com esse motivo.
+ */
+async function openVersion(summary: ChainablePromiseElement): Promise<void> {
+  await dismissToasts();
+  await $('li.toast').waitForExist({ reverse: true });
+  await clickInPreview(summary);
+  await browser.waitUntil(
+    async () =>
+      browser.execute(
+        (element) => element.closest('details')?.open === true,
+        await summary.getElement(),
+      ),
+    { timeoutMsg: 'a linha da versão não abriu' },
+  );
+}
+
 /** Todos os arquivos de uma pasta, recursivamente (a pasta pode nem existir). */
 function walk(dir: string): string[] {
   try {
@@ -161,6 +232,11 @@ describe('Descoberta (P1-16)', () => {
     await $('button=Abrir pack').click();
     await $('h1=Fixture Fabric').waitForDisplayed({ timeout: 60_000 });
     await $('tr.modrow*=Lithium').waitForDisplayed({ timeout: 30_000 });
+    // O aviso de que o pack entrou em Meus packs chega logo depois da lista e fica 6 s no canto
+    // de baixo à direita, onde a pré-visualização mostra as versões: fechado aqui.
+    await $('li.toast*=está em Meus packs').waitForDisplayed();
+    await dismissToasts();
+    await $('li.toast').waitForExist({ reverse: true });
     searchesBefore = (await mockRequests()).filter((line) =>
       line.includes('/modrinth/v2/search'),
     ).length;
@@ -205,8 +281,11 @@ describe('Descoberta (P1-16)', () => {
     // abaixo, com o servidor de fixtures.)
     const thumb = $('aside.disc__preview .gallery .gallery__item');
     await thumb.waitForDisplayed({ timeout: 30_000 });
-    await thumb.click();
-    await $('[role="dialog"]').$('span*=Imagem 1 de 6').waitForDisplayed({ timeout: 15_000 });
+    await clickInPreview(thumb);
+    // O diálogo monta depois do clique: o `$` encadeado não espera o pai aparecer.
+    const viewer = $('[role="dialog"]');
+    await viewer.waitForDisplayed({ timeout: 15_000 });
+    await viewer.$('span*=Imagem 1 de 6').waitForDisplayed({ timeout: 15_000 });
     await browser.keys('Escape');
     await $('[role="dialog"]').waitForExist({ reverse: true });
 
@@ -218,7 +297,7 @@ describe('Descoberta (P1-16)', () => {
     const firstVersion = $('aside.disc__preview ul.versions li:nth-child(2) summary');
     await firstVersion.waitForDisplayed({ timeout: 30_000 });
     expect(await asked()).toBe(askedBefore);
-    await firstVersion.click();
+    await openVersion(firstVersion);
     await browser.waitUntil(async () => (await asked()) > askedBefore, {
       timeout: 30_000,
       timeoutMsg: 'as notas não foram pedidas ao abrir a linha',
@@ -249,7 +328,7 @@ describe('Descoberta (P1-16)', () => {
     const thumbSrc = await $('aside.disc__preview .gallery .gallery__item img').getAttribute('src');
     expect(thumbSrc).toMatch(/warden-img/);
     expect(thumbSrc).not.toContain('curseforge-img');
-    await thumb.click();
+    await clickInPreview(thumb);
     const big = $('[role="dialog"] img.gallery__big');
     await big.waitForDisplayed({ timeout: 15_000 });
     await browser.waitUntil(
@@ -272,7 +351,7 @@ describe('Descoberta (P1-16)', () => {
     const firstVersion = $('aside.disc__preview ul.versions summary');
     await firstVersion.waitForDisplayed({ timeout: 30_000 });
     expect(await changelogs()).toBe(before);
-    await firstVersion.click();
+    await openVersion(firstVersion);
     await browser.waitUntil(async () => (await changelogs()) > before, {
       timeout: 30_000,
       timeoutMsg: 'as notas da CurseForge não foram pedidas ao abrir a linha',
