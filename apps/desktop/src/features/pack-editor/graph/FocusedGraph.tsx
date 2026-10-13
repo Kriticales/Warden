@@ -151,7 +151,7 @@ function ColumnWithGutter({
           ) : null}
         </div>
       ) : (
-        <ul className="gcol" style={{ height }}>
+        <ul className="gcol" style={{ height }} aria-label={captionOf(column.level, t)}>
           {column.nodes.map((node) => (
             <li
               key={node.key}
