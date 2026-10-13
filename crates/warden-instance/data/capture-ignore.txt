@@ -1,0 +1,68 @@
+# Sempre ignorados na captura do teste (ARCHITECTURE §8.4; SPEC T15; decisão D21).
+#
+# Formato gitignore, com a semântica do .packwizignore (warden-packwiz): caminhos relativos à
+# pasta do jogo da instância, com "/". Um "/" no começo ancora na raiz; sem ele, o padrão vale
+# em qualquer pasta. Pastas vão sem "/" no fim (o padrão vale para a pasta e tudo dentro
+# dela); uma pasta que casa não é percorrida. Testes em src/baseline.rs.
+
+# Registros, travamentos e dados do jogo.
+/logs
+/crash-reports
+/debug
+/screenshots
+/stats
+/resources
+/natives
+/bin
+/usercache.json
+/usernamecache.json
+/hotbar.nbt
+/command_history.txt
+/realms_persistence.json
+hs_err_pid*.log
+replay_pid*.log
+*.heapdump
+
+# Mundos: só as configs de mundo (serverconfig) e os datapacks (informativo) interessam.
+/saves/*/*
+!/saves/*/serverconfig
+!/saves/*/datapacks
+
+# Caches do loader e dos mods.
+/.fabric
+/.quilt
+/.mixin.out
+/.cache
+/local
+/mods/.connector
+/modernfix
+
+# KubeJS e ProbeJS: exportações, tipagens, pastas de editor e o token do servidor web.
+/kubejs/exported
+/kubejs/probe
+/kubejs/config/web_server.json
+.probe
+.vscode
+/local/kubejs
+
+# Minimapas.
+/journeymap/data
+/XaeroWaypoints
+/XaeroWorldMap
+/xaero
+
+# Perfis e arquivos temporários do spark.
+/config/spark/*.sparkprofile
+/config/spark/*.sparkheap
+/config/spark/tmp*
+
+# Instalador do packwiz.
+packwiz.json
+packwiz-installer*.jar
+
+# Cópias de segurança e temporários (os *-N.toml.bak do NeoForge caem em *.bak).
+*.bak
+*.old
+*.tmp
+*.warden-tmp
+servers.dat_old

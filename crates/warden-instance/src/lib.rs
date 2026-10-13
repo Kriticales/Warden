@@ -16,6 +16,10 @@
 //! - [`OptionalChoices`], as escolhas dos opcionais: `state/optional-choices.json`.
 //! - [`player_tools`]: o que das ferramentas do jogador (spark, Crash Assistant) entra em cada
 //!   tipo de teste (D16).
+//! - [`take_baseline`], [`capture_after_exit`] e [`capture_view`]: "O que mudou durante o
+//!   teste" (T15, C-03): a linha de base antes do jogo, a comparação depois, o conflito de três
+//!   vias com o pack e o que gravar no pack ([`plan_apply`]); a lista de sempre ignorados é
+//!   `data/capture-ignore.txt` ([`CaptureIgnore`]).
 //! - [`accept_manual_file`]: download manual de um mod bloqueado da CurseForge (T20).
 //! - [`ManualDownloads`], [`provide_file`] e [`DownloadsWatch`]: a lista da T20 com o estado de
 //!   cada item, o arquivo escolhido conferido pelo hash antes de qualquer cópia e o vigia da
@@ -25,7 +29,9 @@
 //! (P1-01); esta crate não abre o jogo nem instala o loader (é o motor da `warden-launcher`,
 //! que recebe o [`GameRequirement`]).
 
+mod baseline;
 mod blocked;
+mod capture;
 mod downloads;
 mod error;
 mod manifest;
@@ -33,8 +39,18 @@ mod manual_downloads;
 mod materialize;
 mod optional_choices;
 pub mod player_tools;
+mod three_way;
 
+pub use baseline::{
+    BASELINE_DIR, Baseline, CaptureIgnore, FileState, MAX_TEXT_BYTES, PackStart, take_baseline,
+};
 pub use blocked::{BlockedFile, accept_manual_file};
+pub use capture::{
+    ApplyPlan, ApplyRequest, CAPTURE_FILE, Capture, CaptureError, CaptureGroup, CaptureOutcome,
+    CaptureStatus, CapturedFile, ChangeKind, FileDecision, OptionChange, Resolution,
+    VOLATILE_OPTIONS, ValueChange, capture_after_exit, discard, finish_apply, load_capture,
+    plan_apply, set_option_lines,
+};
 pub use downloads::{
     CachedFile, DownloadCache, Fetched, FileOrigin, INCOMING_DIR, INDEX_FILE, OriginSource,
     STALE_PART_AGE,
@@ -55,6 +71,9 @@ pub use materialize::{
 };
 pub use optional_choices::{OPTIONAL_CHOICES_FILE, OptionalChoices};
 pub use player_tools::PlayerToolsMode;
+pub use three_way::{
+    CaptureTexts, CaptureView, FileView, PackConflict, capture_texts, capture_view, merge,
+};
 
 /// Pastas temporárias dos testes: dentro de `WARDEN_DATA_ROOT` quando definida (ADR-0053),
 /// senão na pasta temporária do sistema.
