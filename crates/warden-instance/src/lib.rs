@@ -57,7 +57,7 @@ pub use capture::{
     CaptureValue, CapturedFile, VOLATILE_OPTIONS, capture_after_exit, discard, finish_apply,
     load_capture, plan_apply, set_option_lines,
 };
-pub use clean_instance::{CLEAN_PREFIX, CleanInstance, KEPT_DIR};
+pub use clean_instance::{CLEAN_PREFIX, CleanInstance, KEPT_DIR, keep_logs};
 pub use downloads::{
     CachedFile, DownloadCache, Fetched, FileOrigin, INCOMING_DIR, INDEX_FILE, OriginSource,
     STALE_PART_AGE,

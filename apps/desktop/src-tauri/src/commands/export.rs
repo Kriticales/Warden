@@ -44,7 +44,7 @@ pub(super) fn pack_path(state: &AppState, id: PackId) -> Result<PathBuf, AppErro
         .map_err(|error| AppError::from_domain(&error))
 }
 
-pub(super) fn packwiz(state: &AppState) -> Result<Packwiz, AppError> {
+pub(crate) fn packwiz(state: &AppState) -> Result<Packwiz, AppError> {
     let binary = Packwiz::locate_binary().map_err(|error| AppError::from_domain(&error))?;
     Ok(Packwiz::new(
         binary,

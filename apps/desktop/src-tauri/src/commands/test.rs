@@ -28,8 +28,8 @@ use crate::error::{AppError, AppErrorCode};
 use crate::events::{GameQuitRequested, GameState, OperationEvent};
 use crate::state::AppState;
 use crate::test_session::{
-    ConsoleLine, QUIT_WAIT, TestRequest, TestSessionSummary, TestSink, read_output_log, run_test,
-    session_dir, sessions_of,
+    ConsoleLine, QUIT_WAIT, TestMode, TestRequest, TestSessionSummary, TestSink, read_output_log,
+    run_test, session_dir, sessions_of,
 };
 
 /// Em build de debug, o E2E troca o diálogo de salvar (que o `WebDriver` não alcança) pelo
@@ -213,7 +213,13 @@ pub(crate) async fn test_artifact_open(
         if !known {
             return Err(invalid());
         }
-        let game_dir = InstanceDirs::for_pack(&paths, pack_id).game_dir;
+        // "Como o jogador recebe" (L-07): a instância foi apagada; os registros ficaram na
+        // sessão.
+        let game_dir = if summary.mode == TestMode::AsPlayer {
+            dir.path().join(warden_instance::KEPT_DIR)
+        } else {
+            InstanceDirs::for_pack(&paths, pack_id).game_dir
+        };
         let file = warden_core::resolve_inside(&game_dir, &path).map_err(|_| invalid())?;
         if !file.is_file() {
             return Err(invalid());

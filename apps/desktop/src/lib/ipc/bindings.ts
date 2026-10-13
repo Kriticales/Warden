@@ -479,6 +479,27 @@ export const commands = {
 	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
 	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
 	/**
+	 *  O resultado do "como o jogador recebe" de uma sessão (`None`: sessão de outro modo).
+	 *  Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	testPlayerReport: (packId: PackId, sessionId: string) => typedError<{
+	/**  De onde veio. */
+	source: PlayerSource,
+	/**  `version` do `pack.toml` recebido. */
+	receivedVersion: string | null,
+	/**
+	 *  O GitHub entregou um `pack.toml` diferente do da última publicação (cache de até 5
+	 *  minutos do `raw.githubusercontent.com`).
+	 */
+	outdated: boolean,
+	/**  Arquivos que chegaram à pasta do jogo. */
+	receivedFiles: number,
+	/**  O Crash Assistant chegou ao jogador (`None`: o pack não marca o Crash Assistant). */
+	crashAssistant: boolean | null,
+	/**  As diferenças, na ordem de importância. */
+	items: PlayerItem[],
+} | null, AppError>(__TAURI_INVOKE("test_player_report", { packId, sessionId })),
+	/**
 	 *  O que a geração vai fazer: contagens, mods bloqueados com a troca possível e arquivos de
 	 *  terceiros que pedem confirmação. Só consulta as APIs; não baixa nem grava.
 	 */
@@ -913,7 +934,24 @@ export type AppErrorCode =
  *  Aviso: a versão do Minecraft do pack não aceita entrar direto no mundo; o jogo abre no
  *  menu (`params.minecraft`; L-08).
  */
-"TEST_QUICK_PLAY_UNSUPPORTED";
+"TEST_QUICK_PLAY_UNSUPPORTED" | 
+/**
+ *  Aviso: o pack ainda não foi publicado (ou o repositório é privado); o "Testar como o
+ *  jogador recebe" usa o pack exportado agora, servido só neste computador (L-07).
+ */
+"TEST_PLAYER_LOCAL_SOURCE" | 
+/**
+ *  Aviso: o link entregou um `pack.toml` diferente do da última publicação (o GitHub
+ *  guarda o arquivo por até 5 minutos; L-07).
+ */
+"TEST_PLAYER_OLD_VERSION" | 
+/**  O link do pack não respondeu (`params.status`: o código HTTP, vazio sem resposta; L-07). */
+"TEST_PLAYER_LINK_UNREACHABLE" | 
+/**
+ *  Mods da CurseForge bloqueados para apps de terceiros que o Warden não conseguiu pôr no
+ *  lugar do jogador (`params.count`, `params.names`; L-07).
+ */
+"TEST_PLAYER_BLOCKED";
 
 /**  Versão e commit do app em execução. */
 export type AppInfo = {
@@ -2871,7 +2909,14 @@ export type InstanceErrorCode =
 /**  O arquivo escolhido para um download manual não é o esperado (hash diferente). */
 "MANUAL_FILE_MISMATCH" | 
 /**  O cache de downloads (`cache/downloads/index.sqlite`) não pôde ser usado. */
-"CACHE_UNAVAILABLE";
+"CACHE_UNAVAILABLE" | 
+/**
+ *  O packwiz-installer (ou o bootstrap) não pôde ser baixado ou veio com outro hash
+ *  (L-07).
+ */
+"INSTALLER_UNAVAILABLE" | 
+/**  O instalador do jogador falhou ao instalar o pack pelo link (L-07). */
+"PLAYER_INSTALL_FAILED";
 
 /**  O inventário do pack. */
 export type Inventory = {
@@ -4312,6 +4357,69 @@ export type Platform =
 /**  Outro (não suportado). */
 "other";
 
+/**  Uma linha do resultado. */
+export type PlayerItem = {
+	/**  O que aconteceu. */
+	kind: PlayerItemKind,
+	/**  Nome do item (o `name` do metafile ou o nome do arquivo). */
+	name: string,
+	/**  Caminho do arquivo na pasta do jogo (`mods/sodium.jar`). */
+	path: string,
+	/**  Opcionais: se vem marcado para o jogador. */
+	defaultOn: boolean | null,
+};
+
+/**  Uma diferença entre o que o jogador recebeu e o pack. */
+export type PlayerItemKind = 
+/**
+ *  Mod da CurseForge que o autor não deixa outros apps baixarem: não baixa sozinho para os
+ *  jogadores (eles precisam baixar à mão).
+ */
+"blocked" | 
+/**  Está no pack que o jogador recebeu, mas o download falhou. */
+"notDownloaded" | 
+/**  Está no pack, mas não no que o jogador recebeu (versão publicada mais antiga). */
+"notPublished" | 
+/**  O pack marca para o jogador, mas o que ele recebeu marca só para o servidor. */
+"serverOnly" | 
+/**  Opcional: o jogador escolhe na instalação. */
+"optional" | 
+/**  O jogador recebe, mas não está mais no pack. */
+"extra";
+
+/**
+ *  O resultado do "Testar como o jogador recebe", gravado na sessão (`player` no
+ *  `session.json`).
+ */
+export type PlayerReport = {
+	/**  De onde veio. */
+	source: PlayerSource,
+	/**  `version` do `pack.toml` recebido. */
+	receivedVersion: string | null,
+	/**
+	 *  O GitHub entregou um `pack.toml` diferente do da última publicação (cache de até 5
+	 *  minutos do `raw.githubusercontent.com`).
+	 */
+	outdated: boolean,
+	/**  Arquivos que chegaram à pasta do jogo. */
+	receivedFiles: number,
+	/**  O Crash Assistant chegou ao jogador (`None`: o pack não marca o Crash Assistant). */
+	crashAssistant: boolean | null,
+	/**  As diferenças, na ordem de importância. */
+	items: PlayerItem[],
+};
+
+/**  De onde o jogador recebeu o pack. */
+export type PlayerSource = 
+/**  O link do pack publicado no GitHub. */
+{ kind: "published"; 
+/**  O link (`…/main/pack.toml`). */
+link: string; 
+/**  A última versão publicada. */
+version: string | null } | 
+/**  O pack exportado agora, servido só neste computador (ainda não publicado). */
+{ kind: "local" };
+
 /**  Avisos anteriores à exportação. */
 export type Preflight = {
 	/**  Arquivos suspeitos encontrados na pasta, inclusive fora do índice. */
@@ -5503,8 +5611,8 @@ export type TestMemory =
 mb: number };
 
 /**
- *  Modo do teste (ARCHITECTURE §4.1). Só o normal existe nesta versão; os outros chegam com
- *  as tarefas donas (L-07, L-12, L-09).
+ *  Modo do teste (ARCHITECTURE §4.1). Existem o normal e o "como o jogador recebe" (L-07);
+ *  os outros chegam com as tarefas donas (L-12, L-09).
  */
 export type TestMode = 
 /**  Teste normal. */

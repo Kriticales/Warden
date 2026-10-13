@@ -5,7 +5,7 @@
 //! começa vazia (sem os mundos e sem as configs da instância de trabalho), recebe o pack pelo
 //! instalador do jogador e é apagada no fim do teste. Antes de apagar, os registros do jogo
 //! (`logs/`, `crash-reports/` e `hs_err_pid*.log`) são copiados para a pasta da sessão
-//! ([`KEPT_DIR`]), que fica com as outras sessões do pack.
+//! ([`KEPT_DIR`], por [`keep_logs`]), que fica com as outras sessões do pack.
 //!
 //! Cada teste recria a pasta do zero: sobras de um teste interrompido (o Warden fechou no meio)
 //! são apagadas na criação da próxima.
@@ -84,33 +84,6 @@ impl CleanInstance {
         self.root.join("work")
     }
 
-    /// Copia os registros do jogo para `<sessão>/instancia-do-jogador/`. Devolve os caminhos
-    /// copiados, relativos à pasta do jogo (com `/`).
-    ///
-    /// Erros: os de disco.
-    pub fn keep_logs(&self, session_dir: &Path) -> Result<Vec<String>> {
-        let target = session_dir.join(KEPT_DIR);
-        let game = &self.dirs.game_dir;
-        let mut kept = Vec::new();
-        for folder in KEPT_FOLDERS {
-            copy_tree(&game.join(folder), &target.join(folder), folder, &mut kept)?;
-        }
-        if let Ok(entries) = fs::read_dir(game) {
-            for entry in entries.flatten() {
-                let name = entry.file_name().to_string_lossy().into_owned();
-                let log = Path::new(&name)
-                    .extension()
-                    .is_some_and(|extension| extension.eq_ignore_ascii_case("log"));
-                if name.starts_with("hs_err_pid") && log && entry.path().is_file() {
-                    copy_file(&entry.path(), &target.join(&name))?;
-                    kept.push(name);
-                }
-            }
-        }
-        kept.sort();
-        Ok(kept)
-    }
-
     /// Apaga a instância limpa.
     ///
     /// Erros: os de disco (a pasta pode ficar; a próxima criação tenta de novo).
@@ -143,6 +116,34 @@ fn shown(path: &Path) -> PathBuf {
             .fold(PathBuf::from("cache/tmp"), |out, part| out.join(part)),
         None => PathBuf::from(path.file_name().unwrap_or_default()),
     }
+}
+
+/// Copia os registros do jogo (da pasta do jogo da instância limpa) para
+/// `<sessão>/instancia-do-jogador/`. Devolve os caminhos
+/// copiados, relativos à pasta do jogo (com `/`).
+///
+/// Erros: os de disco.
+pub fn keep_logs(game_dir: &Path, session_dir: &Path) -> Result<Vec<String>> {
+    let target = session_dir.join(KEPT_DIR);
+    let game = game_dir;
+    let mut kept = Vec::new();
+    for folder in KEPT_FOLDERS {
+        copy_tree(&game.join(folder), &target.join(folder), folder, &mut kept)?;
+    }
+    if let Ok(entries) = fs::read_dir(game) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let log = Path::new(&name)
+                .extension()
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("log"));
+            if name.starts_with("hs_err_pid") && log && entry.path().is_file() {
+                copy_file(&entry.path(), &target.join(&name))?;
+                kept.push(name);
+            }
+        }
+    }
+    kept.sort();
+    Ok(kept)
 }
 
 fn remove_dir(dir: &Path) -> Result<()> {
@@ -272,7 +273,7 @@ mod tests {
         fs::create_dir_all(game.join("mods")).unwrap();
         fs::write(game.join("mods/a.jar"), "jar").unwrap();
         let session = tmp.path().join("sessao");
-        let kept = clean.keep_logs(&session).unwrap();
+        let kept = keep_logs(game, &session).unwrap();
         assert_eq!(
             kept,
             [
