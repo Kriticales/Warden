@@ -74,8 +74,9 @@ function createReport(center: InventoryItem = CREATE): FocusReport {
       node(SLICE, 1),
     ],
     edges: [
-      edge(CREATE.path, JEI.path, 'optional'),
-      edge(CREATE.path, MISSING.key, 'required'),
+      // `*` (qualquer versão) não aparece; uma faixa de verdade, sim.
+      edge(CREATE.path, JEI.path, 'optional', { range: '*' }),
+      edge(CREATE.path, MISSING.key, 'required', { range: '[0.5,)' }),
       edge(CRAFTS.path, CREATE.path, 'required'),
       edge(RIVAL.path, CREATE.path, 'breaks'),
       edge(SLICE.path, CREATE.path, 'inferred', { note: 'o log pediu o Create' }),
@@ -166,7 +167,7 @@ describe('modo Grafo de Mods (D-11)', () => {
       .map((item) => item.textContent);
     expect(lines).toEqual([
       'Create usa JEI se estiver no pack · opcional',
-      'Create precisa de ponder · obrigatória · não está no pack',
+      'Create precisa de ponder · obrigatória · não está no pack · [0.5,)',
       'Crafts and Additions precisa de Create · obrigatória',
       'Rival é incompatível com Create · incompatível',
       'Slice and Dice parece precisar de Create · inferidao log pediu o Create',
@@ -341,7 +342,7 @@ describe('modo Grafo de Mods (D-11)', () => {
     ).toBeDefined();
     const list = within(dialog).getByRole('region', { name: 'Lista em texto' });
     expect(list.textContent).toContain('Crafts and Additions precisa de Create');
-    expect(list.textContent).toContain('Kotlin for Forge sem ligações · biblioteca');
+    expect(list.textContent).toContain('Kotlin for Forge não precisa de outro mod · biblioteca');
     expect(await axePage(document.body)).toHaveNoViolations();
     await user.click(within(dialog).getByRole('button', { name: 'Fechar' }));
     await waitFor(() => {

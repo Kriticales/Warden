@@ -128,7 +128,7 @@ function WholeBody({ report, onOpen }: { report: FocusReport; onOpen: (path: str
               </Button>{' '}
               <span className="t-3">
                 {needs.length === 0
-                  ? t('inteiro.semLigacoes')
+                  ? t('inteiro.naoPrecisa')
                   : t('inteiro.precisaDe', {
                       nomes: new Intl.ListFormat('pt-BR', { type: 'conjunction' }).format(needs),
                     })}

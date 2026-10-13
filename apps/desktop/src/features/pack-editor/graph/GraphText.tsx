@@ -143,7 +143,10 @@ function EdgeLine({
         <span className="t-3"> · {t('ligacoes.dentroDe', { nome: to })}</span>
       ) : null}
       {missing ? <span className="t-danger"> · {t('ligacoes.falta')}</span> : null}
-      {edge.range ? <span className="t-3 t-mono"> · {edge.range}</span> : null}
+      {/* `*` é "qualquer versão": não diz nada. */}
+      {edge.range && edge.range !== '*' ? (
+        <span className="t-3 t-mono"> · {edge.range}</span>
+      ) : null}
       {edge.note ? <div className="t-xs t-3">{edge.note}</div> : null}
     </li>
   );

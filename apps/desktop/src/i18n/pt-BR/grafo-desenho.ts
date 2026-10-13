@@ -96,7 +96,7 @@ export const grafoDesenho = {
     regiaoDesenho: 'Desenho do pack inteiro (a mesma informação está na lista em texto)',
     lista: 'Lista em texto',
     precisaDe: 'precisa de {{nomes}}',
-    semLigacoes: 'sem ligações',
+    naoPrecisa: 'não precisa de outro mod',
   },
   verNoGrafo: 'Ver no grafo',
 } as const;

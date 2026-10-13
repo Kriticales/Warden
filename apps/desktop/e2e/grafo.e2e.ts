@@ -152,9 +152,14 @@ describe('Mods no modo Grafo (D-11)', () => {
     const jade = graphOf('Sodium').$('button*=Jade');
     await jade.waitForClickable();
     // Chega ao nó pelo foco (como o Tab) e abre com Enter, sem clique.
-    await browser.execute((el) => {
-      el.focus();
-    }, jade);
+    const focused = await browser.execute(() => {
+      const node = Array.from(document.querySelectorAll<HTMLButtonElement>('.graph .gnode')).find(
+        (button) => button.textContent.includes('Jade'),
+      );
+      node?.focus();
+      return document.activeElement === node;
+    });
+    expect(focused).toBe(true);
     await browser.keys('Enter');
     const drawer = $('[role="dialog"]');
     await drawer.waitForDisplayed();
