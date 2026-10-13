@@ -1,0 +1,51 @@
+/*
+ * Importar modpack (T24), como o protótipo final (`importar`). Mesma regra do design system:
+ * só tokens.
+ */
+
+.import__rows {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.import__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.import__row > .icon {
+  margin-top: var(--space-1);
+}
+.import__row--ok > .icon {
+  color: var(--color-ok);
+}
+.import__row--warn > .icon {
+  color: var(--color-warn);
+}
+.import__row--info > .icon {
+  color: var(--color-info);
+}
+.import__row-body {
+  min-width: 0;
+}
+.import__list {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+}
+.import__list summary {
+  cursor: pointer;
+  color: var(--color-primary-text);
+  width: fit-content;
+}
+.import__list ul {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.import__facts {
+  display: grid;
+  gap: var(--space-1);
+}
+.import__recognized {
+  margin-top: var(--space-2);
+}

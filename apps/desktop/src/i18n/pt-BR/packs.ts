@@ -10,7 +10,7 @@ export const packs = {
     lendo: 'Lendo a lista de packs…',
     abrirOuImportar: 'Abrir ou importar…',
     abrirOuImportarDica:
-      'Abre a pasta de um pack packwiz. Importar de outros apps (.mrpack, zip da CurseForge, instância do Prism) ainda não está disponível.',
+      'Abre a pasta de um pack packwiz ou importa a pasta de uma instância do Prism, do MultiMC ou do app da CurseForge.',
     escolhendoPasta: 'Escolhendo a pasta…',
     criar: 'Criar pack',
     buscar: 'Buscar pack',
@@ -220,7 +220,7 @@ export const packs = {
     naoMudou: 'Nada foi alterado na pasta. Packs Forge, NeoForge e Fabric abrem normalmente.',
     semPackToml: 'Esta pasta não tem um pack packwiz que o Warden consiga ler.',
     semPackTomlTexto:
-      'Escolha a pasta que contém o pack.toml. Importar .mrpack, zip da CurseForge e instâncias do Prism ou do MultiMC ainda não está disponível.',
+      'Escolha a pasta que contém o pack.toml, ou a pasta de uma instância do Prism, do MultiMC ou do app da CurseForge. Para .mrpack e zip da CurseForge, use Importar arquivo… em Meus packs.',
     loaderSuportado: 'suportado',
     fatoLoader: 'Loader',
     fatoPasta: 'Pasta',

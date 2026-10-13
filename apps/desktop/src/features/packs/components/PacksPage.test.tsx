@@ -333,6 +333,7 @@ describe('Meus packs (T02)', () => {
     const user = userEvent.setup();
     const { backend } = packsBackend([], {
       pack_choose_folder: () => 'D:/Packs/meu-pack-antigo',
+      import_detect: () => 'packwiz',
       pack_import_preview: () => makeImportPreview(),
     });
     renderApp('/packs');

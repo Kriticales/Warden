@@ -29,6 +29,7 @@ import { Tooltip } from '../../../components/ui/tooltip';
 import type { PackRow } from '../../../lib/ipc/bindings';
 import { usePacksList, useForgetPack, useTrashPack } from '../api';
 import { useOpenOrImport } from '../hooks/useOpenOrImport';
+import { ImportFileButton } from '../import/ImportFileButton';
 import { filterRows, SORT_ORDERS, sortRows, type SortOrder } from '../lib/pack-list';
 import { CreatePackWizard } from './CreatePackWizard';
 import { OpenPackDialog } from './OpenPackDialog';
@@ -95,6 +96,7 @@ export function PacksPage({ search, onSearch }: PacksPageProps) {
   const actions = (
     <>
       {openButton}
+      <ImportFileButton />
       {createButton}
     </>
   );
@@ -132,6 +134,7 @@ export function PacksPage({ search, onSearch }: PacksPageProps) {
             <>
               {createButton}
               {openButton}
+              <ImportFileButton />
             </>
           }
         />

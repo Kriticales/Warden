@@ -98,6 +98,11 @@ export const tarefas = {
     publish: {
       run: 'Publicar versão',
     },
+    // P1-19: Importar modpack.
+    import: {
+      analyze: 'Ler o modpack',
+      apply: 'Importar modpack',
+    },
   },
 } as const;
 
