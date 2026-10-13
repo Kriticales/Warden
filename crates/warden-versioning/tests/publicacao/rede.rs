@@ -12,7 +12,10 @@
 //! repositório **público** `warden-ca-t18-01-<data>` na conta, publica a versão 1.0.0 e confere
 //! a `main` (exatamente `pack.toml`, `index.toml`, os arquivos do índice, `CHANGELOG.md` e
 //! `.gitattributes`), a tag `v1.0.0` e a Release com as notas. O repositório fica na conta para
-//! conferência; apague pelo site depois.
+//! conferência; apague pelo site depois. Sem a variável (como no Noturno), o teste se declara
+//! pulado e passa.
+
+#![allow(clippy::print_stderr)] // o aviso de teste pulado
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -28,8 +31,14 @@ use super::{save, tree_of};
 #[tokio::test]
 #[ignore = "rede"]
 async fn rede_ca_t18_01_primeira_publicacao_numa_conta_de_teste() {
-    let token = std::env::var("WARDEN_TEST_GITHUB_TOKEN")
-        .expect("defina WARDEN_TEST_GITHUB_TOKEN com o token da conta de teste");
+    let Ok(token) = std::env::var("WARDEN_TEST_GITHUB_TOKEN") else {
+        eprintln!(
+            "AVISO: WARDEN_TEST_GITHUB_TOKEN ausente; teste pulado. Para rodar, defina a \
+             variável com o token da conta de teste e rode `cargo nextest run -p \
+             warden-versioning --run-ignored only -E 'test(rede_)'`."
+        );
+        return;
+    };
     let client = GithubClient::new(
         HttpClient::new(HttpConfig::default()).unwrap(),
         GithubEndpoints::official(),
