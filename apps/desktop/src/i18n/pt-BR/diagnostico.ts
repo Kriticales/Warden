@@ -31,6 +31,7 @@ export const diagnostico = {
     resumo_one: '{{count}} encontrado · última verificação {{quando}}',
     resumo_other: '{{count}} encontrados · última verificação {{quando}}',
     resumoVazio: 'Última verificação {{quando}}',
+    agora: 'agora há pouco',
     tambem: 'A verificação também roda sozinha ao clicar em Testar.',
     verificarAgora: 'Verificar agora',
     verificandoMeta:

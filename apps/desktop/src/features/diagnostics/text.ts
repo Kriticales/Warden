@@ -229,11 +229,11 @@ export function countBySeverity(findings: readonly ReportFinding[]): Record<Seve
   return counts;
 }
 
-/** "há 3 minutos", "agora há pouco", "ontem às 14:20". */
+/** "agora há pouco", "há 3 minutos", "há 2 horas", "ontem". */
 export function formatAgo(atMs: number, nowMs: number = Date.now()): string {
   const minutes = Math.round((nowMs - atMs) / 60_000);
   const format = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
-  if (minutes < 1) return format.format(0, 'minute');
+  if (minutes < 1) return t('secao.agora');
   if (minutes < 60) return format.format(-minutes, 'minute');
   const hours = Math.round(minutes / 60);
   if (hours < 24) return format.format(-hours, 'hour');
