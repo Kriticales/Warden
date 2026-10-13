@@ -449,7 +449,10 @@ mod tests {
             "kubejs-neoforge-2101.7.2-build.377.jar",
         );
         assert_eq!(
-            detect(&[unread.clone(), read.clone()]).kubejs.unwrap().major,
+            detect(&[unread.clone(), read.clone()])
+                .kubejs
+                .unwrap()
+                .major,
             Some(7)
         );
         assert_eq!(detect(&[read, unread]).kubejs.unwrap().major, Some(7));

@@ -97,7 +97,7 @@ export function InstanceSyncNote({
   onClose,
 }: InstanceSyncNoteProps) {
   const { t } = useTranslation('scripts');
-  if (note === null || note.path !== path) {
+  if (note?.path !== path) {
     return null;
   }
   const close = (

@@ -671,10 +671,12 @@ mod tests {
             if reverse {
                 files.reverse();
             }
-            let index: String = files
-                .iter()
-                .map(|file| format!("\n[[files]]\nfile = \"{file}\"\nhash = \"\"\n"))
-                .collect();
+            let mut index = String::new();
+            for file in &files {
+                index.push_str("\n[[files]]\nfile = \"");
+                index.push_str(file);
+                index.push_str("\"\nhash = \"\"\n");
+            }
             fs::write(
                 root.join("index.toml"),
                 format!("hash-format = \"sha256\"\n{index}"),
