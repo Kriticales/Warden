@@ -1,0 +1,89 @@
+/* "O que mudou durante o teste" (C-03; protótipo `teste-fechou`, prototipo.css `.changes`). */
+.capture .panel__head {
+  margin-bottom: var(--space-3);
+}
+
+.changes {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.change-group h3 {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.change-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3);
+  background: var(--color-surface-1);
+  border: var(--border-thin) solid var(--color-border);
+}
+
+.change-item + .change-item {
+  margin-top: var(--space-1);
+}
+
+.change-item--conflict,
+.change-item--info {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.change-item--conflict {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.change-item__detail {
+  margin-top: var(--space-1);
+}
+
+.change-item .path {
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+}
+
+.capture-choices {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.capture-note {
+  margin-top: var(--space-2);
+  gap: var(--space-3);
+}
+
+.capture-generated {
+  display: grid;
+}
+
+.capture-editor {
+  height: 320px;
+  border: var(--border-thin) solid var(--color-border);
+}
+
+.capture__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--border-thin) solid var(--color-border);
+}
+
+.capture-editor > * {
+  height: 100%;
+}
+
+.capture-editor .cm-editor {
+  height: 100%;
+}

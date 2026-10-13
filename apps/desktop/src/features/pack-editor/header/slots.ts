@@ -17,6 +17,7 @@
 import type { ComponentType } from 'react';
 
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
+import { CaptureAlert } from '../../capture/CaptureAlert';
 import { PackChangedAlert } from '../../test/PackChangedAlert';
 import { TestButton } from '../../test/TestButton';
 import { SaveVersionButton } from '../../versioning/components/SaveVersionButton';
@@ -45,6 +46,7 @@ export const headerSlots: readonly HeaderSlot[] = [
   { id: 'save', placement: 'actions', order: 100, component: SaveVersionButton },
   { id: 'test', placement: 'actions', order: 200, component: TestButton },
   { id: 'hygiene', placement: 'alerts', order: 100, component: HygieneAlert },
+  { id: 'capture-review', placement: 'alerts', order: 150, component: CaptureAlert },
   { id: 'test-pack-changed', placement: 'alerts', order: 200, component: PackChangedAlert },
 ];
 

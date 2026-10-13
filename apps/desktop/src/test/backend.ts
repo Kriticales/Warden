@@ -67,6 +67,8 @@ const DEFAULTS: Record<string, Handler> = {
   test_live_console: () => [],
   // Downloads manuais da CurseForge (L-06): nenhum esperando.
   cf_blocked_list: () => [],
+  // O que mudou durante o teste (C-03): nenhuma captura.
+  capture_get: () => null,
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,

@@ -85,6 +85,12 @@ export const tarefas = {
     'initial-mods': {
       apply: 'Adicionar os mods iniciais',
     },
+    // C-03: O que mudou durante o teste.
+    capture: {
+      apply: 'Trazer mudanças do teste para o pack',
+      discard: 'Descartar mudanças do teste',
+      identify: 'Procurar mods colocados à mão',
+    },
   },
 } as const;
 

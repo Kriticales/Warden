@@ -8,6 +8,7 @@
 import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
+import { CaptureBlock } from '../capture/CaptureBlock';
 import { WhyCrashed } from './views/WhyCrashed';
 
 export interface ResultBlockProps {
@@ -25,6 +26,7 @@ export interface ResultBlock {
 
 /** Registro acréscimo-apenas: uma linha por parte. */
 export const resultBlocks: readonly ResultBlock[] = [
+  { id: 'capture', order: 100, component: CaptureBlock },
   { id: 'why-crashed', order: 200, component: WhyCrashed },
 ];
 

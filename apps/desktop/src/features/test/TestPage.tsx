@@ -26,6 +26,7 @@ import { Button } from '../../components/ui/button';
 import { showToast } from '../../components/ui/toast';
 import type { AppError, PackId, PackRow } from '../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../lib/ipc/errors';
+import { CapturePendingView } from '../capture/CapturePendingView';
 import { usePack } from '../packs/api';
 import {
   invalidateAfterTest,
@@ -211,6 +212,12 @@ function FailedView({
   const reveal = useRevealInstance(packId);
   const navigate = useNavigate();
   const code = `${error.code.domain}.${error.code.code}`;
+
+  if (code === 'app.TEST_CAPTURE_PENDING') {
+    return (
+      <CapturePendingView packId={packId} error={error} request={run.request} onRetry={onRetry} />
+    );
+  }
 
   if (code === 'app.TEST_INSTANCE_CHANGED') {
     const count = Number(error.params.count ?? '0');

@@ -24,6 +24,15 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'Esse teste não está mais gravado. Os testes antigos que fecharam normalmente são apagados depois dos 30 mais novos.',
   TEST_INSTANCE_MISSING:
     'Este pack ainda não tem instância de teste. Clique em Testar para criá-la.',
+  TEST_CAPTURE_PENDING:
+    'Durante o último teste, configs do pack mudaram e ainda não foram revisadas. Revise o que mudou ou descarte antes de testar de novo.',
+  CAPTURE_NOT_FOUND:
+    'Não há mais mudanças deste teste para revisar: outro teste começou depois dele.',
+  CAPTURE_RESOLVED: 'As mudanças deste teste já foram revisadas.',
+  CAPTURE_STALE:
+    'O arquivo {{path}} mudou depois que a lista apareceu. Nada foi gravado: confira a lista atualizada e tente de novo.',
+  CAPTURE_INVALID:
+    '{{path}} não pode ser trazido para o pack. Confira a lista atualizada e tente de novo.',
   TEST_MEMORY_HIGH_JAVA8:
     'O teste vai usar {{memoryMb}} MB com o Java 8. Acima de 8 GB, o Java 8 costuma travar o jogo por segundos nas limpezas de memória. Se acontecer, diminua a memória em Ajustes do teste.',
   TEST_ARTIFACT_INVALID: 'Esse arquivo não faz parte deste teste ou foi apagado.',
