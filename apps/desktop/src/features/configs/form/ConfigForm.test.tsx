@@ -93,6 +93,19 @@ function formOf(text: string): ConfigForm {
   };
 }
 
+const SNIPPETS = 'config/trechos.properties';
+
+/** Valores que o formulário não regrava sem mudar o jeito do arquivo: só no texto. */
+const SNIPPETS_FORM: ConfigForm = {
+  availability: { kind: 'ready' },
+  items: [
+    field({ key: 'a', value: { type: 'string', value: '1' }, control: { type: 'text' } }),
+    { kind: 'snippet', path: ['longa'], key: 'longa', line: 2, reason: 'multilineValue' },
+    { kind: 'snippet', path: ['sozinha'], key: 'sozinha', line: 4, reason: 'keyWithoutValue' },
+    { kind: 'snippet', path: ['lista'], key: 'lista', line: 5, reason: 'listLayout' },
+  ],
+};
+
 /** Troca o valor da linha `chave = …`, como o Rust (só o valor muda). */
 function applyEdits(text: string, edits: FormEdit[]): string {
   let out = text;
@@ -162,6 +175,7 @@ function open(path: string, options: Options) {
       },
       config_form: (args) => {
         const file = String(args.path);
+        if (file.endsWith('.properties')) return SNIPPETS_FORM;
         if (file.endsWith('.yml')) {
           return {
             availability: { kind: 'textOnly', reason: { code: 'unsupportedFormat' } },
@@ -345,6 +359,34 @@ describe('Formulário de configs (T12, C-04)', () => {
     expect(screen.getByRole('radio', { name: 'Texto' }).getAttribute('aria-checked')).toBe('true');
     await waitFor(() => {
       expect(screen.getByText(/linha 3, coluna 1/)).toBeDefined();
+    });
+  });
+
+  it('valor em várias linhas, chave sem "=" e lista sem leitura item por item ficam no texto', async () => {
+    const user = userEvent.setup();
+    open(SNIPPETS, {
+      pack: { [SNIPPETS]: entry('a=1\nlonga=um \\\n  dois\n\nsozinha\nlista=x\n') },
+    });
+    const form = await toForm(user);
+    expect(
+      within(form).getByText(
+        'Valor escrito em várias linhas: edite no texto para manter o jeito do arquivo. (linha 2)',
+      ),
+    ).toBeDefined();
+    expect(
+      within(form).getByText('Chave sem valor e sem "=": edite no texto. (linha 4)'),
+    ).toBeDefined();
+    expect(
+      within(form).getByText(
+        'Lista escrita de um jeito que o formulário não edita item por item: edite no texto. (linha 5)',
+      ),
+    ).toBeDefined();
+    await user.click(
+      within(form).getByRole('button', { name: 'Editar este trecho como texto (longa)' }),
+    );
+    await screen.findByRole('textbox', { name: `Conteúdo de ${SNIPPETS}` });
+    await waitFor(() => {
+      expect(screen.getByText(/linha 2, coluna 1/)).toBeDefined();
     });
   });
 

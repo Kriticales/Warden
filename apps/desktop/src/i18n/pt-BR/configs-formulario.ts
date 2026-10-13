@@ -57,6 +57,11 @@ export const configsFormulario = {
     complexList: 'Lista com itens de tipos diferentes ou listas dentro: edite no texto.',
     nullValue: 'Valor vazio (null): o tipo certo é desconhecido, edite no texto.',
     tooDeep: 'Trecho com muitos níveis: edite no texto.',
+    multilineValue:
+      'Valor escrito em várias linhas: edite no texto para manter o jeito do arquivo.',
+    listLayout:
+      'Lista escrita de um jeito que o formulário não edita item por item: edite no texto.',
+    keyWithoutValue: 'Chave sem valor e sem "=": edite no texto.',
   },
   preservar: {
     rotulo: 'Não substituir se o jogador já tiver',
