@@ -195,7 +195,7 @@ function RetentionNotice({
 }) {
   const { t } = useTranslation('travamentos');
   const prune = usePruneCrashes(packId);
-  const count = retention.overBudget;
+  const count = retention.prunable.length;
   if (count > 0) {
     return (
       <Alert
@@ -209,12 +209,19 @@ function RetentionNotice({
             confirmLabel={t('retencao.confirmar', { count })}
             confirmingLabel={t('retencao.apagando')}
             onConfirm={async () => {
-              await prune.mutateAsync(undefined);
+              await prune.mutateAsync(retention.prunable);
             }}
           />
         }
       >
         {t('retencao.passou', { count })}
+      </Alert>
+    );
+  }
+  if (retention.overLimit) {
+    return (
+      <Alert kind="warn" title={t('retencao.passouTitulo', { limite })}>
+        {t('retencao.passouSemApagar')}
       </Alert>
     );
   }

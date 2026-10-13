@@ -70,7 +70,7 @@ const DEFAULTS: Record<string, Handler> = {
   // Travamentos (D-06): nenhum teste travou.
   crashes_list: () => ({
     groups: [],
-    retention: { budgetBytes: 500 * 1024 * 1024, nearLimit: false, overBudget: 0 },
+    retention: { budgetBytes: 500 * 1024 * 1024, nearLimit: false, overLimit: false, prunable: [] },
   }),
   // Downloads manuais da CurseForge (L-06): nenhum esperando.
   cf_blocked_list: () => [],

@@ -39,12 +39,13 @@ export function useCrash(packId: PackId, signature: string, enabled: boolean) {
 }
 
 /**
- * "Apagar os mais antigos": as sessões apagadas somem de tudo o que mostra testes do pack
- * (Travamentos, Testes anteriores, o resultado e o "Por que travou" de cada sessão) e do espaço
- * usado em Configurações → Armazenamento.
+ * "Apagar os mais antigos": manda as sessões que a pessoa confirmou (o `prunable` da lista); o
+ * backend apaga só as que ainda passam do limite. As sessões apagadas somem de tudo o que mostra
+ * testes do pack (Travamentos, Testes anteriores, o resultado e o "Por que travou" de cada
+ * sessão) e do espaço usado em Configurações → Armazenamento.
  */
 export function usePruneCrashes(packId: PackId) {
-  return useCommandMutation(() => commands.crashesPrune(packId), {
+  return useCommandMutation((sessions: string[]) => commands.crashesPrune(packId, sessions), {
     invalidates: [[...queryKeys.pack(packId), 'test'], storageKeys.usage],
   });
 }

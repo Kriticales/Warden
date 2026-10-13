@@ -18,6 +18,8 @@ export const travamentos = {
   },
   /** Título da linha quando a análise não deixou um achado. */
   excecao: 'O jogo travou com {{excecao}}',
+  /** Com onde quebrou: a entidade, o bloco ou a descrição do crash report. */
+  excecaoOnde: 'O jogo travou com {{excecao}} ({{onde}})',
   semDetalhe: 'O jogo travou sem deixar a causa no log',
   vezes_one: 'Travou {{count}} vez',
   vezes_other: 'Travou {{count}} vezes',
@@ -49,6 +51,8 @@ export const travamentos = {
     passouTitulo: 'Os travamentos guardados passaram do limite de {{limite}}',
     passou_one: 'O travamento mais antigo pode ser apagado para liberar espaço.',
     passou_other: 'Os {{count}} travamentos mais antigos podem ser apagados para liberar espaço.',
+    passouSemApagar:
+      'O que passa do limite é o travamento mais novo ou o do teste aberto, que o Warden não apaga.',
     apagar: 'Apagar os mais antigos',
     confirmarTitulo_one: 'Apagar o travamento mais antigo?',
     confirmarTitulo_other: 'Apagar os {{count}} travamentos mais antigos?',

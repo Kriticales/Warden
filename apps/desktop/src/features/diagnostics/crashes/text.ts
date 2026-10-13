@@ -10,7 +10,14 @@ const t = i18n.getFixedT(null, 'travamentos');
 /** Até quantas versões aparecem uma a uma ("1.4.1, 1.4.2 e 1.4.3"); mais que isso, a faixa. */
 const MAX_LISTED_VERSIONS = 3;
 
-/** "Falta o mod Balm…" (o achado principal), "O jogo travou com NullPointerException". */
+/** Partes do sujeito da assinatura que dizem onde o jogo quebrou, na ordem de preferência. */
+const WHERE_PARTS = ['entity_type=', 'block_entity=', 'description='];
+
+/**
+ * "Falta o mod Balm…" (o achado principal), "O jogo travou com NullPointerException
+ * (alpha:golem)": sem o achado gravado, a exceção e onde quebrou (a entidade, o bloco ou a
+ * descrição do crash report), para que duas causas diferentes não tenham o mesmo título.
+ */
 export function crashTitle(group: CrashGroupView): string {
   const primary = group.diagnosis?.findings[0];
   if (primary) {
@@ -18,9 +25,21 @@ export function crashTitle(group: CrashGroupView): string {
   }
   const exception = group.signature.exception;
   if (exception) {
-    return t('excecao', { excecao: exception.split('.').pop() ?? exception });
+    const excecao = exception.split('.').pop() ?? exception;
+    const onde = whereItBroke(group.signature.subject ?? []);
+    return onde ? t('excecaoOnde', { excecao, onde }) : t('excecao', { excecao });
   }
   return t('semDetalhe');
+}
+
+function whereItBroke(subject: readonly string[]): string | undefined {
+  for (const prefix of WHERE_PARTS) {
+    const part = subject.find((value) => value.startsWith(prefix));
+    if (part) {
+      return part.slice(prefix.length);
+    }
+  }
+  return undefined;
 }
 
 /** "1.4.2", "1.4.2 com alterações", "sem versão". */

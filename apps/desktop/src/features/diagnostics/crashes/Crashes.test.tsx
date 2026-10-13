@@ -22,7 +22,13 @@ import { invalidateAfterTest, testKeys } from '../../test/api';
 import { diagnosticsKeys } from '../api';
 import { makeReport } from '../diagnostics.fixtures';
 import { crashesKeys } from './api';
-import { BALM_GROUP, makeCrashList, makeDetail, makeGroup } from './crashes.fixtures';
+import {
+  BALM_GROUP,
+  makeCrashList,
+  makeDetail,
+  makeGroup,
+  makeSignature,
+} from './crashes.fixtures';
 import { crashTitle, versionsText } from './text';
 
 function setup(handlers: Record<string, Handler> = {}) {
@@ -157,7 +163,12 @@ describe('retenção dos travamentos guardados', () => {
     const { url } = setup({
       crashes_list: () =>
         makeCrashList({
-          retention: { budgetBytes: 500 * 1024 * 1024, nearLimit: true, overBudget: 0 },
+          retention: {
+            budgetBytes: 500 * 1024 * 1024,
+            nearLimit: true,
+            overLimit: false,
+            prunable: [],
+          },
         }),
     });
     const block = await openCrashes(url);
@@ -168,14 +179,20 @@ describe('retenção dos travamentos guardados', () => {
   });
 
   it('passou do limite: "Apagar os mais antigos" confirma, apaga e relê tudo o que mostra testes; Cancelar devolve o foco', async () => {
-    let over = 3;
+    const OLDEST = ['2026-09-01_10-00-00', '2026-09-02_10-00-00', '2026-09-03_10-00-00'];
+    let prunable = OLDEST;
     const { backend, url } = setup({
       crashes_list: () =>
         makeCrashList({
-          retention: { budgetBytes: 500 * 1024 * 1024, nearLimit: true, overBudget: over },
+          retention: {
+            budgetBytes: 500 * 1024 * 1024,
+            nearLimit: true,
+            overLimit: prunable.length > 0,
+            prunable,
+          },
         }),
       crashes_prune: () => {
-        over = 0;
+        prunable = [];
         return 3;
       },
       storage_usage: () => ({ total: 0 }),
@@ -221,6 +238,8 @@ describe('retenção dos travamentos guardados', () => {
     await waitFor(() => {
       expect(backend.callsOf('crashes_prune')).toHaveLength(1);
     });
+    // Manda exatamente as sessões que a confirmação prometeu apagar.
+    expect(backend.callsOf('crashes_prune')[0]?.args).toEqual({ packId, sessions: OLDEST });
     await waitFor(() => {
       expect(within(block).queryByText(/passaram do limite/)).toBeNull();
     });
@@ -233,6 +252,32 @@ describe('retenção dos travamentos guardados', () => {
         ?.isInvalidated,
     ).toBe(true);
     expect(queryClient.getQueryState(storageKeys.usage)?.isInvalidated).toBe(true);
+  });
+});
+
+describe('retenção sem nada para apagar', () => {
+  it('passou do limite só com o mais novo: avisa sem oferecer apagar', async () => {
+    const { url } = setup({
+      crashes_list: () =>
+        makeCrashList({
+          retention: {
+            budgetBytes: 500 * 1024 * 1024,
+            nearLimit: true,
+            overLimit: true,
+            prunable: [],
+          },
+        }),
+    });
+    const block = await openCrashes(url);
+    expect(
+      within(block).getByText('Os travamentos guardados passaram do limite de 500 MB'),
+    ).toBeDefined();
+    expect(
+      within(block).getByText(
+        'O que passa do limite é o travamento mais novo ou o do teste aberto, que o Warden não apaga.',
+      ),
+    ).toBeDefined();
+    expect(within(block).queryByRole('button', { name: 'Apagar os mais antigos' })).toBeNull();
   });
 });
 
@@ -275,5 +320,26 @@ describe('textos da linha', () => {
     expect(crashTitle(makeGroup())).toBe('O jogo travou com NullPointerException');
     const signature = { ...makeGroup().signature, exception: null };
     expect(crashTitle(makeGroup({ signature }))).toBe('O jogo travou sem deixar a causa no log');
+    // Sem o achado gravado, onde quebrou separa causas com a mesma exceção.
+    const golem = makeSignature({
+      subject: [
+        'entity_type=alpha:golem',
+        'description=ticking entity',
+        'entity_class=com.alpha.Golem',
+      ],
+    });
+    const overlay = makeSignature({ subject: ['description=rendering overlay'] });
+    const bau = makeSignature({
+      subject: ['description=ticking block entity', 'block_entity=beta:bau'],
+    });
+    expect(crashTitle(makeGroup({ signature: golem }))).toBe(
+      'O jogo travou com NullPointerException (alpha:golem)',
+    );
+    expect(crashTitle(makeGroup({ signature: overlay }))).toBe(
+      'O jogo travou com NullPointerException (rendering overlay)',
+    );
+    expect(crashTitle(makeGroup({ signature: bau }))).toBe(
+      'O jogo travou com NullPointerException (beta:bau)',
+    );
   });
 });
