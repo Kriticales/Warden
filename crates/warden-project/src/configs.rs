@@ -51,8 +51,9 @@ const SNIFF_BYTES: usize = 8 * 1024;
 /// Pastas do pack que o editor mostra.
 const PACK_DIRS: [&str; 4] = ["config", "defaultconfigs", "kubejs", "scripts"];
 
-/// Pastas da instância de teste que o editor mostra (e `saves/*/serverconfig/`).
-const INSTANCE_DIRS: [&str; 2] = ["config", "defaultconfigs"];
+/// Pastas da instância de teste que o editor mostra (e `saves/*/serverconfig/`). Os scripts
+/// entram para o editor de scripts gravar na instância com o jogo aberto (C-07, SPEC T26).
+const INSTANCE_DIRS: [&str; 4] = ["config", "defaultconfigs", "kubejs", "scripts"];
 
 /// Arquivos soltos na raiz (as opções do jogo e do `OptiFine`).
 const ROOT_FILES: [&str; 3] = ["options.txt", "optionsof.txt", "optionsshaders.txt"];
@@ -921,6 +922,8 @@ mod tests {
             "saves/Mundo/region/r.0.0.mca",
             "saves/Mundo/datapacks/x/pack.mcmeta",
             "kubejs/server_scripts/a.js",
+            "kubejs/config/web_server.json",
+            "scripts/b.zs",
             "mods/a.jar",
             "logs/latest.log",
         ] {
@@ -932,8 +935,10 @@ mod tests {
             [
                 "config/a.toml",
                 "defaultconfigs/b.toml",
+                "kubejs/server_scripts/a.js",
                 "options.txt",
                 "saves/Mundo/serverconfig/create-server.toml",
+                "scripts/b.zs",
             ]
         );
     }

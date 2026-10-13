@@ -71,7 +71,7 @@ pub struct LogRead {
     /// Caminho relativo à pasta do jogo.
     pub file: String,
     /// Última modificação (milissegundos desde 1970).
-    #[specta(type = specta_typescript::Number)]
+    #[specta(type = Option<specta_typescript::Number>)]
     pub modified_ms: Option<u64>,
 }
 

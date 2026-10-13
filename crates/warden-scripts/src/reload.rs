@@ -34,7 +34,7 @@ pub enum ReloadRoute {
     /// Pelo servidor web do KubeJS 7.
     WebServer {
         /// Tipo de script recarregado.
-        script_type: KubejsScriptType,
+        target: KubejsScriptType,
     },
     /// Pelo console do servidor local.
     ServerConsole {
@@ -115,7 +115,9 @@ pub fn plan_reload(env: &ScriptEnv, path: &str, context: ReloadContext) -> Reloa
             && web_type
             && tool.major.is_some_and(|major| major >= 7)
         {
-            return ReloadRoute::WebServer { script_type };
+            return ReloadRoute::WebServer {
+                target: script_type,
+            };
         }
     }
     let Some(command) = reload_command(env, path) else {
@@ -164,9 +166,9 @@ pub async fn execute(
     console: Option<&dyn ServerConsole>,
 ) -> Result<ReloadOutcome> {
     let response = match &route {
-        ReloadRoute::WebServer { script_type } => {
+        ReloadRoute::WebServer { target } => {
             let web = web.ok_or_else(|| Error::Internal("servidor web sem cliente".into()))?;
-            web.reload(*script_type).await?;
+            web.reload(*target).await?;
             Vec::new()
         }
         ReloadRoute::ServerConsole { command } => {
@@ -301,13 +303,13 @@ mod tests {
         assert_eq!(
             plan_reload(&seven, "kubejs/server_scripts/a.js", web),
             ReloadRoute::WebServer {
-                script_type: KubejsScriptType::Server
+                target: KubejsScriptType::Server
             }
         );
         assert_eq!(
             plan_reload(&seven, "kubejs/startup_scripts/a.js", web),
             ReloadRoute::WebServer {
-                script_type: KubejsScriptType::Startup
+                target: KubejsScriptType::Startup
             }
         );
         assert_eq!(
@@ -400,7 +402,7 @@ mod tests {
         assert!(
             execute(
                 ReloadRoute::WebServer {
-                    script_type: KubejsScriptType::Server
+                    target: KubejsScriptType::Server
                 },
                 None,
                 None
