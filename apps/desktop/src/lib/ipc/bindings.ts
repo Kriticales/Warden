@@ -1101,6 +1101,14 @@ export type CapturedFile = {
 	managed: boolean,
 };
 
+/**  Tamanho do print copiado. */
+export type CapturedImage = {
+	/**  Largura em pixels. */
+	width: number,
+	/**  Altura em pixels. */
+	height: number,
+};
+
 /**
  *  Códigos do domínio `catalog`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
