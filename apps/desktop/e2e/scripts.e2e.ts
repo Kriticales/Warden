@@ -34,6 +34,7 @@ import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
+import type { ChainablePromiseElement } from 'webdriverio';
 
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
@@ -201,6 +202,15 @@ async function typeSlowly(text: string): Promise<void> {
   }
 }
 
+/** Espera o aviso (`.alert`) que contém o texto (no título ou no corpo) e o devolve. */
+async function waitAlert(text: string): Promise<ChainablePromiseElement> {
+  const alert = $(
+    `//*[contains(concat(" ", normalize-space(@class), " "), " alert ") and contains(., "${text}")]`,
+  );
+  await alert.waitForDisplayed({ timeout: 30_000, timeoutMsg: `aviso "${text}" não apareceu` });
+  return alert;
+}
+
 /** O texto do rodapé do editor ("… linha 16, coluna 1"). */
 async function footer(): Promise<string> {
   return $('.editor__foot').getText();
@@ -306,7 +316,7 @@ describe('Editor de scripts (C-07; T26)', function () {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
     await $('button=Abrir ou importar…').click();
-    await $('h1=Abrir pack').waitForDisplayed();
+    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
     await browser.waitUntil(async () => (await open.isExisting()) || (await notNow.isExisting()), {
@@ -447,7 +457,8 @@ describe('Editor de scripts (C-07; T26)', function () {
       'Mostrando: arquivos do pack',
     );
     await openFile('receitas.js');
-    await $('.alert*=Salvar grava no pack e copia o script').waitForDisplayed({ timeout: 30_000 });
+    await waitAlert('Salvar grava no pack e copia o script');
+    await dismissToasts();
     await $('.cm-content').click();
     await browser.keys(['Control', 'End']);
     await browser.keys('Enter');
@@ -465,13 +476,17 @@ describe('Editor de scripts (C-07; T26)', function () {
 
     // Mudança feita direto na instância: o Warden salva no pack e pergunta antes de substituir.
     writeFileSync(join(game, RECEITAS), '// mexido na instância\n');
+    await dismissToasts();
     await $('.cm-content').click();
     await browser.keys(['Control', 'End']);
     await browser.keys('Enter');
     await typeSlowly('// outro');
     await browser.keys(['Control', 's']);
-    const conflict = $('.alert*=O script na instância de teste foi mudado direto nela.');
-    await conflict.waitForDisplayed({ timeout: 30_000 });
+    // Com "mostrar as diferenças antes de salvar" ligado (o padrão), confirma no diálogo.
+    const confirm = $('[role="dialog"]').$('button=Salvar');
+    await confirm.waitForDisplayed({ timeout: 15_000 });
+    await confirm.click();
+    const conflict = await waitAlert('O script na instância de teste foi mudado direto nela.');
     expect(readFileSync(join(PACK, RECEITAS), 'utf8')).toContain('// outro');
     expect(readFileSync(join(game, RECEITAS), 'utf8')).toBe('// mexido na instância\n');
     expect(kubejs.reloads).toHaveLength(2);
@@ -484,9 +499,7 @@ describe('Editor de scripts (C-07; T26)', function () {
         readFileSync(join(game, RECEITAS), 'utf8') === readFileSync(join(PACK, RECEITAS), 'utf8'),
       { timeout: 30_000, timeoutMsg: 'a instância não recebeu o script do pack' },
     );
-    await $('.alert*=Salvo no pack e copiado para a instância de teste.').waitForDisplayed({
-      timeout: 30_000,
-    });
+    await waitAlert('Salvo no pack e copiado para a instância de teste.');
   });
 
   it('Parar jogo', async () => {
