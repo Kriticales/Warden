@@ -9,11 +9,11 @@ mod common;
 use std::io::Write as _;
 
 use common::{corpus_root, folder, samples};
-use warden_configs::ConfigFormat;
 use warden_configs::meta::{
-    ConfigField, ConfigForm, FieldControl, FieldDefault, FormAvailability, FormEdit, FormItem,
-    FormValue, apply_form_edits, build_form,
+    ConfigField, ConfigForm, FieldControl, FieldDefault, FieldKey, FormAvailability, FormEdit,
+    FormItem, FormValue, ListItemKind, apply_form_edits, build_form,
 };
+use warden_configs::{ConfigDocument, ConfigFormat, KeyPath, PathSegment};
 use warden_jarmeta::Limits;
 use warden_jarmeta::lang::{ConfigLang, LangLocale, read_config_lang_bytes};
 
@@ -306,4 +306,237 @@ fn ca_t12_08_controle_faixa_padrao_e_rotulo_do_jar() {
     ));
     // Sem rótulo no jar, o campo fica só com a chave real.
     assert_eq!(field(&form, "showFoodDebugInfo").label, None);
+}
+
+/// Item novo de uma lista, diferente de `current`, no tipo dos itens.
+fn other_item(item: ListItemKind, current: Option<&str>) -> String {
+    let candidates: &[&str] = match item {
+        ListItemKind::Text => &["warden:item", "warden:outro"],
+        ListItemKind::Integer => &["7", "8"],
+        ListItemKind::Float => &["2.5", "3.5"],
+        ListItemKind::Bool => &["true", "false"],
+    };
+    candidates
+        .iter()
+        .find(|candidate| Some(**candidate) != current)
+        .map(|candidate| (*candidate).to_owned())
+        .unwrap_or_default()
+}
+
+/// As edições de teste de um campo: um valor diferente para os simples; para as listas, trocar
+/// o primeiro e o último item, acrescentar um item no fim e tirar o último.
+fn test_edits(field: &ConfigField) -> Vec<(&'static str, FormValue)> {
+    let (FormValue::List(items), FieldControl::List { item }) = (&field.value, &field.control)
+    else {
+        return other_value(field)
+            .map(|value| vec![("valor", value)])
+            .unwrap_or_default();
+    };
+    let mut edits = Vec::new();
+    let mut appended = items.clone();
+    appended.push(other_item(*item, None));
+    edits.push(("acrescentar", FormValue::List(appended)));
+    if let Some(first) = items.first() {
+        let mut changed = items.clone();
+        changed[0] = other_item(*item, Some(first));
+        edits.push(("trocar o primeiro", FormValue::List(changed)));
+        let mut removed = items.clone();
+        removed.pop();
+        edits.push(("tirar o último", FormValue::List(removed)));
+    }
+    if items.len() > 1
+        && let Some(last) = items.last()
+    {
+        let mut changed = items.clone();
+        let end = changed.len() - 1;
+        changed[end] = other_item(*item, Some(last));
+        edits.push(("trocar o último", FormValue::List(changed)));
+    }
+    edits
+}
+
+/// Linhas do arquivo original que mudaram (de 1 em diante), comparando o começo e o fim
+/// iguais; vazio quando só se acrescentaram linhas.
+fn changed_region(before: &str, after: &str) -> std::ops::RangeInclusive<usize> {
+    let old: Vec<&str> = before.split('\n').collect();
+    let new: Vec<&str> = after.split('\n').collect();
+    let prefix = old.iter().zip(&new).take_while(|(a, b)| a == b).count();
+    let room = old.len().min(new.len()) - prefix;
+    let suffix = old
+        .iter()
+        .rev()
+        .zip(new.iter().rev())
+        .take(room)
+        .take_while(|(a, b)| a == b)
+        .count();
+    prefix + 1..=old.len() - suffix
+}
+
+fn key_path(keys: &[FieldKey]) -> KeyPath {
+    KeyPath(
+        keys.iter()
+            .map(|key| match key {
+                FieldKey::Name(name) => PathSegment::Key(name.clone()),
+                FieldKey::Index(index) => PathSegment::Index(*index as usize),
+            })
+            .collect(),
+    )
+}
+
+/// Os dois textos diferem numa linha só, e só nos espaços do começo e na vírgula do fim.
+fn only_layout_differs(before: &str, after: &str) -> bool {
+    let region = changed_region(before, after);
+    let old: Vec<&str> = before.split('\n').collect();
+    let new: Vec<&str> = after.split('\n').collect();
+    let bare = |line: &str| line.trim().trim_end_matches(',').to_owned();
+    old.len() == new.len()
+        && region.start() == region.end()
+        && bare(old[*region.start() - 1]) == bare(new[*region.start() - 1])
+}
+
+/// Edita o campo e volta ao valor original. `Ok(true)` quando a volta só difere na linha
+/// recriada de um item tirado (veja abaixo); `Err` com o problema.
+fn edit_and_restore(
+    path: &str,
+    text: &str,
+    field: &ConfigField,
+    lines: &std::ops::RangeInclusive<usize>,
+    what: &str,
+    value: FormValue,
+) -> Result<bool, String> {
+    let edit = |text: &str, value: FormValue| {
+        apply_form_edits(
+            path,
+            text,
+            &[FormEdit {
+                path: field.path.clone(),
+                value,
+            }],
+        )
+    };
+    let out = edit(text, value).map_err(|error| format!("a edição falhou: {error}"))?;
+    let region = changed_region(text, &out);
+    if !region.is_empty() && (region.start() < lines.start() || region.end() > lines.end()) {
+        return Err(format!("mudou as linhas {region:?}, fora de {lines:?}"));
+    }
+    let back =
+        edit(&out, field.value.clone()).map_err(|error| format!("a volta falhou: {error}"))?;
+    if back == text {
+        return Ok(false);
+    }
+    // Tirar o último item e pô-lo de volta recria a linha dele no estilo das vizinhas: se só
+    // ele tinha outra indentação ou uma vírgula final, isso se perde junto com a linha. Única
+    // diferença aceita: essa linha.
+    if what == "tirar o último" && only_layout_differs(text, &back) {
+        return Ok(true);
+    }
+    let region = changed_region(text, &back);
+    let original = text.split('\n').skip(region.start() - 1);
+    let restored = back.split('\n').skip(region.start() - 1);
+    Err(format!(
+        "não voltou idêntico; linha {}: {:?} virou {:?}",
+        region.start(),
+        original.take(3).collect::<Vec<_>>(),
+        restored.take(3).collect::<Vec<_>>(),
+    ))
+}
+
+/// Ida e volta no corpus real: cada campo do formulário de cada arquivo, editado e depois
+/// devolvido ao valor original, deixa o arquivo **byte a byte igual**; e a edição muda só as
+/// linhas daquele campo (a linha da chave até o fim do valor). Vale para listas de uma linha ou
+/// de várias, com comentários dentro, e para números como `0.20` (CA-T12-02).
+fn round_trip(format: ConfigFormat) {
+    let mut files = 0;
+    let mut edits = 0;
+    let mut tolerated = 0;
+    let mut broken_files = std::collections::BTreeSet::new();
+    let mut problems = Vec::new();
+    for sample in samples(format) {
+        let path = if format == ConfigFormat::OptionsTxt {
+            "options.txt".to_owned()
+        } else {
+            format!("config/{}", sample.name)
+        };
+        let form = build_form(&path, &sample.bytes, None);
+        if form.availability != FormAvailability::Ready {
+            continue;
+        }
+        files += 1;
+        let text = String::from_utf8(sample.bytes.clone()).unwrap();
+        let document = ConfigDocument::parse(format, &sample.bytes).unwrap();
+        // Arquivo enorme (1.477 chaves iguais no `allowed_sounds.properties`): uma amostra
+        // espalhada de até 300 campos, para o teste caber no tempo da CI.
+        let fields: Vec<&ConfigField> = form
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                FormItem::Field(field) => Some(field.as_ref()),
+                _ => None,
+            })
+            .collect();
+        let step = fields.len().div_ceil(300).max(1);
+        for field in fields.into_iter().step_by(step) {
+            let span = document
+                .get(&key_path(&field.path))
+                .unwrap()
+                .value_span
+                .unwrap();
+            let last_byte = span.end.max(span.start + 1) - 1;
+            let last_line = text[..last_byte.min(text.len())].matches('\n').count() + 1;
+            let lines = field.line as usize..=last_line.max(field.line as usize);
+            for (what, value) in test_edits(field) {
+                edits += 1;
+                match edit_and_restore(&path, &text, field, &lines, what, value) {
+                    Ok(false) => {}
+                    Ok(true) => tolerated += 1,
+                    Err(detail) => {
+                        broken_files.insert(sample.name.clone());
+                        problems.push(format!("{} {} ({what}): {detail}", sample.name, field.key));
+                    }
+                }
+            }
+        }
+    }
+    assert!(files >= 5, "só {files} arquivos com formulário");
+    assert!(
+        tolerated <= 1,
+        "{tolerated} itens voltaram com outra indentação ou vírgula"
+    );
+    assert!(
+        broken_files.is_empty(),
+        "{format:?}: {} de {files} arquivos não voltaram idênticos ({} de {edits} edições):\n{}",
+        broken_files.len(),
+        problems.len(),
+        problems.join("\n")
+    );
+}
+
+#[test]
+fn ida_e_volta_no_corpus_toml() {
+    round_trip(ConfigFormat::Toml);
+}
+
+#[test]
+fn ida_e_volta_no_corpus_json() {
+    round_trip(ConfigFormat::Json);
+}
+
+#[test]
+fn ida_e_volta_no_corpus_json5() {
+    round_trip(ConfigFormat::Json5);
+}
+
+#[test]
+fn ida_e_volta_no_corpus_properties() {
+    round_trip(ConfigFormat::Properties);
+}
+
+#[test]
+fn ida_e_volta_no_corpus_cfg() {
+    round_trip(ConfigFormat::LegacyCfg);
+}
+
+#[test]
+fn ida_e_volta_no_corpus_options_txt() {
+    round_trip(ConfigFormat::OptionsTxt);
 }
