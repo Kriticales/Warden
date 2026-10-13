@@ -32,6 +32,10 @@ export interface PackInfoDialogProps {
 export function PackInfoDialog({ pack, open, onOpenChange }: PackInfoDialogProps) {
   const { t } = useTranslation('editor');
   const meta = usePackMeta(pack.id, open);
+  // A mutation fica aqui, fora do formulário: o `pack-changed` da própria gravação relê o
+  // `pack.toml` e refaz o formulário (a chave abaixo) antes de o comando responder; com a
+  // mutation dentro dele, o `onSuccess` do `mutate` se perdia e o diálogo não fechava.
+  const update = useUpdateMeta(pack.id);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open ? (
@@ -41,6 +45,7 @@ export function PackInfoDialog({ pack, open, onOpenChange }: PackInfoDialogProps
             key={`${meta.data.name}|${meta.data.author}|${meta.data.description}`}
             pack={pack}
             meta={meta.data}
+            update={update}
             onDone={() => {
               onOpenChange(false);
             }}
@@ -64,14 +69,20 @@ export function PackInfoDialog({ pack, open, onOpenChange }: PackInfoDialogProps
   );
 }
 
-function InfoForm({ pack, meta, onDone }: { pack: PackRow; meta: PackMeta; onDone: () => void }) {
+interface InfoFormProps {
+  pack: PackRow;
+  meta: PackMeta;
+  update: ReturnType<typeof useUpdateMeta>;
+  onDone: () => void;
+}
+
+function InfoForm({ pack, meta, update, onDone }: InfoFormProps) {
   const { t } = useTranslation('editor');
   const descriptionId = useId();
   const [name, setName] = useState(meta.name);
   const [author, setAuthor] = useState(meta.author);
   const [description, setDescription] = useState(meta.description);
   const [tried, setTried] = useState(false);
-  const update = useUpdateMeta(pack.id);
   const reveal = useRevealPack();
 
   const nameError =
