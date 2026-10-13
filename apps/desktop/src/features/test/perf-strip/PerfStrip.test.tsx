@@ -12,11 +12,11 @@ import { axeComponent, axePage } from '../../../test/axe';
 import { deferred } from '../../../test/backend';
 import { renderApp, renderWithProviders } from '../../../test/render';
 import { editorBackend } from '../../pack-editor/testing';
-import { useTestStore } from '../store';
+import { useTestStore, type TestRun } from '../store';
 import { makeSession, sendOnChannel } from '../test.fixtures';
 import { comparisonText, loadTimeText, memoryParts, memoryText } from './format';
 import { applyPerfSample, fromSession, type PerfSampleEvent } from './model';
-import { PerfStrip, PerfSummary } from './PerfStrip';
+import { LivePerfStrip, PerfStrip, PerfSummary } from './PerfStrip';
 
 const PREVIOUS = {
   sessionId: '2026-10-12_20-00-00',
@@ -112,6 +112,14 @@ describe('faixa de desempenho com o jogo aberto', () => {
     expect(item(strip, 'Abriu em')).toBe('Abriu em1 min 42 s18 s a mais que na 1.4.2');
     expect(item(strip, 'Entrou no mundo em')).toBe('Entrou no mundo em2 min 11 s');
     expect(await axeComponent(container)).toHaveNoViolations();
+  });
+
+  it('teste reencontrado depois de recarregar a interface: sem canal, sem faixa', () => {
+    const adopted = { adopted: true, perf: null } as TestRun;
+    const { container } = renderWithProviders(<LivePerfStrip run={adopted} />);
+    expect(container.textContent).toBe('');
+    renderWithProviders(<LivePerfStrip run={{ ...adopted, adopted: false }} />);
+    expect(screen.getByRole('region', { name: 'Desempenho do jogo' })).toBeDefined();
   });
 
   it('sem versão anterior para comparar, "Abriu em" fica sem a diferença', () => {

@@ -88,8 +88,15 @@ export function PerfStrip({ perf }: { perf: PerfState | null }) {
   );
 }
 
-/** A faixa do teste em andamento (amostras do canal). */
+/**
+ * A faixa do teste em andamento (amostras do canal). Num teste reencontrado depois de a
+ * interface recarregar não há canal: sem amostra, a faixa não aparece (em vez de "medindo…"
+ * para sempre).
+ */
 export function LivePerfStrip({ run }: { run: TestRun }) {
+  if (run.adopted && run.perf === null) {
+    return null;
+  }
   return <PerfStrip perf={run.perf} />;
 }
 
