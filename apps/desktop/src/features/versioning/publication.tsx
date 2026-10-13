@@ -25,6 +25,8 @@ export interface PublishButtonProps {
   /** A versão final que o botão publica. */
   version: string;
   size?: 'sm' | 'md';
+  /** Chamado ao abrir a publicação (o aviso "Versão X salva" fecha para dar lugar a ela). */
+  onOpen?: () => void;
 }
 
 export interface PublicationSlots {

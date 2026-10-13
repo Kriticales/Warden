@@ -9,7 +9,7 @@ import { Button } from '../../components/ui/button';
 import type { PublishButtonProps } from '../versioning/publication';
 import { usePublishStore } from './store';
 
-export function PublishButton({ packId, version, size = 'sm' }: PublishButtonProps) {
+export function PublishButton({ packId, version, size = 'sm', onOpen }: PublishButtonProps) {
   const { t } = useTranslation('publicar');
   const open = usePublishStore((store) => store.open);
   return (
@@ -19,6 +19,7 @@ export function PublishButton({ packId, version, size = 'sm' }: PublishButtonPro
       icon={Globe}
       onClick={(event) => {
         open({ packId, version, opener: event.currentTarget });
+        onOpen?.();
       }}
     >
       {t('botao.publicar', { version })}

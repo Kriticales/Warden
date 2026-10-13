@@ -31,7 +31,7 @@ export function PublicationPanel({ packId }: PublicationPanelProps) {
   const [howTo, setHowTo] = useState(false);
 
   const title = (
-    <h2 className="panel__title" id="historico-publicacao">
+    <h2 className="panel__title" id="historico-publicacao" tabIndex={-1}>
       {t('area.titulo')}
     </h2>
   );

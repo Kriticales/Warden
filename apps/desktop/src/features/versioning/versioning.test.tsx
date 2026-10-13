@@ -588,6 +588,12 @@ describe('Salvar versão (T16)', () => {
     ).toContain('/exportar');
     // O "Fechar" do rodapé e o ✕ do canto.
     expect(within(notice).getAllByRole('button', { name: 'Fechar' })).toHaveLength(2);
+    // Publicar (V-03) fecha o aviso e abre a publicação no lugar dele.
+    await user.click(within(notice).getByRole('button', { name: 'Publicar versão 1.5.0' }));
+    await screen.findByRole('dialog', { name: 'Primeira publicação deste pack' });
+    expect(
+      screen.queryByRole('dialog', { name: 'Versão 1.5.0 salva como versão final' }),
+    ).toBeNull();
   });
 
   it('salvar sem marcar como final não oferece Publicar versão', async () => {

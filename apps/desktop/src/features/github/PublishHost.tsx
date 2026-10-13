@@ -67,8 +67,13 @@ export function PublishHost({ packId, pack }: HeaderSlotProps) {
   const retry = useRetryRelease(packId);
   const active = request !== null && request.packId === packId;
   const opener = request?.opener ?? null;
+  // Quem abriu pode ter sumido (a versão virou "Publicada", o aviso de salvar fechou): o foco
+  // vai para o título da área de publicação ou, fora do Histórico, para o Salvar versão.
   const returnFocus = () =>
-    opener?.isConnected ? opener : document.getElementById('historico-publicacao');
+    opener?.isConnected
+      ? opener
+      : (document.getElementById('historico-publicacao') ??
+        document.querySelector<HTMLElement>('header.packhead .packhead__actions button'));
 
   const finish = (published: Published) => {
     setResult(published);
