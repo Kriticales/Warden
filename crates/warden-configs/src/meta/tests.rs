@@ -424,3 +424,36 @@ fn caminhos_vao_e_voltam() {
     let json = serde_json::to_string(&to_keys(&path)).unwrap();
     assert_eq!(json, "[\"a\",2]");
 }
+
+fn snippet_reasons(form: &ConfigForm) -> Vec<(&str, SnippetReason)> {
+    form.items
+        .iter()
+        .filter_map(|item| match item {
+            FormItem::Snippet(snippet) => Some((snippet.key.as_str(), snippet.reason)),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn valores_que_o_formulario_nao_regrava_sem_perder_o_jeito() {
+    // Linha continuada com `\` e chave sozinha, sem `=`: só no texto.
+    let properties = form(
+        "config/x.properties",
+        "a=1\r\nsozinha\r\nlonga=um \\\r\n    dois\r\nvazia=\r\n",
+    );
+    assert_eq!(
+        snippet_reasons(&properties),
+        [
+            ("sozinha", SnippetReason::KeyWithoutValue),
+            ("longa", SnippetReason::MultilineValue),
+        ]
+    );
+    assert_eq!(fields(&properties).len(), 2);
+    // Texto de várias linhas do TOML.
+    let toml = form("config/x.toml", "t = \"\"\"\num\ndois\"\"\"\nn = 1\n");
+    assert_eq!(
+        snippet_reasons(&toml),
+        [("t", SnippetReason::MultilineValue)]
+    );
+}

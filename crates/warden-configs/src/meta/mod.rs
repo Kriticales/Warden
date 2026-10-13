@@ -21,12 +21,18 @@
 //!
 //! [`apply_form_edits`] aplica as edições do formulário ao texto e devolve o texto novo, que a
 //! interface grava pelo caminho de sempre (`config_write`, com a diferença antes de gravar e o
-//! aviso de alteração externa). Só os bytes do valor mudam; se a releitura ou a comparação byte
+//! aviso de alteração externa). Só os bytes do valor mudam, e o mínimo deles: valor igual não
+//! toca a linha, número sai como foi digitado e lista muda item por item, com o estilo, a
+//! indentação e os comentários dela (`edit.rs`, `list.rs`). Se a releitura ou a comparação byte
 //! a byte fora do valor falhar, nada é devolvido e o formulário cai para o texto com o motivo.
+//! Valor escrito em várias linhas e lista que a leitura item por item não entende também viram
+//! "trecho em texto".
 
+mod edit;
 mod explicit;
 mod inferred;
 mod labels;
+mod list;
 
 use std::collections::HashSet;
 use std::path::Path;
@@ -34,11 +40,17 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use warden_jarmeta::lang::{ConfigLang, LangLocale};
 
-use crate::document::{ConfigDocument, ConfigEdit};
-use crate::error::{ConfigError, Result};
+pub use edit::apply_form_edits;
+#[cfg(test)]
+use edit::{item_value, to_config_value};
+
+use crate::document::ConfigDocument;
+use crate::error::ConfigError;
 use crate::format::ConfigFormat;
 use crate::path::{KeyPath, PathSegment};
-use crate::tree::{CfgType, ConfigEntry, ConfigValue, EntryKind, ValueKind, float_text};
+use crate::tree::{
+    CfgType, ConfigEntry, ConfigTree, ConfigValue, EntryKind, ValueKind, float_text,
+};
 
 /// Seções mais fundas que isto (contando a raiz como 0) viram "trecho em texto".
 pub const MAX_FORM_DEPTH: usize = 6;
@@ -241,6 +253,14 @@ pub enum SnippetReason {
     NullValue,
     /// Seção funda demais.
     TooDeep,
+    /// Valor escrito em várias linhas (linha continuada com `\\` no `.properties`, texto de
+    /// várias linhas do TOML): pelo formulário ele viraria uma linha só.
+    MultilineValue,
+    /// Lista escrita de um jeito que o formulário não consegue editar item por item.
+    ListLayout,
+    /// Chave do `.properties` sozinha na linha, sem `=` nem valor: dar um valor e depois
+    /// apagá-lo deixaria um `=` que não estava lá.
+    KeyWithoutValue,
 }
 
 /// Um trecho que o formulário não edita: o botão leva ao editor de texto na linha.
@@ -397,6 +417,7 @@ pub fn build_form(path: &str, bytes: &[u8], labels: Option<&ConfigLang>) -> Conf
 fn items(document: &ConfigDocument, path: &str, labels: Option<&ConfigLang>) -> Vec<FormItem> {
     let tree = document.tree();
     let format = tree.format;
+    let text = std::str::from_utf8(document.as_bytes()).unwrap_or_default();
     // Seções cujo filho direto é uma posição de lista: listas de objetos.
     let list_parents: HashSet<KeyPath> = tree
         .entries
@@ -451,7 +472,7 @@ fn items(document: &ConfigDocument, path: &str, labels: Option<&ConfigLang>) -> 
         if repeated || !seen.insert(entry.path.clone()) {
             continue;
         }
-        out.push(field_item(entry, format, path, labels));
+        out.push(field_item(entry, tree, text, path, labels));
     }
     out
 }
@@ -475,6 +496,40 @@ fn item_kind(value: &ConfigValue) -> Option<ListItemKind> {
     }
 }
 
+/// Tipo dos itens de uma lista do arquivo; `None` se misturados ou com listas dentro. Numa
+/// lista vazia, o prefixo do `.cfg` (`I:`, `D:`, `B:`) ou as listas de mesmo nome no arquivo
+/// (`dimensions` em outro bloco) dizem o tipo; sem pista, texto.
+fn entry_list_kind(tree: &ConfigTree, entry: &ConfigEntry) -> Option<ListItemKind> {
+    let Some(ConfigValue::List(items)) = &entry.value else {
+        return None;
+    };
+    if !items.is_empty() {
+        return list_kind(items);
+    }
+    Some(match entry.cfg_type {
+        Some(CfgType::Integer) => ListItemKind::Integer,
+        Some(CfgType::Double) => ListItemKind::Float,
+        Some(CfgType::Boolean) => ListItemKind::Bool,
+        Some(_) => ListItemKind::Text,
+        None => same_name_list(tree, entry)
+            .and_then(|model| match &model.value {
+                Some(ConfigValue::List(items)) => list_kind(items),
+                _ => None,
+            })
+            .unwrap_or(ListItemKind::Text),
+    })
+}
+
+/// Outra lista do arquivo, com itens, cuja chave tem o mesmo nome.
+fn same_name_list<'t>(tree: &'t ConfigTree, entry: &ConfigEntry) -> Option<&'t ConfigEntry> {
+    let name = entry.path.last()?;
+    tree.entries.iter().find(|other| {
+        other.path != entry.path
+            && other.path.last() == Some(name)
+            && matches!(&other.value, Some(ConfigValue::List(items)) if !items.is_empty())
+    })
+}
+
 /// Tipo comum dos itens; `None` se misturados ou com listas dentro. Lista vazia é de texto.
 fn list_kind(items: &[ConfigValue]) -> Option<ListItemKind> {
     let mut kinds = items.iter().map(item_kind);
@@ -485,22 +540,41 @@ fn list_kind(items: &[ConfigValue]) -> Option<ListItemKind> {
     kinds.all(|kind| kind == Some(first)).then_some(first)
 }
 
-/// Texto de um valor simples, para o formulário.
-fn plain_text(value: &ConfigValue) -> String {
+/// Texto de um valor simples, para o formulário. Um número sai como está escrito no arquivo
+/// (`0.20`, `1.0E-4`) quando esse texto lê como o mesmo número: assim, voltar ao valor original
+/// devolve os mesmos bytes. Senão, a forma normal (`1_000` do TOML vira `1000`).
+fn plain_text(value: &ConfigValue, raw: Option<&str>) -> String {
+    let raw = raw.map(str::trim);
     match value {
-        ConfigValue::Float(number) => float_text(*number),
+        ConfigValue::Integer(number) => raw
+            .filter(|raw| raw.parse::<i64>().ok() == Some(*number))
+            .map_or_else(|| number.to_string(), str::to_owned),
+        ConfigValue::Float(number) => raw
+            .filter(|raw| {
+                raw.parse::<f64>()
+                    .is_ok_and(|read| read.to_bits() == number.to_bits())
+            })
+            .map_or_else(|| float_text(*number), str::to_owned),
         other => other.as_plain_text().unwrap_or_default(),
     }
 }
 
-fn form_value(value: &ConfigValue) -> Option<FormValue> {
+/// O valor para o formulário; `raw` é o texto do valor no arquivo e `item_raws`, o de cada
+/// item de uma lista.
+fn form_value(value: &ConfigValue, raw: Option<&str>, item_raws: &[&str]) -> Option<FormValue> {
     Some(match value {
         ConfigValue::Bool(flag) => FormValue::Bool(*flag),
-        ConfigValue::Integer(number) => FormValue::Integer(number.to_string()),
-        ConfigValue::Float(number) => FormValue::Float(float_text(*number)),
+        ConfigValue::Integer(_) => FormValue::Integer(plain_text(value, raw)),
+        ConfigValue::Float(_) => FormValue::Float(plain_text(value, raw)),
         ConfigValue::String(text) => FormValue::String(text.clone()),
         ConfigValue::Datetime(text) => FormValue::Datetime(text.clone()),
-        ConfigValue::List(items) => FormValue::List(items.iter().map(plain_text).collect()),
+        ConfigValue::List(items) => FormValue::List(
+            items
+                .iter()
+                .enumerate()
+                .map(|(index, item)| plain_text(item, item_raws.get(index).copied()))
+                .collect(),
+        ),
         ConfigValue::Null => return None,
     })
 }
@@ -533,9 +607,51 @@ fn untyped_control(text: &str) -> (FieldControl, Confidence) {
     (FieldControl::Text, Confidence::Medium)
 }
 
+/// O texto de cada item de uma lista no arquivo, ou o motivo de o valor ficar só no texto: a
+/// lista que a leitura item por item não entende, o valor escrito em várias linhas e a chave do
+/// `.properties` sem valor nem separador.
+fn written_items<'t>(
+    entry: &ConfigEntry,
+    value: &ConfigValue,
+    format: ConfigFormat,
+    text: &'t str,
+) -> std::result::Result<Vec<&'t str>, SnippetReason> {
+    let span = entry.value_span;
+    if let ConfigValue::List(items) = value {
+        // A lista só entra no formulário se a leitura item por item achar os mesmos itens.
+        let layout = span
+            .and_then(|span| list::read(text, format, span))
+            .filter(|layout| items.len() == layout.items.len())
+            .ok_or(SnippetReason::ListLayout)?;
+        return Ok(layout
+            .items
+            .iter()
+            .map(|item| text.get(item.start..item.end).unwrap_or_default())
+            .collect());
+    }
+    if span
+        .and_then(|span| text.get(span.range()))
+        .is_some_and(|raw| raw.contains('\n'))
+    {
+        return Err(SnippetReason::MultilineValue);
+    }
+    let without_separator = span.is_some_and(|span| {
+        span.start == span.end
+            && !text
+                .get(..span.start)
+                .and_then(|before| before.chars().next_back())
+                .is_some_and(|c| matches!(c, '=' | ':' | ' ' | '\t' | '\u{c}'))
+    });
+    if format == ConfigFormat::Properties && without_separator {
+        return Err(SnippetReason::KeyWithoutValue);
+    }
+    Ok(Vec::new())
+}
+
 fn field_item(
     entry: &ConfigEntry,
-    format: ConfigFormat,
+    tree: &ConfigTree,
+    text: &str,
     file_path: &str,
     labels: Option<&ConfigLang>,
 ) -> FormItem {
@@ -545,12 +661,17 @@ fn field_item(
     if matches!(value, ConfigValue::Null) {
         return snippet(entry, SnippetReason::NullValue);
     }
-    if let ConfigValue::List(items) = value
-        && list_kind(items).is_none()
-    {
+    let format = tree.format;
+    let list_item = entry_list_kind(tree, entry);
+    if matches!(value, ConfigValue::List(_)) && list_item.is_none() {
         return snippet(entry, SnippetReason::ComplexList);
     }
-    let Some(form) = form_value(value) else {
+    let raw = entry.value_span.and_then(|span| text.get(span.range()));
+    let item_raws = match written_items(entry, value, format, text) {
+        Ok(item_raws) => item_raws,
+        Err(reason) => return snippet(entry, reason),
+    };
+    let Some(form) = form_value(value, raw, &item_raws) else {
         return snippet(entry, SnippetReason::NullValue);
     };
     let found = explicit::read(format, entry.comment.as_deref());
@@ -617,7 +738,8 @@ fn field_item(
         .or(found.valid_values)
         .filter(|_| matches!(value, ConfigValue::String(_)));
 
-    let (control, confidence) = control_for(entry, format, value, options, range.as_ref());
+    let (control, confidence) =
+        control_for(entry, format, value, list_item, options, range.as_ref());
 
     let label = labels
         .and_then(|lang| labels::find(lang, file_path, format, &entry.path))
@@ -646,6 +768,7 @@ fn control_for(
     entry: &ConfigEntry,
     format: ConfigFormat,
     value: &ConfigValue,
+    list_item: Option<ListItemKind>,
     options: Option<Vec<String>>,
     range: Option<&FieldRange>,
 ) -> (FieldControl, Confidence) {
@@ -666,9 +789,9 @@ fn control_for(
         ConfigValue::Bool(_) => (FieldControl::Toggle, Confidence::High),
         ConfigValue::Integer(_) => (bounds(true), bounded(Confidence::High)),
         ConfigValue::Float(_) => (bounds(false), bounded(Confidence::Medium)),
-        ConfigValue::List(items) => (
+        ConfigValue::List(_) => (
             FieldControl::List {
-                item: list_kind(items).unwrap_or(ListItemKind::Text),
+                item: list_item.unwrap_or(ListItemKind::Text),
             },
             Confidence::High,
         ),
@@ -698,150 +821,6 @@ fn control_for(
             }
         }
     }
-}
-
-// ---------------------------------------------------------------------------------------------
-// Edição
-// ---------------------------------------------------------------------------------------------
-
-fn invalid(path: &KeyPath, reason: impl Into<String>) -> ConfigError {
-    ConfigError::InvalidValue {
-        path: path.clone(),
-        reason: reason.into(),
-    }
-}
-
-fn parse_integer(path: &KeyPath, text: &str) -> Result<i64> {
-    text.trim()
-        .parse::<i64>()
-        .map_err(|_| invalid(path, format!("{text:?} não é um número inteiro")))
-}
-
-fn parse_float(path: &KeyPath, text: &str) -> Result<f64> {
-    text.trim()
-        .parse::<f64>()
-        .ok()
-        .filter(|number| number.is_finite())
-        .ok_or_else(|| invalid(path, format!("{text:?} não é um número")))
-}
-
-fn parse_bool(path: &KeyPath, text: &str) -> Result<bool> {
-    match text.trim() {
-        "true" => Ok(true),
-        "false" => Ok(false),
-        _ => Err(invalid(path, format!("{text:?} não é true nem false"))),
-    }
-}
-
-/// Texto do valor do formulário, para guardar como texto.
-fn form_text(value: &FormValue) -> Option<String> {
-    match value {
-        FormValue::Bool(flag) => Some(flag.to_string()),
-        FormValue::Integer(text)
-        | FormValue::Float(text)
-        | FormValue::String(text)
-        | FormValue::Datetime(text) => Some(text.clone()),
-        FormValue::List(_) => None,
-    }
-}
-
-/// Converte o texto de um item para o tipo do item atual.
-fn item_value(path: &KeyPath, kind: ListItemKind, text: &str) -> Result<ConfigValue> {
-    Ok(match kind {
-        ListItemKind::Text => ConfigValue::String(text.to_owned()),
-        ListItemKind::Integer => ConfigValue::Integer(parse_integer(path, text)?),
-        ListItemKind::Float => ConfigValue::Float(parse_float(path, text)?),
-        ListItemKind::Bool => ConfigValue::Bool(parse_bool(path, text)?),
-    })
-}
-
-/// O valor do formulário no tipo que a chave tem no arquivo: o tipo nunca muda pela edição.
-fn to_config_value(
-    path: &KeyPath,
-    current: &ConfigValue,
-    value: &FormValue,
-) -> Result<ConfigValue> {
-    let text = || form_text(value).ok_or_else(|| invalid(path, "a chave não é uma lista"));
-    Ok(match current {
-        ConfigValue::Bool(_) => match value {
-            FormValue::Bool(flag) => ConfigValue::Bool(*flag),
-            other => ConfigValue::Bool(parse_bool(path, &form_text(other).unwrap_or_default())?),
-        },
-        ConfigValue::Integer(_) => ConfigValue::Integer(parse_integer(path, &text()?)?),
-        ConfigValue::Float(_) => ConfigValue::Float(parse_float(path, &text()?)?),
-        ConfigValue::String(_) => ConfigValue::String(text()?),
-        ConfigValue::Datetime(_) => ConfigValue::Datetime(text()?),
-        ConfigValue::List(items) => {
-            let FormValue::List(new_items) = value else {
-                return Err(invalid(path, "a chave é uma lista"));
-            };
-            let kind = list_kind(items)
-                .ok_or_else(|| invalid(path, "lista com itens de tipos diferentes"))?;
-            ConfigValue::List(
-                new_items
-                    .iter()
-                    .map(|item| item_value(path, kind, item))
-                    .collect::<Result<_>>()?,
-            )
-        }
-        ConfigValue::Null => return Err(invalid(path, "valor nulo só se edita como texto")),
-    })
-}
-
-/// Aplica as edições do formulário ao texto do arquivo `path` e devolve o texto novo.
-///
-/// Só os bytes dos valores mudam ([`ConfigDocument::apply`] relê e confere cada valor). Além
-/// disso, os bytes antes do primeiro valor editado e depois do último são comparados com os
-/// originais: se algo fora dos valores mudou, nada é devolvido
-/// ([`ConfigError::EditNotConfirmed`]) e a interface cai para o editor de texto.
-///
-/// # Errors
-///
-/// Os de [`ConfigDocument::parse`] e [`ConfigDocument::apply`], e
-/// [`ConfigError::InvalidValue`] para valor que não serve ao tipo da chave.
-pub fn apply_form_edits(path: &str, text: &str, edits: &[FormEdit]) -> Result<String> {
-    let bytes = text.as_bytes();
-    let format = detect(path, bytes).map_err(|_| ConfigError::EditNotConfirmed {
-        detail: "o arquivo não tem formulário".into(),
-    })?;
-    let document = ConfigDocument::parse(format, bytes)?;
-    let mut converted = Vec::with_capacity(edits.len());
-    let mut first = usize::MAX;
-    let mut last = 0;
-    for edit in edits {
-        let key = from_keys(&edit.path);
-        let entry = document
-            .get(&key)
-            .ok_or_else(|| ConfigError::PathNotFound { path: key.clone() })?;
-        let current = entry
-            .value
-            .as_ref()
-            .ok_or_else(|| ConfigError::NotEditable {
-                path: key.clone(),
-                reason: "é uma seção; edite as chaves dentro dela".into(),
-            })?;
-        if let Some(span) = entry.value_span {
-            first = first.min(span.start);
-            last = last.max(span.end);
-        }
-        let value = to_config_value(&key, current, &edit.value)?;
-        converted.push(ConfigEdit::new(key, value));
-    }
-    let edited = document.apply(&converted)?;
-    let out = edited.as_bytes();
-    if !converted.is_empty() {
-        let tail = bytes.len().saturating_sub(last);
-        let same_head = out.get(..first) == bytes.get(..first);
-        let same_tail = out.len() >= tail && out.get(out.len() - tail..) == bytes.get(last..);
-        if !(same_head && same_tail) {
-            return Err(ConfigError::EditNotConfirmed {
-                detail: "bytes fora do valor mudariam".into(),
-            });
-        }
-    }
-    String::from_utf8(edited.into_bytes()).map_err(|error| ConfigError::EditNotConfirmed {
-        detail: error.to_string(),
-    })
 }
 
 #[cfg(test)]
