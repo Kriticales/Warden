@@ -235,6 +235,14 @@ async function view(name = RECEITAS): Promise<EditorView> {
   return found;
 }
 
+/** Espera um aviso (toast) com o texto (o Radix pode repetir o texto enquanto anuncia). */
+async function waitToast(text: string): Promise<void> {
+  await waitFor(() => {
+    const toasts = [...document.querySelectorAll('.toast')].map((toast) => toast.textContent);
+    expect(toasts.join(' | ')).toContain(text);
+  });
+}
+
 beforeEach(() => {
   useTestStore.setState({ game: null, runs: {}, packChanged: {} });
 });
@@ -351,7 +359,7 @@ describe('editor de scripts (T26)', () => {
     expect(backend.callsOf('scripts_reload')[0]?.args).toMatchObject({ path: RECEITAS });
     await user.click(screen.getByRole('button', { name: 'Copiar /kubejs reload server_scripts' }));
     expect(writeText).toHaveBeenCalledWith('/kubejs reload server_scripts');
-    await screen.findByText('Comando copiado');
+    await waitToast('Comando copiado');
     await user.click(screen.getByRole('button', { name: 'Fechar o aviso' }));
     expect(screen.queryByText('No KubeJS 6, recarregar precisa de um comando no jogo.')).toBeNull();
   });
@@ -366,9 +374,9 @@ describe('editor de scripts (T26)', () => {
     });
     await view();
     await user.click(await screen.findByRole('button', { name: 'Recarregar no jogo' }));
-    await screen.findByText('Scripts recarregados no servidor');
-    expect(screen.getByText(/O Warden enviou kubejs reload server_scripts\./)).toBeDefined();
-    expect(screen.getByText(/Reloading!/)).toBeDefined();
+    await waitToast('Scripts recarregados no servidor');
+    await waitToast('O Warden enviou kubejs reload server_scripts.');
+    await waitToast('[15:12:03] [Server thread/INFO]: Reloading!');
   });
 
   it('CA-T26-03 (interface): KubeJS 7 pelo servidor web relê os erros; o token não aparece', async () => {
@@ -388,7 +396,7 @@ describe('editor de scripts (T26)', () => {
     await screen.findByText('ao vivo, do jogo aberto');
     const before = backend.callsOf('scripts_problems').length;
     await user.click(await screen.findByRole('button', { name: 'Recarregar no jogo' }));
-    await screen.findByText('Scripts recarregados no jogo');
+    await waitToast('Scripts recarregados no jogo');
     await waitFor(() => {
       expect(backend.callsOf('scripts_problems').length).toBeGreaterThan(before);
     });
@@ -430,7 +438,7 @@ describe('editor de scripts (T26)', () => {
     openScript(`?arquivo=${RECEITAS}`, { noVsCode: true });
     await view();
     await user.click(await screen.findByRole('button', { name: 'Abrir no VS Code' }));
-    await screen.findByText(
+    await waitToast(
       'O VS Code não foi encontrado neste computador. Instale o VS Code e tente de novo.',
     );
   });

@@ -18,6 +18,14 @@ function info(env: ScriptsInfo['env']): ScriptsInfo {
   return { env, kubejsSnippets: [], crafttweakerSnippets: [], instanceReady: true };
 }
 
+/** Espera um aviso (toast) com o texto (o Radix pode repetir o texto enquanto anuncia). */
+async function waitToast(text: string): Promise<void> {
+  await waitFor(() => {
+    const toasts = [...document.querySelectorAll('.toast')].map((toast) => toast.textContent);
+    expect(toasts.join(' | ')).toContain(text);
+  });
+}
+
 describe('Recarregar scripts na tela do teste', () => {
   it('pack sem KubeJS nem CraftTweaker: sem botão', async () => {
     const backend = mockBackend();
@@ -47,7 +55,7 @@ describe('Recarregar scripts na tela do teste', () => {
         path: 'kubejs/server_scripts/scripts.js',
       });
     });
-    await screen.findByText('No KubeJS 6, recarregar precisa de um comando no jogo.');
+    await waitToast('No KubeJS 6, recarregar precisa de um comando no jogo.');
     await user.click(screen.getByRole('button', { name: 'Copiar /kubejs reload server_scripts' }));
     expect(writeText).toHaveBeenCalledWith('/kubejs reload server_scripts');
   });
@@ -62,7 +70,7 @@ describe('Recarregar scripts na tela do teste', () => {
     });
     renderWithProviders(<ReloadScriptsButton packId={PACK} />);
     await user.click(await screen.findByRole('button', { name: 'Recarregar scripts' }));
-    await screen.findByText('Scripts recarregados no jogo');
+    await waitToast('Scripts recarregados no jogo');
   });
 
   it('CraftTweaker do 1.12.2: explica que é preciso reiniciar', async () => {
@@ -75,9 +83,7 @@ describe('Recarregar scripts na tela do teste', () => {
     });
     renderWithProviders(<ReloadScriptsButton packId={PACK} />);
     await user.click(await screen.findByRole('button', { name: 'Recarregar scripts' }));
-    await screen.findByText(
-      'O CraftTweaker do Minecraft 1.12.2 não recarrega scripts com o jogo aberto.',
-    );
+    await waitToast('O CraftTweaker do Minecraft 1.12.2 não recarrega scripts com o jogo aberto.');
     expect(backend.callsOf('scripts_reload')[0]?.args).toMatchObject({
       path: 'scripts/scripts.zs',
     });

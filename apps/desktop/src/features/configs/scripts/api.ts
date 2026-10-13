@@ -2,7 +2,9 @@
  * Dados do editor de scripts (ARCHITECTURE §18; SPEC T26).
  *
  * - `scripts_info` e `scripts_ids` dependem dos mods do pack: ficam na área `inventory`, então
- *   adicionar, remover ou atualizar um mod (`pack-changed`) os relê.
+ *   adicionar, remover ou atualizar um mod (`pack-changed`) os relê. A versão (`scripts_info`,
+ *   barata) é relida do disco a cada arquivo aberto; os IDs, só pelo evento ou depois de um
+ *   minuto.
  * - `scripts_problems` e `scripts_reload_route` dependem do teste: a chave leva a situação do
  *   jogo deste pack, e cada mudança (abriu, fechou) os relê. Com o KubeJS 7 e o jogo aberto, os
  *   erros vêm ao vivo e são relidos a cada poucos segundos.
@@ -40,7 +42,8 @@ export function useScriptsInfo(packId: PackId, enabled: boolean) {
   return useQuery({
     ...commandQuery(scriptsKeys.info(packId), () => commands.scriptsInfo(packId)),
     enabled,
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
