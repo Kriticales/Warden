@@ -1,7 +1,7 @@
 /**
  * Informações do pack (SPEC T11; protótipo `info`): nome, autor e descrição, gravados no
- * `pack.toml` mudando só as linhas alteradas (CA-T11-01). Mostra as versões (trocar a versão do
- * loader é da P1-15) e a pasta, com "Mostrar pasta do pack". Apagar pack fica em Meus packs.
+ * `pack.toml` mudando só as linhas alteradas (CA-T11-01). Mostra as versões, com "Trocar versão
+ * do loader…" (P1-15), e a pasta, com "Mostrar pasta do pack". Apagar pack fica em Meus packs.
  */
 import { FolderOpen } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -15,6 +15,7 @@ import { showToast } from '../../../components/ui/toast';
 import type { PackMeta, PackRow } from '../../../lib/ipc/bindings';
 import { TextField } from '../../settings/components/fields';
 import { useRevealPack } from '../../packs/api';
+import { LoaderVersionButton } from '../change-version/LoaderVersionButton';
 import { loaderName } from '../../packs/lib/pack-list';
 import { usePackMeta, useUpdateMeta } from '../api';
 
@@ -186,6 +187,9 @@ function InfoForm({ pack, meta, onDone }: { pack: PackRow; meta: PackMeta; onDon
         <dd>
           {t('informacoes.versoesTexto', { minecraft: meta.minecraft ?? '?', loader })}
           <div className="field__hint">{t('informacoes.versoesDica')}</div>
+          <div className="btn-row" style={{ marginTop: 6 }}>
+            <LoaderVersionButton packId={pack.id} meta={meta} />
+          </div>
         </dd>
         <dt>{t('informacoes.pasta')}</dt>
         <dd className="path">{pack.path}</dd>
