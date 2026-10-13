@@ -58,6 +58,9 @@ function fabricJar(fields: Record<string, unknown>): Buffer {
   return storedZip({ 'fabric.mod.json': JSON.stringify({ schemaVersion: 1, ...fields }) });
 }
 
+/** Instância de teste criada por este spec (apagada no fim). */
+let instanceDir: string | null = null;
+
 /** Põe os jars na instância de teste do pack, onde o grafo os procura. */
 function writeInstanceJars(): void {
   const registry = JSON.parse(readFileSync(REGISTRY_FILE, 'utf8')) as {
@@ -65,7 +68,8 @@ function writeInstanceJars(): void {
   };
   const id = registry.packs.find((pack) => pack.path.endsWith('pack-grafo'))?.id;
   if (!id) throw new Error('pack-grafo não está no registro');
-  const mods = join(DATA_ROOT, 'data', 'instances', id, 'minecraft', 'mods');
+  instanceDir = join(DATA_ROOT, 'data', 'instances', id);
+  const mods = join(instanceDir, 'minecraft', 'mods');
   mkdirSync(mods, { recursive: true });
   const jars: Record<string, Buffer> = {
     'sodium-fabric-0.8.13+mc1.21.1.jar': fabricJar({
@@ -108,9 +112,12 @@ describe('Mods no modo Grafo (D-11)', () => {
   });
 
   after(() => {
-    // Devolve a pasta de dados vazia para os specs seguintes.
+    // Devolve a pasta de dados vazia para os specs seguintes (o test.e2e.ts espera uma
+    // instância só, a dele).
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
+    if (instanceDir) rmSync(instanceDir, { recursive: true, force: true });
+    rmSync(PACK, { recursive: true, force: true });
   });
 
   it('CA-T06-07: Sodium no centro, o que ele exige à esquerda e quem precisa dele à direita', async () => {
