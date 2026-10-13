@@ -6,7 +6,8 @@
 //! O `session.json` aceita campos de quem abre o jogo (`extra`): a `warden-app` (L-04)
 //! acrescenta o hash da árvore do pack, o modo, o perfil, a assinatura do travamento e os
 //! tempos sem mudar esta crate. Retenção: as 30 sessões mais novas que não travaram ficam; as
-//! que travaram não são apagadas aqui (a interface avisa antes; [`crashed_over_budget`]).
+//! que travaram não são apagadas aqui (a interface avisa antes e apaga só depois de confirmar;
+//! [`session_size`] mede cada uma).
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -245,28 +246,10 @@ fn dir_size(path: &Path) -> u64 {
         .sum()
 }
 
-/// As sessões que travaram que passam do orçamento, das mais antigas para as mais novas: a
-/// interface avisa e apaga essas depois de confirmar.
-///
-/// Erros: disco.
-pub fn crashed_over_budget(sessions: &Path, budget_bytes: u64) -> Result<Vec<PathBuf>> {
-    let mut total = 0u64;
-    let mut over = Vec::new();
-    for session in list_sessions(sessions)? {
-        let crashed = session
-            .record
-            .as_ref()
-            .is_some_and(|record| record.outcome == Outcome::Crashed);
-        if !crashed {
-            continue;
-        }
-        total = total.saturating_add(dir_size(session.dir.path()));
-        if total > budget_bytes {
-            over.push(session.dir.path().to_path_buf());
-        }
-    }
-    over.reverse();
-    Ok(over)
+/// Espaço que uma sessão ocupa no disco (o que não der para ler conta 0).
+#[must_use]
+pub fn session_size(session: &SessionDir) -> u64 {
+    dir_size(session.path())
 }
 
 /// Data e hora UTC de um instante.
@@ -427,8 +410,10 @@ mod tests {
         }));
         assert!(left.iter().any(|session| session.record.is_none()));
 
-        assert!(crashed_over_budget(root.path(), 10_000).unwrap().is_empty());
-        assert_eq!(crashed_over_budget(root.path(), 10).unwrap().len(), 1);
+        assert!(
+            left.iter()
+                .all(|session| session_size(&session.dir) >= 1_000 || session.record.is_none())
+        );
     }
 
     #[test]

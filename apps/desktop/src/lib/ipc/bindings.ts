@@ -205,8 +205,11 @@ export const commands = {
 	/**  Cada vez, da mais nova para a mais antiga. */
 	occurrences: CrashOccurrence[],
 } | null, AppError>(__TAURI_INVOKE("crash_get", { packId, signature })),
-	/**  Apaga os travamentos mais antigos que passam do limite de espaço. Devolve quantos apagou. */
-	crashesPrune: (packId: PackId) => typedError<number, AppError>(__TAURI_INVOKE("crashes_prune", { packId })),
+	/**
+	 *  Apaga, das sessões que a pessoa confirmou (`sessions`, o `prunable` da lista), as que ainda
+	 *  passam do limite de espaço. Devolve quantas apagou.
+	 */
+	crashesPrune: (packId: PackId, sessions: string[]) => typedError<number, AppError>(__TAURI_INVOKE("crashes_prune", { packId, sessions })),
 	/**  "Verificar agora": confere o pack e grava o relatório. */
 	diagnosticsRun: (packId: PackId) => typedError<DiagnosticsReport, AppError>(__TAURI_INVOKE("diagnostics_run", { packId })),
 	/**  O último relatório do pack (`None`: nunca verificado neste computador). */
@@ -1928,8 +1931,13 @@ export type CrashRetention = {
 	budgetBytes: number,
 	/**  Os travamentos guardados passaram de 90% do limite. */
 	nearLimit: boolean,
-	/**  Quantas sessões (as mais antigas) passam do limite e podem ser apagadas. */
-	overBudget: number,
+	/**  Os travamentos guardados passaram do limite. */
+	overLimit: boolean,
+	/**
+	 *  As sessões que passam do limite e podem ser apagadas, da mais antiga para a mais nova
+	 *  (nunca a mais nova nem a do teste aberto). "Apagar os mais antigos" manda estas.
+	 */
+	prunable: string[],
 };
 
 /**  A assinatura de um travamento. */

@@ -5,7 +5,7 @@
 //!   estado da retenção dos travamentos guardados.
 //! - `crash_get`: um grupo com cada vez que travou.
 //! - `crashes_prune`: apaga os travamentos mais antigos que passam do limite de espaço, depois
-//!   que a pessoa confirma na interface.
+//!   que a pessoa confirma na interface (só os que ela confirmou e que ainda passam do limite).
 //!
 //! A assinatura é calculada pelo gancho `test_hooks/crash_history.rs` logo que o jogo fecha e
 //! gravada no `session.json` (campo [`SESSION_FIELD`]). Sessões gravadas antes disso ganham a
@@ -14,7 +14,9 @@
 //!
 //! Retenção (ARCHITECTURE §7.4): as 30 sessões mais novas que não travaram ficam (o Testar
 //! apaga as outras ao gravar cada sessão); as que travaram ficam até 500 MB por pack. Passando
-//! de 90% do limite a interface avisa; passando do limite, oferece apagar as mais antigas.
+//! de 90% do limite a interface avisa; passando do limite, oferece apagar as mais antigas. "Mais
+//! antigas" na ordem da lista de Travamentos (o início de cada teste); o travamento mais novo e
+//! o do teste aberto nunca são apagados, mesmo sozinhos passando do limite.
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
 use std::collections::HashMap;
@@ -26,14 +28,15 @@ use tauri::State;
 use warden_core::PackId;
 use warden_diagnostics::crash_history::{
     CrashGroup, CrashOrigin, CrashStatus, PackState, SessionEnd, SessionEntry, group_crashes,
+    session_order,
 };
 use warden_diagnostics::postcrash::{SessionFiles, SessionOutcome, collect_session};
-use warden_diagnostics::{AnalysisContext, CrashSignature, LogLoader};
+use warden_diagnostics::{AnalysisContext, CrashSignature, LogLoader, SIGNATURE_VERSION};
 use warden_instance::InstanceDirs;
 use warden_launcher::LoaderSpec;
 use warden_launcher::outcome::Outcome;
 use warden_launcher::session::{
-    CRASHED_BUDGET_BYTES, SessionRecord, StoredSession, crashed_over_budget, list_sessions,
+    CRASHED_BUDGET_BYTES, SessionRecord, StoredSession, list_sessions, session_size,
 };
 
 use crate::commands::diagnostics::crash::{CrashDiagnosis, SESSION_FIELD as DIAGNOSIS_FIELD};
@@ -150,8 +153,11 @@ pub(crate) struct CrashRetention {
     pub(crate) budget_bytes: u64,
     /// Os travamentos guardados passaram de 90% do limite.
     pub(crate) near_limit: bool,
-    /// Quantas sessões (as mais antigas) passam do limite e podem ser apagadas.
-    pub(crate) over_budget: u32,
+    /// Os travamentos guardados passaram do limite.
+    pub(crate) over_limit: bool,
+    /// As sessões que passam do limite e podem ser apagadas, da mais antiga para a mais nova
+    /// (nunca a mais nova nem a do teste aberto). "Apagar os mais antigos" manda estas.
+    pub(crate) prunable: Vec<String>,
 }
 
 /// Travamentos do pack.
@@ -200,7 +206,8 @@ pub(crate) async fn crashes_list(
 ) -> Result<CrashList, AppError> {
     pack_root(&state, pack_id)?;
     let sessions = sessions_dir(&state, pack_id);
-    blocking(move || list_at(&sessions, CRASHED_BUDGET_BYTES)).await
+    let open = open_session(&state, pack_id);
+    blocking(move || list_at(&sessions, CRASHED_BUDGET_BYTES, open.as_deref())).await
 }
 
 /// Um grupo de travamentos pelo `hash` da assinatura (`None`: não existe mais, por exemplo
@@ -217,22 +224,34 @@ pub(crate) async fn crash_get(
     blocking(move || detail_at(&sessions, &signature)).await
 }
 
-/// Apaga os travamentos mais antigos que passam do limite de espaço. Devolve quantos apagou.
+/// Apaga, das sessões que a pessoa confirmou (`sessions`, o `prunable` da lista), as que ainda
+/// passam do limite de espaço. Devolve quantas apagou.
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn crashes_prune(
     state: State<'_, AppState>,
     pack_id: PackId,
+    sessions: Vec<String>,
 ) -> Result<u32, AppError> {
     pack_root(&state, pack_id)?;
-    let sessions = sessions_dir(&state, pack_id);
-    blocking(move || prune_crashed(&sessions, CRASHED_BUDGET_BYTES)).await
+    let dir = sessions_dir(&state, pack_id);
+    let open = open_session(&state, pack_id);
+    blocking(move || prune_crashed(&dir, CRASHED_BUDGET_BYTES, open.as_deref(), &sessions)).await
 }
 
 fn sessions_dir(state: &AppState, pack_id: PackId) -> PathBuf {
     InstanceDirs::for_pack(&state.paths, pack_id)
         .state_dir
         .join("sessions")
+}
+
+/// A sessão do teste aberto agora neste pack, se houver.
+fn open_session(state: &AppState, pack_id: PackId) -> Option<String> {
+    state
+        .tests
+        .current()
+        .filter(|game| game.pack_id == pack_id)
+        .and_then(|game| game.session_id)
 }
 
 /// Roda trabalho de disco fora da thread do IPC.
@@ -245,7 +264,7 @@ async fn blocking<T: Send + 'static>(
 }
 
 /// Os travamentos de uma pasta de sessões.
-fn list_at(sessions: &Path, budget: u64) -> Result<CrashList, AppError> {
+fn list_at(sessions: &Path, budget: u64, open: Option<&str>) -> Result<CrashList, AppError> {
     let history = History::read(sessions)?;
     Ok(CrashList {
         groups: history
@@ -253,7 +272,7 @@ fn list_at(sessions: &Path, budget: u64) -> Result<CrashList, AppError> {
             .iter()
             .map(|group| history.view(group))
             .collect(),
-        retention: retention(sessions, budget)?,
+        retention: retention(sessions, budget, open)?,
     })
 }
 
@@ -267,38 +286,98 @@ fn detail_at(sessions: &Path, signature: &str) -> Result<Option<CrashDetail>, Ap
         .map(|group| history.detail(group)))
 }
 
+/// O que a retenção vê nas sessões que travaram.
+struct RetentionPlan {
+    /// Espaço ocupado por todas.
+    used: u64,
+    /// As que passam do limite e podem ser apagadas, da mais antiga para a mais nova.
+    prunable: Vec<(String, PathBuf)>,
+}
+
+/// Soma o espaço das sessões que travaram da mais nova para a mais antiga, na ordem da lista de
+/// Travamentos (início do teste; no mesmo segundo, `-2` antes de `-10`); as que passam do limite
+/// podem ser apagadas, menos a mais nova e a do teste aberto (`open`). Sessões sem
+/// `session.json` (o jogo ainda aberto ou a gravação interrompida) ficam de fora.
+fn retention_plan(
+    sessions: &Path,
+    budget: u64,
+    open: Option<&str>,
+) -> Result<RetentionPlan, AppError> {
+    let stored = list_sessions(sessions).map_err(|error| AppError::from_domain(&error))?;
+    let mut crashed: Vec<(u64, String, &StoredSession)> = stored
+        .iter()
+        .filter_map(|session| {
+            let record = session.record.as_ref()?;
+            if record.outcome != Outcome::Crashed {
+                return None;
+            }
+            let id = session_name(session);
+            let started = TestSessionSummary::from_record(&id, record).started_at_ms;
+            Some((started, id, session))
+        })
+        .collect();
+    crashed.sort_by(|a, b| session_order(b.0, &b.1, a.0, &a.1));
+    let mut used = 0u64;
+    let mut prunable = Vec::new();
+    for (index, (_, id, session)) in crashed.iter().enumerate() {
+        used = used.saturating_add(session_size(&session.dir));
+        let kept = index == 0 || open == Some(id.as_str());
+        if used > budget && !kept {
+            prunable.push((id.clone(), session.dir.path().to_path_buf()));
+        }
+    }
+    prunable.reverse();
+    Ok(RetentionPlan { used, prunable })
+}
+
 /// O estado da retenção dos travamentos guardados.
-fn retention(sessions: &Path, budget: u64) -> Result<CrashRetention, AppError> {
-    let over = crashed_over_budget(sessions, budget).map_err(|error| AppError::from_domain(&error))?;
-    let near = crashed_over_budget(sessions, budget / 100 * NEAR_LIMIT_PERCENT)
-        .map_err(|error| AppError::from_domain(&error))?;
+fn retention(sessions: &Path, budget: u64, open: Option<&str>) -> Result<CrashRetention, AppError> {
+    let plan = retention_plan(sessions, budget, open)?;
     Ok(CrashRetention {
         budget_bytes: budget,
-        near_limit: !near.is_empty(),
-        over_budget: u32::try_from(over.len()).unwrap_or(u32::MAX),
+        near_limit: plan.used > budget / 100 * NEAR_LIMIT_PERCENT,
+        over_limit: plan.used > budget,
+        prunable: plan.prunable.into_iter().map(|(id, _)| id).collect(),
     })
 }
 
-/// Apaga as sessões que travaram além do limite, das mais antigas para as mais novas.
-fn prune_crashed(sessions: &Path, budget: u64) -> Result<u32, AppError> {
-    let over = crashed_over_budget(sessions, budget).map_err(|error| AppError::from_domain(&error))?;
+/// Apaga, das sessões confirmadas, as que ainda passam do limite (das mais antigas para as mais
+/// novas). Uma confirmada que deixou de passar do limite (outra foi apagada antes, por exemplo)
+/// fica.
+fn prune_crashed(
+    sessions: &Path,
+    budget: u64,
+    open: Option<&str>,
+    confirmed: &[String],
+) -> Result<u32, AppError> {
+    let plan = retention_plan(sessions, budget, open)?;
     let mut removed = 0u32;
-    for path in &over {
+    for (id, path) in plan
+        .prunable
+        .iter()
+        .filter(|(id, _)| confirmed.contains(id))
+    {
         match std::fs::remove_dir_all(path) {
             Ok(()) => removed += 1,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => {
-                let name = path.file_name().map(|name| name.to_string_lossy().into_owned());
-                tracing::warn!(%error, session = ?name, "travamento antigo não apagado");
-                return Err(AppError::internal(format!(
-                    "apagar a sessão {}: {error}",
-                    name.unwrap_or_default()
-                )));
+                tracing::warn!(%error, session = %id, "travamento antigo não apagado");
+                return Err(AppError::internal(format!("apagar a sessão {id}: {error}")));
             }
         }
     }
     tracing::info!(removed, "travamentos antigos apagados");
     Ok(removed)
+}
+
+/// O nome da pasta de uma sessão (o id da sessão).
+fn session_name(session: &StoredSession) -> String {
+    session
+        .dir
+        .path()
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default()
 }
 
 /// A assinatura de um travamento a partir dos arquivos da sessão (gancho do Testar ou, numa
@@ -434,12 +513,7 @@ impl History {
 /// Uma sessão gravada como o histórico a vê. Sessão que travou sem assinatura gravada (de antes
 /// da D-06) ganha uma calculada do `output.log`.
 fn session_entry(session: &StoredSession, record: &SessionRecord) -> SessionEntry {
-    let id = session
-        .dir
-        .path()
-        .file_name()
-        .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_default();
+    let id = session_name(session);
     let summary = TestSessionSummary::from_record(&id, record);
     let end = match record.outcome {
         Outcome::Crashed => SessionEnd::Crashed,
@@ -462,10 +536,17 @@ fn session_entry(session: &StoredSession, record: &SessionRecord) -> SessionEntr
         .extra
         .get(SESSION_FIELD)
         .and_then(|value| serde_json::from_value(value.clone()).ok());
-    let (origin, signature) = match (end, stored) {
-        (_, Some(stored)) => (stored.origin, Some(stored.signature)),
-        (SessionEnd::Crashed, None) => (CrashOrigin::Test, legacy_signature(session, record)),
-        _ => (CrashOrigin::Test, None),
+    let origin = stored
+        .as_ref()
+        .map_or(CrashOrigin::Test, |stored| stored.origin);
+    let signature = match (end, stored) {
+        (_, Some(stored)) if stored.signature.version == SIGNATURE_VERSION => {
+            Some(stored.signature)
+        }
+        // Gravada antes da D-06 ou com regras antigas de assinatura (o hash não agruparia com
+        // as novas): recalcula do `output.log`.
+        (SessionEnd::Crashed, _) => legacy_signature(session, record),
+        _ => None,
     };
     let found_cause = record
         .extra
@@ -484,8 +565,9 @@ fn session_entry(session: &StoredSession, record: &SessionRecord) -> SessionEntr
     }
 }
 
-/// A assinatura de uma sessão gravada antes da D-06, só com o `output.log` (a pasta da sessão
-/// faz as vezes da pasta do jogo: não tem `logs/` nem `crash-reports/`).
+/// A assinatura de uma sessão gravada antes da D-06 (ou com regras de assinatura antigas), só com
+/// o `output.log` (a pasta da sessão faz as vezes da pasta do jogo: não tem `logs/` nem
+/// `crash-reports/`).
 fn legacy_signature(session: &StoredSession, record: &SessionRecord) -> Option<CrashSignature> {
     let dir = session.dir.path().to_path_buf();
     let files = SessionFiles {
@@ -586,7 +668,7 @@ Details:
     }
 
     fn signature(rule: &str) -> CrashSignature {
-        CrashSignature::new(Some(rule.into()), None, None, Vec::new())
+        CrashSignature::new(Some(rule.into()), None, None, Vec::new(), Vec::new())
     }
 
     fn names(sessions: &Path) -> Vec<String> {
@@ -636,34 +718,188 @@ Details:
         assert_eq!(removed.len(), 2);
         // As que travaram nunca são apagadas sem confirmação: só avisadas.
         assert_eq!(names(&sessions).len(), 38);
-        let status = retention(&sessions, budget).unwrap();
+        let status = retention(&sessions, budget, None).unwrap();
         assert_eq!(
             status,
             CrashRetention {
                 budget_bytes: budget,
                 near_limit: true,
-                over_budget: 4,
+                over_limit: true,
+                prunable: crashed[..4].to_vec(),
             }
         );
         // "Apagar os mais antigos" apaga as 4 travadas mais antigas.
-        assert_eq!(prune_crashed(&sessions, budget).unwrap(), 4);
+        assert_eq!(
+            prune_crashed(&sessions, budget, None, &status.prunable).unwrap(),
+            4
+        );
         let mut expected: Vec<String> = closed[2..].to_vec();
         expected.extend(crashed[4..].iter().cloned());
         expected.sort();
         assert_eq!(names(&sessions), expected);
-        let after = retention(&sessions, budget).unwrap();
-        assert_eq!(after.over_budget, 0);
+        let after = retention(&sessions, budget, None).unwrap();
+        assert!(after.prunable.is_empty());
+        assert!(!after.over_limit);
         // 4 travadas (~402 kB) passam de 90% do limite: o aviso continua, sem nada a apagar.
         assert!(after.near_limit);
         // Com folga, nem aviso.
-        assert!(!retention(&sessions, 1_000_000).unwrap().near_limit);
-        assert_eq!(prune_crashed(&sessions, 1_000_000).unwrap(), 0);
+        assert!(!retention(&sessions, 1_000_000, None).unwrap().near_limit);
+        assert_eq!(
+            prune_crashed(&sessions, 1_000_000, None, &crashed).unwrap(),
+            0
+        );
+    }
+
+    /// Grava uma sessão que travou com o nome `id`, início `started_ms` e `bytes` de log.
+    fn crashed_session(sessions: &Path, id: &str, started_ms: Option<u64>, bytes: usize) {
+        let dir = sessions.join(id);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("output.log"), vec![b'x'; bytes]).unwrap();
+        let mut record = record(Outcome::Crashed, started_ms.unwrap_or(0), "1.0.0", "t1");
+        if started_ms.is_none() {
+            record.extra.remove("startedAtMs");
+        }
+        let value = serde_json::to_value(CrashRecord {
+            origin: CrashOrigin::Test,
+            signature: signature("x"),
+        })
+        .unwrap();
+        record.extra.insert(SESSION_FIELD.into(), value);
+        SessionDir::open(dir).write_record(&record).unwrap();
+    }
+
+    #[test]
+    fn retencao_nunca_apaga_o_travamento_mais_novo_mesmo_sozinho_passando_do_limite() {
+        let root = tempfile::tempdir().unwrap();
+        let sessions = root.path();
+        crashed_session(sessions, "2026-10-01_00-00-00", Some(1_000), 10_000);
+        crashed_session(sessions, "2026-10-01_00-01-00", Some(61_000), 10_000);
+        // O mais novo sozinho ocupa mais que o limite (um log enorme).
+        crashed_session(sessions, "2026-10-01_00-02-00", Some(121_000), 500_000);
+        let budget = 100_000;
+
+        let status = retention(sessions, budget, None).unwrap();
+        assert!(status.over_limit);
+        assert!(status.near_limit);
+        // Na ponta da 1ª revisão o mais novo entrava na lista e era apagado.
+        assert_eq!(
+            status.prunable,
+            ["2026-10-01_00-00-00", "2026-10-01_00-01-00"]
+        );
+        // Mesmo pedido, o mais novo fica.
+        let everything = names(sessions);
+        assert_eq!(
+            prune_crashed(sessions, budget, None, &everything).unwrap(),
+            2
+        );
+        assert_eq!(names(sessions), ["2026-10-01_00-02-00"]);
+        let after = retention(sessions, budget, None).unwrap();
+        assert!(after.over_limit);
+        assert!(after.prunable.is_empty());
+        assert_eq!(
+            prune_crashed(sessions, budget, None, &everything).unwrap(),
+            0
+        );
+        assert_eq!(names(sessions), ["2026-10-01_00-02-00"]);
+    }
+
+    #[test]
+    fn retencao_ordena_pelo_inicio_do_teste_como_a_lista_e_nao_pelo_nome_da_pasta() {
+        let root = tempfile::tempdir().unwrap();
+        let sessions = root.path();
+        // O nome da pasta diz o contrário do início gravado (relógio do sistema acertado entre
+        // um teste e outro): vale o início, que é o que a lista de Travamentos mostra.
+        crashed_session(sessions, "2026-10-01_00-00-00", Some(300_000), 60_000);
+        crashed_session(sessions, "2026-10-01_00-01-00", Some(200_000), 60_000);
+        crashed_session(sessions, "2026-10-01_00-02-00", Some(100_000), 60_000);
+        let budget = 130_000;
+        let list = list_at(sessions, budget, None).unwrap();
+        assert_eq!(list.groups[0].latest_session_id, "2026-10-01_00-00-00");
+        let status = retention(sessions, budget, None).unwrap();
+        assert_eq!(status.prunable, ["2026-10-01_00-02-00"]);
+        prune_crashed(sessions, budget, None, &status.prunable).unwrap();
+        assert_eq!(
+            names(sessions),
+            ["2026-10-01_00-00-00", "2026-10-01_00-01-00"]
+        );
+    }
+
+    #[test]
+    fn retencao_no_mesmo_segundo_a_decima_sessao_e_mais_nova_que_a_segunda() {
+        let root = tempfile::tempdir().unwrap();
+        let sessions = root.path();
+        // Sessões antigas sem `startedAtMs`: o início vem do `startedAt` (segundos), igual nas
+        // três; desempata o sufixo da pasta como número.
+        crashed_session(sessions, "2026-10-01_00-00-00", None, 60_000);
+        crashed_session(sessions, "2026-10-01_00-00-00-2", None, 60_000);
+        crashed_session(sessions, "2026-10-01_00-00-00-10", None, 60_000);
+        let status = retention(sessions, 130_000, None).unwrap();
+        assert_eq!(status.prunable, ["2026-10-01_00-00-00"]);
+        let status = retention(sessions, 70_000, None).unwrap();
+        assert_eq!(
+            status.prunable,
+            ["2026-10-01_00-00-00", "2026-10-01_00-00-00-2"]
+        );
+        prune_crashed(sessions, 70_000, None, &status.prunable).unwrap();
+        assert_eq!(names(sessions), ["2026-10-01_00-00-00-10"]);
+    }
+
+    #[test]
+    fn retencao_poupa_o_teste_aberto_as_sessoes_sem_registro_e_o_que_nao_foi_confirmado() {
+        let root = tempfile::tempdir().unwrap();
+        let sessions = root.path();
+        crashed_session(sessions, "2026-10-01_00-00-00", Some(1_000), 60_000);
+        crashed_session(sessions, "2026-10-01_00-01-00", Some(61_000), 60_000);
+        crashed_session(sessions, "2026-10-01_00-02-00", Some(121_000), 60_000);
+        crashed_session(sessions, "2026-10-01_00-03-00", Some(181_000), 60_000);
+        // O jogo do teste ainda aberto: a pasta existe, sem `session.json`.
+        let running = sessions.join("2026-10-01_00-04-00");
+        fs::create_dir_all(&running).unwrap();
+        fs::write(running.join("output.log"), vec![b'x'; 900_000]).unwrap();
+        let budget = 70_000;
+
+        // Sem teste aberto: as três mais antigas passam do limite.
+        let all = retention(sessions, budget, None).unwrap().prunable;
+        assert_eq!(
+            all,
+            [
+                "2026-10-01_00-00-00",
+                "2026-10-01_00-01-00",
+                "2026-10-01_00-02-00"
+            ]
+        );
+        // O teste que acabou de gravar o registro, ainda aberto, fica de fora.
+        let open = Some("2026-10-01_00-01-00");
+        let status = retention(sessions, budget, open).unwrap();
+        assert_eq!(
+            status.prunable,
+            ["2026-10-01_00-00-00", "2026-10-01_00-02-00"]
+        );
+        // Só o que foi confirmado sai.
+        let confirmed = vec!["2026-10-01_00-00-00".to_owned()];
+        assert_eq!(
+            prune_crashed(sessions, budget, open, &confirmed).unwrap(),
+            1
+        );
+        assert_eq!(
+            names(sessions),
+            [
+                "2026-10-01_00-01-00",
+                "2026-10-01_00-02-00",
+                "2026-10-01_00-03-00",
+                "2026-10-01_00-04-00"
+            ]
+        );
+        // Confirmado, mas não passa mais do limite (nem é antigo): fica.
+        let newest = vec!["2026-10-01_00-03-00".to_owned()];
+        assert_eq!(prune_crashed(sessions, budget, None, &newest).unwrap(), 0);
+        assert!(running.join("output.log").exists());
     }
 
     #[test]
     fn retencao_usa_o_limite_de_500_mb_por_pack() {
         let root = tempfile::tempdir().unwrap();
-        let list = list_at(root.path(), CRASHED_BUDGET_BYTES).unwrap();
+        let list = list_at(root.path(), CRASHED_BUDGET_BYTES, None).unwrap();
         assert_eq!(list.retention.budget_bytes, 500 * 1024 * 1024);
         assert!(!list.retention.near_limit);
         assert!(list.groups.is_empty());
@@ -709,7 +945,7 @@ Details:
         );
         let c = write_session(sessions, 4, changed, b"", Some(&npe));
 
-        let list = list_at(sessions, CRASHED_BUDGET_BYTES).unwrap();
+        let list = list_at(sessions, CRASHED_BUDGET_BYTES, None).unwrap();
         assert_eq!(list.groups.len(), 2);
         let first = &list.groups[0];
         assert_eq!(first.signature.hash, npe.hash);
@@ -771,13 +1007,49 @@ Details:
             again.as_bytes(),
             None,
         );
-        let list = list_at(sessions, CRASHED_BUDGET_BYTES).unwrap();
+        let list = list_at(sessions, CRASHED_BUDGET_BYTES, None).unwrap();
         assert_eq!(list.groups.len(), 1);
         let group = &list.groups[0];
         assert_eq!(group.count, 2);
         assert_eq!(group.signature.rule.as_deref(), Some("crash_report.ticking_entity"));
         assert_eq!(group.signature.frame.as_deref(), Some("com.example.meumod.EntityTicker.tick"));
         assert_ne!(group.latest_session_id, first);
+    }
+
+    #[test]
+    fn assinatura_gravada_com_regras_antigas_e_recalculada_e_agrupa_com_as_novas() {
+        let root = tempfile::tempdir().unwrap();
+        let sessions = root.path();
+        // Gravada com a versão 1 das regras (hash que não agruparia com os novos).
+        let mut old = signature("crash_report.ticking_entity");
+        old.version = SIGNATURE_VERSION - 1;
+        old.hash = "0000000000000001".into();
+        write_session(
+            sessions,
+            1,
+            record(Outcome::Crashed, 1_000, "1.0.0", "t1"),
+            NPE_REPORT.as_bytes(),
+            Some(&old),
+        );
+        write_session(
+            sessions,
+            2,
+            record(Outcome::Crashed, 2_000, "1.0.0", "t1"),
+            NPE_REPORT.replace("EntityTicker.java:41", "EntityTicker.java:7").as_bytes(),
+            None,
+        );
+        let list = list_at(sessions, CRASHED_BUDGET_BYTES, None).unwrap();
+        assert_eq!(list.groups.len(), 1);
+        assert_eq!(list.groups[0].count, 2);
+        assert_eq!(list.groups[0].signature.version, SIGNATURE_VERSION);
+        assert_eq!(
+            list.groups[0].signature.subject,
+            [
+                "entity_type=meumod:golem",
+                "description=ticking entity",
+                "entity_class=com.example.meumod.Golem"
+            ]
+        );
     }
 
     #[test]
