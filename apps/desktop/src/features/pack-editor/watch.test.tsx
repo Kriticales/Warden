@@ -15,6 +15,7 @@ import { mockBackend } from '../../test/backend';
 import { addKeys, type SearchFilters } from '../add/common/api';
 import { discoverKeys } from '../add/discover/api';
 import { previewKeys } from '../add/preview/api';
+import { captureKeys } from '../capture/api';
 import { configsKeys } from '../configs/api';
 import { exportKeys } from '../export/api';
 import { formatKeys } from '../export/formats/api';
@@ -70,6 +71,9 @@ const QUERIES: readonly (readonly [string, QueryKey])[] = [
   ['testes gravados', testKeys.sessions(PACK)],
   ['sessão de teste', testKeys.session(PACK, 's1')],
   ['mundos do teste', testKeys.worlds(PACK)],
+  ['captura: o que mudou no teste', captureKeys.view(PACK, null)],
+  ['captura: identificar', captureKeys.identify(PACK, 's1')],
+  ['captura: textos', captureKeys.texts(PACK, 's1', 'config/sodium.json')],
 ];
 
 /** A tela do pack: o vigia ligado e uma consulta ativa por chave, contando as leituras. */
