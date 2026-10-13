@@ -38,7 +38,7 @@ export function SettingsPage() {
   }
 
   return (
-    <AppPage back={{ to: '/', label: t('voltar') }} where={t('titulo')} hideLinks>
+    <AppPage back={{ to: '/', label: t('voltar') }} where={t('titulo')} hideLinks width="read">
       <div className="settings">
         <PageHead title={t('titulo')} sub={t('subtitulo')} />
         {body}

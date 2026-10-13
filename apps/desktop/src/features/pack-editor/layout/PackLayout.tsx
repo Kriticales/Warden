@@ -5,11 +5,14 @@
  *
  * Menu recolhido: uma rota filha declara `staticData: { packMenu: 'compact' }` (a página de
  * descoberta da P1-09, ESTRUTURA N6) e o menu vira só ícones enquanto ela estiver aberta.
+ * Largura: a coluna da seção fica centralizada; listas e grades (Mods, Adicionar) declaram
+ * `staticData: { contentWidth: 'wide' }` para aproveitar telas largas (HANDOFF §5).
  */
 import { Outlet, useMatches } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { AppPage } from '../../../app/layout/AppPage';
+import { contentClass, type ContentWidth } from '../../../app/layout/content';
 import { MAIN_ID } from '../../../app/layout/focus';
 import { PageHead } from '../../../app/layout/PageHead';
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
@@ -25,7 +28,18 @@ declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     /** Estado do menu lateral do pack nesta rota (`compact`: só ícones). */
     packMenu?: 'compact';
+    /** Largura da coluna de conteúdo nesta rota (padrão: `default`). */
+    contentWidth?: ContentWidth;
   }
+}
+
+/** A largura pedida pela rota aberta mais funda que declara uma. */
+function useContentWidth(): ContentWidth {
+  return useMatches({
+    select: (matches) =>
+      matches.findLast((match) => match.staticData.contentWidth !== undefined)?.staticData
+        .contentWidth ?? 'default',
+  });
 }
 
 /** Se alguma rota aberta pede o menu recolhido. */
@@ -39,6 +53,7 @@ export function PackLayout({ packId }: { packId: PackId }) {
   const { t } = useTranslation('editor');
   const pack = usePack(packId);
   const compact = useCompactMenu();
+  const width = useContentWidth();
   const back = { to: '/packs', label: t('cabecalho.voltar') } as const;
 
   if (pack.isPending) {
@@ -69,7 +84,7 @@ export function PackLayout({ packId }: { packId: PackId }) {
       <div className="packbody">
         <SectionMenu packId={packId} compact={compact} />
         <main className="app__main" id={MAIN_ID} tabIndex={-1}>
-          <div className="content">
+          <div className={contentClass(width)}>
             <Outlet />
           </div>
         </main>
