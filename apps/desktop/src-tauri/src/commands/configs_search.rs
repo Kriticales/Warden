@@ -6,9 +6,9 @@
 //!   tela chama ao abrir, para o índice estar pronto quando a pessoa digitar). Cada busca
 //!   cancela a anterior da mesma origem (`cancelled = true` na resposta da cancelada).
 //! - `config-index-changed`: o índice terminou a primeira leitura ou mudou porque um arquivo
-//!   mudou. Mudança de arquivo também vira `pack-changed` (Configs e, no pack, Histórico), para
-//!   a árvore, o arquivo aberto e as alterações não salvas serem relidos sem reiniciar o app
-//!   (CA-T12-07).
+//!   mudou. Mudança de arquivo também vira `pack-changed` (o pack todo, ou só as configs na
+//!   instância), para a árvore, o arquivo aberto e as alterações não salvas serem relidos sem
+//!   reiniciar o app (CA-T12-07).
 //!
 //! Os índices ficam só em memória, no [`ConfigSearchHub`] do estado: no máximo
 //! [`MAX_INDEXES`] origens abertas; a menos usada é solta (para a thread e o observador).
@@ -229,13 +229,23 @@ fn app_sink(app: AppHandle) -> ChangeSink {
         if let Err(error) = change.clone().emit(&app) {
             tracing::warn!(%error, "não foi possível avisar a interface da mudança no índice");
         }
-        if !change.first && change.changed_files > 0 {
-            let areas = match change.origin {
-                ConfigOrigin::Pack => vec![PackArea::Configs, PackArea::History],
-                ConfigOrigin::Instance => vec![PackArea::Configs],
-            };
+        if let Some(areas) = changed_areas(&change) {
             notify_changed(&app, change.pack_id, areas);
         }
+    })
+}
+
+/// O `pack-changed` de uma mudança de arquivo (`None`: nada a avisar). No pack, todas as áreas
+/// (lista vazia): além da árvore e do arquivo aberto, mudam as alterações não salvas, que
+/// aparecem no cabeçalho do pack e no Histórico; a interface só relê o que está na tela. Na
+/// instância, só as configs.
+fn changed_areas(change: &ConfigIndexChanged) -> Option<Vec<PackArea>> {
+    if change.first || change.changed_files == 0 {
+        return None;
+    }
+    Some(match change.origin {
+        ConfigOrigin::Pack => Vec::new(),
+        ConfigOrigin::Instance => vec![PackArea::Configs],
     })
 }
 
@@ -429,6 +439,30 @@ mod tests {
         let second = hub.begin_search(pack, ConfigOrigin::Pack);
         assert!(first.is_cancelled());
         assert!(!other.is_cancelled() && !second.is_cancelled());
+    }
+
+    #[test]
+    fn mudanca_de_arquivo_avisa_as_areas_que_mostram_configs() {
+        let change = |origin, changed_files, first| ConfigIndexChanged {
+            pack_id: PackId::new(),
+            origin,
+            status: IndexStatus {
+                available: true,
+                ready: true,
+                indexed_files: 1,
+                total_files: 1,
+                entries: 1,
+            },
+            changed_files,
+            first,
+        };
+        assert_eq!(changed_areas(&change(ConfigOrigin::Pack, 2, false)), Some(vec![]));
+        assert_eq!(
+            changed_areas(&change(ConfigOrigin::Instance, 1, false)),
+            Some(vec![PackArea::Configs])
+        );
+        assert_eq!(changed_areas(&change(ConfigOrigin::Pack, 3, true)), None);
+        assert_eq!(changed_areas(&change(ConfigOrigin::Pack, 0, false)), None);
     }
 
     #[test]
