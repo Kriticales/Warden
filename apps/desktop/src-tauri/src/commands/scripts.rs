@@ -170,10 +170,31 @@ fn minecraft_jar(paths: &AppPaths, pack: &PackRead) -> Option<PathBuf> {
     path.is_file().then_some(path)
 }
 
+/// Os nomes dos jars de `mods/` que o pack declara e que ainda não estão neste computador (o
+/// pack nunca foi testado): para eles, a ferramenta vem só do nome do arquivo.
+fn missing_mod_jars(pack: &PackRead, found: &[PackJarFile]) -> Vec<String> {
+    pack.valid_metafiles()
+        .filter(|(path, metafile)| {
+            let folder = path.rsplit_once('/').map_or("", |(folder, _)| folder);
+            is_mods_jar(folder, &metafile.filename)
+                && !found.iter().any(|jar| jar.file_name == metafile.filename)
+        })
+        .map(|(_, metafile)| metafile.filename.clone())
+        .collect()
+}
+
 /// As ferramentas do pack. Só os jars com cara de KubeJS ou CraftTweaker são abertos (o nome
-/// do item ou do arquivo diz); o resto do pack nem é lido.
-fn detect_tools(jars: &[PackJarFile]) -> ScriptEnv {
-    let mut mods = Vec::new();
+/// do item ou do arquivo diz); o resto do pack nem é lido. Os jars que ainda não foram baixados
+/// (`missing`) entram só pelo nome do arquivo.
+fn detect_tools(jars: &[PackJarFile], missing: &[String]) -> ScriptEnv {
+    let mut mods: Vec<DetectedMod> = missing
+        .iter()
+        .map(|file_name| DetectedMod {
+            id: None,
+            version: None,
+            file_name: file_name.clone(),
+        })
+        .collect();
     for jar in jars {
         let name = format!("{} {}", jar.name, jar.file_name).to_ascii_lowercase();
         if !name.contains("kubejs") && !name.contains("crafttweaker") {
@@ -208,7 +229,7 @@ fn read_env(
 ) -> Result<(PackRead, ScriptEnv), AppError> {
     let pack = read_pack(root).map_err(|error| AppError::from_domain(&error))?;
     let jars = pack_jars(paths, root, &pack, pack_id);
-    let env = detect_tools(&jars);
+    let env = detect_tools(&jars, &missing_mod_jars(&pack, &jars));
     Ok((pack, env))
 }
 
@@ -689,6 +710,39 @@ mod tests {
             assert_eq!(kubejs.version.as_deref(), Some("2001.6.5-build.26"));
             assert!(env.crafttweaker.is_none());
         }
+    }
+
+    /// Pack que nunca foi testado: os jars ainda não estão neste computador, e o KubeJS vem do
+    /// nome do arquivo no metafile (o do KubeJS Create não conta).
+    #[test]
+    fn kubejs_pelo_metafile_sem_o_jar_baixado() {
+        let dir = tempfile::tempdir().unwrap();
+        let (state, id, root) = pack_with_local_jars(dir.path(), "2001.6.5-build.26");
+        fs::remove_file(root.join("mods/kubejs-forge-2001.6.5-build.26.jar")).unwrap();
+        let mut index = String::from("hash-format = \"sha256\"\n");
+        for (slug, file) in [
+            ("kubejs-create", "kubejs-create-forge-2001.2.5-build.2.jar"),
+            ("kubejs", "kubejs-forge-2001.6.5-build.26.jar"),
+        ] {
+            fs::write(
+                root.join(format!("mods/{slug}.pw.toml")),
+                format!(
+                    "name = \"{slug}\"\nfilename = \"{file}\"\nside = \"both\"\n\n[download]\nurl = \"https://cdn.modrinth.com/{file}\"\nhash-format = \"sha256\"\nhash = \"{}\"\n",
+                    "0".repeat(64)
+                ),
+            )
+            .unwrap();
+            index.push_str("\n[[files]]\nfile = \"mods/");
+            index.push_str(slug);
+            index.push_str(".pw.toml\"\nhash = \"\"\nmetafile = true\n");
+        }
+        fs::write(root.join("index.toml"), index).unwrap();
+        let (pack, env) = read_env(&state.paths, &root, id).unwrap();
+        assert!(pack_jars(&state.paths, &root, &pack, id).is_empty());
+        let kubejs = env.kubejs.unwrap();
+        assert_eq!(kubejs.major, Some(6));
+        assert_eq!(kubejs.version.as_deref(), Some("2001.6.5-build.26"));
+        assert!(env.crafttweaker.is_none());
     }
 
     #[test]
