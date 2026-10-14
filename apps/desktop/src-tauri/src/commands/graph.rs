@@ -135,19 +135,19 @@ fn unknown(error: UnknownItem) -> AppError {
 }
 
 /// Um item do inventário que entra no grafo.
-struct Candidate {
-    path: String,
+pub(crate) struct Candidate {
+    pub(crate) path: String,
     key: String,
-    name: String,
+    pub(crate) name: String,
     /// Onde procurar o jar, em ordem: instância de teste e, para arquivo do próprio pack, a
     /// pasta do pack.
-    jars: Vec<PathBuf>,
+    pub(crate) jars: Vec<PathBuf>,
     /// Chave do item no Modrinth (versão instalada) para o cache de metadados.
     source_version: Option<String>,
 }
 
 /// Mods do inventário (resource packs, shaders e arquivos soltos não têm dependências de mod).
-fn candidates(inventory: &Inventory, root: &Path, game_dir: &Path) -> Vec<Candidate> {
+pub(crate) fn candidates(inventory: &Inventory, root: &Path, game_dir: &Path) -> Vec<Candidate> {
     inventory
         .items
         .iter()
@@ -195,7 +195,7 @@ fn is_jar(name: &str) -> bool {
         .is_some_and(|extension| extension.eq_ignore_ascii_case("jar"))
 }
 
-fn loader_of(key: Option<&str>) -> Loader {
+pub(crate) fn loader_of(key: Option<&str>) -> Loader {
     match key {
         Some("fabric") => Loader::Fabric,
         Some("quilt") => Loader::Quilt,
@@ -269,6 +269,8 @@ struct Cached {
     fingerprint: String,
     built: Instant,
     graph: Arc<Graph>,
+    /// A entrada do grafo (a P1-15 monta o grafo sem os itens que vão sair).
+    input: Arc<GraphInput>,
 }
 
 fn cache() -> &'static Mutex<HashMap<PackId, Cached>> {
@@ -367,6 +369,15 @@ async fn load_items(
 
 /// O grafo do pack: do cache, se nada mudou, ou montado agora.
 async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, AppError> {
+    Ok(pack_graph_parts(state, pack_id).await?.0)
+}
+
+/// O grafo do pack e a entrada de que ele foi montado. Pega a trava de leitura do pack só
+/// para ler o inventário e o loader; quem já está com ela usa [`graph_parts_from`].
+async fn pack_graph_parts(
+    state: &AppState,
+    pack_id: PackId,
+) -> Result<(Arc<Graph>, Arc<GraphInput>), AppError> {
     let (root, inventory, loader) = {
         let _lock = state.locks.read(pack_id).await;
         let root = pack_root(state, pack_id)?;
@@ -378,22 +389,36 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
             .loader;
         (root, inventory, loader)
     };
+    graph_parts_from(state, pack_id, &root, &inventory, loader.as_deref()).await
+}
+
+/// O grafo montado com o que já foi lido do pack (do cache, se nada mudou). Não pede a trava
+/// do pack: a trava não é reentrante (o `RwLock` do Tokio é justo, e uma escrita na fila entre
+/// duas leituras do mesmo comando trava as duas para sempre), então quem chama lê o pack com a
+/// trava dele e passa o resultado.
+pub(crate) async fn graph_parts_from(
+    state: &AppState,
+    pack_id: PackId,
+    root: &Path,
+    inventory: &Inventory,
+    loader: Option<&str>,
+) -> Result<(Arc<Graph>, Arc<GraphInput>), AppError> {
     let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
-    let candidates = candidates(&inventory, &root, &game_dir);
+    let candidates = candidates(inventory, root, &game_dir);
     let inferred_path = inferred_file(state, pack_id);
 
-    let fingerprint = fingerprint(loader.as_deref(), &candidates, &inferred_path);
+    let fingerprint = fingerprint(loader, &candidates, &inferred_path);
     {
         let guard = cache().lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(hit) = guard.get(&pack_id)
             && hit.fingerprint == fingerprint
             && hit.built.elapsed() < CACHE_TTL
         {
-            return Ok(Arc::clone(&hit.graph));
+            return Ok((Arc::clone(&hit.graph), Arc::clone(&hit.input)));
         }
     }
 
-    let items = load_items(state, &inventory, &candidates).await?;
+    let items = load_items(state, inventory, &candidates).await?;
 
     let inferred = match InferredStore::load(&inferred_path) {
         Ok(store) => store.edges,
@@ -402,12 +427,13 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
             Vec::new()
         }
     };
-    let graph = Arc::new(Graph::build(&GraphInput {
-        loader: loader_of(loader.as_deref()),
+    let input = Arc::new(GraphInput {
+        loader: loader_of(loader),
         items,
         additions: None,
         inferred,
-    }));
+    });
+    let graph = Arc::new(Graph::build(&input));
     cache()
         .lock()
         .unwrap_or_else(PoisonError::into_inner)
@@ -417,9 +443,10 @@ async fn pack_graph(state: &AppState, pack_id: PackId) -> Result<Arc<Graph>, App
                 fingerprint,
                 built: Instant::now(),
                 graph: Arc::clone(&graph),
+                input: Arc::clone(&input),
             },
         );
-    Ok(graph)
+    Ok((graph, input))
 }
 
 #[cfg(test)]

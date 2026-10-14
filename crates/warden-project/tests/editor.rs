@@ -459,11 +459,67 @@ async fn dependencias_diretas_pelo_cache_do_modrinth() {
     assert_eq!(deps["modrinth:AANobbMI"], ["modrinth:P7dR8mSH"]);
     assert!(!deps.contains_key("modrinth:gvQqBUqZ"));
     assert!(direct_dependencies(&result, None).await.is_empty());
-    let plan = removal_plan(&result, &["mods/fabric-api.pw.toml".into()], &deps).unwrap();
+    // As relações da API alimentam o grafo da D-07, que responde a cadeia (P1-15).
+    let affected = graph_affected(&result, &deps, &["mods/fabric-api.pw.toml"]);
+    let plan = removal_plan(
+        &result,
+        &["mods/fabric-api.pw.toml".into()],
+        &affected,
+        Vec::new(),
+    )
+    .unwrap();
     assert_eq!(plan.targets[0].name, "Fabric API");
     assert_eq!(plan.dependents.len(), 1);
     assert_eq!(plan.dependents[0].name, "Sodium");
     assert_eq!(plan.dependents[0].needs, ["Fabric API"]);
+    assert_eq!(plan.dependents[0].depth, 1);
+}
+
+/// O que deixa de funcionar sem `paths`, pelo grafo da D-07 montado com as relações da API.
+fn graph_affected(
+    inventory: &warden_project::inventory::Inventory,
+    deps: &warden_project::remove::DependencyMap,
+    paths: &[&str],
+) -> Vec<warden_project::remove::AffectedItem> {
+    use warden_diagnostics::graph::{Graph, GraphInput, GraphItem};
+    let path_of = |key: &str| {
+        inventory
+            .items
+            .iter()
+            .find(|item| item.key == key)
+            .map(|item| item.path.clone())
+    };
+    let items = inventory
+        .items
+        .iter()
+        .map(|item| GraphItem {
+            path: item.path.clone(),
+            name: item.name.clone(),
+            jar: None,
+            api_required: deps
+                .get(&item.key)
+                .map(|needs| needs.iter().filter_map(|key| path_of(key)).collect())
+                .unwrap_or_default(),
+        })
+        .collect();
+    let graph = Graph::build(&GraphInput {
+        loader: warden_jarmeta::Loader::Fabric,
+        items,
+        additions: None,
+        inferred: Vec::new(),
+    });
+    let paths: Vec<String> = paths.iter().map(|p| (*p).to_owned()).collect();
+    graph
+        .dependents(&paths)
+        .unwrap()
+        .affected
+        .into_iter()
+        .map(|affected| warden_project::remove::AffectedItem {
+            path: affected.item.path,
+            depth: affected.depth,
+            needs: affected.needs.into_iter().map(|n| n.name).collect(),
+        })
+        .collect()
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -437,9 +437,22 @@ describe('Mods (T06)', () => {
             },
           ],
           dependents: [
-            { key: 'modrinth:indium', name: 'Indium', needs: ['Sodium'] },
-            { key: 'modrinth:extra', name: 'Sodium Extra', needs: ['Sodium'] },
+            {
+              key: 'modrinth:indium',
+              path: 'mods/indium.pw.toml',
+              name: 'Indium',
+              needs: ['Sodium'],
+              depth: 1,
+            },
+            {
+              key: 'modrinth:extra',
+              path: 'mods/extra.pw.toml',
+              name: 'Sodium Extra',
+              needs: ['Sodium'],
+              depth: 1,
+            },
           ],
+          orphans: [],
         }),
         items_remove: () => ['mods/sodium.pw.toml'],
       },
@@ -607,7 +620,7 @@ describe('detalhes do item (T07)', () => {
     await openDetails(SODIUM, {
       handlers: {
         item_details: () => makeDetails(SODIUM),
-        items_remove_plan: () => ({ targets: [], dependents: [] }),
+        items_remove_plan: () => ({ targets: [], dependents: [], orphans: [] }),
       },
     });
     await userEvent.setup().click(screen.getByRole('button', { name: 'Remover' }));

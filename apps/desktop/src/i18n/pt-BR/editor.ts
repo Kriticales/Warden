@@ -224,8 +224,7 @@ export const editor = {
     descricaoPlaceholder: 'Uma frase sobre o pack',
     versoes: 'Versões',
     versoesTexto: 'Minecraft {{minecraft}} · {{loader}}',
-    versoesDica:
-      'Mudar a versão do Minecraft é outro pack; trocar a versão do loader chega numa próxima etapa.',
+    versoesDica: 'Mudar a versão do Minecraft é outro pack; a versão do loader dá para trocar.',
     pasta: 'Pasta do pack',
     mostrarPasta: 'Mostrar pasta do pack',
     mostrarFalhou: 'Não foi possível mostrar a pasta.',

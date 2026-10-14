@@ -82,6 +82,10 @@ export const tarefas = {
       check: 'Verificar atualizações',
       apply: 'Atualizar mods',
     },
+    versions: {
+      change: 'Trocar de versão',
+      loader: 'Trocar a versão do loader',
+    },
     'initial-mods': {
       apply: 'Adicionar os mods iniciais',
     },

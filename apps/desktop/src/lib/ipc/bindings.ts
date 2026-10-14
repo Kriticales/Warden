@@ -377,7 +377,10 @@ export const commands = {
 	 *  Devolve os arquivos alterados.
 	 */
 	itemsSetSide: (packId: PackId, paths: string[], side: SideChoice) => typedError<string[], AppError>(__TAURI_INVOKE("items_set_side", { packId, paths, side })),
-	/**  O que "Remover" vai apagar e quem depende dos itens (diálogo de confirmação). */
+	/**
+	 *  O que "Remover" vai apagar, o que deixa de funcionar (a cadeia inteira, pelo grafo da D-07)
+	 *  e as dependências que ficam sem uso (diálogo de confirmação; P1-15).
+	 */
 	itemsRemovePlan: (packId: PackId, paths: string[]) => typedError<RemovalPlan, AppError>(__TAURI_INVOKE("items_remove_plan", { packId, paths })),
 	/**
 	 *  Remove os itens (apaga o `.pw.toml` ou o arquivo local e atualiza o índice). Devolve os
@@ -686,6 +689,25 @@ export const commands = {
 	 *  resource packs e shaders) se desfazem pelo Mods ou voltando a uma versão.
 	 */
 	unsavedDiscard: (packId: PackId, path: string) => typedError<null, AppError>(__TAURI_INVOKE("unsaved_discard", { packId, path })),
+	/**  As versões compatíveis do item, com a instalada e as mais antigas marcadas. */
+	itemVersionOptions: (packId: PackId, path: string) => typedError<ChangeVersionOptions, AppError>(__TAURI_INVOKE("item_version_options", { packId, path })),
+	/**
+	 *  O que muda trocando o item para a versão escolhida (rebaixamento, dependências que faltam,
+	 *  incompatibilidades). Nada é gravado.
+	 */
+	itemVersionPlan: (packId: PackId, path: string, versionId: string) => typedError<ChangeVersionPlan, AppError>(__TAURI_INVOKE("item_version_plan", { packId, path, versionId })),
+	/**
+	 *  Troca o item para a versão escolhida (uma transação, um `packwiz refresh`).
+	 *  `expected_current_id`: a versão instalada que o diálogo mostrou.
+	 */
+	itemVersionChange: (packId: PackId, path: string, expectedCurrentId: string | null, versionId: string) => typedError<VersionChanged, AppError>(__TAURI_INVOKE("item_version_change", { packId, path, expectedCurrentId, versionId })),
+	/**  O que fica incompatível se o loader do pack passar para `version`. Nada é gravado. */
+	loaderVersionCheck: (packId: PackId, version: string) => typedError<LoaderCheck, AppError>(__TAURI_INVOKE("loader_version_check", { packId, version })),
+	/**
+	 *  Grava a versão nova do loader (só a linha dele em `[versions]`) e verifica os itens contra
+	 *  ela. `expected_from`: a versão que o diálogo mostrou.
+	 */
+	loaderVersionSet: (packId: PackId, expectedFrom: string, version: string) => typedError<LoaderVersionSet, AppError>(__TAURI_INVOKE("loader_version_set", { packId, expectedFrom, version })),
 	/**
 	 *  Começa a vigiar a pasta do pack (a tela do pack chama ao abrir). Mudanças feitas por outros
 	 *  programas chegam como `pack-changed` com `external: true`. Chamadas repetidas contam
@@ -1272,6 +1294,46 @@ export type ChangeSource =
 /**  Metafile que não pôde ser lido. */
 "unknown";
 
+/**  O que o diálogo "Trocar de versão" mostra. */
+export type ChangeVersionOptions = {
+	/**  Caminho do `.pw.toml`. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  Fonte. */
+	source: SourceId,
+	/**  ID da versão instalada (volta em [`apply`] para conferir que o item não mudou). */
+	currentId: string | null,
+	/**  Versão instalada, legível (nome do arquivo quando a fonte não a devolve). */
+	current: string | null,
+	/**  A versão instalada não serve mais para o pack (outro Minecraft ou loader). */
+	currentIncompatible: boolean,
+	/**  O item está fixado (`pin = true`): continua fixado na versão escolhida. */
+	pinned: boolean,
+	/**  As versões compatíveis com o pack, da mais nova para a mais antiga (todos os canais). */
+	versions: VersionChoice[],
+};
+
+/**  O que muda com a versão escolhida. */
+export type ChangeVersionPlan = {
+	/**  Caminho do `.pw.toml`. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  Versão instalada, legível. */
+	current: string | null,
+	/**  A versão escolhida. */
+	to: VersionChoice,
+	/**  É a mesma versão instalada: nada a fazer. */
+	same: boolean,
+	/**  A versão escolhida é mais antiga que a instalada. */
+	downgrade: boolean,
+	/**  Dependências obrigatórias da versão escolhida que não estão no pack. */
+	newDependencies: NewDependency[],
+	/**  Itens do pack com que a versão escolhida se declara incompatível. */
+	conflicts: NewConflict[],
+};
+
 /**  Uma versão nas novidades de um item. */
 export type ChangelogEntry = {
 	/**  Número da versão. */
@@ -1741,14 +1803,21 @@ export type DependencyKind =
 /**  Incompatível. */
 "incompatible";
 
-/**  Um item que fica no pack mas depende de algum dos removidos. */
+/**
+ *  Um item que fica no pack mas deixa de funcionar sem os removidos: depende de algum deles,
+ *  direta ou indiretamente (quem depende de quem depende dele).
+ */
 export type Dependent = {
 	/**  Chave estável do item. */
 	key: string,
+	/**  Caminho do item no pack. */
+	path: string,
 	/**  Nome legível. */
 	name: string,
-	/**  Nomes dos itens removidos de que ele precisa. */
+	/**  Nomes dos itens que somem (removidos ou dependentes de nível menor) de que ele precisa. */
 	needs: string[],
+	/**  1 = depende direto de um removido; 2 = depende de um item de nível 1; e assim por diante. */
+	depth: number,
 };
 
 /**  Resposta de [`Graph::dependents`]. */
@@ -3423,6 +3492,39 @@ export type LoaderChange = {
 	change: ValueChange,
 };
 
+/**  A verificação dos itens contra uma versão nova do loader. */
+export type LoaderCheck = {
+	/**  Chave do loader. */
+	loader: string,
+	/**  Versão atual. */
+	from: string,
+	/**  Versão verificada. */
+	to: string,
+	/**  Itens que funcionam com a versão atual e não com a nova. */
+	breaks: LoaderIssue[],
+	/**  Itens que não funcionam com nenhuma das duas. */
+	stillBroken: LoaderIssue[],
+	/**  Itens que não funcionam com a atual e voltam a funcionar com a nova. */
+	fixes: LoaderIssue[],
+	/**  Quantos mods foram verificados (com o arquivo lido). */
+	checked: number,
+	/**
+	 *  Nomes dos mods que não puderam ser verificados (o arquivo ainda não foi baixado: o
+	 *  primeiro teste baixa).
+	 */
+	unchecked: string[],
+};
+
+/**  Um item que não aceita uma versão do loader. */
+export type LoaderIssue = {
+	/**  Caminho do item no pack. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  A faixa de versões do loader que o item declara (`>=0.15.0`, `[47,)`), quando se sabe. */
+	requires: string | null,
+};
+
 /**  Loader do pack, como a política do Java o vê. */
 export type LoaderKind = 
 /**  Sem loader. */
@@ -3455,6 +3557,26 @@ export type LoaderVersion = {
 	stable: boolean,
 	/**  A "recomendada" do `promotions_slim.json` (só Forge). */
 	recommended: boolean,
+};
+
+/**  A versão do loader gravada. */
+export type LoaderVersionChanged = {
+	/**  Chave do loader (`fabric`, `forge`, `neoforge`, `quilt`). */
+	loader: string,
+	/**  Versão de antes. */
+	from: string,
+	/**  Versão de agora. */
+	to: string,
+	/**  `false` quando a versão pedida já era a do pack (nada foi gravado). */
+	changed: boolean,
+};
+
+/**  A versão gravada e a verificação rápida dos itens contra ela. */
+export type LoaderVersionSet = {
+	/**  O que foi gravado. */
+	changed: LoaderVersionChanged,
+	/**  A verificação dos itens com a versão gravada (comparada com a de antes). */
+	check: LoaderCheck,
 };
 
 /**
@@ -3989,6 +4111,18 @@ export type Orphan = {
 	item: NodeRef,
 	/**  Itens que só o usam como opcional, recomendado ou sugerido. */
 	optionalUsers: NodeRef[],
+};
+
+/**  Uma dependência que fica sem uso e pode sair junto. */
+export type OrphanOffer = {
+	/**  Chave estável do item. */
+	key: string,
+	/**  Caminho do item no pack (vai para `items_remove` junto com os alvos). */
+	path: string,
+	/**  Nome legível. */
+	name: string,
+	/**  Itens que ficam e só o usam como opcional, recomendado ou sugerido. */
+	optionalUsers: string[],
 };
 
 /**  Resultado do teste. */
@@ -4813,8 +4947,13 @@ export type RemoteStatus = {
 export type RemovalPlan = {
 	/**  Itens removidos, na ordem do inventário. */
 	targets: RemovalTarget[],
-	/**  Itens que dependem diretamente de algum removido, na ordem do inventário. */
+	/**
+	 *  Itens que deixam de funcionar, da cadeia inteira: primeiro os diretos, depois os de
+	 *  nível 2 e assim por diante (cada nível em ordem de nome).
+	 */
 	dependents: Dependent[],
+	/**  Dependências que ficam sem uso e podem sair junto (P1). */
+	orphans: OrphanOffer[],
 };
 
 /**  Um item que será removido. */
@@ -5806,6 +5945,22 @@ export type ValueChange = {
 	new: string | null,
 };
 
+/**  Resultado de [`apply`]. */
+export type VersionChanged = {
+	/**  Caminho do `.pw.toml`. */
+	path: string,
+	/**  Nome do item. */
+	name: string,
+	/**  Versão de antes, legível. */
+	from: string | null,
+	/**  Versão de agora, legível. */
+	to: string,
+	/**  ID da versão (ou arquivo) de agora. */
+	toId: string,
+	/**  Foi um rebaixamento. */
+	downgrade: boolean,
+};
+
 /**  Canal de uma versão. */
 export type VersionChannel = 
 /**  Estável. */
@@ -5814,6 +5969,24 @@ export type VersionChannel =
 "beta" | 
 /**  Alpha. */
 "alpha";
+
+/**  Uma versão na lista de "Trocar de versão". */
+export type VersionChoice = {
+	/**  ID da versão (Modrinth) ou do arquivo (CurseForge). Volta em [`plan`] e [`apply`]. */
+	id: string,
+	/**  Número legível. */
+	number: string,
+	/**  Canal. */
+	channel: VersionChannel,
+	/**  Data de publicação (RFC 3339). */
+	published: string,
+	/**  Nome do arquivo. */
+	fileName: string,
+	/**  É a versão instalada. */
+	installed: boolean,
+	/**  É mais antiga que a instalada (trocar para ela é um rebaixamento). */
+	older: boolean,
+};
 
 /**  As dependências de uma versão. */
 export type VersionDependencies = {
