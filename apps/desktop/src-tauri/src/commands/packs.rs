@@ -49,15 +49,15 @@ fn registered_path(state: &AppState, id: PackId) -> Result<PathBuf, AppError> {
         .map_err(domain)
 }
 
-/// Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos.
-///
-/// Fora da thread da interface (A-04; SPEC §8): um comando síncrono do Tauri roda nela, e
-/// montar 50 linhas lê o `pack.toml` e o git de cada pack. Recebe o `AppHandle` (e não o
-/// `State`) para manter o contrato: só um comando assíncrono que não empresta argumentos pode
-/// devolver a lista sem `Result`.
+/// Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos (montada fora
+/// da thread da interface).
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn packs_list(app: AppHandle) -> Vec<PackRow> {
+    // Um comando síncrono do Tauri roda na thread da interface, e montar 50 linhas lê o
+    // `pack.toml` e o git de cada pack (A-04; SPEC §8). Recebe o `AppHandle`, e não o `State`,
+    // para manter o contrato: só um comando assíncrono que não empresta argumentos pode
+    // devolver a lista sem `Result`.
     let packs = Arc::clone(&app.state::<AppState>().packs);
     tauri::async_runtime::spawn_blocking(move || packs.list())
         .await

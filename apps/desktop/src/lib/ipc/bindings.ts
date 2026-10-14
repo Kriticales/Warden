@@ -470,9 +470,12 @@ export const commands = {
 	 *  Com `keep_worlds`, a pasta `saves/` (os mundos de teste) fica.
 	 */
 	instanceRecreate: (packId: PackId, keepWorlds: boolean) => typedError<null, AppError>(__TAURI_INVOKE("instance_recreate", { packId, keepWorlds })),
-	/**  Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos. */
+	/**
+	 *  Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos (montada fora
+	 *  da thread da interface).
+	 */
 	packsList: () => __TAURI_INVOKE<PackRow[]>("packs_list"),
-	/**  Dados de um pack da lista. */
+	/**  Dados de um pack da lista (só a linha dele, fora da thread da interface). */
 	packGet: (packId: PackId) => typedError<PackRow, AppError>(__TAURI_INVOKE("pack_get", { packId })),
 	/**  Autor e pasta padrão do assistente Criar pack. */
 	packCreateDefaults: () => __TAURI_INVOKE<CreateDefaults>("pack_create_defaults"),
