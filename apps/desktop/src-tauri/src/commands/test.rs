@@ -312,6 +312,8 @@ pub(crate) async fn test_quit_app(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
+    // O servidor local (L-09) fecha na hora: nenhum `java` do servidor fica órfão.
+    state.servers.kill_all().await;
     let finished = state.tests.stop_all(QUIT_WAIT).await;
     tracing::info!(finished, "fechando o Warden depois de parar o jogo");
     app.exit(0);

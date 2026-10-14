@@ -21,6 +21,7 @@ mod img_protocol;
 pub mod locks;
 pub mod logging;
 pub mod operations;
+mod server_session;
 pub mod settings;
 pub mod state;
 mod test_hooks;
@@ -136,6 +137,8 @@ fn setup(app: &mut tauri::App, dev_root: Option<&Path>) -> Result<(), Box<dyn st
         app.handle().clone(),
         app.path().download_dir().ok(),
     );
+    // Servidor local (L-09): o evento `server-state`.
+    commands::server::connect(&state.servers, app.handle().clone());
     app.manage(state);
 
     #[cfg(debug_assertions)]

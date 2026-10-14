@@ -173,6 +173,8 @@ pub(crate) struct TestSessionSummary {
     /// Desempenho: pico de RAM, "Abriu em" e a comparação (L-10; `None` nas sessões de
     /// antes dela).
     pub(crate) perf: Option<warden_perf::SessionPerf>,
+    /// O lado do servidor no "Testar como servidor" (L-09; `None` nos outros modos).
+    pub(crate) server: Option<super::ServerSide>,
 }
 
 impl TestSessionSummary {
@@ -216,6 +218,7 @@ impl TestSessionSummary {
             crash_reports: paths(&record.artifacts.crash_reports),
             hs_err_files: paths(&record.artifacts.hs_err_files),
             perf: crate::test_hooks::session_perf(record),
+            server: super::server_side(record),
         }
     }
 }

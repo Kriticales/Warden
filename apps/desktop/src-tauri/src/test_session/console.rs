@@ -75,6 +75,8 @@ pub enum ConsoleOrigin {
     Game,
     /// Mensagem do Warden: `text` é a chave do catálogo `teste` e `params`, os valores.
     Warden,
+    /// Saída do servidor local, no "Testar como servidor" (L-09).
+    Server,
 }
 
 /// Uma linha do console.

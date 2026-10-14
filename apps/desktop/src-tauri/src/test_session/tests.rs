@@ -6,6 +6,8 @@
 //! de processo da `warden-launcher`).
 
 #![allow(clippy::print_stderr)] // aviso de teste pulado
+// Os auxiliares são `pub(super)`: os testes do "Testar como servidor" (`server_mode`) usam os
+// mesmos (L-09).
 
 use std::collections::BTreeMap;
 use std::sync::Mutex as StdMutex;
@@ -21,7 +23,7 @@ use crate::error::ErrorCode;
 use crate::state::tests::test_state;
 
 /// O `java` dos testes.
-fn java() -> Option<PathBuf> {
+pub(super) fn java() -> Option<PathBuf> {
     if let Some(java) = std::env::var_os("WARDEN_TEST_JAVA").filter(|v| !v.is_empty()) {
         return Some(PathBuf::from(java));
     }
@@ -33,13 +35,13 @@ fn java() -> Option<PathBuf> {
 }
 
 /// Pasta do `WardenFakeGame.class`.
-fn class_dir() -> PathBuf {
+pub(super) fn class_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../crates/warden-launcher/tests/fixtures/java")
 }
 
 /// O major do Java (arquivo `release` da pasta do Java).
-fn java_major(java: &Path) -> u32 {
+pub(super) fn java_major(java: &Path) -> u32 {
     let home = java.parent().and_then(Path::parent).unwrap();
     let release = std::fs::read_to_string(home.join("release")).unwrap_or_default();
     release
@@ -59,12 +61,15 @@ fn java_major(java: &Path) -> u32 {
 }
 
 /// Estado de teste com o jogo simulado no lugar do motor.
-fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+pub(super) fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     fake_state_with(root, None)
 }
 
 /// O mesmo, com a CurseForge simulada em `curseforge_base` (L-06).
-fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<AppState>> {
+pub(super) fn fake_state_with(
+    root: &Path,
+    curseforge_base: Option<String>,
+) -> Option<Arc<AppState>> {
     let Some(java) = java() else {
         eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste do jogo simulado pulado");
         return None;
@@ -83,13 +88,13 @@ fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<A
     Some(Arc::new(state))
 }
 
-fn sha256(bytes: &[u8]) -> String {
+pub(super) fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
 /// Grava um pack vanilla 1.20.1 com os arquivos dados (todos no índice; os `.pw.toml` como
 /// metafiles).
-fn write_pack(root: &Path, files: &[(&str, &[u8])], fake_args: &str) {
+pub(super) fn write_pack(root: &Path, files: &[(&str, &[u8])], fake_args: &str) {
     std::fs::create_dir_all(root).unwrap();
     let mut index = PackIndex::default();
     for (path, bytes) in files {
@@ -114,7 +119,7 @@ fn write_pack(root: &Path, files: &[(&str, &[u8])], fake_args: &str) {
     std::fs::write(root.join(fake::ARGS_FILE), fake_args).unwrap();
 }
 
-fn register(state: &AppState, root: &Path) -> PackId {
+pub(super) fn register(state: &AppState, root: &Path) -> PackId {
     let record = PackRecord {
         id: PackId::new(),
         name: "Vale de Teste".into(),
@@ -129,13 +134,13 @@ fn register(state: &AppState, root: &Path) -> PackId {
 
 /// O que o teste mandou pelo canal e pelo `game-state`.
 #[derive(Default)]
-struct Seen {
-    events: StdMutex<Vec<OperationEvent>>,
+pub(super) struct Seen {
+    pub(super) events: StdMutex<Vec<OperationEvent>>,
     states: StdMutex<Vec<GameState>>,
 }
 
 impl Seen {
-    fn console_texts(&self) -> Vec<String> {
+    pub(super) fn console_texts(&self) -> Vec<String> {
         self.events
             .lock()
             .unwrap()
@@ -149,7 +154,7 @@ impl Seen {
             .collect()
     }
 
-    fn phases(&self) -> Vec<GamePhase> {
+    pub(super) fn phases(&self) -> Vec<GamePhase> {
         self.states
             .lock()
             .unwrap()
@@ -159,7 +164,7 @@ impl Seen {
     }
 }
 
-fn sink() -> (TestSink, Arc<Seen>) {
+pub(super) fn sink() -> (TestSink, Arc<Seen>) {
     let seen = Arc::new(Seen::default());
     let events = Arc::clone(&seen);
     let states = Arc::clone(&seen);
@@ -175,7 +180,7 @@ fn sink() -> (TestSink, Arc<Seen>) {
 }
 
 /// Começa um teste em segundo plano.
-fn spawn_test(
+pub(super) fn spawn_test(
     state: &Arc<AppState>,
     pack: PackId,
     request: TestRequest,
