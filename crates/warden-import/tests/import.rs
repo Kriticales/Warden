@@ -1381,3 +1381,311 @@ async fn instancia_do_app_da_curseforge_sem_consultar_a_curseforge() {
     }
     assert!(cf_server.received_requests().await.unwrap().is_empty());
 }
+
+// ---------- Outros hosts, CDN fora do padrão, CDN da CurseForge, licença e falhas ----------
+
+const CF_LOOSE: &[u8] = b"jar solto que so a CurseForge conhece";
+
+#[tokio::test]
+async fn mrpack_com_outros_hosts_curseforge_por_impressao_e_licenca() {
+    let temp = tempfile::tempdir().unwrap();
+    let odd_sha1 = sha1(b"cdn fora do padrao");
+    let lost_sha1 = sha1(b"cdn sem versao");
+    let jei_sha1 = JEI_SHA1.to_owned();
+    let index = json!({
+        "formatVersion": 1, "game": "minecraft", "versionId": "3.1", "name": "Hosts",
+        "dependencies": {"minecraft": "1.20.1", "forge": "47.3.0"},
+        "files": [
+            {"path": "mods/outro.jar", "hashes": {"sha512": "d".repeat(128)},
+             "downloads": ["https://files.example.com/outro.jar"], "env": {"client": "required", "server": "required"}},
+            {"path": "mods/estranho.jar", "hashes": {"sha1": odd_sha1, "sha512": "e".repeat(128)},
+             "downloads": ["https://cdn.modrinth.com/outro/caminho/estranho.jar"]},
+            {"path": "mods/perdido.jar", "hashes": {"sha1": lost_sha1},
+             "downloads": ["https://cdn.modrinth.com/coisa/perdido.jar"]},
+            {"path": "mods/jei.jar", "hashes": {"sha1": jei_sha1, "sha512": "f".repeat(128)},
+             "downloads": ["https://edge.forgecdn.net/files/4712/345/jei.jar"],
+             "env": {"client": "optional", "server": "unsupported"}},
+        ]
+    });
+    let origin = temp.path().join("hosts.mrpack");
+    zip_file(
+        &origin,
+        &[
+            (
+                "modrinth.index.json".to_owned(),
+                serde_json::to_vec(&index).unwrap(),
+            ),
+            ("overrides/mods/cf-solto.jar".to_owned(), CF_LOOSE.to_vec()),
+        ],
+    );
+    let pack_sha512 = sha512(&fs::read(&origin).unwrap());
+    let mut license_project = project("PACKPRJ", "hosts", "Hosts");
+    license_project["license"] = json!({"id": "LicenseRef-All-Rights-Reserved", "name": ""});
+    let versions = BTreeMap::from([
+        (
+            odd_sha1.clone(),
+            version(
+                "ODDVER",
+                "ODDPRJ",
+                "estranho.jar",
+                &odd_sha1,
+                &"e".repeat(128),
+                None,
+            ),
+        ),
+        (
+            pack_sha512.clone(),
+            version(
+                "PACKVER",
+                "PACKPRJ",
+                "hosts.mrpack",
+                &sha1(b"x"),
+                &pack_sha512,
+                None,
+            ),
+        ),
+    ]);
+    let modrinth_server = modrinth_mock(
+        vec![
+            project("ODDPRJ", "estranho", "Mod Estranho"),
+            license_project,
+        ],
+        versions,
+    )
+    .await;
+    let modrinth = modrinth_client(&modrinth_server);
+    let cf_server = curseforge_mock().await;
+    // A impressão do jar solto: só a CurseForge o conhece.
+    let print = warden_packwiz::hash::curseforge_fingerprint(CF_LOOSE);
+    let mut loose_file = cf_file(CF_OPTIONAL, 9_000_099, "cf-solto-1.0.jar", &sha1(CF_LOOSE));
+    loose_file["fileFingerprint"] = json!(print);
+    cf_server.reset().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/fingerprints/432"))
+        .respond_with(json_ok(json!({"data": {
+            "isCacheBuilt": true,
+            "exactMatches": [{"id": CF_OPTIONAL, "file": loose_file, "latestFiles": []}],
+            "exactFingerprints": [print], "partialMatches": [], "partialMatchFingerprints": {},
+            "installedFingerprints": [], "unmatchedFingerprints": null
+        }})))
+        .mount(&cf_server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/mods/files"))
+        .respond_with(json_ok(json!({"data": [
+            cf_file(CF_JEI, JEI_FILE, "jei.jar", JEI_SHA1),
+        ]})))
+        .mount(&cf_server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/mods"))
+        .respond_with(json_ok(json!({"data": [
+            cf_project(CF_JEI, "jei", "Just Enough Items"),
+            cf_project(CF_OPTIONAL, "cf-solto", "Mod Solto da CurseForge"),
+        ]})))
+        .mount(&cf_server)
+        .await;
+    let curseforge = CurseforgeClient::with_base_url(
+        http(),
+        &format!("{}/v1", cf_server.uri()),
+        Some(SecretString::from(KEY.to_owned())),
+    )
+    .unwrap();
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let services = ImportServices {
+        stores: Stores {
+            modrinth: Some(&modrinth),
+            curseforge: Some(&curseforge),
+        },
+        curseforge: CurseforgeTools {
+            packwiz: &fake,
+            key: None,
+            staging_parent: &temp.path().join("staging"),
+        },
+    };
+    let plan = analyze(&origin, &services, &CancellationToken::new())
+        .await
+        .unwrap();
+    let summary = &plan.summary;
+    let by_name: BTreeMap<&str, (ImportItemSource, bool)> = summary
+        .references
+        .iter()
+        .map(|item| (item.name.as_str(), (item.source, item.by_hash)))
+        .collect();
+    assert_eq!(by_name["outro"], (ImportItemSource::Url, false));
+    assert_eq!(by_name["Mod Estranho"], (ImportItemSource::Modrinth, false));
+    assert_eq!(by_name["perdido"], (ImportItemSource::Url, false));
+    assert_eq!(
+        by_name["Just Enough Items"],
+        (ImportItemSource::Curseforge, false)
+    );
+    assert_eq!(
+        by_name["Mod Solto da CurseForge"],
+        (ImportItemSource::Curseforge, true)
+    );
+    assert!(summary.local_files.is_empty());
+    let optional = summary
+        .review
+        .iter()
+        .find(|item| item.name == "Just Enough Items")
+        .unwrap();
+    assert_eq!(optional.reason, ImportReviewReason::Optional);
+    let license = summary.license.clone().unwrap();
+    assert!(!license.free);
+    assert_eq!(license.name, "All Rights Reserved");
+    assert!(summary.unavailable_sources.is_empty());
+}
+
+#[tokio::test]
+async fn loja_fora_do_ar_deixa_o_jar_local_com_o_motivo() {
+    let temp = tempfile::tempdir().unwrap();
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(500))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(500))
+        .mount(&server)
+        .await;
+    let modrinth = modrinth_client(&server);
+    let index = json!({
+        "formatVersion": 1, "game": "minecraft", "versionId": "1", "name": "Sem rede",
+        "dependencies": {"minecraft": "1.21.1"},
+        "files": [{"path": "mods/a.jar", "hashes": {"sha1": "a".repeat(40)},
+                   "downloads": ["https://cdn.modrinth.com/data/A/versions/B/a.jar"]}]
+    });
+    let origin = temp.path().join("sem-rede.mrpack");
+    zip_file(
+        &origin,
+        &[
+            (
+                "modrinth.index.json".to_owned(),
+                serde_json::to_vec(&index).unwrap(),
+            ),
+            ("overrides/mods/solto.jar".to_owned(), b"solto".to_vec()),
+        ],
+    );
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let tools = CurseforgeTools {
+        packwiz: &fake,
+        key: None,
+        staging_parent: &temp.path().join("staging"),
+    };
+    let plan = analyze(
+        &origin,
+        &services(&modrinth, tools),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert_eq!(
+        plan.summary.unavailable_sources,
+        vec!["Modrinth".to_owned()]
+    );
+    assert_eq!(
+        plan.summary.local_files[0].reason,
+        ImportLocalReason::LookupFailed
+    );
+    // Sem o nome do projeto, o item ainda vira referência ao Modrinth pelo caminho da URL.
+    assert_eq!(
+        plan.summary.references[0].source,
+        ImportItemSource::Modrinth
+    );
+    assert_eq!(plan.summary.references[0].name, "a");
+}
+
+#[tokio::test]
+async fn indices_invalidos_e_pasta_packwiz_sao_recusados() {
+    let server = modrinth_mock(Vec::new(), BTreeMap::new()).await;
+    let modrinth = modrinth_client(&server);
+    let temp = tempfile::tempdir().unwrap();
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let file = |extra: Value| {
+        let mut base = json!({"path": "mods/a.jar", "hashes": {"sha1": "a".repeat(40)},
+            "downloads": ["https://cdn.modrinth.com/data/A/versions/B/a.jar"]});
+        for (key, value) in extra.as_object().unwrap() {
+            base[key] = value.clone();
+        }
+        base
+    };
+    let cases = [
+        (
+            json!({"game": "minecraft", "dependencies": {"minecraft": "1.21.1"}, "files": [file(json!({"downloads": []}))]}),
+            ImportErrorCode::Unreadable,
+        ),
+        (
+            json!({"game": "minecraft", "dependencies": {"minecraft": "1.21.1"}, "files": [file(json!({"hashes": {"sha1": "curto"}}))]}),
+            ImportErrorCode::Unreadable,
+        ),
+        (
+            json!({"game": "terraria", "dependencies": {"minecraft": "1.21.1"}, "files": []}),
+            ImportErrorCode::UnknownFormat,
+        ),
+        (
+            json!({"game": "minecraft", "dependencies": {}, "files": []}),
+            ImportErrorCode::MinecraftMissing,
+        ),
+        (
+            json!({"game": "minecraft", "dependencies": {"minecraft": "1.21.1", "quilt-loader": "0.26"}, "files": []}),
+            ImportErrorCode::UnsupportedLoader,
+        ),
+        (
+            json!({"game": "minecraft", "dependencies": {"minecraft": "1.21.1"}, "files": [file(json!({"path": ""}))]}),
+            ImportErrorCode::UnsafePath,
+        ),
+    ];
+    for (position, (index, code)) in cases.into_iter().enumerate() {
+        let origin = temp.path().join(format!("caso-{position}.mrpack"));
+        zip_file(
+            &origin,
+            &[(
+                "modrinth.index.json".to_owned(),
+                serde_json::to_vec(&index).unwrap(),
+            )],
+        );
+        let tools = CurseforgeTools {
+            packwiz: &fake,
+            key: None,
+            staging_parent: &temp.path().join("staging"),
+        };
+        let error = analyze(
+            &origin,
+            &services(&modrinth, tools),
+            &CancellationToken::new(),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(error.code(), code, "caso {position}");
+    }
+    // Pasta packwiz: vai para Abrir pack.
+    let pack = temp.path().join("pack");
+    write(&pack, "pack.toml", "name = \"x\"\n");
+    let tools = CurseforgeTools {
+        packwiz: &fake,
+        key: None,
+        staging_parent: &temp.path().join("staging"),
+    };
+    let error = analyze(
+        &pack,
+        &services(&modrinth, tools),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(error.code(), ImportErrorCode::UnknownFormat);
+    assert_eq!(error.params()["kind"], "packwiz");
+    assert_eq!(warden_import::detect(&pack).unwrap(), ImportFormat::Packwiz);
+}
