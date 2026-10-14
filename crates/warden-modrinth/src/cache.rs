@@ -231,13 +231,57 @@ impl MetadataCache {
 
     /// Projetos pelos IDs (os que estiverem no cache).
     pub async fn projects(&self, ids: &[String]) -> Result<Vec<Cached<Project>>> {
-        let mut found = Vec::new();
-        for id in ids {
-            if let Some(project) = self.project(id).await? {
-                found.push(project);
-            }
+        Ok(self
+            .projects_by_key(ids)
+            .await?
+            .into_iter()
+            .map(|(_, project)| project)
+            .collect())
+    }
+
+    /// Projetos pelo ID ou slug, numa ida só ao banco: a chave pedida e o projeto, na ordem das
+    /// chaves, só as que estão no cache. A lista de Mods pede centenas de uma vez (A-04): uma
+    /// consulta por tarefa custava uma ida ao banco por item, disputando a conexão com as
+    /// outras leituras da abertura do pack.
+    pub async fn projects_by_key(&self, keys: &[String]) -> Result<Vec<(String, Cached<Project>)>> {
+        if keys.is_empty() {
+            return Ok(Vec::new());
         }
-        Ok(found)
+        let keys = keys.to_vec();
+        let rows = self
+            .run("ler projetos", move |connection, _| {
+                let mut statement = connection.prepare(
+                    "SELECT json, fetched_at FROM modrinth_projects
+                     WHERE id = ?1 OR slug = lower(?1) LIMIT 1",
+                )?;
+                let mut rows = Vec::new();
+                for key in keys {
+                    let row = statement
+                        .query_row([&key], |row| {
+                            Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+                        })
+                        .optional()?;
+                    if let Some(row) = row {
+                        rows.push((key, row));
+                    }
+                }
+                Ok(rows)
+            })
+            .await?;
+        let now = self.now();
+        Ok(rows
+            .into_iter()
+            .filter_map(|(key, (json, fetched_at))| {
+                parse_row::<Project>(&json).map(|value| {
+                    let cached = Cached {
+                        value,
+                        fetched_at,
+                        fresh: is_fresh(fetched_at, now, PROJECT_TTL),
+                    };
+                    (key, cached)
+                })
+            })
+            .collect())
     }
 
     /// Grava projetos (JSON cru de cada um).
@@ -548,6 +592,30 @@ mod tests {
                 .len(),
             1
         );
+    }
+
+    #[tokio::test]
+    async fn projetos_por_chave_numa_ida_so_na_ordem_pedida() {
+        let (clock, now) = clock();
+        let cache = MetadataCache::in_memory(Some(clock)).unwrap();
+        cache
+            .put_projects(vec![project("AAA", "sodium"), project("CCC", "lithium")])
+            .await
+            .unwrap();
+        let found = cache
+            .projects_by_key(&["lithium".into(), "BBB".into(), "AAA".into()])
+            .await
+            .unwrap();
+        let pairs: Vec<(&str, &str)> = found
+            .iter()
+            .map(|(key, cached)| (key.as_str(), cached.value.id.as_str()))
+            .collect();
+        assert_eq!(pairs, [("lithium", "CCC"), ("AAA", "AAA")]);
+        assert!(found.iter().all(|(_, cached)| cached.fresh));
+        now.fetch_add(24 * 60 * 60, Ordering::SeqCst);
+        let stale = cache.projects_by_key(&["AAA".into()]).await.unwrap();
+        assert!(!stale[0].1.fresh);
+        assert!(cache.projects_by_key(&[]).await.unwrap().is_empty());
     }
 
     /// Gancho 1.1 (ADR-0039, item 7).

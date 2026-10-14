@@ -1,4 +1,4 @@
-//! Busca em todas as configs com o pack grande (A-04; SPEC §8 e CA-T06-05): índice das 500
+//! Busca em todas as configs com o pack grande (A-04; SPEC §8 e CA-T12-06): índice das 500
 //! configs pronto em < 2 s e cada busca em < 200 ms.
 //!
 //! As configs são o corpus de configs reais da crate (`tests/corpus/`) repetido em lotes, no

@@ -179,8 +179,16 @@ impl ModrinthClient {
         let mut found: HashMap<String, Project> = HashMap::new();
         let mut stale: HashMap<String, Project> = HashMap::new();
         let mut missing = Vec::new();
+        // O cache numa ida só (A-04): a lista de Mods pede centenas de projetos de uma vez.
+        let mut cached: HashMap<String, Cached<Project>> = match &self.cache {
+            Some(cache) => cache_read(cache.projects_by_key(&ids).await)
+                .unwrap_or_default()
+                .into_iter()
+                .collect(),
+            None => HashMap::new(),
+        };
         for id in &ids {
-            match self.cached_project(id).await {
+            match cached.remove(id) {
                 Some(cached) if cached.fresh => {
                     found.insert(id.clone(), cached.value);
                 }
