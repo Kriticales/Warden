@@ -330,7 +330,7 @@ describe('editor de scripts (T26)', () => {
     openScript(`?arquivo=${RECEITAS}`, {
       problems: {
         problems: [
-          problem(TAGS, 3, 'TypeError: Cannot find function add'),
+          { ...problem(TAGS, 3, 'TypeError: Cannot find function add'), column: 5 },
           problem(
             RECEITAS,
             16,
@@ -362,10 +362,10 @@ describe('editor de scripts (T26)', () => {
     await user.click(within(panel).getByRole('button', { name: 'receitas.js, linha 16' }));
     await screen.findByText(/linha 16, coluna 1/);
 
-    // Erro de outro script: abre o arquivo na linha.
-    await user.click(within(panel).getByRole('button', { name: 'tags.js, linha 3' }));
+    // Erro de outro script: abre o arquivo na linha e na coluna do erro.
+    await user.click(within(panel).getByRole('button', { name: 'tags.js, linha 3, coluna 5' }));
     await view(TAGS);
-    await screen.findByText(/linha 3, coluna 1/);
+    await screen.findByText(/linha 3, coluna 5/);
   });
 
   it('CA-T26-04: com o KubeJS 6 e só o cliente aberto, mostra o comando com Copiar', async () => {

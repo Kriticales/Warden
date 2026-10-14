@@ -8,7 +8,7 @@
  * o editor sem recriá-lo nem perder o que foi digitado.
  */
 import { openSearchPanel } from '@codemirror/search';
-import { Compartment, EditorSelection, type Extension } from '@codemirror/state';
+import { Compartment, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react';
 
@@ -21,8 +21,6 @@ export interface CodeEditorHandle {
   focus: () => void;
   /** Troca todo o texto (Desfazer as alterações). */
   replaceAll: (text: string) => void;
-  /** Leva o cursor à linha (e coluna) e foca o editor. */
-  gotoLine: (line: number, column?: number) => void;
   /** O `EditorView` aberto (trechos prontos do editor de scripts). */
   view: () => EditorView | null;
 }
@@ -34,6 +32,8 @@ export interface CodeEditorHandle {
  */
 export interface LineRequest {
   line: number;
+  /** Coluna (começa em 1); sem ela, o começo da linha (o erro de um script traz a coluna). */
+  column?: number;
   request: number;
 }
 
@@ -48,7 +48,10 @@ export interface CodeEditorProps {
   ariaLabel: string;
   onChange: (text: string) => void;
   onCursor: (line: number, column: number) => void;
-  /** Põe o cursor no começo da linha, centralizada, e o foco no editor; uma vez por pedido. */
+  /**
+   * Põe o cursor na linha (no começo, ou na coluna pedida), centralizada, e o foco no editor;
+   * uma vez por pedido.
+   */
   goTo?: LineRequest | null;
   /**
    * Avisa que o pedido foi atendido. Quem recria o editor (formulário ↔ texto) para de mandar o
@@ -147,6 +150,7 @@ export function CodeEditor({
   // Ir para a linha pedida (também logo depois de criar o editor de um arquivo novo). Cada
   // pedido vale uma vez: recarregar o arquivo (edição por fora) não puxa o cursor nem o foco.
   const goToLine = goTo?.line;
+  const goToColumn = goTo?.column ?? 1;
   const goToRequest = goTo?.request;
   const appliedRequest = useRef<number | null>(null);
   useEffect(() => {
@@ -156,15 +160,17 @@ export function CodeEditor({
     }
     appliedRequest.current = goToRequest ?? null;
     const line = current.state.doc.line(Math.min(Math.max(goToLine, 1), current.state.doc.lines));
+    const position = Math.min(line.from + Math.max(goToColumn - 1, 0), line.to);
     current.dispatch({
-      selection: { anchor: line.from },
-      effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
+      selection: { anchor: position },
+      effects: EditorView.scrollIntoView(position, { y: 'center' }),
     });
     current.focus();
     if (goToRequest !== undefined) {
       callbacks.current.onGoTo?.(goToRequest);
     }
-  }, [resetKey, goToLine, goToRequest]);
+  }, [resetKey, goToLine, goToColumn, goToRequest]);
+
   // Extensões novas: reconfigura sem recriar.
   useEffect(() => {
     extensionsRef.current = extensions ?? [];
@@ -195,20 +201,6 @@ export function CodeEditor({
       if (current) {
         current.dispatch({ changes: { from: 0, to: current.state.doc.length, insert: text } });
       }
-    },
-    gotoLine: (line, column = 1) => {
-      const current = view.current;
-      if (!current) {
-        return;
-      }
-      const doc = current.state.doc;
-      const target = doc.line(Math.min(Math.max(line, 1), doc.lines));
-      const position = Math.min(target.from + Math.max(column - 1, 0), target.to);
-      current.dispatch({
-        selection: EditorSelection.cursor(position),
-        effects: EditorView.scrollIntoView(position, { y: 'center' }),
-      });
-      current.focus();
     },
     view: () => view.current,
   }));

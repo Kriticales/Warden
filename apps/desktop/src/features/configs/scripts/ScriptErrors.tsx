@@ -63,7 +63,7 @@ export function ScriptErrors({
   useEffect(() => {
     const target = takePendingLine(path);
     if (target) {
-      api.gotoLine(target.line, target.column);
+      api.goTo(target.line, target.column);
     }
   }, [api, path]);
 
@@ -79,7 +79,7 @@ export function ScriptErrors({
   const go = (problem: ScriptProblem) => {
     if (!problem.file || !problem.line) return;
     if (problem.file.toLowerCase() === path.toLowerCase()) {
-      api.gotoLine(problem.line, problem.column ?? 1);
+      api.goTo(problem.line, problem.column ?? 1);
     } else {
       setPendingLine(problem.file, problem.line, problem.column ?? 1);
       onOpenFile(problem.file);

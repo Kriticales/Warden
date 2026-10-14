@@ -66,7 +66,8 @@ export interface EditorAddonApi {
   saving: boolean;
   /** Grava sem perguntar nada. `true` se gravou (ou nada havia a gravar). */
   save: () => Promise<boolean>;
-  gotoLine: (line: number, column?: number) => void;
+  /** Leva o cursor à linha (e coluna) pelo `goTo` do editor de texto. */
+  goTo: (line: number, column?: number) => void;
   view: () => EditorView | null;
 }
 
@@ -159,7 +160,6 @@ export function ConfigEditor({
     openSearch: () => editor.current?.openSearch(),
     focus: () => editor.current?.focus(),
     replaceAll: (text) => editor.current?.replaceAll(text),
-    gotoLine: (line, column) => editor.current?.gotoLine(line, column),
     view: () => editor.current?.view() ?? null,
   }));
 
@@ -198,9 +198,9 @@ export function ConfigEditor({
     mode === 'form' &&
     fallback === null &&
     (formState.status === 'loading' || formState.status === 'error');
-  // "Editar este trecho como texto": a linha a mostrar quando o texto abrir. Vale até chegar
-  // um pedido novo da página (`over` guarda qual era o dela); os números são negativos para não
-  // coincidir com os da página.
+  // Pedidos daqui ("Editar este trecho como texto" e o erro de script clicado, C-07): a linha a
+  // mostrar no texto. Vale até chegar um pedido novo da página (`over` guarda qual era o dela);
+  // os números são negativos para não coincidir com os da página.
   const [textLine, setTextLine] = useState<(LineRequest & { over: number | undefined }) | null>(
     null,
   );
@@ -209,6 +209,18 @@ export function ConfigEditor({
   // O pedido já atendido não vai para o editor recriado ao voltar do formulário para o texto.
   const [appliedLine, setAppliedLine] = useState<number | null>(null);
   const lineTarget = nextLine !== null && nextLine.request !== appliedLine ? nextLine : null;
+  const pageRequest = goTo?.request;
+  const requestLine = useCallback(
+    (line: number, column?: number) => {
+      setTextLine((previous) => ({
+        line,
+        ...(column === undefined ? {} : { column }),
+        request: Math.min(previous?.request ?? 0, 0) - 1,
+        over: pageRequest,
+      }));
+    },
+    [pageRequest],
+  );
 
   const reloadFrom = (content: ConfigContent) => {
     const next = { text: content.text ?? '', hash: content.hash };
@@ -302,13 +314,10 @@ export function ConfigEditor({
     const current = latest.current;
     return current.dirty ? current.doWrite(current.hash, current.text) : true;
   }, []);
-  const addonGotoLine = useCallback((line: number, column?: number) => {
-    editor.current?.gotoLine(line, column);
-  }, []);
   const addonView = useCallback(() => editor.current?.view() ?? null, []);
   const api = useMemo<EditorAddonApi>(
-    () => ({ dirty, saving, save: addonSave, gotoLine: addonGotoLine, view: addonView }),
-    [dirty, saving, addonSave, addonGotoLine, addonView],
+    () => ({ dirty, saving, save: addonSave, goTo: requestLine, view: addonView }),
+    [dirty, saving, addonSave, requestLine, addonView],
   );
 
   const changedLines = dirty ? changedLineNumbers(base.text, text).length : 0;
@@ -466,11 +475,7 @@ export function ConfigEditor({
           text={text}
           onText={setText}
           onOpenText={(line) => {
-            setTextLine((previous) => ({
-              line,
-              request: Math.min(previous?.request ?? 0, 0) - 1,
-              over: goTo?.request,
-            }));
+            requestLine(line);
             setEditorMode('text');
           }}
           onFallback={setFallback}
