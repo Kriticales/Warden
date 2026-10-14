@@ -143,14 +143,3 @@ missing_errors_doc = "allow"
 # menor e o link mais rápido (QUALITY §13.4); o código do Warden mantém a depuração completa.
 [profile.dev.package."*"]
 debug = false
-
-# As bibliotecas em C que o app usa a cada tela (libgit2 do histórico, SQLite do cache de
-# metadados, zlib) compiladas com otimização também no build de debug (A-04): sem ela, a lista
-# de Meus packs e a abertura de um pack grande ficavam várias vezes mais lentas no app de
-# desenvolvimento e nos E2E do que no app instalado. O código Rust continua sem otimização.
-[profile.dev.package.libgit2-sys]
-opt-level = 3
-[profile.dev.package.libsqlite3-sys]
-opt-level = 3
-[profile.dev.package.libz-sys]
-opt-level = 3
