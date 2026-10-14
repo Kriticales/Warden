@@ -1,0 +1,7 @@
+/* "Testar como servidor" (L-09): o seletor "Mostrando" acima do console e a linha de comando
+ * abaixo dele. */
+.server-console__show,
+.server-console__command {
+  gap: var(--space-2);
+  align-items: center;
+}

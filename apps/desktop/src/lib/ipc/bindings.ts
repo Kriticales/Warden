@@ -635,6 +635,35 @@ export const commands = {
 	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
 	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
 	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
+	/**  "Aceito a EULA": grava o aceite com a data de agora. */
+	serverEulaAccept: () => typedError<Settings, AppError>(__TAURI_INVOKE("server_eula_accept")),
+	/**  "Revogar": apaga o aceite; o próximo servidor local pede de novo. */
+	serverEulaRevoke: () => typedError<Settings, AppError>(__TAURI_INVOKE("server_eula_revoke")),
+	/**
+	 *  A conta de memória e os itens que ficam de fora. `with_game`: abrir também o jogo (a opção
+	 *  recomendada); `profile`: o perfil do teste (`None` = o ativo).
+	 */
+	serverPlan: (packId: PackId, profile: string | null, withGame: boolean) => typedError<ServerPlan, AppError>(__TAURI_INVOKE("server_plan", { packId, profile, withGame })),
+	/**  "Enviar comando ao servidor". Erros: `server.NOT_RUNNING`, `server.INVALID_COMMAND`. */
+	serverSendCommand: (packId: PackId, command: string) => typedError<null, AppError>(__TAURI_INVOKE("server_send_command", { packId, command })),
+	/**  O servidor local aberto (ou em preparação), se houver. */
+	serverCurrent: () => __TAURI_INVOKE<{
+	/**  O pack. */
+	packId: PackId,
+	/**  Situação. */
+	phase: ServerPhase,
+	/**  A porta em `127.0.0.1`, depois de escolhida. */
+	port: number | null,
+	/**  Início (milissegundos desde 1970). */
+	startedAtMs: number,
+	/**  Do início do processo até o "pronto", em ms. */
+	readyMs: number | null,
+} | null>("server_current"),
+	/**
+	 *  O console do servidor de uma sessão com o jogo e o servidor (a sessão "Só o servidor" tem
+	 *  o servidor no console principal). Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	serverSessionLog: (packId: PackId, sessionId: string) => typedError<ServerLogView, AppError>(__TAURI_INVOKE("server_session_log", { packId, sessionId })),
 	/**  O espaço usado pelo cache, pelos arquivos do Minecraft, pelos Javas e pelas instâncias. */
 	storageUsage: () => typedError<StorageUsage, AppError>(__TAURI_INVOKE("storage_usage")),
 	/**
@@ -808,6 +837,7 @@ export const events = {
 	manualDownloadsChanged: makeEvent<ManualDownloadsChanged>("manual-downloads-changed"),
 	operationUpdated: makeEvent<OperationUpdated>("operation-updated"),
 	packChanged: makeEvent<PackChanged>("pack-changed"),
+	serverState: makeEvent<ServerState>("server-state"),
 	titleBarMaximize: makeEvent<TitleBarMaximize>("title-bar-maximize"),
 };
 
@@ -1768,7 +1798,9 @@ export type ConsoleOrigin =
 /**  Saída do jogo. */
 "game" | 
 /**  Mensagem do Warden: `text` é a chave do catálogo `teste` e `params`, os valores. */
-"warden";
+"warden" | 
+/**  Saída do servidor local, no "Testar como servidor" (L-09). */
+"server";
 
 /**  Pipe de uma linha do jogo. */
 export type ConsoleStream = 
@@ -4195,6 +4227,20 @@ export type MaximizeButtonArea = {
 	height: number | null,
 };
 
+/**  A conta de memória mostrada antes de abrir. */
+export type MemoryPlan = {
+	/**  Memória do servidor, em MB. */
+	serverMb: number,
+	/**  Memória do jogo, em MB (`None` em "Só o servidor"). */
+	gameMb: number | null,
+	/**  A soma, em MB. */
+	totalMb: number,
+	/**  Memória livre agora, em MB (`None` se o sistema não informou). */
+	freeMb: number | null,
+	/**  Se a soma cabe na memória livre (sem a leitura, considera que cabe). */
+	fits: boolean,
+};
+
 /**  Campos editáveis em "Editar informações". */
 export type MetaUpdate = {
 	/**  Nome (sem espaços nas pontas, não vazio, até 100 caracteres). */
@@ -6077,13 +6123,151 @@ export type SecretsStatus = {
 	github: boolean,
 };
 
+/**  O "Por que travou" do servidor (SPEC T27 passo 4; CA-T27-04). */
+export type ServerCrash = {
+	/**  O diagnóstico achou a causa. */
+	foundCause: boolean,
+	/**  Os mods apontados, do mais provável ao menos provável (nome e caminho no pack). */
+	mods: ServerCrashMod[],
+	/**
+	 *  A classe do cliente que derrubou o servidor (`net.minecraft.client…`), quando a saída
+	 *  diz.
+	 */
+	clientClass: string | null,
+	/**  O trecho do log do servidor, redigido. */
+	excerpt: string[],
+	/**  O título do achado principal (chave do catálogo `diagnostico`), quando houver. */
+	titleKey: string | null,
+};
+
+/**  Um mod apontado. */
+export type ServerCrashMod = {
+	/**  Nome para mostrar. */
+	name: string,
+	/**  Caminho no pack (`None`: o mod não está no pack ou o log não diz). */
+	path: string | null,
+	/**  O lado gravado no pack ("both", "client"…), quando o item está no pack. */
+	side: string | null,
+};
+
 /**
  *  Códigos do domínio `server`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type ServerErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  A EULA do Minecraft ainda não foi aceita (ou foi revogada): o servidor não abre. */
+"EULA_NOT_ACCEPTED" | 
+/**  Este loader não tem servidor local no Warden (Quilt, `LiteLoader`). */
+"LOADER_UNSUPPORTED" | 
+/**  A versão do loader do `pack.toml` não existe na fonte oficial. */
+"LOADER_VERSION_NOT_FOUND" | 
+/**  A versão do Minecraft não tem servidor oficial para baixar. */
+"NO_SERVER_DOWNLOAD" | 
+/**  Um download do servidor (Mojang, Fabric, Forge, NeoForge) falhou. */
+"DOWNLOAD_FAILED" | 
+/**  O instalador oficial do loader terminou com erro. */
+"INSTALLER_FAILED" | 
+/**  O instalador terminou, mas o servidor não ficou onde devia. */
+"INSTALLER_OUTPUT_MISSING" | 
+/**  Nenhuma porta livre em `127.0.0.1`. */
+"NO_FREE_PORT" | 
+/**  O servidor fechou antes de ficar pronto. */
+"EXITED_BEFORE_READY" | 
+/**  O servidor não ficou pronto a tempo. */
+"READY_TIMEOUT" | 
+/**  Não há servidor aberto para receber o comando. */
+"NOT_RUNNING" | 
+/**  Comando vazio, com quebra de linha ou longo demais. */
+"INVALID_COMMAND" | 
+/**  O processo do servidor não pôde ser aberto ou controlado. */
+"PROCESS_FAILED";
+
+/**  O jogo, visto do servidor. */
+export type ServerGame = 
+/**  O jogo não abriu ("Só o servidor", ou o servidor travou antes do "Done"). */
+"notOpened" | 
+/**  O jogo abriu, mas o servidor não viu o jogador entrar. */
+"opened" | 
+/**  O servidor viu o jogador entrar. */
+"joined";
+
+/**  O console do servidor de uma sessão gravada. */
+export type ServerLogView = {
+	/**
+	 *  As últimas linhas do log do servidor (até 50 000); vazio se a sessão não teve servidor
+	 *  ao lado do jogo.
+	 */
+	lines: ConsoleLine[],
+	/**  Se o começo do log ficou de fora. */
+	truncated: boolean,
+};
+
+/**  Situação do servidor local. */
+export type ServerPhase = 
+/**  Instalando e copiando o pack ("Preparar o servidor"). */
+"preparing" | 
+/**  Aberto, ainda carregando. */
+"starting" | 
+/**  Pronto (`Done`). */
+"ready" | 
+/**  Recebeu o `stop`. */
+"stopping" | 
+/**  Fechou (último aviso). */
+"exited";
+
+/**  O que o diálogo "Testar como servidor" mostra antes de abrir. */
+export type ServerPlan = {
+	/**  A conta de memória (servidor + jogo contra a livre agora). */
+	memory: MemoryPlan,
+	/**  Os itens "Só cliente" que ficam de fora do servidor (até 50 nomes). */
+	clientOnly: string[],
+	/**  Quantos são. */
+	clientOnlyCount: number,
+	/**  Quando a EULA foi aceita (`None`: o diálogo da EULA vem antes). */
+	eulaAcceptedAt: string | null,
+	/**  O loader do pack tem servidor local (Quilt não tem na v1). */
+	loaderSupported: boolean,
+};
+
+/**  O lado do servidor numa sessão "Testar como servidor". */
+export type ServerSide = {
+	/**  "Só o servidor" (sem o jogo). */
+	only: boolean,
+	/**  Como o servidor fechou. */
+	outcome: Outcome,
+	/**  Código de saída. */
+	exitCode: number | null,
+	/**  Do início do processo à saída. */
+	durationMs: number,
+	/**  Do início do processo ao "Done" (`None`: não ficou pronto). */
+	readyMs: number | null,
+	/**  A porta em `127.0.0.1`. */
+	port: number,
+	/**  Memória do servidor, em MB. */
+	memoryMb: number,
+	/**  O jogo do lado do servidor: não abriu, abriu ou entrou no servidor. */
+	game: ServerGame,
+	/**  Não fechou com o `stop` em 60 s e foi encerrado à força. */
+	stopForced: boolean,
+	/**  "Por que travou", quando travou. */
+	crash: ServerCrash | null,
+};
+
+/**  `server-state`: o servidor local mudou de situação (um por vez no Warden). */
+export type ServerState = {
+	/**  O pack. */
+	packId: PackId,
+	/**  Situação. */
+	phase: ServerPhase,
+	/**  A porta em `127.0.0.1`, depois de escolhida. */
+	port: number | null,
+	/**  Início (milissegundos desde 1970). */
+	startedAtMs: number,
+	/**  Do início do processo até o "pronto", em ms. */
+	readyMs: number | null,
+};
 
 /**
  *  O desempenho de uma sessão de teste, gravado no `session.json` (campo `perf`) e mostrado
@@ -6413,8 +6597,8 @@ export type TestMemory =
 mb: number };
 
 /**
- *  Modo do teste (ARCHITECTURE §4.1). Existem o normal e o "como o jogador recebe" (L-07);
- *  os outros chegam com as tarefas donas (L-12, L-09).
+ *  Modo do teste (ARCHITECTURE §4.1). Existem o normal, o "como o jogador recebe" (L-07) e o
+ *  "como servidor" (L-09, em [`server_mode`]); o perfil de desempenho chega com a L-12.
  */
 export type TestMode = 
 /**  Teste normal. */
@@ -6464,6 +6648,11 @@ export type TestRequest = {
 	 *  `app.TEST_PACK_HAS_ERRORS`, D-03).
 	 */
 	ignorePackErrors?: boolean,
+	/**
+	 *  Testar como servidor: "Só o servidor" (sem abrir o jogo; L-09). Fora desse modo, não
+	 *  vale.
+	 */
+	serverOnly?: boolean,
 };
 
 /**  Uma sessão gravada, como a interface mostra. */
@@ -6503,6 +6692,8 @@ export type TestSessionSummary = {
 	 *  antes dela).
 	 */
 	perf: SessionPerf | null,
+	/**  O lado do servidor no "Testar como servidor" (L-09; `None` nos outros modos). */
+	server: ServerSide | null,
 };
 
 /**  Uma sessão gravada com o console dela. */
