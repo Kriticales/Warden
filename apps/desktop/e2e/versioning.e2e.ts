@@ -32,6 +32,8 @@ import { join, relative } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
+import { replaceValue } from './fields';
+
 import { seriousViolationSummaries } from './axe';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -282,7 +284,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await expect(dialog).toHaveText(expect.stringContaining('porque você mudou 1 config'));
     await expect(dialog).toHaveText(expect.stringContaining('config/extra.toml'));
 
-    await number.setValue('0.9.0');
+    await replaceValue(number, '0.9.0');
     await expect(dialog).toHaveText(
       expect.stringContaining('não é maior que a última versão salva, 1.0.0'),
       { wait: 15_000 },
@@ -290,7 +292,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
     await expect(dialog.$('button*=Salvar versão 0.9.0')).toBeDisabled();
     await screenshot('44-versao-recusada');
 
-    await number.setValue('1.0.1');
+    await replaceValue(number, '1.0.1');
     const save = dialog.$('button*=Salvar versão 1.0.1');
     await save.waitForEnabled({ timeout: 15_000 });
     await save.click();
