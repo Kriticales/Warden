@@ -18,8 +18,10 @@ on:
 permissions:
   contents: read
 
+# Uma fila por branch: com uma fila só, cada execução pedida para uma branch cancelava a que
+# estava esperando para outra (o GitHub guarda só uma execução pendente por grupo).
 concurrency:
-  group: noturno
+  group: noturno-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
