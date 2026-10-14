@@ -11,9 +11,20 @@ warden-core.workspace = true
 warden-http.workspace = true
 warden-java.workspace = true
 warden-catalog.workspace = true
-warden-instance.workspace = true
+warden-launcher.workspace = true
+warden-packwiz.workspace = true
+regex.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 specta = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["fs", "io-util", "macros", "process", "rt", "sync", "time"] }
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt-multi-thread"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true

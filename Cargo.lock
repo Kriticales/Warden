@@ -7104,13 +7104,21 @@ dependencies = [
 name = "warden-server"
 version = "0.1.0"
 dependencies = [
+ "regex",
  "serde",
+ "serde_json",
  "specta",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
  "warden-catalog",
  "warden-core",
  "warden-http",
- "warden-instance",
  "warden-java",
+ "warden-launcher",
+ "warden-packwiz",
+ "wiremock",
 ]
 
 [[package]]
