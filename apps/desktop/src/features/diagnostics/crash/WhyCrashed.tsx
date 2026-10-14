@@ -36,7 +36,9 @@ import '../diagnostics.css';
 const LAST_ERRORS = 12;
 
 export function WhyCrashed({ packId, session, lines }: ResultBlockProps) {
-  if (session.outcome !== 'crashed') {
+  // Sem o jogo aberto ("Só o servidor", ou o servidor travou antes; L-09), o "Por que
+  // travou" é o do servidor (`ServerResult`).
+  if (session.outcome !== 'crashed' || session.server?.game === 'notOpened') {
     return null;
   }
   return <Crashed packId={packId} session={session} lines={lines} />;

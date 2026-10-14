@@ -12,6 +12,7 @@ import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bind
 import { CaptureBlock } from '../capture/CaptureBlock';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PerfSummary } from './perf-strip/PerfStrip';
+import { ServerResult } from './server/ServerResult';
 
 export interface ResultBlockProps {
   packId: PackId;
@@ -31,6 +32,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'perf-summary', order: 50, component: PerfSummary },
   { id: 'capture', order: 100, component: CaptureBlock },
   { id: 'why-crashed', order: 200, component: WhyCrashed },
+  // L-09: o que aconteceu em cada lado no "Testar como servidor".
+  { id: 'server-result', order: 20, component: ServerResult },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {

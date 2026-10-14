@@ -15,7 +15,15 @@
  * Um bloco com vários itens montados na hora (os perfis, itens de rádio, L-08) entra como
  * `TestMenuBlock`, desenhado pelo próprio componente dentro do menu.
  */
-import { FolderOpen, History, RotateCcw, Settings, Trash2, type LucideIcon } from 'lucide-react';
+import {
+  FolderOpen,
+  History,
+  RotateCcw,
+  Server,
+  Settings,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 import type { ComponentType } from 'react';
 
 import i18n from '../../i18n';
@@ -24,6 +32,7 @@ import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDia
 import { DeleteWorldsDialog } from './dialogs/DeleteWorldsDialog';
 import { RecreateInstanceDialog } from './dialogs/RecreateInstanceDialog';
 import { ProfileMenuItems } from './profiles/ProfileMenuItems';
+import { ServerTestDialog } from './server/ServerTestDialog';
 import { formatWhen, outcomeShort } from './text';
 
 export type TestMenuGroup = 'last' | 'other' | 'profile' | 'instance';
@@ -121,6 +130,20 @@ export const testMenuItems: readonly TestMenuEntry[] = [
       if (lastSession) openTest(lastSession.id);
     },
   },
+  {
+    // L-09: "Testar como servidor…" (servidor local sob demanda, T27).
+    id: 'server-test',
+    group: 'other',
+    order: 200,
+    icon: Server,
+    label: () => i18n.t('menu.testar', { ns: 'servidor' }),
+    description: ({ game }) =>
+      game ? t('menu.comJogoAberto') : i18n.t('menu.testarDesc', { ns: 'servidor' }),
+    disabled: ({ game }) => game !== null,
+    onSelect: ({ openDialog }) => {
+      openDialog('server-test');
+    },
+  },
   { id: 'profiles', group: 'profile', order: 100, component: ProfileMenuItems },
   {
     id: 'settings',
@@ -176,6 +199,7 @@ export const testDialogs: readonly TestDialog[] = [
   { id: 'settings', component: TestSettingsDialog },
   { id: 'delete-worlds', component: DeleteWorldsDialog },
   { id: 'recreate-instance', component: RecreateInstanceDialog },
+  { id: 'server-test', component: ServerTestDialog },
 ];
 
 /** Os itens de um grupo, na ordem. */
