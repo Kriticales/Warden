@@ -45,12 +45,12 @@ fn main() {
             dir.filter_map(Result::ok)
                 .map(|e| e.path())
                 .filter(|p| p.extension().is_some_and(|x| x.eq_ignore_ascii_case("jar")))
-                .map(|path| PackJar {
-                    item: format!(
+                .map(|path| {
+                    let item = format!(
                         "mods/{}",
                         path.file_name().unwrap_or_default().to_string_lossy()
-                    ),
-                    path,
+                    );
+                    PackJar::new(item, path)
                 })
                 .collect()
         })

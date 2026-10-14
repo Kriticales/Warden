@@ -148,18 +148,9 @@ fn jar_e_classes_ruins_nao_derrubam_a_analise() {
     std::fs::write(&good, &jar).expect("jar");
     std::fs::write(&bad, b"PK\x03\x04 quebrado").expect("jar");
     let jars = vec![
-        PackJar {
-            item: "mods/bad.pw.toml".into(),
-            path: bad,
-        },
-        PackJar {
-            item: "mods/good.pw.toml".into(),
-            path: good,
-        },
-        PackJar {
-            item: "mods/sumiu.pw.toml".into(),
-            path: dir.path().join("sumiu.jar"),
-        },
+        PackJar::new("mods/bad.pw.toml", bad),
+        PackJar::new("mods/good.pw.toml", good),
+        PackJar::new("mods/sumiu.pw.toml", dir.path().join("sumiu.jar")),
     ];
     let pack = scan_pack(&jars, Loader::Fabric, None, &Limits::default());
     assert_eq!(pack.items.len(), 3);
@@ -308,10 +299,7 @@ fn cache_por_hash_reaproveita_e_percebe_mudancas() {
         cache: &cache,
         key: "pack",
     });
-    let jars = vec![PackJar {
-        item: "mods/a.pw.toml".into(),
-        path: path.clone(),
-    }];
+    let jars = vec![PackJar::new("mods/a.pw.toml", path.clone())];
     let limits = Limits::default();
 
     let first = scan_pack(&jars, Loader::Fabric, slot, &limits);

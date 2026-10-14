@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::{Instant, SystemTime};
 
 use serde::{Deserialize, Serialize};
@@ -15,14 +15,9 @@ use crate::model::{ChangeKind, JarScan, ScanIssue};
 use crate::overlap::{CrossContext, ItemScan, Overlap, Risk, cross, kept_mods};
 use crate::scan::scan_jar_file;
 
-/// Um jar do pack.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PackJar {
-    /// Item do pack (caminho do metafile ou do arquivo, relativo ao pack).
-    pub item: String,
-    /// Onde o jar está.
-    pub path: PathBuf,
-}
+/// Um jar do pack: o mesmo do índice de pacotes da `warden-jarmeta` (o raio-x não usa o
+/// `sha256` dele; o hash do raio-x é [`jar_hash`], só do diretório central).
+pub use warden_jarmeta::index::PackJar;
 
 /// Números da leitura (registro e medição de desempenho).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]

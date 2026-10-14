@@ -161,10 +161,7 @@ pub(crate) fn pack_jars(items: &[InventoryItem], root: &Path, game_dir: &Path) -
         .filter(|item| item.kind == ItemKind::Mod && item.state == ItemState::Ok)
         .filter_map(|item| {
             let places = jar_locations(item, root, game_dir);
-            existing(&places).map(|(found, _, _)| PackJar {
-                item: item.path.clone(),
-                path: found.clone(),
-            })
+            existing(&places).map(|(found, _, _)| PackJar::new(item.path.clone(), found.clone()))
         })
         .collect()
 }

@@ -23,7 +23,7 @@
 //! use warden_mixin::overlap::CrossContext;
 //! use warden_mixin::pack::{PackJar, PackXray, scan_pack};
 //!
-//! let jars = vec![PackJar { item: "mods/sodium.pw.toml".into(), path: PathBuf::from("mods/sodium.jar") }];
+//! let jars = vec![PackJar::new("mods/sodium.pw.toml", PathBuf::from("mods/sodium.jar"))];
 //! let scan = scan_pack(&jars, Loader::Fabric, None, &Limits::default());
 //! let xray = PackXray::build(scan, &CrossContext::default());
 //! for overlap in &xray.overlaps {
