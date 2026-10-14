@@ -356,8 +356,18 @@ describe('Editor de scripts (C-07; T26)', function () {
     await typeSlowly("'minecraft:copper_");
     const list = $('.cm-tooltip-autocomplete');
     await list.waitForDisplayed({ timeout: 15_000 });
-    await expect(list).toHaveText(expect.stringContaining('minecraft:copper_ingot'));
-    expect(await list.getText()).not.toContain('minecraft:stone');
+    // A lista se refaz a cada tecla, sem esperar: a de um prefixo mais curto (`'minecraft:`, com
+    // `minecraft:stone`) ainda pode estar na tela logo depois da última tecla.
+    await browser.waitUntil(
+      async () => {
+        const text = await list.getText();
+        return text.includes('minecraft:copper_ingot') && !text.includes('minecraft:stone');
+      },
+      {
+        timeout: 15_000,
+        timeoutMsg: 'o autocompletar não ficou só com os IDs de minecraft:copper_',
+      },
+    );
     await screenshot('61-scripts-autocompletar');
     await browser.keys('Escape');
     await $('button=Desfazer as alterações').click();
