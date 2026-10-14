@@ -114,11 +114,12 @@ describe('Informações do pack (T11)', () => {
       expect(backend.callsOf('pack_update_meta')).toHaveLength(1);
     });
     await backend.emit('pack-changed', { packId: row.id, areas: ['meta'], external: false });
-    // O formulário refeito com o nome gravado não está mais "Salvando…".
+    // O formulário é refeito com o nome gravado e, como a gravação mora no diálogo (não no
+    // formulário), continua "Salvando…" até a resposta.
     await waitFor(() => {
       const remade = screen.getByRole('dialog', { name: 'Informações do pack' });
       expect(remade).not.toBe(dialog);
-      expect(within(remade).getByRole('button', { name: 'Salvar' })).toBeDefined();
+      expect(within(remade).getByRole('button', { name: 'Salvando…' })).toBeDefined();
     });
     reply.resolve(saved);
     await waitFor(() => {
