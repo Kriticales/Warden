@@ -50,6 +50,8 @@ base64 = "0.23.1"
 bytes = "1.12.1"
 cargo_metadata = "0.23.1"
 clap = { version = "4.6.7", features = ["derive"] }
+# Medições de desempenho (A-04): sem gráficos nem rayon, só a medida e o relatório no terminal.
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
 encoding_rs = "0.8.42"
 flate2 = "1.1.10"
 git2 = { version = "0.21.0", default-features = false, features = ["vendored-libgit2"] }

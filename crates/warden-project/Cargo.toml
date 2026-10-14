@@ -36,11 +36,17 @@ zip.workspace = true
 trash = "5"
 
 [dev-dependencies]
+criterion.workspace = true
 wiremock.workspace = true
 warden-core = { workspace = true, features = ["fault-injection"] }
 tempfile.workspace = true
 git2.workspace = true
 warden-diagnostics.workspace = true
+
+# Desempenho com o pack grande (A-04): `cargo bench -p warden-project`.
+[[bench]]
+name = "pack_grande"
+harness = false
 
 [lints]
 workspace = true

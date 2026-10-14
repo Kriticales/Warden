@@ -18,10 +18,17 @@ warden-core.workspace = true
 warden-jarmeta.workspace = true
 
 [dev-dependencies]
+criterion.workspace = true
 proptest.workspace = true
+sha2.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 zip.workspace = true
+
+# Desempenho com o pack grande (A-04): `cargo bench -p warden-configs`.
+[[bench]]
+name = "pack_grande"
+harness = false
 
 [lints]
 workspace = true

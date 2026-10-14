@@ -29,10 +29,16 @@ specta = { workspace = true, features = ["derive"] }
 specta-typescript.workspace = true
 
 [dev-dependencies]
+criterion.workspace = true
 git2.workspace = true
 sha1.workspace = true
 wiremock.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+# Desempenho com o pack grande (A-04): `cargo bench -p warden-export`.
+[[bench]]
+name = "pack_grande"
+harness = false
 
 [lints]
 workspace = true
