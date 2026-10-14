@@ -359,4 +359,94 @@ mod tests {
             "EULA_NOT_ACCEPTED"
         );
     }
+
+    #[test]
+    fn cada_variante_tem_codigo_e_parametros() {
+        type Case = (
+            Error,
+            ServerErrorCode,
+            &'static [(&'static str, &'static str)],
+        );
+        let cases: Vec<Case> = vec![
+            (
+                Error::LoaderUnsupported {
+                    loader: "Quilt".into(),
+                },
+                ServerErrorCode::LoaderUnsupported,
+                &[("loader", "Quilt")],
+            ),
+            (
+                Error::LoaderVersionNotFound {
+                    loader: "Forge".into(),
+                    version: "1.0".into(),
+                    minecraft: "1.20.1".into(),
+                },
+                ServerErrorCode::LoaderVersionNotFound,
+                &[
+                    ("loader", "Forge"),
+                    ("version", "1.0"),
+                    ("minecraft", "1.20.1"),
+                ],
+            ),
+            (
+                Error::NoServerDownload {
+                    minecraft: "1.2".into(),
+                },
+                ServerErrorCode::NoServerDownload,
+                &[("minecraft", "1.2")],
+            ),
+            (
+                Error::InstallerOutputMissing {
+                    loader: "NeoForge".into(),
+                    output: "sem certificado".into(),
+                },
+                ServerErrorCode::InstallerOutputMissing,
+                &[("loader", "NeoForge")],
+            ),
+            (Error::NoFreePort, ServerErrorCode::NoFreePort, &[]),
+            (
+                Error::ExitedBeforeReady { exit_code: None },
+                ServerErrorCode::ExitedBeforeReady,
+                &[("code", "?")],
+            ),
+            (
+                Error::ReadyTimeout { seconds: 900 },
+                ServerErrorCode::ReadyTimeout,
+                &[("seconds", "900")],
+            ),
+            (Error::NotRunning, ServerErrorCode::NotRunning, &[]),
+            (Error::InvalidCommand, ServerErrorCode::InvalidCommand, &[]),
+            (Error::Internal("x".into()), ServerErrorCode::Internal, &[]),
+            (
+                Error::Process(warden_launcher::Error::LaunchFailed {
+                    program: PathBuf::from("java"),
+                    source: std::io::Error::other("x"),
+                }),
+                ServerErrorCode::ProcessFailed,
+                &[],
+            ),
+        ];
+        for (error, code, params) in cases {
+            assert_eq!(error.code(), DomainCode::Domain(code), "{error}");
+            let got = error.params();
+            for (key, value) in params {
+                assert_eq!(got.get(*key).map(String::as_str), Some(*value), "{error}");
+            }
+            assert!(error.detail().is_some());
+        }
+        let missing = Error::InstallerOutputMissing {
+            loader: "Forge".into(),
+            output: "Failed to validate certificates".into(),
+        };
+        assert!(missing.detail().unwrap().contains("certificates"));
+        let disk = Error::io("ler", "a.txt", std::io::Error::other("x"));
+        assert_eq!(disk.code(), DomainCode::Core(CoreErrorCode::Io));
+        assert!(!disk.params().is_empty());
+        let cancelled = Error::http(ServerSource::Mojang)(warden_http::Error::Cancelled);
+        assert!(matches!(cancelled, Error::Cancelled));
+        assert_eq!(ServerSource::NeoForge.label(), "NeoForge");
+        assert_eq!(ServerSource::Mojang.label(), "Mojang");
+        assert!(!Error::EulaNotAccepted.retryable());
+        assert!(Error::NoFreePort.retryable());
+    }
 }
