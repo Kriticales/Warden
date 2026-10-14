@@ -14,8 +14,8 @@ use crate::error::ErrorCode;
 use crate::state::AppState;
 use crate::test_session::{TestMode, TestRequest, run_test};
 
-/// Um servidor por vez nestes testes: no app há um só (ServerSessions), e a porta livre é
-/// procurada a partir da 25565; dois testes ao mesmo tempo disputariam a mesma porta.
+/// Um servidor por vez nestes testes (no app há um só, `ServerSessions`), quando rodam no mesmo
+/// processo.
 static ONE_SERVER: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 /// Pasta do `WardenFakeServer.class`.
@@ -29,6 +29,14 @@ fn server_state(root: &Path) -> Option<Arc<AppState>> {
     let mut state = Arc::try_unwrap(state).ok()?;
     let tests = Arc::try_unwrap(state.tests).ok()?;
     state.tests = Arc::new(tests.with_fake_server(server_class_dir()));
+    // Cada teste (o nextest roda um processo por teste) parte de uma porta dada pelo sistema:
+    // dois servidores simulados não disputam a 25565.
+    let start = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
+        .ok()?
+        .local_addr()
+        .ok()?
+        .port();
+    state.servers.set_first_port(start);
     Some(Arc::new(state))
 }
 

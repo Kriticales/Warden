@@ -34,6 +34,7 @@
 //! [`FAKE_ARGS_FILE`] na pasta do pack; todo o resto é o de verdade.
 
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -210,7 +211,8 @@ pub(crate) async fn install(
 pub(crate) fn configure(state: &AppState, server_dir: &Path, motd: &str) -> Result<u16, AppError> {
     warden_server::write_eula(server_dir, eula_accepted_at(state).as_deref())
         .map_err(|error| AppError::from_domain(&error))?;
-    let port = warden_server::free_port().map_err(|error| AppError::from_domain(&error))?;
+    let port = warden_server::properties::free_port_from(state.servers.first_port())
+        .map_err(|error| AppError::from_domain(&error))?;
     warden_server::write_properties(
         server_dir,
         &ControlledProperties {
@@ -229,10 +231,22 @@ struct Active {
 }
 
 /// O servidor local do Warden (um por vez) e quem recebe o `server-state`.
-#[derive(Default)]
 pub(crate) struct ServerSessions {
     active: Mutex<Option<Active>>,
     notify: OnceLock<ServerNotify>,
+    /// Onde começa a busca da porta livre (25565; nos testes, uma porta dada pelo sistema, para
+    /// testes em processos paralelos não disputarem a mesma).
+    first_port: AtomicU16,
+}
+
+impl Default for ServerSessions {
+    fn default() -> Self {
+        Self {
+            active: Mutex::default(),
+            notify: OnceLock::new(),
+            first_port: AtomicU16::new(warden_server::properties::FIRST_PORT),
+        }
+    }
 }
 
 impl std::fmt::Debug for ServerSessions {
@@ -244,6 +258,17 @@ impl std::fmt::Debug for ServerSessions {
 }
 
 impl ServerSessions {
+    /// Onde começa a busca da porta livre.
+    pub(crate) fn first_port(&self) -> u16 {
+        self.first_port.load(Ordering::Relaxed)
+    }
+
+    /// Começa a busca da porta em outro lugar (testes).
+    #[cfg(test)]
+    pub(crate) fn set_first_port(&self, port: u16) {
+        self.first_port.store(port, Ordering::Relaxed);
+    }
+
     /// Liga o evento `server-state` (uma vez, na abertura do app).
     pub(crate) fn connect(&self, notify: ServerNotify) {
         let _ = self.notify.set(notify);
