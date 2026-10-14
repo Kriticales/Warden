@@ -10,7 +10,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { extname, join, normalize, sep } from 'node:path';
 
 import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
-import { githubState, serveGithub } from './github';
+import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 import { servePlayer } from './player';
 
@@ -256,6 +256,11 @@ export async function startMockServer(): Promise<MockServer> {
       response
         .writeHead(200, { 'content-type': 'application/json' })
         .end(JSON.stringify(githubState()));
+      return;
+    }
+    if (path === '/__github/reset' && request.method === 'POST') {
+      resetGithub();
+      response.writeHead(204).end();
       return;
     }
     if (path === '/__reset') {

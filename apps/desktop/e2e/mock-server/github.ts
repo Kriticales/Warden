@@ -48,6 +48,15 @@ function reposRoot(): string {
   return root;
 }
 
+/**
+ * Esquece os repositórios e as Releases (`POST /__github/reset`): um spec que publica limpa o
+ * que criou, e o seguinte começa com o GitHub vazio.
+ */
+export function resetGithub(): void {
+  repos.clear();
+  releases.length = 0;
+}
+
 export function githubState(): GithubState {
   return {
     repos: Object.fromEntries([...repos].map(([name, repo]) => [name, { ...repo }])),

@@ -42,6 +42,14 @@ const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 const TMP = join(DATA_ROOT, 'data', 'cache', 'tmp');
 const REPO = `${GITHUB_LOGIN}/jogador-de-teste`;
+const INSTANCES = join(DATA_ROOT, 'data', 'instances');
+
+/** As instâncias de teste que já existiam antes deste spec (de outros specs). */
+let instancesBefore = new Set<string>();
+
+function instanceIds(): string[] {
+  return existsSync(INSTANCES) ? readdirSync(INSTANCES) : [];
+}
 
 function sha256(data: string | Buffer): string {
   return createHash('sha256').update(data).digest('hex');
@@ -176,6 +184,7 @@ describe('Testar como o jogador recebe (L-07; T13)', function () {
       console.warn('sem Java ou sem os jars do instalador (cargo xtask installer): E2E pulado');
       this.skip();
     }
+    instancesBefore = new Set(instanceIds());
     rmSync(PACK, { recursive: true, force: true });
     mkdirSync(join(DATA_ROOT, 'fora'), { recursive: true });
     writePack();
@@ -185,10 +194,18 @@ describe('Testar como o jogador recebe (L-07; T13)', function () {
     await browser.setWindowSize(1366, 860);
   });
 
-  after(() => {
+  after(async () => {
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
     rmSync(join(DATA_ROOT, 'cofre-de-teste', 'github-token'), { force: true });
+    // O que este spec criou e outros specs não esperam: a pasta de sessões do pack e o
+    // repositório e a Release no GitHub simulado.
+    for (const id of instanceIds()) {
+      if (!instancesBefore.has(id)) {
+        rmSync(join(INSTANCES, id), { recursive: true, force: true });
+      }
+    }
+    await fetch(`${MOCK_URL}/__github/reset`, { method: 'POST' });
   });
 
   it('pack não publicado: avisa e instala do zero o pack exportado agora, numa instância limpa; axe', async () => {
