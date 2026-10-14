@@ -105,7 +105,7 @@ function row(key: string, overrides: Partial<GroupRow['group']>, items: ItemView
 }
 
 /** O backend agrupa; aqui ele devolve os grupos abertos pedidos. */
-function groupedView(request: GroupedRequest, extra = 0): GroupedView {
+function groupedView(request: GroupedRequest, extra = 0, hidden = 0): GroupedView {
   const open = new Set(request.open.map((group) => group.key));
   const supplementaries = row(
     'item:mods/supplementaries.pw.toml',
@@ -138,6 +138,7 @@ function groupedView(request: GroupedRequest, extra = 0): GroupedView {
       problems: [TRACE, item({ count: 1284 + extra })],
       problemsTotal: 2,
       names: { 'item:mods/epic-fight.pw.toml': 'Epic Fight' },
+      hidden: hidden > 0 ? 1 : 0,
     };
   }
   return {
@@ -146,6 +147,7 @@ function groupedView(request: GroupedRequest, extra = 0): GroupedView {
     problems: [],
     problemsTotal: 0,
     names: {},
+    hidden,
   };
 }
 
@@ -173,14 +175,16 @@ interface Setup {
   location: () => { pathname: string; search: unknown };
   setInventory: (inventory: Inventory) => void;
   setExtra: (extra: number) => void;
+  setHidden: (hidden: number) => void;
 }
 
 function renderGrouped(props: Partial<ConsoleProps> = {}, handlers = {}): Setup {
   let inventory = makeInventory([SUPPLEMENTARIES]);
   let extra = 0;
+  let hidden = 0;
   const backend = mockBackend({
     inventory_list: () => inventory,
-    console_grouped: (args) => groupedView(args.request as GroupedRequest, extra),
+    console_grouped: (args) => groupedView(args.request as GroupedRequest, extra, hidden),
     console_grouped_lines: (args) => {
       const target = args.target as { type: string };
       if (target.type === 'group') {
@@ -233,6 +237,9 @@ function renderGrouped(props: Partial<ConsoleProps> = {}, handlers = {}): Setup 
     },
     setExtra: (next) => {
       extra = next;
+    },
+    setHidden: (next) => {
+      hidden = next;
     },
   };
 }
@@ -339,7 +346,19 @@ describe('Console agrupado', () => {
   it('copiar um grupo copia as linhas originais', async () => {
     const writeText = vi.fn(() => Promise.resolve());
     Object.assign(navigator, { clipboard: { writeText } });
-    renderGrouped();
+    // Um grupo com 2 entradas, todas guardadas.
+    renderGrouped(
+      {},
+      {
+        console_grouped: (args: { request: unknown }) => {
+          const view = groupedView(args.request as GroupedRequest);
+          for (const group of view.groups) {
+            if (group.group.key === 'item:mods/supplementaries.pw.toml') group.group.entries = 2;
+          }
+          return view;
+        },
+      },
+    );
     fireEvent.change(await showSelect(), { target: { value: 'grouped' } });
     const region = await groupedRegion();
     fireEvent.click(
@@ -352,6 +371,53 @@ describe('Console agrupado', () => {
       );
     });
     expect(await screen.findByText('2 linhas copiadas.')).toBeDefined();
+  });
+
+  it('copiar um grupo depois do teto de memória diz que o resto está no log completo', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.assign(navigator, { clipboard: { writeText } });
+    renderGrouped();
+    fireEvent.change(await showSelect(), { target: { value: 'grouped' } });
+    const region = await groupedRegion();
+    // O grupo tem 1.284 entradas; o backend devolve só as 2 guardadas.
+    fireEvent.click(
+      await within(region).findByRole('button', { name: 'Copiar as linhas de Supplementaries' }),
+    );
+    expect(await screen.findByText('2 de 1.284 linhas copiadas.')).toBeDefined();
+    expect(
+      screen.getByText('As outras repetições ficam só no log completo: use Salvar em arquivo….'),
+    ).toBeDefined();
+    expect(writeText).toHaveBeenCalledTimes(1);
+  });
+
+  it('avisa as linhas que não couberam no teto de memória, nos dois modos', async () => {
+    const setup = renderGrouped();
+    setup.setHidden(1520);
+    fireEvent.change(await showSelect(), { target: { value: 'grouped' } });
+    const region = await groupedRegion();
+    expect(
+      await within(region).findByText(
+        '1.520 linhas diferentes não couberam no console agrupado. O log completo está em Salvar em arquivo….',
+      ),
+    ).toBeDefined();
+    fireEvent.change(await showSelect(), { target: { value: 'problems' } });
+    const problems = await screen.findByRole('region', {
+      name: 'Erros, avisos e stack traces do console',
+    });
+    expect(
+      await within(problems).findByText(
+        '1 linha diferente não coube no console agrupado. O log completo está em Salvar em arquivo….',
+      ),
+    ).toBeDefined();
+    expect(await axeComponent(document.body)).toHaveNoViolations();
+  });
+
+  it('sem nada fora do teto, nenhum aviso', async () => {
+    renderGrouped();
+    fireEvent.change(await showSelect(), { target: { value: 'grouped' } });
+    const region = await groupedRegion();
+    await within(region).findByText('Jogo e loader');
+    expect(within(region).queryByText(/não coube|não couberam/)).toBeNull();
   });
 
   it('só problemas: a lista vem do backend com o nome do mod de cada item', async () => {

@@ -7,7 +7,9 @@
  * viram um item "×N" com a primeira e a última hora, e o stack trace é um item recolhido com a
  * primeira linha de mod em destaque. "Só problemas" mostra os erros, avisos e stack traces que
  * não são ruído conhecido. A lista é virtualizada e cada grupo traz no máximo [`PAGE`] itens
- * por vez ("Mostrar mais"); com o jogo aberto, tudo é relido a cada segundo. O nome e o link de
+ * por vez ("Mostrar mais"); com o jogo aberto, tudo é relido a cada segundo. A memória do
+ * agrupador tem teto: as linhas diferentes que não couberam aparecem como um aviso no fim da
+ * lista, e "Copiar" de um grupo diz quando parte das repetições ficou só no log completo. O nome e o link de
  * cada mod vêm do inventário do pack, que se atualiza quando o pack muda.
  */
 import { useNavigate } from '@tanstack/react-router';
@@ -53,7 +55,8 @@ export interface GroupedConsoleProps {
 type Row =
   | { kind: 'group'; row: GroupRow; open: boolean }
   | { kind: 'item'; item: ItemView; group: string | null }
-  | { kind: 'more'; key: string | null; remaining: number };
+  | { kind: 'more'; key: string | null; remaining: number }
+  | { kind: 'hidden'; count: number };
 
 export function GroupedConsole({
   packId,
@@ -106,6 +109,7 @@ export function GroupedConsole({
       const out: Row[] = data.problems.map((item) => ({ kind: 'item', item, group: item.group }));
       const remaining = data.problemsTotal - data.problems.length;
       if (remaining > 0) out.push({ kind: 'more', key: null, remaining });
+      if (data.hidden > 0) out.push({ kind: 'hidden', count: data.hidden });
       return out;
     }
     const out: Row[] = [];
@@ -117,6 +121,7 @@ export function GroupedConsole({
       const remaining = row.group.items - row.items.length;
       if (remaining > 0) out.push({ kind: 'more', key: row.group.key, remaining });
     }
+    if (data.hidden > 0) out.push({ kind: 'hidden', count: data.hidden });
     return out;
   }, [data, mode, open]);
 
@@ -201,6 +206,14 @@ export function GroupedConsole({
                 </span>
               </div>
             );
+          case 'hidden':
+            return (
+              <div className="cline cline--more">
+                <span />
+                <span />
+                <span>{t('foraDoTeto', { count: row.count, n: formatInteger(row.count) })}</span>
+              </div>
+            );
         }
       }}
       rowKey={(row) => {
@@ -211,6 +224,8 @@ export function GroupedConsole({
             return `i:${String(row.item.id)}`;
           case 'more':
             return `m:${row.key ?? ''}`;
+          case 'hidden':
+            return `h:${String(row.count)}`;
         }
       }}
     />
@@ -323,10 +338,22 @@ function GroupHead({
     try {
       const lines = await groupLines(packId, sessionId, group.key);
       await navigator.clipboard.writeText(lines.map(consoleLineAsText).join('\n'));
-      showToast({
-        kind: 'ok',
-        title: t('copiado', { count: lines.length, n: formatInteger(lines.length) }),
-      });
+      // Depois do teto de memória, parte das repetições fica só no log completo.
+      showToast(
+        lines.length < group.entries
+          ? {
+              kind: 'ok',
+              title: t('copiadoParcial', {
+                n: formatInteger(lines.length),
+                total: formatInteger(group.entries),
+              }),
+              text: t('copiadoParcialTexto'),
+            }
+          : {
+              kind: 'ok',
+              title: t('copiado', { count: lines.length, n: formatInteger(lines.length) }),
+            },
+      );
     } catch (cause) {
       log.warn('falha ao copiar as linhas do grupo', cause);
       showToast({

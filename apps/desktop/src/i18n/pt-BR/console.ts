@@ -42,6 +42,8 @@ export const console = {
   copiarDe: 'Copiar as linhas de {{nome}}',
   copiado_one: '{{n}} linha copiada.',
   copiado_other: '{{n}} linhas copiadas.',
+  copiadoParcial: '{{n}} de {{total}} linhas copiadas.',
+  copiadoParcialTexto: 'As outras repetições ficam só no log completo: use Salvar em arquivo….',
   copiaFalhou: 'Não foi possível copiar as linhas.',
   repeticoes: '×{{vezes}}',
   repeticoesRotulo: 'Repetida {{vezes}} vezes',
@@ -54,6 +56,10 @@ export const console = {
   maisLinhas_other: 'mais {{n}} linhas',
   primeiraLinhaDeMod: 'Primeira linha de mod:',
   lendoStack: 'Lendo as linhas…',
+  foraDoTeto_one:
+    '{{n}} linha diferente não coube no console agrupado. O log completo está em Salvar em arquivo….',
+  foraDoTeto_other:
+    '{{n}} linhas diferentes não couberam no console agrupado. O log completo está em Salvar em arquivo….',
   mostrarMais_one: 'Mostrar mais ({{n}} restante)',
   mostrarMais_other: 'Mostrar mais ({{n}} restantes)',
 } as const;

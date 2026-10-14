@@ -105,6 +105,9 @@ pub(crate) struct GroupedView {
     pub(crate) problems_total: u32,
     /// Nome do item de cada grupo que aparece em "Só problemas" (chave → nome).
     pub(crate) names: HashMap<String, String>,
+    /// Entradas que não couberam como item no teto de memória do agrupador (contam nos grupos,
+    /// mas não aparecem na lista); em "Só problemas", só as que apareceriam lá.
+    pub(crate) hidden: u32,
 }
 
 /// De onde copiar as linhas originais: um item ou um grupo.
@@ -211,6 +214,7 @@ impl Grouped {
             problems: Vec::new(),
             problems_total: 0,
             names: HashMap::new(),
+            hidden: 0,
         };
         match request.mode {
             GroupedMode::ByMod => {
@@ -235,6 +239,7 @@ impl Grouped {
                         }
                     })
                     .collect();
+                view.hidden = self.grouper.hidden();
             }
             GroupedMode::Problems => {
                 let limit = request.limit.min(MAX_LIMIT) as usize;
@@ -248,6 +253,7 @@ impl Grouped {
                 }
                 view.problems = items;
                 view.problems_total = total;
+                view.hidden = self.grouper.hidden_problems();
             }
         }
         view
@@ -527,6 +533,38 @@ mod tests {
         assert_eq!(line.time.as_deref(), Some("12:00:01"));
         assert_eq!(line.level, Some(ConsoleLevel::Error));
         assert_eq!(line.text, "Falhou\njava.lang.RuntimeException: x\n\tat a.B.c(B.java:1)");
+    }
+
+    /// Formas novas além do teto de memória do agrupador: a tela recebe quantas ficaram de fora
+    /// (no agrupado por mod, todas; em "Só problemas", só os problemas).
+    #[test]
+    fn avisa_o_que_ficou_fora_do_teto() {
+        use std::fmt::Write as _;
+
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("output.log");
+        let mut text = String::new();
+        for n in 0..40_010_u32 {
+            let word: String = n
+                .to_string()
+                .bytes()
+                .map(|digit| char::from(b'a' + (digit - b'0')))
+                .collect();
+            writeln!(text, "[12:00:01] [main/INFO] [x/]: Modelo {word}").unwrap();
+        }
+        std::fs::write(&path, text).unwrap();
+        let mut grouped = session(path);
+        grouped.catch_up().unwrap();
+        let view = grouped.view(&by_mod(&[]));
+        assert_eq!(view.hidden, 10);
+        assert_eq!(view.groups[0].group.entries, 40_010);
+        let view = grouped.view(&GroupedRequest {
+            mode: GroupedMode::Problems,
+            open: Vec::new(),
+            limit: 10,
+            query: String::new(),
+        });
+        assert_eq!(view.hidden, 0);
     }
 
     /// Esqueleto de um jar real da D-05, remontado (descritores, uma classe por pacote).

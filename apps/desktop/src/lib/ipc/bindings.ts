@@ -2950,6 +2950,11 @@ export type GroupedView = {
 	problemsTotal: number,
 	/**  Nome do item de cada grupo que aparece em "Só problemas" (chave → nome). */
 	names: { [key in string]: string },
+	/**
+	 *  Entradas que não couberam como item no teto de memória do agrupador (contam nos grupos,
+	 *  mas não aparecem na lista); em "Só problemas", só as que apareceriam lá.
+	 */
+	hidden: number,
 };
 
 /**  O arquivo achado pelo hash numa fonte ("Este arquivo é o Sodium 0.6.0 do Modrinth."). */
