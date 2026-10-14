@@ -3,7 +3,7 @@
 //! Serve para ler **um** arquivo de dentro de um zip grande (o `modrinth.index.json` de um
 //! `.mrpack`, o `manifest.json` de um modpack da CurseForge) sem baixar o zip inteiro: o crate
 //! `zip` lê o diretório central no fim do arquivo e depois só a entrada pedida, e cada leitura
-//! vira, no máximo, um pedido `Range` de [`MIN_FETCH`] bytes ou mais.
+//! que falta no cache vira, no máximo, um pedido `Range` de [`MIN_FETCH`] bytes ou mais.
 //!
 //! 1. O endereço final é resolvido **antes**, sem `Range` ([`HttpClient::resolve_redirects`]):
 //!    o `edge.forgecdn.net` responde 404 a qualquer pedido com `Range`, e só o
@@ -14,6 +14,19 @@
 //!    é baixado inteiro **para a memória**, até [`MAX_WHOLE_DOWNLOAD`] (200 MB), e
 //!    [`RemoteFile::whole_download`] avisa quem chamou; acima disso, recusa com
 //!    [`Error::ResponseTooLarge`] sem ler o corpo.
+//! 4. Cada pedido cabe no buraco entre as partes já baixadas e tem pelo menos [`MIN_FETCH`]: se
+//!    a leitura encosta no começo de uma parte já baixada (o `zip` procura o fim do diretório
+//!    central de trás para frente), o bloco é pedido **para trás**, terminando nessa parte. Ao
+//!    estender uma parte vizinha, o bloco cresce com ela (até [`MAX_FETCH`]), e partes vizinhas
+//!    viram uma só. Assim, ler o arquivo inteiro de trás para frente custa poucos pedidos.
+//! 5. Teto por arquivo aberto: [`MAX_REQUESTS`] pedidos e [`MAX_READ_BYTES`] recebidos (fora o
+//!    download inteiro, que tem o seu limite). Passou disso, a leitura para com
+//!    [`Error::InvalidResponse`]: um arquivo que não é zip, ou um servidor que mente o tamanho,
+//!    não vira milhares de pedidos.
+//! 6. Sem tempo total: o que esgota é o tempo **sem receber dados** do cliente
+//!    ([`crate::HttpConfig::read_timeout`], 30 s), em cada pedido e no download inteiro. Um
+//!    download lento mas contínuo termina; um servidor parado expira. O `CancellationToken`
+//!    interrompe qualquer espera.
 //!
 //! Nada vai para o disco: as partes ficam num cache em memória do próprio [`RemoteFile`] (os
 //! termos da CurseForge proíbem guardar o que vem dela, ARCHITECTURE §16).
@@ -25,7 +38,6 @@
 use std::io::{self, Read, Seek, SeekFrom};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
-use std::time::Duration;
 
 use reqwest::StatusCode;
 use reqwest::header::{CONTENT_RANGE, HeaderMap, HeaderValue, RANGE};
@@ -35,8 +47,9 @@ use warden_core::CancellationToken;
 use crate::client::{HttpClient, Request, Response, host_of};
 use crate::error::{Error, Result};
 
-/// Quanto o primeiro pedido traz do fim do arquivo (o fim do diretório central cabe com folga).
-pub const TAIL_FETCH: u64 = 64 * 1024;
+/// Quanto o primeiro pedido traz do fim do arquivo: 72 KiB, mais que os 65.557 bytes onde o fim
+/// do diretório central de um zip pode estar (22 bytes do registro e até 65.535 de comentário).
+pub const TAIL_FETCH: u64 = 72 * 1024;
 
 /// Menor parte pedida numa leitura que falta no cache: o crate `zip` lê de poucos em poucos
 /// bytes, e pedir em blocos mantém poucas requisições.
@@ -45,8 +58,16 @@ pub const MIN_FETCH: u64 = 64 * 1024;
 /// Maior arquivo baixado inteiro quando o servidor não aceita `Range` (SPEC CA-T08-15).
 pub const MAX_WHOLE_DOWNLOAD: u64 = 200 * 1024 * 1024;
 
-/// Tempo de um pedido parcial (as partes são pequenas; o download inteiro não tem limite total).
-const PART_TIMEOUT: Duration = Duration::from_secs(60);
+/// Maior bloco pedido ao estender uma parte vizinha (o bloco dobra a cada pedido até aqui).
+pub const MAX_FETCH: u64 = 4 * 1024 * 1024;
+
+/// Teto de pedidos por arquivo aberto. A leitura de um modpack de verdade faz poucos: o fim do
+/// arquivo, o diretório central e a entrada (que dobra de tamanho a cada pedido).
+pub const MAX_REQUESTS: u64 = 32;
+
+/// Teto de bytes recebidos em pedidos parciais por arquivo aberto (o download inteiro, sem
+/// `Range`, tem o seu limite em [`MAX_WHOLE_DOWNLOAD`]).
+pub const MAX_READ_BYTES: u64 = 24 * 1024 * 1024;
 
 /// Limites da leitura por partes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -57,6 +78,12 @@ pub struct RangeOptions {
     pub min_fetch: u64,
     /// Maior arquivo aceito no download inteiro (servidor sem `Range`).
     pub max_whole: u64,
+    /// Maior bloco pedido ao estender uma parte vizinha.
+    pub max_fetch: u64,
+    /// Teto de pedidos (o primeiro incluído).
+    pub max_requests: u64,
+    /// Teto de bytes recebidos em pedidos parciais.
+    pub max_bytes: u64,
 }
 
 impl Default for RangeOptions {
@@ -65,6 +92,9 @@ impl Default for RangeOptions {
             tail: TAIL_FETCH,
             min_fetch: MIN_FETCH,
             max_whole: MAX_WHOLE_DOWNLOAD,
+            max_fetch: MAX_FETCH,
+            max_requests: MAX_REQUESTS,
+            max_bytes: MAX_READ_BYTES,
         }
     }
 }
@@ -82,9 +112,12 @@ struct Inner {
     len: u64,
     whole: bool,
     min_fetch: u64,
+    max_fetch: u64,
+    max_requests: u64,
+    max_bytes: u64,
     cancel: Option<CancellationToken>,
-    /// Partes já recebidas (início, bytes), sem sobreposição, em ordem.
-    parts: Mutex<Vec<(u64, Arc<[u8]>)>>,
+    /// Partes já recebidas (início, bytes), sem sobreposição nem vizinhas, em ordem.
+    parts: Mutex<Vec<(u64, Vec<u8>)>>,
     requests: AtomicU64,
     received: AtomicU64,
 }
@@ -166,8 +199,11 @@ impl RemoteFile {
                 len,
                 whole,
                 min_fetch: options.min_fetch.max(1),
+                max_fetch: options.max_fetch.max(options.min_fetch).max(1),
+                max_requests: options.max_requests.max(1),
+                max_bytes: options.max_bytes,
                 cancel: cancel.cloned(),
-                parts: Mutex::new(vec![(start, Arc::from(bytes))]),
+                parts: Mutex::new(vec![(start, bytes)]),
                 requests,
                 received,
             }),
@@ -212,7 +248,8 @@ impl RemoteFile {
     }
 
     /// Lê a partir de `offset` até `max` bytes; pode devolver menos (o fim de uma parte do
-    /// cache) e devolve vazio só no fim do arquivo. O que falta no cache é pedido com `Range`.
+    /// cache) e devolve vazio só no fim do arquivo. O que falta no cache é pedido com `Range`
+    /// (veja o passo 4 do módulo); passou do teto de pedidos ou de bytes, [`Error::InvalidResponse`].
     pub async fn read_at(&self, offset: u64, max: usize) -> Result<Vec<u8>> {
         if offset >= self.inner.len || max == 0 {
             return Ok(Vec::new());
@@ -220,10 +257,9 @@ impl RemoteFile {
         if let Some(bytes) = self.cached(offset, max) {
             return Ok(bytes);
         }
-        let next_part = self.next_part_after(offset);
-        let wanted = (max as u64).max(self.inner.min_fetch);
-        let end = (offset + wanted).min(self.inner.len).min(next_part);
-        self.fetch(offset, end).await?;
+        let (start, end) = self.plan(offset, max as u64);
+        self.within_limits(end - start)?;
+        self.fetch(start, end).await?;
         Ok(self.cached(offset, max).unwrap_or_default())
     }
 
@@ -256,19 +292,66 @@ impl RemoteFile {
         })
     }
 
-    /// Começo da primeira parte do cache depois de `offset` (o fim do arquivo, se nenhuma).
-    fn next_part_after(&self, offset: u64) -> u64 {
-        let parts = self
-            .inner
-            .parts
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner);
-        parts
+    /// O bloco `[início, fim)` a pedir para ler `max` bytes em `offset`, que não está no cache.
+    ///
+    /// O bloco fica no buraco entre a parte anterior e a seguinte e tem pelo menos
+    /// `max(max, min_fetch)` bytes (menos só se o buraco for menor). Se a leitura continua a parte
+    /// anterior, o bloco cresce até o tamanho dela; se encosta na seguinte, também, e é pedido
+    /// para trás, terminando nela. O crescimento para em `max_fetch`.
+    fn plan(&self, offset: u64, max: u64) -> (u64, u64) {
+        let inner = &self.inner;
+        let parts = inner.parts.lock().unwrap_or_else(PoisonError::into_inner);
+        let previous = parts
             .iter()
-            .map(|(start, _)| *start)
-            .filter(|start| *start > offset)
-            .min()
-            .unwrap_or(self.inner.len)
+            .rev()
+            .find(|(start, _)| *start <= offset)
+            .map(|(start, bytes)| (start + bytes.len() as u64, bytes.len() as u64));
+        let next = parts
+            .iter()
+            .find(|(start, _)| *start > offset)
+            .map(|(start, bytes)| (*start, bytes.len() as u64));
+        drop(parts);
+        let gap_start = previous.map_or(0, |(end, _)| end);
+        let gap_end = next.map_or(inner.len, |(start, _)| start);
+        let mut size = max.max(inner.min_fetch);
+        if let Some((end, len)) = previous
+            && end == offset
+        {
+            size = size.max(len.min(inner.max_fetch));
+        }
+        if let Some((start, len)) = next
+            && offset.saturating_add(max) >= start
+        {
+            size = size.max(len.min(inner.max_fetch));
+        }
+        let end = offset.saturating_add(size).min(gap_end);
+        let start = end.saturating_sub(size).max(gap_start).min(offset);
+        (start, end)
+    }
+
+    /// Recusa o próximo pedido se ele passar do teto de pedidos ou de bytes.
+    fn within_limits(&self, bytes: u64) -> Result<()> {
+        let inner = &self.inner;
+        let requests = inner.requests.load(Ordering::Relaxed);
+        let received = inner.received.load(Ordering::Relaxed);
+        if requests >= inner.max_requests || received.saturating_add(bytes) > inner.max_bytes {
+            tracing::warn!(
+                url = %inner.url,
+                pedidos = requests,
+                bytes = received,
+                "leitura por partes passou do limite"
+            );
+            return Err(invalid(
+                &inner.url,
+                &format!(
+                    "a leitura por partes passou do limite ({} pedidos ou {} MB) sem achar o que \
+                     procurava: o arquivo não parece um zip válido",
+                    inner.max_requests,
+                    inner.max_bytes / (1024 * 1024)
+                ),
+            ));
+        }
+        Ok(())
     }
 
     async fn fetch(&self, start: u64, end: u64) -> Result<()> {
@@ -302,10 +385,30 @@ impl RemoteFile {
             return Err(invalid(&inner.url, "parte vazia"));
         }
         let mut parts = inner.parts.lock().unwrap_or_else(PoisonError::into_inner);
-        parts.push((start, Arc::from(body)));
-        parts.sort_by_key(|(start, _)| *start);
+        parts.push((start, body));
+        merge_parts(&mut parts);
         Ok(())
     }
+}
+
+/// Ordena as partes e junta as que se encostam ou se sobrepõem.
+fn merge_parts(parts: &mut Vec<(u64, Vec<u8>)>) {
+    parts.sort_by_key(|(start, _)| *start);
+    let mut merged: Vec<(u64, Vec<u8>)> = Vec::with_capacity(parts.len());
+    for (start, bytes) in parts.drain(..) {
+        if let Some((last_start, last)) = merged.last_mut() {
+            let last_end = *last_start + last.len() as u64;
+            if start <= last_end {
+                let overlap = usize::try_from(last_end - start).unwrap_or(usize::MAX);
+                if overlap < bytes.len() {
+                    last.extend_from_slice(&bytes[overlap..]);
+                }
+                continue;
+            }
+        }
+        merged.push((start, bytes));
+    }
+    *parts = merged;
 }
 
 /// `Read + Seek` sobre um [`RemoteFile`]. Os erros de rede viram `io::Error`; o original fica
@@ -384,7 +487,9 @@ fn part_request(
     range: &str,
     cancel: Option<&CancellationToken>,
 ) -> Request {
-    let mut request = client.get(url.clone()).total_timeout(Some(PART_TIMEOUT));
+    // Sem tempo total: a resposta ao primeiro pedido pode ser o arquivo inteiro (servidor sem
+    // `Range`). O que esgota é o tempo sem dados do cliente (`HttpConfig::read_timeout`).
+    let mut request = client.get(url.clone()).total_timeout(None);
     if let Ok(value) = HeaderValue::from_str(range) {
         request = request.header(RANGE, value);
     }
@@ -432,6 +537,11 @@ fn invalid(url: &Url, reason: &str) -> Error {
 #[cfg(test)]
 mod tests {
     use std::sync::atomic::AtomicUsize;
+    use std::time::Duration;
+
+    use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
+    use tokio::net::TcpListener;
+    use tokio::sync::oneshot;
 
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, Request as MockRequest, Respond, ResponseTemplate};
@@ -586,7 +696,7 @@ mod tests {
         let sent = file.sent.load(Ordering::Relaxed) as u64;
         assert_eq!(remote.bytes_received(), sent);
         assert!(
-            sent <= 2 * MIN_FETCH,
+            sent <= TAIL_FETCH + MIN_FETCH,
             "{sent} bytes: não baixou o arquivo inteiro"
         );
     }
@@ -680,6 +790,354 @@ mod tests {
         let all = data(200_000);
         assert_eq!(read.0, all[5..15]);
         assert_eq!(read.1, all[199_996..]);
+    }
+
+    /// Byte `i` do "lixo": nunca forma `PK` (sem cara de zip), igual em qualquer pedido.
+    fn junk_byte(i: u64) -> u8 {
+        match u8::try_from(i % 251).unwrap_or(0) {
+            b'P' => b'Q',
+            byte => byte,
+        }
+    }
+
+    /// Um arquivo que não é zip, de qualquer tamanho declarado (até "1 GB"), servido com
+    /// `Range`. Os bytes são gerados a cada pedido: nada do tamanho declarado fica em memória.
+    #[derive(Clone)]
+    struct Junk {
+        len: u64,
+        requests: Arc<AtomicUsize>,
+        sent: Arc<AtomicU64>,
+    }
+
+    impl Junk {
+        fn new(len: u64) -> Self {
+            Self {
+                len,
+                requests: Arc::default(),
+                sent: Arc::default(),
+            }
+        }
+    }
+
+    impl Respond for Junk {
+        fn respond(&self, request: &MockRequest) -> ResponseTemplate {
+            if request.method.as_str() == "HEAD" {
+                return ResponseTemplate::new(200);
+            }
+            self.requests.fetch_add(1, Ordering::Relaxed);
+            let spec = request
+                .headers
+                .get("range")
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| value.strip_prefix("bytes="))
+                .and_then(|spec| spec.split_once('-'))
+                .map(|(start, end)| (start.to_owned(), end.to_owned()));
+            let Some((start, end)) = spec else {
+                return ResponseTemplate::new(500);
+            };
+            let (start, end) = if start.is_empty() {
+                let suffix: u64 = end.parse().unwrap();
+                (self.len.saturating_sub(suffix), self.len - 1)
+            } else {
+                let end: u64 = end.parse().unwrap();
+                (start.parse().unwrap(), end.min(self.len - 1))
+            };
+            let body: Vec<u8> = (start..=end).map(junk_byte).collect();
+            self.sent.fetch_add(body.len() as u64, Ordering::Relaxed);
+            ResponseTemplate::new(206)
+                .insert_header("content-range", format!("bytes {start}-{end}/{}", self.len))
+                .set_body_bytes(body)
+        }
+    }
+
+    async fn junk_file(len: u64) -> (MockServer, Junk, RemoteFile) {
+        let server = MockServer::start().await;
+        let junk = Junk::new(len);
+        Mock::given(path("/lixo.zip"))
+            .respond_with(junk.clone())
+            .mount(&server)
+            .await;
+        let url = Url::parse(&format!("{}/lixo.zip", server.uri())).unwrap();
+        let remote = RemoteFile::open(&client(), url, RangeOptions::default(), None)
+            .await
+            .expect("abre");
+        (server, junk, remote)
+    }
+
+    /// Lê o arquivo de trás para frente em janelas de 1 KiB, como o `zip` faz ao procurar o fim
+    /// do diretório central num arquivo que não é zip. Devolve o primeiro erro, se houver.
+    async fn scan_backwards(file: &RemoteFile) -> Result<()> {
+        let mut end = file.len();
+        while end > 0 {
+            let start = end.saturating_sub(1024);
+            let mut at = start;
+            while at < end {
+                let chunk = file.read_at(at, usize::try_from(end - at).unwrap()).await?;
+                assert!(!chunk.is_empty(), "fim antes da hora");
+                for (i, byte) in chunk.iter().enumerate() {
+                    assert_eq!(*byte, junk_byte(at + i as u64), "byte {}", at + i as u64);
+                }
+                at += chunk.len() as u64;
+            }
+            end = start;
+        }
+        Ok(())
+    }
+
+    /// Defeito da revisão: cada leitura de 1 KiB de trás para frente virava um pedido (300 KB de
+    /// lixo = 232 pedidos; 3 MB = 2.877). Agora o bloco é pedido para trás, cresce com a parte
+    /// vizinha e as partes se juntam: poucos pedidos, e cada byte chega uma vez só.
+    #[tokio::test]
+    async fn ler_de_tras_para_frente_faz_poucos_pedidos() {
+        for (len, limit) in [(300_000_u64, 4_usize), (3_000_000, 8)] {
+            let (_server, junk, remote) = junk_file(len).await;
+            scan_backwards(&remote).await.expect("lê tudo");
+            let requests = junk.requests.load(Ordering::Relaxed);
+            assert!(requests <= limit, "{len} bytes: {requests} pedidos");
+            assert_eq!(remote.requests(), requests as u64);
+            assert_eq!(
+                junk.sent.load(Ordering::Relaxed),
+                len,
+                "{len} bytes: cada byte chega uma vez só"
+            );
+        }
+    }
+
+    /// Defeito da revisão: um servidor que declara 1 GB de lixo virava mais de 31 mil pedidos em
+    /// 60 s, ainda rodando. Agora a leitura para no teto de pedidos e de bytes, rápido, com um
+    /// erro que diz o motivo.
+    #[tokio::test]
+    async fn arquivo_enorme_para_no_teto_de_pedidos_e_de_bytes() {
+        let started = std::time::Instant::now();
+        let (_server, junk, remote) = junk_file(1024 * 1024 * 1024).await;
+        let error = scan_backwards(&remote).await.expect_err("para no teto");
+        let Error::InvalidResponse { reason, .. } = &error else {
+            panic!("{error:?}");
+        };
+        assert!(reason.contains("passou do limite"), "{reason}");
+        let requests = junk.requests.load(Ordering::Relaxed) as u64;
+        assert!(requests <= MAX_REQUESTS, "{requests} pedidos");
+        assert!(requests <= 16, "{requests} pedidos");
+        assert!(junk.sent.load(Ordering::Relaxed) <= MAX_READ_BYTES);
+        assert!(
+            started.elapsed() < Duration::from_secs(20),
+            "{:?}",
+            started.elapsed()
+        );
+    }
+
+    /// O teto de pedidos vale também para leituras espalhadas (que não crescem).
+    #[tokio::test]
+    async fn leituras_espalhadas_param_no_teto_de_pedidos() {
+        let (_server, junk, remote) = junk_file(100 * 1024 * 1024).await;
+        let mut result = Ok(Vec::new());
+        for i in 0..1_000_u64 {
+            result = remote.read_at(i * 100_000, 10).await;
+            if result.is_err() {
+                break;
+            }
+        }
+        assert!(
+            matches!(result, Err(Error::InvalidResponse { .. })),
+            "{result:?}"
+        );
+        assert_eq!(junk.requests.load(Ordering::Relaxed) as u64, MAX_REQUESTS);
+    }
+
+    /// Ler uma entrada grande para a frente, em pedaços de 8 KiB: o bloco dobra a cada pedido
+    /// (a parte anterior cresce), em vez de um pedido a cada 64 KiB.
+    #[tokio::test]
+    async fn ler_para_a_frente_dobra_o_bloco() {
+        let (_server, junk, remote) = junk_file(10 * 1024 * 1024).await;
+        let from = 1024 * 1024;
+        let mut at = from;
+        while at < from + 8 * 1024 * 1024 {
+            let chunk = remote.read_at(at, 8 * 1024).await.expect("lê");
+            assert_eq!(chunk[0], junk_byte(at));
+            at += chunk.len() as u64;
+        }
+        // O fim (1) e 8 MiB em 64 KiB, 64 KiB, 128 KiB, … 4 MiB (8).
+        let requests = junk.requests.load(Ordering::Relaxed);
+        assert!(requests <= 9, "{requests} pedidos");
+    }
+
+    #[test]
+    fn junta_partes_vizinhas_e_sobrepostas() {
+        let mut parts = vec![
+            (10, vec![10, 11]),
+            (0, vec![0, 1, 2]),
+            (3, vec![3, 4]),
+            (4, vec![4, 5, 6]),
+            (20, vec![20]),
+            (11, vec![11]),
+        ];
+        merge_parts(&mut parts);
+        assert_eq!(
+            parts,
+            vec![
+                (0, vec![0, 1, 2, 3, 4, 5, 6]),
+                (10, vec![10, 11]),
+                (20, vec![20]),
+            ]
+        );
+    }
+
+    /// Servidor HTTP mínimo que responde devagar: `HEAD` na hora; `GET` com o corpo de
+    /// `body_len` bytes, `chunk` por vez a cada `gap`, ignorando `Range` (como um servidor que
+    /// não aceita leitura por partes). Com `stall_after`, para de mandar depois desses bytes e
+    /// espera o cliente fechar a conexão; `closed` avisa quando ele fecha.
+    struct Slow {
+        body_len: usize,
+        chunk: usize,
+        gap: Duration,
+        stall_after: Option<usize>,
+    }
+
+    async fn slow_server(plan: Slow) -> (Url, oneshot::Receiver<()>) {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let (closed_tx, closed_rx) = oneshot::channel();
+        tokio::spawn(async move {
+            let mut closed_tx = Some(closed_tx);
+            loop {
+                let Ok((mut socket, _)) = listener.accept().await else {
+                    return;
+                };
+                let mut buffer = [0_u8; 4096];
+                loop {
+                    let mut request = Vec::new();
+                    while !request.windows(4).any(|w| w == b"\r\n\r\n") {
+                        match socket.read(&mut buffer).await {
+                            Ok(0) | Err(_) => break,
+                            Ok(n) => request.extend_from_slice(&buffer[..n]),
+                        }
+                    }
+                    if request.is_empty() {
+                        break;
+                    }
+                    let head = format!(
+                        "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n",
+                        plan.body_len
+                    );
+                    if socket.write_all(head.as_bytes()).await.is_err() {
+                        break;
+                    }
+                    if request.starts_with(b"HEAD") {
+                        continue;
+                    }
+                    let mut sent = 0;
+                    while sent < plan.body_len {
+                        if plan.stall_after.is_some_and(|limit| sent >= limit) {
+                            // Parado: só espera o cliente fechar.
+                            while matches!(socket.read(&mut buffer).await, Ok(n) if n > 0) {}
+                            if let Some(tx) = closed_tx.take() {
+                                let _ = tx.send(());
+                            }
+                            return;
+                        }
+                        let n = plan.chunk.min(plan.body_len - sent);
+                        if socket.write_all(&vec![7_u8; n]).await.is_err() {
+                            return;
+                        }
+                        sent += n;
+                        tokio::time::sleep(plan.gap).await;
+                    }
+                }
+            }
+        });
+        let url = Url::parse(&format!("http://{address}/pack.zip")).unwrap();
+        (url, closed_rx)
+    }
+
+    fn client_idle(idle: Duration) -> HttpClient {
+        HttpClient::new(HttpConfig {
+            read_timeout: idle,
+            ..HttpConfig::default()
+        })
+        .expect("cliente")
+    }
+
+    /// Defeito da revisão: um tempo de 60 s valia para o download inteiro (servidor sem
+    /// `Range`, até 200 MB), e numa conexão lenta o modpack nunca abria. Agora só conta o tempo
+    /// **sem dados**: 33 KiB, 1 KiB a cada 2 s (64 s no total), terminam. Este teste leva um
+    /// minuto de propósito: passa do tempo total antigo.
+    #[tokio::test]
+    async fn download_inteiro_lento_mas_continuo_termina() {
+        let (url, _closed) = slow_server(Slow {
+            body_len: 33 * 1024,
+            chunk: 1024,
+            gap: Duration::from_secs(2),
+            stall_after: None,
+        })
+        .await;
+        let started = std::time::Instant::now();
+        let remote = RemoteFile::open(&client(), url, RangeOptions::default(), None)
+            .await
+            .expect("termina");
+        assert!(
+            started.elapsed() > Duration::from_secs(62),
+            "{:?}",
+            started.elapsed()
+        );
+        assert!(remote.whole_download());
+        assert_eq!(remote.len(), 33 * 1024);
+    }
+
+    /// Servidor que para de mandar no meio do corpo: expira pelo tempo sem dados do cliente
+    /// (`HttpConfig::read_timeout`; 2 s aqui, 30 s no app).
+    #[tokio::test]
+    async fn servidor_parado_expira_pelo_tempo_sem_dados() {
+        let (url, _closed) = slow_server(Slow {
+            body_len: 80 * 1024,
+            chunk: 1024,
+            gap: Duration::from_millis(10),
+            stall_after: Some(4 * 1024),
+        })
+        .await;
+        let started = std::time::Instant::now();
+        let idle = Duration::from_secs(2);
+        let error = RemoteFile::open(&client_idle(idle), url, RangeOptions::default(), None)
+            .await
+            .expect_err("expira");
+        assert!(matches!(error, Error::Timeout { .. }), "{error:?}");
+        let elapsed = started.elapsed();
+        assert!(
+            elapsed >= idle && elapsed < idle + Duration::from_secs(5),
+            "{elapsed:?}"
+        );
+    }
+
+    /// Cancelar interrompe a espera na hora e fecha a conexão: nada fica rodando.
+    #[tokio::test]
+    async fn cancelar_interrompe_e_fecha_a_conexao() {
+        let (url, closed) = slow_server(Slow {
+            body_len: 80 * 1024,
+            chunk: 1024,
+            gap: Duration::from_millis(10),
+            stall_after: Some(2 * 1024),
+        })
+        .await;
+        let cancel = CancellationToken::new();
+        let trigger = cancel.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(300)).await;
+            trigger.cancel();
+        });
+        let started = std::time::Instant::now();
+        let client = client_idle(Duration::from_secs(60));
+        let error = RemoteFile::open(&client, url, RangeOptions::default(), Some(&cancel))
+            .await
+            .expect_err("cancelado");
+        assert!(matches!(error, Error::Cancelled), "{error:?}");
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "{:?}",
+            started.elapsed()
+        );
+        tokio::time::timeout(Duration::from_secs(5), closed)
+            .await
+            .expect("a conexão fechou")
+            .expect("aviso do servidor");
     }
 
     #[test]
