@@ -7,7 +7,14 @@
 //! - o primeiro frame de mod da pilha, normalizado: só classe e método, sem número de linha,
 //!   módulo, jar, endereço, sufixos de lambda nem o prefixo e o id que o Mixin dá aos métodos
 //!   injetados (`handler$zza00a$meumod$aoTick` → `meumod$aoTick`); numa queda nativa da JVM, o
-//!   módulo do frame problemático sem o deslocamento;
+//!   módulo do frame problemático sem o deslocamento. Um método injetado pelo Mixin é frame de
+//!   mod mesmo numa classe do jogo; quando o nome não traz o mod (Forge), as configs de mixin
+//!   anotadas no frame (`{re:mixin,pl:mixin:APP:create.mixins.json:…}`) entram no sujeito
+//!   (`frame_mixin=create.mixins.json`);
+//! - sem frame de mod, quando onde quebrou importa (achado do crash report, genérico ou nenhum):
+//!   o primeiro frame anotado com uma config de mixin (com as configs) ou, sem isso, o primeiro
+//!   frame da causa mais profunda fora do Java (`net.minecraft.client.renderer.GameRenderer.render`).
+//!   Sem isso, travamentos diferentes com só classes do jogo na pilha teriam a mesma assinatura;
 //! - os mods citados pelo achado principal (ids; jars sem a versão no nome);
 //! - o **sujeito** do achado: os parâmetros que o catálogo usa para identificá-lo (`key`: o mod e
 //!   a dependência, a config de mixin, a classe…) e, no crash report, a descrição e o que estava
@@ -39,7 +46,10 @@ use crate::postcrash::{
 ///
 /// 2: o sujeito do achado entra na assinatura; o id dos métodos injetados pelo Mixin sai em
 /// todas as formas.
-pub const SIGNATURE_VERSION: u32 = 2;
+/// 3: método injetado pelo Mixin é frame de mod (com as configs anotadas); sem frame de mod, o
+/// primeiro frame anotado com config de mixin ou o primeiro da causa mais profunda; id de mixin
+/// reconhecido pela posição; a pilha continua depois de `[...]`.
+pub const SIGNATURE_VERSION: u32 = 3;
 
 /// Até quantas linhas depois da evidência a exceção do achado é procurada.
 const EXCEPTION_WITHIN: usize = 60;
@@ -97,10 +107,28 @@ const MIXIN_PREFIXES: [&str; 15] = [
     "modifyArgs",
 ];
 
-/// O id que o Mixin dá a cada método injetado (`zza000`, `zza00a`, `bkb1f3`): três letras e um
-/// número em hexadecimal. Muda de uma sessão para outra conforme a ordem em que as classes
-/// carregam.
+/// O id que o Mixin dá a cada método injetado (`zza000`, `zza00a`, `bkb1f3`, `zzaabc`): três
+/// letras e um número em hexadecimal (que pode não ter algarismo). Muda de uma sessão para outra
+/// conforme a ordem em que as classes carregam.
 static MIXIN_ID: LazyLock<Regex> = LazyLock::new(|| fixed_regex(r"^[a-z]{3}[0-9a-f]{3,}$"));
+
+/// Config de mixin aplicada à classe do frame, na anotação do `ModLauncher` (Forge 1.13+ e
+/// NeoForge): `pl:mixin:APP:create.mixins.json:MixinClasse`, com ou sem ` from mod create`.
+static FRAME_MIXIN_CONFIG: LazyLock<Regex> = LazyLock::new(|| {
+    fixed_regex(
+        r"pl:mixin:APP:(?P<config>[^:,{}\s]+\.json)(?::[^,{}\s]*)?(?:\s+from mod (?P<mod>[^,{}\s]+))?",
+    )
+});
+
+/// Trecho omitido no meio da pilha de um crash report (`[...]`, num `StackOverflowError`).
+static ELIDED: LazyLock<Regex> = LazyLock::new(|| fixed_regex(r"^\s*\[\.\.\.\]\s*$"));
+
+/// Pacotes do próprio Java: o primeiro frame da causa mais profunda é o primeiro fora deles
+/// (`Objects.requireNonNull` não diz onde quebrou).
+const JAVA_PACKAGES: [&str; 5] = ["java.", "javax.", "jdk.", "sun.", "com.sun."];
+
+/// A exceção que estoura a pilha: o topo dela cai num ponto qualquer da recursão.
+const STACK_OVERFLOW: &str = "java.lang.StackOverflowError";
 
 /// Classes geradas com contador (`ASMEventHandler_12_…`, `GeneratedMethodAccessor34`,
 /// `$Proxy56`).
@@ -245,9 +273,10 @@ impl CrashSignature {
 pub fn signature(analysis: &Analysis, sources: &[LogSource]) -> CrashSignature {
     let fabric = matches!(analysis.loader, Some(LogLoader::Fabric | LogLoader::Quilt));
     let Some(primary) = analysis.primary() else {
-        let (exception, frame) = first_crash_block(sources, fabric).unwrap_or_default();
-        let subject = report_subject(sources, None);
-        return CrashSignature::new(None, exception, frame, Vec::new(), subject);
+        let (exception, place) = first_crash_block(sources, fabric).unwrap_or_default();
+        let mut subject = report_subject(sources, None);
+        place.extend_subject(&mut subject);
+        return CrashSignature::new(None, exception, place.frame, Vec::new(), subject);
     };
     let finding = &primary.finding;
     let at = finding
@@ -260,20 +289,22 @@ pub fn signature(analysis: &Analysis, sources: &[LogSource]) -> CrashSignature {
                 .map(|source| (source, *line)),
             _ => None,
         });
-    let (scanned_exception, frame) = at
-        .and_then(|(source, line)| stack_at(source, line, fabric))
+    let mods = finding.items().iter().map(normalize_item).collect();
+    let (key, generic) = pattern_identity(&primary.pattern);
+    let mut subject = key_subject(finding, key);
+    // O crash report diz o que quebrou quando o achado é dele ou é genérico sem sujeito próprio.
+    // Um achado de causa certa (falta de memória, Java errado…) não depende de onde quebrou.
+    let where_matters =
+        primary.pattern.starts_with("crash_report.") || (generic && subject.is_empty());
+    let (scanned_exception, place) = at
+        .and_then(|(source, line)| stack_at(source, line, fabric, where_matters))
         .unwrap_or_default();
     let exception = finding
         .param("cause_type")
         .or_else(|| finding.param("exception_type"))
         .map(ToOwned::to_owned)
         .or(scanned_exception);
-    let mods = finding.items().iter().map(normalize_item).collect();
-    let (key, generic) = pattern_identity(&primary.pattern);
-    let mut subject = key_subject(finding, key);
-    // O crash report diz o que quebrou quando o achado é dele ou é genérico sem sujeito próprio.
-    // Um achado de causa certa (falta de memória, Java errado…) não depende de onde quebrou.
-    if primary.pattern.starts_with("crash_report.") || (generic && subject.is_empty()) {
+    if where_matters {
         for part in report_subject(sources, at) {
             if !subject.contains(&part) {
                 subject.push(part);
@@ -284,10 +315,11 @@ pub fn signature(analysis: &Analysis, sources: &[LogSource]) -> CrashSignature {
     if let Some(what) = finding.param("what") {
         subject.push(format!("what={}", normalize_param("what", what)));
     }
+    place.extend_subject(&mut subject);
     CrashSignature::new(
         Some(primary.pattern.clone()),
         exception,
-        frame,
+        place.frame,
         mods,
         subject,
     )
@@ -391,26 +423,53 @@ fn block_subject(lines: &[CleanLine], block: Range<usize>) -> Vec<String> {
     parts
 }
 
-/// Exceção e primeiro frame de mod da pilha que começa na linha `number` (ou logo depois).
+/// O frame que diz onde o travamento aconteceu e, quando o nome dele não traz o mod, as configs
+/// de mixin anotadas nele.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+struct Place {
+    /// Classe e método normalizados.
+    frame: Option<String>,
+    /// Configs de mixin do frame (sem repetição, em ordem).
+    mixins: Vec<String>,
+}
+
+impl Place {
+    fn of(frame: Option<String>) -> Self {
+        Self {
+            frame,
+            mixins: Vec::new(),
+        }
+    }
+
+    /// Acrescenta as configs ao sujeito da assinatura (`frame_mixin=create.mixins.json`).
+    fn extend_subject(&self, subject: &mut Vec<String>) {
+        for config in &self.mixins {
+            let part = format!("frame_mixin={config}");
+            if !subject.contains(&part) {
+                subject.push(part);
+            }
+        }
+    }
+}
+
+/// Exceção e frame da pilha que começa na linha `number` (ou logo depois).
 fn stack_at(
     source: &LogSource,
     number: u32,
     fabric: bool,
-) -> Option<(Option<String>, Option<String>)> {
+    where_matters: bool,
+) -> Option<(Option<String>, Place)> {
     let lines = source.clean_lines();
     let index = lines.iter().position(|line| line.number == number)?;
     if source.kind() == SourceKind::JvmCrash {
-        return Some((None, native_frame(&lines, index)));
+        return Some((None, Place::of(native_frame(&lines, index))));
     }
-    Some(exception_and_frame(&lines, index, fabric))
+    Some(exception_and_frame(&lines, index, fabric, where_matters))
 }
 
 /// Sem achado: a exceção e o frame do primeiro crash report (os arquivos de crash report vêm
-/// antes dos logs, como na análise).
-fn first_crash_block(
-    sources: &[LogSource],
-    fabric: bool,
-) -> Option<(Option<String>, Option<String>)> {
+/// antes dos logs, como na análise). Sem achado, onde quebrou importa.
+fn first_crash_block(sources: &[LogSource], fabric: bool) -> Option<(Option<String>, Place)> {
     let mut ordered: Vec<&LogSource> = sources.iter().collect();
     ordered.sort_by_key(|source| source.kind());
     ordered.into_iter().find_map(|source| {
@@ -419,35 +478,54 @@ fn first_crash_block(
             let index = lines
                 .iter()
                 .position(|line| line.text.contains("Problematic frame"))?;
-            return Some((None, native_frame(&lines, index)));
+            return Some((None, Place::of(native_frame(&lines, index))));
         }
         let block = crash_blocks(&lines, source.kind() == SourceKind::CrashReport)
             .into_iter()
             .next()?;
-        Some(exception_and_frame(&lines, block.start, fabric))
+        Some(exception_and_frame(&lines, block.start, fabric, true))
     })
 }
 
-/// A exceção depois de `index` (sem passar para outro registro do log) e o primeiro frame de
-/// mod da pilha dela.
+/// A exceção depois de `index` (sem passar para outro registro do log) e o frame da pilha dela.
 fn exception_and_frame(
     lines: &[CleanLine],
     index: usize,
     fabric: bool,
-) -> (Option<String>, Option<String>) {
+    where_matters: bool,
+) -> (Option<String>, Place) {
     let end = lines.len().min(index + EXCEPTION_WITHIN);
     let start = (index..end).find(|&at| {
         (at == index || !lines[at].record_start) && EXCEPTION_LINE.is_match(&lines[at].text)
     });
     let Some(start) = start else {
-        return (None, None);
+        return (None, Place::default());
     };
-    let stack = stack_range(lines, start);
+    let stack = whole_stack(lines, start);
     let exception = deepest_cause(lines, stack.clone())
         .as_deref()
         .and_then(exception_type)
         .or_else(|| exception_type(&lines[start].text));
-    (exception, first_mod_frame(lines, stack, fabric))
+    let overflow = exception.as_deref() == Some(STACK_OVERFLOW);
+    let place = stack_place(lines, stack, fabric, where_matters, overflow);
+    (exception, place)
+}
+
+/// A pilha que começa em `start`, seguindo depois de um trecho omitido (`[...]`): no crash
+/// report de um `StackOverflowError` o Forge mostra o topo e o fim da pilha.
+fn whole_stack(lines: &[CleanLine], start: usize) -> Range<usize> {
+    let mut stack = stack_range(lines, start);
+    while let Some(line) = lines.get(stack.end)
+        && ELIDED.is_match(&line.text)
+        && !line.record_start
+    {
+        let rest = stack_range(lines, stack.end);
+        if rest.end <= stack.end + 1 {
+            break;
+        }
+        stack.end = rest.end;
+    }
+    stack
 }
 
 /// O tipo de exceção de uma linha.
@@ -458,39 +536,135 @@ fn exception_type(text: &str) -> Option<String> {
         .map(|kind| kind.as_str().to_owned())
 }
 
-/// O primeiro frame de mod: primeiro na seção da causa mais profunda (o último `Caused by:`),
-/// depois nas seções de cima.
-fn first_mod_frame(lines: &[CleanLine], stack: Range<usize>, fabric: bool) -> Option<String> {
+/// Um frame Java da pilha, já lido.
+struct Frame {
+    /// Classe e método normalizados.
+    method: String,
+    /// Se é frame de mod: cita um mod ou não é de um pacote do jogo, do loader ou de biblioteca.
+    of_mod: bool,
+    /// Se o método foi injetado pelo Mixin (`handler$…`, `redirect$…`, `…$md$…`).
+    injected: bool,
+    /// Se o nome ou a anotação do frame já diz de que mod ele é.
+    names_mod: bool,
+    /// Configs de mixin anotadas no frame.
+    mixins: Vec<String>,
+}
+
+/// Onde o travamento aconteceu, nesta ordem: o primeiro frame de mod (método injetado pelo
+/// Mixin incluído), procurado na seção da causa mais profunda (o último `Caused by:`) e depois
+/// nas seções de cima; e, só quando `where_matters`, o primeiro frame anotado com uma config de
+/// mixin e o primeiro frame da causa mais profunda fora do Java. Na seção de um
+/// `StackOverflowError` (`overflow`: é a causa mais profunda) o topo da pilha cai num ponto
+/// qualquer da recursão: ali vale o menor frame de cada nível, que é o mesmo de uma vez para outra.
+fn stack_place(
+    lines: &[CleanLine],
+    stack: Range<usize>,
+    fabric: bool,
+    where_matters: bool,
+    overflow: bool,
+) -> Place {
     let mut starts: Vec<usize> = stack
         .clone()
         .filter(|&at| lines[at].text.trim_start().starts_with("Caused by"))
         .collect();
     starts.insert(0, stack.start);
-    let mut sections = Vec::with_capacity(starts.len());
+    let mut sections: Vec<Vec<Frame>> = Vec::with_capacity(starts.len());
     for (position, &start) in starts.iter().enumerate() {
         let end = starts.get(position + 1).copied().unwrap_or(stack.end);
-        sections.push(start..end);
+        sections.push(
+            (start..end)
+                .filter_map(|at| java_frame(lines, at, fabric))
+                .collect(),
+        );
     }
-    sections.into_iter().rev().find_map(|section| {
-        section
-            .into_iter()
-            .find_map(|at| mod_frame(lines, at, fabric))
-    })
+    // Da causa mais profunda para cima.
+    sections.reverse();
+    // O primeiro frame aceito da seção (o menor, na seção do `StackOverflowError`), da causa
+    // mais profunda para cima.
+    let pick = |accept: &dyn Fn(&Frame) -> bool| -> Option<&Frame> {
+        sections.iter().enumerate().find_map(|(position, section)| {
+            let mut accepted = section.iter().filter(|frame| accept(frame));
+            if overflow && position == 0 {
+                accepted.min_by(|one, two| one.method.cmp(&two.method))
+            } else {
+                accepted.next()
+            }
+        })
+    };
+    if let Some(frame) = pick(&|frame| frame.of_mod || frame.injected) {
+        // Método injetado sem o mod no nome (Forge): as configs anotadas dizem de quem pode ser.
+        let mixins = if frame.names_mod {
+            Vec::new()
+        } else {
+            frame.mixins.clone()
+        };
+        return Place {
+            frame: Some(frame.method.clone()),
+            mixins,
+        };
+    }
+    if !where_matters {
+        return Place::default();
+    }
+    if let Some(frame) = pick(&|frame| !frame.mixins.is_empty()) {
+        return Place {
+            frame: Some(frame.method.clone()),
+            mixins: frame.mixins.clone(),
+        };
+    }
+    // A causa mais profunda com frames (uma seção só com `... N more` não tem nenhum).
+    let outside_java = |frame: &Frame| {
+        !JAVA_PACKAGES
+            .iter()
+            .any(|prefix| frame.method.starts_with(prefix))
+    };
+    let frame = pick(&outside_java).or_else(|| pick(&|_| true));
+    Place::of(frame.map(|frame| frame.method.clone()))
 }
 
-/// O frame normalizado, se a linha `at` é um frame de mod: cita um mod (módulo, jar ou handler
-/// de mixin do Fabric) ou, sem módulo nem jar na linha, não é de um pacote do jogo, do loader ou
-/// de biblioteca.
-fn mod_frame(lines: &[CleanLine], at: usize, fabric: bool) -> Option<String> {
+/// O frame Java da linha `at`, lido: método normalizado, se é de mod, se foi injetado pelo Mixin
+/// e as configs de mixin anotadas.
+fn java_frame(lines: &[CleanLine], at: usize, fabric: bool) -> Option<Frame> {
     let text = LAMBDA_CLASS.replace_all(&lines[at].text, "$$$$Lambda");
     let captures = JAVA_FRAME.captures(&text)?;
     let method = captures.name("method")?.as_str();
+    let rest = captures.name("rest").map_or("", |rest| rest.as_str());
     let annotated = text.contains(".jar") || text.contains('@');
     let mentions = !mods_in(lines, at..at + 1, fabric).is_empty();
     let library = NOT_MOD_PACKAGES
         .iter()
         .any(|prefix| method.starts_with(prefix));
-    (mentions || (!annotated && !library)).then(|| normalize_method(method))
+    let mut mixins = BTreeSet::new();
+    let mut owners = BTreeSet::new();
+    for captures in FRAME_MIXIN_CONFIG.captures_iter(rest) {
+        if let Some(config) = captures.name("config") {
+            mixins.insert(config.as_str().to_lowercase());
+        }
+        if let Some(owner) = captures.name("mod") {
+            owners.insert(owner.as_str().to_lowercase());
+        }
+    }
+    let name = method.rsplit('.').next().unwrap_or(method);
+    let injected = MIXIN_MERGED.is_match(name)
+        || name
+            .split_once('$')
+            .is_some_and(|(prefix, _)| MIXIN_PREFIXES.contains(&prefix));
+    let method = normalize_method(method);
+    // NeoForge: o handler traz o mod (`handler$zza000$meumod$aoTick`) e a anotação diz de que mod
+    // é cada config (`… from mod meumod`).
+    let owner_in_name = injected
+        && method
+            .rsplit('.')
+            .next()
+            .and_then(|name| name.split_once('$'))
+            .is_some_and(|(owner, _)| owners.contains(&owner.to_lowercase()));
+    Some(Frame {
+        method,
+        of_mod: mentions || (!annotated && !library),
+        injected,
+        names_mod: mentions || !library || owner_in_name,
+        mixins: mixins.into_iter().collect(),
+    })
 }
 
 /// Classe e método sem as partes que mudam a cada execução: o número das lambdas e das classes
@@ -504,13 +678,7 @@ fn normalize_method(method: &str) -> String {
         None => (None, method.as_ref()),
     };
     let name = match name.split_once('$') {
-        Some((prefix, rest)) if MIXIN_PREFIXES.contains(&prefix) => {
-            // O id vem logo depois do prefixo (`handler$zza00a$…`); sem id, o resto fica.
-            match rest.split_once('$') {
-                Some((id, after)) if is_mixin_id(id) => after.to_owned(),
-                _ => rest.to_owned(),
-            }
-        }
+        Some((prefix, rest)) if MIXIN_PREFIXES.contains(&prefix) => without_mixin_id(rest),
         _ => name.to_owned(),
     };
     match owner {
@@ -519,10 +687,30 @@ fn normalize_method(method: &str) -> String {
     }
 }
 
-/// Se o trecho é o id de um método injetado: o formato do Mixin, com pelo menos um algarismo
-/// (um id de mod como `bigbeef` fica).
+/// O nome de um método injetado depois do prefixo, sem o id. O id está numa posição fixa do nome
+/// gerado: logo depois do prefixo no Mixin 0.8 e no fork do Fabric (`zza00a$meumod$aoTick`) e no
+/// fim no Mixin 0.7 (`onUpdate$zza000`, do Forge 1.12). Só sai quando tem o formato do id e
+/// sobra um nome; senão o resto fica (`meumod$aoTick`).
+fn without_mixin_id(rest: &str) -> String {
+    if let Some((id, after)) = rest.split_once('$')
+        && is_mixin_id(id)
+        && !after.is_empty()
+    {
+        return after.to_owned();
+    }
+    if let Some((before, id)) = rest.rsplit_once('$')
+        && is_mixin_id(id)
+        && !before.is_empty()
+    {
+        return before.to_owned();
+    }
+    rest.to_owned()
+}
+
+/// Se o trecho tem o formato do id de um método injetado (três letras e um número hexadecimal,
+/// com ou sem algarismo: `zza000`, `zzaabc`).
 fn is_mixin_id(segment: &str) -> bool {
-    MIXIN_ID.is_match(segment) && segment.bytes().any(|byte| byte.is_ascii_digit())
+    MIXIN_ID.is_match(segment)
 }
 
 /// Classe (ou classe e método) sem os números de lambdas, acessores e classes geradas.
@@ -686,7 +874,8 @@ mod tests {
         let text = LAMBDA.replace_all(&text, |c: &regex::Captures<'_>| {
             format!("{}{}", &c[1], c[2].parse::<u64>().unwrap_or(0) + 3)
         });
-        let text = MIXIN.replace_all(&text, "$$qqx0af$$");
+        // Id sem algarismo: o id vale pela posição (2ª revisão).
+        let text = MIXIN.replace_all(&text, "$$qqxfed$$");
         let text = UUID.replace_all(&text, "0f0e0d0c-0b0a-0908-0706-050403020100");
         let text = CLOCK.replace_all(&text, "23:59:58");
         let mut out = String::new();
@@ -799,6 +988,30 @@ mod tests {
             Some("graphics.native_frame_in_driver")
         );
         assert_eq!(native.frame.as_deref(), Some("C ig9icd64.dll"));
+
+        // Formas de pilha da 2ª revisão (na ponta 199efdc, todas sem frame).
+        // Forge 1.7.10: método injetado com o mod no nome, sem ser Fabric.
+        assert_eq!(
+            case("codex-forge-1-7-10-crash-report").frame.as_deref(),
+            Some("net.minecraft.world.chunk.Chunk.hodgepodge$validateTileInBounds")
+        );
+        // Forge 1.16: `StackOverflowError` com o meio da pilha omitido (`[...]`).
+        assert_eq!(
+            case("codex-forge-ticking-block-entity-crash-report")
+                .frame
+                .as_deref(),
+            Some("com.supermartijn642.tesseract.capabilities.CombinedEnergyStorage.receiveEnergy")
+        );
+        // `latest.log` com a causa mais profunda sem frames: o primeiro da seção de cima.
+        assert_eq!(
+            case("codex-forge-ticking-block-entity").frame.as_deref(),
+            Some("net.minecraft.server.MinecraftServer.func_71190_q")
+        );
+        // Fabric e Quilt: o crash de depuração (F3 + C) diz onde foi pedido.
+        assert_eq!(
+            case("codex-fabric-crash-report-client").frame.as_deref(),
+            Some("net.minecraft.class_309.method_1474")
+        );
     }
 
     // ---- Normalização --------------------------------------------------------------------
@@ -905,7 +1118,11 @@ Details:
         // Na ponta da 1ª revisão as duas davam 6fa9d7e2a146d61a.
         assert_eq!(overlay.rule.as_deref(), Some("crash_report.description"));
         assert_eq!(tick.rule.as_deref(), Some("crash_report.description"));
-        assert_eq!(overlay.frame, None);
+        // Sem frame de mod: o primeiro frame da pilha (3ª revisão).
+        assert_eq!(
+            overlay.frame.as_deref(),
+            Some("net.minecraft.world.level.Level.guardEntityTick")
+        );
         assert!(overlay.mods.is_empty());
         assert_ne!(overlay.hash, tick.hash);
         assert_eq!(overlay.subject, ["description=rendering overlay"]);
@@ -950,7 +1167,10 @@ Details:
         );
         // Na ponta da 1ª revisão as duas davam 5845882d291a584d.
         assert_eq!(golem.rule.as_deref(), Some("crash_report.ticking_entity"));
-        assert_eq!(golem.frame, None);
+        assert_eq!(
+            golem.frame.as_deref(),
+            Some("net.minecraft.world.level.Level.guardEntityTick")
+        );
         assert_ne!(golem.hash, wolf.hash);
         assert_eq!(
             golem.subject,
@@ -1054,6 +1274,320 @@ Details:
         assert_eq!(with_report("Rendering overlay"), alone);
     }
 
+    // ---- Pilhas só do jogo e métodos injetados no Forge/NeoForge (2ª revisão) -----------------
+
+    /// Crash report do Forge 1.20.1 com um `NullPointerException` "Unexpected error" e a pilha
+    /// dada, com as anotações do `ModLauncher`.
+    fn forge_report(stack: &str) -> String {
+        format!(
+            "---- Minecraft Crash Report ----
+// Why did you do that?
+
+Time: 2026-10-13 12:00:01
+Description: Unexpected error
+
+java.lang.NullPointerException: Cannot invoke \"Object.hashCode()\" because \"<local3>\" is null
+{stack}
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+{stack}
+
+-- System Details --
+Details:
+\tMinecraft Version: 1.20.1
+"
+        )
+    }
+
+    const SRG: &str = "~[client-1.20.1-20230612.114412-srg.jar%23185!/:?]";
+
+    /// (a) No render, só classes do jogo.
+    fn render_stack() -> String {
+        format!(
+            "\tat net.minecraft.client.renderer.GameRenderer.render(GameRenderer.java:954) {SRG} {{re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}}
+\tat net.minecraft.client.Minecraft.runTick(Minecraft.java:1146) {SRG} {{re:classloading,pl:accesstransformer:B,pl:runtimedistcleaner:A}}
+\tat net.minecraft.client.main.Main.main(Main.java:218) ~[forge-47.2.0.jar:?] {{re:classloading}}"
+        )
+    }
+
+    /// (b) No tick do servidor, só classes do jogo.
+    fn server_stack() -> String {
+        format!(
+            "\tat net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:331) {SRG} {{re:classloading,pl:accesstransformer:B}}
+\tat net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) {SRG} {{re:classloading,pl:accesstransformer:B}}
+\tat net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) {SRG} {{re:classloading,pl:accesstransformer:B}}"
+        )
+    }
+
+    /// (c) Num método injetado pelo Mixin numa classe do jogo; `configs` são as anotadas.
+    fn injected_stack(id: &str, line: u32, configs: &[&str]) -> String {
+        let applied = configs
+            .iter()
+            .map(|config| format!(",pl:mixin:APP:{config}:MixinEntity"))
+            .collect::<Vec<_>>()
+            .concat();
+        format!(
+            "\tat net.minecraft.world.entity.Entity.handler${id}$aoTick(Entity.java:{line}) {SRG} {{re:mixin,pl:accesstransformer:B,re:classloading{applied},pl:mixin:A}}
+\tat net.minecraft.world.entity.Entity.tick(Entity.java:{line}) {SRG} {{re:mixin,pl:accesstransformer:B,re:classloading{applied},pl:mixin:A}}
+\tat net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) {SRG} {{re:classloading,pl:accesstransformer:B}}"
+        )
+    }
+
+    fn forge_signature(stack: &str) -> CrashSignature {
+        let sources = [source(
+            "crash-reports/crash-2026-10-13_12.00.01-client.txt",
+            SourceKind::CrashReport,
+            &forge_report(stack),
+        )];
+        let context = AnalysisContext {
+            loader: Some(LogLoader::Forge),
+            minecraft: Some("1.20.1".into()),
+        };
+        signature(&analyze(&sources, &context, None).unwrap(), &sources)
+    }
+
+    #[test]
+    fn forge_sem_frame_de_mod_render_tick_e_metodo_injetado_tem_assinaturas_diferentes() {
+        let render = forge_signature(&render_stack());
+        let server = forge_signature(&server_stack());
+        let create = forge_signature(&injected_stack("zza000", 1234, &["create.mixins.json"]));
+        let sodium = forge_signature(&injected_stack("zza000", 1234, &["sodium.mixins.json"]));
+        // Na ponta da 2ª revisão (199efdc) as quatro davam 5d79fb915e49c225.
+        let hashes: BTreeSet<&str> = [&render, &server, &create, &sodium]
+            .iter()
+            .map(|signature| signature.hash.as_str())
+            .collect();
+        assert_eq!(
+            hashes.len(),
+            4,
+            "{render:?}\n{server:?}\n{create:?}\n{sodium:?}"
+        );
+        assert_eq!(render.rule.as_deref(), Some("crash_report.description"));
+        assert_eq!(
+            render.frame.as_deref(),
+            Some("net.minecraft.client.renderer.GameRenderer.render")
+        );
+        assert_eq!(
+            server.frame.as_deref(),
+            Some("net.minecraft.server.level.ServerLevel.tick")
+        );
+        // O método injetado é o frame de mod; a config anotada diz de quem pode ser.
+        assert_eq!(
+            create.frame.as_deref(),
+            Some("net.minecraft.world.entity.Entity.aoTick")
+        );
+        assert!(
+            create
+                .subject
+                .contains(&"frame_mixin=create.mixins.json".to_owned()),
+            "{:?}",
+            create.subject
+        );
+    }
+
+    #[test]
+    fn forge_sem_frame_de_mod_numeros_e_ids_de_mixin_diferentes_continuam_juntos() {
+        let render = forge_signature(&render_stack());
+        let render_again = forge_signature(
+            &render_stack()
+                .replace("GameRenderer.java:954", "GameRenderer.java:960")
+                .replace("Minecraft.java:1146", "Minecraft.java:1150")
+                .replace("%23185", "%23190"),
+        );
+        assert_eq!(render, render_again);
+
+        let server = forge_signature(&server_stack());
+        let server_again = forge_signature(
+            &server_stack()
+                .replace("ServerLevel.java:331", "ServerLevel.java:340")
+                .replace("%23185", "%2399"),
+        );
+        assert_eq!(server, server_again);
+
+        let first = forge_signature(&injected_stack("zza000", 1234, &["create.mixins.json"]));
+        // Outro id (com e sem algarismo) e outra linha: o mesmo travamento.
+        for (id, line) in [
+            ("zza00a", 1250),
+            ("bkb1f3", 77),
+            ("zzaabc", 1234),
+            ("cfdfed", 9),
+        ] {
+            assert_eq!(
+                forge_signature(&injected_stack(id, line, &["create.mixins.json"])),
+                first,
+                "{id}"
+            );
+        }
+        // Configs anotadas em outra ordem: o mesmo travamento.
+        let two = forge_signature(&injected_stack(
+            "zza000",
+            1234,
+            &["create.mixins.json", "flywheel.mixins.json"],
+        ));
+        let swapped = forge_signature(&injected_stack(
+            "zzb001",
+            1300,
+            &["flywheel.mixins.json", "create.mixins.json"],
+        ));
+        assert_eq!(two, swapped);
+    }
+
+    #[test]
+    fn neoforge_handler_com_o_mod_no_nome_nao_depende_das_outras_configs_da_classe() {
+        // No NeoForge o handler traz o mod e a anotação diz de que mod é cada config: o mod que
+        // outro mod acrescentou à mesma classe não separa o travamento.
+        let stack = |extra: &str| {
+            format!(
+                "\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.server.level.ServerPlayer.handler$bbp000$meumod$aoEntrar(ServerPlayer.java:3183) ~[client-1.21.1-20240808.144430-srg.jar%23345!/:?] {{re:mixin,re:classloading,pl:mixin:APP:meumod.mixins.json:MixinJogador from mod meumod{extra},pl:mixin:A}}
+\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.server.level.ServerPlayer.<init>(ServerPlayer.java:294) ~[client-1.21.1-20240808.144430-srg.jar%23345!/:?] {{re:mixin}}"
+            )
+        };
+        let alone = forge_signature(&stack(""));
+        let with_other = forge_signature(&stack(
+            ",pl:mixin:APP:sable.mixins.json:ServerPlayerMixin from mod sable",
+        ));
+        assert_eq!(
+            alone.frame.as_deref(),
+            Some("net.minecraft.server.level.ServerPlayer.meumod$aoEntrar")
+        );
+        assert_eq!(alone, with_other);
+        assert!(
+            !alone
+                .subject
+                .iter()
+                .any(|part| part.starts_with("frame_mixin=")),
+            "{:?}",
+            alone.subject
+        );
+    }
+
+    #[test]
+    fn frame_so_anotado_com_config_de_mixin_vale_com_a_config() {
+        // Um método que um mod acrescentou à classe do jogo (sem prefixo de injeção) com a config
+        // anotada: sem frame de mod, o frame anotado e a config.
+        let stack = |config: &str| {
+            format!(
+                "\tat net.minecraft.world.level.Level.getChunkLithium(Level.java:3705) {SRG} {{re:mixin,pl:mixin:APP:{config}:WorldMixin,pl:mixin:A}}
+\tat net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) {SRG} {{re:classloading}}"
+            )
+        };
+        let lithium = forge_signature(&stack("radium.mixins.json"));
+        let other = forge_signature(&stack("roadrunner.mixins.json"));
+        assert_eq!(
+            lithium.frame.as_deref(),
+            Some("net.minecraft.world.level.Level.getChunkLithium")
+        );
+        assert!(
+            lithium
+                .subject
+                .contains(&"frame_mixin=radium.mixins.json".to_owned())
+        );
+        assert_ne!(lithium.hash, other.hash);
+        assert_eq!(
+            forge_signature(&stack("radium.mixins.json").replace("3705", "3800")),
+            lithium
+        );
+    }
+
+    #[test]
+    fn primeiro_frame_da_causa_mais_profunda_com_caused_by_encadeado_e_pilha_truncada() {
+        // A causa mais profunda só com frames do Java e `... N more`: vale o primeiro frame fora
+        // do Java, subindo de seção se preciso.
+        let report = |deep: &str| {
+            format!(
+                "---- Minecraft Crash Report ----
+Description: Unexpected error
+
+java.lang.RuntimeException: Erro
+\tat net.minecraft.client.Minecraft.runTick(Minecraft.java:1146) {SRG}
+\tat net.minecraft.client.main.Main.main(Main.java:218) {SRG}
+Caused by: java.lang.IllegalStateException: estado
+\tat {deep}(Unknown Source) {SRG}
+\tat net.minecraft.client.Minecraft.runTick(Minecraft.java:1140) {SRG}
+\t... 1 more
+Caused by: java.lang.NullPointerException
+\tat java.base/java.util.Objects.requireNonNull(Objects.java:233)
+\t... 3 more
+"
+            )
+        };
+        let sign = |deep: &str| report_signature("c", &report(deep));
+        let gui = sign("net.minecraft.client.gui.Gui.render");
+        let sound = sign("net.minecraft.client.sounds.SoundEngine.tick");
+        assert_eq!(
+            gui.exception.as_deref(),
+            Some("java.lang.NullPointerException")
+        );
+        assert_eq!(
+            gui.frame.as_deref(),
+            Some("net.minecraft.client.gui.Gui.render")
+        );
+        assert_ne!(gui.hash, sound.hash);
+        // Outros números e outro "N more": o mesmo travamento.
+        let again = report_signature(
+            "d",
+            &report("net.minecraft.client.gui.Gui.render")
+                .replace("1146", "1200")
+                .replace("... 3 more", "... 4 more"),
+        );
+        assert_eq!(gui, again);
+    }
+
+    #[test]
+    fn stack_overflow_com_trecho_omitido_e_recursao_em_outro_ponto() {
+        // O topo de um `StackOverflowError` cai num ponto qualquer da recursão; o Forge corta o
+        // meio da pilha com `[...]`.
+        let report = |cycle: &[&str]| {
+            let frames = cycle
+                .iter()
+                .cycle()
+                .take(12)
+                .map(|frame| format!("\tat {frame}(X.java:1) ~[?:?] {{re:classloading}}\n"))
+                .collect::<Vec<_>>()
+                .concat();
+            format!(
+                "---- Minecraft Crash Report ----
+Description: Ticking block entity
+
+java.lang.StackOverflowError: Ticking block entity
+\tat net.minecraft.world.level.Level.getBlockState(Level.java:1) ~[?:?] {{re:classloading}}
+    [...]
+{frames}-- Block entity being ticked --
+Details:
+\tName: pipez:energy_pipe // de.maxhenkel.pipez.EnergyPipeTileEntity
+"
+            )
+        };
+        let one = report_signature(
+            "a",
+            &report(&[
+                "com.alpha.Cano.receber",
+                "com.beta.Tanque.encher",
+                "com.alpha.Cano.passar",
+            ]),
+        );
+        let shifted = report_signature(
+            "b",
+            &report(&[
+                "com.beta.Tanque.encher",
+                "com.alpha.Cano.passar",
+                "com.alpha.Cano.receber",
+            ]),
+        );
+        let other = report_signature(
+            "c",
+            &report(&["com.gama.Fio.receber", "com.gama.Fio.passar"]),
+        );
+        assert_eq!(one.frame.as_deref(), Some("com.alpha.Cano.passar"));
+        assert_eq!(one, shifted);
+        assert_ne!(one.hash, other.hash);
+    }
+
     // ---- Mixin ------------------------------------------------------------------------------
 
     #[test]
@@ -1083,8 +1617,15 @@ Details:
             ("a.B.wrapMethod$zza102$meumod$tudo", "a.B.meumod$tudo"),
             ("a.B.handler$zza000$aoTick", "a.B.aoTick"),
             ("a.B$Interna.redirect$abc123$aoTick", "a.B$Interna.aoTick"),
-            // Um mod com nome de "id" sem algarismo fica.
-            ("a.B.handler$bigbeef$aoTick", "a.B.bigbeef$aoTick"),
+            // O id vale pela posição, com ou sem algarismo (3ª revisão): logo depois do prefixo
+            // (Mixin 0.8 e o fork do Fabric) ou no fim (Mixin 0.7, do Forge 1.12).
+            ("a.B.handler$zzaabc$meumod$aoTick", "a.B.meumod$aoTick"),
+            ("a.B.handler$zzaabc$aoTick", "a.B.aoTick"),
+            ("a.B.handler$bkbfed$aoTick", "a.B.aoTick"),
+            ("a.B.handler$aoTick$zza000", "a.B.aoTick"),
+            ("a.B.handler$aoTick$zzaabc", "a.B.aoTick"),
+            // Só o id sai: o nome nunca fica vazio.
+            ("a.B.handler$zzaabc", "a.B.zzaabc"),
             // Outros números que mudam com a compilação.
             ("a.B.lambda$tick$12", "a.B.lambda$tick"),
             ("a.B.lambda$3", "a.B.lambda"),
@@ -1169,12 +1710,15 @@ Caused by: java.lang.IllegalStateException: estado
 \tat com.segundo.Mod.handle(Mod.java:9)
 ";
         let lines: Vec<CleanLine> = source("latest.log", SourceKind::LatestLog, log).clean_lines();
-        let (exception, frame) = exception_and_frame(&lines, 0, false);
+        let (exception, place) = exception_and_frame(&lines, 0, false, false);
         assert_eq!(
             exception.as_deref(),
             Some("java.lang.IllegalStateException")
         );
-        assert_eq!(frame.as_deref(), Some("com.segundo.Mod$$Lambda.accept"));
+        assert_eq!(
+            place.frame.as_deref(),
+            Some("com.segundo.Mod$$Lambda.accept")
+        );
     }
 
     #[test]
@@ -1185,19 +1729,27 @@ Caused by: java.lang.IllegalStateException: estado
 ";
         let lines = source("x.log", SourceKind::Text, log).clean_lines();
         assert_eq!(
-            exception_and_frame(&lines, 0, false).1.as_deref(),
+            exception_and_frame(&lines, 0, false, false)
+                .1
+                .frame
+                .as_deref(),
             Some("com.simibubi.create.Bar.tick")
         );
-        // Handler de mixin do Fabric numa classe do jogo é frame do mod dono.
+        // Handler de mixin numa classe do jogo é frame de mod, no Fabric (que traz o mod) e fora
+        // dele.
         let fabric = "java.lang.NullPointerException
 \tat net.minecraft.class_1297.handler$zza000$meumod$aoTick(class_1297.java:1234)
 ";
         let lines = source("x.log", SourceKind::Text, fabric).clean_lines();
-        assert_eq!(
-            exception_and_frame(&lines, 0, true).1.as_deref(),
-            Some("net.minecraft.class_1297.meumod$aoTick")
-        );
-        assert_eq!(exception_and_frame(&lines, 0, false).1, None);
+        for loader_is_fabric in [true, false] {
+            assert_eq!(
+                exception_and_frame(&lines, 0, loader_is_fabric, false)
+                    .1
+                    .frame
+                    .as_deref(),
+                Some("net.minecraft.class_1297.meumod$aoTick")
+            );
+        }
     }
 
     #[test]
@@ -1301,7 +1853,7 @@ java.lang.ArithmeticException: / by zero
         assert_eq!(one, two);
         assert_eq!(one.mods, ["mod:a", "mod:b"]);
         // Fixo: mudar a normalização ou o formato exige subir SIGNATURE_VERSION.
-        assert_eq!(one.hash, "5a6c64dda3831c4e");
+        assert_eq!(one.hash, "a7444a66d6c2a07d");
         let with_subject = CrashSignature::new(
             Some("r".into()),
             Some("E".into()),
