@@ -1,7 +1,16 @@
 //! O agrupamento incremental: cada linha (ou evento com stack trace) vira uma ocorrência de um
 //! item (mesmo dono, nível, logger e forma), e cada item fica no grupo do dono.
+//!
+//! A memória tem teto, como o console linha a linha (SPEC T13: até 50.000 linhas na tela).
+//! Todas as ocorrências contam (contagem, primeira e última hora), e o texto de cada uma fica
+//! guardado até a sessão juntar [`MAX_KEPT`] ocorrências ou [`MAX_TEXT_BYTES`] de texto. Daí
+//! em diante cada item guarda a primeira vez, as que já tinha do começo e as [`EDGE`] últimas
+//! (as do meio dão lugar às novas), e nada mais cresce. A sessão guarda no máximo
+//! [`MAX_ITEMS`] itens: uma forma nova que não cabe mais conta no grupo, mas não vira item (a
+//! tela avisa quantas ficaram de fora). O log completo continua no `output.log` ("Salvar em
+//! arquivo…" lê de lá).
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
 use super::attribute::{ModDirectory, Owner, is_frame, stacktrace_mixins};
@@ -14,6 +23,23 @@ use crate::postcrash::stack::is_stack_line;
 
 /// Linhas que um item pode juntar (um stack trace enorme é cortado em vários itens).
 const MAX_ENTRY_LINES: u32 = 2_000;
+/// Últimas ocorrências que cada item guarda depois do teto da sessão.
+pub(crate) const EDGE: usize = 50;
+/// Ocorrências com o texto guardado na sessão (o teto do console linha a linha). Depois dele,
+/// só um item que ainda não tem nenhuma das últimas guarda mais uma (no máximo uma por item).
+pub(crate) const MAX_KEPT: usize = 50_000;
+/// Itens distintos na sessão. Os de informação param em [`MAX_INFO_ITEMS`], para sobrar lugar
+/// para erros, avisos e stack traces.
+pub(crate) const MAX_ITEMS: usize = 50_000;
+/// Itens distintos de informação na sessão.
+pub(crate) const MAX_INFO_ITEMS: usize = 40_000;
+/// Bytes de texto guardado (formas e valores) na sessão; os itens de informação param em
+/// [`MAX_INFO_TEXT_BYTES`].
+pub(crate) const MAX_TEXT_BYTES: usize = 32 << 20;
+/// Bytes de texto guardado em que os itens novos de informação param.
+pub(crate) const MAX_INFO_TEXT_BYTES: usize = 24 << 20;
+/// Donos de stack trace guardados em cache.
+const MAX_TRACE_CACHE: usize = 4_096;
 
 /// Hora de uma ocorrência, compacta.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -138,7 +164,14 @@ struct Item {
     level: Option<LineLevel>,
     logger: Option<u32>,
     template: Arc<str>,
-    occurrences: Vec<Occurrence>,
+    /// Quantas vezes apareceu.
+    count: u32,
+    /// Hora da última vez.
+    last: RawStamp,
+    /// As ocorrências do começo (a primeira sempre).
+    head: Vec<Occurrence>,
+    /// As últimas ocorrências, depois das de `head` (só depois do teto da sessão).
+    tail: VecDeque<Occurrence>,
     severity: ItemSeverity,
     trace: bool,
     extra_lines: u32,
@@ -147,9 +180,50 @@ struct Item {
 }
 
 impl Item {
-    fn problem(&self) -> bool {
-        self.trace || self.severity != ItemSeverity::Info
+    fn first(&self) -> Option<&Occurrence> {
+        self.head.first()
     }
+
+    /// As ocorrências guardadas, na ordem.
+    fn kept(&self) -> impl Iterator<Item = &Occurrence> {
+        self.head.iter().chain(self.tail.iter())
+    }
+
+    /// A ocorrência guardada número `index` (na ordem de [`Self::kept`]).
+    fn kept_at(&self, index: usize) -> Option<&Occurrence> {
+        self.head
+            .get(index)
+            .or_else(|| self.tail.get(index.checked_sub(self.head.len())?))
+    }
+}
+
+/// Gravidade e "é stack trace" de uma entrada.
+fn classify(level: Option<LineLevel>, text: &str) -> (ItemSeverity, bool) {
+    let trace = text.split('\n').skip(1).any(is_frame);
+    let severity = match level {
+        Some(LineLevel::Error | LineLevel::Fatal) => ItemSeverity::Error,
+        Some(LineLevel::Warn) => ItemSeverity::Warning,
+        None if trace => ItemSeverity::Error,
+        _ => ItemSeverity::Info,
+    };
+    (severity, trace)
+}
+
+/// Onde a última ocorrência ficou (para desfazer).
+#[derive(Debug)]
+enum Placed {
+    /// No começo do item.
+    Head,
+    /// No fim do item.
+    Tail,
+    /// No fim do item, no lugar desta (a mais nova do começo, que saiu).
+    Steal(Occurrence),
+    /// No fim do item, no lugar desta (a mais antiga do fim, que saiu).
+    Ring(Occurrence),
+    /// Só contou (o texto não coube).
+    Counted,
+    /// Não coube como item: só contou no grupo. Gravidade e "é problema fora do ruído".
+    Hidden(ItemSeverity, bool),
 }
 
 /// Uma entrada ainda aberta (pode receber as linhas do stack trace que seguem).
@@ -167,7 +241,12 @@ struct OpenEntry {
 #[derive(Debug)]
 struct LastCommit {
     entry: OpenEntry,
-    item: u32,
+    group: u32,
+    /// O item (`None` quando a entrada não coube como item).
+    item: Option<u32>,
+    placed: Placed,
+    /// A hora da última vez antes desta.
+    previous_last: RawStamp,
     created_item: bool,
     created_group: bool,
 }
@@ -187,10 +266,18 @@ pub struct ConsoleGrouper {
     loggers: Vec<Arc<str>>,
     logger_index: HashMap<Arc<str>, u32>,
     logger_owner: HashMap<u32, Option<Owner>>,
-    trace_owner: HashMap<String, TraceOwner>,
+    trace_owner: HashMap<(Option<u32>, Arc<str>), TraceOwner>,
     problems: Vec<u32>,
     entries: u32,
     lines: u32,
+    /// Ocorrências com o texto guardado.
+    kept: usize,
+    /// Bytes de texto guardado (formas e valores).
+    text_bytes: usize,
+    /// Entradas que não couberam como item.
+    hidden: u32,
+    /// Dessas, as de erro, aviso ou stack trace fora do ruído conhecido.
+    hidden_problems: u32,
     last: Option<LastCommit>,
 }
 
@@ -212,8 +299,31 @@ impl ConsoleGrouper {
             problems: Vec::new(),
             entries: 0,
             lines: 0,
+            kept: 0,
+            text_bytes: 0,
+            hidden: 0,
+            hidden_problems: 0,
             last: None,
         }
+    }
+
+    /// Entradas que não couberam como item no teto de memória (contam nos grupos, mas não
+    /// aparecem na lista).
+    #[must_use]
+    pub const fn hidden(&self) -> u32 {
+        self.hidden
+    }
+
+    /// Dessas, as que apareceriam em "Só problemas".
+    #[must_use]
+    pub const fn hidden_problems(&self) -> u32 {
+        self.hidden_problems
+    }
+
+    /// Ocorrências com o texto original guardado (para "Copiar").
+    #[must_use]
+    pub const fn kept(&self) -> usize {
+        self.kept
     }
 
     /// Linhas recebidas (com as de stack trace).
@@ -304,7 +414,7 @@ impl ConsoleGrouper {
         owner
     }
 
-    fn attribute(&mut self, entry: &OpenEntry, template: &str) -> TraceOwner {
+    fn attribute(&mut self, entry: &OpenEntry, template: &Arc<str>) -> TraceOwner {
         if entry.lines <= 1 {
             let owner = self
                 .directory
@@ -313,7 +423,7 @@ impl ConsoleGrouper {
                 .unwrap_or(Owner::Unknown);
             return (owner, None);
         }
-        let cache_key = format!("{}\u{1F}{template}", entry.logger.unwrap_or(u32::MAX));
+        let cache_key = (entry.logger, Arc::clone(template));
         if let Some(cached) = self.trace_owner.get(&cache_key) {
             return cached.clone();
         }
@@ -355,13 +465,27 @@ impl ConsoleGrouper {
             } else {
                 (Owner::Unknown, None)
             });
-        self.trace_owner.insert(cache_key, found.clone());
+        if self.trace_owner.len() < MAX_TRACE_CACHE {
+            self.trace_owner.insert(cache_key, found.clone());
+        }
         found
     }
 
+    /// Cabe mais um item com este texto?
+    fn room_for_item(&self, problem: bool, bytes: usize) -> bool {
+        let (items, text) = if problem {
+            (MAX_ITEMS, MAX_TEXT_BYTES)
+        } else {
+            (MAX_INFO_ITEMS, MAX_INFO_TEXT_BYTES)
+        };
+        self.items.len() < items && self.text_bytes + bytes <= text
+    }
+
+    #[allow(clippy::too_many_lines)] // a gravação inteira, com o teto de memória
     fn commit(&mut self, entry: OpenEntry) {
         let normalized = normalize(&entry.text);
-        let (owner, mod_frame) = self.attribute(&entry, &normalized.template);
+        let template: Arc<str> = Arc::from(normalized.template);
+        let (owner, mod_frame) = self.attribute(&entry, &template);
         let (group_id, mod_id) = split_owner(owner);
         let (group, created_group) = if let Some(&index) = self.group_index.get(&group_id) {
             (index, false)
@@ -382,54 +506,118 @@ impl ConsoleGrouper {
         if let Some(mod_id) = mod_id {
             self.groups[group as usize].mod_id.get_or_insert(mod_id);
         }
-        let template: Arc<str> = Arc::from(normalized.template);
+        let values = normalized.values.into_boxed_str();
         let key = ItemKey {
             group,
             level: entry.level,
             logger: entry.logger,
             template: Arc::clone(&template),
         };
-        let (item, created_item) = if let Some(&index) = self.item_index.get(&key) {
-            (index, false)
+        let (item, created_item, severity) = if let Some(&index) = self.item_index.get(&key) {
+            (Some(index), false, self.items[index as usize].severity)
         } else {
-            let index = u32::try_from(self.items.len()).unwrap_or(u32::MAX);
-            let trace = entry.text.split('\n').skip(1).any(is_frame);
-            let severity = match entry.level {
-                Some(LineLevel::Error | LineLevel::Fatal) => ItemSeverity::Error,
-                Some(LineLevel::Warn) => ItemSeverity::Warning,
-                None if trace => ItemSeverity::Error,
-                _ => ItemSeverity::Info,
-            };
+            let (severity, trace) = classify(entry.level, &entry.text);
+            let problem = trace || severity != ItemSeverity::Info;
             let first_line = entry.text.split('\n').next().unwrap_or_default();
             let noise = self.noise.and_then(|catalog| catalog.matching(first_line));
-            let new = Item {
-                group,
-                level: entry.level,
-                logger: entry.logger,
-                template,
-                occurrences: Vec::new(),
-                severity,
-                trace,
-                extra_lines: entry.lines.saturating_sub(1),
-                mod_frame,
-                noise,
-            };
-            if new.problem() {
-                self.problems.push(index);
+            if self.room_for_item(problem, template.len() + values.len()) {
+                let index = u32::try_from(self.items.len()).unwrap_or(u32::MAX);
+                self.text_bytes += template.len();
+                let new = Item {
+                    group,
+                    level: entry.level,
+                    logger: entry.logger,
+                    template,
+                    count: 0,
+                    last: RawStamp::None,
+                    head: Vec::new(),
+                    tail: VecDeque::new(),
+                    severity,
+                    trace,
+                    extra_lines: entry.lines.saturating_sub(1),
+                    mod_frame,
+                    noise,
+                };
+                if problem {
+                    self.problems.push(index);
+                }
+                self.items.push(new);
+                self.item_index.insert(key, index);
+                self.groups[group as usize].items.push(index);
+                (Some(index), true, severity)
+            } else {
+                // Não cabe mais um item: a entrada só conta no grupo.
+                let visible_problem = problem && noise.is_none();
+                let group_data = &mut self.groups[group as usize];
+                group_data.entries += 1;
+                match severity {
+                    ItemSeverity::Error => group_data.errors += 1,
+                    ItemSeverity::Warning => group_data.warnings += 1,
+                    ItemSeverity::Info => {}
+                }
+                self.hidden += 1;
+                if visible_problem {
+                    self.hidden_problems += 1;
+                }
+                self.entries += 1;
+                self.last = Some(LastCommit {
+                    entry,
+                    group,
+                    item: None,
+                    placed: Placed::Hidden(severity, visible_problem),
+                    previous_last: RawStamp::None,
+                    created_item: false,
+                    created_group,
+                });
+                return;
             }
-            self.items.push(new);
-            self.item_index.insert(key, index);
-            self.groups[group as usize].items.push(index);
-            (index, true)
         };
-        let data = &mut self.items[item as usize];
-        data.occurrences.push(Occurrence {
+        let Some(item) = item else { return };
+        let room = self.kept < MAX_KEPT && self.text_bytes < MAX_TEXT_BYTES;
+        let occurrence = Occurrence {
             seq: entry.seq,
             stamp: entry.stamp,
-            values: normalized.values.into_boxed_str(),
-        });
-        let count = data.occurrences.len();
-        let severity = data.severity;
+            values,
+        };
+        let size = occurrence.values.len();
+        let data = &mut self.items[item as usize];
+        let previous_last = data.last;
+        data.count += 1;
+        data.last = entry.stamp;
+        let count = data.count;
+        let placed = if data.head.is_empty() || (room && data.tail.is_empty()) {
+            data.head.push(occurrence);
+            Placed::Head
+        } else if room {
+            data.tail.push_back(occurrence);
+            Placed::Tail
+        } else if data.tail.len() < EDGE
+            && data.head.len() > 1
+            && let Some(newest) = data.head.pop()
+        {
+            // Sem lugar: a mais nova do começo dá lugar à nova, no fim.
+            data.tail.push_back(occurrence);
+            Placed::Steal(newest)
+        } else if let Some(oldest) = data.tail.pop_front() {
+            data.tail.push_back(occurrence);
+            Placed::Ring(oldest)
+        } else if self.kept < MAX_KEPT + MAX_ITEMS {
+            // Item só com a primeira vez: guarda também a última.
+            data.tail.push_back(occurrence);
+            Placed::Tail
+        } else {
+            Placed::Counted
+        };
+        match &placed {
+            Placed::Head | Placed::Tail => {
+                self.kept += 1;
+                self.text_bytes += size;
+            }
+            Placed::Steal(gone) | Placed::Ring(gone) => {
+                self.text_bytes = self.text_bytes + size - gone.values.len();
+            }
+            Placed::Counted | Placed::Hidden(..) => {}
+        }
         let group_data = &mut self.groups[group as usize];
         group_data.entries += 1;
         match severity {
@@ -445,7 +633,10 @@ impl ConsoleGrouper {
         self.entries += 1;
         self.last = Some(LastCommit {
             entry,
-            item,
+            group,
+            item: Some(item),
+            placed,
+            previous_last,
             created_item,
             created_group,
         });
@@ -454,11 +645,74 @@ impl ConsoleGrouper {
     /// Desfaz a última gravação e devolve a entrada, para juntar mais linhas a ela.
     fn uncommit(&mut self) -> Option<OpenEntry> {
         let last = self.last.take()?;
-        let item = &mut self.items[last.item as usize];
-        item.occurrences.pop();
-        let count = item.occurrences.len();
-        let severity = item.severity;
-        let group = item.group;
+        let group = last.group;
+        let severity = match (last.item, &last.placed) {
+            (_, Placed::Hidden(severity, visible_problem)) => {
+                self.hidden -= 1;
+                if *visible_problem {
+                    self.hidden_problems -= 1;
+                }
+                *severity
+            }
+            (Some(item), _) => {
+                let data = &mut self.items[item as usize];
+                let count = data.count;
+                data.count -= 1;
+                data.last = last.previous_last;
+                match last.placed {
+                    Placed::Head => {
+                        if let Some(removed) = data.head.pop() {
+                            self.kept -= 1;
+                            self.text_bytes -= removed.values.len();
+                        }
+                    }
+                    Placed::Tail => {
+                        if let Some(removed) = data.tail.pop_back() {
+                            self.kept -= 1;
+                            self.text_bytes -= removed.values.len();
+                        }
+                    }
+                    Placed::Steal(newest) => {
+                        if let Some(removed) = data.tail.pop_back() {
+                            self.text_bytes =
+                                self.text_bytes + newest.values.len() - removed.values.len();
+                        }
+                        data.head.push(newest);
+                    }
+                    Placed::Ring(oldest) => {
+                        if let Some(removed) = data.tail.pop_back() {
+                            self.text_bytes =
+                                self.text_bytes + oldest.values.len() - removed.values.len();
+                        }
+                        data.tail.push_front(oldest);
+                    }
+                    Placed::Counted | Placed::Hidden(..) => {}
+                }
+                let severity = data.severity;
+                self.groups[group as usize].repeated -= match count {
+                    2 => 2,
+                    n if n > 2 => 1,
+                    _ => 0,
+                };
+                if last.created_item
+                    && let Some(removed) = self.items.pop()
+                {
+                    self.text_bytes -= removed.template.len();
+                    if self.problems.last() == Some(&item) {
+                        self.problems.pop();
+                    }
+                    self.groups[group as usize].items.pop();
+                    self.item_index.remove(&ItemKey {
+                        group,
+                        level: removed.level,
+                        logger: removed.logger,
+                        template: removed.template,
+                    });
+                }
+                severity
+            }
+            (None, _) => return None,
+        };
         let group_data = &mut self.groups[group as usize];
         group_data.entries -= 1;
         match severity {
@@ -466,26 +720,7 @@ impl ConsoleGrouper {
             ItemSeverity::Warning => group_data.warnings -= 1,
             ItemSeverity::Info => {}
         }
-        group_data.repeated -= match count + 1 {
-            2 => 2,
-            n if n > 2 => 1,
-            _ => 0,
-        };
         self.entries -= 1;
-        if last.created_item
-            && let Some(removed) = self.items.pop()
-        {
-            if self.problems.last() == Some(&last.item) {
-                self.problems.pop();
-            }
-            self.groups[group as usize].items.pop();
-            self.item_index.remove(&ItemKey {
-                group,
-                level: removed.level,
-                logger: removed.logger,
-                template: removed.template,
-            });
-        }
         if last.created_group
             && let Some(removed) = self.groups.pop()
         {
@@ -571,7 +806,7 @@ impl ConsoleGrouper {
             let (x, y) = (&self.items[a as usize], &self.items[b as usize]);
             rank(x)
                 .cmp(&rank(y))
-                .then(y.occurrences.len().cmp(&x.occurrences.len()))
+                .then(y.count.cmp(&x.count))
                 .then(a.cmp(&b))
         });
         let views = ids
@@ -611,7 +846,7 @@ impl ConsoleGrouper {
         let mut picked: Vec<(u32, u32, usize)> = Vec::new();
         let take_item = |item: u32, picked: &mut Vec<(u32, u32, usize)>| {
             if let Some(data) = self.items.get(item as usize) {
-                for (index, occurrence) in data.occurrences.iter().enumerate() {
+                for (index, occurrence) in data.kept().enumerate() {
                     picked.push((occurrence.seq, item, index));
                 }
             }
@@ -630,26 +865,25 @@ impl ConsoleGrouper {
         picked
             .into_iter()
             .take(limit)
-            .map(|(seq, item, index)| {
+            .filter_map(|(seq, item, index)| {
                 let data = &self.items[item as usize];
-                let occurrence = &data.occurrences[index];
-                OriginalLine {
+                let occurrence = data.kept_at(index)?;
+                Some(OriginalLine {
                     seq,
                     level: data.level,
                     logger: self.logger_name(data.logger).map(str::to_owned),
                     stamp: occurrence.stamp.view(),
                     text: fill(&data.template, &occurrence.values),
-                }
+                })
             })
             .collect()
     }
 
     /// O texto do item na lista: o original quando aparece uma vez; a forma quando repete.
     fn first_line(item: &Item) -> String {
-        let full = if item.occurrences.len() == 1 {
-            fill(&item.template, &item.occurrences[0].values)
-        } else {
-            display(&item.template)
+        let full = match (item.count, item.first()) {
+            (1, Some(first)) => fill(&item.template, &first.values),
+            _ => display(&item.template),
         };
         match full.split_once('\n') {
             Some((first, _)) => first.to_owned(),
@@ -669,7 +903,7 @@ impl ConsoleGrouper {
         let data = &self.items[item as usize];
         let group = &self.groups[data.group as usize];
         let mod_frame = data.mod_frame.and_then(|index| {
-            let first = data.occurrences.first()?;
+            let first = data.first()?;
             fill(&data.template, &first.values)
                 .split('\n')
                 .nth(index as usize)
@@ -682,15 +916,9 @@ impl ConsoleGrouper {
             level: data.level,
             logger: self.logger_name(data.logger).map(str::to_owned),
             text: Self::first_line(data),
-            count: u32::try_from(data.occurrences.len()).unwrap_or(u32::MAX),
-            first: data
-                .occurrences
-                .first()
-                .map_or_else(Stamp::default, |o| o.stamp.view()),
-            last: data
-                .occurrences
-                .last()
-                .map_or_else(Stamp::default, |o| o.stamp.view()),
+            count: data.count,
+            first: data.first().map_or_else(Stamp::default, |o| o.stamp.view()),
+            last: data.last.view(),
             noise: data
                 .noise
                 .zip(self.noise)
@@ -853,6 +1081,136 @@ mod tests {
         assert_eq!(after[0].items, 2);
         assert_eq!(after[0].warnings, 2);
         assert_eq!(grouper.item_count(), 2);
+    }
+
+    /// Uma palavra diferente para cada número (formas que nunca repetem).
+    fn word(mut n: usize) -> String {
+        let mut out = String::new();
+        loop {
+            out.push(char::from(b'a' + u8::try_from(n % 26).unwrap_or(0)));
+            n /= 26;
+            if n == 0 {
+                return out;
+            }
+        }
+    }
+
+    fn seqs(grouper: &ConsoleGrouper, item: u32) -> Vec<u32> {
+        grouper
+            .original_lines(&LinesTarget::Item(item), None)
+            .iter()
+            .map(|line| line.seq)
+            .collect()
+    }
+
+    /// Depois do teto da sessão, o item continua contando, guarda a primeira vez, o começo e as
+    /// [`EDGE`] últimas; e desfazer (uma linha de stack trace que chega depois) devolve tudo.
+    #[test]
+    fn teto_guarda_o_comeco_e_as_ultimas() {
+        let mut grouper = ConsoleGrouper::new(ModDirectory::empty());
+        let texts: Vec<String> = (0..MAX_KEPT + 10).map(|n| format!("Aviso {n}")).collect();
+        let warn = Some(LineLevel::Warn);
+        let entries: Vec<LogEntry<'_>> = texts
+            .iter()
+            .enumerate()
+            .map(|(n, text)| entry(u32::try_from(n).unwrap_or(0), warn, Some("x"), text))
+            .collect();
+        grouper.push_batch(&entries);
+        assert_eq!(grouper.kept(), MAX_KEPT);
+        let id = grouper.problems("", 1).0[0].id;
+        let kept = seqs(&grouper, id);
+        assert_eq!(kept.len(), MAX_KEPT);
+        assert_eq!(kept[0], 0);
+        // As 10 depois do teto tomaram o lugar das 10 mais novas do começo.
+        assert_eq!(
+            kept[MAX_KEPT - 11..],
+            [
+                49_989, 50_000, 50_001, 50_002, 50_003, 50_004, 50_005, 50_006, 50_007, 50_008,
+                50_009
+            ]
+        );
+
+        // Uma linha de stack trace junta-se à última: desfaz a troca e devolve a do começo.
+        grouper.push_batch(&[entry(99_999, None, None, "\tat a.B.c(B.java:1)")]);
+        let kept = seqs(&grouper, id);
+        assert_eq!(kept.len(), MAX_KEPT);
+        assert_eq!(kept[MAX_KEPT - 10..MAX_KEPT - 8], [49_990, 50_000]);
+        assert_eq!(*kept.last().unwrap_or(&0), 50_008);
+        // A entrada com o stack trace é um item novo, com a primeira vez guardada.
+        assert_eq!(grouper.kept(), MAX_KEPT + 1);
+
+        // Mais 200: o fim guarda só as EDGE últimas, e a contagem continua certa.
+        let more: Vec<String> = (0..200).map(|n| format!("Aviso {n}")).collect();
+        let entries: Vec<LogEntry<'_>> = more
+            .iter()
+            .enumerate()
+            .map(|(n, text)| {
+                entry(
+                    200_000 + u32::try_from(n).unwrap_or(0),
+                    warn,
+                    Some("x"),
+                    text,
+                )
+            })
+            .collect();
+        grouper.push_batch(&entries);
+        let (items, _) = grouper.problems("Aviso", 5);
+        let item = items
+            .iter()
+            .find(|item| item.id == id)
+            .unwrap_or_else(|| panic!("{items:?}"));
+        assert_eq!(item.count, u32::try_from(MAX_KEPT + 9 + 200).unwrap_or(0));
+        let kept = seqs(&grouper, id);
+        assert_eq!(kept.len(), MAX_KEPT);
+        let tail: Vec<u32> = (200_000 + 200 - u32::try_from(EDGE).unwrap_or(0)..200_200).collect();
+        assert_eq!(kept[MAX_KEPT - EDGE..], tail[..]);
+
+        // Desfazer a troca no fim (a mais antiga volta).
+        grouper.push_batch(&[entry(300_000, None, None, "\tat a.B.c(B.java:1)")]);
+        let kept = seqs(&grouper, id);
+        assert_eq!(kept[MAX_KEPT - EDGE], 200_149);
+        assert_eq!(*kept.last().unwrap_or(&0), 200_198);
+    }
+
+    /// Formas novas além do teto de itens contam no grupo, mas não viram item; os erros têm
+    /// lugar reservado e continuam em "Só problemas".
+    #[test]
+    fn formas_alem_do_teto_contam_sem_virar_item() {
+        let mut grouper = ConsoleGrouper::new(ModDirectory::empty());
+        let texts: Vec<String> = (0..MAX_INFO_ITEMS + 10)
+            .map(|n| format!("Modelo {}", word(n)))
+            .collect();
+        let info = Some(LineLevel::Info);
+        let entries: Vec<LogEntry<'_>> = texts
+            .iter()
+            .enumerate()
+            .map(|(n, text)| entry(u32::try_from(n).unwrap_or(0), info, Some("x"), text))
+            .collect();
+        grouper.push_batch(&entries);
+        assert_eq!(grouper.item_count(), MAX_INFO_ITEMS);
+        assert_eq!((grouper.hidden(), grouper.hidden_problems()), (10, 0));
+        let groups = grouper.groups("");
+        assert_eq!(
+            groups[0].entries,
+            u32::try_from(MAX_INFO_ITEMS + 10).unwrap_or(0)
+        );
+
+        // A última forma que ficou de fora vira stack trace: agora cabe (lugar dos problemas).
+        grouper.push_batch(&[entry(900_000, None, None, "\tat a.B.c(B.java:1)")]);
+        assert_eq!((grouper.hidden(), grouper.hidden_problems()), (9, 0));
+        let (problems, total) = grouper.problems("", 5);
+        assert_eq!(total, 1);
+        assert!(problems[0].trace);
+        let groups = grouper.groups("");
+        assert_eq!(
+            groups[0].entries,
+            u32::try_from(MAX_INFO_ITEMS + 10).unwrap_or(0)
+        );
+        assert_eq!(groups[0].errors, 0);
+        assert_eq!(
+            grouper.entries(),
+            u32::try_from(MAX_INFO_ITEMS + 10).unwrap_or(0)
+        );
     }
 
     #[test]
