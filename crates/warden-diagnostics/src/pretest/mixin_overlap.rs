@@ -247,6 +247,8 @@ pub fn findings(overlaps: &[Overlap]) -> Result<Vec<Finding>> {
             .iter()
             .any(|p| p.elevators.iter().any(|e| matches!(e, Elevator::Crash(_))));
         finding = finding.with_param("travamento", if crashed { "sim" } else { "nao" });
+        // O título cita os dois primeiros itens; os demais entram como "e mais N".
+        finding = finding.with_param("outros", items.len().saturating_sub(2).to_string());
         for item in items {
             finding = finding.with_item(ItemRef::Metafile {
                 path: item.to_owned(),
@@ -394,6 +396,7 @@ mod tests {
         assert_eq!(ab.param("travamento"), Some("sim"));
         assert_eq!(found[1].param("travamento"), Some("nao"));
         assert_eq!(found[1].param("mais"), Some("0"));
+        assert_eq!(ab.param("outros"), Some("0"));
         assert_eq!(ab.items().len(), 2);
         assert!(ab.evidence().iter().any(|e| matches!(e,
             Evidence::JarMetadata { file_in_jar, excerpt, .. }

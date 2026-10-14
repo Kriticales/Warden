@@ -123,6 +123,13 @@ export const raioX = {
       alto: 'risco alto',
       medio: 'risco médio',
     },
+    /** Mais itens no mesmo grupo além dos dois do título (`outros`). */
+    maisMods_zero: '',
+    maisMods_one: ' e mais {{count}} mod',
+    maisMods_other: ' e mais {{count}} mods',
+    sujeito_zero: 'Os dois',
+    sujeito_one: 'Eles',
+    sujeito_other: 'Eles',
     maisPartes_zero: '',
     maisPartes_one: ' e mais {{count}} parte',
     maisPartes_other: ' e mais {{count}} partes',

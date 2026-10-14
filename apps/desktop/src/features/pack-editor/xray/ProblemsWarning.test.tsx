@@ -92,7 +92,13 @@ describe('aviso "alteram o mesmo ponto do jogo" em Problemas (D-10)', () => {
   it('CA-T14-09: risco alto pelo travamento, com as configs, o ponto e a linha do log; axe', async () => {
     const warnings = await openProblems(
       overlapFinding(
-        { ponto: 'SodiumGameOptionPages.general', mais: '1', risco: 'alto', travamento: 'sim' },
+        {
+          ponto: 'SodiumGameOptionPages.general',
+          mais: '1',
+          risco: 'alto',
+          travamento: 'sim',
+          outros: '0',
+        },
         true,
       ),
     );
@@ -114,7 +120,10 @@ describe('aviso "alteram o mesmo ponto do jogo" em Problemas (D-10)', () => {
 
   it('risco médio, um ponto só e sem travamento', async () => {
     const warnings = await openProblems(
-      overlapFinding({ ponto: 'Level.tick', mais: '0', risco: 'medio', travamento: 'nao' }, false),
+      overlapFinding(
+        { ponto: 'Level.tick', mais: '0', risco: 'medio', travamento: 'nao', outros: '0' },
+        false,
+      ),
     );
     const card = within(warnings).getByRole('article', {
       name: 'Sodium Extra e Sodium Extras alteram o mesmo ponto do jogo',
@@ -122,5 +131,18 @@ describe('aviso "alteram o mesmo ponto do jogo" em Problemas (D-10)', () => {
     expect(card.textContent).toContain(
       'Os dois mudam Level.tick (risco médio). Muitas vezes é de propósito; se o jogo travar ou uma função de um deles sumir, comece por eles. Este aviso nunca impede o teste.',
     );
+  });
+
+  it('com três mods ou mais, o título diz quantos além dos dois', async () => {
+    const warnings = await openProblems(
+      overlapFinding(
+        { ponto: 'Level.tick', mais: '0', risco: 'alto', travamento: 'nao', outros: '1' },
+        false,
+      ),
+    );
+    const card = within(warnings).getByRole('article', {
+      name: 'Sodium Extra e Sodium Extras e mais 1 mod alteram o mesmo ponto do jogo',
+    });
+    expect(card.textContent).toContain('Eles mudam Level.tick (risco alto).');
   });
 });
