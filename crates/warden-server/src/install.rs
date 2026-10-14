@@ -431,7 +431,6 @@ impl Installer {
         // recusado): o que vale é o servidor estar lá.
         find_launch(dir, &artifact.version).ok_or_else(|| Error::InstallerOutputMissing {
             loader: kind.label().to_owned(),
-            dir: dir.to_path_buf(),
             output: output.tail,
         })
     }
@@ -650,8 +649,27 @@ async fn run_installer(
     let status = status.map_err(|error| Error::io("esperar o instalador", dir, error))?;
     Ok(InstallerOutput {
         code: status.code(),
-        tail: tail_of(&text, INSTALLER_OUTPUT_TAIL),
+        tail: private_paths(&tail_of(&text, INSTALLER_OUTPUT_TAIL), dir),
     })
+}
+
+/// A saída do instalador sem a pasta do usuário: a pasta do servidor vira `.` e a pasta pessoal,
+/// `<usuário>` (vai para "Detalhes técnicos", que a pessoa pode copiar e mandar).
+fn private_paths(text: &str, dir: &Path) -> String {
+    let mut text = text.to_owned();
+    let mut replace = |path: &Path, with: &str| {
+        let shown = path.display().to_string();
+        if shown.len() > 3 {
+            text = text.replace(&shown, with);
+        }
+    };
+    replace(dir, ".");
+    for home in ["USERPROFILE", "HOME"] {
+        if let Some(home) = std::env::var_os(home).filter(|value| !value.is_empty()) {
+            replace(Path::new(&home), "<usuário>");
+        }
+    }
+    text
 }
 
 async fn read_all(pipe: Option<impl AsyncRead + Unpin>) -> String {
@@ -785,6 +803,13 @@ mod tests {
                 file: format!("libraries/net/minecraftforge/forge/1.20.1-47.3.0/{name}")
             })
         );
+    }
+
+    #[test]
+    fn saida_do_instalador_sem_a_pasta_do_usuario() {
+        let dir = Path::new("/dados/instances/x/server");
+        let text = "Extracting /dados/instances/x/server/libraries/a.jar\nok";
+        assert_eq!(private_paths(text, dir), "Extracting ./libraries/a.jar\nok");
     }
 
     #[test]

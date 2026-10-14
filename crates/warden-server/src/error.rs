@@ -124,12 +124,10 @@ pub enum Error {
         output: String,
     },
     /// O instalador não deixou o servidor.
-    #[error("o instalador do {loader} não deixou o servidor em {}", .dir.display())]
+    #[error("o instalador do {loader} não deixou o servidor na pasta do servidor")]
     InstallerOutputMissing {
         /// Loader.
         loader: String,
-        /// Pasta do servidor.
-        dir: PathBuf,
         /// O fim da saída do instalador (até 4 KB), para "Detalhes técnicos".
         output: String,
     },
