@@ -64,8 +64,9 @@ fn collect(dir: &Path, relative: &str, depth: usize, out: &mut Vec<String>) {
             }
             continue;
         }
-        let lower = name.to_ascii_lowercase();
-        let wanted = lower.ends_with(".toml") || lower.ends_with(".cfg");
+        let wanted = Path::new(&name)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("toml") || ext.eq_ignore_ascii_case("cfg"));
         let small = entry
             .metadata()
             .is_ok_and(|meta| meta.len() <= MAX_STRUCTURED_BYTES as u64);

@@ -120,6 +120,18 @@ fn number(text: &str) -> Option<f64> {
     text.parse::<f64>().ok().filter(|value| value.is_finite())
 }
 
+/// Inteiro como número com casas, para comparar com a faixa e com padrões escritos `64.0`.
+#[allow(clippy::cast_precision_loss)] // Faixas e padrões de config ficam muito abaixo de 2^53.
+fn as_float(value: i64) -> f64 {
+    value as f64
+}
+
+/// O número, se for inteiro e couber exato num `i64`.
+#[allow(clippy::cast_possible_truncation)] // Só inteiros menores que 2^53, conferidos antes.
+fn whole(number: f64) -> Option<i64> {
+    (number.fract() == 0.0 && number.abs() < 9.0e15).then_some(number as i64)
+}
+
 fn close(left: f64, right: f64) -> bool {
     (left - right).abs() <= 1e-9 * left.abs().max(right.abs()).max(1.0)
 }
@@ -172,7 +184,7 @@ fn same_as(value: &ConfigValue, default: &str) -> Option<bool> {
             _ => None,
         },
         ConfigValue::Integer(current) => written.parse::<i64>().map_or_else(
-            |_| number(written).map(|read| close(read, *current as f64)),
+            |_| number(written).map(|read| close(read, as_float(*current))),
             |read| Some(read == *current),
         ),
         ConfigValue::Float(current) => number(written).map(|read| close(read, *current)),
@@ -218,8 +230,7 @@ pub fn default_value(field: &ConfigField) -> Option<FormValue> {
         (FormValue::Integer(_), _) => {
             let read = written.parse::<i64>().ok().or_else(|| {
                 // `64.0` num inteiro: só se for inteiro de verdade.
-                let number = number(written)?;
-                (number.fract() == 0.0 && number.abs() < 9.0e15).then_some(number as i64)
+                whole(number(written)?)
             })?;
             FormValue::Integer(read.to_string())
         }
@@ -385,7 +396,7 @@ pub fn entry_range_issue(format: ConfigFormat, entry: &ConfigEntry) -> Option<Ra
         None => return None,
     };
     let current = match value {
-        ConfigValue::Integer(number) => *number as f64,
+        ConfigValue::Integer(number) => as_float(*number),
         ConfigValue::Float(number) => *number,
         ConfigValue::String(text) => number(text)?,
         _ => return None,
@@ -470,10 +481,8 @@ mod tests {
             .collect()
     }
 
-    fn keys(path: &str) -> Vec<FieldKey> {
-        path.split('.')
-            .map(|key| FieldKey::Name(key.into()))
-            .collect()
+    fn keys(path: &str) -> String {
+        path.to_owned()
     }
 
     /// Linhas diferentes entre dois textos com o mesmo número de linhas.
@@ -503,16 +512,16 @@ mod tests {
             } else if let Some(value) = line.strip_prefix("# Default:") {
                 default = Some(value.trim().to_owned());
             } else if line.starts_with('#') || line.is_empty() {
-            } else if let Some((key, value)) = line.split_once('=') {
-                if let Some(expected) = default.take() {
-                    let (a, b) = (value.trim(), expected.as_str());
-                    let same = match (a.parse::<f64>(), b.parse::<f64>()) {
-                        (Ok(x), Ok(y)) => x == y,
-                        _ => a == b,
-                    };
-                    if !same {
-                        out.insert(format!("{section}.{}", key.trim()));
-                    }
+            } else if let Some((key, value)) = line.split_once('=')
+                && let Some(expected) = default.take()
+            {
+                let (a, b) = (value.trim(), expected.as_str());
+                let same = match (a.parse::<f64>(), b.parse::<f64>()) {
+                    (Ok(x), Ok(y)) => close(x, y),
+                    _ => a == b,
+                };
+                if !same {
+                    out.insert(format!("{section}.{}", key.trim()));
                 }
             }
         }

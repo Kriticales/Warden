@@ -724,22 +724,7 @@ fn field_item(
             })
     });
 
-    let default = defaults::entry_default(format, entry)
-        .map(|default| FieldDefault {
-            value: default.value,
-            inferred: false,
-            source: default.source,
-        })
-        .or_else(|| {
-            description
-                .as_deref()
-                .and_then(inferred::default)
-                .map(|value| FieldDefault {
-                    value,
-                    inferred: true,
-                    source: DefaultSource::CommentPhrase,
-                })
-        });
+    let default = field_default(format, entry, description.as_deref());
     let default_state = defaults::entry_state(format, entry);
     let out_of_range = defaults::entry_range_issue(format, entry).is_some();
 
@@ -775,6 +760,30 @@ fn field_item(
         out_of_range,
         label,
     }))
+}
+
+/// Padrão do campo: o que o arquivo informa (camada A, C-06) ou, sem ele, a frase do
+/// comentário (camada 3, "deduzido").
+fn field_default(
+    format: ConfigFormat,
+    entry: &ConfigEntry,
+    description: Option<&str>,
+) -> Option<FieldDefault> {
+    defaults::entry_default(format, entry)
+        .map(|default| FieldDefault {
+            value: default.value,
+            inferred: false,
+            source: default.source,
+        })
+        .or_else(|| {
+            description
+                .and_then(inferred::default)
+                .map(|value| FieldDefault {
+                    value,
+                    inferred: true,
+                    source: DefaultSource::CommentPhrase,
+                })
+        })
 }
 
 fn control_for(
