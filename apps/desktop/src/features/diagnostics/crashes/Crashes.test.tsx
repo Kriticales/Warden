@@ -29,7 +29,10 @@ import {
   makeGroup,
   makeSignature,
 } from './crashes.fixtures';
-import { crashTitle, versionsText } from './text';
+import { MAX_WHERE_LENGTH, crashTitle, shorten, versionsText } from './text';
+
+/** Título do grupo padrão dos dados de teste (sem achado gravado). */
+const NPE_TITLE = 'O jogo travou com NullPointerException (em EntityTicker.tick)';
 
 function setup(handlers: Record<string, Handler> = {}) {
   return editorBackend({
@@ -65,7 +68,7 @@ describe('Travamentos em Problemas (T14)', () => {
     // Cabeçalho + uma linha por causa.
     expect(rows).toHaveLength(3);
 
-    const npe = rowOf(block, 'O jogo travou com NullPointerException');
+    const npe = rowOf(block, NPE_TITLE);
     expect(within(npe).getByText('Travou 2 vezes')).toBeDefined();
     expect(within(npe).getByText('versões 1.4.1 e 1.4.2')).toBeDefined();
     expect(within(npe).getByText('Causa não encontrada')).toBeDefined();
@@ -89,7 +92,7 @@ describe('Travamentos em Problemas (T14)', () => {
   it('"Ver o que causou" abre o resultado do teste mais novo do grupo', async () => {
     const { url } = setup();
     const block = await openCrashes(url);
-    const npe = rowOf(block, 'O jogo travou com NullPointerException');
+    const npe = rowOf(block, NPE_TITLE);
     const link = within(npe).getByRole('link', { name: /^Ver o que causou o travamento de / });
     expect(link.textContent).toBe('Ver o que causou');
     expect(link.getAttribute('href')).toContain('sessao=2026-10-07_14-20-00');
@@ -99,7 +102,7 @@ describe('Travamentos em Problemas (T14)', () => {
     const { backend, url } = setup({ crash_get: () => makeDetail() });
     const user = userEvent.setup();
     const block = await openCrashes(url);
-    const npe = rowOf(block, 'O jogo travou com NullPointerException');
+    const npe = rowOf(block, NPE_TITLE);
     const toggle = within(npe).getByRole('button', { name: 'Ver as 2 vezes' });
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     await user.click(toggle);
@@ -317,19 +320,27 @@ describe('textos da linha', () => {
 
   it('título: o achado gravado, a exceção ou a frase sem detalhe', () => {
     expect(crashTitle(BALM_GROUP)).toBe('Waystones precisa de balm, que não está no pack');
-    expect(crashTitle(makeGroup())).toBe('O jogo travou com NullPointerException');
+    expect(crashTitle(makeGroup())).toBe(
+      'O jogo travou com NullPointerException (em EntityTicker.tick)',
+    );
+    const bare = makeSignature({ frame: null });
+    expect(crashTitle(makeGroup({ signature: bare }))).toBe(
+      'O jogo travou com NullPointerException',
+    );
     const signature = { ...makeGroup().signature, exception: null };
     expect(crashTitle(makeGroup({ signature }))).toBe('O jogo travou sem deixar a causa no log');
     // Sem o achado gravado, onde quebrou separa causas com a mesma exceção.
     const golem = makeSignature({
+      frame: null,
       subject: [
         'entity_type=alpha:golem',
         'description=ticking entity',
         'entity_class=com.alpha.Golem',
       ],
     });
-    const overlay = makeSignature({ subject: ['description=rendering overlay'] });
+    const overlay = makeSignature({ frame: null, subject: ['description=rendering overlay'] });
     const bau = makeSignature({
+      frame: null,
       subject: ['description=ticking block entity', 'block_entity=beta:bau'],
     });
     expect(crashTitle(makeGroup({ signature: golem }))).toBe(
@@ -341,5 +352,68 @@ describe('textos da linha', () => {
     expect(crashTitle(makeGroup({ signature: bau }))).toBe(
       'O jogo travou com NullPointerException (beta:bau)',
     );
+    expect(crashTitle(makeGroup({ signature: { ...golem, frame: 'com.alpha.Golem.tick' } }))).toBe(
+      'O jogo travou com NullPointerException (alpha:golem em Golem.tick)',
+    );
+  });
+
+  it('título: a mesma descrição em frames diferentes dá títulos diferentes (2ª revisão)', () => {
+    // NPE "Unexpected error" no render, no tick do servidor e num método injetado pelo Mixin:
+    // três linhas, três títulos.
+    const where = (frame: string) =>
+      crashTitle(
+        makeGroup({
+          signature: makeSignature({
+            rule: 'crash_report.description',
+            frame,
+            mods: [],
+            subject: ['description=unexpected error'],
+          }),
+        }),
+      );
+    const titles = [
+      where('net.minecraft.client.renderer.GameRenderer.render'),
+      where('net.minecraft.server.level.ServerLevel.tick'),
+      where('net.minecraft.world.entity.Entity.aoTick'),
+    ];
+    expect(titles).toEqual([
+      'O jogo travou com NullPointerException (unexpected error em GameRenderer.render)',
+      'O jogo travou com NullPointerException (unexpected error em ServerLevel.tick)',
+      'O jogo travou com NullPointerException (unexpected error em Entity.aoTick)',
+    ]);
+    // Frame nativo da JVM: sem a letra do tipo.
+    expect(where('C ig9icd64.dll')).toBe(
+      'O jogo travou com NullPointerException (unexpected error em ig9icd64.dll)',
+    );
+  });
+
+  it('título: onde quebrou é cortado com reticências sem quebrar nomes', () => {
+    const long = makeSignature({
+      frame: 'net.exemplo.ClasseComUmNomeMuitoGrandeMesmo.metodoQueTambemTemUmNomeEnorme',
+      subject: ['description=exception while ticking a very long description of the world state'],
+    });
+    const title = crashTitle(makeGroup({ signature: long }));
+    const onde = /\((.*)\)$/.exec(title)?.[1] ?? '';
+    expect(onde.length).toBeLessThanOrEqual(MAX_WHERE_LENGTH);
+    // O frame fica inteiro; a descrição é cortada num espaço, sem quebrar a palavra.
+    expect(onde).toBe(
+      'exception… em ClasseComUmNomeMuitoGrandeMesmo.metodoQueTambemTemUmNomeEnorme',
+    );
+    const shorter = makeSignature({
+      frame: 'net.exemplo.Mundo.tick',
+      subject: [
+        'description=exception while ticking the world in a very long and detailed description',
+      ],
+    });
+    expect(crashTitle(makeGroup({ signature: shorter }))).toBe(
+      'O jogo travou com NullPointerException (exception while ticking the world in a very long and detailed… em Mundo.tick)',
+    );
+
+    // Um nome só, sem espaço onde cortar: corta no meio.
+    const single = 'a'.repeat(120);
+    expect(shorten(single)).toBe(`${'a'.repeat(MAX_WHERE_LENGTH - 1)}…`);
+    // Até o limite, nada muda.
+    const exact = 'b'.repeat(MAX_WHERE_LENGTH);
+    expect(shorten(exact)).toBe(exact);
   });
 });

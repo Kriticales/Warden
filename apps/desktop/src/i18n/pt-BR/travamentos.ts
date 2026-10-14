@@ -18,8 +18,12 @@ export const travamentos = {
   },
   /** Título da linha quando a análise não deixou um achado. */
   excecao: 'O jogo travou com {{excecao}}',
-  /** Com onde quebrou: a entidade, o bloco ou a descrição do crash report. */
+  /** Com onde quebrou: a entidade, o bloco ou a descrição do crash report e o frame da pilha. */
   excecaoOnde: 'O jogo travou com {{excecao}} ({{onde}})',
+  /** Onde quebrou: o que quebrou e o frame da pilha (`alpha:golem em EntityTicker.tick`). */
+  ondeEm: '{{onde}} em {{frame}}',
+  /** Onde quebrou, só com o frame da pilha. */
+  em: 'em {{frame}}',
   semDetalhe: 'O jogo travou sem deixar a causa no log',
   vezes_one: 'Travou {{count}} vez',
   vezes_other: 'Travou {{count}} vezes',
