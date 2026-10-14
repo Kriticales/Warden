@@ -207,6 +207,11 @@ pub(crate) fn finding_id(finding: &Finding, items: &[ReportItem]) -> String {
             }
         }
     }
+    // Achado de uma chave de config (C-06): o arquivo e a chave o distinguem.
+    if let Some(key) = finding.param("config_key") {
+        let file = finding.param("config_file").unwrap_or_default();
+        parts.insert(format!("config:{file}#{key}"));
+    }
     let mut id = finding.rule().to_string();
     for part in parts {
         id.push('|');

@@ -5,6 +5,7 @@
 //! Na passagem completa, [`build_index`] monta os índices pacote → mod e config de mixin → mod
 //! (D-05) e [`attribute_mixin_owners`] liga as falhas de Mixin do pós-crash ao mod dono.
 
+pub mod config_range;
 mod curated;
 mod index_pass;
 mod mc_version;

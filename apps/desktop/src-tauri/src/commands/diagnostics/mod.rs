@@ -16,6 +16,7 @@
 //! `test_hooks/diagnostics.rs`.
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
+mod config_range;
 pub(crate) mod crash;
 pub(crate) mod input;
 pub(crate) mod report;
@@ -183,9 +184,12 @@ pub(crate) async fn check(
             let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
             let cache_dir = state.paths.cache_dir();
             let input = built.input;
+            let root = snapshot.root.clone();
             let findings = tokio::task::spawn_blocking(move || {
-                let findings = warden_diagnostics::pretest::analyze(&input)
+                let mut findings = warden_diagnostics::pretest::analyze(&input)
                     .map_err(|error| AppError::from_domain(&error))?;
+                // Configs com valor fora da faixa que o próprio arquivo declara (C-06).
+                findings.extend(config_range::config_range_findings(&root));
                 // Passagem completa com a instância pronta: monta (ou confere no cache) o índice
                 // de pacotes e configs de mixin, usado depois pela análise de um travamento.
                 if input.pass == Pass::Complete && game_dir.is_dir() {

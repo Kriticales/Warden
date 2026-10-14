@@ -1,0 +1,26 @@
+origem = "Warden (C-06): servidor Forge 1.20.1-47.4.0 rodado em 14/10/2026 com `zombieBaseSummonChance = 5.0` (faixa 0.0 ~ 1.0) e `removeErroringEntities = 7` em `world/serverconfig/forge-server.toml`; `logs/latest.log` sem alteração além da pasta do servidor trocada por `<DADOS>`"
+nota = "Forge 1.20.1, o jogo trocou dois valores da config pelo padrão"
+loader = "forge"
+minecraft = "1.20.1"
+
+[[achado]]
+regra = "W_CONFIG_RESET"
+padrao = "config.incorrect_key_corrected"
+arquivo = "latest.log"
+linha = 31
+
+[achado.params]
+config_default = "false"
+config_key = "server.removeErroringEntities"
+config_value = "7"
+
+[[achado]]
+regra = "W_CONFIG_RESET"
+padrao = "config.incorrect_key_corrected"
+arquivo = "latest.log"
+linha = 32
+
+[achado.params]
+config_default = "1.0"
+config_key = "server.zombieBaseSummonChance"
+config_value = "5.0"

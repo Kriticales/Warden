@@ -29,9 +29,10 @@ use crate::document::ConfigDocument;
 use crate::error::{ConfigError, Result};
 use crate::format::ConfigFormat;
 use crate::meta::{
-    ConfigField, FieldControl, FieldKey, FormEdit, FormItem, FormValue, apply_form_edits,
-    build_form, explicit,
+    ConfigField, FieldControl, FormEdit, FormItem, FormValue, apply_form_edits, build_form,
+    explicit,
 };
+use crate::path::KeyPath;
 use crate::tree::{ConfigEntry, ConfigValue, EntryKind, float_text};
 
 /// De onde veio o padrão de uma chave.
@@ -253,8 +254,9 @@ pub struct RestoredDefaults {
     pub keys: Vec<String>,
 }
 
-/// Troca o valor das chaves `keys` (ou, com `None`, de todas as alteradas do arquivo) pelo
-/// padrão da camada A. Só os bytes dos valores mudam.
+/// Troca o valor das chaves `keys` (o caminho como o formulário mostra, `geral.maxChunks`) ou,
+/// com `None`, de todas as alteradas do arquivo pelo padrão da camada A. Só os bytes dos
+/// valores mudam.
 ///
 /// # Errors
 ///
@@ -263,7 +265,7 @@ pub struct RestoredDefaults {
 pub fn restore_defaults(
     path: &str,
     text: &str,
-    keys: Option<&[Vec<FieldKey>]>,
+    keys: Option<&[String]>,
 ) -> Result<RestoredDefaults> {
     let form = build_form(path, text.as_bytes(), None);
     let fields: Vec<&ConfigField> = form
@@ -281,13 +283,13 @@ pub fn restore_defaults(
             for key in keys {
                 let field = fields
                     .iter()
-                    .find(|field| &field.path == key)
+                    .find(|field| &field.key == key)
                     .ok_or_else(|| ConfigError::NotEditable {
-                        path: crate::meta::from_keys(key),
+                        path: KeyPath::from_keys([key.as_str()]),
                         reason: "a chave não está no formulário".into(),
                     })?;
                 let value = restorable(field).ok_or_else(|| ConfigError::NotEditable {
-                    path: crate::meta::from_keys(key),
+                    path: crate::meta::from_keys(&field.path),
                     reason: "a chave não tem padrão conhecido diferente do valor".into(),
                 })?;
                 edits.push(FormEdit {
@@ -592,7 +594,16 @@ mod tests {
         let apiculture = corpus("cfg", "22-apiculture.cfg");
         let found = changed("config/forestry/apiculture.cfg", &apiculture);
         assert!(found.contains("beekeeping.mode"), "{found:?}");
-        assert!(!found.contains("beekeeping.second.princess"), "{found:?}");
+        assert!(
+            !found.contains("beekeeping.\"second.princess\""),
+            "{found:?}"
+        );
+        let all = fields("config/forestry/apiculture.cfg", &apiculture);
+        let princess = all
+            .iter()
+            .find(|f| f.key == "beekeeping.\"second.princess\"")
+            .unwrap();
+        assert_eq!(princess.default_state, DefaultState::Same);
     }
 
     #[test]
