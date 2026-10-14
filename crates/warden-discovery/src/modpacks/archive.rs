@@ -4,6 +4,11 @@
 //! pedida; cada leitura que falta vira um pedido `Range`. Tudo fica em memória: nada do modpack
 //! (nem o manifesto da CurseForge) vai para o disco. Servidor sem `Range`: o arquivo inteiro,
 //! até 200 MB, com aviso ([`ArchiveEntry::whole_download`]).
+//!
+//! Antes do `zip`, o fim do arquivo (que já veio no primeiro pedido) precisa ter o fim do
+//! diretório central: sem ele, o arquivo não é zip e é recusado na hora, sem que o `zip` o
+//! procure de trás para frente. O resto (um zip com o diretório central fora do lugar, um
+//! servidor que mente o tamanho) para no teto de pedidos e de bytes do [`RemoteFile`].
 
 use std::io::Read as _;
 
@@ -16,6 +21,14 @@ use crate::DiscoveryErrorCode;
 
 /// Maior entrada aceita (um `modrinth.index.json` de mil mods tem ~700 KB).
 const MAX_ENTRY: u64 = 16 * 1024 * 1024;
+
+/// Onde o fim do diretório central de um zip pode começar, contado do fim do arquivo: 22 bytes
+/// do registro e até 65.535 de comentário. O primeiro pedido traz mais que isso
+/// ([`warden_http::range_reader::TAIL_FETCH`]).
+const ZIP_END_WINDOW: u64 = 22 + 65_535;
+
+/// Assinatura do fim do diretório central.
+const ZIP_END_SIGNATURE: &[u8; 4] = b"PK\x05\x06";
 
 /// O que foi lido do zip.
 #[derive(Debug, Clone)]
@@ -48,6 +61,15 @@ pub async fn read_entry(
     let file = RemoteFile::open(http, url, options, Some(cancel))
         .await
         .map_err(|error| http_failure(source, error))?;
+    if !has_zip_end(&file)
+        .await
+        .map_err(|error| http_failure(source, error))?
+    {
+        return Err(ModpackError::unreadable(
+            "o arquivo não é um zip: o fim do diretório central não está no fim do arquivo",
+        )
+        .into());
+    }
     let handle = tokio::runtime::Handle::current();
     let reader_file = file.clone();
     let entry_name = entry.to_owned();
@@ -77,6 +99,25 @@ pub async fn read_entry(
         requests: file.requests(),
         bytes_received: file.bytes_received(),
     })
+}
+
+/// Se os últimos [`ZIP_END_WINDOW`] bytes têm a assinatura do fim do diretório central. Lê só o
+/// que o primeiro pedido trouxe (nenhum pedido a mais).
+async fn has_zip_end(file: &RemoteFile) -> warden_http::Result<bool> {
+    let from = file.len().saturating_sub(ZIP_END_WINDOW);
+    let mut tail = Vec::new();
+    while from + (tail.len() as u64) < file.len() {
+        let at = from + tail.len() as u64;
+        let missing = usize::try_from(file.len() - at).unwrap_or(usize::MAX);
+        let chunk = file.read_at(at, missing).await?;
+        if chunk.is_empty() {
+            break;
+        }
+        tail.extend(chunk);
+    }
+    Ok(tail
+        .windows(ZIP_END_SIGNATURE.len())
+        .any(|w| w == ZIP_END_SIGNATURE))
 }
 
 fn read_zip(

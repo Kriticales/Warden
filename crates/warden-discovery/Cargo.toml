@@ -27,7 +27,7 @@ serde_json.workspace = true
 
 [dev-dependencies]
 wiremock.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+tokio = { workspace = true, features = ["io-util", "macros", "net", "rt-multi-thread", "time"] }
 tempfile.workspace = true
 warden-packwiz.workspace = true
 

@@ -526,6 +526,217 @@ async fn zip_sem_o_indice_e_ilegivel() {
     );
 }
 
+// ---------- Arquivos que não são modpack (revisão da P1-17) ----------
+
+/// Byte `i` do "lixo": nunca forma `PK`.
+fn junk_byte(i: u64) -> u8 {
+    match u8::try_from(i % 251).unwrap_or(0) {
+        b'P' => b'Q',
+        byte => byte,
+    }
+}
+
+/// Lixo de qualquer tamanho declarado (até "1 GB"), servido com `Range`; os bytes são gerados
+/// a cada pedido. `end` substitui os últimos bytes (um fim de diretório central falso).
+#[derive(Clone)]
+struct Junk {
+    len: u64,
+    end: Arc<Vec<u8>>,
+    requests: Arc<AtomicUsize>,
+    sent: Arc<AtomicUsize>,
+}
+
+impl Junk {
+    fn new(len: u64, end: Vec<u8>) -> Self {
+        Self {
+            len,
+            end: Arc::new(end),
+            requests: Arc::default(),
+            sent: Arc::default(),
+        }
+    }
+
+    fn byte(&self, i: u64) -> u8 {
+        let from = self.len - self.end.len() as u64;
+        if i >= from {
+            self.end[usize::try_from(i - from).unwrap()]
+        } else {
+            junk_byte(i)
+        }
+    }
+}
+
+impl Respond for Junk {
+    fn respond(&self, request: &Request) -> ResponseTemplate {
+        if request.method.as_str() == "HEAD" {
+            return ResponseTemplate::new(200);
+        }
+        self.requests.fetch_add(1, Ordering::Relaxed);
+        let Some((start, end)) = request
+            .headers
+            .get("range")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.strip_prefix("bytes="))
+            .and_then(|spec| spec.split_once('-'))
+        else {
+            return ResponseTemplate::new(500);
+        };
+        let (start, end) = if start.is_empty() {
+            let suffix: u64 = end.parse().unwrap();
+            (self.len.saturating_sub(suffix), self.len - 1)
+        } else {
+            let end: u64 = end.parse().unwrap();
+            (start.parse().unwrap(), end.min(self.len - 1))
+        };
+        let body: Vec<u8> = (start..=end).map(|i| self.byte(i)).collect();
+        self.sent.fetch_add(body.len(), Ordering::Relaxed);
+        ResponseTemplate::new(206)
+            .insert_header("content-range", format!("bytes {start}-{end}/{}", self.len))
+            .set_body_bytes(body)
+    }
+}
+
+async fn read_junk(junk: &Junk) -> ModpackFailure {
+    let files = MockServer::start().await;
+    Mock::given(path("/lixo.mrpack"))
+        .respond_with(junk.clone())
+        .mount(&files)
+        .await;
+    read_entry(
+        &http(),
+        SourceId::Modrinth,
+        &format!("{}/lixo.mrpack", files.uri()),
+        "modrinth.index.json",
+        RangeOptions::default(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap_err()
+}
+
+fn assert_unreadable(error: &ModpackFailure) {
+    assert!(
+        matches!(error, ModpackFailure::Modpack(e) if e.code == DiscoveryErrorCode::ModpackUnreadable),
+        "{error:?}"
+    );
+}
+
+/// Revisão: 300 KB de lixo eram 232 pedidos; 3 MB, 2.877; "1 GB", mais de 31 mil em 60 s.
+/// Sem o fim do diretório central no fim do arquivo, é recusado com o primeiro pedido.
+#[tokio::test]
+async fn lixo_que_nao_e_zip_e_recusado_no_primeiro_pedido() {
+    for len in [300_000_u64, 3_000_000, 1024 * 1024 * 1024] {
+        let started = std::time::Instant::now();
+        let junk = Junk::new(len, Vec::new());
+        let error = read_junk(&junk).await;
+        assert_unreadable(&error);
+        assert_eq!(junk.requests.load(Ordering::Relaxed), 1, "{len} bytes");
+        assert!(junk.sent.load(Ordering::Relaxed) <= 128 * 1024);
+        assert!(started.elapsed() < std::time::Duration::from_secs(5));
+    }
+}
+
+/// Um fim de diretório central falso no fim de "1 GB" de lixo (o `zip` procura o diretório
+/// central e outro fim pelo arquivo inteiro): para no teto de pedidos e de bytes, rápido.
+#[tokio::test]
+async fn zip_falso_de_1_gb_para_no_teto_de_pedidos() {
+    let mut end = Vec::new();
+    end.extend_from_slice(b"PK\x05\x06");
+    end.extend_from_slice(&[0, 0, 0, 0]); // disco, disco do diretório
+    end.extend_from_slice(&1_u16.to_le_bytes()); // entradas neste disco
+    end.extend_from_slice(&1_u16.to_le_bytes()); // entradas
+    end.extend_from_slice(&46_u32.to_le_bytes()); // tamanho do diretório
+    end.extend_from_slice(&0_u32.to_le_bytes()); // começo do diretório
+    end.extend_from_slice(&0_u16.to_le_bytes()); // comentário
+    let started = std::time::Instant::now();
+    let junk = Junk::new(1024 * 1024 * 1024, end);
+    let error = read_junk(&junk).await;
+    assert_unreadable(&error);
+    let requests = junk.requests.load(Ordering::Relaxed) as u64;
+    assert!(
+        requests <= warden_http::range_reader::MAX_REQUESTS,
+        "{requests} pedidos"
+    );
+    assert!(
+        junk.sent.load(Ordering::Relaxed) as u64
+            <= warden_http::range_reader::MAX_READ_BYTES + 128 * 1024
+    );
+    assert!(
+        started.elapsed() < std::time::Duration::from_secs(20),
+        "{:?}",
+        started.elapsed()
+    );
+}
+
+/// Cancelar (fechar o painel, trocar de modpack) interrompe a leitura do arquivo do modpack
+/// na hora, e o servidor vê a conexão fechada.
+#[tokio::test]
+async fn cancelar_interrompe_a_leitura_do_modpack() {
+    use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
+
+    // Servidor que responde o cabeçalho e para: a leitura só termina se for cancelada.
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let (closed_tx, closed_rx) = tokio::sync::oneshot::channel::<()>();
+    tokio::spawn(async move {
+        let mut closed_tx = Some(closed_tx);
+        while let Ok((mut socket, _)) = listener.accept().await {
+            let mut buffer = [0_u8; 4096];
+            loop {
+                let mut request = Vec::new();
+                while !request.windows(4).any(|w| w == b"\r\n\r\n") {
+                    match socket.read(&mut buffer).await {
+                        Ok(0) | Err(_) => break,
+                        Ok(n) => request.extend_from_slice(&buffer[..n]),
+                    }
+                }
+                if request.is_empty() {
+                    break;
+                }
+                let head = "HTTP/1.1 200 OK\r\ncontent-length: 1000000\r\n\r\n";
+                if socket.write_all(head.as_bytes()).await.is_err() {
+                    break;
+                }
+                if request.starts_with(b"HEAD") {
+                    continue;
+                }
+                let _ = socket.write_all(&[7_u8; 1024]).await;
+                while matches!(socket.read(&mut buffer).await, Ok(n) if n > 0) {}
+                if let Some(tx) = closed_tx.take() {
+                    let _ = tx.send(());
+                }
+                break;
+            }
+        }
+    });
+    let api = without_embedded(&format!("http://{address}/parado.mrpack")).await;
+    let sources = api.sources();
+    let items = pack_items();
+    let target = neoforge_1_21_1();
+    let cancel = CancellationToken::new();
+    let trigger = cancel.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        trigger.cancel();
+    });
+    let started = std::time::Instant::now();
+    let pack = PackView {
+        target: &target,
+        items: &items,
+    };
+    let result = modpack_contents(&sources, &pack, SourceId::Modrinth, CREATE_PLUS, &cancel).await;
+    assert!(result.is_err());
+    assert!(
+        started.elapsed() < std::time::Duration::from_secs(5),
+        "{:?}",
+        started.elapsed()
+    );
+    tokio::time::timeout(std::time::Duration::from_secs(5), closed_rx)
+        .await
+        .expect("a conexão fechou")
+        .expect("aviso do servidor");
+}
+
 // ---------- CurseForge ----------
 
 const CF_PACK: u64 = 900_100;
