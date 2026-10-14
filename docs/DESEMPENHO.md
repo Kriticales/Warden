@@ -26,7 +26,7 @@ Medido em **2026-10-14**, no contêiner de desenvolvimento da nuvem: Intel Xeon 
 Mediana e pior caso de 10 medidas.
 
 | Meta da SPEC §8 | Medida | Mediana | Pior | Meta |
-|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|
 | Abrir um pack de 300 mods (com cache) | Ler `pack.toml`, `index.toml` e os 300 metafiles | 5,8 ms | 6,4 ms | < 1 s |
 | Abrir um pack de 300 mods (com cache) | Inventário da lista de Mods, cache do Modrinth em arquivo | 10,0 ms | 13,7 ms | < 1 s |
 | CA-T02-01 (Meus packs) | Lista com 50 packs versionados (5 grandes) | 42,8 ms | 45,6 ms | < 1 s |
@@ -60,22 +60,22 @@ Dez rodadas seguidas de `meus-packs.e2e.ts` e `pack-grande.e2e.ts`, sem falha. "
 
 ### Windows da CI (Noturno, WebView2 sem GPU, build de debug)
 
-Três rodadas do job "Windows · E2E" (5 medidas por linha, 3 na exportação). Na segunda e na terceira as bibliotecas em C (libgit2, SQLite, zlib) estavam compiladas com otimização no build de debug; como isso não mudou os números do Windows além da variação da máquina, a mudança foi desfeita. Entre as duas, a mesma exportação foi de 4,0 s para 6,7 s sem nenhuma mudança que a afetasse: a máquina da CI varia muito.
+Quatro rodadas do job "Windows · E2E" (5 medidas por linha, 3 na exportação). Na segunda e na terceira as bibliotecas em C (libgit2, SQLite, zlib) estavam compiladas com otimização no build de debug; como isso não mudou os números do Windows além da variação da máquina, a mudança foi desfeita. A quarta é a do código final (todos os 26 E2E passaram). Entre as duas, a mesma exportação foi de 4,0 s para 6,7 s sem nenhuma mudança que a afetasse: a máquina da CI varia muito.
 
-| Medida | 1ª rodada (mediana / pior) | 2ª rodada (mediana / pior) | 3ª rodada (mediana / pior) | Meta |
+| Medida | 1ª rodada (mediana / pior) | 2ª rodada (mediana / pior) | 3ª rodada (mediana / pior) | 4ª rodada, final (mediana / pior) | Meta |
 |---|---|---|---|
-| CA-T02-01, `packs.e2e.ts` (50 packs simples, sem git) | 532 ms | 629 ms | 551 ms | < 1 s |
-| CA-T02-01, 50 packs versionados (5 grandes) | 996 / 1.133 ms | (não rodou: o preparo dos 50 repositórios passou do tempo do gancho, corrigido) | 943 / 1.107 ms | < 1 s |
-| Abrir o app até Meus packs (uma medida, de fora) | 2.116 ms | — | 2.002 ms | < 3 s |
-| Abrir o pack de 300 mods (com cache) | 1.027 / 1.032 ms | 1.011 / 1.078 ms | 1.005 / 1.045 ms | < 1 s |
-| CA-T06-05: quadros rolando (parado: 15,6 ms) | mediana 31,2 ms, pior 46,9 ms | mediana 15,7 ms, pior 46,9 ms, 4 de 240 acima de 2,5 vezes | mediana 31,2 ms, pior 46,9 ms, 8 de 240 acima de 2,5 vezes | 60 por segundo |
-| Problemas: Verificar agora | 401 / 439 ms | 439 / 620 ms | 425 / 455 ms | < 3 s |
-| Configs: índice pronto (uma medida) | 1.035 ms | 904 ms | 1.188 ms | < 2 s |
-| Configs: cada busca | 110 / 156 ms | 108 / 158 ms | 118 / 185 ms | < 200 ms |
-| Exportar: `.zip` | 3.987 / 4.084 ms | 6.740 / 8.379 ms | 4.465 / 4.981 ms | (referência < 5 s) |
-| Importar o pack grande (git do zero) | 7.236 ms | 6.292 ms | 6.496 ms | — |
+| CA-T02-01, `packs.e2e.ts` (50 packs simples, sem git) | 532 ms | 629 ms | 551 ms | 565 ms | < 1 s |
+| CA-T02-01, 50 packs versionados (5 grandes) | 996 / 1.133 ms | (não rodou: o preparo dos 50 repositórios passou do tempo do gancho, corrigido) | 943 / 1.107 ms | 975 / 1.184 ms | < 1 s |
+| Abrir o app até Meus packs (uma medida, de fora) | 2.116 ms | — | 2.002 ms | 2.042 ms | < 3 s |
+| Abrir o pack de 300 mods (com cache) | 1.027 / 1.032 ms | 1.011 / 1.078 ms | 1.005 / 1.045 ms | 1.034 / 1.068 ms | < 1 s |
+| CA-T06-05: quadros rolando (parado: 15,6 ms) | mediana 31,2 ms, pior 46,9 ms | mediana 15,7 ms, pior 46,9 ms, 4 de 240 acima de 2,5 vezes | mediana 31,2 ms, pior 46,9 ms, 8 de 240 acima de 2,5 vezes | mediana 31,2 ms, pior 46,9 ms, 8 de 240 acima de 2,5 vezes | 60 por segundo |
+| Problemas: Verificar agora | 401 / 439 ms | 439 / 620 ms | 425 / 455 ms | 383 / 429 ms | < 3 s |
+| Configs: índice pronto (uma medida) | 1.035 ms | 904 ms | 1.188 ms | 961 ms | < 2 s |
+| Configs: cada busca | 110 / 156 ms | 108 / 158 ms | 118 / 185 ms | 111 / 160 ms | < 200 ms |
+| Exportar: `.zip` | 3.987 / 4.084 ms | 6.740 / 8.379 ms | 4.465 / 4.981 ms | 4.476 / 4.543 ms | (referência < 5 s) |
+| Importar o pack grande (git do zero) | 7.236 ms | 6.292 ms | 6.496 ms | 6.401 ms | — |
 
-No build de debug do Windows da CI, abrir o pack grande fica em torno de 1 s (de 985 a 1.078 ms nas 15 medidas) e Meus packs com packs versionados também; no release os mesmos passos levam 10 a 45 ms no backend (benchmarks). O E2E confere essas metas com a folga do debug (1,5 s); a meta exata nessa máquina fica como acompanhamento.
+No build de debug do Windows da CI, abrir o pack grande fica em torno de 1 s (de 985 a 1.078 ms nas 20 medidas) e Meus packs com packs versionados também; no release os mesmos passos levam 10 a 45 ms no backend (benchmarks). O E2E confere essas metas com a folga do debug (1,5 s); a meta exata nessa máquina fica como acompanhamento.
 
 O build de debug é bem mais lento que o de release (a libgit2, o SQLite e o `toml_edit` compilados sem otimização): o mesmo inventário leva ~90 ms no debug e 10 ms no release. As metas valem para o app instalado; os E2E as conferem com folga mesmo no debug.
 
