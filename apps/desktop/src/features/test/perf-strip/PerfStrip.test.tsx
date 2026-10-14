@@ -36,6 +36,8 @@ function sample(overrides: Partial<PerfSampleEvent> = {}): PerfSampleEvent {
     heapMaxMb: null,
     gcCount: null,
     gcMs: null,
+    heap: null,
+    heapUnavailable: null,
     ...overrides,
   };
 }
@@ -83,6 +85,8 @@ describe('números da faixa no formato do pt-BR', () => {
       loadedMs: 102_000,
       worldMs: 131_000,
       previous: PREVIOUS,
+      heap: null,
+      heapUnavailable: null,
     });
     expect(fromSession({ loadedMs: null, worldMs: null })).toEqual({
       rssMb: null,
@@ -90,6 +94,8 @@ describe('números da faixa no formato do pt-BR', () => {
       loadedMs: null,
       worldMs: null,
       previous: null,
+      heap: null,
+      heapUnavailable: null,
     });
   });
 });

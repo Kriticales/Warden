@@ -84,6 +84,14 @@ export const diagnostico = {
     curada: 'Lista de conflitos conhecidos do Warden ({{regra}}):',
     arquivo: '{{caminho}}:',
     endereco: 'Consulta: {{url}}',
+    /** Medidas do Warden durante o teste (memória do jogo, L-11). */
+    medida: 'Medido pelo Warden durante o teste:',
+    medidas: {
+      heapAfterGc:
+        'Memória depois das coletas: {{percentual}} de {{memoria}}, por {{duracao}} seguidos.',
+      gcTime: 'Pior minuto: {{parado}} parado em coletas ({{percentual}} do tempo).',
+      heapPeak: 'Maior uso da memória do jogo: {{pico}} de {{memoria}} ({{percentual}}).',
+    },
   },
   correcao: {
     adicionar: 'Adicionar {{nome}}',
@@ -101,6 +109,7 @@ export const diagnostico = {
     java: 'Mudar o Java do teste',
     javaVersao: 'Usar o Java {{major}} no teste',
     memoria: 'Aumentar a memória do teste',
+    memoriaMenos: 'Diminuir a memória do teste',
     argumento: 'Tirar {{argumento}} dos argumentos',
     config: 'Abrir {{caminho}} em Configs',
     padrao: 'Restaurar padrão de {{chave}}',
@@ -258,6 +267,21 @@ export const diagnostico = {
       titulo: '{{nome}} foi feito para outra versão do Minecraft',
       texto:
         'O jogo pode mostrá-lo como incompatível, mas resource packs assim costumam funcionar.',
+    },
+    W_LOW_HEAP: {
+      titulo: 'O jogo está quase sem memória',
+      texto:
+        'Depois das coletas, ele continuou usando {{percentual}} dos {{memoria}} por {{duracao}}. Aumente para {{sugerida}} em Ajustes do teste.',
+    },
+    W_LONG_GC: {
+      titulo: 'O jogo ficou muito tempo parado limpando a memória',
+      texto:
+        'Num minuto do teste, ele ficou {{parado}} parado em coletas ({{percentual}} do tempo), e isso aparece como travadas. Mais memória em Ajustes do teste costuma resolver.',
+    },
+    I_HEAP_OVERSIZED: {
+      titulo: 'Memória sobrando',
+      texto:
+        'O jogo nunca passou de {{pico}} ({{percentual}}) dos {{memoria}} do teste. Dá para diminuir a memória em Ajustes do teste e deixar mais para o resto do computador.',
     },
     W_DOWNLOAD_BLOCKED: {
       titulo: '{{nome}} não baixa sozinho para os jogadores',
