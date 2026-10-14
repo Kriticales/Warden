@@ -8,9 +8,10 @@
  * que o servidor de fixtures responde (`modrinth.ts`), resource packs e shaders para chegar a 500
  * itens na lista de Mods, e as configs reais do corpus da `warden-configs` repetidas em lotes.
  *
- * Cada medida roda várias vezes e o teste confere a **mediana** contra a meta: uma medida só
- * varia demais entre máquinas da CI (ver a CA-T02-01 do `packs.e2e.ts`). O pior caso vai para o
- * log, junto da mediana, para o `docs/DESEMPENHO.md`.
+ * Cada medida roda várias vezes e o teste confere a **mediana** contra a meta, com a folga do
+ * build de debug ([`DEBUG_MARGIN`]): uma medida só varia demais entre máquinas da CI (ver a
+ * CA-T02-01 do `packs.e2e.ts`). A mediana e o pior caso vão para o log, contra a meta exata,
+ * para o `docs/DESEMPENHO.md`.
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -234,12 +235,27 @@ export function summary(values: readonly number[]): { median: number; worst: num
 }
 
 /**
- * Imprime a linha do resumo (`A-04 E2E | medida | mediana | pior | meta`) e devolve a
- * mediana, que o teste confere contra a meta.
+ * Folga do E2E sobre as metas da SPEC §8. As metas valem para o app instalado (build de release)
+ * na máquina de referência; os E2E rodam o build de debug nas máquinas da CI, sem GPU e com
+ * tempos que variam muito de uma rodada para outra (no Windows, a mesma exportação levou 4 s
+ * numa rodada e 6,7 s na seguinte). O teste confere a mediana contra a meta com esta folga; a
+ * linha do log compara com a meta exata, e os benchmarks (release) conferem a meta exata.
+ */
+export const DEBUG_MARGIN = 1.5;
+
+/** O limite que o E2E confere para uma meta (ms). */
+export function e2eLimit(goalMs: number, margin = DEBUG_MARGIN): number {
+  return goalMs * margin;
+}
+
+/**
+ * Imprime a linha do resumo (`A-04 E2E | medida | mediana | pior | meta | situação`, com a
+ * situação contra a meta exata) e devolve a mediana, que o teste confere contra
+ * [`e2eLimit`].
  */
 export function report(measure: string, values: readonly number[], goalMs: number): number {
   const { median, worst } = summary(values);
-  const state = median < goalMs ? 'ok' : 'ESTOUROU';
+  const state = median < goalMs ? 'ok' : 'acima da meta';
   process.stdout.write(
     `A-04 E2E | ${measure} | mediana ${median.toFixed(0)} ms | pior ${worst.toFixed(0)} ms | ` +
       `meta < ${String(goalMs)} ms | ${state} | medidas: ${values.map((v) => v.toFixed(0)).join(', ')}\n`,
