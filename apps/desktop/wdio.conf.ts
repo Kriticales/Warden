@@ -27,6 +27,8 @@ const NATIVE_DRIVER_FILE = join(TARGET, 'e2e', 'native-driver.txt');
 const DRIVER_PORT = 4444;
 /** O jogo simulado dos testes da `warden-launcher` (Testar, L-04). */
 const FAKE_GAME_DIR = join(ROOT, 'crates', 'warden-launcher', 'tests', 'fixtures', 'java');
+/** O servidor simulado dos testes da `warden-server` (Testar como servidor, L-09). */
+const FAKE_SERVER_DIR = join(ROOT, 'crates', 'warden-server', 'tests', 'fixtures', 'java');
 
 let tauriDriver: ChildProcess | null = null;
 let mockServer: MockServer | null = null;
@@ -128,6 +130,9 @@ export const config: WebdriverIO.Config = {
     // Adicionar arquivo local (P1-11): o diálogo nativo de arquivos lê daqui (um por linha).
     const pickFiles = join(dataRoot, 'arquivos-escolhidos.txt');
     process.env.WARDEN_E2E_PICK_FILES = pickFiles;
+    // Servidor local (L-09): a memória livre simulada vem deste arquivo, quando ele existe.
+    const freeMemoryFile = join(dataRoot, 'memoria-livre.txt');
+    process.env.WARDEN_E2E_FREE_MEMORY_FILE = freeMemoryFile;
     const java = testJava();
     process.env.WARDEN_E2E_HAS_JAVA = java ? '1' : '';
     // Os testes leem o registro de requisições do servidor de fixtures (`GET /__requests`).
@@ -156,11 +161,13 @@ export const config: WebdriverIO.Config = {
       WARDEN_RAW_BASE_GITHUB: `${mockServer.url}/github/raw/`,
       // O link direto `https://…` vai para o mesmo caminho no servidor de fixtures (P1-11).
       WARDEN_E2E_DIRECT_VIA: `${mockServer.url}/direto/`,
+      WARDEN_E2E_FREE_MEMORY_FILE: freeMemoryFile,
       ...(java
         ? {
             WARDEN_E2E_FAKE_GAME: FAKE_GAME_DIR,
             WARDEN_E2E_JAVA: java.java,
             WARDEN_E2E_JAVA_MAJOR: java.major,
+            WARDEN_E2E_FAKE_SERVER: FAKE_SERVER_DIR,
           }
         : {}),
     };
