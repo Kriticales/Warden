@@ -11,7 +11,9 @@
  * em que o texto se baseia (`base`) só muda por escolha da pessoa ou depois de gravar.
  *
  * Formulário (C-04, `../form/`): o mesmo texto visto como campos. A edição pelo formulário troca
- * o texto daqui (com só o valor mudado), e salvar segue o mesmo caminho do texto.
+ * o texto daqui (com só o valor mudado), e salvar segue o mesmo caminho do texto. "Restaurar
+ * padrão" (C-06, `../form/defaults/`), por chave ou pelo menu ⋯ do arquivo, mostra a diferença
+ * e então troca o texto daqui do mesmo jeito.
  *
  * `addon` é o ponto de extensão do editor de scripts (C-07; SPEC T26): extensões do CodeMirror,
  * peças na barra, um aviso, um painel abaixo do texto e o nome do formato no rodapé.
@@ -50,6 +52,8 @@ import {
   TextOnlyNotice,
   useFormEditor,
 } from '../form/ConfigForm';
+import { FileDefaultsMenu } from '../form/defaults/FileDefaultsMenu';
+import { RestoreDialog, type RestoreRequest } from '../form/defaults/RestoreDialog';
 import { CopyToDefaultconfigs, PreserveOption } from '../form/FileActions';
 import { setEditorMode, useEditorMode } from '../form/model';
 import { baseName, formatKey, languageOf, noticesFor } from '../model';
@@ -176,6 +180,8 @@ export function ConfigEditor({
   const [resetKey, setResetKey] = useState(0);
   const [cursor, setCursor] = useState({ line: 1, column: 1 });
   const [dialog, setDialog] = useState<Dialogs>('none');
+  const [restoring, setRestoring] = useState<RestoreRequest | null>(null);
+  const section = useRef<HTMLElement>(null);
   const dirty = !readOnly && text !== base.text;
   const saving = write.isPending;
   // O arquivo no disco já não é aquele em que o texto se baseia.
@@ -330,7 +336,7 @@ export function ConfigEditor({
   const lineEndingKey = file.lineEnding === 'mixed' ? 'mixed' : file.lineEnding;
 
   return (
-    <section className="editor cfg-editor" aria-label={t('editor.area')}>
+    <section ref={section} className="editor cfg-editor" aria-label={t('editor.area')}>
       <div className="editor__bar">
         <span className="editor__file">{file.path}</span>
         <span className={origin === 'instance' ? 'tag tag--warn' : 'tag tag--plain'}>
@@ -349,6 +355,14 @@ export function ConfigEditor({
                 setEditorMode(next);
               }}
             />
+            {showForm ? (
+              <FileDefaultsMenu
+                items={formState.form.items}
+                onRestoreFile={() => {
+                  setRestoring({ kind: 'file' });
+                }}
+              />
+            ) : null}
             {showForm || formWaiting ? null : (
               <Button
                 size="sm"
@@ -479,6 +493,9 @@ export function ConfigEditor({
             setEditorMode('text');
           }}
           onFallback={setFallback}
+          onRestore={(field) => {
+            setRestoring({ kind: 'key', key: field.key });
+          }}
         />
       ) : formWaiting ? (
         <FormPending state={formState} />
@@ -591,6 +608,18 @@ export function ConfigEditor({
           <DiffView file={file.path} before={file.text ?? ''} after={text} />
         </DialogContent>
       </Dialog>
+
+      <RestoreDialog
+        packId={packId}
+        path={file.path}
+        text={text}
+        request={restoring}
+        onClose={() => {
+          setRestoring(null);
+        }}
+        onApply={setText}
+        scope={() => section.current}
+      />
 
       <ConfirmDialog
         open={dialog === 'reload'}

@@ -7,7 +7,8 @@
  * - **Mudar lado**: o mesmo "Alterar lado" da lista de Mods;
  * - **Atualizar**: abre os detalhes do item em Mods (troca de versão e atualização);
  * - **Java, memória, argumento**: abre Ajustes do teste neste computador;
- * - **Config**: abre o arquivo em Configs.
+ * - **Config**: abre o arquivo em Configs;
+ * - **Restaurar padrão** (C-06): a diferença da chave restaurada e a gravação com confirmação.
  *
  * `useFixes` devolve a ação e os diálogos, que a tela põe uma vez (`fixes.dialogs`).
  */
@@ -26,6 +27,10 @@ import type {
 } from '../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../lib/ipc/errors';
 import { DependenciesDialog } from '../add/dependencies/DependenciesDialog';
+import {
+  PackRestoreDialog,
+  type PackRestoreTarget,
+} from '../configs/form/defaults/PackRestoreDialog';
 import { useInventory, useSetSide } from '../pack-editor/api';
 import { RemoveDialog } from '../pack-editor/mods/RemoveDialog';
 import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDialog';
@@ -67,6 +72,7 @@ export function useFixes(
   const [adding, setAdding] = useState<{ choices: AddChoice[]; titles: string[] } | null>(null);
   const [removing, setRemoving] = useState<InventoryItem[] | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [restoring, setRestoring] = useState<PackRestoreTarget | null>(null);
 
   const fail = (error: unknown) => {
     showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
@@ -148,8 +154,10 @@ export function useFixes(
       case 'removeJvmArgument':
         setSettingsOpen(true);
         return;
-      case 'restoreConfig':
       case 'restoreDefault':
+        setRestoring({ path: fix.path, key: fix.key });
+        return;
+      case 'restoreConfig':
         void navigate({
           to: '/packs/$packId/configs',
           params: { packId },
@@ -188,6 +196,14 @@ export function useFixes(
           setRemoving(null);
           onFixed?.();
         }}
+      />
+      <PackRestoreDialog
+        packId={packId}
+        target={restoring}
+        onClose={() => {
+          setRestoring(null);
+        }}
+        onRestored={onFixed}
       />
       {pack.data ? (
         <TestSettingsDialog

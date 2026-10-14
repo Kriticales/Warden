@@ -207,7 +207,7 @@ export function fixLabel(entry: ReportFinding, fix: SuggestedFix): string {
     case 'restoreConfig':
       return t('correcao.config', { caminho: fix.path });
     case 'restoreDefault':
-      return t('correcao.padrao', { caminho: fix.path });
+      return t('correcao.padrao', { chave: fix.key });
   }
 }
 

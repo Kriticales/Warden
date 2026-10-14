@@ -35,6 +35,7 @@ import type { LineRequest } from './components/CodeEditor';
 import { ConfigEditor, type EditorGuard } from './components/ConfigEditor';
 import { FileTree } from './components/FileTree';
 import { buildTree, filterFiles } from './model';
+import { ChangedFilter } from './form/defaults/ChangedFilter';
 import { ConfigSearchField } from './search/ConfigSearchField';
 import { ConfigSearchResults } from './search/ConfigSearchResults';
 import { useScriptAddon } from './scripts/useScriptAddon';
@@ -68,9 +69,11 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
   const [filter, setFilter] = useState('');
   const [searchText, setSearchText] = useState('');
   const [resultsOpen, setResultsOpen] = useState(false);
+  // "Só o que mudou do padrão" (C-06): sozinho, lista todas as chaves alteradas.
+  const [onlyChanged, setOnlyChanged] = useState(false);
   // Cada clique num resultado é um pedido novo, mesmo para a mesma linha.
   const [lineRequest, setLineRequest] = useState(0);
-  const searching = resultsOpen && searchText.trim() !== '';
+  const searching = resultsOpen && (searchText.trim() !== '' || onlyChanged);
   const goTo: LineRequest | null =
     search.linha === undefined ? null : { line: search.linha, request: lineRequest };
 
@@ -112,6 +115,7 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
 
   const clearSearch = () => {
     setSearchText('');
+    setOnlyChanged(false);
     setResultsOpen(false);
   };
   // Scripts KubeJS e CraftTweaker abrem com os recursos do editor de scripts (C-07; T26).
@@ -178,6 +182,13 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
             }}
             onClear={clearSearch}
           />
+          <ChangedFilter
+            checked={onlyChanged}
+            onChange={(checked) => {
+              setOnlyChanged(checked);
+              setResultsOpen(true);
+            }}
+          />
           <div className="cfg-filter">
             <Search className="icon icon--sm" aria-hidden="true" />
             <input
@@ -241,6 +252,7 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
               packId={packId}
               origin={origin}
               query={searchText}
+              onlyChanged={onlyChanged}
               onOpen={(nextPath, line) => {
                 setResultsOpen(false);
                 setLineRequest((count) => count + 1);

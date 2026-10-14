@@ -46,6 +46,8 @@ function field(
     description: null,
     range: null,
     default: null,
+    defaultState: 'unknown',
+    outOfRange: false,
     label: null,
     ...partial,
   };
@@ -66,7 +68,8 @@ function formOf(text: string): ConfigForm {
         control: { type: 'number', integer: true, min: 64, max: 1024 },
         description: 'Velocidade',
         range: { min: 64, max: 1024, text: '64 ~ 1024', inferred: false },
-        default: { value: '256', inferred: false },
+        default: { value: '256', inferred: false, source: 'specComment' },
+        defaultState: speed === '256' ? 'same' : 'changed',
         label: {
           text: 'Velocidade máxima de rotação',
           tooltip: null,
@@ -80,7 +83,7 @@ function formOf(text: string): ConfigForm {
         value: { type: 'bool', value: enabled === 'true' },
         control: { type: 'toggle' },
         description: 'Liga. Defaults to true.',
-        default: { value: 'true', inferred: true },
+        default: { value: 'true', inferred: true, source: 'commentPhrase' },
       }),
       {
         kind: 'snippet',
@@ -247,8 +250,10 @@ describe('Formulário de configs (T12, C-04)', () => {
     expect(within(form).getByText('Velocidade máxima de rotação')).toBeDefined();
     expect(within(form).getByText('kinetics.maxRotationSpeed')).toBeDefined();
     expect(within(form).getByText('Faixa: 64 a 1.024.')).toBeDefined();
-    expect(within(form).getByText('padrão: 256')).toBeDefined();
-    expect(within(form).getByText(/padrão: true/).textContent).toContain('deduzido');
+    const defaults = [...form.querySelectorAll('.cfgform__def')].map((node) => node.textContent);
+    expect(defaults[0]).toBe('padrão: 256 · do comentário do arquivo (Default:)');
+    expect(defaults[1]).toContain('padrão: true');
+    expect(defaults[1]).toContain('deduzido');
     expect(within(form).getByRole('switch', { name: 'kinetics.enabled' })).toBeDefined();
     expect(backend.callsOf('config_form')[0]?.args.text).toBe(CREATE_TEXT);
     expect(screen.queryByRole('button', { name: 'Buscar e substituir' })).toBeNull();

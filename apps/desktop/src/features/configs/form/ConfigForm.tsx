@@ -8,10 +8,11 @@
  * a byte falhou), nada muda e o editor cai para o texto com o motivo (ADR-0054).
  *
  * Aqui ficam: o hook com o estado do formulário do arquivo, a alternância Formulário/Texto, a
- * lista de campos e os avisos de "só texto".
+ * lista de campos e os avisos de "só texto". O filtro "Só o que mudou do padrão" e
+ * "Restaurar padrão" são da C-06 (`./defaults/`).
  */
 import { FileCode } from 'lucide-react';
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
@@ -27,6 +28,8 @@ import type {
   TextOnlyReason,
 } from '../../../lib/ipc/bindings';
 import { useConfigForm, useFormApply } from './api';
+import { ChangedFilter } from './defaults/ChangedFilter';
+import { changedCount, onlyChanged } from './defaults/model';
 import { FieldRow } from './FieldRow';
 import type { EditorMode } from './model';
 import './form.css';
@@ -166,6 +169,8 @@ export interface ConfigFormViewProps {
   onOpenText: (line: number) => void;
   /** A edição não foi confirmada: cair para o texto com o erro. */
   onFallback: (error: unknown) => void;
+  /** "Restaurar padrão" de uma chave (C-06): o editor mostra a diferença antes. */
+  onRestore: (field: ConfigField) => void;
 }
 
 /** Os campos do arquivo, na ordem dele. */
@@ -176,8 +181,13 @@ export function ConfigFormView({
   onText,
   onOpenText,
   onFallback,
+  onRestore,
 }: ConfigFormViewProps) {
   const { t } = useTranslation('configsFormulario');
+  const { t: tp } = useTranslation('configsPadrao');
+  const [changedOnly, setChangedOnly] = useState(false);
+  const changed = changedCount(form.items);
+  const items = changedOnly ? onlyChanged(form.items) : form.items;
   const apply = useFormApply();
   // As edições vão uma de cada vez, sempre sobre o texto mais novo.
   const latest = useRef(text);
@@ -204,7 +214,15 @@ export function ConfigFormView({
 
   return (
     <div className="cfgform cfg-form" role="group" aria-label={t('area', { arquivo: path })}>
-      {form.items.map((item) => {
+      <ChangedFilter
+        checked={changedOnly}
+        onChange={setChangedOnly}
+        desc={tp('filtro.contagem', { count: changed })}
+      />
+      {changedOnly && changed === 0 ? (
+        <p className="t-sm t-3 cfg-changed-filter__empty">{tp('filtro.nenhumaNoArquivo')}</p>
+      ) : null}
+      {items.map((item) => {
         switch (item.kind) {
           case 'section':
             return (
@@ -241,7 +259,12 @@ export function ConfigFormView({
             );
           case 'field':
             return (
-              <FieldRow key={`f:${item.key}:${String(item.line)}`} field={item} onEdit={edit} />
+              <FieldRow
+                key={`f:${item.key}:${String(item.line)}`}
+                field={item}
+                onEdit={edit}
+                onRestore={onRestore}
+              />
             );
         }
       })}
