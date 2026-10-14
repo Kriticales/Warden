@@ -23,6 +23,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { GITHUB_LOGIN, GITHUB_TOKEN, type GithubState } from './mock-server/github';
+import { replaceValue } from './fields';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -91,7 +92,7 @@ async function saveFinal(version: string): Promise<void> {
   const dialog = $('[role="dialog"]*=Número da versão');
   await dialog.waitForDisplayed({ timeout: 60_000 });
   const number = dialog.$('input.input');
-  await number.setValue(version);
+  await replaceValue(number, version);
   await dialog.$('label*=Marcar como versão final').click();
   const save = dialog.$(`button*=Salvar versão ${version}`);
   await save.waitForEnabled({ timeout: 30_000 });
