@@ -1,0 +1,31 @@
+# Trechos prontos do CraftTweaker do Minecraft 1.12.2 (linha 4, ZenScript clássico: `recipes.*`
+# e IDs `<minecraft:stone>`). Formato em `kubejs-5.toml` (sem `tipo`).
+ferramenta = "crafttweaker"
+max = 4
+
+[[trecho]]
+id = "receita-com-forma"
+corpo = """
+recipes.addShaped(<${minecraft:stone}>, [
+    [<minecraft:cobblestone>, <minecraft:cobblestone>],
+    [<minecraft:cobblestone>, <minecraft:cobblestone>]
+]);
+"""
+
+[[trecho]]
+id = "receita-sem-forma"
+corpo = """
+recipes.addShapeless(<${minecraft:stone}>, [<${minecraft:cobblestone}>, <minecraft:coal>]);
+"""
+
+[[trecho]]
+id = "remover-receita"
+corpo = """
+recipes.remove(<${minecraft:stone}>);
+"""
+
+[[trecho]]
+id = "fornalha"
+corpo = """
+furnace.addRecipe(<${minecraft:stone}>, <${minecraft:cobblestone}>, 0.1);
+"""

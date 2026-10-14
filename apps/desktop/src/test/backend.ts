@@ -74,6 +74,13 @@ const DEFAULTS: Record<string, Handler> = {
   // Vigia de mudanças externas do pack aberto (A-05).
   pack_watch_start: () => null,
   pack_watch_stop: () => null,
+  // Editor de scripts (C-07): pack sem KubeJS nem CraftTweaker.
+  scripts_info: () => ({
+    env: { kubejs: null, crafttweaker: null },
+    kubejsSnippets: [],
+    crafttweakerSnippets: [],
+    instanceReady: false,
+  }),
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,

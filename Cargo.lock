@@ -7060,11 +7060,25 @@ dependencies = [
 name = "warden-scripts"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "regex",
+ "secrecy",
  "serde",
+ "serde_json",
+ "sha2 0.10.9",
  "specta",
+ "specta-typescript",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "toml 1.1.6+spec-1.1.0",
+ "tracing",
+ "tracing-subscriber",
  "warden-core",
  "warden-http",
  "warden-jarmeta",
+ "wiremock",
+ "zip 8.6.0",
 ]
 
 [[package]]

@@ -550,6 +550,35 @@ export const commands = {
 	 *  erro, e a interface abre a issue mesmo assim, dizendo que o print não foi copiado.
 	 */
 	problemReportCapture: () => typedError<CapturedImage, AppError>(__TAURI_INVOKE("problem_report_capture")),
+	/**  As ferramentas de scripts do pack e os trechos prontos da versão. */
+	scriptsInfo: (packId: PackId) => typedError<ScriptsInfo, AppError>(__TAURI_INVOKE("scripts_info", { packId })),
+	/**  Os IDs para o autocompletar. Com o jogo aberto e o KubeJS 7, acrescenta os do jogo. */
+	scriptsIds: (packId: PackId) => typedError<ScriptIds, AppError>(__TAURI_INVOKE("scripts_ids", { packId })),
+	/**
+	 *  Os erros e avisos dos scripts: ao vivo com o KubeJS 7 e o jogo aberto; senão, dos logs do
+	 *  último teste.
+	 */
+	scriptsProblems: (packId: PackId) => typedError<ScriptProblems, AppError>(__TAURI_INVOKE("scripts_problems", { packId })),
+	/**  Como "Recarregar no jogo" funcionaria agora para o script `path` (relativo ao pack). */
+	scriptsReloadRoute: (packId: PackId, path: string) => typedError<ReloadRoute, AppError>(__TAURI_INVOKE("scripts_reload_route", { packId, path })),
+	/**
+	 *  "Recarregar no jogo": pelo servidor web do KubeJS 7 ou pelo console do servidor local; nos
+	 *  outros casos devolve o caminho (o comando para copiar) sem fazer nada.
+	 */
+	scriptsReload: (packId: PackId, path: string) => typedError<ReloadOutcome, AppError>(__TAURI_INVOKE("scripts_reload", { packId, path })),
+	/**
+	 *  Depois de salvar o script `path` no pack com o jogo aberto, copia o texto para a instância
+	 *  de teste (SPEC T26: "salvar grava na instância de teste"). `previous_hash` é o `hash` do
+	 *  arquivo do pack antes de salvar: a instância só é substituída se ainda tinha esse texto, se
+	 *  não tinha o arquivo ou com `overwrite` (a pessoa escolheu substituir). Uma mudança feita
+	 *  direto na instância volta como [`InstanceCopy::InstanceChanged`], sem nada gravado.
+	 */
+	scriptsCopyToInstance: (packId: PackId, path: string, previousHash: string, overwrite: boolean) => typedError<InstanceCopy, AppError>(__TAURI_INVOKE("scripts_copy_to_instance", { packId, path, previousHash, overwrite })),
+	/**
+	 *  Abre a pasta do jogo da instância de teste no VS Code.
+	 *  Erros: `app.TEST_INSTANCE_MISSING`, `scripts.VS_CODE_NOT_FOUND`, `scripts.VS_CODE_FAILED`.
+	 */
+	scriptsOpenVscode: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("scripts_open_vscode", { packId })),
 	/**  Onde as chaves ficam e quais estão configuradas. */
 	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
 	/**  Grava uma chave digitada e devolve o estado. */
@@ -2775,6 +2804,24 @@ export type HygieneGroup =
 /**  Lixo em qualquer profundidade. */
 "anyDepth";
 
+/**  Os IDs de uma origem, em ordem. */
+export type IdGroup = {
+	/**  De onde os IDs vêm ("Minecraft", "Create"…). */
+	source: string,
+	/**  Itens. */
+	items: string[],
+	/**  Blocos. */
+	blocks: string[],
+	/**  Tags de item, sem o `#`. */
+	itemTags: string[],
+	/**  Tags de bloco, sem o `#`. */
+	blockTags: string[],
+	/**  Tags de fluido, sem o `#`. */
+	fluidTags: string[],
+	/**  Receitas. */
+	recipes: string[],
+};
+
 /**
  *  Códigos do domínio `import`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -2919,6 +2966,17 @@ export type InstalledRuntime = {
 	 */
 	supersededBy: RuntimeId | null,
 };
+
+/**  O que aconteceu com o arquivo da instância de teste. */
+export type InstanceCopy = 
+/**  A instância recebeu o texto do pack. */
+"copied" | 
+/**  A instância já tinha o mesmo texto. */
+"unchanged" | 
+/**  O arquivo da instância foi mudado direto nela: nada foi gravado. */
+"instanceChanged" | 
+/**  A instância de teste ainda não existe. */
+"noInstance";
 
 /**
  *  Códigos do domínio `instance`. O código é contrato: renomear é mudança de contrato;
@@ -3381,6 +3439,15 @@ export type KitItem = {
 	note: string | null,
 };
 
+/**  Tipo de script do KubeJS, pela pasta. */
+export type KubejsScriptType = 
+/**  `kubejs/startup_scripts/`. */
+"startup" | 
+/**  `kubejs/server_scripts/`. */
+"server" | 
+/**  `kubejs/client_scripts/`. */
+"client";
+
 /**  Idioma de um rótulo. */
 export type LangLocale = 
 /**  `pt_br.json`. */
@@ -3659,6 +3726,14 @@ export type LogLine = {
 	source: LogSource,
 	/**  Texto, sem códigos ANSI. */
 	text: string,
+};
+
+/**  Um log lido. */
+export type LogRead = {
+	/**  Caminho relativo à pasta do jogo. */
+	file: string,
+	/**  Última modificação (milissegundos desde 1970). */
+	modifiedMs: number | null,
 };
 
 /**  Origem de uma linha de log no canal. */
@@ -4590,6 +4665,13 @@ export type PrismSwap = {
 	fileName: string,
 };
 
+/**  Gravidade. */
+export type ProblemLevel = 
+/**  Erro. */
+"error" | 
+/**  Aviso. */
+"warning";
+
 /**  O que a pessoa escreveu e o que a interface sabe (tela e pack abertos, último erro). */
 export type ProblemReportInput = {
 	/**  Categoria (abre o corpo e vira o rótulo da issue). */
@@ -4935,6 +5017,35 @@ export type ReleaseInfo = {
 	htmlUrl: string,
 };
 
+/**  O que a recarga fez. */
+export type ReloadOutcome = {
+	/**  O caminho usado (ou a explicar, quando nada pôde ser feito sozinho). */
+	route: ReloadRoute,
+	/**  O que o servidor local respondeu (vazio nos outros caminhos). */
+	response: string[],
+};
+
+/**  Como recarregar o script aberto agora. */
+export type ReloadRoute = 
+/**  O arquivo não é script de uma ferramenta do pack. */
+{ kind: "notAScript" } | 
+/**  Nem o jogo nem o servidor local estão abertos para este pack. */
+{ kind: "noGame" } | 
+/**  O CraftTweaker do 1.12.2 não recarrega: é preciso reiniciar o jogo. */
+{ kind: "restartGame" } | 
+/**  Pelo servidor web do KubeJS 7. */
+{ kind: "webServer"; 
+/**  Tipo de script recarregado. */
+target: KubejsScriptType } | 
+/**  Pelo console do servidor local. */
+{ kind: "serverConsole"; 
+/**  O comando, sem a barra. */
+command: string } | 
+/**  O comando para a pessoa copiar e colar no chat do jogo. */
+{ kind: "copyCommand"; 
+/**  O comando, com a barra. */
+command: string };
+
 /**  A `main` do GitHub comparada com a última publicação deste computador. */
 export type RemoteStatus = {
 	/**  Commit da `main` do GitHub (`None`: repositório vazio). */
@@ -5163,13 +5274,92 @@ export type SavedVersion = {
 	reachable: boolean,
 };
 
+/**  As ferramentas de scripts do pack. */
+export type ScriptEnv = {
+	/**  KubeJS, se o pack tem. */
+	kubejs: ToolVersion | null,
+	/**  CraftTweaker, se o pack tem. */
+	crafttweaker: ToolVersion | null,
+};
+
+/**  O índice de IDs do pack. */
+export type ScriptIds = {
+	/**  Uma entrada por origem com IDs (origens sem nenhum ID ficam de fora). */
+	groups: IdGroup[],
+	/**  Jars que não deu para ler (a lista fica sem eles). */
+	unread: string[],
+};
+
+/**  Um erro ou aviso de script. */
+export type ScriptProblem = {
+	/**  Gravidade. */
+	level: ProblemLevel,
+	/**
+	 *  O script, relativo à pasta do pack (`kubejs/server_scripts/receitas.js`), quando o log
+	 *  diz.
+	 */
+	file: string | null,
+	/**  Linha (começa em 1). */
+	line: number | null,
+	/**  Coluna (começa em 1), quando o log diz. */
+	column: number | null,
+	/**  A mensagem, sem o prefixo do log. */
+	message: string,
+	/**  A linha original do log. */
+	logLine: string,
+	/**
+	 *  O log de onde veio, relativo à pasta do jogo (`logs/kubejs/server.log`), ou `null` quando
+	 *  veio ao vivo do servidor web do KubeJS.
+	 */
+	logFile: string | null,
+};
+
+/**  O que o painel "Erros dos scripts" mostra. */
+export type ScriptProblems = {
+	/**  Os itens, na ordem dos logs. */
+	problems: ScriptProblem[],
+	/**  Os logs que existiam e foram lidos. */
+	logs: LogRead[],
+	/**  Se a lista veio ao vivo do servidor web do KubeJS 7 (jogo aberto). */
+	live: boolean,
+};
+
+/**  A ferramenta de scripts. */
+export type ScriptTool = 
+/**  KubeJS (`kubejs/*_scripts/*.js`). */
+"kubejs" | 
+/**  CraftTweaker (`scripts/*.zs`). */
+"crafttweaker";
+
 /**
  *  Códigos do domínio `scripts`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type ScriptsErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O servidor web do KubeJS 7 não respondeu na instância de teste. */
+"WEB_SERVER_UNAVAILABLE" | 
+/**  O servidor web do KubeJS recusou o pedido (token diferente ou outro erro HTTP). */
+"WEB_SERVER_REJECTED" | 
+/**  O console do servidor local não aceitou o comando. */
+"SERVER_CONSOLE_FAILED" | 
+/**  O VS Code não foi encontrado neste computador. */
+"VS_CODE_NOT_FOUND" | 
+/**  O VS Code não abriu. */
+"VS_CODE_FAILED";
+
+/**  As ferramentas de scripts do pack e os trechos prontos de cada uma. */
+export type ScriptsInfo = {
+	/**  KubeJS e CraftTweaker encontrados. */
+	env: ScriptEnv,
+	/**  Trechos prontos do KubeJS da versão detectada. */
+	kubejsSnippets: Snippet[],
+	/**  Trechos prontos do CraftTweaker da versão detectada. */
+	crafttweakerSnippets: Snippet[],
+	/**  Se a instância de teste já existe (para "Abrir no VS Code"). */
+	instanceReady: boolean,
+};
 
 /**
  *  Onde a busca continua: quantos itens de cada fonte já foram entregues. Opaco para a
@@ -5428,6 +5618,16 @@ export type SideNote =
 "eitherSide" | 
 /**  "Lado desconhecido — confira se é só de cliente". */
 "unknown";
+
+/**  Um trecho pronto. */
+export type Snippet = {
+	/**  Identificador estável (nome na interface: `scripts:trechos.<id>`). */
+	id: string,
+	/**  Tipo de script em que o trecho funciona (só KubeJS). */
+	scriptType: KubejsScriptType | null,
+	/**  O texto inserido, com os campos `${…}` do `CodeMirror`. */
+	body: string,
+};
 
 /**  Por que um trecho só se edita como texto. */
 export type SnippetReason = 
@@ -5814,6 +6014,16 @@ export type TitleBarMaximize = {
 	hovered: boolean,
 	/**  Botão do mouse apertado sobre o botão. */
 	pressed: boolean,
+};
+
+/**  Uma ferramenta encontrada no pack. */
+export type ToolVersion = {
+	/**  A ferramenta. */
+	tool: ScriptTool,
+	/**  A linha (`6` em "KubeJS 6"); `None` se a versão não pôde ser lida. */
+	major: number | null,
+	/**  A versão completa, como veio do jar ou do nome do arquivo. */
+	version: string | null,
 };
 
 /**  Por que um item não pode ser marcado. */

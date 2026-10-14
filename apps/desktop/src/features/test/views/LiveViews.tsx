@@ -29,6 +29,7 @@ import { useRevealInstance, useSaveSessionLog } from '../api';
 import { ManualDownloads, useManualDownloads } from '../blocked/ManualDownloads';
 import { useTestProfiles } from '../profiles/api';
 import { DEFAULT_PROFILE, profileName } from '../profiles/text';
+import { ReloadScriptsButton } from '../reload-scripts/ReloadScriptsButton';
 import { Console } from '../console/Console';
 import { LivePerfStrip } from '../perf-strip/PerfStrip';
 import { currentStep, orderedSteps, stepLabel } from '../steps';
@@ -204,6 +205,7 @@ export function RunningView({ run, pack }: { run: TestRun; pack: PackRow }) {
         sub={t('jogo.sub', { hora: formatTime(run.startedAtMs), jogo: gameLine(pack) })}
         actions={
           <>
+            <ReloadScriptsButton packId={pack.id} />
             <Button
               variant="ghost"
               icon={FolderOpen}

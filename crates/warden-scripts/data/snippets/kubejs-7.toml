@@ -1,0 +1,65 @@
+# Trechos prontos do KubeJS 7 em diante (NeoForge 1.21.1 e Minecraft 26.x). Formato em
+# `kubejs-5.toml`. A dica de item mudou para `ItemEvents.modifyTooltips`.
+ferramenta = "kubejs"
+min = 7
+
+[[trecho]]
+id = "receita-com-forma"
+tipo = "server"
+corpo = """
+ServerEvents.recipes(event => {
+  event.shaped('${minecraft:stone}', [
+    'AAA',
+    'ABA',
+    'AAA'
+  ], {
+    A: '${minecraft:cobblestone}',
+    B: '${minecraft:coal}'
+  })
+})
+"""
+
+[[trecho]]
+id = "receita-sem-forma"
+tipo = "server"
+corpo = """
+ServerEvents.recipes(event => {
+  event.shapeless('${minecraft:stone}', ['${minecraft:cobblestone}', '${minecraft:coal}'])
+})
+"""
+
+[[trecho]]
+id = "remover-receita"
+tipo = "server"
+corpo = """
+ServerEvents.recipes(event => {
+  event.remove({ output: '${minecraft:stone}' })
+})
+"""
+
+[[trecho]]
+id = "tag-de-item"
+tipo = "server"
+corpo = """
+ServerEvents.tags('item', event => {
+  event.add('${c:ingots/copper}', '${minecraft:copper_ingot}')
+})
+"""
+
+[[trecho]]
+id = "item-novo"
+tipo = "startup"
+corpo = """
+StartupEvents.registry('item', event => {
+  event.create('${meu_item}')
+})
+"""
+
+[[trecho]]
+id = "dica-de-item"
+tipo = "client"
+corpo = """
+ItemEvents.modifyTooltips(event => {
+  event.add('${minecraft:stone}', '${Texto da dica}')
+})
+"""

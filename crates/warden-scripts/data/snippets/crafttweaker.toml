@@ -1,0 +1,31 @@
+# Trechos prontos do CraftTweaker moderno (Minecraft 1.14 em diante: `craftingTable.*` e IDs
+# `<item:minecraft:stone>`). Formato em `kubejs-5.toml` (sem `tipo`).
+ferramenta = "crafttweaker"
+min = 5
+
+[[trecho]]
+id = "receita-com-forma"
+corpo = """
+craftingTable.addShaped("${minha_receita}", <item:${minecraft:stone}>, [
+    [<item:minecraft:cobblestone>, <item:minecraft:cobblestone>],
+    [<item:minecraft:cobblestone>, <item:minecraft:cobblestone>]
+]);
+"""
+
+[[trecho]]
+id = "receita-sem-forma"
+corpo = """
+craftingTable.addShapeless("${minha_receita}", <item:${minecraft:stone}>, [<item:${minecraft:cobblestone}>, <item:minecraft:coal>]);
+"""
+
+[[trecho]]
+id = "remover-receita"
+corpo = """
+craftingTable.remove(<item:${minecraft:stone}>);
+"""
+
+[[trecho]]
+id = "fornalha"
+corpo = """
+furnace.addRecipe("${minha_receita}", <item:${minecraft:stone}>, <item:${minecraft:cobblestone}>, 0.1, 200);
+"""
