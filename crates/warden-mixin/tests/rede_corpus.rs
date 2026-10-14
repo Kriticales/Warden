@@ -17,7 +17,7 @@
 mod common;
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Instant;
 
 use serde_json::{Value, json};
@@ -89,9 +89,9 @@ fn jars(pack: &str, keep: impl Fn(&str) -> bool) -> Vec<PackJar> {
     jar_list(pack)
         .into_iter()
         .filter(|(name, _, _)| keep(name))
-        .map(|(name, url, sha1)| PackJar {
-            item: format!("mods/{name}"),
-            path: common::download_cached(&url, &sha1, &cache, &name).expect("download"),
+        .map(|(name, url, sha1)| {
+            let path = common::download_cached(&url, &sha1, &cache, &name).expect("download");
+            PackJar::new(format!("mods/{name}"), path)
         })
         .collect()
 }
@@ -346,6 +346,5 @@ fn rede_packs_inteiros() {
         }
         assert!(cold.as_secs_f64() < 3.0, "{pack}: {cold:?} sem cache");
         assert!(warm.as_millis() < 300, "{pack}: {warm:?} com cache");
-        let _ = PathBuf::new();
     }
 }
