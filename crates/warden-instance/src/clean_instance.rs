@@ -154,7 +154,7 @@ fn remove_dir(dir: &Path) -> Result<()> {
     }
 }
 
-/// Apaga as pastas `player-test-*` que sobraram em `tmp`.
+/// Apaga as pastas `player-test-*` que sobraram em `tmp` (as que não der, ficam para a próxima).
 fn sweep(tmp_dir: &Path) -> Result<()> {
     let entries = match fs::read_dir(tmp_dir) {
         Ok(entries) => entries,
@@ -167,8 +167,14 @@ fn sweep(tmp_dir: &Path) -> Result<()> {
             .to_string_lossy()
             .starts_with(CLEAN_PREFIX)
         {
-            tracing::info!("sobra de um teste como o jogador apagada");
-            remove_dir(&entry.path())?;
+            // Uma sobra presa (outro programa usando um arquivo dela no Windows) não impede o
+            // teste novo, que usa outra pasta: fica para a próxima vez.
+            match remove_dir(&entry.path()) {
+                Ok(()) => tracing::info!("sobra de um teste como o jogador apagada"),
+                Err(error) => {
+                    tracing::warn!(%error, "sobra de um teste como o jogador não apagada");
+                }
+            }
         }
     }
     Ok(())
