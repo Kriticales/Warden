@@ -470,6 +470,19 @@ impl PackRepo {
         self.changes(&base, &Snapshot::WorkingTree, resolver)
     }
 
+    /// Só os arquivos alterados desde a última versão salva (contra o vazio antes da primeira),
+    /// sem ler o conteúdo deles: o mesmo [`ChangeSet::files`] de
+    /// [`Self::changes_since_last_version`], para quem só conta (a linha de Meus packs).
+    pub fn files_changed_since_last_version(&self) -> Result<Vec<FileChange>> {
+        let base = match self.last_version()? {
+            Some(version) => Snapshot::Version(version.to_string()),
+            None => Snapshot::Empty,
+        };
+        let old = self.resolve_snapshot(&base)?;
+        let new = self.resolve_snapshot(&Snapshot::WorkingTree)?;
+        self.diff(old, new)
+    }
+
     /// Conteúdo de um arquivo num lado (`None` se o arquivo não existe nele). Arquivos
     /// maiores que [`MAX_TEXT_FILE`] são tratados como ausentes do changelog.
     fn read_side_file(&self, side: Side, path: &str) -> Result<Option<Vec<u8>>> {

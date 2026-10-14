@@ -133,7 +133,7 @@ fn modrinth_com_cache(
     runtime: &tokio::runtime::Runtime,
     pack: &pack_grande::PackGerado,
 ) -> ModrinthClient {
-    let cache = MetadataCache::in_memory(None).unwrap();
+    let cache = MetadataCache::open(&pack.raiz.join("..").join("metadata.sqlite")).unwrap();
     let projetos: Vec<(Project, String)> = pack
         .mods
         .iter()

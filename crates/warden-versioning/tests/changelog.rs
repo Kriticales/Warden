@@ -461,3 +461,35 @@ fn changelog_md_acumula_versoes_no_topo() {
 fn semver(text: &str) -> semver::Version {
     semver::Version::parse(text).unwrap()
 }
+
+#[test]
+fn arquivos_alterados_sem_ler_conteudo_sao_os_do_changelog() {
+    // Antes da primeira versão, tudo conta como adicionado (contra o vazio).
+    let (pack, repo) = TestPack::versioned();
+    pack.add_modrinth("sodium", "Sodium", "AANobbMI", "s1", Side::Client);
+    let first = repo.files_changed_since_last_version().unwrap();
+    assert!(!first.is_empty());
+    assert_eq!(
+        first,
+        repo.changes_since_last_version(&FileNames).unwrap().files
+    );
+
+    // Depois de salvar: só o que mudou desde a versão, nos três tipos de mudança.
+    let (pack, repo) = base_pack();
+    pack.add_modrinth("modmenu", "Mod Menu", "mOgUt4GM", "mm1", Side::Client);
+    pack.remove("mods/lithium.pw.toml");
+    pack.write("config/sodium-options.json", b"{\"a\": 2}\n");
+    let files = repo.files_changed_since_last_version().unwrap();
+    assert_eq!(
+        files,
+        repo.changes_since_last_version(&FileNames).unwrap().files
+    );
+    let paths: Vec<&str> = files.iter().map(|file| file.path.as_str()).collect();
+    for expected in [
+        "config/sodium-options.json",
+        "mods/lithium.pw.toml",
+        "mods/modmenu.pw.toml",
+    ] {
+        assert!(paths.contains(&expected), "{paths:?}");
+    }
+}

@@ -64,11 +64,16 @@ impl PackRead {
     }
 }
 
+/// Lê só o `pack.toml` de um pack, com o mesmo erro que [`read_pack`] daria por ele. Para quem
+/// precisa do nome e das versões sem o índice nem os metafiles (a linha de Meus packs).
+pub fn read_manifest(root: &Path) -> Result<Parsed<PackManifest>> {
+    let pack_text = read_text(&root.join(PACK_FILE))?;
+    PackManifest::parse(&pack_text).map_err(|error| error.in_file(PACK_FILE))
+}
+
 /// Lê a pasta de um pack. Falha só se o `pack.toml` não puder ser lido.
 pub fn read_pack(root: &Path) -> Result<PackRead> {
-    let pack_path = root.join(PACK_FILE);
-    let pack_text = read_text(&pack_path)?;
-    let pack = PackManifest::parse(&pack_text).map_err(|error| error.in_file(PACK_FILE))?;
+    let pack = read_manifest(root)?;
 
     let index_file = pack.value.index.file.clone();
     let index = check_relative_path(&index_file)
@@ -155,6 +160,23 @@ mod tests {
 
     const PACK: &str = "name = \"T\"\npack-format = \"packwiz:1.1.0\"\n\n[index]\nfile = \"index.toml\"\nhash-format = \"sha256\"\n\n[versions]\nminecraft = \"1.21.1\"\n";
     const GOOD: &str = "name = \"A\"\nfilename = \"a.jar\"\nside = \"both\"\n\n[download]\nurl = \"https://x/a.jar\"\nhash-format = \"sha256\"\nhash = \"00\"\n";
+
+    #[test]
+    fn read_manifest_le_so_o_pack_toml_com_o_mesmo_erro_do_read_pack() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        write(root, "pack.toml", PACK);
+        // Índice ilegível: o manifesto sai igual, sem ler o índice.
+        write(root, "index.toml", "isto não é toml = = =");
+        let manifest = read_manifest(root).unwrap();
+        assert_eq!(manifest.value.name, "T");
+        assert_eq!(manifest.value, read_pack(root).unwrap().pack.value);
+        write(root, "pack.toml", "name = ");
+        assert_eq!(
+            read_manifest(root).unwrap_err().to_string(),
+            read_pack(root).unwrap_err().to_string()
+        );
+    }
 
     #[test]
     fn ca_5_metafile_invalido_so_falha_ele() {
