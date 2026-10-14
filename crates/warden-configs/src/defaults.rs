@@ -164,7 +164,7 @@ fn list_items(text: &str) -> Option<Vec<String>> {
     let items: Vec<&str> = if inner.contains("], [") {
         inner.split("], [").collect()
     } else {
-        inner.split(',').collect()
+        split_outside_quotes(inner)
     };
     Some(
         items
@@ -172,6 +172,30 @@ fn list_items(text: &str) -> Option<Vec<String>> {
             .map(|item| unquote(item).to_owned())
             .collect(),
     )
+}
+
+/// Os trechos de `text` separados por vírgula, sem contar as vírgulas dentro de aspas
+/// (`"a,b", c` são dois itens).
+fn split_outside_quotes(text: &str) -> Vec<&str> {
+    let mut items = Vec::new();
+    let mut start = 0;
+    let mut quote: Option<char> = None;
+    let mut escaped = false;
+    for (position, c) in text.char_indices() {
+        match quote {
+            Some(_) if escaped => escaped = false,
+            Some(_) if c == '\\' => escaped = true,
+            Some(open) if c == open => quote = None,
+            None if c == '"' || c == '\'' => quote = Some(c),
+            None if c == ',' => {
+                items.push(&text[start..position]);
+                start = position + 1;
+            }
+            _ => {}
+        }
+    }
+    items.push(&text[start..]);
+    items
 }
 
 /// `Some(true)` se o valor é o padrão; `None` se o padrão não se lê no tipo do valor.
@@ -745,6 +769,10 @@ mod tests {
         // A forma do `Configuration` (`[a], [b]`) é a mesma lista.
         assert_eq!(state_of(&list, "[20], [x]"), DefaultState::Same);
         assert_eq!(state_of(&list, "[20, y]"), DefaultState::Changed);
+        // Vírgula dentro de um item entre aspas não separa itens.
+        let quoted = ConfigValue::List(vec![ConfigValue::String("a{x:1,y:2}".into())]);
+        assert_eq!(state_of(&quoted, "[\"a{x:1,y:2}\"]"), DefaultState::Same);
+        assert_eq!(list_items("[\"a,b\", 'c', d]").unwrap(), ["a,b", "c", "d"]);
         assert_eq!(state_of(&ConfigValue::List(vec![]), ""), DefaultState::Same);
         assert_eq!(state_of(&ConfigValue::Null, "1"), DefaultState::Unknown);
     }
