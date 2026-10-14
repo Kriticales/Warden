@@ -72,6 +72,8 @@ export const tarefas = {
       directLink: 'Baixar o link',
       localInspect: 'Ler arquivos do computador',
       localApply: 'Adicionar arquivos ao pack',
+      // P1-17: a lista de mods de um modpack (cancelada ao fechar o painel).
+      modpackContents: 'Ler os mods do modpack',
     },
     versioning: {
       save: 'Salvar versão',

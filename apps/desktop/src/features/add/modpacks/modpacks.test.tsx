@@ -5,7 +5,7 @@
  * **Versão**, "Adicionar 5 selecionados" abre um único diálogo com as versões escolhidas, e
  * depois de gravar a lista e as contagens são relidas.
  */
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -15,6 +15,7 @@ import { type Handler, ipcError } from '../../../test/backend';
 import { makeAppError } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
 import { makeInventory, makeItem } from '../../pack-editor/editor.fixtures';
+import { sendOnChannel } from '../../test/test.fixtures';
 import { editorBackend } from '../../pack-editor/testing';
 import { makeNode, makePage, makePlan, makeResult, ref } from '../add.fixtures';
 import { choicesFor, countByState, modState, visibleMods } from './model';
@@ -329,6 +330,57 @@ describe('Tipo = Modpacks', () => {
       ),
     ).toBeDefined();
     expect(within(panel).queryByRole('region', { name: 'Mods selecionados' })).toBeNull();
+  });
+
+  it('trocar de modpack ou fechar o painel cancela a leitura no backend', async () => {
+    const channels: unknown[] = [];
+    const { url, backend } = setup({
+      // A leitura nunca termina sozinha: só o cancelamento a para.
+      modpack_contents: (args) => {
+        channels.push(args.onEvent);
+        return new Promise(() => undefined);
+      },
+      operation_cancel: () => null,
+    });
+    const cancelled = () =>
+      backend.callsOf('operation_cancel').map((call) => call.args.operationId);
+    const list = await openModpacks(url);
+    await userEvent.click(within(list).getByRole('button', { name: 'Ver os mods de Create+' }));
+    const first = await screen.findByRole('complementary', { name: 'Mods do modpack Create+' });
+    expect(within(first).getByText('Lendo a lista de mods do modpack…')).toBeDefined();
+    await waitFor(() => {
+      expect(channels).toHaveLength(1);
+    });
+    act(() => {
+      sendOnChannel(channels[0], [
+        { type: 'started', operationId: '01J9ZQ00000000000000000001', kind: 'add.modpackContents' },
+      ]);
+    });
+    expect(cancelled()).toEqual([]);
+
+    // Trocar de modpack cancela a leitura do anterior.
+    await userEvent.click(within(list).getByRole('button', { name: 'Ver os mods de Cozy Create' }));
+    const second = await screen.findByRole('complementary', {
+      name: 'Mods do modpack Cozy Create',
+    });
+    await waitFor(() => {
+      expect(cancelled()).toEqual(['01J9ZQ00000000000000000001']);
+    });
+    await waitFor(() => {
+      expect(channels).toHaveLength(2);
+    });
+
+    // Fechar antes de o ID chegar: cancela assim que ele chega.
+    await userEvent.click(within(second).getByRole('button', { name: 'Fechar o modpack' }));
+    expect(cancelled()).toHaveLength(1);
+    act(() => {
+      sendOnChannel(channels[1], [
+        { type: 'started', operationId: '01J9ZQ00000000000000000002', kind: 'add.modpackContents' },
+      ]);
+    });
+    await waitFor(() => {
+      expect(cancelled()).toEqual(['01J9ZQ00000000000000000001', '01J9ZQ00000000000000000002']);
+    });
   });
 
   it('"Fechar o modpack" volta os filtros e devolve o foco a quem abriu', async () => {

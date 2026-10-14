@@ -438,9 +438,9 @@ export const commands = {
 	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
 	/**
 	 *  Os mods de um modpack, com "Já no seu pack", "Compatível", "Sem versão para o seu pack" e
-	 *  "Arquivo fora das lojas".
+	 *  "Arquivo fora das lojas". Cancelável pelo ID que chega no canal.
 	 */
-	modpackContents: (packId: PackId, source: SourceId, projectId: string) => typedError<ModpackContents, AppError>(__TAURI_INVOKE("modpack_contents", { packId, source, projectId })),
+	modpackContents: (packId: PackId, source: SourceId, projectId: string, onEvent: Channel<OperationEvent>) => typedError<ModpackContents, AppError>(__TAURI_INVOKE("modpack_contents", { packId, source, projectId, onEvent })),
 	/**  Nome, autor, descrição e versões do `pack.toml` (diálogo Informações do pack). */
 	packMetaGet: (packId: PackId) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_meta_get", { packId })),
 	/**  Grava nome, autor e descrição no `pack.toml`, mudando só as linhas alteradas. */
