@@ -323,6 +323,8 @@ describe('Testar como servidor (L-09; T27)', function () {
 
   it('CA-T21-05: Configurações mostra o aceite e Revogar volta a "Ainda não aceita"', async () => {
     await dismissToasts();
+    await $('header.packhead').$('a*=Meus packs').click();
+    await $('h1=Meus packs').waitForDisplayed();
     const link = $('header.topbar').$('a*=Configurações');
     await link.waitForClickable();
     await link.click();
