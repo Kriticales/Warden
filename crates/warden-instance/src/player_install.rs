@@ -52,6 +52,9 @@ pub const STAGE_EXPORT_LABEL: &str = "jogador:etapa.exportar";
 /// Arquivo de estado que o installer grava na pasta do jogo.
 pub const RECEIVED_FILE: &str = "packwiz.json";
 
+/// Quanto o servidor local espera uma conexão terminar (pedido e resposta).
+const CONNECTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
+
 /// Linhas guardadas da saída do installer (um pack grande tem uma linha por arquivo).
 const MAX_OUTPUT_LINES: usize = 5_000;
 
@@ -733,7 +736,15 @@ impl LocalPackServer {
                         accepted = listener.accept() => {
                             let Ok((stream, _)) = accepted else { continue };
                             requests.fetch_add(1, Ordering::Relaxed);
-                            tokio::spawn(serve_one(stream, Arc::clone(&root)));
+                            let (stop, root) = (stop.clone(), Arc::clone(&root));
+                            // Cada conexão também termina quando o servidor fecha, e uma que
+                            // não conclui o pedido a tempo é largada.
+                            tokio::spawn(async move {
+                                tokio::select! {
+                                    () = stop.cancelled() => {}
+                                    _ = tokio::time::timeout(CONNECTION_TIMEOUT, serve_one(stream, root)) => {}
+                                }
+                            });
                         }
                     }
                 }
@@ -1204,7 +1215,7 @@ mod tests {
         let link = server.link("pack.toml").unwrap();
         assert_eq!(link.host_str(), Some("127.0.0.1"));
         let http = HttpClient::new(HttpConfig::default()).unwrap();
-        let body = http.get(link).bytes().await.unwrap();
+        let body = http.get(link.clone()).bytes().await.unwrap();
         assert_eq!(body, b"name = \"Vale\"\n");
         let spaced = http
             .get(server.link("mods/a%20b.pw.toml").unwrap())
@@ -1223,6 +1234,37 @@ mod tests {
             );
         }
         assert!(server.requests() >= 3);
+        // Fechado (fim do teste, erro ou cancelamento), a porta não atende mais.
+        let address = format!("127.0.0.1:{}", link.port().unwrap());
+        drop(server);
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        assert!(
+            TcpStream::connect(&address).await.is_err(),
+            "porta ainda aberta"
+        );
+    }
+
+    #[test]
+    fn so_arquivos_dentro_da_pasta() {
+        let dir = temp_dir();
+        write(dir.path(), "servido/pack.toml", "x");
+        write(dir.path(), "segredo.txt", "nao");
+        fs::create_dir_all(dir.path().join("servido/mods")).unwrap();
+        let root = dir.path().join("servido");
+        assert_eq!(
+            file_for(&root, "/pack.toml?x=1").as_deref(),
+            Some(&b"x"[..])
+        );
+        for target in [
+            "/../segredo.txt",
+            "/%2E%2E/segredo.txt",
+            "/..%5Csegredo.txt",
+            "//segredo.txt",
+            "/mods",
+            "/",
+        ] {
+            assert_eq!(file_for(&root, target), None, "{target}");
+        }
     }
 
     #[test]
