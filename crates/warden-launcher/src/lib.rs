@@ -40,6 +40,7 @@ pub use engine::{
 pub use error::{Error, LauncherErrorCode, Result};
 pub use offline::{OfflineProfile, OfflineUuid, PlayerName};
 pub use quick_play::QuickPlaySupport;
+pub use range::needs_safe_log4j_config;
 pub use spec::{
     ArgFile, GameSpec, InstalledGame, JavaRuntime, LaunchCommand, LaunchOptions, LoaderSpec,
     LoggingConfig, MinecraftVersionId, QuickPlay,
