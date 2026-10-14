@@ -2,6 +2,12 @@
 //! hexadecimais, ids de recurso (`minecraft:block/stone`), caminhos e endereços viram marcadores
 //! (`Missing texture for {id} at {n}`). Duas linhas com a mesma forma são repetições.
 //!
+//! Só o ruído vira marcador. Identificadores de código ficam como estão: os nomes intermediary
+//! do Fabric (`class_1937.method_8320`, `field_1724`), os SRG do Forge antigo (`func_71411_J`,
+//! `field_70170_p`, `p_12345_`), classes internas (`Foo$1`) e as linhas de frame do stack trace
+//! inteiras (`at pacote.Classe.metodo(Classe.java:123)`, `... 12 more`): dois stack traces que
+//! passam por lugares diferentes do código nunca têm a mesma forma.
+//!
 //! A troca é reversível: o modelo guarda onde cada valor estava e os valores trocados ficam
 //! juntos numa só `String` por ocorrência, então "Copiar" devolve as linhas originais sem o
 //! console guardar cada linha inteira. O leitor trabalha em bytes ASCII (os marcadores só
@@ -108,14 +114,26 @@ pub(crate) fn normalize(text: &str) -> Normalized {
     };
     while i < bytes.len() {
         let previous = if i == 0 { None } else { Some(bytes[i - 1]) };
+        if previous.is_none_or(|p| p == b'\n') {
+            let end = bytes[i..]
+                .iter()
+                .position(|&b| b == b'\n')
+                .map_or(bytes.len(), |n| i + n);
+            if is_frame_line(&text[i..end]) {
+                // Uma linha de frame é o lugar no código: fica inteira.
+                i = end;
+                continue;
+            }
+        }
         if let Some((kind, end)) = token_at(bytes, i, previous) {
             template.extend_from_slice(&bytes[copied..i]);
             hole(&mut template, &mut values, kind, &text[i..end]);
             i = end;
             copied = end;
-        } else if bytes[i].is_ascii_alphabetic() {
-            // Uma palavra (`log4j`, `x86`): os dígitos colados a letras ficam como estão.
-            while i < bytes.len() && is_alnum(bytes[i]) {
+        } else if is_ident(bytes[i]) && !bytes[i].is_ascii_digit() {
+            // Um identificador (`log4j`, `x86_64`, `class_1937`, `func_71411_J`, `Foo$1`): os
+            // dígitos colados a letras, `_` ou `$` ficam como estão.
+            while i < bytes.len() && is_ident(bytes[i]) {
                 i += 1;
             }
         } else {
@@ -169,10 +187,21 @@ const fn is_alnum(b: u8) -> bool {
     b.is_ascii_alphanumeric()
 }
 
+/// Letra, dígito, `_` ou `$`: parte de um nome de código.
+const fn is_ident(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_' || b == b'$'
+}
+
+/// Linha de frame de um stack trace (`\tat pacote.Classe.metodo(…)`, `\t... 12 more`).
+fn is_frame_line(line: &str) -> bool {
+    let trimmed = line.trim_start();
+    trimmed.starts_with("at ") || trimmed.starts_with("... ")
+}
+
 /// Um marcador que começa em `i`, com o fim.
 fn token_at(bytes: &[u8], i: usize, previous: Option<u8>) -> Option<(Kind, usize)> {
     let b = bytes[i];
-    let word_start = previous.is_none_or(|p| !is_alnum(p) && p != b'_');
+    let word_start = previous.is_none_or(|p| !is_ident(p));
     if word_start && b.is_ascii_alphabetic() {
         if let Some(end) = url_at(bytes, i) {
             return Some((Kind::Url, end));
@@ -206,8 +235,8 @@ fn token_at(bytes: &[u8], i: usize, previous: Option<u8>) -> Option<(Kind, usize
     {
         return Some((Kind::Path, end));
     }
-    let letter_before = previous.is_some_and(|p| p.is_ascii_alphabetic());
-    if b.is_ascii_digit() && !letter_before {
+    let ident_before = previous.is_some_and(|p| p.is_ascii_alphabetic() || p == b'_' || p == b'$');
+    if b.is_ascii_digit() && !ident_before {
         return Some((Kind::Number, number_end(bytes, i)));
     }
     if b == b'-'
@@ -401,7 +430,7 @@ mod tests {
             shape(
                 "\tat net.minecraft.client.Minecraft.run(Minecraft.java:2108) ~[client-1.20.1-srg.jar%23154!/:?]"
             ),
-            "\tat net.minecraft.client.Minecraft.run(Minecraft.java:{n}) ~[client-{n}-srg.jar%{n}!/:?]"
+            "\tat net.minecraft.client.Minecraft.run(Minecraft.java:2108) ~[client-1.20.1-srg.jar%23154!/:?]"
         );
         assert_eq!(
             shape("Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas"),
@@ -419,7 +448,50 @@ mod tests {
         ] {
             assert_eq!(shape(text), text);
         }
-        assert_eq!(shape("JAVA_17"), "JAVA_{n}");
+    }
+
+    /// Nomes do jogo em pack Fabric (intermediary) e Forge antigo (SRG) não viram `{n}`: dois
+    /// lugares diferentes do código nunca têm a mesma forma.
+    #[test]
+    fn nomes_intermediary_e_srg_ficam() {
+        for text in [
+            "JAVA_17",
+            "x86_64",
+            "Cannot invoke \"net.minecraft.class_2680.method_26204()\" because \"state\" is null",
+            "Exception in class_1937.method_8320 and field_1724",
+            "Exception in func_71411_J reading field_70170_p (p_12345_)",
+            "Error in Foo$1 and Bar$Inner$2",
+        ] {
+            assert_eq!(shape(text), text);
+        }
+        assert_ne!(
+            normalize("Erro em class_1937.method_8320").template,
+            normalize("Erro em class_2338.method_10074").template
+        );
+        assert_ne!(
+            normalize("Erro em func_71411_J").template,
+            normalize("Erro em func_71407_l").template
+        );
+        // O ruído em volta continua virando marcador.
+        assert_eq!(
+            shape("class_1937 at 12, 64, -3 em 0x1F"),
+            "class_1937 at {n}, {n}, {n} em {hex}"
+        );
+    }
+
+    /// As linhas de frame ficam inteiras, com o número da linha do código; a mensagem da
+    /// exceção continua normalizada.
+    #[test]
+    fn frames_ficam_inteiros() {
+        let a = "Falha em 12, 64\njava.lang.NullPointerException: x 3\n\tat net.minecraft.world.level.Level.getBlockState(Level.java:851) ~[server-1.21.1.jar%23154!/:?]\n\t... 12 more";
+        assert_eq!(
+            shape(a),
+            "Falha em {n}, {n}\njava.lang.NullPointerException: x {n}\n\tat net.minecraft.world.level.Level.getBlockState(Level.java:851) ~[server-1.21.1.jar%23154!/:?]\n\t... 12 more"
+        );
+        let b = a.replace("Level.java:851", "Level.java:900");
+        assert_ne!(normalize(a).template, normalize(&b).template);
+        let c = a.replace("em 12, 64", "em 7, -80").replace("x 3", "x 9");
+        assert_eq!(normalize(a).template, normalize(&c).template);
     }
 
     #[test]

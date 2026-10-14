@@ -340,6 +340,113 @@ fn fabric_logger_com_nome_e_classe_do_mod() {
     assert_eq!(groups.last().unwrap().key, "unknown");
 }
 
+/// Dois `NullPointerException` com a mesma mensagem em lugares diferentes do jogo.
+fn npe_pair(first_frames: &str, second_frames: &str, message: (&str, &str)) -> String {
+    let event = |time: &str, text: &str, frames: &str| {
+        format!(
+            "[18:02:{time}] [Render thread/ERROR] [minecraft/Minecraft]: {text}\njava.lang.NullPointerException: null\n{frames}\t... 12 more\n"
+        )
+    };
+    let mut log = event("10", message.0, first_frames);
+    log.push_str(&event("11", message.1, second_frames));
+    log.push_str("[18:02:12] [Render thread/INFO] [minecraft/Minecraft]: Fim\n");
+    log
+}
+
+/// Stack traces diferentes nunca se fundem: os nomes intermediary do Fabric
+/// (`class_1937.method_8320` × `class_2338.method_10074`), os SRG do Forge antigo
+/// (`func_72838_d` × `func_175623_d`) e o número da linha do NeoForge são o
+/// lugar no código, não ruído. As mesmas mensagens com só coordenadas e horas diferentes
+/// continuam juntas.
+#[test]
+fn stack_traces_diferentes_nao_se_fundem() {
+    let pairs = [
+        (
+            "Fabric (intermediary)",
+            "\tat net.minecraft.class_1937.method_8320(class_1937.java:612)\n\tat net.minecraft.class_310.method_1523(class_310.java:1205)\n",
+            "\tat net.minecraft.class_2338.method_10074(class_2338.java:612)\n\tat net.minecraft.class_310.method_1523(class_310.java:1205)\n",
+        ),
+        (
+            "Forge antigo (SRG)",
+            "\tat net.minecraft.world.World.func_72838_d(World.java:1214)\n\tat net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1)\n",
+            "\tat net.minecraft.world.World.func_175623_d(World.java:1214)\n\tat net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1)\n",
+        ),
+        (
+            "NeoForge (mojmap, mesma classe, outra linha)",
+            "\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.world.level.Level.getBlockState(Level.java:851)\n",
+            "\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.world.level.Level.getBlockState(Level.java:907)\n",
+        ),
+    ];
+    for (name, a, b) in pairs {
+        let grouper = group(
+            &npe_pair(
+                a,
+                b,
+                ("Erro no bloco em 12, 64, -3", "Erro no bloco em 7, 80, 15"),
+            ),
+            ModDirectory::empty(),
+        );
+        let (problems, total) = grouper.problems("", 10);
+        assert_eq!(total, 2, "{name}: {problems:?}");
+        assert!(
+            problems.iter().all(|item| item.count == 1 && item.trace),
+            "{name}"
+        );
+        // Abrir cada item mostra o seu próprio stack trace.
+        for (item, frames) in problems.iter().zip([a, b]) {
+            let lines = grouper.original_lines(&LinesTarget::Item(item.id), None);
+            assert_eq!(lines.len(), 1, "{name}");
+            assert!(
+                lines[0].text.contains(frames.trim_end()),
+                "{name}: {}",
+                lines[0].text
+            );
+        }
+
+        // O mesmo stack trace com só coordenadas e horas diferentes: um item "×2".
+        let grouper = group(
+            &npe_pair(
+                a,
+                a,
+                ("Erro no bloco em 12, 64, -3", "Erro no bloco em 7, 80, 15"),
+            ),
+            ModDirectory::empty(),
+        );
+        let (problems, total) = grouper.problems("", 10);
+        assert_eq!(total, 1, "{name}: {problems:?}");
+        assert_eq!(problems[0].count, 2, "{name}");
+        assert_eq!(problems[0].text, "Erro no bloco em {n}, {n}, {n}", "{name}");
+        assert_eq!(problems[0].first.time.as_deref(), Some("18:02:10"));
+        assert_eq!(problems[0].last.time.as_deref(), Some("18:02:11"));
+        let lines = grouper.original_lines(&LinesTarget::Item(problems[0].id), None);
+        assert!(
+            lines[1].text.starts_with("Erro no bloco em 7, 80, 15\n"),
+            "{name}"
+        );
+    }
+}
+
+/// Uma linha que cita nomes intermediary ou SRG também não junta lugares diferentes.
+#[test]
+fn mensagens_com_nomes_do_jogo_nao_se_fundem() {
+    let log = concat!(
+        "[18:02:10] [Render thread/WARN] [minecraft/Minecraft]: Falha em class_1937.method_8320 no bloco 12\n",
+        "[18:02:11] [Render thread/WARN] [minecraft/Minecraft]: Falha em class_2338.method_10074 no bloco 40\n",
+        "[18:02:12] [Render thread/WARN] [minecraft/Minecraft]: Falha em func_72838_d e field_70170_p no bloco 3\n",
+        "[18:02:13] [Render thread/WARN] [minecraft/Minecraft]: Falha em func_175623_d e field_70163_u no bloco 9\n",
+        "[18:02:14] [Render thread/WARN] [minecraft/Minecraft]: Falha em func_175623_d e field_70163_u no bloco 77\n",
+    );
+    let grouper = group(log, ModDirectory::empty());
+    let (problems, total) = grouper.problems("", 10);
+    assert_eq!(total, 4, "{problems:?}");
+    let repeated: Vec<_> = problems.iter().filter(|item| item.count > 1).collect();
+    assert_eq!(repeated.len(), 1);
+    assert_eq!(
+        repeated[0].text,
+        "Falha em func_175623_d e field_70163_u no bloco {n}"
+    );
+}
+
 /// 50.000 linhas (e 300.000) agrupadas sem travar: o tempo de agrupar e de montar a tela.
 #[test]
 fn desempenho_50_mil_linhas() {
