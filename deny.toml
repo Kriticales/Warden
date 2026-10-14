@@ -19,6 +19,9 @@ ignore = []
 # O Warden é privado e nunca distribuído (ADR-0004): a lista cobre as licenças encontradas,
 # e toda licença nova passa por revisão ao entrar aqui.
 allow = [
+  # 0BSD (domínio público na prática, mais permissiva que a MIT): `cafebabe`, leitor das classes
+  # de mixin do raio-x (D-10, ADR-0034 e ADR-0056).
+  "0BSD",
   "Apache-2.0",
   "Apache-2.0 WITH LLVM-exception",
   "BSD-2-Clause",

@@ -260,5 +260,4 @@ fn read_capped(path: &Path) -> Option<String> {
 }
 
 #[cfg(test)]
-#[path = "xray/tests.rs"]
 mod tests;
