@@ -369,15 +369,16 @@ const LOADER_SERVICE_PREFIXES: [&str; 4] = [
 fn loader_services<R: Read + Seek>(zip: &ZipArchive<R>) -> Vec<String> {
     let mut out: Vec<String> = zip
         .file_names()
-        .filter_map(|name| name.strip_prefix("META-INF/services/"))
-        .filter(|service| {
-            !service.is_empty()
+        .flatten()
+        .filter_map(|name| {
+            let service = name.strip_prefix("META-INF/services/")?;
+            (!service.is_empty()
                 && !service.contains('/')
                 && LOADER_SERVICE_PREFIXES
                     .iter()
-                    .any(|p| service.starts_with(p))
+                    .any(|p| service.starts_with(p)))
+            .then(|| service.to_owned())
         })
-        .map(str::to_owned)
         .collect();
     out.sort();
     out.dedup();
@@ -392,12 +393,14 @@ fn class_versions<R: Read + Seek>(
 ) -> (Option<ClassVersion>, Option<ClassVersion>) {
     let candidates: Vec<usize> = (0..zip.len())
         .filter(|&i| {
-            zip.name_for_index(i).is_some_and(|name| {
-                Path::new(name)
-                    .extension()
-                    .is_some_and(|e| e.eq_ignore_ascii_case("class"))
-                    && !name.starts_with("META-INF/versions/")
-            })
+            zip.name_for_index(i)
+                .and_then(Result::ok)
+                .is_some_and(|name| {
+                    Path::new(name.as_ref())
+                        .extension()
+                        .is_some_and(|e| e.eq_ignore_ascii_case("class"))
+                        && !name.starts_with("META-INF/versions/")
+                })
         })
         .take(max)
         .collect();

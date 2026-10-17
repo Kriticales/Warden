@@ -403,7 +403,8 @@ fn scan_one<R: Read + Seek>(
     let mut packages = BTreeSet::new();
     let mut text_classes: Vec<String> = plugins.iter().map(|p| format!("{p}.class")).collect();
     let mut extra = 0;
-    for entry in zip.file_names() {
+    // Nome que não se lê (fora do UTF-8 e do CP437 do zip) não é classe que o Mixin acharia.
+    for entry in zip.file_names().flatten() {
         let Some(stem) = entry.strip_suffix(".class") else {
             continue;
         };
@@ -417,7 +418,7 @@ fn scan_one<R: Read + Seek>(
                     || simple.contains("Plugin")
                     || simple.contains("Compat"))
             {
-                text_classes.push(entry.to_owned());
+                text_classes.push(entry.to_string());
                 extra += 1;
             }
         }

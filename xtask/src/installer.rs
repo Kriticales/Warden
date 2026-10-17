@@ -185,7 +185,7 @@ fn extract_zip(archive_path: &Path, destination: &Path) -> Result<()> {
         let Some(relative) = entry.enclosed_name() else {
             bail!(
                 "installer: o zip do JRE tem um caminho inseguro: {}",
-                entry.name()
+                String::from_utf8_lossy(entry.name_raw())
             );
         };
         let target = destination.join(relative);

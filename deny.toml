@@ -13,7 +13,20 @@ all-features = true
 # Tauri no Linux) são decisão das bibliotecas de cima.
 unmaintained = "workspace"
 yanked = "deny"
-ignore = []
+ignore = [
+  # `zip` 6.0.0, só pelo `portablemc` =5.0.5 (L-02, ADR-0057; ainda no `zip` 6 no `main` de
+  # cima: https://github.com/mindstorm38/portablemc/blob/main/rust/portablemc/Cargo.toml).
+  # Os três alertas tratam só de `ZipArchive::extract` e `ZipStreamReader::extract`, que
+  # gravam links simbólicos e aplicam as permissões Unix das entradas. O `portablemc` 5.0.5
+  # nunca chama esses métodos: lê entrada por entrada (`by_name`/`by_index` e `io::copy`), sem
+  # links nem permissões do zip, e as nativas passam por `enclosed_name` e ficam só com o nome
+  # do arquivo (`src/base/mod.rs` e `src/forge/mod.rs`, conferidos na FIX-ZIP). As crates do
+  # Warden usam o `zip` 9.0.4, já corrigido, e nenhuma chama `extract`. Remover estas linhas
+  # quando o `portablemc` passar para o `zip` >= 9.
+  { id = "RUSTSEC-2026-0367", reason = "zip 6 só no portablemc, que não usa extract (GHSA-vv5m-jxxh-4627)" },
+  { id = "RUSTSEC-2026-0368", reason = "zip 6 só no portablemc, que não usa extract (GHSA-4v9h-p7m9-rh26)" },
+  { id = "RUSTSEC-2026-0369", reason = "zip 6 só no portablemc, que não usa extract (GHSA-4684-h2q9-2vcp)" },
+]
 
 [licenses]
 # O Warden é privado e nunca distribuído (ADR-0004): a lista cobre as licenças encontradas,

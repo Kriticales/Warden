@@ -749,7 +749,7 @@ mod tests {
         assert_eq!(fs::read(&a).unwrap(), fs::read(&b).unwrap());
         let mut zip = zip::ZipArchive::new(fs::File::open(a).unwrap()).unwrap();
         let mut names = (0..zip.len())
-            .map(|index| zip.by_index(index).unwrap().name().to_owned())
+            .map(|index| zip.by_index(index).unwrap().name().unwrap().into_owned())
             .collect::<Vec<_>>();
         names.sort();
         assert_eq!(

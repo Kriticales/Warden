@@ -231,8 +231,8 @@ fn indexed_mods(meta: &JarMetadata) -> Vec<IndexedMod> {
 /// pacote normal; o resto de `META-INF/` e as classes sem pacote ficam de fora.
 fn packages<R: Read + Seek>(zip: &ZipArchive<R>) -> Vec<String> {
     let mut out = BTreeSet::new();
-    for name in zip.file_names() {
-        if let Some(package) = package_of_entry(name) {
+    for name in zip.file_names().flatten() {
+        if let Some(package) = package_of_entry(&name) {
             out.insert(package);
         }
     }

@@ -51,7 +51,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `md-5` | 0.10.6 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `md5` (CurseForge sem `sha1`). |
 | `hex` | 0.4.3 | MIT OR Apache-2.0 | `warden-packwiz` | Hashes em hexadecimal minúsculo, como o packwiz grava. |
 | `jsonc-parser` | 0.34.0 | MIT | `warden-configs` | Leitura de JSON, JSONC e JSON5 com posições e comentários (ADR-0013). |
-| `zip` | 8.6.0 | MIT | `warden-jarmeta` | Leitura de jars sem extrair (só `deflate`, via `flate2` + `zlib-rs`). |
+| `zip` | 9.0.4 | MIT | `warden-jarmeta` | Leitura de jars sem extrair (só `deflate`, via `flate2` + `zlib-rs`). Entrou na 8.6.0; passou para a 9.0.4 na FIX-ZIP (RUSTSEC-2026-0367, 0368 e 0369). O `zip` 6.0.0 do `portablemc` fica com exceção comentada no `deny.toml`. |
 | `insta` | 1.49.0 | Apache-2.0 | `warden-jarmeta` (testes) | Dourados do corpus de jars (QUALITY §4.1). |
 | `ureq` | 3.4.2 | MIT OR Apache-2.0 | `warden-jarmeta`, `warden-mixin` (testes) | Download dos jars reais nos testes de rede (`rede_*`). |
 | `reqwest` | 0.13.5 | MIT OR Apache-2.0 | `warden-http` | Cliente HTTP (ARCHITECTURE §17), sem os recursos padrão: só `rustls-no-provider` (o TLS é montado pela `warden-http`). Mesma versão que o Tauri já usa. |

@@ -131,6 +131,18 @@ fn open_zip(path: &Path) -> Result<zip::ZipArchive<File>> {
     zip::ZipArchive::new(file).map_err(|error| unreadable(path, format!("não é um zip: {error}")))
 }
 
+/// Nomes de todas as entradas; um nome que não decodifica torna o arquivo ilegível (nenhuma
+/// entrada escapa da validação dos nomes).
+fn entry_names(archive: &zip::ZipArchive<File>, path: &Path) -> Result<Vec<String>> {
+    archive
+        .file_names()
+        .map(|name| {
+            name.map(String::from)
+                .map_err(|error| unreadable(path, format!("nome de entrada ilegível: {error}")))
+        })
+        .collect()
+}
+
 fn read_json_entry<T: for<'de> Deserialize<'de>>(
     archive: &mut zip::ZipArchive<File>,
     path: &Path,
@@ -154,7 +166,7 @@ fn read_json_entry<T: for<'de> Deserialize<'de>>(
 /// passam (é a leitura da importação).
 pub fn read_mrpack(path: &Path) -> Result<MrpackArchive> {
     let mut archive = open_zip(path)?;
-    let entries = archive.file_names().map(str::to_owned).collect();
+    let entries = entry_names(&archive, path)?;
     let index = read_json_entry(&mut archive, path, MRPACK_INDEX)?;
     Ok(MrpackArchive { index, entries })
 }
@@ -405,7 +417,7 @@ struct CurseforgeManifest {
 /// e `overrides/` só com o que as regras permitem, sem jar de terceiros não confirmado.
 pub fn validate_curseforge(path: &Path, rules: &CurseforgeRules) -> Result<FormatValidation> {
     let mut archive = open_zip(path)?;
-    let entries: Vec<String> = archive.file_names().map(str::to_owned).collect();
+    let entries = entry_names(&archive, path)?;
     let manifest: CurseforgeManifest = read_json_entry(&mut archive, path, CURSEFORGE_MANIFEST)?;
     let mut problems = Vec::new();
     if manifest.manifest_type != "minecraftModpack" {
