@@ -196,9 +196,10 @@ fn extract_zip(archive: &Path, destination: &Path) -> Result<()> {
         let entry = zip.by_index_raw(index).map_err(|error| {
             archive_error(archive, format!("entrada {index} ilegível: {error}"))
         })?;
-        names.push(
-            entry_components(entry.name()).map_err(|message| archive_error(archive, message))?,
-        );
+        let name = entry.name().map_err(|error| {
+            archive_error(archive, format!("entrada {index} ilegível: {error}"))
+        })?;
+        names.push(entry_components(&name).map_err(|message| archive_error(archive, message))?);
         dirs.push(entry.is_dir());
     }
     let strip = common_top(&names, &dirs);
@@ -212,7 +213,7 @@ fn extract_zip(archive: &Path, destination: &Path) -> Result<()> {
         };
         if entry.is_symlink() {
             // Os zips do Temurin não têm links; um link num zip é ignorado, nunca seguido.
-            tracing::warn!(entry = entry.name(), "link simbólico no zip ignorado");
+            tracing::warn!(entry = %components.join("/"), "link simbólico no zip ignorado");
             continue;
         }
         if entry.is_dir() {
@@ -431,5 +432,94 @@ mod tests {
         assert_eq!(common_top(&mixed, &[false, false]), None);
         let loose = vec![vec!["release".to_owned()]];
         assert_eq!(common_top(&loose, &[false]), None);
+    }
+
+    /// Zip com o que os alertas RUSTSEC-2026-0367/0368/0369 exploram no `extract` do `zip`:
+    /// link simbólico para fora da pasta, executável com SUID/SGID/sticky e pasta com SGID.
+    fn malicious_zip(path: &Path) {
+        use std::io::Write as _;
+        use zip::write::SimpleFileOptions;
+        let mut zip = zip::ZipWriter::new(io::Cursor::new(Vec::new()));
+        let options = SimpleFileOptions::default();
+        zip.add_directory("jdk/bin/", options).unwrap();
+        zip.start_file("jdk/bin/java", options.unix_permissions(0o755))
+            .unwrap();
+        zip.write_all(b"java").unwrap();
+        zip.add_symlink("jdk/lib/fora", "../../../fora", options)
+            .unwrap();
+        zip.add_symlink("jdk/lib/absoluto", "/etc", options)
+            .unwrap();
+        zip.start_file("jdk/release", options).unwrap();
+        zip.write_all(b"JAVA_VERSION=\"21\"").unwrap();
+        let mut bytes = zip.finish().unwrap().into_inner();
+        // O `ZipWriter` não grava SUID/SGID/sticky; o atacante grava: os atributos externos
+        // do diretório central são reescritos à mão.
+        set_unix_mode(&mut bytes, "jdk/bin/", 0o040_000 | 0o2755);
+        set_unix_mode(&mut bytes, "jdk/bin/java", 0o100_000 | 0o7755);
+        fs::write(path, bytes).unwrap();
+    }
+
+    /// Troca o modo Unix (atributos externos, bytes 38..42) da entrada `name` no diretório
+    /// central. O `zip` 9 também limpa esses bits ao ler (`unix_mode`); a máscara do Warden
+    /// (`set_mode`) é a defesa que valia no `zip` 8 e continua valendo se a biblioteca mudar.
+    fn set_unix_mode(bytes: &mut [u8], name: &str, mode: u32) {
+        let at = (0..bytes.len() - 46)
+            .find(|&i| {
+                bytes[i..i + 4] == [0x50, 0x4b, 0x01, 0x02]
+                    && usize::from(u16::from_le_bytes([bytes[i + 28], bytes[i + 29]])) == name.len()
+                    && bytes[i + 46..].starts_with(name.as_bytes())
+            })
+            .expect("entrada no diretório central");
+        bytes[at + 5] = 3; // feito no Unix
+        bytes[at + 38..at + 42].copy_from_slice(&(mode << 16).to_le_bytes());
+    }
+
+    #[test]
+    fn zip_com_link_para_fora_e_suid_nao_escapa_nem_herda_privilegio() {
+        let temp = tempfile::tempdir().unwrap();
+        let archive = temp.path().join("jre.zip");
+        malicious_zip(&archive);
+        let destination = temp.path().join("runtime");
+        fs::create_dir(&destination).unwrap();
+
+        extract(&archive, ArchiveKind::Zip, &destination).unwrap();
+
+        // Os links não existem na pasta extraída, nem como link nem como arquivo.
+        for link in ["lib/fora", "lib/absoluto"] {
+            assert!(
+                fs::symlink_metadata(destination.join(link)).is_err(),
+                "{link} não pode ser criado"
+            );
+        }
+        assert!(!temp.path().join("fora").exists());
+        assert_eq!(fs::read(destination.join("bin/java")).unwrap(), b"java");
+        assert!(destination.join("release").is_file());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            let mode = |path: &Path| fs::metadata(path).unwrap().permissions().mode();
+            assert_eq!(mode(&destination.join("bin/java")) & 0o7777, 0o755);
+            assert_eq!(mode(&destination.join("bin")) & 0o7000, 0);
+        }
+    }
+
+    #[test]
+    fn zip_com_entrada_fora_da_pasta_e_recusado_sem_gravar_nada() {
+        use std::io::Write as _;
+        let temp = tempfile::tempdir().unwrap();
+        let archive = temp.path().join("jre.zip");
+        let mut zip = zip::ZipWriter::new(File::create(&archive).unwrap());
+        let options = zip::write::SimpleFileOptions::default();
+        zip.start_file("jdk/release", options).unwrap();
+        zip.write_all(b"x").unwrap();
+        zip.start_file("jdk/../../fora.txt", options).unwrap();
+        zip.write_all(b"x").unwrap();
+        zip.finish().unwrap();
+        let destination = temp.path().join("runtime");
+        fs::create_dir(&destination).unwrap();
+
+        assert!(extract(&archive, ArchiveKind::Zip, &destination).is_err());
+        assert!(!temp.path().join("fora.txt").exists());
+        assert_eq!(fs::read_dir(&destination).unwrap().count(), 0);
     }
 }
