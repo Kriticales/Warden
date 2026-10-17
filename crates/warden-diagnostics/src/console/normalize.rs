@@ -4,9 +4,16 @@
 //!
 //! Só o ruído vira marcador. Identificadores de código ficam como estão: os nomes intermediary
 //! do Fabric (`class_1937.method_8320`, `field_1724`), os SRG do Forge antigo (`func_71411_J`,
-//! `field_70170_p`, `p_12345_`), classes internas (`Foo$1`) e as linhas de frame do stack trace
-//! inteiras (`at pacote.Classe.metodo(Classe.java:123)`, `... 12 more`): dois stack traces que
-//! passam por lugares diferentes do código nunca têm a mesma forma.
+//! `field_70170_p`, `p_12345_`), classes internas (`Foo$1`), as referências de mixin
+//! (`create.mixins.json:client.MinecraftMixin`, `sodium.mixins.json:core.render.MixinWorldRenderer`)
+//! e as linhas de frame do stack trace inteiras (`at pacote.Classe.metodo(Classe.java:123)`,
+//! `... 12 more`): dois stack traces ou duas falhas de mixin em lugares diferentes do código nunca
+//! têm a mesma forma.
+//!
+//! Um id de recurso (`minecraft:block/stone`, `create:cogwheel`) é dado do jogo, não código: diz
+//! qual bloco, item ou textura, e `Missing texture for {id}` junta as repetições de um mesmo aviso
+//! (CA-T13-12). Só conta como id o `namespace:caminho` todo em minúsculas cujo namespace não é um
+//! arquivo (`*.json`) e que não continua como nome de código (`.Classe`, `$Interna`).
 //!
 //! A troca é reversível: o modelo guarda onde cada valor estava e os valores trocados ficam
 //! juntos numa só `String` por ocorrência, então "Copiar" devolve as linhas originais sem o
@@ -125,7 +132,11 @@ pub(crate) fn normalize(text: &str) -> Normalized {
                 continue;
             }
         }
-        if let Some((kind, end)) = token_at(bytes, i, previous) {
+        if let Some(end) = mixin_ref_at(bytes, i, previous) {
+            // Uma referência de mixin (`create.mixins.json:client.MinecraftMixin`) é o lugar no
+            // código: fica inteira, em qualquer caixa.
+            i = end;
+        } else if let Some((kind, end)) = token_at(bytes, i, previous) {
             template.extend_from_slice(&bytes[copied..i]);
             hole(&mut template, &mut values, kind, &text[i..end]);
             i = end;
@@ -358,7 +369,39 @@ fn hex_at(bytes: &[u8], i: usize) -> Option<usize> {
     (j - i >= 6 && digit && letter && after_ok).then_some(j)
 }
 
-/// `minecraft:block/stone`, `create:cogwheel`: espaço com letra, `:` e caminho minúsculo.
+/// `create.mixins.json:client.MinecraftMixin`, `mixins.jei.json:MixinFoo`: a config de mixin
+/// (`*.json`), `:` e o caminho da classe, em qualquer caixa.
+fn mixin_ref_at(bytes: &[u8], i: usize, previous: Option<u8>) -> Option<usize> {
+    if previous.is_some_and(|p| is_ident(p) || matches!(p, b'.' | b'-')) || !is_alnum(bytes[i]) {
+        return None;
+    }
+    let mut j = i;
+    while j < bytes.len() && (is_ident(bytes[j]) || matches!(bytes[j], b'.' | b'-')) {
+        j += 1;
+    }
+    if !bytes[i..j].ends_with(b".json") || bytes.get(j) != Some(&b':') {
+        return None;
+    }
+    let start = j + 1;
+    if !bytes
+        .get(start)
+        .is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_' || *b == b'$')
+    {
+        return None;
+    }
+    let mut end = start;
+    while end < bytes.len() && (is_ident(bytes[end]) || bytes[end] == b'.') {
+        end += 1;
+    }
+    while bytes[end - 1] == b'.' {
+        end -= 1;
+    }
+    Some(end)
+}
+
+/// `minecraft:block/stone`, `create:cogwheel`: espaço com letra, `:` e caminho minúsculo. O
+/// namespace de um arquivo (`x.json:`) e o que continua como código (`a:b.Classe`, `a:b$C`) não
+/// são ids.
 fn id_at(bytes: &[u8], i: usize) -> Option<usize> {
     let mut j = i;
     let mut letter = false;
@@ -385,8 +428,13 @@ fn id_at(bytes: &[u8], i: usize) -> Option<usize> {
     while bytes[end - 1] == b'.' {
         end -= 1;
     }
-    let after_ok = bytes.get(end).is_none_or(|b| !is_alnum(*b) && *b != b':');
-    after_ok.then_some(end)
+    let code_after = match bytes.get(end) {
+        Some(b'.') => bytes.get(end + 1).is_some_and(|b| is_ident(*b)),
+        Some(b) => is_alnum(*b) || matches!(b, b':' | b'$'),
+        None => false,
+    };
+    let file_namespace = bytes[i..j].ends_with(b".json");
+    (!code_after && !file_namespace).then_some(end)
 }
 
 #[cfg(test)]
@@ -447,6 +495,64 @@ mod tests {
             "Error: could not find",
         ] {
             assert_eq!(shape(text), text);
+        }
+    }
+
+    /// Referências de mixin ficam inteiras em qualquer caixa (pacote em minúsculas, um só
+    /// segmento, subpacotes fundos, classe interna); o ruído em volta continua virando marcador.
+    #[test]
+    fn referencias_de_mixin_ficam() {
+        for text in [
+            "Mixin [create.mixins.json:client.MinecraftMixin] has no targets",
+            "Mixin apply for mod sodium failed sodium.mixins.json:core.render.MixinWorldRenderer from mod sodium -> net.minecraft.class_761",
+            "Mixin [mymod.mixins.json:MixinFoo] and [mymod.mixins.json:mixinfoo]",
+            "lithium.mixins.json:alloc.chunk_random.v2.ClientWorldMixin$Inner",
+            "fabric-networking-api-v1.mixins.json:accessor.ServerLoginNetworkHandlerAccessor",
+            "Error in mixins.jei.json:client.ScreenMixin and MyMod.mixins.json:Foo",
+            "modernfix-common.mixins.json:perf.cache_strongholds.ServerLevelMixin",
+        ] {
+            assert_eq!(shape(text), text);
+        }
+        assert_ne!(
+            normalize("Mixin [create.mixins.json:client.MinecraftMixin] has no targets").template,
+            normalize("Mixin [create.mixins.json:common.MinecraftMixin] has no targets").template
+        );
+        assert_ne!(
+            normalize("Mixin [mod-1.mixins.json:a.B]").template,
+            normalize("Mixin [mod-2.mixins.json:a.B]").template
+        );
+        assert_eq!(
+            shape("Mixin [create.mixins.json:client.MinecraftMixin] at 12 in 0x1F"),
+            "Mixin [create.mixins.json:client.MinecraftMixin] at {n} in {hex}"
+        );
+        // Um arquivo com o número da linha não é referência: o número continua marcador.
+        assert_eq!(
+            shape("Erro em config/foo.json:12 e data/a.json: x"),
+            "Erro em config/foo.json:{n} e data/a.json: x"
+        );
+    }
+
+    /// Só o `namespace:caminho` que é dado do jogo vira `{id}`; o que continua como nome de
+    /// código fica.
+    #[test]
+    fn ids_de_recurso_e_codigo() {
+        for (text, expected) in [
+            ("Unknown block minecraft:stone.", "Unknown block {id}."),
+            (
+                "Missing model fabric-api:item/x_1, retrying",
+                "Missing model {id}, retrying",
+            ),
+            ("Bad recipe create:crushing/raw_zinc_ore", "Bad recipe {id}"),
+            (
+                "Erro em mod:pacote.Classe e mod:pacote$Interna",
+                "Erro em mod:pacote.Classe e mod:pacote$Interna",
+            ),
+            (
+                "Erro em mod:pacote.sub.Classe",
+                "Erro em mod:pacote.sub.Classe",
+            ),
+        ] {
+            assert_eq!(shape(text), expected, "{text}");
         }
     }
 

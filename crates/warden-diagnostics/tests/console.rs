@@ -447,6 +447,68 @@ fn mensagens_com_nomes_do_jogo_nao_se_fundem() {
     );
 }
 
+/// Falhas de mixin em classes diferentes nunca se fundem, com o pacote em qualquer caixa
+/// (Fabric, Forge 1.20.1 e NeoForge, como no `latest.log`); a mesma referência repetida com só a
+/// hora e a thread diferentes continua junta.
+#[test]
+fn referencias_de_mixin_nao_se_fundem() {
+    let pairs = [
+        (
+            "Forge 1.20.1 (create, pacote em minúsculas)",
+            "[18:02:10] [main/WARN] [mixin/]: Mixin [create.mixins.json:client.MinecraftMixin] has no targets",
+            "[18:02:11] [main/WARN] [mixin/]: Mixin [create.mixins.json:common.MinecraftMixin] has no targets",
+        ),
+        (
+            "Fabric (sodium, subpacotes)",
+            "[18:02:10] [main/ERROR] [mixin/]: Mixin apply for mod sodium failed sodium.mixins.json:core.render.MixinWorldRenderer from mod sodium -> net.minecraft.class_761: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException",
+            "[18:02:11] [main/ERROR] [mixin/]: Mixin apply for mod sodium failed sodium.mixins.json:features.render.MixinWorldRenderer from mod sodium -> net.minecraft.class_761: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException",
+        ),
+        (
+            "Fabric (lithium, subpacotes fundos)",
+            "[18:02:10] [main/WARN] [mixin/]: @Mixin target net.minecraft.class_638 was not found lithium.mixins.json:alloc.chunk_random.ClientWorldMixin from mod lithium",
+            "[18:02:11] [main/WARN] [mixin/]: @Mixin target net.minecraft.class_638 was not found lithium.mixins.json:world.chunk_random.ClientWorldMixin from mod lithium",
+        ),
+        (
+            "Fabric (fabric-api)",
+            "[18:02:10] [main/WARN] [mixin/]: Error loading class fabric-networking-api-v1.mixins.json:accessor.ServerLoginNetworkHandlerAccessor",
+            "[18:02:11] [main/WARN] [mixin/]: Error loading class fabric-networking-api-v1.mixins.json:accessor.ServerCommonNetworkHandlerAccessor",
+        ),
+        (
+            "Forge 1.20.1 (modernfix)",
+            "[18:02:10] [main/WARN] [mixin/]: Mixin [modernfix-common.mixins.json:perf.cache_strongholds.ServerLevelMixin] has no targets",
+            "[18:02:11] [main/WARN] [mixin/]: Mixin [modernfix-common.mixins.json:perf.cache_blockstate_cache_arrays.ServerLevelMixin] has no targets",
+        ),
+        (
+            "NeoForge (um só segmento)",
+            "[18:02:10] [Render thread/WARN] [mixin/]: Method overwrite conflict for containerTick in mymod.mixins.json:MixinFoo from mod mymod, previously written by a.B. Skipping method.",
+            "[18:02:11] [Render thread/WARN] [mixin/]: Method overwrite conflict for containerTick in mymod.mixins.json:MixinBar from mod mymod, previously written by a.B. Skipping method.",
+        ),
+    ];
+    for (name, a, b) in pairs {
+        let log = format!("{a}\n{b}\n[18:02:12] [main/INFO] [minecraft/Minecraft]: Fim\n");
+        let grouper = group(&log, ModDirectory::empty());
+        let (problems, total) = grouper.problems("", 10);
+        assert_eq!(total, 2, "{name}: {problems:?}");
+        assert!(problems.iter().all(|item| item.count == 1), "{name}");
+        assert!(
+            problems.iter().all(|item| !item.text.contains("{id}")),
+            "{name}: {problems:?}"
+        );
+
+        // A mesma referência com só a hora e a thread diferentes: um item "×2".
+        let again = a
+            .replace("[18:02:10] [main/", "[18:05:44] [Worker-Main-3/")
+            .replace("[18:02:10] [Render thread/", "[18:05:44] [Worker-Main-3/");
+        let log = format!("{a}\n{again}\n[18:06:00] [main/INFO] [minecraft/Minecraft]: Fim\n");
+        let grouper = group(&log, ModDirectory::empty());
+        let (problems, total) = grouper.problems("", 10);
+        assert_eq!(total, 1, "{name}: {problems:?}");
+        assert_eq!(problems[0].count, 2, "{name}");
+        assert_eq!(problems[0].first.time.as_deref(), Some("18:02:10"));
+        assert_eq!(problems[0].last.time.as_deref(), Some("18:05:44"));
+    }
+}
+
 /// 50.000 linhas (e 300.000) agrupadas sem travar: o tempo de agrupar e de montar a tela.
 #[test]
 fn desempenho_50_mil_linhas() {
