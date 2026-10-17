@@ -15,6 +15,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
+import type { ChainablePromiseElement } from 'webdriverio';
 
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
@@ -94,6 +95,24 @@ function graphOf(name: string) {
   return $(`[role="group"][aria-label="Grafo de dependências de ${name}"]`);
 }
 
+/**
+ * Ativa um botão ou link pelo teclado (foco e Enter), como quem usa o Tab. Na CI do Linux o
+ * clique por coordenada às vezes cai fora do alvo quando a tela ainda se ajusta (linhas e
+ * detalhes que terminam de carregar) e o clique se perde sem erro.
+ */
+async function activate(target: ChainablePromiseElement): Promise<void> {
+  await target.waitForClickable();
+  const focused = await browser.execute(
+    (node) => {
+      node.focus();
+      return document.activeElement === node;
+    },
+    await target.getElement(),
+  );
+  expect(focused).toBe(true);
+  await browser.keys('Enter');
+}
+
 /** Texto completo de um elemento (inclusive o que está fora da área visível). */
 async function fullText(selector: string): Promise<string> {
   return browser.execute((sel) => document.querySelector(sel)?.textContent ?? '', selector);
@@ -137,17 +156,9 @@ describe('Mods no modo Grafo (D-11)', () => {
     writeInstanceJars();
 
     await dismissToasts();
-    await $('button[role="radio"]=Grafo').click();
+    await activate($('button[role="radio"]=Grafo'));
     const label = $('label=Mod no centro');
-    // DIAGNÓSTICO TEMPORÁRIO (FIX-ZIP): o que a tela mostra quando o rótulo não aparece.
-    await label.waitForDisplayed().catch(async (error: unknown) => {
-      const dump = await browser.execute(() => ({
-        url: location.href,
-        text: document.body.innerText.slice(0, 4000),
-      }));
-      console.log('DIAGNOSTICO-GRAFO', JSON.stringify(dump));
-      throw error;
-    });
+    await label.waitForDisplayed();
     const selectId = String(await label.getAttribute('for'));
     await $(`[id="${selectId}"]`).selectByVisibleText('Sodium');
     const graph = graphOf('Sodium');
@@ -203,9 +214,7 @@ describe('Mods no modo Grafo (D-11)', () => {
       },
     );
     await dismissToasts();
-    const link = drawer.$('a=Ver no grafo');
-    await link.waitForClickable();
-    await link.click();
+    await activate(drawer.$('a=Ver no grafo'));
     await drawer.waitForExist({ reverse: true });
     await graphOf('Jade 🔍').waitForDisplayed({ timeout: 30_000 });
     await expect($('button[role="radio"][aria-checked="true"]')).toHaveText('Grafo');
