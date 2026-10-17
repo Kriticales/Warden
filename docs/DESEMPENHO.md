@@ -1,47 +1,88 @@
 # Desempenho com packs grandes (A-04)
 
-Medições das metas da [SPEC §8](SPEC.md#8-requisitos-não-funcionais) com um pack de **300 mods e 500 configs** (tarefa A-04 do [ROADMAP](ROADMAP.md)), os gargalos encontrados e o que foi corrigido. As metas P1 da D4 (raio-x de mixins, console agrupado) e as da 1.1 são medidas pelas tarefas donas.
+Medições das metas da [SPEC §8](SPEC.md#8-requisitos-não-funcionais) com um pack de **300 mods e 500 configs** gerado e com um **pack real** de 405 mods (tarefa A-04 do [ROADMAP](ROADMAP.md)), os gargalos encontrados e o que foi corrigido. As metas P1 da D4 (raio-x de mixins, console agrupado) e as da 1.1 são medidas pelas tarefas donas.
 
 ## Como medir
 
 - **Benchmarks** (`criterion`, build de release): `cargo bench -p <crate>` em `warden-packwiz`, `warden-project`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics` e `warden-export` (arquivos `benches/pack_grande.rs`). Cada um imprime, além do relatório do criterion, uma linha `A-04 | medida | mediana | pior | meta | ok` com 10 medidas.
+- **Pack real** (jars, metafiles e configs de um `.mrpack` público do Modrinth, baixado só para a medida): veja "Medir com um pack real" abaixo.
+- **Windows em release**: o job "Windows · desempenho (release)" do Noturno (`.github/workflows/nightly.yml`, também pelo `workflow_dispatch`) roda os mesmos benchmarks e os E2E de `e2e/perf/` com o app otimizado (`cargo tauri build --no-bundle` com `CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true`, que liga só os ganchos dos E2E; `WARDEN_E2E_PROFILE=release` no `wdio.conf.ts`). Ali o E2E confere a **meta exata**, sem a folga do debug; as linhas `A-04 | …` e `A-04 E2E (release) | …` saem no log e no artefato `desempenho-windows-<commit>`.
 - **E2E de desempenho** (app real, build de debug, como na CI): `apps/desktop/e2e/perf/` (`meus-packs.e2e.ts` e `pack-grande.e2e.ts`). Cada medida roda várias vezes e o teste confere a **mediana** contra a meta com uma folga para o build de debug nas máquinas da CI (1,5 vez a meta; 2 vezes na exportação, que não tem meta própria): as metas são do app instalado na máquina de referência, e a CI roda o debug sem GPU, com tempos que variam muito entre rodadas. O log traz `A-04 E2E | …` com todas as medidas e a situação contra a **meta exata**; os benchmarks conferem a meta exata no build de release. Rodam junto dos outros E2E (`xvfb-run -a pnpm exec wdio run ./wdio.conf.ts`).
 
 O pack de teste é **gerado** (nada é baixado):
 
 - 300 metafiles do Modrinth com IDs inventados e lado variado; no E2E, mais 150 resource packs e 50 shaders, para a lista de Mods ter 500 itens (CA-T06-05). O servidor de fixtures dos E2E responde esses IDs (`e2e/perf/modrinth.ts`), então a primeira abertura enche o cache de metadados como no uso de verdade.
-- 300 jars sintéticos com o que os índices de pacotes (D-05) e o pré-teste (D-01) leem: `fabric.mod.json` com dependências entre os mods, config de mixin, arquivo de idioma e classes mínimas em 8 a 32 pacotes; a cada 25 jars, cinco embutidos; a cada 100, um grande (150 pacotes). Em dois tamanhos: mínimos (poucos KB) e com o tamanho dos de verdade (~1 MB em média, 300 MB ao todo: a cada 20 mods, um de 8 MB, três de 2 MB e dezesseis de 400 KB).
+- 300 jars sintéticos com o que os índices de pacotes (D-05) e o pré-teste (D-01) leem: `fabric.mod.json` com dependências entre os mods, config de mixin, arquivo de idioma e classes. De dois tipos:
+  - **mínimos** (poucos KB): classes em 8 a 32 pacotes; a cada 25 jars, cinco embutidos; a cada 100, um grande (150 pacotes);
+  - **calibrados pelos packs reais** (usados nas metas): cada jar segue uma de 20 faixas (`FAIXAS` em `pack_grande.rs`) com o número de entradas, classes, pacotes, embutidos e o tamanho medidos nos jars de três packs reais (tabela abaixo). No todo, ~730 entradas, 24 pacotes, 1 embutido e ~2,6 MB por jar em média, ~780 MB nos 300 mods; o resto das entradas são recursos (modelos JSON) e um arquivo de dados sem compressão completa o tamanho. A versão anterior (100 a 300 entradas e ~1 MB por jar) não representava um pack real: com ela o índice com cache parecia levar 78 ms, e com o Prominence II levava ~450 ms.
 - 500 configs reais: o corpus da `warden-configs` (`crates/warden-configs/tests/corpus/`) repetido em lotes.
 - `pack.toml` (Fabric 1.20.1) e `index.toml` com os hashes certos; o packwiz aceita o pack.
 - Para Meus packs: 50 packs versionados no git como o Warden os deixa (5 grandes e 45 pequenos; metade com a versão 1.0.0 salva e alterações por salvar).
 
-O gerador das crates fica em `crates/warden-packwiz/benches/comum/pack_grande.rs` (incluído pelos benchmarks das seis crates); o dos E2E, em `apps/desktop/e2e/perf/comum.ts`.
+O gerador das crates fica em `crates/warden-packwiz/benches/comum/pack_grande.rs` (incluído pelos benchmarks das seis crates); o dos E2E, em `apps/desktop/e2e/perf/comum.ts`. Os E2E não abrem jars (nenhuma tela medida lê o conteúdo deles), então só os benchmarks usam os jars.
+
+### Calibração dos jars
+
+Medida em 17/10/2026 nos jars dos mods de três packs grandes do Modrinth: **Prominence II 4.1.4** (Fabric 1.20.1, 405 mods), **Better MC Forge v59** (Forge 1.20.1, 309 mods) e **Better MC Fabric v40** (Fabric 1.20.1, 313 mods), 895 jars únicos. Os jars foram ordenados pelo tamanho e divididos em 20 faixas; cada faixa do gerador tem a **média** dos jars dela (a média, e não a mediana, para o total bater: a última faixa tem os mods de dezenas de MB, até 294 MB).
+
+| Pack | Mods | Total | Tamanho por jar (mediana / p90 / p99) | Entradas por jar (média / mediana / p90 / p99 / maior) | Pacotes por jar (média / mediana) |
+|---|---|---|---|---|---|
+| Prominence II 4.1.4 | 405 | 1,26 GB | 373 KB / 4,7 MB / 51 MB | 776 / 139 / 1.413 / 9.498 / 38.630 | 24 / 13 |
+| Better MC Forge v59 | 309 | 946 MB | 407 KB / 3,6 MB / 53 MB | 813 / 139 / 1.718 / 8.562 / 38.628 | 25 / 11 |
+| Better MC Fabric v40 | 313 | 590 MB | 367 KB / 2,6 MB / 23 MB | 665 / 118 / 1.195 / 6.887 / 38.630 | 22 / 10 |
+
+O preparador do pack real (abaixo) imprime as mesmas 20 faixas para o pack baixado (linhas `A-04 | faixa …`, no formato das `FAIXAS`), para refazer a calibração com outros packs.
+
+### Medir com um pack real
+
+O pack real nunca entra no repositório nem nos testes da CI: é baixado só para a medida, numa pasta fora do repositório, e apagado depois (um pack de 400 mods passa de 1 GB; com o `target` de release, o disco do contêiner da nuvem enche).
+
+1. Escolha um `.mrpack` público grande do Modrinth (300+ mods) e copie o link do arquivo da versão (`https://cdn.modrinth.com/data/<projeto>/versions/<versão>/<arquivo>.mrpack`) ou baixe o arquivo.
+2. Prepare a pasta (baixa os jars dos mods do índice, conferindo o SHA-1, e copia as configs de `overrides/config/`):
+   ```sh
+   WARDEN_A04_MRPACK=<link ou arquivo .mrpack> WARDEN_A04_PACK_REAL=<pasta fora do repositório> \
+     cargo bench -p warden-jarmeta --bench preparar_pack_real
+   ```
+   No PowerShell: `$env:WARDEN_A04_MRPACK = "<link>"; $env:WARDEN_A04_PACK_REAL = "<pasta>"` e o mesmo `cargo bench`.
+3. Meça com a mesma `WARDEN_A04_PACK_REAL` (os benchmarks montam um pack packwiz com os metafiles do Modrinth, as configs e o loader do `.mrpack`, e leem os jars na pasta preparada):
+   ```sh
+   WARDEN_A04_PACK_REAL=<pasta> cargo bench -p warden-jarmeta -p warden-diagnostics -p warden-export --bench pack_grande
+   ```
+   Saem as linhas `A-04 | … pack real <nome>, <n> mods | …`: índice de pacotes sem e com cache, pré-teste completo e prévia e `.zip` da exportação.
+4. Apague a pasta. No contêiner da nuvem, use `CARGO_INCREMENTAL=0` e apague `target/debug/incremental` antes de compilar em release.
 
 ## Máquina e data
 
-Medido em **2026-10-14**, no contêiner de desenvolvimento da nuvem: Intel Xeon 2,10 GHz, 4 vCPU, 15 GB de RAM, SSD virtual, Ubuntu 24.04.5, WebKitGTK 2.52.6 sob Xvfb (sem GPU), Rust 1.98.1, Node 24.21. Não é a máquina de referência da SPEC (Windows 11, SSD, 16 GB): os números do Windows vêm do job "Windows · E2E" do Noturno, que roda os mesmos E2E (o log traz as linhas `A-04 E2E`).
+Benchmarks medidos em **2026-10-17** e E2E do Linux em 2026-10-14, no contêiner de desenvolvimento da nuvem: Intel Xeon 2,10 GHz, 4 vCPU, 15 GB de RAM, SSD virtual, Ubuntu 24.04.5, WebKitGTK 2.52.6 sob Xvfb (sem GPU), Rust 1.98.1, Node 24. Não é a máquina de referência da SPEC (Windows 11, SSD, 16 GB): os números do Windows vêm dos jobs "Windows · E2E" (debug) e "Windows · desempenho (release)" do Noturno.
 
 ## Resultados: benchmarks (release)
 
-Mediana e pior caso de 10 medidas.
+Mediana e pior caso de 10 medidas, no Linux. "Pack real": Prominence II 4.1.4 (405 mods, 1,26 GB de jars, 1.304 configs com 451 MB, dos quais 420 MB são regiões `.mca` de mundos guardadas em `config/`).
 
 | Meta da SPEC §8 | Medida | Mediana | Pior | Meta |
-|---|---|---|---|---|---|---|
-| Abrir um pack de 300 mods (com cache) | Ler `pack.toml`, `index.toml` e os 300 metafiles | 5,8 ms | 6,4 ms | < 1 s |
-| Abrir um pack de 300 mods (com cache) | Inventário da lista de Mods, cache do Modrinth em arquivo | 10,0 ms | 13,7 ms | < 1 s |
-| CA-T02-01 (Meus packs) | Lista com 50 packs versionados (5 grandes) | 42,8 ms | 45,6 ms | < 1 s |
-| Atualizar índice (300 mods + 500 configs) | `packwiz refresh` pelo sidecar, com uma config alterada | 59,5 ms | 63,8 ms | < 5 s |
-| Diagnóstico pré-teste (300 mods, cache quente) | Passagem rápida (regras com os dados das APIs) | 0,1 ms | 0,1 ms | < 3 s |
-| Diagnóstico pré-teste (300 mods, cache quente) | Passagem completa: ler os 300 jars, regras e índice de pacotes | 148,6 ms | 170,7 ms | < 3 s |
-| Índices de pacotes (300 mods) | Sem cache, jars mínimos | 256,8 ms | 269,9 ms | < 3 s |
-| Índices de pacotes (300 mods) | Com cache, jars mínimos | 6,7 ms | 8,1 ms | < 300 ms |
-| Índices de pacotes (300 mods) | Sem cache, jars do tamanho real (300 MB) | 424,0 ms | 493,5 ms | < 3 s |
-| Índices de pacotes (300 mods) | Com cache, jars do tamanho real (lê e calcula o hash de cada jar) | 78,3 ms | 84,8 ms | < 300 ms |
-| Busca em todas as configs (500 arquivos) | Índice pronto | 101,8 ms | 125,3 ms | < 2 s |
-| Busca em todas as configs (500 arquivos) | Busca "spawn" / "enable" / "render distance" / "max" / "a" | 5,4 a 12,5 ms | 14,7 ms | < 200 ms |
-| Exportação (E-01; referência: a meta de "Atualizar índice") | Prévia da seção Exportar | 40,9 ms | 47,5 ms | < 1 s |
-| Exportação (E-01) | `.zip`, com o `packwiz refresh` em staging | 328,5 ms | 370,4 ms | < 5 s |
-| Exportação (E-01) | Pasta, com o `packwiz refresh` em staging | 941,6 ms | 1.013,0 ms | < 5 s |
+|---|---|---|---|---|
+| Abrir um pack de 300 mods (com cache) | Ler `pack.toml`, `index.toml` e os 300 metafiles | 5,7 ms | 14,2 ms | < 1 s |
+| Abrir um pack de 300 mods (com cache) | Inventário da lista de Mods, cache do Modrinth em arquivo | 12,7 ms | 15,8 ms | < 1 s |
+| CA-T02-01 (Meus packs) | Lista com 50 packs versionados (5 grandes) | 42,3 ms | 53,0 ms | < 1 s |
+| Atualizar índice (300 mods + 500 configs) | `packwiz refresh` pelo sidecar, com uma config alterada | 61,6 ms | 71,5 ms | < 5 s |
+| Diagnóstico pré-teste (300 mods, cache quente) | Passagem rápida (regras com os dados das APIs) | 0,1 ms | 0,2 ms | < 3 s |
+| Diagnóstico pré-teste (300 mods, cache quente) | Passagem completa: ler os 300 jars calibrados, regras e índice de pacotes | 169,6 ms | 176,1 ms | < 3 s |
+| Diagnóstico pré-teste (cache quente) | Passagem completa com o **pack real** (405 jars) | 625,6 ms | 673,4 ms | < 3 s |
+| Índices de pacotes (300 mods) | Sem cache, jars mínimos | 389,9 ms | 444,3 ms | < 3 s |
+| Índices de pacotes (300 mods) | Com cache, jars mínimos | 6,4 ms | 7,9 ms | < 300 ms |
+| Índices de pacotes (300 mods) | Sem cache, jars calibrados (~780 MB) | 750,7 ms | 781,1 ms | < 3 s |
+| Índices de pacotes (300 mods) | Com cache, jars calibrados | 10,6 ms | 11,9 ms | < 300 ms |
+| Índices de pacotes | Sem cache, **pack real** (405 jars, 1,26 GB) | 1.387 ms | 1.438 ms | < 3 s |
+| Índices de pacotes | Com cache, **pack real** | 17,9 ms | 18,8 ms | < 300 ms |
+| Busca em todas as configs (500 arquivos) | Índice pronto | 111,8 ms | 132,1 ms | < 2 s |
+| Busca em todas as configs (500 arquivos) | Busca "spawn" / "enable" / "render distance" / "max" / "a" | 6,0 a 12,6 ms | 13,4 ms | < 200 ms |
+| Exportação (E-01; referência: a meta de "Atualizar índice") | Prévia da seção Exportar | 44,7 ms | 58,9 ms | < 1 s |
+| Exportação (E-01) | `.zip`, com o `packwiz refresh` em staging | 320,8 ms | 354,1 ms | < 5 s |
+| Exportação (E-01) | Pasta, com o `packwiz refresh` em staging | 519,9 ms | 720,2 ms | < 5 s |
+| Exportação (E-01) | Prévia do **pack real** (405 mods + 1.304 configs) | 185,8 ms | 255,9 ms | < 1 s |
+| Exportação (E-01) | `.zip` do **pack real**, com o `packwiz refresh` em staging | 4.718 ms | 4.907 ms | < 5 s |
+
+Com o pack real, antes das correções desta rodada (mesma máquina, release): índice de pacotes com cache **453 ms** (pior 466 ms; acima da meta de 300 ms) e sem cache 1.738 ms; pré-teste completo 1.114 ms; `.zip` da exportação **12.968 ms** (pior 13.769 ms). O `.zip` do pack real fica perto da referência de 5 s porque a exportação passa várias vezes pelos 451 MB de `config/` (cópia para o staging, dois `packwiz refresh` que calculam o hash de tudo, a conferência de que a saída é estável e o zip): o tempo cresce com os bytes do pack (~10 ms por MB nesta máquina), não com o número de arquivos. Um pack sem mundos dentro de `config/` (o caso comum: as configs do Prominence fora os `.mca` somam ~30 MB) fica na faixa do pack gerado.
 
 ## Resultados: E2E (app real, build de debug)
 
@@ -75,7 +116,7 @@ Quatro rodadas do job "Windows · E2E" (5 medidas por linha, 3 na exportação).
 | Exportar: `.zip` | 3.987 / 4.084 ms | 6.740 / 8.379 ms | 4.465 / 4.981 ms | 4.476 / 4.543 ms | (referência < 5 s) |
 | Importar o pack grande (git do zero) | 7.236 ms | 6.292 ms | 6.496 ms | 6.401 ms | — |
 
-No build de debug do Windows da CI, abrir o pack grande fica em torno de 1 s (de 985 a 1.078 ms nas 20 medidas) e Meus packs com packs versionados também; no release os mesmos passos levam 10 a 45 ms no backend (benchmarks). O E2E confere essas metas com a folga do debug (1,5 s); a meta exata nessa máquina fica como acompanhamento.
+No build de debug do Windows da CI, abrir o pack grande fica em torno de 1 s (de 985 a 1.078 ms nas 20 medidas) e Meus packs com packs versionados também; no release os mesmos passos levam 10 a 45 ms no backend (benchmarks). O E2E confere essas metas com a folga do debug (1,5 s); a meta exata no Windows é conferida em release pelo job "Windows · desempenho (release)" (seção abaixo).
 
 O build de debug é bem mais lento que o de release (a libgit2, o SQLite e o `toml_edit` compilados sem otimização): o mesmo inventário leva ~90 ms no debug e 10 ms no release. As metas valem para o app instalado; os E2E as conferem com folga mesmo no debug.
 
@@ -95,6 +136,9 @@ O E2E rola a lista de Mods (500 itens, 300 mods e 150 resource packs virtualizad
 | Abrir o pack: inventário (`warden-modrinth`) | Um projeto do cache por vez: 500 tarefas, cada uma pegando a trava da conexão do SQLite, disputando com as outras leituras da abertura do pack (atualizações, higiene, diagnóstico). | `ModrinthClient::projects` lê todos os projetos do cache numa tarefa só (`MetadataCache::projects_by_key`). | 76 a 220 ms (debug, no app) | uma ida ao banco |
 | Abrir o pack: leitura (`warden-packwiz`) | `read_pack` lia os metafiles um por um. | Em paralelo a partir de 64 metafiles, na ordem do índice. | 43 ms (debug) | 25 ms (debug) |
 | Abrir o pack: lista de Mods (`ItemGroupTable`) | Cada grupo virtualizado se supunha no topo antes de medir onde estava e montava uma tela de linhas (29) que sumiam em seguida: 108 linhas montadas ao abrir, com uma medida de layout forçada sobre todas elas. | O grupo só monta linhas depois da primeira medida (antes da pintura; nada pisca). | ~260 ms de renderização, 108 linhas | ~150 ms, 85 linhas |
+| Índices de pacotes com cache (`warden-jarmeta::index`) | Cada passagem lia cada jar inteiro para calcular o SHA-256 que é a chave do cache: 1,26 GB no Prominence II. | O cache guarda o hash de cada arquivo já visto pela **identidade** dele (tamanho, data de modificação e diretório central do zip, que traz o nome, o tamanho e o CRC-32 de cada entrada), em `cache/jarindex/arquivos/`; a segunda passagem lê só o fim de cada jar. Qualquer mudança no arquivo muda a identidade e o jar é lido de novo; sem identidade (zip64, arquivo que não termina num zip), vale o hash como antes. | 453 ms (pack real, 405 mods) | 18 ms |
+| Índices de pacotes sem cache | Cada jar era lido duas vezes (uma para o hash, outra para o índice) e o hash calculado duas vezes; os jars eram divididos em blocos fixos por leitor, e o bloco com um mod de 294 MB segurava os outros. | Uma leitura e um hash por jar; cada leitor pega o próximo jar de uma fila. | 1.738 ms (pack real) | 1.387 ms |
+| Exportar `.zip` (`warden-export::native`) | Tudo entrava com deflate, inclusive o que já vem comprimido: 420 MB de regiões `.mca` em `config/` do pack real, que o deflate diminui 11% em ~8 s. | Regiões de mundo, zips, jars, imagens e áudio entram guardados no zip; o resto, com deflate. | 12.968 ms (pack real) | 4.718 ms |
 
 Efeito no E2E de "abrir o pack com cache": ~1.000 ms (estourava a meta) → 732 ms de mediana. Em Meus packs com packs versionados, o build de debug gastava ~460 ms só no backend, na thread da interface, além dos ~550 ms da interface: a lista passaria de 1 s.
 
