@@ -319,6 +319,54 @@ describe('servidor aberto (SPEC T27 passo 3)', () => {
   });
 });
 
+describe('servidor aberto sem o evento "pronto"', () => {
+  it('a tela relê o servidor enquanto ele carrega: perdido o `server-state`, a linha de comando liga mesmo assim', async () => {
+    let channel: unknown = null;
+    let reads = 0;
+    const { user, row } = await openPack({ eulaAcceptedAt: '2026-10-01T17:05:09Z' }, undefined, {
+      test_start: (args) => {
+        channel = args.onEvent;
+        return deferred<TestSessionSummary>().promise;
+      },
+      // A primeira leitura é de antes do "Done"; o evento "pronto" nunca chega à tela.
+      server_current: (): ServerState => {
+        reads += 1;
+        return {
+          packId: row.id,
+          phase: reads === 1 ? 'starting' : 'ready',
+          port: 25_566,
+          startedAtMs: Date.now(),
+          readyMs: reads === 1 ? null : 14_000,
+        };
+      },
+    });
+    await openServerDialog(user);
+    const dialog = await screen.findByRole('dialog', { name: 'Testar como servidor' });
+    await user.click(
+      await within(dialog).findByRole('button', { name: 'Abrir servidor e testar' }),
+    );
+    await waitFor(() => {
+      expect(channel).not.toBeNull();
+    });
+    act(() => {
+      sendOnChannel(channel, [
+        {
+          type: 'console',
+          lines: [gameLine('Done (6.912s)! For help, type "help"', { seq: 0, origin: 'server' })],
+        },
+      ]);
+    });
+    const command = await screen.findByRole('textbox', { name: 'Enviar comando ao servidor' });
+    await waitFor(
+      () => {
+        expect((command as HTMLInputElement).disabled).toBe(false);
+      },
+      { timeout: 5_000 },
+    );
+    expect(reads).toBeGreaterThan(1);
+  });
+});
+
 describe('resultado por lado (SPEC T27 passo 4; CA-T27-04)', () => {
   it('o servidor que travou com um mod de cliente: título, o mod apontado e o trecho do log; o "Por que travou" do jogo não aparece', async () => {
     const crashed = makeSession({

@@ -71,12 +71,29 @@ export function useSendServerCommand(packId: PackId) {
   return useCommandMutation((command: string) => commands.serverSendCommand(packId, command));
 }
 
-/** O servidor aberto agora, mantido pelo evento `server-state`. */
+/** De quanto em quanto tempo o servidor aberto é relido enquanto muda de fase. */
+const TRANSIENT_POLL_MS = 500;
+
+/** Fases que passam sozinhas: o evento seguinte pode ter saído antes de a tela o escutar. */
+const TRANSIENT_PHASES: ReadonlySet<ServerState['phase']> = new Set([
+  'preparing',
+  'starting',
+  'stopping',
+]);
+
+/**
+ * O servidor aberto agora, mantido pelo evento `server-state`. Enquanto a fase for passageira,
+ * relê a cada meio segundo: o `listen` do Tauri é assíncrono, e um "pronto" emitido entre a
+ * leitura e a assinatura (ou uma leitura que chega depois do evento) deixaria a tela presa em
+ * "carregando", com a linha de comando desligada.
+ */
 export function useServerState(): ServerState | null {
   const queryClient = useQueryClient();
   const current = useQuery({
     queryKey: serverKeys.current,
     queryFn: () => commands.serverCurrent(),
+    refetchInterval: (query) =>
+      query.state.data && TRANSIENT_PHASES.has(query.state.data.phase) ? TRANSIENT_POLL_MS : false,
   });
   useTauriEvent(events.serverState, (state) => {
     queryClient.setQueryData(serverKeys.current, state.phase === 'exited' ? null : state);
