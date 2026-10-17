@@ -29,5 +29,10 @@ ureq.workspace = true
 name = "pack_grande"
 harness = false
 
+# Baixa um .mrpack público para medir com um pack real (A-04; docs/DESEMPENHO.md).
+[[bench]]
+name = "preparar_pack_real"
+harness = false
+
 [lints]
 workspace = true
