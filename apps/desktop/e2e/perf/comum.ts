@@ -243,9 +243,15 @@ export function summary(values: readonly number[]): { median: number; worst: num
  */
 export const DEBUG_MARGIN = 1.5;
 
-/** O limite que o E2E confere para uma meta (ms). */
+/**
+ * Build de release (`WARDEN_E2E_PROFILE=release`, job "Windows · desempenho (release)" do
+ * Noturno): o teste confere a meta exata, sem a folga do debug.
+ */
+export const RELEASE = process.env.WARDEN_E2E_PROFILE === 'release';
+
+/** O limite que o E2E confere para uma meta (ms): a meta exata no build de release. */
 export function e2eLimit(goalMs: number, margin = DEBUG_MARGIN): number {
-  return goalMs * margin;
+  return RELEASE ? goalMs : goalMs * margin;
 }
 
 /**
@@ -257,7 +263,7 @@ export function report(measure: string, values: readonly number[], goalMs: numbe
   const { median, worst } = summary(values);
   const state = median < goalMs ? 'ok' : 'acima da meta';
   process.stdout.write(
-    `A-04 E2E | ${measure} | mediana ${median.toFixed(0)} ms | pior ${worst.toFixed(0)} ms | ` +
+    `A-04 E2E${RELEASE ? ' (release)' : ''} | ${measure} | mediana ${median.toFixed(0)} ms | pior ${worst.toFixed(0)} ms | ` +
       `meta < ${String(goalMs)} ms | ${state} | medidas: ${values.map((v) => v.toFixed(0)).join(', ')}\n`,
   );
   return median;
