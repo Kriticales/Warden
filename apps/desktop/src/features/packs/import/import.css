@@ -49,3 +49,16 @@
 .import__recognized {
   margin-top: var(--space-2);
 }
+
+/* "N itens para revisar" em Problemas. */
+.import-review__list {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.import-review__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}

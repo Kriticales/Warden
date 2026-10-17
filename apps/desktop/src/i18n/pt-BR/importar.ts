@@ -1,6 +1,7 @@
 /**
  * Importar modpack (SPEC T24; ADR-0035; protótipo `importar`): a página com o que foi
- * reconhecido, nome e pasta do pack novo, o resumo da conversão e o que não entra.
+ * reconhecido, nome e pasta do pack novo, o resumo da conversão e o que não entra; e o aviso
+ * "N itens para revisar" em Problemas, depois de importar.
  */
 export const importar = {
   titulo: 'Importar modpack',
@@ -131,10 +132,26 @@ export const importar = {
   importar: 'Importar como pack novo',
   importando: 'Importando…',
   feito: '“{{name}}” importado como pack novo.',
-  feitoRevisar_one: 'Confira em Mods o item que a revisão marcou.',
-  feitoRevisar_other: 'Confira em Mods os {{count}} itens que a revisão marcou.',
+  feitoRevisar_one: '{{count}} item marcado para revisar aparece em Problemas.',
+  feitoRevisar_other: '{{count}} itens marcados para revisar aparecem em Problemas.',
   semPerfil:
     'O perfil do teste com a memória do modpack não pôde ser criado. Ajuste a memória em Testar.',
+  revisao: {
+    titulo_one: '{{count}} item para revisar',
+    titulo_other: '{{count}} itens para revisar',
+    texto:
+      'A importação de {{arquivo}} marcou estes itens para você conferir. Quando terminar, clique em Já revisei.',
+    pronto: 'Já revisei',
+    revisarCurto: 'Revisar',
+    revisar: 'Revisar {{name}}',
+    motivo: {
+      unknownSide: 'lado desconhecido no modpack: entrou como Cliente e servidor',
+      optional: 'opcional no modpack: entrou opcional e marcado',
+      optionalDisabled: 'opcional desligado no modpack: entrou opcional e desmarcado',
+      clientOverride: 'veio de client-overrides/: entrou para todos, porque o packwiz não separa',
+      localFile: 'ficou como arquivo local: confira se a licença permite levá-lo no pack',
+    },
+  },
 } as const;
 
 // Registro do namespace (veja ../catalogo.ts).

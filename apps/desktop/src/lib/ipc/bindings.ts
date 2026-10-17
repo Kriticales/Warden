@@ -351,6 +351,18 @@ export const commands = {
 	/**  Esquece o plano (e apaga a cópia de staging do zip da CurseForge). */
 	importDiscard: (token: string) => __TAURI_INVOKE<void>("import_discard", { token }),
 	/**
+	 *  Os itens que a importação marcou para revisar (`null`: pack não importado, nada a revisar
+	 *  ou já revisado).
+	 */
+	importReview: (packId: PackId) => typedError<{
+	/**  Nome do arquivo ou da pasta de origem. */
+	file: string,
+	/**  Itens, na ordem gravada (revisão primeiro, depois os arquivos locais). */
+	items: ImportPendingItem[],
+} | null, AppError>(__TAURI_INVOKE("import_review", { packId })),
+	/**  "Já revisei": esconde o bloco dos itens para revisar deste pack, neste computador. */
+	importReviewDone: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("import_review_done", { packId })),
+	/**
 	 *  O que a etapa "Mods iniciais" mostra: spark e Crash Assistant (e a Fabric API no Fabric), com
 	 *  a versão de cada um. Vanilla não oferece nada. Se o Modrinth não responder, o erro é
 	 *  `SEARCH_SOURCE_UNAVAILABLE` e a etapa deixa seguir sem os mods.
@@ -3148,6 +3160,37 @@ export type ImportLocalReason =
 "noCurseforgeKey" | 
 /**  A consulta pelo hash falhou (sem internet ou loja fora do ar). */
 "lookupFailed";
+
+/**  Os itens para revisar de um pack importado. */
+export type ImportPending = {
+	/**  Nome do arquivo ou da pasta de origem. */
+	file: string,
+	/**  Itens, na ordem gravada (revisão primeiro, depois os arquivos locais). */
+	items: ImportPendingItem[],
+};
+
+/**  Um item para revisar. */
+export type ImportPendingItem = {
+	/**  Caminho no pack (`mods/x.pw.toml`, `mods/x.jar`, `config/y.toml`). */
+	path: string,
+	/**  Nome para a tela (o do mod, ou o do arquivo). */
+	name: string,
+	/**  Motivo. */
+	reason: ImportPendingReason,
+};
+
+/**  Por que um item do pack importado pede revisão. */
+export type ImportPendingReason = 
+/**  `env` fora da especificação: entrou como Cliente e servidor. */
+"unknownSide" | 
+/**  Opcional no modpack: entrou opcional e marcado. */
+"optional" | 
+/**  Opcional desligado no modpack: entrou opcional e desmarcado. */
+"optionalDisabled" | 
+/**  Veio de `client-overrides/`: entrou para todos. */
+"clientOverride" | 
+/**  Jar que não está em nenhuma loja: ficou como arquivo local (confira a licença). */
+"localFile";
 
 /**  Diagnóstico de uma pasta antes de importar, sem alterações no disco. */
 export type ImportPreview = {

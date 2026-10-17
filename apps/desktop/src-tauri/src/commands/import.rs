@@ -2,13 +2,18 @@
 //!
 //! - `import_detect`: o formato de uma pasta escolhida em "Abrir ou importar…" (pasta packwiz
 //!   segue para Abrir pack; instâncias, para Importar modpack).
-//! - `import_choose_file`: o diálogo nativo "Importar arquivo…" (`.mrpack` ou `.zip`).
+//! - `import_choose_file`: o diálogo nativo de "Abrir ou importar…" → "Escolher arquivo…"
+//!   (`.mrpack` ou `.zip`).
 //! - `import_analyze`: lê a origem e devolve o resumo da revisão. O plano fica guardado aqui,
 //!   por um `token`; nada é gravado no destino (o zip da CurseForge usa uma cópia de staging
 //!   no cache, apagada ao esquecer o plano). A chave da CurseForge nunca passa pela interface.
 //! - `import_apply`: grava o pack novo pela rotina do T03, registra e cria o perfil do teste
 //!   com a memória e os argumentos do modpack (L-08).
 //! - `import_discard`: esquece o plano (Cancelar, sair da página).
+//! - `import_review` / `import_review_done`: os itens que a importação marcou para revisar, no
+//!   bloco "N itens para revisar" de Problemas (SPEC T24), e o "Já revisei", que esconde o
+//!   bloco. A marca fica em `packs.json` (dado deste computador, como os ajustes do teste) e
+//!   não conta como alteração não salva do pack.
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
 use std::collections::HashMap;
@@ -21,13 +26,13 @@ use tauri::{AppHandle, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt as _;
 use warden_core::{OperationId, PackId};
 use warden_import::{
-    CurseforgeTools, ImportPlan, ImportProfile, ImportRequest, ImportServices, ImportSummary,
-    ImportFormat, Stores,
+    CurseforgeTools, ImportFormat, ImportPending, ImportPlan, ImportProfile, ImportRequest,
+    ImportServices, ImportSummary, Stores,
 };
 use warden_secrets::SecretKind;
 
 use crate::commands::add_curseforge::link_packwiz;
-use crate::commands::inventory;
+use crate::commands::inventory::{self, pack_root};
 use crate::commands::packs::create_defaults;
 use crate::error::AppError;
 use crate::operations::OperationKind;
@@ -50,6 +55,9 @@ const PLAN_TTL: Duration = Duration::from_hours(1);
 
 /// Nome do perfil do teste criado com a memória e os argumentos do modpack.
 pub(crate) const PROFILE_NAME: &str = "Do modpack importado";
+
+/// Campo de `PackRecord.extra` (em `packs.json`): a pessoa já revisou os itens da importação.
+pub(crate) const REVIEWED_KEY: &str = "importReviewed";
 
 struct Stored {
     plan: Arc<ImportPlan>,
@@ -296,6 +304,44 @@ pub(crate) fn import_discard(token: String) {
     forget(&token);
 }
 
+/// Os itens que a importação marcou para revisar (`null`: pack não importado, nada a revisar
+/// ou já revisado).
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn import_review(
+    state: State<'_, AppState>,
+    pack_id: PackId,
+) -> Result<Option<ImportPending>, AppError> {
+    let _lock = state.locks.read(pack_id).await;
+    review_impl(&state, pack_id)
+}
+
+fn review_impl(state: &AppState, pack_id: PackId) -> Result<Option<ImportPending>, AppError> {
+    let record = state
+        .packs
+        .get(pack_id)
+        .map_err(|error| AppError::from_domain(&error))?;
+    if record.extra.get(REVIEWED_KEY) == Some(&serde_json::Value::Bool(true)) {
+        return Ok(None);
+    }
+    let root = pack_root(state, pack_id)?;
+    warden_import::pending_review(&root).map_err(|error| domain(&error))
+}
+
+/// "Já revisei": esconde o bloco dos itens para revisar deste pack, neste computador.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn import_review_done(
+    state: State<'_, AppState>,
+    pack_id: PackId,
+) -> Result<(), AppError> {
+    let _lock = state.locks.write(pack_id).await;
+    state
+        .packs
+        .set_extra(pack_id, REVIEWED_KEY, Some(serde_json::Value::Bool(true)))
+        .map_err(|error| AppError::from_domain(&error))
+}
+
 /// Perfil do teste com a memória e os argumentos do modpack, ativo. Falha não desfaz a
 /// importação: fica no registro e a tela diz que o perfil não foi criado.
 pub(crate) fn create_profile(state: &AppState, pack_id: PackId, profile: &ImportProfile) -> bool {
@@ -381,6 +427,37 @@ mod tests {
                 jvm_args: String::new(),
             },
         ));
+    }
+
+    #[test]
+    fn itens_para_revisar_ate_a_pessoa_dizer_que_revisou() {
+        let temp = tempfile::tempdir().unwrap();
+        let state = test_state(temp.path());
+        let root = temp.path().join("pack");
+        let pack = fake_pack(&state, &root);
+        // Pack sem importação: nada.
+        assert_eq!(review_impl(&state, pack).unwrap(), None);
+        std::fs::create_dir_all(root.join(".warden")).unwrap();
+        std::fs::create_dir_all(root.join("mods")).unwrap();
+        std::fs::write(root.join("mods/caseiro.jar"), b"x").unwrap();
+        std::fs::write(
+            root.join(".warden/project.toml"),
+            "[import]\nfile = \"a.mrpack\"\n[[import.local-files]]\npath = \"mods/caseiro.jar\"\nsha256 = \"aa\"\n",
+        )
+        .unwrap();
+        let pending = review_impl(&state, pack).unwrap().unwrap();
+        assert_eq!(pending.items.len(), 1);
+        state
+            .packs
+            .set_extra(pack, REVIEWED_KEY, Some(serde_json::Value::Bool(true)))
+            .unwrap();
+        assert_eq!(review_impl(&state, pack).unwrap(), None);
+        // O pack em si não muda.
+        assert!(
+            std::fs::read_to_string(root.join(".warden/project.toml"))
+                .unwrap()
+                .contains("caseiro.jar")
+        );
     }
 
     #[test]

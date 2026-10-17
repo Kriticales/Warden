@@ -53,6 +53,7 @@ pub struct ImportedPack {
 #[derive(Serialize)]
 struct ReviewRecord<'a> {
     path: &'a str,
+    name: &'a str,
     reason: &'a str,
 }
 
@@ -81,6 +82,7 @@ pub(crate) fn project_document(id: PackId, plan: &ImportPlan) -> Result<String> 
         .iter()
         .map(|item| ReviewRecord {
             path: &item.path,
+            name: &item.name,
             reason: match item.reason {
                 crate::model::ImportReviewReason::UnknownSide => "unknownSide",
                 crate::model::ImportReviewReason::Optional => "optional",

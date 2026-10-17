@@ -23,6 +23,7 @@ mod lookup;
 mod model;
 mod mrpack;
 mod prism;
+mod review;
 
 use std::path::Path;
 
@@ -37,6 +38,7 @@ pub use model::{
     ImportLocalFile, ImportLocalReason, ImportPlan, ImportProfile, ImportReference,
     ImportReviewItem, ImportReviewReason, ImportSummary,
 };
+pub use review::{ImportPending, ImportPendingItem, ImportPendingReason, pending_review};
 use warden_core::CancellationToken;
 
 /// O que a análise usa: as lojas (procura pelo hash, lado e licença) e o packwiz com a chave

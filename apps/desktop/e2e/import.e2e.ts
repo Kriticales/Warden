@@ -6,7 +6,8 @@
  *
  * - `.mrpack` por "Abrir ou importar…" → "Escolher arquivo…": a revisão mostra referências, o
  *   jar local com o motivo, o item com lado desconhecido e o lixo que não entra; "Importar como
- *   pack novo" cria o pack (sem o lixo) e abre em Mods. Passa no axe.
+ *   pack novo" cria o pack (sem o lixo) e abre em Mods, com o aviso "2 itens para revisar" em
+ *   Problemas: "Revisar" abre o item em Mods e "Já revisei" tira o aviso. Passa no axe.
  * - Zip da CurseForge sem chave: a frase da chave e "Abrir Configurações"; nada é criado.
  * - Pasta de instância do Prism por "Abrir ou importar…": vai para Importar modpack, mostra o
  *   perfil do teste e a pergunta das preferências; o pack novo não leva mundos nem logs e o
@@ -165,6 +166,10 @@ function filesOf(root: string, prefix = ''): string[] {
   });
 }
 
+function sectionLink(name: string) {
+  return $('nav[aria-label="Seções do pack"]').$(`a*=${name}`);
+}
+
 async function backToPacks(): Promise<void> {
   await dismissToasts();
   await $('a*=Meus packs').click();
@@ -239,8 +244,40 @@ describe('Importar modpack (P1-19; T24)', () => {
       await dismissToasts();
       await $('button=Importar como pack novo').click();
       await $('nav[aria-label="Seções do pack"]').waitForDisplayed({ timeout: 90_000 });
+      await $('.toast*=2 itens marcados para revisar aparecem em Problemas.').waitForDisplayed();
     });
     await screenshot('02-pack-aberto');
+    await step('aviso "2 itens para revisar" em Problemas', async () => {
+      await dismissToasts();
+      await sectionLink('Problemas').click();
+      await $('h1*=Problemas').waitForDisplayed({ timeout: 20_000 });
+      const notice = $('.alert*=2 itens para revisar');
+      await notice.waitForDisplayed({ timeout: 20_000 });
+      await expect(notice).toHaveText(expect.stringContaining('caseiro.jar'));
+      await expect(notice).toHaveText(
+        expect.stringContaining('ficou como arquivo local: confira se a licença permite'),
+      );
+      await expect(notice).toHaveText(
+        expect.stringContaining('lado desconhecido no modpack: entrou como Cliente e servidor'),
+      );
+      expect(await seriousViolationSummaries()).toEqual([]);
+    });
+    await screenshot('02b-problemas-revisar');
+    await step('Revisar abre o item em Mods', async () => {
+      await $('a[aria-label="Revisar caseiro.jar"]').click();
+      await $('h1*=Mods').waitForDisplayed({ timeout: 20_000 });
+      await $('[role="dialog"]*=caseiro.jar').waitForDisplayed({ timeout: 20_000 });
+      await browser.keys('Escape');
+    });
+    await step('Já revisei tira o aviso', async () => {
+      await dismissToasts();
+      await sectionLink('Problemas').click();
+      const done = $('button=Já revisei');
+      await done.waitForClickable({ timeout: 20_000 });
+      await done.click();
+      await $('.alert*=itens para revisar').waitForDisplayed({ reverse: true, timeout: 20_000 });
+      expect(readFileSync(REGISTRY_FILE, 'utf8')).toContain('"importReviewed": true');
+    });
     const root = join(PACKS, 'vale-do-cobre');
     const files = filesOf(root);
     expect(files).toContain('mods/sodium.pw.toml');

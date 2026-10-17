@@ -5,11 +5,20 @@
  *
  * Regra do disco como verdade: a importação cria um pack, então invalida a lista de Meus packs e
  * tudo o que é de pack (contagens, cabeçalho, perfis do teste).
+ *
+ * Os itens para revisar do pack importado (`import_review`) ficam sob a área `inventory` do
+ * pack: quando o inventário muda (um item sai do pack), a contagem é relida.
  */
 import { useQuery } from '@tanstack/react-query';
 
 import { useOperations } from '../../../app/tasks/useOperations';
-import { commands, type ImportApply, type OperationSnapshot } from '../../../lib/ipc/bindings';
+import {
+  commands,
+  type ImportApply,
+  type OperationSnapshot,
+  type PackId,
+} from '../../../lib/ipc/bindings';
+import { queryKeys } from '../../../lib/ipc/keys';
 import { commandQuery, useCommandMutation } from '../../../lib/ipc/query';
 import { packsKeys } from '../api';
 
@@ -18,6 +27,9 @@ export const ANALYZE_OPERATION = 'import.analyze';
 
 export const importKeys = {
   analysis: (origin: string) => ['import', 'analysis', origin] as const,
+  /** Os itens para revisar de um pack importado. */
+  review: (packId: PackId) =>
+    [...queryKeys.packArea(packId, 'inventory'), 'import', 'review'] as const,
 };
 
 /**
@@ -60,4 +72,16 @@ export function useRunningAnalysis(): OperationSnapshot | null {
 
 export function cancelOperation(operation: OperationSnapshot) {
   void commands.operationCancel(operation.id);
+}
+
+/** Os itens que a importação marcou para revisar (`null`: nada a revisar). */
+export function useImportReview(packId: PackId) {
+  return useQuery(commandQuery(importKeys.review(packId), () => commands.importReview(packId)));
+}
+
+/** "Já revisei": esconde o aviso deste pack. */
+export function useImportReviewDone(packId: PackId) {
+  return useCommandMutation(() => commands.importReviewDone(packId), {
+    invalidates: [importKeys.review(packId)],
+  });
 }

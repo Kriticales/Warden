@@ -166,7 +166,7 @@ describe('Importar modpack (T24)', () => {
       },
     });
     expect(await screen.findByText('“Meu Create” importado como pack novo.')).toBeDefined();
-    expect(screen.getByText('Confira em Mods os 2 itens que a revisão marcou.')).toBeDefined();
+    expect(screen.getByText('2 itens marcados para revisar aparecem em Problemas.')).toBeDefined();
     // Abre o pack novo.
     await waitFor(() => {
       expect(backend.callsOf('pack_get').some((call) => call.args.packId === PACK_ID)).toBe(true);
