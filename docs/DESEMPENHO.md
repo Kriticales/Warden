@@ -6,7 +6,7 @@ Medições das metas da [SPEC §8](SPEC.md#8-requisitos-não-funcionais) com um 
 
 - **Benchmarks** (`criterion`, build de release): `cargo bench -p <crate>` em `warden-packwiz`, `warden-project`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics` e `warden-export` (arquivos `benches/pack_grande.rs`). Cada um imprime, além do relatório do criterion, uma linha `A-04 | medida | mediana | pior | meta | ok` com 10 medidas.
 - **Pack real** (jars, metafiles e configs de um `.mrpack` público do Modrinth, baixado só para a medida): veja "Medir com um pack real" abaixo.
-- **Windows em release**: o job "Windows · desempenho (release)" do Noturno (`.github/workflows/nightly.yml`, também pelo `workflow_dispatch`) roda os mesmos benchmarks e os E2E de `e2e/perf/` com o app otimizado (`cargo tauri build --no-bundle` com `CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true`, que liga só os ganchos dos E2E; `WARDEN_E2E_PROFILE=release` no `wdio.conf.ts`). Ali o E2E confere a **meta exata**, sem a folga do debug; as linhas `A-04 | …` e `A-04 E2E (release) | …` saem no log e no artefato `desempenho-windows-<commit>`.
+- **Windows em release**: o job "Windows · desempenho (release)" do Noturno (`.github/workflows/nightly.yml`, também pelo `workflow_dispatch`) roda os mesmos benchmarks e os E2E de `e2e/perf/` com o app otimizado (`cargo tauri build --no-bundle` com `CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true`, que liga só os ganchos dos E2E; `WARDEN_E2E_PROFILE=release` no `wdio.conf.ts`). Ali o E2E confere a **meta exata** das metas da SPEC, sem a folga do debug (a exportação, que não tem meta própria, continua com o dobro da referência); as linhas `A-04 | …` e `A-04 E2E (release) | …` saem no log e no artefato `desempenho-windows-<commit>`.
 - **E2E de desempenho** (app real, build de debug, como na CI): `apps/desktop/e2e/perf/` (`meus-packs.e2e.ts` e `pack-grande.e2e.ts`). Cada medida roda várias vezes e o teste confere a **mediana** contra a meta com uma folga para o build de debug nas máquinas da CI (1,5 vez a meta; 2 vezes na exportação, que não tem meta própria): as metas são do app instalado na máquina de referência, e a CI roda o debug sem GPU, com tempos que variam muito entre rodadas. O log traz `A-04 E2E | …` com todas as medidas e a situação contra a **meta exata**; os benchmarks conferem a meta exata no build de release. Rodam junto dos outros E2E (`xvfb-run -a pnpm exec wdio run ./wdio.conf.ts`).
 
 O pack de teste é **gerado** (nada é baixado):
@@ -120,6 +120,33 @@ No build de debug do Windows da CI, abrir o pack grande fica em torno de 1 s (de
 
 O build de debug é bem mais lento que o de release (a libgit2, o SQLite e o `toml_edit` compilados sem otimização): o mesmo inventário leva ~90 ms no debug e 10 ms no release. As metas valem para o app instalado; os E2E as conferem com folga mesmo no debug.
 
+### Windows da CI em release (Noturno, job "Windows · desempenho (release)")
+
+Os benchmarks e os E2E de `e2e/perf/` com o app otimizado, em duas rodadas de 17/10/2026 (WebView2 sem GPU, como no debug). A 1ª rodada é do commit com o cache por identidade e o zip sem recompressão; a 2ª, depois da gravação direta do cache (abaixo). A máquina da 2ª rodada foi mais lenta em tudo (a mesma prévia da exportação: 210 → 425 ms, sem mudança de código que a afetasse).
+
+| Medida | 1ª rodada (mediana / pior) | 2ª rodada (mediana / pior) | Meta |
+|---|---|---|---|
+| **E2E:** abrir o app até Meus packs (uma medida, de fora) | 1.588 ms | 2.116 ms | < 3 s |
+| **E2E:** CA-T02-01, 50 packs versionados (5 grandes) | 538 / 802 ms | 988 / 1.164 ms | < 1 s |
+| **E2E:** abrir o pack de 300 mods (com cache) | **455 / 477 ms** | **613 / 626 ms** | < 1 s |
+| **E2E:** CA-T06-05, quadros rolando (parado: 15,6 ms) | 15,7 ms, pior 31,4 ms, 0 de 240 acima de 2,5 vezes | 31,2 ms, pior 62,5 ms, 9 de 240 | 60 por segundo |
+| **E2E:** Problemas, Verificar agora | 152 / 589 ms | 165 / 198 ms | < 3 s |
+| **E2E:** Configs, índice pronto (uma medida) / cada busca | 291 ms / 14 (pior 22) ms | 421 ms / 22 (pior 32) ms | < 2 s / < 200 ms |
+| **E2E:** Exportar `.zip` | 2.640 / 12.485 ms | 5.840 / 9.104 ms | (referência < 5 s) |
+| Benchmark: ler os 300 metafiles / inventário com cache | 9,4 / 15,6 ms | 13,7 / 24,6 ms | < 1 s |
+| Benchmark: Meus packs, 50 packs versionados | 283 ms | 534 ms | < 1 s |
+| Benchmark: `packwiz refresh` | 180 ms | 321 ms | < 5 s |
+| Benchmark: pré-teste completo (300 jars calibrados) | 420 ms | 562 ms | < 3 s |
+| Benchmark: índice de pacotes sem cache, jars calibrados | **5.580 ms** | **670 ms** | < 3 s |
+| Benchmark: índice de pacotes sem cache, jars mínimos | **9.990 ms** | 405 ms (pior 3.822 ms) | < 3 s |
+| Benchmark: índice de pacotes com cache, calibrados / mínimos | 16,3 / 14,5 ms | 24,7 / 21,6 ms | < 300 ms |
+| Benchmark: busca em todas as configs (índice / cada busca) | 113 ms / 5,6 a 13,6 ms | 164 ms / 6,3 a 14,9 ms | < 2 s / < 200 ms |
+| Benchmark: exportar prévia / `.zip` / pasta | 210 / 1.510 / 2.605 ms | 425 / 2.366 (pior 8.595) / 2.777 ms | < 1 s / < 5 s |
+
+- **Abrir o pack grande** fica em 455 a 626 ms em release no Windows da CI (no debug, ~1.025 ms): a meta de < 1 s fecha com folga, e o E2E de release a confere sem folga. **Meus packs** também fecha, mas com pouca sobra na máquina mais lenta (988 ms de mediana); o backend da lista leva 283 a 534 ms ali (43 ms no Linux) e o resto é a interface no WebView2 sem GPU.
+- **Índice de pacotes sem cache no Windows:** a 1ª rodada mostrou 5,6 s e 10 s, acima da meta. A causa era a gravação do cache: cada arquivo era gravado com `fsync` e um temporário renomeado, e a renomeação espera o antivírus soltar o arquivo novo (até 200 ms de novas tentativas por arquivo), duas vezes por jar com a identidade. O cache passou a gravar direto (tudo que ele lê é validado; um arquivo pela metade é refeito), e a 2ª rodada ficou em 670 ms e 405 ms. O pior caso isolado de 3,8 s dos jars mínimos foi a primeira passagem do processo, com 600 arquivos novos de uma vez; a mediana de 10 fica bem abaixo da meta.
+- **Exportar `.zip` no Windows da CI** varia muito entre medidas (2,6 s e 12,5 s na mesma rodada; 3,3 a 9,1 s na outra): a exportação copia o pack para o staging e roda o `packwiz refresh` duas vezes, e o antivírus da máquina da CI examina cada arquivo novo. Não há meta própria na SPEC; o E2E confere a mediana com o dobro da referência de "Atualizar índice" (10 s) também em release.
+
 ### CA-T06-05: rolar a lista de 500 itens
 
 O E2E rola a lista de Mods (500 itens, 300 mods e 150 resource packs virtualizados) 60 px por quadro e compara o intervalo entre quadros com o da tela parada.
@@ -138,6 +165,7 @@ O E2E rola a lista de Mods (500 itens, 300 mods e 150 resource packs virtualizad
 | Abrir o pack: lista de Mods (`ItemGroupTable`) | Cada grupo virtualizado se supunha no topo antes de medir onde estava e montava uma tela de linhas (29) que sumiam em seguida: 108 linhas montadas ao abrir, com uma medida de layout forçada sobre todas elas. | O grupo só monta linhas depois da primeira medida (antes da pintura; nada pisca). | ~260 ms de renderização, 108 linhas | ~150 ms, 85 linhas |
 | Índices de pacotes com cache (`warden-jarmeta::index`) | Cada passagem lia cada jar inteiro para calcular o SHA-256 que é a chave do cache: 1,26 GB no Prominence II. | O cache guarda o hash de cada arquivo já visto pela **identidade** dele (tamanho, data de modificação e diretório central do zip, que traz o nome, o tamanho e o CRC-32 de cada entrada), em `cache/jarindex/arquivos/`; a segunda passagem lê só o fim de cada jar. Qualquer mudança no arquivo muda a identidade e o jar é lido de novo; sem identidade (zip64, arquivo que não termina num zip), vale o hash como antes. | 453 ms (pack real, 405 mods) | 18 ms |
 | Índices de pacotes sem cache | Cada jar era lido duas vezes (uma para o hash, outra para o índice) e o hash calculado duas vezes; os jars eram divididos em blocos fixos por leitor, e o bloco com um mod de 294 MB segurava os outros. | Uma leitura e um hash por jar; cada leitor pega o próximo jar de uma fila. | 1.738 ms (pack real) | 1.387 ms |
+| Índices de pacotes sem cache no Windows (`warden-jarmeta::index`) | Cada arquivo do cache (o índice e a identidade de cada jar) era gravado de forma atômica: `fsync` e um temporário renomeado, e a renomeação esperava o antivírus soltar o arquivo novo. | O cache grava direto: tudo que ele lê é validado, e um arquivo pela metade (queda no meio) não é JSON nem hash válido e é refeito. | 5.580 ms (Windows, release, 300 jars calibrados) | 670 ms |
 | Exportar `.zip` (`warden-export::native`) | Tudo entrava com deflate, inclusive o que já vem comprimido: 420 MB de regiões `.mca` em `config/` do pack real, que o deflate diminui 11% em ~8 s. | Regiões de mundo, zips, jars, imagens e áudio entram guardados no zip; o resto, com deflate. | 12.968 ms (pack real) | 4.718 ms |
 
 Efeito no E2E de "abrir o pack com cache": ~1.000 ms (estourava a meta) → 732 ms de mediana. Em Meus packs com packs versionados, o build de debug gastava ~460 ms só no backend, na thread da interface, além dos ~550 ms da interface: a lista passaria de 1 s.
