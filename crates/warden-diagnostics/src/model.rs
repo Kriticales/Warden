@@ -248,6 +248,17 @@ pub enum Evidence {
         /// O trecho.
         excerpt: String,
     },
+    /// Medida do Warden durante um teste (memória da JVM e coletas, L-11). Só números: nada do
+    /// `hsperfdata` cru.
+    #[serde(rename_all = "camelCase")]
+    Measurement {
+        /// A sessão do teste em que foi medido (`2026-10-13_14-02-11`).
+        session_id: String,
+        /// O que foi medido (`heapAfterGc`, `heapPeak`).
+        metric: String,
+        /// Os números medidos, pelo nome (`percent`, `seconds`, `maxMb`…).
+        values: BTreeMap<String, String>,
+    },
 }
 
 impl Evidence {

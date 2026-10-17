@@ -4,7 +4,8 @@
  * em" (com a diferença para a última versão testada) e "Entrou no mundo em", atualizados a cada
  * amostra. No resultado do teste, o mesmo resumo com os valores gravados na sessão.
  *
- * A L-11 acrescenta, à esquerda, a "Memória do jogo" com o gráfico e as "Coletas de memória"
+ * A L-11 acrescenta, à esquerda, a "Memória do jogo" com o gráfico, as "Coletas de memória"
+ * depois da RAM e, abaixo da faixa, os avisos de memória quase cheia e de "sem leitura"
  * (`perf-strip/heap/`).
  */
 import type { ReactNode } from 'react';
@@ -13,8 +14,12 @@ import { useTranslation } from 'react-i18next';
 import type { ResultBlockProps } from '../result-blocks';
 import type { TestRun } from '../store';
 import { comparisonText, loadTimeText, memoryParts, memoryText } from './format';
+import { HeapAlert } from './heap/HeapAlert';
+import { GcItem, MemoryItem } from './heap/HeapItems';
+import { heapView } from './heap/model';
 import { fromSession, type PerfState } from './model';
 import './perf-strip.css';
+import './heap/heap.css';
 
 /**
  * Um valor da faixa: rótulo, número (com a unidade menor) e uma linha de apoio. Sem número
@@ -64,14 +69,21 @@ export function PerfStrip({ perf }: { perf: PerfState | null }) {
   const peak = perf?.peakRssMb ?? null;
   const loaded = perf?.loadedMs ?? null;
   const world = perf?.worldMs ?? null;
+  const heap = heapView(perf?.heap ?? null, perf?.heapUnavailable ?? null);
+  const warn = heap.kind === 'reading' && heap.heap.details.lowHeapS !== null;
   return (
-    <section className="perf perf--process" aria-label={t('faixa.rotulo')}>
+    <section
+      className={warn ? 'perf perf--heap perf--warn' : 'perf perf--heap'}
+      aria-label={t('faixa.rotulo')}
+    >
+      <MemoryItem view={heap} />
       <Item
         label={t('faixa.ram')}
         value={rss === null ? t('faixa.medindo') : <Memory mb={rss} />}
         missing={rss === null}
         sub={peak === null ? null : t('faixa.ramSub', { pico: memoryText(peak) })}
       />
+      <GcItem view={heap} />
       <Item
         label={t('faixa.abriuEm')}
         value={loaded === null ? t('faixa.carregando') : loadTimeText(loaded)}
@@ -97,7 +109,15 @@ export function LivePerfStrip({ run }: { run: TestRun }) {
   if (run.adopted && run.perf === null) {
     return null;
   }
-  return <PerfStrip perf={run.perf} />;
+  return (
+    <>
+      <PerfStrip perf={run.perf} />
+      <HeapAlert
+        packId={run.packId}
+        view={heapView(run.perf?.heap ?? null, run.perf?.heapUnavailable ?? null)}
+      />
+    </>
+  );
 }
 
 /** "Abriu em …" no resultado do teste (registro `result-blocks.ts`). */

@@ -7036,7 +7036,9 @@ dependencies = [
  "serde",
  "serde_json",
  "specta",
+ "tempfile",
  "warden-core",
+ "warden-diagnostics",
  "warden-launcher",
  "windows",
 ]
