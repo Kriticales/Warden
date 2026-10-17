@@ -1,0 +1,305 @@
+[00:55:26] [main/INFO]: Loading Minecraft 26.2 with Fabric Loader 0.19.3
+[00:55:26] [main/INFO]: Mappings not present!
+[00:55:26] [main/INFO]: Loading 76 mods:
+	- carpet 26.2+v260616
+	- cmd_bansaying_scb 1.1.0
+	- fabric-api 0.154.2+26.2
+	   |-- fabric-api-base 2.0.4+ece063239e
+	   |-- fabric-api-lookup-api-v1 2.0.17+11e1c9a39e
+	   |-- fabric-biome-api-v1 18.0.6+c7bd5b8e9e
+	   |-- fabric-block-api-v1 3.0.3+ec56b6019e
+	   |-- fabric-block-getter-api-v2 2.0.7+ec56b6019e
+	   |-- fabric-command-api-v2 3.1.0+00cb03469e
+	   |-- fabric-content-registries-v0 11.2.2+b7a678a99e
+	   |-- fabric-convention-tags-v2 4.7.0+1f023a9e9e
+	   |-- fabric-crash-report-info-v1 1.0.5+086d547a9e
+	   |-- fabric-creative-tab-api-v1 5.0.14+d871b99e9e
+	   |-- fabric-data-attachment-api-v1 2.2.17+aa0fd6fe9e
+	   |-- fabric-data-generation-api-v1 25.4.4+9e7dc27f9e
+	   |-- fabric-debug-api-v1 1.0.2+c792624d9e
+	   |-- fabric-dimensions-v1 5.1.9+9cbf5da59e
+	   |-- fabric-entity-events-v1 5.0.5+06488ac19e
+	   |-- fabric-events-interaction-v0 5.2.6+8f57f7ee9e
+	   |-- fabric-game-rule-api-v1 4.0.8+46a6d00c9e
+	   |-- fabric-item-api-v1 14.2.0+7aec7be39e
+	   |-- fabric-key-mapping-api-v1 2.0.5+e2bdee789e
+	   |-- fabric-lifecycle-events-v1 4.1.3+4575b05f9e
+	   |-- fabric-loot-api-v3 3.0.17+06488ac19e
+	   |-- fabric-menu-api-v1 2.0.16+086d547a9e
+	   |-- fabric-message-api-v1 7.0.7+086d547a9e
+	   |-- fabric-model-loading-api-v1 8.0.15+c80601bb9e
+	   |-- fabric-networking-api-v1 6.3.3+72073ef09e
+	   |-- fabric-object-builder-api-v1 24.1.0+6fcd5f039e
+	   |-- fabric-particles-v1 5.0.18+d1756aa99e
+	   |-- fabric-permission-api-v1 1.0.3+b7020ca29e
+	   |-- fabric-recipe-api-v1 9.0.20+11e1c9a39e
+	   |-- fabric-registry-sync-v0 7.1.0+c7bd5b8e9e
+	   |-- fabric-renderer-api-v1 14.1.2+2b0d8a229e
+	   |-- fabric-renderer-indigo 9.1.2+2b0d8a229e
+	   |-- fabric-rendering-fluids-v1 6.0.4+06488ac19e
+	   |-- fabric-rendering-v1 25.3.1+6988455e9e
+	   |-- fabric-resource-conditions-api-v1 6.1.0+10e9a28b9e
+	   |-- fabric-resource-loader-v0 3.3.20+4fc5413f9e
+	   |-- fabric-resource-loader-v1 2.0.13+9edec1269e
+	   |-- fabric-screen-api-v1 5.1.0+48e3c0b09e
+	   |-- fabric-serialization-api-v1 2.0.4+11a26f319e
+	   |-- fabric-sound-api-v1 2.0.5+11a26f319e
+	   |-- fabric-tag-api-v1 2.1.3+794df31d9e
+	   |-- fabric-transfer-api-v1 8.0.11+39b5a3929e
+	   \-- fabric-transitive-access-wideners-v1 8.1.4+67c847259e
+	- fabric-language-kotlin 1.13.12+kotlin.2.4.0
+	   |-- org_jetbrains_kotlin_kotlin-reflect 2.4.0
+	   |-- org_jetbrains_kotlin_kotlin-stdlib 2.4.0
+	   |-- org_jetbrains_kotlin_kotlin-stdlib-jdk7 2.4.0
+	   |-- org_jetbrains_kotlin_kotlin-stdlib-jdk8 2.4.0
+	   |-- org_jetbrains_kotlinx_atomicfu-jvm 0.33.0
+	   |-- org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm 1.11.0
+	   |-- org_jetbrains_kotlinx_kotlinx-coroutines-jdk8 1.11.0
+	   |-- org_jetbrains_kotlinx_kotlinx-datetime-jvm 0.8.0
+	   |-- org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm 0.9.0
+	   |-- org_jetbrains_kotlinx_kotlinx-io-core-jvm 0.9.0
+	   |-- org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm 1.11.0
+	   |-- org_jetbrains_kotlinx_kotlinx-serialization-core-jvm 1.11.0
+	   \-- org_jetbrains_kotlinx_kotlinx-serialization-json-jvm 1.11.0
+	- fabricloader 0.19.3
+	   \-- mixinextras 0.5.4
+	- ferritecore 9.0.0
+	- java 26
+	- jline4mcdsrv 0.8.0
+	   |-- com_moandjiezana_toml_toml4j 0.7.2
+	   \-- org_jline_jline 4.0.9
+	- lithium 0.25.2+mc26.2
+	- luckperms 5.5.57
+	   \-- fabric-permissions-api-v0 0.7.0
+	- minecraft 26.2
+	- moonrise 1.1.0+87549dd
+	   |-- cloth-config 26.2.155
+	   |    \-- cloth-basic-math 0.6.1
+	   |-- fabric-api-base 2.0.4+ece063239e
+	   \-- fabric-command-api-v2 3.1.0+00cb03469e
+	- nochatreports 26.2-v2.20.1
+	- server-replay 3.5.0+26.2
+	   |-- arcade-commands 0.10.0-beta.11
+	   |-- arcade-event-registry 0.10.0-beta.11
+	   |-- arcade-events-server 0.10.0-beta.11
+	   |-- arcade-interceptor 0.10.0-beta.11
+	   |-- arcade-replay 0.10.0-beta.11
+	   |-- arcade-resource-pack-host 0.10.0-beta.11
+	   \-- arcade-utils 0.10.0-beta.11
+[00:55:27] [main/INFO]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/D:/MCJPG活动服务器/festival/libraries/net/fabricmc/sponge-mixin/0.17.3+mixin.0.8.7/sponge-mixin-0.17.3+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[00:55:27] [main/INFO]: Compatibility level set to JAVA_17
+[00:55:27] [main/INFO]: Compatibility level set to JAVA_25
+[00:55:27] [main/WARN]: Mod moonrise disabled FerriteCore option replaceNeighborLookup
+[00:55:27] [main/WARN]: Mod moonrise disabled FerriteCore option replacePropertyMap
+[00:55:27] [main/INFO]: Option 'mixin.minimal_nonvanilla.world.block_entity_ticking.support_cache' requires 'mixin.world.block_entity_ticking=true' but found 'false'. Setting 'mixin.minimal_nonvanilla.world.block_entity_ticking.support_cache=false'.
+[00:55:27] [main/INFO]: Option 'mixin.experimental.entity.block_caching.suffocation' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching.suffocation=false'.
+[00:55:27] [main/INFO]: Option 'mixin.experimental.entity.block_caching.block_support' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching.block_support=false'.
+[00:55:27] [main/INFO]: Option 'mixin.block.hopper' requires 'mixin.util.entity_movement_tracking=true' but found 'false'. Setting 'mixin.block.hopper=false'.
+[00:55:27] [main/INFO]: Option 'mixin.entity.projectile_projectile_collisions' requires 'mixin.chunk.entity_class_groups=true' but found 'false'. Setting 'mixin.entity.projectile_projectile_collisions=false'.
+[00:55:27] [main/INFO]: Option 'mixin.experimental.entity.block_caching' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching=false'.
+[00:55:27] [main/INFO]: Loaded configuration file for Lithium: 171 options available, 28 override(s) found.
+[00:55:27] [main/WARN]: Error loading class: net/minecraft/client/server/IntegratedServer (java.lang.ClassNotFoundException: net/minecraft/client/server/IntegratedServer)
+[00:55:27] [main/WARN]: @Mixin target net.minecraft.client.server.IntegratedServer was not found arcade-events-server.mixins.json:server.IntegratedServerMixin from mod arcade-events-server
+[00:55:27] [main/WARN]: Mixin malte0811.ferritecore.mixin.fastmap.FastMapStateHolderMixin is disabled by config
+[00:55:27] [main/WARN]: Mixin malte0811.ferritecore.mixin.fastmap.StateDefinitionMixin is disabled by config
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.PoiManagerMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.PoiSectionMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.SectionStorageMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.fast_portals.PoiManagerMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.fast_portals.PortalForcerMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.tasks.AcquirePoiMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.tasks.LocateHidingPlaceMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'ai.poi.tasks.RaiderEntityAttackHomeGoalMixin' as rule 'mixin.ai.poi' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'alloc.deep_passengers.EntityMixin' as rule 'mixin.alloc.deep_passengers' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'alloc.entity_tracker.ChunkMap$TrackedEntityMixin' as rule 'mixin.alloc.entity_tracker' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'block.flatten_states.FluidStateMixin' as rule 'mixin.block.flatten_states' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'chunk.entity_class_groups.ClassInstanceMultiMapMixin' as rule 'mixin.chunk.entity_class_groups' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'chunk.no_validation.SimpleBitStorageMixin' as rule 'mixin.chunk.no_validation' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'chunk.no_validation.ZeroBitStorageMixin' as rule 'mixin.chunk.no_validation' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'collections.chunk_tickets.SortedArraySetMixin' as rule 'mixin.collections.chunk_tickets' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'collections.entity_ticking.EntityTickListMixin' as rule 'mixin.collections.entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.intersection.EntityGetterMixin' as rule 'mixin.entity.collisions.intersection' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.intersection.LevelMixin' as rule 'mixin.entity.collisions.intersection' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.movement.EntityMixin' as rule 'mixin.entity.collisions.movement' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.AbstractBoatMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.EntityMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.EntitySectionMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.EntitySelectorMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.LevelMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.LivingEntityMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.collisions.unpushable_cramming.OldMinecartBehaviorMixin' as rule 'mixin.entity.collisions.unpushable_cramming' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.replace_entitytype_predicates.ArmorStandMixin' as rule 'mixin.entity.replace_entitytype_predicates' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.replace_entitytype_predicates.GolemRandomStrollInVillageGoalMixin' as rule 'mixin.entity.replace_entitytype_predicates' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.replace_entitytype_predicates.LlamaFollowCaravanGoalMixin' as rule 'mixin.entity.replace_entitytype_predicates' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'entity.replace_entitytype_predicates.OldMinecartBehaviorMixin' as rule 'mixin.entity.replace_entitytype_predicates' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'math.fast_blockpos.BlockPosMixin' as rule 'mixin.math.fast_blockpos' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'math.fast_blockpos.DirectionMixin' as rule 'mixin.math.fast_blockpos' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'math.fast_util.AABBMixin' as rule 'mixin.math.fast_util' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'math.fast_util.AxisCycleDirectionMixin$BackwardMixin' as rule 'mixin.math.fast_util' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'math.fast_util.AxisCycleDirectionMixin$ForwardMixin' as rule 'mixin.math.fast_util' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'math.fast_util.DirectionMixin' as rule 'mixin.math.fast_util' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.collisions.empty_space.ArrayVoxelShapeInvoker' as rule 'mixin.minimal_nonvanilla.collisions.empty_space' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.collisions.empty_space.BitSetDiscreteVoxelShapeAccessor' as rule 'mixin.minimal_nonvanilla.collisions.empty_space' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.collisions.empty_space.LevelMixin' as rule 'mixin.minimal_nonvanilla.collisions.empty_space' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.spawning.EntitySectionAccessor' as rule 'mixin.minimal_nonvanilla.spawning' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.spawning.EntitySectionStorageMixin' as rule 'mixin.minimal_nonvanilla.spawning' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.spawning.PersistentEntitySectionManagerAccessor' as rule 'mixin.minimal_nonvanilla.spawning' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.spawning.ServerChunkCacheMixin' as rule 'mixin.minimal_nonvanilla.spawning' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.spawning.ServerLevelAccessor' as rule 'mixin.minimal_nonvanilla.spawning' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'minimal_nonvanilla.world.expiring_chunk_tickets.TicketStorageMixin' as rule 'mixin.minimal_nonvanilla.world.expiring_chunk_tickets' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'shapes.blockstate_cache.BlockMixin' as rule 'mixin.shapes.blockstate_cache' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'shapes.optimized_matching.ShapesMixin' as rule 'mixin.shapes.optimized_matching' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'shapes.specialized_shapes.ShapesMixin' as rule 'mixin.shapes.specialized_shapes' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'shapes.specialized_shapes.VoxelShapeMixin' as rule 'mixin.shapes.specialized_shapes' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.block_tracking.BlockStateBaseMixin' as rule 'mixin.util.block_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.block_tracking.LevelChunkSection$BlockCounterMixin' as rule 'mixin.util.block_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.block_tracking.LevelChunkSectionMixin' as rule 'mixin.util.block_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.entity_movement_tracking.EntitySectionMixin' as rule 'mixin.util.entity_movement_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.entity_movement_tracking.PersistentEntitySectionManagerAccessor' as rule 'mixin.util.entity_movement_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.entity_movement_tracking.ServerEntityManagerListenerMixin' as rule 'mixin.util.entity_movement_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'util.entity_movement_tracking.ServerLevelAccessor' as rule 'mixin.util.entity_movement_tracking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.chunk_tickable.LevelMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.BlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.LevelChunkMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.LevelMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.ServerLevelMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.WrappedBlockEntityTickInvokerAccessor' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.brewing_stand.BrewingStandBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.campfire.CampfireBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.campfire.lit.CampfireBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.campfire.unlit.CampfireBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.crafter.CrafterBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.furnace.AbstractFurnaceBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.hopper.HopperBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_catalyst.SculkCatalystBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_catalyst.SculkSpreaderMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_sensor_shrieker.CalibratedSculkSensorBlockMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_sensor_shrieker.SculkSensorBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_sensor_shrieker.SculkSensorBlockMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_sensor_shrieker.SculkShriekerBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_sensor_shrieker.SculkShriekerBlockMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.sculk_sensor_shrieker.VibrationSystemListenerMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.sleeping.shulker_box.ShulkerBoxBlockEntityMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.block_entity_ticking.world_border.DirectBlockEntityTickInvokerMixin' as rule 'mixin.world.block_entity_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_access.ChunkHolderMixin' as rule 'mixin.world.chunk_access' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_access.GenerationChunkHolderAccessor' as rule 'mixin.world.chunk_access' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_access.LevelMixin' as rule 'mixin.world.chunk_access' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_access.ServerChunkCacheMixin' as rule 'mixin.world.chunk_access' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_ticking.random_block_ticking.LevelChunkSection$BlockCounterMixin' as rule 'mixin.world.chunk_ticking.random_block_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_ticking.random_block_ticking.LevelChunkSectionMixin' as rule 'mixin.world.chunk_ticking.random_block_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_ticking.random_block_ticking.PalettedContainerMixin' as rule 'mixin.world.chunk_ticking.random_block_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.chunk_ticking.random_block_ticking.ServerLevelMixin' as rule 'mixin.world.chunk_ticking.random_block_ticking' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.explosions.block_raycast.ServerExplosionMixin' as rule 'mixin.world.explosions.block_raycast' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.explosions.block_raycast.skip_air.ServerExplosionMixin' as rule 'mixin.world.explosions.block_raycast' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.explosions.block_raycast.skip_air.no_air_counting.ServerLevelMixin' as rule 'mixin.world.explosions.block_raycast' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.temperature_cache.BiomeMixin' as rule 'mixin.world.temperature_cache' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Force-disabling mixin 'world.tick_scheduler.LevelChunkTicksMixin' as rule 'mixin.world.tick_scheduler' (added by mods [moonrise]) disables it and children
+[00:55:27] [main/INFO]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[00:55:32] [main/INFO]: Launching ServerReplay!
+[00:55:32] [main/INFO]: Loading configuration...
+[00:55:32] [main/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, profilesHost=https://api.mojang.com, name=PROD]
+[00:55:36] [main/INFO]: Loaded 1585 recipes
+[00:55:36] [main/INFO]: Loaded 92 advancements
+[00:55:36] [main/INFO]: Moonrise is using 5 worker threads, 1 I/O threads
+[00:55:36] [main/INFO]: Applied 0 biome modifications to 0 of 66 new biomes in 973.9 μs
+[00:55:36] [Server thread/INFO]:         __    
+[00:55:36] [Server thread/INFO]:   |    |__)   LuckPerms v5.5.57
+[00:55:36] [Server thread/INFO]:   |___ |      Running on Fabric - fabric@unknown
+[00:55:36] [Server thread/INFO]: 
+[00:55:36] [Server thread/INFO]: Loading storage provider... [H2]
+[00:55:36] [Server thread/INFO]: Loading internal permission managers...
+[00:55:36] [Server thread/INFO]: Performing initial data load...
+[00:55:36] [Server thread/INFO]: Successfully enabled. (took 243ms)
+[00:55:36] [Server thread/INFO]: Starting minecraft server version 26.2
+[00:55:36] [Server console handler/INFO]: Starting jline4mcdsrv
+[00:55:36] [Server thread/INFO]: Loading properties
+[00:55:36] [Server thread/INFO]: Default game type: SURVIVAL
+[00:55:36] [Server thread/INFO]: Generating keypair
+[00:55:36] [Server thread/INFO]: Starting Minecraft server on 203.0.113.1:25565
+[00:55:36] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[00:55:36] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[00:55:36] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[00:55:36] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[00:55:36] [Server thread/INFO]: Preparing level "Map-MiniGames"
+[00:55:36] [Server thread/INFO]: [CM] Loaded 13 settings from carpet.conf
+[00:55:36] [Server thread/ERROR]: Mixin apply for mod arcade-replay failed arcade-replay.mixins.json:chunk.ChunkMapMixin from mod arcade-replay -> net.minecraft.server.level.ChunkMap: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException @At("INVOKE") on net/minecraft/server/level/ChunkMap::onLoadChunk with priority 1000 cannot inject into net/minecraft/server/level/ChunkMap::updateChunkScheduling(JILnet/minecraft/server/level/ChunkHolder;I)Lnet/minecraft/server/level/ChunkHolder; merged by ca.spottedleaf.moonrise.mixin.chunk_system.ChunkMapMixin with priority 1000 [INJECT_PREPARE Applicator Phase -> arcade-replay.mixins.json:chunk.ChunkMapMixin from mod arcade-replay -> Prepare Injections -> handler$zcg000$arcade-replay$onLoadChunk(JILnet/minecraft/server/level/ChunkHolder;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V -> Prepare ->  -> { target: updateChunkScheduling(JILnet/minecraft/server/level/ChunkHolder;I)Lnet/minecraft/server/level/ChunkHolder; }]
+org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException: @At("INVOKE") on net/minecraft/server/level/ChunkMap::onLoadChunk with priority 1000 cannot inject into net/minecraft/server/level/ChunkMap::updateChunkScheduling(JILnet/minecraft/server/level/ChunkHolder;I)Lnet/minecraft/server/level/ChunkHolder; merged by ca.spottedleaf.moonrise.mixin.chunk_system.ChunkMapMixin with priority 1000 [INJECT_PREPARE Applicator Phase -> arcade-replay.mixins.json:chunk.ChunkMapMixin from mod arcade-replay -> Prepare Injections -> handler$zcg000$arcade-replay$onLoadChunk(JILnet/minecraft/server/level/ChunkHolder;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V -> Prepare ->  -> { target: updateChunkScheduling(JILnet/minecraft/server/level/ChunkHolder;I)Lnet/minecraft/server/level/ChunkHolder; }]
+	at org.spongepowered.asm.mixin.injection.code.Injector.findTargetNodes(Injector.java:312)
+	at org.spongepowered.asm.mixin.injection.code.Injector.find(Injector.java:248)
+	at org.spongepowered.asm.mixin.injection.struct.InjectionInfo.prepare(InjectionInfo.java:475)
+	at org.spongepowered.asm.mixin.transformer.MixinTargetContext.prepareInjections(MixinTargetContext.java:1394)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.prepareInjections(MixinApplicatorStandard.java:811)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.lambda$runApplicatorPass$1(MixinApplicatorStandard.java:303)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.processMixins(MixinApplicatorStandard.java:381)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.runApplicatorPass(MixinApplicatorStandard.java:300)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.apply(MixinApplicatorStandard.java:240)
+	at org.spongepowered.asm.mixin.transformer.TargetClassContext.apply(TargetClassContext.java:437)
+	at org.spongepowered.asm.mixin.transformer.TargetClassContext.applyMixins(TargetClassContext.java:418)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:351)
+	at org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClass(MixinTransformer.java:237)
+	at org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClassBytes(MixinTransformer.java:202)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.getPostMixinClassByteArray(KnotClassDelegate.java:435)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.tryLoadClass(KnotClassDelegate.java:336)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.loadClass(KnotClassDelegate.java:231)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassLoader.loadClass(KnotClassLoader.java:119)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:502)
+	at knot//net.minecraft.server.level.ServerChunkCache.<init>(ServerChunkCache.java:101)
+	at knot//net.minecraft.server.level.ServerLevel.<init>(ServerLevel.java:261)
+	at knot//net.minecraft.server.MinecraftServer.createLevels(MinecraftServer.java:455)
+	at knot//net.minecraft.server.MinecraftServer.loadLevel(MinecraftServer.java:420)
+	at knot//net.minecraft.server.dedicated.DedicatedServer.initServer(DedicatedServer.java:221)
+	at knot//net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:741)
+	at knot//net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:320)
+	at java.base/java.lang.Thread.run(Thread.java:1516)
+[00:55:36] [Server thread/ERROR]: Encountered an unexpected exception
+java.lang.RuntimeException: Mixin transformation of net.minecraft.server.level.ChunkMap failed
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.getPostMixinClassByteArray(KnotClassDelegate.java:440)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.tryLoadClass(KnotClassDelegate.java:336)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.loadClass(KnotClassDelegate.java:231)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassLoader.loadClass(KnotClassLoader.java:119)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:502)
+	at knot//net.minecraft.server.level.ServerChunkCache.<init>(ServerChunkCache.java:101)
+	at knot//net.minecraft.server.level.ServerLevel.<init>(ServerLevel.java:261)
+	at knot//net.minecraft.server.MinecraftServer.createLevels(MinecraftServer.java:455)
+	at knot//net.minecraft.server.MinecraftServer.loadLevel(MinecraftServer.java:420)
+	at knot//net.minecraft.server.dedicated.DedicatedServer.initServer(DedicatedServer.java:221)
+	at knot//net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:741)
+	at knot//net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:320)
+	at java.base/java.lang.Thread.run(Thread.java:1516)
+Caused by: org.spongepowered.asm.mixin.transformer.throwables.MixinTransformerError: An unexpected critical error was encountered
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:380)
+	at org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClass(MixinTransformer.java:237)
+	at org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClassBytes(MixinTransformer.java:202)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.getPostMixinClassByteArray(KnotClassDelegate.java:435)
+	... 12 more
+Caused by: org.spongepowered.asm.mixin.throwables.MixinApplyError: Mixin [arcade-replay.mixins.json:chunk.ChunkMapMixin from mod arcade-replay] from phase [DEFAULT] in config [arcade-replay.mixins.json] FAILED during APPLY
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.handleMixinError(MixinProcessor.java:685)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.handleMixinApplyError(MixinProcessor.java:636)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:367)
+	... 15 more
+Caused by: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException: @At("INVOKE") on net/minecraft/server/level/ChunkMap::onLoadChunk with priority 1000 cannot inject into net/minecraft/server/level/ChunkMap::updateChunkScheduling(JILnet/minecraft/server/level/ChunkHolder;I)Lnet/minecraft/server/level/ChunkHolder; merged by ca.spottedleaf.moonrise.mixin.chunk_system.ChunkMapMixin with priority 1000 [INJECT_PREPARE Applicator Phase -> arcade-replay.mixins.json:chunk.ChunkMapMixin from mod arcade-replay -> Prepare Injections -> handler$zcg000$arcade-replay$onLoadChunk(JILnet/minecraft/server/level/ChunkHolder;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V -> Prepare ->  -> { target: updateChunkScheduling(JILnet/minecraft/server/level/ChunkHolder;I)Lnet/minecraft/server/level/ChunkHolder; }]
+	at org.spongepowered.asm.mixin.injection.code.Injector.findTargetNodes(Injector.java:312)
+	at org.spongepowered.asm.mixin.injection.code.Injector.find(Injector.java:248)
+	at org.spongepowered.asm.mixin.injection.struct.InjectionInfo.prepare(InjectionInfo.java:475)
+	at org.spongepowered.asm.mixin.transformer.MixinTargetContext.prepareInjections(MixinTargetContext.java:1394)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.prepareInjections(MixinApplicatorStandard.java:811)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.lambda$runApplicatorPass$1(MixinApplicatorStandard.java:303)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.processMixins(MixinApplicatorStandard.java:381)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.runApplicatorPass(MixinApplicatorStandard.java:300)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.apply(MixinApplicatorStandard.java:240)
+	at org.spongepowered.asm.mixin.transformer.TargetClassContext.apply(TargetClassContext.java:437)
+	at org.spongepowered.asm.mixin.transformer.TargetClassContext.applyMixins(TargetClassContext.java:418)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:351)
+	... 15 more
+[00:55:37] [Server thread/ERROR]: This crash report has been saved to: D:\MCJPG活动服务器\festival\crash-reports\crash-2026-07-12_00.55.37-server.txt
+[00:55:37] [Server thread/INFO]: Starting shutdown process...
+[00:55:37] [Server thread/INFO]: Closing storage...
+[00:55:37] [Server thread/INFO]: Goodbye!
+[00:55:37] [Server thread/INFO]: Stopping server
+[00:55:37] [Server thread/INFO]: Saving players
+[00:55:37] [Server thread/INFO]: Saving worlds
+[00:55:37] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[00:55:37] [Server thread/INFO]: Waiting for all RegionFile I/O tasks to complete...
+[00:55:37] [Server thread/INFO]: All RegionFile I/O tasks to complete
+[00:55:37] [Server thread/INFO]: Awaiting termination of worker pool for up to 60s...
+[00:55:37] [Server thread/INFO]: Awaiting termination of I/O pool for up to 60s...

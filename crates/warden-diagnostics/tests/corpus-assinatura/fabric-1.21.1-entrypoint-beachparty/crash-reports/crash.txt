@@ -1,0 +1,888 @@
+---- Minecraft Crash Report ----
+// Shall we play a game?
+
+Time: 2026-04-07 19:19:45
+Description: Initializing game
+
+java.lang.RuntimeException: Could not execute entrypoint stage 'main' due to errors, provided by 'beachparty' at 'net.satisfy.beachparty.fabric.BeachpartyFabric'!
+	at app//net.fabricmc.loader.impl.FabricLoaderImpl.lambda$invokeEntrypoints$0(FabricLoaderImpl.java:409)
+	at app//net.fabricmc.loader.impl.util.ExceptionUtil.gatherExceptions(ExceptionUtil.java:33)
+	at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:407)
+	at app//net.fabricmc.loader.impl.game.minecraft.Hooks.startClient(Hooks.java:52)
+	at knot//fudge.notenoughcrashes.fabric.mixinhandlers.ModLoaders.fabricEntrypoints(ModLoaders.java:9)
+	at knot//MC//net.minecraft.client.MinecraftClient.redirect$iei000$notenoughcrashes$catchFabricInit(MinecraftClient.java:33672)
+	at knot//MC//net.minecraft.client.MinecraftClient.<init>(MinecraftClient.java:477)
+	at net.minecraft.client.main.Main.main(Main.java:239)
+	at app//net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at app//net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at app//net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.brewery.core.registry.EntityTypeRegistry.registerBeerElemental(EntityTypeRegistry.java:46)
+		at knot//net.satisfy.brewery.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:60)
+		at knot//net.satisfy.brewery.Brewery.init(Brewery.java:25)
+		at knot//net.satisfy.brewery.fabric.BreweryFabric.onInitialize(BreweryFabric.java:10)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//fr.harmex.cobbledollars.fabric.CobbleDollarsFabric.registerEntityAttributes$lambda$4(CobbleDollarsFabric.kt:62)
+		at knot//fr.harmex.cobbledollars.common.world.entity.CobbleDollarsEntities.registerAttributes(CobbleDollarsEntities.java:32)
+		at knot//fr.harmex.cobbledollars.fabric.CobbleDollarsFabric.registerEntityAttributes(CobbleDollarsFabric.kt:62)
+		at knot//fr.harmex.cobbledollars.common.CobbleDollars.preInit(CobbleDollars.java:47)
+		at knot//fr.harmex.cobbledollars.fabric.CobbleDollarsFabric.init(CobbleDollarsFabric.kt:32)
+		at knot//fr.harmex.cobbledollars.fabric.FabricBootstrap.onInitialize(FabricBootstrap.kt:7)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//com.cobblemon.mod.fabric.CobblemonFabric.registerEntityAttributes$lambda$0(CobblemonFabric.kt:285)
+		at knot//com.cobblemon.mod.common.CobblemonEntities.registerAttributes(CobblemonEntities.java:99)
+		at knot//com.cobblemon.mod.fabric.CobblemonFabric.registerEntityAttributes(CobblemonFabric.kt:285)
+		at knot//com.cobblemon.mod.common.Cobblemon.preInitialize(Cobblemon.java:194)
+		at knot//com.cobblemon.mod.fabric.CobblemonFabric.initialize(CobblemonFabric.kt:94)
+		at knot//com.cobblemon.mod.fabric.FabricBootstrap.onInitialize(FabricBootstrap.kt:14)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//com.berksire.furniture.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:56)
+		at knot//com.berksire.furniture.core.registry.EntityTypeRegistry.<clinit>(EntityTypeRegistry.java:62)
+		at java.base@21.0.10/java.lang.Class.forName0(Native Method)
+		at java.base@21.0.10/java.lang.Class.forName(Class.java:536)
+		at java.base@21.0.10/java.lang.Class.forName(Class.java:515)
+		at knot//com.google.common.reflect.Reflection.initialize(Reflection.java:64)
+		at knot//com.berksire.furniture.Furniture.init(Furniture.java:15)
+		at knot//com.berksire.furniture.fabric.FurnitureFabric.onInitialize(FurnitureFabric.java:10)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at java.base@21.0.10/java.util.HashMap.forEach(HashMap.java:1429)
+		at knot//net.conczin.mca.registry.EntitiesMCA.registerAttributes(EntitiesMCA.java:71)
+		at knot//net.conczin.mca.fabric.MCAFabric.onInitialize(MCAFabric.java:95)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: net.fabricmc.loader.api.EntrypointException: Exception while loading entries for entrypoint 'main' provided by 'rctmod'
+		at app//net.fabricmc.loader.impl.entrypoint.EntrypointContainerImpl.getEntrypoint(EntrypointContainerImpl.java:56)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: net.fabricmc.loader.api.LanguageAdapterException: java.lang.reflect.InvocationTargetException
+		at app//net.fabricmc.loader.impl.util.DefaultLanguageAdapter.create(DefaultLanguageAdapter.java:60)
+		at app//net.fabricmc.loader.impl.entrypoint.EntrypointStorage$NewEntry.getOrCreate(EntrypointStorage.java:124)
+		at app//net.fabricmc.loader.impl.entrypoint.EntrypointContainerImpl.getEntrypoint(EntrypointContainerImpl.java:53)
+		... 9 more
+	Caused by: java.lang.reflect.InvocationTargetException
+		at java.base@21.0.10/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:74)
+		at java.base@21.0.10/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+		at java.base@21.0.10/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+		at app//net.fabricmc.loader.impl.util.DefaultLanguageAdapter.create(DefaultLanguageAdapter.java:58)
+		... 11 more
+	Caused by: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//com.gitlab.srcmc.rctmod.ModRegistries.init(ModRegistries.java:155)
+		at knot//com.gitlab.srcmc.rctmod.fabric.FabricCommon.<init>(FabricCommon.java:34)
+		at java.base@21.0.10/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+		... 14 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//fuzs.puzzleslib.fabric.impl.core.context.EntityAttributesCreateContextFabricImpl.registerEntityAttributes(EntityAttributesCreateContextFabricImpl.java:14)
+		at knot//fuzs.strawstatues.StrawStatues.onEntityAttributeCreation(StrawStatues.java:84)
+		at knot//fuzs.puzzleslib.fabric.impl.core.FabricModConstructor.registerLoadingHandlers(FabricModConstructor.java:39)
+		at knot//fuzs.puzzleslib.fabric.impl.core.FabricModConstructor.construct(FabricModConstructor.java:23)
+		at knot//fuzs.puzzleslib.fabric.impl.core.FabricFactories.constructMod(FabricFactories.java:32)
+		at knot//fuzs.puzzleslib.api.core.v1.ModConstructor.construct(ModConstructor.java:36)
+		at knot//fuzs.strawstatues.fabric.StrawStatuesFabric.onInitialize(StrawStatuesFabric.java:11)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//com.blackgear.platform.common.integration.fabric.MobIntegrationImpl$1.registerAttributes(MobIntegrationImpl.java:25)
+		at knot//com.blackgear.vanillabackport.common.CommonSetup.mobIntegrations(CommonSetup.java:143)
+		at knot//com.blackgear.platform.common.integration.fabric.MobIntegrationImpl.registerIntegrations(MobIntegrationImpl.java:17)
+		at knot//com.blackgear.platform.common.integration.MobIntegration.registerIntegrations(MobIntegration.java)
+		at knot//com.blackgear.vanillabackport.common.CommonSetup.setup(CommonSetup.java:46)
+		at knot//com.blackgear.platform.core.fabric.ModInstanceBuilderImpl$1.bootstrap(ModInstanceBuilderImpl.java:22)
+		at knot//com.blackgear.vanillabackport.core.VanillaBackport.bootstrap(VanillaBackport.java:48)
+		at knot//com.blackgear.vanillabackport.core.fabric.VanillaBackportFabric.onInitialize(VanillaBackportFabric.java:15)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+	Suppressed: java.lang.NoClassDefFoundError: Could not initialize class net.minecraft.entity.attribute.DefaultAttributeRegistry
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.vinery.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:77)
+		at knot//net.satisfy.vinery.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:84)
+		at knot//net.satisfy.vinery.core.Vinery.init(Vinery.java:20)
+		at knot//net.satisfy.vinery.fabric.VineryFabric.onInitialize(VineryFabric.java:27)
+		at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 8 more
+	Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight] [in thread "Render thread"]
+		at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+		at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+		at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+		at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+		at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+		at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+		at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+		at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+		at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+		at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+		at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+		... 9 more
+Caused by: java.lang.ExceptionInInitializerError
+	at knot//net.fabricmc.fabric.mixin.object.builder.DefaultAttributeRegistryAccessor.getRegistry(DefaultAttributeRegistryAccessor.java)
+	at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:81)
+	at knot//net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(FabricDefaultAttributeRegistry.java:59)
+	at knot//dev.architectury.registry.level.entity.fabric.EntityAttributeRegistryImpl.register(EntityAttributeRegistryImpl.java:31)
+	at knot//dev.architectury.registry.level.entity.EntityAttributeRegistry.register(EntityAttributeRegistry.java)
+	at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.registerAttributes(EntityTypeRegistry.java:50)
+	at knot//net.satisfy.beachparty.core.registry.EntityTypeRegistry.init(EntityTypeRegistry.java:55)
+	at knot//net.satisfy.beachparty.Beachparty.init(Beachparty.java:12)
+	at knot//net.satisfy.beachparty.fabric.BeachpartyFabric.onInitialize(BeachpartyFabric.java:32)
+	at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+	... 8 more
+Caused by: java.lang.NullPointerException: Trying to access unbound value: ResourceKey[minecraft:attribute / neoforge:creative_flight]
+	at knot//net.neoforged.neoforge.registries.DeferredHolder.comp_349(DeferredHolder.java:103)
+	at knot//MC//net.minecraft.entity.attribute.EntityAttributeInstance.<init>(EntityAttributeInstance.java:37)
+	at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.checkedAdd(DefaultAttributeContainer.java:71)
+	at knot//MC//net.minecraft.entity.attribute.DefaultAttributeContainer$Builder.add(DefaultAttributeContainer.java:81)
+	at knot//MC//net.minecraft.entity.player.PlayerEntity.modifyReturnValue$flm000$kilt$appendNeoCreativeFlightAttribute(PlayerEntity.java:2989)
+	at knot//MC//net.minecraft.entity.player.PlayerEntity.createPlayerAttributes(PlayerEntity.java:258)
+	at knot//MC//net.minecraft.entity.attribute.DefaultAttributeRegistry.<clinit>(DefaultAttributeRegistry.java:139)
+	... 18 more
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at app//net.fabricmc.loader.impl.FabricLoaderImpl.lambda$invokeEntrypoints$0(FabricLoaderImpl.java:409)
+	at app//net.fabricmc.loader.impl.util.ExceptionUtil.gatherExceptions(ExceptionUtil.java:33)
+	at app//net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:407)
+	at app//net.fabricmc.loader.impl.game.minecraft.Hooks.startClient(Hooks.java:52)
+	at knot//fudge.notenoughcrashes.fabric.mixinhandlers.ModLoaders.fabricEntrypoints(ModLoaders.java:9)
+	at knot//MC//net.minecraft.client.MinecraftClient.redirect$iei000$notenoughcrashes$catchFabricInit(MinecraftClient.java:33672)
+	at knot//MC//net.minecraft.client.MinecraftClient.<init>(MinecraftClient.java:477)
+
+-- Initialization --
+Details:
+	Modules: 
+		ADVAPI32.dll:API avançada com base em Windows 32:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		COMCTL32.dll:Biblioteca de Controlos de Experiência de Utilizador:6.10 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPT32.dll:Crypto API32:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTBASE.dll:Base cryptographic API DLL:10.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTSP.dll:Cryptographic Service Provider API:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		DBGHELP.DLL:Windows Image Helper:10.0.26100.5074 (WinBuild.160101.0800):Microsoft Corporation
+		DNSAPI.dll:DLL da API de cliente de DNS:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		GDI32.dll:GDI Client DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		IMM32.DLL:Multi-User Windows IMM32 API Client DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		IPHLPAPI.DLL:IP Helper API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		KERNEL32.DLL:DLL cliente da API BASE do Windows NT:10.0.26100.7306 (WinBuild.160101.0800):Microsoft Corporation
+		KERNELBASE.dll:DLL cliente da API BASE do Windows NT:10.0.26100.7306 (WinBuild.160101.0800):Microsoft Corporation
+		MSWSOCK.dll:Fornecedor de serviços de Microsoft Windows Sockets 2.0:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		MpOav.dll:IOfficeAntiVirus Module:4.18.26020.6 (cd0aebd7c18a68cd2e3af14a117b45b178d088f4):Microsoft Corporation
+		NSI.dll:NSI User-mode interface DLL:10.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		NTASN1.dll:Microsoft ASN.1 API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		OLEAUT32.dll:OLEAUT32.DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		Ole32.dll:Microsoft OLE para Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		POWRPROF.dll:Power Profile Helper DLL:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		PSAPI.DLL:Process Status Helper:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		Pdh.dll:Windows Performance Data Helper DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		RPCRT4.dll:Runtime de Chamada de Procedimento Remoto:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		SHCORE.dll:SHCORE:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		SHELL32.dll:DLL comum da shell do Windows:10.0.26100.7306 (WinBuild.160101.0800):Microsoft Corporation
+		UMPDC.dll:User Mode Power Dependency Coordinator:10.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		USER32.dll:DLL de Cliente de API de UTILIZADOR do Windows Multiutilizador:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		USERENV.dll:Userenv:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		VCRUNTIME140.dll:Microsoft® C Runtime Library:14.42.34438.0:Microsoft Corporation
+		VERSION.dll:Version Checking and File Installation Libraries:10.0.26100.1150 (WinBuild.160101.0800):Microsoft Corporation
+		WINHTTP.dll:Serviços HTTP do Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		WINMM.dll:MCI API DLL:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		WS2_32.dll:DLL Windows Socket 2.0 32 Bits:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		amsi.dll:Anti-Malware Scan Interface:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		apphelp.dll:Biblioteca cliente de compatibilidade de aplicações:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		awt.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		bcrypt.dll:Biblioteca de Primitivas Criptográficas do Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		bcryptPrimitives.dll:Windows Cryptographic Primitives Library:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		clbcatq.dll:COM+ Configuration Catalog:2001.12.10941.16384 (WinBuild.160101.0800):Microsoft Corporation
+		combase.dll:Microsoft COM para Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		dbgcore.DLL:Windows Core Debugging Helpers:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		dxcore.dll:DXCore:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		extnet.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		fwpuclnt.dll:FWP/IPsec User-Mode API:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		gdi32full.dll:GDI Client DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		glfw.dll:GLFW 3.4.0 DLL:3.4.0:GLFW
+		instrument.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		java.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		javaw.exe:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		jemalloc.dll
+		jimage.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		jli.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		jna15726707925705522237.dll:JNA native library:7.0.0:Java(TM) Native Access (JNA)
+		jsvml.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		jvm.dll:Java HotSpot(TM) 64-Bit server VM:**.**.**.**:Oracle Corporation
+		jvmcicompiler.dll
+		kernel.appcore.dll:AppModel API Host:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		lwjgl.dll
+		management.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		management_ext.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		msvcp140.dll:Microsoft® C Runtime Library:14.42.34438.0:Microsoft Corporation
+		msvcp_win.dll:Microsoft® C Runtime Library:10.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		msvcrt.dll:Windows NT CRT DLL:7.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		napinsp.dll:Fornecedor de Correções de Compatibilidade de Nomenclatura de Correio Eletrónico:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		ncrypt.dll:Windows NCrypt Router:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		net.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		nio.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		nlansp_c.dll:NLA Namespace Service Provider DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		ntdll.dll:DLL de camada do NT:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		perfos.dll:DLL de objetos do desempenho do sistema do Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		pfclient.dll:SysMain Client:10.0.26100.4202 (WinBuild.160101.0800):Microsoft Corporation
+		profapi.dll:User Profile Basic API:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		rasadhlp.dll:Remote Access AutoDial Helper:10.0.26100.7171 (WinBuild.160101.0800):Microsoft Corporation
+		rsaenh.dll:Microsoft Enhanced Cryptographic Provider:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		sechost.dll:Host for SCM/SDDL/LSA Lookup APIs:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		shlwapi.dll:Biblioteca de pequenos utilitários da shell:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		sunmscapi.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		ucrtbase.dll:Microsoft® C Runtime Library:10.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		vcruntime140_1.dll:Microsoft® C Runtime Library:14.42.34438.0:Microsoft Corporation
+		verify.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+		win32u.dll:Win32u:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		windows.storage.dll:API de Armazenamento do Microsoft WinRT:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		winrnr.dll:LDAP RnR Provider DLL:10.0.26100.1882 (WinBuild.160101.0800):Microsoft Corporation
+		wintypes.dll:DLL de Tipos Baseados no Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		wshbth.dll:Windows Sockets Helper DLL:10.0.26100.5074 (WinBuild.160101.0800):Microsoft Corporation
+		zip.dll:Java(TM) Platform SE binary:**.**.**.**:Oracle Corporation
+Stacktrace:
+	at net.minecraft.client.main.Main.main(Main.java:239)
+	at app//net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at app//net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at app//net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+
+-- Cobblemon --
+Details:
+	Version: 1.7.3
+	Is Snapshot: false
+	Git Commit: 37264af (https://gitlab.com/cable-mc/cobblemon/-/commit/37264aff0f6c90c9f9a79bbdfc712bd11929a38c)
+	Branch: HEAD
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21.1
+	Minecraft Version ID: 1.21.1
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.10, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode, sharing), Oracle Corporation
+	Memory: 1124756888 bytes (1072 MiB) / 2407530496 bytes (2296 MiB) up to 12952010752 bytes (12352 MiB)
+	CPUs: 16
+	Processor Vendor: AuthenticAMD
+	Processor Name: AMD Ryzen 7 5700X3D 8-Core Processor           
+	Identifier: AuthenticAMD Family 25 Model 33 Stepping 2
+	Microarchitecture: Zen 3
+	Frequency (GHz): 3.00
+	Number of physical packages: 1
+	Number of physical CPUs: 8
+	Number of logical CPUs: 16
+	Graphics card #0 name: AMD Radeon RX 7800 XT
+	Graphics card #0 vendor: Advanced Micro Devices, Inc.
+	Graphics card #0 VRAM (MiB): 16368.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.23033.1002
+	Memory slot #0 capacity (MiB): 32768.00
+	Memory slot #0 clockSpeed (GHz): 2.13
+	Memory slot #0 type: DDR4
+	Memory slot #1 capacity (MiB): 8192.00
+	Memory slot #1 clockSpeed (GHz): 2.13
+	Memory slot #1 type: DDR4
+	Virtual memory max (MiB): 58291.02
+	Virtual memory used (MiB): 20208.43
+	Swap memory total (MiB): 17408.00
+	Swap memory used (MiB): 224.72
+	Space in storage for jna.tmpdir (MiB): available: 340747.34, total: 953026.63
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 340747.34, total: 953026.63
+	Space in storage for io.netty.native.workdir (MiB): available: 340747.34, total: 953026.63
+	Space in storage for java.io.tmpdir (MiB): available: 340747.34, total: 953026.63
+	Space in storage for workdir (MiB): available: 340747.34, total: 953026.63
+	JVM Flags: 8 total; -XX:ThreadPriorityPolicy=1 -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCIProduct -XX:-UnlockExperimentalVMOptions -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xss1M -Xmx12352m -Xms256m
+	Fabric Mods: 
+		accelerateddecay: Accelerated Decay 21.0.0
+		accessories: Accessories 1.1.0-beta.53+1.21.1
+		accessories_compat_layer: Accessories Compatibility Layer 0.1.12
+			mixinsquared: MixinSquared 0.3.4
+		advancementdisable: AdvancementDisable 1.0.0
+		advancementplaques: Advancement Plaques 1.6.8
+		another_furniture: Another Furniture 4.0.2
+		architectury: Architectury 13.0.8
+		athena: Athena 4.0.2
+		bakery: [Let's Do] Bakery 2.1.6
+		balm: Balm 21.0.56
+			kuma_api: KumaAPI 21.0.7
+		beachparty: [Let's Do] Beachparty 2.1.4
+		beautify: Beautify 2.0.0+1.21.1
+		betterbeds: Better Beds 1.4.0
+		betterf1: BetterF1 1.1
+		betterf3: BetterF3 11.0.3
+		betterthirdperson: Better Third Person 1.9.0
+		biome_replacer: Biome Replacer 2.1-hippo
+		bookshelf: Bookshelf 21.1.81
+		botanypots: BotanyPots 21.1.41
+		botanytrees: BotanyTrees 21.1.3
+		brb: Better Recipe Book 1.10.0-rc5+1.21
+		brewery: [Let's Do] Brewery 2.1.9
+		candlelight: [Let's Do] Candlelight 2.1.12
+		capture_xp: Cobblemon Capture XP 1.7.3-fabric-1.3.0
+		carryon: Carry On 2.2.4
+		carved_wood: Carved Wood 1.8.2
+			cardinal-components-block: Cardinal Components API (blocks) 6.1.0
+		catchindicator: Catch Indicator 1.4.1
+		catchrate-display: Cobblemon Catch Rate Display 2.7.8
+		chipped: Chipped 4.0.2
+		cloth-config: Cloth Config v15 15.0.140
+			cloth-basic-math: cloth-basic-math 0.6.1
+		cobblecuisine: CobbleCuisine 2.0.1
+		cobbledgacha: Cobbled Gacha 3.0.3
+		cobbledollars: CobbleDollars 2.0.0+Beta-5.1+1.21.1
+		cobblefurnies: CobbleFurnies 1.0
+		cobblemon: Cobblemon 1.7.3+1.21.1
+		cobblemon-additions: Cobblemon Additions 4.1.6
+		cobblemon-battle-extras: Cobblemon Battle Extras 1.8.30
+		cobblemon_furnaces: Cobblemon Furnaces 1.0.0
+		cobblemon_smartphone: Cobblemon Smartphone 1.0.6
+		cobblemonbattlepositions: Cobblemon Battle Positions 1.1.2
+		cobblemonraiddens: Cobblemon Raid Dens 0.7.6+1.21.1
+		cobblemonsizevariation: CobblemonSizeVariation 1.4.0
+		cobblenav: Cobblenav 2.2.5
+		cobbleversebadges: COBBLEVERSE Badges 1.3
+		cobbreeding: Cobbreeding 2.2.0
+		comforts: Comforts 9.0.5+1.21.1
+			cardinal-components-base: Cardinal Components API (base) 6.1.2
+			cardinal-components-entity: Cardinal Components API (entities) 6.1.2
+			spectrelib: SpectreLib 0.17.2+1.21
+		connectedglass: Connected Glass 1.1.14
+		continuity: Continuity 3.0.0+1.21
+		controlling: Controlling 19.0.5
+		cozyhome: Cozy Home 1.1.20
+		customsplashscreen: Custom Splash Screen 2.2.0
+		dawnoftimebuilder: Dawn Of Time 1.6.5
+		debugify: Debugify 1.21.1+1.0
+		defaultoptions: Default Options 21.1.5
+		entity_model_features: Entity Model Features 3.0.12
+		entity_texture_features: Entity Texture Features 7.0.9
+		entityculling: EntityCulling 1.9.5
+			trender: TRender 1.0.10
+		euphoria_patcher: Euphoria Patcher 1.8.6-r5.7.1-fabric
+		fabric-api: Fabric API 0.116.9+1.21.1
+			fabric-api-base: Fabric API Base 0.4.42+6573ed8c19
+			fabric-api-lookup-api-v1: Fabric API Lookup API (v1) 1.6.72+7b3d111d19
+			fabric-biome-api-v1: Fabric Biome API (v1) 13.0.31+d527f9fd19
+			fabric-block-api-v1: Fabric Block API (v1) 1.1.0+0bc3503219
+			fabric-block-view-api-v2: Fabric BlockView API (v2) 1.0.11+ebb2264e19
+			fabric-blockrenderlayer-v1: Fabric BlockRenderLayer Registration (v1) 1.1.52+0af3f5a719
+			fabric-client-tags-api-v1: Fabric Client Tags 1.1.15+6573ed8c19
+			fabric-command-api-v1: Fabric Command API (v1) 1.2.49+f71b366f19
+			fabric-command-api-v2: Fabric Command API (v2) 2.2.28+6ced4dd919
+			fabric-commands-v0: Fabric Commands (v0) 0.2.66+df3654b319
+			fabric-content-registries-v0: Fabric Content Registries (v0) 8.0.19+b559734419
+			fabric-convention-tags-v1: Fabric Convention Tags 2.1.6+7f945d5b19
+			fabric-convention-tags-v2: Fabric Convention Tags (v2) 2.11.2+fa89716719
+			fabric-crash-report-info-v1: Fabric Crash Report Info (v1) 0.2.29+0af3f5a719
+			fabric-data-attachment-api-v1: Fabric Data Attachment API (v1) 1.4.6+5b36e0f719
+			fabric-data-generation-api-v1: Fabric Data Generation API (v1) 20.2.35+37516cd619
+			fabric-dimensions-v1: Fabric Dimensions API (v1) 4.0.1+65213ef819
+			fabric-entity-events-v1: Fabric Entity Events (v1) 1.8.0+2b27e0a419
+			fabric-events-interaction-v0: Fabric Events Interaction (v0) 0.7.13+ba9dae0619
+			fabric-game-rule-api-v1: Fabric Game Rule API (v1) 1.0.53+6ced4dd919
+			fabric-item-api-v1: Fabric Item API (v1) 11.2.0+3b3cb2e819
+			fabric-item-group-api-v1: Fabric Item Group API (v1) 4.1.7+def88e3a19
+			fabric-key-binding-api-v1: Fabric Key Binding API (v1) 1.0.47+0af3f5a719
+			fabric-keybindings-v0: Fabric Key Bindings (v0) 0.2.45+df3654b319
+			fabric-lifecycle-events-v1: Fabric Lifecycle Events (v1) 2.6.0+0865547519
+			fabric-loot-api-v2: Fabric Loot API (v2) 3.0.15+3f89f5a519
+			fabric-loot-api-v3: Fabric Loot API (v3) 1.0.3+3f89f5a519
+			fabric-message-api-v1: Fabric Message API (v1) 6.0.14+8aaf3aca19
+			fabric-model-loading-api-v1: Fabric Model Loading API (v1) 2.1.0+b4d813fc19
+			fabric-networking-api-v1: Fabric Networking API (v1) 4.3.0+c7469b2119
+			fabric-object-builder-api-v1: Fabric Object Builder API (v1) 15.2.1+40875a9319
+			fabric-particles-v1: Fabric Particles (v1) 4.0.2+6573ed8c19
+			fabric-recipe-api-v1: Fabric Recipe API (v1) 5.0.15+2475392c19
+			fabric-registry-sync-v0: Fabric Registry Sync (v0) 5.3.1+e3eddc2119
+			fabric-renderer-api-v1: Fabric Renderer API (v1) 3.4.1+b4d813fc19
+			fabric-renderer-indigo: Fabric Renderer - Indigo 1.7.1+c705a49c19
+			fabric-renderer-registries-v1: Fabric Renderer Registries (v1) 3.2.69+df3654b319
+			fabric-rendering-data-attachment-v1: Fabric Rendering Data Attachment (v1) 0.3.49+73761d2e19
+			fabric-rendering-fluids-v1: Fabric Rendering Fluids (v1) 3.1.6+1daea21519
+			fabric-rendering-v0: Fabric Rendering (v0) 1.1.72+df3654b319
+			fabric-rendering-v1: Fabric Rendering (v1) 5.1.0+ab4c25a019
+			fabric-resource-conditions-api-v1: Fabric Resource Conditions API (v1) 4.3.0+8dc279b119
+			fabric-resource-loader-v0: Fabric Resource Loader (v0) 1.3.1+5b5275af19
+			fabric-screen-api-v1: Fabric Screen API (v1) 2.0.25+8b68f1c719
+			fabric-screen-handler-api-v1: Fabric Screen Handler API (v1) 1.3.90+b559734419
+			fabric-sound-api-v1: Fabric Sound API (v1) 1.0.23+6573ed8c19
+			fabric-transfer-api-v1: Fabric Transfer API (v1) 5.4.4+7b3d111d19
+			fabric-transitive-access-wideners-v1: Fabric Transitive Access Wideners (v1) 6.2.0+45b9699719
+		fabric-language-kotlin: Fabric Language Kotlin 1.13.9+kotlin.2.3.10
+			org_jetbrains_kotlin_kotlin-reflect: kotlin-reflect 2.3.10
+			org_jetbrains_kotlin_kotlin-stdlib: kotlin-stdlib 2.3.10
+			org_jetbrains_kotlin_kotlin-stdlib-jdk7: kotlin-stdlib-jdk7 2.3.10
+			org_jetbrains_kotlin_kotlin-stdlib-jdk8: kotlin-stdlib-jdk8 2.3.10
+			org_jetbrains_kotlinx_atomicfu-jvm: atomicfu-jvm 0.31.0
+			org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm: kotlinx-coroutines-core-jvm 1.10.2
+			org_jetbrains_kotlinx_kotlinx-coroutines-jdk8: kotlinx-coroutines-jdk8 1.10.2
+			org_jetbrains_kotlinx_kotlinx-datetime-jvm: kotlinx-datetime-jvm 0.7.1
+			org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm: kotlinx-io-bytestring-jvm 0.8.2
+			org_jetbrains_kotlinx_kotlinx-io-core-jvm: kotlinx-io-core-jvm 0.8.2
+			org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm: kotlinx-serialization-cbor-jvm 1.10.0
+			org_jetbrains_kotlinx_kotlinx-serialization-core-jvm: kotlinx-serialization-core-jvm 1.10.0
+			org_jetbrains_kotlinx_kotlinx-serialization-json-jvm: kotlinx-serialization-json-jvm 1.10.0
+		fabricloader: Fabric Loader 0.18.4
+			mixinextras: MixinExtras 0.5.0
+		fancymenu: FancyMenu 3.8.1
+			com_github_keksuccino_japng: japng 0.5.3
+			com_github_rtyley_animated-gif-lib-for-java: animated-gif-lib-for-java animated-gif-lib-1.7
+		farm_and_charm: [Let's Do] Farm & Charm 1.1.21
+		ferritecore: FerriteCore 7.0.3
+		fightorflight: Cobblemon Fight or Flight Fabric 0.10.7
+		forgeconfigapiport: Forge Config API Port 21.1.6
+			com_electronwill_night-config_core: core 3.8.0
+			com_electronwill_night-config_toml: toml 3.8.0
+		forgivingvoid: Forgiving Void 21.1.6
+		framework: Framework 0.13.11
+			org_javassist_javassist: javassist 3.29.2-GA
+			org_reflections_reflections: reflections 0.10.2
+		ftbchunks: FTB Chunks 2101.1.14
+		ftblibrary: FTB Library 2101.1.31
+		ftbteams: FTB Teams 2101.1.9
+		ftbultimine: FTB Ultimine 2101.1.13
+		furniture: [Let's Do] Furniture 1.1.4
+		fusion: Fusion 1.2.12
+		geckolib: GeckoLib 4 4.8.3
+		globalpacks: Global Data- & Resourcepacks 21.0.6
+		handcrafted: Handcrafted 4.0.3
+		hearth_and_timber: [Let's Do] Hearth & Timber 1.0.3
+		highlight: Highlight 3.0.0
+		hugestructureblocks: Huge Structure Blocks 1.1.6
+		iceberg: Iceberg 1.3.2
+		immediatelyfast: ImmediatelyFast 1.6.10+1.21.1
+			net_lenni0451_reflect: Reflect 1.6.1+curseforge
+		immersive_optimization: Immersive Optimization 0.1.4
+		infinite-music: Infinite Music 0.4.6
+		interactic: Interactic 0.2.3+1.21
+		interdimensionalwirelesstransmitter: Interdimensional Wireless Transmitter 1.21.1-0.1.5
+		inventoryessentials: Inventory Essentials 21.1.13
+		inventoryprofilesnext: Inventory Profiles Next 2.2.4
+		iris: Iris 1.8.8+mc1.21.1
+			io_github_douira_glsl-transformer: glsl-transformer 2.0.1
+			org_anarres_jcpp: jcpp 1.4.14
+			org_antlr_antlr4-runtime: antlr4-runtime 4.13.1
+		jade: Jade 15.10.5+fabric
+		jadeaddons: Jade Addons 6.0.3+fabric
+		java: Java HotSpot(TM) 64-Bit Server VM 21
+		jei: Just Enough Items **.**.**.**
+		kilt: Kilt 21.1.0+build.72611b-nightly
+			asmfabricloader: AsmFabricLoader 2.0.2-SNAPSHOT
+				net_lenni0451_classtransform_core: core 1.14.1
+			com_github_fabriccompatibilitylayers_cursedmixinex3b449d60b1a522: CursedMixinExtensions 1.1.0
+			com_moulberry_mixinconstraints: mixinconstraints 1.0.8
+			commons-codec_commons-codec: commons-codec 1.15
+			cpw_mods_securejarhandler: securejarhandler fabric.0
+			kilt_create_compat: Kilt: Create Fabric Compat 1.0.0
+			kilt_fabric_compat: Kilt: Fabric Mods Compat 1.0.0
+			kilt_forge_compat: Kilt: Forge Mods Compat 1.0.0
+			kilt_neoforge_config: Kilt: NeoForge Config API 8.1.0
+			kilt_transfer_compat: Kilt: Transfer API Compat 1.0.0
+			knit-loader: Knit Loader 0.1.0
+			mm: Manningham Mills 2.3
+			net_fabricmc_tiny-mappings-parser: tiny-mappings-parser 0.3.0+build.17
+			net_fabricmc_tiny-remapper: tiny-remapper 0.11.1
+			net_jodah_typetools: typetools 0.6.3
+			net_minecraftforge_unsafe: unsafe 0.2.0
+			net_minecrell_terminalconsoleappender: terminalconsoleappender 1.3.0
+			net_neoforged_bus: bus 8.0.5
+			net_neoforged_mergetool: mergetool 2.0.0
+			org_apache_maven_maven-artifact: maven-artifact 3.8.5
+			org_jline_jline-reader: jline-reader 3.12.1
+			org_openjdk_nashorn_nashorn-core: nashorn-core 15.4
+			porting_lib_attributes: Porting Lib Attributes 3.1.0-beta.85+1.21.1
+			porting_lib_base: Porting Lib Base 3.1.0-beta.85+1.21.1
+			porting_lib_blocks: Porting Lib Blocks 3.1.0-beta.85+1.21.1
+			porting_lib_brewing: Porting Lib Brewing 3.1.0-beta.85+1.21.1
+			porting_lib_chunk_loading: Porting Lib Chunk Loading 3.1.0-beta.85+1.21.1
+			porting_lib_client_events: Porting Lib Client Events 3.1.0-beta.85+1.21.1
+			porting_lib_client_extensions: Porting Lib Client Extensions 3.1.0-beta.85+1.21.1
+			porting_lib_common: Porting Lib Common 3.1.0-beta.85+1.21.1
+			porting_lib_config: Porting Lib Config 3.1.0-beta.85+1.21.1
+			porting_lib_core: Porting Lib Core 3.1.0-beta.85+1.21.1
+			porting_lib_data: Porting Lib Data 3.1.0-beta.85+1.21.1
+			porting_lib_entity: Porting Lib Entity 3.1.0-beta.85+1.21.1
+			porting_lib_entity_data_serializers: Porting Lib Entity Data Serializers 3.1.0-beta.85+1.21.1
+			porting_lib_fluids: Porting Lib Fluids 3.1.0-beta.85+1.21.1
+			porting_lib_gametest: Porting Lib GameTest 3.1.0-beta.85+1.21.1
+			porting_lib_gui_utils: Porting Lib Gui Utils 3.1.0-beta.85+1.21.1
+			porting_lib_item_abilities: Porting Lib Item Abilities 3.1.0-beta.85+1.21.1
+			porting_lib_items: Porting Lib Items 3.1.0-beta.85+1.21.1
+			porting_lib_level_events: Porting Lib Level Events 3.1.0-beta.85+1.21.1
+			porting_lib_loot: Porting Lib Loot 3.1.0-beta.85+1.21.1
+			porting_lib_milk: Porting Lib Milk 3.1.0-beta.85+1.21.1
+			porting_lib_mixin_extensions: Porting Lib Mixin Extensions 3.1.0-beta.85+1.21.1
+			porting_lib_model_data: Porting Lib Model Data 3.1.0-beta.85+1.21.1
+			porting_lib_model_loader: Porting Lib Model Loader 3.1.0-beta.85+1.21.1
+			porting_lib_models: Porting Lib Models 3.1.0-beta.85+1.21.1
+			porting_lib_obj_loader: Porting Lib Obj Loader 3.1.0-beta.85+1.21.1
+			porting_lib_recipe_book_categories: Porting Lib Recipe Book Categories 3.1.0-beta.85+1.21.1
+			porting_lib_registry: Porting Lib Registry 3.1.0-beta.85+1.21.1
+			porting_lib_render_types: Porting Lib Render Types 3.1.0-beta.85+1.21.1
+			porting_lib_resources: Porting Lib Resources 3.1.0-beta.85+1.21.1
+			porting_lib_tags: Porting Lib Tags 3.0
+			porting_lib_transfer: Porting Lib Transfer 3.1.0-beta.85+1.21.1
+			team_reborn_energy: Energy 4.1.0
+			xyz_bluspring_autorenamingtool: AutoRenamingTool 0.1.52
+			xyz_bluspring_srgutils: srgutils 0.5.15
+		kiwi: Kiwi Library 15.8.3+fabric
+		konkrete: Konkrete 1.9.9
+		krypton: Krypton 0.2.8
+			com_velocitypowered_velocity-native: velocity-native 3.3.0-SNAPSHOT
+		legendarymonuments: Legendary Monuments Cobbleverse
+		lenientdeath: Lenient Death 1.2.5+1.21.1
+			jackfredlib-base: JackFredLib: Base 1.4.0+1.21
+			jackfredlib-colour: JackFredLib: Colour 1.1.0+1.21
+			jackfredlib-config: JackFredLib: Config 0.2.3+1.21
+				blue_endless_jankson: jankson 1.2.3
+				commons-io_commons-io: commons-io 2.15.1
+			jackfredlib-lying: JackFredLib: Lying 0.5.5+1.21
+			server_translations_api: Server Translations API 2.3.1+1.21-pre2
+				packet_tweaker: Packet Tweaker 0.5.1+24w03b
+		libipn: libIPN 6.6.2
+		libjf: LibJF 3.17.3
+			libjf-base: LibJF Base 3.17.3
+			libjf-config-commands: LibJF Config Commands 3.17.3
+			libjf-config-core-v2: LibJF Config 3.17.3
+			libjf-config-network-v0: LibJF Config: Network 3.17.3
+			libjf-config-ui-tiny: LibJF Config UI: Tiny 3.17.3
+			libjf-data-manipulation-v0: LibJF Data Manipulation 3.17.3
+			libjf-data-v0: LibJF Data 3.17.3
+			libjf-mainhttp-v0: LibJF MainHTTP 3.17.3
+			libjf-resource-pack-entry-widgets-v0: LibJF Resource Pack Entry Widgets 3.17.3
+			libjf-translate-v1: LibJF Translate 3.17.3
+			libjf-unsafe-v0: LibJF Unsafe 3.17.3
+			libjf-web-v1: LibJF Web 3.17.3
+		lithium: Lithium 0.15.2+mc1.21.1
+		luminax: Luminax: Refabricated 1.3.1
+		lumymon: LumyMon 0.6.2
+			fabric-permissions-api-v0: fabric-permissions-api 0.3.1
+		lumyrei: LumyREI 1.1.2
+		mca: Minecraft Comes Alive 7.7.6+1.21.1
+		mca_cobblemon: Pokémon buildings for MCA Reborn 1.0.0
+		mcwdoors: Macaw's Doors 1.1.5
+		mcwlights: Macaw's Lights and Lamps 1.1.5
+		mcwroofs: Macaw's Roofs 2.3.2
+		mcwstairs: Macaw's Stairs and Balconies 1.0.2
+		mcwtrpdoors: Macaw's Trapdoors 1.1.5
+		mcwwindows: Macaw's Windows 2.4.2
+		mega_showdown: Cobblemon:Mega Showdown 1.6.12+1.7.3+1.21.1
+		melody: Melody 1.0.10
+		midnightlib: MidnightLib 1.7.5
+		minecraft: Minecraft 1.21.1
+		moarconcrete: Moar Concrete 1.3.1
+		mobsbegone: MobsBeGone 0.0.7
+		modernfix: ModernFix 5.25.1+mc1.21.1
+		modmenu: Mod Menu 11.0.3
+			placeholder-api: Placeholder API 2.4.0-pre.2+1.21
+		more_cobblemon_tweaks: MoreCobblemonTweaks 1.3.3
+		more_slabs_stairs_and_walls: More Slabs Stairs & Walls 4.1.1
+		moreculling: More Culling 1.0.6
+			conditional-mixin: conditional mixin 0.6.3
+		mousetweaks: Mouse Tweaks 2.26
+		movingelevators: Moving Elevators 1.4.12
+		mr_cobblemon_journeymounts: Cobblemon Journey Mounts 1.7.2
+		musicnotification: Music Notification 2.1.0
+		nethermap: Better Nether Map 4.0.0-1.21.1
+		netherportalfix: NetherPortalFix 21.1.3
+		notenoughanimations: NotEnoughAnimations 1.11.3
+			transition: TRansition 1.0.12
+		notenoughcrashes: Not Enough Crashes 4.4.9+1.21.1
+		obc: Only Bottle Caps 1.3.0
+		owo: oωo **.**.**.**+1.21
+			io_wispforest_endec: endec **.**.**.**
+			io_wispforest_endec_gson: gson **.**.**.**
+			io_wispforest_endec_jankson: jankson **.**.**.**
+			io_wispforest_endec_netty: netty 0.1.2
+		packetfixer: Packet Fixer 3.3.1
+		paginatedadvancements: Paginated Advancements 2.5.1
+		particlerain: Particle Rain 4.0.0-beta.5
+		particular: Particular 1.1.2+1.21
+		pasture-loot: PastureLoot 1.0.5+1.21.1
+		pingwheel: Ping Wheel 1.12.1
+		platform: Platform **.**.**.**
+		playerxp: PlayerXP 1.0.6+1.21.1
+		pokebike: PokeBike 1.7
+		pokeblocks: Pokeblocks 1.4.0-1.21.1
+		prickle: PrickleMC 21.1.11
+		puzzleslib: Puzzles Lib 21.1.39
+		rctapi: Radical Cobblemon Trainers API 0.14.8-beta
+		rctmod: Radical Cobblemon Trainers 0.17.6-beta
+		rechiseled: Rechiseled 1.2.3
+		rechiseledcobblemon: Rechiseled: Cobblemon 1.0.0
+		reeses-sodium-options: Reese's Sodium Options 1.8.3+mc1.21.4
+		refinedstorage: Refined Storage 2.0.1
+		refinedstorage_quartz_arsenal: Refined Storage - Quartz Arsenal 1.0.6
+		refinedstorage_rei_integration: Refined Storage - REI Integration 1.0.0
+		reframed: ReFramed 1.6.6
+		refurbished_furniture: MrCrayfish's Furniture Mod: Refurbished 1.0.22
+		repurposed_structures: Repurposed Structures 7.5.18+1.21.1-fabric
+		resourcefullib: Resourceful Lib 3.0.12
+			com_teamresourceful_bytecodecs: bytecodecs 1.1.2
+			com_teamresourceful_yabn: yabn 1.0.3
+		resourcepackoverrides: Resource Pack Overrides 21.1.0
+		respackopts: Resource Pack Options 4.11.3
+			io_gitlab_jfronny_muscript-all: muscript-all 2.0.0-SNAPSHOT
+			io_gitlab_jfronny_muscript-json: muscript-json 2.0.0-SNAPSHOT
+		roughlyenoughitems: Roughly Enough Items 16.0.799
+			error_notifier: Error Notifier 1.0.11
+		safepastures: Safe Pastures 1.1.1+1.21.1
+		searchables: Searchables 1.0.2
+		smart_particles: Smart Particles 1.1.10
+		sodium: Sodium 0.6.13+mc1.21.1
+		sodium-extra: Sodium Extra 0.6.0+mc1.21.1
+		sodiumoptionsapi: Sodium Options API 1.0.10
+		sophisticatedbackpacks: Sophisticated Backpacks 1.21.1-3.**.**.**.**
+		sophisticatedcore: Sophisticated Core 1.21.1-1.**.**.**.**
+			porting_lib_conditions: Porting Lib Conditions 3.1.0-beta.47+1.21.1
+			porting_lib_lazy_registration: Porting Lib Lazy Register 3.1.0-beta.47+1.21.1
+		sophisticatedstorage: Sophisticated Storage 1.21.1-1.**.**.**.**
+		sound_physics_remastered: Sound Physics Remastered 1.21.1-1.5.1
+		soundsbegone: SoundsBeGone 1.3.5
+			com_posthog_java_posthog: posthog 1.1.0
+		stackdeobfuscator: StackDeobfuscator 1.4.3+08e71cc
+			net_fabricmc_mapping-io: mapping-io 0.6.1
+			stackdeobfuscator-common: StackDeobfuscator Common 1.4.3+08e71cc
+		strawstatues: Straw Statues 21.1.0
+			statuemenus: Statue Menus 21.1.0
+		supermartijn642configlib: SuperMartijn642's Config Lib 1.1.8
+		supermartijn642corelib: SuperMartijn642's Core Lib 1.1.20
+		tim_core: Tim Core 1.7.3-fabric-1.31.0
+		tmcraft: TM Craft 1.4.18+1.7.3
+		toms_storage: Tom's Simple Storage Mod 2.3.0
+		tooltipfix: ToolTip Fix 1.1.1-1.20
+		trade_cycling: Trade Cycling 1.21.1-1.0.20
+		trinkets: Trinkets 3.10.0
+		trotting_wagons: Trotting Wagons 21.0.2-fabric
+		vanillabackport: VanillaBackport **.**.**.**.2
+		vanillin: Vanillin 1.1.3+1.21.1
+			flywheel: Flywheel 1.0.4+1.21.1
+		villagerconfig: VillagerConfig 4.5.2
+			fiber: fiber 0.23.0-2
+		vinery: [Let's Do] Vinery 1.5.3
+		waystones: Waystones 21.1.28
+		wits: WITS 1.3.0+1.21-fabric
+		xaerominimap: Xaero's Minimap 25.3.10
+			xaerolib: XaeroLib 1.1.0
+		xaeroworldmap: Xaero's World Map 1.40.11
+		yet_another_config_lib_v3: YetAnotherConfigLib 3.8.1+1.21.1-fabric
+			com_twelvemonkeys_common_common-image: common-image 3.12.0
+			com_twelvemonkeys_common_common-io: common-io 3.12.0
+			com_twelvemonkeys_common_common-lang: common-lang 3.12.0
+			com_twelvemonkeys_imageio_imageio-core: imageio-core 3.12.0
+			com_twelvemonkeys_imageio_imageio-metadata: imageio-metadata 3.12.0
+			com_twelvemonkeys_imageio_imageio-webp: imageio-webp 3.12.0
+			org_quiltmc_parsers_gson: gson 0.2.1
+			org_quiltmc_parsers_json: json 0.2.1
+		zamega: zamega 1.5.4
+		zoomify: Zoomify 2.15.1+1.21.1
+			com_akuleshov7_ktoml-core-jvm: ktoml-core-jvm 0.7.1
+	NeoForge Mods (kilt): 
+		create: Create 6.0.9
+		jij_46d2150625c8c57a8605775896d2a97d-registrate-mc121-13067: (Kilt JiJ) 46d2150625c8c57a8605775896d2a97d-Registrate-MC1.21-1.3.0+67 0.0.0
+		neoforge: NeoForge 21.1.219
+		ponder: Ponder 1.0.81+mc1.21.1
+	Flywheel Backend: flywheel:off
+	Launched Version: fabric-0.18.4-1.21.1
+	Launcher name: CurseForge
+	Backend library: LWJGL version 3.3.3-snapshot
+	Backend API: Unknown
+	Window size: <not initialized>
+	GFLW Platform: <error>
+	GL Caps: Using framebuffer using OpenGL 3.2
+	GL debug messages: <disabled>
+	Is Modded: Definitely; Client brand changed to 'fabric'
+	Universe: 404
+	Type: Client (map_client.txt)
+	Locale: en_PT
+	System encoding: Cp1252
+	File encoding: UTF-8
+	CPU: <unknown>
+	Suspected Mods: Fabric Loader (fabricloader), Kilt (kilt), NeoForge (neoforge), Not Enough Crashes (notenoughcrashes)

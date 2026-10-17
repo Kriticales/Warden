@@ -1,0 +1,5 @@
+# Logs reais: bytes preservados (codificação e fim de linha fazem parte do caso).
+* -text
+grupos.toml text
+FIXTURES.md text
+.gitattributes text

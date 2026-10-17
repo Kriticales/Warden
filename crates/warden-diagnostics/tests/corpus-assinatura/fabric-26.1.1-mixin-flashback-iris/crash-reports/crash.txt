@@ -1,0 +1,288 @@
+---- Minecraft Crash Report ----
+// Hey, that tickles! Hehehe!
+
+Time: 2026-04-07 10:02:44
+Description: Unexpected error
+
+java.lang.RuntimeException: Mixin transformation of net.irisshaders.iris.pathways.HandRenderer failed
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.getPostMixinClassByteArray(KnotClassDelegate.java:440)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.tryLoadClass(KnotClassDelegate.java:336)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.loadClass(KnotClassDelegate.java:231)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassLoader.loadClass(KnotClassLoader.java:119)
+	at java.base/java.lang.ClassLoader.loadClass(Unknown Source)
+	at knot//net.minecraft.client.renderer.LevelRenderer.handler$cag000$iris$beginTranslucents(LevelRenderer.java:5808)
+	at knot//net.minecraft.client.renderer.LevelRenderer.lambda$addMainPass$0(LevelRenderer.java:708)
+	at knot//com.mojang.blaze3d.framegraph.FrameGraphBuilder.execute(FrameGraphBuilder.java:67)
+	at knot//net.minecraft.client.renderer.LevelRenderer.renderLevel(LevelRenderer.java:556)
+	at knot//net.minecraft.client.renderer.GameRenderer.mixinextras$bridge$renderLevel$115(GameRenderer.java)
+	at knot//net.minecraft.client.renderer.GameRenderer.wrapOperation$can000$iris$renderLevel(GameRenderer.java:5029)
+	at knot//net.minecraft.client.renderer.GameRenderer.wrapOperation$can000$iris$renderLevel$mixinextras$bridge$93(GameRenderer.java)
+	at knot//net.minecraft.client.renderer.GameRenderer.renderLevel(GameRenderer.java:730)
+	at knot//net.minecraft.client.renderer.GameRenderer.render(GameRenderer.java:443)
+	at knot//net.minecraft.client.Minecraft.renderFrame(Minecraft.java:1433)
+	at knot//net.minecraft.client.Minecraft.runTick(Minecraft.java:1378)
+	at knot//net.minecraft.client.Minecraft.run(Minecraft.java:991)
+	at knot//net.minecraft.client.main.Main.main(Main.java:248)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at com.modrinth.theseus.MinecraftLaunch.relaunch(MinecraftLaunch.java:61)
+	at com.modrinth.theseus.MinecraftLaunch.main(MinecraftLaunch.java:28)
+Caused by: org.spongepowered.asm.mixin.transformer.throwables.MixinTransformerError: An unexpected critical error was encountered
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:381)
+	at org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClass(MixinTransformer.java:237)
+	at org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClassBytes(MixinTransformer.java:202)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.getPostMixinClassByteArray(KnotClassDelegate.java:435)
+	... 24 more
+Caused by: org.spongepowered.asm.mixin.throwables.MixinApplyError: Mixin [flashback.mixins.json:compat.iris.MixinIrisHandRenderer from mod flashback] from phase [DEFAULT] in config [flashback.mixins.json] FAILED during APPLY
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.handleMixinError(MixinProcessor.java:686)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.handleMixinApplyError(MixinProcessor.java:637)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:368)
+	... 27 more
+Caused by: org.spongepowered.asm.mixin.transformer.throwables.InvalidMixinException: @Shadow method isHandTranslucent in flashback.mixins.json:compat.iris.MixinIrisHandRenderer from mod flashback was not located in the target class net.irisshaders.iris.pathways.HandRenderer. No refMap loaded.
+	at org.spongepowered.asm.mixin.transformer.MixinPreProcessorStandard.attachSpecialMethod(MixinPreProcessorStandard.java:436)
+	at org.spongepowered.asm.mixin.transformer.MixinPreProcessorStandard.attachShadowMethod(MixinPreProcessorStandard.java:412)
+	at org.spongepowered.asm.mixin.transformer.MixinPreProcessorStandard.attachMethods(MixinPreProcessorStandard.java:340)
+	at org.spongepowered.asm.mixin.transformer.MixinPreProcessorStandard.attach(MixinPreProcessorStandard.java:299)
+	at org.spongepowered.asm.mixin.transformer.MixinPreProcessorStandard.createContextFor(MixinPreProcessorStandard.java:277)
+	at org.spongepowered.asm.mixin.transformer.MixinInfo.createContextFor(MixinInfo.java:1291)
+	at org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.apply(MixinApplicatorStandard.java:203)
+	at org.spongepowered.asm.mixin.transformer.TargetClassContext.apply(TargetClassContext.java:437)
+	at org.spongepowered.asm.mixin.transformer.TargetClassContext.applyMixins(TargetClassContext.java:418)
+	at org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:352)
+	... 27 more
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.getPostMixinClassByteArray(KnotClassDelegate.java:440)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.tryLoadClass(KnotClassDelegate.java:336)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.loadClass(KnotClassDelegate.java:231)
+	at net.fabricmc.loader.impl.launch.knot.KnotClassLoader.loadClass(KnotClassLoader.java:119)
+	at java.base/java.lang.ClassLoader.loadClass(Unknown Source)
+	at knot//net.minecraft.client.renderer.LevelRenderer.handler$cag000$iris$beginTranslucents(LevelRenderer.java:5808)
+	at knot//net.minecraft.client.renderer.LevelRenderer.lambda$addMainPass$0(LevelRenderer.java:708)
+	at knot//com.mojang.blaze3d.framegraph.FrameGraphBuilder.execute(FrameGraphBuilder.java:67)
+	at knot//net.minecraft.client.renderer.LevelRenderer.renderLevel(LevelRenderer.java:556)
+	at knot//net.minecraft.client.renderer.GameRenderer.mixinextras$bridge$renderLevel$115(GameRenderer.java)
+	at knot//net.minecraft.client.renderer.GameRenderer.wrapOperation$can000$iris$renderLevel(GameRenderer.java:5029)
+	at knot//net.minecraft.client.renderer.GameRenderer.wrapOperation$can000$iris$renderLevel$mixinextras$bridge$93(GameRenderer.java)
+	at knot//net.minecraft.client.renderer.GameRenderer.renderLevel(GameRenderer.java:730)
+	at knot//net.minecraft.client.renderer.GameRenderer.render(GameRenderer.java:443)
+
+-- Uptime --
+Details:
+	JVM uptime: 146.901s
+	Wall uptime: 137.686s
+	High-res time: 135.826s
+	Client ticks: 2480 ticks / 124.000s
+Stacktrace:
+	at knot//net.minecraft.client.Minecraft.fillReport(Minecraft.java:2529)
+	at knot//net.minecraft.client.Minecraft.emergencySaveAndCrash(Minecraft.java:1047)
+	at knot//net.minecraft.client.Minecraft.run(Minecraft.java:1015)
+	at knot//net.minecraft.client.main.Main.main(Main.java:248)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at com.modrinth.theseus.MinecraftLaunch.relaunch(MinecraftLaunch.java:61)
+	at com.modrinth.theseus.MinecraftLaunch.main(MinecraftLaunch.java:28)
+
+-- Affected level --
+Details:
+	All players: 1 total; LocalPlayer{name={MINECRAFT_USERNAME}, id=42, pos=(68.1286427594232, 58.0, -13.839361212422233), mode=SURVIVAL, permission=gamemaster}
+	Chunk stats: 961, 328
+	Level dimension: minecraft:the_end
+	Level time: 115244365 game time, 5289907 day time
+	Level spawn location: World: (-563,-1,-121), Section: (at 13,15,7 in -36,-1,-8; chunk contains blocks -576,0,-128 to -561,255,-113), Region: (-2,-1; contains chunks -64,-32 to -33,-1, blocks -1024,0,-512 to -513,255,-1)
+	Server brand: vanilla
+	Server type: Non-integrated multiplayer server
+	Tracked entity count: 22
+	Client weather: Raining: false, thundering: false
+
+-- Last reload --
+Details:
+	Reload number: 2
+	Reload reason: manual
+	Finished: Yes
+	Packs: vanilla, chat_heads, conditional-mixin, cullleaves, entity_model_features, entity_texture_features, fabric-api, fabric-api-base, fabric-api-lookup-api-v1, fabric-biome-api-v1, fabric-block-api-v1, fabric-block-getter-api-v2, fabric-command-api-v2, fabric-content-registries-v0, fabric-convention-tags-v2, fabric-crash-report-info-v1, fabric-creative-tab-api-v1, fabric-data-attachment-api-v1, fabric-data-generation-api-v1, fabric-debug-api-v1, fabric-dimensions-v1, fabric-entity-events-v1, fabric-events-interaction-v0, fabric-game-rule-api-v1, fabric-item-api-v1, fabric-key-mapping-api-v1, fabric-lifecycle-events-v1, fabric-loot-api-v3, fabric-menu-api-v1, fabric-message-api-v1, fabric-model-loading-api-v1, fabric-networking-api-v1, fabric-object-builder-api-v1, fabric-particles-v1, fabric-recipe-api-v1, fabric-registry-sync-v0, fabric-renderer-api-v1, fabric-renderer-indigo, fabric-rendering-fluids-v1, fabric-rendering-v1, fabric-resource-conditions-api-v1, fabric-resource-loader-v0, fabric-resource-loader-v1, fabric-screen-api-v1, fabric-serialization-api-v1, fabric-sound-api-v1, fabric-tag-api-v1, fabric-transfer-api-v1, fabric-transitive-access-wideners-v1, fabricloader, flashback, forgeconfigapiport, immediatelyfast, iris, lambdynlights, lambdynlights_api, lattice, litematica, lithium, malilib, midnightlib, modmenu, org_apache_commons_commons-math3, particlerain, placeholder-api, pride, reeses-sodium-options, shouldersurfing, shulkerboxtooltip, sodium, sodium-extra, sound_physics_remastered, spruceui, sspb, yet_another_config_lib_v3, cullleaves:smartleaves, file/Simple Grass Flowers v1.9.6.zip, file/§bukia spears.zip, file/Realistic mace 3D 1.21.X-26.1.zip, file/VanillaTweaks_r151891_MC26.1.x_Hammerman.zip, file/End Pic Forever Realm.zip
+
+-- Dynamic Lighting --
+Details:
+	Description: This section contains information related to dynamic lighting, this may not be related to your crash.
+	Mode: fancy
+	Dynamic Light Sources: 0
+	Spatial Hash Occupancy: 0 / 1024
+
+-- System Details --
+Details:
+	Minecraft Version: 26.1.1
+	Minecraft Version ID: 26.1.1
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 25.0.2, Azul Systems, Inc.
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Azul Systems, Inc.
+	Memory: 359236104 bytes (342 MiB) / 894435328 bytes (853 MiB) up to 2147483648 bytes (2048 MiB)
+	Memory (heap): init: 508MiB, used: 508MiB, committed: 853MiB, max: 2048MiB
+	Memory (non-head): init: 007MiB, used: 221MiB, committed: 227MiB, max: 000MiB
+	CPUs: 8
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) Ultra 7 258V
+	Identifier: Intel64 Family 6 Model 189 Stepping 1
+	Microarchitecture: unknown
+	Frequency (GHz): 3.30
+	Number of physical packages: 1
+	Number of physical CPUs: 8
+	Number of logical CPUs: 8
+	Graphics card #0 name: Intel(R) Arc(TM) 140V GPU (16GB)
+	Graphics card #0 vendor: Intel Corporation
+	Graphics card #0 VRAM (MiB): 2048.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.101.6913
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 8.53
+	Memory slot #0 type: LPDDR5
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 8.53
+	Memory slot #1 type: LPDDR5
+	Virtual memory max (MiB): 34432.55
+	Virtual memory used (MiB): 27813.52
+	Swap memory total (MiB): 2048.00
+	Swap memory used (MiB): 97.62
+	Space in storage for jna.tmpdir (MiB): available: 1610555.88, total: 1952483.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 1610555.88, total: 1952483.00
+	Space in storage for io.netty.native.workdir (MiB): available: 1610555.88, total: 1952483.00
+	Space in storage for java.io.tmpdir (MiB): available: 1610555.88, total: 1952483.00
+	Space in storage for workdir (MiB): available: 1610555.88, total: 1952483.00
+	JVM Flags: 2 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xmx2048M
+	Debug Flags: 0 total; 
+	Fabric Mods: 
+		chat_heads: Chat Heads 1.2.2
+		cullleaves: Cull Leaves 4.1.2
+		entity_model_features: Entity Model Features 3.0.17
+		entity_texture_features: Entity Texture Features 7.0.13
+		fabric-api: Fabric API 0.145.4+26.1.1
+			fabric-api-base: Fabric API Base 2.0.3+ece06323b3
+			fabric-api-lookup-api-v1: Fabric API Lookup API (v1) 2.0.10+d5a053b6b3
+			fabric-biome-api-v1: Fabric Biome API (v1) 18.0.4+35c80edcb3
+			fabric-block-api-v1: Fabric Block API (v1) 3.0.2+ec56b601b3
+			fabric-block-getter-api-v2: Fabric BlockGetter API (v2) 2.0.6+ec56b601b3
+			fabric-command-api-v2: Fabric Command API (v2) 3.0.5+e2bdee78b3
+			fabric-content-registries-v0: Fabric Content Registries (v0) 11.0.12+d871b99eb3
+			fabric-convention-tags-v2: Fabric Convention Tags (v2) 4.3.2+c37e6e5fb3
+			fabric-crash-report-info-v1: Fabric Crash Report Info (v1) 1.0.3+9f78a5a8b3
+			fabric-creative-tab-api-v1: Fabric Creative Tab API (v1) 5.0.10+d871b99eb3
+			fabric-data-attachment-api-v1: Fabric Data Attachment API (v1) 2.2.3+d602a896b3
+			fabric-data-generation-api-v1: Fabric Data Generation API (v1) 24.0.17+35c80edcb3
+			fabric-debug-api-v1: Fabric Debug API (v1) 1.0.1+c792624db3
+			fabric-dimensions-v1: Fabric Dimensions API (v1) 5.1.4+9cbf5da5b3
+			fabric-entity-events-v1: Fabric Entity Events (v1) 5.0.2+e2bdee78b3
+			fabric-events-interaction-v0: Fabric Events Interaction (v0) 5.1.10+c82f0461b3
+			fabric-game-rule-api-v1: Fabric Game Rule API (v1) 4.0.5+d871b99eb3
+			fabric-item-api-v1: Fabric Item API (v1) 14.1.0+9833182cb3
+			fabric-key-mapping-api-v1: Fabric Key Mapping API (v1) 2.0.4+e2bdee78b3
+			fabric-lifecycle-events-v1: Fabric Lifecycle Events (v1) 4.0.6+a9b9c176b3
+			fabric-loot-api-v3: Fabric Loot API (v3) 3.0.11+00a1fba6b3
+			fabric-menu-api-v1: Fabric Menu API (v1) 2.0.12+d871b99eb3
+			fabric-message-api-v1: Fabric Message API (v1) 7.0.5+dae8ce3eb3
+			fabric-model-loading-api-v1: Fabric Model Loading API (v1) 8.0.3+c80601bbb3
+			fabric-networking-api-v1: Fabric Networking API (v1) 6.3.0+50a808ceb3
+			fabric-object-builder-api-v1: Fabric Object Builder API (v1) 23.0.13+b61fef43b3
+			fabric-particles-v1: Fabric Particles (v1) 5.0.14+b61fef43b3
+			fabric-recipe-api-v1: Fabric Recipe API (v1) 9.0.13+be4b75aeb3
+			fabric-registry-sync-v0: Fabric Registry Sync (v0) 7.0.12+b61fef43b3
+			fabric-renderer-api-v1: Fabric Renderer API (v1) 13.0.0+c80601bbb3
+			fabric-renderer-indigo: Fabric Renderer - Indigo 8.0.2+a6be36efb3
+			fabric-rendering-fluids-v1: Fabric Rendering Fluids (v1) 6.0.1+d871b99eb3
+			fabric-rendering-v1: Fabric Rendering (v1) 23.0.4+c7e428fdb3
+			fabric-resource-conditions-api-v1: Fabric Resource Conditions API (v1) 6.0.5+00a1fba6b3
+			fabric-resource-loader-v0: Fabric Resource Loader (v0) 3.3.16+4fc5413fb3
+			fabric-resource-loader-v1: Fabric Resource Loader (v1) 2.0.9+d871b99eb3
+			fabric-screen-api-v1: Fabric Screen API (v1) 5.0.1+d871b99eb3
+			fabric-serialization-api-v1: Fabric Serialization API (v1) 2.0.3+11a26f31b3
+			fabric-sound-api-v1: Fabric Sound API (v1) 2.0.4+11a26f31b3
+			fabric-tag-api-v1: Fabric Tag API (v1) 2.0.9+11a26f31b3
+			fabric-transfer-api-v1: Fabric Transfer API (v1) 8.0.2+d871b99eb3
+			fabric-transitive-access-wideners-v1: Fabric Transitive Access Wideners (v1) 8.0.11+d871b99eb3
+		fabricloader: Fabric Loader 0.18.5
+			mixinextras: MixinExtras 0.5.3
+		ferritecore: FerriteCore 9.0.0
+		flashback: Flashback 0.39.3
+			com_moulberry_mixinconstraints: mixinconstraints 1.0.8
+			lattice: Lattice 2.0.1+26.1
+			mixinsquared: MixinSquared 0.3.7-beta.1
+			org_apache_commons_commons-math3: commons-math3 3.6.1
+			org_apache_httpcomponents_httpclient: httpclient 4.5.14
+			org_apache_httpcomponents_httpcore: httpcore 4.4.16
+		forgeconfigapiport: Forge Config API Port 26.1.3
+			com_electronwill_night-config_core: core 3.8.3
+			com_electronwill_night-config_toml: toml 3.8.3
+		immediatelyfast: ImmediatelyFast 1.15.1+26.1.1
+			net_lenni0451_reflect: Reflect 1.6.2
+		iris: Iris 1.10.9+mc26.1.1
+			io_github_douira_glsl-transformer: glsl-transformer 3.0.0-pre3
+			org_anarres_jcpp: jcpp 1.4.14
+			org_antlr_antlr4-runtime: antlr4-runtime 4.13.1
+		java: OpenJDK 64-Bit Server VM 25
+		lambdynlights: LambDynamicLights 4.10.0+26.1
+			lambdynlights_api: LambDynamicLights (API) 4.10.0+26.1
+				yumi_commons_collections: Yumi Commons: Collections 2.0.0
+				yumi_commons_core: Yumi Commons: Core 2.0.0
+				yumi_commons_event: Yumi Commons: Event 2.0.0
+			pride: Pride Lib 1.6.0+26.1
+			spruceui: SpruceUI 10.0.0+26.1
+			yumi_mc_core: Yumi Minecraft Libraries: Foundation 1.0.0-beta.2+26.1
+		litematica: Litematica 0.27.1
+			conditional-mixin: conditional mixin 0.6.4
+		lithium: Lithium 0.23.0+mc26.1.1
+		malilib: MaLiLib 0.28.2
+		midnightlib: MidnightLib 1.9.2
+		minecraft: Minecraft 26.1.1
+		modmenu: Mod Menu 18.0.0-alpha.8
+		mousetweaks: Mouse Tweaks 2.31
+		particlerain: Particle Rain 4.0.0-beta.9
+		placeholder-api: Placeholder API 3.0.0-beta.2+26.1
+		reeses-sodium-options: Reese's Sodium Options 2.0.5+mc26.1.1
+		shouldersurfing: Shoulder Surfing Reloaded 4.22.5
+		shulkerboxtooltip: Shulker Box Tooltip 5.2.18+26.1
+		sodium: Sodium 0.8.9+mc26.1.1
+		sodium-extra: Sodium Extra 0.8.6+mc26.1.1
+		sound_physics_remastered: Sound Physics Remastered 1.5.1+26.1.1
+		sspb: Sodium Shadowy Path Blocks 7.0.0
+		yet_another_config_lib_v3: YetAnotherConfigLib 3.9.2+26.1-fabric
+			com_twelvemonkeys_common_common-image: common-image 3.12.0
+			com_twelvemonkeys_common_common-io: common-io 3.12.0
+			com_twelvemonkeys_common_common-lang: common-lang 3.12.0
+			com_twelvemonkeys_imageio_imageio-core: imageio-core 3.12.0
+			com_twelvemonkeys_imageio_imageio-metadata: imageio-metadata 3.12.0
+			com_twelvemonkeys_imageio_imageio-webp: imageio-webp 3.12.0
+			org_quiltmc_parsers_gson: gson 0.2.1
+			org_quiltmc_parsers_json: json 0.2.1
+	Loaded Shaderpack: (off)
+	Yumi MC Core: 1.0.0-beta.2+26.1
+	Launched Version: 26.1.1
+	Launcher name: theseus
+	Backend library: LWJGL version 3.4.1-snapshot
+	Backend API: Intel(R) Arc(TM) Graphics GL version 3.3.0 - Build 32.0.101.6913, Intel
+	Window size: 1866x1071
+	GFLW Platform: win32
+	Render Extensions: GL_ARB_buffer_storage, GL_KHR_debug, GL_ARB_vertex_attrib_binding, GL_ARB_direct_state_access, GL_EXT_texture_filter_anisotropic
+	GL debug messages: 
+	Is Modded: Definitely; Client brand changed to 'fabric'
+	Universe: 400921fb54442d18
+	Type: Client
+	Transparency: regular
+	Render Distance: 12/28 chunks
+	Resource Packs: vanilla, chat_heads, conditional-mixin, cullleaves (incompatible), entity_model_features (incompatible), entity_texture_features (incompatible), fabric-api, fabric-api-base, fabric-api-lookup-api-v1, fabric-biome-api-v1, fabric-block-api-v1, fabric-block-getter-api-v2, fabric-command-api-v2, fabric-content-registries-v0, fabric-convention-tags-v2, fabric-crash-report-info-v1, fabric-creative-tab-api-v1, fabric-data-attachment-api-v1, fabric-data-generation-api-v1, fabric-debug-api-v1, fabric-dimensions-v1, fabric-entity-events-v1, fabric-events-interaction-v0, fabric-game-rule-api-v1, fabric-item-api-v1, fabric-key-mapping-api-v1, fabric-lifecycle-events-v1, fabric-loot-api-v3, fabric-menu-api-v1, fabric-message-api-v1, fabric-model-loading-api-v1, fabric-networking-api-v1, fabric-object-builder-api-v1, fabric-particles-v1, fabric-recipe-api-v1, fabric-registry-sync-v0, fabric-renderer-api-v1, fabric-renderer-indigo, fabric-rendering-fluids-v1, fabric-rendering-v1, fabric-resource-conditions-api-v1, fabric-resource-loader-v0, fabric-resource-loader-v1, fabric-screen-api-v1, fabric-serialization-api-v1, fabric-sound-api-v1, fabric-tag-api-v1, fabric-transfer-api-v1, fabric-transitive-access-wideners-v1, fabricloader, flashback, forgeconfigapiport (incompatible), immediatelyfast, iris, lambdynlights, lambdynlights_api, lattice, litematica, lithium, malilib, midnightlib, modmenu, org_apache_commons_commons-math3, particlerain (incompatible), placeholder-api, pride, reeses-sodium-options, shouldersurfing, shulkerboxtooltip, sodium, sodium-extra, sound_physics_remastered, spruceui, sspb, yet_another_config_lib_v3 (incompatible), cullleaves:smartleaves, file/Simple Grass Flowers v1.9.6.zip, file/§bukia spears.zip (incompatible), file/Realistic mace 3D 1.21.X-26.1.zip, file/VanillaTweaks_r151891_MC26.1.x_Hammerman.zip, file/End Pic Forever Realm.zip (incompatible)
+	Sound Cache: 129834 bytes in 3 buffers
+	Current Language: en_us
+	Locale: en_US
+	System encoding: Cp1252
+	File encoding: UTF-8
+	CPU: 8x Intel(R) Core(TM) Ultra 7 258V

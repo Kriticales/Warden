@@ -1,0 +1,234 @@
+---- Minecraft Crash Report ----
+
+WARNING: coremods are present:
+  MixinBooter (!mixinbooter-10.7.jar)
+  JustEnoughIDs Extension Plugin (RoughlyEnoughIDs-2.2.4.jar)
+  SecurityCraftLoadingPlugin ([1.12.2] SecurityCraft v1.10.1.jar)
+  weaponlib (mw3.0_sqr-0.7.25_BETA_mc1.12.2.jar)
+  MalisisCorePlugin (malisiscore-1.12.2-6.5.1.jar)
+Contact their authors BEFORE contacting forge
+
+// My bad.
+
+Time: 2/18/26 11:41 PM
+Description: Updating screen events
+
+com.google.common.util.concurrent.ExecutionError: java.lang.OutOfMemoryError: GC overhead limit exceeded
+	at com.google.common.cache.LocalCache$Segment.get(LocalCache.java:2215)
+	at com.google.common.cache.LocalCache.get(LocalCache.java:4154)
+	at com.google.common.cache.LocalCache.getOrLoad(LocalCache.java:4158)
+	at com.google.common.cache.LocalCache$LocalLoadingCache.get(LocalCache.java:5147)
+	at com.google.common.cache.LocalCache$LocalLoadingCache.getUnchecked(LocalCache.java:5153)
+	at net.minecraftforge.client.model.ModelLoader$VanillaModelWrapper.bake(ModelLoader.java:419)
+	at net.minecraftforge.client.model.MultiModel.bake(MultiModel.java:280)
+	at net.minecraftforge.client.model.ModelLoader$WeightedRandomModel.bake(ModelLoader.java:719)
+	at net.minecraftforge.client.model.ModelLoader.func_177570_a(ModelLoader.java:180)
+	at net.minecraft.client.renderer.block.model.ModelManager.func_110549_a(ModelManager.java:28)
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110544_b(SimpleReloadableResourceManager.java:132)
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110541_a(SimpleReloadableResourceManager.java:112)
+	at net.minecraft.client.Minecraft.func_110436_a(Minecraft.java:808)
+	at net.minecraft.client.Minecraft$15.run(Minecraft.java:2759)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at net.minecraft.client.Minecraft.func_152343_a(Minecraft.java:3146)
+	at net.minecraft.client.Minecraft.func_152344_a(Minecraft.java:3168)
+	at net.minecraft.client.Minecraft.func_175603_A(Minecraft.java:2755)
+	at net.optifine.shaders.Shaders.loadShaderPack(Shaders.java:977)
+	at net.optifine.shaders.Shaders.setShaderPack(Shaders.java:872)
+	at net.optifine.shaders.gui.GuiSlotShaders.selectIndex(GuiSlotShaders.java:91)
+	at net.optifine.shaders.gui.GuiSlotShaders.func_148144_a(GuiSlotShaders.java:81)
+	at net.minecraft.client.gui.GuiSlot.func_178039_p(GuiSlot.java:348)
+	at net.optifine.shaders.gui.GuiShaders.func_146274_d(GuiShaders.java:120)
+	at net.minecraft.client.gui.GuiScreen.func_146269_k(GuiScreen.java:501)
+	at net.minecraft.client.Minecraft.func_71407_l(Minecraft.java:1759)
+	at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1098)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:398)
+	at net.minecraft.client.main.Main.main(SourceFile:123)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+Caused by: java.lang.OutOfMemoryError: GC overhead limit exceeded
+	at java.util.Arrays.copyOfRange(Arrays.java:3664)
+	at java.lang.String.<init>(String.java:207)
+	at java.lang.String.substring(String.java:1969)
+	at net.minecraft.util.ResourceLocation.func_177516_a(SourceFile:45)
+	at net.minecraft.util.ResourceLocation.<init>(SourceFile:32)
+	at net.minecraftforge.client.model.ModelLoader$VanillaModelWrapper.bakeNormal(ModelLoader.java:474)
+	at net.minecraftforge.client.model.ModelLoader$VanillaModelWrapper.bakeImpl(ModelLoader.java:449)
+	at net.minecraftforge.client.model.ModelLoader$VanillaLoader$1.load(ModelLoader.java:822)
+	at net.minecraftforge.client.model.ModelLoader$VanillaLoader$1.load(ModelLoader.java:818)
+	at com.google.common.cache.LocalCache$LoadingValueReference.loadFuture(LocalCache.java:3716)
+	at com.google.common.cache.LocalCache$Segment.loadSync(LocalCache.java:2424)
+	at com.google.common.cache.LocalCache$Segment.lockedGetOrLoad(LocalCache.java:2298)
+	at com.google.common.cache.LocalCache$Segment.get(LocalCache.java:2211)
+	at com.google.common.cache.LocalCache.get(LocalCache.java:4154)
+	at com.google.common.cache.LocalCache.getOrLoad(LocalCache.java:4158)
+	at com.google.common.cache.LocalCache$LocalLoadingCache.get(LocalCache.java:5147)
+	at com.google.common.cache.LocalCache$LocalLoadingCache.getUnchecked(LocalCache.java:5153)
+	at net.minecraftforge.client.model.ModelLoader$VanillaModelWrapper.bake(ModelLoader.java:419)
+	at net.minecraftforge.client.model.MultiModel.bake(MultiModel.java:280)
+	at net.minecraftforge.client.model.ModelLoader$WeightedRandomModel.bake(ModelLoader.java:719)
+	at net.minecraftforge.client.model.ModelLoader.func_177570_a(ModelLoader.java:180)
+	at net.minecraft.client.renderer.block.model.ModelManager.func_110549_a(ModelManager.java:28)
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110544_b(SimpleReloadableResourceManager.java:132)
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110541_a(SimpleReloadableResourceManager.java:112)
+	at net.minecraft.client.Minecraft.func_110436_a(Minecraft.java:808)
+	at net.minecraft.client.Minecraft$15.run(Minecraft.java:2759)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at net.minecraft.client.Minecraft.func_152343_a(Minecraft.java:3146)
+	at net.minecraft.client.Minecraft.func_152344_a(Minecraft.java:3168)
+	at net.minecraft.client.Minecraft.func_175603_A(Minecraft.java:2755)
+	at net.optifine.shaders.Shaders.loadShaderPack(Shaders.java:977)
+	at net.optifine.shaders.Shaders.setShaderPack(Shaders.java:872)
+
+No Mixin Metadata is found in the Stacktrace.
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Client thread
+Stacktrace:
+	at com.google.common.cache.LocalCache$Segment.get(LocalCache.java:2215)
+	at com.google.common.cache.LocalCache.get(LocalCache.java:4154)
+	at com.google.common.cache.LocalCache.getOrLoad(LocalCache.java:4158)
+	at com.google.common.cache.LocalCache$LocalLoadingCache.get(LocalCache.java:5147)
+	at com.google.common.cache.LocalCache$LocalLoadingCache.getUnchecked(LocalCache.java:5153)
+	at net.minecraftforge.client.model.ModelLoader$VanillaModelWrapper.bake(ModelLoader.java:419)
+	at net.minecraftforge.client.model.MultiModel.bake(MultiModel.java:280)
+	at net.minecraftforge.client.model.ModelLoader$WeightedRandomModel.bake(ModelLoader.java:719)
+	at net.minecraftforge.client.model.ModelLoader.func_177570_a(ModelLoader.java:180)
+	at net.minecraft.client.renderer.block.model.ModelManager.func_110549_a(ModelManager.java:28)
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110544_b(SimpleReloadableResourceManager.java:132)
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110541_a(SimpleReloadableResourceManager.java:112)
+	at net.minecraft.client.Minecraft.func_110436_a(Minecraft.java:808)
+	at net.minecraft.client.Minecraft$15.run(Minecraft.java:2759)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at net.minecraft.client.Minecraft.func_152343_a(Minecraft.java:3146)
+	at net.minecraft.client.Minecraft.func_152344_a(Minecraft.java:3168)
+	at net.minecraft.client.Minecraft.func_175603_A(Minecraft.java:2755)
+	at net.optifine.shaders.Shaders.loadShaderPack(Shaders.java:977)
+	at net.optifine.shaders.Shaders.setShaderPack(Shaders.java:872)
+	at net.optifine.shaders.gui.GuiSlotShaders.selectIndex(GuiSlotShaders.java:91)
+	at net.optifine.shaders.gui.GuiSlotShaders.func_148144_a(GuiSlotShaders.java:81)
+	at net.minecraft.client.gui.GuiSlot.func_178039_p(GuiSlot.java:348)
+	at net.optifine.shaders.gui.GuiShaders.func_146274_d(GuiShaders.java:120)
+	at net.minecraft.client.gui.GuiScreen.func_146269_k(GuiScreen.java:501)
+
+-- Affected screen --
+Details:
+	Screen name: net.optifine.shaders.gui.GuiShaders
+
+-- Affected level --
+Details:
+	Level name: MpServer
+	All players: 1 total; [EntityPlayerSP['JogadorX'/18, l='MpServer', x=11.19, y=46.00, z=8.04]]
+	Chunk stats: MultiplayerChunkCache: 289, 289
+	Level seed: 0
+	Level generator: ID 01 - flat, ver 0. Features enabled: false
+	Level generator options: 
+	Level spawn location: World: (8,4,8), Chunk: (at 8,0,8 in 0,0; contains blocks 0,0,0 to 15,255,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,0,0 to 511,255,511)
+	Level time: 787744 game time, 25001 day time
+	Level dimension: 0
+	Level storage version: 0x00000 - Unknown?
+	Level weather: Rain time: 0 (now: false), thunder time: 0 (now: false)
+	Level game mode: Game mode: creative (ID 1). Hardcore: false. Cheats: false
+	Forced entities: 7 total; [EntityItem['item.tile.block_steel'/16, l='MpServer', x=7.35, y=50.00, z=2.40], EntityItem['item.tile.block_steel'/17, l='MpServer', x=13.13, y=50.00, z=13.88], EntityPlayerSP['JogadorX'/18, l='MpServer', x=11.19, y=46.00, z=8.04], EntityItem['item.tile.block_steel'/12, l='MpServer', x=13.13, y=50.00, z=7.13], EntityItem['item.tile.block_steel'/13, l='MpServer', x=15.55, y=50.00, z=4.68], EntityItem['item.tile.block_steel'/14, l='MpServer', x=13.13, y=50.00, z=10.73], EntityItem['item.tile.block_steel'/15, l='MpServer', x=13.31, y=50.00, z=9.93]]
+	Retry entities: 0 total; []
+	Server brand: fml,forge
+	Server type: Integrated singleplayer server
+Stacktrace:
+	at net.minecraft.client.multiplayer.WorldClient.func_72914_a(WorldClient.java:532)
+	at net.minecraft.client.Minecraft.func_71396_d(Minecraft.java:2741)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:419)
+	at net.minecraft.client.main.Main.main(SourceFile:123)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+
+-- System Details --
+Details:
+	Minecraft Version: 1.12.2
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_312, Temurin
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Temurin
+	Memory: 481878144 bytes (459 MB) / 3817865216 bytes (3641 MB) up to 3817865216 bytes (3641 MB)
+	JVM Flags: 2 total; -Xmx4096m -Xms256m
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: MCP 9.42 Powered by Forge 14.23.5.2859 Optifine OptiFine_1.12.2_HD_U_G5 25 mods loaded, 25 mods active
+	States: 'U' = Unloaded 'L' = Loaded 'C' = Constructed 'H' = Pre-initialized 'I' = Initialized 'J' = Post-initialized 'A' = Available 'D' = Disabled 'E' = Errored
+
+	| State  | ID                               | Version               | Source                                          | Signature                                |
+	|:------ |:-------------------------------- |:--------------------- |:----------------------------------------------- |:---------------------------------------- |
+	| LCHIJA | minecraft                        | 1.12.2                | minecraft.jar                                   | None                                     |
+	| LCHIJA | mcp                              | 9.42                  | minecraft.jar                                   | None                                     |
+	| LCHIJA | FML                              | **.**.**.**             | forge-1.12.2-14.23.5.2859.jar                   | e3c3d50c7c986df74c645c0ac54639741c90a557 |
+	| LCHIJA | forge                            | 14.23.5.2859          | forge-1.12.2-14.23.5.2859.jar                   | e3c3d50c7c986df74c645c0ac54639741c90a557 |
+	| LCHIJA | mixinbooter                      | 10.7                  | minecraft.jar                                   | None                                     |
+	| LCHIJA | securitycraft                    | v1.10.1               | [1.12.2] SecurityCraft v1.10.1.jar              | None                                     |
+	| LCHIJA | ambienceblocks                   | 1.3.3                 | AmbienceBlocks1.12.2-1.3.3.jar                  | None                                     |
+	| LCHIJA | architecturecraft                | @VERSION@             | architecturecraft-1.12-3.108.jar                | None                                     |
+	| LCHIJA | bibliocraft                      | 2.4.6                 | BiblioCraft[v2.4.6][MC1.12.2].jar               | None                                     |
+	| LCHIJA | blackstonebasalt                 | 1.0.0                 | blackstoneandbasalt.jar                         | None                                     |
+	| LCHIJA | essensialmodernconstructionblock | 1.2.0                 | EMCB32 1.12.2 v1.2.0.jar                        | None                                     |
+	| LCHIJA | furenikusroads                   | 1.2.6                 | Furenikus_Roads-1.2.6.jar                       | None                                     |
+	| LCHIJA | cfm                              | 6.3.0                 | furniture-6.3.2-1.12.2.jar                      | None                                     |
+	| LCHIJA | h2os_scps                        | 1.0.0                 | H2Os SCPs 1.8.4 [Secure And Contain Update].jar | None                                     |
+	| LCHIJA | malisiscore                      | 1.12.2-6.5.1-SNAPSHOT | malisiscore-1.12.2-6.5.1.jar                    | None                                     |
+	| LCHIJA | malisisdoors                     | 1.12.2-7.3.0          | malisisdoors-1.12.2-7.3.0.jar                   | None                                     |
+	| LCHIJA | mcwpaintings                     | 1.0.5                 | mcw-paintings-1.0.5-1.12.2forge.jar             | None                                     |
+	| LCHIJA | moarsigns                        | **.**.**.**              | MoarSigns-1.12.2-203.0.113.1.jar                   | 5a57c7d1420cf4c58f53ea2a298ebef8215ede63 |
+	| LCHIJA | mw                               | 0.7.1                 | mw3.0_sqr-0.7.25_BETA_mc1.12.2.jar              | None                                     |
+	| LCHIJA | nifty                            | 1.21                  | NiftyBlocks-1.21.jar                            | None                                     |
+	| LCHIJA | lambda                           | 0.0.2                 | ProjectLambda-0.0.2.jar                         | None                                     |
+	| LCHIJA | jeid                             | 2.2.4                 | RoughlyEnoughIDs-2.2.4.jar                      | None                                     |
+	| LCHIJA | scp                              | 2.4.2                 | SCP Lockdown-1.12.2-2.4.3-release.jar           | None                                     |
+	| LCHIJA | scpua                            | 1.7.7                 | SCPL-xk-unity-1.7.7.jar                         | None                                     |
+	| LCHIJA | variedcommodities                | 1.12.2                | VariedCommodities_1.12.2-(31Mar23).jar          | None                                     |
+
+	Loaded coremods (and transformers): 
+MixinBooter (!mixinbooter-10.7.jar)
+  
+JustEnoughIDs Extension Plugin (RoughlyEnoughIDs-2.2.4.jar)
+  
+SecurityCraftLoadingPlugin ([1.12.2] SecurityCraft v1.10.1.jar)
+  
+weaponlib (mw3.0_sqr-0.7.25_BETA_mc1.12.2.jar)
+  com.vicmatskiv.weaponlib.core.WeaponlibClassTransformer
+MalisisCorePlugin (malisiscore-1.12.2-6.5.1.jar)
+  
+	GL info: ' Vendor: 'ATI Technologies Inc.' Version: '4.6.0 Compatibility Profile Context 26.1.1.260108' Renderer: 'AMD Radeon RX 6500 XT'
+	Launched Version: forge-14.23.5.2859
+	LWJGL: 2.9.4
+	OpenGL: AMD Radeon RX 6500 XT GL version 4.6.0 Compatibility Profile Context 26.1.1.260108, ATI Technologies Inc.
+	GL Caps: Using GL 1.3 multitexturing.
+Using GL 1.3 texture combiners.
+Using framebuffer objects because OpenGL 3.0 is supported and separate blending is supported.
+Shaders are available because OpenGL 2.1 is supported.
+VBOs are available because OpenGL 1.5 is supported.
+
+	Using VBOs: Yes
+	Is Modded: Definitely; Client brand changed to 'fml,forge'
+	Type: Client (map_client.txt)
+	Resource Packs: NTOV v1.zip
+	Current Language: English (US)
+	Profiler Position: N/A (disabled)
+	CPU: 12x AMD Ryzen 5 5500 
+	OptiFine Version: OptiFine_1.12.2_HD_U_G5
+	OptiFine Build: 20210124-142939
+	Render Distance Chunks: 8
+	Mipmaps: 4
+	Anisotropic Filtering: 1
+	Antialiasing: 0
+	Multitexture: false
+	Shaders: MakeUp-UltraFast-9.4b.zip
+	OpenGlVersion: 4.6.0 Compatibility Profile Context 26.1.1.260108
+	OpenGlRenderer: AMD Radeon RX 6500 XT
+	OpenGlVendor: ATI Technologies Inc.
+	CpuCount: 12
