@@ -1,0 +1,30 @@
+{
+  "minecraft": {
+    "version": "1.20.1",
+    "modLoaders": [
+      {
+        "id": "forge-47.3.0",
+        "primary": true
+      }
+    ],
+    "recommendedRam": 6144
+  },
+  "manifestType": "minecraftModpack",
+  "manifestVersion": 1,
+  "name": "Cozy Create",
+  "version": "2.3.0",
+  "author": "Autora",
+  "files": [
+    {
+      "projectID": 238222,
+      "fileID": 4712345,
+      "required": true
+    },
+    {
+      "projectID": 900001,
+      "fileID": 9000010,
+      "required": false
+    }
+  ],
+  "overrides": "overrides"
+}

@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -135,7 +136,7 @@ describe('Testar e console (L-04; T13)', function () {
   it('abre o pack com o botão Testar e o menu ▾ em grupos', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     // O jar local e o arquivo do jogo simulado podem aparecer na higiene: abre sem limpar.
     const open = $('button=Abrir pack');

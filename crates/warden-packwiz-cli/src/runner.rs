@@ -390,6 +390,36 @@ impl Packwiz {
         }
     }
 
+    /// `packwiz curseforge import <zip>` no pack (uma cópia de staging com `pack.toml` e
+    /// `index.toml` já criados: o packwiz acerta as versões no `pack.toml`, grava os metafiles e
+    /// copia os `overrides`). Conferido: o packwiz não avisou de projeto ou arquivo que não
+    /// conseguiu obter, e o `pack.toml` e o índice relidos são válidos.
+    ///
+    /// Erros: os de [`Self::run_checked`] e [`Error::Postcondition`].
+    pub async fn curseforge_import(
+        &self,
+        pack_dir: &Path,
+        input: &Path,
+        key: Option<&SecretString>,
+        ctx: RunContext<'_>,
+    ) -> Result<RunOutput> {
+        let command = PackwizCommand::CurseForgeImport {
+            input: input.to_path_buf(),
+        };
+        let output = self.run_checked(pack_dir, &command, key, ctx).await?;
+        if let Some(line) = output
+            .lines
+            .iter()
+            .find(|line| line.starts_with("Failed to ") || line.starts_with("Error "))
+        {
+            return Err(postcondition(&command, line.clone(), &output));
+        }
+        match verify_index(pack_dir, false) {
+            Ok(_) => Ok(output),
+            Err(reason) => Err(postcondition(&command, reason, &output)),
+        }
+    }
+
     /// `packwiz list`: os nomes dos metafiles, na ordem do packwiz (nome sem diferenciar
     /// maiúsculas).
     ///

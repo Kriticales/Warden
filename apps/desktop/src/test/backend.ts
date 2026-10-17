@@ -86,6 +86,8 @@ const DEFAULTS: Record<string, Handler> = {
     crafttweakerSnippets: [],
     instanceReady: false,
   }),
+  // Importar modpack (P1-19): o pack não foi importado, nada para revisar em Problemas.
+  import_review: () => null,
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,

@@ -18,6 +18,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
@@ -152,7 +153,7 @@ describe('Buscar em todas as configs (C-05; T12)', () => {
   it('CA-T12-06: acha "Spawn" e spawnRate agrupados por arquivo e abre na linha; axe', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });

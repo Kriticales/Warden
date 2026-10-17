@@ -33,6 +33,7 @@ import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -159,7 +160,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
   it('abre o pack em Mods, com o cabeçalho e exatamente as 6 seções (CA-T05-03)', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
 

@@ -22,6 +22,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { dismissToasts } from './toasts';
 import { zipEntries, zipEntry } from './zip';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -136,7 +137,7 @@ describe('Instância pronta para o Prism (E-04; T19)', () => {
     });
     await step('abrir o pack', async () => {
       writeFileSync(PICK_FILE, PACK);
-      await $('button=Abrir ou importar…').click();
+      await openOrImport();
       await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed({ timeout: 20_000 });
       await $('button=Abrir pack').click();
       await $('h1=Mods').waitForDisplayed({ timeout: 30_000 });

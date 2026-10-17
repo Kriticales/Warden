@@ -50,7 +50,12 @@ export function OpenPackDialog({ path, onClose, returnFocusTo }: OpenPackDialogP
   const busy = importPack.isPending || fix.isPending;
 
   const chooseOther = (
-    <Button size="sm" icon={FolderOpen} loading={openOrImport.pending} onClick={openOrImport.start}>
+    <Button
+      size="sm"
+      icon={FolderOpen}
+      loading={openOrImport.pending === 'folder'}
+      onClick={openOrImport.chooseFolder}
+    >
       {t('abrir.escolherOutra')}
     </Button>
   );

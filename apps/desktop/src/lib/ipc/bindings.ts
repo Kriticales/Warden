@@ -367,6 +367,28 @@ export const commands = {
 	 *  cada lado (1 ou 2); sem `path`, o pack inteiro ("Ver o pack inteiro").
 	 */
 	graphFocus: (packId: PackId, path: string | null, depth: number) => typedError<FocusReport, AppError>(__TAURI_INVOKE("graph_focus", { packId, path, depth })),
+	/**  O formato de uma pasta ou arquivo escolhido. */
+	importDetect: (path: string) => typedError<ImportFormat, AppError>(__TAURI_INVOKE("import_detect", { path })),
+	/**  Abre o diálogo nativo de arquivo (`.mrpack` ou `.zip`). `null` = a pessoa desistiu. */
+	importChooseFile: () => typedError<string | null, AppError>(__TAURI_INVOKE("import_choose_file")),
+	/**  Lê o modpack e devolve a revisão. Nada é gravado no destino. */
+	importAnalyze: (path: string) => typedError<ImportAnalysis, AppError>(__TAURI_INVOKE("import_analyze", { path })),
+	/**  Grava o pack novo, registra e cria o perfil do teste do modpack. */
+	importApply: (token: string, request: ImportApply) => typedError<ImportResult, AppError>(__TAURI_INVOKE("import_apply", { token, request })),
+	/**  Esquece o plano (e apaga a cópia de staging do zip da CurseForge). */
+	importDiscard: (token: string) => __TAURI_INVOKE<void>("import_discard", { token }),
+	/**
+	 *  Os itens que a importação marcou para revisar (`null`: pack não importado, nada a revisar
+	 *  ou já revisado).
+	 */
+	importReview: (packId: PackId) => typedError<{
+	/**  Nome do arquivo ou da pasta de origem. */
+	file: string,
+	/**  Itens, na ordem gravada (revisão primeiro, depois os arquivos locais). */
+	items: ImportPendingItem[],
+} | null, AppError>(__TAURI_INVOKE("import_review", { packId })),
+	/**  "Já revisei": esconde o bloco dos itens para revisar deste pack, neste computador. */
+	importReviewDone: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("import_review_done", { packId })),
 	/**
 	 *  O que a etapa "Mods iniciais" mostra: spark e Crash Assistant (e a Fabric API no Fabric), com
 	 *  a versão de cada um. Vanilla não oferece nada. Se o Modrinth não responder, o erro é
@@ -3333,13 +3355,172 @@ export type IdGroup = {
 	recipes: string[],
 };
 
+/**  O resumo da revisão, com o token do plano. */
+export type ImportAnalysis = {
+	/**  Identifica o plano em `import_apply` e `import_discard`. */
+	token: string,
+	/**  O que foi reconhecido e o que acontece com cada arquivo. */
+	summary: ImportSummary,
+};
+
+/**  O que a pessoa confirmou na revisão. */
+export type ImportApply = {
+	/**  Nome do pack novo. */
+	name: string,
+	/**  Pasta escolhida; `null` = `<pasta dos packs>/<slug do nome>`. */
+	destination: string | null,
+	/**  Itens de "não entram" marcados para entrar. */
+	include: string[],
+	/**  "Levar suas preferências para o pack?". */
+	takePreferences: boolean,
+};
+
 /**
  *  Códigos do domínio `import`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type ImportErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O arquivo ou a pasta não é nenhum dos formatos que o Warden importa. */
+"UNKNOWN_FORMAT" | 
+/**  O arquivo está corrompido ou incompleto (zip ilegível, índice inválido). */
+"UNREADABLE" | 
+/**
+ *  O arquivo tem caminhos perigosos (`..`, caminho absoluto ou letra de drive): recusado
+ *  sem criar nada (CA-T24-02).
+ */
+"UNSAFE_PATH" | 
+/**  O modpack usa um loader que o Warden não suporta (Quilt, `LiteLoader`) ou mais de um. */
+"UNSUPPORTED_LOADER" | 
+/**  Zip da CurseForge sem a chave da CurseForge: nenhuma requisição foi feita. */
+"CURSEFORGE_KEY_MISSING" | 
+/**  O packwiz não conseguiu ler o zip da CurseForge. */
+"CURSEFORGE_IMPORT_FAILED" | 
+/**  O arquivo é grande demais ou tem entradas demais (proteção contra *zip bomb*). */
+"TOO_LARGE" | 
+/**  O arquivo de origem mudou entre a revisão e a importação. */
+"SOURCE_CHANGED" | 
+/**  A revisão expirou (o app foi reaberto ou passou muito tempo): leia o arquivo de novo. */
+"PLAN_EXPIRED" | 
+/**  O modpack não diz a versão do Minecraft. */
+"MINECRAFT_MISSING";
+
+/**  Algo que não entra no pack. */
+export type ImportExcludedItem = {
+	/**  Caminho (relativo ao pack novo, ou ao modpack quando está fora das pastas do jogo). */
+	path: string,
+	/**  Se é uma pasta (cobre tudo dentro dela). */
+	isDir: boolean,
+	/**  Quantos arquivos. */
+	files: number,
+	/**  Motivo. */
+	reason: ImportExcludedReason,
+	/**  Se a pessoa pode marcar para entrar mesmo assim. */
+	canInclude: boolean,
+};
+
+/**  Por que algo não entra no pack. */
+export type ImportExcludedReason = 
+/**  Dados de execução do jogo ou do launcher (logs, mundos, caches de mods). */
+"runtime" | 
+/**  Segredos e arquivos de ferramentas. */
+"tools" | 
+/**  Lixo em qualquer pasta (`*.bak`, `*.log`, `*.disabled`…). */
+"junk" | 
+/**  Dados de servidor ou do instalador. */
+"serverData" | 
+/**  Arquivo de outro launcher (fora das pastas do jogo: `xmcl.json`, `instance.cfg`…). */
+"otherLauncher" | 
+/**  Item desconhecido na raiz (pode entrar, se a pessoa marcar). */
+"unknownRoot" | 
+/**  Link simbólico ou junção. */
+"symlink";
+
+/**  Formato reconhecido pelo conteúdo (ARCHITECTURE §12.2). */
+export type ImportFormat = 
+/**  Pasta com `pack.toml`: segue para Abrir pack (T04). */
+"packwiz" | 
+/**  `.mrpack` (`modrinth.index.json`). */
+"mrpack" | 
+/**  Zip da CurseForge (`manifest.json`). */
+"curseforgeZip" | 
+/**
+ *  Instância do Prism Launcher ou do MultiMC (`instance.cfg` + `mmc-pack.json`), pasta ou
+ *  zip.
+ */
+"prism" | 
+/**  Instância do app da CurseForge (`minecraftinstance.json`). */
+"curseforgeApp";
+
+/**  De onde vem um item que virou referência. */
+export type ImportItemSource = 
+/**  Modrinth (`[update.modrinth]`). */
+"modrinth" | 
+/**  CurseForge (`[update.curseforge]`). */
+"curseforge" | 
+/**  Link direto de outro site (metafile em modo `url`). */
+"url";
+
+/**  Licença do modpack, quando a fonte informa. */
+export type ImportLicense = {
+	/**  Identificador SPDX (ou `LicenseRef-…`). */
+	id: string,
+	/**  Nome legível. */
+	name: string,
+	/**  Se é uma licença livre conhecida. */
+	free: boolean,
+};
+
+/**  Um jar que entra no pack como arquivo. */
+export type ImportLocalFile = {
+	/**  Caminho no pack novo. */
+	path: string,
+	/**  Nome do arquivo. */
+	name: string,
+	/**  Motivo. */
+	reason: ImportLocalReason,
+};
+
+/**  Por que um jar fica como arquivo local. */
+export type ImportLocalReason = 
+/**  Não está no Modrinth nem na CurseForge. */
+"notFound" | 
+/**  Não está no Modrinth e a CurseForge não foi consultada (sem chave). */
+"noCurseforgeKey" | 
+/**  A consulta pelo hash falhou (sem internet ou loja fora do ar). */
+"lookupFailed";
+
+/**  Os itens para revisar de um pack importado. */
+export type ImportPending = {
+	/**  Nome do arquivo ou da pasta de origem. */
+	file: string,
+	/**  Itens, na ordem gravada (revisão primeiro, depois os arquivos locais). */
+	items: ImportPendingItem[],
+};
+
+/**  Um item para revisar. */
+export type ImportPendingItem = {
+	/**  Caminho no pack (`mods/x.pw.toml`, `mods/x.jar`, `config/y.toml`). */
+	path: string,
+	/**  Nome para a tela (o do mod, ou o do arquivo). */
+	name: string,
+	/**  Motivo. */
+	reason: ImportPendingReason,
+};
+
+/**  Por que um item do pack importado pede revisão. */
+export type ImportPendingReason = 
+/**  `env` fora da especificação: entrou como Cliente e servidor. */
+"unknownSide" | 
+/**  Opcional no modpack: entrou opcional e marcado. */
+"optional" | 
+/**  Opcional desligado no modpack: entrou opcional e desmarcado. */
+"optionalDisabled" | 
+/**  Veio de `client-overrides/`: entrou para todos. */
+"clientOverride" | 
+/**  Jar que não está em nenhuma loja: ficou como arquivo local (confira a licença). */
+"localFile";
 
 /**  Diagnóstico de uma pasta antes de importar, sem alterações no disco. */
 export type ImportPreview = {
@@ -3359,6 +3540,95 @@ export type ImportPreview = {
 	controlDiffs: ControlDiff[],
 	/**  Git existente em estado que impede alterações. */
 	readOnlyReason: string | null,
+};
+
+/**  Memória e argumentos que viram um perfil do teste (L-08). */
+export type ImportProfile = {
+	/**  Memória máxima, em MB. */
+	memoryMb: number | null,
+	/**  Argumentos extras da JVM. */
+	jvmArgs: string,
+};
+
+/**  Um item que vira `.pw.toml` (referência à fonte). */
+export type ImportReference = {
+	/**  Caminho do `.pw.toml` no pack novo. */
+	path: string,
+	/**  Nome do mod. */
+	name: string,
+	/**  Fonte. */
+	source: ImportItemSource,
+	/**  Jar solto identificado pelo hash (não vinha como referência no modpack). */
+	byHash: boolean,
+};
+
+/**  O pack importado. */
+export type ImportResult = {
+	/**  O pack novo. */
+	packId: PackId,
+	/**  Quantos itens ficaram para revisar (revisão e arquivos locais). */
+	review: number,
+	/**  Se o perfil do teste com a memória do modpack foi criado (e ficou ativo). */
+	profileCreated: boolean,
+};
+
+/**  Um item para revisar. */
+export type ImportReviewItem = {
+	/**  Caminho no pack novo. */
+	path: string,
+	/**  Nome. */
+	name: string,
+	/**  Motivo. */
+	reason: ImportReviewReason,
+};
+
+/**  Por que um item precisa de revisão. */
+export type ImportReviewReason = 
+/**  `env` fora da especificação (`unknown`): entra como Cliente e servidor. */
+"unknownSide" | 
+/**  Opcional no modpack: entra opcional e marcado. */
+"optional" | 
+/**  Opcional desligado no zip da CurseForge. */
+"optionalDisabled" | 
+/**  Veio de `client-overrides/`: entra para todos. */
+"clientOverride";
+
+/**  O que foi reconhecido e o que acontece com cada arquivo. */
+export type ImportSummary = {
+	/**  Formato. */
+	kind: ImportFormat,
+	/**  Nome do arquivo ou da pasta de origem (sem o caminho). */
+	fileName: string,
+	/**  Nome do modpack. */
+	name: string,
+	/**  Versão do modpack (pode ser vazia). */
+	version: string,
+	/**  Minecraft. */
+	minecraft: string,
+	/**  Loader (`forge`, `neoforge`, `fabric`) ou `null` para vanilla. */
+	loader: string | null,
+	/**  Versão do loader. */
+	loaderVersion: string | null,
+	/**  Licença do projeto, quando a fonte informa. */
+	license: ImportLicense | null,
+	/**  Viram referência. */
+	references: ImportReference[],
+	/**  Ficam como arquivo local. */
+	localFiles: ImportLocalFile[],
+	/**  Para revisar. */
+	review: ImportReviewItem[],
+	/**  Não entram. */
+	excluded: ImportExcludedItem[],
+	/**  Arquivos copiados para o pack (configs, scripts…). */
+	files: number,
+	/**  Arquivos que vão para `server-overrides/`. */
+	serverFiles: number,
+	/**  Preferências pessoais encontradas (`options.txt`, `servers.dat`), perguntadas. */
+	preferences: string[],
+	/**  Perfil do teste que será criado. */
+	profile: ImportProfile | null,
+	/**  Lojas que não responderam à procura pelo hash. */
+	unavailableSources: string[],
 };
 
 /**  Resultado da importação. */
