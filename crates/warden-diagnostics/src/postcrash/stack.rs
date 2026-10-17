@@ -30,13 +30,13 @@ static STACK_LINE: LazyLock<Regex> = LazyLock::new(|| {
 static CAUSED_BY: LazyLock<Regex> =
     LazyLock::new(|| fixed_regex(r"^\s*Caused by(?: \d+)?: (?P<cause>\S.*?)\s*$"));
 
-static NEOFORGE_MODULE: LazyLock<Regex> =
+pub(crate) static NEOFORGE_MODULE: LazyLock<Regex> =
     LazyLock::new(|| fixed_regex(r"\bat (?:[A-Z][A-Z ]*/)?(?P<id>[a-z][a-z0-9_]{1,63})@[^/\s]+/"));
 
-static FORGE_JAR: LazyLock<Regex> =
+pub(crate) static FORGE_JAR: LazyLock<Regex> =
     LazyLock::new(|| fixed_regex(r"[~\[]\[?(?P<jar>[^\[\]%!/\\:]+?\.jar)(?:%23\d+)?!/"));
 
-static FABRIC_HANDLER: LazyLock<Regex> = LazyLock::new(|| {
+pub(crate) static FABRIC_HANDLER: LazyLock<Regex> = LazyLock::new(|| {
     fixed_regex(
         r"[.$](?:handler|redirect|modify|wrapOperation|localvar|constant)\$[0-9a-z]+\$(?P<id>[a-z][a-z0-9_\-]*)\$",
     )
@@ -50,7 +50,7 @@ static SUSPECTED_ENTRY: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 /// Módulos e ids que não são mods do pack (jogo, loader, bibliotecas).
-const NOT_MODS: [&str; 34] = [
+pub(crate) const NOT_MODS: [&str; 34] = [
     "minecraft",
     "neoforge",
     "forge",
@@ -90,7 +90,7 @@ const NOT_MODS: [&str; 34] = [
 /// Prefixos de jars que não são mods do pack: o jogo, o loader e as bibliotecas que o Forge e o
 /// NeoForge anotam nos frames (`~[fastutil-8.5.9.jar%23…!/:?]`, `~[bus-8.0.5.jar…]`,
 /// `~[core-3.6.4.jar…]` do night-config).
-const NOT_MOD_JARS: [&str; 52] = [
+pub(crate) const NOT_MOD_JARS: [&str; 52] = [
     "loader-",
     "fancymodloader-",
     "earlydisplay-",
@@ -191,7 +191,7 @@ pub(crate) fn crash_blocks(lines: &[CleanLine], whole_file: bool) -> Vec<Range<u
 }
 
 /// Se a linha parece parte de uma pilha de exceção.
-fn is_stack_line(text: &str) -> bool {
+pub(crate) fn is_stack_line(text: &str) -> bool {
     STACK_LINE.is_match(text)
 }
 

@@ -244,6 +244,7 @@ export function RunningView({ run, pack }: { run: TestRun; pack: PackRow }) {
           <Console
             lines={run.lines}
             state="live"
+            grouped={{ packId: pack.id, sessionId }}
             onSave={
               sessionId
                 ? () => {

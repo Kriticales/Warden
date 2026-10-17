@@ -7,12 +7,16 @@
  * para cima com a roda, as setas, Page Up ou Home, ou arrastar a barra). Pausado, mostra
  * quantas linhas chegaram e "Ir para o fim", que retoma. Com o jogo fechado, abre no fim e
  * não se mexe mais sozinho.
+ *
+ * Com `grouped` (a sessão do teste), o seletor "Mostrar" troca a lista por "Agrupado por mod"
+ * ou "Só problemas" (D-09, `console-grouped/`); o modo linha a linha continua igual.
  */
 import { measureElement, useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDown, Copy, Download, Pause, Play, Search, Square, TextSelect } from 'lucide-react';
 import {
   useDeferredValue,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -32,8 +36,9 @@ import { Loader } from '../../../components/ui/loader';
 import { showToast } from '../../../components/ui/toast';
 import { cn } from '../../../lib/cn';
 import { formatInteger } from '../../../lib/format';
-import type { ConsoleLine } from '../../../lib/ipc/bindings';
+import type { ConsoleLine, PackId } from '../../../lib/ipc/bindings';
 import { log } from '../../../lib/log';
+import { GroupedConsole, type GroupedMode } from '../console-grouped/GroupedConsole';
 import { consoleLineAsText, consoleText, consoleTime } from '../text';
 import {
   filterLines,
@@ -58,7 +63,17 @@ export interface ConsoleProps {
   /** "Salvar em arquivo…"; sem ele, o botão não aparece. */
   onSave?: (() => void) | undefined;
   className?: string;
+  /** A sessão do teste, para os modos agrupados (D-09); sem ela, só linha a linha. */
+  grouped?: { packId: PackId; sessionId: string | null } | undefined;
 }
+
+/** O que o seletor "Mostrar" escolhe. */
+type ShowMode = 'lines' | GroupedMode;
+const SHOW_OPTIONS = [
+  ['lines', 'modo.linhas'],
+  ['grouped', 'modo.agrupado'],
+  ['problems', 'modo.problemas'],
+] as const satisfies readonly (readonly [ShowMode, string])[];
 
 /** Altura estimada de uma linha sem quebra (12 px × 1,65). */
 const ROW_ESTIMATE = 20;
@@ -139,10 +154,21 @@ function selectionInside(logElement: HTMLElement | null): boolean {
   );
 }
 
-export function Console({ lines, state, label, onSave, className }: ConsoleProps): JSX.Element {
+export function Console({
+  lines,
+  state,
+  label,
+  onSave,
+  className,
+  grouped,
+}: ConsoleProps): JSX.Element {
   const { t } = useTranslation('teste');
+  const { t: tc } = useTranslation('console');
+  const [show, setShow] = useState<ShowMode>('lines');
+  const byLine = show === 'lines' || !grouped;
   const name = label ?? t('console.rotulo');
   const logRef = useRef<HTMLDivElement>(null);
+  const showId = useId();
 
   const [level, setLevel] = useState<LevelFilter>('all');
   const [query, setQuery] = useState('');
@@ -160,14 +186,14 @@ export function Console({ lines, state, label, onSave, className }: ConsoleProps
   }
 
   const live = state === 'live';
-  const paused = live && pausedAt !== null;
+  const paused = byLine && live && pausedAt !== null;
   const following = state !== 'ended' && !paused;
 
   const rows = useMemo(
     () => filterLines(lines, { level, query: deferredQuery }, searchable),
     [lines, level, deferredQuery],
   );
-  const filtered = level !== 'all' || deferredQuery.trim() !== '';
+  const filtered = byLine && (level !== 'all' || deferredQuery.trim() !== '');
   const newLines = paused ? countAfter(lines, pausedAt) : 0;
 
   const pause = () => {
@@ -250,20 +276,43 @@ export function Console({ lines, state, label, onSave, className }: ConsoleProps
     <section className={cn('console', className)} aria-label={name}>
       <div className="console__bar">
         <span className="console__state">{stateView}</span>
-        <select
-          className="select select--sm"
-          aria-label={t('console.nivel.rotulo')}
-          value={level}
-          onChange={(event) => {
-            setLevel(event.target.value as LevelFilter);
-          }}
-        >
-          {LEVEL_OPTIONS.map(([value, key]) => (
-            <option key={value} value={value}>
-              {t(key)}
-            </option>
-          ))}
-        </select>
+        {grouped ? (
+          <>
+            <label className="console__lbl" htmlFor={showId}>
+              {tc('mostrar')}
+            </label>
+            <select
+              id={showId}
+              className="select select--sm"
+              value={show}
+              onChange={(event) => {
+                setShow(event.target.value as ShowMode);
+              }}
+            >
+              {SHOW_OPTIONS.map(([value, key]) => (
+                <option key={value} value={value}>
+                  {tc(key)}
+                </option>
+              ))}
+            </select>
+          </>
+        ) : null}
+        {byLine ? (
+          <select
+            className="select select--sm"
+            aria-label={t('console.nivel.rotulo')}
+            value={level}
+            onChange={(event) => {
+              setLevel(event.target.value as LevelFilter);
+            }}
+          >
+            {LEVEL_OPTIONS.map(([value, key]) => (
+              <option key={value} value={value}>
+                {t(key)}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <div className="inputwrap">
           <Icon icon={Search} />
           <input
@@ -288,7 +337,7 @@ export function Console({ lines, state, label, onSave, className }: ConsoleProps
           </span>
         ) : null}
         <span className="grow" />
-        {live ? (
+        {live && byLine ? (
           <Button
             size="sm"
             variant="ghost"
@@ -298,15 +347,17 @@ export function Console({ lines, state, label, onSave, className }: ConsoleProps
             {paused ? t('console.retomar') : t('console.pausar')}
           </Button>
         ) : null}
-        <Button
-          size="sm"
-          variant="ghost"
-          icon={TextSelect}
-          disabled={!hasSelection}
-          onClick={copySelection}
-        >
-          {t('console.copiarSelecao')}
-        </Button>
+        {byLine ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={TextSelect}
+            disabled={!hasSelection}
+            onClick={copySelection}
+          >
+            {t('console.copiarSelecao')}
+          </Button>
+        ) : null}
         <Button
           size="sm"
           variant="ghost"
@@ -322,18 +373,28 @@ export function Console({ lines, state, label, onSave, className }: ConsoleProps
           </Button>
         ) : null}
       </div>
-      <ConsoleLog
-        logRef={logRef}
-        name={name}
-        rows={rows}
-        empty={lines.length === 0 ? t('console.vazio') : t('console.semResultado')}
-        query={deferredQuery}
-        following={following}
-        canPause={live && !paused}
-        onPause={pause}
-        onEnd={resume}
-        onCopy={onCopy}
-      />
+      {grouped && show !== 'lines' ? (
+        <GroupedConsole
+          packId={grouped.packId}
+          sessionId={grouped.sessionId}
+          mode={show}
+          query={deferredQuery}
+          live={live}
+        />
+      ) : (
+        <ConsoleLog
+          logRef={logRef}
+          name={name}
+          rows={rows}
+          empty={lines.length === 0 ? t('console.vazio') : t('console.semResultado')}
+          query={deferredQuery}
+          following={following}
+          canPause={live && !paused}
+          onPause={pause}
+          onEnd={resume}
+          onCopy={onCopy}
+        />
+      )}
       {paused ? (
         <div className="console__paused">
           <span>{t('console.novasLinhas', { count: newLines })}</span>

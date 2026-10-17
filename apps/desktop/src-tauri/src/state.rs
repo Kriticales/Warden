@@ -55,6 +55,8 @@ pub struct AppState {
     pub watchers: PackWatchers,
     /// Índices da busca em todas as configs, por origem (C-05; só memória).
     pub(crate) config_search: Arc<crate::commands::configs_search::ConfigSearchHub>,
+    /// Console agrupado das sessões abertas na tela (D-09; só memória).
+    pub(crate) console_groups: crate::commands::console::ConsoleGroups,
 }
 
 impl AppState {
@@ -119,6 +121,7 @@ impl AppState {
                 manual_downloads: Arc::default(),
                 watchers: PackWatchers::new(),
                 config_search: Arc::default(),
+                console_groups: crate::commands::console::ConsoleGroups::default(),
             },
             outcome,
         ))

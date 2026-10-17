@@ -193,6 +193,16 @@ export const commands = {
 	configCopyToDefaultconfigs: (packId: PackId, path: string, overwrite: boolean) => typedError<CopyOutcome, AppError>(__TAURI_INVOKE("config_copy_to_defaultconfigs", { packId, path, overwrite })),
 	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
 	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null, onlyChanged: boolean) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId, onlyChanged })),
+	/**
+	 *  O console agrupado de uma sessão (a do jogo aberto ou uma gravada), lido até o fim do
+	 *  `output.log` agora. Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	consoleGrouped: (packId: PackId, sessionId: string, request: GroupedRequest) => typedError<GroupedView, AppError>(__TAURI_INVOKE("console_grouped", { packId, sessionId, request })),
+	/**
+	 *  As linhas originais de um item (todas as vezes que apareceu) ou de um grupo, na ordem do
+	 *  log, até `limit`. Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	consoleGroupedLines: (packId: PackId, sessionId: string, target: LinesRequest, limit: number | null) => typedError<ConsoleLine[], AppError>(__TAURI_INVOKE("console_grouped_lines", { packId, sessionId, target, limit })),
 	/**  Os travamentos do pack, agrupados pela causa. */
 	crashesList: (packId: PackId) => typedError<CrashList, AppError>(__TAURI_INVOKE("crashes_list", { packId })),
 	/**
@@ -3027,6 +3037,87 @@ export type GithubStatus = {
 	loader: string | null,
 };
 
+/**  Tipo de grupo. */
+export type GroupKind = 
+/**  Um item do pack. */
+"item" | 
+/**  Um mod citado que o índice do pack não conhece. */
+"mod" | 
+/**  "Jogo e loader". */
+"game" | 
+/**  "Desconhecido". */
+"unknown";
+
+/**  Um grupo na tela. */
+export type GroupRow = {
+	/**  O grupo. */
+	group: GroupSummary,
+	/**  Nome do item do pack (ou o id do mod); `None` em "Jogo e loader" e "Desconhecido". */
+	name: string | null,
+	/**  Itens (só nos grupos abertos), até o limite pedido. */
+	items: ItemView[],
+};
+
+/**  Um grupo (um mod, "Jogo e loader" ou "Desconhecido"). */
+export type GroupSummary = {
+	/**  Chave estável (`item:mods/sodium.pw.toml`, `mod:epicfight`, `game`, `unknown`). */
+	key: string,
+	/**  Tipo. */
+	kind: GroupKind,
+	/**  O metafile do item do pack, quando é um item. */
+	item: string | null,
+	/**  Id do mod que deu o sinal, quando houver. */
+	modId: string | null,
+	/**  Entradas (linhas e stack traces) do grupo. */
+	entries: number,
+	/**  Entradas de erro (com os stack traces). */
+	errors: number,
+	/**  Entradas de aviso. */
+	warnings: number,
+	/**  Entradas que fazem parte de um item repetido. */
+	repeated: number,
+	/**  Itens distintos (os que casam com a busca, quando há busca). */
+	items: number,
+};
+
+/**  O que mostrar. */
+export type GroupedMode = 
+/**  Agrupado por mod. */
+"byMod" | 
+/**  Só problemas. */
+"problems";
+
+/**  O pedido da tela. */
+export type GroupedRequest = {
+	/**  Agrupado por mod ou só problemas. */
+	mode: GroupedMode,
+	/**  Grupos abertos (agrupado por mod). */
+	open: OpenGroup[],
+	/**  Itens de "Só problemas" a mostrar. */
+	limit: number,
+	/**  Busca (sem diferença de maiúsculas). */
+	query: string,
+};
+
+/**  A tela do console agrupado. */
+export type GroupedView = {
+	/**  Linhas lidas do log. */
+	lines: number,
+	/**  Grupos (agrupado por mod; vazio em "Só problemas"). */
+	groups: GroupRow[],
+	/**  Itens de "Só problemas", até o limite (vazio no agrupado por mod). */
+	problems: ItemView[],
+	/**  Quantos itens de "Só problemas" existem (com a busca). */
+	problemsTotal: number,
+	/**  Nome do item de cada grupo que aparece em "Só problemas" (chave → nome). */
+	names: { [key in string]: string },
+	/**
+	 *  Entradas que não couberam como item no teto de memória do agrupador (contam nos grupos,
+	 *  mas não aparecem na lista); em "Só problemas", só as que apareceriam lá.
+	 */
+	hidden: number,
+};
+
 /**  O arquivo achado pelo hash numa fonte ("Este arquivo é o Sodium 0.6.0 do Modrinth."). */
 export type HashMatch = {
 	/**  A fonte. */
@@ -3627,6 +3718,15 @@ id: string } |
 /**  Nome do arquivo, sem pastas. */
 name: string };
 
+/**  Gravidade de um item no console agrupado. */
+export type ItemSeverity = 
+/**  `ERROR`, `FATAL` ou stack trace sem nível. */
+"error" | 
+/**  `WARN`. */
+"warning" | 
+/**  O resto. */
+"info";
+
 /**  Lado em que o item é instalado. */
 export type ItemSide = 
 /**  Cliente e servidor (inclusive `side` ausente). */
@@ -3666,6 +3766,39 @@ export type ItemVersion = {
 	filename: string,
 	/**  Nome legível ("0.6.0"); o nome do arquivo quando a fonte não informa. */
 	label: string,
+};
+
+/**  Um item: uma linha (ou forma de linha) com as repetições. */
+export type ItemView = {
+	/**  Id do item nesta sessão (para abrir e copiar). */
+	id: number,
+	/**  Chave do grupo. */
+	group: string,
+	/**  Gravidade. */
+	severity: ItemSeverity,
+	/**  Nível escrito no log. */
+	level: LineLevel | null,
+	/**  Logger. */
+	logger: string | null,
+	/**
+	 *  A primeira linha: a original, se aparece uma vez; a forma (`Missing texture for {id}`),
+	 *  se repete.
+	 */
+	text: string,
+	/**  Quantas vezes apareceu. */
+	count: number,
+	/**  Primeira vez. */
+	first: Stamp,
+	/**  Última vez. */
+	last: Stamp,
+	/**  Id da regra de ruído conhecido ("comum, geralmente inofensivo"). */
+	noise: string | null,
+	/**  É um stack trace. */
+	trace: boolean,
+	/**  Linhas além da primeira (o stack trace recolhido). */
+	extraLines: number,
+	/**  A primeira linha de mod do stack trace (pulando Java, jogo e loader). */
+	modFrame: string | null,
 };
 
 /**  Metadados do mod lidos do jar. */
@@ -3934,6 +4067,32 @@ export type LineEnding =
 "crlf" | 
 /**  Mistura de fins de linha (ou `\r` solto). O editor preserva cada byte. */
 "mixed";
+
+/**  Nível de uma linha (o do log4j). */
+export type LineLevel = 
+/**  `TRACE`. */
+"trace" | 
+/**  `DEBUG`. */
+"debug" | 
+/**  `INFO`. */
+"info" | 
+/**  `WARN`. */
+"warn" | 
+/**  `ERROR`. */
+"error" | 
+/**  `FATAL`. */
+"fatal";
+
+/**  De onde copiar as linhas originais: um item ou um grupo. */
+export type LinesRequest = 
+/**  Um item. */
+{ type: "item"; 
+/**  Id do item. */
+id: number } | 
+/**  Um grupo. */
+{ type: "group"; 
+/**  Chave do grupo. */
+key: string };
 
 /**
  *  O que o link aponta, resolvido: a tela abre a pré-visualização (link de projeto) ou o
@@ -4508,6 +4667,14 @@ export type OnLaunch =
 { mode: "world"; 
 /**  Pasta do mundo em `saves/` (`None` = o último jogado). */
 world: string | null };
+
+/**  Um grupo aberto, com quantos itens mostrar. */
+export type OpenGroup = {
+	/**  Chave do grupo. */
+	key: string,
+	/**  Itens a mostrar ("Mostrar mais" aumenta). */
+	limit: number,
+};
 
 /**  Evento do canal de uma operação longa (`Channel<OperationEvent>`). */
 export type OperationEvent = 
@@ -6392,6 +6559,14 @@ export type SourceWarningReason =
 "keyMissing" | 
 /**  A CurseForge recusou a chave (P1-10). */
 "keyRejected";
+
+/**  Hora de uma ocorrência: o carimbo (eventos XML) ou a hora escrita pelo jogo. */
+export type Stamp = {
+	/**  Milissegundos desde 1970. */
+	atMs: number | null,
+	/**  `HH:MM:SS` escrito pelo jogo. */
+	time: string | null,
+};
 
 /**  Espaço usado pelo Warden no disco, em bytes. */
 export type StorageUsage = {

@@ -6741,6 +6741,7 @@ dependencies = [
  "warden-core",
  "warden-curseforge",
  "warden-jarmeta",
+ "warden-launcher",
  "warden-mixin",
  "warden-modrinth",
  "warden-packwiz",
