@@ -7,6 +7,19 @@
 //! de cada aumento de `invocations`: é o valor confiável em todos os coletores, inclusive no
 //! Java 25 com Serial ou Parallel, em que o `used` só muda nas coletas (S-R5-2 §5.3).
 //!
+//! O **pico depois das coletas** ([`HeapSummary::peak_after_gc_mb`], o `heap_pico_mb` do
+//! histórico entre versões; SPEC T14 e T33) é o maior valor da heap que cada coleta deixou. Na
+//! primeira amostra depois de cada aumento de `invocations`, ele lê a heap fora do eden
+//! (sobreviventes e geração velha, [`HeapReading::retained_bytes`]): logo depois de uma coleta o
+//! eden está vazio, e só ele recebe os objetos novos até a próxima, então o que está fora dele é
+//! o que a coleta deixou, sem o que o jogo alocou no segundo até a amostra (o mesmo número do
+//! "antes->depois" do log de GC; um array enorme do G1, que vai direto para a geração velha,
+//! entra também). Vale no Serial, no Parallel (no Java 25 inclusive: os contadores mudam na
+//! coleta), no G1 e no CMS. No ZGC e no Shenandoah os contadores são de pausas, que acontecem no
+//! meio do ciclo, e não há eden; num coletor desconhecido, não se sabe: nesses, e quando nenhuma
+//! coleta foi vista (teste curto), o pico fica `None`, nunca o uso bruto, que no G1 quase sempre
+//! chega perto do máximo e diz pouco sobre o pack.
+//!
 //! Achados ([`HeapTracker::findings`]), com os limites e o motivo de cada um:
 //!
 //! - `W_LOW_HEAP` (aviso): a memória depois das coletas fica em [`LOW_HEAP_PERCENT`]% ou mais do
@@ -109,8 +122,12 @@ pub struct HeapDetails {
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct HeapSummary {
-    /// Pico da memória do jogo, em MB.
+    /// Pico da memória do jogo, em MB (o uso bruto, com o que a próxima coleta ainda limpa).
     pub peak_used_mb: u32,
+    /// Pico da memória do jogo depois das coletas, em MB: o maior valor da heap fora do eden na
+    /// primeira amostra depois de cada coleta (o método está no topo de `findings.rs`). `None`
+    /// sem coleta vista ou com um coletor em que não dá para medir (ZGC, Shenandoah, outro).
+    pub peak_after_gc_mb: Option<u32>,
     /// Máximo, em MB.
     pub max_mb: u32,
     /// Coletas (ou pausas).
@@ -156,6 +173,8 @@ pub struct HeapTracker {
     /// O trecho alto mais longo que passou de [`LOW_HEAP_FOR`].
     worst_high: Option<LowHeap>,
     peak_used: u64,
+    /// O maior valor que uma coleta deixou, em bytes (o pico depois das coletas).
+    peak_after_gc: Option<u64>,
     /// `(coluna, maior valor em bytes)`.
     series: VecDeque<(u64, u64)>,
 }
@@ -202,6 +221,12 @@ impl HeapTracker {
         if collected {
             self.after_gc = Some(reading.used_bytes);
             self.collection(elapsed_ms, reading.used_bytes);
+            if let Some(retained) = reading
+                .retained_bytes()
+                .filter(|_| self.info.is_some_and(|info| info.collector.has_eden()))
+            {
+                self.peak_after_gc = Some(self.peak_after_gc.unwrap_or(0).max(retained));
+            }
         }
         if let Some(high) = self.high.as_mut() {
             high.until_ms = elapsed_ms;
@@ -309,6 +334,7 @@ impl HeapTracker {
         let last = self.last?;
         Some(HeapSummary {
             peak_used_mb: to_mb(self.peak_used),
+            peak_after_gc_mb: self.peak_after_gc.map(to_mb),
             max_mb: to_mb(self.max_bytes()),
             gc_count: clamp_u32(last.gc_count),
             gc_ms: clamp_u32(last.gc_time_ms),
@@ -417,6 +443,7 @@ mod tests {
             max_bytes: 4096 * MB,
             gc_count,
             gc_time_ms,
+            eden_bytes: Some(0),
         }
     }
 
@@ -523,6 +550,88 @@ mod tests {
         });
         odd.push(0, reading(1, 0, 0), G1);
         assert_eq!(odd.suggested_mb(), 7168);
+    }
+
+    /// Uma amostra com `used_mb` no total, `eden_mb` dele no eden.
+    fn with_eden(used_mb: u64, eden_mb: u64, gc_count: u64) -> HeapReading {
+        HeapReading {
+            eden_bytes: Some(eden_mb * MB),
+            ..reading(used_mb, gc_count, 0)
+        }
+    }
+
+    #[test]
+    fn pico_depois_das_coletas_ignora_o_uso_bruto() {
+        // G1 com 4 GB: o uso bruto sobe até 3.950 MB entre as coletas, mas cada coleta deixa só
+        // a geração velha (1.200 a 1.800 MB). Na amostra logo depois, o eden já tem o que o
+        // jogo alocou nesse segundo (300 MB), e fica de fora.
+        let mut tracker = tracker(4096);
+        tracker.push(0, with_eden(900, 600, 0), G1);
+        let mut count = 0;
+        for (step, old_mb) in (1u64..).zip([1200u64, 1500, 1800, 1400]) {
+            let at = step * 10_000;
+            tracker.push(at, with_eden(3950, 3950 - old_mb, count), G1);
+            count += 1;
+            tracker.push(at + 1000, with_eden(old_mb + 300, 300, count), G1);
+            // Entre coletas o eden cresce e a geração velha fica: não conta.
+            tracker.push(at + 2000, with_eden(old_mb + 2000, 2000, count), G1);
+        }
+        let summary = tracker.summary().unwrap();
+        assert_eq!(summary.peak_used_mb, 3950);
+        assert_eq!(summary.peak_after_gc_mb, Some(1800));
+    }
+
+    #[test]
+    fn pico_depois_das_coletas_sem_coleta_ou_sem_eden_fica_vazio() {
+        // Teste curto, nenhuma coleta vista: sem pico, mesmo com o bruto alto.
+        let mut short = tracker(4096);
+        short.push(0, with_eden(3900, 3000, 4), G1);
+        short.push(1000, with_eden(3990, 3090, 4), G1);
+        assert_eq!(short.summary().unwrap().peak_used_mb, 3990);
+        assert_eq!(short.summary().unwrap().peak_after_gc_mb, None);
+        // ZGC e Shenandoah contam pausas no meio do ciclo, e um coletor desconhecido não se
+        // sabe: sem pico.
+        for collector in [Collector::Zgc, Collector::Shenandoah, Collector::Other] {
+            let info = Some(JvmInfo {
+                major: Some(25),
+                collector,
+            });
+            let mut tracker = tracker(4096);
+            tracker.push(0, with_eden(3000, 0, 1), info);
+            tracker.push(1000, with_eden(1000, 0, 2), info);
+            assert_eq!(
+                tracker.summary().unwrap().peak_after_gc_mb,
+                None,
+                "{collector:?}"
+            );
+        }
+        // Sem o contador do eden: também sem pico.
+        let mut no_eden = tracker(4096);
+        no_eden.push(0, reading(3000, 1, 0), G1);
+        no_eden.push(
+            1000,
+            HeapReading {
+                eden_bytes: None,
+                ..reading(1000, 2, 0)
+            },
+            G1,
+        );
+        assert_eq!(no_eden.summary().unwrap().peak_after_gc_mb, None);
+    }
+
+    #[test]
+    fn pico_depois_das_coletas_no_java_25_com_parallel() {
+        // O `used` só muda nas coletas: a amostra depois dela tem o eden vazio.
+        let info = Some(JvmInfo {
+            major: Some(25),
+            collector: Collector::Parallel,
+        });
+        let mut tracker = tracker(2048);
+        tracker.push(0, with_eden(0, 0, 0), info);
+        tracker.push(1000, with_eden(700, 0, 1), info);
+        tracker.push(2000, with_eden(700, 0, 1), info);
+        tracker.push(3000, with_eden(650, 10, 2), info);
+        assert_eq!(tracker.summary().unwrap().peak_after_gc_mb, Some(700));
     }
 
     #[test]

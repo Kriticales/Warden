@@ -1198,7 +1198,7 @@ groups = ["01JA2…"]
 
 ### 21.6 Desempenho entre versões (`warden-perf::history`; ADR-0047)
 
-- Fonte: `perf/<pack-id>.jsonl`, gravado desde a v1 (gancho da L-10). Uma linha por teste: `{ sessao, data, modo, carregou_ms?, mundo_ms?, ram_pico_mb, heap_pico_mb?, tick_medio_ms?, tick_p95_ms?, perfil: { id, nome, assinatura }, computador, arvore, primeira_abertura, resultado }`. A impressão do computador é um SHA-256 de processador, núcleos, memória total, placa de vídeo e versão do sistema, calculado localmente e nunca enviado.
+- Fonte: `perf/<pack-id>.jsonl`, gravado desde a v1 (gancho da L-10). Uma linha por teste: `{ sessao, data, modo, carregou_ms?, mundo_ms?, ram_pico_mb, heap_pico_mb?, tick_medio_ms?, tick_p95_ms?, perfil: { id, nome, assinatura }, computador, arvore, primeira_abertura, resultado }`. A impressão do computador é um SHA-256 de processador, núcleos, memória total, placa de vídeo e versão do sistema, calculado localmente e nunca enviado. `heap_pico_mb` é o pico da memória do jogo **depois das coletas** (L-11): na primeira amostra depois de cada coleta, a heap fora do eden (sobreviventes e geração velha); fica `null` quando nenhuma coleta foi vista ou o coletor não permite medir assim (ZGC, Shenandoah), nunca o uso bruto.
 - `history::compare(linhas, versões, perfil, computador) → Relatorio`: filtra os comparáveis (com o motivo de cada exclusão), atribui à versão pela árvore, calcula a mediana por versão e aplica o critério da SPEC T33 (função pura, com tabela de casos e `proptest`). O resumo do spark por sessão vem da L-12.
 
 ### 21.7 Ganchos que a v1 deixa prontos

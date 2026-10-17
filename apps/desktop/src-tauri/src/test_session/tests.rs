@@ -1757,7 +1757,11 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
     assert_eq!(lines[0]["modo"], "normal");
     assert_eq!(lines[0]["carregou_ms"], loaded);
     assert_eq!(lines[0]["ram_pico_mb"], peak);
-    assert_eq!(lines[0]["heap_pico_mb"], heap.peak_used_mb);
+    // O pico depois das coletas, ou `null` (o jogo simulado quase não coleta), nunca o bruto.
+    assert_eq!(
+        lines[0].get("heap_pico_mb"),
+        Some(&serde_json::json!(heap.peak_after_gc_mb))
+    );
     assert_eq!(lines[0]["primeira_abertura"], true);
     assert_eq!(lines[1]["primeira_abertura"], false);
     assert_eq!(lines[1]["resultado"], "stoppedByUser");

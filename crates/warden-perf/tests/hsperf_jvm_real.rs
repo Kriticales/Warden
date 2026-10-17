@@ -126,9 +126,9 @@ fn first_reading(heap: &mut JvmHeap) -> Option<HeapReading> {
     None
 }
 
-/// `jstat -gc <pid>`: a memória usada (S0U + S1U + EU + OU, em bytes) e as coletas
-/// (YGC + FGC + CGC).
-fn jstat_gc(jstat: &Path, pid: u32) -> (u64, u64) {
+/// `jstat -gc <pid>`: a memória usada (S0U + S1U + EU + OU, em bytes), a de fora do eden
+/// (S0U + S1U + OU) e as coletas (YGC + FGC + CGC).
+fn jstat_gc(jstat: &Path, pid: u32) -> (u64, u64, u64) {
     let output = Command::new(jstat)
         .args(["-gc", &pid.to_string()])
         .env_remove("JAVA_TOOL_OPTIONS")
@@ -147,9 +147,14 @@ fn jstat_gc(jstat: &Path, pid: u32) -> (u64, u64) {
             .and_then(|value| value.replace(',', ".").parse().ok())
             .unwrap_or(0.0)
     };
-    let used_kb = column("S0U") + column("S1U") + column("EU") + column("OU");
+    let retained_kb = column("S0U") + column("S1U") + column("OU");
+    let used_kb = retained_kb + column("EU");
     let collections = column("YGC") + column("FGC") + column("CGC");
-    ((used_kb * 1024.0) as u64, collections as u64)
+    (
+        (used_kb * 1024.0) as u64,
+        (retained_kb * 1024.0) as u64,
+        collections as u64,
+    )
 }
 
 fn stop(mut child: Child) {
@@ -175,7 +180,7 @@ fn memoria_bate_com_o_jstat_com_o_programa_parado() {
             before.used_bytes
         );
         if let Some(jstat) = jstat(&java) {
-            let (expected, collections) = jstat_gc(&jstat, pid);
+            let (expected, retained, collections) = jstat_gc(&jstat, pid);
             let after = heap.read().unwrap();
             let diff = (after.used_bytes as f64 - expected as f64).abs() / expected as f64;
             eprintln!(
@@ -193,6 +198,16 @@ fn memoria_bate_com_o_jstat_com_o_programa_parado() {
                 diff * 100.0
             );
             assert_eq!(after.gc_count, collections, "{}", java.display());
+            // A heap fora do eden (a base do pico depois das coletas) também bate.
+            let got = after.retained_bytes().unwrap();
+            let diff = (got as f64 - retained as f64).abs() / retained as f64;
+            assert!(
+                diff <= 0.05,
+                "{}: fora do eden {} KB, jstat {} KB",
+                java.display(),
+                got / 1024,
+                retained / 1024
+            );
         }
         stop(child);
 
@@ -278,4 +293,40 @@ fn memoria_quase_cheia_por_70_s_gera_o_aviso_e_antes_de_1_minuto_nao() {
     // Mais de 60 s (em segundos inteiros, 60 já é "mais de 1 minuto" por alguns ms).
     assert!(finding.param("seconds").unwrap().parse::<u64>().unwrap() >= 60);
     assert!(finding.param("percent").unwrap().parse::<u64>().unwrap() >= 90);
+}
+
+/// O pico depois das coletas (SPEC T33, `heap_pico_mb`): com metade da heap viva e o programa
+/// alocando lixo sem parar, o uso bruto chega perto do máximo entre as coletas, mas o pico
+/// depois delas fica perto da metade. Uma amostra por segundo, como no teste de verdade.
+#[test]
+fn pico_depois_das_coletas_fica_no_que_esta_vivo() {
+    for java in javas() {
+        let child = probe(&java, &["-Xmx256m", "-XX:+UseG1GC"], &["cheia", "50"]);
+        let mut heap = JvmHeap::new(child.id(), game_temp_dirs(&[]));
+        let mut tracker = HeapTracker::new(TrackerConfig {
+            xmx_mb: Some(256),
+            pack_suggestion_mb: None,
+        });
+        let start = Instant::now();
+        while start.elapsed() < Duration::from_secs(15) {
+            let elapsed = u64::try_from(start.elapsed().as_millis()).unwrap();
+            if let Some(reading) = heap.read() {
+                tracker.push(elapsed, reading, heap.info());
+            }
+            std::thread::sleep(Duration::from_secs(1));
+        }
+        stop(child);
+        let summary = tracker.summary().expect("sem leitura");
+        eprintln!("{} ({:?}): {summary:?}", java.display(), heap.info());
+        let after_gc = summary
+            .peak_after_gc_mb
+            .unwrap_or_else(|| panic!("{}: nenhuma coleta vista", java.display()));
+        // 128 MB vivos e os sobreviventes de cada coleta.
+        assert!(
+            (120..=200).contains(&after_gc),
+            "{}: pico depois das coletas {after_gc} MB",
+            java.display()
+        );
+        assert!(after_gc <= summary.peak_used_mb, "{}", java.display());
+    }
 }

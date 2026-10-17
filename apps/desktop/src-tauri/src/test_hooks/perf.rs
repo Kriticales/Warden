@@ -253,6 +253,7 @@ impl TestHooks for PerfHook {
             world_ms = ?perf.times.world_ms,
             samples = perf.samples,
             heap_peak_mb = ?perf.heap.as_ref().map(|heap| heap.peak_used_mb),
+            heap_peak_after_gc_mb = ?perf.heap.as_ref().and_then(|heap| heap.peak_after_gc_mb),
             heap_unavailable = ?perf.heap_unavailable,
             memory_findings = perf.findings.len(),
             "desempenho do teste"
@@ -453,8 +454,10 @@ struct HistoryLine {
     #[serde(skip_serializing_if = "Option::is_none")]
     mundo_ms: Option<u32>,
     ram_pico_mb: Option<u32>,
-    /// Pico da memória do jogo (heap da JVM), em MB (L-11).
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Pico da memória do jogo (heap da JVM) **depois das coletas**, em MB (L-11; SPEC T33):
+    /// [`warden_perf::HeapSummary::peak_after_gc_mb`]. Sem medida depois de uma coleta (sem
+    /// leitura, teste curto, ZGC ou Shenandoah), `null`: nunca o uso bruto, que conta o que a
+    /// próxima coleta ainda limpa e, gravado aqui, não teria conserto.
     heap_pico_mb: Option<u32>,
     perfil: HistoryProfile,
     computador: Option<String>,
@@ -484,7 +487,7 @@ fn history_line(perf: &SessionPerf, record: &SessionRecord, mode: TestMode) -> H
         carregou_ms: perf.times.loaded_ms,
         mundo_ms: perf.times.world_ms,
         ram_pico_mb: perf.peak_rss_mb,
-        heap_pico_mb: perf.heap.as_ref().map(|heap| heap.peak_used_mb),
+        heap_pico_mb: perf.heap.as_ref().and_then(|heap| heap.peak_after_gc_mb),
         perfil: HistoryProfile {
             id: text(extra.get("profile")).unwrap_or_else(|| "default".to_owned()),
             nome: None,
@@ -521,4 +524,58 @@ fn append_line(file: &Path, line: &HistoryLine) -> std::io::Result<()> {
         .append(true)
         .open(file)?;
     out.write_all(text.as_bytes())
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used)]
+
+    use std::time::UNIX_EPOCH;
+
+    use warden_launcher::GameSpec;
+    use warden_launcher::outcome::CrashArtifacts;
+    use warden_launcher::process::GameExit;
+    use warden_perf::HeapSummary;
+
+    use super::*;
+
+    fn record() -> SessionRecord {
+        let exit = GameExit {
+            outcome: Outcome::ClosedNormally,
+            exit_code: Some(0),
+            stop_requested: false,
+            duration_ms: 1_000,
+            artifacts: CrashArtifacts::default(),
+        };
+        let spec = GameSpec::new("1.20.1", LoaderSpec::Vanilla).unwrap();
+        SessionRecord::from_exit(UNIX_EPOCH, &exit, &spec, 21, None, Path::new("jogo"))
+    }
+
+    fn line(heap: Option<HeapSummary>) -> Value {
+        let perf = SessionPerf {
+            heap,
+            ..SessionPerf::default()
+        };
+        serde_json::to_value(history_line(&perf, &record(), TestMode::Normal)).unwrap()
+    }
+
+    /// SPEC T33: o histórico grava o pico da memória do jogo depois das coletas, não o uso bruto;
+    /// sem medida depois de uma coleta (ou sem leitura), `null`.
+    #[test]
+    fn historico_grava_o_pico_depois_das_coletas_e_null_sem_ele() {
+        let measured = HeapSummary {
+            peak_used_mb: 3950,
+            peak_after_gc_mb: Some(1830),
+            max_mb: 4096,
+            ..HeapSummary::default()
+        };
+        assert_eq!(line(Some(measured.clone()))["heap_pico_mb"], 1830);
+        let unmeasured = HeapSummary {
+            peak_after_gc_mb: None,
+            ..measured
+        };
+        let without = line(Some(unmeasured));
+        assert_eq!(without.get("heap_pico_mb"), Some(&Value::Null));
+        assert_eq!(line(None).get("heap_pico_mb"), Some(&Value::Null));
+    }
 }

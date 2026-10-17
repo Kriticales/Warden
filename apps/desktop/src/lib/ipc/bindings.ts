@@ -2917,8 +2917,14 @@ export type HeapDetails = {
 
 /**  A memória do jogo no fim do teste, gravada na sessão. */
 export type HeapSummary = {
-	/**  Pico da memória do jogo, em MB. */
+	/**  Pico da memória do jogo, em MB (o uso bruto, com o que a próxima coleta ainda limpa). */
 	peakUsedMb?: number,
+	/**
+	 *  Pico da memória do jogo depois das coletas, em MB: o maior valor da heap fora do eden na
+	 *  primeira amostra depois de cada coleta (o método está no topo de `findings.rs`). `None`
+	 *  sem coleta vista ou com um coletor em que não dá para medir (ZGC, Shenandoah, outro).
+	 */
+	peakAfterGcMb?: number | null,
 	/**  Máximo, em MB. */
 	maxMb?: number,
 	/**  Coletas (ou pausas). */

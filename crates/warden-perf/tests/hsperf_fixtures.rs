@@ -8,13 +8,15 @@
     clippy::unwrap_used,
     clippy::expect_used,
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
 )]
 
 use std::path::{Path, PathBuf};
 
+use warden_perf::findings::{HeapTracker, TrackerConfig};
 use warden_perf::hsperf::parse::{parse, parse_header};
-use warden_perf::hsperf::{Collector, read_buffer};
+use warden_perf::hsperf::{Collector, HeapReading, read_buffer};
 
 fn fixtures() -> Vec<PathBuf> {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/hsperf");
@@ -151,6 +153,78 @@ fn leitura_do_warden_em_cada_java_e_coletor() {
             matches!(collector, Collector::Zgc | Collector::Shenandoah),
             "{fixture}"
         );
+    }
+}
+
+/// Uma coluna do `jstat -gc` ao lado da fixture, em KB.
+fn jstat_column(path: &Path, column: &str) -> f64 {
+    let jstat = std::fs::read_to_string(path.with_extension("jstat.txt")).unwrap();
+    let mut lines = jstat.lines().filter(|line| !line.trim().is_empty());
+    let head: Vec<&str> = lines.next().unwrap().split_whitespace().collect();
+    let values: Vec<&str> = lines.next().unwrap().split_whitespace().collect();
+    let at = head.iter().position(|name| *name == column).unwrap();
+    values[at].replace(',', ".").parse().unwrap()
+}
+
+/// O pico depois das coletas (SPEC T33, `heap_pico_mb`) com os contadores reais de Java 8, 17,
+/// 21 e 25: a amostra antes da coleta tem o uso bruto alto (600 MB a mais no eden); a fixture
+/// é a amostra logo depois, e o pico é a heap fora do eden dela (S0U + S1U + OU do `jstat`),
+/// sem o eden que a JVM já voltou a encher. Sem coleta vista, ou no ZGC e no Shenandoah, `None`.
+#[test]
+fn pico_depois_das_coletas_com_as_fixtures() {
+    for path in fixtures() {
+        let fixture = name(&path);
+        let buf = std::fs::read(&path).unwrap();
+        let mut layout = None;
+        let after = read_buffer(&buf, &mut layout).unwrap().unwrap();
+        let info = layout.unwrap().info();
+        let mut tracker = HeapTracker::new(TrackerConfig {
+            xmx_mb: Some(1024),
+            pack_suggestion_mb: None,
+        });
+        let before = HeapReading {
+            used_bytes: after.used_bytes + 600 * 1024 * 1024,
+            eden_bytes: after.eden_bytes.map(|eden| eden + 600 * 1024 * 1024),
+            gc_count: after.gc_count.saturating_sub(1),
+            ..after
+        };
+        tracker.push(0, before, Some(info));
+        assert_eq!(
+            tracker.summary().unwrap().peak_after_gc_mb,
+            None,
+            "{fixture}: sem coleta vista"
+        );
+        // Uma coleta entre as duas amostras (a fixture do Shenandoah tem 0: soma uma).
+        let after = HeapReading {
+            gc_count: before.gc_count + 1,
+            ..after
+        };
+        tracker.push(1000, after, Some(info));
+        let summary = tracker.summary().unwrap();
+        assert!(
+            summary.peak_used_mb >= 600 + 180,
+            "{fixture}: bruto {summary:?}"
+        );
+        if info.collector.counts_pauses() {
+            assert_eq!(after.eden_bytes, None, "{fixture}");
+            assert_eq!(summary.peak_after_gc_mb, None, "{fixture}");
+            continue;
+        }
+        let eden_kb = jstat_column(&path, "EU");
+        assert!(
+            (after.eden_bytes.unwrap() as f64 / 1024.0 - eden_kb).abs() <= 0.05,
+            "{fixture}: eden {:?}, jstat {eden_kb} KB",
+            after.eden_bytes
+        );
+        let retained_kb =
+            jstat_column(&path, "S0U") + jstat_column(&path, "S1U") + jstat_column(&path, "OU");
+        let expected_mb = (retained_kb / 1024.0).round() as u32;
+        assert_eq!(
+            summary.peak_after_gc_mb,
+            Some(expected_mb),
+            "{fixture}: fora do eden {retained_kb} KB"
+        );
+        assert!(expected_mb < summary.peak_used_mb, "{fixture}");
     }
 }
 

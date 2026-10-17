@@ -64,6 +64,13 @@ impl Collector {
         matches!(self, Self::Serial | Self::Parallel)
     }
 
+    /// O espaço 0 da geração 0 é o eden, onde entram os objetos novos (Serial, Parallel, G1 e
+    /// CMS). No ZGC e no Shenandoah não há eden assim, e um coletor desconhecido não se sabe.
+    #[must_use]
+    pub fn has_eden(self) -> bool {
+        matches!(self, Self::Serial | Self::Parallel | Self::G1 | Self::Cms)
+    }
+
     /// Os contadores do coletor são de pausas, não de ciclos (a interface diz "Pausas de
     /// coleta").
     #[must_use]
@@ -114,6 +121,22 @@ pub struct HeapReading {
     pub gc_count: u64,
     /// Tempo parado nelas, em ms.
     pub gc_time_ms: u64,
+    /// Parte da heap usada que está no eden (`sun.gc.generation.0.space.0.used`), em bytes.
+    /// Só nos coletores com gerações em que o eden é esse espaço (Serial, Parallel, G1 e CMS):
+    /// logo depois de uma coleta o eden está vazio e só ele recebe objetos novos até a próxima,
+    /// então `used_bytes - eden_bytes` na primeira amostra depois dela é a heap que a coleta
+    /// deixou (veja [`HeapReading::retained_bytes`]). `None` nos outros coletores.
+    pub eden_bytes: Option<u64>,
+}
+
+impl HeapReading {
+    /// A heap fora do eden (sobreviventes e geração velha), em bytes: lida logo depois de uma
+    /// coleta, é a memória que ela deixou, sem o que o jogo alocou depois. `None` sem o eden.
+    #[must_use]
+    pub fn retained_bytes(&self) -> Option<u64> {
+        self.eden_bytes
+            .map(|eden| self.used_bytes.saturating_sub(eden))
+    }
 }
 
 /// Onde ficam os números de que o Warden precisa, para reler só eles.
@@ -127,6 +150,8 @@ pub struct Layout {
     invocations: Vec<usize>,
     times: Vec<usize>,
     frequency: Option<usize>,
+    /// O `used` do eden, nos coletores em que ele é o espaço 0 da geração 0.
+    eden: Option<usize>,
     info: JvmInfo,
 }
 
@@ -184,6 +209,13 @@ impl Layout {
                 .counters
                 .get("sun.os.hrt.frequency")
                 .map(|counter| counter.data_at),
+            eden: info
+                .collector
+                .has_eden()
+                .then(|| snapshot.counters.get("sun.gc.generation.0.space.0.used"))
+                .flatten()
+                .filter(|counter| matches!(counter.value, super::parse::Value::Long(_)))
+                .map(|counter| counter.data_at),
             info,
         }
     }
@@ -228,11 +260,16 @@ impl Layout {
         } else {
             u64::try_from(u128::from(ticks) * 1000 / u128::from(frequency)).unwrap_or(u64::MAX)
         };
+        let eden_bytes = match self.eden {
+            Some(at) => Some(u64::try_from(r.i64(at)?).unwrap_or(0)),
+            None => None,
+        };
         Some(HeapReading {
             used_bytes: sum(&self.used)?,
             max_bytes,
             gc_count: sum(&self.invocations)?,
             gc_time_ms,
+            eden_bytes,
         })
     }
 }
@@ -298,6 +335,9 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(reading.used_bytes, 160 << 20);
+        // O eden é o espaço 0 da geração 0; fora dele, 60 MB.
+        assert_eq!(reading.eden_bytes, Some(100 << 20));
+        assert_eq!(reading.retained_bytes(), Some(60 << 20));
         assert_eq!(reading.gc_count, 7);
         // (2.500.000 + 500.000) ticks ÷ 10.000.000 por segundo = 300 ms.
         assert_eq!(reading.gc_time_ms, 300);
