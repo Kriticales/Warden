@@ -137,6 +137,62 @@ fn main() {
         indice["versionId"].as_str().unwrap_or("?"),
         arquivos.len()
     );
+    imprimir_faixas(&mods, &arquivos);
+}
+
+/// Imprime os jars do pack em 20 faixas pelo tamanho, com as médias de cada uma: o formato das
+/// `FAIXAS` do gerador (`warden-packwiz/benches/comum/pack_grande.rs`), para recalibrá-lo.
+fn imprimir_faixas(mods: &Path, arquivos: &[(String, String, String)]) {
+    // (bytes, entradas, classes, pacotes, embutidos)
+    let mut jars: Vec<[usize; 5]> = arquivos
+        .iter()
+        .map(|(nome, _, _)| {
+            let bytes = fs::read(mods.join(nome)).expect("ler jar");
+            let tamanho = bytes.len();
+            let zip = zip::ZipArchive::new(Cursor::new(bytes)).expect("jar não é um zip");
+            let nomes: Vec<&str> = zip.file_names().collect();
+            let classes: Vec<&&str> = nomes.iter().filter(|n| extensao(n, "class")).collect();
+            let pacotes: std::collections::BTreeSet<&str> = classes
+                .iter()
+                .filter_map(|n| n.rsplit_once('/').map(|(pacote, _)| pacote))
+                .collect();
+            let embutidos = nomes.iter().filter(|n| extensao(n, "jar")).count();
+            [
+                tamanho,
+                nomes.len(),
+                classes.len(),
+                pacotes.len(),
+                embutidos,
+            ]
+        })
+        .collect();
+    jars.sort_unstable();
+    let n = jars.len();
+    if n == 0 {
+        return;
+    }
+    let media = |parte: &[[usize; 5]], campo: usize| {
+        let soma: usize = parte.iter().map(|j| j[campo]).sum();
+        (soma + parte.len() / 2) / parte.len().max(1)
+    };
+    for k in 0..20 {
+        let parte = &jars[k * n / 20..((k + 1) * n / 20).max(k * n / 20 + 1).min(n)];
+        eprintln!(
+            "A-04 | faixa {k:2} | faixa({}, {}, {}, {}, {}),",
+            media(parte, 0) / 1024,
+            media(parte, 1),
+            media(parte, 2),
+            media(parte, 3),
+            media(parte, 4)
+        );
+    }
+}
+
+/// O nome termina com `.<ext>` (sem diferenciar maiúsculas).
+fn extensao(nome: &str, ext: &str) -> bool {
+    Path::new(nome)
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case(ext))
 }
 
 /// Caminho relativo sem `..` nem raiz.
