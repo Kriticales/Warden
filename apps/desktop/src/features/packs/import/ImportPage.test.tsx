@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { App, createQueryClient } from '../../../app/App';
 import type { ImportAnalysis, ImportSummary, PackId } from '../../../lib/ipc/bindings';
 import { queryKeys } from '../../../lib/ipc/keys';
-import { axePage } from '../../../test/axe';
+import { axeComponent, axePage } from '../../../test/axe';
 import { deferred, ipcError, mockBackend, type Handler } from '../../../test/backend';
 import { makeAppError, makePackRow } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
@@ -355,22 +355,54 @@ describe('Importar modpack (T24)', () => {
   });
 });
 
-describe('Entradas da importação em Meus packs', () => {
-  it('"Importar arquivo…" escolhe o arquivo e abre Importar modpack', async () => {
+describe('Entrada da importação em Meus packs: um botão só (protótipo `packs`)', () => {
+  it('não há botão separado de importar; o menu tem pasta e arquivo; passa no axe', async () => {
+    const user = userEvent.setup();
+    importBackend();
+    renderApp('/packs');
+    await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
+    expect(screen.queryByRole('button', { name: /Importar arquivo/ })).toBeNull();
+    expect(screen.getAllByRole('button', { name: /Abrir ou importar/ })).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Abrir ou importar…' }));
+    const items = await screen.findAllByRole('menuitem');
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Escolher pasta…Pack packwiz ou instância do Prism, do MultiMC ou do app da CurseForge',
+      'Escolher arquivo….mrpack, zip da CurseForge ou zip de instância do Prism',
+    ]);
+    expect(await axeComponent(screen.getByRole('menu'))).toHaveNoViolations();
+  });
+
+  it('"Escolher arquivo…" abre o diálogo de arquivo e leva a Importar modpack', async () => {
     const user = userEvent.setup();
     const backend = importBackend({ import_choose_file: () => ORIGIN });
     renderApp('/packs');
     await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
-    await user.click(screen.getByRole('button', { name: 'Importar arquivo…' }));
+    await user.click(screen.getByRole('button', { name: 'Abrir ou importar…' }));
+    await user.click(await screen.findByRole('menuitem', { name: /Escolher arquivo…/ }));
     expect(
       await screen.findByRole('heading', { name: 'Importar modpack', level: 1 }),
     ).toBeDefined();
     await waitFor(() => {
       expect(backend.callsOf('import_analyze')[0]?.args).toEqual({ path: ORIGIN });
     });
+    expect(backend.callsOf('pack_choose_folder')).toHaveLength(0);
   });
 
-  it('"Abrir ou importar…" com pasta de instância vai para Importar modpack', async () => {
+  it('desistir do diálogo de arquivo não faz nada', async () => {
+    const user = userEvent.setup();
+    const backend = importBackend({ import_choose_file: () => null });
+    renderApp('/packs');
+    await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
+    await user.click(screen.getByRole('button', { name: 'Abrir ou importar…' }));
+    await user.click(await screen.findByRole('menuitem', { name: /Escolher arquivo…/ }));
+    await waitFor(() => {
+      expect(backend.callsOf('import_choose_file')).toHaveLength(1);
+    });
+    expect(screen.getByRole('heading', { name: 'Meus packs', level: 1 })).toBeDefined();
+    expect(backend.callsOf('import_analyze')).toHaveLength(0);
+  });
+
+  it('"Escolher pasta…" com pasta de instância vai para Importar modpack', async () => {
     const user = userEvent.setup();
     const backend = importBackend({
       pack_choose_folder: () => 'D:/Prism/instances/Vale Sereno',
@@ -379,6 +411,7 @@ describe('Entradas da importação em Meus packs', () => {
     renderApp('/packs');
     await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
     await user.click(screen.getByRole('button', { name: 'Abrir ou importar…' }));
+    await user.click(await screen.findByRole('menuitem', { name: /Escolher pasta…/ }));
     expect(
       await screen.findByRole('heading', { name: 'Importar modpack', level: 1 }),
     ).toBeDefined();

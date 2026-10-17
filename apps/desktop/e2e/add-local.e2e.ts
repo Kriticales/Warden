@@ -39,6 +39,7 @@ import { Key } from 'webdriverio';
 import { seriousViolationSummaries } from './axe';
 import { DIRECT_LINK, directJar, fabricJar, sodiumJar } from './mock-server/jars';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -151,7 +152,7 @@ async function typeInField(text: string): Promise<void> {
 
 async function openPack(folder: string, title: string): Promise<void> {
   writeFileSync(PICK_FOLDER, folder);
-  await $('button=Abrir ou importar…').click();
+  await openOrImport();
   await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
   await $('button=Abrir pack').click();
   await $(`h1=${title}`).waitForDisplayed({ timeout: 60_000 });

@@ -7,12 +7,9 @@
  * tudo o que é de pack (contagens, cabeçalho, perfis do teste).
  */
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
 
 import { useOperations } from '../../../app/tasks/useOperations';
-import { showToast } from '../../../components/ui/toast';
 import { commands, type ImportApply, type OperationSnapshot } from '../../../lib/ipc/bindings';
-import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { commandQuery, useCommandMutation } from '../../../lib/ipc/query';
 import { packsKeys } from '../api';
 
@@ -63,21 +60,4 @@ export function useRunningAnalysis(): OperationSnapshot | null {
 
 export function cancelOperation(operation: OperationSnapshot) {
   void commands.operationCancel(operation.id);
-}
-
-/** "Importar arquivo…": o diálogo nativo do Rust e, com o arquivo, a página Importar modpack. */
-export function useImportFile() {
-  const navigate = useNavigate();
-  const choose = useCommandMutation(() => commands.importChooseFile());
-  const start = () => {
-    choose.mutate(undefined, {
-      onSuccess: (path) => {
-        if (path !== null) void navigate({ to: '/packs/importar', search: { origem: path } });
-      },
-      onError: (error) => {
-        showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
-      },
-    });
-  };
-  return { start, pending: choose.isPending };
 }

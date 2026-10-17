@@ -39,6 +39,7 @@ import type { ChainablePromiseElement } from 'webdriverio';
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -315,7 +316,7 @@ describe('Editor de scripts (C-07; T26)', function () {
   it('CA-T26-01: abre o script com a versão, os trechos prontos e o autocompletar de IDs', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

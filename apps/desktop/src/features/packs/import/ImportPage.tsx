@@ -24,13 +24,13 @@ import type { ImportAnalysis, ImportSummary } from '../../../lib/ipc/bindings';
 import { commandError } from '../../../lib/ipc/query';
 import { createCheckQuery, useChooseFolder } from '../api';
 import { checkProblem } from '../components/create/draft';
+import { useOpenOrImport } from '../hooks/useOpenOrImport';
 import { loaderName } from '../lib/pack-list';
 import {
   cancelOperation,
   discardPlan,
   useImportAnalysis,
   useImportApply,
-  useImportFile,
   useRunningAnalysis,
 } from './api';
 import { ExcludedPanel, SummaryPanel } from './ImportSummaryPanels';
@@ -118,14 +118,14 @@ export function ImportPage({ origin }: ImportPageProps) {
 function AnalysisError({ error }: { error: unknown }) {
   const { t } = useTranslation('importar');
   const navigate = useNavigate();
-  const importFile = useImportFile();
+  const openOrImport = useOpenOrImport();
   const other = (
     <Button
       size="sm"
       variant="ghost"
       icon={FileArchive}
-      loading={importFile.pending}
-      onClick={importFile.start}
+      loading={openOrImport.pending === 'file'}
+      onClick={openOrImport.chooseFile}
     >
       {t('escolherOutro')}
     </Button>

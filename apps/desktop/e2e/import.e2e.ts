@@ -4,9 +4,9 @@
  * import` são provados no Rust (`crates/warden-import/tests/import.rs`, CA-T24-03), com o packwiz
  * real e a CurseForge simulada.
  *
- * - `.mrpack` por "Importar arquivo…": a revisão mostra referências, o jar local com o motivo, o
- *   item com lado desconhecido e o lixo que não entra; "Importar como pack novo" cria o pack (sem
- *   o lixo) e abre em Mods. Passa no axe.
+ * - `.mrpack` por "Abrir ou importar…" → "Escolher arquivo…": a revisão mostra referências, o
+ *   jar local com o motivo, o item com lado desconhecido e o lixo que não entra; "Importar como
+ *   pack novo" cria o pack (sem o lixo) e abre em Mods. Passa no axe.
  * - Zip da CurseForge sem chave: a frase da chave e "Abrir Configurações"; nada é criado.
  * - Pasta de instância do Prism por "Abrir ou importar…": vai para Importar modpack, mostra o
  *   perfil do teste e a pergunta das preferências; o pack novo não leva mundos nem logs e o
@@ -22,6 +22,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -206,9 +207,9 @@ describe('Importar modpack (P1-19; T24)', () => {
     await step('Meus packs vazio', async () => {
       await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 20_000 });
     });
-    await step('Importar arquivo…', async () => {
+    await step('Abrir ou importar… → Escolher arquivo…', async () => {
       writeFileSync(PICK_FILE, origin);
-      await $('button=Importar arquivo…').click();
+      await openOrImport('arquivo');
       await $('h1=Importar modpack').waitForDisplayed({ timeout: 20_000 });
     });
     await step('revisão', async () => {
@@ -261,10 +262,10 @@ describe('Importar modpack (P1-19; T24)', () => {
     const origin = join(OUTSIDE, 'Cozy Create 2.3.0.zip');
     writeCurseforgeZip(origin);
     const packsBefore = readdirSync(PACKS);
-    await step('Importar arquivo…', async () => {
+    await step('Abrir ou importar… → Escolher arquivo…', async () => {
       await dismissToasts();
       writeFileSync(PICK_FILE, origin);
-      await $('button=Importar arquivo…').click();
+      await openOrImport('arquivo');
       await $('h1=Importar modpack').waitForDisplayed({ timeout: 20_000 });
     });
     await step('mensagem da chave', async () => {
@@ -285,7 +286,7 @@ describe('Importar modpack (P1-19; T24)', () => {
     await step('Abrir ou importar… com a pasta da instância', async () => {
       await dismissToasts();
       writeFileSync(PICK_FILE, origin);
-      await $('button=Abrir ou importar…').click();
+      await openOrImport();
       await $('h1=Importar modpack').waitForDisplayed({ timeout: 20_000 });
     });
     await step('revisão da instância', async () => {

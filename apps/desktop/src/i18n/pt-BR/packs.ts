@@ -9,9 +9,13 @@ export const packs = {
     contagem_other: '{{count}} packs',
     lendo: 'Lendo a lista de packs…',
     abrirOuImportar: 'Abrir ou importar…',
-    abrirOuImportarDica:
-      'Abre a pasta de um pack packwiz ou importa a pasta de uma instância do Prism, do MultiMC ou do app da CurseForge.',
+    abrirOuImportarDica: 'Pack packwiz, .mrpack, zip da CurseForge ou instância do Prism',
     escolhendoPasta: 'Escolhendo a pasta…',
+    escolhendoArquivo: 'Escolhendo o arquivo…',
+    escolherPasta: 'Escolher pasta…',
+    escolherPastaDica: 'Pack packwiz ou instância do Prism, do MultiMC ou do app da CurseForge',
+    escolherArquivo: 'Escolher arquivo…',
+    escolherArquivoDica: '.mrpack, zip da CurseForge ou zip de instância do Prism',
     criar: 'Criar pack',
     buscar: 'Buscar pack',
     ordenar: 'Ordenar',
@@ -46,7 +50,7 @@ export const packs = {
     vazio: {
       titulo: 'Você ainda não tem packs',
       texto:
-        'Crie um pack do zero ou abra um pack packwiz que já está no computador (feito em outro app ou clonado do GitHub).',
+        'Crie um pack do zero, abra um pack packwiz que já está no computador ou importe um modpack de outro app (.mrpack, zip da CurseForge, instância do Prism).',
     },
     semResultado: {
       titulo: 'Nenhum pack com “{{busca}}”',
@@ -220,7 +224,7 @@ export const packs = {
     naoMudou: 'Nada foi alterado na pasta. Packs Forge, NeoForge e Fabric abrem normalmente.',
     semPackToml: 'Esta pasta não tem um pack packwiz que o Warden consiga ler.',
     semPackTomlTexto:
-      'Escolha a pasta que contém o pack.toml, ou a pasta de uma instância do Prism, do MultiMC ou do app da CurseForge. Para .mrpack e zip da CurseForge, use Importar arquivo… em Meus packs.',
+      'Escolha a pasta que contém o pack.toml, ou a pasta de uma instância do Prism, do MultiMC ou do app da CurseForge. Para .mrpack e zip da CurseForge, use Abrir ou importar… e Escolher arquivo… em Meus packs.',
     loaderSuportado: 'suportado',
     fatoLoader: 'Loader',
     fatoPasta: 'Pasta',

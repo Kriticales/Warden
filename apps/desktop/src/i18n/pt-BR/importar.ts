@@ -1,7 +1,6 @@
 /**
  * Importar modpack (SPEC T24; ADR-0035; protótipo `importar`): a página com o que foi
- * reconhecido, nome e pasta do pack novo, o resumo da conversão e o que não entra, e o botão
- * "Importar arquivo…" de Meus packs.
+ * reconhecido, nome e pasta do pack novo, o resumo da conversão e o que não entra.
  */
 export const importar = {
   titulo: 'Importar modpack',
@@ -136,11 +135,6 @@ export const importar = {
   feitoRevisar_other: 'Confira em Mods os {{count}} itens que a revisão marcou.',
   semPerfil:
     'O perfil do teste com a memória do modpack não pôde ser criado. Ajuste a memória em Testar.',
-  entrada: {
-    importarArquivo: 'Importar arquivo…',
-    escolhendo: 'Escolhendo arquivo…',
-    dica: '.mrpack, zip da CurseForge ou zip de instância do Prism',
-  },
 } as const;
 
 // Registro do namespace (veja ../catalogo.ts).

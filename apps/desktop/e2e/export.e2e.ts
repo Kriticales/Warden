@@ -35,6 +35,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
 import { zipEntries } from './zip';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -177,7 +178,7 @@ describe('Exportar (E-01; T19)', () => {
   it('abre a seção Exportar com a prévia e o alerta do options.txt solto na raiz; axe', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });

@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from '@tanstack/react-router';
 
 import { ImportPage } from '../../features/packs/import/ImportPage';
 
-/** Busca da rota: o arquivo ou a pasta escolhida em "Abrir ou importar…" ou "Importar arquivo…". */
+/** Busca da rota: o arquivo ou a pasta escolhida em "Abrir ou importar…". */
 export interface ImportSearch {
   origem: string;
 }

@@ -329,7 +329,7 @@ describe('Meus packs (T02)', () => {
     expect(await screen.findByRole('button', { name: 'Só leitura' })).toBeDefined();
   });
 
-  it('"Abrir ou importar…" abre o diálogo de pasta e leva a pasta para Abrir pack', async () => {
+  it('"Abrir ou importar…" → "Escolher pasta…" leva a pasta para Abrir pack', async () => {
     const user = userEvent.setup();
     const { backend } = packsBackend([], {
       pack_choose_folder: () => 'D:/Packs/meu-pack-antigo',
@@ -340,6 +340,7 @@ describe('Meus packs (T02)', () => {
     // Espera a lista chegar: enquanto ela é lida, o botão é o do cabeçalho.
     await screen.findByRole('heading', { name: 'Você ainda não tem packs' });
     await user.click(screen.getByRole('button', { name: 'Abrir ou importar…' }));
+    await user.click(await screen.findByRole('menuitem', { name: /Escolher pasta…/ }));
     const dialog = await screen.findByRole('dialog', { name: 'Abrir pack' });
     expect(await within(dialog).findByText('Meu pack antigo')).toBeDefined();
     expect(backend.callsOf('pack_choose_folder')[0]?.args).toEqual({ purpose: 'openPack' });

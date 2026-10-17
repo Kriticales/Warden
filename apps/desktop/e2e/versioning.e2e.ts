@@ -35,6 +35,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { replaceValue } from './fields';
 
 import { seriousViolationSummaries } from './axe';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -202,7 +203,7 @@ describe('Salvar versão e Histórico (V-02; T16 e T17)', () => {
   it('abre o pack e o Histórico mostra tudo como não salvo, sem versões; axe', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
