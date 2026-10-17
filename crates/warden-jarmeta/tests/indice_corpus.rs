@@ -495,8 +495,14 @@ fn ca_d05_segunda_passagem_so_usa_o_cache() {
     assert_eq!(first.stats.jars_opened, jars.len());
     assert_eq!(first.stats.cache_hits, 0);
     assert_eq!(first.stats.cache_write_failures, 0);
+    // Um índice por jar (fora a pasta com a identidade de cada arquivo, A-04).
     assert_eq!(
-        fs::read_dir(cache.dir()).expect("cache").count(),
+        fs::read_dir(cache.dir())
+            .expect("cache")
+            .filter(|e| e
+                .as_ref()
+                .is_ok_and(|e| e.path().extension().is_some_and(|x| x == "json")))
+            .count(),
         jars.len()
     );
 

@@ -46,7 +46,7 @@ use serde::{Deserialize, Serialize};
 use crate::model::{DescriptorKind, Loader};
 
 pub use build::{index_jar_bytes, index_jar_file, sha256_hex};
-pub use cache::{CACHE_DIR_NAME, JarIndexCache};
+pub use cache::{CACHE_DIR_NAME, FILES_DIR_NAME, JarIndexCache, file_identity};
 pub use pack::{BuildStats, JarFailure, PackIndexBuild, PackJar, build_pack_index};
 pub use query::{JarOwner, MixinOwner, Ownership, PackIndex};
 

@@ -87,6 +87,15 @@ pub(super) fn read_file_capped(path: &Path, limits: &Limits) -> Result<Vec<u8>, 
 /// Os de [`read_jar_bytes`]. Embutidos ilegíveis não são erro: ficam fora do índice (o aviso
 /// já está em [`JarMetadata::warnings`]).
 pub fn index_jar_bytes(bytes: &[u8], limits: &Limits) -> Result<JarIndex, Error> {
+    index_jar_bytes_hashed(bytes, sha256_hex(bytes), limits)
+}
+
+/// [`index_jar_bytes`] com o SHA-256 dos bytes já calculado.
+pub(super) fn index_jar_bytes_hashed(
+    bytes: &[u8],
+    sha256: String,
+    limits: &Limits,
+) -> Result<JarIndex, Error> {
     let meta = read_jar_bytes(bytes, limits)?;
     let mut zip = ZipArchive::new(Cursor::new(bytes)).map_err(|e| Error::InvalidArchive {
         detail: e.to_string(),
@@ -98,7 +107,7 @@ pub fn index_jar_bytes(bytes: &[u8], limits: &Limits) -> Result<JarIndex, Error>
         found: BTreeSet::new(),
         index: JarIndex {
             format: INDEX_FORMAT,
-            sha256: sha256_hex(bytes),
+            sha256,
             jars: Vec::new(),
             mixin_configs: Vec::new(),
         },
