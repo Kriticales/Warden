@@ -36,7 +36,7 @@ pub use text::{HEAD_BYTES, TAIL_BYTES, strip_formatting};
 
 pub(crate) use text::fixed_regex as text_fixed_regex;
 // D-06: a assinatura do travamento (`crate::signature`) lê a pilha do achado principal.
-pub(crate) use stack::{crash_blocks, deepest_cause, mods_in, stack_range};
+pub(crate) use stack::{crash_blocks, deepest_cause, is_library_jar, mods_in, stack_range};
 pub(crate) use text::CleanLine;
 
 /// O que identifica o achado de um padrão do catálogo (D-06: o sujeito da assinatura do
