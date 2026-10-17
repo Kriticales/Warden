@@ -249,9 +249,17 @@ export const DEBUG_MARGIN = 1.5;
  */
 export const RELEASE = process.env.WARDEN_E2E_PROFILE === 'release';
 
-/** O limite que o E2E confere para uma meta (ms): a meta exata no build de release. */
-export function e2eLimit(goalMs: number, margin = DEBUG_MARGIN): number {
-  return RELEASE ? goalMs : goalMs * margin;
+/**
+ * O limite que o E2E confere para uma meta (ms). Sem `margin`, é uma meta da SPEC §8: a exata
+ * no build de release e com a folga do debug ([`DEBUG_MARGIN`]) no de debug. Com `margin`, a
+ * medida não tem meta própria na SPEC (a exportação usa a referência de "Atualizar índice"), e
+ * a folga vale nos dois builds.
+ */
+export function e2eLimit(goalMs: number, margin?: number): number {
+  if (margin !== undefined) {
+    return goalMs * margin;
+  }
+  return RELEASE ? goalMs : goalMs * DEBUG_MARGIN;
 }
 
 /**
