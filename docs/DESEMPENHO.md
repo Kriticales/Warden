@@ -122,7 +122,7 @@ O build de debug é bem mais lento que o de release (a libgit2, o SQLite e o `to
 
 ### Windows da CI em release (Noturno, job "Windows · desempenho (release)")
 
-Os benchmarks e os E2E de `e2e/perf/` com o app otimizado, em duas rodadas de 17/10/2026 (WebView2 sem GPU, como no debug). A 1ª rodada é do commit com o cache por identidade e o zip sem recompressão; a 2ª, depois da gravação direta do cache (abaixo). A máquina da 2ª rodada foi mais lenta em tudo (a mesma prévia da exportação: 210 → 425 ms, sem mudança de código que a afetasse).
+Os benchmarks e os E2E de `e2e/perf/` com o app otimizado, em três rodadas de 17/10/2026 (as duas primeiras na tabela, a 3ª logo abaixo) (WebView2 sem GPU, como no debug). A 1ª rodada é do commit com o cache por identidade e o zip sem recompressão; a 2ª, depois da gravação direta do cache (abaixo). A máquina da 2ª rodada foi mais lenta em tudo (a mesma prévia da exportação: 210 → 425 ms, sem mudança de código que a afetasse).
 
 | Medida | 1ª rodada (mediana / pior) | 2ª rodada (mediana / pior) | Meta |
 |---|---|---|---|
@@ -143,7 +143,8 @@ Os benchmarks e os E2E de `e2e/perf/` com o app otimizado, em duas rodadas de 17
 | Benchmark: busca em todas as configs (índice / cada busca) | 113 ms / 5,6 a 13,6 ms | 164 ms / 6,3 a 14,9 ms | < 2 s / < 200 ms |
 | Benchmark: exportar prévia / `.zip` / pasta | 210 / 1.510 / 2.605 ms | 425 / 2.366 (pior 8.595) / 2.777 ms | < 1 s / < 5 s |
 
-- **Abrir o pack grande** fica em 455 a 626 ms em release no Windows da CI (no debug, ~1.025 ms): a meta de < 1 s fecha com folga, e o E2E de release a confere sem folga. **Meus packs** também fecha, mas com pouca sobra na máquina mais lenta (988 ms de mediana); o backend da lista leva 283 a 534 ms ali (43 ms no Linux) e o resto é a interface no WebView2 sem GPU.
+- **3ª rodada (código final, commit da folga da exportação):** job verde; abrir o pack 329 ms (pior 353), Meus packs 442 ms (pior 800), Problemas 562 ms, cada busca 14 ms, exportar `.zip` 2.498 ms (pior 8.610); benchmarks: índice de pacotes sem cache 688 ms (calibrados) e 326 ms (mínimos, pior 611), com cache 13,9 e 10,5 ms, pré-teste completo 415 ms.
+- **Abrir o pack grande** fica em 329 a 626 ms em release no Windows da CI (no debug, ~1.025 ms): a meta de < 1 s fecha com folga, e o E2E de release a confere sem folga. **Meus packs** também fecha, mas com pouca sobra na máquina mais lenta (988 ms de mediana); o backend da lista leva 283 a 534 ms ali (43 ms no Linux) e o resto é a interface no WebView2 sem GPU.
 - **Índice de pacotes sem cache no Windows:** a 1ª rodada mostrou 5,6 s e 10 s, acima da meta. A causa era a gravação do cache: cada arquivo era gravado com `fsync` e um temporário renomeado, e a renomeação espera o antivírus soltar o arquivo novo (até 200 ms de novas tentativas por arquivo), duas vezes por jar com a identidade. O cache passou a gravar direto (tudo que ele lê é validado; um arquivo pela metade é refeito), e a 2ª rodada ficou em 670 ms e 405 ms. O pior caso isolado de 3,8 s dos jars mínimos foi a primeira passagem do processo, com 600 arquivos novos de uma vez; a mediana de 10 fica bem abaixo da meta.
 - **Exportar `.zip` no Windows da CI** varia muito entre medidas (2,6 s e 12,5 s na mesma rodada; 3,3 a 9,1 s na outra): a exportação copia o pack para o staging e roda o `packwiz refresh` duas vezes, e o antivírus da máquina da CI examina cada arquivo novo. Não há meta própria na SPEC; o E2E confere a mediana com o dobro da referência de "Atualizar índice" (10 s) também em release.
 
