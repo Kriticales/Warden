@@ -626,6 +626,28 @@ fn write_folder(
     result
 }
 
+/// Extensões de arquivos que já vêm comprimidos: o deflate quase não diminui e custa caro
+/// (A-04: num pack real, 420 MB de regiões `.mca` dentro de `config/` levavam ~8 s para
+/// comprimir 11%). Ficam guardados sem compressão no zip.
+const ALREADY_COMPRESSED: &[&str] = &[
+    "7z", "gif", "gz", "jar", "jpeg", "jpg", "mca", "mcc", "mcr", "mp3", "mrpack", "nbt", "ogg",
+    "png", "rar", "tgz", "webp", "xz", "zip", "zst",
+];
+
+/// Como cada arquivo entra no zip: guardado se já vem comprimido, senão com deflate.
+fn compression_for(path: &str) -> zip::CompressionMethod {
+    let extension = path
+        .rsplit('/')
+        .next()
+        .and_then(|name| name.rsplit_once('.'))
+        .map(|(_, extension)| extension.to_ascii_lowercase());
+    if extension.is_some_and(|extension| ALREADY_COMPRESSED.contains(&extension.as_str())) {
+        zip::CompressionMethod::Stored
+    } else {
+        zip::CompressionMethod::Deflated
+    }
+}
+
 fn write_zip(
     destination: &Path,
     files: &BTreeMap<String, Vec<u8>>,
@@ -662,7 +684,8 @@ fn write_zip(
             if cancel.is_cancelled() {
                 return Err(Error::internal("exportação cancelada"));
             }
-            zip.start_file(path, options).map_err(err)?;
+            zip.start_file(path, options.compression_method(compression_for(path)))
+                .map_err(err)?;
             zip.write_all(bytes).map_err(err)?;
         }
         let file = zip.finish().map_err(err)?;
@@ -760,6 +783,48 @@ mod tests {
         fs::write(&occupied, b"arquivo de outra pessoa").unwrap();
         assert!(write_zip(&occupied, &files, &CancellationToken::new()).is_err());
         assert_eq!(fs::read(occupied).unwrap(), b"arquivo de outra pessoa");
+    }
+
+    /// O que já vem comprimido (regiões de mundo, zips, imagens) entra guardado; o resto, com
+    /// deflate. O conteúdo é o mesmo nos dois casos (A-04).
+    #[test]
+    fn zip_guarda_sem_comprimir_o_que_ja_vem_comprimido() {
+        let temp = tempfile::tempdir().unwrap();
+        let region: Vec<u8> = (0..64 * 1024_u32).map(|n| (n % 7) as u8).collect();
+        let files = BTreeMap::from([
+            ("config/a.toml".to_owned(), b"chave = 1\n".repeat(100)),
+            ("config/mundo/region/r.0.0.mca".to_owned(), region.clone()),
+            (
+                "config/paxi/datapacks/Extra.ZIP".to_owned(),
+                b"PK".repeat(50),
+            ),
+            ("config/imagem.png".to_owned(), vec![1; 300]),
+            ("config/sem-extensao".to_owned(), vec![2; 300]),
+            ("config/pasta.zip/b.json".to_owned(), vec![b' '; 300]),
+        ]);
+        let path = temp.path().join("pack.zip");
+        write_zip(&path, &files, &CancellationToken::new()).unwrap();
+        let mut zip = zip::ZipArchive::new(fs::File::open(&path).unwrap()).unwrap();
+        for (name, method) in [
+            ("config/a.toml", zip::CompressionMethod::Deflated),
+            (
+                "config/mundo/region/r.0.0.mca",
+                zip::CompressionMethod::Stored,
+            ),
+            (
+                "config/paxi/datapacks/Extra.ZIP",
+                zip::CompressionMethod::Stored,
+            ),
+            ("config/imagem.png", zip::CompressionMethod::Stored),
+            ("config/sem-extensao", zip::CompressionMethod::Deflated),
+            ("config/pasta.zip/b.json", zip::CompressionMethod::Deflated),
+        ] {
+            let mut entry = zip.by_name(name).unwrap();
+            assert_eq!(entry.compression(), method, "{name}");
+            let mut bytes = Vec::new();
+            std::io::Read::read_to_end(&mut entry, &mut bytes).unwrap();
+            assert_eq!(bytes, files[name], "{name}");
+        }
     }
 
     /// Os erros que a pessoa resolve sozinha têm código próprio: a interface explica cada um.
