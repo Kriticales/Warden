@@ -52,3 +52,8 @@ regexes = [
   '''^dG9rZW4tZG8tc2Vydmlkb3Itd2ViLWRvLWt1YmVqcy1lMmU$''',
   '''^c2VncmVkby1kby1rdWJlanMtcGFyYS10ZXN0ZXM_$''',
 ]
+
+[[allowlists]]
+description = "Corpus adversário da assinatura (D-06): crash reports públicos do mclo.gs, anonimizados, sem segredo nenhum. As listas de mods e de resource packs (`mod/fabric_item_api_v1, mod/bellsandwhistles`) casam com a regra generic-api-key pela palavra `api`. Só esta pasta e só essa regra."
+targetRules = ["generic-api-key"]
+paths = ['''^crates[/\\]warden-diagnostics[/\\]tests[/\\]corpus-assinatura[/\\]''']
