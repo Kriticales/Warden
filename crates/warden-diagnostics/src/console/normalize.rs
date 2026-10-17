@@ -428,9 +428,11 @@ fn id_at(bytes: &[u8], i: usize) -> Option<usize> {
     while bytes[end - 1] == b'.' {
         end -= 1;
     }
+    // `create:x: motivo` é um id seguido do motivo; `a:b:c` não é id.
     let code_after = match bytes.get(end) {
         Some(b'.') => bytes.get(end + 1).is_some_and(|b| is_ident(*b)),
-        Some(b) => is_alnum(*b) || matches!(b, b':' | b'$'),
+        Some(b':') => bytes.get(end + 1).is_some_and(|b| !b.is_ascii_whitespace()),
+        Some(b) => is_alnum(*b) || *b == b'$',
         None => false,
     };
     let file_namespace = bytes[i..j].ends_with(b".json");
@@ -543,6 +545,14 @@ mod tests {
                 "Missing model {id}, retrying",
             ),
             ("Bad recipe create:crushing/raw_zinc_ore", "Bad recipe {id}"),
+            (
+                "Parsing error loading custom advancement create:root: Missing display",
+                "Parsing error loading custom advancement {id}: Missing display",
+            ),
+            (
+                "Biome mymod:plains:12 not found",
+                "Biome mymod:plains:{n} not found",
+            ),
             (
                 "Erro em mod:pacote.Classe e mod:pacote$Interna",
                 "Erro em mod:pacote.Classe e mod:pacote$Interna",
