@@ -83,8 +83,12 @@ use crate::postcrash::{
 /// usa a pilha do `-- Head --`; tipo de exceção intermediary (`net.minecraft.class_148`)
 /// reconhecido; falha de mixin sem achado próprio leva a config (ou o alvo) no sujeito;
 /// `Suppressed:` fica fora das seções; endereço no frame nativo mascarado; o frame da queda
-/// também pula as classes que só conferem e lançam (`Preconditions` do Guava).
-pub const SIGNATURE_VERSION: u32 = 5;
+/// também pula as classes que só conferem e lançam (`Preconditions` do Guava). Duas branches
+/// gravaram "5" com regras diferentes (só o `Preconditions`, ou só as regras acima): a 6 junta as
+/// duas e recalcula tudo o que foi gravado antes.
+/// 6: as regras da 5 juntas; a queda ao carregar os registros leva o primeiro elemento com erro
+/// do `latest.log` (`registry_element=…`).
+pub const SIGNATURE_VERSION: u32 = 6;
 
 /// Até quantas linhas depois da evidência a exceção do achado é procurada.
 const EXCEPTION_WITHIN: usize = 60;
@@ -3012,7 +3016,7 @@ java.lang.ArithmeticException: / by zero
         assert_eq!(one, two);
         assert_eq!(one.mods, ["mod:a", "mod:b"]);
         // Fixo: mudar a normalização ou o formato exige subir SIGNATURE_VERSION.
-        assert_eq!(one.hash, "2e9980cf0d10880b");
+        assert_eq!(one.hash, "56beae619317313a");
         let with_subject = CrashSignature::new(
             Some("r".into()),
             Some("E".into()),
