@@ -52,3 +52,11 @@ regexes = [
   '''^dG9rZW4tZG8tc2Vydmlkb3Itd2ViLWRvLWt1YmVqcy1lMmU$''',
   '''^c2VncmVkby1kby1rdWJlanMtcGFyYS10ZXN0ZXM_$''',
 ]
+
+[[allowlists]]
+description = "Nome de mod (`mod/bellsandwhistles`) na lista de resource packs de um crash report real do corpus adversário da assinatura (D-06); não é chave. Só este valor exato, só nesta pasta."
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ['''^mod/bellsandwhistles$''']
+paths = ['''^crates[/\\]warden-diagnostics[/\\]tests[/\\]corpus-assinatura[/\\]''']
