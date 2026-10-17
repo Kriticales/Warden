@@ -167,6 +167,8 @@ pub(crate) struct LaunchTweak {
     pub(crate) options: Arc<dyn Fn(&mut warden_launcher::LaunchOptions) + Send + Sync>,
     /// Variáveis de ambiente acrescentadas ao jogo.
     pub(crate) env: Vec<(String, String)>,
+    /// A linha de comando do jogo é recusada (um erro ao preparar a abertura).
+    pub(crate) refuse_command: bool,
 }
 
 impl std::fmt::Debug for TestSessions {
@@ -812,6 +814,11 @@ impl Runner<'_> {
         #[cfg(test)]
         if let Some(tweak) = &self.state.tests.launch_tweak {
             (tweak.options)(&mut options);
+            if tweak.refuse_command {
+                return Err(AppError::internal(
+                    "linha de comando do jogo recusada (teste)",
+                ));
+            }
         }
         let mut command = self
             .state

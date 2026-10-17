@@ -6,13 +6,14 @@
 //! Usam o Java de `WARDEN_TEST_JAVA` ou `JAVA_HOME`; sem Java, avisam e passam.
 
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener};
+use std::sync::Mutex as StdMutex;
 use std::time::{Duration, Instant};
 
 use super::super::tests::{Seen, fake_state, register, sink, spawn_test, write_pack};
 use super::*;
 use crate::error::ErrorCode;
 use crate::state::AppState;
-use crate::test_session::{TestMode, TestRequest, run_test};
+use crate::test_session::{LaunchTweak, TestMode, TestRequest, run_test};
 
 /// Um servidor por vez nestes testes (no app há um só, `ServerSessions`), quando rodam no mesmo
 /// processo.
@@ -25,10 +26,20 @@ fn server_class_dir() -> PathBuf {
 
 /// O estado com o jogo e o servidor simulados (`None` sem Java).
 fn server_state(root: &Path) -> Option<Arc<AppState>> {
+    server_state_with(root, None)
+}
+
+/// O mesmo, com a abertura do jogo ajustada.
+fn server_state_with(root: &Path, tweak: Option<LaunchTweak>) -> Option<Arc<AppState>> {
     let state = fake_state(root)?;
     let mut state = Arc::try_unwrap(state).ok()?;
-    let tests = Arc::try_unwrap(state.tests).ok()?;
-    state.tests = Arc::new(tests.with_fake_server(server_class_dir()));
+    let mut tests = Arc::try_unwrap(state.tests)
+        .ok()?
+        .with_fake_server(server_class_dir());
+    if let Some(tweak) = tweak {
+        tests = tests.with_launch_tweak(tweak);
+    }
+    state.tests = Arc::new(tests);
     // Cada teste (o nextest roda um processo por teste) parte de uma porta dada pelo sistema:
     // dois servidores simulados não disputam a 25565.
     let start = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
@@ -304,4 +315,195 @@ async fn so_o_servidor_parar_manda_stop_e_fechar_o_warden_nao_deixa_orfao() {
         "nenhum java do servidor segurando a porta"
     );
     assert!(state.servers.current().is_none());
+}
+
+/// Os processos vivos com a pasta de trabalho dentro de `root` (o servidor e o jogo simulados
+/// rodam nas pastas do teste). Só no Linux, pelo `/proc`; nos outros sistemas, a porta livre é
+/// a prova.
+fn processes_in(root: &Path) -> Vec<u32> {
+    if !cfg!(target_os = "linux") {
+        return Vec::new();
+    }
+    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let Ok(entries) = std::fs::read_dir("/proc") else {
+        return Vec::new();
+    };
+    entries
+        .flatten()
+        .filter_map(|entry| {
+            let pid: u32 = entry.file_name().to_str()?.parse().ok()?;
+            let cwd = std::fs::read_link(entry.path().join("cwd")).ok()?;
+            // Um zumbi (já morto, à espera do pai) não segura nada.
+            let status = std::fs::read_to_string(entry.path().join("status")).ok()?;
+            let zombie = status
+                .lines()
+                .any(|line| line.starts_with("State:") && line.contains('Z'));
+            (cwd.starts_with(&root) && !zombie).then_some(pid)
+        })
+        .collect()
+}
+
+/// O que se via quando o `server-state` disse `exited`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ExitSeen {
+    port: Option<u16>,
+    port_free: bool,
+    processes: Vec<u32>,
+}
+
+/// Grava, a cada `exited` do `server-state`, se a porta já estava livre e se sobrava processo.
+fn watch_exits(state: &AppState, root: &Path) -> Arc<StdMutex<Vec<ExitSeen>>> {
+    let seen: Arc<StdMutex<Vec<ExitSeen>>> = Arc::default();
+    let log = Arc::clone(&seen);
+    let root = root.to_path_buf();
+    state.servers.connect(Arc::new(move |server| {
+        if server.phase == ServerPhase::Exited {
+            log.lock().unwrap().push(ExitSeen {
+                port: server.port,
+                port_free: server.port.is_none_or(port_is_free),
+                processes: processes_in(&root),
+            });
+        }
+    }));
+    seen
+}
+
+/// Um teste com o servidor e o jogo que falha depois do "Done" não deixa nada aberto: o
+/// servidor morreu, a porta está livre, nenhum processo sobrou, o registro está vazio (o
+/// "Fechar o Warden" não tem o que encerrar) e o `exited` só saiu depois da morte.
+async fn assert_nothing_left(state: &AppState, root: &Path, exits: &StdMutex<Vec<ExitSeen>>) {
+    // Com o pânico, o encerramento segue numa tarefa: espera o registro sair.
+    let deadline = Instant::now() + Duration::from_secs(30);
+    while state.servers.current().is_some() {
+        assert!(Instant::now() < deadline, "o registro do servidor não saiu");
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    let exits = exits.lock().unwrap().clone();
+    assert_eq!(exits.len(), 1, "um exited só: {exits:?}");
+    let exit = &exits[0];
+    let port = exit.port.expect("o servidor abriu numa porta");
+    assert!(exit.port_free, "exited com a porta ainda ocupada: {exit:?}");
+    assert!(
+        exit.processes.is_empty(),
+        "exited com processo vivo: {exit:?}"
+    );
+    assert!(
+        port_is_free(port),
+        "nenhum java do servidor segurando a porta"
+    );
+    assert!(processes_in(root).is_empty(), "nenhum processo sobrou");
+    assert!(state.tests.current().is_none());
+    state.servers.kill_all().await;
+}
+
+/// Um pack em que o servidor fica pronto e o jogo (simulado) entraria nele.
+fn ready_pack(state: &AppState, root: &Path) -> warden_core::PackId {
+    accept_eula(state);
+    let pack_root = root.join("pack");
+    write_pack(&pack_root, &[("config/a.toml", b"x = 1")], "conectar");
+    register(state, &pack_root)
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn jogo_com_java_inexistente_nao_deixa_o_servidor_orfao() {
+    let _one = ONE_SERVER.lock().await;
+    let dir = tempfile::tempdir().unwrap();
+    let missing = dir.path().join("sem-java").join("java");
+    let tweak = LaunchTweak {
+        options: Arc::new(move |options| options.java.launcher.clone_from(&missing)),
+        env: Vec::new(),
+        refuse_command: false,
+    };
+    let Some(state) = server_state_with(dir.path(), Some(tweak)) else {
+        return;
+    };
+    let pack = ready_pack(&state, dir.path());
+    let exits = watch_exits(&state, dir.path());
+    let (sink, seen) = sink();
+    let error = tokio::time::timeout(
+        Duration::from_secs(60),
+        run_test(&state, pack, server_request(false), sink),
+    )
+    .await
+    .expect("o teste não terminou")
+    .unwrap_err();
+    assert_eq!(
+        error.code,
+        ErrorCode::Launcher(warden_launcher::LauncherErrorCode::LaunchFailed)
+    );
+    assert!(
+        seen.console_texts()
+            .iter()
+            .any(|text| text == "servidor:console.pronto"),
+        "o servidor ficou pronto antes do jogo falhar"
+    );
+    assert_nothing_left(&state, dir.path(), &exits).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn falha_ao_preparar_o_jogo_depois_do_done_encerra_o_servidor() {
+    let _one = ONE_SERVER.lock().await;
+    let dir = tempfile::tempdir().unwrap();
+    let tweak = LaunchTweak {
+        options: Arc::new(|_| {}),
+        env: Vec::new(),
+        refuse_command: true,
+    };
+    let Some(state) = server_state_with(dir.path(), Some(tweak)) else {
+        return;
+    };
+    let pack = ready_pack(&state, dir.path());
+    let exits = watch_exits(&state, dir.path());
+    let (sink, seen) = sink();
+    let error = tokio::time::timeout(
+        Duration::from_secs(60),
+        run_test(&state, pack, server_request(false), sink),
+    )
+    .await
+    .expect("o teste não terminou")
+    .unwrap_err();
+    assert_eq!(
+        error.code,
+        ErrorCode::App(crate::error::AppErrorCode::Internal)
+    );
+    assert!(
+        error
+            .detail
+            .as_deref()
+            .is_some_and(|detail| detail.contains("recusada")),
+        "{error:?}"
+    );
+    assert!(
+        seen.console_texts()
+            .iter()
+            .any(|text| text == "servidor:console.pronto")
+    );
+    assert_nothing_left(&state, dir.path(), &exits).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn panico_com_o_servidor_aberto_encerra_o_servidor_antes_do_exited() {
+    let _one = ONE_SERVER.lock().await;
+    let dir = tempfile::tempdir().unwrap();
+    let tweak = LaunchTweak {
+        options: Arc::new(|_| panic!("pânico simulado ao preparar o jogo")),
+        env: Vec::new(),
+        refuse_command: false,
+    };
+    let Some(state) = server_state_with(dir.path(), Some(tweak)) else {
+        return;
+    };
+    let pack = ready_pack(&state, dir.path());
+    let exits = watch_exits(&state, dir.path());
+    let (task, seen) = spawn_test(&state, pack, server_request(false));
+    let joined = tokio::time::timeout(Duration::from_secs(60), task)
+        .await
+        .expect("o teste não terminou");
+    assert!(joined.unwrap_err().is_panic());
+    assert!(
+        seen.console_texts()
+            .iter()
+            .any(|text| text == "servidor:console.pronto")
+    );
+    assert_nothing_left(&state, dir.path(), &exits).await;
 }
