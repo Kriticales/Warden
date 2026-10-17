@@ -1,12 +1,10 @@
 //! Montagem do índice de um pack, com o cache e a leitura em paralelo.
 
-use std::fs::File;
-use std::io::{BufReader, Read};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-use sha2::{Digest, Sha256};
-
-use super::build::{hex, index_jar_bytes, read_file_capped};
+use super::build::{index_jar_bytes_hashed, read_file_capped, sha256_hex};
+use super::cache::file_identity;
 use super::{JarIndex, JarIndexCache, PackIndex};
 use crate::error::Error;
 use crate::limits::Limits;
@@ -45,6 +43,9 @@ pub struct BuildStats {
     pub cache_hits: usize,
     /// Jars abertos e lidos como zip (zero quando tudo veio do cache).
     pub jars_opened: usize,
+    /// Jars lidos inteiros do disco, para calcular o hash ou montar o índice (zero quando o
+    /// cache reconheceu todos os arquivos pela identidade, sem ler o conteúdo).
+    pub jars_read: usize,
     /// Índices que não deu para gravar no cache.
     pub cache_write_failures: usize,
 }
@@ -71,7 +72,8 @@ pub struct PackIndexBuild {
 }
 
 /// Monta o índice do pack, usando o cache quando existe e gravando nele o que faltava. Os jars
-/// que precisam ser lidos são lidos em paralelo.
+/// que precisam ser lidos são lidos em paralelo: cada leitor pega o próximo jar da fila, então
+/// um mod de centenas de MB não segura os outros atrás dele.
 ///
 /// `loader` é o loader do pack: escolhe o mod principal de jars multi-loader e desempata
 /// configs de mixin declaradas em mais de um item.
@@ -86,37 +88,41 @@ pub fn build_pack_index(
         .map_or(1, std::num::NonZero::get)
         .clamp(1, 8)
         .min(jars.len().max(1));
-    let chunk = jars.len().div_ceil(workers).max(1);
-    let results: Vec<(Result<Indexed, Error>, &PackJar)> = std::thread::scope(|scope| {
-        let handles: Vec<_> = jars
-            .chunks(chunk)
-            .map(|part| {
-                let handle = scope.spawn(move || {
-                    part.iter()
-                        .map(|jar| (index_one(jar, cache, limits), jar))
-                        .collect::<Vec<_>>()
-                });
-                (part, handle)
-            })
-            .collect();
-        handles
-            .into_iter()
-            .flat_map(|(part, handle)| {
-                // Uma leitura não entra em pânico (QUALITY §2); se entrar, os jars do bloco
-                // aparecem como falha em vez de sumir do resultado.
-                handle.join().unwrap_or_else(|_| {
-                    part.iter()
-                        .map(|jar| {
-                            let error = Error::Read {
-                                path: jar.path.clone(),
-                                source: std::io::Error::other("a leitura do índice parou"),
-                            };
-                            (Err(error), jar)
-                        })
-                        .collect()
+    let next = AtomicUsize::new(0);
+    let mut slots: Vec<Option<Result<Indexed, Error>>> = jars.iter().map(|_| None).collect();
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..workers)
+            .map(|_| {
+                scope.spawn(|| {
+                    let mut done = Vec::new();
+                    loop {
+                        let position = next.fetch_add(1, Ordering::Relaxed);
+                        let Some(jar) = jars.get(position) else {
+                            break done;
+                        };
+                        done.push((position, index_one(jar, cache, limits)));
+                    }
                 })
             })
-            .collect()
+            .collect();
+        for handle in handles {
+            // Uma leitura não entra em pânico (QUALITY §2); se entrar, os jars daquele leitor
+            // aparecem como falha (abaixo) em vez de sumir do resultado.
+            for (position, result) in handle.join().unwrap_or_default() {
+                if let Some(slot) = slots.get_mut(position) {
+                    *slot = Some(result);
+                }
+            }
+        }
+    });
+    let results = slots.into_iter().zip(jars).map(|(slot, jar)| {
+        let result = slot.unwrap_or_else(|| {
+            Err(Error::Read {
+                path: jar.path.clone(),
+                source: std::io::Error::other("a leitura do índice parou"),
+            })
+        });
+        (result, jar)
     });
 
     let mut stats = BuildStats {
@@ -130,6 +136,7 @@ pub fn build_pack_index(
             Ok(indexed) => {
                 stats.cache_hits += usize::from(indexed.from_cache);
                 stats.jars_opened += usize::from(!indexed.from_cache);
+                stats.jars_read += usize::from(indexed.read);
                 stats.cache_write_failures += usize::from(indexed.write_failed);
                 entries.push((jar.item.clone(), indexed.index));
             }
@@ -149,6 +156,8 @@ pub fn build_pack_index(
 struct Indexed {
     index: JarIndex,
     from_cache: bool,
+    /// O jar foi lido inteiro do disco.
+    read: bool,
     write_failed: bool,
 }
 
@@ -162,54 +171,64 @@ fn index_one(
         .as_deref()
         .map(str::to_ascii_lowercase)
         .filter(|sha| sha.len() == 64);
-    if let (Some(cache), Some(sha)) = (cache, &known)
-        && let Some(index) = cache.load(sha)
-    {
-        return Ok(Indexed {
+    let hit = |index, read| {
+        Ok(Indexed {
             index,
             from_cache: true,
+            read,
             write_failed: false,
-        });
-    }
-    // Sem hash conhecido: calcula lendo o arquivo em blocos, sem abrir o zip.
-    let sha = match (known, cache) {
-        (Some(sha), _) => Some(sha),
-        (None, Some(_)) => Some(hash_file(&jar.path)?),
-        (None, None) => None,
+        })
     };
-    if let (Some(cache), Some(sha)) = (cache, &sha)
+    let Some(cache) = cache else {
+        let bytes = read_file_capped(&jar.path, limits)?;
+        let index = index_jar_bytes_hashed(&bytes, sha256_hex(&bytes), limits)?;
+        return Ok(Indexed {
+            index,
+            from_cache: false,
+            read: true,
+            write_failed: false,
+        });
+    };
+    if let Some(sha) = &known
         && let Some(index) = cache.load(sha)
     {
+        return hit(index, false);
+    }
+    // Sem hash conhecido: o arquivo já visto é reconhecido pela identidade, lendo só o fim dele.
+    let identity = if known.is_none() {
+        file_identity(&jar.path)
+    } else {
+        None
+    };
+    if let Some(identity) = &identity
+        && let Some(sha) = cache.known_sha256(identity)
+        && let Some(index) = cache.load(&sha)
+    {
+        return hit(index, false);
+    }
+    // Lê o jar uma vez só: o hash e o índice saem dos mesmos bytes.
+    let bytes = read_file_capped(&jar.path, limits)?;
+    let sha = sha256_hex(&bytes);
+    let remember = |sha: &str| {
+        identity
+            .as_deref()
+            .is_some_and(|identity| cache.remember_sha256(identity, sha).is_err())
+    };
+    if let Some(index) = cache.load(&sha) {
+        let write_failed = remember(&sha);
         return Ok(Indexed {
             index,
             from_cache: true,
-            write_failed: false,
+            read: true,
+            write_failed,
         });
     }
-    let bytes = read_file_capped(&jar.path, limits)?;
-    let index = index_jar_bytes(&bytes, limits)?;
-    let write_failed = cache.is_some_and(|c| c.store(&index).is_err());
+    let index = index_jar_bytes_hashed(&bytes, sha, limits)?;
+    let write_failed = cache.store(&index).is_err() | remember(&index.sha256);
     Ok(Indexed {
         index,
         from_cache: false,
+        read: true,
         write_failed,
     })
-}
-
-fn hash_file(path: &Path) -> Result<String, Error> {
-    let read_error = |source| Error::Read {
-        path: path.to_owned(),
-        source,
-    };
-    let mut reader = BufReader::new(File::open(path).map_err(read_error)?);
-    let mut hasher = Sha256::new();
-    let mut buf = vec![0u8; 64 * 1024];
-    loop {
-        let n = reader.read(&mut buf).map_err(read_error)?;
-        if n == 0 {
-            break;
-        }
-        hasher.update(buf.get(..n).unwrap_or_default());
-    }
-    Ok(hex(&hasher.finalize()))
 }
