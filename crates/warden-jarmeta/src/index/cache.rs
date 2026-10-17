@@ -4,6 +4,12 @@
 //! outro [`INDEX_FORMAT`] ou de outro hash é ignorado (o índice é refeito e regravado); falhar ao
 //! gravar não impede o diagnóstico.
 //!
+//! Por isso as gravações do cache são diretas, sem `fsync` nem arquivo temporário renomeado
+//! ([`warden_core::atomic_write`]): um arquivo pela metade (queda no meio, leitura junto da
+//! gravação) não é um JSON nem um hash válido, e é ignorado como qualquer outro. No Windows, a
+//! gravação atômica de centenas de arquivos novos esperava o antivírus soltar cada temporário
+//! para renomear (A-04: 5,6 s para indexar 300 jars sem cache).
+//!
 //! Calcular o hash obriga a ler o jar inteiro (um pack de 400 mods passa de 1 GB), então o
 //! cache também guarda o hash de cada arquivo já visto, em `cache/jarindex/arquivos/<identidade>`:
 //! a identidade ([`file_identity`]) junta o tamanho, a data de modificação e o diretório central
@@ -80,7 +86,7 @@ impl JarIndexCache {
             .then_some(index)
     }
 
-    /// Grava o índice (atomicamente).
+    /// Grava o índice (direto, sem gravação atômica; veja o início do módulo).
     ///
     /// # Errors
     ///
@@ -101,7 +107,7 @@ impl JarIndexCache {
         let json = serde_json::to_vec(index).map_err(|e| {
             warden_core::CoreError::io("gravar", &path, std::io::Error::other(e.to_string()))
         })?;
-        warden_core::atomic_write(&path, &json)
+        write_cache_file(&path, &json)
     }
 
     /// O SHA-256 guardado para o arquivo com esta identidade ([`file_identity`]).
@@ -113,7 +119,7 @@ impl JarIndexCache {
         is_sha256(sha).then(|| sha.to_owned())
     }
 
-    /// Guarda o SHA-256 do arquivo com esta identidade (atomicamente).
+    /// Guarda o SHA-256 do arquivo com esta identidade (direto, como [`Self::store`]).
     ///
     /// # Errors
     ///
@@ -139,12 +145,17 @@ impl JarIndexCache {
             })?;
         std::fs::create_dir_all(&dir)
             .map_err(|e| warden_core::CoreError::io("criar a pasta", &dir, e))?;
-        warden_core::atomic_write(&path, sha256.as_bytes())
+        write_cache_file(&path, sha256.as_bytes())
     }
 
     fn identity_path(&self, identity: &str) -> Option<PathBuf> {
         is_sha256(identity).then(|| self.dir.join(FILES_DIR_NAME).join(identity))
     }
+}
+
+/// Grava um arquivo do cache: o que ficar pela metade é recusado na leitura.
+fn write_cache_file(path: &Path, bytes: &[u8]) -> Result<(), warden_core::CoreError> {
+    std::fs::write(path, bytes).map_err(|e| warden_core::CoreError::io("gravar", path, e))
 }
 
 /// Identidade de um jar no disco, sem ler o arquivo inteiro: SHA-256 do tamanho, da data de
@@ -260,6 +271,41 @@ mod tests {
         assert_eq!(cache.load(&sha), None);
         std::fs::write(&path, b"{").unwrap();
         assert_eq!(cache.load(&sha), None);
+    }
+
+    /// As gravações do cache não são atômicas: qualquer começo de um arquivo gravado (queda no
+    /// meio da gravação) tem de ser recusado na leitura.
+    #[test]
+    fn arquivo_pela_metade_e_recusado() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = JarIndexCache::in_cache_dir(dir.path());
+        let sha = "c".repeat(64);
+        let identity = "d".repeat(64);
+        cache.store(&index(&sha)).unwrap();
+        cache.remember_sha256(&identity, &sha).unwrap();
+        assert_eq!(cache.load(&sha), Some(index(&sha)));
+        assert_eq!(cache.known_sha256(&identity), Some(sha.clone()));
+
+        let index_path = cache.path_for(&sha).unwrap();
+        let full = std::fs::read(&index_path).unwrap();
+        for len in 0..full.len() {
+            std::fs::write(&index_path, &full[..len]).unwrap();
+            assert_eq!(
+                cache.load(&sha),
+                None,
+                "índice com {len} de {} bytes",
+                full.len()
+            );
+        }
+        let identity_path = cache.dir().join(FILES_DIR_NAME).join(&identity);
+        for len in 0..sha.len() {
+            std::fs::write(&identity_path, &sha.as_bytes()[..len]).unwrap();
+            assert_eq!(
+                cache.known_sha256(&identity),
+                None,
+                "hash com {len} caracteres"
+            );
+        }
     }
 
     #[test]
