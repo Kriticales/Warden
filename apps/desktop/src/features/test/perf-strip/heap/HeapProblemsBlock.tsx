@@ -1,6 +1,6 @@
 /**
  * "Memória no último teste" na seção Problemas (SPEC T13 "Achados automáticos" e T14; L-11): os
- * achados de memória (`W_LOW_HEAP`, `W_LONG_GC`, `I_HEAP_OVERSIZED`) do teste mais novo do
+ * achados de memória (`W_LOW_HEAP`, `I_HEAP_OVERSIZED`) do teste mais novo do
  * pack, pelo mecanismo da D-03 (registro `problems-blocks.ts`, `FindingCard` e as correções de
  * sempre: "Aumentar a memória do teste" abre Ajustes do teste). Valem até o próximo teste: o
  * fim de um teste relê a lista de sessões, e o bloco acompanha.

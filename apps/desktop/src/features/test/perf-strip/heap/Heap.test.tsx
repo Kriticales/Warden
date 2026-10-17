@@ -133,7 +133,6 @@ describe('números da memória do jogo no formato do pt-BR', () => {
         suggestedMb: '8192',
         seconds: '72',
         percent: '93',
-        gcMs: '8000',
         peakMb: '3072',
         outro: 'x',
       }),
@@ -142,7 +141,6 @@ describe('números da memória do jogo no formato do pt-BR', () => {
       sugerida: '8 GB',
       duracao: '1 min 12 s',
       percentual: '93%',
-      parado: '8,0 s',
       pico: '3 GB',
     });
     expect(memoryPhraseParams({ maxMb: 'abc' })).toEqual({});

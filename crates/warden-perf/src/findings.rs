@@ -15,11 +15,6 @@
 //!   coletas ficam seguidas e o jogo engasga até faltar memória. Um minuto separa um pico curto
 //!   (carregar um mundo) de um pack que não cabe. A sugestão é a memória automática do Warden
 //!   para o tamanho do pack, ou 2 GB a mais, a que for maior.
-//! - `W_LONG_GC` (aviso): num minuto inteiro do teste, o jogo fica parado em coletas
-//!   [`LONG_GC_PERCENT`]% do tempo ou mais. O G1 (o coletor do perfil do teste) mira em no
-//!   máximo 1/(1 + `GCTimeRatio`) = 1/13 ≈ 7,7% do tempo em coleta (`GCTimeRatio=12`, o padrão
-//!   dele na `HotSpot`); passar de 10% num minuto inteiro quer dizer que nem a meta do próprio
-//!   coletor ele alcança, e o jogo engasga. No ZGC e no Shenandoah o tempo é o das pausas.
 //! - `I_HEAP_OVERSIZED` (informação): mais de [`OVERSIZED_ABOVE_MB`] MB configurados e a memória
 //!   do jogo nunca passa de [`OVERSIZED_PEAK_PERCENT`]% do máximo (ARCHITECTURE §7.7). Só com o
 //!   jogo carregado e pelo menos [`OVERSIZED_MIN_READING`] de leitura: um teste fechado no menu
@@ -40,10 +35,6 @@ pub const LOW_HEAP_PERCENT: u64 = 90;
 pub const LOW_HEAP_FOR: Duration = Duration::from_secs(60);
 /// `W_LOW_HEAP`: quanto a sugestão soma à memória de agora, em MB.
 pub const LOW_HEAP_STEP_MB: u32 = 2048;
-/// `W_LONG_GC`: janela.
-pub const LONG_GC_WINDOW: Duration = Duration::from_secs(60);
-/// `W_LONG_GC`: tempo parado em coletas na janela, em %.
-pub const LONG_GC_PERCENT: u64 = 10;
 /// `I_HEAP_OVERSIZED`: memória configurada acima disto, em MB.
 pub const OVERSIZED_ABOVE_MB: u32 = 8192;
 /// `I_HEAP_OVERSIZED`: o pico nunca passa disto, em % do máximo.
@@ -57,8 +48,6 @@ pub const SERIES_LEN: usize = 20;
 
 /// Código de `W_LOW_HEAP`.
 pub const RULE_LOW_HEAP: &str = "W_LOW_HEAP";
-/// Código de `W_LONG_GC`.
-pub const RULE_LONG_GC: &str = "W_LONG_GC";
 /// Código de `I_HEAP_OVERSIZED`.
 pub const RULE_HEAP_OVERSIZED: &str = "I_HEAP_OVERSIZED";
 
@@ -151,15 +140,6 @@ impl LowHeap {
     }
 }
 
-/// O pior minuto em coletas.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct GcMinute {
-    /// Tempo parado no minuto, em ms.
-    gc_ms: u64,
-    /// Duração exata da janela medida, em ms (pelo menos 1 minuto).
-    window_ms: u64,
-}
-
 /// A memória do jogo ao longo de um teste.
 #[derive(Debug, Clone, Default)]
 pub struct HeapTracker {
@@ -176,9 +156,6 @@ pub struct HeapTracker {
     /// O trecho alto mais longo que passou de [`LOW_HEAP_FOR`].
     worst_high: Option<LowHeap>,
     peak_used: u64,
-    /// `(ms do teste, tempo total de coleta em ms)`, só o último minuto e pouco.
-    gc_history: VecDeque<(u64, u64)>,
-    worst_gc: Option<GcMinute>,
     /// `(coluna, maior valor em bytes)`.
     series: VecDeque<(u64, u64)>,
 }
@@ -236,7 +213,6 @@ impl HeapTracker {
                 self.worst_high = Some(*high);
             }
         }
-        self.gc_time(elapsed_ms, reading.gc_time_ms);
         self.series_point(elapsed_ms, self.shown_used());
     }
 
@@ -252,35 +228,6 @@ impl HeapTracker {
             high.worst_percent = high.worst_percent.max(share);
         } else {
             self.high = None;
-        }
-    }
-
-    /// O tempo parado em coletas no último minuto.
-    fn gc_time(&mut self, elapsed_ms: u64, total_gc_ms: u64) {
-        self.gc_history.push_back((elapsed_ms, total_gc_ms));
-        let window = ms(LONG_GC_WINDOW);
-        // Fica a amostra mais nova que ainda cobre o minuto inteiro, e as depois dela.
-        while self.gc_history.len() > 2
-            && self
-                .gc_history
-                .get(1)
-                .is_some_and(|&(at, _)| elapsed_ms.saturating_sub(at) >= window)
-        {
-            self.gc_history.pop_front();
-        }
-        if let Some(&(at, before)) = self.gc_history.front() {
-            let span = elapsed_ms.saturating_sub(at);
-            if span >= window {
-                let minute = GcMinute {
-                    gc_ms: total_gc_ms.saturating_sub(before),
-                    window_ms: span,
-                };
-                if self.worst_gc.is_none_or(|worst| {
-                    percent(minute.gc_ms, minute.window_ms) > percent(worst.gc_ms, worst.window_ms)
-                }) {
-                    self.worst_gc = Some(minute);
-                }
-            }
         }
     }
 
@@ -393,30 +340,6 @@ impl HeapTracker {
                 .with_param("suggestedMb", self.suggested_mb().to_string())
                 .with_param("percent", high.worst_percent.to_string())
                 .with_param("seconds", seconds.to_string())
-                .with_fix(SuggestedFix::ChangeMemory),
-            );
-        }
-        if let Some(minute) = self
-            .worst_gc
-            .filter(|minute| percent(minute.gc_ms, minute.window_ms) >= LONG_GC_PERCENT)
-        {
-            let share = percent(minute.gc_ms, minute.window_ms).to_string();
-            let pauses = self.info.is_some_and(|info| info.collector.counts_pauses());
-            findings.push(
-                finding(
-                    RULE_LONG_GC,
-                    Severity::Warning,
-                    context.session_id,
-                    "gcTime",
-                    [
-                        ("gcMs", minute.gc_ms.to_string()),
-                        ("percent", share.clone()),
-                    ],
-                )
-                .with_param("gcMs", minute.gc_ms.to_string())
-                .with_param("percent", share)
-                .with_param("maxMb", max_mb.to_string())
-                .with_param("pauses", pauses.to_string())
                 .with_fix(SuggestedFix::ChangeMemory),
             );
         }
@@ -603,33 +526,15 @@ mod tests {
     }
 
     #[test]
-    fn coletas_longas_num_minuto_geram_aviso() {
-        // 8 s parado em coletas em 60 s (13%).
-        let mut slow = tracker(4096);
+    fn muito_tempo_em_coletas_nao_e_achado() {
+        // 13% de um minuto parado em coletas (a carga de um pack grande pode ser assim) e a
+        // memória folgada depois delas: nenhum achado. A SPEC só tem o `W_LOW_HEAP` e o
+        // `I_HEAP_OVERSIZED` como achados automáticos de memória.
+        let mut busy = tracker(4096);
         for second in 0..=90u64 {
-            let gc_ms = if second <= 20 {
-                0
-            } else {
-                (second - 20) * 8000 / 60
-            };
-            slow.push(second * 1000, reading(2000, second, gc_ms), G1);
+            busy.push(second * 1000, reading(2000, second, second * 8000 / 60), G1);
         }
-        let findings = slow.findings(CONTEXT);
-        assert_eq!(rules(&findings), [RULE_LONG_GC]);
-        assert_eq!(findings[0].param("percent"), Some("13"));
-        assert_eq!(findings[0].param("pauses"), Some("false"));
-
-        // 4 s em 60 s (6%): sem aviso. E menos de 1 minuto de leitura também não conta.
-        let mut fine = tracker(4096);
-        for second in 0..=90u64 {
-            fine.push(second * 1000, reading(2000, second, second * 4000 / 60), G1);
-        }
-        assert!(fine.findings(CONTEXT).is_empty());
-        let mut short = tracker(4096);
-        for second in 0..50u64 {
-            short.push(second * 1000, reading(2000, second, second * 500), G1);
-        }
-        assert!(short.findings(CONTEXT).is_empty());
+        assert!(busy.findings(CONTEXT).is_empty());
     }
 
     #[test]

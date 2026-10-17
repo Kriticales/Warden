@@ -254,7 +254,7 @@ pub enum Evidence {
     Measurement {
         /// A sessão do teste em que foi medido (`2026-10-13_14-02-11`).
         session_id: String,
-        /// O que foi medido (`heapAfterGc`, `gcTime`, `heapPeak`).
+        /// O que foi medido (`heapAfterGc`, `heapPeak`).
         metric: String,
         /// Os números medidos, pelo nome (`percent`, `seconds`, `maxMb`…).
         values: BTreeMap<String, String>,

@@ -89,7 +89,6 @@ export const diagnostico = {
     medidas: {
       heapAfterGc:
         'Memória depois das coletas: {{percentual}} de {{memoria}}, por {{duracao}} seguidos.',
-      gcTime: 'Pior minuto: {{parado}} parado em coletas ({{percentual}} do tempo).',
       heapPeak: 'Maior uso da memória do jogo: {{pico}} de {{memoria}} ({{percentual}}).',
     },
   },
@@ -272,11 +271,6 @@ export const diagnostico = {
       titulo: 'O jogo está quase sem memória',
       texto:
         'Depois das coletas, ele continuou usando {{percentual}} dos {{memoria}} por {{duracao}}. Aumente para {{sugerida}} em Ajustes do teste.',
-    },
-    W_LONG_GC: {
-      titulo: 'O jogo ficou muito tempo parado limpando a memória',
-      texto:
-        'Num minuto do teste, ele ficou {{parado}} parado em coletas ({{percentual}} do tempo), e isso aparece como travadas. Mais memória em Ajustes do teste costuma resolver.',
     },
     I_HEAP_OVERSIZED: {
       titulo: 'Memória sobrando',

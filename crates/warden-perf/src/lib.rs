@@ -51,7 +51,7 @@ pub struct SessionPerf {
     /// Por que não houve leitura da memória do jogo (`None`: houve, ou a sessão é de antes da
     /// L-11).
     pub heap_unavailable: Option<HeapUnavailable>,
-    /// Os achados de memória do teste (`W_LOW_HEAP`, `W_LONG_GC`, `I_HEAP_OVERSIZED`).
+    /// Os achados de memória do teste (`W_LOW_HEAP`, `I_HEAP_OVERSIZED`).
     pub findings: Vec<warden_diagnostics::Finding>,
 }
 

@@ -2,7 +2,7 @@
  * Memória do jogo no Testar (SPEC T13; ARCHITECTURE §7.7; ROADMAP L-11): "Memória do jogo" e
  * "Coletas de memória" na faixa de desempenho, os avisos abaixo dela e o bloco "Memória no
  * último teste" da seção Problemas. Os títulos e as explicações dos achados (`W_LOW_HEAP`,
- * `W_LONG_GC`, `I_HEAP_OVERSIZED`) ficam no catálogo `diagnostico`, com os outros achados.
+ * `I_HEAP_OVERSIZED`) ficam no catálogo `diagnostico`, com os outros achados.
  */
 export const memoria = {
   faixa: {

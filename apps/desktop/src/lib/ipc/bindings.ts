@@ -2277,7 +2277,7 @@ excerpt: string } |
 { kind: "measurement"; 
 /**  A sessão do teste em que foi medido (`2026-10-13_14-02-11`). */
 sessionId: string; 
-/**  O que foi medido (`heapAfterGc`, `gcTime`, `heapPeak`). */
+/**  O que foi medido (`heapAfterGc`, `heapPeak`). */
 metric: string; 
 /**  Os números medidos, pelo nome (`percent`, `seconds`, `maxMb`…). */
 values: { [key in string]: string } };
@@ -6025,7 +6025,7 @@ export type SessionPerf = {
 	 *  L-11).
 	 */
 	heapUnavailable?: HeapUnavailable | null,
-	/**  Os achados de memória do teste (`W_LOW_HEAP`, `W_LONG_GC`, `I_HEAP_OVERSIZED`). */
+	/**  Os achados de memória do teste (`W_LOW_HEAP`, `I_HEAP_OVERSIZED`). */
 	findings?: Finding[],
 } & LoadTimes;
 

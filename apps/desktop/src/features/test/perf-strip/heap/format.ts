@@ -48,8 +48,7 @@ function number(value: string | undefined): number | null {
 /**
  * As frases dos achados e das evidências de memória com os números da sessão já formatados:
  * `maxMb` → `memoria` ("6 GB"), `suggestedMb` → `sugerida`, `seconds` → `duracao`
- * ("1 min 12 s"), `percent` → `percentual` ("93%"), `gcMs` → `parado` ("8,0 s") e `peakMb` →
- * `pico`. Só os que existem.
+ * ("1 min 12 s"), `percent` → `percentual` ("93%") e `peakMb` → `pico`. Só os que existem.
  */
 export function memoryPhraseParams(
   values: Partial<Record<string, string>>,
@@ -59,13 +58,11 @@ export function memoryPhraseParams(
   const suggested = number(values.suggestedMb);
   const seconds = number(values.seconds);
   const percent = number(values.percent);
-  const gcMs = number(values.gcMs);
   const peak = number(values.peakMb);
   if (maxMb !== null) out.memoria = formatMemory(maxMb);
   if (suggested !== null) out.sugerida = formatMemory(suggested);
   if (seconds !== null) out.duracao = formatDuration(seconds * 1000);
   if (percent !== null) out.percentual = `${COUNT_FORMAT.format(percent)}%`;
-  if (gcMs !== null) out.parado = gcTimeText(gcMs);
   if (peak !== null) out.pico = formatMemory(peak);
   return out;
 }
