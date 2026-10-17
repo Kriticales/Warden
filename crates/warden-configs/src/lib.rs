@@ -17,6 +17,7 @@
 
 mod annotations;
 mod compare;
+pub mod defaults;
 mod document;
 mod error;
 mod format;

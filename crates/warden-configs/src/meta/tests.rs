@@ -93,7 +93,8 @@ fn padrao_explicito_e_deduzido() {
         field(&form, "a").default,
         Some(FieldDefault {
             value: "2.0".into(),
-            inferred: false
+            inferred: false,
+            source: DefaultSource::SpecComment,
         })
     );
     assert_eq!(field(&form, "a").description.as_deref(), Some("Velocidade"));
@@ -101,10 +102,15 @@ fn padrao_explicito_e_deduzido() {
         field(&form, "b").default,
         Some(FieldDefault {
             value: "20".into(),
-            inferred: true
+            inferred: true,
+            source: DefaultSource::CommentPhrase,
         })
     );
     assert_eq!(field(&form, "c").default, None);
+    // Só o padrão da camada A conta para "alterado" (C-06, CA-T12-09).
+    assert_eq!(field(&form, "a").default_state, DefaultState::Changed);
+    assert_eq!(field(&form, "b").default_state, DefaultState::Unknown);
+    assert_eq!(field(&form, "c").default_state, DefaultState::Unknown);
 }
 
 #[test]

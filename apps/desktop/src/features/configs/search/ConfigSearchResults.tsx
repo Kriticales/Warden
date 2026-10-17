@@ -2,7 +2,9 @@
  * Os resultados de "Buscar em todas as configs" (SPEC T12; protótipo `configs-busca`): no
  * lugar do editor enquanto a busca está ativa, agrupados por arquivo ("8 resultados em 5
  * arquivos"), com a chave, o valor e o trecho do comentário, e os trechos que casaram
- * destacados. Clicar abre o arquivo na linha da chave. Filtro "Só deste mod".
+ * destacados. Clicar abre o arquivo na linha da chave. Filtro "Só deste mod"; o filtro "Só o
+ * que mudou do padrão" (C-06) vem da página, e cada chave alterada leva a marca "Mudou do
+ * padrão".
  *
  * A busca espera a última tecla (`TYPING_DELAY_MS`); a resposta anterior continua na tela
  * até a nova chegar, e o Rust cancela a busca que ficou para trás.
@@ -30,6 +32,8 @@ export interface ConfigSearchResultsProps {
   origin: ConfigOrigin;
   /** O texto do campo (a espera da última tecla é feita aqui). */
   query: string;
+  /** "Só o que mudou do padrão" (C-06). */
+  onlyChanged?: boolean;
   onOpen: (path: string, line: number) => void;
   onClear: () => void;
 }
@@ -61,6 +65,7 @@ function Hit({
   onOpen: (path: string, line: number) => void;
 }) {
   const { t } = useTranslation('configsBusca');
+  const { t: tp } = useTranslation('configsPadrao');
   const context = hit.comment ?? (hit.key ? null : hit.text);
   return (
     <button
@@ -91,6 +96,11 @@ function Hit({
           t('linha', { linha: NUMBER.format(hit.line) })
         )}
       </span>
+      {hit.changed ? (
+        <span className="hit__chg">
+          <span className="tag tag--warn">{tp('busca.marca')}</span>
+        </span>
+      ) : null}
       {context ? (
         <span className={hit.key ? 'hit__ctx' : 'hit__ctx t-mono'}>
           <Marked text={context} />
@@ -139,15 +149,17 @@ export function ConfigSearchResults({
   packId,
   origin,
   query,
+  onlyChanged = false,
   onOpen,
   onClear,
 }: ConfigSearchResultsProps) {
   const { t } = useTranslation('configsBusca');
+  const { t: tp } = useTranslation('configsPadrao');
   const typed = query.trim();
   const settledText = useSettledText(typed);
   const settled = settledText ?? typed;
   const [modId, setModId] = useState<string | null>(null);
-  const search = useConfigSearch(packId, origin, settled, modId, settledText !== null);
+  const search = useConfigSearch(packId, origin, settled, modId, settledText !== null, onlyChanged);
   const response = search.data;
   const results = response?.cancelled ? null : (response?.results ?? null);
   const busy = settledText !== typed || search.isPlaceholderData || response?.cancelled;
@@ -156,6 +168,8 @@ export function ConfigSearchResults({
   const shownHits = results?.groups.reduce((sum, group) => sum + group.hits.length, 0) ?? 0;
   // A busca que gerou o que está na tela (a anterior, enquanto a nova não chega).
   const label = response?.query ?? settled;
+  // Só o filtro, sem texto: a lista das chaves alteradas.
+  const changedList = onlyChanged && label === '';
 
   return (
     <section className="panel cfg-search" aria-labelledby="cfg-search-title" aria-busy={busy}>
@@ -164,13 +178,20 @@ export function ConfigSearchResults({
           <h2 className="panel__title panel__title--sans" id="cfg-search-title" aria-live="polite">
             {!results
               ? t('buscando')
-              : results.totalHits === 0
-                ? t('nada', { busca: label })
-                : t('titulo', {
-                    resultados: t('resultados', { count: results.totalHits }),
-                    arquivos: t('arquivos', { count: results.totalFiles }),
-                    busca: label,
-                  })}
+              : changedList
+                ? results.totalHits === 0
+                  ? tp('busca.nada')
+                  : tp('busca.titulo', {
+                      resultados: tp('busca.resultados', { count: results.totalHits }),
+                      arquivos: tp('busca.arquivos', { count: results.totalFiles }),
+                    })
+                : results.totalHits === 0
+                  ? t('nada', { busca: label })
+                  : t('titulo', {
+                      resultados: t('resultados', { count: results.totalHits }),
+                      arquivos: t('arquivos', { count: results.totalFiles }),
+                      busca: label,
+                    })}
           </h2>
           <p className="t-xs t-3 cfg-search__help">{t('ajuda')}</p>
         </div>
@@ -224,7 +245,7 @@ export function ConfigSearchResults({
       ) : !results ? (
         <LoadingState label={t('buscando')} />
       ) : results.groups.length === 0 ? (
-        <p className="t-sm t-2">{t('nadaTexto')}</p>
+        <p className="t-sm t-2">{onlyChanged ? tp('busca.nadaTexto') : t('nadaTexto')}</p>
       ) : (
         <>
           <div className="hits">

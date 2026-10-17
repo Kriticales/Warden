@@ -169,6 +169,12 @@ export const commands = {
 	 *  arquivo e gravar com o `hash` novo, por escolha explícita da pessoa.
 	 */
 	configWrite: (packId: PackId, origin: ConfigOrigin, path: string, text: string, expectedHash: string) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_write", { packId, origin, path, text, expectedHash })),
+	/**
+	 *  O texto com o padrão nas chaves `keys` (caminho como o formulário mostra) ou, sem `keys`,
+	 *  em todas as chaves diferentes do padrão. Erros: `configs.KEY_NOT_EDITABLE` para chave sem
+	 *  padrão conhecido ou já no padrão; os da edição pelo formulário.
+	 */
+	configRestoreDefault: (path: string, text: string, keys: string[] | null) => typedError<RestoredDefaults, AppError>(__TAURI_INVOKE("config_restore_default", { path, text, keys })),
 	/**  O formulário de `path` com o texto atual do editor (que pode ter alterações não salvas). */
 	configForm: (packId: PackId, path: string, text: string) => typedError<ConfigForm, AppError>(__TAURI_INVOKE("config_form", { packId, path, text })),
 	/**
@@ -186,7 +192,7 @@ export const commands = {
 	 */
 	configCopyToDefaultconfigs: (packId: PackId, path: string, overwrite: boolean) => typedError<CopyOutcome, AppError>(__TAURI_INVOKE("config_copy_to_defaultconfigs", { packId, path, overwrite })),
 	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
-	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId })),
+	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null, onlyChanged: boolean) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId, onlyChanged })),
 	/**  "Verificar agora": confere o pack e grava o relatório. */
 	diagnosticsRun: (packId: PackId) => typedError<DiagnosticsReport, AppError>(__TAURI_INVOKE("diagnostics_run", { packId })),
 	/**  O último relatório do pack (`None`: nunca verificado neste computador). */
@@ -1445,6 +1451,10 @@ export type ConfigField = {
 	range: FieldRange | null,
 	/**  Padrão. */
 	default: FieldDefault | null,
+	/**  O valor comparado ao padrão da camada A (C-06): sem padrão conhecido, `unknown`. */
+	defaultState: DefaultState,
+	/**  O valor está fora da faixa ou dos valores permitidos que o arquivo declara (C-06). */
+	outOfRange: boolean,
 	/**  Rótulo do jar. */
 	label: FieldLabel | null,
 };
@@ -1538,6 +1548,8 @@ export type ConfigSearchHit = {
 	comment: MarkedText | null,
 	/**  A linha inteira, nos arquivos sem leitor estruturado. */
 	text: MarkedText | null,
+	/**  O valor é diferente do padrão que o arquivo informa (C-06). */
+	changed: boolean,
 };
 
 /**  Um mod com resultados, para o filtro "Só deste mod". */
@@ -1796,6 +1808,24 @@ export type CurseforgeErrorCode =
 "REQUEST_REJECTED" | 
 /**  A CurseForge respondeu algo que o Warden não entende. */
 "INVALID_RESPONSE";
+
+/**  De onde veio o padrão de uma chave. */
+export type DefaultSource = 
+/**  Linha `Default: X` do comentário (NeoForge). */
+"specComment" | 
+/**  Trecho `[default: X]` do comentário (`Configuration` do Forge antigo). */
+"legacyComment" | 
+/**  Frase do comentário ("Defaults to X"): deduzido, não conta como padrão conhecido. */
+"commentPhrase";
+
+/**  O valor de uma chave comparado ao padrão. */
+export type DefaultState = 
+/**  Sem padrão conhecido (ou padrão que não se lê no tipo da chave). */
+"unknown" | 
+/**  Igual ao padrão. */
+"same" | 
+/**  Diferente do padrão. */
+"changed";
 
 /**  O projeto que resolve uma dependência que falta. */
 export type DependencyCandidate = {
@@ -2238,6 +2268,11 @@ export type FieldDefault = {
 	value: string,
 	/**  Tirado de uma frase do comentário (camada 3), não de um metadado do arquivo. */
 	inferred: boolean,
+	/**
+	 *  De onde veio (C-06): `Default:` do NeoForge, `[default: …]` do Forge antigo ou frase
+	 *  do comentário.
+	 */
+	source: DefaultSource,
 };
 
 /**  Um passo do caminho de uma chave, como a interface manda e recebe. */
@@ -5169,6 +5204,14 @@ export type RestoreReport = {
 	 *  instante); a limpeza de sobras `.warden-tmp` os apaga depois.
 	 */
 	leftoverTempFiles: string[],
+};
+
+/**  O que "Restaurar padrão" fez. */
+export type RestoredDefaults = {
+	/**  O texto com os padrões (igual ao de entrada se nada mudou). */
+	text: string,
+	/**  As chaves restauradas, como o formulário mostra (`kinetics.maxBeltLength`). */
+	keys: string[],
 };
 
 /**

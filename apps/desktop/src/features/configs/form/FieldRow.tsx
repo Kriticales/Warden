@@ -6,6 +6,9 @@
  * Texto e números são aplicados ao sair do campo ou com Enter; liga/desliga, opções e cor, na
  * hora. Número que não serve ou fora da faixa que o arquivo declara fica com o erro no próprio
  * campo e não é aplicado.
+ *
+ * Padrões (C-06, `./defaults/`): "padrão: X" com a origem (ou "padrão desconhecido"), a marca
+ * "alterado", o erro do valor do arquivo fora da faixa e **Restaurar padrão**.
  */
 import { CircleAlert } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -14,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '../../../components/ui/icon';
 import type { ConfigField, FormValue } from '../../../lib/ipc/bindings';
 import { Switch } from '../../settings/components/fields';
+import { ChangedMark, DefaultLine, RangeError, RestoreButton } from './defaults/DefaultInfo';
 import {
   checkNumber,
   fieldName,
@@ -27,6 +31,8 @@ import {
 export interface FieldRowProps {
   field: ConfigField;
   onEdit: (field: ConfigField, value: FormValue) => void;
+  /** "Restaurar padrão" desta chave (C-06). */
+  onRestore: (field: ConfigField) => void;
 }
 
 function Meta({ field, id }: { field: ConfigField; id: string }) {
@@ -41,10 +47,13 @@ function Meta({ field, id }: { field: ConfigField; id: string }) {
             idioma: t(field.label.locale === 'ptBr' ? 'campo.idioma_ptBr' : 'campo.idioma_enUs'),
           })}
         >
-          {field.label.text}
+          {field.label.text} <ChangedMark field={field} />
         </div>
       ) : null}
-      <div className="cfgform__key">{field.key}</div>
+      <div className="cfgform__key">
+        {field.key}
+        {field.label ? null : <ChangedMark field={field} />}
+      </div>
       <div className="cfgform__desc" id={`${id}-desc`}>
         {field.label?.tooltip ? <p>{field.label.tooltip}</p> : null}
         {field.description ? <p className="cfgform__comment">{field.description}</p> : null}
@@ -68,24 +77,12 @@ function Meta({ field, id }: { field: ConfigField; id: string }) {
           </p>
         ) : null}
       </div>
-      {field.default ? (
-        <div className="cfgform__def">
-          {t('campo.padrao', { valor: field.default.value })}
-          {field.default.inferred ? (
-            <>
-              {' '}
-              <span className="tag tag--plain" title={t('campo.deduzidoDica')}>
-                {t('campo.deduzido')}
-              </span>
-            </>
-          ) : null}
-        </div>
-      ) : null}
+      <DefaultLine field={field} />
     </>
   );
 }
 
-export function FieldRow({ field, onEdit }: FieldRowProps) {
+export function FieldRow({ field, onEdit, onRestore }: FieldRowProps) {
   const { t } = useTranslation('configsFormulario');
   const id = useId();
   const name = fieldName(field);
@@ -119,7 +116,12 @@ export function FieldRow({ field, onEdit }: FieldRowProps) {
   };
 
   const errorId = `${id}-err`;
-  const described = [problem ? errorId : '', `${id}-desc`].filter(Boolean).join(' ');
+  const rangeId = `${id}-range`;
+  // O valor que já está no arquivo fora da faixa (C-06); o erro do que se digita vale mais.
+  const fileError = problem === null && field.outOfRange;
+  const described = [problem ? errorId : '', fileError ? rangeId : '', `${id}-desc`]
+    .filter(Boolean)
+    .join(' ');
   const control = field.control;
   let input;
   switch (control.type) {
@@ -206,7 +208,7 @@ export function FieldRow({ field, onEdit }: FieldRowProps) {
           name={name}
           described={described}
           draft={draft}
-          invalid={problem !== null}
+          invalid={problem !== null || fileError}
           numeric={control.type === 'number'}
           onDraft={setDraft}
           onSubmit={submit}
@@ -216,7 +218,16 @@ export function FieldRow({ field, onEdit }: FieldRowProps) {
   }
 
   return (
-    <div className={problem ? 'cfgform__row cfgform__row--error' : 'cfgform__row'}>
+    <div
+      data-key={field.key}
+      className={[
+        'cfgform__row',
+        field.defaultState === 'changed' ? 'cfgform__row--changed' : '',
+        problem || fileError ? 'cfgform__row--error' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="cfgform__info">
         <Meta field={field} id={id} />
         {control.type === 'list' ? (
@@ -233,9 +244,14 @@ export function FieldRow({ field, onEdit }: FieldRowProps) {
                 : t(`campo.${problem}`)}
             </span>
           </div>
+        ) : fileError ? (
+          <RangeError field={field} id={rangeId} />
         ) : null}
       </div>
       <div className="cfgform__ctl">{input}</div>
+      <div className="cfgform__act">
+        <RestoreButton field={field} onRestore={onRestore} />
+      </div>
     </div>
   );
 }

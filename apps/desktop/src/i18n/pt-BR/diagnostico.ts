@@ -103,7 +103,7 @@ export const diagnostico = {
     memoria: 'Aumentar a memória do teste',
     argumento: 'Tirar {{argumento}} dos argumentos',
     config: 'Abrir {{caminho}} em Configs',
-    padrao: 'Abrir {{caminho}} em Configs',
+    padrao: 'Restaurar padrão de {{chave}}',
   },
   ajuda: {
     corrigido: 'Pronto. O Warden verifica o pack de novo.',
@@ -401,6 +401,21 @@ export const diagnostico = {
       titulo: 'O próprio Java caiu',
       texto:
         'Costuma ser falta de memória do computador, driver de vídeo ou um mod com código nativo. O relatório do Java diz onde caiu.',
+    },
+    configForaDaFaixa: {
+      titulo: '{{config_key}} = {{config_value}} está fora do que o mod aceita ({{config_limit}})',
+      texto:
+        'Em {{config_file}}. Quando o jogo abrir, ele troca o valor por {{config_default}}, o padrão, sem avisar. Restaure o padrão ou corrija o valor em Configs.',
+    },
+    configForaDaFaixaSemPadrao: {
+      titulo: '{{config_key}} = {{config_value}} está fora do que o mod aceita ({{config_limit}})',
+      texto:
+        'Em {{config_file}}. Quando o jogo abrir, ele troca o valor pelo padrão do mod sem avisar. Corrija o valor em Configs.',
+    },
+    configResetada: {
+      titulo: 'O jogo trocou um valor da sua config pelo padrão ({{config_key}})',
+      texto:
+        'O valor {{config_value}} estava fora da faixa ou do tipo que o mod aceita, e o jogo usou {{config_default}} no lugar. Confira a config em Configs: a mudança pode ter sido gravada no arquivo da instância de teste.',
     },
     configCorrompida: {
       titulo: 'Uma config não pôde ser lida ({{config}})',

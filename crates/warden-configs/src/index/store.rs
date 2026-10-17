@@ -159,9 +159,12 @@ impl ConfigIndex {
             truncated: false,
             mods: Vec::new(),
         };
-        let Some(compiled) = CompiledQuery::new(&query.text) else {
+        // Sem texto, só o filtro "Só o que mudou do padrão" lista alguma coisa: todas as chaves
+        // alteradas.
+        let compiled = CompiledQuery::new(&query.text);
+        if compiled.is_none() && !query.only_changed {
             return Some(results);
-        };
+        }
         let mut matcher = new_matcher();
         let mut mods: BTreeMap<&str, u32> = BTreeMap::new();
         let mut scored: Vec<Scored<'_>> = Vec::new();
@@ -173,7 +176,14 @@ impl ConfigIndex {
                 if checked.is_multiple_of(CANCEL_CHECK_EVERY) && cancel.is_cancelled() {
                     return None;
                 }
-                if let Some(found) = compiled.matches(entry, &mut matcher) {
+                if query.only_changed && !entry.changed {
+                    continue;
+                }
+                let found = match &compiled {
+                    Some(compiled) => compiled.matches(entry, &mut matcher),
+                    None => Some(EntryMatch::whole_key()),
+                };
+                if let Some(found) = found {
                     hits.push((entry, found));
                 }
             }
@@ -259,6 +269,7 @@ fn to_hit(entry: &IndexEntry, found: &EntryMatch) -> ConfigSearchHit {
             .text
             .as_ref()
             .map(|text| marked(text, &found.text, true)),
+        changed: entry.changed,
     }
 }
 
@@ -430,6 +441,53 @@ mod tests {
             search(&index, &SearchQuery::new("pt_br")).groups[0].path,
             "options.txt"
         );
+    }
+
+    #[test]
+    fn so_o_que_mudou_do_padrao() {
+        // C-06 (CA-T12-09 na busca): só as chaves diferentes do padrão que o arquivo informa.
+        let index = index_with(&[
+            (
+                "config/create-server.toml",
+                "[a]\n\t# Default: 20\n\t# Range: > 5\n\tspawnTimer = 40\n\t# Default: 9\n\tspawnMax = 9\n\tspawnFree = 3\n",
+            ),
+            (
+                "config/badmobs.cfg",
+                "general {\n    # Liga [default: false]\n    B:spawnRemove=true\n}\n",
+            ),
+            ("options.txt", "spawnSomething:8\n"),
+        ]);
+        let all = search(&index, &SearchQuery::new("spawn"));
+        assert_eq!(all.total_hits, 5);
+        let changed = search(&index, &SearchQuery::new("spawn").only_changed(true));
+        let keys: Vec<(&str, String, bool)> = changed
+            .groups
+            .iter()
+            .flat_map(|g| {
+                g.hits
+                    .iter()
+                    .map(|h| (g.path.as_str(), h.key.as_ref().unwrap().plain(), h.changed))
+            })
+            .collect();
+        assert_eq!(
+            keys,
+            [
+                ("config/badmobs.cfg", "general.spawnRemove".to_owned(), true),
+                ("config/create-server.toml", "a.spawnTimer".to_owned(), true),
+            ]
+        );
+        // Sem texto: todas as alteradas; sem o filtro, o texto vazio não lista nada.
+        assert_eq!(
+            search(&index, &SearchQuery::new("").only_changed(true)).total_hits,
+            2
+        );
+        assert_eq!(search(&index, &SearchQuery::new("")).total_hits, 0);
+        let marked: Vec<bool> = all
+            .groups
+            .iter()
+            .flat_map(|g| g.hits.iter().map(|h| h.changed))
+            .collect();
+        assert_eq!(marked.iter().filter(|c| **c).count(), 2);
     }
 
     #[test]

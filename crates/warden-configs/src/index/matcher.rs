@@ -61,6 +61,21 @@ pub(crate) struct EntryMatch {
     pub(crate) text: Vec<u32>,
 }
 
+impl EntryMatch {
+    /// Uma chave mostrada sem busca por texto (o filtro "Só o que mudou do padrão" sozinho).
+    pub(crate) fn whole_key() -> Self {
+        Self {
+            score: 0,
+            field: HitField::Key,
+            key: Vec::new(),
+            label: Vec::new(),
+            comment: Vec::new(),
+            value: Vec::new(),
+            text: Vec::new(),
+        }
+    }
+}
+
 /// Tira os acentos (á → a, ç → c) e passa para minúsculas, como o `nucleo-matcher` faz com o
 /// texto do arquivo.
 fn fold(word: &str) -> String {
@@ -245,6 +260,7 @@ mod tests {
             comment: comment.map(Haystack::new),
             value: value.map(Haystack::new),
             text: None,
+            changed: false,
         }
     }
 

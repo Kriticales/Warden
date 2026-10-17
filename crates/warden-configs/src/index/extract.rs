@@ -3,6 +3,7 @@
 
 use std::path::Path;
 
+use crate::defaults::{DefaultState, entry_state};
 use crate::format::ConfigFormat;
 use crate::tree::{ConfigValue, EntryKind};
 use crate::{ConfigDocument, MAX_STRUCTURED_BYTES};
@@ -56,6 +57,8 @@ pub(crate) struct IndexEntry {
     pub(crate) value: Option<Haystack>,
     /// A linha, nos arquivos sem leitor estruturado.
     pub(crate) text: Option<Haystack>,
+    /// O valor é diferente do padrão que o arquivo informa (C-06, camada A).
+    pub(crate) changed: bool,
 }
 
 /// Como o arquivo foi lido.
@@ -74,12 +77,12 @@ pub(crate) fn extract(path: &str, bytes: &[u8]) -> (Extraction, Vec<IndexEntry>)
         && let Some(format) = ConfigFormat::detect(Path::new(path), bytes)
         && let Ok(document) = ConfigDocument::parse(format, bytes)
     {
-        return (Extraction::Keys(format), keys(&document));
+        return (Extraction::Keys(format), keys(format, &document));
     }
     (Extraction::Lines, lines(bytes))
 }
 
-fn keys(document: &ConfigDocument) -> Vec<IndexEntry> {
+fn keys(format: ConfigFormat, document: &ConfigDocument) -> Vec<IndexEntry> {
     document
         .tree()
         .entries
@@ -102,6 +105,7 @@ fn keys(document: &ConfigDocument) -> Vec<IndexEntry> {
                     .map(|text| Haystack::new(&cut(&text, MAX_COMMENT_CHARS))),
                 value: value.map(|text| Haystack::new(&cut(&text, MAX_FIELD_CHARS))),
                 text: None,
+                changed: entry_state(format, entry) == DefaultState::Changed,
             }
         })
         .collect()
@@ -125,6 +129,7 @@ fn lines(bytes: &[u8]) -> Vec<IndexEntry> {
                 comment: None,
                 value: None,
                 text: Some(Haystack::new(&cut(trimmed, MAX_FIELD_CHARS))),
+                changed: false,
             })
         })
         .collect()

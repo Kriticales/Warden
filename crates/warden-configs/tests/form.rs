@@ -9,6 +9,7 @@ mod common;
 use std::io::Write as _;
 
 use common::{corpus_root, folder, samples};
+use warden_configs::defaults::DefaultSource;
 use warden_configs::meta::{
     ConfigField, ConfigForm, FieldControl, FieldDefault, FieldKey, FormAvailability, FormEdit,
     FormItem, FormValue, ListItemKind, apply_form_edits, build_form,
@@ -240,7 +241,8 @@ fn ca_t12_08_controle_faixa_padrao_e_rotulo_do_jar() {
         increment.default,
         Some(FieldDefault {
             value: "0.3".into(),
-            inferred: false
+            inferred: false,
+            source: DefaultSource::SpecComment,
         })
     );
     assert_eq!(

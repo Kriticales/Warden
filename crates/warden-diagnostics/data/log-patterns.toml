@@ -1041,6 +1041,32 @@ regex = 'com\.electronwill\.nightconfig\.core\.io\.ParsingException: (?P<detail>
 key = []
 fallback = true
 
+[[pattern]]
+id = "config.incorrect_key_corrected"
+origin = "R5B §2.3 (ModConfigSpec.java); Warden: log real do servidor Forge 1.20.1-47.4.0"
+note = "Forge/NeoForge (ForgeConfigSpec/ModConfigSpec): o valor estava fora da faixa ou do tipo e o jogo trocou pelo padrão. `from null` é chave que faltava (config nova ou mod atualizado): não conta."
+rule = "W_CONFIG_RESET"
+severity = "warning"
+title_key = "diagnostico.achados.configResetada"
+class = "generic"
+weight = 20
+regex = 'Incorrect key (?P<config_key>.+?) was corrected from (?P<config_value>.*?) to its default, (?P<config_default>.*?)\.(?: This seems to be an error\.)?\s*$'
+except = { config_value = ["null"] }
+key = ["config_key"]
+
+[[pattern]]
+id = "config.fml_incorrect_key"
+origin = "Warden: log real do servidor NeoForge 21.1.252 (FMLConfig do FancyModLoader)"
+note = "NeoForge/Forge: o fml.toml tinha um valor errado e o loader trocou pelo padrão. `from null` é chave que faltava: não conta."
+rule = "W_CONFIG_RESET"
+severity = "warning"
+title_key = "diagnostico.achados.configResetada"
+class = "generic"
+weight = 20
+regex = 'Incorrect key \[(?P<config_key>[^\]]+)\] was corrected from (?P<config_value>.*?) to (?P<config_default>.*?)\s*$'
+except = { config_value = ["null"] }
+key = ["config_key"]
+
 # ---------------------------------------------------------------------------------------------
 # Classes que faltam (R2 #35)
 # ---------------------------------------------------------------------------------------------

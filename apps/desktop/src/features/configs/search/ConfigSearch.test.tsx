@@ -64,6 +64,7 @@ function hit(line: number, key: string, value: string, comment?: string): Config
     value: { parts: [{ text: value, marked: false }] },
     comment: comment ? mark(comment) : null,
     text: null,
+    changed: false,
   };
 }
 

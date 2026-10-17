@@ -32,6 +32,8 @@ function field(value: ConfigField['value']): ConfigField {
     description: null,
     range: null,
     default: null,
+    defaultState: 'unknown',
+    outOfRange: false,
     label: null,
   };
 }

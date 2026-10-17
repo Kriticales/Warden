@@ -87,6 +87,8 @@ pub struct ConfigSearchHit {
     pub comment: Option<MarkedText>,
     /// A linha inteira, nos arquivos sem leitor estruturado.
     pub text: Option<MarkedText>,
+    /// O valor é diferente do padrão que o arquivo informa (C-06).
+    pub changed: bool,
 }
 
 /// Os resultados de um arquivo.
@@ -152,6 +154,9 @@ pub struct SearchQuery {
     pub text: String,
     /// "Só deste mod": só os arquivos com este id.
     pub mod_id: Option<String>,
+    /// "Só o que mudou do padrão" (C-06): só as chaves diferentes do padrão que o arquivo
+    /// informa. Com o texto vazio, lista todas elas.
+    pub only_changed: bool,
     /// Máximo de resultados devolvidos ao todo.
     pub max_hits: usize,
     /// Máximo de resultados devolvidos por arquivo.
@@ -165,6 +170,7 @@ impl SearchQuery {
         Self {
             text: text.into(),
             mod_id: None,
+            only_changed: false,
             max_hits: 500,
             max_hits_per_file: 50,
         }
@@ -174,6 +180,13 @@ impl SearchQuery {
     #[must_use]
     pub fn with_mod(mut self, mod_id: Option<String>) -> Self {
         self.mod_id = mod_id;
+        self
+    }
+
+    /// Com o filtro "Só o que mudou do padrão".
+    #[must_use]
+    pub fn only_changed(mut self, only_changed: bool) -> Self {
+        self.only_changed = only_changed;
         self
     }
 }

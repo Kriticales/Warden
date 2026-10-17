@@ -259,6 +259,7 @@ pub(crate) async fn config_search(
     origin: ConfigOrigin,
     query: String,
     mod_id: Option<String>,
+    only_changed: bool,
 ) -> Result<ConfigSearchResponse, AppError> {
     let root = origin_root(&state, pack_id, origin)?;
     search_impl(
@@ -267,10 +268,20 @@ pub(crate) async fn config_search(
         origin,
         root,
         &query,
-        mod_id,
+        SearchFilters {
+            mod_id,
+            only_changed,
+        },
         app_sink(app),
     )
     .await
+}
+
+/// Os filtros da busca: "Só deste mod" e "Só o que mudou do padrão" (C-06).
+#[derive(Debug, Default)]
+struct SearchFilters {
+    mod_id: Option<String>,
+    only_changed: bool,
 }
 
 async fn search_impl(
@@ -279,12 +290,14 @@ async fn search_impl(
     origin: ConfigOrigin,
     root: PathBuf,
     query: &str,
-    mod_id: Option<String>,
+    filters: SearchFilters,
     sink: ChangeSink,
 ) -> Result<ConfigSearchResponse, AppError> {
     let index = hub.index(pack_id, origin, root, sink);
     let text: String = query.trim().chars().take(MAX_QUERY_CHARS).collect();
-    if text.is_empty() {
+    // Texto vazio só prepara o índice, a não ser com "Só o que mudou do padrão", que então
+    // lista todas as chaves alteradas.
+    if text.is_empty() && !filters.only_changed {
         return Ok(ConfigSearchResponse {
             status: index.status(),
             results: None,
@@ -292,7 +305,9 @@ async fn search_impl(
         });
     }
     let token = hub.begin_search(pack_id, origin);
-    let search = SearchQuery::new(text).with_mod(mod_id.filter(|id| !id.is_empty()));
+    let search = SearchQuery::new(text)
+        .with_mod(filters.mod_id.filter(|id| !id.is_empty()))
+        .only_changed(filters.only_changed);
     tauri::async_runtime::spawn_blocking(move || {
         let status = index.status();
         let results = index.search(&search, &token);
@@ -328,6 +343,7 @@ mod tests {
         pack_id: PackId,
         root: &Path,
         text: &str,
+        only_changed: bool,
         sink: &ChangeSink,
         check: impl Fn(&ConfigSearchResponse) -> bool,
     ) -> ConfigSearchResponse {
@@ -339,7 +355,10 @@ mod tests {
                 ConfigOrigin::Pack,
                 root.to_path_buf(),
                 text,
-                None,
+                SearchFilters {
+                    mod_id: None,
+                    only_changed,
+                },
                 Arc::clone(sink),
             )
             .await
@@ -372,14 +391,14 @@ mod tests {
             ConfigOrigin::Pack,
             root.clone(),
             "  ",
-            None,
+            SearchFilters::default(),
             Arc::clone(&sink),
         )
         .await
         .unwrap();
         assert!(prepared.results.is_none() && !prepared.cancelled);
 
-        let found = search_until(&hub, pack_id, &root, "spawn", &sink, |r| {
+        let found = search_until(&hub, pack_id, &root, "spawn", false, &sink, |r| {
             r.results.as_ref().is_some_and(|r| r.total_hits > 0)
         })
         .await;
@@ -390,13 +409,40 @@ mod tests {
         assert_eq!(results.groups[0].mod_id.as_deref(), Some("mobs"));
 
         fs::write(root.join("config/mobs-common.toml"), "despawnRate = 5\n").unwrap();
-        search_until(&hub, pack_id, &root, "despawn", &sink, |r| {
+        search_until(&hub, pack_id, &root, "despawn", false, &sink, |r| {
             r.results.as_ref().is_some_and(|r| r.total_hits == 1)
         })
         .await;
         let changes = lock(&seen).clone();
         assert!(changes[0].first && changes[0].pack_id == pack_id);
         assert!(changes.iter().any(|c| !c.first && c.changed_files == 1));
+    }
+
+    #[tokio::test]
+    async fn so_o_que_mudou_do_padrao_lista_as_alteradas_mesmo_sem_texto() {
+        // C-06: o filtro sozinho (texto vazio) lista as chaves diferentes do `Default:`.
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("pack");
+        fs::create_dir_all(root.join("config")).unwrap();
+        fs::write(
+            root.join("config/mobs-server.toml"),
+            "# Default: 64\n# Range: 1 ~ 512\nmaxChunks = 900\n# Default: 1\nrate = 1\nfree = 3\n",
+        )
+        .unwrap();
+        let hub = ConfigSearchHub::default();
+        let pack_id = PackId::new();
+        let (sink, _) = sink();
+        let found = search_until(&hub, pack_id, &root, "", true, &sink, |r| {
+            r.results.as_ref().is_some_and(|r| r.total_hits > 0)
+        })
+        .await;
+        let results = found.results.unwrap();
+        let keys: Vec<(String, bool)> = results.groups[0]
+            .hits
+            .iter()
+            .map(|hit| (hit.key.as_ref().unwrap().plain(), hit.changed))
+            .collect();
+        assert_eq!(keys, [("maxChunks".to_owned(), true)]);
     }
 
     #[test]

@@ -29,7 +29,7 @@
 //! "trecho em texto".
 
 mod edit;
-mod explicit;
+pub(crate) mod explicit;
 mod inferred;
 mod labels;
 mod list;
@@ -44,6 +44,7 @@ pub use edit::apply_form_edits;
 #[cfg(test)]
 use edit::{item_value, to_config_value};
 
+use crate::defaults::{self, DefaultSource, DefaultState};
 use crate::document::ConfigDocument;
 use crate::error::ConfigError;
 use crate::format::ConfigFormat;
@@ -75,7 +76,7 @@ fn to_keys(path: &KeyPath) -> Vec<FieldKey> {
         .collect()
 }
 
-fn from_keys(keys: &[FieldKey]) -> KeyPath {
+pub(crate) fn from_keys(keys: &[FieldKey]) -> KeyPath {
     KeyPath(
         keys.iter()
             .map(|key| match key {
@@ -185,6 +186,9 @@ pub struct FieldDefault {
     pub value: String,
     /// Tirado de uma frase do comentário (camada 3), não de um metadado do arquivo.
     pub inferred: bool,
+    /// De onde veio (C-06): `Default:` do NeoForge, `[default: …]` do Forge antigo ou frase
+    /// do comentário.
+    pub source: DefaultSource,
 }
 
 /// Rótulo do arquivo de idioma do jar.
@@ -223,6 +227,10 @@ pub struct ConfigField {
     pub range: Option<FieldRange>,
     /// Padrão.
     pub default: Option<FieldDefault>,
+    /// O valor comparado ao padrão da camada A (C-06): sem padrão conhecido, `unknown`.
+    pub default_state: DefaultState,
+    /// O valor está fora da faixa ou dos valores permitidos que o arquivo declara (C-06).
+    pub out_of_range: bool,
     /// Rótulo do jar.
     pub label: Option<FieldLabel>,
 }
@@ -716,21 +724,9 @@ fn field_item(
             })
     });
 
-    let default = found
-        .default
-        .map(|value| FieldDefault {
-            value,
-            inferred: false,
-        })
-        .or_else(|| {
-            description
-                .as_deref()
-                .and_then(inferred::default)
-                .map(|value| FieldDefault {
-                    value,
-                    inferred: true,
-                })
-        });
+    let default = field_default(format, entry, description.as_deref());
+    let default_state = defaults::entry_state(format, entry);
+    let out_of_range = defaults::entry_range_issue(format, entry).is_some();
 
     let options = entry
         .allowed_values
@@ -760,8 +756,34 @@ fn field_item(
         description,
         range,
         default,
+        default_state,
+        out_of_range,
         label,
     }))
+}
+
+/// Padrão do campo: o que o arquivo informa (camada A, C-06) ou, sem ele, a frase do
+/// comentário (camada 3, "deduzido").
+fn field_default(
+    format: ConfigFormat,
+    entry: &ConfigEntry,
+    description: Option<&str>,
+) -> Option<FieldDefault> {
+    defaults::entry_default(format, entry)
+        .map(|default| FieldDefault {
+            value: default.value,
+            inferred: false,
+            source: default.source,
+        })
+        .or_else(|| {
+            description
+                .and_then(inferred::default)
+                .map(|value| FieldDefault {
+                    value,
+                    inferred: true,
+                    source: DefaultSource::CommentPhrase,
+                })
+        })
 }
 
 fn control_for(

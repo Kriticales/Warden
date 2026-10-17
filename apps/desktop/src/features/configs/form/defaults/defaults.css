@@ -1,0 +1,16 @@
+/* Padrões das configs (C-06): o filtro "Só o que mudou do padrão" e a contagem do diálogo de
+   restaurar. A linha do formulário (`.cfgform__row--changed`, `.cfgform__mark`, `.cfgform__def`,
+   `.cfgform__act`) e a marca da busca (`.hit__chg`) são do design system. */
+.cfg-changed-filter {
+  flex: none;
+}
+.cfg-changed-filter__empty {
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+.cfg-restore__count {
+  margin: 0 0 var(--space-2);
+}
+.cfgform__act:empty {
+  min-width: 28px;
+}

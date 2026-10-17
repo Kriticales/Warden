@@ -1,0 +1,15 @@
+origem = 'Warden (C-06): servidor NeoForge 21.1.252 rodado em 14/10/2026 com `earlyWindowWidth = "largo"` em `config/fml.toml` e `logUntranslatedItemTagWarnings = "BANANA"` em `config/neoforge-common.toml`; `logs/latest.log` sem alteração além da pasta do servidor trocada por `<DADOS>`'
+nota = "NeoForge 1.21.1: o FMLConfig registra a chave corrigida; o ConfigTracker só registra o arquivo (sem achado)"
+loader = "neoforge"
+minecraft = "1.21.1"
+
+[[achado]]
+regra = "W_CONFIG_RESET"
+padrao = "config.fml_incorrect_key"
+arquivo = "latest.log"
+linha = 5
+
+[achado.params]
+config_default = "854"
+config_key = "earlyWindowWidth"
+config_value = "largo"

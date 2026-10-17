@@ -31,7 +31,6 @@ export const configsFormulario = {
       'Esta mudança não pôde ser feita pelo formulário; nada foi alterado. O arquivo está aberto no texto.',
   },
   campo: {
-    padrao: 'padrão: {{valor}}',
     deduzido: 'deduzido',
     deduzidoDica: 'Tirado do texto do comentário; pode não ser exato.',
     faixa: 'Faixa: {{min}} a {{max}}.',

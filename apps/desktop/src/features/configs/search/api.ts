@@ -55,13 +55,19 @@ export const searchKeys = {
   /** Toda busca de uma origem. */
   origin: (packId: PackId, origin: ConfigOrigin) =>
     [...configsKeys.all(packId), origin, 'search'] as const,
-  query: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null) =>
-    [...searchKeys.origin(packId, origin), query, modId] as const,
+  query: (
+    packId: PackId,
+    origin: ConfigOrigin,
+    query: string,
+    modId: string | null,
+    onlyChanged: boolean,
+  ) => [...searchKeys.origin(packId, origin), query, modId, onlyChanged] as const,
 };
 
 /**
  * Busca `query` (já com a espera da última tecla) na origem. Busca vazia só prepara o índice
- * e devolve a situação dele (a tela chama ao abrir). Enquanto a próxima resposta não chega, a
+ * e devolve a situação dele (a tela chama ao abrir), a não ser com "Só o que mudou do padrão"
+ * (C-06), que então lista todas as chaves alteradas. Enquanto a próxima resposta não chega, a
  * anterior continua na tela.
  */
 export function useConfigSearch(
@@ -70,12 +76,13 @@ export function useConfigSearch(
   query: string,
   modId: string | null,
   enabled = true,
+  onlyChanged = false,
 ) {
   return useQuery({
-    queryKey: searchKeys.query(packId, origin, query, modId),
+    queryKey: searchKeys.query(packId, origin, query, modId, onlyChanged),
     // A busca vai junto da resposta: enquanto a próxima não chega, a tela diz de qual é.
     queryFn: async (): Promise<SearchAnswer> => ({
-      ...unwrap(await commands.configSearch(packId, origin, query, modId)),
+      ...unwrap(await commands.configSearch(packId, origin, query, modId, onlyChanged)),
       query,
     }),
     enabled,

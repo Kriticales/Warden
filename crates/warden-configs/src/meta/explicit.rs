@@ -82,11 +82,10 @@ fn spec_comment(comment: &str) -> Explicit {
 fn legacy_comment(comment: &str) -> Explicit {
     let mut found = Explicit::default();
     let mut text = comment.trim_end();
-    // `Configuration` acrescenta o trecho entre colchetes ao fim do comentário.
-    if text.ends_with(']')
-        && let Some(open) = text.rfind('[')
-    {
-        let inner = text.get(open + 1..text.len() - 1).unwrap_or("");
+    // `Configuration` acrescenta os trechos entre colchetes ao fim do comentário; o padrão de
+    // uma lista tem colchetes dentro (`[default: [a], [b]]`), e alguns mods põem também
+    // `[valid: [A, B]]` depois do padrão.
+    while let Some((open, inner)) = trailing_group(text) {
         let lower = inner.to_ascii_lowercase();
         if lower.starts_with("range:") || lower.starts_with("default:") {
             if let Some(position) = lower.find("default:") {
@@ -96,8 +95,10 @@ fn legacy_comment(comment: &str) -> Explicit {
                     .trim();
                 found.default = Some(value.to_owned());
             }
-            text = text.get(..open).unwrap_or("");
+        } else if !lower.starts_with("valid:") {
+            break;
         }
+        text = text.get(..open).unwrap_or("").trim_end();
     }
     let mut rest = Vec::new();
     let mut in_values = false;
@@ -127,6 +128,28 @@ fn legacy_comment(comment: &str) -> Explicit {
     }
     found.description = clean(rest.into_iter());
     found
+}
+
+/// O último trecho entre colchetes do texto (com colchetes dentro): a posição do `[` e o que
+/// está dentro.
+fn trailing_group(text: &str) -> Option<(usize, &str)> {
+    if !text.ends_with(']') {
+        return None;
+    }
+    let mut depth = 0_usize;
+    for (position, byte) in text.bytes().enumerate().rev() {
+        match byte {
+            b']' => depth += 1,
+            b'[' => {
+                depth = depth.checked_sub(1)?;
+                if depth == 0 {
+                    return Some((position, text.get(position + 1..text.len() - 1)?));
+                }
+            }
+            _ => {}
+        }
+    }
+    None
 }
 
 fn parse_number(text: &str) -> Option<f64> {
@@ -162,6 +185,19 @@ mod tests {
         let only_default = read(ConfigFormat::LegacyCfg, Some("Liga tudo [default: true]"));
         assert_eq!(only_default.default.as_deref(), Some("true"));
         assert_eq!(only_default.description.as_deref(), Some("Liga tudo"));
+        // Padrão de lista e `[valid: …]` depois do padrão (corpus: badmobs, apiculture).
+        let list = read(
+            ConfigFormat::LegacyCfg,
+            Some("Proibidos [default: [example1], [example2]]"),
+        );
+        assert_eq!(list.default.as_deref(), Some("[example1], [example2]"));
+        assert_eq!(list.description.as_deref(), Some("Proibidos"));
+        let valid = read(
+            ConfigFormat::LegacyCfg,
+            Some("Modo. [default: NORMAL] [valid: [EASY, NORMAL]]"),
+        );
+        assert_eq!(valid.default.as_deref(), Some("NORMAL"));
+        assert_eq!(valid.description.as_deref(), Some("Modo."));
         let other = read(ConfigFormat::LegacyCfg, Some("Usa [x] no fim [nota]"));
         assert_eq!(other.default, None);
         assert_eq!(other.description.as_deref(), Some("Usa [x] no fim [nota]"));
