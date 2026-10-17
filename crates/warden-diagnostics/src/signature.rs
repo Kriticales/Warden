@@ -39,7 +39,10 @@
 //!   bloco e a classe). Sem isso, dois crash reports diferentes só com classes do jogo na pilha
 //!   teriam a mesma assinatura. Numa falha de mixin que o catálogo não identificou (só o
 //!   `InjectionError` na cadeia), a config lida da mensagem (`mixin_config=x.mixins.json`) ou,
-//!   sem ela, a classe que estava sendo transformada (`mixin_target=…`).
+//!   sem ela, a classe que estava sendo transformada (`mixin_target=…`). Na queda ao carregar os
+//!   registros de dados (`Failed to load registries due to above errors`), o primeiro elemento
+//!   com erro do bloco `Registry loading errors:` do `latest.log`
+//!   (`registry_element=betterwitchhuts:birch`).
 //!
 //! Mensagens, coordenadas, UUIDs, caminhos e horários nunca entram: dois travamentos com a mesma
 //! causa e números diferentes têm o mesmo [`CrashSignature::hash`] (CA-T14-08). O hash é estável
@@ -405,6 +408,7 @@ pub fn signature(analysis: &Analysis, sources: &[LogSource]) -> CrashSignature {
         let (exception, place) = first_crash_block(sources, fabric).unwrap_or_default();
         let mut subject = report_subject(sources, None);
         place.extend_subject(&mut subject);
+        subject.extend(registry_subject(sources));
         return CrashSignature::new(None, exception, place.frame, Vec::new(), subject);
     };
     let finding = &primary.finding;
@@ -451,6 +455,7 @@ pub fn signature(analysis: &Analysis, sources: &[LogSource]) -> CrashSignature {
         subject.push(format!("what={}", normalize_param("what", what)));
     }
     place.extend_subject(&mut subject);
+    subject.extend(registry_subject(sources));
     CrashSignature::new(
         Some(primary.pattern.clone()),
         exception,
@@ -458,6 +463,48 @@ pub fn signature(analysis: &Analysis, sources: &[LogSource]) -> CrashSignature {
         mods,
         subject,
     )
+}
+
+/// A queda ao carregar os registros de dados (`Failed to load registries due to above errors`,
+/// 1.19.3+): a exceção e a pilha são sempre as mesmas; o que quebrou está no `latest.log`, no
+/// bloco `Registry loading errors:` logo antes.
+const REGISTRY_FAILURE: &str = "Failed to load registries due to above errors";
+
+/// Cabeçalho do bloco de erros dos registros no `latest.log`.
+const REGISTRY_ERRORS: &str = "Registry loading errors:";
+
+/// Até quantas linhas depois do cabeçalho o primeiro elemento com erro é procurado.
+const REGISTRY_ELEMENT_WITHIN: usize = 4;
+
+/// Elemento de registro com erro: `>> Errors in element betterwitchhuts:birch:`.
+static REGISTRY_ELEMENT: LazyLock<Regex> =
+    LazyLock::new(|| fixed_regex(r"^\s*>> Errors in element (?P<id>[\w.\-]+:[\w./\-]+):\s*$"));
+
+/// O primeiro elemento de registro com erro (`registry_element=betterwitchhuts:birch`), quando o
+/// travamento foi a queda ao carregar os registros: sem ele, datapacks e mods diferentes com um
+/// JSON quebrado teriam a mesma assinatura.
+fn registry_subject(sources: &[LogSource]) -> Option<String> {
+    let failed = sources.iter().any(|source| {
+        source
+            .clean_lines()
+            .iter()
+            .any(|line| line.text.contains(REGISTRY_FAILURE))
+    });
+    if !failed {
+        return None;
+    }
+    sources.iter().find_map(|source| {
+        let lines = source.clean_lines();
+        let header = lines
+            .iter()
+            .position(|line| line.text.trim_end().ends_with(REGISTRY_ERRORS))?;
+        lines
+            .iter()
+            .skip(header + 1)
+            .take(REGISTRY_ELEMENT_WITHIN)
+            .find_map(|line| REGISTRY_ELEMENT.captures(&line.text))
+            .map(|captures| format!("registry_element={}", captures["id"].to_lowercase()))
+    })
 }
 
 /// Os parâmetros que o catálogo usa para identificar o achado (`key`), normalizados. O tipo da
@@ -3735,6 +3782,83 @@ Details:
         assert_eq!(
             native_frame(&lines("v  ~StubRoutines::jbyte_disjoint_arraycopy"), 3).as_deref(),
             Some("v ~StubRoutines::jbyte_disjoint_arraycopy")
+        );
+    }
+
+    #[test]
+    fn adversario_registros_quebrados_diferentes_nao_caem_juntos() {
+        // Forge 1.20.1 real (mclo.gs `2KSMS9Z` e `4QX5nEo`): `Failed to load registries due to
+        // above errors` tem sempre a mesma exceção e a mesma pilha (`RegistryDataLoader`); o
+        // elemento quebrado (de um datapack ou mod) só está no `latest.log`, no bloco
+        // `Registry loading errors:`. Sem ele, todo JSON quebrado de qualquer mod dava o mesmo hash.
+        let frames = forge_1_20_frames(
+            &[
+                (
+                    "net.minecraft.resources.RegistryDataLoader.m_247207_",
+                    "RegistryDataLoader",
+                    77,
+                ),
+                (
+                    "net.minecraft.server.WorldLoader.m_246152_",
+                    "WorldLoader",
+                    54,
+                ),
+            ],
+            883,
+        );
+        let report = forge_1_20_report(
+            "java.lang.IllegalStateException: Failed to load registries due to above errors",
+            &frames,
+            &["create"],
+        );
+        let sign = |element: &str, pack: &str| {
+            let log = format!(
+                "[02:31:45] [Render thread/ERROR]: Registry loading errors:
+> Errors in registry minecraft:worldgen/processor_list:
+>> Errors in element {element}:
+java.lang.IllegalStateException: Failed to parse {element}.json from pack {pack}
+\tat TRANSFORMER/minecraft@1.20.1/net.minecraft.resources.RegistryDataLoader.m_255048_(RegistryDataLoader.java:147)
+[02:31:45] [Render thread/FATAL]: Unreported exception thrown!
+java.lang.IllegalStateException: Failed to load registries due to above errors
+\tat TRANSFORMER/minecraft@1.20.1/net.minecraft.resources.RegistryDataLoader.m_247207_(RegistryDataLoader.java:77)
+"
+            );
+            of(&[
+                source("crash-reports/crash.txt", SourceKind::CrashReport, &report),
+                source("latest.log", SourceKind::LatestLog, &log),
+            ])
+        };
+        let witch = sign("betterwitchhuts:birch", "Better_Witch_Huts_v4.zip");
+        let dungeons = sign(
+            "repurposed_structures:dungeons/icy",
+            "Repurposed_Structures.zip",
+        );
+        assert!(
+            witch
+                .subject
+                .contains(&"registry_element=betterwitchhuts:birch".to_owned()),
+            "{:?}",
+            witch.subject
+        );
+        assert_ne!(witch.hash, dungeons.hash);
+        // O mesmo elemento com outro nome de arquivo do pack: o mesmo travamento.
+        assert_eq!(
+            witch,
+            sign("betterwitchhuts:birch", "Better_Witch_Huts_v5.zip")
+        );
+        // Só o crash report, sem o log: a assinatura não inventa um elemento.
+        let alone = of(&[source(
+            "crash-reports/crash.txt",
+            SourceKind::CrashReport,
+            &report,
+        )]);
+        assert!(
+            !alone
+                .subject
+                .iter()
+                .any(|part| part.starts_with("registry_element=")),
+            "{:?}",
+            alone.subject
         );
     }
 }
