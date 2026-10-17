@@ -12,9 +12,9 @@ mod conformance_support;
 use std::fs;
 
 use conformance_support::{
-    TestMod, TestPack, dirs, externals, materialize_ok, run_installer, temp_dir, tree,
+    TestMod, TestPack, curseforge_client, curseforge_mod, dirs, externals, materialize_ok,
+    run_installer, temp_dir, tree,
 };
-use warden_curseforge::{CurseforgeClient, SecretString};
 use warden_http::{HttpClient, HttpConfig};
 use warden_instance::{
     DownloadCache, MaterializeOptions, OptionalChoices, OptionalSelection, OriginSource, Sources,
@@ -39,32 +39,6 @@ fn modmenu() -> TestMod {
         Some(MODMENU_URL),
     )
     .modrinth("mOgUt4GM", "lEkperf6")
-}
-
-fn curseforge_client() -> CurseforgeClient {
-    let key = std::env::var("CURSEFORGE_API_KEY")
-        .expect("CURSEFORGE_API_KEY ausente: rode pelo `cargo xtask test-network`");
-    let http = HttpClient::new(HttpConfig::default()).unwrap();
-    CurseforgeClient::with_base_url(
-        http,
-        warden_curseforge::DEFAULT_BASE_URL,
-        Some(SecretString::from(key)),
-    )
-    .unwrap()
-}
-
-/// O arquivo principal de um projeto da CurseForge, como metafile `metadata:curseforge`.
-async fn curseforge_mod(client: &CurseforgeClient, slug: &str, project: u64) -> TestMod {
-    let found = client.project(project, None).await.unwrap();
-    let file = client
-        .file(project, found.main_file_id, None)
-        .await
-        .unwrap();
-    let sha1 = file.sha1().expect("arquivo sem sha1");
-    TestMod::real(slug, &file.file_name, HashFormat::Sha1, &sha1, None).curseforge(
-        u32::try_from(project).unwrap(),
-        u32::try_from(file.id).unwrap(),
-    )
 }
 
 #[tokio::test]

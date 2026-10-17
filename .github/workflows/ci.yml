@@ -95,6 +95,8 @@ jobs:
       cache-key: linux-e2e
       timeout-minutes: 60
       e2e: true
+      # "Testar como o jogador recebe" (L-07) roda o packwiz-installer real dos jars fixados.
+      installer: true
       # Build de debug do app (QUALITY §4.1 e §13.5), driver conferido pelo xtask e o
       # WebKitGTK numa tela virtual (Xvfb).
       run: |

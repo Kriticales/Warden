@@ -11,6 +11,7 @@ import type { ComponentType } from 'react';
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
 import { CaptureBlock } from '../capture/CaptureBlock';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
+import { PlayerResult } from './clean/PlayerResult';
 import { PerfSummary } from './perf-strip/PerfStrip';
 
 export interface ResultBlockProps {
@@ -31,6 +32,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'perf-summary', order: 50, component: PerfSummary },
   { id: 'capture', order: 100, component: CaptureBlock },
   { id: 'why-crashed', order: 200, component: WhyCrashed },
+  // L-07: o que o jogador recebeu × o pack.
+  { id: 'player', order: 75, component: PlayerResult },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {

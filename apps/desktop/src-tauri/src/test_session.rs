@@ -16,7 +16,11 @@
 //!
 //! Um jogo por vez no Warden inteiro: [`TestSessions`] guarda o teste ativo, avisa cada
 //! mudança pelo evento `game-state` e recusa um segundo teste com `app.GAME_ALREADY_RUNNING`.
+//!
+//! O modo "como o jogador recebe" (L-07) troca os passos 2 e 3 pela instalação do zero pelo
+//! link do pack numa instância limpa ([`as_player`]); o resto é o mesmo.
 
+mod as_player;
 mod console;
 mod fake;
 mod launch_plan;
@@ -47,6 +51,7 @@ use warden_launcher::{
     LoaderSpec, OfflineProfile, PortableMcEngine,
 };
 
+pub(crate) use self::as_player::report_of as player_report_of;
 pub(crate) use self::console::{ConsoleBuffer, read_output_log};
 pub use self::console::{ConsoleLevel, ConsoleLine, ConsoleOrigin, ConsoleStream};
 pub(crate) use self::launch_plan::{PlanInput, choose_memory, launch_options};
@@ -85,8 +90,8 @@ const CONSOLE_BATCH: Duration = Duration::from_millis(50);
 /// Quanto o "Fechar o Warden" espera o jogo fechar e a sessão ser gravada.
 pub(crate) const QUIT_WAIT: Duration = Duration::from_secs(10);
 
-/// Modo do teste (ARCHITECTURE §4.1). Só o normal existe nesta versão; os outros chegam com
-/// as tarefas donas (L-07, L-12, L-09).
+/// Modo do teste (ARCHITECTURE §4.1). Existem o normal e o "como o jogador recebe" (L-07);
+/// os outros chegam com as tarefas donas (L-12, L-09).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum TestMode {
@@ -135,6 +140,9 @@ pub(crate) struct TestSessions {
     busy: watch::Sender<bool>,
     engine: Arc<dyn LauncherEngine>,
     fake: Option<FakeGame>,
+    /// "Como o jogador recebe" (L-07): de onde vêm os jars do instalador e, nos testes e no
+    /// E2E, os ajustes do Java do instalador.
+    player: as_player::PlayerConfig,
     #[cfg(test)]
     launch_tweak: Option<LaunchTweak>,
     /// Endereço da CurseForge simulada (testes dos downloads manuais, L-06).
@@ -184,6 +192,7 @@ impl TestSessions {
             busy: watch::channel(false).0,
             engine,
             fake,
+            player: as_player::PlayerConfig::from_env(),
             #[cfg(test)]
             launch_tweak: None,
             #[cfg(test)]
@@ -345,7 +354,7 @@ pub(crate) async fn run_test(
     request: TestRequest,
     sink: TestSink,
 ) -> Result<TestSessionSummary, AppError> {
-    if request.mode != TestMode::Normal {
+    if !matches!(request.mode, TestMode::Normal | TestMode::AsPlayer) {
         return Err(AppError::new(AppErrorCode::TestModeUnavailable).with_param(
             "mode",
             serde_json::to_value(request.mode)
@@ -397,6 +406,9 @@ pub(crate) async fn run_test(
 struct Prepared {
     pack_root: PathBuf,
     dirs: InstanceDirs,
+    /// Onde a sessão é gravada (a da instância de teste do pack, também no modo "como o
+    /// jogador recebe", cuja instância é apagada no fim).
+    sessions_dir: PathBuf,
     spec: GameSpec,
     pack_version: Option<String>,
     pack_tree: Option<PackTree>,
@@ -422,6 +434,10 @@ struct Runner<'a> {
 
 impl Runner<'_> {
     async fn run(self) -> Result<TestSessionSummary, AppError> {
+        if self.request.mode == TestMode::AsPlayer {
+            // Em caixa: o estado deste caminho não pesa no futuro do teste normal.
+            return Box::pin(self.run_as_player()).await;
+        }
         let pack_root = crate::commands::inventory::pack_root(self.state, self.pack_id)?;
         let dirs = InstanceDirs::for_pack(&self.state.paths, self.pack_id);
         let hooks = crate::test_hooks::registered();
@@ -477,58 +493,12 @@ impl Runner<'_> {
         let root = pack_root.clone();
         let info = blocking(move || read_pack_info(&root)).await?;
         let spec = game_spec(&info.requirement)?;
-        let fake = self.state.tests.fake.clone();
-
-        let (java, java_id, lease) = if let Some(fake) = &fake {
-            (fake.java(), None, None)
-        } else {
-            self.handle.stage(STAGE_JAVA, STAGE_JAVA_LABEL);
-            let request = JavaChoiceRequest {
-                user_choice: self.profile.fields.java.clone(),
-                ..JavaChoiceRequest::automatic(
-                    &info.requirement.minecraft,
-                    loader_kind(&spec.loader),
-                    spec.loader.version(),
-                )
-            };
-            let java_service = self.state.java.clone();
-            let choice = blocking(move || Ok(java_service.choose(&request)?)).await?;
-            let runtime = self
-                .handle
-                .run_cancellable(async {
-                    Ok(self
-                        .state
-                        .java
-                        .ensure_choice(&choice, self.handle, self.handle.token())
-                        .await?)
-                })
-                .await?;
-            let lease = self.state.java.lease(&runtime.id);
-            (
-                JavaRuntime::from_installed(&runtime),
-                Some(runtime.id.to_string()),
-                Some(lease),
-            )
-        };
-
-        let game = if let Some(fake) = &fake {
-            fake.installed(&spec, &pack_root)
-        } else {
-            self.handle
-                .run_cancellable(async {
-                    self.state
-                        .tests
-                        .engine
-                        .install(&spec, &java, self.handle, self.handle.token())
-                        .await
-                        .map_err(|error| install_error(&error))
-                })
-                .await?
-        };
-
+        let (java, java_id, lease) = self.choose_java(&info.requirement, &spec).await?;
+        let game = self.install_game(&spec, &java, &pack_root).await?;
         self.sync_instance(&pack_root, &dirs).await?;
         let quick_play_world = self.prepare_quick_play(&spec, &dirs).await?;
         Ok(Prepared {
+            sessions_dir: dirs.state_dir.join("sessions"),
             pack_root,
             dirs,
             spec,
@@ -541,6 +511,68 @@ impl Runner<'_> {
             quick_play_world,
             _lease: lease,
         })
+    }
+
+    /// Escolhe e, se faltar, baixa o Java do jogo (`warden-java`, ADR-0029), respeitando o
+    /// Java do perfil do teste. Com o jogo simulado do E2E, o Java dele.
+    async fn choose_java(
+        &self,
+        requirement: &GameRequirement,
+        spec: &GameSpec,
+    ) -> Result<(JavaRuntime, Option<String>, Option<RuntimeLease>), AppError> {
+        if let Some(fake) = &self.state.tests.fake {
+            return Ok((fake.java(), None, None));
+        }
+        self.handle.stage(STAGE_JAVA, STAGE_JAVA_LABEL);
+        let request = JavaChoiceRequest {
+            user_choice: self.profile.fields.java.clone(),
+            ..JavaChoiceRequest::automatic(
+                &requirement.minecraft,
+                loader_kind(&spec.loader),
+                spec.loader.version(),
+            )
+        };
+        let java_service = self.state.java.clone();
+        let choice = blocking(move || Ok(java_service.choose(&request)?)).await?;
+        let runtime = self
+            .handle
+            .run_cancellable(async {
+                Ok(self
+                    .state
+                    .java
+                    .ensure_choice(&choice, self.handle, self.handle.token())
+                    .await?)
+            })
+            .await?;
+        let lease = self.state.java.lease(&runtime.id);
+        Ok((
+            JavaRuntime::from_installed(&runtime),
+            Some(runtime.id.to_string()),
+            Some(lease),
+        ))
+    }
+
+    /// Instala o jogo e o loader com a versão exata (`warden-launcher`); com o jogo simulado
+    /// do E2E, o programa simulado.
+    async fn install_game(
+        &self,
+        spec: &GameSpec,
+        java: &JavaRuntime,
+        pack_root: &Path,
+    ) -> Result<InstalledGame, AppError> {
+        if let Some(fake) = &self.state.tests.fake {
+            return Ok(fake.installed(spec, pack_root));
+        }
+        self.handle
+            .run_cancellable(async {
+                self.state
+                    .tests
+                    .engine
+                    .install(spec, java, self.handle, self.handle.token())
+                    .await
+                    .map_err(|error| install_error(&error))
+            })
+            .await
     }
 
     /// "Entrar direto no mundo de teste" (L-08): o mundo do Quick Play, ou `None` (menu
@@ -760,7 +792,7 @@ impl Runner<'_> {
         self.handle.ensure_not_cancelled()?;
         self.handle.stage(STAGE_LAUNCH, STAGE_LAUNCH_LABEL);
         let launch = self.plan_launch(&prepared)?;
-        let sessions_dir = prepared.dirs.state_dir.join("sessions");
+        let sessions_dir = prepared.sessions_dir.clone();
         let first_launch = list_sessions(&sessions_dir).map_or(true, |sessions| {
             sessions.iter().all(|session| session.record.is_none())
         });

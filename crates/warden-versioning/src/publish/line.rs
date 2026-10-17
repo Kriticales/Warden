@@ -113,6 +113,35 @@ impl PackRepo {
         self.reference_commit(PUBLISH_LINE_REF)
     }
 
+    /// Conteúdo de um arquivo da última publicação (a árvore que a `main` do GitHub serve),
+    /// ou `None` sem publicação ou sem o arquivo. O "Testar como o jogador recebe" (L-07)
+    /// compara o `pack.toml` daqui com o que o link entregou.
+    ///
+    /// Erros: leitura do histórico.
+    pub fn published_file(&self, path: &str) -> Result<Option<Vec<u8>>> {
+        let Some(tip) = self.publish_line_tip()? else {
+            return Ok(None);
+        };
+        let tree = self
+            .repo
+            .find_commit(tip)
+            .and_then(|commit| commit.tree())
+            .ctx("ler a publicação")?;
+        let entry = match tree.get_path(std::path::Path::new(path)) {
+            Ok(entry) => entry,
+            Err(error) if error.code() == git2::ErrorCode::NotFound => return Ok(None),
+            Err(error) => return Err(Error::git("ler um arquivo da publicação", error)),
+        };
+        if entry.kind() != Some(ObjectType::Blob) {
+            return Ok(None);
+        }
+        let blob = self
+            .repo
+            .find_blob(entry.id())
+            .ctx("ler um arquivo da publicação")?;
+        Ok(Some(blob.content().to_vec()))
+    }
+
     /// Versões publicadas, da maior para a menor.
     ///
     /// Erros: leitura do histórico.

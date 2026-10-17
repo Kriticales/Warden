@@ -10,8 +10,9 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { extname, join, normalize, sep } from 'node:path';
 
 import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
-import { githubState, serveGithub } from './github';
+import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
+import { servePlayer } from './player';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
 
@@ -257,6 +258,11 @@ export async function startMockServer(): Promise<MockServer> {
         .end(JSON.stringify(githubState()));
       return;
     }
+    if (path === '/__github/reset' && request.method === 'POST') {
+      resetGithub();
+      response.writeHead(204).end();
+      return;
+    }
     if (path === '/__reset') {
       requests.length = 0;
       response.writeHead(204).end();
@@ -275,6 +281,10 @@ export async function startMockServer(): Promise<MockServer> {
     }
     if (path.startsWith('/github/')) {
       serveGithub(request, response, path, base());
+      return;
+    }
+    // "Testar como o jogador recebe" (L-07): os jars do instalador e os mods do pack de teste.
+    if (servePlayer(path, response)) {
       return;
     }
     if (request.method === 'POST' && path.split('?')[0] === '/modrinth/v2/version_files') {

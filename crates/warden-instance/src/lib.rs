@@ -24,6 +24,9 @@
 //! - [`ManualDownloads`], [`provide_file`] e [`DownloadsWatch`]: a lista da T20 com o estado de
 //!   cada item, o arquivo escolhido conferido pelo hash antes de qualquer cópia e o vigia da
 //!   pasta Downloads (L-06).
+//! - [`InstallerCache`], [`CleanInstance`] e [`player_install`]: "Testar como o jogador
+//!   recebe" (L-07): o bootstrap e o installer fixados, a instância limpa temporária, a
+//!   instalação pelo link do pack e o que o jogador recebeu × o pack.
 //!
 //! Limites: a rede é a da `warden-http` (P1-03) e a leitura do pack é a da `warden-packwiz`
 //! (P1-01); esta crate não abre o jogo nem instala o loader (é o motor da `warden-launcher`,
@@ -32,12 +35,15 @@
 mod baseline;
 mod blocked;
 mod capture;
+mod clean_instance;
 mod downloads;
 mod error;
+mod installer_cache;
 mod manifest;
 mod manual_downloads;
 mod materialize;
 mod optional_choices;
+pub mod player_install;
 pub mod player_tools;
 mod three_way;
 
@@ -51,11 +57,16 @@ pub use capture::{
     CaptureValue, CapturedFile, VOLATILE_OPTIONS, capture_after_exit, discard, finish_apply,
     load_capture, plan_apply, set_option_lines,
 };
+pub use clean_instance::{CLEAN_PREFIX, CleanInstance, KEPT_DIR, keep_logs};
 pub use downloads::{
     CachedFile, DownloadCache, Fetched, FileOrigin, INCOMING_DIR, INDEX_FILE, OriginSource,
     STALE_PART_AGE,
 };
 pub use error::{Error, FailedItem, FailureReason, InstanceErrorCode, Result};
+pub use installer_cache::{
+    BOOTSTRAP, INSTALLER, InstallerCache, InstallerJars, PinnedJar, STAGE_INSTALLER,
+    STAGE_INSTALLER_LABEL,
+};
 pub use manifest::{
     EntryOrigin, MANIFEST_FILE, MANIFEST_SCHEMA, Manifest, ManifestEntry, ModrinthIds, modified_ns,
 };

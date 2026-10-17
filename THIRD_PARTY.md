@@ -162,6 +162,13 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | Eclipse Temurin JRE 8, 17, 21 e 25 ([api.adoptium.net](https://api.adoptium.net/v3/), pacotes nos releases `adoptium/temurin*-binaries` do GitHub) | GPL-2.0 com Classpath Exception | Fonte padrão do Java do teste (ADR-0012), baixada pela `warden-java` e conferida pelo SHA-256 da API. |
 | Runtime Java oficial da Mojang (`piston-meta.mojang.com`, índice `java-runtime`) | Oracle Binary Code License (o `jre-legacy` 8u51 do Windows); GPL-2.0 com Classpath Exception (os demais) | Alternativa quando o Adoptium falha (ADR-0012), baixada arquivo a arquivo e conferida pelo SHA-1 do manifesto, como faz o launcher oficial. |
 
+## Programas Java baixados pelo app na máquina do usuário (não redistribuídos)
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [packwiz/packwiz-installer-bootstrap](https://github.com/packwiz/packwiz-installer-bootstrap) | 0.0.3 | MIT | "Testar como o jogador recebe" (L-07): roda com `--bootstrap-no-update`. Baixado da URL de download do Release (sem a API do GitHub) para `cache/installer/` e conferido pelo SHA-256 fixado em `crates/warden-instance/src/installer_cache.rs`; o mesmo jar dos testes de conformidade (`cargo xtask installer`, L-03). |
+| [packwiz/packwiz-installer](https://github.com/packwiz/packwiz-installer) | 0.5.14 | MIT | Instalador que o bootstrap abre (`--bootstrap-main-jar`) no "Testar como o jogador recebe", do mesmo jeito e com o mesmo cache e conferência do bootstrap. |
+
 ## Sidecar do packwiz
 
 | Origem | Versão | Licença | Para quê |

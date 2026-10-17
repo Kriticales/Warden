@@ -21,7 +21,7 @@ use crate::error::ErrorCode;
 use crate::state::tests::test_state;
 
 /// O `java` dos testes.
-fn java() -> Option<PathBuf> {
+pub(super) fn java() -> Option<PathBuf> {
     if let Some(java) = std::env::var_os("WARDEN_TEST_JAVA").filter(|v| !v.is_empty()) {
         return Some(PathBuf::from(java));
     }
@@ -33,13 +33,13 @@ fn java() -> Option<PathBuf> {
 }
 
 /// Pasta do `WardenFakeGame.class`.
-fn class_dir() -> PathBuf {
+pub(super) fn class_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../crates/warden-launcher/tests/fixtures/java")
 }
 
 /// O major do Java (arquivo `release` da pasta do Java).
-fn java_major(java: &Path) -> u32 {
+pub(super) fn java_major(java: &Path) -> u32 {
     let home = java.parent().and_then(Path::parent).unwrap();
     let release = std::fs::read_to_string(home.join("release")).unwrap_or_default();
     release
@@ -89,7 +89,7 @@ fn sha256(bytes: &[u8]) -> String {
 
 /// Grava um pack vanilla 1.20.1 com os arquivos dados (todos no índice; os `.pw.toml` como
 /// metafiles).
-fn write_pack(root: &Path, files: &[(&str, &[u8])], fake_args: &str) {
+pub(super) fn write_pack(root: &Path, files: &[(&str, &[u8])], fake_args: &str) {
     std::fs::create_dir_all(root).unwrap();
     let mut index = PackIndex::default();
     for (path, bytes) in files {
@@ -114,7 +114,7 @@ fn write_pack(root: &Path, files: &[(&str, &[u8])], fake_args: &str) {
     std::fs::write(root.join(fake::ARGS_FILE), fake_args).unwrap();
 }
 
-fn register(state: &AppState, root: &Path) -> PackId {
+pub(super) fn register(state: &AppState, root: &Path) -> PackId {
     let record = PackRecord {
         id: PackId::new(),
         name: "Vale de Teste".into(),
@@ -129,13 +129,13 @@ fn register(state: &AppState, root: &Path) -> PackId {
 
 /// O que o teste mandou pelo canal e pelo `game-state`.
 #[derive(Default)]
-struct Seen {
-    events: StdMutex<Vec<OperationEvent>>,
+pub(super) struct Seen {
+    pub(super) events: StdMutex<Vec<OperationEvent>>,
     states: StdMutex<Vec<GameState>>,
 }
 
 impl Seen {
-    fn console_texts(&self) -> Vec<String> {
+    pub(super) fn console_texts(&self) -> Vec<String> {
         self.events
             .lock()
             .unwrap()
@@ -159,7 +159,7 @@ impl Seen {
     }
 }
 
-fn sink() -> (TestSink, Arc<Seen>) {
+pub(super) fn sink() -> (TestSink, Arc<Seen>) {
     let seen = Arc::new(Seen::default());
     let events = Arc::clone(&seen);
     let states = Arc::clone(&seen);
@@ -175,7 +175,7 @@ fn sink() -> (TestSink, Arc<Seen>) {
 }
 
 /// Começa um teste em segundo plano.
-fn spawn_test(
+pub(super) fn spawn_test(
     state: &Arc<AppState>,
     pack: PackId,
     request: TestRequest,
@@ -196,7 +196,7 @@ fn spawn_test(
 /// escrever antes do programa (com `JAVA_TOOL_OPTIONS` definida, sai no stderr a linha
 /// `Picked up JAVA_TOOL_OPTIONS: …`), e aí o teste pararia o jogo antes de os filhos
 /// existirem e de a linha deles chegar.
-async fn wait_running(state: &AppState, seen: &Seen) {
+pub(super) async fn wait_running(state: &AppState, seen: &Seen) {
     let deadline = Instant::now() + Duration::from_secs(30);
     loop {
         let running = state

@@ -323,6 +323,17 @@ pub enum AppErrorCode {
     /// Aviso: a versão do Minecraft do pack não aceita entrar direto no mundo; o jogo abre no
     /// menu (`params.minecraft`; L-08).
     TestQuickPlayUnsupported,
+    /// Aviso: o pack ainda não foi publicado (ou o repositório é privado); o "Testar como o
+    /// jogador recebe" usa o pack exportado agora, servido só neste computador (L-07).
+    TestPlayerLocalSource,
+    /// Aviso: o link entregou um `pack.toml` diferente do da última publicação (o GitHub
+    /// guarda o arquivo por até 5 minutos; L-07).
+    TestPlayerOldVersion,
+    /// O link do pack não respondeu (`params.status`: o código HTTP, vazio sem resposta; L-07).
+    TestPlayerLinkUnreachable,
+    /// Mods da CurseForge bloqueados para apps de terceiros que o Warden não conseguiu pôr no
+    /// lugar do jogador (`params.count`, `params.names`; L-07).
+    TestPlayerBlocked,
 }
 
 #[cfg(test)]

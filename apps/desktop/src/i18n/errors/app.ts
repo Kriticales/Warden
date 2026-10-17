@@ -70,4 +70,16 @@ export const app: ErrorPhrases<AppErrorCode> = {
     'O jogo vai abrir no menu principal porque ainda não há mundo de teste nesta instância. Crie um mundo no jogo: nos próximos testes, ele abre direto.',
   TEST_QUICK_PLAY_UNSUPPORTED:
     'O jogo vai abrir no menu principal: entrar direto no mundo só funciona no Minecraft 1.20 ou mais novo, e este pack usa o {{minecraft}}.',
+  TEST_PLAYER_LOCAL_SOURCE:
+    'O pack ainda não foi publicado para os jogadores: o teste instala o pack exportado agora, servido só neste computador. Depois de publicar, o teste usa o link do pack.',
+  TEST_PLAYER_OLD_VERSION:
+    'O GitHub ainda está entregando a versão anterior. Tente de novo em alguns minutos.',
+  TEST_PLAYER_LINK_UNREACHABLE:
+    'O link do pack não abriu. Confira a internet e se o repositório do pack no GitHub é público, e tente de novo.',
+  TEST_PLAYER_BLOCKED:
+    'Mods da CurseForge não baixam sozinhos para os jogadores e o Warden não tem esses arquivos: {{names}}. Baixe-os à mão (o teste normal pede) e tente de novo.',
+  TEST_PLAYER_BLOCKED_one:
+    '{{count}} mod da CurseForge não baixa sozinho para os jogadores e o Warden não tem esse arquivo: {{names}}. Baixe-o à mão (o teste normal pede) e tente de novo.',
+  TEST_PLAYER_BLOCKED_other:
+    '{{count}} mods da CurseForge não baixam sozinhos para os jogadores e o Warden não tem esses arquivos: {{names}}. Baixe-os à mão (o teste normal pede) e tente de novo.',
 };

@@ -783,3 +783,21 @@ async fn sem_conexao_vira_erro_de_github_offline() {
     assert!(matches!(error, Error::GithubOffline { .. }), "{error:?}");
     assert!(error.retryable());
 }
+
+/// L-07: o arquivo da última publicação, lido da linha local, é o que o GitHub serve.
+#[tokio::test]
+async fn arquivo_da_ultima_publicacao_lido_da_linha_local() {
+    let ctx = Ctx::new().await;
+    let pack = &ctx.pack;
+    pack.write("config/a.toml", b"a = 1\n");
+    save(&ctx.repo(), pack, "1.0.0", 10, true);
+    assert_eq!(ctx.repo().published_file("pack.toml").unwrap(), None);
+    ctx.publish("1.0.0", "").await.unwrap();
+    let files = ctx.github.main_files(&ctx.repo_ref);
+    assert_eq!(
+        ctx.repo().published_file("pack.toml").unwrap().as_deref(),
+        Some(files["pack.toml"].as_slice())
+    );
+    assert_eq!(ctx.repo().published_file("nada.toml").unwrap(), None);
+    assert_eq!(ctx.repo().published_file("config").unwrap(), None);
+}

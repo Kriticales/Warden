@@ -17,6 +17,7 @@ import { createConnection } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
+import { installerAvailable } from './e2e/mock-server/player';
 import { startMockServer, type MockServer } from './e2e/mock-server/server';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -130,6 +131,8 @@ export const config: WebdriverIO.Config = {
     process.env.WARDEN_E2E_PICK_FILES = pickFiles;
     const java = testJava();
     process.env.WARDEN_E2E_HAS_JAVA = java ? '1' : '';
+    // "Testar como o jogador recebe" (L-07): os jars do `cargo xtask installer`.
+    process.env.WARDEN_E2E_HAS_INSTALLER = installerAvailable() ? '1' : '';
     // Os testes leem o registro de requisições do servidor de fixtures (`GET /__requests`).
     process.env.WARDEN_E2E_MOCK_URL = mockServer.url;
     const env = {
@@ -156,6 +159,10 @@ export const config: WebdriverIO.Config = {
       WARDEN_RAW_BASE_GITHUB: `${mockServer.url}/github/raw/`,
       // O link direto `https://…` vai para o mesmo caminho no servidor de fixtures (P1-11).
       WARDEN_E2E_DIRECT_VIA: `${mockServer.url}/direto/`,
+      // "Testar como o jogador recebe" (L-07): os jars do instalador vêm do servidor de
+      // fixtures e o Java do instalador não sai para a internet (proxy HTTPS fechado).
+      WARDEN_INSTALLER_BASE: `${mockServer.url}/installer/`,
+      WARDEN_PLAYER_INSTALL_JVM_ARGS: '-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=9',
       ...(java
         ? {
             WARDEN_E2E_FAKE_GAME: FAKE_GAME_DIR,
