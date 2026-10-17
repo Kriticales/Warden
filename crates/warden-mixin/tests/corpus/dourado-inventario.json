@@ -1,0 +1,244 @@
+{
+  "fabric-1.20.1/iris-1.7.6+mc1.20.1.jar": {
+    "alteracoes": {
+      "Inject": 253,
+      "ModifyArg": 9,
+      "ModifyArgs": 1,
+      "ModifyConstant": 2,
+      "ModifyVariable": 6,
+      "Overwrite": 5,
+      "Redirect": 38,
+      "WrapOperation": 4,
+      "WrapWithCondition": 2
+    },
+    "classes": 175,
+    "configs": [
+      "fabric-key-binding-api-v1.mixins.json",
+      "iris-batched-entity-rendering.mixins.json",
+      "mixins.iris.bettermipmaps.json",
+      "mixins.iris.compat.indigo.json",
+      "mixins.iris.compat.indium.json",
+      "mixins.iris.compat.sodium.json",
+      "mixins.iris.fantastic.json",
+      "mixins.iris.fixes.maxfpscrash.json",
+      "mixins.iris.json",
+      "mixins.iris.vertexformat.json"
+    ],
+    "embutidosComMixins": [
+      "META-INF/jars/fabric-key-binding-api-v1-1.0.37+1802ada577.jar"
+    ]
+  },
+  "fabric-1.20.1/lithium-fabric-mc1.20.1-0.11.4.jar": {
+    "alteracoes": {
+      "Inject": 166,
+      "ModifyArg": 1,
+      "ModifyConstant": 3,
+      "ModifyVariable": 8,
+      "Overwrite": 99,
+      "Redirect": 84
+    },
+    "classes": 224,
+    "configs": [
+      "lithium.mixins.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "fabric-1.20.1/modernfix-fabric-5.24.4+mc1.20.1.jar": {
+    "alteracoes": {
+      "Inject": 80,
+      "ModifyArg": 10,
+      "ModifyExpressionValue": 3,
+      "ModifyReturnValue": 1,
+      "ModifyVariable": 9,
+      "Overwrite": 19,
+      "Redirect": 42,
+      "WrapMethod": 1,
+      "WrapOperation": 5,
+      "WrapWithCondition": 1
+    },
+    "classes": 121,
+    "configs": [
+      "modernfix-common.mixins.json",
+      "modernfix-fabric.mixins.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "fabric-1.20.1/sodium-fabric-0.5.13+mc1.20.1.jar": {
+    "alteracoes": {
+      "Inject": 72,
+      "ModifyArg": 2,
+      "ModifyVariable": 7,
+      "Overwrite": 27,
+      "Redirect": 21
+    },
+    "classes": 102,
+    "configs": [
+      "fabric-block-view-api-v2.client.mixins.json",
+      "fabric-block-view-api-v2.mixins.json",
+      "fabric-rendering-data-attachment-v1.client.mixins.json",
+      "fabric-rendering-data-attachment-v1.mixins.json",
+      "fabric-rendering-fluids-v1.mixins.json",
+      "fabric-resource-loader-v0.client.mixins.json",
+      "fabric-resource-loader-v0.mixins.json",
+      "sodium.mixins.json"
+    ],
+    "embutidosComMixins": [
+      "META-INF/jars/fabric-block-view-api-v2-1.0.1+1802ada577.jar",
+      "META-INF/jars/fabric-rendering-data-attachment-v1-0.3.37+92a0d36777.jar",
+      "META-INF/jars/fabric-rendering-fluids-v1-3.0.28+1802ada577.jar",
+      "META-INF/jars/fabric-resource-loader-v0-0.11.11+fb82e9d777.jar"
+    ]
+  },
+  "forge-1.20.1/ferritecore-6.0.1-forge.jar": {
+    "alteracoes": {
+      "Inject": 9,
+      "Overwrite": 6,
+      "Redirect": 11
+    },
+    "classes": 20,
+    "configs": [
+      "ferritecore.blockstatecache.mixin.json",
+      "ferritecore.dedupbakedquad.mixin.json",
+      "ferritecore.dedupmultipart.mixin.json",
+      "ferritecore.fastmap.mixin.json",
+      "ferritecore.modelsides.mixin.json",
+      "ferritecore.mrl.mixin.json",
+      "ferritecore.predicates.mixin.json",
+      "ferritecore.threaddetec.mixin.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "forge-1.20.1/modernfix-forge-5.27.51+mc1.20.1.jar": {
+    "alteracoes": {
+      "Inject": 133,
+      "ModifyArg": 17,
+      "ModifyExpressionValue": 10,
+      "ModifyReturnValue": 3,
+      "ModifyVariable": 9,
+      "Overwrite": 33,
+      "Redirect": 60,
+      "WrapMethod": 9,
+      "WrapOperation": 15,
+      "WrapWithCondition": 4
+    },
+    "classes": 194,
+    "configs": [
+      "mixinextras.init.mixins.json",
+      "modernfix-modernfix.mixins.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "forge-1.20.1/oculus-mc1.20.1-1.8.0.jar": {
+    "alteracoes": {
+      "Inject": 245,
+      "ModifyArg": 9,
+      "ModifyConstant": 2,
+      "ModifyVariable": 8,
+      "Overwrite": 5,
+      "Redirect": 47
+    },
+    "classes": 175,
+    "configs": [
+      "mixins.oculus.bettermipmaps.json",
+      "mixins.oculus.compat.dh.json",
+      "mixins.oculus.compat.indigo.json",
+      "mixins.oculus.compat.indium.json",
+      "mixins.oculus.compat.pixelmon.json",
+      "mixins.oculus.compat.sodium.json",
+      "mixins.oculus.fantastic.json",
+      "mixins.oculus.fixes.maxfpscrash.json",
+      "mixins.oculus.json",
+      "mixins.oculus.vertexformat.json",
+      "oculus-batched-entity-rendering.mixins.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "forge-1.20.1/xenon-0.3.31+mc1.20.1.jar": {
+    "alteracoes": {},
+    "classes": 0,
+    "configs": [
+      "mixinextras.init.mixins.json",
+      "xenon.mixins.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "neoforge-1.21.1/ferritecore-7.0.2-neoforge.jar": {
+    "alteracoes": {
+      "Inject": 9,
+      "Overwrite": 6,
+      "Redirect": 11
+    },
+    "classes": 19,
+    "configs": [
+      "ferritecore.accessors.mixin.json",
+      "ferritecore.blockstatecache.mixin.json",
+      "ferritecore.dedupbakedquad.mixin.json",
+      "ferritecore.dedupmultipart.mixin.json",
+      "ferritecore.fastmap.mixin.json",
+      "ferritecore.modelsides.mixin.json",
+      "ferritecore.mrl.mixin.json",
+      "ferritecore.predicates.mixin.json",
+      "ferritecore.threaddetec.mixin.json"
+    ],
+    "embutidosComMixins": []
+  },
+  "neoforge-1.21.1/iris-neoforge-1.8.8+mc1.21.1.jar": {
+    "alteracoes": {
+      "Inject": 259,
+      "ModifyArg": 18,
+      "ModifyArgs": 1,
+      "ModifyConstant": 2,
+      "ModifyVariable": 6,
+      "Overwrite": 1,
+      "Redirect": 37,
+      "WrapMethod": 1,
+      "WrapOperation": 16,
+      "WrapWithCondition": 3
+    },
+    "classes": 171,
+    "configs": [
+      "fabric-block-view-api-v2.client.mixins.json",
+      "fabric-block-view-api-v2.mixins.json",
+      "fabric-renderer-api-v1.debughud.mixins.json",
+      "fabric-renderer-api-v1.mixins.json",
+      "fabric-rendering-data-attachment-v1.client.mixins.json",
+      "fabric-rendering-data-attachment-v1.mixins.json",
+      "iris-batched-entity-rendering.mixins.json",
+      "mixins.iris.compat.dh.json",
+      "mixins.iris.compat.sodium.json",
+      "mixins.iris.fantastic.json",
+      "mixins.iris.forge.json",
+      "mixins.iris.json",
+      "mixins.iris.vertexformat.json"
+    ],
+    "embutidosComMixins": [
+      "META-INF/jarjar/fabric-block-view-api-v2-1.0.10+9afaaf8c19.jar",
+      "META-INF/jarjar/fabric-renderer-api-v1-3.4.0+acb05a3919.jar",
+      "META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.48+73761d2e19.jar"
+    ]
+  },
+  "neoforge-1.21.1/sodium-neoforge-0.6.13+mc1.21.1.jar": {
+    "alteracoes": {
+      "Inject": 65,
+      "Overwrite": 28,
+      "Redirect": 17,
+      "WrapOperation": 9
+    },
+    "classes": 106,
+    "configs": [
+      "fabric-block-view-api-v2.client.mixins.json",
+      "fabric-block-view-api-v2.mixins.json",
+      "fabric-renderer-api-v1.debughud.mixins.json",
+      "fabric-renderer-api-v1.mixins.json",
+      "fabric-rendering-data-attachment-v1.client.mixins.json",
+      "fabric-rendering-data-attachment-v1.mixins.json",
+      "sodium-common.mixins.json",
+      "sodium-neoforge.mixins.json"
+    ],
+    "embutidosComMixins": [
+      "META-INF/jarjar/fabric-block-view-api-v2-1.0.10+9afaaf8c19.jar",
+      "META-INF/jarjar/fabric-renderer-api-v1-3.4.0+9c40919e19.jar",
+      "META-INF/jarjar/fabric-rendering-data-attachment-v1-0.3.48+73761d2e19.jar"
+    ]
+  }
+}

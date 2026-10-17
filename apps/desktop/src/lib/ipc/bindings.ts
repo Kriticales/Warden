@@ -757,6 +757,8 @@ export const commands = {
 	 *  comando não faz nada.
 	 */
 	windowSetMaximizeArea: (area: MaximizeButtonArea) => typedError<null, AppError>(__TAURI_INVOKE("window_set_maximize_area", { area })),
+	/**  O raio-x de um mod do pack. Erro `ITEM_NOT_FOUND` se o item não é um mod da lista. */
+	xrayMod: (packId: PackId, path: string) => typedError<XrayModView, AppError>(__TAURI_INVOKE("xray_mod", { packId, path })),
 };
 
 /** Events */
@@ -1018,6 +1020,20 @@ export type ApplyItem = {
 	side?: SideChoice | null,
 	/**  Caminho do item do pack que este substitui ("Substituir pela versão do Modrinth"). */
 	replaces?: string | null,
+};
+
+/**  O ponto dentro do método: o `@At` (tipo e alvo), já traduzido pelo refmap. */
+export type At = {
+	/**
+	 *  Tipo do ponto (`HEAD`, `RETURN`, `INVOKE`, `FIELD`…); `OVERWRITE`, `CONSTANT` e
+	 *  `WRAP_METHOD` para os injetores sem `@At`.
+	 */
+	value: string,
+	/**
+	 *  Alvo do ponto (`Lnet/minecraft/class_1;method_2()V`) ou, no `@ModifyConstant`, a
+	 *  constante; vazio quando não há.
+	 */
+	target: string,
 };
 
 /**  Onde as chaves ficam, gravado em `settings.json` como `secretsBackend`. */
@@ -1301,6 +1317,35 @@ export type ChainLink = {
 	/**  Os outros itens do ciclo de dependência a que ele pertence (vazio fora de ciclo). */
 	cycle: NodeRef[],
 };
+
+/**  Tipo de alteração: o injetor do Mixin ou do `MixinExtras` que a classe usa. */
+export type ChangeKind = 
+/**  `@Overwrite`: troca o método inteiro. */
+"overwrite" | 
+/**  `@Inject`: acrescenta código num ponto. */
+"inject" | 
+/**  `@Redirect`: troca uma chamada ou um acesso a campo. */
+"redirect" | 
+/**  `@ModifyArg`: muda um argumento de uma chamada. */
+"modifyArg" | 
+/**  `@ModifyArgs`: muda todos os argumentos de uma chamada. */
+"modifyArgs" | 
+/**  `@ModifyVariable`: muda uma variável local. */
+"modifyVariable" | 
+/**  `@ModifyConstant`: troca um valor fixo do código. */
+"modifyConstant" | 
+/**  `@WrapOperation` (MixinExtras): envolve uma chamada; vários se encadeiam. */
+"wrapOperation" | 
+/**  `@ModifyExpressionValue` (MixinExtras): muda o resultado de uma expressão. */
+"modifyExpressionValue" | 
+/**  `@ModifyReturnValue` (MixinExtras): muda o valor devolvido. */
+"modifyReturnValue" | 
+/**  `@WrapWithCondition` (MixinExtras): pode cancelar uma chamada. */
+"wrapWithCondition" | 
+/**  `@ModifyReceiver` (MixinExtras): muda o objeto de uma chamada. */
+"modifyReceiver" | 
+/**  `@WrapMethod` (MixinExtras): envolve o método inteiro. */
+"wrapMethod";
 
 /**  Tudo o que mudou entre dois estados do pack. */
 export type ChangeSet = {
@@ -1720,6 +1765,18 @@ export type CoreErrorCode =
 /**  Sem conexão com a internet (ou o servidor não respondeu). */
 "NETWORK_UNAVAILABLE";
 
+/**  Uma linha de log que cita uma config de mixin. */
+export type CrashCitation = {
+	/**  A config citada. */
+	config: string,
+	/**  Arquivo do log (relativo à sessão). */
+	file: string,
+	/**  Linha (a partir de 1). */
+	line: number,
+	/**  O trecho. */
+	excerpt: string,
+};
+
 /**  "Por que travou" de uma sessão. */
 export type CrashDiagnosis = {
 	/**  A sessão. */
@@ -1826,6 +1883,39 @@ export type DefaultState =
 "same" | 
 /**  Diferente do padrão. */
 "changed";
+
+/**  Por que o risco desceu. */
+export type Demoter = 
+/**  Todos os mixins envolvidos têm plugin: o próprio mod pode desligá-los. */
+{ kind: "allPlugin" } | 
+/**  Compatibilidade intencional: a config ou o pacote do mixin é de compatibilidade. */
+{ kind: "compatPackage"; 
+/**  Item cujo mixin é de compatibilidade. */
+item: string; 
+/**  Classe de mixin. */
+mixin_class: string } | 
+/**  Compatibilidade intencional: o mixin de um mod usa classes do outro. */
+{ kind: "referencesOther"; 
+/**  Item que referencia. */
+item: string; 
+/**  O outro item. */
+other: string } | 
+/**  Compatibilidade intencional: um mod declara o outro como dependência. */
+{ kind: "declaresDependency"; 
+/**  Item que declara. */
+item: string; 
+/**  O outro item. */
+other: string } | 
+/**  O plugin ou a config do mod cita o outro mod. */
+{ kind: "pluginCitesOther"; 
+/**  Item que cita. */
+item: string; 
+/**  O outro item. */
+other: string } | 
+/**  O par está na lista curada de compatíveis. */
+{ kind: "knownCompatible"; 
+/**  De onde veio a informação. */
+origin: string };
 
 /**  O projeto que resolve uma dependência que falta. */
 export type DependencyCandidate = {
@@ -2020,6 +2110,24 @@ export type DuplicateMatch =
 "hash" | 
 /**  O mesmo nome ou slug. */
 "name";
+
+/**  Por que o risco subiu. */
+export type Elevator = 
+/**  O par está na lista de conflitos conhecidos. */
+({ kind: "knownConflict"; 
+/**  Id da entrada. */
+id: string }) & { config?: never } | 
+/**  O último travamento citou uma das configs envolvidas. */
+{
+	kind: "crash",
+} & CrashCitation | 
+/**
+ *  Injeção com `require` ≥ 1 num ponto que o outro mod pode tirar: se sumir, o jogo trava.
+ *  Só evidência; não muda o risco.
+ */
+({ kind: "require"; 
+/**  Config da injeção. */
+config: string }) & { id?: never };
 
 /**  Filtro **Ambiente**. */
 export type EnvironmentFilter = 
@@ -3096,6 +3204,23 @@ export type InventoryItem = {
 	error: string | null,
 };
 
+/**  O que deu errado ao ler um jar. Nada disso interrompe a análise. */
+export type IssueKind = 
+/**  O jar não é um zip legível. */
+"unreadableJar" | 
+/**  Config declarada que não está neste jar (costuma estar em outro; o loader acha). */
+"missingConfig" | 
+/**  Config com JSON inválido. */
+"invalidConfig" | 
+/**  Classe listada na config que não está no jar. */
+"missingClass" | 
+/**  Classe ilegível (corrompida, ofuscada de um jeito que o leitor não entende). */
+"unreadableClass" | 
+/**  Classe listada que não tem `@Mixin`. */
+"notAMixin" | 
+/**  Algum limite de tamanho passou (arquivo, classe ou jar embutido grande demais). */
+"tooLarge";
+
 /**  Tipo de item, pela pasta. */
 export type ItemCategory = 
 /**  Mod (qualquer item fora de `resourcepacks/` e `shaderpacks/`). */
@@ -3436,6 +3561,14 @@ export type JavaVersion = {
 	patch: number,
 	/**  Número do build (`+1`, `-b07`); 0 quando não informado. */
 	build: number,
+};
+
+/**  Quantas alterações de um tipo. */
+export type KindCount = {
+	/**  Tipo. */
+	kind: ChangeKind,
+	/**  Quantas. */
+	count: number,
 };
 
 /**  Um kit oferecido ao pack. */
@@ -3928,6 +4061,43 @@ export type MixinErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  "O que este mod altera no jogo". */
+export type ModReport = {
+	/**  O item. */
+	item: string,
+	/**  Os mods do item que alteram o jogo (o de cima e os embutidos com mixins). */
+	modIds: string[],
+	/**
+	 *  Mod Fabric num pack Forge/NeoForge (Sinytra Connector): nomes não comparados com os dos
+	 *  mods nativos.
+	 */
+	connector: boolean,
+	/**  Configs de mixin. */
+	configs: string[],
+	/**  Classes de mixin ativas. */
+	classCount: number,
+	/**  Classes de mixin desligadas por opções. */
+	disabledClassCount: number,
+	/**  Alterações. */
+	changeCount: number,
+	/**  Alterações por tipo. */
+	counts: KindCount[],
+	/**  Partes do jogo (métodos) alteradas. */
+	pointCount: number,
+	/**  Partes também alteradas por outros mods. */
+	sharedPointCount: number,
+	/**  Prioridades das classes (menor aplica antes; padrão 1000). */
+	priorities: number[],
+	/**  Sobreposições com outros mods, do maior risco para o menor. */
+	overlaps: Overlap[],
+	/**  Todas as partes alteradas. */
+	points: PointRow[],
+	/**  Problemas de leitura (sem as configs que ficam noutro jar). */
+	issues: ScanIssue[],
+	/**  O pack tem o `MixinSquared`. */
+	mixinSquared: boolean,
+};
+
 /**  O relatório do pack inteiro. */
 export type ModUpdateReport = {
 	/**  Quando a verificação terminou (RFC 3339). */
@@ -4244,6 +4414,32 @@ export type Outcome =
 /**  Saiu com código 0 sem sinais de travamento. */
 "closedNormally";
 
+/**  Uma sobreposição: dois ou mais mods no mesmo método do jogo. */
+export type Overlap = {
+	/**  Classe alterada (nome interno, em tempo de execução). */
+	targetClass: string,
+	/**  Método alterado (em tempo de execução). */
+	method: string,
+	/**  Classe com nome legível quando algum refmap ensinou (`net/minecraft/client/render/X`). */
+	classNamed: string,
+	/**  Método com nome legível quando conhecido. */
+	methodNamed: string,
+	/**  Itens que alteram o método (todos, não só os envolvidos na regra). */
+	items: string[],
+	/**  Regra. */
+	rule: Rule,
+	/**  Risco pela regra. */
+	base: Risk,
+	/**  Risco depois de rebaixadores e elevadores. */
+	risk: Risk,
+	/**  Os envolvidos na regra (os que disputam o mesmo ponto). */
+	participants: Participant[],
+	/**  Rebaixadores. */
+	demoters: Demoter[],
+	/**  Elevadores. */
+	elevators: Elevator[],
+};
+
 /**  Parte do pack que mudou, para a interface invalidar só o necessário. */
 export type PackArea = 
 /**  Mods, resource packs, shaders (lista do pack). */
@@ -4400,6 +4596,26 @@ export type PackwizErrorCode =
 /**  Formato de hash que o packwiz não conhece. */
 "UNKNOWN_HASH_FORMAT";
 
+/**  Um mod envolvido numa sobreposição. */
+export type Participant = {
+	/**  Item do pack (caminho do metafile ou do arquivo). */
+	item: string,
+	/**  Id do mod que traz a classe (pode ser um embutido do item). */
+	modId: string,
+	/**  Tipo de alteração. */
+	kind: ChangeKind,
+	/**  Classe de mixin. */
+	mixinClass: string,
+	/**  Config de mixin. */
+	config: string,
+	/**  Prioridade (menor aplica antes). */
+	priority: number,
+	/**  O ponto. */
+	at: At,
+	/**  A config tem plugin. */
+	plugin: boolean,
+};
+
 /**
  *  Códigos do domínio `perf`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -4555,6 +4771,24 @@ export type Platform =
 "linux" | 
 /**  Outro (não suportado). */
 "other";
+
+/**  Uma parte do jogo que o mod altera (classe + método), para "Ver todas as alterações". */
+export type PointRow = {
+	/**  Classe (em tempo de execução). */
+	targetClass: string,
+	/**  Método (em tempo de execução). */
+	method: string,
+	/**  Classe com nome legível, quando conhecido. */
+	classNamed: string,
+	/**  Método com nome legível, quando conhecido. */
+	methodNamed: string,
+	/**  Tipos de alteração que o mod faz ali. */
+	kinds: ChangeKind[],
+	/**  Outros itens que alteram o mesmo método. */
+	others: string[],
+	/**  Risco da sobreposição, se houver outros. */
+	risk: Risk | null,
+};
 
 /**  Avisos anteriores à exportação. */
 export type Preflight = {
@@ -5214,6 +5448,34 @@ export type RestoredDefaults = {
 	keys: string[],
 };
 
+/**  Risco de uma sobreposição. */
+export type Risk = 
+/**  Convivem (ou foram feitos para conviver). */
+"low" | 
+/**  Pode dar diferença, dependendo da ordem. */
+"medium" | 
+/**  Só um vale; o outro é pulado em silêncio. */
+"high";
+
+/**  A regra que classificou a sobreposição. */
+export type Rule = 
+/**  `@Overwrite` de 2+ mods. */
+"twoOverwrites" | 
+/**  `@Redirect`/`@ModifyConstant` de 2+ mods no mesmo `@At`. */
+"twoReplacements" | 
+/**  `@Overwrite` + injeção no corpo de outro mod. */
+"overwriteAndBody" | 
+/**  `@Redirect` + outro injetor no mesmo `@At`. */
+"redirectAndOther" | 
+/**  `@ModifyVariable`/`@ModifyArg(s)` de 2+ mods no mesmo valor. */
+"twoValueChanges" | 
+/**  `@Redirect` + `@Inject` no mesmo `@At`. */
+"redirectAndInject" | 
+/**  `@Overwrite` + injeção no começo ou no fim. */
+"overwriteAndEdge" | 
+/**  Só injeções que coexistem. */
+"coexist";
+
 /**
  *  Código estável de uma regra (`E_MISSING_DEP`, `W_SIDE`, `I_PRERELEASE`…).
  * 
@@ -5315,6 +5577,14 @@ export type SavedVersion = {
 	isPublished: boolean,
 	/**  Alcançável a partir do HEAD (falso para tags de outras branches de packs importados). */
 	reachable: boolean,
+};
+
+/**  Um problema de leitura, com o arquivo dentro do jar. */
+export type ScanIssue = {
+	/**  Tipo. */
+	kind: IssueKind,
+	/**  Arquivo dentro do jar (`lithium.mixins.json`, `a/b/C.class`). */
+	file: string,
 };
 
 /**  As ferramentas de scripts do pack. */
@@ -6430,6 +6700,25 @@ export type WhyReport = {
 	/**  Os outros itens do ciclo de dependência do item (vazio fora de ciclo). */
 	cycle: NodeRef[],
 };
+
+/**  "O que este mod altera no jogo". */
+export type XrayModView = {
+	/**  Situação. */
+	state: XrayState,
+	/**  O relatório (só em [`XrayState::Ready`]). */
+	report: ModReport | null,
+	/**  Nome de cada item citado (caminho no pack → nome na lista). */
+	names: { [key in string]: string },
+	/**  O loader do pack é Forge ou NeoForge (para a frase dos mods do Sinytra Connector). */
+	nativeLoader: boolean,
+};
+
+/**  Situação do raio-x de um item. */
+export type XrayState = 
+/**  Lido. */
+"ready" | 
+/**  O jar ainda não está no computador (o pack nunca foi testado depois de adicionar o mod). */
+"noJar";
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

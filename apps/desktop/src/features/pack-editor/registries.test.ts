@@ -82,7 +82,7 @@ describe('cabeçalho do pack (header/slots.ts)', () => {
 });
 
 describe('detalhes do item (details/blocks.ts)', () => {
-  it('blocos na ordem: a D-07 ocupa o 500, a D-11 o 510, a P1-15 o 850 e a P1-14 o 900, com espaço para o raio-x (600)', () => {
+  it('blocos na ordem: a D-07 ocupa o 500, a D-11 o 510, o raio-x (D-10) o 600, a P1-15 o 850 e a P1-14 o 900', () => {
     expect(orderedBlocks().map((block) => block.id)).toEqual([
       'cabecalho',
       'origem',
@@ -92,20 +92,21 @@ describe('detalhes do item (details/blocks.ts)', () => {
       'lado',
       'dependencias',
       'ver-no-grafo',
+      'raio-x',
       'novidades',
       'trocar-versao',
       'mais-opcoes',
     ]);
     const orders = detailBlocks.map((block) => block.order);
     expect(orders.includes(500)).toBe(true);
-    expect(orders.includes(600)).toBe(false);
+    expect(orders.includes(600)).toBe(true);
     const ids = detailBlocks.map((block) => block.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('um bloco novo entra na posição dada por `order`', () => {
-    const raioX: DetailBlock = { id: 'raio-x', order: 600, component: Nada };
-    expect(orderedBlocks([...detailBlocks, raioX]).map((block) => block.id)).toEqual([
+    const novo: DetailBlock = { id: 'novo', order: 700, component: Nada };
+    expect(orderedBlocks([...detailBlocks, novo]).map((block) => block.id)).toEqual([
       'cabecalho',
       'origem',
       'atualizacao',
@@ -115,6 +116,7 @@ describe('detalhes do item (details/blocks.ts)', () => {
       'dependencias',
       'ver-no-grafo',
       'raio-x',
+      'novo',
       'novidades',
       'trocar-versao',
       'mais-opcoes',

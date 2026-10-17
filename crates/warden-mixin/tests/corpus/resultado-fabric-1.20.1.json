@@ -1,0 +1,3068 @@
+{
+ "pack": "Better MC [FABRIC] - BMC2 v40",
+ "link": "https://modrinth.com/modpack/better-mc-fabric-bmc2/version/M5BnAIQy",
+ "resumo": {
+  "alteracoes": 9263,
+  "anotacoes": {
+   "Accessor": 1955,
+   "Inject": 6195,
+   "Invoker": 558,
+   "Mixin": 6984,
+   "ModifyArg": 286,
+   "ModifyArgs": 28,
+   "ModifyConstant": 213,
+   "ModifyExpressionValue": 236,
+   "ModifyReceiver": 22,
+   "ModifyReturnValue": 139,
+   "ModifyVariable": 398,
+   "Overwrite": 254,
+   "Redirect": 651,
+   "Shadow": 1030,
+   "WrapMethod": 20,
+   "WrapOperation": 358,
+   "WrapWithCondition": 153
+  },
+  "cache": null,
+  "classes_alteradas_por_2_mais": 691,
+  "classes_de_mixin": 6984,
+  "configs": 834,
+  "erros": 0,
+  "ferramenta": "prototipo-r5a",
+  "jars_aninhados": 594,
+  "jars_topo": 313,
+  "medio_ou_alto_com_require": 56,
+  "metodos_alterados_por_2_mais": 927,
+  "mixinsquared_presente": true,
+  "pasta": "<packs>/fabric-1.20.1/mods",
+  "pico_memoria_mb": 43.46875,
+  "refinado": {
+   "classes_de_mixin_removidas_por_opcao": 13,
+   "metodos_alterados_por_2_mais": 926,
+   "opcoes_desligadas": {
+    "lista": [
+     "lithium:mixin.ai.nearby_entity_tracking",
+     "lithium:mixin.alloc.blockstate",
+     "lithium:mixin.block.moving_block_shapes",
+     "lithium:mixin.chunk.palette",
+     "lithium:mixin.world.player_chunk_tick"
+    ],
+    "por_descritores": 4,
+    "total": 5
+   },
+   "risco_base": {
+    "Alto": 12,
+    "Baixo": 864,
+    "Medio": 50
+   },
+   "risco_com_rebaixadores": {
+    "Alto": 1,
+    "Baixo": 881,
+    "Medio": 44
+   },
+   "tempo_cruzamento_ms": 53.4995
+  },
+  "risco_base": {
+   "Alto": 13,
+   "Baixo": 853,
+   "Medio": 61
+  },
+  "risco_com_rebaixadores": {
+   "Alto": 1,
+   "Baixo": 871,
+   "Medio": 55
+  },
+  "risco_rebaixadores_somados": {
+   "Alto": 1,
+   "Baixo": 872,
+   "Medio": 54
+  },
+  "tempo_ms": {
+   "cruzamento": 56.456199999999995,
+   "leitura": 3441.806,
+   "total": 3498.2623999999996
+  },
+  "threads": 1
+ },
+ "sobreposicoes_r5a": [
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "sodium:Redirect@RenderSystemMixin[1000,plugin]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;pollEvents()V}",
+    "debugify:Inject@RenderSystemMixin[1100,plugin]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;pollEvents()V}"
+   ],
+   "method": "flipFrame",
+   "owners": [
+    "debugify",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "com/mojang/blaze3d/systems/RenderSystem"
+  },
+  {
+   "base": "Alto",
+   "demoters": [],
+   "final_one": "Alto",
+   "final_stacked": "Alto",
+   "involved": [
+    "sodium-extra:Redirect@MixinSodiumGameOptionsPages[1000,plugin]{INVOKE:Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;add(Lme/jellysquid/mods/sodium/client/gui/options/Option;)Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;}",
+    "sodiumextras:Redirect@EmbPagesMixin[1000]{INVOKE:Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;add(Lme/jellysquid/mods/sodium/client/gui/options/Option;)Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;}"
+   ],
+   "method": "general",
+   "owners": [
+    "cubes-without-borders",
+    "iris",
+    "sodium-extra",
+    "sodiumextras"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "me/jellysquid/mods/sodium/client/gui/SodiumGameOptionPages"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "indium:Redirect@MixinChunkBuilderMeshingTask[1000]{INVOKE:Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderer;renderModel(Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderContext;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;)V}",
+    "bettergrass:Inject@ChunkBuilderMeshingTaskMixin[990]{INVOKE:Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderer;renderModel(Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderContext;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;)V}"
+   ],
+   "method": "execute",
+   "owners": [
+    "bettergrass",
+    "indium",
+    "iris",
+    "vanillin"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "me/jellysquid/mods/sodium/client/render/chunk/compile/tasks/ChunkBuilderMeshingTask"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: iris declara sodium como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "sodium:Redirect@WindowMixin[1000,plugin]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J}",
+    "iris:Inject@MixinWindow[1010]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "cubes-without-borders",
+    "immediatelyfast",
+    "iris",
+    "sodium",
+    "sodium-extra"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1041"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "sodiumextras:Redirect@BorderlessWindowMixin[1000]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwSetWindowMonitor(JJIIIII)V}",
+    "cubes-without-borders:Inject@WindowMixin[1000]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwSetWindowMonitor(JJIIIII)V}"
+   ],
+   "method": "method_4479",
+   "owners": [
+    "cubes-without-borders",
+    "sodiumextras"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1041"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-model-loading-api-v1:ModifyVariable@ModelLoaderMixin[1000]{HEAD:}",
+    "modernfix:ModifyVariable@ModelBakeryMixin[1100,plugin]{HEAD:}"
+   ],
+   "method": "method_4729",
+   "owners": [
+    "bettergrass",
+    "fabric-api",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1088"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-model-loading-api-v1:Redirect@ModelLoaderBakerImplMixin[1000]{INVOKE:Lnet/minecraft/class_1100;method_4753(Lnet/minecraft/class_7775;Ljava/util/function/Function;Lnet/minecraft/class_3665;Lnet/minecraft/class_2960;)Lnet/minecraft/class_1087;}",
+    "modernfix:WrapOperation@ModelBakerImplMixin[600,plugin]{INVOKE:Lnet/minecraft/class_1100;method_4753(Lnet/minecraft/class_7775;Ljava/util/function/Function;Lnet/minecraft/class_3665;Lnet/minecraft/class_2960;)Lnet/minecraft/class_1087;}"
+   ],
+   "method": "method_45873",
+   "owners": [
+    "fabric-api",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1088$class_7778"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "sodium:Overwrite@MultipartBakedModelMixin[1000,plugin]{OVERWRITE:}",
+    "ferritecore:Redirect@MixinMultipartModel[1100,plugin]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}"
+   ],
+   "method": "method_4707",
+   "owners": [
+    "ferritecore",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/class_1095"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: `svenhjol/charmony/mixin/callback/play_sound_callback/SoundEngineMixin` referencia classes de fabric-api"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-sound-api-v1:Redirect@SoundSystemMixin[1000]{INVOKE:Lnet/minecraft/class_4237;method_19744(Lnet/minecraft/class_2960;Z)Ljava/util/concurrent/CompletableFuture;}",
+    "charm/charmony:Inject@SoundEngineMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_4237;method_19744(Lnet/minecraft/class_2960;Z)Ljava/util/concurrent/CompletableFuture;}"
+   ],
+   "method": "method_4854",
+   "owners": [
+    "aether",
+    "audioimprovements",
+    "charm",
+    "collective",
+    "dynamic_fps",
+    "fabric-api",
+    "sound_physics_remastered"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1140"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "puzzleslib:ModifyVariable@MobFabricMixin[1000]{HEAD:}",
+    "aether/porting_lib_entity:ModifyVariable@MobMixin[1000]{HEAD:}"
+   ],
+   "method": "method_5980",
+   "owners": [
+    "aether",
+    "guardvillagers",
+    "loadingprotection",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1308"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "moonlight:Redirect@EntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1308;method_23316(D)D}",
+    "subtle_effects:WrapOperation@MobMixin[1000]{INVOKE:Lnet/minecraft/class_1308;method_23316(D)D}"
+   ],
+   "method": "method_5990",
+   "owners": [
+    "moonlight",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1308"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: `io/github/fabricators_of_create/porting_lib/entity/mixin/common/LivingEntityMixin` referencia classes de farmersdelight"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "farmersdelight:ModifyVariable@LivingEntityMixin[1000]{HEAD:}",
+    "aether/porting_lib_entity:ModifyVariable@LivingEntityMixin[1000]{HEAD:}"
+   ],
+   "method": "method_5643",
+   "owners": [
+    "aether",
+    "architectury",
+    "betterend",
+    "bookshelf",
+    "collective",
+    "deeperdarker",
+    "fabric-api",
+    "farmersdelight",
+    "frostiful",
+    "loadingprotection",
+    "openpartiesandclaims",
+    "platform",
+    "puzzleslib",
+    "subtle_effects",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}",
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}",
+    "aether/porting_lib_entity:ModifyVariable@LivingEntityMixin[1000]{HEAD:}",
+    "aether/porting_lib_entity:ModifyVariable@LivingEntityMixin[1000]{HEAD:}"
+   ],
+   "method": "method_5747",
+   "owners": [
+    "aether",
+    "puzzleslib",
+    "subtle_effects",
+    "voidtotem"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "farmersdelight:ModifyVariable@LivingEntityMixin[1000]{HEAD:}",
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}",
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}",
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}"
+   ],
+   "method": "method_6005",
+   "owners": [
+    "aether",
+    "farmersdelight",
+    "mythic_charms",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "charm:Redirect@LivingEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1937;method_8406(Lnet/minecraft/class_2394;DDDDDD)V}",
+    "particle_effects:WrapOperation@LivingEntityMixin[1000]{INVOKE:Lnet/minecraft/class_1937;method_8406(Lnet/minecraft/class_2394;DDDDDD)V}"
+   ],
+   "method": "method_6050",
+   "owners": [
+    "aether",
+    "badoptimizations",
+    "betterend",
+    "charm",
+    "particle_core",
+    "particle_effects",
+    "puzzleslib",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "charm:Redirect@LivingEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1309;method_5998(Lnet/minecraft/class_1268;)Lnet/minecraft/class_1799;}",
+    "friendsandfoes:WrapOperation@LivingEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1309;method_5998(Lnet/minecraft/class_1268;)Lnet/minecraft/class_1799;}"
+   ],
+   "method": "method_6095",
+   "owners": [
+    "charm",
+    "charmofundying",
+    "friendsandfoes",
+    "fwaystones",
+    "mythic_charms",
+    "voidtotem"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "collective:Redirect@ItemEntityMixin[1001]{INVOKE:Lnet/minecraft/class_1661;method_7394(Lnet/minecraft/class_1799;)Z}",
+    "accessorify:WrapOperation@ItemEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1661;method_7394(Lnet/minecraft/class_1799;)Z}"
+   ],
+   "method": "method_5694",
+   "owners": [
+    "accessorify",
+    "architectury",
+    "collective",
+    "openpartiesandclaims",
+    "puzzleslib",
+    "tcdcommons",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1542"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/porting_lib_entity:ModifyVariable@PlayerMixin[500]{HEAD:}",
+    "xp_storage_trinkets:ModifyVariable@PlayerMixin[100]{HEAD:}"
+   ],
+   "method": "method_7255",
+   "owners": [
+    "aether",
+    "tcdcommons",
+    "xp_storage",
+    "xp_storage_trinkets"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1657"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "bettertridents:ModifyVariable@PlayerMixin[1000,plugin]{STORE:}",
+    "aether/porting_lib_entity:ModifyVariable@PlayerMixin[500]{STORE:}"
+   ],
+   "method": "method_7324",
+   "owners": [
+    "aether",
+    "bettertridents",
+    "collective",
+    "farmersdelight",
+    "mythic_charms",
+    "underwater-swim-fix"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1657"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "charm:Redirect@AnvilMenuMixin[1000,plugin]{FIELD:Lnet/minecraft/class_1656;field_7477:Z}",
+    "aether/porting_lib_base:ModifyExpressionValue@AnvilMenuMixin[951,plugin]{FIELD:Lnet/minecraft/class_1656;field_7477:Z}"
+   ],
+   "method": "method_24928",
+   "owners": [
+    "adventurez",
+    "aether",
+    "bclib",
+    "charm",
+    "collective",
+    "dragonloot",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1706"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "puzzleslib:ModifyVariable@BowItemFabricMixin[1000]{STORE:}",
+    "aether/porting_lib_base:ModifyVariable@BowItemMixin[951,plugin]{STORE:}"
+   ],
+   "method": "method_7840",
+   "owners": [
+    "accessorify",
+    "aether",
+    "dragonloot",
+    "puzzleslib",
+    "supplementaries",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1753"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: veinmining declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-item-api-v1:ModifyArg@ItemStackMixin[1000]{INVOKE:Lnet/minecraft/class_1799;method_7970(ILnet/minecraft/class_5819;Lnet/minecraft/class_3222;)Z}",
+    "veinmining:ModifyArg@ItemStackMixin[1000]{INVOKE:Lnet/minecraft/class_1799;method_7970(ILnet/minecraft/class_5819;Lnet/minecraft/class_3222;)Z}"
+   ],
+   "method": "method_7956",
+   "owners": [
+    "fabric-api",
+    "veinmining"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1799"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "architectury:Redirect@MixinBaseSpawner[1000,plugin]{INVOKE:Lnet/minecraft/class_1308;method_5957(Lnet/minecraft/class_4538;)Z}",
+    "collective:Inject@BaseSpawnerMixin[1001]{INVOKE:Lnet/minecraft/class_1308;method_5957(Lnet/minecraft/class_4538;)Z}"
+   ],
+   "method": "method_31588",
+   "owners": [
+    "adventurez",
+    "architectury",
+    "collective",
+    "formations",
+    "openpartiesandclaims",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1917"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Overwrite@WorldMixin[1000,plugin]{OVERWRITE:}",
+    "aether/porting_lib_base:Inject@LevelMixin[1100,plugin]{INVOKE:Lnet/minecraft/class_1937;method_8497(II)Lnet/minecraft/class_2818;}"
+   ],
+   "method": "method_8320",
+   "owners": [
+    "aether",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/class_1937"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "architectury:Redirect@MixinNaturalSpawner[1000,plugin]{INVOKE:Lnet/minecraft/class_1948;method_24932(Lnet/minecraft/class_3218;Lnet/minecraft/class_1308;D)Z}",
+    "aether/porting_lib_entity:ModifyExpressionValue@NaturalSpawnerMixin[1000]{INVOKE:Lnet/minecraft/class_1948;method_24932(Lnet/minecraft/class_3218;Lnet/minecraft/class_1308;D)Z}"
+   ],
+   "method": "method_24930",
+   "owners": [
+    "aether",
+    "architectury",
+    "collective",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1948"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "architectury:Redirect@MixinNaturalSpawner[1000,plugin]{INVOKE:Lnet/minecraft/class_1308;method_5979(Lnet/minecraft/class_1936;Lnet/minecraft/class_3730;)Z}",
+    "the_bumblezone:WrapOperation@NaturalSpawnerMixin[1000]{INVOKE:Lnet/minecraft/class_1308;method_5979(Lnet/minecraft/class_1936;Lnet/minecraft/class_3730;)Z}"
+   ],
+   "method": "method_8661",
+   "owners": [
+    "architectury",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1948"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}",
+    "modernfix:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_21740",
+   "owners": [
+    "lithium",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_1959"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "farmersdelight:ModifyVariable@CropBlockMixin[1000]{LOAD:}",
+    "mynethersdelight:ModifyVariable@CropBlockMixin[1000]{LOAD:}"
+   ],
+   "method": "method_9830",
+   "owners": [
+    "farmersdelight",
+    "mynethersdelight"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2302"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_10479",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2457"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_10485",
+   "owners": [
+    "alternate-current",
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2457"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "krypton:Overwrite@SplitterHandlerMixin[1000,plugin]{OVERWRITE:}",
+    "packetfixer:ModifyConstant@Varint21FrameDecoderMixin[1001,plugin]{CONSTANT:intValue=3}"
+   ],
+   "method": "decode",
+   "owners": [
+    "krypton",
+    "packetfixer"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/class_2550"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "autoslabs/statement:Redirect@ChunkDeltaUpdateS2CPacketMixin[1050,plugin]{INVOKE:Lnet/minecraft/class_2248;method_9507(Lnet/minecraft/class_2680;)I}",
+    "polymer-bundled/polymer-core:ModifyArg@ChunkDeltaUpdateS2CPacketMixin[500,plugin]{INVOKE:Lnet/minecraft/class_2248;method_9507(Lnet/minecraft/class_2680;)I}"
+   ],
+   "method": "method_11052",
+   "owners": [
+    "autoslabs",
+    "polymer-bundled"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_2637"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_11482",
+   "owners": [
+    "charm",
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2665"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_11538",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2674"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "aether/porting_lib_base:ModifyArg@RenderTargetMixin[951,plugin]{INVOKE:Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V}",
+    "aether/porting_lib_base:ModifyArg@RenderTargetMixin[951,plugin]{INVOKE:Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V}",
+    "aether/porting_lib_base:ModifyArg@RenderTargetMixin[951,plugin]{INVOKE:Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V}",
+    "wakes/satin:ModifyArg@CustomFormatFramebufferMixin[1000,plugin]{INVOKE:Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V}"
+   ],
+   "method": "method_1231",
+   "owners": [
+    "aether",
+    "cubes-without-borders",
+    "wakes"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_276"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_12334",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_2841"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_12335",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_2841"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "betteradvancements:ModifyVariable@MinecraftMixin[1000]{HEAD:}",
+    "controlling:ModifyVariable@OpenGuiMixin[1000]{HEAD:}",
+    "stfu:ModifyVariable@DisableLoadingTerrain[1000,plugin]{HEAD:}",
+    "konkrete:ModifyVariable@MixinMinecraft[1000,plugin]{HEAD:}"
+   ],
+   "method": "method_1507",
+   "owners": [
+    "aether",
+    "architectury",
+    "betteradvancements",
+    "controlling",
+    "dynamic_fps",
+    "fabric-api",
+    "fancymenu",
+    "konkrete",
+    "platform",
+    "puzzleslib",
+    "stfu",
+    "subtle_effects",
+    "tcdcommons",
+    "xaerominimap",
+    "xaeroplus",
+    "xaeroworldmap"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_310"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "stfu:Redirect@MouseHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}",
+    "corgilib:Inject@MixinMouseHandler[1000]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}"
+   ],
+   "method": "method_1598",
+   "owners": [
+    "accessorify",
+    "aether",
+    "architectury",
+    "charm",
+    "corgilib",
+    "debugify",
+    "fabric-api",
+    "fancymenu",
+    "justzoom",
+    "konkrete",
+    "platform",
+    "puzzleslib",
+    "seasonsextras",
+    "stfu",
+    "supplementaries"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_312"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "stfu:Redirect@MouseHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}",
+    "puzzleslib:Inject@MouseHandlerFabricMixin[500]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}"
+   ],
+   "method": "method_1601",
+   "owners": [
+    "aether",
+    "architectury",
+    "debugify",
+    "fancymenu",
+    "konkrete",
+    "puzzleslib",
+    "stfu",
+    "watut"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_312"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "iris:Redirect@MixinMaxFpsCrashFix[1000]{INVOKE:Lnet/minecraft/class_315$class_5823;method_42570(Ljava/lang/String;Lnet/minecraft/class_7172;)V}",
+    "debugify:Inject@OptionsMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_315$class_5823;method_42570(Ljava/lang/String;Lnet/minecraft/class_7172;)V}"
+   ],
+   "method": "method_33666",
+   "owners": [
+    "crawl",
+    "debugify",
+    "iris",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_315"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "winterly:Redirect@FreezeTopLayerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1959;method_8696(Lnet/minecraft/class_4538;Lnet/minecraft/class_2338;)Z}",
+    "snowrealmagic:WrapOperation@SnowAndFreezeFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1959;method_8696(Lnet/minecraft/class_4538;Lnet/minecraft/class_2338;)Z}"
+   ],
+   "method": "method_13151",
+   "owners": [
+    "repurposed_structures",
+    "seasons",
+    "snowrealmagic",
+    "winterly"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3183"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Redirect@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2680;method_26199(Lnet/minecraft/class_3218;Lnet/minecraft/class_2338;Lnet/minecraft/class_5819;)V}",
+    "neruina:WrapOperation@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2680;method_26199(Lnet/minecraft/class_3218;Lnet/minecraft/class_2338;Lnet/minecraft/class_5819;)V}"
+   ],
+   "method": "method_18203",
+   "owners": [
+    "adventurez",
+    "betterend",
+    "cardinal-components",
+    "corgilib",
+    "friendsandfoes",
+    "frostiful",
+    "lithium",
+    "neruina",
+    "ohthetreesyoullgrow",
+    "polymer-bundled",
+    "seasons",
+    "snowrealmagic",
+    "winterly"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3218"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "redirected:Redirect@VinesFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "repurposed_structures:Inject@NoVinesInStructuresMixin[1000]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_13151",
+   "owners": [
+    "betterjungletemples",
+    "redirected",
+    "repurposed_structures"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3219"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: universal-graves declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-screen-handler-api-v1:Redirect@ServerPlayerEntityMixin[1000]{INVOKE:Lnet/minecraft/class_3222;method_7346()V}",
+    "universal-graves/sgui:Inject@ServerPlayerEntityMixin[1000]{INVOKE:Lnet/minecraft/class_3222;method_7346()V}"
+   ],
+   "method": "method_17355",
+   "owners": [
+    "architectury",
+    "fabric-api",
+    "polymorph",
+    "universal-graves"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3222"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: passengersportalfix declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-dimensions-v1:Redirect@EntityMixin[1000]{FIELD:Lnet/minecraft/class_1937;field_25181:Lnet/minecraft/class_5321;}",
+    "passengersportalfix:ModifyExpressionValue@ServerPlayerLMixin[500]{FIELD:Lnet/minecraft/class_1937;field_25181:Lnet/minecraft/class_5321;}"
+   ],
+   "method": "method_5731",
+   "owners": [
+    "collective",
+    "deeperdarker",
+    "fabric-api",
+    "passengersportalfix",
+    "polymer-bundled",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3222"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "frostiful:ModifyArg@FrostVinetteOverlay[1000,plugin]{INVOKE:Lnet/minecraft/class_329;method_31977(Lnet/minecraft/class_332;Lnet/minecraft/class_2960;F)V}",
+    "ijmtweaks:ModifyArg@InGameHudMixin[1000]{INVOKE:Lnet/minecraft/class_329;method_31977(Lnet/minecraft/class_332;Lnet/minecraft/class_2960;F)V}"
+   ],
+   "method": "method_1753",
+   "owners": [
+    "accessorify",
+    "aether",
+    "bettermounthud",
+    "charm",
+    "debugify",
+    "dynamic_fps",
+    "fabric-api",
+    "farmersdelight",
+    "frostiful",
+    "hybrid-aquatic",
+    "ijmtweaks",
+    "iris",
+    "naturescompass",
+    "pingwheel",
+    "platform",
+    "puzzleslib",
+    "sodium",
+    "tcdcommons",
+    "the_bumblezone",
+    "watut",
+    "xaerominimap",
+    "xaeroplus"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_329"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "overflowingbars:ModifyVariable@GuiFabricMixin[1000,plugin]{STORE:}",
+    "bettermounthud:ModifyVariable@IngameHudMixin[1000]{STORE:}"
+   ],
+   "method": "method_1760",
+   "owners": [
+    "aether",
+    "bettermounthud",
+    "farmersdelight",
+    "immediatelyfast",
+    "overflowingbars"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_329"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "stfu:ModifyVariable@Tooltips[1000,plugin]{HEAD:}",
+    "architectury:ModifyVariable@MixinGuiGraphics[1000,plugin]{HEAD:}",
+    "architectury:ModifyVariable@MixinGuiGraphics[1000,plugin]{HEAD:}"
+   ],
+   "method": "method_51435",
+   "owners": [
+    "aether",
+    "architectury",
+    "charm",
+    "fancymenu",
+    "iceberg",
+    "platform",
+    "puzzleslib",
+    "stfu"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_332"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "nochatreports:ModifyVariable@MixinChatComponent[1000]{INVOKE:Lnet/minecraft/class_341;method_1850(Lnet/minecraft/class_5348;ILnet/minecraft/class_327;)Ljava/util/List;}",
+    "nochatreports:ModifyArg@MixinChatComponent[1000]{INVOKE:Lnet/minecraft/class_341;method_1850(Lnet/minecraft/class_5348;ILnet/minecraft/class_327;)Ljava/util/List;}",
+    "chat_heads:ModifyArg@ChatComponentMixin2[10100,plugin]{INVOKE:Lnet/minecraft/class_341;method_1850(Lnet/minecraft/class_5348;ILnet/minecraft/class_327;)Ljava/util/List;}"
+   ],
+   "method": "method_1815",
+   "owners": [
+    "chat_heads",
+    "nochatreports",
+    "stfu"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_338"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/porting_lib_base:ModifyArgs@LavaFluidMixin[951,plugin]{INVOKE:Lnet/minecraft/class_1936;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}",
+    "the_bumblezone:ModifyArg@LavaFluidMixin[1200]{INVOKE:Lnet/minecraft/class_1936;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}"
+   ],
+   "method": "method_15745",
+   "owners": [
+    "aether",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_3616"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "krypton:Overwrite@ThreadedAnvilChunkStorageMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@ThreadedAnvilChunkStorageMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_18713",
+   "owners": [
+    "krypton",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_3898"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "audioimprovements:ModifyVariable@SoundChannelMixin[1000]{HEAD:}",
+    "sound_physics_remastered:ModifyVariable@SourceMixin[1000]{HEAD:}"
+   ],
+   "method": "method_19651",
+   "owners": [
+    "audioimprovements",
+    "sound_physics_remastered"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_4224"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "animatica:ModifyArg@VideoOptionsScreenMixin[1000]{INVOKE:Lnet/minecraft/class_353;method_20408([Lnet/minecraft/class_7172;)V}",
+    "iris:ModifyArg@MixinVideoSettingsScreen[1000]{INVOKE:Lnet/minecraft/class_353;method_20408([Lnet/minecraft/class_7172;)V}"
+   ],
+   "method": "method_25426",
+   "owners": [
+    "animatica",
+    "bettergrass",
+    "iris"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_446"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/porting_lib_items:ModifyArg@CreativeModeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_51439(Lnet/minecraft/class_327;Lnet/minecraft/class_2561;IIIZ)I}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_51439(Lnet/minecraft/class_327;Lnet/minecraft/class_2561;IIIZ)I}"
+   ],
+   "method": "method_2388",
+   "owners": [
+    "aether",
+    "owo"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_481"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/porting_lib_items:ModifyArg@CreativeModeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}"
+   ],
+   "method": "method_2389",
+   "owners": [
+    "aether",
+    "owo"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_481"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "stfu:Redirect@FixInventoryTabSwitching[1000,plugin]{INVOKE:Lnet/minecraft/class_481;method_2466(Lnet/minecraft/class_1761;)V}",
+    "kiwi:Inject@CreativeModeInventoryScreenMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_481;method_2466(Lnet/minecraft/class_1761;)V}"
+   ],
+   "method": "method_25406",
+   "owners": [
+    "kiwi",
+    "stfu"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_481"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "roughlyenoughitems:ModifyVariable@MixinEffectRenderingInventoryScreen[1000,plugin]{INVOKE:Lcom/google/common/collect/Ordering;sortedCopy(Ljava/lang/Iterable;)Ljava/util/List;}",
+    "aether/porting_lib_entity:ModifyArg@EffectRenderingInventoryScreenMixin[1000]{INVOKE:Lcom/google/common/collect/Ordering;sortedCopy(Ljava/lang/Iterable;)Ljava/util/List;}"
+   ],
+   "method": "method_2477",
+   "owners": [
+    "aether",
+    "owo",
+    "polymer-bundled",
+    "puzzleslib",
+    "roughlyenoughitems"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_485"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Redirect@AbstractBlockStateCacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_5431;values()[Lnet/minecraft/class_5431;}",
+    "redirected:Redirect@CacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_5431;values()[Lnet/minecraft/class_5431;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "modernfix",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_4970$class_4971$class_3752"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-rendering-v1:ModifyArg@ShaderProgramMixin[1000]{INVOKE:Lnet/minecraft/class_2960;<init>(Ljava/lang/String;)V}",
+    "owo:ModifyArg@ShaderProgramMixin[1000]{INVOKE:Lnet/minecraft/class_2960;<init>(Ljava/lang/String;)V}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "fabric-api",
+    "iris",
+    "owo",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_5944"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: `net/irisshaders/iris/compat/sodium/mixin/copyEntity/ModelPartMixin` fica em config/pacote de compatibilidade"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "iris:Overwrite@ModelPartMixin[1000,plugin]{OVERWRITE:}",
+    "sodium:Overwrite@ModelPartMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_22703",
+   "owners": [
+    "iris",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_630"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "deeperdarker/customportalapi:Redirect@ClientPlayNetworkHandlerMixin[1000]{INVOKE:Lnet/minecraft/class_636;method_2901(Lnet/minecraft/class_638;Lnet/minecraft/class_3469;Lnet/minecraft/class_299;ZZ)Lnet/minecraft/class_746;}",
+    "debugify:ModifyExpressionValue@ClientPacketListenerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_636;method_2901(Lnet/minecraft/class_638;Lnet/minecraft/class_3469;Lnet/minecraft/class_299;ZZ)Lnet/minecraft/class_746;}"
+   ],
+   "method": "method_11117",
+   "owners": [
+    "aether",
+    "architectury",
+    "debugify",
+    "deeperdarker",
+    "fabric-api",
+    "fwaystones",
+    "platform",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_634"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "stfu:Redirect@DisableToasts[1000,plugin]{INVOKE:Lnet/minecraft/class_7495;method_45058()Z}",
+    "charm:Redirect@DisableToastMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_7495;method_45058()Z}"
+   ],
+   "method": "method_44075",
+   "owners": [
+    "charm",
+    "stfu"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_634"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "autoslabs:Redirect@ClientPlayerInteractionManagerMixin[1000]{INVOKE:Lnet/minecraft/class_1937;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}",
+    "subtle_effects:WrapOperation@FabricMultiPlayerGameModeMixin[1000]{INVOKE:Lnet/minecraft/class_1937;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}"
+   ],
+   "method": "method_2899",
+   "owners": [
+    "aether",
+    "autoslabs",
+    "fancymenu",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_636"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "compat: debugify declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "debugify:Redirect@MultiPlayerGameModeMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1799;method_31577(Lnet/minecraft/class_1799;Lnet/minecraft/class_1799;)Z}",
+    "fabric-api/fabric-item-api-v1:Redirect@ClientPlayerInteractionManagerMixin[1000]{INVOKE:Lnet/minecraft/class_1799;method_31577(Lnet/minecraft/class_1799;Lnet/minecraft/class_1799;)Z}"
+   ],
+   "method": "method_2922",
+   "owners": [
+    "debugify",
+    "fabric-api"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_636"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-dimensions-v1:Redirect@Schema2832Mixin[1000]{INVOKE:Lcom/mojang/datafixers/DSL;taggedChoiceLazy(Ljava/lang/String;Lcom/mojang/datafixers/types/Type;Ljava/util/Map;)Lcom/mojang/datafixers/types/templates/TaggedChoice;}",
+    "bclib:ModifyArg@V2832Mixin[1000]{INVOKE:Lcom/mojang/datafixers/DSL;taggedChoiceLazy(Ljava/lang/String;Lcom/mojang/datafixers/types/Type;Ljava/util/Map;)Lcom/mojang/datafixers/types/templates/TaggedChoice;}"
+   ],
+   "method": "method_38837",
+   "owners": [
+    "bclib",
+    "fabric-api"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_6640"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "mru:ModifyVariable@ReloadableResourceManagerImplMixin[5000]{HEAD:}",
+    "autoslabs/advanced_runtime_resource_pack:ModifyVariable@LifecycledResourceManagerImplMixin[1000]{HEAD:}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "autoslabs",
+    "continuity",
+    "fabric-api",
+    "mindfuldarkness",
+    "mru"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_6861"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "platform:ModifyArgs@FogRendererMixin[1000]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V}",
+    "aether/porting_lib_base:ModifyArgs@FogRendererMixin[951,plugin]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V}"
+   ],
+   "method": "method_3210",
+   "owners": [
+    "aether",
+    "bclib",
+    "decorative_blocks",
+    "iris",
+    "platform",
+    "puzzleslib",
+    "sodium",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_758"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "iris:Redirect@MixinLevelRenderer[1000]{INVOKE:Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V}",
+    "subtle_effects:Inject@FabricLevelRendererMixin[1000]{INVOKE:Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V}"
+   ],
+   "method": "method_22710",
+   "owners": [
+    "aether",
+    "bclib",
+    "bosses_of_mass_destruction",
+    "carryon",
+    "edenring",
+    "fabric-api",
+    "fancymenu",
+    "iris",
+    "notenoughanimations",
+    "particle_core",
+    "particle_effects",
+    "patchouli",
+    "pingwheel",
+    "sodium",
+    "sodiumdynamiclights",
+    "subtle_effects",
+    "supplementaries",
+    "vanillin",
+    "wakes",
+    "xaeroplus"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_761"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "badoptimizations:Redirect@MixinWorldRenderer[700,plugin]{INVOKE:Lnet/minecraft/class_638;method_30274(F)F}",
+    "iris:Inject@MixinLevelRenderer[1000]{INVOKE:Lnet/minecraft/class_638;method_30274(F)F}"
+   ],
+   "method": "method_3257",
+   "owners": [
+    "aether",
+    "badoptimizations",
+    "fabric-api",
+    "iris",
+    "nicer-skies",
+    "sodium",
+    "sodium-extra"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_761"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "platform:ModifyArg@SpriteLoaderMixin[1000]{INVOKE:Ljava/util/concurrent/CompletableFuture;supplyAsync(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;}",
+    "continuity:ModifyArg@SpriteLoaderMixin[1000]{INVOKE:Ljava/util/concurrent/CompletableFuture;supplyAsync(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;}"
+   ],
+   "method": "method_47661",
+   "owners": [
+    "continuity",
+    "fastpaintings",
+    "platform"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_7766"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-renderer-indigo:Redirect@ChunkBuilderBuiltChunkRebuildTaskMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_776;method_3355(Lnet/minecraft/class_2680;Lnet/minecraft/class_2338;Lnet/minecraft/class_1920;Lnet/minecraft/class_4587;Lnet/minecraft/class_4588;ZLnet/minecraft/class_5819;)V}",
+    "iris:Inject@MixinChunkRebuildTask[999]{INVOKE:Lnet/minecraft/class_776;method_3355(Lnet/minecraft/class_2680;Lnet/minecraft/class_2338;Lnet/minecraft/class_1920;Lnet/minecraft/class_4587;Lnet/minecraft/class_4588;ZLnet/minecraft/class_5819;)V}"
+   ],
+   "method": "method_22785",
+   "owners": [
+    "fabric-api",
+    "iris",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_846$class_851$class_4578"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "dawn/terraform-wood-api-v1:Redirect@MixinBoatEntityRenderer[1000]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}",
+    "aether/porting_lib_base:WrapOperation@BoatRendererMixin[951,plugin]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}"
+   ],
+   "method": "method_3888",
+   "owners": [
+    "aether",
+    "bclib",
+    "dawn"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_881"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "platform:ModifyVariable@ItemRendererMixin[1000]{HEAD:}",
+    "polymer-bundled/polymer-core:ModifyVariable@ItemRendererMixin[1000,plugin]{HEAD:}"
+   ],
+   "method": "method_23179",
+   "owners": [
+    "aether",
+    "charm",
+    "citresewn",
+    "dragonloot",
+    "fabric-api",
+    "geckolib",
+    "indium",
+    "iris",
+    "modernfix",
+    "platform",
+    "polymer-bundled",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_918"
+  }
+ ],
+ "sobreposicoes_refinadas": [
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "sodium:Redirect@RenderSystemMixin[1000,plugin]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;pollEvents()V}",
+    "debugify:Inject@RenderSystemMixin[1100,plugin]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;pollEvents()V}"
+   ],
+   "method": "flipFrame",
+   "owners": [
+    "debugify",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "com/mojang/blaze3d/systems/RenderSystem"
+  },
+  {
+   "base": "Alto",
+   "demoters": [],
+   "final_one": "Alto",
+   "final_stacked": "Alto",
+   "involved": [
+    "sodium-extra:Redirect@MixinSodiumGameOptionsPages[1000,plugin]{INVOKE:Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;add(Lme/jellysquid/mods/sodium/client/gui/options/Option;)Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;}",
+    "sodiumextras:Redirect@EmbPagesMixin[1000]{INVOKE:Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;add(Lme/jellysquid/mods/sodium/client/gui/options/Option;)Lme/jellysquid/mods/sodium/client/gui/options/OptionGroup$Builder;}"
+   ],
+   "method": "general",
+   "owners": [
+    "cubes-without-borders",
+    "iris",
+    "sodium-extra",
+    "sodiumextras"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "me/jellysquid/mods/sodium/client/gui/SodiumGameOptionPages"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "indium:Redirect@MixinChunkBuilderMeshingTask[1000]{INVOKE:Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderer;renderModel(Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderContext;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;)V}",
+    "bettergrass:Inject@ChunkBuilderMeshingTaskMixin[990]{INVOKE:Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderer;renderModel(Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderContext;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;)V}"
+   ],
+   "method": "execute",
+   "owners": [
+    "bettergrass",
+    "indium",
+    "iris",
+    "vanillin"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "me/jellysquid/mods/sodium/client/render/chunk/compile/tasks/ChunkBuilderMeshingTask"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: iris declara sodium como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "sodium:Redirect@WindowMixin[1000,plugin]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J}",
+    "iris:Inject@MixinWindow[1010]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "cubes-without-borders",
+    "immediatelyfast",
+    "iris",
+    "sodium",
+    "sodium-extra"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1041"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "sodiumextras:Redirect@BorderlessWindowMixin[1000]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwSetWindowMonitor(JJIIIII)V}",
+    "cubes-without-borders:Inject@WindowMixin[1000]{INVOKE:Lorg/lwjgl/glfw/GLFW;glfwSetWindowMonitor(JJIIIII)V}"
+   ],
+   "method": "method_4479",
+   "owners": [
+    "cubes-without-borders",
+    "sodiumextras"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1041"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-model-loading-api-v1:ModifyVariable@ModelLoaderMixin[1000]{HEAD:}",
+    "modernfix:ModifyVariable@ModelBakeryMixin[1100,plugin]{HEAD:}"
+   ],
+   "method": "method_4729",
+   "owners": [
+    "bettergrass",
+    "fabric-api",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1088"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-model-loading-api-v1:Redirect@ModelLoaderBakerImplMixin[1000]{INVOKE:Lnet/minecraft/class_1100;method_4753(Lnet/minecraft/class_7775;Ljava/util/function/Function;Lnet/minecraft/class_3665;Lnet/minecraft/class_2960;)Lnet/minecraft/class_1087;}",
+    "modernfix:WrapOperation@ModelBakerImplMixin[600,plugin]{INVOKE:Lnet/minecraft/class_1100;method_4753(Lnet/minecraft/class_7775;Ljava/util/function/Function;Lnet/minecraft/class_3665;Lnet/minecraft/class_2960;)Lnet/minecraft/class_1087;}"
+   ],
+   "method": "method_45873",
+   "owners": [
+    "fabric-api",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1088$class_7778"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "sodium:Overwrite@MultipartBakedModelMixin[1000,plugin]{OVERWRITE:}",
+    "ferritecore:Redirect@MixinMultipartModel[1100,plugin]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}"
+   ],
+   "method": "method_4707",
+   "owners": [
+    "ferritecore",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/class_1095"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: `svenhjol/charmony/mixin/callback/play_sound_callback/SoundEngineMixin` referencia classes de fabric-api"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-sound-api-v1:Redirect@SoundSystemMixin[1000]{INVOKE:Lnet/minecraft/class_4237;method_19744(Lnet/minecraft/class_2960;Z)Ljava/util/concurrent/CompletableFuture;}",
+    "charm/charmony:Inject@SoundEngineMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_4237;method_19744(Lnet/minecraft/class_2960;Z)Ljava/util/concurrent/CompletableFuture;}"
+   ],
+   "method": "method_4854",
+   "owners": [
+    "aether",
+    "audioimprovements",
+    "charm",
+    "collective",
+    "dynamic_fps",
+    "fabric-api",
+    "sound_physics_remastered"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1140"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "moonlight:Redirect@EntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1308;method_23316(D)D}",
+    "subtle_effects:WrapOperation@MobMixin[1000]{INVOKE:Lnet/minecraft/class_1308;method_23316(D)D}"
+   ],
+   "method": "method_5990",
+   "owners": [
+    "moonlight",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1308"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: `io/github/fabricators_of_create/porting_lib/entity/mixin/common/LivingEntityMixin` referencia classes de farmersdelight"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "farmersdelight:ModifyVariable@LivingEntityMixin[1000]{HEAD:}",
+    "aether/porting_lib_entity:ModifyVariable@LivingEntityMixin[1000]{HEAD:}"
+   ],
+   "method": "method_5643",
+   "owners": [
+    "aether",
+    "architectury",
+    "betterend",
+    "bookshelf",
+    "collective",
+    "deeperdarker",
+    "fabric-api",
+    "farmersdelight",
+    "frostiful",
+    "loadingprotection",
+    "openpartiesandclaims",
+    "platform",
+    "puzzleslib",
+    "subtle_effects",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}",
+    "aether/porting_lib_entity:ModifyVariable@LivingEntityMixin[1000]{HEAD:}"
+   ],
+   "method": "method_5747",
+   "owners": [
+    "aether",
+    "puzzleslib",
+    "subtle_effects",
+    "voidtotem"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "farmersdelight:ModifyVariable@LivingEntityMixin[1000]{HEAD:}",
+    "puzzleslib:ModifyVariable@LivingEntityFabricMixin[1000]{HEAD:}"
+   ],
+   "method": "method_6005",
+   "owners": [
+    "aether",
+    "farmersdelight",
+    "mythic_charms",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "charm:Redirect@LivingEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1937;method_8406(Lnet/minecraft/class_2394;DDDDDD)V}",
+    "particle_effects:WrapOperation@LivingEntityMixin[1000]{INVOKE:Lnet/minecraft/class_1937;method_8406(Lnet/minecraft/class_2394;DDDDDD)V}"
+   ],
+   "method": "method_6050",
+   "owners": [
+    "aether",
+    "badoptimizations",
+    "betterend",
+    "charm",
+    "particle_core",
+    "particle_effects",
+    "puzzleslib",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "charm:Redirect@LivingEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1309;method_5998(Lnet/minecraft/class_1268;)Lnet/minecraft/class_1799;}",
+    "friendsandfoes:WrapOperation@LivingEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1309;method_5998(Lnet/minecraft/class_1268;)Lnet/minecraft/class_1799;}"
+   ],
+   "method": "method_6095",
+   "owners": [
+    "charm",
+    "charmofundying",
+    "friendsandfoes",
+    "fwaystones",
+    "mythic_charms",
+    "voidtotem"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1309"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "collective:Redirect@ItemEntityMixin[1001]{INVOKE:Lnet/minecraft/class_1661;method_7394(Lnet/minecraft/class_1799;)Z}",
+    "accessorify:WrapOperation@ItemEntityMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1661;method_7394(Lnet/minecraft/class_1799;)Z}"
+   ],
+   "method": "method_5694",
+   "owners": [
+    "accessorify",
+    "architectury",
+    "collective",
+    "openpartiesandclaims",
+    "puzzleslib",
+    "tcdcommons",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1542"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de charm cita aether"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "charm:Redirect@AnvilMenuMixin[1000,plugin]{FIELD:Lnet/minecraft/class_1656;field_7477:Z}",
+    "aether/porting_lib_base:ModifyExpressionValue@AnvilMenuMixin[951,plugin]{FIELD:Lnet/minecraft/class_1656;field_7477:Z}"
+   ],
+   "method": "method_24928",
+   "owners": [
+    "adventurez",
+    "aether",
+    "bclib",
+    "charm",
+    "collective",
+    "dragonloot",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1706"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "architectury:Redirect@MixinBaseSpawner[1000,plugin]{INVOKE:Lnet/minecraft/class_1308;method_5957(Lnet/minecraft/class_4538;)Z}",
+    "collective:Inject@BaseSpawnerMixin[1001]{INVOKE:Lnet/minecraft/class_1308;method_5957(Lnet/minecraft/class_4538;)Z}"
+   ],
+   "method": "method_31588",
+   "owners": [
+    "adventurez",
+    "architectury",
+    "collective",
+    "formations",
+    "openpartiesandclaims",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1917"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Overwrite@WorldMixin[1000,plugin]{OVERWRITE:}",
+    "aether/porting_lib_base:Inject@LevelMixin[1100,plugin]{INVOKE:Lnet/minecraft/class_1937;method_8497(II)Lnet/minecraft/class_2818;}"
+   ],
+   "method": "method_8320",
+   "owners": [
+    "aether",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/class_1937"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "architectury:Redirect@MixinNaturalSpawner[1000,plugin]{INVOKE:Lnet/minecraft/class_1948;method_24932(Lnet/minecraft/class_3218;Lnet/minecraft/class_1308;D)Z}",
+    "aether/porting_lib_entity:ModifyExpressionValue@NaturalSpawnerMixin[1000]{INVOKE:Lnet/minecraft/class_1948;method_24932(Lnet/minecraft/class_3218;Lnet/minecraft/class_1308;D)Z}"
+   ],
+   "method": "method_24930",
+   "owners": [
+    "aether",
+    "architectury",
+    "collective",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1948"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "architectury:Redirect@MixinNaturalSpawner[1000,plugin]{INVOKE:Lnet/minecraft/class_1308;method_5979(Lnet/minecraft/class_1936;Lnet/minecraft/class_3730;)Z}",
+    "the_bumblezone:WrapOperation@NaturalSpawnerMixin[1000]{INVOKE:Lnet/minecraft/class_1308;method_5979(Lnet/minecraft/class_1936;Lnet/minecraft/class_3730;)Z}"
+   ],
+   "method": "method_8661",
+   "owners": [
+    "architectury",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_1948"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de modernfix cita lithium"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}",
+    "modernfix:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_21740",
+   "owners": [
+    "lithium",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_1959"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "farmersdelight:ModifyVariable@CropBlockMixin[1000]{LOAD:}",
+    "mynethersdelight:ModifyVariable@CropBlockMixin[1000]{LOAD:}"
+   ],
+   "method": "method_9830",
+   "owners": [
+    "farmersdelight",
+    "mynethersdelight"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2302"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_10479",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2457"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedstoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_10485",
+   "owners": [
+    "alternate-current",
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2457"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "krypton:Overwrite@SplitterHandlerMixin[1000,plugin]{OVERWRITE:}",
+    "packetfixer:ModifyConstant@Varint21FrameDecoderMixin[1001,plugin]{CONSTANT:intValue=3}"
+   ],
+   "method": "decode",
+   "owners": [
+    "krypton",
+    "packetfixer"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/class_2550"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de autoslabs cita polymer-bundled"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "autoslabs/statement:Redirect@ChunkDeltaUpdateS2CPacketMixin[1050,plugin]{INVOKE:Lnet/minecraft/class_2248;method_9507(Lnet/minecraft/class_2680;)I}",
+    "polymer-bundled/polymer-core:ModifyArg@ChunkDeltaUpdateS2CPacketMixin[500,plugin]{INVOKE:Lnet/minecraft/class_2248;method_9507(Lnet/minecraft/class_2680;)I}"
+   ],
+   "method": "method_11052",
+   "owners": [
+    "autoslabs",
+    "polymer-bundled"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_2637"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_11482",
+   "owners": [
+    "charm",
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2665"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "redirected:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_11538",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_2674"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "aether/porting_lib_base:ModifyArg@RenderTargetMixin[951,plugin]{INVOKE:Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V}",
+    "wakes/satin:ModifyArg@CustomFormatFramebufferMixin[1000,plugin]{INVOKE:Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V}"
+   ],
+   "method": "method_1231",
+   "owners": [
+    "aether",
+    "cubes-without-borders",
+    "wakes"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_276"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_12334",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_2841"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_12335",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_2841"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "betteradvancements:ModifyVariable@MinecraftMixin[1000]{HEAD:}",
+    "stfu:ModifyVariable@DisableLoadingTerrain[1000,plugin]{HEAD:}"
+   ],
+   "method": "method_1507",
+   "owners": [
+    "aether",
+    "architectury",
+    "betteradvancements",
+    "controlling",
+    "dynamic_fps",
+    "fabric-api",
+    "fancymenu",
+    "konkrete",
+    "platform",
+    "puzzleslib",
+    "stfu",
+    "subtle_effects",
+    "tcdcommons",
+    "xaerominimap",
+    "xaeroplus",
+    "xaeroworldmap"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_310"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "stfu:Redirect@MouseHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}",
+    "corgilib:Inject@MixinMouseHandler[1000]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}"
+   ],
+   "method": "method_1598",
+   "owners": [
+    "accessorify",
+    "aether",
+    "architectury",
+    "charm",
+    "corgilib",
+    "debugify",
+    "fabric-api",
+    "fancymenu",
+    "justzoom",
+    "konkrete",
+    "platform",
+    "puzzleslib",
+    "seasonsextras",
+    "stfu",
+    "supplementaries"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_312"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "stfu:Redirect@MouseHandlerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}",
+    "puzzleslib:Inject@MouseHandlerFabricMixin[500]{INVOKE:Lnet/minecraft/class_310;method_18506()Lnet/minecraft/class_4071;}"
+   ],
+   "method": "method_1601",
+   "owners": [
+    "aether",
+    "architectury",
+    "debugify",
+    "fancymenu",
+    "konkrete",
+    "puzzleslib",
+    "stfu",
+    "watut"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_312"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "iris:Redirect@MixinMaxFpsCrashFix[1000]{INVOKE:Lnet/minecraft/class_315$class_5823;method_42570(Ljava/lang/String;Lnet/minecraft/class_7172;)V}",
+    "debugify:Inject@OptionsMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_315$class_5823;method_42570(Ljava/lang/String;Lnet/minecraft/class_7172;)V}"
+   ],
+   "method": "method_33666",
+   "owners": [
+    "crawl",
+    "debugify",
+    "iris",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_315"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "winterly:Redirect@FreezeTopLayerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1959;method_8696(Lnet/minecraft/class_4538;Lnet/minecraft/class_2338;)Z}",
+    "snowrealmagic:WrapOperation@SnowAndFreezeFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1959;method_8696(Lnet/minecraft/class_4538;Lnet/minecraft/class_2338;)Z}"
+   ],
+   "method": "method_13151",
+   "owners": [
+    "repurposed_structures",
+    "seasons",
+    "snowrealmagic",
+    "winterly"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3183"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Redirect@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2680;method_26199(Lnet/minecraft/class_3218;Lnet/minecraft/class_2338;Lnet/minecraft/class_5819;)V}",
+    "neruina:WrapOperation@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2680;method_26199(Lnet/minecraft/class_3218;Lnet/minecraft/class_2338;Lnet/minecraft/class_5819;)V}"
+   ],
+   "method": "method_18203",
+   "owners": [
+    "adventurez",
+    "betterend",
+    "cardinal-components",
+    "corgilib",
+    "friendsandfoes",
+    "frostiful",
+    "lithium",
+    "neruina",
+    "ohthetreesyoullgrow",
+    "polymer-bundled",
+    "seasons",
+    "snowrealmagic",
+    "winterly"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3218"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "redirected:Redirect@VinesFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}",
+    "repurposed_structures:Inject@NoVinesInStructuresMixin[1000]{INVOKE:Lnet/minecraft/class_2350;values()[Lnet/minecraft/class_2350;}"
+   ],
+   "method": "method_13151",
+   "owners": [
+    "betterjungletemples",
+    "redirected",
+    "repurposed_structures"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3219"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: universal-graves declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-screen-handler-api-v1:Redirect@ServerPlayerEntityMixin[1000]{INVOKE:Lnet/minecraft/class_3222;method_7346()V}",
+    "universal-graves/sgui:Inject@ServerPlayerEntityMixin[1000]{INVOKE:Lnet/minecraft/class_3222;method_7346()V}"
+   ],
+   "method": "method_17355",
+   "owners": [
+    "architectury",
+    "fabric-api",
+    "polymorph",
+    "universal-graves"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3222"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: passengersportalfix declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-dimensions-v1:Redirect@EntityMixin[1000]{FIELD:Lnet/minecraft/class_1937;field_25181:Lnet/minecraft/class_5321;}",
+    "passengersportalfix:ModifyExpressionValue@ServerPlayerLMixin[500]{FIELD:Lnet/minecraft/class_1937;field_25181:Lnet/minecraft/class_5321;}"
+   ],
+   "method": "method_5731",
+   "owners": [
+    "collective",
+    "deeperdarker",
+    "fabric-api",
+    "passengersportalfix",
+    "polymer-bundled",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_3222"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "frostiful:ModifyArg@FrostVinetteOverlay[1000,plugin]{INVOKE:Lnet/minecraft/class_329;method_31977(Lnet/minecraft/class_332;Lnet/minecraft/class_2960;F)V}",
+    "ijmtweaks:ModifyArg@InGameHudMixin[1000]{INVOKE:Lnet/minecraft/class_329;method_31977(Lnet/minecraft/class_332;Lnet/minecraft/class_2960;F)V}"
+   ],
+   "method": "method_1753",
+   "owners": [
+    "accessorify",
+    "aether",
+    "bettermounthud",
+    "charm",
+    "debugify",
+    "dynamic_fps",
+    "fabric-api",
+    "farmersdelight",
+    "frostiful",
+    "hybrid-aquatic",
+    "ijmtweaks",
+    "iris",
+    "naturescompass",
+    "pingwheel",
+    "platform",
+    "puzzleslib",
+    "sodium",
+    "tcdcommons",
+    "the_bumblezone",
+    "watut",
+    "xaerominimap",
+    "xaeroplus"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_329"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/porting_lib_base:ModifyArgs@LavaFluidMixin[951,plugin]{INVOKE:Lnet/minecraft/class_1936;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}",
+    "the_bumblezone:ModifyArg@LavaFluidMixin[1200]{INVOKE:Lnet/minecraft/class_1936;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}"
+   ],
+   "method": "method_15745",
+   "owners": [
+    "aether",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_3616"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "audioimprovements:ModifyVariable@SoundChannelMixin[1000]{HEAD:}",
+    "sound_physics_remastered:ModifyVariable@SourceMixin[1000]{HEAD:}"
+   ],
+   "method": "method_19651",
+   "owners": [
+    "audioimprovements",
+    "sound_physics_remastered"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_4224"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "animatica:ModifyArg@VideoOptionsScreenMixin[1000]{INVOKE:Lnet/minecraft/class_353;method_20408([Lnet/minecraft/class_7172;)V}",
+    "iris:ModifyArg@MixinVideoSettingsScreen[1000]{INVOKE:Lnet/minecraft/class_353;method_20408([Lnet/minecraft/class_7172;)V}"
+   ],
+   "method": "method_25426",
+   "owners": [
+    "animatica",
+    "bettergrass",
+    "iris"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_446"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/porting_lib_items:ModifyArg@CreativeModeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}",
+    "owo:ModifyArg@CreativeInventoryScreenMixin[1000]{INVOKE:Lnet/minecraft/class_332;method_25302(Lnet/minecraft/class_2960;IIIIII)V}"
+   ],
+   "method": "method_2389",
+   "owners": [
+    "aether",
+    "owo"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_481"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "stfu:Redirect@FixInventoryTabSwitching[1000,plugin]{INVOKE:Lnet/minecraft/class_481;method_2466(Lnet/minecraft/class_1761;)V}",
+    "kiwi:Inject@CreativeModeInventoryScreenMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_481;method_2466(Lnet/minecraft/class_1761;)V}"
+   ],
+   "method": "method_25406",
+   "owners": [
+    "kiwi",
+    "stfu"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_481"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Redirect@AbstractBlockStateCacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_5431;values()[Lnet/minecraft/class_5431;}",
+    "redirected:Redirect@CacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_5431;values()[Lnet/minecraft/class_5431;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "modernfix",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_4970$class_4971$class_3752"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-rendering-v1:ModifyArg@ShaderProgramMixin[1000]{INVOKE:Lnet/minecraft/class_2960;<init>(Ljava/lang/String;)V}",
+    "owo:ModifyArg@ShaderProgramMixin[1000]{INVOKE:Lnet/minecraft/class_2960;<init>(Ljava/lang/String;)V}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "fabric-api",
+    "iris",
+    "owo",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_5944"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: `net/irisshaders/iris/compat/sodium/mixin/copyEntity/ModelPartMixin` fica em config/pacote de compatibilidade"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "iris:Overwrite@ModelPartMixin[1000,plugin]{OVERWRITE:}",
+    "sodium:Overwrite@ModelPartMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "method_22703",
+   "owners": [
+    "iris",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/class_630"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "deeperdarker/customportalapi:Redirect@ClientPlayNetworkHandlerMixin[1000]{INVOKE:Lnet/minecraft/class_636;method_2901(Lnet/minecraft/class_638;Lnet/minecraft/class_3469;Lnet/minecraft/class_299;ZZ)Lnet/minecraft/class_746;}",
+    "debugify:ModifyExpressionValue@ClientPacketListenerMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_636;method_2901(Lnet/minecraft/class_638;Lnet/minecraft/class_3469;Lnet/minecraft/class_299;ZZ)Lnet/minecraft/class_746;}"
+   ],
+   "method": "method_11117",
+   "owners": [
+    "aether",
+    "architectury",
+    "debugify",
+    "deeperdarker",
+    "fabric-api",
+    "fwaystones",
+    "platform",
+    "puzzleslib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_634"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "stfu:Redirect@DisableToasts[1000,plugin]{INVOKE:Lnet/minecraft/class_7495;method_45058()Z}",
+    "charm:Redirect@DisableToastMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_7495;method_45058()Z}"
+   ],
+   "method": "method_44075",
+   "owners": [
+    "charm",
+    "stfu"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_634"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "autoslabs:Redirect@ClientPlayerInteractionManagerMixin[1000]{INVOKE:Lnet/minecraft/class_1937;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}",
+    "subtle_effects:WrapOperation@FabricMultiPlayerGameModeMixin[1000]{INVOKE:Lnet/minecraft/class_1937;method_8652(Lnet/minecraft/class_2338;Lnet/minecraft/class_2680;I)Z}"
+   ],
+   "method": "method_2899",
+   "owners": [
+    "aether",
+    "autoslabs",
+    "fancymenu",
+    "subtle_effects"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_636"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "compat: debugify declara fabric-api como dependência/recomendação"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "debugify:Redirect@MultiPlayerGameModeMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_1799;method_31577(Lnet/minecraft/class_1799;Lnet/minecraft/class_1799;)Z}",
+    "fabric-api/fabric-item-api-v1:Redirect@ClientPlayerInteractionManagerMixin[1000]{INVOKE:Lnet/minecraft/class_1799;method_31577(Lnet/minecraft/class_1799;Lnet/minecraft/class_1799;)Z}"
+   ],
+   "method": "method_2922",
+   "owners": [
+    "debugify",
+    "fabric-api"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_636"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "fabric-api/fabric-dimensions-v1:Redirect@Schema2832Mixin[1000]{INVOKE:Lcom/mojang/datafixers/DSL;taggedChoiceLazy(Ljava/lang/String;Lcom/mojang/datafixers/types/Type;Ljava/util/Map;)Lcom/mojang/datafixers/types/templates/TaggedChoice;}",
+    "bclib:ModifyArg@V2832Mixin[1000]{INVOKE:Lcom/mojang/datafixers/DSL;taggedChoiceLazy(Ljava/lang/String;Lcom/mojang/datafixers/types/Type;Ljava/util/Map;)Lcom/mojang/datafixers/types/templates/TaggedChoice;}"
+   ],
+   "method": "method_38837",
+   "owners": [
+    "bclib",
+    "fabric-api"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_6640"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "mru:ModifyVariable@ReloadableResourceManagerImplMixin[5000]{HEAD:}",
+    "autoslabs/advanced_runtime_resource_pack:ModifyVariable@LifecycledResourceManagerImplMixin[1000]{HEAD:}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "autoslabs",
+    "continuity",
+    "fabric-api",
+    "mindfuldarkness",
+    "mru"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_6861"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "platform:ModifyArgs@FogRendererMixin[1000]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V}",
+    "aether/porting_lib_base:ModifyArgs@FogRendererMixin[951,plugin]{INVOKE:Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V}"
+   ],
+   "method": "method_3210",
+   "owners": [
+    "aether",
+    "bclib",
+    "decorative_blocks",
+    "iris",
+    "platform",
+    "puzzleslib",
+    "sodium",
+    "the_bumblezone"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_758"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "iris:Redirect@MixinLevelRenderer[1000]{INVOKE:Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V}",
+    "subtle_effects:Inject@FabricLevelRendererMixin[1000]{INVOKE:Lnet/minecraft/class_702;method_3049(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597$class_4598;Lnet/minecraft/class_765;Lnet/minecraft/class_4184;F)V}"
+   ],
+   "method": "method_22710",
+   "owners": [
+    "aether",
+    "bclib",
+    "bosses_of_mass_destruction",
+    "carryon",
+    "edenring",
+    "fabric-api",
+    "fancymenu",
+    "iris",
+    "notenoughanimations",
+    "particle_core",
+    "particle_effects",
+    "patchouli",
+    "pingwheel",
+    "sodium",
+    "sodiumdynamiclights",
+    "subtle_effects",
+    "supplementaries",
+    "vanillin",
+    "wakes",
+    "xaeroplus"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_761"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "badoptimizations:Redirect@MixinWorldRenderer[700,plugin]{INVOKE:Lnet/minecraft/class_638;method_30274(F)F}",
+    "iris:Inject@MixinLevelRenderer[1000]{INVOKE:Lnet/minecraft/class_638;method_30274(F)F}"
+   ],
+   "method": "method_3257",
+   "owners": [
+    "aether",
+    "badoptimizations",
+    "fabric-api",
+    "iris",
+    "nicer-skies",
+    "sodium",
+    "sodium-extra"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_761"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "platform:ModifyArg@SpriteLoaderMixin[1000]{INVOKE:Ljava/util/concurrent/CompletableFuture;supplyAsync(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;}",
+    "continuity:ModifyArg@SpriteLoaderMixin[1000]{INVOKE:Ljava/util/concurrent/CompletableFuture;supplyAsync(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;}"
+   ],
+   "method": "method_47661",
+   "owners": [
+    "continuity",
+    "fastpaintings",
+    "platform"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/class_7766"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "compat: o plugin/config de iris cita fabric-api"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "fabric-api/fabric-renderer-indigo:Redirect@ChunkBuilderBuiltChunkRebuildTaskMixin[1000,plugin]{INVOKE:Lnet/minecraft/class_776;method_3355(Lnet/minecraft/class_2680;Lnet/minecraft/class_2338;Lnet/minecraft/class_1920;Lnet/minecraft/class_4587;Lnet/minecraft/class_4588;ZLnet/minecraft/class_5819;)V}",
+    "iris:Inject@MixinChunkRebuildTask[999]{INVOKE:Lnet/minecraft/class_776;method_3355(Lnet/minecraft/class_2680;Lnet/minecraft/class_2338;Lnet/minecraft/class_1920;Lnet/minecraft/class_4587;Lnet/minecraft/class_4588;ZLnet/minecraft/class_5819;)V}"
+   ],
+   "method": "method_22785",
+   "owners": [
+    "fabric-api",
+    "iris",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_846$class_851$class_4578"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "dawn/terraform-wood-api-v1:Redirect@MixinBoatEntityRenderer[1000]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}",
+    "aether/porting_lib_base:WrapOperation@BoatRendererMixin[951,plugin]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}"
+   ],
+   "method": "method_3888",
+   "owners": [
+    "aether",
+    "bclib",
+    "dawn"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/class_881"
+  }
+ ]
+}

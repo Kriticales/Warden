@@ -9,6 +9,7 @@ pub mod config_range;
 mod curated;
 mod index_pass;
 mod mc_version;
+pub mod mixin_overlap;
 mod rules;
 
 pub use index_pass::{IndexPass, attribute_mixin_owners, build_index};

@@ -14,6 +14,7 @@ import {
   makeTestSettingsView,
 } from './editor.fixtures';
 import { makeGithubStatus } from '../github/github.fixtures';
+import { makeXrayView } from './xray/xray.fixtures';
 
 export interface EditorBackendOptions {
   pack?: Partial<PackRow>;
@@ -48,6 +49,8 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
     // Perfis do teste (L-08): só o Padrão.
     test_profiles_get: () => makeProfilesView({ minecraft: row.minecraft }),
     item_option_get: () => null,
+    // Raio-x de mixins (D-10): o mod não altera o jogo por mixins.
+    xray_mod: () => makeXrayView(),
     instance_optional_choices_get: () => [],
     java_choice: () => makeChoice(DECISIONS.forge1201),
     java_runtimes_list: () => ({

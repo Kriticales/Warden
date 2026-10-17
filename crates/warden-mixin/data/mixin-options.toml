@@ -1,0 +1,51 @@
+# Opções que desligam mixins (D-10; S-R5-1 §6 itens 1 e 5; ARCHITECTURE §9.6).
+#
+# Uma classe de mixin desligada some do cruzamento do raio-x. Dois tipos:
+#
+# - [[arquivo]]: um arquivo em `config/` do pack com linhas `mixin.<pacote> = false`. O nome da
+#   opção é o pacote da classe a partir de `/mixin/` (`.../mixin/chunk/palette/X` →
+#   `mixin.chunk.palette`); desligar um pacote desliga os de baixo. `mods` são os ids dos mods
+#   cujas classes o arquivo controla.
+# - [[opcao]]: uma chave que não segue o pacote e liga configs de mixin inteiras. Com a chave
+#   desligada (ou ausente e `padrao = false`), as `configs` saem do cruzamento.
+#
+# Cada entrada diz de onde veio (`origem`). Acrescentar: uma entrada por bloco, com o teste de
+# esquema de `src/options.rs` passando.
+
+[[arquivo]]
+arquivo = "lithium.properties"
+mods = ["lithium", "radium"]
+origem = "Lithium (CaffeineMC) lê config/lithium.properties; o Radium 0.12.4 (porte para Forge) lê o mesmo arquivo (texto `lithium.properties` na classe LithiumConfig do jar, conferido na D-10)."
+
+[[arquivo]]
+arquivo = "canary.properties"
+mods = ["canary"]
+origem = "Canary (porte do Lithium para Forge) segue o mesmo esquema com o próprio nome (S-R5-1 §6 item 1; não conferido num jar)."
+
+[[arquivo]]
+arquivo = "modernfix-mixins.properties"
+mods = ["modernfix"]
+origem = "ModernFix: texto `modernfix-mixins.properties` no jar 5.24.4 (conferido na D-10); presente nas configs dos 3 packs do S-R5-1."
+
+[[arquivo]]
+arquivo = "sodium-mixins.properties"
+mods = ["sodium"]
+origem = "Sodium 0.5 (Fabric) e 0.6 (NeoForge): texto `sodium-mixins.properties` nos jars (conferido na D-10)."
+
+[[arquivo]]
+arquivo = "embeddium-mixins.properties"
+mods = ["embeddium"]
+origem = "Embeddium, porte do Sodium para Forge com o mesmo esquema de opções (S-R5-1 §6 item 1; não conferido num jar)."
+
+[[arquivo]]
+arquivo = "xenon-mixins.properties"
+mods = ["xenon"]
+origem = "Xenon 0.3.31 (Forge): texto `xenon-mixins.properties` no jar (conferido na D-10)."
+
+[[opcao]]
+mods = ["ferritecore"]
+arquivos = ["ferritecore.mixin.properties", "ferritecore-mixin.toml"]
+chave = "useSmallThreadingDetector"
+padrao = false
+configs = ["ferritecore.threaddetec.mixin.json"]
+origem = "FerriteCore 6 e 7: a config ferritecore.threaddetec.mixin.json tem plugin que só a liga com useSmallThreadingDetector = true; o padrão é false (comentário do próprio arquivo de config). S-R5-1 §5.3."

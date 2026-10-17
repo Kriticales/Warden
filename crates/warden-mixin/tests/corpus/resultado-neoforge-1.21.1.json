@@ -1,0 +1,933 @@
+{
+ "pack": "Better MC [NEOFORGE] BMC5 v31",
+ "link": "https://modrinth.com/modpack/better-mc-neoforge-bmc5/version/Mo8ro6Ra",
+ "resumo": {
+  "alteracoes": 4166,
+  "anotacoes": {
+   "Accessor": 1006,
+   "Inject": 2589,
+   "Invoker": 192,
+   "Mixin": 3189,
+   "ModifyArg": 118,
+   "ModifyArgs": 5,
+   "ModifyConstant": 41,
+   "ModifyExpressionValue": 49,
+   "ModifyReceiver": 2,
+   "ModifyReturnValue": 65,
+   "ModifyVariable": 132,
+   "Overwrite": 228,
+   "Redirect": 413,
+   "Shadow": 488,
+   "WrapMethod": 30,
+   "WrapOperation": 261,
+   "WrapWithCondition": 48
+  },
+  "cache": null,
+  "classes_alteradas_por_2_mais": 400,
+  "classes_de_mixin": 3189,
+  "configs": 467,
+  "erros": 3,
+  "ferramenta": "prototipo-r5a",
+  "jars_aninhados": 191,
+  "jars_topo": 250,
+  "medio_ou_alto_com_require": 15,
+  "metodos_alterados_por_2_mais": 355,
+  "mixinsquared_presente": false,
+  "pasta": "<packs>/neoforge-1.21.1/mods",
+  "pico_memoria_mb": 38.375,
+  "refinado": {
+   "classes_de_mixin_removidas_por_opcao": 1,
+   "metodos_alterados_por_2_mais": 355,
+   "opcoes_desligadas": {
+    "lista": [
+     "lithium:mixin.alloc.blockstate",
+     "lithium:mixin.chunk.palette"
+    ],
+    "por_descritores": 2,
+    "total": 2
+   },
+   "risco_base": {
+    "Alto": 9,
+    "Baixo": 334,
+    "Medio": 12
+   },
+   "risco_com_rebaixadores": {
+    "Baixo": 340,
+    "Medio": 15
+   },
+   "tempo_cruzamento_ms": 23.2586
+  },
+  "risco_base": {
+   "Alto": 9,
+   "Baixo": 334,
+   "Medio": 12
+  },
+  "risco_com_rebaixadores": {
+   "Baixo": 340,
+   "Medio": 15
+  },
+  "risco_rebaixadores_somados": {
+   "Baixo": 340,
+   "Medio": 15
+  },
+  "tempo_ms": {
+   "cruzamento": 19.8788,
+   "leitura": 1961.7982,
+   "total": 1981.6772999999998
+  },
+  "threads": 1
+ },
+ "sobreposicoes_r5a": [
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "immediatelyfast:Redirect@MixinMapRenderer_MapTexture[1100,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}",
+    "moonlight:WrapOperation@MapInstanceMixin[900,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "immediatelyfast",
+    "moonlight"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/gui/MapRenderer$MapInstance"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/cumulus_menus:ModifyVariable@WorldOpenFlowsMixin[1000]{STORE:}",
+    "collective:ModifyVariable@WorldOpenFlowsMixin[1001,plugin]{STORE:}",
+    "collective:ModifyVariable@WorldOpenFlowsMixin[1001,plugin]{STORE:}"
+   ],
+   "method": "openWorldCheckWorldStemCompatibility",
+   "owners": [
+    "aether",
+    "collective"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/gui/screens/worldselection/WorldOpenFlows"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "badoptimizations:Redirect@MixinWorldRenderer[700,plugin]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;getTimeOfDay(F)F}",
+    "iris:Inject@MixinLevelRenderer[1000,plugin]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;getTimeOfDay(F)F}"
+   ],
+   "method": "renderSky",
+   "owners": [
+    "badoptimizations",
+    "iris",
+    "sodium",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/LevelRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "modernfix:Redirect@RebuildTaskMixin[2000,plugin]{INVOKE:Lnet/minecraft/core/BlockPos;betweenClosed(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Ljava/lang/Iterable;}",
+    "txnilib/fabric_renderer_indigo:Inject@SectionBuilderMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/BlockPos;betweenClosed(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Ljava/lang/Iterable;}"
+   ],
+   "method": "compile",
+   "owners": [
+    "bedrockoid",
+    "bettergrass",
+    "modernfix",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/chunk/SectionCompiler"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "txnilib/fabric_rendering_v1:Redirect@EntityRenderersMixin[1000]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}",
+    "accessories:WrapOperation@EntityRenderersMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}"
+   ],
+   "method": "lambda$createEntityRenderers$26",
+   "owners": [
+    "accessories",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/EntityRenderers"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "txnilib/fabric_rendering_v1:Redirect@EntityRenderersMixin[1000]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}",
+    "accessories:WrapOperation@EntityRenderersMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}"
+   ],
+   "method": "lambda$createPlayerRenderers$27",
+   "owners": [
+    "accessories",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/EntityRenderers"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "redirected:Redirect@ItemRendererMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "sodium:WrapOperation@ItemRendererMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "renderModelLists",
+   "owners": [
+    "redirected",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/ItemRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "sodium:Overwrite@MultiPartBakedModelMixin[1000]{OVERWRITE:}",
+    "ferritecore:Redirect@MixinMultipartModel[1100,plugin]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}"
+   ],
+   "method": "getQuads",
+   "owners": [
+    "ferritecore",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/client/resources/model/MultiPartBakedModel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Redirect@ServerLevelMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;randomTick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}",
+    "neruina:WrapOperation@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;randomTick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}"
+   ],
+   "method": "tickChunk",
+   "owners": [
+    "corgilib",
+    "friendsandfoes",
+    "lithium",
+    "neruina",
+    "ohthetreesyoullgrow"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/server/level/ServerLevel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "easyanvils:ModifyVariable@WorldGenRegionMixin[1000]{LOAD:}",
+    "easymagic:ModifyVariable@WorldGenRegionMixin[1000]{LOAD:}",
+    "visualworkbench:ModifyVariable@WorldGenRegionMixin[1000]{LOAD:}"
+   ],
+   "method": "setBlock",
+   "owners": [
+    "easyanvils",
+    "easymagic",
+    "visualworkbench"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/server/level/WorldGenRegion"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}",
+    "modernfix:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "getTemperature",
+   "owners": [
+    "lithium",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/biome/Biome"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "checkCornerChangeAt",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "updatePowerStrength",
+   "owners": [
+    "alternate_current",
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "getNeighborSignal",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonBaseBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "addBranchingBlocks",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonStructureResolver"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Redirect@AbstractBlockStateCacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}",
+    "redirected:Redirect@CacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "modernfix",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "redirected:Redirect@LevelChunkMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/levelgen/Heightmap$Types;values()[Lnet/minecraft/world/level/levelgen/Heightmap$Types;}",
+    "lithium:Inject@LevelChunkMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/levelgen/Heightmap$Types;values()[Lnet/minecraft/world/level/levelgen/Heightmap$Types;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "corgilib",
+    "leavesbegone",
+    "lithium",
+    "ohthetreesyoullgrow",
+    "redirected",
+    "scalablelux"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/level/chunk/LevelChunk"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "acquire",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "release",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "redirected:Redirect@VinesFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "repurposed_structures:Inject@NoVinesInStructuresMixin[1000]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "place",
+   "owners": [
+    "redirected",
+    "repurposed_structures",
+    "yungsapi"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/feature/VinesFeature"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Overwrite@MaterialRuleListMixin[100,plugin]{OVERWRITE:}",
+    "noisium:Overwrite@ChainedBlockSourceMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "calculate",
+   "owners": [
+    "modernfix",
+    "noisium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/levelgen/material/MaterialRuleList"
+  }
+ ],
+ "sobreposicoes_refinadas": [
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "immediatelyfast:Redirect@MixinMapRenderer_MapTexture[1100,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}",
+    "moonlight:WrapOperation@MapInstanceMixin[900,plugin]{NEW:(IIZ)Lnet/minecraft/client/renderer/texture/DynamicTexture;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "immediatelyfast",
+    "moonlight"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/gui/MapRenderer$MapInstance"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "aether/cumulus_menus:ModifyVariable@WorldOpenFlowsMixin[1000]{STORE:}",
+    "collective:ModifyVariable@WorldOpenFlowsMixin[1001,plugin]{STORE:}",
+    "collective:ModifyVariable@WorldOpenFlowsMixin[1001,plugin]{STORE:}"
+   ],
+   "method": "openWorldCheckWorldStemCompatibility",
+   "owners": [
+    "aether",
+    "collective"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/client/gui/screens/worldselection/WorldOpenFlows"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "badoptimizations:Redirect@MixinWorldRenderer[700,plugin]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;getTimeOfDay(F)F}",
+    "iris:Inject@MixinLevelRenderer[1000,plugin]{INVOKE:Lnet/minecraft/client/multiplayer/ClientLevel;getTimeOfDay(F)F}"
+   ],
+   "method": "renderSky",
+   "owners": [
+    "badoptimizations",
+    "iris",
+    "sodium",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/LevelRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "modernfix:Redirect@RebuildTaskMixin[2000,plugin]{INVOKE:Lnet/minecraft/core/BlockPos;betweenClosed(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Ljava/lang/Iterable;}",
+    "txnilib/fabric_renderer_indigo:Inject@SectionBuilderMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/BlockPos;betweenClosed(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Ljava/lang/Iterable;}"
+   ],
+   "method": "compile",
+   "owners": [
+    "bedrockoid",
+    "bettergrass",
+    "modernfix",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/chunk/SectionCompiler"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "txnilib/fabric_rendering_v1:Redirect@EntityRenderersMixin[1000]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}",
+    "accessories:WrapOperation@EntityRenderersMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}"
+   ],
+   "method": "lambda$createEntityRenderers$26",
+   "owners": [
+    "accessories",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/EntityRenderers"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "txnilib/fabric_rendering_v1:Redirect@EntityRenderersMixin[1000]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}",
+    "accessories:WrapOperation@EntityRenderersMixin[1000,plugin]{INVOKE:Lnet/minecraft/client/renderer/entity/EntityRendererProvider;create(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)Lnet/minecraft/client/renderer/entity/EntityRenderer;}"
+   ],
+   "method": "lambda$createPlayerRenderers$27",
+   "owners": [
+    "accessories",
+    "txnilib"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/EntityRenderers"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "redirected:Redirect@ItemRendererMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "sodium:WrapOperation@ItemRendererMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "renderModelLists",
+   "owners": [
+    "redirected",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/client/renderer/entity/ItemRenderer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "sodium:Overwrite@MultiPartBakedModelMixin[1000]{OVERWRITE:}",
+    "ferritecore:Redirect@MixinMultipartModel[1100,plugin]{INVOKE:Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;}"
+   ],
+   "method": "getQuads",
+   "owners": [
+    "ferritecore",
+    "sodium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite + injeção no corpo",
+   "target_class": "net/minecraft/client/resources/model/MultiPartBakedModel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Redirect@ServerLevelMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;randomTick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}",
+    "neruina:WrapOperation@ServerWorldMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/state/BlockState;randomTick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V}"
+   ],
+   "method": "tickChunk",
+   "owners": [
+    "corgilib",
+    "friendsandfoes",
+    "lithium",
+    "neruina",
+    "ohthetreesyoullgrow"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/server/level/ServerLevel"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "easyanvils:ModifyVariable@WorldGenRegionMixin[1000]{LOAD:}",
+    "easymagic:ModifyVariable@WorldGenRegionMixin[1000]{LOAD:}",
+    "visualworkbench:ModifyVariable@WorldGenRegionMixin[1000]{LOAD:}"
+   ],
+   "method": "setBlock",
+   "owners": [
+    "easyanvils",
+    "easymagic",
+    "visualworkbench"
+   ],
+   "require_elevator": true,
+   "rule": "@ModifyVariable/@ModifyArg(s) de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/server/level/WorldGenRegion"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin",
+    "compat: o plugin/config de modernfix cita lithium"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Baixo",
+   "involved": [
+    "lithium:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}",
+    "modernfix:Overwrite@BiomeMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "getTemperature",
+   "owners": [
+    "lithium",
+    "modernfix"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/biome/Biome"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "checkCornerChangeAt",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@RedStoneWireBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "updatePowerStrength",
+   "owners": [
+    "alternate_current",
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/RedStoneWireBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonBaseBlockMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "getNeighborSignal",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonBaseBlock"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "lithium:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "redirected:Redirect@PistonStructureResolverMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "addBranchingBlocks",
+   "owners": [
+    "lithium",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/piston/PistonStructureResolver"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Redirect@AbstractBlockStateCacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}",
+    "redirected:Redirect@CacheMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/block/SupportType;values()[Lnet/minecraft/world/level/block/SupportType;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "modernfix",
+    "redirected"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect/@ModifyConstant de 2+ mods no mesmo @At",
+   "target_class": "net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase$Cache"
+  },
+  {
+   "base": "Medio",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Baixo",
+   "final_stacked": "Baixo",
+   "involved": [
+    "redirected:Redirect@LevelChunkMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/levelgen/Heightmap$Types;values()[Lnet/minecraft/world/level/levelgen/Heightmap$Types;}",
+    "lithium:Inject@LevelChunkMixin[1000,plugin]{INVOKE:Lnet/minecraft/world/level/levelgen/Heightmap$Types;values()[Lnet/minecraft/world/level/levelgen/Heightmap$Types;}"
+   ],
+   "method": "<init>",
+   "owners": [
+    "corgilib",
+    "leavesbegone",
+    "lithium",
+    "ohthetreesyoullgrow",
+    "redirected",
+    "scalablelux"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/level/chunk/LevelChunk"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "acquire",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "ferritecore:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}",
+    "lithium:Overwrite@PalettedContainerMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "release",
+   "owners": [
+    "ferritecore",
+    "lithium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/chunk/PalettedContainer"
+  },
+  {
+   "base": "Medio",
+   "demoters": [],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "redirected:Redirect@VinesFeatureMixin[1000,plugin]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}",
+    "repurposed_structures:Inject@NoVinesInStructuresMixin[1000]{INVOKE:Lnet/minecraft/core/Direction;values()[Lnet/minecraft/core/Direction;}"
+   ],
+   "method": "place",
+   "owners": [
+    "redirected",
+    "repurposed_structures",
+    "yungsapi"
+   ],
+   "require_elevator": true,
+   "rule": "@Redirect + outro injetor no mesmo @At",
+   "target_class": "net/minecraft/world/level/levelgen/feature/VinesFeature"
+  },
+  {
+   "base": "Alto",
+   "demoters": [
+    "plugin: todos os mixins envolvidos têm plugin"
+   ],
+   "final_one": "Medio",
+   "final_stacked": "Medio",
+   "involved": [
+    "modernfix:Overwrite@MaterialRuleListMixin[100,plugin]{OVERWRITE:}",
+    "noisium:Overwrite@ChainedBlockSourceMixin[1000,plugin]{OVERWRITE:}"
+   ],
+   "method": "calculate",
+   "owners": [
+    "modernfix",
+    "noisium"
+   ],
+   "require_elevator": true,
+   "rule": "@Overwrite de 2+ mods",
+   "target_class": "net/minecraft/world/level/levelgen/material/MaterialRuleList"
+  }
+ ]
+}

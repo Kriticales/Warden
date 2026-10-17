@@ -24,6 +24,7 @@ import { HeadBlock } from './blocks/HeadBlock';
 import { OriginBlock } from './blocks/OriginBlock';
 import { SideBlock } from './blocks/SideBlock';
 import { VersionBlock } from './blocks/VersionBlock';
+import { XrayBlock } from '../xray/XrayBlock';
 
 /** O que todo bloco recebe. */
 export interface DetailBlockProps {
@@ -52,6 +53,7 @@ export const detailBlocks: readonly DetailBlock[] = [
   { id: 'lado', order: 400, component: SideBlock },
   { id: 'dependencias', order: 500, component: DependenciesBlock },
   { id: 'ver-no-grafo', order: 510, component: GraphLinkBlock },
+  { id: 'raio-x', order: 600, component: XrayBlock },
   { id: 'novidades', order: 800, component: ChangelogBlock },
   { id: 'trocar-versao', order: 850, component: ChangeVersionBlock },
   { id: 'mais-opcoes', order: 900, component: ItemOptionsBlock },

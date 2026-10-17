@@ -47,13 +47,13 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `x11rb` | 0.13.2 | MIT OR Apache-2.0 | `warden-app` (Linux) | Print da janela do Warden no X11 (UI-03): acha a janela pelo `_NET_WM_PID` e lê o conteúdo com `GetImage`. Protocolo X11 em Rust, sem biblioteca C. A mesma versão já vem com a `arboard`. Escolhida no lugar da `xcap` (Apache-2.0), que ignora as janelas do próprio processo e exige a PipeWire (biblioteca C e `bindgen`) no Linux. |
 | `toml_edit` | 0.25.15 | MIT OR Apache-2.0 | `warden-packwiz`, `warden-configs` | Leitura de TOML e edição mínima de `pack.toml`, `index.toml` e `.pw.toml` (ARCHITECTURE §6.2); nas configs, posição de cada valor para editar só os bytes dele (ADR-0013). |
 | `regex` | 1.13.1 | MIT OR Apache-2.0 | `warden-packwiz` | Matcher do `.packwizignore` com a semântica do packwiz (expressões geradas como no go-gitignore). |
-| `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz`; `warden-jarmeta` (testes) | Hash `sha1` (CurseForge); confere os jars baixados nos testes de rede da `warden-jarmeta`. |
+| `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz`; `warden-jarmeta`, `warden-mixin` (testes) | Hash `sha1` (CurseForge); confere os jars baixados nos testes de rede da `warden-jarmeta` e da `warden-mixin`. |
 | `md-5` | 0.10.6 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `md5` (CurseForge sem `sha1`). |
 | `hex` | 0.4.3 | MIT OR Apache-2.0 | `warden-packwiz` | Hashes em hexadecimal minúsculo, como o packwiz grava. |
 | `jsonc-parser` | 0.34.0 | MIT | `warden-configs` | Leitura de JSON, JSONC e JSON5 com posições e comentários (ADR-0013). |
 | `zip` | 8.6.0 | MIT | `warden-jarmeta` | Leitura de jars sem extrair (só `deflate`, via `flate2` + `zlib-rs`). |
 | `insta` | 1.49.0 | Apache-2.0 | `warden-jarmeta` (testes) | Dourados do corpus de jars (QUALITY §4.1). |
-| `ureq` | 3.4.2 | MIT OR Apache-2.0 | `warden-jarmeta` (testes) | Download dos jars reais nos testes de rede (`rede_*`). |
+| `ureq` | 3.4.2 | MIT OR Apache-2.0 | `warden-jarmeta`, `warden-mixin` (testes) | Download dos jars reais nos testes de rede (`rede_*`). |
 | `reqwest` | 0.13.5 | MIT OR Apache-2.0 | `warden-http` | Cliente HTTP (ARCHITECTURE §17), sem os recursos padrão: só `rustls-no-provider` (o TLS é montado pela `warden-http`). Mesma versão que o Tauri já usa. |
 | `rustls` | 0.23.45 | Apache-2.0 OR ISC OR MIT | `warden-http` | TLS com o provedor `ring` (já usado pelo `ureq` do `xtask`), sem OpenSSL nem `aws-lc` no Windows. |
 | `rustls-platform-verifier` | 0.7.1 | MIT OR Apache-2.0 | `warden-http` | Verificação de certificados pelo sistema (Windows e Linux), a mesma que o `reqwest` usa. |
@@ -76,6 +76,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `portablemc` | =5.0.5 | Apache-2.0 | `warden-launcher` | Motor do launcher: instala Minecraft, bibliotecas, assets e loaders (Fabric, Quilt, Forge, NeoForge) e devolve a linha de comando (S1; ADR-0057). Versão exata. |
 | `notify` | 8.2.0 | CC0-1.0 | `warden-instance`, `warden-project`, `warden-configs` | Observar a pasta Downloads nos downloads manuais da CurseForge (L-06, P1) e vigiar a pasta do pack aberto para recarregar quando outro programa a altera (A-05). A espera entre eventos é a do próprio vigia (sem o `notify-debouncer-full`): só importa quando o arquivo para de mudar. Na `warden-configs` (C-05): observar a pasta da origem para o índice da busca em todas as configs se atualizar sozinho, com a espera do último aviso feita pelo próprio índice. |
 | `nucleo-matcher` | 0.3.1 | MPL-2.0 | `warden-configs` | Busca em todas as configs (C-05; ARCHITECTURE §10.1): comparação aproximada sem diferenciar maiúsculas nem acentos, com pontuação e posições dos trechos que casaram. Usada sem modificação (MPL-2.0 só pede o código-fonte dos arquivos da biblioteca que forem alterados). |
+| `cafebabe` | 0.9.0 | 0BSD | `warden-mixin` | Leitura das classes de mixin dos jars (só o constant pool e as anotações, sem bytecode) no raio-x de mixins (D-10; ADR-0034 e ADR-0056). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
