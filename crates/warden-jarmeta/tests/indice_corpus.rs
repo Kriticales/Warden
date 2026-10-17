@@ -165,6 +165,7 @@ fn skeleton_node(bytes: &[u8], meta: &JarMetadata, declared: &[String]) -> Skele
     }
     let mut packages: Vec<String> = zip
         .file_names()
+        .map(|name| name.expect("nome da entrada"))
         .filter_map(|name| {
             let stem = name.strip_suffix(".class")?;
             let stem = match stem.strip_prefix("META-INF/versions/") {

@@ -112,7 +112,7 @@ windows-native-keyring-store = "1.1.0"
 wiremock = "0.6.5"
 x11rb = "0.13.2"
 zbus-secret-service-keyring-store = "1.0.1"
-zip = { version = "8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+zip = { version = "9.0.4", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

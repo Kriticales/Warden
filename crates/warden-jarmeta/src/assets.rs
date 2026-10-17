@@ -204,8 +204,9 @@ fn read_archive<R: Read + Seek>(reader: R, limits: &Limits) -> Result<AssetIds, 
         });
     }
     let mut ids = AssetIds::default();
-    for name in zip.file_names() {
-        ids.add_entry(name);
+    // Um nome que não decodifica (nem UTF-8 nem CP437) fica de fora, como entrada ilegível.
+    for name in zip.file_names().flatten() {
+        ids.add_entry(&name);
     }
     Ok(ids)
 }

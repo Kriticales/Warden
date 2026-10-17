@@ -292,7 +292,7 @@ fn kind_by_entries(bytes: &[u8], limits: &Limits) -> Option<ProjectKind> {
     }
     let mut mcmeta = false;
     let mut shaders = false;
-    for name in archive.file_names() {
+    for name in archive.file_names().flatten() {
         let name = name.trim_start_matches('/');
         mcmeta |= name == "pack.mcmeta";
         shaders |= name.starts_with("shaders/");

@@ -344,7 +344,7 @@ fn strip_release(bytes: &[u8]) -> Vec<u8> {
                 let mut zip = zip::ZipWriter::new(&mut out);
                 for index in 0..source.len() {
                     let file = source.by_index_raw(index).unwrap();
-                    if !file.name().ends_with("/release") {
+                    if !file.name().unwrap().ends_with("/release") {
                         zip.raw_copy_file(file).unwrap();
                     }
                 }

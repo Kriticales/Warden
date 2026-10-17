@@ -289,7 +289,7 @@ fn read_zip(path: &Path) -> (Value, BTreeSet<String>) {
         .read_to_string(&mut text)
         .unwrap();
     let overrides = (0..zip.len())
-        .map(|i| zip.by_index(i).unwrap().name().to_owned())
+        .map(|i| zip.by_index(i).unwrap().name().unwrap().into_owned())
         .filter_map(|n| n.strip_prefix("overrides/").map(str::to_owned))
         .collect();
     (serde_json::from_str(&text).unwrap(), overrides)

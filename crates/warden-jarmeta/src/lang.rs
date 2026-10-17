@@ -220,8 +220,8 @@ fn read_config_lang<R: Read + Seek>(reader: R, limits: &Limits) -> Result<Config
     }
     let files: Vec<(usize, LangLocale)> = (0..zip.len())
         .filter_map(|index| {
-            let name = zip.name_for_index(index)?;
-            lang_file_locale(name).map(|locale| (index, locale))
+            let name = zip.name_for_index(index)?.ok()?;
+            lang_file_locale(&name).map(|locale| (index, locale))
         })
         .collect();
     let mut lang = ConfigLang::default();
