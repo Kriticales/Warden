@@ -23,7 +23,13 @@ import { startMockServer, type MockServer } from './e2e/mock-server/server';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const TARGET = process.env.CARGO_TARGET_DIR ?? join(ROOT, 'target');
 const EXE = process.platform === 'win32' ? '.exe' : '';
-const APPLICATION = join(TARGET, 'debug', `warden-app${EXE}`);
+/**
+ * `WARDEN_E2E_PROFILE=release`: o build otimizado, compilado com as asserções de debug ligadas
+ * (`CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true`), que ligam os ganchos dos E2E. Só as medidas
+ * de desempenho do Noturno usam (A-04, `e2e/perf/`).
+ */
+const PROFILE = process.env.WARDEN_E2E_PROFILE === 'release' ? 'release' : 'debug';
+const APPLICATION = join(TARGET, PROFILE, `warden-app${EXE}`);
 const NATIVE_DRIVER_FILE = join(TARGET, 'e2e', 'native-driver.txt');
 const DRIVER_PORT = 4444;
 /** O jogo simulado dos testes da `warden-launcher` (Testar, L-04). */
@@ -106,7 +112,9 @@ export const config: WebdriverIO.Config = {
   onPrepare: async () => {
     if (!existsSync(APPLICATION)) {
       throw new Error(
-        `App ausente (${APPLICATION}): rode \`cargo tauri build --debug --no-bundle\`.`,
+        PROFILE === 'release'
+          ? `App ausente (${APPLICATION}): rode \`cargo tauri build --no-bundle\` com CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true.`
+          : `App ausente (${APPLICATION}): rode \`cargo tauri build --debug --no-bundle\`.`,
       );
     }
     dataRoot = mkdtempSync(join(tmpdir(), 'warden-e2e-'));
