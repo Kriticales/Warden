@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
 
@@ -117,7 +118,7 @@ describe('Console agrupado (D-09; T13)', function () {
   it('com o jogo aberto, as repetições viram um item ×N que cresce', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     // O arquivo do jogo simulado pode aparecer na higiene: abre sem limpar.
     const open = $('button=Abrir pack');

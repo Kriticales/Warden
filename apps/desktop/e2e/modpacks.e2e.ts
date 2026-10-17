@@ -28,6 +28,7 @@ import { $, $$, browser, expect } from '@wdio/globals';
 import { CHAVE_BOA } from './mock-server/curseforge';
 import { API_MARKER, MANIFEST_MARKER } from './mock-server/modpacks';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 function env(name: string): string {
   const value = process.env[name];
@@ -147,7 +148,7 @@ describe('Navegar por modpacks (P1-17)', () => {
   it('CA-T08-14: Tipo = Modpacks e o modpack do Modrinth aberto com até 4 requisições', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Fixture Fabric').waitForDisplayed({ timeout: 60_000 });
