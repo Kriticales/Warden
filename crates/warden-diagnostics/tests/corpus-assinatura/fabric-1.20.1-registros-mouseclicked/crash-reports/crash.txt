@@ -1,0 +1,380 @@
+---- Minecraft Crash Report ----
+// I bet Cylons wouldn't have this problem.
+
+Time: 2026-01-31 16:25:01
+Description: mouseClicked event handler
+
+java.lang.IllegalStateException: Failed to load registries due to above errors
+	at net.minecraft.registry.RegistryLoader.load(RegistryLoader.java:111)
+	at net.minecraft.server.SaveLoading.loadDynamicRegistryManager(SaveLoading.java:67)
+	at net.minecraft.server.SaveLoading.withRegistriesLoaded(SaveLoading.java:71)
+	at net.minecraft.server.SaveLoading.load(SaveLoading.java:34)
+	at net.minecraft.client.gui.screen.world.CreateWorldScreen.create(CreateWorldScreen.java:333)
+	at net.minecraft.client.gui.screen.world.WorldListWidget.loadLevels(WorldListWidget.java:169)
+	at net.minecraft.client.gui.screen.world.WorldListWidget.<init>(WorldListWidget.java:95)
+	at net.minecraft.client.gui.screen.world.SelectWorldScreen.init(SelectWorldScreen.java:54)
+	at knot//net.minecraft.class_437.mixinextras$bridge$method_25426$124(class_437.java)
+	at net.minecraft.client.gui.screen.Screen.wrapOperation$eio000$kilt$tryCallForgeScreenInit(Screen.java:689)
+	at net.minecraft.client.gui.screen.Screen.init(Screen.java:297)
+	at net.minecraft.client.MinecraftClient.setScreen(MinecraftClient.java:1080)
+	at net.minecraft.client.gui.screen.TitleScreen.method_19861(TitleScreen.java:159)
+	at net.minecraft.client.gui.widget.ButtonWidget.onPress(ButtonWidget.java:94)
+	at net.minecraft.client.gui.widget.PressableWidget.onClick(PressableWidget.java:56)
+	at net.minecraft.client.gui.widget.ClickableWidget.mouseClicked(ClickableWidget.java:189)
+	at net.minecraft.client.gui.ParentElement.mouseClicked(ParentElement.java:38)
+	at net.minecraft.client.gui.screen.TitleScreen.mouseClicked(TitleScreen.java:299)
+	at knot//net.minecraft.class_312.mixinextras$bridge$method_25402$56(class_312.java)
+	at net.minecraft.client.Mouse.wrapOperation$eia000$kilt$callScreenMouseClickEvents(Mouse.java:551)
+	at net.minecraft.client.Mouse.method_1611(Mouse.java:98)
+	at net.minecraft.client.gui.screen.Screen.wrapScreenError(Screen.java:409)
+	at net.minecraft.client.Mouse.onMouseButton(Mouse.java:98)
+	at net.minecraft.client.Mouse.method_22686(Mouse.java:169)
+	at net.minecraft.util.thread.ThreadExecutor.execute(ThreadExecutor.java:102)
+	at net.minecraft.client.Mouse.method_22684(Mouse.java:169)
+	at knot//org.lwjgl.glfw.GLFWMouseButtonCallbackI.callback(GLFWMouseButtonCallbackI.java:43)
+	at knot//org.lwjgl.system.JNI.invokeV(Native Method)
+	at knot//org.lwjgl.glfw.GLFW.glfwWaitEventsTimeout(GLFW.java:3474)
+	at com.mojang.blaze3d.systems.RenderSystem.limitDisplayFPS(RenderSystem.java:237)
+	at net.minecraft.client.MinecraftClient.render(MinecraftClient.java:1244)
+	at net.minecraft.client.MinecraftClient.run(MinecraftClient.java:802)
+	at net.minecraft.client.main.Main.main(Main.java:250)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at org.prismlauncher.launcher.impl.StandardLauncher.launch(StandardLauncher.java:115)
+	at org.prismlauncher.EntryPoint.listen(EntryPoint.java:129)
+	at org.prismlauncher.EntryPoint.main(EntryPoint.java:70)
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at net.minecraft.registry.RegistryLoader.load(RegistryLoader.java:111)
+	at net.minecraft.server.SaveLoading.loadDynamicRegistryManager(SaveLoading.java:67)
+	at net.minecraft.server.SaveLoading.withRegistriesLoaded(SaveLoading.java:71)
+	at net.minecraft.server.SaveLoading.load(SaveLoading.java:34)
+	at net.minecraft.client.gui.screen.world.CreateWorldScreen.create(CreateWorldScreen.java:333)
+	at net.minecraft.client.gui.screen.world.WorldListWidget.loadLevels(WorldListWidget.java:169)
+	at net.minecraft.client.gui.screen.world.WorldListWidget.<init>(WorldListWidget.java:95)
+	at net.minecraft.client.gui.screen.world.SelectWorldScreen.init(SelectWorldScreen.java:54)
+	at knot//net.minecraft.class_437.mixinextras$bridge$method_25426$124(class_437.java)
+	at net.minecraft.client.gui.screen.Screen.wrapOperation$eio000$kilt$tryCallForgeScreenInit(Screen.java:689)
+	at net.minecraft.client.gui.screen.Screen.init(Screen.java:297)
+	at net.minecraft.client.MinecraftClient.setScreen(MinecraftClient.java:1080)
+	at net.minecraft.client.gui.screen.TitleScreen.method_19861(TitleScreen.java:159)
+	at net.minecraft.client.gui.widget.ButtonWidget.onPress(ButtonWidget.java:94)
+	at net.minecraft.client.gui.widget.PressableWidget.onClick(PressableWidget.java:56)
+	at net.minecraft.client.gui.widget.ClickableWidget.mouseClicked(ClickableWidget.java:189)
+	at net.minecraft.client.gui.ParentElement.mouseClicked(ParentElement.java:38)
+	at net.minecraft.client.gui.screen.TitleScreen.mouseClicked(TitleScreen.java:299)
+	at knot//net.minecraft.class_312.mixinextras$bridge$method_25402$56(class_312.java)
+	at net.minecraft.client.Mouse.wrapOperation$eia000$kilt$callScreenMouseClickEvents(Mouse.java:551)
+	at net.minecraft.client.Mouse.method_1611(Mouse.java:98)
+	at net.minecraft.client.gui.screen.Screen.wrapScreenError(Screen.java:409)
+	at net.minecraft.client.Mouse.onMouseButton(Mouse.java:98)
+	at net.minecraft.client.Mouse.method_22686(Mouse.java:169)
+	at net.minecraft.util.thread.ThreadExecutor.execute(ThreadExecutor.java:102)
+	at net.minecraft.client.Mouse.method_22684(Mouse.java:169)
+	at knot//org.lwjgl.glfw.GLFWMouseButtonCallbackI.callback(GLFWMouseButtonCallbackI.java:43)
+	at knot//org.lwjgl.system.JNI.invokeV(Native Method)
+	at knot//org.lwjgl.glfw.GLFW.glfwWaitEventsTimeout(GLFW.java:3474)
+
+-- Affected screen --
+Details:
+	Screen name: net.minecraft.class_442
+Stacktrace:
+	at net.minecraft.client.gui.screen.Screen.wrapScreenError(Screen.java:409)
+	at net.minecraft.client.Mouse.onMouseButton(Mouse.java:98)
+	at net.minecraft.client.Mouse.method_22686(Mouse.java:169)
+	at net.minecraft.util.thread.ThreadExecutor.execute(ThreadExecutor.java:102)
+	at net.minecraft.client.Mouse.method_22684(Mouse.java:169)
+	at knot//org.lwjgl.glfw.GLFWMouseButtonCallbackI.callback(GLFWMouseButtonCallbackI.java:43)
+	at knot//org.lwjgl.system.JNI.invokeV(Native Method)
+	at knot//org.lwjgl.glfw.GLFW.glfwWaitEventsTimeout(GLFW.java:3474)
+	at com.mojang.blaze3d.systems.RenderSystem.limitDisplayFPS(RenderSystem.java:237)
+	at net.minecraft.client.MinecraftClient.render(MinecraftClient.java:1244)
+	at net.minecraft.client.MinecraftClient.run(MinecraftClient.java:802)
+	at net.minecraft.client.main.Main.main(Main.java:250)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at org.prismlauncher.launcher.impl.StandardLauncher.launch(StandardLauncher.java:115)
+	at org.prismlauncher.EntryPoint.listen(EntryPoint.java:129)
+	at org.prismlauncher.EntryPoint.main(EntryPoint.java:70)
+
+-- Last reload --
+Details:
+	Reload number: 1
+	Reload reason: initial
+	Finished: Yes
+	Packs: vanilla, create:dynamic_data, fabric, Moonlight Mods Dynamic Assets, aether_gloves_for_all_208_f358dfba97229842aa04ca5d145bde05.jar:packs/gloves_overrides, netherexp:jne_emissive, netherexp:jne_retextures
+Stacktrace:
+	at net.minecraft.client.resource.ResourceReloadLogger.addReloadSection(ResourceReloadLogger.java:49)
+	at net.minecraft.client.MinecraftClient.addDetailsToCrashReport(MinecraftClient.java:2413)
+	at net.minecraft.client.MinecraftClient.run(MinecraftClient.java:821)
+	at net.minecraft.client.main.Main.main(Main.java:250)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at org.prismlauncher.launcher.impl.StandardLauncher.launch(StandardLauncher.java:115)
+	at org.prismlauncher.EntryPoint.listen(EntryPoint.java:129)
+	at org.prismlauncher.EntryPoint.main(EntryPoint.java:70)
+
+-- System Details --
+Details:
+	Minecraft Version: 1.20.1
+	Minecraft Version ID: 1.20.1
+	Operating System: Mac OS X (aarch64) version 26.2
+	Java Version: 17.0.15, Microsoft
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Microsoft
+	Memory: 1274019840 bytes (1215 MiB) / 4294967296 bytes (4096 MiB) up to 4294967296 bytes (4096 MiB)
+	CPUs: 10
+	Processor Vendor: Apple Inc.
+	Processor Name: Apple M4
+	Identifier: Apple Inc. Family 0x6f5129ac Model 0 Stepping 0
+	Microarchitecture: unknown
+	Frequency (GHz): -0.00
+	Number of physical packages: 1
+	Number of physical CPUs: 10
+	Number of logical CPUs: 10
+	Graphics card #0 name: Apple M4
+	Graphics card #0 vendor: Apple (0x106b)
+	Graphics card #0 VRAM (MB): 0.00
+	Graphics card #0 deviceId: unknown
+	Graphics card #0 versionInfo: unknown
+	Memory slot #0 capacity (MB): 0.00
+	Memory slot #0 clockSpeed (GHz): 0.00
+	Memory slot #0 type: unknown
+	Virtual memory max (MB): 16384.00
+	Virtual memory used (MB): 10336.36
+	Swap memory total (MB): 0.00
+	Swap memory used (MB): 0.00
+	JVM Flags: 2 total; -Xms512m -Xmx4096m
+	Fabric Mods: 
+		accessories: Accessories 1.0.0-beta.48+1.20.1
+			io_wispforest_endec: endec 0.1.8
+			io_wispforest_endec_gson: gson 0.1.5
+			io_wispforest_endec_netty: netty 0.1.4
+		ad_astra: Ad Astra 1.15.20
+			javazoom_jlayer: jlayer 1.0.1
+		amendments: Amendments 1.20-2.2.5
+		azurelib: AzureLib 3.1.3
+		bclib: BCLib 3.0.14
+			wunderlib: WunderLib 1.1.5
+		betterend: Better End 4.0.11
+		betternether: Better Nether 9.0.10
+		bosses_of_mass_destruction: Bosses of Mass Destruction (Beta) 1.7.5-1.20.1
+			maelstrom_library: Maelstrom Library 1.6.1-1.20
+			multipart_entities: MultipartEntities 1.5-1.20
+		botarium: Botarium 2.3.4
+			team_reborn_energy: Energy 3.0.0
+		cardinal-components: Cardinal Components API 5.2.3
+			cardinal-components-base: Cardinal Components API (base) 5.2.3
+			cardinal-components-block: Cardinal Components API (blocks) 5.2.3
+			cardinal-components-chunk: Cardinal Components API (chunks) 5.2.3
+			cardinal-components-entity: Cardinal Components API (entities) 5.2.3
+			cardinal-components-item: Cardinal Components API (items) 5.2.3
+			cardinal-components-level: Cardinal Components API (world saves) 5.2.3
+			cardinal-components-scoreboard: Cardinal Components API (scoreboard) 5.2.3
+			cardinal-components-world: Cardinal Components API (worlds) 5.2.3
+		cloth-config: Cloth Config v11 11.1.136
+			cloth-basic-math: cloth-basic-math 0.6.1
+		crash_assistant: Crash Assistant 1.10.28
+		create: Create **.**.**.**+build.1744-mc1.20.1
+			com_google_code_findbugs_jsr305: jsr305 3.0.2
+			flywheel: Flywheel 1.0.5+1.20.1.build.264
+			milk: Milk Lib 1.2.60
+				dripstone_fluid_lib: Dripstone Fluid Lib 3.0.2
+			ponder: Ponder 1.0.91
+				javax_annotation_javax_annotation-api: javax.annotation-api 1.3.2
+			porting_lib_accessors: Porting Lib Accessors 2.3.13+1.20.1
+			porting_lib_base: Porting Lib Base 2.3.13+1.20.1
+				porting_lib_config: Porting Lib Config 2.3.13+1.20.1
+				porting_lib_gui_utils: Porting Lib Gui Utils 2.3.13+1.20.1
+				porting_lib_lazy_registration: Porting Lib Lazy Register 2.3.13+1.20.1
+			porting_lib_brewing: Porting Lib Brewing 2.3.13+1.20.1
+				porting_lib_core: Porting Lib Core 2.3.13+1.20.1
+			porting_lib_client_events: Porting Lib Client Events 2.3.13+1.20.1
+			porting_lib_entity: Porting Lib Entity 2.3.13+1.20.1
+				porting_lib_mixin_extensions: Porting Lib Mixin Extensions 2.3.13+1.20.1
+			porting_lib_extensions: Porting Lib Extensions 2.3.13+1.20.1
+				porting_lib_attributes: Porting Lib Attributes 2.3.13+1.20.1
+				porting_lib_common: Porting Lib Common 2.3.13+1.20.1
+			porting_lib_model_generators: Porting Lib Model Generators 2.3.13+1.20.1
+				porting_lib_data: Porting Lib Data 2.3.13+1.20.1
+				porting_lib_model_materials: Porting Lib Model Materials 2.3.13+1.20.1
+				porting_lib_utility: Porting Lib Utility 2.3.13+1.20.1
+			porting_lib_models: Porting Lib Models 2.3.13+1.20.1
+				porting_lib_fluids: Porting Lib Fluids 2.3.13+1.20.1
+				porting_lib_model_loader: Porting Lib Model Loader 2.3.13+1.20.1
+			porting_lib_networking: Porting Lib Networking 2.3.13+1.20.1
+			porting_lib_obj_loader: Porting Lib Obj Loader 2.3.13+1.20.1
+			porting_lib_tags: Porting Lib Tags 3.0
+			porting_lib_tool_actions: Porting Lib Tool Actions 2.3.13+1.20.1
+			porting_lib_transfer: Porting Lib Transfer 2.3.13+1.20.1
+			registrate-fabric: Registrate for Fabric 1.3.79-MC1.20.1
+		deeperdarker: Deeper and Darker 1.3.3-plus-b.rc2
+			customportalapi: Custom Portal Api 0.0.1-beta64-1.20
+		dungeonnowloading: Dungeon Now Loading 2.11
+		everycomp: Every Compat 1.20-2.9.15
+		fabric-api: Fabric API 0.92.7+1.20.1
+			fabric-api-base: Fabric API Base 0.4.32+1802ada577
+			fabric-api-lookup-api-v1: Fabric API Lookup API (v1) 1.6.37+1802ada577
+			fabric-biome-api-v1: Fabric Biome API (v1) 13.0.15+93aa238b77
+			fabric-block-api-v1: Fabric Block API (v1) 1.0.12+1802ada577
+			fabric-block-view-api-v2: Fabric BlockView API (v2) 1.0.3+924f046a77
+			fabric-blockrenderlayer-v1: Fabric BlockRenderLayer Registration (v1) 1.1.42+1802ada577
+			fabric-client-tags-api-v1: Fabric Client Tags 1.1.3+1802ada577
+			fabric-command-api-v1: Fabric Command API (v1) 1.2.35+f71b366f77
+			fabric-command-api-v2: Fabric Command API (v2) 2.2.14+1802ada577
+			fabric-commands-v0: Fabric Commands (v0) 0.2.52+df3654b377
+			fabric-containers-v0: Fabric Containers (v0) 0.1.67+df3654b377
+			fabric-content-registries-v0: Fabric Content Registries (v0) 4.0.13+1802ada577
+			fabric-convention-tags-v1: Fabric Convention Tags 1.5.6+1802ada577
+			fabric-crash-report-info-v1: Fabric Crash Report Info (v1) 0.2.20+1802ada577
+			fabric-data-attachment-api-v1: Fabric Data Attachment API (v1) 1.0.2+de0fd6d177
+			fabric-data-generation-api-v1: Fabric Data Generation API (v1) 12.3.7+1802ada577
+			fabric-dimensions-v1: Fabric Dimensions API (v1) 2.1.55+1802ada577
+			fabric-entity-events-v1: Fabric Entity Events (v1) 1.6.1+1c78457f77
+			fabric-events-interaction-v0: Fabric Events Interaction (v0) 0.6.5+13a40c6677
+			fabric-events-lifecycle-v0: Fabric Events Lifecycle (v0) 0.2.64+df3654b377
+			fabric-game-rule-api-v1: Fabric Game Rule API (v1) 1.0.41+1802ada577
+			fabric-item-api-v1: Fabric Item API (v1) 2.1.29+1802ada577
+			fabric-item-group-api-v1: Fabric Item Group API (v1) 4.0.14+1802ada577
+			fabric-key-binding-api-v1: Fabric Key Binding API (v1) 1.0.38+1802ada577
+			fabric-keybindings-v0: Fabric Key Bindings (v0) 0.2.36+df3654b377
+			fabric-lifecycle-events-v1: Fabric Lifecycle Events (v1) 2.2.23+1802ada577
+			fabric-loot-api-v2: Fabric Loot API (v2) 1.2.3+1802ada577
+			fabric-loot-tables-v1: Fabric Loot Tables (v1) 1.1.47+9e7660c677
+			fabric-message-api-v1: Fabric Message API (v1) 5.1.10+1802ada577
+			fabric-mining-level-api-v1: Fabric Mining Level API (v1) 2.1.52+1802ada577
+			fabric-model-loading-api-v1: Fabric Model Loading API (v1) 1.0.4+1802ada577
+			fabric-models-v0: Fabric Models (v0) 0.4.3+9386d8a777
+			fabric-networking-api-v1: Fabric Networking API (v1) 1.3.14+a158aa0477
+			fabric-networking-v0: Fabric Networking (v0) 0.3.54+df3654b377
+			fabric-object-builder-api-v1: Fabric Object Builder API (v1) 11.1.5+e35120df77
+			fabric-particles-v1: Fabric Particles (v1) 1.1.3+1802ada577
+			fabric-recipe-api-v1: Fabric Recipe API (v1) 1.0.24+1802ada577
+			fabric-registry-sync-v0: Fabric Registry Sync (v0) 2.3.6+1802ada577
+			fabric-renderer-api-v1: Fabric Renderer API (v1) 3.2.2+1802ada577
+			fabric-renderer-indigo: Fabric Renderer - Indigo 1.5.3+85287f9f77
+			fabric-renderer-registries-v1: Fabric Renderer Registries (v1) 3.2.47+df3654b377
+			fabric-rendering-data-attachment-v1: Fabric Rendering Data Attachment (v1) 0.3.39+92a0d36777
+			fabric-rendering-fluids-v1: Fabric Rendering Fluids (v1) 3.0.29+1802ada577
+			fabric-rendering-v0: Fabric Rendering (v0) 1.1.50+df3654b377
+			fabric-rendering-v1: Fabric Rendering (v1) 3.0.9+1802ada577
+			fabric-resource-conditions-api-v1: Fabric Resource Conditions API (v1) 2.3.9+1802ada577
+			fabric-resource-loader-v0: Fabric Resource Loader (v0) 0.11.12+fb82e9d777
+			fabric-screen-api-v1: Fabric Screen API (v1) 2.0.9+1802ada577
+			fabric-screen-handler-api-v1: Fabric Screen Handler API (v1) 1.3.33+1802ada577
+			fabric-sound-api-v1: Fabric Sound API (v1) 1.0.14+1802ada577
+			fabric-transfer-api-v1: Fabric Transfer API (v1) 3.3.6+8dd72ea377
+			fabric-transitive-access-wideners-v1: Fabric Transitive Access Wideners (v1) 4.3.2+1802ada577
+		fabric-language-kotlin: Fabric Language Kotlin 1.13.8+kotlin.2.3.0
+			org_jetbrains_kotlin_kotlin-reflect: kotlin-reflect 2.3.0
+			org_jetbrains_kotlin_kotlin-stdlib: kotlin-stdlib 2.3.0
+			org_jetbrains_kotlin_kotlin-stdlib-jdk7: kotlin-stdlib-jdk7 2.3.0
+			org_jetbrains_kotlin_kotlin-stdlib-jdk8: kotlin-stdlib-jdk8 2.3.0
+			org_jetbrains_kotlinx_atomicfu-jvm: atomicfu-jvm 0.29.0
+			org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm: kotlinx-coroutines-core-jvm 1.10.2
+			org_jetbrains_kotlinx_kotlinx-coroutines-jdk8: kotlinx-coroutines-jdk8 1.10.2
+			org_jetbrains_kotlinx_kotlinx-datetime-jvm: kotlinx-datetime-jvm 0.7.1
+			org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm: kotlinx-io-bytestring-jvm 0.8.2
+			org_jetbrains_kotlinx_kotlinx-io-core-jvm: kotlinx-io-core-jvm 0.8.2
+			org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm: kotlinx-serialization-cbor-jvm 1.9.0
+			org_jetbrains_kotlinx_kotlinx-serialization-core-jvm: kotlinx-serialization-core-jvm 1.9.0
+			org_jetbrains_kotlinx_kotlinx-serialization-json-jvm: kotlinx-serialization-json-jvm 1.9.0
+		fabricloader: Fabric Loader 0.18.4
+			mixinextras: MixinExtras 0.5.0
+		farmersdelight: Farmer's Delight 1.20.1-2.4.1+refabricated
+		forgeconfigapiport: Forge Config API Port 8.0.3
+		friendsandfoes: Friends&Foes 3.0.9
+			reach-entity-attributes: Reach Entity Attributes 2.4.0
+		galosphere: Galosphere 1.20.1-1.4.1
+			midnightlib: MidnightLib 1.1.0
+		geckolib: GeckoLib 4 4.8.3
+			com_eliotlash_mclib_mclib: mclib 20
+		gemsrealm: Gems Realm 1.20-2.9.6
+		indium: Indium 1.0.36+mc1.20.1
+		java: OpenJDK 64-Bit Server VM 17
+		kilt: Kilt 20.1.13
+			asmfabricloader: AsmFabricLoader 1.3.2-SNAPSHOT
+				net_lenni0451_classtransform_core: core 1.14.1
+				net_lenni0451_reflect: Reflect 1.5.0
+			com_github_fabriccompatibilitylayers_cursedmixinextensions: CursedMixinExtensions 1.1.0
+			com_moulberry_mixinconstraints: mixinconstraints 1.0.8
+			commons-codec_commons-codec: commons-codec 1.15
+			cpw_mods_securejarhandler: securejarhandler fabric-2.1.6
+			kilt_create_compat: Kilt: Create Fabric Compat 1.0.0
+			kilt_curios_trinkets_compat: Kilt: Curios & Trinkets Compat 1.0.0
+			kilt_fabric_compat: Kilt: Fabric Mods Compat 1.0.0
+			kilt_forge_compat: Kilt: Forge Mods Compat 1.0.0
+			kilt_forge_config: Kilt: Forge Config API 8.1.0
+			kilt_transfer_compat: Kilt: Transfer API Compat 1.0.0
+			knit-loader: Knit Loader 0.1.0
+			mixinsquared: MixinSquared 0.3.3
+			mm: Manningham Mills 2.3
+			net_fabricmc_tiny-mappings-parser: tiny-mappings-parser 0.3.0+build.17
+			net_fabricmc_tiny-remapper: tiny-remapper 0.11.1
+			net_jodah_typetools: typetools 0.8.3
+			net_minecraftforge_forgespi: forgespi 7.1.3
+			net_minecraftforge_mergetool-api: mergetool-api 1.0
+			net_minecraftforge_unsafe: unsafe 0.2.0
+			net_minecrell_terminalconsoleappender: terminalconsoleappender 1.3.0
+			org_apache_maven_maven-artifact: maven-artifact 3.8.5
+			org_jline_jline-reader: jline-reader 3.12.1
+			org_openjdk_nashorn_nashorn-core: nashorn-core 15.4
+			porting_lib_asm: Porting Lib ASM 2.3.9+1.20.1
+			porting_lib_blocks: Porting Lib Blocks 2.3.9+1.20.1
+			porting_lib_chunk_loading: Porting Lib Chunk Loading 2.3.9+1.20.1
+			porting_lib_gametest: Porting Lib GameTest 2.3.9+1.20.1
+			porting_lib_items: Porting Lib Items 2.3.9+1.20.1
+			porting_lib_level_events: Porting Lib Level Events 2.3.9+1.20.1
+			porting_lib_loot: Porting Lib Loot 2.3.9+1.20.1
+			porting_lib_model_builders: Porting Lib Model Builders 2.3.9+1.20.1
+			porting_lib_recipe_book_categories: Porting Lib Recipe Book Categories 2.3.9+1.20.1
+			porting_lib_registries: Porting Lib Registries 2.3.9+1.20.1
+			xyz_bluspring_autorenamingtool: AutoRenamingTool 0.1.52
+			xyz_bluspring_eventbus: eventbus 6.2.17
+			xyz_bluspring_srgutils: srgutils 0.5.15
+		minecraft: Minecraft 1.20.1
+		modmenu: Mod Menu 7.2.2
+		moonlight: Moonlight 1.20-2.16.27
+		owo: oωo 0.11.2+1.20
+			blue_endless_jankson: jankson 1.2.2
+		player-animator: Player Animator 1.0.2-rc1+1.20
+		regions_unexplored: Regions Unexplored 0.5.6+1.20.1
+		resourcefulconfig: Resourcefulconfig 2.1.3
+		resourcefullib: Resourceful Lib 2.1.29
+			com_teamresourceful_bytecodecs: bytecodecs 1.0.2
+			com_teamresourceful_yabn: yabn 1.0.3
+		sodium: Sodium 0.5.13+mc1.20.1
+		stonezone: Stone Zone 1.20.1
+		supplementaries: Supplementaries 1.20-3.1.42
+		suppsquared: Supplementaries Squared 1.20-1.1.29
+		tclayer: Accessories Trinkets Compat Layer 3.8.1+beta.14
+		terrablender: TerraBlender **.**.**.**
+			com_electronwill_night-config_core: core 3.6.7
+			com_electronwill_night-config_toml: toml 3.6.7
+		terrablenderfix: TerraBlenderFix 0.0.1
+	Flywheel Backend: flywheel:instancing
+	Launched Version: 1.20.1
+	Backend library: LWJGL version 3.3.1 SNAPSHOT
+	Backend API: Apple M4 GL version 4.1 Metal - 90.5, Apple
+	Window size: 1708x960
+	GL Caps: Using framebuffer using OpenGL 3.2
+	GL debug messages: <disabled>
+	Using VBOs: Yes
+	Is Modded: Definitely; Client brand changed to 'fabric'
+	Type: Client (map_client.txt)
+	GPU Warnings: version: Metal
+	Graphics mode: fancy
+	Resource Packs: fabric
+	Current Language: en_us
+	CPU: 10x Apple M4
+	Crash Report UUID: f583eda3-1cca-464b-b290-3e7462c06fd6
+	FML: 47
+	Forge: net.minecraftforge:47.4.5

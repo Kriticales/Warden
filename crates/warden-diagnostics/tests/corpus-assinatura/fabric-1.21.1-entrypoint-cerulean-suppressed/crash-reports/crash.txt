@@ -1,0 +1,618 @@
+---- Minecraft Crash Report ----
+// Daisy, daisy...
+
+Time: 2026-04-17 18:08:57
+Description: Initializing game
+
+java.lang.RuntimeException: Could not execute entrypoint stage 'main' due to errors, provided by 'cerulean' at 'toni.cerulean.Cerulean'!
+	at net.fabricmc.loader.impl.FabricLoaderImpl.lambda$invokeEntrypoints$0(FabricLoaderImpl.java:409)
+	at net.fabricmc.loader.impl.util.ExceptionUtil.gatherExceptions(ExceptionUtil.java:33)
+	at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:407)
+	at net.fabricmc.loader.impl.game.minecraft.Hooks.startClient(Hooks.java:52)
+	at net.minecraft.client.MinecraftClient.<init>(MinecraftClient.java:477)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+	Suppressed: java.lang.NoSuchMethodError: 'net.neoforged.fml.config.ModConfig net.neoforged.fml.config.ConfigTracker.registerConfig(net.neoforged.fml.config.ModConfig$Type, net.neoforged.fml.config.IConfigSpec, java.lang.String, java.lang.String)'
+		at knot//fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl.register(NeoForgeConfigRegistryImpl.java:17)
+		at knot//fuzs.puzzleslib.fabric.impl.config.FabricConfigHolderImpl$FabricConfigDataHolderImpl.register(FabricConfigHolderImpl.java:108)
+		at knot//fuzs.puzzleslib.fabric.impl.config.FabricConfigHolderImpl.bake(FabricConfigHolderImpl.java:59)
+		at knot//fuzs.puzzleslib.impl.config.ConfigHolderImpl.build(ConfigHolderImpl.java:90)
+		at knot//fuzs.puzzleslib.impl.core.ModContext.beforeModConstruction(ModContext.java:117)
+		at knot//fuzs.puzzleslib.api.core.v1.ModConstructor.construct(ModConstructor.java:35)
+		at knot//fuzs.cutthrough.fabric.CutThroughFabric.onInitialize(CutThroughFabric.java:11)
+		at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 3 more
+	Suppressed: java.lang.NoSuchMethodError: 'net.neoforged.fml.config.ModConfig net.neoforged.fml.config.ConfigTracker.registerConfig(net.neoforged.fml.config.ModConfig$Type, net.neoforged.fml.config.IConfigSpec, java.lang.String)'
+		at knot//fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl.register(NeoForgeConfigRegistryImpl.java:12)
+		at knot//io.github.mortuusars.horseman.fabric.HorsemanFabric.onInitialize(HorsemanFabric.java:32)
+		at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 3 more
+	Suppressed: java.lang.NoSuchMethodError: 'net.neoforged.fml.config.ModConfig net.neoforged.fml.config.ConfigTracker.registerConfig(net.neoforged.fml.config.ModConfig$Type, net.neoforged.fml.config.IConfigSpec, java.lang.String)'
+		at knot//fuzs.forgeconfigapiport.fabric.impl.core.ForgeConfigRegistryImpl.register(ForgeConfigRegistryImpl.java:15)
+		at knot//net.jmb19905.niftycarts.NiftyCarts.onInitialize(NiftyCarts.java:212)
+		at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 3 more
+	Suppressed: java.lang.NoSuchMethodError: 'net.neoforged.fml.config.ModConfig net.neoforged.fml.config.ConfigTracker.registerConfig(net.neoforged.fml.config.ModConfig$Type, net.neoforged.fml.config.IConfigSpec, java.lang.String)'
+		at knot//fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl.register(NeoForgeConfigRegistryImpl.java:12)
+		at knot//io.github.mortuusars.sootychimneys.fabric.SootyChimneysFabric.onInitialize(SootyChimneysFabric.java:20)
+		at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 3 more
+	Suppressed: java.lang.NoSuchMethodError: 'net.neoforged.fml.config.ModConfig net.neoforged.fml.config.ConfigTracker.registerConfig(net.neoforged.fml.config.ModConfig$Type, net.neoforged.fml.config.IConfigSpec, java.lang.String)'
+		at knot//fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl.register(NeoForgeConfigRegistryImpl.java:12)
+		at knot//io.github.mortuusars.thief.fabric.ThiefFabric.onInitialize(ThiefFabric.java:32)
+		at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+		... 3 more
+Caused by: java.lang.NoSuchMethodError: 'net.neoforged.fml.config.ModConfig net.neoforged.fml.config.ConfigTracker.registerConfig(net.neoforged.fml.config.ModConfig$Type, net.neoforged.fml.config.IConfigSpec, java.lang.String)'
+	at knot//fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl.register(NeoForgeConfigRegistryImpl.java:12)
+	at knot//toni.cerulean.Cerulean.lambda$onInitialize$0(Cerulean.java:96)
+	at knot//toni.cerulean.foundation.config.AllConfigs.register(AllConfigs.java:95)
+	at knot//toni.cerulean.Cerulean.onInitialize(Cerulean.java:94)
+	at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:405)
+	... 3 more
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at net.fabricmc.loader.impl.FabricLoaderImpl.lambda$invokeEntrypoints$0(FabricLoaderImpl.java:409)
+	at net.fabricmc.loader.impl.util.ExceptionUtil.gatherExceptions(ExceptionUtil.java:33)
+	at net.fabricmc.loader.impl.FabricLoaderImpl.invokeEntrypoints(FabricLoaderImpl.java:407)
+	at net.fabricmc.loader.impl.game.minecraft.Hooks.startClient(Hooks.java:52)
+	at net.minecraft.client.MinecraftClient.<init>(MinecraftClient.java:477)
+
+-- Initialization --
+Details:
+	Modules: 
+		ADVAPI32.dll:Advanced Windows 32 Base API:10.0.26100.3624 (WinBuild.160101.0800):Microsoft Corporation
+		COMCTL32.dll:User Experience Controls Library:6.10 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPT32.dll:Crypto API32:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTBASE.dll:Base cryptographic API DLL:10.0.26100.7623 (WinBuild.160101.0800):Microsoft Corporation
+		CRYPTSP.dll:Cryptographic Service Provider API:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		DBGHELP.DLL:Windows Image Helper:10.0.26100.5074 (WinBuild.160101.0800):Microsoft Corporation
+		DNSAPI.dll:DNS Client API DLL:10.0.26100.1591 (WinBuild.160101.0800):Microsoft Corporation
+		GDI32.dll:GDI Client DLL:10.0.26100.8036 (WinBuild.160101.0800):Microsoft Corporation
+		IMM32.DLL:Multi-User Windows IMM32 API Client DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		IPHLPAPI.DLL:IP Helper API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		KERNEL32.DLL:Windows NT BASE API Client DLL:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		KERNELBASE.dll:Windows NT BASE API Client DLL:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		MpOav.dll:IOfficeAntiVirus Module:4.18.26030.3011 (58e93915dbf52150fd35efdb420a24f1e40d0e23):Microsoft Corporation
+		NSI.dll:NSI User-mode interface DLL:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		NTASN1.dll:Microsoft ASN.1 API:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		OLEAUT32.dll:OLEAUT32.DLL:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		POWRPROF.dll:Power Profile Helper DLL:10.0.26100.4202 (WinBuild.160101.0800):Microsoft Corporation
+		PROPSYS.dll:Microsoft Property System:7.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		PSAPI.DLL:Process Status Helper:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		Pdh.dll:Windows Performance Data Helper DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		RPCRT4.dll:Remote Procedure Call Runtime:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		SHCORE.dll:SHCORE:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		SHELL32.dll:Windows Shell Common Dll:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		UMPDC.dll:User Mode Power Dependency Coordinator:10.0.26100.7019 (WinBuild.160101.0800):Microsoft Corporation
+		USER32.dll:Multi-User Windows USER API Client DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		USERENV.dll:Userenv:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		VCRUNTIME140.dll:Microsoft® C Runtime Library:14.40.33810.0:Microsoft Corporation
+		VERSION.dll:Version Checking and File Installation Libraries:10.0.26100.1150 (WinBuild.160101.0800):Microsoft Corporation
+		WINMM.dll:MCI API DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		WS2_32.dll:Windows Socket 2.0 32-Bit DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		amsi.dll:Anti-Malware Scan Interface:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		bcrypt.dll:Windows Cryptographic Primitives Library:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		bcryptPrimitives.dll:Windows Cryptographic Primitives Library:10.0.26100.7623 (WinBuild.160101.0800):Microsoft Corporation
+		clbcatq.dll:COM+ Configuration Catalog:2001.12.10941.16384 (WinBuild.160101.0800):Microsoft Corporation
+		combase.dll:Microsoft COM for Windows:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		dbgcore.DLL:Windows Core Debugging Helpers:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		dxcore.dll:DXCore:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		explorer-details-better-file-sizes_1.5_572202.dll
+		extnet.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		fwpuclnt.dll:FWP/IPsec User-Mode API:10.0.26100.3915 (WinBuild.160101.0800):Microsoft Corporation
+		gdi32full.dll:GDI Client DLL:10.0.26100.8036 (WinBuild.160101.0800):Microsoft Corporation
+		glfw.dll:GLFW 3.4.0 DLL:3.4.0:GLFW
+		iertutil.dll:Run time utility for Internet Explorer:11.00.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		instrument.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		java.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		javaw.exe:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		jemalloc.dll
+		jimage.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		jli.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		jna11684178650411667355.dll:JNA native library:7.0.0:Java(TM) Native Access (JNA)
+		jvm.dll:OpenJDK 64-Bit server VM:**.**.**.**:Eclipse Adoptium
+		kernel.appcore.dll:AppModel API Host:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		libc++.whl
+		libunwind.whl
+		lwjgl.dll
+		management.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		management_ext.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		mdnsNSP.dll:Bonjour Namespace Provider:3,1,0,1:Apple Inc.
+		modernize-folder-picker-dialog_1.0.0_716542.dll
+		msvcp140.dll:Microsoft® C Runtime Library:14.40.33810.0:Microsoft Corporation
+		msvcp_win.dll:Microsoft® C Runtime Library:10.0.26100.7623 (WinBuild.160101.0800):Microsoft Corporation
+		msvcrt.dll:Windows NT CRT DLL:7.0.26100.7623 (WinBuild.160101.0800):Microsoft Corporation
+		mswsock.dll:Microsoft Windows Sockets 2.0 Service Provider:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		napinsp.dll:E-mail Naming Shim Provider:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		ncrypt.dll:Windows NCrypt Router:10.0.26100.1591 (WinBuild.160101.0800):Microsoft Corporation
+		net.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		netutils.dll:Net Win32 API Helpers DLL:10.0.26100.1882 (WinBuild.160101.0800):Microsoft Corporation
+		nio.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		nlansp_c.dll:NLA Namespace Service Provider DLL:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		ntdll.dll:NT Layer DLL:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		ole32.dll:Microsoft OLE for Windows:10.0.26100.6725 (WinBuild.160101.0800):Microsoft Corporation
+		perfos.dll:Windows System Performance Objects DLL:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		pfclient.dll:SysMain Client:10.0.26100.4202 (WinBuild.160101.0800):Microsoft Corporation
+		profapi.dll:User Profile Basic API:10.0.26100.7309 (WinBuild.160101.0800):Microsoft Corporation
+		rasadhlp.dll:Remote Access AutoDial Helper:10.0.26100.7920 (WinBuild.160101.0800):Microsoft Corporation
+		rsaenh.dll:Microsoft Enhanced Cryptographic Provider:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		sechost.dll:Host for SCM/SDDL/LSA Lookup APIs:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		shlwapi.dll:Shell Light-weight Utility Library:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		srvcli.dll:Server Service Client DLL:10.0.26100.1150 (WinBuild.160101.0800):Microsoft Corporation
+		sunmscapi.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		ucrtbase.dll:Microsoft® C Runtime Library:10.0.26100.7623 (WinBuild.160101.0800):Microsoft Corporation
+		urlmon.dll:OLE32 Extensions for Win32:11.00.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		vcruntime140_1.dll:Microsoft® C Runtime Library:14.40.33810.0:Microsoft Corporation
+		verify.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+		win32u.dll:Win32u:10.0.26100.8036 (WinBuild.160101.0800):Microsoft Corporation
+		windhawk.dll:Windhawk:1.7.3:Ramen Software
+		windows.storage.dll:Microsoft WinRT Storage API:10.0.26100.7840 (WinBuild.160101.0800):Microsoft Corporation
+		winrnr.dll:LDAP RnR Provider DLL:10.0.26100.1882 (WinBuild.160101.0800):Microsoft Corporation
+		wintypes.dll:Windows Base Types DLL:10.0.26100.7705 (WinBuild.160101.0800):Microsoft Corporation
+		wshbth.dll:Windows Sockets Helper DLL:10.0.26100.5074 (WinBuild.160101.0800):Microsoft Corporation
+		wshunix.dll:AF_UNIX Winsock2 Helper DLL:10.0.26100.1 (WinBuild.160101.0800):Microsoft Corporation
+		zip.dll:OpenJDK Platform binary:**.**.**.**:Eclipse Adoptium
+Stacktrace:
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21.1
+	Minecraft Version ID: 1.21.1
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 25.0.1, Eclipse Adoptium
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Eclipse Adoptium
+	Memory: 1652555776 bytes (1576 MiB) / 3026190336 bytes (2886 MiB) up to 12482248704 bytes (11904 MiB)
+	CPUs: 16
+	Processor Vendor: GenuineIntel
+	Processor Name: 13th Gen Intel(R) Core(TM) i5-13400F
+	Identifier: Intel64 Family 6 Model 191 Stepping 2
+	Microarchitecture: unknown
+	Frequency (GHz): 2.50
+	Number of physical packages: 1
+	Number of physical CPUs: 10
+	Number of logical CPUs: 16
+	Graphics card #0 name: NVIDIA GeForce RTX 4070 SUPER
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 12282.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9579
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 3.60
+	Memory slot #0 type: DDR4
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 3.60
+	Memory slot #1 type: DDR4
+	Virtual memory max (MiB): 44385.72
+	Virtual memory used (MiB): 15943.71
+	Swap memory total (MiB): 11776.00
+	Swap memory used (MiB): 292.13
+	Space in storage for jna.tmpdir (MiB): available: 55250.76, total: 453136.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 55250.76, total: 453136.00
+	Space in storage for io.netty.native.workdir (MiB): available: 55250.76, total: 453136.00
+	Space in storage for java.io.tmpdir (MiB): available: 55250.76, total: 453136.00
+	Space in storage for workdir (MiB): available: 55250.76, total: 453136.00
+	JVM Flags: 4 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xmx11904M -XX:+UseCompactObjectHeaders -XX:+UseZGC
+	Fabric Mods: 
+		accurateblockplacement: Accurate Block Placement 1.4.4+mc-1.20.5-1.21.1
+		alternate-current: Alternate Current 1.9.0
+		appleskin: AppleSkin 3.0.6+mc1.21
+		architectury: Architectury 13.0.8
+		asyncparticles: AsyncParticles 3.4.0-beta.1
+		atmosfera: Atmosfera 2.5.7+mc1.21.1
+		audio_engine_tweaks: Tweaks for Audio Engine 1.2.6-MC1.21.1
+		autohud: Auto HUD 8.11
+			libbamboo: LibBamboo 2.25
+		badoptimizations: BadOptimizations 2.4.1
+		balm: Balm 21.0.56
+			kuma_api: KumaAPI 21.0.7
+		betterarcheology: Better Archeology 1.21.1-1.3.4
+		betterf3: BetterF3 11.0.3
+		bettermineshafts: YUNG's Better Mineshafts 1.21.1-Fabric-5.1.1
+		biomespy: BiomeSpy 1.3.3
+		breakfree: Break Free 1.4.0
+		bushierflowers: Bushier Flowers 0.0.3-1.21
+		c2me: Concurrent Chunk Management Engine 0.3.0+alpha.0.362+1.21.1
+			c2me-base: Concurrent Chunk Management Engine (Base) 0.3.0+alpha.0.362+1.21.1
+			c2me-client-uncapvd: Concurrent Chunk Management Engine (Client/Uncap View Distance) 0.3.0+alpha.0.362+1.21.1
+			c2me-fixes-chunkio-threading-issues: Concurrent Chunk Management Engine (Fixes/Chunk IO/Threading Issues) 0.3.0+alpha.0.362+1.21.1
+			c2me-fixes-general-threading-issues: Concurrent Chunk Management Engine (Fixes/General/Threading Issues) 0.3.0+alpha.0.362+1.21.1
+			c2me-fixes-worldgen-threading-issues: Concurrent Chunk Management Engine (Fixes/WorldGen/Threading Issues) 0.3.0+alpha.0.362+1.21.1
+			c2me-fixes-worldgen-vanilla-bugs: Concurrent Chunk Management Engine (Fixes/WorldGen/Vanilla Bugs) 0.3.0+alpha.0.362+1.21.1
+			c2me-notickvd: Concurrent Chunk Management Engine (No Tick View Distance) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-allocs: Concurrent Chunk Management Engine (Optimizations/Memory Allocations) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-chunkio: Concurrent Chunk Management Engine (Optimizations/Chunk IO) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-dfc: Concurrent Chunk Management Engine (Optimizations/Density Function Compiler) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-math: Concurrent Chunk Management Engine (Optimizations/Math) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-natives-math: Concurrent Chunk Management Engine (Optimizations/Natives Math) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-scheduling: Concurrent Chunk Management Engine (Optimizations/Scheduling) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-worldgen-general: Concurrent Chunk Management Engine (Optimizations/General WorldGen) 0.3.0+alpha.0.362+1.21.1
+			c2me-opts-worldgen-vanilla: Concurrent Chunk Management Engine (Optimizations/Vanilla WorldGen) 0.3.0+alpha.0.362+1.21.1
+			c2me-rewrites-chunk-system: Concurrent Chunk Management Engine (Rewrites/Chunk System) 0.3.0+alpha.0.362+1.21.1
+			c2me-server-utils: Concurrent Chunk Management Engine (Server Utils) 0.3.0+alpha.0.362+1.21.1
+			c2me-threading-lighting: Concurrent Chunk Management Engine (Threading/Lighting) 0.3.0+alpha.0.362+1.21.1
+			com_ibm_async_asyncutil: asyncutil 0.1.0
+			io_reactivex_rxjava3_rxjava: rxjava 3.1.12
+			net_objecthunter_exp4j: exp4j 0.4.8
+			org_jctools_jctools-core: jctools-core 4.0.5
+			org_reactivestreams_reactive-streams: reactive-streams 1.0.4
+		cameraoverhaul: CameraOverhaul 2.0.6-fabric+mc.1.21.0-1.21.2
+			io_hotmoka_toml4j: toml4j 0.7.3
+		cerulean: Cerulean 1.0.0
+		cesium: Cesium 0.2.5
+			com_github_jnr_jffi: jffi 1.3.12
+			com_github_jnr_jffi_native: jffi 1.3.12
+			com_github_jnr_jnr-a64asm: jnr-a64asm 1.0.0
+			com_github_jnr_jnr-constants: jnr-constants 0.10.4
+			com_github_jnr_jnr-ffi: jnr-ffi 2.2.15
+			com_github_jnr_jnr-x86asm: jnr-x86asm 1.0.2
+			com_github_luben_zstd-jni: zstd-jni 1.5.6-3
+			org_lmdbjava_lmdbjava: lmdbjava 0.9.0
+		chicken_nerf: Chicken Nerf 1.1.1
+		citresewn: CIT Resewn 1.2.2+1.21
+			citresewn-defaults: CIT Resewn: Defaults 1.2.2+1.21
+		cloth-config: Cloth Config v15 15.0.140
+			cloth-basic-math: cloth-basic-math 0.6.1
+		clumps: Clumps **.**.**.**
+		collective: Collective 8.20
+		colorwheel: Colorwheel 1.2.1+mc1.21.1
+		colorwheel_patcher: Colorwheel Patcher 1.0.5+mc1.21.1
+		connectiblechains: Reconnectible Chains 1.2.5
+		continuity: Continuity 3.0.0+1.21
+		coolrain: CoolRain 1.4.0-1.21.1
+			midnightlib: MidnightLib 1.9.2
+		cosycritters: Cosy Critters & Creepy Crawlies 0.3.2
+		creeperoverhaul: Creeper Overhaul 4.0.6
+			com_teamresourceful_resourceful-cosmetics-4j: resourceful-cosmetics-4j 1.0.3
+		cristellib: Cristel Lib 3.0.3
+			blue_endless_jankson: jankson 1.2.3
+		cubes-without-borders: Cubes Without Borders 3.0.0+mc1.21
+		customtimecycle: Custom Time Cycle 0.1.6-1.21.1
+			fabric-permissions-api-v0: fabric-permissions-api 0.3.3
+		cutthrough: Cut Through 21.1.0
+		deathsorter: Death Sorter 0.0.4
+		debugify: Debugify 1.21.1+1.0
+		diagonalfences: Diagonal Fences 21.1.1
+			diagonalblocks: Diagonal Blocks 21.1.1
+		doubledoors: Double Doors 7.2
+		dynamic_fps: Dynamic FPS 3.11.4
+			net_lostluma_battery: battery 2.0.0
+		dynamiccrosshair: Dynamic Crosshair 9.11
+			dynamiccrosshair-api: DynamicCrosshair API 1.2
+		dynamiccrosshaircompat: Dynamic Crosshair Compat 4.4
+		eatinganimationid: Eating Animation 1.21+1.9.72
+		economical_villager_trading: Economical Villager Trading 1.3.1
+		eg_particle_interactions: Particle Interactions 0.4.1-patch.1
+		endermanoverhaul: Enderman Overhaul 1.1.8
+		entity_model_features: Entity Model Features 3.1.1
+		entity_texture_features: Entity Texture Features 7.1
+		entityculling: EntityCulling 1.10.1
+			transition: TRansition 1.0.17
+			trender: TRender 1.0.12
+		explosiveenhancement: Explosive Enhancement 1.3.2-1.21-1.21.1
+		fabric-api: Fabric API 0.116.11+1.21.1
+			fabric-api-base: Fabric API Base 0.4.42+6573ed8c19
+			fabric-api-lookup-api-v1: Fabric API Lookup API (v1) 1.6.72+7b3d111d19
+			fabric-biome-api-v1: Fabric Biome API (v1) 13.0.31+d527f9fd19
+			fabric-block-api-v1: Fabric Block API (v1) 1.1.0+0bc3503219
+			fabric-block-view-api-v2: Fabric BlockView API (v2) 1.0.11+ebb2264e19
+			fabric-blockrenderlayer-v1: Fabric BlockRenderLayer Registration (v1) 1.1.52+0af3f5a719
+			fabric-client-tags-api-v1: Fabric Client Tags 1.1.15+6573ed8c19
+			fabric-command-api-v1: Fabric Command API (v1) 1.2.49+f71b366f19
+			fabric-command-api-v2: Fabric Command API (v2) 2.2.28+6ced4dd919
+			fabric-commands-v0: Fabric Commands (v0) 0.2.66+df3654b319
+			fabric-content-registries-v0: Fabric Content Registries (v0) 8.0.19+b559734419
+			fabric-convention-tags-v1: Fabric Convention Tags 2.1.7+7f945d5b19
+			fabric-convention-tags-v2: Fabric Convention Tags (v2) 2.12.0+c3656daa19
+			fabric-crash-report-info-v1: Fabric Crash Report Info (v1) 0.2.29+0af3f5a719
+			fabric-data-attachment-api-v1: Fabric Data Attachment API (v1) 1.4.6+5b36e0f719
+			fabric-data-generation-api-v1: Fabric Data Generation API (v1) 20.2.37+60a6976219
+			fabric-dimensions-v1: Fabric Dimensions API (v1) 4.0.1+65213ef819
+			fabric-entity-events-v1: Fabric Entity Events (v1) 1.8.0+2b27e0a419
+			fabric-events-interaction-v0: Fabric Events Interaction (v0) 0.7.13+ba9dae0619
+			fabric-game-rule-api-v1: Fabric Game Rule API (v1) 1.0.53+6ced4dd919
+			fabric-item-api-v1: Fabric Item API (v1) 11.2.0+3b3cb2e819
+			fabric-item-group-api-v1: Fabric Item Group API (v1) 4.1.7+def88e3a19
+			fabric-key-binding-api-v1: Fabric Key Binding API (v1) 1.0.47+0af3f5a719
+			fabric-keybindings-v0: Fabric Key Bindings (v0) 0.2.45+df3654b319
+			fabric-lifecycle-events-v1: Fabric Lifecycle Events (v1) 2.6.0+0865547519
+			fabric-loot-api-v2: Fabric Loot API (v2) 3.0.15+3f89f5a519
+			fabric-loot-api-v3: Fabric Loot API (v3) 1.0.3+3f89f5a519
+			fabric-message-api-v1: Fabric Message API (v1) 6.0.14+8aaf3aca19
+			fabric-model-loading-api-v1: Fabric Model Loading API (v1) 2.1.0+b4d813fc19
+			fabric-networking-api-v1: Fabric Networking API (v1) 4.3.0+c7469b2119
+			fabric-object-builder-api-v1: Fabric Object Builder API (v1) 15.2.1+40875a9319
+			fabric-particles-v1: Fabric Particles (v1) 4.0.2+6573ed8c19
+			fabric-recipe-api-v1: Fabric Recipe API (v1) 5.0.15+2475392c19
+			fabric-registry-sync-v0: Fabric Registry Sync (v0) 5.3.1+e3eddc2119
+			fabric-renderer-api-v1: Fabric Renderer API (v1) 3.4.1+b4d813fc19
+			fabric-renderer-indigo: Fabric Renderer - Indigo 1.7.1+c705a49c19
+			fabric-renderer-registries-v1: Fabric Renderer Registries (v1) 3.2.69+df3654b319
+			fabric-rendering-data-attachment-v1: Fabric Rendering Data Attachment (v1) 0.3.49+73761d2e19
+			fabric-rendering-fluids-v1: Fabric Rendering Fluids (v1) 3.1.6+1daea21519
+			fabric-rendering-v0: Fabric Rendering (v0) 1.1.72+df3654b319
+			fabric-rendering-v1: Fabric Rendering (v1) 5.1.0+ab4c25a019
+			fabric-resource-conditions-api-v1: Fabric Resource Conditions API (v1) 4.3.0+8dc279b119
+			fabric-resource-loader-v0: Fabric Resource Loader (v0) 1.3.1+5b5275af19
+			fabric-screen-api-v1: Fabric Screen API (v1) 2.0.25+8b68f1c719
+			fabric-screen-handler-api-v1: Fabric Screen Handler API (v1) 1.3.90+b559734419
+			fabric-sound-api-v1: Fabric Sound API (v1) 1.0.23+6573ed8c19
+			fabric-transfer-api-v1: Fabric Transfer API (v1) 5.4.4+7b3d111d19
+			fabric-transitive-access-wideners-v1: Fabric Transitive Access Wideners (v1) 6.2.0+45b9699719
+		fabric-language-kotlin: Fabric Language Kotlin 1.13.10+kotlin.2.3.20
+			org_jetbrains_kotlin_kotlin-reflect: kotlin-reflect 2.3.20
+			org_jetbrains_kotlin_kotlin-stdlib: kotlin-stdlib 2.3.20
+			org_jetbrains_kotlin_kotlin-stdlib-jdk7: kotlin-stdlib-jdk7 2.3.20
+			org_jetbrains_kotlin_kotlin-stdlib-jdk8: kotlin-stdlib-jdk8 2.3.20
+			org_jetbrains_kotlinx_atomicfu-jvm: atomicfu-jvm 0.32.1
+			org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm: kotlinx-coroutines-core-jvm 1.10.2
+			org_jetbrains_kotlinx_kotlinx-coroutines-jdk8: kotlinx-coroutines-jdk8 1.10.2
+			org_jetbrains_kotlinx_kotlinx-datetime-jvm: kotlinx-datetime-jvm 0.7.1
+			org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm: kotlinx-io-bytestring-jvm 0.9.0
+			org_jetbrains_kotlinx_kotlinx-io-core-jvm: kotlinx-io-core-jvm 0.9.0
+			org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm: kotlinx-serialization-cbor-jvm 1.10.0
+			org_jetbrains_kotlinx_kotlinx-serialization-core-jvm: kotlinx-serialization-core-jvm 1.10.0
+			org_jetbrains_kotlinx_kotlinx-serialization-json-jvm: kotlinx-serialization-json-jvm 1.10.0
+		fabricloader: Fabric Loader 0.18.4
+		farmersdelight: Farmer's Delight 1.21.1-3.2.8+refabricated
+			mm: Manningham Mills 2.3
+		fastquit: FastQuit 3.0.0+1.20.6
+		ferritecore: FerriteCore 7.0.3
+		forgeconfigapiport: Forge Config API Port 21.1.6
+		fwa: Fancy World Animations 1.2.13
+		fzzy_config: Fzzy Config 0.7.6+1.21
+			net_peanuuutz_tomlkt_tomlkt-jvm: tomlkt-jvm 0.3.7
+		geckolib: GeckoLib 4 4.8.4
+		getwebbed: GetWebbed 1.0.1
+		highlighter: Highlighter 1.1.11
+		hold-my-items: Hold My Items 4.3
+		hopobetterruinedportal: Hopo Better Ruined Portal 1.4.4
+		horseman: Horseman 1.5.9
+		ibo: Incendium Biomes Only 3.1.0
+		iceberg: Iceberg 1.3.2
+		illagerblabber: IllagerBlabber 1.0.0
+		immediatelyfast: ImmediatelyFast 1.6.10+1.21.1
+		immersive-hotbar: Immersive Hotbar 1.1.1-1.21-1.21.1
+		immersive_horse_riding: Immersive Horse Riding 1.0.0
+			mixinextras: MixinExtras 0.5.3
+			mixinsquared: MixinSquared 0.3.7-beta.1
+		immersive_optimization: Immersive Optimization 0.1.4
+		immersiveui: ImmersiveUI 0.3.3
+		incendium: Incendium 5.4.3
+		inventory_interactions: Inventory Interactions 1.1.0+1.21.1+fabric
+		inventory_particles: Inventory Particles 1.5.0+1.21.1+fabric
+		invmove: InvMove 0.9.3
+		iris: Iris 1.8.8+mc1.21.1
+			io_github_douira_glsl-transformer: glsl-transformer 2.0.1
+			org_anarres_jcpp: jcpp 1.4.14
+			org_antlr_antlr4-runtime: antlr4-runtime 4.13.1
+		ixeris: Ixeris 4.1.8+1.21.1-fabric
+		java: OpenJDK 64-Bit Server VM 25
+		jumpoverfences: Jump Over Fences 1.6.1
+		kaffees_dual_ride: Kaffee's Dual Ride 1.1.0
+		kilt: Kilt 21.1.0+build.c8fde9-nightly
+			asmfabricloader: AsmFabricLoader 2.1.1-SNAPSHOT
+				net_lenni0451_classtransform_core: core 1.14.1
+				net_lenni0451_reflect: Reflect 1.6.2
+			com_github_fabriccompatibilitylayers_cursedmixinex3b449d60b1a522: CursedMixinExtensions 1.1.0
+			com_moulberry_mixinconstraints: mixinconstraints 1.0.8
+			commons-codec_commons-codec: commons-codec 1.15
+			cpw_mods_securejarhandler: securejarhandler fabric.0
+			kilt_create_compat: Kilt: Create Fabric Compat 1.0.0
+			kilt_fabric_compat: Kilt: Fabric Mods Compat 1.0.0
+			kilt_forge_compat: Kilt: Forge Mods Compat 1.0.0
+			kilt_neoforge_config: Kilt: NeoForge Config API 8.1.0
+			kilt_transfer_compat: Kilt: Transfer API Compat 1.0.0
+			knit-loader: Knit Loader 0.1.0
+			net_fabricmc_tiny-mappings-parser: tiny-mappings-parser 0.3.0+build.17
+			net_fabricmc_tiny-remapper: tiny-remapper 0.11.1
+			net_jodah_typetools: typetools 0.6.3
+			net_minecraftforge_unsafe: unsafe 0.2.0
+			net_minecrell_terminalconsoleappender: terminalconsoleappender 1.3.0
+			net_neoforged_bus: bus 8.0.5
+			net_neoforged_mergetool: mergetool 2.0.0
+			org_apache_maven_maven-artifact: maven-artifact 3.8.5
+			org_jline_jline-reader: jline-reader 3.12.1
+			org_openjdk_nashorn_nashorn-core: nashorn-core 15.4
+			porting_lib_attributes: Porting Lib Attributes 3.1.0-beta.85+1.21.1
+			porting_lib_base: Porting Lib Base 3.1.0-beta.85+1.21.1
+			porting_lib_blocks: Porting Lib Blocks 3.1.0-beta.85+1.21.1
+			porting_lib_brewing: Porting Lib Brewing 3.1.0-beta.85+1.21.1
+			porting_lib_chunk_loading: Porting Lib Chunk Loading 3.1.0-beta.85+1.21.1
+			porting_lib_client_events: Porting Lib Client Events 3.1.0-beta.85+1.21.1
+			porting_lib_client_extensions: Porting Lib Client Extensions 3.1.0-beta.85+1.21.1
+			porting_lib_common: Porting Lib Common 3.1.0-beta.85+1.21.1
+			porting_lib_config: Porting Lib Config 3.1.0-beta.85+1.21.1
+			porting_lib_core: Porting Lib Core 3.1.0-beta.85+1.21.1
+			porting_lib_data: Porting Lib Data 3.1.0-beta.85+1.21.1
+			porting_lib_entity: Porting Lib Entity 3.1.0-beta.85+1.21.1
+			porting_lib_entity_data_serializers: Porting Lib Entity Data Serializers 3.1.0-beta.85+1.21.1
+			porting_lib_fluids: Porting Lib Fluids 3.1.0-beta.85+1.21.1
+			porting_lib_gametest: Porting Lib GameTest 3.1.0-beta.85+1.21.1
+			porting_lib_gui_utils: Porting Lib Gui Utils 3.1.0-beta.85+1.21.1
+			porting_lib_item_abilities: Porting Lib Item Abilities 3.1.0-beta.85+1.21.1
+			porting_lib_items: Porting Lib Items 3.1.0-beta.85+1.21.1
+			porting_lib_level_events: Porting Lib Level Events 3.1.0-beta.85+1.21.1
+			porting_lib_loot: Porting Lib Loot 3.1.0-beta.85+1.21.1
+			porting_lib_milk: Porting Lib Milk 3.1.0-beta.85+1.21.1
+			porting_lib_mixin_extensions: Porting Lib Mixin Extensions 3.1.0-beta.85+1.21.1
+			porting_lib_model_data: Porting Lib Model Data 3.1.0-beta.85+1.21.1
+			porting_lib_model_loader: Porting Lib Model Loader 3.1.0-beta.85+1.21.1
+			porting_lib_models: Porting Lib Models 3.1.0-beta.85+1.21.1
+			porting_lib_obj_loader: Porting Lib Obj Loader 3.1.0-beta.85+1.21.1
+			porting_lib_recipe_book_categories: Porting Lib Recipe Book Categories 3.1.0-beta.85+1.21.1
+			porting_lib_registry: Porting Lib Registry 3.1.0-beta.85+1.21.1
+			porting_lib_render_types: Porting Lib Render Types 3.1.0-beta.85+1.21.1
+			porting_lib_resources: Porting Lib Resources 3.1.0-beta.85+1.21.1
+			porting_lib_tags: Porting Lib Tags 3.0
+			porting_lib_transfer: Porting Lib Transfer 3.1.0-beta.85+1.21.1
+			team_reborn_energy: Energy 4.1.0
+			xyz_bluspring_autorenamingtool: AutoRenamingTool 0.1.52
+			xyz_bluspring_srgutils: srgutils 0.5.15
+		kiwi: Kiwi Library 15.8.3+fabric
+		konkrete: Konkrete 1.9.9
+		krypton: Krypton 0.2.8
+			com_velocitypowered_velocity-native: velocity-native 3.3.0-SNAPSHOT
+		languagereload: Language Reload 1.7.6+1.21.1
+		leahs-immersive-thunder: Immersive Thunder 1.21.1+1.2.2
+		lithium: Lithium 0.15.3+mc1.21.1
+		mc-258859: MC-258859 1.0
+		minecraft: Minecraft 1.21.1
+		modelfix: Model Gap Fix 1.21-1.6
+		modernfix: ModernFix 5.25.1+mc1.21.1
+		modernworldcreation: Modern World Creation 2.0.1
+		modmenu: Mod Menu 11.0.4
+			placeholder-api: Placeholder API 2.4.0-pre.2+1.21
+		moonlight: Moonlight Lib 1.21-2.29.32
+		moreculling: More Culling 1.0.7
+		mossylib: MossyLib 1.1.0+1.21.1+fabric
+		mousetweaks: Mouse Tweaks 2.26
+		mr_blaze_attackanimation: Blaze Attack Animation 1.0
+		mr_blooming_biosphere: Blooming Biosphere 1.1.6
+		mr_eugenes_wealthyplainsvillage: Eugene's Wealthy Plains Village 1.0.1
+		mr_lukis_ancientcities: Luki's Ancient Cities 1-v1.2
+		mr_lukis_crazychambers: Luki's Crazy Chambers 1.0.3
+		mr_lukis_strongholds: Luki's Strongholds 1-v1.0
+		mr_mastercutter: MasterCutter 1.3.1+1.21
+		mr_mingen: MinGen 1-v6.9.6
+		mr_spawn_animationscompats: Spawn Animations Compats 15.0
+		mr_terralith_biomesaplings: Custom Biome Saplings 1.1.6
+		mr_timber_physics: Timber Physics 1.21-2
+		mr_vb_compat: Vanilla Backport Compat (on-hold) 1.4
+		mru: M.R.U 1.0.19+LTS+1.21.1+fabric
+			org_commonmark_commonmark: commonmark 0.21.0
+		netherportalfix: NetherPortalFix 21.1.3
+		netherportalspread: Nether Portal Spread 8.4
+		niftycarts: NiftyCarts 21.1.1
+		{MINECRAFT_ACCESS_TOKEN}scape: Nullscape 1.2.14
+		octolib: OctoLib 0.6.1
+			org_yaml_snakeyaml: snakeyaml 2.2
+		optigui: OptiGUI 2.3.0-beta.9+1.21
+			org_apache_commons_commons-text: commons-text 1.12.0
+			org_ini4j_ini4j: ini4j 0.5.4
+		packed_packs: Packed Packs 2.1.2+1.21.1
+			fidgetz: fidgetz 0.2.0+1.21.1
+			packed_packs_api: Packed Packs API 2.1.2+1.21.1
+		particle_effects: Particle Effects 1.3.0+1.21.1+fabric
+		particlerain: Particle Rain 3.0.5
+		particletweaks: Particle Tweaks 2.0-mc1.21.1
+		platform: Platform 1.3
+		presencefootsteps: Presence Footsteps 1.11.1+1.21
+			kirin: Kirin UI 1.20.0+1.21
+		profundis: Profundis 1.7.1
+		puzzleslib: Puzzles Lib 21.1.39
+		rabbit-pathfinding-fix: Rabbit Pathfinding Fix 1.0.0
+		raised: Raised 5.1.2
+		random_mob_sizes: Random Mob Sizes 1.21.1-2.2.2
+		realisticbees: Realistic Bees 4.2
+		realisticfirespread: Realistic Fire Spread 1.21-r1
+			cardinal-components-base: Cardinal Components API (base) 6.1.1
+			cardinal-components-entity: Cardinal Components API (entities) 6.1.1
+		reeses-sodium-options: Reese's Sodium Options 1.8.3+mc1.21.4
+		resourcefulconfig: Resourcefulconfig 3.0.11
+		resourcefullib: Resourceful Lib 3.0.12
+			com_teamresourceful_bytecodecs: bytecodecs 1.1.2
+			com_teamresourceful_yabn: yabn 1.0.3
+		revamped_shipwrecks: Revamped Shipwrecks 1.1.0
+		ribbits: Ribbits 1.21.1-Fabric-4.1.6
+			org_reflections_reflections: reflections 0.10.2
+		rocks: This Rocks! 1.9.3+1.21.1
+		rottencreatures: RottenCreatures 1.1.2
+		rrls: Remove Reloading Screen 5.0.10+mc1.21.1-fabric
+		seamlesssleep: Seamless Sleep 2.5.3
+			com_electronwill_night-config_core: core 3.8.2
+			com_electronwill_night-config_toml: toml 3.8.2
+		simpleblockoverlay: Simple Block Overlay 1.4.3
+		simplemenu: Simple Menu 2.0
+		smooth_f5: Smooth F5 1.0.1
+		smooth_hover: Smooth Hover 1.0
+		smoothgui: SmoothGui 1.1.0
+		smoothscroll: Smooth Scroll 2.2.1
+		smoothswapping: Smooth Swapping **.**.**.**
+		snowrealmagic: Snow! Real Magic! 12.2.0+fabric
+		snuffles: Snuffles 1.3.0+1.21.1
+		sodium: Sodium 0.6.13+mc1.21.1
+		sootychimneys: Sooty Chimneys 1.3.4
+		sound_physics_remastered: Sound Physics Remastered 1.21.1-1.5.1
+		sounds: Sounds 2.4.22+lts
+		spark: spark 1.10.109
+		spawnanimations: Spawn Animations 1.11.4+mod
+		spidersproducewebs: Spiders Produce Webs 3.6
+		stormiespiders: Stormie's Spiders 3.2.0
+		strayed_fates_forsaken: STRAYED FATES: Forsaken 1-v2.0.0.2
+		structure_layout_optimizer: Structure Layout Optimizer 1.0.12
+		structurify: Structurify 2.0.22
+		stupid-block-animations: stupid block animations 0.1.3+1.21.1-fabric
+			conditional-mixin: conditional mixin 0.6.4
+		subtle_effects: Subtle Effects 1.14.1
+		supplementaries: Supplementaries 1.21-3.5.33
+		thief: Thief **.**.**.**
+		tightfire: Tightfire 1.0-SNAPSHOT
+		tooltipoverhaul: Tooltip overhaul 1.4.4
+		tumbleweeds: Tumbleweeds 1.1.0
+		twod_projectiles: 2D Projectiles 1.1.1
+		txnilib: TxniLib 1.0.24
+		u_desert: Unnamed Desert 2.0.3
+		unloadedactivity: Unloaded Activity 0.6.7
+		vanillabackport: VanillaBackport **.**.**.**
+		vanillin: Vanillin 1.1.3+1.21.1
+			flywheel: Flywheel 1.0.4+1.21.1
+		vectorientation: Vectorientation 1.1
+		visuality: Visuality 0.7.7+1.21
+		voxy: Voxy 0.2.14-alpha
+			org_apache_commons_commons-pool2: commons-pool2 2.12.0
+			org_lwjgl_lwjgl-lmdb: lwjgl-lmdb 3.3.3
+			org_lwjgl_lwjgl-lmdb_natives-linux: lwjgl-lmdb 3.3.3
+			org_lwjgl_lwjgl-lmdb_natives-windows: lwjgl-lmdb 3.3.3
+			org_lwjgl_lwjgl-zstd: lwjgl-zstd 3.3.3
+			org_lwjgl_lwjgl-zstd_natives-linux: lwjgl-zstd 3.3.3
+			org_lwjgl_lwjgl-zstd_natives-windows: lwjgl-zstd 3.3.3
+			org_lz4_lz4-java: lz4-java 1.8.0
+			org_rocksdb_rocksdbjni: rocksdbjni 10.2.1
+			org_tukaani_xz: xz 1.10
+			redis_clients_jedis: jedis 5.1.0
+		wabi_sabi_structures: Wabi-Sabi Structures 3.0.1
+		waterdripsound: Drip Sounds 0.5.2
+		wilderflowers: Wilder Flowers 1.1.0+1.21.1
+			folk_sisby_kaleido-config: kaleido-config 0.3.3+1.3.2
+		wits: WITS 1.3.0+1.21-fabric
+		yeetusexperimentus: Yeetus Experimentus 87.0.0
+		yet_another_config_lib_v3: YetAnotherConfigLib 3.8.2+1.21.1-fabric
+			com_twelvemonkeys_common_common-image: common-image 3.12.0
+			com_twelvemonkeys_common_common-io: common-io 3.12.0
+			com_twelvemonkeys_common_common-lang: common-lang 3.12.0
+			com_twelvemonkeys_imageio_imageio-core: imageio-core 3.12.0
+			com_twelvemonkeys_imageio_imageio-metadata: imageio-metadata 3.12.0
+			com_twelvemonkeys_imageio_imageio-webp: imageio-webp 3.12.0
+			org_quiltmc_parsers_gson: gson 0.2.1
+			org_quiltmc_parsers_json: json 0.2.1
+		yungsapi: YUNG's API 1.21.1-Fabric-5.1.6
+			org_javassist_javassist: javassist 3.29.2-GA
+		zoomify: Zoomify 2.15.2+1.21.1
+			com_akuleshov7_ktoml-core-jvm: ktoml-core-jvm 0.7.1
+	NeoForge Mods (kilt): 
+		hoporp: HopoBetterRuinedPortals 1.4.4
+		jij_d57b92c2ca64fd74e3ed3388d20f48f5-neoforge-mixinsquared-neoforge-034: (Kilt JiJ) d57b92c2ca64fd74e3ed3388d20f48f5-neoforge-mixinsquared-neoforge-0.3.4 0.0.0
+		jij_ef1e94aa61d5c7d78f1f0b6d80846892-mixinsquared-034: (Kilt JiJ) ef1e94aa61d5c7d78f1f0b6d80846892-MixinSquared-0.3.4 0.0.0
+		neoforge: NeoForge 21.1.224
+	Flywheel Backend: flywheel:off
+	Launched Version: 1.21.1
+	Launcher name: theseus
+	Backend library: LWJGL version 3.3.3-snapshot
+	Backend API: Unknown
+	Window size: <not initialized>
+	GFLW Platform: <error>
+	GL Caps: Using framebuffer using OpenGL 3.2
+	GL debug messages: <disabled>
+	Is Modded: Definitely; Client brand changed to 'fabric'
+	Universe: 404
+	Type: Client (map_client.txt)
+	Locale: en_US
+	System encoding: Cp1252
+	File encoding: UTF-8
+	CPU: <unknown>

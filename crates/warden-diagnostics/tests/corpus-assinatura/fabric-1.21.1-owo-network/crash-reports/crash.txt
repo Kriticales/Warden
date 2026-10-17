@@ -1,0 +1,451 @@
+---- Minecraft Crash Report ----
+// Surprise! Haha. Well, this is awkward.
+
+Time: 2026-03-20 21:15:30
+Description: Initializing game
+
+io.wispforest.owo.network.NetworkException: Some deferred client handlers for channel class_9154[id=vinurl:network_channel] haven't been registered: com.vinurl.net.ClientEvent$StopSoundRecord, com.vinurl.net.ClientEvent$PlaySoundRecord, com.vinurl.net.ClientEvent$GUIRecord
+	at knot//io.wispforest.owo.network.OwoNetChannel.verify(OwoNetChannel.java:551)
+	at knot//io.wispforest.owo.network.OwoNetChannel.lambda$static$17(OwoNetChannel.java:559)
+	at knot//io.wispforest.owo.util.OwoFreezer.freeze(OwoFreezer.java:56)
+	at net.minecraft.client.MinecraftClient.handler$ejl000$owo$afterFabricHook(MinecraftClient.java:3165)
+	at net.minecraft.client.MinecraftClient.<init>(MinecraftClient.java:477)
+	at net.minecraft.client.main.Main.main(Main.java:239)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at org.prismlauncher.launcher.impl.StandardLauncher.launch(StandardLauncher.java:115)
+	at org.prismlauncher.EntryPoint.listen(EntryPoint.java:129)
+	at org.prismlauncher.EntryPoint.main(EntryPoint.java:70)
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at knot//io.wispforest.owo.network.OwoNetChannel.verify(OwoNetChannel.java:551)
+	at knot//io.wispforest.owo.network.OwoNetChannel.lambda$static$17(OwoNetChannel.java:559)
+	at knot//io.wispforest.owo.util.OwoFreezer.freeze(OwoFreezer.java:56)
+	at net.minecraft.client.MinecraftClient.handler$ejl000$owo$afterFabricHook(MinecraftClient.java:3165)
+	at net.minecraft.client.MinecraftClient.<init>(MinecraftClient.java:477)
+
+-- Initialization --
+Details:
+	Modules: 
+Stacktrace:
+	at net.minecraft.client.main.Main.main(Main.java:239)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:514)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+	at org.prismlauncher.launcher.impl.StandardLauncher.launch(StandardLauncher.java:115)
+	at org.prismlauncher.EntryPoint.listen(EntryPoint.java:129)
+	at org.prismlauncher.EntryPoint.main(EntryPoint.java:70)
+
+-- Cobblemon --
+Details:
+	Version: 1.7.3
+	Is Snapshot: false
+	Git Commit: 37264af (https://gitlab.com/cable-mc/cobblemon/-/commit/37264aff0f6c90c9f9a79bbdfc712bd11929a38c)
+	Branch: HEAD
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21.1
+	Minecraft Version ID: 1.21.1
+	Operating System: Linux (amd64) version 6.19.8-200.fc43.x86_64
+	Java Version: 21.0.7, Microsoft
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Microsoft
+	Memory: 412601920 bytes (393 MiB) / 1394606080 bytes (1330 MiB) up to 4294967296 bytes (4096 MiB)
+	CPUs: 12
+	Processor Vendor: AuthenticAMD
+	Processor Name: AMD Ryzen 5 5500
+	Identifier: AuthenticAMD Family 25 Model 80 Stepping 0
+	Microarchitecture: Zen 3
+	Frequency (GHz): -0.00
+	Number of physical packages: 1
+	Number of physical CPUs: 6
+	Number of logical CPUs: 12
+	Graphics card #0 name: Navi 22 [Radeon RX 6700/6700 XT/6750 XT / 6800M/6850M XT]
+	Graphics card #0 vendor: Advanced Micro Devices, Inc. [AMD/ATI] (0x1002)
+	Graphics card #0 VRAM (MiB): 16640.00
+	Graphics card #0 deviceId: 0x73df
+	Graphics card #0 versionInfo: unknown
+	Virtual memory max (MiB): 16117.32
+	Virtual memory used (MiB): 11592.51
+	Swap memory total (MiB): 8192.00
+	Swap memory used (MiB): 1622.53
+	Space in storage for jna.tmpdir (MiB): <path not set>
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): <path not set>
+	Space in storage for io.netty.native.workdir (MiB): <path not set>
+	Space in storage for java.io.tmpdir (MiB): available: 7894.39, total: 7925.33
+	Space in storage for workdir (MiB): available: 207577.03, total: 1907727.00
+	JVM Flags: 2 total; -Xms512m -Xmx4096m
+	Fabric Mods: 
+		accessories: Accessories 1.1.0-beta.53 1.21.1
+		additional_rpg_jewelry: Additional RPG Jewelry 2.2.2 1.21.1
+		alpinewhispers: [Let's Do] Alpinewhispers 1.0.2
+		archers: Archers (RPG Series) 2.7.0 1.21.1
+		archers_expansion: Archers Expansion 1.5.1 1.21.1
+		architectury: Architectury 13.0.8
+		armory_rpgs: Armory (RPG Series) 1.3.0 1.21.1
+		athena: Athena 4.0.2
+		autochefsdelight: Autochef's Delight 2.1.0 fabric
+		azurelib: AzureLib 3.1.3
+		azurelibarmor: AzureLib Armor 3.1.2
+		bakery: [Let's Do] Bakery 2.1.6
+		bakingdelight: Modern Delight 0.5.3 1.21.1
+		balm: Balm 21.0.56
+			kuma_api: KumaAPI 21.0.7
+		beachparty: [Let's Do] Beachparty 2.1.4
+		berserker_rpg: Berserker Class Mod 2.6.0 1.21.1
+		biolith: Biolith 3.0.10
+		biomesoplenty: BiomesOPlenty **.**.**.**
+		blahaj: Blåhaj 2.0.0
+		bloomingnature: [Let's Do] BloomingNature 1.1.9
+		brewery: [Let's Do] Brewery 2.1.8
+		brewinandchewin: Brewin' And Chewin' 4.4.2
+			greenhouseconfig: Greenhouse Config 2.2.3 1.21.1
+			greenhouseconfig_toml: Greenhouse Config - TOML 1.1.0
+				greenhouseconfig_night_config: Greenhouse Config - Night Config 1.1.0
+		cakedelight: Cake Delight 1.21.1-v4.0.0
+		camping: Camping 2.1.4
+		candlelight: [Let's Do] Candlelight 2.1.12
+		capture_xp: Cobblemon Capture XP 1.7.3-fabric-1.3.0
+		cardinal-components: Cardinal Components API 6.1.3
+			cardinal-components-base: Cardinal Components API (base) 6.1.3
+			cardinal-components-block: Cardinal Components API (blocks) 6.1.3
+			cardinal-components-chunk: Cardinal Components API (chunks) 6.1.3
+			cardinal-components-entity: Cardinal Components API (entities) 6.1.3
+			cardinal-components-item: Cardinal Components API (items) 6.1.3
+			cardinal-components-level: Cardinal Components API (world saves) 6.1.3
+			cardinal-components-scoreboard: Cardinal Components API (scoreboard) 6.1.3
+			cardinal-components-world: Cardinal Components API (worlds) 6.1.3
+		catchrate-display: Cobblemon Catch Rate Display 2.8.3
+		chat_heads: Chat Heads 0.15.0
+		chefsdelight: Chef's Delight 1.0.5-fabric-1.21.1
+			structurized-reborn: Structurized Reborn 1.21.1-01
+		chiikawa: Chiikawa 0.0.2
+		chiselsandbits: Chisels & Bits 21.1.33
+			mod_chiselsandbits_api: chisels-and-bits - api 21.1.33
+			mod_chiselsandbits_core: chisels-and-bits - core 21.1.33
+			mod_chiselsandbits_create: chisels-and-bits - create 21.1.33
+			scena: Scena 21.1.22
+				com_communi-suggestu_scena_core: scena - core 21.1.22
+				saeculariacaudices: Saecularia Caudices 21.1.11
+					com_communi-suggestu_saecularia-caudices_core: saecularia-caudices - core 21.1.11
+		choppersdelight: choppersdelight 1.0.2
+		christmas-delight: Christmas Delight 1.0-noremandier
+			terraform-wood-api-v1: Terraform Wood API (v1) 11.0.0-alpha.1
+		cloth-config: Cloth Config v15 15.0.140
+			cloth-basic-math: cloth-basic-math 0.6.1
+		cobbleblock: Cobble Block 1.0.0-SNAPSHOT
+		cobblecuisine: CobbleCuisine 2.0.1
+		cobbledelight: Cobblemon's Delight 0.1-1.20.X 
+		cobbledex-rei-emi-jei: CobbleDex REI/EMI/JEI 1.50.3
+		cobblefurnies: CobbleFurnies 1.0
+		cobblemon: Cobblemon 1.7.3 1.21.1
+		cobblemonbroadcaster: CobblemonBroadcaster 1.2.5 1.21.1
+			adventure-platform-fabric: adventure-platform-fabric 5.14.1
+				net_kyori_adventure-api: adventure-api 4.17.0
+				net_kyori_adventure-key: adventure-key 4.17.0
+				net_kyori_adventure-platform-api: adventure-platform-api 4.3.3
+				net_kyori_adventure-text-logger-slf4j: adventure-text-logger-slf4j 4.17.0
+				net_kyori_adventure-text-serializer-ansi: adventure-text-serializer-ansi 4.17.0
+				net_kyori_adventure-text-serializer-gson: adventure-text-serializer-gson 4.17.0
+				net_kyori_adventure-text-serializer-json: adventure-text-serializer-json 4.17.0
+				net_kyori_adventure-text-serializer-plain: adventure-text-serializer-plain 4.17.0
+				net_kyori_ansi: ansi 1.1.0
+				net_kyori_examination-api: examination-api 1.3.0
+				net_kyori_examination-string: examination-string 1.3.0
+				net_kyori_option: option 1.0.0
+			net_kyori_adventure-text-minimessage: adventure-text-minimessage 4.17.0
+			org_yaml_snakeyaml: snakeyaml 2.1
+		cobbreeding: Cobbreeding 2.2.1
+		collective: Collective 8.13
+		comforts: Comforts 9.0.5 1.21.1
+			spectrelib: SpectreLib 0.17.2 1.21
+				com_electronwill_night-config_core: core 3.8.0
+				com_electronwill_night-config_toml: toml 3.8.0
+		commonnetworking: Common Network 1.0.21-1.21.1
+		compatdelight: Compat Delight 203.0.113.1
+		corndelight: Corn Delight 1.21-1.0.0
+		cornexpansion: [Let's Do Addon] Corn Expansion 1.2.4
+		coroutil: CoroUtil 1.21.1-1.3.8
+			forgeconfigapiport: Forge Config API Port 21.1.3
+		cozyhome: Cozy Home 1.1.20
+		cratedelight: Crate Delight 25.9.22-1.21-fabric
+		croptopia-refabricated: Croptopia Refabricated 0.1.0 1.21.1
+		culturaldelights: Cultural Delights 0.17.7
+		diabolicaldelights: Diabolical Delights 1.0.1
+		displaydelight: Display Delight [Fabric] 1.6.1-mc1.21.1
+		dogslie: Let Sleeping Dogs Lie 1.3.0
+		druids: Druids (RPG Class) 1.0 1.21.1
+		dummmmmmy: MmmMmmMmmMmm 1.21-2.0.11
+		dumplings_delight: Dumpling's Delight Rewrapped 1.21.1-1.3.0 fabric
+		dynamic_fps: Dynamic FPS 3.11.4
+			net_lostluma_battery: battery 2.0.0
+		eastersdelight: Easter's Delight 1.1.0
+		elemental_wizards_rpg: Elemental Wizards (RPG Class) 2.6.1 1.21.1
+		emotecraft: Emotecraft 2.4.12
+			bendy-lib: Bendy api 5.1
+			playeranimator: Player Animator 2.0.1 1.21.1
+		ends_delight: End's Delight 2.5.2 refabricated.1.21.1
+		energizedpower: Energized Power 1.21.1-2.15.12-fabric
+			team_reborn_energy: Energy 4.1.0
+		energizedpowerfd: Energized Power - Farmer's Delight 1.21.1-1.0.1-fabric
+		entityculling: EntityCulling 1.9.5
+		extraorigins: Extra Origins 1.21.1-r1
+		fabric-api: Fabric API 0.116.9 1.21.1
+			fabric-api-base: Fabric API Base 0.4.42 6573ed8c19
+			fabric-api-lookup-api-v1: Fabric API Lookup API (v1) 1.6.72 7b3d111d19
+			fabric-biome-api-v1: Fabric Biome API (v1) 13.0.31 d527f9fd19
+			fabric-block-api-v1: Fabric Block API (v1) 1.1.0 0bc3503219
+			fabric-block-view-api-v2: Fabric BlockView API (v2) 1.0.11 ebb2264e19
+			fabric-blockrenderlayer-v1: Fabric BlockRenderLayer Registration (v1) 1.1.52 0af3f5a719
+			fabric-client-tags-api-v1: Fabric Client Tags 1.1.15 6573ed8c19
+			fabric-command-api-v1: Fabric Command API (v1) 1.2.49 f71b366f19
+			fabric-command-api-v2: Fabric Command API (v2) 2.2.28 6ced4dd919
+			fabric-commands-v0: Fabric Commands (v0) 0.2.66 df3654b319
+			fabric-content-registries-v0: Fabric Content Registries (v0) 8.0.19 b559734419
+			fabric-convention-tags-v1: Fabric Convention Tags 2.1.6 7f945d5b19
+			fabric-convention-tags-v2: Fabric Convention Tags (v2) 2.11.2 fa89716719
+			fabric-crash-report-info-v1: Fabric Crash Report Info (v1) 0.2.29 0af3f5a719
+			fabric-data-attachment-api-v1: Fabric Data Attachment API (v1) 1.4.6 5b36e0f719
+			fabric-data-generation-api-v1: Fabric Data Generation API (v1) 20.2.35 37516cd619
+			fabric-dimensions-v1: Fabric Dimensions API (v1) 4.0.1 65213ef819
+			fabric-entity-events-v1: Fabric Entity Events (v1) 1.8.0 2b27e0a419
+			fabric-events-interaction-v0: Fabric Events Interaction (v0) 0.7.13 ba9dae0619
+			fabric-game-rule-api-v1: Fabric Game Rule API (v1) 1.0.53 6ced4dd919
+			fabric-item-api-v1: Fabric Item API (v1) 11.2.0 3b3cb2e819
+			fabric-item-group-api-v1: Fabric Item Group API (v1) 4.1.7 def88e3a19
+			fabric-key-binding-api-v1: Fabric Key Binding API (v1) 1.0.47 0af3f5a719
+			fabric-keybindings-v0: Fabric Key Bindings (v0) 0.2.45 df3654b319
+			fabric-lifecycle-events-v1: Fabric Lifecycle Events (v1) 2.6.0 0865547519
+			fabric-loot-api-v2: Fabric Loot API (v2) 3.0.15 3f89f5a519
+			fabric-loot-api-v3: Fabric Loot API (v3) 1.0.3 3f89f5a519
+			fabric-message-api-v1: Fabric Message API (v1) 6.0.14 8aaf3aca19
+			fabric-model-loading-api-v1: Fabric Model Loading API (v1) 2.1.0 b4d813fc19
+			fabric-networking-api-v1: Fabric Networking API (v1) 4.3.0 c7469b2119
+			fabric-object-builder-api-v1: Fabric Object Builder API (v1) 15.2.1 40875a9319
+			fabric-particles-v1: Fabric Particles (v1) 4.0.2 6573ed8c19
+			fabric-recipe-api-v1: Fabric Recipe API (v1) 5.0.15 2475392c19
+			fabric-registry-sync-v0: Fabric Registry Sync (v0) 5.3.1 e3eddc2119
+			fabric-renderer-api-v1: Fabric Renderer API (v1) 3.4.1 b4d813fc19
+			fabric-renderer-indigo: Fabric Renderer - Indigo 1.7.1 c705a49c19
+			fabric-renderer-registries-v1: Fabric Renderer Registries (v1) 3.2.69 df3654b319
+			fabric-rendering-data-attachment-v1: Fabric Rendering Data Attachment (v1) 0.3.49 73761d2e19
+			fabric-rendering-fluids-v1: Fabric Rendering Fluids (v1) 3.1.6 1daea21519
+			fabric-rendering-v0: Fabric Rendering (v0) 1.1.72 df3654b319
+			fabric-rendering-v1: Fabric Rendering (v1) 5.1.0 ab4c25a019
+			fabric-resource-conditions-api-v1: Fabric Resource Conditions API (v1) 4.3.0 8dc279b119
+			fabric-resource-loader-v0: Fabric Resource Loader (v0) 1.3.1 5b5275af19
+			fabric-screen-api-v1: Fabric Screen API (v1) 2.0.25 8b68f1c719
+			fabric-screen-handler-api-v1: Fabric Screen Handler API (v1) 1.3.90 b559734419
+			fabric-sound-api-v1: Fabric Sound API (v1) 1.0.23 6573ed8c19
+			fabric-transfer-api-v1: Fabric Transfer API (v1) 5.4.4 7b3d111d19
+			fabric-transitive-access-wideners-v1: Fabric Transitive Access Wideners (v1) 6.2.0 45b9699719
+		fabric-language-kotlin: Fabric Language Kotlin 1.13.9 kotlin.2.3.10
+			org_jetbrains_kotlin_kotlin-reflect: kotlin-reflect 2.3.10
+			org_jetbrains_kotlin_kotlin-stdlib: kotlin-stdlib 2.3.10
+			org_jetbrains_kotlin_kotlin-stdlib-jdk7: kotlin-stdlib-jdk7 2.3.10
+			org_jetbrains_kotlin_kotlin-stdlib-jdk8: kotlin-stdlib-jdk8 2.3.10
+			org_jetbrains_kotlinx_atomicfu-jvm: atomicfu-jvm 0.31.0
+			org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm: kotlinx-coroutines-core-jvm 1.10.2
+			org_jetbrains_kotlinx_kotlinx-coroutines-jdk8: kotlinx-coroutines-jdk8 1.10.2
+			org_jetbrains_kotlinx_kotlinx-datetime-jvm: kotlinx-datetime-jvm 0.7.1
+			org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm: kotlinx-io-bytestring-jvm 0.8.2
+			org_jetbrains_kotlinx_kotlinx-io-core-jvm: kotlinx-io-core-jvm 0.8.2
+			org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm: kotlinx-serialization-cbor-jvm 1.10.0
+			org_jetbrains_kotlinx_kotlinx-serialization-core-jvm: kotlinx-serialization-core-jvm 1.10.0
+			org_jetbrains_kotlinx_kotlinx-serialization-json-jvm: kotlinx-serialization-json-jvm 1.10.0
+		fabricloader: Fabric Loader 0.18.4
+			mixinextras: MixinExtras 0.5.0
+		fancydelight: Fancy Delight 1.0.0
+		farm_and_charm: [Let's Do] Farm & Charm 1.1.21
+		farmersdelight: Farmer's Delight 1.21.1-3.2.5 refabricated
+			mm: Manningham Mills 2.3
+		farmersknives: Farmer's Knives 1.21.1-4.0.4
+		ferritecore: FerriteCore 7.0.3
+		flora: flora 1.0.3
+		forcemaster_rpg: Forcemaster Class Mod 2.6.0 1.21.1
+		forgivingvoid: Forgiving Void 21.1.6
+		frightsdelight: Fright's Delight 1.4.6
+		frog-petting: Pet Frogs and More! 2.3 1.21
+		furnish: Furnish 29
+		furniture: [Let's Do] Furniture 1.1.4
+			mixinsquared: MixinSquared 0.3.2-beta.3
+		gazebo: Gazebos (RPG Series) 2.1.0 1.21.1
+		geckolib: GeckoLib 4 4.8.4
+		gensokyoizakaya: 幻雀妖 0.1.0a
+		glitchcore: GlitchCore **.**.**.**
+			net_jodah_typetools: typetools 0.6.3
+		hanas_blahaj: Hanas Blahaj 1.1.0
+		handcrafted: Handcrafted 4.0.3
+		hauntedharvest: Haunted Harvest 1.21-3.3.9
+		hearth_and_timber: [Let's Do] Hearth & Timber 1.0.3
+		herbalbrews: [Let's Do] HerbalBrews 1.1.3
+		icarus: Icarus 4.6.4
+		ichunutil: iChunUtil 1.0.3
+		immediatelyfast: ImmediatelyFast 1.6.10 1.21.1
+			net_lenni0451_reflect: Reflect 1.6.1 curseforge
+		java: OpenJDK 64-Bit Server VM 21
+		jeed: Just Enough Effects Descriptions 1.21-2.3.2
+		jei: Just Enough Items **.**.**.**
+		jewelry: Jewelry (RPG Series) 2.3.2 1.21.1
+		justenoughbreeding: Just Enough Breeding 1.6.2
+		justzoom: Just Zoom 2.1.0
+		konkrete: Konkrete 1.9.9
+		lambdynlights: LambDynamicLights 4.8.7 1.21.1
+			lambdynlights_runtime: LambDynamicLights (Runtime) 4.8.7 1.21.1
+				lambdynlights_api: LambDynamicLights (API) 4.8.7 1.21.1
+					yumi_commons_collections: Yumi Commons: Collections 1.0.0
+					yumi_commons_core: Yumi Commons: Core 1.0.0
+					yumi_commons_event: Yumi Commons: Event 1.0.0
+				pride: Pride Lib 1.2.4 1.21.1
+				spruceui: SpruceUI 6.2.5 1.21.1
+				yumi_mc_core: Yumi Minecraft Libraries: Foundation 1.0.0-beta.1 1.21.1
+		lilis_lucky_lures: Lilis' Lucky Lures 1.1.3
+		lilis_pottery: [Let's Do] LilisPottery 1.0.2
+		lne_archers: L&E Archers-Add On 1.1.0 1.21.1
+		lne_paladins: L&E Paladins-Add On 1.1.0 1.21.1
+		lne_rogues: L&E Rogues-Add On 1.1.0 1.21.1
+		lne_wizards: L&E Wizards-Add On 1.0.7 1.21.1
+		loot_n_explore: Loot & Explore 1.0.19-1.21.1
+		mcwfurnitures: Macaw's Furniture 3.4.1
+		meadow: [Let's Do] Meadow 1.4.8
+		mega_showdown: Cobblemon:Mega Showdown 1.7.1 1.7.3 1.21.1-hotfix
+		minecraft: Minecraft 1.21.1
+		moonlight: Moonlight Lib 1.21-2.29.20
+		more_relics: More Relics 1.2.0 1.21.1
+		more_rpg_classes: More RPG Library 2.5.18 1.21.1
+		moreculling: More Culling 1.0.7
+			conditional-mixin: conditional mixin 0.6.3
+		moredelight: More Delight 25.7.28-1.21-fabric
+		mr_cobble_cafforms: Cobblemon cafe 5.0.0
+		mr_cobblecuisine_delight: CobbleCuisine Delight 1.1
+		mr_cut_stoneforcobble: Cut Stone for Cobble 1.0.1
+		mr_eat_cobble: Cobble 1.0.0
+		mr_farmers_cuttingbiomesoplenty: Farmer's Cutting: Biomes O' Plenty 1.21-2.0.0-fabric
+		mr_lets_domeadowsawmillcompat: [Let's Do Meadow] - Sawmill Compat 1.0
+		mr_missingmons_cobblemon: MissingMons [cobblemon] 3.6.1
+		mr_origins_dietarydelights: Overgrown's Origins: Dietary Delights 1.9.7
+		mrpgc_skill_tree: MRPG Classes - RPG-Series Skill Tree Add On 1.1.2 1.21.1
+		notenoughanimations: NotEnoughAnimations 1.11.3
+			transition: TRansition 1.0.12
+		notenoughcrashes: Not Enough Crashes 4.4.9 1.21.1
+		notenoughpots: NotEnoughPots 1.3
+		oceansdelight: Ocean's Delight fdrf-fabric-1.0.2-1.21
+		onion_onion: Onion Onion 3.0.1
+		originfur: Origin Furs 1.0.11-maybeworks
+		origins: Origins 1.13.0-pre.1 mc.1.21.1
+			apoli: Apoli 2.12.0-pre.1 mc.1.21.1
+				additionalentityattributes: Additional Entity Attributes 1.8.0 1.21
+				calio: Calio 1.14.0 mc.1.21.x
+					org_quiltmc_parsers_gson: gson 0.2.1
+					org_quiltmc_parsers_json: json 0.2.1
+				modmenu: Mod Menu 11.0.1
+					placeholder-api: Placeholder API 2.4.0-pre.2 1.21
+				playerabilitylib: Pal 1.10.0
+		originsfurs: Origins Furs 1.1.0-1.21.1
+		owo: oωo **.**.**.** 1.21
+			blue_endless_jankson: jankson 1.2.2
+			io_wispforest_endec: endec **.**.**.**
+			io_wispforest_endec_gson: gson **.**.**.**
+			io_wispforest_endec_jankson: jankson **.**.**.**
+			io_wispforest_endec_netty: netty 0.1.2
+		paladins: Paladins & Priests (RPG Series) 2.7.0 1.21.1
+			shield_api: Shield API 2.1.0
+		piedelight: Pie Delight Compact 1.0.0
+		pineapple_delight: Pineapple Delight 1.1.2-1.21.1-fabric
+		player_names: Player Names 1.0
+		potteddelight: PottedDelight 1.0
+		puffish_skills: Pufferfish's Skills 0.17.3
+		pumpkin_pie: Pumpkin Pie Delight 1.0.2 1.21
+		ranged_weapon_api: RangedWeaponAPI 2.3.3 1.21.1
+		recipe_modification: Recipe Modification Lib 0.1.2
+		relics_rpgs: Relics (RPG Series) 1.3.0 1.21.1
+		replantingcrops: Replanting Crops 5.5
+		resourcefulconfig: Resourcefulconfig 3.0.11
+		resourcefullib: Resourceful Lib 3.0.12
+			com_teamresourceful_bytecodecs: bytecodecs 1.1.2
+			com_teamresourceful_yabn: yabn 1.0.3
+		rogues: Rogues & Warriors (RPG Series) 2.7.0 1.21.1
+		runes: Runes 1.2.1 1.21.1
+			bundleapi: Bundle API 1.1.0
+		rusticdelightrefabricated: RusticDelight:Refabricated 1.1.2-1.21
+		sawmill: Universal Sawmill 1.21-1.7.2
+		seasonal_lets_do: Seasonal Let's Do 1.4.0 1.21
+		seeddelight: Seed Delight 0.1
+		silk-all: Silk (All modules) 1.10.7
+			silk-commands: Silk Commands 1.10.7
+			silk-core: Silk Core 1.10.7
+			silk-game: Silk Game 1.10.7
+			silk-igui: Silk Inventory GUI 1.10.7
+			silk-nbt: Silk NBT 1.10.7
+			silk-network: Silk Network 1.10.7
+			silk-persistence: Silk Persistence 1.10.7
+		skill_tree_rpgs: Skill Tree (RPG Series) 1.4.4 1.21.1
+		skniro_furniture: skniro's Furniture 1.5.0-1.21.1-Fabric
+		soundboard-svc: Voice Chat Soundboard 0.7.2
+			kowoui: Kotlin OwO UI 0.3.0
+			soundboard-core: Soundboard Core 0.7.2
+				com_squareup_okhttp3_okhttp: okhttp 4.12.0
+				com_squareup_okio_okio-jvm: okio-jvm 3.9.1
+		spanishdelight: Spanish Delight Refabricated 1.21.1-1.0.8a
+		sparkweave: Sparkweave Engine 0.510.0
+			net_harawata_appdirs: appdirs 1.2.1
+			sparkweave_renderdoc_loader: Sparkweave Engine RenderDoc Loader 0.510.0
+		spell_engine: Spell Engine 1.9.8 1.21.1
+		spell_power: Spell Power Attribute 1.4.6 1.21.1
+		stackedblocks: Stacked Blocks 25.2.13-1.21-fabric
+		stackedblocksfarmersdelight: Stacked Blocks: Farmer's Delight 25.2.13-1.21-fabric
+		storagedelight: Storage Delight 25.12.9-1.21-fabric
+		structure_pool_api: Structure Pool API 1.2.1 1.21.1
+		supplementaries: Supplementaries 1.21-3.5.26
+		terrablender: TerraBlender **.**.**.**
+		tim_core: Tim Core 1.7.3-fabric-1.31.0
+		trailandtales_delight: Trail&Tales Delight 1.3
+		travelersbackpack: Traveler's Backpack 10.1.33
+		treeharvester: Tree Harvester 9.1
+		trinkets: Trinkets 3.10.0
+		ubesdelight: Ube's Delight 0.4.11
+			midnightlib: MidnightLib 1.9.2
+		vcinteraction: Voice Chat Interaction 1.21.1-1.0.8
+			polymer-registry-sync-manipulator: Polymer (Registry Sync Manipulator) 0.9.9 1.21
+		vegandelight: Vegan Delight 2.0.0-beta3
+		veinminer: Veinminer 2.4.2
+			de_miraculixx_core_dev: core 2.4.2
+			fabric-permissions-api-v0: fabric-permissions-api 0.3.1
+		vietnams_delight_reborn: Vietnam's Delight Reborn 1.1.0
+		village_taverns: Village Taverns (RPG Series) 1.1.5 1.21.1
+			tiny_config: Tiny Config 3.1.0
+		vinery: [Let's Do] Vinery 1.5.3
+		vinurl: VinURL 2.3.0
+		voicechat: Simple Voice Chat 1.21.1-2.6.12
+			voicechat_api: Simple Voice Chat API 2.6.0
+		watut: What Are They Up To 1.21.0-1.2.7
+		waveycapes: WaveyCapes 1.8.2
+			trender: TRender 1.0.10
+		waystones: Waystones 21.1.29
+		witcher_rpg: Witcher Class Mod 2.8.0 1.21.1
+		wizards: Wizards (RPG Series) 2.7.1 1.21.1
+		xaerominimap: Xaero's Minimap 25.3.10
+			xaerolib: XaeroLib 1.1.0
+	Launched Version: 1.21.1
+	Launcher name: PrismLauncher
+	Backend library: LWJGL version 3.3.3-snapshot
+	Backend API: Unknown
+	Window size: <not initialized>
+	GFLW Platform: <error>
+	GL Caps: Using framebuffer using OpenGL 3.2
+	GL debug messages: <disabled>
+	Is Modded: Definitely; Client brand changed to 'fabric'
+	Universe: 404
+	Type: Client (map_client.txt)
+	Locale: en_US
+	System encoding: UTF-8
+	File encoding: UTF-8
+	CPU: <unknown>
+	Suspected Mods: Minecraft (minecraft), Fabric Loader (fabricloader), oωo (owo)

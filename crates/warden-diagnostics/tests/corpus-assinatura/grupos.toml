@@ -1,0 +1,248 @@
+# Grupos esperados do corpus adversário da assinatura (D-06, 4ª revisão).
+#
+# Cada caso é uma pasta com um crash report ou `latest.log` real (origem em FIXTURES.md). Casos
+# com o mesmo `grupo` são o mesmo travamento e têm o mesmo hash; grupos diferentes, hashes
+# diferentes. Nos casos que provam uma regra, as partes esperadas (`regra`, `excecao`, `frame`,
+# `mods`, `sujeito`) também são conferidas; `frame = ""` é "sem frame". O teste
+# `corpus_adversario_cada_caso_tem_as_partes_e_o_grupo_esperados` exige que todo caso esteja aqui,
+# na ordem das pastas.
+
+[[caso]]
+nome = "fabric-1.20.1-autotag-lambda"
+grupo = "fabric-1.20.1-autotag-lambda"
+# Lambda de um mod na pilha: frame de mod, sem o número da lambda.
+frame = "io.github.apace100.autotag.common.tags.AutoItemTags.lambda$register"
+mods = ["mod:autotag", "mod:kilt"]
+
+[[caso]]
+nome = "fabric-1.20.1-configsync-desconectar-a"
+grupo = "fabric-1.20.1-configsync-desconectar"
+# O mesmo travamento em duas execuções (ids de mixin `fih002`/`fig002`, outra linha do
+# `Collections`, outro launcher embaixo do `main`).
+frame = "fuzs.forgeconfigapiport.impl.network.config.ConfigSync.lambda$unloadSyncedConfig"
+sujeito = ["description=unexpected error", "where=net.minecraftforge.fml.config.ModConfig.acceptSyncedConfig"]
+
+[[caso]]
+nome = "fabric-1.20.1-configsync-desconectar-b"
+grupo = "fabric-1.20.1-configsync-desconectar"
+
+[[caso]]
+nome = "fabric-1.20.1-mixin-vcc"
+grupo = "fabric-1.20.1-mixin-vcc"
+regra = "mixin.apply_error"
+sujeito = ["mixin_config=vcc.mixins.json"]
+
+[[caso]]
+nome = "fabric-1.20.1-registros-mouseclicked"
+grupo = "fabric-1.20.1-registros-mouseclicked"
+# Embrulho do Kilt embaixo; a queda em `RegistryLoader.load` identifica.
+frame = "net.minecraft.client.gui.screen.Screen.kilt$tryCallForgeScreenInit"
+sujeito = ["description=mouseclicked event handler", "where=net.minecraft.registry.RegistryLoader.load"]
+
+[[caso]]
+nome = "fabric-1.21.1-bootstrap-injection"
+grupo = "fabric-1.21.1-bootstrap-injection"
+# Falha de mixin sem linha para o catálogo: a config vem da mensagem.
+excecao = "org.spongepowered.asm.mixin.injection.throwables.InjectionError"
+sujeito = ["description=bootstrap", "mixin_config=create_dragons_plus.mixins.json"]
+
+[[caso]]
+nome = "fabric-1.21.1-entrypoint-beachparty"
+grupo = "fabric-1.21.1-entrypoint-beachparty"
+regra = "fabric.entrypoint"
+
+[[caso]]
+nome = "fabric-1.21.1-entrypoint-cerulean-suppressed"
+grupo = "fabric-1.21.1-entrypoint-cerulean-suppressed"
+# Cinco `Suppressed:` de outros mods antes do `Caused by:`: ficam fora.
+regra = "fabric.entrypoint"
+excecao = "java.lang.NoSuchMethodError"
+frame = "fuzs.forgeconfigapiport.fabric.impl.core.NeoForgeConfigRegistryImpl.register"
+
+[[caso]]
+nome = "fabric-1.21.1-entrypoint-cobblefurnies"
+grupo = "fabric-1.21.1-entrypoint-cobblefurnies"
+regra = "fabric.entrypoint"
+
+[[caso]]
+nome = "fabric-1.21.1-log-mixin-flywheel"
+grupo = "fabric-1.21.1-log-mixin-flywheel"
+# `latest.log` (sem crash report): o achado de mixin; o launcher não é frame de mod.
+regra = "mixin.apply_for_mod_failed"
+frame = ""
+sujeito = ["mixin_config=flywheel.impl.mixins.json"]
+
+[[caso]]
+nome = "fabric-1.21.1-mixin-cobblemon-ui-tweaks"
+grupo = "fabric-1.21.1-mixin-cobblemon-ui-tweaks"
+regra = "mixin.apply_error"
+sujeito = ["mixin_config=cobblemon-ui-tweaks.mixins.json"]
+
+[[caso]]
+nome = "fabric-1.21.1-owo-network"
+grupo = "fabric-1.21.1-owo-network"
+excecao = "io.wispforest.owo.network.NetworkException"
+frame = "io.wispforest.owo.network.OwoNetChannel.verify"
+
+[[caso]]
+nome = "fabric-1.21.1-registros-mouseclicked"
+grupo = "fabric-1.21.1-registros-mouseclicked"
+# Handler com hífen no id do mod (`fabric-registry-sync-v0`), sem o contador do MixinExtras.
+frame = "net.minecraft.registry.RegistryLoader.fabric-registry-sync-v0$wrapIsServerCall"
+sujeito = ["description=mouseclicked event handler", "where=net.minecraft.registry.RegistryLoader.load"]
+
+[[caso]]
+nome = "fabric-1.21.1-registrysync-desconectar"
+grupo = "fabric-1.21.1-registrysync-desconectar"
+# Handler com hífen: na ponta f6b6b0d o frame era o do `owo`, mais abaixo.
+frame = "net.minecraft.client.MinecraftClient.fabric-registry-sync-v0$disconnectAfter"
+sujeito = ["description=mouseclicked event handler", "where=net.minecraft.registry.SimpleRegistry.remap"]
+
+[[caso]]
+nome = "fabric-1.21.11-mixin-sodium"
+grupo = "fabric-1.21.11-mixin-sodium"
+regra = "mixin.apply_error"
+sujeito = ["mixin_config=sodium-common.mixins.json"]
+
+[[caso]]
+nome = "fabric-26.1.1-mixin-flashback-iris"
+grupo = "fabric-26.1.1-mixin-flashback-iris"
+regra = "mixin.apply_error"
+sujeito = ["mixin_config=flashback.mixins.json"]
+
+[[caso]]
+nome = "fabric-26.2-servidor-log-mixin-arcade-replay"
+grupo = "fabric-26.2-servidor-log-mixin-arcade-replay"
+regra = "mixin.apply_for_mod_failed"
+sujeito = ["mixin_config=arcade-replay.mixins.json"]
+
+[[caso]]
+nome = "forge-1.12.2-abstractmethod-ae2"
+grupo = "forge-1.12.2-abstractmethod-ae2"
+excecao = "java.lang.AbstractMethodError"
+frame = "com.mordenkainen.equivalentenergistics.items.ItemEMCCell.getCellInventory"
+
+[[caso]]
+nome = "forge-1.12.2-jei-rendering-ingredient"
+grupo = "forge-1.12.2-jei-rendering-ingredient"
+frame = "mezz.jei.render.ItemStackFastRenderer.uncheckedRenderItemAndEffectIntoGUI"
+sujeito = ["description=rendering ingredient", "where=net.minecraft.client.renderer.BufferBuilder.drawMultiTexture"]
+
+[[caso]]
+nome = "forge-1.12.2-memoria"
+grupo = "forge-1.12.2-memoria"
+# Falta de memória: o OptiFine no topo da pilha não entra.
+regra = "memory.out_of_memory"
+frame = ""
+sujeito = []
+
+[[caso]]
+nome = "forge-1.16.5-init-essential-portalmod"
+grupo = "forge-1.16.5-init-essential-portalmod"
+frame = "net.portalmod.core.init.KeyInit.registerKey"
+
+[[caso]]
+nome = "forge-1.20.1-overlay-classcast-sem-pilha"
+grupo = "forge-1.20.1-overlay-classcast-sem-pilha"
+# `ClassCastException: null` sem pilha: o frame vem do `-- Head --`.
+excecao = "java.lang.ClassCastException"
+frame = "net.minecraft.client.renderer.GameRenderer.m_109093_"
+
+[[caso]]
+nome = "forge-1.20.1-overlay-emf-init"
+grupo = "forge-1.20.1-overlay-emf-init"
+# `md23f78d$lambda$…` na pilha; o frame de mod é o do YUNG's.
+frame = "com.yungnickyoung.minecraft.yungscavebiomes.module.ItemModule.lambda$static"
+mods = ["jar:yungsapi", "jar:yungscavebiomes", "mod:yungsapi"]
+
+[[caso]]
+nome = "forge-1.20.1-servidor-concurrent"
+grupo = "forge-1.20.1-servidor-concurrent"
+# Guava no topo: o frame da queda é o do jogo.
+frame = "net.minecraft.world.level.entity.PersistentEntitySectionManager.m_157543_"
+
+[[caso]]
+nome = "forge-1.20.1-servidor-config"
+grupo = "forge-1.20.1-servidor-config"
+regra = "config.failed_loading"
+frame = ""
+
+[[caso]]
+nome = "forge-1.20.1-servidor-fastutil"
+grupo = "forge-1.20.1-servidor-fastutil"
+# `fastutil` com jar anotado no topo não é mod; o embrulho `managedBlock` é o frame de mod e a
+# queda no jogo entra no sujeito.
+frame = "net.minecraft.server.MinecraftServer.managedBlock"
+mods = []
+sujeito = ["description=exception in server tick loop", "where=net.minecraft.world.level.lighting.LeveledPriorityQueue.m_278178_"]
+
+[[caso]]
+nome = "forge-1.20.1-servidor-powergrid"
+grupo = "forge-1.20.1-servidor-powergrid"
+frame = "org.patryk3211.powergrid.electricity.WorldNetworks.runIslandDiscoveryFor"
+
+[[caso]]
+nome = "forge-1.20.1-ticking-block-entity-epicfight"
+grupo = "forge-1.20.1-ticking-block-entity-epicfight"
+regra = "crash_report.ticking_block_entity"
+sujeito = ["block_entity=epicfight:fracture_block", "description=ticking block entity", "block_class=yesman.epicfight.world.level.block.entity.FractureBlockEntity"]
+
+[[caso]]
+nome = "forge-1.7.10-ticking-block-entity-thaumic"
+grupo = "forge-1.7.10-ticking-block-entity-thaumic"
+regra = "crash_report.ticking_block_entity"
+frame = "flaxbeard.thaumicexploration.tile.TileEntityReplicator.getValidAspectSource"
+mods = ["mod:thaumicexploration"]
+
+[[caso]]
+nome = "neoforge-1.21.1-config-allthecompatibility"
+grupo = "neoforge-1.21.1-config-allthecompatibility"
+# A mesma exceção e a mesma queda (`ModConfigSpec$ConfigValue.getRaw`) que o caso do
+# MineColonies, em mods diferentes: grupos diferentes.
+frame = "xxrexraptorxx.allthecompatibility.utils.Events.onClientTick"
+mods = ["jar:allthecompatibility", "mod:allthecompatibility"]
+
+[[caso]]
+nome = "neoforge-1.21.1-config-minecolonies"
+grupo = "neoforge-1.21.1-config-minecolonies"
+frame = "com.minecolonies.core.event.ClientEventHandler.onPlaySoundEvent"
+mods = ["jar:minecolonies", "mod:minecolonies"]
+
+[[caso]]
+nome = "neoforge-1.21.1-create-colisao"
+grupo = "neoforge-1.21.1-create-colisao"
+frame = "com.simibubi.create.foundation.collision.ContinuousOBBCollider.collideMany"
+
+[[caso]]
+nome = "neoforge-1.21.1-levelrenderer-indice"
+grupo = "neoforge-1.21.1-levelrenderer-indice"
+# Só frames do Java e do jogo: o frame da queda.
+frame = "net.minecraft.client.renderer.LevelRenderer.renderLevel"
+mods = []
+
+[[caso]]
+nome = "neoforge-1.21.1-moonlight-rendertarget"
+grupo = "neoforge-1.21.1-moonlight-rendertarget"
+# Handler do NeoForge com o mod no nome.
+frame = "com.mojang.blaze3d.pipeline.RenderTarget.qdaa$sssaDraw"
+
+[[caso]]
+nome = "neoforge-1.21.1-simulated-mola"
+grupo = "neoforge-1.21.1-simulated-mola"
+frame = "dev.simulated_team.simulated.content.blocks.spring.SpringBlock.onWrenched"
+
+[[caso]]
+nome = "neoforge-1.21.1-simulated-tecla"
+grupo = "neoforge-1.21.1-simulated-tecla"
+frame = "dev.simulated_team.simulated.index.SimKeys.isPressed"
+
+[[caso]]
+nome = "neoforge-1.21.1-voxy-sem-sodium"
+grupo = "neoforge-1.21.1-voxy-sem-sodium"
+regra = "class.no_class_def_found"
+sujeito = ["class=net/caffeinemc/mods/sodium/client/gui/options/storage/OptionStorage"]
+
+[[caso]]
+nome = "neoforge-1.21.1-zume-indice"
+grupo = "neoforge-1.21.1-zume-indice"
+frame = "zume.Q.d"
