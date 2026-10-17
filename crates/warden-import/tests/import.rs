@@ -1689,3 +1689,311 @@ async fn indices_invalidos_e_pasta_packwiz_sao_recusados() {
     assert_eq!(error.params()["kind"], "packwiz");
     assert_eq!(warden_import::detect(&pack).unwrap(), ImportFormat::Packwiz);
 }
+
+// ---------- Zips maliciosos (zip bomb) ----------
+
+/// Zip com entradas deflate.
+fn zip_deflated(path: &Path, entries: &[(String, Vec<u8>)]) {
+    let mut writer = zip::ZipWriter::new(File::create(path).unwrap());
+    let options = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+    for (name, bytes) in entries {
+        writer.start_file(name.as_str(), options).unwrap();
+        writer.write_all(bytes).unwrap();
+    }
+    writer.finish().unwrap();
+}
+
+/// Troca o tamanho descompactado declarado (diretório central e cabeçalho local) das entradas
+/// que começam com `prefix`: a *zip bomb* que mente o tamanho.
+fn lie_sizes(path: &Path, prefix: &str, declared: u32) {
+    let mut bytes = fs::read(path).unwrap();
+    let u16_at = |b: &[u8], at: usize| usize::from(u16::from_le_bytes([b[at], b[at + 1]]));
+    let u32_at = |b: &[u8], at: usize| {
+        usize::try_from(u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]])).unwrap()
+    };
+    let end = bytes.windows(4).rposition(|w| w == b"PK\x05\x06").unwrap();
+    let count = u16_at(&bytes, end + 10);
+    let mut at = u32_at(&bytes, end + 16);
+    let mut changed = 0;
+    for _ in 0..count {
+        assert_eq!(&bytes[at..at + 4], b"PK\x01\x02");
+        let name_len = u16_at(&bytes, at + 28);
+        let extra_len = u16_at(&bytes, at + 30);
+        let comment_len = u16_at(&bytes, at + 32);
+        let local = u32_at(&bytes, at + 42);
+        let name = String::from_utf8(bytes[at + 46..at + 46 + name_len].to_vec()).unwrap();
+        if name.starts_with(prefix) {
+            bytes[at + 24..at + 28].copy_from_slice(&declared.to_le_bytes());
+            bytes[local + 22..local + 26].copy_from_slice(&declared.to_le_bytes());
+            changed += 1;
+        }
+        at += 46 + name_len + extra_len + comment_len;
+    }
+    assert!(changed > 0);
+    fs::write(path, bytes).unwrap();
+}
+
+fn small_index() -> Vec<u8> {
+    serde_json::to_vec(&json!({
+        "formatVersion": 1, "game": "minecraft", "versionId": "1.0.0", "name": "Bomba",
+        "dependencies": {"minecraft": "1.21.1", "fabric-loader": "0.16.5"},
+        "files": []
+    }))
+    .unwrap()
+}
+
+/// Nada ficou para trás: sem pack, sem pasta temporária, sem staging, sem registro.
+fn nothing_left(temp: &Path, registry: Option<&Registry>) {
+    let packs = temp.join("packs");
+    let left: Vec<_> = fs::read_dir(&packs)
+        .map(|dir| dir.map(|e| e.unwrap().file_name()).collect())
+        .unwrap_or_default();
+    assert!(left.is_empty(), "{left:?}");
+    assert!(!temp.join("staging").exists());
+    if let Some(registry) = registry {
+        assert!(registry.records().is_empty());
+    }
+}
+
+#[tokio::test]
+async fn zip_bomb_com_tamanho_declarado_falso_e_recusada_sem_deixar_pasta() {
+    let server = modrinth_mock(Vec::new(), BTreeMap::new()).await;
+    let modrinth = modrinth_client(&server);
+    let temp = tempfile::tempdir().unwrap();
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let staging = temp.path().join("staging");
+    // Muitas entradas pequenas no zip (61 KB no total) que dizem ter 1 byte e rendem 256 KiB
+    // cada: mais de 75 MiB no disco sem a conferência.
+    let origin = temp.path().join("bomba.mrpack");
+    let mut entries = vec![("modrinth.index.json".to_owned(), small_index())];
+    entries.extend((0..300).map(|n| {
+        (
+            format!("overrides/config/b{n:03}.txt"),
+            vec![b'7'; 256 * 1024],
+        )
+    }));
+    zip_deflated(&origin, &entries);
+    lie_sizes(&origin, "overrides/", 1);
+    assert!(fs::metadata(&origin).unwrap().len() < 1024 * 1024);
+
+    let tools = CurseforgeTools {
+        packwiz: &fake,
+        key: None,
+        staging_parent: &staging,
+    };
+    let plan = analyze(
+        &origin,
+        &services(&modrinth, tools),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    let registry = Registry::open(temp.path().join("dados/packs.json")).unwrap();
+    let started = std::time::Instant::now();
+    let error = apply(
+        &plan,
+        &request(temp.path(), "Bomba"),
+        &registry,
+        &fake,
+        &NoProgress,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(error.code(), ImportErrorCode::TooLarge, "{error}");
+    assert_eq!(error.params()["name"], "bomba.mrpack");
+    assert!(started.elapsed() < std::time::Duration::from_secs(5));
+    nothing_left(temp.path(), Some(&registry));
+}
+
+#[tokio::test]
+async fn zip_bomb_pela_razao_de_compressao_e_recusada_na_leitura() {
+    let server = modrinth_mock(Vec::new(), BTreeMap::new()).await;
+    let modrinth = modrinth_client(&server);
+    let temp = tempfile::tempdir().unwrap();
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let staging = temp.path().join("staging");
+    // Tamanho honesto, mas 64 MiB de zeros cabem em ~64 KiB.
+    let origin = temp.path().join("zeros.mrpack");
+    zip_deflated(
+        &origin,
+        &[
+            ("modrinth.index.json".to_owned(), small_index()),
+            (
+                "overrides/config/zeros.bin".to_owned(),
+                vec![0; 64 * 1024 * 1024],
+            ),
+        ],
+    );
+    let tools = CurseforgeTools {
+        packwiz: &fake,
+        key: None,
+        staging_parent: &staging,
+    };
+    let started = std::time::Instant::now();
+    let error = analyze(
+        &origin,
+        &services(&modrinth, tools),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(error.code(), ImportErrorCode::TooLarge, "{error}");
+    assert!(started.elapsed() < std::time::Duration::from_secs(2));
+    assert!(server.received_requests().await.unwrap().is_empty());
+    nothing_left(temp.path(), None);
+}
+
+#[tokio::test]
+async fn zip_da_curseforge_com_tamanho_falso_e_recusado_antes_do_packwiz() {
+    let temp = tempfile::tempdir().unwrap();
+    let origin = temp.path().join("bomba-cf.zip");
+    zip_deflated(
+        &origin,
+        &[
+            (
+                "manifest.json".to_owned(),
+                fs::read(corpus("curseforge-zip/manifest.json")).unwrap(),
+            ),
+            (
+                "overrides/config/bomba.txt".to_owned(),
+                vec![b'7'; 32 * 1024 * 1024],
+            ),
+        ],
+    );
+    lie_sizes(&origin, "overrides/", 1);
+    let modrinth_server = modrinth_mock(Vec::new(), BTreeMap::new()).await;
+    let modrinth = modrinth_client(&modrinth_server);
+    let cf_server = curseforge_mock().await;
+    let curseforge = CurseforgeClient::with_base_url(
+        http(),
+        &format!("{}/v1", cf_server.uri()),
+        Some(SecretString::from(KEY.to_owned())),
+    )
+    .unwrap();
+    // Um packwiz que não existe: se o Warden chegasse a chamá-lo, o erro seria outro.
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let key = SecretString::from(KEY.to_owned());
+    let staging = temp.path().join("staging");
+    let services = ImportServices {
+        stores: Stores {
+            modrinth: Some(&modrinth),
+            curseforge: Some(&curseforge),
+        },
+        curseforge: CurseforgeTools {
+            packwiz: &fake,
+            key: Some(&key),
+            staging_parent: &staging,
+        },
+    };
+    let started = std::time::Instant::now();
+    let error = analyze(&origin, &services, &CancellationToken::new())
+        .await
+        .unwrap_err();
+    assert_eq!(error.code(), ImportErrorCode::TooLarge, "{error}");
+    assert!(started.elapsed() < std::time::Duration::from_secs(5));
+    assert!(cf_server.received_requests().await.unwrap().is_empty());
+    assert!(
+        modrinth_server
+            .received_requests()
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    nothing_left(temp.path(), None);
+}
+
+#[tokio::test]
+async fn zip_dentro_de_zip_nao_e_aberto() {
+    let server = modrinth_mock(Vec::new(), BTreeMap::new()).await;
+    let modrinth = modrinth_client(&server);
+    let temp = tempfile::tempdir().unwrap();
+    let fake = Packwiz::new(
+        PathBuf::from("x"),
+        temp.path().join("c"),
+        temp.path().join("c.toml"),
+    );
+    let staging = temp.path().join("staging");
+    let tools = || CurseforgeTools {
+        packwiz: &fake,
+        key: None,
+        staging_parent: &staging,
+    };
+    // Uma bomba de verdade (64 MiB de zeros), que só existe dentro de outro zip.
+    let inner = temp.path().join("bomba-interna.zip");
+    zip_deflated(
+        &inner,
+        &[("zeros.bin".to_owned(), vec![0; 64 * 1024 * 1024])],
+    );
+    let inner_bytes = fs::read(&inner).unwrap();
+    fs::remove_file(&inner).unwrap();
+
+    // 1. Um zip que só tem um modpack dentro não é reconhecido (o Warden não abre o de
+    //    dentro): recusado sem criar nada.
+    let mut nested = vec![("modrinth.index.json".to_owned(), small_index())];
+    nested.push(("overrides/config/zeros.zip".to_owned(), inner_bytes.clone()));
+    let pack = temp.path().join("dentro.mrpack");
+    zip_deflated(&pack, &nested);
+    let outer = temp.path().join("embrulho.zip");
+    zip_deflated(
+        &outer,
+        &[("dentro.mrpack".to_owned(), fs::read(&pack).unwrap())],
+    );
+    let error = analyze(
+        &outer,
+        &services(&modrinth, tools()),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(error.code(), ImportErrorCode::UnknownFormat);
+    nothing_left(temp.path(), None);
+
+    // 2. Um zip dentro do modpack (como um resource pack) é só um arquivo: entra como está,
+    //    sem ser descompactado.
+    let started = std::time::Instant::now();
+    let plan = analyze(
+        &pack,
+        &services(&modrinth, tools()),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_secs(5));
+    assert!(
+        plan.summary
+            .excluded
+            .iter()
+            .all(|item| !item.path.contains("zeros"))
+    );
+    let Some(binary) = sidecar() else { return };
+    let cli = packwiz(&binary, temp.path());
+    let registry = Registry::open(temp.path().join("dados/packs.json")).unwrap();
+    let created = apply(
+        &plan,
+        &request(temp.path(), "Dentro"),
+        &registry,
+        &cli,
+        &NoProgress,
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert_eq!(
+        fs::read(created.path.join("config/zeros.zip")).unwrap(),
+        inner_bytes
+    );
+}

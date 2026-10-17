@@ -4,10 +4,13 @@
 //!
 //! Segurança (ARCHITECTURE §20): todo nome de entrada do zip é conferido antes de qualquer
 //! outra coisa (*zip slip*: `..`, caminho absoluto, letra de drive, barra invertida); um nome
-//! perigoso recusa o arquivo inteiro. A leitura tem limites de quantidade de entradas e de
-//! tamanho descompactado (proteção contra *zip bomb*), conferidos sobre os bytes lidos e não
-//! só sobre o tamanho declarado. Na pasta, links simbólicos e junções nunca são seguidos.
-//! Nada aqui escreve no disco.
+//! perigoso recusa o arquivo inteiro. A leitura tem limites de quantidade de entradas, de
+//! tamanho descompactado e de razão de compressão (proteção contra *zip bomb*). O tamanho que o
+//! zip declara não é confiável: cada leitura para no tamanho declarado (uma entrada que rende
+//! mais do que declara é recusada) e o limite total soma os bytes realmente lidos. O zip que
+//! outro programa extrai (o `packwiz curseforge import`) é conferido antes por
+//! [`Source::verify_sizes`]. Zips dentro do zip não são abertos: viram arquivos comuns. Na
+//! pasta, links simbólicos e junções nunca são seguidos. Nada aqui escreve no disco.
 
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -22,6 +25,42 @@ pub(crate) const MAX_ENTRIES: usize = 200_000;
 pub(crate) const MAX_FILE_BYTES: u64 = 512 * 1024 * 1024;
 /// Soma dos tamanhos descompactados aceita (8 GiB).
 pub(crate) const MAX_TOTAL_BYTES: u64 = 8 * 1024 * 1024 * 1024;
+/// Maior razão entre o tamanho descompactado e o compactado de uma entrada. O deflate não passa
+/// de ~1032:1 (bytes repetidos); arquivos de verdade de um modpack ficam muito abaixo de 100:1.
+pub(crate) const MAX_RATIO: u64 = 500;
+/// Entradas até este tamanho não passam pela conferência da razão (um arquivo pequeno e
+/// repetitivo não ameaça o disco).
+pub(crate) const RATIO_MIN_BYTES: u64 = 1024 * 1024;
+
+/// Os limites da leitura ([`Limits::default`] são os de produção; os testes usam menores).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Limits {
+    /// Mais entradas do que isto: recusado.
+    pub entries: usize,
+    /// Maior arquivo lido de uma vez.
+    pub file_bytes: u64,
+    /// Soma dos tamanhos (declarados e lidos) aceita.
+    pub total_bytes: u64,
+}
+
+impl Default for Limits {
+    fn default() -> Self {
+        Self {
+            entries: MAX_ENTRIES,
+            file_bytes: MAX_FILE_BYTES,
+            total_bytes: MAX_TOTAL_BYTES,
+        }
+    }
+}
+
+/// Os limites e os bytes já lidos desta origem.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct Budget {
+    /// Limites.
+    limits: Limits,
+    /// Bytes realmente lidos até agora (somados a cada leitura).
+    read: u64,
+}
 
 /// Tipo de uma entrada.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -104,6 +143,8 @@ pub(crate) enum Source {
         prefix: String,
         /// Nome completo da entrada → índice no zip.
         index: HashMap<String, usize>,
+        /// Limites e bytes lidos.
+        budget: Budget,
     },
     /// Uma pasta.
     Dir {
@@ -111,6 +152,8 @@ pub(crate) enum Source {
         root: PathBuf,
         /// Nome da pasta (para mensagens).
         file_name: String,
+        /// Limites e bytes lidos.
+        budget: Budget,
     },
 }
 
@@ -137,11 +180,16 @@ impl Source {
     ///
     /// Erros: [`Code::Unreadable`], [`Code::UnsafePath`], [`Code::TooLarge`].
     pub(crate) fn open_zip(path: &Path) -> Result<Self> {
+        Self::open_zip_with(path, Limits::default())
+    }
+
+    /// [`Self::open_zip`] com outros limites.
+    pub(crate) fn open_zip_with(path: &Path, limits: Limits) -> Result<Self> {
         let file_name = display_name(path);
         let file = File::open(path).map_err(|error| unreadable(&file_name, error.kind()))?;
         let mut archive = zip::ZipArchive::new(file)
             .map_err(|error| unreadable(&file_name, format!("não é um zip: {error}")))?;
-        if archive.len() > MAX_ENTRIES {
+        if archive.len() > limits.entries {
             return Err(too_large(&file_name, "entradas demais"));
         }
         let mut index = HashMap::with_capacity(archive.len());
@@ -158,10 +206,18 @@ impl Source {
                 return Err(unsafe_path(&name, reason));
             }
             total = total.saturating_add(entry.size());
-            if total > MAX_TOTAL_BYTES {
+            if total > limits.total_bytes {
                 return Err(too_large(
                     &file_name,
                     "conteúdo descompactado grande demais",
+                ));
+            }
+            if entry.size() > RATIO_MIN_BYTES
+                && entry.size() / entry.compressed_size().max(1) > MAX_RATIO
+            {
+                return Err(too_large(
+                    &file_name,
+                    &format!("{name} tem compressão grande demais"),
                 ));
             }
             index.insert(name, position);
@@ -171,7 +227,52 @@ impl Source {
             file_name,
             prefix: String::new(),
             index,
+            budget: Budget { limits, read: 0 },
         })
+    }
+
+    /// Descompacta o zip inteiro sem gravar nada, conferindo que cada entrada rende no máximo o
+    /// que declara e que a soma não passa do limite. Usado antes de entregar o zip a outro
+    /// programa que o extrai sozinho (o `packwiz curseforge import`). Na pasta, não faz nada.
+    ///
+    /// Erros: [`Code::Unreadable`], [`Code::TooLarge`].
+    pub(crate) fn verify_sizes(&mut self) -> Result<()> {
+        let Self::Zip {
+            archive,
+            file_name,
+            budget,
+            ..
+        } = self
+        else {
+            return Ok(());
+        };
+        let mut total: u64 = 0;
+        for position in 0..archive.len() {
+            let entry = archive
+                .by_index(position)
+                .map_err(|error| unreadable(file_name, error))?;
+            if entry.is_dir() {
+                continue;
+            }
+            let name = entry
+                .name()
+                .map_err(|error| unreadable(file_name, error))?
+                .into_owned();
+            let declared = entry.size();
+            let read = std::io::copy(&mut entry.take(declared + 1), &mut std::io::sink())
+                .map_err(|error| read_error(&error, &name, file_name))?;
+            if read > declared {
+                return Err(too_large(
+                    file_name,
+                    &format!("{name} rende mais do que declara"),
+                ));
+            }
+            total = total.saturating_add(read);
+            if total > budget.limits.total_bytes {
+                return Err(too_large(file_name, "conteúdo descompactado grande demais"));
+            }
+        }
+        Ok(())
     }
 
     /// Abre a pasta (só confere que existe).
@@ -185,6 +286,7 @@ impl Source {
         Ok(Self::Dir {
             root: path.to_path_buf(),
             file_name,
+            budget: Budget::default(),
         })
     }
 
@@ -210,15 +312,22 @@ impl Source {
                 file_name,
                 prefix,
                 index,
+                budget,
             } => Self::Zip {
                 archive,
                 file_name,
                 prefix: format!("{prefix}{sub}/"),
                 index,
+                budget,
             },
-            Self::Dir { root, file_name } => Self::Dir {
+            Self::Dir {
+                root,
+                file_name,
+                budget,
+            } => Self::Dir {
                 root: root.join(sub),
                 file_name,
+                budget,
             },
         }
     }
@@ -258,9 +367,13 @@ impl Source {
                 prefix,
                 ..
             } => zip_entries(archive, file_name, prefix)?,
-            Self::Dir { root, file_name } => {
+            Self::Dir {
+                root,
+                file_name,
+                budget,
+            } => {
                 let mut entries = Vec::new();
-                walk(root, "", &mut entries, file_name)?;
+                walk(root, "", &mut entries, file_name, budget.limits.entries)?;
                 entries
             }
         };
@@ -268,9 +381,11 @@ impl Source {
         Ok(result)
     }
 
-    /// Lê o arquivo `name` (relativo à raiz atual) inteiro, até [`MAX_FILE_BYTES`].
+    /// Lê o arquivo `name` (relativo à raiz atual) inteiro, até o tamanho declarado e o
+    /// [`Limits::file_bytes`]; os bytes lidos somam no limite total da origem.
     ///
-    /// Erros: [`Code::Unreadable`] (inexistente, link ou ilegível), [`Code::TooLarge`].
+    /// Erros: [`Code::Unreadable`] (inexistente, link ou ilegível), [`Code::TooLarge`] (maior
+    /// que o limite, rende mais do que declara ou a soma lida passa do limite total).
     pub(crate) fn read(&mut self, name: &str) -> Result<Vec<u8>> {
         if let Some(reason) = unsafe_reason(name) {
             return Err(unsafe_path(name, reason));
@@ -281,6 +396,7 @@ impl Source {
                 file_name,
                 prefix,
                 index,
+                budget,
             } => {
                 let full = format!("{prefix}{name}");
                 let position = *index
@@ -292,9 +408,14 @@ impl Source {
                 if is_zip_symlink(entry.unix_mode()) {
                     return Err(unreadable(file_name, format!("{name} é um link")));
                 }
-                read_limited(entry, name, file_name)
+                let declared = entry.size();
+                read_limited(entry, declared, budget, name, file_name)
             }
-            Self::Dir { root, file_name } => {
+            Self::Dir {
+                root,
+                file_name,
+                budget,
+            } => {
                 let path = warden_core::resolve_inside(root, name)
                     .map_err(|error| unreadable(file_name, format!("{name}: {error}")))?;
                 let metadata = fs::symlink_metadata(&path)
@@ -304,7 +425,7 @@ impl Source {
                 }
                 let file = File::open(&path)
                     .map_err(|error| unreadable(file_name, format!("{name}: {}", error.kind())))?;
-                read_limited(file, name, file_name)
+                read_limited(file, metadata.len(), budget, name, file_name)
             }
         }
     }
@@ -331,14 +452,48 @@ fn is_zip_symlink(mode: Option<u32>) -> bool {
     mode.is_some_and(|mode| mode & 0o170_000 == 0o120_000)
 }
 
-fn read_limited(reader: impl Read, name: &str, file_name: &str) -> Result<Vec<u8>> {
+/// Erro de leitura de uma entrada. O `zip` 9 também confere o tamanho declarado e falha ao
+/// passar dele, com `InvalidData` e esta frase: é a mesma recusa de [`read_limited`] (*zip bomb*
+/// com tamanho falso), não um zip ilegível.
+fn read_error(error: &std::io::Error, name: &str, file_name: &str) -> Error {
+    if error.kind() == std::io::ErrorKind::InvalidData
+        && error
+            .to_string()
+            .contains("larger than its declared uncompressed size")
+    {
+        return too_large(file_name, &format!("{name} rende mais do que declara"));
+    }
+    unreadable(file_name, format!("{name}: {error}"))
+}
+
+/// Lê no máximo `declared + 1` bytes (e nunca mais que o limite por arquivo + 1): passar do
+/// declarado é sinal de *zip bomb* com tamanho falso e recusa a origem.
+fn read_limited(
+    reader: impl Read,
+    declared: u64,
+    budget: &mut Budget,
+    name: &str,
+    file_name: &str,
+) -> Result<Vec<u8>> {
+    let cap = declared.min(budget.limits.file_bytes);
     let mut bytes = Vec::new();
     reader
-        .take(MAX_FILE_BYTES + 1)
+        .take(cap + 1)
         .read_to_end(&mut bytes)
-        .map_err(|error| unreadable(file_name, format!("{name}: {error}")))?;
-    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > MAX_FILE_BYTES {
+        .map_err(|error| read_error(&error, name, file_name))?;
+    let read = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+    if read > budget.limits.file_bytes {
         return Err(too_large(file_name, &format!("{name} é grande demais")));
+    }
+    if read > declared {
+        return Err(too_large(
+            file_name,
+            &format!("{name} rende mais do que declara"),
+        ));
+    }
+    budget.read = budget.read.saturating_add(read);
+    if budget.read > budget.limits.total_bytes {
+        return Err(too_large(file_name, "conteúdo descompactado grande demais"));
     }
     Ok(bytes)
 }
@@ -354,9 +509,7 @@ fn zip_entries(
         let entry = archive
             .by_index_raw(position)
             .map_err(|error| unreadable(file_name, error))?;
-        let full = entry
-            .name()
-            .map_err(|error| unreadable(file_name, error))?;
+        let full = entry.name().map_err(|error| unreadable(file_name, error))?;
         let Some(name) = full.strip_prefix(prefix) else {
             continue;
         };
@@ -393,7 +546,13 @@ fn zip_entries(
     Ok(entries)
 }
 
-fn walk(root: &Path, prefix: &str, entries: &mut Vec<Entry>, file_name: &str) -> Result<()> {
+fn walk(
+    root: &Path,
+    prefix: &str,
+    entries: &mut Vec<Entry>,
+    file_name: &str,
+    max_entries: usize,
+) -> Result<()> {
     let directory = if prefix.is_empty() {
         root.to_path_buf()
     } else {
@@ -410,7 +569,7 @@ fn walk(root: &Path, prefix: &str, entries: &mut Vec<Entry>, file_name: &str) ->
         } else {
             format!("{prefix}/{name}")
         };
-        if entries.len() >= MAX_ENTRIES {
+        if entries.len() >= max_entries {
             return Err(too_large(file_name, "arquivos demais"));
         }
         let metadata = fs::symlink_metadata(item.path())
@@ -428,7 +587,7 @@ fn walk(root: &Path, prefix: &str, entries: &mut Vec<Entry>, file_name: &str) ->
                 size: 0,
                 kind: EntryKind::Dir,
             });
-            walk(root, &path, entries, file_name)?;
+            walk(root, &path, entries, file_name, max_entries)?;
         } else {
             entries.push(Entry {
                 name: path,
@@ -470,6 +629,154 @@ mod tests {
             writer.write_all(b"x").unwrap();
         }
         writer.finish().unwrap();
+    }
+
+    /// Zip com entradas deflate (nome, bytes reais).
+    fn zip_bytes(path: &Path, entries: &[(&str, Vec<u8>)]) {
+        let mut writer = zip::ZipWriter::new(File::create(path).unwrap());
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        for (name, bytes) in entries {
+            writer.start_file(*name, options).unwrap();
+            writer.write_all(bytes).unwrap();
+        }
+        writer.finish().unwrap();
+    }
+
+    /// Troca o tamanho descompactado declarado (diretório central e cabeçalho local) das
+    /// entradas que começam com `prefix`: o truque da *zip bomb* com tamanho falso.
+    fn lie_sizes(path: &Path, prefix: &str, declared: u32) {
+        let mut bytes = fs::read(path).unwrap();
+        let u16_at = |b: &[u8], at: usize| usize::from(u16::from_le_bytes([b[at], b[at + 1]]));
+        let u32_at = |b: &[u8], at: usize| {
+            usize::try_from(u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]])).unwrap()
+        };
+        let end = bytes.windows(4).rposition(|w| w == b"PK\x05\x06").unwrap();
+        let count = u16_at(&bytes, end + 10);
+        let mut at = u32_at(&bytes, end + 16);
+        for _ in 0..count {
+            assert_eq!(&bytes[at..at + 4], b"PK\x01\x02");
+            let name_len = u16_at(&bytes, at + 28);
+            let extra_len = u16_at(&bytes, at + 30);
+            let comment_len = u16_at(&bytes, at + 32);
+            let local = u32_at(&bytes, at + 42);
+            let name = String::from_utf8(bytes[at + 46..at + 46 + name_len].to_vec()).unwrap();
+            if name.starts_with(prefix) {
+                bytes[at + 24..at + 28].copy_from_slice(&declared.to_le_bytes());
+                bytes[local + 22..local + 26].copy_from_slice(&declared.to_le_bytes());
+            }
+            at += 46 + name_len + extra_len + comment_len;
+        }
+        fs::write(path, bytes).unwrap();
+    }
+
+    #[test]
+    fn entrada_que_rende_mais_do_que_declara_e_recusada() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("bomba.mrpack");
+        let real = vec![7_u8; 4 * 1024 * 1024];
+        zip_bytes(&path, &[("ok.txt", b"ok".to_vec()), ("bomba.bin", real)]);
+        lie_sizes(&path, "bomba", 1);
+        let mut source = Source::open_zip(&path).unwrap();
+        assert_eq!(source.read("ok.txt").unwrap(), b"ok");
+        let error = source.read("bomba.bin").unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+        assert!(error.to_string().contains("rende mais do que declara"));
+        // A conferência por streaming (antes do packwiz) também recusa.
+        let error = Source::open_zip(&path).unwrap().verify_sizes().unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+    }
+
+    #[test]
+    fn verify_sizes_aceita_zip_honesto_e_ignora_pasta() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("honesto.zip");
+        zip_bytes(
+            &path,
+            &[("a/b.txt", b"abc".to_vec()), ("c.txt", Vec::new())],
+        );
+        Source::open_zip(&path).unwrap().verify_sizes().unwrap();
+        Source::open_dir(temp.path())
+            .unwrap()
+            .verify_sizes()
+            .unwrap();
+    }
+
+    #[test]
+    fn razao_de_compressao_absurda_e_recusada_na_abertura() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("zeros.zip");
+        // 8 MiB de zeros viram ~8 KiB: razão perto de 1000:1.
+        zip_bytes(
+            &path,
+            &[
+                ("pequeno.txt", vec![0_u8; 1024]),
+                ("zeros.bin", vec![0_u8; 8 * 1024 * 1024]),
+            ],
+        );
+        let error = Source::open_zip(&path).unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+        assert!(error.to_string().contains("zeros.bin"));
+        // Arquivo pequeno e repetitivo não é recusado.
+        let path = temp.path().join("pequeno.zip");
+        zip_bytes(&path, &[("pequeno.txt", vec![0_u8; 1024 * 1024])]);
+        assert!(Source::open_zip(&path).is_ok());
+    }
+
+    #[test]
+    fn muitas_entradas_pequenas_que_somam_demais() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("muitas.zip");
+        let entries: Vec<(String, Vec<u8>)> = (0..50)
+            .map(|n| (format!("config/{n}.txt"), vec![b'a'; 100]))
+            .collect();
+        let borrowed: Vec<(&str, Vec<u8>)> = entries
+            .iter()
+            .map(|(name, bytes)| (name.as_str(), bytes.clone()))
+            .collect();
+        zip_bytes(&path, &borrowed);
+        // Entradas demais.
+        let limits = Limits {
+            entries: 49,
+            ..Limits::default()
+        };
+        let error = Source::open_zip_with(&path, limits).unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+        // A soma declarada passa do total.
+        let limits = Limits {
+            total_bytes: 4_999,
+            ..Limits::default()
+        };
+        let error = Source::open_zip_with(&path, limits).unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+        // Os bytes realmente lidos somam no total, mesmo relendo a mesma entrada.
+        let limits = Limits {
+            total_bytes: 5_000,
+            ..Limits::default()
+        };
+        let mut source = Source::open_zip_with(&path, limits).unwrap();
+        for _ in 0..50 {
+            source.read("config/0.txt").unwrap();
+        }
+        let error = source.read("config/0.txt").unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+    }
+
+    #[test]
+    fn arquivo_maior_que_o_limite_por_arquivo() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("grande.zip");
+        zip_bytes(&path, &[("grande.bin", vec![9_u8; 2048])]);
+        let limits = Limits {
+            file_bytes: 1024,
+            ..Limits::default()
+        };
+        let error = Source::open_zip_with(&path, limits)
+            .unwrap()
+            .read("grande.bin")
+            .unwrap_err();
+        assert_eq!(error.code(), Code::TooLarge);
+        assert!(error.to_string().contains("grande demais"));
     }
 
     #[test]

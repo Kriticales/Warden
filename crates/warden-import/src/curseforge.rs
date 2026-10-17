@@ -135,7 +135,8 @@ async fn fix_sides(refs: &mut [RefDraft], stores: Stores<'_>, cancel: &Cancellat
 /// Lê o zip da CurseForge pelo packwiz numa cópia de staging.
 ///
 /// Erros: [`Code::CurseforgeKeyMissing`] (sem requisição), [`Code::Unreadable`],
-/// [`Code::UnsupportedLoader`], [`Code::MinecraftMissing`], [`Code::CurseforgeImportFailed`].
+/// [`Code::UnsupportedLoader`], [`Code::MinecraftMissing`], [`Code::CurseforgeImportFailed`],
+/// [`Code::TooLarge`] (conferido antes de o packwiz extrair o zip).
 #[allow(clippy::too_many_lines)]
 pub(crate) async fn analyze_zip(
     source: &mut Source,
@@ -165,6 +166,9 @@ pub(crate) async fn analyze_zip(
     };
     pack.version = zip.version.trim().to_owned();
     pack.author = zip.author.trim().to_owned();
+    // O packwiz extrai o zip sozinho, sem os limites do Warden: os tamanhos reais são
+    // conferidos antes, por streaming, sem gravar nada (proteção contra *zip bomb*).
+    source.verify_sizes()?;
 
     let staging = tools
         .staging_parent
