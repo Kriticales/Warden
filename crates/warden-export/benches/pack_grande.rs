@@ -3,7 +3,9 @@
 //!
 //! A SPEC §8 não dá meta própria para a exportação; a referência é a de "Atualizar índice"
 //! (< 5 s), que é o passo mais pesado dela, e a prévia segue a de abrir uma seção (< 1 s).
-//! Sem o sidecar do packwiz compilado (`cargo xtask setup`), só a prévia é medida.
+//! Sem o sidecar do packwiz compilado (`cargo xtask setup`), só a prévia é medida. Com
+//! `WARDEN_A04_PACK_REAL`, a prévia e o `.zip` também são medidos com um pack real baixado só
+//! para a medida (`comum/pack_real.rs`: os metafiles e as configs dele).
 //!
 //! `cargo bench -p warden-export` (o resumo com mediana e pior caso sai no `stderr`).
 
@@ -19,6 +21,8 @@
 mod medida;
 #[path = "../../warden-packwiz/benches/comum/pack_grande.rs"]
 mod pack_grande;
+#[path = "../../warden-packwiz/benches/comum/pack_real.rs"]
+mod pack_real;
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -51,6 +55,24 @@ fn sidecar() -> Option<PathBuf> {
 fn exportacao(c: &mut Criterion) {
     let dir = tempfile::tempdir().unwrap();
     let pack = pack_grande::gerar(&dir.path().join("pack"), &pack_grande::Opcoes::default());
+    medir(c, &pack, "300 mods + 500 configs", dir.path(), true);
+    if let Some(real) = pack_real::PackReal::do_ambiente() {
+        let dir = tempfile::tempdir().unwrap();
+        let pack = real.gerar(&dir.path().join("pack"));
+        let rotulo = format!("{}, {} configs", real.rotulo(), pack.configs.len());
+        medir(c, &pack, &rotulo, dir.path(), false);
+    }
+}
+
+/// Mede a prévia e a exportação de `pack` (zip e, com `pasta`, também a pasta).
+fn medir(
+    c: &mut Criterion,
+    pack: &pack_grande::PackGerado,
+    rotulo_pack: &str,
+    dir: &Path,
+    pasta: bool,
+) {
+    let minimo = pack.mods.len() + pack.configs.len();
     fs::write(pack.raiz.join(".gitattributes"), "* -text\n").unwrap();
     PackRepo::init(
         &pack.raiz,
@@ -61,16 +83,16 @@ fn exportacao(c: &mut Criterion) {
     .unwrap();
 
     let previa = preview(&pack.raiz, &ExportSource::Current).unwrap();
-    assert!(previa.files.len() >= pack_grande::MODS + pack_grande::CONFIGS);
+    assert!(previa.files.len() >= minimo);
     medida::resumir(
-        "exportar: prévia do pack (300 mods + 500 configs)",
+        &format!("exportar: prévia do pack ({rotulo_pack})"),
         Duration::from_secs(1),
         || (),
         |()| preview(&pack.raiz, &ExportSource::Current).unwrap(),
     );
-    let mut grupo = c.benchmark_group("exportar");
+    let mut grupo = c.benchmark_group(format!("exportar ({rotulo_pack})"));
     grupo.sample_size(10);
-    grupo.bench_function("prévia (300 mods + 500 configs)", |b| {
+    grupo.bench_function("prévia", |b| {
         b.iter(|| preview(&pack.raiz, &ExportSource::Current).unwrap());
     });
 
@@ -84,12 +106,12 @@ fn exportacao(c: &mut Criterion) {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let packwiz = Packwiz::new(
         binary,
-        dir.path().join("packwiz-cache"),
-        dir.path().join("packwiz-config.toml"),
+        dir.join("packwiz-cache"),
+        dir.join("packwiz-config.toml"),
     );
-    let staging = dir.path().join("staging");
+    let staging = dir.join("staging");
     fs::create_dir_all(&staging).unwrap();
-    let saidas = dir.path().join("saidas");
+    let saidas = dir.join("saidas");
     let cancel = CancellationToken::new();
     let mut vez = 0u32;
     let mut destino = |extensao: &str| {
@@ -98,10 +120,11 @@ fn exportacao(c: &mut Criterion) {
         fs::create_dir_all(&saidas).unwrap();
         saidas.join(format!("pack-{vez}{extensao}"))
     };
-    for (formato, extensao, rotulo) in [
+    let formatos = [
         (ExportFormat::Zip, ".zip", "zip"),
         (ExportFormat::Folder, "", "pasta"),
-    ] {
+    ];
+    for (formato, extensao, rotulo) in formatos.into_iter().take(if pasta { 2 } else { 1 }) {
         let exportar = |destino: PathBuf| {
             runtime
                 .block_on(export(
@@ -116,14 +139,14 @@ fn exportacao(c: &mut Criterion) {
                 .unwrap()
         };
         let resultado = exportar(destino(extensao));
-        assert!(resultado.files.len() >= pack_grande::MODS + pack_grande::CONFIGS);
+        assert!(resultado.files.len() >= minimo);
         medida::resumir(
-            &format!("exportar: {rotulo} (300 mods + 500 configs, refresh em staging)"),
+            &format!("exportar: {rotulo} ({rotulo_pack}, refresh em staging)"),
             Duration::from_secs(5),
             || destino(extensao),
             exportar,
         );
-        grupo.bench_function(format!("{rotulo} (300 mods + 500 configs)"), |b| {
+        grupo.bench_function(rotulo, |b| {
             b.iter_batched(|| destino(extensao), exportar, BatchSize::PerIteration);
         });
     }

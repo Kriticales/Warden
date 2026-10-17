@@ -6,8 +6,12 @@
 //!   naquela pasta, como numa instância de teste já sincronizada.
 //! - **Jars sintéticos:** só o que os índices de pacotes da D-05 e as regras do pré-teste
 //!   leem: `fabric.mod.json` (com dependências entre os mods), a config de mixin, um arquivo de
-//!   idioma e classes mínimas (cabeçalho com a versão) em vários pacotes. Cada 25º jar traz 5
-//!   jars embutidos (`jars[]`); cada 100º é grande (150 pacotes), como os mods maiores.
+//!   idioma e classes mínimas (cabeçalho com a versão) em vários pacotes. Em dois tipos:
+//!   - **mínimos** (poucos KB): cada 25º jar traz 5 jars embutidos (`jars[]`); cada 100º é
+//!     grande (150 pacotes);
+//!   - **calibrados** pelos packs reais ([`Opcoes::tamanho_real`]): número de entradas,
+//!     classes, pacotes, embutidos e tamanho de cada jar seguem as [`FAIXAS`], medidas nos
+//!     jars dos mods de três packs reais grandes do Modrinth.
 //! - **Configs:** o corpus de configs reais da `warden-configs` (`tests/corpus/`), repetido em
 //!   lotes (`config/lote<n>/`), como no teste da C-05.
 //! - `pack.toml` (Fabric 1.20.1) e `index.toml` com os hashes certos: o pack é válido para o
@@ -45,8 +49,8 @@ pub struct Opcoes {
     pub configs: usize,
     /// Pasta onde gravar os jars (`None`: só os metafiles).
     pub jars: Option<PathBuf>,
-    /// Jars com o tamanho dos de verdade (~1 MB em média, 300 MB nos 300 mods): um arquivo
-    /// de dados sem compressão completa o jar. Sem isso, cada jar tem poucos KB.
+    /// Jars calibrados pelos packs reais ([`FAIXAS`]: ~730 entradas e ~2,6 MB em média,
+    /// ~780 MB nos 300 mods). Sem isso, cada jar tem poucos KB.
     pub tamanho_real: bool,
 }
 
@@ -188,28 +192,86 @@ fn metafile_toml(n: usize, id: &str, arquivo: &str, projeto: &str, jar: &[u8]) -
     )
 }
 
-/// Tamanho dos dados que completam o jar `n` com [`Opcoes::tamanho_real`]: a cada 20 mods,
-/// um de 8 MB (os maiores, como o Create), três de 2 MB e dezesseis de 400 KB.
-pub fn preenchimento(n: usize) -> usize {
-    match n % 20 {
-        19 => 8 << 20,
-        4 | 9 | 14 => 2 << 20,
-        _ => 400 << 10,
+/// Uma faixa de jars reais: as médias de um vigésimo dos jars, ordenados pelo tamanho.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Faixa {
+    /// Tamanho do arquivo, em KiB.
+    pub kib: usize,
+    /// Entradas do zip.
+    pub entradas: usize,
+    /// Arquivos `.class`.
+    pub classes: usize,
+    /// Pacotes Java com classes.
+    pub pacotes: usize,
+    /// Jars embutidos.
+    pub embutidos: usize,
+}
+
+/// Os jars dos mods de três packs reais grandes do Modrinth (Prominence II 4.1.4, Fabric 1.20.1,
+/// 405 mods; Better MC Forge v59, Forge 1.20.1, 309 mods; Better MC Fabric v40, Fabric 1.20.1,
+/// 313 mods), medidos em 17/10/2026: 895 jars únicos, ordenados pelo tamanho e divididos em 20
+/// faixas; cada faixa tem a média dos jars dela (a média, e não a mediana, para o total bater:
+/// a última faixa tem os mods de dezenas de MB). No todo: 2,6 MiB, 727 entradas, 24 pacotes e
+/// 1 embutido por jar em média. O método está no `docs/DESEMPENHO.md`.
+pub const FAIXAS: [Faixa; 20] = [
+    faixa(10, 18, 4, 3, 0),
+    faixa(26, 34, 13, 5, 0),
+    faixa(46, 48, 14, 7, 0),
+    faixa(68, 59, 22, 7, 0),
+    faixa(94, 86, 32, 10, 0),
+    faixa(126, 93, 37, 11, 0),
+    faixa(175, 124, 40, 11, 1),
+    faixa(214, 114, 45, 12, 1),
+    faixa(257, 143, 47, 12, 1),
+    faixa(332, 213, 78, 22, 1),
+    faixa(421, 182, 77, 17, 1),
+    faixa(522, 319, 141, 29, 0),
+    faixa(624, 398, 120, 25, 1),
+    faixa(769, 407, 122, 19, 1),
+    faixa(1001, 602, 187, 33, 1),
+    faixa(1298, 695, 279, 43, 2),
+    faixa(1777, 684, 238, 47, 4),
+    faixa(2761, 1727, 431, 53, 2),
+    faixa(6128, 2510, 453, 47, 2),
+    faixa(36579, 6025, 639, 74, 2),
+];
+
+const fn faixa(
+    kib: usize,
+    entradas: usize,
+    classes: usize,
+    pacotes: usize,
+    embutidos: usize,
+) -> Faixa {
+    Faixa {
+        kib,
+        entradas,
+        classes,
+        pacotes,
+        embutidos,
     }
 }
 
-/// O jar sintético do mod `n`: determinístico, um por mod.
-pub fn jar_sintetico(n: usize, tamanho_real: bool) -> Vec<u8> {
+/// A faixa do jar `n` calibrado: cada 20 mods seguidos passam por todas, misturadas (7 e 20
+/// são primos entre si).
+pub fn faixa_do_mod(n: usize) -> Faixa {
+    FAIXAS[(n * 7) % FAIXAS.len()]
+}
+
+/// O jar sintético do mod `n`: determinístico, um por mod. `calibrado`: com o perfil de
+/// [`faixa_do_mod`]; senão, mínimo.
+pub fn jar_sintetico(n: usize, calibrado: bool) -> Vec<u8> {
     let id = mod_id(n);
     let base = pacote(n);
-    let pacotes = if n % 100 == 99 { 150 } else { 8 + n % 25 };
-    let embutidos: Vec<String> = if n % 25 == 24 {
-        (0..5)
-            .map(|k| format!("META-INF/jars/{id}-modulo{k}.jar"))
-            .collect()
-    } else {
-        Vec::new()
+    let faixa = calibrado.then(|| faixa_do_mod(n));
+    let (pacotes, classes_por_pacote, quantos_embutidos) = match faixa {
+        Some(f) => (f.pacotes, f.classes.div_ceil(f.pacotes).max(1), f.embutidos),
+        None if n % 100 == 99 => (150, 12, 0),
+        None => (8 + n % 25, 12, if n % 25 == 24 { 5 } else { 0 }),
     };
+    let embutidos: Vec<String> = (0..quantos_embutidos)
+        .map(|k| format!("META-INF/jars/{id}-modulo{k}.jar"))
+        .collect();
     // Um terço dos mods depende do anterior: as regras de dependência têm o que conferir.
     let mut depende = format!(
         "\"fabricloader\": \">=0.14.0\", \"minecraft\": \"~{MINECRAFT}\", \"java\": \">=17\""
@@ -250,17 +312,31 @@ pub fn jar_sintetico(n: usize, tamanho_real: bool) -> Vec<u8> {
         jar = jar.classe(&format!("{raiz_classes}/mixin/{nome}.class"));
     }
     for p in 0..pacotes {
-        for c in 0..12 {
+        for c in 0..classes_por_pacote {
             jar = jar.classe(&format!("{raiz_classes}/p{p:03}/Classe{c:02}.class"));
         }
     }
     for (k, path) in embutidos.iter().enumerate() {
         jar = jar.guardado(path, &jar_embutido(&id, k));
     }
-    if tamanho_real {
+    let Some(faixa) = faixa else {
+        return jar.montar();
+    };
+    // O resto das entradas são recursos (modelos, texturas, receitas), como nos jars reais.
+    for k in jar.entradas.len()..faixa.entradas {
+        jar = jar.arquivo(
+            &format!("assets/{id}/models/item/m{k:05}.json"),
+            format!("{{\"parent\": \"item/generated\", \"textures\": {{\"layer0\": \"{id}:item/m{k}\"}}}}")
+                .as_bytes(),
+        );
+    }
+    // E um arquivo de dados sem compressão completa o tamanho.
+    let sem_dados = jar.clone().montar().len();
+    let alvo = faixa.kib << 10;
+    if alvo > sem_dados + 256 {
         jar = jar.guardado(
             &format!("assets/{id}/textures/atlas.bin"),
-            &dados(n, preenchimento(n)),
+            &dados(n, alvo - sem_dados - 256),
         );
     }
     jar.montar()
@@ -296,7 +372,7 @@ fn jar_embutido(dono: &str, k: usize) -> Vec<u8> {
 }
 
 /// Monta um zip na memória.
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct Jar {
     entradas: Vec<(String, Vec<u8>, CompressionMethod)>,
 }

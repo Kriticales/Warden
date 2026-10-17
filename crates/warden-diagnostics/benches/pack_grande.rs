@@ -6,8 +6,10 @@
 //! - **Passagem completa** (D-01 + D-05): ler os metadados dos 300 jars (em paralelo, como o
 //!   app), rodar as regras com eles e montar o índice de pacotes com o cache quente.
 //!
-//! Os jars são os sintéticos do gerador, com o tamanho dos de verdade (~1 MB em média). Um
-//! terço dos mods depende do anterior, então as regras de dependência têm o que conferir.
+//! Os jars são os sintéticos do gerador, calibrados pelos packs reais (~730 entradas e ~2,6 MB
+//! em média). Um terço dos mods depende do anterior, então as regras de dependência têm o que
+//! conferir. Com `WARDEN_A04_PACK_REAL`, a passagem completa também é medida com os jars de um
+//! pack real baixado só para a medida (`comum/pack_real.rs`; os achados não são conferidos).
 //!
 //! `cargo bench -p warden-diagnostics` (o resumo com mediana e pior caso sai no `stderr`).
 
@@ -17,6 +19,8 @@
 mod medida;
 #[path = "../../warden-packwiz/benches/comum/pack_grande.rs"]
 mod pack_grande;
+#[path = "../../warden-packwiz/benches/comum/pack_real.rs"]
+mod pack_real;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -32,11 +36,15 @@ use warden_jarmeta::{JarMetadata, Limits, Loader};
 use warden_packwiz::Side;
 
 fn contexto() -> PackContext {
+    contexto_de(pack_grande::MINECRAFT, Loader::Fabric, pack_grande::FABRIC)
+}
+
+fn contexto_de(minecraft: &str, loader: Loader, versao: &str) -> PackContext {
     PackContext {
-        minecraft: pack_grande::MINECRAFT.into(),
+        minecraft: minecraft.into(),
         minecraft_release_target: None,
-        loader: Loader::Fabric,
-        loader_version: pack_grande::FABRIC.into(),
+        loader,
+        loader_version: versao.into(),
         language_loader_versions: HashMap::new(),
         java_major: 17,
         minimum_java_major: Some(17),
@@ -124,6 +132,63 @@ fn ler_jars(caminhos: &[(String, PathBuf)]) -> HashMap<String, JarMetadata> {
     })
 }
 
+/// A passagem completa com os jars do pack real: os metadados das APIs não entram (os achados
+/// dependem do pack e não são conferidos); o trabalho medido é o mesmo, com os jars reais.
+fn pre_teste_real(c: &mut Criterion, real: &pack_real::PackReal) {
+    let dir = tempfile::tempdir().unwrap();
+    let pack = real.gerar(&dir.path().join("pack"));
+    let instancia = real.instancia();
+    let caminhos: Vec<(String, PathBuf)> = pack
+        .mods
+        .iter()
+        .map(|m| (m.metafile.clone(), m.jar.clone().unwrap()))
+        .collect();
+    let loader = match real.loader.0.as_str() {
+        "quilt" => Loader::Quilt,
+        "forge" => Loader::Forge,
+        "neoforge" => Loader::NeoForge,
+        _ => Loader::Fabric,
+    };
+    let cache = dir.path().join("cache");
+    let completa = |()| {
+        let jars = ler_jars(&caminhos);
+        let items = pack
+            .mods
+            .iter()
+            .map(|m| PackItem {
+                path: m.metafile.clone(),
+                filename: m.arquivo.clone(),
+                side: Side::Both,
+                file_hash: None,
+                api: None,
+                jar: jars.get(&m.metafile).cloned(),
+                accepted_minecraft_versions: Vec::new(),
+                resource_pack_format: None,
+            })
+            .collect();
+        let input = Input {
+            pack: contexto_de(&real.minecraft, loader, &real.loader.1),
+            items,
+            pass: Pass::Complete,
+        };
+        let achados = analyze(&input).unwrap();
+        let indice = build_index(&input, &instancia, &cache);
+        (achados, indice)
+    };
+    let (_, indice) = completa(());
+    assert!(indice.skipped.is_empty(), "{:?}", indice.skipped);
+    assert_eq!(indice.stats.jars, real.quantos_mods());
+    let rotulo = format!(
+        "pré-teste: passagem completa com jars e índice de pacotes (cache quente), {}",
+        real.rotulo()
+    );
+    medida::resumir(&rotulo, Duration::from_secs(3), || (), completa);
+    let mut grupo = c.benchmark_group("pre-teste (pack real)");
+    grupo.sample_size(10);
+    grupo.bench_function(real.rotulo(), |b| b.iter(|| completa(())));
+    grupo.finish();
+}
+
 fn pre_teste(c: &mut Criterion) {
     let dir = tempfile::tempdir().unwrap();
     let instancia = dir.path().join("instancia");
@@ -187,10 +252,16 @@ fn pre_teste(c: &mut Criterion) {
     grupo.bench_function("passagem rápida (300 mods)", |b| {
         b.iter(|| analyze(&rapida).unwrap());
     });
-    grupo.bench_function("passagem completa (300 jars, cache quente)", |b| {
-        b.iter(|| completa(()));
-    });
+    grupo.bench_function(
+        "passagem completa (300 jars calibrados, cache quente)",
+        |b| {
+            b.iter(|| completa(()));
+        },
+    );
     grupo.finish();
+    if let Some(real) = pack_real::PackReal::do_ambiente() {
+        pre_teste_real(c, &real);
+    }
 }
 
 criterion_group!(benches, pre_teste);
