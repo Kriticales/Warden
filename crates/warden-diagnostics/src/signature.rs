@@ -13,7 +13,8 @@
 //!   (`frame_mixin=create.mixins.json`);
 //! - sem frame de mod, quando onde quebrou importa (achado do crash report, genérico ou nenhum):
 //!   o **frame da queda**, o primeiro frame da causa mais profunda que não é do Java (`java.`,
-//!   `jdk.`, `sun.`, reflexão) nem de uma lambda gerada (`$$Lambda`), com o fim da pilha de cima
+//!   `jdk.`, `sun.`, reflexão), de uma classe que só confere e lança (`Preconditions` do Guava)
+//!   nem de uma lambda gerada (`$$Lambda`), com o fim da pilha de cima
 //!   no lugar do `... N more` (`net.minecraft.client.renderer.GameRenderer.render`), e só as
 //!   configs de mixin anotadas nesse frame. Uma config anotada num frame de baixo
 //!   (`Minecraft.runTick` quase sempre tem, num pack com mods) não escolhe o frame nem entra na
@@ -56,7 +57,8 @@ use crate::postcrash::{
 /// 4: sem frame de mod, o frame da queda (o primeiro da causa mais profunda fora do Java e das
 /// lambdas geradas, com o fim da pilha de cima no lugar do `... N more`) e só as configs de mixin
 /// anotadas nele; config anotada num frame de baixo não escolhe o frame.
-pub const SIGNATURE_VERSION: u32 = 4;
+/// 5: o frame da queda também pula as classes que só conferem e lançam (`Preconditions`).
+pub const SIGNATURE_VERSION: u32 = 5;
 
 /// Até quantas linhas depois da evidência a exceção do achado é procurada.
 const EXCEPTION_WITHIN: usize = 60;
@@ -137,6 +139,15 @@ static ELIDED: LazyLock<Regex> = LazyLock::new(|| fixed_regex(r"^\s*\[\.\.\.\]\s
 /// Pacotes do próprio Java: o primeiro frame da causa mais profunda é o primeiro fora deles
 /// (`Objects.requireNonNull` não diz onde quebrou).
 const JAVA_PACKAGES: [&str; 5] = ["java.", "javax.", "jdk.", "sun.", "com.sun."];
+
+/// Classes de bibliotecas que só conferem um argumento e lançam a exceção
+/// (`Preconditions.checkState`): como `Objects.requireNonNull`, não dizem onde quebrou, e quedas
+/// em chamadores diferentes teriam a mesma assinatura.
+const THROW_HELPERS: [&str; 3] = [
+    "com.google.common.base.Preconditions.",
+    "com.google.common.base.Verify.",
+    "org.apache.commons.lang3.Validate.",
+];
 
 /// A exceção que estoura a pilha: o topo dela cai num ponto qualquer da recursão.
 const STACK_OVERFLOW: &str = "java.lang.StackOverflowError";
@@ -638,6 +649,7 @@ fn stack_place(
         !frame.method.contains("$$Lambda")
             && !JAVA_PACKAGES
                 .iter()
+                .chain(&THROW_HELPERS)
                 .any(|prefix| frame.method.starts_with(prefix))
     };
     match fallen(&usable).or_else(|| fallen(&|_| true)) {
@@ -2176,6 +2188,35 @@ Details:
     }
 
     #[test]
+    fn preconditions_do_guava_no_topo_vale_o_chamador() {
+        let tail = forge_1_20_tail(&CREATE_MODERNFIX, 185, 1146);
+        let sign = |caller: &str| {
+            let frames = format!(
+                "\tat com.google.common.base.Preconditions.checkState(Preconditions.java:502) ~[guava-31.1-jre.jar%2398!/:?] {{}}
+\tat {caller}(Caller.java:10) {CLIENT_1_20} {{re:mixin,re:classloading,pl:mixin:A}}
+{tail}"
+            );
+            signature_of(
+                "crash",
+                &forge_1_20_report(
+                    "java.lang.IllegalStateException: Not ready",
+                    &frames,
+                    &["create"],
+                ),
+                LogLoader::Forge,
+                "1.20.1",
+            )
+        };
+        let textures = sign("net.minecraft.client.renderer.texture.TextureManager.m_118506_");
+        let sounds = sign("net.minecraft.client.sounds.SoundEngine.m_120313_");
+        assert_eq!(
+            textures.frame.as_deref(),
+            Some("net.minecraft.client.renderer.texture.TextureManager.m_118506_")
+        );
+        assert_ne!(textures.hash, sounds.hash);
+    }
+
+    #[test]
     fn adversario_caused_by_com_n_more_usa_o_fim_da_pilha_de_fora() {
         // A causa só tem frames do Java; o resto dela é o fim da pilha de fora (`... 4 more`):
         // a queda foi em `ModelManager.m_5540_`, não no topo da pilha de fora nem em `runTick`.
@@ -2633,7 +2674,7 @@ java.lang.ArithmeticException: / by zero
         assert_eq!(one, two);
         assert_eq!(one.mods, ["mod:a", "mod:b"]);
         // Fixo: mudar a normalização ou o formato exige subir SIGNATURE_VERSION.
-        assert_eq!(one.hash, "3949293e1528df05");
+        assert_eq!(one.hash, "2e9980cf0d10880b");
         let with_subject = CrashSignature::new(
             Some("r".into()),
             Some("E".into()),
