@@ -23,6 +23,10 @@
 //!
 //! Se o servidor travar antes do "Done", o jogo não abre e o resultado é "O servidor travou",
 //! com o mod apontado e o trecho do log do servidor.
+//!
+//! O dono do processo é o [`ServerGuard`](crate::server_session::ServerGuard) aberto no começo:
+//! se algo falhar com o servidor aberto (o jogo não abre, a linha de comando do jogo é recusada,
+//! um pânico), ele encerra a árvore do servidor e espera a saída antes de tirar o registro.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -357,10 +361,25 @@ impl Runner<'_> {
                 &warden_server::Error::EulaNotAccepted,
             ));
         }
-        let _server = self.state.servers.begin(self.pack_id);
-        if self.request.server_only {
-            return self.run_server_only(pack_root).await;
-        }
+        let server = self.state.servers.begin(self.pack_id);
+        let result = if self.request.server_only {
+            self.run_server_only(pack_root).await
+        } else {
+            self.run_server_with_game(hooks, pack_root, dirs).await
+        };
+        // Em qualquer saída (erro entre o "Done" e o jogo fechar, inclusive), o servidor morre
+        // antes de o registro sair.
+        server.finish().await;
+        result
+    }
+
+    /// O servidor e o jogo, com o registro do servidor já aberto.
+    async fn run_server_with_game(
+        &self,
+        hooks: &[Arc<dyn TestHooks>],
+        pack_root: PathBuf,
+        dirs: InstanceDirs,
+    ) -> Result<TestSessionSummary, AppError> {
         let prepared = self.prepare(pack_root, dirs).await?;
         let minecraft = prepared.spec.minecraft.as_str().to_owned();
         if warden_launcher::quick_play::needs_accessibility_onboarding_off(&minecraft) {
@@ -412,13 +431,8 @@ impl Runner<'_> {
                 .finish_without_game(link, &prepared.spec, &prepared.java, &prepared, opened)
                 .await;
         }
-        let launch = match self.plan_launch(&prepared, Some(link.port())) {
-            Ok(launch) => launch,
-            Err(error) => {
-                link.handle.kill().await;
-                return Err(error);
-            }
-        };
+        // Um erro daqui até o jogo fechar deixa o servidor com o guarda de `run_server`.
+        let launch = self.plan_launch(&prepared, Some(link.port()))?;
         link.game_opened = true;
         self.play_in(hooks, prepared, launch, opened, Some(link))
             .await

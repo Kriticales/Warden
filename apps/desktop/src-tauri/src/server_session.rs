@@ -26,15 +26,17 @@
 //!    e o `spark profiler …` da L-12 entram por aqui);
 //! 7. parar com [`warden_server::ServerHandle::stop`] (`stop`; à força depois de 60 s) e
 //!    esperar a saída; [`diagnose_crash`] dá o "Por que travou" do servidor (o mod apontado,
-//!    a classe do cliente e o trecho do log, já redigidos). O registro sai com [`ServerGuard`]
-//!    (ao terminar, de qualquer jeito, o `server-state` diz `exited`).
+//!    a classe do cliente e o trecho do log, já redigidos). O registro sai com
+//!    [`ServerGuard::finish`]: o guarda é o dono do servidor e, em qualquer saída (fim normal,
+//!    erro, pânico), encerra a árvore do processo e espera a saída antes de tirar o registro e
+//!    de o `server-state` dizer `exited` (a porta já está livre nesse momento).
 //!
 //! Com `WARDEN_E2E_FAKE_SERVER` (só em build de debug, com o jogo simulado do E2E ligado), o
 //! "servidor instalado" é o servidor simulado da `warden-server`, com os argumentos do arquivo
 //! [`FAKE_ARGS_FILE`] na pasta do pack; todo o resto é o de verdade.
 
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU16, Ordering};
+use std::sync::atomic::{AtomicU16, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -58,6 +60,9 @@ use crate::state::AppState;
 pub(crate) const STAGE_SERVER: &str = "test.server";
 /// Texto da etapa.
 pub(crate) const STAGE_SERVER_LABEL: &str = "servidor:etapa.preparar";
+
+/// Quanto o encerramento à força espera, além do da `warden-launcher`, o processo sumir.
+const KILL_WAIT: Duration = Duration::from_secs(10);
 
 /// Quanto o servidor tem para ficar pronto (a primeira abertura gera o mundo).
 pub(crate) const READY_TIMEOUT: Duration = Duration::from_mins(15);
@@ -226,6 +231,8 @@ pub(crate) fn configure(state: &AppState, server_dir: &Path, motd: &str) -> Resu
 
 /// O servidor aberto no Warden.
 struct Active {
+    /// Qual [`ServerSessions::begin`] abriu este registro.
+    generation: u64,
     state: ServerState,
     handle: Option<ServerHandle>,
 }
@@ -237,6 +244,8 @@ pub(crate) struct ServerSessions {
     /// Onde começa a busca da porta livre (25565; nos testes, uma porta dada pelo sistema, para
     /// testes em processos paralelos não disputarem a mesma).
     first_port: AtomicU16,
+    /// Contador dos registros abertos (o guarda só tira o seu).
+    generations: AtomicU64,
 }
 
 impl Default for ServerSessions {
@@ -245,6 +254,7 @@ impl Default for ServerSessions {
             active: Mutex::default(),
             notify: OnceLock::new(),
             first_port: AtomicU16::new(warden_server::properties::FIRST_PORT),
+            generations: AtomicU64::new(0),
         }
     }
 }
@@ -289,9 +299,10 @@ impl ServerSessions {
         self.lock().as_ref().map(|active| active.state.clone())
     }
 
-    /// Começa: o servidor do pack em preparação. Devolve o registro, que sai quando o guarda
-    /// é solto.
-    pub(crate) fn begin(&self, pack_id: PackId) -> ServerGuard<'_> {
+    /// Começa: o servidor do pack em preparação. Devolve o guarda, dono do servidor: o registro
+    /// sai com [`ServerGuard::finish`] (ou quando o guarda é solto), sempre depois de o processo
+    /// morrer.
+    pub(crate) fn begin(self: &Arc<Self>, pack_id: PackId) -> ServerGuard {
         let state = ServerState {
             pack_id,
             phase: ServerPhase::Preparing,
@@ -299,12 +310,45 @@ impl ServerSessions {
             started_at_ms: now_ms(),
             ready_ms: None,
         };
+        let generation = self.generations.fetch_add(1, Ordering::Relaxed) + 1;
         self.emit(&state);
         *self.lock() = Some(Active {
+            generation,
             state,
             handle: None,
         });
-        ServerGuard { sessions: self }
+        ServerGuard {
+            sessions: Arc::clone(self),
+            generation,
+        }
+    }
+
+    /// A alça do servidor do registro `generation`, se o processo ainda estiver vivo.
+    fn live_handle(&self, generation: u64) -> Option<ServerHandle> {
+        self.lock()
+            .as_ref()
+            .filter(|active| active.generation == generation)
+            .and_then(|active| active.handle.clone())
+            .filter(|handle| !handle.has_exited())
+    }
+
+    /// Tira o registro `generation` (se ainda for o atual) e avisa `exited`.
+    fn end(&self, generation: u64) {
+        let finished = {
+            let mut guard = self.lock();
+            if guard
+                .as_ref()
+                .is_some_and(|active| active.generation == generation)
+            {
+                guard.take()
+            } else {
+                None
+            }
+        };
+        if let Some(mut active) = finished {
+            active.state.phase = ServerPhase::Exited;
+            self.emit(&active.state);
+        }
     }
 
     /// Muda o estado e avisa.
@@ -379,17 +423,61 @@ impl ServerSessions {
     }
 }
 
-/// Tira o servidor do registro quando o uso termina, de qualquer jeito.
-pub(crate) struct ServerGuard<'a> {
-    sessions: &'a ServerSessions,
+/// Encerra a árvore do servidor e espera o processo sair (a porta fica livre).
+async fn kill_tree(handle: &ServerHandle) {
+    handle.kill().await;
+    let deadline = tokio::time::Instant::now() + KILL_WAIT;
+    while !handle.has_exited() && tokio::time::Instant::now() < deadline {
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    if !handle.has_exited() {
+        tracing::warn!("o servidor local não saiu depois de encerrado à força");
+    }
 }
 
-impl Drop for ServerGuard<'_> {
+/// O dono do servidor local de um uso: enquanto existe, o servidor fica no registro (e o
+/// "Fechar o Warden" o encontra). Em qualquer saída, o processo é encerrado antes de o
+/// registro sair e de o `server-state` dizer `exited`.
+pub(crate) struct ServerGuard {
+    sessions: Arc<ServerSessions>,
+    generation: u64,
+}
+
+impl ServerGuard {
+    /// Termina o uso: encerra o servidor se ainda estiver aberto (quem chama já parou com
+    /// `stop` no caminho normal; aqui sobram os erros), espera a saída e só então tira o
+    /// registro.
+    pub(crate) async fn finish(self) {
+        if let Some(handle) = self.sessions.live_handle(self.generation) {
+            tracing::warn!("servidor local ainda aberto no fim do teste; encerrando");
+            self.sessions
+                .update(|state| state.phase = ServerPhase::Stopping);
+            kill_tree(&handle).await;
+        }
+        // O `Drop` tira o registro (o processo já saiu).
+    }
+}
+
+impl Drop for ServerGuard {
     fn drop(&mut self) {
-        let finished = self.sessions.lock().take();
-        if let Some(mut active) = finished {
-            active.state.phase = ServerPhase::Exited;
-            self.sessions.emit(&active.state);
+        let generation = self.generation;
+        let Some(handle) = self.sessions.live_handle(generation) else {
+            self.sessions.end(generation);
+            return;
+        };
+        // Solto sem `finish` (pânico, tarefa abortada) com o processo vivo: o encerramento
+        // continua numa tarefa, e o registro só sai depois.
+        if let Ok(runtime) = tokio::runtime::Handle::try_current() {
+            let sessions = Arc::clone(&self.sessions);
+            runtime.spawn(async move {
+                tracing::warn!("servidor local solto sem parar; encerrando");
+                kill_tree(&handle).await;
+                sessions.end(generation);
+            });
+        } else {
+            // Sem runtime não há como esperar: o registro fica, e o "Fechar o Warden" o
+            // encerra (`kill_all`).
+            tracing::warn!("servidor local solto fora do runtime; fica para o fechar do app");
         }
     }
 }
@@ -545,7 +633,7 @@ mod tests {
 
     #[test]
     fn registro_avisa_cada_mudanca_e_o_fim() {
-        let sessions = ServerSessions::default();
+        let sessions = Arc::new(ServerSessions::default());
         let seen: Arc<Mutex<Vec<ServerPhase>>> = Arc::default();
         let log = Arc::clone(&seen);
         sessions.connect(Arc::new(move |state| {

@@ -1223,6 +1223,7 @@ async fn ca_t13_01_jogo_real_entra_no_mundo_pelo_testar() {
             }
         }),
         env: vec![("ALSOFT_DRIVERS".into(), "null".into())],
+        refuse_command: false,
     };
     state.tests =
         Arc::new(TestSessions::new(&state.paths, &state.catalog).with_launch_tweak(tweak));
@@ -1805,6 +1806,7 @@ fn fake_state_watching(
             *seen_options.lock().unwrap() = Some(options.clone());
         }),
         env: Vec::new(),
+        refuse_command: false,
     });
     state.tests = Arc::new(sessions);
     Some(Arc::new(state))
