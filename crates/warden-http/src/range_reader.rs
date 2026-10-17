@@ -155,7 +155,7 @@ impl RemoteFile {
         let (len, whole, start, bytes) = match response.status() {
             StatusCode::PARTIAL_CONTENT => {
                 let (start, total) = content_range(&response)?;
-                let body = response.bytes_limited(tail).await?;
+                let body = partial_body(response, tail, &url).await?;
                 (total, false, start, body)
             }
             StatusCode::OK => {
@@ -377,7 +377,7 @@ impl RemoteFile {
                 "Content-Range não confere com a parte pedida",
             ));
         }
-        let body = response.bytes_limited(end - start).await?;
+        let body = partial_body(response, end - start, &inner.url).await?;
         inner
             .received
             .fetch_add(body.len() as u64, Ordering::Relaxed);
@@ -504,6 +504,17 @@ fn part_request(
 async fn whole_body(response: Response, max: u64) -> Result<Vec<u8>> {
     let response = response.error_for_status().await?;
     response.bytes_limited(max).await
+}
+
+/// O corpo de uma resposta 206, até os `max` bytes pedidos. Mais que isso é uma resposta
+/// inválida, não um arquivo grande demais ([`Error::ResponseTooLarge`] é só do download inteiro).
+async fn partial_body(response: Response, max: u64, url: &Url) -> Result<Vec<u8>> {
+    match response.bytes_limited(max).await {
+        Err(Error::ResponseTooLarge { .. }) => {
+            Err(invalid(url, "a parte recebida é maior que a pedida"))
+        }
+        other => other,
+    }
 }
 
 /// Início e total em `Content-Range: bytes <início>-<fim>/<total>`.
@@ -1138,6 +1149,26 @@ mod tests {
             .await
             .expect("a conexão fechou")
             .expect("aviso do servidor");
+    }
+
+    /// Uma parte maior que a pedida é resposta inválida (o modpack vira `MODPACK_UNREADABLE`), não
+    /// "arquivo grande demais", que é só do download inteiro.
+    #[tokio::test]
+    async fn parte_maior_que_a_pedida_e_resposta_invalida() {
+        let server = MockServer::start().await;
+        Mock::given(path("/grande.zip"))
+            .respond_with(
+                ResponseTemplate::new(206)
+                    .insert_header("content-range", "bytes 0-9/1000000")
+                    .set_body_bytes(vec![0_u8; 200_000]),
+            )
+            .mount(&server)
+            .await;
+        let url = Url::parse(&format!("{}/grande.zip", server.uri())).unwrap();
+        let error = RemoteFile::open(&client(), url, RangeOptions::default(), None)
+            .await
+            .expect_err("recusa");
+        assert!(matches!(error, Error::InvalidResponse { .. }), "{error:?}");
     }
 
     #[test]
