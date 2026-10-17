@@ -10,6 +10,9 @@
 //! - Downloads ([`HttpClient::download`]): streaming para `.part`, sha1, sha256, sha512 e
 //!   murmur2 da CurseForge de uma vez ([`FileHashes`]), retomada com `Range`, conferência de
 //!   hash e tamanho e renomeação no fim.
+//! - Leitura por partes ([`RemoteFile`], [`RangeReader`]): `Read + Seek` sobre HTTP `Range`,
+//!   só em memória, com recuo para o download inteiro (até 200 MB) quando o servidor não aceita
+//!   `Range` (P1-17).
 //! - Tempo injetável ([`Timer`], [`ManualTimer`]): os testes conferem as esperas sem dormir.
 //!
 //! Limites: esta crate não conhece APIs (Modrinth, CurseForge…), não guarda nada em disco além
@@ -23,6 +26,7 @@ mod error;
 mod hashes;
 pub mod headers;
 mod limiter;
+pub mod range_reader;
 mod timer;
 
 pub use client::{HttpClient, Request, Response, parse_url, same_site};
@@ -33,6 +37,7 @@ pub use config::{
 pub use download::{DownloadRequest, Downloaded, PART_SUFFIX, part_path};
 pub use error::{Error, HttpErrorCode, Result};
 pub use hashes::{ExpectedHash, FileHashes};
+pub use range_reader::{RangeOptions, RangeReader, RemoteFile};
 pub use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 pub use reqwest::{Method, StatusCode};
 pub use timer::{ManualTimer, Sleep, SystemTimer, Timer};

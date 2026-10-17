@@ -12,6 +12,7 @@ const PATH: Record<ProjectKind, string> = {
   mod: 'mod',
   resourcePack: 'resourcepack',
   shader: 'shader',
+  modpack: 'modpack',
 };
 
 /** Página do projeto no Modrinth: `https://modrinth.com/mod/sodium`. */

@@ -14,6 +14,10 @@
  * Modrinth, pela API; direto `https://`, baixado uma vez; `http://`, recusado sem baixar nada
  * (P1-11). Arquivos escolhidos no computador ou arrastados para a janela abrem a lista de
  * arquivos (`local/`), com a identificação pelo hash e o bloqueio de loader ou versão.
+ *
+ * Com Tipo = Modpacks (P1-17), os resultados são modpacks sem caixa de seleção (um modpack nunca
+ * entra no pack) e abrir um deles mostra, no lugar da pré-visualização, a lista de mods dele
+ * (`modpacks/`), cuja seleção abre o mesmo diálogo de dependências.
  */
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FilePlus, Plus, Search } from 'lucide-react';
@@ -58,6 +62,8 @@ import { DiscoverHome } from './discover/DiscoverHome';
 import { DirectLinkPanel } from './link/DirectLinkPanel';
 import { classifyLink } from './link/link';
 import { ModrinthLinkPanel, resultOfModrinthLink } from './link/ModrinthLinkPanel';
+import { ModpackPanel } from './modpacks/ModpackPanel';
+import { ModpackRow } from './modpacks/ModpackRow';
 import { RefusedLink } from './link/RefusedLink';
 import { useChooseFiles } from './local/api';
 import { takePendingDrop, useDroppedFiles } from './local/dropped';
@@ -66,7 +72,7 @@ import { preferredRef } from './modrinth/source';
 import { Preview } from './preview/Preview';
 import './common/add.css';
 
-export const PROJECT_KINDS: readonly ProjectKind[] = ['mod', 'resourcePack', 'shader'];
+export const PROJECT_KINDS: readonly ProjectKind[] = ['mod', 'resourcePack', 'shader', 'modpack'];
 
 /** Espera entre a última tecla e a busca. */
 const TYPING_DELAY_MS = 300;
@@ -104,7 +110,10 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const query = useDebounced(typedLink === null ? text.trim() : '', TYPING_DELAY_MS);
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
   // O início aparece com o campo vazio e sem nenhum filtro; qualquer um deles liga a busca.
-  const showHome = query === '' && text.trim() === '' && activeFilterCount(filters) === 0;
+  // Modpacks não têm início: o campo vazio já lista os modpacks para o pack.
+  const modpacks = kind === 'modpack';
+  const showHome =
+    !modpacks && query === '' && text.trim() === '' && activeFilterCount(filters) === 0;
   const search = useSearch(packId, { query, kind, ...filters }, !showHome);
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
   const [current, setCurrent] = useState<SearchResult | null>(null);
@@ -204,6 +213,8 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   useDroppedFiles((dropped) => {
     if (dropped.files.length > 0 || dropped.ignored > 0) openLocal(dropped);
   });
+
+  const modpackOpen = modpacks && current !== null;
 
   const loading =
     typedLink === null &&
@@ -312,14 +323,24 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
         </div>
       ) : null}
 
-      <div className={cn('disc', showHome && !current && 'disc--start')}>
-        <FiltersColumn
-          kind={kind}
-          target={target}
-          filters={filters}
-          onChange={setFilters}
-          sources={sources}
-        />
+      <div
+        className={cn(
+          'disc',
+          showHome && !current && 'disc--start',
+          modpackOpen && 'disc--modpack',
+          modpacks && !current && 'disc--start',
+        )}
+      >
+        {/* Com um modpack aberto, a lista de mods dele ocupa o lugar dos filtros. */}
+        {modpackOpen ? null : (
+          <FiltersColumn
+            kind={kind}
+            target={target}
+            filters={filters}
+            onChange={setFilters}
+            sources={sources}
+          />
+        )}
         <div className="disc__main">
           {chooseFiles.isError ? (
             <ErrorPanel compact title={t('erro')} error={chooseFiles.error} />
@@ -409,17 +430,26 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
           ) : (
             <>
               <ul className="dlist" aria-label={t('resultado.lista')}>
-                {results.map((result) => (
-                  <ResultRow
-                    key={result.key}
-                    result={result}
-                    inPack={isInPack(result, inventoryKeys)}
-                    selected={selected.has(result.key)}
-                    current={current?.key === result.key}
-                    onToggle={toggle}
-                    onOpen={setCurrent}
-                  />
-                ))}
+                {results.map((result) =>
+                  modpacks ? (
+                    <ModpackRow
+                      key={result.key}
+                      result={result}
+                      current={current?.key === result.key}
+                      onOpen={setCurrent}
+                    />
+                  ) : (
+                    <ResultRow
+                      key={result.key}
+                      result={result}
+                      inPack={isInPack(result, inventoryKeys)}
+                      selected={selected.has(result.key)}
+                      current={current?.key === result.key}
+                      onToggle={toggle}
+                      onOpen={setCurrent}
+                    />
+                  ),
+                )}
               </ul>
               <MoreResults
                 hasMore={search.hasNextPage}
@@ -457,7 +487,21 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             </div>
           ) : null}
         </div>
-        {current ? (
+        {modpackOpen ? (
+          <ModpackPanel
+            key={current.key}
+            packId={packId}
+            result={current}
+            target={target}
+            inventoryKeys={inventoryKeys}
+            onAdd={(choices, titles) => {
+              setRequest({ choices, titles });
+            }}
+            onClose={() => {
+              setCurrent(null);
+            }}
+          />
+        ) : modpacks ? null : current ? (
           <Preview
             key={current.key}
             packId={packId}

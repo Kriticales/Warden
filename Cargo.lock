@@ -6770,6 +6770,7 @@ dependencies = [
  "warden-packwiz",
  "warden-project",
  "wiremock",
+ "zip 9.0.4",
 ]
 
 [[package]]
