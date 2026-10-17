@@ -87,14 +87,17 @@ const NOT_MODS: [&str; 34] = [
     "fabricloader",
 ];
 
-/// Prefixos de jars que não são mods do pack.
-const NOT_MOD_JARS: [&str; 29] = [
+/// Prefixos de jars que não são mods do pack: o jogo, o loader e as bibliotecas que o Forge e o
+/// NeoForge anotam nos frames (`~[fastutil-8.5.9.jar%23…!/:?]`, `~[bus-8.0.5.jar…]`,
+/// `~[core-3.6.4.jar…]` do night-config).
+const NOT_MOD_JARS: [&str; 52] = [
     "loader-",
     "fancymodloader-",
     "earlydisplay-",
     "client-",
     "server-",
     "minecraft-",
+    "minecraft_server",
     "forge-",
     "fmlcore-",
     "fmlloader-",
@@ -118,7 +121,35 @@ const NOT_MOD_JARS: [&str; 29] = [
     "netty-",
     "lwjgl",
     "jopt-simple-",
+    "bus-",
+    "fastutil-",
+    "core-",
+    "toml-",
+    "joml-",
+    "caffeine-",
+    "commons-",
+    "log4j-",
+    "slf4j-",
+    "icu4j-",
+    "jna-",
+    "oshi-core-",
+    "kotlin-",
+    "asm-",
+    "failureaccess-",
+    "jsr305-",
+    "javabridge-",
+    "jcpp-",
+    "jtracy-",
+    "httpclient-",
+    "httpcore-",
+    "theseus",
 ];
+
+/// Se o jar é do jogo, do loader ou de uma biblioteca (nunca um mod do pack).
+pub(crate) fn is_library_jar(name: &str) -> bool {
+    let lower = name.to_lowercase();
+    NOT_MOD_JARS.iter().any(|prefix| lower.starts_with(prefix))
+}
 
 /// Os blocos de crash report de um arquivo, como faixas de índices das linhas.
 ///
@@ -188,14 +219,28 @@ pub(crate) fn stack_range(lines: &[CleanLine], start: usize) -> Range<usize> {
     start..end
 }
 
-/// A causa mais profunda (`Caused by:` mais abaixo) da pilha.
+/// A causa mais profunda (`Caused by:` mais abaixo) da pilha. As causas das exceções
+/// suprimidas (`Suppressed:`) vêm indentadas um nível a mais que a cadeia principal e não
+/// contam: só os `Caused by:` com a menor indentação são da cadeia.
 pub(crate) fn deepest_cause(lines: &[CleanLine], range: Range<usize>) -> Option<String> {
-    lines[range]
+    let causes: Vec<(usize, &str)> = lines[range]
+        .iter()
+        .filter_map(|line| {
+            let cause = CAUSED_BY.captures(&line.text)?.name("cause")?.as_str();
+            Some((indentation(&line.text), cause))
+        })
+        .collect();
+    let shallowest = causes.iter().map(|(indent, _)| *indent).min()?;
+    causes
         .iter()
         .rev()
-        .find_map(|line| CAUSED_BY.captures(&line.text))
-        .and_then(|captures| captures.name("cause"))
-        .map(|cause| cause.as_str().to_owned())
+        .find(|(indent, _)| *indent == shallowest)
+        .map(|(_, cause)| (*cause).to_owned())
+}
+
+/// Quantos caracteres de espaço a linha tem antes do texto.
+pub(crate) fn indentation(text: &str) -> usize {
+    text.len() - text.trim_start().len()
 }
 
 /// Mods citados numa faixa de linhas, na ordem em que aparecem: "Suspected Mods" do Forge,
@@ -227,7 +272,10 @@ pub(crate) fn mods_in(
             if let Some(entry) = SUSPECTED_ENTRY.captures(rest)
                 && let Some(id) = entry.name("id")
             {
+                // Forge 1.7.10–1.12: o suspeito está na própria linha; as linhas seguintes
+                // (`Profiler Position: N/A (disabled)`) não são a lista.
                 push(ModMention::Id(id.as_str().to_owned()), &mut found);
+                continue;
             }
             for next in slice.iter().skip(index + 1).take(8) {
                 match SUSPECTED_ENTRY.captures(&next.text) {
@@ -356,6 +404,31 @@ mod tests {
     }
 
     #[test]
+    fn causa_dentro_de_suppressed_nao_e_a_causa_mais_profunda() {
+        // A exceção suprimida da causa mais profunda tem a própria causa, indentada um nível
+        // a mais: a cadeia principal termina no `NullPointerException`.
+        let log = lines(&[
+            "java.lang.RuntimeException: externo",
+            "\tat a.B.c(B.java:1)",
+            "Caused by: java.lang.NullPointerException: estado",
+            "\tat d.E.f(E.java:2)",
+            "\tSuppressed: java.io.IOException: ao fechar",
+            "\t\tat g.H.close(H.java:3)",
+            "\t\t... 1 more",
+            "\tCaused by: java.net.SocketException: fechado",
+            "\t\tat g.H.send(H.java:4)",
+            "\t\t... 2 more",
+        ]);
+        assert_eq!(
+            deepest_cause(&log, 0..log.len()).as_deref(),
+            Some("java.lang.NullPointerException: estado")
+        );
+        assert!(is_library_jar("fastutil-8.5.9.jar"));
+        assert!(is_library_jar("Core-3.6.4.jar"));
+        assert!(!is_library_jar("create-1.20.1-0.5.1.f.jar"));
+    }
+
+    #[test]
     fn suspeitos_do_forge_vem_primeiro() {
         let log = lines(&[
             "Suspected Mods: ",
@@ -363,8 +436,10 @@ mod tests {
             "\t\tIssue tracker URL: https://x",
             "\tat TRANSFORMER/moonlight@1.0/net.x.Y.m(Y.java:1)",
             "Suspected Mod: Quark (quark), Version: 1",
+            "\tProfiler Position: N/A (disabled)",
             "Suspected Mods: NONE",
         ]);
+        // O suspeito na própria linha (Forge 1.7.10–1.12) não lê as linhas seguintes.
         assert_eq!(
             mods_in(&log, 0..log.len(), true),
             vec![
