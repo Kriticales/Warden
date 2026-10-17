@@ -139,7 +139,15 @@ describe('Mods no modo Grafo (D-11)', () => {
     await dismissToasts();
     await $('button[role="radio"]=Grafo').click();
     const label = $('label=Mod no centro');
-    await label.waitForDisplayed();
+    // DIAGNÓSTICO TEMPORÁRIO (FIX-ZIP): o que a tela mostra quando o rótulo não aparece.
+    await label.waitForDisplayed().catch(async (error: unknown) => {
+      const dump = await browser.execute(() => ({
+        url: location.href,
+        text: document.body.innerText.slice(0, 4000),
+      }));
+      console.log('DIAGNOSTICO-GRAFO', JSON.stringify(dump));
+      throw error;
+    });
     const selectId = String(await label.getAttribute('for'));
     await $(`[id="${selectId}"]`).selectByVisibleText('Sodium');
     const graph = graphOf('Sodium');
