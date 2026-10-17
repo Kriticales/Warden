@@ -12,9 +12,13 @@
 //!   anotadas no frame (`{re:mixin,pl:mixin:APP:create.mixins.json:…}`) entram no sujeito
 //!   (`frame_mixin=create.mixins.json`);
 //! - sem frame de mod, quando onde quebrou importa (achado do crash report, genérico ou nenhum):
-//!   o primeiro frame anotado com uma config de mixin (com as configs) ou, sem isso, o primeiro
-//!   frame da causa mais profunda fora do Java (`net.minecraft.client.renderer.GameRenderer.render`).
-//!   Sem isso, travamentos diferentes com só classes do jogo na pilha teriam a mesma assinatura;
+//!   o **frame da queda**, o primeiro frame da causa mais profunda que não é do Java (`java.`,
+//!   `jdk.`, `sun.`, reflexão) nem de uma lambda gerada (`$$Lambda`), com o fim da pilha de cima
+//!   no lugar do `... N more` (`net.minecraft.client.renderer.GameRenderer.render`), e só as
+//!   configs de mixin anotadas nesse frame. Uma config anotada num frame de baixo
+//!   (`Minecraft.runTick` quase sempre tem, num pack com mods) não escolhe o frame nem entra na
+//!   assinatura: senão quedas diferentes teriam a mesma assinatura e o título diria "em
+//!   Minecraft.runTick". Sem nenhum frame, ficam a exceção e a descrição do crash report;
 //! - os mods citados pelo achado principal (ids; jars sem a versão no nome);
 //! - o **sujeito** do achado: os parâmetros que o catálogo usa para identificá-lo (`key`: o mod e
 //!   a dependência, a config de mixin, a classe…) e, no crash report, a descrição e o que estava
@@ -49,7 +53,10 @@ use crate::postcrash::{
 /// 3: método injetado pelo Mixin é frame de mod (com as configs anotadas); sem frame de mod, o
 /// primeiro frame anotado com config de mixin ou o primeiro da causa mais profunda; id de mixin
 /// reconhecido pela posição; a pilha continua depois de `[...]`.
-pub const SIGNATURE_VERSION: u32 = 3;
+/// 4: sem frame de mod, o frame da queda (o primeiro da causa mais profunda fora do Java e das
+/// lambdas geradas, com o fim da pilha de cima no lugar do `... N more`) e só as configs de mixin
+/// anotadas nele; config anotada num frame de baixo não escolhe o frame.
+pub const SIGNATURE_VERSION: u32 = 4;
 
 /// Até quantas linhas depois da evidência a exceção do achado é procurada.
 const EXCEPTION_WITHIN: usize = 60;
@@ -119,6 +126,10 @@ static FRAME_MIXIN_CONFIG: LazyLock<Regex> = LazyLock::new(|| {
         r"pl:mixin:APP:(?P<config>[^:,{}\s]+\.json)(?::[^,{}\s]*)?(?:\s+from mod (?P<mod>[^,{}\s]+))?",
     )
 });
+
+/// Fim de uma seção `Caused by:` que repete o fim da pilha de cima: `... 3 more`.
+static MORE: LazyLock<Regex> =
+    LazyLock::new(|| fixed_regex(r"^\s*\.\.\.\s*(?P<count>\d+)\s+more\b"));
 
 /// Trecho omitido no meio da pilha de um crash report (`[...]`, num `StackOverflowError`).
 static ELIDED: LazyLock<Regex> = LazyLock::new(|| fixed_regex(r"^\s*\[\.\.\.\]\s*$"));
@@ -552,10 +563,12 @@ struct Frame {
 
 /// Onde o travamento aconteceu, nesta ordem: o primeiro frame de mod (método injetado pelo
 /// Mixin incluído), procurado na seção da causa mais profunda (o último `Caused by:`) e depois
-/// nas seções de cima; e, só quando `where_matters`, o primeiro frame anotado com uma config de
-/// mixin e o primeiro frame da causa mais profunda fora do Java. Na seção de um
-/// `StackOverflowError` (`overflow`: é a causa mais profunda) o topo da pilha cai num ponto
-/// qualquer da recursão: ali vale o menor frame de cada nível, que é o mesmo de uma vez para outra.
+/// nas seções de cima; e, só quando `where_matters`, o **frame da queda**: o primeiro frame da
+/// causa mais profunda que não é do Java nem de uma lambda gerada, com as configs de mixin
+/// anotadas nele. Configs anotadas em frames de baixo (`Minecraft.runTick` quase sempre tem) não
+/// escolhem o frame nem entram na assinatura. Na seção de um `StackOverflowError` (`overflow`: é
+/// a causa mais profunda) o topo da pilha cai num ponto qualquer da recursão: ali vale o menor
+/// frame de cada nível, que é o mesmo de uma vez para outra.
 fn stack_place(
     lines: &[CleanLine],
     stack: Range<usize>,
@@ -569,6 +582,8 @@ fn stack_place(
         .collect();
     starts.insert(0, stack.start);
     let mut sections: Vec<Vec<Frame>> = Vec::with_capacity(starts.len());
+    // Quantos frames do fim de cada seção são os da seção de cima (`... 3 more`).
+    let mut shared: Vec<usize> = Vec::with_capacity(starts.len());
     for (position, &start) in starts.iter().enumerate() {
         let end = starts.get(position + 1).copied().unwrap_or(stack.end);
         sections.push(
@@ -576,21 +591,31 @@ fn stack_place(
                 .filter_map(|at| java_frame(lines, at, fabric))
                 .collect(),
         );
+        shared.push(
+            (start..end)
+                .find_map(|at| MORE.captures(&lines[at].text))
+                .and_then(|captures| captures["count"].parse().ok())
+                .unwrap_or(0),
+        );
+    }
+    // A pilha inteira de cada seção: os frames dela e, no lugar do `... N more`, os N últimos da
+    // seção de cima (já inteira).
+    let mut whole: Vec<Vec<&Frame>> = Vec::with_capacity(sections.len());
+    for (position, section) in sections.iter().enumerate() {
+        let mut frames: Vec<&Frame> = section.iter().collect();
+        if let Some(above) = position.checked_sub(1).map(|above| &whole[above]) {
+            frames.extend_from_slice(&above[above.len().saturating_sub(shared[position])..]);
+        }
+        whole.push(frames);
     }
     // Da causa mais profunda para cima.
-    sections.reverse();
-    // O primeiro frame aceito da seção (o menor, na seção do `StackOverflowError`), da causa
-    // mais profunda para cima.
-    let pick = |accept: &dyn Fn(&Frame) -> bool| -> Option<&Frame> {
-        sections.iter().enumerate().find_map(|(position, section)| {
-            let mut accepted = section.iter().filter(|frame| accept(frame));
-            if overflow && position == 0 {
-                accepted.min_by(|one, two| one.method.cmp(&two.method))
-            } else {
-                accepted.next()
-            }
-        })
-    };
+    let mut own: Vec<Vec<&Frame>> = sections
+        .iter()
+        .map(|section| section.iter().collect())
+        .collect();
+    own.reverse();
+    whole.reverse();
+    let pick = |accept: &dyn Fn(&Frame) -> bool| first_accepted(&own, accept, overflow);
     if let Some(frame) = pick(&|frame| frame.of_mod || frame.injected) {
         // Método injetado sem o mod no nome (Forge): as configs anotadas dizem de quem pode ser.
         let mixins = if frame.names_mod {
@@ -606,20 +631,39 @@ fn stack_place(
     if !where_matters {
         return Place::default();
     }
-    if let Some(frame) = pick(&|frame| !frame.mixins.is_empty()) {
-        return Place {
+    // O frame da queda, na pilha inteira da causa mais profunda (uma causa só com `... N more`
+    // tem os frames da seção de cima). Sem frame fora do Java, o primeiro frame que houver.
+    let fallen = |accept: &dyn Fn(&Frame) -> bool| first_accepted(&whole, accept, overflow);
+    let usable = |frame: &Frame| {
+        !frame.method.contains("$$Lambda")
+            && !JAVA_PACKAGES
+                .iter()
+                .any(|prefix| frame.method.starts_with(prefix))
+    };
+    match fallen(&usable).or_else(|| fallen(&|_| true)) {
+        Some(frame) => Place {
             frame: Some(frame.method.clone()),
             mixins: frame.mixins.clone(),
-        };
+        },
+        None => Place::default(),
     }
-    // A causa mais profunda com frames (uma seção só com `... N more` não tem nenhum).
-    let outside_java = |frame: &Frame| {
-        !JAVA_PACKAGES
-            .iter()
-            .any(|prefix| frame.method.starts_with(prefix))
-    };
-    let frame = pick(&outside_java).or_else(|| pick(&|_| true));
-    Place::of(frame.map(|frame| frame.method.clone()))
+}
+
+/// O primeiro frame aceito da primeira lista que tiver um (da causa mais profunda para cima). Na
+/// seção de um `StackOverflowError` (`overflow`, a primeira lista), o menor frame aceito.
+fn first_accepted<'a>(
+    lists: &[Vec<&'a Frame>],
+    accept: &dyn Fn(&Frame) -> bool,
+    overflow: bool,
+) -> Option<&'a Frame> {
+    lists.iter().enumerate().find_map(|(position, frames)| {
+        let mut accepted = frames.iter().copied().filter(|frame| accept(frame));
+        if overflow && position == 0 {
+            accepted.min_by(|one, two| one.method.cmp(&two.method))
+        } else {
+            accepted.next()
+        }
+    })
 }
 
 /// O frame Java da linha `at`, lido: método normalizado, se é de mod, se foi injetado pelo Mixin
@@ -1588,6 +1632,742 @@ Details:
         assert_ne!(one.hash, other.hash);
     }
 
+    // ---- Frame da queda (3ª revisão) --------------------------------------------------------
+
+    const CLIENT_1_20: &str = "~[client-1.20.1-20230612.114412-srg.jar%23185!/:?]";
+
+    /// Crash report do Forge 1.20.1 com `exception` e a pilha `frames`, repetida na seção
+    /// `-- Head --`, e a lista de mods em `mods` (nessa ordem).
+    fn forge_1_20_report(exception: &str, frames: &str, mods: &[&str]) -> String {
+        let list = mods
+            .iter()
+            .map(|id| {
+                format!(
+                    "\t\t{id}-1.20.1.jar                                 |{id}                          |{id}                          |1.0                 |DONE      |Manifest: NOSIGNATURE\n"
+                )
+            })
+            .collect::<Vec<_>>()
+            .concat();
+        format!(
+            "---- Minecraft Crash Report ----
+// Don't do that.
+
+Time: 2026-10-13 21:14:07
+Description: Unexpected error
+
+{exception}
+{frames}
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Suspected Mod: NONE
+Stacktrace:
+{frames}
+
+-- System Details --
+Details:
+\tMinecraft Version: 1.20.1
+\tMinecraft Version ID: 1.20.1
+\tJava Version: 17.0.8, Eclipse Adoptium
+\tMod List: 
+\t\tclient-1.20.1-20230612.114412-srg.jar             |Minecraft                     |minecraft                     |1.20.1              |DONE      |Manifest: a1:d4:5e:04
+{list}\tCrash Report UUID: 5d1c43a6-0c5f-4a3e-9b38-3fa0d6b35a51
+\tFML: 47.2
+\tForge: net.minecraftforge:47.2.0
+"
+        )
+    }
+
+    /// O fim da pilha do Render thread no Forge 1.20.1: `Minecraft.runTick` (`m_91383_`) e o
+    /// `Main` com as configs de mixin que os mods do pack anotam neles (`configs`).
+    fn forge_1_20_tail(configs: &[&str], address: u32, line: u32) -> String {
+        let applied = configs
+            .iter()
+            .map(|config| format!(",pl:mixin:APP:{config}:MinecraftMixin"))
+            .collect::<Vec<_>>()
+            .concat();
+        let client = CLIENT_1_20.replace("%23185", &format!("%23{address}"));
+        format!(
+            "\tat net.minecraft.client.Minecraft.m_91383_(Minecraft.java:{line}) {client} {{re:mixin,pl:accesstransformer:B,pl:runtimedistcleaner:A,re:classloading,pl:accesstransformer:B{applied},pl:mixin:A,pl:runtimedistcleaner:A}}
+\tat net.minecraft.client.Minecraft.m_91374_(Minecraft.java:718) {client} {{re:mixin,pl:accesstransformer:B,pl:runtimedistcleaner:A,re:classloading,pl:accesstransformer:B{applied},pl:mixin:A,pl:runtimedistcleaner:A}}
+\tat net.minecraft.client.main.Main.main(Main.java:218) ~[forge-47.2.0.jar:?] {{re:mixin,pl:runtimedistcleaner:A,re:classloading,pl:mixin:APP:flywheel.mixins.json:ClientMainMixin,pl:mixin:A,pl:runtimedistcleaner:A}}
+\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[?:?] {{}}
+\tat java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[?:?] {{}}
+\tat net.minecraftforge.fml.loading.targets.CommonLaunchHandler.runTarget(CommonLaunchHandler.java:111) ~[fmlloader-1.20.1-47.2.0.jar:?] {{}}
+\tat net.minecraftforge.fml.loading.targets.CommonClientLaunchHandler.lambda$launchService$0(CommonClientLaunchHandler.java:20) ~[fmlloader-1.20.1-47.2.0.jar:?] {{}}
+\tat cpw.mods.modlauncher.LaunchServiceHandlerDecorator.launch(LaunchServiceHandlerDecorator.java:30) ~[modlauncher-10.0.9.jar:?] {{}}
+\tat cpw.mods.modlauncher.Launcher.run(Launcher.java:108) ~[modlauncher-10.0.9.jar:?] {{}}
+\tat cpw.mods.bootstraplauncher.BootstrapLauncher.main(BootstrapLauncher.java:141) ~[bootstraplauncher-1.1.2.jar:?] {{}}"
+        )
+    }
+
+    /// Frames do jogo sem config de mixin, no formato do Forge 1.20.1.
+    fn forge_1_20_frames(frames: &[(&str, &str, u32)], address: u32) -> String {
+        let client = CLIENT_1_20.replace("%23185", &format!("%23{address}"));
+        frames
+            .iter()
+            .map(|(method, file, line)| {
+                format!(
+                    "\tat {method}({file}.java:{line}) {client} {{re:mixin,pl:accesstransformer:B,pl:runtimedistcleaner:A,re:classloading,pl:accesstransformer:B,pl:mixin:A,pl:runtimedistcleaner:A}}\n"
+                )
+            })
+            .collect::<Vec<_>>()
+            .concat()
+    }
+
+    fn signature_of(name: &str, text: &str, loader: LogLoader, minecraft: &str) -> CrashSignature {
+        let sources = [source(
+            &format!("crash-reports/{name}.txt"),
+            SourceKind::CrashReport,
+            text,
+        )];
+        let context = AnalysisContext {
+            loader: Some(loader),
+            minecraft: Some(minecraft.into()),
+        };
+        signature(&analyze(&sources, &context, None).unwrap(), &sources)
+    }
+
+    const NPE_1_20: &str = "java.lang.NullPointerException: Cannot invoke \"net.minecraft.world.entity.Entity.m_20185_()\" because \"p_109094_\" is null";
+    const CREATE_MODERNFIX: [&str; 2] = ["create.mixins.json", "modernfix-common.mixins.json"];
+
+    /// As três quedas da 3ª revisão: no render, no render do mundo e no tick das entidades do
+    /// cliente, todas com `Minecraft.runTick` anotado mais abaixo.
+    fn forge_1_20_three() -> [CrashSignature; 3] {
+        let mods = ["create", "modernfix", "flywheel"];
+        let tail = forge_1_20_tail(&CREATE_MODERNFIX, 185, 1146);
+        let render = forge_1_20_frames(
+            &[(
+                "net.minecraft.client.renderer.GameRenderer.m_109093_",
+                "GameRenderer",
+                954,
+            )],
+            185,
+        );
+        let level = forge_1_20_frames(
+            &[
+                (
+                    "net.minecraft.client.renderer.LevelRenderer.m_109599_",
+                    "LevelRenderer",
+                    1150,
+                ),
+                (
+                    "net.minecraft.client.renderer.GameRenderer.m_109089_",
+                    "GameRenderer",
+                    1131,
+                ),
+                (
+                    "net.minecraft.client.renderer.GameRenderer.m_109093_",
+                    "GameRenderer",
+                    954,
+                ),
+            ],
+            185,
+        );
+        let entities = forge_1_20_frames(
+            &[
+                (
+                    "net.minecraft.client.multiplayer.ClientLevel.m_104804_",
+                    "ClientLevel",
+                    274,
+                ),
+                ("net.minecraft.client.Minecraft.m_91398_", "Minecraft", 1814),
+            ],
+            185,
+        );
+        [render, level, entities].map(|top| {
+            signature_of(
+                "crash-2026-10-13_21.14.07-client",
+                &forge_1_20_report(NPE_1_20, &format!("{top}{tail}"), &mods),
+                LogLoader::Forge,
+                "1.20.1",
+            )
+        })
+    }
+
+    #[test]
+    fn forge_1_20_quedas_diferentes_com_run_tick_anotado_embaixo_tem_assinaturas_diferentes() {
+        let [render, level, entities] = forge_1_20_three();
+        // Na ponta da 3ª revisão (d045cd1) as três davam o mesmo hash, com o frame
+        // `Minecraft.m_91383_` (runTick) e as configs anotadas nele.
+        let hashes: BTreeSet<&str> = [&render, &level, &entities]
+            .iter()
+            .map(|signature| signature.hash.as_str())
+            .collect();
+        assert_eq!(hashes.len(), 3, "{render:?}\n{level:?}\n{entities:?}");
+        assert_eq!(
+            render.frame.as_deref(),
+            Some("net.minecraft.client.renderer.GameRenderer.m_109093_")
+        );
+        assert_eq!(
+            level.frame.as_deref(),
+            Some("net.minecraft.client.renderer.LevelRenderer.m_109599_")
+        );
+        assert_eq!(
+            entities.frame.as_deref(),
+            Some("net.minecraft.client.multiplayer.ClientLevel.m_104804_")
+        );
+        for signature in [&render, &level, &entities] {
+            assert_eq!(signature.rule.as_deref(), Some("crash_report.description"));
+            assert!(
+                !signature
+                    .subject
+                    .iter()
+                    .any(|part| part.starts_with("frame_mixin=")),
+                "{:?}",
+                signature.subject
+            );
+        }
+    }
+
+    #[test]
+    fn forge_1_20_a_mesma_queda_com_outras_configs_embaixo_linhas_enderecos_e_mods_continua_junta()
+    {
+        let [render, ..] = forge_1_20_three();
+        let top = |address| {
+            forge_1_20_frames(
+                &[(
+                    "net.minecraft.client.renderer.GameRenderer.m_109093_",
+                    "GameRenderer",
+                    961,
+                )],
+                address,
+            )
+        };
+        // Outras configs anotadas em `runTick` e em outra ordem, outras linhas, outros endereços
+        // e os mods do pack em outra ordem.
+        let again = signature_of(
+            "crash-2026-10-14_08.02.55-client",
+            &forge_1_20_report(
+                NPE_1_20,
+                &format!(
+                    "{}{}",
+                    top(201),
+                    forge_1_20_tail(
+                        &[
+                            "oculus.mixins.json",
+                            "embeddium.mixins.json",
+                            "ferritecore.mixin.json"
+                        ],
+                        201,
+                        1152
+                    )
+                ),
+                &["flywheel", "modernfix", "create"],
+            ),
+            LogLoader::Forge,
+            "1.20.1",
+        );
+        assert_eq!(render, again);
+        // Sem nenhuma config anotada embaixo: a mesma queda.
+        let bare = signature_of(
+            "crash-2026-10-15_10.00.00-client",
+            &forge_1_20_report(
+                NPE_1_20,
+                &format!("{}{}", top(77), forge_1_20_tail(&[], 77, 1146)),
+                &["create"],
+            ),
+            LogLoader::Forge,
+            "1.20.1",
+        );
+        assert_eq!(render, bare);
+    }
+
+    /// NeoForge 1.21.1 (nomes mojmap): `frames` com `TRANSFORMER/minecraft@1.21.1/` e o fim da
+    /// pilha com `runTick` anotado com as configs `configs` (`from mod …`).
+    fn neoforge_1_21_report(frames: &[(&str, &str, u32)], configs: &[(&str, &str)]) -> String {
+        let client = "~[client-1.21.1-20240808.144430-srg.jar%23345!/:?]";
+        let applied = configs
+            .iter()
+            .map(|(config, owner)| {
+                format!(",pl:mixin:APP:{config}:MinecraftMixin from mod {owner}")
+            })
+            .collect::<Vec<_>>()
+            .concat();
+        let top = frames
+            .iter()
+            .map(|(method, file, line)| {
+                format!(
+                    "\tat TRANSFORMER/minecraft@1.21.1/{method}({file}.java:{line}) {client} {{re:mixin,pl:accesstransformer:B,xf:fml:neoforge:neoforge_method_redirector,re:classloading,pl:accesstransformer:B,xf:fml:neoforge:neoforge_method_redirector,pl:mixin:A}}\n"
+                )
+            })
+            .collect::<Vec<_>>()
+            .concat();
+        let stack = format!(
+            "{top}\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.client.Minecraft.runTick(Minecraft.java:1225) {client} {{re:mixin,pl:accesstransformer:B,xf:fml:neoforge:neoforge_method_redirector,re:classloading,pl:accesstransformer:B,xf:fml:neoforge:neoforge_method_redirector{applied},pl:mixin:A}}
+\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.client.Minecraft.run(Minecraft.java:875) {client} {{re:mixin,pl:accesstransformer:B,xf:fml:neoforge:neoforge_method_redirector,re:classloading,pl:accesstransformer:B,xf:fml:neoforge:neoforge_method_redirector{applied},pl:mixin:A}}
+\tat TRANSFORMER/minecraft@1.21.1/net.minecraft.client.main.Main.main(Main.java:241) {client} {{re:classloading,pl:mixin:A}}
+\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?] {{}}
+\tat java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?] {{}}
+\tat MC-BOOTSTRAP/fml_loader@4.0.24/net.neoforged.fml.loading.targets.CommonLaunchHandler.runTarget(CommonLaunchHandler.java:136) ~[loader-4.0.24.jar%23121!/:4.0] {{}}
+\tat MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.4/cpw.mods.modlauncher.Launcher.run(Launcher.java:103) ~[modlauncher-11.0.4.jar%23109!/:?] {{}}
+\tat MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.4/cpw.mods.modlauncher.Launcher.main(Launcher.java:74) ~[modlauncher-11.0.4.jar%23109!/:?] {{}}
+\tat cpw.mods.bootstraplauncher.BootstrapLauncher.main(BootstrapLauncher.java:210) ~[bootstraplauncher-2.0.2.jar:?] {{}}"
+        );
+        format!(
+            "---- Minecraft Crash Report ----
+// Hi. I'm Minecraft, and I'm a crashaholic.
+
+Time: 2026-10-13 21:14:07
+Description: Unexpected error
+
+java.lang.NullPointerException: Cannot invoke \"net.minecraft.world.entity.Entity.getX()\" because \"entity\" is null
+{stack}
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+{stack}
+
+-- System Details --
+Details:
+\tMinecraft Version: 1.21.1
+"
+        )
+    }
+
+    fn neoforge_signature(
+        frames: &[(&str, &str, u32)],
+        configs: &[(&str, &str)],
+    ) -> CrashSignature {
+        signature_of(
+            "crash-2026-10-13_21.14.07-client",
+            &neoforge_1_21_report(frames, configs),
+            LogLoader::NeoForge,
+            "1.21.1",
+        )
+    }
+
+    #[test]
+    fn neoforge_from_mod_sodium_so_em_run_tick_nao_escolhe_run_tick() {
+        let sodium = [("sodium-neoforge.mixins.json", "sodium")];
+        let render = [(
+            "net.minecraft.client.renderer.GameRenderer.render",
+            "GameRenderer",
+            1024,
+        )];
+        let level = [
+            (
+                "net.minecraft.client.renderer.LevelRenderer.renderLevel",
+                "LevelRenderer",
+                1180,
+            ),
+            (
+                "net.minecraft.client.renderer.GameRenderer.renderLevel",
+                "GameRenderer",
+                1136,
+            ),
+            (
+                "net.minecraft.client.renderer.GameRenderer.render",
+                "GameRenderer",
+                1024,
+            ),
+        ];
+        let entities = [
+            (
+                "net.minecraft.client.multiplayer.ClientLevel.tickEntities",
+                "ClientLevel",
+                276,
+            ),
+            ("net.minecraft.client.Minecraft.tick", "Minecraft", 1890),
+        ];
+        let one = neoforge_signature(&render, &sodium);
+        // Na ponta d045cd1: frame `net.minecraft.client.Minecraft.runTick` com
+        // `frame_mixin=sodium-neoforge.mixins.json`, o mesmo hash para as três.
+        assert_eq!(
+            one.frame.as_deref(),
+            Some("net.minecraft.client.renderer.GameRenderer.render")
+        );
+        assert!(
+            !one.subject
+                .iter()
+                .any(|part| part.starts_with("frame_mixin=")),
+            "{:?}",
+            one.subject
+        );
+        let two = neoforge_signature(&level, &sodium);
+        let three = neoforge_signature(&entities, &sodium);
+        assert_eq!(
+            two.frame.as_deref(),
+            Some("net.minecraft.client.renderer.LevelRenderer.renderLevel")
+        );
+        assert_eq!(
+            three.frame.as_deref(),
+            Some("net.minecraft.client.multiplayer.ClientLevel.tickEntities")
+        );
+        let hashes: BTreeSet<&str> = [&one, &two, &three]
+            .iter()
+            .map(|signature| signature.hash.as_str())
+            .collect();
+        assert_eq!(hashes.len(), 3, "{one:?}\n{two:?}\n{three:?}");
+        // Outros mods com mixin em `runTick`: a mesma queda.
+        let others = neoforge_signature(
+            &render,
+            &[
+                ("iris.mixins.json", "iris"),
+                ("modernfix-common.mixins.json", "modernfix"),
+            ],
+        );
+        assert_eq!(one, others);
+        assert_eq!(one, neoforge_signature(&render, &[]));
+    }
+
+    /// Crash report do Forge antigo (1.7.10 e 1.12.2, nomes SRG `func_N_x`, sem anotação).
+    fn forge_legacy_report(frames: &[&str], minecraft: &str) -> String {
+        let stack = frames
+            .iter()
+            .map(|frame| format!("\tat {frame}\n"))
+            .collect::<Vec<_>>()
+            .concat();
+        format!(
+            "---- Minecraft Crash Report ----
+// Shall we play a game?
+
+Time: 13/10/26 21:14
+Description: Unexpected error
+
+java.lang.NullPointerException: Unexpected error
+{stack}\tat net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:441)
+\tat net.minecraft.client.main.Main.main(SourceFile:123)
+\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+\tat java.lang.reflect.Method.invoke(Method.java:498)
+\tat net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+\tat net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+\tMinecraft Version: {minecraft}
+\tFML: MCP 9.42 Powered by Forge 14.23.5.2860 7 mods loaded, 7 mods active
+"
+        )
+    }
+
+    #[test]
+    fn forge_antigo_sem_frame_de_mod_quedas_em_metodos_srg_diferentes_tem_assinaturas_diferentes() {
+        for minecraft in ["1.7.10", "1.12.2"] {
+            let sign = |frames: &[&str]| {
+                signature_of(
+                    "crash-2026-10-13_21.14.07-client",
+                    &forge_legacy_report(frames, minecraft),
+                    LogLoader::Forge,
+                    minecraft,
+                )
+            };
+            let render = sign(&[
+                "net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1180)",
+                "net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1208)",
+            ]);
+            let world = sign(&[
+                "net.minecraft.client.multiplayer.WorldClient.func_72835_b(WorldClient.java:112)",
+                "net.minecraft.client.Minecraft.func_71407_l(Minecraft.java:1873)",
+                "net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1208)",
+            ]);
+            assert_eq!(
+                render.frame.as_deref(),
+                Some("net.minecraft.client.renderer.EntityRenderer.func_78480_b"),
+                "{minecraft}"
+            );
+            assert_eq!(
+                world.frame.as_deref(),
+                Some("net.minecraft.client.multiplayer.WorldClient.func_72835_b"),
+                "{minecraft}"
+            );
+            assert_ne!(render.hash, world.hash, "{minecraft}");
+            // Outras linhas: a mesma queda.
+            let again = sign(&[
+                "net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1190)",
+                "net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1212)",
+            ]);
+            assert_eq!(render, again, "{minecraft}");
+        }
+    }
+
+    #[test]
+    fn fabric_intermediary_sem_frame_de_mod_quedas_diferentes_tem_assinaturas_diferentes() {
+        let report = |frames: &str| {
+            format!(
+                "---- Minecraft Crash Report ----
+// Ouch. That hurt :(
+
+Time: 2026-10-13 21:14:07
+Description: Rendering entity in world
+
+java.lang.NullPointerException: Cannot invoke \"net.minecraft.class_1297.method_23317()\" because \"entity\" is null
+{frames}\tat net.minecraft.class_310.method_1523(class_310.java:1189)
+\tat net.minecraft.class_310.method_1514(class_310.java:802)
+\tat net.minecraft.client.main.Main.main(Main.java:250)
+\tat net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:470)
+\tat net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:74)
+\tat net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+
+-- System Details --
+Details:
+\tMinecraft Version: 1.20.1
+"
+            )
+        };
+        let sign =
+            |frames: &str| signature_of("crash", &report(frames), LogLoader::Fabric, "1.20.1");
+        let render = sign("\tat net.minecraft.class_757.method_3192(class_757.java:880)\n");
+        let level = sign(
+            "\tat net.minecraft.class_761.method_22710(class_761.java:1226)\n\tat net.minecraft.class_757.method_3188(class_757.java:1110)\n\tat net.minecraft.class_757.method_3192(class_757.java:880)\n",
+        );
+        assert_eq!(
+            render.frame.as_deref(),
+            Some("net.minecraft.class_757.method_3192")
+        );
+        assert_eq!(
+            level.frame.as_deref(),
+            Some("net.minecraft.class_761.method_22710")
+        );
+        assert_ne!(render.hash, level.hash);
+    }
+
+    // ---- Casos adversários da regra do frame da queda ---------------------------------------
+
+    #[test]
+    fn adversario_queda_dentro_de_lambda_pula_a_classe_gerada_e_o_java() {
+        let tail = forge_1_20_tail(&CREATE_MODERNFIX, 185, 1146);
+        let lambda = |number: u32, generated: &str, method: &str| {
+            format!(
+                "\tat java.base/java.util.Objects.requireNonNull(Objects.java:233) ~[?:?] {{}}
+\tat net.minecraft.client.renderer.LevelRenderer.lambda${method}${number}(LevelRenderer.java:1312) {CLIENT_1_20} {{re:mixin,re:classloading,pl:mixin:A}}
+\tat net.minecraft.client.renderer.LevelRenderer$$Lambda${generated}.accept(Unknown Source) {CLIENT_1_20} {{re:mixin,re:classloading,pl:mixin:A}}
+\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1511) ~[?:?] {{}}
+\tat net.minecraft.client.renderer.LevelRenderer.m_109599_(LevelRenderer.java:1150) {CLIENT_1_20} {{re:mixin,re:classloading,pl:mixin:A}}
+{tail}"
+            )
+        };
+        let sign = |frames: String| {
+            signature_of(
+                "crash",
+                &forge_1_20_report(NPE_1_20, &frames, &["create"]),
+                LogLoader::Forge,
+                "1.20.1",
+            )
+        };
+        let one = sign(lambda(4, "5123/0x000000080137e8a8", "renderLevel"));
+        assert_eq!(
+            one.frame.as_deref(),
+            Some("net.minecraft.client.renderer.LevelRenderer.lambda$renderLevel")
+        );
+        // Outro número de lambda e outra classe gerada: a mesma queda.
+        assert_eq!(
+            one,
+            sign(lambda(9, "6001/0x0000000801a2c000", "renderLevel"))
+        );
+        // Outra lambda: outra queda.
+        assert_ne!(
+            one.hash,
+            sign(lambda(4, "5123/0x000000080137e8a8", "renderEntities")).hash
+        );
+    }
+
+    #[test]
+    fn adversario_caused_by_com_n_more_usa_o_fim_da_pilha_de_fora() {
+        // A causa só tem frames do Java; o resto dela é o fim da pilha de fora (`... 4 more`):
+        // a queda foi em `ModelManager.m_5540_`, não no topo da pilha de fora nem em `runTick`.
+        let report = |shared: &str| {
+            let outer = forge_1_20_frames(
+                &[
+                    (
+                        "net.minecraft.client.resources.model.ModelManager.m_245476_",
+                        "ModelManager",
+                        120,
+                    ),
+                    (shared, "ModelManager", 90),
+                ],
+                185,
+            );
+            let tail = forge_1_20_tail(&CREATE_MODERNFIX, 185, 1146);
+            let tail: Vec<&str> = tail.lines().collect();
+            // Até o `Main`: os frames de fora que a causa repete são `shared`, `runTick`, `run` e
+            // `Main.main`.
+            let frames = format!(
+                "{outer}{}\nCaused by: {NPE_1_20}\n\tat java.base/java.util.Objects.requireNonNull(Objects.java:233) ~[?:?] {{}}\n\tat java.base/java.util.HashMap.get(HashMap.java:556) ~[?:?] {{}}\n\t... 4 more",
+                tail[..3].join("\n")
+            );
+            forge_1_20_report(
+                "java.lang.RuntimeException: Falha ao carregar os modelos",
+                &frames,
+                &["create"],
+            )
+        };
+        let sign =
+            |shared: &str| signature_of("crash", &report(shared), LogLoader::Forge, "1.20.1");
+        let one = sign("net.minecraft.client.resources.model.ModelManager.m_5540_");
+        assert_eq!(
+            one.exception.as_deref(),
+            Some("java.lang.NullPointerException")
+        );
+        assert_eq!(
+            one.frame.as_deref(),
+            Some("net.minecraft.client.resources.model.ModelManager.m_5540_")
+        );
+        assert!(
+            !one.subject
+                .iter()
+                .any(|part| part.starts_with("frame_mixin=")),
+            "{:?}",
+            one.subject
+        );
+        assert_ne!(
+            one.hash,
+            sign("net.minecraft.client.resources.model.ModelManager.m_5541_").hash
+        );
+    }
+
+    #[test]
+    fn adversario_excecao_sem_nenhum_frame_cai_na_descricao_e_na_excecao() {
+        // A JVM tira a pilha das exceções que se repetem (`OmitStackTraceInFastThrow`).
+        let report = |description: &str, exception: &str| {
+            format!(
+                "---- Minecraft Crash Report ----
+// Oops.
+
+Time: 2026-10-13 21:14:07
+Description: {description}
+
+{exception}
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+
+-- System Details --
+Details:
+\tMinecraft Version: 1.20.1
+"
+            )
+        };
+        let sign = |description: &str, exception: &str| {
+            signature_of(
+                "crash",
+                &report(description, exception),
+                LogLoader::Forge,
+                "1.20.1",
+            )
+        };
+        let npe = sign("Unexpected error", "java.lang.NullPointerException");
+        assert_eq!(npe.frame, None);
+        assert_eq!(npe.rule.as_deref(), Some("crash_report.description"));
+        assert_eq!(
+            npe.exception.as_deref(),
+            Some("java.lang.NullPointerException")
+        );
+        assert!(
+            npe.subject
+                .contains(&"description=unexpected error".to_owned()),
+            "{:?}",
+            npe.subject
+        );
+        assert_ne!(
+            npe.hash,
+            sign("Unexpected error", "java.lang.ClassCastException").hash
+        );
+        assert_ne!(
+            npe.hash,
+            sign("Rendering overlay", "java.lang.NullPointerException").hash
+        );
+    }
+
+    #[test]
+    fn adversario_queda_num_handler_de_mixin_de_mod_vale_o_handler_e_so_as_configs_dele() {
+        let handler = |configs: &[&str]| {
+            let applied = configs
+                .iter()
+                .map(|config| format!(",pl:mixin:APP:{config}:MixinGameRenderer"))
+                .collect::<Vec<_>>()
+                .concat();
+            format!(
+                "\tat net.minecraft.client.renderer.GameRenderer.handler$zzb000$renderHud(GameRenderer.java:2410) {CLIENT_1_20} {{re:mixin,pl:accesstransformer:B,re:classloading{applied},pl:mixin:A}}
+\tat net.minecraft.client.renderer.GameRenderer.m_109093_(GameRenderer.java:954) {CLIENT_1_20} {{re:mixin,pl:accesstransformer:B,re:classloading{applied},pl:mixin:A}}
+"
+            )
+        };
+        let sign = |configs: &[&str], below: &[&str]| {
+            signature_of(
+                "crash",
+                &forge_1_20_report(
+                    NPE_1_20,
+                    &format!("{}{}", handler(configs), forge_1_20_tail(below, 185, 1146)),
+                    &["oculus", "create"],
+                ),
+                LogLoader::Forge,
+                "1.20.1",
+            )
+        };
+        let oculus = sign(&["oculus.mixins.json"], &CREATE_MODERNFIX);
+        assert_eq!(
+            oculus.frame.as_deref(),
+            Some("net.minecraft.client.renderer.GameRenderer.renderHud")
+        );
+        let configs: Vec<&String> = oculus
+            .subject
+            .iter()
+            .filter(|part| part.starts_with("frame_mixin="))
+            .collect();
+        assert_eq!(configs, ["frame_mixin=oculus.mixins.json"]);
+        // As configs de `runTick` não contam; as do próprio handler, sim.
+        assert_eq!(
+            oculus,
+            sign(&["oculus.mixins.json"], &["embeddium.mixins.json"])
+        );
+        assert_ne!(
+            oculus.hash,
+            sign(&["iris.mixins.json"], &CREATE_MODERNFIX).hash
+        );
+    }
+
+    #[test]
+    fn adversario_pilha_truncada_no_crash_report_e_a_mesma_queda_da_pilha_inteira() {
+        let top = forge_1_20_frames(
+            &[(
+                "net.minecraft.client.renderer.GameRenderer.m_109093_",
+                "GameRenderer",
+                954,
+            )],
+            185,
+        );
+        let whole = format!("{top}{}", forge_1_20_tail(&CREATE_MODERNFIX, 185, 1146));
+        // O arquivo cortado no meio do frame de `runTick`.
+        let cut = format!("{top}\tat net.minecraft.client.Minecraft.m_91383_(Minecraft.ja");
+        let sign = |frames: &str| {
+            signature_of(
+                "crash",
+                &forge_1_20_report(NPE_1_20, frames, &["create"]),
+                LogLoader::Forge,
+                "1.20.1",
+            )
+        };
+        let full = sign(&whole);
+        let truncated = sign(&cut);
+        assert_eq!(
+            truncated.frame.as_deref(),
+            Some("net.minecraft.client.renderer.GameRenderer.m_109093_")
+        );
+        assert_eq!(full, truncated);
+        // Só a linha da exceção sobrou: sem frame, sem inventar um.
+        let only_exception = sign("");
+        assert_eq!(only_exception.frame, None);
+    }
+
     // ---- Mixin ------------------------------------------------------------------------------
 
     #[test]
@@ -1853,7 +2633,7 @@ java.lang.ArithmeticException: / by zero
         assert_eq!(one, two);
         assert_eq!(one.mods, ["mod:a", "mod:b"]);
         // Fixo: mudar a normalização ou o formato exige subir SIGNATURE_VERSION.
-        assert_eq!(one.hash, "a7444a66d6c2a07d");
+        assert_eq!(one.hash, "3949293e1528df05");
         let with_subject = CrashSignature::new(
             Some("r".into()),
             Some("E".into()),
