@@ -7,7 +7,7 @@
  *   mostra o contorno de foco (`outline` não recortado por `clip-path`), no WebView de verdade:
  *   o jsdom dos testes de componente não calcula estilos.
  * - Ordem do Tab: a ordem segue a do documento (nada de `tabIndex` positivo), começa pelo
- *   cabeçalho e não prende o foco em lugar nenhum fora de diálogos.
+ *   "Pular para o conteúdo" e não prende o foco em lugar nenhum fora de diálogos.
  * - Diálogos devolvem o foco: a confirmação aberta pelo menu ⋯ de Meus packs volta ao ⋯, e os
  *   detalhes do mod abertos pela linha voltam à linha (os dois abrem por estado, sem `Trigger`).
  * - axe sem violação séria em cada tela visitada.
@@ -86,16 +86,38 @@ async function tab(): Promise<Stop> {
   });
 }
 
+/** Texto do primeiro controle de toda tela (`SkipLink`; `navegacao.pularParaConteudo`). */
+const SKIP_LINK = 'Pular para o conteúdo';
+
+/**
+ * Faz o próximo Tab começar do início do documento, onde quer que o foco esteja.
+ *
+ * Tirar o foco com `blur()` não basta: o Chromium (WebView2 no Windows) guarda o "ponto de
+ * partida da navegação sequencial" no elemento que perdeu o foco, e o Tab segue dali. Ao trocar
+ * de tela o app põe o foco no `<h1>` (HANDOFF §7), então o Tab seguia do título e pulava o
+ * "Pular para o conteúdo", o cabeçalho e o menu lateral: em Problemas sem achados sobravam só
+ * "Verificar agora" e o rodapé. O WebKitGTK volta ao início com o `blur()`; o Chromium só com
+ * um foco de verdade no `<body>`, que por um instante fica focável.
+ */
+async function startTabFromTop(): Promise<void> {
+  await browser.execute(() => {
+    const body = document.body;
+    const had = body.getAttribute('tabindex');
+    body.tabIndex = -1;
+    body.focus();
+    if (had === null) body.removeAttribute('tabindex');
+    else body.setAttribute('tabindex', had);
+  });
+}
+
 /**
  * Passa o Tab pela tela inteira (até voltar ao primeiro controle ou `MAX_STOPS`) e devolve os
- * controles sem contorno de foco visível. O foco nunca cai no `<body>` no meio do caminho.
+ * controles sem contorno de foco visível. Começa pelo "Pular para o conteúdo" e o foco nunca cai
+ * no `<body>` no meio do caminho.
  */
 async function tabThroughPage(): Promise<string[]> {
   await dismissToasts();
-  // Começa do topo: o "Pular para o conteúdo" é o primeiro controle de toda tela.
-  await browser.execute(() => {
-    (document.activeElement as HTMLElement | null)?.blur();
-  });
+  await startTabFromTop();
   const missing: string[] = [];
   const visited: string[] = [];
   let first: string | null = null;
@@ -119,6 +141,10 @@ async function tabThroughPage(): Promise<string[]> {
   await browser.execute(() => {
     (document.activeElement as HTMLElement | null)?.blur();
   });
+  // O ciclo começa pelo primeiro controle do documento, não de onde o foco estava.
+  if (!first?.includes(SKIP_LINK)) {
+    throw new Error(`o Tab não começou pelo "${SKIP_LINK}":\n${visited.join('\n')}`);
+  }
   // A tela tem mais do que a moldura (pular, cabeçalho e rodapé): o Tab passou pelo conteúdo.
   const stops = visited.filter((label) => label !== 'body').length;
   if (stops <= 5) {
@@ -322,8 +348,8 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
     it(`${section}: foco visível em todos os controles; axe`, async () => {
       await openSection(section);
       // Espera a seção terminar de ler e de verificar: nada carregando por 1 s seguido. Problemas
-      // começa a verificação automática logo depois de aparecer; no Windows ela terminou no meio
-      // do Tab, a lista foi refeita e o foco caiu no `<body>`.
+      // começa a verificação automática logo depois de aparecer; se ela terminasse no meio do
+      // Tab, a lista seria refeita e o controle com o foco poderia sumir (foco no `<body>`).
       let idleSince: number | null = null;
       await browser.waitUntil(
         async () => {
