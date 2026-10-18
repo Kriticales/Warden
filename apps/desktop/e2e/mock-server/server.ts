@@ -13,6 +13,7 @@ import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge'
 import { geminiState, resetGemini, serveGemini } from './gemini';
 import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
+import { localizeCurseforge, localizeModrinth, setLocalDownloads } from './local-downloads';
 import { modpackReply } from './modpacks';
 import { servePlayer } from './player';
 // Itens inventados do pack grande dos E2E de desempenho (A-04).
@@ -187,16 +188,17 @@ function serveCurseforge(request: IncomingMessage, response: ServerResponse, pat
   request.on('end', () => {
     const route = path.slice('/curseforge/'.length);
     const key = request.headers['x-api-key'];
+    const base = `http://${request.headers.host ?? '127.0.0.1'}`;
     const reply = curseforgeReply(
       request.method ?? 'GET',
       route,
       Array.isArray(key) ? key[0] : key,
       Buffer.concat(chunks).toString('utf8'),
-      `http://${request.headers.host ?? '127.0.0.1'}`,
+      base,
     );
     response
       .writeHead(reply?.status ?? 404, { 'content-type': 'application/json; charset=utf-8' })
-      .end(JSON.stringify(reply?.body ?? {}));
+      .end(JSON.stringify(localizeCurseforge(reply?.body, base) ?? {}));
   });
 }
 
@@ -229,8 +231,11 @@ function serveVersionFiles(request: IncomingMessage, response: ServerResponse): 
   });
 }
 
-/** Serve o arquivo de fixture do caminho (404 se não existir; 400 se sair da pasta). */
-function serveFile(path: string, response: ServerResponse): void {
+/**
+ * Serve o arquivo de fixture do caminho (404 se não existir; 400 se sair da pasta). As respostas
+ * do Modrinth passam pelos downloads locais (`local-downloads.ts`), quando ligados.
+ */
+function serveFile(path: string, response: ServerResponse, base: string): void {
   const file = fixturePath(path);
   if (!file) {
     response.writeHead(400).end();
@@ -238,9 +243,10 @@ function serveFile(path: string, response: ServerResponse): void {
   }
   readFile(file)
     .then((body) => {
+      const json = path.startsWith('/modrinth/') && extname(file) === '.json';
       response
         .writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
-        .end(body);
+        .end(json ? localizeModrinth(body.toString('utf8'), base) : body);
     })
     .catch(() => {
       response.writeHead(404).end();
@@ -278,6 +284,17 @@ export async function startMockServer(): Promise<MockServer> {
     }
     if (path === '/__gemini/reset' && request.method === 'POST') {
       resetGemini();
+      response.writeHead(204).end();
+      return;
+    }
+    // Fluxo completo (A-03): os arquivos do Modrinth e da CurseForge servidos por aqui.
+    if (path === '/__downloads-locais/ligar' && request.method === 'POST') {
+      setLocalDownloads(true);
+      response.writeHead(204).end();
+      return;
+    }
+    if (path === '/__downloads-locais/desligar' && request.method === 'POST') {
+      setLocalDownloads(false);
       response.writeHead(204).end();
       return;
     }
@@ -335,9 +352,11 @@ export async function startMockServer(): Promise<MockServer> {
     void byIds(path)
       .then((body) => {
         if (body === null) {
-          serveFile(path, response);
+          serveFile(path, response, base());
         } else {
-          response.writeHead(200, { 'content-type': TYPES['.json'] }).end(body);
+          response
+            .writeHead(200, { 'content-type': TYPES['.json'] })
+            .end(localizeModrinth(body, base()));
         }
       })
       .catch(() => {
