@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, State, WebviewWindow};
+use tauri::{AppHandle, Manager as _, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt as _;
 use tauri_plugin_opener::OpenerExt as _;
 use warden_catalog::{MinecraftVersionKind, Refresh};
@@ -49,23 +49,36 @@ fn registered_path(state: &AppState, id: PackId) -> Result<PathBuf, AppError> {
         .map_err(domain)
 }
 
-/// Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos.
+/// Lista de packs registrados, inclusive pastas perdidas e manifestos inválidos (montada fora
+/// da thread da interface).
 #[tauri::command]
 #[specta::specta]
-pub(crate) fn packs_list(state: State<'_, AppState>) -> Vec<PackRow> {
-    state.packs.list()
+pub(crate) async fn packs_list(app: AppHandle) -> Vec<PackRow> {
+    // Um comando síncrono do Tauri roda na thread da interface, e montar 50 linhas lê o
+    // `pack.toml` e o git de cada pack (A-04; SPEC §8). Recebe o `AppHandle`, e não o `State`,
+    // para manter o contrato: só um comando assíncrono que não empresta argumentos pode
+    // devolver a lista sem `Result`.
+    let packs = Arc::clone(&app.state::<AppState>().packs);
+    tauri::async_runtime::spawn_blocking(move || packs.list())
+        .await
+        .unwrap_or_else(|error| {
+            tracing::error!(%error, "a lista de packs não foi montada");
+            Vec::new()
+        })
 }
 
-/// Dados de um pack da lista.
+/// Dados de um pack da lista (só a linha dele, fora da thread da interface).
 #[tauri::command]
 #[specta::specta]
-pub(crate) fn pack_get(state: State<'_, AppState>, pack_id: PackId) -> Result<PackRow, AppError> {
-    state
-        .packs
-        .list()
-        .into_iter()
-        .find(|row| row.id == pack_id)
-        .ok_or_else(|| AppError::new(ProjectErrorCode::PackNotFound))
+pub(crate) async fn pack_get(
+    state: State<'_, AppState>,
+    pack_id: PackId,
+) -> Result<PackRow, AppError> {
+    let packs = Arc::clone(&state.packs);
+    tauri::async_runtime::spawn_blocking(move || packs.row(pack_id))
+        .await
+        .map_err(|error| AppError::internal(error.to_string()))?
+        .map_err(|_| AppError::new(ProjectErrorCode::PackNotFound))
 }
 
 /// O que o assistente Criar pack mostra antes de o usuário digitar (SPEC T03, etapa 1).

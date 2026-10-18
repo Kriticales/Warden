@@ -43,5 +43,7 @@ pub use naming::{MetafileSource, metafile_stem, slugify_name, unique_metafile_st
 pub use pack::{
     CURRENT_PACK_FORMAT, DEFAULT_INDEX_FILE, IndexRef, Loader, Migration, PackManifest, Parsed,
 };
-pub use read::{MetafileRead, PACK_FILE, PACKWIZIGNORE_FILE, PackRead, read_metafile, read_pack};
+pub use read::{
+    MetafileRead, PACK_FILE, PACKWIZIGNORE_FILE, PackRead, read_manifest, read_metafile, read_pack,
+};
 pub use value::Value;

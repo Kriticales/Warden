@@ -134,7 +134,9 @@ function VirtualBody({
   renderRow: ItemGroupTableProps['renderRow'];
 }) {
   const body = useRef<HTMLTableSectionElement>(null);
-  const [margin, setMargin] = useState(0);
+  // `null` até a primeira medida (antes da pintura): sem ela, um grupo abaixo da tela se
+  // acharia no topo e montaria uma tela de linhas à toa ao abrir o pack (A-04).
+  const [margin, setMargin] = useState<number | null>(null);
   const scroller = () => document.getElementById(MAIN_ID);
 
   // Distância do começo das linhas até o topo do conteúdo rolável (muda com avisos, filtros e
@@ -144,7 +146,7 @@ function VirtualBody({
     if (!body.current || !main) return;
     const top =
       body.current.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop;
-    if (Math.abs(top - margin) > 1) setMargin(top);
+    if (margin === null || Math.abs(top - margin) > 1) setMargin(top);
   }, [items, margin]);
 
   // O TanStack Virtual devolve funções que o React Compiler não memoiza; este componente fica
@@ -155,16 +157,17 @@ function VirtualBody({
     getScrollElement: scroller,
     estimateSize: () => ROW_HEIGHT,
     overscan: OVERSCAN,
-    scrollMargin: margin,
+    scrollMargin: margin ?? 0,
     getItemKey: (index) => items[index]?.path ?? index,
     // Sem medidas (testes, primeira pintura): uma tela de 900 px.
     initialRect: { width: 1200, height: 900 },
   });
-  const rows = virtualizer.getVirtualItems();
+  const rows = margin === null ? [] : virtualizer.getVirtualItems();
   const first = rows[0];
   const last = rows[rows.length - 1];
-  const before = first ? first.start - margin : 0;
-  const after = last ? virtualizer.getTotalSize() - (last.end - margin) : 0;
+  const start = margin ?? 0;
+  const before = first ? first.start - start : 0;
+  const after = last ? virtualizer.getTotalSize() - (last.end - start) : virtualizer.getTotalSize();
   return (
     <tbody ref={body}>
       {before > 0 ? (

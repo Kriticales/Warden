@@ -14,6 +14,8 @@ import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 import { modpackReply } from './modpacks';
 import { servePlayer } from './player';
+// Itens inventados do pack grande dos E2E de desempenho (A-04).
+import { perfModrinthItems } from '../perf/modrinth';
 
 const FIXTURES = join(import.meta.dirname, 'fixtures');
 
@@ -163,6 +165,7 @@ async function byIds(urlPath: string): Promise<string | null> {
       }
     }
   }
+  found.push(...perfModrinthItems(decodeURIComponent(url.pathname).replace(/^\/+/, ''), wanted));
   return JSON.stringify(found);
 }
 

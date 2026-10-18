@@ -64,11 +64,16 @@ impl PackRead {
     }
 }
 
+/// Lê só o `pack.toml` de um pack, com o mesmo erro que [`read_pack`] daria por ele. Para quem
+/// precisa do nome e das versões sem o índice nem os metafiles (a linha de Meus packs).
+pub fn read_manifest(root: &Path) -> Result<Parsed<PackManifest>> {
+    let pack_text = read_text(&root.join(PACK_FILE))?;
+    PackManifest::parse(&pack_text).map_err(|error| error.in_file(PACK_FILE))
+}
+
 /// Lê a pasta de um pack. Falha só se o `pack.toml` não puder ser lido.
 pub fn read_pack(root: &Path) -> Result<PackRead> {
-    let pack_path = root.join(PACK_FILE);
-    let pack_text = read_text(&pack_path)?;
-    let pack = PackManifest::parse(&pack_text).map_err(|error| error.in_file(PACK_FILE))?;
+    let pack = read_manifest(root)?;
 
     let index_file = pack.value.index.file.clone();
     let index = check_relative_path(&index_file)
@@ -80,15 +85,7 @@ pub fn read_pack(root: &Path) -> Result<PackRead> {
         .parent()
         .map_or_else(|| root.to_path_buf(), |parent| root.join(parent));
     let metafiles = match &index {
-        Ok(parsed) => parsed
-            .value
-            .metafiles()
-            .into_iter()
-            .map(|path| {
-                let result = read_metafile(&index_dir, &path);
-                MetafileRead { path, result }
-            })
-            .collect(),
+        Ok(parsed) => read_metafiles(&index_dir, &parsed.value.metafiles()),
         Err(_) => Vec::new(),
     };
 
@@ -110,6 +107,55 @@ pub fn read_pack(root: &Path) -> Result<PackRead> {
         index,
         metafiles,
         packwizignore,
+    })
+}
+
+/// A partir de quantos metafiles a leitura se divide entre threads.
+const PARALLEL_FROM: usize = 64;
+
+/// Lê os metafiles na ordem do índice. Num pack grande (centenas de mods, A-04) a leitura se
+/// divide entre threads: é a base de toda tela do pack.
+fn read_metafiles(index_dir: &Path, paths: &[String]) -> Vec<MetafileRead> {
+    let read = |path: &String| MetafileRead {
+        path: path.clone(),
+        result: read_metafile(index_dir, path),
+    };
+    let workers = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZero::get)
+        .clamp(1, 8);
+    if paths.len() < PARALLEL_FROM || workers == 1 {
+        return paths.iter().map(read).collect();
+    }
+    let chunk = paths.len().div_ceil(workers);
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = paths
+            .chunks(chunk)
+            .map(|part| {
+                (
+                    part,
+                    scope.spawn(move || part.iter().map(read).collect::<Vec<_>>()),
+                )
+            })
+            .collect();
+        handles
+            .into_iter()
+            .flat_map(|(part, handle)| {
+                // Ler um metafile não entra em pânico; se entrar, os do bloco viram erro de
+                // leitura em vez de sumir da lista.
+                handle.join().unwrap_or_else(|_| {
+                    part.iter()
+                        .map(|path| MetafileRead {
+                            path: path.clone(),
+                            result: Err(Error::Io {
+                                action: "ler",
+                                path: index_dir.join(path),
+                                source: io::Error::other("a leitura parou"),
+                            }),
+                        })
+                        .collect()
+                })
+            })
+            .collect()
     })
 }
 
@@ -143,6 +189,8 @@ fn read_text(path: &Path) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+    use std::fmt::Write as _;
+
     use super::*;
 
     fn write(root: &Path, path: &str, text: &str) {
@@ -155,6 +203,60 @@ mod tests {
 
     const PACK: &str = "name = \"T\"\npack-format = \"packwiz:1.1.0\"\n\n[index]\nfile = \"index.toml\"\nhash-format = \"sha256\"\n\n[versions]\nminecraft = \"1.21.1\"\n";
     const GOOD: &str = "name = \"A\"\nfilename = \"a.jar\"\nside = \"both\"\n\n[download]\nurl = \"https://x/a.jar\"\nhash-format = \"sha256\"\nhash = \"00\"\n";
+
+    #[test]
+    fn muitos_metafiles_lidos_em_paralelo_na_ordem_do_indice() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        write(root, "pack.toml", PACK);
+        let count = PARALLEL_FROM * 3 + 5;
+        let mut index = String::from("hash-format = \"sha256\"\n");
+        for n in 0..count {
+            let path = format!("mods/m{n:03}.pw.toml");
+            let _ = write!(
+                index,
+                "\n[[files]]\nfile = \"{path}\"\nhash = \"0\"\nmetafile = true\n"
+            );
+            // Um em cada dez é inválido: o erro fica só nele.
+            let text = if n % 10 == 3 {
+                "name = ".to_owned()
+            } else {
+                GOOD.replace("name = \"A\"", &format!("name = \"M{n}\""))
+            };
+            write(root, &path, &text);
+        }
+        write(root, "index.toml", &index);
+        let read = read_pack(root).unwrap();
+        let paths: Vec<String> = read.metafiles.iter().map(|m| m.path.clone()).collect();
+        let expected: Vec<String> = (0..count)
+            .map(|n| format!("mods/m{n:03}.pw.toml"))
+            .collect();
+        assert_eq!(paths, expected);
+        for (n, metafile) in read.metafiles.iter().enumerate() {
+            match &metafile.result {
+                Ok(parsed) => assert_eq!(parsed.value.name, format!("M{n}")),
+                Err(_) => assert_eq!(n % 10, 3, "{}", metafile.path),
+            }
+        }
+        assert_eq!(read.errors().count(), count.div_ceil(10));
+    }
+
+    #[test]
+    fn read_manifest_le_so_o_pack_toml_com_o_mesmo_erro_do_read_pack() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        write(root, "pack.toml", PACK);
+        // Índice ilegível: o manifesto sai igual, sem ler o índice.
+        write(root, "index.toml", "isto não é toml = = =");
+        let manifest = read_manifest(root).unwrap();
+        assert_eq!(manifest.value.name, "T");
+        assert_eq!(manifest.value, read_pack(root).unwrap().pack.value);
+        write(root, "pack.toml", "name = ");
+        assert_eq!(
+            read_manifest(root).unwrap_err().to_string(),
+            read_pack(root).unwrap_err().to_string()
+        );
+    }
 
     #[test]
     fn ca_5_metafile_invalido_so_falha_ele() {
