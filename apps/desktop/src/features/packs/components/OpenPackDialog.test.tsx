@@ -187,7 +187,9 @@ describe('Abrir pack (T04), em diálogo sobre Meus packs', () => {
     expect(
       await screen.findByText('Esta pasta não tem um pack packwiz que o Warden consiga ler.'),
     ).toBeDefined();
-    expect(screen.getByText(/Importar \.mrpack, zip da CurseForge/)).toBeDefined();
+    expect(
+      screen.getByText(/use Abrir ou importar… e Escolher arquivo… em Meus packs/),
+    ).toBeDefined();
     expect(screen.getByText('pack.toml: arquivo não encontrado')).toBeDefined();
   });
 

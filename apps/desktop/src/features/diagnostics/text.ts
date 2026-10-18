@@ -14,6 +14,7 @@ import type {
   Severity,
   SuggestedFix,
 } from '../../lib/ipc/bindings';
+import { memoryPhraseParams } from '../test/perf-strip/heap/format';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
@@ -112,6 +113,8 @@ export function phraseParams(entry: ReportFinding): Record<string, string> {
     depNome: params.dependency_name ?? params.dependency ?? dep,
     other_name: params.other_name ?? second ?? params.other ?? '?',
     faixa: params.range ? ` (${params.range})` : '',
+    // Achados de memória (L-11): os números da sessão já formatados ("6 GB", "1 min 12 s").
+    ...memoryPhraseParams(params),
   };
 }
 
@@ -182,6 +185,13 @@ export function evidenceView(entry: ReportFinding, evidence: Evidence): Evidence
         label: t('evidencia.arquivo', { caminho: evidence.path }),
         excerpt: evidence.excerpt,
       };
+    case 'measurement':
+      return {
+        label: t('evidencia.medida'),
+        excerpt: exists(`evidencia.medidas.${evidence.metric}`)
+          ? t(`evidencia.medidas.${evidence.metric}`, memoryPhraseParams(evidence.values))
+          : null,
+      };
   }
 }
 
@@ -201,7 +211,9 @@ export function fixLabel(entry: ReportFinding, fix: SuggestedFix): string {
         ? t('correcao.java')
         : t('correcao.javaVersao', { major: fix.major });
     case 'changeMemory':
-      return t('correcao.memoria');
+      return entry.finding.rule === 'I_HEAP_OVERSIZED'
+        ? t('correcao.memoriaMenos')
+        : t('correcao.memoria');
     case 'removeJvmArgument':
       return t('correcao.argumento', { argumento: fix.argument });
     case 'restoreConfig':

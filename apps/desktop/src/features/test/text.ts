@@ -75,10 +75,12 @@ const WARDEN_MESSAGES = new Set([
  * pela chave do catálogo, com durações e memória formatadas.
  */
 export function consoleText(line: ConsoleLine): string {
-  if (line.origin === 'game') {
+  if (line.origin !== 'warden') {
     return line.text;
   }
-  if (!WARDEN_MESSAGES.has(line.text)) {
+  // As do servidor local vêm com o namespace na chave (`servidor:console.pronto`; L-09).
+  const namespaced = line.text.startsWith('servidor:console.') && i18n.exists(line.text);
+  if (!WARDEN_MESSAGES.has(line.text) && !namespaced) {
     return line.text;
   }
   const { duracaoMs, memoriaMb, ...rest } = line.params;
@@ -88,8 +90,11 @@ export function consoleText(line: ConsoleLine): string {
   return translateDynamic(line.text, { ns: 'teste', ...values });
 }
 
-/** Hora de uma linha do console: a do relógio do Warden ("14:20:05") ou a escrita pelo jogo. */
-export function consoleTime(line: ConsoleLine): string {
+/**
+ * Hora de uma linha do console (ou de um item do console agrupado): a do relógio do Warden
+ * ("14:20:05") ou a escrita pelo jogo.
+ */
+export function consoleTime(line: Pick<ConsoleLine, 'atMs' | 'time'>): string {
   if (line.atMs !== null) {
     return clock.format(line.atMs);
   }

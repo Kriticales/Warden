@@ -23,6 +23,7 @@ import { seriousViolationSummaries } from './axe';
 import { GITHUB_LOGIN, GITHUB_TOKEN } from './mock-server/github';
 import { jogadorJar } from './mock-server/player';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const READY =
@@ -210,7 +211,7 @@ describe('Testar como o jogador recebe (L-07; T13)', function () {
 
   it('pack não publicado: avisa e instala do zero o pack exportado agora, numa instância limpa; axe', async () => {
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

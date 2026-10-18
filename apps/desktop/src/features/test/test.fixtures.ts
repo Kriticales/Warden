@@ -31,6 +31,7 @@ export function makeSession(overrides: Partial<TestSessionSummary> = {}): TestSe
     crashReports: [],
     hsErrFiles: [],
     perf: null,
+    server: null,
     ...overrides,
   };
 }

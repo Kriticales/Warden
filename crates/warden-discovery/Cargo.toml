@@ -21,13 +21,15 @@ base64.workspace = true
 url.workspace = true
 tracing.workspace = true
 thiserror.workspace = true
+# Modpacks (P1-17): o zip do modpack lido por partes e o índice/manifesto em JSON.
+zip.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 wiremock.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+tokio = { workspace = true, features = ["io-util", "macros", "net", "rt-multi-thread", "time"] }
 tempfile.workspace = true
 warden-packwiz.workspace = true
-serde_json.workspace = true
 
 [lints]
 workspace = true

@@ -5,7 +5,9 @@
 #     dos segredos do repositório. É o único workflow que recebe segredos;
 #   - windows: check, cofre real e instalador do `windows.yml` (decisão D9);
 #   - conformidade no Windows: testes `conformance_*` com o packwiz-installer real e o Java 21;
-#   - E2E no Windows, assim que o harness da F0-06 existir.
+#   - E2E no Windows, assim que o harness da F0-06 existir;
+#   - memória da JVM no Windows: o leitor do `hsperfdata` contra o `jstat` com os JREs 8, 17, 21
+#     e 25 (L-11).
 
 name: Noturno
 
@@ -55,6 +57,33 @@ jobs:
       installer: true
       # Arquivos `tests/conformance_*.rs` (QUALITY §4.1); enquanto não existirem, só avisa.
       run: cargo nextest run --workspace --locked --no-tests=warn -E 'binary(/^conformance_/)'
+
+  memoria-jvm-windows:
+    name: Windows · memória da JVM (Java 8, 17, 21 e 25)
+    uses: ./.github/workflows/comum.yml
+    with:
+      runner: windows-latest
+      cache-key: windows-memoria-jvm
+      timeout-minutes: 60
+      # O JDK 21 do `setup-java` traz o `jstat` (só para comparar; o Warden não usa JDK).
+      java: true
+      # L-11 (CA-T13-10): os JREs Temurin 8, 17, 21 e 25 baixados da API do Adoptium (como no
+      # spike S-R5-2); `tests/hsperf_jvm_real.rs` compara a leitura do Warden com o `jstat` em
+      # cada um, com o programa parado, e confere as flags que desligam a leitura.
+      run: |
+        dir="$RUNNER_TEMP/jres"
+        mkdir -p "$dir"
+        javas=""
+        for major in 8 17 21 25; do
+          curl -fsSL --retry 4 -o "$dir/jre-$major.zip" \
+            "https://api.adoptium.net/v3/binary/latest/$major/ga/windows/x64/jre/hotspot/normal/eclipse"
+          unzip -q "$dir/jre-$major.zip" -d "$dir/$major"
+          java="$(ls -d "$dir/$major"/*/bin/java.exe | head -n 1)"
+          javas="${javas:+$javas;}$(cygpath -w "$java")"
+        done
+        export WARDEN_HSPERF_JAVAS="$javas"
+        export WARDEN_HSPERF_JSTAT="$(cygpath -w "$JAVA_HOME/bin/jstat.exe")"
+        cargo nextest run --locked -p warden-perf --test hsperf_jvm_real --no-capture
 
   detectar-e2e:
     name: Windows · E2E existe?

@@ -18,6 +18,7 @@ import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { useSaveSessionLog } from '../api';
 import { Console } from '../console/Console';
 import { orderedBlocks } from '../result-blocks';
+import { serverResultTitle } from '../server/text';
 import { formatDuration, formatWhen } from '../text';
 
 const OUTCOME_ICON = {
@@ -65,7 +66,7 @@ export function ResultView({ packId, session, lines, truncated, onTestAgain }: R
         title={
           <span className="result-title">
             <Icon icon={outcome.icon} className={`icon--lg ${outcome.className}`} />
-            {t(`resultado.${session.outcome}`)}
+            {serverResultTitle(session) ?? t(`resultado.${session.outcome}`)}
           </span>
         }
         sub={sub}
@@ -102,6 +103,7 @@ export function ResultView({ packId, session, lines, truncated, onTestAgain }: R
               <Console
                 lines={lines}
                 state="ended"
+                grouped={{ packId, sessionId: session.id }}
                 onSave={() => {
                   save.mutate(session.id, {
                     onSuccess: (path) => {

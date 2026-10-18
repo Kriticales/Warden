@@ -254,6 +254,12 @@ impl SettingsStore {
         self.modify(|settings| settings.packs_dir = dir)
     }
 
+    /// Grava (ou apaga, com `None`) o aceite da EULA do Minecraft (servidor local, L-09). Só
+    /// os comandos `server_eula_accept` e `server_eula_revoke` chamam.
+    pub fn set_eula_accepted_at(&self, accepted_at: Option<String>) -> Result<Settings, AppError> {
+        self.modify(|settings| settings.eula_accepted_at = accepted_at)
+    }
+
     fn modify(&self, change: impl FnOnce(&mut Settings)) -> Result<Settings, AppError> {
         let mut state = self.lock();
         if state.read_only {

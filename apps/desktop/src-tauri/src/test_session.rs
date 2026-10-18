@@ -25,6 +25,7 @@ mod console;
 mod fake;
 mod launch_plan;
 mod records;
+mod server_mode;
 mod system;
 
 use std::path::{Path, PathBuf};
@@ -58,7 +59,8 @@ pub(crate) use self::launch_plan::{PlanInput, choose_memory, launch_options};
 pub(crate) use self::records::{
     TestSessionSummary, last_test_value, pack_tree_hash, pack_tree_hash_of,
 };
-pub(crate) use self::system::total_memory_mb;
+pub(crate) use self::server_mode::{ServerSide, server_log_path, server_side};
+pub(crate) use self::system::{available_memory_mb, total_memory_mb};
 
 use self::fake::FakeGame;
 use self::launch_plan::JAVA8_WARN_ABOVE_MB;
@@ -90,8 +92,8 @@ const CONSOLE_BATCH: Duration = Duration::from_millis(50);
 /// Quanto o "Fechar o Warden" espera o jogo fechar e a sessão ser gravada.
 pub(crate) const QUIT_WAIT: Duration = Duration::from_secs(10);
 
-/// Modo do teste (ARCHITECTURE §4.1). Existem o normal e o "como o jogador recebe" (L-07);
-/// os outros chegam com as tarefas donas (L-12, L-09).
+/// Modo do teste (ARCHITECTURE §4.1). Existem o normal, o "como o jogador recebe" (L-07) e o
+/// "como servidor" (L-09, em [`server_mode`]); o perfil de desempenho chega com a L-12.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum TestMode {
@@ -120,6 +122,9 @@ pub(crate) struct TestRequest {
     /// "Testar mesmo assim": testar apesar dos erros do pré-teste (resposta ao
     /// `app.TEST_PACK_HAS_ERRORS`, D-03).
     pub(crate) ignore_pack_errors: bool,
+    /// Testar como servidor: "Só o servidor" (sem abrir o jogo; L-09). Fora desse modo, não
+    /// vale.
+    pub(crate) server_only: bool,
 }
 
 /// O teste ativo.
@@ -143,6 +148,8 @@ pub(crate) struct TestSessions {
     /// "Como o jogador recebe" (L-07): de onde vêm os jars do instalador e, nos testes e no
     /// E2E, os ajustes do Java do instalador.
     player: as_player::PlayerConfig,
+    /// O servidor simulado do E2E (com o jogo simulado; L-09).
+    fake_server: Option<crate::server_session::FakeServer>,
     #[cfg(test)]
     launch_tweak: Option<LaunchTweak>,
     /// Endereço da CurseForge simulada (testes dos downloads manuais, L-06).
@@ -160,6 +167,8 @@ pub(crate) struct LaunchTweak {
     pub(crate) options: Arc<dyn Fn(&mut warden_launcher::LaunchOptions) + Send + Sync>,
     /// Variáveis de ambiente acrescentadas ao jogo.
     pub(crate) env: Vec<(String, String)>,
+    /// A linha de comando do jogo é recusada (um erro ao preparar a abertura).
+    pub(crate) refuse_command: bool,
 }
 
 impl std::fmt::Debug for TestSessions {
@@ -187,12 +196,16 @@ impl TestSessions {
         if fake.is_some() {
             tracing::warn!("jogo simulado do E2E ligado: o Testar não abre o Minecraft");
         }
+        let fake_server = fake
+            .as_ref()
+            .and_then(|_| crate::server_session::FakeServer::from_env());
         Self {
             active: Mutex::new(None),
             busy: watch::channel(false).0,
             engine,
             fake,
             player: as_player::PlayerConfig::from_env(),
+            fake_server,
             #[cfg(test)]
             launch_tweak: None,
             #[cfg(test)]
@@ -232,6 +245,18 @@ impl TestSessions {
 
     fn lock(&self) -> MutexGuard<'_, Option<Active>> {
         self.active.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// O servidor simulado do E2E, quando ligado junto com o jogo simulado (L-09).
+    pub(crate) fn fake_server(&self) -> Option<&crate::server_session::FakeServer> {
+        self.fake_server.as_ref()
+    }
+
+    /// O mesmo, com o servidor simulado na pasta dada (testes).
+    #[cfg(test)]
+    pub(crate) fn with_fake_server(mut self, class_dir: PathBuf) -> Self {
+        self.fake_server = Some(crate::server_session::FakeServer::new(class_dir));
+        self
     }
 
     /// O jogo aberto (ou em preparação), se houver.
@@ -384,7 +409,10 @@ pub(crate) async fn run_test(
     request: TestRequest,
     sink: TestSink,
 ) -> Result<TestSessionSummary, AppError> {
-    if !matches!(request.mode, TestMode::Normal | TestMode::AsPlayer) {
+    if !matches!(
+        request.mode,
+        TestMode::Normal | TestMode::AsPlayer | TestMode::Server
+    ) {
         return Err(AppError::new(AppErrorCode::TestModeUnavailable).with_param(
             "mode",
             serde_json::to_value(request.mode)
@@ -473,6 +501,9 @@ impl Runner<'_> {
         let hooks = crate::test_hooks::registered();
         self.run_hooks(&hooks, &pack_root, &dirs, Moment::BeforePrepare)
             .await?;
+        if self.request.mode == TestMode::Server {
+            return self.run_server(&hooks, pack_root, dirs).await;
+        }
         let prepared = self.prepare(pack_root, dirs).await?;
         self.run_hooks(
             &hooks,
@@ -655,7 +686,6 @@ impl Runner<'_> {
     /// apps de terceiros abrem os downloads manuais (T20; `commands::cf_blocked`, L-06): o
     /// teste espera todos chegarem ao cache de downloads e copia de novo, sozinho.
     async fn sync_instance(&self, pack_root: &Path, dirs: &InstanceDirs) -> Result<(), AppError> {
-        let sources = materialize_sources(self.state)?;
         let options = MaterializeOptions {
             on_modified: if self.request.replace_instance_changes {
                 OnModified::Overwrite
@@ -673,9 +703,21 @@ impl Runner<'_> {
                 }),
             ..MaterializeOptions::default()
         };
+        self.sync_with(pack_root, dirs, &options).await
+    }
+
+    /// A materialização com os downloads manuais (T20), com as opções dadas (a instância de
+    /// teste, ou a pasta do servidor local com o lado `server`, L-09).
+    async fn sync_with(
+        &self,
+        pack_root: &Path,
+        dirs: &InstanceDirs,
+        options: &MaterializeOptions,
+    ) -> Result<(), AppError> {
+        let sources = materialize_sources(self.state)?;
         loop {
             let report = self
-                .materialize_once(&sources, pack_root, dirs, &options)
+                .materialize_once(&sources, pack_root, dirs, options)
                 .await?;
             if report.blocked.is_empty() {
                 tracing::info!(
@@ -683,7 +725,8 @@ impl Runner<'_> {
                     downloaded = report.downloaded,
                     removed = report.removed,
                     unchanged = report.unchanged,
-                    "instância de teste sincronizada"
+                    side = options.side.as_str(),
+                    "pack copiado para o teste"
                 );
                 return Ok(());
             }
@@ -738,9 +781,20 @@ impl Runner<'_> {
         Ok(report)
     }
 
-    /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste.
-    fn plan_launch(&self, prepared: &Prepared) -> Result<Launch, AppError> {
-        self.plan_launch_with(prepared, &LaunchExtra::default())
+    /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste. Com o
+    /// servidor local (`server_port`, L-09), o jogo entra nele pelo Quick Play.
+    fn plan_launch(
+        &self,
+        prepared: &Prepared,
+        server_port: Option<u16>,
+    ) -> Result<Launch, AppError> {
+        self.plan_launch_with(
+            prepared,
+            &LaunchExtra {
+                server_port,
+                ..LaunchExtra::default()
+            },
+        )
     }
 
     /// [`Runner::plan_launch`] com o que a busca do culpado acrescenta (D-12).
@@ -788,6 +842,9 @@ impl Runner<'_> {
         if extra.quick_play_path.is_some() {
             options.quick_play_path.clone_from(&extra.quick_play_path);
         }
+        if let Some(port) = extra.server_port {
+            server_mode::join_server(&mut options, port);
+        }
         let perf_flags = crate::test_profiles::perf_flags(&options.extra_jvm_args);
         if !perf_flags.is_empty() {
             self.handle.warn(
@@ -808,6 +865,11 @@ impl Runner<'_> {
         #[cfg(test)]
         if let Some(tweak) = &self.state.tests.launch_tweak {
             (tweak.options)(&mut options);
+            if tweak.refuse_command {
+                return Err(AppError::internal(
+                    "linha de comando do jogo recusada (teste)",
+                ));
+            }
         }
         let mut command = self
             .state
@@ -825,6 +887,8 @@ impl Runner<'_> {
             memory,
             signature,
             machine,
+            jvm_args: options.extra_jvm_args,
+            mod_count: prepared.mod_count,
         })
     }
 
@@ -836,14 +900,27 @@ impl Runner<'_> {
     ) -> Result<TestSessionSummary, AppError> {
         self.handle.ensure_not_cancelled()?;
         self.handle.stage(STAGE_LAUNCH, STAGE_LAUNCH_LABEL);
-        let launch = self.plan_launch(&prepared)?;
-        let sessions_dir = prepared.sessions_dir.clone();
-        let first_launch = list_sessions(&sessions_dir).map_or(true, |sessions| {
-            sessions.iter().all(|session| session.record.is_none())
-        });
-        let session = SessionDir::create(&sessions_dir, SystemTime::now())
-            .map_err(|error| AppError::from_domain(&error))?;
-        let session_id = session_name(&session);
+        let launch = self.plan_launch(&prepared, None)?;
+        let opened = OpenedSession::create(prepared.sessions_dir.clone())?;
+        self.play_in(hooks, prepared, launch, opened, None).await
+    }
+
+    /// Passos 5 e 6 numa sessão já criada: abre o jogo, acompanha e grava a sessão. Com o
+    /// servidor local aberto (L-09), ele é parado quando o jogo fecha e entra no registro.
+    async fn play_in(
+        &self,
+        hooks: &[Arc<dyn TestHooks>],
+        prepared: Prepared,
+        launch: Launch,
+        opened: OpenedSession,
+        server: Option<server_mode::ServerLink>,
+    ) -> Result<TestSessionSummary, AppError> {
+        let OpenedSession {
+            sessions_dir,
+            first_launch,
+            session,
+            session_id,
+        } = opened;
         let (process, events) = GameProcess::spawn(
             &launch.command,
             SpawnOptions {
@@ -865,7 +942,7 @@ impl Runner<'_> {
             active.state.session_id = Some(session_id.clone());
             active.game = Some(game.clone());
         });
-        self.game_started(hooks, &prepared, &process, &game, &session)
+        self.game_started(hooks, &prepared, &launch, &process, &game, &session)
             .await;
         self.console(vec![ConsoleLine::warden(
             "console.abrindo",
@@ -924,8 +1001,12 @@ impl Runner<'_> {
             .after_exit(hooks, &prepared, &exit, &session, &record)
             .await;
         record.extra.extend(hook_fields);
+        let mut outcome = exit.outcome;
+        if let Some(server) = server {
+            outcome = server_mode::worst(outcome, server.finish(self, &mut record).await);
+        }
         let summary = TestSessionSummary::from_record(&session_id, &record);
-        self.finish_session(&session, &record, &sessions_dir, exit.outcome)?;
+        self.finish_session(&session, &record, &sessions_dir, outcome)?;
         Ok(summary)
     }
 
@@ -934,6 +1015,7 @@ impl Runner<'_> {
         &self,
         hooks: &[Arc<dyn TestHooks>],
         prepared: &Prepared,
+        launch: &Launch,
         process: &GameProcess,
         game: &GameHandle,
         session: &SessionDir,
@@ -947,6 +1029,10 @@ impl Runner<'_> {
             pack_version: prepared.pack_version.as_deref(),
             session_dir: session.path(),
             events: &self.sink.events,
+            memory_mb: launch.memory.mb,
+            pack_suggestion_mb: launch.pack_suggestion_mb(),
+            jvm_args: &launch.jvm_args,
+            game_env: &launch.command.env,
         };
         for hook in hooks {
             hook.on_game_started(&context, &game_context).await;
@@ -1062,6 +1148,8 @@ pub(crate) struct LaunchExtra {
     pub(crate) system_props: Vec<(String, String)>,
     /// `--quickPlayPath` (relativo ao `gameDir`).
     pub(crate) quick_play_path: Option<String>,
+    /// Porta do servidor local em que o jogo entra (L-09).
+    pub(crate) server_port: Option<u16>,
 }
 
 /// O jogo do pack instalado para outra pasta (a instância de cada rodada da busca do culpado,
@@ -1159,12 +1247,57 @@ impl BisectGame {
     }
 }
 
+/// A pasta da sessão, criada logo antes de abrir o jogo (ou o servidor local).
+struct OpenedSession {
+    sessions_dir: PathBuf,
+    /// Primeira abertura desta instância (nenhuma sessão gravada antes).
+    first_launch: bool,
+    session: SessionDir,
+    session_id: String,
+}
+
+impl OpenedSession {
+    /// Cria a sessão em `sessions_dir` (o da instância de teste do pack).
+    fn create(sessions_dir: PathBuf) -> Result<Self, AppError> {
+        let first_launch = list_sessions(&sessions_dir).map_or(true, |sessions| {
+            sessions.iter().all(|session| session.record.is_none())
+        });
+        let session = SessionDir::create(&sessions_dir, SystemTime::now())
+            .map_err(|error| AppError::from_domain(&error))?;
+        let session_id = session_name(&session);
+        Ok(Self {
+            sessions_dir,
+            first_launch,
+            session,
+            session_id,
+        })
+    }
+}
+
 /// A abertura planejada.
 struct Launch {
     command: warden_launcher::LaunchCommand,
     memory: launch_plan::MemoryChoice,
     signature: ProfileSignature,
     machine: MachineFingerprint,
+    /// Os argumentos da JVM do teste (para os ganchos: a L-11 confere os que desligam a
+    /// leitura da memória).
+    jvm_args: Vec<String>,
+    /// Mods do pack (para a sugestão de memória da L-11).
+    mod_count: usize,
+}
+
+impl Launch {
+    /// A memória automática do Warden para o tamanho do pack, neste computador.
+    fn pack_suggestion_mb(&self) -> u32 {
+        choose_memory(
+            crate::settings::TestMemory::Auto,
+            crate::settings::TestMemory::Auto,
+            self.mod_count,
+            self.machine.memory_mb,
+        )
+        .mb
+    }
 }
 
 /// Momento dos ganchos antes do jogo.

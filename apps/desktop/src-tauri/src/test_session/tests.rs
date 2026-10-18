@@ -6,6 +6,8 @@
 //! de processo da `warden-launcher`).
 
 #![allow(clippy::print_stderr)] // aviso de teste pulado
+// Os auxiliares são `pub(super)`: os testes do "Testar como servidor" (`server_mode`) usam os
+// mesmos (L-09).
 
 use std::collections::BTreeMap;
 use std::sync::Mutex as StdMutex;
@@ -59,12 +61,15 @@ pub(super) fn java_major(java: &Path) -> u32 {
 }
 
 /// Estado de teste com o jogo simulado no lugar do motor.
-fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+pub(super) fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     fake_state_with(root, None)
 }
 
 /// O mesmo, com a CurseForge simulada em `curseforge_base` (L-06).
-fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<AppState>> {
+pub(super) fn fake_state_with(
+    root: &Path,
+    curseforge_base: Option<String>,
+) -> Option<Arc<AppState>> {
     let Some(java) = java() else {
         eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste do jogo simulado pulado");
         return None;
@@ -83,7 +88,7 @@ fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<A
     Some(Arc::new(state))
 }
 
-fn sha256(bytes: &[u8]) -> String {
+pub(super) fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
@@ -149,7 +154,7 @@ impl Seen {
             .collect()
     }
 
-    fn phases(&self) -> Vec<GamePhase> {
+    pub(super) fn phases(&self) -> Vec<GamePhase> {
         self.states
             .lock()
             .unwrap()
@@ -1218,6 +1223,7 @@ async fn ca_t13_01_jogo_real_entra_no_mundo_pelo_testar() {
             }
         }),
         env: vec![("ALSOFT_DRIVERS".into(), "null".into())],
+        refuse_command: false,
     };
     state.tests =
         Arc::new(TestSessions::new(&state.paths, &state.catalog).with_launch_tweak(tweak));
@@ -1641,6 +1647,41 @@ async fn test_with_markers(state: &Arc<AppState>, pack: PackId) -> (TestSessionS
     (summary, seen)
 }
 
+/// A memória do jogo de um teste com o jogo simulado (L-11): ele é uma JVM de verdade, que
+/// publica o `hsperfdata`; o máximo é a memória do teste. Devolve o resumo gravado na sessão.
+fn assert_heap_read(
+    seen: &Seen,
+    first: &TestSessionSummary,
+    peak: u32,
+) -> warden_perf::HeapSummary {
+    let perf = first.perf.clone().expect("desempenho na sessão");
+    let Some(OperationEvent::PerfSample {
+        heap_used_mb,
+        heap_max_mb,
+        heap,
+        heap_unavailable,
+        peak_rss_mb,
+        ..
+    }) = perf_samples(seen).last().cloned()
+    else {
+        unreachable!()
+    };
+    assert!(heap_used_mb.is_some_and(|mb| mb >= 64), "{heap_used_mb:?}");
+    assert_eq!(heap_max_mb, first.memory_mb);
+    assert!(heap.is_some_and(|heap| !heap.series_mb.is_empty() && heap.low_heap_s.is_none()));
+    assert_eq!(heap_unavailable, None);
+    assert!(peak_rss_mb.is_some_and(|mb| mb <= peak));
+    let heap = perf.heap.clone().expect("memória do jogo na sessão");
+    assert!(heap.peak_used_mb >= 64, "{heap:?}");
+    assert_eq!(Some(heap.max_mb), first.memory_mb);
+    assert!(heap.readings >= 1);
+    assert_eq!(perf.heap_unavailable, None);
+    // 64 MB de uma heap de alguns GB, por poucos segundos: nenhum achado de memória.
+    assert!(perf.findings.is_empty(), "{:?}", perf.findings);
+
+    heap
+}
+
 /// CA-T13-09: toda sessão grava o pico de RAM do processo e os tempos até carregar e até
 /// entrar no mundo; com o jogo aberto, as amostras passam pelo canal a cada 1 s e param quando
 /// o jogo fecha; a sessão de outra versão do pack vira a comparação; cada teste acrescenta uma
@@ -1676,17 +1717,7 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
     let after_exit = perf_samples(&seen).len();
     tokio::time::sleep(Duration::from_millis(1500)).await;
     assert_eq!(perf_samples(&seen).len(), after_exit);
-    // Nada além da RAM e dos tempos nesta tarefa (a memória da JVM é da L-11).
-    let Some(OperationEvent::PerfSample {
-        heap_used_mb,
-        peak_rss_mb,
-        ..
-    }) = perf_samples(&seen).last().cloned()
-    else {
-        unreachable!()
-    };
-    assert_eq!(heap_used_mb, None);
-    assert!(peak_rss_mb.is_some_and(|mb| mb <= peak));
+    let heap = assert_heap_read(&seen, &first, peak);
 
     // O session.json tem o campo; a lista de sessões lê o mesmo.
     let session = session_dir(&state.paths, pack, &first.id).unwrap();
@@ -1732,6 +1763,11 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
     assert_eq!(lines[0]["modo"], "normal");
     assert_eq!(lines[0]["carregou_ms"], loaded);
     assert_eq!(lines[0]["ram_pico_mb"], peak);
+    // O pico depois das coletas, ou `null` (o jogo simulado quase não coleta), nunca o bruto.
+    assert_eq!(
+        lines[0].get("heap_pico_mb"),
+        Some(&serde_json::json!(heap.peak_after_gc_mb))
+    );
     assert_eq!(lines[0]["primeira_abertura"], true);
     assert_eq!(lines[1]["primeira_abertura"], false);
     assert_eq!(lines[1]["resultado"], "stoppedByUser");
@@ -1756,6 +1792,52 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
             .perf_file(pack)
             .starts_with(InstanceDirs::for_pack(&state.paths, pack).state_dir)
     );
+}
+
+/// CA-T13-10 (parte da faixa): com `-XX:+PerfDisableSharedMem` nos argumentos do teste, a JVM
+/// não publica a memória; a amostra traz o motivo (o argumento) desde a primeira, sem número
+/// inventado, e a sessão grava o mesmo motivo, sem achados de memória.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn ca_t13_10_argumento_que_desliga_a_leitura_vira_o_motivo() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, &[], "marcadores 300");
+    let pack = register(&state, &root);
+    let fields = crate::test_profiles::ProfileFields {
+        jvm_args: "-Dx=1 -XX:+PerfDisableSharedMem".into(),
+        ..Default::default()
+    };
+    let profile =
+        crate::test_profiles::create_profile(&state, pack, "Sem leitura", fields).unwrap();
+    crate::test_profiles::select_profile(&state, pack, &profile.id).unwrap();
+
+    let (summary, seen) = test_with_markers(&state, pack).await;
+    let argument = warden_perf::HeapUnavailable::Argument {
+        argument: "-XX:+PerfDisableSharedMem".into(),
+    };
+    let samples = perf_samples(&seen);
+    assert!(!samples.is_empty());
+    for event in &samples {
+        let OperationEvent::PerfSample {
+            heap_used_mb,
+            heap,
+            heap_unavailable,
+            ..
+        } = event
+        else {
+            unreachable!()
+        };
+        assert_eq!(*heap_used_mb, None);
+        assert_eq!(*heap, None);
+        assert_eq!(heap_unavailable.as_ref(), Some(&argument));
+    }
+    let perf = summary.perf.unwrap();
+    assert_eq!(perf.heap, None);
+    assert_eq!(perf.heap_unavailable, Some(argument));
+    assert!(perf.findings.is_empty());
 }
 
 /// Um jogo que fecha sozinho antes de carregar grava a sessão sem "Abriu em" e sem travar a
@@ -1800,6 +1882,7 @@ fn fake_state_watching(
             *seen_options.lock().unwrap() = Some(options.clone());
         }),
         env: Vec::new(),
+        refuse_command: false,
     });
     state.tests = Arc::new(sessions);
     Some(Arc::new(state))

@@ -36,6 +36,7 @@ import { join, relative } from 'node:path';
 import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -238,7 +239,7 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
   it('abre um pack packwiz existente e limpa os três arquivos (CA-T04-01)', async () => {
     await backToList();
     pickNext(OLD_PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('h2*=3 arquivos não deveriam ir para quem joga o pack').waitForDisplayed();
     await expect($('td.path*=config/x.toml.bak')).toExist();

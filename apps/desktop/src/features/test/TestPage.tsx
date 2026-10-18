@@ -43,6 +43,7 @@ import {
   useTestStore,
   type TestRun,
 } from './store';
+import { ServerRunningView } from './server/ServerRunningView';
 import { PrepareView, RunningView } from './views/LiveViews';
 import { PackErrorsView } from './verification/PackErrorsView';
 import { ResultView } from './views/ResultView';
@@ -66,7 +67,9 @@ export function TestPage({ packId, sessionId }: { packId: PackId; sessionId: str
   if (run && isActive(run)) {
     return (
       <div className="stack test-page">
-        {run.status === 'running' ? (
+        {run.status === 'running' && run.request.mode === 'server' ? (
+          <ServerRunningView run={run} pack={pack.data} />
+        ) : run.status === 'running' ? (
           <RunningView run={run} pack={pack.data} />
         ) : (
           <PrepareView run={run} pack={pack.data} />

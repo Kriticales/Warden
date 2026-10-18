@@ -25,6 +25,7 @@ import { seriousViolationSummaries } from './axe';
 import { GITHUB_LOGIN, GITHUB_TOKEN, type GithubState } from './mock-server/github';
 import { replaceValue } from './fields';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -139,7 +140,7 @@ describe('Publicar versão no GitHub (V-03; T18)', () => {
     await dismissToasts();
     await $('header.topbar').$('a*=Meus packs').click();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });

@@ -38,6 +38,7 @@ pub fn project_type(kind: ProjectKind) -> ProjectType {
         ProjectKind::Mod => ProjectType::Mod,
         ProjectKind::ResourcePack => ProjectType::Resourcepack,
         ProjectKind::Shader => ProjectType::Shader,
+        ProjectKind::Modpack => ProjectType::Modpack,
     }
 }
 
@@ -260,6 +261,14 @@ mod tests {
         let shaders = modrinth_query(&query(ProjectKind::Shader, false));
         assert!(!param(&shaders, "facets").contains("categories:"));
         assert!(param(&shaders, "facets").contains("project_type:shader"));
+        // Modpacks (P1-17): o tipo do Modrinth e o loader do pack.
+        let modpacks = modrinth_query(&query(ProjectKind::Modpack, false));
+        let facets = param(&modpacks, "facets");
+        assert!(
+            facets.starts_with(r#"[["project_type:modpack"]"#),
+            "{facets}"
+        );
+        assert!(facets.contains(r#"["categories:fabric"]"#), "{facets}");
         // Sem versão compatível: só o tipo (e o ambiente) continuam.
         let all = modrinth_query(&query(ProjectKind::Mod, true));
         assert_eq!(

@@ -94,72 +94,6 @@ export const commands = {
 	operationsList: () => typedError<OperationSnapshot[], AppError>(__TAURI_INVOKE("operations_list")),
 	/**  Pede o cancelamento de uma operação. */
 	operationCancel: (operationId: OperationId) => typedError<null, AppError>(__TAURI_INVOKE("operation_cancel", { operationId })),
-	/**  O que o diálogo de configuração mostra. */
-	bisectPlan: (packId: PackId) => typedError<BisectPlan, AppError>(__TAURI_INVOKE("bisect_plan", { packId })),
-	/**
-	 *  Começa uma busca nova. Volta quando ela termina ou pausa. Erros: `app.GAME_ALREADY_RUNNING`,
-	 *  `bisect.NOTHING_TO_SEARCH`, `bisect.NO_TEST_WORLD`, `bisect.NEEDS_SERVER`.
-	 */
-	bisectStart: (packId: PackId, request: BisectRequest, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_start", { packId, request, onEvent })),
-	/**
-	 *  Continua a busca pausada (até em outro dia). Erros: `bisect.NOT_FOUND`,
-	 *  `bisect.NOT_RESUMABLE`.
-	 */
-	bisectResume: (packId: PackId, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_resume", { packId, onEvent })),
-	/**
-	 *  "Continuar a busca sem" o conjunto achado, quando há outro problema. Erros:
-	 *  `bisect.NOT_FOUND`, `bisect.NOT_RESUMABLE`.
-	 */
-	bisectContinueWithout: (packId: PackId, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_continue_without", { packId, onEvent })),
-	/**  "Pausar depois desta rodada". Erros: `bisect.NOT_RESUMABLE` (nenhuma busca rodando). */
-	bisectPause: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("bisect_pause", { packId })),
-	/**  Cancela a busca (rodando ou pausada), guardando o resultado parcial. */
-	bisectCancel: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("bisect_cancel", { packId })),
-	/**  Resposta do modo assistido. Erros: `bisect.NO_QUESTION`. */
-	bisectAnswer: (packId: PackId, answer: AssistedAnswer) => typedError<null, AppError>(__TAURI_INVOKE("bisect_answer", { packId, answer })),
-	/**  A busca guardada do pack, se houver. */
-	bisectGet: (packId: PackId) => typedError<{
-	/**  Identificador da busca. */
-	id: string,
-	/**  Situação. */
-	status: BisectStatus,
-	/**  O que o usuário descreveu. */
-	symptom: Symptom,
-	/**  Travamento de origem (hash da assinatura). */
-	originCrash: string | null,
-	/**  Rodadas feitas. */
-	rounds: BisectRoundView[],
-	/**  A rodada em andamento. */
-	current: BisectCurrent | null,
-	/**  Suspeitos agora. */
-	suspects: BisectItem[],
-	/**  Quantos itens entram na busca. */
-	searched: number,
-	/**  Sempre ligados. */
-	alwaysOn: BisectItem[],
-	/**  Desligados. */
-	disabled: BisectItem[],
-	/**  Rodadas no total (feitas + as que faltam), com os minutos que faltam. */
-	estimate: Estimate,
-	/**  Repetições de cada "passou" (problema intermitente). */
-	repetitions: number,
-	/**  Tempo gasto em rodadas. */
-	elapsedMs: number,
-	/**  Começo. */
-	startedAtMs: number,
-	/**  Fim. */
-	finishedAtMs: number | null,
-	/**  Como terminou. */
-	outcome: SearchOutcome | null,
-	/**  Itens do resultado com nome (culpados, ou os que evitam o problema, ou os suspeitos). */
-	outcomeItems: BisectItem[],
-	/**  Dependências inferidas ("o mod X usa Y sem declarar a dependência"). */
-	inferred: BisectInferred[],
-	/**  Conjuntos achados antes ("continuar sem"). */
-	earlier: BisectItem[][],
-} | null, AppError>(__TAURI_INVOKE("bisect_get", { packId })),
-	/**  O log gravado de uma rodada. Erros: `bisect.NOT_FOUND`. */
-	bisectRoundLog: (packId: PackId, round: number) => typedError<ConsoleLine[], AppError>(__TAURI_INVOKE("bisect_round_log", { packId, round })),
 	/**  A captura do último teste do pack (`None`: nenhum teste ainda, ou o jogo não chegou a abrir). */
 	captureGet: (packId: PackId) => typedError<{
 	/**  A sessão do teste. */
@@ -259,6 +193,16 @@ export const commands = {
 	configCopyToDefaultconfigs: (packId: PackId, path: string, overwrite: boolean) => typedError<CopyOutcome, AppError>(__TAURI_INVOKE("config_copy_to_defaultconfigs", { packId, path, overwrite })),
 	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
 	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null, onlyChanged: boolean) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId, onlyChanged })),
+	/**
+	 *  O console agrupado de uma sessão (a do jogo aberto ou uma gravada), lido até o fim do
+	 *  `output.log` agora. Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	consoleGrouped: (packId: PackId, sessionId: string, request: GroupedRequest) => typedError<GroupedView, AppError>(__TAURI_INVOKE("console_grouped", { packId, sessionId, request })),
+	/**
+	 *  As linhas originais de um item (todas as vezes que apareceu) ou de um grupo, na ordem do
+	 *  log, até `limit`. Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	consoleGroupedLines: (packId: PackId, sessionId: string, target: LinesRequest, limit: number | null) => typedError<ConsoleLine[], AppError>(__TAURI_INVOKE("console_grouped_lines", { packId, sessionId, target, limit })),
 	/**  Os travamentos do pack, agrupados pela causa. */
 	crashesList: (packId: PackId) => typedError<CrashList, AppError>(__TAURI_INVOKE("crashes_list", { packId })),
 	/**
@@ -423,6 +367,28 @@ export const commands = {
 	 *  cada lado (1 ou 2); sem `path`, o pack inteiro ("Ver o pack inteiro").
 	 */
 	graphFocus: (packId: PackId, path: string | null, depth: number) => typedError<FocusReport, AppError>(__TAURI_INVOKE("graph_focus", { packId, path, depth })),
+	/**  O formato de uma pasta ou arquivo escolhido. */
+	importDetect: (path: string) => typedError<ImportFormat, AppError>(__TAURI_INVOKE("import_detect", { path })),
+	/**  Abre o diálogo nativo de arquivo (`.mrpack` ou `.zip`). `null` = a pessoa desistiu. */
+	importChooseFile: () => typedError<string | null, AppError>(__TAURI_INVOKE("import_choose_file")),
+	/**  Lê o modpack e devolve a revisão. Nada é gravado no destino. */
+	importAnalyze: (path: string) => typedError<ImportAnalysis, AppError>(__TAURI_INVOKE("import_analyze", { path })),
+	/**  Grava o pack novo, registra e cria o perfil do teste do modpack. */
+	importApply: (token: string, request: ImportApply) => typedError<ImportResult, AppError>(__TAURI_INVOKE("import_apply", { token, request })),
+	/**  Esquece o plano (e apaga a cópia de staging do zip da CurseForge). */
+	importDiscard: (token: string) => __TAURI_INVOKE<void>("import_discard", { token }),
+	/**
+	 *  Os itens que a importação marcou para revisar (`null`: pack não importado, nada a revisar
+	 *  ou já revisado).
+	 */
+	importReview: (packId: PackId) => typedError<{
+	/**  Nome do arquivo ou da pasta de origem. */
+	file: string,
+	/**  Itens, na ordem gravada (revisão primeiro, depois os arquivos locais). */
+	items: ImportPendingItem[],
+} | null, AppError>(__TAURI_INVOKE("import_review", { packId })),
+	/**  "Já revisei": esconde o bloco dos itens para revisar deste pack, neste computador. */
+	importReviewDone: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("import_review_done", { packId })),
 	/**
 	 *  O que a etapa "Mods iniciais" mostra: spark e Crash Assistant (e a Fabric API no Fabric), com
 	 *  a versão de cada um. Vanilla não oferece nada. Se o Modrinth não responder, o erro é
@@ -525,6 +491,11 @@ export const commands = {
 	javaRuntimeRemove: (id: RuntimeId) => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtime_remove", { id })),
 	/**  "Remover Javas sem uso" e devolve a tabela atualizada. */
 	javaRuntimesRemoveUnused: () => typedError<JavaOverview, AppError>(__TAURI_INVOKE("java_runtimes_remove_unused")),
+	/**
+	 *  Os mods de um modpack, com "Já no seu pack", "Compatível", "Sem versão para o seu pack" e
+	 *  "Arquivo fora das lojas". Cancelável pelo ID que chega no canal.
+	 */
+	modpackContents: (packId: PackId, source: SourceId, projectId: string, onEvent: Channel<OperationEvent>) => typedError<ModpackContents, AppError>(__TAURI_INVOKE("modpack_contents", { packId, source, projectId, onEvent })),
 	/**  Nome, autor, descrição e versões do `pack.toml` (diálogo Informações do pack). */
 	packMetaGet: (packId: PackId) => typedError<PackMeta, AppError>(__TAURI_INVOKE("pack_meta_get", { packId })),
 	/**  Grava nome, autor e descrição no `pack.toml`, mudando só as linhas alteradas. */
@@ -701,6 +672,35 @@ export const commands = {
 	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
 	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
 	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
+	/**  "Aceito a EULA": grava o aceite com a data de agora. */
+	serverEulaAccept: () => typedError<Settings, AppError>(__TAURI_INVOKE("server_eula_accept")),
+	/**  "Revogar": apaga o aceite; o próximo servidor local pede de novo. */
+	serverEulaRevoke: () => typedError<Settings, AppError>(__TAURI_INVOKE("server_eula_revoke")),
+	/**
+	 *  A conta de memória e os itens que ficam de fora. `with_game`: abrir também o jogo (a opção
+	 *  recomendada); `profile`: o perfil do teste (`None` = o ativo).
+	 */
+	serverPlan: (packId: PackId, profile: string | null, withGame: boolean) => typedError<ServerPlan, AppError>(__TAURI_INVOKE("server_plan", { packId, profile, withGame })),
+	/**  "Enviar comando ao servidor". Erros: `server.NOT_RUNNING`, `server.INVALID_COMMAND`. */
+	serverSendCommand: (packId: PackId, command: string) => typedError<null, AppError>(__TAURI_INVOKE("server_send_command", { packId, command })),
+	/**  O servidor local aberto (ou em preparação), se houver. */
+	serverCurrent: () => __TAURI_INVOKE<{
+	/**  O pack. */
+	packId: PackId,
+	/**  Situação. */
+	phase: ServerPhase,
+	/**  A porta em `127.0.0.1`, depois de escolhida. */
+	port: number | null,
+	/**  Início (milissegundos desde 1970). */
+	startedAtMs: number,
+	/**  Do início do processo até o "pronto", em ms. */
+	readyMs: number | null,
+} | null>("server_current"),
+	/**
+	 *  O console do servidor de uma sessão com o jogo e o servidor (a sessão "Só o servidor" tem
+	 *  o servidor no console principal). Erros: `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	serverSessionLog: (packId: PackId, sessionId: string) => typedError<ServerLogView, AppError>(__TAURI_INVOKE("server_session_log", { packId, sessionId })),
 	/**  O espaço usado pelo cache, pelos arquivos do Minecraft, pelos Javas e pelas instâncias. */
 	storageUsage: () => typedError<StorageUsage, AppError>(__TAURI_INVOKE("storage_usage")),
 	/**
@@ -874,6 +874,7 @@ export const events = {
 	manualDownloadsChanged: makeEvent<ManualDownloadsChanged>("manual-downloads-changed"),
 	operationUpdated: makeEvent<OperationUpdated>("operation-updated"),
 	packChanged: makeEvent<PackChanged>("pack-changed"),
+	serverState: makeEvent<ServerState>("server-state"),
 	titleBarMaximize: makeEvent<TitleBarMaximize>("title-bar-maximize"),
 };
 
@@ -955,37 +956,6 @@ export type Affected = {
 export type AiErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
-
-/**  O sinal que decidiu a falha. */
-export type Anchor = 
-/**  Java errado para a versão: problema de ambiente. */
-"javaVersion" | 
-/**
- *  Tela de erro de carregamento (`Error during pre-loading phase`, `Cowardly refusing…`,
- *  `Failed to create mod instance`, `Mod loading has failed`).
- */
-"loadingError" | 
-/**
- *  Dependência faltando (`Missing or unsupported mandatory dependencies`,
- *  `MissingModsException`, `Incompatible mods found!`).
- */
-"missingDependency" | 
-/**  `DuplicateModsFoundException`. */
-"duplicateMods" | 
-/**  `Mixin apply … failed`. */
-"mixin" | 
-/**  `Couldn't place player in world`: falhou ao entrar, sem crash. */
-"joinWorld" | 
-/**  `OutOfMemoryError` em qualquer thread. */
-"outOfMemory" | 
-/**  Crash report novo. */
-"crashReport" | 
-/**  Jogo vivo e calado depois de começar o mundo. */
-"frozen" | 
-/**  O processo saiu sozinho sem nenhum outro sinal. */
-"processExit" | 
-/**  A linha escolhida no modo "aparece uma mensagem no log". */
-"logLine";
 
 /**
  *  Erro devolvido por todo comando (`Result<T, AppError>`). A interface mostra a frase do
@@ -1174,15 +1144,6 @@ export type ApplyItem = {
 	replaces?: string | null,
 };
 
-/**  A resposta do modo assistido. */
-export type AssistedAnswer = 
-/**  "Aconteceu". */
-"happened" | 
-/**  "Não aconteceu". */
-"notHappened" | 
-/**  "Não deu para testar". */
-"couldNotTest";
-
 /**  O ponto dentro do método: o `@At` (tipo e alvo), já traduzido pelo refmap. */
 export type At = {
 	/**
@@ -1204,164 +1165,13 @@ export type BackendKind =
 /**  Arquivo `.env` na pasta de configuração do Warden. */
 "envfile";
 
-/**  A rodada em andamento. */
-export type BisectCurrent = {
-	/**  Número. */
-	number: number,
-	/**  Tipo. */
-	kind: RoundKind,
-	/**  Repetição. */
-	repeat: number,
-	/**  Itens ligados. */
-	enabledCount: number,
-	/**  Nomes acrescentados desde o último prefixo que passou. */
-	added: string[],
-	/**  Nomes do conjunto já achado. */
-	found: string[],
-	/**  Modo assistido: esperando a resposta. */
-	asking: boolean,
-	/**  Começo da rodada (milissegundos desde 1970). */
-	startedAtMs: number,
-};
-
 /**
  *  Códigos do domínio `bisect`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type BisectErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL" | 
-/**  Não há busca do culpado guardada para o pack. */
-"NOT_FOUND" | 
-/**  O pack não tem mods para procurar. */
-"NOTHING_TO_SEARCH" | 
-/**  O estado guardado (`state/bisect.json`) não pôde ser lido. */
-"STATE_UNREADABLE" | 
-/**  A busca não está esperando a resposta do modo assistido. */
-"NO_QUESTION" | 
-/**  A busca já terminou (ou não está pausada) e não pode continuar. */
-"NOT_RESUMABLE" | 
-/**  "Trava ao entrar no mundo" sem mundo de teste na instância de teste. */
-"NO_TEST_WORLD" | 
-/**  A versão do Minecraft só entra no mundo pelo servidor local (D-13). */
-"NEEDS_SERVER";
-
-/**  Uma dependência inferida nesta busca. */
-export type BisectInferred = {
-	/**  O item que usa. */
-	from: BisectItem,
-	/**  O item usado sem declarar. */
-	to: BisectItem,
-};
-
-/**  Um item na resposta. */
-export type BisectItem = {
-	/**  Caminho no pack. */
-	path: string,
-	/**  Nome. */
-	name: string,
-};
-
-/**  O que o diálogo de configuração mostra antes de começar. */
-export type BisectPlan = {
-	/**  Quantos itens entram na busca. */
-	searched: number,
-	/**  Sempre ligados (bibliotecas que todos exigem). */
-	alwaysOn: BisectItem[],
-	/**  Desligados durante a busca (ferramentas do jogador). */
-	disabled: BisectItem[],
-	/**  A estimativa (W do último teste do pack, quando houver). */
-	estimate: Estimate,
-	/**  Versão do Minecraft. */
-	minecraft: string,
-	/**  Loader (`neoforge`, `fabric`…; `None` = vanilla). */
-	loader: string | null,
-	/**  A versão entra direto no mundo (Quick Play, 1.20+). */
-	quickPlay: boolean,
-	/**  O mundo de teste da instância de teste, se houver. */
-	world: string | null,
-};
-
-/**  O pedido de uma busca nova. */
-export type BisectRequest = {
-	/**  O que acontece no jogo. */
-	symptom: Symptom,
-	/**  Hash da assinatura (D-06) do travamento de onde a busca começou, se veio de um. */
-	originCrash?: string | null,
-	/**  Ferramentas do jogador que entram mesmo assim (suspeitas). */
-	suspects?: string[],
-};
-
-/**  Uma rodada terminada. */
-export type BisectRoundView = {
-	/**  Número. */
-	number: number,
-	/**  Tipo. */
-	kind: RoundKind,
-	/**  Repetição (problema intermitente). */
-	repeat: number,
-	/**  Itens ligados. */
-	enabledCount: number,
-	/**  O veredito. */
-	verdict: Verdict,
-	/**  Duração. */
-	durationMs: number,
-	/**  O sinal da falha. */
-	anchor: Anchor | null,
-	/**  Há log gravado. */
-	hasLog: boolean,
-};
-
-/**  Situação da busca guardada. */
-export type BisectStatus = 
-/**  Rodando agora. */
-"running" | 
-/**  Pausada (dá para continuar). */
-"paused" | 
-/**  Terminou (achou, parou ou foi cancelada). */
-"finished";
-
-/**  A busca guardada, como a tela do teste a mostra. */
-export type BisectView = {
-	/**  Identificador da busca. */
-	id: string,
-	/**  Situação. */
-	status: BisectStatus,
-	/**  O que o usuário descreveu. */
-	symptom: Symptom,
-	/**  Travamento de origem (hash da assinatura). */
-	originCrash: string | null,
-	/**  Rodadas feitas. */
-	rounds: BisectRoundView[],
-	/**  A rodada em andamento. */
-	current: BisectCurrent | null,
-	/**  Suspeitos agora. */
-	suspects: BisectItem[],
-	/**  Quantos itens entram na busca. */
-	searched: number,
-	/**  Sempre ligados. */
-	alwaysOn: BisectItem[],
-	/**  Desligados. */
-	disabled: BisectItem[],
-	/**  Rodadas no total (feitas + as que faltam), com os minutos que faltam. */
-	estimate: Estimate,
-	/**  Repetições de cada "passou" (problema intermitente). */
-	repetitions: number,
-	/**  Tempo gasto em rodadas. */
-	elapsedMs: number,
-	/**  Começo. */
-	startedAtMs: number,
-	/**  Fim. */
-	finishedAtMs: number | null,
-	/**  Como terminou. */
-	outcome: SearchOutcome | null,
-	/**  Itens do resultado com nome (culpados, ou os que evitam o problema, ou os suspeitos). */
-	outcomeItems: BisectItem[],
-	/**  Dependências inferidas ("o mod X usa Y sem declarar a dependência"). */
-	inferred: BisectInferred[],
-	/**  Conjuntos achados antes ("continuar sem"). */
-	earlier: BisectItem[][],
-};
+"INTERNAL";
 
 /**  Tamanho do incremento. */
 export type Bump = 
@@ -2025,7 +1835,9 @@ export type ConsoleOrigin =
 /**  Saída do jogo. */
 "game" | 
 /**  Mensagem do Warden: `text` é a chave do catálogo `teste` e `params`, os valores. */
-"warden";
+"warden" | 
+/**  Saída do servidor local, no "Testar como servidor" (L-09). */
+"server";
 
 /**  Pipe de uma linha do jogo. */
 export type ConsoleStream = 
@@ -2136,7 +1948,10 @@ export type CrashGroupView = {
 	links: CrashLinks,
 };
 
-/**  O que está ligado ao grupo: buscas do culpado (D-12) e conversas com a IA (D-04). */
+/**
+ *  O que está ligado ao grupo: rodadas da busca do culpado (D-12) e conversas com a IA (D-04).
+ *  Vazio até essas tarefas existirem.
+ */
 export type CrashLinks = {
 	/**  Buscas do culpado deste travamento. */
 	culpritSearches: string[],
@@ -2277,13 +2092,6 @@ export type CreatedPack = {
 	/**  Pasta final. */
 	path: string,
 };
-
-/**  Confiança no resultado. */
-export type CulpritConfidence = 
-/**  Confirmado nos 2 testes de controle, com o problema aparecendo sempre. */
-"high" | 
-/**  Confirmado, mas o problema é intermitente (cada "passou" foi repetido). */
-"medium";
 
 /**
  *  Códigos do domínio `curseforge`. O código é contrato: renomear é mudança de contrato;
@@ -2549,7 +2357,22 @@ export type DiscoverHome = {
  */
 export type DiscoveryErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**
+ *  O autor do modpack da CurseForge bloqueou apps de terceiros (`downloadUrl` nulo); parâmetro
+ *  `page` com a página do modpack, quando conhecida (P1-17).
+ */
+"MODPACK_BLOCKED" | 
+/**
+ *  O servidor não aceita leitura por partes e o arquivo do modpack passa de 200 MB; parâmetro
+ *  `size` em MB (SPEC CA-T08-15; P1-17).
+ */
+"MODPACK_TOO_LARGE" | 
+/**
+ *  O arquivo do modpack não pôde ser lido (zip inválido, sem `modrinth.index.json` ou
+ *  `manifest.json`, ou sem versões) (P1-17).
+ */
+"MODPACK_UNREADABLE";
 
 /**  Como um item do pack foi reconhecido como o mesmo projeto vindo de outra fonte. */
 export type DuplicateMatch = 
@@ -2640,22 +2463,6 @@ export type ErrorCode =
 /**  Scripts KubeJS e CraftTweaker (`warden-scripts`; D4). */
 { domain: "scripts"; code: ScriptsErrorCode };
 
-/**  A estimativa mostrada no diálogo e durante a busca. */
-export type Estimate = {
-	/**  Menos rodadas (um culpado sozinho). */
-	roundsMin: number,
-	/**  Mais rodadas (uma dupla). */
-	roundsMax: number,
-	/**  Minutos para o menor número de rodadas (arredondado para cima). */
-	minutesMin: number,
-	/**  Minutos para o maior número de rodadas (arredondado para cima). */
-	minutesMax: number,
-	/**  O W usado, em milissegundos. */
-	worldMs: number,
-	/**  Se o W foi medido neste pack (rodada 0 ou último teste) ou é o padrão. */
-	measured: boolean,
-};
-
 /**  O que sustenta um achado. Toda evidência aponta o trecho exato. */
 export type Evidence = 
 /**  Metadados lidos de um jar. */
@@ -2696,7 +2503,18 @@ note: string } |
 /**  Caminho relativo ao pack. */
 path: string; 
 /**  O trecho. */
-excerpt: string };
+excerpt: string } | 
+/**
+ *  Medida do Warden durante um teste (memória da JVM e coletas, L-11). Só números: nada do
+ *  `hsperfdata` cru.
+ */
+{ kind: "measurement"; 
+/**  A sessão do teste em que foi medido (`2026-10-13_14-02-11`). */
+sessionId: string; 
+/**  O que foi medido (`heapAfterGc`, `heapPeak`). */
+metric: string; 
+/**  Os números medidos, pelo nome (`percent`, `seconds`, `maxMb`…). */
+values: { [key in string]: string } };
 
 /**  Motivo de um alerta da prévia; a interface escolhe o texto exibido. */
 export type ExportAlert = 
@@ -3217,7 +3035,7 @@ export type GamePhase =
 "preparing" | 
 /**  Jogo aberto. */
 "running" | 
-/**  Busca do culpado em andamento (D-12). */
+/**  Busca do culpado em andamento (D-10). */
 "bisecting" | 
 /**  O jogo fechou (último aviso da sessão). */
 "exited";
@@ -3293,6 +3111,87 @@ export type GithubStatus = {
 	loader: string | null,
 };
 
+/**  Tipo de grupo. */
+export type GroupKind = 
+/**  Um item do pack. */
+"item" | 
+/**  Um mod citado que o índice do pack não conhece. */
+"mod" | 
+/**  "Jogo e loader". */
+"game" | 
+/**  "Desconhecido". */
+"unknown";
+
+/**  Um grupo na tela. */
+export type GroupRow = {
+	/**  O grupo. */
+	group: GroupSummary,
+	/**  Nome do item do pack (ou o id do mod); `None` em "Jogo e loader" e "Desconhecido". */
+	name: string | null,
+	/**  Itens (só nos grupos abertos), até o limite pedido. */
+	items: ItemView[],
+};
+
+/**  Um grupo (um mod, "Jogo e loader" ou "Desconhecido"). */
+export type GroupSummary = {
+	/**  Chave estável (`item:mods/sodium.pw.toml`, `mod:epicfight`, `game`, `unknown`). */
+	key: string,
+	/**  Tipo. */
+	kind: GroupKind,
+	/**  O metafile do item do pack, quando é um item. */
+	item: string | null,
+	/**  Id do mod que deu o sinal, quando houver. */
+	modId: string | null,
+	/**  Entradas (linhas e stack traces) do grupo. */
+	entries: number,
+	/**  Entradas de erro (com os stack traces). */
+	errors: number,
+	/**  Entradas de aviso. */
+	warnings: number,
+	/**  Entradas que fazem parte de um item repetido. */
+	repeated: number,
+	/**  Itens distintos (os que casam com a busca, quando há busca). */
+	items: number,
+};
+
+/**  O que mostrar. */
+export type GroupedMode = 
+/**  Agrupado por mod. */
+"byMod" | 
+/**  Só problemas. */
+"problems";
+
+/**  O pedido da tela. */
+export type GroupedRequest = {
+	/**  Agrupado por mod ou só problemas. */
+	mode: GroupedMode,
+	/**  Grupos abertos (agrupado por mod). */
+	open: OpenGroup[],
+	/**  Itens de "Só problemas" a mostrar. */
+	limit: number,
+	/**  Busca (sem diferença de maiúsculas). */
+	query: string,
+};
+
+/**  A tela do console agrupado. */
+export type GroupedView = {
+	/**  Linhas lidas do log. */
+	lines: number,
+	/**  Grupos (agrupado por mod; vazio em "Só problemas"). */
+	groups: GroupRow[],
+	/**  Itens de "Só problemas", até o limite (vazio no agrupado por mod). */
+	problems: ItemView[],
+	/**  Quantos itens de "Só problemas" existem (com a busca). */
+	problemsTotal: number,
+	/**  Nome do item de cada grupo que aparece em "Só problemas" (chave → nome). */
+	names: { [key in string]: string },
+	/**
+	 *  Entradas que não couberam como item no teto de memória do agrupador (contam nos grupos,
+	 *  mas não aparecem na lista); em "Só problemas", só as que apareceriam lá.
+	 */
+	hidden: number,
+};
+
 /**  O arquivo achado pelo hash numa fonte ("Este arquivo é o Sodium 0.6.0 do Modrinth."). */
 export type HashMatch = {
 	/**  A fonte. */
@@ -3310,6 +3209,64 @@ export type HashMatch = {
 	/**  A versão serve para o Minecraft e o loader do pack, pelos dados da fonte. */
 	compatible: boolean,
 };
+
+/**  O que a faixa mostra da memória do jogo além dos números. */
+export type HeapDetails = {
+	/**  O coletor conta pausas (ZGC, Shenandoah): a faixa diz "Pausas de coleta". */
+	countsPauses: boolean,
+	/**  A memória mostrada é a da última coleta (Java 25 com Serial ou Parallel). */
+	atLastGc: boolean,
+	/**
+	 *  Os últimos 5 minutos: uma coluna por 15 s (o maior valor dela), em MB, da mais velha para
+	 *  a mais nova.
+	 */
+	seriesMb: number[],
+	/**
+	 *  Há quantos segundos a memória depois das coletas está acima de 90% do máximo, quando já
+	 *  passou de 1 minuto (o aviso ao vivo do `W_LOW_HEAP`).
+	 */
+	lowHeapS: number | null,
+	/**  A memória sugerida para o aviso, em MB. */
+	suggestedMb: number | null,
+};
+
+/**  A memória do jogo no fim do teste, gravada na sessão. */
+export type HeapSummary = {
+	/**  Pico da memória do jogo, em MB (o uso bruto, com o que a próxima coleta ainda limpa). */
+	peakUsedMb?: number,
+	/**
+	 *  Pico da memória do jogo depois das coletas, em MB: o maior valor da heap fora do eden na
+	 *  primeira amostra depois de cada coleta (o método está no topo de `findings.rs`). `None`
+	 *  sem coleta vista ou com um coletor em que não dá para medir (ZGC, Shenandoah, outro).
+	 */
+	peakAfterGcMb?: number | null,
+	/**  Máximo, em MB. */
+	maxMb?: number,
+	/**  Coletas (ou pausas). */
+	gcCount?: number,
+	/**  Tempo parado em coletas, em ms. */
+	gcMs?: number,
+	/**  O coletor conta pausas. */
+	countsPauses?: boolean,
+	/**  Amostras com leitura. */
+	readings?: number,
+};
+
+/**
+ *  Por que a memória do jogo não pôde ser lida (S-R5-2 §7; ARCHITECTURE §7.7). De fora não dá
+ *  para distinguir uma JVM sem esse recurso (`OpenJ9`) de um nome de usuário ou pasta temporária
+ *  fora da code page do Windows: o Warden só diz o argumento quando ele está no teste.
+ */
+export type HeapUnavailable = 
+/**
+ *  Os argumentos do teste desligam a leitura (`-XX:+PerfDisableSharedMem`,
+ *  `-XX:-UsePerfData`).
+ */
+{ kind: "argument"; 
+/**  O argumento, como está no teste. */
+argument: string } | 
+/**  O Java do teste não publica a memória do jogo. */
+{ kind: "notPublished" };
 
 /**  O que a seção Histórico mostra. */
 export type HistoryView = {
@@ -3430,13 +3387,172 @@ export type IdGroup = {
 	recipes: string[],
 };
 
+/**  O resumo da revisão, com o token do plano. */
+export type ImportAnalysis = {
+	/**  Identifica o plano em `import_apply` e `import_discard`. */
+	token: string,
+	/**  O que foi reconhecido e o que acontece com cada arquivo. */
+	summary: ImportSummary,
+};
+
+/**  O que a pessoa confirmou na revisão. */
+export type ImportApply = {
+	/**  Nome do pack novo. */
+	name: string,
+	/**  Pasta escolhida; `null` = `<pasta dos packs>/<slug do nome>`. */
+	destination: string | null,
+	/**  Itens de "não entram" marcados para entrar. */
+	include: string[],
+	/**  "Levar suas preferências para o pack?". */
+	takePreferences: boolean,
+};
+
 /**
  *  Códigos do domínio `import`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type ImportErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O arquivo ou a pasta não é nenhum dos formatos que o Warden importa. */
+"UNKNOWN_FORMAT" | 
+/**  O arquivo está corrompido ou incompleto (zip ilegível, índice inválido). */
+"UNREADABLE" | 
+/**
+ *  O arquivo tem caminhos perigosos (`..`, caminho absoluto ou letra de drive): recusado
+ *  sem criar nada (CA-T24-02).
+ */
+"UNSAFE_PATH" | 
+/**  O modpack usa um loader que o Warden não suporta (Quilt, `LiteLoader`) ou mais de um. */
+"UNSUPPORTED_LOADER" | 
+/**  Zip da CurseForge sem a chave da CurseForge: nenhuma requisição foi feita. */
+"CURSEFORGE_KEY_MISSING" | 
+/**  O packwiz não conseguiu ler o zip da CurseForge. */
+"CURSEFORGE_IMPORT_FAILED" | 
+/**  O arquivo é grande demais ou tem entradas demais (proteção contra *zip bomb*). */
+"TOO_LARGE" | 
+/**  O arquivo de origem mudou entre a revisão e a importação. */
+"SOURCE_CHANGED" | 
+/**  A revisão expirou (o app foi reaberto ou passou muito tempo): leia o arquivo de novo. */
+"PLAN_EXPIRED" | 
+/**  O modpack não diz a versão do Minecraft. */
+"MINECRAFT_MISSING";
+
+/**  Algo que não entra no pack. */
+export type ImportExcludedItem = {
+	/**  Caminho (relativo ao pack novo, ou ao modpack quando está fora das pastas do jogo). */
+	path: string,
+	/**  Se é uma pasta (cobre tudo dentro dela). */
+	isDir: boolean,
+	/**  Quantos arquivos. */
+	files: number,
+	/**  Motivo. */
+	reason: ImportExcludedReason,
+	/**  Se a pessoa pode marcar para entrar mesmo assim. */
+	canInclude: boolean,
+};
+
+/**  Por que algo não entra no pack. */
+export type ImportExcludedReason = 
+/**  Dados de execução do jogo ou do launcher (logs, mundos, caches de mods). */
+"runtime" | 
+/**  Segredos e arquivos de ferramentas. */
+"tools" | 
+/**  Lixo em qualquer pasta (`*.bak`, `*.log`, `*.disabled`…). */
+"junk" | 
+/**  Dados de servidor ou do instalador. */
+"serverData" | 
+/**  Arquivo de outro launcher (fora das pastas do jogo: `xmcl.json`, `instance.cfg`…). */
+"otherLauncher" | 
+/**  Item desconhecido na raiz (pode entrar, se a pessoa marcar). */
+"unknownRoot" | 
+/**  Link simbólico ou junção. */
+"symlink";
+
+/**  Formato reconhecido pelo conteúdo (ARCHITECTURE §12.2). */
+export type ImportFormat = 
+/**  Pasta com `pack.toml`: segue para Abrir pack (T04). */
+"packwiz" | 
+/**  `.mrpack` (`modrinth.index.json`). */
+"mrpack" | 
+/**  Zip da CurseForge (`manifest.json`). */
+"curseforgeZip" | 
+/**
+ *  Instância do Prism Launcher ou do MultiMC (`instance.cfg` + `mmc-pack.json`), pasta ou
+ *  zip.
+ */
+"prism" | 
+/**  Instância do app da CurseForge (`minecraftinstance.json`). */
+"curseforgeApp";
+
+/**  De onde vem um item que virou referência. */
+export type ImportItemSource = 
+/**  Modrinth (`[update.modrinth]`). */
+"modrinth" | 
+/**  CurseForge (`[update.curseforge]`). */
+"curseforge" | 
+/**  Link direto de outro site (metafile em modo `url`). */
+"url";
+
+/**  Licença do modpack, quando a fonte informa. */
+export type ImportLicense = {
+	/**  Identificador SPDX (ou `LicenseRef-…`). */
+	id: string,
+	/**  Nome legível. */
+	name: string,
+	/**  Se é uma licença livre conhecida. */
+	free: boolean,
+};
+
+/**  Um jar que entra no pack como arquivo. */
+export type ImportLocalFile = {
+	/**  Caminho no pack novo. */
+	path: string,
+	/**  Nome do arquivo. */
+	name: string,
+	/**  Motivo. */
+	reason: ImportLocalReason,
+};
+
+/**  Por que um jar fica como arquivo local. */
+export type ImportLocalReason = 
+/**  Não está no Modrinth nem na CurseForge. */
+"notFound" | 
+/**  Não está no Modrinth e a CurseForge não foi consultada (sem chave). */
+"noCurseforgeKey" | 
+/**  A consulta pelo hash falhou (sem internet ou loja fora do ar). */
+"lookupFailed";
+
+/**  Os itens para revisar de um pack importado. */
+export type ImportPending = {
+	/**  Nome do arquivo ou da pasta de origem. */
+	file: string,
+	/**  Itens, na ordem gravada (revisão primeiro, depois os arquivos locais). */
+	items: ImportPendingItem[],
+};
+
+/**  Um item para revisar. */
+export type ImportPendingItem = {
+	/**  Caminho no pack (`mods/x.pw.toml`, `mods/x.jar`, `config/y.toml`). */
+	path: string,
+	/**  Nome para a tela (o do mod, ou o do arquivo). */
+	name: string,
+	/**  Motivo. */
+	reason: ImportPendingReason,
+};
+
+/**  Por que um item do pack importado pede revisão. */
+export type ImportPendingReason = 
+/**  `env` fora da especificação: entrou como Cliente e servidor. */
+"unknownSide" | 
+/**  Opcional no modpack: entrou opcional e marcado. */
+"optional" | 
+/**  Opcional desligado no modpack: entrou opcional e desmarcado. */
+"optionalDisabled" | 
+/**  Veio de `client-overrides/`: entrou para todos. */
+"clientOverride" | 
+/**  Jar que não está em nenhuma loja: ficou como arquivo local (confira a licença). */
+"localFile";
 
 /**  Diagnóstico de uma pasta antes de importar, sem alterações no disco. */
 export type ImportPreview = {
@@ -3456,6 +3572,95 @@ export type ImportPreview = {
 	controlDiffs: ControlDiff[],
 	/**  Git existente em estado que impede alterações. */
 	readOnlyReason: string | null,
+};
+
+/**  Memória e argumentos que viram um perfil do teste (L-08). */
+export type ImportProfile = {
+	/**  Memória máxima, em MB. */
+	memoryMb: number | null,
+	/**  Argumentos extras da JVM. */
+	jvmArgs: string,
+};
+
+/**  Um item que vira `.pw.toml` (referência à fonte). */
+export type ImportReference = {
+	/**  Caminho do `.pw.toml` no pack novo. */
+	path: string,
+	/**  Nome do mod. */
+	name: string,
+	/**  Fonte. */
+	source: ImportItemSource,
+	/**  Jar solto identificado pelo hash (não vinha como referência no modpack). */
+	byHash: boolean,
+};
+
+/**  O pack importado. */
+export type ImportResult = {
+	/**  O pack novo. */
+	packId: PackId,
+	/**  Quantos itens ficaram para revisar (revisão e arquivos locais). */
+	review: number,
+	/**  Se o perfil do teste com a memória do modpack foi criado (e ficou ativo). */
+	profileCreated: boolean,
+};
+
+/**  Um item para revisar. */
+export type ImportReviewItem = {
+	/**  Caminho no pack novo. */
+	path: string,
+	/**  Nome. */
+	name: string,
+	/**  Motivo. */
+	reason: ImportReviewReason,
+};
+
+/**  Por que um item precisa de revisão. */
+export type ImportReviewReason = 
+/**  `env` fora da especificação (`unknown`): entra como Cliente e servidor. */
+"unknownSide" | 
+/**  Opcional no modpack: entra opcional e marcado. */
+"optional" | 
+/**  Opcional desligado no zip da CurseForge. */
+"optionalDisabled" | 
+/**  Veio de `client-overrides/`: entra para todos. */
+"clientOverride";
+
+/**  O que foi reconhecido e o que acontece com cada arquivo. */
+export type ImportSummary = {
+	/**  Formato. */
+	kind: ImportFormat,
+	/**  Nome do arquivo ou da pasta de origem (sem o caminho). */
+	fileName: string,
+	/**  Nome do modpack. */
+	name: string,
+	/**  Versão do modpack (pode ser vazia). */
+	version: string,
+	/**  Minecraft. */
+	minecraft: string,
+	/**  Loader (`forge`, `neoforge`, `fabric`) ou `null` para vanilla. */
+	loader: string | null,
+	/**  Versão do loader. */
+	loaderVersion: string | null,
+	/**  Licença do projeto, quando a fonte informa. */
+	license: ImportLicense | null,
+	/**  Viram referência. */
+	references: ImportReference[],
+	/**  Ficam como arquivo local. */
+	localFiles: ImportLocalFile[],
+	/**  Para revisar. */
+	review: ImportReviewItem[],
+	/**  Não entram. */
+	excluded: ImportExcludedItem[],
+	/**  Arquivos copiados para o pack (configs, scripts…). */
+	files: number,
+	/**  Arquivos que vão para `server-overrides/`. */
+	serverFiles: number,
+	/**  Preferências pessoais encontradas (`options.txt`, `servers.dat`), perguntadas. */
+	preferences: string[],
+	/**  Perfil do teste que será criado. */
+	profile: ImportProfile | null,
+	/**  Lojas que não responderam à procura pelo hash. */
+	unavailableSources: string[],
 };
 
 /**  Resultado da importação. */
@@ -3835,6 +4040,15 @@ id: string } |
 /**  Nome do arquivo, sem pastas. */
 name: string };
 
+/**  Gravidade de um item no console agrupado. */
+export type ItemSeverity = 
+/**  `ERROR`, `FATAL` ou stack trace sem nível. */
+"error" | 
+/**  `WARN`. */
+"warning" | 
+/**  O resto. */
+"info";
+
 /**  Lado em que o item é instalado. */
 export type ItemSide = 
 /**  Cliente e servidor (inclusive `side` ausente). */
@@ -3874,6 +4088,39 @@ export type ItemVersion = {
 	filename: string,
 	/**  Nome legível ("0.6.0"); o nome do arquivo quando a fonte não informa. */
 	label: string,
+};
+
+/**  Um item: uma linha (ou forma de linha) com as repetições. */
+export type ItemView = {
+	/**  Id do item nesta sessão (para abrir e copiar). */
+	id: number,
+	/**  Chave do grupo. */
+	group: string,
+	/**  Gravidade. */
+	severity: ItemSeverity,
+	/**  Nível escrito no log. */
+	level: LineLevel | null,
+	/**  Logger. */
+	logger: string | null,
+	/**
+	 *  A primeira linha: a original, se aparece uma vez; a forma (`Missing texture for {id}`),
+	 *  se repete.
+	 */
+	text: string,
+	/**  Quantas vezes apareceu. */
+	count: number,
+	/**  Primeira vez. */
+	first: Stamp,
+	/**  Última vez. */
+	last: Stamp,
+	/**  Id da regra de ruído conhecido ("comum, geralmente inofensivo"). */
+	noise: string | null,
+	/**  É um stack trace. */
+	trace: boolean,
+	/**  Linhas além da primeira (o stack trace recolhido). */
+	extraLines: number,
+	/**  A primeira linha de mod do stack trace (pulando Java, jogo e loader). */
+	modFrame: string | null,
 };
 
 /**  Metadados do mod lidos do jar. */
@@ -4142,6 +4389,32 @@ export type LineEnding =
 "crlf" | 
 /**  Mistura de fins de linha (ou `\r` solto). O editor preserva cada byte. */
 "mixed";
+
+/**  Nível de uma linha (o do log4j). */
+export type LineLevel = 
+/**  `TRACE`. */
+"trace" | 
+/**  `DEBUG`. */
+"debug" | 
+/**  `INFO`. */
+"info" | 
+/**  `WARN`. */
+"warn" | 
+/**  `ERROR`. */
+"error" | 
+/**  `FATAL`. */
+"fatal";
+
+/**  De onde copiar as linhas originais: um item ou um grupo. */
+export type LinesRequest = 
+/**  Um item. */
+{ type: "item"; 
+/**  Id do item. */
+id: number } | 
+/**  Um grupo. */
+{ type: "group"; 
+/**  Chave do grupo. */
+key: string };
 
 /**
  *  O que o link aponta, resolvido: a tela abre a pré-visualização (link de projeto) ou o
@@ -4472,6 +4745,20 @@ export type MaximizeButtonArea = {
 	height: number | null,
 };
 
+/**  A conta de memória mostrada antes de abrir. */
+export type MemoryPlan = {
+	/**  Memória do servidor, em MB. */
+	serverMb: number,
+	/**  Memória do jogo, em MB (`None` em "Só o servidor"). */
+	gameMb: number | null,
+	/**  A soma, em MB. */
+	totalMb: number,
+	/**  Memória livre agora, em MB (`None` se o sistema não informou). */
+	freeMb: number | null,
+	/**  Se a soma cabe na memória livre (sem a leitura, considera que cabe). */
+	fits: boolean,
+};
+
 /**  Campos editáveis em "Editar informações". */
 export type MetaUpdate = {
 	/**  Nome (sem espaços nas pontas, não vazio, até 100 caracteres). */
@@ -4579,6 +4866,90 @@ export type ModUpdateReport = {
 	/**  Quantos itens têm atualização disponível. */
 	available: number,
 };
+
+/**  A lista de mods de um modpack, para o painel da direita da página de descoberta. */
+export type ModpackContents = {
+	/**  Fonte do modpack. */
+	source: SourceId,
+	/**  ID do projeto do modpack. */
+	projectId: string,
+	/**  Nome do modpack. */
+	title: string,
+	/**  A versão do modpack lida (número legível). */
+	versionNumber: string,
+	/**  Versões do Minecraft da versão do modpack. */
+	gameVersions: string[],
+	/**  Loaders da versão do modpack (`neoforge`, `fabric`…). */
+	loaders: string[],
+	/**
+	 *  A versão do modpack é da mesma versão do Minecraft e do mesmo loader do pack: "a mesma do
+	 *  modpack (testada junto)" é o padrão do seletor **Versão**.
+	 */
+	sameTarget: boolean,
+	/**  Licença do projeto do modpack. */
+	license: ModpackLicense,
+	/**  Página do modpack na fonte. */
+	pageUrl: string | null,
+	/**
+	 *  Os mods, os compatíveis primeiro, depois os que já estão no pack, os sem versão e os
+	 *  arquivos fora das lojas (cada grupo em ordem alfabética).
+	 */
+	mods: ModpackMod[],
+	/**
+	 *  O servidor não aceitou leitura por partes e o arquivo do modpack foi baixado inteiro (para
+	 *  a memória): a interface avisa.
+	 */
+	wholeDownload: boolean,
+};
+
+/**  A licença do projeto do modpack. */
+export type ModpackLicense = {
+	/**  Nome ou identificador SPDX, quando a fonte informa (a CurseForge não informa). */
+	name: string | null,
+	/**
+	 *  Licença livre conhecida (as configs e arquivos do modpack podem ser reaproveitados com as
+	 *  condições dela). Falso também quando a licença não é informada: a interface avisa.
+	 */
+	free: boolean,
+};
+
+/**  Um mod do modpack. */
+export type ModpackMod = {
+	/**  Chave estável na lista (`modrinth:<projeto>`, `curseforge:<projeto>` ou `arquivo:<nome>`). */
+	key: string,
+	/**  Fonte (nenhuma: arquivo fora das lojas). */
+	source: SourceId | null,
+	/**  ID do projeto na fonte. */
+	projectId: string | null,
+	/**
+	 *  A versão que o modpack usa (Modrinth: ID da versão; CurseForge: ID do arquivo), quando
+	 *  conhecida. Vai para o `add_plan` com "a mesma do modpack".
+	 */
+	versionId: string | null,
+	/**  Nome. */
+	title: string,
+	/**  Resumo. */
+	summary: string,
+	/**  Ícone. */
+	iconUrl: string | null,
+	/**  Nome do arquivo (o único dado de um arquivo fora das lojas). */
+	fileName: string | null,
+	/**  Estado para o pack aberto. */
+	state: ModpackModState,
+	/**  Caminho do item que já está no pack (com [`ModpackModState::InPack`]). */
+	packPath: string | null,
+};
+
+/**  O estado de um mod do modpack para o pack aberto. */
+export type ModpackModState = 
+/**  Tem versão para o Minecraft e o loader do pack: com caixa de seleção. */
+"compatible" | 
+/**  Já está no pack (pelo projeto na mesma fonte ou pela deduplicação entre fontes): sem caixa. */
+"inPack" | 
+/**  Sem versão para o pack: desabilitado, com o motivo. */
+"noVersion" | 
+/**  Jar dentro do modpack, fora das lojas: desabilitado (o Warden não copia jars de terceiros). */
+"external";
 
 /**
  *  Códigos do domínio `modrinth`. O código é contrato: renomear é mudança de contrato;
@@ -4717,6 +5088,14 @@ export type OnLaunch =
 /**  Pasta do mundo em `saves/` (`None` = o último jogado). */
 world: string | null };
 
+/**  Um grupo aberto, com quantos itens mostrar. */
+export type OpenGroup = {
+	/**  Chave do grupo. */
+	key: string,
+	/**  Itens a mostrar ("Mostrar mais" aumenta). */
+	limit: number,
+};
+
 /**  Evento do canal de uma operação longa (`Channel<OperationEvent>`). */
 export type OperationEvent = 
 /**  A operação começou. */
@@ -4724,13 +5103,13 @@ export type OperationEvent =
 /**  Identificador no registro de operações. */
 operationId: OperationId; 
 /**  Tipo da operação. */
-kind: OperationKind }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; index?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
+kind: OperationKind }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Começou uma etapa. */
 ({ type: "stage"; 
 /**  Identificador estável da etapa. */
 stage: string; 
 /**  Chave do texto da etapa no catálogo. */
-labelKey: string }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; index?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
+labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; worldMs?: never } | 
 /**  Andamento. */
 {
 	type: "progress",
@@ -4738,17 +5117,17 @@ labelKey: string }) & { asking?: never; enabled?: never; error?: never; gcCount?
 /**  Linhas de console (em lotes). */
 ({ type: "log"; 
 /**  As linhas. */
-lines: LogLine[] }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
+lines: LogLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Problema que não interrompe a operação. */
 ({ type: "warning"; 
 /**  O problema. */
-error: AppError }) & { asking?: never; enabled?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
+error: AppError }) & { gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Terminou; o resultado vem no retorno do comando. */
-({ type: "finished" }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
+({ type: "finished" }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**  Linhas do console do teste (L-04), em lotes de até 50 ms. */
 ({ type: "console"; 
 /**  As linhas, numeradas na sessão. */
-lines: ConsoleLine[] }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
+lines: ConsoleLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
 /**
  *  Amostra de desempenho do jogo, a cada 1 s e quando um tempo de carregamento muda
  *  (ARCHITECTURE §7.7; L-10, `test_hooks/perf.rs`).
@@ -4771,24 +5150,14 @@ heapMaxMb: number | null;
 /**  Coletas de memória até agora. */
 gcCount: number | null; 
 /**  Tempo parado em coletas, em ms. */
-gcMs: number | null }) & { asking?: never; enabled?: never; error?: never; index?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; result?: never; stage?: never; suspects?: never; totalEstimate?: never } | 
+gcMs: number | null; 
 /**
- *  Rodada da busca do culpado (ARCHITECTURE §9.7; D-12): começou (`result` vazio),
- *  terminou (com o veredito) ou, no modo assistido, está esperando a resposta.
+ *  O resto da memória do jogo (gráfico, "Pausas de coleta", o aviso de memória quase
+ *  cheia), com leitura (L-11).
  */
-({ type: "round"; 
-/**  Número da rodada (a primeira é a 0). */
-index: number; 
-/**  Rodadas no total, no mínimo e no máximo (feitas + as que faltam). */
-totalEstimate: [number, number]; 
-/**  Itens ligados nesta rodada. */
-enabled: number; 
-/**  Suspeitos agora. */
-suspects: number; 
-/**  O veredito, quando a rodada terminou. */
-result: Verdict | null; 
-/**  Modo assistido: esperando "Aconteceu", "Não aconteceu" ou "Não deu para testar". */
-asking: boolean }) & { error?: never; gcCount?: never; gcMs?: never; heapMaxMb?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never };
+heap: HeapDetails | null; 
+/**  Por que não há leitura da memória do jogo (`None`: há, ou ainda está procurando). */
+heapUnavailable: HeapUnavailable | null }) & { error?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; stage?: never };
 
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;
@@ -5611,8 +5980,8 @@ export type ProjectErrorCode =
 "CONFIG_NOT_EDITABLE";
 
 /**
- *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks chegam com a
- *  P1-17.
+ *  Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks (P1-17) só são
+ *  buscados e abertos para trazer mods deles: nunca entram no pack como item.
  */
 export type ProjectKind = 
 /**  Mods (`mods/`). */
@@ -5620,7 +5989,9 @@ export type ProjectKind =
 /**  Resource packs (`resourcepacks/`). */
 "resourcePack" | 
 /**  Shaders (`shaderpacks/`). */
-"shader";
+"shader" | 
+/**  Modpacks (P1-17): Modrinth `project_type:modpack`, CurseForge `classId=4471`. */
+"modpack";
 
 /**  Links do projeto (abrem no navegador). */
 export type ProjectLinks = {
@@ -6009,27 +6380,6 @@ export type Risk =
 /**  Só um vale; o outro é pulado em silêncio. */
 "high";
 
-/**  O tipo de uma rodada. */
-export type RoundKind = 
-/**  Rodada 0: o pack inteiro. */
-{ kind: "reproduce"; 
-/**  Tentativa (1 a 3). */
-attempt: number } | 
-/**  Rodada 1: só os sempre ligados. */
-{ kind: "control" } | 
-/**  Os primeiros `size` de `of` suspeitos (mais o conjunto já achado, se houver). */
-{ kind: "prefix"; 
-/**  Quantos suspeitos ligados. */
-size: number; 
-/**  Quantos suspeitos nesta etapa. */
-of: number; 
-/**  O conjunto já achado vai junto (busca do parceiro). */
-withFound: boolean } | 
-/**  Só o conjunto achado. */
-{ kind: "alone" } | 
-/**  O pack sem o conjunto achado. */
-{ kind: "without" };
-
 /**  A regra que classificou a sobreposição. */
 export type Rule = 
 /**  `@Overwrite` de 2+ mods. */
@@ -6256,35 +6606,6 @@ export type SearchCursor = {
 	offsets: SourceOffset[],
 };
 
-/**  Como a busca terminou. */
-export type SearchOutcome = 
-/**  Culpado (ou combinação) encontrado. */
-{ kind: "found"; 
-/**  Caminhos do conjunto mínimo. */
-culprits: string[]; 
-/**  Confiança. */
-confidence: CulpritConfidence; 
-/**  O pack sem o conjunto ainda falha igual: há outro problema. */
-anotherProblem: boolean } | 
-/**  O problema não apareceu em 3 testes seguidos na rodada 0. */
-{ kind: "notReproduced" } | 
-/**  Mesmo sem mods o jogo falha igual. */
-{ kind: "notAMod" } | 
-/**  Java errado ou outro problema do ambiente. */
-{ kind: "environment" } | 
-/**  Os testes se contradizem; `preventers` parecem evitar o problema. */
-{ kind: "contradiction"; 
-/**  Caminhos dos itens que parecem evitar o problema. */
-preventers: string[] } | 
-/**  Resultados inconclusivos demais seguidos. */
-{ kind: "inconclusive"; 
-/**  Caminhos dos suspeitos até ali. */
-suspects: string[] } | 
-/**  Cancelada pelo usuário. */
-{ kind: "cancelled"; 
-/**  Caminhos dos suspeitos até ali ("o culpado está entre estes N mods"). */
-suspects: string[] };
-
 /**  Uma página de resultados. */
 export type SearchPage = {
 	/**  Até [`PAGE_SIZE`] itens, já combinados. */
@@ -6421,13 +6742,151 @@ export type SecretsStatus = {
 	github: boolean,
 };
 
+/**  O "Por que travou" do servidor (SPEC T27 passo 4; CA-T27-04). */
+export type ServerCrash = {
+	/**  O diagnóstico achou a causa. */
+	foundCause: boolean,
+	/**  Os mods apontados, do mais provável ao menos provável (nome e caminho no pack). */
+	mods: ServerCrashMod[],
+	/**
+	 *  A classe do cliente que derrubou o servidor (`net.minecraft.client…`), quando a saída
+	 *  diz.
+	 */
+	clientClass: string | null,
+	/**  O trecho do log do servidor, redigido. */
+	excerpt: string[],
+	/**  O título do achado principal (chave do catálogo `diagnostico`), quando houver. */
+	titleKey: string | null,
+};
+
+/**  Um mod apontado. */
+export type ServerCrashMod = {
+	/**  Nome para mostrar. */
+	name: string,
+	/**  Caminho no pack (`None`: o mod não está no pack ou o log não diz). */
+	path: string | null,
+	/**  O lado gravado no pack ("both", "client"…), quando o item está no pack. */
+	side: string | null,
+};
+
 /**
  *  Códigos do domínio `server`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type ServerErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  A EULA do Minecraft ainda não foi aceita (ou foi revogada): o servidor não abre. */
+"EULA_NOT_ACCEPTED" | 
+/**  Este loader não tem servidor local no Warden (Quilt, `LiteLoader`). */
+"LOADER_UNSUPPORTED" | 
+/**  A versão do loader do `pack.toml` não existe na fonte oficial. */
+"LOADER_VERSION_NOT_FOUND" | 
+/**  A versão do Minecraft não tem servidor oficial para baixar. */
+"NO_SERVER_DOWNLOAD" | 
+/**  Um download do servidor (Mojang, Fabric, Forge, NeoForge) falhou. */
+"DOWNLOAD_FAILED" | 
+/**  O instalador oficial do loader terminou com erro. */
+"INSTALLER_FAILED" | 
+/**  O instalador terminou, mas o servidor não ficou onde devia. */
+"INSTALLER_OUTPUT_MISSING" | 
+/**  Nenhuma porta livre em `127.0.0.1`. */
+"NO_FREE_PORT" | 
+/**  O servidor fechou antes de ficar pronto. */
+"EXITED_BEFORE_READY" | 
+/**  O servidor não ficou pronto a tempo. */
+"READY_TIMEOUT" | 
+/**  Não há servidor aberto para receber o comando. */
+"NOT_RUNNING" | 
+/**  Comando vazio, com quebra de linha ou longo demais. */
+"INVALID_COMMAND" | 
+/**  O processo do servidor não pôde ser aberto ou controlado. */
+"PROCESS_FAILED";
+
+/**  O jogo, visto do servidor. */
+export type ServerGame = 
+/**  O jogo não abriu ("Só o servidor", ou o servidor travou antes do "Done"). */
+"notOpened" | 
+/**  O jogo abriu, mas o servidor não viu o jogador entrar. */
+"opened" | 
+/**  O servidor viu o jogador entrar. */
+"joined";
+
+/**  O console do servidor de uma sessão gravada. */
+export type ServerLogView = {
+	/**
+	 *  As últimas linhas do log do servidor (até 50 000); vazio se a sessão não teve servidor
+	 *  ao lado do jogo.
+	 */
+	lines: ConsoleLine[],
+	/**  Se o começo do log ficou de fora. */
+	truncated: boolean,
+};
+
+/**  Situação do servidor local. */
+export type ServerPhase = 
+/**  Instalando e copiando o pack ("Preparar o servidor"). */
+"preparing" | 
+/**  Aberto, ainda carregando. */
+"starting" | 
+/**  Pronto (`Done`). */
+"ready" | 
+/**  Recebeu o `stop`. */
+"stopping" | 
+/**  Fechou (último aviso). */
+"exited";
+
+/**  O que o diálogo "Testar como servidor" mostra antes de abrir. */
+export type ServerPlan = {
+	/**  A conta de memória (servidor + jogo contra a livre agora). */
+	memory: MemoryPlan,
+	/**  Os itens "Só cliente" que ficam de fora do servidor (até 50 nomes). */
+	clientOnly: string[],
+	/**  Quantos são. */
+	clientOnlyCount: number,
+	/**  Quando a EULA foi aceita (`None`: o diálogo da EULA vem antes). */
+	eulaAcceptedAt: string | null,
+	/**  O loader do pack tem servidor local (Quilt não tem na v1). */
+	loaderSupported: boolean,
+};
+
+/**  O lado do servidor numa sessão "Testar como servidor". */
+export type ServerSide = {
+	/**  "Só o servidor" (sem o jogo). */
+	only: boolean,
+	/**  Como o servidor fechou. */
+	outcome: Outcome,
+	/**  Código de saída. */
+	exitCode: number | null,
+	/**  Do início do processo à saída. */
+	durationMs: number,
+	/**  Do início do processo ao "Done" (`None`: não ficou pronto). */
+	readyMs: number | null,
+	/**  A porta em `127.0.0.1`. */
+	port: number,
+	/**  Memória do servidor, em MB. */
+	memoryMb: number,
+	/**  O jogo do lado do servidor: não abriu, abriu ou entrou no servidor. */
+	game: ServerGame,
+	/**  Não fechou com o `stop` em 60 s e foi encerrado à força. */
+	stopForced: boolean,
+	/**  "Por que travou", quando travou. */
+	crash: ServerCrash | null,
+};
+
+/**  `server-state`: o servidor local mudou de situação (um por vez no Warden). */
+export type ServerState = {
+	/**  O pack. */
+	packId: PackId,
+	/**  Situação. */
+	phase: ServerPhase,
+	/**  A porta em `127.0.0.1`, depois de escolhida. */
+	port: number | null,
+	/**  Início (milissegundos desde 1970). */
+	startedAtMs: number,
+	/**  Do início do processo até o "pronto", em ms. */
+	readyMs: number | null,
+};
 
 /**
  *  O desempenho de uma sessão de teste, gravado no `session.json` (campo `perf`) e mostrado
@@ -6442,6 +6901,15 @@ export type SessionPerf = {
 	samples?: number,
 	/**  A última sessão de outra versão do pack que carregou, para a diferença. */
 	previous?: PreviousLoad | null,
+	/**  A memória do jogo (heap da JVM): `None` sem leitura e nas sessões de antes da L-11. */
+	heap?: HeapSummary | null,
+	/**
+	 *  Por que não houve leitura da memória do jogo (`None`: houve, ou a sessão é de antes da
+	 *  L-11).
+	 */
+	heapUnavailable?: HeapUnavailable | null,
+	/**  Os achados de memória do teste (`W_LOW_HEAP`, `I_HEAP_OVERSIZED`). */
+	findings?: Finding[],
 } & LoadTimes;
 
 /**  Configurações do app. */
@@ -6652,6 +7120,14 @@ export type SourceWarningReason =
 /**  A CurseForge recusou a chave (P1-10). */
 "keyRejected";
 
+/**  Hora de uma ocorrência: o carimbo (eventos XML) ou a hora escrita pelo jogo. */
+export type Stamp = {
+	/**  Milissegundos desde 1970. */
+	atMs: number | null,
+	/**  `HH:MM:SS` escrito pelo jogo. */
+	time: string | null,
+};
+
 /**  Espaço usado pelo Warden no disco, em bytes. */
 export type StorageUsage = {
 	/**  Cache (`cache/`): downloads, cache do packwiz e temporários. "Limpar cache" apaga. */
@@ -6747,19 +7223,6 @@ path: string;
 /**  Caminho da chave. */
 key: string };
 
-/**  O que o usuário diz que acontece. */
-export type Symptom = 
-/**  Trava ao abrir o jogo (antes do menu). */
-{ kind: "crashOnOpen" } | 
-/**  Trava ao entrar no mundo. */
-{ kind: "crashOnWorld" } | 
-/**  Aparece uma mensagem no log. */
-{ kind: "logLine"; 
-/**  O trecho procurado. */
-text: string } | 
-/**  Outra coisa: o usuário diz se aconteceu (modo assistido). */
-{ kind: "assisted" };
-
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -6770,8 +7233,8 @@ export type TestMemory =
 mb: number };
 
 /**
- *  Modo do teste (ARCHITECTURE §4.1). Existem o normal e o "como o jogador recebe" (L-07);
- *  os outros chegam com as tarefas donas (L-12, L-09).
+ *  Modo do teste (ARCHITECTURE §4.1). Existem o normal, o "como o jogador recebe" (L-07) e o
+ *  "como servidor" (L-09, em [`server_mode`]); o perfil de desempenho chega com a L-12.
  */
 export type TestMode = 
 /**  Teste normal. */
@@ -6821,6 +7284,11 @@ export type TestRequest = {
 	 *  `app.TEST_PACK_HAS_ERRORS`, D-03).
 	 */
 	ignorePackErrors?: boolean,
+	/**
+	 *  Testar como servidor: "Só o servidor" (sem abrir o jogo; L-09). Fora desse modo, não
+	 *  vale.
+	 */
+	serverOnly?: boolean,
 };
 
 /**  Uma sessão gravada, como a interface mostra. */
@@ -6860,6 +7328,8 @@ export type TestSessionSummary = {
 	 *  antes dela).
 	 */
 	perf: SessionPerf | null,
+	/**  O lado do servidor no "Testar como servidor" (L-09; `None` nos outros modos). */
+	server: ServerSide | null,
 };
 
 /**  Uma sessão gravada com o console dela. */
@@ -7082,31 +7552,6 @@ export type ValueChange = {
 	/**  Depois. */
 	new: string | null,
 };
-
-/**  O veredito de uma rodada. */
-export type Verdict = 
-/**  Entrou no mundo (ou chegou ao marcador pedido) e ficou estável. */
-{ kind: "passed" } | 
-/**  Travou com a mesma assinatura do problema. */
-{ kind: "failedSame" } | 
-/**  Travou com outra assinatura: não conta (como o `skip` do `git bisect`). */
-{ kind: "failedOther" } | 
-/**  Não chegou a nenhum marcador no tempo-limite. */
-{ kind: "timeout" } | 
-/**  Java errado ou outro problema de ambiente: não é mod, a busca para. */
-{ kind: "environment" } | 
-/**  Faltou uma classe ou um mod de outro item desligado: `from` precisa de `to`. */
-{ kind: "inferred"; 
-/**  Caminho do item que precisa. */
-from: string; 
-/**  Caminho do item de que ele precisa. */
-to: string } | 
-/**  Modo assistido: "Aconteceu". */
-{ kind: "userYes" } | 
-/**  Modo assistido: "Não aconteceu". */
-{ kind: "userNo" } | 
-/**  Modo assistido: "Não deu para testar". */
-{ kind: "userSkip" };
 
 /**  Resultado de [`apply`]. */
 export type VersionChanged = {

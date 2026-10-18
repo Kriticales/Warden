@@ -3,6 +3,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,11 @@ import java.util.UUID;
  *                      com números (linhas da pilha, índice do jar, coordenadas, horário e
  *                      nome do arquivo) diferentes a cada execução, e sai com -1 (D-06: a
  *                      mesma causa com números diferentes vira uma linha só em Travamentos);
- *   uuid NOME...       escreve o UUID offline de cada nome, como o Minecraft calcula.
+ *   uuid NOME...       escreve o UUID offline de cada nome, como o Minecraft calcula;
+ *   conectar           entra no servidor do Quick Play (`--quickPlayMultiplayer host:porta`,
+ *                      ou `--server`/`--port` antes da 1.20): conecta e manda o nome do
+ *                      jogador (`--username`), como o servidor simulado da warden-server espera,
+ *                      e fica vivo escrevendo um batimento (L-09, Testar como servidor).
  */
 public final class WardenFakeGame {
     private WardenFakeGame() {}
@@ -196,6 +201,39 @@ public final class WardenFakeGame {
             writer.close();
             System.out.println("#@!@# Game crashed! Crash report saved to: crash-reports" + File.separator + name);
             System.exit(-1);
+        } else if (mode.equals("conectar")) {
+            String host = null;
+            int port = 25565;
+            String name = "Jogador";
+            for (int i = 1; i + 1 < args.length; i++) {
+                if (args[i].equals("--quickPlayMultiplayer")) {
+                    String target = args[i + 1];
+                    int colon = target.lastIndexOf(':');
+                    host = colon > 0 ? target.substring(0, colon) : target;
+                    port = colon > 0 ? Integer.parseInt(target.substring(colon + 1)) : 25565;
+                } else if (args[i].equals("--server")) {
+                    host = args[i + 1];
+                } else if (args[i].equals("--port")) {
+                    port = Integer.parseInt(args[i + 1]);
+                } else if (args[i].equals("--username")) {
+                    name = args[i + 1];
+                }
+            }
+            if (host == null) {
+                System.out.println("[Render thread/INFO]: sem servidor para entrar");
+                System.exit(3);
+            }
+            System.out.println("[Render thread/INFO]: Connecting to " + host + ", " + port);
+            System.out.flush();
+            Socket socket = new Socket(host, port);
+            Writer writer = new OutputStreamWriter(socket.getOutputStream(), "UTF-8");
+            writer.write(name + "\n");
+            writer.flush();
+            while (true) {
+                Thread.sleep(200);
+                System.out.println("jogo conectado");
+                System.out.flush();
+            }
         } else if (mode.equals("uuid")) {
             for (int i = 1; i < args.length; i++) {
                 UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + args[i]).getBytes("UTF-8"));

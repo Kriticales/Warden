@@ -2,9 +2,15 @@
  * O desempenho do teste em andamento, a partir das amostras `perfSample` do canal do
  * `test_start` (ARCHITECTURE §7.7; L-10): a RAM do processo, o pico, os tempos até carregar e
  * até entrar no mundo e a última sessão de outra versão do pack para a comparação. A L-11
- * acrescenta a memória do jogo e as coletas.
+ * acrescenta a memória do jogo e as coletas (`heap/model.ts`).
  */
-import type { OperationEvent, PreviousLoad, SessionPerf } from '../../../lib/ipc/bindings';
+import type {
+  HeapUnavailable,
+  OperationEvent,
+  PreviousLoad,
+  SessionPerf,
+} from '../../../lib/ipc/bindings';
+import { heapOf, type HeapState } from './heap/model';
 
 export type PerfSampleEvent = Extract<OperationEvent, { type: 'perfSample' }>;
 
@@ -19,6 +25,10 @@ export interface PerfState {
   worldMs: number | null;
   /** A última sessão de outra versão do pack. */
   previous: PreviousLoad | null;
+  /** A memória do jogo (`null` sem leitura; L-11). */
+  heap: HeapState | null;
+  /** Por que não há leitura da memória do jogo (L-11). */
+  heapUnavailable: HeapUnavailable | null;
 }
 
 /** O estado depois de uma amostra (cada amostra traz tudo; a mais nova vale). */
@@ -29,6 +39,8 @@ export function applyPerfSample(event: PerfSampleEvent): PerfState {
     loadedMs: event.loadedMs,
     worldMs: event.worldMs,
     previous: event.previous,
+    heap: heapOf(event),
+    heapUnavailable: event.heapUnavailable,
   };
 }
 
@@ -40,5 +52,7 @@ export function fromSession(perf: SessionPerf): PerfState {
     loadedMs: perf.loadedMs,
     worldMs: perf.worldMs,
     previous: perf.previous ?? null,
+    heap: null,
+    heapUnavailable: perf.heapUnavailable ?? null,
   };
 }

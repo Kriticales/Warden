@@ -72,6 +72,8 @@ export const tarefas = {
       directLink: 'Baixar o link',
       localInspect: 'Ler arquivos do computador',
       localApply: 'Adicionar arquivos ao pack',
+      // P1-17: a lista de mods de um modpack (cancelada ao fechar o painel).
+      modpackContents: 'Ler os mods do modpack',
     },
     versioning: {
       save: 'Salvar versão',
@@ -101,6 +103,11 @@ export const tarefas = {
     // D-12: busca do culpado.
     bisect: {
       run: 'Encontrar o mod culpado',
+    },
+    // P1-19: Importar modpack.
+    import: {
+      analyze: 'Ler o modpack',
+      apply: 'Importar modpack',
     },
   },
 } as const;

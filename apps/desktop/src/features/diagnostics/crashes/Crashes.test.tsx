@@ -237,6 +237,7 @@ describe('retenção dos travamentos guardados', () => {
 
     await user.click(trigger);
     dialog = await screen.findByRole('alertdialog');
+    const sessionsReads = backend.callsOf('test_sessions_list').length;
     await user.click(within(dialog).getByRole('button', { name: 'Apagar 3 travamentos' }));
     await waitFor(() => {
       expect(backend.callsOf('crashes_prune')).toHaveLength(1);
@@ -246,7 +247,11 @@ describe('retenção dos travamentos guardados', () => {
     await waitFor(() => {
       expect(within(block).queryByText(/passaram do limite/)).toBeNull();
     });
-    expect(queryClient.getQueryState(testKeys.sessions(packId))?.isInvalidated).toBe(true);
+    // A lista de sessões tem quem a mostre na própria seção (o bloco de memória da L-11): a
+    // invalidação a relê na hora, em vez de só marcá-la.
+    await waitFor(() => {
+      expect(backend.callsOf('test_sessions_list').length).toBeGreaterThan(sessionsReads);
+    });
     expect(
       queryClient.getQueryState(testKeys.session(packId, '2026-10-01_10-00-00'))?.isInvalidated,
     ).toBe(true);

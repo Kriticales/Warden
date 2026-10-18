@@ -20,6 +20,7 @@ import type { ChainablePromiseElement } from 'webdriverio';
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -142,7 +143,7 @@ describe('Mods no modo Grafo (D-11)', () => {
   it('CA-T06-07: Sodium no centro, o que ele exige à esquerda e quem precisa dele à direita', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

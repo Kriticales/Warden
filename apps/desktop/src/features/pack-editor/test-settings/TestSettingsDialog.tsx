@@ -17,7 +17,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { Eraser, RotateCcw, TriangleAlert } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
@@ -92,6 +92,16 @@ export function TestSettingsDialog({ packId, pack, open, onOpenChange }: TestSet
   const view = useTestSettings(packId, open);
   const profiles = useTestProfiles(packId, open);
   const failed = view.isError ? view : profiles.isError ? profiles : null;
+  // Na primeira vez o conteúdo troca de "carregando" para o formulário, e o conteúdo novo já não
+  // sabe quem abriu o diálogo: quem abriu fica guardado aqui, para o foco voltar a ele ao fechar.
+  const opener = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (open) {
+      const active = document.activeElement;
+      opener.current = active instanceof HTMLElement && active !== document.body ? active : null;
+    }
+  }, [open]);
+  const returnFocusTo = () => opener.current;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {open ? (
@@ -100,12 +110,13 @@ export function TestSettingsDialog({ packId, pack, open, onOpenChange }: TestSet
             pack={pack}
             view={view.data}
             profiles={profiles.data}
+            returnFocusTo={returnFocusTo}
             onDone={() => {
               onOpenChange(false);
             }}
           />
         ) : (
-          <DialogContent title={t('ajustesTeste.titulo')}>
+          <DialogContent title={t('ajustesTeste.titulo')} returnFocusTo={returnFocusTo}>
             {failed ? (
               <ErrorPanel
                 error={failed.error}
@@ -156,11 +167,14 @@ function SettingsForm({
   pack,
   view,
   profiles,
+  returnFocusTo,
   onDone,
 }: {
   pack: PackRow;
   view: TestSettingsView;
   profiles: TestProfilesView;
+  /** Quem abriu o diálogo (o foco volta para ele ao fechar). */
+  returnFocusTo: () => HTMLElement | null;
   onDone: () => void;
 }) {
   const { t } = useTranslation('editor');
@@ -225,6 +239,7 @@ function SettingsForm({
     <DialogContent
       title={t('ajustesTeste.titulo')}
       description={t('ajustesTeste.descricao')}
+      returnFocusTo={returnFocusTo}
       footer={
         <>
           <DialogClose asChild>

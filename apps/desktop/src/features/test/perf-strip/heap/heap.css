@@ -1,0 +1,12 @@
+/* Faixa de desempenho com a memória do jogo (L-11): a coluna larga da memória com o gráfico
+   (`.perf__item--mem` do design system, protótipo `W.perfStrip`) e mais quatro colunas iguais:
+   RAM do processo, coletas, "Abriu em" e "Entrou no mundo em". */
+.perf--heap {
+  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .perf--heap {
+    grid-template-columns: minmax(180px, 1.3fr) repeat(4, minmax(0, 1fr));
+  }
+}
