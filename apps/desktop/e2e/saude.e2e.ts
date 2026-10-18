@@ -151,7 +151,7 @@ async function openFolder(root: string): Promise<void> {
 /** De um pack aberto para Meus packs. */
 async function backToPacks(): Promise<void> {
   await dismissToasts();
-  await $('header.packhead a*=Meus packs').click();
+  await $('header.packhead').$('a*=Meus packs').click();
   await $('h1=Meus packs').waitForDisplayed({ timeout: 30_000 });
 }
 
