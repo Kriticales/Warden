@@ -551,7 +551,12 @@ async fn zip_com_bytes_antes_ainda_e_lido() {
     .unwrap();
     let read: Value = serde_json::from_slice(&entry.bytes).unwrap();
     assert_eq!(read, manifest);
-    assert!(entry.names.iter().any(|name| name == "overrides/mods/feito-a-mao.jar"));
+    assert!(
+        entry
+            .names
+            .iter()
+            .any(|name| name == "overrides/mods/feito-a-mao.jar")
+    );
 }
 
 // ---------- Arquivos que não são modpack (revisão da P1-17) ----------
