@@ -30,7 +30,7 @@ pub mod properties;
 
 pub use error::{Error, Result, ServerErrorCode, ServerSource};
 pub use eula::{EULA_URL, write_eula};
-pub use install::{InstalledServer, Installer, ServerLaunch};
+pub use install::{InstalledServer, Installer, ServerDownload, ServerLaunch};
 pub use plan::{MemoryPlan, memory_plan, server_memory_mb};
 pub use process::{
     ReadyFailure, RunningServer, STOP_TIMEOUT, ServerCommand, ServerEvent, ServerEvents,
