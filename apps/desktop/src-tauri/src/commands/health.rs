@@ -455,6 +455,21 @@ mod tests {
         assert_eq!(listed(&state), [(id, ignored.score, ignored.band)]);
     }
 
+    /// Verificar o pack grava a nota em `packs.json` sem a tela de Problemas pedir: o pré-teste
+    /// que barra o teste também atualiza Meus packs.
+    #[tokio::test]
+    async fn verificar_o_pack_atualiza_a_nota_guardada() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let (id, _root) = registered_pack(&state, dir.path());
+        assert!(listed(&state).is_empty());
+        crate::commands::diagnostics::check(&state, id, CheckPass::Quick, None)
+            .await
+            .unwrap();
+        // Sem achados e nunca testado: só os −10 do "Último teste".
+        assert_eq!(listed(&state), [(id, 90, HealthBand::Great)]);
+    }
+
     #[test]
     fn lista_so_le_o_que_esta_guardado() {
         let dir = tempfile::tempdir().unwrap();

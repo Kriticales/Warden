@@ -230,6 +230,8 @@ pub(crate) async fn check(
     sort_findings(&mut report.findings);
     apply_ignored(&mut report.findings, &read_ignored(&snapshot.root));
     store_report(state.paths.data_dir(), pack_id, &report);
+    // A nota de Meus packs acompanha a verificação, mesmo quando o pré-teste barra o teste (D-08).
+    crate::commands::health::refresh_logged(state, pack_id);
     tracing::info!(
         pack = %pack_id,
         pass = ?pass,
