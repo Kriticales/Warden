@@ -1,0 +1,64 @@
+# Nota de saúde do pack (D-08; SPEC T14 "Saúde do pack"; ADR-0034; R5A §6.2).
+#
+# A nota começa em 100. Cada categoria tira pontos até o seu teto, e a nota nunca passa de 0 a
+# 100. Itens ignorados pelo usuário ("Ignorar neste pack") não tiram pontos. As categorias
+# aparecem em "O que tirou pontos" na ordem deste arquivo (a ordem da tabela da SPEC T14), que é
+# fixa no código: aqui ficam só os pesos, os tetos e os limites.
+#
+# Mudar um peso: altere o número e rode `cargo nextest run -p warden-diagnostics health`
+# (o teste do CA-T14-07 diz se a soma da SPEC ainda vale).
+
+# Faixas: a partir de `otimo` é Ótimo, de `bom` é Bom, de `atencao` é Atenção; abaixo, Crítico.
+[faixas]
+otimo = 90
+bom = 75
+atencao = 50
+
+# "Problemas encontrados": achados do pré-teste (os de mixin, de manutenção e de download contam
+# só nas suas categorias). Informação não tira pontos.
+[problemas]
+erro = 15
+aviso = 3
+teto = 40
+
+# "Último teste": vale só o estado mais grave (travou, nunca testado, alterado depois).
+[ultimo_teste]
+travou = 20
+nunca_testado = 10
+alterado_depois = 5
+teto = 25
+
+# "Travamentos recentes": cada causa diferente (assinatura) nas últimas `sessoes` sessões.
+[travamentos]
+por_causa = 3
+sessoes = 10
+teto = 10
+
+# "Mods que alteram o mesmo ponto do jogo": o risco do aviso W_MIXIN_OVERLAP depois dos
+# rebaixadores (par conhecido como compatível, plugin de mixin).
+[mixins]
+alto = 4
+medio = 1
+teto = 10
+
+# "Manutenção": projeto arquivado, versão alfa ou beta e mod cuja versão mais nova para o pack
+# tem mais de `meses_sem_versao_nova` meses.
+[manutencao]
+arquivado = 2
+alfa_ou_beta = 2
+sem_versao_nova = 2
+meses_sem_versao_nova = 18
+teto = 10
+
+# "Download pelos jogadores": mod da CurseForge que os jogadores não baixam sozinhos.
+[download]
+por_mod = 2
+teto = 10
+
+# "Desempenho": o último teste levou `percentual_mais_lento`% a mais para carregar que o último
+# teste bom, ou a memória do teste ficou abaixo da sugestão do Warden para a quantidade de mods.
+[desempenho]
+carregamento_lento = 3
+percentual_mais_lento = 50
+memoria_abaixo = 2
+teto = 5
