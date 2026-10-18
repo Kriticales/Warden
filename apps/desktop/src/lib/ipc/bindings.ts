@@ -407,6 +407,24 @@ export const commands = {
 	 *  cada lado (1 ou 2); sem `path`, o pack inteiro ("Ver o pack inteiro").
 	 */
 	graphFocus: (packId: PackId, path: string | null, depth: number) => typedError<FocusReport, AppError>(__TAURI_INVOKE("graph_focus", { packId, path, depth })),
+	/**  A nota do pack agora (`None`: o pack nunca foi verificado). Grava a nota em `packs.json`. */
+	healthGet: (packId: PackId) => typedError<{
+	/**  De 0 a 100. */
+	score: number,
+	/**  A faixa. */
+	band: HealthBand,
+	/**
+	 *  "O que tirou pontos", na ordem da tabela; em cada categoria, a linha que conta antes da
+	 *  dos ignorados.
+	 */
+	lines: HealthLine[],
+	/**  As faixas usadas. */
+	bands: Bands,
+	/**  Quantas sessões, das mais novas, contam em "Travamentos recentes". */
+	recentSessions: number,
+} | null, AppError>(__TAURI_INVOKE("health_get", { packId })),
+	/**  As últimas notas guardadas, sem calcular nada. */
+	healthList: () => __TAURI_INVOKE<PackHealth[]>("health_list"),
 	/**  O formato de uma pasta ou arquivo escolhido. */
 	importDetect: (path: string) => typedError<ImportFormat, AppError>(__TAURI_INVOKE("import_detect", { path })),
 	/**  Abre o diálogo nativo de arquivo (`.mrpack` ou `.zip`). `null` = a pessoa desistiu. */
@@ -1407,6 +1425,16 @@ export type BackendKind =
 "keyring" | 
 /**  Arquivo `.env` na pasta de configuração do Warden. */
 "envfile";
+
+/**  As faixas da nota (também na saída, para o rodapé de "O que tirou pontos"). */
+export type Bands = {
+	/**  A partir daqui, Ótimo. */
+	otimo: number,
+	/**  A partir daqui, Bom. */
+	bom: number,
+	/**  A partir daqui, Atenção; abaixo, Crítico. */
+	atencao: number,
+};
 
 /**
  *  Códigos do domínio `bisect`. O código é contrato: renomear é mudança de contrato;
@@ -3596,6 +3624,138 @@ export type HashMatch = {
 	compatible: boolean,
 };
 
+/**  A faixa da nota. */
+export type HealthBand = 
+/**  Ótimo. */
+"great" | 
+/**  Bom. */
+"good" | 
+/**  Atenção. */
+"attention" | 
+/**  Crítico. */
+"critical";
+
+/**  Uma categoria de "O que tirou pontos". */
+export type HealthCategory = 
+/**  "Problemas encontrados". */
+"problems" | 
+/**  "Último teste". */
+"lastTest" | 
+/**  "Travamentos recentes". */
+"crashes" | 
+/**  "Mods que alteram o mesmo ponto do jogo". */
+"mixins" | 
+/**  "Manutenção". */
+"maintenance" | 
+/**  "Download pelos jogadores". */
+"download" | 
+/**  "Desempenho". */
+"performance";
+
+/**  Uma linha de "O que tirou pontos". */
+export type HealthLine = {
+	/**  A categoria. */
+	category: HealthCategory,
+	/**  Pontos tirados (já com o teto; zero na linha dos ignorados). */
+	points: number,
+	/**  A soma dos motivos, antes do teto (na linha dos ignorados, o que tirariam). */
+	rawPoints: number,
+	/**  Linha dos itens ignorados por você: aparece riscada e não tira pontos. */
+	ignored: boolean,
+	/**  Os motivos, na ordem do relatório. */
+	reasons: HealthReason[],
+};
+
+/**  Um motivo dentro de uma linha de "O que tirou pontos". */
+export type HealthReason = 
+/**  Um achado do pré-teste. */
+{ kind: "finding"; 
+/**  O id do achado no relatório. */
+findingId: string; 
+/**  Código da regra. */
+rule: string; 
+/**  Gravidade. */
+severity: Severity; 
+/**  Risco do aviso de mixin. */
+risk: MixinRisk | null; 
+/**  O item (caminho no pack), para o link. */
+item: string | null; 
+/**  Pontos que tira (ou tiraria, se ignorado). */
+points: number } | 
+/**  Mod sem versão nova há meses. */
+{ kind: "noNewVersion"; 
+/**  O item (caminho no pack). */
+item: string; 
+/**  Nome do item. */
+name: string; 
+/**  Meses desde a versão mais nova. */
+months: number; 
+/**  Pontos que tira. */
+points: number } | 
+/**  O último teste. */
+{ kind: "lastTest"; 
+/**  O estado. */
+state: LastTestState; 
+/**  A sessão (nenhuma quando nunca testado). */
+session: string | null; 
+/**  Pontos que tira. */
+points: number } | 
+/**  Uma causa de travamento recente. */
+{ kind: "crash"; 
+/**  Hash da assinatura. */
+signature: string; 
+/**  A sessão mais nova com essa causa. */
+session: string; 
+/**  Pontos que tira. */
+points: number } | 
+/**  O último teste carregou bem mais devagar que o último teste bom. */
+{ kind: "slowLoad"; 
+/**  A sessão. */
+session: string; 
+/**  Quanto levou. */
+loadedMs: number; 
+/**  O último teste bom. */
+goodSession: string; 
+/**  Quanto ele levou. */
+goodMs: number; 
+/**  Pontos que tira. */
+points: number } | 
+/**  A memória do último teste ficou abaixo da sugestão. */
+{ kind: "lowMemory"; 
+/**  A sessão. */
+session: string; 
+/**  A memória do teste, em MB. */
+memoryMb: number; 
+/**  A sugestão, em MB. */
+suggestedMb: number; 
+/**  Pontos que tira. */
+points: number };
+
+/**  A nota do pack. */
+export type HealthScore = {
+	/**  De 0 a 100. */
+	score: number,
+	/**  A faixa. */
+	band: HealthBand,
+	/**
+	 *  "O que tirou pontos", na ordem da tabela; em cada categoria, a linha que conta antes da
+	 *  dos ignorados.
+	 */
+	lines: HealthLine[],
+	/**  As faixas usadas. */
+	bands: Bands,
+	/**  Quantas sessões, das mais novas, contam em "Travamentos recentes". */
+	recentSessions: number,
+};
+
+/**  A última nota de um pack, como fica em `packs.json`. */
+export type HealthSummary = {
+	/**  De 0 a 100. */
+	score: number,
+	/**  A faixa. */
+	band: HealthBand,
+};
+
 /**  O que a faixa mostra da memória do jogo além dos números. */
 export type HeapDetails = {
 	/**  O coletor conta pausas (ZGC, Shenandoah): a faixa diz "Pausas de coleta". */
@@ -4738,6 +4898,15 @@ export type LangLocale =
 /**  `en_us.json`. */
 "enUs";
 
+/**  O estado do último teste que tirou pontos. */
+export type LastTestState = 
+/**  O último teste travou. */
+"crashed" | 
+/**  O pack nunca foi testado. */
+"neverTested" | 
+/**  O pack mudou depois do último teste. */
+"changedSince";
+
 /**
  *  Códigos do domínio `launcher`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
@@ -5230,6 +5399,13 @@ export type MinecraftVersions = {
 export type MixinErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**  O risco de um aviso de mixin, depois dos rebaixadores. */
+export type MixinRisk = 
+/**  Alto. */
+"high" | 
+/**  Médio. */
+"medium";
 
 /**  "O que este mod altera no jogo". */
 export type ModReport = {
@@ -7941,6 +8117,11 @@ export type UpdateItem = {
 	currentId: string | null,
 	/**  Versão instalada, legível. */
 	current: string | null,
+	/**
+	 *  Publicação da versão instalada (RFC 3339), quando a verificação a conhece (o Modrinth):
+	 *  a nota de saúde conta o mod sem versão nova há muitos meses (D-08).
+	 */
+	currentPublished?: string | null,
 	/**  A versão nova, quando `status` é `available`. */
 	newVersion: NewVersion | null,
 	/**  Motivo, quando `status` é `failed` ou `notChecked`. */

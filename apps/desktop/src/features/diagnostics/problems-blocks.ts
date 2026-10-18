@@ -13,6 +13,7 @@ import { ImportReviewBlock } from '../packs/import/ImportReviewBlock';
 import { HeapProblemsBlock } from '../test/perf-strip/heap/HeapProblemsBlock';
 import { FindingsBlock } from './components/FindingsBlock';
 import { CrashesBlock } from './crashes/CrashesBlock';
+import { HealthBlock } from './health/HealthBlock';
 
 export interface ProblemsBlockProps {
   packId: PackId;
@@ -31,6 +32,8 @@ export interface ProblemsBlock {
 /** Registro acréscimo-apenas: uma linha por bloco. */
 export const problemsBlocks: readonly ProblemsBlock[] = [
   { id: 'import-review', order: 50, component: ImportReviewBlock },
+  // D-08: a nota de saúde do pack, no topo.
+  { id: 'health', order: 100, component: HealthBlock },
   { id: 'findings', order: 200, component: FindingsBlock },
   // D-06: a lista de Travamentos, no lugar do "Último travamento" da D-03.
   { id: 'crashes', order: 300, component: CrashesBlock },

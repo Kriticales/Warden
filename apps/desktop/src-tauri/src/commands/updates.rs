@@ -48,7 +48,8 @@ pub struct UpdateReports {
 }
 
 impl UpdateReports {
-    fn get(&self, pack: PackId) -> Option<ModUpdateReport> {
+    /// O último relatório do pack (também lido pela nota de saúde, D-08).
+    pub(crate) fn get(&self, pack: PackId) -> Option<ModUpdateReport> {
         let reports = self.reports.lock().unwrap_or_else(PoisonError::into_inner);
         reports.get(&pack).map(|cached| cached.report.clone())
     }
@@ -158,6 +159,8 @@ pub(crate) async fn updates_check(
     };
     let report = result?;
     state.update_reports.put(pack_id, report.clone());
+    // "Manutenção" da nota de saúde usa as datas das versões (D-08).
+    crate::commands::health::refresh_logged(&state, pack_id);
     Ok(Some(report))
 }
 

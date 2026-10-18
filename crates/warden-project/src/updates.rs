@@ -122,6 +122,10 @@ pub struct UpdateItem {
     pub current_id: Option<String>,
     /// Versão instalada, legível.
     pub current: Option<String>,
+    /// Publicação da versão instalada (RFC 3339), quando a verificação a conhece (o Modrinth):
+    /// a nota de saúde conta o mod sem versão nova há muitos meses (D-08).
+    #[specta(optional)]
+    pub current_published: Option<String>,
     /// A versão nova, quando `status` é `available`.
     pub new_version: Option<NewVersion>,
     /// Motivo, quando `status` é `failed` ou `notChecked`.
@@ -168,6 +172,7 @@ impl ModUpdateReport {
                 item.status = UpdateStatus::UpToDate;
                 item.current_id = Some(done.to_id.clone());
                 item.current = Some(done.to.clone());
+                item.current_published = None;
                 item.new_version = None;
                 item.reason = None;
                 item.detail = None;
@@ -274,6 +279,7 @@ fn base_item(item: &InventoryItem) -> UpdateItem {
         status: UpdateStatus::NotChecked,
         current_id: item.source_version_id.clone(),
         current: item.file_name.as_deref().map(readable_file_version),
+        current_published: None,
         new_version: None,
         reason: None,
         detail: None,
@@ -467,6 +473,8 @@ async fn check_modrinth(
             if !current.version_number.trim().is_empty() {
                 item.current = Some(current.version_number.clone());
             }
+            item.current_published =
+                (!current.date_published.is_empty()).then(|| current.date_published.clone());
             let offered = newest.get(&job.hash).filter(|candidate| {
                 candidate.id != job.installed_id
                     && candidate.id != current.id
