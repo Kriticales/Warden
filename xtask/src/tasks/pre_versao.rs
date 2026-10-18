@@ -59,28 +59,36 @@ pub struct Args {
     pub dry_run: bool,
 }
 
-/// Instalador anexado à pré-versão.
+/// Instalador anexado à Release.
 #[derive(Debug, PartialEq, Eq)]
-struct Instalador {
-    nome: String,
+pub(crate) struct Instalador {
+    pub(crate) nome: String,
     /// SHA-256 em hexadecimal minúsculo; `None` no teste a seco sem arquivo.
-    sha256: Option<String>,
+    pub(crate) sha256: Option<String>,
 }
 
-/// O que a publicação usa.
+/// O que a publicação usa (pré-versão ou versão final, `release.rs`).
 #[derive(Debug, PartialEq, Eq)]
-struct PreVersao {
-    tag: String,
-    titulo: String,
-    notas: String,
+pub(crate) struct Publicacao {
+    pub(crate) tag: String,
+    pub(crate) titulo: String,
+    pub(crate) notas: String,
 }
 
 pub fn run(args: &Args) -> Result<()> {
     let root = workspace_root();
     let versao = versao_do_app(args.alvo.as_deref().unwrap_or(&root))?;
     let texto_marco = ler_marco(&root, args.marco)?;
-    let commit = match &args.commit {
-        Some(commit) => commit.clone(),
+    let commit = resolver_commit(args.commit.as_deref())?;
+    let instalador = instalador_anexado(args.instalador.as_deref(), &versao, args.dry_run)?;
+    let pre = montar(&versao, args.marco, &texto_marco, &commit, &instalador)?;
+    entregar(&root, &pre, args.saida.as_deref(), "pre-versao", args.dry_run)
+}
+
+/// SHA completo do `--commit` ou, sem ele, do `HEAD`.
+pub(crate) fn resolver_commit(commit: Option<&str>) -> Result<String> {
+    let commit = match commit {
+        Some(commit) => commit.to_owned(),
         None => Cmd::new("git")
             .args(["rev-parse", "HEAD"])
             .read()?
@@ -91,54 +99,70 @@ pub fn run(args: &Args) -> Result<()> {
         commit.len() == 40 && commit.bytes().all(|b| b.is_ascii_hexdigit()),
         "--commit precisa ser o SHA completo (40 caracteres hexadecimais), não `{commit}`"
     );
+    Ok(commit)
+}
 
-    let instalador = match &args.instalador {
+/// O `--instalador` com o SHA-256; no teste a seco, sem ele, o nome que o Tauri daria.
+pub(crate) fn instalador_anexado(
+    caminho: Option<&Path>,
+    versao: &str,
+    dry_run: bool,
+) -> Result<Instalador> {
+    Ok(match caminho {
         Some(caminho) => Instalador {
             nome: nome_do_arquivo(caminho)?,
             sha256: Some(sha256_do_arquivo(caminho)?),
         },
-        None if args.dry_run => Instalador {
+        None if dry_run => Instalador {
             nome: format!("Warden_{versao}_x64-setup.exe"),
             sha256: None,
         },
         None => bail!("falta o --instalador (o .exe do Windows); só o --dry-run dispensa"),
-    };
+    })
+}
 
-    let pre = montar(&versao, args.marco, &texto_marco, &commit, &instalador)?;
-
-    if args.dry_run {
+/// Confere a tag (fora do teste a seco), grava `tag.txt`, `titulo.txt` e `notas.md` em `saida`
+/// (padrão `<target>/<pasta_padrao>`) e mostra o resultado.
+pub(crate) fn entregar(
+    root: &Path,
+    publicacao: &Publicacao,
+    saida: Option<&Path>,
+    pasta_padrao: &str,
+    dry_run: bool,
+) -> Result<()> {
+    if dry_run {
         println!("(teste a seco: a existência da tag no GitHub não foi consultada)");
     } else {
-        conferir_tag_livre(&root, &pre.tag)?;
+        conferir_tag_livre(root, &publicacao.tag)?;
     }
 
-    let saida = match &args.saida {
-        Some(pasta) => pasta.clone(),
-        None => target_dir()?.join("pre-versao"),
+    let saida = match saida {
+        Some(pasta) => pasta.to_path_buf(),
+        None => target_dir()?.join(pasta_padrao),
     };
     fs::create_dir_all(&saida).with_context(|| format!("falha ao criar {}", saida.display()))?;
     for (arquivo, conteudo) in [
-        ("tag.txt", &pre.tag),
-        ("titulo.txt", &pre.titulo),
-        ("notas.md", &pre.notas),
+        ("tag.txt", &publicacao.tag),
+        ("titulo.txt", &publicacao.titulo),
+        ("notas.md", &publicacao.notas),
     ] {
         let caminho = saida.join(arquivo);
         fs::write(&caminho, conteudo)
             .with_context(|| format!("falha ao gravar {}", caminho.display()))?;
     }
 
-    println!("tag:    {}", pre.tag);
-    println!("título: {}", pre.titulo);
+    println!("tag:    {}", publicacao.tag);
+    println!("título: {}", publicacao.titulo);
     println!("arquivos em {}", saida.display());
-    if args.dry_run {
-        println!("\n----- notas.md -----\n{}", pre.notas);
+    if dry_run {
+        println!("\n----- notas.md -----\n{}", publicacao.notas);
     }
     Ok(())
 }
 
 /// Versão do app: `version` do `tauri.conf.json` ou, sem ela, a do `Cargo.toml` da `warden-app`
 /// (o Tauri faz o mesmo). Só `X.Y.Z`: a tag acrescenta o `-marco.<N>`.
-fn versao_do_app(root: &Path) -> Result<String> {
+pub(crate) fn versao_do_app(root: &Path) -> Result<String> {
     let tauri_dir = root.join("apps").join("desktop").join("src-tauri");
     let conf_path = tauri_dir.join("tauri.conf.json");
     let conf: serde_json::Value = serde_json::from_str(
@@ -205,11 +229,18 @@ fn ler_marco(root: &Path, marco: u8) -> Result<String> {
         MARCOS.start(),
         MARCOS.end()
     );
-    let relativo = format!("docs/pre-versoes/marco-{marco}.md");
-    let caminho = root.join(&relativo);
-    let texto = fs::read_to_string(&caminho).with_context(|| {
-        format!("falta o {relativo}: copie o docs/pre-versoes/MODELO.md e preencha antes de publicar")
-    })?;
+    ler_notas(
+        root,
+        &format!("docs/pre-versoes/marco-{marco}.md"),
+        "copie o docs/pre-versoes/MODELO.md e preencha antes de publicar",
+    )
+}
+
+/// Texto de `root/<relativo>`, sem trechos `[preencher …]`; `dica` diz o que fazer se faltar.
+pub(crate) fn ler_notas(root: &Path, relativo: &str, dica: &str) -> Result<String> {
+    let caminho = root.join(relativo);
+    let texto = fs::read_to_string(&caminho)
+        .with_context(|| format!("falta o {relativo}: {dica}"))?;
     ensure!(
         !texto.contains(MARCA_PENDENTE),
         "o {relativo} ainda tem trechos `{MARCA_PENDENTE} …]` do modelo"
@@ -218,7 +249,7 @@ fn ler_marco(root: &Path, marco: u8) -> Result<String> {
 }
 
 /// Separa o título (`# ...`, primeira linha não vazia) do resto do texto do marco.
-fn separar_titulo(texto: &str) -> Result<(&str, &str)> {
+pub(crate) fn separar_titulo(texto: &str) -> Result<(&str, &str)> {
     let texto = texto.trim_start();
     let (primeira, resto) = texto.split_once('\n').unwrap_or((texto, ""));
     let titulo = primeira
@@ -226,7 +257,7 @@ fn separar_titulo(texto: &str) -> Result<(&str, &str)> {
         .strip_prefix("# ")
         .map(str::trim)
         .filter(|titulo| !titulo.is_empty())
-        .context("o arquivo do marco precisa começar por um título `# Marco <N>: ...`")?;
+        .context("o arquivo das notas precisa começar por um título `# ...`")?;
     Ok((titulo, resto.trim()))
 }
 
@@ -236,7 +267,7 @@ fn montar(
     texto_marco: &str,
     commit: &str,
     instalador: &Instalador,
-) -> Result<PreVersao> {
+) -> Result<Publicacao> {
     let (titulo_marco, corpo) = separar_titulo(texto_marco)?;
     ensure!(
         !corpo.is_empty(),
@@ -245,6 +276,30 @@ fn montar(
     let tag = format!("v{versao}-marco.{marco}");
     let titulo = format!("Warden {versao} · {titulo_marco} (pré-versão)");
 
+    let notas = notas_com_bloco_fixo(
+        corpo,
+        versao,
+        commit,
+        instalador,
+        "Esta é uma **pré-versão** de fim de marco, para teste.",
+    );
+
+    Ok(Publicacao {
+        tag,
+        titulo,
+        notas,
+    })
+}
+
+/// `corpo` mais o bloco fixo (como instalar, o `SmartScreen`, como relatar problemas e o
+/// SHA-256 do instalador), fechado pela linha da versão e do commit seguida de `fecho`.
+pub(crate) fn notas_com_bloco_fixo(
+    corpo: &str,
+    versao: &str,
+    commit: &str,
+    instalador: &Instalador,
+    fecho: &str,
+) -> String {
     let nome = &instalador.nome;
     let sha = instalador
         .sha256
@@ -297,14 +352,10 @@ fn montar(
     );
     let _ = writeln!(
         notas,
-        "Versão {versao}, commit [`{curto}`](https://github.com/Kriticales/Warden/commit/{commit}). Esta é uma **pré-versão** de fim de marco, para teste."
+        "Versão {versao}, commit [`{curto}`](https://github.com/Kriticales/Warden/commit/{commit}). {fecho}"
     );
+    notas
 
-    Ok(PreVersao {
-        tag,
-        titulo,
-        notas,
-    })
 }
 
 fn nome_do_arquivo(caminho: &Path) -> Result<String> {
