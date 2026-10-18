@@ -786,6 +786,39 @@ fn collect_jars(dirs: &InstanceDirs, cancel: &CancellationToken) -> Result<Vec<I
     Ok(jars)
 }
 
+/// Descompacta um pacote numa pasta (a validação no servidor local), só com caminhos seguros:
+/// um caminho que sairia da pasta recusa o pacote inteiro antes de gravar qualquer arquivo.
+pub fn unpack_server_pack(archive: &Path, into: &Path) -> Result<()> {
+    let file = fs::File::open(archive).map_err(err)?;
+    let mut zip = zip::ZipArchive::new(file).map_err(err)?;
+    let mut names = Vec::with_capacity(zip.len());
+    for index in 0..zip.len() {
+        let entry = zip.by_index(index).map_err(err)?;
+        let relative = entry.enclosed_name().ok_or_else(|| {
+            Error::new(
+                ExportErrorCode::ServerPackInvalidOutput,
+                "caminho inseguro no pacote",
+            )
+        })?;
+        names.push((relative, entry.is_dir()));
+    }
+    fs::create_dir_all(into).map_err(err)?;
+    for (index, (relative, is_dir)) in names.into_iter().enumerate() {
+        let target = into.join(relative);
+        if is_dir {
+            fs::create_dir_all(&target).map_err(err)?;
+            continue;
+        }
+        if let Some(parent) = target.parent() {
+            fs::create_dir_all(parent).map_err(err)?;
+        }
+        let mut entry = zip.by_index(index).map_err(err)?;
+        let mut out = fs::File::create(&target).map_err(err)?;
+        std::io::copy(&mut entry, &mut out).map_err(err)?;
+    }
+    Ok(())
+}
+
 fn build_zip(entries: &BTreeMap<String, ZipEntry>) -> Result<Vec<u8>> {
     let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
     let options = SimpleFileOptions::default()
@@ -968,6 +1001,27 @@ mod tests {
         let detail = warden_core::DomainError::detail(&error).unwrap();
         assert!(detail.contains("falta user_jvm_args.txt"), "{detail}");
         assert!(detail.contains("falta mods/a.jar"), "{detail}");
+    }
+
+    #[test]
+    fn descompactar_recusa_caminho_para_fora_sem_gravar_nada() {
+        let temp = tempfile::tempdir().unwrap();
+        let good = temp.path().join("bom.zip");
+        fs::write(&good, build_zip(&base()).unwrap()).unwrap();
+        unpack_server_pack(&good, &temp.path().join("bom")).unwrap();
+        assert!(temp.path().join("bom/start.sh").is_file());
+        let bad = temp.path().join("mau.zip");
+        let mut zip = zip::ZipWriter::new(fs::File::create(&bad).unwrap());
+        zip.start_file("a.txt", SimpleFileOptions::default())
+            .unwrap();
+        zip.write_all(b"x").unwrap();
+        zip.start_file("../fora.txt", SimpleFileOptions::default())
+            .unwrap();
+        zip.write_all(b"x").unwrap();
+        zip.finish().unwrap();
+        assert!(unpack_server_pack(&bad, &temp.path().join("dentro")).is_err());
+        assert!(!temp.path().join("fora.txt").exists());
+        assert!(!temp.path().join("dentro/a.txt").exists());
     }
 
     #[test]

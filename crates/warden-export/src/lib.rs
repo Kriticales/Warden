@@ -35,5 +35,5 @@ pub use server_pack::{
     JavaRange, LoaderDownload, ManualDownloads, STAGE_SERVER_MODS, STAGE_SERVER_MODS_LABEL,
     STAGE_SERVER_ZIP, STAGE_SERVER_ZIP_LABEL, ServerPackAnalysis, ServerPackContents,
     ServerPackFolder, ServerPackOptions, ServerPackRequest, ServerPackResult, ServerPackVariant,
-    WaitFuture, analyze_server_pack, export_server_pack,
+    WaitFuture, analyze_server_pack, export_server_pack, unpack_server_pack,
 };
