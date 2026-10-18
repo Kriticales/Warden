@@ -272,6 +272,44 @@ async fn limite_do_github_e_repositorio_que_nao_existe() {
     );
 }
 
+#[tokio::test]
+async fn pedido_de_uma_busca_que_falha_e_o_que_saiu() {
+    // A busca sai e o GitHub recusa (repositório renomeado): o pedido montado antes é o mesmo
+    // que chegou ao servidor, para o bloco "Enviado ao GitHub" aparecer mesmo assim.
+    let server = MockServer::start().await;
+    Mock::given(path("/search/issues"))
+        .respond_with(ResponseTemplate::new(422))
+        .mount(&server)
+        .await;
+    let github = GithubIssues::with_api(&config(), &server.uri()).unwrap();
+    let request = github
+        .request(&repo(), "NullPointerException travel")
+        .unwrap();
+    let failed = github
+        .search(
+            &repo(),
+            "NullPointerException travel",
+            None,
+            &redactor(),
+            None,
+        )
+        .await;
+    assert!(failed.is_err());
+    let received = server.received_requests().await.unwrap();
+    assert_eq!(received.len(), 1);
+    assert_eq!(
+        request.request,
+        format!(
+            "GET {}{}?{}",
+            server.uri(),
+            received[0].url.path(),
+            received[0].url.query().unwrap()
+        )
+    );
+    assert_eq!(request.terms, "NullPointerException travel");
+    assert!(!request.cached);
+}
+
 fn version(id: &str, number: &str, text: &str) -> ChangelogVersion {
     ChangelogVersion {
         id: id.into(),

@@ -6,7 +6,9 @@
 //!   Adicionar (`project_preview`). A busca é a [`GithubIssues`] da `warden-ai`, guardada no
 //!   [`GithubHub`] do estado (o cache de 1 h vale para todas as conversas da execução), com o
 //!   token do GitHub quando ele existe. Só chega aqui com a caixa do GitHub marcada: o laço
-//!   recusa antes (`Needs::Github`).
+//!   recusa antes (`Needs::Github`). Uma busca que falha depois de sair (limite, repositório
+//!   renomeado, rede) ainda leva o pedido exato, para o bloco "Enviado ao GitHub" aparecer.
+//! - Cancelar a conversa para as consultas de rede no meio (o token de [`PackTools::cancel`]).
 //! - **Changelog:** as versões compatíveis com o pack vêm do "Trocar de versão" (P1-15, as
 //!   mesmas do diálogo, já filtradas pelo Minecraft e pelo loader); as notas, do cliente do
 //!   Modrinth (com cache) ou da CurseForge (só em memória, termos da CurseForge), só das versões
@@ -19,8 +21,7 @@ use warden_ai::external::{
     ChangelogVersion, GithubIssues, GithubRepo, changelog_items, changelog_range, html_to_text,
     search_terms,
 };
-use warden_ai::tools::ToolOutput;
-use warden_core::CancellationToken;
+use warden_ai::tools::{ToolItem, ToolOutput};
 use warden_http::HttpConfig;
 use warden_project::inventory::{InventoryItem, ItemSource};
 use warden_project::search::{SourceId, project_preview};
@@ -106,7 +107,7 @@ pub(super) async fn search_mod_issues(
         &search_sources(tools.state),
         source,
         &project,
-        &CancellationToken::new(),
+        &tools.cancel,
     )
     .await
     .map_err(|error| format!("Não foi possível ler a página do mod ({error})."))?;
@@ -116,20 +117,37 @@ pub(super) async fn search_mod_issues(
     )
     .ok_or_else(|| warden_ai::external::ExternalError::NoRepository.to_string())?;
     let token = tools.state.secrets.get(SecretKind::Github).ok().flatten();
-    let search = tools
-        .state
-        .ai
-        .github
-        .issues()?
-        .search(&repository, &terms, token.as_ref(), &tools.redactor, None)
-        .await
+    let issues = tools.state.ai.github.issues()?;
+    let request = issues
+        .request(&repository, &terms)
         .map_err(|error| error.to_string())?;
-    Ok(ToolOutput {
-        items: search.items(),
-        third_party: true,
-        external: Some(search.request),
-        ..ToolOutput::default()
-    })
+    match issues
+        .search(
+            &repository,
+            &terms,
+            token.as_ref(),
+            &tools.redactor,
+            Some(&tools.cancel),
+        )
+        .await
+    {
+        Ok(search) => Ok(ToolOutput {
+            items: search.items(),
+            third_party: true,
+            external: Some(search.request),
+            ..ToolOutput::default()
+        }),
+        // O pedido saiu (ou pode ter saído): o bloco "Enviado ao GitHub" aparece mesmo assim,
+        // e a IA recebe o motivo da falha.
+        Err(error) => Ok(ToolOutput {
+            items: vec![ToolItem::new(
+                format!("issue:{}", repository.label()),
+                format!("A busca no GitHub falhou: {error}"),
+            )],
+            external: Some(request),
+            ..ToolOutput::default()
+        }),
+    }
 }
 
 /// `get_mod_changelog(mod_id, from?, to?)`.
@@ -146,7 +164,7 @@ pub(super) async fn mod_changelog(
             &tools.root,
             &add_sources(tools.state),
             &item.path,
-            &CancellationToken::new(),
+            &tools.cancel,
         )
         .await
         .map_err(|error| format!("Não foi possível ler as versões do mod ({error})."))?
@@ -199,7 +217,7 @@ async fn fill_notes(
             let found = tools
                 .state
                 .modrinth
-                .versions(&ids, None)
+                .versions(&ids, Some(&tools.cancel))
                 .await
                 .map_err(|error| format!("O Modrinth não devolveu as notas ({error})."))?;
             for version in versions.iter_mut() {
@@ -225,7 +243,7 @@ async fn fill_notes(
                     .parse()
                     .map_err(|_| format!("Arquivo da CurseForge inválido: {}", version.id))?;
                 let html = client
-                    .file_changelog(mod_id, file_id, None)
+                    .file_changelog(mod_id, file_id, Some(&tools.cancel))
                     .await
                     .map_err(|error| format!("A CurseForge não devolveu as notas ({error})."))?;
                 version.text = html_to_text(&html);

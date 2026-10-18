@@ -34,7 +34,7 @@ use warden_ai::external::{
 };
 use warden_ai::proposals::{ProposalKind, ProposalSummary};
 use warden_ai::tools::{KnownMods, ToolOutput, ToolRegistry, ToolSource};
-use warden_core::PackId;
+use warden_core::{CancellationToken, PackId};
 use warden_diagnostics::Redactor;
 
 use crate::state::AppState;
@@ -67,6 +67,8 @@ pub(crate) struct PackTools<'a> {
     pub(crate) redactor: Redactor,
     /// O log escolhido no computador, já redigido (conversas com essa origem).
     pub(crate) local_log: Option<PathBuf>,
+    /// O cancelamento da conversa: as consultas de rede da D-14 param junto.
+    pub(crate) cancel: CancellationToken,
     /// Logs já lidos e redigidos nesta rodada, por sessão.
     logs: Mutex<HashMap<String, Arc<Vec<String>>>>,
     /// Os mods do pack (com os ids dos jars), lidos uma vez.
@@ -87,9 +89,16 @@ impl<'a> PackTools<'a> {
             root,
             redactor: crate::commands::report::redactor(&player, &state.secrets),
             local_log,
+            cancel: CancellationToken::new(),
             logs: Mutex::new(HashMap::new()),
             mods: tokio::sync::OnceCell::new(),
         }
+    }
+
+    /// As consultas de rede param quando `cancel` for cancelado (o da conversa).
+    pub(crate) fn with_cancel(mut self, cancel: CancellationToken) -> Self {
+        self.cancel = cancel;
+        self
     }
 
     fn cached_log(&self, session: &str) -> Option<Arc<Vec<String>>> {

@@ -402,6 +402,23 @@ impl GithubIssues {
         Ok(url)
     }
 
+    /// O pedido exato que [`GithubIssues::search`] manda, para o bloco "Enviado ao GitHub"
+    /// também quando a busca falha depois de sair (limite, repositório renomeado, rede).
+    pub fn request(
+        &self,
+        repository: &GithubRepo,
+        terms: &str,
+    ) -> Result<ExternalRequest, ExternalError> {
+        let url = self.url(repository, terms)?;
+        Ok(ExternalRequest {
+            service: ExternalService::Github,
+            request: format!("GET {url}"),
+            repository: repository.label(),
+            terms: terms.to_owned(),
+            cached: false,
+        })
+    }
+
     /// Até cinco issues de `repository` com `terms` (já passados por [`search_terms`]). Títulos
     /// redigidos com `redactor`.
     pub async fn search(
@@ -414,13 +431,7 @@ impl GithubIssues {
     ) -> Result<IssueSearch, ExternalError> {
         let url = self.url(repository, terms)?;
         let key = url.to_string();
-        let request = ExternalRequest {
-            service: ExternalService::Github,
-            request: format!("GET {url}"),
-            repository: repository.label(),
-            terms: terms.to_owned(),
-            cached: false,
-        };
+        let request = self.request(repository, terms)?;
         if let Some(issues) = self.cached(&key) {
             return Ok(IssueSearch {
                 repository: repository.clone(),

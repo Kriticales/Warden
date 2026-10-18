@@ -219,6 +219,94 @@ async fn ca_t14_13_issues_pelo_link_do_projeto_so_repositorio_e_termos_com_token
 }
 
 #[tokio::test]
+async fn busca_que_falha_no_github_ainda_mostra_o_pedido_enviado() {
+    // O GitHub recusa (repositório renomeado): o pedido saiu, então o bloco "Enviado ao GitHub"
+    // aparece igual, e a IA recebe o motivo.
+    let dir = tempfile::tempdir().unwrap();
+    let mut state = test_state(&dir.path().join("dados"));
+    let api = modrinth().await;
+    state.modrinth = modrinth_client(&api);
+    let Some((pack_id, root)) = pack(&state, dir.path()).await else {
+        return;
+    };
+    let github = MockServer::start().await;
+    Mock::given(path("/search/issues"))
+        .respond_with(ResponseTemplate::new(422))
+        .expect(1)
+        .mount(&github)
+        .await;
+    *state.ai.github.api.lock().unwrap() = Some(github.uri());
+
+    let tools = PackTools::new(&state, pack_id, root, None);
+    let output = tools
+        .call(
+            "search_mod_issues",
+            &json!({ "mod_id": "sodium", "query": "NullPointerException EntityRenderer" }),
+        )
+        .await
+        .unwrap();
+    let request = output.external.expect("o pedido que saiu aparece");
+    let received = github.received_requests().await.unwrap();
+    assert_eq!(
+        request.request,
+        format!(
+            "GET {}{}?{}",
+            github.uri(),
+            received[0].url.path(),
+            received[0].url.query().unwrap()
+        )
+    );
+    assert_eq!(output.items[0].id, "issue:CaffeineMC/sodium");
+    assert!(
+        output.items[0].text.contains("falhou"),
+        "{}",
+        output.items[0].text
+    );
+}
+
+#[tokio::test]
+async fn cancelar_a_conversa_para_a_busca_no_github() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut state = test_state(&dir.path().join("dados"));
+    let api = modrinth().await;
+    state.modrinth = modrinth_client(&api);
+    let Some((pack_id, root)) = pack(&state, dir.path()).await else {
+        return;
+    };
+    let github = MockServer::start().await;
+    Mock::given(path("/search/issues"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({ "items": [] }))
+                .set_delay(std::time::Duration::from_secs(60)),
+        )
+        .mount(&github)
+        .await;
+    *state.ai.github.api.lock().unwrap() = Some(github.uri());
+
+    let cancel = warden_core::CancellationToken::new();
+    let tools = PackTools::new(&state, pack_id, root, None).with_cancel(cancel.clone());
+    let canceller = cancel.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+        canceller.cancel();
+    });
+    let started = std::time::Instant::now();
+    let output = tokio::time::timeout(
+        std::time::Duration::from_secs(20),
+        tools.call(
+            "search_mod_issues",
+            &json!({ "mod_id": "sodium", "query": "NullPointerException" }),
+        ),
+    )
+    .await
+    .expect("cancelar não parou a busca no GitHub")
+    .unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_secs(20));
+    assert!(output.items[0].text.contains("falhou"));
+}
+
+#[tokio::test]
 async fn changelog_entre_a_instalada_e_a_mais_nova_redigido() {
     let dir = tempfile::tempdir().unwrap();
     let mut state = test_state(&dir.path().join("dados"));

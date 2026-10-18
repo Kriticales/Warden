@@ -860,7 +860,7 @@ pub(crate) async fn run_impl(
         let local_log = matches!(conversation.origin, ConversationOrigin::LocalFile { .. })
             .then(|| store.local_log(id).ok())
             .flatten();
-        let tools = PackTools::new(state, pack_id, root, local_log);
+        let tools = PackTools::new(state, pack_id, root, local_log).with_cancel(cancel.clone());
         let registry = registry();
         let observer = AppObserver {
             hub: &state.ai,
