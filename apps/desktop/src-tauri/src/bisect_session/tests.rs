@@ -491,6 +491,40 @@ async fn geracao_que_falha_pausa_e_continuar_tenta_de_novo() {
     assert!(worlds.ready("1.20.1"));
 }
 
+/// O servidor que não fecha com `stop` (encerrado à força depois de 60 s, no meio do "Saving
+/// worlds") não deixa modelo: o mundo pode ter ficado pela metade e seria usado em todas as
+/// buscas do pack. A busca pausa com o erro da geração.
+#[tokio::test(flavor = "multi_thread")]
+async fn servidor_encerrado_a_forca_nao_deixa_modelo() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    fake_server_mode(&root, Some("ignorar-stop"));
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let error = tokio::time::timeout(Duration::from_secs(120), task)
+        .await
+        .expect("o servidor não foi encerrado à força")
+        .unwrap()
+        .unwrap_err();
+    assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
+    assert!(
+        error.detail.unwrap().contains("encerrado à força"),
+        "sem o motivo nos detalhes"
+    );
+    let worlds = world::WorldDirs::of(&state.paths, pack);
+    assert!(!worlds.ready("1.20.1"));
+    assert!(!worlds.world().exists(), "o mundo pela metade virou modelo");
+    assert!(state.servers.current().is_none());
+    assert_eq!(
+        get(&state.paths, pack).unwrap().unwrap().status,
+        BisectStatus::Paused
+    );
+}
+
 /// Cancelar enquanto o servidor gera o mundo encerra o servidor na hora (a porta fica livre),
 /// não deixa modelo pela metade e guarda a busca cancelada; o tempo esgotado também encerra o
 /// servidor e vira o erro da geração.
@@ -598,9 +632,29 @@ async fn sem_eula_nao_gera_o_mundo() {
             .join("bisect-world-server")
             .exists()
     );
-    // Nenhum eula=true em lugar nenhum.
-    let server = world::WorldDirs::of(&state.paths, pack);
-    assert!(!server.world().exists());
+    // Nenhum eula.txt em lugar nenhum (nem o servidor nem a pasta dele chegaram a existir).
+    assert!(!world::WorldDirs::of(&state.paths, pack).world().exists());
+    assert_eq!(files_named(dir.path(), "eula.txt"), Vec::<PathBuf>::new());
+}
+
+/// Os arquivos com este nome em qualquer lugar da pasta.
+fn files_named(root: &Path, name: &str) -> Vec<PathBuf> {
+    let mut found = Vec::new();
+    let mut pending = vec![root.to_path_buf()];
+    while let Some(dir) = pending.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if entry.file_name() == name {
+                found.push(path);
+            }
+        }
+    }
+    found
 }
 
 /// CA-T25-03: cancelar no meio encerra o jogo em até 5 s, apaga a instância da busca, guarda o
