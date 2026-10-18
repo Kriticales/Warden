@@ -274,7 +274,7 @@ export const config: WebdriverIO.Config = {
 
   afterTest: async (test, _context, { passed, duration }) => {
     if (!passed) {
-      await reportFailure(test.fullTitle, duration);
+      await reportFailure([test.parent, test.title].filter(Boolean).join(' › '), duration);
     }
   },
 
