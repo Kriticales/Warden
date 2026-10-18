@@ -21,8 +21,8 @@ Revisão das telas das funções avançadas antes da versão 1, com olhar de rev
 
 ## O que será ajustado
 
-| # | Arquivo | Texto ou componente | Motivo |
-|---|---|---|---|
-| 1 | `apps/desktop/src/i18n/pt-BR/servidor.ts` (`opcoes.poucaTexto`) | "…ou use um perfil com menos memória." → "…ou use um perfil do teste com menos memória." | Glossário (QUALITY §8.2): o conjunto de ajustes com nome é sempre "perfil do teste"; o mesmo aviso da busca do culpado com servidor (`busca-com-servidor.ts`) já diz assim. Teste de componente em `features/test/server/Server.test.tsx`. |
+| #   | Arquivo                                                         | Texto ou componente                                                                      | Motivo                                                                                                                                                                                                                                     |
+| --- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `apps/desktop/src/i18n/pt-BR/servidor.ts` (`opcoes.poucaTexto`) | "…ou use um perfil com menos memória." → "…ou use um perfil do teste com menos memória." | Glossário (QUALITY §8.2): o conjunto de ajustes com nome é sempre "perfil do teste"; o mesmo aviso da busca do culpado com servidor (`busca-com-servidor.ts`) já diz assim. Teste de componente em `features/test/server/Server.test.tsx`. |
 
 Defeitos que os fluxos de ponta a ponta encontrarem entram no relatório da tarefa: os pequenos, consertados com teste; os grandes ou fora da posse, registrados com a tela, os passos e a gravidade.
