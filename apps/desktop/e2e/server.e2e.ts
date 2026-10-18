@@ -17,7 +17,7 @@
  *   mod e o trecho do log; o "Só cliente" não vai para a pasta do servidor.
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
 
@@ -96,11 +96,19 @@ function writePack(files: Record<string, string>, fakeGame: string, fakeServer: 
   writeFileSync(join(PACK, '.warden-fake-server'), fakeServer);
 }
 
-/** A pasta do servidor local do pack (`instances/<pack>/server`). */
+/**
+ * A pasta do servidor local do pack (`instances/<pack>/server`), pelo id do pack em
+ * `packs.json`: na rodada completa, outros E2E deixam instâncias na mesma pasta de dados.
+ */
 function serverDir(): string {
   const instances = join(DATA_ROOT, 'data', 'instances');
-  const [id] = existsSync(instances) ? readdirSync(instances) : [];
-  return id ? join(instances, id, 'server') : join(instances, 'sem-instancia', 'server');
+  const registry = existsSync(REGISTRY_FILE)
+    ? (JSON.parse(readFileSync(REGISTRY_FILE, 'utf8')) as {
+        packs?: { id: string; path: string }[];
+      })
+    : {};
+  const id = registry.packs?.find((entry) => entry.path === PACK)?.id;
+  return join(instances, id ?? 'sem-instancia', 'server');
 }
 
 /** Se a porta está livre em 127.0.0.1. */
