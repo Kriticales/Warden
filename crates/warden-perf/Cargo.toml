@@ -10,6 +10,7 @@ publish.workspace = true
 warden-core.workspace = true
 # Os achados de memória (L-11) são achados do diagnóstico, com evidência.
 warden-diagnostics.workspace = true
+regex.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
 
