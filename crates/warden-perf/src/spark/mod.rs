@@ -394,7 +394,6 @@ impl Totals {
             self.game += amount;
             return;
         };
-        // Um mod achado pelo índice e pelo spark é o mesmo dono: o item vence.
         let key = owner.clone();
         let entry = self.amounts.entry(key.clone()).or_insert_with(|| {
             self.order.push(key);
@@ -403,7 +402,33 @@ impl Totals {
         *entry += amount;
     }
 
-    fn into_summary_parts(self) -> (Vec<SourceShare>, f64, u64) {
+    /// Um mod achado pelo índice (item e id) e, em outras classes, só pelo `class_sources` do
+    /// spark (só o id) é o mesmo dono: o item vence.
+    fn merge_same_mod(&mut self) {
+        let with_item: HashMap<String, ClassOwner> = self
+            .order
+            .iter()
+            .filter(|owner| owner.item.is_some())
+            .filter_map(|owner| Some((owner.mod_id.clone()?, owner.clone())))
+            .collect();
+        let amounts = &mut self.amounts;
+        self.order.retain(|owner| {
+            let target = owner
+                .item
+                .is_none()
+                .then(|| owner.mod_id.as_ref().and_then(|id| with_item.get(id)))
+                .flatten();
+            let Some(target) = target else {
+                return true;
+            };
+            let amount = amounts.remove(owner).unwrap_or_default();
+            *amounts.entry(target.clone()).or_default() += amount;
+            false
+        });
+    }
+
+    fn into_summary_parts(mut self) -> (Vec<SourceShare>, f64, u64) {
+        self.merge_same_mod();
         let total = self.game + self.amounts.values().sum::<f64>();
         let mut shares: Vec<SourceShare> = self
             .order
@@ -646,6 +671,44 @@ mod tests {
         assert_eq!(summary.top[2].item, None);
         // MinecraftServer.tick (20 próprios) + EventHooks (10).
         assert_eq!(summary.game_percent, 30.0);
+    }
+
+    #[test]
+    fn mesmo_mod_pelo_indice_e_pelo_spark_e_uma_linha_so() {
+        // `Quests` só o spark conhece (só o id); `QuestsBook`, o índice (item e id): o mesmo
+        // mod, uma linha com o item, venha antes quem vier.
+        let owner = |class: &str| {
+            (class == "dev.ftb.QuestsBook").then(|| ClassOwner {
+                item: Some("mods/ftbquests.pw.toml".into()),
+                mod_id: Some("ftbquests".into()),
+            })
+        };
+        let nodes = vec![
+            node("dev.ftb.Quests", "tick", 30.0, &[]),
+            node("dev.ftb.QuestsBook", "open", 10.0, &[]),
+            node("net.minecraft.server.MinecraftServer", "tick", 60.0, &[]),
+        ];
+        for roots in [[0, 1, 2], [2, 1, 0]] {
+            let data = profile(nodes.clone(), &roots);
+            let summary = summarize(SparkKind::Profile, &data.encode_to_vec(), &owner).unwrap();
+            let shares: Vec<(Option<&str>, Option<&str>, f64)> = summary
+                .top
+                .iter()
+                .map(|share| {
+                    (
+                        share.item.as_deref(),
+                        share.mod_id.as_deref(),
+                        share.percent,
+                    )
+                })
+                .collect();
+            assert_eq!(
+                shares,
+                [(Some("mods/ftbquests.pw.toml"), Some("ftbquests"), 40.0)],
+                "{roots:?}"
+            );
+            assert_eq!(summary.game_percent, 60.0);
+        }
     }
 
     #[test]
