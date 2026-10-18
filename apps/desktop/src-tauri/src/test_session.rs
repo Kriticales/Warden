@@ -1536,9 +1536,9 @@ pub(crate) fn session_dir(
 #[cfg(test)]
 mod tests;
 
+#[cfg(test)]
+mod perf_profile_tests;
 /// A validação do pacote para servidor no servidor local (E-03), com o jogo e o servidor
 /// simulados destes testes.
 #[cfg(test)]
 mod server_pack_tests;
-#[cfg(test)]
-mod perf_profile_tests;
