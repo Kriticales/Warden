@@ -11,6 +11,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use serde_json::{Value, json};
 use sha2::{Digest as _, Sha256};
@@ -119,6 +120,8 @@ struct Gemini {
     seen: Arc<Mutex<Vec<(String, String)>>>,
     script: Script,
     count: Mutex<usize>,
+    /// Quanto o `generateContent` demora para responder.
+    delay: Arc<Mutex<Duration>>,
 }
 
 impl Respond for Gemini {
@@ -149,7 +152,9 @@ impl Respond for Gemini {
         let mut count = self.count.lock().unwrap();
         let reply = (self.script)(*count, &parsed);
         *count += 1;
-        ResponseTemplate::new(200).set_body_json(reply)
+        ResponseTemplate::new(200)
+            .set_body_json(reply)
+            .set_delay(*self.delay.lock().unwrap())
     }
 }
 
@@ -187,6 +192,7 @@ struct Setup {
     pack: PackId,
     server: MockServer,
     seen: Arc<Mutex<Vec<(String, String)>>>,
+    delay: Arc<Mutex<Duration>>,
 }
 
 async fn setup(script: Script) -> Setup {
@@ -202,11 +208,13 @@ async fn setup(script: Script) -> Setup {
         .unwrap();
     let server = MockServer::start().await;
     let seen = Arc::new(Mutex::new(Vec::new()));
+    let delay = Arc::new(Mutex::new(Duration::ZERO));
     Mock::given(wiremock::matchers::any())
         .respond_with(Gemini {
             seen: Arc::clone(&seen),
             script,
             count: Mutex::new(0),
+            delay: Arc::clone(&delay),
         })
         .mount(&server)
         .await;
@@ -219,6 +227,7 @@ async fn setup(script: Script) -> Setup {
         pack,
         server,
         seen,
+        delay,
     }
 }
 
@@ -482,6 +491,57 @@ async fn ca_t14_15_pack_mudado_e_apagar_a_conversa() {
     assert!(!file.exists());
     assert!(list_impl(&setup.state, setup.pack).unwrap().is_empty());
     assert!(get_impl(&setup.state, setup.pack, &id).await.is_err());
+}
+
+#[tokio::test]
+async fn apagar_enquanto_a_ia_responde_nao_traz_o_arquivo_de_volta() {
+    // CA-T14-15: apagar remove o arquivo, mesmo com a IA no meio de uma requisição (o laço
+    // cancelado não pode gravar a conversa de novo).
+    let setup = setup(Box::new(|_, _| {
+        calls(&[(
+            "responder",
+            json!({ "resumo": "Sem dados para concluir nada agora.", "semConclusao": true, "propostas": [], "achados": [] }),
+        )])
+    }))
+    .await;
+    let preview = preview_impl(
+        &setup.state,
+        setup.pack,
+        AiPreviewRequest {
+            symptom: Symptom::Slow,
+            source: AiSource::PackOnly,
+            note: None,
+        },
+    )
+    .await
+    .unwrap();
+    let id = start_impl(
+        &setup.state,
+        setup.pack,
+        &preview.preview_id,
+        AiPermissions::default(),
+    )
+    .unwrap();
+    *setup.delay.lock().unwrap() = Duration::from_secs(30);
+    let file = setup
+        .state
+        .paths
+        .ai_dir(setup.pack)
+        .join(format!("{id}.json"));
+    let delete = async {
+        // Espera a requisição chegar ao Google (simulado) e apaga no meio dela.
+        while generated(&setup.seen).is_empty() {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        delete_impl(&setup.state, setup.pack, &id).unwrap();
+    };
+    let (run, ()) = tokio::join!(run_impl(&setup.state, setup.pack, &id, noop()), delete);
+    assert!(run.is_err(), "cancelada");
+    assert!(
+        !file.exists(),
+        "o arquivo da conversa voltou depois de apagar"
+    );
+    assert!(list_impl(&setup.state, setup.pack).unwrap().is_empty());
 }
 
 #[tokio::test]

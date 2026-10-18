@@ -119,6 +119,10 @@ pub(crate) struct AiHub {
     previews: Mutex<HashMap<String, Preview>>,
     picks: Mutex<HashMap<String, PathBuf>>,
     running: Mutex<HashMap<String, Running>>,
+    /// Gravar uma conversa que está rodando e apagar uma conversa não se cruzam: quem grava
+    /// confere o cancelamento com ela presa, e quem apaga cancela e apaga com ela presa (a
+    /// conversa apagada no meio de uma resposta não volta).
+    files: Mutex<()>,
     /// Modelos resolvidos e o resumo da chave que os resolveu.
     models: Mutex<Option<(String, ModelChoices)>>,
     /// `countTokens` do *system prompt* e das ferramentas, por modelo.
@@ -759,14 +763,24 @@ struct AppObserver<'a> {
     pack_id: PackId,
     id: String,
     notify: Notify,
+    cancel: CancellationToken,
+}
+
+/// Grava a conversa que está rodando, a menos que ela tenha sido apagada (cancelada).
+fn save_running(hub: &AiHub, store: &ConversationStore, cancel: &CancellationToken, conversation: &Conversation) {
+    let _files = lock(&hub.files);
+    if cancel.is_cancelled() {
+        return;
+    }
+    if let Err(error) = store.save(conversation) {
+        tracing::warn!(%error, "conversa não gravada");
+    }
 }
 
 #[async_trait]
 impl Observer for AppObserver<'_> {
     async fn changed(&self, conversation: &Conversation) {
-        if let Err(error) = self.store.save(conversation) {
-            tracing::warn!(%error, "conversa não gravada");
-        }
+        save_running(self.hub, &self.store, &self.cancel, conversation);
         (self.notify)(self.pack_id, &self.id);
     }
 
@@ -808,6 +822,7 @@ pub(crate) async fn run_impl(
             pack_id,
             id: id.to_owned(),
             notify: Arc::clone(&notify),
+            cancel: cancel.clone(),
         };
         let engine = Engine {
             client: &client,
@@ -815,7 +830,7 @@ pub(crate) async fn run_impl(
             source: &tools,
             observer: &observer,
             timer: Arc::new(SystemTimer::new()),
-            cancel,
+            cancel: cancel.clone(),
             limits: Limits::default(),
         };
         if conversation.initial_tokens.is_none() && conversation.requests == 0 {
@@ -848,9 +863,7 @@ pub(crate) async fn run_impl(
         if let Some(turn) = conversation.turns.last_mut() {
             turn.failure = Some(failure_from_app(error));
         }
-        if let Err(error) = store.save(&conversation) {
-            tracing::warn!(%error, "conversa não gravada");
-        }
+        save_running(&state.ai, &store, &cancel, &conversation);
     }
     drop(guard);
     notify(pack_id, id);
@@ -1111,6 +1124,7 @@ pub(crate) async fn ai_conversation_get(
 
 pub(crate) fn delete_impl(state: &AppState, pack_id: PackId, id: &str) -> Result<(), AppError> {
     pack_root(state, pack_id)?;
+    let _files = lock(&state.ai.files);
     state.ai.cancel(id);
     store(state, pack_id)
         .delete(id)
