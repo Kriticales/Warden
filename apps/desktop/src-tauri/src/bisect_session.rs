@@ -69,10 +69,10 @@ use crate::test_session::{BisectGame, LaunchExtra, Notify, read_output_log};
 pub(crate) const BISECT_RUN: OperationKind = OperationKind::new("bisect.run");
 /// Etapa "Preparando a busca".
 const STAGE_PREPARE: &str = "bisect.prepare";
-const STAGE_PREPARE_LABEL: &str = "busca-do-culpado:etapa.preparar";
+const STAGE_PREPARE_LABEL: &str = "buscaDoCulpado:etapa.preparar";
 /// Etapa "Rodada da busca".
 const STAGE_ROUND: &str = "bisect.round";
-const STAGE_ROUND_LABEL: &str = "busca-do-culpado:etapa.rodada";
+const STAGE_ROUND_LABEL: &str = "buscaDoCulpado:etapa.rodada";
 /// Relógio do acompanhamento de cada rodada.
 const TICK: Duration = Duration::from_millis(250);
 /// Arquivo do `--quickPlayPath`, relativo ao `gameDir` da rodada.
@@ -544,12 +544,11 @@ fn base_jars(input: &GraphInput, base: &InstanceDirs) -> Vec<PackJar> {
 fn last_world_ms(state_dir: &Path) -> Option<u64> {
     let sessions = warden_launcher::session::list_sessions(&state_dir.join("sessions")).ok()?;
     sessions.iter().find_map(|session| {
+        // Os tempos ficam no nível do campo `perf` (`SessionPerf` com `times` achatado).
         let perf = session.record.as_ref()?.extra.get("perf")?;
-        let times = perf.get("times")?;
-        times
-            .get("worldMs")
+        perf.get("worldMs")
             .and_then(serde_json::Value::as_u64)
-            .or_else(|| times.get("loadedMs").and_then(serde_json::Value::as_u64))
+            .or_else(|| perf.get("loadedMs").and_then(serde_json::Value::as_u64))
     })
 }
 
@@ -997,17 +996,18 @@ impl Runner<'_> {
         let quick_play =
             warden_launcher::quick_play::quick_play_support(&facts.minecraft).is_supported();
         let world = crate::test_profiles::quick_play_world(&self.dirs.test.game_dir, None);
+        // Só "trava ao entrar no mundo" precisa entrar no mundo; os outros passam no menu
+        // quando não há como (versão sem Quick Play ou sem mundo de teste; no modo assistido,
+        // a pessoa entra no mundo dela).
         let goal = match (&request.symptom, quick_play, &world) {
-            // "Trava ao abrir" passa no menu quando não há como entrar no mundo.
-            (Symptom::CrashOnOpen, true, Some(_)) => Goal::World,
-            (Symptom::CrashOnOpen, _, _) => Goal::Menu,
-            (_, false, _) => {
+            (Symptom::CrashOnWorld, false, _) => {
                 return Err(domain(&BisectError::NeedsServer {
                     minecraft: facts.minecraft,
                 }));
             }
-            (_, true, None) => return Err(domain(&BisectError::NoTestWorld)),
+            (Symptom::CrashOnWorld, true, None) => return Err(domain(&BisectError::NoTestWorld)),
             (_, true, Some(_)) => Goal::World,
+            _ => Goal::Menu,
         };
         let started = now_ms();
         Ok(BisectState {

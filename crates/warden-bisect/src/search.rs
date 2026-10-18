@@ -86,7 +86,11 @@ impl Verdict {
 
 /// O tipo de uma rodada.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum RoundKind {
     /// Rodada 0: o pack inteiro.
     Reproduce {
@@ -159,7 +163,11 @@ pub enum CulpritConfidence {
 
 /// Como a busca terminou.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum SearchOutcome {
     /// Culpado (ou combinação) encontrado.
     Found {

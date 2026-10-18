@@ -98,6 +98,10 @@ export const tarefas = {
     publish: {
       run: 'Publicar versão',
     },
+    // D-12: busca do culpado.
+    bisect: {
+      run: 'Encontrar o mod culpado',
+    },
   },
 } as const;
 

@@ -9,6 +9,7 @@
 import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
+import { BisectOffer } from '../bisect/CrashEntry';
 import { CaptureBlock } from '../capture/CaptureBlock';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PlayerResult } from './clean/PlayerResult';
@@ -34,6 +35,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'why-crashed', order: 200, component: WhyCrashed },
   // L-07: o que o jogador recebeu × o pack.
   { id: 'player', order: 75, component: PlayerResult },
+  // D-12: "Encontrar o mod culpado", logo depois de "Por que travou".
+  { id: 'bisect-offer', order: 210, component: BisectOffer },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {

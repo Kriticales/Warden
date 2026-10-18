@@ -21,6 +21,7 @@ import type { ComponentType } from 'react';
 import i18n from '../../i18n';
 import type { GameState, PackId, PackRow, TestSessionSummary } from '../../lib/ipc/bindings';
 import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDialog';
+import { bisectDialog, bisectMenuItem } from '../bisect/menu';
 import { playerMenuItem } from './clean/menu';
 import { DeleteWorldsDialog } from './dialogs/DeleteWorldsDialog';
 import { RecreateInstanceDialog } from './dialogs/RecreateInstanceDialog';
@@ -125,6 +126,8 @@ export const testMenuItems: readonly TestMenuEntry[] = [
   { id: 'profiles', group: 'profile', order: 100, component: ProfileMenuItems },
   // L-07: "Testar como o jogador recebe".
   playerMenuItem,
+  // D-12: "Encontrar o mod culpado…".
+  bisectMenuItem,
   {
     id: 'settings',
     group: 'profile',
@@ -179,6 +182,8 @@ export const testDialogs: readonly TestDialog[] = [
   { id: 'settings', component: TestSettingsDialog },
   { id: 'delete-worlds', component: DeleteWorldsDialog },
   { id: 'recreate-instance', component: RecreateInstanceDialog },
+  // D-12: "Encontrar o mod culpado".
+  bisectDialog,
 ];
 
 /** Os itens de um grupo, na ordem. */

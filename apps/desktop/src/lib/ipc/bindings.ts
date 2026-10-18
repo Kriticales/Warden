@@ -6024,7 +6024,7 @@ size: number;
 /**  Quantos suspeitos nesta etapa. */
 of: number; 
 /**  O conjunto já achado vai junto (busca do parceiro). */
-with_found: boolean } | 
+withFound: boolean } | 
 /**  Só o conjunto achado. */
 { kind: "alone" } | 
 /**  O pack sem o conjunto achado. */
@@ -6265,7 +6265,7 @@ culprits: string[];
 /**  Confiança. */
 confidence: CulpritConfidence; 
 /**  O pack sem o conjunto ainda falha igual: há outro problema. */
-another_problem: boolean } | 
+anotherProblem: boolean } | 
 /**  O problema não apareceu em 3 testes seguidos na rodada 0. */
 { kind: "notReproduced" } | 
 /**  Mesmo sem mods o jogo falha igual. */

@@ -133,8 +133,10 @@ export function applyEvent(run: TestRun, event: OperationEvent): TestRun {
       };
     case 'perfSample':
       return { ...run, perf: applyPerfSample(event) };
+    // As rodadas da busca do culpado vão pelo canal dela (D-12).
     case 'log':
     case 'finished':
+    case 'round':
       return run;
   }
 }

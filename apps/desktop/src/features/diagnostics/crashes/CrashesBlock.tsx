@@ -18,6 +18,7 @@ import { LoadingState } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import type { CrashGroupView, CrashRetention, PackId } from '../../../lib/ipc/bindings';
+import { CrashBisectAction } from '../../bisect/CrashEntry';
 import { formatMemory, formatWhen } from '../../test/text';
 import type { ProblemsBlockProps } from '../problems-blocks';
 import { useCrash, useCrashes, usePruneCrashes } from './api';
@@ -126,6 +127,8 @@ function CrashRow({ packId, group }: { packId: PackId; group: CrashGroupView }) 
                 {open ? t('ocultarVezes') : t('verVezes', { count: group.count })}
               </Button>
             ) : null}
+            {/* D-12: "Encontrar o mod culpado" e a busca ligada a este travamento. */}
+            <CrashBisectAction packId={packId} group={group} />
           </div>
         </td>
       </tr>
