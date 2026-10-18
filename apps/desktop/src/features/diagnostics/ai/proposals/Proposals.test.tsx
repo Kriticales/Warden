@@ -194,9 +194,26 @@ describe('✦ Propostas da IA (D-14)', () => {
     expect(backend.callsOf('ai_proposal_apply')).toHaveLength(0);
   });
 
-  it('o pack mudou depois da diferença: o erro diz para revisar e o diálogo continua aberto', async () => {
-    const { url } = setup([makeProposal()], {
-      ai_proposal_apply: () => ipcError(makeAppError({ domain: 'ai', code: 'PROPOSAL_STALE' })),
+  it('o pack mudou depois da diferença: o erro diz para revisar, a diferença é relida e o próximo Aplicar grava a nova', async () => {
+    let reviews = 0;
+    let applies = 0;
+    const { backend, url } = setup([makeProposal()], {
+      ai_proposal_review: () => {
+        reviews += 1;
+        return { ...makeReview(), token: reviews === 1 ? 'token-da-previa' : 'token-relido' };
+      },
+      ai_proposal_apply: () => {
+        applies += 1;
+        if (applies === 1) {
+          return ipcError(makeAppError({ domain: 'ai', code: 'PROPOSAL_STALE' }));
+        }
+        return {
+          proposal: makeProposal({
+            state: { state: 'applied', atMs: Date.now(), safetyPoint: null },
+          }),
+          safetyPoint: null,
+        };
+      },
     });
     const card = await openConversation(url);
     const user = userEvent.setup();
@@ -209,6 +226,22 @@ describe('✦ Propostas da IA (D-14)', () => {
         /O pack mudou desde que a diferença foi mostrada\. Nada foi gravado/,
       ),
     ).toBeDefined();
+    await waitFor(() => {
+      expect(backend.callsOf('ai_proposal_review').length).toBeGreaterThanOrEqual(2);
+    });
+    await waitFor(() => {
+      expect(within(dialog).getByRole('button', { name: 'Aplicar' })).toHaveProperty(
+        'disabled',
+        false,
+      );
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'Aplicar' }));
+    await waitFor(() => {
+      expect(backend.callsOf('ai_proposal_apply')).toHaveLength(2);
+    });
+    expect(backend.callsOf('ai_proposal_apply')[1]?.args).toMatchObject({
+      token: 'token-relido',
+    });
   });
 
   it('enquanto a IA responde nesta conversa, os botões esperam', async () => {
