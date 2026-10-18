@@ -188,6 +188,24 @@ fn identidade_do_arquivo() {
     let truncated_path = dir.path().join("d.jar");
     fs::write(&truncated_path, &truncated).unwrap();
     assert_eq!(file_identity(&truncated_path), None);
+
+    // zip64 com os campos de 32 bits preenchidos: os registros zip64 ficam entre o diretório e o
+    // registro de fim, então o diretório não termina onde o registro de fim começa (sem
+    // identidade, o jar é lido).
+    let plain = jar("e", "e");
+    let eocd = plain.len() - 22;
+    let mut zip64 = plain[..eocd].to_vec();
+    let mut record = b"PK\x06\x06".to_vec();
+    record.extend_from_slice(&44u64.to_le_bytes());
+    record.resize(56, 0);
+    zip64.extend_from_slice(&record);
+    let mut locator = b"PK\x06\x07".to_vec();
+    locator.resize(20, 0);
+    zip64.extend_from_slice(&locator);
+    zip64.extend_from_slice(&plain[eocd..]);
+    let zip64_path = dir.path().join("e.jar");
+    fs::write(&zip64_path, &zip64).unwrap();
+    assert_eq!(file_identity(&zip64_path), None);
 }
 
 #[test]

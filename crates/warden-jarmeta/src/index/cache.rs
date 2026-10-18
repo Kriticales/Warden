@@ -41,6 +41,10 @@ const IDENTITY_FORMAT: &[u8] = b"warden-jarindex-arquivo-1\0";
 const EOCD_SIGNATURE: [u8; 4] = *b"PK\x05\x06";
 /// Tamanho do registro de fim do diretório central sem o comentário.
 const EOCD_LEN: u64 = 22;
+/// Assinatura do localizador do registro zip64, que fica logo antes do registro de fim.
+const ZIP64_LOCATOR_SIGNATURE: [u8; 4] = *b"PK\x06\x07";
+/// Tamanho do localizador do registro zip64.
+const ZIP64_LOCATOR_LEN: u64 = 20;
 /// Maior diretório central lido para a identidade (um jar com 500 mil entradas tem ~40 MB).
 const MAX_CENTRAL_DIRECTORY: u64 = 64 * 1024 * 1024;
 
@@ -194,6 +198,16 @@ pub fn file_identity(path: &Path) -> Option<String> {
     let eocd_at = tail_start + u64::try_from(eocd).ok()?;
     if cd_size > MAX_CENTRAL_DIRECTORY || cd_size > eocd_at {
         return None;
+    }
+    // zip64 com os campos de 32 bits preenchidos: os registros zip64 ficam entre o diretório e o
+    // registro de fim, e o diretório não termina onde o registro de fim começa.
+    if let Some(locator_at) = eocd_at.checked_sub(ZIP64_LOCATOR_LEN) {
+        file.seek(SeekFrom::Start(locator_at)).ok()?;
+        let mut signature = [0u8; 4];
+        file.read_exact(&mut signature).ok()?;
+        if signature == ZIP64_LOCATOR_SIGNATURE {
+            return None;
+        }
     }
     // O diretório termina onde o registro de fim começa (vale também para zip com dados antes).
     file.seek(SeekFrom::Start(eocd_at - cd_size)).ok()?;
