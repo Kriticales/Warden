@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
+import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -135,7 +136,7 @@ function healthMeter(label: string) {
 async function openFolder(root: string): Promise<void> {
   writeFileSync(PICK_FOLDER, root);
   await dismissToasts();
-  await $('button=Abrir ou importar…').click();
+  await openOrImport();
   await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
   const open = $('button=Abrir pack');
   const notNow = $('button=Agora não');
