@@ -838,6 +838,8 @@ fn code_of(error: &crate::error::AppError) -> Value {
 
 #[tokio::test]
 async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a_sua() {
+    const OPENAI: &str = "sk-proj-chave-de-teste-da-openai-0123456789";
+    const ANTHROPIC: &str = "sk-ant-api03-chave-de-teste-da-anthropic-0123";
     let setup = setup(Box::new(|_, _| unreachable!("nada vai à IA"))).await;
     let file = setup
         .state
@@ -871,8 +873,6 @@ async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a
     assert_eq!(view.providers[1].tier, ModelTier::Careful);
 
     // As chaves de cada provedor ficam no cofre, nunca no arquivo das configurações.
-    const OPENAI: &str = "sk-proj-chave-de-teste-da-openai-0123456789";
-    const ANTHROPIC: &str = "sk-ant-api03-chave-de-teste-da-anthropic-0123";
     for (kind, value) in [
         (SecretKind::Openai, OPENAI),
         (SecretKind::Anthropic, ANTHROPIC),
