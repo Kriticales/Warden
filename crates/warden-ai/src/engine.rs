@@ -8,7 +8,8 @@
 //!   ([`ToolRegistry::allowed`]). `VALIDATED` nas rodadas de ferramenta; temperatura 1.0.
 //! - Todas as `functionResponse` de uma rodada numa só mensagem, cada uma com o `id` da chamada.
 //! - Resposta final pela ferramenta `responder`. Reserva: quando o modelo responde em texto, ou
-//!   ao passar de 8 rodadas, uma requisição com `mode: NONE` e `responseFormat` (CA-T14-18).
+//!   ao passar de 8 rodadas ou do teto de tokens da conversa, uma requisição com `mode: NONE` e
+//!   `responseFormat` (CA-T14-18).
 //! - Novas tentativas (S-R5-4 §13): 503, 500, falta de conexão e tempo esgotado até 4 vezes com
 //!   espera exponencial (2, 4, 8, 16 s); `MALFORMED_FUNCTION_CALL`, `UNEXPECTED_TOOL_CALL`,
 //!   `MALFORMED_RESPONSE`, resposta sem `content`, texto vazio e resposta final vazia até 2 vezes,
@@ -47,6 +48,9 @@ pub struct Limits {
     pub model_retries: u32,
     /// Esperas do limite por minuto por requisição.
     pub rate_waits: u32,
+    /// Teto de tokens processados por conversa (ARCHITECTURE §9.5 "Laço"): passando dele, a
+    /// pergunta vai direto para a reserva, sem mais consultas, como no estouro das rodadas.
+    pub max_tokens: u64,
 }
 
 impl Default for Limits {
@@ -56,6 +60,9 @@ impl Default for Limits {
             transient_retries: 4,
             model_retries: 2,
             rate_waits: 4,
+            // Uma conversa típica processa de 10 a 100 mil (S-R5-4 §14); o teto só pega a que
+            // fugiu do normal (cerca de US$ 0,15 no Flash-Lite).
+            max_tokens: 400_000,
         }
     }
 }
@@ -319,8 +326,11 @@ impl Engine<'_> {
             if self.cancel.is_cancelled() {
                 return Err(Error::Cancelled);
             }
-            if rounds >= self.limits.max_rounds && !fallback {
-                // Estourou: o Warden avisa e pede a resposta sem ferramentas.
+            let over = rounds >= self.limits.max_rounds
+                || conversation.usage.total() >= self.limits.max_tokens;
+            if over && !fallback {
+                // Estourou as rodadas ou o teto de tokens: o Warden avisa e pede a resposta sem
+                // ferramentas.
                 conversation
                     .contents
                     .push(json!({ "role": "user", "parts": [{ "text": ROUND_LIMIT_MESSAGE }] }));

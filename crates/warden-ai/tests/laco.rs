@@ -257,6 +257,32 @@ async fn ca_t14_14_para_em_8_rodadas_e_pede_a_final_sem_ferramentas() {
 }
 
 #[tokio::test]
+async fn teto_de_tokens_da_conversa_leva_a_reserva() {
+    // ARCHITECTURE §9.5: passando do teto de tokens da conversa, nada de novas consultas; vale a
+    // reserva sem ferramentas, como no estouro das rodadas. Cada rodada simulada processa 3.040.
+    let setup = Setup::new(Box::new(|_, request| {
+        if mode(request) == "NONE" {
+            text(&simple_answer().to_string())
+        } else {
+            calls(&[("list_mods", json!({}))])
+        }
+    }))
+    .await;
+    let mut conv = conversation(AiPermissions::default());
+    let mut engine = setup.engine();
+    engine.limits.max_tokens = 6_000;
+    engine.ask(&mut conv, "Está lento".into()).await.unwrap();
+    let requests = setup.gemini.requests();
+    assert_eq!(requests.len(), 3, "2 rodadas (6.080 tokens) e a reserva");
+    assert_eq!(mode(&requests[1]), "VALIDATED");
+    assert_eq!(mode(&requests[2]), "NONE");
+    let answer = conv.turns[0].answer.as_ref().unwrap();
+    assert_eq!(answer.via, AnswerVia::Fallback);
+    assert!(answer.round_limit);
+    assert_eq!(Limits::default().max_tokens, 400_000);
+}
+
+#[tokio::test]
 async fn ca_t14_14_segundo_turno_reenvia_o_historico_intacto() {
     let setup = Setup::new(Box::new(|n, _| match n {
         0 => calls(&[("get_crash_report", json!({ "session_id": "s3" }))]),
