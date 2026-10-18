@@ -60,3 +60,11 @@ targetRules = ["generic-api-key"]
 regexTarget = "secret"
 regexes = ['''^mod/bellsandwhistles$''']
 paths = ['''^crates[/\\]warden-diagnostics[/\\]tests[/\\]corpus-assinatura[/\\]''']
+
+[[allowlists]]
+description = "Chave da OpenAI inventada para o teste da varredura de segredos da publicação (D-15: a forma `sk-…` também bloqueia publicar). Só este valor exato, só neste arquivo."
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ['''^sk-proj-0123456789abcdefghij_ABCDEF$''']
+paths = ['''^crates[/\\]warden-versioning[/\\]src[/\\]publish[/\\]secrets\.rs$''']
