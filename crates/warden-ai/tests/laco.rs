@@ -846,6 +846,61 @@ async fn retomar_depois_do_erro_continua_do_ponto() {
 }
 
 #[tokio::test]
+async fn cancelar_no_meio_de_uma_chamada_para_logo() {
+    // Apagar a conversa enquanto o Google ainda responde: a requisição é abandonada na hora,
+    // sem esperar o tempo-limite de 90 s nem tentar de novo.
+    let slow = wiremock::MockServer::start().await;
+    wiremock::Mock::given(wiremock::matchers::any())
+        .respond_with(wiremock::ResponseTemplate::new(200).set_delay(Duration::from_secs(30)))
+        .mount(&slow)
+        .await;
+    let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version("9.9.9")).unwrap();
+    let client = GeminiClient::with_base_url(
+        http,
+        &slow.uri(),
+        secrecy::SecretString::from(support::FAKE_KEY),
+    )
+    .unwrap();
+    let registry = ToolRegistry::new();
+    let source = ValeSombrio::default();
+    let watch = Watch::default();
+    let cancel = CancellationToken::new();
+    let engine = Engine {
+        client: &client,
+        registry: &registry,
+        source: &source,
+        observer: &watch,
+        timer: Arc::new(warden_http::SystemTimer::new()),
+        cancel: cancel.clone(),
+        limits: Limits::default(),
+    };
+    let mut conv = conversation(AiPermissions::default());
+    let started = std::time::Instant::now();
+    let stop = async {
+        while slow.received_requests().await.unwrap().is_empty() {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        cancel.cancel();
+    };
+    let (result, ()) = tokio::join!(engine.ask(&mut conv, "?".into()), stop);
+    let error = result.unwrap_err();
+    assert_eq!(
+        error.code(),
+        DomainCode::Core(warden_core::CoreErrorCode::Cancelled),
+        "{error}"
+    );
+    assert!(
+        started.elapsed() < Duration::from_secs(10),
+        "não esperou a resposta"
+    );
+    assert_eq!(
+        slow.received_requests().await.unwrap().len(),
+        1,
+        "sem nova tentativa"
+    );
+}
+
+#[tokio::test]
 async fn cancelar_para_na_espera() {
     let setup = Setup::new(Box::new(|_, _| real_error("http_503_alta_demanda"))).await;
     let mut conv = conversation(AiPermissions::default());
