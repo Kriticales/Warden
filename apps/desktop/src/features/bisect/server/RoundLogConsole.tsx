@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import type { ConsoleLine } from '../../../lib/ipc/bindings';
 import { Console } from '../../test/console/Console';
 import { splitLines } from '../../test/server/ServerRunningView';
+import './bisect-server.css';
 
 type Shown = 'server' | 'game';
 
@@ -38,7 +39,7 @@ export function RoundLogConsole({
   const showServer = shown === 'server';
   return (
     <div className="stack-2">
-      <div className="row server-console__show">
+      <div className="row bisect-server-log__show">
         <label className="t-sm t-2" htmlFor={selectId}>
           {t('jogo.mostrando')}
         </label>

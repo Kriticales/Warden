@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from '../../../components/ui/icon';
 import { useServerState } from '../../test/server/api';
+import './bisect-server.css';
 
 export function ServerNow() {
   const { t } = useTranslation('buscaComServidor');
