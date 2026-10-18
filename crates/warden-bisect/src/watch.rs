@@ -52,6 +52,10 @@ pub enum Goal {
     World,
     /// Chegar ao menu principal e ficar estável (sem mundo de teste; só para "trava ao abrir").
     Menu,
+    /// Entrar no mundo pelo servidor local (D-13: versões sem Quick Play e problemas de
+    /// servidor) e ficar estável: o "entrou no mundo" é o `logged in with entity id` do log do
+    /// servidor, que quem chama passa para o [`RoundWatcher`] junto com o do jogo.
+    Server,
 }
 
 /// Configuração de uma rodada.
@@ -253,6 +257,14 @@ impl RoundWatcher {
         self.decided.as_ref()
     }
 
+    /// Viu um sinal de falha e espera a exceção que vem logo depois para fechar a assinatura.
+    /// Com o servidor local (D-13), quem passa as linhas dos dois lados sabe assim de que lado
+    /// veio a falha.
+    #[must_use]
+    pub fn is_settling(&self) -> bool {
+        self.pending.is_some()
+    }
+
     /// Até carregar (menu), se carregou.
     #[must_use]
     pub fn loaded_ms(&self) -> Option<u64> {
@@ -298,7 +310,7 @@ impl RoundWatcher {
 
     fn reached(&self) -> bool {
         match self.config.goal {
-            Goal::World => self.world_ms().is_some(),
+            Goal::World | Goal::Server => self.world_ms().is_some(),
             Goal::Menu => self.loaded_ms().is_some() || self.world_ms().is_some(),
         }
     }
@@ -440,7 +452,7 @@ impl RoundWatcher {
             return self.try_settle(elapsed_ms, false);
         }
         let reached = match self.config.goal {
-            Goal::World => self.world_ms(),
+            Goal::World | Goal::Server => self.world_ms(),
             Goal::Menu => self.world_ms().or(self.loaded_ms()),
         };
         if let Some(reached) = reached

@@ -41,6 +41,12 @@ pub struct RoundInfo {
     pub signature: Option<String>,
     /// O log da rodada, relativo à pasta do estado (`bisect-logs/<id>/round-6.log`).
     pub log: Option<String>,
+    /// O log do servidor local da rodada (D-13), relativo à pasta do estado.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_log: Option<String>,
+    /// A falha veio do servidor local (o log dele decidiu o veredito; D-13).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub server_failed: bool,
 }
 
 /// O estado inteiro de uma busca.

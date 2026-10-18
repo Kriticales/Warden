@@ -217,8 +217,10 @@ fn safe_relative(relative: &str) -> Option<PathBuf> {
         .then_some(path)
 }
 
-/// Copia o mundo inteiro, sem o `session.lock` (o jogo cria o dele).
-fn copy_world(source: &Path, target: &Path) -> Result<()> {
+/// Copia o mundo inteiro para `target` (apagado antes), sem o `session.lock` (o jogo cria o
+/// dele) e sem seguir links simbólicos. Também é a cópia descartável do mundo do servidor local
+/// da busca (D-13).
+pub fn copy_world(source: &Path, target: &Path) -> Result<()> {
     remove_dir(target)?;
     fs::create_dir_all(target).map_err(|error| Error::io("criar", shown(target), error))?;
     let entries = fs::read_dir(source).map_err(|error| Error::io("ler", shown(source), error))?;
