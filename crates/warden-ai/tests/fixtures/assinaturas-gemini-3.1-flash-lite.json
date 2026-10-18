@@ -1,0 +1,222 @@
+{
+  "origem": "Gravação real (spike S-R5-4, 2026-10-04): reação da API do Gemini a históricos com assinaturas alteradas. Sem cabeçalhos nem chave.",
+  "modelo": "gemini-3.1-flash-lite",
+  "resposta_com_chamadas_paralelas": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_findings",
+                "args": {},
+                "id": "call_2057262"
+              },
+              "thoughtSignature": "EqEECp4EAWkUfRMRhBKkjy8ABgKrnj0PrCK+MT3vAlEoWGls8PReo+TXQOeeGFZ29Ao3mYjAxKaDlrvixlRU227M79YDeN67RSPxVZLM/PEP61vgaVU0C7su5zWkxVFwV4z4WxxnjOkDXLEwCH8GZ8gKJWlUKhukhQRa6ab61IwixQ8yK6m6/gTo0bPI6UxGHuJWq/KR9pCU8OHf4IepxAKB9YPxdRdV2smf3szdHS7ex3MDOtLZIVaxqVTzGG91YKZsXfV1piM7Oi6/AXjjgtuTxlAu8x47F9zQAq7Kk2X5B94h6djag9wsIRaaxxP1q6W1GTZ4yI3QjgiCJs9IlCBZpT0v1OJpTsAUp1qdjJglTWHr1ixGk68gfseFabhhE7N2TMGZZi7zrJSbl6fNz1JZLeIlM+jNbsT4eI1EDwBmR4M9mnQPzyIkPASbtbZco+7UxjpEc9odaYjoi0opsqIqxD6haRvgjxyUoF1RzhAnQloBBb0zamhyHnRCuYMHYAaUnbpQGWoJKQ0uE9S/RF5lfUQVtDbzsyr9MNB2TgROJ9MZVn+SP8AzI6kdzR+B7V6zO/ArDcvTcNx0XzllIYMO05Dwq1hvk4HMDCz3zLfPJMwqILUC9PlryCq9IbBktdpBZVHOvaYV7CfY2efJYgHtjBmBLBioY1YQ251FmnNMeLI6Vde5lMNSOc9CDgav6Yw/8Lu3wMIM9WvMqzmKrb9qkuU="
+            },
+            {
+              "functionCall": {
+                "name": "get_crash_report",
+                "args": {
+                  "session_id": "s3"
+                },
+                "id": "call_2057263"
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 1570,
+      "candidatesTokenCount": 31,
+      "totalTokenCount": 1725,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1570
+        }
+      ],
+      "thoughtsTokenCount": 124,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.1-flash-lite",
+    "responseId": "y87CaoTvFoOsz7IPmfTGIQ"
+  },
+  "variantes": [
+    {
+      "etapa": "chamada inicial 0",
+      "http": 200,
+      "resposta": {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "functionCall": {
+                    "name": "get_findings",
+                    "args": {},
+                    "id": "call_2057262"
+                  },
+                  "thoughtSignature": "EqEECp4EAWkUfRMRhBKkjy8ABgKrnj0PrCK+MT3vAlEoWGls8PReo+TXQOeeGFZ29Ao3mYjAxKaDlrvixlRU227M79YDeN67RSPxVZLM/PEP61vgaVU0C7su5zWkxVFwV4z4WxxnjOkDXLEwCH8GZ8gKJWlUKhukhQRa6ab61IwixQ8yK6m6/gTo0bPI6UxGHuJWq/KR9pCU8OHf4IepxAKB9YPxdRdV2smf3szdHS7ex3MDOtLZIVaxqVTzGG91YKZsXfV1piM7Oi6/AXjjgtuTxlAu8x47F9zQAq7Kk2X5B94h6djag9wsIRaaxxP1q6W1GTZ4yI3QjgiCJs9IlCBZpT0v1OJpTsAUp1qdjJglTWHr1ixGk68gfseFabhhE7N2TMGZZi7zrJSbl6fNz1JZLeIlM+jNbsT4eI1EDwBmR4M9mnQPzyIkPASbtbZco+7UxjpEc9odaYjoi0opsqIqxD6haRvgjxyUoF1RzhAnQloBBb0zamhyHnRCuYMHYAaUnbpQGWoJKQ0uE9S/RF5lfUQVtDbzsyr9MNB2TgROJ9MZVn+SP8AzI6kdzR+B7V6zO/ArDcvTcNx0XzllIYMO05Dwq1hvk4HMDCz3zLfPJMwqILUC9PlryCq9IbBktdpBZVHOvaYV7CfY2efJYgHtjBmBLBioY1YQ251FmnNMeLI6Vde5lMNSOc9CDgav6Yw/8Lu3wMIM9WvMqzmKrb9qkuU="
+                },
+                {
+                  "functionCall": {
+                    "name": "get_crash_report",
+                    "args": {
+                      "session_id": "s3"
+                    },
+                    "id": "call_2057263"
+                  }
+                }
+              ],
+              "role": "model"
+            },
+            "finishReason": "STOP",
+            "index": 0,
+            "finishMessage": "Model generated function call(s)."
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 1570,
+          "candidatesTokenCount": 31,
+          "totalTokenCount": 1725,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1570
+            }
+          ],
+          "thoughtsTokenCount": 124,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.1-flash-lite",
+        "responseId": "y87CaoTvFoOsz7IPmfTGIQ"
+      }
+    },
+    {
+      "etapa": "sem assinatura",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_findings` , position 2. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura alterada (1 caractere)",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 12,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "thoughtsTokenCount": 284,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "assinatura movida para a 2a chamada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2776,
+        "candidatesTokenCount": 98,
+        "totalTokenCount": 3072,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2776
+          }
+        ],
+        "thoughtsTokenCount": 198,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "respostas intercaladas",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_crash_report` , position 4. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura falsa documentada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 9,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "thoughtsTokenCount": 287,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "respostas na ordem inversa",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2776,
+        "candidatesTokenCount": 7,
+        "totalTokenCount": 3072,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2776
+          }
+        ],
+        "thoughtsTokenCount": 289,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "chamadas na ordem inversa (assinatura na última)",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2776,
+        "candidatesTokenCount": 8,
+        "totalTokenCount": 3072,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2776
+          }
+        ],
+        "thoughtsTokenCount": 288,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "intacto",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2776,
+        "candidatesTokenCount": 84,
+        "totalTokenCount": 3072,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2776
+          }
+        ],
+        "thoughtsTokenCount": 212,
+        "serviceTier": "standard"
+      }
+    }
+  ]
+}

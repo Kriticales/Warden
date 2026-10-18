@@ -178,6 +178,8 @@ pub struct Request {
     pub(crate) headers: HeaderMap,
     body: Option<Vec<u8>>,
     idempotent: bool,
+    /// Devolver a resposta como veio, sem transformar 429 em erro ([`Request::send_unchecked`]).
+    any_status: bool,
     pub(crate) cancel: Option<CancellationToken>,
     pub(crate) timeout: Option<Duration>,
     max_body: u64,
@@ -204,6 +206,7 @@ impl Request {
             headers: HeaderMap::new(),
             body: None,
             idempotent: true,
+            any_status: false,
             cancel: None,
             timeout,
             max_body,
@@ -264,6 +267,16 @@ impl Request {
         response.error_for_status().await
     }
 
+    /// Manda uma vez, sem novas tentativas, e devolve a resposta qualquer que seja o código
+    /// (inclusive 429 e 5xx), para quem precisa ler o corpo do erro e decidir sozinho: a IA
+    /// (D-04) lê no corpo do 429 do Gemini se o limite é por minuto ou por dia, e as novas
+    /// tentativas dela aparecem na tela. Falta de conexão e tempo esgotado continuam erros.
+    pub async fn send_unchecked(mut self) -> Result<Response> {
+        self.idempotent = false;
+        self.any_status = true;
+        self.send_raw().await
+    }
+
     /// Manda e lê o corpo inteiro (até o limite).
     pub async fn bytes(self) -> Result<Vec<u8>> {
         let max_body = self.max_body;
@@ -311,7 +324,7 @@ impl Request {
                     {
                         inner.limiter.block(&host, reset);
                     }
-                    if status == StatusCode::TOO_MANY_REQUESTS {
+                    if status == StatusCode::TOO_MANY_REQUESTS && !self.any_status {
                         let requested = requested_wait(headers, (inner.wall_clock)());
                         let wait = requested.unwrap_or(inner.config.default_rate_limit_wait);
                         if can_retry && wait <= inner.config.max_rate_limit_wait {
