@@ -1,12 +1,14 @@
 /**
  * Diálogo de confirmação destrutiva (shadcn `AlertDialog` sobre o Radix; `role="alertdialog"`).
  * Mesma aparência do `Dialog`, mas não fecha com clique fora e não tem ✕: só Esc ou os botões
- * do rodapé (HANDOFF §4). O foco entra no título.
+ * do rodapé (HANDOFF §4). O foco entra no título e, ao fechar, volta para quem abriu
+ * (`focus-return.ts`).
  */
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
 import { useRef, type ReactNode } from 'react';
 
 import { cn } from '../../lib/cn';
+import { useFocusReturn } from './focus-return';
 
 export const AlertDialog = AlertDialogPrimitive.Root;
 export const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
@@ -30,15 +32,19 @@ export function AlertDialogContent({
   children,
 }: AlertDialogContentProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const focusReturn = useFocusReturn();
   return (
     <AlertDialogPrimitive.Portal>
       <AlertDialogPrimitive.Overlay className="scrim">
         <AlertDialogPrimitive.Content
           className={cn('dialog', size !== 'md' && `dialog--${size}`)}
           onOpenAutoFocus={(event) => {
+            // O foco ainda está em quem abriu.
+            focusReturn.rememberOpener();
             event.preventDefault();
             titleRef.current?.focus();
           }}
+          onCloseAutoFocus={focusReturn.onCloseAutoFocus}
         >
           <div className="dialog__head">
             <div>

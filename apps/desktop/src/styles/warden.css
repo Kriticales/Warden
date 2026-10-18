@@ -204,6 +204,15 @@ body {
     transform: translateY(-4px);
   }
 }
+/* O menu fecha sem animação. O Radix (Presence) só tira da tela o menu que fecha depois do fim
+   da animação "atual" quando ela parece outra que a da abertura; e o nome da abertura que ele
+   guarda é "none" quando o `animationstart` não chega (o Popper monta o menu com `animation:
+   none` até posicioná-lo). Foi o que aconteceu no WebView2 do Windows: o menu fechado ficava na
+   página, invisível, e o Esc da confirmação aberta pelo item ia para ele (A-01). Com `none` ao
+   fechar, o menu sai na hora. */
+.menu[data-state='closed'] {
+  animation: none;
+}
 
 /* Gaveta de Tarefas (T22). */
 .tasks__group {

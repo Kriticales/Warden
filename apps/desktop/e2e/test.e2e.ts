@@ -12,6 +12,8 @@
  * - CA-T13-06 (parte do app): um travamento termina com "O jogo travou" e "Por que travou".
  * - CA-T13-03 (parte do app): linhas com acentos aparecem certas no console.
  * - CA-T13-04: o mod que saiu do pack sai da instância; o mundo de teste fica.
+ * - Sem violação séria do axe com o jogo aberto, na confirmação de parar, nos resultados (fechou
+ *   normalmente e travou) e nos testes anteriores (A-01).
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -21,6 +23,8 @@ import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 import { openOrImport } from './open-or-import';
+
+import { seriousViolationSummaries } from './axe';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -174,6 +178,7 @@ describe('Testar e console (L-04; T13)', function () {
     await expect(console).toHaveText(expect.stringContaining('Abrindo o jogo: 1.20.1'));
     await expect(testButton()).toHaveText(expect.stringContaining('Jogo aberto: ver teste'));
     await screenshot('42-jogo-aberto-console');
+    expect(await seriousViolationSummaries()).toEqual([]);
 
     // A instância recebeu o pack.
     const game = instanceGameDir();
@@ -191,6 +196,7 @@ describe('Testar e console (L-04; T13)', function () {
     const dialog = $('[role="alertdialog"]');
     await dialog.waitForDisplayed();
     await screenshot('44-parar-jogo');
+    expect(await seriousViolationSummaries()).toEqual([]);
     const asked = Date.now();
     await dialog.$('button=Parar jogo').click();
     await waitHeading('Encerrado por você', 15_000);
@@ -208,6 +214,7 @@ describe('Testar e console (L-04; T13)', function () {
     await expect(why).toHaveText(expect.stringContaining('O jogo fechou com o código'));
     await expect(why).toHaveText(expect.stringContaining('crash report'));
     await screenshot('46-resultado-travou');
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('CA-T13-03 e CA-T13-04: acentos certos no console; o mod tirado sai da instância e o mundo fica', async () => {
@@ -227,6 +234,7 @@ describe('Testar e console (L-04; T13)', function () {
     await expect(console).toHaveText(expect.stringContaining('Configuração inválida: ç ã õ é'));
     expect(await console.getText()).not.toContain('Ã');
     await screenshot('47-console-acentos');
+    expect(await seriousViolationSummaries()).toEqual([]);
 
     expect(existsSync(join(game, 'mods', 'biblioteca.jar'))).toBe(false);
     expect(readFileSync(join(game, 'saves', 'Mundo de teste', 'level.dat'), 'utf8')).toBe('mundo');
@@ -267,6 +275,7 @@ describe('Testar e console (L-04; T13)', function () {
     await expect(table).toHaveText(expect.stringContaining('travou'));
     await expect(table).toHaveText(expect.stringContaining('encerrado por você'));
     await screenshot('48-testes-anteriores');
+    expect(await seriousViolationSummaries()).toEqual([]);
     await table.$('a*=hoje').click();
   });
 });

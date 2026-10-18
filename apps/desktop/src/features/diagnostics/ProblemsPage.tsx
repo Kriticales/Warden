@@ -42,7 +42,19 @@ export function ProblemsPage({ packId }: { packId: PackId }) {
     return <LoadingState label={t('secao.verificando')} />;
   }
   if (report.isError) {
-    return <ErrorPanel error={report.error} />;
+    // O título da página fica no erro: é nele que o foco cai ao abrir a seção (HANDOFF §7).
+    return (
+      <div className="stack diag-page">
+        <PageHead title={t('secao.titulo')} />
+        <ErrorPanel
+          title={t('secao.erroLer')}
+          error={report.error}
+          onRetry={() => {
+            void report.refetch();
+          }}
+        />
+      </div>
+    );
   }
 
   const counts = data ? countBySeverity(data.findings) : null;

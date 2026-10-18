@@ -69,6 +69,7 @@ export function PackLayout({ packId }: { packId: PackId }) {
     return (
       <AppPage back={back}>
         <ErrorPanel
+          title={t('cabecalho.erro')}
           error={pack.error}
           onRetry={() => {
             void pack.refetch();

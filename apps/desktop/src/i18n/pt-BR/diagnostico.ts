@@ -28,6 +28,7 @@ export const diagnostico = {
     titulo: 'Problemas',
     nunca: 'O pack ainda não foi verificado neste computador.',
     verificando: 'Verificando…',
+    erroLer: 'Não foi possível ler os problemas do pack.',
     resumo_one: '{{count}} encontrado · última verificação {{quando}}',
     resumo_other: '{{count}} encontrados · última verificação {{quando}}',
     resumoVazio: 'Última verificação {{quando}}',

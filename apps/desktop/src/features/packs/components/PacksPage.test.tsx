@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { PackRow } from '../../../lib/ipc/bindings';
 import { axePage } from '../../../test/axe';
+import { applyAppAnimations } from '../../../test/css-animations';
 import { ipcError, mockBackend, type Handler } from '../../../test/backend';
 import { makeAppError, makeImportPreview, makePackRow } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
@@ -207,6 +208,74 @@ describe('Meus packs (T02)', () => {
     expect(writes).toEqual([{ command: 'pack_forget', args: { packId: row.id } }]);
   });
 
+  it('A-01: a confirmação aberta pelo menu ⋯ devolve o foco ao ⋯ quando fecha com Esc', async () => {
+    const user = userEvent.setup();
+    packsBackend([makePackRow({ name: 'Vale Sereno' })]);
+    renderApp('/packs');
+    const trigger = await screen.findByRole('button', { name: 'Mais ações para Vale Sereno' });
+    trigger.focus();
+    await user.keyboard('{Enter}');
+    await screen.findByRole('menu');
+    // ↓ até "Remover da lista" (o primeiro item é "Mostrar na pasta").
+    await user.keyboard('{ArrowDown}');
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toContain('Remover da lista');
+    });
+    await user.keyboard('{Enter}');
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Remover “Vale Sereno” da lista?',
+    });
+    // Sem "…." no fim da frase (revisão de textos da A-01).
+    expect(dialog.textContent).toContain('use Abrir ou importar… e escolha a pasta dele.');
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
+    // O item do menu sumiu com o menu: sem a A-01 o foco ia para o <body>.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: 'Mais ações para Vale Sereno' }),
+      );
+    });
+  });
+
+  it('A-01: com o CSS do app e sem eventos de animação (WebView2 no Windows), o Esc fecha a confirmação aberta pelo ⋯', async () => {
+    // O menu que fecha tem de sair da página na hora. Se ficasse esperando um `animationend`
+    // que não vem, continuaria ouvindo o Esc (o Radix do menu é outra versão, com outra pilha de
+    // camadas) e o trataria antes da confirmação, que então não fecharia.
+    const restore = await applyAppAnimations();
+    try {
+      const user = userEvent.setup();
+      packsBackend([makePackRow({ name: 'Vale Sereno' })]);
+      renderApp('/packs');
+      const trigger = await screen.findByRole('button', { name: 'Mais ações para Vale Sereno' });
+      trigger.focus();
+      await user.keyboard('{Enter}');
+      const menu = await screen.findByRole('menu');
+      await waitFor(() => {
+        expect(getComputedStyle(menu).animationName).toBe('menu-slide');
+      });
+      await user.keyboard('{ArrowDown}');
+      await waitFor(() => {
+        expect(document.activeElement?.textContent).toContain('Remover da lista');
+      });
+      await user.keyboard('{Enter}');
+      await screen.findByRole('alertdialog', { name: 'Remover “Vale Sereno” da lista?' });
+      await waitFor(() => {
+        expect(screen.queryByRole('menu', { hidden: true })).toBeNull();
+      });
+      await user.keyboard('{Escape}');
+      await waitFor(() => {
+        expect(screen.queryByRole('alertdialog')).toBeNull();
+      });
+      await waitFor(() => {
+        expect(document.activeElement).toBe(trigger);
+      });
+    } finally {
+      restore();
+    }
+  });
+
   it('Apagar pack só habilita depois de digitar o nome; manda para a Lixeira', async () => {
     const user = userEvent.setup();
     const row = makePackRow({ name: 'Vale Sereno' });
@@ -349,7 +418,7 @@ describe('Meus packs (T02)', () => {
     });
   });
 
-  it('erro ao ler a lista: painel de erro com "Tentar de novo"', async () => {
+  it('erro ao ler a lista: diz o que falhou (A-01) e tem "Tentar de novo"', async () => {
     const user = userEvent.setup();
     let fail = true;
     mockBackend({
@@ -357,6 +426,11 @@ describe('Meus packs (T02)', () => {
     });
     renderApp('/packs');
     const retry = await screen.findByRole('button', { name: 'Tentar de novo' });
+    // O que aconteceu, além do que fazer (SPEC §7.3).
+    expect(
+      within(screen.getByRole('alert')).getByText('Não foi possível ler a lista de packs.'),
+    ).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
     fail = false;
     await user.click(retry);
     expect(await screen.findByRole('heading', { name: 'Você ainda não tem packs' })).toBeDefined();
