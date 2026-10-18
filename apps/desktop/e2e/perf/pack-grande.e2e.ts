@@ -57,13 +57,24 @@ function sectionLink(name: string) {
 type Done = 'mods' | 'exported';
 
 /**
+ * Teto de cada medida dentro do WebView, só para o teste não ficar preso: a meta é conferida
+ * pela mediana, não por este teto. A exportação ganha um teto maior porque a primeira cópia do
+ * pack grande para o staging, no Windows da CI (sem GPU, com o antivírus examinando cada arquivo
+ * novo e o build de debug), já passou de 25 s sem o app ter travado (`docs/DESEMPENHO.md`, §
+ * "Exportar `.zip` no Windows da CI"). O `script` do WebDriver (30 s por padrão) sobe junto, em
+ * `before`.
+ */
+const GUARD_MS: Record<Done, number> = { mods: 25_000, exported: 60_000 };
+const SCRIPT_TIMEOUT_MS = 90_000;
+
+/**
  * Clica no elemento (pelo seletor e pelo texto exato) dentro do WebView e espera, quadro a
  * quadro, a condição `done`. Devolve os milissegundos entre o clique e o quadro em que ela
  * valeu. As condições ficam no próprio script: a CSP do app não deixa montar código na página.
  */
 async function clickAndTime(selector: string, text: string, done: Done): Promise<number> {
   return browser.execute(
-    (css: string, label: string, condition: Done) =>
+    (css: string, label: string, condition: Done, guardMs: number) =>
       new Promise<number>((resolve, reject) => {
         const buttonWith = (name: string) =>
           Array.from(document.querySelectorAll<HTMLElement>(css)).find(
@@ -96,7 +107,7 @@ async function clickAndTime(selector: string, text: string, done: Done): Promise
         target.click();
         const check = () => {
           if (isDone()) resolve(performance.now() - start);
-          else if (performance.now() - start > 25_000)
+          else if (performance.now() - start > guardMs)
             reject(new Error(`não terminou: ${condition}`));
           else requestAnimationFrame(check);
         };
@@ -105,6 +116,7 @@ async function clickAndTime(selector: string, text: string, done: Done): Promise
     selector,
     text,
     done,
+    GUARD_MS[done],
   );
 }
 
@@ -145,6 +157,7 @@ describe('Desempenho com o pack grande (A-04; SPEC §8)', () => {
     writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
     await browser.reloadSession();
     await browser.setWindowSize(1366, 860);
+    await browser.setTimeout({ script: SCRIPT_TIMEOUT_MS });
   });
 
   after(() => {
@@ -356,7 +369,9 @@ describe('Desempenho com o pack grande (A-04; SPEC §8)', () => {
     await $('.cfg-search .hits__group').waitForDisplayed({ timeout: 10_000 });
   });
 
-  it('Exportar: o .zip do pack grande (mediana de 3; referência de 5 s, com o dobro de folga)', async () => {
+  it('Exportar: o .zip do pack grande (mediana de 3; referência de 5 s, com o dobro de folga)', async function () {
+    // Três exportações com o teto de 60 s cada (GUARD_MS), mais o diálogo do resultado.
+    this.timeout(200_000);
     await browser.keys(['Escape']);
     await sectionLink('Exportar').click();
     await $('h1=Exportar').waitForDisplayed();
