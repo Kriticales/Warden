@@ -1,0 +1,18 @@
+/* Saúde do pack (D-08). A nota (`.health`) e "O que tirou pontos" (`.losses`) vêm de
+   `design/system/components.css`; aqui só o espaço entre as partes do bloco. */
+.health-panel__losses {
+  margin-top: var(--space-3);
+}
+.health-panel__bands {
+  margin-top: var(--space-2);
+}
+.health-cell__tip {
+  /* O título da coluna com dica (o tracejado diz que há mais a ler). */
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-thin) dotted var(--color-text-3);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+}

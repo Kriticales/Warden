@@ -33,6 +33,7 @@ import { Tooltip } from '../../../components/ui/tooltip';
 import type { PackRow } from '../../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { dayRelation, formatDate, formatTime } from '../../../lib/format';
+import { HealthCell } from '../../diagnostics/health/HealthColumn';
 import { useChooseFolder, useRelocatePack, useRevealPack } from '../api';
 import { lastTestKind, loaderName, type LastTestKind } from '../lib/pack-list';
 import type { RowDialog } from './PacksPage';
@@ -137,6 +138,7 @@ function ReadyRow({ row, onDialog }: RowProps) {
       <td>
         <LastTest value={row.lastTest} />
       </td>
+      <HealthCell packId={row.id} />
       <td className="num">
         <span
           className={row.unsavedFiles > 0 ? 't-warn' : 't-3'}
@@ -240,7 +242,7 @@ function MissingRow({ row, onDialog }: RowProps) {
           </div>
         </div>
       </td>
-      <td colSpan={4} className="t-3">
+      <td colSpan={5} className="t-3">
         {t('linha.pastaSumiuMotivo')}
       </td>
       <td className="shrink">
@@ -277,7 +279,7 @@ function InvalidRow({ row, onDialog }: RowProps) {
           </div>
         </div>
       </td>
-      <td colSpan={4} className="t-3">
+      <td colSpan={5} className="t-3">
         {t('linha.ilegivelMotivo')}
       </td>
       <td className="shrink">
