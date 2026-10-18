@@ -1216,7 +1216,10 @@ export type AiPreview = {
 	model: string,
 	/**  Mais econômico ou mais cuidadoso (custo esperado). */
 	tier: ModelTier | null,
-	/**  A busca no GitHub está disponível nesta versão (ponto de extensão da D-14). */
+	/**
+	 *  A busca no GitHub está disponível nesta versão (a ferramenta `search_mod_issues` da D-14
+	 *  está no registro).
+	 */
 	githubAvailable: boolean,
 };
 
