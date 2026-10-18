@@ -100,6 +100,10 @@ export const tarefas = {
     publish: {
       run: 'Publicar versão',
     },
+    // D-12: busca do culpado.
+    bisect: {
+      run: 'Encontrar o mod culpado',
+    },
     // P1-19: Importar modpack.
     import: {
       analyze: 'Ler o modpack',

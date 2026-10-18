@@ -9,6 +9,7 @@
 import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
+import { BisectOffer } from '../bisect/CrashEntry';
 import { CaptureBlock } from '../capture/CaptureBlock';
 import { AskAiBlock } from '../diagnostics/ai/AskAi';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
@@ -37,6 +38,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'why-crashed', order: 200, component: WhyCrashed },
   // L-07: o que o jogador recebeu × o pack.
   { id: 'player', order: 75, component: PlayerResult },
+  // D-12: "Encontrar o mod culpado", logo depois de "Por que travou".
+  { id: 'bisect-offer', order: 210, component: BisectOffer },
   // L-09: o que aconteceu em cada lado no "Testar como servidor".
   { id: 'server-result', order: 20, component: ServerResult },
   // D-04: "✦ Pedir ajuda à IA" logo depois do "Por que travou".

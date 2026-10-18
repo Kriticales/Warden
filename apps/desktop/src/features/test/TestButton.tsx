@@ -3,8 +3,9 @@
  * `design/system/components.js`). Registrado em `pack-editor/header/slots.ts` (`test`).
  *
  * Estados: "Testar" (pronto); "Testando… ver progresso" com a barrinha de progresso (preparando);
- * "● Jogo aberto: ver teste" (jogo aberto). Nos dois últimos, o clique leva à tela do teste
- * (CA-T13-08). Com o jogo de outro pack aberto, o clique explica que é um jogo por vez e oferece
+ * "● Jogo aberto: ver teste" (jogo aberto); "Buscando o culpado: ver progresso" (busca do
+ * culpado, D-12). Nos três últimos, o clique leva à tela do teste (CA-T13-08; na busca, ao modo
+ * da busca). Com o jogo de outro pack aberto, o clique explica que é um jogo por vez e oferece
  * ir para o teste dele.
  *
  * O ▾ abre o menu em grupos (`menu-items.ts`), com os diálogos fora do menu (`testDialogs`).
@@ -40,22 +41,23 @@ import { useTestProfiles } from './profiles/api';
 import { DEFAULT_PROFILE, shortProfileName } from './profiles/text';
 import { isActive, useGame, useTestRun, useTestStore } from './store';
 
-export type TestButtonState = 'ready' | 'preparing' | 'running';
+export type TestButtonState = 'ready' | 'preparing' | 'running' | 'bisecting';
 
 /** Abre a tela do teste do pack (de uma sessão gravada, com `sessionId`). */
 export function useOpenTest() {
   const navigate = useNavigate();
-  return (packId: PackId, sessionId?: string) => {
+  return (packId: PackId, sessionId?: string, bisect = false) => {
     void navigate({
       to: '/packs/$packId/teste',
       params: { packId },
-      search: sessionId ? { sessao: sessionId } : {},
+      search: bisect ? { modo: 'busca' } : sessionId ? { sessao: sessionId } : {},
     });
   };
 }
 
 export function TestButton({ packId, pack }: HeaderSlotProps) {
   const { t } = useTranslation('teste');
+  const { t: tBisect } = useTranslation('buscaDoCulpado');
   const game = useGame();
   const run = useTestRun(packId);
   const start = useTestStore((store) => store.start);
@@ -68,9 +70,11 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
   const here = game?.packId === packId ? game : null;
   const other = game && game.packId !== packId ? game : null;
   const state: TestButtonState = here
-    ? here.state === 'running'
-      ? 'running'
-      : 'preparing'
+    ? here.state === 'bisecting'
+      ? 'bisecting'
+      : here.state === 'running'
+        ? 'running'
+        : 'preparing'
     : isActive(run)
       ? run?.status === 'running'
         ? 'running'
@@ -81,7 +85,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
 
   const onMain = () => {
     if (state !== 'ready') {
-      openTest(packId);
+      openTest(packId, undefined, state === 'bisecting');
       return;
     }
     if (other) {
@@ -96,6 +100,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
     ready: t('botao.testar'),
     preparing: t('botao.preparando'),
     running: t('botao.aberto'),
+    bisecting: tBisect('botao'),
   }[state];
   // Perfil do teste fora do Padrão: "Testar · PC fraco" (L-08).
   const activeProfile =
@@ -105,7 +110,13 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
 
   return (
     <>
-      <div className={cn('testbtn', `testbtn--${state}`, activeProfile && 'testbtn--profile')}>
+      <div
+        className={cn(
+          'testbtn',
+          state === 'bisecting' ? 'testbtn--running testbtn--bisect' : `testbtn--${state}`,
+          activeProfile && 'testbtn--profile',
+        )}
+      >
         <span className="testbtn__antenna" aria-hidden="true">
           <i />
           <i />
@@ -119,7 +130,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
         >
           {state === 'running' ? (
             <span className="live" aria-hidden="true" />
-          ) : state === 'preparing' ? (
+          ) : state === 'preparing' || state === 'bisecting' ? (
             <Loader />
           ) : (
             <Icon icon={Play} className="icon--fill" />
@@ -134,7 +145,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
               </span>
             </>
           ) : null}
-          {state === 'preparing' ? (
+          {state === 'preparing' || state === 'bisecting' ? (
             <span className="testbtn__progress" aria-hidden="true">
               <span style={{ '--p': `${String(percent ?? 12)}%` } as CSSProperties} />
             </span>
@@ -182,7 +193,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
           confirmLabel={t('outroJogo.irParaTeste')}
           cancelLabel={t('outroJogo.cancelar')}
           onConfirm={() => {
-            openTest(other.packId);
+            openTest(other.packId, undefined, other.state === 'bisecting');
           }}
         />
       ) : null}

@@ -251,6 +251,8 @@ export const config: WebdriverIO.Config = {
       // fixtures e o Java do instalador não sai para a internet (proxy HTTPS fechado).
       WARDEN_INSTALLER_BASE: `${mockServer.url}/installer/`,
       WARDEN_PLAYER_INSTALL_JVM_ARGS: '-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=9',
+      // Busca do culpado (D-12): cada rodada fica estável 0,5 s em vez de 20 s.
+      WARDEN_E2E_BISECT_STABILITY_MS: '500',
       WARDEN_E2E_FREE_MEMORY_FILE: freeMemoryFile,
       ...(java
         ? {

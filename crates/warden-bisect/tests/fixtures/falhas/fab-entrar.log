@@ -1,0 +1,80 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791157482878" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.20.1 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader" timestamp="1791157483069" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading 5 mods:
+	- fabricloader 0.19.5
+	   \-- mixinextras 0.5.5
+	- java 17
+	- minecraft 1.20.1
+	- wardenfalhas 1.0.0]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/Mixin" timestamp="1791157483135" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/<DADOS>/shared/libraries/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="oshi.util.platform.windows.PerfDataUtil" timestamp="1791157485062" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/MixinExtras|Service" timestamp="1791157489277" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791157491645" level="ERROR" thread="Render thread">
+    <log4j:Message><![CDATA[Failed to verify authentication]]></log4j:Message>
+    <log4j:Throwable><![CDATA[com.mojang.authlib.exceptions.InvalidCredentialsException: Status: 401
+	at knot//com.mojang.authlib.exceptions.MinecraftClientHttpException.toAuthenticationException(MinecraftClientHttpException.java:56)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.fetchProperties(YggdrasilUserApiService.java:156)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.<init>(YggdrasilUserApiService.java:55)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.createUserApiService(YggdrasilAuthenticationService.java:124)
+	at knot//net.minecraft.class_310.method_31382(class_310.java:733)
+	at knot//net.minecraft.class_310.<init>(class_310.java:442)
+	at knot//net.minecraft.client.main.Main.main(Main.java:211)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:517)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: MinecraftClientHttpException[type=HTTP_ERROR, status=401, response=ErrorResponse[path='/player/attributes', error='null', details=null, errorMessage='null']]
+	at knot//com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:85)
+	at knot//com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:48)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.fetchProperties(YggdrasilUserApiService.java:129)
+	... 8 more
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791157491755" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791157491888" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.3.1 SNAPSHOT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1140" timestamp="1791157494888" level="WARN" thread="Render thread">
+    <log4j:Message><![CDATA[Missing sound for event: minecraft:item.goat_horn.play]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1140" timestamp="1791157494889" level="WARN" thread="Render thread">
+    <log4j:Message><![CDATA[Missing sound for event: minecraft:entity.goat.screaming.horn_break]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_163" timestamp="1791157497676" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 1271 advancements]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1132" timestamp="1791157498099" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Starting integrated minecraft server version 1.20.1]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791157499446" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Preparing start region for dimension minecraft:overworld]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_3248" timestamp="1791157503699" level="ERROR" thread="Server thread">
+    <log4j:Message><![CDATA[Couldn't place player in world]]></log4j:Message>
+    <log4j:Throwable><![CDATA[java.lang.IllegalStateException: Warden: falha de teste ao entrar no mundo (wardenfalhas)
+	at knot//dev.kriticales.wardenfalhas.Falhas.aoCriarJogador(Falhas.java:46)
+	at knot//net.minecraft.class_3222.handler$zza000$wardenfalhas$warden$jogador(class_3222.java:1834)
+	at knot//net.minecraft.class_3222.<init>(class_3222.java:276)
+	at knot//net.minecraft.class_3324.method_14613(class_3324.java:479)
+	at knot//net.minecraft.class_3248.method_14384(class_3248.java:113)
+	at knot//net.minecraft.class_3248.method_18784(class_3248.java:68)
+	at knot//net.minecraft.class_2535.method_10754(class_2535.java:259)
+	at knot//net.minecraft.class_3242.method_14357(class_3242.java:172)
+	at knot//net.minecraft.server.MinecraftServer.method_3813(MinecraftServer.java:908)
+	at knot//net.minecraft.server.MinecraftServer.method_3748(MinecraftServer.java:824)
+	at knot//net.minecraft.class_1132.method_3748(class_1132.java:105)
+	at knot//net.minecraft.server.MinecraftServer.method_29741(MinecraftServer.java:671)
+	at knot//net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:265)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+]]></log4j:Throwable>
+  </log4j:Event>
