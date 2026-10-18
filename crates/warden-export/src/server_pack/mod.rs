@@ -823,11 +823,15 @@ pub fn unpack_server_pack(archive: &Path, into: &Path) -> Result<()> {
     Ok(())
 }
 
+/// O zip determinístico. O host gravado é sempre Unix: gerado no Windows, o `start.sh` também
+/// sai executável (com o host DOS, o modo 0o755 se perde e quem descompacta no Linux recebe o
+/// script sem permissão de execução).
 fn build_zip(entries: &BTreeMap<String, ZipEntry>) -> Result<Vec<u8>> {
     let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
     let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
-        .last_modified_time(zip::DateTime::default());
+        .last_modified_time(zip::DateTime::default())
+        .system(zip::System::Unix);
     for (path, entry) in entries {
         let mode = if entry.executable { 0o755 } else { 0o644 };
         zip.start_file(path, options.unix_permissions(mode))
