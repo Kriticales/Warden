@@ -68,8 +68,8 @@ pub struct SecretsConfig {
     pub env_file: PathBuf,
     /// Substituto do cofre do sistema (só tem efeito em build de debug).
     pub keyring_override: Option<BackendOverride>,
-    /// Recuo de desenvolvimento: ler `CURSEFORGE_API_KEY`, `GEMINI_API_KEY` e `GITHUB_TOKEN`
-    /// do ambiente quando o armazenamento não tem a chave (só tem efeito em build de debug).
+    /// Recuo de desenvolvimento: ler `CURSEFORGE_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`,
+    /// `ANTHROPIC_API_KEY` e `GITHUB_TOKEN` do ambiente quando o armazenamento não tem a chave (só tem efeito em build de debug).
     pub env_fallback: Option<EnvLookup>,
 }
 
@@ -177,6 +177,8 @@ impl Secrets {
             backend: store.backend(),
             curseforge: store.get(SecretKind::Curseforge)?.is_some(),
             gemini: store.get(SecretKind::Gemini)?.is_some(),
+            openai: store.get(SecretKind::Openai)?.is_some(),
+            anthropic: store.get(SecretKind::Anthropic)?.is_some(),
             github: store.get(SecretKind::Github)?.is_some(),
         })
     }
@@ -196,7 +198,7 @@ impl Secrets {
         self.active_store().remove(kind)
     }
 
-    /// Lê um segredo na hora do uso (cliente da CurseForge, do Gemini, do GitHub). Em build de
+    /// Lê um segredo na hora do uso (cliente da CurseForge, dos provedores de IA, do GitHub). Em build de
     /// debug, se o armazenamento não tiver a chave, usa a variável de ambiente.
     pub fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError> {
         if let Some(value) = self.active_store().get(kind)? {
@@ -422,6 +424,8 @@ mod tests {
     const CF: &str = "$2a$10$chave-de-teste-da-curseforge";
     const GEMINI: &str = "AIza-chave-de-teste";
     const GITHUB: &str = "ghp_token_de_teste";
+    const OPENAI: &str = "sk-proj-chave-de-teste-da-openai";
+    const ANTHROPIC: &str = "sk-ant-api03-chave-de-teste-da-anthropic";
 
     fn secret(text: &str) -> SecretString {
         SecretString::from(text.to_owned())
@@ -438,6 +442,10 @@ mod tests {
     fn fill(secrets: &Secrets) {
         secrets.set(SecretKind::Curseforge, &secret(CF)).unwrap();
         secrets.set(SecretKind::Gemini, &secret(GEMINI)).unwrap();
+        secrets.set(SecretKind::Openai, &secret(OPENAI)).unwrap();
+        secrets
+            .set(SecretKind::Anthropic, &secret(ANTHROPIC))
+            .unwrap();
         secrets.set(SecretKind::Github, &secret(GITHUB)).unwrap();
     }
 
@@ -451,6 +459,11 @@ mod tests {
     fn assert_all(secrets: &Secrets) {
         assert_eq!(value(secrets, SecretKind::Curseforge).as_deref(), Some(CF));
         assert_eq!(value(secrets, SecretKind::Gemini).as_deref(), Some(GEMINI));
+        assert_eq!(value(secrets, SecretKind::Openai).as_deref(), Some(OPENAI));
+        assert_eq!(
+            value(secrets, SecretKind::Anthropic).as_deref(),
+            Some(ANTHROPIC)
+        );
         assert_eq!(value(secrets, SecretKind::Github).as_deref(), Some(GITHUB));
     }
 
@@ -485,6 +498,8 @@ mod tests {
                 backend: BackendKind::Keyring,
                 curseforge: true,
                 gemini: false,
+                openai: false,
+                anthropic: false,
                 github: false
             }
         );
@@ -578,6 +593,8 @@ mod tests {
         assert_all(&secrets);
         let text = std::fs::read_to_string(&env_file).unwrap();
         assert!(text.contains(CF) && text.contains(GEMINI) && text.contains(GITHUB));
+        assert!(text.contains(&format!("OPENAI_API_KEY='{OPENAI}'")));
+        assert!(text.contains(&format!("ANTHROPIC_API_KEY='{ANTHROPIC}'")));
         assert_eq!(
             std::fs::read_dir(&vault).unwrap().count(),
             0,
@@ -588,6 +605,7 @@ mod tests {
         assert_all(&reopened);
         let status = reopened.status().unwrap();
         assert!(status.curseforge && status.gemini && status.github);
+        assert!(status.openai && status.anthropic);
 
         reopened
             .switch_backend(BackendKind::Keyring, |_| Ok(()))
@@ -742,7 +760,14 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
         fill(&secrets);
-        let text = format!("{secrets:?} {:?}", secrets.get(SecretKind::Curseforge));
-        assert!(!text.contains(CF), "{text}");
+        let text = format!(
+            "{secrets:?} {:?} {:?} {:?}",
+            secrets.get(SecretKind::Curseforge),
+            secrets.get(SecretKind::Openai),
+            secrets.get(SecretKind::Anthropic)
+        );
+        for value in [CF, OPENAI, ANTHROPIC] {
+            assert!(!text.contains(value), "{text}");
+        }
     }
 }

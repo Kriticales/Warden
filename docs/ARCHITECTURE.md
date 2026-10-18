@@ -721,7 +721,7 @@ Dados curados em `crates/warden-diagnostics/data/` (`exclusive-categories.toml`,
 | Nome do computador (`COMPUTERNAME`/hostname) | `<computador>` |
 | IPv4/IPv6 (exceto `127.0.0.1`/`::1`) | `<ip>` |
 | E-mails | `<email>` |
-| Padrões de segredo (`$2a$…`, `ghp_…`, `github_pat_…`, `AIza…`, `x-api-key`, `token=`) e os valores reais das chaves do cofre | `<segredo>` |
+| Padrões de segredo (`$2a$…`, `ghp_…`, `github_pat_…`, `AIza…`, `sk-…` (OpenAI e Anthropic, ADR-0060), `x-api-key`, `token=`) e os valores reais das chaves do cofre | `<segredo>` |
 
 A redação é testada com casos positivos e negativos; o diálogo de consentimento mostra o texto **depois** da redação, e esse é exatamente o texto enviado.
 

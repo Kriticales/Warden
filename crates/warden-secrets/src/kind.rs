@@ -12,13 +12,23 @@ pub enum SecretKind {
     Curseforge,
     /// Chave da API do Gemini.
     Gemini,
+    /// Chave da API da `OpenAI` (ADR-0060).
+    Openai,
+    /// Chave da API da Anthropic, o provedor Claude (ADR-0060).
+    Anthropic,
     /// Token do GitHub (publicar versão).
     Github,
 }
 
 impl SecretKind {
     /// Todos, na ordem da tela de Configurações.
-    pub const ALL: [Self; 3] = [Self::Curseforge, Self::Gemini, Self::Github];
+    pub const ALL: [Self; 5] = [
+        Self::Curseforge,
+        Self::Gemini,
+        Self::Openai,
+        Self::Anthropic,
+        Self::Github,
+    ];
 
     /// Conta no cofre do sistema (serviço `dev.kriticales.warden`).
     #[must_use]
@@ -26,6 +36,8 @@ impl SecretKind {
         match self {
             Self::Curseforge => "curseforge-api-key",
             Self::Gemini => "gemini-api-key",
+            Self::Openai => "openai-api-key",
+            Self::Anthropic => "anthropic-api-key",
             Self::Github => "github-token",
         }
     }
@@ -36,6 +48,8 @@ impl SecretKind {
         match self {
             Self::Curseforge => "CURSEFORGE_API_KEY",
             Self::Gemini => "GEMINI_API_KEY",
+            Self::Openai => "OPENAI_API_KEY",
+            Self::Anthropic => "ANTHROPIC_API_KEY",
             Self::Github => "GITHUB_TOKEN",
         }
     }
@@ -57,6 +71,7 @@ pub enum BackendKind {
 /// O que a interface sabe das chaves: onde ficam e quais estão configuradas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+#[allow(clippy::struct_excessive_bools)] // um campo por chave da tela: é o contrato com a interface
 pub struct SecretsStatus {
     /// Armazenamento em uso.
     pub backend: BackendKind,
@@ -64,6 +79,10 @@ pub struct SecretsStatus {
     pub curseforge: bool,
     /// Chave do Gemini configurada.
     pub gemini: bool,
+    /// Chave da `OpenAI` configurada.
+    pub openai: bool,
+    /// Chave da Anthropic configurada.
+    pub anthropic: bool,
     /// Token do GitHub configurado.
     pub github: bool,
 }
@@ -75,6 +94,8 @@ impl SecretsStatus {
         match kind {
             SecretKind::Curseforge => self.curseforge,
             SecretKind::Gemini => self.gemini,
+            SecretKind::Openai => self.openai,
+            SecretKind::Anthropic => self.anthropic,
             SecretKind::Github => self.github,
         }
     }
@@ -88,7 +109,7 @@ mod tests {
     fn nomes_estaveis() {
         assert_eq!(
             serde_json::to_value(SecretKind::ALL).unwrap(),
-            serde_json::json!(["curseforge", "gemini", "github"])
+            serde_json::json!(["curseforge", "gemini", "openai", "anthropic", "github"])
         );
         assert_eq!(
             serde_json::to_value([BackendKind::Keyring, BackendKind::Envfile]).unwrap(),
@@ -97,12 +118,24 @@ mod tests {
         let accounts: Vec<_> = SecretKind::ALL.iter().map(|kind| kind.account()).collect();
         assert_eq!(
             accounts,
-            ["curseforge-api-key", "gemini-api-key", "github-token"]
+            [
+                "curseforge-api-key",
+                "gemini-api-key",
+                "openai-api-key",
+                "anthropic-api-key",
+                "github-token"
+            ]
         );
         let vars: Vec<_> = SecretKind::ALL.iter().map(|kind| kind.env_var()).collect();
         assert_eq!(
             vars,
-            ["CURSEFORGE_API_KEY", "GEMINI_API_KEY", "GITHUB_TOKEN"]
+            [
+                "CURSEFORGE_API_KEY",
+                "GEMINI_API_KEY",
+                "OPENAI_API_KEY",
+                "ANTHROPIC_API_KEY",
+                "GITHUB_TOKEN"
+            ]
         );
     }
 
@@ -112,10 +145,14 @@ mod tests {
             backend: BackendKind::Keyring,
             curseforge: true,
             gemini: false,
+            openai: true,
+            anthropic: false,
             github: true,
         };
         assert!(status.is_configured(SecretKind::Curseforge));
         assert!(!status.is_configured(SecretKind::Gemini));
+        assert!(status.is_configured(SecretKind::Openai));
+        assert!(!status.is_configured(SecretKind::Anthropic));
         assert!(status.is_configured(SecretKind::Github));
         assert_eq!(BackendKind::default(), BackendKind::Keyring);
     }

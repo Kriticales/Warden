@@ -4,11 +4,13 @@
 //!
 //! Procura:
 //! - as formas conhecidas da tabela da ARCHITECTURE §9.4 (chave da CurseForge `$2a$…`, tokens do
-//!   GitHub `ghp_…`/`gho_…`/`github_pat_…`, chave do Google `AIza…`, JWT);
+//!   GitHub `ghp_…`/`gho_…`/`github_pat_…`, chave do Google `AIza…`, chaves da OpenAI e da
+//!   Anthropic `sk-…`, JWT);
 //! - valores longos depois de nomes de chave (`api_key = "…"`, `"accessToken": "…"`,
 //!   `password=…`), só quando o valor tem 16 caracteres ou mais com letras e números (para
 //!   `token = 5` ou `secret = true` de configs comuns não bloquearem);
-//! - os valores atuais do cofre (CurseForge, Gemini, GitHub), em qualquer lugar;
+//! - os valores atuais do cofre (todas as chaves: CurseForge, provedores de IA, GitHub), em
+//!   qualquer lugar;
 //! - pelo nome, `kubejs/config/web_server.json` (guarda o token do servidor web do KubeJS).
 //!
 //! Arquivos binários (com byte nulo no começo) ficam de fora: jars e imagens não guardam
@@ -52,6 +54,7 @@ static SHAPES: LazyLock<Regex> = LazyLock::new(|| {
         r"|\bgh[pousr]_[A-Za-z0-9]{20,}",
         r"|\bgithub_pat_[A-Za-z0-9_]{20,}",
         r"|\bAIza[0-9A-Za-z_\-]{20,}",
+        r"|\bsk-[A-Za-z0-9_\-]{20,}",
         r"|\beyJ[A-Za-z0-9_\-]{8,}\.eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}",
         r")",
     ))
@@ -153,11 +156,13 @@ mod tests {
 
     #[test]
     fn formas_conhecidas() {
-        let cases: [&[u8]; 5] = [
+        let cases: [&[u8]; 7] = [
             b"key: $2a$10$abcdefghijklmnopqrstuvwxyzABCD",
             b"github_pat_11ABCDEFG0123456789_abcdefghijklmnop",
             b"gho_ABCDEFGHIJKLMNOPQRSTUVWX",
             b"x AIzaSyA-0123456789abcdefghijklmn",
+            b"OPENAI_API_KEY=sk-proj-0123456789abcdefghij_ABCDEF",
+            b"chave: sk-ant-api03-0123456789abcdefghij_ABCDEF",
             b"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijk",
         ];
         for case in cases {
