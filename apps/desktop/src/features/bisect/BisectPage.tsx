@@ -33,6 +33,7 @@ import { bisectKeys, useAnswerBisect, useBisect, useCancelBisect, usePauseBisect
 import { BisectDialog } from './BisectDialog';
 import { BisectResult } from './BisectResult';
 import { RoundsTable, RoundsTrack, Suspects, trackOf } from './Rounds';
+import { ServerNow } from './server/ServerNow';
 import { joinNames, namesOf, nowText, progressLine } from './text';
 import { useStartBisect } from './useStartBisect';
 import './bisect.css';
@@ -349,6 +350,7 @@ function Now({
         <span className="t-xs t-3">{formatDuration(Math.max(0, now - current.startedAtMs))}</span>
       </div>
       <p className="mt-2">{nowText(current, view.searched)}</p>
+      {view.server ? <ServerNow /> : null}
       <p className="t-xs t-3 mt-2">{assisted ? t('agora.esperaAssistido') : t('agora.espera')}</p>
       {pauseAsked ? <p className="t-xs t-2 mt-2">{t('agora.pausaPedida')}</p> : null}
     </section>

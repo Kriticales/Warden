@@ -24,9 +24,10 @@ import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Icon } from '../../components/ui/icon';
 import { Loader } from '../../components/ui/loader';
 import type { BisectRoundView, BisectView, PackId } from '../../lib/ipc/bindings';
-import { Console } from '../test/console/Console';
 import { formatDuration } from '../test/text';
 import { useRoundLog } from './api';
+import { RoundLogConsole } from './server/RoundLogConsole';
+import { OnServerTag } from './server/ServerNotes';
 import { markOf, markWord, roundWhat, verdictWord, type RoundMark } from './text';
 
 /** As marcas da legenda, na ordem do protótipo. */
@@ -232,10 +233,11 @@ function RoundRow({
         {round.repeat > 1 ? (
           <span className="t-xs t-3"> {t('tabela.repeticao', { vez: round.repeat })}</span>
         ) : null}
+        {round.serverFailed ? <OnServerTag /> : null}
       </td>
       <td className="t-2">{round.durationMs > 0 ? formatDuration(round.durationMs) : null}</td>
       <td className="shrink">
-        {round.hasLog ? (
+        {round.hasLog || round.hasServerLog ? (
           <Button size="sm" variant="ghost" iconOnly icon={FileText} onClick={onLog}>
             {label}
           </Button>
@@ -269,7 +271,7 @@ function RoundLogDialog({
           {log.isPending ? <LoadingState label={t('log.carregando')} /> : null}
           {log.isError ? <ErrorPanel error={log.error} /> : null}
           {log.isSuccess ? (
-            <Console lines={log.data} state="ended" label={title} className="bisect-log" />
+            <RoundLogConsole lines={log.data} label={title} className="bisect-log" />
           ) : null}
         </DialogContent>
       ) : null}

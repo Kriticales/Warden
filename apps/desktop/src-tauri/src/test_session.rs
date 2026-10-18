@@ -792,23 +792,14 @@ impl Runner<'_> {
         Ok(report)
     }
 
-    /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste. Com o
-    /// servidor local (`server_port`, L-09), o jogo entra nele pelo Quick Play.
-    fn plan_launch(
-        &self,
-        prepared: &Prepared,
-        server_port: Option<u16>,
-    ) -> Result<Launch, AppError> {
-        self.plan_launch_with(
-            prepared,
-            &LaunchExtra {
-                server_port,
-                ..LaunchExtra::default()
-            },
-        )
+    /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste.
+    fn plan_launch(&self, prepared: &Prepared) -> Result<Launch, AppError> {
+        self.plan_launch_with(prepared, &LaunchExtra::default())
     }
 
-    /// [`Runner::plan_launch`] com o que a busca do culpado acrescenta (D-12).
+    /// [`Runner::plan_launch`] com o que a busca do culpado (D-12) ou o servidor local (L-09)
+    /// acrescentam. Com o servidor local (`extra.server_port`), o jogo entra nele pelo Quick
+    /// Play.
     fn plan_launch_with(
         &self,
         prepared: &Prepared,
@@ -917,7 +908,7 @@ impl Runner<'_> {
     ) -> Result<TestSessionSummary, AppError> {
         self.handle.ensure_not_cancelled()?;
         self.handle.stage(STAGE_LAUNCH, STAGE_LAUNCH_LABEL);
-        let launch = self.plan_launch(&prepared, None)?;
+        let launch = self.plan_launch(&prepared)?;
         let opened = OpenedSession::create(prepared.sessions_dir.clone())?;
         self.play_in(hooks, prepared, launch, opened, None).await
     }
@@ -1159,15 +1150,16 @@ impl Runner<'_> {
     }
 }
 
-/// O que a busca do culpado acrescenta à abertura (D-12): propriedades de sistema
-/// (`fabric.noGui`, `fml.queryResult`) e o arquivo do `--quickPlayPath`.
+/// O que a busca do culpado (D-12) e o servidor local (L-09) acrescentam à abertura:
+/// propriedades de sistema (`fabric.noGui`, `fml.queryResult`), o arquivo do
+/// `--quickPlayPath` e a porta do servidor em que o jogo entra.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct LaunchExtra {
     /// Propriedades de sistema.
     pub(crate) system_props: Vec<(String, String)>,
     /// `--quickPlayPath` (relativo ao `gameDir`).
     pub(crate) quick_play_path: Option<String>,
-    /// Porta do servidor local em que o jogo entra (L-09).
+    /// A porta do servidor local em que o jogo entra (Quick Play ou `--server`/`--port`).
     pub(crate) server_port: Option<u16>,
 }
 
@@ -1243,7 +1235,7 @@ impl BisectGame {
         &self.prepared.spec
     }
 
-    /// O Java escolhido para o jogo (o mesmo abre o servidor vanilla do mundo de teste).
+    /// O Java escolhido (o servidor local da busca usa o mesmo; D-13).
     pub(crate) fn java(&self) -> &JavaRuntime {
         &self.prepared.java
     }

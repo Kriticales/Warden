@@ -30,9 +30,12 @@
 //! 7. **Modo assistido:** ao entrar no mundo, a rodada pergunta ("Aconteceu", "Não aconteceu",
 //!    "Não deu para testar"); um travamento detectado sozinho marca a rodada sem perguntar.
 //!
-//! O pack, a instância de teste e os mundos do usuário nunca mudam. Versões sem Quick Play (antes de 1.20) só
-//! entram no mundo pelo servidor local, que é da D-13: aqui fica o erro `NEEDS_SERVER` e o
-//! [`Goal`] da rodada como ponto de extensão.
+//! O pack, a instância de teste e os mundos do usuário nunca mudam. Versões sem Quick Play
+//! (antes de 1.20) só entram no mundo pelo servidor local (D-13, [`crate::bisect_server`]): com
+//! o aceite no pedido ([`BisectRequest::server`]), o objetivo da busca é [`Goal::Server`] e cada
+//! rodada abre também o servidor, com uma cópia do mesmo mundo de teste ([`world`]) e as linhas
+//! dele no mesmo [`RoundWatcher`]; sem o aceite, "trava ao entrar no mundo" nessas versões dá
+//! `NEEDS_SERVER`.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -57,13 +60,14 @@ use warden_instance::subset::{
     SubsetOptions, SubsetWorld, bisect_dirs, materialize_subset, remove_dir,
 };
 use warden_instance::{
-    InstanceDirs, MaterializeOptions, OnModified, OptionalChoices, OptionalSelection,
+    InstallSide, InstanceDirs, MaterializeOptions, OnModified, OptionalChoices, OptionalSelection,
     PlayerToolsMode,
 };
 use warden_jarmeta::Limits;
 use warden_jarmeta::index::{JarIndexCache, PackIndex, PackJar, build_pack_index};
 use warden_launcher::process::{GameEvent, GameProcess, SpawnOptions};
 
+use crate::bisect_server::{OpenServer, ServerBase, ServerDirs, ServerSignal};
 use crate::error::AppError;
 use crate::events::{GamePhase, GameState, OperationEvent};
 use crate::operations::{OperationHandle, OperationKind};
@@ -110,6 +114,10 @@ pub(crate) struct BisectRequest {
     /// Ferramentas do jogador que entram mesmo assim (suspeitas).
     #[serde(default)]
     pub(crate) suspects: Vec<String>,
+    /// A pessoa aceitou que cada rodada abra o servidor local (D-13): versões sem Quick Play e
+    /// problemas do servidor.
+    #[serde(default)]
+    pub(crate) server: bool,
 }
 
 /// A resposta do modo assistido.
@@ -200,6 +208,10 @@ pub(crate) struct BisectRoundView {
     pub(crate) anchor: Option<Anchor>,
     /// Há log gravado.
     pub(crate) has_log: bool,
+    /// Há log do servidor local gravado (D-13).
+    pub(crate) has_server_log: bool,
+    /// A falha veio do servidor local (D-13).
+    pub(crate) server_failed: bool,
 }
 
 /// A rodada em andamento.
@@ -243,6 +255,8 @@ pub(crate) struct BisectView {
     pub(crate) id: String,
     /// Situação.
     pub(crate) status: BisectStatus,
+    /// Cada rodada abre o servidor local (D-13).
+    pub(crate) server: bool,
     /// O que o usuário descreveu.
     pub(crate) symptom: Symptom,
     /// Travamento de origem (hash da assinatura).
@@ -369,6 +383,8 @@ struct Dirs {
     round: InstanceDirs,
     /// `instances/<pack>/bisect` (apagada no fim).
     round_root: PathBuf,
+    /// O servidor local da busca (D-13), dentro da base e da rodada.
+    server: ServerDirs,
 }
 
 impl Dirs {
@@ -389,6 +405,7 @@ impl Dirs {
             test,
             base,
             round_root,
+            server: ServerDirs::of(&root),
         }
     }
 
@@ -655,6 +672,8 @@ fn view_of(saved: &BisectState, control: Option<&Control>) -> BisectView {
                 duration_ms: measured.map_or(0, |info| info.duration_ms),
                 anchor: measured.and_then(|info| info.anchor),
                 has_log: measured.is_some_and(|info| info.log.is_some()),
+                has_server_log: measured.is_some_and(|info| info.server_log.is_some()),
+                server_failed: measured.is_some_and(|info| info.server_failed),
             }
         })
         .collect::<Vec<_>>();
@@ -683,6 +702,7 @@ fn view_of(saved: &BisectState, control: Option<&Control>) -> BisectView {
     BisectView {
         id: saved.id.clone(),
         status,
+        server: saved.goal == Goal::Server,
         symptom: saved.symptom.clone(),
         origin_crash: saved.origin_crash.clone(),
         rounds,
@@ -774,7 +794,8 @@ pub(crate) async fn cancel(paths: &AppPaths, pack_id: PackId) -> Result<(), AppE
     .await
 }
 
-/// O log gravado de uma rodada. Erros: `bisect.NOT_FOUND`.
+/// O log gravado de uma rodada: o do jogo e, com o servidor local (D-13), o do servidor em
+/// seguida, com a origem `server`. Erros: `bisect.NOT_FOUND`.
 pub(crate) fn round_log(
     paths: &AppPaths,
     pack_id: PackId,
@@ -784,18 +805,34 @@ pub(crate) fn round_log(
     let saved = BisectState::load(&dirs.state_dir)
         .map_err(|error| domain(&error))?
         .ok_or_else(|| domain(&BisectError::NotFound))?;
-    let path = dirs.log_dir(&saved.id, number).join("output.log");
-    if !path.is_file() {
+    let log_dir = dirs.log_dir(&saved.id, number);
+    let game = log_dir.join("output.log");
+    let server = crate::bisect_server::server_log(&log_dir);
+    if !game.is_file() && !server.is_file() {
         return Err(domain(&BisectError::NotFound));
     }
-    read_output_log(&path)
-        .map(|(lines, _)| lines)
-        .map_err(|error| {
-            domain(&BisectError::Io {
-                path,
-                source: error,
+    let read = |path: PathBuf| {
+        read_output_log(&path)
+            .map(|(lines, _)| lines)
+            .map_err(|error| {
+                domain(&BisectError::Io {
+                    path,
+                    source: error,
+                })
             })
-        })
+    };
+    let mut lines = if game.is_file() {
+        read(game)?
+    } else {
+        Vec::new()
+    };
+    if server.is_file() {
+        lines.extend(read(server)?.into_iter().map(|mut line| {
+            line.origin = crate::test_session::ConsoleOrigin::Server;
+            line
+        }));
+    }
+    Ok(lines)
 }
 
 /// As buscas ligadas a um travamento (hash da assinatura): Problemas → Travamentos.
@@ -854,15 +891,19 @@ pub(crate) async fn run(
     *running().lock().unwrap_or_else(PoisonError::into_inner) = Some(Arc::clone(&control));
     let _guard = ControlGuard;
     state.tests.attach_game(None, Some(handle.token().clone()));
-    let result = Runner {
-        state,
-        pack_id,
-        sink,
-        handle: &handle,
-        control: &control,
-        dirs: Dirs::of(&state.paths, pack_id),
-    }
-    .run(mode)
+    // Na pilha, o futuro da busca inteira (mundo de teste, servidor local e rodadas) passa do
+    // limite do `clippy::large_futures` no Windows.
+    let result = Box::pin(
+        Runner {
+            state,
+            pack_id,
+            sink,
+            handle: &handle,
+            control: &control,
+            dirs: Dirs::of(&state.paths, pack_id),
+        }
+        .run(mode),
+    )
     .await;
     handle.finish(result)
 }
@@ -873,8 +914,61 @@ struct Watched {
     decision: Option<Decision>,
     user_verdict: Option<Verdict>,
     exit: Option<warden_launcher::process::GameExit>,
+    /// O servidor local saiu sozinho durante a rodada (D-13).
+    server_exit: Option<warden_launcher::process::GameExit>,
+    /// O sinal de falha que o [`RoundWatcher`] está fechando veio do log do servidor (D-13).
+    anchor_on_server: bool,
     interrupted: bool,
+    /// A origem do relógio da rodada: a abertura do jogo, ou a do servidor local (D-13).
     started_at: SystemTime,
+    /// Com o servidor local, quanto depois dele o jogo abriu (as linhas do jogo vêm com o tempo
+    /// desde a abertura do jogo).
+    game_offset_ms: u64,
+}
+
+impl Watched {
+    fn new(config: WatchConfig) -> Self {
+        Self {
+            watcher: RoundWatcher::new(config),
+            decision: None,
+            user_verdict: None,
+            exit: None,
+            server_exit: None,
+            anchor_on_server: false,
+            interrupted: false,
+            started_at: SystemTime::now(),
+            game_offset_ms: 0,
+        }
+    }
+}
+
+/// Por que o acompanhamento parou.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Ended {
+    /// Há veredito, resposta do modo assistido ou interrupção (nos campos do [`Watched`]).
+    Settled,
+    /// O jogo saiu.
+    GameExited,
+    /// O servidor local saiu sozinho.
+    ServerExited,
+    /// O servidor local ficou pronto (só esperando por ele, antes de abrir o jogo).
+    ServerReady,
+}
+
+/// O próximo evento do jogo; sem jogo (o servidor ainda abrindo), nunca.
+async fn next_game(events: Option<&mut warden_launcher::process::GameEvents>) -> Option<GameEvent> {
+    match events {
+        Some(events) => events.recv().await,
+        None => std::future::pending().await,
+    }
+}
+
+/// O próximo sinal do servidor local; sem servidor, nunca.
+async fn next_server(server: Option<&mut OpenServer>) -> ServerSignal {
+    match server {
+        Some(server) => server.next().await,
+        None => std::future::pending().await,
+    }
 }
 
 /// Milissegundos desde a abertura do processo.
@@ -907,7 +1001,8 @@ impl Runner<'_> {
         let saved =
             blocking(move || BisectState::load(&state_dir).map_err(|error| domain(&error))).await?;
         self.handle.stage(STAGE_PREPARE, STAGE_PREPARE_LABEL);
-        self.materialize_base(&root).await?;
+        self.materialize_base(&root, &self.dirs.base, InstallSide::Client)
+            .await?;
         let input = graph_input(self.state, self.pack_id, &root, &self.dirs.base.game_dir).await?;
         let mut saved = match mode {
             RunMode::Start(request) => self.new_state(&root, &input, request).await?,
@@ -945,8 +1040,9 @@ impl Runner<'_> {
         .await?;
         // Cancelada (ou o app fechando) no meio da geração do mundo, as rodadas veem o pedido e
         // cancelam ou pausam a busca; outro erro deixa a busca pausada antes da primeira
-        // rodada ("Continuar" tenta de novo).
-        if saved.goal == Goal::World
+        // rodada ("Continuar" tenta de novo). Com o servidor local (D-13), o servidor da rodada
+        // abre uma cópia do mesmo mundo.
+        if matches!(saved.goal, Goal::World | Goal::Server)
             && let Err(error) = self.ensure_world(&saved, &root, &game).await
             && !error.is_cancelled()
         {
@@ -954,7 +1050,23 @@ impl Runner<'_> {
             self.finish(&mut saved).await?;
             return Err(error);
         }
-        self.rounds(&mut saved, &mut game, &lookup).await?;
+        // O servidor local (D-13), do mesmo jeito: cancelada no preparo, as rodadas veem o
+        // pedido antes de abrir qualquer coisa; outro erro deixa a busca pausada.
+        let server = if saved.goal == Goal::Server {
+            match self.prepare_server(&root, &saved, &game).await {
+                Ok(base) => Some(base),
+                Err(error) if error.is_cancelled() && self.handle.is_cancelled() => None,
+                Err(error) => {
+                    saved.paused = true;
+                    self.finish(&mut saved).await?;
+                    return Err(error);
+                }
+            }
+        } else {
+            None
+        };
+        self.rounds(&mut saved, &mut game, &lookup, server.as_ref())
+            .await?;
         self.finish(&mut saved).await?;
         Ok(view_of(&saved, None))
     }
@@ -987,13 +1099,47 @@ impl Runner<'_> {
         result.map(|_| ())
     }
 
-    /// Materializa o pack inteiro na base (só o que mudou), com todas as ferramentas do
-    /// jogador (a busca decide quem entra) e os opcionais escolhidos na instância de teste.
-    async fn materialize_base(&self, root: &Path) -> Result<(), AppError> {
+    /// O servidor local da busca (D-13): o pack só com os itens de servidor na base do servidor
+    /// e o servidor do loader instalado ("Preparar o servidor").
+    async fn prepare_server(
+        &self,
+        root: &Path,
+        saved: &BisectState,
+        game: &BisectGame,
+    ) -> Result<ServerBase, AppError> {
+        self.handle.ensure_not_cancelled()?;
+        self.handle.stage(
+            crate::server_session::STAGE_SERVER,
+            crate::server_session::STAGE_SERVER_LABEL,
+        );
+        self.materialize_base(root, &self.dirs.server.base, InstallSide::Server)
+            .await?;
+        crate::bisect_server::prepare_base(
+            self.state,
+            root,
+            game.spec(),
+            game.java(),
+            &self.dirs.server,
+            saved.search.universe().items().len(),
+            self.handle,
+        )
+        .await
+    }
+
+    /// Materializa o pack inteiro (só o que mudou) numa base da busca: a do jogo, ou a do
+    /// servidor local com só os itens de servidor (D-13), com todas as ferramentas do jogador (a
+    /// busca decide quem entra) e os opcionais escolhidos na instância de teste.
+    async fn materialize_base(
+        &self,
+        root: &Path,
+        dirs: &InstanceDirs,
+        side: InstallSide,
+    ) -> Result<(), AppError> {
         let sources = crate::test_session::materialize_sources(self.state)?;
         let choices = OptionalChoices::load(&self.dirs.test.state_dir)
             .map_err(|error| AppError::from_domain(&error))?;
         let options = MaterializeOptions {
+            side,
             on_modified: OnModified::Overwrite,
             optionals: OptionalSelection::Explicit(choices),
             player_tools: PlayerToolsMode::AsPlayer,
@@ -1005,7 +1151,7 @@ impl Runner<'_> {
                 let outcome = warden_instance::materialize(
                     &sources,
                     root,
-                    &self.dirs.base,
+                    dirs,
                     &options,
                     self.handle,
                     self.handle.token(),
@@ -1059,8 +1205,17 @@ impl Runner<'_> {
         // Com Quick Play e o mundo de teste, toda rodada entra no mundo. Sem como entrar
         // (versão sem Quick Play, ou sem o mundo e sem a EULA), só "trava ao entrar no mundo"
         // é recusada; os outros sintomas vão até o menu (no modo assistido, a pessoa entra num
-        // mundo).
+        // mundo). Com o servidor local aceito (D-13), toda rodada entra no mundo por ele, numa
+        // cópia do mesmo mundo de teste; o servidor só abre com a EULA.
         let goal = match (&request.symptom, quick_play, world) {
+            _ if request.server => {
+                if crate::server_session::eula_accepted_at(self.state).is_none() {
+                    return Err(AppError::from_domain(
+                        &warden_server::Error::EulaNotAccepted,
+                    ));
+                }
+                Goal::Server
+            }
             (Symptom::CrashOnWorld, false, _) => {
                 return Err(domain(&BisectError::NeedsServer {
                     minecraft: facts.minecraft,
@@ -1080,7 +1235,7 @@ impl Runner<'_> {
             origin_crash: request.origin_crash,
             minecraft: facts.minecraft,
             loader: facts.loader,
-            world: (goal == Goal::World).then(|| world::WORLD_NAME.to_owned()),
+            world: matches!(goal, Goal::World | Goal::Server).then(|| world::WORLD_NAME.to_owned()),
             search: Search::new(universe),
             rounds: Vec::new(),
             world_ms: last_world_ms(&self.dirs.state_dir),
@@ -1104,6 +1259,7 @@ impl Runner<'_> {
         saved: &mut BisectState,
         game: &mut BisectGame,
         lookup: &AppLookup,
+        server: Option<&ServerBase>,
     ) -> Result<(), AppError> {
         loop {
             if self.control.cancel.load(Ordering::SeqCst) {
@@ -1118,7 +1274,7 @@ impl Runner<'_> {
                 return Ok(());
             };
             let started = Instant::now();
-            let run = self.round(saved, game, lookup, &plan).await?;
+            let run = self.round(saved, game, lookup, &plan, server).await?;
             let Some(verdict) = run.verdict else {
                 // Rodada interrompida: cancelar, ou "Parar jogo"/fechar o Warden, que pausam
                 // (a rodada não conta e é refeita ao continuar).
@@ -1209,13 +1365,15 @@ impl Runner<'_> {
         }
     }
 
-    /// Uma rodada: prepara a instância, abre o jogo, acompanha e encerra no veredito.
+    /// Uma rodada: prepara a instância (e o servidor local, D-13), abre o jogo, acompanha e
+    /// encerra no veredito.
     async fn round(
         &self,
         saved: &mut BisectState,
         game: &mut BisectGame,
         lookup: &AppLookup,
         plan: &warden_bisect::RoundPlan,
+        server: Option<&ServerBase>,
     ) -> Result<RoundRun, AppError> {
         let round_started = Instant::now();
         self.handle.stage(STAGE_ROUND, STAGE_ROUND_LABEL);
@@ -1231,7 +1389,6 @@ impl Runner<'_> {
         }));
         self.notify_round(saved, plan.number, None, false);
         let enabled: BTreeSet<String> = plan.enabled.iter().cloned().collect();
-        let command = self.prepare_round(saved, game, &enabled).await?;
         let log_dir = self.dirs.log_dir(&saved.id, plan.number);
         std::fs::create_dir_all(&log_dir).map_err(|error| {
             domain(&BisectError::Io {
@@ -1239,19 +1396,28 @@ impl Runner<'_> {
                 source: error,
             })
         })?;
-        let watched = self.watch_round(saved, plan, &command, &log_dir).await?;
+        let (command, prepared_server) = self
+            .prepare_round(saved, game, &enabled, server, &log_dir)
+            .await?;
+        let watched = self
+            .watch_round(saved, plan, &command, &log_dir, prepared_server)
+            .await?;
         let duration_ms = u64::try_from(round_started.elapsed().as_millis()).unwrap_or(u64::MAX);
         let observed = &watched.watcher;
+        let relative = |file: &str| format!("{LOGS_DIR}/{}/round-{}/{file}", saved.id, plan.number);
         let mut info = RoundInfo {
             number: plan.number,
             duration_ms,
             reached_ms: observed.world_ms().or(observed.loaded_ms()),
             anchor: None,
             signature: None,
-            log: Some(format!(
-                "{LOGS_DIR}/{}/round-{}/output.log",
-                saved.id, plan.number
-            )),
+            // Com o servidor local, o jogo só abre depois do "Done".
+            log: log_dir
+                .join("output.log")
+                .is_file()
+                .then(|| relative("output.log")),
+            server_log: server.is_some().then(|| relative("server/output.log")),
+            server_failed: false,
         };
         let world_interval_ms = observed
             .started_world_ms()
@@ -1274,13 +1440,23 @@ impl Runner<'_> {
         })
     }
 
-    /// A instância da rodada e a linha de comando.
+    /// A instância da rodada e a linha de comando; com o servidor local (D-13), também a pasta
+    /// do servidor com os mesmos itens desligados e a cópia descartável do mundo, e o jogo entra
+    /// nele (`--server`/`--port` ou Quick Play).
     async fn prepare_round(
         &self,
         saved: &BisectState,
         game: &mut BisectGame,
         enabled: &BTreeSet<String>,
-    ) -> Result<warden_launcher::LaunchCommand, AppError> {
+        server: Option<&ServerBase>,
+        log_dir: &Path,
+    ) -> Result<
+        (
+            warden_launcher::LaunchCommand,
+            Option<crate::bisect_server::PreparedRound>,
+        ),
+        AppError,
+    > {
         let excluded: BTreeSet<String> = saved
             .search
             .universe()
@@ -1291,9 +1467,34 @@ impl Runner<'_> {
             .collect();
         let loader = warden_bisect::prepare::perf_loader(saved.loader.as_deref());
         let world_entry = saved.goal == Goal::World;
+        let enters_world = world_entry || saved.goal == Goal::Server;
+        let prepared_server = match server {
+            Some(base) => {
+                let spec = crate::bisect_server::RoundSpec {
+                    excluded: excluded.clone(),
+                    world: self.dirs.world.world(),
+                    eula_accepted_at: crate::server_session::eula_accepted_at(self.state),
+                    first_port: self.state.servers.first_port(),
+                    motd: self
+                        .state
+                        .packs
+                        .get(self.pack_id)
+                        .map(|record| record.name)
+                        .unwrap_or_default(),
+                    log: crate::bisect_server::server_log(log_dir),
+                };
+                let base = base.clone();
+                let dirs = self.dirs.server.clone();
+                Some(
+                    blocking(move || crate::bisect_server::prepare_round(&base, &dirs, &spec))
+                        .await?,
+                )
+            }
+            None => None,
+        };
         let options = SubsetOptions {
             excluded,
-            disable_onboarding: world_entry
+            disable_onboarding: enters_world
                 && warden_launcher::quick_play::needs_accessibility_onboarding_off(
                     &saved.minecraft,
                 ),
@@ -1320,36 +1521,82 @@ impl Runner<'_> {
         let extra = LaunchExtra {
             system_props: warden_bisect::prepare::system_props(&saved.minecraft, loader),
             quick_play_path: world_entry.then(|| QUICK_PLAY_FILE.to_owned()),
-            server_port: None,
+            server_port: prepared_server
+                .as_ref()
+                .map(crate::bisect_server::PreparedRound::port),
         };
-        game.command(
+        let command = game.command(
             self.state,
             self.pack_id,
             self.handle,
             saved.world.clone().filter(|_| world_entry),
             &extra,
-        )
+        )?;
+        Ok((command, prepared_server))
+    }
+
+    /// O acompanhamento da rodada: o que é "passou", os limites e o modo.
+    fn watch_config(saved: &BisectState) -> WatchConfig {
+        WatchConfig {
+            minecraft: saved.minecraft.clone(),
+            loader: warden_bisect::prepare::perf_loader(saved.loader.as_deref()),
+            goal: saved.goal,
+            log_line: match &saved.symptom {
+                Symptom::LogLine { text } => Some(text.clone()),
+                _ => None,
+            },
+            assisted: saved.symptom == Symptom::Assisted,
+            freeze_ms: warden_bisect::prepare::freeze_ms(saved.control_interval_ms),
+            max_ms: warden_bisect::prepare::max_round_ms(saved.world_ms),
+            stability_ms: stability_ms(),
+        }
     }
 
     /// Abre o jogo e acompanha até o veredito, a resposta (modo assistido) ou a interrupção;
-    /// encerra o jogo na hora (várias falhas não fecham o jogo sozinhas).
+    /// encerra o jogo na hora (várias falhas não fecham o jogo sozinhas). Com o servidor local
+    /// (D-13), ele abre antes, o jogo só abre depois do "Done", as linhas dos dois vão para o
+    /// mesmo acompanhamento e o servidor fecha no fim da rodada, antes de a cópia do mundo sair.
     async fn watch_round(
         &self,
         saved: &BisectState,
         plan: &warden_bisect::RoundPlan,
         command: &warden_launcher::LaunchCommand,
         log_dir: &Path,
+        server: Option<crate::bisect_server::PreparedRound>,
     ) -> Result<Watched, AppError> {
-        let (process, mut events) = GameProcess::spawn(
+        let mut watched = Watched::new(Self::watch_config(saved));
+        let mut open_server = None;
+        if let Some(prepared) = server {
+            let Some(open) = self
+                .open_server(saved, plan, &mut watched, prepared)
+                .await?
+            else {
+                return Ok(watched);
+            };
+            open_server = Some(open);
+        }
+        let spawned = GameProcess::spawn(
             command,
             SpawnOptions {
                 output_log: Some(log_dir.join("output.log")),
                 stdin: false,
             },
         )
-        .await
-        .map_err(|error| AppError::from_domain(&error))?;
-        let started_at = process.started_at();
+        .await;
+        let (process, mut events) = match spawned {
+            Ok(spawned) => spawned,
+            Err(error) => {
+                if let Some(open) = open_server {
+                    open.close(true).await;
+                }
+                return Err(AppError::from_domain(&error));
+            }
+        };
+        if open_server.is_some() {
+            watched.game_offset_ms = elapsed_since(watched.started_at);
+        } else {
+            watched.started_at = process.started_at();
+        }
         let game_handle = process.handle();
         self.state
             .tests
@@ -1359,33 +1606,49 @@ impl Runner<'_> {
             pid = process.pid(),
             "rodada da busca aberta"
         );
-        let mut watched = Watched {
-            watcher: RoundWatcher::new(WatchConfig {
-                minecraft: saved.minecraft.clone(),
-                loader: warden_bisect::prepare::perf_loader(saved.loader.as_deref()),
-                goal: saved.goal,
-                log_line: match &saved.symptom {
-                    Symptom::LogLine { text } => Some(text.clone()),
-                    _ => None,
-                },
-                assisted: saved.symptom == Symptom::Assisted,
-                freeze_ms: warden_bisect::prepare::freeze_ms(saved.control_interval_ms),
-                max_ms: warden_bisect::prepare::max_round_ms(saved.world_ms),
-                stability_ms: stability_ms(),
-            }),
-            decision: None,
-            user_verdict: None,
-            exit: None,
-            interrupted: false,
-            started_at,
-        };
-        self.follow(saved, plan, &mut watched, &mut events).await;
+        self.follow(
+            saved,
+            plan,
+            &mut watched,
+            Some(&mut events),
+            open_server.as_mut(),
+        )
+        .await;
         self.control
             .answer
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .take();
         self.set_asking(false);
+        let ended = self
+            .end_game(&mut watched, &game_handle, &mut events, process)
+            .await;
+        // "Parar jogo" (botão do teste ou fechar o app) no meio da rodada também interrompe; o
+        // jogo encerrado porque o servidor saiu, não.
+        if watched
+            .exit
+            .as_ref()
+            .is_some_and(|exit| exit.stop_requested)
+            && watched.decision.is_none()
+            && watched.user_verdict.is_none()
+            && watched.server_exit.is_none()
+        {
+            watched.interrupted = true;
+        }
+        if let Some(open) = open_server {
+            open.close(watched.interrupted || ended.is_err()).await;
+        }
+        ended.map(|()| watched)
+    }
+
+    /// Encerra o jogo da rodada (se ainda estiver aberto) e espera a saída.
+    async fn end_game(
+        &self,
+        watched: &mut Watched,
+        game_handle: &warden_launcher::process::GameHandle,
+        events: &mut warden_launcher::process::GameEvents,
+        process: GameProcess,
+    ) -> Result<(), AppError> {
         if watched.exit.is_none() {
             game_handle.stop().await;
             while let Some(event) = events.recv().await {
@@ -1406,27 +1669,48 @@ impl Runner<'_> {
                     .map_err(|error| AppError::from_domain(&error))?,
             );
         }
-        // "Parar jogo" (botão do teste ou fechar o app) no meio da rodada também interrompe.
-        if watched
-            .exit
-            .as_ref()
-            .is_some_and(|exit| exit.stop_requested)
-            && watched.decision.is_none()
-            && watched.user_verdict.is_none()
-        {
-            watched.interrupted = true;
-        }
-        Ok(watched)
+        Ok(())
     }
 
-    /// Lê a saída e o relógio até o veredito, a resposta, a saída do jogo ou a interrupção.
+    /// Abre o servidor local da rodada (D-13) e espera o "Done", com as linhas dele no
+    /// acompanhamento. `None`: a rodada se decidiu antes (o servidor travou, saiu sozinho ou a
+    /// rodada foi interrompida), o jogo não abre e o servidor já fechou.
+    async fn open_server(
+        &self,
+        saved: &BisectState,
+        plan: &warden_bisect::RoundPlan,
+        watched: &mut Watched,
+        prepared: crate::bisect_server::PreparedRound,
+    ) -> Result<Option<OpenServer>, AppError> {
+        let mut open = prepared.open(&self.state.servers, self.pack_id).await?;
+        watched.started_at = open.started_at();
+        tracing::info!(
+            round = plan.number,
+            port = open.port(),
+            "servidor local da rodada aberto"
+        );
+        if self
+            .follow(saved, plan, watched, None, Some(&mut open))
+            .await
+            == Ended::ServerReady
+        {
+            return Ok(Some(open));
+        }
+        open.close(watched.interrupted).await;
+        Ok(None)
+    }
+
+    /// Lê a saída do jogo, a do servidor local (D-13) e o relógio até o veredito, a resposta, a
+    /// saída de um dos dois, a interrupção ou, sem jogo ainda, o "Done" do servidor.
     async fn follow(
         &self,
         saved: &BisectState,
         plan: &warden_bisect::RoundPlan,
         watched: &mut Watched,
-        events: &mut warden_launcher::process::GameEvents,
-    ) {
+        mut game: Option<&mut warden_launcher::process::GameEvents>,
+        mut server: Option<&mut OpenServer>,
+    ) -> Ended {
+        let waiting_server = game.is_none();
         let started_at = watched.started_at;
         let quick_play_file = self.dirs.round.game_dir.join(QUICK_PLAY_FILE);
         let mut ticker = tokio::time::interval(TICK);
@@ -1434,18 +1718,34 @@ impl Runner<'_> {
         let mut answer_rx: Option<oneshot::Receiver<AssistedAnswer>> = None;
         loop {
             tokio::select! {
-                event = events.recv() => match event {
+                event = next_game(game.as_deref_mut()) => match event {
                     Some(GameEvent::Line(line)) => {
-                        if let Some(found) = watched.watcher.observe(&line.text, line.elapsed_ms) {
-                            watched.decision = Some(found);
-                            break;
+                        let at = line.elapsed_ms.saturating_add(watched.game_offset_ms);
+                        if observe(watched, &line.text, at, false) {
+                            return Ended::Settled;
                         }
                     }
                     Some(GameEvent::Exited(done)) => {
                         watched.exit = Some(done);
-                        break;
+                        return Ended::GameExited;
                     }
-                    None => break,
+                    None => return Ended::GameExited,
+                },
+                signal = next_server(server.as_deref_mut()) => match signal {
+                    ServerSignal::Line(line) => {
+                        if observe(watched, &line.text, line.elapsed_ms, true) {
+                            return Ended::Settled;
+                        }
+                    }
+                    ServerSignal::Ready => {
+                        if waiting_server {
+                            return Ended::ServerReady;
+                        }
+                    }
+                    ServerSignal::Exited(exit) => {
+                        watched.server_exit = Some(exit);
+                        return Ended::ServerExited;
+                    }
                 },
                 _ = ticker.tick() => {
                     let now = elapsed_since(started_at);
@@ -1461,7 +1761,7 @@ impl Runner<'_> {
                     }
                     if let Some(found) = watched.watcher.tick(now) {
                         watched.decision = Some(found);
-                        break;
+                        return Ended::Settled;
                     }
                 }
                 answered = async {
@@ -1472,13 +1772,13 @@ impl Runner<'_> {
                 } => {
                     if let Some(answered) = answered {
                         watched.user_verdict = Some(answered.verdict());
-                        break;
+                        return Ended::Settled;
                     }
                     answer_rx = None;
                 }
                 () = self.handle.token().cancelled() => {
                     watched.interrupted = true;
-                    break;
+                    return Ended::Settled;
                 }
             }
         }
@@ -1499,17 +1799,24 @@ impl Runner<'_> {
         if let Some(verdict) = watched.user_verdict.take() {
             return Ok(verdict);
         }
+        let mut on_server = watched.anchor_on_server;
         let decision = if let Some(decision) = watched.decision.take() {
             decision
+        } else if let Some(exit) = watched.server_exit.as_ref() {
+            // O servidor local saiu sozinho (D-13): o veredito é o dele.
+            on_server = true;
+            watched.watcher.exit(
+                exit.exit_code,
+                first_crash_report(exit).as_deref(),
+                exit.duration_ms,
+            )
         } else {
             let exit = watched.exit.as_ref();
-            let report = exit
-                .and_then(|exit| exit.artifacts.crash_reports.first())
-                .and_then(|path| std::fs::read_to_string(path).ok());
             watched.watcher.exit(
                 exit.and_then(|exit| exit.exit_code),
-                report.as_deref(),
-                exit.map_or(0, |exit| exit.duration_ms),
+                exit.and_then(first_crash_report).as_deref(),
+                exit.map_or(0, |exit| exit.duration_ms)
+                    .saturating_add(watched.game_offset_ms),
             )
         };
         let failure = match decision {
@@ -1519,16 +1826,28 @@ impl Runner<'_> {
         };
         info.anchor = Some(failure.anchor);
         info.signature = Some(failure.signature.clone());
-        let files = SessionFiles {
-            session_dir: Some(log_dir.to_path_buf()),
-            game_dir: self.dirs.round.game_dir.clone(),
-            started_at: watched
-                .started_at
-                .checked_sub(Duration::from_secs(5))
-                .unwrap_or(watched.started_at),
+        info.server_failed = on_server;
+        let started_at = watched
+            .started_at
+            .checked_sub(Duration::from_secs(5))
+            .unwrap_or(watched.started_at);
+        // A assinatura da D-06 com o log e os crash reports do lado que falhou.
+        let (files, exit_code) = if on_server {
+            (
+                crate::bisect_server::server_files(log_dir, &self.dirs.server, started_at),
+                watched.server_exit.as_ref().and_then(|exit| exit.exit_code),
+            )
+        } else {
+            (
+                SessionFiles {
+                    session_dir: Some(log_dir.to_path_buf()),
+                    game_dir: self.dirs.round.game_dir.clone(),
+                    started_at,
+                },
+                watched.exit.as_ref().and_then(|exit| exit.exit_code),
+            )
         };
         let spec = game.spec().clone();
-        let exit_code = watched.exit.as_ref().and_then(|exit| exit.exit_code);
         let crash_hash = blocking(move || {
             Ok(
                 crate::commands::crashes::signature_of(&files, &spec, exit_code)
@@ -1576,6 +1895,29 @@ impl Runner<'_> {
     }
 }
 
+/// Uma linha do jogo ou do servidor local no acompanhamento. Devolve se a rodada se decidiu
+/// (falha). Guarda de que lado veio o sinal de falha que o acompanhamento está fechando (D-13).
+fn observe(watched: &mut Watched, text: &str, at_ms: u64, from_server: bool) -> bool {
+    let settling = watched.watcher.is_settling();
+    let found = watched.watcher.observe(text, at_ms);
+    if !settling && (watched.watcher.is_settling() || found.is_some()) {
+        watched.anchor_on_server = from_server;
+    }
+    if let Some(found) = found {
+        watched.decision = Some(found);
+        return true;
+    }
+    false
+}
+
+/// O texto do primeiro crash report novo de um processo que saiu.
+fn first_crash_report(exit: &warden_launcher::process::GameExit) -> Option<String> {
+    exit.artifacts
+        .crash_reports
+        .first()
+        .and_then(|path| std::fs::read_to_string(path).ok())
+}
+
 /// A estabilidade de cada rodada (o E2E encurta pelo ambiente, só em build de debug).
 fn stability_ms() -> u64 {
     if cfg!(test) {
@@ -1601,5 +1943,6 @@ fn search_id(started_ms: u64) -> String {
     format!("{date}-{time}-{:03}", started_ms % 1_000)
 }
 
+// Os testes da busca com o servidor local (D-13) usam os mesmos ajudantes.
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;

@@ -49,7 +49,7 @@ use super::launch_plan::MemoryChoice;
 use super::records::{ProfileSignature, SessionExtras};
 use super::system::MachineFingerprint;
 use super::{
-    CONSOLE_BATCH, Moment, OpenedSession, Runner, STAGE_LAUNCH, STAGE_LAUNCH_LABEL,
+    CONSOLE_BATCH, LaunchExtra, Moment, OpenedSession, Runner, STAGE_LAUNCH, STAGE_LAUNCH_LABEL,
     TestSessionSummary, TestSessions, blocking, game_spec, now_ms, read_pack_info,
 };
 use crate::commands::server::ServerPhase;
@@ -432,7 +432,13 @@ impl Runner<'_> {
                 .await;
         }
         // Um erro daqui até o jogo fechar deixa o servidor com o guarda de `run_server`.
-        let launch = self.plan_launch(&prepared, Some(link.port()))?;
+        let launch = self.plan_launch_with(
+            &prepared,
+            &LaunchExtra {
+                server_port: Some(link.port()),
+                ..LaunchExtra::default()
+            },
+        )?;
         link.game_opened = true;
         self.play_in(hooks, prepared, launch, opened, Some(link))
             .await

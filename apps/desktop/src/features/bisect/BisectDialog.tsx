@@ -11,8 +11,9 @@
  * mudar a versão), o diálogo explica a geração e pede o aceite da EULA da Mojang, o mesmo do
  * "Testar como servidor" (guardado nas Configurações; aceitar aqui atualiza as duas telas). Sem
  * o aceite, "Trava ao entrar no mundo" fica indisponível e as outras rodadas vão só até o menu.
- * Nas versões anteriores à 1.20, a entrada no mundo é pelo servidor local, que chega com a D-13;
- * até lá a opção explica e fica indisponível.
+ * Nas versões anteriores à 1.20, e quando o travamento foi no servidor, a entrada no mundo é
+ * pelo servidor local (D-13), com uma cópia do mesmo mundo de teste: o diálogo explica e pede
+ * antes ([`ServerConsent`], que também pede a EULA); sem o aceite, a busca usa o modo assistido.
  */
 import { Check, ExternalLink, Play, Target } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
@@ -33,6 +34,8 @@ import { Choice } from '../settings/components/fields';
 import { useAcceptEula } from '../test/server/api';
 import { EULA_URL } from '../test/server/text';
 import { useBisect, useBisectPlan } from './api';
+import { serverReason, withServer } from './server/need';
+import { ServerConsent } from './server/ServerConsent';
 import { useStartBisect } from './useStartBisect';
 import { estimateText, joinNames, namesOf } from './text';
 
@@ -44,6 +47,8 @@ export interface BisectOrigin {
   symptom: Symptom['kind'];
   /** Frase que liga a opção ao travamento ("Igual ao travamento de hoje, 14:20"). */
   hint?: string;
+  /** O travamento foi no servidor (D-13): a busca pede o servidor local. */
+  server?: boolean;
 }
 
 export interface BisectDialogProps {
@@ -75,11 +80,13 @@ function Body({
   origin,
 }: Pick<BisectDialogProps, 'packId' | 'onOpenChange' | 'origin'>) {
   const { t } = useTranslation('buscaDoCulpado');
+  const { t: ts } = useTranslation('buscaComServidor');
   const plan = useBisectPlan(packId, true);
   const saved = useBisect(packId);
   const start = useStartBisect(packId);
   const [kind, setKind] = useState<Kind>(origin?.symptom ?? 'crashOnOpen');
   const [line, setLine] = useState('');
+  const [serverAccepted, setServerAccepted] = useState(false);
   const lineId = useId();
   const lineHelpId = useId();
 
@@ -88,17 +95,19 @@ function Body({
   const startRef = useRef<HTMLButtonElement>(null);
 
   const data = plan.data;
+  const fromServer = origin?.server === true;
   // O mundo de teste existe para esta versão ou pode ser gerado agora (com a EULA aceita).
   const worldAvailable = data !== undefined && data.quickPlay && (data.worldReady || eulaAccepted);
-  const askEula = data !== undefined && data.quickPlay && !data.worldReady && !eulaAccepted;
-  const worldBlocked = data
-    ? !data.quickPlay
-      ? 'servidor'
-      : worldAvailable
-        ? null
-        : 'eula'
-    : null;
+  // Sem Quick Play (ou com o travamento no servidor), quem entra no mundo é o servidor local,
+  // pedido à parte (com a EULA) em `ServerConsent`.
+  const worldBlocked =
+    data !== undefined && data.quickPlay && !worldAvailable && !fromServer ? 'eula' : null;
   const effective: Kind = kind === 'crashOnWorld' && worldBlocked ? 'crashOnOpen' : kind;
+  const reason = data ? serverReason(data, effective, fromServer) : null;
+  // O pedido da EULA da D-12 só aparece sem o do servidor (que já pede a EULA).
+  const askEula = reason === null && worldBlocked === 'eula';
+  // As rodadas entram no mundo de teste: por Quick Play ou, com o aceite, pelo servidor local.
+  const usesWorld = reason === null ? worldAvailable : serverAccepted && eulaAccepted;
   const paused = saved.data?.status === 'paused';
   const canStart =
     plan.isSuccess &&
@@ -107,12 +116,13 @@ function Body({
     (effective !== 'logLine' || line.trim() !== '');
 
   const begin = () => {
-    const symptom: Symptom =
+    const chosen: Symptom =
       effective === 'logLine' ? { kind: 'logLine', text: line.trim() } : { kind: effective };
+    const { symptom, server } = withServer(chosen, reason, serverAccepted);
     onOpenChange(false);
     start({
       kind: 'start',
-      request: { symptom, originCrash: origin?.crash ?? null, suspects: [] },
+      request: { symptom, originCrash: origin?.crash ?? null, suspects: [], server },
     });
   };
 
@@ -128,8 +138,8 @@ function Body({
       }}
     />
   );
-  const worldDesc = (minecraft: string) => {
-    if (worldBlocked === 'servidor') return t('sintoma.mundo.servidor', { minecraft });
+  const worldDesc = (minecraft: string, quickPlay: boolean) => {
+    if (!quickPlay) return ts('sintoma.servidor', { minecraft });
     if (worldBlocked === 'eula') return t('sintoma.mundo.semEula');
     return origin?.symptom === 'crashOnWorld' && origin.hint
       ? origin.hint
@@ -171,13 +181,22 @@ function Body({
               {choice(
                 'crashOnWorld',
                 t('sintoma.mundo.titulo'),
-                worldDesc(data.minecraft),
+                worldDesc(data.minecraft, data.quickPlay),
                 worldBlocked !== null,
               )}
               {choice('logLine', t('sintoma.linha.titulo'), t('sintoma.linha.desc'))}
               {choice('assisted', t('sintoma.assistido.titulo'), t('sintoma.assistido.desc'))}
             </div>
           </fieldset>
+          {reason ? (
+            <ServerConsent
+              packId={packId}
+              reason={reason}
+              minecraft={data.minecraft}
+              accepted={serverAccepted}
+              onAcceptedChange={setServerAccepted}
+            />
+          ) : null}
           {effective === 'logLine' ? (
             <div className="field">
               <label className="field__label" htmlFor={lineId}>
@@ -215,12 +234,12 @@ function Body({
                   ? t('dialogo.desligados', { nomes: joinNames(namesOf(data.disabled)) })
                   : t('dialogo.semDesligados')}
               </ChecklistItem>
-              {worldAvailable && !data.worldReady ? (
+              {usesWorld && !data.worldReady ? (
                 <ChecklistItem>
                   {t('dialogo.criarMundo', { minecraft: data.minecraft })}
                 </ChecklistItem>
               ) : null}
-              {worldAvailable ? <ChecklistItem>{t('dialogo.mundo')}</ChecklistItem> : null}
+              {usesWorld ? <ChecklistItem>{t('dialogo.mundo')}</ChecklistItem> : null}
             </ul>
             {!data.estimate.measured ? (
               <p className="t-xs t-3 mt-2">{t('dialogo.estimativaSemTeste')}</p>

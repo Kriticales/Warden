@@ -65,6 +65,8 @@ export function makeRound(
     durationMs: 88_000,
     anchor: null,
     hasLog: true,
+    hasServerLog: false,
+    serverFailed: false,
     ...overrides,
   };
 }
@@ -89,6 +91,7 @@ export function makeView(overrides: Partial<BisectView> = {}): BisectView {
   return {
     id: '20261018-150200-000',
     status: 'running',
+    server: false,
     symptom: { kind: 'crashOnWorld' },
     originCrash: '0a1b2c3d4e5f6071',
     rounds: [

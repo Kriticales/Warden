@@ -48,7 +48,12 @@ import java.util.UUID;
  *   conectar           entra no servidor do Quick Play (`--quickPlayMultiplayer host:porta`,
  *                      ou `--server`/`--port` antes da 1.20): conecta e manda o nome do
  *                      jogador (`--username`), como o servidor simulado da warden-server espera,
- *                      e fica vivo escrevendo um batimento (L-09, Testar como servidor).
+ *                      e fica vivo escrevendo um batimento (L-09, Testar como servidor);
+ *   entrar-servidor MS como "conectar", mas antes carrega como o Minecraft 1.13+: espera MS ms,
+ *                      escreve o som e o atlas de blocos ("pronto"), por qual argumento entra
+ *                      ("--server" ou "--quickPlayMultiplayer") e, depois de conectar,
+ *                      "Connected to a modded server" (D-13, busca do culpado com o servidor
+ *                      local: quem decide se entrou no mundo é o log do servidor).
  */
 public final class WardenFakeGame {
     private WardenFakeGame() {}
@@ -57,6 +62,64 @@ public final class WardenFakeGame {
         String name = ManagementFactory.getRuntimeMXBean().getName();
         int at = name.indexOf('@');
         return at > 0 ? name.substring(0, at) : name;
+    }
+
+    /**
+     * Entra no servidor do Quick Play (`--quickPlayMultiplayer host:porta`, ou `--server`/`--port`
+     * antes da 1.20) e fica vivo escrevendo um batimento. Com `loadMs` ≥ 0, antes carrega como o
+     * Minecraft 1.13+ (som e atlas de blocos) e, depois de conectar, escreve "Connected to a
+     * modded server".
+     */
+    private static void joinServer(String[] args, long loadMs) throws Exception {
+        String host = null;
+        int port = 25565;
+        String name = "Jogador";
+        String flag = null;
+        for (int i = 1; i + 1 < args.length; i++) {
+            if (args[i].equals("--quickPlayMultiplayer") || args[i].equals("--server")) {
+                flag = args[i];
+            }
+            if (args[i].equals("--quickPlayMultiplayer")) {
+                String target = args[i + 1];
+                int colon = target.lastIndexOf(':');
+                host = colon > 0 ? target.substring(0, colon) : target;
+                port = colon > 0 ? Integer.parseInt(target.substring(colon + 1)) : 25565;
+            } else if (args[i].equals("--server")) {
+                host = args[i + 1];
+            } else if (args[i].equals("--port")) {
+                port = Integer.parseInt(args[i + 1]);
+            } else if (args[i].equals("--username")) {
+                name = args[i + 1];
+            }
+        }
+        if (host == null) {
+            System.out.println("[Render thread/INFO]: sem servidor para entrar");
+            System.exit(3);
+        }
+        if (loadMs >= 0) {
+            System.out.println("[main/INFO]: Jogo simulado " + pid() + " carregando");
+            System.out.flush();
+            Thread.sleep(loadMs);
+            System.out.println("[Render thread/INFO]: Sound engine started");
+            System.out.println("[Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas");
+        }
+        if (loadMs >= 0) {
+            System.out.println("[Render thread/INFO]: Jogo simulado entra pelo " + flag);
+        }
+        System.out.println("[Render thread/INFO]: Connecting to " + host + ", " + port);
+        System.out.flush();
+        Socket socket = new Socket(host, port);
+        Writer writer = new OutputStreamWriter(socket.getOutputStream(), "UTF-8");
+        writer.write(name + "\n");
+        writer.flush();
+        if (loadMs >= 0) {
+            System.out.println("[Render thread/INFO]: Connected to a modded server.");
+        }
+        while (true) {
+            Thread.sleep(200);
+            System.out.println("jogo conectado");
+            System.out.flush();
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -229,38 +292,9 @@ public final class WardenFakeGame {
             System.out.println("#@!@# Game crashed! Crash report saved to: crash-reports" + File.separator + name);
             System.exit(-1);
         } else if (mode.equals("conectar")) {
-            String host = null;
-            int port = 25565;
-            String name = "Jogador";
-            for (int i = 1; i + 1 < args.length; i++) {
-                if (args[i].equals("--quickPlayMultiplayer")) {
-                    String target = args[i + 1];
-                    int colon = target.lastIndexOf(':');
-                    host = colon > 0 ? target.substring(0, colon) : target;
-                    port = colon > 0 ? Integer.parseInt(target.substring(colon + 1)) : 25565;
-                } else if (args[i].equals("--server")) {
-                    host = args[i + 1];
-                } else if (args[i].equals("--port")) {
-                    port = Integer.parseInt(args[i + 1]);
-                } else if (args[i].equals("--username")) {
-                    name = args[i + 1];
-                }
-            }
-            if (host == null) {
-                System.out.println("[Render thread/INFO]: sem servidor para entrar");
-                System.exit(3);
-            }
-            System.out.println("[Render thread/INFO]: Connecting to " + host + ", " + port);
-            System.out.flush();
-            Socket socket = new Socket(host, port);
-            Writer writer = new OutputStreamWriter(socket.getOutputStream(), "UTF-8");
-            writer.write(name + "\n");
-            writer.flush();
-            while (true) {
-                Thread.sleep(200);
-                System.out.println("jogo conectado");
-                System.out.flush();
-            }
+            joinServer(args, -1);
+        } else if (mode.equals("entrar-servidor")) {
+            joinServer(args, Long.parseLong(args[1]));
         } else if (mode.equals("uuid")) {
             for (int i = 1; i < args.length; i++) {
                 UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + args[i]).getBytes("UTF-8"));

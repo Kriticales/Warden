@@ -46,7 +46,7 @@ fn server_class_dir() -> PathBuf {
 }
 
 /// O estado com o jogo e o servidor simulados e a EULA aceita (`None` sem Java).
-fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+pub(crate) fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     let state = fake_state_without_eula(root)?;
     state
         .settings
@@ -72,7 +72,7 @@ fn fake_state_without_eula(root: &Path) -> Option<Arc<AppState>> {
     Some(Arc::new(state))
 }
 
-fn free_port() -> u16 {
+pub(crate) fn free_port() -> u16 {
     TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
         .unwrap()
         .local_addr()
@@ -96,7 +96,7 @@ fn seeded_world_line() -> String {
     format!("Mundo de teste: semente={}", world::WORLD_SEED)
 }
 
-fn sha256(bytes: &[u8]) -> String {
+pub(crate) fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
@@ -175,7 +175,7 @@ fn write_pack(root: &Path, culprits: &str) {
     .unwrap();
 }
 
-fn register(state: &AppState, root: &Path) -> PackId {
+pub(crate) fn register(state: &AppState, root: &Path) -> PackId {
     let record = PackRecord {
         id: PackId::new(),
         name: "Vale do Culpado".into(),
@@ -189,7 +189,7 @@ fn register(state: &AppState, root: &Path) -> PackId {
 }
 
 /// Um mundo do usuário na instância de teste (salvo com todos os mods: a busca nunca o usa).
-fn write_user_world(state: &AppState, pack: PackId) -> PathBuf {
+pub(crate) fn write_user_world(state: &AppState, pack: PackId) -> PathBuf {
     let world = InstanceDirs::for_pack(&state.paths, pack)
         .game_dir
         .join("saves")
@@ -201,7 +201,7 @@ fn write_user_world(state: &AppState, pack: PackId) -> PathBuf {
 }
 
 /// Hash de todos os arquivos de uma pasta (caminho e conteúdo).
-fn tree_hash(dir: &Path) -> String {
+pub(crate) fn tree_hash(dir: &Path) -> String {
     let mut files: Vec<(String, Vec<u8>)> = Vec::new();
     let mut stack = vec![dir.to_path_buf()];
     while let Some(next) = stack.pop() {
@@ -232,13 +232,13 @@ fn tree_hash(dir: &Path) -> String {
 }
 
 #[derive(Default)]
-struct Seen {
-    events: StdMutex<Vec<OperationEvent>>,
-    phases: StdMutex<Vec<GamePhase>>,
+pub(crate) struct Seen {
+    pub(crate) events: StdMutex<Vec<OperationEvent>>,
+    pub(crate) phases: StdMutex<Vec<GamePhase>>,
 }
 
 impl Seen {
-    fn rounds_done(&self) -> usize {
+    pub(crate) fn rounds_done(&self) -> usize {
         self.events
             .lock()
             .unwrap()
@@ -265,7 +265,7 @@ impl Seen {
     }
 }
 
-fn spawn(
+pub(crate) fn spawn(
     state: &Arc<AppState>,
     pack: PackId,
     mode: RunMode,
@@ -287,7 +287,7 @@ fn spawn(
     (task, seen)
 }
 
-async fn wait_until(what: &str, mut ready: impl FnMut() -> bool) {
+pub(crate) async fn wait_until(what: &str, mut ready: impl FnMut() -> bool) {
     let deadline = Instant::now() + Duration::from_secs(60);
     while !ready() {
         assert!(Instant::now() < deadline, "esperando: {what}");
@@ -300,6 +300,7 @@ fn start(symptom: Symptom) -> RunMode {
         symptom,
         origin_crash: Some("abc123".into()),
         suspects: Vec::new(),
+        server: false,
     })
 }
 

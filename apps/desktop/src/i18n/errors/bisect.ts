@@ -18,5 +18,5 @@ export const bisect: Record<BisectErrorCode, string> = {
   TEST_WORLD_FAILED:
     'O Warden não conseguiu criar o mundo de teste com o servidor do Minecraft {{minecraft}}. Confira a internet e tente de novo; os detalhes técnicos dizem o que falhou.',
   NEEDS_SERVER:
-    'No Minecraft {{minecraft}} o jogo não entra sozinho num mundo; para isso o Warden vai precisar abrir um servidor neste computador, que ainda não está disponível. Use “Trava ao abrir o jogo” ou o modo em que você diz se aconteceu.',
+    'No Minecraft {{minecraft}} o jogo não entra sozinho num mundo: a busca precisa abrir um servidor neste computador. Aceite o servidor local no diálogo, use “Trava ao abrir o jogo” ou o modo em que você diz se aconteceu.',
 };
