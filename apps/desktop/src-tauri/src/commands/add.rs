@@ -176,19 +176,28 @@ pub(crate) async fn add_apply(
     pack_id: PackId,
     request: AddApplyRequest,
 ) -> Result<AddResult, AppError> {
-    let cli = packwiz(&state)?;
-    let handle = state.operations.start(APPLY, Some(pack_id), false);
-    let result = async {
-        let _lock = state.locks.write_for(pack_id, &handle).await;
-        let root = pack_root(&state, pack_id)?;
-        warden_project::add::add_apply(&root, &add_sources(&state), &request, &cli, handle.token())
-            .await
-            .map_err(domain)
-    }
-    .await;
-    let result = handle.finish(result)?;
+    let result = apply_impl(&state, pack_id, &request).await?;
     if !result.added.is_empty() || !result.removed.is_empty() {
         notify_changed(&app, pack_id, vec![PackArea::Inventory]);
     }
     Ok(result)
+}
+
+/// A gravação de "Adicionar" (também a das propostas da IA, D-14).
+pub(crate) async fn apply_impl(
+    state: &AppState,
+    pack_id: PackId,
+    request: &AddApplyRequest,
+) -> Result<AddResult, AppError> {
+    let cli = packwiz(state)?;
+    let handle = state.operations.start(APPLY, Some(pack_id), false);
+    let result = async {
+        let _lock = state.locks.write_for(pack_id, &handle).await;
+        let root = pack_root(state, pack_id)?;
+        warden_project::add::add_apply(&root, &add_sources(state), request, &cli, handle.token())
+            .await
+            .map_err(domain)
+    }
+    .await;
+    handle.finish(result)
 }

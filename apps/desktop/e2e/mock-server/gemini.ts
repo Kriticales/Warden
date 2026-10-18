@@ -12,6 +12,11 @@
  * linha da visão geral (vira "verificada") e outra com um id que nenhuma ferramenta devolveu
  * (vira "não verificado"). Os corpos recebidos ficam guardados para o teste comparar com o que
  * a tela mostra (`GET /__gemini`).
+ *
+ * Roteiro das propostas (D-14), quando o texto da pessoa traz [`PROPOSALS_MARKER`]: a IA abre o
+ * Sodium, lê a config e procura issues no GitHub; depois propõe duas mudanças na config (com
+ * evidência) e uma remoção com evidência inventada (o Warden recusa e ela nem aparece); por fim
+ * responde pela `responder`.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
@@ -118,7 +123,85 @@ function overviewText(contents: unknown[]): string {
   return '';
 }
 
+/** No texto da pessoa, liga o roteiro das propostas (D-14). */
+export const PROPOSALS_MARKER = '[e2e-propostas]';
+
+/** O texto da última pergunta e quantas respostas do modelo já vieram depois dela. */
+function turn(contents: unknown[]): { question: string; step: number } {
+  let question = '';
+  let step = 0;
+  for (const content of contents) {
+    const text = parts(content).find((part) => typeof part.text === 'string')?.text;
+    if (role(content) === 'user' && typeof text === 'string') {
+      question = text;
+      step = 0;
+    } else if (role(content) === 'model') {
+      step += 1;
+    }
+  }
+  return { question, step };
+}
+
+function proposeConfig(value: string): [string, Json] {
+  return [
+    'propose_edit_config',
+    {
+      path: 'config/exemplo.toml',
+      key: ['geral', 'segredoDaConfig'],
+      value,
+      motivo: `Com ${value}, o valor fica dentro do que o mod aceita.`,
+      evidencias: [{ id: 'config:config/exemplo.toml#L2', citacao: 'segredoDaConfig = 42' }],
+    },
+  ];
+}
+
+function proposalsReply(step: number): Json {
+  if (step === 0) {
+    return calls([
+      ['get_mod_details', { mod_id: 'sodium' }],
+      ['read_config', { path: 'config/exemplo.toml' }],
+      ['search_mod_issues', { mod_id: 'sodium', query: 'NullPointerException EntityRenderer' }],
+    ]);
+  }
+  if (step === 1) {
+    return calls([
+      proposeConfig('43'),
+      proposeConfig('44'),
+      [
+        'propose_remove_mod',
+        {
+          mod_id: 'sodium',
+          motivo: 'Inventado.',
+          evidencias: [{ id: 'crash:inexistente', citacao: 'Sodium quebrou' }],
+        },
+      ],
+    ]);
+  }
+  return calls([
+    [
+      'responder',
+      {
+        resumo: 'O valor da config passa do que o mod aceita; mudar a chave deve resolver.',
+        semConclusao: false,
+        propostas: [],
+        achados: [
+          {
+            afirmacao: 'A config do pack tem o valor 42.',
+            mods: [],
+            confianca: 'alta',
+            evidencias: [{ id: 'config:config/exemplo.toml#L2', citacao: 'segredoDaConfig = 42' }],
+          },
+        ],
+      },
+    ],
+  ]);
+}
+
 function reply(contents: unknown[]): Json {
+  const current = turn(contents);
+  if (current.question.includes(PROPOSALS_MARKER)) {
+    return proposalsReply(current.step);
+  }
   const last = contents.at(-1);
   const isQuestion = role(last) === 'user' && parts(last).some((part) => 'text' in part);
   if (isQuestion) {

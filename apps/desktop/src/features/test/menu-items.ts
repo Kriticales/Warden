@@ -208,9 +208,9 @@ export const testDialogs: readonly TestDialog[] = [
   { id: 'settings', component: TestSettingsDialog },
   { id: 'delete-worlds', component: DeleteWorldsDialog },
   { id: 'recreate-instance', component: RecreateInstanceDialog },
+  { id: 'server-test', component: ServerTestDialog },
   // D-12: "Encontrar o mod culpado".
   bisectDialog,
-  { id: 'server-test', component: ServerTestDialog },
 ];
 
 /** Os itens de um grupo, na ordem. */

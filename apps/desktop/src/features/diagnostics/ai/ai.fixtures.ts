@@ -48,7 +48,7 @@ export function makePreview(overrides: Partial<AiPreview> = {}): AiPreview {
     estimatedTokens: 31_400,
     model: 'gemini-9.1-flash-lite',
     tier: 'economical',
-    githubAvailable: false,
+    githubAvailable: true,
     ...overrides,
   };
 }
@@ -184,6 +184,7 @@ export function makeSummary(overrides: Partial<AiConversationSummary> = {}): AiC
     state: 'answered',
     questions: 1,
     tokens: 182_000,
+    pendingProposals: 0,
     ...overrides,
   };
 }
@@ -200,6 +201,7 @@ export function makeView(overrides: Partial<AiConversationView> = {}): AiConvers
     turns: [makeTurn()],
     live: null,
     packChanges: { updated: 0, added: 0, removed: 0, other: false },
+    proposals: [],
     ...overrides,
   };
 }

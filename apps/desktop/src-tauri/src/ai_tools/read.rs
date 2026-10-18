@@ -131,6 +131,17 @@ impl PackMods {
         known
     }
 
+    /// O item do pack citado como `alias` (consultas e propostas da D-14).
+    pub(super) fn find_item(&self, alias: &str) -> Option<&InventoryItem> {
+        self.find(alias.strip_prefix("mod:").unwrap_or(alias))
+            .map(|entry| &entry.item)
+    }
+
+    /// Todos os itens do pack.
+    pub(super) fn items(&self) -> impl Iterator<Item = &InventoryItem> {
+        self.entries.iter().map(|entry| &entry.item)
+    }
+
     fn find(&self, alias: &str) -> Option<&ModEntry> {
         let alias = alias.trim().to_lowercase();
         self.entries.iter().find(|entry| {
@@ -222,7 +233,7 @@ pub(super) async fn call(
     }
 }
 
-fn failed(error: &AppError) -> String {
+pub(super) fn failed(error: &AppError) -> String {
     format!(
         "Não foi possível ler ({}{}).",
         text(error.code),
@@ -237,7 +248,7 @@ fn failed(error: &AppError) -> String {
 fn plain(items: Vec<ToolItem>) -> ToolOutput {
     ToolOutput {
         items,
-        game_data: false,
+        ..ToolOutput::default()
     }
 }
 
@@ -245,6 +256,7 @@ fn game(items: Vec<ToolItem>) -> ToolOutput {
     ToolOutput {
         items,
         game_data: true,
+        ..ToolOutput::default()
     }
 }
 

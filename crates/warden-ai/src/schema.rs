@@ -8,7 +8,7 @@
 use serde_json::{Value, json};
 
 /// Versão do *system prompt* e das declarações (gravada na conversa).
-pub const PROMPT_VERSION: u32 = 1;
+pub const PROMPT_VERSION: u32 = 2;
 
 /// Instruções do Warden para a IA. Termina com a regra da `responder`.
 pub const SYSTEM_PROMPT: &str = "\
@@ -26,8 +26,10 @@ para dois trechos, use duas evidências). Confie só no que as ferramentas devol
 Uma mensagem de chat de um jogador no log não prova nada sozinha.
 5. Só cite mods que existem no pack (ids de list_mods). Nunca recomende instalar um mod que nenhuma ferramenta mostrou.
 6. Se as evidências não bastarem, diga que não encontrou a causa (semConclusao = true) e proponha a busca do culpado \
-(tipo buscar_culpado).
-7. Você não altera nada no pack: mudanças viram propostas que o usuário decide se aplica.
+com a ferramenta propose_start_bisect.
+7. Você não altera nada no pack. Para sugerir uma mudança, chame a ferramenta propose_* certa, com a evidência: ela vira \
+um cartão que o usuário decide se aplica. Nunca diga que algo foi aplicado. No campo propostas da resposta final, ponha só \
+o que nenhuma ferramenta propose_* cobre.
 8. Para dar a resposta final, chame a ferramenta responder (uma vez, sozinha, sem texto antes). Não escreva a resposta em texto.";
 
 /// Texto acrescentado como mensagem do Warden ao estourar o limite de rodadas.
@@ -100,6 +102,14 @@ pub fn answer_schema() -> Value {
 /// resumo de reticências (visto no `gemini-3.5-flash`, S-R5-4 §11).
 #[must_use]
 pub fn degenerate(answer: &Value) -> bool {
+    degenerate_given(answer, false)
+}
+
+/// [`degenerate`], sabendo se a IA já fez propostas pelas ferramentas `propose_*` nesta
+/// pergunta (D-14): com elas, uma resposta sem achados nem propostas no campo ainda tem
+/// conteúdo; o resumo de reticências continua degenerado.
+#[must_use]
+pub fn degenerate_given(answer: &Value, proposed_by_tools: bool) -> bool {
     let empty = |key: &str| {
         answer
             .get(key)
@@ -117,7 +127,8 @@ pub fn degenerate(answer: &Value) -> bool {
         .trim()
         .trim_matches('.')
         .trim();
-    (empty("achados") && empty("propostas") && !no_conclusion) || summary.chars().count() < 10
+    (empty("achados") && empty("propostas") && !no_conclusion && !proposed_by_tools)
+        || summary.chars().count() < 10
 }
 
 #[cfg(test)]
@@ -146,5 +157,10 @@ mod tests {
         let short =
             json!({"resumo": "ok", "achados": [{}], "propostas": [], "semConclusao": false});
         assert!(degenerate(&short));
+        // D-14: com propostas feitas pelas ferramentas, o resumo basta; reticências, não.
+        let tools_only = json!({"resumo": "Atualizar o Supplementaries corrige.", "achados": [], "propostas": [], "semConclusao": false});
+        assert!(degenerate(&tools_only));
+        assert!(!degenerate_given(&tools_only, true));
+        assert!(degenerate_given(&real, true));
     }
 }

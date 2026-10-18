@@ -57,6 +57,8 @@ export interface BisectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   origin?: BisectOrigin | undefined;
+  /** Chamado quando a pessoa começa a busca (a proposta da IA fica aceita, D-14). */
+  onStart?: (() => void) | undefined;
 }
 
 type Kind = Symptom['kind'];
@@ -64,12 +66,14 @@ type Kind = Symptom['kind'];
 /** Nome do grupo de opções "O que acontece no jogo?". */
 const SYMPTOM_FIELD = 'bisect-symptom';
 
-export function BisectDialog({ packId, open, onOpenChange, origin }: BisectDialogProps) {
+export function BisectDialog({ packId, open, onOpenChange, origin, onStart }: BisectDialogProps) {
   // O conteúdo só existe com o diálogo aberto: cada abertura começa da escolha do travamento
   // de origem.
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {open ? <Body packId={packId} onOpenChange={onOpenChange} origin={origin} /> : null}
+      {open ? (
+        <Body packId={packId} onOpenChange={onOpenChange} origin={origin} onStart={onStart} />
+      ) : null}
     </Dialog>
   );
 }
@@ -78,7 +82,8 @@ function Body({
   packId,
   onOpenChange,
   origin,
-}: Pick<BisectDialogProps, 'packId' | 'onOpenChange' | 'origin'>) {
+  onStart,
+}: Pick<BisectDialogProps, 'packId' | 'onOpenChange' | 'origin' | 'onStart'>) {
   const { t } = useTranslation('buscaDoCulpado');
   const { t: ts } = useTranslation('buscaComServidor');
   const plan = useBisectPlan(packId, true);
@@ -120,6 +125,7 @@ function Body({
       effective === 'logLine' ? { kind: 'logLine', text: line.trim() } : { kind: effective };
     const { symptom, server } = withServer(chosen, reason, serverAccepted);
     onOpenChange(false);
+    onStart?.();
     start({
       kind: 'start',
       request: { symptom, originCrash: origin?.crash ?? null, suspects: [], server },
