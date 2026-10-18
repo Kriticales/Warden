@@ -5936,6 +5936,14 @@ export type PackChanges = {
 	other: boolean,
 };
 
+/**  A última nota guardada de um pack (Meus packs). */
+export type PackHealth = {
+	/**  O pack. */
+	packId: PackId,
+	/**  A nota. */
+	health: HealthSummary,
+};
+
 /**
  *  Identificador de um pack: gerado na criação ou importação e gravado em
  *  `.warden/project.toml`. Todo comando que atua num pack o recebe como primeiro argumento
