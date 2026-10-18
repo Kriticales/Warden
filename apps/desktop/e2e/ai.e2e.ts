@@ -128,7 +128,9 @@ function sectionLink(name: string) {
 
 /** Texto completo de um elemento (inclusive o que está fora da tela ou recolhido). */
 async function fullText(element: ReturnType<typeof $>): Promise<string> {
-  return browser.execute((el: HTMLElement) => el.textContent, element as unknown as HTMLElement);
+  await element.waitForExist({ timeout: 30_000 });
+  const text = await element.getProperty('textContent');
+  return typeof text === 'string' ? text : '';
 }
 
 /** Escolhe a opção de "Começar pelo" pelo valor (sem pausa: espera a seleção valer). */
@@ -296,12 +298,13 @@ describe('✦ Diagnóstico com IA (D-04)', function () {
   });
 
   it('apagar uma conversa tira a linha de Conversas', async () => {
-    const rows = $('section[aria-labelledby="ia-conversas"]').$$('tbody tr');
-    await clickStable($('section[aria-labelledby="ia-conversas"]').$('button*=Apagar a conversa'));
+    const list = $('section[aria-labelledby="ia-conversas"]');
+    await clickStable(list.$('button*=Apagar a conversa'));
     const confirm = $('[role="alertdialog"]');
     await confirm.waitForDisplayed({ timeout: 10_000 });
     await clickStable(confirm.$('button=Apagar conversa'));
-    await browser.waitUntil(async () => (await rows.length) === 1, {
+    await confirm.waitForExist({ reverse: true, timeout: 30_000 });
+    await browser.waitUntil(async () => (await list.$$('tbody tr').length) === 1, {
       timeout: 30_000,
       timeoutMsg: 'a conversa apagada continuou em Conversas',
     });

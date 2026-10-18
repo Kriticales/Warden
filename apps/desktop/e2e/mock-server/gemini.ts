@@ -54,6 +54,16 @@ function role(content: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
+/** JSON com as chaves em ordem: a comparação vale pelo conteúdo, não pela ordem das chaves. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+  if (value !== null && typeof value === 'object') {
+    const entries = Object.entries(value as Json).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    return `{${entries.map(([key, inner]) => `${JSON.stringify(key)}:${canonical(inner)}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 /** As regras de histórico da API real (thought-signatures do Gemini 3). */
 function validate(contents: unknown[]): string | null {
   let start = -1;
@@ -68,7 +78,7 @@ function validate(contents: unknown[]): string | null {
     if (calls.length > 0 && !('thoughtSignature' in (calls[0] ?? {}))) {
       return `Function call in the ${String(i)}. content block is missing a thought_signature.`;
     }
-    if (!emitted.some((sent) => JSON.stringify(sent) === JSON.stringify(content))) {
+    if (!emitted.some((sent) => canonical(sent) === canonical(content))) {
       return `Corrupted thought signature or modified model content in the ${String(i)}. content block.`;
     }
     if (calls.length > 0) {
