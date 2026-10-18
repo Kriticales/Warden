@@ -150,7 +150,7 @@ pub struct RoundRecord {
 /// Confiança no resultado.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum Confidence {
+pub enum CulpritConfidence {
     /// Confirmado nos 2 testes de controle, com o problema aparecendo sempre.
     High,
     /// Confirmado, mas o problema é intermitente (cada "passou" foi repetido).
@@ -160,13 +160,13 @@ pub enum Confidence {
 /// Como a busca terminou.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(tag = "kind", rename_all = "camelCase")]
-pub enum Outcome {
+pub enum SearchOutcome {
     /// Culpado (ou combinação) encontrado.
     Found {
         /// Caminhos do conjunto mínimo.
         culprits: Vec<String>,
         /// Confiança.
-        confidence: Confidence,
+        confidence: CulpritConfidence,
         /// O pack sem o conjunto ainda falha igual: há outro problema.
         another_problem: bool,
     },
@@ -218,7 +218,7 @@ enum Phase {
         culprits: Vec<usize>,
     },
     Done {
-        outcome: Outcome,
+        outcome: SearchOutcome,
     },
 }
 
@@ -310,7 +310,7 @@ impl Search {
 
     /// Como terminou, se terminou.
     #[must_use]
-    pub fn outcome(&self) -> Option<&Outcome> {
+    pub fn outcome(&self) -> Option<&SearchOutcome> {
         match &self.phase {
             Phase::Done { outcome } => Some(outcome),
             _ => None,
@@ -342,10 +342,9 @@ impl Search {
             }
             Phase::Alone { fixed, .. } | Phase::Without { culprits: fixed } => fixed.clone(),
             Phase::Done { outcome } => match outcome {
-                Outcome::Found { culprits, .. } => self.units_of_paths(culprits),
-                Outcome::Cancelled { suspects } | Outcome::Inconclusive { suspects } => {
-                    self.units_of_paths(suspects)
-                }
+                SearchOutcome::Found { culprits, .. } => self.units_of_paths(culprits),
+                SearchOutcome::Cancelled { suspects }
+                | SearchOutcome::Inconclusive { suspects } => self.units_of_paths(suspects),
                 _ => Vec::new(),
             },
         }
@@ -477,7 +476,7 @@ impl Search {
             .collect();
         match verdict {
             Verdict::Environment => {
-                self.finish(Outcome::Environment);
+                self.finish(SearchOutcome::Environment);
                 return;
             }
             Verdict::Inferred { from, to } => {
@@ -534,7 +533,7 @@ impl Search {
         self.inconclusive += 1;
         if self.inconclusive >= MAX_INCONCLUSIVE {
             let suspects = self.suspects();
-            self.finish(Outcome::Inconclusive { suspects });
+            self.finish(SearchOutcome::Inconclusive { suspects });
         }
     }
 
@@ -562,7 +561,7 @@ impl Search {
             .filter(|&&item| self.universe.role(item) == Role::Searched)
             .map(|&item| self.universe.items()[item].path.clone())
             .collect();
-        self.finish(Outcome::Contradiction { preventers });
+        self.finish(SearchOutcome::Contradiction { preventers });
         true
     }
 
@@ -572,7 +571,7 @@ impl Search {
         };
         *passes += 1;
         if *passes >= REPRODUCE_ATTEMPTS {
-            self.finish(Outcome::NotReproduced);
+            self.finish(SearchOutcome::NotReproduced);
         }
     }
 
@@ -584,7 +583,7 @@ impl Search {
                 self.repetitions = repetitions_for(rate);
                 self.phase = Phase::Control;
             }
-            Phase::Control => self.finish(Outcome::NotAMod),
+            Phase::Control => self.finish(SearchOutcome::NotAMod),
             Phase::Narrow {
                 candidates,
                 fixed,
@@ -605,7 +604,7 @@ impl Search {
             }
             Phase::Without { culprits } => {
                 let confidence = self.confidence();
-                self.finish(Outcome::Found {
+                self.finish(SearchOutcome::Found {
                     culprits: self.universe.unit_paths(&culprits),
                     confidence,
                     another_problem: true,
@@ -637,7 +636,7 @@ impl Search {
             Phase::Alone { candidates, fixed } => {
                 if candidates.is_empty() || fixed.len() >= MAX_CULPRITS {
                     // O conjunto sozinho passou, mas com os mesmos itens falhou antes.
-                    self.finish(Outcome::Contradiction {
+                    self.finish(SearchOutcome::Contradiction {
                         preventers: Vec::new(),
                     });
                     return;
@@ -653,7 +652,7 @@ impl Search {
             }
             Phase::Without { culprits } => {
                 let confidence = self.confidence();
-                self.finish(Outcome::Found {
+                self.finish(SearchOutcome::Found {
                     culprits: self.universe.unit_paths(&culprits),
                     confidence,
                     another_problem: false,
@@ -663,11 +662,11 @@ impl Search {
         }
     }
 
-    fn confidence(&self) -> Confidence {
+    fn confidence(&self) -> CulpritConfidence {
         if self.repetitions > 1 {
-            Confidence::Medium
+            CulpritConfidence::Medium
         } else {
-            Confidence::High
+            CulpritConfidence::High
         }
     }
 
@@ -677,7 +676,7 @@ impl Search {
         let candidates = self.remaining_units();
         let hi = candidates.len();
         if hi == 0 {
-            self.finish(Outcome::Contradiction {
+            self.finish(SearchOutcome::Contradiction {
                 preventers: Vec::new(),
             });
             return;
@@ -737,7 +736,7 @@ impl Search {
         }
     }
 
-    fn finish(&mut self, outcome: Outcome) {
+    fn finish(&mut self, outcome: SearchOutcome) {
         self.phase = Phase::Done { outcome };
     }
 
@@ -747,14 +746,14 @@ impl Search {
             return;
         }
         let suspects = self.suspects();
-        self.finish(Outcome::Cancelled { suspects });
+        self.finish(SearchOutcome::Cancelled { suspects });
     }
 
     /// Depois de "Há outro problema além deste": recomeça sem o conjunto achado (e sem quem
     /// depende dele). O pack sem ele já falhou igual, e a rodada de controle já passou.
     /// Devolve `false` se a busca não terminou assim.
     pub fn continue_without(&mut self) -> bool {
-        let Some(Outcome::Found {
+        let Some(SearchOutcome::Found {
             culprits,
             another_problem: true,
             ..

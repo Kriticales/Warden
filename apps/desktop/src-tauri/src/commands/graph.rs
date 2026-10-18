@@ -257,7 +257,7 @@ pub(crate) fn read_jars(paths: Vec<(usize, PathBuf)>) -> Vec<(usize, JarMetadata
 }
 
 /// Arquivo das arestas inferidas do pack (`<dados>/graph/<pack>.json`).
-fn inferred_file(state: &AppState, pack_id: PackId) -> PathBuf {
+pub(crate) fn inferred_file(state: &AppState, pack_id: PackId) -> PathBuf {
     state
         .paths
         .data_dir()

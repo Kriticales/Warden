@@ -14,6 +14,7 @@
 //! 4. cria a janela principal com o perfil do WebView dentro dos dados locais e, no Windows,
 //!    com a barra de título própria (`window_chrome`).
 
+mod bisect_session;
 mod commands;
 mod error;
 pub mod events;

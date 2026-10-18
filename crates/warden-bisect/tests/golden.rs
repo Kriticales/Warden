@@ -32,6 +32,7 @@ fn config(minecraft: &str, loader: Loader, goal: Goal) -> WatchConfig {
         assisted: false,
         freeze_ms: FREEZE_FLOOR_MS,
         max_ms: 3_600_000,
+        stability_ms: STABILITY_MS,
     }
 }
 

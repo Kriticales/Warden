@@ -32,7 +32,9 @@ pub mod watch;
 pub use error::{BisectError, BisectErrorCode, Result};
 pub use estimate::Estimate;
 pub use judge::{PackLookup, Symptom, Target};
-pub use search::{Confidence, Outcome, RoundKind, RoundPlan, RoundRecord, Search, Verdict};
+pub use search::{
+    CulpritConfidence, RoundKind, RoundPlan, RoundRecord, Search, SearchOutcome, Verdict,
+};
 pub use state::{BisectState, RoundInfo};
 pub use universe::{ItemSpec, Requirement, Role, Universe};
 pub use watch::{Anchor, Decision, Failure, Goal, RoundWatcher, Stage, WatchConfig};

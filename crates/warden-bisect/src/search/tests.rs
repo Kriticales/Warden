@@ -152,7 +152,7 @@ fn ca_t25_01_par_em_pack_de_118_mods() {
                 culprits: vec![vec![x_path.clone(), y_path.clone()]],
             };
             let search = run(universe.clone(), &game);
-            let Some(Outcome::Found {
+            let Some(SearchOutcome::Found {
                 culprits,
                 confidence,
                 another_problem,
@@ -162,7 +162,7 @@ fn ca_t25_01_par_em_pack_de_118_mods() {
             };
             let found: BTreeSet<&String> = culprits.iter().collect();
             assert_eq!(found, BTreeSet::from([&x_path, &y_path]), "par {x}, {y}");
-            assert_eq!(*confidence, Confidence::High);
+            assert_eq!(*confidence, CulpritConfidence::High);
             assert!(!another_problem);
             let p = u32::try_from(position(&universe, &x_path).max(position(&universe, &y_path)))
                 .unwrap();
@@ -194,9 +194,9 @@ fn um_culpado_em_log2_n_mais_4_rodadas() {
         let search = run(universe.clone(), &game);
         assert_eq!(
             search.outcome(),
-            Some(&Outcome::Found {
+            Some(&SearchOutcome::Found {
                 culprits: vec![mod_path(x)],
-                confidence: Confidence::High,
+                confidence: CulpritConfidence::High,
                 another_problem: false,
             })
         );
@@ -211,7 +211,7 @@ fn um_culpado_em_log2_n_mais_4_rodadas() {
 #[test]
 fn nao_reproduziu_em_3_testes() {
     let search = run(synthetic_118(), &FakeGame { culprits: vec![] });
-    assert_eq!(search.outcome(), Some(&Outcome::NotReproduced));
+    assert_eq!(search.outcome(), Some(&SearchOutcome::NotReproduced));
     assert_eq!(search.rounds().len(), 3);
     assert!(
         search
@@ -224,7 +224,7 @@ fn nao_reproduziu_em_3_testes() {
 #[test]
 fn sem_mods_ja_falha() {
     let search = run_with(Search::new(synthetic_118()), |_| Verdict::FailedSame);
-    assert_eq!(search.outcome(), Some(&Outcome::NotAMod));
+    assert_eq!(search.outcome(), Some(&SearchOutcome::NotAMod));
     assert_eq!(search.rounds()[1].kind, RoundKind::Control);
     assert_eq!(search.rounds()[1].enabled_count, 0);
 }
@@ -232,7 +232,7 @@ fn sem_mods_ja_falha() {
 #[test]
 fn java_errado_para_a_busca() {
     let search = run_with(Search::new(synthetic_118()), |_| Verdict::Environment);
-    assert_eq!(search.outcome(), Some(&Outcome::Environment));
+    assert_eq!(search.outcome(), Some(&SearchOutcome::Environment));
     assert_eq!(search.rounds().len(), 1);
 }
 
@@ -252,7 +252,7 @@ fn ca_t25_02_travou_diferente_repete_e_nao_conta() {
         game.run(&plan.enabled)
     });
     assert!(
-        matches!(search.outcome(), Some(Outcome::Found { culprits, .. }) if culprits == &vec![mod_path(40)])
+        matches!(search.outcome(), Some(SearchOutcome::Found { culprits, .. }) if culprits == &vec![mod_path(40)])
     );
     let other = search
         .rounds()
@@ -269,7 +269,7 @@ fn ca_t25_02_travou_diferente_repete_e_nao_conta() {
             game.run(&plan.enabled)
         }
     });
-    let Some(Outcome::Inconclusive { suspects }) = search.outcome() else {
+    let Some(SearchOutcome::Inconclusive { suspects }) = search.outcome() else {
         panic!("{:?}", search.outcome());
     };
     // Nenhuma rodada da busca binária contou: todos ainda são suspeitos.
@@ -296,7 +296,7 @@ fn ca_t25_02_dependencia_inferida_refaz_a_rodada() {
         game.run(&plan.enabled)
     });
     assert!(
-        matches!(search.outcome(), Some(Outcome::Found { culprits, .. }) if culprits == &vec![mod_path(70)])
+        matches!(search.outcome(), Some(SearchOutcome::Found { culprits, .. }) if culprits == &vec![mod_path(70)])
     );
     assert_eq!(search.inferred(), std::slice::from_ref(&hidden));
     let controls = search
@@ -325,7 +325,7 @@ fn problema_intermitente_repete_os_passou() {
     });
     assert_eq!(search.rate(), Some(0.5));
     assert_eq!(search.repetitions(), 5);
-    let Some(Outcome::Found {
+    let Some(SearchOutcome::Found {
         culprits,
         confidence,
         ..
@@ -334,7 +334,7 @@ fn problema_intermitente_repete_os_passou() {
         panic!("{:?}", search.outcome());
     };
     assert_eq!(culprits, &vec![culprit]);
-    assert_eq!(*confidence, Confidence::Medium);
+    assert_eq!(*confidence, CulpritConfidence::Medium);
     assert_eq!(repetitions_for(1.0 / 3.0), 8);
     assert_eq!(repetitions_for(1.0), 1);
     assert_eq!(repetitions_for(0.0), u32::MAX);
@@ -346,7 +346,7 @@ fn outro_problema_e_continuar_sem_ele() {
         culprits: vec![vec![mod_path(20)], vec![mod_path(80)]],
     };
     let search = run(synthetic_118(), &game);
-    let Some(Outcome::Found {
+    let Some(SearchOutcome::Found {
         culprits,
         another_problem: true,
         ..
@@ -358,7 +358,7 @@ fn outro_problema_e_continuar_sem_ele() {
     assert!(search.continue_without());
     assert!(!search.continue_without());
     let search = run_with(search, |plan| game.run(&plan.enabled));
-    let Some(Outcome::Found {
+    let Some(SearchOutcome::Found {
         culprits: second,
         another_problem: false,
         ..
@@ -391,7 +391,7 @@ fn mod_que_evita_o_problema_e_contradicao() {
         }
     });
     assert!(
-        matches!(search.outcome(), Some(Outcome::Contradiction { .. })),
+        matches!(search.outcome(), Some(SearchOutcome::Contradiction { .. })),
         "{:?}",
         search.outcome()
     );
@@ -416,7 +416,10 @@ fn cancelar_guarda_os_suspeitos_e_estado_volta_igual() {
     let (min, max) = search.remaining_rounds();
     assert!(min >= 1 && max >= min);
     search.cancel();
-    assert_eq!(search.outcome(), Some(&Outcome::Cancelled { suspects }));
+    assert_eq!(
+        search.outcome(),
+        Some(&SearchOutcome::Cancelled { suspects })
+    );
     assert!(search.next_round().is_none());
     let finished = run(synthetic_118(), &game);
     assert_eq!(finished.remaining_rounds(), (0, 0));
@@ -433,12 +436,12 @@ fn modo_assistido_conta_as_respostas() {
         }
     });
     assert!(
-        matches!(search.outcome(), Some(Outcome::Found { culprits, .. }) if culprits == &vec![culprit.clone()])
+        matches!(search.outcome(), Some(SearchOutcome::Found { culprits, .. }) if culprits == &vec![culprit.clone()])
     );
     let skipped = run_with(Search::new(synthetic_118()), |_| Verdict::UserSkip);
     assert!(matches!(
         skipped.outcome(),
-        Some(Outcome::Inconclusive { .. })
+        Some(SearchOutcome::Inconclusive { .. })
     ));
 }
 
@@ -522,7 +525,7 @@ proptest! {
         let expected = universe.unit_paths(&[universe.unit_of(item).unwrap()]);
         prop_assert_eq!(
             search.outcome(),
-            Some(&Outcome::Found { culprits: expected, confidence: Confidence::High, another_problem: false })
+            Some(&SearchOutcome::Found { culprits: expected, confidence: CulpritConfidence::High, another_problem: false })
         );
     }
 
@@ -536,7 +539,7 @@ proptest! {
         let game = FakeGame { culprits: vec![paths] };
         let search = run(universe, &game);
         let outcome = search.outcome().cloned();
-        let Some(Outcome::Found { another_problem, .. }) = outcome else {
+        let Some(SearchOutcome::Found { another_problem, .. }) = outcome else {
             return Err(TestCaseError::fail(format!("{outcome:?}")));
         };
         prop_assert!(!another_problem);

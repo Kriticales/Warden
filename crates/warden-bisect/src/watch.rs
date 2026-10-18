@@ -22,7 +22,7 @@
 //! - **jogo vivo e calado:** depois de `Starting integrated minecraft server` (ou `Connected to
 //!   a modded server`), sem linha nova e sem entrar no mundo por N s, a rodada "travou";
 //! - **passou** = entrou no mundo (ou, sem mundo de teste, chegou ao menu) e ficou
-//!   [`crate::estimate::STABILITY_MS`] sem sinal de falha.
+//!   [`STABILITY_MS`] sem sinal de falha.
 //!
 //! Quem chama encerra o jogo assim que recebe a [`Decision`]: várias falhas não fecham o jogo
 //! sozinhas (S-R5-3 §4.6).
@@ -33,7 +33,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use warden_perf::{LoadTracker, Loader};
 
-use crate::estimate::STABILITY_MS;
+pub use crate::estimate::STABILITY_MS;
 
 /// Linhas lidas depois da âncora à procura da exceção.
 const SIGNATURE_WINDOW_LINES: usize = 40;
@@ -71,6 +71,8 @@ pub struct WatchConfig {
     pub freeze_ms: u64,
     /// Tempo-limite da rodada inteira.
     pub max_ms: u64,
+    /// Estabilidade depois de chegar ao objetivo ([`STABILITY_MS`]; menor só no E2E).
+    pub stability_ms: u64,
 }
 
 /// O sinal que decidiu a falha.
@@ -443,7 +445,7 @@ impl RoundWatcher {
         };
         if let Some(reached) = reached
             && !self.config.assisted
-            && elapsed_ms.saturating_sub(reached) >= STABILITY_MS
+            && elapsed_ms.saturating_sub(reached) >= self.config.stability_ms
         {
             let decision = Decision::Passed {
                 reached_ms: reached,

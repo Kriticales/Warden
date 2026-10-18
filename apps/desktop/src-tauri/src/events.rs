@@ -7,7 +7,8 @@
 //!   P1-11, `local-files-dropped`.
 //! - [`OperationEvent`] é o que passa pelo `Channel` de cada comando longo. As variantes
 //!   `PerfSample`, `Round` e `ToolCall` da ARCHITECTURE §4.3 entram com as tarefas donas
-//!   (L-08, D-10 e D-04): este arquivo é registro acréscimo-apenas para eventos e variantes.
+//!   (L-08, D-10 e D-04; o `Round` veio com a D-12): este arquivo é registro acréscimo-apenas
+//!   para eventos e variantes.
 
 use serde::Serialize;
 use tauri_specta::Event;
@@ -85,7 +86,7 @@ pub enum GamePhase {
     Preparing,
     /// Jogo aberto.
     Running,
-    /// Busca do culpado em andamento (D-10).
+    /// Busca do culpado em andamento (D-12).
     Bisecting,
     /// O jogo fechou (último aviso da sessão).
     Exited,
@@ -207,6 +208,23 @@ pub enum OperationEvent {
         gc_count: Option<u32>,
         /// Tempo parado em coletas, em ms.
         gc_ms: Option<u32>,
+    },
+    /// Rodada da busca do culpado (ARCHITECTURE §9.7; D-12): começou (`result` vazio),
+    /// terminou (com o veredito) ou, no modo assistido, está esperando a resposta.
+    #[serde(rename_all = "camelCase")]
+    Round {
+        /// Número da rodada (a primeira é a 0).
+        index: u32,
+        /// Rodadas no total, no mínimo e no máximo (feitas + as que faltam).
+        total_estimate: (u32, u32),
+        /// Itens ligados nesta rodada.
+        enabled: u32,
+        /// Suspeitos agora.
+        suspects: u32,
+        /// O veredito, quando a rodada terminou.
+        result: Option<warden_bisect::Verdict>,
+        /// Modo assistido: esperando "Aconteceu", "Não aconteceu" ou "Não deu para testar".
+        asking: bool,
     },
 }
 
