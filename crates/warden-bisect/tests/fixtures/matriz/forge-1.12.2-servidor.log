@@ -1,0 +1,9 @@
+[17:50:45] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading
+[17:50:50] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.12.2
+[17:50:53] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for level 0
+[17:50:54] [Server thread/INFO] [minecraft/DedicatedServer]: Done (1,509s)! For help, type "help" or "?"
+[17:51:12] [Server thread/INFO] [minecraft/PlayerList]: WardenTest[/127.0.0.1:49440] logged in with entity id 291 at (32.5, 64.0, 256.5)
+[17:51:12] [Server thread/INFO] [minecraft/DedicatedServer]: WardenTest joined the game
+[17:51:17] [Server thread/INFO] [minecraft/NetHandlerPlayServer]: WardenTest lost connection: Internal Exception: java.io.IOException: Foi for�ado o cancelamento de uma conex�o existente pelo host remoto
+[17:51:18] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+[17:51:18] [Server Shutdown Thread/INFO] [minecraft/MinecraftServer]: Stopping server

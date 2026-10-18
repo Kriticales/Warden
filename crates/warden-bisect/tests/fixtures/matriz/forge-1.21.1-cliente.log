@@ -1,0 +1,39 @@
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791155617989" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forge_client' with arguments [--version, forge-1.21.1-52.1.0, --gameDir, <DADOS>\instances\m-forge-1.21.1, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 17, --accessToken, **********, --clientId, , --xuid, , --userType, , --versionType, release, --quickPlaySingleplayer, wardentest, --quickPlayPath, quickplay.json]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791155626813" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791155627101" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.3.3+5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.common.ForgeMod" timestamp="1791155627370" level="INFO" thread="modloading-worker-0">
+    <log4j:Message><![CDATA[Forge mod loading, version 52.1.0, for MC 1.21.1 with MCP 20240808.132146]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.sounds.SoundEngine" timestamp="1791155631200" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureAtlas" timestamp="1791155631308" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791155633054" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 1399 advancements]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.server.IntegratedServer" timestamp="1791155633488" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Starting integrated minecraft server version 1.21.1]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791155634477" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Preparing start region for dimension minecraft:overworld]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.common.ForgeHooks" timestamp="1791155636429" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Connected to a modded server.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.players.PlayerList" timestamp="1791155636506" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest[local:E:ce6faaf8] logged in with entity id 14 at (0.5, 100.0, -6.5)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791155636531" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest joined the game]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791155636775" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 2 advancements]]></log4j:Message>
+  </log4j:Event>

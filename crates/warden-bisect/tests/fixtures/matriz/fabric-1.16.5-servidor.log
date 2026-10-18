@@ -1,0 +1,8 @@
+[17:52:10] [main/INFO]: Loading Minecraft 1.16.5 with Fabric Loader 0.19.5
+[17:52:16] [Server thread/INFO]: Starting minecraft server version 1.16.5
+[17:52:17] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[17:52:25] [Server thread/INFO]: Done (7.575s)! For help, type "help"
+[17:52:37] [Server thread/INFO]: WardenTest[/127.0.0.1:58896] logged in with entity id 282 at (76.5, 64.0, 215.5)
+[17:52:37] [Server thread/INFO]: WardenTest joined the game
+[17:52:42] [Server thread/INFO]: WardenTest lost connection: Disconnected
+[17:52:43] [Server thread/INFO]: Stopping server

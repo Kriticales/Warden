@@ -1,0 +1,15 @@
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791155966395" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, neoforge-1.20.1-47.1.106, --gameDir, <DADOS>\instances\m-neoforge-1.20.1, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 5, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release, --quickPlaySingleplayer, wardentest, --quickPlayPath, quickplay.json]]]></log4j:Message>
+  </log4j:Event>
+[19:19:36] [Render thread/INFO] [minecraft/Minecraft]: Setting user: WardenTest
+[19:19:36] [Render thread/INFO] [minecraft/Minecraft]: Backend library: LWJGL version 3.3.1 build 7
+[19:19:37] [modloading-worker-0/INFO] [ne.mi.co.ForgeMod/FORGEMOD]: NeoForge mod loading, version 47.1.106, for MC 1.20.1 with MCP 20230612.114412
+[19:19:42] [Render thread/INFO] [minecraft/SoundEngine]: Sound engine started
+[19:19:43] [Render thread/INFO] [minecraft/TextureAtlas]: Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas
+[19:19:45] [Render thread/INFO] [minecraft/AdvancementList]: Loaded 1271 advancements
+[19:19:46] [Server thread/INFO] [minecraft/IntegratedServer]: Starting integrated minecraft server version 1.20.1
+[19:19:48] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[19:19:53] [Netty Local Client IO #0/INFO] [ne.mi.ne.NetworkHooks/]: Connected to a modded server.
+[19:19:53] [Server thread/INFO] [minecraft/PlayerList]: WardenTest[local:E:6e9f9ece] logged in with entity id 186 at (0.5, 105.0, 0.5)
+[19:19:53] [Server thread/INFO] [minecraft/MinecraftServer]: WardenTest joined the game
+[19:19:54] [Render thread/INFO] [minecraft/AdvancementList]: Loaded 2 advancements

@@ -1,0 +1,76 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791157456555" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.20.1 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader" timestamp="1791157456681" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading 5 mods:
+	- fabricloader 0.19.5
+	   \-- mixinextras 0.5.5
+	- java 17
+	- minecraft 1.20.1
+	- wardenfalhas 1.0.0]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/Mixin" timestamp="1791157456736" level="INFO" thread="main">
+    <log4j:Message><![CDATA[SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/<DADOS>/shared/libraries/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=CLIENT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="oshi.util.platform.windows.PerfDataUtil" timestamp="1791157458369" level="WARN" thread="main">
+    <log4j:Message><![CDATA[Failed to add PDH Counter: \Paging File(_Total)\% Usage, Error code: 0xC0000BB8]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FabricLoader/MixinExtras|Service" timestamp="1791157464515" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791157465798" level="ERROR" thread="Render thread">
+    <log4j:Message><![CDATA[Failed to verify authentication]]></log4j:Message>
+    <log4j:Throwable><![CDATA[com.mojang.authlib.exceptions.InvalidCredentialsException: Status: 401
+	at knot//com.mojang.authlib.exceptions.MinecraftClientHttpException.toAuthenticationException(MinecraftClientHttpException.java:56)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.fetchProperties(YggdrasilUserApiService.java:156)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.<init>(YggdrasilUserApiService.java:55)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService.createUserApiService(YggdrasilAuthenticationService.java:124)
+	at knot//net.minecraft.class_310.method_31382(class_310.java:733)
+	at knot//net.minecraft.class_310.<init>(class_310.java:442)
+	at knot//net.minecraft.client.main.Main.main(Main.java:211)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:517)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: MinecraftClientHttpException[type=HTTP_ERROR, status=401, response=ErrorResponse[path='/player/attributes', error='null', details=null, errorMessage='null']]
+	at knot//com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:85)
+	at knot//com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:48)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.fetchProperties(YggdrasilUserApiService.java:129)
+	... 8 more
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791157465937" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791157466104" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.3.1 SNAPSHOT]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_4341" timestamp="1791157467890" level="INFO" thread="Realms Notification Availability checker #1">
+    <log4j:Message><![CDATA[Could not authorize you against Realms server: javax.ws.rs.BadRequestException: Invalid session]]></log4j:Message>
+  </log4j:Event>
+---- Minecraft Crash Report ----
+// I bet Cylons wouldn't have this problem.
+
+Time: 2026-10-04 19:44:30
+Description: Initializing game
+
+java.lang.IllegalStateException: Warden: falha de teste ao iniciar o cliente (wardenfalhas)
+	at knot//dev.kriticales.wardenfalhas.Falhas.aoIniciar(Falhas.java:40)
+	at knot//net.minecraft.class_310.handler$zza000$wardenfalhas$warden$iniciar(class_310.java:2996)
+	at knot//net.minecraft.class_310.<init>(class_310.java:676)
+	at knot//net.minecraft.client.main.Main.main(Main.java:211)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:517)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Render thread
+Stacktrace:
+	at knot//dev.kriticales.wardenfalhas.Falhas.aoIniciar(Falhas.java:40)
+	at knot//net.minecraft.class_310.handler$zza000$wardenfalhas$warden$iniciar(class_310.java:2996)
+	at knot//net.minecraft.class_310.<init>(class_310.java:676)
+
+	... (cortado no golden log)

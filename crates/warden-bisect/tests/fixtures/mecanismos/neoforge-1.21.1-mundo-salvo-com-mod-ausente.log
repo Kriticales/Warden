@@ -1,0 +1,16 @@
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791151696878" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forgeclient' with arguments [--version, neoforge-21.1.252, --gameDir, <DADOS>\instances\1.21.1-neoforge-21.1.252, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 17, --accessToken, ❄❄❄❄❄❄❄❄, --clientId, , --xuid, , --userType, , --versionType, release, --quickPlaySingleplayer, mundo-comforts]]]></log4j:Message>
+  </log4j:Event>
+[18:08:27] [Render thread/INFO] [minecraft/Minecraft]: Setting user: WardenTest
+[18:08:27] [Render thread/INFO] [minecraft/Minecraft]: Backend library: LWJGL version 3.3.3+5
+[18:08:27] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.252, for MC 1.21.1
+[18:08:31] [Render thread/WARN] [ne.ne.ne.co.CommonHooks/WP]: The following mods have version differences that were not resolved:
+comforts (version 9.0.5+1.21.1 -> MISSING)
+spectrelib (version 0.17.2+1.21 -> MISSING)
+Things may not work well.
+[18:08:33] [Render thread/INFO] [minecraft/AdvancementTree]: Loaded 1399 advancements
+[18:08:34] [Server thread/INFO] [minecraft/IntegratedServer]: Starting integrated minecraft server version 1.21.1
+[18:08:35] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[18:08:37] [Server thread/INFO] [minecraft/PlayerList]: WardenTest[local:E:c451debf] logged in with entity id 19 at (2.5, 101.0, -2.5)
+[18:08:37] [Server thread/INFO] [minecraft/MinecraftServer]: WardenTest joined the game
+[18:08:37] [Render thread/INFO] [minecraft/AdvancementTree]: Loaded 2 advancements

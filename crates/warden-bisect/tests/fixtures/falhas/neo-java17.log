@@ -1,0 +1,3 @@
+Error occurred during initialization of boot layer
+java.lang.module.FindException: Error reading module: <DADOS>\shared\libraries\cpw\mods\bootstraplauncher\2.0.2\bootstraplauncher-2.0.2.jar
+Caused by: java.lang.module.InvalidModuleDescriptorException: Unsupported major.minor version 65.0

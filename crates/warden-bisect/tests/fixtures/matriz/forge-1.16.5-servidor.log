@@ -1,0 +1,9 @@
+[17:51:23] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'fmlserver' with arguments [--gameDir, ., nogui]
+[17:51:28] [modloading-worker-2/INFO] [ne.mi.co.ForgeMod/FORGEMOD]: Forge mod loading, version 36.2.34, for MC 1.16.5 with MCP 20210115.111550
+[17:51:32] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.16.5
+[17:51:33] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[17:51:38] [Server thread/INFO] [minecraft/DedicatedServer]: Done (5.173s)! For help, type "help"
+[17:51:58] [Server thread/INFO] [minecraft/PlayerList]: WardenTest[/127.0.0.1:58705] logged in with entity id 275 at (73.5, 64.0, 214.5)
+[17:51:58] [Server thread/INFO] [minecraft/DedicatedServer]: WardenTest joined the game
+[17:52:04] [Server thread/INFO] [minecraft/ServerPlayNetHandler]: WardenTest lost connection: Disconnected
+[17:52:04] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
