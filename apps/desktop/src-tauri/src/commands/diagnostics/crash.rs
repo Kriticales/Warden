@@ -83,8 +83,21 @@ pub(crate) async fn diagnose(
     request: &CrashRequest<'_>,
     operation: Option<&OperationHandle>,
 ) -> Result<CrashDiagnosis, AppError> {
-    let snapshot = read_snapshot(state, pack_id, operation).await?;
     let game_dir = InstanceDirs::for_pack(&state.paths, pack_id).game_dir;
+    diagnose_in(state, pack_id, request, &game_dir, operation).await
+}
+
+/// [`diagnose`] com outra pasta do jogo: a do servidor local (L-09), que tem os próprios
+/// crash reports, logs e `mods/`.
+pub(crate) async fn diagnose_in(
+    state: &AppState,
+    pack_id: PackId,
+    request: &CrashRequest<'_>,
+    game_dir: &Path,
+    operation: Option<&OperationHandle>,
+) -> Result<CrashDiagnosis, AppError> {
+    let snapshot = read_snapshot(state, pack_id, operation).await?;
+    let game_dir = game_dir.to_path_buf();
     let cache_dir = state.paths.cache_dir();
     let context = AnalysisContext {
         loader: snapshot.loader.map(log_loader),

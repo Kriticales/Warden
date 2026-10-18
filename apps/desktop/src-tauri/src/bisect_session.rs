@@ -1260,6 +1260,7 @@ impl Runner<'_> {
         let extra = LaunchExtra {
             system_props: warden_bisect::prepare::system_props(&saved.minecraft, loader),
             quick_play_path: world_entry.then(|| QUICK_PLAY_FILE.to_owned()),
+            server_port: None,
         };
         game.command(
             self.state,
