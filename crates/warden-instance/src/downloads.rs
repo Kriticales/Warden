@@ -28,7 +28,7 @@ use rusqlite::{Connection, ErrorCode, params};
 use serde::{Deserialize, Serialize};
 use sha1::Sha1;
 use sha2::{Digest as _, Sha256, Sha512};
-use warden_core::{CancellationToken, ProgressSink};
+use warden_core::{CancellationToken, ProgressSink, rename_with_retry};
 use warden_http::{DownloadRequest, ExpectedHash, FileHashes, HttpClient, PART_SUFFIX};
 use warden_packwiz::HashFormat;
 use warden_packwiz::hash::{curseforge_fingerprint_reader, hash_matches};
@@ -689,28 +689,6 @@ pub(crate) fn copy_hashing(
         let _ = remove_if_exists(destination);
     }
     result
-}
-
-/// No Windows, antivírus e indexadores abrem o arquivo recém-gravado por instantes e a
-/// renomeação falha com "acesso negado"; algumas tentativas curtas resolvem (como no
-/// `atomic_write` do `warden-core`).
-pub(crate) fn rename_with_retry(from: &Path, to: &Path) -> io::Result<()> {
-    const ATTEMPTS: u32 = 8;
-    let mut attempt = 1;
-    loop {
-        match fs::rename(from, to) {
-            Ok(()) => return Ok(()),
-            Err(error)
-                if cfg!(windows)
-                    && error.kind() == io::ErrorKind::PermissionDenied
-                    && attempt < ATTEMPTS =>
-            {
-                std::thread::sleep(Duration::from_millis(20 * u64::from(attempt)));
-                attempt += 1;
-            }
-            Err(error) => return Err(error),
-        }
-    }
 }
 
 #[cfg(test)]

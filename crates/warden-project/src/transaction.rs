@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use warden_core::{CancellationToken, atomic_write, resolve_inside};
+use warden_core::{CancellationToken, atomic_write, remove_file_with_retry, resolve_inside};
 use warden_packwiz::hygiene::ensure_required_block;
 use warden_packwiz_cli::{Packwiz, RunContext};
 
@@ -201,7 +201,9 @@ fn apply(path: &Path, change: &Change) -> Result<()> {
             }
             atomic_write(path, bytes).map_err(|e| Error::new(Code::Internal, e.to_string()))
         }
-        Change::Delete => match fs::remove_file(path) {
+        // No Windows, um leitor que ainda segura o arquivo (antivírus) solta em instantes;
+        // a remoção espera só esse erro (ARCHITECTURE §15).
+        Change::Delete => match remove_file_with_retry(path) {
             Ok(()) => Ok(()),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
             Err(e) => Err(Error::new(Code::Internal, e.to_string())),
@@ -216,7 +218,7 @@ fn restore(previous: &BTreeMap<PathBuf, Option<Vec<u8>>>, touched: &[PathBuf]) {
                 let _ = atomic_write(path, bytes);
             }
             Some(None) => {
-                let _ = fs::remove_file(path);
+                let _ = remove_file_with_retry(path);
             }
             None => {}
         }

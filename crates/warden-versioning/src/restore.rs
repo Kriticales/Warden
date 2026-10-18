@@ -450,9 +450,10 @@ fn file_error(path: &str, absolute: &Path, error: io::Error) -> Error {
 }
 
 /// `ERROR_SHARING_VIOLATION` (32), `ERROR_LOCK_VIOLATION` (33) e "acesso negado" (5), que o
-/// Windows devolve ao renomear um arquivo aberto sem permissão de remoção compartilhada.
+/// Windows devolve ao renomear um arquivo aberto sem permissão de remoção compartilhada
+/// (`warden_core::is_windows_sharing_error`, ARCHITECTURE §15).
 fn is_in_use(error: &io::Error) -> bool {
-    cfg!(windows) && matches!(error.raw_os_error(), Some(5 | 32 | 33))
+    warden_core::is_windows_sharing_error(error)
 }
 
 /// Renomeia com algumas tentativas curtas no Windows, onde o antivírus e o indexador abrem o
@@ -502,23 +503,10 @@ fn remove_file(path: &Path) -> io::Result<()> {
     }
 }
 
-fn retry(mut action: impl FnMut() -> io::Result<()>) -> io::Result<()> {
-    const ATTEMPTS: u32 = 5;
-    let mut attempt = 1;
-    loop {
-        match action() {
-            Ok(()) => return Ok(()),
-            Err(error)
-                if cfg!(windows)
-                    && error.kind() == io::ErrorKind::PermissionDenied
-                    && attempt < ATTEMPTS =>
-            {
-                std::thread::sleep(std::time::Duration::from_millis(20 * u64::from(attempt)));
-                attempt += 1;
-            }
-            Err(error) => return Err(error),
-        }
-    }
+/// A política de novas tentativas da `warden-core` (ARCHITECTURE §15): só o erro de
+/// compartilhamento do Windows, poucas vezes e por pouco tempo.
+fn retry(action: impl FnMut() -> io::Result<()>) -> io::Result<()> {
+    warden_core::retry_on_sharing_error(action)
 }
 
 #[cfg(test)]

@@ -16,6 +16,7 @@ specta = { workspace = true, features = ["derive"] }
 specta-typescript.workspace = true
 thiserror.workspace = true
 tokio-util.workspace = true
+tracing.workspace = true
 ulid.workspace = true
 
 [dev-dependencies]

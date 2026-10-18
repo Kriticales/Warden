@@ -22,7 +22,7 @@ use reqwest::header::{CONTENT_RANGE, HeaderMap, HeaderName, HeaderValue, RANGE};
 use secrecy::{ExposeSecret as _, SecretString};
 use tokio::io::AsyncWriteExt as _;
 use url::Url;
-use warden_core::{CancellationToken, Progress, ProgressSink};
+use warden_core::{CancellationToken, Progress, ProgressSink, rename_with_retry};
 use warden_packwiz::HashFormat;
 
 use crate::client::{HttpClient, Response, backoff, host_of, is_transient_error};
@@ -415,28 +415,6 @@ fn content_range_start(headers: &HeaderMap) -> Option<u64> {
     let range = value.strip_prefix("bytes ")?;
     let (start, _) = range.split_once('-')?;
     start.trim().parse().ok()
-}
-
-/// No Windows, antivírus e indexadores abrem o arquivo recém-gravado por instantes e a
-/// renomeação falha com "acesso negado"; algumas tentativas curtas resolvem (como no
-/// `atomic_write` do `warden-core`).
-fn rename_with_retry(from: &Path, to: &Path) -> io::Result<()> {
-    const ATTEMPTS: u32 = 5;
-    let mut attempt = 1;
-    loop {
-        match fs::rename(from, to) {
-            Ok(()) => return Ok(()),
-            Err(error)
-                if cfg!(windows)
-                    && error.kind() == io::ErrorKind::PermissionDenied
-                    && attempt < ATTEMPTS =>
-            {
-                std::thread::sleep(std::time::Duration::from_millis(20 * u64::from(attempt)));
-                attempt += 1;
-            }
-            Err(error) => return Err(error),
-        }
-    }
 }
 
 #[cfg(test)]
