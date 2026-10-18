@@ -7459,6 +7459,11 @@ export type UpdateItem = {
 	currentId: string | null,
 	/**  Versão instalada, legível. */
 	current: string | null,
+	/**
+	 *  Publicação da versão instalada (RFC 3339), quando a verificação a conhece (o Modrinth):
+	 *  a nota de saúde conta o mod sem versão nova há muitos meses (D-08).
+	 */
+	currentPublished?: string | null,
 	/**  A versão nova, quando `status` é `available`. */
 	newVersion: NewVersion | null,
 	/**  Motivo, quando `status` é `failed` ou `notChecked`. */
