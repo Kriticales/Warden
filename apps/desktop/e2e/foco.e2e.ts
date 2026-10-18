@@ -97,18 +97,21 @@ async function tabThroughPage(): Promise<string[]> {
     (document.activeElement as HTMLElement | null)?.blur();
   });
   const missing: string[] = [];
-  let visited = 0;
+  const visited: string[] = [];
   let first: string | null = null;
   for (let count = 0; count < MAX_STOPS; count += 1) {
     const stop = await tab();
     if (stop.body) {
       // O Tab saiu da página (fim do documento): o próximo volta ao começo.
-      if (first !== null) break;
+      if (first !== null) {
+        visited.push('body');
+        break;
+      }
       continue;
     }
     if (stop.label === first) break;
     first ??= stop.label;
-    visited += 1;
+    visited.push(stop.label);
     if (!stop.visible) missing.push(stop.label);
   }
   // O ciclo termina de volta no "Pular para o conteúdo", que aparece por cima do cabeçalho
@@ -117,7 +120,10 @@ async function tabThroughPage(): Promise<string[]> {
     (document.activeElement as HTMLElement | null)?.blur();
   });
   // A tela tem mais do que a moldura (pular, cabeçalho e rodapé): o Tab passou pelo conteúdo.
-  expect(visited).toBeGreaterThan(5);
+  const stops = visited.filter((label) => label !== 'body').length;
+  if (stops <= 5) {
+    throw new Error(`o Tab só passou por ${String(stops)} controles:\n${visited.join('\n')}`);
+  }
   return missing;
 }
 
@@ -315,10 +321,20 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
   for (const section of ['Configs', 'Problemas', 'Histórico', 'Exportar']) {
     it(`${section}: foco visível em todos os controles; axe`, async () => {
       await openSection(section);
-      // Espera a seção terminar de ler (nada carregando).
+      // Espera a seção terminar de ler e de verificar: nada carregando por 1 s seguido. Problemas
+      // começa a verificação automática logo depois de aparecer; no Windows ela terminou no meio
+      // do Tab, a lista foi refeita e o foco caiu no `<body>`.
+      let idleSince: number | null = null;
       await browser.waitUntil(
-        async () => !(await $('main [aria-busy="true"], main .loader').isExisting()),
-        { timeout: 60_000, timeoutMsg: `${section} não terminou de carregar` },
+        async () => {
+          if (await $('main [aria-busy="true"], main .loader').isExisting()) {
+            idleSince = null;
+            return false;
+          }
+          idleSince ??= Date.now();
+          return Date.now() - idleSince >= 1_000;
+        },
+        { timeout: 60_000, interval: 100, timeoutMsg: `${section} não terminou de carregar` },
       );
       expect(await tabThroughPage()).toEqual([]);
       expect(await seriousViolationSummaries()).toEqual([]);
