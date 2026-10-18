@@ -38,23 +38,21 @@ export function ProblemsPage({ packId }: { packId: PackId }) {
     }
   }, [needsCheck, isPending, reportKey, mutate]);
 
-  // O título da página fica também enquanto lê e quando falha: é nele que o foco cai ao abrir a
-  // seção (HANDOFF §7).
-  if (report.isPending || report.isError) {
+  if (report.isPending) {
+    return <LoadingState label={t('secao.verificando')} />;
+  }
+  if (report.isError) {
+    // O título da página fica no erro: é nele que o foco cai ao abrir a seção (HANDOFF §7).
     return (
       <div className="stack diag-page">
         <PageHead title={t('secao.titulo')} />
-        {report.isPending ? (
-          <LoadingState label={t('secao.verificando')} />
-        ) : (
-          <ErrorPanel
-            title={t('secao.erroLer')}
-            error={report.error}
-            onRetry={() => {
-              void report.refetch();
-            }}
-          />
-        )}
+        <ErrorPanel
+          title={t('secao.erroLer')}
+          error={report.error}
+          onRetry={() => {
+            void report.refetch();
+          }}
+        />
       </div>
     );
   }
