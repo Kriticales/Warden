@@ -95,7 +95,7 @@ missing_errors_doc = "allow"
 3. **Código estável** para tudo que chega à interface (ARCHITECTURE §5). Todo código novo tem frase pt-BR em `src/i18n/errors/<domínio>.ts`; o TypeScript falha se faltar.
 4. **Frase = o que aconteceu + o que fazer.** Ex.: "A CurseForge recusou a chave. Confira a chave em Configurações." Nunca "Erro desconhecido" sem ação; nunca a mensagem crua da ferramenta como frase principal (ela vai em "Detalhes técnicos").
 5. **Nunca engolir erro.** `let _ = ...` em `Result` só com comentário justificando. Erros não fatais viram `Warning` no canal da operação ou no relatório.
-6. **Novas tentativas** só em operações idempotentes (leituras HTTP, downloads com hash). Escritas no pack nunca são repetidas automaticamente.
+6. **Novas tentativas** só em operações idempotentes (leituras HTTP, downloads com hash). Escritas no pack nunca são repetidas automaticamente; a única exceção é o passo final de renomear o temporário ou apagar um arquivo, repetido poucas vezes e por pouco tempo **só** no erro de compartilhamento do Windows (ARCHITECTURE §15, "Arquivos abertos no Windows").
 7. **Falha deixa o estado anterior.** Toda operação que escreve tem caminho de reversão testado (injeção de falha, §4.2).
 8. **Saída de ferramentas externas** (packwiz, Java) entra no `detail`, truncada e sem segredos.
 9. **Frontend:** todo `useQuery`/`useMutation` tem estado de erro renderizado com `ErrorPanel`; nenhuma promessa sem tratamento; erros inesperados no React caem num *error boundary* por rota com "Tentar de novo".

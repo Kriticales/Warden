@@ -45,6 +45,7 @@ pub mod publish;
 mod repo;
 mod restore;
 mod safety;
+mod share_mode;
 mod suggest;
 mod versions;
 mod worktree;
