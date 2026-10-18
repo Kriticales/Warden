@@ -123,6 +123,8 @@ export const commands = {
 	id: string,
 	/**  Situação. */
 	status: BisectStatus,
+	/**  Cada rodada abre o servidor local (D-13). */
+	server: boolean,
 	/**  O que o usuário descreveu. */
 	symptom: Symptom,
 	/**  Travamento de origem (hash da assinatura). */
@@ -1320,6 +1322,11 @@ export type BisectRequest = {
 	originCrash?: string | null,
 	/**  Ferramentas do jogador que entram mesmo assim (suspeitas). */
 	suspects?: string[],
+	/**
+	 *  A pessoa aceitou que cada rodada abra o servidor local (D-13): versões sem Quick Play e
+	 *  problemas do servidor.
+	 */
+	server?: boolean,
 };
 
 /**  Uma rodada terminada. */
@@ -1340,6 +1347,10 @@ export type BisectRoundView = {
 	anchor: Anchor | null,
 	/**  Há log gravado. */
 	hasLog: boolean,
+	/**  Há log do servidor local gravado (D-13). */
+	hasServerLog: boolean,
+	/**  A falha veio do servidor local (D-13). */
+	serverFailed: boolean,
 };
 
 /**  Situação da busca guardada. */
@@ -1357,6 +1368,8 @@ export type BisectView = {
 	id: string,
 	/**  Situação. */
 	status: BisectStatus,
+	/**  Cada rodada abre o servidor local (D-13). */
+	server: boolean,
 	/**  O que o usuário descreveu. */
 	symptom: Symptom,
 	/**  Travamento de origem (hash da assinatura). */

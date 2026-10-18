@@ -21,7 +21,7 @@ use crate::state::tests::test_state;
 use crate::test_session::TestSessions;
 
 /// O `java` dos testes.
-fn java() -> Option<PathBuf> {
+pub(crate) fn java() -> Option<PathBuf> {
     if let Some(java) = std::env::var_os("WARDEN_TEST_JAVA").filter(|v| !v.is_empty()) {
         return Some(PathBuf::from(java));
     }
@@ -32,12 +32,12 @@ fn java() -> Option<PathBuf> {
     java.is_file().then_some(java)
 }
 
-fn class_dir() -> PathBuf {
+pub(crate) fn class_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../crates/warden-launcher/tests/fixtures/java")
 }
 
-fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+pub(crate) fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     let Some(java) = java() else {
         eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste da busca do culpado pulado");
         return None;
@@ -52,7 +52,7 @@ fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     Some(Arc::new(state))
 }
 
-fn sha256(bytes: &[u8]) -> String {
+pub(crate) fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
@@ -131,7 +131,7 @@ fn write_pack(root: &Path, culprits: &str) {
     .unwrap();
 }
 
-fn register(state: &AppState, root: &Path) -> PackId {
+pub(crate) fn register(state: &AppState, root: &Path) -> PackId {
     let record = PackRecord {
         id: PackId::new(),
         name: "Vale do Culpado".into(),
@@ -145,7 +145,7 @@ fn register(state: &AppState, root: &Path) -> PackId {
 }
 
 /// O mundo de teste na instância de teste.
-fn write_world(state: &AppState, pack: PackId) -> PathBuf {
+pub(crate) fn write_world(state: &AppState, pack: PackId) -> PathBuf {
     let world = InstanceDirs::for_pack(&state.paths, pack)
         .game_dir
         .join("saves")
@@ -157,7 +157,7 @@ fn write_world(state: &AppState, pack: PackId) -> PathBuf {
 }
 
 /// Hash de todos os arquivos de uma pasta (caminho e conteúdo).
-fn tree_hash(dir: &Path) -> String {
+pub(crate) fn tree_hash(dir: &Path) -> String {
     let mut files: Vec<(String, Vec<u8>)> = Vec::new();
     let mut stack = vec![dir.to_path_buf()];
     while let Some(next) = stack.pop() {
@@ -188,13 +188,13 @@ fn tree_hash(dir: &Path) -> String {
 }
 
 #[derive(Default)]
-struct Seen {
-    events: StdMutex<Vec<OperationEvent>>,
-    phases: StdMutex<Vec<GamePhase>>,
+pub(crate) struct Seen {
+    pub(crate) events: StdMutex<Vec<OperationEvent>>,
+    pub(crate) phases: StdMutex<Vec<GamePhase>>,
 }
 
 impl Seen {
-    fn rounds_done(&self) -> usize {
+    pub(crate) fn rounds_done(&self) -> usize {
         self.events
             .lock()
             .unwrap()
@@ -221,7 +221,7 @@ impl Seen {
     }
 }
 
-fn spawn(
+pub(crate) fn spawn(
     state: &Arc<AppState>,
     pack: PackId,
     mode: RunMode,
@@ -243,7 +243,7 @@ fn spawn(
     (task, seen)
 }
 
-async fn wait_until(what: &str, mut ready: impl FnMut() -> bool) {
+pub(crate) async fn wait_until(what: &str, mut ready: impl FnMut() -> bool) {
     let deadline = Instant::now() + Duration::from_secs(60);
     while !ready() {
         assert!(Instant::now() < deadline, "esperando: {what}");
@@ -256,6 +256,7 @@ fn start(symptom: Symptom) -> RunMode {
         symptom,
         origin_crash: Some("abc123".into()),
         suspects: Vec::new(),
+        server: false,
     })
 }
 
