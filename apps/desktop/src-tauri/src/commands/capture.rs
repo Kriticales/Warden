@@ -426,6 +426,7 @@ mod tests {
             mode: TestMode::Normal,
             operation: &operation,
             ignore_pack_errors: false,
+            perf_profile: false,
         };
         for hook in &hooks {
             hook.before_prepare(&context).await.unwrap();
@@ -547,6 +548,7 @@ mod tests {
             mode: TestMode::Normal,
             operation: &operation,
             ignore_pack_errors: false,
+            perf_profile: false,
         };
         let hooks = [capture_hook()];
         hooks[0].before_launch(&context).await.unwrap();

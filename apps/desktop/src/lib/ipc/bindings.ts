@@ -542,6 +542,28 @@ export const commands = {
 	/**  "Mostrar na pasta": abre o Explorador com a pasta do pack selecionada. */
 	packRevealFolder: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("pack_reveal_folder", { packId })),
 	/**
+	 *  O perfil de desempenho de uma sessão (`null` nas sessões sem ele). Erros:
+	 *  `app.TEST_SESSION_NOT_FOUND`.
+	 */
+	perfReportGet: (packId: PackId, sessionId: string) => typedError<{
+	/**  Onde foi medido. */
+	side: PerfSide,
+	/**  O tempo por mod (no servidor local, sem valor). */
+	load: LoadReport | null,
+	/**  O spark do servidor local (só no servidor). */
+	serverSpark: ServerSpark | null,
+	/**  Os arquivos do spark salvos durante o teste, do mais antigo ao mais novo. */
+	spark: SparkReport[],
+	/**  Arquivos do spark salvos além do limite, que ficaram de fora. */
+	sparkSkipped: number,
+} | null, AppError>(__TAURI_INVOKE("perf_report_get", { packId, sessionId })),
+	/**
+	 *  "Abrir no visualizador do spark": abre o visualizador no navegador padrão e mostra o arquivo
+	 *  (a cópia na pasta da sessão) no gerenciador de arquivos. Erros: `app.TEST_SESSION_NOT_FOUND`,
+	 *  `app.TEST_ARTIFACT_INVALID` (arquivo que não é desta sessão ou que sumiu).
+	 */
+	perfOpenSparkViewer: (packId: PackId, sessionId: string, file: string) => typedError<null, AppError>(__TAURI_INVOKE("perf_open_spark_viewer", { packId, sessionId, file })),
+	/**
 	 *  O resultado do "como o jogador recebe" de uma sessão (`None`: sessão de outro modo).
 	 *  Erros: `app.TEST_SESSION_NOT_FOUND`.
 	 */
@@ -4447,6 +4469,41 @@ export type ListItemKind =
 /**  Liga/desliga (`true`/`false`). */
 "bool";
 
+/**  O tempo de carregamento por mod. */
+export type LoadReport = {
+	/**  O que a leitura conseguiu. */
+	status: TimingStatus,
+	/**  Como o log registra. */
+	source: TimingSource | null,
+	/**
+	 *  O loader do teste (`forge`, `neoforge`, `fabric`, `quilt`, `vanilla`), para dizer por
+	 *  que não há dado.
+	 */
+	loader: string,
+	/**  O arquivo lido, relativo à instância. */
+	log: string | null,
+	/**  Os mods, do mais demorado ao menos. */
+	mods: LoadRow[],
+	/**  O jogo e o loader, somados, em ms. */
+	gameAndLoaderMs: number,
+	/**  Todos os mods, somados, em ms. */
+	modsMs: number,
+};
+
+/**  Um mod no "O que mais demorou para carregar". */
+export type LoadRow = {
+	/**  Como o log chama o mod (id, ou o nome de exibição no Forge 1.8 a 1.12.2). */
+	key: string,
+	/**  Nome para mostrar: o do item do pack, quando o índice liga o id a ele; senão a chave. */
+	name: string,
+	/**  O item do pack (caminho do metafile), quando se sabe. */
+	item: string | null,
+	/**  Duração, em ms. */
+	ms: number,
+	/**  As fases, na ordem. */
+	phases: PhaseTime[],
+};
+
 /**  Os tempos de um teste, em milissegundos desde a abertura do processo. */
 export type LoadTimes = {
 	/**  Até o jogo carregar (menu principal). */
@@ -5481,6 +5538,35 @@ export type Participant = {
 export type PerfErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
+
+/**  O perfil de desempenho de uma sessão. */
+export type PerfReport = {
+	/**  Onde foi medido. */
+	side: PerfSide,
+	/**  O tempo por mod (no servidor local, sem valor). */
+	load: LoadReport | null,
+	/**  O spark do servidor local (só no servidor). */
+	serverSpark: ServerSpark | null,
+	/**  Os arquivos do spark salvos durante o teste, do mais antigo ao mais novo. */
+	spark: SparkReport[],
+	/**  Arquivos do spark salvos além do limite, que ficaram de fora. */
+	sparkSkipped: number,
+};
+
+/**  Onde o perfil foi medido. */
+export type PerfSide = 
+/**  No jogo ("Testar com perfil de desempenho"). */
+"client" | 
+/**  No servidor local ("Testar como servidor" com o perfil). */
+"server";
+
+/**  Uma fase de um mod. */
+export type PhaseTime = {
+	/**  Fase ou evento do loader (`PreInitialization`, `FMLCommonSetupEvent`, `instance`…). */
+	phase: string,
+	/**  Duração somada, em ms. */
+	ms: number,
+};
 
 /**  Incompatibilidade declarada (Modrinth `incompatible`, CurseForge "incompatível"). */
 export type PlanConflict = {
@@ -6874,6 +6960,15 @@ export type ServerSide = {
 	crash: ServerCrash | null,
 };
 
+/**  O spark do servidor local, ligado pelo Warden. */
+export type ServerSpark = 
+/**  Ligado pelo console quando o jogo abriu (e desligado no fim, se ainda estava ligado). */
+"started" | 
+/**  O spark não está entre os mods do servidor. */
+"notInstalled" | 
+/**  O comando não chegou ao servidor (ele fechou antes, por exemplo). */
+"commandFailed";
+
 /**  `server-state`: o servidor local mudou de situação (um por vez no Warden). */
 export type ServerState = {
 	/**  O pack. */
@@ -7120,6 +7215,71 @@ export type SourceWarningReason =
 /**  A CurseForge recusou a chave (P1-10). */
 "keyRejected";
 
+/**  O tipo de arquivo do spark. */
+export type SparkKind = 
+/**  Perfil de processamento (`.sparkprofile`). */
+"profile" | 
+/**  Resumo da memória (`.sparkheap`). */
+"heap";
+
+/**  O jogo em que o perfil foi salvo. */
+export type SparkPlatform = {
+	/**  Jogo ou servidor. */
+	side: SparkSide,
+	/**  Plataforma (`Forge`, `NeoForge`, `Fabric`). */
+	name: string,
+	/**  Versão da plataforma. */
+	version: string,
+	/**  Versão do Minecraft, quando o arquivo diz. */
+	minecraft: string | null,
+};
+
+/**  O resumo de um arquivo do spark salvo durante o teste. */
+export type SparkReport = {
+	/**  Nome do arquivo (copiado para a pasta da sessão). */
+	file: string,
+	/**  Perfil de processamento ou memória. */
+	kind: SparkKind,
+	/**  Quando o arquivo foi salvo (ms desde 1970). */
+	savedAtMs: number | null,
+	/**
+	 *  O arquivo foi lido (sem isso, o resto fica vazio e a interface diz que não deu para
+	 *  ler).
+	 */
+	readable: boolean,
+	/**  Onde rodou. */
+	platform: SparkPlatform | null,
+	/**  Duração do perfil, em ms. */
+	durationMs: number | null,
+	/**  O tempo por tick. */
+	ticks: TickSummary | null,
+	/**  Os mods que mais usaram processamento (ou memória). */
+	top: SparkRow[],
+	/**  A parte do jogo, do loader e do Java, em %. */
+	gamePercent: number,
+};
+
+/**  Um mod (ou o jogo) no resumo de um perfil do spark. */
+export type SparkRow = {
+	/**  Nome para mostrar (o do item do pack, o id do mod). */
+	name: string,
+	/**  O item do pack, quando se sabe. */
+	item: string | null,
+	/**  O id do mod, quando se sabe. */
+	modId: string | null,
+	/**  Porcentagem, com uma casa. */
+	percent: number,
+};
+
+/**  Onde o spark rodou. */
+export type SparkSide = 
+/**  No jogo (`/sparkc`). */
+"client" | 
+/**  No servidor. */
+"server" | 
+/**  Outra plataforma (proxy, aplicação). */
+"other";
+
 /**  Hora de uma ocorrência: o carimbo (eventos XML) ou a hora escrita pelo jogo. */
 export type Stamp = {
 	/**  Milissegundos desde 1970. */
@@ -7233,8 +7393,9 @@ export type TestMemory =
 mb: number };
 
 /**
- *  Modo do teste (ARCHITECTURE §4.1). Existem o normal, o "como o jogador recebe" (L-07) e o
- *  "como servidor" (L-09, em [`server_mode`]); o perfil de desempenho chega com a L-12.
+ *  Modo do teste (ARCHITECTURE §4.1): o normal, o "como o jogador recebe" (L-07), o perfil de
+ *  desempenho (L-12, com o gancho [`crate::test_hooks`] `perf_profile`) e o "como servidor"
+ *  (L-09, em [`server_mode`]).
  */
 export type TestMode = 
 /**  Teste normal. */
@@ -7289,6 +7450,12 @@ export type TestRequest = {
 	 *  vale.
 	 */
 	serverOnly?: boolean,
+	/**
+	 *  Testar como servidor com o perfil de desempenho: o Warden liga o spark do servidor pelo
+	 *  console quando o jogo abre e desliga no fim (L-12). Só vale no modo servidor com o jogo
+	 *  (o modo [`TestMode::Performance`] já é o perfil de desempenho no jogo).
+	 */
+	performance?: boolean,
 };
 
 /**  Uma sessão gravada, como a interface mostra. */
@@ -7400,6 +7567,46 @@ column: number } |
 key: string } | 
 /**  O arquivo não tem nenhuma chave. */
 { code: "noKeys" };
+
+/**  O tempo por tick (e os ticks por segundo) no período do perfil. */
+export type TickSummary = {
+	/**  Mediana do tempo por tick, em ms. */
+	msptMedian: number,
+	/**  Pior tick, em ms. */
+	msptMax: number,
+	/**  95% dos ticks levaram até este tempo, em ms (só nas estatísticas da plataforma). */
+	msptP95: number | null,
+	/**  Ticks por segundo, em média (20 é o normal do jogo). */
+	tps: number | null,
+	/**  Ticks medidos. */
+	ticks: number | null,
+};
+
+/**  Como o log registra o tempo de cada mod. */
+export type TimingSource = 
+/**  `Bar Step` do Forge 1.8 a 1.12.2 (nome de exibição do mod). */
+"barStep" | 
+/**  `Sending event`/`Sent event` do FML 1.7.10 (id do mod; horário em segundos). */
+"fmlEvents" | 
+/**  Pares em `TRACE` do Forge 1.13+ e do NeoForge (id do mod). */
+"trace";
+
+/**  O que a leitura conseguiu. */
+export type TimingStatus = 
+/**  Tempos lidos. */
+"measured" | 
+/**  O loader não registra o tempo de cada mod (Fabric, Quilt, vanilla). */
+"notRecorded" | 
+/**
+ *  O arquivo de log do loader não existe (o jogo nem chegou a carregar os mods, ou a
+ *  configuração de log não o grava).
+ */
+"logMissing" | 
+/**
+ *  O log existe, mas não tem as linhas de tempo (o jogo fechou antes, ou o registro
+ *  detalhado não ligou).
+ */
+"noLines";
 
 /**
  *  `title-bar-maximize`: o mouse entrou, saiu ou apertou o botão maximizar da barra de título
