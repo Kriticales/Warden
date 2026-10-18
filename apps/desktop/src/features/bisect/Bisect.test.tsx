@@ -4,19 +4,23 @@
  * rodadas, o modo assistido (CA-T25-04), pausar e cancelar; o resultado; o botão do cabeçalho
  * durante a busca; e os dados que mudam a cada rodada.
  */
+import { QueryClient } from '@tanstack/react-query';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { BisectRequest, BisectView, OperationEvent } from '../../lib/ipc/bindings';
+import { queryKeys } from '../../lib/ipc/keys';
 import { axePage } from '../../test/axe';
 import { deferred, type Handler } from '../../test/backend';
 import { renderApp } from '../../test/render';
+import { crashesKeys } from '../diagnostics/crashes/api';
 import { makeCrashList, makeGroup } from '../diagnostics/crashes/crashes.fixtures';
 import { makeReport } from '../diagnostics/diagnostics.fixtures';
 import { editorBackend } from '../pack-editor/testing';
 import { useTestStore } from '../test/store';
 import { makeGame, makeSession, makeSessionView, sendOnChannel } from '../test/test.fixtures';
+import { bisectKeys, invalidateAfterBisect } from './api';
 import { item, makeCurrent, makeFound, makePlan, makeRound, makeView } from './bisect.fixtures';
 
 afterEach(() => {
@@ -107,6 +111,30 @@ describe('menu ▾ e diálogo "Encontrar o mod culpado"', () => {
     expect(start).toHaveProperty('disabled', false);
   });
 
+  it('com uma busca pausada, o diálogo oferece continuá-la', async () => {
+    const { backend, url } = setup({
+      bisect_get: () => makeView({ status: 'paused', current: null }),
+      bisect_resume: () => deferred<BisectView>().promise,
+    });
+    await openPage(url);
+    const user = userEvent.setup();
+    await user.click(within(header()).getByRole('button', { name: 'Mais opções do teste' }));
+    await user.click(
+      within(await screen.findByRole('menu')).getByRole('menuitem', {
+        name: /Encontrar o mod culpado…/,
+      }),
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'Encontrar o mod culpado' });
+    expect(await within(dialog).findByText('Há uma busca pausada neste pack')).toBeDefined();
+    await user.click(within(dialog).getByRole('button', { name: 'Continuar a busca pausada' }));
+    await waitFor(() => {
+      expect(backend.callsOf('bisect_resume')).toHaveLength(1);
+    });
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Buscando o mod culpado' }),
+    ).toBeDefined();
+  });
+
   it('com o jogo aberto, o item espera (um jogo por vez)', async () => {
     const { row, url } = setup();
     useTestStore.setState({ game: makeGame(row.id, 'running') });
@@ -184,9 +212,8 @@ describe('modo da busca na tela do teste', () => {
     });
     expect(await screen.findByText(/Rodada 3: abrindo o jogo com 71 dos 118 mods/)).toBeDefined();
     expect(backend.callsOf('bisect_get').length).toBeGreaterThan(reads);
-    // No fim, a busca, os Travamentos e o grafo são lidos de novo.
+    // No fim, o resultado aparece.
     view = makeFound();
-    const crashes = backend.callsOf('crashes_list').length;
     await act(async () => {
       run.resolve(view);
       await run.promise;
@@ -197,9 +224,27 @@ describe('modo da busca na tela do teste', () => {
         name: /Culpado encontrado: Epic Fight \(junto com Supplementaries\)/,
       }),
     ).toBeDefined();
-    await waitFor(() => {
-      expect(backend.callsOf('crashes_list').length).toBeGreaterThanOrEqual(crashes);
-    });
+  });
+
+  it('o fim da busca invalida tudo o que mostra o resultado (busca, Travamentos e grafo)', async () => {
+    const queryClient = new QueryClient();
+    const packId = 'pack-1';
+    const keys = [
+      bisectKeys.current(packId),
+      bisectKeys.plan(packId),
+      crashesKeys.list(packId),
+      crashesKeys.detail(packId, 'abc'),
+      [...queryKeys.packArea(packId, 'inventory'), 'graph', 'whole'],
+      [...queryKeys.packArea(packId, 'inventory'), 'graph', 'dependents', 'mods/a.pw.toml'],
+    ];
+    for (const key of keys) queryClient.setQueryData(key, 'antes');
+    // Outro pack não muda.
+    queryClient.setQueryData(bisectKeys.current('outro'), 'antes');
+    await invalidateAfterBisect(queryClient, packId);
+    for (const key of keys) {
+      expect(queryClient.getQueryState(key)?.isInvalidated, JSON.stringify(key)).toBe(true);
+    }
+    expect(queryClient.getQueryState(bisectKeys.current('outro'))?.isInvalidated).toBe(false);
   });
 
   it('CA-T25-04: no modo assistido a rodada mostra as três respostas', async () => {

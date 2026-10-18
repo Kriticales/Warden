@@ -415,6 +415,39 @@ async fn ca_t25_03_pausar_e_continuar_da_rodada_seguinte() {
     assert!(task.await.unwrap().is_err(), "busca terminada não continua");
 }
 
+/// "Fechar o Warden" (ou "Parar jogo") no meio de uma rodada pausa a busca: o jogo fecha, a
+/// rodada interrompida não conta e nenhuma rodada nova abre.
+#[tokio::test(flavor = "multi_thread")]
+async fn fechar_o_app_no_meio_pausa_sem_contar_a_rodada() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    write_world(&state, pack);
+    let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    wait_until("primeira rodada", || seen.rounds_done() >= 1).await;
+    wait_until("jogo da rodada seguinte", || {
+        control_of(pack)
+            .and_then(|control| control.current.lock().unwrap().clone())
+            .is_some_and(|current| current.number == 1)
+            && state.tests.current().is_some()
+    })
+    .await;
+    assert!(
+        state.tests.stop_all(Duration::from_secs(10)).await,
+        "a busca não parou"
+    );
+    let view = task.await.unwrap().unwrap();
+    assert_eq!(view.status, BisectStatus::Paused);
+    assert_eq!(view.rounds.len(), 1, "a rodada interrompida contou");
+    assert!(state.tests.current().is_none());
+    let saved = get(&state.paths, pack).unwrap().unwrap();
+    assert_eq!(saved.status, BisectStatus::Paused);
+}
+
 /// Modo assistido pelo app: cada rodada pergunta ao entrar no mundo; a resposta conta.
 #[tokio::test(flavor = "multi_thread")]
 async fn modo_assistido_pergunta_em_cada_rodada() {

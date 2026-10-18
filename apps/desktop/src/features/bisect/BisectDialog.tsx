@@ -10,7 +10,7 @@
  * um mundo de teste na instância de teste. Nas versões anteriores, a entrada no mundo é pelo
  * servidor local, que chega com a D-13; até lá a opção explica e fica indisponível.
  */
-import { Check, Target } from 'lucide-react';
+import { Check, Play, Target } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -197,7 +197,23 @@ function Body({
           <p className="t-sm t-2">{t('dialogo.comoFunciona')}</p>
           <p className="t-sm t-2">{t('dialogo.naoMexa')}</p>
           {paused ? (
-            <Alert kind="warn" compact title={t('dialogo.pausadaTitulo')}>
+            <Alert
+              kind="warn"
+              compact
+              title={t('dialogo.pausadaTitulo')}
+              actions={
+                <Button
+                  size="sm"
+                  icon={Play}
+                  onClick={() => {
+                    onOpenChange(false);
+                    start({ kind: 'resume' });
+                  }}
+                >
+                  {t('dialogo.continuarPausada')}
+                </Button>
+              }
+            >
               {t('dialogo.pausadaTexto')}
             </Alert>
           ) : null}

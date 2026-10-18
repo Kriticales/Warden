@@ -1060,7 +1060,14 @@ impl Runner<'_> {
             let started = Instant::now();
             let run = self.round(saved, game, lookup, &plan).await?;
             let Some(verdict) = run.verdict else {
-                continue;
+                // Rodada interrompida: cancelar, ou "Parar jogo"/fechar o Warden, que pausam
+                // (a rodada não conta e é refeita ao continuar).
+                if self.control.cancel.load(Ordering::SeqCst) {
+                    saved.search.cancel();
+                } else {
+                    saved.paused = true;
+                }
+                return Ok(());
             };
             let first_reproduce = matches!(plan.kind, RoundKind::Reproduce { .. });
             if first_reproduce && let Some(reached) = run.reached_ms {

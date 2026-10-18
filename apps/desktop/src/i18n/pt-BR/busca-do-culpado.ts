@@ -38,8 +38,8 @@ export const buscaDoCulpado = {
     naoMexa:
       'Não mexa na janela do jogo durante a busca: o Warden entra no mundo e fecha o jogo sozinho. Enquanto a busca roda, não dá para testar outra coisa.',
     pausadaTitulo: 'Há uma busca pausada neste pack',
-    pausadaTexto:
-      'Começar uma busca nova descarta a pausada. Para continuar a pausada, use “Continuar a busca” na tela do teste.',
+    pausadaTexto: 'Começar uma busca nova descarta a pausada.',
+    continuarPausada: 'Continuar a busca pausada',
     semMods: 'Este pack não tem mods para procurar.',
     cancelar: 'Cancelar',
     comecar: 'Começar a busca',
