@@ -1,16 +1,14 @@
 /**
  * Coluna Saúde de Meus packs (SPEC T02, CA-T02-05; decisão D24; protótipo `packs`,
  * `packTableHead({ withHealth })`): a última nota guardada de cada pack, com a mesma faixa da
- * seção Problemas. Abrir a lista só lê as notas guardadas (`health_list`), nunca roda o
- * diagnóstico; pack sem nota mostra "Sem dados".
+ * seção Problemas. Abrir a lista só lê as notas guardadas (`health_list`, uma vez para a tabela
+ * inteira, em `PacksPage`), nunca roda o diagnóstico; pack sem nota mostra "Sem dados".
  */
 import { useTranslation } from 'react-i18next';
 
 import { Skeleton } from '../../../components/common/LoadingState';
 import { Tooltip } from '../../../components/ui/tooltip';
-import type { PackId } from '../../../lib/ipc/bindings';
-import { useHealthList } from './api';
-import { HealthMeter } from './HealthMeter';
+import { HealthMeter, type HealthValue } from './HealthMeter';
 import './health.css';
 
 /** O título da coluna, com a dica do que a nota é. */
@@ -27,10 +25,9 @@ export function HealthColumnHeader() {
   );
 }
 
-/** A célula de um pack. */
-export function HealthCell({ packId }: { packId: PackId }) {
-  const list = useHealthList();
-  if (list.isPending) {
+/** A célula de um pack (`value`: `null` sem dados, `undefined` enquanto as notas são lidas). */
+export function HealthCell({ value }: { value: HealthValue | null | undefined }) {
+  if (value === undefined) {
     return (
       <td aria-busy="true">
         <Skeleton width="60%" />
@@ -39,7 +36,7 @@ export function HealthCell({ packId }: { packId: PackId }) {
   }
   return (
     <td>
-      <HealthMeter value={list.data?.get(packId) ?? null} size="sm" />
+      <HealthMeter value={value} size="sm" />
     </td>
   );
 }

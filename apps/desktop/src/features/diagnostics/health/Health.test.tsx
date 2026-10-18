@@ -23,6 +23,7 @@ import { crashTitle } from '../crashes/text';
 import { MISSING_DEP, WRONG_SIDE, makeEntry, makeReport } from '../diagnostics.fixtures';
 import { findingTitle } from '../text';
 import { healthKeys } from './api';
+import { HealthCell } from './HealthColumn';
 import { CA_T14_07, finding, line, makeHealth } from './health.fixtures';
 
 const inventory = makeInventory([
@@ -451,6 +452,27 @@ describe('coluna Saúde de Meus packs (T02)', () => {
       expect(backend.callsOf(command)).toHaveLength(0);
     }
     expect(await axePage(container)).toHaveNoViolations();
+  });
+
+  it('CA-T02-01: a célula só mostra a nota que a tabela leu, sem consulta própria por linha', () => {
+    // Sem QueryClient: uma célula que lesse as notas por conta própria quebraria aqui (51 linhas
+    // com uma consulta cada deixavam a lista de 50 packs acima de 1 s).
+    const cells = render(
+      <table>
+        <tbody>
+          <tr>
+            <HealthCell value={{ score: 88, band: 'good' }} />
+            <HealthCell value={null} />
+            <HealthCell value={undefined} />
+          </tr>
+        </tbody>
+      </table>,
+    );
+    const [good, none, reading] = Array.from(cells.container.querySelectorAll('td'));
+    expect(good?.textContent).toContain('88');
+    expect(good?.textContent).toContain('Bom');
+    expect(none?.textContent).toContain('Sem dados');
+    expect(reading?.getAttribute('aria-busy')).toBe('true');
   });
 
   it('a dica do título diz o que a nota é', async () => {

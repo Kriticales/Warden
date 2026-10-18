@@ -34,6 +34,7 @@ import type { PackRow } from '../../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { dayRelation, formatDate, formatTime } from '../../../lib/format';
 import { HealthCell } from '../../diagnostics/health/HealthColumn';
+import type { HealthValue } from '../../diagnostics/health/HealthMeter';
 import { useChooseFolder, useRelocatePack, useRevealPack } from '../api';
 import { lastTestKind, loaderName, type LastTestKind } from '../lib/pack-list';
 import type { RowDialog } from './PacksPage';
@@ -43,10 +44,17 @@ interface RowProps {
   onDialog: (dialog: RowDialog) => void;
 }
 
-export function PackTableRow({ row, onDialog }: RowProps) {
+export function PackTableRow({
+  row,
+  health,
+  onDialog,
+}: RowProps & {
+  /** A última nota guardada (`null`: sem dados; `undefined`: ainda lendo). */
+  health: HealthValue | null | undefined;
+}) {
   switch (row.status) {
     case 'ready':
-      return <ReadyRow row={row} onDialog={onDialog} />;
+      return <ReadyRow row={row} health={health} onDialog={onDialog} />;
     case 'folderMissing':
       return <MissingRow row={row} onDialog={onDialog} />;
     case 'invalidPack':
@@ -103,7 +111,11 @@ function toastError(error: unknown) {
   showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
 }
 
-function ReadyRow({ row, onDialog }: RowProps) {
+function ReadyRow({
+  row,
+  health,
+  onDialog,
+}: RowProps & { health: HealthValue | null | undefined }) {
   const { t } = useTranslation('packs');
   const navigate = useNavigate();
   const reveal = useRevealPack();
@@ -138,7 +150,7 @@ function ReadyRow({ row, onDialog }: RowProps) {
       <td>
         <LastTest value={row.lastTest} />
       </td>
-      <HealthCell packId={row.id} />
+      <HealthCell value={health} />
       <td className="num">
         <span
           className={row.unsavedFiles > 0 ? 't-warn' : 't-3'}
