@@ -490,6 +490,40 @@ async fn geracao_que_falha_pausa_e_continuar_tenta_de_novo() {
     assert!(worlds.ready("1.20.1"));
 }
 
+/// O servidor que não fecha com `stop` (encerrado à força depois de 60 s, no meio do "Saving
+/// worlds") não deixa modelo: o mundo pode ter ficado pela metade e seria usado em todas as
+/// buscas do pack. A busca pausa com o erro da geração.
+#[tokio::test(flavor = "multi_thread")]
+async fn servidor_encerrado_a_forca_nao_deixa_modelo() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    fake_server_mode(&root, Some("ignorar-stop"));
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let error = tokio::time::timeout(Duration::from_secs(120), task)
+        .await
+        .expect("o servidor não foi encerrado à força")
+        .unwrap()
+        .unwrap_err();
+    assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
+    assert!(
+        error.detail.unwrap().contains("encerrado à força"),
+        "sem o motivo nos detalhes"
+    );
+    let worlds = world::WorldDirs::of(&state.paths, pack);
+    assert!(!worlds.ready("1.20.1"));
+    assert!(!worlds.world().exists(), "o mundo pela metade virou modelo");
+    assert!(state.servers.current().is_none());
+    assert_eq!(
+        get(&state.paths, pack).unwrap().unwrap().status,
+        BisectStatus::Paused
+    );
+}
+
 /// Cancelar enquanto o servidor gera o mundo encerra o servidor na hora (a porta fica livre),
 /// não deixa modelo pela metade e guarda a busca cancelada; o tempo esgotado também encerra o
 /// servidor e vira o erro da geração.

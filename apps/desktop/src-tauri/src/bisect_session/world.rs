@@ -315,15 +315,17 @@ async fn run_server(
             return Err(AppError::cancelled());
         }
     };
-    if stopped.forced {
-        tracing::warn!(
-            "o servidor do mundo de teste não fechou com stop; o mundo pode ter ficado pela metade"
-        );
-    }
     running
         .wait()
         .await
         .map_err(|error| AppError::from_domain(&error))?;
+    // Encerrado à força no meio do "Saving worlds", o mundo pode ter ficado pela metade: não
+    // vira modelo (seria reaproveitado em todas as buscas do pack).
+    if stopped.forced {
+        return Err(AppError::internal(
+            "o servidor do mundo de teste não fechou com stop e foi encerrado à força",
+        ));
+    }
     Ok(())
 }
 
