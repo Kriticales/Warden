@@ -18,6 +18,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
+import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
 function env(name: string): string {
@@ -180,7 +181,7 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
 
   it('abre o pack e, em Meus packs, a confirmação aberta pelo ⋯ devolve o foco ao ⋯', async () => {
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
