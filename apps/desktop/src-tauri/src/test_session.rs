@@ -57,7 +57,7 @@ pub(crate) use self::console::{ConsoleBuffer, read_output_log};
 pub use self::console::{ConsoleLevel, ConsoleLine, ConsoleOrigin, ConsoleStream};
 pub(crate) use self::launch_plan::{PlanInput, choose_memory, launch_options};
 pub(crate) use self::records::{
-    TestSessionSummary, last_test_value, pack_tree_hash, pack_tree_hash_of,
+    TestSessionSummary, last_test_value, pack_tree_hash, pack_tree_hash_of, parse_rfc3339_utc_ms,
 };
 pub(crate) use self::server_mode::{ServerSide, server_log_path, server_side};
 pub(crate) use self::system::{available_memory_mb, total_memory_mb};
@@ -1085,6 +1085,8 @@ impl Runner<'_> {
         {
             tracing::warn!(%error, "último teste não gravado em packs.json");
         }
+        // A nota de saúde de Meus packs com o teste que acabou (D-08).
+        crate::commands::health::refresh_logged(self.state, self.pack_id);
         Ok(())
     }
 }

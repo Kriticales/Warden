@@ -140,6 +140,8 @@ fn setup(app: &mut tauri::App, dev_root: Option<&Path>) -> Result<(), Box<dyn st
     // Servidor local (L-09): o evento `server-state`.
     commands::server::connect(&state.servers, app.handle().clone());
     app.manage(state);
+    // A nota de saúde guardada acompanha cada mudança do pack (D-08).
+    commands::health::connect(app.handle());
 
     #[cfg(debug_assertions)]
     commands::report::grant_e2e_capability(app)?;

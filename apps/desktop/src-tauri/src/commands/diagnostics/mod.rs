@@ -272,8 +272,9 @@ fn last_report(state: &AppState, pack_id: PackId) -> Result<Option<DiagnosticsRe
     Ok(Some(report))
 }
 
-/// O resumo do pack agora (o mesmo do Testar: `pack.toml` e o índice).
-fn current_pack_hash(root: &Path) -> Option<String> {
+/// O resumo do pack agora (o mesmo do Testar: `pack.toml` e o índice; também da nota de
+/// saúde, D-08).
+pub(crate) fn current_pack_hash(root: &Path) -> Option<String> {
     let text = std::fs::read_to_string(root.join(warden_packwiz::PACK_FILE)).ok()?;
     let manifest = warden_packwiz::PackManifest::parse(&text).ok()?.value;
     crate::test_session::pack_tree_hash(root, &manifest.index.file).ok()
