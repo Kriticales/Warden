@@ -404,7 +404,8 @@ mod tests {
     fn modelo_so_vale_com_a_mesma_versao_e_semente() {
         let dir = tempfile::tempdir().unwrap();
         let paths = AppPaths::from_dev_root(dir.path()).unwrap();
-        let dirs = WorldDirs::of(&paths, PackId::new());
+        let pack = PackId::new();
+        let dirs = WorldDirs::of(&paths, pack);
         assert!(!dirs.ready("1.20.1"));
         std::fs::create_dir_all(dirs.world()).unwrap();
         std::fs::write(dirs.world().join(LEVEL_DAT), "nbt").unwrap();
@@ -425,8 +426,9 @@ mod tests {
         std::fs::write(dirs.marker(), "{").unwrap();
         assert!(!dirs.ready("1.20.1"));
         // O modelo fica no estado da instância de teste, longe do pack e dos mundos.
-        let test = InstanceDirs::for_pack(&paths, PackId::new());
-        assert!(!dirs.world().starts_with(test.game_dir.join("saves")));
+        let test = InstanceDirs::for_pack(&paths, pack);
+        assert!(dirs.world().starts_with(&test.state_dir));
+        assert!(!dirs.world().starts_with(&test.game_dir));
     }
 
     #[test]
