@@ -114,9 +114,9 @@ export function BisectResult({
       body = (
         <Alert kind="warn" title={t('resultado.entre', { count: names.length })}>
           <p>
-            {t('resultado.cancelada.texto', {
-              count: Math.max(0, view.searched - names.length),
-            })}
+            {view.searched > names.length
+              ? t('resultado.cancelada.texto', { count: view.searched - names.length })
+              : t('resultado.cancelada.nenhum')}
           </p>
           <p className="t-sm mt-1">{joinNames(names)}</p>
         </Alert>

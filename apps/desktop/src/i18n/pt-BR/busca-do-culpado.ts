@@ -185,8 +185,7 @@ export const buscaDoCulpado = {
     resultado: 'Resultado',
     tempo: 'Tempo',
     log: 'Log',
-    mods_one: '({{count}} mod)',
-    mods_other: '({{count}} mods)',
+    mods: '({{n}})',
     repeticao: '· repetição {{vez}}',
     verLog: 'Ver o log da rodada {{rodada}}',
   },
@@ -282,6 +281,7 @@ export const buscaDoCulpado = {
     },
     cancelada: {
       titulo: 'Busca cancelada',
+      nenhum: 'A busca parou antes de descartar algum mod.',
       texto_one: 'A busca parou antes do fim, mas já descartou {{count}} mod.',
       texto_other: 'A busca parou antes do fim, mas já descartou {{count}} mods.',
     },

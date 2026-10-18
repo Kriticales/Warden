@@ -182,9 +182,7 @@ export function RoundsTable({ packId, view }: { packId: PackId; view: BisectView
                 <td className="num">{view.current.number}</td>
                 <td>
                   {roundWhat(view.current.kind, view.current.found)}{' '}
-                  <span className="t-3">
-                    {t('tabela.mods', { count: view.current.enabledCount })}
-                  </span>
+                  <span className="t-3">{t('tabela.mods', { n: view.current.enabledCount })}</span>
                 </td>
                 <td>
                   <span className="status status--muted">
@@ -227,7 +225,7 @@ function RoundRow({
       <td className="num">{round.number}</td>
       <td>
         {roundWhat(round.kind, found)}{' '}
-        <span className="t-3">{t('tabela.mods', { count: round.enabledCount })}</span>
+        <span className="t-3">{t('tabela.mods', { n: round.enabledCount })}</span>
       </td>
       <td>
         <span className={`status status--${kind}`}>{verdictWord(round.verdict)}</span>
