@@ -165,8 +165,9 @@ impl FakeServer {
     }
 }
 
-/// O instalador com a rede, o catálogo e o cache do app (`<cache>/server`).
-fn installer(state: &AppState) -> Result<Installer, AppError> {
+/// O instalador com a rede, o catálogo e o cache do app (`<cache>/server`); também dá os
+/// endereços dos scripts do pacote para servidor (E-03).
+pub(crate) fn installer(state: &AppState) -> Result<Installer, AppError> {
     let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version(env!(
         "CARGO_PKG_VERSION"
     )))

@@ -36,8 +36,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::watch;
 use warden_core::{AppPaths, CancellationToken, PackId, ProgressSink as _};
 use warden_instance::{
-    DownloadCache, GameRequirement, InstanceDirs, MaterializeOptions, OnModified, OptionalChoices,
-    OptionalSelection, Sources,
+    DownloadCache, GameRequirement, InstallerCache, InstanceDirs, MaterializeOptions, OnModified,
+    OptionalChoices, OptionalSelection, Sources,
 };
 use warden_java::{JavaChoiceRequest, LoaderKind, RuntimeLease};
 use warden_launcher::outcome::Outcome;
@@ -234,6 +234,19 @@ impl TestSessions {
     /// O servidor simulado do E2E, quando ligado junto com o jogo simulado (L-09).
     pub(crate) fn fake_server(&self) -> Option<&crate::server_session::FakeServer> {
         self.fake_server.as_ref()
+    }
+
+    /// O Java do jogo simulado do E2E, quando ligado: a validação do pacote para servidor
+    /// (E-03) abre o servidor simulado com ele.
+    pub(crate) fn fake_java(&self) -> Option<JavaRuntime> {
+        self.fake.as_ref().map(FakeGame::java)
+    }
+
+    /// O cache do bootstrap e do installer (`cache/installer`), com o endereço dos testes e do
+    /// E2E: o "Testar como o jogador recebe" e o pacote para servidor (E-03) usam os mesmos jars.
+    pub(crate) fn installer_cache(&self, paths: &AppPaths) -> InstallerCache {
+        InstallerCache::new(paths.cache_dir().join("installer"))
+            .with_base(self.player.installer_base.clone())
     }
 
     /// O mesmo, com o servidor simulado na pasta dada (testes).
@@ -1233,7 +1246,7 @@ fn read_pack_info(root: &Path) -> Result<PackInfo, AppError> {
 }
 
 /// O jogo do `pack.toml`. Erros: `app.TEST_LOADER_UNSUPPORTED` (`LiteLoader`) e os de versão.
-fn game_spec(requirement: &GameRequirement) -> Result<GameSpec, AppError> {
+pub(crate) fn game_spec(requirement: &GameRequirement) -> Result<GameSpec, AppError> {
     let loader = match &requirement.loader {
         None => LoaderSpec::Vanilla,
         Some(loader) => {
@@ -1264,7 +1277,7 @@ fn install_error(error: &warden_launcher::Error) -> AppError {
 }
 
 /// O loader para a política de Java.
-fn loader_kind(loader: &LoaderSpec) -> LoaderKind {
+pub(crate) fn loader_kind(loader: &LoaderSpec) -> LoaderKind {
     match loader {
         LoaderSpec::Vanilla => LoaderKind::Vanilla,
         LoaderSpec::Fabric { .. } => LoaderKind::Fabric,
@@ -1363,3 +1376,8 @@ pub(crate) fn session_dir(
 
 #[cfg(test)]
 mod tests;
+
+/// A validação do pacote para servidor no servidor local (E-03), com o jogo e o servidor
+/// simulados destes testes.
+#[cfg(test)]
+mod server_pack_tests;

@@ -196,3 +196,10 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `IBM Plex Mono` | OFL-1.1 ([`OFL-IBMPlexMono.txt`](design/system/fonts/OFL-IBMPlexMono.txt)) | Console, versões, caminhos, configs e diff (DESIGN-SYSTEM §3). |
 | `Manrope` | OFL-1.1 ([`OFL-Manrope.txt`](design/system/fonts/OFL-Manrope.txt)) | Texto de leitura, botões, campos e tabelas (DESIGN-SYSTEM §3). |
 | `Pixelify Sans` | OFL-1.1 ([`OFL-PixelifySans.txt`](design/system/fonts/OFL-PixelifySans.txt)) | Títulos curtos, menu de seções e Testar (DESIGN-SYSTEM §3). |
+
+## Programas distribuídos dentro de arquivos gerados pelo app
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [packwiz/packwiz-installer-bootstrap](https://github.com/packwiz/packwiz-installer-bootstrap) | 0.0.3 | MIT | "Pacote para servidor" pelo link (E-03): vai dentro do zip como `packwiz-installer-bootstrap.jar`, sem alterações, o mesmo jar do "Testar como o jogador recebe" (seção acima), conferido pelo SHA-256 fixado antes de entrar no zip e acompanhado do aviso da licença MIT (`LICENCAS-DE-TERCEIROS.txt`). |
+| [packwiz/packwiz-installer](https://github.com/packwiz/packwiz-installer) | 0.5.14 | MIT | "Pacote para servidor" pelo link (E-03): vai dentro do zip como `packwiz-installer.jar`, do mesmo jeito que o bootstrap. |

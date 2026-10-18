@@ -69,8 +69,8 @@ export function ServerResult({ packId, session }: ResultBlockProps) {
   );
 }
 
-/** "Por que o servidor travou". */
-function WhyServerCrashed({ crash }: { crash: ServerCrash }) {
+/** "Por que o servidor travou" (também no resultado do pacote para servidor, E-03). */
+export function WhyServerCrashed({ crash }: { crash: ServerCrash }) {
   const { t } = useTranslation('servidor');
   const [mod] = crash.mods;
   let cause: string;
