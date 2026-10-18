@@ -58,9 +58,10 @@ use warden_packwiz::{
 };
 
 use crate::blocked::BlockedFile;
+use warden_core::rename_with_retry;
+
 use crate::downloads::{
     DownloadCache, Fetched, FileOrigin, STALE_PART_AGE, copy_hashing, hash_file, remove_if_exists,
-    rename_with_retry,
 };
 use crate::error::{Error, FailedItem, FailureReason, Result};
 use crate::manifest::{EntryOrigin, Manifest, ManifestEntry, ModrinthIds, modified_ns};

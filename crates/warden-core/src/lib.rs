@@ -6,7 +6,9 @@
 //!   (reexportado de `tokio-util`).
 //! - Pastas do app: [`AppPaths`] (ARCHITECTURE §13; ADR-0048 para as pastas de
 //!   desenvolvimento).
-//! - Escrita atômica: [`atomic_write`] (`.warden-tmp` + fsync + renomeação).
+//! - Escrita atômica: [`atomic_write`] (`.warden-tmp` + fsync + renomeação), e a renomeação e
+//!   a remoção que toleram por instantes um arquivo aberto por outro programa no Windows
+//!   ([`rename_with_retry`], [`remove_file_with_retry`], [`retry_on_sharing_error`]).
 //! - Caminhos seguros: [`resolve_inside`], que recusa qualquer caminho que saia da raiz.
 //! - Erros: o trait [`DomainError`], implementado pelo erro de cada crate, e o erro desta
 //!   crate, [`CoreError`], com os códigos comuns a todas ([`CoreErrorCode`]).
@@ -26,7 +28,10 @@ mod paths;
 mod progress;
 
 pub use error::{CoreError, CoreErrorCode, DomainCode, DomainError, NoDomainCode, error_chain};
-pub use fs::{TEMP_SUFFIX, atomic_write, atomic_write_private, remove_temp_files};
+pub use fs::{
+    TEMP_SUFFIX, atomic_write, atomic_write_private, is_windows_sharing_error,
+    remove_file_with_retry, remove_temp_files, rename_with_retry, retry_on_sharing_error,
+};
 pub use ids::{InvalidId, OperationId, PackId};
 pub use path::resolve_inside;
 pub use paths::{AppPaths, DATA_ROOT_ENV, SystemDirs};

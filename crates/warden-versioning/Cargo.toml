@@ -27,6 +27,11 @@ serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 
+[target.'cfg(windows)'.dependencies]
+# `GIT_OPT_SET_WINDOWS_SHAREMODE` (`src/share_mode.rs`): a `git2` não expõe a opção. A mesma
+# `libgit2-sys` que a `git2` já usa (o `Cargo.lock` tem uma só versão).
+libgit2-sys.workspace = true
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-subscriber.workspace = true

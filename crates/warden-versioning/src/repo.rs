@@ -113,6 +113,7 @@ impl PackRepo {
     /// quando só uma pasta acima é um repositório); [`Error::RepoNotOwned`] se a libgit2
     /// recusar um repositório de outro usuário.
     pub fn open(root: &Path) -> Result<Self> {
+        crate::share_mode::configure();
         let repo = match Repository::open_ext(
             root,
             RepositoryOpenFlags::NO_SEARCH,
@@ -172,6 +173,7 @@ impl PackRepo {
             .initial_head(MAIN_BRANCH)
             .no_reinit(true)
             .mkpath(false);
+        // `Self::open` acima já configurou o compartilhamento de arquivos (§15).
         let repo = Repository::init_opts(root, &options).ctx("criar o repositório")?;
         {
             let mut config = repo.config().ctx("ler a configuração do repositório")?;

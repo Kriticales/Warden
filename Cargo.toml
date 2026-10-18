@@ -57,6 +57,7 @@ criterion = { version = "0.8.2", default-features = false, features = ["cargo_be
 encoding_rs = "0.8.42"
 flate2 = "1.1.10"
 git2 = { version = "0.21.0", default-features = false, features = ["vendored-libgit2"] }
+libgit2-sys = { version = "0.18.8", default-features = false }
 governor = { version = "0.10.4", default-features = false, features = ["std"] }
 hex = "0.4.3"
 httpdate = "1.0.3"

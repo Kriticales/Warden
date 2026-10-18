@@ -6832,6 +6832,7 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-util",
+ "tracing",
  "ulid",
 ]
 
@@ -7316,6 +7317,7 @@ dependencies = [
  "git2",
  "hex",
  "insta",
+ "libgit2-sys",
  "proptest",
  "regex",
  "secrecy",
