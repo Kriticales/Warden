@@ -34,6 +34,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
+import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -231,7 +232,7 @@ describe('Busca do culpado com o servidor local (D-13; CA-T25-06)', function () 
   it('pede antes de abrir, sobe o servidor em cada rodada e acha o mod pelo log do servidor', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FOLDER, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
