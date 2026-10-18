@@ -18,6 +18,7 @@ use serde_json::{Value, json};
 use sha2::{Digest as _, Sha256};
 use warden_ai::conversation::{AiSymptom, ConversationOrigin};
 use warden_ai::evidence::ClaimStatus;
+use warden_ai::providers::{AiProvider, ModelTier};
 use warden_ai::tools::{AiPermissions, ToolSource as _};
 use warden_core::PackId;
 use warden_project::registry::PackRecord;
@@ -27,7 +28,8 @@ use wiremock::{Mock, MockServer, Request, Respond, ResponseTemplate};
 use super::PackTools;
 use crate::commands::ai::{
     AiConversationState, AiPreviewRequest, AiSource, GeminiKeyTester, delete_impl, get_impl,
-    list_impl, preview_impl, remember_pick, run_impl, send_impl, start_impl,
+    list_impl, preview_impl, provider_set_impl, remember_pick, run_impl, send_impl,
+    settings_set_impl, settings_view, start_impl,
 };
 use crate::commands::secrets::SecretTester as _;
 use crate::state::AppState;
@@ -818,4 +820,150 @@ async fn ultimo_travamento_crash_report_log_e_mensagem_de_jogador() {
         answer.checked.confidence,
         warden_ai::evidence::ConfidenceMeter::Low
     );
+}
+
+// ---------- Vários provedores (D-15, ADR-0060) ----------
+
+/// Uma resposta final sem conclusão (válida, sem evidências).
+fn no_conclusion() -> Value {
+    calls(&[(
+        "responder",
+        json!({ "resumo": "Sem conclusão.", "semConclusao": true, "achados": [], "propostas": [] }),
+    )])
+}
+
+fn code_of(error: &crate::error::AppError) -> Value {
+    serde_json::to_value(error.code).unwrap()
+}
+
+#[tokio::test]
+async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a_sua() {
+    let setup = setup(Box::new(|_, _| unreachable!("nada vai à IA"))).await;
+    let file = setup
+        .state
+        .paths
+        .data_dir()
+        .join("ai")
+        .join("settings.json");
+    fs::create_dir_all(file.parent().unwrap()).unwrap();
+    // O arquivo como a D-04 gravava: só a escolha do Gemini.
+    fs::write(&file, r#"{ "tier": "careful" }"#).unwrap();
+    let view = settings_view(&setup.state).unwrap();
+    assert_eq!(view.provider, AiProvider::Gemini);
+    assert_eq!(view.tier, ModelTier::Careful);
+    assert!(view.key_configured);
+    let order: Vec<AiProvider> = view.providers.iter().map(|p| p.provider).collect();
+    assert_eq!(order, AiProvider::ALL);
+    assert!(!view.providers[1].key_configured && !view.providers[2].key_configured);
+
+    // Cada provedor guarda a sua escolha; voltar ao Gemini traz a dele.
+    let view = provider_set_impl(&setup.state, AiProvider::Openai).unwrap();
+    assert_eq!(
+        (view.provider, view.tier, view.key_configured),
+        (AiProvider::Openai, ModelTier::Economical, false)
+    );
+    let view = settings_set_impl(&setup.state, ModelTier::Careful).unwrap();
+    assert_eq!(view.tier, ModelTier::Careful);
+    let view = provider_set_impl(&setup.state, AiProvider::Anthropic).unwrap();
+    assert_eq!(view.tier, ModelTier::Economical);
+    let view = provider_set_impl(&setup.state, AiProvider::Gemini).unwrap();
+    assert_eq!(view.tier, ModelTier::Careful);
+    assert_eq!(view.providers[1].tier, ModelTier::Careful);
+
+    // As chaves de cada provedor ficam no cofre, nunca no arquivo das configurações.
+    const OPENAI: &str = "sk-proj-chave-de-teste-da-openai-0123456789";
+    const ANTHROPIC: &str = "sk-ant-api03-chave-de-teste-da-anthropic-0123";
+    for (kind, value) in [
+        (SecretKind::Openai, OPENAI),
+        (SecretKind::Anthropic, ANTHROPIC),
+    ] {
+        setup
+            .state
+            .secrets
+            .set(kind, &SecretString::from(value))
+            .unwrap();
+    }
+    let view = settings_view(&setup.state).unwrap();
+    assert!(view.providers.iter().all(|p| p.key_configured));
+    let text = fs::read_to_string(&file).unwrap();
+    for secret in [KEY, OPENAI, ANTHROPIC] {
+        assert!(!text.contains(secret), "{text}");
+    }
+    let saved: Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(saved["aiProvider"], "gemini");
+    assert_eq!(
+        saved["tier"], "careful",
+        "a versão antiga continua lendo o Gemini"
+    );
+    assert_eq!(saved["tiers"]["openai"], "careful");
+}
+
+#[tokio::test]
+async fn ca_t14_21_conversa_fica_no_provedor_em_que_comecou() {
+    let setup = setup(Box::new(|_, _| no_conclusion())).await;
+    let preview = preview_impl(
+        &setup.state,
+        setup.pack,
+        AiPreviewRequest {
+            symptom: AiSymptom::Other,
+            source: AiSource::PackOnly,
+            note: None,
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(preview.provider, AiProvider::Gemini);
+    let id = start_impl(
+        &setup.state,
+        setup.pack,
+        &preview.preview_id,
+        AiPermissions::default(),
+    )
+    .unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+
+    // Trocar o provedor ativo não muda a conversa: ela continua com o Gemini e a chave dele.
+    provider_set_impl(&setup.state, AiProvider::Openai).unwrap();
+    let view = get_impl(&setup.state, setup.pack, &id).await.unwrap();
+    assert_eq!(view.provider, AiProvider::Gemini);
+    assert_eq!(view.model, preview.model);
+    send_impl(&setup.state, setup.pack, &id, "E agora?").unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+    assert_eq!(generated(&setup.seen).len(), 2);
+
+    // Sem a chave do provedor da conversa: o pedido dessa chave, sem nenhuma requisição.
+    setup.state.secrets.remove(SecretKind::Gemini).unwrap();
+    send_impl(&setup.state, setup.pack, &id, "E se eu atualizar?").unwrap();
+    let before = setup.seen.lock().unwrap().len();
+    let error = run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap_err();
+    assert_eq!(
+        code_of(&error),
+        json!({ "domain": "ai", "code": "PROVIDER_KEY_MISSING" })
+    );
+    assert_eq!(error.params["provider"], "gemini");
+    assert_eq!(error.params["providerName"], "Gemini");
+    assert_eq!(setup.seen.lock().unwrap().len(), before, "nada foi à rede");
+    // A conversa continua abrindo, com o erro na pergunta.
+    let view = get_impl(&setup.state, setup.pack, &id).await.unwrap();
+    assert_eq!(view.turns.len(), 3);
+    let failure = view.turns[2].failure.as_ref().unwrap();
+    assert_eq!(
+        (failure.domain.as_str(), failure.code.as_str()),
+        ("ai", "PROVIDER_KEY_MISSING")
+    );
+    assert_eq!(view.summary.state, AiConversationState::Failed);
+
+    // Com o provedor da conversa ativo de novo, falta a chave de sempre.
+    provider_set_impl(&setup.state, AiProvider::Gemini).unwrap();
+    let error = run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap_err();
+    assert_eq!(code_of(&error)["domain"], "secrets");
+    assert_eq!(setup.seen.lock().unwrap().len(), before);
 }

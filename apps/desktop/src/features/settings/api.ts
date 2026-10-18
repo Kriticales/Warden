@@ -122,4 +122,10 @@ export function packsDirProblem(error: AppError | null): string | null {
   return null;
 }
 
-export const SECRET_KINDS: readonly SecretKind[] = ['curseforge', 'gemini', 'github'];
+/**
+ * As chaves que as telas mostram hoje, na ordem da tela. As dos provedores de IA OpenAI e
+ * Anthropic já existem no backend (ADR-0060) e entram nas telas com a D-18.
+ */
+export type ShownSecretKind = Exclude<SecretKind, 'openai' | 'anthropic'>;
+
+export const SECRET_KINDS: readonly ShownSecretKind[] = ['curseforge', 'gemini', 'github'];

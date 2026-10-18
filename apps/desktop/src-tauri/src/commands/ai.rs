@@ -1,19 +1,22 @@
 //! Comandos do domínio `ai` (ARCHITECTURE §4.1 e §9.5; SPEC T14 ✦; ROADMAP D-04).
 //!
-//! - `ai_settings_get` / `ai_settings_set`: "Mais econômico" ou "Análise mais cuidadosa"
-//!   (`ai/settings.json` nos dados do Warden); `ai_models_get`: os modelos que a chave alcança,
-//!   pelo `models.list` (nenhum nome fixo no código, ADR-0055).
+//! - `ai_settings_get` / `ai_settings_set` / `ai_provider_set`: o provedor de IA ativo (Gemini,
+//!   o padrão, OpenAI ou Claude; ADR-0060) e, por provedor, "Mais econômico" ou "Análise mais
+//!   cuidadosa" (`ai/settings.json` nos dados do Warden); `ai_models_get`: os modelos que a
+//!   chave do provedor ativo alcança, pela lista de modelos da conta (nenhum nome fixo no
+//!   código, ADR-0055).
 //! - `ai_sources_list`: as sessões do Testar para "Começar pelo"; `ai_log_choose`: o diálogo
 //!   nativo para um log ou crash report do computador (o caminho não sai do backend).
-//! - `ai_conversation_preview`: o texto inicial **exato** (já redigido), o tamanho e o modelo,
-//!   para o consentimento. Não manda nada do pack: só o `models.list` (a chave, uma vez por
-//!   execução) e o `countTokens` do *system prompt* e das ferramentas, sem o texto do pack
-//!   (CA-T14-05: cancelar não manda nada).
+//! - `ai_conversation_preview`: o texto inicial **exato** (já redigido), o tamanho, o provedor e
+//!   o modelo, para o consentimento. Não manda nada do pack: só a lista de modelos (a chave, uma
+//!   vez por execução) e a contagem de tokens do *system prompt* e das ferramentas, sem o texto
+//!   do pack (CA-T14-05: cancelar não manda nada).
 //! - `ai_conversation_start`: depois do **✦ Começar conversa**, grava a conversa com as
 //!   permissões e o texto mostrado (guardado pela prévia, byte a byte), sem rede.
 //! - `ai_conversation_run`: roda a pergunta pendente (a primeira, uma nova ou de novo depois de
 //!   um erro). Demora: a interface não espera; acompanha pelo evento `ai-conversation-updated`.
-//!   Antes da primeira requisição, o `countTokens` do pedido inteiro.
+//!   Antes da primeira requisição, a contagem de tokens do pedido inteiro. Usa o provedor e a
+//!   chave **da conversa**, não o ativo (ADR-0060): sem essa chave, `AI_PROVIDER_KEY_MISSING`.
 //! - `ai_conversation_send`: acrescenta uma pergunta (sem rede); a interface chama `run` depois.
 //! - `ai_conversations_list`, `ai_conversation_get`, `ai_conversation_delete`.
 //!
@@ -21,7 +24,7 @@
 //! (CA-T14-06).
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
@@ -37,9 +40,8 @@ use warden_ai::conversation::{
 };
 use warden_ai::engine::{Engine, Limits, LiveStatus, NoObserver, Observer, now_ms, pending, push_question};
 use warden_ai::evidence::ClaimStatus;
-use warden_ai::gemini::GeminiClient;
-use warden_ai::models::{ModelChoices, ModelTier, fetch_choices, tier_of};
 use warden_ai::proposals::{Proposal, ProposalState};
+use warden_ai::providers::{self, AiProvider, Message, ModelChoices, ModelTier, Provider};
 use warden_ai::tools::AiPermissions;
 use warden_core::{CancellationToken, PackId, atomic_write_private};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -101,6 +103,7 @@ struct Preview {
     pack_id: PackId,
     symptom: AiSymptom,
     note: Option<String>,
+    provider: AiProvider,
     model: String,
     initial: initial::Initial,
     snapshot: PackSnapshot,
@@ -124,15 +127,15 @@ pub(crate) struct AiHub {
     /// confere o cancelamento com ela presa, e quem apaga cancela e apaga com ela presa (a
     /// conversa apagada no meio de uma resposta não volta).
     files: Mutex<()>,
-    /// Modelos resolvidos e o resumo da chave que os resolveu.
-    models: Mutex<Option<(String, ModelChoices)>>,
-    /// `countTokens` do *system prompt* e das ferramentas, por modelo.
-    base_tokens: Mutex<HashMap<String, u64>>,
+    /// Modelos resolvidos de cada provedor e o resumo da chave que os resolveu.
+    models: Mutex<HashMap<AiProvider, (String, ModelChoices)>>,
+    /// Tokens do *system prompt* e das ferramentas, por provedor e modelo.
+    base_tokens: Mutex<HashMap<(AiProvider, String), u64>>,
     http: Mutex<Option<HttpClient>>,
     /// A busca de issues no GitHub das consultas da D-14 (o cache de 1 h vale para todas as
     /// conversas).
     pub(crate) github: crate::ai_tools::external::GithubHub,
-    /// Endereço do Gemini nos testes.
+    /// Endereço do provedor nos testes (o servidor simulado).
     #[cfg(test)]
     pub(crate) base_url: Mutex<Option<String>>,
 }
@@ -149,13 +152,18 @@ impl AiHub {
         Ok(client)
     }
 
-    fn client(&self, key: SecretString) -> Result<GeminiClient, AppError> {
+    fn client(
+        &self,
+        provider: AiProvider,
+        key: SecretString,
+    ) -> Result<Box<dyn Provider>, AppError> {
         let http = self.http()?;
         #[cfg(test)]
         if let Some(base) = lock(&self.base_url).clone() {
-            return GeminiClient::with_base_url(http, &base, key).map_err(|error| domain(&error));
+            return providers::connect_with_base_url(provider, http, &base, key)
+                .map_err(|error| domain(&error));
         }
-        GeminiClient::new(http, key).map_err(|error| domain(&error))
+        providers::connect(provider, http, key).map_err(|error| domain(&error))
     }
 
     fn live(&self, id: &str) -> Option<LiveStatus> {
@@ -251,11 +259,45 @@ impl<'a> Busy<'a> {
 // ---------------------------------------------------------------------------------------
 
 /// `ai/settings.json`.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct AiSettingsFile {
+    /// O provedor das conversas novas (sem o campo, o arquivo da D-04: Gemini).
+    #[serde(default)]
+    ai_provider: AiProvider,
+    /// A escolha do Gemini (o campo da D-04, mantido para o arquivo continuar valendo).
     #[serde(default)]
     tier: ModelTier,
+    /// A escolha de cada provedor (o Gemini também, quando escolhido depois da D-15).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    tiers: BTreeMap<AiProvider, ModelTier>,
+}
+
+impl AiSettingsFile {
+    /// A escolha do modelo de um provedor.
+    fn tier_of(&self, provider: AiProvider) -> ModelTier {
+        match (self.tiers.get(&provider), provider) {
+            (Some(tier), _) => *tier,
+            (None, AiProvider::Gemini) => self.tier,
+            (None, _) => ModelTier::default(),
+        }
+    }
+
+    fn set_tier(&mut self, provider: AiProvider, tier: ModelTier) {
+        self.tiers.insert(provider, tier);
+        if provider == AiProvider::Gemini {
+            self.tier = tier;
+        }
+    }
+}
+
+/// A chave de cada provedor no cofre.
+pub(crate) const fn secret_of(provider: AiProvider) -> SecretKind {
+    match provider {
+        AiProvider::Gemini => SecretKind::Gemini,
+        AiProvider::Openai => SecretKind::Openai,
+        AiProvider::Anthropic => SecretKind::Anthropic,
+    }
 }
 
 fn settings_file(state: &AppState) -> PathBuf {
@@ -269,47 +311,13 @@ fn load_settings(state: &AppState) -> AiSettingsFile {
         .unwrap_or_default()
 }
 
-/// O que Configurações mostra da IA.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct AiSettingsView {
-    /// A escolha.
-    pub(crate) tier: ModelTier,
-    /// Há chave do Gemini.
-    pub(crate) key_configured: bool,
-    /// Os modelos já resolvidos nesta execução (sem rede).
-    pub(crate) models: Option<ModelChoices>,
-}
-
-fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError> {
-    let key_configured = state.secrets.status()?.gemini;
-    Ok(AiSettingsView {
-        tier: load_settings(state).tier,
-        key_configured,
-        models: lock(&state.ai.models).as_ref().map(|(_, models)| models.clone()),
-    })
-}
-
-/// A escolha do modelo e se há chave.
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn ai_settings_get(state: State<'_, AppState>) -> Result<AiSettingsView, AppError> {
-    settings_view(&state)
-}
-
-/// Grava a escolha do modelo.
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn ai_settings_set(
-    state: State<'_, AppState>,
-    tier: ModelTier,
-) -> Result<AiSettingsView, AppError> {
-    let path = settings_file(&state);
+fn save_settings(state: &AppState, settings: &AiSettingsFile) -> Result<(), AppError> {
+    let path = settings_file(state);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
             .map_err(|error| AppError::internal(format!("criar a pasta da IA: {error}")))?;
     }
-    let bytes = serde_json::to_vec_pretty(&AiSettingsFile { tier })
+    let bytes = serde_json::to_vec_pretty(settings)
         .map_err(|error| AppError::internal(error.to_string()))?;
     // O detalhe leva só `ai/settings.json`, nunca a pasta do usuário.
     atomic_write_private(&path, &bytes).map_err(|error| match error {
@@ -319,8 +327,113 @@ pub(crate) fn ai_settings_set(
                 .with_detail(format!("gravar ai/settings.json: {source}"))
         }
         other => AppError::from(other),
-    })?;
+    })
+}
+
+/// O que Configurações mostra de um provedor.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct AiProviderSettings {
+    /// O provedor.
+    pub(crate) provider: AiProvider,
+    /// A escolha do modelo neste provedor.
+    pub(crate) tier: ModelTier,
+    /// Há chave deste provedor.
+    pub(crate) key_configured: bool,
+    /// Os modelos já resolvidos nesta execução (sem rede).
+    pub(crate) models: Option<ModelChoices>,
+}
+
+/// O que Configurações mostra da IA. `tier`, `keyConfigured` e `models` são os do provedor
+/// ativo.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct AiSettingsView {
+    /// O provedor das conversas novas.
+    pub(crate) provider: AiProvider,
+    /// A escolha do modelo no provedor ativo.
+    pub(crate) tier: ModelTier,
+    /// Há chave do provedor ativo.
+    pub(crate) key_configured: bool,
+    /// Os modelos do provedor ativo já resolvidos nesta execução (sem rede).
+    pub(crate) models: Option<ModelChoices>,
+    /// Cada provedor, na ordem da tela.
+    pub(crate) providers: Vec<AiProviderSettings>,
+}
+
+pub(crate) fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError> {
+    let status = state.secrets.status()?;
+    let settings = load_settings(state);
+    let models = lock(&state.ai.models).clone();
+    let providers: Vec<AiProviderSettings> = AiProvider::ALL
+        .iter()
+        .map(|&provider| AiProviderSettings {
+            provider,
+            tier: settings.tier_of(provider),
+            key_configured: status.is_configured(secret_of(provider)),
+            models: models.get(&provider).map(|(_, models)| models.clone()),
+        })
+        .collect();
+    let active = providers
+        .iter()
+        .find(|item| item.provider == settings.ai_provider)
+        .cloned()
+        .ok_or_else(|| AppError::internal("provedor ativo fora da lista"))?;
+    Ok(AiSettingsView {
+        provider: active.provider,
+        tier: active.tier,
+        key_configured: active.key_configured,
+        models: active.models,
+        providers,
+    })
+}
+
+/// O provedor ativo, a escolha do modelo de cada provedor e as chaves configuradas.
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn ai_settings_get(state: State<'_, AppState>) -> Result<AiSettingsView, AppError> {
     settings_view(&state)
+}
+
+pub(crate) fn settings_set_impl(
+    state: &AppState,
+    tier: ModelTier,
+) -> Result<AiSettingsView, AppError> {
+    let mut settings = load_settings(state);
+    let provider = settings.ai_provider;
+    settings.set_tier(provider, tier);
+    save_settings(state, &settings)?;
+    settings_view(state)
+}
+
+/// Grava a escolha do modelo **do provedor ativo** (cada provedor guarda a sua).
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn ai_settings_set(
+    state: State<'_, AppState>,
+    tier: ModelTier,
+) -> Result<AiSettingsView, AppError> {
+    settings_set_impl(&state, tier)
+}
+
+pub(crate) fn provider_set_impl(
+    state: &AppState,
+    provider: AiProvider,
+) -> Result<AiSettingsView, AppError> {
+    let mut settings = load_settings(state);
+    settings.ai_provider = provider;
+    save_settings(state, &settings)?;
+    settings_view(state)
+}
+
+/// Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas.
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn ai_provider_set(
+    state: State<'_, AppState>,
+    provider: AiProvider,
+) -> Result<AiSettingsView, AppError> {
+    provider_set_impl(&state, provider)
 }
 
 fn key_fingerprint(key: &SecretString) -> String {
@@ -328,23 +441,25 @@ fn key_fingerprint(key: &SecretString) -> String {
     hex::encode(Sha256::digest(key.expose_secret().as_bytes()))
 }
 
-/// Os modelos da chave (rede só na primeira vez, ou com `refresh`).
+/// Os modelos da chave do provedor ativo (rede só na primeira vez, ou com `refresh`).
 async fn models_impl(state: &AppState, refresh: bool) -> Result<ModelChoices, AppError> {
-    let key = state.secrets.require(SecretKind::Gemini)?;
+    let provider = load_settings(state).ai_provider;
+    let key = state.secrets.require(secret_of(provider))?;
     let fingerprint = key_fingerprint(&key);
     if !refresh
-        && let Some((cached, models)) = lock(&state.ai.models).as_ref()
+        && let Some((cached, models)) = lock(&state.ai.models).get(&provider)
         && *cached == fingerprint
     {
         return Ok(models.clone());
     }
-    let client = state.ai.client(key)?;
-    let models = fetch_choices(&client).await.map_err(|error| domain(&error))?;
-    *lock(&state.ai.models) = Some((fingerprint, models.clone()));
+    let client = state.ai.client(provider, key)?;
+    let models = client.models().await.map_err(|error| domain(&error))?;
+    lock(&state.ai.models).insert(provider, (fingerprint, models.clone()));
     Ok(models)
 }
 
-/// Os modelos que a chave alcança: o Flash-Lite e o Flash estáveis mais novos.
+/// Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash-Lite e o Flash
+/// estáveis mais novos).
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn ai_models_get(
@@ -377,11 +492,12 @@ impl SecretTester for GeminiKeyTester {
         let http = HttpClient::new(HttpConfig::for_version(env!("CARGO_PKG_VERSION")))
             .map_err(|error| AppError::from_domain(&error))?;
         let client = match &self.base_url {
-            Some(base) => GeminiClient::with_base_url(http, base, value),
-            None => GeminiClient::new(http, value),
+            Some(base) => providers::connect_with_base_url(AiProvider::Gemini, http, base, value),
+            None => providers::connect(AiProvider::Gemini, http, value),
         }
         .map_err(|error| domain(&error))?;
-        fetch_choices(&client)
+        client
+            .models()
             .await
             .map(|_| ())
             .map_err(|error| domain(&error))
@@ -557,10 +673,12 @@ pub(crate) struct AiPreview {
     /// Tamanho do texto em bytes (UTF-8).
     #[specta(type = specta_typescript::Number)]
     pub(crate) bytes: u64,
-    /// Tamanho inicial estimado em tokens: o `countTokens` do *system prompt* e das
-    /// ferramentas mais o texto estimado (`None`: o Google não respondeu agora).
+    /// Tamanho inicial estimado em tokens: a contagem do *system prompt* e das ferramentas
+    /// pelo provedor mais o texto estimado (`None`: o provedor não respondeu agora ou não conta).
     #[specta(type = Option<specta_typescript::Number>)]
     pub(crate) estimated_tokens: Option<u64>,
+    /// O provedor (o consentimento mostra o nome dele).
+    pub(crate) provider: AiProvider,
     /// O modelo.
     pub(crate) model: String,
     /// Mais econômico ou mais cuidadoso (custo esperado).
@@ -625,15 +743,16 @@ fn resolve_subject(
     }
 }
 
-/// `countTokens` do *system prompt* e das ferramentas, sem nada do pack (uma vez por modelo).
-async fn base_tokens(state: &AppState, client: &GeminiClient, model: &str) -> Option<u64> {
-    if let Some(count) = lock(&state.ai.base_tokens).get(model) {
+/// Tokens do *system prompt* e das ferramentas, sem nada do pack (uma vez por modelo).
+async fn base_tokens(state: &AppState, client: &dyn Provider, model: &str) -> Option<u64> {
+    let cache = (client.id(), model.to_owned());
+    if let Some(count) = lock(&state.ai.base_tokens).get(&cache) {
         return Some(*count);
     }
     let registry = registry();
     let source = NoSource;
     let engine = Engine {
-        client,
+        provider: client,
         registry: &registry,
         source: &source,
         observer: &NoObserver,
@@ -641,14 +760,14 @@ async fn base_tokens(state: &AppState, client: &GeminiClient, model: &str) -> Op
         cancel: CancellationToken::new(),
         limits: Limits::default(),
     };
-    let contents = [serde_json::json!({ "role": "user", "parts": [{ "text": "." }] })];
-    match engine.count_tokens(model, &contents).await {
-        Ok(count) => {
-            lock(&state.ai.base_tokens).insert(model.to_owned(), count);
+    match engine.count_tokens(model, &[Message::user(".")]).await {
+        Ok(Some(count)) => {
+            lock(&state.ai.base_tokens).insert(cache, count);
             Some(count)
         }
+        Ok(None) => None,
         Err(error) => {
-            tracing::info!(%error, "countTokens da base não respondeu");
+            tracing::info!(%error, "contagem de tokens da base não respondeu");
             None
         }
     }
@@ -677,10 +796,12 @@ pub(crate) async fn preview_impl(
     request: AiPreviewRequest,
 ) -> Result<AiPreview, AppError> {
     let root = pack_root(state, pack_id)?;
-    let key = state.secrets.require(SecretKind::Gemini)?;
+    let settings = load_settings(state);
+    let provider = settings.ai_provider;
+    let key = state.secrets.require(secret_of(provider))?;
     let models = models_impl(state, false).await?;
     let (model, _) = models
-        .pick(load_settings(state).tier)
+        .pick(settings.tier_of(provider))
         .ok_or_else(|| domain(&warden_ai::Error::NoModel))?;
     let model = model.to_owned();
     let subject = resolve_subject(state, pack_id, &request.source)?;
@@ -692,8 +813,8 @@ pub(crate) async fn preview_impl(
         .map(|note| note.chars().take(MAX_QUESTION_CHARS).collect::<String>());
     let tools = PackTools::new(state, pack_id, root.clone(), None);
     let built = initial::build(&tools, request.symptom, subject, note.as_deref()).await?;
-    let client = state.ai.client(key)?;
-    let base = base_tokens(state, &client, &model).await;
+    let client = state.ai.client(provider, key)?;
+    let base = base_tokens(state, client.as_ref(), &model).await;
     let bytes = u64::try_from(built.text.len()).unwrap_or(u64::MAX);
     let snapshot = {
         let root = root.clone();
@@ -707,7 +828,8 @@ pub(crate) async fn preview_impl(
         text: built.text.clone(),
         bytes,
         estimated_tokens: base.map(|base| base + bytes.div_ceil(4)),
-        tier: tier_of(&model),
+        tier: provider.tier_of(&model),
+        provider,
         model: model.clone(),
         github_available: registry()
             .get(warden_ai::external::SEARCH_MOD_ISSUES)
@@ -728,6 +850,7 @@ pub(crate) async fn preview_impl(
             pack_id,
             symptom: request.symptom,
             note,
+            provider,
             model,
             initial: built,
             snapshot,
@@ -767,6 +890,7 @@ pub(crate) fn start_impl(
     let mut conversation = new_conversation(
         id.clone(),
         now_ms(),
+        preview.provider,
         preview.model,
         permissions,
         preview.symptom,
@@ -855,8 +979,8 @@ pub(crate) async fn run_impl(
     };
     notify(pack_id, id);
     let result = async {
-        let key = state.secrets.require(SecretKind::Gemini)?;
-        let client = state.ai.client(key)?;
+        let key = conversation_key(state, conversation.provider)?;
+        let client = state.ai.client(conversation.provider, key)?;
         let local_log = matches!(conversation.origin, ConversationOrigin::LocalFile { .. })
             .then(|| store.local_log(id).ok())
             .flatten();
@@ -871,7 +995,7 @@ pub(crate) async fn run_impl(
             cancel: cancel.clone(),
         };
         let engine = Engine {
-            client: &client,
+            provider: client.as_ref(),
             registry: &registry,
             source: &tools,
             observer: &observer,
@@ -880,14 +1004,14 @@ pub(crate) async fn run_impl(
             limits: Limits::default(),
         };
         if conversation.initial_tokens.is_none() && conversation.requests == 0 {
-            // O tamanho exato do pedido inicial, contado pelo Google (sistema, ferramentas e o
+            // O tamanho exato do pedido inicial, contado pelo provedor (sistema, ferramentas e o
             // texto), já depois do consentimento.
             match engine
-                .count_tokens(&conversation.model, &conversation.contents)
+                .count_tokens(&conversation.model, &conversation.messages)
                 .await
             {
-                Ok(count) => conversation.initial_tokens = Some(count),
-                Err(error) => tracing::info!(%error, "countTokens do pedido inicial falhou"),
+                Ok(count) => conversation.initial_tokens = count,
+                Err(error) => tracing::info!(%error, "contagem do pedido inicial falhou"),
             }
         }
         engine
@@ -914,6 +1038,20 @@ pub(crate) async fn run_impl(
     drop(guard);
     notify(pack_id, id);
     result
+}
+
+/// A chave do provedor **da conversa** (ADR-0060). Sem ela: o erro de sempre quando é o
+/// provedor ativo; `AI_PROVIDER_KEY_MISSING` quando a conversa é de outro provedor (a pessoa
+/// trocou de provedor depois de começar).
+fn conversation_key(state: &AppState, provider: AiProvider) -> Result<SecretString, AppError> {
+    match state.secrets.require(secret_of(provider)) {
+        Err(warden_secrets::SecretsError::NotConfigured { .. })
+            if load_settings(state).ai_provider != provider =>
+        {
+            Err(domain(&warden_ai::Error::ProviderKeyMissing { provider }))
+        }
+        other => other.map_err(AppError::from),
+    }
 }
 
 fn failure_from_app(error: &AppError) -> warden_ai::conversation::TurnFailure {
@@ -1120,6 +1258,8 @@ pub(crate) async fn ai_conversations_list(
 pub(crate) struct AiConversationView {
     /// O resumo (título, situação…).
     pub(crate) summary: AiConversationSummary,
+    /// O provedor em que a conversa começou (ela fica nele).
+    pub(crate) provider: AiProvider,
     /// O modelo.
     pub(crate) model: String,
     /// Mais econômico ou mais cuidadoso.
@@ -1128,7 +1268,7 @@ pub(crate) struct AiConversationView {
     pub(crate) permissions: AiPermissions,
     /// O que a pessoa contou.
     pub(crate) note: Option<String>,
-    /// Tamanho do pedido inicial contado pelo Google.
+    /// Tamanho do pedido inicial contado pelo provedor.
     #[specta(type = Option<specta_typescript::Number>)]
     pub(crate) initial_tokens: Option<u64>,
     /// Requisições feitas.
@@ -1157,7 +1297,8 @@ pub(crate) async fn get_impl(
         .unwrap_or_default();
     Ok(AiConversationView {
         summary: summary_of(&state.ai, &conversation),
-        tier: tier_of(&conversation.model),
+        tier: conversation.provider.tier_of(&conversation.model),
+        provider: conversation.provider,
         model: conversation.model.clone(),
         permissions: conversation.permissions,
         note: conversation.note.clone(),

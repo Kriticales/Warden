@@ -68,11 +68,16 @@ export const commands = {
 	addLocalApply: (packId: PackId, items: LocalApplyItem[]) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_local_apply", { packId, items })),
 	/**  Esquece arquivos que a tela não vai adicionar (e apaga o download do link direto). */
 	addLocalDiscard: (tokens: string[]) => __TAURI_INVOKE<void>("add_local_discard", { tokens }),
-	/**  A escolha do modelo e se há chave. */
+	/**  O provedor ativo, a escolha do modelo de cada provedor e as chaves configuradas. */
 	aiSettingsGet: () => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_get")),
-	/**  Grava a escolha do modelo. */
+	/**  Grava a escolha do modelo **do provedor ativo** (cada provedor guarda a sua). */
 	aiSettingsSet: (tier: ModelTier) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_set", { tier })),
-	/**  Os modelos que a chave alcança: o Flash-Lite e o Flash estáveis mais novos. */
+	/**  Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas. */
+	aiProviderSet: (provider: AiProvider) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_provider_set", { provider })),
+	/**
+	 *  Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash-Lite e o Flash
+	 *  estáveis mais novos).
+	 */
 	aiModelsGet: (refresh: boolean) => typedError<ModelChoices, AppError>(__TAURI_INVOKE("ai_models_get", { refresh })),
 	/**  As sessões do pack que dá para analisar. */
 	aiSourcesList: (packId: PackId) => typedError<AiSources, AppError>(__TAURI_INVOKE("ai_sources_list", { packId })),
@@ -1174,6 +1179,8 @@ export type AiConversationUpdated = {
 export type AiConversationView = {
 	/**  O resumo (título, situação…). */
 	summary: AiConversationSummary,
+	/**  O provedor em que a conversa começou (ela fica nele). */
+	provider: AiProvider,
 	/**  O modelo. */
 	model: string,
 	/**  Mais econômico ou mais cuidadoso. */
@@ -1182,7 +1189,7 @@ export type AiConversationView = {
 	permissions: AiPermissions,
 	/**  O que a pessoa contou. */
 	note: string | null,
-	/**  Tamanho do pedido inicial contado pelo Google. */
+	/**  Tamanho do pedido inicial contado pelo provedor. */
 	initialTokens: number | null,
 	/**  Requisições feitas. */
 	requests: number,
@@ -1244,7 +1251,12 @@ export type AiErrorCode =
  *  O pack mudou depois que a diferença da proposta foi mostrada: é preciso revisar de novo
  *  (D-14).
  */
-"PROPOSAL_STALE";
+"PROPOSAL_STALE" | 
+/**
+ *  A conversa começou com outro provedor de IA, e a chave dele não está configurada
+ *  (ADR-0060: a conversa fica no provedor em que começou).
+ */
+"PROVIDER_KEY_MISSING";
 
 /**  Um arquivo escolhido no computador (o caminho fica no backend). */
 export type AiLocalPick = {
@@ -1273,10 +1285,12 @@ export type AiPreview = {
 	/**  Tamanho do texto em bytes (UTF-8). */
 	bytes: number,
 	/**
-	 *  Tamanho inicial estimado em tokens: o `countTokens` do *system prompt* e das
-	 *  ferramentas mais o texto estimado (`None`: o Google não respondeu agora).
+	 *  Tamanho inicial estimado em tokens: a contagem do *system prompt* e das ferramentas
+	 *  pelo provedor mais o texto estimado (`None`: o provedor não respondeu agora ou não conta).
 	 */
 	estimatedTokens: number | null,
+	/**  O provedor (o consentimento mostra o nome dele). */
+	provider: AiProvider,
 	/**  O modelo. */
 	model: string,
 	/**  Mais econômico ou mais cuidadoso (custo esperado). */
@@ -1298,6 +1312,27 @@ export type AiPreviewRequest = {
 	note: string | null,
 };
 
+/**  Um provedor de IA. */
+export type AiProvider = 
+/**  Google Gemini (o padrão: tem plano gratuito). */
+"gemini" | 
+/**  OpenAI. */
+"openai" | 
+/**  Anthropic (o nome exibido é "Claude"). */
+"anthropic";
+
+/**  O que Configurações mostra de um provedor. */
+export type AiProviderSettings = {
+	/**  O provedor. */
+	provider: AiProvider,
+	/**  A escolha do modelo neste provedor. */
+	tier: ModelTier,
+	/**  Há chave deste provedor. */
+	keyConfigured: boolean,
+	/**  Os modelos já resolvidos nesta execução (sem rede). */
+	models: ModelChoices | null,
+};
+
 /**  Uma sessão do Testar para "Começar pelo". */
 export type AiSessionOption = {
 	/**  A sessão. */
@@ -1310,14 +1345,21 @@ export type AiSessionOption = {
 	packVersion: string | null,
 };
 
-/**  O que Configurações mostra da IA. */
+/**
+ *  O que Configurações mostra da IA. `tier`, `keyConfigured` e `models` são os do provedor
+ *  ativo.
+ */
 export type AiSettingsView = {
-	/**  A escolha. */
+	/**  O provedor das conversas novas. */
+	provider: AiProvider,
+	/**  A escolha do modelo no provedor ativo. */
 	tier: ModelTier,
-	/**  Há chave do Gemini. */
+	/**  Há chave do provedor ativo. */
 	keyConfigured: boolean,
-	/**  Os modelos já resolvidos nesta execução (sem rede). */
+	/**  Os modelos do provedor ativo já resolvidos nesta execução (sem rede). */
 	models: ModelChoices | null,
+	/**  Cada provedor, na ordem da tela. */
+	providers: AiProviderSettings[],
 };
 
 /**  O que analisar. */
@@ -1392,7 +1434,7 @@ export type Anchor =
 export type AnswerVia = 
 /**  Pela ferramenta `responder`. */
 "respond" | 
-/**  Pela requisição de reserva (`mode: NONE` + `responseFormat`). */
+/**  Pela requisição de reserva (sem ferramentas, resposta em JSON pelo esquema). */
 "fallback";
 
 /**
@@ -5444,7 +5486,7 @@ export type LiveStatus =
 { kind: "waitingPerMinute"; 
 /**  Segundos de espera. */
 seconds: number } | 
-/**  O Google ficou sobrecarregado ou não respondeu; nova tentativa. */
+/**  O provedor ficou sobrecarregado ou não respondeu; nova tentativa. */
 { kind: "retrying"; 
 /**  Qual tentativa (1 a 4). */
 attempt: number; 
@@ -5913,21 +5955,21 @@ export type ModUpdateReport = {
 	available: number,
 };
 
-/**  Os modelos resolvidos para esta chave. */
+/**  Os modelos resolvidos para uma chave. */
 export type ModelChoices = {
-	/**  O Flash-Lite estável mais novo (`None`: nenhum disponível). */
+	/**  O modelo do nível "Mais econômico" (`None`: nenhum disponível). */
 	economical: string | null,
-	/**  O Flash estável mais novo. */
+	/**  O modelo do nível "Análise mais cuidadosa". */
 	careful: string | null,
 };
 
-/**  A escolha em Configurações. */
+/**  A escolha em Configurações, por provedor. */
 export type ModelTier = 
-/**  Padrão: o Flash-Lite estável mais novo (cota gratuita folgada, rápido, barato). */
+/**  Padrão: o modelo estável mais econômico do provedor (no Gemini, o Flash-Lite mais novo). */
 "economical" | 
 /**
- *  "Análise mais cuidadosa": o Flash estável mais novo (poucas conversas por dia no plano
- *  gratuito).
+ *  "Análise mais cuidadosa": o modelo estável mais capaz da faixa barata (no Gemini, o
+ *  Flash mais novo, com poucas conversas por dia no plano gratuito).
  */
 "careful";
 
@@ -8055,6 +8097,10 @@ export type SecretKind =
 "curseforge" | 
 /**  Chave da API do Gemini. */
 "gemini" | 
+/**  Chave da API da `OpenAI` (ADR-0060). */
+"openai" | 
+/**  Chave da API da Anthropic, o provedor Claude (ADR-0060). */
+"anthropic" | 
 /**  Token do GitHub (publicar versão). */
 "github";
 
@@ -8095,6 +8141,10 @@ export type SecretsStatus = {
 	curseforge: boolean,
 	/**  Chave do Gemini configurada. */
 	gemini: boolean,
+	/**  Chave da `OpenAI` configurada. */
+	openai: boolean,
+	/**  Chave da Anthropic configurada. */
+	anthropic: boolean,
 	/**  Token do GitHub configurado. */
 	github: boolean,
 };
@@ -9076,7 +9126,10 @@ export type ToolStep = {
 	name: string,
 	/**  Os argumentos que a IA pediu (JSON compacto, como vieram). */
 	args: string,
-	/**  A parte `functionResponse` exatamente como foi na requisição (bytes exatos). */
+	/**
+	 *  O resultado exatamente como foi na requisição (bytes exatos; no Gemini, a parte
+	 *  `functionResponse`).
+	 */
 	sent: string,
 	/**  A ferramenta devolveu dados (falso: erro ou não permitida). */
 	ok: boolean,

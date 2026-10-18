@@ -19,9 +19,15 @@ async function openKeys() {
 
 describe('Modelo da IA em Configurações', () => {
   it('com a chave: os modelos da conta e a troca para "Análise mais cuidadosa"', async () => {
-    let view: AiSettingsView = { tier: 'economical', keyConfigured: true, models: null };
+    let view: AiSettingsView = {
+      provider: 'gemini',
+      tier: 'economical',
+      keyConfigured: true,
+      models: null,
+      providers: [],
+    };
     const backend = mockSettingsBackend(
-      { secrets: { backend: 'keyring', curseforge: false, gemini: true, github: false } },
+      { secrets: { backend: 'keyring', curseforge: false, gemini: true, openai: false, anthropic: false, github: false } },
       {
         ai_settings_get: () => view,
         ai_settings_set: ({ tier }) => {
