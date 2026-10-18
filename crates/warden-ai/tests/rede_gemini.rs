@@ -25,7 +25,7 @@ use warden_ai::engine::{Engine, Limits, NoObserver};
 use warden_ai::gemini::GeminiClient;
 use warden_ai::models::{ModelTier, fetch_choices};
 use warden_ai::schema::answer_schema;
-use warden_ai::tools::{Permissions, ToolRegistry};
+use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
 use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -57,7 +57,7 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
         cancel: CancellationToken::new(),
         limits: Limits::default(),
     };
-    let mut conversation = support::conversation(Permissions::default());
+    let mut conversation = support::conversation(AiPermissions::default());
     conversation.model = model.to_owned();
     let result = engine
         .ask(

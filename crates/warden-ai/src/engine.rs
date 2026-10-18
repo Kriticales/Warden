@@ -13,7 +13,7 @@
 //!   espera exponencial (2, 4, 8, 16 s); `MALFORMED_FUNCTION_CALL`, `UNEXPECTED_TOOL_CALL`,
 //!   `MALFORMED_RESPONSE`, resposta sem `content`, texto vazio e resposta final vazia até 2 vezes,
 //!   **sem mexer no histórico**; 429 por minuto espera o tempo pedido (até 60 s), com a espera
-//!   visível ([`Live::WaitingPerMinute`]); 429 diário para na hora, sem horário; sinal de
+//!   visível ([`LiveStatus::WaitingPerMinute`]); 429 diário para na hora, sem horário; sinal de
 //!   cobrança para tudo.
 
 use std::sync::Arc;
@@ -25,7 +25,9 @@ use serde_json::{Value, json};
 use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::Timer;
 
-use crate::conversation::{Answer, AnswerVia, Conversation, Failure, ToolStep, Turn, Usage};
+use crate::conversation::{
+    AnswerVia, Conversation, ConversationTurn, FinalAnswer, TokenUsage, ToolStep, TurnFailure,
+};
 use crate::error::{Error, Result};
 use crate::evidence::check_answer;
 use crate::gemini::{GeminiClient, Problem, Reply, api_message, classify};
@@ -61,7 +63,7 @@ impl Default for Limits {
 /// O que a conversa está fazendo agora (para a tela).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase", tag = "kind")]
-pub enum Live {
+pub enum LiveStatus {
     /// Esperando a IA.
     Thinking,
     /// "Aguardando o limite por minuto do plano gratuito…".
@@ -87,7 +89,7 @@ pub trait Observer: Send + Sync {
     /// A conversa mudou (pergunta, rodada, resposta ou erro): gravar e avisar.
     async fn changed(&self, conversation: &Conversation);
     /// O estado de agora mudou (esperas visíveis).
-    fn live(&self, live: Live);
+    fn live(&self, live: LiveStatus);
 }
 
 /// Observador que não faz nada (testes, contagem de tokens).
@@ -97,7 +99,7 @@ pub struct NoObserver;
 #[async_trait]
 impl Observer for NoObserver {
     async fn changed(&self, _conversation: &Conversation) {}
-    fn live(&self, _live: Live) {}
+    fn live(&self, _live: LiveStatus) {}
 }
 
 /// O laço de uma conversa.
@@ -126,6 +128,30 @@ pub fn now_ms() -> u64 {
         .map_or(0, |elapsed| {
             u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX)
         })
+}
+
+/// Acrescenta uma pergunta (novo turno) sem mandar nada: [`Engine::run`] manda depois.
+pub fn push_question(conversation: &mut Conversation, question: String) {
+    conversation
+        .contents
+        .push(json!({ "role": "user", "parts": [{ "text": question }] }));
+    conversation.turns.push(ConversationTurn {
+        question,
+        asked_at_ms: now_ms(),
+        steps: Vec::new(),
+        answer: None,
+        failure: None,
+    });
+    conversation.updated_at_ms = now_ms();
+}
+
+/// A última pergunta ainda não tem resposta final (esperando a IA ou parada por um erro).
+#[must_use]
+pub fn pending(conversation: &Conversation) -> bool {
+    conversation
+        .turns
+        .last()
+        .is_some_and(|turn| turn.answer.is_none())
 }
 
 /// O texto de uma parte de usuário com texto (`None` se não for).
@@ -226,17 +252,7 @@ impl Engine<'_> {
 
     /// Faz uma pergunta (novo turno) e roda o laço até a resposta final conferida.
     pub async fn ask(&self, conversation: &mut Conversation, question: String) -> Result<()> {
-        conversation
-            .contents
-            .push(json!({ "role": "user", "parts": [{ "text": question }] }));
-        conversation.turns.push(Turn {
-            question,
-            asked_at_ms: now_ms(),
-            steps: Vec::new(),
-            answer: None,
-            failure: None,
-        });
-        conversation.updated_at_ms = now_ms();
+        push_question(conversation, question);
         self.observer.changed(conversation).await;
         self.run(conversation).await
     }
@@ -508,7 +524,7 @@ impl Engine<'_> {
         let mods = self.source.known_mods().await;
         let checked = check_answer(answer, &conversation.sent, &mods);
         if let Some(turn) = conversation.turns.last_mut() {
-            turn.answer = Some(Answer {
+            turn.answer = Some(FinalAnswer {
                 via,
                 round_limit,
                 checked,
@@ -527,7 +543,7 @@ impl Engine<'_> {
         let mut transient = 0;
         let mut waits = 0;
         loop {
-            self.observer.live(Live::Thinking);
+            self.observer.live(LiveStatus::Thinking);
             conversation.requests += 1;
             let outcome = self
                 .client
@@ -542,7 +558,7 @@ impl Engine<'_> {
                         });
                     }
                     if let Some(metadata) = json.get("usageMetadata") {
-                        conversation.usage.add(Usage::of(metadata));
+                        conversation.usage.add(TokenUsage::of(metadata));
                     }
                     return Ok(Ok200 { body: json });
                 }
@@ -559,7 +575,7 @@ impl Engine<'_> {
                             return Err(Error::RateLimited { waits });
                         }
                         waits += 1;
-                        self.observer.live(Live::WaitingPerMinute {
+                        self.observer.live(LiveStatus::WaitingPerMinute {
                             seconds: wait.as_secs() + 1,
                         });
                         self.sleep(wait + Duration::from_secs(1)).await?;
@@ -585,7 +601,7 @@ impl Engine<'_> {
 
     /// Espera exponencial: 2, 4, 8, 16 s.
     async fn backoff(&self, attempt: u32) -> Result<()> {
-        self.observer.live(Live::Retrying {
+        self.observer.live(LiveStatus::Retrying {
             attempt,
             of: self.limits.transient_retries,
         });
@@ -672,12 +688,12 @@ fn parse_json_text(text: &str) -> Option<Value> {
 
 /// O erro como fica gravado na pergunta (o mesmo formato do `AppError`).
 #[must_use]
-pub fn failure_of(error: &Error) -> Failure {
+pub fn failure_of(error: &Error) -> TurnFailure {
     let (domain, code) = match error.code() {
         DomainCode::Core(code) => ("core", serde_json::to_value(code)),
         DomainCode::Domain(code) => ("ai", serde_json::to_value(code)),
     };
-    Failure {
+    TurnFailure {
         domain: domain.to_owned(),
         code: code
             .ok()

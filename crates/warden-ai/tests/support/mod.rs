@@ -28,10 +28,12 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use secrecy::SecretString;
 use serde_json::{Value, json};
-use warden_ai::conversation::{Conversation, Origin, PackSnapshot, Symptom, new_conversation};
+use warden_ai::conversation::{
+    Conversation, ConversationOrigin, PackSnapshot, Symptom, new_conversation,
+};
 use warden_ai::gemini::GeminiClient;
 use warden_ai::tools::{
-    KnownMod, KnownMods, Needs, Permissions, Stage, ToolItem, ToolOutput, ToolSource, ToolSpec,
+    AiPermissions, KnownMod, KnownMods, Needs, Stage, ToolItem, ToolOutput, ToolSource, ToolSpec,
 };
 use warden_http::{HttpClient, HttpConfig, ManualTimer};
 use wiremock::{Mock, MockServer, Request, Respond, ResponseTemplate};
@@ -324,14 +326,14 @@ pub fn fixture(name: &str) -> Value {
 }
 
 /// Uma conversa nova no pack fictício.
-pub fn conversation(permissions: Permissions) -> Conversation {
+pub fn conversation(permissions: AiPermissions) -> Conversation {
     new_conversation(
         ulid::Ulid::generate().to_string(),
         1,
         "gemini-3.5-flash-lite".into(),
         permissions,
         Symptom::CrashInWorld,
-        Origin::PackOnly,
+        ConversationOrigin::PackOnly,
         None,
         PackSnapshot::default(),
     )

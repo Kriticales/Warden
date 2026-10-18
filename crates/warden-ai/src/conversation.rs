@@ -16,7 +16,7 @@ use warden_core::atomic_write_private;
 
 use crate::error::{Error, Result};
 use crate::evidence::CheckedAnswer;
-use crate::tools::{Permissions, ToolItem};
+use crate::tools::{AiPermissions, ToolItem};
 
 /// Versão do formato do arquivo.
 pub const SCHEMA_VERSION: u32 = 1;
@@ -38,7 +38,7 @@ pub enum Symptom {
 /// O que foi analisado.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", tag = "kind")]
-pub enum Origin {
+pub enum ConversationOrigin {
     /// Uma sessão do Testar (o último travamento ou outra).
     #[serde(rename_all = "camelCase")]
     Session {
@@ -117,7 +117,7 @@ impl PackSnapshot {
 /// Tokens somados das respostas (`usageMetadata`).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct Usage {
+pub struct TokenUsage {
     /// Entrada (`promptTokenCount`).
     #[specta(type = specta_typescript::Number)]
     pub prompt: u64,
@@ -132,7 +132,7 @@ pub struct Usage {
     pub thoughts: u64,
 }
 
-impl Usage {
+impl TokenUsage {
     /// Lê o `usageMetadata` de uma resposta.
     #[must_use]
     pub fn of(metadata: &Value) -> Self {
@@ -146,7 +146,7 @@ impl Usage {
     }
 
     /// Soma.
-    pub fn add(&mut self, other: Usage) {
+    pub fn add(&mut self, other: TokenUsage) {
         self.prompt += other.prompt;
         self.cached += other.cached;
         self.output += other.output;
@@ -191,7 +191,7 @@ pub enum AnswerVia {
 /// A resposta final de uma pergunta.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct Answer {
+pub struct FinalAnswer {
     /// Como chegou.
     pub via: AnswerVia,
     /// A IA estourou o limite de rodadas antes de responder.
@@ -208,7 +208,7 @@ pub struct Answer {
 /// Um erro que interrompeu uma pergunta (código e parâmetros da frase, como o `AppError`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct Failure {
+pub struct TurnFailure {
     /// Domínio (`ai` ou `core`).
     pub domain: String,
     /// Código (`QUOTA_EXCEEDED`).
@@ -224,7 +224,7 @@ pub struct Failure {
 /// Uma pergunta (a primeira é o texto inicial do consentimento) e o que aconteceu.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct Turn {
+pub struct ConversationTurn {
     /// O texto exato enviado.
     pub question: String,
     /// Quando foi enviado.
@@ -233,9 +233,9 @@ pub struct Turn {
     /// As consultas da IA, na ordem.
     pub steps: Vec<ToolStep>,
     /// A resposta final.
-    pub answer: Option<Answer>,
+    pub answer: Option<FinalAnswer>,
     /// O erro que interrompeu (a conversa continua guardada).
-    pub failure: Option<Failure>,
+    pub failure: Option<TurnFailure>,
 }
 
 /// Uma conversa, como fica no disco.
@@ -255,11 +255,11 @@ pub struct Conversation {
     /// O modelo.
     pub model: String,
     /// Permissões escolhidas no consentimento.
-    pub permissions: Permissions,
+    pub permissions: AiPermissions,
     /// O sintoma.
     pub symptom: Symptom,
     /// O que foi analisado.
-    pub origin: Origin,
+    pub origin: ConversationOrigin,
     /// O que a pessoa contou à IA no começo.
     pub note: Option<String>,
     /// O retrato do pack no começo.
@@ -271,9 +271,9 @@ pub struct Conversation {
     /// Tudo o que as ferramentas devolveram (a base da conferência).
     pub sent: Vec<ToolItem>,
     /// As perguntas.
-    pub turns: Vec<Turn>,
+    pub turns: Vec<ConversationTurn>,
     /// Tokens somados.
-    pub usage: Usage,
+    pub usage: TokenUsage,
     /// Requisições `generateContent` feitas (com as novas tentativas).
     pub requests: u32,
     /// Campos que esta versão não conhece: preservados ao gravar.
@@ -285,6 +285,12 @@ pub struct Conversation {
 #[derive(Debug, Clone)]
 pub struct ConversationStore {
     dir: PathBuf,
+}
+
+/// Um identificador novo (ULID): conversas e prévias do consentimento.
+#[must_use]
+pub fn new_id() -> String {
+    ulid::Ulid::generate().to_string()
 }
 
 /// Um identificador de conversa válido (ULID: 26 caracteres de Crockford base32).
@@ -412,9 +418,9 @@ pub fn new_conversation(
     id: String,
     now_ms: u64,
     model: String,
-    permissions: Permissions,
+    permissions: AiPermissions,
     symptom: Symptom,
-    origin: Origin,
+    origin: ConversationOrigin,
     note: Option<String>,
     pack: PackSnapshot,
 ) -> Conversation {
@@ -434,7 +440,7 @@ pub fn new_conversation(
         contents: Vec::new(),
         sent: Vec::new(),
         turns: Vec::new(),
-        usage: Usage::default(),
+        usage: TokenUsage::default(),
         requests: 0,
         unknown: BTreeMap::new(),
     }
@@ -449,9 +455,9 @@ mod tests {
             id.to_owned(),
             at,
             "modelo".into(),
-            Permissions::default(),
+            AiPermissions::default(),
             Symptom::CrashInWorld,
-            Origin::PackOnly,
+            ConversationOrigin::PackOnly,
             None,
             PackSnapshot::default(),
         )

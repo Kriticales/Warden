@@ -13,7 +13,7 @@
 //! 5. proposta sem evidência válida não aparece.
 //!
 //! O selo diz **de onde veio o trecho**, nunca que a conclusão está certa; o medidor de
-//! confiança ([`Confidence`]) é calculado aqui a partir das evidências conferidas e **ignora**
+//! confiança ([`ConfidenceMeter`]) é calculado aqui a partir das evidências conferidas e **ignora**
 //! a confiança que o modelo declara.
 
 use serde::{Deserialize, Serialize};
@@ -114,7 +114,7 @@ pub struct CheckedProposal {
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, specta::Type,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum Confidence {
+pub enum ConfidenceMeter {
     /// Nada verificado, ou a IA não concluiu.
     Low,
     /// Parte verificada.
@@ -136,7 +136,7 @@ pub struct CheckedAnswer {
     /// As propostas (as descartadas ficam guardadas, mas não aparecem).
     pub proposals: Vec<CheckedProposal>,
     /// O medidor.
-    pub confidence: Confidence,
+    pub confidence: ConfidenceMeter,
     /// Mods envolvidos (os das afirmações verificadas, sem repetir).
     pub mods: Vec<KnownMod>,
 }
@@ -331,13 +331,13 @@ fn check_proposal(proposal: &Value, sent: &[ToolItem], mods: &KnownMods) -> Chec
 
 /// O medidor: só as evidências conferidas contam; a confiança declarada pelo modelo, nunca.
 #[must_use]
-pub fn confidence(claims: &[CheckedClaim], no_conclusion: bool) -> Confidence {
+pub fn confidence(claims: &[CheckedClaim], no_conclusion: bool) -> ConfidenceMeter {
     let verified = claims
         .iter()
         .filter(|claim| claim.status == ClaimStatus::Verified)
         .count();
     if no_conclusion || verified == 0 {
-        return Confidence::Low;
+        return ConfidenceMeter::Low;
     }
     let valid = claims
         .iter()
@@ -346,9 +346,9 @@ pub fn confidence(claims: &[CheckedClaim], no_conclusion: bool) -> Confidence {
         .filter(|item| item.status == EvidenceStatus::Valid)
         .count();
     if verified == claims.len() && valid >= 2 {
-        Confidence::High
+        ConfidenceMeter::High
     } else {
-        Confidence::Medium
+        ConfidenceMeter::Medium
     }
 }
 
@@ -453,7 +453,7 @@ mod tests {
             assert_eq!(item.status, ClaimStatus::PlayerMessage);
             assert_eq!(item.evidence[0].status, EvidenceStatus::PlayerMessage);
         }
-        assert_eq!(checked.confidence, Confidence::Low);
+        assert_eq!(checked.confidence, ConfidenceMeter::Low);
     }
 
     #[test]
@@ -465,14 +465,14 @@ mod tests {
         };
         let high = check_answer(&unverified("alta"), &sent(), &mods());
         let low = check_answer(&unverified("baixa"), &sent(), &mods());
-        assert_eq!(high.confidence, Confidence::Low);
+        assert_eq!(high.confidence, ConfidenceMeter::Low);
         assert_eq!(high.confidence, low.confidence);
 
         let one = json!({ "resumo": "Resumo de teste.", "semConclusao": false, "propostas": [],
             "achados": [claim(&["railways"], json!([{ "id": "crash:s3/crash.txt#L12", "citacao": "tickBogeys" }]), "baixa")] });
         assert_eq!(
             check_answer(&one, &sent(), &mods()).confidence,
-            Confidence::Medium
+            ConfidenceMeter::Medium
         );
         let two = json!({ "resumo": "Resumo de teste.", "semConclusao": false, "propostas": [],
             "achados": [claim(&["railways"], json!([
@@ -480,13 +480,13 @@ mod tests {
                 { "id": "jar:railways", "citacao": "mais nova: 1.6.7" }]), "baixa")] });
         assert_eq!(
             check_answer(&two, &sent(), &mods()).confidence,
-            Confidence::High
+            ConfidenceMeter::High
         );
         let mut honest = two.clone();
         honest["semConclusao"] = json!(true);
         assert_eq!(
             check_answer(&honest, &sent(), &mods()).confidence,
-            Confidence::Low
+            ConfidenceMeter::Low
         );
     }
 

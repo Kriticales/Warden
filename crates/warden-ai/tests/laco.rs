@@ -19,11 +19,11 @@ use support::{
     respond, simple_answer, text,
 };
 use warden_ai::conversation::{AnswerVia, Conversation};
-use warden_ai::engine::{Engine, Limits, Live, Observer};
+use warden_ai::engine::{Engine, Limits, LiveStatus, Observer};
 use warden_ai::evidence::{ClaimStatus, EvidenceStatus};
 use warden_ai::gemini::GeminiClient;
 use warden_ai::schema::ROUND_LIMIT_MESSAGE;
-use warden_ai::tools::{NOT_ALLOWED, Permissions, ToolRegistry};
+use warden_ai::tools::{AiPermissions, NOT_ALLOWED, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
 use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::ManualTimer;
@@ -31,7 +31,7 @@ use warden_http::ManualTimer;
 /// Guarda o que o laço avisou.
 #[derive(Default)]
 struct Watch {
-    lives: Mutex<Vec<Live>>,
+    lives: Mutex<Vec<LiveStatus>>,
     saved: Mutex<Vec<Conversation>>,
 }
 
@@ -40,7 +40,7 @@ impl Observer for Watch {
     async fn changed(&self, conversation: &Conversation) {
         self.saved.lock().unwrap().push(conversation.clone());
     }
-    fn live(&self, live: Live) {
+    fn live(&self, live: LiveStatus) {
         self.lives.lock().unwrap().push(live);
     }
 }
@@ -118,7 +118,7 @@ async fn paralelas_malformada_e_resposta_pela_responder() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup
         .engine()
         .ask(&mut conv, "Por que travou?".into())
@@ -187,7 +187,7 @@ async fn ca_t14_03_enviado_a_ia_e_byte_a_byte_o_que_saiu() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let question = "Sintoma: trava ao entrar no mundo\nPack: Vale Sombrio — texto inicial com acentuação: ação, ç, “aspas”.";
     setup
         .engine()
@@ -222,7 +222,7 @@ async fn ca_t14_14_para_em_8_rodadas_e_pede_a_final_sem_ferramentas() {
         }
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup
         .engine()
         .ask(&mut conv, "Está lento".into())
@@ -264,7 +264,7 @@ async fn ca_t14_14_segundo_turno_reenvia_o_historico_intacto() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let engine = setup.engine();
     engine.ask(&mut conv, "1".into()).await.unwrap();
     let before = conv.contents.clone();
@@ -356,7 +356,7 @@ async fn ca_t14_18_texto_leva_a_reserva_sem_ferramentas() {
         }
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup.engine().ask(&mut conv, "?".into()).await.unwrap();
     let requests = setup.gemini.requests();
     assert_eq!(requests.len(), 3);
@@ -376,7 +376,7 @@ async fn ca_t14_18_503_e_tempo_esgotado_ate_4_vezes() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup.engine().ask(&mut conv, "?".into()).await.unwrap();
     assert_eq!(setup.sleeps(), [2, 4, 8, 16]);
     assert!(
@@ -385,13 +385,13 @@ async fn ca_t14_18_503_e_tempo_esgotado_ate_4_vezes() {
             .lives
             .lock()
             .unwrap()
-            .contains(&Live::Retrying { attempt: 4, of: 4 })
+            .contains(&LiveStatus::Retrying { attempt: 4, of: 4 })
     );
     assert_eq!(conv.requests, 6);
 
     // Cinco 503 seguidos: erro claro, conversa guardada com o erro na pergunta.
     let setup = Setup::new(Box::new(|_, _| real_error("http_503_alta_demanda"))).await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let error = setup.engine().ask(&mut conv, "?".into()).await.unwrap_err();
     assert_eq!(error.code(), DomainCode::Domain(AiErrorCode::Unavailable));
     assert_eq!(setup.gemini.requests().len(), 5);
@@ -435,7 +435,7 @@ async fn ca_t14_18_tempo_esgotado_repetido_e_depois_erro() {
         cancel: CancellationToken::new(),
         limits: Limits::default(),
     };
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let error = engine.ask(&mut conv, "?".into()).await.unwrap_err();
     assert!(matches!(error, Error::Timeout { .. }), "{error}");
     assert_eq!(
@@ -463,7 +463,7 @@ async fn ca_t14_18_respostas_reais_com_problema_viram_nova_tentativa_sem_mexer_n
             _ => respond(&simple_answer()),
         }))
         .await;
-        let mut conv = conversation(Permissions::default());
+        let mut conv = conversation(AiPermissions::default());
         setup.engine().ask(&mut conv, "?".into()).await.unwrap();
         let requests = setup.gemini.requests();
         assert_eq!(requests.len(), 1 + retries, "{problem}");
@@ -485,7 +485,7 @@ async fn ca_t14_18_respostas_reais_com_problema_viram_nova_tentativa_sem_mexer_n
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup.engine().ask(&mut conv, "?".into()).await.unwrap();
     let requests = setup.gemini.requests();
     assert_eq!(requests.len(), 3);
@@ -493,7 +493,7 @@ async fn ca_t14_18_respostas_reais_com_problema_viram_nova_tentativa_sem_mexer_n
 
     // Três seguidas: erro, sem resposta final.
     let setup = Setup::new(Box::new(|_, _| real_problem("stop_texto_vazio"))).await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let error = setup.engine().ask(&mut conv, "?".into()).await.unwrap_err();
     assert_eq!(error.code(), DomainCode::Domain(AiErrorCode::BadResponse));
     assert_eq!(setup.gemini.requests().len(), 3);
@@ -507,7 +507,7 @@ async fn ca_t14_18_429_por_minuto_espera_visivel_e_continua() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup.engine().ask(&mut conv, "?".into()).await.unwrap();
     // retryDelay real "38s" (+1 s de folga).
     assert_eq!(setup.sleeps(), [39]);
@@ -517,7 +517,7 @@ async fn ca_t14_18_429_por_minuto_espera_visivel_e_continua() {
             .lives
             .lock()
             .unwrap()
-            .contains(&Live::WaitingPerMinute { seconds: 39 })
+            .contains(&LiveStatus::WaitingPerMinute { seconds: 39 })
     );
     assert!(conv.turns[0].answer.is_some());
 }
@@ -528,7 +528,7 @@ async fn ca_t14_18_429_diario_para_na_hora_sem_horario() {
         real_error("http_429_cota_diaria_plano_gratuito")
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let error = setup.engine().ask(&mut conv, "?".into()).await.unwrap_err();
     assert_eq!(error.code(), DomainCode::Domain(AiErrorCode::QuotaExceeded));
     assert_eq!(setup.gemini.requests().len(), 1, "nenhuma nova tentativa");
@@ -554,7 +554,7 @@ async fn sinal_de_cobranca_e_chave_recusada_param_tudo() {
         )
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let error = setup.engine().ask(&mut conv, "?".into()).await.unwrap_err();
     assert_eq!(error.code(), DomainCode::Domain(AiErrorCode::Billing));
 
@@ -566,7 +566,7 @@ async fn sinal_de_cobranca_e_chave_recusada_param_tudo() {
         )
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let error = setup.engine().ask(&mut conv, "?".into()).await.unwrap_err();
     assert_eq!(error.code(), DomainCode::Domain(AiErrorCode::KeyInvalid));
 }
@@ -585,7 +585,7 @@ async fn ca_t14_13_configs_negadas_nao_saem() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions {
+    let mut conv = conversation(AiPermissions {
         configs: false,
         github: false,
     });
@@ -630,7 +630,7 @@ async fn ca_t14_11_conferencia_na_resposta_do_simulado() {
         _ => respond(&answer),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     setup.engine().ask(&mut conv, "?".into()).await.unwrap();
     let checked = &conv.turns[0].answer.as_ref().unwrap().checked;
     assert_eq!(checked.claims[0].status, ClaimStatus::Unverified);
@@ -664,7 +664,7 @@ async fn replay(name: &str) -> (Conversation, Value) {
         cancel: CancellationToken::new(),
         limits: Limits::default(),
     };
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     for question in recorded["perguntas"].as_array().unwrap() {
         engine
             .ask(&mut conv, question.as_str().unwrap().to_owned())
@@ -800,7 +800,7 @@ async fn retomar_depois_do_erro_continua_do_ponto() {
         _ => respond(&simple_answer()),
     }))
     .await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let engine = setup.engine();
     assert!(engine.ask(&mut conv, "?".into()).await.is_err());
     assert!(conv.turns[0].failure.is_some());
@@ -822,7 +822,7 @@ async fn retomar_depois_do_erro_continua_do_ponto() {
 #[tokio::test]
 async fn cancelar_para_na_espera() {
     let setup = Setup::new(Box::new(|_, _| real_error("http_503_alta_demanda"))).await;
-    let mut conv = conversation(Permissions::default());
+    let mut conv = conversation(AiPermissions::default());
     let engine = setup.engine();
     engine.cancel.cancel();
     let error = engine.ask(&mut conv, "?".into()).await.unwrap_err();

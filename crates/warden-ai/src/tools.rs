@@ -31,14 +31,14 @@ pub const NOT_ALLOWED: &str = "AI_PERMISSION_DENIED: não permitido nesta conver
 /// Permissões escolhidas no consentimento, gravadas na conversa.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct Permissions {
+pub struct AiPermissions {
     /// A IA pode buscar e ler as configs do pack.
     pub configs: bool,
     /// A IA pode procurar issues no GitHub dos mods (usada pelas consultas externas da D-14).
     pub github: bool,
 }
 
-impl Default for Permissions {
+impl Default for AiPermissions {
     fn default() -> Self {
         Self {
             configs: true,
@@ -253,7 +253,7 @@ impl ToolRegistry {
 
 /// Se a ferramenta é permitida pelas permissões da conversa.
 #[must_use]
-pub fn permitted(spec: &ToolSpec, permissions: Permissions) -> bool {
+pub fn permitted(spec: &ToolSpec, permissions: AiPermissions) -> bool {
     match spec.needs {
         Needs::Nothing => true,
         Needs::Configs => permissions.configs,
