@@ -27,6 +27,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from '../axe';
+import { openOrImport } from '../open-or-import';
 import { dismissToasts } from '../toasts';
 import { BIG_PACK, e2eLimit, report, summary, writePack } from './comum';
 
@@ -166,7 +167,7 @@ describe('Desempenho com o pack grande (A-04; SPEC §8)', () => {
   it('abre o pack grande pelo diálogo Abrir pack, com os 500 itens', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
