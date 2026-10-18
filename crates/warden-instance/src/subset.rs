@@ -89,7 +89,7 @@ pub fn materialize_subset(
 ) -> Result<SubsetReport> {
     let manifest = Manifest::load(&base.state_dir)?;
     remove_dir(game_dir)?;
-    fs::create_dir_all(game_dir).map_err(|error| Error::io("criar", game_dir, error))?;
+    fs::create_dir_all(game_dir).map_err(|error| Error::io("criar", shown(game_dir), error))?;
     let mut report = SubsetReport::default();
     for (relative, entry) in &manifest.files {
         if options.excluded.contains(&entry.index_path) {
@@ -102,12 +102,13 @@ pub fn materialize_subset(
         let source = base.game_dir.join(&safe);
         let target = game_dir.join(&safe);
         if let Some(parent) = target.parent() {
-            fs::create_dir_all(parent).map_err(|error| Error::io("criar", parent, error))?;
+            fs::create_dir_all(parent).map_err(|error| Error::io("criar", shown(parent), error))?;
         }
         if relative.starts_with("mods/") && link(&source, &target)? {
             report.linked += 1;
         } else {
-            fs::copy(&source, &target).map_err(|error| Error::io("copiar", &source, error))?;
+            fs::copy(&source, &target)
+                .map_err(|error| Error::io("copiar", shown(&source), error))?;
             report.copied += 1;
         }
     }
@@ -119,7 +120,7 @@ pub fn materialize_subset(
             &[("onboardAccessibility".to_owned(), "false".to_owned())],
             "\n",
         );
-        fs::write(&path, text).map_err(|error| Error::io("gravar", &path, error))?;
+        fs::write(&path, text).map_err(|error| Error::io("gravar", shown(&path), error))?;
     }
     if options.disable_forge_load_warnings {
         let path = game_dir.join("config").join("forge-client.toml");
@@ -131,9 +132,9 @@ pub fn materialize_subset(
             "false",
         );
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|error| Error::io("criar", parent, error))?;
+            fs::create_dir_all(parent).map_err(|error| Error::io("criar", shown(parent), error))?;
         }
-        fs::write(&path, text).map_err(|error| Error::io("gravar", &path, error))?;
+        fs::write(&path, text).map_err(|error| Error::io("gravar", shown(&path), error))?;
     }
     if let Some(world) = &options.world {
         let name = safe_relative(&world.name)
@@ -145,20 +146,54 @@ pub fn materialize_subset(
     Ok(report)
 }
 
+/// Tentativas de apagar uma pasta que outro programa ainda segura.
+const REMOVE_ATTEMPTS: u32 = 5;
+
 /// Apaga a pasta (a rodada, ou a busca inteira no fim). Ausente não é erro.
+///
+/// No Windows, logo depois de o jogo sair, um arquivo da rodada pode ficar preso por alguns
+/// instantes (o Java fechando os jars, o antivírus lendo o que mudou): a remoção falha com
+/// "acesso negado" e dá certo pouco depois. Por isso tenta de novo algumas vezes, com uma pausa
+/// curta, antes de desistir.
 pub fn remove_dir(dir: &Path) -> Result<()> {
-    match fs::remove_dir_all(dir) {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(Error::io("apagar", dir, error)),
+    let mut attempt = 0;
+    loop {
+        attempt += 1;
+        match fs::remove_dir_all(dir) {
+            Ok(()) => return Ok(()),
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(()),
+            Err(error) if attempt < REMOVE_ATTEMPTS => {
+                tracing::debug!(%error, attempt, "pasta da busca ainda presa; tentando de novo");
+                std::thread::sleep(std::time::Duration::from_millis(100 * u64::from(attempt)));
+            }
+            Err(error) => return Err(Error::io("apagar", shown(dir), error)),
+        }
     }
+}
+
+/// O caminho como as mensagens mostram: relativo a `instances/<pack>/` (as pastas da busca),
+/// nunca com a pasta do usuário.
+fn shown(path: &Path) -> PathBuf {
+    let parts: Vec<_> = path.components().collect();
+    let start = parts
+        .iter()
+        .position(|part| {
+            matches!(
+                part.as_os_str().to_str(),
+                Some(BISECT_BASE_DIR | BISECT_DIR | "saves")
+            )
+        })
+        .unwrap_or_else(|| parts.len().saturating_sub(1));
+    parts[start..].iter().collect()
 }
 
 /// Link físico; `Ok(false)` quando o sistema não deixa (aí o chamador copia).
 fn link(source: &Path, target: &Path) -> Result<bool> {
     match fs::hard_link(source, target) {
         Ok(()) => Ok(true),
-        Err(error) if error.kind() == ErrorKind::NotFound => Err(Error::io("ligar", source, error)),
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            Err(Error::io("ligar", shown(source), error))
+        }
         Err(error) => {
             tracing::debug!(%error, "link físico indisponível; copiando");
             Ok(false)
@@ -170,7 +205,7 @@ fn read_optional(path: &Path) -> Result<Option<Vec<u8>>> {
     match fs::read(path) {
         Ok(bytes) => Ok(Some(bytes)),
         Err(error) if error.kind() == ErrorKind::NotFound => Ok(None),
-        Err(error) => Err(Error::io("ler", path, error)),
+        Err(error) => Err(Error::io("ler", shown(path), error)),
     }
 }
 
@@ -185,10 +220,10 @@ fn safe_relative(relative: &str) -> Option<PathBuf> {
 /// Copia o mundo inteiro, sem o `session.lock` (o jogo cria o dele).
 fn copy_world(source: &Path, target: &Path) -> Result<()> {
     remove_dir(target)?;
-    fs::create_dir_all(target).map_err(|error| Error::io("criar", target, error))?;
-    let entries = fs::read_dir(source).map_err(|error| Error::io("ler", source, error))?;
+    fs::create_dir_all(target).map_err(|error| Error::io("criar", shown(target), error))?;
+    let entries = fs::read_dir(source).map_err(|error| Error::io("ler", shown(source), error))?;
     for entry in entries {
-        let entry = entry.map_err(|error| Error::io("ler", source, error))?;
+        let entry = entry.map_err(|error| Error::io("ler", shown(source), error))?;
         let name = entry.file_name();
         if name == "session.lock" {
             continue;
@@ -197,11 +232,11 @@ fn copy_world(source: &Path, target: &Path) -> Result<()> {
         let to = target.join(&name);
         let kind = entry
             .file_type()
-            .map_err(|error| Error::io("ler", &from, error))?;
+            .map_err(|error| Error::io("ler", shown(&from), error))?;
         if kind.is_dir() {
             copy_world(&from, &to)?;
         } else if kind.is_file() {
-            fs::copy(&from, &to).map_err(|error| Error::io("copiar", &from, error))?;
+            fs::copy(&from, &to).map_err(|error| Error::io("copiar", shown(&from), error))?;
         }
     }
     Ok(())
@@ -422,6 +457,32 @@ mod tests {
         assert_eq!(
             set_forge_toml_value("[general]\nx = 1", "client", "showLoadWarnings", "false"),
             "[general]\nx = 1\n\n[client]\n\tshowLoadWarnings = false\n"
+        );
+    }
+
+    #[test]
+    fn mensagens_sem_a_pasta_do_usuario() {
+        assert_eq!(
+            shown(Path::new(
+                "/home/fulano/dados/instances/abc/bisect/minecraft/mods/a.jar"
+            )),
+            Path::new("bisect/minecraft/mods/a.jar")
+        );
+        assert_eq!(
+            shown(Path::new(
+                "/home/fulano/dados/instances/abc/bisect-base/state"
+            )),
+            Path::new("bisect-base/state")
+        );
+        assert_eq!(
+            shown(Path::new(
+                "/home/fulano/dados/instances/abc/minecraft/saves/Mundo/level.dat"
+            )),
+            Path::new("saves/Mundo/level.dat")
+        );
+        assert_eq!(
+            shown(Path::new("/home/fulano/outro.txt")),
+            Path::new("outro.txt")
         );
     }
 

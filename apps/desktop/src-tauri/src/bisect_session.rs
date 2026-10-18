@@ -459,14 +459,15 @@ async fn graph_input(
             api_required: Vec::new(),
         })
         .collect();
-    let inferred = match InferredStore::load(&crate::commands::graph::inferred_file(state, pack_id))
-    {
-        Ok(store) => store.edges,
-        Err(error) => {
-            tracing::warn!(%error, "arestas inferidas ilegíveis; seguindo sem elas");
-            Vec::new()
-        }
-    };
+    // Sem o erro no log: ele traz o caminho inteiro, com a pasta do usuário.
+    let inferred = InferredStore::load(&crate::commands::graph::inferred_file(state, pack_id))
+        .map_or_else(
+            |_| {
+                tracing::warn!("arestas inferidas ilegíveis; seguindo sem elas");
+                Vec::new()
+            },
+            |store| store.edges,
+        );
     Ok(GraphInput {
         loader: crate::commands::graph::loader_of(loader.as_deref()),
         items,
@@ -1096,8 +1097,8 @@ impl Runner<'_> {
                 names.0, names.1
             ),
         });
-        if let Err(error) = store.save(&path) {
-            tracing::warn!(%error, "dependência inferida não gravada no grafo");
+        if store.save(&path).is_err() {
+            tracing::warn!("dependência inferida não gravada no grafo");
         }
     }
 
