@@ -68,6 +68,46 @@ export const commands = {
 	addLocalApply: (packId: PackId, items: LocalApplyItem[]) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_local_apply", { packId, items })),
 	/**  Esquece arquivos que a tela não vai adicionar (e apaga o download do link direto). */
 	addLocalDiscard: (tokens: string[]) => __TAURI_INVOKE<void>("add_local_discard", { tokens }),
+	/**  A escolha do modelo e se há chave. */
+	aiSettingsGet: () => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_get")),
+	/**  Grava a escolha do modelo. */
+	aiSettingsSet: (tier: ModelTier) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_set", { tier })),
+	/**  Os modelos que a chave alcança: o Flash-Lite e o Flash estáveis mais novos. */
+	aiModelsGet: (refresh: boolean) => typedError<ModelChoices, AppError>(__TAURI_INVOKE("ai_models_get", { refresh })),
+	/**  As sessões do pack que dá para analisar. */
+	aiSourcesList: (packId: PackId) => typedError<AiSources, AppError>(__TAURI_INVOKE("ai_sources_list", { packId })),
+	/**  "Um log ou crash report do computador…": o diálogo nativo. `None`: desistiu. */
+	aiLogChoose: (packId: PackId) => typedError<{
+	/**  Identificador da escolha, para a prévia. */
+	token: string,
+	/**  O nome do arquivo, sem a pasta. */
+	fileName: string,
+	/**  Tamanho. */
+	bytes: number,
+} | null, AppError>(__TAURI_INVOKE("ai_log_choose", { packId })),
+	/**  O texto inicial exato e o que a IA poderá consultar, para o consentimento. */
+	aiConversationPreview: (packId: PackId, request: AiPreviewRequest) => typedError<AiPreview, AppError>(__TAURI_INVOKE("ai_conversation_preview", { packId, request })),
+	/**
+	 *  "✦ Começar conversa": grava a conversa com as permissões escolhidas e o texto mostrado.
+	 *  Não manda nada; a interface chama `ai_conversation_run` em seguida.
+	 */
+	aiConversationStart: (packId: PackId, previewId: string, permissions: AiPermissions) => typedError<string, AppError>(__TAURI_INVOKE("ai_conversation_start", { packId, previewId, permissions })),
+	/**
+	 *  Roda a pergunta pendente (a primeira, uma nova ou de novo depois de um erro). Volta quando a
+	 *  IA responde ou para; a interface acompanha pelo `ai-conversation-updated`.
+	 */
+	aiConversationRun: (packId: PackId, conversationId: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_conversation_run", { packId, conversationId })),
+	/**
+	 *  Acrescenta uma pergunta à conversa (sem rede); a interface chama `ai_conversation_run` em
+	 *  seguida.
+	 */
+	aiConversationSend: (packId: PackId, conversationId: string, text: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_conversation_send", { packId, conversationId, text })),
+	/**  As conversas do pack, da mais nova para a mais antiga. */
+	aiConversationsList: (packId: PackId) => typedError<AiConversationSummary[], AppError>(__TAURI_INVOKE("ai_conversations_list", { packId })),
+	/**  Uma conversa com as mensagens, as consultas e o que mudou no pack desde então. */
+	aiConversationGet: (packId: PackId, conversationId: string) => typedError<AiConversationView, AppError>(__TAURI_INVOKE("ai_conversation_get", { packId, conversationId })),
+	/**  Apaga a conversa (o arquivo dela nos dados do Warden). Se a IA estava respondendo, para. */
+	aiConversationDelete: (packId: PackId, conversationId: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_conversation_delete", { packId, conversationId })),
 	/**  Informa a versão, o commit e a plataforma do app. */
 	appInfo: () => typedError<AppInfo, AppError>(__TAURI_INVOKE("app_info")),
 	/**  Configurações atuais. */
@@ -870,6 +910,7 @@ export const commands = {
 
 /** Events */
 export const events = {
+	aiConversationUpdated: makeEvent<AiConversationUpdated>("ai-conversation-updated"),
 	configIndexChanged: makeEvent<ConfigIndexChanged>("config-index-changed"),
 	gameQuitRequested: makeEvent<GameQuitRequested>("game-quit-requested"),
 	gameState: makeEvent<GameState>("game-state"),
@@ -952,13 +993,212 @@ export type Affected = {
 	needs: NodeRef[],
 };
 
+/**  A situação de uma conversa na lista. */
+export type AiConversationState = 
+/**  A IA está respondendo. */
+"running" | 
+/**  A última pergunta foi respondida. */
+"answered" | 
+/**  A última pergunta parou num erro. */
+"failed" | 
+/**  A última pergunta ficou sem resposta (o app fechou no meio). */
+"interrupted";
+
+/**  Uma linha de "Conversas". */
+export type AiConversationSummary = {
+	/**  ULID. */
+	id: string,
+	/**  A causa provável (a primeira afirmação verificada, ou o resumo), quando houver. */
+	title: string | null,
+	/**  O sintoma. */
+	symptom: Symptom,
+	/**  O que foi analisado. */
+	origin: ConversationOrigin,
+	/**  Quando começou. */
+	createdAtMs: number,
+	/**  Última mudança. */
+	updatedAtMs: number,
+	/**  A situação. */
+	state: AiConversationState,
+	/**  Perguntas feitas. */
+	questions: number,
+	/**  Tokens processados. */
+	tokens: number,
+};
+
+/**  `ai-conversation-updated`: uma conversa mudou (pergunta, consulta, resposta, erro, espera). */
+export type AiConversationUpdated = {
+	/**  O pack. */
+	packId: PackId,
+	/**  A conversa (ULID). */
+	conversationId: string,
+};
+
+/**  Uma conversa aberta. */
+export type AiConversationView = {
+	/**  O resumo (título, situação…). */
+	summary: AiConversationSummary,
+	/**  O modelo. */
+	model: string,
+	/**  Mais econômico ou mais cuidadoso. */
+	tier: ModelTier | null,
+	/**  As permissões escolhidas. */
+	permissions: AiPermissions,
+	/**  O que a pessoa contou. */
+	note: string | null,
+	/**  Tamanho do pedido inicial contado pelo Google. */
+	initialTokens: number | null,
+	/**  Requisições feitas. */
+	requests: number,
+	/**  As perguntas, com as consultas e as respostas. */
+	turns: ConversationTurn[],
+	/**  O que a conversa está fazendo agora. */
+	live: LiveStatus | null,
+	/**  O que mudou no pack desde o começo da conversa. */
+	packChanges: PackChanges,
+};
+
 /**
  *  Códigos do domínio `ai`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type AiErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  O Google recusou a chave do Gemini. */
+"KEY_INVALID" | 
+/**  O limite por minuto do plano gratuito não liberou depois das esperas. */
+"RATE_LIMITED" | 
+/**  A cota diária (ou longa) do modelo acabou. Sem horário de volta (S-R5-4 §13). */
+"QUOTA_EXCEEDED" | 
+/**  O Google não respondeu dentro do tempo-limite, nem nas novas tentativas. */
+"TIMEOUT" | 
+/**  A resposta da IA veio num formato que não dá para usar, mesmo depois das novas tentativas. */
+"BAD_RESPONSE" | 
+/**  A IA passou do limite de consultas e não deu a resposta final. */
+"TOOL_LIMIT" | 
+/**  O Google pediu cobrança ou pagamento (faturamento desligado, crédito, cartão). */
+"BILLING" | 
+/**  Ferramenta não permitida nesta conversa (vai para a IA, não para o usuário). */
+"PERMISSION_DENIED" | 
+/**  O Google ficou sobrecarregado (503/500) em todas as novas tentativas. */
+"UNAVAILABLE" | 
+/**  Nenhum modelo do Gemini disponível para esta chave serve para o diagnóstico. */
+"NO_MODEL" | 
+/**  O Google recusou o pedido por outro motivo (4xx). */
+"REJECTED" | 
+/**  A conversa não existe (apagada, ou o identificador está errado). */
+"CONVERSATION_NOT_FOUND" | 
+/**  A IA ainda está respondendo nesta conversa. */
+"CONVERSATION_BUSY" | 
+/**
+ *  O texto inicial mostrado no consentimento não está mais guardado (o app reiniciou ou
+ *  passou muito tempo): é preciso abrir o consentimento de novo.
+ */
+"PREVIEW_EXPIRED" | 
+/**  O arquivo de uma conversa está ilegível. */
+"CONVERSATION_UNREADABLE";
+
+/**  Um arquivo escolhido no computador (o caminho fica no backend). */
+export type AiLocalPick = {
+	/**  Identificador da escolha, para a prévia. */
+	token: string,
+	/**  O nome do arquivo, sem a pasta. */
+	fileName: string,
+	/**  Tamanho. */
+	bytes: number,
+};
+
+/**  Permissões escolhidas no consentimento, gravadas na conversa. */
+export type AiPermissions = {
+	/**  A IA pode buscar e ler as configs do pack. */
+	configs: boolean,
+	/**  A IA pode procurar issues no GitHub dos mods (usada pelas consultas externas da D-14). */
+	github: boolean,
+};
+
+/**  O consentimento. */
+export type AiPreview = {
+	/**  Para o `ai_conversation_start`. */
+	previewId: string,
+	/**  O texto inicial exato, já redigido. */
+	text: string,
+	/**  Tamanho do texto em bytes (UTF-8). */
+	bytes: number,
+	/**
+	 *  Tamanho inicial estimado em tokens: o `countTokens` do *system prompt* e das
+	 *  ferramentas mais o texto estimado (`None`: o Google não respondeu agora).
+	 */
+	estimatedTokens: number | null,
+	/**  O modelo. */
+	model: string,
+	/**  Mais econômico ou mais cuidadoso (custo esperado). */
+	tier: ModelTier | null,
+	/**  A busca no GitHub está disponível nesta versão (ponto de extensão da D-14). */
+	githubAvailable: boolean,
+};
+
+/**  O pedido da prévia. */
+export type AiPreviewRequest = {
+	/**  "O que está acontecendo?". */
+	symptom: Symptom,
+	/**  "Começar pelo". */
+	source: AiSource,
+	/**  "Contar algo à IA". */
+	note: string | null,
+};
+
+/**  Uma sessão do Testar para "Começar pelo". */
+export type AiSessionOption = {
+	/**  A sessão. */
+	sessionId: string,
+	/**  Quando começou. */
+	startedAtMs: number,
+	/**  Resultado. */
+	outcome: Outcome,
+	/**  Versão do pack. */
+	packVersion: string | null,
+};
+
+/**  O que Configurações mostra da IA. */
+export type AiSettingsView = {
+	/**  A escolha. */
+	tier: ModelTier,
+	/**  Há chave do Gemini. */
+	keyConfigured: boolean,
+	/**  Os modelos já resolvidos nesta execução (sem rede). */
+	models: ModelChoices | null,
+};
+
+/**  O que analisar. */
+export type AiSource = 
+/**  O travamento mais novo. */
+{ kind: "lastCrash" } | 
+/**  Uma sessão. */
+{ kind: "session"; 
+/**  A sessão. */
+sessionId: string } | 
+/**  O arquivo escolhido por `ai_log_choose`. */
+{ kind: "localFile"; 
+/**  O `token` da escolha. */
+token: string } | 
+/**  Só o pack. */
+{ kind: "packOnly" };
+
+/**  As origens possíveis. */
+export type AiSources = {
+	/**  O travamento mais novo (o padrão de "Começar pelo"). */
+	lastCrash: AiSessionOption | null,
+	/**  As sessões, da mais nova para a mais antiga (até 20). */
+	sessions: AiSessionOption[],
+};
+
+/**  Como a resposta final chegou. */
+export type AnswerVia = 
+/**  Pela ferramenta `responder`. */
+"respond" | 
+/**  Pela requisição de reserva (`mode: NONE` + `responseFormat`). */
+"fallback";
 
 /**
  *  Erro devolvido por todo comando (`Result<T, AppError>`). A interface mostra a frase do
@@ -1574,6 +1814,73 @@ export type CheckTrigger =
 /**  Botão "Verificar atualizações": sempre consulta. */
 "manual";
 
+/**  A resposta final conferida. */
+export type CheckedAnswer = {
+	/**  O resumo da IA. */
+	summary: string,
+	/**  A IA disse que as evidências não bastam ("Não sei" é resposta válida). */
+	noConclusion: boolean,
+	/**  As afirmações. */
+	claims: CheckedClaim[],
+	/**  As propostas (as descartadas ficam guardadas, mas não aparecem). */
+	proposals: CheckedProposal[],
+	/**  O medidor. */
+	confidence: ConfidenceMeter,
+	/**  Mods envolvidos (os das afirmações verificadas, sem repetir). */
+	mods: KnownMod[],
+};
+
+/**  Uma afirmação conferida. */
+export type CheckedClaim = {
+	/**  O texto da afirmação. */
+	statement: string,
+	/**  A situação. */
+	status: ClaimStatus,
+	/**  Os mods citados que existem no pack (viram link). */
+	mods: KnownMod[],
+	/**  Os mods citados que não existem no pack (não viram link). */
+	unknownMods: string[],
+	/**  As evidências. */
+	evidence: CheckedEvidence[],
+};
+
+/**  Uma evidência conferida. */
+export type CheckedEvidence = {
+	/**  O id citado. */
+	id: string,
+	/**  A citação como a IA escreveu. */
+	quote: string,
+	/**  A situação. */
+	status: EvidenceStatus,
+	/**  O texto do item onde a citação foi achada (para o selo levar ao trecho). */
+	sourceText: string | null,
+};
+
+/**  Uma proposta conferida (as aplicáveis são da D-14; aqui só aparecem como sugestão). */
+export type CheckedProposal = {
+	/**  O tipo (`atualizar_mod`…). */
+	kind: string,
+	/**  O mod, quando existe no pack. */
+	target: KnownMod | null,
+	/**  O id citado pela IA. */
+	modId: string | null,
+	/**  O texto da proposta. */
+	detail: string,
+	/**  `None`: aparece; senão, o motivo de não aparecer. */
+	discarded: DiscardReason | null,
+	/**  As evidências. */
+	evidence: CheckedEvidence[],
+};
+
+/**  Como a interface mostra uma afirmação. */
+export type ClaimStatus = 
+/**  Tem pelo menos uma evidência válida e todos os mods citados existem. */
+"verified" | 
+/**  Só se apoia em mensagens de chat de jogadores ("baseado em mensagem de jogador"). */
+"playerMessage" | 
+/**  "não verificado". */
+"unverified";
+
 /**  Quanto o formulário confia no tipo e nos limites do campo. */
 export type Confidence = 
 /**  Declarado pelo arquivo, ou tipo inequívoco pelo valor. */
@@ -1582,6 +1889,15 @@ export type Confidence =
 "medium" | 
 /**  Deduzido das frases do comentário ou do jeito do valor. */
 "low";
+
+/**  Medidor de confiança calculado pelo Warden. */
+export type ConfidenceMeter = 
+/**  Nada verificado, ou a IA não concluiu. */
+"low" | 
+/**  Parte verificada. */
+"medium" | 
+/**  Todas as afirmações verificadas, com pelo menos duas evidências válidas. */
+"high";
 
 /**  Um arquivo lido. */
 export type ConfigContent = {
@@ -1857,6 +2173,37 @@ export type ControlDiff = {
 	current: string | null,
 	/**  Conteúdo proposto, preservando padrões adicionais do usuário. */
 	suggested: string,
+};
+
+/**  O que foi analisado. */
+export type ConversationOrigin = 
+/**  Uma sessão do Testar (o último travamento ou outra). */
+{ kind: "session"; 
+/**  A sessão. */
+sessionId: string; 
+/**  Era o último travamento do pack quando a conversa começou. */
+lastCrash: boolean; 
+/**  A assinatura do travamento (liga a conversa à linha de Travamentos). */
+signature: string | null } | 
+/**  Um log ou crash report escolhido no computador (só o nome do arquivo fica guardado). */
+{ kind: "localFile"; 
+/**  O nome do arquivo, sem a pasta. */
+fileName: string } | 
+/**  Só o pack, sem log. */
+{ kind: "packOnly" };
+
+/**  Uma pergunta (a primeira é o texto inicial do consentimento) e o que aconteceu. */
+export type ConversationTurn = {
+	/**  O texto exato enviado. */
+	question: string,
+	/**  Quando foi enviado. */
+	askedAtMs: number,
+	/**  As consultas da IA, na ordem. */
+	steps: ToolStep[],
+	/**  A resposta final. */
+	answer: FinalAnswer | null,
+	/**  O erro que interrompeu (a conversa continua guardada). */
+	failure: TurnFailure | null,
 };
 
 /**  Resultado de "Copiar para defaultconfigs/". */
@@ -2330,6 +2677,15 @@ export type DiagnosticsReport = {
 	stale: boolean,
 };
 
+/**  Por que uma proposta não aparece. */
+export type DiscardReason = 
+/**  Nenhuma evidência válida. */
+"noEvidence" | 
+/**  O mod citado não existe no pack. */
+"unknownMod" | 
+/**  Tipo de proposta que esta versão não conhece. */
+"unknownKind";
+
 /**  Uma categoria da lista de filtros. */
 export type DiscoverCategory = {
 	/**  Identificador estável (o que a busca recebe). */
@@ -2518,6 +2874,19 @@ sessionId: string;
 metric: string; 
 /**  Os números medidos, pelo nome (`percent`, `seconds`, `maxMb`…). */
 values: { [key in string]: string } };
+
+/**  A situação de uma evidência. */
+export type EvidenceStatus = 
+/**  O id veio de uma ferramenta desta conversa e a citação aparece literalmente. */
+"valid" | 
+/**  A citação só aparece com espaços normalizados (conta como não verificada). */
+"onlyWithSpaces" | 
+/**  O id existe, mas a citação não aparece no texto. */
+"quoteNotFound" | 
+/**  Nenhuma ferramenta desta conversa devolveu esse id. */
+"unknownId" | 
+/**  A citação existe, mas o trecho é uma mensagem de chat de um jogador. */
+"playerMessage";
 
 /**  Motivo de um alerta da prévia; a interface escolhe o texto exibido. */
 export type ExportAlert = 
@@ -2755,6 +3124,20 @@ export type FileReport = {
 	lookupFailed: SourceId[],
 	/**  O pack já tem este arquivo, ou outro com o mesmo nome na mesma pasta. */
 	inPack: InPack | null,
+};
+
+/**  A resposta final de uma pergunta. */
+export type FinalAnswer = {
+	/**  Como chegou. */
+	via: AnswerVia,
+	/**  A IA estourou o limite de rodadas antes de responder. */
+	roundLimit: boolean,
+	/**  A resposta conferida. */
+	checked: CheckedAnswer,
+	/**  O JSON como a IA mandou. */
+	raw: string,
+	/**  Quando chegou. */
+	atMs: number,
 };
 
 /**  Um achado do diagnóstico, com evidência obrigatória. */
@@ -4329,6 +4712,16 @@ export type KitItem = {
 	note: string | null,
 };
 
+/**  Um mod do pack, para a conferência e para os links da resposta. */
+export type KnownMod = {
+	/**  O id usado pelas ferramentas (`create`). */
+	id: string,
+	/**  Nome na lista de Mods. */
+	name: string,
+	/**  Caminho do item na lista de Mods (`mods/create.pw.toml`). */
+	path: string,
+};
+
 /**  Tipo de script do KubeJS, pela pasta. */
 export type KubejsScriptType = 
 /**  `kubejs/startup_scripts/`. */
@@ -4449,6 +4842,21 @@ export type ListItemKind =
 "float" | 
 /**  Liga/desliga (`true`/`false`). */
 "bool";
+
+/**  O que a conversa está fazendo agora (para a tela). */
+export type LiveStatus = 
+/**  Esperando a IA. */
+{ kind: "thinking" } | 
+/**  "Aguardando o limite por minuto do plano gratuito…". */
+{ kind: "waitingPerMinute"; 
+/**  Segundos de espera. */
+seconds: number } | 
+/**  O Google ficou sobrecarregado ou não respondeu; nova tentativa. */
+{ kind: "retrying"; 
+/**  Qual tentativa (1 a 4). */
+attempt: number; 
+/**  De quantas. */
+of: number };
 
 /**  Os tempos de um teste, em milissegundos desde a abertura do processo. */
 export type LoadTimes = {
@@ -4869,6 +5277,24 @@ export type ModUpdateReport = {
 	/**  Quantos itens têm atualização disponível. */
 	available: number,
 };
+
+/**  Os modelos resolvidos para esta chave. */
+export type ModelChoices = {
+	/**  O Flash-Lite estável mais novo (`None`: nenhum disponível). */
+	economical: string | null,
+	/**  O Flash estável mais novo. */
+	careful: string | null,
+};
+
+/**  A escolha em Configurações. */
+export type ModelTier = 
+/**  Padrão: o Flash-Lite estável mais novo (cota gratuita folgada, rápido, barato). */
+"economical" | 
+/**
+ *  "Análise mais cuidadosa": o Flash estável mais novo (poucas conversas por dia no plano
+ *  gratuito).
+ */
+"careful";
 
 /**  A lista de mods de um modpack, para o painel da direita da página de descoberta. */
 export type ModpackContents = {
@@ -5320,6 +5746,18 @@ export type PackChanged = {
 	areas: PackArea[],
 	/**  A mudança veio de fora do Warden (editor, `git pull`): a interface avisa o usuário. */
 	external: boolean,
+};
+
+/**  O que mudou no pack desde o começo da conversa. */
+export type PackChanges = {
+	/**  Itens com outra versão. */
+	updated: number,
+	/**  Itens novos. */
+	added: number,
+	/**  Itens que saíram. */
+	removed: number,
+	/**  Outras mudanças (configs, `pack.toml`) sem mudar a lista de itens. */
+	other: boolean,
 };
 
 /**
@@ -7226,6 +7664,17 @@ path: string;
 /**  Caminho da chave. */
 key: string };
 
+/**  O sintoma escolhido em "Nova conversa". */
+export type Symptom = 
+/**  Trava ao abrir o jogo. */
+"crashOnStart" | 
+/**  Trava ao entrar no mundo. */
+"crashInWorld" | 
+/**  Está lento. */
+"slow" | 
+/**  Outra coisa. */
+"other";
+
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -7417,6 +7866,22 @@ export type TitleBarMaximize = {
 	pressed: boolean,
 };
 
+/**  Uma consulta da IA e o que foi enviado em resposta ("Enviado à IA"). */
+export type ToolStep = {
+	/**  O `id` da chamada. */
+	callId: string | null,
+	/**  A ferramenta. */
+	name: string,
+	/**  Os argumentos que a IA pediu (JSON compacto, como vieram). */
+	args: string,
+	/**  A parte `functionResponse` exatamente como foi na requisição (bytes exatos). */
+	sent: string,
+	/**  A ferramenta devolveu dados (falso: erro ou não permitida). */
+	ok: boolean,
+	/**  Não permitida nesta conversa. */
+	denied: boolean,
+};
+
 /**  Uma ferramenta encontrada no pack. */
 export type ToolVersion = {
 	/**  A ferramenta. */
@@ -7425,6 +7890,20 @@ export type ToolVersion = {
 	major: number | null,
 	/**  A versão completa, como veio do jar ou do nome do arquivo. */
 	version: string | null,
+};
+
+/**  Um erro que interrompeu uma pergunta (código e parâmetros da frase, como o `AppError`). */
+export type TurnFailure = {
+	/**  Domínio (`ai` ou `core`). */
+	domain: string,
+	/**  Código (`QUOTA_EXCEEDED`). */
+	code: string,
+	/**  Parâmetros da frase. */
+	params: { [key in string]: string },
+	/**  Detalhe técnico. */
+	detail: string | null,
+	/**  Dá para tentar de novo. */
+	retryable: boolean,
 };
 
 /**  Por que um item não pode ser marcado. */

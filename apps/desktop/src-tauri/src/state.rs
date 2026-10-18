@@ -59,6 +59,9 @@ pub struct AppState {
     pub(crate) console_groups: crate::commands::console::ConsoleGroups,
     /// O servidor local (L-09): um por vez, com o evento `server-state`.
     pub(crate) servers: Arc<crate::server_session::ServerSessions>,
+    /// ✦ Diagnóstico com IA: prévias do consentimento, conversas respondendo e modelos (D-04;
+    /// só memória).
+    pub(crate) ai: crate::commands::ai::AiHub,
 }
 
 impl AppState {
@@ -91,6 +94,10 @@ impl AppState {
         secret_testers.register(
             warden_secrets::SecretKind::Github,
             Arc::new(crate::commands::github::GithubTokenTester),
+        );
+        secret_testers.register(
+            warden_secrets::SecretKind::Gemini,
+            Arc::new(crate::commands::ai::GeminiKeyTester::default()),
         );
         let catalog = crate::commands::catalog::open_catalog(&paths)?;
         let java = open_java(&paths)?;
@@ -125,6 +132,7 @@ impl AppState {
                 config_search: Arc::default(),
                 console_groups: crate::commands::console::ConsoleGroups::default(),
                 servers: Arc::default(),
+                ai: crate::commands::ai::AiHub::default(),
             },
             outcome,
         ))

@@ -3,13 +3,14 @@
  * acréscimo-apenas** (ROADMAP §1): a C-03 acrescenta "O que mudou durante o teste" (ordem 100);
  * a D-03 troca a linha `why-crashed` pela análise do travamento ("Por que travou" com a causa e
  * a correção); a L-10, o resumo do desempenho ("Abriu em …", ordem 50); a L-12, "Desempenho";
- * a 1.1, "Esta versão está mais pesada". Cada componente devolve `null` quando não tem nada a
- * mostrar.
+ * a 1.1, "Esta versão está mais pesada"; a D-04, "✦ Pedir ajuda à IA" (ordem 210). Cada
+ * componente devolve `null` quando não tem nada a mostrar.
  */
 import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
 import { CaptureBlock } from '../capture/CaptureBlock';
+import { AskAiBlock } from '../diagnostics/ai/AskAi';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PlayerResult } from './clean/PlayerResult';
 import { PerfSummary } from './perf-strip/PerfStrip';
@@ -37,6 +38,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'player', order: 75, component: PlayerResult },
   // L-09: o que aconteceu em cada lado no "Testar como servidor".
   { id: 'server-result', order: 20, component: ServerResult },
+  // D-04: "✦ Pedir ajuda à IA" logo depois do "Por que travou".
+  { id: 'ai-help', order: 210, component: AskAiBlock },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {

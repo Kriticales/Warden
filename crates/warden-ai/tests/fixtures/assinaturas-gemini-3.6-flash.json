@@ -1,0 +1,196 @@
+{
+  "origem": "Gravação real (spike S-R5-4, 2026-10-04): reação da API do Gemini a históricos com assinaturas alteradas. Sem cabeçalhos nem chave.",
+  "modelo": "gemini-3.6-flash",
+  "resposta_com_chamadas_paralelas": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_findings",
+                "args": {},
+                "id": "call_2232538"
+              },
+              "thoughtSignature": "Ep8CCpwCAWkUfROBkJ2rktc1Fb1SKjdivVZrUFw7tTLIDb5/QLHCBuxsOkPUkwLZPgTMtacT2O8wWc9jrUwtQLlMPE703lCJ5vHjD1cTn8ri52sNDzXo78YwkgCBl69+dmMmfWUZjN20Dl0N1jXaKz2PygRE7Rw+icEc1gyyg5Qb4QBi6K9OFzzxrCDVa47tDIE/n2VyLFQvJPUcGwviRjSiIJ5bH0xfxtGpDzLbywDdqQBFCfL4XO3BR9cUuKkFXoWJggxFJey8uT7JIsRrjKUNf1fmS1PRYe9VpA9hH+Y3ZtswCi+r+p70GgUZkPTentCSwu6knyjdyvUDm7B04eFrtS3q9kRPJ6qnt55aJTqkESTjmUJ0C1ShxMzhYBClhrA="
+            },
+            {
+              "functionCall": {
+                "name": "get_crash_report",
+                "args": {
+                  "session_id": "s3"
+                },
+                "id": "call_2232539"
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 1570,
+      "candidatesTokenCount": 31,
+      "totalTokenCount": 1647,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1570
+        }
+      ],
+      "thoughtsTokenCount": 46,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.6-flash",
+    "responseId": "y87CavT5FuvNqtsPgfjjgAE"
+  },
+  "variantes": [
+    {
+      "etapa": "chamada inicial 0",
+      "http": 200,
+      "resposta": {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "functionCall": {
+                    "name": "get_findings",
+                    "args": {},
+                    "id": "call_2232538"
+                  },
+                  "thoughtSignature": "Ep8CCpwCAWkUfROBkJ2rktc1Fb1SKjdivVZrUFw7tTLIDb5/QLHCBuxsOkPUkwLZPgTMtacT2O8wWc9jrUwtQLlMPE703lCJ5vHjD1cTn8ri52sNDzXo78YwkgCBl69+dmMmfWUZjN20Dl0N1jXaKz2PygRE7Rw+icEc1gyyg5Qb4QBi6K9OFzzxrCDVa47tDIE/n2VyLFQvJPUcGwviRjSiIJ5bH0xfxtGpDzLbywDdqQBFCfL4XO3BR9cUuKkFXoWJggxFJey8uT7JIsRrjKUNf1fmS1PRYe9VpA9hH+Y3ZtswCi+r+p70GgUZkPTentCSwu6knyjdyvUDm7B04eFrtS3q9kRPJ6qnt55aJTqkESTjmUJ0C1ShxMzhYBClhrA="
+                },
+                {
+                  "functionCall": {
+                    "name": "get_crash_report",
+                    "args": {
+                      "session_id": "s3"
+                    },
+                    "id": "call_2232539"
+                  }
+                }
+              ],
+              "role": "model"
+            },
+            "finishReason": "STOP",
+            "index": 0,
+            "finishMessage": "Model generated function call(s)."
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 1570,
+          "candidatesTokenCount": 31,
+          "totalTokenCount": 1647,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1570
+            }
+          ],
+          "thoughtsTokenCount": 46,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "y87CavT5FuvNqtsPgfjjgAE"
+      }
+    },
+    {
+      "etapa": "sem assinatura",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_findings` , position 2. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura alterada (1 caractere)",
+      "http": 400,
+      "erro": "Invalid thought signature.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura movida para a 2a chamada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2698,
+        "candidatesTokenCount": 253,
+        "totalTokenCount": 2994,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2698
+          }
+        ],
+        "thoughtsTokenCount": 43,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "respostas intercaladas",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_crash_report` , position 4. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura falsa documentada",
+      "http": 503,
+      "erro": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+      "uso": null
+    },
+    {
+      "etapa": "respostas na ordem inversa",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2698,
+        "candidatesTokenCount": 270,
+        "totalTokenCount": 2994,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2698
+          }
+        ],
+        "thoughtsTokenCount": 26,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "chamadas na ordem inversa (assinatura na última)",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2698,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2994,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2698
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "intacto",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2698,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2994,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2698
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    }
+  ]
+}

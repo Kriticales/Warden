@@ -10,6 +10,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { extname, join, normalize, sep } from 'node:path';
 
 import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
+import { geminiState, resetGemini, serveGemini } from './gemini';
 import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 import { modpackReply } from './modpacks';
@@ -269,6 +270,17 @@ export async function startMockServer(): Promise<MockServer> {
       response.writeHead(204).end();
       return;
     }
+    if (path === '/__gemini') {
+      response
+        .writeHead(200, { 'content-type': 'application/json' })
+        .end(JSON.stringify(geminiState()));
+      return;
+    }
+    if (path === '/__gemini/reset' && request.method === 'POST') {
+      resetGemini();
+      response.writeHead(204).end();
+      return;
+    }
     if (path === '/__reset') {
       requests.length = 0;
       response.writeHead(204).end();
@@ -301,6 +313,10 @@ export async function startMockServer(): Promise<MockServer> {
     }
     if (path.startsWith('/github/')) {
       serveGithub(request, response, path, base());
+      return;
+    }
+    if (path.startsWith('/gemini/')) {
+      serveGemini(request, response, path);
       return;
     }
     // "Testar como o jogador recebe" (L-07): os jars do instalador e os mods do pack de teste.
