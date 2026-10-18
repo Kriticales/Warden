@@ -25,10 +25,9 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
 
@@ -36,6 +35,7 @@ import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
 import { zipEntries } from './zip';
 import { openOrImport } from './open-or-import';
+import { closeDialog, expectedFiles, exportAndWait, listFiles, waitToast } from './steps';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -76,20 +76,6 @@ function pickNext(path: string): void {
   writeFileSync(PICK_FILE, path);
 }
 
-/** Os arquivos de uma pasta (caminhos com `/`), em ordem. */
-function listFiles(dir: string): string[] {
-  const out: string[] = [];
-  const walk = (current: string) => {
-    for (const entry of readdirSync(current)) {
-      const path = join(current, entry);
-      if (statSync(path).isDirectory()) walk(path);
-      else out.push(relative(dir, path).replaceAll('\\', '/'));
-    }
-  };
-  walk(dir);
-  return out.sort();
-}
-
 function folderHash(dir: string): string {
   const hash = createHash('sha256');
   for (const path of listFiles(dir)) {
@@ -97,13 +83,6 @@ function folderHash(dir: string): string {
     hash.update(readFileSync(join(dir, path)));
   }
   return hash.digest('hex');
-}
-
-/** `pack.toml`, `index.toml` e os `file = "…"` do índice do pack. */
-function expectedFiles(pack: string): string[] {
-  const index = readFileSync(join(pack, 'index.toml'), 'utf8');
-  const files = [...index.matchAll(/^file = "([^"]+)"/gm)].map((match) => match[1] ?? '');
-  return ['index.toml', 'pack.toml', ...files].sort();
 }
 
 function packwizBinary(): string {
@@ -114,45 +93,6 @@ function packwizBinary(): string {
   );
   if (!name) throw new Error('sidecar do packwiz ausente: rode cargo xtask build-packwiz');
   return join(BINARIES, name);
-}
-
-async function waitToast(text: string): Promise<void> {
-  let seen = '';
-  await browser.waitUntil(
-    async () => {
-      seen = await browser.execute(() =>
-        Array.from(document.querySelectorAll('.toast'))
-          .map((toast) => toast.textContent)
-          .join(' | '),
-      );
-      return seen.includes(text) || seen.includes('Não foi possível') || /falhou/i.test(seen);
-    },
-    { timeout: 60_000, timeoutMsg: `aviso "${text}" não apareceu (avisos: ${seen})` },
-  );
-  expect(seen).toContain(text);
-}
-
-/** Clica em Exportar… e espera o diálogo do resultado. */
-async function exportAndWait(): Promise<void> {
-  await dismissToasts();
-  await $('button=Exportar…').click();
-  const dialog = $('[role="dialog"]*=Pack exportado');
-  let error = '';
-  await browser.waitUntil(
-    async () => {
-      if (await dialog.isExisting()) return true;
-      const panel = $('main .alert--danger');
-      if (await panel.isExisting()) error = await panel.getText();
-      return error !== '';
-    },
-    { timeout: 120_000, timeoutMsg: 'a exportação não terminou' },
-  );
-  expect(error).toBe('');
-}
-
-async function closeDialog(): Promise<void> {
-  await $('[role="dialog"]').$('button=Fechar').click();
-  await $('[role="dialog"]').waitForExist({ reverse: true });
 }
 
 describe('Exportar (E-01; T19)', () => {

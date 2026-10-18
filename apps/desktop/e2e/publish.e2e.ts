@@ -23,9 +23,9 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { GITHUB_LOGIN, GITHUB_TOKEN, type GithubState } from './mock-server/github';
-import { replaceValue } from './fields';
 import { dismissToasts } from './toasts';
 import { openOrImport } from './open-or-import';
+import { dialogNamed, openSection, saveFinal } from './steps';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -66,41 +66,6 @@ async function screenshot(name: string): Promise<void> {
 async function github(): Promise<GithubState> {
   const response = await fetch(`${MOCK_URL}/__github`);
   return (await response.json()) as GithubState;
-}
-
-/** Um diálogo pelo nome acessível (o título), quando ele aparece com o conteúdo pronto. */
-async function dialogNamed(title: string, ready: string, timeout = 60_000) {
-  const dialog = $(`[role="dialog"]*=${ready}`);
-  await browser.waitUntil(
-    async () =>
-      (await dialog.isExisting()) &&
-      (await dialog.getText()).includes(title) &&
-      (await dialog.getText()).includes(ready),
-    { timeout, timeoutMsg: `diálogo "${title}" com "${ready}" não apareceu` },
-  );
-  return dialog;
-}
-
-async function openSection(name: string, heading: string): Promise<void> {
-  await dismissToasts();
-  await $('nav[aria-label="Seções do pack"]').$(`a*=${name}`).click();
-  await $(`h1=${heading}`).waitForDisplayed({ timeout: 30_000 });
-}
-
-async function saveFinal(version: string): Promise<void> {
-  await dismissToasts();
-  await $('header.packhead').$('button*=Salvar versão').click();
-  const dialog = $('[role="dialog"]*=Número da versão');
-  await dialog.waitForDisplayed({ timeout: 60_000 });
-  const number = dialog.$('input.input');
-  await replaceValue(number, version);
-  await dialog.$('label*=Marcar como versão final').click();
-  const save = dialog.$(`button*=Salvar versão ${version}`);
-  await save.waitForEnabled({ timeout: 30_000 });
-  await save.click();
-  await $(`[role="dialog"]*=Versão ${version} salva como versão final`).waitForDisplayed({
-    timeout: 60_000,
-  });
 }
 
 describe('Publicar versão no GitHub (V-03; T18)', () => {
