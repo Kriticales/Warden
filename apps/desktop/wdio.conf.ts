@@ -12,10 +12,12 @@
  * pastas reais do Warden nem no cofre do Windows.
  */
 import { spawn, type ChildProcess } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+
+import { browser } from '@wdio/globals';
 
 import { installerAvailable } from './e2e/mock-server/player';
 import { startMockServer, type MockServer } from './e2e/mock-server/server';
@@ -87,6 +89,77 @@ async function waitForPort(port: number, timeoutMs: number): Promise<void> {
     await new Promise((done) => setTimeout(done, 200));
   }
   throw new Error(`tauri-driver não abriu a porta ${String(port)}`);
+}
+
+/** Quanto do fim do log do app e dos pedidos ao servidor de fixtures o diagnóstico mostra. */
+const DIAGNOSTIC_LOG_LINES = 80;
+const DIAGNOSTIC_REQUESTS = 40;
+
+/** O log mais novo do app (`logs/warden.AAAA-MM-DD.log`) dentro da pasta de dados do E2E. */
+function newestAppLog(root: string): string | null {
+  const found: { path: string; modified: number }[] = [];
+  const visit = (dir: string, depth: number) => {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const path = join(dir, entry);
+      try {
+        const info = statSync(path);
+        if (info.isDirectory()) {
+          if (depth < 3 && entry !== 'EBWebView' && entry !== 'instances') visit(path, depth + 1);
+        } else if (/^warden\..*\.log$/.test(entry)) {
+          found.push({ path, modified: info.mtimeMs });
+        }
+      } catch {
+        // Arquivo que sumiu no meio: segue.
+      }
+    }
+  };
+  visit(root, 0);
+  found.sort((a, b) => b.modified - a.modified);
+  return found[0]?.path ?? null;
+}
+
+/**
+ * Diagnóstico de um teste que falhou, no log do job: o que a tela mostrava, o fim do log do app
+ * e os últimos pedidos ao servidor de fixtures. Um estouro de tempo sozinho não diz em que
+ * passo o app parou; com isto, o log da CI diz.
+ */
+async function reportFailure(title: string, duration: number): Promise<void> {
+  const out = (line: string) => process.stdout.write(`[diagnóstico] ${line}\n`);
+  out(`"${title}" falhou depois de ${String(Math.round(duration))} ms`);
+  try {
+    const text = await browser.execute(() => document.body.innerText);
+    out(`tela:\n${text.slice(0, 4000)}`);
+  } catch (error) {
+    out(`tela indisponível: ${String(error)}`);
+  }
+  const root = process.env.WARDEN_E2E_DATA_ROOT;
+  const log = root ? newestAppLog(root) : null;
+  if (log) {
+    const lines = readFileSync(log, 'utf8').split('\n');
+    out(`fim de ${log}:\n${lines.slice(-DIAGNOSTIC_LOG_LINES).join('\n')}`);
+  } else {
+    out('log do app não encontrado');
+  }
+  const mockUrl = process.env.WARDEN_E2E_MOCK_URL;
+  if (mockUrl) {
+    try {
+      const response = await fetch(`${mockUrl}/__requests`);
+      const requests = (await response.json()) as string[];
+      out(
+        `últimos pedidos ao servidor de fixtures (${String(requests.length)} no total):\n${requests
+          .slice(-DIAGNOSTIC_REQUESTS)
+          .join('\n')}`,
+      );
+    } catch (error) {
+      out(`servidor de fixtures indisponível: ${String(error)}`);
+    }
+  }
 }
 
 export const config: WebdriverIO.Config = {
@@ -197,6 +270,12 @@ export const config: WebdriverIO.Config = {
       },
     );
     await waitForPort(DRIVER_PORT, 15_000);
+  },
+
+  afterTest: async (test, _context, { passed, duration }) => {
+    if (!passed) {
+      await reportFailure(test.fullTitle, duration);
+    }
   },
 
   onComplete: async () => {
