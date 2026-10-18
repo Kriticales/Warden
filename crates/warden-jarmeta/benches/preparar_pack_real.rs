@@ -150,8 +150,11 @@ fn imprimir_faixas(mods: &Path, arquivos: &[(String, String, String)]) {
             let bytes = fs::read(mods.join(nome)).expect("ler jar");
             let tamanho = bytes.len();
             let zip = zip::ZipArchive::new(Cursor::new(bytes)).expect("jar não é um zip");
-            let nomes: Vec<&str> = zip.file_names().collect();
-            let classes: Vec<&&str> = nomes.iter().filter(|n| extensao(n, "class")).collect();
+            let nomes: Vec<String> = zip
+                .file_names()
+                .map(|nome| nome.expect("nome de entrada do jar").into_owned())
+                .collect();
+            let classes: Vec<&String> = nomes.iter().filter(|n| extensao(n, "class")).collect();
             let pacotes: std::collections::BTreeSet<&str> = classes
                 .iter()
                 .filter_map(|n| n.rsplit_once('/').map(|(pacote, _)| pacote))

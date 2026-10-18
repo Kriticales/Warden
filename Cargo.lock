@@ -7132,7 +7132,7 @@ dependencies = [
  "thiserror 2.0.21",
  "toml_edit 0.25.15+spec-1.1.0",
  "warden-core",
- "zip 8.6.0",
+ "zip 9.0.4",
 ]
 
 [[package]]
