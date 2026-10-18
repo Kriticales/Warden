@@ -14,6 +14,9 @@
 //! 4. cria a janela principal com o perfil do WebView dentro dos dados locais e, no Windows,
 //!    com a barra de título própria (`window_chrome`).
 
+// A D-12 liga esta API ao laço da busca quando sua branch for integrada.
+#[allow(dead_code)]
+mod bisect_server;
 mod commands;
 mod error;
 pub mod events;
