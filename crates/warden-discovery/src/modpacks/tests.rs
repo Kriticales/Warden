@@ -526,6 +526,34 @@ async fn zip_sem_o_indice_e_ilegivel() {
     );
 }
 
+/// Um zip com bytes antes do primeiro arquivo (um autoextraível, por exemplo) não abre com o
+/// deslocamento 0 que o modpack comum usa: a leitura cai na detecção da zip 9 e ainda acha a
+/// entrada.
+#[tokio::test]
+async fn zip_com_bytes_antes_ainda_e_lido() {
+    let manifest = json!({ "manifestType": "minecraftModpack" });
+    let mut data: Vec<u8> = (0..4_096).map(junk_byte).collect();
+    data.extend(curseforge_zip(Some(&manifest)));
+    let files = MockServer::start().await;
+    Mock::given(path("/x.zip"))
+        .respond_with(FileServer::new(data, true))
+        .mount(&files)
+        .await;
+    let entry = read_entry(
+        &http(),
+        SourceId::Curseforge,
+        &format!("{}/x.zip", files.uri()),
+        "manifest.json",
+        RangeOptions::default(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    let read: Value = serde_json::from_slice(&entry.bytes).unwrap();
+    assert_eq!(read, manifest);
+    assert!(entry.names.iter().any(|name| name == "overrides/mods/feito-a-mao.jar"));
+}
+
 // ---------- Arquivos que não são modpack (revisão da P1-17) ----------
 
 /// Byte `i` do "lixo": nunca forma `PK`.

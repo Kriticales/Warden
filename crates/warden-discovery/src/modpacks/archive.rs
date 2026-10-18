@@ -124,7 +124,17 @@ fn read_zip(
     reader: &mut warden_http::RangeReader,
     entry: &str,
 ) -> std::result::Result<(Vec<u8>, Vec<String>), String> {
-    let mut archive = zip::ZipArchive::new(reader).map_err(|e| format!("zip inválido: {e}"))?;
+    // Um modpack começa no byte 0. Na zip 9, o padrão (`ArchiveOffset::Detect`) varre o arquivo
+    // atrás do primeiro cabeçalho do diretório central, e por `Range` isso é baixar o zip quase
+    // inteiro; com o deslocamento conhecido, só o diretório central e a entrada são lidos. A
+    // detecção fica só para o zip com algo antes (raro), que falha no primeiro jeito.
+    let known = zip::read::Config {
+        archive_offset: zip::read::ArchiveOffset::Known(0),
+    };
+    let mut archive = match zip::ZipArchive::with_config(known, &mut *reader) {
+        Ok(archive) => archive,
+        Err(_) => zip::ZipArchive::new(reader).map_err(|e| format!("zip inválido: {e}"))?,
+    };
     let names: Vec<String> = archive
         .file_names()
         .flatten()
