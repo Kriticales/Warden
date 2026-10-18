@@ -239,7 +239,7 @@ pub(crate) async fn crashes_prune(
     blocking(move || prune_crashed(&dir, CRASHED_BUDGET_BYTES, open.as_deref(), &sessions)).await
 }
 
-fn sessions_dir(state: &AppState, pack_id: PackId) -> PathBuf {
+pub(crate) fn sessions_dir(state: &AppState, pack_id: PackId) -> PathBuf {
     InstanceDirs::for_pack(&state.paths, pack_id)
         .state_dir
         .join("sessions")
@@ -511,8 +511,8 @@ impl History {
 }
 
 /// Uma sessão gravada como o histórico a vê. Sessão que travou sem assinatura gravada (de antes
-/// da D-06) ganha uma calculada do `output.log`.
-fn session_entry(session: &StoredSession, record: &SessionRecord) -> SessionEntry {
+/// da D-06) ganha uma calculada do `output.log`. A nota de saúde (D-08) lê as sessões por aqui.
+pub(crate) fn session_entry(session: &StoredSession, record: &SessionRecord) -> SessionEntry {
     let id = session_name(session);
     let summary = TestSessionSummary::from_record(&id, record);
     let end = match record.outcome {

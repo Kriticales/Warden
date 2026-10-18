@@ -67,6 +67,9 @@ const DEFAULTS: Record<string, Handler> = {
   test_live_console: () => [],
   // Diagnóstico (D-03): o pack nunca foi verificado.
   diagnostics_report_get: () => null,
+  // Saúde do pack (D-08): nenhuma nota calculada.
+  health_get: () => null,
+  health_list: () => [],
   // Travamentos (D-06): nenhum teste travou.
   crashes_list: () => ({
     groups: [],

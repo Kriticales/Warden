@@ -13,6 +13,7 @@
 //! - [`redact`]: redação de dados pessoais antes de qualquer envio (D-02).
 //! - [`signature`] e [`crash_history`]: assinatura de travamento e travamentos agrupados pela
 //!   causa (D-06).
+//! - [`health`]: a nota de saúde do pack, com "O que tirou pontos" (D-08).
 //!
 //! Limites: a crate não abre processos nem faz rede; recebe textos, pastas e metadados e
 //! devolve achados.
@@ -21,6 +22,7 @@ pub mod console;
 pub mod crash_history;
 mod error;
 pub mod graph;
+pub mod health;
 pub mod model;
 pub mod postcrash;
 pub mod pretest;

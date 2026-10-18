@@ -3,7 +3,7 @@
  * nome, versão do Minecraft e loader, versão do pack, último teste, alterações não salvas e a
  * data da última alteração; Abrir e o menu ⋯ (Mostrar na pasta, Remover da lista, Apagar
  * pack…). Linhas especiais para pasta não encontrada (Localizar…) e pack ilegível (Ver
- * detalhes). A coluna Saúde fica para a D-08.
+ * detalhes). A coluna Saúde (D-08) mostra a última nota guardada de cada pack.
  *
  * A lista vem do registro (`packs_list`) sem rodar diagnóstico; nada aqui escreve na pasta de
  * um pack, exceto "Apagar pack", que só manda a pasta para a Lixeira depois de digitar o nome.
@@ -37,6 +37,8 @@ import { useOpenOrImport } from '../hooks/useOpenOrImport';
 import { filterRows, SORT_ORDERS, sortRows, type SortOrder } from '../lib/pack-list';
 import { CreatePackWizard } from './CreatePackWizard';
 import { OpenPackDialog } from './OpenPackDialog';
+import { useHealthList } from '../../diagnostics/health/api';
+import { HealthColumnHeader } from '../../diagnostics/health/HealthColumn';
 import { PackDetailsDialog } from './PackDetailsDialog';
 import { PackTableRow } from './PackTableRow';
 import '../packs.css';
@@ -203,6 +205,8 @@ function PackList({ rows }: { rows: PackRow[] }) {
   const [dialog, setDialog] = useState<RowDialog | null>(null);
   const deferredQuery = useDeferredValue(query);
   const visible = sortRows(filterRows(rows, deferredQuery), order);
+  // As notas guardadas lidas uma vez para a tabela inteira (coluna Saúde, D-08).
+  const health = useHealthList();
   const unreadable = rows.filter((row) => row.status === 'invalidPack').length;
 
   return (
@@ -270,7 +274,12 @@ function PackList({ rows }: { rows: PackRow[] }) {
             <TableHead />
             <tbody>
               {visible.map((row) => (
-                <PackTableRow key={row.id} row={row} onDialog={setDialog} />
+                <PackTableRow
+                  key={row.id}
+                  row={row}
+                  health={health.isPending ? undefined : (health.data?.get(row.id) ?? null)}
+                  onDialog={setDialog}
+                />
               ))}
             </tbody>
           </table>
@@ -294,6 +303,7 @@ function TableHead() {
         <th scope="col">{t('lista.coluna.pack')}</th>
         <th scope="col">{t('lista.coluna.versao')}</th>
         <th scope="col">{t('lista.coluna.ultimoTeste')}</th>
+        <HealthColumnHeader />
         <th scope="col" className="num">
           {t('lista.coluna.naoSalvas')}
         </th>
@@ -330,7 +340,7 @@ function LoadingTable() {
                     </div>
                   </div>
                 </td>
-                {['60%', '80%', '30%', '50%'].map((cell) => (
+                {['60%', '80%', '40%', '30%', '50%'].map((cell) => (
                   <td key={cell}>
                     <Skeleton width={cell} />
                   </td>

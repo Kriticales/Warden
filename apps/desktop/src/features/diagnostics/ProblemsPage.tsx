@@ -1,7 +1,7 @@
 /**
  * Seção Problemas (SPEC T14 "Seção Problemas"; protótipo `problemas`; descrição "Saúde do pack,
  * problemas e travamentos"): "Verificar agora" e os blocos registrados em `problems-blocks.ts`
- * (os achados do pré-teste e os Travamentos da D-06; a saúde do pack chega com a D-08).
+ * (a saúde do pack da D-08, os achados do pré-teste e os Travamentos da D-06).
  *
  * O pack nunca verificado, ou que mudou desde a última verificação (`stale`), é verificado
  * sozinho ao abrir a seção: depois de uma correção, a lista se atualiza sem clique.

@@ -230,6 +230,8 @@ pub(crate) async fn check(
     sort_findings(&mut report.findings);
     apply_ignored(&mut report.findings, &read_ignored(&snapshot.root));
     store_report(state.paths.data_dir(), pack_id, &report);
+    // A nota de Meus packs acompanha a verificação, mesmo quando o pré-teste barra o teste (D-08).
+    crate::commands::health::refresh_logged(state, pack_id);
     tracing::info!(
         pack = %pack_id,
         pass = ?pass,
@@ -272,8 +274,9 @@ fn last_report(state: &AppState, pack_id: PackId) -> Result<Option<DiagnosticsRe
     Ok(Some(report))
 }
 
-/// O resumo do pack agora (o mesmo do Testar: `pack.toml` e o índice).
-fn current_pack_hash(root: &Path) -> Option<String> {
+/// O resumo do pack agora (o mesmo do Testar: `pack.toml` e o índice; também da nota de
+/// saúde, D-08).
+pub(crate) fn current_pack_hash(root: &Path) -> Option<String> {
     let text = std::fs::read_to_string(root.join(warden_packwiz::PACK_FILE)).ok()?;
     let manifest = warden_packwiz::PackManifest::parse(&text).ok()?.value;
     crate::test_session::pack_tree_hash(root, &manifest.index.file).ok()
