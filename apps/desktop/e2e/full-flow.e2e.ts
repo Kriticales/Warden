@@ -79,6 +79,7 @@ const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 const SECRETS = join(DATA_ROOT, 'cofre-de-teste');
 const INSTANCES = join(DATA_ROOT, 'data', 'instances');
 const TMP = join(DATA_ROOT, 'data', 'cache', 'tmp');
+const METADATA_DB = join(DATA_ROOT, 'data', 'cache', 'metadata.sqlite');
 
 /** A linha que o dono acrescenta à config em Configs. */
 const OWNER_LINE = '# Ajuste do dono: sem aviso de pirataria nos testes.';
@@ -115,6 +116,17 @@ async function mock(path: string): Promise<void> {
 async function github(): Promise<GithubState> {
   const response = await fetch(`${MOCK_URL}/__github`);
   return (await response.json()) as GithubState;
+}
+
+/**
+ * Apaga o cache de metadados do app com o app fechado (no Windows o arquivo aberto não sai). Quem
+ * chama abre o app de novo, se precisar.
+ */
+async function clearMetadataCache(): Promise<void> {
+  await browser.deleteSession();
+  for (const suffix of ['', '-wal', '-shm']) {
+    rmSync(`${METADATA_DB}${suffix}`, { force: true, maxRetries: 5, retryDelay: 200 });
+  }
 }
 
 /** A pasta do jogo da instância de teste deste pack (a que tem a config do Crash Assistant). */
@@ -184,6 +196,9 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     writeFileSync(PICK_FILE, '');
     await mock('/__github/reset');
     await mock('/__downloads-locais/ligar');
+    // As versões do Modrinth não vencem no cache do app (`metadata.sqlite`): as que outros specs
+    // guardaram trariam os links da internet.
+    await clearMetadataCache();
     await browser.reloadSession();
     await browser.setWindowSize(1366, 860);
   });
@@ -196,7 +211,8 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     rmSync(REGISTRY_FILE, { force: true });
     rmSync(join(SECRETS, 'curseforge-api-key'), { force: true });
     rmSync(join(SECRETS, 'github-token'), { force: true });
-    rmSync(join(DATA_ROOT, 'cache'), { recursive: true, force: true });
+    // E as deste spec, com os links locais, não vão para os specs seguintes.
+    await clearMetadataCache();
     // Os outros specs contam com as instâncias que já existiam (o do Testar, com uma só).
     for (const id of instanceIds()) {
       if (!instancesBefore.has(id)) rmSync(join(INSTANCES, id), { recursive: true, force: true });
