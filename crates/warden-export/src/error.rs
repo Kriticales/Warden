@@ -63,6 +63,22 @@ pub enum ExportErrorCode {
     PrismInvalidOutput,
     /// O pack usa uma organização que a instância pronta não sabe reproduzir.
     PrismUnsupportedPack,
+    /// O pack usa uma organização que o pacote para servidor não sabe reproduzir.
+    ServerPackUnsupportedPack,
+    /// O loader do pack não tem scripts de servidor (Quilt, `LiteLoader`).
+    ServerPackUnsupportedLoader,
+    /// O pacote pelo link precisa do pack publicado.
+    ServerPackNotPublished,
+    /// Há arquivos de terceiros que iriam dentro do zip e a pessoa não confirmou a licença.
+    ServerPackNeedsConfirmation,
+    /// Mods da CurseForge bloqueados para terceiros ainda sem o download manual (T20).
+    ServerPackManualDownloads,
+    /// Um mod do servidor não pôde ser baixado ou conferido para entrar no zip.
+    ServerPackDownloadFailed,
+    /// A CurseForge não respondeu à conferência dos mods.
+    ServerPackLookupFailed,
+    /// O pacote gerado não passou na conferência e foi descartado.
+    ServerPackInvalidOutput,
 }
 
 /// Falha de preparação ou gravação da exportação. Os detalhes não contêm segredos.
