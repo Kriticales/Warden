@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
+import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 import { zipEntries, zipEntry } from './zip';
 
@@ -165,7 +166,7 @@ describe('Pacote para servidor (E-03; T19)', function () {
     await step('abrir o pack', async () => {
       await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 20_000 });
       writeFileSync(PICK_FILE, PACK);
-      await $('button=Abrir ou importar…').click();
+      await openOrImport();
       await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed({ timeout: 20_000 });
       // A leitura do pack termina com "Abrir pack" ou, antes, com uma pergunta ("Agora não").
       const open = $('button=Abrir pack');
