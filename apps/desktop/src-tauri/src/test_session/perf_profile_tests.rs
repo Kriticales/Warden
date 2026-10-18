@@ -175,13 +175,22 @@ async fn ca_t13_13_forge_1_20_1_tempo_por_mod_e_spark() {
     assert_eq!(load.game_and_loader_ms, 350);
 
     assert_eq!(report.spark.len(), 2);
-    let profile = &report.spark[0];
-    assert_eq!(profile.kind, SparkKind::Profile);
+    // Gravados no mesmo instante (no NTFS, com a mesma data): a ordem do empate é a do nome.
+    let profile = report
+        .spark
+        .iter()
+        .find(|spark| spark.kind == SparkKind::Profile)
+        .unwrap();
     assert!(profile.readable);
     assert_eq!(profile.duration_ms, Some(40_234));
     assert_eq!(profile.ticks.as_ref().unwrap().mspt_median, 1.6);
     assert_eq!(profile.top[0].name, "spark");
-    assert_eq!(report.spark[1].kind, SparkKind::Heap);
+    assert!(
+        report
+            .spark
+            .iter()
+            .any(|spark| spark.kind == SparkKind::Heap)
+    );
     assert!(
         session
             .join(SPARK_DIR)
