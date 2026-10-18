@@ -21,7 +21,8 @@ use support::{
 use warden_ai::conversation::{AnswerVia, Conversation};
 use warden_ai::engine::{Engine, Limits, LiveStatus, Observer};
 use warden_ai::evidence::{ClaimStatus, EvidenceStatus};
-use warden_ai::gemini::GeminiClient;
+use warden_ai::providers::Message;
+use warden_ai::providers::gemini::{GeminiClient, translate};
 use warden_ai::schema::ROUND_LIMIT_MESSAGE;
 use warden_ai::tools::{AiPermissions, NOT_ALLOWED, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
@@ -71,7 +72,7 @@ impl Setup {
 
     fn engine(&self) -> Engine<'_> {
         Engine {
-            client: &self.client,
+            provider: &self.client,
             registry: &self.registry,
             source: &self.source,
             observer: &self.watch,
@@ -84,6 +85,14 @@ impl Setup {
     fn sleeps(&self) -> Vec<u64> {
         self.timer.sleeps().iter().map(Duration::as_secs).collect()
     }
+}
+
+/// O histórico da conversa como ele vai para o Gemini.
+fn gemini_contents(conv: &Conversation) -> Vec<Value> {
+    conv.messages
+        .iter()
+        .filter_map(translate::content)
+        .collect()
 }
 
 fn allowed(request: &Value) -> Vec<String> {
@@ -293,7 +302,7 @@ async fn ca_t14_14_segundo_turno_reenvia_o_historico_intacto() {
     let mut conv = conversation(AiPermissions::default());
     let engine = setup.engine();
     engine.ask(&mut conv, "1".into()).await.unwrap();
-    let before = conv.contents.clone();
+    let before = gemini_contents(&conv);
     engine.ask(&mut conv, "2".into()).await.unwrap();
     assert!(
         setup.gemini.refusals().is_empty(),
@@ -301,8 +310,9 @@ async fn ca_t14_14_segundo_turno_reenvia_o_historico_intacto() {
         setup.gemini.refusals()
     );
     // Pergunta, chamada, resposta, `responder` e o "ok" dela, duas vezes.
-    assert_eq!(conv.contents.len(), 10);
-    assert_eq!(&conv.contents[..before.len()], &before[..]);
+    let after = gemini_contents(&conv);
+    assert_eq!(after.len(), 10);
+    assert_eq!(&after[..before.len()], &before[..]);
     let requests = setup.gemini.requests();
     // O que o modelo mandou na 1.ª pergunta volta igual, com as assinaturas.
     assert_eq!(requests[3]["contents"][1], before[1]);
@@ -453,7 +463,7 @@ async fn ca_t14_18_tempo_esgotado_repetido_e_depois_erro() {
     let source = ValeSombrio::default();
     let watch = Watch::default();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &watch,
@@ -682,7 +692,7 @@ async fn replay(name: &str) -> (Conversation, Value) {
     let source = ValeSombrio::default();
     let watch = Watch::default();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &watch,
@@ -802,8 +812,9 @@ async fn count_tokens_conta_sistema_ferramentas_e_conversa() {
     let contents = vec![json!({ "role": "user", "parts": [{ "text": "texto inicial" }] })];
     let tokens = setup
         .engine()
-        .count_tokens("gemini-3.5-flash-lite", &contents)
+        .count_tokens("gemini-3.5-flash-lite", &[Message::user("texto inicial")])
         .await
+        .unwrap()
         .unwrap();
     assert!(tokens > 0);
     let sent = setup.gemini.state.lock().unwrap().count_tokens.clone();
@@ -866,7 +877,7 @@ async fn cancelar_no_meio_de_uma_chamada_para_logo() {
     let watch = Watch::default();
     let cancel = CancellationToken::new();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &watch,

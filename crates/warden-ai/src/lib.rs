@@ -1,11 +1,14 @@
-//! Crate `warden-ai`: o ✦ Diagnóstico com IA (SPEC T14; ARCHITECTURE §9.5; ADR-0030 e ADR-0055).
+//! Crate `warden-ai`: o ✦ Diagnóstico com IA (SPEC T14; ARCHITECTURE §9.5; ADR-0030, ADR-0055
+//! e ADR-0060).
 //!
-//! - [`gemini`]: cliente REST do Gemini, sem SDK, pela `warden-http` (chave só no cabeçalho).
-//! - [`models`]: o modelo padrão resolvido pelo `models.list` (nenhum nome fixo no código).
+//! - [`providers`]: o trait de provedor, o formato comum e os tradutores (Gemini; OpenAI na
+//!   D-16; Anthropic na D-17), sem SDK, pela `warden-http` (chave só no cabeçalho); o modelo
+//!   padrão de cada provedor pela lista de modelos da conta (nenhum nome fixo no código).
 //! - [`tools`]: o registro das ferramentas (declarações fixas por conversa, escalonamento por
 //!   `allowedFunctionNames`, ponto de extensão da D-14) e o trait [`tools::ToolSource`] que a
 //!   `warden-app` implementa para ler os dados.
-//! - [`engine`]: o laço `generateContent` sem estado com as novas tentativas do S-R5-4.
+//! - [`engine`]: o laço sem estado, só com o trait de provedor, com as novas tentativas do
+//!   S-R5-4.
 //! - [`evidence`]: a conferência das evidências e o medidor de confiança.
 //! - [`conversation`]: as conversas guardadas nos dados do Warden.
 //! - [`schema`]: o *system prompt* e o esquema da resposta final.
@@ -18,9 +21,8 @@ pub mod engine;
 mod error;
 pub mod evidence;
 pub mod external;
-pub mod gemini;
-pub mod models;
 pub mod proposals;
+pub mod providers;
 pub mod schema;
 pub mod tools;
 

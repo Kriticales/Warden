@@ -18,6 +18,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+use crate::providers::ToolDecl;
 use crate::schema;
 
 /// Nome da ferramenta da resposta final (ADR-0055).
@@ -78,7 +79,7 @@ pub struct ToolSpec {
     pub name: &'static str,
     /// Descrição para a IA.
     pub description: &'static str,
-    /// JSON Schema dos argumentos (`parametersJsonSchema`).
+    /// JSON Schema dos argumentos (no Gemini, `parametersJsonSchema`).
     pub parameters: Value,
     /// Quando fica liberada.
     pub stage: Stage,
@@ -89,14 +90,14 @@ pub struct ToolSpec {
 }
 
 impl ToolSpec {
-    /// A declaração no formato `functionDeclarations[]`.
+    /// A declaração no formato comum (cada provedor a escreve do seu jeito).
     #[must_use]
-    pub fn declaration(&self) -> Value {
-        json!({
-            "name": self.name,
-            "description": self.description,
-            "parametersJsonSchema": self.parameters,
-        })
+    pub fn declaration(&self) -> ToolDecl {
+        ToolDecl {
+            name: self.name.to_owned(),
+            description: self.description.to_owned(),
+            parameters: self.parameters.clone(),
+        }
     }
 }
 
@@ -238,16 +239,17 @@ impl ToolRegistry {
         self.specs.iter().map(|spec| spec.name)
     }
 
-    /// `tools[]` da requisição: todas as declarações e a `responder`, sempre iguais.
+    /// As ferramentas da requisição: todas as declarações e a `responder`, sempre iguais.
     #[must_use]
-    pub fn declarations(&self) -> Value {
-        let mut declarations: Vec<Value> = self.specs.iter().map(ToolSpec::declaration).collect();
-        declarations.push(json!({
-            "name": RESPOND,
-            "description": "Entrega a resposta final ao usuário, com as evidências. Chame quando terminar de consultar, sozinha e sem texto antes.",
-            "parametersJsonSchema": schema::answer_schema(),
-        }));
-        json!([{ "functionDeclarations": declarations }])
+    pub fn declarations(&self) -> Vec<ToolDecl> {
+        let mut declarations: Vec<ToolDecl> =
+            self.specs.iter().map(ToolSpec::declaration).collect();
+        declarations.push(ToolDecl {
+            name: RESPOND.to_owned(),
+            description: "Entrega a resposta final ao usuário, com as evidências. Chame quando terminar de consultar, sozinha e sem texto antes.".to_owned(),
+            parameters: schema::answer_schema(),
+        });
+        declarations
     }
 
     /// `allowedFunctionNames` da rodada: as de [`Stage::Initial`] e, depois que a IA abriu um
@@ -485,12 +487,7 @@ mod tests {
     fn declaracoes_fixas_e_escalonamento_so_por_nome() {
         let registry = ToolRegistry::new();
         let declarations = registry.declarations();
-        let names: Vec<&str> = declarations[0]["functionDeclarations"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|d| d["name"].as_str().unwrap())
-            .collect();
+        let names: Vec<&str> = declarations.iter().map(|d| d.name.as_str()).collect();
         assert_eq!(names.len(), 16, "15 de leitura e a responder");
         assert_eq!(names.last(), Some(&RESPOND));
         let first = registry.allowed(false);

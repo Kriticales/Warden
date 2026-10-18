@@ -59,6 +59,7 @@ fn conversation() -> Conversation {
     let mut conversation = new_conversation(
         crate::conversation::new_id(),
         1,
+        crate::providers::AiProvider::Gemini,
         "modelo".into(),
         AiPermissions::default(),
         AiSymptom::CrashInWorld,

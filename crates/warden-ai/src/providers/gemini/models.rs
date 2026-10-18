@@ -6,56 +6,11 @@
 //! `-preview`, `-exp`, `-latest`, números de revisão e os apelidos (`gemini-flash-latest`)
 //! ficam de fora. Só entram modelos com `generateContent`.
 
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use super::{GeminiClient, Problem, api_message, classify};
 use crate::error::{Error, Result};
-use crate::gemini::{GeminiClient, Problem, api_message, classify};
-
-/// A escolha em Configurações.
-#[derive(
-    Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum ModelTier {
-    /// Padrão: o Flash-Lite estável mais novo (cota gratuita folgada, rápido, barato).
-    #[default]
-    Economical,
-    /// "Análise mais cuidadosa": o Flash estável mais novo (poucas conversas por dia no plano
-    /// gratuito).
-    Careful,
-}
-
-/// Os modelos resolvidos para esta chave.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct ModelChoices {
-    /// O Flash-Lite estável mais novo (`None`: nenhum disponível).
-    pub economical: Option<String>,
-    /// O Flash estável mais novo.
-    pub careful: Option<String>,
-}
-
-impl ModelChoices {
-    /// O modelo do nível escolhido; sem ele, o do outro nível (melhor que nenhum).
-    #[must_use]
-    pub fn pick(&self, tier: ModelTier) -> Option<(&str, ModelTier)> {
-        let (first, second) = match tier {
-            ModelTier::Economical => (
-                (self.economical.as_deref(), ModelTier::Economical),
-                (self.careful.as_deref(), ModelTier::Careful),
-            ),
-            ModelTier::Careful => (
-                (self.careful.as_deref(), ModelTier::Careful),
-                (self.economical.as_deref(), ModelTier::Economical),
-            ),
-        };
-        first
-            .0
-            .map(|model| (model, first.1))
-            .or_else(|| second.0.map(|model| (model, second.1)))
-    }
-}
+use crate::providers::{ModelChoices, ModelTier};
 
 /// Um modelo estável reconhecido: versão numérica e família.
 #[derive(Debug, Clone, PartialEq, Eq)]

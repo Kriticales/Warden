@@ -117,8 +117,22 @@ impl GeminiClient {
         body: &Value,
         cancel: Option<&CancellationToken>,
     ) -> Result<Reply> {
+        let bytes = serde_json::to_vec(body)
+            .map_err(|error| Error::Internal(format!("corpo JSON da requisição: {error}")))?;
+        self.post_bytes(model, method, bytes, cancel).await
+    }
+
+    /// `POST v1beta/models/{modelo}:{método}` com o corpo JSON já serializado (o laço guarda
+    /// estes bytes exatos na conversa).
+    pub async fn post_bytes(
+        &self,
+        model: &str,
+        method: &str,
+        body: Vec<u8>,
+        cancel: Option<&CancellationToken>,
+    ) -> Result<Reply> {
         let url = self.url(&format!("v1beta/models/{model}:{method}"))?;
-        let request = self.http.post_json(url, body)?;
+        let request = self.http.post_bytes(url, "application/json", body);
         self.send(request, cancel).await
     }
 
@@ -303,7 +317,7 @@ mod tests {
 
     /// Corpos reais do S-R5-4 (`tests/fixtures/erros-http-reais.json`).
     fn real(name: &str) -> String {
-        let text = include_str!("../tests/fixtures/erros-http-reais.json");
+        let text = include_str!("../../../tests/fixtures/erros-http-reais.json");
         let all: Value = serde_json::from_str(text).unwrap();
         all[name].to_string()
     }
