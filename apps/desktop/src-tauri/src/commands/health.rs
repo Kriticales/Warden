@@ -75,10 +75,13 @@ pub(crate) struct PackHealth {
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn health_get(
-    state: State<'_, AppState>,
+    app: AppHandle,
     pack_id: PackId,
 ) -> Result<Option<HealthScore>, AppError> {
-    refresh(&state, pack_id)
+    // Lê o relatório e as sessões do disco: fora da thread do IPC.
+    tauri::async_runtime::spawn_blocking(move || refresh(&app.state::<AppState>(), pack_id))
+        .await
+        .map_err(|error| AppError::internal(format!("nota de saúde: {error}")))?
 }
 
 /// As últimas notas guardadas, sem calcular nada.
@@ -204,7 +207,9 @@ fn sessions(dir: &Path) -> Vec<HealthSession> {
     let stored = match list_sessions(dir) {
         Ok(stored) => stored,
         Err(error) => {
-            tracing::info!(%error, "sessões do teste ilegíveis para a nota de saúde");
+            // Só o código: o erro traz a pasta de dados, com o nome do usuário.
+            let code = AppError::from_domain(&error).code;
+            tracing::info!(%code, "sessões do teste ilegíveis para a nota de saúde");
             return Vec::new();
         }
     };
