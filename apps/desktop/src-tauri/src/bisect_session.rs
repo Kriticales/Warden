@@ -67,6 +67,7 @@ use warden_launcher::process::{GameEvent, GameProcess, SpawnOptions};
 use crate::error::AppError;
 use crate::events::{GamePhase, GameState, OperationEvent};
 use crate::operations::{OperationHandle, OperationKind};
+use crate::server_session::now_ms;
 use crate::state::AppState;
 use crate::test_session::{BisectGame, LaunchExtra, Notify, read_output_log};
 
@@ -338,14 +339,6 @@ impl Drop for ControlGuard {
             .unwrap_or_else(PoisonError::into_inner)
             .take();
     }
-}
-
-fn now_ms() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |elapsed| {
-            u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX)
-        })
 }
 
 fn domain(error: &BisectError) -> AppError {
@@ -950,17 +943,16 @@ impl Runner<'_> {
             self.handle,
         )
         .await?;
+        // Cancelada (ou o app fechando) no meio da geração do mundo, as rodadas veem o pedido e
+        // cancelam ou pausam a busca; outro erro deixa a busca pausada antes da primeira
+        // rodada ("Continuar" tenta de novo).
         if saved.goal == Goal::World
             && let Err(error) = self.ensure_world(&saved, &root, &game).await
+            && !error.is_cancelled()
         {
-            if !error.is_cancelled() {
-                // A busca fica pausada antes da primeira rodada: "Continuar" tenta de novo.
-                saved.paused = true;
-                self.finish(&mut saved).await?;
-                return Err(error);
-            }
-            // Cancelada (ou o app fechando) no meio da geração: as rodadas veem o pedido e
-            // cancelam ou pausam a busca.
+            saved.paused = true;
+            self.finish(&mut saved).await?;
+            return Err(error);
         }
         self.rounds(&mut saved, &mut game, &lookup).await?;
         self.finish(&mut saved).await?;
@@ -1599,33 +1591,14 @@ fn stability_ms() -> u64 {
     warden_bisect::estimate::STABILITY_MS
 }
 
-/// Identificador da busca a partir do começo (`20261018-153012-123`).
+/// Identificador da busca a partir do começo (`20261018-153012-123`, UTC).
 fn search_id(started_ms: u64) -> String {
-    let seconds = started_ms / 1_000;
-    let days = seconds / 86_400;
-    let (year, month, day) = civil_from_days(i64::try_from(days).unwrap_or_default());
-    let rest = seconds % 86_400;
-    format!(
-        "{year:04}{month:02}{day:02}-{:02}{:02}{:02}-{:03}",
-        rest / 3_600,
-        (rest % 3_600) / 60,
-        rest % 60,
-        started_ms % 1_000
-    )
-}
-
-/// Data civil (UTC) de um número de dias desde 1970 (algoritmo de Howard Hinnant).
-fn civil_from_days(days: i64) -> (i64, u32, u32) {
-    let z = days + 719_468;
-    let era = z.div_euclid(146_097);
-    let doe = z.rem_euclid(146_097);
-    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = u32::try_from(doy - (153 * mp + 2) / 5 + 1).unwrap_or(1);
-    let month = u32::try_from(if mp < 10 { mp + 3 } else { mp - 9 }).unwrap_or(1);
-    let year = yoe + era * 400 + i64::from(month <= 2);
-    (year, month, day)
+    let stamp =
+        warden_launcher::session::rfc3339_utc(UNIX_EPOCH + Duration::from_millis(started_ms));
+    // `2026-10-18T15:30:12Z` → `20261018153012`.
+    let digits: String = stamp.chars().filter(char::is_ascii_digit).collect();
+    let (date, time) = digits.split_at_checked(8).unwrap_or((&digits, ""));
+    format!("{date}-{time}-{:03}", started_ms % 1_000)
 }
 
 #[cfg(test)]
