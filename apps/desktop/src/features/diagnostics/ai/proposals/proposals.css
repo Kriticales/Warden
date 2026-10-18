@@ -1,0 +1,5 @@
+/* Propostas da IA (D-14). Os cartões usam o `.proposal` de `design/system/components.css`;
+   aqui só o título da proposta dentro do diálogo de Aplicar. */
+.ai-apply__title {
+  font-weight: var(--font-weight-bold);
+}

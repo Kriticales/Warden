@@ -565,7 +565,8 @@ pub(crate) struct AiPreview {
     pub(crate) model: String,
     /// Mais econômico ou mais cuidadoso (custo esperado).
     pub(crate) tier: Option<ModelTier>,
-    /// A busca no GitHub está disponível nesta versão (ponto de extensão da D-14).
+    /// A busca no GitHub está disponível nesta versão (a ferramenta `search_mod_issues` da D-14
+    /// está no registro).
     pub(crate) github_available: bool,
 }
 
@@ -708,7 +709,9 @@ pub(crate) async fn preview_impl(
         estimated_tokens: base.map(|base| base + bytes.div_ceil(4)),
         tier: tier_of(&model),
         model: model.clone(),
-        github_available: false,
+        github_available: registry()
+            .get(warden_ai::external::SEARCH_MOD_ISSUES)
+            .is_some(),
     };
     let mut previews = lock(&state.ai.previews);
     if previews.len() >= MAX_PREVIEWS

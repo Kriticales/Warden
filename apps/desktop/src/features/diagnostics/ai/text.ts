@@ -15,6 +15,7 @@ import type {
   TurnFailure,
 } from '../../../lib/ipc/bindings';
 import { formatBytes } from '../../../lib/format';
+import { d14EvidenceLabel, d14StepLabel } from './proposals/text';
 
 /** Id de sessão das ferramentas de log para o arquivo escolhido no computador. */
 export const LOCAL_FILE_SESSION = 'arquivo';
@@ -99,7 +100,8 @@ export function stepLabel(step: ToolStep): string {
     case 'why_in_pack':
       return tt('enviado.porQue', { mod });
     default:
-      return tt('enviado.outra', { nome: step.name });
+      // D-14: consultas externas, raio-x, busca do culpado e propostas.
+      return d14StepLabel(step, args) ?? tt('enviado.outra', { nome: step.name });
   }
 }
 
@@ -136,7 +138,8 @@ export function evidenceLabel(id: string): string {
     case 'pack':
       return tt('selo.visaoGeral');
     default:
-      return id;
+      // D-14: issues, changelogs, raio-x e busca do culpado.
+      return d14EvidenceLabel(kind, value) ?? id;
   }
 }
 

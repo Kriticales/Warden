@@ -48,6 +48,7 @@ import {
   useDeleteConversation,
 } from './api';
 import { ConsentDialog } from './ConsentDialog';
+import { PendingCount } from './proposals/PendingCount';
 import { originLabel, symptomLabel, tokensLabel } from './text';
 import './ai.css';
 
@@ -417,6 +418,7 @@ function ConversationRow({
         <StatusText kind={STATE_KIND[conversation.state]}>
           {t(`conversas.situacao.${conversation.state}`)}
         </StatusText>
+        <PendingCount count={conversation.pendingProposals} />
       </td>
       <td className="shrink">
         <div className="row">
