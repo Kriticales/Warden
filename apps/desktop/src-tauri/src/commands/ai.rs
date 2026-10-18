@@ -264,7 +264,15 @@ pub(crate) fn ai_settings_set(
     }
     let bytes = serde_json::to_vec_pretty(&AiSettingsFile { tier })
         .map_err(|error| AppError::internal(error.to_string()))?;
-    atomic_write_private(&path, &bytes)?;
+    // O detalhe leva só `ai/settings.json`, nunca a pasta do usuário.
+    atomic_write_private(&path, &bytes).map_err(|error| match error {
+        warden_core::CoreError::Io { source, .. } => {
+            AppError::new(warden_core::CoreErrorCode::Io)
+                .with_param("path", "ai/settings.json")
+                .with_detail(format!("gravar ai/settings.json: {source}"))
+        }
+        other => AppError::from(other),
+    })?;
     settings_view(&state)
 }
 
@@ -719,10 +727,9 @@ pub(crate) fn start_impl(
     push_question(&mut conversation, preview.initial.text);
     let store = store(state, pack_id);
     if let Some(log) = &preview.initial.local_log {
-        std::fs::create_dir_all(store.dir())
-            .map_err(|error| AppError::internal(format!("criar a pasta da IA: {error}")))?;
-        let path = store.local_log(&id).map_err(|error| domain(&error))?;
-        atomic_write_private(&path, log.as_bytes())?;
+        store
+            .save_local_log(&id, log)
+            .map_err(|error| domain(&error))?;
     }
     store.save(&conversation).map_err(|error| domain(&error))?;
     Ok(id)

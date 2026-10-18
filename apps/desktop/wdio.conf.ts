@@ -160,6 +160,8 @@ export const config: WebdriverIO.Config = {
       WARDEN_E2E_PICK_FILES: pickFiles,
       // GitHub (V-03): API, servidor git e `raw.githubusercontent.com` simulados.
       WARDEN_API_BASE_GITHUB: `${mockServer.url}/github/api/`,
+      // ✦ Diagnóstico com IA (D-04): o Gemini simulado de `mock-server/gemini.ts`.
+      WARDEN_API_BASE_GEMINI: `${mockServer.url}/gemini/`,
       WARDEN_GIT_BASE_GITHUB: `${mockServer.url}/github/git/`,
       WARDEN_RAW_BASE_GITHUB: `${mockServer.url}/github/raw/`,
       // O link direto `https://…` vai para o mesmo caminho no servidor de fixtures (P1-11).

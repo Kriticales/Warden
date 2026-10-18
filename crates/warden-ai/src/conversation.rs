@@ -281,6 +281,28 @@ pub struct Conversation {
     pub unknown: BTreeMap<String, Value>,
 }
 
+/// O caminho como aparece nos erros: só `ai/<pack>/<arquivo>`, nunca a pasta do usuário
+/// (QUALITY §9).
+fn shown(path: &Path) -> PathBuf {
+    let parts: Vec<_> = path.components().rev().take(3).collect();
+    parts.into_iter().rev().collect()
+}
+
+fn core_error(error: warden_core::CoreError) -> Error {
+    match error {
+        warden_core::CoreError::Io {
+            action,
+            path,
+            source,
+        } => Error::Io {
+            action,
+            path: shown(&path),
+            source,
+        },
+        other => Error::Core(other),
+    }
+}
+
 /// A pasta das conversas de um pack.
 #[derive(Debug, Clone)]
 pub struct ConversationStore {
@@ -329,13 +351,23 @@ impl ConversationStore {
         let path = self.file(&conversation.id)?;
         std::fs::create_dir_all(&self.dir).map_err(|source| Error::Io {
             action: "criar a pasta",
-            path: self.dir.clone(),
+            path: shown(&self.dir),
             source,
         })?;
         let bytes = serde_json::to_vec_pretty(conversation)
             .map_err(|error| Error::Internal(format!("gravar a conversa: {error}")))?;
-        atomic_write_private(&path, &bytes)?;
-        Ok(())
+        atomic_write_private(&path, &bytes).map_err(core_error)
+    }
+
+    /// Grava o log escolhido no computador (já redigido) ao lado da conversa.
+    pub fn save_local_log(&self, id: &str, text: &str) -> Result<()> {
+        let path = self.local_log(id)?;
+        std::fs::create_dir_all(&self.dir).map_err(|source| Error::Io {
+            action: "criar a pasta",
+            path: shown(&self.dir),
+            source,
+        })?;
+        atomic_write_private(&path, text.as_bytes()).map_err(core_error)
     }
 
     /// Lê uma conversa.
@@ -349,13 +381,13 @@ impl ConversationStore {
             Err(source) => {
                 return Err(Error::Io {
                     action: "ler",
-                    path,
+                    path: shown(&path),
                     source,
                 });
             }
         };
         serde_json::from_slice(&bytes).map_err(|error| Error::ConversationUnreadable {
-            path,
+            path: shown(&path),
             reason: error.to_string(),
         })
     }
@@ -369,7 +401,7 @@ impl ConversationStore {
             Err(source) => {
                 return Err(Error::Io {
                     action: "listar",
-                    path: self.dir.clone(),
+                    path: shown(&self.dir),
                     source,
                 });
             }
@@ -401,7 +433,7 @@ impl ConversationStore {
                 Err(source) => {
                     return Err(Error::Io {
                         action: "apagar",
-                        path,
+                        path: shown(&path),
                         source,
                     });
                 }
@@ -484,6 +516,25 @@ mod tests {
             Err(Error::ConversationNotFound { .. })
         ));
         store.delete(&a).unwrap();
+    }
+
+    #[test]
+    fn erro_sem_a_pasta_do_usuario() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = ConversationStore::new(dir.path().join("ai").join("pack"));
+        let id = ulid::Ulid::generate().to_string();
+        std::fs::create_dir_all(store.dir()).unwrap();
+        std::fs::write(store.dir().join(format!("{id}.json")), b"{").unwrap();
+        let error = store.load(&id).unwrap_err().to_string();
+        assert!(
+            error.contains(&format!("ai/pack/{id}.json"))
+                || error.contains(&format!("ai\\pack\\{id}.json")),
+            "{error}"
+        );
+        assert!(
+            !error.contains(&dir.path().display().to_string()),
+            "{error}"
+        );
     }
 
     #[test]

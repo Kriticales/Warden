@@ -218,6 +218,10 @@ impl DomainError for Error {
             Self::ToolLimit { rounds } => {
                 params.insert("rounds".to_owned(), rounds.to_string());
             }
+            Self::Io { path, .. } | Self::ConversationUnreadable { path, .. } => {
+                // Já sem a pasta do usuário: `ai/<pack>/<arquivo>`.
+                params.insert("path".to_owned(), path.display().to_string());
+            }
             Self::Http(error) => return error.params(),
             _ => {}
         }
