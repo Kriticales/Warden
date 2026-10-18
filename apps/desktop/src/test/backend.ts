@@ -88,6 +88,9 @@ const DEFAULTS: Record<string, Handler> = {
   }),
   // Importar modpack (P1-19): o pack não foi importado, nada para revisar em Problemas.
   import_review: () => null,
+  // ✦ Diagnóstico com IA (D-04): o modelo padrão em Configurações e os modelos da chave.
+  ai_settings_get: () => ({ tier: 'economical', keyConfigured: false, models: null }),
+  ai_models_get: () => ({ economical: 'gemini-9.1-flash-lite', careful: 'gemini-9.1-flash' }),
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).
   'plugin:log|log': () => null,
   'plugin:opener|open_url': () => null,

@@ -1,0 +1,8 @@
+/* O modelo da IA em Chaves e contas (D-04). */
+.ai-settings {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  border: 0;
+}

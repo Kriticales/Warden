@@ -1044,7 +1044,7 @@ export type AiConversationView = {
 	/**  O que a pessoa contou. */
 	note: string | null,
 	/**  Tamanho do pedido inicial contado pelo Google. */
-	initialTokens: number,
+	initialTokens: number | null,
 	/**  Requisições feitas. */
 	requests: number,
 	/**  As perguntas, com as consultas e as respostas. */
@@ -1126,7 +1126,7 @@ export type AiPreview = {
 	 *  Tamanho inicial estimado em tokens: o `countTokens` do *system prompt* e das
 	 *  ferramentas mais o texto estimado (`None`: o Google não respondeu agora).
 	 */
-	estimatedTokens: number,
+	estimatedTokens: number | null,
 	/**  O modelo. */
 	model: string,
 	/**  Mais econômico ou mais cuidadoso (custo esperado). */
