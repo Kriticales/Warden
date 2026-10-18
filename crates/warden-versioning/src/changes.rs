@@ -206,6 +206,14 @@ impl ChangeSet {
         self.items_of(ItemChangeKind::Removed)
             .filter(|item| item.category == ItemCategory::Mod && !item.is_client_only())
     }
+
+    /// Troca os rótulos das versões pelos nomes que `resolver` conhece; os que ele não conhece
+    /// ficam como estão (o nome do arquivo). Para quem lê o git primeiro e consulta a rede
+    /// depois, fora da trava do pack: o mesmo que passar o `resolver` a [`PackRepo::changes`],
+    /// sem ler o git de novo.
+    pub fn resolve_version_names(&mut self, resolver: &dyn VersionNameResolver) {
+        resolve_names(&mut self.items, resolver);
+    }
 }
 
 /// Nomes legíveis das versões, implementado pela `warden-app` (cache do Modrinth e API da
@@ -778,6 +786,52 @@ mod tests {
         resolve_names(&mut items, &FileNames);
         assert_eq!(items[0].new.as_ref().unwrap().label, "sodium-0.6.0.jar");
         assert!(items[0].is_client_only());
+    }
+
+    /// Nomes que chegam depois (a rede consultada fora da trava do pack) entram no conjunto
+    /// já lido do git; o que o resolver não conhece continua com o nome do arquivo.
+    #[test]
+    fn resolve_version_names_troca_so_os_rotulos_conhecidos() {
+        struct Known;
+        impl VersionNameResolver for Known {
+            fn version_names(&self, versions: &[VersionRef]) -> Vec<Option<String>> {
+                versions
+                    .iter()
+                    .map(|version| match version {
+                        VersionRef::Modrinth { version_id, .. } if version_id == "abc" => {
+                            Some("0.6.0".to_owned())
+                        }
+                        _ => None,
+                    })
+                    .collect()
+            }
+        }
+        let version = |version_id: &str, filename: &str| ItemVersion {
+            reference: VersionRef::Modrinth {
+                project_id: "AANobbMI".into(),
+                version_id: version_id.into(),
+            },
+            filename: filename.into(),
+            label: filename.into(),
+        };
+        let mut changes = ChangeSet {
+            items: vec![ItemChange {
+                kind: ItemChangeKind::Updated,
+                category: ItemCategory::Mod,
+                source: ChangeSource::Modrinth,
+                name: "Sodium".into(),
+                path: "mods/sodium.pw.toml".into(),
+                project_id: Some("AANobbMI".into()),
+                side: String::new(),
+                old: Some(version("xyz", "sodium-0.5.0.jar")),
+                new: Some(version("abc", "sodium-0.6.0.jar")),
+            }],
+            ..ChangeSet::default()
+        };
+        changes.resolve_version_names(&Known);
+        let item = &changes.items[0];
+        assert_eq!(item.old.as_ref().unwrap().label, "sodium-0.5.0.jar");
+        assert_eq!(item.new.as_ref().unwrap().label, "0.6.0");
     }
 
     #[test]
