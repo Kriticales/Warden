@@ -54,8 +54,6 @@ export const buscaDoCulpado = {
       desc: 'Abre o menu, mas trava quando entra no mundo.',
       semMundo:
         'Precisa de um mundo de teste: abra o jogo pelo Testar, crie um mundo e feche o jogo.',
-      servidor:
-        'No Minecraft {{minecraft}} o jogo não entra sozinho num mundo; para isso o Warden vai precisar abrir um servidor neste computador, que ainda não está disponível.',
     },
     linha: {
       titulo: 'Aparece uma mensagem no log',

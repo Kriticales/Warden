@@ -7,8 +7,9 @@
  * (com o travamento de origem, que deixa o resultado ligado a ele).
  *
  * "Trava ao entrar no mundo" precisa entrar no mundo sozinho: Quick Play (Minecraft 1.20+) e
- * um mundo de teste na instância de teste. Nas versões anteriores, a entrada no mundo é pelo
- * servidor local, que chega com a D-13; até lá a opção explica e fica indisponível.
+ * um mundo de teste na instância de teste. Nas versões anteriores, e quando o travamento foi no
+ * servidor, a entrada no mundo é pelo servidor local (D-13): o diálogo explica e pede antes
+ * ([`ServerConsent`]); sem o aceite, a busca usa o modo assistido.
  */
 import { Check, Play, Target } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -23,6 +24,8 @@ import { Icon } from '../../components/ui/icon';
 import type { Symptom, PackId, PackRow } from '../../lib/ipc/bindings';
 import { Choice } from '../settings/components/fields';
 import { useBisect, useBisectPlan } from './api';
+import { serverReason, withServer } from './server/need';
+import { ServerConsent } from './server/ServerConsent';
 import { useStartBisect } from './useStartBisect';
 import { estimateText, joinNames, namesOf } from './text';
 
@@ -34,6 +37,8 @@ export interface BisectOrigin {
   symptom: Symptom['kind'];
   /** Frase que liga a opção ao travamento ("Igual ao travamento de hoje, 14:20"). */
   hint?: string;
+  /** O travamento foi no servidor (D-13): a busca pede o servidor local. */
+  server?: boolean;
 }
 
 export interface BisectDialogProps {
@@ -65,17 +70,23 @@ function Body({
   origin,
 }: Pick<BisectDialogProps, 'packId' | 'onOpenChange' | 'origin'>) {
   const { t } = useTranslation('buscaDoCulpado');
+  const { t: ts } = useTranslation('buscaComServidor');
   const plan = useBisectPlan(packId, true);
   const saved = useBisect(packId);
   const start = useStartBisect(packId);
   const [kind, setKind] = useState<Kind>(origin?.symptom ?? 'crashOnOpen');
   const [line, setLine] = useState('');
+  const [serverAccepted, setServerAccepted] = useState(false);
   const lineId = useId();
   const lineHelpId = useId();
 
   const data = plan.data;
-  const worldBlocked = data ? (!data.quickPlay ? 'servidor' : data.world ? null : 'mundo') : null;
+  const fromServer = origin?.server === true;
+  // Sem Quick Play (ou com o travamento no servidor), quem entra no mundo é o servidor local, que
+  // cria o mundo quando a instância de teste não tem um.
+  const worldBlocked = data && data.quickPlay && !data.world && !fromServer ? 'mundo' : null;
   const effective: Kind = kind === 'crashOnWorld' && worldBlocked ? 'crashOnOpen' : kind;
+  const reason = data ? serverReason(data, effective, fromServer) : null;
   const paused = saved.data?.status === 'paused';
   const canStart =
     plan.isSuccess &&
@@ -84,12 +95,13 @@ function Body({
     (effective !== 'logLine' || line.trim() !== '');
 
   const begin = () => {
-    const symptom: Symptom =
+    const chosen: Symptom =
       effective === 'logLine' ? { kind: 'logLine', text: line.trim() } : { kind: effective };
+    const { symptom, server } = withServer(chosen, reason, serverAccepted);
     onOpenChange(false);
     start({
       kind: 'start',
-      request: { symptom, originCrash: origin?.crash ?? null, suspects: [] },
+      request: { symptom, originCrash: origin?.crash ?? null, suspects: [], server },
     });
   };
 
@@ -105,8 +117,8 @@ function Body({
       }}
     />
   );
-  const worldDesc = (minecraft: string) => {
-    if (worldBlocked === 'servidor') return t('sintoma.mundo.servidor', { minecraft });
+  const worldDesc = (minecraft: string, quickPlay: boolean) => {
+    if (!quickPlay) return ts('sintoma.servidor', { minecraft });
     if (worldBlocked === 'mundo') return t('sintoma.mundo.semMundo');
     return origin?.symptom === 'crashOnWorld' && origin.hint
       ? origin.hint
@@ -142,13 +154,23 @@ function Body({
               {choice(
                 'crashOnWorld',
                 t('sintoma.mundo.titulo'),
-                worldDesc(data.minecraft),
+                worldDesc(data.minecraft, data.quickPlay),
                 worldBlocked !== null,
               )}
               {choice('logLine', t('sintoma.linha.titulo'), t('sintoma.linha.desc'))}
               {choice('assisted', t('sintoma.assistido.titulo'), t('sintoma.assistido.desc'))}
             </div>
           </fieldset>
+          {reason ? (
+            <ServerConsent
+              packId={packId}
+              reason={reason}
+              minecraft={data.minecraft}
+              hasWorld={data.world !== null}
+              accepted={serverAccepted}
+              onAcceptedChange={setServerAccepted}
+            />
+          ) : null}
           {effective === 'logLine' ? (
             <div className="field">
               <label className="field__label" htmlFor={lineId}>

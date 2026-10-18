@@ -27,6 +27,7 @@ import { usePack } from '../packs/api';
 import { formatDuration, formatWhen } from '../test/text';
 import { useTestStore } from '../test/store';
 import { RoundsTable, RoundsTrack, trackOf } from './Rounds';
+import { ServerResultNote } from './server/ServerNotes';
 import { joinNames, namesOf } from './text';
 import { useStartBisect } from './useStartBisect';
 
@@ -53,13 +54,16 @@ export function BisectResult({
     </Button>
   );
   const rounds = (
-    <details className="disclosure">
-      <summary>{t('resultado.verRodadas', { count: view.rounds.length })}</summary>
-      <div className="stack-3 mt-2">
-        <RoundsTrack entries={trackOf(view, false)} legend={false} />
-        <RoundsTable packId={packId} view={view} />
-      </div>
-    </details>
+    <>
+      <ServerResultNote view={view} />
+      <details className="disclosure">
+        <summary>{t('resultado.verRodadas', { count: view.rounds.length })}</summary>
+        <div className="stack-3 mt-2">
+          <RoundsTrack entries={trackOf(view, false)} legend={false} />
+          <RoundsTable packId={packId} view={view} />
+        </div>
+      </details>
+    </>
   );
 
   if (outcome?.kind === 'found') {

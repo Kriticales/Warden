@@ -84,6 +84,7 @@ describe('menu ▾ e diálogo "Encontrar o mod culpado"', () => {
       symptom: { kind: 'crashOnWorld' },
       originCrash: null,
       suspects: [],
+      server: false,
     } satisfies BisectRequest);
     // Foi para a tela do teste no modo da busca (vazia até a primeira rodada).
     expect(await screen.findByText('Nenhuma busca do culpado neste pack')).toBeDefined();

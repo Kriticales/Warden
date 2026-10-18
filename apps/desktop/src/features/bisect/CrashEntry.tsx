@@ -22,6 +22,7 @@ import { useGame } from '../test/store';
 import { formatWhen } from '../test/text';
 import type { ResultBlockProps } from '../test/result-blocks';
 import { BisectDialog, type BisectOrigin } from './BisectDialog';
+import { serverCrashOrigin } from './server/origin';
 
 function symptomOf(loaded: boolean): BisectOrigin['symptom'] {
   return loaded ? 'crashOnWorld' : 'crashOnOpen';
@@ -44,6 +45,8 @@ function Offer({ packId, session }: { packId: PackId; session: TestSessionSummar
     crash: group?.signature.hash ?? null,
     symptom: symptomOf(session.perf?.loadedMs != null),
     hint: t('oferta.igual', { quando: formatWhen(session.startedAtMs) }),
+    // D-13: travou no servidor do "Testar como servidor".
+    ...serverCrashOrigin(session),
   };
   return (
     <>

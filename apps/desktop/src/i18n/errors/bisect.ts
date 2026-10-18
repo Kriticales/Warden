@@ -16,5 +16,5 @@ export const bisect: Record<BisectErrorCode, string> = {
   NO_TEST_WORLD:
     'Para buscar um travamento ao entrar no mundo, a instância de teste precisa de um mundo. Abra o jogo pelo Testar, crie um mundo e feche o jogo.',
   NEEDS_SERVER:
-    'No Minecraft {{minecraft}} o jogo não entra sozinho num mundo; para isso o Warden vai precisar abrir um servidor neste computador, que ainda não está disponível. Use “Trava ao abrir o jogo” ou o modo em que você diz se aconteceu.',
+    'No Minecraft {{minecraft}} o jogo não entra sozinho num mundo: a busca precisa abrir um servidor neste computador. Aceite o servidor local no diálogo, use “Trava ao abrir o jogo” ou o modo em que você diz se aconteceu.',
 };
