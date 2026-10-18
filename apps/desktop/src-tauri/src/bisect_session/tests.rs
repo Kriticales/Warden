@@ -385,9 +385,16 @@ async fn mundo_de_teste_gerado_uma_vez_e_copiado_a_cada_rodada() {
     assert!(worlds.ready("1.20.1"));
     let template = std::fs::read_to_string(worlds.world().join("level.dat")).unwrap();
     assert_eq!(template.trim(), format!("semente={}", world::WORLD_SEED));
-    assert!(!worlds.world().join("session.lock").exists(), "o modelo levou o session.lock");
     assert!(
-        !state.paths.instance_dir(pack).join("bisect-world-server").exists(),
+        !worlds.world().join("session.lock").exists(),
+        "o modelo levou o session.lock"
+    );
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists(),
         "a pasta do servidor ficou"
     );
     assert!(state.servers.current().is_none());
@@ -396,7 +403,8 @@ async fn mundo_de_teste_gerado_uma_vez_e_copiado_a_cada_rodada() {
     for round in &view.rounds {
         let log = round_log(&state.paths, pack, round.number).unwrap();
         assert!(
-            log.iter().any(|line| line.text.contains(&seeded_world_line())),
+            log.iter()
+                .any(|line| line.text.contains(&seeded_world_line())),
             "rodada {} sem o mundo de teste gerado",
             round.number
         );
@@ -422,7 +430,11 @@ async fn mundo_de_teste_gerado_uma_vez_e_copiado_a_cada_rodada() {
     let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
     let error = task.await.unwrap().unwrap_err();
     assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
-    assert_eq!(tree_hash(&user_world), user_before, "o mundo do usuário mudou");
+    assert_eq!(
+        tree_hash(&user_world),
+        user_before,
+        "o mundo do usuário mudou"
+    );
 }
 
 /// A geração que falha (o servidor fecha antes do "pronto") dá um erro claro, com o motivo nos
@@ -444,10 +456,19 @@ async fn geracao_que_falha_pausa_e_continuar_tenta_de_novo() {
     assert_eq!(error.params["minecraft"], "1.20.1");
     let detail = error.detail.clone().unwrap();
     assert!(detail.contains("server.EXITED_BEFORE_READY"), "{detail}");
-    assert!(!detail.contains(&dir.path().display().to_string()), "{detail}");
+    assert!(
+        !detail.contains(&dir.path().display().to_string()),
+        "{detail}"
+    );
     let worlds = world::WorldDirs::of(&state.paths, pack);
     assert!(!worlds.ready("1.20.1"));
-    assert!(!state.paths.instance_dir(pack).join("bisect-world-server").exists());
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
     assert!(state.servers.current().is_none());
     assert!(state.tests.current().is_none());
     let saved = get(&state.paths, pack).unwrap().unwrap();
@@ -485,7 +506,10 @@ async fn cancelar_ou_esgotar_o_tempo_durante_a_geracao() {
     fake_server_mode(&root, Some("lento 60000"));
     let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
     wait_until("servidor do mundo de teste aberto", || {
-        state.servers.current().is_some_and(|server| server.port.is_some())
+        state
+            .servers
+            .current()
+            .is_some_and(|server| server.port.is_some())
             && get(&state.paths, pack)
                 .ok()
                 .flatten()
@@ -499,13 +523,25 @@ async fn cancelar_ou_esgotar_o_tempo_durante_a_geracao() {
         .expect("a busca não parou em 5 s")
         .unwrap()
         .unwrap();
-    assert!(matches!(view.outcome, Some(SearchOutcome::Cancelled { .. })));
+    assert!(matches!(
+        view.outcome,
+        Some(SearchOutcome::Cancelled { .. })
+    ));
     assert!(view.rounds.is_empty());
     assert!(!view.creating_world);
     assert!(state.servers.current().is_none());
-    assert!(warden_server::properties::port_is_free(port), "o servidor ficou aberto");
+    assert!(
+        warden_server::properties::port_is_free(port),
+        "o servidor ficou aberto"
+    );
     assert!(!world::WorldDirs::of(&state.paths, pack).ready("1.20.1"));
-    assert!(!state.paths.instance_dir(pack).join("bisect-world-server").exists());
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
 
     // Tempo esgotado (10 s nos testes): o servidor é encerrado e a busca pausa com o erro.
     let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
@@ -517,7 +553,10 @@ async fn cancelar_ou_esgotar_o_tempo_durante_a_geracao() {
     assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
     assert!(error.detail.unwrap().contains("server.READY_TIMEOUT"));
     assert!(state.servers.current().is_none());
-    assert_eq!(get(&state.paths, pack).unwrap().unwrap().status, BisectStatus::Paused);
+    assert_eq!(
+        get(&state.paths, pack).unwrap().unwrap().status,
+        BisectStatus::Paused
+    );
 }
 
 /// D18: sem o aceite da EULA, nenhum servidor abre e nenhum mundo é gerado: "trava ao entrar
@@ -551,7 +590,13 @@ async fn sem_eula_nao_gera_o_mundo() {
     let log = round_log(&state.paths, pack, 0).unwrap();
     assert!(!log.iter().any(|line| line.text.contains("Mundo de teste")));
     assert!(!world::WorldDirs::of(&state.paths, pack).ready("1.20.1"));
-    assert!(!state.paths.instance_dir(pack).join("bisect-world-server").exists());
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
     // Nenhum eula=true em lugar nenhum.
     let server = world::WorldDirs::of(&state.paths, pack);
     assert!(!server.world().exists());
@@ -755,4 +800,64 @@ async fn plano_e_recusas() {
     assert_eq!(shown.estimate.rounds_min, 3 + 4);
     assert_eq!(search_id(0), "19700101-000000-000");
     assert_eq!(search_id(1_791_158_153_471), "20261004-235553-471");
+}
+
+/// O mundo de teste com o servidor vanilla de verdade (baixa o `server.jar` da Mojang e gera o
+/// mundo; QUALITY §4.1, "Servidor local real"). Sob demanda:
+/// `cargo nextest run -p warden-app --run-ignored only -E 'test(/mundo_de_teste_com_servidor_vanilla_real/)'`,
+/// com um Java 17+ em `WARDEN_TEST_JAVA` ou `JAVA_HOME` (`WARDEN_TEST_JAVA_MAJOR`, padrão 21) e
+/// a versão em `WARDEN_TEST_MINECRAFT` (padrão 1.20.1).
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "servidor"]
+async fn mundo_de_teste_com_servidor_vanilla_real() {
+    let dir = tempfile::tempdir().unwrap();
+    let java = java().expect("Java 17+ em WARDEN_TEST_JAVA ou JAVA_HOME");
+    let major = std::env::var("WARDEN_TEST_JAVA_MAJOR")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(21);
+    let minecraft = std::env::var("WARDEN_TEST_MINECRAFT").unwrap_or_else(|_| "1.20.1".to_owned());
+    let state = test_state(dir.path());
+    state
+        .settings
+        .set_eula_accepted_at(Some("2026-10-18T12:00:00Z".into()))
+        .unwrap();
+    state.servers.set_first_port(free_port());
+    let root = dir.path().join("pack");
+    std::fs::create_dir_all(&root).unwrap();
+    let pack = PackId::new();
+    let handle = state.operations.start(BISECT_RUN, Some(pack), true);
+    let runtime = warden_launcher::JavaRuntime {
+        java: java.clone(),
+        launcher: java,
+        major,
+    };
+    let clock = Instant::now();
+    let template = world::ensure(&state, pack, &root, &minecraft, &runtime, &handle)
+        .await
+        .unwrap();
+    eprintln!(
+        "mundo de teste do Minecraft {minecraft} gerado em {:?}",
+        clock.elapsed()
+    );
+    // O level.dat de verdade é NBT comprimido com gzip.
+    let level = std::fs::read(template.join("level.dat")).unwrap();
+    assert_eq!(&level[..2], &[0x1f, 0x8b]);
+    assert!(!template.join("session.lock").exists());
+    let worlds = world::WorldDirs::of(&state.paths, pack);
+    assert!(worlds.ready(&minecraft));
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
+    assert!(state.servers.current().is_none());
+    // A segunda vez reaproveita o modelo, sem servidor.
+    let clock = Instant::now();
+    world::ensure(&state, pack, &root, &minecraft, &runtime, &handle)
+        .await
+        .unwrap();
+    assert!(clock.elapsed() < Duration::from_secs(1));
 }

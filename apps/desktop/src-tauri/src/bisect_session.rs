@@ -728,7 +728,8 @@ fn view_of(saved: &BisectState, control: Option<&Control>) -> BisectView {
             .iter()
             .map(|set| set.iter().map(|path| item_of(universe, path)).collect())
             .collect(),
-        creating_world: control.is_some_and(|control| control.creating_world.load(Ordering::SeqCst)),
+        creating_world: control
+            .is_some_and(|control| control.creating_world.load(Ordering::SeqCst)),
     }
 }
 

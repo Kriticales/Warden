@@ -127,9 +127,9 @@ impl WorldDirs {
         let Ok(bytes) = std::fs::read(self.marker()) else {
             return false;
         };
-        serde_json::from_slice::<Marker>(&bytes).is_ok_and(|marker| {
-            marker.minecraft == minecraft && marker.seed == WORLD_SEED
-        }) && self.world().join(LEVEL_DAT).is_file()
+        serde_json::from_slice::<Marker>(&bytes)
+            .is_ok_and(|marker| marker.minecraft == minecraft && marker.seed == WORLD_SEED)
+            && self.world().join(LEVEL_DAT).is_file()
     }
 }
 
@@ -166,7 +166,9 @@ pub(crate) async fn ensure(
         return Ok(dirs.world());
     }
     if crate::server_session::eula_accepted_at(state).is_none() {
-        return Err(AppError::from_domain(&warden_bisect::BisectError::EulaNeeded));
+        return Err(AppError::from_domain(
+            &warden_bisect::BisectError::EulaNeeded,
+        ));
     }
     let result = generate(state, pack_id, pack_root, minecraft, java, handle, &dirs).await;
     // A pasta do servidor nunca fica, dê certo ou não.
@@ -274,7 +276,11 @@ async fn run_server(
         .spawn(&command, dirs.template.join(SERVER_LOG), port)
         .await?;
     let server = running.handle();
-    tracing::info!(pid = running.pid(), port, "servidor do mundo de teste aberto");
+    tracing::info!(
+        pid = running.pid(),
+        port,
+        "servidor do mundo de teste aberto"
+    );
     let ready = tokio::select! {
         ready = warden_server::wait_ready(&mut events, READY_LIMIT, |_| {}) => ready,
         () = handle.token().cancelled() => {
@@ -290,7 +296,9 @@ async fn run_server(
         let _ = running.wait().await;
         return Err(AppError::from_domain(&failure.error(READY_LIMIT)));
     }
-    state.servers.update(|current| current.phase = ServerPhase::Stopping);
+    state
+        .servers
+        .update(|current| current.phase = ServerPhase::Stopping);
     let stopped = tokio::select! {
         stopped = server.stop() => stopped,
         () = handle.token().cancelled() => {
@@ -300,7 +308,9 @@ async fn run_server(
         }
     };
     if stopped.forced {
-        tracing::warn!("o servidor do mundo de teste não fechou com stop; o mundo pode ter ficado pela metade");
+        tracing::warn!(
+            "o servidor do mundo de teste não fechou com stop; o mundo pode ter ficado pela metade"
+        );
     }
     running
         .wait()
