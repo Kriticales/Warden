@@ -378,10 +378,20 @@ describe('"Memória no último teste" em Problemas', () => {
   it('só o teste mais novo conta: um teste sem achados depois de um com achados esconde o bloco', async () => {
     const older = makeSession({ id: '2026-10-07_14-20-00', perf: perfWith([LOW_HEAP]) });
     const newer = makeSession({ id: '2026-10-07_15-00-00', perf: perfWith([]) });
-    const { url } = renderBlock([newer, older]);
-    renderApp(`${url}/problemas`);
+    const { row, url } = renderBlock([newer, older]);
+    const queryClient = createQueryClient();
+    render(
+      <App
+        history={createMemoryHistory({ initialEntries: [`${url}/problemas`] })}
+        queryClient={queryClient}
+      />,
+    );
     await screen.findByRole('heading', { level: 1, name: 'Problemas' }, { timeout: 10_000 });
-    await screen.findByRole('region', { name: 'Último travamento' });
+    // As sessões chegaram e a seção já desenhou com elas (a lista de Travamentos da D-06).
+    await screen.findByRole('region', { name: /^Travamentos/ });
+    await waitFor(() => {
+      expect(queryClient.getQueryState(testKeys.sessions(row.id))?.status).toBe('success');
+    });
     expect(screen.queryByRole('region', { name: 'Memória no último teste' })).toBeNull();
   });
 
@@ -395,7 +405,10 @@ describe('"Memória no último teste" em Problemas', () => {
         queryClient={queryClient}
       />,
     );
-    await screen.findByRole('region', { name: 'Último travamento' }, { timeout: 10_000 });
+    await screen.findByRole('region', { name: /^Travamentos/ }, { timeout: 10_000 });
+    await waitFor(() => {
+      expect(queryClient.getQueryState(testKeys.sessions(row.id))?.status).toBe('success');
+    });
     expect(screen.queryByRole('region', { name: 'Memória no último teste' })).toBeNull();
     // O teste terminou com um achado de memória: o fim do teste invalida as sessões (e o resto
     // que mostra o teste), e o bloco aparece sem sair da seção.
