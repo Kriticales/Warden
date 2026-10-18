@@ -13,6 +13,7 @@ import { CaptureBlock } from '../capture/CaptureBlock';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PlayerResult } from './clean/PlayerResult';
 import { PerfSummary } from './perf-strip/PerfStrip';
+import { ServerResult } from './server/ServerResult';
 
 export interface ResultBlockProps {
   packId: PackId;
@@ -34,6 +35,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'why-crashed', order: 200, component: WhyCrashed },
   // L-07: o que o jogador recebeu × o pack.
   { id: 'player', order: 75, component: PlayerResult },
+  // L-09: o que aconteceu em cada lado no "Testar como servidor".
+  { id: 'server-result', order: 20, component: ServerResult },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {

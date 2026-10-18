@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_REQUEST, MAX_CONSOLE_LINES, appendLines, applyEvent, type TestRun } from './store';
-import { currentStep, orderedSteps } from './steps';
+import { currentStep, stepsFor } from './steps';
 import { gameLine, wardenLine } from './test.fixtures';
 import { consoleLineAsText, consoleText, formatDuration, formatMemory, stageText } from './text';
 
@@ -81,7 +81,7 @@ describe('estado do teste pelo canal', () => {
 
 describe('indicador de etapas', () => {
   it('avança pelas etapas do backend e nunca volta; com o jogo aberto, tudo concluído', () => {
-    const steps = orderedSteps();
+    const steps = stepsFor(DEFAULT_REQUEST);
     // "Verificar o pack" e "Verificação final" são da D-03 (`test.check`, `test.finalCheck`).
     expect(steps.map((step) => step.id)).toEqual([
       'check',

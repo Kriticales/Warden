@@ -32,7 +32,7 @@ import { DEFAULT_PROFILE, profileName } from '../profiles/text';
 import { ReloadScriptsButton } from '../reload-scripts/ReloadScriptsButton';
 import { Console } from '../console/Console';
 import { LivePerfStrip } from '../perf-strip/PerfStrip';
-import { currentStep, orderedSteps, stepLabel } from '../steps';
+import { currentStep, stepLabel, stepsFor } from '../steps';
 import { useGame, useTestStore, type TestRun } from '../store';
 import { formatMemory, stageText } from '../text';
 
@@ -47,8 +47,8 @@ export function gameLine(pack: PackRow): string {
 /** O indicador de etapas. */
 export function TestSteps({ run }: { run: TestRun }) {
   const { t } = useTranslation('teste');
-  const steps = orderedSteps();
-  const current = currentStep(run.stagesSeen, run.status === 'running');
+  const steps = stepsFor(run.request);
+  const current = currentStep(run.stagesSeen, run.status === 'running', steps);
   return (
     <div className="test-steps">
       <Steps items={steps.map(stepLabel)} current={current} label={t('etapas.rotulo')} />
@@ -83,8 +83,8 @@ function Warnings({ run }: { run: TestRun }) {
 export function PrepareView({ run, pack }: { run: TestRun; pack: PackRow }) {
   const { t } = useTranslation('teste');
   const stop = useTestStore((store) => store.stop);
-  const steps = orderedSteps();
-  const current = currentStep(run.stagesSeen, false);
+  const steps = stepsFor(run.request);
+  const current = currentStep(run.stagesSeen, false, steps);
   const progress = run.progress;
   const percent = progress?.total ? Math.min(100, (progress.current / progress.total) * 100) : null;
   const label = (run.stage ? stageText(run.stage.labelKey) : null) ?? t('preparo.aguarde');

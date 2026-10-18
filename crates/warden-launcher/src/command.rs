@@ -62,8 +62,10 @@ fn join(dir: &Path, name: &str, os: TargetOs) -> String {
 
 /// Argumentos de codificação da saída por major do Java (ARCHITECTURE §7.4). No Java 8 fica
 /// desligado até ser validado com packs reais (R2 §9 item 7): a saída sai na página de código
-/// do Windows e a leitura recua para Windows-1252.
-fn encoding_args(java_major: u32) -> &'static [&'static str] {
+/// do Windows e a leitura recua para Windows-1252. Pública para o servidor local
+/// (`warden-server`, L-09), que usa os mesmos argumentos.
+#[must_use]
+pub fn encoding_args(java_major: u32) -> &'static [&'static str] {
     match java_major {
         19.. => &["-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8"],
         17 | 18 => &["-Dfile.encoding=UTF-8"],

@@ -43,6 +43,29 @@ pub(crate) fn total_memory_mb() -> Option<u64> {
     }
 }
 
+/// Memória física livre agora, em MB (o servidor local compara servidor + jogo com ela; L-09).
+/// No Linux, o `MemAvailable` (o que dá para usar sem tirar memória de ninguém).
+pub(crate) fn available_memory_mb() -> Option<u64> {
+    #[cfg(windows)]
+    {
+        windows::available_memory_bytes().map(|bytes| bytes / (1024 * 1024))
+    }
+    #[cfg(not(windows))]
+    {
+        let text = std::fs::read_to_string("/proc/meminfo").ok()?;
+        parse_meminfo_kb(&text, "MemAvailable:").map(|kb| kb / 1024)
+    }
+}
+
+/// Um campo em kB do `/proc/meminfo` (`MemAvailable:   8123456 kB`).
+#[cfg_attr(windows, allow(dead_code))]
+fn parse_meminfo_kb(text: &str, field: &str) -> Option<u64> {
+    text.lines()
+        .find_map(|line| line.strip_prefix(field))
+        .and_then(|rest| rest.split_whitespace().next())
+        .and_then(|value| value.parse().ok())
+}
+
 /// `MemTotal:       16314240 kB` do `/proc/meminfo`.
 #[cfg_attr(windows, allow(dead_code))]
 fn parse_meminfo_total_kb(text: &str) -> Option<u64> {
@@ -70,6 +93,18 @@ mod windows {
         unsafe { GlobalMemoryStatusEx(&raw mut status) }.ok()?;
         Some(status.ullTotalPhys)
     }
+
+    /// Memória física livre agora, em bytes.
+    pub(super) fn available_memory_bytes() -> Option<u64> {
+        let mut status = MEMORYSTATUSEX {
+            dwLength: u32::try_from(size_of::<MEMORYSTATUSEX>()).ok()?,
+            ..MEMORYSTATUSEX::default()
+        };
+        // SAFETY: igual a `total_memory_bytes`: `status` é uma `MEMORYSTATUSEX` válida e viva
+        // durante a chamada, com `dwLength` igual ao tamanho da estrutura.
+        unsafe { GlobalMemoryStatusEx(&raw mut status) }.ok()?;
+        Some(status.ullAvailPhys)
+    }
 }
 
 #[cfg(test)]
@@ -81,6 +116,9 @@ mod tests {
         let text = "MemFree:  100 kB\nMemTotal:       16314240 kB\nBuffers: 1 kB\n";
         assert_eq!(parse_meminfo_total_kb(text), Some(16_314_240));
         assert_eq!(parse_meminfo_total_kb("nada"), None);
+        let text = "MemTotal: 16314240 kB\nMemAvailable:    8123456 kB\n";
+        assert_eq!(parse_meminfo_kb(text, "MemAvailable:"), Some(8_123_456));
+        assert_eq!(parse_meminfo_kb("MemTotal: 1 kB", "MemAvailable:"), None);
     }
 
     #[test]
@@ -89,5 +127,7 @@ mod tests {
         assert!(machine.cpus >= 1);
         let memory = machine.memory_mb.expect("memória do computador");
         assert!(memory > 256, "{memory} MB");
+        let free = available_memory_mb().expect("memória livre do computador");
+        assert!(free <= memory, "{free} MB livres de {memory} MB");
     }
 }

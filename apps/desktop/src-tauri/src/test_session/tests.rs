@@ -6,6 +6,8 @@
 //! de processo da `warden-launcher`).
 
 #![allow(clippy::print_stderr)] // aviso de teste pulado
+// Os auxiliares são `pub(super)`: os testes do "Testar como servidor" (`server_mode`) usam os
+// mesmos (L-09).
 
 use std::collections::BTreeMap;
 use std::sync::Mutex as StdMutex;
@@ -59,12 +61,15 @@ pub(super) fn java_major(java: &Path) -> u32 {
 }
 
 /// Estado de teste com o jogo simulado no lugar do motor.
-fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+pub(super) fn fake_state(root: &Path) -> Option<Arc<AppState>> {
     fake_state_with(root, None)
 }
 
 /// O mesmo, com a CurseForge simulada em `curseforge_base` (L-06).
-fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<AppState>> {
+pub(super) fn fake_state_with(
+    root: &Path,
+    curseforge_base: Option<String>,
+) -> Option<Arc<AppState>> {
     let Some(java) = java() else {
         eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste do jogo simulado pulado");
         return None;
@@ -83,7 +88,7 @@ fn fake_state_with(root: &Path, curseforge_base: Option<String>) -> Option<Arc<A
     Some(Arc::new(state))
 }
 
-fn sha256(bytes: &[u8]) -> String {
+pub(super) fn sha256(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
@@ -149,7 +154,7 @@ impl Seen {
             .collect()
     }
 
-    fn phases(&self) -> Vec<GamePhase> {
+    pub(super) fn phases(&self) -> Vec<GamePhase> {
         self.states
             .lock()
             .unwrap()
@@ -1218,6 +1223,7 @@ async fn ca_t13_01_jogo_real_entra_no_mundo_pelo_testar() {
             }
         }),
         env: vec![("ALSOFT_DRIVERS".into(), "null".into())],
+        refuse_command: false,
     };
     state.tests =
         Arc::new(TestSessions::new(&state.paths, &state.catalog).with_launch_tweak(tweak));
@@ -1876,6 +1882,7 @@ fn fake_state_watching(
             *seen_options.lock().unwrap() = Some(options.clone());
         }),
         env: Vec::new(),
+        refuse_command: false,
     });
     state.tests = Arc::new(sessions);
     Some(Arc::new(state))

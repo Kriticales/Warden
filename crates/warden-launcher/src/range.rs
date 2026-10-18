@@ -38,8 +38,10 @@ pub(crate) fn has_offline_developer_mode(release_time: &str) -> bool {
     at_least(release_time, OFFLINE_DEVELOPER_MODE_SINCE)
 }
 
-/// A versão traz log4j vulnerável sem configuração segura (≤ 1.18.x).
-pub(crate) fn needs_safe_log4j_config(release_time: &str) -> bool {
+/// A versão traz log4j vulnerável sem configuração segura (≤ 1.18.x). Pública para o servidor
+/// local (`warden-server`, L-09), que segue a mesma regra.
+#[must_use]
+pub fn needs_safe_log4j_config(release_time: &str) -> bool {
     !at_least(release_time, LOG4J_FIXED_SINCE)
 }
 

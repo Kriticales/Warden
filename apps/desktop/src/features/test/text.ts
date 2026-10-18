@@ -75,10 +75,12 @@ const WARDEN_MESSAGES = new Set([
  * pela chave do catálogo, com durações e memória formatadas.
  */
 export function consoleText(line: ConsoleLine): string {
-  if (line.origin === 'game') {
+  if (line.origin !== 'warden') {
     return line.text;
   }
-  if (!WARDEN_MESSAGES.has(line.text)) {
+  // As do servidor local vêm com o namespace na chave (`servidor:console.pronto`; L-09).
+  const namespaced = line.text.startsWith('servidor:console.') && i18n.exists(line.text);
+  if (!WARDEN_MESSAGES.has(line.text) && !namespaced) {
     return line.text;
   }
   const { duracaoMs, memoriaMb, ...rest } = line.params;
