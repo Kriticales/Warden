@@ -1263,7 +1263,9 @@ impl BisectGame {
             sink: silent_sink(),
             handle,
         };
-        Ok(runner.plan_launch_with(&self.prepared, None, extra)?.command)
+        Ok(runner
+            .plan_launch_with(&self.prepared, None, extra)?
+            .command)
     }
 }
 

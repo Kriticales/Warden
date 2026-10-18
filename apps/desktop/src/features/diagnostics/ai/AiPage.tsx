@@ -30,7 +30,7 @@ import type {
   AiSessionOption,
   AiSource,
   PackId,
-  Symptom,
+  AiSymptom,
 } from '../../../lib/ipc/bindings';
 import { formatBytes } from '../../../lib/format';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
@@ -51,7 +51,7 @@ import { ConsentDialog } from './ConsentDialog';
 import { originLabel, symptomLabel, tokensLabel } from './text';
 import './ai.css';
 
-const SYMPTOMS: readonly Symptom[] = ['crashOnStart', 'crashInWorld', 'slow', 'other'];
+const SYMPTOMS: readonly AiSymptom[] = ['crashOnStart', 'crashInWorld', 'slow', 'other'];
 /** Nome do grupo de rádio do sintoma. */
 const SYMPTOM_GROUP = 'ia-sintoma';
 
@@ -118,7 +118,7 @@ function NewConversation({ packId, sessionId }: { packId: PackId; sessionId: str
   const chooseLog = useChooseLog(packId);
   const selectId = useId();
   const noteId = useId();
-  const [symptom, setSymptom] = useState<Symptom>('crashInWorld');
+  const [symptom, setSymptom] = useState<AiSymptom>('crashInWorld');
   const [choice, setChoice] = useState<SourceChoice | null>(null);
   const [pick, setPick] = useState<AiLocalPick | null>(null);
   const [note, setNote] = useState('');

@@ -32,13 +32,14 @@ use tauri::{AppHandle, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt as _;
 use tauri_specta::Event;
 use warden_ai::conversation::{
-    Conversation, ConversationStore, ConversationOrigin, PackChanges, PackSnapshot, Symptom, ConversationTurn,
+    Conversation, ConversationStore, ConversationOrigin, PackChanges, PackSnapshot, AiSymptom, ConversationTurn,
     new_conversation, new_id,
 };
 use warden_ai::engine::{Engine, Limits, LiveStatus, NoObserver, Observer, now_ms, pending, push_question};
 use warden_ai::evidence::ClaimStatus;
 use warden_ai::gemini::GeminiClient;
 use warden_ai::models::{ModelChoices, ModelTier, fetch_choices, tier_of};
+use warden_ai::proposals::{Proposal, ProposalState};
 use warden_ai::tools::AiPermissions;
 use warden_core::{CancellationToken, PackId, atomic_write_private};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -82,7 +83,7 @@ pub(crate) struct AiConversationUpdated {
 /// Quem avisa a interface.
 pub(crate) type Notify = Arc<dyn Fn(PackId, &str) + Send + Sync>;
 
-fn app_notify(app: AppHandle) -> Notify {
+pub(crate) fn app_notify(app: AppHandle) -> Notify {
     Arc::new(move |pack_id, id: &str| {
         let event = AiConversationUpdated {
             pack_id,
@@ -98,7 +99,7 @@ fn app_notify(app: AppHandle) -> Notify {
 #[derive(Debug, Clone)]
 struct Preview {
     pack_id: PackId,
-    symptom: Symptom,
+    symptom: AiSymptom,
     note: Option<String>,
     model: String,
     initial: initial::Initial,
@@ -128,6 +129,9 @@ pub(crate) struct AiHub {
     /// `countTokens` do *system prompt* e das ferramentas, por modelo.
     base_tokens: Mutex<HashMap<String, u64>>,
     http: Mutex<Option<HttpClient>>,
+    /// A busca de issues no GitHub das consultas da D-14 (o cache de 1 h vale para todas as
+    /// conversas).
+    pub(crate) github: crate::ai_tools::external::GithubHub,
     /// Endereço do Gemini nos testes.
     #[cfg(test)]
     pub(crate) base_url: Mutex<Option<String>>,
@@ -200,6 +204,45 @@ struct RunGuard<'a> {
 impl Drop for RunGuard<'_> {
     fn drop(&mut self) {
         self.hub.end(&self.id);
+    }
+}
+
+/// Uma conversa marcada como ocupada fora do laço (Aplicar e Descartar uma proposta, D-14):
+/// nenhuma pergunta nova nem resposta da IA grava por cima enquanto isso, e apagar a conversa
+/// no meio não a faz voltar.
+pub(crate) struct Busy<'a> {
+    hub: &'a AiHub,
+    cancel: CancellationToken,
+    _guard: RunGuard<'a>,
+}
+
+impl<'a> Busy<'a> {
+    /// Marca a conversa. Erro `CONVERSATION_BUSY` se a IA está respondendo nela.
+    pub(crate) fn begin(state: &'a AppState, id: &str) -> Result<Self, AppError> {
+        let cancel = state.ai.begin(id)?;
+        Ok(Self {
+            hub: &state.ai,
+            cancel,
+            _guard: RunGuard {
+                hub: &state.ai,
+                id: id.to_owned(),
+            },
+        })
+    }
+
+    /// Grava a conversa, a menos que ela tenha sido apagada no meio.
+    pub(crate) fn save(
+        &self,
+        store: &ConversationStore,
+        conversation: &Conversation,
+    ) -> Result<(), AppError> {
+        let _files = lock(&self.hub.files);
+        if self.cancel.is_cancelled() {
+            return Err(domain(&warden_ai::Error::ConversationNotFound {
+                id: conversation.id.clone(),
+            }));
+        }
+        store.save(conversation).map_err(|error| domain(&error))
     }
 }
 
@@ -496,7 +539,7 @@ pub(crate) enum AiSource {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct AiPreviewRequest {
     /// "O que está acontecendo?".
-    pub(crate) symptom: Symptom,
+    pub(crate) symptom: AiSymptom,
     /// "Começar pelo".
     pub(crate) source: AiSource,
     /// "Contar algo à IA".
@@ -966,7 +1009,7 @@ pub(crate) struct AiConversationSummary {
     /// A causa provável (a primeira afirmação verificada, ou o resumo), quando houver.
     pub(crate) title: Option<String>,
     /// O sintoma.
-    pub(crate) symptom: Symptom,
+    pub(crate) symptom: AiSymptom,
     /// O que foi analisado.
     pub(crate) origin: ConversationOrigin,
     /// Quando começou.
@@ -982,6 +1025,8 @@ pub(crate) struct AiConversationSummary {
     /// Tokens processados.
     #[specta(type = specta_typescript::Number)]
     pub(crate) tokens: u64,
+    /// Propostas da IA esperando a decisão do usuário (D-14).
+    pub(crate) pending_proposals: u32,
 }
 
 fn title_of(conversation: &Conversation) -> Option<String> {
@@ -1032,6 +1077,14 @@ fn summary_of(hub: &AiHub, conversation: &Conversation) -> AiConversationSummary
         state: state_of(hub, conversation),
         questions: u32::try_from(conversation.turns.len()).unwrap_or(u32::MAX),
         tokens: conversation.usage.total(),
+        pending_proposals: u32::try_from(
+            conversation
+                .proposals
+                .iter()
+                .filter(|proposal| proposal.state == ProposalState::Pending)
+                .count(),
+        )
+        .unwrap_or(u32::MAX),
     }
 }
 
@@ -1083,6 +1136,8 @@ pub(crate) struct AiConversationView {
     pub(crate) live: Option<LiveStatus>,
     /// O que mudou no pack desde o começo da conversa.
     pub(crate) pack_changes: PackChanges,
+    /// As propostas da IA (cartões com Aplicar e Descartar, D-14).
+    pub(crate) proposals: Vec<Proposal>,
 }
 
 pub(crate) async fn get_impl(
@@ -1108,6 +1163,7 @@ pub(crate) async fn get_impl(
         live: state.ai.live(id),
         pack_changes: conversation.pack.changes(&now),
         turns: conversation.turns,
+        proposals: conversation.proposals,
     })
 }
 

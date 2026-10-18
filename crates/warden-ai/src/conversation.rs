@@ -22,10 +22,11 @@ use crate::tools::{AiPermissions, ToolItem};
 /// Versão do formato do arquivo.
 pub const SCHEMA_VERSION: u32 = 1;
 
-/// O sintoma escolhido em "Nova conversa".
+/// O sintoma escolhido em "Nova conversa" (`AiSymptom`: o `Symptom` é o da busca do culpado,
+/// D-12, e os dois vão para o mesmo `bindings.ts`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum Symptom {
+pub enum AiSymptom {
     /// Trava ao abrir o jogo.
     CrashOnStart,
     /// Trava ao entrar no mundo.
@@ -261,7 +262,7 @@ pub struct Conversation {
     /// Permissões escolhidas no consentimento.
     pub permissions: AiPermissions,
     /// O sintoma.
-    pub symptom: Symptom,
+    pub symptom: AiSymptom,
     /// O que foi analisado.
     pub origin: ConversationOrigin,
     /// O que a pessoa contou à IA no começo.
@@ -458,7 +459,7 @@ pub fn new_conversation(
     now_ms: u64,
     model: String,
     permissions: AiPermissions,
-    symptom: Symptom,
+    symptom: AiSymptom,
     origin: ConversationOrigin,
     note: Option<String>,
     pack: PackSnapshot,
@@ -496,7 +497,7 @@ mod tests {
             at,
             "modelo".into(),
             AiPermissions::default(),
-            Symptom::CrashInWorld,
+            AiSymptom::CrashInWorld,
             ConversationOrigin::PackOnly,
             None,
             PackSnapshot::default(),

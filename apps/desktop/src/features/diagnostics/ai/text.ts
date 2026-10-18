@@ -10,7 +10,7 @@ import type {
   ConfidenceMeter,
   ConversationOrigin,
   ErrorCode,
-  Symptom,
+  AiSymptom,
   ToolStep,
   TurnFailure,
 } from '../../../lib/ipc/bindings';
@@ -146,7 +146,7 @@ export function meterBlocks(confidence: ConfidenceMeter): number {
 }
 
 /** O nome do sintoma. */
-export function symptomLabel(symptom: Symptom): string {
+export function symptomLabel(symptom: AiSymptom): string {
   return tt(`sintoma.${symptom}.titulo`);
 }
 

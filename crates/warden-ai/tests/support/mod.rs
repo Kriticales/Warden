@@ -29,7 +29,7 @@ use async_trait::async_trait;
 use secrecy::SecretString;
 use serde_json::{Value, json};
 use warden_ai::conversation::{
-    Conversation, ConversationOrigin, PackSnapshot, Symptom, new_conversation,
+    AiSymptom, Conversation, ConversationOrigin, PackSnapshot, new_conversation,
 };
 use warden_ai::gemini::GeminiClient;
 use warden_ai::tools::{
@@ -332,7 +332,7 @@ pub fn conversation(permissions: AiPermissions) -> Conversation {
         1,
         "gemini-3.5-flash-lite".into(),
         permissions,
-        Symptom::CrashInWorld,
+        AiSymptom::CrashInWorld,
         ConversationOrigin::PackOnly,
         None,
         PackSnapshot::default(),

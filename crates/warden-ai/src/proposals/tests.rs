@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use serde_json::json;
 
 use super::*;
-use crate::conversation::{ConversationOrigin, PackSnapshot, Symptom, new_conversation};
+use crate::conversation::{AiSymptom, ConversationOrigin, PackSnapshot, new_conversation};
 use crate::engine::push_question;
 use crate::tools::{AiPermissions, KnownMod, ToolItem, ToolOutput};
 
@@ -61,7 +61,7 @@ fn conversation() -> Conversation {
         1,
         "modelo".into(),
         AiPermissions::default(),
-        Symptom::CrashInWorld,
+        AiSymptom::CrashInWorld,
         ConversationOrigin::PackOnly,
         None,
         PackSnapshot::default(),
