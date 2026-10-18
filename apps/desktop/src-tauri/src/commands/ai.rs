@@ -504,7 +504,7 @@ pub(crate) struct AiPreview {
     pub(crate) bytes: u64,
     /// Tamanho inicial estimado em tokens: o `countTokens` do *system prompt* e das
     /// ferramentas mais o texto estimado (`None`: o Google não respondeu agora).
-    #[specta(type = specta_typescript::Number)]
+    #[specta(type = Option<specta_typescript::Number>)]
     pub(crate) estimated_tokens: Option<u64>,
     /// O modelo.
     pub(crate) model: String,
@@ -1053,7 +1053,7 @@ pub(crate) struct AiConversationView {
     /// O que a pessoa contou.
     pub(crate) note: Option<String>,
     /// Tamanho do pedido inicial contado pelo Google.
-    #[specta(type = specta_typescript::Number)]
+    #[specta(type = Option<specta_typescript::Number>)]
     pub(crate) initial_tokens: Option<u64>,
     /// Requisições feitas.
     pub(crate) requests: u32,
