@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AddResult, SearchPage } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
-import { ipcError, type Handler } from '../../test/backend';
+import { ipcError, type Handler, type MockBackend } from '../../test/backend';
 import { makeAppError } from '../../test/factories';
 import { renderApp } from '../../test/render';
 import { makeInventory, SODIUM as SODIUM_ITEM } from '../pack-editor/editor.fixtures';
@@ -57,16 +57,29 @@ function setup(handlers: Record<string, Handler> = {}) {
   });
 }
 
-/** Abre a página; com `query`, digita no campo (sem texto o início da descoberta aparece). */
-async function openAdd(url: string, query?: string) {
+/** Abre a página (sem texto o início da descoberta aparece). */
+async function openAdd(url: string) {
   renderApp(`${url}/adicionar`);
-  const heading = await screen.findByRole(
-    'heading',
-    { level: 1, name: 'Adicionar ao pack' },
-    { timeout: 10_000 },
+  return screen.findByRole('heading', { level: 1, name: 'Adicionar ao pack' }, { timeout: 10_000 });
+}
+
+/**
+ * Abre a página e digita `query` no campo. A primeira tecla já tira o início da tela e busca com
+ * o texto anterior (vazio); a busca digitada só sai 300 ms depois da última tecla e troca a lista
+ * pelo esqueleto. Numa máquina lenta essa troca cai no meio dos cliques do teste, que marcam
+ * caixas de uma lista que já saiu da tela. Espera o pedido com o texto inteiro.
+ */
+async function openAndSearch(app: { url: string; backend: MockBackend }, query: string) {
+  await openAdd(app.url);
+  await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar' }), query);
+  await waitFor(
+    () => {
+      expect(app.backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({
+        query,
+      });
+    },
+    { timeout: 5000 },
   );
-  if (query) await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar' }), query);
-  return heading;
 }
 
 function results() {
@@ -166,7 +179,7 @@ describe('página Adicionar', () => {
       removed: [],
     };
     const { url, backend } = setup({ add_plan: () => plan, add_apply: () => added });
-    await openAdd(url, 'mod');
+    await openAndSearch({ url, backend }, 'mod');
     const list = await results();
     for (const name of ['Mod Menu', 'AppleSkin', 'Iris']) {
       await userEvent.click(within(list).getByRole('checkbox', { name: `Selecionar ${name}` }));
@@ -202,7 +215,7 @@ describe('página Adicionar', () => {
     const { url, backend } = setup({
       add_plan: () => makePlan({ nodes: [makeNode()] }),
     });
-    await openAdd(url, 'mod');
+    await openAndSearch({ url, backend }, 'mod');
     const list = await results();
     await userEvent.click(within(list).getByRole('button', { name: 'Mod Menu' }));
     const preview = await screen.findByRole('complementary', {
@@ -221,7 +234,7 @@ describe('página Adicionar', () => {
       warnings: [{ source: 'curseforge', reason: 'unavailable', detail: 'erro 500' }],
     });
     const { url, backend } = setup({ search_projects: () => page });
-    await openAdd(url, 'mod');
+    await openAndSearch({ url, backend }, 'mod');
     await results();
     expect(screen.getByText('Não foi possível buscar no CurseForge agora.')).toBeDefined();
     const before = backend.callsOf('search_projects').length;
@@ -232,7 +245,7 @@ describe('página Adicionar', () => {
   });
 
   it('busca com erro: painel com o motivo e "Tentar de novo"', async () => {
-    const { url } = setup({
+    const { url, backend } = setup({
       search_projects: () =>
         ipcError(
           makeAppError(
@@ -241,7 +254,7 @@ describe('página Adicionar', () => {
           ),
         ),
     });
-    await openAdd(url, 'mod');
+    await openAndSearch({ url, backend }, 'mod');
     expect(
       await screen.findByText(
         'Não foi possível falar com o Modrinth agora. Confira a internet e tente de novo.',
@@ -254,7 +267,7 @@ describe('página Adicionar', () => {
 
   it('nada encontrado: oferece mostrar também os sem versão compatível', async () => {
     const { url, backend } = setup({ search_projects: () => makePage([]) });
-    await openAdd(url, 'xyz');
+    await openAndSearch({ url, backend }, 'xyz');
     expect(await screen.findByText('Nada encontrado para “xyz”')).toBeDefined();
     await userEvent.click(
       screen.getByRole('button', { name: 'Mostrar também os sem versão compatível' }),
