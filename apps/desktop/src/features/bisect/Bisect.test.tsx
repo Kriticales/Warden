@@ -90,6 +90,17 @@ describe('menu ▾ e diálogo "Encontrar o mod culpado"', () => {
     expect(await screen.findByText('Nenhuma busca do culpado neste pack')).toBeDefined();
   });
 
+  it('enquanto a busca nova prepara, não mostra a tela vazia nem o resultado da anterior', async () => {
+    const { row, url } = setup({
+      bisect_get: () => makeFound({ finishedAtMs: Date.now() - 60_000 }),
+    });
+    useTestStore.setState({ game: makeGame(row.id, 'bisecting') });
+    await openPage(url, '/teste?modo=busca', 'Buscando o mod culpado');
+    expect(await screen.findByText('Preparando a busca do culpado')).toBeDefined();
+    expect(screen.queryByText(/Culpado encontrado/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Encontrar o mod culpado…' })).toBeNull();
+  });
+
   it('primeira busca: explica o mundo de teste e pede a EULA; aceitar libera "Trava ao entrar no mundo" e atualiza as Configurações', async () => {
     const state = { settings: makeSettings() };
     const { backend, url } = setup({
