@@ -25,6 +25,7 @@ import { openExternal } from '../../../lib/external';
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { Choice } from '../../settings/components/fields';
+import { ServerPerfOption } from '../perf-report/ServerPerfOption';
 import { useTestStore } from '../store';
 import { formatMemory } from '../text';
 import { useAcceptEula, useServerPlan } from './api';
@@ -138,6 +139,8 @@ function OptionsStep({
   const { t } = useTranslation('servidor');
   const start = useTestStore((store) => store.start);
   const navigate = useNavigate();
+  // L-12: o perfil de desempenho no servidor (só com o jogo).
+  const [performance, setPerformance] = useState(false);
   const data = plan.data;
   const memory = data?.memory;
   const supported = data?.loaderSupported ?? true;
@@ -150,6 +153,7 @@ function OptionsStep({
       profile: null,
       replaceInstanceChanges: false,
       serverOnly: !withGame,
+      performance: withGame && performance,
     });
   };
 
@@ -195,6 +199,7 @@ function OptionsStep({
             />
           </div>
         </fieldset>
+        <ServerPerfOption checked={performance} withGame={withGame} onChange={setPerformance} />
         <dl className="kv">
           <dt>{t('opcoes.memoria')}</dt>
           <dd>{sum}</dd>

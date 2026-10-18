@@ -32,6 +32,7 @@ import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDia
 import { playerMenuItem } from './clean/menu';
 import { DeleteWorldsDialog } from './dialogs/DeleteWorldsDialog';
 import { RecreateInstanceDialog } from './dialogs/RecreateInstanceDialog';
+import { perfMenuItem } from './perf-report/menu';
 import { ProfileMenuItems } from './profiles/ProfileMenuItems';
 import { ServerTestDialog } from './server/ServerTestDialog';
 import { formatWhen, outcomeShort } from './text';
@@ -148,6 +149,8 @@ export const testMenuItems: readonly TestMenuEntry[] = [
   { id: 'profiles', group: 'profile', order: 100, component: ProfileMenuItems },
   // L-07: "Testar como o jogador recebe".
   playerMenuItem,
+  // L-12: "Testar com perfil de desempenho".
+  perfMenuItem,
   {
     id: 'settings',
     group: 'profile',

@@ -13,6 +13,7 @@ import { CaptureBlock } from '../capture/CaptureBlock';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PlayerResult } from './clean/PlayerResult';
 import { PerfSummary } from './perf-strip/PerfStrip';
+import { PerfReport } from './perf-report/PerfReport';
 import { ServerResult } from './server/ServerResult';
 
 export interface ResultBlockProps {
@@ -37,6 +38,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'player', order: 75, component: PlayerResult },
   // L-09: o que aconteceu em cada lado no "Testar como servidor".
   { id: 'server-result', order: 20, component: ServerResult },
+  // L-12: "Desempenho" (tempo por mod e spark), logo depois do "Abriu em …" (protótipo).
+  { id: 'perf-profile', order: 60, component: PerfReport },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {
