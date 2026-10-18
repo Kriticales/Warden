@@ -558,6 +558,25 @@ describe('detalhes do item (T07)', () => {
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
+  it('Esc fecha os detalhes e o foco volta à linha do mod que os abriu (A-01)', async () => {
+    const { url } = editorBackend({ handlers: { item_details: () => makeDetails(SODIUM) } });
+    const user = userEvent.setup();
+    renderApp(url);
+    await screen.findByRole('searchbox', { name: 'Buscar no pack' }, { timeout: 10_000 });
+    const row = screen.getByRole('button', { name: SODIUM.name });
+    row.focus();
+    await user.keyboard('{Enter}');
+    await screen.findByRole('dialog', { name: 'Detalhes do mod' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Detalhes do mod' })).toBeNull();
+    });
+    // O painel abre por estado (clique na linha): sem a A-01 o foco ia para o <body>.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: SODIUM.name }));
+    });
+  });
+
   it('CA-T07-01: descrição com <script> e onerror= não executa código', async () => {
     const flag = { ran: false };
     Object.assign(window, { wardenXss: flag });

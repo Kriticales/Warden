@@ -1,17 +1,90 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Pencil, Save } from 'lucide-react';
-import { useState } from 'react';
+import { Ellipsis, Pencil, Save } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { axeComponent } from '../../test/axe';
 import { renderWithProviders } from '../../test/render';
 import { Alert } from './alert';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent } from './alert-dialog';
 import { Button } from './button';
 import { Dialog, DialogContent, DialogTrigger } from './dialog';
+import { Menu, MenuContent, MenuIconTrigger, MenuItem } from './menu';
 import { Sheet, SheetContent, SheetTrigger } from './sheet';
 import { dismissToast, showToast, useToastStore } from './toast';
 import { Tooltip, TooltipProvider } from './tooltip';
+
+/**
+ * Abre a camada por estado (sem `Trigger`, como as confirmações e os detalhes do mod), por um
+ * botão ou pelo item de um menu ⋯ (que some com o menu).
+ */
+function OpenedByState({ layer }: { layer: (close: () => void) => ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        Abrir pelo estado
+      </button>
+      <Menu>
+        <MenuIconTrigger icon={Ellipsis} label="Mais ações" />
+        <MenuContent>
+          <MenuItem
+            onSelect={() => {
+              setOpen(true);
+            }}
+          >
+            Abrir pelo menu
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+      {open
+        ? layer(() => {
+            setOpen(false);
+          })
+        : null}
+    </>
+  );
+}
+
+/** Abre pelo botão e fecha com Esc: o foco volta ao botão. */
+async function expectFocusBackFromButton(role: 'dialog' | 'alertdialog') {
+  const user = userEvent.setup();
+  const opener = screen.getByRole('button', { name: 'Abrir pelo estado' });
+  await user.click(opener);
+  await screen.findByRole(role);
+  await user.keyboard('{Escape}');
+  await waitFor(() => {
+    expect(screen.queryByRole(role)).toBeNull();
+  });
+  // O Radix sozinho deixaria o foco no <body> (ele só devolve ao Trigger).
+  await waitFor(() => {
+    expect(document.activeElement).toBe(opener);
+  });
+}
+
+/** Abre pelo item do menu ⋯, pelo teclado, e fecha com Esc: o foco volta ao ⋯. */
+async function expectFocusBackFromMenu(role: 'dialog' | 'alertdialog') {
+  const user = userEvent.setup();
+  const trigger = screen.getByRole('button', { name: 'Mais ações' });
+  trigger.focus();
+  await user.keyboard('{Enter}');
+  await screen.findByRole('menu');
+  await user.keyboard('{Enter}');
+  await screen.findByRole(role);
+  await user.keyboard('{Escape}');
+  await waitFor(() => {
+    expect(screen.queryByRole(role)).toBeNull();
+  });
+  await waitFor(() => {
+    expect(document.activeElement).toBe(trigger);
+  });
+}
 
 describe('Button', () => {
   it('variantes do design system, sem cantos arredondados', async () => {
@@ -166,6 +239,24 @@ describe('Dialog', () => {
     });
   });
 
+  it('aberto por um item de menu, o foco volta ao gatilho do menu (o item sumiu com o menu)', async () => {
+    renderWithProviders(
+      <OpenedByState
+        layer={(close) => (
+          <Dialog
+            open
+            onOpenChange={(next) => {
+              if (!next) close();
+            }}
+          >
+            <DialogContent title="Pelo menu" />
+          </Dialog>
+        )}
+      />,
+    );
+    await expectFocusBackFromMenu('dialog');
+  });
+
   it('sem nada focado ao abrir, o foco volta para returnFocusTo', async () => {
     const user = userEvent.setup();
     function Unfocused() {
@@ -229,6 +320,54 @@ describe('Sheet', () => {
     await user.tab();
     expect(sheet.contains(document.activeElement)).toBe(true);
     expect(await axeComponent(document.body)).toHaveNoViolations();
+  });
+
+  it('aberto por estado (a linha de um mod) ou por item de menu, o foco volta para quem abriu', async () => {
+    renderWithProviders(
+      <OpenedByState
+        layer={(close) => (
+          <Sheet
+            open
+            onOpenChange={(next) => {
+              if (!next) close();
+            }}
+          >
+            <SheetContent title="Detalhes" />
+          </Sheet>
+        )}
+      />,
+    );
+    await expectFocusBackFromButton('dialog');
+    await expectFocusBackFromMenu('dialog');
+  });
+});
+
+describe('AlertDialog', () => {
+  it('aberta por estado ou por item de menu (Remover, Apagar…), o foco volta para quem abriu', async () => {
+    renderWithProviders(
+      <OpenedByState
+        layer={(close) => (
+          <AlertDialog
+            open
+            onOpenChange={(next) => {
+              if (!next) close();
+            }}
+          >
+            <AlertDialogContent
+              title="Remover?"
+              description="O arquivo vai para a Lixeira."
+              footer={
+                <AlertDialogCancel asChild>
+                  <Button>Cancelar</Button>
+                </AlertDialogCancel>
+              }
+            />
+          </AlertDialog>
+        )}
+      />,
+    );
+    await expectFocusBackFromButton('alertdialog');
+    await expectFocusBackFromMenu('alertdialog');
   });
 });
 

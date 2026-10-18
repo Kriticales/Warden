@@ -207,6 +207,33 @@ describe('Meus packs (T02)', () => {
     expect(writes).toEqual([{ command: 'pack_forget', args: { packId: row.id } }]);
   });
 
+  it('A-01: a confirmação aberta pelo menu ⋯ devolve o foco ao ⋯ quando fecha com Esc', async () => {
+    const user = userEvent.setup();
+    packsBackend([makePackRow({ name: 'Vale Sereno' })]);
+    renderApp('/packs');
+    const trigger = await screen.findByRole('button', { name: 'Mais ações para Vale Sereno' });
+    trigger.focus();
+    await user.keyboard('{Enter}');
+    await screen.findByRole('menu');
+    // ↓ até "Remover da lista" (o primeiro item é "Mostrar na pasta").
+    await user.keyboard('{ArrowDown}');
+    await waitFor(() => {
+      expect(document.activeElement?.textContent).toContain('Remover da lista');
+    });
+    await user.keyboard('{Enter}');
+    await screen.findByRole('alertdialog', { name: 'Remover “Vale Sereno” da lista?' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
+    // O item do menu sumiu com o menu: sem a A-01 o foco ia para o <body>.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: 'Mais ações para Vale Sereno' }),
+      );
+    });
+  });
+
   it('Apagar pack só habilita depois de digitar o nome; manda para a Lixeira', async () => {
     const user = userEvent.setup();
     const row = makePackRow({ name: 'Vale Sereno' });

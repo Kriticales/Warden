@@ -1,7 +1,8 @@
 /**
  * Painel lateral (shadcn `Sheet side="right"` sobre o Radix Dialog) com a aparência `.drawer`
  * (HANDOFF §3): detalhes do mod, Tarefas. O foco entra no título, Tab fica preso, Esc ou ✕
- * fecham e o foco volta para quem abriu.
+ * fecham e o foco volta para quem abriu (`focus-return.ts`; o Radix sozinho só devolve ao
+ * `SheetTrigger`).
  */
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from './button';
+import { useFocusReturn } from './focus-return';
 
 export const Sheet = DialogPrimitive.Root;
 export const SheetTrigger = DialogPrimitive.Trigger;
@@ -22,6 +24,7 @@ export interface SheetContentProps {
 export function SheetContent({ title, footer, children }: SheetContentProps) {
   const { t } = useTranslation();
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const focusReturn = useFocusReturn();
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="scrim scrim--drawer">
@@ -29,9 +32,12 @@ export function SheetContent({ title, footer, children }: SheetContentProps) {
           className="drawer"
           aria-describedby={undefined}
           onOpenAutoFocus={(event) => {
+            // O foco ainda está em quem abriu.
+            focusReturn.rememberOpener();
             event.preventDefault();
             titleRef.current?.focus();
           }}
+          onCloseAutoFocus={focusReturn.onCloseAutoFocus}
         >
           <div className="drawer__head">
             <DialogPrimitive.Title ref={titleRef} className="t-title" tabIndex={-1}>
