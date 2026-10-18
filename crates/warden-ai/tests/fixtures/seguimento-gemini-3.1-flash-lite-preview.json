@@ -1,0 +1,444 @@
+{
+  "origem": "Gravação real da API do Gemini (generateContent) feita pelo spike S-R5-4 em 2026-10-04, com o pack fictício Vale Sombrio. Só os corpos das respostas, na ordem; sem cabeçalhos nem chave. Resposta final pela ferramenta responder.",
+  "modelo": "gemini-3.1-flash-lite-preview",
+  "cenario": "seguimento",
+  "modo_final": "ferramenta",
+  "perguntas": [
+    "O pack travou no último teste (sessão s3). Por que travou e como resolvo?",
+    "E se, em vez de atualizar o Steam 'n' Rails, eu voltar o Create para a versão que eu tinha antes? Funciona?"
+  ],
+  "respostas": [
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_crash_report",
+                  "args": {
+                    "session_id": "s3"
+                  },
+                  "id": "call_2124667"
+                },
+                "thoughtSignature": "EnMKcQFpFH0TZMUggmXPJoazzYWoMXvp47DIiDvQrvCrOY/NMabYWssTsxgzfGtZBcFI+yS0MvetQglqyre2S45W4M2WeVGdFsSd7SKUlv8wa5276KhKskq7t/AdX3HSnjnuEvPaW2nREtocC+1FDf4vdSaq"
+              },
+              {
+                "functionCall": {
+                  "name": "get_findings",
+                  "args": {},
+                  "id": "call_2124668"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 2118,
+        "candidatesTokenCount": 31,
+        "totalTokenCount": 2149,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2118
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "6M7CasziIujNqtsPm9ro0Q0"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "list_mods",
+                  "args": {
+                    "filtro": "railways"
+                  },
+                  "id": "call_1989744"
+                },
+                "thoughtSignature": "EnMKcQFpFH0TTH6TuDdPrcuAvvPzQV+W4PoZTzER4oUYv4YN8xXYBg7+pB1yl1V8qSqiPKQIXbNZ4UQvusY/ZaFDtwtxyzwUExLboBoqf5iPBlnM2zJGT8cmzcD9Xcumk0Gl4YVmEmLaheYce/CRBwBgR785"
+              },
+              {
+                "functionCall": {
+                  "name": "get_mod_changelog",
+                  "args": {
+                    "mod_id": "railways"
+                  },
+                  "id": "call_1989745"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 3200,
+        "candidatesTokenCount": 40,
+        "totalTokenCount": 3240,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3200
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "6c7CaruhEqKKqtsPs6bwoQc"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "responder",
+                  "args": {
+                    "semConclusao": false,
+                    "achados": [
+                      {
+                        "afirmacao": "O pack travou devido a um erro de compatibilidade (java.lang.NoSuchMethodError) entre o mod 'Create: Steam 'n' Rails' e o 'Create'.",
+                        "confianca": "alta",
+                        "mods": [
+                          "railways"
+                        ],
+                        "evidencias": [
+                          {
+                            "id": "crash:s3",
+                            "citacao": "java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'\n\tat com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88)"
+                          },
+                          {
+                            "citacao": "Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).",
+                            "id": "finding:CRASH_SIGNATURE#1"
+                          }
+                        ]
+                      }
+                    ],
+                    "resumo": "O jogo travou por uma incompatibilidade do 'Create: Steam 'n' Rails' com a versão instalada do Create. Atualizar o mod resolve o problema.",
+                    "propostas": [
+                      {
+                        "detalhe": "Atualizar o mod 'Create: Steam 'n' Rails' para a versão 1.6.7+forge-mc1.20.1 para corrigir o erro de NoSuchMethodError com o Create 6.0.",
+                        "evidencias": [
+                          {
+                            "id": "changelog:railways@1.6.7+forge-mc1.20.1",
+                            "citacao": "Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer."
+                          }
+                        ],
+                        "tipo": "atualizar_mod",
+                        "modId": "railways"
+                      }
+                    ]
+                  },
+                  "id": "call_3083597"
+                },
+                "thoughtSignature": "EnMKcQFpFH0TDWZwe1pBDSwcakbWK1klpwh5yfhu7WprLFv1kWPV4SFsnU8hTff/S0jLdWj+KAUoiNljOi+7/Z5o/hCmJ/Jlshcm1LVOvcYrPpjroB7yhXiVCwLtXNBYq+x/E4fyOJ7R6Ep+zV0t9T8vX61x"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 3498,
+        "candidatesTokenCount": 464,
+        "totalTokenCount": 3962,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3498
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "7M7Catn7JIK-qtsPl4LvmAY"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "get_history",
+                  "args": {
+                    "limit": 5
+                  },
+                  "id": "call_3810107"
+                },
+                "thoughtSignature": "EnMKcQFpFH0TZzYG0aizwMvOQAR0iBA3VCzNQg78/SHprlLUo0vahTJrY19dVRjz4ZbH/NAh4GcXlNWdMKlc3SqDGK8nKQbyvnb90UJcUu2CeBjTSDcgsbLmp8/9X2/iAugcnyp5Z2czP6U8wACPPl4ty5WS"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 4002,
+        "candidatesTokenCount": 14,
+        "totalTokenCount": 4016,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4002
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "7s7CauiuFbH9qtsPraOI4A4"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "diff_versions",
+                  "args": {
+                    "from": "v1.3",
+                    "to": "v1.4"
+                  },
+                  "id": "call_1233106"
+                },
+                "thoughtSignature": "EnMKcQFpFH0TOsKHdfj45A0J2TDsKluV+c47iDS0Xvm0JBQDicVmIavGt3+yIRCwQvITtf5mEfh9SjWVGkezur6WCInBu+iv7h9x77aXB2B1UmLt4XqKDpNdjeAF/yPn3OsIBbm1Kp+iUjZAOXJAI75uiua8"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 4254,
+        "candidatesTokenCount": 28,
+        "totalTokenCount": 4282,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4254
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "787CasHJBtWsqtsPpLKImAI"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "responder",
+                  "args": {
+                    "achados": [
+                      {
+                        "confianca": "alta",
+                        "mods": [
+                          "create",
+                          "railways"
+                        ],
+                        "evidencias": [
+                          {
+                            "id": "version:v1.3..v1.4",
+                            "citacao": "Mods atualizados:\n↑ create: 0.5.1.j → 6.0.4\n↑ flywheel: 0.6.11-13 → 1.0.2\nMods adicionados:\n+ createaddition 1.3.1\nMods sem mudança: railways 1.6.4+forge-mc1.20.1 (não foi atualizado)"
+                          }
+                        ],
+                        "afirmacao": "O mod 'Create: Steam 'n' Rails' 1.6.4 não foi atualizado quando o 'Create' foi atualizado para a versão 6.0.4, gerando a incompatibilidade atual."
+                      }
+                    ],
+                    "semConclusao": false,
+                    "resumo": "Sim, voltar o 'Create' para a versão anterior (0.5.1.j) deve funcionar, já que o problema foi a atualização para o Create 6 sem atualizar o 'Create: Steam 'n' Rails'. No entanto, note que isso removerá as funcionalidades do Create 6 e pode exigir que você também reverta o 'Flywheel' e remova o 'Create Crafts & Additions', que foram adicionados na mesma atualização.",
+                    "propostas": [
+                      {
+                        "detalhe": "Voltar o mod 'Create' para a versão 0.5.1.j, como estava na versão v1.3 do pack, para manter compatibilidade com o 'Create: Steam 'n' Rails' 1.6.4.",
+                        "tipo": "voltar_versao_mod",
+                        "modId": "create",
+                        "evidencias": [
+                          {
+                            "id": "version:v1.4",
+                            "citacao": "2026-10-01: \"Create 6\" — Create 0.5.1.j → 6.0.4; Flywheel 0.6.11-13 → 1.0.2; + Create Crafts & Additions 1.3.1"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "id": "call_2733048"
+                },
+                "thoughtSignature": "EnMKcQFpFH0T+SoiJgBxy2t1aZ5dv+I7PwTQORk8hZSQ/M2CEWJzoWDA/Aev1X5pwL4hQ1edMd7fYvoabAeiKAxMgOUwi6yRLzcRi6tqNca2e8SrqylEHX9tegNUP0JvBKbQTfeOLNAUS4N155srAzKzZ6Wl"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0,
+          "finishMessage": "Model generated function call(s)."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 4407,
+        "candidatesTokenCount": 475,
+        "totalTokenCount": 4882,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4407
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "8M7CasbIBvu3qtsP4saRkAk"
+    }
+  ],
+  "uso_total": {
+    "prompt": 21479,
+    "cache": 0,
+    "saida": 1052,
+    "pensamento": 0,
+    "ferramentas_prompt": 0
+  },
+  "conferencias": [
+    {
+      "resumo": "O jogo travou por uma incompatibilidade do 'Create: Steam 'n' Rails' com a versão instalada do Create. Atualizar o mod resolve o problema.",
+      "sem_conclusao": false,
+      "achados": [
+        {
+          "afirmacao": "O pack travou devido a um erro de compatibilidade (java.lang.NoSuchMethodError) entre o mod 'Create: Steam 'n' Rails' e o 'Create'.",
+          "confianca": "alta",
+          "verificada": true,
+          "mods_inexistentes": [],
+          "evidencias": [
+            {
+              "id": "crash:s3",
+              "citacao": "java.lang.NoSuchMethodError: 'net.minecraft.world.phys.Vec3 com.simibubi.create.content.trains.entity.Carriage$DimensionalCarriageEntity.getPositionVec()'\n\tat com.railwayteam.railways.mixin.MixinCarriageContraptionEntity.railways$tickBogeys(MixinCarriageContraptionEntity.java:88)",
+              "situacao": "Valida"
+            },
+            {
+              "id": "finding:CRASH_SIGNATURE#1",
+              "citacao": "Travou 2 vezes com a mesma causa (sessões s2 e s3): java.lang.NoSuchMethodError durante o tick de uma entidade. A pilha cita o pacote com.railwayteam.railways, do mod railways (Create: Steam 'n' Rails 1.6.4+forge-mc1.20.1).",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "propostas": [
+        {
+          "tipo": "atualizar_mod",
+          "mod_id": "railways",
+          "detalhe": "Atualizar o mod 'Create: Steam 'n' Rails' para a versão 1.6.7+forge-mc1.20.1 para corrigir o erro de NoSuchMethodError com o Create 6.0.",
+          "exibida": true,
+          "motivo_descarte": null,
+          "evidencias": [
+            {
+              "id": "changelog:railways@1.6.7+forge-mc1.20.1",
+              "citacao": "Fixed NoSuchMethodError crash in MixinCarriageContraptionEntity when trains tick with Create 6. Requires Create 6.0.0 or newer.",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "evidencias_total": 3,
+      "evidencias_validas": 3,
+      "evidencias_so_com_espacos": 0
+    },
+    {
+      "resumo": "Sim, voltar o 'Create' para a versão anterior (0.5.1.j) deve funcionar, já que o problema foi a atualização para o Create 6 sem atualizar o 'Create: Steam 'n' Rails'. No entanto, note que isso removerá as funcionalidades do Create 6 e pode exigir que você também reverta o 'Flywheel' e remova o 'Create Crafts & Additions', que foram adicionados na mesma atualização.",
+      "sem_conclusao": false,
+      "achados": [
+        {
+          "afirmacao": "O mod 'Create: Steam 'n' Rails' 1.6.4 não foi atualizado quando o 'Create' foi atualizado para a versão 6.0.4, gerando a incompatibilidade atual.",
+          "confianca": "alta",
+          "verificada": true,
+          "mods_inexistentes": [],
+          "evidencias": [
+            {
+              "id": "version:v1.3..v1.4",
+              "citacao": "Mods atualizados:\n↑ create: 0.5.1.j → 6.0.4\n↑ flywheel: 0.6.11-13 → 1.0.2\nMods adicionados:\n+ createaddition 1.3.1\nMods sem mudança: railways 1.6.4+forge-mc1.20.1 (não foi atualizado)",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "propostas": [
+        {
+          "tipo": "voltar_versao_mod",
+          "mod_id": "create",
+          "detalhe": "Voltar o mod 'Create' para a versão 0.5.1.j, como estava na versão v1.3 do pack, para manter compatibilidade com o 'Create: Steam 'n' Rails' 1.6.4.",
+          "exibida": true,
+          "motivo_descarte": null,
+          "evidencias": [
+            {
+              "id": "version:v1.4",
+              "citacao": "2026-10-01: \"Create 6\" — Create 0.5.1.j → 6.0.4; Flywheel 0.6.11-13 → 1.0.2; + Create Crafts & Additions 1.3.1",
+              "situacao": "Valida"
+            }
+          ]
+        }
+      ],
+      "evidencias_total": 2,
+      "evidencias_validas": 2,
+      "evidencias_so_com_espacos": 0
+    }
+  ],
+  "avaliacoes": [
+    {
+      "evidencias_total": 3,
+      "evidencias_validas": 3,
+      "evidencias_so_com_espacos": 0,
+      "evidencias_invalidas": 0,
+      "achados": 1,
+      "achados_nao_verificados": 0,
+      "propostas": 1,
+      "propostas_descartadas": 0,
+      "mods_inventados": [],
+      "cita_turbofix": false,
+      "sem_conclusao": false,
+      "causa_certa": true,
+      "correcao_certa": true,
+      "acerto": true
+    },
+    {
+      "evidencias_total": 2,
+      "evidencias_validas": 2,
+      "evidencias_so_com_espacos": 0,
+      "evidencias_invalidas": 0,
+      "achados": 1,
+      "achados_nao_verificados": 0,
+      "propostas": 1,
+      "propostas_descartadas": 0,
+      "mods_inventados": [],
+      "cita_turbofix": false,
+      "sem_conclusao": false,
+      "cita_createaddition": true,
+      "cita_flywheel": true,
+      "acerto": true
+    }
+  ]
+}

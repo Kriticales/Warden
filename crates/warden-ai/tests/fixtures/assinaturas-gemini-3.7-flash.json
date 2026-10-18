@@ -1,0 +1,160 @@
+{
+  "origem": "Gravação real (spike S-R5-4, 2026-10-04): reação da API do Gemini a históricos com assinaturas alteradas. Sem cabeçalhos nem chave.",
+  "modelo": "gemini-3.7-flash",
+  "resposta_com_chamadas_paralelas": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_findings",
+                "args": {},
+                "id": "call_3422448"
+              },
+              "thoughtSignature": "EoMCCoACAWkUfRMd0OQpa9TUnfmqUomTztOxSH6LIP22Wt+LZqNIAJs1TwgOWuc6HFIKmU6t7U+ByTOsHTKbCSVKnZH99ITGftfDmNDLJskaQ9Wp6Q5g/Mp5L2xh61z7MsOuoMkME44hNu0gsmZzCn3l4PfPHVU/KbbJJZ0/dUmXHReccQ07hYQt8yEyjVRczi4ez7NKhmcbSerDKVJwZDBQq+lbRMX2iXXSzQ8zb+lC0fVrB7vfD3ZaN/wMu8elXjqle3J+tcYRLv5Cdl7m/HXRhSAxLsr9b+qNR61S/DpAWTYfT/FkBQDARq0GCVgTt6Y9lWH7bkdra5+Hpf98bZSZ284xoA=="
+            },
+            {
+              "functionCall": {
+                "name": "get_crash_report",
+                "args": {
+                  "session_id": "s3"
+                },
+                "id": "call_3422449"
+              }
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0,
+        "finishMessage": "Model generated function call(s)."
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 1570,
+      "candidatesTokenCount": 31,
+      "totalTokenCount": 1642,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1570
+        }
+      ],
+      "thoughtsTokenCount": 41,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.7-flash",
+    "responseId": "ds7CapfpKKKKqtsPs6bwoQc"
+  },
+  "variantes": [
+    {
+      "etapa": "chamada inicial 0",
+      "http": 200,
+      "resposta": {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "functionCall": {
+                    "name": "get_findings",
+                    "args": {},
+                    "id": "call_3422448"
+                  },
+                  "thoughtSignature": "EoMCCoACAWkUfRMd0OQpa9TUnfmqUomTztOxSH6LIP22Wt+LZqNIAJs1TwgOWuc6HFIKmU6t7U+ByTOsHTKbCSVKnZH99ITGftfDmNDLJskaQ9Wp6Q5g/Mp5L2xh61z7MsOuoMkME44hNu0gsmZzCn3l4PfPHVU/KbbJJZ0/dUmXHReccQ07hYQt8yEyjVRczi4ez7NKhmcbSerDKVJwZDBQq+lbRMX2iXXSzQ8zb+lC0fVrB7vfD3ZaN/wMu8elXjqle3J+tcYRLv5Cdl7m/HXRhSAxLsr9b+qNR61S/DpAWTYfT/FkBQDARq0GCVgTt6Y9lWH7bkdra5+Hpf98bZSZ284xoA=="
+                },
+                {
+                  "functionCall": {
+                    "name": "get_crash_report",
+                    "args": {
+                      "session_id": "s3"
+                    },
+                    "id": "call_3422449"
+                  }
+                }
+              ],
+              "role": "model"
+            },
+            "finishReason": "STOP",
+            "index": 0,
+            "finishMessage": "Model generated function call(s)."
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 1570,
+          "candidatesTokenCount": 31,
+          "totalTokenCount": 1642,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1570
+            }
+          ],
+          "thoughtsTokenCount": 41,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.7-flash",
+        "responseId": "ds7CapfpKKKKqtsPs6bwoQc"
+      }
+    },
+    {
+      "etapa": "sem assinatura",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_findings` , position 2. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura alterada (1 caractere)",
+      "http": 400,
+      "erro": "Invalid thought signature.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura movida para a 2a chamada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2693,
+        "candidatesTokenCount": 341,
+        "totalTokenCount": 3034,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2693
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "respostas intercaladas",
+      "http": 400,
+      "erro": "Function call is missing a thought_signature in functionCall parts. This is required for tools to work correctly, and missing thought_signature may lead to degraded model performance. Additional data, function call `default_api:get_crash_report` , position 4. Please refer to https://ai.google.dev/gemini-api/docs/thought-signatures for more details.",
+      "uso": null
+    },
+    {
+      "etapa": "assinatura falsa documentada",
+      "http": 200,
+      "erro": null,
+      "uso": {
+        "promptTokenCount": 2652,
+        "candidatesTokenCount": 296,
+        "totalTokenCount": 2948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2652
+          }
+        ],
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "etapa": "intacto",
+      "http": 429,
+      "erro": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3.7-flash\nPlease retry in 35.244404352s.",
+      "uso": null
+    }
+  ]
+}

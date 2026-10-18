@@ -1,0 +1,313 @@
+{
+  "origem": "Corpos reais de respostas 200 com problema, gravados pelo spike S-R5-4 em 2026-10-04 (generateContent, plano gratuito, pack fictício Vale Sombrio). Sem cabeçalhos nem chave. O laço trata todos como nova tentativa sem mexer no histórico.",
+  "malformed_function_call_sem_chamadas": {
+    "modelo": "gemini-3.5-flash-lite",
+    "cenario": "malformada",
+    "resposta": {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "<UPDATE><previous_step>Início da interação</previous_step><plan>Comparar os mods entre v1.3 e v1.4 filtrando por lado cliente, fonte modrinth e não biblioteca, planejar a busca do culpado e propor a edição das configs.</plan><next_step>Chamar compare_mod_sets, plan_bisect e propose_config_edits</next_step></UPDATE>"
+              },
+              {
+                "text": "",
+                "thoughtSignature": "EmAKXgFpFH0T8+AmjZ1cxicdUGrml+SQqeWOU3jMV+DzZpysTmYwmqUg2h0cps/Vn7kBRNl2qaUVgkPp24HoQqmiSe1t3rFF5Vzc3K625ZgtfI00yC+CTWC8qFtnqydyakA="
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "MALFORMED_FUNCTION_CALL",
+          "index": 0,
+          "finishMessage": "Malformed function call: Failed to parse function call: Function call is empty - no input to parse."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 4413,
+        "candidatesTokenCount": 91,
+        "totalTokenCount": 4504,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4413
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.5-flash-lite",
+      "responseId": "cc_Cave8Bs3AqtsPl6-koQ8"
+    }
+  },
+  "malformed_function_call_com_chamadas": {
+    "modelo": "gemini-3.5-flash-lite",
+    "cenario": "malformada",
+    "resposta": {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "<UPDATE><previous_step>Início da tarefa solicitada pelo usuário</previous_step><plan>Comparar mods entre v1.3 e v1.4 via compare_mod_sets, planejar busca do culpado via plan_bisect e propor edições de configs com propose_config_edits.</plan><next_step>Chamar compare_mod_sets, plan_bisect, propose_config_edits, get_pack_overview e list_mods para coletar dados e evidências.</next_step></UPDATE>"
+              },
+              {
+                "text": "declarations:default_api:compare_mod_sets{a:{filters:{library:false,side:"
+              },
+              {
+                "text": "cliente"
+              },
+              {
+                "text": ",source:"
+              },
+              {
+                "text": "modrinth"
+              },
+              {
+                "text": "},version:"
+              },
+              {
+                "text": "v1.3"
+              },
+              {
+                "text": "},b:{filters:{library:false,side:"
+              },
+              {
+                "text": "cliente"
+              },
+              {
+                "text": ",source:"
+              },
+              {
+                "text": "modrinth"
+              },
+              {
+                "text": "},version:"
+              },
+              {
+                "text": "v1.4"
+              },
+              {
+                "text": "}}"
+              },
+              {
+                "text": ""
+              },
+              {
+                "functionCall": {
+                  "name": "plan_bisect",
+                  "args": {
+                    "test_profile": {
+                      "jvm_args": [
+                        "-XX:+UseG1GC",
+                        "-XX:MaxGCPauseMillis=50"
+                      ],
+                      "memory_mb": 8192,
+                      "java": 17
+                    },
+                    "max_rounds": 6,
+                    "groups": [
+                      {
+                        "reason": "Grupo de testes para Create e extensões",
+                        "name": "Create e addons",
+                        "mods": [
+                          "create"
+                        ]
+                      },
+                      {
+                        "reason": "Demais mods do pack",
+                        "name": "O resto",
+                        "mods": [
+                          "jei"
+                        ]
+                      }
+                    ]
+                  },
+                  "id": "call_2131817"
+                },
+                "thoughtSignature": "EmAKXgFpFH0TFmKJwgwQnxoz6TXUBoP1m/uILZSzwbeV9X7MVW7ceeAvuandAu95lsNvKHorx1CpqkvzjrJUzJpEAusI+C3D40SZM8xCm4MexvRV5JNO2hzmjNfQuGuDUi4="
+              },
+              {
+                "functionCall": {
+                  "name": "propose_config_edits",
+                  "args": {
+                    "edits": [
+                      {
+                        "path": "config/create-common.toml",
+                        "key": "trains.maxAssemblyLength",
+                        "value": 64,
+                        "evidencias": [
+                          {
+                            "id": "config/create-common.toml",
+                            "citacao": "trains.maxAssemblyLength = 32"
+                          }
+                        ],
+                        "comment": "Aumentar tamanho máximo de montagem de trens para 64"
+                      },
+                      {
+                        "value": 32,
+                        "path": "config/railways-common.toml",
+                        "key": "server.conductorSpyRange",
+                        "evidencias": [
+                          {
+                            "citacao": "server.conductorSpyRange = 16",
+                            "id": "config/railways-common.toml"
+                          }
+                        ],
+                        "comment": "Aumentar alcance do Conductor Spy para 32"
+                      }
+                    ]
+                  },
+                  "id": "call_2131818"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "get_pack_overview",
+                  "args": {},
+                  "id": "call_2131819"
+                }
+              },
+              {
+                "functionCall": {
+                  "name": "list_mods",
+                  "args": {},
+                  "id": "call_2131820"
+                }
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "MALFORMED_FUNCTION_CALL",
+          "index": 0,
+          "finishMessage": "Malformed function call: Failed to parse function call: Function call is empty - no input to parse."
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 4413,
+        "candidatesTokenCount": 493,
+        "totalTokenCount": 4906,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4413
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.5-flash-lite",
+      "responseId": "pdDCaoWiEoK-qtsPl4LvmAY"
+    }
+  },
+  "malformed_response_texto_cortado": {
+    "modelo": "gemini-3.5-flash-lite",
+    "cenario": "malformada",
+    "resposta": {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "<UPDATE><previous_step>Busca de conductorSpyRange realizada</previous_step><plan>Fazer a chamada da ferramenta responder entregando os resultados e propostas solicitados.</plan><next_step>Chamar responder.</next_step></",
+                "thoughtSignature": "EmAKXgFpFH0TpkcZGtbiBqN6sgkmgi5lw7n1uNkY6BCgT+BFkDr4WjzZjZ1fVH9305ppoBh5EkwLTmuw3zN7TVuej5YUao96ZNUS+SY4nqksvwiERq0Ve9Sa0DwC4s6pqI0="
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "MALFORMED_RESPONSE",
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5170,
+        "candidatesTokenCount": 52,
+        "totalTokenCount": 5780,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5170
+          }
+        ],
+        "thoughtsTokenCount": 558,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.5-flash-lite",
+      "responseId": "F9HCasXuJKagz7IPnN-agAg"
+    }
+  },
+  "stop_texto_vazio": {
+    "modelo": "gemini-3.5-flash",
+    "cenario": "travamento",
+    "resposta": {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": ""
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5448,
+        "totalTokenCount": 5448,
+        "cachedContentTokenCount": 1980,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5448
+          }
+        ],
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1980
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.5-flash",
+      "responseId": "Ts_Cap25J9WgqtsP3OnBmQI"
+    }
+  },
+  "json_final_vazio": {
+    "modelo": "gemini-3.5-flash",
+    "cenario": "travamento",
+    "resposta": {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "{\"resumo\": \"...\", \"achados\": [], \"propostas\": [], \"semConclusao\": false}",
+                "thoughtSignature": "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"
+              }
+            ],
+            "role": "model"
+          },
+          "finishReason": "STOP",
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 5448,
+        "candidatesTokenCount": 24,
+        "totalTokenCount": 6154,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5448
+          }
+        ],
+        "thoughtsTokenCount": 682,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.5-flash",
+      "responseId": "Ws_CaoKbJqisz7IPlZS6iAg"
+    }
+  }
+}

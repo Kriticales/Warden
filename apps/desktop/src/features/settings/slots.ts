@@ -9,6 +9,7 @@
  */
 import type { ComponentType } from 'react';
 
+import { AiModelSetting } from './ai/AiModelSetting';
 import { EulaSetting } from './eula/EulaSetting';
 
 /** Encaixes dentro de "Teste" (L-01: tabela de Java). */
@@ -18,4 +19,4 @@ export const testSectionSlots: readonly ComponentType[] = [
 ];
 
 /** Encaixes dentro de "Chaves e contas" (D-04: modelo do Gemini). */
-export const keysSectionSlots: readonly ComponentType[] = [];
+export const keysSectionSlots: readonly ComponentType[] = [AiModelSetting];

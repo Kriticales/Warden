@@ -74,6 +74,7 @@ export const sectionPages: readonly SectionPage[] = [
   { section: 'configs', to: '/packs/$packId/configs' },
   { section: 'exportar', to: '/packs/$packId/exportar' },
   { section: 'problemas', to: '/packs/$packId/problemas', useCount: useProblemsCount },
+  { section: 'ia', to: '/packs/$packId/ia' },
 ];
 
 /** A página registrada de uma seção, se houver. */

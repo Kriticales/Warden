@@ -10,8 +10,22 @@ publish.workspace = true
 warden-core.workspace = true
 warden-http.workspace = true
 warden-diagnostics.workspace = true
+async-trait.workspace = true
+secrecy.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 specta = { workspace = true, features = ["derive"] }
+specta-typescript.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "rt"] }
+tracing.workspace = true
+ulid.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+wiremock.workspace = true
 
 [lints]
 workspace = true

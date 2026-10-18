@@ -147,6 +147,48 @@ async fn post_que_nao_e_consulta_nao_repete() {
 }
 
 #[tokio::test]
+async fn sem_conferir_o_codigo_devolve_429_e_503_com_o_corpo_sem_repetir() {
+    // A IA (D-04) lê o corpo do 429 do Gemini (por minuto ou por dia) e faz as próprias novas
+    // tentativas, com a espera na tela.
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/limite"))
+        .respond_with(
+            ResponseTemplate::new(429)
+                .insert_header("retry-after", "2")
+                .set_body_json(json!({"error": {"code": 429}})),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/ocupado"))
+        .respond_with(ResponseTemplate::new(503).set_body_string("ocupado"))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let (client, timer) = client();
+    for (rota, status, corpo) in [
+        ("/limite", 429, r#"{"error":{"code":429}}"#),
+        ("/ocupado", 503, "ocupado"),
+    ] {
+        let response = client
+            .post_json(url(&server, rota), &json!({"a": 1}))
+            .unwrap()
+            .idempotent(true)
+            .send_unchecked()
+            .await
+            .unwrap();
+        assert_eq!(response.status().as_u16(), status);
+        assert_eq!(
+            response.bytes_limited(1024).await.unwrap(),
+            corpo.as_bytes()
+        );
+    }
+    assert!(timer.sleeps().is_empty());
+}
+
+#[tokio::test]
 async fn post_de_consulta_repete_e_manda_o_corpo_de_novo() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))

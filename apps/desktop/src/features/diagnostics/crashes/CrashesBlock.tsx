@@ -19,6 +19,7 @@ import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import type { CrashGroupView, CrashRetention, PackId } from '../../../lib/ipc/bindings';
 import { formatMemory, formatWhen } from '../../test/text';
+import { CrashAiButton } from '../ai/AskAi';
 import type { ProblemsBlockProps } from '../problems-blocks';
 import { useCrash, useCrashes, usePruneCrashes } from './api';
 import { crashTitle, situationKind, situationText, versionLabel, versionsText } from './text';
@@ -112,6 +113,7 @@ function CrashRow({ packId, group }: { packId: PackId; group: CrashGroupView }) 
                 {t('verCausa')}
               </Link>
             </Button>
+            <CrashAiButton packId={packId} sessionId={group.latestSessionId} quando={quando} />
             {group.count > 1 ? (
               <Button
                 size="sm"

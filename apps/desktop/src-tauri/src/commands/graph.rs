@@ -109,7 +109,7 @@ async fn focus_impl(
     }
 }
 
-async fn dependents_impl(
+pub(crate) async fn dependents_impl(
     state: &AppState,
     pack_id: PackId,
     paths: &[String],
@@ -121,7 +121,11 @@ async fn dependents_impl(
     graph.dependents(paths).map_err(unknown)
 }
 
-async fn why_impl(state: &AppState, pack_id: PackId, path: &str) -> Result<WhyReport, AppError> {
+pub(crate) async fn why_impl(
+    state: &AppState,
+    pack_id: PackId,
+    path: &str,
+) -> Result<WhyReport, AppError> {
     let graph = pack_graph(state, pack_id).await?;
     graph.why_in_pack(path).map_err(unknown)
 }
