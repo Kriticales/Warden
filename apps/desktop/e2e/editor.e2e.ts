@@ -257,12 +257,16 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     await name.setValue('Vale Fabric');
     await dialog.$('button=Salvar').click();
     await $('h1=Vale Fabric').waitForDisplayed({ timeout: 30_000 });
+    await dialog.waitForExist({ reverse: true });
     expect(changedLines(before, read('pack.toml'))).toEqual(['name = "Vale Fabric"']);
   });
 
   it('Ajustes do teste: Java automático com o motivo; grava em packs.json e o pack não muda', async () => {
     const before = folderHash(PACK);
-    await $('header.packhead').$('button*=Mais opções do teste').click();
+    await dismissToasts();
+    const more = $('header.packhead').$('button*=Mais opções do teste');
+    await more.waitForClickable();
+    await more.click();
     await $('[role="menu"]').$('div*=Ajustes do teste neste computador').click();
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
@@ -274,12 +278,18 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     await $(`[id="${memoryId ?? ''}"]`).selectByAttribute('value', '6144');
     await dialog.$('button=Salvar ajustes').click();
     await waitToast('Ajustes do teste salvos.');
+    await dialog.waitForExist({ reverse: true });
     expect(readFileSync(REGISTRY_FILE, 'utf8')).toContain('"testSettings"');
     expect(folderHash(PACK)).toBe(before);
   });
 
   it('Remover apaga o .pw.toml e a entrada do índice (CA-T06-04)', async () => {
-    await $('input[aria-label="Selecionar Mod Menu"]').click();
+    // O aviso de "Ajustes salvos" da etapa anterior pode cobrir as ações dos selecionados.
+    await dismissToasts();
+    const select = $('input[aria-label="Selecionar Mod Menu"]');
+    await select.waitForClickable();
+    await select.click();
+    await expect(select).toBeSelected();
     await $('[aria-label="Ações para os selecionados"]').$('button*=Remover').click();
     const dialog = $('[role="alertdialog"]');
     await dialog.waitForDisplayed();
