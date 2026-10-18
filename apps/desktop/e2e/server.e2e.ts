@@ -25,6 +25,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
 
@@ -175,7 +176,7 @@ describe('Testar como servidor (L-09; T27)', function () {
   it('CA-T27-02: sem a EULA, pergunta com o link; "Agora não" não abre nada', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
