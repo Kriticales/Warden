@@ -14,8 +14,6 @@ export const app: ErrorPhrases<AppErrorCode> = {
   GAME_ALREADY_RUNNING:
     'Já existe um jogo em execução (pack {{packName}}). Só dá para testar um pack por vez: feche o jogo ou vá para o teste dele.',
   NO_GAME_RUNNING: 'Não há jogo aberto neste pack. Ele pode ter fechado agora há pouco.',
-  TEST_MODE_UNAVAILABLE:
-    'Este tipo de teste ainda não está disponível nesta versão do Warden. Use o Testar normal.',
   TEST_INSTANCE_CHANGED:
     'Arquivos do pack mudaram na instância de teste durante o teste anterior e seriam substituídos pela versão do pack: {{files}}. Substitua para testar, ou copie antes o que quiser guardar.',
   TEST_LOADER_UNSUPPORTED:

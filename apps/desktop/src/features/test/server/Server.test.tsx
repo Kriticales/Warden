@@ -215,6 +215,8 @@ describe('opções do Testar como servidor (CA-T27-03)', () => {
       profile: null,
       replaceInstanceChanges: false,
       serverOnly: false,
+      // L-12: o perfil de desempenho no servidor vem desmarcado.
+      performance: false,
     } satisfies TestRequest);
     expect(await screen.findByRole('heading', { level: 1, name: 'Testando o pack' })).toBeDefined();
     // As etapas do teste com servidor.

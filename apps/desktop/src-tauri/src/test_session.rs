@@ -92,8 +92,9 @@ const CONSOLE_BATCH: Duration = Duration::from_millis(50);
 /// Quanto o "Fechar o Warden" espera o jogo fechar e a sessão ser gravada.
 pub(crate) const QUIT_WAIT: Duration = Duration::from_secs(10);
 
-/// Modo do teste (ARCHITECTURE §4.1). Existem o normal, o "como o jogador recebe" (L-07) e o
-/// "como servidor" (L-09, em [`server_mode`]); o perfil de desempenho chega com a L-12.
+/// Modo do teste (ARCHITECTURE §4.1): o normal, o "como o jogador recebe" (L-07), o perfil de
+/// desempenho (L-12, com o gancho [`crate::test_hooks`] `perf_profile`) e o "como servidor"
+/// (L-09, em [`server_mode`]).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum TestMode {
@@ -109,6 +110,7 @@ pub(crate) enum TestMode {
 }
 
 /// O pedido de teste.
+#[allow(clippy::struct_excessive_bools)] // opções independentes do contrato do IPC
 #[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub(crate) struct TestRequest {
@@ -125,6 +127,10 @@ pub(crate) struct TestRequest {
     /// Testar como servidor: "Só o servidor" (sem abrir o jogo; L-09). Fora desse modo, não
     /// vale.
     pub(crate) server_only: bool,
+    /// Testar como servidor com o perfil de desempenho: o Warden liga o spark do servidor pelo
+    /// console quando o jogo abre e desliga no fim (L-12). Só vale no modo servidor com o jogo
+    /// (o modo [`TestMode::Performance`] já é o perfil de desempenho no jogo).
+    pub(crate) performance: bool,
 }
 
 /// O teste ativo.
@@ -392,18 +398,6 @@ pub(crate) async fn run_test(
     request: TestRequest,
     sink: TestSink,
 ) -> Result<TestSessionSummary, AppError> {
-    if !matches!(
-        request.mode,
-        TestMode::Normal | TestMode::AsPlayer | TestMode::Server
-    ) {
-        return Err(AppError::new(AppErrorCode::TestModeUnavailable).with_param(
-            "mode",
-            serde_json::to_value(request.mode)
-                .ok()
-                .and_then(|value| value.as_str().map(ToOwned::to_owned))
-                .unwrap_or_default(),
-        ));
-    }
     let record = state
         .packs
         .get(pack_id)
@@ -529,6 +523,10 @@ impl Runner<'_> {
             mode: self.request.mode,
             operation: self.handle,
             ignore_pack_errors: self.request.ignore_pack_errors,
+            perf_profile: self.request.mode == TestMode::Performance
+                || (self.request.mode == TestMode::Server
+                    && self.request.performance
+                    && !self.request.server_only),
         }
     }
 
@@ -804,6 +802,12 @@ impl Runner<'_> {
             player,
         });
         crate::test_profiles::apply_quick_play(&mut options, prepared.quick_play_world.as_deref());
+        if self.request.mode == TestMode::Performance {
+            // L-12: o registro detalhado do Forge moderno e do NeoForge só neste teste.
+            options
+                .extra_jvm_args
+                .extend(crate::test_hooks::perf_profile_jvm_args(&prepared.spec));
+        }
         if let Some(port) = server_port {
             server_mode::join_server(&mut options, port);
         }
@@ -1381,3 +1385,5 @@ mod tests;
 /// simulados destes testes.
 #[cfg(test)]
 mod server_pack_tests;
+#[cfg(test)]
+mod perf_profile_tests;

@@ -10,8 +10,12 @@ publish.workspace = true
 warden-core.workspace = true
 # Os achados de memória (L-11) são achados do diagnóstico, com evidência.
 warden-diagnostics.workspace = true
+# Leitura dos perfis do spark (`src/spark/generated.rs`, gerado dos `.proto` em `proto/`).
+prost.workspace = true
+regex.workspace = true
 serde.workspace = true
 specta = { workspace = true, features = ["derive"] }
+specta-typescript.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 # RAM do processo e da árvore dele (ARCHITECTURE §7.7) e o *file mapping* do `hsperfdata`

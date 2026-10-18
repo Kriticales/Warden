@@ -771,26 +771,6 @@ async fn d03_erros_do_pre_teste_param_o_teste_e_testar_mesmo_assim_mostra_por_qu
     );
 }
 
-/// Os modos das outras tarefas (L-07, L-09, L-12) ainda são recusados.
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn modo_ainda_inexistente_e_recusado() {
-    let dir = tempfile::tempdir().unwrap();
-    let state = test_state(dir.path());
-    let (sink, _) = sink();
-    let request = TestRequest {
-        mode: TestMode::Performance,
-        ..TestRequest::default()
-    };
-    let error = run_test(&state, PackId::new(), request, sink)
-        .await
-        .unwrap_err();
-    assert_eq!(
-        error.code,
-        ErrorCode::App(AppErrorCode::TestModeUnavailable)
-    );
-    assert_eq!(error.params["mode"], "performance");
-}
-
 #[test]
 fn sessao_com_nome_estranho_nao_existe() {
     let dir = tempfile::tempdir().unwrap();

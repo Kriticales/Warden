@@ -14,6 +14,7 @@ import { AskAiBlock } from '../diagnostics/ai/AskAi';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PlayerResult } from './clean/PlayerResult';
 import { PerfSummary } from './perf-strip/PerfStrip';
+import { PerfReport } from './perf-report/PerfReport';
 import { ServerResult } from './server/ServerResult';
 
 export interface ResultBlockProps {
@@ -40,6 +41,8 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'server-result', order: 20, component: ServerResult },
   // D-04: "✦ Pedir ajuda à IA" logo depois do "Por que travou".
   { id: 'ai-help', order: 210, component: AskAiBlock },
+  // L-12: "Desempenho" (tempo por mod e spark), logo depois do "Abriu em …" (protótipo).
+  { id: 'perf-profile', order: 60, component: PerfReport },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {
