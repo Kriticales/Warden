@@ -242,8 +242,20 @@ pub(crate) async fn server_pack_run(
         &packwiz,
         &operation,
     )
-    .await;
+    .await
+    .map_err(|error| redacted(&state, error));
     operation.finish(result.map(Some))
+}
+
+/// O detalhe técnico de um erro sem a pasta do usuário nem chaves (os erros de disco e de
+/// download trazem caminhos absolutos do cache e da pasta temporária).
+fn redacted(state: &AppState, mut error: AppError) -> AppError {
+    if let Some(detail) = error.detail.take() {
+        let redactor =
+            crate::commands::report::redactor(&state.settings.get().player_name, &state.secrets);
+        error.detail = Some(redactor.redact(&detail).text);
+    }
+    error
 }
 
 /// A geração e a validação, dentro da operação. Com a validação pedida e a EULA ainda não
@@ -531,7 +543,9 @@ async fn check_package(
         Err(error) if operation.is_cancelled() => Err(error),
         Err(error) => {
             tracing::warn!(code = %error.code, "a validação do pacote não abriu o servidor");
-            Ok(ServerPackCheck::Failed { error })
+            Ok(ServerPackCheck::Failed {
+                error: redacted(state, error),
+            })
         }
     }
 }
@@ -811,6 +825,19 @@ mod tests {
             "Vale-Sereno--o-melhor-1.4.2-servidor.zip"
         );
         assert_eq!(default_name(&temp.path().join("nada")), "pack-servidor.zip");
+    }
+
+    #[test]
+    fn detalhe_do_erro_sai_sem_a_pasta_do_usuario() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = crate::state::tests::test_state(dir.path());
+        let error = AppError::internal("falha").with_detail(
+            "falha ao copiar /home/fulano/.local/share/warden/cache/tmp/server-pack-1/mods/a.jar",
+        );
+        let detail = redacted(&state, error).detail.unwrap();
+        assert!(!detail.contains("fulano"), "{detail}");
+        assert!(detail.contains("<usuário>"), "{detail}");
+        assert!(detail.contains("mods/a.jar"), "{detail}");
     }
 
     #[test]

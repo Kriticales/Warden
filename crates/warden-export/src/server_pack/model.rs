@@ -141,7 +141,7 @@ pub struct ServerPackResult {
     pub sha256: String,
     /// Entradas do zip, em ordem.
     pub files: Vec<String>,
-    /// Jars de mods dentro do zip (com mods dentro).
+    /// Jars em `mods/` dentro do zip (com mods dentro: os de referência e os locais).
     #[specta(type = specta_typescript::Number)]
     pub mods: usize,
     /// Memória gravada em `user_jvm_args.txt`, em MB.

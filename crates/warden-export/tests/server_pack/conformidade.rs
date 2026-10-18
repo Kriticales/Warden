@@ -104,7 +104,9 @@ fn start_script(dir: &Path, java: &Path) -> Child {
 fn run_until_done(dir: &Path, java: &Path) -> String {
     let mut child = start_script(dir, java);
     let mut stdin = child.stdin.take().unwrap();
-    stdin.write_all(b"s\n").unwrap();
+    // A resposta à EULA, como alguém digitaria no terminal de cada sistema.
+    let answer: &[u8] = if cfg!(windows) { b"s\r\n" } else { b"s\n" };
+    stdin.write_all(answer).unwrap();
     stdin.flush().unwrap();
     let (sender, receiver) = mpsc::channel::<String>();
     let readers: Vec<_> = [

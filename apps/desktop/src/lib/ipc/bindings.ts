@@ -6984,7 +6984,7 @@ export type ServerPackResult = {
 	sha256: string,
 	/**  Entradas do zip, em ordem. */
 	files: string[],
-	/**  Jars de mods dentro do zip (com mods dentro). */
+	/**  Jars em `mods/` dentro do zip (com mods dentro: os de referência e os locais). */
 	mods: number,
 	/**  Memória gravada em `user_jvm_args.txt`, em MB. */
 	memoryMb: number,

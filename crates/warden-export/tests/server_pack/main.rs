@@ -515,7 +515,8 @@ async fn ca_t19_07_com_mods_dentro_jars_conferidos_download_manual_e_licenca() {
     .unwrap();
     assert_eq!(manual.calls.load(Ordering::Relaxed), 1);
     assert_eq!(*manual.names.lock().unwrap(), ["Bloqueado"]);
-    assert_eq!(result.mods, 4);
+    // Os 4 de referência e o jar local.
+    assert_eq!(result.mods, 5);
     assert_eq!(result.variant, ServerPackVariant::Embedded);
     let files = read_zip(&destination);
     assert_eq!(

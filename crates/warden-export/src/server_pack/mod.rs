@@ -711,7 +711,11 @@ async fn materialize_server(
                 if cancel.is_cancelled() {
                     cancelled()
                 } else {
-                    Error::new(ExportErrorCode::ServerPackDownloadFailed, error.to_string())
+                    // Os caminhos da pasta temporária saem relativos a ela.
+                    let text = error
+                        .to_string()
+                        .replace(&temp.path().display().to_string(), "<pacote>");
+                    Error::new(ExportErrorCode::ServerPackDownloadFailed, text)
                 }
             })?;
         let Outcome::Done(report) = outcome else {
@@ -919,10 +923,16 @@ fn validate_zip(bytes: &[u8], expect: &Expect<'_>) -> Result<Checked> {
         .with_param("count", problems.len().to_string())
         .with_detail(problems.join("\n")));
     }
-    let mods = match expect.variant {
-        ServerPackVariant::Link => 0,
-        ServerPackVariant::Embedded => expect.jars.len(),
-    };
+    // Os jars em `mods/`: os de referência conferidos e os locais do pack.
+    let mods = files
+        .iter()
+        .filter(|name| {
+            name.starts_with("mods/")
+                && Path::new(name.as_str())
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("jar"))
+        })
+        .count();
     Ok(Checked { files, mods })
 }
 

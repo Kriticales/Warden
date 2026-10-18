@@ -167,7 +167,15 @@ describe('Pacote para servidor (E-03; T19)', function () {
       writeFileSync(PICK_FILE, PACK);
       await $('button=Abrir ou importar…').click();
       await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed({ timeout: 20_000 });
-      await $('button=Abrir pack').click();
+      // A leitura do pack termina com "Abrir pack" ou, antes, com uma pergunta ("Agora não").
+      const open = $('button=Abrir pack');
+      const notNow = $('button=Agora não');
+      await browser.waitUntil(
+        async () => (await open.isExisting()) || (await notNow.isExisting()),
+        { timeout: 60_000, timeoutMsg: 'Abrir pack não ficou pronto' },
+      );
+      if (await notNow.isExisting()) await notNow.click();
+      else await open.click();
       await $('h1=Mods').waitForDisplayed({ timeout: 30_000 });
     });
     await step('formato', openServerPackFormat);
