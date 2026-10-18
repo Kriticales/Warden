@@ -63,6 +63,9 @@ Este guia é para a sessão que conduz o projeto. Ele resume o papel, o dono, as
    - espere a CI do commit do `main` terminar verde e dispare: `gh workflow run pre-versao.yml --ref main -f marco=<N>` (ou `-f ref=<sha>` para outro commit do `main`; pelo site: Actions → Pré-versão → Run workflow);
    - acompanhe com `gh run watch`. O workflow recusa commit fora do `main`, CI vermelha ou tag repetida (`v<versão>-marco.<N>`) e não sobrescreve nada; para refazer, apague a Release e a tag à mão, com o aval do dono;
    - mande ao dono o link da pré-versão (https://github.com/Kriticales/Warden/releases).
+8. **Release final (REL-01).** Depois da junção das últimas tarefas, com a versão trocada no último commit (`version` do workspace, `apps/desktop/package.json` e `cargo update -w`) e `docs/versoes/<versão>.md` escrito e conferido (sem `[preencher` nem os comentários `<!-- conferir na junção -->`):
+   - confira o texto: `cargo xtask release --dry-run` (tag `v<versão>`, título `Warden <versão>`);
+   - com a CI do commit do `main` verde, dispare: `gh workflow run release.yml --ref main` (ou `-f ref=<sha>`; pelo site: Actions → Release → Run workflow). Ele tem as mesmas recusas da pré-versão e publica a Release como a mais recente (`--latest`), não como pré-versão.
 
 ## 5. Conferências rápidas (PowerShell)
 
