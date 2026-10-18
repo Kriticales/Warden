@@ -7,6 +7,7 @@ export const configuracoes = {
   subtitulo: 'Valem para o Warden inteiro. O que é de um pack fica dentro do pack.',
   voltar: 'Meus packs',
   carregando: 'Lendo as configurações…',
+  erro: 'Não foi possível ler as configurações.',
   salvo: 'Configuração salva.',
   naoSalvou: 'A configuração não foi salva',
   geral: {

@@ -23,6 +23,7 @@ export function SettingsPage() {
   } else if (settings.isError) {
     body = (
       <ErrorPanel
+        title={t('erro')}
         error={settings.error}
         onRetry={() => {
           void settings.refetch();

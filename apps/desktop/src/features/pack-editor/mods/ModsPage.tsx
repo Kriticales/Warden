@@ -107,6 +107,7 @@ export function ModsPage({
       <>
         <ModsHead packId={packId} summary={null} />
         <ErrorPanel
+          title={t('mods.erro')}
           error={inventory.error}
           onRetry={() => {
             void inventory.refetch();

@@ -21,6 +21,7 @@ export const editor = {
     higiene_one: '{{count}} arquivo que não deve ir para os jogadores',
     higiene_other: '{{count}} arquivos que não devem ir para os jogadores',
     carregando: 'Abrindo o pack…',
+    erro: 'Não foi possível abrir o pack.',
     pastaSumiu: 'A pasta deste pack não foi encontrada',
     pastaSumiuTexto:
       'Ela foi movida ou apagada fora do Warden. Volte para Meus packs e use Localizar… para indicar onde ela está agora.',
@@ -59,6 +60,7 @@ export const editor = {
     e: ' e ',
     adicionar: 'Adicionar',
     carregando: 'Lendo o índice do pack…',
+    erro: 'Não foi possível ler os itens do pack.',
     vazio: {
       titulo: 'Nenhum mod ainda',
       texto:

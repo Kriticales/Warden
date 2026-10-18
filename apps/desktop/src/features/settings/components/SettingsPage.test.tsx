@@ -56,6 +56,28 @@ describe('Configurações', () => {
     ).toBe('/');
   });
 
+  it('erro ao ler as configurações: diz o que falhou (A-01) e "Tentar de novo" lê de novo', async () => {
+    let fail = true;
+    const user = userEvent.setup();
+    const real = makeSettings();
+    mockSettingsBackend(
+      {},
+      {
+        settings_get: () =>
+          fail ? ipcError(makeAppError({ domain: 'app', code: 'INTERNAL' })) : real,
+      },
+    );
+    renderApp('/configuracoes');
+    const retry = await screen.findByRole('button', { name: 'Tentar de novo' }, FIRST_PAINT);
+    expect(
+      within(screen.getByRole('alert')).getByText('Não foi possível ler as configurações.'),
+    ).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Configurações' })).toBeDefined();
+    fail = false;
+    await user.click(retry);
+    expect(await screen.findByRole('heading', { level: 2, name: 'Geral' })).toBeDefined();
+  });
+
   describe('Geral', () => {
     it('mostra a pasta em uso e troca pelo diálogo nativo', async () => {
       const backend = mockSettingsBackend(

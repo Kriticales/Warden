@@ -221,7 +221,11 @@ describe('Meus packs (T02)', () => {
       expect(document.activeElement?.textContent).toContain('Remover da lista');
     });
     await user.keyboard('{Enter}');
-    await screen.findByRole('alertdialog', { name: 'Remover “Vale Sereno” da lista?' });
+    const dialog = await screen.findByRole('alertdialog', {
+      name: 'Remover “Vale Sereno” da lista?',
+    });
+    // Sem "…." no fim da frase (revisão de textos da A-01).
+    expect(dialog.textContent).toContain('use Abrir ou importar… e escolha a pasta dele.');
     await user.keyboard('{Escape}');
     await waitFor(() => {
       expect(screen.queryByRole('alertdialog')).toBeNull();
@@ -376,7 +380,7 @@ describe('Meus packs (T02)', () => {
     });
   });
 
-  it('erro ao ler a lista: painel de erro com "Tentar de novo"', async () => {
+  it('erro ao ler a lista: diz o que falhou (A-01) e tem "Tentar de novo"', async () => {
     const user = userEvent.setup();
     let fail = true;
     mockBackend({
@@ -384,6 +388,11 @@ describe('Meus packs (T02)', () => {
     });
     renderApp('/packs');
     const retry = await screen.findByRole('button', { name: 'Tentar de novo' });
+    // O que aconteceu, além do que fazer (SPEC §7.3).
+    expect(
+      within(screen.getByRole('alert')).getByText('Não foi possível ler a lista de packs.'),
+    ).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Meus packs' })).toBeDefined();
     fail = false;
     await user.click(retry);
     expect(await screen.findByRole('heading', { name: 'Você ainda não tem packs' })).toBeDefined();

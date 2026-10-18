@@ -140,6 +140,7 @@ export function PacksPage({ search, onSearch }: PacksPageProps) {
       <>
         <PageHead title={t('lista.titulo')} actions={actions} />
         <ErrorPanel
+          title={t('lista.erro')}
           error={list.error}
           onRetry={() => {
             void list.refetch();

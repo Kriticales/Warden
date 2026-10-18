@@ -9,6 +9,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { InventoryItem, PackRow } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
+import { ipcError } from '../../test/backend';
+import { makeAppError } from '../../test/factories';
 import { renderApp } from '../../test/render';
 import { makeChangeSet, makeHistory } from '../versioning/versioning.fixtures';
 import {
@@ -104,6 +106,57 @@ describe('pack aberto (T05)', () => {
     expect(screen.queryByRole('navigation', { name: 'Seções do pack' })).toBeNull();
     expect(screen.queryByRole('banner', { name: 'Pack aberto' })).toBeNull();
     expect(screen.queryByText('Salvar versão')).toBeNull();
+  });
+
+  it('erro ao abrir o pack: diz o que falhou (A-01), com ← Meus packs e "Tentar de novo"', async () => {
+    let fail = true;
+    let row: PackRow | null = null;
+    const setup = editorBackend({
+      handlers: {
+        pack_get: () => (fail ? ipcError(makeAppError({ domain: 'app', code: 'INTERNAL' })) : row),
+      },
+    });
+    row = setup.row;
+    const user = userEvent.setup();
+    renderApp(setup.url);
+    const retry = await screen.findByRole(
+      'button',
+      { name: 'Tentar de novo' },
+      { timeout: 10_000 },
+    );
+    expect(
+      within(screen.getByRole('alert')).getByText('Não foi possível abrir o pack.'),
+    ).toBeDefined();
+    expect(screen.getByRole('link', { name: /Meus packs/ })).toBeDefined();
+    fail = false;
+    await user.click(retry);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mods' })).toBeDefined();
+  });
+
+  it('erro ao ler os itens: diz o que falhou (A-01), mantém o título Mods e "Tentar de novo"', async () => {
+    let fail = true;
+    const { url } = editorBackend({
+      handlers: {
+        inventory_list: () =>
+          fail
+            ? ipcError(makeAppError({ domain: 'app', code: 'INTERNAL' }))
+            : makeInventory([SODIUM]),
+      },
+    });
+    const user = userEvent.setup();
+    renderApp(url);
+    const retry = await screen.findByRole(
+      'button',
+      { name: 'Tentar de novo' },
+      { timeout: 10_000 },
+    );
+    expect(
+      within(screen.getByRole('alert')).getByText('Não foi possível ler os itens do pack.'),
+    ).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Mods' })).toBeDefined();
+    fail = false;
+    await user.click(retry);
+    expect(await screen.findByRole('button', { name: SODIUM.name })).toBeDefined();
   });
 
   it('pasta sumida: diz por quê e o caminho, sem o menu do pack', async () => {
