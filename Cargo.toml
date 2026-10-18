@@ -70,6 +70,9 @@ notify = "8.2.0"
 proptest = "1.11.0"
 # Motor do launcher (S1, ADR-0057): versão exata, cada atualização passa pela matriz L-05.
 portablemc = "=5.0.5"
+# Perfis do spark (`.sparkprofile`/`.sparkheap`) a partir dos `.proto` públicos (L-12;
+# ARCHITECTURE §7.7).
+prost = { version = "0.14.4", default-features = false, features = ["std", "derive"] }
 pulldown-cmark = { version = "0.13.4", default-features = false }
 quick-xml = "0.42.0"
 regex = "1.13.1"
