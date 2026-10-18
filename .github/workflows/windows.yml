@@ -6,7 +6,8 @@
 #
 # Chamado pelo `ci.yml` (na `main`, em PRs com o rótulo `windows`, em push com `[ci windows]`
 # na mensagem do commit e manualmente), pelo `nightly.yml` (toda noite; decisão D9) e pelo
-# `pre-versao.yml` (fim de marco, com o `ref` do commit escolhido; INFRA-02).
+# `pre-versao.yml` (fim de marco, com o `ref` do commit escolhido; INFRA-02) e pelo `release.yml`
+# (versão final; REL-01).
 #
 # Testes com o cofre real: marcados `#[ignore = "cofre-real"]` e com `cofre_real` no nome, que
 # é o filtro usado aqui (o nextest não filtra pelo motivo do `ignore`). Só rodam nesta máquina

@@ -54,7 +54,7 @@ on:
         type: boolean
         default: false
       ref:
-        description: Commit a baixar (vazio, o do evento). Usado pelo `pre-versao.yml`.
+        description: Commit a baixar (vazio, o do evento). Usado pelo `pre-versao.yml` e pelo `release.yml`.
         type: string
         default: ""
       artifact-name:
