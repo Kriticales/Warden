@@ -40,11 +40,11 @@ use warden_versioning::publish::{
     PublishCheck, PublishChecks, PublishContext, PublishFindingKind, PublishRequest, PublishTree,
     Published, RemoteStatus, ReplaceRemote, run_checks, scan_secrets,
 };
-use warden_versioning::{Identity, PackRepo, Snapshot, changelog};
+use warden_versioning::{FileNames, Identity, PackRepo, Snapshot, changelog};
 
 use crate::commands::github::{GithubLinkView, StoredLink, client, stored_link};
 use crate::commands::inventory::{self, notify_changed, pack_root};
-use crate::commands::versioning::{changes_between, moment_now};
+use crate::commands::versioning::{self, moment_now};
 use crate::error::AppError;
 use crate::events::PackArea;
 use crate::operations::OperationKind;
@@ -667,34 +667,34 @@ fn checks(
     ])
 }
 
-/// Notas geradas desde a última versão publicada (CA-T18-05), com o recado no topo.
+/// Notas geradas desde a última versão publicada (CA-T18-05), com o recado no topo. O git é
+/// lido com a trava de leitura (`lock`; `None` para quem já está com a de escrita); os nomes
+/// do Modrinth vêm depois, com ela solta.
 async fn release_notes(
     state: &AppState,
+    lock: versioning::ReadLock<'_>,
     root: &Path,
     version: &str,
     player_notes: &str,
 ) -> Result<(Option<String>, String), AppError> {
-    let base = {
-        let root = root.to_path_buf();
+    let (last_published, mut changes) = {
+        let _lock = versioning::read_lock(lock).await;
+        let (root, version) = (root.to_path_buf(), version.to_owned());
         tauri::async_runtime::spawn_blocking(move || -> Result<_, AppError> {
             let repo = PackRepo::open(&root).map_err(domain)?;
-            Ok((
-                repo.last_published().map_err(domain)?,
-                repo.publication_base().map_err(domain)?,
-            ))
+            let last_published = repo.last_published().map_err(domain)?;
+            let base = repo.publication_base().map_err(domain)?;
+            let changes = repo
+                .changes(&base, &Snapshot::Version(version), &FileNames)
+                .map_err(domain)?;
+            Ok((last_published, changes))
         })
         .await
         .map_err(|error| AppError::internal(format!("notas da versão: {error}")))??
     };
-    let changes = changes_between(
-        Some(&state.modrinth),
-        root,
-        base.1,
-        Snapshot::Version(version.to_owned()),
-    )
-    .await?;
+    changes.resolve_version_names(&versioning::modrinth_names(Some(&state.modrinth), &changes).await);
     Ok((
-        base.0.map(|v| v.to_string()),
+        last_published.map(|v| v.to_string()),
         changelog::render_body(player_notes, &changes),
     ))
 }
@@ -723,17 +723,22 @@ pub(crate) async fn publish_plan(
     plan_impl(&state, &inventory::packwiz(&state)?, pack_id, version).await
 }
 
+/// As leituras locais (o histórico e a árvore da versão) ficam com a trava de leitura do pack;
+/// as consultas à CurseForge, ao Modrinth e ao GitHub vêm depois, com ela solta, para uma
+/// resposta lenta ou parada não segurar o Salvar versão nem o resto do pack (ARCHITECTURE §15).
 async fn plan_impl(
     state: &AppState,
     packwiz: &Packwiz,
     pack_id: PackId,
     version: String,
 ) -> Result<PublishPlan, AppError> {
-    let _lock = state.locks.read(pack_id).await;
     let root = pack_root(state, pack_id)?;
-    check_publishable(&root, &version).await?;
     let cancel = CancellationToken::new();
-    let tree = version_tree(state, packwiz, &root, &version, &cancel).await?;
+    let tree = {
+        let _lock = state.locks.read(pack_id).await;
+        check_publishable(&root, &version).await?;
+        version_tree(state, packwiz, &root, &version, &cancel).await?
+    };
     let context = PublishContext {
         root: &root,
         version: &version,
@@ -741,7 +746,8 @@ async fn plan_impl(
         cancel: &cancel,
     };
     let findings = run_checks(&checks(state, pack_id, tree.hygiene.clone())?, &context).await;
-    let (last_published, notes) = release_notes(state, &root, &version, "").await?;
+    let (last_published, notes) =
+        release_notes(state, Some((&state.locks, pack_id)), &root, &version, "").await?;
     let link = stored_link(state, pack_id)?;
     let token_configured = state.secrets.status()?.github;
     let remote = match (&link, token_configured) {
@@ -811,8 +817,9 @@ pub(crate) async fn publish_run(
                 count: tree.hygiene.len(),
             }));
         }
+        // Já com a trava de escrita: as notas leem o git sem pedir a de leitura.
         let (_, notes) =
-            release_notes(&state, &root, &request.version, &request.player_notes).await?;
+            release_notes(&state, None, &root, &request.version, &request.player_notes).await?;
         let client = client(&state).await?;
         let login = client.user(Some(&cancel)).await.map_err(domain)?;
         let meta = read_meta(&root).map_err(|error| AppError::from_domain(&error))?;

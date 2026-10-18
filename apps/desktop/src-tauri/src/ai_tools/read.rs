@@ -772,6 +772,7 @@ async fn diff(tools: &PackTools<'_>, from: &str, to: &str) -> Result<ToolOutput,
     let current = matches!(to, "atual" | "agora" | "current");
     let changes = crate::commands::versioning::changes_between(
         Some(&tools.state.modrinth),
+        Some((&tools.state.locks, tools.pack_id)),
         &tools.root,
         Snapshot::Version(from.to_owned()),
         if current {

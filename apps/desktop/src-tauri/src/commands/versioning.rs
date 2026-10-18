@@ -15,6 +15,11 @@
 //!
 //! Os nomes legíveis das versões vêm do cache do Modrinth (a rede só é usada para o que o
 //! cache não tem); versões da CurseForge e arquivos locais saem com o nome do arquivo.
+//!
+//! A rede nunca segura a trava do pack (ARCHITECTURE §15): as leituras do git acontecem com a
+//! trava de leitura e a soltam antes de consultar o Modrinth; o Salvar versão consulta o
+//! Modrinth antes de pedir a trava de escrita, e com ela só mexe em disco e git. Assim uma
+//! resposta lenta ou parada atrasa só o nome no changelog, nunca o resto do pack.
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
 use std::collections::{HashMap, HashSet};
@@ -38,7 +43,8 @@ use warden_versioning::{
 use crate::commands::inventory::{notify_changed, pack_root, packwiz};
 use crate::error::AppError;
 use crate::events::PackArea;
-use crate::operations::OperationKind;
+use crate::locks::{PackLocks, PackReadGuard};
+use crate::operations::{OperationHandle, OperationKind};
 use crate::state::AppState;
 
 /// "Salvar versão".
@@ -95,8 +101,22 @@ fn identity(root: &Path) -> Identity {
     Identity::for_pack(&author, None)
 }
 
+/// A trava de leitura do pack que as leituras locais do git pegam, e soltam antes de qualquer
+/// consulta ao Modrinth. `None`: sem trava, para os testes de unidade, que têm o pack só para
+/// eles, e para quem já está com a trava de escrita.
+pub(crate) type ReadLock<'a> = Option<(&'a PackLocks, PackId)>;
+
+/// Pega a trava de leitura, quando há uma a pegar.
+pub(crate) async fn read_lock(lock: ReadLock<'_>) -> Option<PackReadGuard> {
+    match lock {
+        Some((locks, pack_id)) => Some(locks.read(pack_id).await),
+        None => None,
+    }
+}
+
 /// Nomes legíveis já resolvidos, para o `VersionNameResolver` da `warden-versioning`.
-struct NameMap(HashMap<VersionRef, String>);
+#[derive(Debug, Clone, Default)]
+pub(crate) struct NameMap(HashMap<VersionRef, String>);
 
 impl VersionNameResolver for NameMap {
     fn version_names(&self, versions: &[VersionRef]) -> Vec<Option<String>> {
@@ -183,24 +203,19 @@ async fn worldgen_projects(client: &ModrinthClient, changes: &ChangeSet) -> Hash
         .collect()
 }
 
-/// O que mudou entre dois estados do pack, com as versões dos itens do Modrinth em nome
-/// legível (`1.4.2`) e as demais pelo nome do arquivo.
-pub(crate) async fn changes_between(
+/// Os nomes legíveis (`1.4.2`) das versões do Modrinth que aparecem em `changes`. Rede: quem
+/// chama já soltou a trava do pack. Sem cliente, sem itens do Modrinth ou sem resposta, o
+/// mapa sai vazio e o changelog fica com o nome do arquivo.
+pub(crate) async fn modrinth_names(
     modrinth: Option<&ModrinthClient>,
-    root: &Path,
-    old: Snapshot,
-    new: Snapshot,
-) -> Result<ChangeSet, AppError> {
-    let first = {
-        let (root, old, new) = (root.to_path_buf(), old.clone(), new.clone());
-        blocking(move || PackRepo::open(&root)?.changes(&old, &new, &FileNames)).await?
-    };
-    let refs = modrinth_refs(&first);
+    changes: &ChangeSet,
+) -> NameMap {
+    let refs = modrinth_refs(changes);
     let Some(modrinth) = modrinth else {
-        return Ok(first);
+        return NameMap::default();
     };
     if refs.is_empty() {
-        return Ok(first);
+        return NameMap::default();
     }
     let ids: Vec<String> = refs
         .iter()
@@ -209,31 +224,46 @@ pub(crate) async fn changes_between(
         .into_iter()
         .collect();
     let numbers = modrinth_version_numbers(modrinth, &ids).await;
-    if numbers.is_empty() {
-        return Ok(first);
-    }
-    let names = NameMap(
+    NameMap(
         refs.into_iter()
             .filter_map(|(id, reference)| numbers.get(&id).map(|name| (reference, name.clone())))
             .collect(),
-    );
-    let root = root.to_path_buf();
-    blocking(move || PackRepo::open(&root)?.changes(&old, &new, &names)).await
+    )
 }
 
-/// Estado do pack contra a última versão salva (ou contra o vazio, antes da primeira).
+/// O que mudou entre dois estados do pack, com as versões dos itens do Modrinth em nome
+/// legível (`1.4.2`) e as demais pelo nome do arquivo. O git é lido com a trava de leitura
+/// (`lock`); o Modrinth, depois, com ela solta.
+pub(crate) async fn changes_between(
+    modrinth: Option<&ModrinthClient>,
+    lock: ReadLock<'_>,
+    root: &Path,
+    old: Snapshot,
+    new: Snapshot,
+) -> Result<ChangeSet, AppError> {
+    let mut changes = {
+        let _lock = read_lock(lock).await;
+        let root = root.to_path_buf();
+        blocking(move || PackRepo::open(&root)?.changes(&old, &new, &FileNames)).await?
+    };
+    changes.resolve_version_names(&modrinth_names(modrinth, &changes).await);
+    Ok(changes)
+}
+
+/// Estado do pack contra a última versão salva (ou contra o vazio, antes da primeira). O git é
+/// lido com a trava de leitura (`lock`); o Modrinth, depois, com ela solta.
 async fn unsaved_changes(
     modrinth: Option<&ModrinthClient>,
+    lock: ReadLock<'_>,
     root: &Path,
 ) -> Result<ChangeSet, AppError> {
-    let base = {
+    let mut changes = {
+        let _lock = read_lock(lock).await;
         let root = root.to_path_buf();
-        blocking(move || PackRepo::open(&root)?.last_version()).await?
+        blocking(move || PackRepo::open(&root)?.changes_since_last_version(&FileNames)).await?
     };
-    let base = base.map_or(Snapshot::Empty, |version| {
-        Snapshot::Version(version.to_string())
-    });
-    changes_between(modrinth, root, base, Snapshot::WorkingTree).await
+    changes.resolve_version_names(&modrinth_names(modrinth, &changes).await);
+    Ok(changes)
 }
 
 // ---------------------------------------------------------------------------------------
@@ -259,16 +289,18 @@ pub(crate) async fn history_get(
     state: State<'_, AppState>,
     pack_id: PackId,
 ) -> Result<HistoryView, AppError> {
-    let _lock = state.locks.read(pack_id).await;
     let root = pack_root(&state, pack_id)?;
-    history_view(Some(&state.modrinth), &root).await
+    history_view(Some(&state.modrinth), Some((&state.locks, pack_id)), &root).await
 }
 
+/// O git numa trava de leitura só; os nomes do Modrinth depois, com ela solta.
 async fn history_view(
     modrinth: Option<&ModrinthClient>,
+    lock: ReadLock<'_>,
     root: &Path,
 ) -> Result<HistoryView, AppError> {
-    let (last_version, versions) = {
+    let (last_version, versions, mut unsaved) = {
+        let _lock = read_lock(lock).await;
         let root = root.to_path_buf();
         blocking(move || {
             let repo = PackRepo::open(&root)?;
@@ -276,11 +308,12 @@ async fn history_view(
             let mut versions = repo.versions()?;
             // Etiquetas de outras linhas de um pack importado não são o histórico deste pack.
             versions.retain(|version| version.reachable);
-            Ok((last, versions))
+            let unsaved = repo.changes_since_last_version(&FileNames)?;
+            Ok((last, versions, unsaved))
         })
         .await?
     };
-    let unsaved = unsaved_changes(modrinth, root).await?;
+    unsaved.resolve_version_names(&modrinth_names(modrinth, &unsaved).await);
     Ok(HistoryView {
         unsaved,
         last_version,
@@ -296,10 +329,10 @@ pub(crate) async fn version_changes(
     pack_id: PackId,
     version: String,
 ) -> Result<ChangeSet, AppError> {
-    let _lock = state.locks.read(pack_id).await;
     let root = pack_root(&state, pack_id)?;
     changes_between(
         Some(&state.modrinth),
+        Some((&state.locks, pack_id)),
         &root,
         Snapshot::Version(version),
         Snapshot::WorkingTree,
@@ -336,16 +369,34 @@ pub(crate) async fn version_save_preview(
     state: State<'_, AppState>,
     pack_id: PackId,
 ) -> Result<SavePreview, AppError> {
-    let _lock = state.locks.read(pack_id).await;
     let root = pack_root(&state, pack_id)?;
-    save_preview(Some(&state.modrinth), &root).await
+    save_preview(Some(&state.modrinth), Some((&state.locks, pack_id)), &root).await
 }
 
+/// O git numa trava de leitura só; o Modrinth (nomes e projetos de geração de mundo) depois,
+/// com ela solta.
 async fn save_preview(
     modrinth: Option<&ModrinthClient>,
+    lock: ReadLock<'_>,
     root: &Path,
 ) -> Result<SavePreview, AppError> {
-    let changes = unsaved_changes(modrinth, root).await?;
+    let (mut changes, pack_version, last_version, highest_version) = {
+        let _lock = read_lock(lock).await;
+        let root = root.to_path_buf();
+        blocking(move || {
+            let repo = PackRepo::open(&root)?;
+            let changes = repo.changes_since_last_version(&FileNames)?;
+            let pack_version = read_meta(&root).map(|meta| meta.version).unwrap_or_default();
+            Ok((
+                changes,
+                pack_version,
+                repo.last_version()?.map(|version| version.to_string()),
+                repo.highest_version()?,
+            ))
+        })
+        .await?
+    };
+    changes.resolve_version_names(&modrinth_names(modrinth, &changes).await);
     let worldgen = match modrinth {
         Some(client) => worldgen_projects(client, &changes).await,
         None => HashSet::new(),
@@ -355,18 +406,6 @@ async fn save_preview(
             .as_ref()
             .is_some_and(|id| worldgen.contains(id))
     });
-    let pack_version = read_meta(root).map(|meta| meta.version).unwrap_or_default();
-    let (last_version, highest_version) = {
-        let root = root.to_path_buf();
-        blocking(move || {
-            let repo = PackRepo::open(&root)?;
-            Ok((
-                repo.last_version()?.map(|version| version.to_string()),
-                repo.highest_version()?,
-            ))
-        })
-        .await?
-    };
     let suggestion = suggest_version(highest_version.as_ref(), &pack_version, &facts);
     let world_warning = changes.removed_world_mods().next().is_some();
     Ok(SavePreview {
@@ -431,27 +470,36 @@ pub(crate) async fn version_save(
         return Err(invalid("notes"));
     }
     let handle = state.operations.start(SAVE, Some(pack_id), false);
-    let result = async {
-        let _lock = state.locks.write_for(pack_id, &handle).await;
-        let root = pack_root(&state, pack_id)?;
-        save_impl(
-            Some(&state.modrinth),
-            &cli,
-            &root,
-            &request,
-            when,
-            handle.token(),
-        )
-        .await
-    }
-    .await;
+    let result = save_core(&state, &cli, pack_id, &request, when, &handle).await;
     let result = handle.finish(result);
     notify_changed(&app, pack_id, vec![PackArea::History, PackArea::Meta]);
     result
 }
 
+/// Salva com a trava de escrita do pack. A rede (os nomes do Modrinth para o changelog) vem
+/// antes de pedir a trava: com ela, só disco e git, para uma resposta lenta ou parada do
+/// Modrinth nunca segurar o resto do pack. Um item que mudar entre a consulta e a trava sai no
+/// changelog com o nome do arquivo.
+async fn save_core(
+    state: &AppState,
+    cli: &warden_packwiz_cli::Packwiz,
+    pack_id: PackId,
+    request: &SaveRequest,
+    when: Moment,
+    handle: &OperationHandle,
+) -> Result<SavedVersion, AppError> {
+    let root = pack_root(state, pack_id)?;
+    let names = {
+        let unsaved = unsaved_changes(None, Some((&state.locks, pack_id)), &root).await?;
+        modrinth_names(Some(&state.modrinth), &unsaved).await
+    };
+    let _lock = state.locks.write_for(pack_id, handle).await;
+    save_impl(&names, cli, &root, request, when, handle.token()).await
+}
+
+/// Grava a versão (disco e git, sem rede): `names` são os nomes legíveis já resolvidos.
 async fn save_impl(
-    modrinth: Option<&ModrinthClient>,
+    names: &NameMap,
     cli: &warden_packwiz_cli::Packwiz,
     root: &Path,
     request: &SaveRequest,
@@ -469,7 +517,10 @@ async fn save_impl(
         })
         .await?
     };
-    let changes = unsaved_changes(modrinth, root).await?;
+    let changes = {
+        let (root, names) = (root.to_path_buf(), names.clone());
+        blocking(move || PackRepo::open(&root)?.changes_since_last_version(&names)).await?
+    };
     if changes.is_empty() {
         let root = root.to_path_buf();
         let last = blocking(move || PackRepo::open(&root)?.last_version()).await?;
@@ -776,6 +827,8 @@ mod tests {
     use std::collections::BTreeMap;
     use std::fs;
     use std::path::PathBuf;
+    use std::sync::Arc;
+    use std::time::Duration;
 
     use tempfile::TempDir;
     use warden_core::CancellationToken;
@@ -783,7 +836,9 @@ mod tests {
     use warden_versioning::{InitialPoint, SafetyReason};
 
     use super::*;
-    use crate::commands::inventory::tests::{packwiz_binary, registered_pack, test_packwiz};
+    use crate::commands::inventory::tests::{
+        modrinth_gate, packwiz_binary, registered_pack, test_packwiz,
+    };
     use crate::error::ErrorCode;
     use crate::state::tests::test_state;
 
@@ -874,7 +929,7 @@ mod tests {
             mark_final: bool,
         ) -> Result<SavedVersion, AppError> {
             save_impl(
-                None,
+                &NameMap::default(),
                 &self.cli,
                 &self.root,
                 &request(version, notes, mark_final),
@@ -943,7 +998,7 @@ mod tests {
 
         // `git status` limpo e a versão no histórico, com o changelog na tag.
         assert!(f.repo().unsaved_changes().unwrap().is_empty());
-        let view = history_view(None, &f.root).await.unwrap();
+        let view = history_view(None, None, &f.root).await.unwrap();
         assert_eq!(view.last_version.as_deref(), Some("1.0.0"));
         assert_eq!(view.versions.len(), 1);
         assert!(view.versions[0].message.contains("Primeira versão"));
@@ -968,7 +1023,7 @@ mod tests {
         f.write_mod(11, "1.0.0").await;
         f.write_mod(0, "2.0.0").await;
 
-        let preview = save_preview(None, &f.root).await.unwrap();
+        let preview = save_preview(None, None, &f.root).await.unwrap();
         let suggestion = preview.suggestion.unwrap();
         assert_eq!(suggestion.version, "1.1.0");
         assert_eq!(suggestion.bump, Some(warden_versioning::Bump::Minor));
@@ -1046,7 +1101,7 @@ mod tests {
         fs::remove_file(f.root.join("mods/mod-1.pw.toml")).unwrap();
         f.refresh().await;
 
-        let preview = save_preview(None, &f.root).await.unwrap();
+        let preview = save_preview(None, None, &f.root).await.unwrap();
         assert_eq!(preview.suggestion.unwrap().version, "2.0.0");
         assert!(preview.world_warning);
         assert!(preview.body.contains("### Atenção"), "{}", preview.body);
@@ -1063,7 +1118,7 @@ mod tests {
             return;
         };
         f.save("1.0.0", "", false).await.unwrap();
-        let preview = save_preview(None, &f.root).await.unwrap();
+        let preview = save_preview(None, None, &f.root).await.unwrap();
         assert!(preview.suggestion.is_none());
         assert!(preview.changes.is_empty());
 
@@ -1117,7 +1172,7 @@ mod tests {
         };
         let saved = f.save("1.0.0", "", true).await.unwrap();
         assert!(saved.is_final && !saved.is_published);
-        let view = history_view(None, &f.root).await.unwrap();
+        let view = history_view(None, None, &f.root).await.unwrap();
         assert!(view.versions[0].is_final && !view.versions[0].is_published);
 
         let before = f.tree();
@@ -1187,7 +1242,7 @@ mod tests {
         assert!(report.deleted.contains(&"config/novo.toml".to_owned()));
         assert_eq!(report.safety_point.reason, "antes de voltar para 1.0.0");
         // O histórico não foi apagado: as duas versões continuam lá.
-        let view = history_view(None, &f.root).await.unwrap();
+        let view = history_view(None, None, &f.root).await.unwrap();
         assert_eq!(
             view.versions
                 .iter()
@@ -1237,7 +1292,7 @@ mod tests {
         .unwrap();
 
         // Voltar não move a linha do tempo: o que mudou é "mod 10 saiu" contra a 1.1.0.
-        let preview = save_preview(None, &f.root).await.unwrap();
+        let preview = save_preview(None, None, &f.root).await.unwrap();
         assert_eq!(preview.highest_version.as_deref(), Some("1.1.0"));
         let suggested = preview.suggestion.unwrap().version;
         assert_eq!(suggested, "2.0.0");
@@ -1338,5 +1393,60 @@ mod tests {
         assert_eq!(identity(dir.path()).name, "Kriticales");
         let empty = tempfile::tempdir().unwrap();
         assert_eq!(identity(empty.path()).name, "Warden");
+    }
+
+    /// A rede nunca segura a trava do pack (ARCHITECTURE §15): enquanto o Salvar versão espera
+    /// o Modrinth (os nomes das versões para o changelog), o resto do pack segue livre; a trava
+    /// de escrita só é pedida quando restam disco e git. Sem isto, uma resposta lenta ou parada
+    /// do Modrinth travaria toda leitura e escrita do pack até o tempo esgotar.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn salvar_nao_segura_a_trava_do_pack_enquanto_espera_o_modrinth() {
+        const LIMIT: Duration = Duration::from_secs(10);
+        let Some(f) = fixture(1).await else {
+            return;
+        };
+        let Fixture {
+            _dir,
+            mut state,
+            cli,
+            id,
+            root,
+        } = f;
+        let (base, arrived, release) = modrinth_gate().await;
+        let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version("1")).unwrap();
+        state.modrinth = warden_modrinth::ModrinthClient::with_base_url(http, &base, None).unwrap();
+        let state = Arc::new(state);
+
+        let save = {
+            let state = Arc::clone(&state);
+            tokio::spawn(async move {
+                let handle = state.operations.start(SAVE, Some(id), false);
+                let result =
+                    save_core(&state, &cli, id, &request("1.0.0", "", false), when(), &handle)
+                        .await;
+                handle.finish(result)
+            })
+        };
+        // O Salvar versão está esperando o Modrinth.
+        tokio::time::timeout(LIMIT, arrived)
+            .await
+            .expect("o Salvar versão não consultou o Modrinth")
+            .unwrap();
+        // Enquanto isso, a trava de escrita do pack está livre: outra operação entra na hora.
+        let write = tokio::time::timeout(Duration::from_secs(2), state.locks.write(id))
+            .await
+            .expect("a trava de escrita do pack ficou presa atrás da rede do Salvar versão");
+        drop(write);
+
+        release.send(()).unwrap();
+        let saved = tokio::time::timeout(LIMIT, save)
+            .await
+            .expect("o Salvar versão não terminou")
+            .unwrap()
+            .unwrap();
+        assert_eq!(saved.version, "1.0.0");
+        // O Modrinth respondeu vazio: o changelog fica com o nome do arquivo.
+        let log = fs::read_to_string(root.join("CHANGELOG.md")).unwrap();
+        assert!(log.contains("mod-0-1.0.0.jar"), "{log}");
     }
 }

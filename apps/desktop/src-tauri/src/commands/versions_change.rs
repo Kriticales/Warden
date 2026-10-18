@@ -435,7 +435,9 @@ mod tests {
     use warden_packwiz_cli::Packwiz;
 
     use super::*;
-    use crate::commands::inventory::tests::{packwiz_binary, registered_pack, test_packwiz};
+    use crate::commands::inventory::tests::{
+        modrinth_gate, packwiz_binary, registered_pack, test_packwiz,
+    };
     use crate::error::ErrorCode;
     use crate::state::tests::test_state;
 
@@ -673,51 +675,6 @@ mod tests {
             .collect();
         assert_eq!(diff, [("neoforge = \"21.1.95\"", "neoforge = \"21.1.77\"")]);
         assert!(after.contains("minecraft = \"1.21.1\""));
-    }
-
-    /// Servidor HTTP local no lugar do Modrinth que só responde (`[]`) depois de liberado.
-    /// Avisa quando a primeira requisição chega: o comando está dentro da trava de leitura,
-    /// esperando a rede.
-    async fn modrinth_gate() -> (
-        String,
-        tokio::sync::oneshot::Receiver<()>,
-        tokio::sync::oneshot::Sender<()>,
-    ) {
-        use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let base = format!("http://{}/v2/", listener.local_addr().unwrap());
-        let (arrived_tx, arrived_rx) = tokio::sync::oneshot::channel();
-        let (release_tx, release_rx) = tokio::sync::oneshot::channel::<()>();
-        tokio::spawn(async move {
-            let mut arrived = Some(arrived_tx);
-            let mut release = Some(release_rx);
-            loop {
-                let Ok((mut socket, _)) = listener.accept().await else {
-                    return;
-                };
-                let mut request = Vec::new();
-                let mut buffer = [0_u8; 1024];
-                while !request.windows(4).any(|w| w == b"\r\n\r\n") {
-                    match socket.read(&mut buffer).await {
-                        Ok(0) | Err(_) => break,
-                        Ok(n) => request.extend_from_slice(&buffer[..n]),
-                    }
-                }
-                if let Some(arrived) = arrived.take() {
-                    let _ = arrived.send(());
-                }
-                if let Some(release) = release.take() {
-                    let _ = release.await;
-                }
-                let _ = socket
-                    .write_all(
-                        b"HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: 2\r\nconnection: close\r\n\r\n[]",
-                    )
-                    .await;
-                let _ = socket.shutdown().await;
-            }
-        });
-        (base, arrived_rx, release_tx)
     }
 
     /// A trava do pack não é reentrante: o `RwLock` do Tokio é justo, então uma escrita que
