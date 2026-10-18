@@ -7,5 +7,7 @@
 //! atribui a esta crate; a responsabilidade e os limites estão na ARCHITECTURE §3.
 
 mod error;
+pub mod external;
+pub mod proposals;
 
 pub use error::AiErrorCode;
