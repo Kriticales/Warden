@@ -236,8 +236,23 @@ describe('Testar e console (L-04; T13)', function () {
     const out = join(DATA_ROOT, 'console-salvo.log');
     writeFileSync(SAVE_FILE, out);
     await $('section[aria-label="Console do jogo"]').$('button=Salvar em arquivo…').click();
-    await browser.waitUntil(() => existsSync(out), { timeout: 15_000 });
-    expect(readFileSync(out, 'utf8')).toContain('coração');
+    // No Windows, o antivírus pode segurar por instantes o arquivo recém-copiado. A existência
+    // não garante que ele já possa ser aberto; só EBUSY é transitório aqui.
+    let saved = '';
+    await browser.waitUntil(
+      () => {
+        if (!existsSync(out)) return false;
+        try {
+          saved = readFileSync(out, 'utf8');
+          return saved.includes('coração');
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'EBUSY') return false;
+          throw error;
+        }
+      },
+      { timeout: 15_000, interval: 50, timeoutMsg: 'o log salvo não ficou legível' },
+    );
+    expect(saved).toContain('coração');
   });
 
   it('CA-T13-08: "Ver último teste" e os testes anteriores', async () => {

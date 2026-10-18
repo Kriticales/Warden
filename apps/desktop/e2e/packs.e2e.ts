@@ -37,6 +37,7 @@ import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
 import { openOrImport } from './open-or-import';
+import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -343,19 +344,49 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     writeFileSync(registryFile, JSON.stringify(registry, null, 2));
     await browser.reloadSession();
     await browser.setWindowSize(1366, 860);
-    // Do início da página até as 51 linhas na tela, medido dentro do WebView.
-    const shownAtMs = await browser.execute(
-      () =>
-        new Promise<number>((resolve) => {
-          const check = () => {
-            if (document.querySelectorAll('tr.packrow').length >= 51) resolve(performance.now());
-            else requestAnimationFrame(check);
-          };
-          check();
-        }),
+    // O primeiro carregamento inclui a partida do WebView. Em cada amostra, uma página nova
+    // esvazia o cache da consulta; o relógio do próprio WebView começa no clique em Meus packs
+    // e para quando as 51 linhas são desenhadas. A primeira amostra aquece o WebView.
+    const measures: number[] = [];
+    for (let index = 0; index < 6; index += 1) {
+      await $('button[aria-label="Abrir Vale Sereno"]').click();
+      await $('header.packhead').$('a*=Meus packs').waitForDisplayed();
+      await browser.refresh();
+      await $('header.packhead').$('a*=Meus packs').waitForDisplayed();
+      const shownAtMs = await browser.execute(
+        () =>
+          new Promise<number>((resolve, reject) => {
+            const back = Array.from(
+              document.querySelectorAll<HTMLAnchorElement>('header.packhead a'),
+            ).find((link) => link.textContent.includes('Meus packs'));
+            if (!back) {
+              reject(new Error('link Meus packs ausente'));
+              return;
+            }
+            const started = performance.now();
+            const deadline = window.setTimeout(() => {
+              reject(new Error('51 packs não apareceram'));
+            }, 15_000);
+            const check = () => {
+              if (document.querySelectorAll('tr.packrow').length >= 51) {
+                window.clearTimeout(deadline);
+                resolve(performance.now() - started);
+              } else {
+                requestAnimationFrame(check);
+              }
+            };
+            back.click();
+            requestAnimationFrame(check);
+          }),
+      );
+      measures.push(shownAtMs);
+    }
+    const samples = measures.slice(1).sort((a, b) => a - b);
+    const median = samples[2] ?? Number.POSITIVE_INFINITY;
+    process.stdout.write(
+      `CA-T02-01: lista com 51 packs, amostras ${measures.map((ms) => ms.toFixed(0)).join(', ')} ms; mediana sem a primeira ${median.toFixed(0)} ms\n`,
     );
-    process.stdout.write(`CA-T02-01: lista com 51 packs em ${shownAtMs.toFixed(0)} ms\n`);
-    expect(shownAtMs).toBeLessThan(1000);
+    expect(median).toBeLessThan(1000);
     await screenshot('13-meus-packs-51');
   });
 
@@ -393,10 +424,19 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     await screenshot('14-criar-mods-iniciais');
 
     // Desmarcar e marcar de novo volta ao estado; desmarcar de vez tira o spark do pedido.
+    await dismissToasts();
+    await browser.execute(() =>
+      document
+        .querySelector('input[aria-label="Adicionar spark"]')
+        ?.scrollIntoView({ block: 'center' }),
+    );
+    await spark.waitForClickable();
     await spark.click();
     await expect(spark).not.toBeSelected();
+    await crash.waitForClickable();
     await crash.click();
     await expect(crash).not.toBeSelected();
+    await crash.waitForClickable();
     await crash.click();
     await expect(crash).toBeSelected();
     await wizardNext();
