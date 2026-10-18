@@ -9,23 +9,28 @@
 //!    (cache de downloads de sempre); o grafo da busca é lido dos jars da base, com as arestas
 //!    inferidas do pack (`<dados>/graph/<pack>.json`) e as ferramentas do jogador de
 //!    `.warden/project.toml`.
-//! 3. **Rodadas:** cada uma recria `instances/<pack>/bisect/minecraft` só com os itens
-//!    ligados (links físicos), copia o mundo de teste da instância de teste (que só é lida),
+//! 3. **Mundo de teste** ([`world`]): gerado sem mods pelo servidor vanilla da mesma versão,
+//!    com semente fixa, na primeira busca do pack (e quando a versão do Minecraft muda), só com
+//!    o aceite da EULA; fica como modelo no estado da instância de teste. O mundo do usuário
+//!    nunca é usado: foi salvo com todos os mods, e uma rodada sem parte deles travaria
+//!    "diferente".
+//! 4. **Rodadas:** cada uma recria `instances/<pack>/bisect/minecraft` só com os itens
+//!    ligados (links físicos), copia o mundo de teste modelo para `saves/`,
 //!    abre o jogo por Quick Play com `fabric.noGui`/`fml.queryResult`, acompanha a saída com o
 //!    [`RoundWatcher`] e **encerra o jogo assim que há veredito**. O log de cada rodada fica em
 //!    `state/bisect-logs/<busca>/round-<n>/output.log` ("Ver log").
-//! 4. **Veredito:** a assinatura da rodada e a da D-06 (`commands::crashes::signature_of`)
+//! 5. **Veredito:** a assinatura da rodada e a da D-06 (`commands::crashes::signature_of`)
 //!    contra a do problema; classe de item desligado vira aresta inferida, guardada no grafo do
 //!    pack; Java errado para a busca.
-//! 5. **Estado:** `state/bisect.json` depois de cada rodada. **Pausar** espera a rodada atual;
+//! 6. **Estado:** `state/bisect.json` depois de cada rodada. **Pausar** espera a rodada atual;
 //!    "Parar jogo" ou fechar o app no meio de uma rodada pausa sem contar a rodada; **cancelar**
 //!    encerra o jogo, apaga as pastas da busca e guarda o resultado parcial. O resultado
 //!    terminado fica em `state/bisect-results/` e é ligado ao travamento de origem
 //!    ([`searches_for`], Problemas → Travamentos).
-//! 6. **Modo assistido:** ao entrar no mundo, a rodada pergunta ("Aconteceu", "Não aconteceu",
+//! 7. **Modo assistido:** ao entrar no mundo, a rodada pergunta ("Aconteceu", "Não aconteceu",
 //!    "Não deu para testar"); um travamento detectado sozinho marca a rodada sem perguntar.
 //!
-//! O pack e a instância de teste nunca mudam. Versões sem Quick Play (antes de 1.20) só
+//! O pack, a instância de teste e os mundos do usuário nunca mudam. Versões sem Quick Play (antes de 1.20) só
 //! entram no mundo pelo servidor local, que é da D-13: aqui fica o erro `NEEDS_SERVER` e o
 //! [`Goal`] da rodada como ponto de extensão.
 
@@ -62,14 +67,20 @@ use warden_launcher::process::{GameEvent, GameProcess, SpawnOptions};
 use crate::error::AppError;
 use crate::events::{GamePhase, GameState, OperationEvent};
 use crate::operations::{OperationHandle, OperationKind};
+use crate::server_session::now_ms;
 use crate::state::AppState;
 use crate::test_session::{BisectGame, LaunchExtra, Notify, read_output_log};
+
+mod world;
 
 /// Tipo da operação da busca (painel Tarefas).
 pub(crate) const BISECT_RUN: OperationKind = OperationKind::new("bisect.run");
 /// Etapa "Preparando a busca".
 const STAGE_PREPARE: &str = "bisect.prepare";
 const STAGE_PREPARE_LABEL: &str = "buscaDoCulpado:etapa.preparar";
+/// Etapa "Criando o mundo de teste".
+const STAGE_WORLD: &str = "bisect.world";
+const STAGE_WORLD_LABEL: &str = "buscaDoCulpado:etapa.mundo";
 /// Etapa "Rodada da busca".
 const STAGE_ROUND: &str = "bisect.round";
 const STAGE_ROUND_LABEL: &str = "buscaDoCulpado:etapa.rodada";
@@ -151,8 +162,9 @@ pub(crate) struct BisectPlan {
     pub(crate) loader: Option<String>,
     /// A versão entra direto no mundo (Quick Play, 1.20+).
     pub(crate) quick_play: bool,
-    /// O mundo de teste da instância de teste, se houver.
-    pub(crate) world: Option<String>,
+    /// O mundo de teste gerado sem mods já existe para esta versão (sem ele, a busca o gera
+    /// antes da primeira rodada, se a EULA estiver aceita).
+    pub(crate) world_ready: bool,
 }
 
 /// Situação da busca guardada.
@@ -268,6 +280,8 @@ pub(crate) struct BisectView {
     pub(crate) inferred: Vec<BisectInferred>,
     /// Conjuntos achados antes ("continuar sem").
     pub(crate) earlier: Vec<Vec<BisectItem>>,
+    /// O Warden está criando o mundo de teste agora (antes da primeira rodada).
+    pub(crate) creating_world: bool,
 }
 
 /// Para onde vão os eventos da busca.
@@ -298,6 +312,7 @@ struct Control {
     token: CancellationToken,
     answer: Mutex<Option<oneshot::Sender<AssistedAnswer>>>,
     current: Mutex<Option<BisectCurrent>>,
+    creating_world: AtomicBool,
 }
 
 fn running() -> &'static Mutex<Option<Arc<Control>>> {
@@ -326,14 +341,6 @@ impl Drop for ControlGuard {
     }
 }
 
-fn now_ms() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |elapsed| {
-            u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX)
-        })
-}
-
 fn domain(error: &BisectError) -> AppError {
     AppError::from_domain(error)
 }
@@ -349,10 +356,13 @@ async fn blocking<T: Send + 'static>(
 
 /// Pastas da busca de um pack.
 struct Dirs {
-    /// `instances/<pack>/state` (da instância de teste: só o `bisect.json` e os logs).
+    /// `instances/<pack>/state` (da instância de teste: o `bisect.json`, os logs e o mundo de
+    /// teste modelo).
     state_dir: PathBuf,
-    /// A instância de teste (só lida: o mundo de teste).
+    /// A instância de teste (só lida: os opcionais escolhidos e os jars do diálogo).
     test: InstanceDirs,
+    /// O mundo de teste gerado sem mods.
+    world: world::WorldDirs,
     /// A base (o pack inteiro).
     base: InstanceDirs,
     /// A instância da rodada.
@@ -371,6 +381,7 @@ impl Dirs {
             .map_or_else(|| root.join("bisect"), Path::to_path_buf);
         Self {
             state_dir: test.state_dir.clone(),
+            world: world::WorldDirs::of(paths, pack_id),
             round: InstanceDirs {
                 game_dir: round_game_dir,
                 state_dir: round_root.join("state"),
@@ -587,9 +598,13 @@ pub(crate) async fn plan(state: &AppState, pack_id: PackId) -> Result<BisectPlan
     let input = graph_input(state, pack_id, &root, &dirs.test.game_dir).await?;
     let universe = universe_of(&input, &root, &[]);
     let searched = u32::try_from(universe.with_role(Role::Searched).len()).unwrap_or(u32::MAX);
-    let world = crate::test_profiles::quick_play_world(&dirs.test.game_dir, None);
     let quick_play =
         warden_launcher::quick_play::quick_play_support(&facts.minecraft).is_supported();
+    let world_ready = {
+        let world = dirs.world.clone();
+        let minecraft = facts.minecraft.clone();
+        blocking(move || Ok(world.ready(&minecraft))).await?
+    };
     Ok(BisectPlan {
         searched,
         always_on: items_with_role(&universe, Role::AlwaysOn),
@@ -598,7 +613,7 @@ pub(crate) async fn plan(state: &AppState, pack_id: PackId) -> Result<BisectPlan
         minecraft: facts.minecraft,
         loader: facts.loader,
         quick_play,
-        world,
+        world_ready,
     })
 }
 
@@ -706,6 +721,8 @@ fn view_of(saved: &BisectState, control: Option<&Control>) -> BisectView {
             .iter()
             .map(|set| set.iter().map(|path| item_of(universe, path)).collect())
             .collect(),
+        creating_world: control
+            .is_some_and(|control| control.creating_world.load(Ordering::SeqCst)),
     }
 }
 
@@ -832,6 +849,7 @@ pub(crate) async fn run(
         token: handle.token().clone(),
         answer: Mutex::new(None),
         current: Mutex::new(None),
+        creating_world: AtomicBool::new(false),
     });
     *running().lock().unwrap_or_else(PoisonError::into_inner) = Some(Arc::clone(&control));
     let _guard = ControlGuard;
@@ -925,9 +943,48 @@ impl Runner<'_> {
             self.handle,
         )
         .await?;
+        // Cancelada (ou o app fechando) no meio da geração do mundo, as rodadas veem o pedido e
+        // cancelam ou pausam a busca; outro erro deixa a busca pausada antes da primeira
+        // rodada ("Continuar" tenta de novo).
+        if saved.goal == Goal::World
+            && let Err(error) = self.ensure_world(&saved, &root, &game).await
+            && !error.is_cancelled()
+        {
+            saved.paused = true;
+            self.finish(&mut saved).await?;
+            return Err(error);
+        }
         self.rounds(&mut saved, &mut game, &lookup).await?;
         self.finish(&mut saved).await?;
         Ok(view_of(&saved, None))
+    }
+
+    /// O mundo de teste modelo (gerado agora, se ainda não existe para esta versão), com a
+    /// tela avisando enquanto o servidor vanilla trabalha.
+    async fn ensure_world(
+        &self,
+        saved: &BisectState,
+        root: &Path,
+        game: &BisectGame,
+    ) -> Result<(), AppError> {
+        if self.dirs.world.ready(&saved.minecraft) {
+            return Ok(());
+        }
+        self.handle.stage(STAGE_WORLD, STAGE_WORLD_LABEL);
+        self.control.creating_world.store(true, Ordering::SeqCst);
+        self.notify_round(saved, 0, None, false);
+        let result = world::ensure(
+            self.state,
+            self.pack_id,
+            root,
+            &saved.minecraft,
+            game.java(),
+            self.handle,
+        )
+        .await;
+        self.control.creating_world.store(false, Ordering::SeqCst);
+        self.notify_round(saved, 0, None, false);
+        result.map(|_| ())
     }
 
     /// Materializa o pack inteiro na base (só o que mudou), com todas as ferramentas do
@@ -996,18 +1053,21 @@ impl Runner<'_> {
         }
         let quick_play =
             warden_launcher::quick_play::quick_play_support(&facts.minecraft).is_supported();
-        let world = crate::test_profiles::quick_play_world(&self.dirs.test.game_dir, None);
-        // Só "trava ao entrar no mundo" precisa entrar no mundo; os outros passam no menu
-        // quando não há como (versão sem Quick Play ou sem mundo de teste; no modo assistido,
-        // a pessoa entra no mundo dela).
-        let goal = match (&request.symptom, quick_play, &world) {
+        // O mundo de teste existe ou pode ser gerado (o servidor vanilla só abre com a EULA).
+        let world = self.dirs.world.ready(&facts.minecraft)
+            || crate::server_session::eula_accepted_at(self.state).is_some();
+        // Com Quick Play e o mundo de teste, toda rodada entra no mundo. Sem como entrar
+        // (versão sem Quick Play, ou sem o mundo e sem a EULA), só "trava ao entrar no mundo"
+        // é recusada; os outros sintomas vão até o menu (no modo assistido, a pessoa entra num
+        // mundo).
+        let goal = match (&request.symptom, quick_play, world) {
             (Symptom::CrashOnWorld, false, _) => {
                 return Err(domain(&BisectError::NeedsServer {
                     minecraft: facts.minecraft,
                 }));
             }
-            (Symptom::CrashOnWorld, true, None) => return Err(domain(&BisectError::NoTestWorld)),
-            (_, true, Some(_)) => Goal::World,
+            (Symptom::CrashOnWorld, true, false) => return Err(domain(&BisectError::EulaNeeded)),
+            (_, true, true) => Goal::World,
             _ => Goal::Menu,
         };
         let started = now_ms();
@@ -1020,7 +1080,7 @@ impl Runner<'_> {
             origin_crash: request.origin_crash,
             minecraft: facts.minecraft,
             loader: facts.loader,
-            world: (goal == Goal::World).then_some(world).flatten(),
+            world: (goal == Goal::World).then(|| world::WORLD_NAME.to_owned()),
             search: Search::new(universe),
             rounds: Vec::new(),
             world_ms: last_world_ms(&self.dirs.state_dir),
@@ -1246,7 +1306,7 @@ impl Runner<'_> {
                 .as_ref()
                 .filter(|_| world_entry)
                 .map(|name| SubsetWorld {
-                    source: self.dirs.test.game_dir.join("saves").join(name),
+                    source: self.dirs.world.world(),
                     name: name.clone(),
                 }),
         };
@@ -1260,6 +1320,7 @@ impl Runner<'_> {
         let extra = LaunchExtra {
             system_props: warden_bisect::prepare::system_props(&saved.minecraft, loader),
             quick_play_path: world_entry.then(|| QUICK_PLAY_FILE.to_owned()),
+            server_port: None,
         };
         game.command(
             self.state,
@@ -1530,33 +1591,14 @@ fn stability_ms() -> u64 {
     warden_bisect::estimate::STABILITY_MS
 }
 
-/// Identificador da busca a partir do começo (`20261018-153012-123`).
+/// Identificador da busca a partir do começo (`20261018-153012-123`, UTC).
 fn search_id(started_ms: u64) -> String {
-    let seconds = started_ms / 1_000;
-    let days = seconds / 86_400;
-    let (year, month, day) = civil_from_days(i64::try_from(days).unwrap_or_default());
-    let rest = seconds % 86_400;
-    format!(
-        "{year:04}{month:02}{day:02}-{:02}{:02}{:02}-{:03}",
-        rest / 3_600,
-        (rest % 3_600) / 60,
-        rest % 60,
-        started_ms % 1_000
-    )
-}
-
-/// Data civil (UTC) de um número de dias desde 1970 (algoritmo de Howard Hinnant).
-fn civil_from_days(days: i64) -> (i64, u32, u32) {
-    let z = days + 719_468;
-    let era = z.div_euclid(146_097);
-    let doe = z.rem_euclid(146_097);
-    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = u32::try_from(doy - (153 * mp + 2) / 5 + 1).unwrap_or(1);
-    let month = u32::try_from(if mp < 10 { mp + 3 } else { mp - 9 }).unwrap_or(1);
-    let year = yoe + era * 400 + i64::from(month <= 2);
-    (year, month, day)
+    let stamp =
+        warden_launcher::session::rfc3339_utc(UNIX_EPOCH + Duration::from_millis(started_ms));
+    // `2026-10-18T15:30:12Z` → `20261018153012`.
+    let digits: String = stamp.chars().filter(char::is_ascii_digit).collect();
+    let (date, time) = digits.split_at_checked(8).unwrap_or((&digits, ""));
+    format!("{date}-{time}-{:03}", started_ms % 1_000)
 }
 
 #[cfg(test)]

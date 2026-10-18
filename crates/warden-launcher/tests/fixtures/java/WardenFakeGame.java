@@ -1,5 +1,8 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
@@ -30,7 +33,10 @@ import java.util.UUID;
  *                      começando por cada NOME (os nomes vão até o primeiro argumento com
  *                      "--", os do jogo), falha ao entrar no mundo como o Minecraft
  *                      ("Couldn't place player in world" e a exceção) e fica vivo, calado;
- *                      senão entra no mundo e fica vivo (D-12, busca do culpado);
+ *                      senão entra no mundo e fica vivo (D-12, busca do culpado). Com
+ *                      `--quickPlaySingleplayer NOME`, lê saves/NOME/level.dat e escreve a
+ *                      primeira linha ("semente=…", do servidor simulado); sem o arquivo, falha
+ *                      como o Minecraft ao abrir um mundo que não existe e sai com 1;
  *   args               escreve cada argumento recebido, um por linha, entre colchetes;
  *   sair N             sai com o código N;
  *   crash              grava crash-reports/crash-teste-client.txt e sai com -1;
@@ -145,6 +151,27 @@ public final class WardenFakeGame {
             Thread.sleep(delay);
             System.out.println("[Render thread/INFO]: Sound engine started");
             System.out.println("[Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas");
+            String world = null;
+            for (int i = names; i + 1 < args.length; i++) {
+                if (args[i].equals("--quickPlaySingleplayer")) {
+                    world = args[i + 1];
+                }
+            }
+            if (world != null) {
+                File level = new File(new File(new File("saves"), world), "level.dat");
+                if (!level.isFile()) {
+                    System.out.println("[Render thread/ERROR]: Failed to load level \"" + world + "\"");
+                    System.out.println("java.io.FileNotFoundException: saves/" + world + "/level.dat");
+                    System.out.flush();
+                    System.exit(1);
+                }
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(level), "UTF-8"));
+                try {
+                    System.out.println("[Render thread/INFO]: Mundo de teste: " + reader.readLine());
+                } finally {
+                    reader.close();
+                }
+            }
             System.out.println("[Server thread/INFO]: Starting integrated minecraft server version 1.20.1");
             System.out.flush();
             Thread.sleep(delay / 2);

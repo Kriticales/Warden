@@ -144,12 +144,13 @@ export const commands = {
 	bisectPlan: (packId: PackId) => typedError<BisectPlan, AppError>(__TAURI_INVOKE("bisect_plan", { packId })),
 	/**
 	 *  Começa uma busca nova. Volta quando ela termina ou pausa. Erros: `app.GAME_ALREADY_RUNNING`,
-	 *  `bisect.NOTHING_TO_SEARCH`, `bisect.NO_TEST_WORLD`, `bisect.NEEDS_SERVER`.
+	 *  `bisect.NOTHING_TO_SEARCH`, `bisect.EULA_NEEDED`, `bisect.NEEDS_SERVER`,
+	 *  `bisect.TEST_WORLD_FAILED` (a busca fica pausada antes da primeira rodada).
 	 */
 	bisectStart: (packId: PackId, request: BisectRequest, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_start", { packId, request, onEvent })),
 	/**
 	 *  Continua a busca pausada (até em outro dia). Erros: `bisect.NOT_FOUND`,
-	 *  `bisect.NOT_RESUMABLE`.
+	 *  `bisect.NOT_RESUMABLE`, `bisect.TEST_WORLD_FAILED`.
 	 */
 	bisectResume: (packId: PackId, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_resume", { packId, onEvent })),
 	/**
@@ -203,6 +204,8 @@ export const commands = {
 	inferred: BisectInferred[],
 	/**  Conjuntos achados antes ("continuar sem"). */
 	earlier: BisectItem[][],
+	/**  O Warden está criando o mundo de teste agora (antes da primeira rodada). */
+	creatingWorld: boolean,
 } | null, AppError>(__TAURI_INVOKE("bisect_get", { packId })),
 	/**  O log gravado de uma rodada. Erros: `bisect.NOT_FOUND`. */
 	bisectRoundLog: (packId: PackId, round: number) => typedError<ConsoleLine[], AppError>(__TAURI_INVOKE("bisect_round_log", { packId, round })),
@@ -1584,8 +1587,16 @@ export type BisectErrorCode =
 "NO_QUESTION" | 
 /**  A busca já terminou (ou não está pausada) e não pode continuar. */
 "NOT_RESUMABLE" | 
-/**  "Trava ao entrar no mundo" sem mundo de teste na instância de teste. */
-"NO_TEST_WORLD" | 
+/**
+ *  A busca precisa entrar no mundo, não há mundo de teste gerado e a EULA do Minecraft
+ *  (exigida para gerá-lo com o servidor vanilla) não foi aceita.
+ */
+"EULA_NEEDED" | 
+/**
+ *  O servidor vanilla não conseguiu gerar o mundo de teste (download, porta, tempo esgotado,
+ *  servidor que fechou antes do "pronto").
+ */
+"TEST_WORLD_FAILED" | 
 /**  A versão do Minecraft só entra no mundo pelo servidor local (D-13). */
 "NEEDS_SERVER";
 
@@ -1621,8 +1632,11 @@ export type BisectPlan = {
 	loader: string | null,
 	/**  A versão entra direto no mundo (Quick Play, 1.20+). */
 	quickPlay: boolean,
-	/**  O mundo de teste da instância de teste, se houver. */
-	world: string | null,
+	/**
+	 *  O mundo de teste gerado sem mods já existe para esta versão (sem ele, a busca o gera
+	 *  antes da primeira rodada, se a EULA estiver aceita).
+	 */
+	worldReady: boolean,
 };
 
 /**  O pedido de uma busca nova. */
@@ -1704,6 +1718,8 @@ export type BisectView = {
 	inferred: BisectInferred[],
 	/**  Conjuntos achados antes ("continuar sem"). */
 	earlier: BisectItem[][],
+	/**  O Warden está criando o mundo de teste agora (antes da primeira rodada). */
+	creatingWorld: boolean,
 };
 
 /**  Tamanho do incremento. */

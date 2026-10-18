@@ -788,14 +788,19 @@ impl Runner<'_> {
         prepared: &Prepared,
         server_port: Option<u16>,
     ) -> Result<Launch, AppError> {
-        self.plan_launch_with(prepared, server_port, &LaunchExtra::default())
+        self.plan_launch_with(
+            prepared,
+            &LaunchExtra {
+                server_port,
+                ..LaunchExtra::default()
+            },
+        )
     }
 
     /// [`Runner::plan_launch`] com o que a busca do culpado acrescenta (D-12).
     fn plan_launch_with(
         &self,
         prepared: &Prepared,
-        server_port: Option<u16>,
         extra: &LaunchExtra,
     ) -> Result<Launch, AppError> {
         let global = self.state.settings.get();
@@ -831,14 +836,14 @@ impl Runner<'_> {
             player,
         });
         crate::test_profiles::apply_quick_play(&mut options, prepared.quick_play_world.as_deref());
-        if let Some(port) = server_port {
-            server_mode::join_server(&mut options, port);
-        }
         options
             .system_props
             .extend(extra.system_props.iter().cloned());
         if extra.quick_play_path.is_some() {
             options.quick_play_path.clone_from(&extra.quick_play_path);
+        }
+        if let Some(port) = extra.server_port {
+            server_mode::join_server(&mut options, port);
         }
         let perf_flags = crate::test_profiles::perf_flags(&options.extra_jvm_args);
         if !perf_flags.is_empty() {
@@ -1135,33 +1140,6 @@ impl Runner<'_> {
     }
 }
 
-/// A pasta da sessão, criada logo antes de abrir o jogo (ou o servidor local).
-struct OpenedSession {
-    sessions_dir: PathBuf,
-    /// Primeira abertura desta instância (nenhuma sessão gravada antes).
-    first_launch: bool,
-    session: SessionDir,
-    session_id: String,
-}
-
-impl OpenedSession {
-    /// Cria a sessão em `sessions_dir` (o da instância de teste do pack).
-    fn create(sessions_dir: PathBuf) -> Result<Self, AppError> {
-        let first_launch = list_sessions(&sessions_dir).map_or(true, |sessions| {
-            sessions.iter().all(|session| session.record.is_none())
-        });
-        let session = SessionDir::create(&sessions_dir, SystemTime::now())
-            .map_err(|error| AppError::from_domain(&error))?;
-        let session_id = session_name(&session);
-        Ok(Self {
-            sessions_dir,
-            first_launch,
-            session,
-            session_id,
-        })
-    }
-}
-
 /// O que a busca do culpado acrescenta à abertura (D-12): propriedades de sistema
 /// (`fabric.noGui`, `fml.queryResult`) e o arquivo do `--quickPlayPath`.
 #[derive(Debug, Clone, Default)]
@@ -1170,6 +1148,8 @@ pub(crate) struct LaunchExtra {
     pub(crate) system_props: Vec<(String, String)>,
     /// `--quickPlayPath` (relativo ao `gameDir`).
     pub(crate) quick_play_path: Option<String>,
+    /// Porta do servidor local em que o jogo entra (L-09).
+    pub(crate) server_port: Option<u16>,
 }
 
 /// O jogo do pack instalado para outra pasta (a instância de cada rodada da busca do culpado,
@@ -1244,6 +1224,11 @@ impl BisectGame {
         &self.prepared.spec
     }
 
+    /// O Java escolhido para o jogo (o mesmo abre o servidor vanilla do mundo de teste).
+    pub(crate) fn java(&self) -> &JavaRuntime {
+        &self.prepared.java
+    }
+
     /// A linha de comando de uma rodada: memória, Java e argumentos do perfil ativo, o mundo
     /// do Quick Play e o que a busca acrescenta.
     pub(crate) fn command(
@@ -1263,9 +1248,34 @@ impl BisectGame {
             sink: silent_sink(),
             handle,
         };
-        Ok(runner
-            .plan_launch_with(&self.prepared, None, extra)?
-            .command)
+        Ok(runner.plan_launch_with(&self.prepared, extra)?.command)
+    }
+}
+
+/// A pasta da sessão, criada logo antes de abrir o jogo (ou o servidor local).
+struct OpenedSession {
+    sessions_dir: PathBuf,
+    /// Primeira abertura desta instância (nenhuma sessão gravada antes).
+    first_launch: bool,
+    session: SessionDir,
+    session_id: String,
+}
+
+impl OpenedSession {
+    /// Cria a sessão em `sessions_dir` (o da instância de teste do pack).
+    fn create(sessions_dir: PathBuf) -> Result<Self, AppError> {
+        let first_launch = list_sessions(&sessions_dir).map_or(true, |sessions| {
+            sessions.iter().all(|session| session.record.is_none())
+        });
+        let session = SessionDir::create(&sessions_dir, SystemTime::now())
+            .map_err(|error| AppError::from_domain(&error))?;
+        let session_id = session_name(&session);
+        Ok(Self {
+            sessions_dir,
+            first_launch,
+            session,
+            session_id,
+        })
     }
 }
 
