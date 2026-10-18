@@ -15,9 +15,10 @@
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { $, browser, expect } from '@wdio/globals';
+import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
+import { focusTrace, startFocusTrace } from './focus-trace';
 import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
@@ -125,9 +126,78 @@ function modRow(name: string) {
   return $(`tr.modrow*=${name}`);
 }
 
+/** Vai para Meus packs, de onde estiver (o voltar do pack e o das Configurações levam a `/packs`). */
+async function goToPacks(): Promise<void> {
+  await dismissToasts();
+  if (!(await $('h1=Meus packs').isExisting())) {
+    let clicked = false;
+    for (const link of await $$('a[href="/packs"]').getElements()) {
+      if (await link.isDisplayed()) {
+        await link.click();
+        clicked = true;
+        break;
+      }
+    }
+    if (!clicked) throw new Error('nenhum link visível para Meus packs');
+  }
+  await $('h1=Meus packs').waitForDisplayed({ timeout: 30_000 });
+}
+
+/**
+ * Garante o pack do teste na lista de Meus packs, abrindo-o por "Abrir ou importar…" se ainda
+ * não estiver lá: cada caso parte dele sem depender de o anterior ter chegado ao fim.
+ */
+async function ensurePackListed(): Promise<void> {
+  await goToPacks();
+  const open = $('button[aria-label="Abrir Fixture Fabric"]');
+  if (await open.isExisting()) return;
+  writeFileSync(PICK_FILE, PACK);
+  await openOrImport();
+  await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
+  await $('button=Abrir pack').click();
+  await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
+  await modRow('Sodium').waitForDisplayed();
+  await goToPacks();
+  await open.waitForDisplayed();
+}
+
+/** Garante o pack aberto (em qualquer seção). */
+async function ensureInPack(): Promise<void> {
+  if (await $('nav[aria-label="Seções do pack"]').isExisting()) return;
+  await ensurePackListed();
+  await $('button[aria-label="Abrir Fixture Fabric"]').click();
+  await $('h1=Mods').waitForDisplayed({ timeout: 30_000 });
+}
+
+/**
+ * Fecha o que um caso que falhou deixou aberto (menu, diálogo, painel), para não derrubar os
+ * seguintes: Esc algumas vezes e, se nem assim, recarrega a página (o registro dos packs fica).
+ */
+async function closeStrayLayers(): Promise<void> {
+  const open = () => $('[role="menu"], [role="dialog"], [role="alertdialog"]').isExisting();
+  for (let attempt = 0; attempt < 3 && (await open()); attempt += 1) {
+    await browser.keys('Escape');
+    await browser.pause(300);
+  }
+  if (await open()) {
+    await browser.refresh();
+    await $('main h1').waitForDisplayed({ timeout: 30_000 });
+  }
+}
+
+/** Espera `condition`; se não vier, falha com `message` e o registro de foco e camadas. */
+async function expectWithTrace(condition: () => Promise<boolean>, message: string): Promise<void> {
+  try {
+    await browser.waitUntil(condition, { timeout: 5_000 });
+  } catch {
+    throw new Error(`${message}\n${await focusTrace()}`);
+  }
+}
+
 /** Vai para uma seção do pack pelo menu lateral e espera o título. */
 async function openSection(name: string): Promise<void> {
   await dismissToasts();
+  await ensureInPack();
   await $('nav[aria-label="Seções do pack"]').$(`a*=${name}`).click();
   await $(`h1=${name}`).waitForDisplayed({ timeout: 30_000 });
 }
@@ -168,6 +238,10 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
     await browser.setWindowSize(1366, 860);
   });
 
+  afterEach(async () => {
+    await closeStrayLayers();
+  });
+
   after(() => {
     // Devolve a pasta de dados vazia para os specs seguintes.
     rmSync(SETTINGS_FILE, { force: true });
@@ -180,15 +254,7 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
   });
 
   it('abre o pack e, em Meus packs, a confirmação aberta pelo ⋯ devolve o foco ao ⋯', async () => {
-    writeFileSync(PICK_FILE, PACK);
-    await openOrImport();
-    await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
-    await $('button=Abrir pack').click();
-    await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
-    await modRow('Sodium').waitForDisplayed();
-
-    await $('header.packhead').$('a*=Meus packs').click();
-    await $('h1=Meus packs').waitForDisplayed();
+    await ensurePackListed();
     expect(await tabThroughPage()).toEqual([]);
     expect(await seriousViolationSummaries()).toEqual([]);
 
@@ -205,19 +271,24 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
       },
       { timeout: 10_000, timeoutMsg: '"Remover da lista" não recebeu o foco no menu' },
     );
+    await startFocusTrace();
     await browser.keys('Enter');
     const dialog = $('[role="alertdialog"]');
     await dialog.waitForDisplayed();
     expect(await seriousViolationSummaries()).toEqual([]);
     await browser.keys('Escape');
-    await dialog.waitForExist({ reverse: true });
-    await browser.waitUntil(
+    await expectWithTrace(
+      async () => !(await dialog.isExisting()),
+      'a confirmação não fechou com Esc',
+    );
+    await expectWithTrace(
       async () => (await focusedLabel()) === 'Mais ações para Fixture Fabric',
-      { timeout: 5_000, timeoutMsg: 'o foco não voltou ao ⋯ depois de fechar a confirmação' },
+      'o foco não voltou ao ⋯ depois de fechar a confirmação',
     );
   });
 
   it('Mods: foco visível, e os detalhes abertos pela linha devolvem o foco à linha', async () => {
+    await ensurePackListed();
     await $('button[aria-label="Abrir Fixture Fabric"]').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 30_000 });
     await modRow('Sodium').waitForDisplayed();
@@ -225,16 +296,20 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
 
     await dismissToasts();
     await focusButton('Sodium');
+    await startFocusTrace();
     await browser.keys('Enter');
     const drawer = $('[role="dialog"]');
     await drawer.waitForDisplayed();
     expect(await seriousViolationSummaries()).toEqual([]);
     await browser.keys('Escape');
-    await drawer.waitForExist({ reverse: true });
-    await browser.waitUntil(async () => (await focusedLabel()) === 'Sodium', {
-      timeout: 5_000,
-      timeoutMsg: 'o foco não voltou à linha do Sodium depois de fechar os detalhes',
-    });
+    await expectWithTrace(
+      async () => !(await drawer.isExisting()),
+      'os detalhes não fecharam com Esc',
+    );
+    await expectWithTrace(
+      async () => (await focusedLabel()) === 'Sodium',
+      'o foco não voltou à linha do Sodium depois de fechar os detalhes',
+    );
   });
 
   for (const section of ['Configs', 'Problemas', 'Histórico', 'Exportar']) {
@@ -251,9 +326,7 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
   }
 
   it('Configurações: foco visível em todos os controles; axe', async () => {
-    await dismissToasts();
-    await $('header.packhead').$('a*=Meus packs').click();
-    await $('h1=Meus packs').waitForDisplayed();
+    await goToPacks();
     await $('header').$('a=Configurações').click();
     await $('h1=Configurações').waitForDisplayed();
     await $('h2=Geral').waitForDisplayed();
