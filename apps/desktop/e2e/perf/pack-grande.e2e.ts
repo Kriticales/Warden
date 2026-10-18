@@ -306,7 +306,13 @@ describe('Desempenho com o pack grande (A-04; SPEC §8)', () => {
           link.click();
           // O índice nasce quando a seção abre; a busca vazia diz a situação dele.
           const poll = () => {
-            void invoke('config_search', { packId: id, origin: 'pack', query: '', modId: null })
+            void invoke('config_search', {
+              packId: id,
+              origin: 'pack',
+              query: '',
+              modId: null,
+              onlyChanged: false,
+            })
               .then((answer) => {
                 const status = (answer as { status: { ready: boolean } }).status;
                 if (status.ready) resolve(performance.now() - start);
@@ -329,7 +335,13 @@ describe('Desempenho com o pack grande (A-04; SPEC §8)', () => {
     for (const query of ['spawn', 'enable', 'render distance', 'max', 'a']) {
       for (let run = 0; run < 3; run += 1) {
         times.push(
-          await timedCommand('config_search', { packId, origin: 'pack', query, modId: null }),
+          await timedCommand('config_search', {
+            packId,
+            origin: 'pack',
+            query,
+            modId: null,
+            onlyChanged: false,
+          }),
         );
       }
     }
