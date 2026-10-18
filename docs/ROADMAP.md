@@ -76,8 +76,8 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 | 8 | P1-11, P1-12, P1-16, P1-19, L-06, L-07, L-09, L-11, C-06, D-06, D-10, E-04, A-04 |
 | 9 | P1-15, P1-17, L-12, D-04, D-08, D-12, E-03, A-01 |
 | 10 | D-13, D-14, A-03 |
-| 11 | A-07 |
-| 12 | W-01, W-04, W-06, W-08, W-09, W-10 |
+| 11 | A-07, D-15 |
+| 12 | D-16, D-17, D-18, W-01, W-04, W-06, W-08, W-09, W-10 |
 | 13 | W-02, W-05, W-07 |
 | 14 | W-03, W-11 |
 | 15 | W-12 |
@@ -789,6 +789,42 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Critérios de aceite:** CA-T14-12, CA-T14-13.
 - **Verificação:** `cargo nextest run -p warden-ai` com servidores simulados do Gemini e do GitHub; E2E.
 
+### D-15 — IA com vários provedores: núcleo, Gemini migrado e documentação
+
+- **Prioridade:** P1 · **Depende de:** D-04, D-14 · **Branch:** `feat/d-15-ia-provedores`
+- **Objetivo:** o núcleo multiprovedor da `warden-ai` (decisão D40; ADR-0060; ARCHITECTURE §9.5 "Provedores"), com o Gemini migrado sem mudar um byte do que sai para a API, o formato 2 das conversas e as chaves e configurações no backend, para a D-16, a D-17 e a D-18 trabalharem em paralelo sem se esbarrar.
+- **Posse:** `crates/warden-ai/**` (exceto `src/providers/openai/**` e `src/providers/anthropic/**`, que ficam só com o `mod.rs` vazio), `crates/warden-secrets/src/kind.rs` e os pontos de `SecretKind` na `warden-secrets`, `apps/desktop/src-tauri/src/commands/ai.rs`, `apps/desktop/src/bindings.ts` (gerado), `apps/desktop/src/i18n/errors/ai.ts` (o código novo), a ADR-0060 e as seções da SPEC, ARCHITECTURE, ROADMAP e QUALITY citadas nas entregas. Fora da posse, só o mínimo para compilar (listas de registro e tipos gerados).
+- **Entregas:** ADR-0060; SPEC (T14, T21, D40), ARCHITECTURE §9.5, este ROADMAP (D-15 a D-18) e o glossário (QUALITY §8); módulo `providers` com o trait assíncrono, o formato comum (mensagens com campo opaco, ferramentas, escolha de ferramenta, reserva em JSON, resposta com uso e corpo exato, erros classificados) e a fábrica; o Gemini em `providers/gemini/` com o corpo **idêntico byte a byte** ao da D-04 (teste com as gravações reais); `engine.rs` só com o trait; conversas no formato 2 (provedor, modelo, histórico comum, corpo de cada rodada) e conversão do formato 1 ao abrir; conversa presa ao provedor (`AI_PROVIDER_KEY_MISSING`); `SecretKind::Openai` e `SecretKind::Anthropic`, com a redação das duas formas de chave (`sk-…`, `sk-ant-…`); `aiProvider` e o modelo por provedor em `ai/settings.json`, com o arquivo antigo valendo como Gemini; comando `ai_provider_set` e `bindings.ts` regenerado.
+- **Critérios de aceite:** CA-T14-21, CA-T14-22, CA-T14-23 (Gemini), CA-T21-07; parte de backend do CA-T21-06 (escolhas por provedor guardadas, nenhuma chave em `ai/settings.json`).
+- **Verificação:** `cargo nextest run -p warden-ai` (todos os testes da D-04 e da D-14 sem mudar o que conferem, mais o teste do corpo idêntico); `cargo nextest run -p warden-desktop` (comandos da IA); `cargo xtask bindings` e `cargo xtask check-integration`; E2E `ai.e2e.ts` e `ai-propostas.e2e.ts` com o servidor simulado do Gemini.
+
+### D-16 — IA: tradutor da OpenAI
+
+- **Prioridade:** P1 · **Depende de:** D-15 · **Branch:** `feat/d-16-ia-openai`
+- **Objetivo:** a OpenAI como provedor da IA, pela API oficial com a chave do usuário (ADR-0060).
+- **Posse:** `crates/warden-ai/src/providers/openai/**`, `crates/warden-ai/tests/rede_openai.rs`, `apps/desktop/e2e/mock-server/openai.ts`; fora da posse, só a linha de registro do provedor em `providers/mod.rs` e o testador da chave em `apps/desktop/src-tauri/src/state.rs`.
+- **Entregas:** tradutor do formato comum para a API da OpenAI e de volta (mensagens, chamadas de ferramenta com `id`, resultados de ferramenta, escolha obrigatória entre um conjunto de nomes, reserva com resposta em JSON pelo esquema, uso de tokens com cache e raciocínio); classificação dos erros da API nas categorias comuns (temporário, limite por minuto com o tempo pedido, cota esgotada, chave inválida, resposta malformada); lista de modelos com a regra do padrão e da "Análise mais cuidadosa" (sem nome fixo); testador da chave (Configurações › Testar); servidor simulado da OpenAI para os testes e os E2E; `rede_openai` ignorado sem `OPENAI_API_KEY`, que se declara pulado.
+- **Critérios de aceite:** CA-T14-23 (OpenAI); a parte da OpenAI do CA-T14-20.
+- **Verificação:** `cargo nextest run -p warden-ai` com o simulado da OpenAI (o laço inteiro: chamadas paralelas, 8 rodadas e reserva, novas tentativas); teste de rede sob demanda.
+
+### D-17 — IA: tradutor da Anthropic (Claude)
+
+- **Prioridade:** P1 · **Depende de:** D-15 · **Branch:** `feat/d-17-ia-anthropic`
+- **Objetivo:** o Claude como provedor da IA, pela API oficial da Anthropic com a chave do usuário (ADR-0060).
+- **Posse:** `crates/warden-ai/src/providers/anthropic/**`, `crates/warden-ai/tests/rede_anthropic.rs`, `apps/desktop/e2e/mock-server/anthropic.ts`; fora da posse, só a linha de registro do provedor em `providers/mod.rs` e o testador da chave em `apps/desktop/src-tauri/src/state.rs`.
+- **Entregas:** tradutor do formato comum para a API Messages e de volta (sistema no topo, blocos `tool_use` e `tool_result` com `id`, escolha `any` entre um conjunto de nomes, reserva com resposta em JSON pelo esquema, uso de tokens com cache); os blocos de raciocínio guardados no campo opaco e devolvidos intactos; classificação dos erros (529 e 5xx temporários, 429 com `retry-after`, chave inválida, resposta malformada); lista de modelos com a regra do padrão e da "Análise mais cuidadosa" (sem nome fixo); testador da chave; servidor simulado da Anthropic que recusa bloco de raciocínio alterado; `rede_anthropic` ignorado sem `ANTHROPIC_API_KEY`, que se declara pulado.
+- **Critérios de aceite:** CA-T14-23 (Anthropic); a parte da Anthropic do CA-T14-20.
+- **Verificação:** `cargo nextest run -p warden-ai` com o simulado da Anthropic; teste de rede sob demanda.
+
+### D-18 — IA com vários provedores: telas e E2E
+
+- **Prioridade:** P1 · **Depende de:** D-15 · **Branch:** `feat/d-18-ia-provedores-telas`
+- **Objetivo:** escolher o provedor e a chave de cada um em Configurações, ver o provedor no consentimento e nas conversas, e provar o fluxo de cada provedor de ponta a ponta (T14, T21; ADR-0060).
+- **Posse:** `apps/desktop/src/features/settings/ai/**`, `apps/desktop/src/features/diagnostics/ai/ConsentDialog.tsx`, o passo da IA nas boas-vindas (onboarding), os textos da IA em `apps/desktop/src/i18n/pt-BR/` e `apps/desktop/src/i18n/errors/ai.ts`, `apps/desktop/e2e/ai-provedores.e2e.ts`.
+- **Entregas:** Configurações › IA com o provedor (Gemini, padrão; OpenAI; Claude), a chave de cada um (Testar, Substituir, Remover, passo a passo para criar) e o modelo padrão ou "Análise mais cuidadosa" por provedor; primeiro uso e boas-vindas citando os três; consentimento com o nome do provedor e o modelo, o aviso de plano gratuito só no Gemini; conversa mostrando o provedor em que começou e o pedido da chave dele quando faltar; textos dos erros por provedor; E2E por provedor com os servidores simulados.
+- **Critérios de aceite:** CA-T14-20, CA-T14-24, CA-T21-06; telas do CA-T14-21.
+- **Verificação:** testes de componente (Vitest) e E2E `ai-provedores.e2e.ts` com os três servidores simulados, cada spec 3 vezes seguidas sem falha (as telas não esperam a D-16 e a D-17; os casos da OpenAI e do Claude no E2E rodam com os tradutores delas já integrados); axe sem violações sérias.
+
 ---
 
 ## Fase 5 — Versionamento e exportação
@@ -1104,7 +1140,7 @@ Investigações curtas, com relatório em `docs/spikes/` e código descartável 
 | M2 — Testar | L-01 a L-06, L-10, D-01 a D-03, D-05 a D-07 | Testar o pack no jogo, ver o console, a RAM e o tempo de carregamento, entender travamentos e ver a lista de Travamentos. |
 | M3 — Núcleo completo | C-01 a C-03, C-05, V-02, V-03, E-01, P1-18 | Editar e buscar configs, trazer mudanças do jogo, salvar versões, publicar versões finais, exportar, criar packs com os mods iniciais. Todas as funcionalidades P0 existem. |
 | M4 — Ferramenta completa | S-R5-1, S-R5-2, S-R5-3, S-R5-4, P1-14, P1-15, P1-17, P1-19, L-07 a L-09, L-11, L-12, C-04, C-06, C-07, D-04, D-08 a D-14, E-02 a E-04, A-05, A-06 | Busca do culpado, IA com ferramentas, raio-x, grafo, nota de saúde, console agrupado, perfil de desempenho, servidor local, perfis, scripts, formulário de configs, importar, modpacks, kits, pacote para servidor, instância pronta para o Prism. |
-| M5 — v1 | A-01 a A-04, A-07 | Versão para uso diário: revisada, com instalador e validada pelo dono. A-01, A-02 e A-04 podem acontecer antes, em paralelo com o M4. |
+| M5 — v1 | A-01 a A-04, A-07, D-15 a D-18 | Versão para uso diário: revisada, com instalador e validada pelo dono, com a IA pelo Gemini, pela OpenAI ou pelo Claude (ADR-0060). A-01, A-02 e A-04 podem acontecer antes, em paralelo com o M4. |
 | M6 — Warden 1.1 "Profissional" | W-01 a W-12 | Conferir a segurança dos mods antes de testar e de publicar, ser avisado de mods removidos ou abandonados e trocá-los por substitutos, analisar o travamento que um jogador mandou, organizar os mods com notas e grupos, ver os itens repetidos entre mods e acompanhar o desempenho entre versões. Começa depois do M5. |
 
 ## 14. Backlog P2

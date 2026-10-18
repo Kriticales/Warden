@@ -725,7 +725,26 @@ Dados curados em `crates/warden-diagnostics/data/` (`exclusive-categories.toml`,
 
 A redação é testada com casos positivos e negativos; o diálogo de consentimento mostra o texto **depois** da redação, e esse é exatamente o texto enviado.
 
-### 9.5 IA (Gemini com ferramentas, P1; ADR-0030)
+### 9.5 IA (com ferramentas, P1; Gemini, OpenAI ou Claude; ADR-0030 e ADR-0060)
+
+**Provedores** (ADR-0060). O laço fala com um **trait de provedor** e não conhece nenhuma API. O provedor ativo (`aiProvider` em `ai/settings.json`: `gemini`, o padrão, `openai` ou `anthropic`) vale para as conversas novas; cada conversa guarda o seu provedor e o seu modelo e continua neles.
+
+| Onde | O quê |
+|---|---|
+| `warden-ai/src/providers/mod.rs` | `AiProvider` (o id gravado), o trait `Provider` e a fábrica `providers::connect` |
+| `warden-ai/src/providers/chat.rs` | o formato comum: `Message`, `ToolCall`, `ToolResult`, `ToolDecl`, `ToolChoice`, `ChatRequest`, `ChatResponse` e a classificação `Failure` |
+| `warden-ai/src/providers/gemini/` | o cliente e o tradutor do Gemini (`generateContent`, `countTokens`, `models.list`) e a escolha do modelo (D-04, migrados na D-15) |
+| `warden-ai/src/providers/openai/` | o tradutor da OpenAI (D-16) |
+| `warden-ai/src/providers/anthropic/` | o tradutor da Anthropic (D-17) |
+
+- **Formato comum.** Mensagens: sistema, usuário (texto), assistente (texto e chamadas de ferramenta com `id`, nome e argumentos JSON) e resultados de ferramenta (`id`, nome e conteúdo JSON, todos os de uma rodada numa mensagem). Cada mensagem tem um campo **opaco** com o que o provedor exige receber de volta igual: no Gemini, o `content` inteiro da resposta do modelo (as *thought signatures*); na Anthropic, os blocos de raciocínio. O tradutor que recebe uma mensagem com o campo opaco do seu provedor o reenvia sem tocar. Ferramentas: nome, descrição e JSON Schema. Escolha de ferramenta: automática, **obrigatória entre um conjunto de nomes** (o escalonamento por etapa; no Gemini, `VALIDATED` com `allowedFunctionNames`) ou nenhuma, com a resposta em JSON pelo esquema (a reserva).
+- **Resposta comum:** a mensagem do assistente, o motivo de parada, o uso de tokens (entrada, em cache, saída, raciocínio) e o **corpo exato enviado** (guardado na conversa, rodada por rodada). O bloco "Enviado à IA" mostra o resultado de ferramenta como o tradutor o escreveu no pedido (`Provider::tool_result_text`).
+- **Erros comuns** (`Failure`): temporário (sobrecarga, falta de conexão, tempo esgotado), limite por minuto (com o tempo pedido), cota esgotada (com a marca de plano gratuito, só no Gemini), cobrança, chave inválida, resposta malformada (com o uso já gasto) e recusa. Cada tradutor classifica os códigos da sua API; o laço decide as novas tentativas com os números da ADR-0055 (abaixo), iguais para todos.
+- **Modelos:** `Provider::models` devolve o padrão ("Mais econômico") e o da "Análise mais cuidadosa", pela lista de modelos da conta, com a regra de cada provedor; `AiProvider::tier_of` diz o nível de um nome de modelo. Nenhum nome fixo no código.
+- **Chaves:** `SecretKind::Gemini`, `Openai` e `Anthropic` (`GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`). A conversa usa a chave do seu provedor; sem ela, `AI_PROVIDER_KEY_MISSING` quando o provedor da conversa não é o ativo (o ativo sem chave continua com o `SECRETS_NOT_CONFIGURED` de sempre).
+- **Testes:** um servidor simulado por provedor (o do Gemini recusa histórico alterado, como a API real) e um teste de rede por provedor (`rede_<provedor>`), ignorado sem a chave daquele provedor.
+
+O resto desta seção descreve o Gemini, o provedor padrão; o que vale "para todos" está marcado.
 
 **API.** REST `generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent`, chave no cabeçalho `x-goog-api-key`, **sem estado** (o histórico inteiro da conversa é reenviado a cada rodada); a Interactions API com `store: true` não é usada (guarda dados no Google). Sem SDK: laço HTTP próprio em Rust pela `warden-http`.
 
@@ -753,9 +772,9 @@ A redação é testada com casos positivos e negativos; o diálogo de consentime
 
 **Texto não confiável.** Resultados que contêm logs, issues ou changelogs vão delimitados e marcados como dados (injeção de instruções, OWASP LLM01); nenhuma ferramenta tem efeito sem o clique do usuário.
 
-**Consentimento e transparência.** `ai_conversation_preview` devolve o texto inicial exato (visão geral, achados e o travamento escolhido, já redigidos), a contagem de tokens (`countTokens` com `generateContentRequest`, que conta também o sistema e as ferramentas) e as permissões; `ai_conversation_start` grava as permissões escolhidas (configs e GitHub) e só então faz a primeira requisição. Cada resultado de ferramenta enviado vira um bloco "Enviado à IA" com os bytes exatos; cada busca no GitHub, um bloco "Enviado ao GitHub". Origem do texto inicial: último travamento, outra sessão, um log escolhido no computador (só texto, até 20 MB lidos, mesma limpeza da §9.3 e redação da §9.4) ou só o pack.
+**Consentimento e transparência.** `ai_conversation_preview` devolve o texto inicial exato (visão geral, achados e o travamento escolhido, já redigidos), a contagem de tokens (`countTokens` com `generateContentRequest`, que conta também o sistema e as ferramentas; num provedor sem contador, `Provider::count_tokens` devolve `None` e vale a estimativa pelo tamanho), o provedor, o modelo e as permissões; `ai_conversation_start` grava as permissões escolhidas (configs e GitHub) e só então faz a primeira requisição. Cada resultado de ferramenta enviado vira um bloco "Enviado à IA" com os bytes exatos; cada busca no GitHub, um bloco "Enviado ao GitHub". Origem do texto inicial: último travamento, outra sessão, um log escolhido no computador (só texto, até 20 MB lidos, mesma limpeza da §9.3 e redação da §9.4) ou só o pack.
 
-**Conversas.** `ai/<pack-id>/<ULID>.json` nos dados locais (§13), nunca na pasta do pack: mensagens, chamadas e resultados **como enviados**, permissões, modelo, `usageMetadata` (tokens), propostas e o que foi aplicado, o hash da árvore do pack no início. Ao continuar, se o hash mudou, a interface avisa. `ai_conversation_delete` apaga o arquivo.
+**Conversas** (para todos os provedores). `ai/<pack-id>/<ULID>.json` nos dados locais (§13), nunca na pasta do pack. Formato 2 (D-15): o provedor, o modelo, o histórico no formato comum (com o campo opaco de cada mensagem) e o corpo exato enviado em cada rodada; o formato 1 (D-04, só Gemini, com o `contents` da API) é convertido ao abrir, sem mudar um byte do que sai para o Gemini. Guarda também mensagens, chamadas e resultados **como enviados**, permissões, modelo, `usageMetadata` (tokens), propostas e o que foi aplicado, o hash da árvore do pack no início. Ao continuar, se o hash mudou, a interface avisa. `ai_conversation_delete` apaga o arquivo.
 
 **Erros e novas tentativas** (S-R5-4 §13). Tempo-limite de 90 s por requisição. 503, 500 e tempo-limite de rede → até 4 novas tentativas com espera exponencial (2, 4, 8, 16 s). `MALFORMED_FUNCTION_CALL`, `UNEXPECTED_TOOL_CALL`, `MALFORMED_RESPONSE`, resposta sem `content`, texto vazio e resposta final vazia (sem achados, sem propostas e sem `semConclusao`) → até 2 novas tentativas sem mexer no histórico. 429 por minuto (`retryDelay` ≤ 60 s) → `AI_RATE_LIMITED`: espera o tempo pedido e continua, com aviso na tela. 429 com `quotaId` diário (`…PerDay…`) → `AI_QUOTA_EXCEEDED` na hora, **sem prometer horário de liberação** (o `retryDelay` diário se mostrou enganoso), sugerindo trocar de modelo. Sinal de cobrança (402, `BILLING_DISABLED`) → erro claro. O tipo de plano só aparece no 429 (`FreeTier` no `quotaId`). Códigos: `AI_KEY_INVALID`, `AI_RATE_LIMITED`, `AI_QUOTA_EXCEEDED`, `AI_TIMEOUT`, `AI_BAD_RESPONSE`, `AI_TOOL_LIMIT`, `AI_BILLING`, `AI_PERMISSION_DENIED` (ferramenta não permitida nesta conversa, devolvida à IA, não ao usuário).
 

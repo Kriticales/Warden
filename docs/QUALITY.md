@@ -266,6 +266,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Bisseção automática (D4) | encontrar o mod culpado; busca do culpado; rodada | bisseção, bisect, busca binária |
 | Raio-x de mixins (D4) | o que este mod altera no jogo; "alteram o mesmo ponto do jogo" | mixin (na interface, fora da coluna técnica), conflito de mixin, "são incompatíveis" |
 | Sessão de perguntas com a IA (D4) | conversa | chat, sessão de IA |
+| Empresa e API da IA escolhida em Configurações (ADR-0060) | provedor de IA (ou só "provedor" quando o contexto é a IA); nomes exibidos: **Gemini**, **OpenAI**, **Claude** (a empresa só no passo a passo da chave: Google, OpenAI, Anthropic) | fornecedor, LLM, backend, API de IA, "Anthropic" como nome do provedor |
 | O que a IA consultou, mostrado na conversa (D4) | Enviado à IA | log de ferramentas, function call |
 | Mudança sugerida pela IA (D4) | proposta; botão **Aplicar** | sugestão automática, ação da IA |
 | Conjunto de ajustes do teste com nome (D4) | perfil do teste | preset, configuração de teste |
