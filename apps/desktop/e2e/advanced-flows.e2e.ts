@@ -15,7 +15,8 @@
  *    (Gemini simulado) leva o que a pessoa contou e a resposta aparece com o "Enviado à IA".
  * 4. Testar como servidor e gerar o pacote para servidor: o menu ▾ só pelo teclado (o foco
  *    volta ao ▾ quando o diálogo da EULA fecha), o servidor local com o jogo dentro, os
- *    formatos de Exportar (Prism e .mrpack) e o pacote para servidor testado no servidor local.
+ *    formatos de Exportar (Prism e .mrpack), o pacote para servidor testado no servidor local e,
+ *    com o pack parado, o aviso de mudança feita fora do Warden.
  * 5. Importar um modpack: o `.mrpack` por "Abrir ou importar…", a revisão, o pack novo aberto em
  *    Mods, o aviso em Problemas e a linha em Meus packs; Configurações → Armazenamento no fim.
  *
@@ -322,8 +323,19 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
       const field = $('input[type="search"]');
       await field.click();
       await browser.keys('sodium mod'.split(''));
-      await $('button.drow__name=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
-      await $('button.drow__name=Sodium').waitForDisplayed();
+      // O início também lista o Sodium e o Mod Só da CurseForge: espera a lista da busca
+      // trocar a do início, senão o Tab cai numa linha que some no meio do caminho.
+      const results = $('ul[aria-label="Resultados"]');
+      await results.waitForDisplayed({ timeout: 30_000 });
+      await results
+        .$('button.drow__name=Mod Só da CurseForge')
+        .waitForDisplayed({ timeout: 30_000 });
+      await results.$('button.drow__name=Sodium').waitForDisplayed();
+      await browser.waitUntil(async () => !(await fullText('main')).includes('Buscando…'), {
+        timeout: 30_000,
+        timeoutMsg: 'a busca não terminou',
+      });
+      await expect($('h2=Populares para Minecraft 1.21.1 com Fabric')).not.toBeExisting();
       await dismissToasts();
       // O foco volta ao campo, como se a pessoa tivesse acabado de digitar.
       await browser.execute(() => {
@@ -483,19 +495,6 @@ describe('Fluxo 7: trazer mods de outro modpack (A-07)', () => {
       await waitHeading('Mods');
       await $('tr.modrow*=spark').waitForDisplayed({ timeout: 30_000 });
       await $('tr.modrow*=Crash Assistant').waitForDisplayed({ timeout: 30_000 });
-    });
-  });
-
-  it('uma mudança feita fora do Warden aparece no aviso e no cabeçalho do pack', async () => {
-    await step('renomear o pack por fora', async () => {
-      writeFileSync(
-        join(pack, 'pack.toml'),
-        read(pack, 'pack.toml').replace(/^name = ".*"$/m, 'name = "Fixture Renomeado"'),
-      );
-      await $('.toast*=O pack foi alterado fora do Warden').waitForDisplayed({ timeout: 20_000 });
-      await expectAccessible();
-      await dismissToasts();
-      await $('h1=Fixture Renomeado').waitForDisplayed({ timeout: 20_000 });
     });
   });
 });
@@ -751,6 +750,19 @@ describe('Fluxo 9: testar como servidor e gerar o pacote para servidor (A-07)', 
     expect(entries).toEqual(expect.arrayContaining(['start.bat', 'start.sh', 'config/vale.toml']));
     expect(entries).not.toContain('eula.txt');
     expect(entries).not.toContain('.warden-fake-server');
+  });
+
+  it('uma mudança feita fora do Warden aparece no aviso e no cabeçalho do pack', async () => {
+    await step('renomear o pack por fora', async () => {
+      writeFileSync(
+        join(pack, 'pack.toml'),
+        read(pack, 'pack.toml').replace(/^name = ".*"$/m, 'name = "Vale Renomeado por Fora"'),
+      );
+      await $('.toast*=O pack foi alterado fora do Warden').waitForDisplayed({ timeout: 20_000 });
+      await expectAccessible();
+      await dismissToasts();
+      await $('h1=Vale Renomeado por Fora').waitForDisplayed({ timeout: 20_000 });
+    });
   });
 });
 
