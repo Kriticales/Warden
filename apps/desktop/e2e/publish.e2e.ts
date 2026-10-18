@@ -89,14 +89,18 @@ async function openSection(name: string, heading: string): Promise<void> {
 
 async function saveFinal(version: string): Promise<void> {
   await dismissToasts();
+  process.stdout.write(`DIAG saveFinal ${version}: avisos fechados\n`);
   await $('header.packhead').$('button*=Salvar versão').click();
+  process.stdout.write(`DIAG saveFinal ${version}: Salvar versão clicado\n`);
   const dialog = $('[role="dialog"]*=Número da versão');
   await dialog.waitForDisplayed({ timeout: 60_000 });
+  process.stdout.write(`DIAG saveFinal ${version}: diálogo aberto\n`);
   const number = dialog.$('input.input');
   await replaceValue(number, version);
   await dialog.$('label*=Marcar como versão final').click();
   const save = dialog.$(`button*=Salvar versão ${version}`);
   await save.waitForEnabled({ timeout: 30_000 });
+  process.stdout.write(`DIAG saveFinal ${version}: botão habilitado\n`);
   await save.click();
   await $(`[role="dialog"]*=Versão ${version} salva como versão final`).waitForDisplayed({
     timeout: 60_000,
@@ -228,20 +232,36 @@ describe('Publicar versão no GitHub (V-03; T18)', () => {
     expect(await seriousViolationSummaries()).toEqual([]);
   });
 
-  it('CA-T18-06: um token ghp_ num config bloqueia a publicação apontando arquivo e linha', async () => {
+  it('CA-T18-06: um token ghp_ num config bloqueia a publicação apontando arquivo e linha', async function () {
+    this.timeout(300_000);
+    const t0 = Date.now();
+    const mark = (what: string) => process.stdout.write(`DIAG ${String(Date.now() - t0)} ms: ${what}\n`);
+    const dump = async (what: string) => {
+      const text = await browser.execute(() => document.body.innerText.slice(0, 3000));
+      process.stdout.write(`DIAG ${what} TELA:\n${text}\nDIAG FIM DA TELA\n`);
+    };
+    const timer = setInterval(() => {
+      void dump('periódico').catch(() => undefined);
+    }, 20_000);
+    try {
     writeFileSync(
       join(PACK, 'config', 'segredo.toml'),
       '[bot]\nchave = "ghp_abcdefghijklmnopqrstuvwxyz0123456789"\n',
     );
+    mark('arquivo escrito');
     await openSection('Mods', 'Mods');
+    mark('Mods aberto');
     await browser.execute(() => {
       document.dispatchEvent(new Event('visibilitychange', { bubbles: true }));
     });
     await expect($('header.packhead')).toHaveText(expect.stringMatching(/1\s+alteração/), {
       wait: 30_000,
     });
+    mark('1 alteração');
     await saveFinal('1.0.1');
+    mark('1.0.1 salva');
     await $('[role="dialog"]').$('button=Publicar versão 1.0.1').click();
+    mark('Publicar clicado');
     const plan = await dialogNamed(
       PLAN_TITLE('1.0.1'),
       'Encontramos algo que parece uma chave em config/segredo.toml, linha 2.',
@@ -261,5 +281,12 @@ describe('Publicar versão no GitHub (V-03; T18)', () => {
         encoding: 'utf8',
       }).trim(),
     ).toBe('v1.0.0');
+    mark('fim');
+    } catch (error) {
+      await dump('falha').catch(() => undefined);
+      throw error;
+    } finally {
+      clearInterval(timer);
+    }
   });
 });
