@@ -38,7 +38,7 @@ export const servidor = {
     livreDesconhecida: 'o sistema não informou',
     poucaTitulo: 'Pode faltar memória.',
     poucaTexto:
-      'Com {{livre}} livres, o computador pode ficar lento ou o jogo pode fechar. Feche outros programas, escolha "Só o servidor" ou use um perfil com menos memória.',
+      'Com {{livre}} livres, o computador pode ficar lento ou o jogo pode fechar. Feche outros programas, escolha "Só o servidor" ou use um perfil do teste com menos memória.',
     poucaTextoSo:
       'Com {{livre}} livres, o computador pode ficar lento ou o servidor pode fechar. Feche outros programas antes de abrir.',
     loaderNao: 'O servidor local ainda não abre packs com Quilt ou LiteLoader.',

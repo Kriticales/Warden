@@ -174,7 +174,11 @@ describe('opções do Testar como servidor (CA-T27-03)', () => {
     expect(await within(dialog).findByText('servidor 4 GB + jogo 6 GB = 10 GB')).toBeDefined();
     expect(within(dialog).getByText('7 GB')).toBeDefined();
     expect(within(dialog).getByText('Pode faltar memória.')).toBeDefined();
-    expect(within(dialog).getByText(/escolha "Só o servidor"/)).toBeDefined();
+    expect(
+      within(dialog).getByText(
+        /escolha "Só o servidor" ou use um perfil do teste com menos memória\./,
+      ),
+    ).toBeDefined();
     expect(
       within(dialog).getByText(
         '8 mods só de cliente ficam de fora: Embeddium, Rubidium, Jade e mais 5.',
