@@ -46,9 +46,16 @@ export interface ServerTestDialogProps {
   pack: PackRow;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Quem recebe o foco ao fechar (padrão: o ▾ do Testar; o Exportar passa o próprio botão). */
+  returnFocusTo?: () => HTMLElement | null;
 }
 
-export function ServerTestDialog({ packId, open, onOpenChange }: ServerTestDialogProps) {
+export function ServerTestDialog({
+  packId,
+  open,
+  onOpenChange,
+  returnFocusTo = testMenuButton,
+}: ServerTestDialogProps) {
   const [withGame, setWithGame] = useState(true);
   const plan = useServerPlan(packId, withGame, open);
   const eulaMissing = plan.isSuccess && plan.data.eulaAcceptedAt === null;
@@ -56,6 +63,7 @@ export function ServerTestDialog({ packId, open, onOpenChange }: ServerTestDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       {eulaMissing ? (
         <EulaStep
+          returnFocusTo={returnFocusTo}
           onClose={() => {
             onOpenChange(false);
           }}
@@ -66,6 +74,7 @@ export function ServerTestDialog({ packId, open, onOpenChange }: ServerTestDialo
           plan={plan}
           withGame={withGame}
           setWithGame={setWithGame}
+          returnFocusTo={returnFocusTo}
           onClose={() => {
             onOpenChange(false);
           }}
@@ -76,14 +85,20 @@ export function ServerTestDialog({ packId, open, onOpenChange }: ServerTestDialo
 }
 
 /** "Aceitar a EULA do Minecraft?" (só na primeira vez; D19). */
-function EulaStep({ onClose }: { onClose: () => void }) {
+function EulaStep({
+  onClose,
+  returnFocusTo,
+}: {
+  onClose: () => void;
+  returnFocusTo: () => HTMLElement | null;
+}) {
   const { t } = useTranslation('servidor');
   const accept = useAcceptEula();
   return (
     <DialogContent
       size="sm"
       title={t('eula.titulo')}
-      returnFocusTo={testMenuButton}
+      returnFocusTo={returnFocusTo}
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={accept.isPending}>
@@ -127,12 +142,14 @@ function OptionsStep({
   plan,
   withGame,
   setWithGame,
+  returnFocusTo,
   onClose,
 }: {
   packId: PackId;
   plan: ReturnType<typeof useServerPlan>;
   withGame: boolean;
   setWithGame: (value: boolean) => void;
+  returnFocusTo: () => HTMLElement | null;
   onClose: () => void;
 }) {
   const { t } = useTranslation('servidor');
@@ -230,7 +247,7 @@ function OptionsStep({
   return (
     <DialogContent
       title={t('opcoes.titulo')}
-      returnFocusTo={testMenuButton}
+      returnFocusTo={returnFocusTo}
       description={t('opcoes.sub')}
       footer={
         <>

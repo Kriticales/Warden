@@ -701,6 +701,23 @@ export const commands = {
 	 *  o servidor no console principal). Erros: `app.TEST_SESSION_NOT_FOUND`.
 	 */
 	serverSessionLog: (packId: PackId, sessionId: string) => typedError<ServerLogView, AppError>(__TAURI_INVOKE("server_session_log", { packId, sessionId })),
+	/**
+	 *  O que a tela mostra antes de gerar. Só lê o pack (e confere na CurseForge os mods que vão
+	 *  pedir o download manual).
+	 */
+	serverPackAnalyze: (packId: PackId) => typedError<ServerPackInfo, AppError>(__TAURI_INVOKE("server_pack_analyze", { packId })),
+	/**
+	 *  Abre o diálogo de destino, gera o pacote e, com `validate`, testa no servidor local.
+	 *  `None` = a pessoa desistiu do diálogo.
+	 */
+	serverPackRun: (packId: PackId, request: ServerPackRunRequest) => typedError<{
+	/**  O pacote. */
+	result: ServerPackResult,
+	/**  A validação (`None`: não pedida). */
+	check: ServerPackCheck | null,
+} | null, AppError>(__TAURI_INVOKE("server_pack_run", { packId, request })),
+	/**  "Mostrar arquivo": só aceita pacotes que `server_pack_run` gerou nesta sessão. */
+	serverPackReveal: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("server_pack_reveal", { path })),
 	/**  O espaço usado pelo cache, pelos arquivos do Minecraft, pelos Javas e pelas instâncias. */
 	storageUsage: () => typedError<StorageUsage, AppError>(__TAURI_INVOKE("storage_usage")),
 	/**
@@ -2583,7 +2600,23 @@ export type ExportErrorCode =
 /**  O arquivo gerado não passou na validação e foi descartado. */
 "PRISM_INVALID_OUTPUT" | 
 /**  O pack usa uma organização que a instância pronta não sabe reproduzir. */
-"PRISM_UNSUPPORTED_PACK";
+"PRISM_UNSUPPORTED_PACK" | 
+/**  O pack usa uma organização que o pacote para servidor não sabe reproduzir. */
+"SERVER_PACK_UNSUPPORTED_PACK" | 
+/**  O loader do pack não tem scripts de servidor (Quilt, `LiteLoader`). */
+"SERVER_PACK_UNSUPPORTED_LOADER" | 
+/**  O pacote pelo link precisa do pack publicado. */
+"SERVER_PACK_NOT_PUBLISHED" | 
+/**  Há arquivos de terceiros que iriam dentro do zip e a pessoa não confirmou a licença. */
+"SERVER_PACK_NEEDS_CONFIRMATION" | 
+/**  Mods da CurseForge bloqueados para terceiros ainda sem o download manual (T20). */
+"SERVER_PACK_MANUAL_DOWNLOADS" | 
+/**  Um mod do servidor não pôde ser baixado ou conferido para entrar no zip. */
+"SERVER_PACK_DOWNLOAD_FAILED" | 
+/**  A CurseForge não respondeu à conferência dos mods. */
+"SERVER_PACK_LOOKUP_FAILED" | 
+/**  O pacote gerado não passou na conferência e foi descartado. */
+"SERVER_PACK_INVALID_OUTPUT";
 
 /**  Saída nativa. */
 export type ExportFormat = 
@@ -4435,6 +4468,13 @@ export type LinkTarget = {
 	 */
 	manualDownload: boolean,
 };
+
+/**  Por que a variante pelo link não está disponível. */
+export type LinkUnavailable = 
+/**  O pack nunca foi publicado. */
+"notPublished" | 
+/**  O repositório é privado ("só backup"): o link não abre para o servidor. */
+"privateRepo";
 
 /**  Tipo dos itens de uma lista. */
 export type ListItemKind = 
@@ -6822,6 +6862,159 @@ export type ServerLogView = {
 	/**  Se o começo do log ficou de fora. */
 	truncated: boolean,
 };
+
+/**  O que a geração vai fazer. Só lê o pack (e, com mods dentro, consulta a CurseForge). */
+export type ServerPackAnalysis = {
+	/**  Versão do pack (`pack.toml`). */
+	version: string,
+	/**  Versão do Minecraft. */
+	minecraft: string,
+	/**  Loader e versão exata, em texto (`Forge 47.3.0`); vazio no vanilla. */
+	loader: string,
+	/**  O loader tem scripts de servidor (Quilt e `LiteLoader` não têm na v1). */
+	loaderSupported: boolean,
+	/**  Itens "Só cliente" que ficam de fora (nomes, até 50). */
+	clientOnly: string[],
+	/**  Quantos são. */
+	clientOnlyCount: number,
+	/**
+	 *  Arquivos do pack de cliente que ficam de fora (`options.txt`, `servers.dat`, resource
+	 *  packs, shaders, `kubejs/client_scripts/`).
+	 */
+	clientFiles: number,
+	/**  O pack tem `kubejs/client_scripts/` (fica de fora). */
+	kubejsClientScripts: boolean,
+	/**  Arquivos em `server-overrides/` (substituem os do pack no servidor). */
+	serverOverrides: number,
+	/**  Pelo link do pack. */
+	link: ServerPackContents,
+	/**  Com mods dentro do zip. */
+	embedded: ServerPackContents,
+	/**
+	 *  Mods da CurseForge que ainda não estão neste computador e cujo autor não deixa apps de
+	 *  terceiros baixarem: com mods dentro, o download manual (T20) abre antes de gerar.
+	 */
+	manualDownloads: string[],
+	/**  Há mods da CurseForge fora do cache e falta a chave para conferir e baixar. */
+	curseforgeKeyMissing: boolean,
+};
+
+/**  O resultado da validação no servidor local. */
+export type ServerPackCheck = 
+/**  "Pacote para servidor testado: o servidor abriu em N s." */
+{ kind: "tested"; 
+/**  Da abertura do processo ao "Done", em ms. */
+readyMs: number } | 
+/**  O servidor fechou antes do "Done": o "Por que travou". */
+{ kind: "crashed"; 
+/**  O mod apontado, a classe do cliente e o trecho do log. */
+crash: ServerCrash } | 
+/**  A validação não chegou a abrir o servidor (download, instalação, tempo esgotado). */
+{ kind: "failed"; 
+/**  O erro. */
+error: AppError };
+
+/**  O conteúdo de uma das variantes, antes de gerar. */
+export type ServerPackContents = {
+	/**  Pastas e arquivos do pack que vão no zip (sem os scripts e os jars dos mods). */
+	folders: ServerPackFolder[],
+	/**
+	 *  Mods, datapacks e outros itens de referência do lado servidor: dentro do zip (com mods
+	 *  dentro) ou baixados pelo link.
+	 */
+	serverItems: number,
+	/**  Arquivos de terceiros que iriam dentro do zip e pedem confirmação de licença. */
+	thirdParty: number,
+};
+
+/**  Uma pasta de primeiro nível do pacote e quantos arquivos dela vão. */
+export type ServerPackFolder = {
+	/**  Caminho da pasta (`config`), ou `.` para os arquivos soltos na raiz. */
+	path: string,
+	/**  Arquivos. */
+	files: number,
+};
+
+/**  O que a tela mostra antes de gerar. */
+export type ServerPackInfo = {
+	/**  O estado atual (a variante com mods dentro). */
+	current: ServerPackAnalysis,
+	/**  A publicação (a variante pelo link), quando há. */
+	published: ServerPackPublication | null,
+	/**  Sem publicação utilizável, o motivo. */
+	linkUnavailable: LinkUnavailable | null,
+	/**  A memória recomendada do servidor, em MB. */
+	recommendedMemoryMb: number,
+	/**  Quando a EULA foi aceita no Warden (`None`: a validação pede o aceite antes). */
+	eulaAcceptedAt: string | null,
+};
+
+/**  O que a pessoa escolheu antes de gerar. */
+export type ServerPackOptions = {
+	/**  A variante. */
+	variant: ServerPackVariant,
+	/**  Memória do servidor em MB, gravada em `user_jvm_args.txt` (`-Xms` e `-Xmx`). */
+	memoryMb: number,
+	/**
+	 *  Confirmou que pode distribuir os arquivos de terceiros que vão dentro do zip (mods,
+	 *  na variante com mods dentro).
+	 */
+	confirmThirdParty: boolean,
+};
+
+/**  A variante pelo link: a versão publicada e o link do `pack.toml`. */
+export type ServerPackPublication = {
+	/**  A última versão publicada. */
+	version: string,
+	/**  O link do pack (`…/main/pack.toml`). */
+	link: string,
+	/**  O que vai no pacote, lido dessa versão. */
+	analysis: ServerPackAnalysis,
+};
+
+/**  O pacote gerado. */
+export type ServerPackResult = {
+	/**  O arquivo `.zip` escolhido. */
+	path: string,
+	/**  A variante. */
+	variant: ServerPackVariant,
+	/**  Tamanho do arquivo. */
+	bytes: number,
+	/**  SHA-256 do arquivo, em hexadecimal. */
+	sha256: string,
+	/**  Entradas do zip, em ordem. */
+	files: string[],
+	/**  Jars de mods dentro do zip (com mods dentro). */
+	mods: number,
+	/**  Memória gravada em `user_jvm_args.txt`, em MB. */
+	memoryMb: number,
+};
+
+/**  O pacote gerado e, se pedida, a validação. */
+export type ServerPackRun = {
+	/**  O pacote. */
+	result: ServerPackResult,
+	/**  A validação (`None`: não pedida). */
+	check: ServerPackCheck | null,
+};
+
+/**  O que a pessoa pediu. */
+export type ServerPackRunRequest = {
+	/**  As escolhas da geração. */
+	options: ServerPackOptions,
+	/**  "Testar no servidor deste computador depois de gerar". */
+	validate: boolean,
+};
+
+/**  Como os mods chegam ao servidor. */
+export type ServerPackVariant = 
+/**
+ *  Os scripts rodam o packwiz-installer-bootstrap com `-s server` pelo link do pack
+ *  publicado (padrão): o servidor se atualiza a cada versão publicada.
+ */
+"link" | 
+/**  Os jars dos mods de servidor vão dentro do zip (funciona sem internet). */
+"embedded";
 
 /**  Situação do servidor local. */
 export type ServerPhase = 

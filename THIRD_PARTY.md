@@ -167,8 +167,8 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 
 | Origem | Versão | Licença | Para quê |
 |---|---|---|---|
-| [packwiz/packwiz-installer-bootstrap](https://github.com/packwiz/packwiz-installer-bootstrap) | 0.0.3 | MIT | "Testar como o jogador recebe" (L-07): roda com `--bootstrap-no-update`. Baixado da URL de download do Release (sem a API do GitHub) para `cache/installer/` e conferido pelo SHA-256 fixado em `crates/warden-instance/src/installer_cache.rs`; o mesmo jar dos testes de conformidade (`cargo xtask installer`, L-03). |
-| [packwiz/packwiz-installer](https://github.com/packwiz/packwiz-installer) | 0.5.14 | MIT | Instalador que o bootstrap abre (`--bootstrap-main-jar`) no "Testar como o jogador recebe", do mesmo jeito e com o mesmo cache e conferência do bootstrap. |
+| [packwiz/packwiz-installer-bootstrap](https://github.com/packwiz/packwiz-installer-bootstrap) | 0.0.3 | MIT | "Testar como o jogador recebe" (L-07): roda com `--bootstrap-no-update`. Baixado da URL de download do Release (sem a API do GitHub) para `cache/installer/` e conferido pelo SHA-256 fixado em `crates/warden-instance/src/installer_cache.rs`; o mesmo jar dos testes de conformidade (`cargo xtask installer`, L-03). **Distribuído** (E-03) dentro do "Pacote para servidor" pelo link, como `packwiz-installer-bootstrap.jar`, sem alterações, conferido pelo mesmo SHA-256 antes de entrar no zip e acompanhado do aviso da licença MIT (`LICENCAS-DE-TERCEIROS.txt`). |
+| [packwiz/packwiz-installer](https://github.com/packwiz/packwiz-installer) | 0.5.14 | MIT | Instalador que o bootstrap abre (`--bootstrap-main-jar`) no "Testar como o jogador recebe", do mesmo jeito e com o mesmo cache e conferência do bootstrap. **Distribuído** (E-03) no "Pacote para servidor" pelo link, como `packwiz-installer.jar`, do mesmo jeito que o bootstrap. |
 
 ## Sidecar do packwiz
 

@@ -109,7 +109,7 @@ pub(crate) struct ServerPackRunRequest {
 
 /// O resultado da validação no servidor local.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(tag = "kind", rename_all = "camelCase", rename_all_fields = "camelCase")]
 pub(crate) enum ServerPackCheck {
     /// "Pacote para servidor testado: o servidor abriu em N s."
     Tested {

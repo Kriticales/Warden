@@ -49,4 +49,20 @@ export const exportErrors: Record<ExportErrorCode, string> = {
     'O arquivo gerado não passou na conferência e foi descartado. Copie os detalhes técnicos e registre o problema. Nada foi gravado.',
   PRISM_UNSUPPORTED_PACK:
     'Este pack usa algo que a instância pronta para o Prism não sabe reproduzir (veja os detalhes técnicos). Use a pasta ou o zip do pack. Nada foi gravado.',
+  SERVER_PACK_UNSUPPORTED_PACK:
+    'Este pack usa algo que o pacote para servidor não sabe reproduzir (veja os detalhes técnicos). Nada foi gravado.',
+  SERVER_PACK_UNSUPPORTED_LOADER:
+    'O pacote para servidor ainda não sai para packs com {{loader}}. Nada foi gravado.',
+  SERVER_PACK_NOT_PUBLISHED:
+    'Para baixar os mods pelo link do pack, publique uma versão antes (Publicar versão, no Histórico) ou escolha Mods dentro do zip. Nada foi gravado.',
+  SERVER_PACK_NEEDS_CONFIRMATION:
+    'Os mods iriam dentro do zip e falta a sua confirmação de que pode distribuí-los. Marque a confirmação e gere de novo. Nada foi gravado.',
+  SERVER_PACK_MANUAL_DOWNLOADS:
+    'Estes mods da CurseForge precisam ser baixados à mão antes de gerar: {{mods}}. Gere de novo e baixe cada um pela lista que aparece. Nada foi gravado.',
+  SERVER_PACK_DOWNLOAD_FAILED:
+    'Não foi possível baixar ou conferir um dos mods do servidor; os detalhes técnicos dizem qual. Veja a conexão e tente de novo; se continuar, atualize ou troque o mod.',
+  SERVER_PACK_LOOKUP_FAILED:
+    'Não foi possível conferir os mods na CurseForge. Veja a conexão com a internet e tente de novo.',
+  SERVER_PACK_INVALID_OUTPUT:
+    'O pacote gerado não passou na conferência e foi descartado. Copie os detalhes técnicos e registre o problema. Nada foi gravado.',
 };
