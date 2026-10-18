@@ -52,6 +52,13 @@ pub enum AiErrorCode {
     PreviewExpired,
     /// O arquivo de uma conversa está ilegível.
     ConversationUnreadable,
+    /// A proposta não existe nesta conversa (D-14).
+    ProposalNotFound,
+    /// A proposta já foi aplicada ou descartada (D-14).
+    ProposalDecided,
+    /// O pack mudou depois que a diferença da proposta foi mostrada: é preciso revisar de novo
+    /// (D-14).
+    ProposalStale,
 }
 
 /// Erro das funções desta crate.
@@ -141,6 +148,24 @@ pub enum Error {
         /// O erro de leitura.
         reason: String,
     },
+    /// Proposta inexistente (D-14).
+    #[error("a proposta {id} não existe nesta conversa")]
+    ProposalNotFound {
+        /// O id (`p1`).
+        id: String,
+    },
+    /// Proposta já decidida (D-14).
+    #[error("a proposta {id} já foi aplicada ou descartada")]
+    ProposalDecided {
+        /// O id.
+        id: String,
+    },
+    /// O pack mudou desde a diferença mostrada (D-14).
+    #[error("o pack mudou desde que a diferença da proposta {id} foi mostrada")]
+    ProposalStale {
+        /// O id.
+        id: String,
+    },
     /// Falha de rede, tempo esgotado ou cancelamento vindos do cliente HTTP.
     #[error(transparent)]
     Http(#[from] warden_http::Error),
@@ -188,6 +213,9 @@ impl DomainError for Error {
             Self::ConversationBusy { .. } => AiErrorCode::ConversationBusy,
             Self::PreviewExpired => AiErrorCode::PreviewExpired,
             Self::ConversationUnreadable { .. } => AiErrorCode::ConversationUnreadable,
+            Self::ProposalNotFound { .. } => AiErrorCode::ProposalNotFound,
+            Self::ProposalDecided { .. } => AiErrorCode::ProposalDecided,
+            Self::ProposalStale { .. } => AiErrorCode::ProposalStale,
             Self::Http(error) => return http_code(error),
             Self::Core(error) => return DomainCode::Core(core_code(error)),
             Self::Io { .. } => return DomainCode::Core(CoreErrorCode::Io),

@@ -114,8 +114,16 @@ describe('✦ Diagnóstico com IA: seção (T14)', () => {
     expect(within(dialog).getByText(/cerca de ~31 mil tokens/)).toBeDefined();
     expect(within(dialog).getByText(/Entre US\$ 0,005 e US\$ 0,04/)).toBeDefined();
     expect(within(dialog).getByText(/pessoas podem lê-lo/)).toBeDefined();
-    // A busca no GitHub só aparece quando existir (D-14).
-    expect(within(dialog).queryByText(/GitHub/)).toBeNull();
+    // A busca no GitHub (D-14): marcada, desmarcável, com o que vai e o que nunca vai.
+    const github = within(dialog).getByRole('checkbox', {
+      name: /Procurar problemas parecidos nas páginas dos mods no GitHub/,
+    });
+    expect((github as HTMLInputElement).checked).toBe(true);
+    expect(
+      within(dialog).getByText(
+        'Envia ao GitHub só o nome do mod e algumas palavras do erro. Nunca o log.',
+      ),
+    ).toBeDefined();
     expect(backend.callsOf('ai_conversation_preview')[0]?.args).toEqual({
       packId: expect.any(String) as string,
       request: {
@@ -142,6 +150,8 @@ describe('✦ Diagnóstico com IA: seção (T14)', () => {
     await user.click(await screen.findByRole('button', { name: 'Começar conversa' }));
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('checkbox', { name: /Configs do pack/ }));
+    // CA-T14-13: com a caixa do GitHub desmarcada, a conversa grava a permissão negada.
+    await user.click(within(dialog).getByRole('checkbox', { name: /no GitHub/ }));
     await user.click(within(dialog).getByRole('button', { name: 'Começar conversa' }));
     await openConversationHeading();
     expect(backend.callsOf('ai_conversation_start')[0]?.args).toEqual({

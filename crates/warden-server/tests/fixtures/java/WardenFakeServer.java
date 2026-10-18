@@ -18,6 +18,10 @@ import java.util.Properties;
  * - sem eula=true no eula.txt, escreve o aviso da Mojang e sai com 0 (como o servidor real);
  * - lê server-ip e server-port do server.properties e escuta nesse endereço (a porta fica
  *   ocupada enquanto ele estiver aberto);
+ * - cria o "mundo" (`level-name`, padrão `world`) com `level.dat` contendo a semente do
+ *   `level-seed` ("semente=…"), um `region/r.0.0.mca` e o `session.lock` (D-12: o mundo de teste
+ *   da busca do culpado é gerado por um servidor vanilla); se a pasta já tem o `level.dat`, abre
+ *   esse mundo sem mexer nele ("Preparing level", com "(mundo existente)");
  * - escreve "Done (…)! For help, type "help"" e passa a ler comandos do stdin: "stop" fecha
  *   (salvando o "mundo"), qualquer outro é ecoado;
  * - cada conexão recebida lê o nome do jogador (uma linha) e escreve as linhas de entrada no
@@ -32,7 +36,11 @@ import java.util.Properties;
  *   ignorar-stop       responde ao "stop" sem fechar (o Warden encerra à força);
  *   travar-cliente     ao abrir, um mod de cliente derruba o servidor: grava o crash report
  *                      (crash-reports/crash-teste-server.txt) e sai com 1;
- *   sair N             sai com o código N antes do Done.
+ *   sair N             sai com o código N antes do Done;
+ *   culpado NOME...    quando há em mods/ um jar começando por cada NOME, o jogador não
+ *                      consegue entrar: escreve "Couldn't place player in world" e a exceção
+ *                      (como o servidor de verdade) e continua aberto; senão o jogador entra
+ *                      normalmente (D-13, busca do culpado com o servidor local).
  */
 public final class WardenFakeServer {
     private WardenFakeServer() {}
@@ -77,6 +85,25 @@ public final class WardenFakeServer {
         return properties;
     }
 
+    private static void write(File file, String text) throws Exception {
+        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+        try {
+            writer.write(text);
+        } finally {
+            writer.close();
+        }
+    }
+
+    /** O "mundo" gerado, como o servidor deixa na pasta dele. */
+    private static void writeWorld(Properties properties) throws Exception {
+        String level = properties.getProperty("level-name", "world").trim();
+        File world = new File(level.isEmpty() ? "world" : level);
+        new File(world, "region").mkdirs();
+        write(new File(world, "level.dat"), "semente=" + properties.getProperty("level-seed", "").trim() + "\n");
+        write(new File(new File(world, "region"), "r.0.0.mca"), "chunks");
+        write(new File(world, "session.lock"), "lock");
+    }
+
     private static void crashWithClientMod() throws Exception {
         File dir = new File("crash-reports");
         dir.mkdirs();
@@ -99,8 +126,32 @@ public final class WardenFakeServer {
         System.exit(1);
     }
 
+    /** Se há em mods/ um jar começando por cada nome de `names` (e pelo menos um nome). */
+    private static boolean culpritsPresent(String[] names) {
+        String[] jars = new File("mods").list();
+        if (names.length == 0 || jars == null) {
+            return false;
+        }
+        for (String name : names) {
+            boolean found = false;
+            for (String jar : jars) {
+                if (jar.startsWith(name)) {
+                    found = true;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static void main(String[] args) throws Exception {
         String mode = args.length > 0 ? args[0] : "normal";
+        final String[] culprits = new String[mode.equals("culpado") ? args.length - 1 : 0];
+        if (culprits.length > 0) {
+            System.arraycopy(args, 1, culprits, 0, culprits.length);
+        }
         log("INFO", "Starting minecraft server version 1.20.1 (simulado, pid " + pid() + ")");
         if (!eulaAccepted()) {
             log("INFO", "You need to agree to the EULA in order to run the server. Go to eula.txt for more info.");
@@ -126,7 +177,12 @@ public final class WardenFakeServer {
         if (mode.equals("lento")) {
             Thread.sleep(Long.parseLong(args[1]));
         }
-        log("INFO", "Preparing level \"world\"");
+        String level = properties.getProperty("level-name", "world").trim();
+        boolean existing = new File(level.isEmpty() ? "world" : level, "level.dat").isFile();
+        log("INFO", "Preparing level \"" + level + "\"" + (existing ? " (mundo existente)" : ""));
+        if (!existing) {
+            writeWorld(properties);
+        }
         log("INFO", "Done (0.512s)! For help, type \"help\"");
 
         Thread accept = new Thread(new Runnable() {
@@ -139,6 +195,13 @@ public final class WardenFakeServer {
                         String name = in.readLine();
                         if (name == null || name.trim().isEmpty()) {
                             name = "Jogador";
+                        }
+                        if (culpritsPresent(culprits)) {
+                            log("ERROR", "Couldn't place player in world");
+                            System.out.println("java.lang.IllegalStateException: conflito simulado de " + culprits.length + " mods no servidor");
+                            System.out.println("\tat com.example.culpado.Servidor.entrar(Servidor.java:42)");
+                            System.out.flush();
+                            continue;
                         }
                         log("INFO", name.trim() + "[/127.0.0.1:" + client.getPort() + "] logged in with entity id " + entity + " at (0.5, 64.0, 0.5)");
                         log("INFO", name.trim() + " joined the game");

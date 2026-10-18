@@ -75,6 +75,8 @@ const DEFAULTS: Record<string, Handler> = {
     groups: [],
     retention: { budgetBytes: 500 * 1024 * 1024, nearLimit: false, overLimit: false, prunable: [] },
   }),
+  // Busca do culpado (D-12): nenhuma guardada.
+  bisect_get: () => null,
   // Downloads manuais da CurseForge (L-06): nenhum esperando.
   cf_blocked_list: () => [],
   // O que mudou durante o teste (C-03): nenhuma captura.

@@ -16,8 +16,8 @@ export const navegacao = {
   naoEncontrada: {
     titulo: 'Página não encontrada',
     subtitulo: 'Esta página não existe',
-    texto: 'O endereço pode ser de uma versão antiga do Warden. Volte para o início e siga daí.',
-    voltar: 'Voltar para o início',
+    texto: 'O endereço pode ser de uma versão antiga do Warden. Volte para Meus packs e siga daí.',
+    voltar: 'Voltar para Meus packs',
   },
   rodape: {
     versao: 'Warden {{version}}',

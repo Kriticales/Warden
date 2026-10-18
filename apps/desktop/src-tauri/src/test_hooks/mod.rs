@@ -18,15 +18,18 @@
 //!
 //! **Registro acréscimo-apenas** (ROADMAP §1): cada tarefa declara o seu módulo
 //! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10,
-//! `crash_history.rs` da D-06) e acrescenta uma linha em [`registered`]. [`registered`] é chamado a cada teste: cada gancho
+//! `crash_history.rs` da D-06, `perf_profile.rs` da L-12) e acrescenta uma linha em
+//! [`registered`]. [`registered`] é chamado a cada teste: cada gancho
 //! pode guardar o estado do teste em andamento.
 
 mod capture;
 mod crash_history;
 mod diagnostics;
 mod perf;
+mod perf_profile;
 
 pub(crate) use perf::session_perf;
+pub(crate) use perf_profile::jvm_args as perf_profile_jvm_args;
 
 use std::path::Path;
 use std::sync::Arc;
@@ -65,6 +68,9 @@ pub(crate) struct HookContext<'a> {
     pub(crate) operation: &'a OperationHandle,
     /// "Testar mesmo assim": os erros do pré-teste não interrompem o teste (D-03).
     pub(crate) ignore_pack_errors: bool,
+    /// Teste com perfil de desempenho: no jogo (o modo `Performance`) ou no servidor local
+    /// ("Testar como servidor" com o perfil; L-12).
+    pub(crate) perf_profile: bool,
 }
 
 /// O jogo que acabou de abrir.
@@ -153,6 +159,8 @@ pub(crate) fn registered() -> Vec<Arc<dyn TestHooks>> {
         Arc::new(perf::PerfHook::default()),
         // D-06: assinatura do travamento, para a lista de Travamentos.
         Arc::new(crash_history::CrashHistoryHook),
+        // L-12: tempo por mod e perfis do spark no teste com perfil de desempenho.
+        Arc::new(perf_profile::PerfProfileHook::default()),
     ]
 }
 
@@ -163,7 +171,16 @@ mod tests {
     #[test]
     fn ganchos_registrados_em_ordem() {
         let names: Vec<&str> = registered().iter().map(|hook| hook.name()).collect();
-        assert_eq!(names, ["diagnostics", "capture", "perf", "crash_history"]);
+        assert_eq!(
+            names,
+            [
+                "diagnostics",
+                "capture",
+                "perf",
+                "crash_history",
+                "perf_profile"
+            ]
+        );
     }
 
     #[test]

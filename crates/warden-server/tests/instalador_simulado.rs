@@ -25,7 +25,7 @@ use warden_core::{CancellationToken, NoProgress};
 use warden_http::{HttpClient, HttpConfig};
 use warden_launcher::{GameSpec, LoaderSpec};
 use warden_server::install::{FABRIC_JAR, MARKER_FILE, VANILLA_JAR};
-use warden_server::{Error, Installer, ServerLaunch};
+use warden_server::{Error, Installer, ServerDownload, ServerLaunch};
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -355,4 +355,107 @@ async fn forge_pelo_instalador_oficial_com_o_sha1_do_maven() {
         .await
         .unwrap_err();
     assert!(matches!(error, Error::Cancelled), "{error:?}");
+}
+
+/// Os endereços para os scripts do pacote para servidor (E-03): os mesmos que a instalação
+/// usa, sem baixar o servidor.
+#[tokio::test]
+async fn server_download_devolve_os_enderecos_sem_baixar_o_servidor() {
+    let server = MockServer::start().await;
+    mojang(&server).await;
+    Mock::given(path("/v2/versions/installer"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(
+            r#"[{"version":"1.1.0","stable":false},{"version":"1.0.1","stable":true}]"#,
+        ))
+        .mount(&server)
+        .await;
+    Mock::given(path("/net/minecraftforge/forge/maven-metadata.xml"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_bytes(catalog_fixture("2026-10-05-forge-maven-metadata.xml")),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(path("/net/minecraftforge/forge/promotions_slim.json"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_bytes(catalog_fixture("2026-10-05-forge-promotions_slim.json")),
+        )
+        .mount(&server)
+        .await;
+    let base = "/net/minecraftforge/forge/1.20.1-47.4.10/forge-1.20.1-47.4.10-installer.jar";
+    Mock::given(path(format!("{base}.sha1")))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_string("ABCDEF0123456789abcdef0123456789abcdef01"),
+        )
+        .mount(&server)
+        .await;
+    // Nada além das listas: nem o server.jar nem o instalador.
+    Mock::given(path("/objetos/server.jar"))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(0)
+        .mount(&server)
+        .await;
+    Mock::given(path(base))
+        .respond_with(ResponseTemplate::new(200))
+        .expect(0)
+        .mount(&server)
+        .await;
+    let root = tempfile::tempdir().unwrap();
+    let setup = installer(&server, &root.path().join("cache"));
+    let cancel = CancellationToken::new();
+
+    let vanilla = GameSpec::new("1.20.1", LoaderSpec::Vanilla).unwrap();
+    assert_eq!(
+        setup.server_download(&vanilla, &cancel).await.unwrap(),
+        ServerDownload::Vanilla {
+            url: format!("{}/objetos/server.jar", server.uri())
+                .parse()
+                .unwrap(),
+            sha1: Some(sha1_hex(SERVER_JAR)),
+        }
+    );
+    let fabric = GameSpec::new(
+        "1.20.1",
+        LoaderSpec::Fabric {
+            version: "0.19.5".into(),
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        setup.server_download(&fabric, &cancel).await.unwrap(),
+        ServerDownload::Fabric {
+            url: format!(
+                "{}/v2/versions/loader/1.20.1/0.19.5/1.0.1/server/jar",
+                server.uri()
+            )
+            .parse()
+            .unwrap(),
+        }
+    );
+    let forge = GameSpec::new(
+        "1.20.1",
+        LoaderSpec::Forge {
+            version: "47.4.10".into(),
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        setup.server_download(&forge, &cancel).await.unwrap(),
+        ServerDownload::Installer {
+            url: format!("{}{base}", server.uri()).parse().unwrap(),
+            sha1: Some("abcdef0123456789abcdef0123456789abcdef01".into()),
+        }
+    );
+    let quilt = GameSpec::new(
+        "1.20.1",
+        LoaderSpec::Quilt {
+            version: "0.24.0".into(),
+        },
+    )
+    .unwrap();
+    assert!(matches!(
+        setup.server_download(&quilt, &cancel).await.unwrap_err(),
+        Error::LoaderUnsupported { .. }
+    ));
 }

@@ -36,8 +36,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::watch;
 use warden_core::{AppPaths, CancellationToken, PackId, ProgressSink as _};
 use warden_instance::{
-    DownloadCache, GameRequirement, InstanceDirs, MaterializeOptions, OnModified, OptionalChoices,
-    OptionalSelection, Sources,
+    DownloadCache, GameRequirement, InstallerCache, InstanceDirs, MaterializeOptions, OnModified,
+    OptionalChoices, OptionalSelection, Sources,
 };
 use warden_java::{JavaChoiceRequest, LoaderKind, RuntimeLease};
 use warden_launcher::outcome::Outcome;
@@ -92,8 +92,9 @@ const CONSOLE_BATCH: Duration = Duration::from_millis(50);
 /// Quanto o "Fechar o Warden" espera o jogo fechar e a sessão ser gravada.
 pub(crate) const QUIT_WAIT: Duration = Duration::from_secs(10);
 
-/// Modo do teste (ARCHITECTURE §4.1). Existem o normal, o "como o jogador recebe" (L-07) e o
-/// "como servidor" (L-09, em [`server_mode`]); o perfil de desempenho chega com a L-12.
+/// Modo do teste (ARCHITECTURE §4.1): o normal, o "como o jogador recebe" (L-07), o perfil de
+/// desempenho (L-12, com o gancho [`crate::test_hooks`] `perf_profile`) e o "como servidor"
+/// (L-09, em [`server_mode`]).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum TestMode {
@@ -109,6 +110,7 @@ pub(crate) enum TestMode {
 }
 
 /// O pedido de teste.
+#[allow(clippy::struct_excessive_bools)] // opções independentes do contrato do IPC
 #[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub(crate) struct TestRequest {
@@ -125,6 +127,10 @@ pub(crate) struct TestRequest {
     /// Testar como servidor: "Só o servidor" (sem abrir o jogo; L-09). Fora desse modo, não
     /// vale.
     pub(crate) server_only: bool,
+    /// Testar como servidor com o perfil de desempenho: o Warden liga o spark do servidor pelo
+    /// console quando o jogo abre e desliga no fim (L-12). Só vale no modo servidor com o jogo
+    /// (o modo [`TestMode::Performance`] já é o perfil de desempenho no jogo).
+    pub(crate) performance: bool,
 }
 
 /// O teste ativo.
@@ -213,6 +219,22 @@ impl TestSessions {
         }
     }
 
+    /// Com o jogo simulado (`WardenFakeGame` em `class_dir`) no lugar do motor: testes de
+    /// outras partes do app que abrem o jogo (busca do culpado, D-12).
+    #[cfg(test)]
+    pub(crate) fn with_fake_game(
+        engine_root: &Path,
+        class_dir: PathBuf,
+        java: PathBuf,
+        major: u32,
+    ) -> Self {
+        let engine = PortableMcEngine::new(EngineDirs::under(engine_root), None);
+        Self::with_engine(
+            Arc::new(engine),
+            Some(FakeGame::new(class_dir, java, major)),
+        )
+    }
+
     /// O mesmo, com a abertura ajustada (testes).
     #[cfg(test)]
     pub(crate) fn with_launch_tweak(mut self, tweak: LaunchTweak) -> Self {
@@ -236,6 +258,19 @@ impl TestSessions {
         self.fake_server.as_ref()
     }
 
+    /// O Java do jogo simulado do E2E, quando ligado: a validação do pacote para servidor
+    /// (E-03) abre o servidor simulado com ele.
+    pub(crate) fn fake_java(&self) -> Option<JavaRuntime> {
+        self.fake.as_ref().map(FakeGame::java)
+    }
+
+    /// O cache do bootstrap e do installer (`cache/installer`), com o endereço dos testes e do
+    /// E2E: o "Testar como o jogador recebe" e o pacote para servidor (E-03) usam os mesmos jars.
+    pub(crate) fn installer_cache(&self, paths: &AppPaths) -> InstallerCache {
+        InstallerCache::new(paths.cache_dir().join("installer"))
+            .with_base(self.player.installer_base.clone())
+    }
+
     /// O mesmo, com o servidor simulado na pasta dada (testes).
     #[cfg(test)]
     pub(crate) fn with_fake_server(mut self, class_dir: PathBuf) -> Self {
@@ -257,8 +292,13 @@ impl TestSessions {
             .unwrap_or_default()
     }
 
-    /// Começa um teste. Erros: `app.GAME_ALREADY_RUNNING`, com o pack do jogo aberto.
-    fn begin(&self, state: GameState, notify: Notify) -> Result<ActiveGuard<'_>, AppError> {
+    /// Começa um teste (ou a busca do culpado, D-12, que conta como jogo). Erros:
+    /// `app.GAME_ALREADY_RUNNING`, com o pack do jogo aberto.
+    pub(crate) fn begin(
+        &self,
+        state: GameState,
+        notify: Notify,
+    ) -> Result<ActiveGuard<'_>, AppError> {
         let mut active = self.lock();
         if let Some(open) = active.as_ref() {
             return Err(already_running(&open.state));
@@ -274,6 +314,15 @@ impl TestSessions {
         drop(active);
         self.busy.send_replace(true);
         Ok(ActiveGuard { sessions: self })
+    }
+
+    /// O jogo aberto pela busca do culpado (D-12): "Parar jogo" e "Fechar o Warden" o
+    /// encerram como o do teste.
+    pub(crate) fn attach_game(&self, game: Option<GameHandle>, cancel: Option<CancellationToken>) {
+        self.update(|active| {
+            active.game = game;
+            active.cancel = cancel;
+        });
     }
 
     /// Muda o teste ativo e avisa.
@@ -340,7 +389,7 @@ fn already_running(state: &GameState) -> AppError {
 }
 
 /// Libera o "um jogo por vez" quando o teste termina, de qualquer jeito.
-struct ActiveGuard<'a> {
+pub(crate) struct ActiveGuard<'a> {
     sessions: &'a TestSessions,
 }
 
@@ -379,18 +428,6 @@ pub(crate) async fn run_test(
     request: TestRequest,
     sink: TestSink,
 ) -> Result<TestSessionSummary, AppError> {
-    if !matches!(
-        request.mode,
-        TestMode::Normal | TestMode::AsPlayer | TestMode::Server
-    ) {
-        return Err(AppError::new(AppErrorCode::TestModeUnavailable).with_param(
-            "mode",
-            serde_json::to_value(request.mode)
-                .ok()
-                .and_then(|value| value.as_str().map(ToOwned::to_owned))
-                .unwrap_or_default(),
-        ));
-    }
     let record = state
         .packs
         .get(pack_id)
@@ -516,6 +553,10 @@ impl Runner<'_> {
             mode: self.request.mode,
             operation: self.handle,
             ignore_pack_errors: self.request.ignore_pack_errors,
+            perf_profile: self.request.mode == TestMode::Performance
+                || (self.request.mode == TestMode::Server
+                    && self.request.performance
+                    && !self.request.server_only),
         }
     }
 
@@ -751,12 +792,18 @@ impl Runner<'_> {
         Ok(report)
     }
 
-    /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste. Com o
-    /// servidor local (`server_port`, L-09), o jogo entra nele pelo Quick Play.
-    fn plan_launch(
+    /// Passo 5: a linha de comando com a memória, os argumentos e o jogador do teste.
+    fn plan_launch(&self, prepared: &Prepared) -> Result<Launch, AppError> {
+        self.plan_launch_with(prepared, &LaunchExtra::default())
+    }
+
+    /// [`Runner::plan_launch`] com o que a busca do culpado (D-12) ou o servidor local (L-09)
+    /// acrescentam. Com o servidor local (`extra.server_port`), o jogo entra nele pelo Quick
+    /// Play.
+    fn plan_launch_with(
         &self,
         prepared: &Prepared,
-        server_port: Option<u16>,
+        extra: &LaunchExtra,
     ) -> Result<Launch, AppError> {
         let global = self.state.settings.get();
         let settings = &self.profile.fields;
@@ -791,7 +838,19 @@ impl Runner<'_> {
             player,
         });
         crate::test_profiles::apply_quick_play(&mut options, prepared.quick_play_world.as_deref());
-        if let Some(port) = server_port {
+        if self.request.mode == TestMode::Performance {
+            // L-12: o registro detalhado do Forge moderno e do NeoForge só neste teste.
+            options
+                .extra_jvm_args
+                .extend(crate::test_hooks::perf_profile_jvm_args(&prepared.spec));
+        }
+        options
+            .system_props
+            .extend(extra.system_props.iter().cloned());
+        if extra.quick_play_path.is_some() {
+            options.quick_play_path.clone_from(&extra.quick_play_path);
+        }
+        if let Some(port) = extra.server_port {
             server_mode::join_server(&mut options, port);
         }
         let perf_flags = crate::test_profiles::perf_flags(&options.extra_jvm_args);
@@ -849,7 +908,7 @@ impl Runner<'_> {
     ) -> Result<TestSessionSummary, AppError> {
         self.handle.ensure_not_cancelled()?;
         self.handle.stage(STAGE_LAUNCH, STAGE_LAUNCH_LABEL);
-        let launch = self.plan_launch(&prepared, None)?;
+        let launch = self.plan_launch(&prepared)?;
         let opened = OpenedSession::create(prepared.sessions_dir.clone())?;
         self.play_in(hooks, prepared, launch, opened, None).await
     }
@@ -1091,6 +1150,119 @@ impl Runner<'_> {
     }
 }
 
+/// O que a busca do culpado (D-12) e o servidor local (L-09) acrescentam à abertura:
+/// propriedades de sistema (`fabric.noGui`, `fml.queryResult`), o arquivo do
+/// `--quickPlayPath` e a porta do servidor em que o jogo entra.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct LaunchExtra {
+    /// Propriedades de sistema.
+    pub(crate) system_props: Vec<(String, String)>,
+    /// `--quickPlayPath` (relativo ao `gameDir`).
+    pub(crate) quick_play_path: Option<String>,
+    /// A porta do servidor local em que o jogo entra (Quick Play ou `--server`/`--port`).
+    pub(crate) server_port: Option<u16>,
+}
+
+/// O jogo do pack instalado para outra pasta (a instância de cada rodada da busca do culpado,
+/// D-12): o Java e o jogo escolhidos e instalados como no Testar, com o perfil ativo do pack,
+/// sem copiar o pack para a instância de teste.
+pub(crate) struct BisectGame {
+    prepared: Prepared,
+    profile: TestProfile,
+}
+
+impl std::fmt::Debug for BisectGame {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BisectGame")
+            .field("spec", &self.prepared.spec.to_string())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Um canal que não vai para lugar nenhum (a busca tem o dela).
+fn silent_sink() -> TestSink {
+    TestSink {
+        events: Arc::new(|_| {}),
+        game_state: Arc::new(|_| {}),
+    }
+}
+
+impl BisectGame {
+    /// Escolhe o Java e instala o jogo do pack (com o jogo simulado do E2E, o programa
+    /// simulado). `dirs` são as pastas da instância da rodada.
+    pub(crate) async fn prepare(
+        state: &AppState,
+        pack_id: PackId,
+        pack_root: PathBuf,
+        dirs: InstanceDirs,
+        handle: &OperationHandle,
+    ) -> Result<Self, AppError> {
+        let profile = crate::test_profiles::resolve(state, pack_id, None)?;
+        let runner = Runner {
+            state,
+            pack_id,
+            request: TestRequest::default(),
+            profile: profile.clone(),
+            sink: silent_sink(),
+            handle,
+        };
+        let root = pack_root.clone();
+        let info = blocking(move || read_pack_info(&root)).await?;
+        let spec = game_spec(&info.requirement)?;
+        let (java, java_id, lease) = runner.choose_java(&info.requirement, &spec).await?;
+        let game = runner.install_game(&spec, &java, &pack_root).await?;
+        Ok(Self {
+            prepared: Prepared {
+                sessions_dir: dirs.state_dir.join("sessions"),
+                pack_root,
+                dirs,
+                spec,
+                pack_version: info.version,
+                pack_tree: info.tree,
+                mod_count: info.mod_count,
+                game,
+                java,
+                java_id,
+                quick_play_world: None,
+                _lease: lease,
+            },
+            profile,
+        })
+    }
+
+    /// O jogo e o loader instalados.
+    pub(crate) fn spec(&self) -> &GameSpec {
+        &self.prepared.spec
+    }
+
+    /// O Java escolhido (o servidor local da busca usa o mesmo; D-13).
+    pub(crate) fn java(&self) -> &JavaRuntime {
+        &self.prepared.java
+    }
+
+    /// A linha de comando de uma rodada: memória, Java e argumentos do perfil ativo, o mundo
+    /// do Quick Play e o que a busca acrescenta.
+    pub(crate) fn command(
+        &mut self,
+        state: &AppState,
+        pack_id: PackId,
+        handle: &OperationHandle,
+        quick_play_world: Option<String>,
+        extra: &LaunchExtra,
+    ) -> Result<warden_launcher::LaunchCommand, AppError> {
+        self.prepared.quick_play_world = quick_play_world;
+        let runner = Runner {
+            state,
+            pack_id,
+            request: TestRequest::default(),
+            profile: self.profile.clone(),
+            sink: silent_sink(),
+            handle,
+        };
+        Ok(runner.plan_launch_with(&self.prepared, extra)?.command)
+    }
+}
+
 /// A pasta da sessão, criada logo antes de abrir o jogo (ou o servidor local).
 struct OpenedSession {
     sessions_dir: PathBuf,
@@ -1233,7 +1405,7 @@ fn read_pack_info(root: &Path) -> Result<PackInfo, AppError> {
 }
 
 /// O jogo do `pack.toml`. Erros: `app.TEST_LOADER_UNSUPPORTED` (`LiteLoader`) e os de versão.
-fn game_spec(requirement: &GameRequirement) -> Result<GameSpec, AppError> {
+pub(crate) fn game_spec(requirement: &GameRequirement) -> Result<GameSpec, AppError> {
     let loader = match &requirement.loader {
         None => LoaderSpec::Vanilla,
         Some(loader) => {
@@ -1264,7 +1436,7 @@ fn install_error(error: &warden_launcher::Error) -> AppError {
 }
 
 /// O loader para a política de Java.
-fn loader_kind(loader: &LoaderSpec) -> LoaderKind {
+pub(crate) fn loader_kind(loader: &LoaderSpec) -> LoaderKind {
     match loader {
         LoaderSpec::Vanilla => LoaderKind::Vanilla,
         LoaderSpec::Fabric { .. } => LoaderKind::Fabric,
@@ -1363,3 +1535,10 @@ pub(crate) fn session_dir(
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod perf_profile_tests;
+/// A validação do pacote para servidor no servidor local (E-03), com o jogo e o servidor
+/// simulados destes testes.
+#[cfg(test)]
+mod server_pack_tests;

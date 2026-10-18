@@ -3,6 +3,7 @@
  * "smart HTTP" e o `raw.githubusercontent.com`, todos em `/github/…` no servidor de fixtures.
  *
  * - `/github/api/…`: `GET /user`, `POST /user/repos`, `GET /repos/{dono}/{repo}` e as Releases;
+ *   e a busca de issues da IA (D-14, `GET /search/issues`, sem token: uma issue fixa);
  * - `/github/git/<dono>/<repo>.git/…`: `info/refs?service=git-receive-pack` e
  *   `git-receive-pack`, atendidos pelo `git receive-pack --stateless-rpc` do git instalado
  *   (o mesmo programa que o GitHub e o `git http-backend` usam) sobre um repositório nu numa
@@ -100,6 +101,21 @@ async function serveApi(
   route: string,
   base: string,
 ): Promise<void> {
+  // Busca de issues da IA (D-14): sem token também (10 buscas por minuto na API real).
+  if (request.method === 'GET' && route.split('?')[0] === 'search/issues') {
+    json(response, 200, {
+      total_count: 1,
+      items: [
+        {
+          number: 2210,
+          title: 'NullPointerException em EntityRenderer ao entrar no mundo',
+          state: 'closed',
+          html_url: 'https://github.com/CaffeineMC/sodium/issues/2210',
+        },
+      ],
+    });
+    return;
+  }
   if (!authorized(request, 'Bearer')) {
     json(response, 401, { message: 'Bad credentials' });
     return;

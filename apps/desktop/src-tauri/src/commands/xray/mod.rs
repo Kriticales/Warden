@@ -70,7 +70,8 @@ pub(crate) async fn xray_mod(
     xray_mod_impl(&state, pack_id, &path).await
 }
 
-async fn xray_mod_impl(
+/// O raio-x de um mod (também para a ferramenta `get_mixin_report` da IA, D-14).
+pub(crate) async fn xray_mod_impl(
     state: &AppState,
     pack_id: PackId,
     path: &str,

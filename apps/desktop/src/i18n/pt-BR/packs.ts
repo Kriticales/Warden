@@ -8,6 +8,7 @@ export const packs = {
     contagem_one: '{{count}} pack',
     contagem_other: '{{count}} packs',
     lendo: 'Lendo a lista de packs…',
+    erro: 'Não foi possível ler a lista de packs.',
     abrirOuImportar: 'Abrir ou importar…',
     abrirOuImportarDica: 'Pack packwiz, .mrpack, zip da CurseForge ou instância do Prism',
     escolhendoPasta: 'Escolhendo a pasta…',
@@ -88,7 +89,7 @@ export const packs = {
   remover: {
     titulo: 'Remover “{{name}}” da lista?',
     texto:
-      'A pasta e os arquivos do pack continuam no computador, sem nenhuma mudança. Para ver o pack aqui de novo, use Abrir ou importar….',
+      'A pasta e os arquivos do pack continuam no computador, sem nenhuma mudança. Para ver o pack aqui de novo, use Abrir ou importar… e escolha a pasta dele.',
     confirmar: 'Remover da lista',
     confirmando: 'Removendo…',
     feito: '“{{name}}” saiu da lista. Nenhum arquivo foi apagado.',

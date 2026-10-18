@@ -9,7 +9,7 @@
 
 use std::path::{Path, PathBuf};
 
-use warden_launcher::{GameSpec, InstalledGame, JavaRuntime, LoggingConfig};
+use warden_launcher::{GameSpec, InstalledGame, JavaRuntime, LoggingConfig, QuickPlaySupport};
 
 /// Pasta com o `WardenFakeGame.class`.
 pub(crate) const FAKE_GAME_ENV: &str = "WARDEN_E2E_FAKE_GAME";
@@ -86,8 +86,17 @@ impl FakeGame {
             spec: spec.clone(),
             version_id: "warden-fake-game".into(),
             hierarchy: vec!["warden-fake-game".into()],
-            // Um `releaseTime` da 1.20.1: sem argumentos de faixa antiga.
-            release_time: "2023-06-12T13:25:51+00:00".into(),
+            // O `releaseTime` decide as faixas da linha de comando: o da 1.20.1 (sem argumentos
+            // de faixa antiga) ou, nas versões sem Quick Play, o da 1.16.5 (o jogo entra no
+            // servidor local por `--server`/`--port`; D-13).
+            release_time: if warden_launcher::quick_play::quick_play_support(
+                spec.minecraft.as_str(),
+            ) == QuickPlaySupport::TooOld
+            {
+                "2021-01-14T16:05:32+00:00".into()
+            } else {
+                "2023-06-12T13:25:51+00:00".into()
+            },
             main_class: "WardenFakeGame".into(),
             jvm_args: vec!["-cp".into(), self.class_dir.display().to_string()],
             game_args: args,

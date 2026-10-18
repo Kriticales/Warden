@@ -9,8 +9,25 @@ publish.workspace = true
 [dependencies]
 warden-core.workspace = true
 warden-diagnostics.workspace = true
+# Os metadados dos jars (ids dos mods) para as dependências do Sinytra Connector (S-R5-3 §14
+# item 8): o grafo da D-07 recebe os jars por esta crate.
+warden-jarmeta.workspace = true
+# "Carregou" e "entrou no mundo" são os do `LoadTracker` da L-10: a busca não repete os
+# marcadores de pronto, só acrescenta os sinais de falha e a assinatura da rodada.
+warden-perf.workspace = true
+regex.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 specta = { workspace = true, features = ["derive"] }
+specta-typescript.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile.workspace = true
+# Os golden logs passam pelo mesmo leitor da supervisão do jogo.
+warden-launcher.workspace = true
+zip.workspace = true
 
 [lints]
 workspace = true

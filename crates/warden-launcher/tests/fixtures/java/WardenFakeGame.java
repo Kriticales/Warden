@@ -1,5 +1,8 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
@@ -26,6 +29,14 @@ import java.util.UUID;
  *                      (som e atlas de blocos), espera mais MS/2 ms, escreve o de "entrou no
  *                      mundo", ocupa 64 MB de memória e fica vivo escrevendo um batimento
  *                      (L-10, tempos de carregamento e RAM do processo);
+ *   culpado MS NOME... como "marcadores", mas se em mods/ (na pasta do jogo) houver um jar
+ *                      começando por cada NOME (os nomes vão até o primeiro argumento com
+ *                      "--", os do jogo), falha ao entrar no mundo como o Minecraft
+ *                      ("Couldn't place player in world" e a exceção) e fica vivo, calado;
+ *                      senão entra no mundo e fica vivo (D-12, busca do culpado). Com
+ *                      `--quickPlaySingleplayer NOME`, lê saves/NOME/level.dat e escreve a
+ *                      primeira linha ("semente=…", do servidor simulado); sem o arquivo, falha
+ *                      como o Minecraft ao abrir um mundo que não existe e sai com 1;
  *   args               escreve cada argumento recebido, um por linha, entre colchetes;
  *   sair N             sai com o código N;
  *   crash              grava crash-reports/crash-teste-client.txt e sai com -1;
@@ -37,7 +48,12 @@ import java.util.UUID;
  *   conectar           entra no servidor do Quick Play (`--quickPlayMultiplayer host:porta`,
  *                      ou `--server`/`--port` antes da 1.20): conecta e manda o nome do
  *                      jogador (`--username`), como o servidor simulado da warden-server espera,
- *                      e fica vivo escrevendo um batimento (L-09, Testar como servidor).
+ *                      e fica vivo escrevendo um batimento (L-09, Testar como servidor);
+ *   entrar-servidor MS como "conectar", mas antes carrega como o Minecraft 1.13+: espera MS ms,
+ *                      escreve o som e o atlas de blocos ("pronto"), por qual argumento entra
+ *                      ("--server" ou "--quickPlayMultiplayer") e, depois de conectar,
+ *                      "Connected to a modded server" (D-13, busca do culpado com o servidor
+ *                      local: quem decide se entrou no mundo é o log do servidor).
  */
 public final class WardenFakeGame {
     private WardenFakeGame() {}
@@ -46,6 +62,64 @@ public final class WardenFakeGame {
         String name = ManagementFactory.getRuntimeMXBean().getName();
         int at = name.indexOf('@');
         return at > 0 ? name.substring(0, at) : name;
+    }
+
+    /**
+     * Entra no servidor do Quick Play (`--quickPlayMultiplayer host:porta`, ou `--server`/`--port`
+     * antes da 1.20) e fica vivo escrevendo um batimento. Com `loadMs` ≥ 0, antes carrega como o
+     * Minecraft 1.13+ (som e atlas de blocos) e, depois de conectar, escreve "Connected to a
+     * modded server".
+     */
+    private static void joinServer(String[] args, long loadMs) throws Exception {
+        String host = null;
+        int port = 25565;
+        String name = "Jogador";
+        String flag = null;
+        for (int i = 1; i + 1 < args.length; i++) {
+            if (args[i].equals("--quickPlayMultiplayer") || args[i].equals("--server")) {
+                flag = args[i];
+            }
+            if (args[i].equals("--quickPlayMultiplayer")) {
+                String target = args[i + 1];
+                int colon = target.lastIndexOf(':');
+                host = colon > 0 ? target.substring(0, colon) : target;
+                port = colon > 0 ? Integer.parseInt(target.substring(colon + 1)) : 25565;
+            } else if (args[i].equals("--server")) {
+                host = args[i + 1];
+            } else if (args[i].equals("--port")) {
+                port = Integer.parseInt(args[i + 1]);
+            } else if (args[i].equals("--username")) {
+                name = args[i + 1];
+            }
+        }
+        if (host == null) {
+            System.out.println("[Render thread/INFO]: sem servidor para entrar");
+            System.exit(3);
+        }
+        if (loadMs >= 0) {
+            System.out.println("[main/INFO]: Jogo simulado " + pid() + " carregando");
+            System.out.flush();
+            Thread.sleep(loadMs);
+            System.out.println("[Render thread/INFO]: Sound engine started");
+            System.out.println("[Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas");
+        }
+        if (loadMs >= 0) {
+            System.out.println("[Render thread/INFO]: Jogo simulado entra pelo " + flag);
+        }
+        System.out.println("[Render thread/INFO]: Connecting to " + host + ", " + port);
+        System.out.flush();
+        Socket socket = new Socket(host, port);
+        Writer writer = new OutputStreamWriter(socket.getOutputStream(), "UTF-8");
+        writer.write(name + "\n");
+        writer.flush();
+        if (loadMs >= 0) {
+            System.out.println("[Render thread/INFO]: Connected to a modded server.");
+        }
+        while (true) {
+            Thread.sleep(200);
+            System.out.println("jogo conectado");
+            System.out.flush();
+        }
     }
 
     public static void main(String[] args) throws Exception {
@@ -117,6 +191,70 @@ public final class WardenFakeGame {
                 System.out.println("jogo vivo " + memory.length);
                 System.out.flush();
             }
+        } else if (mode.equals("culpado")) {
+            long delay = Long.parseLong(args[1]);
+            // Os nomes vão até o primeiro argumento do jogo (--username, --quickPlay…).
+            int names = 2;
+            while (names < args.length && !args[names].startsWith("--")) {
+                names++;
+            }
+            boolean all = names > 2;
+            String[] jars = new File("mods").list();
+            for (int i = 2; i < names; i++) {
+                boolean found = false;
+                for (int j = 0; jars != null && j < jars.length; j++) {
+                    if (jars[j].startsWith(args[i])) {
+                        found = true;
+                    }
+                }
+                all = all && found;
+            }
+            System.out.println("[main/INFO]: Jogo simulado " + pid() + " carregando " + (jars == null ? 0 : jars.length) + " mods");
+            System.out.flush();
+            Thread.sleep(delay);
+            System.out.println("[Render thread/INFO]: Sound engine started");
+            System.out.println("[Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas");
+            String world = null;
+            for (int i = names; i + 1 < args.length; i++) {
+                if (args[i].equals("--quickPlaySingleplayer")) {
+                    world = args[i + 1];
+                }
+            }
+            if (world != null) {
+                File level = new File(new File(new File("saves"), world), "level.dat");
+                if (!level.isFile()) {
+                    System.out.println("[Render thread/ERROR]: Failed to load level \"" + world + "\"");
+                    System.out.println("java.io.FileNotFoundException: saves/" + world + "/level.dat");
+                    System.out.flush();
+                    System.exit(1);
+                }
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(level), "UTF-8"));
+                try {
+                    System.out.println("[Render thread/INFO]: Mundo de teste: " + reader.readLine());
+                } finally {
+                    reader.close();
+                }
+            }
+            System.out.println("[Server thread/INFO]: Starting integrated minecraft server version 1.20.1");
+            System.out.flush();
+            Thread.sleep(delay / 2);
+            if (all) {
+                System.out.println("[Server thread/ERROR]: Couldn't place player in world");
+                System.out.println("java.lang.IllegalStateException: conflito simulado de " + (names - 2) + " mods");
+                System.out.println("\tat com.example.culpado.Culpado.entrar(Culpado.java:" + (40 + delay % 7) + ")");
+                System.out.flush();
+                while (true) {
+                    Thread.sleep(1000);
+                }
+            }
+            System.out.println("[Server thread/INFO]: Jogador[local:E:1] logged in with entity id 1 at (0.5, 64.0, 0.5)");
+            System.out.println("[Server thread/INFO]: Jogador joined the game");
+            System.out.flush();
+            while (true) {
+                Thread.sleep(200);
+                System.out.println("jogo vivo");
+                System.out.flush();
+            }
         } else if (mode.equals("args")) {
             for (int i = 1; i < args.length; i++) {
                 System.out.println("[" + args[i] + "]");
@@ -154,38 +292,9 @@ public final class WardenFakeGame {
             System.out.println("#@!@# Game crashed! Crash report saved to: crash-reports" + File.separator + name);
             System.exit(-1);
         } else if (mode.equals("conectar")) {
-            String host = null;
-            int port = 25565;
-            String name = "Jogador";
-            for (int i = 1; i + 1 < args.length; i++) {
-                if (args[i].equals("--quickPlayMultiplayer")) {
-                    String target = args[i + 1];
-                    int colon = target.lastIndexOf(':');
-                    host = colon > 0 ? target.substring(0, colon) : target;
-                    port = colon > 0 ? Integer.parseInt(target.substring(colon + 1)) : 25565;
-                } else if (args[i].equals("--server")) {
-                    host = args[i + 1];
-                } else if (args[i].equals("--port")) {
-                    port = Integer.parseInt(args[i + 1]);
-                } else if (args[i].equals("--username")) {
-                    name = args[i + 1];
-                }
-            }
-            if (host == null) {
-                System.out.println("[Render thread/INFO]: sem servidor para entrar");
-                System.exit(3);
-            }
-            System.out.println("[Render thread/INFO]: Connecting to " + host + ", " + port);
-            System.out.flush();
-            Socket socket = new Socket(host, port);
-            Writer writer = new OutputStreamWriter(socket.getOutputStream(), "UTF-8");
-            writer.write(name + "\n");
-            writer.flush();
-            while (true) {
-                Thread.sleep(200);
-                System.out.println("jogo conectado");
-                System.out.flush();
-            }
+            joinServer(args, -1);
+        } else if (mode.equals("entrar-servidor")) {
+            joinServer(args, Long.parseLong(args[1]));
         } else if (mode.equals("uuid")) {
             for (int i = 1; i < args.length; i++) {
                 UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + args[i]).getBytes("UTF-8"));

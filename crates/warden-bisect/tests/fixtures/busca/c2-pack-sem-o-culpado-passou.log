@@ -1,0 +1,18 @@
+  <log4j:Event logger="LithiumConfig" timestamp="1791162819448" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Option 'mixin.experimental.entity.block_caching.suffocation' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching.suffocation=false'.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="LithiumConfig" timestamp="1791162819448" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Option 'mixin.experimental.entity.block_caching.block_support' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching.block_support=false'.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="LithiumConfig" timestamp="1791162819448" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Option 'mixin.experimental.entity.block_caching.block_touching' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching.block_touching=false'.]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="LithiumConfig" timestamp="1791162819448" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Option 'mixin.experimental.entity.block_caching' requires 'mixin.util.block_tracking=true' but found 'false'. Setting 'mixin.experimental.entity.block_caching=false'.]]></log4j:Message>
+  </log4j:Event>
+[21:13:54] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.236, for MC 1.21.1
+[21:14:21] [Render thread/INFO] [minecraft/SoundEngine]: Sound engine started
+[21:14:21] [Render thread/INFO] [minecraft/TextureAtlas]: Created: 8192x4096x4 minecraft:textures/atlas/blocks.png-atlas
+[21:14:29] [Server thread/INFO] [minecraft/IntegratedServer]: Starting integrated minecraft server version 1.21.1
+[21:14:39] [Server thread/INFO] [minecraft/PlayerList]: WardenTest[local:E:5a81ff61] logged in with entity id 14 at (4.5, 115.0, 5.5)
+[21:14:39] [Server thread/INFO] [minecraft/MinecraftServer]: WardenTest joined the game

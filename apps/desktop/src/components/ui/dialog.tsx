@@ -3,10 +3,9 @@
  *
  * - O foco entra no título (`tabIndex={-1}`), para o leitor de tela anunciar o diálogo e o Tab
  *   seguir a ordem do conteúdo; Tab fica preso; Esc, ✕ ou clique fora fecham.
- * - Ao fechar, o foco volta para o elemento que estava focado quando o diálogo abriu. O Radix
- *   só devolve o foco ao `DialogTrigger`; um diálogo aberto por estado (atalho, menu) deixaria
- *   o foco no `<body>`. Se nada estava focado (ou o elemento saiu da tela), vale
- *   `returnFocusTo` e, sem ele, o padrão do Radix.
+ * - Ao fechar, o foco volta para quem abriu (`focus-return.ts`): o elemento que estava focado
+ *   quando o diálogo abriu ou, se era um item de menu, o gatilho do menu. Se nada estava focado
+ *   (ou o elemento saiu da tela), vale `returnFocusTo` e, sem ele, o padrão do Radix.
  * - Destrutivo usa `AlertDialog` (`alert-dialog.tsx`), que não fecha com clique fora.
  */
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -16,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '../../lib/cn';
 import { Button } from './button';
+import { useFocusReturn } from './focus-return';
 
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
@@ -41,12 +41,6 @@ export interface DialogContentProps {
   children?: ReactNode;
 }
 
-/** O elemento focado agora, se for um elemento de verdade (não o `<body>`). */
-function focusedElement(): HTMLElement | null {
-  const active = document.activeElement;
-  return active instanceof HTMLElement && active !== document.body ? active : null;
-}
-
 export function DialogContent({
   title,
   description,
@@ -60,7 +54,7 @@ export function DialogContent({
 }: DialogContentProps) {
   const { t } = useTranslation();
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const openerRef = useRef<HTMLElement | null>(null);
+  const focusReturn = useFocusReturn(returnFocusTo);
   const close = (
     <DialogPrimitive.Close asChild>
       <Button variant="ghost" size="sm" iconOnly icon={X}>
@@ -77,18 +71,11 @@ export function DialogContent({
           {...(description ? {} : { 'aria-describedby': undefined })}
           onOpenAutoFocus={(event) => {
             // O foco ainda está em quem abriu.
-            openerRef.current = focusedElement();
+            focusReturn.rememberOpener();
             event.preventDefault();
             titleRef.current?.focus();
           }}
-          onCloseAutoFocus={(event) => {
-            const opener = openerRef.current;
-            const target = opener?.isConnected ? opener : (returnFocusTo?.() ?? null);
-            if (target) {
-              event.preventDefault();
-              target.focus();
-            }
-          }}
+          onCloseAutoFocus={focusReturn.onCloseAutoFocus}
         >
           <div className="dialog__head">
             <div>

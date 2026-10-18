@@ -1,0 +1,703 @@
+[00:43:53] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLServerTweaker
+[00:43:53] [main/INFO] [LaunchWrapper]: Using primary tweak class name net.minecraftforge.fml.common.launcher.FMLServerTweaker
+[00:43:53] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLServerTweaker
+[00:43:53] [main/DEBUG] [FML]: Injecting tracing printstreams for STDOUT/STDERR.
+[00:43:53] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading
+[00:43:53] [main/INFO] [FML]: Java is OpenJDK 64-Bit Server VM, version 1.8.0_504, running on Linux:amd64:6.18.44-fc-v139, installed at <JAVA>/jdk8u504-b01-jre
+[00:43:53] [main/DEBUG] [FML]: Java classpath at launch is:
+[00:43:53] [main/DEBUG] [FML]:     forge-1.12.2-14.23.5.2860.jar
+[00:43:53] [main/DEBUG] [FML]: Java library path at launch is:
+[00:43:53] [main/DEBUG] [FML]:     /usr/java/packages/lib/amd64
+[00:43:53] [main/DEBUG] [FML]:     /usr/lib64
+[00:43:53] [main/DEBUG] [FML]:     /lib64
+[00:43:53] [main/DEBUG] [FML]:     /lib
+[00:43:53] [main/DEBUG] [FML]:     /usr/lib
+[00:43:53] [main/DEBUG] [FML]: Determined Minecraft Libraries Root: <DADOS>/libraries
+[00:43:53] [main/DEBUG] [FML]: Cleaning up mods folder: ./mods
+[00:43:53] [main/DEBUG] [FML]: Examining file: Clumps-3.1.2.jar
+[00:43:53] [main/DEBUG] [FML]: Examining file: AppleSkin-mc1.12-1.0.14.jar
+[00:43:53] [main/DEBUG] [FML]: Examining file: jei_1.12.2-4.22.0.1036.jar
+[00:43:53] [main/DEBUG] [FML]: Enabling runtime deobfuscation
+[00:43:53] [main/DEBUG] [FML]: Instantiating coremod class FMLCorePlugin
+[00:43:53] [main/DEBUG] [FML]: Found signing certificates for coremod FMLCorePlugin (net.minecraftforge.fml.relauncher.FMLCorePlugin)
+[00:43:53] [main/DEBUG] [FML]: Found certificate e3c3d50c7c986df74c645c0ac54639741c90a557
+[00:43:53] [main/DEBUG] [FML]: Added access transformer class net.minecraftforge.fml.common.asm.transformers.AccessTransformer to enqueued access transformers
+[00:43:53] [main/DEBUG] [FML]: Enqueued coremod FMLCorePlugin
+[00:43:53] [main/DEBUG] [FML]: Instantiating coremod class FMLForgePlugin
+[00:43:53] [main/DEBUG] [FML]: Found signing certificates for coremod FMLForgePlugin (net.minecraftforge.classloading.FMLForgePlugin)
+[00:43:53] [main/DEBUG] [FML]: Found certificate e3c3d50c7c986df74c645c0ac54639741c90a557
+[00:43:53] [main/DEBUG] [FML]: Enqueued coremod FMLForgePlugin
+[00:43:53] [main/DEBUG] [FML]: All fundamental core mods are successfully located
+[00:43:53] [main/DEBUG] [FML]: Discovering coremods
+[00:43:53] [main/INFO] [FML]: Searching <DADOS>/./mods for mods
+[00:43:53] [main/DEBUG] [FML]:   Adding Clumps-3.1.2.jar to the mod list
+[00:43:53] [main/DEBUG] [FML]:   Adding AppleSkin-mc1.12-1.0.14.jar to the mod list
+[00:43:53] [main/DEBUG] [FML]:   Adding jei_1.12.2-4.22.0.1036.jar to the mod list
+[00:43:53] [main/DEBUG] [FML]: Examining for coremod candidacy AppleSkin-mc1.12-1.0.14.jar
+[00:43:53] [main/DEBUG] [FML]: Not found coremod data in AppleSkin-mc1.12-1.0.14.jar
+[00:43:53] [main/DEBUG] [FML]: Examining for coremod candidacy Clumps-3.1.2.jar
+[00:43:53] [main/DEBUG] [FML]: Not found coremod data in Clumps-3.1.2.jar
+[00:43:53] [main/DEBUG] [FML]: Examining for coremod candidacy jei_1.12.2-4.22.0.1036.jar
+[00:43:53] [main/DEBUG] [FML]: Not found coremod data in jei_1.12.2-4.22.0.1036.jar
+[00:43:53] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[00:43:53] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[00:43:53] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[00:43:53] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[00:43:53] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[00:43:53] [main/DEBUG] [FML]: Injecting coremod FMLCorePlugin \{net.minecraftforge.fml.relauncher.FMLCorePlugin\} class transformers
+[00:43:53] [main/TRACE] [FML]: Registering transformer net.minecraftforge.fml.common.asm.transformers.SideTransformer
+[00:43:54] [main/TRACE] [FML]: Registering transformer net.minecraftforge.fml.common.asm.transformers.EventSubscriptionTransformer
+[00:43:54] [main/TRACE] [FML]: Registering transformer net.minecraftforge.fml.common.asm.transformers.EventSubscriberTransformer
+[00:43:54] [main/TRACE] [FML]: Registering transformer net.minecraftforge.fml.common.asm.transformers.SoundEngineFixTransformer
+[00:43:54] [main/DEBUG] [FML]: Injection complete
+[00:43:54] [main/DEBUG] [FML]: Running coremod plugin for FMLCorePlugin \{net.minecraftforge.fml.relauncher.FMLCorePlugin\}
+[00:43:54] [main/DEBUG] [FML]: Running coremod plugin FMLCorePlugin
+[00:43:55] [main/DEBUG] [FML]: Read 1154 binary patches
+[00:43:55] [main/DEBUG] [FML]: Loading deobfuscation resource /deobfuscation_data-1.12.2.lzma with 36076 records
+[00:43:56] [main/INFO] [FML]: Found valid fingerprint for Minecraft Forge. Certificate fingerprint e3c3d50c7c986df74c645c0ac54639741c90a557
+[00:43:56] [main/DEBUG] [FML]: Coremod plugin class FMLCorePlugin run successfully
+[00:43:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[00:43:56] [main/DEBUG] [FML]: Injecting coremod FMLForgePlugin \{net.minecraftforge.classloading.FMLForgePlugin\} class transformers
+[00:43:56] [main/DEBUG] [FML]: Injection complete
+[00:43:56] [main/DEBUG] [FML]: Running coremod plugin for FMLForgePlugin \{net.minecraftforge.classloading.FMLForgePlugin\}
+[00:43:56] [main/DEBUG] [FML]: Running coremod plugin FMLForgePlugin
+[00:43:56] [main/DEBUG] [FML]: Coremod plugin class FMLForgePlugin run successfully
+[00:43:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[00:43:56] [main/DEBUG] [FML]: Loaded 215 rules from AccessTransformer config file forge_at.cfg
+[00:43:56] [main/DEBUG] [FML]: Loaded 13 rules from AccessTransformer mod jar file ./mods/jei_1.12.2-4.22.0.1036.jar!META-INF/jei_at.cfg
+
+[00:43:56] [main/DEBUG] [FML]: Validating minecraft
+[00:43:56] [main/DEBUG] [FML]: Minecraft validated, launching...
+[00:43:56] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.TerminalTweaker
+[00:43:56] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.TerminalTweaker
+[00:43:57] [main/INFO] [LaunchWrapper]: Launching wrapped minecraft {net.minecraft.server.MinecraftServer}
+[00:44:01] [main/DEBUG] [FML]: Creating vanilla freeze snapshot
+[00:44:01] [main/DEBUG] [FML]: Vanilla freeze snapshot created
+[00:44:01] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Starting minecraft server version 1.12.2
+[00:44:01] [Server thread/INFO] [FML]: MinecraftForge v14.23.5.2860 Initialized
+[00:44:01] [Server thread/INFO] [FML]: Starts to replace vanilla recipe ingredients with ore ingredients.
+[00:44:01] [Server thread/INFO] [FML]: Invalid recipe found with multiple oredict ingredients in the same ingredient...
+[00:44:02] [Server thread/INFO] [FML]: Replaced 1227 ore ingredients
+[00:44:02] [Server thread/DEBUG] [FML]: No config directory found, creating one: <DADOS>/config
+[00:44:02] [Server thread/INFO] [FML]: Config directory created successfully
+[00:44:02] [Server thread/DEBUG] [FML]: File <DADOS>/config/injectedDependencies.json not found. No dependencies injected
+[00:44:02] [Server thread/DEBUG] [FML]: Building injected Mod Containers [net.minecraftforge.fml.common.FMLContainer, net.minecraftforge.common.ForgeModContainer]
+[00:44:02] [Server thread/DEBUG] [FML]: Attempting to load mods contained in the minecraft jar file and associated classes
+[00:44:02] [Server thread/DEBUG] [FML]: Minecraft is a file at <DADOS>/forge-1.12.2-14.23.5.2860.jar, loading
+[00:44:02] [Server thread/DEBUG] [FML]: Minecraft jar mods loaded successfully
+[00:44:02] [Server thread/INFO] [FML]: Searching <DADOS>/./mods for mods
+[00:44:02] [Server thread/DEBUG] [FML]:   Adding Clumps-3.1.2.jar to the mod list
+[00:44:02] [Server thread/DEBUG] [FML]:   Adding AppleSkin-mc1.12-1.0.14.jar to the mod list
+[00:44:02] [Server thread/DEBUG] [FML]:   Adding jei_1.12.2-4.22.0.1036.jar to the mod list
+[00:44:02] [Server thread/DEBUG] [FML]: Found a candidate zip or jar file AppleSkin-mc1.12-1.0.14.jar
+[00:44:02] [Server thread/DEBUG] [FML]: Found a candidate zip or jar file Clumps-3.1.2.jar
+[00:44:02] [Server thread/DEBUG] [FML]: Found a candidate zip or jar file jei_1.12.2-4.22.0.1036.jar
+[00:44:02] [Server thread/DEBUG] [FML]: Examining file forge-1.12.2-14.23.5.2860.jar for potential mods
+[00:44:02] [Server thread/DEBUG] [FML]: The mod container forge-1.12.2-14.23.5.2860.jar appears to be missing an mcmod.info file
+[00:44:02] [Server thread/DEBUG] [FML]: Examining file AppleSkin-mc1.12-1.0.14.jar for potential mods
+[00:44:02] [Server thread/TRACE] [FML]: Located mcmod.info file in file AppleSkin-mc1.12-1.0.14.jar
+[00:44:02] [Server thread/DEBUG] [FML]: Identified a mod of type Lnet/minecraftforge/fml/common/Mod; (squeek.appleskin.AppleSkin) - loading
+[00:44:02] [Server thread/TRACE] [FML]: Parsed dependency info for appleskin: Requirements: [forge@[14.21.0,)] After:[jei@[4.6.0,), forge@[14.21.0,), applecore@[2.2.0,)] Before:[]
+[00:44:02] [Server thread/DEBUG] [FML]: Examining file Clumps-3.1.2.jar for potential mods
+[00:44:02] [Server thread/TRACE] [FML]: Located mcmod.info file in file Clumps-3.1.2.jar
+[00:44:02] [Server thread/DEBUG] [FML]: Identified a mod of type Lnet/minecraftforge/fml/common/Mod; (com.blamejared.clumps.Clumps) - loading
+[00:44:02] [Server thread/TRACE] [FML]: Parsed dependency info for clumps: Requirements: [] After:[] Before:[]
+[00:44:02] [Server thread/DEBUG] [FML]: Examining file jei_1.12.2-4.22.0.1036.jar for potential mods
+[00:44:02] [Server thread/TRACE] [FML]: Located mcmod.info file in file jei_1.12.2-4.22.0.1036.jar
+[00:44:02] [Server thread/DEBUG] [FML]: Identified a mod of type Lnet/minecraftforge/fml/common/Mod; (mezz.jei.JustEnoughItems) - loading
+[00:44:02] [Server thread/TRACE] [FML]: Parsed dependency info for jei: Requirements: [forge@[14.23.5.2816,)] After:[forge@[14.23.5.2816,)] Before:[]
+[00:44:02] [Server thread/ERROR] [FML]: Unable to read a class file correctly
+java.lang.IllegalArgumentException: null
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:185) ~[asm-debug-all-5.2.jar:5.2]
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:168) ~[asm-debug-all-5.2.jar:5.2]
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:439) ~[asm-debug-all-5.2.jar:5.2]
+	at net.minecraftforge.fml.common.discovery.asm.ASMModParser.<init>(ASMModParser.java:57) [ASMModParser.class:?]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.findClassesASM(JarDiscoverer.java:102) [JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.discover(JarDiscoverer.java:77) [JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.ContainerType.findMods(ContainerType.java:47) [ContainerType.class:?]
+	at net.minecraftforge.fml.common.discovery.ModCandidate.explore(ModCandidate.java:74) [ModCandidate.class:?]
+	at net.minecraftforge.fml.common.discovery.ModDiscoverer.identifyMods(ModDiscoverer.java:93) [ModDiscoverer.class:?]
+	at net.minecraftforge.fml.common.Loader.identifyMods(Loader.java:427) [Loader.class:?]
+	at net.minecraftforge.fml.common.Loader.loadMods(Loader.java:568) [Loader.class:?]
+	at net.minecraftforge.fml.server.FMLServerHandler.beginServerLoading(FMLServerHandler.java:98) [FMLServerHandler.class:?]
+	at net.minecraftforge.fml.common.FMLCommonHandler.onServerStart(FMLCommonHandler.java:333) [FMLCommonHandler.class:?]
+	at net.minecraft.server.dedicated.DedicatedServer.func_71197_b(DedicatedServer.java:125) [nz.class:?]
+	at net.minecraft.server.MinecraftServer.run(MinecraftServer.java:486) [MinecraftServer.class:?]
+	at java.lang.Thread.run(Thread.java:750) [?:1.8.0_504]
+[00:44:02] [Server thread/ERROR] [FML]: There was a problem reading the entry java/mezz/jei/config/Tags.class in the jar ./mods/jei_1.12.2-4.22.0.1036.jar - probably a corrupt zip
+net.minecraftforge.fml.common.LoaderException: java.lang.IllegalArgumentException
+
+	at net.minecraftforge.fml.common.discovery.asm.ASMModParser.<init>(ASMModParser.java:63) ~[ASMModParser.class:?]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.findClassesASM(JarDiscoverer.java:102) [JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.discover(JarDiscoverer.java:77) [JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.ContainerType.findMods(ContainerType.java:47) [ContainerType.class:?]
+	at net.minecraftforge.fml.common.discovery.ModCandidate.explore(ModCandidate.java:74) [ModCandidate.class:?]
+	at net.minecraftforge.fml.common.discovery.ModDiscoverer.identifyMods(ModDiscoverer.java:93) [ModDiscoverer.class:?]
+	at net.minecraftforge.fml.common.Loader.identifyMods(Loader.java:427) [Loader.class:?]
+	at net.minecraftforge.fml.common.Loader.loadMods(Loader.java:568) [Loader.class:?]
+	at net.minecraftforge.fml.server.FMLServerHandler.beginServerLoading(FMLServerHandler.java:98) [FMLServerHandler.class:?]
+	at net.minecraftforge.fml.common.FMLCommonHandler.onServerStart(FMLCommonHandler.java:333) [FMLCommonHandler.class:?]
+	at net.minecraft.server.dedicated.DedicatedServer.func_71197_b(DedicatedServer.java:125) [nz.class:?]
+	at net.minecraft.server.MinecraftServer.run(MinecraftServer.java:486) [MinecraftServer.class:?]
+	at java.lang.Thread.run(Thread.java:750) [?:1.8.0_504]
+Caused by: java.lang.IllegalArgumentException
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:185) ~[asm-debug-all-5.2.jar:5.2]
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:168) ~[asm-debug-all-5.2.jar:5.2]
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:439) ~[asm-debug-all-5.2.jar:5.2]
+	at net.minecraftforge.fml.common.discovery.asm.ASMModParser.<init>(ASMModParser.java:57) ~[ASMModParser.class:?]
+	... 12 more
+[00:44:02] [Server thread/WARN] [FML]: Zip file jei_1.12.2-4.22.0.1036.jar failed to read properly, it will be ignored
+net.minecraftforge.fml.common.LoaderException: java.lang.IllegalArgumentException
+
+	at net.minecraftforge.fml.common.discovery.asm.ASMModParser.<init>(ASMModParser.java:63) ~[ASMModParser.class:?]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.findClassesASM(JarDiscoverer.java:102) ~[JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.JarDiscoverer.discover(JarDiscoverer.java:77) [JarDiscoverer.class:?]
+	at net.minecraftforge.fml.common.discovery.ContainerType.findMods(ContainerType.java:47) [ContainerType.class:?]
+	at net.minecraftforge.fml.common.discovery.ModCandidate.explore(ModCandidate.java:74) [ModCandidate.class:?]
+	at net.minecraftforge.fml.common.discovery.ModDiscoverer.identifyMods(ModDiscoverer.java:93) [ModDiscoverer.class:?]
+	at net.minecraftforge.fml.common.Loader.identifyMods(Loader.java:427) [Loader.class:?]
+	at net.minecraftforge.fml.common.Loader.loadMods(Loader.java:568) [Loader.class:?]
+	at net.minecraftforge.fml.server.FMLServerHandler.beginServerLoading(FMLServerHandler.java:98) [FMLServerHandler.class:?]
+	at net.minecraftforge.fml.common.FMLCommonHandler.onServerStart(FMLCommonHandler.java:333) [FMLCommonHandler.class:?]
+	at net.minecraft.server.dedicated.DedicatedServer.func_71197_b(DedicatedServer.java:125) [nz.class:?]
+	at net.minecraft.server.MinecraftServer.run(MinecraftServer.java:486) [MinecraftServer.class:?]
+	at java.lang.Thread.run(Thread.java:750) [?:1.8.0_504]
+Caused by: java.lang.IllegalArgumentException
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:185) ~[asm-debug-all-5.2.jar:5.2]
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:168) ~[asm-debug-all-5.2.jar:5.2]
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:439) ~[asm-debug-all-5.2.jar:5.2]
+	at net.minecraftforge.fml.common.discovery.asm.ASMModParser.<init>(ASMModParser.java:57) ~[ASMModParser.class:?]
+	... 12 more
+[00:44:02] [Server thread/INFO] [FML]: Forge Mod Loader has identified 7 mods to load
+[00:44:02] [Server thread/DEBUG] [FML]: Found API betterwithmods.api (owned by betterwithmods providing BetterWithModsAPI) embedded in appleskin
+[00:44:02] [Server thread/DEBUG] [FML]: Creating API container dummy for API BetterWithModsAPI: owner: betterwithmods, dependents: [appleskin]
+[00:44:02] [Server thread/TRACE] [FML]: Received a system property request ''
+[00:44:02] [Server thread/TRACE] [FML]: System property request managing the state of 0 mods
+[00:44:02] [Server thread/DEBUG] [FML]: After merging, found state information for 0 mods
+[00:44:02] [Server thread/WARN] [FML]: Missing English translation for FML: assets/fml/lang/en_us.lang
+[00:44:02] [Server thread/DEBUG] [FML]: Enabling mod appleskin
+[00:44:02] [Server thread/WARN] [FML]: Missing English translation for appleskin: assets/appleskin/lang/en_us.lang
+[00:44:02] [Server thread/DEBUG] [FML]: Enabling mod clumps
+[00:44:02] [Server thread/WARN] [FML]: Missing English translation for clumps: assets/clumps/lang/en_us.lang
+[00:44:02] [Server thread/DEBUG] [FML]: Enabling mod jei
+[00:44:02] [Server thread/TRACE] [FML]: Verifying mod requirements are satisfied
+[00:44:02] [Server thread/TRACE] [FML]: All mod requirements are satisfied
+[00:44:02] [Server thread/TRACE] [FML]: Sorting mods into an ordered list
+[00:44:02] [Server thread/TRACE] [FML]: Mod sorting completed successfully
+[00:44:02] [Server thread/DEBUG] [FML]: Mod sorting data
+[00:44:02] [Server thread/DEBUG] [FML]: 	jei(Just Enough Items:4.22.0.1036): jei_1.12.2-4.22.0.1036.jar (required-after:forge@[14.23.5.2816,);)
+[00:44:02] [Server thread/DEBUG] [FML]: 	BetterWithModsAPI(API: BetterWithModsAPI:Beta 0.6): AppleSkin-mc1.12-1.0.14.jar ()
+[00:44:02] [Server thread/DEBUG] [FML]: 	appleskin(AppleSkin:1.0.14): AppleSkin-mc1.12-1.0.14.jar (after:jei@[4.6.0,); required-after:forge@[14.21.0,); after:applecore@[2.2.0,))
+[00:44:02] [Server thread/DEBUG] [FML]: 	clumps(Clumps:3.1.2): Clumps-3.1.2.jar ()
+[00:44:03] [Server thread/DEBUG] [FML]: Loading @Config anotation data
+[00:44:03] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod minecraft
+[00:44:03] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod minecraft
+[00:44:03] [Server thread/DEBUG] [FML]: Bar Step: Construction - Minecraft took 0.002s
+[00:44:03] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod mcp
+[00:44:03] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod mcp
+[00:44:03] [Server thread/DEBUG] [FML]: Bar Step: Construction - Minecraft Coder Pack took 0.001s
+[00:44:03] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod FML
+[00:44:03] [Server thread/TRACE] [FML]: Mod FML is using network checker : Invoking method checkModLists
+[00:44:03] [Server thread/TRACE] [FML]: Testing mod FML to verify it accepts its own version in a remote connection
+[00:44:03] [Server thread/TRACE] [FML]: The mod FML accepts its own version (8.0.99.99)
+[00:44:03] [Server thread/INFO] [FML]: Attempting connection with missing mods [minecraft, mcp, FML, forge, appleskin, clumps, jei] at CLIENT
+[00:44:03] [Server thread/INFO] [FML]: Attempting connection with missing mods [minecraft, mcp, FML, forge, appleskin, clumps, jei] at SERVER
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod FML
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: Construction - Forge Mod Loader took 0.990s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod forge
+[00:44:04] [Server thread/DEBUG] [forge]: Loading Vanilla annotations: null
+[00:44:04] [Server thread/DEBUG] [forge]: Preloading CrashReport Classes
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/common/util/TextTable
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/common/util/TextTable$Alignment
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/common/util/TextTable$Column
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/common/util/TextTable$Row
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/fml/client/SplashProgress$1
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/fml/common/FMLCommonHandler$1
+[00:44:04] [Server thread/DEBUG] [forge]: 	net/minecraftforge/fml/common/Loader$1
+[00:44:04] [Server thread/TRACE] [FML]: Mod forge is using network checker : No network checking performed
+[00:44:04] [Server thread/TRACE] [FML]: Testing mod forge to verify it accepts its own version in a remote connection
+[00:44:04] [Server thread/TRACE] [FML]: The mod forge accepts its own version (14.23.5.2860)
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @Config classes into forge for type INSTANCE
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod forge
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: Construction - Minecraft Forge took 0.059s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod jei
+[00:44:04] [Server thread/TRACE] [FML]: Mod jei is using network checker : Invoking method checkModLists
+[00:44:04] [Server thread/TRACE] [FML]: Testing mod jei to verify it accepts its own version in a remote connection
+[00:44:04] [Server thread/TRACE] [FML]: The mod jei accepts its own version (4.22.0.1036)
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @SidedProxy classes into jei
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @EventBusSubscriber classes into the eventbus for jei
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @Config classes into jei for type INSTANCE
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod jei
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: Construction - Just Enough Items took 0.051s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod appleskin
+[00:44:04] [Server thread/TRACE] [FML]: Mod appleskin is using network checker : No network checking performed
+[00:44:04] [Server thread/TRACE] [FML]: Testing mod appleskin to verify it accepts its own version in a remote connection
+[00:44:04] [Server thread/TRACE] [FML]: The mod appleskin accepts its own version (1.0.14)
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @SidedProxy classes into appleskin
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @EventBusSubscriber classes into the eventbus for appleskin
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @Config classes into appleskin for type INSTANCE
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod appleskin
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: Construction - AppleSkin took 0.009s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLConstructionEvent to mod clumps
+[00:44:04] [Server thread/TRACE] [FML]: Mod clumps is using network checker : Accepting version 3.1.2
+[00:44:04] [Server thread/TRACE] [FML]: Testing mod clumps to verify it accepts its own version in a remote connection
+[00:44:04] [Server thread/TRACE] [FML]: The mod clumps accepts its own version (3.1.2)
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @SidedProxy classes into clumps
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @EventBusSubscriber classes into the eventbus for clumps
+[00:44:04] [Server thread/DEBUG] [FML]: Attempting to inject @Config classes into clumps for type INSTANCE
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLConstructionEvent to mod clumps
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: Construction - Clumps took 0.007s
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Finished: Construction took 1.119s
+[00:44:04] [Server thread/DEBUG] [FML]: Mod signature data
+[00:44:04] [Server thread/DEBUG] [FML]:  	Valid Signatures:
+[00:44:04] [Server thread/DEBUG] [FML]: 		(e3c3d50c7c986df74c645c0ac54639741c90a557) FML	(Forge Mod Loader	8.0.99.99)	forge-1.12.2-14.23.5.2860.jar
+[00:44:04] [Server thread/DEBUG] [FML]: 		(e3c3d50c7c986df74c645c0ac54639741c90a557) forge	(Minecraft Forge	14.23.5.2860)	forge-1.12.2-14.23.5.2860.jar
+[00:44:04] [Server thread/DEBUG] [FML]:  	Missing Signatures:
+[00:44:04] [Server thread/DEBUG] [FML]: 		minecraft	(Minecraft	1.12.2)	minecraft.jar
+[00:44:04] [Server thread/DEBUG] [FML]: 		mcp	(Minecraft Coder Pack	9.42)	minecraft.jar
+[00:44:04] [Server thread/DEBUG] [FML]: 		jei	(Just Enough Items	4.22.0.1036)	jei_1.12.2-4.22.0.1036.jar
+[00:44:04] [Server thread/DEBUG] [FML]: 		appleskin	(AppleSkin	1.0.14)	AppleSkin-mc1.12-1.0.14.jar
+[00:44:04] [Server thread/DEBUG] [FML]: 		clumps	(Clumps	3.1.2)	Clumps-3.1.2.jar
+[00:44:04] [Server thread/INFO] [FML]: Processing ObjectHolder annotations
+[00:44:04] [Server thread/INFO] [FML]: Found 1168 ObjectHolder annotations
+[00:44:04] [Server thread/INFO] [FML]: Identifying ItemStackHolder annotations
+[00:44:04] [Server thread/INFO] [FML]: Found 0 ItemStackHolder annotations
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod minecraft
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod minecraft
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - Minecraft took 0.001s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod mcp
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod mcp
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - Minecraft Coder Pack took 0.001s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod FML
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod FML
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - Forge Mod Loader took 0.000s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod forge
+[00:44:04] [Server thread/INFO] [FML]: Configured a dormant chunk cache size of 0
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod forge
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - Minecraft Forge took 0.137s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod jei
+[00:44:04] [Forge Version Check/INFO] [forge.VersionCheck]: [forge] Starting version check at http://files.minecraftforge.net/maven/net/minecraftforge/forge/promotions_slim.json
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod jei
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - Just Enough Items took 0.083s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod appleskin
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod appleskin
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - AppleSkin took 0.016s
+[00:44:04] [Server thread/TRACE] [FML]: Sending event FMLPreInitializationEvent to mod clumps
+[00:44:04] [Server thread/TRACE] [FML]: Automatically registered mod clumps entity xp_orb_big as clumps:xp_orb_big
+[00:44:04] [Server thread/TRACE] [FML]: Sent event FMLPreInitializationEvent to mod clumps
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Step: PreInitialization - Clumps took 0.023s
+[00:44:04] [Server thread/DEBUG] [FML]: Bar Finished: PreInitialization took 0.261s
+[00:44:04] [Server thread/INFO] [FML]: Applying holder lookups
+[00:44:04] [Server thread/INFO] [FML]: Holder lookups applied
+[00:44:04] [Server thread/INFO] [FML]: Applying holder lookups
+[00:44:04] [Server thread/INFO] [FML]: Holder lookups applied
+[00:44:04] [Server thread/INFO] [FML]: Applying holder lookups
+[00:44:04] [Server thread/INFO] [FML]: Holder lookups applied
+[00:44:04] [Server thread/INFO] [FML]: Applying holder lookups
+[00:44:04] [Server thread/INFO] [FML]: Holder lookups applied
+[00:44:04] [Server thread/INFO] [FML]: Injecting itemstacks
+[00:44:04] [Server thread/INFO] [FML]: Itemstack injection complete
+[00:44:04] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Loading properties
+[00:44:04] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Default game type: SURVIVAL
+[00:44:04] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Generating keypair
+[00:44:04] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Starting Minecraft server on 127.0.0.1:25598
+[00:44:04] [Server thread/INFO] [net.minecraft.network.NetworkSystem]: Using epoll channel type
+[00:44:05] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[00:44:05] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer]: The server will make no attempt to authenticate usernames. Beware.
+[00:44:05] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[00:44:05] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer]: To change this, set "online-mode" to "true" in the server.properties file.
+[00:44:05] [Server thread/INFO] [FML]: Applying holder lookups
+[00:44:05] [Server thread/INFO] [FML]: Holder lookups applied
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod minecraft
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - Minecraft took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod mcp
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - Minecraft Coder Pack took 0.002s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod FML
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - Forge Mod Loader took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod forge
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - Minecraft Forge took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod jei
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - Just Enough Items took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod appleskin
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - AppleSkin took 0.016s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLInitializationEvent to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLInitializationEvent to mod clumps
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: Initialization - Clumps took 0.000s
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Finished: Initialization took 0.020s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod minecraft
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - Minecraft took 0.004s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod mcp
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - Minecraft Coder Pack took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod FML
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - Forge Mod Loader took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod forge
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod forge
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - Minecraft Forge took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod jei
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - Just Enough Items took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod appleskin
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - AppleSkin took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Attempting to deliver 0 IMC messages to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sending event IMCEvent to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sent event IMCEvent to mod clumps
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: InterModComms$IMC - Clumps took 0.000s
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Finished: InterModComms$IMC took 0.007s
+[00:44:05] [Server thread/INFO] [FML]: Injecting itemstacks
+[00:44:05] [Server thread/INFO] [FML]: Itemstack injection complete
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod minecraft
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - Minecraft took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod mcp
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - Minecraft Coder Pack took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod FML
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - Forge Mod Loader took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod forge
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - Minecraft Forge took 0.030s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod jei
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - Just Enough Items took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod appleskin
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - AppleSkin took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLPostInitializationEvent to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLPostInitializationEvent to mod clumps
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: PostInitialization - Clumps took 0.000s
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Finished: PostInitialization took 0.033s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod minecraft
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - Minecraft took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod mcp
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - Minecraft Coder Pack took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod FML
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - Forge Mod Loader took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Forge RecipeSorter Baking:
+[00:44:05] [Server thread/DEBUG] [FML]:   16: RecipeEntry("Before", UNKNOWN, )
+[00:44:05] [Server thread/DEBUG] [FML]:   15: RecipeEntry("minecraft:shaped", SHAPED, net.minecraft.item.crafting.ShapedRecipes) Before: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   14: RecipeEntry("forge:shapedore", SHAPED, net.minecraftforge.oredict.ShapedOreRecipe) Before: minecraft:shapeless After: minecraft:shaped
+[00:44:05] [Server thread/DEBUG] [FML]:   13: RecipeEntry("minecraft:mapextending", SHAPED, net.minecraft.item.crafting.RecipesMapExtending) Before: minecraft:shapeless After: minecraft:shaped
+[00:44:05] [Server thread/DEBUG] [FML]:   12: RecipeEntry("minecraft:shapeless", SHAPELESS, net.minecraft.item.crafting.ShapelessRecipes) After: minecraft:shaped
+[00:44:05] [Server thread/DEBUG] [FML]:   11: RecipeEntry("minecraft:repair", SHAPELESS, net.minecraft.item.crafting.RecipeRepairItem) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   10: RecipeEntry("minecraft:shield_deco", SHAPELESS, net.minecraft.item.crafting.ShieldRecipes$Decoration) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   9: RecipeEntry("minecraft:armordyes", SHAPELESS, net.minecraft.item.crafting.RecipesArmorDyes) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   8: RecipeEntry("minecraft:fireworks", SHAPELESS, net.minecraft.item.crafting.RecipeFireworks) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   7: RecipeEntry("minecraft:pattern_dupe", SHAPELESS, net.minecraft.item.crafting.RecipesBanners$RecipeDuplicatePattern) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   6: RecipeEntry("minecraft:tippedarrow", SHAPELESS, net.minecraft.item.crafting.RecipeTippedArrow) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   5: RecipeEntry("minecraft:mapcloning", SHAPELESS, net.minecraft.item.crafting.RecipesMapCloning) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   4: RecipeEntry("forge:shapelessore", SHAPELESS, net.minecraftforge.oredict.ShapelessOreRecipe) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   3: RecipeEntry("minecraft:pattern_add", SHAPELESS, net.minecraft.item.crafting.RecipesBanners$RecipeAddPattern) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   2: RecipeEntry("minecraft:bookcloning", SHAPELESS, net.minecraft.item.crafting.RecipeBookCloning) After: minecraft:shapeless
+[00:44:05] [Server thread/DEBUG] [FML]:   1: RecipeEntry("After", UNKNOWN, )
+[00:44:05] [Server thread/DEBUG] [FML]: Sorting recipes
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - Minecraft Forge took 0.022s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod jei
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - Just Enough Items took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod appleskin
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - AppleSkin took 0.004s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLLoadCompleteEvent to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLLoadCompleteEvent to mod clumps
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: LoadComplete - Clumps took 0.001s
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Finished: LoadComplete took 0.029s
+[00:44:05] [Server thread/DEBUG] [FML]: Freezing registries
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod minecraft
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - Minecraft took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod mcp
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - Minecraft Coder Pack took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod FML
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - Forge Mod Loader took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod forge
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - Minecraft Forge took 0.092s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod jei
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - Just Enough Items took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod appleskin
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - AppleSkin took 0.005s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLModIdMappingEvent to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLModIdMappingEvent to mod clumps
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ModIdMapping - Clumps took 0.000s
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Finished: ModIdMapping took 0.099s
+[00:44:05] [Server thread/DEBUG] [FML]: All registries frozen
+[00:44:05] [Server thread/INFO] [FML]: Forge Mod Loader has successfully loaded 7 mods
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod minecraft
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod minecraft
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - Minecraft took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod mcp
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod mcp
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - Minecraft Coder Pack took 0.001s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod FML
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod FML
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - Forge Mod Loader took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod forge
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod forge
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - Minecraft Forge took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod jei
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod jei
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - Just Enough Items took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod appleskin
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod appleskin
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - AppleSkin took 0.000s
+[00:44:05] [Server thread/TRACE] [FML]: Sending event FMLServerAboutToStartEvent to mod clumps
+[00:44:05] [Server thread/TRACE] [FML]: Sent event FMLServerAboutToStartEvent to mod clumps
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Step: ServerAboutToStart - Clumps took 0.005s
+[00:44:05] [Server thread/DEBUG] [FML]: Bar Finished: ServerAboutToStart took 0.007s
+[00:44:05] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Preparing level "world"
+[00:44:05] [Server thread/INFO] [FML]: Loading dimension 0 (world) (net.minecraft.server.dedicated.DedicatedServer@40049dd0)
+[00:44:06] [Server thread/INFO] [net.minecraft.advancements.AdvancementList]: Loaded 488 advancements
+[00:44:06] [Forge Version Check/DEBUG] [forge.VersionCheck]: [forge] Received version check data:
+{
+  "homepage": "https://files.minecraftforge.net/net/minecraftforge/forge/",
+  "promos": {
+    "1.1-latest": "1.3.4.29",
+    "1.2.3-latest": "1.4.1.64",
+    "1.2.4-latest": "2.0.0.68",
+    "1.2.5-latest": "3.4.9.171",
+    "1.3.2-latest": "4.3.5.318",
+    "1.4.0-latest": "5.0.0.326",
+    "1.4.1-latest": "6.0.0.329",
+    "1.4.2-latest": "6.0.1.355",
+    "1.4.3-latest": "6.2.1.358",
+    "1.4.4-latest": "6.3.0.378",
+    "1.4.5-latest": "6.4.2.448",
+    "1.4.6-latest": "6.5.0.489",
+    "1.4.7-latest": "6.6.2.534",
+    "1.5-latest": "7.7.0.598",
+    "1.5.1-latest": "7.7.2.682",
+    "1.5.2-latest": "7.8.1.738",
+    "1.5.2-recommended": "7.8.1.738",
+    "1.6.1-latest": "8.9.0.775",
+    "1.6.2-latest": "9.10.1.871",
+    "1.6.2-recommended": "9.10.1.871",
+    "1.6.3-latest": "9.11.0.878",
+    "1.6.4-latest": "9.11.1.1345",
+    "1.6.4-recommended": "9.11.1.1345",
+    "1.7.2-latest": "10.12.2.1161",
+    "1.7.2-recommended": "10.12.2.1161",
+    "1.7.10-latest": "10.13.4.1614",
+    "1.7.10-recommended": "10.13.4.1614",
+    "1.8-latest": "11.14.4.1577",
+    "1.8-recommended": "11.14.4.1563",
+    "1.8.8-latest": "11.15.0.1655",
+    "1.8.9-latest": "11.15.1.2318",
+    "1.8.9-recommended": "11.15.1.2318",
+    "1.9-latest": "12.16.1.1938",
+    "1.9-recommended": "12.16.1.1887",
+    "1.9.4-latest": "12.17.0.2317",
+    "1.9.4-recommended": "12.17.0.2317",
+    "1.10-latest": "12.18.0.2000",
+    "1.10.2-latest": "12.18.3.2511",
+    "1.10.2-recommended": "12.18.3.2511",
+    "1.11-latest": "13.19.1.2199",
+    "1.11-recommended": "13.19.1.2189",
+    "1.11.2-latest": "13.20.1.2588",
+    "1.11.2-recommended": "13.20.1.2588",
+    "1.12-latest": "14.21.1.2443",
+    "1.12-recommended": "14.21.1.2387",
+    "1.12.1-latest": "14.22.1.2485",
+    "1.12.1-recommended": "14.22.1.2478",
+    "1.12.2-latest": "14.23.5.2864",
+    "1.12.2-recommended": "14.23.5.2859",
+    "1.13.2-latest": "25.0.223",
+    "1.14.2-latest": "26.0.63",
+    "1.14.3-latest": "27.0.60",
+    "1.14.4-latest": "28.2.30",
+    "1.14.4-recommended": "28.2.26",
+    "1.15-latest": "29.0.4",
+    "1.15.1-latest": "30.0.51",
+    "1.15.2-latest": "31.2.62",
+    "1.15.2-recommended": "31.2.57",
+    "1.16.1-latest": "32.0.108",
+    "1.16.2-latest": "33.0.61",
+    "1.16.3-latest": "34.1.42",
+    "1.16.3-recommended": "34.1.0",
+    "1.16.4-latest": "35.1.37",
+    "1.16.4-recommended": "35.1.4",
+    "1.16.5-latest": "36.2.42",
+    "1.16.5-recommended": "36.2.34",
+    "1.17.1-latest": "37.1.1",
+    "1.17.1-recommended": "37.1.1",
+    "1.18-latest": "38.0.17",
+    "1.18.1-latest": "39.1.2",
+    "1.18.1-recommended": "39.1.0",
+    "1.18.2-recommended": "40.3.0",
+    "1.18.2-latest": "40.3.12",
+    "1.19-latest": "41.1.0",
+    "1.19-recommended": "41.1.0",
+    "1.19.1-latest": "42.0.9",
+    "1.19.2-recommended": "43.5.0",
+    "1.19.2-latest": "43.5.2",
+    "1.19.3-latest": "44.1.23",
+    "1.19.3-recommended": "44.1.0",
+    "1.19.4-recommended": "45.4.0",
+    "1.19.4-latest": "45.4.5",
+    "1.20-latest": "46.0.14",
+    "1.20.1-recommended": "47.4.10",
+    "1.20.1-latest": "47.4.28",
+    "1.20.2-latest": "48.1.0",
+    "1.20.2-recommended": "48.1.0",
+    "1.20.3-latest": "49.0.2",
+    "1.20.4-latest": "49.2.13",
+    "1.20.4-recommended": "49.2.0",
+    "1.20.6-latest": "50.2.14",
+    "1.20.6-recommended": "50.2.0",
+    "1.21-latest": "51.0.33",
+    "1.21.1-latest": "52.1.20",
+    "1.21.1-recommended": "52.1.0",
+    "1.21.3-latest": "53.1.16",
+    "1.21.3-recommended": "53.1.0",
+    "1.21.4-latest": "54.1.22",
+    "1.21.4-recommended": "54.1.14",
+    "1.21.5-latest": "55.1.18",
+    "1.21.5-recommended": "55.1.0",
+    "1.21.6-latest": "56.0.9",
+    "1.21.7-latest": "57.0.3",
+    "1.21.8-latest": "58.1.26",
+    "1.21.8-recommended": "58.1.0",
+    "1.21.9-latest": "59.0.5",
+    "1.21.10-latest": "60.1.18",
+    "1.21.10-recommended": "60.1.0",
+    "1.21.11-latest": "61.2.4",
+    "1.21.11-recommended": "61.2.0",
+    "26.1-latest": "62.0.9",
+    "26.1.1-latest": "63.0.2",
+    "26.1.2-latest": "64.1.5",
+    "26.1.2-recommended": "64.1.0",
+    "26.2-latest": "65.1.5",
+    "26.2-recommended": "65.1.0",
+    "26.3-latest": "66.0.13"
+  }
+}
+[00:44:06] [Forge Version Check/INFO] [forge.VersionCheck]: [forge] Found status: OUTDATED Target: 14.23.5.2864
+[00:44:07] [Server thread/INFO] [FML]: Loading dimension -1 (world) (net.minecraft.server.dedicated.DedicatedServer@40049dd0)
+[00:44:07] [Server thread/INFO] [FML]: Loading dimension 1 (world) (net.minecraft.server.dedicated.DedicatedServer@40049dd0)
+[00:44:07] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing start region for level 0
+[00:44:08] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Preparing spawn area: 57%
+[00:44:08] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Done (3.279s)! For help, type "help" or "?"
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod minecraft
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod minecraft
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - Minecraft took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod mcp
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod mcp
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - Minecraft Coder Pack took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod FML
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod FML
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - Forge Mod Loader took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod forge
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod forge
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - Minecraft Forge took 0.040s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod jei
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod jei
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - Just Enough Items took 0.001s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod appleskin
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod appleskin
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - AppleSkin took 0.001s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartingEvent to mod clumps
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartingEvent to mod clumps
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarting - Clumps took 0.001s
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Finished: ServerStarting took 0.043s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod minecraft
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod minecraft
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - Minecraft took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod mcp
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod mcp
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - Minecraft Coder Pack took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod FML
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod FML
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - Forge Mod Loader took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod forge
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod forge
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - Minecraft Forge took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod jei
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod jei
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - Just Enough Items took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod appleskin
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod appleskin
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - AppleSkin took 0.000s
+[00:44:08] [Server thread/TRACE] [FML]: Sending event FMLServerStartedEvent to mod clumps
+[00:44:08] [Server thread/TRACE] [FML]: Sent event FMLServerStartedEvent to mod clumps
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Step: ServerStarted - Clumps took 0.000s
+[00:44:08] [Server thread/DEBUG] [FML]: Bar Finished: ServerStarted took 0.001s
+[00:44:08] [Server thread/DEBUG] [FML]: Queueing dimension -1 to unload
+[00:44:08] [Server thread/DEBUG] [FML]: Queueing dimension 1 to unload
+[00:44:08] [Server thread/INFO] [FML]: Unloading dimension -1
+[00:44:08] [Server thread/INFO] [FML]: Unloading dimension 1
+[00:44:15] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer]: Stopping the server
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod minecraft
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod minecraft
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - Minecraft took 0.001s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod mcp
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod mcp
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - Minecraft Coder Pack took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod FML
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod FML
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - Forge Mod Loader took 0.001s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod forge
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod forge
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - Minecraft Forge took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod jei
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod jei
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - Just Enough Items took 0.001s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod appleskin
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod appleskin
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - AppleSkin took 0.001s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppingEvent to mod clumps
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppingEvent to mod clumps
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopping - Clumps took 0.001s
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Finished: ServerStopping took 0.005s
+[00:44:15] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Stopping server
+[00:44:15] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving players
+[00:44:15] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving worlds
+[00:44:15] [Server thread/INFO] [net.minecraft.server.MinecraftServer]: Saving chunks for level 'world'/overworld
+[00:44:15] [Server thread/DEBUG] [FML]: Gathering id map for writing to world save world
+[00:44:15] [Server thread/INFO] [FML]: Unloading dimension 0
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod minecraft
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod minecraft
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - Minecraft took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod mcp
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod mcp
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - Minecraft Coder Pack took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod FML
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod FML
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - Forge Mod Loader took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod forge
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod forge
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - Minecraft Forge took 0.001s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod jei
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod jei
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - Just Enough Items took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod appleskin
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod appleskin
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - AppleSkin took 0.000s
+[00:44:15] [Server thread/TRACE] [FML]: Sending event FMLServerStoppedEvent to mod clumps
+[00:44:15] [Server thread/TRACE] [FML]: Sent event FMLServerStoppedEvent to mod clumps
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Step: ServerStopped - Clumps took 0.000s
+[00:44:15] [Server thread/DEBUG] [FML]: Bar Finished: ServerStopped took 0.003s

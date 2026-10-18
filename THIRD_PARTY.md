@@ -46,7 +46,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `tauri-plugin-clipboard-manager` | 2.4.2 | Apache-2.0 OR MIT | `warden-app` | Plugin oficial do Tauri: põe o print da janela na área de transferência no "Relatar problema" (UI-03), chamado só pelo Rust. Traz a `arboard` (MIT OR Apache-2.0, da 1Password) e, no Windows, a `clipboard-win` e a `error-code` (BSL-1.0, permitida no `deny.toml`). |
 | `x11rb` | 0.13.2 | MIT OR Apache-2.0 | `warden-app` (Linux) | Print da janela do Warden no X11 (UI-03): acha a janela pelo `_NET_WM_PID` e lê o conteúdo com `GetImage`. Protocolo X11 em Rust, sem biblioteca C. A mesma versão já vem com a `arboard`. Escolhida no lugar da `xcap` (Apache-2.0), que ignora as janelas do próprio processo e exige a PipeWire (biblioteca C e `bindgen`) no Linux. |
 | `toml_edit` | 0.25.15 | MIT OR Apache-2.0 | `warden-packwiz`, `warden-configs` | Leitura de TOML e edição mínima de `pack.toml`, `index.toml` e `.pw.toml` (ARCHITECTURE §6.2); nas configs, posição de cada valor para editar só os bytes dele (ADR-0013). |
-| `regex` | 1.13.1 | MIT OR Apache-2.0 | `warden-packwiz` | Matcher do `.packwizignore` com a semântica do packwiz (expressões geradas como no go-gitignore). |
+| `regex` | 1.13.1 | MIT OR Apache-2.0 | `warden-packwiz`, `warden-perf` | Matcher do `.packwizignore` com a semântica do packwiz (expressões geradas como no go-gitignore). Na `warden-perf` (L-12): as linhas de tempo por mod do log do Forge e do NeoForge. |
 | `sha1` | 0.10.7 | MIT OR Apache-2.0 | `warden-packwiz`; `warden-jarmeta`, `warden-mixin` (testes) | Hash `sha1` (CurseForge); confere os jars baixados nos testes de rede da `warden-jarmeta` e da `warden-mixin`. |
 | `md-5` | 0.10.6 | MIT OR Apache-2.0 | `warden-packwiz` | Hash `md5` (CurseForge sem `sha1`). |
 | `hex` | 0.4.3 | MIT OR Apache-2.0 | `warden-packwiz` | Hashes em hexadecimal minúsculo, como o packwiz grava. |
@@ -78,6 +78,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `nucleo-matcher` | 0.3.1 | MPL-2.0 | `warden-configs` | Busca em todas as configs (C-05; ARCHITECTURE §10.1): comparação aproximada sem diferenciar maiúsculas nem acentos, com pontuação e posições dos trechos que casaram. Usada sem modificação (MPL-2.0 só pede o código-fonte dos arquivos da biblioteca que forem alterados). |
 | `cafebabe` | 0.9.0 | 0BSD | `warden-mixin` | Leitura das classes de mixin dos jars (só o constant pool e as anotações, sem bytecode) no raio-x de mixins (D-10; ADR-0034 e ADR-0056). |
 | `criterion` | 0.8.2 | Apache-2.0 OR MIT | `warden-packwiz`, `warden-project`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics`, `warden-export` (benchmarks) | Medições de desempenho com o pack grande (A-04; SPEC §8), em `cargo bench`. Sem as funções padrão (`rayon`, `plotters`): só a medida e o relatório no terminal. Os benchmarks também usam `sha2` e `zip` (já registrados) como dependências de desenvolvimento, para gerar o pack e os jars sintéticos. |
+| `prost` | 0.14.4 | Apache-2.0 | `warden-perf` | Leitura dos perfis do spark (`.sparkprofile`, `.sparkheap`; protobuf) no "Testar com perfil de desempenho" (L-12; ARCHITECTURE §7.7). O código das mensagens é gerado uma vez pelo `prost-build` a partir dos `.proto` do spark e fica no repositório (`crates/warden-perf/src/spark/generated.rs`), sem `protoc` no build. Traz o `prost-derive` (Apache-2.0) com `itertools` e `either` (MIT OR Apache-2.0). |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
@@ -156,6 +157,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `crates/warden-diagnostics/tests/corpus/codex-*/` | `test/data/` de [aternosorg/codex-minecraft](https://github.com/aternosorg/codex-minecraft), commit `d7fb6a30b8dbe9d9f73c97e4ad7927a45c3173e9` (Copyright (c) 2019-2025 Aternos GmbH) | MIT | Logs públicos do mclo.gs usados no corpus da análise pós-crash; nomes de pessoas trocados por fictícios (`tests/corpus/FIXTURES.md`); licença em `tests/corpus/LICENSE-codex-minecraft.txt`. |
 | `crates/warden-diagnostics/tests/corpus/github-*/` | logs citados em issues públicas do GitHub (links em `tests/corpus/FIXTURES.md`) | sem licença declarada; trechos curtos de log usados só como dado de teste | Queda nativa no driver de vídeo e jar Fabric no NeoForge. |
 | `crates/warden-import/tests/corpus/create-plus/` | `modrinth.index.json` (recorte de 9 dos 144 itens, sem alteração) e `xmcl.json` do modpack [Create+](https://modrinth.com/modpack/create_plus) 6.0.0 Alpha D, de Sshmoob (versão `Tg9n3zcA` do Modrinth, baixada em 2026-10-13) | LGPL-3.0-only ([texto](https://www.gnu.org/licenses/lgpl-3.0.txt)) | Corpus real da importação de `.mrpack` (CA-T24-01): `env: "unknown"`, jar de `mods/.connector/temp/` em `files[]` e o arquivo de outro launcher; origem detalhada em `tests/corpus/README.md`. |
+| `crates/warden-perf/proto/spark/*.proto` e o código gerado deles, `crates/warden-perf/src/spark/generated.rs` | `spark-common/src/main/proto/spark/` do [lucko/spark](https://github.com/lucko/spark), commit `3e8745a76eaabe9a4f70aad6283876fb518d2ae8` (Copyright (c) lucko (Luck) e colaboradores) | GPL-3.0-or-later | Formato dos `.sparkprofile` e `.sparkheap` (`spark.proto`, `spark_sampler.proto`, `spark_heap.proto`), copiado sem alteração para ler os perfis salvos no jogo (L-12; ARCHITECTURE §7.7). Licença em `crates/warden-perf/proto/LICENSE.txt`; o app é privado e nunca distribuído (ADR-0004). |
 
 ## Java baixado pelo app na máquina do usuário (não redistribuído)
 
@@ -196,3 +198,10 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `IBM Plex Mono` | OFL-1.1 ([`OFL-IBMPlexMono.txt`](design/system/fonts/OFL-IBMPlexMono.txt)) | Console, versões, caminhos, configs e diff (DESIGN-SYSTEM §3). |
 | `Manrope` | OFL-1.1 ([`OFL-Manrope.txt`](design/system/fonts/OFL-Manrope.txt)) | Texto de leitura, botões, campos e tabelas (DESIGN-SYSTEM §3). |
 | `Pixelify Sans` | OFL-1.1 ([`OFL-PixelifySans.txt`](design/system/fonts/OFL-PixelifySans.txt)) | Títulos curtos, menu de seções e Testar (DESIGN-SYSTEM §3). |
+
+## Programas distribuídos dentro de arquivos gerados pelo app
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [packwiz/packwiz-installer-bootstrap](https://github.com/packwiz/packwiz-installer-bootstrap) | 0.0.3 | MIT | "Pacote para servidor" pelo link (E-03): vai dentro do zip como `packwiz-installer-bootstrap.jar`, sem alterações, o mesmo jar do "Testar como o jogador recebe" (seção acima), conferido pelo SHA-256 fixado antes de entrar no zip e acompanhado do aviso da licença MIT (`LICENCAS-DE-TERCEIROS.txt`). |
+| [packwiz/packwiz-installer](https://github.com/packwiz/packwiz-installer) | 0.5.14 | MIT | "Pacote para servidor" pelo link (E-03): vai dentro do zip como `packwiz-installer.jar`, do mesmo jeito que o bootstrap. |

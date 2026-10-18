@@ -119,7 +119,8 @@ pub(crate) async fn config_write(
 }
 
 /// A gravação de verdade. `cli` é o packwiz do pack (`None` na instância, que não tem índice).
-async fn write_impl(
+/// Também usada pelas propostas da IA (D-14).
+pub(crate) async fn write_impl(
     state: &AppState,
     cli: Option<&Packwiz>,
     pack_id: PackId,

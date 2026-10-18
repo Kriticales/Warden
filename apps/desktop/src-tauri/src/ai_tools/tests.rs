@@ -2,7 +2,8 @@
 //! com um Gemini simulado (`wiremock`): o texto inicial redigido e byte a byte o enviado
 //! (CA-T14-03 e CA-T14-04), cancelar sem rede (CA-T14-05), o log do computador com a conversa
 //! guardada fora da pasta do pack e de volta depois de reabrir o app (CA-T14-06), o aviso de pack
-//! mudado e apagar (CA-T14-15) e o testador da chave.
+//! mudado e apagar (CA-T14-15) e o testador da chave. Os auxiliares (`setup`, o Gemini
+//! simulado, `folder_hash`) também servem aos testes das propostas da D-14.
 
 // Os roteiros do simulado são `match` pelo número da requisição, como nos da `warden-ai`.
 #![allow(clippy::single_match_else)]
@@ -15,7 +16,7 @@ use std::time::Duration;
 
 use serde_json::{Value, json};
 use sha2::{Digest as _, Sha256};
-use warden_ai::conversation::{ConversationOrigin, Symptom};
+use warden_ai::conversation::{AiSymptom, ConversationOrigin};
 use warden_ai::evidence::ClaimStatus;
 use warden_ai::tools::{AiPermissions, ToolSource as _};
 use warden_core::PackId;
@@ -75,7 +76,7 @@ fn write_pack(root: &Path, versions: [&str; 3]) {
 }
 
 /// Resumo de todos os arquivos da pasta (caminho e conteúdo).
-fn folder_hash(root: &Path) -> String {
+pub(in crate::ai_tools) fn folder_hash(root: &Path) -> String {
     fn walk(dir: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) {
         let mut entries: Vec<_> = fs::read_dir(dir).unwrap().flatten().collect();
         entries.sort_by_key(fs::DirEntry::path);
@@ -112,7 +113,7 @@ fn register(state: &AppState, root: &Path) -> PackId {
 }
 
 /// O que o roteiro devolve a cada `generateContent`.
-type Script = Box<dyn Fn(usize, &Value) -> Value + Send + Sync>;
+pub(in crate::ai_tools) type Script = Box<dyn Fn(usize, &Value) -> Value + Send + Sync>;
 
 /// Gemini simulado: `models.list`, `countTokens` e `generateContent` por roteiro, anotando o
 /// corpo de cada requisição como chegou.
@@ -158,7 +159,7 @@ impl Respond for Gemini {
     }
 }
 
-fn calls(list: &[(&str, Value)]) -> Value {
+pub(in crate::ai_tools) fn calls(list: &[(&str, Value)]) -> Value {
     let parts: Vec<Value> = list
         .iter()
         .enumerate()
@@ -184,18 +185,18 @@ fn first_text(request: &Value) -> (String, String) {
     )
 }
 
-struct Setup {
+pub(in crate::ai_tools) struct Setup {
     dir: tempfile::TempDir,
     data: PathBuf,
-    root: PathBuf,
-    state: AppState,
-    pack: PackId,
+    pub(in crate::ai_tools) root: PathBuf,
+    pub(in crate::ai_tools) state: AppState,
+    pub(in crate::ai_tools) pack: PackId,
     server: MockServer,
     seen: Arc<Mutex<Vec<(String, String)>>>,
     delay: Arc<Mutex<Duration>>,
 }
 
-async fn setup(script: Script) -> Setup {
+pub(in crate::ai_tools) async fn setup(script: Script) -> Setup {
     let dir = tempfile::tempdir().unwrap();
     let data = dir.path().join("dados");
     let state = test_state(&data);
@@ -231,7 +232,7 @@ async fn setup(script: Script) -> Setup {
     }
 }
 
-fn noop() -> crate::commands::ai::Notify {
+pub(in crate::ai_tools) fn noop() -> crate::commands::ai::Notify {
     Arc::new(|_, _| {})
 }
 
@@ -251,7 +252,7 @@ async fn ca_t14_05_consentimento_sem_nada_do_pack_e_cancelar_sem_rede() {
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::CrashOnStart,
+            symptom: AiSymptom::CrashOnStart,
             source: AiSource::PackOnly,
             note: Some("trava quando entro no Nether".into()),
         },
@@ -298,7 +299,7 @@ async fn ca_t14_03_texto_inicial_e_blocos_sao_o_que_saiu() {
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::Other,
+            symptom: AiSymptom::Other,
             source: AiSource::PackOnly,
             note: None,
         },
@@ -382,7 +383,7 @@ async fn ca_t14_06_log_do_computador_redigido_fora_do_pack_e_de_volta_ao_reabrir
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::CrashInWorld,
+            symptom: AiSymptom::CrashInWorld,
             source: AiSource::LocalFile { token: pick.token },
             note: None,
         },
@@ -458,7 +459,7 @@ async fn ca_t14_15_pack_mudado_e_apagar_a_conversa() {
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::Slow,
+            symptom: AiSymptom::Slow,
             source: AiSource::PackOnly,
             note: None,
         },
@@ -508,7 +509,7 @@ async fn apagar_enquanto_a_ia_responde_nao_traz_o_arquivo_de_volta() {
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::Slow,
+            symptom: AiSymptom::Slow,
             source: AiSource::PackOnly,
             note: None,
         },
@@ -557,7 +558,7 @@ async fn pergunta_nova_so_depois_da_resposta() {
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::Other,
+            symptom: AiSymptom::Other,
             source: AiSource::PackOnly,
             note: None,
         },
@@ -782,7 +783,7 @@ async fn ultimo_travamento_crash_report_log_e_mensagem_de_jogador() {
         &setup.state,
         setup.pack,
         AiPreviewRequest {
-            symptom: Symptom::CrashInWorld,
+            symptom: AiSymptom::CrashInWorld,
             source: AiSource::LastCrash,
             note: None,
         },

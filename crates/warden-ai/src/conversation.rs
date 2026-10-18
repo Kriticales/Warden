@@ -4,7 +4,8 @@
 //! O arquivo guarda tudo **como enviado**: o histórico exato da API (`contents`, com o `content`
 //! de cada resposta do modelo intacto, como `serde_json::Value`, para as *thought signatures*),
 //! cada resultado de ferramenta, as permissões, o modelo, o uso (`usageMetadata`), as respostas
-//! conferidas e o retrato do pack no começo (para avisar quando o pack mudou, CA-T14-15).
+//! conferidas, as propostas com o que foi aplicado ou descartado (D-14) e o retrato do pack no
+//! começo (para avisar quando o pack mudou, CA-T14-15).
 //! Apagar a conversa apaga o arquivo (e o log escolhido no computador, quando houver).
 
 use std::collections::BTreeMap;
@@ -21,10 +22,11 @@ use crate::tools::{AiPermissions, ToolItem};
 /// Versão do formato do arquivo.
 pub const SCHEMA_VERSION: u32 = 1;
 
-/// O sintoma escolhido em "Nova conversa".
+/// O sintoma escolhido em "Nova conversa" (`AiSymptom`: o `Symptom` é o da busca do culpado,
+/// D-12, e os dois vão para o mesmo `bindings.ts`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum Symptom {
+pub enum AiSymptom {
     /// Trava ao abrir o jogo.
     CrashOnStart,
     /// Trava ao entrar no mundo.
@@ -176,6 +178,9 @@ pub struct ToolStep {
     pub ok: bool,
     /// Não permitida nesta conversa.
     pub denied: bool,
+    /// O pedido feito a outro serviço para responder ("Enviado ao GitHub", D-14).
+    #[serde(default)]
+    pub external: Option<crate::external::ExternalRequest>,
 }
 
 /// Como a resposta final chegou.
@@ -257,7 +262,7 @@ pub struct Conversation {
     /// Permissões escolhidas no consentimento.
     pub permissions: AiPermissions,
     /// O sintoma.
-    pub symptom: Symptom,
+    pub symptom: AiSymptom,
     /// O que foi analisado.
     pub origin: ConversationOrigin,
     /// O que a pessoa contou à IA no começo.
@@ -276,6 +281,9 @@ pub struct Conversation {
     pub usage: TokenUsage,
     /// Requisições `generateContent` feitas (com as novas tentativas).
     pub requests: u32,
+    /// As propostas da IA e o que o usuário decidiu (D-14).
+    #[serde(default)]
+    pub proposals: Vec<crate::proposals::Proposal>,
     /// Campos que esta versão não conhece: preservados ao gravar.
     #[serde(flatten)]
     pub unknown: BTreeMap<String, Value>,
@@ -451,7 +459,7 @@ pub fn new_conversation(
     now_ms: u64,
     model: String,
     permissions: AiPermissions,
-    symptom: Symptom,
+    symptom: AiSymptom,
     origin: ConversationOrigin,
     note: Option<String>,
     pack: PackSnapshot,
@@ -474,6 +482,7 @@ pub fn new_conversation(
         turns: Vec::new(),
         usage: TokenUsage::default(),
         requests: 0,
+        proposals: Vec::new(),
         unknown: BTreeMap::new(),
     }
 }
@@ -488,7 +497,7 @@ mod tests {
             at,
             "modelo".into(),
             AiPermissions::default(),
-            Symptom::CrashInWorld,
+            AiSymptom::CrashInWorld,
             ConversationOrigin::PackOnly,
             None,
             PackSnapshot::default(),

@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::Path;
 
-use warden_ai::conversation::{ConversationOrigin, PackSnapshot, Symptom};
+use warden_ai::conversation::{AiSymptom, ConversationOrigin, PackSnapshot};
 use warden_launcher::outcome::Outcome;
 
 use super::read::read_log_text;
@@ -54,14 +54,14 @@ pub(crate) struct Initial {
     pub(crate) local_log: Option<String>,
 }
 
-fn symptom_text(symptom: Symptom) -> &'static str {
+fn symptom_text(symptom: AiSymptom) -> &'static str {
     match symptom {
-        Symptom::CrashOnStart => "o jogo trava ao abrir (fecha antes do menu principal)",
-        Symptom::CrashInWorld => {
+        AiSymptom::CrashOnStart => "o jogo trava ao abrir (fecha antes do menu principal)",
+        AiSymptom::CrashInWorld => {
             "o jogo trava ao entrar no mundo (abre, mas fecha ao carregar ou jogar)"
         }
-        Symptom::Slow => "o jogo está lento (quadros por segundo baixos ou travadinhas)",
-        Symptom::Other => "outra coisa (veja o que a pessoa contou)",
+        AiSymptom::Slow => "o jogo está lento (quadros por segundo baixos ou travadinhas)",
+        AiSymptom::Other => "outra coisa (veja o que a pessoa contou)",
     }
 }
 
@@ -121,7 +121,7 @@ async fn tool_text(tools: &PackTools<'_>, name: &str, args: &serde_json::Value) 
 /// Monta o texto inicial.
 pub(crate) async fn build(
     tools: &PackTools<'_>,
-    symptom: Symptom,
+    symptom: AiSymptom,
     subject: Subject,
     note: Option<&str>,
 ) -> Result<Initial, AppError> {

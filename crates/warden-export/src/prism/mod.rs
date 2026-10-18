@@ -598,7 +598,8 @@ fn build_zip(index: &[u8], overrides: &BTreeMap<String, Vec<u8>>) -> Result<Vec<
 }
 
 /// Grava só em um arquivo novo: se o destino apareceu no meio do caminho, não sobrescreve.
-fn write_new(destination: &Path, bytes: &[u8]) -> Result<()> {
+/// Também usado pelo pacote para servidor.
+pub(crate) fn write_new(destination: &Path, bytes: &[u8]) -> Result<()> {
     let parent = destination
         .parent()
         .ok_or_else(|| Error::internal("destino sem pasta pai"))?;

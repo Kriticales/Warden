@@ -1,0 +1,36 @@
+  <log4j:Event logger="FML" timestamp="1791159155706" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading]]></log4j:Message>
+  </log4j:Event>
+2026-10-04 19:42:36,564 main WARN Error parsing URI <DADOS>\shared\assets\log_configs\client-1.12.xml
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791159158721" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791159161526" level="INFO" thread="Client thread">
+    <log4j:Message><![CDATA[LWJGL Version: 2.9.4]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791159164705" level="FATAL" thread="Client thread">
+    <log4j:Message><![CDATA[net.minecraftforge.fml.common.MissingModsException: Mod quark (Quark) requires [autoreglib@[1.3-32,)]]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="FML" timestamp="1791159164706" level="ERROR" thread="Client thread">
+    <log4j:Message><![CDATA[An exception was thrown, the game will display an error screen and halt.]]></log4j:Message>
+    <log4j:Throwable><![CDATA[Missing Mods:
+	unknown : need [1.3-32,): have missing
+
+net.minecraftforge.fml.common.MissingModsException: Mod quark (Quark) requires [autoreglib@[1.3-32,)]
+	at net.minecraftforge.fml.common.Loader.sortModList(Loader.java:266)
+	at net.minecraftforge.fml.common.Loader.loadMods(Loader.java:572)
+	at net.minecraftforge.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:232)
+	at net.minecraft.client.Minecraft.func_71384_a(Minecraft.java:467)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:378)
+	at net.minecraft.client.main.Main.main(SourceFile:123)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+]]></log4j:Throwable>
+  </log4j:Event>
+  <log4j:Event logger="com.mojang.realmsclient.client.RealmsClient" timestamp="1791159170885" level="INFO" thread="Realms Notification Availability checker #1">
+    <log4j:Message><![CDATA[Could not authorize you against Realms server: javax.ws.rs.BadRequestException: Invalid session]]></log4j:Message>
+  </log4j:Event>

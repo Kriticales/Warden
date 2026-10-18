@@ -17,8 +17,10 @@ pub mod conversation;
 pub mod engine;
 mod error;
 pub mod evidence;
+pub mod external;
 pub mod gemini;
 pub mod models;
+pub mod proposals;
 pub mod schema;
 pub mod tools;
 

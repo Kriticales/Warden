@@ -105,8 +105,7 @@ pub(crate) struct CrashOriginCount {
     pub(crate) count: u32,
 }
 
-/// O que está ligado ao grupo: rodadas da busca do culpado (D-12) e conversas com a IA (D-04).
-/// Vazio até essas tarefas existirem.
+/// O que está ligado ao grupo: buscas do culpado (D-12) e conversas com a IA (D-04).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CrashLinks {
@@ -416,6 +415,8 @@ fn log_loader(loader: &LoaderSpec) -> Option<LogLoader> {
 struct History {
     groups: Vec<CrashGroup>,
     entries: HashMap<String, Entry>,
+    /// `state/` da instância (as buscas do culpado ligadas, D-12).
+    state_dir: Option<PathBuf>,
 }
 
 /// O que o histórico guarda de cada sessão que travou.
@@ -457,6 +458,7 @@ impl History {
         Ok(Self {
             groups: group_crashes(&list),
             entries,
+            state_dir: sessions.parent().map(Path::to_path_buf),
         })
     }
 
@@ -485,7 +487,12 @@ impl History {
                 .entries
                 .get(latest)
                 .and_then(|entry| entry.diagnosis.clone()),
-            links: CrashLinks::default(),
+            links: CrashLinks {
+                culprit_searches: self.state_dir.as_deref().map_or_else(Vec::new, |dir| {
+                    crate::bisect_session::searches_for(dir, &group.signature.hash)
+                }),
+                ..CrashLinks::default()
+            },
         }
     }
 

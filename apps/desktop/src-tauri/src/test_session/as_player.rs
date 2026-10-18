@@ -64,8 +64,9 @@ pub(crate) const SESSION_FIELD: &str = "player";
 /// Ajustes do "como o jogador recebe".
 #[derive(Debug, Clone, Default)]
 pub(crate) struct PlayerConfig {
-    /// De onde baixar os jars (`None`: os Releases do GitHub).
-    installer_base: Option<Url>,
+    /// De onde baixar os jars (`None`: os Releases do GitHub); o pacote para servidor (E-03)
+    /// usa o mesmo.
+    pub(super) installer_base: Option<Url>,
     /// Argumentos extras da JVM do instalador.
     jvm_args: Vec<String>,
     /// Troca o `raw.githubusercontent.com` do link (testes; no app e no E2E, `None`: vale o

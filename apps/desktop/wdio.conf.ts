@@ -252,6 +252,8 @@ export const config: WebdriverIO.Config = {
       WARDEN_INSTALLER_BASE: `${mockServer.url}/installer/`,
       WARDEN_PLAYER_INSTALL_JVM_ARGS: '-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=9',
       WARDEN_E2E_FREE_MEMORY_FILE: freeMemoryFile,
+      // Busca do culpado (D-12): cada rodada fica estável 0,5 s em vez de 20 s.
+      WARDEN_E2E_BISECT_STABILITY_MS: '500',
       ...(java
         ? {
             WARDEN_E2E_FAKE_GAME: FAKE_GAME_DIR,

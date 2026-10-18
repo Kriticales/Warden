@@ -1,0 +1,44 @@
+[17:32:24] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2860 for Minecraft 1.12.2 loading
+[17:32:42] [Server thread/INFO] [FML]: Using fml.queryResult confirm to answer the following query:
+Forge Mod Loader detected missing registry entries.
+
+There are 37 missing entries in this save.
+If you continue the missing entries will get removed.
+A world backup will be automatically created in your saves directory.
+
+Missing minecraft:entities:
+    comforts:_entity_rest
+Missing minecraft:blocks:
+    comforts:hammock_white
+    comforts:sleeping_bag_red
+    comforts:hammock_black
+    comforts:sleeping_bag_light_blue
+    comforts:sleeping_bag_lime
+    comforts:sleeping_bag_yellow
+    comforts:sleeping_bag_blue
+    comforts:hammock_purple
+    comforts:hammock_orange
+    comforts:rope
+    comforts:hammock_pink
+    comforts:sleeping_bag_magenta
+    comforts:hammock_silver
+    comforts:sleeping_bag_green
+    comforts:hammock_lime
+    comforts:sleeping_bag_orange
+    comforts:sleeping_bag_black
+    comforts:sleeping_bag_white
+    comforts:sleeping_bag_pink
+    comforts:sleeping_bag_brown
+    comforts:sleeping_bag_gray
+    comforts:sleeping_bag_cyan
+    comforts:hammock_brown
+    comforts:hammock_yellow
+    comforts:hammock_blue
+    comforts:hammock_green
+    comforts:hammock_gray
+    comforts:hammock_cyan
+    comforts:hammock_light_blue
+    comforts:sleeping_bag_purple
+    comforts:hammock_magenta
+	... (cortado no golden log)
+[17:32:47] [Server thread/INFO] [minecraft/DedicatedServer]: Done (4,408s)! For help, type "help" or "?"

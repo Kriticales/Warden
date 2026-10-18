@@ -15,6 +15,8 @@
 //!    com a barra de título própria (`window_chrome`).
 
 mod ai_tools;
+mod bisect_server;
+mod bisect_session;
 mod commands;
 mod error;
 pub mod events;

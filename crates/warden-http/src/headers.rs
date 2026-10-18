@@ -1,6 +1,6 @@
 //! Leitura dos cabeçalhos de limite de requisições: `Retry-After` (segundos ou data HTTP) e
 //! `X-Ratelimit-Reset`/`X-Ratelimit-Remaining` do Modrinth (segundos até o fim da janela;
-//! R3 §3.1).
+//! R3 §3.1). O `X-Ratelimit-Reset` do GitHub é um instante Unix e não vira espera.
 
 use std::time::{Duration, SystemTime};
 
@@ -37,10 +37,18 @@ pub fn retry_after(headers: &HeaderMap, now: SystemTime) -> Option<Duration> {
     })
 }
 
-/// Espera até o fim da janela, por `X-Ratelimit-Reset`.
+/// A partir daqui, `X-Ratelimit-Reset` é um instante Unix (o GitHub manda a hora em que a
+/// janela recomeça, como `1760000000`), não segundos de espera.
+const UNIX_TIME_FLOOR: u64 = 1_000_000_000;
+
+/// Espera até o fim da janela, por `X-Ratelimit-Reset` em segundos (Modrinth). O instante
+/// Unix do GitHub não é lido como espera (seriam décadas de bloqueio): fica `None`, e vale o
+/// `Retry-After` ou o 403 que o GitHub manda junto.
 #[must_use]
 pub fn ratelimit_reset(headers: &HeaderMap) -> Option<Duration> {
-    header_str(headers, RATELIMIT_RESET).and_then(seconds)
+    header_str(headers, RATELIMIT_RESET)
+        .and_then(seconds)
+        .filter(|wait| wait.as_secs() < UNIX_TIME_FLOOR)
 }
 
 /// Se a janela acabou (`X-Ratelimit-Remaining: 0`).
@@ -120,6 +128,19 @@ mod tests {
             ratelimit_reset(&headers(&[("x-ratelimit-reset", "NaN")])),
             None
         );
+    }
+
+    #[test]
+    fn instante_unix_do_github_nao_vira_espera() {
+        // O GitHub manda a hora do fim da janela; ler como segundos bloquearia o servidor por
+        // décadas no limitador (a busca de issues da IA, D-14, ficaria parada).
+        let map = headers(&[
+            ("x-ratelimit-reset", "1760000000"),
+            ("x-ratelimit-remaining", "0"),
+        ]);
+        assert_eq!(ratelimit_reset(&map), None);
+        assert!(ratelimit_exhausted(&map));
+        assert_eq!(requested_wait(&map, SystemTime::UNIX_EPOCH), None);
     }
 
     #[test]

@@ -52,6 +52,11 @@ pub enum SafetyReason {
     },
     /// Antes de trazer mudanças do teste que sobrescrevem arquivos do pack.
     BringTestChanges,
+    /// Antes de aplicar uma proposta da IA (D-14).
+    AiProposal {
+        /// O que a proposta muda, em poucas palavras ("Supplementaries para 2.8.21").
+        what: String,
+    },
 }
 
 impl SafetyReason {
@@ -65,6 +70,7 @@ impl SafetyReason {
             Self::RemoveItems { count } => format!("remover-{count}"),
             Self::ReplaceItem { .. } => "substituir".to_owned(),
             Self::BringTestChanges => "trazer-do-teste".to_owned(),
+            Self::AiProposal { .. } => "proposta-da-ia".to_owned(),
         }
     }
 
@@ -81,6 +87,7 @@ impl SafetyReason {
             Self::RemoveItems { count } => format!("antes de remover {count} itens"),
             Self::ReplaceItem { name } => format!("antes de substituir {name}"),
             Self::BringTestChanges => "antes de trazer as mudanças do teste".to_owned(),
+            Self::AiProposal { what } => format!("antes de aplicar a proposta da IA ({what})"),
         }
     }
 }
@@ -283,6 +290,13 @@ mod tests {
                 SafetyReason::BringTestChanges,
                 "trazer-do-teste",
                 "antes de trazer as mudanças do teste",
+            ),
+            (
+                SafetyReason::AiProposal {
+                    what: "Supplementaries para 2.8.21".into(),
+                },
+                "proposta-da-ia",
+                "antes de aplicar a proposta da IA (Supplementaries para 2.8.21)",
             ),
         ];
         for (reason, slug, text) in cases {

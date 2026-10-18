@@ -8,11 +8,14 @@
  *   medidor calculado pelo Warden e o aviso fixo "A IA pode errar";
  * - enquanto a IA responde: a espera visível (limite por minuto do plano gratuito, nova
  *   tentativa); um erro diz o que houve, nada muda no pack e a conversa fica guardada;
- * - continuar uma conversa antiga avisa se o pack mudou (CA-T14-15).
+ * - continuar uma conversa antiga avisa se o pack mudou (CA-T14-15);
+ * - D-14: as buscas no GitHub aparecem como **Enviado ao GitHub: …** antes do bloco da consulta,
+ *   e as propostas da IA como cartões com Aplicar e Descartar depois da resposta
+ *   (`proposals/`).
  */
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, Send, Sparkles, Trash2, User } from 'lucide-react';
-import { useId, useState, type SyntheticEvent } from 'react';
+import { Fragment, useId, useState, type SyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { PageHead } from '../../../app/layout/PageHead';
@@ -33,6 +36,8 @@ import type {
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import { formatWhen } from '../../test/text';
 import { AnswerView } from './AnswerView';
+import { ExternalBlock } from './proposals/ExternalBlock';
+import { ProposalCards } from './proposals/ProposalCards';
 import {
   useAiConversation,
   useAiLiveUpdates,
@@ -102,6 +107,7 @@ export function ConversationPage({
                 packId={packId}
                 view={view}
                 turn={turn}
+                index={index}
                 first={index === 0}
                 last={index === view.turns.length - 1}
               />
@@ -169,12 +175,14 @@ function Turn({
   packId,
   view,
   turn,
+  index,
   first,
   last,
 }: {
   packId: PackId;
   view: AiConversationView;
   turn: ConversationTurn;
+  index: number;
   first: boolean;
   last: boolean;
 }) {
@@ -203,12 +211,23 @@ function Turn({
           </span>
         </div>
         <div className="msg__body">
-          {turn.steps.map((step, index) => (
-            <StepBlock key={`${step.callId ?? ''}-${String(index)}`} step={step} />
+          {turn.steps.map((step, position) => (
+            <Fragment key={`${step.callId ?? ''}-${String(position)}`}>
+              {step.external ? <ExternalBlock request={step.external} /> : null}
+              <StepBlock step={step} />
+            </Fragment>
           ))}
           {turn.answer ? (
             <AnswerView packId={packId} conversationId={view.summary.id} answer={turn.answer} />
           ) : null}
+          <ProposalCards
+            packId={packId}
+            conversationId={view.summary.id}
+            proposals={view.proposals.filter((proposal) => proposal.turn === index)}
+            busy={view.live !== null}
+            origin={view.summary.origin}
+            symptom={view.summary.symptom}
+          />
           {!turn.answer && live ? <Waiting live={live} /> : null}
           {!turn.answer && !live && turn.failure ? (
             <Failure packId={packId} view={view} turn={turn} />

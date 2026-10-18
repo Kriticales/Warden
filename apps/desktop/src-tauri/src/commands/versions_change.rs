@@ -109,17 +109,37 @@ pub(crate) async fn item_version_change(
     expected_current_id: Option<String>,
     version_id: String,
 ) -> Result<VersionChanged, AppError> {
-    let cli = packwiz(&state)?;
+    let changed = change_impl(
+        &state,
+        pack_id,
+        &path,
+        expected_current_id.as_deref(),
+        version_id.trim(),
+    )
+    .await?;
+    notify_changed(&app, pack_id, vec![PackArea::Inventory]);
+    Ok(changed)
+}
+
+/// A gravação de "Trocar de versão" (também a das propostas da IA, D-14).
+pub(crate) async fn change_impl(
+    state: &AppState,
+    pack_id: PackId,
+    path: &str,
+    expected_current_id: Option<&str>,
+    version_id: &str,
+) -> Result<VersionChanged, AppError> {
+    let cli = packwiz(state)?;
     let handle = state.operations.start(CHANGE, Some(pack_id), false);
     let result = async {
         let _lock = state.locks.write_for(pack_id, &handle).await;
-        let root = pack_root(&state, pack_id)?;
+        let root = pack_root(state, pack_id)?;
         warden_project::change_version::apply(
             &root,
-            &add_sources(&state),
-            &path,
-            expected_current_id.as_deref(),
-            version_id.trim(),
+            &add_sources(state),
+            path,
+            expected_current_id,
+            version_id,
             &cli,
             handle.token(),
         )
@@ -127,9 +147,7 @@ pub(crate) async fn item_version_change(
         .map_err(domain)
     }
     .await;
-    let changed = handle.finish(result)?;
-    notify_changed(&app, pack_id, vec![PackArea::Inventory]);
-    Ok(changed)
+    handle.finish(result)
 }
 
 /// O que fica incompatível se o loader do pack passar para `version`. Nada é gravado.

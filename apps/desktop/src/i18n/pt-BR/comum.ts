@@ -36,7 +36,12 @@ export const comum = {
   diff: {
     adicionada: 'Adicionada: ',
     removida: 'Removida: ',
-    resumo: '{{adicionadas}} linhas adicionadas e {{removidas}} removidas',
+    resumo:
+      '$t(comum:diff.adicionadas, {"count": {{adicionadas}} }) e $t(comum:diff.removidas, {"count": {{removidas}} })',
+    adicionadas_one: '{{count}} linha adicionada',
+    adicionadas_other: '{{count}} linhas adicionadas',
+    removidas_one: '{{count}} removida',
+    removidas_other: '{{count}} removidas',
     oculto_one: '{{count}} linha igual oculta',
     oculto_other: '{{count}} linhas iguais ocultas',
   },

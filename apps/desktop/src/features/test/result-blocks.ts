@@ -3,17 +3,20 @@
  * acréscimo-apenas** (ROADMAP §1): a C-03 acrescenta "O que mudou durante o teste" (ordem 100);
  * a D-03 troca a linha `why-crashed` pela análise do travamento ("Por que travou" com a causa e
  * a correção); a L-10, o resumo do desempenho ("Abriu em …", ordem 50); a L-12, "Desempenho";
- * a 1.1, "Esta versão está mais pesada"; a D-04, "✦ Pedir ajuda à IA" (ordem 210). Cada
+ * a 1.1, "Esta versão está mais pesada"; a D-12, "Encontrar o mod culpado" (ordem 205); a D-04,
+ * "✦ Pedir ajuda à IA" (ordem 210). Cada
  * componente devolve `null` quando não tem nada a mostrar.
  */
 import type { ComponentType } from 'react';
 
 import type { ConsoleLine, PackId, TestSessionSummary } from '../../lib/ipc/bindings';
+import { BisectOffer } from '../bisect/CrashEntry';
 import { CaptureBlock } from '../capture/CaptureBlock';
 import { AskAiBlock } from '../diagnostics/ai/AskAi';
 import { WhyCrashed } from '../diagnostics/crash/WhyCrashed';
 import { PlayerResult } from './clean/PlayerResult';
 import { PerfSummary } from './perf-strip/PerfStrip';
+import { PerfReport } from './perf-report/PerfReport';
 import { ServerResult } from './server/ServerResult';
 
 export interface ResultBlockProps {
@@ -40,6 +43,10 @@ export const resultBlocks: readonly ResultBlock[] = [
   { id: 'server-result', order: 20, component: ServerResult },
   // D-04: "✦ Pedir ajuda à IA" logo depois do "Por que travou".
   { id: 'ai-help', order: 210, component: AskAiBlock },
+  // L-12: "Desempenho" (tempo por mod e spark), logo depois do "Abriu em …" (protótipo).
+  { id: 'perf-profile', order: 60, component: PerfReport },
+  // D-12: "Encontrar o mod culpado", logo depois de "Por que travou".
+  { id: 'bisect-offer', order: 205, component: BisectOffer },
 ];
 
 export function orderedBlocks(blocks: readonly ResultBlock[] = resultBlocks): ResultBlock[] {

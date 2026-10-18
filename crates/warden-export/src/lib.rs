@@ -12,6 +12,7 @@ mod error;
 mod formats;
 mod native;
 mod prism;
+mod server_pack;
 
 pub use error::{Error, ExportErrorCode, Result};
 pub use formats::{
@@ -29,4 +30,10 @@ pub use prism::{
     PrismAnalysis, PrismBlockedMod, PrismLocalFile, PrismOptions, PrismResult, PrismServices,
     PrismSwap, STAGE_RESOLVE, STAGE_RESOLVE_LABEL, analyze_prism, curseforge_file_url,
     export_prism,
+};
+pub use server_pack::{
+    JavaRange, LoaderDownload, ManualDownloads, STAGE_SERVER_MODS, STAGE_SERVER_MODS_LABEL,
+    STAGE_SERVER_ZIP, STAGE_SERVER_ZIP_LABEL, ServerPackAnalysis, ServerPackContents,
+    ServerPackFolder, ServerPackOptions, ServerPackRequest, ServerPackResult, ServerPackVariant,
+    WaitFuture, analyze_server_pack, export_server_pack, unpack_server_pack,
 };

@@ -284,19 +284,7 @@ impl Installer {
         progress: &dyn ProgressSink,
         cancel: &CancellationToken,
     ) -> Result<()> {
-        let server = json
-            .pointer("/downloads/server")
-            .ok_or_else(|| Error::NoServerDownload {
-                minecraft: minecraft.to_owned(),
-            })?;
-        let url = server
-            .get("url")
-            .and_then(serde_json::Value::as_str)
-            .and_then(|url| Url::parse(url).ok())
-            .ok_or_else(|| Error::NoServerDownload {
-                minecraft: minecraft.to_owned(),
-            })?;
-        let sha1 = server.get("sha1").and_then(serde_json::Value::as_str);
+        let (url, sha1, size) = vanilla_source(minecraft, json)?;
         let cached = self
             .cache_dir
             .join("vanilla")
@@ -306,7 +294,7 @@ impl Installer {
         if let Some(sha1) = sha1 {
             request = request.expect_hash(HashFormat::Sha1, sha1);
         }
-        if let Some(size) = server.get("size").and_then(serde_json::Value::as_u64) {
+        if let Some(size) = size {
             request = request.expect_size(size);
         }
         self.cached(
@@ -328,36 +316,14 @@ impl Installer {
         progress: &dyn ProgressSink,
         cancel: &CancellationToken,
     ) -> Result<ServerLaunch> {
-        let base = &self.catalog.endpoints().fabric;
-        let installers: Vec<FabricInstaller> = self
-            .http
-            .get(join_url(base, "v2/versions/installer")?)
-            .cancel(cancel)
-            .json()
-            .await
-            .map_err(Error::http(ServerSource::Fabric))?;
-        let installer = installers
-            .iter()
-            .find(|item| item.stable)
-            .or_else(|| installers.first())
-            .ok_or_else(|| Error::Download {
-                source_name: ServerSource::Fabric,
-                message: "o Fabric meta não listou instaladores".into(),
-                core: None,
-            })?;
-        let path = format!(
-            "v2/versions/loader/{}/{}/{}/server/jar",
-            url_segment(minecraft),
-            url_segment(loader),
-            url_segment(&installer.version)
-        );
+        let (url, installer) = self.fabric_url(minecraft, loader, cancel).await?;
         let cached = self.cache_dir.join("fabric").join(format!(
             "fabric-server-{}-{}-{}.jar",
             safe_name(minecraft),
             safe_name(loader),
-            safe_name(&installer.version)
+            safe_name(&installer)
         ));
-        let request = DownloadRequest::new(join_url(base, &path)?, cached).max_size(MAX_JAR_BYTES);
+        let request = DownloadRequest::new(url, cached).max_size(MAX_JAR_BYTES);
         self.cached(
             request,
             ServerSource::Fabric,
@@ -388,26 +354,9 @@ impl Installer {
         progress: &dyn ProgressSink,
         cancel: &CancellationToken,
     ) -> Result<ServerLaunch> {
-        let versions = self
-            .catalog
-            .loader_versions(
-                kind.catalog_loader(),
-                minecraft,
-                warden_catalog::Refresh::IfStale,
-                Some(cancel),
-            )
-            .await
-            .map_err(Error::catalog(kind.source()))?;
-        let not_found = || Error::LoaderVersionNotFound {
-            loader: kind.label().to_owned(),
-            version: version.to_owned(),
-            minecraft: minecraft.to_owned(),
-        };
-        let coordinate = versions.get(version).ok_or_else(not_found)?.maven.clone();
-        let artifact = MavenArtifact::parse(&coordinate).ok_or_else(not_found)?;
-        let base = kind.maven_base(self.catalog.endpoints())?;
-        let url = join_url(&base, &artifact.installer_path())?;
-        let sha1 = self.maven_sha1(&url, kind.source(), cancel).await?;
+        let (url, sha1, artifact) = self
+            .forge_installer(kind, minecraft, version, cancel)
+            .await?;
         let name = artifact.installer_name();
         let mut request = DownloadRequest::new(url, self.cache_dir.join("installers").join(&name))
             .max_size(MAX_JAR_BYTES);
@@ -433,6 +382,122 @@ impl Installer {
             loader: kind.label().to_owned(),
             output: output.tail,
         })
+    }
+
+    /// De onde o servidor de `spec` vem, sem baixar nada além das listas: o `server.jar`
+    /// (vanilla), o lançador do Fabric ou o instalador do Forge/NeoForge, os mesmos endereços
+    /// que [`Installer::install`] usa. É o que os scripts do pacote para servidor (E-03) baixam
+    /// na máquina de quem roda o servidor.
+    ///
+    /// Erros: [`Error::LoaderUnsupported`] (Quilt), [`Error::LoaderVersionNotFound`],
+    /// [`Error::NoServerDownload`], [`Error::Download`] e [`Error::Cancelled`].
+    pub async fn server_download(
+        &self,
+        spec: &GameSpec,
+        cancel: &CancellationToken,
+    ) -> Result<ServerDownload> {
+        let minecraft = spec.minecraft.as_str();
+        match &spec.loader {
+            LoaderSpec::Vanilla => {
+                let version = self
+                    .catalog
+                    .version_json(minecraft, Some(cancel))
+                    .await
+                    .map_err(Error::catalog(ServerSource::Mojang))?;
+                let json = version.json().map_err(|error| {
+                    Error::Internal(format!("JSON da versão {minecraft}: {error}"))
+                })?;
+                let (url, sha1, _) = vanilla_source(minecraft, &json)?;
+                Ok(ServerDownload::Vanilla {
+                    url,
+                    sha1: sha1.map(str::to_ascii_lowercase),
+                })
+            }
+            LoaderSpec::Fabric { version } => {
+                let (url, _) = self.fabric_url(minecraft, version, cancel).await?;
+                Ok(ServerDownload::Fabric { url })
+            }
+            LoaderSpec::Forge { version } | LoaderSpec::NeoForge { version } => {
+                let kind = if matches!(spec.loader, LoaderSpec::Forge { .. }) {
+                    ForgeKind::Forge
+                } else {
+                    ForgeKind::NeoForge
+                };
+                let (url, sha1, _) = self
+                    .forge_installer(kind, minecraft, version, cancel)
+                    .await?;
+                Ok(ServerDownload::Installer { url, sha1 })
+            }
+            LoaderSpec::Quilt { .. } => Err(Error::LoaderUnsupported {
+                loader: spec.loader.label().to_owned(),
+            }),
+        }
+    }
+
+    /// O lançador de servidor do Fabric no meta (com o instalador estável mais novo) e a
+    /// versão desse instalador.
+    async fn fabric_url(
+        &self,
+        minecraft: &str,
+        loader: &str,
+        cancel: &CancellationToken,
+    ) -> Result<(Url, String)> {
+        let base = &self.catalog.endpoints().fabric;
+        let installers: Vec<FabricInstaller> = self
+            .http
+            .get(join_url(base, "v2/versions/installer")?)
+            .cancel(cancel)
+            .json()
+            .await
+            .map_err(Error::http(ServerSource::Fabric))?;
+        let installer = installers
+            .iter()
+            .find(|item| item.stable)
+            .or_else(|| installers.first())
+            .ok_or_else(|| Error::Download {
+                source_name: ServerSource::Fabric,
+                message: "o Fabric meta não listou instaladores".into(),
+                core: None,
+            })?;
+        let path = format!(
+            "v2/versions/loader/{}/{}/{}/server/jar",
+            url_segment(minecraft),
+            url_segment(loader),
+            url_segment(&installer.version)
+        );
+        Ok((join_url(base, &path)?, installer.version.clone()))
+    }
+
+    /// O instalador oficial do Forge ou do NeoForge (coordenada do catálogo) e o `sha1` do
+    /// Maven.
+    async fn forge_installer(
+        &self,
+        kind: ForgeKind,
+        minecraft: &str,
+        version: &str,
+        cancel: &CancellationToken,
+    ) -> Result<(Url, Option<String>, MavenArtifact)> {
+        let versions = self
+            .catalog
+            .loader_versions(
+                kind.catalog_loader(),
+                minecraft,
+                warden_catalog::Refresh::IfStale,
+                Some(cancel),
+            )
+            .await
+            .map_err(Error::catalog(kind.source()))?;
+        let not_found = || Error::LoaderVersionNotFound {
+            loader: kind.label().to_owned(),
+            version: version.to_owned(),
+            minecraft: minecraft.to_owned(),
+        };
+        let coordinate = versions.get(version).ok_or_else(not_found)?.maven.clone();
+        let artifact = MavenArtifact::parse(&coordinate).ok_or_else(not_found)?;
+        let base = kind.maven_base(self.catalog.endpoints())?;
+        let url = join_url(&base, &artifact.installer_path())?;
+        let sha1 = self.maven_sha1(&url, kind.source(), cancel).await?;
+        Ok((url, sha1, artifact))
     }
 
     /// O `sha1` publicado ao lado do arquivo no Maven (`None` se o Maven não tem).
@@ -468,6 +533,49 @@ impl Installer {
             .filter(|hash| hash.len() == 40 && hash.bytes().all(|byte| byte.is_ascii_hexdigit()))
             .map(str::to_ascii_lowercase))
     }
+}
+
+/// De onde o servidor vem ([`Installer::server_download`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ServerDownload {
+    /// O `server.jar` do Minecraft, com o `sha1` do JSON da versão.
+    Vanilla {
+        /// Endereço.
+        url: Url,
+        /// SHA-1, em minúsculas.
+        sha1: Option<String>,
+    },
+    /// O lançador de servidor do Fabric (baixa o `server.jar` sozinho na primeira abertura).
+    Fabric {
+        /// Endereço.
+        url: Url,
+    },
+    /// O instalador do Forge ou do NeoForge (`--installServer`), com o `sha1` do Maven.
+    Installer {
+        /// Endereço.
+        url: Url,
+        /// SHA-1, em minúsculas.
+        sha1: Option<String>,
+    },
+}
+
+/// O `downloads.server` do JSON da versão: endereço, `sha1` e tamanho.
+fn vanilla_source<'a>(
+    minecraft: &str,
+    json: &'a serde_json::Value,
+) -> Result<(Url, Option<&'a str>, Option<u64>)> {
+    let missing = || Error::NoServerDownload {
+        minecraft: minecraft.to_owned(),
+    };
+    let server = json.pointer("/downloads/server").ok_or_else(missing)?;
+    let url = server
+        .get("url")
+        .and_then(serde_json::Value::as_str)
+        .and_then(|url| Url::parse(url).ok())
+        .ok_or_else(missing)?;
+    let sha1 = server.get("sha1").and_then(serde_json::Value::as_str);
+    let size = server.get("size").and_then(serde_json::Value::as_u64);
+    Ok((url, sha1, size))
 }
 
 /// Uma linha de `/v2/versions/installer` do Fabric meta.

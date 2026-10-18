@@ -17,7 +17,9 @@ mod error;
 pub mod findings;
 pub mod hsperf;
 pub mod load_time;
+pub mod mod_timing;
 pub mod process;
+pub mod spark;
 
 use serde::{Deserialize, Serialize};
 

@@ -1,7 +1,8 @@
 /**
  * "2. Formato" (SPEC T19): pasta packwiz, arquivo .zip do pack packwiz e, na v1 (P1), os
- * formatos de outros launchers (.mrpack e zip da CurseForge; E-02, `features/export/formats/`) e
- * a instância pronta para o Prism (E-04, `features/export/prism/`).
+ * formatos de outros launchers (.mrpack e zip da CurseForge; E-02, `features/export/formats/`),
+ * a instância pronta para o Prism (E-04, `features/export/prism/`) e o pacote para servidor (E-03,
+ * `features/export/server-pack/`).
  */
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +17,12 @@ export function FormatPanel({
   value: UiFormat;
   onChange: (format: UiFormat) => void;
 }) {
-  const { t } = useTranslation(['exportar', 'exportarFormatos', 'instanciaPrism']);
+  const { t } = useTranslation([
+    'exportar',
+    'exportarFormatos',
+    'instanciaPrism',
+    'pacoteServidor',
+  ]);
   const name = useId();
   const choice = (format: UiFormat, title: string, desc: string) => (
     <Choice
@@ -50,6 +56,7 @@ export function FormatPanel({
             t('exportarFormatos:formato.curseforge.desc'),
           )}
           {choice('prism', t('instanciaPrism:formato.titulo'), t('instanciaPrism:formato.desc'))}
+          {choice('server', t('pacoteServidor:formato.titulo'), t('pacoteServidor:formato.desc'))}
         </div>
       </fieldset>
     </section>
