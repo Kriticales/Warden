@@ -516,6 +516,49 @@ async fn cancelar_com_o_servidor_aberto() {
     assert!(world_model(&state, pack).join("level.dat").is_file());
 }
 
+/// Cancelar antes da primeira rodada (gerando o mundo de teste ou preparando o servidor local)
+/// cancela a busca como em qualquer outro momento (CA-T25-03): resultado parcial, nenhum
+/// servidor aberto e as pastas da busca apagadas.
+#[tokio::test(flavor = "multi_thread")]
+async fn cancelar_antes_da_primeira_rodada() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "1.16.5", ("forge", "36.2.39"), "charlie");
+    // O servidor simulado demora 60 s para gerar o mundo de teste.
+    std::fs::write(
+        root.join(crate::server_session::FAKE_ARGS_FILE),
+        "lento 60000",
+    )
+    .unwrap();
+    let pack = register(&state, &root);
+    let (task, _seen) = spawn(&state, pack, start(Symptom::CrashOnWorld, true));
+    wait_until("o servidor do mundo de teste aberto", || {
+        state
+            .servers
+            .current()
+            .is_some_and(|server| server.port.is_some())
+    })
+    .await;
+    bisect_session::cancel(&state.paths, pack).await.unwrap();
+    let view = tokio::time::timeout(Duration::from_secs(10), task)
+        .await
+        .expect("a busca não parou em 10 s")
+        .unwrap()
+        .expect("cancelar antes da primeira rodada não é erro");
+    assert!(matches!(
+        view.outcome,
+        Some(SearchOutcome::Cancelled { .. })
+    ));
+    assert!(view.rounds.is_empty());
+    assert!(state.servers.current().is_none());
+    let instance = state.paths.instance_dir(pack);
+    assert!(!instance.join("bisect-base").exists());
+    assert!(!instance.join("bisect").exists());
+}
+
 /// Integração sob demanda com um servidor Forge 1.16.5 de verdade (CA-T25-06; ROADMAP D-13,
 /// "integração com servidor real"). Rode com `WARDEN_BISECT_FORGE_DIR` (uma pasta com o
 /// servidor Forge 1.16.5 já instalado e o marcador da `warden-server`, como a instalação do

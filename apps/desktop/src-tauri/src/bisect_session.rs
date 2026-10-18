@@ -1046,8 +1046,18 @@ impl Runner<'_> {
             self.finish(&mut saved).await?;
             return Err(error);
         }
+        // O servidor local (D-13), do mesmo jeito: cancelada no preparo, as rodadas veem o
+        // pedido antes de abrir qualquer coisa; outro erro deixa a busca pausada.
         let server = if saved.goal == Goal::Server {
-            Some(self.prepare_server(&root, &saved, &game).await?)
+            match self.prepare_server(&root, &saved, &game).await {
+                Ok(base) => Some(base),
+                Err(error) if error.is_cancelled() && self.handle.is_cancelled() => None,
+                Err(error) => {
+                    saved.paused = true;
+                    self.finish(&mut saved).await?;
+                    return Err(error);
+                }
+            }
         } else {
             None
         };
