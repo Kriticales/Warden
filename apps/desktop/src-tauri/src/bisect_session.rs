@@ -891,15 +891,19 @@ pub(crate) async fn run(
     *running().lock().unwrap_or_else(PoisonError::into_inner) = Some(Arc::clone(&control));
     let _guard = ControlGuard;
     state.tests.attach_game(None, Some(handle.token().clone()));
-    let result = Runner {
-        state,
-        pack_id,
-        sink,
-        handle: &handle,
-        control: &control,
-        dirs: Dirs::of(&state.paths, pack_id),
-    }
-    .run(mode)
+    // Na pilha, o futuro da busca inteira (mundo de teste, servidor local e rodadas) passa do
+    // limite do `clippy::large_futures` no Windows.
+    let result = Box::pin(
+        Runner {
+            state,
+            pack_id,
+            sink,
+            handle: &handle,
+            control: &control,
+            dirs: Dirs::of(&state.paths, pack_id),
+        }
+        .run(mode),
+    )
     .await;
     handle.finish(result)
 }
