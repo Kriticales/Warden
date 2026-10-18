@@ -760,7 +760,8 @@ fn performance(sessions: &[&HealthSession], weights: &Weights) -> Vec<HealthReas
     if let Some(loaded) = last.loaded_ms
         && w.carregamento_lento > 0
         && let Some(good) = sessions.iter().skip(1).find(|session| {
-            session.end == SessionEnd::ClosedNormally && session.loaded_ms.is_some()
+            // Tempo zero (registro estragado) não serve de comparação.
+            session.end == SessionEnd::ClosedNormally && session.loaded_ms.is_some_and(|ms| ms > 0)
         })
         && let Some(good_ms) = good.loaded_ms
         && u64::from(loaded) * 100 > u64::from(good_ms) * (100 + u64::from(w.percentual_mais_lento))
@@ -1110,6 +1111,24 @@ mod tests {
             auto: true,
             suggested_mb: 4096,
         });
+        assert_eq!(score(&input, w).score, 100);
+    }
+
+    #[test]
+    fn teste_bom_com_tempo_zero_nao_serve_de_comparacao() {
+        let w = weights().unwrap();
+        let mut older = session("antigo", 1, SessionEnd::ClosedNormally, None);
+        older.loaded_ms = Some(60_000);
+        let mut broken = session("zero", 2, SessionEnd::ClosedNormally, None);
+        broken.loaded_ms = Some(0);
+        let mut last = session("ultimo", 3, SessionEnd::ClosedNormally, None);
+        last.loaded_ms = Some(70_000);
+        let input = HealthInput {
+            sessions: vec![older, broken, last],
+            current_tree: Some("sha256:agora".into()),
+            ..HealthInput::default()
+        };
+        // A comparação pula o teste com tempo zero e usa o anterior: 70 s não é 50% a mais.
         assert_eq!(score(&input, w).score, 100);
     }
 
