@@ -125,7 +125,11 @@ fn read_zip(
     entry: &str,
 ) -> std::result::Result<(Vec<u8>, Vec<String>), String> {
     let mut archive = zip::ZipArchive::new(reader).map_err(|e| format!("zip inválido: {e}"))?;
-    let names: Vec<String> = archive.file_names().map(str::to_owned).collect();
+    let names: Vec<String> = archive
+        .file_names()
+        .flatten()
+        .map(std::borrow::Cow::into_owned)
+        .collect();
     let file = archive
         .by_name(entry)
         .map_err(|e| format!("{entry} não encontrado no modpack: {e}"))?;
