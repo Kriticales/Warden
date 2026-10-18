@@ -4,7 +4,8 @@
 //! O arquivo guarda tudo **como enviado**: o histórico exato da API (`contents`, com o `content`
 //! de cada resposta do modelo intacto, como `serde_json::Value`, para as *thought signatures*),
 //! cada resultado de ferramenta, as permissões, o modelo, o uso (`usageMetadata`), as respostas
-//! conferidas e o retrato do pack no começo (para avisar quando o pack mudou, CA-T14-15).
+//! conferidas, as propostas com o que foi aplicado ou descartado (D-14) e o retrato do pack no
+//! começo (para avisar quando o pack mudou, CA-T14-15).
 //! Apagar a conversa apaga o arquivo (e o log escolhido no computador, quando houver).
 
 use std::collections::BTreeMap;
@@ -176,6 +177,9 @@ pub struct ToolStep {
     pub ok: bool,
     /// Não permitida nesta conversa.
     pub denied: bool,
+    /// O pedido feito a outro serviço para responder ("Enviado ao GitHub", D-14).
+    #[serde(default)]
+    pub external: Option<crate::external::ExternalRequest>,
 }
 
 /// Como a resposta final chegou.
@@ -276,6 +280,9 @@ pub struct Conversation {
     pub usage: TokenUsage,
     /// Requisições `generateContent` feitas (com as novas tentativas).
     pub requests: u32,
+    /// As propostas da IA e o que o usuário decidiu (D-14).
+    #[serde(default)]
+    pub proposals: Vec<crate::proposals::Proposal>,
     /// Campos que esta versão não conhece: preservados ao gravar.
     #[serde(flatten)]
     pub unknown: BTreeMap<String, Value>,
@@ -474,6 +481,7 @@ pub fn new_conversation(
         turns: Vec::new(),
         usage: TokenUsage::default(),
         requests: 0,
+        proposals: Vec::new(),
         unknown: BTreeMap::new(),
     }
 }

@@ -2,8 +2,9 @@ import type { AiErrorCode } from '../../lib/ipc/bindings';
 
 /**
  * Frases dos erros do domínio `ai` (QUALITY §3; ARCHITECTURE §9.5 "Erros e novas tentativas").
- * Criado pela F0-05 só com `INTERNAL`; a D-04 acrescentou os códigos da IA. O limite diário
- * nunca promete horário de volta (S-R5-4 §13: o `retryDelay` diário é enganoso).
+ * Criado pela F0-05 só com `INTERNAL`; a D-04 acrescentou os códigos da IA e a D-14, os das
+ * propostas. O limite diário nunca promete horário de volta (S-R5-4 §13: o `retryDelay` diário é
+ * enganoso).
  */
 export const ai: Record<AiErrorCode, string> = {
   INTERNAL:
@@ -35,4 +36,8 @@ export const ai: Record<AiErrorCode, string> = {
     'O texto do consentimento não está mais guardado. Clique em Começar conversa de novo.',
   CONVERSATION_UNREADABLE:
     'O arquivo desta conversa está ilegível e não pôde ser aberto. Apague a conversa e comece outra.',
+  PROPOSAL_NOT_FOUND: 'Essa proposta não existe mais nesta conversa.',
+  PROPOSAL_DECIDED: 'Essa proposta já foi aplicada ou descartada.',
+  PROPOSAL_STALE:
+    'O pack mudou desde que a diferença foi mostrada. Nada foi gravado; revise a proposta de novo.',
 };

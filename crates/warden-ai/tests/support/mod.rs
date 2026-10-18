@@ -569,6 +569,7 @@ impl ToolSource for ValeSombrio {
                 .map(|(id, text)| ToolItem::new(id, text))
                 .collect(),
             game_data,
+            ..ToolOutput::default()
         })
     }
 

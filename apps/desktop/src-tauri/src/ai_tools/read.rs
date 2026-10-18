@@ -237,7 +237,7 @@ fn failed(error: &AppError) -> String {
 fn plain(items: Vec<ToolItem>) -> ToolOutput {
     ToolOutput {
         items,
-        game_data: false,
+        ..ToolOutput::default()
     }
 }
 
@@ -245,6 +245,7 @@ fn game(items: Vec<ToolItem>) -> ToolOutput {
     ToolOutput {
         items,
         game_data: true,
+        ..ToolOutput::default()
     }
 }
 

@@ -32,6 +32,7 @@ use crate::conversation::{
 use crate::error::{Error, Result};
 use crate::evidence::check_answer;
 use crate::gemini::{GeminiClient, Problem, Reply, api_message, classify};
+use crate::proposals;
 use crate::schema::{self, ROUND_LIMIT_MESSAGE, SYSTEM_PROMPT};
 use crate::tools::{
     NOT_ALLOWED, RESPOND, ToolRegistry, ToolSource, error_response, permitted, response_of,
@@ -384,8 +385,11 @@ impl Engine<'_> {
                 // Reserva: o JSON vem no texto.
                 let text = visible_text(&content);
                 let parsed = parse_json_text(&text);
+                let proposed = proposals::made_in_last_turn(conversation);
                 match parsed {
-                    Some(answer) if calls.is_empty() && !schema::degenerate(&answer) => {
+                    Some(answer)
+                        if calls.is_empty() && !schema::degenerate_given(&answer, proposed) =>
+                    {
                         conversation.contents.push(content);
                         self.finish(conversation, &answer, AnswerVia::Fallback, round_limit)
                             .await;
@@ -414,7 +418,7 @@ impl Engine<'_> {
                 .find(|call| call.get("name").and_then(Value::as_str) == Some(RESPOND))
             {
                 let answer = respond.get("args").cloned().unwrap_or_else(|| json!({}));
-                if schema::degenerate(&answer) {
+                if schema::degenerate_given(&answer, proposals::made_in_last_turn(conversation)) {
                     model_retries += 1;
                     if model_retries > self.limits.model_retries {
                         return Err(Error::BadResponse {
@@ -484,7 +488,8 @@ impl Engine<'_> {
         }
     }
 
-    /// Executa uma chamada e devolve a parte `functionResponse` e o bloco "Enviado à IA".
+    /// Executa uma chamada e devolve a parte `functionResponse` e o bloco "Enviado à IA". Uma
+    /// proposta (`propose_*`, D-14) não tem efeito: vira um cartão pendente na conversa.
     async fn execute(&self, conversation: &mut Conversation, call: &Value) -> (Value, ToolStep) {
         let name = call
             .get("name")
@@ -494,16 +499,27 @@ impl Engine<'_> {
         let args = call.get("args").cloned().unwrap_or_else(|| json!({}));
         let mut ok = false;
         let mut denied = false;
+        let mut external = None;
         let response = match self.registry.get(&name) {
             None => error_response(&format!("Ferramenta desconhecida: {name}")),
             Some(spec) if !permitted(spec, conversation.permissions) => {
                 denied = true;
                 error_response(NOT_ALLOWED)
             }
+            Some(_) if proposals::is_proposal(&name) => {
+                match proposals::record(conversation, &name, &args, self.source).await {
+                    Ok(response) => {
+                        ok = true;
+                        response
+                    }
+                    Err(message) => error_response(&message),
+                }
+            }
             Some(_) => match self.source.call(&name, &args).await {
                 Ok(output) => {
                     ok = true;
                     conversation.sent.extend(output.items.iter().cloned());
+                    external.clone_from(&output.external);
                     response_of(&output)
                 }
                 Err(message) => error_response(&message),
@@ -520,6 +536,7 @@ impl Engine<'_> {
             sent: part.to_string(),
             ok,
             denied,
+            external,
         };
         (part, step)
     }

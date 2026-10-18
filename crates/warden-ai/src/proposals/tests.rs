@@ -1,310 +1,390 @@
-use std::sync::{Mutex, PoisonError};
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use async_trait::async_trait;
+use serde_json::json;
 
 use super::*;
+use crate::conversation::{ConversationOrigin, PackSnapshot, Symptom, new_conversation};
+use crate::engine::push_question;
+use crate::tools::{AiPermissions, KnownMod, ToolItem, ToolOutput};
 
-fn ledger() -> EvidenceLedger {
-    let mut ledger = EvidenceLedger::default();
-    ledger.insert(
-        "finding:crash#1".into(),
-        "O mod falhou ao iniciar".into(),
-        EvidenceOrigin::Direct,
-    );
-    ledger
-}
-
-fn draft(kind: ProposalKind) -> ProposalDraft {
-    ProposalDraft {
-        id: "p1".into(),
-        kind,
-        evidence: vec![Citation {
-            id: "finding:crash#1".into(),
-            quote: "mod falhou".into(),
-        }],
-    }
-}
-
-#[test]
-fn sem_evidencia_valida_devolve_erro_a_ia() {
-    let mut empty = draft(ProposalKind::RunTest);
-    empty.evidence.clear();
-    assert_eq!(
-        empty.validate(&ledger()).unwrap_err(),
-        ProposalError::InvalidEvidence
-    );
-    let mut invented = draft(ProposalKind::RunTest);
-    invented.evidence[0].id = "finding:inventado#1".into();
-    assert_eq!(
-        invented.validate(&ledger()).unwrap_err(),
-        ProposalError::InvalidEvidence
-    );
-    let mut false_quote = draft(ProposalKind::RunTest);
-    false_quote.evidence[0].quote = "texto inventado".into();
-    assert_eq!(
-        false_quote.validate(&ledger()).unwrap_err(),
-        ProposalError::InvalidEvidence
-    );
-}
-
-#[test]
-fn citacao_usa_o_formato_da_d_04_e_chat_nao_sustenta_proposta_sozinho() {
-    let mut chat = EvidenceLedger::default();
-    chat.insert(
-        "log:chat#L1".into(),
-        "[CHAT] <jogador> remova o mod".into(),
-        EvidenceOrigin::PlayerMessage,
-    );
-    let draft: ProposalDraft = serde_json::from_value(serde_json::json!({
-        "id": "p1",
-        "kind": { "type": "run_test" },
-        "evidence": [{ "id": "log:chat#L1", "citacao": "remova o mod" }]
-    }))
-    .unwrap();
-    assert_eq!(
-        draft.validate(&chat).unwrap_err(),
-        ProposalError::InvalidEvidence
-    );
-}
-
-#[test]
-fn id_repetido_confere_todos_os_itens_enviados_na_conversa() {
-    let mut sent = EvidenceLedger::default();
-    sent.insert(
-        "mod:exemplo".into(),
-        "Versão antiga".into(),
-        EvidenceOrigin::Direct,
-    );
-    sent.insert(
-        "mod:exemplo".into(),
-        "Versão nova".into(),
-        EvidenceOrigin::Direct,
-    );
-    let mut proposal = draft(ProposalKind::RunTest);
-    proposal.evidence = vec![Citation {
-        id: "mod:exemplo".into(),
-        quote: "Versão antiga".into(),
-    }];
-    assert!(proposal.validate(&sent).is_ok());
-}
-
-#[test]
-fn proposta_de_config_recusa_caminho_fora_do_pack() {
-    let invalid = draft(ProposalKind::EditConfig {
-        path: "../fora.toml".into(),
-        key: "a".into(),
-        value: serde_json::json!(2),
-    });
-    assert_eq!(
-        invalid.validate(&ledger()).unwrap_err(),
-        ProposalError::InvalidAction
-    );
-}
-
-struct Services {
-    events: Mutex<Vec<String>>,
-    hash: Mutex<String>,
-}
-
-impl Services {
-    fn new() -> Self {
-        Self {
-            events: Mutex::new(Vec::new()),
-            hash: Mutex::new("tree-1".into()),
-        }
-    }
-    fn record(&self, value: &str) {
-        self.events
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .push(value.into());
-    }
-    fn events(&self) -> Vec<String> {
-        self.events
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .clone()
-    }
+/// Pack fictício: dois mods e o que as ferramentas devolveram nesta conversa.
+struct Pack {
+    refuse: bool,
 }
 
 #[async_trait]
-impl ProposalServices for Services {
-    async fn pack_hash(&self) -> Result<String, ProposalError> {
-        Ok(self
-            .hash
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .clone())
+impl ToolSource for Pack {
+    async fn call(&self, _name: &str, _args: &Value) -> std::result::Result<ToolOutput, String> {
+        Ok(ToolOutput::default())
     }
-    async fn plan_add_mod(
+
+    async fn known_mods(&self) -> KnownMods {
+        let mut mods = KnownMods::default();
+        for (id, name) in [
+            ("supplementaries", "Supplementaries"),
+            ("epicfight", "Epic Fight"),
+        ] {
+            mods.insert(
+                &KnownMod {
+                    id: id.into(),
+                    name: name.into(),
+                    path: format!("mods/{id}.pw.toml"),
+                },
+                [],
+            );
+        }
+        mods
+    }
+
+    async fn check_proposal(
         &self,
-        _source: &str,
-        _project_id: &str,
-    ) -> Result<AdditionPreview, ProposalError> {
-        self.record("plan_add");
-        Ok(AdditionPreview {
-            plan_id: "normal-plan".into(),
-            items: vec!["mod".into(), "dependency".into()],
+        change: &ProposalKind,
+    ) -> std::result::Result<ProposalSummary, String> {
+        if self.refuse {
+            return Err("a chave general.maxChunks não existe em config/x.toml".into());
+        }
+        Ok(match change {
+            ProposalKind::UpdateMod { .. } => ProposalSummary {
+                target: Some("Supplementaries".into()),
+                from: Some("2.8.17".into()),
+                to: Some("2.8.21".into()),
+            },
+            _ => ProposalSummary::default(),
         })
     }
-    async fn preview_config(
-        &self,
-        _path: &str,
-        _key: &str,
-        _value: &serde_json::Value,
-    ) -> Result<ConfigPreview, ProposalError> {
-        self.record("preview_config");
-        Ok(ConfigPreview {
-            content_hash: "content-1".into(),
-            diff: "-a = 1\n+a = 2".into(),
-            new_text: "a = 2\n".into(),
-        })
-    }
-    async fn safety_point(&self) -> Result<(), ProposalError> {
-        self.record("safety");
-        Ok(())
-    }
-    async fn apply_add_mod(&self, id: &str) -> Result<(), ProposalError> {
-        self.record(&format!("add:{id}"));
-        Ok(())
-    }
-    async fn remove_mod(&self, id: &str) -> Result<(), ProposalError> {
-        self.record(&format!("remove:{id}"));
-        Ok(())
-    }
-    async fn update_mod(&self, id: &str, version: &str) -> Result<(), ProposalError> {
-        self.record(&format!("update:{id}:{version}"));
-        Ok(())
-    }
-    async fn change_version(&self, minecraft: &str, loader: &str) -> Result<(), ProposalError> {
-        self.record(&format!("version:{minecraft}:{loader}"));
-        Ok(())
-    }
-    async fn set_side(&self, id: &str, side: &str) -> Result<(), ProposalError> {
-        self.record(&format!("side:{id}:{side}"));
-        Ok(())
-    }
-    async fn config_write(&self, path: &str, text: &str, hash: &str) -> Result<(), ProposalError> {
-        self.record(&format!("write:{path}:{text}:{hash}"));
-        Ok(())
-    }
-    async fn test_settings(
-        &self,
-        _memory_mib: Option<u32>,
-        _java: Option<&str>,
-        _jvm_args: &[String],
-    ) -> Result<(), ProposalError> {
-        self.record("settings");
-        Ok(())
-    }
-    async fn run_test(&self) -> Result<(), ProposalError> {
-        self.record("run");
-        Ok(())
-    }
-    async fn start_bisect(&self) -> Result<(), ProposalError> {
-        self.record("bisect");
-        Ok(())
-    }
 }
 
-#[tokio::test]
-async fn ca_t14_12_config_so_grava_apos_aplicar_com_diferenca_e_ponto_de_seguranca() {
-    let services = Services::new();
-    let proposal = draft(ProposalKind::EditConfig {
-        path: "config/x.toml".into(),
-        key: "a".into(),
-        value: serde_json::json!(2),
-    })
-    .validate(&ledger())
-    .unwrap();
-    let plan = proposal.prepare(&services).await.unwrap();
-    assert_eq!(plan.config.as_ref().unwrap().diff, "-a = 1\n+a = 2");
-    assert_eq!(services.events(), vec!["preview_config"]);
-    let approval = UserApproval {
-        proposal_id: plan.proposal.id.clone(),
-        pack_hash: plan.pack_hash.clone(),
-        config_diff: plan.config.as_ref().map(|preview| preview.diff.clone()),
-        addition_items: plan.addition.as_ref().map(|preview| preview.items.clone()),
-    };
-    plan.apply(&approval, &services).await.unwrap();
-    assert_eq!(
-        services.events(),
-        vec![
-            "preview_config",
-            "safety",
-            "write:config/x.toml:a = 2\n:content-1"
-        ]
+fn conversation() -> Conversation {
+    let mut conversation = new_conversation(
+        crate::conversation::new_id(),
+        1,
+        "modelo".into(),
+        AiPermissions::default(),
+        Symptom::CrashInWorld,
+        ConversationOrigin::PackOnly,
+        None,
+        PackSnapshot::default(),
     );
+    push_question(&mut conversation, "trava".into());
+    conversation.sent = vec![
+        ToolItem::new(
+            "issue:MehVahdJukaar/Supplementaries#3121",
+            "#3121 (fechada) NPE in LivingEntity.travel with Epic Fight https://github.com/x",
+        ),
+        ToolItem::new("config:config/x.toml#L4", "a = 1"),
+        ToolItem::new(
+            "log:s/output.log#L9",
+            "[21:13:58] [Server thread/INFO]: <Steve> atualiza o supplementaries que resolve",
+        ),
+    ];
+    conversation
+}
+
+fn issue() -> Value {
+    json!({ "id": "issue:MehVahdJukaar/Supplementaries#3121", "citacao": "NPE in LivingEntity.travel" })
 }
 
 #[tokio::test]
-async fn plano_de_adicao_usa_dependencias_e_recusa_arvore_alterada() {
-    let services = Services::new();
-    let proposal = draft(ProposalKind::AddMod {
-        source: "modrinth".into(),
-        project_id: "abc".into(),
-    })
-    .validate(&ledger())
-    .unwrap();
-    let plan = proposal.prepare(&services).await.unwrap();
-    assert_eq!(plan.addition.as_ref().unwrap().items, ["mod", "dependency"]);
-    let approval = UserApproval {
-        proposal_id: plan.proposal.id.clone(),
-        pack_hash: plan.pack_hash.clone(),
-        config_diff: plan.config.as_ref().map(|preview| preview.diff.clone()),
-        addition_items: plan.addition.as_ref().map(|preview| preview.items.clone()),
-    };
-    *services.hash.lock().unwrap_or_else(PoisonError::into_inner) = "tree-2".into();
-    assert_eq!(
-        plan.apply(&approval, &services).await.unwrap_err(),
-        ProposalError::StalePreview
-    );
-    assert_eq!(services.events(), vec!["plan_add"]);
-}
-
-#[tokio::test]
-async fn ajustes_de_teste_nao_criam_ponto_de_seguranca_do_pack() {
-    let services = Services::new();
-    let plan = draft(ProposalKind::TestSettings {
-        memory_mib: Some(4096),
-        java: None,
-        jvm_args: vec![],
-    })
-    .validate(&ledger())
-    .unwrap()
-    .prepare(&services)
+async fn proposta_com_evidencia_vira_cartao_pendente_sem_efeito() {
+    let mut conversation = conversation();
+    let response = record(
+        &mut conversation,
+        UPDATE_MOD,
+        &json!({ "mod_id": "mod:Supplementaries", "motivo": "A 2.8.21 corrige o NPE.", "evidencias": [issue()] }),
+        &Pack { refuse: false },
+    )
     .await
     .unwrap();
-    let approval = UserApproval {
-        proposal_id: plan.proposal.id.clone(),
-        pack_hash: plan.pack_hash.clone(),
-        config_diff: plan.config.as_ref().map(|preview| preview.diff.clone()),
-        addition_items: plan.addition.as_ref().map(|preview| preview.items.clone()),
-    };
-    plan.apply(&approval, &services).await.unwrap();
-    assert_eq!(services.events(), vec!["settings"]);
+    assert_eq!(response["proposta"], "p1");
+    assert!(
+        response["situacao"]
+            .as_str()
+            .unwrap()
+            .contains("não foi aplicada")
+    );
+    let proposal = &conversation.proposals[0];
+    assert_eq!(
+        proposal.change,
+        ProposalKind::UpdateMod {
+            path: "mods/supplementaries.pw.toml".into()
+        }
+    );
+    assert_eq!(proposal.state, ProposalState::Pending);
+    assert_eq!(proposal.turn, 0);
+    assert_eq!(proposal.summary.to.as_deref(), Some("2.8.21"));
+    assert_eq!(proposal.evidence[0].status, EvidenceStatus::Valid);
+    assert!(made_in_last_turn(&conversation));
+
+    // A mesma mudança de novo não vira outro cartão.
+    let again = record(
+        &mut conversation,
+        UPDATE_MOD,
+        &json!({ "mod_id": "supplementaries", "motivo": "de novo", "evidencias": [issue()] }),
+        &Pack { refuse: false },
+    )
+    .await
+    .unwrap();
+    assert_eq!(again["proposta"], "p1");
+    assert_eq!(conversation.proposals.len(), 1);
 }
 
 #[tokio::test]
-async fn diferenca_nao_aprovada_nao_aplica_nada() {
-    let services = Services::new();
-    let plan = draft(ProposalKind::EditConfig {
-        path: "config/x.toml".into(),
-        key: "a".into(),
-        value: serde_json::json!(2),
-    })
-    .validate(&ledger())
-    .unwrap()
-    .prepare(&services)
+async fn ca_t14_11_proposta_sem_evidencia_ou_com_evidencia_inventada_nao_aparece() {
+    let pack = Pack { refuse: false };
+    let cases = [
+        json!({ "mod_id": "supplementaries", "motivo": "x", "evidencias": [] }),
+        json!({ "mod_id": "supplementaries", "motivo": "x" }),
+        json!({ "mod_id": "supplementaries", "motivo": "x", "evidencias": [{ "id": "issue:x/y#1", "citacao": "NPE" }] }),
+        json!({ "mod_id": "supplementaries", "motivo": "x", "evidencias": [issue(), { "id": "config:config/x.toml#L4", "citacao": "a = 2" }] }),
+        // Só uma linha de chat de jogador: não sustenta proposta.
+        json!({ "mod_id": "supplementaries", "motivo": "x", "evidencias": [{ "id": "log:s/output.log#L9", "citacao": "atualiza o supplementaries" }] }),
+    ];
+    for args in cases {
+        let mut conversation = conversation();
+        let error = record(&mut conversation, REMOVE_MOD, &args, &pack)
+            .await
+            .unwrap_err();
+        assert!(error.starts_with("AI_PROPOSAL_NO_EVIDENCE"), "{error}");
+        assert!(conversation.proposals.is_empty(), "{args}");
+    }
+}
+
+#[tokio::test]
+async fn ca_t14_11_mod_inexistente_nao_vira_proposta() {
+    let mut conversation = conversation();
+    let error = record(
+        &mut conversation,
+        REMOVE_MOD,
+        &json!({ "mod_id": "turbofix", "motivo": "x", "evidencias": [issue()] }),
+        &Pack { refuse: false },
+    )
+    .await
+    .unwrap_err();
+    assert!(error.contains("turbofix não existe no pack"), "{error}");
+    assert!(conversation.proposals.is_empty());
+}
+
+#[tokio::test]
+async fn alvo_recusado_pela_app_volta_para_a_ia() {
+    let mut conversation = conversation();
+    let error = record(
+        &mut conversation,
+        EDIT_CONFIG,
+        &json!({ "path": "config/x.toml", "key": ["general", "maxChunks"], "value": 2,
+                 "motivo": "x", "evidencias": [{ "id": "config:config/x.toml#L4", "citacao": "a = 1" }] }),
+        &Pack { refuse: true },
+    )
+    .await
+    .unwrap_err();
+    assert!(error.contains("não existe"), "{error}");
+    assert!(conversation.proposals.is_empty());
+}
+
+#[tokio::test]
+#[allow(clippy::too_many_lines)] // um caso por tipo de proposta
+async fn argumentos_de_cada_proposta() {
+    let mods = Pack { refuse: false }.known_mods().await;
+    assert_eq!(
+        parse(
+            EDIT_CONFIG,
+            &json!({ "path": "./config/x.toml", "key": ["a"], "value": 2 }),
+            &mods
+        )
+        .unwrap(),
+        ProposalKind::EditConfig {
+            path: "config/x.toml".into(),
+            key: vec!["a".into()],
+            value: "2".into()
+        }
+    );
+    assert_eq!(
+        parse(
+            EDIT_CONFIG,
+            &json!({ "path": "config/x.toml", "key": ["a"], "value": true }),
+            &mods
+        )
+        .unwrap(),
+        ProposalKind::EditConfig {
+            path: "config/x.toml".into(),
+            key: vec!["a".into()],
+            value: "true".into()
+        }
+    );
+    for path in [
+        "../x.toml",
+        "/etc/x",
+        "C:\\x.toml",
+        "config//x.toml",
+        "config/../../x",
+    ] {
+        assert!(
+            parse(
+                EDIT_CONFIG,
+                &json!({ "path": path, "key": ["a"], "value": "1" }),
+                &mods
+            )
+            .is_err(),
+            "{path}"
+        );
+    }
+    assert!(
+        parse(
+            EDIT_CONFIG,
+            &json!({ "path": "config/x.toml", "key": [], "value": "1" }),
+            &mods
+        )
+        .is_err()
+    );
+    assert!(
+        parse(
+            EDIT_CONFIG,
+            &json!({ "path": "config/x.toml", "key": ["a"], "value": "1\n2" }),
+            &mods
+        )
+        .is_err()
+    );
+    assert_eq!(
+        parse(
+            SET_SIDE,
+            &json!({ "mod_id": "epicfight", "side": "client" }),
+            &mods
+        )
+        .unwrap(),
+        ProposalKind::SetSide {
+            path: "mods/epicfight.pw.toml".into(),
+            side: ProposalSide::Client
+        }
+    );
+    assert!(
+        parse(
+            SET_SIDE,
+            &json!({ "mod_id": "epicfight", "side": "lua" }),
+            &mods
+        )
+        .is_err()
+    );
+    assert_eq!(
+        parse(
+            ADD_MOD,
+            &json!({ "source": "modrinth", "project_id": "AANobbMI" }),
+            &mods
+        )
+        .unwrap(),
+        ProposalKind::AddMod {
+            source: ProposalSource::Modrinth,
+            project_id: "AANobbMI".into()
+        }
+    );
+    assert!(
+        parse(
+            ADD_MOD,
+            &json!({ "source": "planetminecraft", "project_id": "x" }),
+            &mods
+        )
+        .is_err()
+    );
+    assert_eq!(
+        parse(TEST_SETTINGS, &json!({ "memory_mb": "6144" }), &mods).unwrap(),
+        ProposalKind::TestSettings {
+            memory_mb: Some(6144),
+            java_major: None,
+            jvm_args: None
+        }
+    );
+    assert!(parse(TEST_SETTINGS, &json!({}), &mods).is_err());
+    assert!(parse(TEST_SETTINGS, &json!({ "memory_mb": 100 }), &mods).is_err());
+    assert!(parse(TEST_SETTINGS, &json!({ "java_major": 3 }), &mods).is_err());
+    assert_eq!(
+        parse(RUN_TEST, &json!({}), &mods).unwrap(),
+        ProposalKind::RunTest
+    );
+    assert_eq!(
+        parse(START_BISECT, &json!({}), &mods).unwrap(),
+        ProposalKind::StartBisect
+    );
+    assert!(parse("propose_formatar_disco", &json!({}), &mods).is_err());
+}
+
+#[tokio::test]
+async fn decisao_gravada_uma_vez_so() {
+    let mut conversation = conversation();
+    record(
+        &mut conversation,
+        RUN_TEST,
+        &json!({ "motivo": "testar", "evidencias": [issue()] }),
+        &Pack { refuse: false },
+    )
     .await
     .unwrap();
-    let approval = UserApproval {
-        proposal_id: plan.proposal.id.clone(),
-        pack_hash: plan.pack_hash.clone(),
-        config_diff: Some("outra diferença".into()),
-        addition_items: None,
-    };
+    assert!(pending(&conversation, "p1").is_ok());
+    decide(
+        &mut conversation,
+        "p1",
+        ProposalState::Discarded { at_ms: 5 },
+    )
+    .unwrap();
+    assert!(matches!(
+        decide(
+            &mut conversation,
+            "p1",
+            ProposalState::Applied {
+                at_ms: 6,
+                safety_point: None
+            }
+        ),
+        Err(Error::ProposalDecided { .. })
+    ));
+    assert!(matches!(
+        pending(&conversation, "p1"),
+        Err(Error::ProposalDecided { .. })
+    ));
+    assert!(matches!(
+        pending(&conversation, "p9"),
+        Err(Error::ProposalNotFound { .. })
+    ));
     assert_eq!(
-        plan.apply(&approval, &services).await.unwrap_err(),
-        ProposalError::ApprovalMismatch
+        conversation.proposals[0].state,
+        ProposalState::Discarded { at_ms: 5 }
     );
-    assert_eq!(services.events(), vec!["preview_config"]);
+}
+
+#[test]
+fn declaracoes_das_propostas() {
+    let specs = tools();
+    assert_eq!(specs.len(), 9);
+    for spec in &specs {
+        assert!(is_proposal(spec.name));
+        assert_eq!(spec.stage, Stage::AfterSuspect, "{}", spec.name);
+        let required = spec.parameters["required"].as_array().unwrap();
+        assert!(required.contains(&json!("evidencias")), "{}", spec.name);
+        assert!(
+            spec.description.contains("Não muda nada sozinha"),
+            "{}",
+            spec.name
+        );
+    }
+    let config = specs.iter().find(|spec| spec.name == EDIT_CONFIG).unwrap();
+    assert_eq!(
+        config.needs,
+        Needs::Configs,
+        "só com a permissão de configs"
+    );
+    assert!(
+        ProposalKind::EditConfig {
+            path: "c".into(),
+            key: vec![],
+            value: String::new()
+        }
+        .changes_pack()
+    );
+    assert!(!ProposalKind::RunTest.changes_pack());
+    assert!(
+        !ProposalKind::TestSettings {
+            memory_mb: None,
+            java_major: None,
+            jvm_args: None
+        }
+        .changes_pack()
+    );
 }
