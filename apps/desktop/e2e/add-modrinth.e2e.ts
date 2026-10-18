@@ -22,6 +22,7 @@ import { join } from 'node:path';
 import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -133,7 +134,7 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
   it('Mods → Adicionar abre a página em tela cheia, com o menu recolhido', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Fixture Fabric').waitForDisplayed({ timeout: 60_000 });

@@ -18,6 +18,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -162,7 +163,7 @@ describe('Desempenho em todo teste (L-10; CA-T13-09)', function () {
   it('a faixa mostra a RAM do processo, "Abriu em" e o mundo com o jogo aberto', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

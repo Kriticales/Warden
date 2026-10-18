@@ -58,12 +58,19 @@ export function TestSteps({ run }: { run: TestRun }) {
 
 /** Avisos que não interromperam o teste (memória alta no Java 8…). */
 function Warnings({ run }: { run: TestRun }) {
-  if (run.warnings.length === 0) {
+  // Com o motivo na faixa (L-11), o aviso dos argumentos que desligam a leitura da memória fica
+  // só lá, com Ajustes do teste.
+  const argumentShown = run.perf?.heapUnavailable?.kind === 'argument';
+  const warnings = run.warnings.filter(
+    (warning) =>
+      !(argumentShown && warning.code.domain === 'app' && warning.code.code === 'TEST_PERF_FLAGS'),
+  );
+  if (warnings.length === 0) {
     return null;
   }
   return (
     <>
-      {run.warnings.map((warning, index) => (
+      {warnings.map((warning, index) => (
         <Alert key={index} kind="warn" compact>
           {appErrorMessage(warning)}
         </Alert>
@@ -237,6 +244,7 @@ export function RunningView({ run, pack }: { run: TestRun; pack: PackRow }) {
           <Console
             lines={run.lines}
             state="live"
+            grouped={{ packId: pack.id, sessionId }}
             onSave={
               sessionId
                 ? () => {

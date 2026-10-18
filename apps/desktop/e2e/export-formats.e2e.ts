@@ -29,6 +29,7 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { zipEntry } from './zip';
+import { openOrImport } from './open-or-import';
 
 const require = createRequire(import.meta.url);
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
@@ -181,7 +182,7 @@ describe('Exportar para outros launchers (E-02; T19)', () => {
   it('.mrpack: explica o que se perde, pede a versão e a confirmação e só então exporta; axe', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });

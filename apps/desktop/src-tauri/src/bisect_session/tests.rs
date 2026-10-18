@@ -1,7 +1,9 @@
 //! Testes da busca do culpado pelo app inteiro com o jogo simulado da `warden-launcher` no
-//! modo `culpado` (ele falha ao entrar no mundo quando os jars dados estão em `mods/`):
-//! materialização da base e de cada rodada, processo, veredito, pausar, continuar, cancelar e
-//! o modo assistido, sem baixar Java nem Minecraft.
+//! modo `culpado` (ele falha ao entrar no mundo quando os jars dados estão em `mods/`, e só
+//! abre o mundo do Quick Play se `saves/<mundo>/level.dat` existir) e o servidor simulado da
+//! `warden-server` (gera o "mundo" com a semente do `server.properties`): mundo de teste
+//! gerado e copiado a cada rodada, EULA, materialização da base e de cada rodada, processo,
+//! veredito, pausar, continuar, cancelar e o modo assistido, sem baixar Java nem Minecraft.
 //!
 //! Usam o Java de `WARDEN_TEST_JAVA` ou `JAVA_HOME`; sem Java, avisam e passam (como os testes
 //! do Testar).
@@ -10,6 +12,7 @@
 
 use std::collections::BTreeMap;
 use std::io::Write as _;
+use std::net::{Ipv4Addr, SocketAddrV4, TcpListener};
 use std::sync::Mutex as StdMutex;
 
 use sha2::{Digest as _, Sha256};
@@ -21,7 +24,7 @@ use crate::state::tests::test_state;
 use crate::test_session::TestSessions;
 
 /// O `java` dos testes.
-pub(crate) fn java() -> Option<PathBuf> {
+fn java() -> Option<PathBuf> {
     if let Some(java) = std::env::var_os("WARDEN_TEST_JAVA").filter(|v| !v.is_empty()) {
         return Some(PathBuf::from(java));
     }
@@ -32,24 +35,65 @@ pub(crate) fn java() -> Option<PathBuf> {
     java.is_file().then_some(java)
 }
 
-pub(crate) fn class_dir() -> PathBuf {
+fn class_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../crates/warden-launcher/tests/fixtures/java")
 }
 
+/// Pasta do `WardenFakeServer.class` (o servidor vanilla que gera o mundo de teste).
+fn server_class_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../crates/warden-server/tests/fixtures/java")
+}
+
+/// O estado com o jogo e o servidor simulados e a EULA aceita (`None` sem Java).
 pub(crate) fn fake_state(root: &Path) -> Option<Arc<AppState>> {
+    let state = fake_state_without_eula(root)?;
+    state
+        .settings
+        .set_eula_accepted_at(Some("2026-10-18T12:00:00Z".into()))
+        .unwrap();
+    Some(state)
+}
+
+/// O mesmo, sem o aceite da EULA.
+fn fake_state_without_eula(root: &Path) -> Option<Arc<AppState>> {
     let Some(java) = java() else {
         eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste da busca do culpado pulado");
         return None;
     };
     let mut state = test_state(root);
-    state.tests = Arc::new(TestSessions::with_fake_game(
-        &root.join("shared"),
-        class_dir(),
-        java,
-        17,
-    ));
+    state.tests = Arc::new(
+        TestSessions::with_fake_game(&root.join("shared"), class_dir(), java, 17)
+            .with_fake_server(server_class_dir()),
+    );
+    // Cada teste parte de uma porta dada pelo sistema: dois servidores simulados (testes em
+    // paralelo) não disputam a 25565.
+    state.servers.set_first_port(free_port());
     Some(Arc::new(state))
+}
+
+pub(crate) fn free_port() -> u16 {
+    TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port()
+}
+
+/// O modo do servidor simulado na próxima geração do mundo (`None`: normal).
+fn fake_server_mode(root: &Path, mode: Option<&str>) {
+    let file = root.join(crate::server_session::FAKE_ARGS_FILE);
+    match mode {
+        Some(mode) => std::fs::write(file, mode).unwrap(),
+        None => {
+            let _ = std::fs::remove_file(file);
+        }
+    }
+}
+
+/// A linha que o jogo simulado escreve ao abrir o mundo de teste gerado com a semente fixa.
+fn seeded_world_line() -> String {
+    format!("Mundo de teste: semente={}", world::WORLD_SEED)
 }
 
 pub(crate) fn sha256(bytes: &[u8]) -> String {
@@ -144,14 +188,14 @@ pub(crate) fn register(state: &AppState, root: &Path) -> PackId {
     id
 }
 
-/// O mundo de teste na instância de teste.
-pub(crate) fn write_world(state: &AppState, pack: PackId) -> PathBuf {
+/// Um mundo do usuário na instância de teste (salvo com todos os mods: a busca nunca o usa).
+pub(crate) fn write_user_world(state: &AppState, pack: PackId) -> PathBuf {
     let world = InstanceDirs::for_pack(&state.paths, pack)
         .game_dir
         .join("saves")
         .join("Mundo de teste");
     std::fs::create_dir_all(world.join("region")).unwrap();
-    std::fs::write(world.join("level.dat"), "nbt").unwrap();
+    std::fs::write(world.join("level.dat"), "semente=mundo do usuário").unwrap();
     std::fs::write(world.join("region/r.0.0.mca"), "chunks").unwrap();
     world
 }
@@ -270,7 +314,6 @@ async fn acha_o_par_de_ponta_a_ponta() {
     let root = dir.path().join("pack");
     write_pack(&root, "bravo echo");
     let pack = register(&state, &root);
-    write_world(&state, pack);
     let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld));
     let view = task.await.unwrap().unwrap();
     let Some(SearchOutcome::Found {
@@ -312,6 +355,254 @@ async fn acha_o_par_de_ponta_a_ponta() {
     );
 }
 
+/// D-12 item 7: a primeira busca gera o mundo de teste sem mods (servidor vanilla da mesma
+/// versão, semente fixa), guarda o modelo e cada rodada abre uma cópia dele; a busca seguinte
+/// reaproveita o modelo (sem abrir servidor), e mudar a versão do Minecraft gera de novo. O
+/// mundo do usuário nunca é usado nem muda.
+#[tokio::test(flavor = "multi_thread")]
+async fn mundo_de_teste_gerado_uma_vez_e_copiado_a_cada_rodada() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    let user_world = write_user_world(&state, pack);
+    let user_before = tree_hash(&user_world);
+    assert!(!plan(&state, pack).await.unwrap().world_ready);
+
+    let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let view = task.await.unwrap().unwrap();
+    assert!(matches!(view.outcome, Some(SearchOutcome::Found { .. })));
+    // A tela foi avisada da geração (o "Criando o mundo de teste" e o fim dela).
+    assert!(seen.events.lock().unwrap().iter().any(|event| matches!(
+        event,
+        OperationEvent::Stage { stage, .. } if stage == STAGE_WORLD
+    )));
+    // O modelo fica no estado da instância de teste, com o marcador da versão e da semente; a
+    // pasta do servidor some e nenhum servidor fica aberto.
+    let worlds = world::WorldDirs::of(&state.paths, pack);
+    assert!(worlds.ready("1.20.1"));
+    let template = std::fs::read_to_string(worlds.world().join("level.dat")).unwrap();
+    assert_eq!(template.trim(), format!("semente={}", world::WORLD_SEED));
+    assert!(
+        !worlds.world().join("session.lock").exists(),
+        "o modelo levou o session.lock"
+    );
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists(),
+        "a pasta do servidor ficou"
+    );
+    assert!(state.servers.current().is_none());
+    assert!(plan(&state, pack).await.unwrap().world_ready);
+    // Cada rodada abriu a cópia do mundo gerado (o jogo simulado lê o level.dat da cópia).
+    for round in &view.rounds {
+        let log = round_log(&state.paths, pack, round.number).unwrap();
+        assert!(
+            log.iter()
+                .any(|line| line.text.contains(&seeded_world_line())),
+            "rodada {} sem o mundo de teste gerado",
+            round.number
+        );
+    }
+    // As cópias somem com a instância da busca.
+    assert!(!Dirs::of(&state.paths, pack).round_root.exists());
+
+    // Segunda busca: o modelo é reaproveitado (um servidor que falha não é nem aberto).
+    fake_server_mode(&root, Some("sair 3"));
+    let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let view = task.await.unwrap().unwrap();
+    assert!(matches!(view.outcome, Some(SearchOutcome::Found { .. })));
+    assert!(!seen.events.lock().unwrap().iter().any(|event| matches!(
+        event,
+        OperationEvent::Stage { stage, .. } if stage == STAGE_WORLD
+    )));
+
+    // Versão nova do Minecraft (modelo de outra versão): a busca tenta gerar de novo.
+    let marker = worlds.world().with_file_name(world::MARKER_FILE);
+    let text = std::fs::read_to_string(&marker).unwrap();
+    std::fs::write(&marker, text.replace("1.20.1", "1.19.4")).unwrap();
+    assert!(!plan(&state, pack).await.unwrap().world_ready);
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let error = task.await.unwrap().unwrap_err();
+    assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
+    assert_eq!(
+        tree_hash(&user_world),
+        user_before,
+        "o mundo do usuário mudou"
+    );
+}
+
+/// A geração que falha (o servidor fecha antes do "pronto") dá um erro claro, com o motivo nos
+/// detalhes técnicos; a busca fica pausada antes da primeira rodada, sem modelo pela metade nem
+/// servidor aberto, e "Continuar" tenta de novo. Uma porta ocupada não atrapalha.
+#[tokio::test(flavor = "multi_thread")]
+async fn geracao_que_falha_pausa_e_continuar_tenta_de_novo() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    fake_server_mode(&root, Some("sair 3"));
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let error = task.await.unwrap().unwrap_err();
+    assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
+    assert_eq!(error.params["minecraft"], "1.20.1");
+    let detail = error.detail.clone().unwrap();
+    assert!(detail.contains("server.EXITED_BEFORE_READY"), "{detail}");
+    assert!(
+        !detail.contains(&dir.path().display().to_string()),
+        "{detail}"
+    );
+    let worlds = world::WorldDirs::of(&state.paths, pack);
+    assert!(!worlds.ready("1.20.1"));
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
+    assert!(state.servers.current().is_none());
+    assert!(state.tests.current().is_none());
+    let saved = get(&state.paths, pack).unwrap().unwrap();
+    assert_eq!(saved.status, BisectStatus::Paused);
+    assert!(saved.rounds.is_empty());
+
+    // O servidor volta a funcionar, com a primeira porta tentada ocupada.
+    fake_server_mode(&root, None);
+    let busy = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0)).unwrap();
+    state
+        .servers
+        .set_first_port(busy.local_addr().unwrap().port());
+    let (task, _) = spawn(&state, pack, RunMode::Resume);
+    let view = task.await.unwrap().unwrap();
+    let Some(SearchOutcome::Found { culprits, .. }) = &view.outcome else {
+        panic!("{:?}", view.outcome);
+    };
+    assert_eq!(culprits, &["mods/charlie.jar".to_owned()]);
+    assert!(worlds.ready("1.20.1"));
+}
+
+/// Cancelar enquanto o servidor gera o mundo encerra o servidor na hora (a porta fica livre),
+/// não deixa modelo pela metade e guarda a busca cancelada; o tempo esgotado também encerra o
+/// servidor e vira o erro da geração.
+#[tokio::test(flavor = "multi_thread")]
+async fn cancelar_ou_esgotar_o_tempo_durante_a_geracao() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    // O servidor simulado demora 60 s para ficar pronto.
+    fake_server_mode(&root, Some("lento 60000"));
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    wait_until("servidor do mundo de teste aberto", || {
+        state
+            .servers
+            .current()
+            .is_some_and(|server| server.port.is_some())
+            && get(&state.paths, pack)
+                .ok()
+                .flatten()
+                .is_some_and(|view| view.creating_world)
+    })
+    .await;
+    let port = state.servers.current().unwrap().port.unwrap();
+    cancel(&state.paths, pack).await.unwrap();
+    let view = tokio::time::timeout(Duration::from_secs(5), task)
+        .await
+        .expect("a busca não parou em 5 s")
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        view.outcome,
+        Some(SearchOutcome::Cancelled { .. })
+    ));
+    assert!(view.rounds.is_empty());
+    assert!(!view.creating_world);
+    assert!(state.servers.current().is_none());
+    assert!(
+        warden_server::properties::port_is_free(port),
+        "o servidor ficou aberto"
+    );
+    assert!(!world::WorldDirs::of(&state.paths, pack).ready("1.20.1"));
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
+
+    // Tempo esgotado (10 s nos testes): o servidor é encerrado e a busca pausa com o erro.
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let error = tokio::time::timeout(Duration::from_secs(40), task)
+        .await
+        .expect("o tempo da geração não esgotou")
+        .unwrap()
+        .unwrap_err();
+    assert_eq!(error.code.to_string(), "bisect.TEST_WORLD_FAILED");
+    assert!(error.detail.unwrap().contains("server.READY_TIMEOUT"));
+    assert!(state.servers.current().is_none());
+    assert_eq!(
+        get(&state.paths, pack).unwrap().unwrap().status,
+        BisectStatus::Paused
+    );
+}
+
+/// D18: sem o aceite da EULA, nenhum servidor abre e nenhum mundo é gerado: "trava ao entrar
+/// no mundo" é recusado com o que fazer, e os outros sintomas vão só até o menu.
+#[tokio::test(flavor = "multi_thread")]
+async fn sem_eula_nao_gera_o_mundo() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(state) = fake_state_without_eula(dir.path()) else {
+        return;
+    };
+    let root = dir.path().join("pack");
+    write_pack(&root, "charlie");
+    let pack = register(&state, &root);
+    let shown = plan(&state, pack).await.unwrap();
+    assert!(shown.quick_play);
+    assert!(!shown.world_ready);
+    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
+    let error = task.await.unwrap().unwrap_err();
+    assert_eq!(error.code.to_string(), "bisect.EULA_NEEDED");
+    assert!(get(&state.paths, pack).unwrap().is_none());
+    assert!(state.tests.current().is_none());
+
+    // "Trava ao abrir o jogo" roda até o menu, sem mundo (o jogo simulado só trava no mundo).
+    let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnOpen));
+    let view = task.await.unwrap().unwrap();
+    assert_eq!(view.status, BisectStatus::Finished);
+    assert!(!seen.events.lock().unwrap().iter().any(|event| matches!(
+        event,
+        OperationEvent::Stage { stage, .. } if stage == STAGE_WORLD
+    )));
+    let log = round_log(&state.paths, pack, 0).unwrap();
+    assert!(!log.iter().any(|line| line.text.contains("Mundo de teste")));
+    assert!(!world::WorldDirs::of(&state.paths, pack).ready("1.20.1"));
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
+    // Nenhum eula=true em lugar nenhum.
+    let server = world::WorldDirs::of(&state.paths, pack);
+    assert!(!server.world().exists());
+}
+
 /// CA-T25-03: cancelar no meio encerra o jogo em até 5 s, apaga a instância da busca, guarda o
 /// resultado parcial e não altera o pack, a instância de teste nem os mundos (hash antes e
 /// depois).
@@ -324,7 +615,7 @@ async fn ca_t25_03_cancelar_no_meio() {
     let root = dir.path().join("pack");
     write_pack(&root, "charlie");
     let pack = register(&state, &root);
-    let world = write_world(&state, pack);
+    let world = write_user_world(&state, pack);
     let test_dirs = InstanceDirs::for_pack(&state.paths, pack);
     let before = (
         tree_hash(&root),
@@ -383,7 +674,6 @@ async fn ca_t25_03_pausar_e_continuar_da_rodada_seguinte() {
     let root = dir.path().join("pack");
     write_pack(&root, "charlie");
     let pack = register(&state, &root);
-    write_world(&state, pack);
     let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld));
     wait_until("primeira rodada", || seen.rounds_done() >= 1).await;
     pause(pack).unwrap();
@@ -427,7 +717,6 @@ async fn fechar_o_app_no_meio_pausa_sem_contar_a_rodada() {
     let root = dir.path().join("pack");
     write_pack(&root, "charlie");
     let pack = register(&state, &root);
-    write_world(&state, pack);
     let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld));
     wait_until("primeira rodada", || seen.rounds_done() >= 1).await;
     wait_until("jogo da rodada seguinte", || {
@@ -460,7 +749,6 @@ async fn modo_assistido_pergunta_em_cada_rodada() {
     // O jogo simulado não falha sozinho: o "problema" só a pessoa vê.
     write_pack(&root, "nenhum-jar-com-este-nome");
     let pack = register(&state, &root);
-    write_world(&state, pack);
     let (task, seen) = spawn(&state, pack, start(Symptom::Assisted));
     let mods = Dirs::of(&state.paths, pack).round.game_dir.join("mods");
     let mut answered = 0;
@@ -493,8 +781,7 @@ async fn modo_assistido_pergunta_em_cada_rodada() {
     assert!(answer(pack, AssistedAnswer::Happened).is_err());
 }
 
-/// O diálogo: quantos mods, a estimativa e o mundo de teste; sem mundo de teste, "trava ao
-/// entrar no mundo" é recusado antes de abrir o jogo.
+/// O diálogo: quantos mods, a estimativa e se o mundo de teste já foi gerado.
 #[tokio::test(flavor = "multi_thread")]
 async fn plano_e_recusas() {
     let dir = tempfile::tempdir().unwrap();
@@ -504,23 +791,79 @@ async fn plano_e_recusas() {
     let root = dir.path().join("pack");
     write_pack(&root, "charlie");
     let pack = register(&state, &root);
+    // Um mundo do usuário na instância de teste não serve de mundo de teste.
+    write_user_world(&state, pack);
     let shown = plan(&state, pack).await.unwrap();
     assert_eq!(shown.searched, 6);
     assert!(shown.quick_play);
-    assert_eq!(shown.world, None);
+    assert!(!shown.world_ready);
     assert_eq!(shown.minecraft, "1.20.1");
     assert_eq!(shown.estimate.rounds_min, 3 + 4);
-    let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld));
-    let error = task.await.unwrap().unwrap_err();
-    assert_eq!(error.code.to_string(), "bisect.NO_TEST_WORLD");
-    assert!(state.tests.current().is_none());
-    assert!(get(&state.paths, pack).unwrap().is_none());
-    // Com o mundo, o plano o mostra.
-    write_world(&state, pack);
-    assert_eq!(
-        plan(&state, pack).await.unwrap().world.as_deref(),
-        Some("Mundo de teste")
-    );
     assert_eq!(search_id(0), "19700101-000000-000");
     assert_eq!(search_id(1_791_158_153_471), "20261004-235553-471");
+}
+
+/// O mundo de teste com o servidor vanilla de verdade (baixa o `server.jar` da Mojang e gera o
+/// mundo; QUALITY §4.1, "Servidor local real"). Sob demanda:
+/// `WARDEN_TEST_REAL_SERVER=1 cargo nextest run -p warden-app --run-ignored only -E 'test(/mundo_de_teste_com_servidor_vanilla_real/)'`,
+/// com um Java 17+ em `WARDEN_TEST_JAVA` ou `JAVA_HOME` (`WARDEN_TEST_JAVA_MAJOR`, padrão 21) e
+/// a versão em `WARDEN_TEST_MINECRAFT` (padrão 1.20.1).
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "servidor"]
+async fn mundo_de_teste_com_servidor_vanilla_real() {
+    assert!(
+        std::env::var_os(world::REAL_SERVER_ENV).is_some(),
+        "rode com {}=1 (o prazo do servidor de verdade é o do app)",
+        world::REAL_SERVER_ENV
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let java = java().expect("Java 17+ em WARDEN_TEST_JAVA ou JAVA_HOME");
+    let major = std::env::var("WARDEN_TEST_JAVA_MAJOR")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(21);
+    let minecraft = std::env::var("WARDEN_TEST_MINECRAFT").unwrap_or_else(|_| "1.20.1".to_owned());
+    let state = test_state(dir.path());
+    state
+        .settings
+        .set_eula_accepted_at(Some("2026-10-18T12:00:00Z".into()))
+        .unwrap();
+    state.servers.set_first_port(free_port());
+    let root = dir.path().join("pack");
+    std::fs::create_dir_all(&root).unwrap();
+    let pack = PackId::new();
+    let handle = state.operations.start(BISECT_RUN, Some(pack), true);
+    let runtime = warden_launcher::JavaRuntime {
+        java: java.clone(),
+        launcher: java,
+        major,
+    };
+    let clock = Instant::now();
+    let template = world::ensure(&state, pack, &root, &minecraft, &runtime, &handle)
+        .await
+        .unwrap();
+    eprintln!(
+        "mundo de teste do Minecraft {minecraft} gerado em {:?}",
+        clock.elapsed()
+    );
+    // O level.dat de verdade é NBT comprimido com gzip.
+    let level = std::fs::read(template.join("level.dat")).unwrap();
+    assert_eq!(&level[..2], &[0x1f, 0x8b]);
+    assert!(!template.join("session.lock").exists());
+    let worlds = world::WorldDirs::of(&state.paths, pack);
+    assert!(worlds.ready(&minecraft));
+    assert!(
+        !state
+            .paths
+            .instance_dir(pack)
+            .join("bisect-world-server")
+            .exists()
+    );
+    assert!(state.servers.current().is_none());
+    // A segunda vez reaproveita o modelo, sem servidor.
+    let clock = Instant::now();
+    world::ensure(&state, pack, &root, &minecraft, &runtime, &handle)
+        .await
+        .unwrap();
+    assert!(clock.elapsed() < Duration::from_secs(1));
 }

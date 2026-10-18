@@ -17,6 +17,7 @@ import { renderApp } from '../../test/render';
 import { crashesKeys } from '../diagnostics/crashes/api';
 import { makeCrashList, makeGroup } from '../diagnostics/crashes/crashes.fixtures';
 import { makeReport } from '../diagnostics/diagnostics.fixtures';
+import { makeSettings } from '../settings/testing';
 import { editorBackend } from '../pack-editor/testing';
 import { useTestStore } from '../test/store';
 import { makeGame, makeSession, makeSessionView, sendOnChannel } from '../test/test.fixtures';
@@ -86,12 +87,38 @@ describe('menu ▾ e diálogo "Encontrar o mod culpado"', () => {
       suspects: [],
       server: false,
     } satisfies BisectRequest);
-    // Foi para a tela do teste no modo da busca (vazia até a primeira rodada).
+    // Foi para a tela do teste no modo da busca (vazia até a busca avisar que começou).
     expect(await screen.findByText('Nenhuma busca do culpado neste pack')).toBeDefined();
   });
 
-  it('sem mundo de teste, "Trava ao entrar no mundo" explica e fica indisponível', async () => {
-    const { url } = setup({ bisect_plan: () => makePlan({ world: null }) });
+  it('enquanto a busca nova prepara, não mostra a tela vazia nem o resultado da anterior', async () => {
+    const { row, url } = setup({
+      bisect_get: () => makeFound({ finishedAtMs: Date.now() - 60_000 }),
+    });
+    useTestStore.setState({ game: makeGame(row.id, 'bisecting') });
+    await openPage(url, '/teste?modo=busca', 'Buscando o mod culpado');
+    expect(await screen.findByText('Preparando a busca do culpado')).toBeDefined();
+    expect(screen.queryByText(/Culpado encontrado/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Encontrar o mod culpado…' })).toBeNull();
+  });
+
+  it('primeira busca: explica o mundo de teste e pede a EULA; aceitar libera "Trava ao entrar no mundo" e atualiza as Configurações', async () => {
+    const state = { settings: makeSettings() };
+    const { backend, url } = setup({
+      bisect_plan: () => makePlan({ worldReady: false }),
+      settings_get: () => state.settings,
+      server_eula_accept: () => {
+        state.settings = { ...state.settings, eulaAcceptedAt: '2026-10-18T12:00:00Z' };
+        return state.settings;
+      },
+      server_plan: () => ({
+        memory: { serverMb: 1536, gameMb: 4096, totalMb: 5632, freeMb: 12_288, fits: true },
+        clientOnly: [],
+        clientOnlyCount: 0,
+        eulaAcceptedAt: state.settings.eulaAcceptedAt ?? null,
+        loaderSupported: true,
+      }),
+    });
     await openPage(url);
     const user = userEvent.setup();
     await user.click(within(header()).getByRole('button', { name: 'Mais opções do teste' }));
@@ -101,15 +128,81 @@ describe('menu ▾ e diálogo "Encontrar o mod culpado"', () => {
       }),
     );
     const dialog = await screen.findByRole('dialog', { name: 'Encontrar o mod culpado' });
-    const world = await within(dialog).findByRole('radio', { name: /Trava ao entrar no mundo/ });
+    expect(
+      await within(dialog).findByText('Para entrar no mundo, o Warden cria um mundo de teste'),
+    ).toBeDefined();
+    expect(within(dialog).getByText(/a Mojang exige que você aceite a EULA/)).toBeDefined();
+    expect(within(dialog).getByRole('button', { name: /Ler a EULA/ })).toBeDefined();
+    const world = within(dialog).getByRole('radio', { name: /Trava ao entrar no mundo/ });
     expect(world).toHaveProperty('disabled', true);
-    expect(within(dialog).getByText(/Precisa de um mundo de teste/)).toBeDefined();
-    // "Aparece uma mensagem no log" pede a mensagem antes de começar.
+    expect(within(dialog).getByText(/aceite a EULA abaixo para o Warden criá-lo/)).toBeDefined();
+    expect(within(dialog).queryByText(/Cada rodada entra numa cópia/)).toBeNull();
+    expect(await axePage(document.body)).toHaveNoViolations();
+    // "Aparece uma mensagem no log" pede a mensagem antes de começar (sem a EULA, vai até o menu).
     await user.click(within(dialog).getByRole('radio', { name: /Aparece uma mensagem no log/ }));
     const start = within(dialog).getByRole('button', { name: 'Começar a busca' });
     expect(start).toHaveProperty('disabled', true);
     await user.type(within(dialog).getByLabelText('Mensagem do log'), 'textura 42');
     expect(start).toHaveProperty('disabled', false);
+
+    await user.click(within(dialog).getByRole('button', { name: 'Aceito a EULA' }));
+    await waitFor(() => {
+      expect(backend.callsOf('server_eula_accept')).toHaveLength(1);
+    });
+    await waitFor(() => {
+      expect(within(dialog).queryByText(/Para entrar no mundo, o Warden cria/)).toBeNull();
+    });
+    // O foco não se perde com o pedido que sumiu.
+    expect(document.activeElement).toBe(start);
+    expect(world).toHaveProperty('disabled', false);
+    expect(
+      within(dialog).getByText(
+        'Antes da primeira rodada, o Warden cria o “Mundo de teste” com o servidor do Minecraft 1.20.1, sem mods e sempre igual. Só desta vez; leva alguns minutos.',
+      ),
+    ).toBeDefined();
+    expect(
+      within(dialog).getByText('Cada rodada entra numa cópia do “Mundo de teste”, apagada no fim.'),
+    ).toBeDefined();
+    await user.click(world);
+    expect(world).toHaveProperty('checked', true);
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    // O aceite é o mesmo do "Testar como servidor" (e das Configurações → Teste): ele não pergunta
+    // de novo.
+    await user.click(within(header()).getByRole('button', { name: 'Mais opções do teste' }));
+    await user.click(
+      within(await screen.findByRole('menu')).getByRole('menuitem', {
+        name: /Testar como servidor…/,
+      }),
+    );
+    const server = await screen.findByRole('dialog', { name: 'Testar como servidor' });
+    expect(within(server).queryByText('Aceitar a EULA do Minecraft?')).toBeNull();
+  });
+
+  it('com o mundo de teste já gerado, não pede a EULA (o servidor não abre de novo)', async () => {
+    const { url } = setup({
+      bisect_plan: () => makePlan({ worldReady: true }),
+      settings_get: () => makeSettings({ eulaAcceptedAt: null }),
+    });
+    await openPage(url);
+    const user = userEvent.setup();
+    await user.click(within(header()).getByRole('button', { name: 'Mais opções do teste' }));
+    await user.click(
+      within(await screen.findByRole('menu')).getByRole('menuitem', {
+        name: /Encontrar o mod culpado…/,
+      }),
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'Encontrar o mod culpado' });
+    expect(
+      await within(dialog).findByText(
+        'Cada rodada entra numa cópia do “Mundo de teste”, apagada no fim.',
+      ),
+    ).toBeDefined();
+    expect(within(dialog).queryByText(/Para entrar no mundo, o Warden cria/)).toBeNull();
+    expect(within(dialog).queryByText(/Antes da primeira rodada/)).toBeNull();
+    expect(within(dialog).getByRole('radio', { name: /Trava ao entrar no mundo/ })).toHaveProperty(
+      'disabled',
+      false,
+    );
   });
 
   it('com uma busca pausada, o diálogo oferece continuá-la', async () => {
@@ -175,6 +268,49 @@ describe('modo da busca na tela do teste', () => {
       within(header()).getByRole('button', { name: /Buscando o culpado: ver progresso/ }),
     ).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
+  it('antes da primeira rodada, diz que está criando o mundo de teste até a busca avisar o fim', async () => {
+    const run = deferred<BisectView>();
+    let view = makeView({ rounds: [], current: null, creatingWorld: true });
+    const { backend, url } = setup({
+      bisect_get: () => view,
+      bisect_start: () => run.promise,
+    });
+    await openPage(url);
+    const user = userEvent.setup();
+    await user.click(within(header()).getByRole('button', { name: 'Mais opções do teste' }));
+    await user.click(
+      within(await screen.findByRole('menu')).getByRole('menuitem', {
+        name: /Encontrar o mod culpado…/,
+      }),
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'Encontrar o mod culpado' });
+    await within(dialog).findByText('11 a 19 rodadas · cerca de 15 a 26 minutos');
+    await user.click(within(dialog).getByRole('button', { name: 'Começar a busca' }));
+    expect(
+      await screen.findByText(
+        'Criando o mundo de teste com o servidor do Minecraft, sem mods. Só na primeira busca deste pack; leva alguns minutos.',
+      ),
+    ).toBeDefined();
+    // O mundo ficou pronto: a busca avisa pelo canal e a tela relê a busca.
+    view = makeView({ rounds: [], current: null, creatingWorld: false });
+    const ready: OperationEvent = {
+      type: 'round',
+      index: 0,
+      totalEstimate: [11, 19],
+      enabled: 0,
+      suspects: 118,
+      result: null,
+      asking: false,
+    };
+    act(() => {
+      sendOnChannel(backend.callsOf('bisect_start')[0]?.args.onEvent, [ready]);
+    });
+    expect(
+      await screen.findByText('Preparando a cópia do pack para a próxima rodada…'),
+    ).toBeDefined();
+    expect(screen.queryByText(/Criando o mundo de teste/)).toBeNull();
   });
 
   it('cada rodada que termina atualiza a busca na tela', async () => {

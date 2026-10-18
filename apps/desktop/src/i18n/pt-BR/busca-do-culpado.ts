@@ -10,6 +10,7 @@ export const buscaDoCulpado = {
   botao: 'Buscando o culpado: ver progresso',
   etapa: {
     preparar: 'Preparando a busca do culpado',
+    mundo: 'Criando o mundo de teste',
     rodada: 'Rodada da busca do culpado',
   },
   menu: {
@@ -32,7 +33,9 @@ export const buscaDoCulpado = {
       'As bibliotecas exigidas sempre vão junto com quem precisa delas, para não aparecer um erro diferente.',
     desligados: '{{nomes}} ficam desligados durante a busca, para não atrapalhar.',
     semDesligados: 'Nenhuma ferramenta do jogador para desligar durante a busca.',
-    mundo: 'Cada rodada entra numa cópia do “{{mundo}}”, apagada no fim.',
+    mundo: 'Cada rodada entra numa cópia do “Mundo de teste”, apagada no fim.',
+    criarMundo:
+      'Antes da primeira rodada, o Warden cria o “Mundo de teste” com o servidor do Minecraft {{minecraft}}, sem mods e sempre igual. Só desta vez; leva alguns minutos.',
     comoFunciona:
       'Se a rodada travar igual, o culpado está entre os mods ligados; se não travar, está no resto. A cada rodada sobra metade dos suspeitos. Dá para pausar entre rodadas e cancelar quando quiser; ao cancelar, o Warden mostra até onde chegou.',
     naoMexa:
@@ -52,8 +55,7 @@ export const buscaDoCulpado = {
     mundo: {
       titulo: 'Trava ao entrar no mundo',
       desc: 'Abre o menu, mas trava quando entra no mundo.',
-      semMundo:
-        'Precisa de um mundo de teste: abra o jogo pelo Testar, crie um mundo e feche o jogo.',
+      semEula: 'Precisa do mundo de teste: aceite a EULA abaixo para o Warden criá-lo.',
     },
     linha: {
       titulo: 'Aparece uma mensagem no log',
@@ -105,6 +107,8 @@ export const buscaDoCulpado = {
   agora: {
     titulo: 'Agora: rodada {{rodada}}',
     preparando: 'Preparando a cópia do pack para a próxima rodada…',
+    mundo:
+      'Criando o mundo de teste com o servidor do Minecraft, sem mods. Só na primeira busca deste pack; leva alguns minutos.',
     inteiro:
       'Rodada {{rodada}}: abrindo o jogo com o pack inteiro (tentativa {{tentativa}}) para ver se o problema se repete.',
     controle: 'Rodada {{rodada}}: abrindo o jogo sem mods, para ver se o problema é de um mod.',
@@ -117,6 +121,16 @@ export const buscaDoCulpado = {
     espera: 'Espera entrar no mundo e ficar 20 s sem travar.',
     esperaAssistido: 'Quando o jogo entrar, o Warden pergunta o que aconteceu.',
     pausaPedida: 'A busca pausa quando esta rodada terminar.',
+  },
+  eula: {
+    titulo: 'Para entrar no mundo, o Warden cria um mundo de teste',
+    texto:
+      'Os seus mundos foram salvos com todos os mods e não servem para as rodadas, que desligam parte deles. Na primeira busca deste pack, o Warden abre por alguns minutos o servidor do Minecraft, sem mods e só neste computador, para criar um mundo novo. Para abrir o servidor, a Mojang exige que você aceite a EULA, a licença de uso do jogo.',
+    semAceite:
+      'O Warden lembra a resposta, a mesma do “Testar como servidor” (dá para mudar em Configurações → Teste). Sem o aceite, “Trava ao entrar no mundo” fica indisponível e as rodadas vão só até o menu principal.',
+    ler: 'Ler a EULA (aka.ms/MinecraftEULA)',
+    aceitar: 'Aceito a EULA',
+    aceitando: 'Aceitando…',
   },
   assistido: {
     titulo: 'Rodada {{rodada}} · modo assistido',

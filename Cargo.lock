@@ -6751,6 +6751,7 @@ dependencies = [
  "warden-core",
  "warden-curseforge",
  "warden-jarmeta",
+ "warden-launcher",
  "warden-mixin",
  "warden-modrinth",
  "warden-packwiz",
@@ -6779,6 +6780,7 @@ dependencies = [
  "warden-packwiz",
  "warden-project",
  "wiremock",
+ "zip 9.0.4",
 ]
 
 [[package]]
@@ -6844,15 +6846,32 @@ dependencies = [
 name = "warden-import"
 version = "0.1.0"
 dependencies = [
+ "hex",
+ "secrecy",
  "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.10.9",
  "specta",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "toml 1.1.6+spec-1.1.0",
+ "tracing",
+ "url",
  "warden-core",
  "warden-curseforge",
+ "warden-export",
  "warden-http",
+ "warden-instance",
  "warden-jarmeta",
  "warden-modrinth",
  "warden-packwiz",
  "warden-packwiz-cli",
+ "warden-project",
+ "warden-versioning",
+ "wiremock",
+ "zip 9.0.4",
 ]
 
 [[package]]
@@ -7046,7 +7065,9 @@ dependencies = [
  "serde",
  "serde_json",
  "specta",
+ "tempfile",
  "warden-core",
+ "warden-diagnostics",
  "warden-launcher",
  "windows",
 ]

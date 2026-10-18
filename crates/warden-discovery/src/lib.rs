@@ -6,13 +6,13 @@
 //! - [`home`]: populares e atualizados para o pack (P1-16).
 //! - [`preview`]: galeria, notas de versão sob demanda e dependências (P1-16).
 //! - [`images`]: imagens da CurseForge só em memória, pelo protocolo `warden-img://` (P1-16).
-//!
-//! Modpacks (`src/modpacks/**`) são da P1-17.
+//! - [`modpacks`]: a lista de mods de um modpack, lida pela API e por partes do arquivo (P1-17).
 
 pub mod categories;
 mod error;
 pub mod home;
 pub mod images;
+pub mod modpacks;
 pub mod preview;
 
 pub use error::DiscoveryErrorCode;

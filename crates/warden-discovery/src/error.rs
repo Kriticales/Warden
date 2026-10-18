@@ -16,4 +16,13 @@ use serde::{Deserialize, Serialize};
 pub enum DiscoveryErrorCode {
     /// Bug: invariante quebrada sem código específico.
     Internal,
+    /// O autor do modpack da CurseForge bloqueou apps de terceiros (`downloadUrl` nulo); parâmetro
+    /// `page` com a página do modpack, quando conhecida (P1-17).
+    ModpackBlocked,
+    /// O servidor não aceita leitura por partes e o arquivo do modpack passa de 200 MB; parâmetro
+    /// `size` em MB (SPEC CA-T08-15; P1-17).
+    ModpackTooLarge,
+    /// O arquivo do modpack não pôde ser lido (zip inválido, sem `modrinth.index.json` ou
+    /// `manifest.json`, ou sem versões) (P1-17).
+    ModpackUnreadable,
 }

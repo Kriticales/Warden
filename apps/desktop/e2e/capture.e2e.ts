@@ -22,6 +22,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -171,7 +172,7 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
   it('abre o pack', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

@@ -47,7 +47,7 @@ export function makePlan(overrides: Partial<BisectPlan> = {}): BisectPlan {
     minecraft: '1.20.1',
     loader: 'forge',
     quickPlay: true,
-    world: 'Mundo de teste',
+    worldReady: true,
     ...overrides,
   };
 }
@@ -118,6 +118,7 @@ export function makeView(overrides: Partial<BisectView> = {}): BisectView {
     outcomeItems: [],
     inferred: [],
     earlier: [],
+    creatingWorld: false,
     ...overrides,
   };
 }

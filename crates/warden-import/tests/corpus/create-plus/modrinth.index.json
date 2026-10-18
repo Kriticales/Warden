@@ -1,0 +1,148 @@
+{
+  "formatVersion": 1,
+  "game": "minecraft",
+  "versionId": "6.0.0 Alpha D",
+  "name": "Create+",
+  "summary": "",
+  "files": [
+    {
+      "path": "mods/.connector/temp/enchancement-1.21-r14$tooltipfix-1.1.1-1.20.jar",
+      "hashes": {
+        "sha1": "de704792c691e3d19316c87c21c9ad2bee6c66c3",
+        "sha512": "75d85a093487ddd8c405cf7f8ce83cb3418ff7c2d3e6bf5aa38554d8bcf0ea45c87c88f3463a924e9cc8b5931d8b64f7be173efbd48ea7a0c150db95e1408f51"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/2RKFTmiB/versions/B2L4LeMV/tooltipfix-1.1.1-1.20.jar"
+      ],
+      "fileSize": 12432,
+      "env": {
+        "client": "required",
+        "server": "unsupported"
+      }
+    },
+    {
+      "path": "mods/AsyncParticles-21.1.0a-alpha.2+1.21.1.jar",
+      "hashes": {
+        "sha1": "1f6a0ee694dd935e83bd55719f6ee19e58cda9fe",
+        "sha512": "a021c0aa3f12bb06b0ba3d4efc4eac6b749f4bb6814b3ca10d3742ea06ec5b40a272268b751813b08f0bc4179bba43c6296c99dea4541d18643142d5cd6d7678"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/c3onkd5k/versions/75Alisdy/AsyncParticles-21.1.0a-alpha.2%2B1.21.1.jar"
+      ],
+      "fileSize": 1253733,
+      "env": {
+        "client": "required",
+        "server": "unsupported"
+      }
+    },
+    {
+      "path": "mods/aileron-1.21.1-neoforge-1.1.4.jar",
+      "hashes": {
+        "sha1": "9fe97b808ccac3289644fc55ad364475434dfb2f",
+        "sha512": "65fdd62ab143a09a5b0049996f6a65361a4447646d41fa1f092af8df85e3106eb531de07e32ce10ac29c318d1ff03427dde143abcf2e616d8bd2bccfb2f575c3"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/b8kG1VGq/versions/XDz1C9KI/aileron-1.21.1-neoforge-1.1.4.jar"
+      ],
+      "fileSize": 269209,
+      "env": {
+        "client": "required",
+        "server": "required"
+      }
+    },
+    {
+      "path": "mods/alternate_current-mc1.21-1.9.0.jar",
+      "hashes": {
+        "sha1": "1201c14362f2bad7062d315f8a9b26afbabd2c9c",
+        "sha512": "e7715d92987ad902f316ae657558a58e647b4f076d6962e6ac5b6bdb802755f1a37c2380b69002ce930b29dc02fe96989d41818462f7bc236c4ad709b0842480"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/r0v8vy1s/versions/PCNyL6v4/alternate_current-mc1.21-1.9.0.jar"
+      ],
+      "fileSize": 50425,
+      "env": {
+        "client": "optional",
+        "server": "required"
+      }
+    },
+    {
+      "path": "mods/appleskin-neoforge-mc1.21-3.0.9.jar",
+      "hashes": {
+        "sha1": "81cf0e668f991f83ac8820c386fbd6c9c3602246",
+        "sha512": "f4ea46273e407334b63e262e2555c9a8204f7b5e60f23f272fbaa83ad9e88800e0ee186aca840710df2dbe0a18b37758695fef2ae1a902c10b3706e3de772937"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/EsAfCjCV/versions/uAKA6Laj/appleskin-neoforge-mc1.21-3.0.9.jar"
+      ],
+      "fileSize": 75804,
+      "env": {
+        "client": "optional",
+        "server": "optional"
+      }
+    },
+    {
+      "path": "mods/ArmorStatues-v21.1.0-1.21.1-NeoForge.jar",
+      "hashes": {
+        "sha1": "ea74e8434f23b618d3298afda8cad1ccb76f0a94",
+        "sha512": "4160dd026b9dc03fb9c24cf8b1cac421f4393e2360862fe482ca182a3f379b70f92c0bc16bd5d8abdea826388a507fe9c9b2cd014e983ef4b2f97f276f3adc1a"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/bbGCtEvb/versions/SGpwIu7v/ArmorStatues-v21.1.0-1.21.1-NeoForge.jar"
+      ],
+      "fileSize": 263404,
+      "env": {
+        "client": "required",
+        "server": "optional"
+      }
+    },
+    {
+      "path": "mods/statuseffectbars-1.21.1-NeoForge-1.0.2.jar",
+      "hashes": {
+        "sha1": "bc2d624a831126bb00032d53ca0211d026e95682",
+        "sha512": "7d81eeb0e60fb304f0a26d696911b4aa0771553975275214750ae99511da17850ad196fb5268cb4362959c10221beb5c92e43ed1d965493c8a76354e76555540"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/TxIuhIFo/versions/PPVE16f7/statuseffectbars-1.21.1-NeoForge-1.0.2.jar"
+      ],
+      "fileSize": 25114,
+      "env": {
+        "client": "unknown",
+        "server": "unknown"
+      }
+    },
+    {
+      "path": "mods/alloyed-3.0.8+1.21.1-neoforge.jar",
+      "hashes": {
+        "sha1": "d8d2ba7010a4c05c9f41b15157ea5f095555ef37",
+        "sha512": "05c48e9b91681c3902d18e192fb314d658772348d32bf8021f5627c0c643e2554869e4d655cd9bdc0e9660cc8ce81615daa9fa96f7196a797634e114c5d1e79e"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/KUInlTFo/versions/p0ZgNPlj/alloyed-3.0.8%2B1.21.1-neoforge.jar"
+      ],
+      "fileSize": 872958,
+      "env": {
+        "client": "required",
+        "server": "required"
+      }
+    },
+    {
+      "path": "mods/amendments-1.21-2.0.15-neoforge.jar",
+      "hashes": {
+        "sha1": "00056f29646f3bf86116b281c2362c0dabdb4533",
+        "sha512": "a9ea5029cb4788e9e1dae8ed94f05e9111754e064d41fcd6bf7e570c28106dc1e680d2f2e82324b87a0a154a3d714bbdf2425124a62cba4765c41c1097d1609a"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/6iTJugQR/versions/8xf6Wpxs/amendments-1.21-2.0.15-neoforge.jar"
+      ],
+      "fileSize": 1143659,
+      "env": {
+        "client": "required",
+        "server": "required"
+      }
+    }
+  ],
+  "dependencies": {
+    "minecraft": "1.21.1",
+    "neoforge": "21.1.228"
+  }
+}

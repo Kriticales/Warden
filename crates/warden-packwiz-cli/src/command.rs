@@ -98,6 +98,11 @@ pub enum PackwizCommand {
         /// Arquivo `.zip` gerado (relativo à pasta do pack ou absoluto).
         output: PathBuf,
     },
+    /// `curseforge import <zip>`: zip de modpack da CurseForge, numa cópia de staging (P1-19).
+    CurseForgeImport {
+        /// O zip (absoluto).
+        input: PathBuf,
+    },
 }
 
 impl PackwizCommand {
@@ -111,6 +116,7 @@ impl PackwizCommand {
             Self::List => "list",
             Self::ModrinthExport { .. } => "modrinth export",
             Self::CurseForgeExport { .. } => "curseforge export",
+            Self::CurseForgeImport { .. } => "curseforge import",
         }
     }
 
@@ -153,6 +159,13 @@ impl PackwizCommand {
                 args.push(output.into());
                 args
             }
+            Self::CurseForgeImport { input } => {
+                let mut args = strings(&["curseforge", "import"]);
+                // `--` impede que um caminho começando por `-` vire opção.
+                args.push("--".into());
+                args.push(input.into());
+                args
+            }
         }
     }
 
@@ -166,6 +179,7 @@ impl PackwizCommand {
                 | Self::CurseForgeAddIds { .. }
                 | Self::ModrinthExport { .. }
                 | Self::CurseForgeExport { .. }
+                | Self::CurseForgeImport { .. }
         )
     }
 
@@ -190,7 +204,9 @@ impl PackwizCommand {
                 timeouts.curseforge_add
             }
             Self::List => timeouts.list,
-            Self::ModrinthExport { .. } | Self::CurseForgeExport { .. } => timeouts.export,
+            Self::ModrinthExport { .. }
+            | Self::CurseForgeExport { .. }
+            | Self::CurseForgeImport { .. } => timeouts.export,
         }
     }
 }
@@ -389,6 +405,12 @@ mod tests {
                     "saida.zip",
                 ],
             ),
+            (
+                PackwizCommand::CurseForgeImport {
+                    input: PathBuf::from("modpack.zip"),
+                },
+                vec!["curseforge", "import", "--", "modpack.zip"],
+            ),
         ];
         for (command, sub) in cases {
             let inv = invocation(&command);
@@ -446,6 +468,7 @@ mod tests {
         assert!(!PackwizCommand::List.needs_curseforge_key());
         assert!(PackwizCommand::CurseForgeAddUrl { url: "u".into() }.needs_curseforge_key());
         assert!(PackwizCommand::ModrinthExport { output: "o".into() }.needs_curseforge_key());
+        assert!(PackwizCommand::CurseForgeImport { input: "z".into() }.needs_curseforge_key());
     }
 
     #[test]

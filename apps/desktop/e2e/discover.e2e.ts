@@ -34,6 +34,7 @@ import { type ChainablePromiseElement, Key } from 'webdriverio';
 
 import { CHAVE_BOA } from './mock-server/curseforge';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -227,7 +228,7 @@ describe('Descoberta (P1-16)', () => {
   it('CA-T08-10: o início mostra populares, atualizados e categorias com até 3 requisições por fonte', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Fixture Fabric').waitForDisplayed({ timeout: 60_000 });

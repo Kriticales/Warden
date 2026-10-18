@@ -277,6 +277,11 @@ mod tests {
         let shaders = curseforge_query(&query(ProjectKind::Shader, false));
         assert_eq!(param(&shaders, "classId").as_deref(), Some("6552"));
         assert_eq!(param(&shaders, "modLoaderType"), None);
+        // Modpacks (P1-17): classe 4471, com o loader e a versão do pack.
+        let modpacks = curseforge_query(&query(ProjectKind::Modpack, false));
+        assert_eq!(param(&modpacks, "classId").as_deref(), Some("4471"));
+        assert_eq!(param(&modpacks, "modLoaderType").as_deref(), Some("1"));
+        assert_eq!(param(&modpacks, "gameVersion").as_deref(), Some("1.20.1"));
         // Sem versão compatível: só a classe continua.
         let all = curseforge_query(&query(ProjectKind::Mod, true));
         assert_eq!(param(&all, "gameVersion"), None);

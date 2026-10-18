@@ -195,13 +195,13 @@ describe('pedido do servidor local no diálogo (CA-T25-06)', () => {
     });
   });
 
-  it('com pouca memória livre, avisa antes de abrir; sem mundo de teste, diz que o servidor cria um', async () => {
+  it('com pouca memória livre, avisa antes de abrir; com o aceite, o mundo de teste é criado antes', async () => {
     const { backend, url } = setup({
       plan: {
         memory: { serverMb: 4096, gameMb: 6144, totalMb: 10_240, freeMb: 7168, fits: false },
       },
       handlers: {
-        bisect_plan: () => makePlan({ minecraft: '1.12.2', quickPlay: false, world: null }),
+        bisect_plan: () => makePlan({ minecraft: '1.12.2', quickPlay: false, worldReady: false }),
       },
     });
     await openPage(url);
@@ -214,11 +214,12 @@ describe('pedido do servidor local no diálogo (CA-T25-06)', () => {
     expect(
       within(dialog).getByText(/Com 7 GB livres, o computador pode ficar lento/),
     ).toBeDefined();
-    expect(
-      within(dialog).getByText(
-        'Sem mundo de teste, o servidor cria um mundo novo em cada rodada e o apaga no fim.',
-      ),
-    ).toBeDefined();
+    // O servidor abre uma cópia do mesmo mundo de teste da D-12, criado antes da 1ª rodada.
+    const creates =
+      /Antes da primeira rodada, o Warden cria o “Mundo de teste” com o servidor do Minecraft 1\.12\.2/;
+    expect(within(dialog).queryByText(creates)).toBeNull();
+    await user.click(within(dialog).getByRole('button', { name: 'Entendi, pode abrir' }));
+    expect(within(dialog).getByText(creates)).toBeDefined();
     expect(backend.callsOf('bisect_start')).toHaveLength(0);
     expect(await axePage(document.body)).toHaveNoViolations();
   });

@@ -1,0 +1,32 @@
+/* Navegar por modpacks (P1-17; protótipo `modpack`): com um modpack aberto, a coluna de filtros
+   some e a lista de mods ganha mais espaço que os resultados. */
+.disc.disc--modpack {
+  grid-template-columns: minmax(0, 0.8fr) minmax(400px, 1.2fr);
+}
+
+@media (max-width: 1180px) {
+  .disc.disc--modpack {
+    grid-template-columns: minmax(0, 0.8fr) minmax(380px, 1.2fr);
+  }
+}
+
+.modpack__title {
+  margin-top: var(--space-3);
+}
+
+.modpack__counts {
+  margin: 2px 0 var(--space-2);
+}
+
+.modpack__controls {
+  margin-bottom: var(--space-2);
+}
+
+.modpack__name {
+  font-weight: var(--font-weight-bold);
+}
+
+.drow--external .modpack__name,
+.drow--noversion .modpack__name {
+  color: var(--color-text-2);
+}

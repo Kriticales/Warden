@@ -23,41 +23,16 @@ use warden_packwiz::{IndexEntry, PackIndex, PackManifest};
 
 use super::*;
 use crate::bisect_session::tests::{
-    class_dir, java, register, sha256, spawn, tree_hash, wait_until, write_world,
+    fake_state, free_port, register, sha256, spawn, tree_hash, wait_until, write_user_world,
 };
 use crate::bisect_session::{self, BisectRequest, BisectStatus, RunMode};
-use crate::state::tests::test_state;
-use crate::test_session::TestSessions;
 
-/// Pasta do `WardenFakeServer.class`.
-fn server_class_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../crates/warden-server/tests/fixtures/java")
-}
-
-/// O estado com o jogo e o servidor simulados e a EULA aceita (`None` sem Java).
-fn server_state(root: &Path) -> Option<Arc<AppState>> {
-    let Some(java) = java() else {
-        eprintln!("sem Java (WARDEN_TEST_JAVA ou JAVA_HOME): teste da busca com servidor pulado");
-        return None;
-    };
-    let mut state = test_state(root);
-    state.tests = Arc::new(
-        TestSessions::with_fake_game(&root.join("shared"), class_dir(), java, 17)
-            .with_fake_server(server_class_dir()),
-    );
-    // Cada teste parte de uma porta dada pelo sistema: dois servidores simulados não disputam a
-    // 25565.
-    let start = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
-        .ok()?
-        .local_addr()
-        .ok()?
-        .port();
-    state.servers.set_first_port(start);
-    state
-        .settings
-        .set_eula_accepted_at(Some("2026-10-18T12:00:00Z".into()))
-        .unwrap();
-    Some(Arc::new(state))
+/// O mundo de teste modelo do pack, gerado sem mods pela busca (D-12: `bisect_session::world`).
+fn world_model(state: &AppState, pack: PackId) -> PathBuf {
+    InstanceDirs::for_pack(&state.paths, pack)
+        .state_dir
+        .join("bisect-world")
+        .join("world")
 }
 
 fn port_is_free(port: u16) -> bool {
@@ -159,19 +134,13 @@ fn ports_in(log: &str) -> Vec<u16> {
 
 #[test]
 fn level_name_e_sempre_a_copia_do_mundo() {
-    let text = "#x\r\nlevel-name=../outro\r\ndifficulty=hard\r\nlevel-seed=\r\n";
-    let copied = with_world(text, false);
+    let text = "#x\r\nlevel-name=../outro\r\ndifficulty=hard\r\nlevel-seed=42\r\n";
+    let copied = with_world(text);
     assert!(copied.contains("level-name=world\n"));
     assert!(!copied.contains("../outro"));
     assert!(copied.contains("difficulty=hard\n"));
-    assert!(copied.contains("level-seed=\n"));
-    // Sem mundo de teste, a semente é fixa (a do pack, se ele escolheu uma).
-    let generated = with_world(text, true);
-    assert!(generated.contains("level-seed=warden\n"));
-    assert!(!generated.contains("level-seed=\n"));
-    let chosen = with_world("level-seed = 42\n", true);
-    assert!(chosen.contains("level-seed = 42\n"));
-    assert!(!chosen.contains("level-seed=warden"));
+    assert!(copied.contains("level-seed=42\n"));
+    assert_eq!(copied.matches("level-name").count(), 1);
 }
 
 /// Uma base de servidor de mentira: o manifesto com um mod e um config, e a instalação ao lado.
@@ -240,16 +209,12 @@ fn fake_base(root: &Path) -> (ServerDirs, ServerBase) {
     (dirs, base)
 }
 
-fn round_spec(root: &Path, world: Option<PathBuf>, eula: bool) -> RoundSpec {
+fn round_spec(root: &Path, world: PathBuf, eula: bool) -> RoundSpec {
     RoundSpec {
         excluded: BTreeSet::from(["mods/bravo.jar".to_owned()]),
         world,
         eula_accepted_at: eula.then(|| "2026-10-18T12:00:00Z".to_owned()),
-        first_port: TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
-            .unwrap()
-            .local_addr()
-            .unwrap()
-            .port(),
+        first_port: free_port(),
         motd: "Vale do Servidor".into(),
         log: root.join("logs").join("server").join("output.log"),
     }
@@ -260,7 +225,12 @@ fn round_spec(root: &Path, world: Option<PathBuf>, eula: bool) -> RoundSpec {
 fn sem_eula_a_rodada_nao_prepara_nada() {
     let dir = tempfile::tempdir().unwrap();
     let (dirs, base) = fake_base(dir.path());
-    let error = prepare_round(&base, &dirs, &round_spec(dir.path(), None, false)).unwrap_err();
+    let error = prepare_round(
+        &base,
+        &dirs,
+        &round_spec(dir.path(), dir.path().join("mundo"), false),
+    )
+    .unwrap_err();
     assert_eq!(error.code.to_string(), "server.EULA_NOT_ACCEPTED");
     assert!(!dirs.round.exists());
 }
@@ -283,12 +253,7 @@ fn rodada_do_servidor_com_mundo_descartavel() {
     std::fs::write(world.join("session.lock"), "lock").unwrap();
     let base_before = tree_hash(&dirs.base.game_dir);
     let world_before = tree_hash(&world);
-    let round = prepare_round(
-        &base,
-        &dirs,
-        &round_spec(dir.path(), Some(world.clone()), true),
-    )
-    .unwrap();
+    let round = prepare_round(&base, &dirs, &round_spec(dir.path(), world.clone(), true)).unwrap();
     let server = &dirs.round;
     assert!(server.join("mods/alfa.jar").is_file());
     assert!(!server.join("mods/bravo.jar").exists(), "item desligado");
@@ -338,36 +303,31 @@ fn rodada_do_servidor_com_mundo_descartavel() {
     assert_eq!(tree_hash(&world), world_before);
 }
 
-/// Sem mundo de teste, o servidor gera o mundo (com a semente fixa) em `world`.
-#[test]
-fn sem_mundo_de_teste_o_servidor_gera_um() {
-    let dir = tempfile::tempdir().unwrap();
-    let (dirs, base) = fake_base(dir.path());
-    let round = prepare_round(&base, &dirs, &round_spec(dir.path(), None, true)).unwrap();
-    let properties = std::fs::read_to_string(dirs.round.join("server.properties")).unwrap();
-    assert!(properties.contains("level-name=world"));
-    assert!(properties.contains("level-seed=warden"));
-    assert!(!dirs.round.join("world").exists());
-    drop(round);
-}
-
 /// CA-T25-06: num pack Forge 1.16.5 com o problema "trava ao entrar no mundo", com o aceite,
 /// cada rodada sobe o servidor em `127.0.0.1` com uma cópia descartável do mundo, o jogo entra
 /// nele e o servidor fecha ao fim da rodada; o veredito usa o log do servidor e acha o mod.
 #[tokio::test(flavor = "multi_thread")]
 async fn ca_t25_06_acha_o_culpado_pelo_servidor_local() {
     let dir = tempfile::tempdir().unwrap();
-    let Some(state) = server_state(dir.path()) else {
+    let Some(state) = fake_state(dir.path()) else {
         return;
     };
     let root = dir.path().join("pack");
     write_pack(&root, "1.16.5", ("forge", "36.2.39"), "charlie");
     let pack = register(&state, &root);
-    let world = write_world(&state, pack);
+    let user_world = write_user_world(&state, pack);
     let test_dirs = InstanceDirs::for_pack(&state.paths, pack);
-    let before = (tree_hash(&root), tree_hash(&world));
+    let before = (tree_hash(&root), tree_hash(&user_world));
     let (task, seen) = spawn(&state, pack, start(Symptom::CrashOnWorld, true));
     let view = task.await.unwrap().unwrap();
+    // O servidor da rodada abre uma cópia do mundo de teste da D-12 (gerado sem mods, com a
+    // semente fixa), nunca o mundo do usuário.
+    let model = world_model(&state, pack);
+    let model_before = tree_hash(&model);
+    assert_eq!(
+        std::fs::read_to_string(model.join("level.dat")).unwrap(),
+        "semente=20261004\n"
+    );
     let Some(SearchOutcome::Found { culprits, .. }) = &view.outcome else {
         panic!("{:?}", view.outcome);
     };
@@ -434,16 +394,17 @@ async fn ca_t25_06_acha_o_culpado_pelo_servidor_local() {
             .game_dir
             .exists()
     );
-    assert_eq!((tree_hash(&root), tree_hash(&world)), before);
+    assert_eq!((tree_hash(&root), tree_hash(&user_world)), before);
+    assert_eq!(tree_hash(&model), model_before);
 }
 
 /// Problema de servidor numa versão com Quick Play (Forge 1.20.1): com o aceite, a busca usa o
-/// servidor local mesmo assim, o jogo entra por `--quickPlayMultiplayer` e, sem mundo de teste,
-/// o servidor gera um mundo descartável em cada rodada.
+/// servidor local mesmo assim, o jogo entra por `--quickPlayMultiplayer` e o servidor abre a
+/// cópia do mundo de teste.
 #[tokio::test(flavor = "multi_thread")]
-async fn problema_de_servidor_com_quick_play_e_sem_mundo_de_teste() {
+async fn problema_de_servidor_com_quick_play() {
     let dir = tempfile::tempdir().unwrap();
-    let Some(state) = server_state(dir.path()) else {
+    let Some(state) = fake_state(dir.path()) else {
         return;
     };
     let root = dir.path().join("pack");
@@ -461,14 +422,10 @@ async fn problema_de_servidor_com_quick_play_e_sem_mundo_de_teste() {
         log.iter()
             .any(|line| line.text.contains("entra pelo --quickPlayMultiplayer"))
     );
-    assert!(
-        log.iter()
-            .any(|line| line.text.contains("Preparing level \"world\""))
-    );
-    assert!(
-        !log.iter()
-            .any(|line| line.text.contains("(mundo existente)"))
-    );
+    assert!(log.iter().any(|line| {
+        line.text
+            .contains("Preparing level \"world\" (mundo existente)")
+    }));
     assert!(state.servers.current().is_none());
     assert!(
         !ServerDirs::of(&state.paths.instance_dir(pack))
@@ -482,13 +439,12 @@ async fn problema_de_servidor_com_quick_play_e_sem_mundo_de_teste() {
 #[tokio::test(flavor = "multi_thread")]
 async fn sem_aceite_ou_sem_eula_nada_abre() {
     let dir = tempfile::tempdir().unwrap();
-    let Some(state) = server_state(dir.path()) else {
+    let Some(state) = fake_state(dir.path()) else {
         return;
     };
     let root = dir.path().join("pack");
     write_pack(&root, "1.16.5", ("forge", "36.2.39"), "charlie");
     let pack = register(&state, &root);
-    write_world(&state, pack);
     let (task, _) = spawn(&state, pack, start(Symptom::CrashOnWorld, false));
     let error = task.await.unwrap().unwrap_err();
     assert_eq!(error.code.to_string(), "bisect.NEEDS_SERVER");
@@ -507,7 +463,7 @@ async fn sem_aceite_ou_sem_eula_nada_abre() {
 #[tokio::test(flavor = "multi_thread")]
 async fn cancelar_com_o_servidor_aberto() {
     let dir = tempfile::tempdir().unwrap();
-    let Some(state) = server_state(dir.path()) else {
+    let Some(state) = fake_state(dir.path()) else {
         return;
     };
     let root = dir.path().join("pack");
@@ -515,8 +471,8 @@ async fn cancelar_com_o_servidor_aberto() {
     // O jogo nunca entra: a rodada fica aberta até o cancelamento.
     std::fs::write(root.join(".warden-fake-game"), "filhos 1").unwrap();
     let pack = register(&state, &root);
-    let world = write_world(&state, pack);
-    let world_before = tree_hash(&world);
+    let user_world = write_user_world(&state, pack);
+    let user_world_before = tree_hash(&user_world);
     let (task, _seen) = spawn(&state, pack, start(Symptom::CrashOnWorld, true));
     wait_until("o servidor da rodada pronto", || {
         state
@@ -555,7 +511,9 @@ async fn cancelar_com_o_servidor_aberto() {
     assert!(port_is_free(port));
     assert!(!server_dirs.round.exists());
     assert!(!server_dirs.base.game_dir.exists());
-    assert_eq!(tree_hash(&world), world_before);
+    assert_eq!(tree_hash(&user_world), user_world_before);
+    // O mundo de teste modelo fica para as próximas buscas.
+    assert!(world_model(&state, pack).join("level.dat").is_file());
 }
 
 /// Integração sob demanda com um servidor Forge 1.16.5 de verdade (CA-T25-06; ROADMAP D-13,
@@ -599,7 +557,7 @@ async fn servidor_forge_1_16_5_real() {
         },
         memory_mb: 2048,
     };
-    let mut spec = round_spec(temp.path(), Some(world), true);
+    let mut spec = round_spec(temp.path(), world, true);
     spec.excluded.clear();
     let round = prepare_round(&base, &dirs, &spec).unwrap();
     let port = round.port();

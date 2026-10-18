@@ -43,9 +43,27 @@ export function BisectPage({ packId }: { packId: PackId }) {
   const bisect = useBisect(packId);
   useRefreshOnGameState(packId);
   const [dialog, setDialog] = useState(false);
+  const game = useGame();
+  // A busca nova começou e ainda não gravou o estado (copiando o pack, lendo os mods): nem a
+  // tela vazia nem o resultado de uma busca terminada antes desta começar.
+  const starting =
+    game?.packId === packId &&
+    game.state === 'bisecting' &&
+    bisect.isSuccess &&
+    (!bisect.data ||
+      (bisect.data.status === 'finished' && (bisect.data.finishedAtMs ?? 0) < game.startedAtMs));
 
   let body;
-  if (bisect.isPending) {
+  if (starting) {
+    body = (
+      <>
+        <PageHead title={t('tela.titulo')} sans />
+        <div className="panel panel--selected" aria-live="polite">
+          <Loader /> <span className="t-sm">{t('etapa.preparar')}</span>
+        </div>
+      </>
+    );
+  } else if (bisect.isPending) {
     body = <LoadingState label={t('tela.carregando')} />;
   } else if (bisect.isError) {
     body = <ErrorPanel error={bisect.error} />;
@@ -261,8 +279,11 @@ function Now({
   }
   if (!current) {
     return (
-      <div className="panel panel--selected">
-        <Loader /> <span className="t-sm">{t('agora.preparando')}</span>
+      <div className="panel panel--selected" aria-live="polite">
+        <Loader />{' '}
+        <span className="t-sm">
+          {view.creatingWorld ? t('agora.mundo') : t('agora.preparando')}
+        </span>
       </div>
     );
   }

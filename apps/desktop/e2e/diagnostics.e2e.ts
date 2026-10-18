@@ -26,6 +26,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolationSummaries } from './axe';
 import { storedZip } from './mock-server/jars';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -170,7 +171,7 @@ describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
   it('Problemas verifica sozinha: aviso de lado errado, contador no menu e marca em Mods', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FOLDER, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

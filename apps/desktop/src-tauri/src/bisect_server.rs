@@ -15,8 +15,8 @@
 //! 2. **Rodada** ([`prepare_round`]): recria `instances/<pack>/bisect/server/` com a mesma
 //!    [`warden_instance::subset::materialize_subset`] do cliente (os mesmos itens desligados),
 //!    liga os arquivos da instalação do servidor (jars por link físico, o resto copiado),
-//!    copia o mundo de teste para `world` (cópia descartável; sem mundo de teste, o servidor
-//!    gera um com semente fixa), grava o `eula.txt` (só com o aceite) e o `server.properties`
+//!    copia o mundo de teste gerado sem mods pela D-12 (`bisect_session::world`) para `world`
+//!    (cópia descartável), grava o `eula.txt` (só com o aceite) e o `server.properties`
 //!    controlado da L-09 (`127.0.0.1`, porta livre) com `level-name=world`.
 //! 3. **Abrir** ([`PreparedRound::open`]): o servidor abre pelo registro da L-09
 //!    ([`ServerSessions`]: um por vez, `server-state`, "Fechar o Warden" o encontra) com o log
@@ -63,8 +63,6 @@ const SERVER_DIR: &str = "server";
 const SERVER_STATE_DIR: &str = "server-state";
 /// Pasta do mundo do servidor da rodada (o `level-name`).
 const WORLD_DIR: &str = "world";
-/// Semente do mundo gerado quando a instância de teste não tem mundo (o mesmo em toda rodada).
-const GENERATED_SEED: &str = "warden";
 /// O que fica na base e não vai para a rodada pela instalação: os mods (só os itens ligados
 /// entram, pela materialização do subconjunto), o mundo, os logs, os crash reports e os arquivos
 /// que a rodada grava ela mesma.
@@ -141,8 +139,8 @@ pub(crate) async fn prepare_base(
 pub(crate) struct RoundSpec {
     /// Itens do pack que ficam de fora nesta rodada (os mesmos do cliente).
     pub(crate) excluded: BTreeSet<String>,
-    /// O mundo de teste da instância de teste (só lido), copiado para `world`.
-    pub(crate) world: Option<PathBuf>,
+    /// O mundo de teste modelo da busca (só lido), copiado para `world`.
+    pub(crate) world: PathBuf,
     /// O aceite da EULA guardado nas Configurações (`None`: não aceita; o servidor não abre).
     pub(crate) eula_accepted_at: Option<String>,
     /// Onde a busca da porta livre começa.
@@ -183,10 +181,8 @@ pub(crate) fn prepare_round(
         .map_err(|error| AppError::from_domain(&error))?;
     link_installation(&dirs.base, &dirs.round)?;
     let world = WorldCopy(dirs.round.join(WORLD_DIR));
-    if let Some(source) = &spec.world {
-        warden_instance::subset::copy_world(source, &world.0)
-            .map_err(|error| AppError::from_domain(&error))?;
-    }
+    warden_instance::subset::copy_world(&spec.world, &world.0)
+        .map_err(|error| AppError::from_domain(&error))?;
     warden_server::write_eula(&dirs.round, spec.eula_accepted_at.as_deref())
         .map_err(|error| AppError::from_domain(&error))?;
     let port = warden_server::properties::free_port_from(spec.first_port)
@@ -199,7 +195,7 @@ pub(crate) fn prepare_round(
         },
     )
     .map_err(|error| AppError::from_domain(&error))?;
-    force_world(&dirs.round, spec.world.is_none())?;
+    force_world(&dirs.round)?;
     let installed = InstalledServer {
         dir: dirs.round.clone(),
         ..base.installed.clone()
@@ -274,9 +270,8 @@ fn io_error(action: &str, relative: &Path, error: &dyn std::fmt::Display) -> App
 }
 
 /// O mundo do servidor é sempre a cópia descartável em `world` (um `level-name` vindo do pack
-/// abriria ou geraria outro mundo); sem mundo de teste, o gerado tem a mesma semente em toda
-/// rodada.
-fn force_world(server_dir: &Path, generated: bool) -> Result<(), AppError> {
+/// abriria ou geraria outro mundo).
+fn force_world(server_dir: &Path) -> Result<(), AppError> {
     let path = server_dir.join(warden_server::properties::PROPERTIES_FILE);
     let text = fs::read(&path)
         .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
@@ -287,7 +282,7 @@ fn force_world(server_dir: &Path, generated: bool) -> Result<(), AppError> {
                 &error,
             )
         })?;
-    let text = with_world(&text, generated);
+    let text = with_world(&text);
     atomic_write(&path, text.as_bytes()).map_err(|error| {
         io_error(
             "gravar",
@@ -297,26 +292,16 @@ fn force_world(server_dir: &Path, generated: bool) -> Result<(), AppError> {
     })
 }
 
-/// O `server.properties` com `level-name=world` (e a semente fixa, quando o mundo é gerado e o
-/// pack não escolheu uma), sem as linhas antigas dessas chaves.
-fn with_world(text: &str, generated: bool) -> String {
+/// O `server.properties` com `level-name=world`, sem as linhas antigas dessa chave.
+fn with_world(text: &str) -> String {
     let key_of = |line: &str| {
         let trimmed = line.trim_start();
         let end = trimmed.find(['=', ':', ' ', '\t']).unwrap_or(trimmed.len());
         trimmed[..end].trim().to_owned()
     };
-    let seed_chosen = text.lines().any(|line| {
-        key_of(line) == "level-seed"
-            && line
-                .split_once('=')
-                .is_some_and(|(_, v)| !v.trim().is_empty())
-    });
-    let mut out = String::with_capacity(text.len() + 40);
+    let mut out = String::with_capacity(text.len() + 20);
     for line in text.lines() {
         if key_of(line) == "level-name" {
-            continue;
-        }
-        if generated && !seed_chosen && key_of(line) == "level-seed" {
             continue;
         }
         out.push_str(line);
@@ -325,11 +310,6 @@ fn with_world(text: &str, generated: bool) -> String {
     out.push_str("level-name=");
     out.push_str(WORLD_DIR);
     out.push('\n');
-    if generated && !seed_chosen {
-        out.push_str("level-seed=");
-        out.push_str(GENERATED_SEED);
-        out.push('\n');
-    }
     out
 }
 

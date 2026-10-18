@@ -4,8 +4,8 @@
  *
  * Estados: "Testar" (pronto); "Testando… ver progresso" com a barrinha de progresso (preparando);
  * "● Jogo aberto: ver teste" (jogo aberto); "Buscando o culpado: ver progresso" (busca do
- * culpado, D-12, que leva ao modo da busca na tela do teste). Nos dois últimos, o clique leva à tela do teste
- * (CA-T13-08). Com o jogo de outro pack aberto, o clique explica que é um jogo por vez e oferece
+ * culpado, D-12). Nos três últimos, o clique leva à tela do teste (CA-T13-08; na busca, ao modo
+ * da busca). Com o jogo de outro pack aberto, o clique explica que é um jogo por vez e oferece
  * ir para o teste dele.
  *
  * O ▾ abre o menu em grupos (`menu-items.ts`), com os diálogos fora do menu (`testDialogs`).
@@ -23,7 +23,6 @@ import { Icon } from '../../components/ui/icon';
 import { MenuContent, MenuItem, MenuSeparator } from '../../components/ui/menu';
 import { showToast } from '../../components/ui/toast';
 import { Tooltip } from '../../components/ui/tooltip';
-import i18n from '../../i18n';
 import { cn } from '../../lib/cn';
 import type { PackId } from '../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../lib/ipc/errors';
@@ -58,6 +57,7 @@ export function useOpenTest() {
 
 export function TestButton({ packId, pack }: HeaderSlotProps) {
   const { t } = useTranslation('teste');
+  const { t: tBisect } = useTranslation('buscaDoCulpado');
   const game = useGame();
   const run = useTestRun(packId);
   const start = useTestStore((store) => store.start);
@@ -100,7 +100,7 @@ export function TestButton({ packId, pack }: HeaderSlotProps) {
     ready: t('botao.testar'),
     preparing: t('botao.preparando'),
     running: t('botao.aberto'),
-    bisecting: i18n.t('botao', { ns: 'buscaDoCulpado' }),
+    bisecting: tBisect('botao'),
   }[state];
   // Perfil do teste fora do Padrão: "Testar · PC fraco" (L-08).
   const activeProfile =

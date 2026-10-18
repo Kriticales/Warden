@@ -27,6 +27,7 @@ import { Key } from 'webdriverio';
 import { seriousViolationSummaries } from './axe';
 import { CF_LINK, CHAVE_BOA, CHAVE_COM_ERRO, CHAVE_RECUSADA } from './mock-server/curseforge';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 
@@ -203,7 +204,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
   it('abre o pack e a página Adicionar', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     pickNext(PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     await $('button=Abrir pack').click();
     await $('h1=Fixture Fabric').waitForDisplayed({ timeout: 60_000 });

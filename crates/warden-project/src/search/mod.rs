@@ -84,8 +84,8 @@ impl SourceId {
     }
 }
 
-/// Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks chegam com a
-/// P1-17.
+/// Tipo de projeto buscado (seletor **Tipo** da página Adicionar). Modpacks (P1-17) só são
+/// buscados e abertos para trazer mods deles: nunca entram no pack como item.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum ProjectKind {
@@ -95,6 +95,8 @@ pub enum ProjectKind {
     ResourcePack,
     /// Shaders (`shaderpacks/`).
     Shader,
+    /// Modpacks (P1-17): Modrinth `project_type:modpack`, CurseForge `classId=4471`.
+    Modpack,
 }
 
 impl ProjectKind {
@@ -105,6 +107,9 @@ impl ProjectKind {
             Self::Mod => "mods",
             Self::ResourcePack => "resourcepacks",
             Self::Shader => "shaderpacks",
+            // Um modpack nunca é gravado no pack (o `kind` dos itens vem do tipo do projeto,
+            // e o de um modpack não vira item); a pasta só existe para o `match` ser completo.
+            Self::Modpack => "modpacks",
         }
     }
 }
@@ -375,7 +380,11 @@ impl PackTarget {
     #[must_use]
     pub fn loader_names(&self, kind: ProjectKind) -> Vec<String> {
         match kind {
-            ProjectKind::Mod => self.loaders.iter().map(|l| l.key().to_owned()).collect(),
+            // Modpacks também são de um loader (vêm nas categorias do Modrinth e no
+            // `modLoaderType` da CurseForge).
+            ProjectKind::Mod | ProjectKind::Modpack => {
+                self.loaders.iter().map(|l| l.key().to_owned()).collect()
+            }
             ProjectKind::ResourcePack | ProjectKind::Shader => Vec::new(),
         }
     }
@@ -1183,6 +1192,10 @@ mod tests {
         let target = PackTarget::from_manifest(&manifest).unwrap();
         assert_eq!(target.game_versions, ["1.20.1", "1.20"]);
         assert_eq!(target.loader_names(ProjectKind::Mod), ["neoforge", "forge"]);
+        assert_eq!(
+            target.loader_names(ProjectKind::Modpack),
+            ["neoforge", "forge"]
+        );
         assert!(target.loader_names(ProjectKind::Shader).is_empty());
         assert_eq!(SourceId::Curseforge.key("238222"), "curseforge:238222");
         assert_eq!(ProjectKind::ResourcePack.folder(), "resourcepacks");

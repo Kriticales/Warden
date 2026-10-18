@@ -90,8 +90,11 @@ export function consoleText(line: ConsoleLine): string {
   return translateDynamic(line.text, { ns: 'teste', ...values });
 }
 
-/** Hora de uma linha do console: a do relógio do Warden ("14:20:05") ou a escrita pelo jogo. */
-export function consoleTime(line: ConsoleLine): string {
+/**
+ * Hora de uma linha do console (ou de um item do console agrupado): a do relógio do Warden
+ * ("14:20:05") ou a escrita pelo jogo.
+ */
+export function consoleTime(line: Pick<ConsoleLine, 'atMs' | 'time'>): string {
   if (line.atMs !== null) {
     return clock.format(line.atMs);
   }

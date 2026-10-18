@@ -14,7 +14,6 @@ export const buscaComServidor = {
       'No Minecraft {{minecraft}} o jogo não entra direto num mundo. Em cada rodada o Warden abre um servidor só para você (127.0.0.1), com uma cópia do mundo de teste que é apagada no fim, e o jogo entra nele. O servidor fecha sozinho ao fim de cada rodada.',
     servidor:
       'Este travamento foi no servidor. Em cada rodada o Warden abre um servidor só para você (127.0.0.1), com uma cópia do mundo de teste que é apagada no fim, e o jogo entra nele. O servidor fecha sozinho ao fim de cada rodada.',
-    semMundo: 'Sem mundo de teste, o servidor cria um mundo novo em cada rodada e o apaga no fim.',
     pode: 'Entendi, pode abrir',
     aceito: 'Combinado: cada rodada abre o servidor local.',
     naoAbrir: 'Não abrir o servidor',

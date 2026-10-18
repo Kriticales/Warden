@@ -103,6 +103,7 @@ export function ResultView({ packId, session, lines, truncated, onTestAgain }: R
               <Console
                 lines={lines}
                 state="ended"
+                grouped={{ packId, sessionId: session.id }}
                 onSave={() => {
                   save.mutate(session.id, {
                     onSuccess: (path) => {

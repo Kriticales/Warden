@@ -6,13 +6,17 @@
  * Abre pelo menu ▾ do Testar, pelo resultado "O jogo travou" e por Problemas → Travamentos
  * (com o travamento de origem, que deixa o resultado ligado a ele).
  *
- * "Trava ao entrar no mundo" precisa entrar no mundo sozinho: Quick Play (Minecraft 1.20+) e
- * um mundo de teste na instância de teste. Nas versões anteriores, e quando o travamento foi no
- * servidor, a entrada no mundo é pelo servidor local (D-13): o diálogo explica e pede antes
- * ([`ServerConsent`]); sem o aceite, a busca usa o modo assistido.
+ * Entrar no mundo exige Quick Play (Minecraft 1.20+) e o mundo de teste que o Warden gera sem
+ * mods com o servidor do Minecraft (D-12; decisão D18). Na primeira busca do pack (ou depois de
+ * mudar a versão), o diálogo explica a geração e pede o aceite da EULA da Mojang, o mesmo do
+ * "Testar como servidor" (guardado nas Configurações; aceitar aqui atualiza as duas telas). Sem
+ * o aceite, "Trava ao entrar no mundo" fica indisponível e as outras rodadas vão só até o menu.
+ * Nas versões anteriores à 1.20, e quando o travamento foi no servidor, a entrada no mundo é
+ * pelo servidor local (D-13), com uma cópia do mesmo mundo de teste: o diálogo explica e pede
+ * antes ([`ServerConsent`], que também pede a EULA); sem o aceite, a busca usa o modo assistido.
  */
-import { Check, Play, Target } from 'lucide-react';
-import { useId, useState } from 'react';
+import { Check, ExternalLink, Play, Target } from 'lucide-react';
+import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorPanel } from '../../components/common/ErrorPanel';
@@ -21,8 +25,14 @@ import { Alert } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogClose, DialogContent } from '../../components/ui/dialog';
 import { Icon } from '../../components/ui/icon';
+import { showToast } from '../../components/ui/toast';
+import { openExternal } from '../../lib/external';
 import type { Symptom, PackId, PackRow } from '../../lib/ipc/bindings';
+import { appErrorMessage, toAppError } from '../../lib/ipc/errors';
+import { useSettings } from '../settings/api';
 import { Choice } from '../settings/components/fields';
+import { useAcceptEula } from '../test/server/api';
+import { EULA_URL } from '../test/server/text';
 import { useBisect, useBisectPlan } from './api';
 import { serverReason, withServer } from './server/need';
 import { ServerConsent } from './server/ServerConsent';
@@ -80,13 +90,24 @@ function Body({
   const lineId = useId();
   const lineHelpId = useId();
 
+  const settings = useSettings();
+  const eulaAccepted = (settings.data?.eulaAcceptedAt ?? '').trim() !== '';
+  const startRef = useRef<HTMLButtonElement>(null);
+
   const data = plan.data;
   const fromServer = origin?.server === true;
-  // Sem Quick Play (ou com o travamento no servidor), quem entra no mundo é o servidor local, que
-  // cria o mundo quando a instância de teste não tem um.
-  const worldBlocked = data && data.quickPlay && !data.world && !fromServer ? 'mundo' : null;
+  // O mundo de teste existe para esta versão ou pode ser gerado agora (com a EULA aceita).
+  const worldAvailable = data !== undefined && data.quickPlay && (data.worldReady || eulaAccepted);
+  // Sem Quick Play (ou com o travamento no servidor), quem entra no mundo é o servidor local,
+  // pedido à parte (com a EULA) em `ServerConsent`.
+  const worldBlocked =
+    data !== undefined && data.quickPlay && !worldAvailable && !fromServer ? 'eula' : null;
   const effective: Kind = kind === 'crashOnWorld' && worldBlocked ? 'crashOnOpen' : kind;
   const reason = data ? serverReason(data, effective, fromServer) : null;
+  // O pedido da EULA da D-12 só aparece sem o do servidor (que já pede a EULA).
+  const askEula = reason === null && worldBlocked === 'eula';
+  // As rodadas entram no mundo de teste: por Quick Play ou, com o aceite, pelo servidor local.
+  const usesWorld = reason === null ? worldAvailable : serverAccepted && eulaAccepted;
   const paused = saved.data?.status === 'paused';
   const canStart =
     plan.isSuccess &&
@@ -119,7 +140,7 @@ function Body({
   );
   const worldDesc = (minecraft: string, quickPlay: boolean) => {
     if (!quickPlay) return ts('sintoma.servidor', { minecraft });
-    if (worldBlocked === 'mundo') return t('sintoma.mundo.semMundo');
+    if (worldBlocked === 'eula') return t('sintoma.mundo.semEula');
     return origin?.symptom === 'crashOnWorld' && origin.hint
       ? origin.hint
       : t('sintoma.mundo.desc');
@@ -137,7 +158,13 @@ function Body({
           <DialogClose asChild>
             <Button variant="ghost">{t('dialogo.cancelar')}</Button>
           </DialogClose>
-          <Button variant="primary" icon={Target} disabled={!canStart} onClick={begin}>
+          <Button
+            ref={startRef}
+            variant="primary"
+            icon={Target}
+            disabled={!canStart}
+            onClick={begin}
+          >
             {t('dialogo.comecar')}
           </Button>
         </>
@@ -166,7 +193,6 @@ function Body({
               packId={packId}
               reason={reason}
               minecraft={data.minecraft}
-              hasWorld={data.world !== null}
               accepted={serverAccepted}
               onAcceptedChange={setServerAccepted}
             />
@@ -208,14 +234,25 @@ function Body({
                   ? t('dialogo.desligados', { nomes: joinNames(namesOf(data.disabled)) })
                   : t('dialogo.semDesligados')}
               </ChecklistItem>
-              {data.world && data.quickPlay ? (
-                <ChecklistItem>{t('dialogo.mundo', { mundo: data.world })}</ChecklistItem>
+              {usesWorld && !data.worldReady ? (
+                <ChecklistItem>
+                  {t('dialogo.criarMundo', { minecraft: data.minecraft })}
+                </ChecklistItem>
               ) : null}
+              {usesWorld ? <ChecklistItem>{t('dialogo.mundo')}</ChecklistItem> : null}
             </ul>
             {!data.estimate.measured ? (
               <p className="t-xs t-3 mt-2">{t('dialogo.estimativaSemTeste')}</p>
             ) : null}
           </div>
+          {askEula ? (
+            <EulaRequest
+              onAccepted={() => {
+                // O pedido some com o aceite: o foco vai para "Começar a busca".
+                startRef.current?.focus();
+              }}
+            />
+          ) : null}
           <p className="t-sm t-2">{t('dialogo.comoFunciona')}</p>
           <p className="t-sm t-2">{t('dialogo.naoMexa')}</p>
           {paused ? (
@@ -243,6 +280,54 @@ function Body({
         </div>
       ) : null}
     </DialogContent>
+  );
+}
+
+/**
+ * "Para entrar no mundo, o Warden cria um mundo de teste": o que a geração faz, o link da EULA
+ * e "Aceito a EULA" (D18).
+ */
+function EulaRequest({ onAccepted }: { onAccepted: () => void }) {
+  const { t } = useTranslation('buscaDoCulpado');
+  const accept = useAcceptEula();
+  return (
+    <Alert
+      kind="info"
+      title={t('eula.titulo')}
+      actionsBelow
+      actions={
+        <>
+          <Button
+            size="sm"
+            variant="primary"
+            loading={accept.isPending}
+            onClick={() => {
+              accept.mutate(undefined, {
+                onSuccess: onAccepted,
+                onError: (error) => {
+                  showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
+                },
+              });
+            }}
+          >
+            {accept.isPending ? t('eula.aceitando') : t('eula.aceitar')}
+          </Button>
+          <Button
+            size="sm"
+            variant="link"
+            iconEnd={ExternalLink}
+            onClick={() => {
+              void openExternal(EULA_URL);
+            }}
+          >
+            {t('eula.ler')}
+          </Button>
+        </>
+      }
+    >
+      <p>{t('eula.texto')}</p>
+      <p className="t-sm t-2 mt-2">{t('eula.semAceite')}</p>
+    </Alert>
   );
 }
 

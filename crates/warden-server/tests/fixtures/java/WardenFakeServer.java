@@ -18,8 +18,10 @@ import java.util.Properties;
  * - sem eula=true no eula.txt, escreve o aviso da Mojang e sai com 0 (como o servidor real);
  * - lê server-ip e server-port do server.properties e escuta nesse endereço (a porta fica
  *   ocupada enquanto ele estiver aberto);
- * - escreve o mundo que abre ("Preparing level", com "(mundo existente)" quando a pasta do
- *   level-name já tem o level.dat);
+ * - cria o "mundo" (`level-name`, padrão `world`) com `level.dat` contendo a semente do
+ *   `level-seed` ("semente=…"), um `region/r.0.0.mca` e o `session.lock` (D-12: o mundo de teste
+ *   da busca do culpado é gerado por um servidor vanilla); se a pasta já tem o `level.dat`, abre
+ *   esse mundo sem mexer nele ("Preparing level", com "(mundo existente)");
  * - escreve "Done (…)! For help, type "help"" e passa a ler comandos do stdin: "stop" fecha
  *   (salvando o "mundo"), qualquer outro é ecoado;
  * - cada conexão recebida lê o nome do jogador (uma linha) e escreve as linhas de entrada no
@@ -81,6 +83,25 @@ public final class WardenFakeServer {
             }
         }
         return properties;
+    }
+
+    private static void write(File file, String text) throws Exception {
+        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+        try {
+            writer.write(text);
+        } finally {
+            writer.close();
+        }
+    }
+
+    /** O "mundo" gerado, como o servidor deixa na pasta dele. */
+    private static void writeWorld(Properties properties) throws Exception {
+        String level = properties.getProperty("level-name", "world").trim();
+        File world = new File(level.isEmpty() ? "world" : level);
+        new File(world, "region").mkdirs();
+        write(new File(world, "level.dat"), "semente=" + properties.getProperty("level-seed", "").trim() + "\n");
+        write(new File(new File(world, "region"), "r.0.0.mca"), "chunks");
+        write(new File(world, "session.lock"), "lock");
     }
 
     private static void crashWithClientMod() throws Exception {
@@ -157,8 +178,11 @@ public final class WardenFakeServer {
             Thread.sleep(Long.parseLong(args[1]));
         }
         String level = properties.getProperty("level-name", "world").trim();
-        log("INFO", "Preparing level \"" + level + "\""
-                + (new File(level, "level.dat").isFile() ? " (mundo existente)" : ""));
+        boolean existing = new File(level.isEmpty() ? "world" : level, "level.dat").isFile();
+        log("INFO", "Preparing level \"" + level + "\"" + (existing ? " (mundo existente)" : ""));
+        if (!existing) {
+            writeWorld(properties);
+        }
         log("INFO", "Done (0.512s)! For help, type \"help\"");
 
         Thread accept = new Thread(new Runnable() {

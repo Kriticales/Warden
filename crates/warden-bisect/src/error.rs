@@ -35,8 +35,12 @@ pub enum BisectErrorCode {
     NoQuestion,
     /// A busca já terminou (ou não está pausada) e não pode continuar.
     NotResumable,
-    /// "Trava ao entrar no mundo" sem mundo de teste na instância de teste.
-    NoTestWorld,
+    /// A busca precisa entrar no mundo, não há mundo de teste gerado e a EULA do Minecraft
+    /// (exigida para gerá-lo com o servidor vanilla) não foi aceita.
+    EulaNeeded,
+    /// O servidor vanilla não conseguiu gerar o mundo de teste (download, porta, tempo esgotado,
+    /// servidor que fechou antes do "pronto").
+    TestWorldFailed,
     /// A versão do Minecraft só entra no mundo pelo servidor local (D-13).
     NeedsServer,
 }
@@ -65,9 +69,15 @@ pub enum BisectError {
     /// Não dá para continuar.
     #[error("a busca não pode continuar")]
     NotResumable,
-    /// Sem mundo de teste.
-    #[error("sem mundo de teste na instância")]
-    NoTestWorld,
+    /// Sem mundo de teste e sem o aceite da EULA para gerá-lo.
+    #[error("sem mundo de teste e sem o aceite da EULA para gerá-lo")]
+    EulaNeeded,
+    /// A geração do mundo de teste falhou.
+    #[error("o mundo de teste do Minecraft {minecraft} não pôde ser gerado")]
+    TestWorldFailed {
+        /// Versão do jogo.
+        minecraft: String,
+    },
     /// Precisa do servidor local.
     #[error("o Minecraft {minecraft} só entra no mundo pelo servidor local")]
     NeedsServer {
@@ -115,7 +125,8 @@ impl DomainError for BisectError {
             Self::StateUnreadable { .. } => BisectErrorCode::StateUnreadable,
             Self::NoQuestion => BisectErrorCode::NoQuestion,
             Self::NotResumable => BisectErrorCode::NotResumable,
-            Self::NoTestWorld => BisectErrorCode::NoTestWorld,
+            Self::EulaNeeded => BisectErrorCode::EulaNeeded,
+            Self::TestWorldFailed { .. } => BisectErrorCode::TestWorldFailed,
             Self::NeedsServer { .. } => BisectErrorCode::NeedsServer,
             Self::Io { .. } => return DomainCode::Core(CoreErrorCode::Io),
             Self::Internal(_) => BisectErrorCode::Internal,
@@ -125,7 +136,7 @@ impl DomainError for BisectError {
     fn params(&self) -> BTreeMap<String, String> {
         let mut params = BTreeMap::new();
         match self {
-            Self::NeedsServer { minecraft } => {
+            Self::NeedsServer { minecraft } | Self::TestWorldFailed { minecraft } => {
                 params.insert("minecraft".to_owned(), minecraft.clone());
             }
             Self::Io { path, .. } | Self::StateUnreadable { path, .. } => {
@@ -137,7 +148,8 @@ impl DomainError for BisectError {
     }
 
     fn retryable(&self) -> bool {
-        matches!(self, Self::Io { .. })
+        // Gerar o mundo de novo costuma dar certo (internet de volta, porta liberada).
+        matches!(self, Self::Io { .. } | Self::TestWorldFailed { .. })
     }
 }
 
@@ -171,13 +183,22 @@ mod tests {
             ),
             (BisectError::NoQuestion, BisectErrorCode::NoQuestion),
             (BisectError::NotResumable, BisectErrorCode::NotResumable),
-            (BisectError::NoTestWorld, BisectErrorCode::NoTestWorld),
+            (BisectError::EulaNeeded, BisectErrorCode::EulaNeeded),
             (BisectError::Internal("x".into()), BisectErrorCode::Internal),
         ] {
             assert_eq!(error.code(), DomainCode::Domain(code));
             assert!(!error.retryable());
         }
-        let json = serde_json::to_string(&BisectErrorCode::NoTestWorld).unwrap();
-        assert_eq!(json, "\"NO_TEST_WORLD\"");
+        let error = BisectError::TestWorldFailed {
+            minecraft: "1.21.1".into(),
+        };
+        assert_eq!(
+            error.code(),
+            DomainCode::Domain(BisectErrorCode::TestWorldFailed)
+        );
+        assert_eq!(error.params()["minecraft"], "1.21.1");
+        assert!(error.retryable());
+        let json = serde_json::to_string(&BisectErrorCode::EulaNeeded).unwrap();
+        assert_eq!(json, "\"EULA_NEEDED\"");
     }
 }

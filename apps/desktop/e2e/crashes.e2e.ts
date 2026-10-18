@@ -19,6 +19,7 @@ import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -147,7 +148,7 @@ describe('Travamentos em Problemas (D-06; CA-T14-08)', function () {
   it('dois travamentos com números diferentes viram uma linha "Travou 2 vezes" com as duas versões', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FOLDER, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

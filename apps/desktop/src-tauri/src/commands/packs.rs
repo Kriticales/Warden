@@ -85,7 +85,7 @@ pub(crate) fn pack_create_defaults(state: State<'_, AppState>) -> CreateDefaults
     create_defaults(&state)
 }
 
-fn create_defaults(state: &AppState) -> CreateDefaults {
+pub(crate) fn create_defaults(state: &AppState) -> CreateDefaults {
     let settings = state.settings.get();
     CreateDefaults {
         author: settings.player_name.clone(),
@@ -277,7 +277,9 @@ impl FolderPurpose {
     const fn title(self) -> &'static str {
         match self {
             Self::CreateDestination => "Escolha a pasta do pack novo",
-            Self::OpenPack => "Escolha a pasta do pack (a que tem o pack.toml)",
+            Self::OpenPack => {
+                "Escolha a pasta do pack (a que tem o pack.toml) ou de uma instância do Prism, do MultiMC ou do app da CurseForge"
+            }
             Self::Relocate => "Escolha a nova pasta do pack",
         }
     }

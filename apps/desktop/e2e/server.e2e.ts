@@ -17,7 +17,7 @@
  *   mod e o trecho do log; o "Só cliente" não vai para a pasta do servidor.
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
 
@@ -25,6 +25,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
 import { dismissToasts } from './toasts';
+import { openOrImport } from './open-or-import';
 
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
 
@@ -95,11 +96,19 @@ function writePack(files: Record<string, string>, fakeGame: string, fakeServer: 
   writeFileSync(join(PACK, '.warden-fake-server'), fakeServer);
 }
 
-/** A pasta do servidor local do pack (`instances/<pack>/server`). */
+/**
+ * A pasta do servidor local do pack (`instances/<pack>/server`), pelo id do pack em
+ * `packs.json`: na rodada completa, outros E2E deixam instâncias na mesma pasta de dados.
+ */
 function serverDir(): string {
   const instances = join(DATA_ROOT, 'data', 'instances');
-  const [id] = existsSync(instances) ? readdirSync(instances) : [];
-  return id ? join(instances, id, 'server') : join(instances, 'sem-instancia', 'server');
+  const registry = existsSync(REGISTRY_FILE)
+    ? (JSON.parse(readFileSync(REGISTRY_FILE, 'utf8')) as {
+        packs?: { id: string; path: string }[];
+      })
+    : {};
+  const id = registry.packs?.find((entry) => entry.path === PACK)?.id;
+  return join(instances, id ?? 'sem-instancia', 'server');
 }
 
 /** Se a porta está livre em 127.0.0.1. */
@@ -175,7 +184,7 @@ describe('Testar como servidor (L-09; T27)', function () {
   it('CA-T27-02: sem a EULA, pergunta com o link; "Agora não" não abre nada', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed();
     writeFileSync(PICK_FILE, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');

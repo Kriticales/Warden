@@ -7,11 +7,13 @@
  * todo o resto é o de verdade.
  *
  * - Num pack Forge 1.16.5, "Trava ao entrar no mundo" explica que precisa do servidor local e
- *   pede antes de abrir (com a memória e a EULA); com o aceite, cada rodada sobe o servidor em
- *   127.0.0.1 com uma cópia descartável do mundo, o jogo entra nele, o servidor fecha ao fim
- *   da rodada e a busca acha o `charlie.jar` pelo log do servidor ("Ver log" com os dois lados).
+ *   pede antes de abrir (com a memória e a EULA); com o aceite, a busca gera o mundo de teste
+ *   sem mods (D-12, o mesmo servidor simulado no papel do vanilla), cada rodada sobe o servidor
+ *   em 127.0.0.1 com uma cópia descartável desse mundo, o jogo entra nele, o servidor fecha ao
+ *   fim da rodada e a busca acha o `charlie.jar` pelo log do servidor ("Ver log" com os dois
+ *   lados).
  * - Cancelar com o servidor e o jogo abertos fecha os dois e apaga as pastas da busca; o pack, o
- *   mundo de teste e a pasta do "Testar como servidor" não mudam.
+ *   mundo do usuário, o mundo de teste modelo e a pasta do "Testar como servidor" não mudam.
  *
  * A estabilidade de cada rodada é encurtada pelo `wdio.conf.ts`
  * (`WARDEN_E2E_BISECT_STABILITY_MS`). Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas.
@@ -114,8 +116,8 @@ function instanceRoot(): string {
   return join(DATA_ROOT, 'data', 'instances', pack.id);
 }
 
-/** O mundo de teste na instância de teste (como se o usuário tivesse criado um). */
-function writeWorld(): string {
+/** Um mundo do usuário na instância de teste (a busca nunca o usa). */
+function writeUserWorld(): string {
   const world = join(instanceRoot(), 'minecraft', 'saves', 'Mundo de teste');
   mkdirSync(join(world, 'region'), { recursive: true });
   writeFileSync(join(world, 'level.dat'), 'nbt');
@@ -185,6 +187,12 @@ async function startWithServer(withEula: boolean): Promise<void> {
   }
   await clickStable(dialog.$('button=Entendi, pode abrir'));
   await dialog.$('p=Combinado: cada rodada abre o servidor local.').waitForDisplayed();
+  // A primeira busca cria o mundo de teste (D-12); a cópia dele vai para o servidor.
+  if (withEula) {
+    await dialog
+      .$('span*=Antes da primeira rodada, o Warden cria o “Mundo de teste”')
+      .waitForDisplayed();
+  }
   if (withEula) {
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('d13-01-pedido-aceito');
@@ -234,7 +242,7 @@ describe('Busca do culpado com o servidor local (D-13; CA-T25-06)', function () 
     if (await notNow.isExisting()) await notNow.click();
     else await open.click();
     await waitHeading('Mods');
-    const world = writeWorld();
+    const world = writeUserWorld();
     const before = { pack: treeHash(PACK), world: treeHash(world) };
 
     await startWithServer(true);
@@ -275,7 +283,12 @@ describe('Busca do culpado com o servidor local (D-13; CA-T25-06)', function () 
     await browser.keys('Escape');
     await log.waitForDisplayed({ reverse: true });
 
-    // Nada da busca fica no disco; o pack, o mundo de teste e o "Testar como servidor", intactos.
+    // Nada da busca fica no disco; o pack, o mundo do usuário e o "Testar como servidor",
+    // intactos. O mundo de teste modelo (D-12) fica para as próximas buscas.
+    expect(
+      readFileSync(join(instanceRoot(), 'state', 'bisect-world', 'world', 'level.dat'), 'utf8'),
+    ).toContain('semente=');
+    expect(existsSync(join(instanceRoot(), 'bisect-world-server'))).toBe(false);
     expect(existsSync(join(instanceRoot(), 'bisect'))).toBe(false);
     expect(existsSync(join(instanceRoot(), 'bisect-base'))).toBe(false);
     expect(existsSync(join(instanceRoot(), 'server'))).toBe(false);
@@ -286,7 +299,8 @@ describe('Busca do culpado com o servidor local (D-13; CA-T25-06)', function () 
     // O jogo nunca entra: a rodada fica aberta até cancelar.
     writeFileSync(join(PACK, '.warden-fake-game'), 'filhos 1');
     const world = join(instanceRoot(), 'minecraft', 'saves', 'Mundo de teste');
-    const before = treeHash(world);
+    const model = join(instanceRoot(), 'state', 'bisect-world', 'world');
+    const before = { world: treeHash(world), model: treeHash(model) };
     await startWithServer(false);
     await waitHeading('Buscando o mod culpado');
     await $('p*=Servidor local pronto em 127.0.0.1').waitForDisplayed({ timeout: 60_000 });
@@ -308,6 +322,6 @@ describe('Busca do culpado com o servidor local (D-13; CA-T25-06)', function () 
       timeoutMsg: 'as pastas da busca não foram apagadas',
     });
     expect(existsSync(join(instanceRoot(), 'bisect-base'))).toBe(false);
-    expect(treeHash(world)).toBe(before);
+    expect({ world: treeHash(world), model: treeHash(model) }).toEqual(before);
   });
 });

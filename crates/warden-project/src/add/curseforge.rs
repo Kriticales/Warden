@@ -72,6 +72,7 @@ pub fn class_of(kind: ProjectKind) -> ProjectClass {
         ProjectKind::Mod => ProjectClass::Mod,
         ProjectKind::ResourcePack => ProjectClass::ResourcePack,
         ProjectKind::Shader => ProjectClass::Shader,
+        ProjectKind::Modpack => ProjectClass::Modpack,
     }
 }
 
@@ -91,7 +92,9 @@ pub fn loader_type(loader: Loader) -> ModLoaderType {
 #[must_use]
 pub fn loader_types(target: &PackTarget, kind: ProjectKind) -> Vec<ModLoaderType> {
     match kind {
-        ProjectKind::Mod => target.loaders.iter().copied().map(loader_type).collect(),
+        ProjectKind::Mod | ProjectKind::Modpack => {
+            target.loaders.iter().copied().map(loader_type).collect()
+        }
         ProjectKind::ResourcePack | ProjectKind::Shader => Vec::new(),
     }
 }

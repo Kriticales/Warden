@@ -10,8 +10,12 @@
  *
  * Criar pack (T03) e Abrir pack (T04) abrem como diálogo por cima da lista (decisão D38), pela
  * busca da rota (`?criar`, `?pasta=`). Ao fechar, o foco volta ao botão que abriu.
+ *
+ * **Abrir ou importar…** (T04, T24) é um botão só, com **Escolher pasta…** e **Escolher
+ * arquivo…** (o diálogo nativo escolhe uma coisa ou outra); o Warden reconhece o que foi
+ * escolhido pelo conteúdo (`useOpenOrImport`).
  */
-import { FolderOpen, Plus, Search } from 'lucide-react';
+import { ChevronDown, FileArchive, FolderOpen, Plus, Search } from 'lucide-react';
 import { useDeferredValue, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,6 +28,7 @@ import { Skeleton } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/ui/menu';
 import { showToast } from '../../../components/ui/toast';
 import { Tooltip } from '../../../components/ui/tooltip';
 import type { PackRow } from '../../../lib/ipc/bindings';
@@ -68,17 +73,40 @@ export function PacksPage({ search, onSearch }: PacksPageProps) {
     onSearch({});
   };
 
+  let openLabel: string = t('lista.abrirOuImportar');
+  if (openOrImport.pending === 'folder') openLabel = t('lista.escolhendoPasta');
+  if (openOrImport.pending === 'file') openLabel = t('lista.escolhendoArquivo');
   const openButton = (
-    <Tooltip content={t('lista.abrirOuImportarDica')}>
-      <Button
-        ref={openRef}
-        icon={FolderOpen}
-        loading={openOrImport.pending}
-        onClick={openOrImport.start}
-      >
-        {openOrImport.pending ? t('lista.escolhendoPasta') : t('lista.abrirOuImportar')}
-      </Button>
-    </Tooltip>
+    <Menu>
+      <Tooltip content={t('lista.abrirOuImportarDica')}>
+        <MenuTrigger asChild>
+          <Button
+            ref={openRef}
+            icon={FolderOpen}
+            iconEnd={ChevronDown}
+            loading={openOrImport.pending !== null}
+          >
+            {openLabel}
+          </Button>
+        </MenuTrigger>
+      </Tooltip>
+      <MenuContent align="start">
+        <MenuItem
+          icon={FolderOpen}
+          description={t('lista.escolherPastaDica')}
+          onSelect={openOrImport.chooseFolder}
+        >
+          {t('lista.escolherPasta')}
+        </MenuItem>
+        <MenuItem
+          icon={FileArchive}
+          description={t('lista.escolherArquivoDica')}
+          onSelect={openOrImport.chooseFile}
+        >
+          {t('lista.escolherArquivo')}
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
   const createButton = (
     <Button

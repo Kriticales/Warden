@@ -32,8 +32,6 @@ export interface ServerConsentProps {
   reason: ServerReason;
   /** Versão do Minecraft do pack. */
   minecraft: string;
-  /** A instância de teste tem mundo de teste (senão o servidor cria um em cada rodada). */
-  hasWorld: boolean;
   /** "Entendi, pode abrir" foi escolhido. */
   accepted: boolean;
   onAcceptedChange: (accepted: boolean) => void;
@@ -43,7 +41,6 @@ export function ServerConsent({
   packId,
   reason,
   minecraft,
-  hasWorld,
   accepted,
   onAcceptedChange,
 }: ServerConsentProps) {
@@ -115,7 +112,6 @@ export function ServerConsent({
     >
       <div className="stack-2">
         <p>{reason === 'server' ? t('pedido.servidor') : t('pedido.versao', { minecraft })}</p>
-        {hasWorld ? null : <p className="t-sm t-2">{t('pedido.semMundo')}</p>}
         <dl className="kv">
           <dt>{ts('opcoes.memoria')}</dt>
           <dd>{total}</dd>

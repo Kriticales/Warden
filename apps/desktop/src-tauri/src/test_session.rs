@@ -878,6 +878,8 @@ impl Runner<'_> {
             memory,
             signature,
             machine,
+            jvm_args: options.extra_jvm_args,
+            mod_count: prepared.mod_count,
         })
     }
 
@@ -931,7 +933,7 @@ impl Runner<'_> {
             active.state.session_id = Some(session_id.clone());
             active.game = Some(game.clone());
         });
-        self.game_started(hooks, &prepared, &process, &game, &session)
+        self.game_started(hooks, &prepared, &launch, &process, &game, &session)
             .await;
         self.console(vec![ConsoleLine::warden(
             "console.abrindo",
@@ -1004,6 +1006,7 @@ impl Runner<'_> {
         &self,
         hooks: &[Arc<dyn TestHooks>],
         prepared: &Prepared,
+        launch: &Launch,
         process: &GameProcess,
         game: &GameHandle,
         session: &SessionDir,
@@ -1017,6 +1020,10 @@ impl Runner<'_> {
             pack_version: prepared.pack_version.as_deref(),
             session_dir: session.path(),
             events: &self.sink.events,
+            memory_mb: launch.memory.mb,
+            pack_suggestion_mb: launch.pack_suggestion_mb(),
+            jvm_args: &launch.jvm_args,
+            game_env: &launch.command.env,
         };
         for hook in hooks {
             hook.on_game_started(&context, &game_context).await;
@@ -1270,6 +1277,24 @@ struct Launch {
     memory: launch_plan::MemoryChoice,
     signature: ProfileSignature,
     machine: MachineFingerprint,
+    /// Os argumentos da JVM do teste (para os ganchos: a L-11 confere os que desligam a
+    /// leitura da memória).
+    jvm_args: Vec<String>,
+    /// Mods do pack (para a sugestão de memória da L-11).
+    mod_count: usize,
+}
+
+impl Launch {
+    /// A memória automática do Warden para o tamanho do pack, neste computador.
+    fn pack_suggestion_mb(&self) -> u32 {
+        choose_memory(
+            crate::settings::TestMemory::Auto,
+            crate::settings::TestMemory::Auto,
+            self.mod_count,
+            self.machine.memory_mb,
+        )
+        .mb
+    }
 }
 
 /// Momento dos ganchos antes do jogo.
