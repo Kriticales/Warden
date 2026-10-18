@@ -1018,8 +1018,6 @@ export type AppErrorCode =
 "GAME_ALREADY_RUNNING" | 
 /**  "Parar jogo" sem jogo aberto neste pack. */
 "NO_GAME_RUNNING" | 
-/**  O modo de teste pedido ainda não existe nesta versão (`params.mode`). */
-"TEST_MODE_UNAVAILABLE" | 
 /**
  *  Arquivos que o pack colocou na instância mudaram durante o teste anterior e seriam
  *  substituídos (`params.count`, `params.files`).

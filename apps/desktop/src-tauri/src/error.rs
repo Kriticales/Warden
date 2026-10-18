@@ -259,8 +259,6 @@ pub enum AppErrorCode {
     GameAlreadyRunning,
     /// "Parar jogo" sem jogo aberto neste pack.
     NoGameRunning,
-    /// O modo de teste pedido ainda não existe nesta versão (`params.mode`).
-    TestModeUnavailable,
     /// Arquivos que o pack colocou na instância mudaram durante o teste anterior e seriam
     /// substituídos (`params.count`, `params.files`).
     TestInstanceChanged,
