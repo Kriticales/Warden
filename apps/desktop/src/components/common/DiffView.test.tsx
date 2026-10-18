@@ -14,13 +14,18 @@ describe('DiffView', () => {
       />,
     );
     expect(screen.getByText('config/jei/jei-client.ini')).toBeDefined();
-    expect(screen.getByRole('img', { name: '1 linhas adicionadas e 1 removidas' })).toBeDefined();
+    expect(screen.getByRole('img', { name: '1 linha adicionada e 1 removida' })).toBeDefined();
     const added = container.querySelector('.diff__line--add');
     const removed = container.querySelector('.diff__line--del');
     expect(added?.textContent).toBe('2+Adicionada: cheatMode = true');
     expect(removed?.textContent).toBe('2−Removida: cheatMode = false');
     expect(added?.querySelector('.diff__sign')?.getAttribute('aria-hidden')).toBe('true');
     expect(await axeComponent(container)).toHaveNoViolations();
+  });
+
+  it('o resumo da contagem concorda com o número (A-01)', () => {
+    render(<DiffView file="options.txt" before={'a\nb\nc\n'} after={'x\ny\nz\nc\n'} />);
+    expect(screen.getByRole('img', { name: '3 linhas adicionadas e 2 removidas' })).toBeDefined();
   });
 
   it('trechos iguais longos ficam dobrados com a quantidade', () => {

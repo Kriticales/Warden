@@ -39,7 +39,9 @@ describe('tela inicial', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Página não encontrada' }),
     ).toBeDefined();
-    const back = screen.getByRole('link', { name: 'Voltar para o início' });
+    // A tela inicial é "Meus packs", nunca "início" (glossário, QUALITY §8.2; A-01).
+    expect(screen.getByText(/Volte para Meus packs e siga daí/)).toBeDefined();
+    const back = screen.getByRole('link', { name: 'Voltar para Meus packs' });
     expect(back.getAttribute('href')).toBe('/');
     expect(await axePage(container)).toHaveNoViolations();
   });

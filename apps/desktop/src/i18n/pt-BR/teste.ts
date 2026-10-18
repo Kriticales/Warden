@@ -138,7 +138,7 @@ export const teste = {
     carregando: 'Lendo o teste…',
     erro: 'Não foi possível ler este teste.',
     voltarAoUltimo: 'Ver o último teste',
-    cortado: 'Mostrando as últimas 50.000 linhas. O log completo está em Salvar em arquivo….',
+    cortado: 'Mostrando as últimas 50.000 linhas. Salvar em arquivo… grava o log completo.',
   },
   nenhum: {
     titulo: 'Este pack ainda não foi testado',
