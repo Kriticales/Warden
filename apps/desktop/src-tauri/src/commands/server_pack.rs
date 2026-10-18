@@ -225,7 +225,15 @@ pub(crate) async fn server_pack_run(
     request: ServerPackRunRequest,
 ) -> Result<Option<ServerPackRun>, AppError> {
     let root = pack_root(&state, pack_id)?;
-    let Some(destination) = pick_destination(&app, &window, &default_name(&root)).await? else {
+    // Pelo link, o pacote leva a última versão publicada: o nome sugerido também.
+    let published = match request.options.variant {
+        ServerPackVariant::Link => publication(&state, pack_id, &root)?
+            .ok()
+            .map(|(version, _)| version),
+        ServerPackVariant::Embedded => None,
+    };
+    let file_name = default_name(&root, published.as_deref());
+    let Some(destination) = pick_destination(&app, &window, &file_name).await? else {
         return Ok(None);
     };
     if !destination.is_absolute() {
@@ -749,8 +757,9 @@ pub(crate) fn server_pack_reveal(app: AppHandle, path: PathBuf) -> Result<(), Ap
         .map_err(|error| AppError::internal(format!("mostrar o arquivo: {error}")))
 }
 
-/// `<pack>-<versão>-servidor.zip`, só com caracteres seguros para nome de arquivo.
-fn default_name(root: &Path) -> String {
+/// `<pack>-<versão>-servidor.zip`, só com caracteres seguros para nome de arquivo. A versão é
+/// `version` (a publicada, pelo link) ou, sem ela, a do `pack.toml` atual.
+fn default_name(root: &Path, version: Option<&str>) -> String {
     let manifest = std::fs::read_to_string(root.join("pack.toml"))
         .ok()
         .and_then(|text| PackManifest::parse(&text).ok())
@@ -770,7 +779,7 @@ fn default_name(root: &Path) -> String {
     };
     let (name, version) = manifest.map_or_else(
         || (String::new(), String::new()),
-        |m| (clean(&m.name), clean(&m.version)),
+        |m| (clean(&m.name), clean(version.unwrap_or(&m.version))),
     );
     let name = if name.is_empty() {
         "pack".to_owned()
@@ -821,10 +830,25 @@ mod tests {
         manifest.version = "1.4.2".into();
         std::fs::write(temp.path().join("pack.toml"), manifest.to_toml_string()).unwrap();
         assert_eq!(
-            default_name(temp.path()),
+            default_name(temp.path(), None),
             "Vale-Sereno--o-melhor-1.4.2-servidor.zip"
         );
-        assert_eq!(default_name(&temp.path().join("nada")), "pack-servidor.zip");
+        assert_eq!(
+            default_name(&temp.path().join("nada"), None),
+            "pack-servidor.zip"
+        );
+    }
+
+    #[test]
+    fn nome_padrao_pelo_link_usa_a_versao_publicada() {
+        let temp = tempfile::tempdir().unwrap();
+        let mut manifest = PackManifest::new("Vale Sereno", "1.20.1");
+        manifest.version = "1.5.0".into();
+        std::fs::write(temp.path().join("pack.toml"), manifest.to_toml_string()).unwrap();
+        assert_eq!(
+            default_name(temp.path(), Some("1.4.2")),
+            "Vale-Sereno-1.4.2-servidor.zip"
+        );
     }
 
     #[test]
