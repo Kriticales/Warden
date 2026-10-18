@@ -1,0 +1,1083 @@
+[18Oct2026 00:46:42.766] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserver, --fml.neoForgeVersion, 21.1.252, --fml.fmlVersion, 4.0.44, --fml.mcVersion, 1.21.1, --fml.neoFormVersion, 20240808.144430, nogui]
+[18Oct2026 00:46:42.774] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: JVM identified as Ubuntu OpenJDK 64-Bit Server VM 21.0.12.1+1-1-24.04.4-Ubuntu
+[18Oct2026 00:46:42.776] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Ubuntu; OS Linux arch amd64 version 6.18.44-fc-v139
+[18Oct2026 00:46:42.837] [main/DEBUG] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Found launch services [minecraft,forgeclient,forgedatauserdev,testharness,forgeserverdev,forgeserveruserdev,forgejunitdev,forgeclientdev,forgeclientuserdev,forgeserver,forgejunituserdev,forgedatadev]
+[18Oct2026 00:46:42.895] [main/DEBUG] [cpw.mods.modlauncher.LaunchPluginHandler/MODLAUNCHER]: Found launch plugins: [mixin,slf4jfixer,runtime_enum_extender,accesstransformer,runtimedistcleaner]
+[18Oct2026 00:46:42.922] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Discovering transformation services
+[18Oct2026 00:46:42.936] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path GAMEDIR is <DADOS>
+[18Oct2026 00:46:42.936] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path MODSDIR is <DADOS>/mods
+[18Oct2026 00:46:42.937] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path CONFIGDIR is <DADOS>/config
+[18Oct2026 00:46:42.937] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path FMLCONFIG is <DADOS>/config/fml.toml
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: Loaded FML config from <DADOS>/config/fml.toml
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig disableConfigWatcher is false
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowControl is true
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig maxThreads is 4
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig versionCheck is true
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig defaultConfigPath is defaultconfigs
+[18Oct2026 00:46:42.994] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig disableOptimizedDFU is true
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowProvider is fmlearlywindow
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowWidth is 854
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowHeight is 480
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowFBScale is 1
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowMaximized is false
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowSkipGLVersions is []
+[18Oct2026 00:46:42.995] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowSquir is false
+[18Oct2026 00:46:43.121] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Found additional transformation services from discovery services: 
+[18Oct2026 00:46:43.149] [main/INFO] [net.neoforged.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserver
+[18Oct2026 00:46:43.163] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Found transformer services : [mixin,fml]
+[18Oct2026 00:46:43.163] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Transformation services loading
+[18Oct2026 00:46:43.168] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Loading service mixin
+[18Oct2026 00:46:43.169] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Loaded service mixin
+[18Oct2026 00:46:43.169] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Loading service fml
+[18Oct2026 00:46:43.169] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/CORE]: FML 4.0.44 loading
+[18Oct2026 00:46:43.170] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/CORE]: FML found ModLauncher version : 11.0.5+main.901c6ea8
+[18Oct2026 00:46:43.170] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/CORE]: FML found AccessTransformer version : 10.0.1+139da711
+[18Oct2026 00:46:43.171] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/CORE]: FML found EventBus version : null
+[18Oct2026 00:46:43.171] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/CORE]: Found Runtime Dist Cleaner
+[18Oct2026 00:46:43.171] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Loaded service fml
+[18Oct2026 00:46:43.172] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Configuring option handling for services
+[18Oct2026 00:46:43.214] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Received command line version data  : VersionInfo[neoForgeVersion=21.1.252, fmlVersion=4.0.44, mcVersion=1.21.1, neoFormVersion=20240808.144430]
+[18Oct2026 00:46:43.215] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Transformation services initializing
+[18Oct2026 00:46:43.215] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformation service mixin
+[18Oct2026 00:46:43.245] [main/DEBUG] [mixin/]: MixinService [ModLauncher] was successfully booted in cpw.mods.cl.ModuleClassLoader@59f99ea
+[18Oct2026 00:46:43.275] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:<DADOS>/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%2373!/ Service=ModLauncher Env=SERVER
+[18Oct2026 00:46:43.278] [main/DEBUG] [mixin/]: Initialising Mixin Platform Manager
+[18Oct2026 00:46:43.279] [main/DEBUG] [mixin/]: Adding mixin platform agents for container ModLauncher Root Container(ModLauncher:4f56a0a2)
+[18Oct2026 00:46:43.279] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for ModLauncher Root Container(ModLauncher:4f56a0a2)
+[18Oct2026 00:46:43.280] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container ModLauncher Root Container(ModLauncher:4f56a0a2)
+[18Oct2026 00:46:43.281] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for ModLauncher Root Container(ModLauncher:4f56a0a2)
+[18Oct2026 00:46:43.281] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container ModLauncher Root Container(ModLauncher:4f56a0a2)
+[18Oct2026 00:46:43.283] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformation service mixin
+[18Oct2026 00:46:43.283] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformation service fml
+[18Oct2026 00:46:43.284] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Setting up basic FML game directories
+[18Oct2026 00:46:43.289] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path GAMEDIR is <DADOS>
+[18Oct2026 00:46:43.290] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path MODSDIR is <DADOS>/mods
+[18Oct2026 00:46:43.290] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path CONFIGDIR is <DADOS>/config
+[18Oct2026 00:46:43.291] [main/DEBUG] [net.neoforged.fml.loading.FMLPaths/CORE]: Path FMLCONFIG is <DADOS>/config/fml.toml
+[18Oct2026 00:46:43.291] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Loading configuration
+[18Oct2026 00:46:43.311] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: Loaded FML config from <DADOS>/config/fml.toml
+[18Oct2026 00:46:43.312] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig disableConfigWatcher is false
+[18Oct2026 00:46:43.312] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowControl is true
+[18Oct2026 00:46:43.313] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig maxThreads is 4
+[18Oct2026 00:46:43.313] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig versionCheck is true
+[18Oct2026 00:46:43.313] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig defaultConfigPath is defaultconfigs
+[18Oct2026 00:46:43.313] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig disableOptimizedDFU is true
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowProvider is fmlearlywindow
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowWidth is 854
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowHeight is 480
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowFBScale is 1
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowMaximized is false
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowSkipGLVersions is []
+[18Oct2026 00:46:43.314] [main/TRACE] [net.neoforged.fml.loading.FMLConfig/CORE]: FMLConfig earlyWindowSquir is false
+[18Oct2026 00:46:43.317] [main/DEBUG] [net.neoforged.fml.loading.LaunchContext/SCAN]: Located paths when launch context was created: [<DADOS>/libraries/io/netty/netty-transport-native-unix-common/4.1.97.Final/netty-transport-native-unix-common-4.1.97.Final.jar, <DADOS>/libraries/org/apache/logging/log4j/log4j-slf4j2-impl/2.22.1/log4j-slf4j2-impl-2.22.1.jar, <DADOS>/libraries/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar, <DADOS>/libraries/net/java/dev/jna/jna-platform/5.14.0/jna-platform-5.14.0.jar, <DADOS>/libraries/org/openjdk/nashorn/nashorn-core/15.4/nashorn-core-15.4.jar, <DADOS>/libraries/com/mojang/authlib/6.0.54/authlib-6.0.54.jar, <DADOS>/libraries/org/codehaus/plexus/plexus-utils/3.3.0/plexus-utils-3.3.0.jar, <DADOS>/libraries/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar, <DADOS>/libraries/io/netty/netty-handler/4.1.97.Final/netty-handler-4.1.97.Final.jar, <DADOS>/libraries/com/mojang/datafixerupper/8.0.16/datafixerupper-8.0.16.jar, <DADOS>/libraries/io/netty/netty-transport-native-epoll/4.1.97.Final/netty-transport-native-epoll-4.1.97.Final-linux-x86_64.jar, <DADOS>/libraries/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar, <DADOS>/libraries/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar, <DADOS>/libraries/net/neoforged/mergetool/2.0.0/mergetool-2.0.0-api.jar, <DADOS>/libraries/org/antlr/antlr4-runtime/4.13.1/antlr4-runtime-4.13.1.jar, <DADOS>/libraries/io/netty/netty-common/4.1.97.Final/netty-common-4.1.97.Final.jar, <DADOS>/libraries/com/google/guava/guava/32.1.2-jre/guava-32.1.2-jre.jar, <DADOS>/libraries/org/jline/jline-reader/3.20.0/jline-reader-3.20.0.jar, <DADOS>/libraries/io/netty/netty-transport/4.1.97.Final/netty-transport-4.1.97.Final.jar, <DADOS>/libraries/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar, <DADOS>/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar, <DADOS>/libraries/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar, <DADOS>/libraries/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar, <DADOS>/libraries/net/neoforged/JarJarMetadata/0.4.1/JarJarMetadata-0.4.1.jar, <DADOS>/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar, <DADOS>/libraries/com/electronwill/night-config/core/3.8.3/core-3.8.3.jar, <DADOS>/libraries/net/minecrell/terminalconsoleappender/1.3.0/terminalconsoleappender-1.3.0.jar, <DADOS>/libraries/io/netty/netty-transport-native-epoll/4.1.97.Final/netty-transport-native-epoll-4.1.97.Final-linux-aarch_64.jar, <DADOS>/libraries/com/mojang/logging/1.2.7/logging-1.2.7.jar, <DADOS>/libraries/com/electronwill/night-config/toml/3.8.3/toml-3.8.3.jar, <DADOS>/libraries/net/neoforged/bus/8.0.5/bus-8.0.5.jar, <DADOS>/libraries/net/jodah/typetools/0.6.3/typetools-0.6.3.jar, <DADOS>/libraries/cpw/mods/modlauncher/11.0.5/modlauncher-11.0.5.jar, <DADOS>/libraries/net/neoforged/coremods/7.0.3/coremods-7.0.3.jar, <DADOS>/libraries/org/jline/jline-terminal/3.20.0/jline-terminal-3.20.0.jar, <DADOS>/libraries/net/minecraftforge/srgutils/0.4.15/srgutils-0.4.15.jar, <DADOS>/libraries/io/netty/netty-transport-classes-epoll/4.1.97.Final/netty-transport-classes-epoll-4.1.97.Final.jar, <DADOS>/libraries/net/neoforged/accesstransformers/at-modlauncher/10.0.1/at-modlauncher-10.0.1.jar, <DADOS>/libraries/io/netty/netty-codec/4.1.97.Final/netty-codec-4.1.97.Final.jar, <DADOS>/libraries/org/apache/logging/log4j/log4j-api/2.22.1/log4j-api-2.22.1.jar, <DADOS>/libraries/net/neoforged/fancymodloader/loader/4.0.44/loader-4.0.44.jar, <DADOS>/libraries/it/unimi/dsi/fastutil/8.5.12/fastutil-8.5.12.jar, <DADOS>/libraries/io/netty/netty-resolver/4.1.97.Final/netty-resolver-4.1.97.Final.jar, <DADOS>/libraries/io/netty/netty-buffer/4.1.97.Final/netty-buffer-4.1.97.Final.jar, <DADOS>/libraries/com/mojang/brigadier/1.3.10/brigadier-1.3.10.jar, <DADOS>/libraries/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar, <DADOS>/libraries/org/joml/joml/1.10.5/joml-1.10.5.jar, <DADOS>/libraries/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar, <DADOS>/libraries/net/neoforged/fancymodloader/earlydisplay/4.0.44/earlydisplay-4.0.44.jar, <DADOS>/libraries/org/apache/maven/maven-artifact/3.8.5/maven-artifact-3.8.5.jar, <DADOS>/libraries/net/neoforged/accesstransformers/10.0.1/accesstransformers-10.0.1.jar, <DADOS>/libraries/net/neoforged/JarJarSelector/0.4.1/JarJarSelector-0.4.1.jar, <DADOS>/libraries/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar, <DADOS>/libraries/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar, <DADOS>/libraries/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar, <DADOS>/libraries/com/machinezoo/noexception/noexception/1.7.1/noexception-1.7.1.jar, <DADOS>/libraries/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar, <DADOS>/libraries/org/apache/logging/log4j/log4j-core/2.22.1/log4j-core-2.22.1.jar]
+[18Oct2026 00:46:43.318] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Preparing launch handler
+[18Oct2026 00:46:43.318] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/CORE]: Using forgeserver as launch service
+[18Oct2026 00:46:43.319] [main/DEBUG] [net.neoforged.fml.common.asm.RuntimeDistCleaner/DISTXFORM]: Configuring for Dist DEDICATED_SERVER
+[18Oct2026 00:46:43.322] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformation service fml
+[18Oct2026 00:46:43.322] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Transformation services begin scanning
+[18Oct2026 00:46:43.323] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Beginning scan trigger - transformation service mixin
+[18Oct2026 00:46:43.323] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: End scan trigger - transformation service mixin
+[18Oct2026 00:46:43.323] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Beginning scan trigger - transformation service fml
+[18Oct2026 00:46:43.324] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Initiating mod scan
+[18Oct2026 00:46:43.345] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: Found 4 implementations of IModFileCandidateLocator:
+[18Oct2026 00:46:43.346] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	    1000 - [built-in] net.neoforged.fml.loading.moddiscovery.locators.ProductionServerProvider from loader-4.0.44.jar
+[18Oct2026 00:46:43.350] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	    1000 - [built-in] net.neoforged.fml.loading.moddiscovery.locators.PathBasedLocator from loader-4.0.44.jar
+[18Oct2026 00:46:43.350] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	       0 - net.neoforged.fml.loading.moddiscovery.locators.ModsFolderLocator from loader-4.0.44.jar
+[18Oct2026 00:46:43.350] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	       0 - net.neoforged.fml.loading.moddiscovery.locators.MavenDirectoryLocator from loader-4.0.44.jar
+[18Oct2026 00:46:43.353] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: Found 2 implementations of IModFileReader:
+[18Oct2026 00:46:43.353] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	       0 - net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader from loader-4.0.44.jar
+[18Oct2026 00:46:43.354] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	   -1000 - net.neoforged.fml.loading.moddiscovery.readers.NestedLibraryModReader from loader-4.0.44.jar
+[18Oct2026 00:46:43.355] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: Found 1 implementations of IDependencyLocator:
+[18Oct2026 00:46:43.355] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	       0 - net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator from loader-4.0.44.jar
+[18Oct2026 00:46:43.356] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Scanning for mods and other resources to load. We know 4 ways to find mods
+[18Oct2026 00:46:43.356] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Trying locator production server provider +net.neoforged:neoforge:21.1.252:server
+[18Oct2026 00:46:43.747] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file server-1.21.1-20240808.144430-srg.jar with {minecraft} mods - versions {1.21.1}
+[18Oct2026 00:46:43.748] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "server-1.21.1-20240808.144430-srg.jar" [locator: production server provider +net.neoforged:neoforge:21.1.252:server]
+[18Oct2026 00:46:43.748] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Locator production server provider +net.neoforged:neoforge:21.1.252:server found 1 mods, 0 warnings, 0 errors and skipped 0 candidates
+[18Oct2026 00:46:43.750] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Trying locator PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar]]
+[18Oct2026 00:46:43.754] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: <DADOS>/libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar
+[18Oct2026 00:46:43.755] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar
+[18Oct2026 00:46:43.780] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file neoforge-21.1.252-universal.jar with {neoforge} mods - versions {21.1.252}
+[18Oct2026 00:46:43.781] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "neoforge-21.1.252-universal.jar" [locator: PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar]], reader: mod manifest]
+[18Oct2026 00:46:43.781] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Locator PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar]] found 1 mods, 0 warnings, 0 errors and skipped 0 candidates
+[18Oct2026 00:46:43.782] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Trying locator {mods folder locator at <DADOS>/mods}
+[18Oct2026 00:46:43.782] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.locators.ModsFolderLocator/SCAN]: Scanning mods dir <DADOS>/mods for mods
+[18Oct2026 00:46:43.788] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: <DADOS>/mods/Clumps-neoforge-1.21.1-19.0.0.1.jar
+[18Oct2026 00:46:43.789] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/Clumps-neoforge-1.21.1-19.0.0.1.jar
+[18Oct2026 00:46:43.804] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file Clumps-neoforge-1.21.1-19.0.0.1.jar with {clumps} mods - versions {19.0.0.1}
+[18Oct2026 00:46:43.804] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "Clumps-neoforge-1.21.1-19.0.0.1.jar" [locator: {mods folder locator at <DADOS>/mods}, reader: mod manifest]
+[18Oct2026 00:46:43.816] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: <DADOS>/mods/ferritecore-7.0.3-neoforge.jar
+[18Oct2026 00:46:43.816] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/ferritecore-7.0.3-neoforge.jar
+[18Oct2026 00:46:43.828] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file ferritecore-7.0.3-neoforge.jar with {ferritecore} mods - versions {7.0.3}
+[18Oct2026 00:46:43.829] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "ferritecore-7.0.3-neoforge.jar" [locator: {mods folder locator at <DADOS>/mods}, reader: mod manifest]
+[18Oct2026 00:46:43.831] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: <DADOS>/mods/jei-1.21.1-neoforge-19.64.0.455.jar
+[18Oct2026 00:46:43.831] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/jei-1.21.1-neoforge-19.64.0.455.jar
+[18Oct2026 00:46:43.840] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file jei-1.21.1-neoforge-19.64.0.455.jar with {jei} mods - versions {19.64.0.455}
+[18Oct2026 00:46:43.841] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "jei-1.21.1-neoforge-19.64.0.455.jar" [locator: {mods folder locator at <DADOS>/mods}, reader: mod manifest]
+[18Oct2026 00:46:43.844] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: <DADOS>/mods/spark-1.10.124-neoforge.jar
+[18Oct2026 00:46:43.844] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/spark-1.10.124-neoforge.jar
+[18Oct2026 00:46:43.848] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file spark-1.10.124-neoforge.jar with {spark} mods - versions {1.10.124}
+[18Oct2026 00:46:43.848] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "spark-1.10.124-neoforge.jar" [locator: {mods folder locator at <DADOS>/mods}, reader: mod manifest]
+[18Oct2026 00:46:43.849] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Locator {mods folder locator at <DADOS>/mods} found 4 mods, 0 warnings, 0 errors and skipped 0 candidates
+[18Oct2026 00:46:43.849] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Trying locator maven libs
+[18Oct2026 00:46:43.856] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModListHandler/CORE]: Found mod coordinates from lists: []
+[18Oct2026 00:46:43.857] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Locator maven libs found 0 mods, 0 warnings, 0 errors and skipped 0 candidates
+[18Oct2026 00:46:43.865] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Successfully Loaded 6 mods. Attempting to load dependencies...
+[18Oct2026 00:46:43.866] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Trying locator jarinjar
+[18Oct2026 00:46:43.871] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from server-1.21.1-20240808.144430-srg.jar, it does not contain dependency information.
+[18Oct2026 00:46:43.873] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from spark-1.10.124-neoforge.jar, it does not contain dependency information.
+[18Oct2026 00:46:43.874] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from ferritecore-7.0.3-neoforge.jar, it does not contain dependency information.
+[18Oct2026 00:46:43.874] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from Clumps-neoforge-1.21.1-19.0.0.1.jar, it does not contain dependency information.
+[18Oct2026 00:46:43.979] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/MANIFEST.MF mod of type GAMELIBRARY: 
+[18Oct2026 00:46:43.989] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/MANIFEST.MF mod of type LIBRARY: 
+[18Oct2026 00:46:44.002] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: 
+[18Oct2026 00:46:44.002] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate 
+[18Oct2026 00:46:44.005] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file mezz_config-1.21.1-neoforge-0.6.6.jar with {mezz_config} mods - versions {0.6.6}
+[18Oct2026 00:46:44.005] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from mixinextras-neoforge-0.5.3.jar, it does not contain dependency information.
+[18Oct2026 00:46:44.005] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from net.neoforged.neoforge-coremods-21.1.252.jar, it does not contain dependency information.
+[18Oct2026 00:46:44.005] [main/TRACE] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Failed to load resource META-INF/jarjar/metadata.json from mezz_config-1.21.1-neoforge-0.6.6.jar, it does not contain dependency information.
+[18Oct2026 00:46:44.048] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/neoforge.mods.toml mod of type null: 
+[18Oct2026 00:46:44.048] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate 
+[18Oct2026 00:46:44.051] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file mezz_config-1.21.1-neoforge-0.6.6.jar with {mezz_config} mods - versions {0.6.6}
+[18Oct2026 00:46:44.067] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/MANIFEST.MF mod of type GAMELIBRARY: 
+[18Oct2026 00:46:44.074] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.readers.JarModsDotTomlModFileReader/SCAN]: Found META-INF/MANIFEST.MF mod of type LIBRARY: 
+[18Oct2026 00:46:44.081] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 3 dependencies adding them to mods collection
+[18Oct2026 00:46:44.082] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found gamelibrary file "mixinextras-neoforge-0.5.3.jar" [parent: neoforge-21.1.252-universal.jar, locator: jarinjar, reader: mod manifest]
+[18Oct2026 00:46:44.082] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mezz_config-1.21.1-neoforge-0.6.6.jar" [parent: jei-1.21.1-neoforge-19.64.0.455.jar, locator: jarinjar, reader: mod manifest]
+[18Oct2026 00:46:44.082] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found library file "net.neoforged.neoforge-coremods-21.1.252.jar" [parent: neoforge-21.1.252-universal.jar, locator: jarinjar, reader: mod manifest]
+[18Oct2026 00:46:44.084] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		Clumps 19.0.0.1 (clumps)
+		Ferrite Core 7.0.3 (ferritecore)
+		Just Enough Items 19.64.0.455 (jei)
+		MezzConfig 0.6.6 (mezz_config)
+		Minecraft 1.21.1 (minecraft)
+		NeoForge 21.1.252 (neoforge)
+		spark 1.10.124 (spark)
+[18Oct2026 00:46:44.088] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file server-1.21.1-20240808.144430-srg.jar with {minecraft} mods - versions {1.21.1}
+[18Oct2026 00:46:44.096] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file <DADOS>/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar with languages [LanguageSpec[languageName=minecraft, acceptedVersions=1]]
+[18Oct2026 00:46:44.098] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/spark-1.10.124-neoforge.jar
+[18Oct2026 00:46:44.109] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file spark-1.10.124-neoforge.jar with {spark} mods - versions {1.10.124}
+[18Oct2026 00:46:44.109] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file <DADOS>/mods/spark-1.10.124-neoforge.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[2,)]]
+[18Oct2026 00:46:44.111] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate 
+[18Oct2026 00:46:44.118] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file mezz_config-1.21.1-neoforge-0.6.6.jar with {mezz_config} mods - versions {0.6.6}
+[18Oct2026 00:46:44.118] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file  with languages [LanguageSpec[languageName=javafml, acceptedVersions=[4,)]]
+[18Oct2026 00:46:44.118] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/Clumps-neoforge-1.21.1-19.0.0.1.jar
+[18Oct2026 00:46:44.128] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file Clumps-neoforge-1.21.1-19.0.0.1.jar with {clumps} mods - versions {19.0.0.1}
+[18Oct2026 00:46:44.128] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file <DADOS>/mods/Clumps-neoforge-1.21.1-19.0.0.1.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[4,)]]
+[18Oct2026 00:46:44.133] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=clumps.mixins.json, requiredMods=[]]
+[18Oct2026 00:46:44.136] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/ferritecore-7.0.3-neoforge.jar
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file ferritecore-7.0.3-neoforge.jar with {ferritecore} mods - versions {7.0.3}
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file <DADOS>/mods/ferritecore-7.0.3-neoforge.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[1,)]]
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.predicates.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.fastmap.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.mrl.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.dedupmultipart.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.139] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.blockstatecache.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.140] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.dedupbakedquad.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.140] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.threaddetec.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.140] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.modelsides.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.148] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.datacomponents.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.148] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=ferritecore.accessors.mixin.json, requiredMods=[]]
+[18Oct2026 00:46:44.149] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar
+[18Oct2026 00:46:44.153] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file neoforge-21.1.252-universal.jar with {neoforge} mods - versions {21.1.252}
+[18Oct2026 00:46:44.154] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file <DADOS>/libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[3,]]]
+[18Oct2026 00:46:44.154] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Found mixin config MixinConfig[config=neoforge.mixins.json, requiredMods=[]]
+[18Oct2026 00:46:44.154] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileParser/LOADING]: Considering mod file candidate <DADOS>/mods/jei-1.21.1-neoforge-19.64.0.455.jar
+[18Oct2026 00:46:44.180] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file jei-1.21.1-neoforge-19.64.0.455.jar with {jei} mods - versions {19.64.0.455}
+[18Oct2026 00:46:44.180] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file <DADOS>/mods/jei-1.21.1-neoforge-19.64.0.455.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[4,)]]
+[18Oct2026 00:46:44.180] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModFile/LOADING]: Loading mod file  with languages []
+[18Oct2026 00:46:44.182] [main/DEBUG] [net.neoforged.fml.loading.moddiscovery.ModValidator/SCAN]: Found 8 mod files with 7 mods
+[18Oct2026 00:46:44.183] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: End scan trigger - transformation service fml
+[18Oct2026 00:46:44.247] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: Found 3 implementations of IModLanguageLoader:
+[18Oct2026 00:46:44.253] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	net.neoforged.fml.javafmlmod.FMLJavaModLanguageProvider from loader-4.0.44.jar
+[18Oct2026 00:46:44.253] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	net.neoforged.fml.lowcodemod.LowCodeModLanguageProvider from loader-4.0.44.jar
+[18Oct2026 00:46:44.253] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	net.neoforged.fml.mclanguageprovider.MinecraftModLanguageProvider from loader-4.0.44.jar
+[18Oct2026 00:46:44.254] [main/DEBUG] [net.neoforged.fml.loading.LanguageProviderLoader/CORE]: Found language provider javafml, version 4.0.44
+[18Oct2026 00:46:44.255] [main/DEBUG] [net.neoforged.fml.loading.LanguageProviderLoader/CORE]: Found language provider lowcodefml, version 4.0.44
+[18Oct2026 00:46:44.255] [main/DEBUG] [net.neoforged.fml.loading.LanguageProviderLoader/CORE]: Found language provider minecraft, version 4.0.44
+[18Oct2026 00:46:44.270] [main/DEBUG] [net.neoforged.fml.loading.ModSorter/]: Configured system mods: [minecraft, neoforge]
+[18Oct2026 00:46:44.271] [main/DEBUG] [net.neoforged.fml.loading.ModSorter/]: Found system mod: minecraft
+[18Oct2026 00:46:44.271] [main/DEBUG] [net.neoforged.fml.loading.ModSorter/]: Found system mod: neoforge
+[18Oct2026 00:46:44.273] [main/DEBUG] [net.neoforged.fml.loading.ModSorter/LOADING]: Found 10 mod requirements (10 mandatory, 0 optional)
+[18Oct2026 00:46:44.278] [main/DEBUG] [net.neoforged.fml.loading.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)
+[18Oct2026 00:46:44.308] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/SCAN]: Adding Access Transformer in <DADOS>/mods/spark-1.10.124-neoforge.jar
+[18Oct2026 00:46:44.312] [main/DEBUG] [AXFORM/AXFORM]: Loading access transformer accesstransformer.cfg
+[18Oct2026 00:46:44.575] [main/DEBUG] [AXFORM/AXFORM]: Loaded access transformer accesstransformer.cfg
+[18Oct2026 00:46:44.581] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/SCAN]: Adding Access Transformer in <DADOS>/libraries/net/neoforged/neoforge/21.1.252/neoforge-21.1.252-universal.jar
+[18Oct2026 00:46:44.584] [main/DEBUG] [AXFORM/AXFORM]: Loading access transformer accesstransformer.cfg
+[18Oct2026 00:46:44.700] [main/DEBUG] [AXFORM/AXFORM]: Loaded access transformer accesstransformer.cfg
+[18Oct2026 00:46:44.701] [main/DEBUG] [net.neoforged.fml.loading.FMLLoader/SCAN]: Adding Access Transformer in <DADOS>/mods/jei-1.21.1-neoforge-19.64.0.455.jar
+[18Oct2026 00:46:44.701] [main/DEBUG] [AXFORM/AXFORM]: Loading access transformer accesstransformer.cfg
+[18Oct2026 00:46:44.710] [main/DEBUG] [AXFORM/AXFORM]: Loaded access transformer accesstransformer.cfg
+[18Oct2026 00:46:44.714] [main/DEBUG] [mixin/]: Adding mixin platform agents for container net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.714] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.715] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.716] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.716] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.716] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.717] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent accepted container net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896
+[18Oct2026 00:46:44.740] [main/DEBUG] [cpw.mods.modlauncher.TransformationServicesHandler/MODLAUNCHER]: Transformation services loading transformers
+[18Oct2026 00:46:44.741] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformers for transformation service mixin
+[18Oct2026 00:46:44.741] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformers for transformation service mixin
+[18Oct2026 00:46:44.742] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformers for transformation service fml
+[18Oct2026 00:46:44.742] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/LOADING]: Loading coremod transformers
+[18Oct2026 00:46:44.764] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Not loading coremod script-engine since no mod requested it
+[18Oct2026 00:46:44.767] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: Found 1 implementations of ICoreMod:
+[18Oct2026 00:46:44.768] [main/DEBUG] [net.neoforged.fml.util.ServiceLoaderUtil/CORE]: 	net.neoforged.neoforge.coremods.NeoForgeCoreMod from neoforge-21.1.252-universal.jar > net.neoforged.neoforge-coremods-21.1.252.jar
+[18Oct2026 00:46:44.779] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Adding [Target[className=net.minecraft.world.level.biome.Biome, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be]] transformer from core-mod net.neoforged.neoforge.coremods.NeoForgeCoreMod@67ec8477 in neoforge-21.1.252-universal.jar > net.neoforged.neoforge-coremods-21.1.252.jar
+[18Oct2026 00:46:44.779] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Adding [Target[className=net.minecraft.world.level.levelgen.structure.Structure, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be]] transformer from core-mod net.neoforged.neoforge.coremods.NeoForgeCoreMod@67ec8477 in neoforge-21.1.252-universal.jar > net.neoforged.neoforge-coremods-21.1.252.jar
+[18Oct2026 00:46:44.779] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Adding [Target[className=net.minecraft.world.level.block.FlowerPotBlock, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be]] transformer from core-mod net.neoforged.neoforge.coremods.NeoForgeCoreMod@67ec8477 in neoforge-21.1.252-universal.jar > net.neoforged.neoforge-coremods-21.1.252.jar
+[18Oct2026 00:46:44.779] [main/DEBUG] [net.neoforged.fml.loading.FMLServiceProvider/CORE]: Adding [Target[className=net/minecraft/world/level/levelgen/PhantomSpawner, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/npc/Villager, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces$WoodlandMansionPiece, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/server/commands/SummonCommand, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/EntityType, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/npc/CatSpawner, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/raid/Raid, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/NaturalSpawner, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/levelgen/structure/structures/OceanMonumentPieces$OceanMonumentPiece, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/monster/Zombie, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/monster/Spider, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/monster/ZombieVillager, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/monster/Evoker$EvokerSummonSpellGoal, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/animal/frog/Tadpole, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/server/commands/RaidCommand, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/animal/horse/SkeletonTrapGoal, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/monster/Strider, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/levelgen/structure/structures/SwampHutPiece, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/entity/ai/village/VillageSiege, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/levelgen/structure/structures/OceanRuinPieces$OceanRuinPiece, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be], Target[className=net/minecraft/world/level/levelgen/PatrolSpawner, elementName=, elementDescriptor=, targetType=cpw.mods.modlauncher.api.TargetType@30e868be]] transformer from core-mod net.neoforged.neoforge.coremods.NeoForgeCoreMod@67ec8477 in neoforge-21.1.252-universal.jar > net.neoforged.neoforge-coremods-21.1.252.jar
+[18Oct2026 00:46:44.786] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.ReplaceFieldWithGetterAccess@5c20ffa8 to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/biome/Biome;} {} {V}
+[18Oct2026 00:46:44.787] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.ReplaceFieldWithGetterAccess@458544e0 to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/structure/Structure;} {} {V}
+[18Oct2026 00:46:44.787] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.ReplaceFieldWithGetterAccess@6bcbf05b to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/block/FlowerPotBlock;} {} {V}
+[18Oct2026 00:46:44.788] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/PhantomSpawner;} {} {V}
+[18Oct2026 00:46:44.788] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/npc/Villager;} {} {V}
+[18Oct2026 00:46:44.792] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces$WoodlandMansionPiece;} {} {V}
+[18Oct2026 00:46:44.792] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/server/commands/SummonCommand;} {} {V}
+[18Oct2026 00:46:44.792] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/EntityType;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/npc/CatSpawner;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/raid/Raid;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/NaturalSpawner;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/structure/structures/OceanMonumentPieces$OceanMonumentPiece;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/monster/Zombie;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/monster/Spider;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/monster/ZombieVillager;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/monster/Evoker$EvokerSummonSpellGoal;} {} {V}
+[18Oct2026 00:46:44.793] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/animal/frog/Tadpole;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/server/commands/RaidCommand;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/animal/horse/SkeletonTrapGoal;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/monster/Strider;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/structure/structures/SwampHutPiece;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/entity/ai/village/VillageSiege;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/structure/structures/OceanRuinPieces$OceanRuinPiece;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformStore/MODLAUNCHER]: Adding transformer net.neoforged.neoforge.coremods.MethodRedirector@2d66530f to Target : cpw.mods.modlauncher.api.TargetType@30e868be {Lnet/minecraft/world/level/levelgen/PatrolSpawner;} {} {V}
+[18Oct2026 00:46:44.794] [main/DEBUG] [cpw.mods.modlauncher.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformers for transformation service fml
+[18Oct2026 00:46:45.440] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:ModLauncher Root Container(ModLauncher:4f56a0a2)]
+[18Oct2026 00:46:45.441] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896]
+[18Oct2026 00:46:45.441] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[FMLMixinPlatformAgent:null]
+[18Oct2026 00:46:45.659] [main/DEBUG] [mixin/]: Compatibility level JAVA_17 specified by ferritecore.predicates.mixin.json is higher than the maximum level supported by this version of mixin (JAVA_13).
+[18Oct2026 00:46:45.686] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[18Oct2026 00:46:45.734] [main/DEBUG] [mixin/]: Compatibility level JAVA_18 specified by clumps.mixins.json is higher than the maximum level supported by this version of mixin (JAVA_13).
+[18Oct2026 00:46:45.734] [main/INFO] [mixin/]: Compatibility level set to JAVA_18
+[18Oct2026 00:46:45.747] [main/DEBUG] [mixin/]: Processing launch tasks for PlatformAgent[MixinPlatformAgentDefault:ModLauncher Root Container(ModLauncher:4f56a0a2)]
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(mixin_synthetic)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mixin_synthetic)]
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(minecraft)
+[18Oct2026 00:46:45.748] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(minecraft)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(minecraft)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(minecraft)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(minecraft)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(minecraft)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(minecraft)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(minecraft)]
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(spark)
+[18Oct2026 00:46:45.749] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(spark)]
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(ferritecore)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(ferritecore)]
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(clumps)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(clumps)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(clumps)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(clumps)
+[18Oct2026 00:46:45.750] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(clumps)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(clumps)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(clumps)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(clumps)]
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(mezz_config)
+[18Oct2026 00:46:45.751] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mezz_config)]
+[18Oct2026 00:46:45.752] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(neoforge)
+[18Oct2026 00:46:45.752] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(neoforge)
+[18Oct2026 00:46:45.752] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(neoforge)
+[18Oct2026 00:46:45.756] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(neoforge)
+[18Oct2026 00:46:45.756] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(neoforge)
+[18Oct2026 00:46:45.756] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(neoforge)
+[18Oct2026 00:46:45.756] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(neoforge)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(neoforge)]
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(jei)
+[18Oct2026 00:46:45.757] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(jei)]
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: Instancing new FMLMixinPlatformAgent for SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: FMLMixinPlatformAgent rejected container SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mixinextras.neoforge)]
+[18Oct2026 00:46:45.758] [main/DEBUG] [mixin/]: Registering mixin config: mixinextras.init.mixins.json source=SecureJarResource(mixinextras.neoforge)
+[18Oct2026 00:46:45.760] [main/DEBUG] [mixin/]: inject() running with 11 agents
+[18Oct2026 00:46:45.760] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:ModLauncher Root Container(ModLauncher:4f56a0a2)]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:net.neoforged.fml.loading.mixin.FMLMixinContainerHandle@3e134896]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[FMLMixinPlatformAgent:null]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mixin_synthetic)]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(minecraft)]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(spark)]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(ferritecore)]
+[18Oct2026 00:46:45.764] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(clumps)]
+[18Oct2026 00:46:45.765] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mezz_config)]
+[18Oct2026 00:46:45.765] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(neoforge)]
+[18Oct2026 00:46:45.765] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(jei)]
+[18Oct2026 00:46:45.765] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mixinextras.neoforge)]
+[18Oct2026 00:46:45.765] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui]
+[18Oct2026 00:46:45.896] [main/DEBUG] [mixin/]: Preparing mixins for MixinEnvironment[DEFAULT]
+[18Oct2026 00:46:45.897] [main/DEBUG] [mixin/]: Selecting config ferritecore.predicates.mixin.json
+[18Oct2026 00:46:45.998] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.predicates.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.008] [main/DEBUG] [mixin/]: Selecting config ferritecore.fastmap.mixin.json
+[18Oct2026 00:46:46.010] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.fastmap.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.010] [main/DEBUG] [mixin/]: Selecting config ferritecore.mrl.mixin.json
+[18Oct2026 00:46:46.018] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.mrl.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.018] [main/DEBUG] [mixin/]: Selecting config ferritecore.dedupmultipart.mixin.json
+[18Oct2026 00:46:46.019] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.dedupmultipart.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.020] [main/DEBUG] [mixin/]: Selecting config ferritecore.blockstatecache.mixin.json
+[18Oct2026 00:46:46.025] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.blockstatecache.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.025] [main/DEBUG] [mixin/]: Selecting config ferritecore.dedupbakedquad.mixin.json
+[18Oct2026 00:46:46.026] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.dedupbakedquad.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.026] [main/DEBUG] [mixin/]: Selecting config ferritecore.threaddetec.mixin.json
+[18Oct2026 00:46:46.036] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.threaddetec.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.037] [main/DEBUG] [mixin/]: Selecting config ferritecore.modelsides.mixin.json
+[18Oct2026 00:46:46.038] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.modelsides.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.039] [main/DEBUG] [mixin/]: Selecting config ferritecore.datacomponents.mixin.json
+[18Oct2026 00:46:46.052] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.datacomponents.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.053] [main/DEBUG] [mixin/]: Selecting config ferritecore.accessors.mixin.json
+[18Oct2026 00:46:46.053] [main/WARN] [mixin/]: Reference map '${refmap_target}refmap.json' for ferritecore.accessors.mixin.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.053] [main/DEBUG] [mixin/]: Selecting config clumps.mixins.json
+[18Oct2026 00:46:46.054] [main/WARN] [mixin/]: Reference map 'clumps.refmap.json' for clumps.mixins.json could not be read. If this is a development environment you can ignore this message
+[18Oct2026 00:46:46.054] [main/DEBUG] [mixin/]: Selecting config neoforge.mixins.json
+[18Oct2026 00:46:46.054] [main/DEBUG] [mixin/]: Selecting config mixinextras.init.mixins.json
+[18Oct2026 00:46:46.307] [main/DEBUG] [MixinExtras|Service/]: com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.3) is taking over from null
+[18Oct2026 00:46:46.433] [main/DEBUG] [mixin/]: Registering new injector for @Inject with org.spongepowered.asm.mixin.injection.struct.CallbackInjectionInfo
+[18Oct2026 00:46:46.435] [main/DEBUG] [mixin/]: Registering new injector for @ModifyArg with org.spongepowered.asm.mixin.injection.struct.ModifyArgInjectionInfo
+[18Oct2026 00:46:46.441] [main/DEBUG] [mixin/]: Registering new injector for @ModifyArgs with org.spongepowered.asm.mixin.injection.struct.ModifyArgsInjectionInfo
+[18Oct2026 00:46:46.443] [main/DEBUG] [mixin/]: Registering new injector for @Redirect with org.spongepowered.asm.mixin.injection.struct.RedirectInjectionInfo
+[18Oct2026 00:46:46.448] [main/DEBUG] [mixin/]: Registering new injector for @ModifyVariable with org.spongepowered.asm.mixin.injection.struct.ModifyVariableInjectionInfo
+[18Oct2026 00:46:46.450] [main/DEBUG] [mixin/]: Registering new injector for @ModifyConstant with org.spongepowered.asm.mixin.injection.struct.ModifyConstantInjectionInfo
+[18Oct2026 00:46:46.480] [main/DEBUG] [mixin/]: Preparing ferritecore.predicates.mixin.json (3)
+[18Oct2026 00:46:46.481] [main/DEBUG] [mixin/]: Preparing ferritecore.fastmap.mixin.json (1)
+[18Oct2026 00:46:46.531] [main/DEBUG] [mixin/]: Preparing ferritecore.mrl.mixin.json (1)
+[18Oct2026 00:46:46.531] [main/DEBUG] [mixin/]: Preparing ferritecore.dedupmultipart.mixin.json (2)
+[18Oct2026 00:46:46.531] [main/DEBUG] [mixin/]: Preparing ferritecore.blockstatecache.mixin.json (2)
+[18Oct2026 00:46:46.560] [main/DEBUG] [mixin/]: Preparing ferritecore.dedupbakedquad.mixin.json (1)
+[18Oct2026 00:46:46.560] [main/DEBUG] [mixin/]: Preparing ferritecore.threaddetec.mixin.json (1)
+[18Oct2026 00:46:46.561] [main/DEBUG] [mixin/]: Preparing ferritecore.modelsides.mixin.json (1)
+[18Oct2026 00:46:46.561] [main/DEBUG] [mixin/]: Preparing ferritecore.datacomponents.mixin.json (1)
+[18Oct2026 00:46:46.568] [main/DEBUG] [mixin/]: Preparing ferritecore.accessors.mixin.json (7)
+[18Oct2026 00:46:46.592] [main/DEBUG] [mixin/]: Preparing clumps.mixins.json (2)
+[18Oct2026 00:46:46.602] [main/DEBUG] [net.neoforged.accesstransformer.AccessTransformer/AXFORM]: Transforming net.minecraft.world.entity.ExperienceOrb FIELD value to access PUBLIC and LEAVE
+[18Oct2026 00:46:46.638] [main/DEBUG] [mixin/]: Preparing neoforge.mixins.json (2)
+[18Oct2026 00:46:46.646] [main/DEBUG] [net.neoforged.accesstransformer.AccessTransformer/AXFORM]: Transforming net.minecraft.world.level.block.entity.BlockEntityType INNERCLASS BlockEntitySupplier to access PUBLIC and LEAVE
+[18Oct2026 00:46:46.657] [main/DEBUG] [mixin/]: Preparing mixinextras.init.mixins.json (0)
+[18Oct2026 00:46:46.712] [main/DEBUG] [net.neoforged.accesstransformer.AccessTransformer/AXFORM]: Transforming net.minecraft.world.entity.Entity FIELD ENTITY_COUNTER to access PROTECTED and LEAVE
+[18Oct2026 00:46:46.717] [main/DEBUG] [net.neoforged.accesstransformer.AccessTransformer/AXFORM]: Transforming net.minecraft.world.entity.Entity METHOD getEncodeId()Ljava/lang/String; to access PUBLIC and LEAVE
+[18Oct2026 00:46:46.797] [main/DEBUG] [mixin/]: Prepared 14 mixins in 0.889 sec (63.5ms avg) (0ms load, 0ms transform, 0ms plugin)
+[18Oct2026 00:46:47.123] [main/DEBUG] [io.netty.util.internal.logging.InternalLoggerFactory/]: Using SLF4J as the default logging framework
+[18Oct2026 00:46:47.131] [main/DEBUG] [io.netty.util.ResourceLeakDetector/]: -Dio.netty.leakDetection.level: simple
+[18Oct2026 00:46:47.131] [main/DEBUG] [io.netty.util.ResourceLeakDetector/]: -Dio.netty.leakDetection.targetRecords: 4
+[18Oct2026 00:46:47.543] [main/DEBUG] [oshi.util.FileUtil/]: No oshi.properties file found from ClassLoader cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:47.548] [main/DEBUG] [oshi.util.FileUtil/]: No oshi.properties file found from ClassLoader jdk.internal.loader.ClassLoaders$AppClassLoader@4783da3f
+[18Oct2026 00:46:47.679] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/self/auxv
+[18Oct2026 00:46:47.684] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/self/auxv
+[18Oct2026 00:46:47.695] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/stat
+[18Oct2026 00:46:47.727] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/topology/core_id
+[18Oct2026 00:46:47.728] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/topology/core_id
+[18Oct2026 00:46:47.736] [main/TRACE] [oshi.util.FileUtil/]: Read 0
+[18Oct2026 00:46:47.737] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/topology/physical_package_id
+[18Oct2026 00:46:47.737] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/topology/physical_package_id
+[18Oct2026 00:46:47.737] [main/TRACE] [oshi.util.FileUtil/]: Read 0
+[18Oct2026 00:46:47.737] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cpu_capacity
+[18Oct2026 00:46:47.737] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cpu_capacity
+[18Oct2026 00:46:47.738] [main/TRACE] [oshi.util.FileUtil/]: Read 1024
+[18Oct2026 00:46:47.748] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/level
+[18Oct2026 00:46:47.749] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/level
+[18Oct2026 00:46:47.749] [main/TRACE] [oshi.util.FileUtil/]: Read 2
+[18Oct2026 00:46:47.749] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/type
+[18Oct2026 00:46:47.749] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/type
+[18Oct2026 00:46:47.750] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.750] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.750] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.751] [main/TRACE] [oshi.util.FileUtil/]: Read 16
+[18Oct2026 00:46:47.751] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.751] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.751] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.751] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/size
+[18Oct2026 00:46:47.751] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index2/size
+[18Oct2026 00:46:47.751] [main/TRACE] [oshi.util.FileUtil/]: Read 1024K
+[18Oct2026 00:46:47.760] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/level
+[18Oct2026 00:46:47.761] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/level
+[18Oct2026 00:46:47.761] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.761] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/type
+[18Oct2026 00:46:47.761] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/type
+[18Oct2026 00:46:47.762] [main/TRACE] [oshi.util.FileUtil/]: Read Data
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.762] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.762] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/size
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index0/size
+[18Oct2026 00:46:47.762] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/level
+[18Oct2026 00:46:47.762] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/level
+[18Oct2026 00:46:47.763] [main/TRACE] [oshi.util.FileUtil/]: Read 3
+[18Oct2026 00:46:47.763] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/type
+[18Oct2026 00:46:47.763] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/type
+[18Oct2026 00:46:47.763] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.763] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.763] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.763] [main/TRACE] [oshi.util.FileUtil/]: Read 11
+[18Oct2026 00:46:47.763] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.763] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.763] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.764] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/size
+[18Oct2026 00:46:47.764] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index3/size
+[18Oct2026 00:46:47.764] [main/TRACE] [oshi.util.FileUtil/]: Read 33792K
+[18Oct2026 00:46:47.772] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/level
+[18Oct2026 00:46:47.772] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/level
+[18Oct2026 00:46:47.773] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.773] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/type
+[18Oct2026 00:46:47.773] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/type
+[18Oct2026 00:46:47.773] [main/TRACE] [oshi.util.FileUtil/]: Read Instruction
+[18Oct2026 00:46:47.773] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.774] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.774] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.774] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.774] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.774] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.774] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/size
+[18Oct2026 00:46:47.774] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu0/cache/index1/size
+[18Oct2026 00:46:47.774] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.775] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/topology/core_id
+[18Oct2026 00:46:47.776] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/topology/core_id
+[18Oct2026 00:46:47.776] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.776] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/topology/physical_package_id
+[18Oct2026 00:46:47.784] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/topology/physical_package_id
+[18Oct2026 00:46:47.785] [main/TRACE] [oshi.util.FileUtil/]: Read 0
+[18Oct2026 00:46:47.785] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cpu_capacity
+[18Oct2026 00:46:47.785] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cpu_capacity
+[18Oct2026 00:46:47.785] [main/TRACE] [oshi.util.FileUtil/]: Read 1024
+[18Oct2026 00:46:47.785] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/level
+[18Oct2026 00:46:47.786] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/level
+[18Oct2026 00:46:47.786] [main/TRACE] [oshi.util.FileUtil/]: Read 2
+[18Oct2026 00:46:47.786] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/type
+[18Oct2026 00:46:47.786] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/type
+[18Oct2026 00:46:47.788] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.788] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.788] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.789] [main/TRACE] [oshi.util.FileUtil/]: Read 16
+[18Oct2026 00:46:47.789] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.789] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.789] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.789] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/size
+[18Oct2026 00:46:47.789] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index2/size
+[18Oct2026 00:46:47.789] [main/TRACE] [oshi.util.FileUtil/]: Read 1024K
+[18Oct2026 00:46:47.789] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/level
+[18Oct2026 00:46:47.789] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/level
+[18Oct2026 00:46:47.790] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/type
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/type
+[18Oct2026 00:46:47.790] [main/TRACE] [oshi.util.FileUtil/]: Read Data
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.790] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.790] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/size
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index0/size
+[18Oct2026 00:46:47.790] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.790] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/level
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/level
+[18Oct2026 00:46:47.791] [main/TRACE] [oshi.util.FileUtil/]: Read 3
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/type
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/type
+[18Oct2026 00:46:47.791] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.791] [main/TRACE] [oshi.util.FileUtil/]: Read 11
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.791] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/size
+[18Oct2026 00:46:47.791] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index3/size
+[18Oct2026 00:46:47.792] [main/TRACE] [oshi.util.FileUtil/]: Read 33792K
+[18Oct2026 00:46:47.792] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/level
+[18Oct2026 00:46:47.796] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/level
+[18Oct2026 00:46:47.796] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.796] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/type
+[18Oct2026 00:46:47.796] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/type
+[18Oct2026 00:46:47.797] [main/TRACE] [oshi.util.FileUtil/]: Read Instruction
+[18Oct2026 00:46:47.797] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.797] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.797] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.797] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.797] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.797] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.797] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/size
+[18Oct2026 00:46:47.797] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu1/cache/index1/size
+[18Oct2026 00:46:47.797] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.798] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/topology/core_id
+[18Oct2026 00:46:47.798] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/topology/core_id
+[18Oct2026 00:46:47.798] [main/TRACE] [oshi.util.FileUtil/]: Read 2
+[18Oct2026 00:46:47.798] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/topology/physical_package_id
+[18Oct2026 00:46:47.798] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/topology/physical_package_id
+[18Oct2026 00:46:47.798] [main/TRACE] [oshi.util.FileUtil/]: Read 0
+[18Oct2026 00:46:47.798] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cpu_capacity
+[18Oct2026 00:46:47.798] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cpu_capacity
+[18Oct2026 00:46:47.799] [main/TRACE] [oshi.util.FileUtil/]: Read 1024
+[18Oct2026 00:46:47.799] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/level
+[18Oct2026 00:46:47.799] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/level
+[18Oct2026 00:46:47.800] [main/TRACE] [oshi.util.FileUtil/]: Read 2
+[18Oct2026 00:46:47.800] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/type
+[18Oct2026 00:46:47.800] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/type
+[18Oct2026 00:46:47.805] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.805] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.805] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.805] [main/TRACE] [oshi.util.FileUtil/]: Read 16
+[18Oct2026 00:46:47.805] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.805] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.805] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.805] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/size
+[18Oct2026 00:46:47.806] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index2/size
+[18Oct2026 00:46:47.806] [main/TRACE] [oshi.util.FileUtil/]: Read 1024K
+[18Oct2026 00:46:47.806] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/level
+[18Oct2026 00:46:47.806] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/level
+[18Oct2026 00:46:47.806] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.806] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/type
+[18Oct2026 00:46:47.806] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/type
+[18Oct2026 00:46:47.806] [main/TRACE] [oshi.util.FileUtil/]: Read Data
+[18Oct2026 00:46:47.806] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.807] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.807] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/size
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index0/size
+[18Oct2026 00:46:47.807] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/level
+[18Oct2026 00:46:47.807] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/level
+[18Oct2026 00:46:47.808] [main/TRACE] [oshi.util.FileUtil/]: Read 3
+[18Oct2026 00:46:47.808] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/type
+[18Oct2026 00:46:47.808] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/type
+[18Oct2026 00:46:47.812] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.812] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.812] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.812] [main/TRACE] [oshi.util.FileUtil/]: Read 11
+[18Oct2026 00:46:47.812] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.812] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.812] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.812] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/size
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index3/size
+[18Oct2026 00:46:47.813] [main/TRACE] [oshi.util.FileUtil/]: Read 33792K
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/level
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/level
+[18Oct2026 00:46:47.813] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/type
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/type
+[18Oct2026 00:46:47.813] [main/TRACE] [oshi.util.FileUtil/]: Read Instruction
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.813] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.814] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.814] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.814] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.814] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.814] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/size
+[18Oct2026 00:46:47.814] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu2/cache/index1/size
+[18Oct2026 00:46:47.814] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.815] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/topology/core_id
+[18Oct2026 00:46:47.815] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/topology/core_id
+[18Oct2026 00:46:47.815] [main/TRACE] [oshi.util.FileUtil/]: Read 3
+[18Oct2026 00:46:47.815] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/topology/physical_package_id
+[18Oct2026 00:46:47.815] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/topology/physical_package_id
+[18Oct2026 00:46:47.815] [main/TRACE] [oshi.util.FileUtil/]: Read 0
+[18Oct2026 00:46:47.815] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cpu_capacity
+[18Oct2026 00:46:47.815] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cpu_capacity
+[18Oct2026 00:46:47.815] [main/TRACE] [oshi.util.FileUtil/]: Read 1024
+[18Oct2026 00:46:47.816] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/level
+[18Oct2026 00:46:47.816] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/level
+[18Oct2026 00:46:47.820] [main/TRACE] [oshi.util.FileUtil/]: Read 2
+[18Oct2026 00:46:47.820] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/type
+[18Oct2026 00:46:47.820] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/type
+[18Oct2026 00:46:47.821] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/ways_of_associativity
+[18Oct2026 00:46:47.821] [main/TRACE] [oshi.util.FileUtil/]: Read 16
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/coherency_line_size
+[18Oct2026 00:46:47.821] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/size
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index2/size
+[18Oct2026 00:46:47.821] [main/TRACE] [oshi.util.FileUtil/]: Read 1024K
+[18Oct2026 00:46:47.821] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/level
+[18Oct2026 00:46:47.822] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/level
+[18Oct2026 00:46:47.822] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.822] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/type
+[18Oct2026 00:46:47.828] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/type
+[18Oct2026 00:46:47.828] [main/TRACE] [oshi.util.FileUtil/]: Read Data
+[18Oct2026 00:46:47.828] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.828] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/ways_of_associativity
+[18Oct2026 00:46:47.829] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/coherency_line_size
+[18Oct2026 00:46:47.829] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/size
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index0/size
+[18Oct2026 00:46:47.829] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/level
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/level
+[18Oct2026 00:46:47.829] [main/TRACE] [oshi.util.FileUtil/]: Read 3
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/type
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/type
+[18Oct2026 00:46:47.829] [main/TRACE] [oshi.util.FileUtil/]: Read Unified
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/ways_of_associativity
+[18Oct2026 00:46:47.829] [main/TRACE] [oshi.util.FileUtil/]: Read 11
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.829] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/coherency_line_size
+[18Oct2026 00:46:47.830] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/size
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index3/size
+[18Oct2026 00:46:47.830] [main/TRACE] [oshi.util.FileUtil/]: Read 33792K
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/level
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/level
+[18Oct2026 00:46:47.830] [main/TRACE] [oshi.util.FileUtil/]: Read 1
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/type
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/type
+[18Oct2026 00:46:47.830] [main/TRACE] [oshi.util.FileUtil/]: Read Instruction
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/ways_of_associativity
+[18Oct2026 00:46:47.830] [main/TRACE] [oshi.util.FileUtil/]: Read 8
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.830] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/coherency_line_size
+[18Oct2026 00:46:47.831] [main/TRACE] [oshi.util.FileUtil/]: Read 64
+[18Oct2026 00:46:47.831] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/size
+[18Oct2026 00:46:47.831] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /sys/devices/system/cpu/cpu3/cache/index1/size
+[18Oct2026 00:46:47.831] [main/TRACE] [oshi.util.FileUtil/]: Read 32K
+[18Oct2026 00:46:47.836] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/cpuinfo
+[18Oct2026 00:46:47.840] [main/TRACE] [oshi.util.ExecutingCommand/]: Couldn't run command [dmidecode, -t, 4]: Cannot run program "dmidecode": Exec failed, error: 2 (No such file or directory) 
+[18Oct2026 00:46:47.842] [main/TRACE] [oshi.util.ExecutingCommand/]: Couldn't run command [cpuid, -1r]: Cannot run program "cpuid": Exec failed, error: 2 (No such file or directory) 
+[18Oct2026 00:46:47.842] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/self/auxv
+[18Oct2026 00:46:47.844] [main/DEBUG] [oshi.util.FileUtil/]: No oshi.architecture.properties file found from ClassLoader cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:47.845] [main/DEBUG] [oshi.util.FileUtil/]: No oshi.architecture.properties file found from ClassLoader jdk.internal.loader.ClassLoaders$AppClassLoader@4783da3f
+[18Oct2026 00:46:47.851] [main/TRACE] [oshi.util.ExecutingCommand/]: Couldn't run command [lspci, -vnnm]: Cannot run program "lspci": Exec failed, error: 2 (No such file or directory) 
+[18Oct2026 00:46:47.853] [main/TRACE] [oshi.util.ExecutingCommand/]: Couldn't run command [lshw, -C, display]: Cannot run program "lshw": Exec failed, error: 2 (No such file or directory) 
+[18Oct2026 00:46:47.859] [main/TRACE] [oshi.util.ExecutingCommand/]: Couldn't run command [dmidecode, --type, 17]: Cannot run program "dmidecode": Exec failed, error: 2 (No such file or directory) 
+[18Oct2026 00:46:47.861] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/meminfo
+[18Oct2026 00:46:47.862] [main/DEBUG] [oshi.util.FileUtil/]: Reading file /proc/meminfo
+[18Oct2026 00:46:47.951] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.3).
+[18Oct2026 00:46:47.963] [main/DEBUG] [mixin/]: Registering new injector for @SugarWrapper with com.llamalad7.mixinextras.sugar.impl.SugarWrapperInjectionInfo
+[18Oct2026 00:46:47.963] [main/DEBUG] [mixin/]: Registering new injector for @FactoryRedirectWrapper with com.llamalad7.mixinextras.wrapper.factory.FactoryRedirectWrapperInjectionInfo
+[18Oct2026 00:46:47.968] [main/DEBUG] [mixin/]: Registering new injector for @ExpressionInjectorWrapper with com.llamalad7.mixinextras.expression.impl.wrapper.ExpressionInjectorWrapperInjectionInfo
+[18Oct2026 00:46:48.002] [main/DEBUG] [mixin/]: Mixing MappedRegistryAccessor from neoforge.mixins.json into net.minecraft.core.MappedRegistry
+[18Oct2026 00:46:48.007] [main/DEBUG] [mixin/]: neoforge.mixins.json:MappedRegistryAccessor from mod neoforge: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_18 supports class version 62)
+[18Oct2026 00:46:48.362] [main/DEBUG] [mixin/]: Mixing BlockStateBaseMixin from ferritecore.blockstatecache.mixin.json into net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase
+[18Oct2026 00:46:48.363] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:48.429] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore->@Inject::cacheStateHead(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V doesn't use it's CallbackInfo
+[18Oct2026 00:46:48.430] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore->@Inject::cacheStateHead(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V has 0 override(s) in child classes
+[18Oct2026 00:46:48.430] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore->@Inject::cacheStateHead(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V won't be passed a CallbackInfo as a result
+[18Oct2026 00:46:48.430] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore->@Inject::cacheStateTail(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V doesn't use it's CallbackInfo
+[18Oct2026 00:46:48.430] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore->@Inject::cacheStateTail(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V has 0 override(s) in child classes
+[18Oct2026 00:46:48.430] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateBaseMixin from mod ferritecore->@Inject::cacheStateTail(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V won't be passed a CallbackInfo as a result
+[18Oct2026 00:46:48.446] [main/DEBUG] [mixin/]: Mixing FastMapStateHolderMixin from ferritecore.fastmap.mixin.json into net.minecraft.world.level.block.state.StateHolder
+[18Oct2026 00:46:48.447] [main/DEBUG] [mixin/]: ferritecore.fastmap.mixin.json:FastMapStateHolderMixin from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:48.832] [main/DEBUG] [mixin/]: Mixing DiscreteVSAccess from ferritecore.accessors.mixin.json into net.minecraft.world.phys.shapes.DiscreteVoxelShape
+[18Oct2026 00:46:48.832] [main/DEBUG] [mixin/]: ferritecore.accessors.mixin.json:DiscreteVSAccess from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:48.842] [main/DEBUG] [mixin/]: Mixing BitSetDVSAccess from ferritecore.accessors.mixin.json into net.minecraft.world.phys.shapes.BitSetDiscreteVoxelShape
+[18Oct2026 00:46:48.842] [main/DEBUG] [mixin/]: ferritecore.accessors.mixin.json:BitSetDVSAccess from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:48.866] [main/DEBUG] [mixin/]: Mixing VoxelShapeAccess from ferritecore.accessors.mixin.json into net.minecraft.world.phys.shapes.VoxelShape
+[18Oct2026 00:46:48.866] [main/DEBUG] [mixin/]: ferritecore.accessors.mixin.json:VoxelShapeAccess from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:48.871] [main/DEBUG] [mixin/]: Mixing ArrayVSAccess from ferritecore.accessors.mixin.json into net.minecraft.world.phys.shapes.ArrayVoxelShape
+[18Oct2026 00:46:48.871] [main/DEBUG] [mixin/]: ferritecore.accessors.mixin.json:ArrayVSAccess from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:48.879] [main/DEBUG] [mixin/]: Mixing SliceShapeAccess from ferritecore.accessors.mixin.json into net.minecraft.world.phys.shapes.SliceShape
+[18Oct2026 00:46:48.879] [main/DEBUG] [mixin/]: ferritecore.accessors.mixin.json:SliceShapeAccess from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:50.335] [main/DEBUG] [mixin/]: Mixing BlockEntityTypeAccessor from neoforge.mixins.json into net.minecraft.world.level.block.entity.BlockEntityType
+[18Oct2026 00:46:50.342] [main/DEBUG] [mixin/]: neoforge.mixins.json:BlockEntityTypeAccessor from mod neoforge: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_18 supports class version 62)
+[18Oct2026 00:46:51.611] [main/DEBUG] [mixin/]: Mixing BlockStateCacheMixin from ferritecore.blockstatecache.mixin.json into net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase$Cache
+[18Oct2026 00:46:51.612] [main/DEBUG] [mixin/]: ferritecore.blockstatecache.mixin.json:BlockStateCacheMixin from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:51.661] [main/DEBUG] [mixin/]: Mixing PatchedDataComponentMapMixin from ferritecore.datacomponents.mixin.json into net.minecraft.core.component.PatchedDataComponentMap
+[18Oct2026 00:46:51.662] [main/DEBUG] [mixin/]: ferritecore.datacomponents.mixin.json:PatchedDataComponentMapMixin from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:51.710] [main/DEBUG] [mixin/]: ferritecore.datacomponents.mixin.json:PatchedDataComponentMapMixin from mod ferritecore->@Inject::saveMemoryIfEmpty(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V doesn't use it's CallbackInfo
+[18Oct2026 00:46:51.710] [main/DEBUG] [mixin/]: ferritecore.datacomponents.mixin.json:PatchedDataComponentMapMixin from mod ferritecore->@Inject::saveMemoryIfEmpty(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V doesn't use it's CallbackInfo
+[18Oct2026 00:46:51.711] [main/DEBUG] [mixin/]: ferritecore.datacomponents.mixin.json:PatchedDataComponentMapMixin from mod ferritecore->@Inject::saveMemoryIfEmptyWithReturn(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V does use it's CallbackInfoReturnable
+[18Oct2026 00:46:51.711] [main/DEBUG] [mixin/]: ferritecore.datacomponents.mixin.json:PatchedDataComponentMapMixin from mod ferritecore->@Inject::saveMemoryIfEmptyWithReturn(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V does use it's CallbackInfoReturnable
+[18Oct2026 00:46:51.975] [main/DEBUG] [mixin/]: Mixing SubShapeAccess from ferritecore.accessors.mixin.json into net.minecraft.world.phys.shapes.SubShape
+[18Oct2026 00:46:51.975] [main/DEBUG] [mixin/]: ferritecore.accessors.mixin.json:SubShapeAccess from mod ferritecore: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_17 supports class version 61)
+[18Oct2026 00:46:53.066] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: -Dio.netty.noUnsafe: false
+[18Oct2026 00:46:53.066] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: Java version: 21
+[18Oct2026 00:46:53.067] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: sun.misc.Unsafe.theUnsafe: available
+[18Oct2026 00:46:53.067] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: sun.misc.Unsafe.copyMemory: available
+[18Oct2026 00:46:53.068] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: sun.misc.Unsafe.storeFence: available
+[18Oct2026 00:46:53.068] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: java.nio.Buffer.address: available
+[18Oct2026 00:46:53.070] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: java.nio.Bits.unaligned: available, true
+[18Oct2026 00:46:53.072] [main/DEBUG] [io.netty.util.internal.PlatformDependent0/]: java.nio.DirectByteBuffer.<init>(long, {int,long}): unavailable
+[18Oct2026 00:46:53.072] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: sun.misc.Unsafe: available
+[18Oct2026 00:46:53.073] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: maxDirectMemory: 2147483648 bytes (maybe)
+[18Oct2026 00:46:53.074] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: -Dio.netty.tmpdir: /tmp (java.io.tmpdir)
+[18Oct2026 00:46:53.074] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: -Dio.netty.bitMode: 64 (sun.arch.data.model)
+[18Oct2026 00:46:53.074] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: -Dio.netty.maxDirectMemory: -1 bytes
+[18Oct2026 00:46:53.075] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: -Dio.netty.uninitializedArrayAllocationThreshold: -1
+[18Oct2026 00:46:53.080] [main/DEBUG] [io.netty.util.internal.CleanerJava9/]: java.nio.ByteBuffer.cleaner(): available
+[18Oct2026 00:46:53.080] [main/DEBUG] [io.netty.util.internal.PlatformDependent/]: -Dio.netty.noPreferDirect: false
+[18Oct2026 00:46:54.552] [main/DEBUG] [mixin/]: Mixing ExperienceOrbAccess from clumps.mixins.json into net.minecraft.world.entity.ExperienceOrb
+[18Oct2026 00:46:54.554] [main/DEBUG] [mixin/]: clumps.mixins.json:ExperienceOrbAccess from mod clumps: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_18 supports class version 62)
+[18Oct2026 00:46:54.554] [main/DEBUG] [mixin/]: Mixing MixinExperienceOrb from clumps.mixins.json into net.minecraft.world.entity.ExperienceOrb
+[18Oct2026 00:46:54.555] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps: Class version 65 required is higher than the class version supported by the current version of Mixin (JAVA_18 supports class version 62)
+[18Oct2026 00:46:54.566] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$clumps$resolve$6(Ljava/util/Map$Entry;)Ljava/lang/Integer; to md4d12cd$clumps$lambda$clumps$resolve$6$0 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.566] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$addAdditionalSaveData$5(Lnet/minecraft/nbt/CompoundTag;Ljava/lang/Integer;Ljava/lang/Integer;)V to md4d12cd$clumps$lambda$addAdditionalSaveData$5$1 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.566] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$tryMergeToExisting$4(Ljava/util/Map;)Ljava/util/stream/Stream; to md4d12cd$clumps$lambda$tryMergeToExisting$4$2 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.567] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$tryMergeToExisting$3(IILnet/minecraft/world/entity/ExperienceOrb;)Z to md4d12cd$clumps$lambda$tryMergeToExisting$3$3 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.567] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$merge$2(Ljava/util/Map;)Ljava/util/stream/Stream; to md4d12cd$clumps$lambda$merge$2$4 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.567] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$clumps$repairPlayerItems$1(Lnet/minecraft/server/level/ServerPlayer;ILnet/minecraft/world/item/enchantment/EnchantedItemInUse;)Ljava/lang/Integer; to md4d12cd$clumps$lambda$clumps$repairPlayerItems$1$5 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.567] [main/DEBUG] [mixin/]: Renaming synthetic method lambda$playerTouch$0(Lnet/minecraft/server/level/ServerPlayer;Ljava/util/concurrent/atomic/AtomicInteger;Ljava/lang/Integer;Ljava/lang/Integer;)V to md4d12cd$clumps$lambda$playerTouch$0$6 in clumps.mixins.json:MixinExperienceOrb from mod clumps
+[18Oct2026 00:46:54.853] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::canMerge(Lnet/minecraft/world/entity/ExperienceOrb;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V does use it's CallbackInfoReturnable
+[18Oct2026 00:46:54.854] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::canMerge(Lnet/minecraft/world/entity/ExperienceOrb;IILorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V does use it's CallbackInfoReturnable
+[18Oct2026 00:46:54.854] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::playerTouch(Lnet/minecraft/world/entity/player/Player;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V does use it's CallbackInfo
+[18Oct2026 00:46:54.854] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::clumps$repairPlayerItems(Lnet/minecraft/server/level/ServerPlayer;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V does use it's CallbackInfoReturnable
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::merge(Lnet/minecraft/world/entity/ExperienceOrb;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V does use it's CallbackInfo
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::tryMergeToExisting(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/phys/Vec3;ILorg/spongepowered/asm/mixin/injection/callback/CallbackInfoReturnable;)V does use it's CallbackInfoReturnable
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V doesn't use it's CallbackInfo
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V has 0 override(s) in child classes
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V won't be passed a CallbackInfo as a result
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V doesn't use it's CallbackInfo
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V has 0 override(s) in child classes
+[18Oct2026 00:46:54.855] [main/DEBUG] [mixin/]: clumps.mixins.json:MixinExperienceOrb from mod clumps->@Inject::readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V won't be passed a CallbackInfo as a result
+[18Oct2026 00:46:59.036] [main/DEBUG] [net.neoforged.fml.ModWorkManager/LOADING]: Using 4 threads for parallel mod-loading
+[18Oct2026 00:46:59.096] [main/DEBUG] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Creating FMLModContainer instance for [me.lucko.spark.neoforge.NeoForgeSparkMod]
+[18Oct2026 00:46:59.101] [main/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded modclass me.lucko.spark.neoforge.NeoForgeSparkMod with cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:59.102] [main/DEBUG] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Creating FMLModContainer instance for [malte0811.ferritecore.ModMainForge]
+[18Oct2026 00:46:59.102] [main/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded modclass malte0811.ferritecore.ModMainForge with cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:59.102] [main/DEBUG] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Creating FMLModContainer instance for [com.blamejared.clumps.Clumps]
+[18Oct2026 00:46:59.103] [main/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded modclass com.blamejared.clumps.Clumps with cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:59.103] [main/DEBUG] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Creating FMLModContainer instance for [net.mezzdev.config.neoforge.ConfigNeoForge]
+[18Oct2026 00:46:59.103] [main/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded modclass net.mezzdev.config.neoforge.ConfigNeoForge with cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:59.105] [main/DEBUG] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Creating FMLModContainer instance for [net.neoforged.neoforge.common.NeoForgeMod]
+[18Oct2026 00:46:59.108] [main/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded modclass net.neoforged.neoforge.common.NeoForgeMod with cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:59.108] [main/DEBUG] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Creating FMLModContainer instance for [mezz.jei.neoforge.JustEnoughItems]
+[18Oct2026 00:46:59.109] [main/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded modclass mezz.jei.neoforge.JustEnoughItems with cpw.mods.modlauncher.TransformingClassLoader@68809cc7
+[18Oct2026 00:46:59.121] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded mod instance ferritecore of type malte0811.ferritecore.ModMainForge
+[18Oct2026 00:46:59.121] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Injecting Automatic event subscribers for ferritecore
+[18Oct2026 00:46:59.121] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Attempting to inject @EventBusSubscriber classes into the eventbus for ferritecore
+[18Oct2026 00:46:59.123] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Completed Automatic event subscribers for ferritecore
+[18Oct2026 00:46:59.123] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid ferritecore : FMLConstructModEvent
+[18Oct2026 00:46:59.124] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid ferritecore : FMLConstructModEvent
+[18Oct2026 00:46:59.129] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded mod instance clumps of type com.blamejared.clumps.Clumps
+[18Oct2026 00:46:59.130] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Injecting Automatic event subscribers for clumps
+[18Oct2026 00:46:59.130] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Attempting to inject @EventBusSubscriber classes into the eventbus for clumps
+[18Oct2026 00:46:59.130] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Completed Automatic event subscribers for clumps
+[18Oct2026 00:46:59.130] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid clumps : FMLConstructModEvent
+[18Oct2026 00:46:59.130] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid clumps : FMLConstructModEvent
+[18Oct2026 00:46:59.144] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded mod instance mezz_config of type net.mezzdev.config.neoforge.ConfigNeoForge
+[18Oct2026 00:46:59.144] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Injecting Automatic event subscribers for mezz_config
+[18Oct2026 00:46:59.144] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Attempting to inject @EventBusSubscriber classes into the eventbus for mezz_config
+[18Oct2026 00:46:59.144] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Completed Automatic event subscribers for mezz_config
+[18Oct2026 00:46:59.144] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid mezz_config : FMLConstructModEvent
+[18Oct2026 00:46:59.144] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid mezz_config : FMLConstructModEvent
+[18Oct2026 00:46:59.150] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded mod instance spark of type me.lucko.spark.neoforge.NeoForgeSparkMod
+[18Oct2026 00:46:59.150] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Injecting Automatic event subscribers for spark
+[18Oct2026 00:46:59.150] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Attempting to inject @EventBusSubscriber classes into the eventbus for spark
+[18Oct2026 00:46:59.151] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Completed Automatic event subscribers for spark
+[18Oct2026 00:46:59.151] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid spark : FMLConstructModEvent
+[18Oct2026 00:46:59.151] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid spark : FMLConstructModEvent
+[18Oct2026 00:46:59.175] [modloading-worker-0/DEBUG] [net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion/CORE]: Found NeoForge version 21.1.252
+[18Oct2026 00:46:59.175] [modloading-worker-0/DEBUG] [net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion/CORE]: Found FML version 4.0.44
+[18Oct2026 00:46:59.175] [modloading-worker-0/INFO] [net.neoforged.neoforge.common.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.252, for MC 1.21.1
+[18Oct2026 00:46:59.279] [modloading-worker-0/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Config file neoforge-client.toml for neoforge tracking
+[18Oct2026 00:46:59.279] [modloading-worker-0/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Config file neoforge-server.toml for neoforge tracking
+[18Oct2026 00:46:59.279] [modloading-worker-0/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Config file neoforge-common.toml for neoforge tracking
+[18Oct2026 00:46:59.365] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded mod instance jei of type mezz.jei.neoforge.JustEnoughItems
+[18Oct2026 00:46:59.365] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Injecting Automatic event subscribers for jei
+[18Oct2026 00:46:59.365] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Attempting to inject @EventBusSubscriber classes into the eventbus for jei
+[18Oct2026 00:46:59.365] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Completed Automatic event subscribers for jei
+[18Oct2026 00:46:59.365] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid jei : FMLConstructModEvent
+[18Oct2026 00:46:59.365] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid jei : FMLConstructModEvent
+[18Oct2026 00:46:59.373] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Loaded mod instance neoforge of type net.neoforged.neoforge.common.NeoForgeMod
+[18Oct2026 00:46:59.373] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Injecting Automatic event subscribers for neoforge
+[18Oct2026 00:46:59.373] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Attempting to inject @EventBusSubscriber classes into the eventbus for neoforge
+[18Oct2026 00:46:59.373] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.network.filters.GenericPacketSplitter for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.412] [modloading-worker-0/DEBUG] [io.netty.buffer.AbstractByteBuf/]: -Dio.netty.buffer.checkAccessible: true
+[18Oct2026 00:46:59.412] [modloading-worker-0/DEBUG] [io.netty.buffer.AbstractByteBuf/]: -Dio.netty.buffer.checkBounds: true
+[18Oct2026 00:46:59.414] [modloading-worker-0/DEBUG] [io.netty.util.ResourceLeakDetectorFactory/]: Loaded default ResourceLeakDetector: io.netty.util.ResourceLeakDetector@a6d1259
+[18Oct2026 00:46:59.423] [modloading-worker-0/DEBUG] [io.netty.util.internal.InternalThreadLocalMap/]: -Dio.netty.threadLocalMap.stringBuilder.initialSize: 1024
+[18Oct2026 00:46:59.424] [modloading-worker-0/DEBUG] [io.netty.util.internal.InternalThreadLocalMap/]: -Dio.netty.threadLocalMap.stringBuilder.maxSize: 4096
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.numHeapArenas: 8
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.numDirectArenas: 8
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.pageSize: 8192
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.maxOrder: 9
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.chunkSize: 4194304
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.smallCacheSize: 256
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.normalCacheSize: 64
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.maxCachedBufferCapacity: 32768
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.cacheTrimInterval: 8192
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.cacheTrimIntervalMillis: 0
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.useCacheForAllThreads: false
+[18Oct2026 00:46:59.427] [modloading-worker-0/DEBUG] [io.netty.buffer.PooledByteBufAllocator/]: -Dio.netty.allocator.maxCachedByteBuffersPerChunk: 1023
+[18Oct2026 00:46:59.443] [modloading-worker-0/DEBUG] [io.netty.buffer.ByteBufUtil/]: -Dio.netty.allocator.type: pooled
+[18Oct2026 00:46:59.443] [modloading-worker-0/DEBUG] [io.netty.buffer.ByteBufUtil/]: -Dio.netty.threadLocalDirectBufferSize: 0
+[18Oct2026 00:46:59.444] [modloading-worker-0/DEBUG] [io.netty.buffer.ByteBufUtil/]: -Dio.netty.maxThreadLocalCharBufferSize: 16384
+[18Oct2026 00:46:59.453] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/network/filters/GenericPacketSplitter; to the mod event bus of mod neoforge
+[18Oct2026 00:46:59.457] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.network.NetworkInitialization for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.459] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/network/NetworkInitialization; to the mod event bus of mod neoforge
+[18Oct2026 00:46:59.460] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.network.ConfigurationInitialization for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.464] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/network/ConfigurationInitialization; to the mod event bus of mod neoforge
+[18Oct2026 00:46:59.468] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.common.MonsterRoomHooks for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.470] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/common/MonsterRoomHooks; to the game event bus
+[18Oct2026 00:46:59.471] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.common.DeferredSpawnEggItem$CommonHandler for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.474] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/common/DeferredSpawnEggItem$CommonHandler; to the mod event bus of mod neoforge
+[18Oct2026 00:46:59.475] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.attachment.AttachmentSync for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.480] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/attachment/AttachmentSync; to the game event bus
+[18Oct2026 00:46:59.488] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/LOADING]: Scanning class net.neoforged.neoforge.attachment.AttachmentInternals for @SubscribeEvent-annotated methods
+[18Oct2026 00:46:59.490] [modloading-worker-0/DEBUG] [net.neoforged.fml.javafmlmod.AutomaticEventSubscriber/]: Subscribing @EventBusSubscriber class Lnet/neoforged/neoforge/attachment/AttachmentInternals; to the game event bus
+[18Oct2026 00:46:59.492] [modloading-worker-0/TRACE] [net.neoforged.fml.javafmlmod.FMLModContainer/LOADING]: Completed Automatic event subscribers for neoforge
+[18Oct2026 00:46:59.492] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : FMLConstructModEvent
+[18Oct2026 00:46:59.492] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : FMLConstructModEvent
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGHEST for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGHEST for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGHEST for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGHEST for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGHEST for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGHEST for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGHEST for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGHEST for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGHEST for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGHEST for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGHEST for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.498] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGHEST for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGH for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGH for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGH for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGH for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGH for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGH for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGH for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGH for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGH for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGH for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase HIGH for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase HIGH for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase NORMAL for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase NORMAL for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase NORMAL for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase NORMAL for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase NORMAL for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase NORMAL for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase NORMAL for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase NORMAL for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase NORMAL for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase NORMAL for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase NORMAL for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase NORMAL for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOW for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOW for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.499] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOW for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOW for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOW for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOW for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOW for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOW for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOW for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOW for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOW for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOW for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOWEST for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOWEST for modid spark : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOWEST for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOWEST for modid ferritecore : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOWEST for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOWEST for modid clumps : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOWEST for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOWEST for modid mezz_config : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOWEST for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOWEST for modid neoforge : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for phase LOWEST for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.500] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for phase LOWEST for modid jei : net.neoforged.neoforge.registries.NewRegistryEvent@281ebd7d
+[18Oct2026 00:46:59.955] [modloading-sync-worker/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Loading configs type COMMON
+[18Oct2026 00:46:59.956] [modloading-sync-worker/TRACE] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Loading config file type COMMON at neoforge-common.toml for neoforge
+[18Oct2026 00:46:59.967] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : net.neoforged.fml.event.config.ModConfigEvent$Loading@28d2c016
+[18Oct2026 00:46:59.968] [modloading-sync-worker/DEBUG] [net.neoforged.neoforge.common.NeoForgeConfig/FORGEMOD]: Loaded NeoForge config file neoforge-common.toml
+[18Oct2026 00:46:59.968] [modloading-sync-worker/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : net.neoforged.fml.event.config.ModConfigEvent$Loading@28d2c016
+[18Oct2026 00:46:59.968] [modloading-sync-worker/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Loaded TOML config file <DADOS>/config/neoforge-common.toml
+[18Oct2026 00:46:59.973] [modloading-sync-worker/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Watching TOML config file <DADOS>/config/neoforge-common.toml for changes
+[18Oct2026 00:46:59.974] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid spark : FMLCommonSetupEvent
+[18Oct2026 00:46:59.974] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid spark : FMLCommonSetupEvent
+[18Oct2026 00:46:59.974] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid ferritecore : FMLCommonSetupEvent
+[18Oct2026 00:46:59.974] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid ferritecore : FMLCommonSetupEvent
+[18Oct2026 00:46:59.974] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid clumps : FMLCommonSetupEvent
+[18Oct2026 00:46:59.974] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid clumps : FMLCommonSetupEvent
+[18Oct2026 00:46:59.975] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid mezz_config : FMLCommonSetupEvent
+[18Oct2026 00:46:59.975] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid mezz_config : FMLCommonSetupEvent
+[18Oct2026 00:46:59.975] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : FMLCommonSetupEvent
+[18Oct2026 00:46:59.978] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : FMLCommonSetupEvent
+[18Oct2026 00:46:59.979] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid jei : FMLCommonSetupEvent
+[18Oct2026 00:46:59.979] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid jei : FMLCommonSetupEvent
+[18Oct2026 00:46:59.979] [modloading-sync-worker/DEBUG] [net.neoforged.fml.DeferredWorkQueue/LOADING]: Dispatching synchronous work for work queue Common setup: 1 jobs
+[18Oct2026 00:46:59.983] [modloading-sync-worker/DEBUG] [net.neoforged.fml.DeferredWorkQueue/LOADING]: Synchronous work queue completed in 1.603 ms
+[18Oct2026 00:46:59.983] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid spark : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.983] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid spark : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.983] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid ferritecore : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid ferritecore : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid clumps : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid clumps : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid mezz_config : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid mezz_config : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid jei : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid jei : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : FMLDedicatedServerSetupEvent
+[18Oct2026 00:46:59.984] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : FMLDedicatedServerSetupEvent
+[18Oct2026 00:47:00.040] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid spark : InterModEnqueueEvent
+[18Oct2026 00:47:00.040] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid spark : InterModEnqueueEvent
+[18Oct2026 00:47:00.040] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid ferritecore : InterModEnqueueEvent
+[18Oct2026 00:47:00.040] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid ferritecore : InterModEnqueueEvent
+[18Oct2026 00:47:00.040] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid clumps : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid clumps : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid mezz_config : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid mezz_config : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid jei : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid jei : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : InterModEnqueueEvent
+[18Oct2026 00:47:00.041] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : InterModEnqueueEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid spark : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid spark : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid ferritecore : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid ferritecore : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid clumps : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid clumps : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid mezz_config : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid mezz_config : InterModProcessEvent
+[18Oct2026 00:47:00.042] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid jei : InterModProcessEvent
+[18Oct2026 00:47:00.043] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid jei : InterModProcessEvent
+[18Oct2026 00:47:00.043] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : InterModProcessEvent
+[18Oct2026 00:47:00.043] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : InterModProcessEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid spark : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid spark : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid ferritecore : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid ferritecore : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid clumps : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid clumps : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid mezz_config : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid mezz_config : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid jei : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid jei : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.044] [modloading-worker-0/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : FMLLoadCompleteEvent
+[18Oct2026 00:47:00.374] [main/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[18Oct2026 00:47:00.405] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [clumps] Starting version check at https://updates.blamejared.com/get?n=clumps&gv=1.21.1&ml=neoforge
+[18Oct2026 00:47:00.601] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:<DADOS>/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23121!/assets/.mcassetsroot' uses unexpected schema
+[18Oct2026 00:47:00.602] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:<DADOS>/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23121!/data/.mcassetsroot' uses unexpected schema
+[18Oct2026 00:47:01.581] [NeoForge Version Check/DEBUG] [net.neoforged.fml.VersionChecker/]: [clumps] Received version check data:
+{"homepage":"https://www.curseforge.com/minecraft/mc-mods/clumps","promos":{"1.21.1-latest":"19.0.0.1"}}
+[18Oct2026 00:47:01.583] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [clumps] Found status: BETA Current: 19.0.0.1 Target: 19.0.0.1
+[18Oct2026 00:47:02.478] [main/INFO] [net.minecraft.server.Main/]: No existing world data, creating new world
+[18Oct2026 00:47:02.490] [main/ERROR] [net.minecraft.server.dedicated.DedicatedServerProperties/]: No key layers in MapLike[{}]
+[18Oct2026 00:47:04.487] [main/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 1290 recipes
+[18Oct2026 00:47:04.857] [main/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 1399 advancements
+[18Oct2026 00:47:05.934] [main/DEBUG] [net.neoforged.neoforge.common.CommonHooks/WP]: Gathered mod list to write to world save world
+[18Oct2026 00:47:06.044] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting minecraft server version 1.21.1
+[18Oct2026 00:47:06.045] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Loading properties
+[18Oct2026 00:47:06.045] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Default game type: SURVIVAL
+[18Oct2026 00:47:06.046] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Generating keypair
+[18Oct2026 00:47:06.277] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting Minecraft server on 127.0.0.1:25596
+[18Oct2026 00:47:06.278] [Server thread/DEBUG] [net.neoforged.neoforge.network.DualStackUtils/]: Detected IPv4 address: "127.0.0.1"
+[18Oct2026 00:47:06.295] [Server thread/DEBUG] [io.netty.util.internal.NativeLibraryLoader/]: -Dio.netty.native.workdir: /tmp (io.netty.tmpdir)
+[18Oct2026 00:47:06.300] [Server thread/DEBUG] [io.netty.util.internal.NativeLibraryLoader/]: -Dio.netty.native.deleteLibAfterLoading: true
+[18Oct2026 00:47:06.300] [Server thread/DEBUG] [io.netty.util.internal.NativeLibraryLoader/]: -Dio.netty.native.tryPatchShadedId: true
+[18Oct2026 00:47:06.300] [Server thread/DEBUG] [io.netty.util.internal.NativeLibraryLoader/]: -Dio.netty.native.detectNativeLibraryDuplicates: true
+[18Oct2026 00:47:06.314] [Server thread/DEBUG] [io.netty.util.internal.NativeLibraryLoader/]: Successfully loaded the library /tmp/libnetty_transport_native_epoll_x86_6416549148568757153901.so
+[18Oct2026 00:47:06.323] [Server thread/DEBUG] [io.netty.util.NetUtil/]: -Djava.net.preferIPv4Stack: true
+[18Oct2026 00:47:06.323] [Server thread/DEBUG] [io.netty.util.NetUtil/]: -Djava.net.preferIPv6Addresses: false
+[18Oct2026 00:47:06.329] [Server thread/DEBUG] [io.netty.util.NetUtilInitializations/]: Loopback interface: lo (lo, 127.0.0.1)
+[18Oct2026 00:47:06.332] [Server thread/DEBUG] [io.netty.util.NetUtil/]: /proc/sys/net/core/somaxconn: 4096
+[18Oct2026 00:47:06.343] [Server thread/DEBUG] [io.netty.channel.MultithreadEventLoopGroup/]: -Dio.netty.eventLoopThreads: 8
+[18Oct2026 00:47:06.360] [Server thread/DEBUG] [io.netty.util.concurrent.GlobalEventExecutor/]: -Dio.netty.globalEventExecutor.quietPeriodSeconds: 1
+[18Oct2026 00:47:06.385] [Server thread/DEBUG] [io.netty.util.internal.PlatformDependent/]: org.jctools-core.MpscChunkedArrayQueue: available
+[18Oct2026 00:47:06.390] [Server thread/INFO] [net.minecraft.server.network.ServerConnectionListener/]: Using epoll channel type
+[18Oct2026 00:47:06.421] [Server thread/DEBUG] [io.netty.channel.DefaultChannelId/]: -Dio.netty.processId: 25313 (auto-detected)
+[18Oct2026 00:47:06.424] [Server thread/DEBUG] [io.netty.channel.DefaultChannelId/]: -Dio.netty.machineId: 02:fc:00:ff:fe:00:00:01 (auto-detected)
+[18Oct2026 00:47:06.461] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[18Oct2026 00:47:06.462] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: The server will make no attempt to authenticate usernames. Beware.
+[18Oct2026 00:47:06.462] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[18Oct2026 00:47:06.462] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: To change this, set "online-mode" to "true" in the server.properties file.
+[18Oct2026 00:47:06.521] [Server thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Loading configs type SERVER
+[18Oct2026 00:47:06.521] [Server thread/TRACE] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Loading config file type SERVER at neoforge-server.toml for neoforge
+[18Oct2026 00:47:06.531] [Server thread/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : net.neoforged.fml.event.config.ModConfigEvent$Loading@1aadf259
+[18Oct2026 00:47:06.532] [Server thread/DEBUG] [net.neoforged.neoforge.common.NeoForgeConfig/FORGEMOD]: Loaded NeoForge config file neoforge-server.toml
+[18Oct2026 00:47:06.532] [Server thread/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : net.neoforged.fml.event.config.ModConfigEvent$Loading@1aadf259
+[18Oct2026 00:47:06.532] [Server thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Loaded TOML config file <DADOS>/config/neoforge-server.toml
+[18Oct2026 00:47:06.532] [Server thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Watching TOML config file <DADOS>/config/neoforge-server.toml for changes
+[18Oct2026 00:47:06.802] [Server thread/INFO] [spark/]: Starting background profiler...
+[18Oct2026 00:47:07.237] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Preparing level "world"
+[18Oct2026 00:47:08.253] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Preparing start region for dimension minecraft:overworld
+[18Oct2026 00:47:08.366] [Worker-Main-1/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 2%
+[18Oct2026 00:47:09.074] [Worker-Main-1/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 2%
+[18Oct2026 00:47:09.358] [Worker-Main-2/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 2%
+[18Oct2026 00:47:09.767] [Server thread/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Time elapsed: 1514 ms
+[18Oct2026 00:47:09.772] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Done (3.254s)! For help, type "help"
+[18Oct2026 00:47:09.800] [Server thread/DEBUG] [net.neoforged.neoforge.network.DualStackUtils/]: Detected IPv4 address: "0.0.0.0"
+[18Oct2026 00:47:09.856] [Server thread/DEBUG] [net.neoforged.neoforge.server.LanguageHook/]: Loaded 5 language files for en_us
+[18Oct2026 00:47:09.890] [Server thread/INFO] [net.neoforged.neoforge.server.permission.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[18Oct2026 00:47:09.923] [Server thread/DEBUG] [net.mezzdev.config.file.ConfigSerializer/]: Saving config file: <DADOS>/config/jei/server/world/default/jei-server.ini
+[18Oct2026 00:47:09.933] [Server thread/DEBUG] [net.mezzdev.config.file.ConfigSerializer/]: Saving config file: world/serverconfig/jei/jei-server.ini
+[18Oct2026 00:47:13.346] [MezzConfig File Watcher server/DEBUG] [net.mezzdev.config.modshade.net.mezzdev.filewatcher.FileWatcherThread/]: Detected changes in files:
+<DADOS>/config/jei/server/world/default/jei-server.ini
+<DADOS>/world/serverconfig/jei/jei-server.ini
+[18Oct2026 00:47:16.533] [spark-worker-pool-1-thread-1/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Stopping the background profiler before starting... please wait
+[18Oct2026 00:47:16.552] [spark-worker-pool-1-thread-1/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Starting a new profiler, please wait...
+[18Oct2026 00:47:16.557] [spark-worker-pool-1-thread-1/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Profiler is now running! (async)
+[18Oct2026 00:47:16.559] [spark-worker-pool-1-thread-1/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] The results will be automatically returned after the profiler has been running for 40s.
+[18Oct2026 00:47:56.662] [ForkJoinPool.commonPool-worker-2/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] The active profiler has completed! Uploading results...
+[18Oct2026 00:47:57.444] [ForkJoinPool.commonPool-worker-2/INFO] [spark/]: If you see a warning above that says "WARNING: A Java agent has been loaded dynamically", it can be safely ignored.
+[18Oct2026 00:47:57.444] [ForkJoinPool.commonPool-worker-2/INFO] [spark/]: See here for more information: https://spark.lucko.me/docs/misc/Java-agent-warning
+[18Oct2026 00:47:57.617] [ForkJoinPool.commonPool-worker-2/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Profiler stopped & save complete!
+[18Oct2026 00:47:57.618] [ForkJoinPool.commonPool-worker-2/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Data has been written to: <DADOS>/config/spark/profile-2026-10-18_00.47.57.sparkprofile
+[18Oct2026 00:47:57.619] [ForkJoinPool.commonPool-worker-2/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] You can view the profile file using the web app @ https://spark.lucko.me/
+[18Oct2026 00:48:01.690] [spark-worker-pool-1-thread-3/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Creating a new heap dump summary, please wait...
+[18Oct2026 00:48:02.503] [spark-worker-pool-1-thread-3/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] Heap dump summary written to: <DADOS>/config/spark/heapsummary-2026-10-18_00.48.02.sparkheap
+[18Oct2026 00:48:02.506] [spark-worker-pool-1-thread-3/INFO] [net.minecraft.server.MinecraftServer/]: [⚡] You can read the heap dump summary file using the viewer web-app - https://spark.lucko.me/
+[18Oct2026 00:48:07.690] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping the server
+[18Oct2026 00:48:07.743] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[18Oct2026 00:48:07.745] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[18Oct2026 00:48:07.745] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[18Oct2026 00:48:08.583] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[18Oct2026 00:48:12.933] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[18Oct2026 00:48:12.948] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[18Oct2026 00:48:12.961] [Server thread/DEBUG] [net.neoforged.neoforge.common.CommonHooks/WP]: Gathered mod list to write to world save world
+[18Oct2026 00:48:12.968] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[18Oct2026 00:48:12.969] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[18Oct2026 00:48:12.969] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[18Oct2026 00:48:12.969] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage: All dimensions are saved
+[18Oct2026 00:48:13.058] [Server thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Unloading configs type SERVER
+[18Oct2026 00:48:13.058] [Server thread/TRACE] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Closing and unloading config file type SERVER at neoforge-server.toml for neoforge
+[18Oct2026 00:48:13.059] [Server thread/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Firing event for modid neoforge : net.neoforged.fml.event.config.ModConfigEvent$Unloading@52c25100
+[18Oct2026 00:48:13.059] [Server thread/TRACE] [net.neoforged.fml.ModContainer/LOADING]: Fired event for modid neoforge : net.neoforged.fml.event.config.ModConfigEvent$Unloading@52c25100
