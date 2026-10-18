@@ -8,7 +8,7 @@
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava capturas da janela nessa pasta.
  */
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { $, browser, expect } from '@wdio/globals';
@@ -16,6 +16,13 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolations } from './axe';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
+
+/** Versão do app: a do `package.json`, que acompanha a do workspace no `Cargo.toml`. */
+const VERSION = (
+  JSON.parse(readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8')) as {
+    version: string;
+  }
+).version;
 
 async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
@@ -31,7 +38,7 @@ describe('fumaça', () => {
     await expect($('main#conteudo')).toBeDisplayed();
     const indicator = $('[data-testid="tasks-indicator"]');
     await expect(indicator).toHaveText('Nenhuma tarefa em andamento');
-    await expect($('footer.statusbar')).toHaveText(expect.stringContaining('Warden 0.1.0'));
+    await expect($('footer.statusbar')).toHaveText(expect.stringContaining(`Warden ${VERSION}`));
     await screenshot('01-inicio');
   });
 
@@ -73,7 +80,7 @@ describe('fumaça', () => {
     await expect($('[data-testid="aviso-legal"]')).toHaveText(
       'NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.',
     );
-    await expect($('#sobre dl.kv')).toHaveText(expect.stringContaining('0.1.0'));
+    await expect($('#sobre dl.kv')).toHaveText(expect.stringContaining(VERSION));
     await screenshot('03-sobre');
     await $('header.topbar').$('a*=Meus packs').click();
     await $('h1=Meus packs').waitForDisplayed();
