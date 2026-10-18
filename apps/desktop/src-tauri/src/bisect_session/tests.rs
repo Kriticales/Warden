@@ -804,12 +804,17 @@ async fn plano_e_recusas() {
 
 /// O mundo de teste com o servidor vanilla de verdade (baixa o `server.jar` da Mojang e gera o
 /// mundo; QUALITY §4.1, "Servidor local real"). Sob demanda:
-/// `cargo nextest run -p warden-app --run-ignored only -E 'test(/mundo_de_teste_com_servidor_vanilla_real/)'`,
+/// `WARDEN_TEST_REAL_SERVER=1 cargo nextest run -p warden-app --run-ignored only -E 'test(/mundo_de_teste_com_servidor_vanilla_real/)'`,
 /// com um Java 17+ em `WARDEN_TEST_JAVA` ou `JAVA_HOME` (`WARDEN_TEST_JAVA_MAJOR`, padrão 21) e
 /// a versão em `WARDEN_TEST_MINECRAFT` (padrão 1.20.1).
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "servidor"]
 async fn mundo_de_teste_com_servidor_vanilla_real() {
+    assert!(
+        std::env::var_os(world::REAL_SERVER_ENV).is_some(),
+        "rode com {}=1 (o prazo do servidor de verdade é o do app)",
+        world::REAL_SERVER_ENV
+    );
     let dir = tempfile::tempdir().unwrap();
     let java = java().expect("Java 17+ em WARDEN_TEST_JAVA ou JAVA_HOME");
     let major = std::env::var("WARDEN_TEST_JAVA_MAJOR")

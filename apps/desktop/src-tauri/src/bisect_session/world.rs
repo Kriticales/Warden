@@ -64,12 +64,20 @@ const SESSION_LOCK: &str = "session.lock";
 /// Mensagem do servidor (aparece só no log dele).
 const MOTD: &str = "Warden: mundo de teste da busca do culpado";
 
-/// Quanto o servidor tem para gerar o mundo e ficar pronto (a primeira abertura baixa o servidor
-/// antes, fora deste prazo). Nos testes, o servidor simulado fica pronto em menos de 1 s.
-#[cfg(not(test))]
-const READY_LIMIT: Duration = crate::server_session::READY_TIMEOUT;
+/// Nos testes com o servidor de verdade (ignorados, sob demanda), o prazo é o do app.
 #[cfg(test)]
-const READY_LIMIT: Duration = Duration::from_secs(10);
+pub(crate) const REAL_SERVER_ENV: &str = "WARDEN_TEST_REAL_SERVER";
+
+/// Quanto o servidor tem para gerar o mundo e ficar pronto (a primeira abertura baixa o servidor
+/// antes, fora deste prazo). Nos testes, o servidor simulado fica pronto em menos de 1 s, e o
+/// tempo esgotado é testado com 10 s.
+fn ready_limit() -> Duration {
+    #[cfg(test)]
+    if std::env::var_os(REAL_SERVER_ENV).is_none() {
+        return Duration::from_secs(10);
+    }
+    crate::server_session::READY_TIMEOUT
+}
 
 /// Tentativas de mover o mundo gerado para o modelo (no Windows, o servidor que acabou de sair
 /// pode segurar um arquivo da pasta por alguns instantes).
@@ -282,7 +290,7 @@ async fn run_server(
         "servidor do mundo de teste aberto"
     );
     let ready = tokio::select! {
-        ready = warden_server::wait_ready(&mut events, READY_LIMIT, |_| {}) => ready,
+        ready = warden_server::wait_ready(&mut events, ready_limit(), |_| {}) => ready,
         () = handle.token().cancelled() => {
             server.kill().await;
             let _ = running.wait().await;
@@ -294,7 +302,7 @@ async fn run_server(
             server.kill().await;
         }
         let _ = running.wait().await;
-        return Err(AppError::from_domain(&failure.error(READY_LIMIT)));
+        return Err(AppError::from_domain(&failure.error(ready_limit())));
     }
     state
         .servers
