@@ -260,8 +260,11 @@ function Now({
   }
   if (!current) {
     return (
-      <div className="panel panel--selected">
-        <Loader /> <span className="t-sm">{t('agora.preparando')}</span>
+      <div className="panel panel--selected" aria-live="polite">
+        <Loader />{' '}
+        <span className="t-sm">
+          {view.creatingWorld ? t('agora.mundo') : t('agora.preparando')}
+        </span>
       </div>
     );
   }

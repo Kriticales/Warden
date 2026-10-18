@@ -53,7 +53,8 @@ pub(crate) async fn bisect_plan(
 }
 
 /// Começa uma busca nova. Volta quando ela termina ou pausa. Erros: `app.GAME_ALREADY_RUNNING`,
-/// `bisect.NOTHING_TO_SEARCH`, `bisect.NO_TEST_WORLD`, `bisect.NEEDS_SERVER`.
+/// `bisect.NOTHING_TO_SEARCH`, `bisect.EULA_NEEDED`, `bisect.NEEDS_SERVER`,
+/// `bisect.TEST_WORLD_FAILED` (a busca fica pausada antes da primeira rodada).
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn bisect_start(
@@ -67,7 +68,7 @@ pub(crate) async fn bisect_start(
 }
 
 /// Continua a busca pausada (até em outro dia). Erros: `bisect.NOT_FOUND`,
-/// `bisect.NOT_RESUMABLE`.
+/// `bisect.NOT_RESUMABLE`, `bisect.TEST_WORLD_FAILED`.
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn bisect_resume(

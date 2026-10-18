@@ -94,6 +94,75 @@ export const commands = {
 	operationsList: () => typedError<OperationSnapshot[], AppError>(__TAURI_INVOKE("operations_list")),
 	/**  Pede o cancelamento de uma operação. */
 	operationCancel: (operationId: OperationId) => typedError<null, AppError>(__TAURI_INVOKE("operation_cancel", { operationId })),
+	/**  O que o diálogo de configuração mostra. */
+	bisectPlan: (packId: PackId) => typedError<BisectPlan, AppError>(__TAURI_INVOKE("bisect_plan", { packId })),
+	/**
+	 *  Começa uma busca nova. Volta quando ela termina ou pausa. Erros: `app.GAME_ALREADY_RUNNING`,
+	 *  `bisect.NOTHING_TO_SEARCH`, `bisect.EULA_NEEDED`, `bisect.NEEDS_SERVER`,
+	 *  `bisect.TEST_WORLD_FAILED` (a busca fica pausada antes da primeira rodada).
+	 */
+	bisectStart: (packId: PackId, request: BisectRequest, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_start", { packId, request, onEvent })),
+	/**
+	 *  Continua a busca pausada (até em outro dia). Erros: `bisect.NOT_FOUND`,
+	 *  `bisect.NOT_RESUMABLE`, `bisect.TEST_WORLD_FAILED`.
+	 */
+	bisectResume: (packId: PackId, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_resume", { packId, onEvent })),
+	/**
+	 *  "Continuar a busca sem" o conjunto achado, quando há outro problema. Erros:
+	 *  `bisect.NOT_FOUND`, `bisect.NOT_RESUMABLE`.
+	 */
+	bisectContinueWithout: (packId: PackId, onEvent: Channel<OperationEvent>) => typedError<BisectView, AppError>(__TAURI_INVOKE("bisect_continue_without", { packId, onEvent })),
+	/**  "Pausar depois desta rodada". Erros: `bisect.NOT_RESUMABLE` (nenhuma busca rodando). */
+	bisectPause: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("bisect_pause", { packId })),
+	/**  Cancela a busca (rodando ou pausada), guardando o resultado parcial. */
+	bisectCancel: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("bisect_cancel", { packId })),
+	/**  Resposta do modo assistido. Erros: `bisect.NO_QUESTION`. */
+	bisectAnswer: (packId: PackId, answer: AssistedAnswer) => typedError<null, AppError>(__TAURI_INVOKE("bisect_answer", { packId, answer })),
+	/**  A busca guardada do pack, se houver. */
+	bisectGet: (packId: PackId) => typedError<{
+	/**  Identificador da busca. */
+	id: string,
+	/**  Situação. */
+	status: BisectStatus,
+	/**  O que o usuário descreveu. */
+	symptom: Symptom,
+	/**  Travamento de origem (hash da assinatura). */
+	originCrash: string | null,
+	/**  Rodadas feitas. */
+	rounds: BisectRoundView[],
+	/**  A rodada em andamento. */
+	current: BisectCurrent | null,
+	/**  Suspeitos agora. */
+	suspects: BisectItem[],
+	/**  Quantos itens entram na busca. */
+	searched: number,
+	/**  Sempre ligados. */
+	alwaysOn: BisectItem[],
+	/**  Desligados. */
+	disabled: BisectItem[],
+	/**  Rodadas no total (feitas + as que faltam), com os minutos que faltam. */
+	estimate: Estimate,
+	/**  Repetições de cada "passou" (problema intermitente). */
+	repetitions: number,
+	/**  Tempo gasto em rodadas. */
+	elapsedMs: number,
+	/**  Começo. */
+	startedAtMs: number,
+	/**  Fim. */
+	finishedAtMs: number | null,
+	/**  Como terminou. */
+	outcome: SearchOutcome | null,
+	/**  Itens do resultado com nome (culpados, ou os que evitam o problema, ou os suspeitos). */
+	outcomeItems: BisectItem[],
+	/**  Dependências inferidas ("o mod X usa Y sem declarar a dependência"). */
+	inferred: BisectInferred[],
+	/**  Conjuntos achados antes ("continuar sem"). */
+	earlier: BisectItem[][],
+	/**  O Warden está criando o mundo de teste agora (antes da primeira rodada). */
+	creatingWorld: boolean,
+} | null, AppError>(__TAURI_INVOKE("bisect_get", { packId })),
+	/**  O log gravado de uma rodada. Erros: `bisect.NOT_FOUND`. */
+	bisectRoundLog: (packId: PackId, round: number) => typedError<ConsoleLine[], AppError>(__TAURI_INVOKE("bisect_round_log", { packId, round })),
 	/**  A captura do último teste do pack (`None`: nenhum teste ainda, ou o jogo não chegou a abrir). */
 	captureGet: (packId: PackId) => typedError<{
 	/**  A sessão do teste. */
@@ -957,6 +1026,37 @@ export type AiErrorCode =
 /**  Bug: invariante quebrada sem código específico. */
 "INTERNAL";
 
+/**  O sinal que decidiu a falha. */
+export type Anchor = 
+/**  Java errado para a versão: problema de ambiente. */
+"javaVersion" | 
+/**
+ *  Tela de erro de carregamento (`Error during pre-loading phase`, `Cowardly refusing…`,
+ *  `Failed to create mod instance`, `Mod loading has failed`).
+ */
+"loadingError" | 
+/**
+ *  Dependência faltando (`Missing or unsupported mandatory dependencies`,
+ *  `MissingModsException`, `Incompatible mods found!`).
+ */
+"missingDependency" | 
+/**  `DuplicateModsFoundException`. */
+"duplicateMods" | 
+/**  `Mixin apply … failed`. */
+"mixin" | 
+/**  `Couldn't place player in world`: falhou ao entrar, sem crash. */
+"joinWorld" | 
+/**  `OutOfMemoryError` em qualquer thread. */
+"outOfMemory" | 
+/**  Crash report novo. */
+"crashReport" | 
+/**  Jogo vivo e calado depois de começar o mundo. */
+"frozen" | 
+/**  O processo saiu sozinho sem nenhum outro sinal. */
+"processExit" | 
+/**  A linha escolhida no modo "aparece uma mensagem no log". */
+"logLine";
+
 /**
  *  Erro devolvido por todo comando (`Result<T, AppError>`). A interface mostra a frase do
  *  catálogo para `code`, com `params`, e `detail` e `operationId` em "Detalhes técnicos".
@@ -1144,6 +1244,15 @@ export type ApplyItem = {
 	replaces?: string | null,
 };
 
+/**  A resposta do modo assistido. */
+export type AssistedAnswer = 
+/**  "Aconteceu". */
+"happened" | 
+/**  "Não aconteceu". */
+"notHappened" | 
+/**  "Não deu para testar". */
+"couldNotTest";
+
 /**  O ponto dentro do método: o `@At` (tipo e alvo), já traduzido pelo refmap. */
 export type At = {
 	/**
@@ -1165,13 +1274,177 @@ export type BackendKind =
 /**  Arquivo `.env` na pasta de configuração do Warden. */
 "envfile";
 
+/**  A rodada em andamento. */
+export type BisectCurrent = {
+	/**  Número. */
+	number: number,
+	/**  Tipo. */
+	kind: RoundKind,
+	/**  Repetição. */
+	repeat: number,
+	/**  Itens ligados. */
+	enabledCount: number,
+	/**  Nomes acrescentados desde o último prefixo que passou. */
+	added: string[],
+	/**  Nomes do conjunto já achado. */
+	found: string[],
+	/**  Modo assistido: esperando a resposta. */
+	asking: boolean,
+	/**  Começo da rodada (milissegundos desde 1970). */
+	startedAtMs: number,
+};
+
 /**
  *  Códigos do domínio `bisect`. O código é contrato: renomear é mudança de contrato;
  *  acrescentar é permitido (só acréscimo, ROADMAP §1).
  */
 export type BisectErrorCode = 
 /**  Bug: invariante quebrada sem código específico. */
-"INTERNAL";
+"INTERNAL" | 
+/**  Não há busca do culpado guardada para o pack. */
+"NOT_FOUND" | 
+/**  O pack não tem mods para procurar. */
+"NOTHING_TO_SEARCH" | 
+/**  O estado guardado (`state/bisect.json`) não pôde ser lido. */
+"STATE_UNREADABLE" | 
+/**  A busca não está esperando a resposta do modo assistido. */
+"NO_QUESTION" | 
+/**  A busca já terminou (ou não está pausada) e não pode continuar. */
+"NOT_RESUMABLE" | 
+/**
+ *  A busca precisa entrar no mundo, não há mundo de teste gerado e a EULA do Minecraft
+ *  (exigida para gerá-lo com o servidor vanilla) não foi aceita.
+ */
+"EULA_NEEDED" | 
+/**
+ *  O servidor vanilla não conseguiu gerar o mundo de teste (download, porta, tempo esgotado,
+ *  servidor que fechou antes do "pronto").
+ */
+"TEST_WORLD_FAILED" | 
+/**  A versão do Minecraft só entra no mundo pelo servidor local (D-13). */
+"NEEDS_SERVER";
+
+/**  Uma dependência inferida nesta busca. */
+export type BisectInferred = {
+	/**  O item que usa. */
+	from: BisectItem,
+	/**  O item usado sem declarar. */
+	to: BisectItem,
+};
+
+/**  Um item na resposta. */
+export type BisectItem = {
+	/**  Caminho no pack. */
+	path: string,
+	/**  Nome. */
+	name: string,
+};
+
+/**  O que o diálogo de configuração mostra antes de começar. */
+export type BisectPlan = {
+	/**  Quantos itens entram na busca. */
+	searched: number,
+	/**  Sempre ligados (bibliotecas que todos exigem). */
+	alwaysOn: BisectItem[],
+	/**  Desligados durante a busca (ferramentas do jogador). */
+	disabled: BisectItem[],
+	/**  A estimativa (W do último teste do pack, quando houver). */
+	estimate: Estimate,
+	/**  Versão do Minecraft. */
+	minecraft: string,
+	/**  Loader (`neoforge`, `fabric`…; `None` = vanilla). */
+	loader: string | null,
+	/**  A versão entra direto no mundo (Quick Play, 1.20+). */
+	quickPlay: boolean,
+	/**
+	 *  O mundo de teste gerado sem mods já existe para esta versão (sem ele, a busca o gera
+	 *  antes da primeira rodada, se a EULA estiver aceita).
+	 */
+	worldReady: boolean,
+};
+
+/**  O pedido de uma busca nova. */
+export type BisectRequest = {
+	/**  O que acontece no jogo. */
+	symptom: Symptom,
+	/**  Hash da assinatura (D-06) do travamento de onde a busca começou, se veio de um. */
+	originCrash?: string | null,
+	/**  Ferramentas do jogador que entram mesmo assim (suspeitas). */
+	suspects?: string[],
+};
+
+/**  Uma rodada terminada. */
+export type BisectRoundView = {
+	/**  Número. */
+	number: number,
+	/**  Tipo. */
+	kind: RoundKind,
+	/**  Repetição (problema intermitente). */
+	repeat: number,
+	/**  Itens ligados. */
+	enabledCount: number,
+	/**  O veredito. */
+	verdict: Verdict,
+	/**  Duração. */
+	durationMs: number,
+	/**  O sinal da falha. */
+	anchor: Anchor | null,
+	/**  Há log gravado. */
+	hasLog: boolean,
+};
+
+/**  Situação da busca guardada. */
+export type BisectStatus = 
+/**  Rodando agora. */
+"running" | 
+/**  Pausada (dá para continuar). */
+"paused" | 
+/**  Terminou (achou, parou ou foi cancelada). */
+"finished";
+
+/**  A busca guardada, como a tela do teste a mostra. */
+export type BisectView = {
+	/**  Identificador da busca. */
+	id: string,
+	/**  Situação. */
+	status: BisectStatus,
+	/**  O que o usuário descreveu. */
+	symptom: Symptom,
+	/**  Travamento de origem (hash da assinatura). */
+	originCrash: string | null,
+	/**  Rodadas feitas. */
+	rounds: BisectRoundView[],
+	/**  A rodada em andamento. */
+	current: BisectCurrent | null,
+	/**  Suspeitos agora. */
+	suspects: BisectItem[],
+	/**  Quantos itens entram na busca. */
+	searched: number,
+	/**  Sempre ligados. */
+	alwaysOn: BisectItem[],
+	/**  Desligados. */
+	disabled: BisectItem[],
+	/**  Rodadas no total (feitas + as que faltam), com os minutos que faltam. */
+	estimate: Estimate,
+	/**  Repetições de cada "passou" (problema intermitente). */
+	repetitions: number,
+	/**  Tempo gasto em rodadas. */
+	elapsedMs: number,
+	/**  Começo. */
+	startedAtMs: number,
+	/**  Fim. */
+	finishedAtMs: number | null,
+	/**  Como terminou. */
+	outcome: SearchOutcome | null,
+	/**  Itens do resultado com nome (culpados, ou os que evitam o problema, ou os suspeitos). */
+	outcomeItems: BisectItem[],
+	/**  Dependências inferidas ("o mod X usa Y sem declarar a dependência"). */
+	inferred: BisectInferred[],
+	/**  Conjuntos achados antes ("continuar sem"). */
+	earlier: BisectItem[][],
+	/**  O Warden está criando o mundo de teste agora (antes da primeira rodada). */
+	creatingWorld: boolean,
+};
 
 /**  Tamanho do incremento. */
 export type Bump = 
@@ -1948,10 +2221,7 @@ export type CrashGroupView = {
 	links: CrashLinks,
 };
 
-/**
- *  O que está ligado ao grupo: rodadas da busca do culpado (D-12) e conversas com a IA (D-04).
- *  Vazio até essas tarefas existirem.
- */
+/**  O que está ligado ao grupo: buscas do culpado (D-12) e conversas com a IA (D-04). */
 export type CrashLinks = {
 	/**  Buscas do culpado deste travamento. */
 	culpritSearches: string[],
@@ -2092,6 +2362,13 @@ export type CreatedPack = {
 	/**  Pasta final. */
 	path: string,
 };
+
+/**  Confiança no resultado. */
+export type CulpritConfidence = 
+/**  Confirmado nos 2 testes de controle, com o problema aparecendo sempre. */
+"high" | 
+/**  Confirmado, mas o problema é intermitente (cada "passou" foi repetido). */
+"medium";
 
 /**
  *  Códigos do domínio `curseforge`. O código é contrato: renomear é mudança de contrato;
@@ -2462,6 +2739,22 @@ export type ErrorCode =
 { domain: "import"; code: ImportErrorCode } | 
 /**  Scripts KubeJS e CraftTweaker (`warden-scripts`; D4). */
 { domain: "scripts"; code: ScriptsErrorCode };
+
+/**  A estimativa mostrada no diálogo e durante a busca. */
+export type Estimate = {
+	/**  Menos rodadas (um culpado sozinho). */
+	roundsMin: number,
+	/**  Mais rodadas (uma dupla). */
+	roundsMax: number,
+	/**  Minutos para o menor número de rodadas (arredondado para cima). */
+	minutesMin: number,
+	/**  Minutos para o maior número de rodadas (arredondado para cima). */
+	minutesMax: number,
+	/**  O W usado, em milissegundos. */
+	worldMs: number,
+	/**  Se o W foi medido neste pack (rodada 0 ou último teste) ou é o padrão. */
+	measured: boolean,
+};
 
 /**  O que sustenta um achado. Toda evidência aponta o trecho exato. */
 export type Evidence = 
@@ -3035,7 +3328,7 @@ export type GamePhase =
 "preparing" | 
 /**  Jogo aberto. */
 "running" | 
-/**  Busca do culpado em andamento (D-10). */
+/**  Busca do culpado em andamento (D-12). */
 "bisecting" | 
 /**  O jogo fechou (último aviso da sessão). */
 "exited";
@@ -5103,13 +5396,13 @@ export type OperationEvent =
 /**  Identificador no registro de operações. */
 operationId: OperationId; 
 /**  Tipo da operação. */
-kind: OperationKind }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+kind: OperationKind }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; index?: never; labelKey?: never; lines?: never; loadedMs?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
 /**  Começou uma etapa. */
 ({ type: "stage"; 
 /**  Identificador estável da etapa. */
 stage: string; 
 /**  Chave do texto da etapa no catálogo. */
-labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; worldMs?: never } | 
+labelKey: string }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; index?: never; kind?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
 /**  Andamento. */
 {
 	type: "progress",
@@ -5117,17 +5410,17 @@ labelKey: string }) & { error?: never; gcCount?: never; gcMs?: never; heap?: nev
 /**  Linhas de console (em lotes). */
 ({ type: "log"; 
 /**  As linhas. */
-lines: LogLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+lines: LogLine[] }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
 /**  Problema que não interrompe a operação. */
 ({ type: "warning"; 
 /**  O problema. */
-error: AppError }) & { gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+error: AppError }) & { asking?: never; enabled?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
 /**  Terminou; o resultado vem no retorno do comando. */
-({ type: "finished" }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+({ type: "finished" }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
 /**  Linhas do console do teste (L-04), em lotes de até 50 ms. */
 ({ type: "console"; 
 /**  As linhas, numeradas na sessão. */
-lines: ConsoleLine[] }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never } | 
+lines: ConsoleLine[] }) & { asking?: never; enabled?: never; error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; index?: never; kind?: never; labelKey?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; result?: never; rssMb?: never; stage?: never; suspects?: never; totalEstimate?: never; worldMs?: never } | 
 /**
  *  Amostra de desempenho do jogo, a cada 1 s e quando um tempo de carregamento muda
  *  (ARCHITECTURE §7.7; L-10, `test_hooks/perf.rs`).
@@ -5157,7 +5450,24 @@ gcMs: number | null;
  */
 heap: HeapDetails | null; 
 /**  Por que não há leitura da memória do jogo (`None`: há, ou ainda está procurando). */
-heapUnavailable: HeapUnavailable | null }) & { error?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; stage?: never };
+heapUnavailable: HeapUnavailable | null }) & { asking?: never; enabled?: never; error?: never; index?: never; kind?: never; labelKey?: never; lines?: never; operationId?: never; result?: never; stage?: never; suspects?: never; totalEstimate?: never } | 
+/**
+ *  Rodada da busca do culpado (ARCHITECTURE §9.7; D-12): começou (`result` vazio),
+ *  terminou (com o veredito) ou, no modo assistido, está esperando a resposta.
+ */
+({ type: "round"; 
+/**  Número da rodada (a primeira é a 0). */
+index: number; 
+/**  Rodadas no total, no mínimo e no máximo (feitas + as que faltam). */
+totalEstimate: [number, number]; 
+/**  Itens ligados nesta rodada. */
+enabled: number; 
+/**  Suspeitos agora. */
+suspects: number; 
+/**  O veredito, quando a rodada terminou. */
+result: Verdict | null; 
+/**  Modo assistido: esperando "Aconteceu", "Não aconteceu" ou "Não deu para testar". */
+asking: boolean }) & { error?: never; gcCount?: never; gcMs?: never; heap?: never; heapMaxMb?: never; heapUnavailable?: never; heapUsedMb?: never; kind?: never; labelKey?: never; lines?: never; loadedMs?: never; operationId?: never; peakRssMb?: never; previous?: never; rssMb?: never; stage?: never; worldMs?: never };
 
 /**  Identificador de uma operação longa no registro de operações (ARCHITECTURE §15). */
 export type OperationId = string;
@@ -6380,6 +6690,27 @@ export type Risk =
 /**  Só um vale; o outro é pulado em silêncio. */
 "high";
 
+/**  O tipo de uma rodada. */
+export type RoundKind = 
+/**  Rodada 0: o pack inteiro. */
+{ kind: "reproduce"; 
+/**  Tentativa (1 a 3). */
+attempt: number } | 
+/**  Rodada 1: só os sempre ligados. */
+{ kind: "control" } | 
+/**  Os primeiros `size` de `of` suspeitos (mais o conjunto já achado, se houver). */
+{ kind: "prefix"; 
+/**  Quantos suspeitos ligados. */
+size: number; 
+/**  Quantos suspeitos nesta etapa. */
+of: number; 
+/**  O conjunto já achado vai junto (busca do parceiro). */
+withFound: boolean } | 
+/**  Só o conjunto achado. */
+{ kind: "alone" } | 
+/**  O pack sem o conjunto achado. */
+{ kind: "without" };
+
 /**  A regra que classificou a sobreposição. */
 export type Rule = 
 /**  `@Overwrite` de 2+ mods. */
@@ -6605,6 +6936,35 @@ export type SearchCursor = {
 	/**  Deslocamento de cada fonte. */
 	offsets: SourceOffset[],
 };
+
+/**  Como a busca terminou. */
+export type SearchOutcome = 
+/**  Culpado (ou combinação) encontrado. */
+{ kind: "found"; 
+/**  Caminhos do conjunto mínimo. */
+culprits: string[]; 
+/**  Confiança. */
+confidence: CulpritConfidence; 
+/**  O pack sem o conjunto ainda falha igual: há outro problema. */
+anotherProblem: boolean } | 
+/**  O problema não apareceu em 3 testes seguidos na rodada 0. */
+{ kind: "notReproduced" } | 
+/**  Mesmo sem mods o jogo falha igual. */
+{ kind: "notAMod" } | 
+/**  Java errado ou outro problema do ambiente. */
+{ kind: "environment" } | 
+/**  Os testes se contradizem; `preventers` parecem evitar o problema. */
+{ kind: "contradiction"; 
+/**  Caminhos dos itens que parecem evitar o problema. */
+preventers: string[] } | 
+/**  Resultados inconclusivos demais seguidos. */
+{ kind: "inconclusive"; 
+/**  Caminhos dos suspeitos até ali. */
+suspects: string[] } | 
+/**  Cancelada pelo usuário. */
+{ kind: "cancelled"; 
+/**  Caminhos dos suspeitos até ali ("o culpado está entre estes N mods"). */
+suspects: string[] };
 
 /**  Uma página de resultados. */
 export type SearchPage = {
@@ -7223,6 +7583,19 @@ path: string;
 /**  Caminho da chave. */
 key: string };
 
+/**  O que o usuário diz que acontece. */
+export type Symptom = 
+/**  Trava ao abrir o jogo (antes do menu). */
+{ kind: "crashOnOpen" } | 
+/**  Trava ao entrar no mundo. */
+{ kind: "crashOnWorld" } | 
+/**  Aparece uma mensagem no log. */
+{ kind: "logLine"; 
+/**  O trecho procurado. */
+text: string } | 
+/**  Outra coisa: o usuário diz se aconteceu (modo assistido). */
+{ kind: "assisted" };
+
 /**  Memória padrão do teste (Configurações → Teste). */
 export type TestMemory = 
 /**  O Warden escolhe pela quantidade de mods e pela memória do computador. */
@@ -7552,6 +7925,31 @@ export type ValueChange = {
 	/**  Depois. */
 	new: string | null,
 };
+
+/**  O veredito de uma rodada. */
+export type Verdict = 
+/**  Entrou no mundo (ou chegou ao marcador pedido) e ficou estável. */
+{ kind: "passed" } | 
+/**  Travou com a mesma assinatura do problema. */
+{ kind: "failedSame" } | 
+/**  Travou com outra assinatura: não conta (como o `skip` do `git bisect`). */
+{ kind: "failedOther" } | 
+/**  Não chegou a nenhum marcador no tempo-limite. */
+{ kind: "timeout" } | 
+/**  Java errado ou outro problema de ambiente: não é mod, a busca para. */
+{ kind: "environment" } | 
+/**  Faltou uma classe ou um mod de outro item desligado: `from` precisa de `to`. */
+{ kind: "inferred"; 
+/**  Caminho do item que precisa. */
+from: string; 
+/**  Caminho do item de que ele precisa. */
+to: string } | 
+/**  Modo assistido: "Aconteceu". */
+{ kind: "userYes" } | 
+/**  Modo assistido: "Não aconteceu". */
+{ kind: "userNo" } | 
+/**  Modo assistido: "Não deu para testar". */
+{ kind: "userSkip" };
 
 /**  Resultado de [`apply`]. */
 export type VersionChanged = {

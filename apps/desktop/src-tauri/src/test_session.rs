@@ -1224,6 +1224,11 @@ impl BisectGame {
         &self.prepared.spec
     }
 
+    /// O Java escolhido para o jogo (o mesmo abre o servidor vanilla do mundo de teste).
+    pub(crate) fn java(&self) -> &JavaRuntime {
+        &self.prepared.java
+    }
+
     /// A linha de comando de uma rodada: memória, Java e argumentos do perfil ativo, o mundo
     /// do Quick Play e o que a busca acrescenta.
     pub(crate) fn command(
