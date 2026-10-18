@@ -104,7 +104,7 @@ Dez rodadas seguidas de `meus-packs.e2e.ts` e `pack-grande.e2e.ts`, sem falha. "
 Quatro rodadas do job "Windows · E2E" (5 medidas por linha, 3 na exportação). Na segunda e na terceira as bibliotecas em C (libgit2, SQLite, zlib) estavam compiladas com otimização no build de debug; como isso não mudou os números do Windows além da variação da máquina, a mudança foi desfeita. A quarta é a do código final (todos os 26 E2E passaram). Entre as duas, a mesma exportação foi de 4,0 s para 6,7 s sem nenhuma mudança que a afetasse: a máquina da CI varia muito.
 
 | Medida | 1ª rodada (mediana / pior) | 2ª rodada (mediana / pior) | 3ª rodada (mediana / pior) | 4ª rodada, final (mediana / pior) | Meta |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | CA-T02-01, `packs.e2e.ts` (50 packs simples, sem git) | 532 ms | 629 ms | 551 ms | 565 ms | < 1 s |
 | CA-T02-01, 50 packs versionados (5 grandes) | 996 / 1.133 ms | (não rodou: o preparo dos 50 repositórios passou do tempo do gancho, corrigido) | 943 / 1.107 ms | 975 / 1.184 ms | < 1 s |
 | Abrir o app até Meus packs (uma medida, de fora) | 2.116 ms | — | 2.002 ms | 2.042 ms | < 3 s |
