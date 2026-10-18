@@ -19,11 +19,7 @@ import { focusPageTitle, PAGE_TITLE_ATTRIBUTE } from '../../../app/layout/focus'
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
-import {
-  commands,
-  type BackendKind,
-  type SecretsStatus,
-} from '../../../lib/ipc/bindings';
+import { commands, type BackendKind, type SecretsStatus } from '../../../lib/ipc/bindings';
 import { unwrap } from '../../../lib/ipc/result';
 import {
   isValidPlayerName,

@@ -27,7 +27,16 @@ describe('Modelo da IA em Configurações', () => {
       providers: [],
     };
     const backend = mockSettingsBackend(
-      { secrets: { backend: 'keyring', curseforge: false, gemini: true, openai: false, anthropic: false, github: false } },
+      {
+        secrets: {
+          backend: 'keyring',
+          curseforge: false,
+          gemini: true,
+          openai: false,
+          anthropic: false,
+          github: false,
+        },
+      },
       {
         ai_settings_get: () => view,
         ai_settings_set: ({ tier }) => {
