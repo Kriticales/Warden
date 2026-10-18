@@ -22,6 +22,7 @@ import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
+import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -178,7 +179,7 @@ describe('✦ Diagnóstico com IA (D-04)', function () {
   it('CA-T14-05: o consentimento mostra o texto exato; cancelar não manda nada do pack', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FOLDER, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
