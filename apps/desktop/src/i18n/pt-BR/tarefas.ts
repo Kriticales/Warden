@@ -105,6 +105,10 @@ export const tarefas = {
       analyze: 'Ler o modpack',
       apply: 'Importar modpack',
     },
+    // D-12: busca do culpado.
+    bisect: {
+      run: 'Encontrar o mod culpado',
+    },
   },
 } as const;
 

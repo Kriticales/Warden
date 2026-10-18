@@ -27,6 +27,8 @@
 //! - [`InstallerCache`], [`CleanInstance`] e [`player_install`]: "Testar como o jogador
 //!   recebe" (L-07): o bootstrap e o installer fixados, a instância limpa temporária, a
 //!   instalação pelo link do pack e o que o jogador recebeu × o pack.
+//! - [`subset`]: a instância de cada rodada da busca do culpado (D-12), com os jars por link
+//!   físico a partir da base, configs copiadas e o mundo de teste numa cópia descartável.
 //!
 //! Limites: a rede é a da `warden-http` (P1-03) e a leitura do pack é a da `warden-packwiz`
 //! (P1-01); esta crate não abre o jogo nem instala o loader (é o motor da `warden-launcher`,
@@ -45,6 +47,7 @@ mod materialize;
 mod optional_choices;
 pub mod player_install;
 pub mod player_tools;
+pub mod subset;
 mod three_way;
 
 pub use baseline::{

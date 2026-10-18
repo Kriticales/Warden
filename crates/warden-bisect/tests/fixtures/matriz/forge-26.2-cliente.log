@@ -1,0 +1,46 @@
+  <log4j:Event logger="cpw.mods.modlauncher.LaunchServiceHandler" timestamp="1791156701378" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Launching target 'forge_client' with arguments [--version, forge-26.2-65.1.0, --gameDir, <DADOS>\instances\m-forge-26.2, --assetsDir, <DADOS>\shared\assets, --uuid, <UUID>, --username, WardenTest, --assetIndex, 32, --accessToken, **********, --clientId, , --xuid, , --versionType, release, --quickPlaySingleplayer, wardentest, --quickPlayPath, quickplay.json]]]></log4j:Message>
+  </log4j:Event>
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.lwjgl.util.tinyfd.TinyFileDialogs$$Lambda/0x00000000104d7800 in module org.lwjgl.tinyfd (jar:file:///<DADOS>/shared/libraries/org/lwjgl/lwjgl-tinyfd/3.4.1/lwjgl-tinyfd-3.4.1.jar!/)
+WARNING: Use --enable-native-access=org.lwjgl.tinyfd to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.lwjgl.util.vma.LibVma$$Lambda/0x00000000104dc800 in module org.lwjgl.vma (jar:file:///<DADOS>/shared/libraries/org/lwjgl/lwjgl-vma/3.4.1/lwjgl-vma-3.4.1.jar!/)
+WARNING: Use --enable-native-access=org.lwjgl.vma to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+	... (cortado no golden log)
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791156710437" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.Minecraft" timestamp="1791156710576" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.4.1+2]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraftforge.common.ForgeMod" timestamp="1791156711211" level="INFO" thread="modloading-worker-0">
+    <log4j:Message><![CDATA[Forge mod loading, version 65.1.0, for MC 26.2 with MCP 20260616.103818]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.sounds.SoundEngine" timestamp="1791156715407" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.renderer.texture.TextureAtlas" timestamp="1791156715440" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Created: 2048x2048x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791156717284" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 1688 advancements]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.client.server.IntegratedServer" timestamp="1791156717444" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Starting integrated minecraft server version 26.2]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.players.PlayerList" timestamp="1791156724324" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest[local:E:93981753] logged in with entity id 35 at (10.5, 103.0, -6.5)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791156724348" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest joined the game]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.advancements.AdvancementTree" timestamp="1791156724547" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 2 advancements]]></log4j:Message>
+  </log4j:Event>

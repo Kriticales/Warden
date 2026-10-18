@@ -1,0 +1,33 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791162949079" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.21.1 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791162955454" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791162955657" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.3.3-snapshot]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1140" timestamp="1791162958333" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1059" timestamp="1791162958459" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_163" timestamp="1791162960225" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 1399 advancements]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1132" timestamp="1791162960601" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Starting integrated minecraft server version 1.21.1]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791162961483" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[Preparing start region for dimension minecraft:overworld]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_3324" timestamp="1791162963169" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest[local:E:e8e1b697] logged in with entity id 14 at (-0.5, 107.0, -3.5)]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.server.MinecraftServer" timestamp="1791162963217" level="INFO" thread="Server thread">
+    <log4j:Message><![CDATA[WardenTest joined the game]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_163" timestamp="1791162963445" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Loaded 2 advancements]]></log4j:Message>
+  </log4j:Event>

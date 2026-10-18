@@ -26,6 +26,11 @@ import java.util.UUID;
  *                      (som e atlas de blocos), espera mais MS/2 ms, escreve o de "entrou no
  *                      mundo", ocupa 64 MB de memória e fica vivo escrevendo um batimento
  *                      (L-10, tempos de carregamento e RAM do processo);
+ *   culpado MS NOME... como "marcadores", mas se em mods/ (na pasta do jogo) houver um jar
+ *                      começando por cada NOME (os nomes vão até o primeiro argumento com
+ *                      "--", os do jogo), falha ao entrar no mundo como o Minecraft
+ *                      ("Couldn't place player in world" e a exceção) e fica vivo, calado;
+ *                      senão entra no mundo e fica vivo (D-12, busca do culpado);
  *   args               escreve cada argumento recebido, um por linha, entre colchetes;
  *   sair N             sai com o código N;
  *   crash              grava crash-reports/crash-teste-client.txt e sai com -1;
@@ -115,6 +120,49 @@ public final class WardenFakeGame {
             while (true) {
                 Thread.sleep(200);
                 System.out.println("jogo vivo " + memory.length);
+                System.out.flush();
+            }
+        } else if (mode.equals("culpado")) {
+            long delay = Long.parseLong(args[1]);
+            // Os nomes vão até o primeiro argumento do jogo (--username, --quickPlay…).
+            int names = 2;
+            while (names < args.length && !args[names].startsWith("--")) {
+                names++;
+            }
+            boolean all = names > 2;
+            String[] jars = new File("mods").list();
+            for (int i = 2; i < names; i++) {
+                boolean found = false;
+                for (int j = 0; jars != null && j < jars.length; j++) {
+                    if (jars[j].startsWith(args[i])) {
+                        found = true;
+                    }
+                }
+                all = all && found;
+            }
+            System.out.println("[main/INFO]: Jogo simulado " + pid() + " carregando " + (jars == null ? 0 : jars.length) + " mods");
+            System.out.flush();
+            Thread.sleep(delay);
+            System.out.println("[Render thread/INFO]: Sound engine started");
+            System.out.println("[Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas");
+            System.out.println("[Server thread/INFO]: Starting integrated minecraft server version 1.20.1");
+            System.out.flush();
+            Thread.sleep(delay / 2);
+            if (all) {
+                System.out.println("[Server thread/ERROR]: Couldn't place player in world");
+                System.out.println("java.lang.IllegalStateException: conflito simulado de " + (names - 2) + " mods");
+                System.out.println("\tat com.example.culpado.Culpado.entrar(Culpado.java:" + (40 + delay % 7) + ")");
+                System.out.flush();
+                while (true) {
+                    Thread.sleep(1000);
+                }
+            }
+            System.out.println("[Server thread/INFO]: Jogador[local:E:1] logged in with entity id 1 at (0.5, 64.0, 0.5)");
+            System.out.println("[Server thread/INFO]: Jogador joined the game");
+            System.out.flush();
+            while (true) {
+                Thread.sleep(200);
+                System.out.println("jogo vivo");
                 System.out.flush();
             }
         } else if (mode.equals("args")) {

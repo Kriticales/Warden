@@ -1,0 +1,18 @@
+  <log4j:Event logger="FabricLoader/GameProvider" timestamp="1791152790757" level="INFO" thread="main">
+    <log4j:Message><![CDATA[Loading Minecraft 1.18.2 with Fabric Loader 0.19.5]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791152800607" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Setting user: WardenTest]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_310" timestamp="1791152800727" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Backend library: LWJGL version 3.2.2 build 10]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_412" timestamp="1791152803605" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Connecting to 127.0.0.1, 25615]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1140" timestamp="1791152806960" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Sound engine started]]></log4j:Message>
+  </log4j:Event>
+  <log4j:Event logger="net.minecraft.class_1059" timestamp="1791152807223" level="INFO" thread="Render thread">
+    <log4j:Message><![CDATA[Created: 1024x1024x4 minecraft:textures/atlas/blocks.png-atlas]]></log4j:Message>
+  </log4j:Event>
