@@ -145,6 +145,30 @@ describe('botão Testar do cabeçalho (CA-T13-08)', () => {
     const table = screen.getByRole('table');
     expect(within(table).getByText('travou')).toBeDefined();
   });
+
+  it('teste guardado com o log cortado: o console avisa onde está o log completo (A-01)', async () => {
+    const ended = makeSession({ outcome: 'closedNormally', exitCode: 0 });
+    const { url } = editorBackend({
+      handlers: {
+        test_sessions_list: () => [ended],
+        test_session_get: () => ({
+          ...makeSessionView(ended, [wardenLine('launch.starting', { version: '1.20.1' })]),
+          truncated: true,
+        }),
+      },
+    });
+    await openPack(url);
+    const user = userEvent.setup();
+    await user.click(within(header()).getByRole('button', { name: 'Mais opções do teste' }));
+    await user.click(await screen.findByRole('menuitem', { name: /Ver último teste/ }));
+    await user.click(await screen.findByRole('button', { name: 'Ver console' }));
+    // Sem "…." no fim da frase (revisão de textos da A-01).
+    expect(
+      screen.getByText(
+        'Mostrando as últimas 50.000 linhas. Salvar em arquivo… grava o log completo.',
+      ),
+    ).toBeDefined();
+  });
 });
 
 describe('fluxo do teste', () => {
