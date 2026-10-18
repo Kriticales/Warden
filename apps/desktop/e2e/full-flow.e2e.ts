@@ -344,9 +344,13 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     await dismissToasts();
     await editor.click();
     await browser.keys(['Control', 'End']);
-    // O WebKitWebDriver perde os espaços teclados no CodeMirror; a linha entra como texto
-    // digitado (`insertText`, o mesmo evento do teclado), no ponto onde está o cursor.
-    await browser.execute((text) => document.execCommand('insertText', false, text), OWNER_LINE);
+    // O WebKitWebDriver perde os espaços teclados no CodeMirror (o caractere e a tecla Espaço);
+    // a linha entra como texto digitado (`insertText`, o mesmo evento do teclado), no cursor.
+    await browser.execute(
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- único jeito de digitar espaços no WebKitGTK
+      (text) => document.execCommand('insertText', false, text),
+      OWNER_LINE,
+    );
     await expect($('.editor__foot')).toHaveText(expect.stringContaining('ainda não salva'));
     await $('button=Salvar').click();
     const dialog = $('[role="dialog"]*=Salvar config.toml?');
