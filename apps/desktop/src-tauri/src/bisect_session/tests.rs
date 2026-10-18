@@ -631,9 +631,29 @@ async fn sem_eula_nao_gera_o_mundo() {
             .join("bisect-world-server")
             .exists()
     );
-    // Nenhum eula=true em lugar nenhum.
-    let server = world::WorldDirs::of(&state.paths, pack);
-    assert!(!server.world().exists());
+    // Nenhum eula.txt em lugar nenhum (nem o servidor nem a pasta dele chegaram a existir).
+    assert!(!world::WorldDirs::of(&state.paths, pack).world().exists());
+    assert_eq!(files_named(dir.path(), "eula.txt"), Vec::<PathBuf>::new());
+}
+
+/// Os arquivos com este nome em qualquer lugar da pasta.
+fn files_named(root: &Path, name: &str) -> Vec<PathBuf> {
+    let mut found = Vec::new();
+    let mut pending = vec![root.to_path_buf()];
+    while let Some(dir) = pending.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if entry.file_name() == name {
+                found.push(path);
+            }
+        }
+    }
+    found
 }
 
 /// CA-T25-03: cancelar no meio encerra o jogo em até 5 s, apaga a instância da busca, guarda o
