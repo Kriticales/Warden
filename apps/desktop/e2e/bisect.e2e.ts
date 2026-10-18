@@ -2,13 +2,19 @@
  * Busca do culpado no app real (SPEC T25; ROADMAP D-12), com o jogo simulado da
  * `warden-launcher` no modo `culpado`: ele entra no mundo como o Minecraft, mas falha ao entrar
  * ("Couldn't place player in world" e a exceção, sem fechar) quando o jar `charlie` está em
- * `mods/` da instância da rodada.
+ * `mods/` da instância da rodada; e só abre o mundo do Quick Play se `saves/<mundo>/level.dat`
+ * existir na rodada (escreve a primeira linha dele no log). O servidor simulado da
+ * `warden-server` faz o papel do servidor vanilla que gera o mundo de teste (D-12 item 7):
+ * cria `world/level.dat` com a semente do `server.properties`.
  *
- * - O menu ▾ do Testar abre "Encontrar o mod culpado"; a busca roda no modo da tela do teste,
- *   com o botão do cabeçalho em "Buscando o culpado: ver progresso", pausa depois da rodada,
- *   continua do estado guardado e acha o `charlie.jar` com confiança alta.
- * - "Começar de novo" e "Cancelar busca" no meio: o resultado parcial aparece, a instância da
- *   busca some, e o pack e a instância de teste não mudam.
+ * - O menu ▾ do Testar abre "Encontrar o mod culpado"; na primeira busca, o diálogo explica o
+ *   mundo de teste e pede a EULA (D18); com o aceite, a busca gera o mundo sem mods, roda no
+ *   modo da tela do teste, com o botão do cabeçalho em "Buscando o culpado: ver progresso",
+ *   pausa depois da rodada, continua do estado guardado e acha o `charlie.jar` com confiança
+ *   alta; cada rodada abriu uma cópia do mundo gerado com a semente fixa.
+ * - "Começar de novo" e "Cancelar busca" no meio: o diálogo não pede a EULA de novo (o mundo
+ *   já existe), o resultado parcial aparece, a instância da busca some, e o pack, a instância de
+ *   teste e o mundo do usuário não mudam.
  *
  * A estabilidade de cada rodada é encurtada pelo `wdio.conf.ts`
  * (`WARDEN_E2E_BISECT_STABILITY_MS`, só em build de debug). Com `WARDEN_E2E_SCREENSHOTS=<pasta>`,
@@ -29,8 +35,9 @@ import { join, relative } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
-import { dismissToasts } from './toasts';
 import { storedZip } from './mock-server/jars';
+import { openOrImport } from './open-or-import';
+import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -47,6 +54,8 @@ const PACK = join(DATA_ROOT, 'fora', 'pack-culpado');
 const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 const MODS = ['alfa', 'bravo', 'charlie', 'delta', 'echo'];
+/** A semente fixa do mundo de teste (`bisect_session::world::WORLD_SEED`). */
+const WORLD_SEED = '20261004';
 
 function sha256(data: string | Buffer): string {
   return createHash('sha256').update(data).digest('hex');
@@ -112,12 +121,23 @@ function instanceRoot(): string {
   return join(DATA_ROOT, 'data', 'instances', packId());
 }
 
-/** O mundo de teste na instância de teste (como se o usuário tivesse criado um). */
-function writeWorld(): void {
+/** Um mundo do usuário na instância de teste, salvo com todos os mods: a busca nunca o usa. */
+function writeUserWorld(): void {
   const world = join(instanceRoot(), 'minecraft', 'saves', 'Mundo de teste');
   mkdirSync(join(world, 'region'), { recursive: true });
-  writeFileSync(join(world, 'level.dat'), 'nbt');
+  writeFileSync(join(world, 'level.dat'), 'semente=mundo do usuário');
   writeFileSync(join(world, 'region', 'r.0.0.mca'), 'chunks');
+}
+
+/** Os `output.log` das rodadas guardadas (`state/bisect-logs/<busca>/round-<n>/`). */
+function roundLogs(): string[] {
+  const root = join(instanceRoot(), 'state', 'bisect-logs');
+  if (!existsSync(root)) return [];
+  return readdirSync(root).flatMap((search) =>
+    readdirSync(join(root, search))
+      .map((round) => join(root, search, round, 'output.log'))
+      .filter((file) => existsSync(file)),
+  );
 }
 
 /** Hash de todos os arquivos de uma pasta (caminho e conteúdo). */
@@ -159,15 +179,31 @@ async function clickStable(element: ReturnType<typeof $>): Promise<void> {
   await element.click();
 }
 
-/** Abre o diálogo pelo menu ▾ e começa a busca "Trava ao entrar no mundo". */
-async function startFromMenu(): Promise<void> {
+/**
+ * Abre o diálogo pelo menu ▾ e começa a busca "Trava ao entrar no mundo". Na primeira busca
+ * (`firstSearch`), o diálogo pede a EULA para gerar o mundo de teste, e o teste aceita.
+ */
+async function startFromMenu(firstSearch: boolean): Promise<void> {
   await clickStable($('header.packhead .testbtn__more'));
   await clickStable($('[role="menuitem"]*=Encontrar o mod culpado…'));
   const dialog = $('[role="dialog"]');
   await dialog.$('h2=Encontrar o mod culpado').waitForDisplayed({ timeout: 30_000 });
   await dialog.$('span*=5 mods entram na busca.').waitForDisplayed({ timeout: 30_000 });
+  const eula = dialog.$('.alert__title=Para entrar no mundo, o Warden cria um mundo de teste');
+  if (firstSearch) {
+    await eula.waitForDisplayed({ timeout: 10_000 });
+    await expect(dialog.$('input[type="radio"][name="bisect-symptom"][disabled]')).toExist();
+    expect(await seriousViolationSummaries()).toEqual([]);
+    await screenshot('d12-00-dialogo-eula');
+    await clickStable(dialog.$('button=Aceito a EULA'));
+    await eula.waitForDisplayed({ reverse: true, timeout: 10_000 });
+    await dialog.$('span*=Antes da primeira rodada, o Warden cria').waitForDisplayed();
+  } else {
+    await dialog.$('span*=Cada rodada entra numa cópia').waitForDisplayed();
+    expect(await eula.isExisting()).toBe(false);
+  }
   expect(await seriousViolationSummaries()).toEqual([]);
-  await screenshot('d12-00-dialogo');
+  await screenshot(firstSearch ? 'd12-00-dialogo' : 'd12-00-dialogo-de-novo');
   await clickStable(dialog.$('label*=Trava ao entrar no mundo'));
   await clickStable(dialog.$('button=Começar a busca'));
   await dialog.waitForDisplayed({ reverse: true, timeout: 10_000 });
@@ -202,7 +238,7 @@ describe('Busca do culpado (D-12; SPEC T25)', function () {
   it('acha o mod culpado pelo menu ▾, no modo da tela do teste', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     writeFileSync(PICK_FOLDER, PACK);
-    await $('button=Abrir ou importar…').click();
+    await openOrImport();
     await $('[role="dialog"]').$('h2=Abrir pack').waitForDisplayed();
     const open = $('button=Abrir pack');
     const notNow = $('button=Agora não');
@@ -213,9 +249,14 @@ describe('Busca do culpado (D-12; SPEC T25)', function () {
     if (await notNow.isExisting()) await notNow.click();
     else await open.click();
     await waitHeading('Mods');
-    writeWorld();
+    writeUserWorld();
 
-    await startFromMenu();
+    await startFromMenu(true);
+    // O aceite fica nas Configurações (o mesmo do "Testar como servidor").
+    const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf8')) as {
+      eulaAcceptedAt?: string | null;
+    };
+    expect(settings.eulaAcceptedAt).toEqual(expect.any(String));
     await waitHeading('Buscando o mod culpado');
     await expect($('header.packhead .testbtn__main')).toHaveText(
       expect.stringContaining('Buscando o culpado: ver progresso'),
@@ -248,14 +289,30 @@ describe('Busca do culpado (D-12; SPEC T25)', function () {
     // A instância da busca é apagada no fim.
     expect(existsSync(join(instanceRoot(), 'bisect'))).toBe(false);
     expect(existsSync(join(instanceRoot(), 'bisect-base'))).toBe(false);
+    // O mundo de teste foi gerado sem mods, com a semente fixa, e ficou como modelo; a pasta do
+    // servidor sumiu; cada rodada abriu uma cópia dele, nunca o mundo do usuário.
+    const template = join(instanceRoot(), 'state', 'bisect-world');
+    expect(readFileSync(join(template, 'world', 'level.dat'), 'utf8').trim()).toBe(
+      `semente=${WORLD_SEED}`,
+    );
+    expect(JSON.parse(readFileSync(join(template, 'mundo.json'), 'utf8'))).toEqual({
+      minecraft: '1.20.1',
+      seed: Number(WORLD_SEED),
+    });
+    expect(existsSync(join(instanceRoot(), 'bisect-world-server'))).toBe(false);
+    const logs = roundLogs();
+    expect(logs.length).toBeGreaterThan(3);
+    for (const log of logs) {
+      expect(readFileSync(log, 'utf8')).toContain(`Mundo de teste: semente=${WORLD_SEED}`);
+    }
   });
 
-  it('cancelar no meio guarda o parcial e não muda o pack nem a instância de teste', async () => {
+  it('cancelar no meio guarda o parcial e não muda o pack, a instância de teste nem o mundo do usuário', async () => {
     const before = {
       pack: treeHash(PACK),
       test: treeHash(join(instanceRoot(), 'minecraft')),
     };
-    await startFromMenu();
+    await startFromMenu(false);
     await waitHeading('Buscando o mod culpado');
     // Espera uma rodada terminar e a seguinte começar.
     await $('h2*=Agora: rodada 1').waitForDisplayed({ timeout: 60_000 });
