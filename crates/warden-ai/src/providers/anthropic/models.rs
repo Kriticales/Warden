@@ -94,6 +94,9 @@ pub fn resolve<'a>(ids: impl IntoIterator<Item = &'a str>) -> Option<ModelChoice
     (sonnet.is_some() || opus.is_some()).then(|| ModelChoices {
         economical: sonnet.map(|model| model.name),
         careful: opus.map(|model| model.name),
+        // Sem troca de modelo quando a cota acaba (só o Gemini tem, ADR-0060): os blocos de
+        // raciocínio ficam presos ao modelo que os escreveu.
+        lighter: None,
     })
 }
 

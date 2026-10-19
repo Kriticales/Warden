@@ -57,6 +57,8 @@ pub fn resolve<'a>(ids: impl IntoIterator<Item = &'a str>) -> Option<ModelChoice
     Some(ModelChoices {
         economical: Some(format!("gpt-{generation}-luna")),
         careful: Some(format!("gpt-{generation}-sol")),
+        // Sem troca de modelo quando a cota acaba (só o Gemini tem, ADR-0060).
+        lighter: None,
     })
 }
 
