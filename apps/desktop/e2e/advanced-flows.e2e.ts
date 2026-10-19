@@ -323,18 +323,15 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
       const field = $('input[type="search"]');
       await field.click();
       await browser.keys('sodium mod'.split(''));
-      // O início também lista o Sodium e o Mod Só da CurseForge: espera a lista da busca
-      // trocar a do início, senão o Tab cai numa linha que some no meio do caminho.
-      const results = $('ul[aria-label="Resultados"]');
-      await results.waitForDisplayed({ timeout: 30_000 });
-      await results
-        .$('button.drow__name=Mod Só da CurseForge')
-        .waitForDisplayed({ timeout: 30_000 });
-      await results.$('button.drow__name=Sodium').waitForDisplayed();
-      await browser.waitUntil(async () => !(await fullText('main')).includes('Buscando…'), {
+      // O início também lista o Sodium e o Mod Só da CurseForge, e a lista é redesenhada do zero
+      // a cada busca nova: só vale a lista da busca com o texto inteiro, dita pelo estado do
+      // campo ("N resultados para “sodium mod”"). Antes disso, o Tab cairia numa linha que some.
+      await $('.omnibox__status*=resultados para “sodium mod”').waitForDisplayed({
         timeout: 30_000,
-        timeoutMsg: 'a busca não terminou',
       });
+      const results = $('ul[aria-label="Resultados"]');
+      await results.$('button.drow__name=Mod Só da CurseForge').waitForDisplayed();
+      await results.$('button.drow__name=Sodium').waitForDisplayed();
       await expect($('h2=Populares para Minecraft 1.21.1 com Fabric')).not.toBeExisting();
       await dismissToasts();
       // O foco volta ao campo, como se a pessoa tivesse acabado de digitar.
