@@ -20,7 +20,7 @@ use std::sync::Arc;
 use secrecy::SecretString;
 use serde_json::Value;
 use support::ValeSombrio;
-use warden_ai::conversation::AnswerVia;
+use warden_ai::conversation::{AnswerVia, FallbackReason};
 use warden_ai::engine::{Engine, Limits, NoObserver};
 use warden_ai::providers::gemini::GeminiClient;
 use warden_ai::providers::gemini::models::fetch_choices;
@@ -82,6 +82,15 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
     }
     result.unwrap();
     let turn = &conversation.turns[0];
+    // O modelo padrão tem de responder no tempo-limite (D-15b): a troca para o mais leve por
+    // tempo esgotado salva a pessoa no app, mas aqui esconderia um Flash lento ou um corte
+    // antes do prazo do provedor. A troca pela cota diária continua aceita.
+    assert_ne!(
+        turn.fallback_reason,
+        Some(FallbackReason::Timeout),
+        "o modelo padrão estourou o tempo-limite e a resposta veio do mais leve ({:?})",
+        turn.fallback_model
+    );
     assert!(!turn.steps.is_empty(), "a IA não chamou nenhuma ferramenta");
     let answer = turn.answer.as_ref().unwrap();
     // As rodadas usam `ANY` (D-15b): o modelo não tem como responder em texto, então a resposta
