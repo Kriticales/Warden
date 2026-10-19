@@ -73,7 +73,7 @@ describe('Chaves e contas › IA (D-18)', () => {
     // A chave de cada provedor, na mesma linha das outras chaves.
     expect(within(ai).getByTestId('chave-gemini').textContent).toContain('Configurada');
     expect(within(ai).getByLabelText('Chave da OpenAI')).toBeDefined();
-    expect(within(ai).getByLabelText('Chave do Claude (Anthropic)')).toBeDefined();
+    expect(within(ai).getByLabelText('Chave do Claude')).toBeDefined();
 
     const line = within(ai).getByTestId('ia-modelo-gemini');
     expect(

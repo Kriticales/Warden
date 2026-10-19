@@ -339,7 +339,7 @@ describe('IA com vários provedores (D-18)', function () {
   });
 
   // Liga na junção com a D-16/D-17 (simulado e tradutor da Anthropic).
-  it.skip('CA-T14-20 (Claude): com a chave do Claude, a conversa nova vai só à Anthropic e o consentimento diz "Claude (Anthropic) (claude-…)"', async () => {
+  it.skip('CA-T14-20 (Claude): com a chave do Claude, a conversa nova vai só à Anthropic e o consentimento diz "Claude (claude-…)"', async () => {
     // Na junção: o mesmo roteiro do caso da OpenAI, com keyRow('anthropic'), o rádio "Claude" e o
     // simulado da Anthropic; nenhuma requisição à OpenAI nem ao Gemini.
   });

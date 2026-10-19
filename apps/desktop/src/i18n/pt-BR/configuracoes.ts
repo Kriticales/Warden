@@ -82,7 +82,7 @@ export const configuracoes = {
       curseforge: 'Chave da CurseForge',
       gemini: 'Chave do Gemini',
       openai: 'Chave da OpenAI',
-      anthropic: 'Chave do Claude (Anthropic)',
+      anthropic: 'Chave do Claude',
       github: 'Token do GitHub',
     },
     usos: {

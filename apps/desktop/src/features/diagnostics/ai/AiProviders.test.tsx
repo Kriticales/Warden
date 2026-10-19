@@ -133,7 +133,7 @@ describe('consentimento por provedor (CA-T14-20, CA-T14-24)', () => {
     ['openai', 'OpenAI (gpt-9-luna), com a sua chave', 'O uso é cobrado na sua chave da OpenAI'],
     [
       'anthropic',
-      'Claude (Anthropic) (claude-sonnet-9-9), com a sua chave',
+      'Claude (claude-sonnet-9-9), com a sua chave',
       'O uso é cobrado na sua chave da Anthropic',
     ],
   ] as const)(
@@ -145,7 +145,7 @@ describe('consentimento por provedor (CA-T14-20, CA-T14-24)', () => {
       expect(within(dialog).getByText(new RegExp(charged))).toBeDefined();
       expect(dialog.textContent).not.toMatch(/plano gratuito/);
       expect(dialog.textContent).not.toMatch(/US\$/);
-      expect(dialog.textContent).not.toMatch(/Google/);
+      expect(dialog.textContent).not.toMatch(/Google|Anthropic\)/);
       expect(await axePage(document.body)).toHaveNoViolations();
     },
   );

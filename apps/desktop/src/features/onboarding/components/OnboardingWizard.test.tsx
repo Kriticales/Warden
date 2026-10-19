@@ -196,7 +196,7 @@ describe('primeira execução', () => {
     expect(screen.getByLabelText('Chave do Gemini')).toBeDefined();
 
     await user.click(within(group).getByRole('radio', { name: /Claude/ }));
-    await user.type(screen.getByLabelText('Chave do Claude (Anthropic)'), 'sk-ant-falsa');
+    await user.type(screen.getByLabelText('Chave do Claude'), 'sk-ant-falsa');
     // Nada gravado antes de concluir.
     expect(backend.callsOf('ai_provider_set')).toEqual([]);
     await user.click(screen.getByRole('button', { name: 'Concluir' }));

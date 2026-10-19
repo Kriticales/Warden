@@ -30,7 +30,7 @@ export function providerName(provider: AiProvider): string {
   return i18n.t(`ia:provedores.${provider}.nome`);
 }
 
-/** O nome com a empresa, quando ajuda: "Google Gemini", "OpenAI", "Claude (Anthropic)". */
+/** O nome no consentimento: "Google Gemini", "OpenAI", "Claude" (glossário, QUALITY §8). */
 export function providerFullName(provider: AiProvider): string {
   return i18n.t(`ia:provedores.${provider}.completo`);
 }

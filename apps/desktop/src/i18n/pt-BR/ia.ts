@@ -24,7 +24,7 @@ export const ia = {
     },
     anthropic: {
       nome: 'Claude',
-      completo: 'Claude (Anthropic)',
+      completo: 'Claude',
       desc: 'Da Anthropic. Pago por uso, cobrado na sua conta da Anthropic.',
     },
     sugerido: 'Sugerido',
