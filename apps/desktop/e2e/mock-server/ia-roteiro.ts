@@ -9,7 +9,9 @@
  *   "não verificado");
  * - com [`PROPOSALS_MARKER`] no texto da pessoa, o roteiro das propostas: abre o Sodium, lê a
  *   config e procura issues; propõe duas mudanças na config (com evidência) e uma remoção com
- *   evidência inventada (o Warden recusa); por fim responde pela `responder`.
+ *   evidência inventada (o Warden recusa); por fim responde pela `responder`;
+ * - na conversa sem pack (D-19; [`STANDALONE_MARKER`] no texto inicial), o mesmo roteiro do
+ *   Gemini simulado: procura o erro no log do link e responde citando a linha encontrada.
  */
 
 /** Uma chamada de ferramenta: nome e argumentos. */
@@ -73,6 +75,39 @@ function proposals(step: number): Call[] {
   ];
 }
 
+/** O texto inicial da conversa sem pack (D-19) começa a parte do log com isto. */
+export const STANDALONE_MARKER = 'Sem pack:';
+
+/** Conversa sem pack: procura o erro no log do link e responde citando a linha. */
+function standalone(step: number, results: unknown[]): Call[] {
+  if (step === 0) {
+    return [['search_log', { session_id: 'link', query: 'NoSuchMethodError' }]];
+  }
+  let found: { id: string; texto: string } | undefined;
+  for (const result of results) {
+    const items = (result as { itens?: { id: string; texto: string }[] } | null)?.itens;
+    found ??= items?.find((item) => item.id.startsWith('log:link/'));
+  }
+  return [
+    [
+      'responder',
+      {
+        resumo: 'Um mod chama um método que não existe nesta versão.',
+        semConclusao: false,
+        propostas: [],
+        achados: [
+          {
+            afirmacao: 'O jogo travou num NoSuchMethodError.',
+            mods: [],
+            confianca: 'media',
+            evidencias: [{ id: found?.id ?? 'log:link/link', citacao: found?.texto ?? '' }],
+          },
+        ],
+      },
+    ],
+  ];
+}
+
 /** A primeira linha do `texto` da visão geral entre os resultados da última rodada. */
 function overviewLine(results: unknown[]): string {
   for (const result of results) {
@@ -90,6 +125,7 @@ function overviewLine(results: unknown[]): string {
  */
 export function nextCalls(question: string, step: number, results: unknown[]): Call[] {
   if (question.includes(PROPOSALS_MARKER)) return proposals(step);
+  if (question.includes(STANDALONE_MARKER)) return standalone(step, results);
   if (step === 0) {
     return [
       ['get_pack_overview', {}],

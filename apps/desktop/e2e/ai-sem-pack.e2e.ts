@@ -9,7 +9,10 @@
  *   link do pastebin baixa só o texto puro dele (`pastebin.com/raw/<id>`);
  * - CA-T14-30: depois de **✦ Começar conversa**, a resposta do Gemini simulado aparece; a conversa
  *   fica em `ai/_sem-pack/` nos dados do Warden, aparece em "Conversas sem pack" e reabre igual
- *   depois de reiniciar o app.
+ *   depois de reiniciar o app;
+ * - junção do lote 12 (D-16/D-17 × D-19): a mesma análise por link com a OpenAI e com o Claude
+ *   simulados (`mock-server/openai.ts`, `anthropic.ts`): o consentimento diz o provedor e o
+ *   modelo, a resposta cita a linha do log, e o pedido vai só ao provedor ativo, sem recusa.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -19,7 +22,9 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
+import { ANTHROPIC_E2E_KEY, ANTHROPIC_E2E_MODEL } from './mock-server/anthropic';
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
+import { OPENAI_E2E_KEY, OPENAI_E2E_MODEL } from './mock-server/openai';
 import { MCLOGS_E2E_ID, PASTEBIN_E2E_ID } from './mock-server/paste';
 import { dismissToasts } from './toasts';
 
@@ -37,6 +42,13 @@ const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 /** Onde o cofre de teste (arquivo) guarda a chave do Gemini (`WARDEN_SECRET_BACKEND`). */
 const KEY_FILE = join(DATA_ROOT, 'cofre-de-teste', 'gemini-api-key');
+/** As chaves da OpenAI e do Claude no mesmo cofre de teste. */
+const OTHER_KEYS = [
+  [join(DATA_ROOT, 'cofre-de-teste', 'openai-api-key'), OPENAI_E2E_KEY],
+  [join(DATA_ROOT, 'cofre-de-teste', 'anthropic-api-key'), ANTHROPIC_E2E_KEY],
+] as const;
+/** O provedor ativo e a escolha de cada provedor (`ai/settings.json`). */
+const AI_SETTINGS_FILE = join(DATA_ROOT, 'data', 'ai', 'settings.json');
 /** As conversas sem pack, nos dados do Warden. */
 const STANDALONE_DIR = join(DATA_ROOT, 'data', 'ai', '_sem-pack');
 const LINK = `https://mclo.gs/${MCLOGS_E2E_ID}`;
@@ -49,7 +61,12 @@ interface GeminiState {
 }
 
 async function gemini(): Promise<GeminiState> {
-  const response = await fetch(`${MOCK_URL}/__gemini`);
+  return mockState('gemini');
+}
+
+/** O que um dos simulados de IA recebeu (`/__gemini`, `/__openai`, `/__anthropic`). */
+async function mockState(provider: 'gemini' | 'openai' | 'anthropic'): Promise<GeminiState> {
+  const response = await fetch(`${MOCK_URL}/__${provider}`);
   return (await response.json()) as GeminiState;
 }
 
@@ -126,16 +143,22 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
     mkdirSync(join(DATA_ROOT, 'cofre-de-teste'), { recursive: true });
     writeFileSync(KEY_FILE, GEMINI_E2E_KEY);
+    for (const [file, key] of OTHER_KEYS) writeFileSync(file, key);
+    rmSync(AI_SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
     rmSync(STANDALONE_DIR, { recursive: true, force: true });
     writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
-    await fetch(`${MOCK_URL}/__gemini/reset`, { method: 'POST' });
+    for (const provider of ['gemini', 'openai', 'anthropic']) {
+      await fetch(`${MOCK_URL}/__${provider}/reset`, { method: 'POST' });
+    }
     await browser.reloadSession();
     await browser.setWindowSize(1366, 900);
   });
 
   after(() => {
     rmSync(KEY_FILE, { force: true });
+    for (const [file] of OTHER_KEYS) rmSync(file, { force: true });
+    rmSync(AI_SETTINGS_FILE, { force: true });
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
     rmSync(STANDALONE_DIR, { recursive: true, force: true });
@@ -263,4 +286,61 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     expect((await gemini()).generate.length).toBe(2);
     await screenshot('d19-04-reaberta');
   });
+
+  for (const [provider, radio, model] of [
+    ['openai', 'OpenAI', OPENAI_E2E_MODEL],
+    ['anthropic', 'Claude', ANTHROPIC_E2E_MODEL],
+  ] as const) {
+    it(`junção D-16/D-17 × D-19: a análise por link funciona com ${radio}`, async () => {
+      // Configurações › IA: o provedor ativo passa a ser este (a chave já está no cofre).
+      // A barra de cima tem Configurações em qualquer tela (aqui, a conversa do caso anterior).
+      await clickStable($('header.topbar').$('a*=Configurações'));
+      await waitHeading('Configurações');
+      const choice = $('fieldset*=Provedor da IA').$(`label.choice*=${radio}`);
+      const input = choice.$('input[type="radio"]');
+      await clickStable(input.parentElement().parentElement());
+      await browser.waitUntil(async () => input.isSelected(), {
+        timeout: 30_000,
+        timeoutMsg: `${radio} não ficou escolhido`,
+      });
+
+      const before = {
+        gemini: (await mockState('gemini')).generate.length,
+        openai: (await mockState('openai')).generate.length,
+        anthropic: (await mockState('anthropic')).generate.length,
+      };
+      await clickStable($('a*=Meus packs'));
+      await waitHeading('Meus packs');
+      await clickStable($('main').$('a*=Analisar um log'));
+      await waitHeading('Analisar um log');
+      await $('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
+      await pasteLink(LINK);
+      const dialog = await openConsent();
+      await expect(dialog).toHaveText(
+        expect.stringContaining(`${radio} (${model}), com a sua chave`),
+      );
+      await expect(dialog).not.toHaveText(expect.stringContaining('plano gratuito'));
+      await clickStable(dialog.$('button=Começar conversa'));
+      await waitHeading(TITLE);
+      await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
+      await expect($(`p*=com ${radio}`)).toBeDisplayed();
+      await expect($(`li.claim*=${TITLE}`).$('button.evid')).toHaveText(
+        expect.stringContaining('log, linha 3'),
+      );
+      expect(await seriousViolationSummaries()).toEqual([]);
+      await screenshot(`d19-05-conversa-${provider}`);
+
+      const state = await mockState(provider);
+      expect(state.refusals).toEqual([]);
+      expect(state.generate.length).toBe(before[provider] + 2);
+      const everything = state.generate.slice(before[provider]).join('\n');
+      expect(everything).not.toContain('Maria');
+      expect(everything).not.toContain(MCLOGS_E2E_ID);
+      for (const other of ['gemini', 'openai', 'anthropic'] as const) {
+        if (other !== provider) {
+          expect((await mockState(other)).generate.length).toBe(before[other]);
+        }
+      }
+    });
+  }
 });
