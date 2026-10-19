@@ -77,7 +77,7 @@ Uma onda começa quando as dependências da anterior estão integradas. Dentro d
 | 9 | P1-15, P1-17, L-12, D-04, D-08, D-12, E-03, A-01 |
 | 10 | D-13, D-14, A-03 |
 | 11 | A-07, D-15 |
-| 12 | D-16, D-17, D-18, W-01, W-04, W-06, W-08, W-09, W-10 |
+| 12 | D-16, D-17, D-18, D-19, W-01, W-04, W-06, W-08, W-09, W-10 |
 | 13 | W-02, W-05, W-07 |
 | 14 | W-03, W-11 |
 | 15 | W-12 |
@@ -824,6 +824,15 @@ Ao fim desta fase: o app abre (Linux e Windows), a CI roda em Linux e Windows, o
 - **Entregas:** Configurações › IA com o provedor (Gemini, padrão; OpenAI; Claude), a chave de cada um (Testar, Substituir, Remover, passo a passo para criar) e o modelo padrão ou "Análise mais cuidadosa" por provedor; primeiro uso e boas-vindas citando os três; consentimento com o nome do provedor e o modelo, o aviso de plano gratuito só no Gemini; conversa mostrando o provedor em que começou e o pedido da chave dele quando faltar; textos dos erros por provedor; E2E por provedor com os servidores simulados.
 - **Critérios de aceite:** CA-T14-20, CA-T14-24, CA-T21-06; telas do CA-T14-21.
 - **Verificação:** testes de componente (Vitest) e E2E `ai-provedores.e2e.ts` com os três servidores simulados, cada spec 3 vezes seguidas sem falha (as telas não esperam a D-16 e a D-17; os casos da OpenAI e do Claude no E2E rodam com os tradutores delas já integrados); axe sem violações sérias.
+
+### D-19 — IA: analisar um log sem pack, por arquivo ou link colado
+
+- **Prioridade:** P1 · **Depende de:** D-15 · **Branch:** `feat/d-19-ia-log-avulso`
+- **Objetivo:** pedido do dono (18/10, como no MCDoctor.ai): analisar com a IA um log ou crash report **sem precisar de um pack**, escolhendo o arquivo ou **colando um link** do mclo.gs ou do pastebin, com as mesmas regras da conversa com pack (consentimento, "Enviado à IA", redação, conferência das evidências, provedor e modelo escolhidos; ADR-0030, ADR-0060).
+- **Posse:** `apps/desktop/src/features/diagnostics/ai-sem-pack/**`, as rotas `apps/desktop/src/routes/analisar-log.tsx` e `apps/desktop/src/routes/analisar-log.$conversaId.tsx`, `apps/desktop/src/i18n/pt-BR/ia-sem-pack.ts`, `apps/desktop/src-tauri/src/ai_tools/standalone.rs` e `standalone/**`, os comandos `ai_standalone_*` acrescentados no fim de `apps/desktop/src-tauri/src/commands/ai.rs`, a origem nova em `crates/warden-ai/src/conversation.rs`, as rotas novas em `apps/desktop/e2e/mock-server/` (`paste.ts`), `apps/desktop/e2e/ai-sem-pack.e2e.ts`. Fora da posse, só o mínimo: o botão em Meus packs, as listas de registro (comandos, evento, códigos de erro, `bindings.ts` gerado, simulados do frontend, variáveis do servidor de fixtures) e um filtro de nomes no `ToolRegistry`.
+- **Entregas:** botão **✦ Analisar um log** em Meus packs, que abre a página "Analisar um log" no nível do app (fora de qualquer pack): sintoma, origem (**um arquivo do computador** ou **um link colado**), "Contar algo à IA", o mesmo consentimento e a lista **Conversas sem pack** (continuar e apagar). Links aceitos só por HTTPS: `mclo.gs/<id>` (texto puro por `api.mclo.gs/1/raw/<id>`) e `pastebin.com/<id>` (por `pastebin.com/raw/<id>`); o hastebin.com exige chave desde 2023 e é recusado com a frase própria; qualquer outro endereço, recusado com uma frase clara, sem requisição. Download pelo Rust com tempo-limite de 30 s e teto de 20 MB (fica o fim do texto, como nos logs de hoje); o texto passa pela mesma redação antes do consentimento e só a cópia redigida é guardada. Conversa sem pack só com as ferramentas de ler o log (`search_log`, `read_log`) e, com a permissão, a busca de issues no GitHub pelo slug do mod no Modrinth; sem ferramentas do pack e sem propostas. Conversas em `ai/_sem-pack/<ULID>.json` nos dados do Warden.
+- **Critérios de aceite:** CA-T14-25, CA-T14-26, CA-T14-27, CA-T14-28, CA-T14-29.
+- **Verificação:** `cargo nextest run -p warden-desktop` (origem link com os sites simulados, recusa de site não aceito, redação, teto e tempo-limite); `cargo xtask bindings` e `cargo xtask check-integration`; testes de componente (Vitest); E2E `ai-sem-pack.e2e.ts` com o mclo.gs, o pastebin e o Gemini simulados, 3 vezes seguidas sem falha; axe sem violações sérias.
 
 ---
 

@@ -26,5 +26,6 @@ O ✦ Diagnóstico com IA da v1 (D-04 e D-14) fala só com o Gemini: o laço mon
 ## Consequências
 
 - A D-15 faz o núcleo, migra o Gemini, cria o formato 2 das conversas e as chaves e configurações no backend; a D-16 (OpenAI) e a D-17 (Anthropic) escrevem só os seus tradutores; a D-18 faz as telas e os E2E por provedor (ROADMAP fase 4).
+- **Log sem pack aberto por link (D-19):** colar um link do mclo.gs ou do pastebin faz o Warden pedir **só o texto ao site do link** (`api.mclo.gs/1/raw/<id>`, `pastebin.com/raw/<id>`), pelo Rust, antes do consentimento, para mostrar o texto inicial exato. Nada vai ao provedor de IA além do que já ia sem pack (a lista de modelos e a contagem de tokens sem o log); o próprio link não vai à IA, e o texto redigido só sai depois de **✦ Começar conversa**, pelas mesmas regras de todos os provedores.
 - Os testes de rede (`rede_*`) são um por provedor e ficam ignorados sem a chave daquele provedor.
 - O Gemini continua com o servidor simulado que recusa histórico alterado; a OpenAI e a Anthropic ganham os seus servidores simulados (`apps/desktop/e2e/mock-server/`).
