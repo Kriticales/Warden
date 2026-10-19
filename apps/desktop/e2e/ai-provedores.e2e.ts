@@ -13,8 +13,9 @@
  *   abrindo com o Gemini; sem a chave do Gemini, ela pede essa chave e leva a Configurações, e
  *   perguntar de novo mostra qual chave falta, sem nenhuma requisição de rede.
  *
- * Os casos da OpenAI e do Claude (CA-T14-20 com os simulados deles) ligam na junção com a
- * D-16/D-17, que trazem `mock-server/openai.ts` e `mock-server/anthropic.ts` e os tradutores.
+ * - CA-T14-20 (OpenAI e Claude, ligados na junção do lote 12 com os simulados e os tradutores da
+ *   D-16/D-17): a chave pela tela, o modelo da regra na seção e no consentimento, sem plano
+ *   gratuito, e a conversa nova só no provedor ativo.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -25,7 +26,9 @@ import { join } from 'node:path';
 import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
+import { ANTHROPIC_E2E_KEY, ANTHROPIC_E2E_MODEL } from './mock-server/anthropic';
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
+import { OPENAI_E2E_KEY } from './mock-server/openai';
 import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
@@ -47,6 +50,10 @@ const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 const AI_SETTINGS_FILE = join(DATA_ROOT, 'data', 'ai', 'settings.json');
 /** Onde o cofre de teste (arquivo) guarda a chave do Gemini (`WARDEN_SECRET_BACKEND`). */
 const KEY_FILE = join(DATA_ROOT, 'cofre-de-teste', 'gemini-api-key');
+/** As chaves da OpenAI e do Claude no mesmo cofre de teste. */
+const OTHER_KEY_FILES = ['openai-api-key', 'anthropic-api-key'].map((name) =>
+  join(DATA_ROOT, 'cofre-de-teste', name),
+);
 const PACK_NAME = 'Vale dos Provedores';
 
 interface GeminiState {
@@ -87,6 +94,33 @@ function writePack(): void {
 async function gemini(): Promise<GeminiState> {
   const response = await fetch(`${MOCK_URL}/__gemini`);
   return (await response.json()) as GeminiState;
+}
+
+type AiProvider = 'gemini' | 'openai' | 'anthropic';
+const AI_PROVIDERS: readonly AiProvider[] = ['gemini', 'openai', 'anthropic'];
+/** O caminho do estado de cada simulado (`/__gemini`, `/__openai`, `/__anthropic`). */
+const MOCK_PATH: Record<AiProvider, string> = {
+  gemini: 'gemini',
+  openai: 'openai',
+  anthropic: 'anthropic',
+};
+
+/** O que os três simulados receberam até agora. */
+async function allProviders(): Promise<
+  Record<AiProvider, { generate: string[]; refusals: string[] }>
+> {
+  const entries = await Promise.all(
+    AI_PROVIDERS.map(async (provider) => {
+      const response = await fetch(`${MOCK_URL}/__${MOCK_PATH[provider]}`);
+      return [provider, (await response.json()) as GeminiState] as const;
+    }),
+  );
+  return Object.fromEntries(entries) as Record<AiProvider, GeminiState>;
+}
+
+/** "do Gemini", "da OpenAI", "do Claude" (o rótulo do campo da chave). */
+function keyLabel(provider: AiProvider): string {
+  return { gemini: 'do Gemini', openai: 'da OpenAI', anthropic: 'do Claude' }[provider];
 }
 
 async function screenshot(name: string): Promise<void> {
@@ -165,17 +199,19 @@ describe('IA com vários provedores (D-18)', function () {
     rmSync(PACK, { recursive: true, force: true });
     writePack();
     mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
-    rmSync(KEY_FILE, { force: true });
+    for (const file of [KEY_FILE, ...OTHER_KEY_FILES]) rmSync(file, { force: true });
     rmSync(AI_SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
     writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
-    await fetch(`${MOCK_URL}/__gemini/reset`, { method: 'POST' });
+    for (const provider of AI_PROVIDERS) {
+      await fetch(`${MOCK_URL}/__${MOCK_PATH[provider]}/reset`, { method: 'POST' });
+    }
     await browser.reloadSession();
     await browser.setWindowSize(1366, 900);
   });
 
   after(() => {
-    rmSync(KEY_FILE, { force: true });
+    for (const file of [KEY_FILE, ...OTHER_KEY_FILES]) rmSync(file, { force: true });
     rmSync(AI_SETTINGS_FILE, { force: true });
     rmSync(SETTINGS_FILE, { force: true });
     rmSync(REGISTRY_FILE, { force: true });
@@ -329,18 +365,93 @@ describe('IA com vários provedores (D-18)', function () {
     await aiArea().waitForDisplayed({ timeout: 30_000 });
   });
 
-  // Liga na junção com a D-16/D-17: os simulados da OpenAI e da Anthropic
-  // (`mock-server/openai.ts`, `mock-server/anthropic.ts`) e os tradutores ainda não estão nesta base.
-  it.skip('CA-T14-20 (OpenAI): com a chave da OpenAI, a conversa nova vai só à OpenAI e o consentimento diz "OpenAI (gpt-…)"', async () => {
-    // Na junção: gravar a chave da OpenAI pela tela (keyRow('openai')), escolher a OpenAI,
-    // abrir o consentimento (texto "OpenAI (<modelo>), com a sua chave" e "O uso é cobrado na sua
-    // chave da OpenAI", sem "plano gratuito"), começar, esperar "O que a IA afirma" e conferir no
-    // simulado da OpenAI os corpos recebidos e, no do Gemini, nenhum `generateContent` a mais.
+  /**
+   * CA-T14-20 com a OpenAI e o Claude: a chave salva pela tela passa no Testar, a seção mostra o
+   * provedor e o modelo que a regra escolheu na lista do simulado (D-16/D-17), o consentimento
+   * diz o provedor e o modelo, sem plano gratuito, e a conversa nova vai só ao provedor ativo.
+   */
+  async function conversationWith(options: {
+    provider: AiProvider;
+    radio: string;
+    key: string;
+    model: string;
+    tier: string;
+    charge: string;
+    shot: string;
+  }): Promise<void> {
+    const before = await allProviders();
+    await openSettings();
+    await choose(providerRadio(options.radio));
+    const row = keyRow(options.provider);
+    await row.$(`input[aria-label="Chave ${keyLabel(options.provider)}"]`).setValue(options.key);
+    await clickStable(row.$('button=Salvar'));
+    await row.$('span*=Configurada').waitForDisplayed({ timeout: 30_000 });
+    await clickStable(row.$('button=Testar'));
+    await row.$('span*=Funcionando').waitForDisplayed({ timeout: 30_000 });
+
+    await openAiSection();
+    await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
+    const line = $('p.ai-model');
+    await browser.waitUntil(
+      async () =>
+        (await line.getText()).includes(
+          `Provedor: ${options.radio}. Modelo: ${options.model} (${options.tier}).`,
+        ),
+      { timeout: 30_000, timeoutMsg: `a seção não mostrou ${options.model}` },
+    );
+    await $('select.select').selectByAttribute('value', 'pack');
+    await clickStable($('main').$('button=Começar conversa'));
+    const dialog = $('[role="dialog"]');
+    await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+    await expect(dialog).toHaveText(
+      expect.stringContaining(`${options.radio} (${options.model}), com a sua chave`),
+    );
+    await expect(dialog).toHaveText(expect.stringContaining(options.charge));
+    await expect(dialog).not.toHaveText(expect.stringContaining('plano gratuito'));
+    expect(await axeAfterToasts()).toEqual([]);
+    await screenshot(options.shot);
+    await clickStable(dialog.$('button=Começar conversa'));
+    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
+    await expect($(`p*=com ${options.radio}`)).toBeDisplayed();
+    await expect($('aside[aria-label="Sobre esta conversa"]')).toHaveText(
+      expect.stringContaining(options.model),
+    );
+
+    // Só o provedor ativo recebeu a conversa, sem recusa; os outros dois ficaram parados.
+    const after = await allProviders();
+    for (const provider of AI_PROVIDERS) {
+      expect(after[provider].refusals).toEqual([]);
+      if (provider === options.provider) {
+        expect(after[provider].generate.length).toBeGreaterThan(before[provider].generate.length);
+      } else {
+        expect(after[provider].generate.length).toBe(before[provider].generate.length);
+      }
+    }
+  }
+
+  it('CA-T14-20 (OpenAI): com a chave da OpenAI, a conversa nova vai só à OpenAI e o consentimento diz "OpenAI (gpt-…)"', async () => {
+    // A OpenAI ficou com "Análise mais cuidadosa" no caso acima: a regra dá o `gpt-N-sol`.
+    await conversationWith({
+      provider: 'openai',
+      radio: 'OpenAI',
+      key: OPENAI_E2E_KEY,
+      model: 'gpt-9-sol',
+      tier: 'análise mais cuidadosa',
+      charge: 'O uso é cobrado na sua chave da OpenAI',
+      shot: 'd18-05-consentimento-openai',
+    });
   });
 
-  // Liga na junção com a D-16/D-17 (simulado e tradutor da Anthropic).
-  it.skip('CA-T14-20 (Claude): com a chave do Claude, a conversa nova vai só à Anthropic e o consentimento diz "Claude (claude-…)"', async () => {
-    // Na junção: o mesmo roteiro do caso da OpenAI, com keyRow('anthropic'), o rádio "Claude" e o
-    // simulado da Anthropic; nenhuma requisição à OpenAI nem ao Gemini.
+  it('CA-T14-20 (Claude): com a chave do Claude, a conversa nova vai só à Anthropic e o consentimento diz "Claude (claude-…)"', async () => {
+    // O Claude ficou em "Mais econômico": a regra dá o Sonnet mais novo da lista.
+    await conversationWith({
+      provider: 'anthropic',
+      radio: 'Claude',
+      key: ANTHROPIC_E2E_KEY,
+      model: ANTHROPIC_E2E_MODEL,
+      tier: 'mais econômico',
+      charge: 'O uso é cobrado na sua chave da Anthropic',
+      shot: 'd18-06-consentimento-claude',
+    });
   });
 });
