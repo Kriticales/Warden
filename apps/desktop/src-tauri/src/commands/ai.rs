@@ -1499,6 +1499,7 @@ pub(crate) async fn standalone_preview_impl(
         .pick(settings.tier_of(provider))
         .ok_or_else(|| domain(&warden_ai::Error::NoModel))?;
     let model = model.to_owned();
+    let fallback_model = models.lighter.clone().filter(|lighter| *lighter != model);
     let subject = standalone_subject(state, &request.source).await?;
     let note = request
         .note
@@ -1540,6 +1541,7 @@ pub(crate) async fn standalone_preview_impl(
             note,
             provider,
             model,
+            fallback_model,
             initial: built,
             created: now_ms(),
         },
@@ -1579,6 +1581,7 @@ pub(crate) fn standalone_start_impl(
         preview.note,
         PackSnapshot::default(),
     );
+    conversation.fallback_model = preview.fallback_model;
     push_question(&mut conversation, preview.initial.text);
     let store = crate::ai_tools::standalone::store(state);
     if let Some(log) = &preview.initial.local_log {

@@ -2,12 +2,12 @@
  * ✦ Analisar um log, a conversa com a IA sem pack, no app real (D-19; SPEC T14 item 8), com o
  * mclo.gs e o Gemini simulados (`mock-server/paste.ts` e `mock-server/gemini.ts`):
  *
- * - CA-T14-25: Meus packs abre "Analisar um log"; um link de outro site e o do hastebin mostram
+ * - CA-T14-26: Meus packs abre "Analisar um log"; um link de outro site e o do hastebin mostram
  *   as frases de recusa, sem conversa nova;
- * - CA-T14-26 e CA-T14-27: colar um link do mclo.gs baixa só o texto dele; o consentimento mostra
+ * - CA-T14-27 e CA-T14-28: colar um link do mclo.gs baixa só o texto dele; o consentimento mostra
  *   o texto já sem dados pessoais; cancelar não manda nada ao Gemini; o link não vai à IA; o
  *   link do pastebin baixa só o texto puro dele (`pastebin.com/raw/<id>`);
- * - CA-T14-29: depois de **✦ Começar conversa**, a resposta do Gemini simulado aparece; a conversa
+ * - CA-T14-30: depois de **✦ Começar conversa**, a resposta do Gemini simulado aparece; a conversa
  *   fica em `ai/_sem-pack/` nos dados do Warden, aparece em "Conversas sem pack" e reabre igual
  *   depois de reiniciar o app.
  *
@@ -141,7 +141,7 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     rmSync(STANDALONE_DIR, { recursive: true, force: true });
   });
 
-  it('CA-T14-25: Meus packs abre "Analisar um log"; outro site e o hastebin são recusados', async () => {
+  it('CA-T14-26: Meus packs abre "Analisar um log"; outro site e o hastebin são recusados', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     await clickStable($('main').$('a*=Analisar um log'));
     await waitHeading('Analisar um log');
@@ -165,7 +165,7 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     await screenshot('d19-01-recusa');
   });
 
-  it('CA-T14-25: o link do pastebin baixa só o texto puro dele', async () => {
+  it('CA-T14-26: o link do pastebin baixa só o texto puro dele', async () => {
     await fetch(`${MOCK_URL}/__reset`);
     await pasteLink(`https://pastebin.com/${PASTEBIN_E2E_ID}`);
     const dialog = await openConsent();
@@ -182,7 +182,7 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     expect((await gemini()).generate).toEqual([]);
   });
 
-  it('CA-T14-26 e CA-T14-27: o link baixa só o texto, sem dados pessoais; cancelar não manda nada', async () => {
+  it('CA-T14-27 e CA-T14-28: o link baixa só o texto, sem dados pessoais; cancelar não manda nada', async () => {
     await fetch(`${MOCK_URL}/__reset`);
     await pasteLink(LINK);
     const dialog = await openConsent();
@@ -211,7 +211,7 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     });
   });
 
-  it('CA-T14-29: a resposta do Gemini chega; a conversa fica guardada e reabre depois de reiniciar', async () => {
+  it('CA-T14-30: a resposta do Gemini chega; a conversa fica guardada e reabre depois de reiniciar', async () => {
     const dialog = await openConsent();
     const shown = await fullText(dialog.$('pre[aria-label="Texto inicial que será enviado"]'));
     await clickStable(dialog.$('button=Começar conversa'));

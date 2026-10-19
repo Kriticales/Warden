@@ -115,7 +115,7 @@ function linkError(code: string) {
 }
 
 describe('✦ Analisar um log: sem pack (T14 item 8)', () => {
-  it('CA-T14-25: Meus packs tem o botão ✦ Analisar um log, que abre a página sem pack', async () => {
+  it('CA-T14-26: Meus packs tem o botão ✦ Analisar um log, que abre a página sem pack', async () => {
     setup();
     renderApp('/');
     const user = userEvent.setup();
@@ -135,7 +135,7 @@ describe('✦ Analisar um log: sem pack (T14 item 8)', () => {
     expect(backend.callsOf('ai_standalone_list')).toHaveLength(0);
   });
 
-  it('CA-T14-25: link de outro site, http:// e hastebin mostram a frase própria', async () => {
+  it('CA-T14-26: link de outro site, http:// e hastebin mostram a frase própria', async () => {
     let code = 'AI_LINK_UNSUPPORTED';
     const backend = setup({ ai_standalone_preview: () => linkError(code)() });
     await openPage();
@@ -164,7 +164,7 @@ describe('✦ Analisar um log: sem pack (T14 item 8)', () => {
     expect(backend.callsOf('ai_standalone_start')).toHaveLength(0);
   });
 
-  it('CA-T14-27: o consentimento mostra o texto exato; Cancelar não manda nada e devolve o foco; axe', async () => {
+  it('CA-T14-28: o consentimento mostra o texto exato; Cancelar não manda nada e devolve o foco; axe', async () => {
     const backend = setup();
     await openPage();
     const user = userEvent.setup();
@@ -240,7 +240,7 @@ describe('✦ Analisar um log: sem pack (T14 item 8)', () => {
     });
   });
 
-  it('CA-T14-28: a conversa sem pack mostra o que foi enviado, sem propostas nem busca do culpado; axe', async () => {
+  it('CA-T14-29: a conversa sem pack mostra o que foi enviado, sem propostas nem busca do culpado; axe', async () => {
     setup();
     await openConversation();
     expect(screen.getByText(/Conversa sobre Link do mclo\.gs/)).toBeDefined();

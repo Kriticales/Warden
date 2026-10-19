@@ -379,6 +379,8 @@ pub(crate) struct StandalonePreview {
     pub(crate) note: Option<String>,
     pub(crate) provider: AiProvider,
     pub(crate) model: String,
+    /// O modelo mais leve para quando a cota diária de `model` acabar (como com pack).
+    pub(crate) fallback_model: Option<String>,
     pub(crate) initial: Initial,
     pub(crate) created: u64,
 }

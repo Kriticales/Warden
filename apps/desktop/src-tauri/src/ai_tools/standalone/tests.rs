@@ -1,7 +1,7 @@
 //! Testes da conversa sem pack (D-19) com o mclo.gs, o pastebin e o Gemini simulados
-//! (`wiremock`): os links aceitos e recusados sem rede (CA-T14-25), a redação, o teto e o
-//! tempo-limite (CA-T14-26), o que vai à rede antes do consentimento (CA-T14-27), as
-//! ferramentas sem pack (CA-T14-28) e a conversa guardada em `ai/_sem-pack/` (CA-T14-29).
+//! (`wiremock`): os links aceitos e recusados sem rede (CA-T14-26), a redação, o teto e o
+//! tempo-limite (CA-T14-27), o que vai à rede antes do consentimento (CA-T14-28), as
+//! ferramentas sem pack (CA-T14-29) e a conversa guardada em `ai/_sem-pack/` (CA-T14-30).
 
 use std::fmt::Write as _;
 use std::time::Duration;
@@ -11,7 +11,7 @@ use warden_ai::conversation::{AiSymptom, ConversationOrigin, PasteSite};
 use warden_ai::evidence::ClaimStatus;
 use warden_ai::tools::{AiPermissions, ToolSource as _};
 use warden_core::CancellationToken;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, path_regex};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::{
@@ -121,7 +121,7 @@ fn everything_sent(setup: &Setup) -> String {
 }
 
 #[test]
-fn ca_t14_25_links_aceitos_e_recusados() {
+fn ca_t14_26_links_aceitos_e_recusados() {
     let link = parse_link("  https://mclo.gs/abc123  ").unwrap();
     assert_eq!(
         link,
@@ -206,7 +206,7 @@ fn ca_t14_25_links_aceitos_e_recusados() {
 }
 
 #[tokio::test]
-async fn ca_t14_25_site_recusado_nao_faz_requisicao() {
+async fn ca_t14_26_site_recusado_nao_faz_requisicao() {
     let setup = setup(Box::new(|_, _| unreachable!("nada pode ir à IA"))).await;
     let paste = paste_server().await;
     use_bases(&paste);
@@ -234,7 +234,7 @@ async fn ca_t14_25_site_recusado_nao_faz_requisicao() {
 }
 
 #[tokio::test]
-async fn ca_t14_26_teto_fica_com_o_fim_e_tempo_limite() {
+async fn ca_t14_27_teto_fica_com_o_fim_e_tempo_limite() {
     let paste = MockServer::start().await;
     let mut big = String::new();
     for n in 1..=500 {
@@ -301,7 +301,7 @@ async fn ca_t14_26_teto_fica_com_o_fim_e_tempo_limite() {
 }
 
 #[tokio::test]
-async fn ca_t14_26_link_inexistente_nao_cria_conversa() {
+async fn ca_t14_27_link_inexistente_nao_cria_conversa() {
     let setup = setup(Box::new(|_, _| unreachable!("nada pode ir à IA"))).await;
     let paste = paste_server().await;
     use_bases(&paste);
@@ -314,7 +314,7 @@ async fn ca_t14_26_link_inexistente_nao_cria_conversa() {
 }
 
 #[tokio::test]
-async fn ca_t14_26_e_27_link_redigido_e_so_o_texto_pedido_ao_site() {
+async fn ca_t14_27_e_28_link_redigido_e_so_o_texto_pedido_ao_site() {
     let setup = setup(Box::new(|_, _| {
         unreachable!("cancelado: nada pode ir à IA")
     }))
@@ -324,7 +324,7 @@ async fn ca_t14_26_e_27_link_redigido_e_so_o_texto_pedido_ao_site() {
     let preview = standalone_preview_impl(&setup.state, request("https://mclo.gs/abc123"))
         .await
         .unwrap();
-    // CA-T14-26: nada pessoal no texto mostrado; o erro continua lá.
+    // CA-T14-27: nada pessoal no texto mostrado; o erro continua lá.
     for secret in PERSONAL {
         assert!(
             !preview.text.contains(secret),
@@ -335,7 +335,7 @@ async fn ca_t14_26_e_27_link_redigido_e_so_o_texto_pedido_ao_site() {
     assert!(preview.text.contains("NoSuchMethodError"));
     assert!(preview.text.contains("link do mclo.gs"));
     assert!(preview.text.contains("session_id \"link\""));
-    // CA-T14-27: o link não está no texto, e o único pedido ao site foi o do texto puro.
+    // CA-T14-28: o link não está no texto, e o único pedido ao site foi o do texto puro.
     assert!(!preview.text.contains("abc123"));
     let asked: Vec<String> = paste
         .received_requests()
@@ -355,7 +355,7 @@ async fn ca_t14_26_e_27_link_redigido_e_so_o_texto_pedido_ao_site() {
 }
 
 #[tokio::test]
-async fn ca_t14_28_so_ferramentas_sem_pack() {
+async fn ca_t14_29_so_ferramentas_sem_pack() {
     let names: Vec<&str> = registry().names().collect();
     assert_eq!(names, ["search_log", "read_log", "search_mod_issues"]);
     // Nenhuma ferramenta do pack nem de proposta é declarada.
@@ -399,7 +399,7 @@ fn first_item(request: &Value) -> (String, String) {
 }
 
 #[tokio::test]
-async fn ca_t14_29_conversa_sem_pack_guardada_reaberta_e_apagada() {
+async fn ca_t14_30_conversa_sem_pack_guardada_reaberta_e_apagada() {
     let setup = setup(Box::new(|n, request| {
         if n == 0 {
             calls(&[(
@@ -490,7 +490,7 @@ async fn ca_t14_29_conversa_sem_pack_guardada_reaberta_e_apagada() {
 }
 
 #[tokio::test]
-async fn ca_t14_25_pastebin_baixa_o_texto_puro() {
+async fn ca_t14_26_pastebin_baixa_o_texto_puro() {
     // O link do pastebin vira o pedido a `pastebin.com/raw/<id>` (no simulado, `/raw/<id>`).
     let setup = setup(Box::new(|_, _| unreachable!("nada pode ir à IA"))).await;
     let paste = paste_server().await;
@@ -521,7 +521,7 @@ async fn ca_t14_25_pastebin_baixa_o_texto_puro() {
 }
 
 #[tokio::test]
-async fn ca_t14_28_busca_de_issues_so_com_a_permissao() {
+async fn ca_t14_29_busca_de_issues_so_com_a_permissao() {
     // Sem a permissão do GitHub, a busca de issues pedida pela IA é recusada sem rede.
     let setup = setup(Box::new(|n, _| {
         if n == 0 {
@@ -590,4 +590,54 @@ async fn arquivo_do_computador_sem_pack() {
         ConversationOrigin::LocalFile { file_name } if file_name == "crash-2026.txt"
     ));
     assert_eq!(list[0].id, id);
+}
+
+#[tokio::test]
+async fn cota_diaria_troca_para_o_modelo_mais_leve_sem_pack() {
+    // CA-T14-25 também sem pack: a cota diária do Flash acabando, a pergunta segue no Flash-Lite
+    // e a conversa guarda a troca (ADR-0060, complemento de 19/10/2026).
+    let setup = setup(Box::new(|_, _| {
+        calls(&[(
+            "responder",
+            json!({ "resumo": "Não deu para concluir.", "semConclusao": true, "propostas": [],
+                "achados": [] }),
+        )])
+    }))
+    .await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "models": [
+            { "name": "models/gemini-9.1-flash-lite", "supportedGenerationMethods": ["generateContent"] },
+            { "name": "models/gemini-9.1-flash", "supportedGenerationMethods": ["generateContent"] }
+        ]})))
+        .with_priority(1)
+        .mount(&setup.server)
+        .await;
+    Mock::given(path_regex(r"gemini-9\.1-flash:generateContent$"))
+        .respond_with(ResponseTemplate::new(429).set_body_json(json!({ "error": {
+            "code": 429, "status": "RESOURCE_EXHAUSTED", "message": "Quota exceeded",
+            "details": [{ "@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [
+                { "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier" }
+            ]}]
+        }})))
+        .with_priority(1)
+        .mount(&setup.server)
+        .await;
+    let paste = paste_server().await;
+    use_bases(&paste);
+    let preview = standalone_preview_impl(&setup.state, request("https://mclo.gs/abc123"))
+        .await
+        .unwrap();
+    assert_eq!(preview.model, "gemini-9.1-flash");
+    let id =
+        standalone_start_impl(&setup.state, &preview.preview_id, AiPermissions::default()).unwrap();
+    standalone_run_impl(&setup.state, &id, std::sync::Arc::new(|_| {}))
+        .await
+        .unwrap();
+    let view = standalone_get_impl(&setup.state, &id).unwrap();
+    assert_eq!(view.model, "gemini-9.1-flash");
+    assert!(view.turns[0].answer.is_some());
+    assert_eq!(
+        view.turns[0].fallback_model.as_deref(),
+        Some("gemini-9.1-flash-lite")
+    );
 }
