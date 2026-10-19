@@ -6,6 +6,9 @@
 [workspace]
 resolver = "3"
 members = ["apps/desktop/src-tauri", "crates/*", "xtask"]
+# Cópias emendadas de crates de terceiros (`[patch.crates-io]` abaixo): não são crates do
+# Warden (sem os lints, o fmt e os testes do workspace).
+exclude = ["third_party"]
 
 [workspace.package]
 version = "1.0.1"
@@ -142,6 +145,11 @@ print_stderr = "deny"
 large_futures = "warn"
 module_name_repetitions = "allow"
 missing_errors_doc = "allow"
+
+# O `portablemc` 5.0.5 com a emenda do Warden: o Java roda sem janela de console no Windows
+# (ADR-0062; `third_party/portablemc/WARDEN.md`).
+[patch.crates-io]
+portablemc = { path = "third_party/portablemc" }
 
 # Dependências sem informação de depuração em build de debug: a pasta `target` fica bem
 # menor e o link mais rápido (QUALITY §13.4); o código do Warden mantém a depuração completa.

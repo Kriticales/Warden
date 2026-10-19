@@ -6,6 +6,14 @@ edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
+# Java falso, só para o teste da emenda do `portablemc` (Java sem janela no Windows, ADR-0062).
+# Não entra no app: a `warden-app` depende só da biblioteca.
+[[bin]]
+name = "java-fake"
+path = "src/bin/java_fake.rs"
+test = false
+doc = false
+
 [dependencies]
 warden-core.workspace = true
 warden-java.workspace = true
@@ -34,6 +42,8 @@ windows = { workspace = true, features = [
   "Win32_Foundation",
   "Win32_Globalization",
   "Win32_Security",
+  # `GetConsoleWindow`, só no Java falso do teste da emenda do `portablemc` (ADR-0062).
+  "Win32_System_Console",
   "Win32_System_JobObjects",
   "Win32_System_Threading",
 ] }

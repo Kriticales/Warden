@@ -4125,8 +4125,6 @@ dependencies = [
 [[package]]
 name = "portablemc"
 version = "5.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd8558231180f57fefd5c1bc13561df68bae7d67080f43b52b2fa6f57f4fcd0f"
 dependencies = [
  "chrono",
  "dirs 6.0.0",

@@ -18,6 +18,8 @@ mod merge_driver;
 mod network;
 mod notices;
 mod packwiz;
+#[cfg(test)]
+mod portablemc;
 mod preview;
 mod setup;
 mod tasks;

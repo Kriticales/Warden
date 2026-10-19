@@ -179,6 +179,12 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 |---|---|---|---|
 | [packwiz/packwiz](https://github.com/packwiz/packwiz) | commit em [`third_party/packwiz/COMMIT`](third_party/packwiz/COMMIT) (`ef87d96`, 2026-09-06) | MIT ([`third_party/packwiz/LICENSE`](third_party/packwiz/LICENSE)) | Refresh, validação e exportação do pack ([ADR-0007](docs/decisions/0007-sidecar-packwiz.md)). Compilado por `cargo xtask build-packwiz` com os patches de [`third_party/packwiz/patches/`](third_party/packwiz/patches/) e embutido como sidecar do Tauri. As dependências Go do packwiz vêm do `go.sum` do commit. |
 
+## Crates Rust emendadas (`third_party/`)
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [theorzr/portablemc](https://github.com/theorzr/portablemc) | 5.0.5 do crates.io (commit `99fdead`), cópia em [`third_party/portablemc/`](third_party/portablemc/WARDEN.md) | Apache-2.0 ([`third_party/portablemc/LICENSE`](third_party/portablemc/LICENSE)) | O mesmo motor do launcher da seção "Crates Rust", trocado pela cópia no `[patch.crates-io]` do `Cargo.toml` com os patches de [`third_party/portablemc/patches/`](third_party/portablemc/patches/): o Java da instalação roda sem janela de console no Windows ([ADR-0062](docs/decisions/0062-emenda-do-portablemc-java-sem-janela.md)). |
+
 ## Comportamento portado (reescrito em Rust a partir da leitura, sem cópia literal)
 
 | Arquivo | Origem | Licença | O quê |
