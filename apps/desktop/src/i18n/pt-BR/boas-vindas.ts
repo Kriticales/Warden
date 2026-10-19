@@ -34,6 +34,8 @@ export const boasVindas = {
     titulo: 'Chaves',
     texto: 'Todas são opcionais. Sem elas o Warden funciona; só algumas partes ficam de fora.',
     jaConfigurada: 'Já configurada. Deixe em branco para manter.',
+    iaTexto:
+      'Para o Diagnóstico com IA, com a sua chave. O Gemini é o sugerido para começar, porque tem plano gratuito; a OpenAI e o Claude cobram por uso na sua conta.',
     cofreDesc: 'Protegido pelo seu usuário do Windows.',
     envDesc: 'Texto comum na pasta de dados do Warden. Outros programas conseguem ler.',
   },
