@@ -4,7 +4,8 @@
 //! - [`Provider`]: o que o laço ([`crate::engine`]) pede a um provedor, sempre no formato comum
 //!   de [`chat`]. Cada tradutor fica na sua pasta: [`gemini`] (D-04, migrado na D-15),
 //!   [`openai`] (D-16) e [`anthropic`] (D-17).
-//! - [`connect`]: o cliente do provedor com a chave do usuário.
+//! - [`connect`]: o cliente do provedor com a chave do usuário, sobre um [`HttpClient`] feito
+//!   com [`http_config`].
 //! - [`ModelTier`] e [`ModelChoices`]: "Mais econômico" e "Análise mais cuidadosa", escolhidos
 //!   por cada provedor pela lista de modelos da conta (nenhum nome fixo no código, ADR-0055), e
 //!   o modelo mais leve para quando a cota diária do escolhido acaba (só o Gemini tem, ADR-0060).
@@ -20,7 +21,7 @@ use async_trait::async_trait;
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use warden_core::CancellationToken;
-use warden_http::HttpClient;
+use warden_http::{HttpClient, HttpConfig};
 
 pub use chat::{
     ChatRequest, ChatResponse, Failure, Message, Opaque, Role, StopReason, ToolCall, ToolChoice,
@@ -182,7 +183,34 @@ pub trait Provider: Send + Sync {
     fn tool_result_text(&self, result: &ToolResult) -> String;
 }
 
+/// O maior tempo-limite por requisição entre os provedores.
+pub const LONGEST_REQUEST_TIMEOUT: Duration = {
+    let mut longest = gemini::REQUEST_TIMEOUT;
+    if openai::REQUEST_TIMEOUT.as_secs() > longest.as_secs() {
+        longest = openai::REQUEST_TIMEOUT;
+    }
+    if anthropic::REQUEST_TIMEOUT.as_secs() > longest.as_secs() {
+        longest = anthropic::REQUEST_TIMEOUT;
+    }
+    longest
+};
+
+/// A configuração do [`HttpClient`] dos provedores, a partir da do app (D-15b).
+///
+/// Os provedores respondem sem *streaming*: nada chega até a resposta inteira ficar pronta, e um
+/// modelo com raciocínio pode levar mais de um minuto. O `read_timeout` do app (30 s sem receber
+/// dados) cortava essas respostas antes do tempo-limite do provedor (o Noturno 39215806251 viu o
+/// Flash parar 5 vezes em 30 s com "90 s" no erro). Aqui ele sobe para o maior tempo-limite dos
+/// provedores; quem limita cada requisição continua sendo o tempo-limite do provedor
+/// ([`Provider::timeout`]).
+#[must_use]
+pub fn http_config(mut config: HttpConfig) -> HttpConfig {
+    config.read_timeout = config.read_timeout.max(LONGEST_REQUEST_TIMEOUT);
+    config
+}
+
 /// O cliente do provedor com o endereço oficial (ou o do servidor simulado, em build de debug).
+/// O `http` deve vir de [`http_config`].
 pub fn connect(
     provider: AiProvider,
     http: HttpClient,
@@ -218,6 +246,23 @@ pub fn connect_with_base_url(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn leitura_espera_o_tempo_limite_de_cada_provedor() {
+        let app = HttpConfig::for_version("9.9.9");
+        let config = http_config(app.clone());
+        for timeout in [
+            gemini::REQUEST_TIMEOUT,
+            openai::REQUEST_TIMEOUT,
+            anthropic::REQUEST_TIMEOUT,
+        ] {
+            assert!(config.read_timeout >= timeout, "{timeout:?}");
+        }
+        // O resto da configuração do app fica igual.
+        assert_eq!(config.connect_timeout, app.connect_timeout);
+        assert_eq!(config.request_timeout, app.request_timeout);
+        assert_eq!(config.user_agent, app.user_agent);
+    }
 
     #[test]
     fn ids_estaveis_e_gemini_padrao() {

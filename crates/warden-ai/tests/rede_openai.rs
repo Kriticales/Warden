@@ -24,7 +24,7 @@ use warden_ai::AiErrorCode;
 use warden_ai::conversation::AnswerVia;
 use warden_ai::engine::{Engine, Limits, NoObserver};
 use warden_ai::providers::openai::OpenAiClient;
-use warden_ai::providers::{AiProvider, ModelTier, Provider};
+use warden_ai::providers::{AiProvider, ModelTier, Provider, http_config};
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -39,7 +39,7 @@ async fn rede_openai_conversa_curta_com_o_modelo_mais_economico() {
         eprintln!("rede_openai: pulado (OPENAI_API_KEY ausente)");
         return;
     };
-    let http = HttpClient::new(HttpConfig::for_version("0.0.0")).unwrap();
+    let http = HttpClient::new(http_config(HttpConfig::for_version("0.0.0"))).unwrap();
     let client = OpenAiClient::new(http, SecretString::from(key)).unwrap();
     let choices = client.models().await.unwrap();
     let (model, tier) = choices.pick(ModelTier::Economical).expect("nenhum modelo");

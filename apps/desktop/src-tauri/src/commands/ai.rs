@@ -153,8 +153,10 @@ impl AiHub {
         if let Some(client) = http.as_ref() {
             return Ok(client.clone());
         }
-        let client = HttpClient::new(HttpConfig::for_version(env!("CARGO_PKG_VERSION")))
-            .map_err(|error| AppError::from_domain(&error))?;
+        let client = HttpClient::new(providers::http_config(HttpConfig::for_version(env!(
+            "CARGO_PKG_VERSION"
+        ))))
+        .map_err(|error| AppError::from_domain(&error))?;
         *http = Some(client.clone());
         Ok(client)
     }
@@ -496,8 +498,10 @@ impl GeminiKeyTester {
 #[async_trait]
 impl SecretTester for GeminiKeyTester {
     async fn test(&self, value: SecretString) -> Result<(), AppError> {
-        let http = HttpClient::new(HttpConfig::for_version(env!("CARGO_PKG_VERSION")))
-            .map_err(|error| AppError::from_domain(&error))?;
+        let http = HttpClient::new(providers::http_config(HttpConfig::for_version(env!(
+            "CARGO_PKG_VERSION"
+        ))))
+        .map_err(|error| AppError::from_domain(&error))?;
         let client = match &self.base_url {
             Some(base) => providers::connect_with_base_url(AiProvider::Gemini, http, base, value),
             None => providers::connect(AiProvider::Gemini, http, value),

@@ -171,9 +171,9 @@ impl AiKeyTester {
 impl crate::commands::secrets::SecretTester for AiKeyTester {
     async fn test(&self, value: secrecy::SecretString) -> Result<(), AppError> {
         use warden_ai::providers;
-        let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version(env!(
-            "CARGO_PKG_VERSION"
-        )))
+        let http = warden_http::HttpClient::new(providers::http_config(
+            warden_http::HttpConfig::for_version(env!("CARGO_PKG_VERSION")),
+        ))
         .map_err(|error| AppError::from_domain(&error))?;
         let client = match &self.base_url {
             Some(base) => providers::connect_with_base_url(self.provider, http, base, value),
