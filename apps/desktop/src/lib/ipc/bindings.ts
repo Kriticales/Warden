@@ -1256,7 +1256,13 @@ export type AiErrorCode =
  *  A conversa começou com outro provedor de IA, e a chave dele não está configurada
  *  (ADR-0060: a conversa fica no provedor em que começou).
  */
-"PROVIDER_KEY_MISSING";
+"PROVIDER_KEY_MISSING" | 
+/**
+ *  A chave do provedor não alcança nenhum dos modelos que a regra do Warden escolhe para
+ *  ele (D-16 e D-17: a OpenAI sem o par `gpt-N-luna`/`gpt-N-sol`, o Claude sem Sonnet nem
+ *  Opus). O Warden não chuta outro modelo.
+ */
+"PROVIDER_NO_MODEL";
 
 /**  Um arquivo escolhido no computador (o caminho fica no backend). */
 export type AiLocalPick = {

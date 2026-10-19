@@ -62,6 +62,10 @@ pub enum AiErrorCode {
     /// A conversa começou com outro provedor de IA, e a chave dele não está configurada
     /// (ADR-0060: a conversa fica no provedor em que começou).
     ProviderKeyMissing,
+    /// A chave do provedor não alcança nenhum dos modelos que a regra do Warden escolhe para
+    /// ele (D-16 e D-17: a OpenAI sem o par `gpt-N-luna`/`gpt-N-sol`, o Claude sem Sonnet nem
+    /// Opus). O Warden não chuta outro modelo.
+    ProviderNoModel,
 }
 
 /// Erro das funções desta crate.
@@ -175,6 +179,12 @@ pub enum Error {
         /// O provedor da conversa.
         provider: crate::providers::AiProvider,
     },
+    /// A chave do provedor não alcança nenhum modelo da regra dele.
+    #[error("a chave de {} não alcança nenhum dos modelos que o Warden usa com esse provedor", .provider.display_name())]
+    ProviderNoModel {
+        /// O provedor.
+        provider: crate::providers::AiProvider,
+    },
     /// Falha de rede, tempo esgotado ou cancelamento vindos do cliente HTTP.
     #[error(transparent)]
     Http(#[from] warden_http::Error),
@@ -226,6 +236,7 @@ impl DomainError for Error {
             Self::ProposalDecided { .. } => AiErrorCode::ProposalDecided,
             Self::ProposalStale { .. } => AiErrorCode::ProposalStale,
             Self::ProviderKeyMissing { .. } => AiErrorCode::ProviderKeyMissing,
+            Self::ProviderNoModel { .. } => AiErrorCode::ProviderNoModel,
             Self::Http(error) => return http_code(error),
             Self::Core(error) => return DomainCode::Core(core_code(error)),
             Self::Io { .. } => return DomainCode::Core(CoreErrorCode::Io),
@@ -261,7 +272,7 @@ impl DomainError for Error {
                 // Já sem a pasta do usuário: `ai/<pack>/<arquivo>`.
                 params.insert("path".to_owned(), path.display().to_string());
             }
-            Self::ProviderKeyMissing { provider } => {
+            Self::ProviderKeyMissing { provider } | Self::ProviderNoModel { provider } => {
                 params.insert("provider".to_owned(), provider.id().to_owned());
                 params.insert(
                     "providerName".to_owned(),
@@ -345,6 +356,15 @@ mod tests {
         assert_eq!(missing.params()["provider"], "openai");
         assert_eq!(missing.params()["providerName"], "OpenAI");
         assert!(!missing.retryable());
+        let no_model = Error::ProviderNoModel {
+            provider: crate::providers::AiProvider::Anthropic,
+        };
+        assert_eq!(
+            no_model.code(),
+            DomainCode::Domain(AiErrorCode::ProviderNoModel)
+        );
+        assert_eq!(no_model.params()["providerName"], "Claude");
+        assert!(!no_model.retryable());
         assert_eq!(
             serde_json::to_value(AiErrorCode::ProviderKeyMissing).unwrap(),
             "PROVIDER_KEY_MISSING"

@@ -243,6 +243,9 @@ export const config: WebdriverIO.Config = {
       WARDEN_API_BASE_GITHUB: `${mockServer.url}/github/api/`,
       // ✦ Diagnóstico com IA (D-04): o Gemini simulado de `mock-server/gemini.ts`.
       WARDEN_API_BASE_GEMINI: `${mockServer.url}/gemini/`,
+      // A OpenAI e o Claude simulados (D-16 e D-17): `mock-server/openai.ts` e `anthropic.ts`.
+      WARDEN_API_BASE_OPENAI: `${mockServer.url}/openai/`,
+      WARDEN_API_BASE_ANTHROPIC: `${mockServer.url}/anthropic/`,
       WARDEN_GIT_BASE_GITHUB: `${mockServer.url}/github/git/`,
       WARDEN_RAW_BASE_GITHUB: `${mockServer.url}/github/raw/`,
       // O link direto `https://…` vai para o mesmo caminho no servidor de fixtures (P1-11).

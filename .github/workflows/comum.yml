@@ -12,9 +12,11 @@
 #   4. `cargo xtask build-packwiz` com novas tentativas (o GitHub e o proxy do Go às vezes não
 #      respondem), `cargo xtask setup` e, quando pedido, `cargo xtask installer`.
 #
-# Segredos: só o `nightly.yml` passa `CURSEFORGE_API_KEY`, e só quando `env-file` é true. O
-# valor vai para um `.env` na raiz (ignorado pelo git), que é o que o `cargo xtask
-# test-network` lê, e o arquivo é apagado no fim, mesmo com falha. Nada imprime o valor.
+# Segredos: só o `nightly.yml` passa `CURSEFORGE_API_KEY` (obrigatória) e as chaves da IA
+# (`GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, opcionais: sem uma, o teste de rede
+# daquele provedor se declara pulado), e só quando `env-file` é true. Os valores vão para um
+# `.env` na raiz (ignorado pelo git), que é o que o `cargo xtask test-network` lê, e o arquivo é
+# apagado no fim, mesmo com falha. Nada imprime os valores.
 
 name: Job comum
 
@@ -50,7 +52,7 @@ on:
         type: boolean
         default: false
       env-file:
-        description: Grava `CURSEFORGE_API_KEY` num `.env` temporário (testes de rede).
+        description: Grava `CURSEFORGE_API_KEY` e as chaves da IA num `.env` temporário (testes de rede).
         type: boolean
         default: false
       ref:
@@ -67,6 +69,12 @@ on:
         default: ""
     secrets:
       CURSEFORGE_API_KEY:
+        required: false
+      GEMINI_API_KEY:
+        required: false
+      OPENAI_API_KEY:
+        required: false
+      ANTHROPIC_API_KEY:
         required: false
 
 permissions:
@@ -236,10 +244,13 @@ jobs:
         if: inputs.installer
         run: cargo xtask installer
 
-      - name: Chave da CurseForge num .env temporário
+      - name: Chaves da CurseForge e da IA num .env temporário
         if: inputs.env-file
         env:
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ -z "$CURSEFORGE_API_KEY" ]; then
             echo "::error::O segredo CURSEFORGE_API_KEY não chegou ao job."
@@ -247,6 +258,16 @@ jobs:
           fi
           umask 077
           printf "CURSEFORGE_API_KEY='%s'\n" "$CURSEFORGE_API_KEY" > .env
+          # As da IA são opcionais: sem uma, o `rede_*` daquele provedor se declara pulado. Só o
+          # nome de cada uma que faltou vai para o log, nunca o valor.
+          for name in GEMINI_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY; do
+            value="${!name}"
+            if [ -n "$value" ]; then
+              printf "%s='%s'\n" "$name" "$value" >> .env
+            else
+              echo "::notice::O segredo $name não chegou ao job; o teste de rede dele será pulado."
+            fi
+          done
 
       - name: Rodar
         run: ${{ inputs.run }}

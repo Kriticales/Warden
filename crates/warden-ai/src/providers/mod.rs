@@ -27,7 +27,7 @@ pub use chat::{
     ToolDecl, ToolResult,
 };
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 /// Um provedor de IA.
 #[derive(
@@ -90,8 +90,8 @@ impl AiProvider {
     pub fn tier_of(self, model: &str) -> Option<ModelTier> {
         match self {
             Self::Gemini => gemini::models::tier_of(model),
-            // A D-16 e a D-17 trocam estas linhas pela regra de cada uma.
-            Self::Openai | Self::Anthropic => None,
+            Self::Openai => openai::models::tier_of(model),
+            Self::Anthropic => anthropic::models::tier_of(model),
         }
     }
 }
@@ -174,7 +174,7 @@ pub trait Provider: Send + Sync {
     }
 
     /// Os modelos que a chave alcança, pela regra do provedor. Chave recusada vira
-    /// [`Error::KeyInvalid`].
+    /// [`crate::Error::KeyInvalid`].
     async fn models(&self) -> Result<ModelChoices>;
 
     /// O resultado de uma ferramenta exatamente como ele vai no pedido (o bloco "Enviado à
@@ -190,7 +190,8 @@ pub fn connect(
 ) -> Result<Box<dyn Provider>> {
     match provider {
         AiProvider::Gemini => Ok(Box::new(gemini::GeminiClient::new(http, key)?)),
-        AiProvider::Openai | AiProvider::Anthropic => Err(not_yet(provider)),
+        AiProvider::Openai => Ok(Box::new(openai::OpenAiClient::new(http, key)?)),
+        AiProvider::Anthropic => Ok(Box::new(anthropic::AnthropicClient::new(http, key)?)),
     }
 }
 
@@ -205,16 +206,13 @@ pub fn connect_with_base_url(
         AiProvider::Gemini => Ok(Box::new(gemini::GeminiClient::with_base_url(
             http, base, key,
         )?)),
-        AiProvider::Openai | AiProvider::Anthropic => Err(not_yet(provider)),
+        AiProvider::Openai => Ok(Box::new(openai::OpenAiClient::with_base_url(
+            http, base, key,
+        )?)),
+        AiProvider::Anthropic => Ok(Box::new(anthropic::AnthropicClient::with_base_url(
+            http, base, key,
+        )?)),
     }
-}
-
-/// O tradutor ainda não existe nesta versão (a D-16 e a D-17 tiram estes casos).
-fn not_yet(provider: AiProvider) -> Error {
-    Error::Internal(format!(
-        "o provedor {} ainda não tem tradutor nesta versão",
-        provider.display_name()
-    ))
 }
 
 #[cfg(test)]
@@ -243,6 +241,15 @@ mod tests {
             Some(ModelTier::Economical)
         );
         assert_eq!(AiProvider::Openai.tier_of("gemini-3.5-flash-lite"), None);
+        assert_eq!(
+            AiProvider::Openai.tier_of("gpt-6-sol"),
+            Some(ModelTier::Careful)
+        );
+        assert_eq!(
+            AiProvider::Anthropic.tier_of("claude-sonnet-5-5"),
+            Some(ModelTier::Economical)
+        );
+        assert_eq!(AiProvider::Anthropic.tier_of("gpt-6-sol"), None);
     }
 
     #[test]
@@ -260,13 +267,19 @@ mod tests {
     }
 
     #[test]
-    fn provedor_sem_tradutor_nao_conecta() {
+    fn cada_provedor_conecta_com_o_seu_tradutor() {
         let http = HttpClient::new(warden_http::HttpConfig::for_version("9.9.9")).unwrap();
-        for provider in [AiProvider::Openai, AiProvider::Anthropic] {
-            let error = connect(provider, http.clone(), SecretString::from("x"))
-                .err()
-                .unwrap();
-            assert!(matches!(error, Error::Internal(_)), "{error}");
+        for provider in AiProvider::ALL {
+            let client = connect(provider, http.clone(), SecretString::from("x")).unwrap();
+            assert_eq!(client.id(), provider);
+            let client = connect_with_base_url(
+                provider,
+                http.clone(),
+                "http://127.0.0.1:9/",
+                SecretString::from("x"),
+            )
+            .unwrap();
+            assert_eq!(client.id(), provider);
         }
     }
 }

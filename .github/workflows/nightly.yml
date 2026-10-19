@@ -1,8 +1,9 @@
 # Execução noturna do Warden (F0-02; ADR-0022; QUALITY §4.1 e §12). Roda na `main` toda noite
 # e manualmente (Actions → Noturno → Run workflow).
 #
-#   - rede: testes contra as APIs reais (`cargo xtask test-network`), com a chave da CurseForge
-#     dos segredos do repositório. É o único workflow que recebe segredos;
+#   - rede: testes contra as APIs reais (`cargo xtask test-network`), com a chave da CurseForge e
+#     as da IA (Gemini, OpenAI, Anthropic) dos segredos do repositório. É o único workflow que
+#     recebe segredos;
 #   - windows: check, cofre real e instalador do `windows.yml` (decisão D9);
 #   - conformidade no Windows: testes `conformance_*` com o packwiz-installer real e o Java 21;
 #   - E2E no Windows, assim que o harness da F0-06 existir;
@@ -43,6 +44,10 @@ jobs:
       run: cargo xtask test-network
     secrets:
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+      # IA (ADR-0060): `rede_gemini`, `rede_openai` e `rede_anthropic`, cada um pulado sem a sua.
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
   windows:
     name: Windows
