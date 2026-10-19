@@ -322,7 +322,9 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
     await step('buscar pelo teclado', async () => {
       const field = $('input[type="search"]');
       await field.click();
-      await browser.keys('sodium mod'.split(''));
+      // Digitado no campo (`addValue`): o `browser.keys` aperta todas as teclas de uma vez (todas
+      // para baixo, depois todas para cima), e o texto chegava sem o segundo "m" ("sodium od").
+      await field.addValue('sodium mod');
       // O início também lista o Sodium e o Mod Só da CurseForge, e a lista é redesenhada do zero
       // a cada busca nova: só vale a lista da busca com o texto inteiro, dita pelo estado do
       // campo ("N resultados para “sodium mod”"). Antes disso, o Tab cairia numa linha que some.
