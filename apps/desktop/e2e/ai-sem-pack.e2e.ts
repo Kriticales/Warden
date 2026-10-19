@@ -1,0 +1,241 @@
+/**
+ * ✦ Analisar um log, a conversa com a IA sem pack, no app real (D-19; SPEC T14 item 8), com o
+ * mclo.gs e o Gemini simulados (`mock-server/paste.ts` e `mock-server/gemini.ts`):
+ *
+ * - CA-T14-25: Meus packs abre "Analisar um log"; um link de outro site e o do hastebin mostram
+ *   as frases de recusa, sem conversa nova;
+ * - CA-T14-26 e CA-T14-27: colar um link do mclo.gs baixa só o texto dele; o consentimento mostra
+ *   o texto já sem dados pessoais; cancelar não manda nada ao Gemini; o link não vai à IA;
+ * - CA-T14-29: depois de **✦ Começar conversa**, a resposta do Gemini simulado aparece; a conversa
+ *   fica em `ai/_sem-pack/` nos dados do Warden, aparece em "Conversas sem pack" e reabre igual
+ *   depois de reiniciar o app.
+ *
+ * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
+ */
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { $, browser, expect } from '@wdio/globals';
+
+import { seriousViolationSummaries } from './axe';
+import { GEMINI_E2E_KEY } from './mock-server/gemini';
+import { MCLOGS_E2E_ID } from './mock-server/paste';
+import { dismissToasts } from './toasts';
+
+const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
+
+function env(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} ausente: rode pelo wdio.conf.ts`);
+  return value;
+}
+
+const DATA_ROOT = env('WARDEN_E2E_DATA_ROOT');
+const MOCK_URL = env('WARDEN_E2E_MOCK_URL');
+const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
+const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
+/** Onde o cofre de teste (arquivo) guarda a chave do Gemini (`WARDEN_SECRET_BACKEND`). */
+const KEY_FILE = join(DATA_ROOT, 'cofre-de-teste', 'gemini-api-key');
+/** As conversas sem pack, nos dados do Warden. */
+const STANDALONE_DIR = join(DATA_ROOT, 'data', 'ai', '_sem-pack');
+const LINK = `https://mclo.gs/${MCLOGS_E2E_ID}`;
+const TITLE = 'O jogo travou num NoSuchMethodError.';
+
+interface GeminiState {
+  generate: string[];
+  countTokens: string[];
+  refusals: string[];
+}
+
+async function gemini(): Promise<GeminiState> {
+  const response = await fetch(`${MOCK_URL}/__gemini`);
+  return (await response.json()) as GeminiState;
+}
+
+/** Os caminhos pedidos ao servidor de fixtures desde o último `/__reset`. */
+async function requests(): Promise<string[]> {
+  const response = await fetch(`${MOCK_URL}/__requests`);
+  return (await response.json()) as string[];
+}
+
+async function screenshot(name: string): Promise<void> {
+  if (!SCREENSHOTS) return;
+  mkdirSync(SCREENSHOTS, { recursive: true });
+  await dismissToasts();
+  await browser.saveScreenshot(join(SCREENSHOTS, `${name}.png`));
+}
+
+async function waitHeading(text: string, timeout = 60_000): Promise<void> {
+  await $(`h1*=${text}`).waitForDisplayed({ timeout });
+}
+
+/** Clica depois de fechar os avisos e de o alvo parar de mexer. */
+async function clickStable(element: ReturnType<typeof $>): Promise<void> {
+  await dismissToasts();
+  await element.waitForClickable({ timeout: 30_000 });
+  await element.waitForStable({ timeout: 10_000 });
+  await element.click();
+}
+
+/** Texto completo de um elemento (inclusive o que está fora da tela ou recolhido). */
+async function fullText(element: ReturnType<typeof $>): Promise<string> {
+  await element.waitForExist({ timeout: 30_000 });
+  const text = await element.getProperty('textContent');
+  return typeof text === 'string' ? text : '';
+}
+
+/** Escreve o link no campo (apaga o que havia) e espera o valor valer. */
+async function pasteLink(url: string): Promise<void> {
+  const field = $('input[type="url"]');
+  await field.waitForEnabled({ timeout: 30_000 });
+  await field.clearValue();
+  await field.setValue(url);
+  await browser.waitUntil(async () => (await field.getValue()) === url, {
+    timeout: 10_000,
+    timeoutMsg: 'o link não ficou no campo',
+  });
+}
+
+function beginButton() {
+  return $('main').$('button=Começar conversa');
+}
+
+async function openConsent(): Promise<ReturnType<typeof $>> {
+  await clickStable(beginButton());
+  const dialog = $('[role="dialog"]');
+  await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+  return dialog;
+}
+
+function standaloneRows() {
+  return $('section[aria-labelledby="ia-sem-pack-conversas"]').$$('tbody tr');
+}
+
+describe('✦ Analisar um log sem pack (D-19)', function () {
+  before(async function () {
+    mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
+    mkdirSync(join(DATA_ROOT, 'cofre-de-teste'), { recursive: true });
+    writeFileSync(KEY_FILE, GEMINI_E2E_KEY);
+    rmSync(REGISTRY_FILE, { force: true });
+    rmSync(STANDALONE_DIR, { recursive: true, force: true });
+    writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
+    await fetch(`${MOCK_URL}/__gemini/reset`, { method: 'POST' });
+    await browser.reloadSession();
+    await browser.setWindowSize(1366, 900);
+  });
+
+  after(() => {
+    rmSync(KEY_FILE, { force: true });
+    rmSync(SETTINGS_FILE, { force: true });
+    rmSync(REGISTRY_FILE, { force: true });
+    rmSync(STANDALONE_DIR, { recursive: true, force: true });
+  });
+
+  it('CA-T14-25: Meus packs abre "Analisar um log"; outro site e o hastebin são recusados', async () => {
+    await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
+    await clickStable($('main').$('a*=Analisar um log'));
+    await waitHeading('Analisar um log');
+    await $('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
+    await $('p=Nenhuma conversa sem pack ainda.').waitForDisplayed({ timeout: 30_000 });
+
+    await fetch(`${MOCK_URL}/__reset`);
+    await pasteLink('https://example.com/abc123');
+    await clickStable(beginButton());
+    await $(
+      'div*=O Warden só abre links do mclo.gs e do pastebin. Escolha o arquivo do log ou cole um link de um desses sites.',
+    ).waitForDisplayed({ timeout: 30_000 });
+    await pasteLink('https://hastebin.com/abcdef');
+    await clickStable(beginButton());
+    await $('div*=O hastebin exige uma chave para ler os textos').waitForDisplayed({
+      timeout: 30_000,
+    });
+    expect(await $('[role="dialog"]').isExisting()).toBe(false);
+    // Recusado sem rede: nenhum pedido ao site do link nem à IA.
+    expect((await requests()).filter((path) => !path.includes('/gemini/'))).toEqual([]);
+    expect((await gemini()).generate).toEqual([]);
+    expect(await seriousViolationSummaries()).toEqual([]);
+    await screenshot('d19-01-recusa');
+  });
+
+  it('CA-T14-26 e CA-T14-27: o link baixa só o texto, sem dados pessoais; cancelar não manda nada', async () => {
+    await fetch(`${MOCK_URL}/__reset`);
+    await pasteLink(LINK);
+    const dialog = await openConsent();
+    const text = await fullText(dialog.$('pre[aria-label="Texto inicial que será enviado"]'));
+    expect(text).toContain('NoSuchMethodError');
+    expect(text).toContain('link do mclo.gs');
+    expect(text).not.toContain('Maria');
+    expect(text).not.toContain('192.168.0.42');
+    expect(text).not.toContain(MCLOGS_E2E_ID);
+    expect((await requests()).filter((path) => path.includes('/mclogs/'))).toEqual([
+      `GET /mclogs/1/raw/${MCLOGS_E2E_ID}`,
+    ]);
+    expect(await seriousViolationSummaries()).toEqual([]);
+    await screenshot('d19-02-consentimento');
+
+    await clickStable(dialog.$('button=Cancelar'));
+    await dialog.waitForDisplayed({ reverse: true, timeout: 10_000 });
+    const state = await gemini();
+    expect(state.generate).toEqual([]);
+    for (const body of state.countTokens) {
+      expect(body).not.toContain('NoSuchMethodError');
+    }
+    await browser.waitUntil(async () => await beginButton().isFocused(), {
+      timeout: 10_000,
+      timeoutMsg: 'o foco não voltou para Começar conversa',
+    });
+  });
+
+  it('CA-T14-29: a resposta do Gemini chega; a conversa fica guardada e reabre depois de reiniciar', async () => {
+    const dialog = await openConsent();
+    const shown = await fullText(dialog.$('pre[aria-label="Texto inicial que será enviado"]'));
+    await clickStable(dialog.$('button=Começar conversa'));
+    await waitHeading(TITLE);
+    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
+
+    const state = await gemini();
+    expect(state.refusals).toEqual([]);
+    expect(state.generate.length).toBe(2);
+    const first = JSON.parse(state.generate[0] ?? '{}') as {
+      contents: { parts: { text: string }[] }[];
+    };
+    expect(first.contents[0]?.parts[0]?.text).toBe(shown);
+    const everything = state.generate.join('\n');
+    expect(everything).not.toContain('Maria');
+    expect(everything).not.toContain('192.168.0.42');
+    expect(everything).not.toContain(MCLOGS_E2E_ID);
+    await expect($('details.toolcall*=no log do link')).toBeDisplayed();
+    await expect($(`li.claim*=${TITLE}`).$('button.evid')).toHaveText(
+      expect.stringContaining('log, linha 3'),
+    );
+    // Sem pack: nem propostas nem "Encontrar o mod culpado".
+    expect(await $('a=Encontrar o mod culpado').isExisting()).toBe(false);
+    expect(await seriousViolationSummaries()).toEqual([]);
+    await screenshot('d19-03-conversa');
+
+    // Guardada nos dados do Warden, fora de qualquer pack.
+    await browser.waitUntil(
+      () =>
+        existsSync(STANDALONE_DIR) &&
+        readdirSync(STANDALONE_DIR).some((name) => name.endsWith('.json')),
+      { timeout: 10_000, timeoutMsg: 'a conversa não foi gravada em ai/_sem-pack/' },
+    );
+
+    // "Reiniciar o app" e reabrir pela lista.
+    await browser.reloadSession();
+    await browser.setWindowSize(1366, 900);
+    await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
+    await clickStable($('main').$('a*=Analisar um log'));
+    await waitHeading('Analisar um log');
+    await browser.waitUntil(async () => (await standaloneRows().length) === 1, {
+      timeout: 30_000,
+      timeoutMsg: 'a conversa não apareceu em Conversas sem pack',
+    });
+    await expect($('td*=Link do mclo.gs')).toBeDisplayed();
+    await clickStable($('section[aria-labelledby="ia-sem-pack-conversas"]').$('a=Continuar'));
+    await waitHeading(TITLE);
+    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 30_000 });
+    expect((await gemini()).generate.length).toBe(2);
+    await screenshot('d19-04-reaberta');
+  });
+});

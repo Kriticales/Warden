@@ -197,10 +197,48 @@ function proposalsReply(step: number): Json {
   ]);
 }
 
+/** O texto inicial da conversa sem pack (D-19) começa a parte do log com isto. */
+const STANDALONE_MARKER = 'Sem pack:';
+
+/** Conversa sem pack (D-19): a IA procura o erro no log do link e responde citando a linha. */
+function standaloneReply(contents: unknown[], step: number): Json {
+  if (step === 0) {
+    return calls([['search_log', { session_id: 'link', query: 'NoSuchMethodError' }]]);
+  }
+  const last = contents.at(-1);
+  let found: { id: string; texto: string } | undefined;
+  for (const part of parts(last)) {
+    const response = (part.functionResponse as Json | undefined)?.response as Json | undefined;
+    const items = response?.itens as { id: string; texto: string }[] | undefined;
+    found ??= items?.find((item) => item.id.startsWith('log:link/'));
+  }
+  return calls([
+    [
+      'responder',
+      {
+        resumo: 'Um mod chama um método que não existe nesta versão.',
+        semConclusao: false,
+        propostas: [],
+        achados: [
+          {
+            afirmacao: 'O jogo travou num NoSuchMethodError.',
+            mods: [],
+            confianca: 'media',
+            evidencias: [{ id: found?.id ?? 'log:link/link', citacao: found?.texto ?? '' }],
+          },
+        ],
+      },
+    ],
+  ]);
+}
+
 function reply(contents: unknown[]): Json {
   const current = turn(contents);
   if (current.question.includes(PROPOSALS_MARKER)) {
     return proposalsReply(current.step);
+  }
+  if (current.question.includes(STANDALONE_MARKER)) {
+    return standaloneReply(contents, current.step);
   }
   const last = contents.at(-1);
   const isQuestion = role(last) === 'user' && parts(last).some((part) => 'text' in part);

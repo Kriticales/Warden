@@ -14,6 +14,7 @@ import { geminiState, resetGemini, serveGemini } from './gemini';
 import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 import { modpackReply } from './modpacks';
+import { servePaste } from './paste';
 import { servePlayer } from './player';
 // Itens inventados do pack grande dos E2E de desempenho (A-04).
 import { perfModrinthItems } from '../perf/modrinth';
@@ -321,6 +322,10 @@ export async function startMockServer(): Promise<MockServer> {
     }
     // "Testar como o jogador recebe" (L-07): os jars do instalador e os mods do pack de teste.
     if (servePlayer(path, response)) {
+      return;
+    }
+    // Conversa sem pack (D-19): o texto puro do mclo.gs e do pastebin simulados.
+    if (servePaste(path, response)) {
       return;
     }
     if (request.method === 'POST' && path.split('?')[0] === '/modrinth/v2/version_files') {
