@@ -6,7 +6,8 @@
 //!   [`openai`] (D-16) e [`anthropic`] (D-17).
 //! - [`connect`]: o cliente do provedor com a chave do usuário.
 //! - [`ModelTier`] e [`ModelChoices`]: "Mais econômico" e "Análise mais cuidadosa", escolhidos
-//!   por cada provedor pela lista de modelos da conta (nenhum nome fixo no código, ADR-0055).
+//!   por cada provedor pela lista de modelos da conta (nenhum nome fixo no código, ADR-0055), e
+//!   o modelo mais leve para quando a cota diária do escolhido acaba (só o Gemini tem, ADR-0060).
 
 pub mod anthropic;
 pub mod chat;
@@ -101,7 +102,8 @@ impl AiProvider {
 )]
 #[serde(rename_all = "camelCase")]
 pub enum ModelTier {
-    /// Padrão: o modelo estável mais econômico do provedor (no Gemini, o Flash-Lite mais novo).
+    /// Padrão: o modelo estável mais econômico do provedor. No Gemini, os dois níveis usam o
+    /// modelo mais forte do plano gratuito, o Flash mais novo (decisão do dono, ADR-0060).
     #[default]
     Economical,
     /// "Análise mais cuidadosa": o modelo estável mais capaz da faixa barata (no Gemini, o
@@ -117,6 +119,11 @@ pub struct ModelChoices {
     pub economical: Option<String>,
     /// O modelo do nível "Análise mais cuidadosa".
     pub careful: Option<String>,
+    /// O modelo mais leve, que o laço usa sozinho numa pergunta quando a cota diária do modelo
+    /// da conversa acaba (`None`: o provedor não troca; no Gemini, o Flash-Lite mais novo).
+    #[serde(default)]
+    #[specta(optional)]
+    pub lighter: Option<String>,
 }
 
 impl ModelChoices {
@@ -243,6 +250,7 @@ mod tests {
         let only_flash = ModelChoices {
             economical: None,
             careful: Some("gemini-3.8-flash".into()),
+            lighter: None,
         };
         assert_eq!(
             only_flash.pick(ModelTier::Economical),

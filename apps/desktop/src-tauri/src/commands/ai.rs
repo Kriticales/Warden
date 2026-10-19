@@ -108,6 +108,8 @@ struct Preview {
     note: Option<String>,
     provider: AiProvider,
     model: String,
+    /// O modelo mais leve para quando a cota diária de `model` acabar.
+    fallback_model: Option<String>,
     initial: initial::Initial,
     snapshot: PackSnapshot,
     created: u64,
@@ -464,8 +466,8 @@ async fn models_impl(state: &AppState, refresh: bool) -> Result<ModelChoices, Ap
     Ok(models)
 }
 
-/// Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash-Lite e o Flash
-/// estáveis mais novos).
+/// Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash estável mais novo nas
+/// duas opções e o Flash-Lite estável mais novo como o mais leve).
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn ai_models_get(
@@ -810,6 +812,7 @@ pub(crate) async fn preview_impl(
         .pick(settings.tier_of(provider))
         .ok_or_else(|| domain(&warden_ai::Error::NoModel))?;
     let model = model.to_owned();
+    let fallback_model = models.lighter.clone().filter(|lighter| *lighter != model);
     let subject = resolve_subject(state, pack_id, &request.source)?;
     let note = request
         .note
@@ -858,6 +861,7 @@ pub(crate) async fn preview_impl(
             note,
             provider,
             model,
+            fallback_model,
             initial: built,
             snapshot,
             created: now_ms(),
@@ -904,6 +908,7 @@ pub(crate) fn start_impl(
         preview.note,
         preview.snapshot,
     );
+    conversation.fallback_model = preview.fallback_model;
     push_question(&mut conversation, preview.initial.text);
     let store = store(state, pack_id);
     if let Some(log) = &preview.initial.local_log {

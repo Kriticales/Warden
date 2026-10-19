@@ -967,3 +967,87 @@ async fn ca_t14_21_conversa_fica_no_provedor_em_que_comecou() {
     assert_eq!(code_of(&error)["domain"], "secrets");
     assert_eq!(setup.seen.lock().unwrap().len(), before);
 }
+
+#[tokio::test]
+async fn gemini_usa_o_flash_e_troca_para_o_flash_lite_quando_a_cota_diaria_acaba() {
+    // ADR-0060, complemento de 19/10/2026: as duas opções do Gemini usam o Flash estável mais
+    // novo (o mais forte do plano gratuito); a cota diária dele acabando, a pergunta segue no
+    // Flash-Lite estável mais novo e a conversa guarda a troca para a tela avisar.
+    let setup = setup(Box::new(|_, _| no_conclusion())).await;
+    Mock::given(wiremock::matchers::method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "models": [
+            { "name": "models/gemini-9.1-flash-lite", "supportedGenerationMethods": ["generateContent"] },
+            { "name": "models/gemini-9.1-flash", "supportedGenerationMethods": ["generateContent"] },
+            { "name": "models/gemini-9.2-pro", "supportedGenerationMethods": ["generateContent"] }
+        ]})))
+        .with_priority(1)
+        .mount(&setup.server)
+        .await;
+    Mock::given(wiremock::matchers::path_regex(
+        r"gemini-9\.1-flash:generateContent$",
+    ))
+    .respond_with(ResponseTemplate::new(429).set_body_json(json!({ "error": {
+        "code": 429, "status": "RESOURCE_EXHAUSTED", "message": "Quota exceeded",
+        "details": [{ "@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [
+            { "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier" }
+        ]}]
+    }})))
+    .with_priority(1)
+    .mount(&setup.server)
+    .await;
+
+    for tier in [ModelTier::Economical, ModelTier::Careful] {
+        settings_set_impl(&setup.state, tier).unwrap();
+        let preview = preview_impl(
+            &setup.state,
+            setup.pack,
+            AiPreviewRequest {
+                symptom: AiSymptom::Other,
+                source: AiSource::PackOnly,
+                note: None,
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!(preview.model, "gemini-9.1-flash", "{tier:?}");
+    }
+    let preview = preview_impl(
+        &setup.state,
+        setup.pack,
+        AiPreviewRequest {
+            symptom: AiSymptom::Other,
+            source: AiSource::PackOnly,
+            note: None,
+        },
+    )
+    .await
+    .unwrap();
+    let id = start_impl(
+        &setup.state,
+        setup.pack,
+        &preview.preview_id,
+        AiPermissions::default(),
+    )
+    .unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+    let view = get_impl(&setup.state, setup.pack, &id).await.unwrap();
+    assert_eq!(view.model, "gemini-9.1-flash");
+    assert!(view.turns[0].answer.is_some());
+    assert_eq!(
+        view.turns[0].fallback_model.as_deref(),
+        Some("gemini-9.1-flash-lite")
+    );
+    // Só a requisição com o Flash-Lite chegou ao roteiro (a do Flash recebeu o 429).
+    let lite: Vec<String> = setup
+        .seen
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(url, _)| url.ends_with(":generateContent"))
+        .map(|(url, _)| url.clone())
+        .collect();
+    assert_eq!(lite.len(), 1);
+    assert!(lite[0].contains("gemini-9.1-flash-lite:"), "{lite:?}");
+}

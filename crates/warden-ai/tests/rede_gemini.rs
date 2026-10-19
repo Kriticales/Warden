@@ -60,6 +60,7 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
     };
     let mut conversation = support::conversation(AiPermissions::default());
     conversation.model = model.to_owned();
+    conversation.fallback_model = choices.lighter.clone();
     let result = engine
         .ask(
             &mut conversation,
