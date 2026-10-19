@@ -75,8 +75,8 @@ export const commands = {
 	/**  Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas. */
 	aiProviderSet: (provider: AiProvider) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_provider_set", { provider })),
 	/**
-	 *  Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash-Lite e o Flash
-	 *  estáveis mais novos).
+	 *  Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash estável mais novo nas
+	 *  duas opções e o Flash-Lite estável mais novo como o mais leve).
 	 */
 	aiModelsGet: (refresh: boolean) => typedError<ModelChoices, AppError>(__TAURI_INVOKE("ai_models_get", { refresh })),
 	/**  As sessões do pack que dá para analisar. */
@@ -2639,6 +2639,11 @@ export type ConversationTurn = {
 	answer: FinalAnswer | null,
 	/**  O erro que interrompeu (a conversa continua guardada). */
 	failure: TurnFailure | null,
+	/**
+	 *  O modelo mais leve que respondeu esta pergunta porque a cota diária do modelo da conversa
+	 *  acabou no meio dela (a tela avisa; ADR-0060, complemento de 19/10/2026).
+	 */
+	fallbackModel?: string | null,
 };
 
 /**  Resultado de "Copiar para defaultconfigs/". */
@@ -5967,11 +5972,19 @@ export type ModelChoices = {
 	economical: string | null,
 	/**  O modelo do nível "Análise mais cuidadosa". */
 	careful: string | null,
+	/**
+	 *  O modelo mais leve, que o laço usa sozinho numa pergunta quando a cota diária do modelo
+	 *  da conversa acaba (`None`: o provedor não troca; no Gemini, o Flash-Lite mais novo).
+	 */
+	lighter?: string | null,
 };
 
 /**  A escolha em Configurações, por provedor. */
 export type ModelTier = 
-/**  Padrão: o modelo estável mais econômico do provedor (no Gemini, o Flash-Lite mais novo). */
+/**
+ *  Padrão: o modelo estável mais econômico do provedor. No Gemini, os dois níveis usam o
+ *  modelo mais forte do plano gratuito, o Flash mais novo (decisão do dono, ADR-0060).
+ */
 "economical" | 
 /**
  *  "Análise mais cuidadosa": o modelo estável mais capaz da faixa barata (no Gemini, o
