@@ -96,6 +96,15 @@ async function pasteLink(url: string): Promise<void> {
   });
 }
 
+/** Espera o aviso de erro da página dizer `text`. */
+async function waitAlert(text: string): Promise<void> {
+  const alert = $('main [role="alert"]');
+  await browser.waitUntil(async () => (await fullText(alert)).includes(text), {
+    timeout: 30_000,
+    timeoutMsg: `o aviso "${text}" não apareceu`,
+  });
+}
+
 function beginButton() {
   return $('main').$('button=Começar conversa');
 }
@@ -141,14 +150,12 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     await fetch(`${MOCK_URL}/__reset`);
     await pasteLink('https://example.com/abc123');
     await clickStable(beginButton());
-    await $(
-      'div*=O Warden só abre links do mclo.gs e do pastebin. Escolha o arquivo do log ou cole um link de um desses sites.',
-    ).waitForDisplayed({ timeout: 30_000 });
+    await waitAlert(
+      'O Warden só abre links do mclo.gs e do pastebin. Escolha o arquivo do log ou cole um link de um desses sites.',
+    );
     await pasteLink('https://hastebin.com/abcdef');
     await clickStable(beginButton());
-    await $('div*=O hastebin exige uma chave para ler os textos').waitForDisplayed({
-      timeout: 30_000,
-    });
+    await waitAlert('O hastebin exige uma chave para ler os textos');
     expect(await $('[role="dialog"]').isExisting()).toBe(false);
     // Recusado sem rede: nenhum pedido ao site do link nem à IA.
     expect((await requests()).filter((path) => !path.includes('/gemini/'))).toEqual([]);
