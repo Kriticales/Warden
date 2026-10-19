@@ -54,7 +54,7 @@ Faça na ordem. Em cada passo, escreva em **Deu certo?** "sim" ou "não" e, se a
 
     Deu certo? (sim/não e o que aconteceu):
 
-11. **Publicar versão.** Na mesma janela, clique **Publicar versão 1.0.0**. Em **Primeira publicação deste pack**, deixe o nome do repositório sugerido, escolha **Público** e clique **Criar repositório e continuar**. Leia os **Avisos**. Se aparecer **A versão 1.0.0 não foi testada.**, clique **Testar agora**, feche o jogo pelo menu dele quando abrir e volte a **Publicar versão 1.0.0** pelo **Histórico**: o aviso tem que ter sumido. Clique **Publicar**.
+11. **Publicar versão.** Na mesma janela, clique **Publicar versão 1.0.0**. Em **Primeira publicação deste pack**, deixe o nome do repositório sugerido, escolha **Público** e clique **Criar repositório e continuar**. Leia os **Avisos**. Se aparecer **A versão 1.0.0 não foi testada.**, clique **Testar agora**. Na tela do teste, clique **Testar de novo**, feche o jogo pelo menu dele quando abrir e volte a **Publicar versão 1.0.0** pelo **Histórico**: o aviso tem que ter sumido. Clique **Publicar**.
 
     Deu certo? (sim/não e o que aconteceu):
 
