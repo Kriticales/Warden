@@ -11,6 +11,8 @@ import { extname, join, normalize, sep } from 'node:path';
 
 import { CF_IMAGE_PREFIX, curseforgeImage, curseforgeReply } from './curseforge';
 import { geminiState, resetGemini, serveGemini } from './gemini';
+import { openaiState, resetOpenai, serveOpenai } from './openai';
+import { anthropicState, resetAnthropic, serveAnthropic } from './anthropic';
 import { githubState, resetGithub, serveGithub } from './github';
 import { DIRECT_PATH, directJar, sha512, sodiumJar } from './jars';
 import { modpackReply } from './modpacks';
@@ -281,6 +283,29 @@ export async function startMockServer(): Promise<MockServer> {
       response.writeHead(204).end();
       return;
     }
+    // A OpenAI e o Claude simulados (D-16 e D-17), como o Gemini.
+    if (path === '/__openai') {
+      response
+        .writeHead(200, { 'content-type': 'application/json' })
+        .end(JSON.stringify(openaiState()));
+      return;
+    }
+    if (path === '/__openai/reset' && request.method === 'POST') {
+      resetOpenai();
+      response.writeHead(204).end();
+      return;
+    }
+    if (path === '/__anthropic') {
+      response
+        .writeHead(200, { 'content-type': 'application/json' })
+        .end(JSON.stringify(anthropicState()));
+      return;
+    }
+    if (path === '/__anthropic/reset' && request.method === 'POST') {
+      resetAnthropic();
+      response.writeHead(204).end();
+      return;
+    }
     if (path === '/__reset') {
       requests.length = 0;
       response.writeHead(204).end();
@@ -317,6 +342,14 @@ export async function startMockServer(): Promise<MockServer> {
     }
     if (path.startsWith('/gemini/')) {
       serveGemini(request, response, path);
+      return;
+    }
+    if (path.startsWith('/openai/')) {
+      serveOpenai(request, response, path);
+      return;
+    }
+    if (path.startsWith('/anthropic/')) {
+      serveAnthropic(request, response, path);
       return;
     }
     // "Testar como o jogador recebe" (L-07): os jars do instalador e os mods do pack de teste.
