@@ -23,6 +23,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolations } from './axe';
 import { dismissToasts } from './toasts';
 import { openOrImport } from './open-or-import';
+import { stopGame } from './steps';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
 const HAS_JAVA = process.env.WARDEN_E2E_HAS_JAVA === '1';
@@ -136,11 +137,7 @@ async function playAndStop(changes: () => void): Promise<void> {
     timeoutMsg: 'o console não mostrou o jogo simulado',
   });
   changes();
-  await $('main').$('button=Parar jogo').click();
-  const dialog = $('[role="alertdialog"]');
-  await dialog.waitForDisplayed();
-  await dialog.$('button=Parar jogo').click();
-  await waitHeading('Encerrado por você', 15_000);
+  await stopGame();
 }
 
 describe('O que mudou durante o teste (C-03; T15)', function () {
