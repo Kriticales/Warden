@@ -43,6 +43,17 @@ export function modelFor(models: ModelChoices | undefined, tier: ModelTier): str
     : (models.economical ?? models.careful);
 }
 
+/**
+ * No Gemini, se o modelo da conversa é o mais forte do plano gratuito (o Flash), com o mais leve
+ * para a troca na cota diária (ADR-0060, complemento de 19/10/2026). Sem o Flash na conta, as
+ * duas opções usam o mais leve e não há troca (`lighter` vazio ou igual ao modelo). Sem a lista
+ * de modelos ainda, vale a regra comum: o Flash.
+ */
+export function usesStrongest(models: ModelChoices | undefined, model: string): boolean {
+  if (!models) return true;
+  return models.lighter != null && models.lighter !== model;
+}
+
 /** Erros da IA cuja frase muda com o provedor (`ia.erros`). */
 const BY_PROVIDER = [
   'KEY_INVALID',

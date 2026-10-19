@@ -33,7 +33,14 @@ import {
 import { useSecretsStatus } from '../api';
 import { Choice } from '../components/fields';
 import { KeyRow } from '../components/KeysSection';
-import { AI_PROVIDERS, aiErrorMessage, modelFor, providerName, secretOf } from './providers';
+import {
+  AI_PROVIDERS,
+  aiErrorMessage,
+  modelFor,
+  providerName,
+  secretOf,
+  usesStrongest,
+} from './providers';
 import './ai-settings.css';
 
 const TIERS: readonly ModelTier[] = ['economical', 'careful'];
@@ -148,6 +155,8 @@ function ModelSetting({
 
   if (provider === 'gemini') {
     const model = modelFor(models.data, tier);
+    // O mais leve da troca na cota diária (sem ele, ou igual ao modelo, não há troca).
+    const lighter = model && usesStrongest(models.data, model) ? models.data?.lighter : null;
     return (
       <div className="ai-settings__group" data-testid="ia-modelo-gemini">
         <div className="field__label">
@@ -158,7 +167,9 @@ function ModelSetting({
             <span className="choice__title">{t('configuracoes.gemini.titulo')}</span>
             <span className="choice__desc block">
               {model ? `${t('configuracoes.modelo', { modelo: model })} ` : ''}
-              {t('configuracoes.gemini.desc')}
+              {lighter
+                ? t('configuracoes.gemini.descLeve', { modelo: lighter })
+                : t('configuracoes.gemini.desc')}
             </span>
           </span>
         </div>

@@ -4,7 +4,8 @@
  * - CA-T21-06: escolher o provedor (Gemini, o padrão, OpenAI ou Claude), a chave de cada um
  *   com Testar, Substituir e Remover, e por provedor "Mais econômico" ou "Análise mais
  *   cuidadosa"; trocar de provedor e voltar mantém a escolha de cada um;
- * - no Gemini, a linha única "Usa sempre o modelo mais forte do plano gratuito", com o modelo;
+ * - no Gemini, a linha única "Usa sempre o modelo mais forte do plano gratuito", com o modelo e
+ *   o mais leve da troca na cota diária (ou sem o mais leve, a frase sem nome);
  * - OpenAI e Claude: a frase da cobrança por uso, sem números;
  * - dados atuais: salvar ou remover a chave relê o "tem chave" e os modelos da IA;
  * - o erro do Testar na frase do provedor; axe sem violações sérias.
@@ -78,12 +79,36 @@ describe('Chaves e contas › IA (D-18)', () => {
     expect(
       within(line).getByText('Usa sempre o modelo mais forte do plano gratuito'),
     ).toBeDefined();
-    expect(await within(line).findByText(/Hoje: gemini-9\.1-flash-lite\./)).toBeDefined();
-    expect(within(line).getByText(/troca sozinho para um modelo mais leve e avisa/)).toBeDefined();
+    expect(await within(line).findByText(/Hoje: gemini-9\.1-flash\./)).toBeDefined();
+    // O mais leve da troca na cota diária, pelo nome que veio do backend.
+    expect(
+      within(line).getByText(
+        /troca sozinho para o mais leve \(gemini-9\.1-flash-lite\), só naquela pergunta, e avisa/,
+      ),
+    ).toBeDefined();
     // No Gemini não há as duas opções.
     expect(within(ai).queryByRole('radio', { name: /Análise mais cuidadosa/ })).toBeNull();
     expect(backend.callsOf('ai_models_get')).toHaveLength(1);
     expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
+  it('Gemini sem o Flash na conta: o Flash-Lite nas duas opções, sem nome de modelo mais leve', async () => {
+    setup(
+      { gemini: true },
+      {},
+      {
+        ai_models_get: () => ({
+          economical: 'gemini-9.1-flash-lite',
+          careful: 'gemini-9.1-flash-lite',
+          lighter: 'gemini-9.1-flash-lite',
+        }),
+      },
+    );
+    const ai = await openAi();
+    const line = await within(ai).findByTestId('ia-modelo-gemini');
+    expect(await within(line).findByText(/Hoje: gemini-9\.1-flash-lite\./)).toBeDefined();
+    expect(within(line).getByText(/troca sozinho para um modelo mais leve e avisa/)).toBeDefined();
+    expect(line.textContent).not.toMatch(/só naquela pergunta/);
   });
 
   it('CA-T21-06: trocar para a OpenAI, escolher "Análise mais cuidadosa", ir ao Claude e voltar mantém a escolha de cada um', async () => {

@@ -209,7 +209,10 @@ describe('IA com vários provedores (D-18)', function () {
     await expect(line).toHaveText(
       expect.stringContaining('Usa sempre o modelo mais forte do plano gratuito'),
     );
-    await line.$('span*=Hoje: gemini-9.1-flash-lite.').waitForDisplayed({ timeout: 30_000 });
+    await line.$('span*=Hoje: gemini-9.1-flash.').waitForDisplayed({ timeout: 30_000 });
+    await expect(line).toHaveText(
+      expect.stringContaining('para o mais leve (gemini-9.1-flash-lite), só naquela pergunta'),
+    );
     expect(await axeAfterToasts()).toEqual([]);
     await screenshot('d18-01-configuracoes-gemini');
 
@@ -220,9 +223,10 @@ describe('IA com vários provedores (D-18)', function () {
     const dialog = $('[role="dialog"]');
     await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
     await expect(dialog).toHaveText(
-      expect.stringContaining('Google Gemini (gemini-9.1-flash-lite), com a sua chave'),
+      expect.stringContaining('Google Gemini (gemini-9.1-flash), com a sua chave'),
     );
     await expect(dialog).toHaveText(expect.stringContaining('No plano gratuito não há custo'));
+    await expect(dialog).toHaveText(expect.stringContaining('poucas conversas por dia'));
     expect(await axeAfterToasts()).toEqual([]);
     await screenshot('d18-02-consentimento-gemini');
     await clickStable(dialog.$('button=Começar conversa'));
@@ -286,7 +290,7 @@ describe('IA com vários provedores (D-18)', function () {
     await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
     await expect($('p*=com Gemini')).toBeDisplayed();
     await expect($('aside[aria-label="Sobre esta conversa"]')).toHaveText(
-      expect.stringContaining('gemini-9.1-flash-lite'),
+      expect.stringContaining('gemini-9.1-flash'),
     );
     await expect($('div.alert*=Falta a chave do Gemini')).not.toBeExisting();
 

@@ -15,7 +15,11 @@ import { AI_PROVIDERS } from './providers';
 
 /** Os modelos de cada provedor nos testes (nomes visivelmente de teste). */
 export const TEST_MODELS: Record<AiProvider, ModelChoices> = {
-  gemini: { economical: 'gemini-9.1-flash-lite', careful: 'gemini-9.1-flash' },
+  gemini: {
+    economical: 'gemini-9.1-flash',
+    careful: 'gemini-9.1-flash',
+    lighter: 'gemini-9.1-flash-lite',
+  },
   openai: { economical: 'gpt-9-luna', careful: 'gpt-9-sol' },
   anthropic: { economical: 'claude-sonnet-9-9', careful: 'claude-opus-9-9' },
 };

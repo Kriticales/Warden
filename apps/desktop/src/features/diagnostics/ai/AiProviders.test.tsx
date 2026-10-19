@@ -41,7 +41,7 @@ const ALL_KEYS: SecretsStatus = {
 };
 
 const MODEL: Record<AiProvider, string> = {
-  gemini: 'gemini-9.1-flash-lite',
+  gemini: 'gemini-9.1-flash',
   openai: 'gpt-9-luna',
   anthropic: 'claude-sonnet-9-9',
 };
@@ -95,14 +95,38 @@ function failure(code: string, params: Record<string, string> = {}): TurnFailure
 }
 
 describe('consentimento por provedor (CA-T14-20, CA-T14-24)', () => {
-  it('Gemini: o provedor e o modelo, o custo típico e o aviso do plano gratuito', async () => {
+  it('Gemini: o provedor e o modelo mais forte, o custo dele, o aviso do plano gratuito e o de poucas conversas por dia, mesmo no "Mais econômico"', async () => {
     const { url } = setup();
+    const dialog = await openConsent(url);
+    expect(
+      within(dialog).getByText('Google Gemini (gemini-9.1-flash), com a sua chave'),
+    ).toBeDefined();
+    expect(within(dialog).getByText(/Entre US\$ 0,02 e US\$ 0,09/)).toBeDefined();
+    expect(within(dialog).getByText(/No plano gratuito não há custo/)).toBeDefined();
+    expect(within(dialog).getByText(/poucas conversas por dia/).textContent).toMatch(
+      /troca sozinho para um modelo mais leve e avisa/,
+    );
+  });
+
+  it('Gemini sem o Flash na conta: o custo do Flash-Lite, sem o aviso de poucas conversas', async () => {
+    const lite = {
+      economical: 'gemini-9.1-flash-lite',
+      careful: 'gemini-9.1-flash-lite',
+      lighter: 'gemini-9.1-flash-lite',
+    };
+    const { url } = setup({
+      handlers: {
+        ai_models_get: () => lite,
+        ai_conversation_preview: () =>
+          makePreview({ provider: 'gemini', model: lite.economical, tier: 'careful' }),
+      },
+    });
     const dialog = await openConsent(url);
     expect(
       within(dialog).getByText('Google Gemini (gemini-9.1-flash-lite), com a sua chave'),
     ).toBeDefined();
     expect(within(dialog).getByText(/Entre US\$ 0,005 e US\$ 0,04/)).toBeDefined();
-    expect(within(dialog).getByText(/No plano gratuito não há custo/)).toBeDefined();
+    expect(dialog.textContent).not.toMatch(/poucas conversas por dia/);
   });
 
   it.each([
@@ -136,6 +160,30 @@ describe('a conversa e o provedor em que começou (CA-T14-21, CA-T14-24)', () =>
     expect(screen.getByText(/começou .* com Claude/)).toBeDefined();
     const side = screen.getByRole('complementary', { name: 'Sobre esta conversa' });
     expect(within(side).getByText('Provedor').nextElementSibling?.textContent).toBe('Claude');
+  });
+
+  it('CA-T14-25 (tela): a pergunta que usou o modelo mais leve avisa a troca; a que não usou, não', async () => {
+    const { url } = setup({
+      handlers: {
+        ai_conversation_get: () =>
+          makeView({
+            model: 'gemini-9.1-flash',
+            turns: [
+              makeTurn({ fallbackModel: 'gemini-9.1-flash-lite' }),
+              makeTurn({ question: 'E agora?' }),
+            ],
+          }),
+      },
+    });
+    await openConversation(url);
+    const notices = screen.getAllByText(
+      /O limite diário do modelo mais forte acabou; esta resposta usou o mais leve\./,
+    );
+    expect(notices).toHaveLength(1);
+    expect(notices[0]?.textContent).toContain('Modelo desta resposta: gemini-9.1-flash-lite.');
+    const answers = screen.getAllByRole('article', { name: 'Mensagem da IA' });
+    expect(answers[0]?.textContent).toContain('gemini-9.1-flash-lite ·');
+    expect(answers[1]?.textContent).toContain('gemini-9.1-flash ·');
   });
 
   it('sem a chave do provedor da conversa: pede essa chave e leva a Configurações', async () => {

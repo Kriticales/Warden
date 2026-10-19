@@ -9,6 +9,8 @@
  * - enquanto a IA responde: a espera visível (limite por minuto, que só no Gemini fala do plano
  *   gratuito; nova tentativa); um erro diz o que houve, na frase do provedor da conversa, nada
  *   muda no pack e a conversa fica guardada;
+ * - a pergunta que o Gemini respondeu com o modelo mais leve, porque a cota diária do mais forte
+ *   acabou, avisa a troca (`fallbackModel`; ADR-0060, complemento de 19/10/2026);
  * - D-18: a conversa mostra o provedor em que começou (ela fica nele, ADR-0060); sem a chave
  *   desse provedor, pede essa chave e leva a Configurações (CA-T14-21);
  * - continuar uma conversa antiga avisa se o pack mudou (CA-T14-15);
@@ -215,7 +217,9 @@ function Turn({
           <Icon icon={Sparkles} className="icon--ai" />
           <span>{t('conversa.ia')}</span>
           <span className="msg__meta">
-            {turn.answer ? `${view.model} · ${formatWhen(turn.answer.atMs)}` : view.model}
+            {turn.answer
+              ? `${turn.fallbackModel ?? view.model} · ${formatWhen(turn.answer.atMs)}`
+              : (turn.fallbackModel ?? view.model)}
           </span>
         </div>
         <div className="msg__body">
@@ -225,6 +229,7 @@ function Turn({
               <StepBlock step={step} />
             </Fragment>
           ))}
+          {turn.fallbackModel ? <Fallback model={turn.fallbackModel} /> : null}
           {turn.answer ? (
             <AnswerView packId={packId} conversationId={view.summary.id} answer={turn.answer} />
           ) : null}
@@ -246,6 +251,19 @@ function Turn({
         </div>
       </article>
     </>
+  );
+}
+
+/**
+ * A pergunta respondida pelo modelo mais leve porque a cota diária do modelo da conversa acabou
+ * (só no Gemini; ADR-0060, complemento de 19/10/2026). A pergunta seguinte volta ao da conversa.
+ */
+function Fallback({ model }: { model: string }) {
+  const { t } = useTranslation('ia');
+  return (
+    <Alert kind="warn" compact>
+      {t('troca.texto')} {t('troca.modelo', { modelo: model })}
+    </Alert>
   );
 }
 

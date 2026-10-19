@@ -112,9 +112,10 @@ export const ia = {
       '{{bytes}} de texto; cerca de {{tokens}} com as instruções do Warden (token é a unidade que os provedores de IA usam para medir e cobrar)',
     tamanhoSoBytes: '{{bytes}} de texto',
     custo: 'Custo',
+    /** O custo do Gemini pelo modelo (ADR-0055: o Flash-Lite, `leve`; o Flash, `forte`). */
     custoValor: {
-      economical: 'Entre US$ 0,005 e US$ 0,04 numa conversa típica, no plano pago.',
-      careful: 'Entre US$ 0,02 e US$ 0,09 numa conversa típica, no plano pago.',
+      leve: 'Entre US$ 0,005 e US$ 0,04 numa conversa típica, no plano pago.',
+      forte: 'Entre US$ 0,02 e US$ 0,09 numa conversa típica, no plano pago.',
     },
     custoPago: {
       openai:
@@ -125,7 +126,7 @@ export const ia = {
     plano:
       'O uso é cobrado ou limitado na sua chave. No plano gratuito não há custo, mas o Google pode usar o conteúdo enviado para melhorar os produtos dele, e pessoas podem lê-lo.',
     poucasPorDia:
-      'No plano gratuito, a análise mais cuidadosa permite poucas conversas por dia. Se o limite acabar, troque para o modelo mais econômico em Configurações.',
+      'No plano gratuito, este modelo permite poucas conversas por dia. Se o limite diário acabar no meio de uma pergunta, o Warden troca sozinho para um modelo mais leve e avisa.',
     cancelar: 'Cancelar',
     comecar: 'Começar conversa',
     erro: 'A conversa não começou.',
@@ -216,6 +217,10 @@ export const ia = {
       anthropic:
         'A Anthropic está sobrecarregada agora. Tentando de novo sozinho ({{tentativa}} de {{total}})…',
     },
+  },
+  troca: {
+    texto: 'O limite diário do modelo mais forte acabou; esta resposta usou o mais leve.',
+    modelo: 'Modelo desta resposta: {{modelo}}.',
   },
   faltaChave: {
     texto:
@@ -364,6 +369,8 @@ export const ia = {
     gemini: {
       titulo: 'Usa sempre o modelo mais forte do plano gratuito',
       desc: 'Se o limite diário do plano gratuito acabar, o Warden troca sozinho para um modelo mais leve e avisa.',
+      descLeve:
+        'Se o limite diário do plano gratuito acabar, o Warden troca sozinho para o mais leve ({{modelo}}), só naquela pergunta, e avisa.',
     },
     semChave: {
       gemini: 'O nome do modelo aparece depois de salvar a chave do Gemini.',
