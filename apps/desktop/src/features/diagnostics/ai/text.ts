@@ -19,6 +19,8 @@ import { d14EvidenceLabel, d14StepLabel } from './proposals/text';
 
 /** Id de sessão das ferramentas de log para o arquivo escolhido no computador. */
 export const LOCAL_FILE_SESSION = 'arquivo';
+/** Id de sessão das ferramentas de log para o log aberto por um link (conversa sem pack). */
+export const LINK_SESSION = 'link';
 
 const tt = (key: string, options?: Record<string, unknown>): string =>
   (i18n.t as unknown as (key: string, options?: Record<string, unknown>) => string)(
@@ -80,9 +82,11 @@ export function stepLabel(step: ToolStep): string {
     case 'get_crash_report':
       return tt('enviado.crashReport', { sessao });
     case 'search_log':
-      return tt('enviado.buscaLog', { busca: text(args.query), sessao });
+      return args.session_id === LINK_SESSION
+        ? tt('enviado.buscaLink', { busca: text(args.query) })
+        : tt('enviado.buscaLog', { busca: text(args.query), sessao });
     case 'read_log':
-      return tt('enviado.trechoLog', {
+      return tt(args.session_id === LINK_SESSION ? 'enviado.trechoLink' : 'enviado.trechoLog', {
         sessao,
         de: numero.format(Number(args.from) || 0),
         ate: numero.format(Number(args.to) || 0),
@@ -164,6 +168,8 @@ export function originLabel(origin: ConversationOrigin): string {
       return origin.fileName;
     case 'packOnly':
       return tt('origem.soPack');
+    case 'pasteLink':
+      return tt('origem.link', { site: origin.site === 'mclogs' ? 'mclo.gs' : 'pastebin' });
   }
 }
 

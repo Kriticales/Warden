@@ -14,8 +14,11 @@
  * **Abrir ou importar…** (T04, T24) é um botão só, com **Escolher pasta…** e **Escolher
  * arquivo…** (o diálogo nativo escolhe uma coisa ou outra); o Warden reconhece o que foi
  * escolhido pelo conteúdo (`useOpenOrImport`).
+ *
+ * **✦ Analisar um log** (D-19) abre a conversa com a IA sem pack (`/analisar-log`).
  */
-import { ChevronDown, FileArchive, FolderOpen, Plus, Search } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { ChevronDown, FileArchive, FolderOpen, Plus, Search, Sparkles } from 'lucide-react';
 import { useDeferredValue, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +29,7 @@ import { EmptyState } from '../../../components/common/EmptyState';
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Skeleton } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
-import { Button } from '../../../components/ui/button';
+import { Button, buttonVariants } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/ui/menu';
 import { showToast } from '../../../components/ui/toast';
@@ -42,6 +45,19 @@ import { HealthColumnHeader } from '../../diagnostics/health/HealthColumn';
 import { PackDetailsDialog } from './PackDetailsDialog';
 import { PackTableRow } from './PackTableRow';
 import '../packs.css';
+
+/** ✦ Analisar um log: a conversa com a IA sem pack (D-19). */
+function AnalyzeLogButton() {
+  const { t } = useTranslation('iaSemPack');
+  return (
+    <Tooltip content={t('entrada.dica')}>
+      <Link to="/analisar-log" className={buttonVariants({ variant: 'ghost' })}>
+        <Icon icon={Sparkles} className="icon--ai" />
+        <span>{t('entrada.botao')}</span>
+      </Link>
+    </Tooltip>
+  );
+}
 
 /** Diálogo aberto a partir de uma linha. */
 export type RowDialog =
@@ -122,8 +138,10 @@ export function PacksPage({ search, onSearch }: PacksPageProps) {
       {t('lista.criar')}
     </Button>
   );
+  const analyzeButton = <AnalyzeLogButton />;
   const actions = (
     <>
+      {analyzeButton}
       {openButton}
       {createButton}
     </>
@@ -153,7 +171,7 @@ export function PacksPage({ search, onSearch }: PacksPageProps) {
   } else if (list.data.length === 0) {
     body = (
       <>
-        <PageHead title={t('lista.titulo')} />
+        <PageHead title={t('lista.titulo')} actions={analyzeButton} />
         <EmptyState
           centered
           glyph="plus"

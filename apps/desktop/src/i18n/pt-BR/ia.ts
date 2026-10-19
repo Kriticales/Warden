@@ -133,6 +133,7 @@ export const ia = {
     soPack: 'Só o pack',
     sessaoCurta: '{{dia}} às {{hora}}',
     arquivoCurto: 'arquivo escolhido',
+    link: 'Link do {{site}}',
   },
   conversa: {
     voltar: 'Conversas',
@@ -163,6 +164,8 @@ export const ia = {
     crashReport: 'crash report do teste de {{sessao}}',
     buscaLog: 'busca por "{{busca}}" no log do teste de {{sessao}}',
     trechoLog: 'trecho do log do teste de {{sessao}}, linhas {{de}}–{{ate}}',
+    buscaLink: 'busca por "{{busca}}" no log do link',
+    trechoLink: 'trecho do log do link, linhas {{de}}–{{ate}}',
     buscaConfigs: 'busca por "{{busca}}" nas configs',
     config: 'config {{arquivo}}',
     historico: 'versões salvas do pack',
@@ -195,6 +198,8 @@ export const ia = {
     semConclusaoTexto:
       'Isso é uma resposta válida. A busca do culpado testa o pack por partes até achar o mod que causa o problema.',
     culpado: 'Encontrar o mod culpado',
+    semConclusaoSemPack:
+      'Isso é uma resposta válida. Conte mais à IA ou analise o log dentro do pack, onde ela também vê os mods e os testes.',
     mods: 'Mods envolvidos',
     podeErrar: 'A IA pode errar. Confira antes de mudar o pack.',
     podeErrarTexto:

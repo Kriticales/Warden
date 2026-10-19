@@ -306,8 +306,8 @@ function NewConversation({ packId, sessionId }: { packId: PackId; sessionId: str
   );
 }
 
-/** O modelo em uso, com o caminho para trocar em Configurações. */
-function ModelLine() {
+/** O modelo em uso, com o caminho para trocar em Configurações (também na conversa sem pack). */
+export function ModelLine() {
   const { t } = useTranslation('ia');
   const settings = useAiSettings();
   const models = useAiModels(true);

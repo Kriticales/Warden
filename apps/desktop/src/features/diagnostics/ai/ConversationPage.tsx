@@ -241,7 +241,7 @@ function Turn({
   );
 }
 
-function Waiting({ live }: { live: LiveStatus }) {
+export function Waiting({ live }: { live: LiveStatus }) {
   const { t } = useTranslation('ia');
   let text: string;
   if (live.kind === 'waitingPerMinute') {
