@@ -157,4 +157,23 @@ mod tests {
         assert_eq!(release.tag, "v1.0.0");
         assert!(release.notas.contains("`(calculado na publicação)`"));
     }
+
+    #[test]
+    fn notas_da_versao_atual_do_app_estao_prontas() {
+        let root = workspace_root();
+        let versao = versao_do_app(&root).unwrap();
+        let texto = ler_versao(&root, &versao).unwrap();
+        let release = montar(&versao, &texto, COMMIT, &instalador(None)).unwrap();
+        assert_eq!(release.tag, format!("v{versao}"));
+        assert_eq!(release.titulo, format!("Warden {versao}"));
+    }
+
+    #[test]
+    fn notas_da_1_0_1_estao_prontas() {
+        let texto = ler_versao(&workspace_root(), "1.0.1").unwrap();
+        let release = montar("1.0.1", &texto, COMMIT, &instalador(None)).unwrap();
+        assert_eq!(release.tag, "v1.0.1");
+        assert_eq!(release.titulo, "Warden 1.0.1");
+        assert!(release.notas.starts_with("Esta é uma versão de conserto"));
+    }
 }
