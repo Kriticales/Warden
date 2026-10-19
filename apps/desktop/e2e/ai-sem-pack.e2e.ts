@@ -5,7 +5,8 @@
  * - CA-T14-25: Meus packs abre "Analisar um log"; um link de outro site e o do hastebin mostram
  *   as frases de recusa, sem conversa nova;
  * - CA-T14-26 e CA-T14-27: colar um link do mclo.gs baixa só o texto dele; o consentimento mostra
- *   o texto já sem dados pessoais; cancelar não manda nada ao Gemini; o link não vai à IA;
+ *   o texto já sem dados pessoais; cancelar não manda nada ao Gemini; o link não vai à IA; o
+ *   link do pastebin baixa só o texto puro dele (`pastebin.com/raw/<id>`);
  * - CA-T14-29: depois de **✦ Começar conversa**, a resposta do Gemini simulado aparece; a conversa
  *   fica em `ai/_sem-pack/` nos dados do Warden, aparece em "Conversas sem pack" e reabre igual
  *   depois de reiniciar o app.
@@ -19,7 +20,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
-import { MCLOGS_E2E_ID } from './mock-server/paste';
+import { MCLOGS_E2E_ID, PASTEBIN_E2E_ID } from './mock-server/paste';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -162,6 +163,23 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     expect((await gemini()).generate).toEqual([]);
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('d19-01-recusa');
+  });
+
+  it('CA-T14-25: o link do pastebin baixa só o texto puro dele', async () => {
+    await fetch(`${MOCK_URL}/__reset`);
+    await pasteLink(`https://pastebin.com/${PASTEBIN_E2E_ID}`);
+    const dialog = await openConsent();
+    const text = await fullText(dialog.$('pre[aria-label="Texto inicial que será enviado"]'));
+    expect(text).toContain('link do pastebin');
+    expect(text).toContain('NoSuchMethodError');
+    expect(text).not.toContain('Maria');
+    expect(text).not.toContain(PASTEBIN_E2E_ID);
+    expect((await requests()).filter((path) => path.includes('/pastebin/'))).toEqual([
+      `GET /pastebin/raw/${PASTEBIN_E2E_ID}`,
+    ]);
+    await clickStable(dialog.$('button=Cancelar'));
+    await dialog.waitForDisplayed({ reverse: true, timeout: 10_000 });
+    expect((await gemini()).generate).toEqual([]);
   });
 
   it('CA-T14-26 e CA-T14-27: o link baixa só o texto, sem dados pessoais; cancelar não manda nada', async () => {

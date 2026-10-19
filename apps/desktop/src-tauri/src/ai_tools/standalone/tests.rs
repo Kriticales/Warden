@@ -52,7 +52,9 @@ async fn paste_server() -> MockServer {
         .await;
     Mock::given(method("GET"))
         .and(path("/raw/Xy12Ab34"))
-        .respond_with(ResponseTemplate::new(200).set_body_string("linha do pastebin\n"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_string("[main/ERROR]: linha do pastebin\n"),
+        )
         .mount(&server)
         .await;
     Mock::given(method("GET"))
@@ -485,6 +487,77 @@ async fn ca_t14_29_conversa_sem_pack_guardada_reaberta_e_apagada() {
     assert!(!dir.join(format!("{id}.json")).exists());
     assert!(!dir.join(format!("{id}.log.txt")).exists());
     assert!(standalone_list_impl(&reopened).unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn ca_t14_25_pastebin_baixa_o_texto_puro() {
+    // O link do pastebin vira o pedido a `pastebin.com/raw/<id>` (no simulado, `/raw/<id>`).
+    let setup = setup(Box::new(|_, _| unreachable!("nada pode ir à IA"))).await;
+    let paste = paste_server().await;
+    use_bases(&paste);
+    let preview = standalone_preview_impl(&setup.state, request("https://pastebin.com/Xy12Ab34"))
+        .await
+        .unwrap();
+    assert!(
+        preview.text.contains("link do pastebin"),
+        "{}",
+        preview.text
+    );
+    assert!(
+        preview.text.contains("linha do pastebin"),
+        "{}",
+        preview.text
+    );
+    assert!(!preview.text.contains("Xy12Ab34"), "o link não vai à IA");
+    let asked: Vec<String> = paste
+        .received_requests()
+        .await
+        .unwrap()
+        .iter()
+        .map(|request| format!("{} {}", request.method, request.url.path()))
+        .collect();
+    assert_eq!(asked, ["GET /raw/Xy12Ab34"]);
+    assert!(generated(&setup).is_empty());
+}
+
+#[tokio::test]
+async fn ca_t14_28_busca_de_issues_so_com_a_permissao() {
+    // Sem a permissão do GitHub, a busca de issues pedida pela IA é recusada sem rede.
+    let setup = setup(Box::new(|n, _| {
+        if n == 0 {
+            calls(&[(
+                "search_mod_issues",
+                json!({ "mod_id": "sodium", "query": "NoSuchMethodError" }),
+            )])
+        } else {
+            calls(&[(
+                "responder",
+                json!({ "resumo": "Não deu para concluir.", "semConclusao": true, "propostas": [],
+                    "achados": [] }),
+            )])
+        }
+    }))
+    .await;
+    let paste = paste_server().await;
+    use_bases(&paste);
+    let preview = standalone_preview_impl(&setup.state, request("https://mclo.gs/abc123"))
+        .await
+        .unwrap();
+    let permissions = AiPermissions {
+        configs: false,
+        github: false,
+    };
+    let id = standalone_start_impl(&setup.state, &preview.preview_id, permissions).unwrap();
+    standalone_run_impl(&setup.state, &id, std::sync::Arc::new(|_| {}))
+        .await
+        .unwrap();
+    let view = standalone_get_impl(&setup.state, &id).unwrap();
+    let step = &view.turns[0].steps[0];
+    assert_eq!(step.name, "search_mod_issues");
+    assert!(step.denied, "{step:?}");
+    assert!(step.external.is_none(), "nada foi pedido ao GitHub");
+    // Fora a IA, só o pedido do texto do link saiu.
+    assert_eq!(paste.received_requests().await.unwrap().len(), 1);
 }
 
 #[tokio::test]
