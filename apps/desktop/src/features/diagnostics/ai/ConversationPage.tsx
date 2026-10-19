@@ -260,7 +260,8 @@ function Turn({
 
 /**
  * A pergunta respondida pelo modelo mais leve porque a cota diária do modelo da conversa acabou
- * (só no Gemini; ADR-0060, complemento de 19/10/2026). A pergunta seguinte volta ao da conversa.
+ * ou porque ele estourou o tempo-limite, com o motivo (só no Gemini; ADR-0060, complemento de
+ * 19/10/2026, e D-15b). A pergunta seguinte volta ao da conversa.
  */
 export function Fallback({ model, reason }: { model: string; reason: FallbackReason }) {
   const { t } = useTranslation('ia');
