@@ -113,6 +113,45 @@ export const commands = {
 	aiConversationGet: (packId: PackId, conversationId: string) => typedError<AiConversationView, AppError>(__TAURI_INVOKE("ai_conversation_get", { packId, conversationId })),
 	/**  Apaga a conversa (o arquivo dela nos dados do Warden). Se a IA estava respondendo, para. */
 	aiConversationDelete: (packId: PackId, conversationId: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_conversation_delete", { packId, conversationId })),
+	/**  "Um log ou crash report do computador…" sem pack: o diálogo nativo. `None`: desistiu. */
+	aiStandaloneLogChoose: () => typedError<{
+	/**  Identificador da escolha, para a prévia. */
+	token: string,
+	/**  O nome do arquivo, sem a pasta. */
+	fileName: string,
+	/**  Tamanho. */
+	bytes: number,
+} | null, AppError>(__TAURI_INVOKE("ai_standalone_log_choose")),
+	/**
+	 *  O texto inicial exato de uma conversa sem pack, para o consentimento. Com um link, baixa
+	 *  só o texto puro do site do link (nada vai à IA além da lista de modelos e da contagem de
+	 *  tokens sem o log; ADR-0060).
+	 */
+	aiStandalonePreview: (request: AiStandalonePreviewRequest) => typedError<AiPreview, AppError>(__TAURI_INVOKE("ai_standalone_preview", { request })),
+	/**
+	 *  "✦ Começar conversa" sem pack: grava a conversa com as permissões e o texto mostrado. Não
+	 *  manda nada; a interface chama `ai_standalone_run` em seguida.
+	 */
+	aiStandaloneStart: (previewId: string, permissions: AiPermissions) => typedError<string, AppError>(__TAURI_INVOKE("ai_standalone_start", { previewId, permissions })),
+	/**
+	 *  Roda a pergunta pendente de uma conversa sem pack; a interface acompanha pelo
+	 *  `ai-standalone-updated`.
+	 */
+	aiStandaloneRun: (conversationId: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_standalone_run", { conversationId })),
+	/**
+	 *  Acrescenta uma pergunta à conversa sem pack (sem rede); a interface chama
+	 *  `ai_standalone_run` em seguida.
+	 */
+	aiStandaloneSend: (conversationId: string, text: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_standalone_send", { conversationId, text })),
+	/**  As conversas sem pack, da mais nova para a mais antiga. */
+	aiStandaloneList: () => typedError<AiConversationSummary[], AppError>(__TAURI_INVOKE("ai_standalone_list")),
+	/**  Uma conversa sem pack com as mensagens e as consultas. */
+	aiStandaloneGet: (conversationId: string) => typedError<AiConversationView, AppError>(__TAURI_INVOKE("ai_standalone_get", { conversationId })),
+	/**
+	 *  Apaga a conversa sem pack (o arquivo dela e o log guardado ao lado). Se a IA estava
+	 *  respondendo, para.
+	 */
+	aiStandaloneDelete: (conversationId: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_standalone_delete", { conversationId })),
 	/**  A diferença exata de uma proposta (o diálogo de Aplicar). Nada é gravado. */
 	aiProposalReview: (packId: PackId, conversationId: string, proposalId: string) => typedError<ProposalReview, AppError>(__TAURI_INVOKE("ai_proposal_review", { packId, conversationId, proposalId })),
 	/**  Aplica a proposta mostrada no diálogo (o `token` da prévia). */
@@ -1050,6 +1089,7 @@ export const commands = {
 /** Events */
 export const events = {
 	aiConversationUpdated: makeEvent<AiConversationUpdated>("ai-conversation-updated"),
+	aiStandaloneUpdated: makeEvent<AiStandaloneUpdated>("ai-standalone-updated"),
 	configIndexChanged: makeEvent<ConfigIndexChanged>("config-index-changed"),
 	gameQuitRequested: makeEvent<GameQuitRequested>("game-quit-requested"),
 	gameState: makeEvent<GameState>("game-state"),
@@ -1385,6 +1425,33 @@ export type AiSources = {
 	sessions: AiSessionOption[],
 };
 
+/**  O pedido da prévia de uma conversa sem pack. */
+export type AiStandalonePreviewRequest = {
+	/**  "O que está acontecendo?". */
+	symptom: AiSymptom,
+	/**  O arquivo ou o link. */
+	source: AiStandaloneSource,
+	/**  "Contar algo à IA". */
+	note: string | null,
+};
+
+/**  O que analisar sem pack. */
+export type AiStandaloneSource = 
+/**  O arquivo escolhido por `ai_standalone_log_choose`. */
+{ kind: "localFile"; 
+/**  O `token` da escolha. */
+token: string } | 
+/**  Um link colado (mclo.gs ou pastebin). */
+{ kind: "link"; 
+/**  O link como foi colado. */
+url: string };
+
+/**  `ai-standalone-updated`: uma conversa sem pack mudou (pergunta, consulta, resposta, erro). */
+export type AiStandaloneUpdated = {
+	/**  A conversa (ULID). */
+	conversationId: string,
+};
+
 /**
  *  O sintoma escolhido em "Nova conversa" (`AiSymptom`: o `Symptom` é o da busca do culpado,
  *  D-12, e os dois vão para o mesmo `bindings.ts`).
@@ -1572,7 +1639,26 @@ export type AppErrorCode =
  *  Mods da CurseForge bloqueados para apps de terceiros que o Warden não conseguiu pôr no
  *  lugar do jogador (`params.count`, `params.names`; L-07).
  */
-"TEST_PLAYER_BLOCKED";
+"TEST_PLAYER_BLOCKED" | 
+/**  Análise sem pack (D-19): o link colado não é do mclo.gs nem do pastebin. */
+"AI_LINK_UNSUPPORTED" | 
+/**  O link começa com `http://`: só HTTPS (`params.site`; D-19). */
+"AI_LINK_NOT_HTTPS" | 
+/**  O link é do hastebin, que exige uma chave para ler os textos (D-19). */
+"AI_LINK_NEEDS_KEY" | 
+/**  O link é do site certo, mas não aponta para um texto (`params.site`; D-19). */
+"AI_LINK_INVALID" | 
+/**  O texto do link não existe mais no site (`params.site`; D-19). */
+"AI_LINK_NOT_FOUND" | 
+/**
+ *  O site do link não entregou o texto (`params.site`, `params.status`: o código HTTP, vazio
+ *  sem resposta; D-19).
+ */
+"AI_LINK_UNREACHABLE" | 
+/**  O site do link não respondeu no tempo-limite (`params.site`, `params.seconds`; D-19). */
+"AI_LINK_TIMEOUT" | 
+/**  O link abriu, mas o texto está vazio (`params.site`; D-19). */
+"AI_LINK_EMPTY";
 
 /**  Versão e commit do app em execução. */
 export type AppInfo = {
@@ -2619,7 +2705,16 @@ signature: string | null } |
 /**  O nome do arquivo, sem a pasta. */
 fileName: string } | 
 /**  Só o pack, sem log. */
-{ kind: "packOnly" };
+{ kind: "packOnly" } | 
+/**
+ *  Um log aberto por um link colado, numa conversa sem pack (D-19). O texto puro, já
+ *  redigido, fica guardado ao lado da conversa; o link não vai à IA.
+ */
+{ kind: "pasteLink"; 
+/**  O site do link. */
+site: PasteSite; 
+/**  O link como foi colado. */
+url: string };
 
 /**  Uma pergunta (a primeira é o texto inicial do consentimento) e o que aconteceu. */
 export type ConversationTurn = {
@@ -6616,6 +6711,13 @@ export type Participant = {
 	/**  A config tem plugin. */
 	plugin: boolean,
 };
+
+/**  Os sites de onde uma conversa sem pack abre um log por link (D-19). */
+export type PasteSite = 
+/**  mclo.gs (o texto puro vem de `api.mclo.gs/1/raw/<id>`). */
+"mclogs" | 
+/**  pastebin.com (o texto puro vem de `pastebin.com/raw/<id>`). */
+"pastebin";
 
 /**
  *  Códigos do domínio `perf`. O código é contrato: renomear é mudança de contrato;

@@ -80,4 +80,16 @@ export const app: ErrorPhrases<AppErrorCode> = {
     '{{count}} mod da CurseForge não baixa sozinho para os jogadores e o Warden não tem esse arquivo: {{names}}. Baixe-o à mão (o teste normal pede) e tente de novo.',
   TEST_PLAYER_BLOCKED_other:
     '{{count}} mods da CurseForge não baixam sozinhos para os jogadores e o Warden não tem esses arquivos: {{names}}. Baixe-os à mão (o teste normal pede) e tente de novo.',
+  AI_LINK_UNSUPPORTED:
+    'O Warden só abre links do mclo.gs e do pastebin. Escolha o arquivo do log ou cole um link de um desses sites.',
+  AI_LINK_NOT_HTTPS: 'Use o link do {{site}} que começa com https://.',
+  AI_LINK_NEEDS_KEY:
+    'O hastebin exige uma chave para ler os textos, então o Warden não aceita links dele. Peça o link do mclo.gs ou o arquivo.',
+  AI_LINK_INVALID: 'Este link do {{site}} não aponta para um texto. Copie o link inteiro do log.',
+  AI_LINK_NOT_FOUND: 'Este log não existe mais no {{site}}. Peça um link novo ou o arquivo.',
+  AI_LINK_UNREACHABLE:
+    'O {{site}} não entregou o texto do link. Confira a internet e tente de novo.',
+  AI_LINK_TIMEOUT:
+    'O {{site}} não respondeu em {{seconds}} segundos. Confira a internet e tente de novo.',
+  AI_LINK_EMPTY: 'O link do {{site}} abriu, mas o texto está vazio.',
 };

@@ -103,14 +103,20 @@ pub(super) async fn search_mod_issues(
     let terms = search_terms(&query, &tools.redactor).map_err(|error| error.to_string())?;
     let item = item_of(tools, &mod_id).await?;
     let (source, project) = source_of(&item)?;
-    let preview = project_preview(
-        &search_sources(tools.state),
-        source,
-        &project,
-        &tools.cancel,
-    )
-    .await
-    .map_err(|error| format!("Não foi possível ler a página do mod ({error})."))?;
+    project_issues(tools, source, &project, &terms).await
+}
+
+/// As issues do repositório de um projeto do Modrinth ou da CurseForge (o pack, ou o slug do
+/// Modrinth numa conversa sem pack, D-19), com o pedido exato para o "Enviado ao GitHub".
+pub(super) async fn project_issues(
+    tools: &PackTools<'_>,
+    source: SourceId,
+    project: &str,
+    terms: &str,
+) -> Result<ToolOutput, String> {
+    let preview = project_preview(&search_sources(tools.state), source, project, &tools.cancel)
+        .await
+        .map_err(|error| format!("Não foi possível ler a página do mod ({error})."))?;
     let repository = GithubRepo::from_links(
         preview.links.issues.as_deref(),
         preview.links.source.as_deref(),
@@ -119,12 +125,12 @@ pub(super) async fn search_mod_issues(
     let token = tools.state.secrets.get(SecretKind::Github).ok().flatten();
     let issues = tools.state.ai.github.issues()?;
     let request = issues
-        .request(&repository, &terms)
+        .request(&repository, terms)
         .map_err(|error| error.to_string())?;
     match issues
         .search(
             &repository,
-            &terms,
+            terms,
             token.as_ref(),
             &tools.redactor,
             Some(&tools.cancel),
