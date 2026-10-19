@@ -20,9 +20,10 @@ import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
 import type { AiConversationView, ConversationTurn } from '../../../lib/ipc/bindings';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
+import { aiErrorMessage, providerName } from '../../settings/ai/providers';
 import { formatWhen } from '../../test/text';
 import { AnswerView } from '../ai/AnswerView';
-import { Waiting } from '../ai/ConversationPage';
+import { Fallback, KeyMissing, Waiting } from '../ai/ConversationPage';
 import { ExternalBlock } from '../ai/proposals/ExternalBlock';
 import { SentBlock, StepBlock } from '../ai/StepBlock';
 import { failureError, originLabel, symptomLabel, tokensLabel } from '../ai/text';
@@ -60,6 +61,7 @@ export function StandaloneConversation({ conversationId }: { conversationId: str
           sub={ti('conversa.sub', {
             origem: originLabel(view.summary.origin),
             quando: formatWhen(view.summary.createdAtMs),
+            provedor: providerName(view.provider),
           })}
           sans
         />
@@ -76,6 +78,7 @@ export function StandaloneConversation({ conversationId }: { conversationId: str
                 />
               ))}
             </div>
+            <KeyMissing provider={view.provider} />
             <Ask view={view} />
           </div>
           <Side view={view} />
@@ -122,7 +125,9 @@ function Turn({
           <Icon icon={Sparkles} className="icon--ai" />
           <span>{t('conversa.ia')}</span>
           <span className="msg__meta">
-            {turn.answer ? `${view.model} · ${formatWhen(turn.answer.atMs)}` : view.model}
+            {turn.answer
+              ? `${turn.fallbackModel ?? view.model} · ${formatWhen(turn.answer.atMs)}`
+              : (turn.fallbackModel ?? view.model)}
           </span>
         </div>
         <div className="msg__body">
@@ -132,10 +137,11 @@ function Turn({
               <StepBlock step={step} />
             </Fragment>
           ))}
+          {turn.fallbackModel ? <Fallback model={turn.fallbackModel} /> : null}
           {turn.answer ? (
             <AnswerView packId={null} conversationId={view.summary.id} answer={turn.answer} />
           ) : null}
-          {!turn.answer && live ? <Waiting live={live} /> : null}
+          {!turn.answer && live ? <Waiting live={live} provider={view.provider} /> : null}
           {!turn.answer && !live && turn.failure ? <Failure view={view} turn={turn} /> : null}
           {!turn.answer && !live && !turn.failure && last ? (
             <Interrupted id={view.summary.id} />
@@ -158,12 +164,12 @@ function Failure({ view, turn }: { view: AiConversationView; turn: ConversationT
     code === 'QUOTA_EXCEEDED' ||
     code === 'KEY_INVALID' ||
     code === 'NOT_CONFIGURED' ||
-    code === 'NO_MODEL' ||
-    code === 'AI_PROVIDER_KEY_MISSING';
+    code === 'PROVIDER_KEY_MISSING' ||
+    code === 'NO_MODEL';
   return (
     <Alert
       kind="danger"
-      title={appErrorMessage(failureError(turn.failure))}
+      title={aiErrorMessage(failureError(turn.failure), view.provider)}
       actions={
         <>
           {turn.failure.retryable || code === 'QUOTA_EXCEEDED' ? (

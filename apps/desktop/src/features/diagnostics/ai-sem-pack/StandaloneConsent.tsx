@@ -15,8 +15,10 @@ import { Dialog, DialogClose, DialogContent } from '../../../components/ui/dialo
 import { Icon } from '../../../components/ui/icon';
 import type { AiPreview } from '../../../lib/ipc/bindings';
 import { formatBytes } from '../../../lib/format';
-import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
+import { toAppError } from '../../../lib/ipc/errors';
+import { aiErrorMessage, providerFullName, usesStrongest } from '../../settings/ai/providers';
 import { Checkbox } from '../../settings/components/fields';
+import { useAiModels } from '../ai/api';
 import { ScrollCode } from '../ai/ScrollCode';
 import { tokensLabel } from '../ai/text';
 import { useStartStandalone } from './api';
@@ -39,7 +41,14 @@ export function StandaloneConsent({
   const { t: ti } = useTranslation('ia');
   const start = useStartStandalone();
   const [github, setGithub] = useState(true);
-  const tier = preview.tier ?? 'economical';
+  const provider = preview.provider;
+  const gemini = provider === 'gemini';
+  // Como na conversa com pack: a lista de modelos já está no cache (a página a consulta antes).
+  const models = useAiModels(provider, gemini);
+  const strongest = gemini && usesStrongest(models.data, preview.model);
+  const cost = gemini
+    ? ti(`consentimento.custoValor.${strongest ? 'forte' : 'leve'}`)
+    : ti(`consentimento.custoPago.${provider}`);
 
   return (
     <Dialog
@@ -108,7 +117,12 @@ export function StandaloneConsent({
         </div>
         <dl className="kv">
           <dt>{ti('consentimento.para')}</dt>
-          <dd>{ti('consentimento.paraValor', { modelo: preview.model })}</dd>
+          <dd>
+            {ti('consentimento.paraValor', {
+              provedor: providerFullName(provider),
+              modelo: preview.model,
+            })}
+          </dd>
           <dt>{ti('consentimento.tamanho')}</dt>
           <dd>
             {preview.estimatedTokens === null
@@ -119,17 +133,17 @@ export function StandaloneConsent({
                 })}
           </dd>
           <dt>{ti('consentimento.custo')}</dt>
-          <dd>{ti(`consentimento.custoValor.${tier}`)}</dd>
+          <dd>{cost}</dd>
         </dl>
-        <p className="t-sm t-2">{ti('consentimento.plano')}</p>
-        {tier === 'careful' ? (
+        {gemini ? <p className="t-sm t-2">{ti('consentimento.plano')}</p> : null}
+        {strongest ? (
           <Alert kind="warn" compact>
             {ti('consentimento.poucasPorDia')}
           </Alert>
         ) : null}
         {start.isError ? (
           <Alert kind="danger" compact title={ti('consentimento.erro')}>
-            {appErrorMessage(toAppError(start.error))}
+            {aiErrorMessage(toAppError(start.error), provider)}
           </Alert>
         ) : null}
       </DialogContent>

@@ -29,6 +29,7 @@ import { Icon } from '../../../components/ui/icon';
 import { showToast } from '../../../components/ui/toast';
 import type {
   AiConversationState,
+  AiProvider,
   AiConversationSummary,
   AiLocalPick,
   AiPreview,
@@ -82,7 +83,7 @@ export function StandalonePage() {
     body = (
       <>
         {head}
-        <MissingKey />
+        <MissingKey provider={settings.data.provider} />
       </>
     );
   } else {
@@ -90,7 +91,7 @@ export function StandalonePage() {
       <>
         {head}
         <NewAnalysis />
-        <ModelLine />
+        <ModelLine provider={settings.data.provider} tier={settings.data.tier} />
         <StandaloneList />
       </>
     );
@@ -102,13 +103,17 @@ export function StandalonePage() {
   );
 }
 
-function MissingKey() {
+function MissingKey({ provider }: { provider: AiProvider }) {
   const { t } = useTranslation('ia');
   return (
     <EmptyState
       glyph="dots"
-      title={t('chave.titulo')}
-      text={t('chave.texto')}
+      title={t(`chave.titulo.${provider}`)}
+      text={
+        <>
+          {t('chave.texto')} {t('chave.provedores')}
+        </>
+      }
       actions={
         <Link to="/configuracoes" className={buttonVariants({ variant: 'primary' })}>
           <Icon icon={KeyRound} />

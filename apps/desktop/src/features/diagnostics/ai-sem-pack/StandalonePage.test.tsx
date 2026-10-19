@@ -295,6 +295,61 @@ describe('✦ Analisar um log: sem pack (T14 item 8)', () => {
     });
   });
 
+  it('junção D-18 × D-19: o consentimento sem pack com a OpenAI e o Claude diz o provedor e o modelo, sem plano gratuito', async () => {
+    for (const [provider, model, name, charge] of [
+      ['openai', 'gpt-9-luna', 'OpenAI', 'O uso é cobrado na sua chave da OpenAI'],
+      ['anthropic', 'claude-sonnet-9-5', 'Claude', 'O uso é cobrado na sua chave da Anthropic'],
+    ] as const) {
+      setup({ ai_standalone_preview: () => makeLinkPreview({ provider, model }) });
+      const { unmount } = renderApp('/analisar-log');
+      await screen.findByRole(
+        'heading',
+        { level: 1, name: /Analisar um log/ },
+        { timeout: 10_000 },
+      );
+      const user = userEvent.setup();
+      await user.type(screen.getByRole('textbox', { name: 'Link do log' }), 'https://mclo.gs/abc');
+      await user.click(screen.getByRole('button', { name: 'Começar conversa' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Começar uma conversa com a IA?' });
+      expect(within(dialog).getByText(`${name} (${model}), com a sua chave`)).toBeDefined();
+      expect(within(dialog).getByText(new RegExp(charge))).toBeDefined();
+      expect(within(dialog).queryByText(/plano gratuito/)).toBeNull();
+      unmount();
+    }
+  });
+
+  it('junção D-18 × D-19: a conversa sem pack mostra o provedor dela, o aviso de troca do Gemini e a chave que falta', async () => {
+    setup({
+      secrets_status: () => ({
+        backend: 'keyring',
+        curseforge: false,
+        gemini: false,
+        openai: true,
+        anthropic: true,
+        github: false,
+      }),
+      ai_standalone_get: () => ({
+        ...linkView(),
+        model: 'gemini-9.1-flash',
+        turns: [
+          makeTurn({
+            question: LINK_TEXT,
+            steps: [LINK_STEP],
+            fallbackModel: 'gemini-9.1-flash-lite',
+            answer: makeAnswer({ checked: makeChecked({ noConclusion: true }) }),
+          }),
+        ],
+      }),
+    });
+    await openConversation();
+    expect(screen.getByText(/começou .* com Gemini/)).toBeDefined();
+    const notice = screen.getByText(
+      /O limite diário do modelo mais forte acabou; esta resposta usou o mais leve\./,
+    );
+    expect(notice.textContent).toContain('Modelo desta resposta: gemini-9.1-flash-lite.');
+    expect(await screen.findByText('Falta a chave do Gemini')).toBeDefined();
+  });
+
   it('apagar uma conversa sem pack relê a lista', async () => {
     let gone = false;
     const backend = setup({

@@ -258,7 +258,7 @@ function Turn({
  * A pergunta respondida pelo modelo mais leve porque a cota diária do modelo da conversa acabou
  * (só no Gemini; ADR-0060, complemento de 19/10/2026). A pergunta seguinte volta ao da conversa.
  */
-function Fallback({ model }: { model: string }) {
+export function Fallback({ model }: { model: string }) {
   const { t } = useTranslation('ia');
   return (
     <Alert kind="warn" compact>
@@ -271,7 +271,7 @@ function Fallback({ model }: { model: string }) {
  * Sem a chave do provedor da conversa: o pedido dessa chave, com o caminho para Configurações
  * (o estado das chaves é o de Configurações, sempre atual).
  */
-function KeyMissing({ provider }: { provider: AiProvider }) {
+export function KeyMissing({ provider }: { provider: AiProvider }) {
   const { t } = useTranslation('ia');
   const secrets = useSecretsStatus();
   if (!secrets.data || secrets.data[provider]) {
