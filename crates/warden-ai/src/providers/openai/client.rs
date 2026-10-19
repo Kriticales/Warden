@@ -244,23 +244,38 @@ pub fn classify(status: u16, body: &str, retry_after: Option<Duration>) -> Probl
     }
 }
 
-/// "Please try again in 1.234s" / "in 20ms" (o tempo que a mensagem do 429 traz).
+/// "Please try again in 1.234s" / "in 20ms" / "in 7m12s" / "in 6h0m" (o tempo que a mensagem do
+/// 429 traz; os limites por dia vêm em minutos e horas).
 fn wait_in_message(message: &str) -> Option<Duration> {
-    let rest = &message[message.find("try again in ")? + "try again in ".len()..];
-    let number: String = rest
-        .chars()
-        .take_while(|c| c.is_ascii_digit() || *c == '.')
-        .collect();
-    let value: f64 = number.parse().ok()?;
-    let unit = &rest[number.len()..];
-    let seconds = if unit.starts_with("ms") {
-        value / 1000.0
-    } else if unit.starts_with('s') {
-        value
-    } else {
-        return None;
-    };
-    (seconds.is_finite() && seconds >= 0.0).then(|| Duration::from_secs_f64(seconds.ceil()))
+    let mut rest = &message[message.find("try again in ")? + "try again in ".len()..];
+    let mut seconds = 0.0;
+    let mut parts = 0;
+    loop {
+        let number: String = rest
+            .chars()
+            .take_while(|c| c.is_ascii_digit() || *c == '.')
+            .collect();
+        let Ok(value) = number.parse::<f64>() else {
+            break;
+        };
+        let unit = &rest[number.len()..];
+        let (scale, len) = if unit.starts_with("ms") {
+            (0.001, 2)
+        } else if unit.starts_with('s') {
+            (1.0, 1)
+        } else if unit.starts_with('m') {
+            (60.0, 1)
+        } else if unit.starts_with('h') {
+            (3600.0, 1)
+        } else {
+            return None;
+        };
+        seconds += value * scale;
+        parts += 1;
+        rest = &unit[len..];
+    }
+    (parts > 0 && seconds.is_finite() && seconds >= 0.0)
+        .then(|| Duration::from_secs_f64(seconds.ceil()))
 }
 
 /// A mensagem de erro da API (`error.message`), sem a chave, para o detalhe técnico.
@@ -319,6 +334,26 @@ mod tests {
             classify(429, &rate, Some(Duration::from_secs(600))),
             Problem::Quota
         );
+        // O limite por dia escreve minutos e horas na mensagem: também é cota.
+        let per_day = body(
+            "rate_limit_exceeded",
+            "requests",
+            "Rate limit reached for gpt-6-sol on requests per day (RPD): Limit 200, Used 200, Requested 1. Please try again in 7m12s.",
+        );
+        assert_eq!(classify(429, &per_day, None), Problem::Quota);
+        assert_eq!(
+            wait_in_message("Please try again in 7m12s."),
+            Some(Duration::from_secs(432))
+        );
+        assert_eq!(
+            wait_in_message("Please try again in 6h0m."),
+            Some(Duration::from_secs(21_600))
+        );
+        assert_eq!(
+            wait_in_message("Please try again in 1m26.4s."),
+            Some(Duration::from_secs(87))
+        );
+        assert_eq!(wait_in_message("Please try again in a while."), None);
     }
 
     #[test]
