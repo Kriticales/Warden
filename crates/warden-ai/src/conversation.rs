@@ -254,10 +254,26 @@ pub struct ConversationTurn {
     /// O erro que interrompeu (a conversa continua guardada).
     pub failure: Option<TurnFailure>,
     /// O modelo mais leve que respondeu esta pergunta porque a cota diária do modelo da conversa
-    /// acabou no meio dela (a tela avisa; ADR-0060, complemento de 19/10/2026).
+    /// acabou no meio dela, ou porque ele estourou o tempo-limite (a tela avisa; ADR-0060,
+    /// complemento de 19/10/2026).
     #[serde(default)]
     #[specta(optional)]
     pub fallback_model: Option<String>,
+    /// Por que a pergunta trocou para [`Self::fallback_model`] (`None` numa conversa gravada
+    /// antes da D-15b: a cota diária, a única troca de então).
+    #[serde(default)]
+    #[specta(optional)]
+    pub fallback_reason: Option<FallbackReason>,
+}
+
+/// Por que uma pergunta trocou para o modelo mais leve.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum FallbackReason {
+    /// A cota diária do modelo da conversa acabou.
+    Quota,
+    /// O modelo da conversa estourou o tempo-limite (D-15b).
+    Timeout,
 }
 
 /// O corpo exato de uma requisição que voltou com resposta.

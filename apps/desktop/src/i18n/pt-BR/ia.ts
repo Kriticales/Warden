@@ -222,7 +222,8 @@ export const ia = {
     },
   },
   troca: {
-    texto: 'O limite diário do modelo mais forte acabou; esta resposta usou o mais leve.',
+    quota: 'O limite diário do modelo mais forte acabou; esta resposta usou o mais leve.',
+    timeout: 'O modelo mais forte demorou demais para responder; esta resposta usou o mais leve.',
     modelo: 'Modelo desta resposta: {{modelo}}.',
   },
   faltaChave: {

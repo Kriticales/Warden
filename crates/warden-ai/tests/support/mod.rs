@@ -56,6 +56,8 @@ pub struct State {
     /// Corpos de `countTokens`, como chegaram (bytes).
     pub count_tokens_raw: Vec<String>,
     pub urls: Vec<String>,
+    /// O modelo (ou o começo do nome) que demora para responder, e quanto.
+    pub slow: Option<(String, std::time::Duration)>,
 }
 
 pub struct Gemini {
@@ -88,6 +90,11 @@ impl Gemini {
 
     pub fn raw(&self) -> Vec<String> {
         self.state.lock().unwrap().raw.clone()
+    }
+
+    /// Faz o servidor demorar `delay` em cada `generateContent` do `model`.
+    pub fn slow_model(&self, model: &str, delay: std::time::Duration) {
+        self.state.lock().unwrap().slow = Some((model.to_owned(), delay));
     }
 
     pub fn client(&self, timer: &ManualTimer) -> GeminiClient {
@@ -157,7 +164,18 @@ impl Respond for Responder {
         state
             .raw
             .push(String::from_utf8(request.body.clone()).unwrap());
+        let delay = state
+            .slow
+            .as_ref()
+            .filter(|(model, _)| url.contains(&format!("/models/{model}")))
+            .map(|(_, delay)| *delay);
         drop(state);
+        if let Some(delay) = delay {
+            // A resposta não chega antes do tempo-limite do cliente: nada vai para o roteiro.
+            return ResponseTemplate::new(200)
+                .set_body_json(json!({}))
+                .set_delay(delay);
+        }
         let n = self.count.fetch_add(1, Ordering::SeqCst);
         let (status, reply) = (self.script)(n, &body);
         if status == 200

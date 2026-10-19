@@ -2736,9 +2736,15 @@ export type ConversationTurn = {
 	failure: TurnFailure | null,
 	/**
 	 *  O modelo mais leve que respondeu esta pergunta porque a cota diária do modelo da conversa
-	 *  acabou no meio dela (a tela avisa; ADR-0060, complemento de 19/10/2026).
+	 *  acabou no meio dela, ou porque ele estourou o tempo-limite (a tela avisa; ADR-0060,
+	 *  complemento de 19/10/2026).
 	 */
 	fallbackModel?: string | null,
+	/**
+	 *  Por que a pergunta trocou para [`Self::fallback_model`] (`None` numa conversa gravada
+	 *  antes da D-15b: a cota diária, a única troca de então).
+	 */
+	fallbackReason?: FallbackReason | null,
 };
 
 /**  Resultado de "Copiar para defaultconfigs/". */
@@ -3589,6 +3595,13 @@ export type ExternalRequest = {
 export type ExternalService = 
 /**  API do GitHub. */
 "github";
+
+/**  Por que uma pergunta trocou para o modelo mais leve. */
+export type FallbackReason = 
+/**  A cota diária do modelo da conversa acabou. */
+"quota" | 
+/**  O modelo da conversa estourou o tempo-limite (D-15b). */
+"timeout";
 
 /**  O controle que o formulário mostra. */
 export type FieldControl = 

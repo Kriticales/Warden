@@ -22,9 +22,9 @@ use serde_json::Value;
 use support::ValeSombrio;
 use warden_ai::conversation::AnswerVia;
 use warden_ai::engine::{Engine, Limits, NoObserver};
-use warden_ai::providers::ModelTier;
 use warden_ai::providers::gemini::GeminiClient;
 use warden_ai::providers::gemini::models::fetch_choices;
+use warden_ai::providers::{ModelTier, http_config};
 use warden_ai::schema::answer_schema;
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
@@ -41,7 +41,7 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
         eprintln!("rede_d04: pulado (GEMINI_API_KEY ausente)");
         return;
     };
-    let http = HttpClient::new(HttpConfig::for_version("0.0.0")).unwrap();
+    let http = HttpClient::new(http_config(HttpConfig::for_version("0.0.0"))).unwrap();
     let client = GeminiClient::new(http, SecretString::from(key)).unwrap();
     let choices = fetch_choices(&client).await.unwrap();
     let (model, tier) = choices.pick(ModelTier::Economical).expect("nenhum modelo");
@@ -84,10 +84,13 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
     let turn = &conversation.turns[0];
     assert!(!turn.steps.is_empty(), "a IA não chamou nenhuma ferramenta");
     let answer = turn.answer.as_ref().unwrap();
-    assert_eq!(
-        answer.via,
-        AnswerVia::Respond,
-        "a resposta não veio pela responder"
+    // As rodadas usam `ANY` (D-15b): o modelo não tem como responder em texto, então a resposta
+    // vem pela `responder`. A reserva só vale no caminho que a ADR-0055 prevê para ela: o
+    // limite de 8 rodadas ou o teto de tokens da conversa (`round_limit`).
+    assert!(
+        answer.via == AnswerVia::Respond || answer.round_limit,
+        "a resposta não veio pela responder nem pelo limite de rodadas: {:?}",
+        answer.via
     );
     // Válida no esquema: os campos obrigatórios com os tipos certos.
     let raw: Value = serde_json::from_str(&answer.raw).unwrap();
@@ -104,10 +107,13 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
         assert!(ok, "campo {field} fora do esquema: {raw}");
     }
     eprintln!(
-        "rede_d04: {} requisições, {} consultas, {} tokens, confiança {:?}",
+        "rede_d04: {} requisições, {} consultas, {} tokens, confiança {:?}, resposta por {:?}, troca {:?} ({:?})",
         conversation.requests,
         turn.steps.len(),
         conversation.usage.total(),
-        answer.checked.confidence
+        answer.checked.confidence,
+        answer.via,
+        turn.fallback_model,
+        turn.fallback_reason
     );
 }

@@ -186,6 +186,26 @@ describe('a conversa e o provedor em que começou (CA-T14-21, CA-T14-24)', () =>
     expect(answers[1]?.textContent).toContain('gemini-9.1-flash ·');
   });
 
+  it('D-15b (tela): a troca pelo tempo-limite diz o motivo dela, não o da cota', async () => {
+    const { url } = setup({
+      handlers: {
+        ai_conversation_get: () =>
+          makeView({
+            model: 'gemini-9.1-flash',
+            turns: [
+              makeTurn({ fallbackModel: 'gemini-9.1-flash-lite', fallbackReason: 'timeout' }),
+            ],
+          }),
+      },
+    });
+    await openConversation(url);
+    const notice = screen.getByText(
+      /O modelo mais forte demorou demais para responder; esta resposta usou o mais leve\./,
+    );
+    expect(notice.textContent).toContain('Modelo desta resposta: gemini-9.1-flash-lite.');
+    expect(screen.queryByText(/O limite diário do modelo mais forte acabou/)).toBeNull();
+  });
+
   it('sem a chave do provedor da conversa: pede essa chave e leva a Configurações', async () => {
     const { url } = setup({
       provider: 'gemini',

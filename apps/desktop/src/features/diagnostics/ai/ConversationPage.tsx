@@ -10,7 +10,8 @@
  *   gratuito; nova tentativa); um erro diz o que houve, na frase do provedor da conversa, nada
  *   muda no pack e a conversa fica guardada;
  * - a pergunta que o Gemini respondeu com o modelo mais leve, porque a cota diária do mais forte
- *   acabou, avisa a troca (`fallbackModel`; ADR-0060, complemento de 19/10/2026);
+ *   acabou ou ele estourou o tempo-limite, avisa a troca e o motivo (`fallbackModel` e
+ *   `fallbackReason`; ADR-0060, complemento de 19/10/2026, e D-15b);
  * - D-18: a conversa mostra o provedor em que começou (ela fica nele, ADR-0060); sem a chave
  *   desse provedor, pede essa chave e leva a Configurações (CA-T14-21);
  * - continuar uma conversa antiga avisa se o pack mudou (CA-T14-15);
@@ -35,6 +36,7 @@ import type {
   AiConversationView,
   AiProvider,
   ConversationTurn,
+  FallbackReason,
   LiveStatus,
   PackChanges,
   PackId,
@@ -229,7 +231,9 @@ function Turn({
               <StepBlock step={step} />
             </Fragment>
           ))}
-          {turn.fallbackModel ? <Fallback model={turn.fallbackModel} /> : null}
+          {turn.fallbackModel ? (
+            <Fallback model={turn.fallbackModel} reason={turn.fallbackReason ?? 'quota'} />
+          ) : null}
           {turn.answer ? (
             <AnswerView packId={packId} conversationId={view.summary.id} answer={turn.answer} />
           ) : null}
@@ -258,11 +262,11 @@ function Turn({
  * A pergunta respondida pelo modelo mais leve porque a cota diária do modelo da conversa acabou
  * (só no Gemini; ADR-0060, complemento de 19/10/2026). A pergunta seguinte volta ao da conversa.
  */
-export function Fallback({ model }: { model: string }) {
+export function Fallback({ model, reason }: { model: string; reason: FallbackReason }) {
   const { t } = useTranslation('ia');
   return (
     <Alert kind="warn" compact>
-      {t('troca.texto')} {t('troca.modelo', { modelo: model })}
+      {t(`troca.${reason}`)} {t('troca.modelo', { modelo: model })}
     </Alert>
   );
 }

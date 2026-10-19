@@ -18,16 +18,16 @@ use support::{
     Gemini, ValeSombrio, calls, conversation, external_tools, fixture, real_error, real_problem,
     respond, simple_answer, text,
 };
-use warden_ai::conversation::{AnswerVia, Conversation};
+use warden_ai::conversation::{AnswerVia, Conversation, FallbackReason};
 use warden_ai::engine::{Engine, Limits, LiveStatus, Observer};
 use warden_ai::evidence::{ClaimStatus, EvidenceStatus};
-use warden_ai::providers::Message;
 use warden_ai::providers::gemini::{GeminiClient, translate};
+use warden_ai::providers::{Message, http_config};
 use warden_ai::schema::ROUND_LIMIT_MESSAGE;
 use warden_ai::tools::{AiPermissions, NOT_ALLOWED, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
 use warden_core::{CancellationToken, DomainCode, DomainError};
-use warden_http::ManualTimer;
+use warden_http::{HttpClient, HttpConfig, ManualTimer};
 
 /// Guarda o que o laço avisou.
 #[derive(Default)]
@@ -147,14 +147,14 @@ async fn paralelas_malformada_e_resposta_pela_responder() {
     assert_eq!(conv.requests, 4);
 
     let requests = setup.gemini.requests();
-    // A primeira rodada só libera as iniciais; depois do crash report, todas. Sempre VALIDATED,
-    // temperatura 1.0, declarações iguais.
+    // A primeira rodada só libera as iniciais; depois do crash report, todas. Sempre ANY (a
+    // resposta tem de ser uma chamada; D-15b), temperatura 1.0, declarações iguais.
     assert_eq!(allowed(&requests[0]).len(), 12);
     assert!(!allowed(&requests[0]).contains(&"read_config".to_owned()));
     assert_eq!(allowed(&requests[2]).len(), 16);
     assert!(allowed(&requests[0]).contains(&"responder".to_owned()));
     for request in &requests {
-        assert_eq!(mode(request), "VALIDATED");
+        assert_eq!(mode(request), "ANY");
         assert_eq!(request["generationConfig"]["temperature"], 1.0);
         assert_eq!(request["tools"], requests[0]["tools"]);
         assert!(request["generationConfig"].get("responseFormat").is_none());
@@ -283,7 +283,7 @@ async fn teto_de_tokens_da_conversa_leva_a_reserva() {
     engine.ask(&mut conv, "Está lento".into()).await.unwrap();
     let requests = setup.gemini.requests();
     assert_eq!(requests.len(), 3, "2 rodadas (6.080 tokens) e a reserva");
-    assert_eq!(mode(&requests[1]), "VALIDATED");
+    assert_eq!(mode(&requests[1]), "ANY");
     assert_eq!(mode(&requests[2]), "NONE");
     let answer = conv.turns[0].answer.as_ref().unwrap();
     assert_eq!(answer.via, AnswerVia::Fallback);
@@ -656,6 +656,157 @@ async fn cota_diaria_troca_para_o_mais_leve_so_naquela_pergunta() {
     );
     assert_eq!(conv.turns[1].fallback_model, None);
     assert!(serde_json::to_value(&conv).unwrap()["turns"][1]["fallbackModel"].is_null());
+}
+
+#[tokio::test]
+async fn tempo_limite_troca_para_o_mais_leve_na_hora_so_naquela_pergunta() {
+    // D-15b: o Flash não responde no tempo-limite; sem novas tentativas nele, a mesma requisição
+    // vai de novo com o Flash-Lite, a pergunta guarda a troca e o motivo, e a próxima volta ao
+    // Flash.
+    let gemini = Gemini::start(Box::new(|n, _| match n {
+        0 => calls(&[("get_findings", json!({}))]),
+        _ => respond(&simple_answer()),
+    }))
+    .await;
+    let timer = ManualTimer::new();
+    let client = gemini
+        .client(&timer)
+        .with_timeout(Duration::from_millis(300));
+    let registry = ToolRegistry::new();
+    let source = ValeSombrio::default();
+    let watch = Watch::default();
+    let engine = Engine {
+        provider: &client,
+        registry: &registry,
+        source: &source,
+        observer: &watch,
+        timer: Arc::new(timer.clone()),
+        cancel: CancellationToken::new(),
+        limits: Limits::default(),
+    };
+    let mut conv = conversation(AiPermissions::default());
+    conv.model = "gemini-3.8-flash".into();
+    conv.fallback_model = Some("gemini-3.5-flash-lite".into());
+    gemini.slow_model("gemini-3.8-flash", Duration::from_secs(5));
+    engine.ask(&mut conv, "?".into()).await.unwrap();
+    assert!(gemini.refusals().is_empty(), "{:?}", gemini.refusals());
+    assert_eq!(
+        models_sent(&gemini),
+        [
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash-lite"
+        ],
+        "uma tentativa só no Flash"
+    );
+    let raw = gemini.raw();
+    assert_eq!(
+        raw[0], raw[1],
+        "a mesma requisição, com o histórico intacto"
+    );
+    assert!(timer.sleeps().is_empty(), "troca sem espera");
+    assert!(
+        !watch
+            .lives
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|live| matches!(live, LiveStatus::Retrying { .. })),
+        "sem novas tentativas no Flash"
+    );
+    let turn = &conv.turns[0];
+    assert!(turn.failure.is_none());
+    assert_eq!(turn.answer.as_ref().unwrap().via, AnswerVia::Respond);
+    assert_eq!(
+        turn.fallback_model.as_deref(),
+        Some("gemini-3.5-flash-lite")
+    );
+    assert_eq!(turn.fallback_reason, Some(FallbackReason::Timeout));
+    let saved = serde_json::to_value(&conv).unwrap();
+    assert_eq!(saved["turns"][0]["fallbackReason"], "timeout");
+
+    // A próxima pergunta volta ao Flash (que agora responde a tempo).
+    gemini.state.lock().unwrap().slow = None;
+    engine.ask(&mut conv, "E agora?".into()).await.unwrap();
+    assert_eq!(
+        models_sent(&gemini).last().map(String::as_str),
+        Some("gemini-3.8-flash")
+    );
+    assert_eq!(conv.turns[1].fallback_model, None);
+    assert_eq!(conv.turns[1].fallback_reason, None);
+}
+
+#[tokio::test]
+async fn tempo_limite_do_mais_leve_segue_as_novas_tentativas() {
+    // Depois da troca, o Flash-Lite também estoura: valem as novas tentativas de sempre
+    // (ADR-0055) e o erro do tempo-limite, sem outra troca.
+    let gemini = Gemini::start(Box::new(|_, _| respond(&simple_answer()))).await;
+    let timer = ManualTimer::new();
+    let client = gemini
+        .client(&timer)
+        .with_timeout(Duration::from_millis(200));
+    let registry = ToolRegistry::new();
+    let source = ValeSombrio::default();
+    let engine = Engine {
+        provider: &client,
+        registry: &registry,
+        source: &source,
+        observer: &warden_ai::engine::NoObserver,
+        timer: Arc::new(timer.clone()),
+        cancel: CancellationToken::new(),
+        limits: Limits {
+            transient_retries: 1,
+            ..Limits::default()
+        },
+    };
+    let mut conv = conversation(AiPermissions::default());
+    conv.model = "gemini-3.8-flash".into();
+    conv.fallback_model = Some("gemini-3.5-flash-lite".into());
+    gemini.slow_model("gemini-3.", Duration::from_secs(5));
+    let error = engine.ask(&mut conv, "?".into()).await.unwrap_err();
+    assert!(matches!(error, Error::Timeout { .. }), "{error}");
+    assert_eq!(
+        models_sent(&gemini),
+        [
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash-lite"
+        ]
+    );
+    assert_eq!(timer.sleeps(), [Duration::from_secs(2)]);
+    assert_eq!(conv.turns[0].fallback_reason, Some(FallbackReason::Timeout));
+}
+
+#[tokio::test]
+async fn resposta_lenta_nao_e_cortada_antes_do_tempo_limite_do_provedor() {
+    // D-15b: a API responde sem streaming, então nada chega até a resposta ficar pronta. O
+    // `read_timeout` do app (30 s; aqui 200 ms) cortava a resposta antes do tempo-limite do
+    // provedor; o cliente HTTP da IA (`providers::http_config`) espera o tempo-limite inteiro.
+    let gemini = Gemini::start(Box::new(|_, _| respond(&simple_answer()))).await;
+    gemini.slow_model("gemini-3.5-flash-lite", Duration::from_millis(1500));
+    let short_read = HttpConfig {
+        read_timeout: Duration::from_millis(200),
+        ..HttpConfig::for_version("9.9.9")
+    };
+    let timer = ManualTimer::new();
+    let http = HttpClient::with_timer(http_config(short_read), Arc::new(timer.clone())).unwrap();
+    let client = GeminiClient::with_base_url(
+        http,
+        &gemini.server.uri(),
+        secrecy::SecretString::from(support::FAKE_KEY),
+    )
+    .unwrap()
+    .with_timeout(Duration::from_secs(10));
+    let reply = client
+        .post(
+            "gemini-3.5-flash-lite",
+            "generateContent",
+            &json!({ "contents": [{ "role": "user", "parts": [{ "text": "?" }] }] }),
+            None,
+        )
+        .await
+        .unwrap();
+    assert_eq!(reply.status, 200);
 }
 
 #[tokio::test]

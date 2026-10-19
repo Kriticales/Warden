@@ -6,7 +6,7 @@
 //! - Sem novas tentativas aqui: cada requisição sai uma vez ([`warden_http::Request::send_unchecked`])
 //!   e volta como veio, com o código e o corpo, porque quem decide repetir, esperar ou parar é o
 //!   laço ([`crate::engine`]), que mostra as esperas na tela.
-//! - Tempo-limite de 90 s por requisição (S-R5-4 §13).
+//! - Tempo-limite de 120 s por requisição (D-15b; ADR-0060, complemento de 19/10/2026).
 
 use std::time::Duration;
 
@@ -23,8 +23,10 @@ pub const DEFAULT_BASE_URL: &str = "https://generativelanguage.googleapis.com/";
 /// Variável que troca o endereço da API, só em build de debug (servidor simulado dos E2E).
 pub const BASE_URL_ENV: &str = "WARDEN_API_BASE_GEMINI";
 
-/// Tempo-limite de cada requisição (S-R5-4 §13: uma resposta real levou mais de 60 s).
-pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(90);
+/// Tempo-limite de cada requisição. O Flash pensa no nível médio (o padrão dele) e uma resposta
+/// real já levou mais de 60 s (S-R5-4 §13): 120 s cabem nela com folga. Estourando, o laço troca
+/// para o modelo mais leve naquela pergunta ([`crate::engine`]; D-15b).
+pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// Maior corpo aceito numa resposta (uma resposta real tem dezenas de KB).
 const MAX_BODY: u64 = 8 * 1024 * 1024;

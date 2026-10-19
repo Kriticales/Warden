@@ -1,6 +1,7 @@
 //! O Gemini migrado para o trait de provedor manda **o mesmo corpo, byte a byte**, que o laço
-//! da D-04 mandava para a mesma conversa (ROADMAP D-15; CA-T14-22), e as conversas do formato 1
-//! abrem iguais e continuam com o Gemini.
+//! da D-04 mandava para a mesma conversa (ROADMAP D-15; CA-T14-22), salvo o modo das rodadas de
+//! ferramenta (`ANY` desde a D-15b, [`as_in_d04`]), e as conversas do formato 1 abrem iguais e
+//! continuam com o Gemini.
 //!
 //! `tests/fixtures/corpos-gemini-d04.json` tem o SHA-256 de cada corpo que o código da D-04
 //! (commit 04f2d21) mandou ao servidor simulado, gravado antes de mexer no laço, nos dois jeitos
@@ -34,6 +35,13 @@ const RECORDINGS: [&str; 4] = [
 ];
 
 const V1: &str = "conversa-v1-seguimento.json";
+
+/// O corpo como a D-04 o mandaria. A única mudança desde então é o modo das rodadas de
+/// ferramenta (`VALIDATED` → `ANY`, D-15b); o resto continua igual, byte a byte. Dentro de um
+/// texto as aspas vão escapadas, então o trecho só aparece como a chave do modo.
+fn as_in_d04(body: &str) -> String {
+    body.replace(r#""mode":"ANY""#, r#""mode":"VALIDATED""#)
+}
 
 fn sha256(text: &str) -> String {
     use std::fmt::Write as _;
@@ -111,11 +119,19 @@ async fn ca_t14_22_corpo_do_gemini_identico_ao_da_d04_nas_gravacoes_reais() {
         );
 
         let state = gemini.state.lock().unwrap();
-        let sent: Vec<String> = state.raw.iter().map(|body| sha256(body)).collect();
+        let sent: Vec<String> = state
+            .raw
+            .iter()
+            .map(|body| sha256(&as_in_d04(body)))
+            .collect();
         let expected: Vec<String> =
             serde_json::from_value(golden[name]["generateContent"].clone()).unwrap();
         assert_eq!(sent, expected, "{name}: generateContent");
-        let counted: Vec<String> = state.count_tokens_raw.iter().map(|b| sha256(b)).collect();
+        let counted: Vec<String> = state
+            .count_tokens_raw
+            .iter()
+            .map(|b| sha256(&as_in_d04(b)))
+            .collect();
         let expected: Vec<String> =
             serde_json::from_value(golden[name]["countTokens"].clone()).unwrap();
         assert_eq!(counted, expected, "{name}: countTokens");
@@ -205,7 +221,7 @@ async fn ca_t14_22_conversa_do_formato_1_continua_com_o_gemini_e_o_mesmo_corpo()
     assert!(conv.turns[2].answer.is_some());
     let raw = gemini.raw();
     assert_eq!(
-        sha256(&raw[0]),
+        sha256(&as_in_d04(&raw[0])),
         golden()["continuacao"].as_str().unwrap(),
         "o primeiro corpo da pergunta nova é o que a D-04 mandaria"
     );

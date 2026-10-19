@@ -12,16 +12,18 @@
 //!   ao passar de 8 rodadas ou do teto de tokens da conversa, uma requisição sem ferramentas
 //!   ([`ToolChoice::None`]) com a resposta em JSON pelo esquema (CA-T14-18).
 //! - Novas tentativas (S-R5-4 §13), pela classificação comum ([`Failure`]): temporário
-//!   (sobrecarga, falta de conexão, tempo esgotado) até 4 vezes com espera exponencial (2, 4, 8,
-//!   16 s); resposta malformada, texto vazio e resposta final vazia até 2 vezes, **sem mexer no
-//!   histórico**; limite por minuto espera o tempo pedido (até 60 s), com a espera visível
+//!   (sobrecarga, falta de conexão, tempo esgotado sem modelo mais leve) até 4 vezes com espera
+//!   exponencial (2, 4, 8, 16 s); resposta malformada, texto vazio e resposta final vazia até 2
+//!   vezes, **sem mexer no histórico**; limite por minuto espera o tempo pedido (até 60 s), com a espera visível
 //!   ([`LiveStatus::WaitingPerMinute`]); cota esgotada para na hora, sem horário; cobrança e
 //!   chave recusada param tudo.
-//! - Cota diária do modelo da conversa esgotada, com um modelo mais leve conhecido
-//!   ([`Conversation::fallback_model`], no Gemini o Flash-Lite): a mesma requisição vai de novo
-//!   com o mais leve, só naquela pergunta, e a pergunta guarda a troca
-//!   ([`ConversationTurn::fallback_model`]) para a tela avisar (ADR-0060, complemento de
-//!   19/10/2026). A próxima pergunta volta ao modelo da conversa.
+//! - Cota diária do modelo da conversa esgotada, ou tempo-limite estourado, com um modelo mais
+//!   leve conhecido ([`Conversation::fallback_model`], no Gemini o Flash-Lite): a mesma
+//!   requisição vai de novo com o mais leve, sem espera, só naquela pergunta, e a pergunta guarda
+//!   a troca e o motivo ([`ConversationTurn::fallback_model`] e
+//!   [`ConversationTurn::fallback_reason`]) para a tela avisar (ADR-0060, complemento de
+//!   19/10/2026, e D-15b). O tempo-limite troca já na primeira vez, sem as novas tentativas no
+//!   mesmo modelo. A próxima pergunta volta ao modelo da conversa.
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -33,7 +35,7 @@ use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::Timer;
 
 use crate::conversation::{
-    AnswerVia, Conversation, ConversationTurn, FinalAnswer, ToolStep, TurnFailure,
+    AnswerVia, Conversation, ConversationTurn, FallbackReason, FinalAnswer, ToolStep, TurnFailure,
 };
 use crate::error::{Error, Result};
 use crate::evidence::check_answer;
@@ -156,6 +158,7 @@ pub fn push_question(conversation: &mut Conversation, question: String) {
         answer: None,
         failure: None,
         fallback_model: None,
+        fallback_reason: None,
     });
     conversation.updated_at_ms = now_ms();
 }
@@ -319,18 +322,21 @@ impl Engine<'_> {
             let request = self.request(&model, &conversation.messages, mode);
             let sent = match self.send(conversation, &request).await {
                 Ok(sent) => sent,
-                Err(error @ Error::QuotaExceeded { .. }) => {
-                    let Some(lighter) = conversation
-                        .fallback_model
-                        .clone()
-                        .filter(|lighter| *lighter != model)
-                    else {
+                Err(error @ (Error::QuotaExceeded { .. } | Error::Timeout { .. })) => {
+                    let Some(lighter) = lighter_than(conversation, &model) else {
                         return Err(error);
                     };
-                    // A cota diária do modelo acabou: esta pergunta segue no mais leve.
-                    tracing::info!(%model, %lighter, "cota diária esgotada; troca para o modelo mais leve");
+                    // A cota diária do modelo acabou, ou ele não respondeu no tempo-limite: esta
+                    // pergunta segue no mais leve.
+                    let reason = if matches!(error, Error::Timeout { .. }) {
+                        FallbackReason::Timeout
+                    } else {
+                        FallbackReason::Quota
+                    };
+                    tracing::info!(%model, %lighter, ?reason, "troca para o modelo mais leve");
                     if let Some(turn) = conversation.turns.last_mut() {
                         turn.fallback_model = Some(lighter.clone());
+                        turn.fallback_reason = Some(reason);
                     }
                     model = lighter;
                     conversation.updated_at_ms = now_ms();
@@ -542,6 +548,15 @@ impl Engine<'_> {
                     conversation.usage.add(usage);
                     return Ok(Sent::Malformed(reason));
                 }
+                Err(Failure::Network(warden_http::Error::Timeout { .. }))
+                    if lighter_than(conversation, &model).is_some() =>
+                {
+                    // Tempo-limite com um modelo mais leve conhecido: sem novas tentativas no
+                    // mesmo modelo, o laço troca de modelo (D-15b).
+                    return Err(Error::Timeout {
+                        seconds: self.provider.timeout().as_secs(),
+                    });
+                }
                 Err(failure) if failure.is_temporary() => {
                     if transient >= self.limits.transient_retries {
                         return Err(match failure {
@@ -587,6 +602,14 @@ impl Engine<'_> {
             () = self.timer.sleep(duration) => Ok(()),
         }
     }
+}
+
+/// O modelo mais leve da conversa, se ele não é o que está em uso.
+fn lighter_than(conversation: &Conversation, model: &str) -> Option<String> {
+    conversation
+        .fallback_model
+        .clone()
+        .filter(|lighter| lighter != model)
 }
 
 /// O resultado de uma chamada, com o `id` dela.

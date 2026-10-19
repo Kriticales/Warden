@@ -175,8 +175,8 @@ pub enum ToolChoice {
     /// A IA decide.
     Auto,
     /// Só estes nomes, e a resposta tem de ser uma chamada (o escalonamento por etapa, com a
-    /// `responder` sempre na lista). No Gemini, `VALIDATED` com `allowedFunctionNames`: uma
-    /// resposta em texto continua possível e cai na reserva.
+    /// `responder` sempre na lista). No Gemini, `ANY` com `allowedFunctionNames` (D-15b: com
+    /// `VALIDATED`, o Flash respondia em texto e caía na reserva).
     Required(Vec<String>),
     /// Nenhuma ferramenta (a reserva, com [`ChatRequest::response_schema`]).
     None,

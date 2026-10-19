@@ -4,8 +4,10 @@
 //! (`tests/corpo_identico.rs`, com os corpos gravados antes da D-15): as mesmas chaves, na mesma
 //! ordem de inserção, o `content` de cada resposta do modelo reenviado intacto pelo campo opaco
 //! (as *thought signatures*), todas as `functionResponse` de uma rodada numa mensagem, com o
-//! `id` da chamada, temperatura 1.0, `VALIDATED` com `allowedFunctionNames` nas rodadas de
-//! ferramenta e `NONE` com `responseFormat` na reserva.
+//! `id` da chamada, temperatura 1.0 e `NONE` com `responseFormat` na reserva. A única diferença
+//! desde a D-15b: as rodadas de ferramenta usam `ANY` com `allowedFunctionNames` (antes,
+//! `VALIDATED`), que obriga uma chamada; com a `responder` sempre na lista, a resposta final sai
+//! por ela, e não em texto (o Flash respondia em texto com `VALIDATED`).
 
 use serde_json::{Value, json};
 
@@ -133,7 +135,7 @@ pub fn body(request: &ChatRequest) -> Value {
     }
     let function_calling = match &request.choice {
         ToolChoice::Required(names) => json!({
-            "mode": "VALIDATED",
+            "mode": "ANY",
             "allowedFunctionNames": names,
         }),
         ToolChoice::Auto => json!({ "mode": "AUTO" }),

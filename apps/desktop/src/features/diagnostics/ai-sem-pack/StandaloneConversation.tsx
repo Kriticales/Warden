@@ -137,7 +137,9 @@ function Turn({
               <StepBlock step={step} />
             </Fragment>
           ))}
-          {turn.fallbackModel ? <Fallback model={turn.fallbackModel} /> : null}
+          {turn.fallbackModel ? (
+            <Fallback model={turn.fallbackModel} reason={turn.fallbackReason ?? 'quota'} />
+          ) : null}
           {turn.answer ? (
             <AnswerView packId={null} conversationId={view.summary.id} answer={turn.answer} />
           ) : null}
