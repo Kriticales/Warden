@@ -69,7 +69,8 @@ pub struct SecretsConfig {
     /// Substituto do cofre do sistema (só tem efeito em build de debug).
     pub keyring_override: Option<BackendOverride>,
     /// Recuo de desenvolvimento: ler `CURSEFORGE_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`,
-    /// `ANTHROPIC_API_KEY` e `GITHUB_TOKEN` do ambiente quando o armazenamento não tem a chave (só tem efeito em build de debug).
+    /// `ANTHROPIC_API_KEY` e `GITHUB_TOKEN` do ambiente quando o armazenamento não tem a chave
+    /// (só tem efeito em build de debug).
     pub env_fallback: Option<EnvLookup>,
 }
 
@@ -198,8 +199,8 @@ impl Secrets {
         self.active_store().remove(kind)
     }
 
-    /// Lê um segredo na hora do uso (cliente da CurseForge, dos provedores de IA, do GitHub). Em build de
-    /// debug, se o armazenamento não tiver a chave, usa a variável de ambiente.
+    /// Lê um segredo na hora do uso (cliente da CurseForge, dos provedores de IA, do GitHub). Em
+    /// build de debug, se o armazenamento não tiver a chave, usa a variável de ambiente.
     pub fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError> {
         if let Some(value) = self.active_store().get(kind)? {
             return Ok(Some(value));

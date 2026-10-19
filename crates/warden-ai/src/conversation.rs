@@ -234,6 +234,11 @@ pub struct ConversationTurn {
     pub answer: Option<FinalAnswer>,
     /// O erro que interrompeu (a conversa continua guardada).
     pub failure: Option<TurnFailure>,
+    /// O modelo mais leve que respondeu esta pergunta porque a cota diária do modelo da conversa
+    /// acabou no meio dela (a tela avisa; ADR-0060, complemento de 19/10/2026).
+    #[serde(default)]
+    #[specta(optional)]
+    pub fallback_model: Option<String>,
 }
 
 /// O corpo exato de uma requisição que voltou com resposta.
@@ -265,6 +270,10 @@ pub struct Conversation {
     pub provider: AiProvider,
     /// O modelo.
     pub model: String,
+    /// O modelo mais leve do mesmo provedor para quando a cota diária de [`Self::model`] acabar
+    /// (`None`: sem troca; ADR-0060, complemento de 19/10/2026).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_model: Option<String>,
     /// Permissões escolhidas no consentimento.
     pub permissions: AiPermissions,
     /// O sintoma.
@@ -524,6 +533,7 @@ pub fn new_conversation(
         updated_at_ms: now_ms,
         provider,
         model,
+        fallback_model: None,
         permissions,
         symptom,
         origin,

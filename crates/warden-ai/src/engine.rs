@@ -17,6 +17,11 @@
 //!   histórico**; limite por minuto espera o tempo pedido (até 60 s), com a espera visível
 //!   ([`LiveStatus::WaitingPerMinute`]); cota esgotada para na hora, sem horário; cobrança e
 //!   chave recusada param tudo.
+//! - Cota diária do modelo da conversa esgotada, com um modelo mais leve conhecido
+//!   ([`Conversation::fallback_model`], no Gemini o Flash-Lite): a mesma requisição vai de novo
+//!   com o mais leve, só naquela pergunta, e a pergunta guarda a troca
+//!   ([`ConversationTurn::fallback_model`]) para a tela avisar (ADR-0060, complemento de
+//!   19/10/2026). A próxima pergunta volta ao modelo da conversa.
 
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -150,6 +155,7 @@ pub fn push_question(conversation: &mut Conversation, question: String) {
         steps: Vec::new(),
         answer: None,
         failure: None,
+        fallback_model: None,
     });
     conversation.updated_at_ms = now_ms();
 }
@@ -281,6 +287,13 @@ impl Engine<'_> {
         let (mut rounds, mut fallback) = Self::progress(conversation);
         let mut model_retries = 0;
         let mut round_limit = fallback;
+        // A pergunta que já trocou para o modelo mais leve (retomada depois de um erro) continua
+        // nele.
+        let mut model = conversation
+            .turns
+            .last()
+            .and_then(|turn| turn.fallback_model.clone())
+            .unwrap_or_else(|| conversation.model.clone());
         loop {
             if self.cancel.is_cancelled() {
                 return Err(Error::Cancelled);
@@ -303,8 +316,30 @@ impl Engine<'_> {
                     opened: self.opened(conversation),
                 }
             };
-            let request = self.request(&conversation.model, &conversation.messages, mode);
-            let content = match self.send(conversation, &request).await? {
+            let request = self.request(&model, &conversation.messages, mode);
+            let sent = match self.send(conversation, &request).await {
+                Ok(sent) => sent,
+                Err(error @ Error::QuotaExceeded { .. }) => {
+                    let Some(lighter) = conversation
+                        .fallback_model
+                        .clone()
+                        .filter(|lighter| *lighter != model)
+                    else {
+                        return Err(error);
+                    };
+                    // A cota diária do modelo acabou: esta pergunta segue no mais leve.
+                    tracing::info!(%model, %lighter, "cota diária esgotada; troca para o modelo mais leve");
+                    if let Some(turn) = conversation.turns.last_mut() {
+                        turn.fallback_model = Some(lighter.clone());
+                    }
+                    model = lighter;
+                    conversation.updated_at_ms = now_ms();
+                    self.observer.changed(conversation).await;
+                    continue;
+                }
+                Err(error) => return Err(error),
+            };
+            let content = match sent {
                 Sent::Reply(reply) => reply.message,
                 Sent::Malformed(reason) => {
                     // Erro recuperável do modelo: nova tentativa sem tocar no histórico.
