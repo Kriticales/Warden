@@ -1,9 +1,11 @@
 /**
  * Consentimento, uma vez por conversa (SPEC T14 ✦ passo 1; ADR-0030; protótipo `ia-consent`):
  * o que a IA poderá consultar (configs desmarcável; a busca no GitHub só quando existir, D-14),
- * o **texto inicial exato** já redigido, rolável, o tamanho, o provedor e o modelo, o custo de
- * uma conversa típica e o aviso do plano gratuito. **Cancelar** não manda nada (CA-T14-05):
- * a prévia não levou nada do pack para fora; só **✦ Começar conversa** grava e começa.
+ * o **texto inicial exato** já redigido, rolável, o tamanho, o provedor e o modelo (D-18:
+ * Gemini, OpenAI ou Claude) e o custo. O custo de uma conversa típica e o aviso do plano
+ * gratuito aparecem só no Gemini; na OpenAI e no Claude, a frase de que o uso é cobrado na chave,
+ * sem números (CA-T14-24). **Cancelar** não manda nada (CA-T14-05): a prévia não levou nada do
+ * pack para fora; só **✦ Começar conversa** grava e começa.
  */
 import { Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
@@ -15,7 +17,8 @@ import { Dialog, DialogClose, DialogContent } from '../../../components/ui/dialo
 import { Icon } from '../../../components/ui/icon';
 import type { AiPreview, PackId } from '../../../lib/ipc/bindings';
 import { formatBytes } from '../../../lib/format';
-import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
+import { toAppError } from '../../../lib/ipc/errors';
+import { aiErrorMessage, providerFullName } from '../../settings/ai/providers';
 import { Checkbox } from '../../settings/components/fields';
 import { useStartConversation } from './api';
 import { ScrollCode } from './ScrollCode';
@@ -42,6 +45,8 @@ export function ConsentDialog({
   const [configs, setConfigs] = useState(true);
   const [github, setGithub] = useState(true);
   const tier = preview.tier ?? 'economical';
+  const provider = preview.provider;
+  const gemini = provider === 'gemini';
 
   const fixed = (label: string, desc: string) => (
     <li className="row row--top ai-consent__item">
@@ -123,7 +128,12 @@ export function ConsentDialog({
         </div>
         <dl className="kv">
           <dt>{t('consentimento.para')}</dt>
-          <dd>{t('consentimento.paraValor', { modelo: preview.model })}</dd>
+          <dd>
+            {t('consentimento.paraValor', {
+              provedor: providerFullName(provider),
+              modelo: preview.model,
+            })}
+          </dd>
           <dt>{t('consentimento.tamanho')}</dt>
           <dd>
             {preview.estimatedTokens === null
@@ -134,17 +144,21 @@ export function ConsentDialog({
                 })}
           </dd>
           <dt>{t('consentimento.custo')}</dt>
-          <dd>{t(`consentimento.custoValor.${tier}`)}</dd>
+          <dd>
+            {provider === 'gemini'
+              ? t(`consentimento.custoValor.${tier}`)
+              : t(`consentimento.custoPago.${provider}`)}
+          </dd>
         </dl>
-        <p className="t-sm t-2">{t('consentimento.plano')}</p>
-        {tier === 'careful' ? (
+        {gemini ? <p className="t-sm t-2">{t('consentimento.plano')}</p> : null}
+        {gemini && tier === 'careful' ? (
           <Alert kind="warn" compact>
             {t('consentimento.poucasPorDia')}
           </Alert>
         ) : null}
         {start.isError ? (
           <Alert kind="danger" compact title={t('consentimento.erro')}>
-            {appErrorMessage(toAppError(start.error))}
+            {aiErrorMessage(toAppError(start.error), provider)}
           </Alert>
         ) : null}
       </DialogContent>

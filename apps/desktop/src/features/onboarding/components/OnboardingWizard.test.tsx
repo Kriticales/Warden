@@ -172,6 +172,46 @@ describe('primeira execução', () => {
     ]);
   });
 
+  it('IA: os três provedores com o Gemini sugerido; escolher o Claude grava o provedor e a chave dele antes do settings.json', async () => {
+    const backend = firstRunBackend({
+      ai_provider_set: ({ provider }) => ({
+        provider,
+        tier: 'economical',
+        keyConfigured: false,
+        models: null,
+        providers: [],
+      }),
+    });
+    const user = userEvent.setup();
+    renderApp('/');
+    await goToKeys(user);
+    const group = screen.getByRole('group', { name: 'Provedor da IA' });
+    const gemini = within(group).getByRole<HTMLInputElement>('radio', { name: /Gemini/ });
+    expect(gemini.checked).toBe(true);
+    expect(within(group).getByText('Sugerido')).toBeDefined();
+    expect(within(group).getByRole('radio', { name: /OpenAI/ })).toBeDefined();
+    expect(
+      screen.getByText(/O Gemini é o sugerido para começar, porque tem plano gratuito/),
+    ).toBeDefined();
+    expect(screen.getByLabelText('Chave do Gemini')).toBeDefined();
+
+    await user.click(within(group).getByRole('radio', { name: /Claude/ }));
+    await user.type(screen.getByLabelText('Chave do Claude (Anthropic)'), 'sk-ant-falsa');
+    // Nada gravado antes de concluir.
+    expect(backend.callsOf('ai_provider_set')).toEqual([]);
+    await user.click(screen.getByRole('button', { name: 'Concluir' }));
+    await screen.findByRole('heading', { level: 1, name: 'Meus packs' });
+    const order = backend.calls
+      .map((call) => call.command)
+      .filter((command) => ['ai_provider_set', 'secrets_set', 'settings_update'].includes(command));
+    expect(order).toEqual(['ai_provider_set', 'secrets_set', 'settings_update']);
+    expect(backend.callsOf('ai_provider_set')[0]?.args).toEqual({ provider: 'anthropic' });
+    expect(backend.callsOf('secrets_set')[0]?.args).toEqual({
+      kind: 'anthropic',
+      value: 'sk-ant-falsa',
+    });
+  });
+
   it('falha ao gravar uma chave mantém o assistente aberto, com o erro, sem encerrar a primeira execução', async () => {
     const backend = firstRunBackend({
       secrets_set: () => ipcError(makeAppError({ domain: 'secrets', code: 'VAULT_UNAVAILABLE' })),
