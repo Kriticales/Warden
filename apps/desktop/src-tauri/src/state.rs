@@ -99,6 +99,16 @@ impl AppState {
             warden_secrets::SecretKind::Gemini,
             Arc::new(crate::commands::ai::GeminiKeyTester::default()),
         );
+        secret_testers.register(
+            warden_secrets::SecretKind::Openai,
+            Arc::new(AiKeyTester::new(warden_ai::providers::AiProvider::Openai)),
+        );
+        secret_testers.register(
+            warden_secrets::SecretKind::Anthropic,
+            Arc::new(AiKeyTester::new(
+                warden_ai::providers::AiProvider::Anthropic,
+            )),
+        );
         let catalog = crate::commands::catalog::open_catalog(&paths)?;
         let java = open_java(&paths)?;
         let packs = warden_project::registry::Registry::open(paths.packs_registry_file())
@@ -136,6 +146,45 @@ impl AppState {
             },
             outcome,
         ))
+    }
+}
+
+/// Configurações › Testar da chave da OpenAI e da Anthropic (D-16 e D-17): pede a lista de
+/// modelos com a chave e aplica a regra do provedor. Chave recusada vira `KEY_INVALID`; uma chave
+/// sem nenhum modelo da regra, `PROVIDER_NO_MODEL`.
+struct AiKeyTester {
+    provider: warden_ai::providers::AiProvider,
+    /// Endereço da API (`None`: o oficial, ou o de `WARDEN_API_BASE_*` em debug).
+    base_url: Option<String>,
+}
+
+impl AiKeyTester {
+    fn new(provider: warden_ai::providers::AiProvider) -> Self {
+        Self {
+            provider,
+            base_url: None,
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl crate::commands::secrets::SecretTester for AiKeyTester {
+    async fn test(&self, value: secrecy::SecretString) -> Result<(), AppError> {
+        use warden_ai::providers;
+        let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version(env!(
+            "CARGO_PKG_VERSION"
+        )))
+        .map_err(|error| AppError::from_domain(&error))?;
+        let client = match &self.base_url {
+            Some(base) => providers::connect_with_base_url(self.provider, http, base, value),
+            None => providers::connect(self.provider, http, value),
+        }
+        .map_err(|error| AppError::from_domain(&error))?;
+        client
+            .models()
+            .await
+            .map(|_| ())
+            .map_err(|error| AppError::from_domain(&error))
     }
 }
 
@@ -182,6 +231,80 @@ pub(crate) mod tests {
         assert!(!state.settings.exists());
         assert_eq!(state.secrets.backend(), BackendKind::Keyring);
         assert!(format!("{:?}", state.secret_testers).contains("Curseforge"));
+        let testers = format!("{:?}", state.secret_testers);
+        assert!(
+            testers.contains("Openai") && testers.contains("Anthropic"),
+            "{testers}"
+        );
+    }
+
+    #[tokio::test]
+    async fn testador_da_chave_da_openai_e_da_anthropic() {
+        use crate::commands::secrets::SecretTester as _;
+        use secrecy::SecretString;
+        use warden_ai::providers::AiProvider;
+        use wiremock::matchers::{header, method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let code = |error: AppError| serde_json::to_value(error.code).unwrap()["code"].clone();
+        let server = MockServer::start().await;
+        let list = |ids: &[&str]| serde_json::json!({ "data": ids.iter().map(|id| serde_json::json!({ "id": id })).collect::<Vec<_>>() });
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .and(header("authorization", "Bearer chave-openai-boa"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(list(&["gpt-6-luna", "gpt-6-sol"])),
+            )
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .and(header("authorization", "Bearer chave-openai-sem-modelo"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(list(&["gpt-6.1-sol", "o3"])))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/models"))
+            .and(header("x-api-key", "chave-anthropic-boa"))
+            .and(header("anthropic-version", "2023-06-01"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(list(&["claude-sonnet-5-5"])))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET")).respond_with(ResponseTemplate::new(401).set_body_json(
+            serde_json::json!({ "error": { "type": "authentication_error", "code": "invalid_api_key", "message": "x" } }),
+        ))
+        .mount(&server)
+        .await;
+
+        let openai = AiKeyTester {
+            provider: AiProvider::Openai,
+            base_url: Some(server.uri()),
+        };
+        openai
+            .test(SecretString::from("chave-openai-boa"))
+            .await
+            .unwrap();
+        let error = openai
+            .test(SecretString::from("chave-openai-sem-modelo"))
+            .await
+            .unwrap_err();
+        assert_eq!(code(error), "PROVIDER_NO_MODEL");
+        let error = openai.test(SecretString::from("outra")).await.unwrap_err();
+        assert_eq!(code(error), "KEY_INVALID");
+
+        let anthropic = AiKeyTester {
+            provider: AiProvider::Anthropic,
+            base_url: Some(server.uri()),
+        };
+        anthropic
+            .test(SecretString::from("chave-anthropic-boa"))
+            .await
+            .unwrap();
+        let error = anthropic
+            .test(SecretString::from("outra"))
+            .await
+            .unwrap_err();
+        assert_eq!(code(error), "KEY_INVALID");
     }
 
     #[test]
