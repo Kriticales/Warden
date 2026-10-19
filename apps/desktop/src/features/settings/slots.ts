@@ -5,11 +5,11 @@
  *
  * - `testSectionSlots`: a tabela de Java (L-01, `java/`), depois de "Memória padrão", como no
  *   protótipo, e a EULA do Minecraft (L-09, `eula/`);
- * - `keysSectionSlots`: o modelo do Gemini (D-04, `ai/`), depois das chaves.
+ * - `keysSectionSlots`: a IA (D-04; D-18: provedor, chaves e modelo; `ai/`), depois das chaves.
  */
 import type { ComponentType } from 'react';
 
-import { AiModelSetting } from './ai/AiModelSetting';
+import { AiSettings } from './ai/AiSettings';
 import { EulaSetting } from './eula/EulaSetting';
 
 /** Encaixes dentro de "Teste" (L-01: tabela de Java). */
@@ -18,5 +18,5 @@ export const testSectionSlots: readonly ComponentType[] = [
   EulaSetting,
 ];
 
-/** Encaixes dentro de "Chaves e contas" (D-04: modelo do Gemini). */
-export const keysSectionSlots: readonly ComponentType[] = [AiModelSetting];
+/** Encaixes dentro de "Chaves e contas" (D-04 e D-18: a IA). */
+export const keysSectionSlots: readonly ComponentType[] = [AiSettings];

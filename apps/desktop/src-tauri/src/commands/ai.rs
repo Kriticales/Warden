@@ -427,7 +427,6 @@ pub(crate) fn provider_set_impl(
 }
 
 /// Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas.
-// pendente-na-ui: D-18 a escolha do provedor em Configurações › IA
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn ai_provider_set(

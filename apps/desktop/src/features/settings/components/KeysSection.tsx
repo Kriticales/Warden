@@ -1,5 +1,7 @@
 /**
- * Chaves e contas (T21; ADR-0025): CurseForge, Gemini e GitHub.
+ * Chaves e contas (T21; ADR-0025): CurseForge e GitHub; as chaves dos provedores da IA (Gemini,
+ * OpenAI e Claude) ficam na área IA desta seção, pelo encaixe da D-18 (`ai/AiSettings.tsx`), que
+ * usa a mesma linha (`KeyRow`).
  *
  * - Sem chave: campo de senha, **Salvar** e "Como criar" (passo a passo com o link).
  * - Com chave: só "Configurada", com **Testar**, **Substituir** e **Remover**. O valor nunca
@@ -18,12 +20,11 @@ import { LoadingState } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
 import { showToast } from '../../../components/ui/toast';
-import type { BackendKind, SecretTestResult } from '../../../lib/ipc/bindings';
+import type { BackendKind, SecretKind, SecretTestResult } from '../../../lib/ipc/bindings';
 import { openExternal } from '../../../lib/external';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
 import {
   SECRET_KINDS,
-  type ShownSecretKind,
   useRemoveSecret,
   useSecretsStatus,
   useSetSecret,
@@ -38,9 +39,11 @@ import { SettingsPanel } from './SettingsPanel';
 const BACKEND_GROUP = 'secrets-backend';
 
 /** Onde criar cada chave. */
-export const KEY_PAGES: Record<ShownSecretKind, string> = {
+export const KEY_PAGES: Record<SecretKind, string> = {
   curseforge: 'https://console.curseforge.com/#/api-keys',
   gemini: 'https://aistudio.google.com/apikey',
+  openai: 'https://platform.openai.com/api-keys',
+  anthropic: 'https://platform.claude.com/settings/keys',
   github: 'https://github.com/settings/personal-access-tokens/new',
 };
 
@@ -88,7 +91,16 @@ export function KeysSection() {
 
 type TestOutcome = { kind: 'result'; result: SecretTestResult } | { kind: 'error'; error: unknown };
 
-function KeyRow({ kind, configured }: { kind: ShownSecretKind; configured: boolean }) {
+export function KeyRow({
+  kind,
+  configured,
+  errorText = (error) => appErrorMessage(toAppError(error)),
+}: {
+  kind: SecretKind;
+  configured: boolean;
+  /** A frase de um erro do **Testar** (a área IA usa a frase do provedor). */
+  errorText?: (error: unknown) => string;
+}) {
   const { t } = useTranslation('configuracoes');
   const stepsId = useId();
   const name = t(`chaves.nomes.${kind}`);
@@ -238,7 +250,7 @@ function KeyRow({ kind, configured }: { kind: ShownSecretKind; configured: boole
         <div className="keyrow__feedback" role="status">
           {outcome.kind === 'error' ? (
             <Alert kind="danger" compact role="none">
-              {appErrorMessage(toAppError(outcome.error))}
+              {errorText(outcome.error)}
             </Alert>
           ) : outcome.result.status === 'notTestable' ? (
             <p className="t-sm t-2">{t('chaves.naoTestavel')}</p>
@@ -270,7 +282,7 @@ function KeyRow({ kind, configured }: { kind: ShownSecretKind; configured: boole
       <ConfirmDialog
         open={confirmRemove}
         onOpenChange={setConfirmRemove}
-        title={t('chaves.removerTitulo', { nome: name })}
+        title={t(`chaves.removerTitulos.${kind}`)}
         description={t('chaves.removerTexto')}
         confirmLabel={t('chaves.removerConfirmar')}
         confirmingLabel={t('chaves.removendo')}

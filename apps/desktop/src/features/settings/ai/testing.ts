@@ -1,0 +1,63 @@
+/**
+ * Backend simulado com estado para Chaves e contas › IA (D-18): o provedor ativo e a escolha do
+ * modelo de cada provedor mudam como no Rust (`ai/settings.json`), e os modelos vêm do provedor
+ * ativo. Junto com `mockSettingsBackend`, que guarda o estado das chaves.
+ */
+import type {
+  AiProvider,
+  AiSettingsView,
+  ModelChoices,
+  ModelTier,
+  SecretsStatus,
+} from '../../../lib/ipc/bindings';
+import type { Handler } from '../../../test/backend';
+import { AI_PROVIDERS } from './providers';
+
+/** Os modelos de cada provedor nos testes (nomes visivelmente de teste). */
+export const TEST_MODELS: Record<AiProvider, ModelChoices> = {
+  gemini: { economical: 'gemini-9.1-flash-lite', careful: 'gemini-9.1-flash' },
+  openai: { economical: 'gpt-9-luna', careful: 'gpt-9-sol' },
+  anthropic: { economical: 'claude-sonnet-9-9', careful: 'claude-opus-9-9' },
+};
+
+export interface FakeAiState {
+  provider: AiProvider;
+  tiers: Record<AiProvider, ModelTier>;
+}
+
+export function fakeAiHandlers(
+  secrets: () => SecretsStatus,
+  initial: Partial<FakeAiState> = {},
+): { state: FakeAiState; handlers: Record<string, Handler> } {
+  const state: FakeAiState = {
+    provider: 'gemini',
+    tiers: { gemini: 'economical', openai: 'economical', anthropic: 'economical' },
+    ...initial,
+  };
+  const view = (): AiSettingsView => {
+    const providers = AI_PROVIDERS.map((provider) => ({
+      provider,
+      tier: state.tiers[provider],
+      keyConfigured: secrets()[provider],
+      models: null,
+    }));
+    const active = providers.find((item) => item.provider === state.provider) ?? providers[0];
+    if (!active) throw new Error('sem provedor');
+    return { ...active, providers };
+  };
+  return {
+    state,
+    handlers: {
+      ai_settings_get: view,
+      ai_provider_set: ({ provider }) => {
+        state.provider = provider as AiProvider;
+        return view();
+      },
+      ai_settings_set: ({ tier }) => {
+        state.tiers = { ...state.tiers, [state.provider]: tier as ModelTier };
+        return view();
+      },
+      ai_models_get: () => TEST_MODELS[state.provider],
+    },
+  };
+}
