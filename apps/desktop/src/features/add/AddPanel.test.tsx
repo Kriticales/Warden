@@ -64,10 +64,8 @@ async function openAdd(url: string) {
 }
 
 /**
- * Abre a página e digita `query` no campo. A primeira tecla já tira o início da tela e busca com
- * o texto anterior (vazio); a busca digitada só sai 300 ms depois da última tecla e troca a lista
- * pelo esqueleto. Numa máquina lenta essa troca cai no meio dos cliques do teste, que marcam
- * caixas de uma lista que já saiu da tela. Espera o pedido com o texto inteiro.
+ * Abre a página e digita `query` no campo. A busca só sai 300 ms depois da última tecla, e a
+ * lista é redesenhada quando ela chega: espera o pedido com o texto inteiro antes de clicar.
  */
 async function openAndSearch(app: { url: string; backend: MockBackend }, query: string) {
   await openAdd(app.url);
@@ -159,6 +157,25 @@ describe('página Adicionar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Carregar mais' }));
     expect(await within(list).findByRole('button', { name: 'Continuum' })).toBeDefined();
     expect(backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({ cursor: next });
+  });
+
+  it('digitar a partir do início não busca com o texto anterior: um pedido só, com o texto inteiro', async () => {
+    const { url, backend } = setup();
+    await openAdd(url);
+    expect(await screen.findByRole('heading', { name: /^Populares para/ })).toBeDefined();
+    const field = screen.getByRole('searchbox', { name: 'Buscar' });
+    await userEvent.type(field, 's');
+    // A primeira tecla já tira o início da tela, mas ainda não é uma busca.
+    expect(screen.queryByRole('heading', { name: /^Populares para/ })).toBeNull();
+    await userEvent.type(field, 'odium');
+    expect(await screen.findByText('6 resultados para “sodium”, do Modrinth')).toBeDefined();
+    const queries = backend
+      .callsOf('search_projects')
+      .map((call) => (call.args.request as { query: string }).query);
+    // Nenhuma busca com o campo vazio (o texto de antes da primeira tecla); a última é o texto
+    // inteiro. Uma pausa no meio da digitação pode gerar uma busca com um pedaço, nunca vazia.
+    expect(queries).not.toContain('');
+    expect(queries.at(-1)).toBe('sodium');
   });
 
   it('CA-T08-11: marcar 3 e "Adicionar 3 ao pack" abre um único diálogo com os 3 e as dependências', async () => {

@@ -108,13 +108,16 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const debouncedLink = useDebounced(typedLink, TYPING_DELAY_MS);
   const linkUrl = typedLink !== null && debouncedLink === typedLink ? typedLink : null;
   const query = useDebounced(typedLink === null ? text.trim() : '', TYPING_DELAY_MS);
+  // A última tecla ainda não virou busca: nada é pedido às fontes com o texto anterior (ao
+  // sair do início, seria uma busca vazia que troca a lista logo depois, levando o foco junto).
+  const typing = typedLink === null && text.trim() !== query;
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
   // O início aparece com o campo vazio e sem nenhum filtro; qualquer um deles liga a busca.
   // Modpacks não têm início: o campo vazio já lista os modpacks para o pack.
   const modpacks = kind === 'modpack';
   const showHome =
     !modpacks && query === '' && text.trim() === '' && activeFilterCount(filters) === 0;
-  const search = useSearch(packId, { query, kind, ...filters }, !showHome);
+  const search = useSearch(packId, { query, kind, ...filters }, !showHome && !typing);
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
   const [current, setCurrent] = useState<SearchResult | null>(null);
   const [request, setRequest] = useState<DependenciesRequest | null>(null);
