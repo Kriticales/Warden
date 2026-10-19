@@ -292,7 +292,7 @@ function KeyMissing({ provider }: { provider: AiProvider }) {
   );
 }
 
-function Waiting({ live, provider }: { live: LiveStatus; provider: AiProvider }) {
+export function Waiting({ live, provider }: { live: LiveStatus; provider: AiProvider }) {
   const { t } = useTranslation('ia');
   let text: string;
   if (live.kind === 'waitingPerMinute') {

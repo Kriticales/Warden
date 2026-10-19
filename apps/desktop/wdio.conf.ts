@@ -246,6 +246,9 @@ export const config: WebdriverIO.Config = {
       // A OpenAI e o Claude simulados (D-16 e D-17): `mock-server/openai.ts` e `anthropic.ts`.
       WARDEN_API_BASE_OPENAI: `${mockServer.url}/openai/`,
       WARDEN_API_BASE_ANTHROPIC: `${mockServer.url}/anthropic/`,
+      // Conversa sem pack (D-19): o mclo.gs e o pastebin simulados de `mock-server/paste.ts`.
+      WARDEN_API_BASE_MCLOGS: `${mockServer.url}/mclogs/1/raw/`,
+      WARDEN_API_BASE_PASTEBIN: `${mockServer.url}/pastebin/raw/`,
       WARDEN_GIT_BASE_GITHUB: `${mockServer.url}/github/git/`,
       WARDEN_RAW_BASE_GITHUB: `${mockServer.url}/github/raw/`,
       // O link direto `https://…` vai para o mesmo caminho no servidor de fixtures (P1-11).

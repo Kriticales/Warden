@@ -54,7 +54,7 @@ pub(crate) struct Initial {
     pub(crate) local_log: Option<String>,
 }
 
-fn symptom_text(symptom: AiSymptom) -> &'static str {
+pub(super) fn symptom_text(symptom: AiSymptom) -> &'static str {
     match symptom {
         AiSymptom::CrashOnStart => "o jogo trava ao abrir (fecha antes do menu principal)",
         AiSymptom::CrashInWorld => {
@@ -74,7 +74,7 @@ fn is_error_line(line: &str) -> bool {
 }
 
 /// O trecho do log: as últimas linhas com erro, com o número da linha.
-fn excerpt(text: &str) -> String {
+pub(super) fn excerpt(text: &str) -> String {
     let lines: Vec<(usize, &str)> = text
         .lines()
         .enumerate()

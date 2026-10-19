@@ -63,6 +63,25 @@ pub enum ConversationOrigin {
     },
     /// Só o pack, sem log.
     PackOnly,
+    /// Um log aberto por um link colado, numa conversa sem pack (D-19). O texto puro, já
+    /// redigido, fica guardado ao lado da conversa; o link não vai à IA.
+    #[serde(rename_all = "camelCase")]
+    PasteLink {
+        /// O site do link.
+        site: PasteSite,
+        /// O link como foi colado.
+        url: String,
+    },
+}
+
+/// Os sites de onde uma conversa sem pack abre um log por link (D-19).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum PasteSite {
+    /// mclo.gs (o texto puro vem de `api.mclo.gs/1/raw/<id>`).
+    Mclogs,
+    /// pastebin.com (o texto puro vem de `pastebin.com/raw/<id>`).
+    Pastebin,
 }
 
 /// O retrato do pack no começo da conversa.
@@ -636,6 +655,28 @@ mod tests {
             serde_json::from_slice(&std::fs::read(store.dir().join(format!("{id}.json"))).unwrap())
                 .unwrap();
         assert_eq!(again["applied"][0]["d14"], true);
+    }
+
+    #[test]
+    fn origem_do_link_ida_e_volta() {
+        // D-19: a origem nova grava o site e o link e volta igual ao abrir.
+        let dir = tempfile::tempdir().unwrap();
+        let store = ConversationStore::new(dir.path().join("ai").join("_sem-pack"));
+        let id = ulid::Ulid::generate().to_string();
+        let mut saved = conversation(&id, 1);
+        saved.origin = ConversationOrigin::PasteLink {
+            site: PasteSite::Mclogs,
+            url: "https://mclo.gs/abc123".into(),
+        };
+        store.save(&saved).unwrap();
+        let json: Value =
+            serde_json::from_slice(&std::fs::read(store.dir().join(format!("{id}.json"))).unwrap())
+                .unwrap();
+        assert_eq!(
+            json["origin"],
+            serde_json::json!({ "kind": "pasteLink", "site": "mclogs", "url": "https://mclo.gs/abc123" })
+        );
+        assert_eq!(store.load(&id).unwrap().origin, saved.origin);
     }
 
     #[test]

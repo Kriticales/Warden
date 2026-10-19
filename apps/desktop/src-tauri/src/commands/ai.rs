@@ -19,6 +19,9 @@
 //!   chave **da conversa**, não o ativo (ADR-0060): sem essa chave, `AI_PROVIDER_KEY_MISSING`.
 //! - `ai_conversation_send`: acrescenta uma pergunta (sem rede); a interface chama `run` depois.
 //! - `ai_conversations_list`, `ai_conversation_get`, `ai_conversation_delete`.
+//! - `ai_standalone_*` (D-19): os mesmos passos para a conversa **sem pack**, sobre um log do
+//!   computador ou aberto por um link colado (mclo.gs ou pastebin), em `ai/_sem-pack/`, com o
+//!   evento `ai-standalone-updated` ([`crate::ai_tools::standalone`]).
 //!
 //! As conversas ficam em `ai/<pack-id>/<ULID>.json` nos dados do Warden, nunca na pasta do pack
 //! (CA-T14-06).
@@ -140,6 +143,8 @@ pub(crate) struct AiHub {
     /// Endereço do provedor nos testes (o servidor simulado).
     #[cfg(test)]
     pub(crate) base_url: Mutex<Option<String>>,
+    /// As prévias das conversas sem pack (D-19).
+    pub(crate) standalone: crate::ai_tools::standalone::StandaloneHub,
 }
 
 impl AiHub {
@@ -1347,5 +1352,461 @@ pub(crate) fn ai_conversation_delete(
 ) -> Result<(), AppError> {
     delete_impl(&state, pack_id, &conversation_id)?;
     app_notify(app)(pack_id, &conversation_id);
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------------------
+// Conversa sem pack (D-19)
+// ---------------------------------------------------------------------------------------
+
+/// `ai-standalone-updated`: uma conversa sem pack mudou (pergunta, consulta, resposta, erro).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type, Event)]
+#[serde(rename_all = "camelCase")]
+#[tauri_specta(event_name = "ai-standalone-updated")]
+pub(crate) struct AiStandaloneUpdated {
+    /// A conversa (ULID).
+    pub(crate) conversation_id: String,
+}
+
+/// Quem avisa a interface das conversas sem pack.
+pub(crate) type StandaloneNotify = Arc<dyn Fn(&str) + Send + Sync>;
+
+fn standalone_notify(app: AppHandle) -> StandaloneNotify {
+    Arc::new(move |id: &str| {
+        let event = AiStandaloneUpdated {
+            conversation_id: id.to_owned(),
+        };
+        if let Err(error) = event.emit(&app) {
+            tracing::warn!(%error, "evento ai-standalone-updated não enviado");
+        }
+    })
+}
+
+/// "Um log ou crash report do computador…" sem pack: o diálogo nativo. `None`: desistiu.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn ai_standalone_log_choose(
+    app: AppHandle,
+    window: WebviewWindow,
+    state: State<'_, AppState>,
+) -> Result<Option<AiLocalPick>, AppError> {
+    let Some(path) = pick_log(&app, &window).await? else {
+        return Ok(None);
+    };
+    Ok(Some(remember_pick(&state, path)?))
+}
+
+/// O que analisar sem pack.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase", tag = "kind")]
+pub(crate) enum AiStandaloneSource {
+    /// O arquivo escolhido por `ai_standalone_log_choose`.
+    #[serde(rename_all = "camelCase")]
+    LocalFile {
+        /// O `token` da escolha.
+        token: String,
+    },
+    /// Um link colado (mclo.gs ou pastebin).
+    #[serde(rename_all = "camelCase")]
+    Link {
+        /// O link como foi colado.
+        url: String,
+    },
+}
+
+/// O pedido da prévia de uma conversa sem pack.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct AiStandalonePreviewRequest {
+    /// "O que está acontecendo?".
+    pub(crate) symptom: AiSymptom,
+    /// O arquivo ou o link.
+    pub(crate) source: AiStandaloneSource,
+    /// "Contar algo à IA".
+    pub(crate) note: Option<String>,
+}
+
+/// O log da prévia sem pack, lido do computador ou baixado do link.
+async fn standalone_subject(
+    state: &AppState,
+    source: &AiStandaloneSource,
+) -> Result<crate::ai_tools::standalone::Subject, AppError> {
+    use crate::ai_tools::standalone::{
+        LINK_TIMEOUT, PasteBases, Subject, fetch, parse_link,
+    };
+    match source {
+        AiStandaloneSource::LocalFile { token } => {
+            let path = lock(&state.ai.picks)
+                .get(token)
+                .cloned()
+                .ok_or_else(|| domain(&warden_ai::Error::PreviewExpired))?;
+            let truncated = std::fs::metadata(&path)
+                .is_ok_and(|meta| meta.len() > crate::ai_tools::MAX_LOG_BYTES);
+            let raw = crate::ai_tools::read_log_text(&path).map_err(|error| {
+                AppError::new(warden_core::CoreErrorCode::Io)
+                    .with_param("path", "arquivo")
+                    .with_detail(error.to_string())
+            })?;
+            let file_name = path
+                .file_name()
+                .map(|name| name.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            Ok(Subject {
+                origin: ConversationOrigin::LocalFile { file_name },
+                raw,
+                truncated,
+            })
+        }
+        AiStandaloneSource::Link { url } => {
+            // Conferido antes de qualquer rede: site fora da lista não faz requisição.
+            let link = parse_link(url)?;
+            let fetched = fetch(
+                &state.ai.http()?,
+                &link,
+                &PasteBases::current(),
+                crate::ai_tools::MAX_LOG_BYTES,
+                LINK_TIMEOUT,
+                &CancellationToken::new(),
+            )
+            .await?;
+            Ok(Subject {
+                origin: ConversationOrigin::PasteLink {
+                    site: link.site,
+                    url: link.url,
+                },
+                raw: fetched.text,
+                truncated: fetched.truncated,
+            })
+        }
+    }
+}
+
+pub(crate) async fn standalone_preview_impl(
+    state: &AppState,
+    request: AiStandalonePreviewRequest,
+) -> Result<AiPreview, AppError> {
+    use crate::ai_tools::standalone::{StandalonePreview, StandaloneTools, build_initial};
+    // Um link recusado não faz nenhuma requisição (nem à IA).
+    if let AiStandaloneSource::Link { url } = &request.source {
+        crate::ai_tools::standalone::parse_link(url)?;
+    }
+    let settings = load_settings(state);
+    let provider = settings.ai_provider;
+    let key = state.secrets.require(secret_of(provider))?;
+    let models = models_impl(state, false).await?;
+    let (model, _) = models
+        .pick(settings.tier_of(provider))
+        .ok_or_else(|| domain(&warden_ai::Error::NoModel))?;
+    let model = model.to_owned();
+    let fallback_model = models.lighter.clone().filter(|lighter| *lighter != model);
+    let subject = standalone_subject(state, &request.source).await?;
+    let note = request
+        .note
+        .as_deref()
+        .map(str::trim)
+        .filter(|note| !note.is_empty())
+        .map(|note| note.chars().take(MAX_QUESTION_CHARS).collect::<String>());
+    let tools = StandaloneTools::new(state, None, CancellationToken::new());
+    let built = build_initial(tools.redactor(), request.symptom, subject, note.as_deref());
+    let client = state.ai.client(provider, key)?;
+    let base = base_tokens(state, client.as_ref(), &model).await;
+    let bytes = u64::try_from(built.text.len()).unwrap_or(u64::MAX);
+    let preview_id = new_id();
+    let view = AiPreview {
+        preview_id: preview_id.clone(),
+        text: built.text.clone(),
+        bytes,
+        estimated_tokens: base.map(|base| base + bytes.div_ceil(4)),
+        tier: provider.tier_of(&model),
+        provider,
+        model: model.clone(),
+        github_available: crate::ai_tools::standalone::registry()
+            .get(warden_ai::external::SEARCH_MOD_ISSUES)
+            .is_some(),
+    };
+    let mut previews = lock(&state.ai.standalone.previews);
+    if previews.len() >= MAX_PREVIEWS
+        && let Some(oldest) = previews
+            .iter()
+            .min_by_key(|(_, preview)| preview.created)
+            .map(|(id, _)| id.clone())
+    {
+        previews.remove(&oldest);
+    }
+    previews.insert(
+        preview_id,
+        StandalonePreview {
+            symptom: request.symptom,
+            note,
+            provider,
+            model,
+            fallback_model,
+            initial: built,
+            created: now_ms(),
+        },
+    );
+    Ok(view)
+}
+
+/// O texto inicial exato de uma conversa sem pack, para o consentimento. Com um link, baixa
+/// só o texto puro do site do link (nada vai à IA além da lista de modelos e da contagem de
+/// tokens sem o log; ADR-0060).
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn ai_standalone_preview(
+    state: State<'_, AppState>,
+    request: AiStandalonePreviewRequest,
+) -> Result<AiPreview, AppError> {
+    standalone_preview_impl(&state, request).await
+}
+
+pub(crate) fn standalone_start_impl(
+    state: &AppState,
+    preview_id: &str,
+    permissions: AiPermissions,
+) -> Result<String, AppError> {
+    let preview = lock(&state.ai.standalone.previews)
+        .remove(preview_id)
+        .ok_or_else(|| domain(&warden_ai::Error::PreviewExpired))?;
+    let id = new_id();
+    let mut conversation = new_conversation(
+        id.clone(),
+        now_ms(),
+        preview.provider,
+        preview.model,
+        permissions,
+        preview.symptom,
+        preview.initial.origin,
+        preview.note,
+        PackSnapshot::default(),
+    );
+    conversation.fallback_model = preview.fallback_model;
+    push_question(&mut conversation, preview.initial.text);
+    let store = crate::ai_tools::standalone::store(state);
+    if let Some(log) = &preview.initial.local_log {
+        store
+            .save_local_log(&id, log)
+            .map_err(|error| domain(&error))?;
+    }
+    store.save(&conversation).map_err(|error| domain(&error))?;
+    Ok(id)
+}
+
+/// "✦ Começar conversa" sem pack: grava a conversa com as permissões e o texto mostrado. Não
+/// manda nada; a interface chama `ai_standalone_run` em seguida.
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn ai_standalone_start(
+    state: State<'_, AppState>,
+    preview_id: String,
+    permissions: AiPermissions,
+) -> Result<String, AppError> {
+    standalone_start_impl(&state, &preview_id, permissions)
+}
+
+/// Grava a conversa sem pack a cada mudança e avisa a interface.
+struct StandaloneObserver<'a> {
+    hub: &'a AiHub,
+    store: ConversationStore,
+    id: String,
+    notify: StandaloneNotify,
+    cancel: CancellationToken,
+}
+
+#[async_trait]
+impl Observer for StandaloneObserver<'_> {
+    async fn changed(&self, conversation: &Conversation) {
+        save_running(self.hub, &self.store, &self.cancel, conversation);
+        (self.notify)(&self.id);
+    }
+
+    fn live(&self, live: LiveStatus) {
+        self.hub.set_live(&self.id, live);
+        (self.notify)(&self.id);
+    }
+}
+
+pub(crate) async fn standalone_run_impl(
+    state: &AppState,
+    id: &str,
+    notify: StandaloneNotify,
+) -> Result<(), AppError> {
+    use crate::ai_tools::standalone::{StandaloneTools, registry as standalone_registry};
+    let store = crate::ai_tools::standalone::store(state);
+    let mut conversation = store.load(id).map_err(|error| domain(&error))?;
+    if !pending(&conversation) {
+        return Ok(());
+    }
+    let cancel = state.ai.begin(id)?;
+    let guard = RunGuard {
+        hub: &state.ai,
+        id: id.to_owned(),
+    };
+    notify(id);
+    let result = async {
+        let key = conversation_key(state, conversation.provider)?;
+        let client = state.ai.client(conversation.provider, key)?;
+        let tools = StandaloneTools::new(state, store.local_log(id).ok(), cancel.clone());
+        let registry = standalone_registry();
+        let observer = StandaloneObserver {
+            hub: &state.ai,
+            store: store.clone(),
+            id: id.to_owned(),
+            notify: Arc::clone(&notify),
+            cancel: cancel.clone(),
+        };
+        let engine = Engine {
+            provider: client.as_ref(),
+            registry: &registry,
+            source: &tools,
+            observer: &observer,
+            timer: Arc::new(SystemTimer::new()),
+            cancel: cancel.clone(),
+            limits: Limits::default(),
+        };
+        if conversation.initial_tokens.is_none() && conversation.requests == 0 {
+            match engine
+                .count_tokens(&conversation.model, &conversation.messages)
+                .await
+            {
+                Ok(count) => conversation.initial_tokens = count,
+                Err(error) => tracing::info!(%error, "contagem do pedido inicial falhou"),
+            }
+        }
+        engine
+            .run(&mut conversation)
+            .await
+            .map_err(|error| domain(&error))
+    }
+    .await;
+    if let Err(error) = &result
+        && !matches!(
+            conversation.turns.last(),
+            Some(ConversationTurn {
+                failure: Some(_),
+                ..
+            })
+        )
+    {
+        if let Some(turn) = conversation.turns.last_mut() {
+            turn.failure = Some(failure_from_app(error));
+        }
+        save_running(&state.ai, &store, &cancel, &conversation);
+    }
+    drop(guard);
+    notify(id);
+    result
+}
+
+/// Roda a pergunta pendente de uma conversa sem pack; a interface acompanha pelo
+/// `ai-standalone-updated`.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn ai_standalone_run(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    conversation_id: String,
+) -> Result<(), AppError> {
+    standalone_run_impl(&state, &conversation_id, standalone_notify(app)).await
+}
+
+pub(crate) fn standalone_send_impl(state: &AppState, id: &str, text: &str) -> Result<(), AppError> {
+    let text = text.trim();
+    if text.is_empty() || text.chars().count() > MAX_QUESTION_CHARS {
+        return Err(AppError::new(warden_project::ProjectErrorCode::InvalidInput)
+            .with_param("field", "text"));
+    }
+    let store = crate::ai_tools::standalone::store(state);
+    let mut conversation = store.load(id).map_err(|error| domain(&error))?;
+    if state.ai.live(id).is_some() || pending(&conversation) {
+        return Err(domain(&warden_ai::Error::ConversationBusy { id: id.to_owned() }));
+    }
+    push_question(&mut conversation, text.to_owned());
+    store.save(&conversation).map_err(|error| domain(&error))
+}
+
+/// Acrescenta uma pergunta à conversa sem pack (sem rede); a interface chama
+/// `ai_standalone_run` em seguida.
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn ai_standalone_send(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    conversation_id: String,
+    text: String,
+) -> Result<(), AppError> {
+    standalone_send_impl(&state, &conversation_id, &text)?;
+    standalone_notify(app)(&conversation_id);
+    Ok(())
+}
+
+pub(crate) fn standalone_list_impl(state: &AppState) -> Result<Vec<AiConversationSummary>, AppError> {
+    Ok(crate::ai_tools::standalone::store(state)
+        .list()
+        .map_err(|error| domain(&error))?
+        .iter()
+        .map(|conversation| summary_of(&state.ai, conversation))
+        .collect())
+}
+
+/// As conversas sem pack, da mais nova para a mais antiga.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn ai_standalone_list(
+    state: State<'_, AppState>,
+) -> Result<Vec<AiConversationSummary>, AppError> {
+    standalone_list_impl(&state)
+}
+
+pub(crate) fn standalone_get_impl(state: &AppState, id: &str) -> Result<AiConversationView, AppError> {
+    let conversation = crate::ai_tools::standalone::store(state)
+        .load(id)
+        .map_err(|error| domain(&error))?;
+    Ok(AiConversationView {
+        summary: summary_of(&state.ai, &conversation),
+        tier: conversation.provider.tier_of(&conversation.model),
+        provider: conversation.provider,
+        model: conversation.model.clone(),
+        permissions: conversation.permissions,
+        note: conversation.note.clone(),
+        initial_tokens: conversation.initial_tokens,
+        requests: conversation.requests,
+        live: state.ai.live(id),
+        // Sem pack: nada para comparar nem para aplicar.
+        pack_changes: PackChanges::default(),
+        turns: conversation.turns,
+        proposals: Vec::new(),
+    })
+}
+
+/// Uma conversa sem pack com as mensagens e as consultas.
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn ai_standalone_get(
+    state: State<'_, AppState>,
+    conversation_id: String,
+) -> Result<AiConversationView, AppError> {
+    standalone_get_impl(&state, &conversation_id)
+}
+
+pub(crate) fn standalone_delete_impl(state: &AppState, id: &str) -> Result<(), AppError> {
+    let _files = lock(&state.ai.files);
+    state.ai.cancel(id);
+    crate::ai_tools::standalone::store(state)
+        .delete(id)
+        .map_err(|error| domain(&error))
+}
+
+/// Apaga a conversa sem pack (o arquivo dela e o log guardado ao lado). Se a IA estava
+/// respondendo, para.
+#[tauri::command]
+#[specta::specta]
+pub(crate) fn ai_standalone_delete(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    conversation_id: String,
+) -> Result<(), AppError> {
+    standalone_delete_impl(&state, &conversation_id)?;
+    standalone_notify(app)(&conversation_id);
     Ok(())
 }

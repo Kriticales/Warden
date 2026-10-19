@@ -19,7 +19,7 @@ use warden_project::configs::ConfigOrigin;
 use warden_project::inventory::{InventoryItem, ItemKind, ItemState};
 use warden_versioning::Snapshot;
 
-use super::{LOCAL_FILE_SESSION, PackTools};
+use super::{LINK_SESSION, LOCAL_FILE_SESSION, PackTools};
 use crate::error::AppError;
 use crate::test_session::TestSessionSummary;
 
@@ -589,15 +589,16 @@ fn log_lines(
     tools: &PackTools<'_>,
     id: &str,
 ) -> Result<(String, std::sync::Arc<Vec<String>>), String> {
-    let file = if id == LOCAL_FILE_SESSION {
-        "arquivo"
+    let local = id == LOCAL_FILE_SESSION || id == LINK_SESSION;
+    let file = if local {
+        id
     } else {
         warden_launcher::session::OUTPUT_LOG
     };
     if let Some(lines) = tools.cached_log(id) {
         return Ok((file.to_owned(), lines));
     }
-    let text = if id == LOCAL_FILE_SESSION {
+    let text = if local {
         let path = tools
             .local_log
             .as_ref()

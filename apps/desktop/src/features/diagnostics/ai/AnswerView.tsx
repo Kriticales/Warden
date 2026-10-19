@@ -10,7 +10,9 @@
  * - mods citados que existem no pack viram link para a lista de Mods; os inexistentes, não;
  * - "Não sei" é resposta válida: a sugestão é a busca do culpado, em Problemas;
  * - as propostas com evidência aparecem como cartões; os botões delas são da D-14
- *   ([`answerSlots`](./answer-slots.ts)). Proposta sem evidência nem aparece.
+ *   ([`answerSlots`](./answer-slots.ts)). Proposta sem evidência nem aparece;
+ * - sem pack (`packId` nulo, conversa sem pack da D-19): sem links para Mods, sem
+ *   "Encontrar o mod culpado" e sem propostas.
  */
 import { Link } from '@tanstack/react-router';
 import { Check, CircleHelp, Info, Lightbulb, User } from 'lucide-react';
@@ -39,14 +41,15 @@ export function AnswerView({
   conversationId,
   answer,
 }: {
-  packId: PackId;
+  packId: PackId | null;
   conversationId: string;
   answer: FinalAnswer;
 }) {
   const { t } = useTranslation('ia');
   const titleId = useId();
   const checked = answer.checked;
-  const proposals = checked.proposals.filter((proposal) => proposal.discarded === null);
+  const proposals =
+    packId === null ? [] : checked.proposals.filter((proposal) => proposal.discarded === null);
   return (
     <section className="ai-answer stack-3" aria-labelledby={titleId}>
       <div>
@@ -66,7 +69,7 @@ export function AnswerView({
           </ul>
         </div>
       ) : null}
-      {checked.noConclusion ? (
+      {checked.noConclusion && packId !== null ? (
         <Alert
           kind="neutral"
           compact
@@ -82,6 +85,11 @@ export function AnswerView({
           {t('resposta.semConclusaoTexto')}
         </Alert>
       ) : null}
+      {checked.noConclusion && packId === null ? (
+        <Alert kind="neutral" compact title={t('resposta.semConclusao')}>
+          {t('resposta.semConclusaoSemPack')}
+        </Alert>
+      ) : null}
       <div className="row row--wrap row--gap-4">
         <div>
           <div className="ai-block__label">{t('confianca.titulo')}</div>
@@ -95,7 +103,7 @@ export function AnswerView({
           </span>
           <div className="t-xs t-3">{t('confianca.como')}</div>
         </div>
-        {checked.mods.length > 0 ? (
+        {checked.mods.length > 0 && packId !== null ? (
           <div>
             <div className="ai-block__label">{t('resposta.mods')}</div>
             <div className="row row--wrap">
@@ -109,7 +117,7 @@ export function AnswerView({
       <Alert kind="neutral" compact title={t('resposta.podeErrar')}>
         {t('resposta.podeErrarTexto')}
       </Alert>
-      {proposals.length > 0 ? (
+      {packId !== null && proposals.length > 0 ? (
         <div className="stack-2">
           <div className="ai-block__label">{t('proposta.titulo')}</div>
           {proposals.map((proposal, index) => (
@@ -137,7 +145,7 @@ function ModLink({ packId, mod }: { packId: PackId; mod: KnownMod }) {
   );
 }
 
-function Claim({ packId, claim }: { packId: PackId; claim: CheckedClaim }) {
+function Claim({ packId, claim }: { packId: PackId | null; claim: CheckedClaim }) {
   const { t } = useTranslation('ia');
   const [open, setOpen] = useState<number | null>(null);
   const shown = open === null ? null : claim.evidence[open];
@@ -168,9 +176,9 @@ function Claim({ packId, claim }: { packId: PackId; claim: CheckedClaim }) {
             }}
           />
         ))}
-        {claim.mods.map((mod) => (
-          <ModLink key={mod.path} packId={packId} mod={mod} />
-        ))}
+        {packId === null
+          ? null
+          : claim.mods.map((mod) => <ModLink key={mod.path} packId={packId} mod={mod} />)}
       </div>
       {shown?.sourceText ? (
         <div className="ai-excerpt">

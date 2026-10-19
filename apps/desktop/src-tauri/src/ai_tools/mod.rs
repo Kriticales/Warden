@@ -18,10 +18,11 @@ pub(crate) mod external;
 pub(crate) mod initial;
 pub(crate) mod proposals;
 mod read;
+pub(crate) mod standalone;
 mod xray;
 
 use read::failed;
-pub(crate) use read::read_log_text;
+pub(crate) use read::{MAX_LOG_BYTES, read_log_text};
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -58,6 +59,8 @@ fn text_arg(args: &Value, key: &str) -> String {
 
 /// Id de sessão das ferramentas de log para o arquivo escolhido no computador.
 pub(crate) const LOCAL_FILE_SESSION: &str = "arquivo";
+/// Id de sessão das ferramentas de log para o log aberto por um link (conversa sem pack, D-19).
+pub(crate) const LINK_SESSION: &str = "link";
 
 /// Quem lê os dados de um pack para a IA, numa rodada do laço.
 pub(crate) struct PackTools<'a> {

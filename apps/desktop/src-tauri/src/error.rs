@@ -332,6 +332,23 @@ pub enum AppErrorCode {
     /// Mods da CurseForge bloqueados para apps de terceiros que o Warden não conseguiu pôr no
     /// lugar do jogador (`params.count`, `params.names`; L-07).
     TestPlayerBlocked,
+    /// Análise sem pack (D-19): o link colado não é do mclo.gs nem do pastebin.
+    AiLinkUnsupported,
+    /// O link começa com `http://`: só HTTPS (`params.site`; D-19).
+    AiLinkNotHttps,
+    /// O link é do hastebin, que exige uma chave para ler os textos (D-19).
+    AiLinkNeedsKey,
+    /// O link é do site certo, mas não aponta para um texto (`params.site`; D-19).
+    AiLinkInvalid,
+    /// O texto do link não existe mais no site (`params.site`; D-19).
+    AiLinkNotFound,
+    /// O site do link não entregou o texto (`params.site`, `params.status`: o código HTTP, vazio
+    /// sem resposta; D-19).
+    AiLinkUnreachable,
+    /// O site do link não respondeu no tempo-limite (`params.site`, `params.seconds`; D-19).
+    AiLinkTimeout,
+    /// O link abriu, mas o texto está vazio (`params.site`; D-19).
+    AiLinkEmpty,
 }
 
 #[cfg(test)]

@@ -188,13 +188,13 @@ fn first_text(request: &Value) -> (String, String) {
 }
 
 pub(in crate::ai_tools) struct Setup {
-    dir: tempfile::TempDir,
-    data: PathBuf,
+    pub(in crate::ai_tools) dir: tempfile::TempDir,
+    pub(in crate::ai_tools) data: PathBuf,
     pub(in crate::ai_tools) root: PathBuf,
     pub(in crate::ai_tools) state: AppState,
     pub(in crate::ai_tools) pack: PackId,
-    server: MockServer,
-    seen: Arc<Mutex<Vec<(String, String)>>>,
+    pub(in crate::ai_tools) server: MockServer,
+    pub(in crate::ai_tools) seen: Arc<Mutex<Vec<(String, String)>>>,
     delay: Arc<Mutex<Duration>>,
 }
 

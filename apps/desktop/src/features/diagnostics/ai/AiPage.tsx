@@ -336,7 +336,7 @@ function NewConversation({
 }
 
 /** O provedor e o modelo em uso, com o caminho para trocar em Configurações. */
-function ModelLine({ provider, tier }: { provider: AiProvider; tier: ModelTier }) {
+export function ModelLine({ provider, tier }: { provider: AiProvider; tier: ModelTier }) {
   const { t } = useTranslation('ia');
   const models = useAiModels(provider, true);
   const model = modelFor(models.data, tier);

@@ -228,6 +228,14 @@ impl ToolRegistry {
         self
     }
 
+    /// Só as ferramentas de `names`, na ordem do registro (a `responder` continua sempre). A
+    /// conversa sem pack (D-19) declara só as que fazem sentido sem pack.
+    #[must_use]
+    pub fn only(mut self, names: &[&str]) -> Self {
+        self.specs.retain(|spec| names.contains(&spec.name));
+        self
+    }
+
     /// A declaração de uma ferramenta.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&ToolSpec> {
@@ -513,6 +521,15 @@ mod tests {
         let registry = ToolRegistry::new().with_extra([extra.clone(), extra]);
         assert_eq!(registry.allowed(true).len(), 17);
         assert!(!registry.allowed(false).contains(&"get_mod_changelog"));
+    }
+
+    #[test]
+    fn so_as_ferramentas_pedidas() {
+        let registry = ToolRegistry::new().only(&["read_log", "search_log", "inexistente"]);
+        let names: Vec<&str> = registry.names().collect();
+        assert_eq!(names, ["search_log", "read_log"]);
+        assert_eq!(registry.declarations().last().unwrap().name, RESPOND);
+        assert!(registry.get("list_mods").is_none());
     }
 
     #[test]
