@@ -20,6 +20,9 @@ import {
 } from '../../lib/ipc/bindings';
 import { commandQuery, useCommandMutation } from '../../lib/ipc/query';
 
+/** O que a IA guarda no app (`aiKeys.app`, repetido para não importar a seção da IA aqui). */
+export const AI_APP_KEY = ['app', 'ai'] as const;
+
 export const settingsKeys = {
   settings: ['app', 'settings'] as const,
   status: ['app', 'settings', 'status'] as const,
@@ -72,12 +75,18 @@ function useSecretsMutation<V>(
 ) {
   const queryClient = useQueryClient();
   return useCommandMutation(command, {
-    onSuccess: (status: SecretsStatus) => {
+    onSuccess: async (status: SecretsStatus) => {
       queryClient.setQueryData(settingsKeys.secrets, status);
+      // As chaves dos provedores mudam o "tem chave" e os modelos da IA (D-18).
+      await queryClient.invalidateQueries({ queryKey: AI_APP_KEY });
     },
     // Uma falha no meio pode ter mudado parte do estado: relê do disco (regra do disco como
     // verdade).
-    onError: () => queryClient.invalidateQueries({ queryKey: settingsKeys.secrets }),
+    onError: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: settingsKeys.secrets }),
+        queryClient.invalidateQueries({ queryKey: AI_APP_KEY }),
+      ]),
   });
 }
 
@@ -123,9 +132,10 @@ export function packsDirProblem(error: AppError | null): string | null {
 }
 
 /**
- * As chaves que as telas mostram hoje, na ordem da tela. As dos provedores de IA OpenAI e
- * Anthropic já existem no backend (ADR-0060) e entram nas telas com a D-18.
+ * As chaves das linhas próprias de "Chaves e contas" e da primeira execução, na ordem da tela.
+ * As dos provedores da IA (Gemini, OpenAI e Claude; ADR-0060) ficam na área IA da mesma seção
+ * (`ai/AiSettings.tsx`) e no passo da IA das boas-vindas (D-18).
  */
-export type ShownSecretKind = Exclude<SecretKind, 'openai' | 'anthropic'>;
+export type OwnSecretKind = Extract<SecretKind, 'curseforge' | 'github'>;
 
-export const SECRET_KINDS: readonly ShownSecretKind[] = ['curseforge', 'gemini', 'github'];
+export const SECRET_KINDS: readonly OwnSecretKind[] = ['curseforge', 'github'];

@@ -7,8 +7,10 @@
  *   de qualquer área também, porque a conversa mostra "o pack mudou desde esta conversa";
  * - as origens ("Começar pelo") ficam sob as sessões do Testar (`testKeys.sessions`): o fim de um
  *   teste, que invalida as sessões, invalida também as origens;
- * - a escolha do modelo e os modelos ficam no app (`['app', 'ai', …]`); a chave do Gemini vem do
- *   estado das chaves de Configurações (`settingsKeys.secrets`), que as telas de chaves mantêm.
+ * - o provedor, a escolha do modelo e os modelos ficam no app (`['app', 'ai', …]`), os modelos
+ *   por provedor (D-18: trocar de provedor nunca mostra os modelos do outro); as chaves vêm do
+ *   estado das chaves de Configurações (`settingsKeys.secrets`). Salvar, substituir ou remover
+ *   uma chave invalida também `['app', 'ai']` (`settings/api.ts`): o "tem chave" e os modelos.
  *
  * O laço demora (de segundos a minutos): `ai_conversation_run` é chamado sem esperar, e a tela
  * acompanha pelos eventos. A conversa continua mesmo se a pessoa sair da tela.
@@ -19,6 +21,7 @@ import {
   commands,
   events,
   type AiPermissions,
+  type AiProvider,
   type AiPreviewRequest,
   type ModelTier,
   type PackId,
@@ -28,6 +31,7 @@ import { queryKeys } from '../../../lib/ipc/keys';
 import { commandQuery, useCommandMutation } from '../../../lib/ipc/query';
 import { unwrap } from '../../../lib/ipc/result';
 import { log } from '../../../lib/log';
+import { AI_APP_KEY } from '../../settings/api';
 import { testKeys } from '../../test/api';
 
 export const aiKeys = {
@@ -40,10 +44,12 @@ export const aiKeys = {
     [...queryKeys.pack(packId), 'ai', 'conversation', id] as const,
   /** As origens de "Começar pelo" (sob as sessões do Testar). */
   sources: (packId: PackId) => [...testKeys.sessions(packId), 'ai-sources'] as const,
-  /** A escolha do modelo. */
+  /** Tudo da IA no app (provedor, escolhas e modelos). */
+  app: AI_APP_KEY,
+  /** O provedor e a escolha do modelo de cada provedor. */
   settings: ['app', 'ai', 'settings'] as const,
-  /** Os modelos que a chave alcança. */
-  models: ['app', 'ai', 'models'] as const,
+  /** Os modelos que a chave de um provedor alcança. */
+  models: (provider: AiProvider) => ['app', 'ai', 'models', provider] as const,
 };
 
 export function useAiSettings() {
@@ -60,11 +66,28 @@ export function useSetAiTier() {
   });
 }
 
-/** Os modelos (rede: o `models.list`, uma vez por execução do app). */
-export function useAiModels(enabled: boolean) {
+/**
+ * Troca o provedor das conversas novas (D-18). As conversas já começadas continuam no delas.
+ * A seção da IA e Configurações leem o provedor de `aiKeys.settings`, gravado aqui.
+ */
+export function useSetAiProvider() {
+  const queryClient = useQueryClient();
+  return useCommandMutation((provider: AiProvider) => commands.aiProviderSet(provider), {
+    onSuccess: (view) => {
+      queryClient.setQueryData(aiKeys.settings, view);
+    },
+    invalidates: [aiKeys.settings],
+  });
+}
+
+/**
+ * Os modelos do provedor ativo (rede: a lista de modelos da conta, uma vez por execução do app
+ * e por chave). `provider` é o ativo: o backend consulta sempre o provedor ativo.
+ */
+export function useAiModels(provider: AiProvider | undefined, enabled: boolean) {
   return useQuery({
-    ...commandQuery(aiKeys.models, () => commands.aiModelsGet(false)),
-    enabled,
+    ...commandQuery(aiKeys.models(provider ?? 'gemini'), () => commands.aiModelsGet(false)),
+    enabled: enabled && provider !== undefined,
     staleTime: Infinity,
   });
 }

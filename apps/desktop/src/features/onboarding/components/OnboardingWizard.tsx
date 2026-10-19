@@ -1,11 +1,14 @@
 /**
- * Primeira execução (T01): aviso legal, nome do jogador, pasta dos packs e chaves opcionais.
+ * Primeira execução (T01): aviso legal, nome do jogador, pasta dos packs e chaves opcionais. No
+ * passo das chaves, a IA cita os três provedores (Gemini, sugerido por ter plano gratuito;
+ * OpenAI; Claude) e pede a chave do escolhido (D-18; ADR-0060).
  * Sem menu: só o indicador de etapas. Reabre por Configurações → "Rever boas-vindas".
  *
  * Nada é gravado até **Concluir** (ou **Pular, configuro depois**), exceto a pasta, que o
  * diálogo nativo grava ao ser escolhida (ARCHITECTURE §4.1). Ao concluir, na ordem: o modo
  * das chaves (se o `.env` foi escolhido), as chaves digitadas e, por último, o nome do
- * jogador, que grava o `settings.json` e encerra a primeira execução (CA-T01-01). Uma falha no
+ * jogador, que grava o `settings.json` e encerra a primeira execução (CA-T01-01). O provedor da
+ * IA, se não for o já gravado, é gravado antes das chaves. Uma falha no
  * meio deixa o assistente aberto, com o erro, para tentar de novo.
  */
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,17 +22,26 @@ import { focusPageTitle, PAGE_TITLE_ATTRIBUTE } from '../../../app/layout/focus'
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
-import { commands, type BackendKind, type SecretsStatus } from '../../../lib/ipc/bindings';
+import {
+  commands,
+  type AiProvider,
+  type BackendKind,
+  type SecretKind,
+  type SecretsStatus,
+} from '../../../lib/ipc/bindings';
 import { unwrap } from '../../../lib/ipc/result';
 import {
+  AI_APP_KEY,
   isValidPlayerName,
+  type OwnSecretKind,
   SECRET_KINDS,
   settingsKeys,
-  type ShownSecretKind,
   useSecretsStatus,
   useSettings,
   useSettingsStatus,
 } from '../../settings/api';
+import { aiKeys, useAiSettings } from '../../diagnostics/ai/api';
+import { AI_PROVIDERS, providerName, secretOf } from '../../settings/ai/providers';
 import { Choice, TextField } from '../../settings/components/fields';
 import { EnvConfirmDialog } from '../../settings/components/KeysSection';
 import { PacksDirField } from '../../settings/components/PacksDirField';
@@ -38,12 +50,16 @@ import '../../settings/settings.css';
 
 /** Nome do grupo de rádio do modo das chaves. */
 const BACKEND_GROUP = 'onboarding-backend';
+/** Nome do grupo de rádio do provedor da IA. */
+const PROVIDER_GROUP = 'onboarding-ia-provedor';
 
 const STEP_KEYS = ['aviso', 'jogador', 'pasta', 'chaves'] as const;
 const LAST_STEP = STEP_KEYS.length - 1;
 
-type Keys = Record<ShownSecretKind, string>;
-const EMPTY_KEYS: Keys = { curseforge: '', gemini: '', github: '' };
+type Keys = Record<SecretKind, string>;
+const EMPTY_KEYS: Keys = { curseforge: '', gemini: '', openai: '', anthropic: '', github: '' };
+/** A ordem de gravação: as chaves das linhas próprias e as dos provedores da IA. */
+const ALL_KINDS: readonly SecretKind[] = [...SECRET_KINDS, ...AI_PROVIDERS.map(secretOf)];
 
 export function OnboardingWizard() {
   const { t } = useTranslation('boasVindas');
@@ -53,7 +69,9 @@ export function OnboardingWizard() {
   const navigate = useNavigate();
   const settings = useSettings();
   const secrets = useSecretsStatus();
+  const aiSettings = useAiSettings();
   const [step, setStep] = useState(0);
+  const [provider, setProvider] = useState<AiProvider | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [nameTouched, setNameTouched] = useState(false);
   const [keys, setKeys] = useState<Keys>(EMPTY_KEYS);
@@ -66,6 +84,8 @@ export function OnboardingWizard() {
   const playerName = name ?? settings.data?.playerName ?? 'Jogador';
   const savedBackend = secrets.data?.backend ?? 'keyring';
   const chosenBackend = backend ?? savedBackend;
+  const savedProvider = aiSettings.data?.provider ?? 'gemini';
+  const chosenProvider = provider ?? savedProvider;
   const nameValid = isValidPlayerName(playerName);
 
   // A cada etapa, o foco vai para o título novo (o leitor de tela anuncia onde está).
@@ -89,7 +109,11 @@ export function OnboardingWizard() {
         if (chosenBackend !== savedBackend) {
           status = unwrap(await commands.secretsBackendSet(chosenBackend));
         }
-        for (const kind of SECRET_KINDS) {
+        if (chosenProvider !== savedProvider) {
+          const view = unwrap(await commands.aiProviderSet(chosenProvider));
+          queryClient.setQueryData(aiKeys.settings, view);
+        }
+        for (const kind of ALL_KINDS) {
           const value = keys[kind];
           if (value.trim() !== '') {
             status = unwrap(await commands.secretsSet(kind, value));
@@ -97,6 +121,7 @@ export function OnboardingWizard() {
         }
         if (status) {
           queryClient.setQueryData(settingsKeys.secrets, status);
+          await queryClient.invalidateQueries({ queryKey: AI_APP_KEY });
         }
       }
       const saved = unwrap(await commands.settingsUpdate({ playerName }));
@@ -107,6 +132,7 @@ export function OnboardingWizard() {
       setError(cause);
       // Parte pode ter sido gravada antes da falha: relê o estado do disco.
       await queryClient.invalidateQueries({ queryKey: settingsKeys.secrets });
+      await queryClient.invalidateQueries({ queryKey: AI_APP_KEY });
       setFinishing(false);
     }
   };
@@ -182,6 +208,15 @@ export function OnboardingWizard() {
               }}
             />
           ))}
+          <AiKeyChoice
+            provider={chosenProvider}
+            onProvider={setProvider}
+            value={keys[secretOf(chosenProvider)]}
+            configured={secrets.data?.[secretOf(chosenProvider)] ?? false}
+            onChange={(value) => {
+              setKeys((current) => ({ ...current, [secretOf(chosenProvider)]: value }));
+            }}
+          />
           <BackendChoice
             value={chosenBackend}
             onVault={() => {
@@ -314,7 +349,7 @@ function KeyInput({
   configured,
   onChange,
 }: {
-  kind: ShownSecretKind;
+  kind: OwnSecretKind;
   value: string;
   configured: boolean;
   onChange: (value: string) => void;
@@ -332,6 +367,65 @@ function KeyInput({
         onChange(event.target.value);
       }}
     />
+  );
+}
+
+/** A IA: o provedor (o Gemini sugerido, por ter plano gratuito) e a chave dele. */
+function AiKeyChoice({
+  provider,
+  onProvider,
+  value,
+  configured,
+  onChange,
+}: {
+  provider: AiProvider;
+  onProvider: (provider: AiProvider) => void;
+  value: string;
+  configured: boolean;
+  onChange: (value: string) => void;
+}) {
+  const { t } = useTranslation('configuracoes');
+  const { t: tw } = useTranslation('boasVindas');
+  const { t: ti } = useTranslation('ia');
+  const legendId = useId();
+  return (
+    <fieldset className="m-0 border-0 p-0 stack-3" aria-labelledby={legendId}>
+      <div>
+        <legend className="field__label mb-2" id={legendId}>
+          {ti('configuracoes.provedor')}
+        </legend>
+        <p className="t-sm t-2 mb-2">{tw('chaves.iaTexto')}</p>
+        <div className="choice-list">
+          {AI_PROVIDERS.map((item) => (
+            <Choice
+              key={item}
+              name={PROVIDER_GROUP}
+              title={providerName(item)}
+              badge={
+                item === 'gemini' ? (
+                  <span className="tag tag--ok ml-2">{ti('provedores.sugerido')}</span>
+                ) : undefined
+              }
+              desc={ti(`provedores.${item}.desc`)}
+              checked={provider === item}
+              onSelect={() => {
+                onProvider(item);
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <TextField
+        type="password"
+        label={t(`chaves.rotulos.${secretOf(provider)}`)}
+        placeholder={t('chaves.campo')}
+        hint={configured ? tw('chaves.jaConfigurada') : ti('configuracoes.usoChave')}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+        }}
+      />
+    </fieldset>
   );
 }
 

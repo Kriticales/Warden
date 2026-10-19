@@ -294,7 +294,7 @@ describe('Configurações', () => {
       await openSettings();
       const row = await screen.findByTestId('chave-gemini');
       await user.click(within(row).getByRole('button', { name: 'Remover' }));
-      const dialog = await screen.findByRole('alertdialog', { name: 'Remover a chave da Gemini?' });
+      const dialog = await screen.findByRole('alertdialog', { name: 'Remover a chave do Gemini?' });
       await user.click(within(dialog).getByRole('button', { name: 'Remover chave' }));
       expect(await within(row).findByLabelText('Chave do Gemini')).toBeDefined();
       expect(backend.callsOf('secrets_remove')[0]?.args).toEqual({ kind: 'gemini' });

@@ -8,13 +8,37 @@
 export const ia = {
   secao: {
     titulo: 'Diagnóstico com IA',
-    sub: 'Converse com a IA (Google Gemini) sobre um problema do pack. Ela consulta o pack, os logs e os testes; você vê tudo o que é enviado, e nada muda no pack sem a sua decisão.',
+    sub: 'Converse com a IA ({{provedor}}) sobre um problema do pack. Ela consulta o pack, os logs e os testes; você vê tudo o que é enviado, e nada muda no pack sem a sua decisão.',
     carregando: 'Lendo as conversas…',
   },
+  provedores: {
+    gemini: {
+      nome: 'Gemini',
+      completo: 'Google Gemini',
+      desc: 'Do Google. Tem plano gratuito pela API, com limite de uso por dia.',
+    },
+    openai: {
+      nome: 'OpenAI',
+      completo: 'OpenAI',
+      desc: 'Pago por uso, cobrado na sua conta da OpenAI.',
+    },
+    anthropic: {
+      nome: 'Claude',
+      completo: 'Claude',
+      desc: 'Da Anthropic. Pago por uso, cobrado na sua conta da Anthropic.',
+    },
+    sugerido: 'Sugerido',
+  },
   chave: {
-    titulo: 'Falta a chave do Gemini',
+    titulo: {
+      gemini: 'Falta a chave do Gemini',
+      openai: 'Falta a chave da OpenAI',
+      anthropic: 'Falta a chave do Claude',
+    },
     texto:
-      'Para usar a IA, informe sua chave do Gemini em Configurações. A chave é sua: o Google pode cobrar pelo uso, conforme o seu plano.',
+      'Para usar a IA, salve a chave do provedor escolhido em Configurações → Chaves e contas. A chave é sua: o uso é cobrado ou limitado nela, conforme o plano.',
+    provedores:
+      'O Warden funciona com o Gemini (Google), a OpenAI e o Claude (Anthropic). Para começar, o sugerido é o Gemini, que tem plano gratuito.',
     abrir: 'Abrir Configurações',
   },
   nova: {
@@ -54,9 +78,10 @@ export const ia = {
     stoppedByUser: 'parado por você',
   },
   modelo: {
-    atual: 'Modelo: {{modelo}} ({{nivel}}).',
+    atual: 'Provedor: {{provedor}}. Modelo: {{modelo}} ({{nivel}}).',
+    atualGemini: 'Provedor: Gemini. Modelo: {{modelo}}.',
     consultando: 'Consultando os modelos da sua chave…',
-    nenhum: 'Nenhum modelo do Gemini disponível para a sua chave.',
+    nenhum: 'Nenhum modelo do provedor disponível para a sua chave.',
     trocar: 'Mudar em Configurações',
   },
   nivel: {
@@ -81,20 +106,27 @@ export const ia = {
     textoInicial: 'Texto inicial, exatamente como vai',
     textoRotulo: 'Texto inicial que será enviado',
     para: 'Para',
-    paraValor: 'Google Gemini ({{modelo}}), com a sua chave',
+    paraValor: '{{provedor}} ({{modelo}}), com a sua chave',
     tamanho: 'Tamanho inicial',
     tamanhoValor:
-      '{{bytes}} de texto; cerca de {{tokens}} com as instruções do Warden (token é a unidade que o Google usa para medir e cobrar)',
+      '{{bytes}} de texto; cerca de {{tokens}} com as instruções do Warden (token é a unidade que os provedores de IA usam para medir e cobrar)',
     tamanhoSoBytes: '{{bytes}} de texto',
     custo: 'Custo',
+    /** O custo do Gemini pelo modelo (ADR-0055: o Flash-Lite, `leve`; o Flash, `forte`). */
     custoValor: {
-      economical: 'Entre US$ 0,005 e US$ 0,04 numa conversa típica, no plano pago.',
-      careful: 'Entre US$ 0,02 e US$ 0,09 numa conversa típica, no plano pago.',
+      leve: 'Entre US$ 0,005 e US$ 0,04 numa conversa típica, no plano pago.',
+      forte: 'Entre US$ 0,02 e US$ 0,09 numa conversa típica, no plano pago.',
+    },
+    custoPago: {
+      openai:
+        'O uso é cobrado na sua chave da OpenAI, conforme o tamanho da conversa e os preços dela.',
+      anthropic:
+        'O uso é cobrado na sua chave da Anthropic, conforme o tamanho da conversa e os preços dela.',
     },
     plano:
       'O uso é cobrado ou limitado na sua chave. No plano gratuito não há custo, mas o Google pode usar o conteúdo enviado para melhorar os produtos dele, e pessoas podem lê-lo.',
     poucasPorDia:
-      'No plano gratuito, a análise mais cuidadosa permite poucas conversas por dia. Se o limite acabar, troque para o modelo mais econômico em Configurações.',
+      'No plano gratuito, este modelo permite poucas conversas por dia. Se o limite diário acabar no meio de uma pergunta, o Warden troca sozinho para um modelo mais leve e avisa.',
     cancelar: 'Cancelar',
     comecar: 'Começar conversa',
     erro: 'A conversa não começou.',
@@ -123,7 +155,7 @@ export const ia = {
   apagar: {
     titulo: 'Apagar esta conversa?',
     texto:
-      'A conversa e tudo o que foi enviado nela saem deste computador. O que já foi enviado ao Google não volta.',
+      'A conversa e tudo o que foi enviado nela saem deste computador. O que já foi enviado à IA não volta.',
     confirmar: 'Apagar conversa',
     apagando: 'Apagando…',
   },
@@ -138,7 +170,7 @@ export const ia = {
     voltar: 'Conversas',
     carregando: 'Lendo a conversa…',
     naoAchou: 'Conversa não encontrada',
-    sub: 'Conversa sobre {{origem}} · começou {{quando}}',
+    sub: 'Conversa sobre {{origem}} · começou {{quando}} com {{provedor}}',
     textoInicial: 'texto inicial',
     voce: 'Você',
     ia: 'IA',
@@ -175,8 +207,24 @@ export const ia = {
     lendo: 'A IA está lendo. Costuma levar de 10 a 40 segundos; você pode sair desta tela.',
     porMinuto:
       'Aguardando o limite por minuto do plano gratuito… A conversa continua sozinha em cerca de {{segundos}} s.',
-    tentando:
-      'O Google está sobrecarregado agora. Tentando de novo sozinho ({{tentativa}} de {{total}})…',
+    porMinutoPago:
+      'Aguardando o limite por minuto da sua chave… A conversa continua sozinha em cerca de {{segundos}} s.',
+    tentando: {
+      gemini:
+        'O Google está sobrecarregado agora. Tentando de novo sozinho ({{tentativa}} de {{total}})…',
+      openai:
+        'A OpenAI está sobrecarregada agora. Tentando de novo sozinho ({{tentativa}} de {{total}})…',
+      anthropic:
+        'A Anthropic está sobrecarregada agora. Tentando de novo sozinho ({{tentativa}} de {{total}})…',
+    },
+  },
+  troca: {
+    texto: 'O limite diário do modelo mais forte acabou; esta resposta usou o mais leve.',
+    modelo: 'Modelo desta resposta: {{modelo}}.',
+  },
+  faltaChave: {
+    texto:
+      'Esta conversa começou com {{provedor}} e continua nesse provedor. Para perguntar de novo, salve a chave dele em Configurações → Chaves e contas.',
   },
   erro: {
     nadaMudou: 'Nada foi alterado no pack. A conversa fica guardada.',
@@ -271,10 +319,11 @@ export const ia = {
   lado: {
     rotulo: 'Sobre esta conversa',
     comecou: 'Começou',
+    provedor: 'Provedor',
     modelo: 'Modelo',
     tamanho: 'Esta conversa',
     inicial: 'Pedido inicial',
-    inicialValor: '{{tokens}}, contados pelo Google',
+    inicialValor: '{{tokens}}, contados pelo provedor',
     requisicoes: 'Requisições',
     podeLer: 'A IA pode ler',
     leituras: {
@@ -301,17 +350,105 @@ export const ia = {
     conversarRotulo: 'Conversar com a IA sobre o travamento de {{quando}}',
   },
   configuracoes: {
-    titulo: 'Modelo da IA (Gemini)',
+    titulo: 'IA',
+    texto:
+      'O Diagnóstico com IA usa um destes provedores, com a sua chave. As conversas novas usam o provedor escolhido; cada conversa continua no provedor em que começou.',
+    provedor: 'Provedor da IA',
+    trocado: 'Conversas novas vão usar {{provedor}}.',
+    chaves: 'Chave de cada provedor',
+    modeloTitulo: 'Modelo ({{provedor}})',
     economical: {
       titulo: 'Mais econômico (padrão)',
-      desc: 'O Flash-Lite mais novo do Gemini: rápido, barato e com cota gratuita folgada.',
+      desc: 'Para análises simples: o modelo mais barato da família mais nova.',
     },
     careful: {
       titulo: 'Análise mais cuidadosa',
-      desc: 'O Flash mais novo do Gemini. No plano gratuito ele permite poucas conversas por dia.',
+      desc: 'Para problemas difíceis: o modelo mais capaz da família mais nova, que custa mais por conversa.',
     },
     modelo: 'Hoje: {{modelo}}.',
-    semChave: 'Os nomes dos modelos aparecem depois de salvar a chave do Gemini.',
+    gemini: {
+      titulo: 'Usa sempre o modelo mais forte do plano gratuito',
+      desc: 'Se o limite diário do plano gratuito acabar, o Warden troca sozinho para um modelo mais leve e avisa.',
+      descLeve:
+        'Se o limite diário do plano gratuito acabar, o Warden troca sozinho para o mais leve ({{modelo}}), só naquela pergunta, e avisa.',
+    },
+    semChave: {
+      gemini: 'O nome do modelo aparece depois de salvar a chave do Gemini.',
+      openai: 'Os nomes dos modelos aparecem depois de salvar a chave da OpenAI.',
+      anthropic: 'Os nomes dos modelos aparecem depois de salvar a chave do Claude.',
+    },
+    custo: {
+      openai:
+        'A OpenAI cobra por uso, na sua conta, conforme os preços dela. Não há plano gratuito pela API.',
+      anthropic:
+        'A Anthropic cobra por uso, na sua conta, conforme os preços dela. Não há plano gratuito pela API.',
+    },
+    usoChave: 'Usada só no Diagnóstico com IA, e sempre com a sua confirmação antes de cada envio.',
+  },
+  erros: {
+    KEY_INVALID: {
+      gemini:
+        'O Google recusou a chave do Gemini. Confira a chave em Configurações → Chaves e contas.',
+      openai: 'A OpenAI recusou a chave. Confira a chave em Configurações → Chaves e contas.',
+      anthropic:
+        'A Anthropic recusou a chave do Claude. Confira a chave em Configurações → Chaves e contas.',
+    },
+    RATE_LIMITED: {
+      gemini:
+        'O limite por minuto do plano gratuito continuou mesmo depois de esperar. Espere um pouco e tente de novo.',
+      openai:
+        'O limite por minuto da sua chave da OpenAI continuou mesmo depois de esperar. Espere um pouco e tente de novo.',
+      anthropic:
+        'O limite por minuto da sua chave da Anthropic continuou mesmo depois de esperar. Espere um pouco e tente de novo.',
+    },
+    QUOTA_EXCEEDED: {
+      gemini:
+        'O limite diário do plano gratuito deste modelo acabou. Troque de modelo em Configurações (cada modelo tem a sua cota) ou tente de novo mais tarde.',
+      openai:
+        'A cota da sua conta da OpenAI acabou ou chegou ao limite de gastos. Confira o "Billing" da OpenAI ou tente de novo mais tarde.',
+      anthropic:
+        'A cota da sua conta da Anthropic acabou ou chegou ao limite de gastos. Confira o "Billing" no Console da Anthropic ou tente de novo mais tarde.',
+    },
+    TIMEOUT: {
+      gemini:
+        'O Google não respondeu a tempo, nem nas novas tentativas. Confira a internet e tente de novo.',
+      openai:
+        'A OpenAI não respondeu a tempo, nem nas novas tentativas. Confira a internet e tente de novo.',
+      anthropic:
+        'A Anthropic não respondeu a tempo, nem nas novas tentativas. Confira a internet e tente de novo.',
+    },
+    BILLING: {
+      gemini:
+        'O Google pediu cobrança para esta chave (faturamento desligado ou sem crédito). Confira o plano da sua chave no Google AI Studio.',
+      openai:
+        'A OpenAI pediu pagamento para esta chave (sem crédito ou sem forma de pagamento). Confira o "Billing" da sua conta da OpenAI.',
+      anthropic:
+        'A Anthropic pediu pagamento para esta chave (sem crédito). Confira o "Billing" no Console da Anthropic.',
+    },
+    UNAVAILABLE: {
+      gemini:
+        'O Google está sobrecarregado agora e não respondeu nas novas tentativas. Tente de novo daqui a pouco.',
+      openai:
+        'A OpenAI está sobrecarregada agora e não respondeu nas novas tentativas. Tente de novo daqui a pouco.',
+      anthropic:
+        'A Anthropic está sobrecarregada agora e não respondeu nas novas tentativas. Tente de novo daqui a pouco.',
+    },
+    NO_MODEL: {
+      gemini:
+        'Nenhum modelo do Gemini disponível para a sua chave serve para o diagnóstico. Confira a chave em Configurações.',
+      openai:
+        'Nenhum modelo da OpenAI disponível para a sua chave serve para o diagnóstico. Confira a chave em Configurações.',
+      anthropic:
+        'Nenhum modelo do Claude disponível para a sua chave serve para o diagnóstico. Confira a chave em Configurações.',
+    },
+    REJECTED: {
+      gemini:
+        'O Google recusou o pedido (código {{status}}). Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
+      openai:
+        'A OpenAI recusou o pedido (código {{status}}). Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
+      anthropic:
+        'A Anthropic recusou o pedido (código {{status}}). Tente de novo; se continuar, copie os detalhes técnicos e registre o problema.',
+    },
   },
 } as const;
 

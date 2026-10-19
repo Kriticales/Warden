@@ -1,8 +1,10 @@
 /**
  * Seção ✦ Diagnóstico com IA (SPEC T14 ✦ "Na seção"; ESTRUTURA §13; protótipo `ia`): sem a chave
- * do Gemini, o caminho para Configurações; com ela, **Nova conversa** (do que se trata, o que
- * analisar, "Contar algo à IA" e **✦ Começar conversa**, que abre o consentimento), o modelo em
- * uso e **Conversas** (continuar e apagar).
+ * do provedor ativo (D-18: Gemini, OpenAI ou Claude), o caminho para Configurações, citando os
+ * três provedores, com o Gemini sugerido; com ela, **Nova conversa** (do que se trata, o que
+ * analisar, "Contar algo à IA" e **✦ Começar conversa**, que abre o consentimento), o provedor e
+ * o modelo em uso. **Conversas** (continuar e apagar) aparece nos dois casos: cada conversa
+ * continua no provedor em que começou.
  *
  * Os botões **✦ Pedir ajuda à IA** (resultado do teste) e **✦ Conversar com a IA**
  * (Travamentos) trazem `sessao` na busca: a sessão vem escolhida em "Começar pelo" e o
@@ -27,13 +29,16 @@ import type {
   AiConversationSummary,
   AiLocalPick,
   AiPreview,
+  AiProvider,
   AiSessionOption,
   AiSource,
   PackId,
   AiSymptom,
+  ModelTier,
 } from '../../../lib/ipc/bindings';
 import { formatBytes } from '../../../lib/format';
 import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
+import { aiErrorMessage, modelFor, providerName } from '../../settings/ai/providers';
 import { useSecretsStatus } from '../../settings/api';
 import { Choice, StatusText } from '../../settings/components/fields';
 import { formatWhen } from '../../test/text';
@@ -65,6 +70,7 @@ const PACK_ONLY: SourceChoice = 'pack';
 export function AiPage({ packId, sessionId }: { packId: PackId; sessionId: string | null }) {
   const { t } = useTranslation('ia');
   const secrets = useSecretsStatus();
+  const settings = useAiSettings();
   useAiLiveUpdates(packId);
 
   const head = (
@@ -74,23 +80,37 @@ export function AiPage({ packId, sessionId }: { packId: PackId; sessionId: strin
           <Icon icon={Sparkles} size="lg" className="icon--ai" /> {t('secao.titulo')}
         </>
       }
-      sub={t('secao.sub')}
+      sub={t('secao.sub', { provedor: providerName(settings.data?.provider ?? 'gemini') })}
     />
   );
-  if (secrets.isPending) {
+  if (secrets.isPending || settings.isPending) {
     return <LoadingState label={t('secao.carregando')} />;
   }
-  if (secrets.isError) {
-    return <ErrorPanel error={secrets.error} />;
+  if (secrets.isError || settings.isError) {
+    const error = secrets.error ?? settings.error;
+    return (
+      <ErrorPanel
+        error={error}
+        onRetry={() => {
+          void secrets.refetch();
+          void settings.refetch();
+        }}
+      />
+    );
   }
-  if (!secrets.data.gemini) {
+  const provider = settings.data.provider;
+  if (!secrets.data[provider]) {
     return (
       <div className="stack ai-page">
         {head}
         <EmptyState
           glyph="dots"
-          title={t('chave.titulo')}
-          text={t('chave.texto')}
+          title={t(`chave.titulo.${provider}`)}
+          text={
+            <>
+              {t('chave.texto')} {t('chave.provedores')}
+            </>
+          }
           actions={
             <Link to="/configuracoes" className={buttonVariants({ variant: 'primary' })}>
               <Icon icon={KeyRound} />
@@ -98,20 +118,29 @@ export function AiPage({ packId, sessionId }: { packId: PackId; sessionId: strin
             </Link>
           }
         />
+        <Conversations packId={packId} />
       </div>
     );
   }
   return (
     <div className="stack ai-page">
       {head}
-      <NewConversation packId={packId} sessionId={sessionId} />
-      <ModelLine />
+      <NewConversation packId={packId} sessionId={sessionId} provider={provider} />
+      <ModelLine provider={provider} tier={settings.data.tier} />
       <Conversations packId={packId} />
     </div>
   );
 }
 
-function NewConversation({ packId, sessionId }: { packId: PackId; sessionId: string | null }) {
+function NewConversation({
+  packId,
+  sessionId,
+  provider,
+}: {
+  packId: PackId;
+  sessionId: string | null;
+  provider: AiProvider;
+}) {
   const { t } = useTranslation('ia');
   const navigate = useNavigate();
   const sources = useAiSources(packId);
@@ -267,7 +296,7 @@ function NewConversation({ packId, sessionId }: { packId: PackId; sessionId: str
       </div>
       {preview.isError ? (
         <Alert kind="danger" compact title={t('nova.erro')}>
-          {appErrorMessage(toAppError(preview.error))}
+          {aiErrorMessage(toAppError(preview.error), provider)}
         </Alert>
       ) : null}
       <div className="row row--gap-3 ai-new__actions">
@@ -306,26 +335,24 @@ function NewConversation({ packId, sessionId }: { packId: PackId; sessionId: str
   );
 }
 
-/** O modelo em uso, com o caminho para trocar em Configurações. */
-function ModelLine() {
+/** O provedor e o modelo em uso, com o caminho para trocar em Configurações. */
+function ModelLine({ provider, tier }: { provider: AiProvider; tier: ModelTier }) {
   const { t } = useTranslation('ia');
-  const settings = useAiSettings();
-  const models = useAiModels(true);
-  if (!settings.data) {
-    return null;
-  }
-  const tier = settings.data.tier;
-  const model =
-    tier === 'careful'
-      ? (models.data?.careful ?? models.data?.economical)
-      : (models.data?.economical ?? models.data?.careful);
+  const models = useAiModels(provider, true);
+  const model = modelFor(models.data, tier);
   let text: string;
   if (models.isPending) {
     text = t('modelo.consultando');
   } else if (models.isError || !model) {
-    text = models.isError ? appErrorMessage(toAppError(models.error)) : t('modelo.nenhum');
+    text = models.isError ? aiErrorMessage(toAppError(models.error), provider) : t('modelo.nenhum');
+  } else if (provider === 'gemini') {
+    text = t('modelo.atualGemini', { modelo: model });
   } else {
-    text = t('modelo.atual', { modelo: model, nivel: t(`nivel.${tier}`) });
+    text = t('modelo.atual', {
+      provedor: providerName(provider),
+      modelo: model,
+      nivel: t(`nivel.${tier}`),
+    });
   }
   return (
     <p className="t-sm t-2 ai-model">

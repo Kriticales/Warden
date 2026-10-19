@@ -6,15 +6,20 @@
  * - a resposta traz as afirmações com os selos de evidência (de onde veio o trecho, nunca que a
  *   conclusão está certa), "não verificado", "baseado em mensagem de jogador" (CA-T14-19), o
  *   medidor calculado pelo Warden e o aviso fixo "A IA pode errar";
- * - enquanto a IA responde: a espera visível (limite por minuto do plano gratuito, nova
- *   tentativa); um erro diz o que houve, nada muda no pack e a conversa fica guardada;
+ * - enquanto a IA responde: a espera visível (limite por minuto, que só no Gemini fala do plano
+ *   gratuito; nova tentativa); um erro diz o que houve, na frase do provedor da conversa, nada
+ *   muda no pack e a conversa fica guardada;
+ * - a pergunta que o Gemini respondeu com o modelo mais leve, porque a cota diária do mais forte
+ *   acabou, avisa a troca (`fallbackModel`; ADR-0060, complemento de 19/10/2026);
+ * - D-18: a conversa mostra o provedor em que começou (ela fica nele, ADR-0060); sem a chave
+ *   desse provedor, pede essa chave e leva a Configurações (CA-T14-21);
  * - continuar uma conversa antiga avisa se o pack mudou (CA-T14-15);
  * - D-14: as buscas no GitHub aparecem como **Enviado ao GitHub: …** antes do bloco da consulta,
  *   e as propostas da IA como cartões com Aplicar e Descartar depois da resposta
  *   (`proposals/`).
  */
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Send, Sparkles, Trash2, User } from 'lucide-react';
+import { ArrowLeft, KeyRound, Send, Sparkles, Trash2, User } from 'lucide-react';
 import { Fragment, useId, useState, type SyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -28,12 +33,15 @@ import { Icon } from '../../../components/ui/icon';
 import { Loader } from '../../../components/ui/loader';
 import type {
   AiConversationView,
+  AiProvider,
   ConversationTurn,
   LiveStatus,
   PackChanges,
   PackId,
 } from '../../../lib/ipc/bindings';
-import { appErrorMessage, toAppError } from '../../../lib/ipc/errors';
+import { toAppError } from '../../../lib/ipc/errors';
+import { aiErrorMessage, providerName } from '../../settings/ai/providers';
+import { useSecretsStatus } from '../../settings/api';
 import { formatWhen } from '../../test/text';
 import { AnswerView } from './AnswerView';
 import { ExternalBlock } from './proposals/ExternalBlock';
@@ -89,6 +97,7 @@ export function ConversationPage({
         sub={t('conversa.sub', {
           origem: originLabel(view.summary.origin),
           quando: formatWhen(view.summary.createdAtMs),
+          provedor: providerName(view.provider),
         })}
         back={back}
         sans
@@ -113,6 +122,7 @@ export function ConversationPage({
               />
             ))}
           </div>
+          <KeyMissing provider={view.provider} />
           <Ask packId={packId} view={view} />
         </div>
         <Side packId={packId} view={view} />
@@ -207,7 +217,9 @@ function Turn({
           <Icon icon={Sparkles} className="icon--ai" />
           <span>{t('conversa.ia')}</span>
           <span className="msg__meta">
-            {turn.answer ? `${view.model} · ${formatWhen(turn.answer.atMs)}` : view.model}
+            {turn.answer
+              ? `${turn.fallbackModel ?? view.model} · ${formatWhen(turn.answer.atMs)}`
+              : (turn.fallbackModel ?? view.model)}
           </span>
         </div>
         <div className="msg__body">
@@ -217,6 +229,7 @@ function Turn({
               <StepBlock step={step} />
             </Fragment>
           ))}
+          {turn.fallbackModel ? <Fallback model={turn.fallbackModel} /> : null}
           {turn.answer ? (
             <AnswerView packId={packId} conversationId={view.summary.id} answer={turn.answer} />
           ) : null}
@@ -228,7 +241,7 @@ function Turn({
             origin={view.summary.origin}
             symptom={view.summary.symptom}
           />
-          {!turn.answer && live ? <Waiting live={live} /> : null}
+          {!turn.answer && live ? <Waiting live={live} provider={view.provider} /> : null}
           {!turn.answer && !live && turn.failure ? (
             <Failure packId={packId} view={view} turn={turn} />
           ) : null}
@@ -241,13 +254,54 @@ function Turn({
   );
 }
 
-function Waiting({ live }: { live: LiveStatus }) {
+/**
+ * A pergunta respondida pelo modelo mais leve porque a cota diária do modelo da conversa acabou
+ * (só no Gemini; ADR-0060, complemento de 19/10/2026). A pergunta seguinte volta ao da conversa.
+ */
+function Fallback({ model }: { model: string }) {
+  const { t } = useTranslation('ia');
+  return (
+    <Alert kind="warn" compact>
+      {t('troca.texto')} {t('troca.modelo', { modelo: model })}
+    </Alert>
+  );
+}
+
+/**
+ * Sem a chave do provedor da conversa: o pedido dessa chave, com o caminho para Configurações
+ * (o estado das chaves é o de Configurações, sempre atual).
+ */
+function KeyMissing({ provider }: { provider: AiProvider }) {
+  const { t } = useTranslation('ia');
+  const secrets = useSecretsStatus();
+  if (!secrets.data || secrets.data[provider]) {
+    return null;
+  }
+  return (
+    <Alert
+      kind="warn"
+      title={t(`chave.titulo.${provider}`)}
+      actions={
+        <Button size="sm" icon={KeyRound} asChild>
+          <Link to="/configuracoes">{t('chave.abrir')}</Link>
+        </Button>
+      }
+    >
+      {t('faltaChave.texto', { provedor: providerName(provider) })}
+    </Alert>
+  );
+}
+
+function Waiting({ live, provider }: { live: LiveStatus; provider: AiProvider }) {
   const { t } = useTranslation('ia');
   let text: string;
   if (live.kind === 'waitingPerMinute') {
-    text = t('espera.porMinuto', { segundos: live.seconds });
+    text =
+      provider === 'gemini'
+        ? t('espera.porMinuto', { segundos: live.seconds })
+        : t('espera.porMinutoPago', { segundos: live.seconds });
   } else if (live.kind === 'retrying') {
-    text = t('espera.tentando', { tentativa: live.attempt, total: live.of });
+    text = t(`espera.tentando.${provider}`, { tentativa: live.attempt, total: live.of });
   } else {
     text = t('espera.lendo');
   }
@@ -279,11 +333,12 @@ function Failure({
     code === 'QUOTA_EXCEEDED' ||
     code === 'KEY_INVALID' ||
     code === 'NOT_CONFIGURED' ||
+    code === 'PROVIDER_KEY_MISSING' ||
     code === 'NO_MODEL';
   return (
     <Alert
       kind="danger"
-      title={appErrorMessage(error)}
+      title={aiErrorMessage(error, view.provider)}
       actions={
         <>
           {turn.failure.retryable || code === 'QUOTA_EXCEEDED' ? (
@@ -366,7 +421,7 @@ function Ask({ packId, view }: { packId: PackId; view: AiConversationView }) {
       </div>
       {send.isError ? (
         <Alert kind="danger" compact>
-          {appErrorMessage(toAppError(send.error))}
+          {aiErrorMessage(toAppError(send.error), view.provider)}
         </Alert>
       ) : null}
       <div className="row">
@@ -399,6 +454,8 @@ function Side({ packId, view }: { packId: PackId; view: AiConversationView }) {
         <dl className="kv">
           <dt>{t('lado.comecou')}</dt>
           <dd>{formatWhen(view.summary.createdAtMs)}</dd>
+          <dt>{t('lado.provedor')}</dt>
+          <dd>{providerName(view.provider)}</dd>
           <dt>{t('lado.modelo')}</dt>
           <dd>{view.model}</dd>
           <dt>{t('lado.tamanho')}</dt>

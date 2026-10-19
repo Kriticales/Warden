@@ -60,7 +60,13 @@ export const configuracoes = {
     removida: '{{nome}}: chave removida.',
     comoCriar: 'Como criar',
     abrirPagina: 'Abrir a página no navegador',
-    removerTitulo: 'Remover a chave da {{nome}}?',
+    removerTitulos: {
+      curseforge: 'Remover a chave da CurseForge?',
+      gemini: 'Remover a chave do Gemini?',
+      openai: 'Remover a chave da OpenAI?',
+      anthropic: 'Remover a chave do Claude?',
+      github: 'Remover o token do GitHub?',
+    },
     removerTexto:
       'A chave sai de onde está guardada. O que depende dela para de funcionar até você salvar outra.',
     removerConfirmar: 'Remover chave',
@@ -68,16 +74,19 @@ export const configuracoes = {
     nomes: {
       curseforge: 'CurseForge',
       gemini: 'Gemini',
+      openai: 'OpenAI',
+      anthropic: 'Claude',
       github: 'GitHub',
     },
     rotulos: {
       curseforge: 'Chave da CurseForge',
       gemini: 'Chave do Gemini',
+      openai: 'Chave da OpenAI',
+      anthropic: 'Chave do Claude',
       github: 'Token do GitHub',
     },
     usos: {
       curseforge: 'Sem ela, a busca mostra só o Modrinth.',
-      gemini: 'Usada só no Diagnóstico com IA, e sempre com a sua confirmação antes de cada envio.',
       github: 'Usado para publicar versões para os jogadores.',
     },
     passos: {
@@ -89,6 +98,18 @@ export const configuracoes = {
       gemini: [
         'Entre no Google AI Studio com a sua conta do Google.',
         'Clique em "Create API key" e copie a chave criada.',
+        'Cole a chave aqui e clique em Salvar.',
+      ],
+      openai: [
+        'Entre na plataforma da OpenAI para desenvolvedores com a sua conta.',
+        'Em "API keys", clique em "Create new secret key" e copie a chave criada (ela aparece uma vez só).',
+        'O uso é pago: confira em "Billing" se a conta tem crédito ou forma de pagamento.',
+        'Cole a chave aqui e clique em Salvar.',
+      ],
+      anthropic: [
+        'Entre no Console da Anthropic (Claude) com a sua conta.',
+        'Em "Settings" → "API keys", clique em "Create key" e copie a chave criada (ela aparece uma vez só).',
+        'O uso é pago: confira em "Billing" se a conta tem crédito.',
         'Cole a chave aqui e clique em Salvar.',
       ],
       github: [
@@ -111,7 +132,7 @@ export const configuracoes = {
     movidasCofre: 'As chaves voltaram para o cofre do Windows e o .env foi apagado.',
     confirmarTitulo: 'Guardar as chaves num arquivo .env?',
     confirmarTexto:
-      'As chaves da CurseForge, do Gemini e do GitHub saem do cofre do Windows e vão para o arquivo <path>%APPDATA%\\dev.kriticales.warden\\.env</path>.',
+      'As chaves da CurseForge, da IA e do GitHub saem do cofre do Windows e vão para o arquivo <path>%APPDATA%\\dev.kriticales.warden\\.env</path>.',
     confirmarAvisoTitulo: 'O .env é um arquivo de texto comum.',
     confirmarAviso:
       'Qualquer programa no seu computador, e qualquer backup ou sincronização dessa pasta, consegue ler as chaves.',

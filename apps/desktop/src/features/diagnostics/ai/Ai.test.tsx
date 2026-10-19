@@ -73,17 +73,21 @@ async function openConversation(url: string) {
 }
 
 describe('✦ Diagnóstico com IA: seção (T14)', () => {
-  it('sem chave do Gemini: o caminho para Configurações, sem nenhuma chamada à IA', async () => {
+  it('sem chave do Gemini: o caminho para Configurações, os três provedores e as conversas, sem nenhuma chamada à IA', async () => {
     const { backend, url } = setup({}, false);
     await openSection(url);
     expect(await screen.findByText('Falta a chave do Gemini')).toBeDefined();
     expect(
-      screen.getByText(/Para usar a IA, informe sua chave do Gemini em Configurações\./),
+      screen.getByText(
+        /O Warden funciona com o Gemini \(Google\), a OpenAI e o Claude \(Anthropic\)\. Para começar, o sugerido é o Gemini, que tem plano gratuito\./,
+      ),
     ).toBeDefined();
     const link = screen.getByRole('link', { name: 'Abrir Configurações' });
     expect(link.getAttribute('href')).toBe('/configuracoes');
+    // As conversas continuam à vista: cada uma fica no provedor em que começou (ADR-0060).
+    expect(await screen.findByRole('heading', { level: 2, name: 'Conversas' })).toBeDefined();
     expect(backend.callsOf('ai_conversation_preview')).toHaveLength(0);
-    expect(backend.callsOf('ai_conversations_list')).toHaveLength(0);
+    expect(backend.callsOf('ai_models_get')).toHaveLength(0);
   });
 
   it('CA-T14-05: o consentimento mostra o texto inicial exato; Cancelar não manda nada e devolve o foco; axe', async () => {
@@ -522,7 +526,7 @@ describe('✦ Diagnóstico com IA: a conversa (T14)', () => {
     expect(within(side).getByText('~182 mil tokens')).toBeDefined();
     expect(within(side).getByText('4')).toBeDefined();
     expect(within(side).getByText('pack e achados, logs e crash reports')).toBeDefined();
-    expect(within(side).getByText('~2 mil tokens, contados pelo Google')).toBeDefined();
+    expect(within(side).getByText('~2 mil tokens, contados pelo provedor')).toBeDefined();
   });
 });
 
