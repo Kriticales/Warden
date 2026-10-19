@@ -165,7 +165,11 @@ mod tests {
             "Kriticales/Warden/1.2.3 (+https://github.com/Kriticales/Warden)"
         );
         let config = HttpConfig::default();
-        assert!(config.user_agent.starts_with("Kriticales/Warden/0."));
+        assert!(
+            config
+                .user_agent
+                .starts_with(&format!("Kriticales/Warden/{} ", env!("CARGO_PKG_VERSION")))
+        );
     }
 
     #[test]

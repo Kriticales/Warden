@@ -6709,7 +6709,7 @@ dependencies = [
 
 [[package]]
 name = "warden-ai"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "secrecy",
@@ -6732,7 +6732,7 @@ dependencies = [
 
 [[package]]
 name = "warden-app"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "hex",
@@ -6791,7 +6791,7 @@ dependencies = [
 
 [[package]]
 name = "warden-bisect"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "regex",
@@ -6811,7 +6811,7 @@ dependencies = [
 
 [[package]]
 name = "warden-catalog"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "hex",
  "proptest",
@@ -6833,7 +6833,7 @@ dependencies = [
 
 [[package]]
 name = "warden-configs"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "jsonc-parser",
@@ -6854,7 +6854,7 @@ dependencies = [
 
 [[package]]
 name = "warden-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "junction",
  "proptest",
@@ -6872,7 +6872,7 @@ dependencies = [
 
 [[package]]
 name = "warden-curseforge"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "secrecy",
@@ -6892,7 +6892,7 @@ dependencies = [
 
 [[package]]
 name = "warden-diagnostics"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "encoding_rs",
@@ -6922,7 +6922,7 @@ dependencies = [
 
 [[package]]
 name = "warden-discovery"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "base64 0.23.1",
@@ -6947,7 +6947,7 @@ dependencies = [
 
 [[package]]
 name = "warden-export"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "git2",
@@ -6978,7 +6978,7 @@ dependencies = [
 
 [[package]]
 name = "warden-http"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bytes",
  "governor",
@@ -7007,7 +7007,7 @@ dependencies = [
 
 [[package]]
 name = "warden-import"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "hex",
  "secrecy",
@@ -7039,7 +7039,7 @@ dependencies = [
 
 [[package]]
 name = "warden-instance"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "hex",
  "md-5",
@@ -7068,7 +7068,7 @@ dependencies = [
 
 [[package]]
 name = "warden-jarmeta"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "insta",
@@ -7088,7 +7088,7 @@ dependencies = [
 
 [[package]]
 name = "warden-java"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "flate2",
@@ -7114,7 +7114,7 @@ dependencies = [
 
 [[package]]
 name = "warden-launcher"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "encoding_rs",
@@ -7141,7 +7141,7 @@ dependencies = [
 
 [[package]]
 name = "warden-mixin"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "cafebabe",
  "proptest",
@@ -7161,7 +7161,7 @@ dependencies = [
 
 [[package]]
 name = "warden-modrinth"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "rusqlite",
@@ -7181,7 +7181,7 @@ dependencies = [
 
 [[package]]
 name = "warden-packwiz"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "hex",
@@ -7202,7 +7202,7 @@ dependencies = [
 
 [[package]]
 name = "warden-packwiz-cli"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "junction",
  "proptest",
@@ -7225,7 +7225,7 @@ dependencies = [
 
 [[package]]
 name = "warden-perf"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "prost",
@@ -7243,7 +7243,7 @@ dependencies = [
 
 [[package]]
 name = "warden-project"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "criterion",
@@ -7281,7 +7281,7 @@ dependencies = [
 
 [[package]]
 name = "warden-scripts"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "regex",
@@ -7306,7 +7306,7 @@ dependencies = [
 
 [[package]]
 name = "warden-secrets"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "keyring-core",
  "proptest",
@@ -7325,7 +7325,7 @@ dependencies = [
 
 [[package]]
 name = "warden-server"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "regex",
  "serde",
@@ -7347,7 +7347,7 @@ dependencies = [
 
 [[package]]
 name = "warden-versioning"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "base64 0.23.1",
@@ -8266,7 +8266,7 @@ checksum = "66fee0b777b0f5ac1c69bb06d361268faafa61cd4682ae064a171c16c433e9e4"
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
