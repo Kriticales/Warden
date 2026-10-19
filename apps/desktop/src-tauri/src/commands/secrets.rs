@@ -203,6 +203,8 @@ mod tests {
     const CF: &str = "$2a$10$valorDeVarreduraDaCurseforge0000000";
     const GEMINI: &str = "AIzaValorDeVarreduraDoGemini000000";
     const GITHUB: &str = "ghp_valorDeVarreduraDoGithub000000";
+    const OPENAI: &str = "sk-proj-valorDeVarreduraDaOpenai000000";
+    const ANTHROPIC: &str = "sk-ant-api03-valorDeVarreduraDaAnthropic0";
 
     fn secret(text: &str) -> SecretString {
         SecretString::from(text.to_owned())
@@ -287,7 +289,7 @@ mod tests {
                 file.display()
             );
             let text = String::from_utf8_lossy(bytes);
-            for value in [CF, GEMINI, GITHUB] {
+            for value in [CF, GEMINI, OPENAI, ANTHROPIC, GITHUB] {
                 assert!(
                     !text.contains(value),
                     "segredo encontrado em {}",
@@ -315,8 +317,11 @@ mod tests {
             let state = test_state(root);
             set_impl(&state.secrets, SecretKind::Curseforge, &secret(CF)).unwrap();
             set_impl(&state.secrets, SecretKind::Gemini, &secret(GEMINI)).unwrap();
+            set_impl(&state.secrets, SecretKind::Openai, &secret(OPENAI)).unwrap();
+            set_impl(&state.secrets, SecretKind::Anthropic, &secret(ANTHROPIC)).unwrap();
             let status = set_impl(&state.secrets, SecretKind::Github, &secret(GITHUB)).unwrap();
             assert!(status.curseforge && status.gemini && status.github);
+            assert!(status.openai && status.anthropic);
             drop(state);
             let state = test_state(root);
             let status = state.secrets.status().unwrap();
@@ -337,15 +342,16 @@ mod tests {
             assert_eq!(state.settings.get().secrets_backend, BackendKind::Keyring);
             assert!(!env_file.exists());
 
-            // Para o `.env`: as três chaves vão para o arquivo e saem do cofre.
+            // Para o `.env`: todas as chaves vão para o arquivo e saem do cofre.
             let status =
                 backend_set_impl(&state.secrets, &state.settings, BackendKind::Envfile).unwrap();
             assert_eq!(status.backend, BackendKind::Envfile);
             assert!(status.curseforge && status.gemini && status.github);
+            assert!(status.openai && status.anthropic);
             let env_text = std::fs::read_to_string(&env_file).unwrap();
-            assert!(
-                env_text.contains(CF) && env_text.contains(GEMINI) && env_text.contains(GITHUB)
-            );
+            for value in [CF, GEMINI, OPENAI, ANTHROPIC, GITHUB] {
+                assert!(env_text.contains(value));
+            }
             assert!(
                 read_all_under(&vault, &[]).is_empty(),
                 "cofre não esvaziado"

@@ -1,11 +1,14 @@
 //! As conversas (ARCHITECTURE §9.5 "Conversas" e §13): `ai/<pack-id>/<ULID>.json` nos dados
 //! locais do Warden, **nunca** na pasta do pack (CA-T14-06).
 //!
-//! O arquivo guarda tudo **como enviado**: o histórico exato da API (`contents`, com o `content`
-//! de cada resposta do modelo intacto, como `serde_json::Value`, para as *thought signatures*),
-//! cada resultado de ferramenta, as permissões, o modelo, o uso (`usageMetadata`), as respostas
-//! conferidas, as propostas com o que foi aplicado ou descartado (D-14) e o retrato do pack no
-//! começo (para avisar quando o pack mudou, CA-T14-15).
+//! O arquivo guarda tudo **como enviado**. Formato 2 (D-15, ADR-0060): o provedor e o modelo em
+//! que a conversa começou (ela fica neles), o histórico no formato comum
+//! ([`crate::providers::Message`], com o campo opaco de cada mensagem intacto, como as *thought
+//! signatures* do Gemini), o corpo exato enviado em cada rodada, cada resultado de ferramenta,
+//! as permissões, o uso de tokens, as respostas conferidas, as propostas com o que foi aplicado
+//! ou descartado (D-14) e o retrato do pack no começo (para avisar quando o pack mudou,
+//! CA-T14-15). O formato 1 (D-04: só Gemini, com o `contents` da API) é convertido ao abrir, sem
+//! mudar um byte do que sai para o Gemini (CA-T14-22).
 //! Apagar a conversa apaga o arquivo (e o log escolhido no computador, quando houver).
 
 use std::collections::BTreeMap;
@@ -17,10 +20,11 @@ use warden_core::atomic_write_private;
 
 use crate::error::{Error, Result};
 use crate::evidence::CheckedAnswer;
+use crate::providers::{AiProvider, Message, gemini};
 use crate::tools::{AiPermissions, ToolItem};
 
-/// Versão do formato do arquivo.
-pub const SCHEMA_VERSION: u32 = 1;
+/// Versão do formato do arquivo (1: D-04, só Gemini; 2: vários provedores, D-15).
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// O sintoma escolhido em "Nova conversa" (`AiSymptom`: o `Symptom` é o da busca do culpado,
 /// D-12, e os dois vão para o mesmo `bindings.ts`).
@@ -116,37 +120,25 @@ impl PackSnapshot {
     }
 }
 
-/// Tokens somados das respostas (`usageMetadata`).
+/// Tokens somados das respostas (cada provedor lê o uso da sua API).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenUsage {
-    /// Entrada (`promptTokenCount`).
+    /// Entrada (no Gemini, `promptTokenCount`).
     #[specta(type = specta_typescript::Number)]
     pub prompt: u64,
-    /// Entrada em cache (`cachedContentTokenCount`).
+    /// Entrada em cache (no Gemini, `cachedContentTokenCount`).
     #[specta(type = specta_typescript::Number)]
     pub cached: u64,
-    /// Saída (`candidatesTokenCount`).
+    /// Saída (no Gemini, `candidatesTokenCount`).
     #[specta(type = specta_typescript::Number)]
     pub output: u64,
-    /// Pensamento (`thoughtsTokenCount`, cobrado como saída).
+    /// Raciocínio (no Gemini, `thoughtsTokenCount`, cobrado como saída).
     #[specta(type = specta_typescript::Number)]
     pub thoughts: u64,
 }
 
 impl TokenUsage {
-    /// Lê o `usageMetadata` de uma resposta.
-    #[must_use]
-    pub fn of(metadata: &Value) -> Self {
-        let number = |key: &str| metadata.get(key).and_then(Value::as_u64).unwrap_or(0);
-        Self {
-            prompt: number("promptTokenCount") + number("toolUsePromptTokenCount"),
-            cached: number("cachedContentTokenCount"),
-            output: number("candidatesTokenCount"),
-            thoughts: number("thoughtsTokenCount"),
-        }
-    }
-
     /// Soma.
     pub fn add(&mut self, other: TokenUsage) {
         self.prompt += other.prompt;
@@ -155,7 +147,7 @@ impl TokenUsage {
         self.thoughts += other.thoughts;
     }
 
-    /// Total de tokens processados (o que o Google mede e cobra).
+    /// Total de tokens processados (o que o provedor mede e cobra).
     #[must_use]
     pub fn total(&self) -> u64 {
         self.prompt + self.output + self.thoughts
@@ -172,7 +164,8 @@ pub struct ToolStep {
     pub name: String,
     /// Os argumentos que a IA pediu (JSON compacto, como vieram).
     pub args: String,
-    /// A parte `functionResponse` exatamente como foi na requisição (bytes exatos).
+    /// O resultado exatamente como foi na requisição (bytes exatos; no Gemini, a parte
+    /// `functionResponse`).
     pub sent: String,
     /// A ferramenta devolveu dados (falso: erro ou não permitida).
     pub ok: bool,
@@ -189,7 +182,7 @@ pub struct ToolStep {
 pub enum AnswerVia {
     /// Pela ferramenta `responder`.
     Respond,
-    /// Pela requisição de reserva (`mode: NONE` + `responseFormat`).
+    /// Pela requisição de reserva (sem ferramentas, resposta em JSON pelo esquema).
     Fallback,
 }
 
@@ -241,6 +234,21 @@ pub struct ConversationTurn {
     pub answer: Option<FinalAnswer>,
     /// O erro que interrompeu (a conversa continua guardada).
     pub failure: Option<TurnFailure>,
+    /// O modelo mais leve que respondeu esta pergunta porque a cota diária do modelo da conversa
+    /// acabou no meio dela (a tela avisa; ADR-0060, complemento de 19/10/2026).
+    #[serde(default)]
+    #[specta(optional)]
+    pub fallback_model: Option<String>,
+}
+
+/// O corpo exato de uma requisição que voltou com resposta.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SentRound {
+    /// Quando foi enviada.
+    pub at_ms: u64,
+    /// O corpo, byte a byte (JSON).
+    pub body: String,
 }
 
 /// Uma conversa, como fica no disco.
@@ -257,8 +265,15 @@ pub struct Conversation {
     pub created_at_ms: u64,
     /// Última mudança.
     pub updated_at_ms: u64,
+    /// O provedor em que a conversa começou (ela fica nele, ADR-0060).
+    #[serde(default)]
+    pub provider: AiProvider,
     /// O modelo.
     pub model: String,
+    /// O modelo mais leve do mesmo provedor para quando a cota diária de [`Self::model`] acabar
+    /// (`None`: sem troca; ADR-0060, complemento de 19/10/2026).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_model: Option<String>,
     /// Permissões escolhidas no consentimento.
     pub permissions: AiPermissions,
     /// O sintoma.
@@ -269,17 +284,20 @@ pub struct Conversation {
     pub note: Option<String>,
     /// O retrato do pack no começo.
     pub pack: PackSnapshot,
-    /// Tamanho do pedido inicial contado pelo Google (`countTokens`).
+    /// Tamanho do pedido inicial contado pelo provedor (no Gemini, `countTokens`).
     pub initial_tokens: Option<u64>,
-    /// O histórico exato da API.
-    pub contents: Vec<Value>,
+    /// O histórico no formato comum (sem a mensagem de sistema, que vai em cada pedido).
+    pub messages: Vec<Message>,
+    /// O corpo exato de cada requisição respondida (repetições iguais seguidas ficam uma vez).
+    #[serde(default)]
+    pub rounds: Vec<SentRound>,
     /// Tudo o que as ferramentas devolveram (a base da conferência).
     pub sent: Vec<ToolItem>,
     /// As perguntas.
     pub turns: Vec<ConversationTurn>,
     /// Tokens somados.
     pub usage: TokenUsage,
-    /// Requisições `generateContent` feitas (com as novas tentativas).
+    /// Requisições feitas ao provedor (com as novas tentativas).
     pub requests: u32,
     /// As propostas da IA e o que o usuário decidiu (D-14).
     #[serde(default)]
@@ -287,6 +305,45 @@ pub struct Conversation {
     /// Campos que esta versão não conhece: preservados ao gravar.
     #[serde(flatten)]
     pub unknown: BTreeMap<String, Value>,
+}
+
+impl Conversation {
+    /// Guarda o corpo exato de uma requisição respondida (uma vez, se repetiu o anterior).
+    pub fn record_round(&mut self, at_ms: u64, body: &str) {
+        if self.rounds.last().is_some_and(|last| last.body == body) {
+            return;
+        }
+        self.rounds.push(SentRound {
+            at_ms,
+            body: body.to_owned(),
+        });
+    }
+}
+
+/// Converte uma conversa do formato 1 (D-04: só Gemini, `contents`) para o formato 2, no JSON
+/// lido do disco. As outras versões passam sem mudar.
+fn upgrade(value: &mut Value) {
+    let Some(object) = value.as_object_mut() else {
+        return;
+    };
+    let version = object
+        .get("schemaVersion")
+        .and_then(Value::as_u64)
+        .unwrap_or(1);
+    if version >= 2 {
+        return;
+    }
+    let contents = match object.remove("contents") {
+        Some(Value::Array(contents)) => contents,
+        _ => Vec::new(),
+    };
+    let messages = gemini::translate::messages_from_contents(contents);
+    object.insert(
+        "messages".to_owned(),
+        serde_json::to_value(messages).unwrap_or_default(),
+    );
+    object.insert("provider".to_owned(), Value::from(AiProvider::Gemini.id()));
+    object.insert("schemaVersion".to_owned(), Value::from(SCHEMA_VERSION));
 }
 
 /// O caminho como aparece nos erros: só `ai/<pack>/<arquivo>`, nunca a pasta do usuário
@@ -394,10 +451,13 @@ impl ConversationStore {
                 });
             }
         };
-        serde_json::from_slice(&bytes).map_err(|error| Error::ConversationUnreadable {
+        let unreadable = |error: serde_json::Error| Error::ConversationUnreadable {
             path: shown(&path),
             reason: error.to_string(),
-        })
+        };
+        let mut value: Value = serde_json::from_slice(&bytes).map_err(unreadable)?;
+        upgrade(&mut value);
+        serde_json::from_value(value).map_err(unreadable)
     }
 
     /// Todas as conversas legíveis, da mais nova para a mais antiga (as ilegíveis ficam de
@@ -457,6 +517,7 @@ impl ConversationStore {
 pub fn new_conversation(
     id: String,
     now_ms: u64,
+    provider: AiProvider,
     model: String,
     permissions: AiPermissions,
     symptom: AiSymptom,
@@ -470,14 +531,17 @@ pub fn new_conversation(
         id,
         created_at_ms: now_ms,
         updated_at_ms: now_ms,
+        provider,
         model,
+        fallback_model: None,
         permissions,
         symptom,
         origin,
         note,
         pack,
         initial_tokens: None,
-        contents: Vec::new(),
+        messages: Vec::new(),
+        rounds: Vec::new(),
         sent: Vec::new(),
         turns: Vec::new(),
         usage: TokenUsage::default(),
@@ -495,6 +559,7 @@ mod tests {
         new_conversation(
             id.to_owned(),
             at,
+            AiProvider::Gemini,
             "modelo".into(),
             AiPermissions::default(),
             AiSymptom::CrashInWorld,

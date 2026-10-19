@@ -12,7 +12,7 @@
 //! | Nome do computador (`COMPUTERNAME`/hostname, nomes padrão `DESKTOP-…`/`LAPTOP-…`, servidor de caminho UNC) | `<computador>` |
 //! | IPv4/IPv6, exceto loopback (`127.0.0.0/8`, `::1`) e o endereço vazio (`0.0.0.0`, `::`) | `<ip>` |
 //! | E-mails | `<email>` |
-//! | Padrões de segredo (`$2a$…`, `ghp_…`, `github_pat_…`, `AIza…`, JWT, `x-api-key`, `token=`, `--accessToken`…) e os valores reais das chaves do cofre | `<segredo>` |
+//! | Padrões de segredo (`$2a$…`, `ghp_…`, `github_pat_…`, `AIza…`, `sk-…`, JWT, `x-api-key`, `token=`, `--accessToken`…) e os valores reais das chaves do cofre | `<segredo>` |
 //!
 //! Como funciona: todas as regras procuram no texto **original** e marcam trechos; trechos que
 //! se sobrepõem viram um só (com a substituição mais forte), e o texto de saída é montado uma
@@ -383,6 +383,7 @@ static SECRET_SHAPES: LazyLock<Regex> = LazyLock::new(|| {
         r"|\bgh[pousr]_[A-Za-z0-9]{20,}",
         r"|\bgithub_pat_[A-Za-z0-9_]{20,}",
         r"|\bAIza[0-9A-Za-z_\-]{20,}",
+        r"|\bsk-[A-Za-z0-9_\-]{20,}",
         r"|\beyJ[A-Za-z0-9_\-]{8,}\.eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}",
         r")",
     ))
@@ -1170,7 +1171,11 @@ mod tests {
         let google = fixture("google");
         let jwt = fixture("jwt");
         let bearer = fixture("bearer");
+        let openai = fixture("openai");
+        let anthropic = fixture("anthropic");
         let text = fixture("log_segredos")
+            .replace("{openai}", &openai)
+            .replace("{anthropic}", &anthropic)
             .replace("{bearer}", &bearer)
             .replace("{github_fino}", &github_fine)
             .replace("{github}", &github)
@@ -1188,6 +1193,8 @@ mod tests {
             &fixture("sessao"),
             &jwt[jwt.len() - 10..],
             "1234567890abcdef",
+            &openai[8..],
+            &anthropic[13..],
         ] {
             assert!(!output.contains(secret), "{secret} → {output}");
         }

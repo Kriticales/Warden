@@ -15,6 +15,9 @@ google = 'AIzaSyA0123456789abcdefghijklmnopqrstu'
 jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.dGVzdGVzdGVzdA'
 bearer = 'eyJhbGciOi.eyJzdWIiOi.c2lnbmF0dXJl'
 sessao = 'segredo-de-sessao'
+# Chaves de IA nas formas da OpenAI e da Anthropic (ADR-0060).
+openai = 'sk-proj-0123456789abcdefghij_ABCDEFGHIJ-klmnop'
+anthropic = 'sk-ant-api03-0123456789abcdefghij_ABCDEFGHIJ-kl'
 
 # CA-T14-04: {chave} é trocado por chave_curseforge.
 log_ca_t14_04 = '''
@@ -32,8 +35,8 @@ log_sem_perfil = '''
 [main/INFO]: chave {chave}
 '''
 
-# E-mails e segredos: {bearer}, {github}, {github_fino}, {google}, {jwt} e {sessao} são trocados pelos
-# valores acima.
+# E-mails e segredos: {bearer}, {github}, {github_fino}, {google}, {jwt}, {sessao}, {openai} e
+# {anthropic} são trocados pelos valores acima.
 log_segredos = '''
 contato maria.silva+mods@exemplo.com.br
 token=abc123XYZ&x=1 Authorization: Bearer {bearer}
@@ -41,6 +44,7 @@ token=abc123XYZ&x=1 Authorization: Bearer {bearer}
 {google} "accessToken":"{sessao}"
 {jwt}
 Session ID is token:1234567890abcdef:0f1e2d3c
+OpenAI: {openai} Anthropic: {anthropic}
 '''
 
 # Argumentos de lançamento com dados da conta.

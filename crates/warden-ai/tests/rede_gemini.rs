@@ -22,8 +22,9 @@ use serde_json::Value;
 use support::ValeSombrio;
 use warden_ai::conversation::AnswerVia;
 use warden_ai::engine::{Engine, Limits, NoObserver};
-use warden_ai::gemini::GeminiClient;
-use warden_ai::models::{ModelTier, fetch_choices};
+use warden_ai::providers::ModelTier;
+use warden_ai::providers::gemini::GeminiClient;
+use warden_ai::providers::gemini::models::fetch_choices;
 use warden_ai::schema::answer_schema;
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
@@ -49,7 +50,7 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
     let registry = ToolRegistry::new();
     let source = ValeSombrio::default();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &NoObserver,
@@ -59,6 +60,7 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
     };
     let mut conversation = support::conversation(AiPermissions::default());
     conversation.model = model.to_owned();
+    conversation.fallback_model = choices.lighter.clone();
     let result = engine
         .ask(
             &mut conversation,

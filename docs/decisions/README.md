@@ -58,10 +58,11 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0052](0052-cofre-com-keyring-core.md) | Cofre do sistema com `keyring-core` 1.0 e persistência Local | técnica |
 | [0053](0053-isolamento-do-app-de-desenvolvimento.md) | Isolamento do app de desenvolvimento: cofre de teste automático e identificador próprio (complementa a 0048) | técnica |
 | [0054](0054-configs-json-com-jsonc-parser.md) | Configs JSON, JSONC e JSON5 com `jsonc-parser` 0.34 (complementa a 0013) | técnica |
-| [0055](0055-ia-modelo-padrao-e-resposta-final.md) | IA: modelo padrão Flash-Lite e resposta final pela ferramenta `responder` (complementa a 0030) | técnica |
+| [0055](0055-ia-modelo-padrao-e-resposta-final.md) | IA: modelo padrão Flash-Lite e resposta final pela ferramenta `responder` (complementa a 0030; o modelo do Gemini mudou no complemento de 19/10/2026 da 0060) | técnica |
 | [0056](0056-raio-x-de-mixins-implementacao-propria.md) | Raio-x de mixins com implementação própria (`cafebabe`) (complementa a 0034) | técnica |
 | [0057](0057-motor-do-launcher-portablemc.md) | Motor do launcher: `portablemc` 5.0.5, com processo e linha de comando do Warden (complementa a 0010) | técnica |
 | [0058](0058-patch-do-endereco-da-curseforge-no-packwiz.md) | Patch 0002 do packwiz: endereço da API da CurseForge trocável, só para testes (exceção à 0049) | técnica |
 | [0059](0059-envio-da-publicacao-por-smart-http.md) | Envio da publicação pelo protocolo "smart HTTP" do git sobre a `warden-http` (complementa a 0015 e a 0028; proposta da V-03) | técnica |
+| [0060](0060-ia-com-varios-provedores.md) | IA com vários provedores: Gemini (padrão), OpenAI e Claude, pela API oficial e com a chave do usuário (complementa a 0014, a 0030 e a 0055; complemento de 19/10/2026: o Gemini usa o Flash e troca para o Flash-Lite quando a cota diária acaba) | dono + técnica |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.

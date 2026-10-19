@@ -8,5 +8,6 @@ allow-panic-in-tests = true
 doc-valid-idents = [
   "CurseForge", "NeoForge", "LegacyFabric", "KubeJS", "CraftTweaker", "ZenScript", "MultiMC",
   "WebView", "WebView2", "WebKitGTK", "PowerShell", "GitHub", "TypeScript", "JavaScript", "TanStack",
+  "OpenAI",
   "..",
 ]

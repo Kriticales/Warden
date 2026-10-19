@@ -46,6 +46,7 @@ export function makePreview(overrides: Partial<AiPreview> = {}): AiPreview {
     text: INITIAL_TEXT,
     bytes: new TextEncoder().encode(INITIAL_TEXT).length,
     estimatedTokens: 31_400,
+    provider: 'gemini',
     model: 'gemini-9.1-flash-lite',
     tier: 'economical',
     githubAvailable: true,
@@ -192,6 +193,7 @@ export function makeSummary(overrides: Partial<AiConversationSummary> = {}): AiC
 export function makeView(overrides: Partial<AiConversationView> = {}): AiConversationView {
   return {
     summary: makeSummary(),
+    provider: 'gemini',
     model: 'gemini-9.1-flash-lite',
     tier: 'economical',
     permissions: { configs: false, github: false },

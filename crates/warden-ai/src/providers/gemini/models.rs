@@ -1,61 +1,20 @@
 //! Escolha do modelo pelo `models.list` da conta (ADR-0055; ARCHITECTURE §9.5 "Modelo").
 //!
-//! Nenhum nome de modelo fica no código: o padrão ("Mais econômico") é o **Flash-Lite estável
-//! mais novo** que a chave alcança, e "Análise mais cuidadosa" é o **Flash estável mais novo**.
+//! Nenhum nome de modelo fica no código. As duas opções ("Mais econômico" e "Análise mais
+//! cuidadosa") usam o modelo mais forte que o plano gratuito da API permite, o **Flash estável
+//! mais novo** que a chave alcança (o Pro não tem plano gratuito: tabela de preços do Google,
+//! consultada em 19/10/2026); o **Flash-Lite estável mais novo** é o mais leve, que o laço usa
+//! sozinho numa pergunta quando a cota diária do Flash acaba (decisão do dono; ADR-0060,
+//! complemento de 19/10/2026). Sem nenhum Flash estável, as duas opções usam o Flash-Lite.
 //! "Estável" é o nome sem sufixo: `gemini-<versão>-flash-lite` ou `gemini-<versão>-flash`;
 //! `-preview`, `-exp`, `-latest`, números de revisão e os apelidos (`gemini-flash-latest`)
 //! ficam de fora. Só entram modelos com `generateContent`.
 
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use super::{GeminiClient, Problem, api_message, classify};
 use crate::error::{Error, Result};
-use crate::gemini::{GeminiClient, Problem, api_message, classify};
-
-/// A escolha em Configurações.
-#[derive(
-    Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum ModelTier {
-    /// Padrão: o Flash-Lite estável mais novo (cota gratuita folgada, rápido, barato).
-    #[default]
-    Economical,
-    /// "Análise mais cuidadosa": o Flash estável mais novo (poucas conversas por dia no plano
-    /// gratuito).
-    Careful,
-}
-
-/// Os modelos resolvidos para esta chave.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct ModelChoices {
-    /// O Flash-Lite estável mais novo (`None`: nenhum disponível).
-    pub economical: Option<String>,
-    /// O Flash estável mais novo.
-    pub careful: Option<String>,
-}
-
-impl ModelChoices {
-    /// O modelo do nível escolhido; sem ele, o do outro nível (melhor que nenhum).
-    #[must_use]
-    pub fn pick(&self, tier: ModelTier) -> Option<(&str, ModelTier)> {
-        let (first, second) = match tier {
-            ModelTier::Economical => (
-                (self.economical.as_deref(), ModelTier::Economical),
-                (self.careful.as_deref(), ModelTier::Careful),
-            ),
-            ModelTier::Careful => (
-                (self.careful.as_deref(), ModelTier::Careful),
-                (self.economical.as_deref(), ModelTier::Economical),
-            ),
-        };
-        first
-            .0
-            .map(|model| (model, first.1))
-            .or_else(|| second.0.map(|model| (model, second.1)))
-    }
-}
+use crate::providers::{ModelChoices, ModelTier};
 
 /// Um modelo estável reconhecido: versão numérica e família.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -98,7 +57,8 @@ pub fn tier_of(model: &str) -> Option<ModelTier> {
     })
 }
 
-/// Escolhe, entre os modelos da conta, o Flash-Lite e o Flash estáveis mais novos.
+/// Escolhe, entre os modelos da conta, o Flash estável mais novo para as duas opções e o
+/// Flash-Lite estável mais novo como o mais leve (ou o Flash-Lite nas duas, sem Flash).
 #[must_use]
 pub fn resolve(models: &[Value]) -> ModelChoices {
     let mut lite: Option<Stable> = None;
@@ -128,9 +88,18 @@ pub fn resolve(models: &[Value]) -> ModelChoices {
             *slot = Some(found);
         }
     }
-    ModelChoices {
-        economical: lite.map(|model| model.name),
-        careful: flash.map(|model| model.name),
+    let lite = lite.map(|model| model.name);
+    match flash.map(|model| model.name) {
+        Some(flash) => ModelChoices {
+            economical: Some(flash.clone()),
+            careful: Some(flash),
+            lighter: lite,
+        },
+        None => ModelChoices {
+            economical: lite.clone(),
+            careful: lite,
+            lighter: None,
+        },
     }
 }
 
@@ -201,15 +170,28 @@ mod tests {
         ]
         .map(model);
         let choices = resolve(&list);
-        assert_eq!(choices.economical.as_deref(), Some("gemini-3.5-flash-lite"));
+        // As duas opções usam o mais forte do plano gratuito; o Flash-Lite é o mais leve.
+        assert_eq!(choices.economical.as_deref(), Some("gemini-3.8-flash"));
         assert_eq!(choices.careful.as_deref(), Some("gemini-3.8-flash"));
+        assert_eq!(choices.lighter.as_deref(), Some("gemini-3.5-flash-lite"));
+    }
+
+    #[test]
+    fn sem_flash_as_duas_opcoes_usam_o_flash_lite_sem_troca() {
+        let choices = resolve(&[model("gemini-3.5-flash-lite"), model("gemini-3.1-pro")]);
+        assert_eq!(choices.economical.as_deref(), Some("gemini-3.5-flash-lite"));
+        assert_eq!(choices.careful.as_deref(), Some("gemini-3.5-flash-lite"));
+        assert_eq!(choices.lighter, None);
+        let only_flash = resolve(&[model("gemini-3.8-flash")]);
+        assert_eq!(only_flash.economical.as_deref(), Some("gemini-3.8-flash"));
+        assert_eq!(only_flash.lighter, None);
     }
 
     #[test]
     fn versao_comparada_por_numero() {
         let choices = resolve(&[model("gemini-3.9-flash"), model("gemini-3.10-flash")]);
         assert_eq!(choices.careful.as_deref(), Some("gemini-3.10-flash"));
-        assert_eq!(choices.economical, None);
+        assert_eq!(choices.lighter, None);
     }
 
     #[test]
@@ -219,16 +201,7 @@ mod tests {
     }
 
     #[test]
-    fn escolha_cai_no_outro_nivel_quando_falta() {
-        let only_flash = ModelChoices {
-            economical: None,
-            careful: Some("gemini-3.8-flash".into()),
-        };
-        assert_eq!(
-            only_flash.pick(ModelTier::Economical),
-            Some(("gemini-3.8-flash", ModelTier::Careful))
-        );
-        assert_eq!(ModelChoices::default().pick(ModelTier::Careful), None);
+    fn nivel_pelo_nome() {
         assert_eq!(
             tier_of("gemini-3.5-flash-lite"),
             Some(ModelTier::Economical)

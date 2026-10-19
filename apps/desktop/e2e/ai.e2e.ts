@@ -200,9 +200,7 @@ describe('✦ Diagnóstico com IA (D-04)', function () {
     const text = await fullText(dialog.$('pre[aria-label="Texto inicial que será enviado"]'));
     expect(text).toContain(`Pack: ${PACK_NAME}, versão 1.0.0`);
     expect(text).toContain('Analisar: só o pack, sem log.');
-    await expect(dialog).toHaveText(
-      expect.stringContaining('Google Gemini (gemini-9.1-flash-lite)'),
-    );
+    await expect(dialog).toHaveText(expect.stringContaining('Google Gemini (gemini-9.1-flash)'));
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('d04-01-consentimento');
 

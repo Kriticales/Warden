@@ -1,6 +1,6 @@
 [package]
 name = "warden-ai"
-description = "Cliente Gemini com ferramentas, conferência de evidências, consentimento e conversas por pack."
+description = "IA com ferramentas por vários provedores (Gemini, OpenAI, Anthropic), conferência de evidências, consentimento e conversas por pack."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -23,6 +23,7 @@ ulid.workspace = true
 url.workspace = true
 
 [dev-dependencies]
+sha2.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 wiremock.workspace = true

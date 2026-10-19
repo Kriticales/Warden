@@ -3,8 +3,8 @@ import type { AiErrorCode } from '../../lib/ipc/bindings';
 /**
  * Frases dos erros do domínio `ai` (QUALITY §3; ARCHITECTURE §9.5 "Erros e novas tentativas").
  * Criado pela F0-05 só com `INTERNAL`; a D-04 acrescentou os códigos da IA e a D-14, os das
- * propostas. O limite diário nunca promete horário de volta (S-R5-4 §13: o `retryDelay` diário é
- * enganoso).
+ * propostas; a D-15, o da chave do provedor da conversa (ADR-0060). O limite diário nunca
+ * promete horário de volta (S-R5-4 §13: o `retryDelay` diário é enganoso).
  */
 export const ai: Record<AiErrorCode, string> = {
   INTERNAL:
@@ -40,4 +40,6 @@ export const ai: Record<AiErrorCode, string> = {
   PROPOSAL_DECIDED: 'Essa proposta já foi aplicada ou descartada.',
   PROPOSAL_STALE:
     'O pack mudou desde que a diferença foi mostrada. Nada foi gravado; revise a proposta de novo.',
+  PROVIDER_KEY_MISSING:
+    'Esta conversa começou com {{providerName}} e continua nesse provedor. Para perguntar de novo, informe a chave desse provedor em Configurações → Chaves e contas.',
 };

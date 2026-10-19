@@ -106,7 +106,7 @@ async fn run(
     let registry = registry();
     let source = Pack::new(github);
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &NoObserver,

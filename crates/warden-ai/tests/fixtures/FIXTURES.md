@@ -16,6 +16,8 @@ O pack das conversas é o fictício "Vale Sombrio" (Forge 1.20.1), reproduzido p
 | `assinaturas-gemini-*.json` | Reação da API a históricos com assinaturas alteradas (4 modelos) | `tests/laco.rs` (o servidor simulado recusa o que a API real recusa) |
 | `erros-http-reais.json` | Corpos reais do 503 "high demand" e dos 429 por minuto e diário | `src/gemini.rs` e `tests/laco.rs` |
 | `respostas-com-problema-reais.json` | `MALFORMED_FUNCTION_CALL`, `MALFORMED_RESPONSE`, texto vazio e JSON final vazio | `tests/laco.rs` |
+| `corpos-gemini-d04.json` | Gravado na D-15, antes de mexer no laço: o SHA-256 de cada corpo que o código da D-04 (commit `04f2d21`) mandou ao simulado nas quatro gravações acima e na continuação da conversa abaixo, nos dois jeitos de o `serde_json` ordenar as chaves | `tests/corpo_identico.rs` (o Gemini migrado manda os mesmos bytes, CA-T14-22) |
+| `conversa-v1-seguimento.json` | Uma conversa no formato 1 (D-04, com o `contents` da API), gravada pelo código da D-04 ao reproduzir `seguimento-gemini-3.1-flash-lite-preview.json` no pack fictício | `tests/corpo_identico.rs` (abre igual e continua com o Gemini) |
 
 A conversa "interrompida por cota" do spike não foi copiada: os corpos do 429 estão em
 `erros-http-reais.json`.

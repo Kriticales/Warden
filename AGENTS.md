@@ -29,7 +29,7 @@ App desktop pessoal e privado (Tauri 2: backend Rust + interface React/TypeScrip
 - Launcher próprio, **só perfil offline**, motor **portablemc 5.0.5** atrás da trait `LauncherEngine`; o Warden controla processo, logs e diagnóstico.
 - Fontes: Modrinth + CurseForge (busca combinada) + arquivo local/URL.
 - Exportação packwiz, `.mrpack` e zip da CurseForge. Publicação no GitHub com changelog automático; jogadores usam o packwiz-installer-bootstrap pelo link do `pack.toml`.
-- IA Gemini com a chave do usuário: consentimento uma vez por conversa, envios visíveis, nada muda sem **Aplicar**.
+- IA com a chave do usuário: Gemini (padrão), OpenAI ou Claude (ADR-0060): consentimento uma vez por conversa, envios visíveis, nada muda sem **Aplicar**.
 - Interface toda em português do Brasil. Navegação: "Meus packs" → pack com 6 seções (Mods, Configs, Problemas, ✦ Diagnóstico com IA, Histórico, Exportar), **sem abas**.
 - Visual "Deep Dark" (cores do mob Warden, fontes pixel, menus estilo Minecraft). Nada com "cara de IA" (gradiente roxo, glassmorphism, emojis, texto de marketing); o ícone ✦ é o da IA.
 

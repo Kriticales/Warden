@@ -171,6 +171,8 @@ const fn kind_param(kind: SecretKind) -> &'static str {
     match kind {
         SecretKind::Curseforge => "curseforge",
         SecretKind::Gemini => "gemini",
+        SecretKind::Openai => "openai",
+        SecretKind::Anthropic => "anthropic",
         SecretKind::Github => "github",
     }
 }

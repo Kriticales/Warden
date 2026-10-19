@@ -19,17 +19,13 @@ import { focusPageTitle, PAGE_TITLE_ATTRIBUTE } from '../../../app/layout/focus'
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { Button } from '../../../components/ui/button';
 import { Icon } from '../../../components/ui/icon';
-import {
-  commands,
-  type BackendKind,
-  type SecretKind,
-  type SecretsStatus,
-} from '../../../lib/ipc/bindings';
+import { commands, type BackendKind, type SecretsStatus } from '../../../lib/ipc/bindings';
 import { unwrap } from '../../../lib/ipc/result';
 import {
   isValidPlayerName,
   SECRET_KINDS,
   settingsKeys,
+  type ShownSecretKind,
   useSecretsStatus,
   useSettings,
   useSettingsStatus,
@@ -46,7 +42,7 @@ const BACKEND_GROUP = 'onboarding-backend';
 const STEP_KEYS = ['aviso', 'jogador', 'pasta', 'chaves'] as const;
 const LAST_STEP = STEP_KEYS.length - 1;
 
-type Keys = Record<SecretKind, string>;
+type Keys = Record<ShownSecretKind, string>;
 const EMPTY_KEYS: Keys = { curseforge: '', gemini: '', github: '' };
 
 export function OnboardingWizard() {
@@ -318,7 +314,7 @@ function KeyInput({
   configured,
   onChange,
 }: {
-  kind: SecretKind;
+  kind: ShownSecretKind;
   value: string;
   configured: boolean;
   onChange: (value: string) => void;

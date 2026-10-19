@@ -31,7 +31,8 @@ use serde_json::{Value, json};
 use warden_ai::conversation::{
     AiSymptom, Conversation, ConversationOrigin, PackSnapshot, new_conversation,
 };
-use warden_ai::gemini::GeminiClient;
+use warden_ai::providers::AiProvider;
+use warden_ai::providers::gemini::GeminiClient;
 use warden_ai::tools::{
     AiPermissions, KnownMod, KnownMods, Needs, Stage, ToolItem, ToolOutput, ToolSource, ToolSpec,
 };
@@ -52,6 +53,8 @@ pub struct State {
     pub requests: Vec<Value>,
     pub refusals: Vec<String>,
     pub count_tokens: Vec<Value>,
+    /// Corpos de `countTokens`, como chegaram (bytes).
+    pub count_tokens_raw: Vec<String>,
     pub urls: Vec<String>,
 }
 
@@ -140,6 +143,9 @@ impl Respond for Responder {
         };
         if url.contains(":countTokens") {
             state.count_tokens.push(body);
+            state
+                .count_tokens_raw
+                .push(String::from_utf8(request.body.clone()).unwrap());
             let size = request.body.len() / 4;
             return ResponseTemplate::new(200).set_body_json(json!({ "totalTokens": size }));
         }
@@ -330,6 +336,7 @@ pub fn conversation(permissions: AiPermissions) -> Conversation {
     new_conversation(
         ulid::Ulid::generate().to_string(),
         1,
+        AiProvider::Gemini,
         "gemini-3.5-flash-lite".into(),
         permissions,
         AiSymptom::CrashInWorld,

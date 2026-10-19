@@ -59,6 +59,9 @@ pub enum AiErrorCode {
     /// O pack mudou depois que a diferença da proposta foi mostrada: é preciso revisar de novo
     /// (D-14).
     ProposalStale,
+    /// A conversa começou com outro provedor de IA, e a chave dele não está configurada
+    /// (ADR-0060: a conversa fica no provedor em que começou).
+    ProviderKeyMissing,
 }
 
 /// Erro das funções desta crate.
@@ -166,6 +169,12 @@ pub enum Error {
         /// O id.
         id: String,
     },
+    /// A conversa é de outro provedor, sem chave configurada.
+    #[error("a conversa começou com {}, e a chave dele não está configurada", .provider.display_name())]
+    ProviderKeyMissing {
+        /// O provedor da conversa.
+        provider: crate::providers::AiProvider,
+    },
     /// Falha de rede, tempo esgotado ou cancelamento vindos do cliente HTTP.
     #[error(transparent)]
     Http(#[from] warden_http::Error),
@@ -216,6 +225,7 @@ impl DomainError for Error {
             Self::ProposalNotFound { .. } => AiErrorCode::ProposalNotFound,
             Self::ProposalDecided { .. } => AiErrorCode::ProposalDecided,
             Self::ProposalStale { .. } => AiErrorCode::ProposalStale,
+            Self::ProviderKeyMissing { .. } => AiErrorCode::ProviderKeyMissing,
             Self::Http(error) => return http_code(error),
             Self::Core(error) => return DomainCode::Core(core_code(error)),
             Self::Io { .. } => return DomainCode::Core(CoreErrorCode::Io),
@@ -224,7 +234,8 @@ impl DomainError for Error {
         })
     }
 
-    /// `model` (cota), `status` (HTTP), `seconds` (tempo-limite) e `waits` (esperas).
+    /// `model` (cota), `status` (HTTP), `seconds` (tempo-limite), `waits` (esperas) e
+    /// `provider`/`providerName` (chave do provedor da conversa).
     fn params(&self) -> BTreeMap<String, String> {
         let mut params = BTreeMap::new();
         match self {
@@ -249,6 +260,13 @@ impl DomainError for Error {
             Self::Io { path, .. } | Self::ConversationUnreadable { path, .. } => {
                 // Já sem a pasta do usuário: `ai/<pack>/<arquivo>`.
                 params.insert("path".to_owned(), path.display().to_string());
+            }
+            Self::ProviderKeyMissing { provider } => {
+                params.insert("provider".to_owned(), provider.id().to_owned());
+                params.insert(
+                    "providerName".to_owned(),
+                    provider.display_name().to_owned(),
+                );
             }
             Self::Http(error) => return error.params(),
             _ => {}
@@ -317,6 +335,20 @@ mod tests {
         );
         let json = serde_json::to_value(AiErrorCode::QuotaExceeded).unwrap();
         assert_eq!(json, "QUOTA_EXCEEDED");
+        let missing = Error::ProviderKeyMissing {
+            provider: crate::providers::AiProvider::Openai,
+        };
+        assert_eq!(
+            missing.code(),
+            DomainCode::Domain(AiErrorCode::ProviderKeyMissing)
+        );
+        assert_eq!(missing.params()["provider"], "openai");
+        assert_eq!(missing.params()["providerName"], "OpenAI");
+        assert!(!missing.retryable());
+        assert_eq!(
+            serde_json::to_value(AiErrorCode::ProviderKeyMissing).unwrap(),
+            "PROVIDER_KEY_MISSING"
+        );
     }
 
     #[test]

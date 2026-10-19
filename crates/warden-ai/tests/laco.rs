@@ -21,7 +21,8 @@ use support::{
 use warden_ai::conversation::{AnswerVia, Conversation};
 use warden_ai::engine::{Engine, Limits, LiveStatus, Observer};
 use warden_ai::evidence::{ClaimStatus, EvidenceStatus};
-use warden_ai::gemini::GeminiClient;
+use warden_ai::providers::Message;
+use warden_ai::providers::gemini::{GeminiClient, translate};
 use warden_ai::schema::ROUND_LIMIT_MESSAGE;
 use warden_ai::tools::{AiPermissions, NOT_ALLOWED, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
@@ -71,7 +72,7 @@ impl Setup {
 
     fn engine(&self) -> Engine<'_> {
         Engine {
-            client: &self.client,
+            provider: &self.client,
             registry: &self.registry,
             source: &self.source,
             observer: &self.watch,
@@ -84,6 +85,14 @@ impl Setup {
     fn sleeps(&self) -> Vec<u64> {
         self.timer.sleeps().iter().map(Duration::as_secs).collect()
     }
+}
+
+/// O histórico da conversa como ele vai para o Gemini.
+fn gemini_contents(conv: &Conversation) -> Vec<Value> {
+    conv.messages
+        .iter()
+        .filter_map(translate::content)
+        .collect()
 }
 
 fn allowed(request: &Value) -> Vec<String> {
@@ -293,7 +302,7 @@ async fn ca_t14_14_segundo_turno_reenvia_o_historico_intacto() {
     let mut conv = conversation(AiPermissions::default());
     let engine = setup.engine();
     engine.ask(&mut conv, "1".into()).await.unwrap();
-    let before = conv.contents.clone();
+    let before = gemini_contents(&conv);
     engine.ask(&mut conv, "2".into()).await.unwrap();
     assert!(
         setup.gemini.refusals().is_empty(),
@@ -301,8 +310,9 @@ async fn ca_t14_14_segundo_turno_reenvia_o_historico_intacto() {
         setup.gemini.refusals()
     );
     // Pergunta, chamada, resposta, `responder` e o "ok" dela, duas vezes.
-    assert_eq!(conv.contents.len(), 10);
-    assert_eq!(&conv.contents[..before.len()], &before[..]);
+    let after = gemini_contents(&conv);
+    assert_eq!(after.len(), 10);
+    assert_eq!(&after[..before.len()], &before[..]);
     let requests = setup.gemini.requests();
     // O que o modelo mandou na 1.ª pergunta volta igual, com as assinaturas.
     assert_eq!(requests[3]["contents"][1], before[1]);
@@ -453,7 +463,7 @@ async fn ca_t14_18_tempo_esgotado_repetido_e_depois_erro() {
     let source = ValeSombrio::default();
     let watch = Watch::default();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &watch,
@@ -570,6 +580,145 @@ async fn ca_t14_18_429_diario_para_na_hora_sem_horario() {
     );
 }
 
+/// O modelo de cada `generateContent`, pela URL.
+fn models_sent(gemini: &Gemini) -> Vec<String> {
+    gemini
+        .state
+        .lock()
+        .unwrap()
+        .urls
+        .iter()
+        .filter(|url| url.contains(":generateContent"))
+        .map(|url| {
+            let path = url.split("/models/").nth(1).unwrap();
+            path.split(':').next().unwrap().to_owned()
+        })
+        .collect()
+}
+
+#[tokio::test]
+async fn cota_diaria_troca_para_o_mais_leve_so_naquela_pergunta() {
+    // ADR-0060, complemento de 19/10/2026: o Flash esgota a cota diária no meio da pergunta; a
+    // mesma requisição vai de novo com o Flash-Lite, a pergunta guarda a troca e a próxima volta
+    // ao Flash.
+    let setup = Setup::new(Box::new(|n, _| match n {
+        0 => calls(&[("get_findings", json!({}))]),
+        1 => real_error("http_429_cota_diaria_plano_gratuito"),
+        _ => respond(&simple_answer()),
+    }))
+    .await;
+    let mut conv = conversation(AiPermissions::default());
+    conv.model = "gemini-3.8-flash".into();
+    conv.fallback_model = Some("gemini-3.5-flash-lite".into());
+    let engine = setup.engine();
+    engine.ask(&mut conv, "?".into()).await.unwrap();
+    assert!(
+        setup.gemini.refusals().is_empty(),
+        "{:?}",
+        setup.gemini.refusals()
+    );
+    assert_eq!(
+        models_sent(&setup.gemini),
+        [
+            "gemini-3.8-flash",
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite"
+        ]
+    );
+    // A requisição repetida com o mais leve é a mesma que deu 429 (o histórico não mudou).
+    let raw = setup.gemini.raw();
+    assert_eq!(raw[1], raw[2]);
+    assert!(setup.sleeps().is_empty(), "troca sem espera");
+    let turn = &conv.turns[0];
+    assert!(turn.failure.is_none());
+    assert!(turn.answer.is_some());
+    assert_eq!(
+        turn.fallback_model.as_deref(),
+        Some("gemini-3.5-flash-lite")
+    );
+    assert_eq!(
+        conv.model, "gemini-3.8-flash",
+        "a conversa continua no Flash"
+    );
+    // A troca foi gravada antes da resposta (a tela avisa enquanto a pergunta roda).
+    assert!(setup.watch.saved.lock().unwrap().iter().any(|saved| {
+        saved.turns[0].fallback_model.is_some() && saved.turns[0].answer.is_none()
+    }));
+    let saved = serde_json::to_value(&conv).unwrap();
+    assert_eq!(saved["turns"][0]["fallbackModel"], "gemini-3.5-flash-lite");
+    assert_eq!(saved["fallbackModel"], "gemini-3.5-flash-lite");
+
+    engine.ask(&mut conv, "E agora?".into()).await.unwrap();
+    assert_eq!(
+        models_sent(&setup.gemini).last().map(String::as_str),
+        Some("gemini-3.8-flash"),
+        "a próxima pergunta volta ao Flash"
+    );
+    assert_eq!(conv.turns[1].fallback_model, None);
+    assert!(serde_json::to_value(&conv).unwrap()["turns"][1]["fallbackModel"].is_null());
+}
+
+#[tokio::test]
+async fn cota_diaria_do_mais_leve_tambem_para_sem_horario() {
+    let setup = Setup::new(Box::new(|_, _| {
+        real_error("http_429_cota_diaria_plano_gratuito")
+    }))
+    .await;
+    let mut conv = conversation(AiPermissions::default());
+    conv.model = "gemini-3.8-flash".into();
+    conv.fallback_model = Some("gemini-3.5-flash-lite".into());
+    let error = setup.engine().ask(&mut conv, "?".into()).await.unwrap_err();
+    assert_eq!(error.code(), DomainCode::Domain(AiErrorCode::QuotaExceeded));
+    assert_eq!(
+        models_sent(&setup.gemini),
+        ["gemini-3.8-flash", "gemini-3.5-flash-lite"],
+        "uma troca só, sem novas tentativas"
+    );
+    let turn = &conv.turns[0];
+    assert_eq!(
+        turn.failure.as_ref().unwrap().params["model"],
+        "gemini-3.5-flash-lite"
+    );
+    assert_eq!(
+        turn.fallback_model.as_deref(),
+        Some("gemini-3.5-flash-lite")
+    );
+}
+
+#[tokio::test]
+async fn retomar_pergunta_que_trocou_continua_no_mais_leve() {
+    let setup = Setup::new(Box::new(|n, _| match n {
+        0 => real_error("http_429_cota_diaria_plano_gratuito"),
+        1 => (
+            503,
+            json!({ "error": { "code": 503, "status": "UNAVAILABLE" } }),
+        ),
+        _ => respond(&simple_answer()),
+    }))
+    .await;
+    let mut conv = conversation(AiPermissions::default());
+    conv.model = "gemini-3.8-flash".into();
+    conv.fallback_model = Some("gemini-3.5-flash-lite".into());
+    let engine = Engine {
+        limits: Limits {
+            transient_retries: 0,
+            ..Limits::default()
+        },
+        ..setup.engine()
+    };
+    assert!(engine.ask(&mut conv, "?".into()).await.is_err());
+    engine.run(&mut conv).await.unwrap();
+    assert_eq!(
+        models_sent(&setup.gemini),
+        [
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash-lite"
+        ]
+    );
+    assert!(conv.turns[0].answer.is_some());
+}
+
 #[tokio::test]
 async fn sinal_de_cobranca_e_chave_recusada_param_tudo() {
     let setup = Setup::new(Box::new(|_, _| {
@@ -682,7 +831,7 @@ async fn replay(name: &str) -> (Conversation, Value) {
     let source = ValeSombrio::default();
     let watch = Watch::default();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &watch,
@@ -802,8 +951,9 @@ async fn count_tokens_conta_sistema_ferramentas_e_conversa() {
     let contents = vec![json!({ "role": "user", "parts": [{ "text": "texto inicial" }] })];
     let tokens = setup
         .engine()
-        .count_tokens("gemini-3.5-flash-lite", &contents)
+        .count_tokens("gemini-3.5-flash-lite", &[Message::user("texto inicial")])
         .await
+        .unwrap()
         .unwrap();
     assert!(tokens > 0);
     let sent = setup.gemini.state.lock().unwrap().count_tokens.clone();
@@ -866,7 +1016,7 @@ async fn cancelar_no_meio_de_uma_chamada_para_logo() {
     let watch = Watch::default();
     let cancel = CancellationToken::new();
     let engine = Engine {
-        client: &client,
+        provider: &client,
         registry: &registry,
         source: &source,
         observer: &watch,
