@@ -676,7 +676,12 @@ mod tests {
         let projects: HashMap<String, SourceProject> = [
             project(SourceId::Modrinth, "mr1", "Fresh", ProjectKind::Mod),
             project(SourceId::Curseforge, "1", "Fresh", ProjectKind::Mod),
-            project(SourceId::Curseforge, "2", "Fresh", ProjectKind::ResourcePack),
+            project(
+                SourceId::Curseforge,
+                "2",
+                "Fresh",
+                ProjectKind::ResourcePack,
+            ),
         ]
         .into_iter()
         .map(|project| (project.source.key(&project.id), project))
