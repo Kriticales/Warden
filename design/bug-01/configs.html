@@ -1,0 +1,2026 @@
+<title>Configs do pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Pixelify+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Tokens do design system Deep Dark (design/system/tokens.css). Tema único, escuro, por decisão. */
+:root {
+  color-scheme: dark;
+  --color-bg: #050d12;
+  --color-bg-sunken: #03090c;
+  --color-surface-1: #0a1a21;
+  --color-surface-2: #0e2630;
+  --color-surface-3: #12313c;
+  --color-overlay: rgba(2, 7, 10, 0.78);
+  --color-border: #15333e;
+  --color-border-strong: #1e4552;
+  --color-border-control: #4f8a98;
+  --color-text: #e4f3ef;
+  --color-text-2: #b4cfca;
+  --color-text-3: #8aacaa;
+  --color-primary: #19d3e0;
+  --color-primary-hover: #0fb5c2;
+  --color-primary-press: #0a8f9a;
+  --color-on-primary: #021418;
+  --color-primary-text: #5fe3ec;
+  --color-primary-bright: #7ff3f0;
+  --color-primary-soft: rgba(25, 211, 224, 0.12);
+  --color-primary-line: rgba(25, 211, 224, 0.4);
+  --color-primary-glow: rgba(25, 211, 224, 0.45);
+  --color-focus: #cfe3da;
+  --color-ok: #3ddc84;
+  --color-ok-text: #6be7a2;
+  --color-ok-soft: rgba(61, 220, 132, 0.12);
+  --color-ok-line: rgba(61, 220, 132, 0.4);
+  --color-warn: #f2b33d;
+  --color-warn-text: #ffcb66;
+  --color-warn-soft: rgba(242, 179, 61, 0.12);
+  --color-warn-line: rgba(242, 179, 61, 0.4);
+  --color-danger: #ff5c5c;
+  --color-danger-text: #ff8e8e;
+  --color-danger-soft: rgba(255, 92, 92, 0.13);
+  --color-danger-solid: #c42f35;
+  --color-on-danger: #ffffff;
+  --color-ai: #cfe3da;
+  --color-ai-soft: rgba(207, 227, 218, 0.07);
+  --color-ai-line: rgba(207, 227, 218, 0.45);
+  --color-diff-add: rgba(61, 220, 132, 0.14);
+  --color-diff-del: rgba(255, 92, 92, 0.14);
+  --color-console-bg: #020709;
+  --color-console-text: #cfe6e1;
+  --color-console-muted: #86a9a6;
+  --color-pixel-shadow: #010507;
+
+  --font-display: "Pixelify Sans", Manrope, system-ui, sans-serif;
+  --font-ui: Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  --text-2xs: 11px; --lh-2xs: 14px;
+  --text-xs: 12px;  --lh-xs: 16px;
+  --text-sm: 13px;  --lh-sm: 18px;
+  --text-base: 14px; --lh-base: 20px;
+  --text-md: 16px;  --lh-md: 22px;
+  --text-lg: 20px;  --lh-lg: 24px;
+  --text-xl: 24px;  --lh-xl: 28px;
+  --tracking-display: 0.02em;
+  --tracking-caps: 0.06em;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+
+  --notch-md: 4px; --notch-sm: 2px;
+  --shape-notch-md: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+  --shape-notch-sm: polygon(0 2px, 2px 2px, 2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px));
+
+  --shadow-block-2: 0 4px 0 rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.4);
+  --shadow-block-3: 0 8px 0 rgba(0, 0, 0, 0.5), 0 24px 64px rgba(0, 0, 0, 0.6);
+  --inset-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.34);
+  --inset-bevel-press: inset 0 3px 0 rgba(0, 0, 0, 0.34);
+  --inset-slot: inset 2px 2px 0 rgba(0, 0, 0, 0.5), inset -1px -1px 0 rgba(127, 243, 240, 0.06);
+  --shadow-pixel-text: 2px 2px 0 #010507;
+
+  --duration-instant: 80ms; --duration-fast: 120ms; --duration-base: 200ms; --duration-slow: 320ms; --duration-pulse: 3400ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-pixel: steps(4, end);
+
+  --size-titlebar: 32px;
+  --size-pack-header: 76px;
+  --size-statusbar: 30px;
+  --size-rail: 56px;
+  --size-convs: 300px;
+  --size-drawer: 360px;
+  --size-read: 820px;
+
+  --fx-vein: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' shape-rendering='crispEdges'%3E%3Cg fill='%2319D3E0' fill-opacity='.07'%3E%3Crect y='40' width='10' height='2'/%3E%3Crect x='10' y='36' width='2' height='6'/%3E%3Crect x='12' y='36' width='12' height='2'/%3E%3Crect x='24' y='28' width='2' height='10'/%3E%3Crect x='26' y='28' width='14' height='2'/%3E%3Crect x='40' y='20' width='2' height='10'/%3E%3Crect x='42' y='20' width='22' height='2'/%3E%3Crect x='32' y='30' width='2' height='16'/%3E%3Crect x='34' y='46' width='8' height='2'/%3E%3Crect x='50' y='4' width='2' height='16'/%3E%3C/g%3E%3Cg fill='%237FF3F0' fill-opacity='.14'%3E%3Crect x='24' y='28' width='2' height='2'/%3E%3Crect x='40' y='20' width='2' height='2'/%3E%3Crect x='32' y='46' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-sculk-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='6' shape-rendering='crispEdges'%3E%3Crect y='2' width='48' height='4' fill='%230B2A33'/%3E%3Crect x='4' width='6' height='2' fill='%230B2A33'/%3E%3Crect x='18' y='1' width='8' height='1' fill='%230B2A33'/%3E%3Crect x='34' width='4' height='2' fill='%230B2A33'/%3E%3Crect x='14' y='4' width='4' height='2' fill='%23061217'/%3E%3Crect x='44' y='3' width='2' height='3' fill='%23061217'/%3E%3Crect x='8' y='3' width='2' height='2' fill='%2319D3E0' fill-opacity='.85'/%3E%3Crect x='28' y='4' width='2' height='1' fill='%2319D3E0' fill-opacity='.55'/%3E%3Crect x='40' y='2' width='2' height='2' fill='%237FF3F0' fill-opacity='.5'/%3E%3C/svg%3E");
+  --fx-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath d='M1 4h1v1h1v1h1V5h1V4h1V3h1V2h1v2H7v1H6v1H5v1H3V6H2V5H1z'/%3E%3C/svg%3E");
+  --fx-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' shape-rendering='crispEdges' fill='%23B4CFCA'%3E%3Crect width='2' height='2'/%3E%3Crect x='8' width='2' height='2'/%3E%3Crect x='2' y='2' width='2' height='2'/%3E%3Crect x='6' y='2' width='2' height='2'/%3E%3Crect x='4' y='4' width='2' height='2'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-instant: 0ms; --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; --duration-pulse: 0ms; }
+}
+
+/* ---------- Base: parece app, não página ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; margin: 0; }
+body {
+  background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-ui); font-size: var(--text-base); line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
+  user-select: none; -webkit-user-select: none; cursor: default;
+  caret-color: var(--color-primary);
+  scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent;
+}
+* { scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, pre { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+a { color: var(--color-primary-text); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+[tabindex="-1"]:focus-visible { outline: none; }
+[hidden] { display: none !important; }
+::selection { background: var(--color-primary); color: var(--color-on-primary); }
+.copyable, input, textarea { user-select: text; -webkit-user-select: text; }
+.copyable { cursor: auto; }
+input, textarea { cursor: text; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.mono { font-family: var(--font-mono); }
+.t2 { color: var(--color-text-2); }
+.t3 { color: var(--color-text-3); }
+.pixel { font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+
+.icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.icon--sm { width: 14px; height: 14px; }
+.icon--xs { width: 12px; height: 12px; stroke-width: 2.5; }
+.icon--lg { width: 20px; height: 20px; }
+.icon--fill { fill: currentColor; }
+.icon--ai { color: var(--color-ai); }
+
+/* Carregador em 4 blocos (nunca um spinner girando) */
+.loader { display: inline-grid; grid-template-columns: repeat(2, 5px); gap: 2px; flex: none; }
+.loader i { width: 5px; height: 5px; background: currentColor; opacity: 0.25; animation: loader-step calc(var(--duration-slow) * 3) var(--ease-pixel) infinite; }
+.loader i:nth-child(2) { animation-delay: calc(var(--duration-slow) * 0.75); }
+.loader i:nth-child(4) { animation-delay: calc(var(--duration-slow) * 1.5); }
+.loader i:nth-child(3) { animation-delay: calc(var(--duration-slow) * 2.25); }
+@keyframes loader-step { 0%, 24% { opacity: 1; } 25%, 100% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .loader i { animation: none; opacity: 0.7; } }
+
+/* ---------- Botões (bloco com degrau de pixel; a borda e o fundo ficam nos pseudo-elementos) ---------- */
+.btn {
+  --btn-bg: var(--color-surface-2); --btn-edge: var(--color-border-strong); --btn-fg: var(--color-text);
+  --btn-bevel: var(--inset-bevel); --btn-shape: var(--shape-notch-md);
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  height: 36px; padding: 0 var(--space-4); border: 0; background: transparent; color: var(--btn-fg);
+  font-size: var(--text-base); font-weight: 600; line-height: 1; white-space: nowrap; text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out), transform var(--duration-instant) var(--ease-out);
+}
+.btn::before, .btn::after { content: ""; position: absolute; pointer-events: none; clip-path: var(--btn-shape); transition: background-color var(--duration-fast) var(--ease-out); }
+.btn::before { inset: 0; z-index: -2; background: var(--btn-edge); }
+.btn::after { inset: 1px; z-index: -1; background: var(--btn-bg); box-shadow: var(--btn-bevel); }
+.btn:hover { --btn-bg: var(--color-surface-3); --btn-edge: var(--color-border-control); }
+.btn:active { --btn-bevel: var(--inset-bevel-press); transform: translateY(1px); }
+.btn:disabled, .btn[aria-disabled="true"] { --btn-bg: var(--color-surface-1); --btn-edge: var(--color-border); --btn-fg: var(--color-text-3); --btn-bevel: none; cursor: not-allowed; transform: none; }
+.btn--primary { --btn-bg: var(--color-primary); --btn-edge: var(--color-primary-press); --btn-fg: var(--color-on-primary); font-weight: 700; }
+.btn--primary:hover { --btn-bg: var(--color-primary-hover); --btn-edge: var(--color-primary-press); }
+.btn--primary:active { --btn-bg: var(--color-primary-press); }
+.btn--primary:disabled, .btn--primary[aria-disabled="true"] { --btn-bg: var(--color-surface-1); --btn-edge: var(--color-border); --btn-fg: var(--color-text-3); }
+.btn--ghost { --btn-bg: transparent; --btn-edge: transparent; --btn-fg: var(--color-text-2); --btn-bevel: none; }
+.btn--ghost:hover { --btn-bg: var(--color-surface-3); --btn-edge: transparent; --btn-fg: var(--color-text); }
+.btn--ghost:active { --btn-bevel: var(--inset-slot); }
+.btn--danger { --btn-bg: var(--color-danger-solid); --btn-edge: var(--color-pixel-shadow); --btn-fg: var(--color-on-danger); }
+.btn--danger:hover { --btn-bg: var(--color-danger-solid); --btn-edge: var(--color-danger-text); }
+.btn--danger-ghost { --btn-bg: transparent; --btn-edge: transparent; --btn-fg: var(--color-danger-text); --btn-bevel: none; }
+.btn--danger-ghost:hover { --btn-bg: var(--color-danger-soft); --btn-edge: transparent; --btn-fg: var(--color-danger-text); }
+.btn--sm { --btn-shape: var(--shape-notch-sm); height: 28px; padding: 0 var(--space-3); font-size: var(--text-sm); gap: var(--space-1); }
+.btn--icon { width: 36px; padding: 0; }
+.btn--icon.btn--sm { width: 28px; }
+.btn--link { --btn-bg: transparent; --btn-edge: transparent; --btn-bevel: none; --btn-fg: var(--color-primary-text); height: auto; padding: 0; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.btn--link::before, .btn--link::after { display: none; }
+.btn--link:hover { text-decoration-thickness: 2px; }
+.btn--link:active { transform: none; }
+.btn__count { display: inline-flex; align-items: center; padding-left: var(--space-2); margin-left: var(--space-1); border-left: 1px solid currentColor; font-weight: 500; }
+
+/* Selos (.tag = estado com ícone e palavra) */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2);
+  background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); clip-path: var(--shape-notch-sm);
+  font-size: var(--text-xs); font-weight: 600; line-height: 1; color: var(--color-text-2); white-space: nowrap;
+}
+.tag--ok { color: var(--color-ok-text); box-shadow: inset 0 0 0 1px var(--color-ok-line); background: var(--color-ok-soft); }
+.tag--warn { color: var(--color-warn-text); box-shadow: inset 0 0 0 1px var(--color-warn-line); background: var(--color-warn-soft); }
+.tag--ai { color: var(--color-ai); box-shadow: inset 0 0 0 1px var(--color-ai-line); background: var(--color-ai-soft); }
+.tag--muted { color: var(--color-text-3); background: transparent; }
+.count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; font-size: var(--text-xs); font-weight: 700; line-height: 1; clip-path: var(--shape-notch-sm); }
+.count--warn { background: var(--color-warn-soft); color: var(--color-warn-text); box-shadow: inset 0 0 0 1px var(--color-warn-line); }
+
+/* Campos (slot afundado) */
+.input, .select, .textarea {
+  width: 100%; height: 36px; padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-control); border-radius: 2px;
+  background: var(--color-bg-sunken); color: var(--color-text); box-shadow: var(--inset-slot);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+.input::placeholder, .textarea::placeholder { color: var(--color-text-3); opacity: 1; }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-text-3); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible { border-color: var(--color-focus); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.textarea { height: auto; min-height: 96px; padding: var(--space-2) var(--space-3); line-height: var(--lh-base); resize: vertical; display: block; }
+.select { appearance: none; padding-right: var(--space-8); background-image: var(--fx-chevron); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 6px; cursor: pointer; }
+.select option { background: var(--color-bg-sunken); color: var(--color-text); }
+
+.check { display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; }
+.check > input { appearance: none; flex: none; width: 18px; height: 18px; margin: 1px 0 0; border: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-control), var(--inset-slot); cursor: pointer; display: grid; place-content: center; }
+.check > input::before { content: ""; width: 10px; height: 10px; background: var(--color-on-primary); -webkit-mask: var(--fx-check) center / 10px 10px no-repeat; mask: var(--fx-check) center / 10px 10px no-repeat; opacity: 0; }
+.check > input:checked { background: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary-press); }
+.check > input:checked::before { opacity: 1; }
+.check:hover > input:not(:checked) { box-shadow: inset 0 0 0 1px var(--color-text-2), var(--inset-slot); }
+
+/* Seletor de modo (não é aba: troca como o Sculk procura) */
+.segmented { display: inline-flex; padding: 2px; gap: 2px; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.segmented button { height: 24px; padding: 0 var(--space-3); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.segmented button:hover { color: var(--color-text); background: var(--color-surface-2); }
+.segmented button[aria-checked="true"] { background: var(--color-surface-3); color: var(--color-text); box-shadow: inset 0 -2px 0 var(--color-primary); }
+
+/* ---------- Moldura da janela ---------- */
+.win { height: 100%; min-width: 1024px; display: grid; grid-template-rows: var(--size-titlebar) var(--size-pack-header) minmax(0, 1fr) var(--size-statusbar); }
+
+.titlebar { display: flex; align-items: stretch; background: var(--color-bg-sunken); border-bottom: 1px solid var(--color-border); }
+.titlebar__drag { flex: 1; }
+.winctl { display: flex; }
+.winctl button { width: 46px; border: 0; background: transparent; color: var(--color-text-3); display: grid; place-items: center; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.winctl .icon { width: 14px; height: 14px; stroke-width: 1.5; }
+.winctl button:hover { background: var(--color-surface-2); color: var(--color-text); }
+.winctl button.close:hover { background: var(--color-danger-solid); color: var(--color-on-danger); }
+.winctl button:focus-visible { outline-offset: -2px; }
+
+/* Cabeçalho do pack: identidade à esquerda, Salvar versão e Testar à direita. Veia e camada de sculk só aqui. */
+.packhead {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-6) 6px var(--space-4);
+  background-color: var(--color-surface-1); background-image: var(--fx-vein); background-size: 64px 64px;
+}
+.packhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--fx-sculk-edge) repeat-x left bottom / 48px 6px; pointer-events: none; }
+.packhead__sep { width: 1px; height: 32px; background: var(--color-border-strong); flex: none; }
+.packhead__id { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex: 1 1 auto; }
+.tile { display: block; flex: none; width: 40px; height: 40px; image-rendering: pixelated; box-shadow: 0 0 0 1px var(--color-pixel-shadow); }
+.packhead h1 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.packhead__meta { display: flex; align-items: baseline; gap: var(--space-2); margin-top: 2px; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); white-space: nowrap; }
+.packhead__meta .mono { font-size: var(--text-xs); color: var(--color-text); }
+.packhead__meta .dot { width: 3px; height: 3px; background: var(--color-text-3); align-self: center; }
+.packhead__actions { display: flex; align-items: center; gap: var(--space-4); flex: none; padding-top: 6px; }
+
+/* Botão Testar: bloco ciano com antenas de sensor e pulso lento */
+.testbtn { position: relative; display: inline-flex; align-items: stretch; flex: none; animation: sensor var(--duration-pulse) var(--ease-in-out) infinite; }
+.testbtn .btn { height: 48px; }
+.testbtn__main { min-width: 150px; padding: 0 var(--space-5) 0 var(--space-4); font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: 0.04em;
+  --btn-shape: polygon(0 4px, 4px 4px, 4px 0, 100% 0, 100% 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
+.testbtn__more { width: 36px; padding: 0; margin-left: 2px;
+  --btn-shape: polygon(0 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 0 100%); }
+.testbtn__antenna { position: absolute; left: 0; right: 0; top: -10px; height: 10px; pointer-events: none; }
+.testbtn__antenna i { position: absolute; bottom: 0; width: 4px; background: var(--color-primary); }
+.testbtn__antenna i::after { content: ""; position: absolute; left: -2px; top: -4px; width: 8px; height: 4px; background: var(--color-primary-bright); }
+.testbtn__antenna i:nth-child(1) { left: 18px; height: 6px; }
+.testbtn__antenna i:nth-child(2) { left: 28px; height: 10px; }
+.testbtn__antenna i:nth-child(3) { left: 108px; height: 10px; }
+.testbtn__antenna i:nth-child(4) { left: 118px; height: 6px; }
+@keyframes sensor { 0%, 100% { filter: drop-shadow(0 2px 4px rgba(25, 211, 224, 0.3)); } 50% { filter: drop-shadow(0 2px 16px rgba(25, 211, 224, 0.7)); } }
+@media (prefers-reduced-motion: reduce) { .testbtn { animation: none; filter: drop-shadow(0 2px 8px rgba(25, 211, 224, 0.45)); } }
+
+/* ---------- Corpo: trilho | conversas | conversa | detalhes ---------- */
+.body { display: grid; grid-template-columns: var(--size-rail) var(--size-convs) minmax(0, 1fr) auto; min-height: 0; }
+
+/* Trilho das 6 seções (menu recolhido do design system) */
+.rail { display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) var(--space-1); background: var(--color-bg); border-right: 1px solid var(--color-border); overflow-y: auto; }
+.rail a { position: relative; display: grid; place-items: center; height: 44px; color: var(--color-text-3); text-decoration: none; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.rail a .icon { width: 20px; height: 20px; }
+.rail a:hover { background: var(--color-surface-2); color: var(--color-text-2); }
+.rail a:focus-visible { outline-offset: -2px; }
+.rail a[aria-current="page"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); color: var(--color-ai); }
+.rail a[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.rail__dot { position: absolute; top: 8px; right: 10px; width: 6px; height: 6px; background: var(--color-danger); }
+
+/* Coluna de conversas */
+.convs { display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-right: 1px solid var(--color-border); }
+.colhead { flex: none; height: 56px; display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-bottom: 1px solid var(--color-border); }
+.colhead h2 { flex: 1; min-width: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); line-height: var(--lh-lg); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.search { position: relative; flex: none; padding: var(--space-3) var(--space-4) var(--space-1); }
+.search > .icon { position: absolute; left: calc(var(--space-4) + 12px); top: calc(var(--space-3) + 10px); color: var(--color-text-3); pointer-events: none; }
+.search .input { padding-left: 36px; padding-right: 36px; }
+.search__clear { position: absolute; right: calc(var(--space-4) + 4px); top: calc(var(--space-3) + 4px); }
+.convs__list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: var(--space-4); }
+.convs__group { padding: var(--space-5) var(--space-4) var(--space-2); font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.conv {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-3);
+  width: 100%; padding: var(--space-3) var(--space-4); border: 0; background: transparent; text-align: left; color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.conv:hover { background: var(--color-surface-2); }
+.conv:focus-visible { outline-offset: -2px; }
+.conv[aria-current="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); }
+.conv[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: var(--space-2); bottom: var(--space-2); width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.conv__title { grid-column: 1 / -1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv__meta { min-width: 0; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convs__empty { padding: var(--space-6) var(--space-4); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.convs__empty p + p { margin-top: var(--space-2); }
+.convs__foot { flex: none; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.convs__foot strong { color: var(--color-text-2); font-weight: 600; }
+.convs__foot .btn--link { font-size: var(--text-xs); }
+
+/* Coluna da conversa */
+.chat { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-bg); }
+.chat .colhead { padding: 0 var(--space-6); gap: var(--space-4); background: var(--color-surface-1); }
+.colhead h2.chat__title { flex: 1; min-width: 0; font-family: var(--font-ui); letter-spacing: 0; text-shadow: none; font-size: var(--text-md); line-height: var(--lh-md); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__meta { flex: none; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; }
+.chat__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.thread { max-width: calc(var(--size-read) + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); display: flex; flex-direction: column; gap: var(--space-8); }
+.thread__start { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.thread__start::before, .thread__start::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--color-border-strong) 0 4px, transparent 4px 8px); }
+
+/* Mensagens */
+.msg { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.msg__head { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: 700; color: var(--color-text-2); }
+.msg__head .t { font-weight: 400; color: var(--color-text-3); }
+.msg--me { align-items: flex-end; }
+.bubble { max-width: 560px; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.att { width: max-content; max-width: 100%; }
+.att[open] { width: 100%; }
+.att > summary { display: flex; align-items: center; gap: var(--space-2); width: max-content; margin-left: auto; height: 28px; padding: 0 var(--space-3); list-style: none; cursor: pointer;
+  background: var(--color-surface-1); box-shadow: inset 0 0 0 1px var(--color-border); font-size: var(--text-sm); color: var(--color-text-2); transition: background-color var(--duration-fast), color var(--duration-fast); }
+.att > summary::-webkit-details-marker, details > summary::-webkit-details-marker { display: none; }
+.att > summary:hover { background: var(--color-surface-2); color: var(--color-text); }
+.att > summary .size { font-family: var(--font-mono); font-size: var(--text-xs); }
+.chev { transition: transform var(--duration-fast) var(--ease-out); }
+details[open] > summary .chev { transform: rotate(90deg); }
+.att__body { margin-top: var(--space-2); }
+
+.rawhead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+pre.raw {
+  max-height: 320px; overflow: auto; padding: var(--space-3) var(--space-4);
+  background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border);
+  font-family: var(--font-mono); font-size: var(--text-xs); line-height: 18px; color: var(--color-console-text); white-space: pre; tab-size: 4;
+}
+pre.raw--short { max-height: 200px; }
+
+/* Resposta do Sculk: fio de osso à esquerda (marca de IA), sem caixa em volta, para os cartões de proposta não ficarem dentro de outro cartão */
+.msg--ai .msg__head { color: var(--color-ai); }
+.msg--ai .msg__head .icon { align-self: center; }
+.ai { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-1) 0 var(--space-1) var(--space-5); border-left: 1px solid var(--color-ai-line); }
+.ai__note { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-2); }
+.ai__note .icon { margin-top: 1px; color: var(--color-text-3); }
+
+.consults { background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border); }
+.consults > summary { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: var(--space-2) var(--space-3); list-style: none; cursor: pointer; color: var(--color-ai); font-size: var(--text-sm); font-weight: 600; transition: background-color var(--duration-fast); }
+.consults > summary:hover { background: var(--color-surface-1); }
+.consults > summary .mono { font-size: var(--text-xs); font-weight: 500; }
+.consults > summary .chev { margin-left: auto; color: var(--color-text-3); }
+.consults__list { border-top: 1px solid var(--color-border); padding: var(--space-1) 0; }
+.tc > summary { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 32px; padding: var(--space-1) var(--space-3); list-style: none; cursor: pointer; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); transition: background-color var(--duration-fast), color var(--duration-fast); }
+.tc > summary:hover { background: var(--color-surface-1); color: var(--color-text); }
+.tc > summary .chev { color: var(--color-text-3); }
+.tc__title { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tc__title .pre { color: var(--color-text-3); }
+.tc__size { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.tc__body { display: grid; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-4) calc(var(--space-3) + 14px + var(--space-2)); }
+.tc__label { margin-bottom: var(--space-1); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+code.req { display: block; padding: var(--space-2) var(--space-3); background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border); font-family: var(--font-mono); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-2); white-space: pre-wrap; word-break: break-word; }
+.tc > summary, .tc__row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 32px; padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.tc--running .tc__row { color: var(--color-ai); }
+.statusbar__tasks .loader { margin-right: var(--space-1); }
+.tc.is-flash > summary { animation: flash 1400ms var(--ease-out); }
+@keyframes flash { 0%, 30% { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary-line); } 100% { background: transparent; box-shadow: none; } }
+
+.claims { display: flex; flex-direction: column; gap: var(--space-4); }
+.claim p { max-width: 72ch; }
+.claim p code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-ai); }
+.claim__ev { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-2); }
+.claim--no p { color: var(--color-text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.claim--ask p { color: var(--color-text); font-weight: 600; }
+.evid { display: inline-flex; align-items: center; gap: var(--space-1); height: 22px; padding: 0 var(--space-2); border: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-ok); clip-path: var(--shape-notch-sm); color: var(--color-ok-text); font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; transition: background-color var(--duration-fast); }
+button.evid:hover { background: var(--color-surface-2); }
+button.evid:focus-visible { clip-path: none; }
+.evid--no { box-shadow: inset 0 0 0 1px var(--color-border-control); color: var(--color-text-3); font-family: var(--font-ui); font-weight: 600; }
+
+.props { display: flex; flex-direction: column; gap: var(--space-3); }
+.props__title { font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; color: var(--color-text-2); }
+.proposal { padding: var(--space-4) var(--space-5); background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: inset 3px 0 0 var(--color-primary); transition: box-shadow var(--duration-base) var(--ease-out); }
+.proposal__head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.proposal__kind { font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-primary-text); }
+.proposal__title { font-weight: 700; margin-right: auto; }
+.proposal__text { margin-top: var(--space-1); max-width: 72ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.proposal__ev { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-3); font-size: var(--text-xs); color: var(--color-text-3); }
+.proposal__actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.proposal__done { display: flex; align-items: center; gap: var(--space-2); margin-right: auto; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.proposal--applied { box-shadow: inset 3px 0 0 var(--color-ok); }
+.proposal--dismissed { box-shadow: inset 3px 0 0 var(--color-border-control); background: transparent; }
+.proposal--dismissed .proposal__title { color: var(--color-text-2); }
+.proposal--dismissed .proposal__kind { color: var(--color-text-3); }
+
+.diff { margin-top: var(--space-3); border: 1px solid var(--color-border-strong); background: var(--color-bg-sunken); font-family: var(--font-mono); font-size: var(--text-xs); line-height: 20px; }
+.diff__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text); }
+.diff__stats .add { color: var(--color-ok-text); }
+.diff__stats .del { color: var(--color-danger-text); }
+.diff__body { overflow-x: auto; padding: var(--space-1) 0; }
+.diff__line { display: grid; grid-template-columns: 40px 24px max-content; color: var(--color-text-2); min-width: 100%; }
+.diff__num { padding-right: var(--space-2); text-align: right; color: var(--color-text-3); user-select: none; }
+.diff__sign { text-align: center; user-select: none; }
+.diff__code { white-space: pre; padding-right: var(--space-4); }
+.diff__line--add { background: var(--color-diff-add); color: var(--color-text); }
+.diff__line--add .diff__sign { color: var(--color-ok-text); }
+.diff__line--del { background: var(--color-diff-del); color: var(--color-text); }
+.diff__line--del .diff__sign { color: var(--color-danger-text); }
+.diff__fold { padding: 0 var(--space-3) 0 64px; color: var(--color-text-3); font-family: var(--font-ui); }
+
+.ai__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-top: var(--space-3); border-top: 1px dashed var(--color-ai-line); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.ai__foot > span { display: inline-flex; align-items: center; gap: var(--space-2); }
+.meter { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text-2); }
+.meter__blocks { display: inline-flex; gap: 2px; }
+.meter__blocks i { width: 14px; height: 10px; background: var(--color-surface-3); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.meter__blocks i.on { background: var(--color-ai); box-shadow: none; }
+
+.reading { display: inline-flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-ai); }
+.reading .mono { font-size: var(--text-xs); color: var(--color-text-3); }
+
+/* Compositor fixo */
+.composer { flex: none; padding: var(--space-4) var(--space-6) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-surface-1); }
+.composer__inner { max-width: var(--size-read); margin: 0 auto; }
+.cbox { background: var(--color-bg-sunken); border: 1px solid var(--color-border-control); border-radius: 2px; box-shadow: var(--inset-slot); transition: border-color var(--duration-fast); }
+.cbox:hover { border-color: var(--color-text-3); }
+.cbox:focus-within { border-color: var(--color-focus); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.cbox textarea { display: block; width: 100%; min-height: 44px; max-height: 200px; padding: var(--space-3) var(--space-4) var(--space-2); border: 0; background: transparent; resize: none; line-height: var(--lh-base); outline: none; }
+.cbox textarea::placeholder { color: var(--color-text-3); opacity: 1; }
+.cbar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) var(--space-2) var(--space-2) var(--space-2); }
+.cbar #sendBtn { margin-left: auto; }
+.cbar .segmented { background: var(--color-surface-1); }
+
+/* Nova conversa */
+.newconv { max-width: calc(640px + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); }
+.newconv h3 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+.newconv__sub { margin-top: var(--space-2); max-width: 72ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.fgroup { margin-top: var(--space-6); }
+.fgroup + .fgroup { margin-top: var(--space-6); }
+.flabel { display: block; margin-bottom: var(--space-2); font-weight: 600; }
+.flabel .opt { font-weight: 400; color: var(--color-text-3); }
+.fhint { margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-4); border: 0; background: transparent; color: var(--color-text-2); font-weight: 600; white-space: nowrap; }
+.chip::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: var(--shape-notch-sm); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); transition: background-color var(--duration-fast); }
+.chip:hover { color: var(--color-text); }
+.chip:hover::before { background: var(--color-surface-3); }
+.chip[aria-checked="true"] { color: var(--color-text); }
+.chip[aria-checked="true"]::before { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.chip .icon { color: var(--color-primary-text); }
+.provline { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin-top: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.newconv__go { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--color-border); }
+.newconv__go .fhint { margin-top: 0; flex: 1 1 280px; }
+.newconv .select { max-width: 400px; }
+.newconv .textarea { min-height: 72px; }
+.dialog .kv { grid-template-columns: 120px minmax(0, 1fr); }
+.rawhead h3 { margin: 0; }
+.rawhead--tight { margin-bottom: var(--space-1); }
+.claim__ev--action { margin-top: var(--space-3); }
+.consults__list--run { border-top: 0; }
+
+/* Painel Detalhes (empurra a conversa) */
+.drawer { width: var(--size-drawer); display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-left: 1px solid var(--color-border-strong); box-shadow: -1px 0 0 var(--color-pixel-shadow); animation: drawer-in var(--duration-slow) var(--ease-out); }
+@keyframes drawer-in { from { transform: translateX(24px); opacity: 0; } }
+.drawer .colhead { padding: 0 var(--space-3) 0 var(--space-5); }
+.drawer__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-8); }
+.dsec h3 { margin-bottom: var(--space-3); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.kv { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: baseline; font-size: var(--text-sm); line-height: var(--lh-sm); }
+.kv dt { color: var(--color-text-3); }
+.kv dd { min-width: 0; color: var(--color-text); }
+.kv dd .sub { display: block; margin-top: 2px; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.perms { display: flex; flex-direction: column; gap: var(--space-3); }
+.perms li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: start; font-size: var(--text-sm); line-height: var(--lh-sm); }
+.perms .icon { margin-top: 1px; }
+.perms .yes { color: var(--color-ok-text); }
+.perms .no { color: var(--color-text-3); }
+.perms small { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.perms li.off span { color: var(--color-text-2); }
+.sent { display: flex; flex-direction: column; }
+.sent button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; width: 100%; padding: var(--space-1) 0; border: 0; background: transparent; text-align: left; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.sent button:hover { color: var(--color-text); }
+.sent button:hover .sent__name { text-decoration: underline; text-underline-offset: 3px; }
+.sent__name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sent__size { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); }
+.sent__total { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; }
+.sent__total .sent__size { color: var(--color-text); font-weight: 600; }
+.notices { display: flex; flex-direction: column; gap: var(--space-2); }
+.alert { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: start; padding: var(--space-3) var(--space-4); background: var(--alert-bg); box-shadow: inset 3px 0 0 var(--alert-bar); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.alert > .icon { margin-top: 1px; color: var(--alert-bar); }
+.alert__actions { grid-column: 2; margin-top: var(--space-2); }
+.alert--warn { --alert-bg: var(--color-warn-soft); --alert-bar: var(--color-warn); }
+.alert--neutral { --alert-bg: var(--color-surface-2); --alert-bar: var(--color-border-control); }
+.alert--ai { --alert-bg: var(--color-ai-soft); --alert-bar: var(--color-ai); color: var(--color-text); }
+.drawer__foot { flex: none; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border); background: var(--color-bg); }
+.confirm { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-1) 0; }
+.confirm strong { font-weight: 700; }
+.confirm p { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.confirm__actions { display: flex; gap: var(--space-2); }
+
+/* Diálogo de consentimento */
+.scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-8); background: var(--color-overlay); animation: fade-in var(--duration-base) var(--ease-out); }
+@keyframes fade-in { from { opacity: 0; } }
+.dialog { width: min(720px, 100%); max-height: calc(100vh - 64px); display: flex; flex-direction: column; background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-3), inset 0 1px 0 rgba(127, 243, 240, 0.06); animation: dialog-in var(--duration-slow) var(--ease-out); }
+@keyframes dialog-in { from { transform: translateY(12px); opacity: 0; } }
+.dialog__head { padding: var(--space-6) var(--space-6) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.dialog__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-lg); line-height: var(--lh-lg); font-weight: 800; }
+.dialog__title .icon { color: var(--color-ai); }
+.dialog__sub { margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); max-width: 72ch; }
+.dialog__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-6) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.dialog__body h3 { margin-bottom: var(--space-3); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.dialog__foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: var(--color-bg); }
+.perm { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 2px var(--space-3); align-items: start; padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.perm:first-child { border-top: 0; padding-top: 0; }
+.perm > .icon { width: 18px; height: 18px; margin-top: 1px; color: var(--color-ok-text); }
+.perm__t { font-weight: 600; }
+.perm__d { grid-column: 2; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); max-width: 72ch; }
+.perm__fixed { grid-column: 3; grid-row: 1; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); align-self: center; }
+.perm .check { display: contents; }
+.perm input { grid-column: 1; grid-row: 1; }
+.perm .check .perm__t { grid-column: 2; cursor: pointer; }
+
+/* Menu, dica, toast */
+.menu { position: fixed; z-index: 30; min-width: 280px; padding: var(--space-1) 0; background: var(--color-bg-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-2); animation: menu-in var(--duration-base) var(--ease-out); }
+@keyframes menu-in { from { transform: translateY(-4px); opacity: 0; } }
+.menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px var(--space-3); align-items: center; width: 100%; padding: var(--space-2) var(--space-3); border: 0; background: none; text-align: left; color: var(--color-text); }
+.menu button .icon { color: var(--color-text-3); }
+.menu button small { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.menu button:hover, .menu button:focus-visible { background: var(--color-primary-soft); box-shadow: inset 3px 0 0 var(--color-primary); outline: none; }
+.menu button:focus-visible { box-shadow: inset 3px 0 0 var(--color-primary), inset 0 0 0 2px var(--color-focus); }
+.tooltip { position: fixed; z-index: 70; max-width: 300px; padding: 6px var(--space-2); background: var(--color-bg-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), 0 2px 0 rgba(0, 0, 0, 0.5); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text); pointer-events: none; }
+.toasts { position: fixed; right: var(--space-5); bottom: calc(var(--size-statusbar) + var(--space-4)); z-index: 60; display: grid; gap: var(--space-2); width: 380px; }
+.toast { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); background: var(--color-surface-2); border: 1px solid var(--color-border-strong); box-shadow: var(--shadow-block-2), inset 3px 0 0 var(--toast-bar, var(--color-primary)); font-size: var(--text-sm); line-height: var(--lh-sm); animation: toast-in var(--duration-base) var(--ease-out); }
+.toast > .icon { color: var(--toast-bar, var(--color-primary)); }
+.toast--ok { --toast-bar: var(--color-ok); }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
+
+/* Rodapé de tarefas */
+.statusbar { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg-sunken); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.statusbar__tasks { display: inline-flex; align-items: center; gap: var(--space-2); height: 22px; padding: 0 var(--space-2); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-xs); font-weight: 600; }
+.statusbar__tasks:hover { background: var(--color-surface-2); color: var(--color-text); }
+.statusbar__tasks.is-busy { color: var(--color-primary-text); }
+.statusbar__end { margin-left: auto; font-family: var(--font-mono); }
+
+@media (max-width: 1280px) {
+  :root { --size-convs: 280px; --size-drawer: 340px; }
+  .chat .colhead, .composer { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .chat__meta { display: none; }
+}
+
+/* ================= Esboços da tela Configs ================= */
+:root {
+  /* Cor de lugar: pack (vai para os jogadores) = ciano; teste local = âmbar; pessoal = osso. */
+  --place-pack: var(--color-primary-text);
+  --place-test: var(--color-warn-text);
+  --place-own: var(--color-text-2);
+  --size-nav: 300px;
+  --size-det: 320px;
+}
+.stage { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.stage > .win { height: auto; min-height: 0; }
+.skbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-2) var(--space-6); align-items: start; padding: var(--space-3) var(--space-6); background: var(--color-surface-2); border-bottom: 2px solid var(--color-pixel-shadow); }
+.skbar__pick { display: flex; flex-direction: column; gap: var(--space-2); }
+.skbar__label { font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.skbar .segmented button { height: 30px; font-size: var(--text-sm); }
+.skbar__txt { min-width: 0; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); max-width: 1000px; }
+.skbar__txt strong { color: var(--color-text); }
+.skbar__line { display: flex; align-items: baseline; gap: var(--space-4); }
+.skbar__hide { font-size: var(--text-xs); color: var(--color-text-3); }
+.skbar.is-mini { align-items: center; }
+.skbar__txt p + p { margin-top: 4px; }
+.skbar__pc { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin-top: 6px; }
+.skbar__pc span b { font-weight: 700; }
+.skbar__pc .pro b { color: var(--color-ok-text); }
+.skbar__pc .con b { color: var(--color-warn-text); }
+.rail a[aria-current="page"] { color: var(--color-primary-text); }
+
+/* Corpos das três opções */
+.body--c3 { grid-template-columns: var(--size-rail) var(--size-nav) minmax(0, 1fr) var(--size-det); }
+.body--c3.no-det { grid-template-columns: var(--size-rail) var(--size-nav) minmax(0, 1fr); }
+.body--full { grid-template-columns: var(--size-rail) minmax(0, 1fr); }
+.body { position: relative; }
+
+/* ---------- Coluna de navegação ---------- */
+.nav { display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-right: 1px solid var(--color-border); }
+.nav .colhead h2 { font-size: var(--text-lg); }
+.nav__top { flex: none; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4) var(--space-4) var(--space-3); border-bottom: 1px solid var(--color-border); }
+.nav__list { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-2) 0 var(--space-4); }
+.nav__foot { flex: none; display: flex; gap: var(--space-2); align-items: flex-start; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.nav__foot .icon { margin-top: 1px; }
+
+/* Seletor de origem: o "Formulário | Texto" em tamanho de destaque */
+.origin { display: flex; flex-direction: column; gap: var(--space-2); }
+.segmented--wide { display: flex; width: 100%; }
+.segmented--wide button { flex: 1 1 0; min-width: 0; height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); font-size: var(--text-sm); }
+.segmented button .icon { width: 14px; height: 14px; }
+.segmented button[data-origin="pack"][aria-checked="true"] { box-shadow: inset 0 -2px 0 var(--color-primary); }
+.segmented button[data-origin="pack"][aria-checked="true"] .icon { color: var(--place-pack); }
+.segmented button[data-origin="test"][aria-checked="true"] { box-shadow: inset 0 -2px 0 var(--color-warn); }
+.segmented button[data-origin="test"][aria-checked="true"] .icon { color: var(--place-test); }
+.segmented button[data-origin="cmp"][aria-checked="true"] { box-shadow: inset 0 -2px 0 var(--color-text-2); }
+.origin__cap { font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.origin__cap b { font-weight: 700; }
+.origin__cap--pack b { color: var(--place-pack); }
+.origin__cap--test b { color: var(--place-test); }
+
+/* Busca única + filtros do mesmo tamanho */
+.qbox { position: relative; }
+.qbox > .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-text-3); pointer-events: none; }
+.qbox .input { padding-left: 36px; padding-right: 64px; }
+.qbox kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+.qbox .search__x { position: absolute; right: 4px; top: 4px; }
+kbd { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong), inset 0 -2px 0 var(--color-pixel-shadow); font-family: var(--font-mono); font-size: var(--text-2xs); line-height: 1; color: var(--color-text-3); white-space: nowrap; }
+.fchips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fchip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--space-3); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.fchip::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: var(--shape-notch-sm); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); transition: background-color var(--duration-fast) var(--ease-out); }
+.fchip:hover { color: var(--color-text); }
+.fchip:hover::before { background: var(--color-surface-3); }
+.fchip[aria-pressed="true"] { color: var(--color-text); }
+.fchip[aria-pressed="true"]::before { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.fchip .n { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 500; color: var(--color-text-3); }
+.fchip[aria-pressed="true"] .n { color: var(--color-primary-text); }
+.fchip--test[aria-pressed="true"]::before { background: var(--color-warn-soft); box-shadow: inset 0 0 0 1px var(--color-warn-line); }
+.fchip--test[aria-pressed="true"] .n { color: var(--place-test); }
+.fchip .sq { width: 6px; height: 6px; background: var(--color-warn); }
+
+/* ---------- Árvore ---------- */
+.tgroup { padding: var(--space-4) var(--space-4) var(--space-1); display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.tgroup .icon { width: 12px; height: 12px; }
+.tgroup .n { margin-left: auto; font-family: var(--font-mono); letter-spacing: 0; }
+.tnode { position: relative; display: grid; grid-template-columns: 14px 16px minmax(0, 1fr) auto; align-items: center; gap: 6px; width: 100%; height: 30px; padding: 0 var(--space-3) 0 calc(var(--space-3) + var(--lvl, 0) * 16px); border: 0; background: transparent; text-align: left; color: var(--color-text-2); font-size: var(--text-sm); transition: background-color var(--duration-fast) var(--ease-out); }
+.tnode:hover { background: var(--color-surface-2); color: var(--color-text); }
+.tnode:focus-visible { outline-offset: -2px; }
+.tnode .icon { width: 14px; height: 14px; color: var(--color-text-3); }
+.tnode__chev { transition: transform var(--duration-fast) var(--ease-out); }
+.tnode[aria-expanded="true"] .tnode__chev { transform: rotate(90deg); }
+.tnode__name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tnode--file .tnode__name { font-family: var(--font-mono); font-size: var(--text-xs); }
+.tnode--dir .tnode__name { font-weight: 600; color: var(--color-text); }
+.tnode__end { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.tnode[aria-selected="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); color: var(--color-text); }
+.tnode[aria-selected="true"]::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.tnode[aria-selected="true"] .icon { color: var(--color-primary-text); }
+.mk { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }
+.mk--diff { color: var(--place-test); }
+.mk--diff::before { content: ""; width: 6px; height: 6px; background: var(--color-warn); }
+.mk--new { height: 18px; padding: 0 5px; font-family: var(--font-ui); font-size: var(--text-2xs); font-weight: 700; color: var(--color-text-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); clip-path: var(--shape-notch-sm); }
+.mk--own .icon { width: 12px; height: 12px; color: var(--place-own); }
+.mk--dirty::before { content: ""; width: 6px; height: 6px; background: var(--color-primary); }
+.tnode--friendly .tnode__name { font-family: var(--font-ui); font-size: var(--text-sm); }
+.tnode--friendly .sub { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); margin-left: 6px; }
+
+.hintbox { margin: var(--space-4) var(--space-4) 0; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); display: flex; flex-direction: column; gap: var(--space-2); }
+.hintbox strong { color: var(--color-text); }
+.hintbox .btn { align-self: flex-start; }
+
+/* Resultados da busca (no lugar da árvore) */
+.res__sum { padding: var(--space-3) var(--space-4) var(--space-1); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.res__file { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); padding: var(--space-3) var(--space-4) var(--space-1); border: 0; background: transparent; text-align: left; color: var(--color-text); }
+.res__file:hover .res__path { color: var(--color-text); text-decoration: underline; text-underline-offset: 3px; }
+.res__mod { font-weight: 700; font-size: var(--text-sm); }
+.res__path { grid-column: 1 / -1; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.res__hit { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-3); padding: 6px var(--space-4) 6px calc(var(--space-4) + 12px); border: 0; background: transparent; text-align: left; color: var(--color-text-2); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.res__hit:hover { background: var(--color-surface-2); color: var(--color-text); }
+.res__hit .k { font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.res__hit .v { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text); white-space: nowrap; }
+.res__hit .s { grid-column: 1 / -1; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+mark { background: var(--color-primary-soft); color: var(--color-primary-bright); box-shadow: inset 0 -1px 0 var(--color-primary); }
+.res__empty { padding: var(--space-5) var(--space-4); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+
+/* ---------- Editor ---------- */
+.ed { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-bg); }
+.edhead { flex: none; height: 56px; display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-5); border-bottom: 1px solid var(--color-border); background: var(--color-surface-1); }
+.edhead__t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.edhead__name { font-weight: 700; font-size: var(--text-md); line-height: var(--lh-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edhead__path { font-family: var(--font-mono); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edhead .segmented button { height: 28px; }
+.savebtn .n { font-weight: 500; padding-left: var(--space-2); margin-left: 2px; border-left: 1px solid currentColor; }
+
+/* Faixa de lugar: diz para onde vai o arquivo */
+.band { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-5); border-bottom: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.band > .icon { flex: none; }
+.band__t { flex: 1 1 280px; min-width: 0; }
+.band__t b { font-weight: 700; }
+.band__acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.band--pack { background: var(--color-primary-soft); box-shadow: inset 0 1px 0 var(--color-primary-line); }
+.band--pack > .icon, .band--pack b { color: var(--place-pack); }
+.band--test { background: var(--color-warn-soft); box-shadow: inset 0 1px 0 var(--color-warn-line); }
+.band--test > .icon, .band--test b { color: var(--place-test); }
+.band--own { background: var(--color-surface-2); box-shadow: inset 0 1px 0 var(--color-border-strong); }
+.band--own > .icon, .band--own b { color: var(--color-text); }
+
+.edtools { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border); }
+.edtools .qbox { flex: 0 1 300px; min-width: 200px; }
+.edtools .qbox .input { height: 28px; padding-right: var(--space-3); font-size: var(--text-sm); }
+.edtools__sp { flex: 1; }
+.edtools .fine { font-size: var(--text-xs); color: var(--color-text-3); }
+
+.ed__scroll { flex: 1; min-height: 0; overflow-y: auto; container-type: inline-size; }
+.ed__in { padding: 0 var(--space-5) var(--space-10); }
+.edfoot { flex: none; display: flex; align-items: center; gap: var(--space-4); height: 30px; padding: 0 var(--space-5); border-top: 1px solid var(--color-border); background: var(--color-surface-1); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; }
+.edfoot .mono { font-size: var(--text-xs); }
+.edfoot__end { margin-left: auto; }
+.edfoot .dirty { color: var(--color-primary-text); font-weight: 600; }
+
+/* Formulário */
+.fsec__h { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-1) var(--space-3); padding: var(--space-6) 0 var(--space-2); border-bottom: 1px solid var(--color-border-strong); }
+.fsec__h h4 { margin: 0; font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.fsec__h code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); }
+.fr { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 232px 216px; gap: var(--space-2) var(--space-6); align-items: start; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+.fr__l { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fr__t { font-weight: 600; display: flex; align-items: center; gap: var(--space-2); }
+.fr__k { font-family: var(--font-mono); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); overflow-wrap: anywhere; }
+.fr__d { max-width: 62ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.fr__c { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fr__hint { font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.fr__m { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; padding-top: 6px; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.fr__m .line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.fr__m .mono { color: var(--color-text-2); }
+.fr__m .btn--icon.btn--sm { width: 24px; height: 24px; }
+.fr.is-diff .fr__t::before { content: ""; width: 6px; height: 6px; flex: none; background: var(--color-warn); }
+.fr.is-flash { animation: flash 1400ms var(--ease-out); }
+.fr.is-edited .fr__t::after { content: "não salvo"; font-size: var(--text-2xs); font-weight: 700; color: var(--color-primary-text); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+.numrow { display: flex; align-items: center; gap: var(--space-2); }
+.numrow .input { width: 112px; height: 32px; font-family: var(--font-mono); font-size: var(--text-sm); }
+.numrow .unit { font-size: var(--text-sm); color: var(--color-text-3); }
+.fr .select { height: 32px; font-family: var(--font-mono); font-size: var(--text-xs); }
+.fr .input--text { height: 32px; font-family: var(--font-mono); font-size: var(--text-xs); }
+.chg { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary-line); clip-path: var(--shape-notch-sm); font-size: var(--text-2xs); font-weight: 700; color: var(--color-primary-text); white-space: nowrap; }
+.pk { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2); background: var(--color-warn-soft); box-shadow: inset 0 0 0 1px var(--color-warn-line); clip-path: var(--shape-notch-sm); color: var(--color-text-2); white-space: nowrap; }
+.pk b { font-family: var(--font-mono); font-weight: 500; color: var(--place-test); }
+
+/* Liga/desliga em bloco */
+.swrow { display: flex; align-items: center; gap: var(--space-3); height: 32px; }
+.sw { position: relative; flex: none; width: 42px; height: 22px; border: 0; padding: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-control), var(--inset-slot); }
+.sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; background: var(--color-text-3); transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast); }
+.sw[aria-checked="true"] { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.sw[aria-checked="true"]::after { transform: translateX(20px); background: var(--color-primary); }
+.swrow span { font-size: var(--text-sm); color: var(--color-text-2); }
+
+@container (max-width: 760px) {
+  .fr { grid-template-columns: minmax(0, 1fr) 216px; }
+  .fr__m { grid-column: 2; padding-top: 0; }
+}
+@container (max-width: 560px) {
+  .fr { grid-template-columns: minmax(0, 1fr); }
+  .fr__m { grid-column: 1; flex-direction: row; flex-wrap: wrap; }
+}
+
+/* Texto */
+.code { margin: var(--space-4) 0 0; background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border); font-family: var(--font-mono); font-size: var(--text-xs); line-height: 20px; color: var(--color-console-text); overflow-x: auto; }
+.code__l { display: grid; grid-template-columns: 48px 12px max-content; min-width: 100%; }
+.code__n { padding-right: var(--space-2); text-align: right; color: var(--color-text-3); user-select: none; }
+.code__g { user-select: none; }
+.code__x { white-space: pre; padding-right: var(--space-6); }
+.code__l.is-diff { background: var(--color-warn-soft); }
+.code__l.is-diff .code__g { background: var(--color-warn); width: 3px; }
+.code__l.is-cur { background: var(--color-surface-1); }
+.code .c { color: var(--color-console-muted); }
+.code .s { color: var(--color-primary-bright); font-weight: 600; }
+.code .k { color: var(--color-primary-text); }
+.code .n { color: var(--color-warn-text); }
+.code .b { color: var(--color-ok-text); }
+.code .q { color: #e6c8a0; }
+.code .kw { color: var(--color-danger-text); }
+.code .ghost { color: var(--place-test); font-style: normal; opacity: 0.9; }
+.scriptbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); margin-top: var(--space-4); font-size: var(--text-sm); color: var(--color-text-2); }
+
+/* Estado vazio dentro do editor */
+.edempty { max-width: 560px; margin: var(--space-12) auto; padding: 0 var(--space-6); display: flex; flex-direction: column; gap: var(--space-3); }
+.edempty h3 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); line-height: var(--lh-lg); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+.edempty p { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.edempty .acts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+
+/* ---------- Detalhes (opção 1) ---------- */
+.det { display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-left: 1px solid var(--color-border); }
+.det .colhead h2 { font-family: var(--font-ui); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; letter-spacing: 0; text-shadow: none; }
+.det__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-4) var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); }
+.det .dsec h3 { margin-bottom: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; color: var(--color-text); }
+.det .kv { grid-template-columns: 96px minmax(0, 1fr); }
+.places { display: flex; flex-direction: column; }
+.place { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px var(--space-3); padding: var(--space-2) 0; border-top: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.place:first-child { border-top: 0; padding-top: 0; }
+.place .icon { margin-top: 2px; }
+.place__t { font-weight: 600; }
+.place__d { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.place--pack .icon { color: var(--place-pack); }
+.place--test .icon { color: var(--place-test); }
+.place--own .icon { color: var(--place-own); }
+.place--off { color: var(--color-text-3); }
+.place--off .icon { color: var(--color-text-3); }
+.dlist { display: flex; flex-direction: column; margin-bottom: var(--space-3); }
+.dlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); padding: var(--space-2) 0; border-top: 1px dashed var(--color-border-strong); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.dlist li:first-child { border-top: 0; padding-top: 0; }
+.dlist .k { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); grid-column: 1 / -1; }
+.dlist .vv { font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }
+.dlist .vv .a { color: var(--place-pack); }
+.dlist .vv .b { color: var(--place-test); }
+.det .acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.det .alert { box-shadow: none; border: 1px solid var(--color-border-strong); }
+.actlist { display: flex; flex-direction: column; gap: 2px; }
+.actlist .btn { justify-content: flex-start; width: 100%; }
+.det-toggle[aria-expanded="true"] { --btn-bg: var(--color-surface-3); }
+
+/* ---------- Opção 2: lista larga ---------- */
+.pg { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-bg); }
+.pghead { flex: none; display: flex; align-items: center; gap: var(--space-5); min-height: 72px; padding: var(--space-3) var(--space-6); border-bottom: 1px solid var(--color-border); background: var(--color-surface-1); }
+.pghead__t { flex: 1; min-width: 0; }
+.pghead h2 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+.pghead p { font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.pghead .origin { width: 380px; flex: none; }
+.tb { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); padding: var(--space-3) var(--space-6); border-bottom: 1px solid var(--color-border); }
+.tb .qbox { flex: 1 1 360px; max-width: 560px; }
+.tb .select { width: auto; min-width: 180px; height: 28px; font-size: var(--text-sm); }
+.tb__sum { margin-left: auto; font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.l2 { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.l2.is-open { grid-template-columns: 340px minmax(0, 1fr); }
+.l2 .ed { border-left: 1px solid var(--color-border-strong); }
+.tbl { min-height: 0; overflow-y: auto; }
+.tbl__head, .trow { display: grid; grid-template-columns: minmax(150px, 1.1fr) minmax(220px, 2fr) 190px 120px 120px; gap: var(--space-4); align-items: center; padding: 0 var(--space-6); }
+.tbl__head { position: sticky; top: 0; z-index: 2; height: 36px; background: var(--color-bg); border-bottom: 1px solid var(--color-border-strong); font-size: var(--text-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.tbl__head .r, .trow .r { text-align: right; justify-self: end; }
+.tsec { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-1) var(--space-3); padding: var(--space-5) var(--space-6) var(--space-2); border-bottom: 1px solid var(--color-border); }
+.tsec h3 { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; }
+.tsec h3 .icon { width: 14px; height: 14px; }
+.tsec p { font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.tsec--pack h3 .icon { color: var(--place-pack); }
+.tsec--test h3 .icon { color: var(--place-test); }
+.tsec--own h3 .icon { color: var(--place-own); }
+.trow { position: relative; width: 100%; min-height: 44px; border: 0; border-bottom: 1px solid var(--color-border); background: transparent; text-align: left; color: var(--color-text); font-size: var(--text-sm); transition: background-color var(--duration-fast) var(--ease-out); }
+.trow:hover { background: var(--color-surface-1); }
+.trow:focus-visible { outline-offset: -2px; }
+.trow[aria-selected="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); }
+.trow[aria-selected="true"]::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.trow__mod { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trow__path { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trow__n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-2); }
+.trow__w { font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.trow .quiet { color: var(--color-text-3); font-size: var(--text-xs); }
+.trow__hits { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 2px; padding: 0 0 var(--space-2); margin-top: -4px; }
+.trow__hits span { font-size: var(--text-xs); color: var(--color-text-3); }
+.trow__hits .mono { color: var(--color-text-2); }
+.tag--test { color: var(--place-test); box-shadow: inset 0 0 0 1px var(--color-warn-line); background: var(--color-warn-soft); }
+.tag--pack { color: var(--place-pack); box-shadow: inset 0 0 0 1px var(--color-primary-line); background: var(--color-primary-soft); }
+.tag .icon { width: 12px; height: 12px; }
+/* Lista estreita quando o editor está aberto */
+.l2.is-open .tbl__head { display: none; }
+.l2.is-open .trow { grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-3); padding: var(--space-2) var(--space-4); }
+.l2.is-open .trow__mod { grid-column: 1; }
+.l2.is-open .trow__path { grid-column: 1 / -1; grid-row: 2; }
+.l2.is-open .trow__st { grid-column: 2; grid-row: 1; }
+.l2.is-open .trow__n, .l2.is-open .trow__w { display: none; }
+.l2.is-open .tsec { padding: var(--space-4) var(--space-4) var(--space-2); }
+.l2.is-open .tsec p { display: none; }
+.l2.is-open .trow__st .tag { height: 20px; }
+.meta2 { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1) var(--space-4); padding: var(--space-2) var(--space-5); border-bottom: 1px solid var(--color-border); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.meta2 b { color: var(--color-text-2); font-weight: 600; }
+
+/* ---------- Opção 3: editor amplo ---------- */
+.xbar { flex: none; display: flex; align-items: center; gap: var(--space-3); height: 56px; padding: 0 var(--space-5) 0 var(--space-3); border-bottom: 1px solid var(--color-border); background: var(--color-surface-1); }
+.crumb { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; height: 36px; padding: 0 var(--space-3); border: 0; background: transparent; color: var(--color-text); text-align: left; }
+.crumb:hover { background: var(--color-surface-2); }
+.crumb__name { font-weight: 700; font-size: var(--text-md); white-space: nowrap; }
+.crumb__path { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.crumb .icon { color: var(--color-text-3); }
+.xbar__sp { flex: 1; min-width: 0; }
+.xbar .segmented button { height: 28px; display: inline-flex; align-items: center; gap: 6px; }
+.l3 { flex: 1; min-height: 0; display: grid; grid-template-columns: 0 minmax(0, 1fr); }
+.l3.is-nav { grid-template-columns: 280px minmax(0, 1fr); }
+.l3 > .nav { overflow: hidden; }
+.l3:not(.is-nav) > .nav { visibility: hidden; border: 0; }
+.wrap3 { max-width: 1180px; margin: 0 auto; }
+.navmod { padding: var(--space-3) var(--space-4) var(--space-1); font-size: var(--text-sm); font-weight: 700; color: var(--color-text); display: flex; align-items: center; gap: var(--space-2); }
+.navmod .n { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 500; color: var(--color-text-3); }
+
+/* Comparar lado a lado */
+.cmpsum { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin-top: var(--space-5); padding: var(--space-3) var(--space-4); background: var(--color-surface-1); box-shadow: inset 0 0 0 1px var(--color-border-strong); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.cmpsum__t { flex: 1 1 320px; min-width: 0; color: var(--color-text-2); }
+.cmpsum__t b { color: var(--color-text); }
+.cmphead, .cr { display: grid; grid-template-columns: minmax(0, 1fr) 236px 76px 236px; gap: var(--space-2) var(--space-4); align-items: start; }
+.cmphead { position: sticky; top: 0; z-index: 2; margin-top: var(--space-4); padding: var(--space-3) 0 var(--space-2); background: var(--color-bg); border-bottom: 1px solid var(--color-border-strong); font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: 700; color: var(--color-text-2); }
+.cmphead > div { display: flex; flex-direction: column; gap: 2px; }
+.cmphead .t { display: flex; align-items: center; gap: 6px; font-size: var(--text-sm); color: var(--color-text); }
+.cmphead .t .icon { width: 14px; height: 14px; }
+.cmphead .s { font-weight: 500; color: var(--color-text-3); }
+.cmphead .test .icon { color: var(--place-test); }
+.cmphead .pack .icon { color: var(--place-pack); }
+.cr { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+.cr__mid { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 2px; }
+.cr__mid .btn { width: 32px; padding: 0; }
+.cr__pack { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-2); }
+.cr__pack small { font-family: var(--font-ui); font-size: var(--text-xs); color: var(--color-text-3); }
+.cr.is-diff { background: linear-gradient(90deg, transparent, transparent); }
+.cr.is-diff .cr__pack { color: var(--place-pack); }
+.cr.is-same { opacity: 0.72; }
+.cr.is-same:hover { opacity: 1; }
+.cr .eq { font-size: var(--text-xs); color: var(--color-text-3); padding-top: 8px; }
+
+/* Ir para arquivo (Ctrl+P) */
+.qo { position: fixed; inset: 0; z-index: 55; background: var(--color-overlay); display: flex; justify-content: center; align-items: flex-start; padding-top: 140px; animation: fade-in var(--duration-base) var(--ease-out); }
+.qo__box { width: min(640px, calc(100vw - 48px)); background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-3); animation: dialog-in var(--duration-base) var(--ease-out); }
+.qo__in { padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
+.qo__list { max-height: 420px; overflow-y: auto; padding: var(--space-1) 0; }
+.qo__item { width: 100%; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-2) var(--space-4); border: 0; background: transparent; text-align: left; color: var(--color-text); }
+.qo__item:hover, .qo__item.is-hot { background: var(--color-primary-soft); box-shadow: inset 3px 0 0 var(--color-primary); }
+.qo__item .icon { color: var(--color-text-3); }
+.qo__item .m { font-weight: 600; font-size: var(--text-sm); }
+.qo__item .p { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); margin-left: var(--space-2); }
+.qo__foot { display: flex; gap: var(--space-4); padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border); font-size: var(--text-xs); color: var(--color-text-3); }
+
+/* ---------- Janela mais estreita ---------- */
+@media (max-width: 1360px) {
+  :root { --size-nav: 268px; --size-det: 296px; }
+  .tbl__head, .trow { grid-template-columns: minmax(140px, 1fr) minmax(200px, 1.8fr) 180px 110px; }
+  .tbl__head > :nth-child(5), .trow .trow__w { display: none; }
+  .cmphead, .cr { grid-template-columns: minmax(0, 1fr) 210px 68px 200px; }
+}
+
+/* Grupos por lugar na árvore e filtros empilhados */
+.tgroup--pack .icon { color: var(--place-pack); }
+.tgroup--test .icon { color: var(--place-test); }
+.tgroup--own .icon { color: var(--place-own); }
+.tgroup { padding-top: var(--space-5); }
+.nav__list > .tgroup:first-child { padding-top: var(--space-2); }
+.tnote { padding: 0 var(--space-4) var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.fchips--stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+.fchips--stack .fchip { justify-content: flex-start; width: 100%; }
+.fchips--stack .fchip .n { margin-left: auto; }
+.det .acts { flex-direction: column; align-items: stretch; }
+.cr.is-diff .fr__t::before { content: ""; width: 6px; height: 6px; flex: none; background: var(--color-warn); }
+.cr .select { height: 32px; font-family: var(--font-mono); font-size: var(--text-xs); }
+.cr .input--text { height: 32px; font-family: var(--font-mono); font-size: var(--text-xs); }
+.pghead .origin { width: 440px; }
+/* Formulário: 3 colunas só com bastante largura; senão o padrão e o pack ficam sob o campo */
+.fr { grid-template-columns: minmax(0, 1fr) 248px; }
+.fr__m { grid-column: 2; padding-top: 0; }
+@container (min-width: 900px) {
+  .fr { grid-template-columns: minmax(0, 1fr) 232px 220px; }
+  .fr__m { grid-column: 3; padding-top: 6px; }
+}
+.fr__l { grid-row: span 2; }
+.fr__c { grid-column: 2; }
+@container (min-width: 900px) { .fr__l { grid-row: auto; } .fr__c { grid-column: 2; } }
+@container (max-width: 560px) {
+  .fr { grid-template-columns: minmax(0, 1fr); }
+  .fr__l { grid-row: auto; }
+  .fr__c, .fr__m { grid-column: 1; }
+}
+@media (max-width: 1360px) { .nav .qbox kbd { display: none; } .nav .qbox .input { padding-right: var(--space-3); } }
+.edtools--in { padding: var(--space-4) 0 0; border-bottom: 0; }
+.tbl__head > span { white-space: nowrap; }
+.edfoot > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.edfoot__end { flex: none; }
+
+/* Encaixe: abaixo de 1280 px a janela do app é desenhada em 1280 e reduzida por inteiro (nada espremido nem cortado) */
+.fit { position: relative; min-height: 0; overflow: hidden; }
+.fit > .win { position: absolute; top: 0; left: 0; min-width: 0; transform-origin: 0 0; }
+.skbar.is-mini #skTxt { display: block; }
+.skbar.is-mini #skTxt p { display: none; }
+.skbar.is-mini #skTxt .skbar__pc { margin-top: 2px; }
+
+</style>
+<div class="stage">
+  <div class="skbar">
+    <div class="skbar__pick">
+      <span class="skbar__label">Esboço da tela Configs</span>
+      <div class="segmented" role="radiogroup" aria-label="Escolher o esboço" id="skSel">
+        <button type="button" role="radio" data-n="1" aria-checked="true">1 · Três colunas</button>
+        <button type="button" role="radio" data-n="2" aria-checked="false">2 · Lista larga</button>
+        <button type="button" role="radio" data-n="3" aria-checked="false">3 · Editor amplo</button>
+      </div>
+    </div>
+    <div class="skbar__txt"><div class="skbar__line"><strong id="skName"></strong><button type="button" class="btn btn--link skbar__hide" id="skHide" aria-expanded="true">Esconder a explicação</button></div><div id="skTxt"></div></div>
+  </div>
+<div class="win" id="win">
+  <div class="titlebar">
+    <div class="titlebar__drag"></div>
+    <div class="winctl" role="group" aria-label="Janela">
+      <button type="button" data-act="proto" data-msg="No app, este botão minimiza a janela." aria-label="Minimizar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <button type="button" data-act="proto" data-msg="No app, este botão restaura o tamanho da janela." aria-label="Restaurar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/></svg></button>
+      <button type="button" class="close" data-act="proto" data-msg="No app, este botão fecha o Warden." aria-label="Fechar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+  </div>
+
+  <header class="packhead" aria-label="Pack aberto">
+    <button type="button" class="btn btn--ghost btn--sm" data-act="proto" data-msg="Volta para Meus packs. Fora deste protótipo."><span data-ic="arrow-left" data-cls="icon--sm"></span>Meus packs</button>
+    <span class="packhead__sep" aria-hidden="true"></span>
+    <div class="packhead__id">
+      <span id="packTile"></span>
+      <div>
+        <h1>Zoonicraft</h1>
+        <div class="packhead__meta"><span>Minecraft <span class="mono">1.21.1</span></span><span class="dot" aria-hidden="true"></span><span>NeoForge <span class="mono">21.1.264</span></span><span class="dot" aria-hidden="true"></span><span>versão <span class="mono">0.1.2</span></span></div>
+      </div>
+    </div>
+    <div class="packhead__actions">
+      <button type="button" class="btn" id="saveBtn" data-act="proto" data-msg="Salvar versão abre o resumo das alterações. Fora deste protótipo." aria-label="Salvar versão, 16 alterações não salvas"><span data-ic="save"></span>Salvar versão<span class="btn__count" id="saveCount">16 alterações</span></button>
+      <div class="testbtn">
+        <span class="testbtn__antenna" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <button type="button" class="btn btn--primary testbtn__main" data-act="test"><span data-ic="play" data-cls="icon--fill"></span>Testar</button>
+        <button type="button" class="btn btn--primary testbtn__more" id="testMore" data-act="test-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Mais opções do teste"><span data-ic="chevron-down"></span></button>
+      </div>
+    </div>
+  </header>
+  <div id="body"></div>
+  <footer class="statusbar">
+    <button type="button" class="statusbar__tasks" id="tasks" data-act="proto" data-msg="Abre o painel de Tarefas. Fora deste protótipo."><span data-ic="layers" data-cls="icon--sm"></span><span id="tasksText">Nenhuma tarefa em andamento</span></button>
+    <span class="statusbar__end">Warden 1.0.1</span>
+  </footer>
+</div>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div id="qoHost"></div>
+<script>
+(function () {
+  "use strict";
+  const ICONS = {"puzzle":"<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />","file-code":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 12.5 8 15l2 2.5\" /><path d=\"m14 12.5 2 2.5-2 2.5\" />","triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />","sparkles":"<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />","history":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />","package":"<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /><path d=\"M12 22V12\" /><polyline points=\"3.29 7 12 12 20.71 7\" /><path d=\"m7.5 4.27 9 5.15\" />","search":"<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />","plus":"<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />","send":"<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /><path d=\"m21.854 2.147-10.94 10.939\" />","chevron-right":"<path d=\"m9 18 6-6-6-6\" />","chevron-down":"<path d=\"m6 9 6 6 6-6\" />","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />","trash-2":"<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />","x":"<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />","check":"<path d=\"M20 6 9 17l-5-5\" />","undo-2":"<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />","file-text":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" />","save":"<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\" /><path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\" /><path d=\"M7 3v4a1 1 0 0 0 1 1h7\" />","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />","info":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />","copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />","arrow-left":"<path d=\"m12 19-7-7 7-7\" /><path d=\"M19 12H5\" />","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />","layers":"<path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z\" /><path d=\"M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12\" /><path d=\"M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17\" />","circle-check":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />","boxes":"<path d=\"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z\" /><path d=\"m7 16.5-4.74-2.85\" /><path d=\"m7 16.5 5-3\" /><path d=\"M7 16.5v5.17\" /><path d=\"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z\" /><path d=\"m17 16.5-5-3\" /><path d=\"m17 16.5 4.74-2.85\" /><path d=\"M17 16.5v5.17\" /><path d=\"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z\" /><path d=\"M12 8 7.26 5.15\" /><path d=\"m12 8 4.74-2.85\" /><path d=\"M12 13.5V8\" />","cpu":"<path d=\"M12 20v2\" /><path d=\"M12 2v2\" /><path d=\"M17 20v2\" /><path d=\"M17 2v2\" /><path d=\"M2 12h2\" /><path d=\"M2 17h2\" /><path d=\"M2 7h2\" /><path d=\"M20 12h2\" /><path d=\"M20 17h2\" /><path d=\"M20 7h2\" /><path d=\"M7 20v2\" /><path d=\"M7 2v2\" /><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" /><rect x=\"8\" y=\"8\" width=\"8\" height=\"8\" rx=\"1\" />","flask-conical":"<path d=\"M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2\" /><path d=\"M6.453 15h11.094\" /><path d=\"M8.5 2h7\" />","circle-alert":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\" /><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\" />","minus":"<path d=\"M5 12h14\" />"};
+  Object.assign(ICONS, {
+    folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+    "folder-open": '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+    file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+    "panel-left": '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
+    "panel-right": '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>',
+    ellipsis: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+    "arrow-right": '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    columns: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/>',
+    gamepad: '<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"/>',
+    sliders: '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+    "text-lines": '<path d="M17 6H3"/><path d="M21 12H3"/><path d="M15.1 18H3"/>',
+  });
+  const ic = (n, c) => `<svg class="icon ${c || ""}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[n] || ""}</svg>`;
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const hydrate = (root) => $$("[data-ic]", root).forEach((el) => { el.outerHTML = ic(el.dataset.ic, el.dataset.cls); });
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const show$ = (v) => (typeof v === "boolean" ? (v ? "true" : "false") : String(v));
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+  /* Ícone do pack (igual ao protótipo) */
+  (function tile() {
+    const rows = ["..XXXX..", ".XAAAAX.", "XABAABAX", "XAACCAAX", "XAACCAAX", "XABAABAX", ".XAAAAX.", "..XXXX.."];
+    const col = { X: "#1e4552", A: "#0e2630", B: "#19d3e0", C: "#cfe3da", ".": "#12313c" };
+    let r = "";
+    rows.forEach((row, y) => [...row].forEach((ch, x) => { r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"/>`; }));
+    const t = $("#packTile");
+    if (t) t.outerHTML = `<svg class="tile" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+  })();
+
+  /* =================== Dados do esboço (pack Zoonicraft) =================== */
+  const MODS = {
+    dh: { n: "Distant Horizons", v: "2.3.2" },
+    sodium: { n: "Sodium", v: "0.6.5" },
+    iris: { n: "Iris", v: "1.8.1" },
+    jei: { n: "Just Enough Items", v: "19.21.0" },
+    jade: { n: "Jade", v: "15.8.3" },
+    xaero: { n: "Xaero's Minimap", v: "25.0.0" },
+    create: { n: "Create", v: "6.0.4" },
+    flywheel: { n: "Flywheel", v: "1.0.1" },
+    ponder: { n: "Ponder", v: "1.0.46" },
+    ca: { n: "Crash Assistant", v: "1.11.14" },
+    spark: { n: "spark", v: "1.10.124" },
+    kubejs: { n: "KubeJS", v: "2101.7.1" },
+    neoforge: { n: "NeoForge", v: "21.1.264" },
+    game: { n: "Minecraft", v: "1.21.1" },
+  };
+  // v = valor no pack (ou no único lugar onde o arquivo existe); t = valor no teste local quando difere do pack.
+  const DOCS = {
+    dh: {
+      fmt: "toml", neo: true, lang: "pt_br.json do mod",
+      secs: [
+        { id: "client.advanced.graphics.quality", t: "Qualidade", keys: [
+          { k: "lodChunkRenderDistanceRadius", l: "Distância dos LODs", d: "Até onde o terreno simplificado é desenhado. Quanto maior, mais pesado.", c: "The radius of the mod's render distance. (measured in chunks)", ty: "int", r: [32, 4096], u: "chunks", def: 128, v: 256, t: 128 },
+          { k: "horizontalQuality", l: "Qualidade horizontal", d: "Detalhe do terreno distante visto de cima.", c: "This indicates how quickly LODs decrease in quality the further away they are.", ty: "enum", o: ["LOWEST", "LOW", "MEDIUM", "HIGH", "EXTREME"], def: "MEDIUM", v: "MEDIUM" },
+          { k: "verticalQuality", l: "Qualidade vertical", d: "Quantas camadas de altura cada LOD guarda.", c: "This indicates how detailed LODs will be vertically.", ty: "enum", o: ["HEIGHT_MAP", "LOW", "MEDIUM", "HIGH", "EXTREME"], def: "MEDIUM", v: "HIGH" },
+          { k: "lodBiomeBlending", l: "Mistura de biomas", d: "Suaviza a cor na divisa entre biomas.", c: "How much should the colors of neighboring biomes be blended together?", ty: "int", r: [0, 7], v: 3 },
+        ] },
+        { id: "client.advanced.graphics.ssao", t: "Sombreamento (SSAO)", keys: [
+          { k: "enableSsao", l: "Ligar o SSAO", d: "Sombras suaves nos cantos do terreno distante. Pesa na placa de vídeo.", c: "Enable Screen Space Ambient Occlusion", ty: "bool", def: true, v: true, t: false },
+        ] },
+        { id: "client.advanced.graphics.culling", t: "Cavernas", keys: [
+          { k: "enableCaveCulling", l: "Esconder cavernas distantes", d: "Não desenha cavernas que não aparecem da superfície.", c: "If enabled caves will be culled.", ty: "bool", def: true, v: true },
+          { k: "caveCullingHeight", l: "Altura do corte de cavernas", d: "Abaixo desta altura, cavernas distantes não são desenhadas.", c: "At what Y value should cave culling start?", ty: "int", r: [-4096, 4096], u: "blocos", def: 40, v: 60 },
+        ] },
+        { id: "common.worldGenerator", t: "Geração distante", keys: [
+          { k: "enableDistantGeneration", l: "Gerar terreno distante", d: "Cria LODs de áreas que você ainda não visitou.", c: "Should Distant Horizons slowly generate LODs outside the vanilla render distance?", ty: "bool", def: true, v: true },
+          { k: "distantGeneratorMode", l: "Modo de geração", d: "SURFACE é mais leve; FEATURES inclui árvores e estruturas.", c: "How detailed should LODs be generated outside the vanilla render distance?", ty: "enum", o: ["PRE_EXISTING_ONLY", "SURFACE", "FEATURES", "INTERNAL_SERVER"], def: "FEATURES", v: "SURFACE" },
+        ] },
+        { id: "common.multiThreading", t: "Processamento", keys: [
+          { k: "threadPresetSetting", l: "Uso do processador", d: "Quantos núcleos o Distant Horizons pode usar ao mesmo tempo.", c: "Quickly change multiple thread settings at once.", ty: "enum", o: ["MINIMAL_IMPACT", "LOW_IMPACT", "BALANCED", "AGGRESSIVE", "I_PAID_FOR_THE_WHOLE_CPU"], def: "LOW_IMPACT", v: "BALANCED" },
+        ] },
+      ],
+    },
+    sodium: {
+      fmt: "json", lang: "pt_br.json do mod",
+      secs: [
+        { id: "quality", t: "Qualidade", keys: [
+          { k: "weather_quality", l: "Qualidade do clima", ty: "text", v: "DEFAULT" },
+          { k: "leaves_quality", l: "Qualidade das folhas", ty: "text", v: "DEFAULT" },
+          { k: "enable_vignette", l: "Vinheta", d: "Escurece as bordas da tela.", ty: "bool", v: true },
+        ] },
+        { id: "performance", t: "Desempenho", keys: [
+          { k: "chunk_builder_threads", l: "Linhas de montagem de chunks", d: "0 deixa o Sodium escolher.", ty: "int", v: 0 },
+          { k: "always_defer_chunk_updates_v2", l: "Adiar atualização de chunks", ty: "bool", v: true },
+          { k: "animate_only_visible_textures", l: "Animar só texturas visíveis", ty: "bool", v: true },
+          { k: "use_entity_culling", l: "Não desenhar entidades escondidas", ty: "bool", v: true },
+          { k: "use_fog_occlusion", l: "Esconder o que a neblina cobre", ty: "bool", v: true },
+          { k: "use_block_face_culling", l: "Não desenhar faces escondidas", ty: "bool", v: true },
+        ] },
+        { id: "advanced", t: "Avançado", keys: [
+          { k: "cpu_render_ahead_limit", l: "Quadros preparados adiante", ty: "int", v: 3 },
+        ] },
+      ],
+    },
+    iris: { fmt: "properties", secs: [{ id: "", t: "Shaders", keys: [
+      { k: "enableShaders", l: "Shaders ligados", ty: "bool", v: true },
+      { k: "shaderPack", l: "Pacote de shaders", ty: "text", v: "ComplementaryReimagined_r5.4.zip" },
+      { k: "colorSpace", l: "Espaço de cor", ty: "text", v: "SRGB" },
+      { k: "disableUpdateMessage", l: "Esconder aviso de atualização", ty: "bool", v: true },
+    ] }] },
+    jade: { fmt: "json", secs: [{ id: "general", t: "Geral", keys: [
+      { k: "displayTooltip", l: "Mostrar a caixa de informações", ty: "bool", v: true },
+      { k: "displayMode", l: "Modo de exibição", ty: "text", v: "HOLD_KEY" },
+      { k: "enableTextToSpeech", l: "Ler em voz alta", ty: "bool", v: false },
+    ] }, { id: "overlay", t: "Aparência", keys: [
+      { k: "overlayAlpha", l: "Transparência do fundo", ty: "float", v: 0.7 },
+      { k: "overlayScale", l: "Tamanho", ty: "float", v: 1.0 },
+    ] }] },
+    spark: { fmt: "json", secs: [{ id: "", t: "spark", keys: [
+      { k: "backgroundProfiler", l: "Perfil em segundo plano", d: "O Warden usa para medir o desempenho do teste.", ty: "bool", v: true },
+      { k: "backgroundProfilerEngine", l: "Motor do perfil", ty: "text", v: "async" },
+    ] }] },
+    ca: { fmt: "toml", note: "Criado pelo Warden quando o pack foi criado.", secs: [
+      { id: "general", t: "Geral", keys: [
+        { k: "send_uploaded_logs_data_to_kostromdan_dev", l: "Enviar dados dos logs ao autor do mod", ty: "bool", v: false, c: "Não enviar ao autor do mod os metadados dos logs enviados (1.11.12 em diante)." },
+        { k: "wrap_link", l: "Site do link do log", ty: "text", v: "mclo.gs", c: "Copiar o link do próprio mclo.gs, sem visualizador no meio (1.11.12 em diante)." },
+      ] },
+      { id: "piracy", t: "Aviso de pirataria", keys: [
+        { k: "enabled", l: "Mostrar o aviso", ty: "bool", v: false, c: "Sem o aviso de pirataria (só vale com help_link configurado)." },
+      ] },
+    ] },
+    createServer: { fmt: "toml", neo: true, server: true, secs: [
+      { id: "kinetics", t: "Cinética", keys: [
+        { k: "maxBeltLength", l: "Comprimento máximo da esteira", ty: "int", r: [5, 2147483647], u: "blocos", def: 20, v: 32, c: "Maximum length in blocks of mechanical belts." },
+        { k: "maxChassisRange", l: "Alcance máximo do chassi", ty: "int", r: [1, 2147483647], u: "blocos", def: 16, v: 16, c: "Maximum value of a chassis attachment range." },
+        { k: "maxPistonPoles", l: "Hastes do pistão mecânico", ty: "int", r: [1, 2147483647], def: 64, v: 64, c: "Maximum amount of extension poles behind a Mechanical Piston." },
+        { k: "crushingDamage", l: "Dano das rodas trituradoras", ty: "int", r: [0, 2147483647], def: 4, v: 4, c: "Damage dealt by active Crushing Wheels." },
+      ] },
+    ] },
+    createClient: { fmt: "toml", neo: true, secs: [
+      { id: "client", t: "Cliente", keys: [
+        { k: "enableTooltips", l: "Dicas nos itens", d: "Explica o item com Shift e os controles com Ctrl.", ty: "bool", def: true, v: true, c: "Show item descriptions on Shift and controls on Ctrl." },
+        { k: "enableOverstressedTooltip", l: "Aviso de sobrecarga", ty: "bool", def: true, v: true, c: "Display a tooltip when looking at overstressed components." },
+        { k: "fanParticleDensity", l: "Partículas do ventilador", ty: "float", r: [0, 1], def: 0.5, v: 0.5, c: "Higher density means more spawned particles." },
+        { k: "mainMenuConfigButtonRow", l: "Linha do botão no menu principal", d: "0 tira o botão do menu.", ty: "int", r: [0, 4], def: 2, v: 2, c: "Choose the menu row that the Create config button appears on in the main menu" },
+      ] },
+    ] },
+    small: (fmt, secs) => ({ fmt, neo: fmt === "toml", secs }),
+    options: { fmt: "options", lang: "pt_br do Minecraft", secs: [
+      { id: "", t: "Vídeo", keys: [
+        { k: "renderDistance", l: "Distância de renderização", ty: "int", r: [2, 32], u: "chunks", v: 12 },
+        { k: "simulationDistance", l: "Distância de simulação", ty: "int", r: [5, 32], u: "chunks", v: 8 },
+        { k: "guiScale", l: "Tamanho da interface", d: "0 é automático.", ty: "int", r: [0, 6], v: 3 },
+        { k: "maxFps", l: "Limite de quadros", ty: "int", r: [10, 260], u: "fps", v: 144 },
+        { k: "enableVsync", l: "Sincronização vertical", ty: "bool", v: false },
+      ] },
+      { id: "", t: "Som", keys: [
+        { k: "soundCategory_master", l: "Volume geral", ty: "float", r: [0, 1], v: 0.6 },
+        { k: "soundCategory_music", l: "Música", ty: "float", r: [0, 1], v: 0.2 },
+      ] },
+      { id: "", t: "Teclas", keys: [
+        { k: "key_key.sprint", l: "Correr", ty: "text", v: "key.keyboard.left.control" },
+        { k: "key_key.inventory", l: "Inventário", ty: "text", v: "key.keyboard.e" },
+        { k: "key_key.xaero_open_map", l: "Abrir o mapa (Xaero)", ty: "text", v: "key.keyboard.m" },
+      ] },
+      { id: "", t: "Idioma", keys: [{ k: "lang", l: "Idioma do jogo", ty: "text", v: "pt_br" }] },
+    ] },
+  };
+  const RAW = {
+    jei: {
+      v: "[appearance]\n# Description: Move the JEI search bar to the bottom center of the screen.\n# Valid Values: [true, false]\n# Default Value: false\nCenterSearch = false\n\n# Description: Max. recipe gui height.\n# Valid Values: Any integer greater than or equal to 175\n# Default Value: 350\nRecipeGuiHeight = 350\n\n[cheat_mode]\n# Description: Choose if JEI should give ingredients directly to the inventory or pick them up with the mouse.\n# Valid Values: [INVENTORY, MOUSE_PICKUP]\n# Default Value: MOUSE_PICKUP\nGiveMode = MOUSE_PICKUP\n\n[search]\n# Description: Search mode for Mod Names (prefix: @).\n# Valid Values: [ENABLED, REQUIRE_PREFIX, DISABLED]\n# Default Value: REQUIRE_PREFIX\nModNameSearchMode = REQUIRE_PREFIX",
+      t: { 4: "CenterSearch = true" },
+    },
+    receitas: { v: "// Receitas do Zoonicraft (KubeJS 7)\nServerEvents.recipes(event => {\n  // Engrenagem do Create mais cedo, com madeira\n  event.shaped('create:cogwheel', [\n    ' P ',\n    'PLP',\n    ' P '\n  ], {\n    P: '#minecraft:planks',\n    L: '#minecraft:logs'\n  })\n\n  // Liga de andesito sem o atalho de ferro\n  event.remove({ output: 'create:andesite_alloy', type: 'minecraft:crafting_shaped' })\n  event.shapeless('2x create:andesite_alloy', [\n    'minecraft:andesite',\n    'minecraft:iron_nugget'\n  ])\n})" },
+    dicas: { v: "// Dicas que aparecem nos itens\nItemEvents.modifyTooltips(event => {\n  event.add('create:wrench', 'Clique direito para girar blocos')\n  event.add('zoonicraft:moeda', 'Use na loja da vila')\n})" },
+    itens: { v: "// Itens novos do Zoonicraft\nStartupEvents.registry('item', event => {\n  event.create('zoonicraft:moeda').displayName('Moeda Zoon')\n})" },
+    xaero: { v: "ignoreUpdate:0\nshowWaypoints:true\nminimapSize:0\nzoom:1\nchunkGrid:-1\nminimapShape:1\nshowCoords:true\ncaveMaps:true" },
+    xaeroCommon: { v: "allowCaveModeOnServer:true\nallowNetherCaveModeOnServer:true\nregisterStatusEffects:true" },
+    jeiColors: { v: "[colors]\n# Description: Color values to search for.\n# Default Value: [Black:000000, White:FFFFFF]\nSearchColors = Black:000000, White:FFFFFF" },
+    jeiDebug: { v: "[debug]\n# Default Value: false\nDebugMode = false\n# Default Value: false\nDebugGuis = false" },
+    jeiModId: { v: "[modname]\n# Default Value: blue italic $MODNAME$\nModNameFormat = blue italic $MODNAME$" },
+  };
+  const sm = (id, t, keys) => ({ id, t, keys });
+  const SMALL = {
+    createCommon: DOCS.small("toml", [sm("", "Comum", [{ k: "logBeErrors", l: "Registrar erros dos blocos", ty: "bool", def: false, v: false }])]),
+    flywheel: DOCS.small("toml", [sm("", "Cliente", [{ k: "backend", l: "Modo de desenho", ty: "enum", o: ["DEFAULT", "INSTANCING", "INDIRECT", "OFF"], def: "DEFAULT", v: "DEFAULT" }, { k: "limitUpdates", l: "Limitar atualizações", ty: "bool", def: true, v: true }])]),
+    fml: DOCS.small("toml", [sm("", "Inicialização", [{ k: "earlyWindowControl", l: "Janela de carregamento cedo", ty: "bool", def: true, v: true }, { k: "maxThreads", l: "Linhas de carregamento", d: "-1 deixa o NeoForge escolher.", ty: "int", r: [-1, 256], def: -1, v: -1 }])]),
+    neoClient: DOCS.small("toml", [sm("client", "Cliente", [{ k: "showLoadWarnings", l: "Mostrar avisos ao carregar", ty: "bool", def: true, v: true }, { k: "experimentalForgeLightPipelineEnabled", l: "Iluminação experimental", ty: "bool", def: false, v: false }])]),
+    neoCommon: DOCS.small("toml", [sm("general", "Geral", [{ k: "logUntranslatedConfigurationWarnings", l: "Avisar configs sem tradução", ty: "bool", def: true, v: true }])]),
+    ponder: DOCS.small("toml", [sm("client", "Cliente", [{ k: "comfyReading", l: "Leitura sem pressa", ty: "bool", def: false, v: false }, { k: "editingMode", l: "Modo de edição", ty: "bool", def: false, v: false }])]),
+    jadeCreate: { fmt: "json", secs: [sm("", "Create", [{ k: "create:blaze_burner", l: "Queimador de blaze", ty: "bool", v: true }, { k: "create:goggles", l: "Óculos do engenheiro", ty: "bool", v: true }])] },
+    jadeMc: { fmt: "json", secs: [sm("", "Minecraft", [{ k: "minecraft:furnace", l: "Fornalha", ty: "bool", v: true }, { k: "minecraft:harvest_tool", l: "Ferramenta certa", ty: "bool", v: true }])] },
+    kjsClient: { fmt: "properties", secs: [sm("", "Cliente", [{ k: "showTagNames", l: "Mostrar tags nos itens", ty: "bool", v: false }, { k: "exportAtlases", l: "Exportar atlas", ty: "bool", v: false }])] },
+    kjsCommon: { fmt: "properties", secs: [sm("", "Comum", [{ k: "hideServerScriptErrors", l: "Esconder erros dos scripts", ty: "bool", v: false }, { k: "serverOnly", l: "Só no servidor", ty: "bool", v: false }])] },
+  };
+  Object.assign(DOCS, SMALL);
+
+  const F = (p, mod, where, doc, extra) => Object.assign({ p, mod, where, doc, size: "1,0 KB", when: "18/10" }, extra || {});
+  const FILES = [
+    F("config/crash_assistant/config.toml", "ca", "both", "ca", { size: "0,4 KB", when: "10/10" }),
+    F("config/DistantHorizons.toml", "dh", "both", "dh", { size: "6,2 KB", when: "hoje, 22:14" }),
+    F("config/iris.properties", "iris", "both", "iris", { size: "0,2 KB" }),
+    F("config/jade/jade.json", "jade", "both", "jade", { size: "1,1 KB" }),
+    F("config/jei/jei-client.ini", "jei", "both", "raw:jei", { size: "3,4 KB", when: "hoje, 21:50", fmt: "ini" }),
+    F("config/sodium-options.json", "sodium", "both", "sodium", { size: "0,9 KB", when: "17/10" }),
+    F("config/spark/config.json", "spark", "both", "spark", { size: "0,2 KB", when: "10/10" }),
+    F("defaultconfigs/create-server.toml", "create", "both", "createServer", { size: "9,8 KB", when: "16/10" }),
+    F("kubejs/client_scripts/dicas.js", "kubejs", "both", "raw:dicas", { size: "0,3 KB", when: "15/10", fmt: "js" }),
+    F("kubejs/server_scripts/receitas.js", "kubejs", "both", "raw:receitas", { size: "0,7 KB", when: "hoje, 20:31", fmt: "js" }),
+    F("kubejs/startup_scripts/itens.js", "kubejs", "both", "raw:itens", { size: "0,2 KB", when: "14/10", fmt: "js" }),
+    F("config/create-client.toml", "create", "test", "createClient", { size: "5,1 KB", when: "hoje, 22:02" }),
+    F("config/create-common.toml", "create", "test", "createCommon", { size: "0,6 KB" }),
+    F("config/flywheel-client.toml", "flywheel", "test", "flywheel", { size: "0,8 KB" }),
+    F("config/fml.toml", "neoforge", "test", "fml", { size: "1,6 KB" }),
+    F("config/jade/plugins/create.json", "jade", "test", "jadeCreate", { size: "0,4 KB" }),
+    F("config/jade/plugins/minecraft.json", "jade", "test", "jadeMc", { size: "2,2 KB" }),
+    F("config/jei/jei-colors.ini", "jei", "test", "raw:jeiColors", { size: "1,9 KB", fmt: "ini" }),
+    F("config/jei/jei-debug.ini", "jei", "test", "raw:jeiDebug", { size: "0,5 KB", fmt: "ini" }),
+    F("config/jei/jei-mod-id-format.ini", "jei", "test", "raw:jeiModId", { size: "0,3 KB", fmt: "ini" }),
+    F("config/neoforge-client.toml", "neoforge", "test", "neoClient", { size: "2,7 KB" }),
+    F("config/neoforge-common.toml", "neoforge", "test", "neoCommon", { size: "0,9 KB" }),
+    F("config/ponder-client.toml", "ponder", "test", "ponder", { size: "0,5 KB" }),
+    F("config/xaerominimap-common.txt", "xaero", "test", "raw:xaeroCommon", { size: "0,2 KB", fmt: "text" }),
+    F("kubejs/config/client.properties", "kubejs", "test", "kjsClient", { size: "0,3 KB" }),
+    F("kubejs/config/common.properties", "kubejs", "test", "kjsCommon", { size: "0,3 KB" }),
+    F("options.txt", "game", "personal", "options", { size: "4,8 KB", when: "hoje, 22:10", label: "Opções do jogo", sub: "vídeo, som e teclas" }),
+    F("config/xaerominimap.txt", "xaero", "personal", "raw:xaero", { size: "1,2 KB", when: "hoje, 22:10", fmt: "text", label: "Minimapa", sub: "Xaero's Minimap" }),
+  ];
+  const byPath = (p) => FILES.find((f) => f.p === p);
+  const FMT_NAME = { toml: "TOML", json: "JSON", properties: "Propriedades", options: "options.txt", ini: "INI", js: "JavaScript", text: "Texto" };
+  const FORMCAP = { toml: 1, json: 1, properties: 1, options: 1 };
+
+  const isRaw = (f) => f.doc.startsWith("raw:");
+  const doc = (f) => (isRaw(f) ? null : DOCS[f.doc]);
+  const raw = (f) => (isRaw(f) ? RAW[f.doc.slice(4)] : null);
+  const fmtOf = (f) => f.fmt || doc(f).fmt;
+  const nameOf = (f) => f.label || MODS[f.mod].n;
+  const fileName = (f) => f.p.split("/").pop();
+  const allKeys = (f) => (doc(f) ? doc(f).secs.flatMap((s) => s.keys) : []);
+
+  /* =================== Estado =================== */
+  const S = { sk: "1", origin: "test", cmp: false, mode: "form", file: "config/DistantHorizons.toml", q: "", fChanged: false, fDiff: false,
+    open: new Set(["p:config", "p:kubejs", "p:kubejs/server_scripts", "p:defaultconfigs"]), det: true, open2: false, nav3: false,
+    over: {}, saved: 16, fq: "", ffc: false, ffd: false, qo: false, qoq: "", flash: null, mod: "" };
+
+  const okey = (f, origin, k) => `${f.p}|${origin}|${k}`;
+  function val(f, key, origin) {
+    const o = S.over[okey(f, origin, key.k)];
+    if (o !== undefined) return o;
+    if (origin === "pack") return key.v;
+    return key.t !== undefined ? key.t : key.v;
+  }
+  const keyDiff = (f, key) => f.where === "both" && key.t !== undefined && key.t !== key.v;
+  const rawDiffs = (f) => (f.where === "both" && raw(f) && raw(f).t ? Object.keys(raw(f).t).length : 0);
+  const diffCount = (f) => (isRaw(f) ? rawDiffs(f) : allKeys(f).filter((k) => keyDiff(f, k)).length);
+  const changedCount = (f, origin) => allKeys(f).filter((k) => k.def !== undefined && val(f, k, origin) !== k.def).length;
+  const hasDefaults = (f) => allKeys(f).some((k) => k.def !== undefined);
+  const dirtyCount = (f, origin) => Object.keys(S.over).filter((x) => x.startsWith(`${f.p}|${origin}|`)).length;
+  const inOrigin = (f, origin) => (origin === "pack" ? f.where === "both" : true);
+  const viewOrigin = () => (S.cmp ? "test" : S.origin);
+
+  /* =================== Busca em todas as configs =================== */
+  function search(q, origin) {
+    const n = norm(q.trim());
+    if (!n) return [];
+    const out = [];
+    FILES.filter((f) => (origin === "pack" ? f.where === "both" : true)).forEach((f) => {
+      const hits = [];
+      allKeys(f).forEach((k) => {
+        const v = show$(val(f, k, origin));
+        const where = norm(k.k).includes(n) ? "k" : norm(k.l).includes(n) ? "l" : norm(v).includes(n) ? "v" : norm(k.c || k.d || "").includes(n) ? "c" : null;
+        if (where) hits.push({ k, v, where });
+      });
+      if (raw(f)) raw(f).v.split("\n").forEach((line, i) => { if (!line.trim().startsWith("#") && norm(line).includes(n)) hits.push({ line: line.trim(), i }); });
+      const fileHit = norm(f.p).includes(n) || norm(nameOf(f)).includes(n);
+      if (hits.length || fileHit) out.push({ f, hits, fileHit });
+    });
+    return out;
+  }
+  const hl = (text, q) => {
+    const n = norm(q.trim());
+    const t = String(text);
+    const i = norm(t).indexOf(n);
+    if (!n || i < 0) return esc(t);
+    return esc(t.slice(0, i)) + "<mark>" + esc(t.slice(i, i + n.length)) + "</mark>" + esc(t.slice(i + n.length));
+  };
+
+  /* =================== Pedaços comuns =================== */
+  const originSeg = (three) => {
+    const b = (o, label, icon, cur) => `<button type="button" role="radio" data-origin="${o}" aria-checked="${cur}">${ic(icon)}<span class="lbl">${label}</span></button>`;
+    return `<div class="segmented ${three ? "" : "segmented--wide"}" role="radiogroup" aria-label="Quais configs mostrar">
+      ${b("pack", "Do pack", "users", !S.cmp && S.origin === "pack")}${b("test", "Do teste local", "monitor", !S.cmp && S.origin === "test")}${three ? b("cmp", "Comparar", "columns", S.cmp) : ""}</div>`;
+  };
+  const originCap = () => S.cmp
+    ? `<p class="origin__cap"><b>Comparar:</b> o teste local ao lado do pack.</p>`
+    : S.origin === "pack"
+      ? `<p class="origin__cap origin__cap--pack"><b>Vão para os jogadores</b> na próxima versão publicada.</p>`
+      : `<p class="origin__cap origin__cap--test"><b>Só neste computador.</b> Valem nos seus testes; os jogadores não recebem.</p>`;
+  const modeSeg = (f, short) => {
+    const can = FORMCAP[fmtOf(f)];
+    return `<div class="segmented seg-mode" role="radiogroup" aria-label="Modo do editor">
+      <button type="button" role="radio" data-mode="form" aria-checked="${S.mode === "form" && can ? "true" : "false"}" ${can ? "" : 'aria-disabled="true" title="Este arquivo só pode ser editado como texto."'}>${short ? ic("sliders") : ""}<span class="lbl">Formulário</span></button>
+      <button type="button" role="radio" data-mode="text" aria-checked="${S.mode === "text" || !can ? "true" : "false"}">${short ? ic("text-lines") : ""}<span class="lbl">Texto</span></button></div>`;
+  };
+  const qbox = (id, ph, value, kbd) => `<div class="qbox">${ic("search")}<label class="sr-only" for="${id}">${ph}</label><input id="${id}" class="input" type="search" placeholder="${ph}" value="${esc(value)}" autocomplete="off" spellcheck="false">${kbd && !value ? `<kbd>${kbd}</kbd>` : ""}</div>`;
+  const filterChips = (origin, stacked) => {
+    const files = FILES.filter((f) => inOrigin(f, origin));
+    const nc = files.filter((f) => changedCount(f, origin) > 0).length;
+    const nd = files.filter((f) => diffCount(f) > 0).length;
+    return `<div class="fchips ${stacked ? "fchips--stack" : ""}" role="group" aria-label="Filtros">
+      <button type="button" class="fchip" data-act="fchg" aria-pressed="${S.fChanged}" title="Só arquivos com chaves diferentes do padrão que o próprio arquivo informa">${stacked ? "Só o que mudou do padrão" : "Mudou do padrão"} <span class="n">${nc}</span></button>
+      ${origin === "test" ? `<button type="button" class="fchip fchip--test" data-act="fdiff" aria-pressed="${S.fDiff}" title="Só arquivos em que o teste local está diferente do pack"><span class="sq"></span>${stacked ? "Só o que difere do pack" : "Diferente do pack"} <span class="n">${nd}</span></button>` : ""}
+    </div>`;
+  };
+  function filtered(origin) {
+    return FILES.filter((f) => inOrigin(f, origin) && f.where !== "personal")
+      .filter((f) => !S.fChanged || changedCount(f, origin) > 0)
+      .filter((f) => !S.fDiff || origin !== "test" || diffCount(f) > 0)
+      .filter((f) => !S.mod || f.mod === S.mod);
+  }
+  const personal = () => FILES.filter((f) => f.where === "personal");
+
+  function mark(f, origin, quiet) {
+    const d = diffCount(f);
+    const dirty = dirtyCount(f, origin) > 0 ? `<span class="mk mk--dirty" title="Alterações não salvas"></span>` : "";
+    if (quiet && f.where !== "both") return dirty;
+    if (f.where === "personal") return dirty + `<span class="mk mk--own" title="Preferência pessoal: só neste computador">${ic("lock")}</span>`;
+    if (f.where === "test") return dirty + `<span class="mk mk--new" title="Só existe no teste local. Os jogadores não recebem.">fora do pack</span>`;
+    if (d) return dirty + `<span class="mk mk--diff" title="${origin === "test" ? `${plural(d, "chave diferente", "chaves diferentes")} do pack` : `O teste local tem ${plural(d, "diferença", "diferenças")}`}">${d}</span>`;
+    return dirty;
+  }
+
+  /* Árvore por pastas (opção 1), separada por lugar */
+  function folderTree(files, origin, pre) {
+    const root = { dirs: {}, files: [] };
+    files.forEach((f) => {
+      const parts = f.p.split("/");
+      let node = root;
+      parts.slice(0, -1).forEach((part, i) => {
+        const path = parts.slice(0, i + 1).join("/");
+        node.dirs[part] = node.dirs[part] || { path, dirs: {}, files: [] };
+        node = node.dirs[part];
+      });
+      node.files.push(f);
+    });
+    const count = (n) => n.files.length + Object.values(n.dirs).reduce((a, d) => a + count(d), 0);
+    const filtering = S.fChanged || S.fDiff || S.mod;
+    const render = (node, lvl) => {
+      let h = "";
+      Object.keys(node.dirs).sort((a, b) => a.localeCompare(b)).forEach((name) => {
+        const d = node.dirs[name];
+        const key = pre + d.path;
+        const open = filtering || S.open.has(key) || files.some((f) => f.p === S.file && f.p.startsWith(d.path + "/"));
+        h += `<button type="button" class="tnode tnode--dir" role="treeitem" aria-expanded="${open}" data-dir="${key}" style="--lvl:${lvl}">${ic("chevron-right", "tnode__chev")}${ic(open ? "folder-open" : "folder")}<span class="tnode__name">${name}</span><span class="tnode__end">${count(d)}</span></button>`;
+        if (open) h += `<div role="group">${render(d, lvl + 1)}</div>`;
+      });
+      node.files.sort((a, b) => a.p.localeCompare(b.p)).forEach((f) => {
+        h += `<button type="button" class="tnode tnode--file" role="treeitem" aria-selected="${S.file === f.p}" data-file="${f.p}" title="${f.p}" style="--lvl:${lvl}"><span></span>${ic(fmtOf(f) === "js" ? "file-code" : "file")}<span class="tnode__name">${fileName(f)}</span><span class="tnode__end">${mark(f, origin, true)}</span></button>`;
+      });
+      return h;
+    };
+    return render(root, 0);
+  }
+  function tree(origin) {
+    const files = filtered(origin);
+    const inPack = files.filter((f) => f.where === "both");
+    const onlyTest = files.filter((f) => f.where === "test");
+    let h = "";
+    if (origin === "test") {
+      h += `<div class="tgroup tgroup--pack">${ic("users")}No pack<span class="n">${inPack.length}</span></div>`;
+      h += inPack.length ? `<div role="tree" aria-label="Configs que estão no pack">${folderTree(inPack, origin, "p:")}</div>` : `<p class="tnote">Nenhuma com esses filtros.</p>`;
+      h += `<div class="tgroup tgroup--test">${ic("monitor")}Só no teste<span class="n">${onlyTest.length}</span></div><p class="tnote">O jogo criou ao abrir. Os jogadores não recebem.</p>`;
+      h += onlyTest.length ? `<div role="tree" aria-label="Configs que estão só no teste">${folderTree(onlyTest, origin, "t:")}</div>` : "";
+      h += `<div class="tgroup tgroup--own">${ic("lock")}Só neste computador<span class="n">${personal().length}</span></div><p class="tnote">Preferências pessoais. Voltam em todo teste.</p>`;
+      h += personal().map((f) => `<button type="button" class="tnode tnode--file tnode--friendly" role="treeitem" aria-selected="${S.file === f.p}" data-file="${f.p}" title="${f.p}" style="--lvl:0"><span></span>${ic(f.p === "options.txt" ? "gamepad" : "file")}<span class="tnode__name">${f.label}<span class="sub">${fileName(f)}</span></span><span class="tnode__end">${mark(f, origin, true)}</span></button>`).join("");
+    } else {
+      h += inPack.length ? `<div role="tree" aria-label="Configs do pack">${folderTree(inPack, origin, "p:")}</div>` : `<p class="res__empty">Nenhum arquivo com esses filtros.</p>`;
+      const only = FILES.filter((f) => f.where === "test").length;
+      h += `<div class="hintbox"><span><strong>${only} configs estão só no teste.</strong> O jogo criou esses arquivos ao abrir. Os jogadores só recebem o que você trouxer para o pack.</span><button type="button" class="btn btn--sm" data-act="goTest">${ic("monitor", "icon--sm")}Ver no teste local</button></div>`;
+    }
+    return h;
+  }
+
+  function results(origin) {
+    const res = search(S.q, origin);
+    if (!res.length) return `<p class="res__empty">Nada encontrado para “${esc(S.q.trim())}”${origin === "pack" ? " no pack. Tente no teste local, onde ficam as configs que o jogo criou." : "."}</p>`;
+    const nh = res.reduce((a, r) => a + Math.max(r.hits.length, 1), 0);
+    return `<p class="res__sum">${plural(nh, "resultado", "resultados")} em ${plural(res.length, "arquivo", "arquivos")}</p>` + res.map(({ f, hits }) => `
+      <button type="button" class="res__file" data-file="${f.p}"><span class="res__mod">${esc(nameOf(f))}</span><span class="tnode__end">${mark(f, origin)}</span><span class="res__path">${hl(f.p, S.q)}</span></button>
+      ${hits.slice(0, 3).map((h) => h.k
+        ? `<button type="button" class="res__hit" data-file="${f.p}" data-key="${h.k.k}"><span class="k">${hl(h.k.k, S.q)}</span><span class="v">${hl(h.v, S.q)}</span><span class="s">${hl(h.k.l, S.q)}</span></button>`
+        : `<button type="button" class="res__hit" data-file="${f.p}"><span class="k">${hl(h.line, S.q)}</span><span class="v">linha ${h.i + 1}</span></button>`).join("")}`).join("");
+  }
+
+  /* =================== Editor =================== */
+  const tomlv = (v, ty) => (typeof v === "string" ? `"${v}"` : ty === "float" && Number.isInteger(v) ? v.toFixed(1) : String(v));
+  function textLines(f, origin) {
+    // [{x: texto, key}] para o arquivo na origem
+    const out = [];
+    const R = raw(f);
+    if (R) {
+      R.v.split("\n").forEach((x, i) => {
+        const t = origin !== "pack" && R.t && R.t[i] !== undefined ? R.t[i] : null;
+        out.push({ x: t || x, diff: t ? x : null });
+      });
+      return out;
+    }
+    const D = doc(f);
+    const fmt = D.fmt;
+    if (fmt === "json") {
+      out.push({ x: "{" });
+      const secs = D.secs;
+      secs.forEach((s, si) => {
+        const ind = s.id ? "    " : "  ";
+        if (s.id) out.push({ x: `  "${s.id}": {` });
+        s.keys.forEach((k, ki) => {
+          const last = ki === s.keys.length - 1;
+          out.push({ x: `${ind}"${k.k}": ${typeof val(f, k, origin) === "string" ? `"${val(f, k, origin)}"` : show$(val(f, k, origin))}${last ? "" : ","}`, key: k });
+        });
+        if (s.id) out.push({ x: `  }${si === secs.length - 1 ? "" : ","}` });
+      });
+      out.push({ x: "}" });
+      return out;
+    }
+    if (fmt === "options") {
+      allKeys(f).forEach((k) => out.push({ x: `${k.k}:${show$(val(f, k, origin))}`, key: k }));
+      return out;
+    }
+    if (fmt === "properties") {
+      out.push({ x: `#${nameOf(f)}` });
+      allKeys(f).forEach((k) => out.push({ x: `${k.k}=${show$(val(f, k, origin))}`, key: k }));
+      return out;
+    }
+    if (D.note) out.push({ x: "# Config inicial escrita pelo Warden (só chaves documentadas pelo autor do Crash Assistant)." }, { x: "# Pode editar à vontade: o Warden não reescreve este arquivo." });
+    D.secs.forEach((s, si) => {
+      const tab = s.id ? "\t" : "";
+      if (s.id) out.push({ x: `[${s.id}]` });
+      s.keys.forEach((k) => {
+        if (k.c) out.push({ x: `${tab}#${D.neo ? "" : " "}${k.c}` });
+        if (k.r && D.neo) out.push({ x: `${tab}# Range: ${k.r[0]} ~ ${k.r[1]}` });
+        if (k.o && D.neo) out.push({ x: `${tab}# Allowed Values: ${k.o.join(", ")}` });
+        if (k.def !== undefined && D.neo) out.push({ x: `${tab}# Default: ${tomlv(k.def, k.ty)}` });
+        out.push({ x: `${tab}${k.k} = ${tomlv(val(f, k, origin), k.ty)}`, key: k });
+      });
+      if (si < D.secs.length - 1) out.push({ x: "" });
+    });
+    return out;
+  }
+  function paint(x, fmt) {
+    const e = esc(x);
+    const valc = (v) => {
+      const t = v.trim();
+      if (/^-?\d+(\.\d+)?$/.test(t.replace(/,$/, ""))) return `<span class="n">${v}</span>`;
+      if (/^(true|false),?$/.test(t)) return `<span class="b">${v}</span>`;
+      if (/^&quot;|^"/.test(t)) return `<span class="q">${v}</span>`;
+      return v;
+    };
+    if (fmt === "js") {
+      if (/^\s*\/\//.test(x)) return `<span class="c">${e}</span>`;
+      return e.replace(/('[^']*')/g, '<span class="q">$1</span>').replace(/\b(ServerEvents|ItemEvents|StartupEvents)\b/g, '<span class="k">$1</span>').replace(/\b(event)\b/g, '<span class="kw">$1</span>');
+    }
+    if (/^\s*[#;]/.test(x)) return `<span class="c">${e}</span>`;
+    if (/^\s*\[[^\]]+\]\s*$/.test(x)) return `<span class="s">${e}</span>`;
+    if (fmt === "json") {
+      const m = e.match(/^(\s*)(&quot;[^&]*&quot;)(:\s*)(.*)$/);
+      return m ? `${m[1]}<span class="k">${m[2]}</span>${m[3]}${valc(m[4])}` : e;
+    }
+    if (fmt === "options" || fmt === "text") {
+      const m = e.match(/^([^:]+)(:)(.*)$/);
+      return m ? `<span class="k">${m[1]}</span>${m[2]}${valc(m[3])}` : e;
+    }
+    const m = e.match(/^(\s*)([^=\s]+)(\s*=\s*)(.*)$/);
+    return m ? `${m[1]}<span class="k">${m[2]}</span>${m[3]}${valc(m[4])}` : e;
+  }
+  function codeBlock(f, origin, opts) {
+    const fmt = fmtOf(f);
+    const lines = textLines(f, origin);
+    return `<div class="code copyable" role="textbox" aria-multiline="true" aria-label="Conteúdo de ${esc(fileName(f))}">${lines.map((l, i) => {
+      const isd = l.key ? origin === "test" && keyDiff(f, l.key) : l.diff !== null && l.diff !== undefined;
+      const was = l.key ? show$(l.key.v) : l.diff ? l.diff.trim() : "";
+      const ghost = isd && !(opts && opts.noGhost) ? `<span class="ghost">   ← no pack: ${esc(was)}</span>` : "";
+      return `<div class="code__l ${isd ? "is-diff" : ""}"><span class="code__n">${i + 1}</span><span class="code__g"></span><span class="code__x">${paint(l.x, fmt)}${ghost}</span></div>`;
+    }).join("")}</div>`;
+  }
+
+  function control(f, k, origin) {
+    const v = val(f, k, origin);
+    const id = `c-${k.k.replace(/[^\w]/g, "_")}`;
+    if (k.ty === "bool") return `<div class="swrow"><button type="button" class="sw" role="switch" aria-checked="${v}" aria-label="${esc(k.l)}" data-k="${k.k}"></button><span>${v ? "Ligado" : "Desligado"}</span></div>`;
+    if (k.ty === "enum") return `<label class="sr-only" for="${id}">${esc(k.l)}</label><select id="${id}" class="select" data-k="${k.k}">${k.o.map((o) => `<option ${o === v ? "selected" : ""}>${o}</option>`).join("")}</select>`;
+    if (k.ty === "int" || k.ty === "float") {
+      const range = k.r ? (k.r[1] > 1e8 ? `a partir de ${k.r[0]}` : `${String(k.r[0]).replace(".", ",")} a ${String(k.r[1]).replace(".", ",")}`) : "";
+      return `<div class="numrow"><label class="sr-only" for="${id}">${esc(k.l)}</label><input id="${id}" class="input" value="${v}" inputmode="decimal" data-k="${k.k}" spellcheck="false">${k.u ? `<span class="unit">${k.u}</span>` : ""}</div>${range ? `<span class="fr__hint">Faixa: ${range}</span>` : ""}`;
+    }
+    return `<label class="sr-only" for="${id}">${esc(k.l)}</label><input id="${id}" class="input input--text" value="${esc(v)}" data-k="${k.k}" spellcheck="false">`;
+  }
+  function meta(f, k, origin, opts) {
+    const v = val(f, k, origin);
+    let h = "";
+    if (k.def !== undefined) {
+      const chg = v !== k.def;
+      h += `<div class="line" title="Do comentário do arquivo (Default:)">padrão: <span class="mono">${show$(k.def)}</span>${chg ? `<span class="chg" title="O valor é diferente do padrão que o arquivo informa">alterado</span><button type="button" class="btn btn--ghost btn--icon btn--sm" data-act="restore" data-k="${k.k}" title="Restaurar padrão de ${k.k}" aria-label="Restaurar padrão de ${k.k}">${ic("undo-2", "icon--sm")}</button>` : ""}</div>`;
+    }
+    if (opts && opts.noPack) return h;
+    if (keyDiff(f, k) && origin === "test") h += `<div class="line"><span class="pk">no pack <b>${show$(k.v)}</b></span><button type="button" class="btn btn--sm" data-act="bring" data-k="${k.k}" title="Grava ${show$(val(f, k, origin))} no pack">Trazer para o pack</button></div>`;
+    if (keyDiff(f, k) && origin === "pack") h += `<div class="line"><span class="pk">no teste <b>${show$(k.t)}</b></span></div>`;
+    return h;
+  }
+  function formRows(f, origin) {
+    const D = doc(f);
+    const n = norm(S.fq.trim());
+    let out = "";
+    D.secs.forEach((s) => {
+      const keys = s.keys.filter((k) => (!S.ffc || (k.def !== undefined && val(f, k, origin) !== k.def)) && (!S.ffd || keyDiff(f, k)) && (!n || norm(k.k + " " + k.l + " " + (k.d || "")).includes(n)));
+      if (!keys.length) return;
+      out += `<section class="fsec"><div class="fsec__h"><h4>${esc(s.t)}</h4>${s.id ? `<code>[${s.id}]</code>` : ""}</div>${keys.map((k) => `
+        <div class="fr ${origin === "test" && keyDiff(f, k) ? "is-diff" : ""} ${S.over[okey(f, origin, k.k)] !== undefined ? "is-edited" : ""}" data-row="${k.k}">
+          <div class="fr__l"><span class="fr__t" title="${D.lang ? `Nome que o próprio mod dá a esta opção (${D.lang})` : ""}">${esc(k.l)}</span><span class="fr__k">${esc(k.k)}</span>${k.d ? `<span class="fr__d">${esc(k.d)}</span>` : ""}</div>
+          <div class="fr__c">${control(f, k, origin)}</div>
+          <div class="fr__m">${meta(f, k, origin)}</div>
+        </div>`).join("")}</section>`;
+    });
+    return out || `<p class="res__empty">Nenhuma chave com esses filtros.</p>`;
+  }
+
+  function band(f, origin) {
+    const d = diffCount(f);
+    if (f.where === "personal") return `<div class="band band--own">${ic("lock")}<span class="band__t"><b>Preferência pessoal.</b> Fica só neste computador, volta igual em todo teste e nunca vai para o pack.</span><span class="band__acts"><button type="button" class="btn btn--sm btn--ghost" data-act="unOwn">Deixar de ser pessoal…</button></span></div>`;
+    if (origin === "pack") return `<div class="band band--pack">${ic("users")}<span class="band__t"><b>Config do pack.</b> Vai para os jogadores na próxima versão publicada.${d ? ` O seu teste local tem <b style="color:var(--place-test)">${plural(d, "diferença", "diferenças")}</b>.` : ""}</span>${d ? `<span class="band__acts"><button type="button" class="btn btn--sm" data-act="goTest">${ic("monitor", "icon--sm")}Ver no teste local</button></span>` : ""}</div>`;
+    if (f.where === "test") return `<div class="band band--test">${ic("monitor")}<span class="band__t"><b>Só no teste local.</b> O jogo criou este arquivo ao abrir. Os jogadores não recebem.</span><span class="band__acts"><button type="button" class="btn btn--sm" data-act="bringFile">${ic("package", "icon--sm")}Trazer para o pack</button><button type="button" class="btn btn--sm btn--ghost" data-act="mkOwn">${ic("lock", "icon--sm")}Marcar como pessoal</button></span></div>`;
+    if (d) return `<div class="band band--test">${ic("monitor")}<span class="band__t"><b>Teste local.</b> ${plural(d, "chave está diferente", "chaves estão diferentes")} do pack. Os jogadores recebem a do pack.</span><span class="band__acts"><button type="button" class="btn btn--sm" data-act="bringAll">${ic("package", "icon--sm")}Trazer ${d === 1 ? "a diferença" : `as ${d}`} para o pack</button><button type="button" class="btn btn--sm btn--ghost" data-act="revertAll">Voltar ao do pack</button></span></div>`;
+    return `<div class="band band--test">${ic("monitor")}<span class="band__t"><b>Teste local.</b> Igual ao pack.</span></div>`;
+  }
+
+  function tools(f, origin) {
+    const can = FORMCAP[fmtOf(f)];
+    if (S.mode === "form" && can) {
+      const nc = changedCount(f, origin);
+      const nd = origin === "test" ? diffCount(f) : 0;
+      const D = doc(f);
+      return `<div class="edtools">${qbox("fq", "Buscar neste arquivo", S.fq)}
+        <div class="fchips">${hasDefaults(f) ? `<button type="button" class="fchip" data-act="ffc" aria-pressed="${S.ffc}">Mudou do padrão <span class="n">${nc}</span></button>` : ""}${nd ? `<button type="button" class="fchip fchip--test" data-act="ffd" aria-pressed="${S.ffd}"><span class="sq"></span>Diferente do pack <span class="n">${nd}</span></button>` : ""}</div>
+        </div>`;
+    }
+    return `<div class="edtools"><button type="button" class="btn btn--sm" data-act="proto" data-msg="Abre buscar e substituir dentro do texto.">${ic("search", "icon--sm")}Buscar e substituir</button><button type="button" class="btn btn--sm btn--ghost" data-act="proto" data-msg="Desfaz a última edição (Ctrl+Z).">${ic("undo-2", "icon--sm")}Desfazer</button><span class="edtools__sp"></span><span class="fine">${can ? "Comentários e formatação são preservados" : fmtOf(f) === "js" ? "Script do KubeJS: abre sempre como texto" : "Este arquivo só pode ser editado como texto"}</span></div>`;
+  }
+
+  function scrollContent(f, origin) {
+    const can = FORMCAP[fmtOf(f)];
+    let h = "";
+    if (fmtOf(f) === "js") h += `<div class="scriptbar"><span class="tag">KubeJS 7 · NeoForge 1.21.1</span><button type="button" class="btn btn--sm" data-act="proto" data-msg="Lista os trechos prontos de receitas, tags e itens desta versão do KubeJS.">Trechos prontos${ic("chevron-down", "icon--sm")}</button><button type="button" class="btn btn--sm btn--ghost" data-act="proto" data-msg="Mostra os erros que o KubeJS registrou no último teste.">Erros dos scripts <span class="count count--warn" style="margin-left:4px">0</span></button><button type="button" class="btn btn--sm btn--ghost" aria-disabled="true" title="Abra o jogo pelo Testar para recarregar os scripts.">Recarregar no jogo</button></div>`;
+    else if (!can) h += `<div class="scriptbar"><span class="t3">${ic("info", "icon--sm")}</span><span>O formulário funciona com TOML, JSON, JSON5, .properties, .cfg do Forge e options.txt. Este é ${FMT_NAME[fmtOf(f)]}.</span></div>`;
+    if (S.mode === "form" && can) h += formRows(f, origin);
+    else h += codeBlock(f, origin);
+    return h;
+  }
+
+  function editor(f, origin, opts) {
+    opts = opts || {};
+    if (!inOrigin(f, origin)) {
+      const own = f.where === "personal";
+      return `<main class="ed" aria-label="Editor">
+        <div class="edhead"><div class="edhead__t"><span class="edhead__name">${esc(nameOf(f))}</span><span class="edhead__path">${f.p}</span></div>${opts.close ? `<button type="button" class="btn btn--sm btn--ghost" data-act="close2">${ic("x", "icon--sm")}Fechar</button>` : ""}</div>
+        <div class="ed__scroll"><div class="edempty">
+          <h3>${own ? "Esta config não vai para o pack" : "Esta config só existe no teste"}</h3>
+          <p>${own ? `<span class="mono">${f.p}</span> é uma preferência pessoal: fica só neste computador e volta igual em todo teste.` : `O jogo criou <span class="mono">${f.p}</span> na instância de teste. Ele não está no pack, então os jogadores não recebem.`}</p>
+          <div class="acts"><button type="button" class="btn btn--sm" data-act="goTest">${ic("monitor", "icon--sm")}Ver no teste local</button>${own ? "" : `<button type="button" class="btn btn--sm" data-act="bringFile">${ic("package", "icon--sm")}Trazer para o pack</button>`}</div>
+        </div></div></main>`;
+    }
+    const dirty = dirtyCount(f, origin);
+    const head = opts.noHead ? "" : `<div class="edhead">
+        <div class="edhead__t"><span class="edhead__name">${esc(nameOf(f))}</span><span class="edhead__path" title="${f.p}">${f.p}</span></div>
+        ${modeSeg(f)}
+        ${opts.det ? `<button type="button" class="btn btn--sm det-toggle" data-act="det" aria-expanded="${S.det}">${ic("panel-right", "icon--sm")}Detalhes</button>` : ""}
+        <button type="button" class="btn btn--sm btn--icon btn--ghost" data-act="proto" data-msg="Mais ações: restaurar o arquivo todo para o padrão, marcar como pessoal, abrir a pasta." aria-label="Mais ações do arquivo">${ic("ellipsis", "icon--sm")}</button>
+        ${saveBtn(dirty)}
+        ${opts.close ? `<button type="button" class="btn btn--sm btn--ghost btn--icon" data-act="close2" aria-label="Fechar o arquivo e voltar à lista" title="Fechar e voltar à lista">${ic("x", "icon--sm")}</button>` : ""}
+      </div>`;
+    return `<main class="ed" aria-label="Editor">${head}
+      ${opts.meta ? metaStrip(f, origin) : ""}
+      ${band(f, origin)}
+      ${opts.wide ? "" : tools(f, origin)}
+      <div class="ed__scroll" id="edScroll"><div class="ed__in ${opts.wide ? "wrap3" : ""}">${opts.wide ? tools(f, origin).replace('class="edtools"', 'class="edtools edtools--in"') : ""}<div id="edBody">${scrollContent(f, origin)}</div></div></div>
+      <div class="edfoot"><span>${FMT_NAME[fmtOf(f)]}${doc(f) && doc(f).neo ? " do NeoForge" : ""} · UTF-8 · ${fmtOf(f) === "options" ? "LF" : "CRLF"} · ${f.size}${S.mode === "form" && FORMCAP[fmtOf(f)] ? ` · ${hasDefaults(f) ? "padrões lidos do próprio arquivo" : "o arquivo não informa padrões"}${doc(f).lang ? ` · rótulos do ${doc(f).lang}` : ""}` : ""}</span><span class="edfoot__end ${dirty ? "dirty" : ""}">${dirty ? `${plural(dirty, "alteração não salva", "alterações não salvas")} · Ctrl+S salva` : "Sem alterações"}</span></div>
+    </main>`;
+  }
+  const saveBtn = (dirty) => `<button type="button" class="btn btn--sm ${dirty ? "btn--primary" : ""} savebtn" data-act="save" ${dirty ? "" : 'aria-disabled="true" title="Nada para salvar ainda."'}>${ic("save", "icon--sm")}Salvar${dirty ? `<span class="n">${dirty}</span>` : ""}</button>`;
+  function metaStrip(f, origin) {
+    const nc = changedCount(f, origin);
+    return `<div class="meta2"><span><b>${esc(MODS[f.mod].n)}</b> ${MODS[f.mod].v}</span><span>${FMT_NAME[fmtOf(f)]}</span><span>Alterado ${f.when}</span>${hasDefaults(f) ? `<span>${plural(nc, "chave mudou", "chaves mudaram")} do padrão</span>` : ""}</div>`;
+  }
+
+  /* Detalhes (opção 1) */
+  function details(f, origin) {
+    const d = diffCount(f);
+    const nc = changedCount(f, origin);
+    const D = doc(f);
+    const places = f.where === "personal"
+      ? `<li class="place place--off">${ic("users")}<span class="place__t">Pack</span><span class="place__d">Nunca vai. Os jogadores usam as próprias preferências.</span></li>
+         <li class="place place--own">${ic("lock")}<span class="place__t">Este computador</span><span class="place__d">Guardado pelo Warden e copiado para a instância em todo teste.</span></li>`
+      : f.where === "test"
+        ? `<li class="place place--off">${ic("users")}<span class="place__t">Pack</span><span class="place__d">Não está. Os jogadores não recebem.</span></li>
+           <li class="place place--test">${ic("monitor")}<span class="place__t">Teste local</span><span class="place__d">Criado pelo jogo, ${f.when}.</span></li>`
+        : `<li class="place place--pack">${ic("users")}<span class="place__t">Pack</span><span class="place__d">Os jogadores recebem esta versão.</span></li>
+           <li class="place place--test">${ic("monitor")}<span class="place__t">Teste local</span><span class="place__d">${d ? `<span style="color:var(--place-test)">${plural(d, "diferença", "diferenças")} do pack</span>` : "Igual ao pack."}</span></li>`;
+    const diffs = f.where === "both" && d && !isRaw(f) ? `<section class="dsec"><h3>${origin === "pack" ? "Diferente no teste local" : "Diferenças com o pack"}</h3><ul class="dlist">${allKeys(f).filter((k) => keyDiff(f, k)).map((k) => `<li><span>${esc(k.l)}</span><span class="vv"><span class="a" title="no pack">${show$(k.v)}</span> → <span class="b" title="no teste local">${show$(k.t)}</span></span><span class="k">${k.k}</span></li>`).join("")}</ul>
+      <div class="acts"><button type="button" class="btn btn--sm btn--primary" data-act="bringAll">${ic("package", "icon--sm")}Trazer para o pack</button><button type="button" class="btn btn--sm btn--ghost" data-act="revertAll">Voltar ao do pack</button></div></section>` : "";
+    const notes = [];
+    if (D && D.neo) notes.push("O jogo pode reescrever este arquivo e apagar comentários que você adicionar.", "Valores fora da faixa voltam ao padrão e chaves que o mod não conhece são apagadas quando o jogo abre.");
+    if (D && D.server) notes.unshift("Está em defaultconfigs/: vale para mundos novos.");
+    if (D && D.note) notes.unshift(D.note);
+    return `<aside class="det" aria-labelledby="detT"><div class="colhead"><h2 id="detT">Detalhes</h2>${false ? `<button type="button" class="btn btn--sm btn--ghost btn--icon" data-act="det" aria-label="Fechar detalhes">${ic("x", "icon--sm")}</button>` : ""}</div>
+      <div class="det__body">
+        <section class="dsec"><h3>Arquivo</h3><dl class="kv">
+          <dt>Mod</dt><dd>${esc(MODS[f.mod].n)} <span class="mono t3">${MODS[f.mod].v}</span></dd>
+          <dt>Formato</dt><dd>${FMT_NAME[fmtOf(f)]}${D && D.neo ? " do NeoForge" : ""}</dd>
+          <dt>Tamanho</dt><dd class="mono">${f.size}</dd>
+          <dt>Alterado</dt><dd>${f.when}</dd>
+          ${hasDefaults(f) ? `<dt>Padrão</dt><dd>${plural(nc, "chave mudou", "chaves mudaram")}</dd>` : ""}
+        </dl></section>
+        <section class="dsec"><h3>Onde está</h3><ul class="places">${places}</ul></section>
+        ${diffs}
+        ${notes.length ? `<section class="dsec"><h3>Avisos</h3><div class="notices">${notes.map((n) => `<div class="alert alert--neutral">${ic("info")}<span>${n}</span></div>`).join("")}</div></section>` : ""}
+        <section class="dsec"><h3>Mais ações</h3><div class="actlist">
+          ${f.where === "personal" ? `<button type="button" class="btn btn--sm btn--ghost" data-act="unOwn">${ic("lock", "icon--sm")}Deixar de ser pessoal…</button>` : `<button type="button" class="btn btn--sm btn--ghost" data-act="mkOwn">${ic("lock", "icon--sm")}Marcar como pessoal</button>`}
+          ${hasDefaults(f) ? `<button type="button" class="btn btn--sm btn--ghost" data-act="proto" data-msg="Mostra a diferença antes de gravar.">${ic("rotate-ccw", "icon--sm")}Restaurar o arquivo todo para o padrão…</button>` : ""}
+          <button type="button" class="btn btn--sm btn--ghost" data-act="proto" data-msg="Abre a pasta no Explorador de Arquivos.">${ic("folder-open", "icon--sm")}Abrir a pasta</button>
+        </div></section>
+      </div></aside>`;
+  }
+
+  /* =================== Rail =================== */
+  const rail = () => {
+    const items = [["puzzle", "Mods"], ["file-code", "Configs", true], ["triangle-alert", "Problemas", false, true], ["sparkles", "Sensor Sculk"], ["history", "Histórico"], ["package", "Exportar"]];
+    return `<nav class="rail" aria-label="Seções do pack">${items.map(([i, t, cur, dot]) => `<a href="#" title="${t}" ${cur ? 'aria-current="page"' : ""}>${ic(i)}${dot ? '<span class="rail__dot" aria-hidden="true"></span>' : ""}<span class="sr-only">${t}</span></a>`).join("")}</nav>`;
+  };
+
+  /* =================== Opção 1: três colunas =================== */
+  function nav1() {
+    const origin = S.origin;
+    return `<aside class="nav" aria-labelledby="navT">
+      <div class="colhead"><h2 id="navT">Configs</h2><button type="button" class="btn btn--sm btn--ghost btn--icon" data-act="proto" data-msg="Relê os arquivos do disco." aria-label="Reler os arquivos">${ic("rotate-ccw", "icon--sm")}</button></div>
+      <div class="nav__top">
+        <div class="origin">${originSeg(false)}${originCap()}</div>
+        ${qbox("q", "Buscar nas configs", S.q, "Ctrl+Shift+F")}
+        ${filterChips(origin, true)}
+      </div>
+      <div class="nav__list" id="navList">${S.q.trim() ? results(origin) : tree(origin)}</div>
+      ${origin === "pack" ? `<div class="nav__foot">${ic("lock", "icon--sm")}<span>options.txt e o minimapa são preferências pessoais: ficam só neste computador.</span></div>` : ""}
+    </aside>`;
+  }
+  const body1 = () => {
+    const f = byPath(S.file);
+    return `<div class="body body--c3 ${S.det ? "" : "no-det"}">${rail()}${nav1()}${editor(f, S.origin, { det: true })}${S.det ? details(f, S.origin) : ""}</div>`;
+  };
+
+  /* =================== Opção 2: lista larga =================== */
+  function rowsFor(list, origin) {
+    return list.sort((a, b) => (MODS[a.mod].n + a.p).localeCompare(MODS[b.mod].n + b.p)).map((f) => {
+      const d = diffCount(f);
+      const nc = changedCount(f, origin);
+      let st;
+      if (f.where === "personal") st = `<span class="tag">${ic("lock")}Só neste PC</span>`;
+      else if (f.where === "test") st = `<span class="tag">Fora do pack</span>`;
+      else if (d) st = `<span class="tag tag--test">${origin === "test" ? plural(d, "diferença", "diferenças") + " do pack" : "Diferente no teste"}</span>`;
+      else st = `<span class="quiet">${origin === "test" ? "Igual ao pack" : "Igual no teste"}</span>`;
+      const hits = S.q.trim() ? (search(S.q, origin).find((r) => r.f === f) || { hits: [] }).hits.slice(0, 2) : [];
+      return `<button type="button" class="trow" role="row" aria-selected="${S.open2 && S.file === f.p}" data-file="${f.p}">
+        <span class="trow__mod">${esc(f.label ? `${f.label}` : MODS[f.mod].n)}</span>
+        <span class="trow__path" title="${f.p}">${S.q.trim() ? hl(f.p, S.q) : f.p}</span>
+        <span class="trow__st">${st}</span>
+        <span class="trow__n r">${hasDefaults(f) ? (nc ? `${nc}` : `<span class="quiet">nenhuma</span>`) : `<span class="quiet">—</span>`}</span>
+        <span class="trow__w r">${f.when}</span>
+        ${hits.length && !S.open2 ? `<span class="trow__hits">${hits.map((h) => h.k ? `<span><span class="mono">${hl(h.k.k, S.q)} = ${hl(h.v, S.q)}</span> · ${hl(h.k.l, S.q)}</span>` : `<span class="mono">${hl(h.line, S.q)}</span>`).join("")}</span>` : ""}
+      </button>`;
+    }).join("");
+  }
+  function table2() {
+    const origin = S.origin;
+    const q = S.q.trim();
+    const match = (f) => !q || search(S.q, origin).some((r) => r.f === f);
+    const base = filtered(origin).filter(match);
+    const both = base.filter((f) => f.where === "both");
+    const test = base.filter((f) => f.where === "test");
+    const own = origin === "test" ? personal().filter(match).filter((f) => !S.fChanged && !S.fDiff) : [];
+    let h = `<div class="tbl__head" role="row"><span>Mod</span><span>Arquivo</span><span>Situação</span><span class="r">Mudou do padrão</span><span class="r">Alterado em</span></div>`;
+    if (both.length) h += `<div class="tsec tsec--pack"><h3>${ic("users")}No pack · ${both.length}</h3><p>Vão para os jogadores na próxima versão publicada.</p></div>${rowsFor(both, origin)}`;
+    if (origin === "test" && test.length) h += `<div class="tsec tsec--test"><h3>${ic("monitor")}Só no teste · ${test.length}</h3><p>O jogo criou ao abrir. Ficam só neste computador até você trazer para o pack.</p></div>${rowsFor(test, origin)}`;
+    if (own.length) h += `<div class="tsec tsec--own"><h3>${ic("lock")}Preferências pessoais · ${own.length}</h3><p>Só suas. Voltam iguais em todo teste e nunca vão para o pack.</p></div>${rowsFor(own, origin)}`;
+    if (origin === "pack") h += `<div class="hintbox" style="margin:var(--space-5) var(--space-6)"><span><strong>${FILES.filter((f) => f.where === "test").length} configs estão só no teste e ${personal().length} são pessoais.</strong> Não aparecem aqui porque não vão para os jogadores.</span><button type="button" class="btn btn--sm" data-act="goTest">${ic("monitor", "icon--sm")}Ver no teste local</button></div>`;
+    if (!both.length && !test.length && !own.length) h += `<p class="res__empty" style="padding:var(--space-6)">Nada encontrado${q ? ` para “${esc(q)}”` : " com esses filtros"}.</p>`;
+    return h;
+  }
+  const body2 = () => {
+    const origin = S.origin;
+    const total = FILES.filter((f) => inOrigin(f, origin)).length;
+    const mods = new Set(FILES.filter((f) => inOrigin(f, origin)).map((f) => f.mod)).size;
+    const f = byPath(S.file);
+    return `<div class="body body--full">${rail()}
+      <main class="pg">
+        <div class="pghead"><div class="pghead__t"><h2>Configs</h2><p>Arquivos de ajuste e scripts do pack</p></div><div class="origin">${originSeg(false)}${originCap()}</div></div>
+        <div class="tb">${qbox("q", "Buscar nos nomes e no conteúdo das configs", S.q, "Ctrl+Shift+F")}${filterChips(origin)}
+          <label class="sr-only" for="modSel">Filtrar por mod</label><select id="modSel" class="select"><option value="">Todos os mods</option>${[...new Set(FILES.map((x) => x.mod))].filter((m) => m !== "game").sort((a, b) => MODS[a].n.localeCompare(MODS[b].n)).map((m) => `<option value="${m}" ${S.mod === m ? "selected" : ""}>${MODS[m].n}</option>`).join("")}</select>
+          <span class="tb__sum">${total} arquivos · ${mods} mods</span></div>
+        <div class="l2 ${S.open2 ? "is-open" : ""}">
+          <div class="tbl" role="grid" aria-label="Arquivos de config" id="tblBody">${table2()}</div>
+          ${S.open2 ? editor(f, origin, { close: true, meta: true }) : ""}
+        </div>
+      </main></div>`;
+  };
+
+  /* =================== Opção 3: editor amplo =================== */
+  function nav3() {
+    const origin = viewOrigin();
+    const list = filtered(origin);
+    const groups = {};
+    list.forEach((f) => { (groups[f.mod] = groups[f.mod] || []).push(f); });
+    let h = "";
+    if (S.q.trim()) h = results(origin);
+    else {
+      Object.keys(groups).sort((a, b) => MODS[a].n.localeCompare(MODS[b].n)).forEach((m) => {
+        h += `<div class="navmod">${esc(MODS[m].n)}<span class="n">${groups[m].length}</span></div>`;
+        h += groups[m].map((f) => `<button type="button" class="tnode tnode--file" aria-selected="${S.file === f.p}" data-file="${f.p}" title="${f.p}" style="--lvl:0"><span></span>${ic(fmtOf(f) === "js" ? "file-code" : "file")}<span class="tnode__name">${f.p.replace(/^config\//, "")}</span><span class="tnode__end">${mark(f, origin)}</span></button>`).join("");
+      });
+      if (origin === "test") h += `<div class="tgroup">${ic("lock")}Só neste computador<span class="n">${personal().length}</span></div>` + personal().map((f) => `<button type="button" class="tnode tnode--file tnode--friendly" aria-selected="${S.file === f.p}" data-file="${f.p}" style="--lvl:0"><span></span>${ic(f.p === "options.txt" ? "gamepad" : "file")}<span class="tnode__name">${f.label}<span class="sub">${fileName(f)}</span></span><span class="tnode__end">${mark(f, origin)}</span></button>`).join("");
+    }
+    return `<aside class="nav" aria-label="Arquivos de config">
+      <div class="nav__top">${qbox("q", "Buscar nas configs", S.q)}${filterChips(origin, true)}</div>
+      <div class="nav__list" id="navList">${h}</div></aside>`;
+  }
+  function compare(f) {
+    const d = diffCount(f);
+    if (isRaw(f)) {
+      return `<div class="cmpsum"><span class="cmpsum__t"><b>${plural(d, "linha diferente", "linhas diferentes")}</b> entre o seu teste local e o pack.</span></div>
+        <div class="cmphead" style="grid-template-columns:1fr 1fr"><div class="test"><span class="t">${ic("monitor")}Teste local</span><span class="s">só neste computador</span></div><div class="pack"><span class="t">${ic("users")}Pack</span><span class="s">o que os jogadores recebem</span></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">${codeBlock(f, "test", { noGhost: true })}${codeBlock(f, "pack")}</div>`;
+    }
+    const D = doc(f);
+    let rows = "";
+    D.secs.forEach((s) => {
+      const keys = s.keys.filter((k) => !S.ffd || keyDiff(f, k));
+      if (!keys.length) return;
+      rows += `<div class="fsec__h"><h4>${esc(s.t)}</h4>${s.id ? `<code>[${s.id}]</code>` : ""}</div>` + keys.map((k) => {
+        const dif = keyDiff(f, k);
+        return `<div class="cr ${dif ? "is-diff" : "is-same"}" data-row="${k.k}" style="${dif ? "" : ""}">
+          <div class="fr__l"><span class="fr__t">${esc(k.l)}</span><span class="fr__k">${esc(k.k)}</span>${k.d ? `<span class="fr__d">${esc(k.d)}</span>` : ""}</div>
+          <div class="fr__c">${control(f, k, "test")}</div>
+          <div class="cr__mid">${dif ? `<button type="button" class="btn btn--sm" data-act="bring" data-k="${k.k}" title="Trazer ${show$(k.t)} para o pack" aria-label="Trazer para o pack">${ic("arrow-right", "icon--sm")}</button><button type="button" class="btn btn--sm btn--ghost" data-act="revert" data-k="${k.k}" title="Voltar ao do pack (${show$(k.v)})" aria-label="Voltar ao do pack">${ic("arrow-left", "icon--sm")}</button>` : `<span class="eq">igual</span>`}</div>
+          <div class="cr__pack"><span>${show$(k.v)}${k.u ? ` <small>${k.u}</small>` : ""}</span>${k.def !== undefined ? `<small>padrão: ${show$(k.def)}${k.v !== k.def ? " · alterado" : ""}</small>` : ""}</div>
+        </div>`;
+      }).join("");
+    });
+    return `<div class="cmpsum"><span class="cmpsum__t">${d ? `<b>${plural(d, "diferença", "diferenças")}</b> entre o seu teste local e o pack. À direita, o que os jogadores recebem; a seta → traz o valor do teste para o pack.` : "<b>Igual ao pack.</b> Nada para trazer."}</span>
+        ${d ? `<button type="button" class="fchip fchip--test" data-act="ffd" aria-pressed="${S.ffd}"><span class="sq"></span>Só as diferenças <span class="n">${d}</span></button><button type="button" class="btn btn--sm btn--primary" data-act="bringAll">${ic("package", "icon--sm")}Trazer ${d === 1 ? "a diferença" : `as ${d}`} para o pack</button><button type="button" class="btn btn--sm btn--ghost" data-act="revertAll">Voltar ao do pack</button>` : ""}</div>
+      <div class="cmphead"><div>Opção</div><div class="test"><span class="t">${ic("monitor")}Teste local</span><span class="s">só neste computador</span></div><div></div><div class="pack"><span class="t">${ic("users")}Pack</span><span class="s">o que os jogadores recebem</span></div></div>
+      ${rows}`;
+  }
+  const body3 = () => {
+    const f = byPath(S.file);
+    const origin = viewOrigin();
+    const cmpOk = S.cmp && f.where === "both";
+    const dirty = dirtyCount(f, origin);
+    let main;
+    if (!inOrigin(f, origin)) main = editor(f, origin, { noHead: true });
+    else if (cmpOk && !(S.mode === "text" && !isRaw(f) && false)) {
+      main = `<main class="ed" aria-label="Comparar">${S.mode === "text" && !isRaw(f)
+        ? `<div class="ed__scroll" id="edScroll"><div class="ed__in wrap3"><div class="cmpsum"><span class="cmpsum__t"><b>${plural(diffCount(f), "linha diferente", "linhas diferentes")}</b> entre o teste local e o pack.</span></div><div class="cmphead" style="grid-template-columns:1fr 1fr"><div class="test"><span class="t">${ic("monitor")}Teste local</span><span class="s">só neste computador</span></div><div class="pack"><span class="t">${ic("users")}Pack</span><span class="s">o que os jogadores recebem</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">${codeBlock(f, "test", { noGhost: true })}${codeBlock(f, "pack")}</div></div></div>`
+        : `<div class="ed__scroll" id="edScroll"><div class="ed__in wrap3">${compare(f)}</div></div>`}
+        <div class="edfoot"><span>${FMT_NAME[fmtOf(f)]}${doc(f) && doc(f).neo ? " do NeoForge" : ""} · UTF-8 · ${f.size}</span><span class="edfoot__end ${dirty ? "dirty" : ""}">${dirty ? `${plural(dirty, "alteração não salva", "alterações não salvas")} · Ctrl+S salva` : "Sem alterações"}</span></div></main>`;
+    } else main = editor(f, origin, { noHead: true, wide: true });
+    return `<div class="body body--full">${rail()}
+      <section class="pg" aria-label="Configs">
+        <div class="xbar">
+          <button type="button" class="btn btn--sm btn--ghost btn--icon" data-act="nav3" aria-pressed="${S.nav3}" aria-label="${S.nav3 ? "Esconder" : "Mostrar"} a lista de arquivos" title="Lista de arquivos (Ctrl+B)">${ic("panel-left")}</button>
+          <button type="button" class="crumb" data-act="qo" title="Ir para outro arquivo (Ctrl+P)"><span class="crumb__name">${esc(nameOf(f))}</span><span class="crumb__path">${f.p}</span>${ic("chevron-down", "icon--sm")}</button>
+          <span class="xbar__sp"></span>
+          ${originSeg(true)}
+          ${modeSeg(f, true)}
+          ${saveBtn(dirty)}
+        </div>
+        ${S.cmp && f.where !== "both" ? `<div class="band band--own">${ic("info")}<span class="band__t">Comparar só vale para configs que estão no pack e no teste. Mostrando o teste local.</span></div>` : ""}
+        <div class="l3 ${S.nav3 ? "is-nav" : ""}">${nav3()}${main}</div>
+      </section></div>`;
+  };
+
+  /* Ir para arquivo (Ctrl+P) */
+  function qoList() {
+    const n = norm(S.qoq.trim());
+    const recent = ["config/DistantHorizons.toml", "kubejs/server_scripts/receitas.js", "options.txt", "config/jei/jei-client.ini"].map(byPath);
+    const list = n ? FILES.filter((f) => norm(f.p + " " + nameOf(f)).includes(n)) : recent;
+    const tag = (f) => (f.where === "personal" ? `<span class="tag">${ic("lock")}Só neste PC</span>` : f.where === "test" ? `<span class="tag">Fora do pack</span>` : `<span class="tag tag--pack">No pack</span>`);
+    return (n ? "" : `<div class="tgroup" style="padding-top:var(--space-2)">Abertos há pouco</div>`) + (list.length ? list.slice(0, 9).map((f, i) => `<button type="button" class="qo__item ${i === 0 ? "is-hot" : ""}" data-file="${f.p}">${ic(fmtOf(f) === "js" ? "file-code" : "file")}<span><span class="m">${esc(nameOf(f))}</span><span class="p">${n ? hl(f.p, S.qoq) : f.p}</span></span>${tag(f)}</button>`).join("") : `<p class="res__empty">Nenhum arquivo com “${esc(S.qoq)}”.</p>`);
+  }
+  function renderQo() {
+    $("#qoHost").innerHTML = S.qo ? `<div class="qo" data-act="qoClose"><div class="qo__box" role="dialog" aria-label="Ir para arquivo">
+      <div class="qo__in">${qbox("qoIn", "Ir para o arquivo: digite parte do nome ou do mod", S.qoq)}</div>
+      <div class="qo__list" id="qoList">${qoList()}</div>
+      <div class="qo__foot"><span><kbd>Enter</kbd> abre</span><span><kbd>Esc</kbd> fecha</span><span>Mostra pack, teste local e preferências pessoais</span></div></div></div>` : "";
+    if (S.qo) { const i = $("#qoIn"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  }
+
+  /* =================== Opções e render =================== */
+  const SK = {
+    1: { name: "Três colunas", txt: `<p>O jeito clássico de app de desktop, igual ao Sensor Sculk aprovado: <strong>arquivos à esquerda</strong>, <strong>editor no meio</strong> usando toda a altura e <strong>detalhes à direita</strong> (de qual mod é, onde o arquivo está e o que difere do pack).</p>
+        <p>No topo da coluna fica o seletor <strong>Do pack | Do teste local</strong>. Uma busca só, para nomes e conteúdo, e os filtros viram botões do mesmo tamanho. As preferências pessoais ficam num grupo à parte, com cadeado.</p>`,
+      pro: "tudo à vista ao mesmo tempo; mesmo padrão da tela que você aprovou", con: "três colunas dividem a largura; o editor fica mais estreito que nas outras opções", html: body1 },
+    2: { name: "Lista larga", txt: `<p>A seção abre numa <strong>tabela larga com todas as configs</strong>, separada em <strong>No pack</strong>, <strong>Só no teste</strong> e <strong>Preferências pessoais</strong>, com a situação de cada arquivo (igual ao pack, diferente, fora do pack).</p>
+        <p>Clicar num arquivo abre o editor ao lado e a tabela vira uma lista estreita. <strong>Fechar</strong> volta para a visão geral.</p>`,
+      pro: "bate o olho e vê o que vai para os jogadores e o que ficou só no teste", con: "um clique a mais para editar; a visão geral encolhe enquanto você edita", html: body2 },
+    3: { name: "Editor amplo", txt: `<p>O <strong>editor ocupa a janela toda</strong>. A lista de arquivos fica recolhida: abre pelo botão ao lado do nome ou por <strong>Ctrl+P</strong> (ir para arquivo).</p>
+        <p>O seletor ganha uma terceira posição, <strong>Comparar</strong>, que põe o teste local e o pack lado a lado, com uma seta em cada valor diferente para trazê-lo ao pack.</p>`,
+      pro: "o máximo de espaço para editar e a comparação mais clara", con: "a lista de arquivos fica escondida; sem o Ctrl+P, é um clique a mais", html: body3 },
+  };
+  function render() {
+    const scroll = $("#edScroll") ? $("#edScroll").scrollTop : 0;
+    const keep = render.keepScroll;
+    $("#body").outerHTML = SK[S.sk].html().replace('<div class="body', '<div id="body" class="body');
+    $("#saveCount").textContent = `${S.saved} alterações`;
+    if (keep && $("#edScroll")) $("#edScroll").scrollTop = scroll;
+    render.keepScroll = false;
+    if (S.flash) {
+      const row = $(`[data-row="${CSS.escape(S.flash)}"]`);
+      if (row) { row.scrollIntoView({ block: "center" }); row.classList.add("is-flash"); }
+      S.flash = null;
+    }
+    renderQo();
+  }
+  function show(n, keepState) {
+    S.sk = String(n);
+    if (!keepState) {
+      Object.assign(S, { origin: "test", cmp: n == 3, mode: "form", file: "config/DistantHorizons.toml", q: "", fq: "", fChanged: false, fDiff: false, ffc: false, ffd: false, open2: n == 2 ? false : S.open2, nav3: false, det: true, mod: "" });
+      if (n == 2) S.open2 = false;
+    }
+    const s = SK[S.sk];
+    $("#skName").textContent = `${S.sk} · ${s.name}`;
+    $("#skTxt").innerHTML = s.txt + `<div class="skbar__pc"><span class="pro"><b>Bom:</b> ${s.pro}</span><span class="con"><b>Custa:</b> ${s.con}</span></div>`;
+    $$("#skSel button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.n === S.sk)));
+    try { localStorage.setItem("skcfg", S.sk); } catch (e) {}
+    render();
+  }
+  function toast(msg) {
+    const t = document.createElement("div");
+    t.className = "toast toast--ok";
+    t.innerHTML = `${ic("circle-check")}<span>${msg}</span><span></span>`;
+    $("#toasts").appendChild(t);
+    setTimeout(() => t.remove(), 3600);
+  }
+
+  /* =================== Ações =================== */
+  function setVal(k, v) {
+    const f = byPath(S.file);
+    const origin = viewOrigin();
+    const key = allKeys(f).find((x) => x.k === k);
+    const base = origin === "pack" ? key.v : key.t !== undefined ? key.t : key.v;
+    if (v === base) delete S.over[okey(f, origin, k)]; else S.over[okey(f, origin, k)] = v;
+    render.keepScroll = true;
+    render();
+  }
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href='#']");
+    if (a) e.preventDefault();
+    const sk = e.target.closest("#skSel button[data-n]");
+    if (sk) return show(sk.dataset.n);
+    const t = e.target.closest("[data-origin],[data-mode],[data-dir],[data-file],[data-act],.sw");
+    if (!t) return;
+    const f = byPath(S.file);
+    if (t.dataset.origin) {
+      if (t.dataset.origin === "cmp") S.cmp = true; else { S.cmp = false; S.origin = t.dataset.origin; }
+      S.ffd = false; S.fDiff = S.origin === "test" ? S.fDiff : false;
+      return render();
+    }
+    if (t.dataset.mode) { if (t.getAttribute("aria-disabled") === "true") return toast("Este arquivo só pode ser editado como texto."); S.mode = t.dataset.mode; return render(); }
+    if (t.dataset.dir) { if (S.open.has(t.dataset.dir)) S.open.delete(t.dataset.dir); else S.open.add(t.dataset.dir); return render(); }
+    if (t.dataset.file && !t.dataset.act) {
+      S.file = t.dataset.file; S.fq = ""; S.ffc = false; S.ffd = false; S.qo = false; S.qoq = "";
+      if (S.sk === "2") S.open2 = true;
+      if (t.dataset.key) { S.flash = t.dataset.key; S.mode = "form"; }
+      return render();
+    }
+    if (t.classList.contains("sw")) return setVal(t.dataset.k, t.getAttribute("aria-checked") !== "true");
+    const act = t.dataset.act;
+    const origin = viewOrigin();
+    const key = t.dataset.k ? allKeys(f).find((x) => x.k === t.dataset.k) : null;
+    switch (act) {
+      case "fchg": S.fChanged = !S.fChanged; return render();
+      case "fdiff": S.fDiff = !S.fDiff; return render();
+      case "ffc": S.ffc = !S.ffc; render.keepScroll = true; return render();
+      case "ffd": S.ffd = !S.ffd; return render();
+      case "det": S.det = !S.det; return render();
+      case "close2": S.open2 = false; return render();
+      case "nav3": S.nav3 = !S.nav3; return render();
+      case "qo": S.qo = true; return renderQo();
+      case "qoClose": if (e.target === t) { S.qo = false; renderQo(); } return;
+      case "goTest": S.origin = "test"; S.cmp = false; return render();
+      case "restore": return setVal(key.k, key.def);
+      case "bring": {
+        key.v = val(f, key, "test"); delete key.t; delete S.over[okey(f, "test", key.k)];
+        S.saved += 1; render.keepScroll = true; render();
+        return toast(`${key.k} trazida para o pack. Aparece em Alterações não salvas.`);
+      }
+      case "revert": { delete key.t; render.keepScroll = true; render(); return toast(`O teste local voltou a usar ${show$(key.v)} em ${key.k}.`); }
+      case "bringAll": {
+        if (isRaw(f)) { const R = raw(f); const L = R.v.split("\n"); Object.entries(R.t).forEach(([i, x]) => { L[i] = x; }); R.v = L.join("\n"); delete R.t; }
+        allKeys(f).filter((k) => keyDiff(f, k)).forEach((k) => { k.v = k.t; delete k.t; });
+        S.saved += 1; render.keepScroll = true; render();
+        return toast(`${fileName(f)}: o pack agora tem os valores do teste. Aparece em Alterações não salvas.`);
+      }
+      case "revertAll": { if (raw(f)) delete raw(f).t; allKeys(f).forEach((k) => { delete k.t; }); render(); return toast(`${fileName(f)}: o teste local voltou a ser igual ao pack.`); }
+      case "bringFile": { f.where = "both"; S.saved += 1; S.origin = S.origin; render(); return toast(`${fileName(f)} trazido para o pack. Os jogadores recebem na próxima versão publicada.`); }
+      case "mkOwn": { f.where = "personal"; f.label = f.label || MODS[f.mod].n; f.sub = fileName(f); S.origin = "test"; S.cmp = false; render(); return toast(`${fileName(f)} agora é preferência pessoal: fica só neste computador e sai do pack.`); }
+      case "unOwn": return toast("No app, pergunta antes: o arquivo volta a poder ir para o pack.");
+      case "save": {
+        if (t.getAttribute("aria-disabled") === "true") return toast("Nada para salvar ainda.");
+        allKeys(f).forEach((k) => {
+          const o = S.over[okey(f, origin, k.k)];
+          if (o === undefined) return;
+          if (origin === "pack" || f.where !== "both") k.v = o; else { k.t = o; if (k.t === k.v) delete k.t; }
+          delete S.over[okey(f, origin, k.k)];
+        });
+        if (origin === "pack") S.saved += 1;
+        render.keepScroll = true; render();
+        return toast(`${fileName(f)} salvo${origin === "pack" ? " no pack" : " no teste local"}.`);
+      }
+      case "proto": case "test": case "test-menu": return toast(t.dataset.msg || "Testar abre a tela do teste. Fora deste esboço.");
+      default: return undefined;
+    }
+  });
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.id === "modSel") { S.mod = t.value; return render(); }
+    if (t.dataset && t.dataset.k) {
+      const f = byPath(S.file);
+      const key = allKeys(f).find((x) => x.k === t.dataset.k);
+      let v = t.value;
+      if (key.ty === "int") v = parseInt(v, 10);
+      if (key.ty === "float") v = parseFloat(String(v).replace(",", "."));
+      if (Number.isNaN(v)) return;
+      setVal(key.k, v);
+    }
+  });
+  document.addEventListener("input", (e) => {
+    const t = e.target;
+    if (t.id === "q") {
+      S.q = t.value;
+      if (S.sk === "2") { $("#tblBody").innerHTML = table2(); hydrate($("#tblBody")); }
+      else {
+        if (S.sk === "3" && !S.nav3) { S.nav3 = true; render(); const i = $("#q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); return; }
+        const list = $("#navList");
+        list.innerHTML = S.q.trim() ? results(viewOrigin()) : S.sk === "1" ? tree(viewOrigin()) : nav3().match(/<div class="nav__list" id="navList">([\s\S]*)<\/div><\/aside>/)[1];
+      }
+    }
+    if (t.id === "fq") { S.fq = t.value; const f = byPath(S.file); $("#edBody").innerHTML = scrollContent(f, viewOrigin()); }
+    if (t.id === "qoIn") { S.qoq = t.value; $("#qoList").innerHTML = qoList(); }
+  });
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") { e.preventDefault(); S.qo = true; renderQo(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b" && S.sk === "3") { e.preventDefault(); S.nav3 = !S.nav3; render(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); const b = $(".savebtn"); if (b) b.click(); }
+    if (e.key === "Escape" && S.qo) { S.qo = false; renderQo(); }
+    if (e.key === "Enter" && S.qo) { const hot = $(".qo__item"); if (hot) hot.click(); }
+  });
+  window.addEventListener("resize", () => { const was = S.det; if (false && was && S.sk === "1" && !render.userDet) { /* mantém escolha */ } });
+
+  $("#skHide").addEventListener("click", () => { const bar = $(".skbar"); const mini = bar.classList.toggle("is-mini"); $("#skHide").textContent = mini ? "Mostrar a explicação" : "Esconder a explicação"; $("#skHide").setAttribute("aria-expanded", String(!mini)); });
+  hydrate(document);
+  let first = "1";
+  try { first = localStorage.getItem("skcfg") || "1"; } catch (e) { first = "1"; }
+  const hm = (location.hash || "").match(/#sk(\d)/); const h = hm ? hm[1] : "";
+  if (SK[h]) first = h;
+  // Ganchos de captura: #sk1-pack, #sk2-open, #sk3-form etc. (só para as capturas de verificação)
+  const extra = (location.hash.split("-")[1] || "");
+  show(SK[first] ? first : "1");
+  if (extra === "pack") { S.origin = "pack"; render(); }
+  if (extra === "open") { S.open2 = true; render(); }
+  if (extra === "form") { S.cmp = false; render(); }
+  if (extra === "nav") { S.nav3 = true; render(); }
+  if (extra === "text") { S.mode = "text"; render(); }
+  if (extra === "q") { S.q = "distan"; render(); }
+  if (extra === "own") { S.file = "options.txt"; if (S.sk === "2") S.open2 = true; S.cmp = false; render(); }
+  if (extra === "js") { S.file = "kubejs/server_scripts/receitas.js"; S.cmp = false; if (S.sk === "2") S.open2 = true; render(); }
+  if (extra === "ini") { S.file = "config/jei/jei-client.ini"; if (S.sk === "2") S.open2 = true; render(); }
+  if (extra === "gen") { S.file = "config/create-client.toml"; S.cmp = false; if (S.sk === "2") S.open2 = true; render(); }
+  if (extra === "qo") { S.qo = true; renderQo(); }
+})();
+
+/* Encaixe da janela do app no espaço disponível */
+(function () {
+  const D = 1280;
+  const win = document.getElementById("win");
+  if (!win) return;
+  const fit = document.createElement("div");
+  fit.className = "fit";
+  win.parentNode.insertBefore(fit, win);
+  fit.appendChild(win);
+  function layout() {
+    const w = fit.clientWidth, h = fit.clientHeight;
+    const s = w < D ? w / D : 1;
+    win.style.width = w / s + "px";
+    win.style.height = h / s + "px";
+    win.style.transform = s < 1 ? "scale(" + s + ")" : "";
+  }
+  layout();
+  if (window.ResizeObserver) new ResizeObserver(layout).observe(fit); else window.addEventListener("resize", layout);
+})();
+(function () {
+  const b = document.getElementById("skHide");
+  const bar = document.querySelector(".skbar");
+  if (b && bar && !bar.classList.contains("is-mini")) b.click();
+})();
+
+</script>

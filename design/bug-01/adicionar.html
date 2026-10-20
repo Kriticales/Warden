@@ -1,0 +1,1483 @@
+<title>Adicionar ao pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Pixelify+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Tokens do design system Deep Dark (design/system/tokens.css). Tema único, escuro, por decisão. */
+:root {
+  color-scheme: dark;
+  --color-bg: #050d12;
+  --color-bg-sunken: #03090c;
+  --color-surface-1: #0a1a21;
+  --color-surface-2: #0e2630;
+  --color-surface-3: #12313c;
+  --color-overlay: rgba(2, 7, 10, 0.78);
+  --color-border: #15333e;
+  --color-border-strong: #1e4552;
+  --color-border-control: #4f8a98;
+  --color-text: #e4f3ef;
+  --color-text-2: #b4cfca;
+  --color-text-3: #8aacaa;
+  --color-primary: #19d3e0;
+  --color-primary-hover: #0fb5c2;
+  --color-primary-press: #0a8f9a;
+  --color-on-primary: #021418;
+  --color-primary-text: #5fe3ec;
+  --color-primary-bright: #7ff3f0;
+  --color-primary-soft: rgba(25, 211, 224, 0.12);
+  --color-primary-line: rgba(25, 211, 224, 0.4);
+  --color-primary-glow: rgba(25, 211, 224, 0.45);
+  --color-focus: #cfe3da;
+  --color-ok: #3ddc84;
+  --color-ok-text: #6be7a2;
+  --color-ok-soft: rgba(61, 220, 132, 0.12);
+  --color-ok-line: rgba(61, 220, 132, 0.4);
+  --color-warn: #f2b33d;
+  --color-warn-text: #ffcb66;
+  --color-warn-soft: rgba(242, 179, 61, 0.12);
+  --color-warn-line: rgba(242, 179, 61, 0.4);
+  --color-danger: #ff5c5c;
+  --color-danger-text: #ff8e8e;
+  --color-danger-soft: rgba(255, 92, 92, 0.13);
+  --color-danger-solid: #c42f35;
+  --color-on-danger: #ffffff;
+  --color-ai: #cfe3da;
+  --color-ai-soft: rgba(207, 227, 218, 0.07);
+  --color-ai-line: rgba(207, 227, 218, 0.45);
+  --color-diff-add: rgba(61, 220, 132, 0.14);
+  --color-diff-del: rgba(255, 92, 92, 0.14);
+  --color-console-bg: #020709;
+  --color-console-text: #cfe6e1;
+  --color-console-muted: #86a9a6;
+  --color-pixel-shadow: #010507;
+
+  --font-display: "Pixelify Sans", Manrope, system-ui, sans-serif;
+  --font-ui: Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  --text-2xs: 11px; --lh-2xs: 14px;
+  --text-xs: 12px;  --lh-xs: 16px;
+  --text-sm: 13px;  --lh-sm: 18px;
+  --text-base: 14px; --lh-base: 20px;
+  --text-md: 16px;  --lh-md: 22px;
+  --text-lg: 20px;  --lh-lg: 24px;
+  --text-xl: 24px;  --lh-xl: 28px;
+  --tracking-display: 0.02em;
+  --tracking-caps: 0.06em;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+
+  --notch-md: 4px; --notch-sm: 2px;
+  --shape-notch-md: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+  --shape-notch-sm: polygon(0 2px, 2px 2px, 2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px));
+
+  --shadow-block-2: 0 4px 0 rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.4);
+  --shadow-block-3: 0 8px 0 rgba(0, 0, 0, 0.5), 0 24px 64px rgba(0, 0, 0, 0.6);
+  --inset-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.34);
+  --inset-bevel-press: inset 0 3px 0 rgba(0, 0, 0, 0.34);
+  --inset-slot: inset 2px 2px 0 rgba(0, 0, 0, 0.5), inset -1px -1px 0 rgba(127, 243, 240, 0.06);
+  --shadow-pixel-text: 2px 2px 0 #010507;
+
+  --duration-instant: 80ms; --duration-fast: 120ms; --duration-base: 200ms; --duration-slow: 320ms; --duration-pulse: 3400ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-pixel: steps(4, end);
+
+  --size-titlebar: 32px;
+  --size-pack-header: 76px;
+  --size-statusbar: 30px;
+  --size-rail: 56px;
+  --size-convs: 300px;
+  --size-drawer: 360px;
+  --size-read: 820px;
+
+  --fx-vein: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' shape-rendering='crispEdges'%3E%3Cg fill='%2319D3E0' fill-opacity='.07'%3E%3Crect y='40' width='10' height='2'/%3E%3Crect x='10' y='36' width='2' height='6'/%3E%3Crect x='12' y='36' width='12' height='2'/%3E%3Crect x='24' y='28' width='2' height='10'/%3E%3Crect x='26' y='28' width='14' height='2'/%3E%3Crect x='40' y='20' width='2' height='10'/%3E%3Crect x='42' y='20' width='22' height='2'/%3E%3Crect x='32' y='30' width='2' height='16'/%3E%3Crect x='34' y='46' width='8' height='2'/%3E%3Crect x='50' y='4' width='2' height='16'/%3E%3C/g%3E%3Cg fill='%237FF3F0' fill-opacity='.14'%3E%3Crect x='24' y='28' width='2' height='2'/%3E%3Crect x='40' y='20' width='2' height='2'/%3E%3Crect x='32' y='46' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-sculk-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='6' shape-rendering='crispEdges'%3E%3Crect y='2' width='48' height='4' fill='%230B2A33'/%3E%3Crect x='4' width='6' height='2' fill='%230B2A33'/%3E%3Crect x='18' y='1' width='8' height='1' fill='%230B2A33'/%3E%3Crect x='34' width='4' height='2' fill='%230B2A33'/%3E%3Crect x='14' y='4' width='4' height='2' fill='%23061217'/%3E%3Crect x='44' y='3' width='2' height='3' fill='%23061217'/%3E%3Crect x='8' y='3' width='2' height='2' fill='%2319D3E0' fill-opacity='.85'/%3E%3Crect x='28' y='4' width='2' height='1' fill='%2319D3E0' fill-opacity='.55'/%3E%3Crect x='40' y='2' width='2' height='2' fill='%237FF3F0' fill-opacity='.5'/%3E%3C/svg%3E");
+  --fx-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath d='M1 4h1v1h1v1h1V5h1V4h1V3h1V2h1v2H7v1H6v1H5v1H3V6H2V5H1z'/%3E%3C/svg%3E");
+  --fx-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' shape-rendering='crispEdges' fill='%23B4CFCA'%3E%3Crect width='2' height='2'/%3E%3Crect x='8' width='2' height='2'/%3E%3Crect x='2' y='2' width='2' height='2'/%3E%3Crect x='6' y='2' width='2' height='2'/%3E%3Crect x='4' y='4' width='2' height='2'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-instant: 0ms; --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; --duration-pulse: 0ms; }
+}
+
+/* ---------- Base: parece app, não página ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; margin: 0; }
+body {
+  background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-ui); font-size: var(--text-base); line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
+  user-select: none; -webkit-user-select: none; cursor: default;
+  caret-color: var(--color-primary);
+  scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent;
+}
+* { scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, pre { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+a { color: var(--color-primary-text); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+[tabindex="-1"]:focus-visible { outline: none; }
+[hidden] { display: none !important; }
+::selection { background: var(--color-primary); color: var(--color-on-primary); }
+.copyable, input, textarea { user-select: text; -webkit-user-select: text; }
+.copyable { cursor: auto; }
+input, textarea { cursor: text; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.mono { font-family: var(--font-mono); }
+.t2 { color: var(--color-text-2); }
+.t3 { color: var(--color-text-3); }
+.pixel { font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+
+.icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.icon--sm { width: 14px; height: 14px; }
+.icon--xs { width: 12px; height: 12px; stroke-width: 2.5; }
+.icon--lg { width: 20px; height: 20px; }
+.icon--fill { fill: currentColor; }
+.icon--ai { color: var(--color-ai); }
+
+/* Carregador em 4 blocos (nunca um spinner girando) */
+.loader { display: inline-grid; grid-template-columns: repeat(2, 5px); gap: 2px; flex: none; }
+.loader i { width: 5px; height: 5px; background: currentColor; opacity: 0.25; animation: loader-step calc(var(--duration-slow) * 3) var(--ease-pixel) infinite; }
+.loader i:nth-child(2) { animation-delay: calc(var(--duration-slow) * 0.75); }
+.loader i:nth-child(4) { animation-delay: calc(var(--duration-slow) * 1.5); }
+.loader i:nth-child(3) { animation-delay: calc(var(--duration-slow) * 2.25); }
+@keyframes loader-step { 0%, 24% { opacity: 1; } 25%, 100% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .loader i { animation: none; opacity: 0.7; } }
+
+/* ---------- Botões (bloco com degrau de pixel; a borda e o fundo ficam nos pseudo-elementos) ---------- */
+.btn {
+  --btn-bg: var(--color-surface-2); --btn-edge: var(--color-border-strong); --btn-fg: var(--color-text);
+  --btn-bevel: var(--inset-bevel); --btn-shape: var(--shape-notch-md);
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  height: 36px; padding: 0 var(--space-4); border: 0; background: transparent; color: var(--btn-fg);
+  font-size: var(--text-base); font-weight: 600; line-height: 1; white-space: nowrap; text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out), transform var(--duration-instant) var(--ease-out);
+}
+.btn::before, .btn::after { content: ""; position: absolute; pointer-events: none; clip-path: var(--btn-shape); transition: background-color var(--duration-fast) var(--ease-out); }
+.btn::before { inset: 0; z-index: -2; background: var(--btn-edge); }
+.btn::after { inset: 1px; z-index: -1; background: var(--btn-bg); box-shadow: var(--btn-bevel); }
+.btn:hover { --btn-bg: var(--color-surface-3); --btn-edge: var(--color-border-control); }
+.btn:active { --btn-bevel: var(--inset-bevel-press); transform: translateY(1px); }
+.btn:disabled, .btn[aria-disabled="true"] { --btn-bg: var(--color-surface-1); --btn-edge: var(--color-border); --btn-fg: var(--color-text-3); --btn-bevel: none; cursor: not-allowed; transform: none; }
+.btn--primary { --btn-bg: var(--color-primary); --btn-edge: var(--color-primary-press); --btn-fg: var(--color-on-primary); font-weight: 700; }
+.btn--primary:hover { --btn-bg: var(--color-primary-hover); --btn-edge: var(--color-primary-press); }
+.btn--primary:active { --btn-bg: var(--color-primary-press); }
+.btn--primary:disabled, .btn--primary[aria-disabled="true"] { --btn-bg: var(--color-surface-1); --btn-edge: var(--color-border); --btn-fg: var(--color-text-3); }
+.btn--ghost { --btn-bg: transparent; --btn-edge: transparent; --btn-fg: var(--color-text-2); --btn-bevel: none; }
+.btn--ghost:hover { --btn-bg: var(--color-surface-3); --btn-edge: transparent; --btn-fg: var(--color-text); }
+.btn--ghost:active { --btn-bevel: var(--inset-slot); }
+.btn--danger { --btn-bg: var(--color-danger-solid); --btn-edge: var(--color-pixel-shadow); --btn-fg: var(--color-on-danger); }
+.btn--danger:hover { --btn-bg: var(--color-danger-solid); --btn-edge: var(--color-danger-text); }
+.btn--danger-ghost { --btn-bg: transparent; --btn-edge: transparent; --btn-fg: var(--color-danger-text); --btn-bevel: none; }
+.btn--danger-ghost:hover { --btn-bg: var(--color-danger-soft); --btn-edge: transparent; --btn-fg: var(--color-danger-text); }
+.btn--sm { --btn-shape: var(--shape-notch-sm); height: 28px; padding: 0 var(--space-3); font-size: var(--text-sm); gap: var(--space-1); }
+.btn--icon { width: 36px; padding: 0; }
+.btn--icon.btn--sm { width: 28px; }
+.btn--link { --btn-bg: transparent; --btn-edge: transparent; --btn-bevel: none; --btn-fg: var(--color-primary-text); height: auto; padding: 0; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.btn--link::before, .btn--link::after { display: none; }
+.btn--link:hover { text-decoration-thickness: 2px; }
+.btn--link:active { transform: none; }
+.btn__count { display: inline-flex; align-items: center; padding-left: var(--space-2); margin-left: var(--space-1); border-left: 1px solid currentColor; font-weight: 500; }
+
+/* Selos (.tag = estado com ícone e palavra) */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2);
+  background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); clip-path: var(--shape-notch-sm);
+  font-size: var(--text-xs); font-weight: 600; line-height: 1; color: var(--color-text-2); white-space: nowrap;
+}
+.tag--ok { color: var(--color-ok-text); box-shadow: inset 0 0 0 1px var(--color-ok-line); background: var(--color-ok-soft); }
+.tag--warn { color: var(--color-warn-text); box-shadow: inset 0 0 0 1px var(--color-warn-line); background: var(--color-warn-soft); }
+.tag--ai { color: var(--color-ai); box-shadow: inset 0 0 0 1px var(--color-ai-line); background: var(--color-ai-soft); }
+.tag--muted { color: var(--color-text-3); background: transparent; }
+.count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; font-size: var(--text-xs); font-weight: 700; line-height: 1; clip-path: var(--shape-notch-sm); }
+.count--warn { background: var(--color-warn-soft); color: var(--color-warn-text); box-shadow: inset 0 0 0 1px var(--color-warn-line); }
+
+/* Campos (slot afundado) */
+.input, .select, .textarea {
+  width: 100%; height: 36px; padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-control); border-radius: 2px;
+  background: var(--color-bg-sunken); color: var(--color-text); box-shadow: var(--inset-slot);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+.input::placeholder, .textarea::placeholder { color: var(--color-text-3); opacity: 1; }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-text-3); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible { border-color: var(--color-focus); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.textarea { height: auto; min-height: 96px; padding: var(--space-2) var(--space-3); line-height: var(--lh-base); resize: vertical; display: block; }
+.select { appearance: none; padding-right: var(--space-8); background-image: var(--fx-chevron); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 6px; cursor: pointer; }
+.select option { background: var(--color-bg-sunken); color: var(--color-text); }
+
+.check { display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; }
+.check > input { appearance: none; flex: none; width: 18px; height: 18px; margin: 1px 0 0; border: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-control), var(--inset-slot); cursor: pointer; display: grid; place-content: center; }
+.check > input::before { content: ""; width: 10px; height: 10px; background: var(--color-on-primary); -webkit-mask: var(--fx-check) center / 10px 10px no-repeat; mask: var(--fx-check) center / 10px 10px no-repeat; opacity: 0; }
+.check > input:checked { background: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary-press); }
+.check > input:checked::before { opacity: 1; }
+.check:hover > input:not(:checked) { box-shadow: inset 0 0 0 1px var(--color-text-2), var(--inset-slot); }
+
+/* Seletor de modo (não é aba: troca como o Sculk procura) */
+.segmented { display: inline-flex; padding: 2px; gap: 2px; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.segmented button { height: 24px; padding: 0 var(--space-3); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.segmented button:hover { color: var(--color-text); background: var(--color-surface-2); }
+.segmented button[aria-checked="true"] { background: var(--color-surface-3); color: var(--color-text); box-shadow: inset 0 -2px 0 var(--color-primary); }
+
+/* ---------- Moldura da janela ---------- */
+.win { height: 100%; min-width: 1024px; display: grid; grid-template-rows: var(--size-titlebar) var(--size-pack-header) minmax(0, 1fr) var(--size-statusbar); }
+
+.titlebar { display: flex; align-items: stretch; background: var(--color-bg-sunken); border-bottom: 1px solid var(--color-border); }
+.titlebar__drag { flex: 1; }
+.winctl { display: flex; }
+.winctl button { width: 46px; border: 0; background: transparent; color: var(--color-text-3); display: grid; place-items: center; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.winctl .icon { width: 14px; height: 14px; stroke-width: 1.5; }
+.winctl button:hover { background: var(--color-surface-2); color: var(--color-text); }
+.winctl button.close:hover { background: var(--color-danger-solid); color: var(--color-on-danger); }
+.winctl button:focus-visible { outline-offset: -2px; }
+
+/* Cabeçalho do pack: identidade à esquerda, Salvar versão e Testar à direita. Veia e camada de sculk só aqui. */
+.packhead {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-6) 6px var(--space-4);
+  background-color: var(--color-surface-1); background-image: var(--fx-vein); background-size: 64px 64px;
+}
+.packhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--fx-sculk-edge) repeat-x left bottom / 48px 6px; pointer-events: none; }
+.packhead__sep { width: 1px; height: 32px; background: var(--color-border-strong); flex: none; }
+.packhead__id { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex: 1 1 auto; }
+.tile { display: block; flex: none; width: 40px; height: 40px; image-rendering: pixelated; box-shadow: 0 0 0 1px var(--color-pixel-shadow); }
+.packhead h1 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.packhead__meta { display: flex; align-items: baseline; gap: var(--space-2); margin-top: 2px; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); white-space: nowrap; }
+.packhead__meta .mono { font-size: var(--text-xs); color: var(--color-text); }
+.packhead__meta .dot { width: 3px; height: 3px; background: var(--color-text-3); align-self: center; }
+.packhead__actions { display: flex; align-items: center; gap: var(--space-4); flex: none; padding-top: 6px; }
+
+/* Botão Testar: bloco ciano com antenas de sensor e pulso lento */
+.testbtn { position: relative; display: inline-flex; align-items: stretch; flex: none; animation: sensor var(--duration-pulse) var(--ease-in-out) infinite; }
+.testbtn .btn { height: 48px; }
+.testbtn__main { min-width: 150px; padding: 0 var(--space-5) 0 var(--space-4); font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: 0.04em;
+  --btn-shape: polygon(0 4px, 4px 4px, 4px 0, 100% 0, 100% 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
+.testbtn__more { width: 36px; padding: 0; margin-left: 2px;
+  --btn-shape: polygon(0 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 0 100%); }
+.testbtn__antenna { position: absolute; left: 0; right: 0; top: -10px; height: 10px; pointer-events: none; }
+.testbtn__antenna i { position: absolute; bottom: 0; width: 4px; background: var(--color-primary); }
+.testbtn__antenna i::after { content: ""; position: absolute; left: -2px; top: -4px; width: 8px; height: 4px; background: var(--color-primary-bright); }
+.testbtn__antenna i:nth-child(1) { left: 18px; height: 6px; }
+.testbtn__antenna i:nth-child(2) { left: 28px; height: 10px; }
+.testbtn__antenna i:nth-child(3) { left: 108px; height: 10px; }
+.testbtn__antenna i:nth-child(4) { left: 118px; height: 6px; }
+@keyframes sensor { 0%, 100% { filter: drop-shadow(0 2px 4px rgba(25, 211, 224, 0.3)); } 50% { filter: drop-shadow(0 2px 16px rgba(25, 211, 224, 0.7)); } }
+@media (prefers-reduced-motion: reduce) { .testbtn { animation: none; filter: drop-shadow(0 2px 8px rgba(25, 211, 224, 0.45)); } }
+
+/* ---------- Corpo: trilho | conversas | conversa | detalhes ---------- */
+.body { display: grid; grid-template-columns: var(--size-rail) var(--size-convs) minmax(0, 1fr) auto; min-height: 0; }
+
+/* Trilho das 6 seções (menu recolhido do design system) */
+.rail { display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) var(--space-1); background: var(--color-bg); border-right: 1px solid var(--color-border); overflow-y: auto; }
+.rail a { position: relative; display: grid; place-items: center; height: 44px; color: var(--color-text-3); text-decoration: none; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.rail a .icon { width: 20px; height: 20px; }
+.rail a:hover { background: var(--color-surface-2); color: var(--color-text-2); }
+.rail a:focus-visible { outline-offset: -2px; }
+.rail a[aria-current="page"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); color: var(--color-ai); }
+.rail a[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.rail__dot { position: absolute; top: 8px; right: 10px; width: 6px; height: 6px; background: var(--color-danger); }
+
+/* Coluna de conversas */
+.convs { display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-right: 1px solid var(--color-border); }
+.colhead { flex: none; height: 56px; display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-bottom: 1px solid var(--color-border); }
+.colhead h2 { flex: 1; min-width: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); line-height: var(--lh-lg); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.search { position: relative; flex: none; padding: var(--space-3) var(--space-4) var(--space-1); }
+.search > .icon { position: absolute; left: calc(var(--space-4) + 12px); top: calc(var(--space-3) + 10px); color: var(--color-text-3); pointer-events: none; }
+.search .input { padding-left: 36px; padding-right: 36px; }
+.search__clear { position: absolute; right: calc(var(--space-4) + 4px); top: calc(var(--space-3) + 4px); }
+.convs__list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: var(--space-4); }
+.convs__group { padding: var(--space-5) var(--space-4) var(--space-2); font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.conv {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-3);
+  width: 100%; padding: var(--space-3) var(--space-4); border: 0; background: transparent; text-align: left; color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.conv:hover { background: var(--color-surface-2); }
+.conv:focus-visible { outline-offset: -2px; }
+.conv[aria-current="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); }
+.conv[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: var(--space-2); bottom: var(--space-2); width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.conv__title { grid-column: 1 / -1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv__meta { min-width: 0; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convs__empty { padding: var(--space-6) var(--space-4); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.convs__empty p + p { margin-top: var(--space-2); }
+.convs__foot { flex: none; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.convs__foot strong { color: var(--color-text-2); font-weight: 600; }
+.convs__foot .btn--link { font-size: var(--text-xs); }
+
+/* Coluna da conversa */
+.chat { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-bg); }
+.chat .colhead { padding: 0 var(--space-6); gap: var(--space-4); background: var(--color-surface-1); }
+.colhead h2.chat__title { flex: 1; min-width: 0; font-family: var(--font-ui); letter-spacing: 0; text-shadow: none; font-size: var(--text-md); line-height: var(--lh-md); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__meta { flex: none; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; }
+.chat__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.thread { max-width: calc(var(--size-read) + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); display: flex; flex-direction: column; gap: var(--space-8); }
+.thread__start { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.thread__start::before, .thread__start::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--color-border-strong) 0 4px, transparent 4px 8px); }
+
+/* Mensagens */
+.msg { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.msg__head { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: 700; color: var(--color-text-2); }
+.msg__head .t { font-weight: 400; color: var(--color-text-3); }
+.msg--me { align-items: flex-end; }
+.bubble { max-width: 560px; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.att { width: max-content; max-width: 100%; }
+.att[open] { width: 100%; }
+.att > summary { display: flex; align-items: center; gap: var(--space-2); width: max-content; margin-left: auto; height: 28px; padding: 0 var(--space-3); list-style: none; cursor: pointer;
+  background: var(--color-surface-1); box-shadow: inset 0 0 0 1px var(--color-border); font-size: var(--text-sm); color: var(--color-text-2); transition: background-color var(--duration-fast), color var(--duration-fast); }
+.att > summary::-webkit-details-marker, details > summary::-webkit-details-marker { display: none; }
+.att > summary:hover { background: var(--color-surface-2); color: var(--color-text); }
+.att > summary .size { font-family: var(--font-mono); font-size: var(--text-xs); }
+.chev { transition: transform var(--duration-fast) var(--ease-out); }
+details[open] > summary .chev { transform: rotate(90deg); }
+.att__body { margin-top: var(--space-2); }
+
+.rawhead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+pre.raw {
+  max-height: 320px; overflow: auto; padding: var(--space-3) var(--space-4);
+  background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border);
+  font-family: var(--font-mono); font-size: var(--text-xs); line-height: 18px; color: var(--color-console-text); white-space: pre; tab-size: 4;
+}
+pre.raw--short { max-height: 200px; }
+
+/* Resposta do Sculk: fio de osso à esquerda (marca de IA), sem caixa em volta, para os cartões de proposta não ficarem dentro de outro cartão */
+.msg--ai .msg__head { color: var(--color-ai); }
+.msg--ai .msg__head .icon { align-self: center; }
+.ai { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-1) 0 var(--space-1) var(--space-5); border-left: 1px solid var(--color-ai-line); }
+.ai__note { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-2); }
+.ai__note .icon { margin-top: 1px; color: var(--color-text-3); }
+
+.consults { background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border); }
+.consults > summary { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: var(--space-2) var(--space-3); list-style: none; cursor: pointer; color: var(--color-ai); font-size: var(--text-sm); font-weight: 600; transition: background-color var(--duration-fast); }
+.consults > summary:hover { background: var(--color-surface-1); }
+.consults > summary .mono { font-size: var(--text-xs); font-weight: 500; }
+.consults > summary .chev { margin-left: auto; color: var(--color-text-3); }
+.consults__list { border-top: 1px solid var(--color-border); padding: var(--space-1) 0; }
+.tc > summary { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 32px; padding: var(--space-1) var(--space-3); list-style: none; cursor: pointer; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); transition: background-color var(--duration-fast), color var(--duration-fast); }
+.tc > summary:hover { background: var(--color-surface-1); color: var(--color-text); }
+.tc > summary .chev { color: var(--color-text-3); }
+.tc__title { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tc__title .pre { color: var(--color-text-3); }
+.tc__size { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.tc__body { display: grid; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-4) calc(var(--space-3) + 14px + var(--space-2)); }
+.tc__label { margin-bottom: var(--space-1); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+code.req { display: block; padding: var(--space-2) var(--space-3); background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border); font-family: var(--font-mono); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-2); white-space: pre-wrap; word-break: break-word; }
+.tc > summary, .tc__row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 32px; padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.tc--running .tc__row { color: var(--color-ai); }
+.statusbar__tasks .loader { margin-right: var(--space-1); }
+.tc.is-flash > summary { animation: flash 1400ms var(--ease-out); }
+@keyframes flash { 0%, 30% { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary-line); } 100% { background: transparent; box-shadow: none; } }
+
+.claims { display: flex; flex-direction: column; gap: var(--space-4); }
+.claim p { max-width: 72ch; }
+.claim p code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-ai); }
+.claim__ev { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-2); }
+.claim--no p { color: var(--color-text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.claim--ask p { color: var(--color-text); font-weight: 600; }
+.evid { display: inline-flex; align-items: center; gap: var(--space-1); height: 22px; padding: 0 var(--space-2); border: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-ok); clip-path: var(--shape-notch-sm); color: var(--color-ok-text); font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; transition: background-color var(--duration-fast); }
+button.evid:hover { background: var(--color-surface-2); }
+button.evid:focus-visible { clip-path: none; }
+.evid--no { box-shadow: inset 0 0 0 1px var(--color-border-control); color: var(--color-text-3); font-family: var(--font-ui); font-weight: 600; }
+
+.props { display: flex; flex-direction: column; gap: var(--space-3); }
+.props__title { font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; color: var(--color-text-2); }
+.proposal { padding: var(--space-4) var(--space-5); background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: inset 3px 0 0 var(--color-primary); transition: box-shadow var(--duration-base) var(--ease-out); }
+.proposal__head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.proposal__kind { font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-primary-text); }
+.proposal__title { font-weight: 700; margin-right: auto; }
+.proposal__text { margin-top: var(--space-1); max-width: 72ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.proposal__ev { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-3); font-size: var(--text-xs); color: var(--color-text-3); }
+.proposal__actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.proposal__done { display: flex; align-items: center; gap: var(--space-2); margin-right: auto; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.proposal--applied { box-shadow: inset 3px 0 0 var(--color-ok); }
+.proposal--dismissed { box-shadow: inset 3px 0 0 var(--color-border-control); background: transparent; }
+.proposal--dismissed .proposal__title { color: var(--color-text-2); }
+.proposal--dismissed .proposal__kind { color: var(--color-text-3); }
+
+.diff { margin-top: var(--space-3); border: 1px solid var(--color-border-strong); background: var(--color-bg-sunken); font-family: var(--font-mono); font-size: var(--text-xs); line-height: 20px; }
+.diff__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text); }
+.diff__stats .add { color: var(--color-ok-text); }
+.diff__stats .del { color: var(--color-danger-text); }
+.diff__body { overflow-x: auto; padding: var(--space-1) 0; }
+.diff__line { display: grid; grid-template-columns: 40px 24px max-content; color: var(--color-text-2); min-width: 100%; }
+.diff__num { padding-right: var(--space-2); text-align: right; color: var(--color-text-3); user-select: none; }
+.diff__sign { text-align: center; user-select: none; }
+.diff__code { white-space: pre; padding-right: var(--space-4); }
+.diff__line--add { background: var(--color-diff-add); color: var(--color-text); }
+.diff__line--add .diff__sign { color: var(--color-ok-text); }
+.diff__line--del { background: var(--color-diff-del); color: var(--color-text); }
+.diff__line--del .diff__sign { color: var(--color-danger-text); }
+.diff__fold { padding: 0 var(--space-3) 0 64px; color: var(--color-text-3); font-family: var(--font-ui); }
+
+.ai__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-top: var(--space-3); border-top: 1px dashed var(--color-ai-line); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.ai__foot > span { display: inline-flex; align-items: center; gap: var(--space-2); }
+.meter { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text-2); }
+.meter__blocks { display: inline-flex; gap: 2px; }
+.meter__blocks i { width: 14px; height: 10px; background: var(--color-surface-3); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.meter__blocks i.on { background: var(--color-ai); box-shadow: none; }
+
+.reading { display: inline-flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-ai); }
+.reading .mono { font-size: var(--text-xs); color: var(--color-text-3); }
+
+/* Compositor fixo */
+.composer { flex: none; padding: var(--space-4) var(--space-6) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-surface-1); }
+.composer__inner { max-width: var(--size-read); margin: 0 auto; }
+.cbox { background: var(--color-bg-sunken); border: 1px solid var(--color-border-control); border-radius: 2px; box-shadow: var(--inset-slot); transition: border-color var(--duration-fast); }
+.cbox:hover { border-color: var(--color-text-3); }
+.cbox:focus-within { border-color: var(--color-focus); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.cbox textarea { display: block; width: 100%; min-height: 44px; max-height: 200px; padding: var(--space-3) var(--space-4) var(--space-2); border: 0; background: transparent; resize: none; line-height: var(--lh-base); outline: none; }
+.cbox textarea::placeholder { color: var(--color-text-3); opacity: 1; }
+.cbar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) var(--space-2) var(--space-2) var(--space-2); }
+.cbar #sendBtn { margin-left: auto; }
+.cbar .segmented { background: var(--color-surface-1); }
+
+/* Nova conversa */
+.newconv { max-width: calc(640px + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); }
+.newconv h3 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+.newconv__sub { margin-top: var(--space-2); max-width: 72ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.fgroup { margin-top: var(--space-6); }
+.fgroup + .fgroup { margin-top: var(--space-6); }
+.flabel { display: block; margin-bottom: var(--space-2); font-weight: 600; }
+.flabel .opt { font-weight: 400; color: var(--color-text-3); }
+.fhint { margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-4); border: 0; background: transparent; color: var(--color-text-2); font-weight: 600; white-space: nowrap; }
+.chip::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: var(--shape-notch-sm); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); transition: background-color var(--duration-fast); }
+.chip:hover { color: var(--color-text); }
+.chip:hover::before { background: var(--color-surface-3); }
+.chip[aria-checked="true"] { color: var(--color-text); }
+.chip[aria-checked="true"]::before { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.chip .icon { color: var(--color-primary-text); }
+.provline { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin-top: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.newconv__go { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--color-border); }
+.newconv__go .fhint { margin-top: 0; flex: 1 1 280px; }
+.newconv .select { max-width: 400px; }
+.newconv .textarea { min-height: 72px; }
+.dialog .kv { grid-template-columns: 120px minmax(0, 1fr); }
+.rawhead h3 { margin: 0; }
+.rawhead--tight { margin-bottom: var(--space-1); }
+.claim__ev--action { margin-top: var(--space-3); }
+.consults__list--run { border-top: 0; }
+
+/* Painel Detalhes (empurra a conversa) */
+.drawer { width: var(--size-drawer); display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-left: 1px solid var(--color-border-strong); box-shadow: -1px 0 0 var(--color-pixel-shadow); animation: drawer-in var(--duration-slow) var(--ease-out); }
+@keyframes drawer-in { from { transform: translateX(24px); opacity: 0; } }
+.drawer .colhead { padding: 0 var(--space-3) 0 var(--space-5); }
+.drawer__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-8); }
+.dsec h3 { margin-bottom: var(--space-3); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.kv { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: baseline; font-size: var(--text-sm); line-height: var(--lh-sm); }
+.kv dt { color: var(--color-text-3); }
+.kv dd { min-width: 0; color: var(--color-text); }
+.kv dd .sub { display: block; margin-top: 2px; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.perms { display: flex; flex-direction: column; gap: var(--space-3); }
+.perms li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: start; font-size: var(--text-sm); line-height: var(--lh-sm); }
+.perms .icon { margin-top: 1px; }
+.perms .yes { color: var(--color-ok-text); }
+.perms .no { color: var(--color-text-3); }
+.perms small { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.perms li.off span { color: var(--color-text-2); }
+.sent { display: flex; flex-direction: column; }
+.sent button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; width: 100%; padding: var(--space-1) 0; border: 0; background: transparent; text-align: left; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.sent button:hover { color: var(--color-text); }
+.sent button:hover .sent__name { text-decoration: underline; text-underline-offset: 3px; }
+.sent__name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sent__size { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); }
+.sent__total { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; }
+.sent__total .sent__size { color: var(--color-text); font-weight: 600; }
+.notices { display: flex; flex-direction: column; gap: var(--space-2); }
+.alert { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: start; padding: var(--space-3) var(--space-4); background: var(--alert-bg); box-shadow: inset 3px 0 0 var(--alert-bar); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.alert > .icon { margin-top: 1px; color: var(--alert-bar); }
+.alert__actions { grid-column: 2; margin-top: var(--space-2); }
+.alert--warn { --alert-bg: var(--color-warn-soft); --alert-bar: var(--color-warn); }
+.alert--neutral { --alert-bg: var(--color-surface-2); --alert-bar: var(--color-border-control); }
+.alert--ai { --alert-bg: var(--color-ai-soft); --alert-bar: var(--color-ai); color: var(--color-text); }
+.drawer__foot { flex: none; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border); background: var(--color-bg); }
+.confirm { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-1) 0; }
+.confirm strong { font-weight: 700; }
+.confirm p { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.confirm__actions { display: flex; gap: var(--space-2); }
+
+/* Diálogo de consentimento */
+.scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-8); background: var(--color-overlay); animation: fade-in var(--duration-base) var(--ease-out); }
+@keyframes fade-in { from { opacity: 0; } }
+.dialog { width: min(720px, 100%); max-height: calc(100vh - 64px); display: flex; flex-direction: column; background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-3), inset 0 1px 0 rgba(127, 243, 240, 0.06); animation: dialog-in var(--duration-slow) var(--ease-out); }
+@keyframes dialog-in { from { transform: translateY(12px); opacity: 0; } }
+.dialog__head { padding: var(--space-6) var(--space-6) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.dialog__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-lg); line-height: var(--lh-lg); font-weight: 800; }
+.dialog__title .icon { color: var(--color-ai); }
+.dialog__sub { margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); max-width: 72ch; }
+.dialog__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-6) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.dialog__body h3 { margin-bottom: var(--space-3); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.dialog__foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: var(--color-bg); }
+.perm { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 2px var(--space-3); align-items: start; padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.perm:first-child { border-top: 0; padding-top: 0; }
+.perm > .icon { width: 18px; height: 18px; margin-top: 1px; color: var(--color-ok-text); }
+.perm__t { font-weight: 600; }
+.perm__d { grid-column: 2; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); max-width: 72ch; }
+.perm__fixed { grid-column: 3; grid-row: 1; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); align-self: center; }
+.perm .check { display: contents; }
+.perm input { grid-column: 1; grid-row: 1; }
+.perm .check .perm__t { grid-column: 2; cursor: pointer; }
+
+/* Menu, dica, toast */
+.menu { position: fixed; z-index: 30; min-width: 280px; padding: var(--space-1) 0; background: var(--color-bg-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-2); animation: menu-in var(--duration-base) var(--ease-out); }
+@keyframes menu-in { from { transform: translateY(-4px); opacity: 0; } }
+.menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px var(--space-3); align-items: center; width: 100%; padding: var(--space-2) var(--space-3); border: 0; background: none; text-align: left; color: var(--color-text); }
+.menu button .icon { color: var(--color-text-3); }
+.menu button small { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.menu button:hover, .menu button:focus-visible { background: var(--color-primary-soft); box-shadow: inset 3px 0 0 var(--color-primary); outline: none; }
+.menu button:focus-visible { box-shadow: inset 3px 0 0 var(--color-primary), inset 0 0 0 2px var(--color-focus); }
+.tooltip { position: fixed; z-index: 70; max-width: 300px; padding: 6px var(--space-2); background: var(--color-bg-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), 0 2px 0 rgba(0, 0, 0, 0.5); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text); pointer-events: none; }
+.toasts { position: fixed; right: var(--space-5); bottom: calc(var(--size-statusbar) + var(--space-4)); z-index: 60; display: grid; gap: var(--space-2); width: 380px; }
+.toast { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); background: var(--color-surface-2); border: 1px solid var(--color-border-strong); box-shadow: var(--shadow-block-2), inset 3px 0 0 var(--toast-bar, var(--color-primary)); font-size: var(--text-sm); line-height: var(--lh-sm); animation: toast-in var(--duration-base) var(--ease-out); }
+.toast > .icon { color: var(--toast-bar, var(--color-primary)); }
+.toast--ok { --toast-bar: var(--color-ok); }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
+
+/* Rodapé de tarefas */
+.statusbar { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg-sunken); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.statusbar__tasks { display: inline-flex; align-items: center; gap: var(--space-2); height: 22px; padding: 0 var(--space-2); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-xs); font-weight: 600; }
+.statusbar__tasks:hover { background: var(--color-surface-2); color: var(--color-text); }
+.statusbar__tasks.is-busy { color: var(--color-primary-text); }
+.statusbar__end { margin-left: auto; font-family: var(--font-mono); }
+
+@media (max-width: 1280px) {
+  :root { --size-convs: 280px; --size-drawer: 340px; }
+  .chat .colhead, .composer { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .chat__meta { display: none; }
+}
+
+/* ---------- Esboços: Adicionar ao pack (Problema 15) ---------- */
+.stage { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.stage > .win { height: auto; min-height: 0; }
+.skbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-2) var(--space-6); align-items: start; padding: var(--space-3) var(--space-6); background: var(--color-surface-2); border-bottom: 2px solid var(--color-pixel-shadow); }
+.skbar__pick { display: flex; flex-direction: column; gap: var(--space-2); }
+.skbar__label { font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.skbar .segmented button { height: 30px; font-size: var(--text-sm); }
+.skbar__txt { min-width: 0; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); max-width: 1000px; }
+.skbar__txt strong { color: var(--color-text); }
+.skbar__line { display: flex; align-items: baseline; gap: var(--space-4); }
+.skbar__hide { font-size: var(--text-xs); color: var(--color-text-3); }
+.skbar.is-mini #skTxt { display: none; }
+.skbar.is-mini { align-items: center; }
+.skbar__txt p + p { margin-top: 4px; }
+.skbar__pc { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin-top: 6px; }
+.skbar__pc span b { font-weight: 700; }
+.skbar__pc .pro b { color: var(--color-ok-text); }
+.skbar__pc .con b { color: var(--color-warn-text); }
+
+/* Corpo: trilho | página | coluna da direita */
+.body--add { --side-w: 296px; grid-template-columns: var(--size-rail) minmax(0, 1fr) var(--side-w); }
+.body--add[data-n="3"] { --side-w: 384px; }
+.grow { flex: 1 1 auto; min-width: 0; }
+
+.addmain { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-bg); }
+.addhead { flex: none; display: flex; align-items: center; gap: var(--space-4); height: 60px; padding: 0 var(--space-6) 0 var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-surface-1); }
+.addhead h2 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.addhead__sep { width: 1px; height: 24px; background: var(--color-border-strong); flex: none; }
+.addhead__added { font-weight: 500; color: var(--color-ok-text); }
+.wide-only { display: inline; }
+.narrow-only { display: none; }
+
+.addsearch { flex: none; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-6) var(--space-3); }
+.addsearch__row { display: flex; align-items: center; gap: var(--space-3); }
+.addsearch__row .segmented { flex: none; padding: 3px; }
+.addsearch__row .segmented button { height: 32px; padding: 0 var(--space-3); }
+.addsearch__row > .select { display: none; width: 150px; flex: none; height: 40px; }
+.sfield { position: relative; flex: 1 1 auto; min-width: 0; }
+.sfield > .icon { position: absolute; left: 13px; top: 12px; color: var(--color-text-3); pointer-events: none; }
+.sfield .input { height: 40px; padding-left: 38px; }
+.sfield--chip .input { padding-right: 188px; }
+.sfield__lock { position: absolute; right: 7px; top: 7px; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 var(--space-2); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); clip-path: var(--shape-notch-sm); font-size: var(--text-xs); font-weight: 600; color: var(--color-text-2); white-space: nowrap; }
+.sfield__lock .icon { color: var(--color-text-3); }
+.lockline { display: flex; align-items: center; gap: var(--space-2); min-width: 0; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; }
+.lockline b { font-weight: 600; color: var(--color-text-2); }
+.lockline .icon { flex: none; }
+.lockline__legend { margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-3); }
+
+.addscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 var(--space-6) var(--space-6); scrollbar-gutter: stable; }
+
+/* Marcas de fonte (quadrado = Modrinth, losango = CurseForge) */
+.src { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: var(--text-xs); line-height: 1; color: var(--color-text-2); }
+.src i { display: inline-block; width: 8px; height: 8px; flex: none; }
+.src i.mr { background: var(--color-ok); }
+.src i.cf { width: 7px; height: 7px; margin: 0 1px; background: var(--color-warn); transform: rotate(45deg); }
+.src--pair { gap: 4px; }
+
+.tag .icon { width: 12px; height: 12px; stroke-width: 2.5; }
+.tag--lib { color: var(--color-text-3); background: transparent; box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+
+/* Ícones de mod (pixel art 8×8) */
+.mi { display: block; flex: none; width: 24px; height: 24px; image-rendering: pixelated; box-shadow: 0 0 0 1px var(--color-pixel-shadow); }
+.mi--md { width: 36px; height: 36px; }
+.mi--lg { width: 40px; height: 40px; }
+.mi--xl { width: 48px; height: 48px; }
+.mi--sm { width: 18px; height: 18px; }
+
+/* Barra de marcados */
+.selbar { flex: none; display: flex; align-items: center; gap: var(--space-4); min-height: 64px; padding: var(--space-3) var(--space-6); background: var(--color-surface-2); border-top: 1px solid var(--color-primary-line); box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.35); animation: selbar-in var(--duration-base) var(--ease-out); }
+@keyframes selbar-in { from { transform: translateY(8px); opacity: 0; } }
+.selbar__n { display: inline-grid; place-items: center; min-width: 32px; height: 32px; padding: 0 var(--space-2); background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary-line); clip-path: var(--shape-notch-sm); font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); line-height: 1; color: var(--color-primary-text); }
+.selbar__txt { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.selbar__t { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.selbar__t span { font-weight: 500; color: var(--color-text-2); }
+.selbar__d { font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.selbar__d b { font-weight: 600; color: var(--color-text-2); }
+.selbar .btn--primary { height: 40px; }
+
+/* Coluna da direita */
+.side { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--color-surface-1); border-left: 1px solid var(--color-border-strong); box-shadow: -1px 0 0 var(--color-pixel-shadow); }
+.sidehead { flex: none; display: flex; align-items: center; gap: var(--space-3); height: 60px; padding: 0 var(--space-3) 0 var(--space-5); border-bottom: 1px solid var(--color-border); }
+.sidehead h2 { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-md); line-height: var(--lh-md); font-weight: 700; white-space: nowrap; }
+.sidehead h2 .icon { color: var(--color-text-3); }
+.sidehead--back { padding-left: var(--space-2); }
+.sidebody { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-4) var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); }
+.fsec { display: flex; flex-direction: column; gap: var(--space-2); }
+.fsec__t { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.segmented--full { display: flex; width: 100%; }
+.segmented--full button { flex: 1 1 0; min-width: 0; height: 28px; padding: 0 var(--space-2); }
+.fchecks { display: flex; flex-direction: column; gap: var(--space-3); }
+.fchecks .check { font-size: var(--text-sm); line-height: var(--lh-sm); }
+.fchecks .check small { display: block; margin-top: 1px; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.flegend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: var(--text-xs); color: var(--color-text-3); }
+.flegend .src { color: var(--color-text-3); }
+
+/* Lista de categorias (esboço 1) */
+.clist { display: flex; flex-direction: column; gap: 1px; margin: 0 calc(-1 * var(--space-2)); }
+.clist button { position: relative; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); height: 30px; padding: 0 var(--space-2); border: 0; background: transparent; text-align: left; font-size: var(--text-sm); color: var(--color-text-2); white-space: nowrap; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.clist button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.clist button .icon { color: transparent; }
+.clist button:hover { background: var(--color-surface-2); color: var(--color-text); }
+.clist button[aria-pressed="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); color: var(--color-text); font-weight: 600; }
+.clist button[aria-pressed="true"] .icon { color: var(--color-primary-text); }
+.clist__more { align-self: flex-start; margin-top: var(--space-1); font-size: var(--text-sm); }
+
+/* Esboço 1: tabela densa */
+.tbl { --tcols: 18px minmax(220px, 1.25fr) minmax(0, 2fr) 72px 92px 40px 124px; background: var(--color-bg); }
+.trow { display: grid; grid-template-columns: var(--tcols); align-items: center; gap: 0 var(--space-3); height: 40px; padding: 0 var(--space-3); border-top: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); transition: background-color var(--duration-fast) var(--ease-out); }
+.trow > * { min-width: 0; }
+.trow:hover { background: var(--color-surface-1); }
+.trow.is-sel { background: var(--color-primary-soft); }
+.trow.is-sel:hover { background: rgba(25, 211, 224, 0.17); }
+.trow.is-open { box-shadow: inset 0 0 0 1px var(--color-border-control); }
+.thead { position: sticky; top: 0; z-index: 2; height: 34px; background: var(--color-bg); border-top: 0; border-bottom: 1px solid var(--color-border-strong); font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.thead:hover { background: var(--color-bg); }
+.thead button { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; white-space: nowrap; }
+.thead button:hover { color: var(--color-text); }
+.thead button[aria-sort] { color: var(--color-text-2); }
+.thead button .icon { width: 12px; height: 12px; stroke-width: 2.5; }
+.thead .r, .trow .r { justify-self: end; text-align: right; }
+.tname { display: flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; }
+.tname__n { flex: 0 0 auto; max-width: calc(100% - 80px); min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--color-text); border: 0; padding: 0; background: none; text-align: left; }
+button.tname__n:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tname__a { flex: 0 1 auto; min-width: 36px !important; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--text-xs); color: var(--color-text-3); }
+.tsum { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text-2); }
+.tnum { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-2); white-space: nowrap; }
+.tupd { font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.trow.is-in .tname__n { color: var(--color-text-2); }
+.trow .check { gap: 0; }
+.tgrp { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-5) var(--space-3) var(--space-2); border-bottom: 1px solid var(--color-border); }
+.tgrp:first-of-type, .thead + .tgrp { padding-top: var(--space-3); }
+.tgrp h3, .grp__head h3 { font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.tgrp__n, .grp__n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); }
+.tgrp .btn--link, .grp__head .btn--link { margin-left: auto; font-size: var(--text-sm); }
+.tgrp + .trow { border-top: 0; }
+.tlib { display: flex; align-items: center; gap: var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-3); border-top: 1px dashed var(--color-border-strong); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.tlib > .icon { color: var(--color-text-3); }
+.tlib__t { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tlib__t b { font-weight: 600; color: var(--color-text); }
+.tlib__t span { color: var(--color-text-3); }
+.tempty { padding: var(--space-8) var(--space-3); font-size: var(--text-sm); color: var(--color-text-2); }
+
+/* Esboço 2: grade de cartões compactos */
+.grp { display: flex; flex-direction: column; }
+.grp + .grp { margin-top: var(--space-6); }
+.grp__head { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-3) 0 var(--space-3); }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-3); }
+.mcard { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; gap: 0 var(--space-3); padding: var(--space-3); min-height: 120px; background: var(--color-surface-1); box-shadow: inset 0 0 0 1px var(--color-border); transition: box-shadow var(--duration-fast) var(--ease-out), background-color var(--duration-fast); }
+.mcard:hover { box-shadow: inset 0 0 0 1px var(--color-border-control); }
+.mcard.is-sel { background: rgba(25, 211, 224, 0.07); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.mcard.is-open { box-shadow: inset 0 0 0 1px var(--color-text-2); }
+.mcard .mi { grid-row: 1 / 3; }
+.mcard__top { display: flex; align-items: center; gap: var(--space-2); min-width: 0; height: 22px; }
+.mcard__n { flex: 1 1 auto; min-width: 0; padding: 0; border: 0; background: none; text-align: left; font-weight: 700; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcard__n:hover { text-decoration: underline; text-underline-offset: 3px; }
+.mcard__by { grid-column: 2; min-width: 0; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcard__sum { grid-column: 1 / -1; margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mcard__foot { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; }
+.mcard__foot .tnum { color: var(--color-text-2); }
+.mcard__foot .tag { margin-left: auto; }
+.mcard .btn--sm { flex: none; height: 26px; }
+.btn--on { --btn-bg: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface-1)); --btn-edge: var(--color-primary); --btn-fg: var(--color-primary-text); --btn-bevel: none; }
+.btn--on:hover { --btn-bg: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface-1)); --btn-edge: var(--color-primary); }
+.libgrp { margin-top: var(--space-3); background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border); }
+.libgrp__sum { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 44px; padding: var(--space-2) var(--space-4); border: 0; background: transparent; text-align: left; color: var(--color-text-2); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.libgrp__sum:hover { background: var(--color-surface-1); }
+.libgrp__sum > .icon { color: var(--color-text-3); }
+.libgrp__sum b { font-weight: 700; color: var(--color-text); }
+.libgrp__sum .t3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.libgrp__sum .chev { margin-left: auto; color: var(--color-text-3); }
+.libgrp[data-open="true"] .libgrp__sum .chev { transform: rotate(90deg); }
+.libgrp__body { padding: 0 var(--space-3) var(--space-3); }
+.libgrp .mcard { background: var(--color-surface-1); }
+
+/* Acordeão de filtros (esboço 2) */
+.acc { border-top: 1px solid var(--color-border); }
+.acc:first-child { border-top: 0; }
+.acc__btn { display: grid; grid-template-columns: minmax(0, 1fr) auto 14px; align-items: center; gap: var(--space-2); width: 100%; height: 44px; padding: 0; border: 0; background: transparent; text-align: left; font-weight: 700; color: var(--color-text); }
+.acc__btn:hover .acc__t { text-decoration: underline; text-underline-offset: 3px; }
+.acc__t { white-space: nowrap; }
+.acc__v { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; justify-self: end; }
+.acc__v.on { color: var(--color-primary-text); }
+.acc__btn .chev { color: var(--color-text-3); }
+.acc__btn[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.acc__b { padding: 0 0 var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.sidebody--acc { gap: 0; padding-top: var(--space-1); }
+.fchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fchip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 0; background: transparent; font-size: var(--text-sm); font-weight: 600; color: var(--color-text-2); white-space: nowrap; }
+.fchip::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: var(--shape-notch-sm); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); transition: background-color var(--duration-fast); }
+.fchip:hover { color: var(--color-text); }
+.fchip:hover::before { background: var(--color-surface-3); }
+.fchip[aria-pressed="true"] { color: var(--color-text); }
+.fchip[aria-pressed="true"]::before { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.fchip .src i { width: 6px; height: 6px; }
+.fchip .src i.cf { width: 5px; height: 5px; }
+.oplist { display: flex; flex-direction: column; gap: var(--space-2); }
+.oplist .check { font-size: var(--text-sm); line-height: var(--lh-sm); }
+.check > input[type="radio"] { border-radius: 0; }
+
+/* Esboço 3: lista + detalhe */
+.count--n { background: var(--color-surface-3); color: var(--color-text-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.lgroup + .lgroup { margin-top: var(--space-5); }
+.lhead { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-2); }
+.lhead h3 { font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.lhead .btn--link { margin-left: auto; font-size: var(--text-sm); }
+.lhead__d { font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.llist { background: var(--color-surface-1); box-shadow: inset 0 0 0 1px var(--color-border); }
+.lrow { position: relative; display: grid; grid-template-columns: 18px 36px minmax(0, 1fr) auto; align-items: center; gap: 0 var(--space-3); min-height: 58px; padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border); cursor: pointer; transition: background-color var(--duration-fast) var(--ease-out); }
+.lrow:first-child { border-top: 0; }
+.lrow:hover { background: var(--color-surface-2); }
+.lrow.is-sel { background: rgba(25, 211, 224, 0.07); }
+.lrow[aria-current="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border-strong); }
+.lrow[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: var(--space-2); bottom: var(--space-2); width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.lrow__main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lrow__l1 { display: flex; align-items: center; gap: var(--space-2); min-width: 0; white-space: nowrap; }
+.lrow__n { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+.lrow__a { flex: 0 10 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--text-xs); color: var(--color-text-3); }
+.lrow__l1 .tag { height: 20px; }
+.lrow__s { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lrow__end { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.lrow.is-lib .lrow__n { color: var(--color-text-2); }
+.libnote { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-top: 1px dashed var(--color-border-strong); background: var(--color-bg-sunken); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.libnote b { font-weight: 700; color: var(--color-text-2); }
+
+.fbar { flex: none; display: flex; flex-direction: column; gap: var(--space-3); padding: 0 var(--space-3) 0 var(--space-5); border-bottom: 1px solid var(--color-border); background: var(--color-surface-1); }
+.fbar__row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; height: 59px; flex: none; }
+.fbar__row .tag { height: 26px; font-size: var(--text-sm); }
+.fbar__act { display: flex; flex-wrap: wrap; gap: 6px; margin-top: calc(-1 * var(--space-1)); padding-bottom: var(--space-3); }
+.fbar__act .tag { height: 24px; }
+.fbar__act .tag button { display: grid; place-items: center; width: 16px; height: 16px; margin-right: -4px; padding: 0; border: 0; background: none; color: inherit; }
+.fbar__form { padding-bottom: var(--space-4) !important; }
+.fbar__chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; flex: 1 1 auto; }
+.fbar__chips .tag { height: 24px; }
+.fbar__form { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3) var(--space-3); padding-bottom: var(--space-1); }
+.fbar__form .full { grid-column: 1 / -1; }
+.fbar__form .fl { display: block; margin-bottom: 4px; font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: 600; color: var(--color-text-3); }
+.fbar__form .select { height: 32px; font-size: var(--text-sm); }
+.fbar__form .segmented--full button { height: 26px; }
+.fbar__form .fchecks { gap: var(--space-2); }
+
+/* Detalhe do mod (pré-visualização) */
+.det { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); }
+.det__head { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: center; }
+.det__head h3 { font-size: var(--text-lg); line-height: var(--lh-lg); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.det__head p { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); }
+.det__act { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: calc(-1 * var(--space-2)); }
+.det__act .btn--primary, .det__act .btn--on { flex: 1 1 0; min-width: 0; }
+.det__src { display: flex; flex-direction: column; gap: var(--space-2); }
+.det__src .fl { font-size: var(--text-sm); color: var(--color-text-3); }
+.det__src .sub { font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.det .kv { grid-template-columns: 112px minmax(0, 1fr); }
+.det .kv dd .segmented button { height: 24px; }
+.deps { display: flex; flex-direction: column; }
+.deps li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: var(--space-1) var(--space-3); align-items: center; padding: var(--space-2) 0; border-top: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.deps li:first-child { border-top: 0; padding-top: 0; }
+.deps li small { grid-column: 2 / -1; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.deps__will { font-size: var(--text-xs); font-weight: 600; color: var(--color-primary-text); white-space: nowrap; }
+.deps__in { font-size: var(--text-xs); font-weight: 600; color: var(--color-ok-text); white-space: nowrap; }
+.det__desc { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.det__desc + .det__desc { margin-top: var(--space-2); }
+.det .dsec h3 { margin-bottom: var(--space-3); }
+.det .dsec .btn--link { margin-top: var(--space-3); font-size: var(--text-sm); }
+.det .alert { margin-top: calc(-1 * var(--space-2)); }
+
+/* (regras de janela estreita removidas: a janela do esboço nunca fica abaixo de 1280 px, ver fit.js) */
+
+/* Opção 4: seletor Lista | Cartões */
+.viewsel { flex: none; }
+.viewsel button { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+/* Encaixe: abaixo de 1280 px a janela do app é desenhada em 1280 e reduzida por inteiro (nada espremido nem cortado) */
+.fit { position: relative; min-height: 0; overflow: hidden; }
+.fit > .win { position: absolute; top: 0; left: 0; min-width: 0; transform-origin: 0 0; }
+.skbar.is-mini #skTxt { display: block; }
+.skbar.is-mini #skTxt p { display: none; }
+.skbar.is-mini #skTxt .skbar__pc { margin-top: 2px; }
+
+</style>
+<div class="stage">
+  <div class="skbar">
+    <div class="skbar__pick">
+      <span class="skbar__label">Esboço · Adicionar ao pack</span>
+      <div class="segmented" role="radiogroup" aria-label="Escolher o esboço" id="skSel">
+        <button type="button" role="radio" data-n="1" aria-checked="true">1 · Tabela densa</button>
+        <button type="button" role="radio" data-n="2" aria-checked="false">2 · Grade de cartões</button>
+        <button type="button" role="radio" data-n="3" aria-checked="false">3 · Lista com detalhe</button><button type="button" role="radio" data-n="4" aria-checked="false">4 · As duas, com seletor</button>
+      </div>
+    </div>
+    <div class="skbar__txt"><div class="skbar__line"><strong id="skName"></strong><button type="button" class="btn btn--link skbar__hide" id="skHide" aria-expanded="true">Esconder a explicação</button></div><div id="skTxt"></div></div>
+  </div>
+<div class="win" id="win">
+  <div class="titlebar">
+    <div class="titlebar__drag"></div>
+    <div class="winctl" role="group" aria-label="Janela">
+      <button type="button" data-act="proto" data-msg="No app, este botão minimiza a janela." aria-label="Minimizar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <button type="button" data-act="proto" data-msg="No app, este botão restaura o tamanho da janela." aria-label="Restaurar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/></svg></button>
+      <button type="button" class="close" data-act="proto" data-msg="No app, este botão fecha o Warden." aria-label="Fechar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+  </div>
+
+  <header class="packhead" aria-label="Pack aberto">
+    <button type="button" class="btn btn--ghost btn--sm" data-act="proto" data-msg="Volta para Meus packs. Fora deste protótipo."><span data-ic="arrow-left" data-cls="icon--sm"></span>Meus packs</button>
+    <span class="packhead__sep" aria-hidden="true"></span>
+    <div class="packhead__id">
+      <span id="packTile"></span>
+      <div>
+        <h1>Zoonicraft</h1>
+        <div class="packhead__meta"><span>Minecraft <span class="mono">1.21.1</span></span><span class="dot" aria-hidden="true"></span><span>NeoForge <span class="mono">21.1.264</span></span><span class="dot" aria-hidden="true"></span><span>versão <span class="mono">0.1.2</span></span></div>
+      </div>
+    </div>
+    <div class="packhead__actions">
+      <button type="button" class="btn" id="saveBtn" data-act="proto" data-msg="Salvar versão abre o resumo das alterações. Fora deste protótipo." aria-label="Salvar versão, 16 alterações não salvas"><span data-ic="save"></span>Salvar versão<span class="btn__count" id="saveCount">16 alterações</span></button>
+      <div class="testbtn">
+        <span class="testbtn__antenna" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <button type="button" class="btn btn--primary testbtn__main" data-act="test"><span data-ic="play" data-cls="icon--fill"></span>Testar</button>
+        <button type="button" class="btn btn--primary testbtn__more" id="testMore" data-act="test-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Mais opções do teste"><span data-ic="chevron-down"></span></button>
+      </div>
+    </div>
+  </header>
+  <div id="body"></div>
+  <footer class="statusbar">
+    <button type="button" class="statusbar__tasks" id="tasks" data-act="proto" data-msg="Abre o painel de Tarefas. Fora deste protótipo."><span data-ic="layers" data-cls="icon--sm"></span><span id="tasksText">Nenhuma tarefa em andamento</span></button>
+    <span class="statusbar__end">Warden 1.0.1</span>
+  </footer>
+</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  const ICONS = {"puzzle":"<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />","file-code":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 12.5 8 15l2 2.5\" /><path d=\"m14 12.5 2 2.5-2 2.5\" />","triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />","sparkles":"<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />","history":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />","package":"<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /><path d=\"M12 22V12\" /><polyline points=\"3.29 7 12 12 20.71 7\" /><path d=\"m7.5 4.27 9 5.15\" />","search":"<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />","plus":"<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />","send":"<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /><path d=\"m21.854 2.147-10.94 10.939\" />","chevron-right":"<path d=\"m9 18 6-6-6-6\" />","chevron-down":"<path d=\"m6 9 6 6 6-6\" />","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />","trash-2":"<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />","x":"<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />","check":"<path d=\"M20 6 9 17l-5-5\" />","undo-2":"<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />","file-text":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" />","save":"<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\" /><path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\" /><path d=\"M7 3v4a1 1 0 0 0 1 1h7\" />","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />","info":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />","copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />","arrow-left":"<path d=\"m12 19-7-7 7-7\" /><path d=\"M19 12H5\" />","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />","layers":"<path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z\" /><path d=\"M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12\" /><path d=\"M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17\" />","circle-check":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />","boxes":"<path d=\"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z\" /><path d=\"m7 16.5-4.74-2.85\" /><path d=\"m7 16.5 5-3\" /><path d=\"M7 16.5v5.17\" /><path d=\"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z\" /><path d=\"m17 16.5-5-3\" /><path d=\"m17 16.5 4.74-2.85\" /><path d=\"M17 16.5v5.17\" /><path d=\"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z\" /><path d=\"M12 8 7.26 5.15\" /><path d=\"m12 8 4.74-2.85\" /><path d=\"M12 13.5V8\" />","cpu":"<path d=\"M12 20v2\" /><path d=\"M12 2v2\" /><path d=\"M17 20v2\" /><path d=\"M17 2v2\" /><path d=\"M2 12h2\" /><path d=\"M2 17h2\" /><path d=\"M2 7h2\" /><path d=\"M20 12h2\" /><path d=\"M20 17h2\" /><path d=\"M20 7h2\" /><path d=\"M7 20v2\" /><path d=\"M7 2v2\" /><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" /><rect x=\"8\" y=\"8\" width=\"8\" height=\"8\" rx=\"1\" />","flask-conical":"<path d=\"M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2\" /><path d=\"M6.453 15h11.094\" /><path d=\"M8.5 2h7\" />","circle-alert":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\" /><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\" />","minus":"<path d=\"M5 12h14\" />"};
+  Object.assign(ICONS, {
+    "arrow-right": '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    "list-filter": '<path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/>',
+    "file-plus": '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/>',
+    "external-link": '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+    "chevron-up": '<path d="m18 15-6-6-6 6"/>',
+    "arrow-down": '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+    list: '<path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/>',
+    "layout-grid": '<rect width="7" height="7" x="3" y="3"/><rect width="7" height="7" x="14" y="3"/><rect width="7" height="7" x="14" y="14"/><rect width="7" height="7" x="3" y="14"/>',
+    "arrow-up": '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+  });
+  const ic = (n, c) => `<svg class="icon ${c || ""}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[n] || ""}</svg>`;
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const hydrate = (root) => $$("[data-ic]", root).forEach((el) => { el.outerHTML = ic(el.dataset.ic, el.dataset.cls); });
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+
+  /* Ícone do pack (o mesmo do protótipo) */
+  (function tile() {
+    const rows = ["..XXXX..", ".XAAAAX.", "XABAABAX", "XAACCAAX", "XAACCAAX", "XABAABAX", ".XAAAAX.", "..XXXX.."];
+    const col = { X: "#1e4552", A: "#0e2630", B: "#19d3e0", C: "#cfe3da", ".": "#12313c" };
+    let r = "";
+    rows.forEach((row, y) => [...row].forEach((ch, x) => { r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"/>`; }));
+    $("#packTile").outerHTML = `<svg class="tile" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+  })();
+
+  /* ---------- Ícones dos mods: pixel art 8×8 desenhada à mão ---------- */
+  const SPR = {
+    apple: { bg: "#1f2a1c", c: { r: "#d9434b", R: "#ff9a9a", g: "#3ddc84", d: "#8e1f28" }, p: ["....g...", "...gg...", ".rrrrrr.", "rRrrrrrr", "rRrrrrrr", "rrrrrrrr", ".rrrrrd.", "..rddd.."] },
+    map: { bg: "#3a3220", c: { p: "#e3d6a8", g: "#5aa84a", b: "#3a7bd5", r: "#d9434b" }, p: ["pppppppp", "pggbbbpp", "pgggbbgp", "pbbggrgp", "pbgggggp", "pbbggbbp", "pggggbbp", "pppppppp"] },
+    waystone: { bg: "#10242c", c: { s: "#6f7a80", S: "#9aa5ab", c: "#19d3e0", C: "#7ff3f0", d: "#3d4549" }, p: ["..ssss..", ".sSSSSs.", ".sScCSs.", ".sSccSs.", ".sScCSs.", ".sSSSSs.", "ssssssss", "dddddddd"] },
+    key: { bg: "#1b2226", c: { k: "#2b3236", K: "#59646b", w: "#e4f3ef", d: "#0f1315" }, p: ["........", ".kkkkkk.", "kKKKKKKk", "kKwKKwKk", "kKKKKKKk", "kKwwwwKk", "kkkkkkkk", ".dddddd."] },
+    mouse: { bg: "#23303a", c: { w: "#cfd8dc", W: "#f2f6f7", r: "#d9434b", k: "#59646b" }, p: ["..wwww..", ".wWwrwW.", ".wwkrkw.", ".wwwwww.", ".wwwwww.", ".wwwwww.", "..wwww..", "........"] },
+    orbs: { bg: "#162410", c: { g: "#7ac142", G: "#d4f57a" }, p: ["........", ".gg.....", "gGGg....", "gGGg.gg.", ".gg.gGGg", "....gGGg", "..gg.gg.", ".gGGg..."] },
+    compass: { bg: "#2a2014", c: { c: "#8a6a3a", w: "#e4f3ef", r: "#d9434b", b: "#3a4a5a" }, p: ["..cccc..", ".cwwwwc.", "cwwrwwwc", "cwwrrwwc", "cwwbbwwc", "cwwwbwwc", ".cwwwwc.", "..cccc.."] },
+    backpack: { bg: "#1d1712", c: { b: "#5a3a22", B: "#8b5a2b", g: "#6b4426", Y: "#f2b33d" }, p: ["..bbbb..", ".b....b.", "bBBBBBBb", "bBggggBb", "bBgYYgBb", "bBggggBb", "bBBBBBBb", ".bbbbbb."] },
+    drawers: { bg: "#2a1f12", c: { w: "#a0743f", D: "#6b4a26", h: "#e3c070", d: "#4a3218" }, p: ["wwwwwwww", "wDDwwDDw", "wDhwwDhw", "wwwwwwww", "wDDwwDDw", "wDhwwDhw", "wwwwwwww", "dddddddd"] },
+    ferrite: { bg: "#1c1a1f", c: { i: "#7d5a50", I: "#b78a7a", d: "#4a3530" }, p: ["........", "...ii...", "..iIIi..", ".iIIIIi.", "iIIiiIIi", ".iiddii.", "..dddd..", "........"] },
+    pot: { bg: "#1e2a1a", c: { k: "#3a3f44", K: "#5e666d", g: "#5aa84a", w: "#e4f3ef", r: "#d9434b" }, p: ["..g.r...", "...ww...", "kkkkkkkk", ".kKKKKk.", ".kKKKKk.", ".kKKKKk.", "..kkkk..", "........"] },
+    chest: { bg: "#1b2226", c: { i: "#c8cdd0", C: "#8a9399", L: "#2b3236" }, p: ["iiiiiiii", "iCCCCCCi", "iCCCCCCi", "iiiLLiii", "iCCLLCCi", "iCCCCCCi", "iCCCCCCi", "iiiiiiii"] },
+    wrench: { bg: "#0f2a30", c: { w: "#c8cdd0", d: "#7d878d" }, p: [".....ww.", "....w..w", "....wwdw", "...www..", "..wwd...", ".wwd....", "wwd.....", "wd......"] },
+    grave: { bg: "#1a2120", c: { s: "#5e666d", S: "#8a9399", d: "#3a3f44", g: "#5aa84a" }, p: ["..ssss..", ".sSSSSs.", ".sSdSSs.", ".sdddSs.", ".sSdSSs.", ".sSSSSs.", ".sSSSSs.", "gggggggg"] },
+    jar: { bg: "#1a2430", c: { k: "#8b5a2b", w: "#cfe3da", b: "#3a7bd5", Y: "#ffcb66" }, p: ["..kkkk..", "..wwww..", ".wbbbbw.", ".wbYbbw.", ".wbbbYw.", ".wbbbbw.", ".wbbbbw.", "..wwww.."] },
+    bricks: { bg: "#232a2c", c: { m: "#6f7a80", M: "#4f8a3a", d: "#3d4549" }, p: ["MmmmMmmm", "dddddddd", "mmMmmmmM", "dddddddd", "MmmmMmmm", "dddddddd", "mmMmmmmM", "dddddddd"] },
+    skull: { bg: "#2a1c1c", c: { w: "#e4f3ef", k: "#15191c" }, p: ["..wwww..", ".wwwwww.", "wwwwwwww", "wkkwwkkw", "wkkwwkkw", "wwwkkwww", ".wwwwww.", ".wkwkwk."] },
+    tree: { bg: "#241a33", c: { g: "#2f7a3a", G: "#5aa84a", b: "#6b4426" }, p: ["..gggg..", ".gGGggg.", "gGggggGg", "gggGgggg", ".gggggg.", "...bb...", "...bb...", "..bbbb.."] },
+    machine: { bg: "#1b1f22", c: { k: "#3a3f44", R: "#d9434b", B: "#3a7bd5", G: "#3ddc84", W: "#cfd8dc", y: "#f2b33d" }, p: ["kkkkkkkk", "kRRkkBBk", "kRRkkBBk", "kkkyykkk", "kkkyykkk", "kGGkkWWk", "kGGkkWWk", "kkkkkkkk"] },
+    mountain: { bg: "#1f3d55", c: { w: "#e4f3ef", s: "#8a9399", g: "#5aa84a", d: "#6b4426" }, p: ["........", "...w....", "..wsw...", "..sss.w.", ".ssssssw", "ssggssss", "gggggggg", "dddddddd"] },
+    gecko: { bg: "#12261c", c: { g: "#3ddc84", G: "#0b1a12" }, p: ["g.....g.", ".g...g..", "..gggg..", ".gGggGg.", "..gggg..", ".g.gg.g.", "g..gg..g", "....g..."] },
+    cloth: { bg: "#b3aa34", c: { g: "#2f7a3a", G: "#5aa84a", y: "#e0d84a" }, p: ["...gg...", "..gGGg..", ".gGyyGg.", "gGyyyyGg", "gGyyyyGg", ".gGyyGg.", "..gGGg..", "...gg..."] },
+    crane: { bg: "#2a1a14", c: { r: "#e2582c", w: "#cfd8dc" }, p: ["rrrrrrrr", ".r....r.", ".r....r.", ".r....w.", ".r....w.", ".r...www", ".r......", "rrr....."] },
+    pill: { bg: "#241c24", c: { r: "#d9434b", R: "#ff9a9a", w: "#e4f3ef", W: "#ffffff" }, p: ["......rr", ".....rRr", "....rrrr", "...wrrr.", "..wWw...", ".wWww...", "wwww....", "ww......"] },
+    balm: { bg: "#13241c", c: { b: "#8b5a2b", w: "#cfe3da", g: "#3ddc84", G: "#c8f5d8" }, p: ["..bbbb..", "..wwww..", ".wggggw.", ".wgGggw.", ".wggggw.", ".wggGgw.", ".wggggw.", "..wwww.."] },
+    bookshelf: { bg: "#1d1712", c: { b: "#8b3a2b", W: "#e3d6a8", k: "#6b4426", p: "#cfd8dc" }, p: ["bbbbbbb.", "bWWWWWbp", "bWkkkWbp", "bWWWWWbp", "bWkkWWbp", "bWWWWWbp", "bbbbbbbp", ".ppppppp"] },
+    ring: { bg: "#1f1a2a", c: { y: "#f2b33d", c: "#19d3e0" }, p: ["..yyyy..", ".y....y.", "y......y", "y......y", ".y....y.", "..yyyy..", "...cc...", "...cc..."] },
+    cog: { bg: "#2a2214", c: { y: "#d4a64a", d: "#8a6a2a" }, p: ["...yy...", ".y.yy.y.", "..yyyy..", "yyyddyyy", "yyyddyyy", "..yyyy..", ".y.yy.y.", "...yy..."] },
+    eye: { bg: "#1b2a22", c: { w: "#e4f3ef", g: "#5aa84a", k: "#15191c" }, p: ["........", "..wwww..", ".wwggww.", "wwgkkgww", "wwgkkgww", ".wwggww.", "..wwww..", "........"] },
+    lens: { bg: "#162026", c: { w: "#cfe3da", c: "#19d3e0", k: "#8a6a3a" }, p: ["..www...", ".wcccw..", "wcccccw.", "wcccccw.", ".wcccw..", "..wwwk..", "......k.", ".......k"] },
+    radar: { bg: "#0e1d24", c: { g: "#3ddc84", G: "#1e6b40", r: "#d9434b" }, p: ["..GGGG..", ".G....G.", "G..gg..G", "G.g..r.G", "G.g....G", "G..gg..G", ".G....G.", "..GGGG.."] },
+    moon: { bg: "#141a2a", c: { y: "#ffcb66", Y: "#f2b33d" }, p: ["...yyy..", "..yy....", ".yy.....", ".yY.....", ".yY.....", ".yy.....", "..yy....", "...yyy.."] },
+    yung: { bg: "#202a2c", c: { m: "#6f7a80", g: "#5aa84a" }, p: ["mmmmmmmm", "m..mm..m", "m.gmm.gm", "mmmmmmmm", "mm....mm", "m.g..g.m", "m......m", "mmmmmmmm"] },
+  };
+  function spr(key, cls) {
+    const s = SPR[key];
+    if (!s) return "";
+    let r = `<rect width="8" height="8" fill="${s.bg}"/>`;
+    s.p.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== "." && s.c[ch]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${s.c[ch]}"/>`; }));
+    return `<svg class="mi ${cls || ""}" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+  }
+
+  /* ---------- Conteúdo: o que a busca devolve para Minecraft 1.21.1 + NeoForge ---------- */
+  // src: mr = Modrinth, cf = CurseForge, both = as duas. pop = lista "Populares"; uh = horas desde a atualização (lista "Atualizados recentemente").
+  const MODS = [
+    { id: "jei", n: "Just Enough Items (JEI)", a: "mezz", s: "View items and recipes", d: 452.3, u: "há 4 dias", src: "both", cat: "uti", ic: "eye", inpack: true, pop: 1, v: "19.21.0.247", side: "cs" },
+    { id: "cloth", n: "Cloth Config API", a: "shedaniel", s: "Configuration Library for Minecraft Mods", d: 565.9, u: "há 26 dias", src: "both", cat: "lib", ic: "cloth", lib: true, pop: 1, v: "15.0.140", side: "cs" },
+    { id: "arch", n: "Architectury API", a: "shedaniel", s: "An intermediary api aimed to ease developing multiplatform mods.", d: 457.9, u: "há 10 dias", src: "both", cat: "lib", ic: "crane", lib: true, pop: 1, v: "13.0.8", side: "cs" },
+    { id: "gecko", n: "GeckoLib", a: "Gecko", s: "A 3D animation library for entities, blocks, items, armor, and more!", d: 421.9, u: "há 27 dias", src: "cf", cat: "lib", ic: "gecko", lib: true, pop: 1, v: "4.7.1", side: "cs" },
+    { id: "controlling", n: "Controlling", a: "Jaredlll08", s: "Adds a search bar to the Key-Bindings menu", d: 398.5, u: "há 10 dias", src: "cf", cat: "uti", ic: "key", pop: 1, v: "19.0.3", side: "c", deps: [["Searchables", "Obrigatória", "will"]] },
+    { id: "journeymap", n: "JourneyMap", a: "techbrew", s: "Real-time map used for mapping in-game or your browser as you explore.", d: 355.7, u: "há 16 dias", src: "cf", cat: "map", ic: "map", pop: 1, v: "6.0.0-beta.31", side: "cs" },
+    { id: "placebo", n: "Placebo", a: "Shadows_of_Fire", s: "A library mod", d: 338.0, u: "há 7 dias", src: "cf", cat: "lib", ic: "pill", lib: true, pop: 1, v: "9.5.4", side: "cs" },
+    { id: "waystones", n: "Waystones", a: "BlayTheNinth", s: "Teleport from waystone to waystone or craft magical scrolls to warp.", d: 305.2, u: "há 6 dias", src: "both", cat: "tra", ic: "waystone", pop: 1, v: "21.1.12", side: "cs", deps: [["Balm", "Obrigatória", "will"]], desc: ["Waystones adds waystone blocks that you can activate to travel between them. They also generate in villages and in the wild.", "Warp scrolls, warp stones and return scrolls let you get back home from anywhere."] },
+    { id: "balm", n: "Balm", a: "BlayTheNinth", s: "Abstraction layer for mods that support multiple loaders", d: 296.8, u: "há 12 dias", src: "both", cat: "lib", ic: "balm", lib: true, pop: 1, v: "21.0.31", side: "cs" },
+    { id: "mousetweaks", n: "Mouse Tweaks", a: "YaLTeR", s: "Enhances inventory management by adding various functions to the mouse buttons.", d: 296.4, u: "há 2 meses", src: "both", cat: "uti", ic: "mouse", pop: 1, v: "2.26.1", side: "c" },
+    { id: "appleskin", n: "AppleSkin", a: "squeek502", s: "Adds various food-related HUD improvements", d: 288.1, u: "há 3 meses", src: "both", cat: "com", ic: "apple", pop: 1, v: "3.0.9+mc1.21", side: "cs" },
+    { id: "clumps", n: "Clumps", a: "Jaredlll08", s: "Clumps XP orbs together to reduce lag", d: 262.7, u: "há 1 mês", src: "both", cat: "des", ic: "orbs", pop: 1, v: "19.0.0.1", side: "cs" },
+    { id: "xaero", n: "Xaero's Minimap", a: "xaero96", s: "Displays a minimap of the area around you and waypoints", d: 241.0, u: "há 9 dias", src: "both", cat: "map", ic: "radar", inpack: true, pop: 1, v: "25.2.0", side: "c" },
+    { id: "jade", n: "Jade", a: "Snownee", s: "Shows information about what you are looking at", d: 231.6, u: "há 5 dias", src: "both", cat: "uti", ic: "lens", inpack: true, pop: 1, v: "15.10.6", side: "cs" },
+    { id: "bookshelf", n: "Bookshelf", a: "Darkhax", s: "An open source library for other mods!", d: 215.4, u: "há 20 dias", src: "both", cat: "lib", ic: "bookshelf", lib: true, pop: 1, v: "21.1.81", side: "cs" },
+    { id: "naturescompass", n: "Nature's Compass", a: "Chaosyr", s: "A compass that locates biomes", d: 198.3, u: "há 1 mês", src: "both", cat: "ave", ic: "compass", pop: 1, v: "3.4.0", side: "cs" },
+    { id: "curios", n: "Curios API", a: "TheIllusiveC4", s: "A flexible and expandable accessory/equipment API for users and developers.", d: 190.2, u: "há 18 dias", src: "both", cat: "lib", ic: "ring", lib: true, pop: 1, v: "9.2.2", side: "cs" },
+    { id: "backpacks", n: "Sophisticated Backpacks", a: "P3pp3rF1y", s: "Fancy and functional backpacks", d: 176.9, u: "há 3 dias", src: "both", cat: "arm", ic: "backpack", pop: 1, v: "3.23.4", side: "cs", deps: [["Sophisticated Core", "Obrigatória", "will"]] },
+    { id: "drawers", n: "Storage Drawers", a: "Texelsaur", s: "Compartmental storage for items in bulk", d: 160.4, u: "há 2 meses", src: "both", cat: "arm", ic: "drawers", pop: 1, v: "13.8.5", side: "cs" },
+    { id: "ferrite", n: "FerriteCore", a: "malte0811", s: "Memory usage optimizations", d: 151.2, u: "há 4 meses", src: "both", cat: "des", ic: "ferrite", pop: 1, v: "7.0.2", side: "cs" },
+    { id: "farmers", n: "Farmer's Delight", a: "vectorwing", s: "A gentle expansion to farming and cooking in Minecraft.", d: 140.7, u: "há 21 dias", src: "both", cat: "com", ic: "pot", pop: 1, v: "1.2.6", side: "cs" },
+    { id: "ironchests", n: "Iron Chests", a: "ProgWML6", s: "Bigger chests in iron, gold, diamond, copper, crystal and obsidian", d: 133.0, u: "há 2 meses", src: "cf", cat: "arm", ic: "chest", pop: 1, v: "21.1.0", side: "cs" },
+    { id: "modernfix", n: "ModernFix", a: "embeddedt", s: "All-in-one mod that improves performance, load times, and memory usage", d: 98.4, u: "há 11 dias", src: "both", cat: "des", ic: "wrench", pop: 1, v: "5.20.0", side: "cs" },
+    { id: "tombstone", n: "Corail Tombstone", a: "Corail31", s: "Keeps your items in a grave when you die, with many related features", d: 91.2, u: "há 8 dias", src: "cf", cat: "mec", ic: "grave", manual: true, pop: 1, v: "9.2.1", side: "cs" },
+    // Atualizados recentemente
+    { id: "supplementaries", n: "Supplementaries", a: "MehVahdJukaar", s: "Adds lots of vanilla-like blocks and items", d: 112.6, u: "há 2 horas", uh: 2, src: "both", cat: "dec", ic: "jar", v: "3.1.10", side: "cs", deps: [["Moonlight Lib", "Obrigatória", "will"]] },
+    { id: "puzzleslib", n: "Puzzles Lib", a: "Fuzs", s: "Multi-loader library for Fuzs' mods", d: 102.3, u: "há 4 horas", uh: 4, src: "both", cat: "lib", ic: "bookshelf", lib: true, v: "21.1.20", side: "cs" },
+    { id: "sophstorage", n: "Sophisticated Storage", a: "P3pp3rF1y", s: "Fancy and functional storage", d: 58.1, u: "há 5 horas", uh: 5, src: "both", cat: "arm", ic: "chest", v: "1.3.9", side: "cs", deps: [["Sophisticated Core", "Obrigatória", "will"]] },
+    { id: "yungdungeons", n: "YUNG's Better Dungeons", a: "YUNGNICKYOUNG", s: "Overhauls vanilla dungeons and adds new ones", d: 64.8, u: "há 9 horas", uh: 9, src: "both", cat: "ger", ic: "yung", v: "5.1.4", side: "s", deps: [["YUNG's API", "Obrigatória", "will"]] },
+    { id: "corpse", n: "Corpse", a: "henkelmax", s: "Your items stay safe in a corpse when you die", d: 71.5, u: "há 1 dia", uh: 26, src: "both", cat: "mec", ic: "skull", v: "1.1.5", side: "cs" },
+    { id: "twilight", n: "The Twilight Forest", a: "Benimatic", s: "An enchanted forest dimension", d: 88.9, u: "há 1 dia", uh: 30, src: "both", cat: "ave", ic: "tree", v: "4.6.2", side: "cs" },
+    { id: "mekanism", n: "Mekanism", a: "bradyaidanc", s: "High-tech machinery, power generation and more", d: 120.4, u: "há 2 dias", uh: 50, src: "both", cat: "tec", ic: "machine", v: "10.7.8", side: "cs" },
+    { id: "terralith", n: "Terralith", a: "Starmute", s: "Over 95 new biomes, using only vanilla blocks", d: 54.2, u: "há 2 dias", uh: 54, src: "both", cat: "ger", ic: "mountain", v: "2.5.5", side: "s" },
+    { id: "create", n: "Create", a: "simibubi", s: "Aesthetic technology that enables players to build amazing contraptions", d: 141.3, u: "há 3 dias", uh: 70, src: "both", cat: "tec", ic: "cog", inpack: true, v: "6.0.4", side: "cs" },
+  ];
+  const byId = Object.fromEntries(MODS.map((m) => [m.id, m]));
+
+  const CATS = [
+    ["tec", "Tecnologia"], ["mag", "Magia"], ["ave", "Aventura e RPG"], ["arm", "Armazenamento"], ["com", "Comida"],
+    ["cri", "Criaturas"], ["ger", "Geração de mundo"], ["dec", "Decoração e visual"], ["uti", "Utilidades"], ["des", "Desempenho", "mr"],
+    ["equ", "Armas, armaduras e ferramentas"], ["srv", "Servidor e gerenciamento"], ["map", "Mapas e informação", "cf"], ["red", "Redstone", "cf"],
+    ["mec", "Mecânicas do jogo", "mr"], ["tra", "Transporte", "mr"], ["eco", "Economia", "mr"], ["soc", "Social", "mr"], ["mini", "Minijogos", "mr"],
+    ["edu", "Educação", "cf"], ["lib", "Bibliotecas"],
+  ];
+  const catName = (id) => (CATS.find((c) => c[0] === id) || [0, "Todas"])[1];
+  const SORTS = [["dl", "Mais baixados"], ["upd", "Atualizados há pouco"], ["new", "Mais novos"], ["rel", "Mais relevantes"]];
+  const SIDE = { c: "Só cliente", s: "Só servidor", cs: "Cliente e servidor" };
+
+  /* ---------- Estado do esboço ---------- */
+  const S = {
+    sel: new Set(["waystones", "appleskin", "naturescompass"]),
+    q: "", cat: null, env: "all", src: "all", showLib: false, showIn: true, noVer: false,
+    sort: { k: null, dir: -1 }, catMore: false, open: null, cur: "waystones", libOpen: false, fOpen: false,
+    acc: { cat: true, sort: false, env: false, show: false, src: false },
+  };
+  let N = "1";
+
+  const fmtD = (d) => `${d.toFixed(1).replace(".", ",")} mi`;
+  const srcMarks = (src, label) => {
+    const t = src === "both" ? "Modrinth e CurseForge" : src === "mr" ? "Modrinth" : "CurseForge";
+    const marks = (src !== "cf" ? '<i class="mr"></i>' : "") + (src !== "mr" ? '<i class="cf"></i>' : "");
+    return `<span class="src ${src === "both" ? "src--pair" : ""}" title="${t}">${marks}${label ? `<span>${t}</span>` : `<span class="sr-only">${t}</span>`}</span>`;
+  };
+  const stateTag = (m) => m.inpack ? `<span class="tag tag--ok">${ic("check")}No pack</span>`
+    : m.manual ? `<span class="tag tag--warn" title="O autor bloqueou downloads por apps. O Warden abre a página para você baixar.">${ic("download")}Download manual</span>`
+    : m.lib ? `<span class="tag tag--lib" title="Biblioteca: entra sozinha quando um mod precisa dela.">${ic("book")}Biblioteca</span>` : "";
+  const box = (m) => m.inpack ? "<span></span>" : `<label class="check" title="Marcar para adicionar"><input type="checkbox" data-sel="${m.id}" ${S.sel.has(m.id) ? "checked" : ""} aria-label="Marcar ${esc(m.n)} para adicionar"></label>`;
+
+  function visible(m, opts) {
+    opts = opts || {};
+    if (S.q && !m.n.toLowerCase().includes(S.q.toLowerCase())) return false;
+    if (S.cat && m.cat !== S.cat) return false;
+    if (S.env === "c" && !m.side.includes("c")) return false;
+    if (S.env === "s" && !m.side.includes("s")) return false;
+    if (S.src === "mr" && m.src === "cf") return false;
+    if (S.src === "cf" && m.src === "mr") return false;
+    if (!S.showIn && m.inpack) return false;
+    if (m.lib && !opts.libs && !S.showLib && S.cat !== "lib" && !S.q) return false;
+    return true;
+  }
+  function sortList(list, def) {
+    const k = S.sort.k || def;
+    const d = S.sort.k ? S.sort.dir : (def === "upd" ? 1 : -1);
+    const val = (m) => k === "dl" ? m.d : k === "upd" ? (m.uh || ageH(m.u)) : k === "name" ? m.n.toLowerCase() : 0;
+    return list.slice().sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * d);
+  }
+  function ageH(u) {
+    const n = parseInt((u.match(/\d+/) || [1])[0], 10);
+    return u.includes("hora") ? n : u.includes("dia") ? n * 24 : u.includes("mês") || u.includes("meses") ? n * 720 : 9999;
+  }
+  // Os grupos da página: com o campo vazio, Populares e Atualizados; com texto, os resultados.
+  function groups(opts) {
+    const libs = opts && opts.libs;
+    if (S.q || S.cat) {
+      const all = sortList(MODS.filter((m) => visible(m, { libs })), "dl");
+      const title = S.q ? `Resultados para “${esc(S.q)}”` : catName(S.cat);
+      return [{ key: "res", title, items: all, total: S.q ? all.length : 1840, hiddenLibs: [] }];
+    }
+    const pop = MODS.filter((m) => m.pop);
+    const upd = MODS.filter((m) => m.uh);
+    return [
+      { key: "pop", title: "Populares", items: sortList(pop.filter((m) => visible(m, { libs })), "dl"), total: 2481, hiddenLibs: pop.filter((m) => m.lib && !visible(m, { libs })) },
+      { key: "upd", title: "Atualizados recentemente", items: sortList(upd.filter((m) => visible(m, { libs })), "upd"), total: 2481, hiddenLibs: upd.filter((m) => m.lib && !visible(m, { libs })) },
+    ];
+  }
+  const listNames = (arr) => arr.length <= 1 ? arr.join("") : arr.slice(0, -1).join(", ") + " e " + arr[arr.length - 1];
+
+  /* ---------- Partes comuns ---------- */
+  const rail = () => {
+    const items = [["puzzle", "Mods", true], ["file-code", "Configs"], ["triangle-alert", "Problemas: 1 erro, 1 aviso", false, true], ["sparkles", "Sensor Sculk"], ["history", "Histórico"], ["package", "Exportar"]];
+    return `<nav class="rail" aria-label="Seções do pack">${items.map(([i, t, cur, dot]) => `<a href="#" title="${t}" ${cur ? 'aria-current="page"' : ""}>${ic(i)}${dot ? '<span class="rail__dot" aria-hidden="true"></span>' : ""}<span class="sr-only">${t}</span></a>`).join("")}</nav>`;
+  };
+  const addhead = () => `
+    <div class="addhead">
+      <a href="#" class="btn btn--ghost btn--sm" title="Voltar para a lista de mods do pack">${ic("arrow-left", "icon--sm")}Mods<span class="addhead__added">· 2 adicionados</span></a>
+      <span class="addhead__sep" aria-hidden="true"></span>
+      <h2>Adicionar ao pack</h2>
+      <span class="grow"></span>
+      <button type="button" class="btn" title="Escolher .jar ou .zip do computador. Também dá para arrastar para a janela.">${ic("file-plus")}<span class="wide-only">Escolher arquivo do computador…</span><span class="narrow-only">Arquivo do computador…</span></button>
+    </div>`;
+  const typeSel = () => `
+    <div class="segmented" role="radiogroup" aria-label="Tipo">
+      <button type="button" role="radio" aria-checked="true">Mods</button><button type="button" role="radio" aria-checked="false">Resource packs</button><button type="button" role="radio" aria-checked="false">Shaders</button><button type="button" role="radio" aria-checked="false">Modpacks</button>
+    </div>
+    <select class="select" aria-label="Tipo"><option>Mods</option><option>Resource packs</option><option>Shaders</option><option>Modpacks</option></select>`;
+  const field = (chip) => `
+    <div class="sfield ${chip ? "sfield--chip" : ""}">${ic("search")}
+      <label class="sr-only" for="q">Buscar pelo nome ou colar um link</label>
+      <input id="q" class="input" type="search" placeholder="Buscar pelo nome ou colar um link" autocomplete="off" spellcheck="false" value="${esc(S.q)}">
+      ${chip ? `<span class="sfield__lock" title="A busca só mostra versões para o Minecraft e o loader do pack.">${ic("lock", "icon--sm")}Só 1.21.1 · NeoForge</span>` : ""}
+    </div>`;
+  const viewSel = () => `
+    <div class="segmented viewsel" role="radiogroup" aria-label="Ver como">
+      <button type="button" role="radio" data-view="list" aria-checked="${S.view !== "cards"}" title="Uma linha por mod, com colunas que ordenam">${ic("list", "icon--sm")}Lista</button><button type="button" role="radio" data-view="cards" aria-checked="${S.view === "cards"}" title="Cartões com ícone e resumo maior">${ic("layout-grid", "icon--sm")}Cartões</button>
+    </div>`;
+  const lockline = () => `
+    <p class="lockline">${ic("lock", "icon--sm")}<span>Só versões para <b>Minecraft 1.21.1</b> com <b>NeoForge</b>, no Modrinth e na CurseForge.</span>
+      <span class="lockline__legend"><span class="src"><i class="mr"></i>Modrinth</span><span class="src"><i class="cf"></i>CurseForge</span></span></p>`;
+
+  function selbar() {
+    if (!S.sel.size) return "";
+    const ms = [...S.sel].map((id) => byId[id]);
+    const deps = [...new Set(ms.flatMap((m) => (m.deps || []).filter((d) => d[2] === "will").map((d) => d[0])))];
+    const n = ms.length;
+    return `
+      <div class="selbar" role="region" aria-label="Itens marcados">
+        <span class="selbar__n" aria-hidden="true">${n}</span>
+        <div class="selbar__txt">
+          <span class="selbar__t">${n === 1 ? "1 marcado" : `${n} marcados`} <span>· ${esc(listNames(ms.map((m) => m.n)))}</span></span>
+          <span class="selbar__d">${deps.length ? `No próximo passo você confere as dependências. ${deps.length === 1 ? "Já sabemos de 1 obrigatória" : `Já sabemos de ${deps.length} obrigatórias`}: <b>${esc(listNames(deps))}</b>.` : "No próximo passo você confere as dependências antes de gravar."}</span>
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm" data-act="clear-sel">Limpar</button>
+        <button type="button" class="btn btn--primary" data-act="go">Adicionar ${n} ao pack${ic("arrow-right")}</button>
+      </div>`;
+  }
+
+  /* Detalhe do mod (pré-visualização) */
+  function detail(m) {
+    if (!m) return `<div class="det"><p class="t3">Clique num mod para ver os detalhes.</p></div>`;
+    const sel = S.sel.has(m.id);
+    const act = m.inpack
+      ? `<span class="tag tag--ok">${ic("check")}Já está no pack</span><a href="#" class="btn btn--link">Ver na lista de mods</a>`
+      : `<button type="button" class="btn ${sel ? "btn--on" : "btn--primary"}" data-sel-btn="${m.id}">${sel ? ic("check") + "Marcado para adicionar" : ic("plus") + "Marcar para adicionar"}</button>
+         <button type="button" class="btn btn--ghost btn--icon" title="Abrir a página do mod no navegador" aria-label="Abrir no navegador">${ic("external-link")}</button>`;
+    const fonte = m.src === "both"
+      ? `<div class="det__src"><span class="fl">Baixar de</span><div class="segmented segmented--full" role="radiogroup" aria-label="Baixar de"><button type="button" role="radio" aria-checked="true">Modrinth</button><button type="button" role="radio" aria-checked="false">CurseForge</button></div><span class="sub">O mesmo arquivo está nas duas (conferido pelo hash).</span></div>`
+      : `<div class="det__src"><span class="fl">Baixar de</span>${srcMarks(m.src, true)}</div>`;
+    const deps = (m.deps || []);
+    const desc = m.desc || [m.s + "."];
+    return `
+      <div class="det">
+        <div class="det__head">${spr(m.ic, "mi--xl")}<div><h3>${esc(m.n)}</h3><p>por ${esc(m.a)}</p></div></div>
+        <div class="det__act">${act}</div>
+        ${m.lib ? `<div class="alert alert--neutral">${ic("book")}<span><strong>Biblioteca.</strong> Não muda nada no jogo sozinha. Entra automaticamente quando um mod que você marcar precisa dela.</span></div>` : ""}
+        ${m.manual ? `<div class="alert alert--warn">${ic("download")}<span>O autor não deixa apps baixarem este mod. Ao adicionar, o Warden abre a página dele para você baixar o arquivo.</span></div>` : ""}
+        ${m.inpack ? "" : fonte}
+        <dl class="kv">
+          <dt>Versão que entra</dt><dd><span class="mono">${esc(m.v)}</span><span class="sub">A mais nova para 1.21.1 com NeoForge, estável.</span></dd>
+          <dt>Lado</dt><dd>${SIDE[m.side]}</dd>
+          <dt>Downloads</dt><dd>${fmtD(m.d)}</dd>
+          <dt>Atualizado</dt><dd>${m.u}</dd>
+          <dt>Categoria</dt><dd>${catName(m.cat)}</dd>
+        </dl>
+        <section class="dsec"><h3>Dependências</h3>
+          ${deps.length ? `<ul class="deps">${deps.map((d) => `<li>${ic("book", "icon--sm t3")}<span>${esc(d[0])} <span class="t3">· ${d[1].toLowerCase()}</span></span><span class="deps__will">Entra junto</span></li>`).join("")}</ul>`
+            : `<p class="det__desc">Nenhuma obrigatória.</p>`}
+        </section>
+        <section class="dsec"><h3>Descrição</h3>${desc.map((p) => `<p class="det__desc">${esc(p)}</p>`).join("")}
+          <button type="button" class="btn btn--link">Ver descrição completa, galeria e versões</button>
+        </section>
+      </div>`;
+  }
+
+  /* ---------- Esboço 1: tabela densa ---------- */
+  function th(label, k, cls) {
+    const on = S.sort.k === k;
+    return `<span class="${cls || ""}"><button type="button" data-sort="${k}" ${on ? `aria-sort="${S.sort.dir < 0 ? "descending" : "ascending"}"` : ""}>${label}${on ? ic(S.sort.dir < 0 ? "arrow-down" : "arrow-up") : ""}</button></span>`;
+  }
+  function trow(m) {
+    const cls = ["trow", S.sel.has(m.id) ? "is-sel" : "", m.inpack ? "is-in" : "", S.open === m.id ? "is-open" : ""].join(" ");
+    return `<div class="${cls}" role="row">
+      ${box(m)}
+      <span class="tname">${spr(m.ic)}<button type="button" class="tname__n" data-open="${m.id}" title="Ver detalhes">${esc(m.n)}</button><span class="tname__a">${esc(m.a)}</span></span>
+      <span class="tsum" title="${esc(m.s)}">${esc(m.s)}</span>
+      <span class="tnum r">${fmtD(m.d)}</span>
+      <span class="tupd c-upd">${m.u}</span>
+      <span>${srcMarks(m.src)}</span>
+      <span>${stateTag(m)}</span>
+    </div>`;
+  }
+  function table() {
+    const gs = groups();
+    const body = gs.map((g) => {
+      const lib = g.hiddenLibs.length ? `
+        <div class="tlib">${ic("book")}<span class="tlib__t"><b>${g.hiddenLibs.length === 1 ? "1 biblioteca escondida" : `${g.hiddenLibs.length} bibliotecas escondidas`}</b> <span>(entram sozinhas quando um mod precisa):</span> ${esc(listNames(g.hiddenLibs.map((m) => m.n)))}</span>
+          <button type="button" class="btn btn--sm" data-act="show-libs">Mostrar</button></div>` : "";
+      return `<div class="tgrp"><h3>${g.title}</h3><span class="tgrp__n">${g.items.length}${g.key !== "res" ? ` de ${g.total.toLocaleString("pt-BR")}` : ""}</span>${g.key !== "res" ? '<button type="button" class="btn btn--link">Ver todos</button>' : ""}</div>
+        ${g.items.length ? g.items.map(trow).join("") : '<p class="tempty">Nada encontrado com esses filtros.</p>'}${lib}`;
+    }).join("");
+    return `<div class="tbl" role="table" aria-label="Mods para adicionar">
+      <div class="trow thead" role="row"><span></span>${th("Nome", "name")}<span>Resumo</span>${th("Downloads", "dl", "r")}<span class="c-upd">${th("Atualizado", "upd")}</span><span>Fonte</span><span>Situação</span></div>
+      ${body}</div>`;
+  }
+  function side1() {
+    if (S.open) {
+      return `<aside class="side" aria-label="Detalhes do mod">
+        <div class="sidehead sidehead--back"><button type="button" class="btn btn--ghost btn--sm" data-act="close-det">${ic("arrow-left", "icon--sm")}Filtros</button><span class="grow"></span><button type="button" class="btn btn--ghost btn--icon btn--sm" data-act="close-det" aria-label="Fechar detalhes">${ic("x", "icon--sm")}</button></div>
+        ${detail(byId[S.open])}</aside>`;
+    }
+    const shown = S.catMore ? CATS : CATS.slice(0, 8);
+    const active = !!(S.cat || S.env !== "all" || S.src !== "all" || S.showLib || !S.showIn || S.noVer);
+    return `<aside class="side" aria-label="Filtros">
+      <div class="sidehead"><h2>${ic("list-filter")}Filtros</h2><button type="button" class="btn btn--ghost btn--sm" data-act="reset" ${active ? "" : 'aria-disabled="true"'}>Limpar</button></div>
+      <div class="sidebody">
+        <section class="fsec"><h3 class="fsec__t">Categoria</h3>
+          <div class="clist">
+            <button type="button" aria-pressed="${!S.cat}" data-cat="">${ic("check")}<span>Todas</span></button>
+            ${shown.map(([id, name, only]) => `<button type="button" aria-pressed="${S.cat === id}" data-cat="${id}" title="${name}${only ? ` · só no ${only === "mr" ? "Modrinth" : "CurseForge"}` : ""}">${ic("check")}<span>${name}</span>${only ? srcMarks(only) : ""}</button>`).join("")}
+          </div>
+          <button type="button" class="btn btn--link clist__more" data-act="cat-more">${S.catMore ? "Mostrar menos" : `Mais ${CATS.length - 8} categorias`}</button>
+        </section>
+        <section class="fsec"><h3 class="fsec__t">Funciona em</h3>
+          <div class="segmented segmented--full" role="radiogroup" aria-label="Funciona em">${[["all", "Qualquer"], ["c", "Cliente"], ["s", "Servidor"]].map(([v, t]) => `<button type="button" role="radio" data-env="${v}" aria-checked="${S.env === v}">${t}</button>`).join("")}</div>
+        </section>
+        <section class="fsec"><h3 class="fsec__t">Mostrar também</h3>
+          <div class="fchecks">
+            <label class="check"><input type="checkbox" data-flag="showLib" ${S.showLib ? "checked" : ""}><span>Bibliotecas<small>Entram sozinhas quando um mod precisa delas.</small></span></label>
+            <label class="check"><input type="checkbox" data-flag="showIn" ${S.showIn ? "checked" : ""}><span>O que já está no pack</span></label>
+            <label class="check"><input type="checkbox" data-flag="noVer" ${S.noVer ? "checked" : ""}><span>Mods sem versão para o pack<small>Só para consulta; não dá para adicionar.</small></span></label>
+          </div>
+        </section>
+        <section class="fsec"><h3 class="fsec__t">Fonte</h3>
+          <div class="segmented segmented--full" role="radiogroup" aria-label="Fonte">${[["all", "As duas"], ["mr", "Modrinth"], ["cf", "CurseForge"]].map(([v, t]) => `<button type="button" role="radio" data-src="${v}" aria-checked="${S.src === v}">${t}</button>`).join("")}</div>
+        </section>
+      </div></aside>`;
+  }
+
+  /* ---------- Esboço 2: grade de cartões ---------- */
+  function card(m) {
+    const sel = S.sel.has(m.id);
+    const act = m.inpack ? "" : `<button type="button" class="btn btn--sm ${sel ? "btn--on" : ""}" data-sel-btn="${m.id}" aria-pressed="${sel}">${sel ? ic("check", "icon--sm") + "Marcado" : ic("plus", "icon--sm") + "Marcar"}</button>`;
+    return `<article class="mcard ${sel ? "is-sel" : ""} ${S.open === m.id ? "is-open" : ""}">
+      ${spr(m.ic, "mi--lg")}
+      <div class="mcard__top"><button type="button" class="mcard__n" data-open="${m.id}" title="Ver detalhes">${esc(m.n)}</button>${act}</div>
+      <span class="mcard__by">por ${esc(m.a)}</span>
+      <p class="mcard__sum">${esc(m.s)}</p>
+      <div class="mcard__foot">${srcMarks(m.src)}<span class="tnum">${fmtD(m.d)}</span><span>${m.u}</span>${stateTag(m)}</div>
+    </article>`;
+  }
+  function grid() {
+    const gs = groups();
+    return gs.map((g) => {
+      const libs = g.hiddenLibs;
+      const lib = libs.length ? `
+        <div class="libgrp" data-open="${S.libOpen}">
+          <button type="button" class="libgrp__sum" data-act="lib-toggle" aria-expanded="${S.libOpen}">${ic("book")}<span><b>Bibliotecas populares (${libs.length})</b></span><span class="t3">Não precisa escolher: entram sozinhas quando um mod precisa.</span>${ic("chevron-right", "chev icon--sm")}</button>
+          ${S.libOpen ? `<div class="libgrp__body"><div class="cgrid">${libs.map(card).join("")}</div></div>` : ""}
+        </div>` : "";
+      return `<section class="grp"><div class="grp__head"><h3>${g.title}</h3><span class="grp__n">${g.items.length}${g.key !== "res" ? ` de ${g.total.toLocaleString("pt-BR")}` : ""}</span>${g.key !== "res" ? '<button type="button" class="btn btn--link">Ver todos</button>' : ""}</div>
+        ${g.items.length ? `<div class="cgrid">${g.items.map(card).join("")}</div>` : '<p class="tempty">Nada encontrado com esses filtros.</p>'}${g.key === "pop" ? lib : ""}</section>`;
+    }).join("");
+  }
+  function acc(key, title, value, on, body) {
+    const open = S.acc[key];
+    return `<div class="acc"><button type="button" class="acc__btn" data-acc="${key}" aria-expanded="${open}"><span class="acc__t">${title}</span><span class="acc__v ${on ? "on" : ""}">${value}</span>${ic("chevron-right", "chev icon--sm")}</button>${open ? `<div class="acc__b">${body}</div>` : ""}</div>`;
+  }
+  function side2() {
+    if (S.open) {
+      return `<aside class="side" aria-label="Detalhes do mod">
+        <div class="sidehead sidehead--back"><button type="button" class="btn btn--ghost btn--sm" data-act="close-det">${ic("arrow-left", "icon--sm")}Filtros</button><span class="grow"></span><button type="button" class="btn btn--ghost btn--icon btn--sm" data-act="close-det" aria-label="Fechar detalhes">${ic("x", "icon--sm")}</button></div>
+        ${detail(byId[S.open])}</aside>`;
+    }
+    const sortK = S.sort.k || "dl";
+    const sortName = (SORTS.find((s) => s[0] === sortK) || SORTS[0])[1];
+    const envName = { all: "Qualquer", c: "Cliente", s: "Servidor" }[S.env];
+    const srcName = { all: "As duas", mr: "Modrinth", cf: "CurseForge" }[S.src];
+    const showBits = [S.showLib && "bibliotecas", !S.showIn && "sem o que já está", S.noVer && "sem versão"].filter(Boolean);
+    const active = !!(S.cat || S.env !== "all" || S.src !== "all" || S.showLib || !S.showIn || S.noVer);
+    return `<aside class="side" aria-label="Filtros">
+      <div class="sidehead"><h2>${ic("list-filter")}Filtros</h2><button type="button" class="btn btn--ghost btn--sm" data-act="reset" ${active ? "" : 'aria-disabled="true"'}>Limpar</button></div>
+      <div class="sidebody sidebody--acc">
+        ${acc("cat", "Categoria", S.cat ? catName(S.cat) : "Todas", !!S.cat, `
+          <div class="fchips">
+            <button type="button" class="fchip" aria-pressed="${!S.cat}" data-cat="">Todas</button>
+            ${CATS.map(([id, name, only]) => `<button type="button" class="fchip" aria-pressed="${S.cat === id}" data-cat="${id}" title="${name}${only ? ` · só no ${only === "mr" ? "Modrinth" : "CurseForge"}` : ""}">${name}${only ? srcMarks(only) : ""}</button>`).join("")}
+          </div>
+          <div class="flegend"><span class="src"><i class="mr"></i>só no Modrinth</span><span class="src"><i class="cf"></i>só na CurseForge</span></div>`)}
+        ${acc("sort", "Ordenar", sortName, !!S.sort.k && S.sort.k !== "dl", `<div class="oplist">${SORTS.map(([k, t]) => `<label class="check"><input type="radio" name="ord2" data-sortk="${k}" ${sortK === k ? "checked" : ""}><span>${t}</span></label>`).join("")}</div>`)}
+        ${acc("env", "Funciona em", envName, S.env !== "all", `<div class="segmented segmented--full" role="radiogroup" aria-label="Funciona em">${[["all", "Qualquer"], ["c", "Cliente"], ["s", "Servidor"]].map(([v, t]) => `<button type="button" role="radio" data-env="${v}" aria-checked="${S.env === v}">${t}</button>`).join("")}</div>`)}
+        ${acc("show", "Mostrar também", showBits.length ? showBits.join(", ") : "Já no pack", showBits.length > 0, `
+          <div class="fchecks">
+            <label class="check"><input type="checkbox" data-flag="showLib" ${S.showLib ? "checked" : ""}><span>Bibliotecas<small>Entram sozinhas quando um mod precisa delas.</small></span></label>
+            <label class="check"><input type="checkbox" data-flag="showIn" ${S.showIn ? "checked" : ""}><span>O que já está no pack</span></label>
+            <label class="check"><input type="checkbox" data-flag="noVer" ${S.noVer ? "checked" : ""}><span>Mods sem versão para o pack<small>Só para consulta; não dá para adicionar.</small></span></label>
+          </div>`)}
+        ${acc("src", "Fonte", srcName, S.src !== "all", `<div class="segmented segmented--full" role="radiogroup" aria-label="Fonte">${[["all", "As duas"], ["mr", "Modrinth"], ["cf", "CurseForge"]].map(([v, t]) => `<button type="button" role="radio" data-src="${v}" aria-checked="${S.src === v}">${t}</button>`).join("")}</div>`)}
+      </div></aside>`;
+  }
+
+  /* ---------- Esboço 3: lista com detalhe ---------- */
+  function lrow(m) {
+    const cls = ["lrow", S.sel.has(m.id) ? "is-sel" : "", m.lib ? "is-lib" : ""].join(" ");
+    return `<div class="${cls}" data-cur="${m.id}" ${S.cur === m.id ? 'aria-current="true"' : ""}>
+      ${box(m)}
+      ${spr(m.ic, "mi--md")}
+      <div class="lrow__main">
+        <div class="lrow__l1"><span class="lrow__n">${esc(m.n)}</span><span class="lrow__a">por ${esc(m.a)}</span>${stateTag(m)}</div>
+        <div class="lrow__s">${esc(m.s)}</div>
+      </div>
+      <div class="lrow__end"><span class="tnum">${fmtD(m.d)}</span>${srcMarks(m.src)}</div>
+    </div>`;
+  }
+  function list3() {
+    const gs = groups({ libs: true });
+    return gs.map((g) => {
+      const mods = g.items.filter((m) => !m.lib);
+      const libs = g.items.filter((m) => m.lib);
+      return `<section class="lgroup">
+        <div class="lhead"><h3>${g.title}</h3><span class="grp__n">${g.items.length}${g.key !== "res" ? ` de ${g.total.toLocaleString("pt-BR")}` : ""}</span>${g.key !== "res" ? '<button type="button" class="btn btn--link">Ver todos</button>' : ""}</div>
+        <div class="llist">${mods.map(lrow).join("") || '<p class="tempty" style="padding-left:16px">Nada encontrado com esses filtros.</p>'}
+          ${libs.length && !S.showLib && g.key !== "res" ? `<div class="libnote">${ic("book", "icon--sm")}<span><b>Bibliotecas</b> · ficam no fim da lista. Não precisa marcar: entram sozinhas quando um mod precisa.</span></div>${libs.map(lrow).join("")}` : libs.map(lrow).join("")}
+        </div></section>`;
+    }).join("");
+  }
+  function side3() {
+    const sortK = S.sort.k || "dl";
+    const sortName = (SORTS.find((s) => s[0] === sortK) || SORTS[0])[1];
+    const x = (act) => `<button type="button" data-act="${act}" aria-label="Tirar este filtro">${ic("x", "icon--xs")}</button>`;
+    const act = [
+      S.cat ? `<span class="tag tag--muted">${catName(S.cat)}${x("un-cat")}</span>` : "",
+      S.sort.k && S.sort.k !== "dl" ? `<span class="tag tag--muted">${sortName}${x("un-sort")}</span>` : "",
+      S.env !== "all" ? `<span class="tag tag--muted">${S.env === "c" ? "Cliente" : "Servidor"}${x("un-env")}</span>` : "",
+      S.src !== "all" ? `<span class="tag tag--muted">Só ${S.src === "mr" ? "Modrinth" : "CurseForge"}${x("un-src")}</span>` : "",
+      !S.showIn ? `<span class="tag tag--muted">Sem o que já está no pack${x("un-in")}</span>` : "",
+    ].filter(Boolean);
+    const form = S.fOpen ? `
+      <div class="fbar__form">
+        <div class="full"><label class="fl" for="f3cat">Categoria</label><select id="f3cat" class="select" data-cat-sel><option value="">Todas</option>${CATS.map(([id, name, only]) => `<option value="${id}" ${S.cat === id ? "selected" : ""}>${name}${only ? ` (só ${only === "mr" ? "Modrinth" : "CurseForge"})` : ""}</option>`).join("")}</select></div>
+        <div class="full"><label class="fl" for="f3ord">Ordenar</label><select id="f3ord" class="select" data-sort-sel>${SORTS.map(([k, t]) => `<option value="${k}" ${sortK === k ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+        <div class="full"><span class="fl">Funciona em</span><div class="segmented segmented--full" role="radiogroup" aria-label="Funciona em">${[["all", "Qualquer"], ["c", "Cliente"], ["s", "Servidor"]].map(([v, t]) => `<button type="button" role="radio" data-env="${v}" aria-checked="${S.env === v}">${t}</button>`).join("")}</div></div>
+        <div class="full"><span class="fl">Fonte</span><div class="segmented segmented--full" role="radiogroup" aria-label="Fonte">${[["all", "As duas"], ["mr", "Modrinth"], ["cf", "CurseForge"]].map(([v, t]) => `<button type="button" role="radio" data-src="${v}" aria-checked="${S.src === v}">${t}</button>`).join("")}</div></div>
+        <div class="full fchecks">
+          <label class="check"><input type="checkbox" data-flag="showIn" ${S.showIn ? "checked" : ""}><span>Mostrar o que já está no pack</span></label>
+          <label class="check"><input type="checkbox" data-flag="noVer" ${S.noVer ? "checked" : ""}><span>Mostrar mods sem versão para o pack</span></label>
+        </div>
+      </div>` : "";
+    return `<aside class="side" aria-label="Filtros e detalhes do mod">
+      <div class="fbar">
+        <div class="fbar__row"><span class="tag" title="A busca só mostra versões para o Minecraft e o loader do pack. Não dá para mudar aqui.">${ic("lock")}Só 1.21.1 · NeoForge</span><span class="grow"></span>
+          <button type="button" class="btn btn--sm" data-act="f3" aria-expanded="${S.fOpen}">${ic("list-filter", "icon--sm")}Filtros${act.length ? ` <span class="count count--n">${act.length}</span>` : ""}${ic(S.fOpen ? "chevron-up" : "chevron-down", "icon--sm")}</button></div>
+        ${act.length && !S.fOpen ? `<div class="fbar__act">${act.join("")}</div>` : ""}
+        ${form}
+      </div>
+      ${detail(byId[S.cur])}
+    </aside>`;
+  }
+
+  /* ---------- Os três esboços ---------- */
+  const SK = {
+    4: {
+      name: "As duas, com seletor",
+      txt: `<p>A sua escolha: a mesma tela com o seletor <strong>Lista | Cartões</strong> ao lado da busca. <strong>Lista</strong> é a tabela densa (uns 14 mods por tela, colunas que ordenam); <strong>Cartões</strong> é a grade (mais visual, resumo maior). O que você marcou continua marcado ao trocar.</p>
+        <p>Os filtros à direita são os da tabela densa, iguais nos dois modos. O Warden lembra a última forma que você usou.</p>`,
+      pro: "você escolhe na hora: comparar números na lista ou bater o olho nos cartões",
+      con: "duas formas para manter iguais em tudo (filtros, seleção, bibliotecas); a SPEC muda (“nunca grade de cartões” sai)",
+      side: "296px", html: () => `<main class="addmain">${addhead()}<div class="addsearch"><div class="addsearch__row">${typeSel()}${field(false)}${viewSel()}</div>${lockline()}</div><div class="addscroll" id="scroller">${S.view === "cards" ? grid() : table()}</div>${selbar()}</main>${side1()}`,
+    },
+    1: {
+      name: "Tabela densa",
+      txt: `<p>Cada mod vira <strong>uma linha de 40 px</strong>, com colunas como no Explorador de Arquivos: nome e autor, resumo, downloads, atualização, fonte e situação. Clicar no título de uma coluna ordena. Cabem <strong>uns 14 mods</strong> por tela (hoje, 7).</p>
+        <p>Os <strong>filtros ficam numa coluna à direita</strong>, com as categorias numa lista curta (8 + “Mais 13”). As <strong>bibliotecas ficam escondidas</strong> numa linha só. Clicar no nome de um mod troca os filtros pelo detalhe dele.</p>`,
+      pro: "o maior número de mods por tela; dá para comparar e ordenar de relance",
+      con: "o resumo fica numa linha só e às vezes é cortado; menos visual",
+      side: "296px", html: () => `<main class="addmain">${addhead()}<div class="addsearch"><div class="addsearch__row">${typeSel()}${field(false)}</div>${lockline()}</div><div class="addscroll" id="scroller">${table()}</div>${selbar()}</main>${side1()}`,
+    },
+    2: {
+      name: "Grade de cartões",
+      txt: `<p>Cartões baixos em <strong>3 colunas</strong> (2 na janela menor), com ícone, resumo de 2 linhas e o botão <strong>Marcar</strong> em cada um. A linha “Só 1.21.1 · NeoForge” fica <strong>dentro do campo de busca</strong>.</p>
+        <p>Filtros à direita em <strong>blocos que abrem e fecham</strong>, cada um mostrando o valor escolhido; categorias viram etiquetas. Bibliotecas ficam num <strong>grupo fechado</strong> no fim dos populares.</p>`,
+      pro: "mais visual; o resumo aparece mais e os ícones ajudam a achar o mod",
+      con: "comparar números entre cartões é mais difícil; o SPEC hoje diz “nunca grade de cartões” no início (vira decisão nova)",
+      side: "296px", html: () => `<main class="addmain">${addhead()}<div class="addsearch"><div class="addsearch__row">${typeSel()}${field(true)}</div></div><div class="addscroll" id="scroller">${grid()}</div>${selbar()}</main>${side2()}`,
+    },
+    3: {
+      name: "Lista com detalhe",
+      txt: `<p>Lista à esquerda e, à direita, <strong>o detalhe do mod clicado</strong>: a versão que vai entrar, a fonte, o lado e as dependências, antes de marcar. É o jeito “clássico de desktop”, como o Sensor Sculk aprovado.</p>
+        <p>Os <strong>filtros ficam recolhidos</strong> no topo da coluna da direita: uma etiqueta com cadeado mostra a versão do pack e <strong>Filtros</strong> abre o resto; o que estiver ligado aparece como etiqueta removível. Bibliotecas vão para o <strong>fim da lista</strong>, com selo.</p>`,
+      pro: "você vê o que vai entrar (versão e dependências) sem sair da tela",
+      con: "a lista fica mais estreita (uns 11 mods por tela); filtros a um clique",
+      side: "384px", html: () => `<main class="addmain">${addhead()}<div class="addsearch"><div class="addsearch__row">${typeSel()}${field(false)}</div></div><div class="addscroll" id="scroller">${list3()}</div>${selbar()}</main>${side3()}`,
+    },
+  };
+
+  function toast(msg) {
+    let box = $(".toasts"); if (!box) { box = document.createElement("div"); box.className = "toasts"; box.setAttribute("role", "status"); document.body.appendChild(box); }
+    const t = document.createElement("div"); t.className = "toast"; t.innerHTML = `${ic("info")}<span>${msg}</span>`; box.appendChild(t);
+    setTimeout(() => t.remove(), 4200);
+  }
+  function render(keepFocus) {
+    const s = SK[N];
+    const sc = $("#scroller"); const top = sc ? sc.scrollTop : 0;
+    const sb = $(".sidebody, .det"); const stop = sb ? sb.scrollTop : 0;
+    const focusQ = keepFocus && document.activeElement && document.activeElement.id === "q";
+    const caret = focusQ ? document.activeElement.selectionStart : 0;
+    $("#body").outerHTML = `<div id="body" class="body body--add" data-n="${N}">${rail()}${s.html()}</div>`;
+    const sc2 = $("#scroller"); if (sc2) sc2.scrollTop = top;
+    const sb2 = $(".sidebody, .det"); if (sb2) sb2.scrollTop = stop;
+    if (focusQ) { const q = $("#q"); q.focus(); q.setSelectionRange(caret, caret); }
+  }
+  function show(n) {
+    N = String(n);
+    const s = SK[N];
+    $("#skName").textContent = `${N} · ${s.name}`;
+    $("#skTxt").innerHTML = s.txt + `<div class="skbar__pc"><span class="pro"><b>Bom:</b> ${s.pro}</span><span class="con"><b>Custa:</b> ${s.con}</span></div>`;
+    S.open = null;
+    $$("#skSel button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.n === N)));
+    render();
+    try { localStorage.setItem("skAdd", N); } catch (e) { /* sem armazenamento */ }
+  }
+
+  $("#skHide").addEventListener("click", () => { const bar = $(".skbar"); const mini = bar.classList.toggle("is-mini"); $("#skHide").textContent = mini ? "Mostrar a explicação" : "Esconder a explicação"; $("#skHide").setAttribute("aria-expanded", String(!mini)); });
+  $("#skSel").addEventListener("click", (e) => { const b = e.target.closest("button[data-n]"); if (b) show(b.dataset.n); });
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t.closest("a[href='#']")) e.preventDefault();
+    if (!t.closest("#body")) return;
+    let el;
+    if ((el = t.closest("[data-view]"))) { S.view = el.dataset.view; try { localStorage.setItem("skAddView", S.view); } catch (e2) { /* sem armazenamento */ } return render(); }
+    if ((el = t.closest("[data-sel-btn]"))) { const id = el.dataset.selBtn; S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id); return render(); }
+    if ((el = t.closest("[data-open]"))) { S.open = S.open === el.dataset.open ? null : el.dataset.open; return render(); }
+    if ((el = t.closest("[data-cur]")) && !t.closest(".check")) { S.cur = el.dataset.cur; return render(); }
+    if ((el = t.closest("[data-sort]"))) { const k = el.dataset.sort; S.sort = S.sort.k === k ? { k, dir: -S.sort.dir } : { k, dir: k === "name" ? 1 : k === "upd" ? 1 : -1 }; return render(); }
+    if ((el = t.closest("[data-cat]"))) { S.cat = el.dataset.cat || null; return render(); }
+    if ((el = t.closest("[data-env]"))) { S.env = el.dataset.env; return render(); }
+    if ((el = t.closest("[data-src]"))) { S.src = el.dataset.src; return render(); }
+    if ((el = t.closest("[data-acc]"))) { S.acc[el.dataset.acc] = !S.acc[el.dataset.acc]; return render(); }
+    if ((el = t.closest("[data-act]"))) {
+      const a = el.dataset.act;
+      if (a === "clear-sel") S.sel.clear();
+      else if (a === "show-libs") S.showLib = true;
+      else if (a === "cat-more") S.catMore = !S.catMore;
+      else if (a === "close-det") S.open = null;
+      else if (a === "lib-toggle") S.libOpen = !S.libOpen;
+      else if (a === "f3") S.fOpen = !S.fOpen;
+      else if (a === "un-cat") S.cat = null;
+      else if (a === "un-sort") S.sort = { k: null, dir: -1 };
+      else if (a === "un-env") S.env = "all";
+      else if (a === "un-src") S.src = "all";
+      else if (a === "un-in") S.showIn = true;
+      else if (a === "reset") { Object.assign(S, { cat: null, env: "all", src: "all", showLib: false, showIn: true, noVer: false, sort: { k: null, dir: -1 } }); }
+      else if (a === "go") { toast("No app, aqui abre o passo seguinte: o diálogo de dependências (Problema 1), com os marcados e as dependências deles."); return; }
+      else return;
+      return render();
+    }
+  });
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (!t.closest("#body")) return;
+    if (t.dataset.sel) { t.checked ? S.sel.add(t.dataset.sel) : S.sel.delete(t.dataset.sel); return render(); }
+    if (t.dataset.flag) { S[t.dataset.flag] = t.checked; return render(); }
+    if (t.dataset.sortk) { S.sort = { k: t.dataset.sortk, dir: t.dataset.sortk === "upd" ? 1 : -1 }; return render(); }
+    if (t.hasAttribute("data-cat-sel")) { S.cat = t.value || null; return render(); }
+    if (t.hasAttribute("data-sort-sel")) { S.sort = { k: t.value, dir: t.value === "upd" ? 1 : -1 }; return render(); }
+  });
+  document.addEventListener("input", (e) => { if (e.target.id === "q") { S.q = e.target.value.trim() ? e.target.value : ""; render(true); } });
+
+  hydrate(document);
+  let first = "4";
+  try { S.view = localStorage.getItem("skAddView") || "list"; } catch (e) { S.view = "list"; }
+  // #sk2, e para conferir estados: #sk1&open=waystones, #sk3&f, #sk2&libs, #sk1&none, #sk1&cat=des
+  const parts = (location.hash || "").replace("#sk", "").split("&");
+  if (SK[parts[0]]) first = parts[0];
+  show(SK[first] ? first : "1");
+  parts.slice(1).forEach((p) => { const [k, v] = p.split("="); if (k === "open") S.open = v; if (k === "f") S.fOpen = true; if (k === "libs") { S.libOpen = true; S.showLib = N !== "2"; } if (k === "none") S.sel.clear(); if (k === "cat") S.cat = v; if (k === "cur") S.cur = v; if (k === "bottom") S.bottom = true; if (k === "mini") $("#skHide").click(); if (k === "cards") S.view = "cards"; });
+  if (parts.length > 1) render();
+  if (S.bottom) { const sc = $("#scroller"); sc.scrollTop = sc.scrollHeight; }
+})();
+
+/* Encaixe da janela do app no espaço disponível */
+(function () {
+  const D = 1280;
+  const win = document.getElementById("win");
+  if (!win) return;
+  const fit = document.createElement("div");
+  fit.className = "fit";
+  win.parentNode.insertBefore(fit, win);
+  fit.appendChild(win);
+  function layout() {
+    const w = fit.clientWidth, h = fit.clientHeight;
+    const s = w < D ? w / D : 1;
+    win.style.width = w / s + "px";
+    win.style.height = h / s + "px";
+    win.style.transform = s < 1 ? "scale(" + s + ")" : "";
+  }
+  layout();
+  if (window.ResizeObserver) new ResizeObserver(layout).observe(fit); else window.addEventListener("resize", layout);
+})();
+(function () {
+  const b = document.getElementById("skHide");
+  const bar = document.querySelector(".skbar");
+  if (b && bar && !bar.classList.contains("is-mini")) b.click();
+})();
+
+</script>

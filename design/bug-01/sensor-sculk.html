@@ -1,0 +1,1476 @@
+<title>Sensor Sculk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Pixelify+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Tokens do design system Deep Dark (design/system/tokens.css). Tema único, escuro, por decisão. */
+:root {
+  color-scheme: dark;
+  --color-bg: #050d12;
+  --color-bg-sunken: #03090c;
+  --color-surface-1: #0a1a21;
+  --color-surface-2: #0e2630;
+  --color-surface-3: #12313c;
+  --color-overlay: rgba(2, 7, 10, 0.78);
+  --color-border: #15333e;
+  --color-border-strong: #1e4552;
+  --color-border-control: #4f8a98;
+  --color-text: #e4f3ef;
+  --color-text-2: #b4cfca;
+  --color-text-3: #8aacaa;
+  --color-primary: #19d3e0;
+  --color-primary-hover: #0fb5c2;
+  --color-primary-press: #0a8f9a;
+  --color-on-primary: #021418;
+  --color-primary-text: #5fe3ec;
+  --color-primary-bright: #7ff3f0;
+  --color-primary-soft: rgba(25, 211, 224, 0.12);
+  --color-primary-line: rgba(25, 211, 224, 0.4);
+  --color-primary-glow: rgba(25, 211, 224, 0.45);
+  --color-focus: #cfe3da;
+  --color-ok: #3ddc84;
+  --color-ok-text: #6be7a2;
+  --color-ok-soft: rgba(61, 220, 132, 0.12);
+  --color-ok-line: rgba(61, 220, 132, 0.4);
+  --color-warn: #f2b33d;
+  --color-warn-text: #ffcb66;
+  --color-warn-soft: rgba(242, 179, 61, 0.12);
+  --color-warn-line: rgba(242, 179, 61, 0.4);
+  --color-danger: #ff5c5c;
+  --color-danger-text: #ff8e8e;
+  --color-danger-soft: rgba(255, 92, 92, 0.13);
+  --color-danger-solid: #c42f35;
+  --color-on-danger: #ffffff;
+  --color-ai: #cfe3da;
+  --color-ai-soft: rgba(207, 227, 218, 0.07);
+  --color-ai-line: rgba(207, 227, 218, 0.45);
+  --color-diff-add: rgba(61, 220, 132, 0.14);
+  --color-diff-del: rgba(255, 92, 92, 0.14);
+  --color-console-bg: #020709;
+  --color-console-text: #cfe6e1;
+  --color-console-muted: #86a9a6;
+  --color-pixel-shadow: #010507;
+
+  --font-display: "Pixelify Sans", Manrope, system-ui, sans-serif;
+  --font-ui: Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+
+  --text-2xs: 11px; --lh-2xs: 14px;
+  --text-xs: 12px;  --lh-xs: 16px;
+  --text-sm: 13px;  --lh-sm: 18px;
+  --text-base: 14px; --lh-base: 20px;
+  --text-md: 16px;  --lh-md: 22px;
+  --text-lg: 20px;  --lh-lg: 24px;
+  --text-xl: 24px;  --lh-xl: 28px;
+  --tracking-display: 0.02em;
+  --tracking-caps: 0.06em;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+
+  --notch-md: 4px; --notch-sm: 2px;
+  --shape-notch-md: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+  --shape-notch-sm: polygon(0 2px, 2px 2px, 2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px));
+
+  --shadow-block-2: 0 4px 0 rgba(0, 0, 0, 0.5), 0 10px 24px rgba(0, 0, 0, 0.4);
+  --shadow-block-3: 0 8px 0 rgba(0, 0, 0, 0.5), 0 24px 64px rgba(0, 0, 0, 0.6);
+  --inset-bevel: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.34);
+  --inset-bevel-press: inset 0 3px 0 rgba(0, 0, 0, 0.34);
+  --inset-slot: inset 2px 2px 0 rgba(0, 0, 0, 0.5), inset -1px -1px 0 rgba(127, 243, 240, 0.06);
+  --shadow-pixel-text: 2px 2px 0 #010507;
+
+  --duration-instant: 80ms; --duration-fast: 120ms; --duration-base: 200ms; --duration-slow: 320ms; --duration-pulse: 3400ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-pixel: steps(4, end);
+
+  --size-titlebar: 32px;
+  --size-pack-header: 76px;
+  --size-statusbar: 30px;
+  --size-rail: 56px;
+  --size-convs: 300px;
+  --size-drawer: 360px;
+  --size-read: 820px;
+
+  --fx-vein: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' shape-rendering='crispEdges'%3E%3Cg fill='%2319D3E0' fill-opacity='.07'%3E%3Crect y='40' width='10' height='2'/%3E%3Crect x='10' y='36' width='2' height='6'/%3E%3Crect x='12' y='36' width='12' height='2'/%3E%3Crect x='24' y='28' width='2' height='10'/%3E%3Crect x='26' y='28' width='14' height='2'/%3E%3Crect x='40' y='20' width='2' height='10'/%3E%3Crect x='42' y='20' width='22' height='2'/%3E%3Crect x='32' y='30' width='2' height='16'/%3E%3Crect x='34' y='46' width='8' height='2'/%3E%3Crect x='50' y='4' width='2' height='16'/%3E%3C/g%3E%3Cg fill='%237FF3F0' fill-opacity='.14'%3E%3Crect x='24' y='28' width='2' height='2'/%3E%3Crect x='40' y='20' width='2' height='2'/%3E%3Crect x='32' y='46' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-sculk-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='6' shape-rendering='crispEdges'%3E%3Crect y='2' width='48' height='4' fill='%230B2A33'/%3E%3Crect x='4' width='6' height='2' fill='%230B2A33'/%3E%3Crect x='18' y='1' width='8' height='1' fill='%230B2A33'/%3E%3Crect x='34' width='4' height='2' fill='%230B2A33'/%3E%3Crect x='14' y='4' width='4' height='2' fill='%23061217'/%3E%3Crect x='44' y='3' width='2' height='3' fill='%23061217'/%3E%3Crect x='8' y='3' width='2' height='2' fill='%2319D3E0' fill-opacity='.85'/%3E%3Crect x='28' y='4' width='2' height='1' fill='%2319D3E0' fill-opacity='.55'/%3E%3Crect x='40' y='2' width='2' height='2' fill='%237FF3F0' fill-opacity='.5'/%3E%3C/svg%3E");
+  --fx-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath d='M1 4h1v1h1v1h1V5h1V4h1V3h1V2h1v2H7v1H6v1H5v1H3V6H2V5H1z'/%3E%3C/svg%3E");
+  --fx-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' shape-rendering='crispEdges' fill='%23B4CFCA'%3E%3Crect width='2' height='2'/%3E%3Crect x='8' width='2' height='2'/%3E%3Crect x='2' y='2' width='2' height='2'/%3E%3Crect x='6' y='2' width='2' height='2'/%3E%3Crect x='4' y='4' width='2' height='2'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-instant: 0ms; --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; --duration-pulse: 0ms; }
+}
+
+/* ---------- Base: parece app, não página ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; margin: 0; }
+body {
+  background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-ui); font-size: var(--text-base); line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
+  user-select: none; -webkit-user-select: none; cursor: default;
+  caret-color: var(--color-primary);
+  scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent;
+}
+* { scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, pre { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+a { color: var(--color-primary-text); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+[tabindex="-1"]:focus-visible { outline: none; }
+[hidden] { display: none !important; }
+::selection { background: var(--color-primary); color: var(--color-on-primary); }
+.copyable, input, textarea { user-select: text; -webkit-user-select: text; }
+.copyable { cursor: auto; }
+input, textarea { cursor: text; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.mono { font-family: var(--font-mono); }
+.t2 { color: var(--color-text-2); }
+.t3 { color: var(--color-text-3); }
+.pixel { font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+
+.icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.icon--sm { width: 14px; height: 14px; }
+.icon--xs { width: 12px; height: 12px; stroke-width: 2.5; }
+.icon--lg { width: 20px; height: 20px; }
+.icon--fill { fill: currentColor; }
+.icon--ai { color: var(--color-ai); }
+
+/* Carregador em 4 blocos (nunca um spinner girando) */
+.loader { display: inline-grid; grid-template-columns: repeat(2, 5px); gap: 2px; flex: none; }
+.loader i { width: 5px; height: 5px; background: currentColor; opacity: 0.25; animation: loader-step calc(var(--duration-slow) * 3) var(--ease-pixel) infinite; }
+.loader i:nth-child(2) { animation-delay: calc(var(--duration-slow) * 0.75); }
+.loader i:nth-child(4) { animation-delay: calc(var(--duration-slow) * 1.5); }
+.loader i:nth-child(3) { animation-delay: calc(var(--duration-slow) * 2.25); }
+@keyframes loader-step { 0%, 24% { opacity: 1; } 25%, 100% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .loader i { animation: none; opacity: 0.7; } }
+
+/* ---------- Botões (bloco com degrau de pixel; a borda e o fundo ficam nos pseudo-elementos) ---------- */
+.btn {
+  --btn-bg: var(--color-surface-2); --btn-edge: var(--color-border-strong); --btn-fg: var(--color-text);
+  --btn-bevel: var(--inset-bevel); --btn-shape: var(--shape-notch-md);
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  height: 36px; padding: 0 var(--space-4); border: 0; background: transparent; color: var(--btn-fg);
+  font-size: var(--text-base); font-weight: 600; line-height: 1; white-space: nowrap; text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out), transform var(--duration-instant) var(--ease-out);
+}
+.btn::before, .btn::after { content: ""; position: absolute; pointer-events: none; clip-path: var(--btn-shape); transition: background-color var(--duration-fast) var(--ease-out); }
+.btn::before { inset: 0; z-index: -2; background: var(--btn-edge); }
+.btn::after { inset: 1px; z-index: -1; background: var(--btn-bg); box-shadow: var(--btn-bevel); }
+.btn:hover { --btn-bg: var(--color-surface-3); --btn-edge: var(--color-border-control); }
+.btn:active { --btn-bevel: var(--inset-bevel-press); transform: translateY(1px); }
+.btn:disabled, .btn[aria-disabled="true"] { --btn-bg: var(--color-surface-1); --btn-edge: var(--color-border); --btn-fg: var(--color-text-3); --btn-bevel: none; cursor: not-allowed; transform: none; }
+.btn--primary { --btn-bg: var(--color-primary); --btn-edge: var(--color-primary-press); --btn-fg: var(--color-on-primary); font-weight: 700; }
+.btn--primary:hover { --btn-bg: var(--color-primary-hover); --btn-edge: var(--color-primary-press); }
+.btn--primary:active { --btn-bg: var(--color-primary-press); }
+.btn--primary:disabled, .btn--primary[aria-disabled="true"] { --btn-bg: var(--color-surface-1); --btn-edge: var(--color-border); --btn-fg: var(--color-text-3); }
+.btn--ghost { --btn-bg: transparent; --btn-edge: transparent; --btn-fg: var(--color-text-2); --btn-bevel: none; }
+.btn--ghost:hover { --btn-bg: var(--color-surface-3); --btn-edge: transparent; --btn-fg: var(--color-text); }
+.btn--ghost:active { --btn-bevel: var(--inset-slot); }
+.btn--danger { --btn-bg: var(--color-danger-solid); --btn-edge: var(--color-pixel-shadow); --btn-fg: var(--color-on-danger); }
+.btn--danger:hover { --btn-bg: var(--color-danger-solid); --btn-edge: var(--color-danger-text); }
+.btn--danger-ghost { --btn-bg: transparent; --btn-edge: transparent; --btn-fg: var(--color-danger-text); --btn-bevel: none; }
+.btn--danger-ghost:hover { --btn-bg: var(--color-danger-soft); --btn-edge: transparent; --btn-fg: var(--color-danger-text); }
+.btn--sm { --btn-shape: var(--shape-notch-sm); height: 28px; padding: 0 var(--space-3); font-size: var(--text-sm); gap: var(--space-1); }
+.btn--icon { width: 36px; padding: 0; }
+.btn--icon.btn--sm { width: 28px; }
+.btn--link { --btn-bg: transparent; --btn-edge: transparent; --btn-bevel: none; --btn-fg: var(--color-primary-text); height: auto; padding: 0; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.btn--link::before, .btn--link::after { display: none; }
+.btn--link:hover { text-decoration-thickness: 2px; }
+.btn--link:active { transform: none; }
+.btn__count { display: inline-flex; align-items: center; padding-left: var(--space-2); margin-left: var(--space-1); border-left: 1px solid currentColor; font-weight: 500; }
+
+/* Selos (.tag = estado com ícone e palavra) */
+.tag {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2);
+  background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); clip-path: var(--shape-notch-sm);
+  font-size: var(--text-xs); font-weight: 600; line-height: 1; color: var(--color-text-2); white-space: nowrap;
+}
+.tag--ok { color: var(--color-ok-text); box-shadow: inset 0 0 0 1px var(--color-ok-line); background: var(--color-ok-soft); }
+.tag--warn { color: var(--color-warn-text); box-shadow: inset 0 0 0 1px var(--color-warn-line); background: var(--color-warn-soft); }
+.tag--ai { color: var(--color-ai); box-shadow: inset 0 0 0 1px var(--color-ai-line); background: var(--color-ai-soft); }
+.tag--muted { color: var(--color-text-3); background: transparent; }
+.count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; font-size: var(--text-xs); font-weight: 700; line-height: 1; clip-path: var(--shape-notch-sm); }
+.count--warn { background: var(--color-warn-soft); color: var(--color-warn-text); box-shadow: inset 0 0 0 1px var(--color-warn-line); }
+
+/* Campos (slot afundado) */
+.input, .select, .textarea {
+  width: 100%; height: 36px; padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-control); border-radius: 2px;
+  background: var(--color-bg-sunken); color: var(--color-text); box-shadow: var(--inset-slot);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+.input::placeholder, .textarea::placeholder { color: var(--color-text-3); opacity: 1; }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-text-3); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible { border-color: var(--color-focus); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.textarea { height: auto; min-height: 96px; padding: var(--space-2) var(--space-3); line-height: var(--lh-base); resize: vertical; display: block; }
+.select { appearance: none; padding-right: var(--space-8); background-image: var(--fx-chevron); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 6px; cursor: pointer; }
+.select option { background: var(--color-bg-sunken); color: var(--color-text); }
+
+.check { display: flex; align-items: flex-start; gap: var(--space-3); cursor: pointer; }
+.check > input { appearance: none; flex: none; width: 18px; height: 18px; margin: 1px 0 0; border: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-control), var(--inset-slot); cursor: pointer; display: grid; place-content: center; }
+.check > input::before { content: ""; width: 10px; height: 10px; background: var(--color-on-primary); -webkit-mask: var(--fx-check) center / 10px 10px no-repeat; mask: var(--fx-check) center / 10px 10px no-repeat; opacity: 0; }
+.check > input:checked { background: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary-press); }
+.check > input:checked::before { opacity: 1; }
+.check:hover > input:not(:checked) { box-shadow: inset 0 0 0 1px var(--color-text-2), var(--inset-slot); }
+
+/* Seletor de modo (não é aba: troca como o Sculk procura) */
+.segmented { display: inline-flex; padding: 2px; gap: 2px; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.segmented button { height: 24px; padding: 0 var(--space-3); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.segmented button:hover { color: var(--color-text); background: var(--color-surface-2); }
+.segmented button[aria-checked="true"] { background: var(--color-surface-3); color: var(--color-text); box-shadow: inset 0 -2px 0 var(--color-primary); }
+
+/* ---------- Moldura da janela ---------- */
+.win { height: 100%; min-width: 1024px; display: grid; grid-template-rows: var(--size-titlebar) var(--size-pack-header) minmax(0, 1fr) var(--size-statusbar); }
+
+.titlebar { display: flex; align-items: stretch; background: var(--color-bg-sunken); border-bottom: 1px solid var(--color-border); }
+.titlebar__drag { flex: 1; }
+.winctl { display: flex; }
+.winctl button { width: 46px; border: 0; background: transparent; color: var(--color-text-3); display: grid; place-items: center; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.winctl .icon { width: 14px; height: 14px; stroke-width: 1.5; }
+.winctl button:hover { background: var(--color-surface-2); color: var(--color-text); }
+.winctl button.close:hover { background: var(--color-danger-solid); color: var(--color-on-danger); }
+.winctl button:focus-visible { outline-offset: -2px; }
+
+/* Cabeçalho do pack: identidade à esquerda, Salvar versão e Testar à direita. Veia e camada de sculk só aqui. */
+.packhead {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-6) 6px var(--space-4);
+  background-color: var(--color-surface-1); background-image: var(--fx-vein); background-size: 64px 64px;
+}
+.packhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--fx-sculk-edge) repeat-x left bottom / 48px 6px; pointer-events: none; }
+.packhead__sep { width: 1px; height: 32px; background: var(--color-border-strong); flex: none; }
+.packhead__id { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex: 1 1 auto; }
+.tile { display: block; flex: none; width: 40px; height: 40px; image-rendering: pixelated; box-shadow: 0 0 0 1px var(--color-pixel-shadow); }
+.packhead h1 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.packhead__meta { display: flex; align-items: baseline; gap: var(--space-2); margin-top: 2px; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); white-space: nowrap; }
+.packhead__meta .mono { font-size: var(--text-xs); color: var(--color-text); }
+.packhead__meta .dot { width: 3px; height: 3px; background: var(--color-text-3); align-self: center; }
+.packhead__actions { display: flex; align-items: center; gap: var(--space-4); flex: none; padding-top: 6px; }
+
+/* Botão Testar: bloco ciano com antenas de sensor e pulso lento */
+.testbtn { position: relative; display: inline-flex; align-items: stretch; flex: none; animation: sensor var(--duration-pulse) var(--ease-in-out) infinite; }
+.testbtn .btn { height: 48px; }
+.testbtn__main { min-width: 150px; padding: 0 var(--space-5) 0 var(--space-4); font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: 0.04em;
+  --btn-shape: polygon(0 4px, 4px 4px, 4px 0, 100% 0, 100% 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)); }
+.testbtn__more { width: 36px; padding: 0; margin-left: 2px;
+  --btn-shape: polygon(0 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 0 100%); }
+.testbtn__antenna { position: absolute; left: 0; right: 0; top: -10px; height: 10px; pointer-events: none; }
+.testbtn__antenna i { position: absolute; bottom: 0; width: 4px; background: var(--color-primary); }
+.testbtn__antenna i::after { content: ""; position: absolute; left: -2px; top: -4px; width: 8px; height: 4px; background: var(--color-primary-bright); }
+.testbtn__antenna i:nth-child(1) { left: 18px; height: 6px; }
+.testbtn__antenna i:nth-child(2) { left: 28px; height: 10px; }
+.testbtn__antenna i:nth-child(3) { left: 108px; height: 10px; }
+.testbtn__antenna i:nth-child(4) { left: 118px; height: 6px; }
+@keyframes sensor { 0%, 100% { filter: drop-shadow(0 2px 4px rgba(25, 211, 224, 0.3)); } 50% { filter: drop-shadow(0 2px 16px rgba(25, 211, 224, 0.7)); } }
+@media (prefers-reduced-motion: reduce) { .testbtn { animation: none; filter: drop-shadow(0 2px 8px rgba(25, 211, 224, 0.45)); } }
+
+/* ---------- Corpo: trilho | conversas | conversa | detalhes ---------- */
+.body { display: grid; grid-template-columns: var(--size-rail) var(--size-convs) minmax(0, 1fr) auto; min-height: 0; }
+
+/* Trilho das 6 seções (menu recolhido do design system) */
+.rail { display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) var(--space-1); background: var(--color-bg); border-right: 1px solid var(--color-border); overflow-y: auto; }
+.rail a { position: relative; display: grid; place-items: center; height: 44px; color: var(--color-text-3); text-decoration: none; transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast); }
+.rail a .icon { width: 20px; height: 20px; }
+.rail a:hover { background: var(--color-surface-2); color: var(--color-text-2); }
+.rail a:focus-visible { outline-offset: -2px; }
+.rail a[aria-current="page"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); color: var(--color-ai); }
+.rail a[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.rail__dot { position: absolute; top: 8px; right: 10px; width: 6px; height: 6px; background: var(--color-danger); }
+
+/* Coluna de conversas */
+.convs { display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-right: 1px solid var(--color-border); }
+.colhead { flex: none; height: 56px; display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-bottom: 1px solid var(--color-border); }
+.colhead h2 { flex: 1; min-width: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); line-height: var(--lh-lg); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); white-space: nowrap; }
+.search { position: relative; flex: none; padding: var(--space-3) var(--space-4) var(--space-1); }
+.search > .icon { position: absolute; left: calc(var(--space-4) + 12px); top: calc(var(--space-3) + 10px); color: var(--color-text-3); pointer-events: none; }
+.search .input { padding-left: 36px; padding-right: 36px; }
+.search__clear { position: absolute; right: calc(var(--space-4) + 4px); top: calc(var(--space-3) + 4px); }
+.convs__list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: var(--space-4); }
+.convs__group { padding: var(--space-5) var(--space-4) var(--space-2); font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.conv {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-1) var(--space-3);
+  width: 100%; padding: var(--space-3) var(--space-4); border: 0; background: transparent; text-align: left; color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.conv:hover { background: var(--color-surface-2); }
+.conv:focus-visible { outline-offset: -2px; }
+.conv[aria-current="true"] { background: var(--color-bg-sunken); box-shadow: var(--inset-slot), inset 0 0 0 1px var(--color-border); }
+.conv[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: var(--space-2); bottom: var(--space-2); width: 3px; background: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.conv__title { grid-column: 1 / -1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv__meta { min-width: 0; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convs__empty { padding: var(--space-6) var(--space-4); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.convs__empty p + p { margin-top: var(--space-2); }
+.convs__foot { flex: none; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.convs__foot strong { color: var(--color-text-2); font-weight: 600; }
+.convs__foot .btn--link { font-size: var(--text-xs); }
+
+/* Coluna da conversa */
+.chat { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-bg); }
+.chat .colhead { padding: 0 var(--space-6); gap: var(--space-4); background: var(--color-surface-1); }
+.colhead h2.chat__title { flex: 1; min-width: 0; font-family: var(--font-ui); letter-spacing: 0; text-shadow: none; font-size: var(--text-md); line-height: var(--lh-md); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__meta { flex: none; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); white-space: nowrap; }
+.chat__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.thread { max-width: calc(var(--size-read) + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); display: flex; flex-direction: column; gap: var(--space-8); }
+.thread__start { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.thread__start::before, .thread__start::after { content: ""; flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--color-border-strong) 0 4px, transparent 4px 8px); }
+
+/* Mensagens */
+.msg { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.msg__head { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); font-weight: 700; color: var(--color-text-2); }
+.msg__head .t { font-weight: 400; color: var(--color-text-3); }
+.msg--me { align-items: flex-end; }
+.bubble { max-width: 560px; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.att { width: max-content; max-width: 100%; }
+.att[open] { width: 100%; }
+.att > summary { display: flex; align-items: center; gap: var(--space-2); width: max-content; margin-left: auto; height: 28px; padding: 0 var(--space-3); list-style: none; cursor: pointer;
+  background: var(--color-surface-1); box-shadow: inset 0 0 0 1px var(--color-border); font-size: var(--text-sm); color: var(--color-text-2); transition: background-color var(--duration-fast), color var(--duration-fast); }
+.att > summary::-webkit-details-marker, details > summary::-webkit-details-marker { display: none; }
+.att > summary:hover { background: var(--color-surface-2); color: var(--color-text); }
+.att > summary .size { font-family: var(--font-mono); font-size: var(--text-xs); }
+.chev { transition: transform var(--duration-fast) var(--ease-out); }
+details[open] > summary .chev { transform: rotate(90deg); }
+.att__body { margin-top: var(--space-2); }
+
+.rawhead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+pre.raw {
+  max-height: 320px; overflow: auto; padding: var(--space-3) var(--space-4);
+  background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border);
+  font-family: var(--font-mono); font-size: var(--text-xs); line-height: 18px; color: var(--color-console-text); white-space: pre; tab-size: 4;
+}
+pre.raw--short { max-height: 200px; }
+
+/* Resposta do Sculk: fio de osso à esquerda (marca de IA), sem caixa em volta, para os cartões de proposta não ficarem dentro de outro cartão */
+.msg--ai .msg__head { color: var(--color-ai); }
+.msg--ai .msg__head .icon { align-self: center; }
+.ai { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-1) 0 var(--space-1) var(--space-5); border-left: 1px solid var(--color-ai-line); }
+.ai__note { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-2); }
+.ai__note .icon { margin-top: 1px; color: var(--color-text-3); }
+
+.consults { background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-border); }
+.consults > summary { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: var(--space-2) var(--space-3); list-style: none; cursor: pointer; color: var(--color-ai); font-size: var(--text-sm); font-weight: 600; transition: background-color var(--duration-fast); }
+.consults > summary:hover { background: var(--color-surface-1); }
+.consults > summary .mono { font-size: var(--text-xs); font-weight: 500; }
+.consults > summary .chev { margin-left: auto; color: var(--color-text-3); }
+.consults__list { border-top: 1px solid var(--color-border); padding: var(--space-1) 0; }
+.tc > summary { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 32px; padding: var(--space-1) var(--space-3); list-style: none; cursor: pointer; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); transition: background-color var(--duration-fast), color var(--duration-fast); }
+.tc > summary:hover { background: var(--color-surface-1); color: var(--color-text); }
+.tc > summary .chev { color: var(--color-text-3); }
+.tc__title { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tc__title .pre { color: var(--color-text-3); }
+.tc__size { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); white-space: nowrap; }
+.tc__body { display: grid; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-4) calc(var(--space-3) + 14px + var(--space-2)); }
+.tc__label { margin-bottom: var(--space-1); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+code.req { display: block; padding: var(--space-2) var(--space-3); background: var(--color-console-bg); box-shadow: inset 0 0 0 1px var(--color-border); font-family: var(--font-mono); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-2); white-space: pre-wrap; word-break: break-word; }
+.tc > summary, .tc__row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 32px; padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.tc--running .tc__row { color: var(--color-ai); }
+.statusbar__tasks .loader { margin-right: var(--space-1); }
+.tc.is-flash > summary { animation: flash 1400ms var(--ease-out); }
+@keyframes flash { 0%, 30% { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary-line); } 100% { background: transparent; box-shadow: none; } }
+
+.claims { display: flex; flex-direction: column; gap: var(--space-4); }
+.claim p { max-width: 72ch; }
+.claim p code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-ai); }
+.claim__ev { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-2); }
+.claim--no p { color: var(--color-text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.claim--ask p { color: var(--color-text); font-weight: 600; }
+.evid { display: inline-flex; align-items: center; gap: var(--space-1); height: 22px; padding: 0 var(--space-2); border: 0; background: var(--color-bg-sunken); box-shadow: inset 0 0 0 1px var(--color-ok); clip-path: var(--shape-notch-sm); color: var(--color-ok-text); font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; transition: background-color var(--duration-fast); }
+button.evid:hover { background: var(--color-surface-2); }
+button.evid:focus-visible { clip-path: none; }
+.evid--no { box-shadow: inset 0 0 0 1px var(--color-border-control); color: var(--color-text-3); font-family: var(--font-ui); font-weight: 600; }
+
+.props { display: flex; flex-direction: column; gap: var(--space-3); }
+.props__title { font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; color: var(--color-text-2); }
+.proposal { padding: var(--space-4) var(--space-5); background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: inset 3px 0 0 var(--color-primary); transition: box-shadow var(--duration-base) var(--ease-out); }
+.proposal__head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.proposal__kind { font-size: var(--text-2xs); line-height: var(--lh-2xs); font-weight: 700; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-primary-text); }
+.proposal__title { font-weight: 700; margin-right: auto; }
+.proposal__text { margin-top: var(--space-1); max-width: 72ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.proposal__ev { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-3); font-size: var(--text-xs); color: var(--color-text-3); }
+.proposal__actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.proposal__done { display: flex; align-items: center; gap: var(--space-2); margin-right: auto; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.proposal--applied { box-shadow: inset 3px 0 0 var(--color-ok); }
+.proposal--dismissed { box-shadow: inset 3px 0 0 var(--color-border-control); background: transparent; }
+.proposal--dismissed .proposal__title { color: var(--color-text-2); }
+.proposal--dismissed .proposal__kind { color: var(--color-text-3); }
+
+.diff { margin-top: var(--space-3); border: 1px solid var(--color-border-strong); background: var(--color-bg-sunken); font-family: var(--font-mono); font-size: var(--text-xs); line-height: 20px; }
+.diff__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text); }
+.diff__stats .add { color: var(--color-ok-text); }
+.diff__stats .del { color: var(--color-danger-text); }
+.diff__body { overflow-x: auto; padding: var(--space-1) 0; }
+.diff__line { display: grid; grid-template-columns: 40px 24px max-content; color: var(--color-text-2); min-width: 100%; }
+.diff__num { padding-right: var(--space-2); text-align: right; color: var(--color-text-3); user-select: none; }
+.diff__sign { text-align: center; user-select: none; }
+.diff__code { white-space: pre; padding-right: var(--space-4); }
+.diff__line--add { background: var(--color-diff-add); color: var(--color-text); }
+.diff__line--add .diff__sign { color: var(--color-ok-text); }
+.diff__line--del { background: var(--color-diff-del); color: var(--color-text); }
+.diff__line--del .diff__sign { color: var(--color-danger-text); }
+.diff__fold { padding: 0 var(--space-3) 0 64px; color: var(--color-text-3); font-family: var(--font-ui); }
+
+.ai__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-top: var(--space-3); border-top: 1px dashed var(--color-ai-line); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.ai__foot > span { display: inline-flex; align-items: center; gap: var(--space-2); }
+.meter { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text-2); }
+.meter__blocks { display: inline-flex; gap: 2px; }
+.meter__blocks i { width: 14px; height: 10px; background: var(--color-surface-3); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
+.meter__blocks i.on { background: var(--color-ai); box-shadow: none; }
+
+.reading { display: inline-flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-ai); }
+.reading .mono { font-size: var(--text-xs); color: var(--color-text-3); }
+
+/* Compositor fixo */
+.composer { flex: none; padding: var(--space-4) var(--space-6) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-surface-1); }
+.composer__inner { max-width: var(--size-read); margin: 0 auto; }
+.cbox { background: var(--color-bg-sunken); border: 1px solid var(--color-border-control); border-radius: 2px; box-shadow: var(--inset-slot); transition: border-color var(--duration-fast); }
+.cbox:hover { border-color: var(--color-text-3); }
+.cbox:focus-within { border-color: var(--color-focus); outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.cbox textarea { display: block; width: 100%; min-height: 44px; max-height: 200px; padding: var(--space-3) var(--space-4) var(--space-2); border: 0; background: transparent; resize: none; line-height: var(--lh-base); outline: none; }
+.cbox textarea::placeholder { color: var(--color-text-3); opacity: 1; }
+.cbar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) var(--space-2) var(--space-2) var(--space-2); }
+.cbar #sendBtn { margin-left: auto; }
+.cbar .segmented { background: var(--color-surface-1); }
+
+/* Nova conversa */
+.newconv { max-width: calc(640px + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-10); }
+.newconv h3 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-xl); line-height: var(--lh-xl); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
+.newconv__sub { margin-top: var(--space-2); max-width: 72ch; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.fgroup { margin-top: var(--space-6); }
+.fgroup + .fgroup { margin-top: var(--space-6); }
+.flabel { display: block; margin-bottom: var(--space-2); font-weight: 600; }
+.flabel .opt { font-weight: 400; color: var(--color-text-3); }
+.fhint { margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-4); border: 0; background: transparent; color: var(--color-text-2); font-weight: 600; white-space: nowrap; }
+.chip::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: var(--shape-notch-sm); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); transition: background-color var(--duration-fast); }
+.chip:hover { color: var(--color-text); }
+.chip:hover::before { background: var(--color-surface-3); }
+.chip[aria-checked="true"] { color: var(--color-text); }
+.chip[aria-checked="true"]::before { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.chip .icon { color: var(--color-primary-text); }
+.provline { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin-top: var(--space-3); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.newconv__go { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--color-border); }
+.newconv__go .fhint { margin-top: 0; flex: 1 1 280px; }
+.newconv .select { max-width: 400px; }
+.newconv .textarea { min-height: 72px; }
+.dialog .kv { grid-template-columns: 120px minmax(0, 1fr); }
+.rawhead h3 { margin: 0; }
+.rawhead--tight { margin-bottom: var(--space-1); }
+.claim__ev--action { margin-top: var(--space-3); }
+.consults__list--run { border-top: 0; }
+
+/* Painel Detalhes (empurra a conversa) */
+.drawer { width: var(--size-drawer); display: flex; flex-direction: column; min-height: 0; background: var(--color-surface-1); border-left: 1px solid var(--color-border-strong); box-shadow: -1px 0 0 var(--color-pixel-shadow); animation: drawer-in var(--duration-slow) var(--ease-out); }
+@keyframes drawer-in { from { transform: translateX(24px); opacity: 0; } }
+.drawer .colhead { padding: 0 var(--space-3) 0 var(--space-5); }
+.drawer__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-5) var(--space-8); display: flex; flex-direction: column; gap: var(--space-8); }
+.dsec h3 { margin-bottom: var(--space-3); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.kv { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: baseline; font-size: var(--text-sm); line-height: var(--lh-sm); }
+.kv dt { color: var(--color-text-3); }
+.kv dd { min-width: 0; color: var(--color-text); }
+.kv dd .sub { display: block; margin-top: 2px; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.perms { display: flex; flex-direction: column; gap: var(--space-3); }
+.perms li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: start; font-size: var(--text-sm); line-height: var(--lh-sm); }
+.perms .icon { margin-top: 1px; }
+.perms .yes { color: var(--color-ok-text); }
+.perms .no { color: var(--color-text-3); }
+.perms small { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.perms li.off span { color: var(--color-text-2); }
+.sent { display: flex; flex-direction: column; }
+.sent button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; width: 100%; padding: var(--space-1) 0; border: 0; background: transparent; text-align: left; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.sent button:hover { color: var(--color-text); }
+.sent button:hover .sent__name { text-decoration: underline; text-underline-offset: 3px; }
+.sent__name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sent__size { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-3); }
+.sent__total { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: baseline; margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--color-border); font-size: var(--text-sm); line-height: var(--lh-sm); font-weight: 700; }
+.sent__total .sent__size { color: var(--color-text); font-weight: 600; }
+.notices { display: flex; flex-direction: column; gap: var(--space-2); }
+.alert { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--space-1) var(--space-3); align-items: start; padding: var(--space-3) var(--space-4); background: var(--alert-bg); box-shadow: inset 3px 0 0 var(--alert-bar); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.alert > .icon { margin-top: 1px; color: var(--alert-bar); }
+.alert__actions { grid-column: 2; margin-top: var(--space-2); }
+.alert--warn { --alert-bg: var(--color-warn-soft); --alert-bar: var(--color-warn); }
+.alert--neutral { --alert-bg: var(--color-surface-2); --alert-bar: var(--color-border-control); }
+.alert--ai { --alert-bg: var(--color-ai-soft); --alert-bar: var(--color-ai); color: var(--color-text); }
+.drawer__foot { flex: none; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border); background: var(--color-bg); }
+.confirm { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-1) 0; }
+.confirm strong { font-weight: 700; }
+.confirm p { font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); }
+.confirm__actions { display: flex; gap: var(--space-2); }
+
+/* Diálogo de consentimento */
+.scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-8); background: var(--color-overlay); animation: fade-in var(--duration-base) var(--ease-out); }
+@keyframes fade-in { from { opacity: 0; } }
+.dialog { width: min(720px, 100%); max-height: calc(100vh - 64px); display: flex; flex-direction: column; background: var(--color-surface-1); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-3), inset 0 1px 0 rgba(127, 243, 240, 0.06); animation: dialog-in var(--duration-slow) var(--ease-out); }
+@keyframes dialog-in { from { transform: translateY(12px); opacity: 0; } }
+.dialog__head { padding: var(--space-6) var(--space-6) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.dialog__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-lg); line-height: var(--lh-lg); font-weight: 800; }
+.dialog__title .icon { color: var(--color-ai); }
+.dialog__sub { margin-top: var(--space-2); font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-2); max-width: 72ch; }
+.dialog__body { flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-5) var(--space-6) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.dialog__body h3 { margin-bottom: var(--space-3); font-size: var(--text-base); line-height: var(--lh-base); font-weight: 700; }
+.dialog__foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: var(--color-bg); }
+.perm { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 2px var(--space-3); align-items: start; padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.perm:first-child { border-top: 0; padding-top: 0; }
+.perm > .icon { width: 18px; height: 18px; margin-top: 1px; color: var(--color-ok-text); }
+.perm__t { font-weight: 600; }
+.perm__d { grid-column: 2; font-size: var(--text-sm); line-height: var(--lh-sm); color: var(--color-text-3); max-width: 72ch; }
+.perm__fixed { grid-column: 3; grid-row: 1; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); align-self: center; }
+.perm .check { display: contents; }
+.perm input { grid-column: 1; grid-row: 1; }
+.perm .check .perm__t { grid-column: 2; cursor: pointer; }
+
+/* Menu, dica, toast */
+.menu { position: fixed; z-index: 30; min-width: 280px; padding: var(--space-1) 0; background: var(--color-bg-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), var(--shadow-block-2); animation: menu-in var(--duration-base) var(--ease-out); }
+@keyframes menu-in { from { transform: translateY(-4px); opacity: 0; } }
+.menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px var(--space-3); align-items: center; width: 100%; padding: var(--space-2) var(--space-3); border: 0; background: none; text-align: left; color: var(--color-text); }
+.menu button .icon { color: var(--color-text-3); }
+.menu button small { grid-column: 2; font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.menu button:hover, .menu button:focus-visible { background: var(--color-primary-soft); box-shadow: inset 3px 0 0 var(--color-primary); outline: none; }
+.menu button:focus-visible { box-shadow: inset 3px 0 0 var(--color-primary), inset 0 0 0 2px var(--color-focus); }
+.tooltip { position: fixed; z-index: 70; max-width: 300px; padding: 6px var(--space-2); background: var(--color-bg-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 0 0 1px var(--color-pixel-shadow), 0 2px 0 rgba(0, 0, 0, 0.5); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text); pointer-events: none; }
+.toasts { position: fixed; right: var(--space-5); bottom: calc(var(--size-statusbar) + var(--space-4)); z-index: 60; display: grid; gap: var(--space-2); width: 380px; }
+.toast { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); background: var(--color-surface-2); border: 1px solid var(--color-border-strong); box-shadow: var(--shadow-block-2), inset 3px 0 0 var(--toast-bar, var(--color-primary)); font-size: var(--text-sm); line-height: var(--lh-sm); animation: toast-in var(--duration-base) var(--ease-out); }
+.toast > .icon { color: var(--toast-bar, var(--color-primary)); }
+.toast--ok { --toast-bar: var(--color-ok); }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
+
+/* Rodapé de tarefas */
+.statusbar { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-bg-sunken); font-size: var(--text-xs); line-height: var(--lh-xs); color: var(--color-text-3); }
+.statusbar__tasks { display: inline-flex; align-items: center; gap: var(--space-2); height: 22px; padding: 0 var(--space-2); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-xs); font-weight: 600; }
+.statusbar__tasks:hover { background: var(--color-surface-2); color: var(--color-text); }
+.statusbar__tasks.is-busy { color: var(--color-primary-text); }
+.statusbar__end { margin-left: auto; font-family: var(--font-mono); }
+
+@media (max-width: 1280px) {
+  :root { --size-convs: 280px; --size-drawer: 340px; }
+  .chat .colhead, .composer { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .chat__meta { display: none; }
+}
+</style>
+
+<div class="win" id="win">
+  <div class="titlebar">
+    <div class="titlebar__drag"></div>
+    <div class="winctl" role="group" aria-label="Janela">
+      <button type="button" data-act="proto" data-msg="No app, este botão minimiza a janela." aria-label="Minimizar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <button type="button" data-act="proto" data-msg="No app, este botão restaura o tamanho da janela." aria-label="Restaurar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/></svg></button>
+      <button type="button" class="close" data-act="proto" data-msg="No app, este botão fecha o Warden." aria-label="Fechar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+  </div>
+
+  <header class="packhead" aria-label="Pack aberto">
+    <button type="button" class="btn btn--ghost btn--sm" data-act="proto" data-msg="Volta para Meus packs. Fora deste protótipo."><span data-ic="arrow-left" data-cls="icon--sm"></span>Meus packs</button>
+    <span class="packhead__sep" aria-hidden="true"></span>
+    <div class="packhead__id">
+      <span id="packTile"></span>
+      <div>
+        <h1>Zoonicraft</h1>
+        <div class="packhead__meta"><span>Minecraft <span class="mono">1.21.1</span></span><span class="dot" aria-hidden="true"></span><span>NeoForge <span class="mono">21.1.264</span></span><span class="dot" aria-hidden="true"></span><span>versão <span class="mono">0.1.2</span></span></div>
+      </div>
+    </div>
+    <div class="packhead__actions">
+      <button type="button" class="btn" id="saveBtn" data-act="proto" data-msg="Salvar versão abre o resumo das alterações. Fora deste protótipo." aria-label="Salvar versão, 16 alterações não salvas"><span data-ic="save"></span>Salvar versão<span class="btn__count" id="saveCount">16 alterações</span></button>
+      <div class="testbtn">
+        <span class="testbtn__antenna" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <button type="button" class="btn btn--primary testbtn__main" data-act="test"><span data-ic="play" data-cls="icon--fill"></span>Testar</button>
+        <button type="button" class="btn btn--primary testbtn__more" id="testMore" data-act="test-menu" aria-haspopup="menu" aria-expanded="false" aria-label="Mais opções do teste"><span data-ic="chevron-down"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="body" id="body">
+    <nav class="rail" aria-label="Seções do pack">
+      <a href="#" data-act="proto" data-msg="Este protótipo mostra só o Sensor Sculk." data-tip="Mods: mods, resource packs e shaders"><span data-ic="puzzle"></span><span class="sr-only">Mods</span></a>
+      <a href="#" data-act="proto" data-msg="Este protótipo mostra só o Sensor Sculk." data-tip="Configs: arquivos de ajuste e scripts do pack"><span data-ic="file-code"></span><span class="sr-only">Configs</span></a>
+      <a href="#" data-act="proto" data-msg="Este protótipo mostra só o Sensor Sculk." data-tip="Problemas: 3 problemas encontrados"><span data-ic="triangle-alert"></span><span class="rail__dot" aria-hidden="true"></span><span class="sr-only">Problemas, 3 problemas encontrados</span></a>
+      <a href="#" aria-current="page" data-act="here" data-tip="Sensor Sculk: conversar com o Sculk sobre um problema do pack"><span data-ic="sparkles"></span><span class="sr-only">Sensor Sculk</span></a>
+      <a href="#" data-act="proto" data-msg="Este protótipo mostra só o Sensor Sculk." data-tip="Histórico: versões salvas e publicação"><span data-ic="history"></span><span class="sr-only">Histórico</span></a>
+      <a href="#" data-act="proto" data-msg="Este protótipo mostra só o Sensor Sculk." data-tip="Exportar: gerar o pack para quem vai jogar"><span data-ic="package"></span><span class="sr-only">Exportar</span></a>
+    </nav>
+
+    <aside class="convs" aria-labelledby="convsTitle">
+      <div class="colhead">
+        <h2 id="convsTitle">Conversas</h2>
+        <button type="button" class="btn btn--sm" data-act="new" id="newBtn"><span data-ic="plus" data-cls="icon--sm"></span>Nova conversa</button>
+      </div>
+      <div class="search">
+        <span data-ic="search"></span>
+        <label class="sr-only" for="q">Buscar nas conversas</label>
+        <input id="q" class="input" type="search" placeholder="Buscar nas conversas" autocomplete="off" spellcheck="false">
+        <button type="button" class="btn btn--ghost btn--icon btn--sm search__clear" data-act="clear-search" id="qClear" hidden aria-label="Limpar busca"><span data-ic="x" data-cls="icon--sm"></span></button>
+      </div>
+      <div class="convs__list" id="convList"></div>
+      <div class="convs__foot">
+        <div>Provedor das conversas novas: <strong>Claude</strong>, chave salva no cofre do Windows.</div>
+        <button type="button" class="btn btn--link" data-act="proto" data-msg="Abre Configurações, em Chaves e contas. Fora deste protótipo.">Mudar em Configurações</button>
+      </div>
+    </aside>
+
+    <main class="chat" id="main" aria-labelledby="chatTitle">
+      <div class="colhead">
+        <h2 class="chat__title" id="chatTitle" tabindex="-1"></h2>
+        <span class="chat__meta" id="chatMeta"></span>
+        <button type="button" class="btn btn--sm" id="detailsBtn" data-act="drawer" aria-expanded="false" aria-controls="drawer"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3"/><path d="M15 3v18"/></svg>Detalhes<span class="count count--warn" id="detailsCount" hidden></span></button>
+      </div>
+      <div class="chat__scroll" id="scroll"><div id="content"></div></div>
+      <div class="composer" id="composer">
+        <div class="composer__inner">
+          <div class="cbox">
+            <label class="sr-only" for="ask">Pergunte mais ao Sculk</label>
+            <textarea id="ask" rows="1" placeholder="Pergunte mais ou conte o que aconteceu" spellcheck="false"></textarea>
+            <div class="cbar">
+              <div class="segmented" role="radiogroup" aria-label="Como o Sculk procura" id="modeSel">
+                <button type="button" role="radio" aria-checked="false" data-mode="rapido" data-tip="Mais rápido e mais barato: modelo mais econômico e menos consultas.">Procurar rápido</button>
+                <button type="button" role="radio" aria-checked="true" data-mode="fundo" data-tip="Modelo mais forte e mais consultas. Demora mais e custa mais na sua chave.">Procurar a fundo</button>
+              </div>
+              <button type="button" class="btn btn--primary" id="sendBtn" data-act="send" aria-disabled="true" data-tip="Escreva uma pergunta para enviar."><span data-ic="send"></span>Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="drawer" id="drawer" hidden aria-labelledby="drawerTitle"></aside>
+  </div>
+
+  <footer class="statusbar">
+    <button type="button" class="statusbar__tasks" id="tasks" data-act="proto" data-msg="Abre o painel de Tarefas. Fora deste protótipo."><span data-ic="layers" data-cls="icon--sm"></span><span id="tasksText">Nenhuma tarefa em andamento</span></button>
+    <span class="statusbar__end">Warden 1.0.1</span>
+  </footer>
+</div>
+
+<div class="scrim" id="consent" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="cTitle" aria-describedby="cSub">
+    <div class="dialog__head">
+      <h2 class="dialog__title" id="cTitle" tabindex="-1"><span data-ic="sparkles"></span>Começar uma conversa com o Sculk?</h2>
+      <p class="dialog__sub" id="cSub">Pedido uma vez para esta conversa. Confira o que o Sculk poderá consultar e o texto que vai primeiro.</p>
+    </div>
+    <div class="dialog__body">
+      <section>
+        <h3>O que o Sculk poderá consultar</h3>
+        <ul>
+          <li class="perm"><span data-ic="check"></span><span class="perm__t">Informações do pack e a lista de mods</span><span class="perm__fixed">Sempre</span><span class="perm__d">Versões do Minecraft, do loader e do Java; nome, versão e lado de cada mod.</span></li>
+          <li class="perm"><span data-ic="check"></span><span class="perm__t">Os problemas que o Warden já encontrou</span><span class="perm__fixed">Sempre</span><span class="perm__d">Os achados de Problemas, com as evidências.</span></li>
+          <li class="perm"><span data-ic="check"></span><span class="perm__t">Logs e crash reports dos seus testes</span><span class="perm__fixed">Sempre</span><span class="perm__d">Sem dados pessoais: nome de usuário do Windows nos caminhos, nome do jogador, UUID, IPs, e-mails, nome do computador e qualquer coisa com cara de chave viram marcadores.</span></li>
+          <li class="perm"><label class="check"><input type="checkbox" id="pConfigs" checked><span class="perm__t">Configs do pack</span></label><span class="perm__d">Arquivos de config/, defaultconfigs/ e kubejs/. Desmarque se não quiser.</span></li>
+          <li class="perm"><label class="check"><input type="checkbox" id="pGithub" checked><span class="perm__t">Procurar problemas parecidos nas páginas dos mods no GitHub</span></label><span class="perm__d">Envia ao GitHub só o nome do mod e algumas palavras do erro. Nunca o log.</span></li>
+        </ul>
+      </section>
+      <section>
+        <div class="rawhead"><h3>Texto inicial, exatamente como vai</h3><button type="button" class="btn btn--ghost btn--sm" data-act="copy" data-target="cText"><span data-ic="copy" data-cls="icon--sm"></span>Copiar</button></div>
+        <pre class="raw raw--short copyable" id="cText" tabindex="0" aria-label="Texto inicial que será enviado"></pre>
+      </section>
+      <section>
+        <dl class="kv">
+          <dt>Para</dt><dd id="cTo"></dd>
+          <dt>Tamanho inicial</dt><dd><span class="mono">7,8 KB</span> de texto; cerca de <span class="mono">2,6 mil</span> tokens com as instruções do Warden<span class="sub">Token é a unidade que os provedores de IA usam para medir e cobrar.</span></dd>
+          <dt>Custo</dt><dd>O uso é cobrado na sua chave da Anthropic, conforme o tamanho da conversa e os preços dela.</dd>
+        </dl>
+      </section>
+      <div class="alert alert--ai"><span data-ic="sparkles"></span><span>Cada coisa que o Sculk consultar aparece na conversa. Nada muda no pack sem você clicar em Aplicar.</span></div>
+    </div>
+    <div class="dialog__foot">
+      <button type="button" class="btn btn--ghost" data-act="consent-cancel">Cancelar</button>
+      <button type="button" class="btn btn--primary" data-act="consent-ok"><span data-ic="sparkles"></span>Enviar e começar</button>
+    </div>
+  </div>
+</div>
+
+<div class="menu" id="testMenu" role="menu" aria-label="Mais opções do teste" hidden>
+  <button type="button" role="menuitem" data-act="proto" data-msg="Fora deste protótipo."><span data-ic="play"></span><span>Testar</span><small>Copiar o pack para o teste e abrir o jogo</small></button>
+  <button type="button" role="menuitem" data-act="proto" data-msg="Fora deste protótipo."><span data-ic="boxes"></span><span>Testar como servidor</span><small>Servidor local e o jogo conectado a ele</small></button>
+  <button type="button" role="menuitem" data-act="proto" data-msg="Fora deste protótipo."><span data-ic="cpu"></span><span>Testar com perfil de desempenho</span><small>Mede o tempo de cada mod com o spark</small></button>
+</div>
+<div class="tooltip" id="tip" role="tooltip" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="sr-only" id="live" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Ícones (Lucide, ISC) ---------- */
+  const ICONS = {"puzzle":"<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />","file-code":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 12.5 8 15l2 2.5\" /><path d=\"m14 12.5 2 2.5-2 2.5\" />","triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /><path d=\"M12 9v4\" /><path d=\"M12 17h.01\" />","sparkles":"<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />","history":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" /><path d=\"M12 7v5l4 2\" />","package":"<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /><path d=\"M12 22V12\" /><polyline points=\"3.29 7 12 12 20.71 7\" /><path d=\"m7.5 4.27 9 5.15\" />","search":"<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />","plus":"<path d=\"M5 12h14\" /><path d=\"M12 5v14\" />","send":"<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /><path d=\"m21.854 2.147-10.94 10.939\" />","chevron-right":"<path d=\"m9 18 6-6-6-6\" />","chevron-down":"<path d=\"m6 9 6 6 6-6\" />","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />","trash-2":"<path d=\"M10 11v6\" /><path d=\"M14 11v6\" /><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /><path d=\"M3 6h18\" /><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />","x":"<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />","check":"<path d=\"M20 6 9 17l-5-5\" />","undo-2":"<path d=\"M9 14 4 9l5-5\" /><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />","file-text":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" />","save":"<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\" /><path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\" /><path d=\"M7 3v4a1 1 0 0 0 1 1h7\" />","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 6v6l4 2\" />","info":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />","copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />","arrow-left":"<path d=\"m12 19-7-7 7-7\" /><path d=\"M19 12H5\" />","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /><path d=\"M3 3v5h5\" />","layers":"<path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z\" /><path d=\"M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12\" /><path d=\"M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17\" />","circle-check":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"m16 9-5.5 5.5L8 12\" />","boxes":"<path d=\"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z\" /><path d=\"m7 16.5-4.74-2.85\" /><path d=\"m7 16.5 5-3\" /><path d=\"M7 16.5v5.17\" /><path d=\"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z\" /><path d=\"m17 16.5-5-3\" /><path d=\"m17 16.5 4.74-2.85\" /><path d=\"M17 16.5v5.17\" /><path d=\"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z\" /><path d=\"M12 8 7.26 5.15\" /><path d=\"m12 8 4.74-2.85\" /><path d=\"M12 13.5V8\" />","cpu":"<path d=\"M12 20v2\" /><path d=\"M12 2v2\" /><path d=\"M17 20v2\" /><path d=\"M17 2v2\" /><path d=\"M2 12h2\" /><path d=\"M2 17h2\" /><path d=\"M2 7h2\" /><path d=\"M20 12h2\" /><path d=\"M20 17h2\" /><path d=\"M20 7h2\" /><path d=\"M7 20v2\" /><path d=\"M7 2v2\" /><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\" /><rect x=\"8\" y=\"8\" width=\"8\" height=\"8\" rx=\"1\" />","flask-conical":"<path d=\"M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2\" /><path d=\"M6.453 15h11.094\" /><path d=\"M8.5 2h7\" />","circle-alert":"<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\" /><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\" />","minus":"<path d=\"M5 12h14\" />"};
+  const ic = (n, c) => `<svg class="icon ${c || ""}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[n] || ""}</svg>`;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const fold = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  $$("[data-ic]").forEach((el) => { el.outerHTML = ic(el.dataset.ic, el.dataset.cls); });
+
+  /* Ícone do pack: pixel art 8×8 simétrico (desenho próprio) */
+  (function tile() {
+    const rows = ["..XXXX..", ".XAAAAX.", "XABAABAX", "XAACCAAX", "XAACCAAX", "XABAABAX", ".XAAAAX.", "..XXXX.."];
+    const col = { X: "#1e4552", A: "#0e2630", B: "#19d3e0", C: "#cfe3da", ".": "#12313c" };
+    let r = "";
+    rows.forEach((row, y) => [...row].forEach((ch, x) => { r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"/>`; }));
+    $("#packTile").outerHTML = `<svg class="tile" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+  })();
+
+  /* ---------- Provedores ---------- */
+  const PROV = {
+    claude: { name: "Claude", strong: "Claude Opus 5.5", fast: "Claude Sonnet 5.5", light: "Claude Haiku 4.5", modes: true, bill: "O uso é cobrado na sua chave da Anthropic." },
+    gemini: { name: "Gemini", strong: "Gemini 3.8 Flash", fast: "Gemini 3.8 Flash", light: "Gemini 3.8 Flash-Lite", modes: false, bill: "Plano gratuito: limitado por dia na sua chave." },
+  };
+  const modelOf = (c) => c.mode === "rapido" ? PROV[c.provider].fast : PROV[c.provider].strong;
+
+  /* ---------- Textos exatos enviados (redigidos) ---------- */
+  const LOG_IRIS = [
+    "[22:11:06] [Render thread/INFO] [minecraft/IntegratedServer]: Starting integrated minecraft server version 1.21.1",
+    "[22:11:06] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing level \"Mundo de teste\"",
+    "[22:11:07] [Render thread/INFO] [Iris/]: Shaders are disabled because enableShaders is set to false in iris.properties",
+    "[22:11:07] [Render thread/WARN] [mixin/]: Error loading class: net/caffeinemc/mods/sodium/client/gui/SodiumGameOptions$PerformanceSettings (java.lang.ClassNotFoundException: net/caffeinemc/mods/sodium/client/gui/SodiumGameOptions$PerformanceSettings)",
+    "[22:11:07] [Render thread/ERROR] [mixin/]: Mixin apply for mod iris failed mixins.iris.compat.sodium.json:options.MixinSodiumGameOptions from mod iris -> net.caffeinemc.mods.sodium.client.gui.SodiumGameOptions: org.spongepowered.asm.mixin.injection.throwables.InvalidInjectionException Critical injection failure: @Redirect annotation on iris$redirectPerformance could not find any targets matching 'Lnet/caffeinemc/mods/sodium/client/gui/SodiumGameOptions$PerformanceSettings;'",
+    "[22:11:07] [Render thread/FATAL] [minecraft/Minecraft]: Unreported exception thrown!",
+    "java.lang.NoClassDefFoundError: net/caffeinemc/mods/sodium/client/gui/SodiumGameOptions$PerformanceSettings",
+    "\tat net.irisshaders.iris.compat.sodium.SodiumVersionCheck.isAllowedVersion(SodiumVersionCheck.java:41) ~[iris-neoforge-1.8.12+mc1.21.1.jar%23312!/:?]",
+    "\tat net.irisshaders.iris.Iris.onRenderSystemInit(Iris.java:263) ~[iris-neoforge-1.8.12+mc1.21.1.jar%23312!/:?]",
+    "\tat net.minecraft.client.renderer.LevelRenderer.allChanged(LevelRenderer.java:1034) ~[client-1.21.1-20240808.144430-srg.jar%23409!/:?]",
+    "\tat net.minecraft.client.Minecraft.setLevel(Minecraft.java:2246) ~[client-1.21.1-20240808.144430-srg.jar%23409!/:?]",
+    "Caused by: java.lang.ClassNotFoundException: net.caffeinemc.mods.sodium.client.gui.SodiumGameOptions$PerformanceSettings",
+    "\tat cpw.mods.cl.ModuleClassLoader.loadClass(ModuleClassLoader.java:227) ~[securejarhandler-3.0.8.jar:?]",
+    "\t... 14 more",
+    "[22:11:08] [Render thread/INFO] [minecraft/Minecraft]: Stopping!",
+    "Crash report salvo em: C:\\Users\\<usuário>\\AppData\\Roaming\\Warden\\instancias\\zoonicraft\\crash-reports\\crash-2026-10-19_22.11.08-client.txt",
+  ].join("\n");
+
+  const INITIAL_IRIS = [
+    "Pedido de diagnóstico do Warden",
+    "Sintoma: Trava ao entrar no mundo",
+    "O que a pessoa contou: \"Trava ao entrar no mundo. Começou depois que atualizei o Iris.\"",
+    "",
+    "Pack: Zoonicraft 0.1.2",
+    "Minecraft 1.21.1 · NeoForge 21.1.264 · Java 21.0.8 (Temurin)",
+    "Mods: 214 · resource packs: 3 · shaders: 2",
+    "Memória do teste: 6144 MB",
+    "",
+    "Teste: 19/10/2026 22:10, travou ao carregar o mundo (código de saída -1)",
+    "Achados do Warden antes do teste:",
+    "  AVISO  Just Enough Items aparece duas vezes: mods/jei.pw.toml (Modrinth) e mods/jei-cf.pw.toml (CurseForge)",
+    "  INFO   Iris foi atualizado de 1.8.11 para 1.8.12 em 17/10/2026",
+    "",
+    "latest.log, linhas 4.797 a 4.836 (dados pessoais trocados por marcadores):",
+    LOG_IRIS,
+  ].join("\n");
+
+  const MODS = [
+    ["Sodium", "0.8.13+mc1.21.1", "Só cliente", "Modrinth"], ["Iris Shaders", "1.8.12+mc1.21.1", "Só cliente", "Modrinth"],
+    ["Sodium Extra", "0.8.4+mc1.21.1", "Só cliente", "Modrinth"], ["Reese's Sodium Options", "2.0.1+mc1.21.1", "Só cliente", "Modrinth"],
+    ["Just Enough Items", "19.21.0.247", "Cliente e servidor", "Modrinth"], ["Just Enough Items", "19.21.0.247", "Cliente e servidor", "CurseForge"],
+    ["Create", "6.0.6", "Cliente e servidor", "Modrinth"], ["Flywheel", "1.0.4", "Cliente e servidor", "Modrinth"],
+    ["Ponder", "1.0.52", "Cliente e servidor", "Modrinth"], ["Supplementaries", "3.1.10", "Cliente e servidor", "CurseForge"],
+    ["Moonlight Lib", "2.17.8", "Cliente e servidor", "CurseForge"], ["Distant Horizons", "2.3.2-b", "Só cliente", "Modrinth"],
+    ["C2ME", "0.3.0+alpha.0.62", "Cliente e servidor", "Modrinth"], ["FerriteCore", "7.0.2", "Cliente e servidor", "Modrinth"],
+    ["ModernFix", "5.20.2", "Cliente e servidor", "Modrinth"], ["Lithium", "0.15.1", "Cliente e servidor", "Modrinth"],
+    ["Entity Culling", "1.7.4", "Só cliente", "Modrinth"], ["ImmediatelyFast", "1.3.4", "Só cliente", "Modrinth"],
+    ["Farmer's Delight", "1.2.6", "Cliente e servidor", "Modrinth"], ["Waystones", "21.1.5", "Cliente e servidor", "CurseForge"],
+    ["Balm", "21.0.31", "Cliente e servidor", "CurseForge"], ["Xaero's Minimap", "25.1.0", "Só cliente", "Modrinth"],
+    ["Xaero's World Map", "1.39.4", "Só cliente", "Modrinth"], ["Jade", "15.9.2", "Cliente e servidor", "Modrinth"],
+    ["AppleSkin", "3.0.6", "Cliente e servidor", "Modrinth"], ["Mouse Tweaks", "2.26.1", "Só cliente", "Modrinth"],
+    ["Controlling", "19.0.4", "Só cliente", "Modrinth"], ["Searchables", "1.0.2", "Só cliente", "Modrinth"],
+    ["Sophisticated Backpacks", "3.23.4", "Cliente e servidor", "CurseForge"], ["Sophisticated Core", "1.2.29", "Cliente e servidor", "CurseForge"],
+    ["Terralith", "2.5.8", "Cliente e servidor", "Modrinth"], ["Tectonic", "2.4.1", "Cliente e servidor", "Modrinth"],
+    ["YUNG's API", "5.1.4", "Cliente e servidor", "Modrinth"], ["YUNG's Better Dungeons", "5.1.4", "Cliente e servidor", "Modrinth"],
+    ["Comforts", "9.0.3", "Cliente e servidor", "Modrinth"], ["Clumps", "19.0.0.1", "Cliente e servidor", "Modrinth"],
+    ["spark", "1.10.124", "Cliente e servidor", "Modrinth"], ["Crash Assistant", "1.7.4", "Só cliente", "Modrinth"],
+  ];
+  const MODLIST = "214 mods (nome · versão · lado · fonte)\n" + MODS.map((m) => m.join(" · ")).join("\n");
+
+  /* ---------- Propostas ---------- */
+  const P = {
+    iris: { kind: "Atualizar mod", title: "Atualizar o Iris para 1.8.13", text: "Troca só o arquivo do Iris. O Sodium e o resto do pack ficam como estão.",
+      file: "mods/iris.pw.toml", add: 3, del: 3,
+      diff: [["c", 1, "name = \"Iris Shaders\""], ["d", 2, "filename = \"iris-neoforge-1.8.12+mc1.21.1.jar\""], ["a", 2, "filename = \"iris-neoforge-1.8.13+mc1.21.1.jar\""], ["c", 3, "side = \"client\""], ["f", "2 linhas iguais"],
+        ["d", 6, "url = \"https://cdn.modrinth.com/data/YL57xq9U/versions/kQ4cR9tB/iris-neoforge-1.8.12%2Bmc1.21.1.jar\""], ["a", 6, "url = \"https://cdn.modrinth.com/data/YL57xq9U/versions/p2Lm7Hd0/iris-neoforge-1.8.13%2Bmc1.21.1.jar\""],
+        ["c", 7, "hash-format = \"sha512\""], ["d", 8, "hash = \"5c2e9f…a71b\""], ["a", 8, "hash = \"d04b13…6e9c\""]],
+      ev: [["latest.log, linha 4.812", "c3"], ["changelog do Iris 1.8.13", "c8"]], state: "pending", count: 1 },
+    jei: { kind: "Remover mod", title: "Remover o JEI repetido da CurseForge", text: "Fica só o Just Enough Items do Modrinth, que é o mesmo arquivo.",
+      file: "mods/jei-cf.pw.toml (arquivo removido)", add: 0, del: 11,
+      diff: [["d", 1, "name = \"Just Enough Items (JEI)\""], ["d", 2, "filename = \"jei-1.21.1-neoforge-19.21.0.247.jar\""], ["d", 3, "side = \"both\""], ["f", "mais 8 linhas removidas"]],
+      ev: [["mods/jei.pw.toml", "c9"], ["mods/jei-cf.pw.toml", "c9"], ["achado do Warden", "c2"]], state: "pending", count: 1 },
+    dh: { kind: "Editar config", title: "Usar 2 linhas de trabalho no Distant Horizons", text: "Muda uma chave. O Distant Horizons continua gerando o terreno distante, só que sem disputar a CPU com o carregamento do mundo.",
+      file: "config/DistantHorizons.toml", add: 1, del: 1,
+      diff: [["c", 40, "[common.worldGenerator]"], ["d", 41, "numberOfWorldGenerationThreads = 8"], ["a", 41, "numberOfWorldGenerationThreads = 2"], ["c", 42, "enableDistantGeneration = true"]],
+      ev: [["DistantHorizons.toml, linha 41", "g1"]], state: "pending", count: 1 },
+    emb: { kind: "Remover mod", title: "Remover o Embeddium", text: "Fica o Sodium, que já desenha o jogo sozinho.",
+      file: "mods/embeddium.pw.toml (arquivo removido)", add: 0, del: 9,
+      diff: [["d", 1, "name = \"Embeddium\""], ["d", 2, "filename = \"embeddium-1.0.15+mc1.21.1.jar\""], ["f", "mais 7 linhas removidas"]],
+      ev: [["latest.log, linha 2.231", "e1"]], state: "applied", appliedAt: "18/10 às 21:40", count: 1 },
+    fly: { kind: "Atualizar mod", title: "Atualizar o Flywheel para 1.0.4", text: "O Create 6.0.6 pede o Flywheel 1.0.4 ou mais novo.",
+      file: "mods/flywheel.pw.toml", add: 1, del: 1,
+      diff: [["d", 2, "filename = \"flywheel-neoforge-1.21.1-1.0.2.jar\""], ["a", 2, "filename = \"flywheel-neoforge-1.21.1-1.0.4.jar\""]],
+      ev: [["neoforge.mods.toml do Create", "f1"]], state: "applied", appliedAt: "14/10 às 19:12", count: 1 },
+    sup: { kind: "Atualizar mod", title: "Atualizar o Supplementaries para 3.1.12", text: "A versão 3.1.12 corrige o erro ao carregar jarros com itens de outros mods.",
+      file: "mods/supplementaries.pw.toml", add: 1, del: 1,
+      diff: [["d", 2, "filename = \"supplementaries-1.21.1-3.1.10.jar\""], ["a", 2, "filename = \"supplementaries-1.21.1-3.1.12.jar\""]],
+      ev: [["latest.log, linha 6.104", "n2"]], state: "pending", count: 1 },
+  };
+
+  /* ---------- Conversas ---------- */
+  const CONVS = [
+    {
+      id: "iris", group: "Hoje", title: "O Iris tenta alterar uma classe do Sodium que não existe", meta: "Travou 19/10, 22:10", about: "o travamento de 19/10, 22:10", status: "respondida",
+      provider: "claude", mode: "fundo", started: "hoje, 09:14", tokens: "~38 mil", requests: 6,
+      perms: { configs: true, github: false },
+      notices: [
+        { kind: "warn", icon: "triangle-alert", text: "O pack mudou desde o começo da conversa: 2 mods foram adicionados e 1 foi atualizado.", action: "Começar nova conversa" },
+        { kind: "neutral", icon: "clock", text: "O modelo mais forte demorou demais para responder; uma resposta usou o mais leve (Claude Haiku 4.5)." },
+      ],
+      msgs: [
+        { who: "me", time: "09:14", text: "Trava ao entrar no mundo. Começou depois que atualizei o Iris.", att: { size: "9,9 KB", bytes: "9.912 bytes", body: INITIAL_IRIS } },
+        { who: "ai", time: "09:15", model: "Claude Haiku 4.5", note: "O modelo mais forte demorou demais para responder; esta resposta usou o mais leve.",
+          consults: { n: 9, size: "14 KB", items: [
+            { id: "c1", t: "lista de mods", size: "4,1 KB", ask: "listar_mods {}", body: MODLIST },
+            { id: "c2", t: "achados do Warden", size: "0,6 KB", ask: "achados_do_warden {}", body: "2 achados (antes do teste de 19/10/2026 22:10)\nAVISO  mod-duplicado   Just Enough Items aparece duas vezes (mods/jei.pw.toml, mods/jei-cf.pw.toml)\nINFO   versao-recente  Iris foi atualizado de 1.8.11 para 1.8.12 em 17/10/2026" },
+            { id: "c3", t: "busca por \"PerformanceSettings\" no log do teste de 19/10 às 22:10", size: "1,2 KB", ask: "buscar_no_log {\"teste\": \"2026-10-19 22:10\", \"texto\": \"PerformanceSettings\"}", body: "3 resultados em latest.log (teste de 19/10/2026 22:10):\n4.809  " + LOG_IRIS.split("\n")[3] + "\n4.812  " + LOG_IRIS.split("\n")[4] + "\n4.815  " + LOG_IRIS.split("\n")[6] },
+            { id: "c4", t: "trecho do latest.log, linhas 4.790 a 4.840", size: "3,0 KB", ask: "ler_log {\"teste\": \"2026-10-19 22:10\", \"arquivo\": \"latest.log\", \"linhas\": [4790, 4840]}", body: "[22:11:05] [Render thread/INFO] [minecraft/Minecraft]: Loaded 1534 advancements\n[22:11:05] [Render thread/INFO] [jei/]: Starting JEI...\n[22:11:05] [Render thread/WARN] [jei/]: Duplicate mod id 'jei' found in 2 jars, using the first one\n" + LOG_IRIS },
+            { id: "c5", t: "crash report de 19/10 às 22:11 (cabeçalho e pilha)", size: "2,2 KB", ask: "ler_crash_report {\"arquivo\": \"crash-2026-10-19_22.11.08-client.txt\", \"partes\": [\"cabeçalho\", \"pilha\"]}", body: "---- Minecraft Crash Report ----\n// Who set us up the TNT?\n\nTime: 2026-10-19 22:11:08\nDescription: Unexpected error\n\njava.lang.NoClassDefFoundError: net/caffeinemc/mods/sodium/client/gui/SodiumGameOptions$PerformanceSettings\n\tat net.irisshaders.iris.compat.sodium.SodiumVersionCheck.isAllowedVersion(SodiumVersionCheck.java:41)\n\tat net.irisshaders.iris.Iris.onRenderSystemInit(Iris.java:263)\n\tat net.minecraft.client.renderer.LevelRenderer.allChanged(LevelRenderer.java:1034)\n\n-- System Details --\n\tMinecraft Version: 1.21.1\n\tOperating System: Windows 11 (amd64) version 10.0\n\tJava Version: 21.0.8, Eclipse Adoptium\n\tMemory: 3412 MB / 6144 MB up to 6144 MB\n\tLaunched Version: neoforge-21.1.264\n\tUser: <jogador>" },
+            { id: "c6", t: "metadados do Iris 1.8.12 (neoforge.mods.toml)", size: "0,4 KB", ask: "ler_metadados_do_mod {\"mod\": \"iris\", \"arquivo\": \"META-INF/neoforge.mods.toml\"}", body: "iris-neoforge-1.8.12+mc1.21.1.jar → META-INF/neoforge.mods.toml (trecho)\n[[dependencies.iris]]\nmodId = \"sodium\"\ntype = \"optional\"\nversionRange = \"[0.7.0,0.8.0)\"\nordering = \"NONE\"\nside = \"CLIENT\"" },
+            { id: "c7", t: "versões do Iris no Modrinth para NeoForge 1.21.1", size: "1,1 KB", ask: "versoes_no_modrinth {\"projeto\": \"iris\", \"loader\": \"neoforge\", \"minecraft\": \"1.21.1\"}", body: "Iris Shaders · NeoForge · Minecraft 1.21.1\n1.8.13+mc1.21.1   15/10/2026   release\n1.8.12+mc1.21.1   02/10/2026   release\n1.8.11+mc1.21.1   21/09/2026   release" },
+            { id: "c8", t: "changelog do Iris 1.8.13", size: "0,9 KB", ask: "ler_changelog {\"projeto\": \"iris\", \"versao\": \"1.8.13+mc1.21.1\"}", body: "Iris 1.8.13 for Minecraft 1.21.1\n- Updated for Sodium 0.8.10 and newer (PerformanceSettings was removed from Sodium).\n- Fixed shadows flickering with Distant Horizons.\n- Updated translations." },
+            { id: "c9", t: "arquivos mods/jei.pw.toml e mods/jei-cf.pw.toml", size: "0,8 KB", ask: "ler_arquivos_do_pack {\"arquivos\": [\"mods/jei.pw.toml\", \"mods/jei-cf.pw.toml\"]}", body: "== mods/jei.pw.toml ==\nname = \"Just Enough Items (JEI)\"\nfilename = \"jei-1.21.1-neoforge-19.21.0.247.jar\"\nside = \"both\"\n[download]\nhash-format = \"sha512\"\nhash = \"8e1f…c04a\"\n[update.modrinth]\nmod-id = \"u6dRKJwZ\"\n\n== mods/jei-cf.pw.toml ==\nname = \"Just Enough Items (JEI)\"\nfilename = \"jei-1.21.1-neoforge-19.21.0.247.jar\"\nside = \"both\"\n[download]\nhash-format = \"sha1\"\nhash = \"2b77…9d10\"\nmode = \"metadata:curseforge\"\n[update.curseforge]\nfile-id = 6075432\nproject-id = 238222" },
+          ] },
+          claims: [
+            { html: "O jogo trava porque o Iris 1.8.12 tenta alterar uma classe do Sodium que não existe mais. No Sodium 0.8.13, <code>SodiumGameOptions$PerformanceSettings</code> saiu, e o Iris 1.8.12 foi feito para o Sodium 0.7.", ev: [["latest.log, linha 4.812", "c3"], ["neoforge.mods.toml do Iris", "c6"]] },
+            { html: "O Iris 1.8.13 já foi feito para o Sodium 0.8. Atualizar só o Iris resolve, sem mexer no resto do pack.", ev: [["changelog do Iris 1.8.13", "c8"], ["versões no Modrinth", "c7"]] },
+            { html: "O Just Enough Items está duas vezes no pack, uma do Modrinth e outra da CurseForge. Isso não causa este travamento, mas gera um aviso a cada início.", ev: [["mods/jei.pw.toml", "c9"], ["latest.log, linha 4.799", "c4"]] },
+            { html: "O Sodium Extra 0.8.4 pode ter o mesmo problema com o Sodium 0.8.13.", no: true },
+          ],
+          props: ["iris", "jei"], conf: 2 },
+      ],
+      followUp: { consult: ["busca por \"Sodium Extra\" no log do teste de 19/10 às 22:10", "0,4 KB"], text: "Procurei de novo no log com a sua pergunta. Nada novo aparece além do que está acima: a causa continua sendo o Iris 1.8.12 com o Sodium 0.8.13. Depois de aplicar a atualização, teste de novo; se travar, o log novo entra nesta conversa.", ev: [["latest.log, linha 4.812", "c3"]] },
+    },
+    {
+      id: "dh", group: "Hoje", title: "Por que o mundo demora tanto para carregar", meta: "Teste de hoje, 11:02", about: "o teste de hoje, 11:02 (fechou normalmente)", status: "esperando",
+      provider: "gemini", mode: null, started: "hoje, 11:20", tokens: "~21 mil", requests: 4,
+      perms: { configs: true, github: true },
+      notices: [
+        { kind: "neutral", icon: "clock", text: "O limite diário do modelo mais forte acabou; uma resposta usou o mais leve (Gemini 3.8 Flash-Lite)." },
+        { kind: "neutral", icon: "info", text: "No plano gratuito, o Google pode usar o conteúdo enviado para melhorar os produtos dele." },
+      ],
+      msgs: [
+        { who: "me", time: "11:20", text: "Criar um mundo novo leva uns 3 minutos e fica parado em \"Preparando a área de nascimento 0%\".", att: { size: "6,2 KB", bytes: "6.204 bytes", body: "Pedido de diagnóstico do Warden\nSintoma: Está lento\nO que a pessoa contou: \"Criar um mundo novo leva uns 3 minutos e fica parado em 'Preparando a área de nascimento 0%'.\"\n\nPack: Zoonicraft 0.1.2\nMinecraft 1.21.1 · NeoForge 21.1.264 · Java 21.0.8 (Temurin)\nProcessador: 6 núcleos · Memória do teste: 6144 MB\n\nTeste: 20/10/2026 11:02, fechou normalmente\nTempo até o menu: 1 min 12 s · Tempo para criar o mundo: 3 min 04 s\n\nlatest.log, linhas 1.180 a 1.230:\n[11:04:40] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing level \"Novo mundo\"\n[11:04:41] [Worker-Main-3/INFO] [DistantHorizons/]: World generator started with 8 threads\n[11:04:41] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld\n[11:05:52] [Server thread/INFO] [minecraft/LoggingChunkStatusListener]: Preparing spawn area: 0%\n[11:07:44] [Server thread/INFO] [minecraft/LoggingChunkStatusListener]: Time elapsed: 182904 ms" } },
+        { who: "ai", time: "11:21", model: "Gemini 3.8 Flash-Lite", note: "O limite diário do modelo mais forte acabou; esta resposta usou o mais leve.",
+          consults: { n: 4, size: "5 KB", items: [
+            { id: "g4", t: "lista de mods", size: "3,4 KB", ask: "listar_mods {}", body: MODLIST },
+            { id: "g1", t: "config/DistantHorizons.toml, seção [common.worldGenerator]", size: "0,8 KB", ask: "ler_config {\"arquivo\": \"config/DistantHorizons.toml\", \"secao\": \"common.worldGenerator\"}", body: "40  [common.worldGenerator]\n41  numberOfWorldGenerationThreads = 8\n42  enableDistantGeneration = true\n43  distantGeneratorMode = \"FEATURES\"\n44  worldGenerationTimeoutLengthInSeconds = 180" },
+            { id: "g2", t: "busca por \"Preparing spawn area\" no log do teste de hoje às 11:02", size: "0,6 KB", ask: "buscar_no_log {\"teste\": \"2026-10-20 11:02\", \"texto\": \"Preparing spawn area\"}", body: "1 resultado em latest.log (teste de 20/10/2026 11:02):\n1.207  [11:05:52] [Server thread/INFO] [minecraft/LoggingChunkStatusListener]: Preparing spawn area: 0%" },
+            { id: "g3", t: "tempos dos últimos 3 testes", size: "0,4 KB", ask: "tempos_dos_testes {\"quantos\": 3}", body: "20/10 11:02  menu 1 min 12 s  mundo 3 min 04 s  Distant Horizons: 8 linhas\n18/10 20:40  menu 1 min 09 s  mundo 0 min 41 s  Distant Horizons: não estava no pack\n16/10 19:55  menu 1 min 07 s  mundo 0 min 38 s  Distant Horizons: não estava no pack" },
+          ] },
+          claims: [
+            { html: "O Distant Horizons está gerando o terreno distante com 8 linhas de trabalho ao mesmo tempo em que o jogo prepara a área de nascimento. Num processador de 6 núcleos, isso disputa a CPU com o próprio Minecraft.", ev: [["DistantHorizons.toml, linha 41", "g1"], ["latest.log, linha 1.207", "g2"]] },
+            { html: "Antes do Distant Horizons entrar no pack, o mundo carregava em uns 40 segundos.", ev: [["tempos dos últimos 3 testes", "g3"]] },
+            { html: "Você usa o Distant Horizons de propósito? Se ele não for importante para o pack, removê-lo resolve de vez.", ask: true },
+          ],
+          props: ["dh"], conf: 2 },
+      ],
+      followUp: { consult: ["config/DistantHorizons.toml, seção [client]", "0,5 KB"], text: "Entendi. Mantendo o Distant Horizons, a proposta acima é o caminho: com 2 linhas de trabalho o mundo deve voltar para perto de 1 minuto. Depois de aplicar, teste de novo e o tempo aparece aqui.", ev: [["tempos dos últimos 3 testes", "g3"]] },
+    },
+    {
+      id: "tela", group: "Esta semana", title: "Tela preta depois do carregamento dos recursos", meta: "Travou 18/10, 21:05", about: "o travamento de 18/10, 21:05", status: "aplicada",
+      provider: "claude", mode: "rapido", started: "18/10, 21:12", tokens: "~14 mil", requests: 3, perms: { configs: false, github: true }, notices: [],
+      msgs: [
+        { who: "me", time: "21:12", text: "Depois da tela de carregamento fica tudo preto e o jogo para de responder.", att: { size: "7,4 KB", bytes: "7.402 bytes", body: "Pedido de diagnóstico do Warden\nSintoma: Trava ao abrir o jogo\nTeste: 18/10/2026 21:05, parado por você depois de 4 min sem resposta\n\nlatest.log, linhas 2.210 a 2.240:\n[21:06:12] [Render thread/WARN] [Embeddium/]: Sodium is also installed. Embeddium will not work correctly alongside it.\n[21:06:13] [Render thread/ERROR] [minecraft/RenderSystem]: OpenGL debug message: GL_INVALID_OPERATION in glBindVertexArray" } },
+        { who: "ai", time: "21:13", model: "Claude Sonnet 5.5",
+          consults: { n: 5, size: "6 KB", items: [
+            { id: "e1", t: "trecho do latest.log, linhas 2.200 a 2.260", size: "2,8 KB", ask: "ler_log {\"teste\": \"2026-10-18 21:05\", \"arquivo\": \"latest.log\", \"linhas\": [2200, 2260]}", body: "[21:06:12] [Render thread/WARN] [Embeddium/]: Sodium is also installed. Embeddium will not work correctly alongside it.\n[21:06:13] [Render thread/ERROR] [minecraft/RenderSystem]: OpenGL debug message: GL_INVALID_OPERATION in glBindVertexArray" },
+            { id: "e2", t: "lista de mods", size: "3,2 KB", ask: "listar_mods {}", body: MODLIST },
+          ] },
+          claims: [{ html: "O Embeddium e o Sodium estão juntos no pack. Os dois trocam o mesmo sistema de desenho do jogo e não funcionam juntos.", ev: [["latest.log, linha 2.231", "e1"], ["lista de mods", "e2"]] }],
+          props: ["emb"], conf: 3 },
+      ],
+    },
+    {
+      id: "mem", group: "Esta semana", title: "Memória acaba em 20 minutos de jogo no servidor local", meta: "Servidor local, 16/10", about: "o servidor local de 16/10, 20:30", status: "respondida",
+      provider: "claude", mode: "rapido", started: "16/10, 21:02", tokens: "~19 mil", requests: 5, perms: { configs: true, github: true }, notices: [],
+      msgs: [
+        { who: "me", time: "21:02", text: "No servidor local a memória sobe até acabar, mais ou menos 20 minutos depois de entrar.", att: { size: "8,1 KB", bytes: "8.093 bytes", body: "Pedido de diagnóstico do Warden\nSintoma: Outra coisa\nServidor local: 16/10/2026 20:30, fechou por falta de memória\n\nlatest.log (servidor), linhas 18.380 a 18.410:\n[20:51:04] [Server thread/WARN] [minecraft/MinecraftServer]: Can't keep up! Is the server overloaded? Running 4210ms or 84 ticks behind\n[20:51:31] [Server thread/ERROR] [minecraft/MinecraftServer]: Encountered an unexpected exception\njava.lang.OutOfMemoryError: Java heap space" } },
+        { who: "ai", time: "21:03", model: "Claude Sonnet 5.5",
+          consults: { n: 6, size: "9 KB", items: [
+            { id: "m1", t: "trecho do latest.log do servidor, linhas 18.380 a 18.410", size: "2,4 KB", ask: "ler_log {\"teste\": \"2026-10-16 20:30\", \"arquivo\": \"latest.log\", \"linhas\": [18380, 18410]}", body: "[20:51:04] [Server thread/WARN] [minecraft/MinecraftServer]: Can't keep up! Is the server overloaded? Running 4210ms or 84 ticks behind\n[20:51:31] [Server thread/ERROR] [minecraft/MinecraftServer]: Encountered an unexpected exception\njava.lang.OutOfMemoryError: Java heap space" },
+          ] },
+          claims: [
+            { html: "Não deu para achar a causa só com o que foi lido. O log mostra a memória subindo devagar até acabar, mas nenhum mod aparece como responsável.", ev: [["latest.log, linha 18.402", "m1"]] },
+            { html: "O melhor caminho agora é encontrar o mod culpado: o Warden testa metades do pack até achar quem segura a memória.", culprit: true },
+          ],
+          props: [], conf: 1 },
+      ],
+    },
+    {
+      id: "fly", group: "Esta semana", title: "Create e Flywheel em versões que não combinam", meta: "Problemas, 14/10", about: "um achado de Problemas de 14/10", status: "aplicada",
+      provider: "gemini", mode: null, started: "14/10, 19:05", tokens: "~9 mil", requests: 2, perms: { configs: false, github: false }, notices: [],
+      msgs: [
+        { who: "me", time: "19:05", text: "O Warden diz que o Create precisa de outro Flywheel. Qual versão eu ponho?", att: { size: "2,3 KB", bytes: "2.311 bytes", body: "Pedido de diagnóstico do Warden\nSintoma: Outra coisa\nSem log: só o pack\n\nAchado do Warden:\n  ERRO  dependencia-versao  Create 6.0.6 pede Flywheel [1.0.4,1.1); o pack tem 1.0.2" } },
+        { who: "ai", time: "19:06", model: "Gemini 3.8 Flash",
+          consults: { n: 2, size: "1 KB", items: [
+            { id: "f1", t: "metadados do Create 6.0.6 (neoforge.mods.toml)", size: "0,4 KB", ask: "ler_metadados_do_mod {\"mod\": \"create\", \"arquivo\": \"META-INF/neoforge.mods.toml\"}", body: "[[dependencies.create]]\nmodId = \"flywheel\"\ntype = \"required\"\nversionRange = \"[1.0.4,1.1)\"" },
+          ] },
+          claims: [{ html: "O Create 6.0.6 pede o Flywheel entre 1.0.4 e 1.1. A 1.0.4 é a mais nova dessa faixa para NeoForge 1.21.1.", ev: [["neoforge.mods.toml do Create", "f1"]] }],
+          props: ["fly"], conf: 3 },
+      ],
+    },
+  ];
+
+  const STATUS = {
+    respondida: '<span class="tag">' + ic("check", "icon--xs") + "Respondida</span>",
+    esperando: '<span class="tag tag--warn">' + ic("clock", "icon--xs") + "Esperando você</span>",
+    aplicada: '<span class="tag tag--ok">' + ic("circle-check", "icon--xs") + "Aplicada</span>",
+    lendo: '<span class="tag tag--ai"><span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Lendo</span>',
+  };
+
+  const S = { active: "iris", drawer: false, confirm: false, query: "", symptom: null, newMode: "fundo", reading: false, lastDeleted: null };
+  const byId = (id) => CONVS.find((c) => c.id === id);
+
+  /* ---------- Lista de conversas ---------- */
+  function renderList() {
+    const q = fold(S.query.trim());
+    const list = $("#convList");
+    const hits = CONVS.filter((c) => !q || fold(c.title + " " + c.meta).includes(q));
+    if (!CONVS.length) {
+      list.innerHTML = '<div class="convs__empty"><p>Nenhuma conversa com o Sculk neste pack.</p><p>Comece uma em Nova conversa. Antes de enviar qualquer coisa, você vê o que o Sculk poderá consultar.</p></div>';
+      return;
+    }
+    if (!hits.length) {
+      list.innerHTML = `<div class="convs__empty" role="status"><p>Nenhuma conversa com “${esc(S.query.trim())}”.</p><p><button type="button" class="btn btn--link" data-act="clear-search">Limpar busca</button></p></div>`;
+      return;
+    }
+    let html = "";
+    ["Hoje", "Esta semana"].forEach((g) => {
+      const items = hits.filter((c) => c.group === g);
+      if (!items.length) return;
+      html += `<div class="convs__group" role="presentation">${g}</div>`;
+      items.forEach((c) => {
+        html += `<button type="button" class="conv" data-act="open" data-id="${c.id}"${c.id === S.active ? ' aria-current="true"' : ""} title="${esc(c.title)}">
+          <span class="conv__title">${esc(c.title)}</span><span class="conv__meta">${esc(c.meta)}</span>${STATUS[c.status]}</button>`;
+      });
+    });
+    list.innerHTML = html;
+  }
+
+  /* ---------- Conversa ---------- */
+  const diffHtml = (p) => `<div class="diff"><div class="diff__head"><span class="mono">${esc(p.file)}</span><span class="diff__stats mono">${p.add ? `<span class="add">+${p.add}</span> ` : ""}<span class="del">−${p.del}</span></span></div><div class="diff__body copyable">${p.diff.map((l) => l[0] === "f"
+    ? `<div class="diff__fold">… ${esc(l[1])}</div>`
+    : `<div class="diff__line${l[0] === "a" ? " diff__line--add" : l[0] === "d" ? " diff__line--del" : ""}"><span class="diff__num">${l[1]}</span><span class="diff__sign">${l[0] === "a" ? "+" : l[0] === "d" ? "−" : ""}</span><span class="diff__code">${esc(l[2])}</span></div>`).join("")}</div></div>`;
+
+  const evHtml = (ev) => ev.map((e) => `<button type="button" class="evid" data-act="ev" data-ref="${e[1]}" data-tip="Este trecho existe no que foi enviado ao Sculk. Confira se ele sustenta a frase.">${ic("check", "icon--xs")}${esc(e[0])}</button>`).join("");
+
+  function proposalHtml(id) {
+    const p = P[id];
+    let actions;
+    if (p.state === "applied") {
+      actions = `<div class="proposal__actions"><span class="proposal__done">${ic("circle-check", "icon--sm")}<span>Aplicada ${esc(p.appliedAt)}. Ponto de segurança criado.</span></span>
+        <button type="button" class="btn btn--primary btn--sm" data-act="test-now">${ic("play", "icon--sm icon--fill")}Testar agora</button>
+        <button type="button" class="btn btn--ghost btn--sm" data-act="undo" data-p="${id}">${ic("undo-2", "icon--sm")}Desfazer</button></div>`;
+    } else if (p.state === "dismissed") {
+      actions = `<div class="proposal__actions"><span class="proposal__done">${ic("minus", "icon--sm")}<span>Descartada. Nada mudou no pack.</span></span>
+        <button type="button" class="btn btn--ghost btn--sm" data-act="undo" data-p="${id}">${ic("undo-2", "icon--sm")}Desfazer</button></div>`;
+    } else {
+      actions = `<div class="proposal__actions"><button type="button" class="btn btn--primary btn--sm" data-act="apply" data-p="${id}">Aplicar</button><button type="button" class="btn btn--ghost btn--sm" data-act="dismiss" data-p="${id}">Descartar</button></div>`;
+    }
+    const tag = p.state === "applied" ? '<span class="tag tag--ok">' + ic("circle-check", "icon--xs") + "Aplicada</span>" : p.state === "dismissed" ? '<span class="tag tag--muted">Descartada</span>' : "";
+    return `<article class="proposal proposal--${p.state}" id="prop-${id}" aria-label="Proposta: ${esc(p.title)}">
+      <div class="proposal__head"><span class="proposal__kind">${esc(p.kind)}</span><span class="proposal__title">${esc(p.title)}</span>${tag}</div>
+      <p class="proposal__text">${esc(p.text)}</p>
+      ${p.state === "dismissed" ? "" : diffHtml(p)}
+      ${p.state === "dismissed" ? "" : `<div class="proposal__ev"><span>Por quê:</span>${evHtml(p.ev)}</div>`}
+      ${actions}</article>`;
+  }
+
+  function attHtml(a, label) {
+    return `<details class="att"><summary>${ic("file-text", "icon--sm")}<span>${label || "Texto inicial"}</span><span aria-hidden="true">·</span><span class="size">${a.size}</span>${ic("chevron-right", "icon--sm chev")}</summary>
+      <div class="att__body"><div class="rawhead"><span>Exatamente o que foi enviado ao Sculk · <span class="mono">${a.bytes}</span></span><button type="button" class="btn btn--ghost btn--sm" data-act="copy">${ic("copy", "icon--sm")}Copiar</button></div>
+      <pre class="raw copyable" tabindex="0">${esc(a.body)}</pre></div></details>`;
+  }
+
+  function consultItem(c) {
+    return `<details class="tc" id="tc-${c.id}"><summary>${ic("chevron-right", "icon--sm chev")}<span class="tc__title"><span class="pre">Enviado ao Sculk:</span> ${esc(c.t)}</span><span class="tc__size">${c.size}</span></summary>
+      <div class="tc__body"><div><div class="tc__label">Pedido do Sculk</div><code class="req copyable">${esc(c.ask)}</code></div>
+      <div><div class="rawhead rawhead--tight"><span>O que foi enviado · <span class="mono">${c.size}</span></span><button type="button" class="btn btn--ghost btn--sm" data-act="copy">${ic("copy", "icon--sm")}Copiar</button></div><pre class="raw copyable" tabindex="0">${esc(c.body)}</pre></div></div></details>`;
+  }
+
+  const meterHtml = (n) => {
+    const w = ["baixa", "média", "alta"][n - 1];
+    return `<span class="meter" data-tip="Calculada pelo Warden a partir das evidências conferidas, não pelo que o Sculk diz de si.">Confiança: ${w}<span class="meter__blocks" aria-hidden="true">${[1, 2, 3].map((i) => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span></span>`;
+  };
+
+  function aiMsgHtml(m) {
+    const claims = m.claims.map((cl) => {
+      if (cl.no) return `<div class="claim claim--no"><p>${cl.html}</p><div class="claim__ev"><span class="evid evid--no" tabindex="0" data-tip="O Warden não achou um trecho que sustente esta frase.">não verificado</span></div></div>`;
+      if (cl.ask) return `<div class="claim claim--ask"><p>${cl.html}</p></div>`;
+      if (cl.culprit) return `<div class="claim"><p>${cl.html}</p><div class="claim__ev claim__ev--action"><button type="button" class="btn btn--sm" data-act="proto" data-msg="Abre a busca do mod culpado. Fora deste protótipo.">${ic("flask-conical", "icon--sm")}Encontrar o mod culpado</button></div></div>`;
+      return `<div class="claim"><p>${cl.html}</p><div class="claim__ev">${evHtml(cl.ev)}</div></div>`;
+    }).join("");
+    const props = m.props.length ? `<div class="props"><div class="props__title">${m.props.length === 1 ? "1 proposta" : m.props.length + " propostas"}</div>${m.props.map(proposalHtml).join("")}</div>` : "";
+    return `<div class="msg msg--ai"><div class="msg__head">${ic("sparkles", "icon--sm")}<span>Sculk</span><span class="t">${m.time} · ${esc(m.model)}</span></div>
+      <div class="ai copyable">
+        ${m.note ? `<div class="ai__note">${ic("clock", "icon--sm")}<span>${esc(m.note)}</span></div>` : ""}
+        <details class="consults"><summary>${ic("sparkles", "icon--sm")}<span>O Sculk consultou ${m.consults.n} coisas</span><span aria-hidden="true">·</span><span class="mono">${m.consults.size} enviados</span>${ic("chevron-right", "icon--sm chev")}</summary>
+          <div class="consults__list">${m.consults.items.map(consultItem).join("")}</div></details>
+        <div class="claims">${claims}</div>
+        ${props}
+        <div class="ai__foot"><span>${ic("info", "icon--sm")}O Sculk pode errar. Confira antes de mudar o pack.</span>${meterHtml(m.conf)}</div>
+      </div></div>`;
+  }
+
+  const meMsgHtml = (m) => `<div class="msg msg--me"><div class="msg__head"><span>Você</span><span class="t">${m.time}</span></div><div class="bubble copyable">${esc(m.text)}</div>${m.att ? attHtml(m.att) : ""}</div>`;
+
+  function renderConv() {
+    const c = byId(S.active);
+    if (!c) return renderNew();
+    $("#chatTitle").textContent = c.title;
+    $("#chatTitle").title = c.title;
+    const p = PROV[c.provider];
+    $("#chatMeta").textContent = `${p.name} · começou ${c.started}`;
+    $("#detailsBtn").hidden = false;
+    const n = c.notices.length;
+    $("#detailsCount").hidden = !n;
+    $("#detailsCount").textContent = n;
+    $("#detailsBtn").setAttribute("aria-label", n ? `Detalhes, ${n} ${n === 1 ? "aviso" : "avisos"}` : "Detalhes");
+    $("#composer").hidden = false;
+    $("#content").innerHTML = `<div class="thread" id="thread"><div class="thread__start">Conversa sobre ${esc(c.about || c.meta)}</div>${c.msgs.map((m) => (m.who === "me" ? meMsgHtml(m) : aiMsgHtml(m))).join("")}</div>`;
+    renderComposer(c);
+    $("#scroll").scrollTop = 0;
+    if (S.drawer) renderDrawer();
+  }
+
+  function renderComposer(c) {
+    const p = PROV[c.provider];
+    $("#modeSel").hidden = !p.modes;
+    $$("#modeSel button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.mode === c.mode)));
+    updateSend();
+  }
+
+  function updateSend() {
+    const ok = $("#ask").value.trim().length > 0 && !S.reading;
+    const b = $("#sendBtn");
+    b.setAttribute("aria-disabled", String(!ok));
+    b.dataset.tip = S.reading ? "Espere o Sculk terminar de ler." : ok ? "" : "Escreva uma pergunta para enviar.";
+  }
+
+  /* ---------- Nova conversa ---------- */
+  const SYMPTOMS = [
+    ["start", "Trava ao abrir o jogo", "Fecha antes do menu principal."],
+    ["world", "Trava ao entrar no mundo", "Abre, mas fecha ao carregar ou jogar."],
+    ["slow", "Está lento", "Quadros por segundo baixos ou travadinhas."],
+    ["other", "Outra coisa", "Conte no campo abaixo o que está acontecendo."],
+  ];
+  function renderNew() {
+    S.active = "new";
+    renderList();
+    $("#chatTitle").textContent = "Nova conversa";
+    $("#chatTitle").title = "Nova conversa";
+    $("#chatMeta").textContent = "";
+    $("#detailsBtn").hidden = true;
+    closeDrawer(true);
+    $("#composer").hidden = true;
+    const sym = SYMPTOMS.find((s) => s[0] === S.symptom);
+    $("#content").innerHTML = `<form class="newconv" id="newForm" novalidate>
+      <h3>Nova conversa</h3>
+      <p class="newconv__sub">O Sculk lê o travamento, o pack e os testes e explica o que aconteceu. Tudo o que ele consultar aparece na conversa.</p>
+      <div class="fgroup"><span class="flabel" id="symLabel">O que está acontecendo?</span>
+        <div class="chips" role="radiogroup" aria-labelledby="symLabel">${SYMPTOMS.map((s, i) => `<button type="button" class="chip" role="radio" data-act="symptom" data-s="${s[0]}" aria-checked="${S.symptom === s[0]}" tabindex="${(S.symptom ? S.symptom === s[0] : i === 0) ? 0 : -1}">${S.symptom === s[0] ? ic("check", "icon--sm") : ""}${s[1]}</button>`).join("")}</div>
+        <p class="fhint" id="symHint">${sym ? esc(sym[2]) : "Escolha uma opção para começar."}</p></div>
+      <div class="fgroup"><label class="flabel" for="src">Começar pelo</label>
+        <select class="select" id="src"><option>Último travamento: hoje, 15:23</option><option>Teste de 19/10, 22:10 (travou)</option><option>Teste de hoje, 11:02 (fechou normalmente)</option><option>Um log ou crash report do computador…</option><option>Só o pack, sem log</option></select>
+        <p class="fhint">O texto passa pela limpeza de dados pessoais antes de ir para o Sculk.</p></div>
+      <div class="fgroup"><label class="flabel" for="tell">Conte o que aconteceu <span class="opt">(opcional)</span></label>
+        <textarea class="textarea" id="tell" placeholder="Ex.: trava quando entro no Nether" spellcheck="false"></textarea></div>
+      <div class="fgroup"><span class="flabel" id="modeLabel">Como procurar</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="modeLabel">
+          <button type="button" role="radio" data-act="new-mode" data-mode="rapido" aria-checked="${S.newMode === "rapido"}">Procurar rápido</button>
+          <button type="button" role="radio" data-act="new-mode" data-mode="fundo" aria-checked="${S.newMode === "fundo"}">Procurar a fundo</button></div>
+        <p class="fhint">${S.newMode === "fundo" ? "Modelo mais forte e mais consultas. Demora mais e custa mais na sua chave." : "Modelo mais econômico e menos consultas. Bom para dúvidas simples."}</p>
+        <p class="provline"><span>Provedor: Claude. Modelo: <span class="mono">${S.newMode === "fundo" ? PROV.claude.strong : PROV.claude.fast}</span>.</span><button type="button" class="btn btn--link" data-act="proto" data-msg="Abre Configurações, em Chaves e contas. Fora deste protótipo.">Mudar em Configurações</button></p></div>
+      <div class="newconv__go">
+        <button type="button" class="btn btn--primary" id="startBtn" data-act="start" aria-disabled="${!S.symptom}" ${S.symptom ? "" : 'data-tip="Escolha o que está acontecendo para começar."'}>${ic("sparkles")}Começar conversa</button>
+        <p class="fhint">Antes, você vê o que o Sculk poderá consultar e confirma. Isso é pedido uma vez por conversa.</p></div>
+    </form>`;
+    $("#scroll").scrollTop = 0;
+  }
+
+  /* ---------- Painel Detalhes ---------- */
+  function renderDrawer() {
+    const c = byId(S.active);
+    const d = $("#drawer");
+    if (!c) return;
+    const p = PROV[c.provider];
+    const ai = c.msgs.filter((m) => m.who === "ai");
+    const att = c.msgs.find((m) => m.att);
+    const items = ai.flatMap((m) => m.consults.items);
+    const usedLight = ai.some((m) => m.model === p.light);
+    d.innerHTML = `<div class="colhead"><h2 id="drawerTitle" tabindex="-1">Detalhes</h2><button type="button" class="btn btn--ghost btn--icon btn--sm" data-act="drawer-close" aria-label="Fechar Detalhes" data-tip="Fechar (Esc)">${ic("x")}</button></div>
+      <div class="drawer__body">
+        <section class="dsec"><h3>Serviço e uso</h3><dl class="kv">
+          <dt>Provedor</dt><dd>${p.name}</dd>
+          <dt>Modelo</dt><dd><span class="mono">${esc(p.modes ? modelOf(c) : p.strong)}</span>${usedLight ? `<span class="sub">1 resposta usou o ${esc(p.light)}</span>` : ""}</dd>
+          <dt>Modo</dt><dd>${p.modes ? (c.mode === "fundo" ? "Procurar a fundo" : "Procurar rápido") : "Não se aplica ao Gemini"}</dd>
+          <dt>Tokens</dt><dd><span class="mono">${c.tokens}</span><span class="sub">Contados pelo provedor.</span></dd>
+          <dt>Pedidos</dt><dd><span class="mono">${c.requests}</span></dd>
+          <dt>Começou</dt><dd>${c.started}</dd></dl></section>
+        <section class="dsec"><h3>O Sculk pode ler</h3><ul class="perms">
+          <li>${ic("check", "yes")}<span>Informações do pack e os achados do Warden</span></li>
+          <li>${ic("check", "yes")}<span>Logs e crash reports</span><small>Sem dados pessoais.</small></li>
+          <li class="${c.perms.configs ? "" : "off"}">${c.perms.configs ? ic("check", "yes") : ic("x", "no")}<span>Configs do pack</span>${c.perms.configs ? "" : "<small>Não permitido nesta conversa.</small>"}</li>
+          <li class="${c.perms.github ? "" : "off"}">${c.perms.github ? ic("check", "yes") : ic("x", "no")}<span>Páginas dos mods no GitHub</span><small>${c.perms.github ? "Só o nome do mod e palavras do erro." : "Não permitido nesta conversa."}</small></li></ul></section>
+        <section class="dsec"><h3>Tudo o que foi enviado</h3><ul class="sent">
+          ${att ? `<li><button type="button" data-act="jump-att"><span class="sent__name">Texto inicial</span><span class="sent__size">${att.att.size}</span></button></li>` : ""}
+          ${items.map((it) => `<li><button type="button" data-act="ev" data-ref="${it.id}" title="${esc(it.t)}"><span class="sent__name">${esc(it.t)}</span><span class="sent__size">${it.size}</span></button></li>`).join("")}</ul>
+          <div class="sent__total"><span>Total</span><span class="sent__size">${c.id === "iris" ? "24,2 KB" : c.id === "dh" ? "11,4 KB" : "—"}</span></div></section>
+        ${c.notices.length ? `<section class="dsec"><h3>Avisos desta conversa</h3><div class="notices">${c.notices.map((n) => `<div class="alert alert--${n.kind}">${ic(n.icon)}<span>${esc(n.text)}</span>${n.action ? `<div class="alert__actions"><button type="button" class="btn btn--sm" data-act="new">${esc(n.action)}</button></div>` : ""}</div>`).join("")}</div></section>` : ""}
+      </div>
+      <div class="drawer__foot" id="drawerFoot">${S.confirm
+        ? `<div class="confirm" role="group" aria-labelledby="delQ"><strong id="delQ">Apagar esta conversa?</strong><p>Ela sai da lista e o arquivo dela é apagado dos dados do Warden. O pack não muda.</p><div class="confirm__actions"><button type="button" class="btn btn--danger btn--sm" data-act="delete-yes" id="delYes">${ic("trash-2", "icon--sm")}Apagar conversa</button><button type="button" class="btn btn--ghost btn--sm" data-act="delete-no">Cancelar</button></div></div>`
+        : `<button type="button" class="btn btn--danger-ghost btn--sm" data-act="delete-ask" id="delAsk">${ic("trash-2", "icon--sm")}Apagar esta conversa</button>`}</div>`;
+  }
+  function openDrawer() {
+    if (!byId(S.active)) return;
+    S.drawer = true; S.confirm = false;
+    $("#drawer").hidden = false;
+    $("#detailsBtn").setAttribute("aria-expanded", "true");
+    renderDrawer();
+    $("#drawerTitle").focus();
+  }
+  function closeDrawer(silent) {
+    if (!S.drawer) return;
+    S.drawer = false; S.confirm = false;
+    $("#drawer").hidden = true;
+    $("#detailsBtn").setAttribute("aria-expanded", "false");
+    if (!silent) $("#detailsBtn").focus();
+  }
+
+  /* ---------- Consentimento ---------- */
+  let consentReturn = null;
+  const INITIAL_NEW = () => {
+    const sym = SYMPTOMS.find((s) => s[0] === S.symptom);
+    const tell = ($("#tell") && $("#tell").value.trim()) || "";
+    const src = $("#src") ? $("#src").value : "Último travamento: hoje, 15:23";
+    return ["Pedido de diagnóstico do Warden", `Sintoma: ${sym[1]}`, tell ? `O que a pessoa contou: "${tell}"` : "O que a pessoa contou: (nada)", `Começar pelo: ${src}`, "",
+      "Pack: Zoonicraft 0.1.2", "Minecraft 1.21.1 · NeoForge 21.1.264 · Java 21.0.8 (Temurin)", "Mods: 216 · resource packs: 3 · shaders: 2", "",
+      "Teste: 20/10/2026 15:23, travou ao carregar o mundo (código de saída -1)", "",
+      "latest.log, linhas 6.090 a 6.112 (dados pessoais trocados por marcadores):",
+      "[15:23:41] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing level \"Mundo de teste\"",
+      "[15:23:44] [Server thread/ERROR] [minecraft/ChunkSerializer]: Failed to load block entity supplementaries:jar at -182 64 311",
+      "java.lang.NullPointerException: Cannot invoke \"net.minecraft.world.item.ItemStack.getItem()\" because \"stack\" is null",
+      "\tat net.mehvahdjukaar.supplementaries.common.block.tiles.JarBlockTile.loadAdditional(JarBlockTile.java:118) ~[supplementaries-1.21.1-3.1.10.jar%23377!/:?]",
+      "\tat net.minecraft.world.level.block.entity.BlockEntity.loadWithComponents(BlockEntity.java:93) ~[server-1.21.1-20240808.144430-srg.jar%23410!/:?]",
+      "[15:23:44] [Server thread/FATAL] [minecraft/MinecraftServer]: Encountered an unexpected exception",
+      "Crash report salvo em: C:\\Users\\<usuário>\\AppData\\Roaming\\Warden\\instancias\\zoonicraft\\crash-reports\\crash-2026-10-20_15.23.44-server.txt"].join("\n");
+  };
+  function openConsent() {
+    consentReturn = document.activeElement;
+    $("#cText").textContent = INITIAL_NEW();
+    $("#cTo").innerHTML = `Claude (<span class="mono">${S.newMode === "fundo" ? PROV.claude.strong : PROV.claude.fast}</span>), com a sua chave`;
+    $("#consent").hidden = false;
+    $("#cTitle").focus();
+  }
+  function closeConsent() {
+    $("#consent").hidden = true;
+    if (consentReturn && document.contains(consentReturn)) consentReturn.focus();
+  }
+
+  /* ---------- Simulação do Sculk lendo ---------- */
+  function readingHtml(id) {
+    return `<div class="msg msg--ai" id="${id}" aria-busy="true"><div class="msg__head">${ic("sparkles", "icon--sm")}<span>Sculk</span><span class="t">agora</span></div>
+      <div class="ai"><span class="reading"><span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Sculk lendo…</span><span class="mono" data-secs>0 s</span></span>
+      <div class="consults"><div class="consults__list consults__list--run" data-run></div></div></div></div>`;
+  }
+  function runReading(c, steps, finish) {
+    S.reading = true; updateSend();
+    const prevStatus = c.status;
+    c.status = "lendo"; renderList();
+    const id = "rd" + Date.now();
+    $("#thread").insertAdjacentHTML("beforeend", readingHtml(id));
+    scrollEnd();
+    say("O Sculk está lendo.");
+    const el = $("#" + id);
+    let secs = 0;
+    const tick = setInterval(() => { secs++; const s = el.querySelector("[data-secs]"); if (s) s.textContent = secs + " s"; }, 1000);
+    const run = el.querySelector("[data-run]");
+    steps.forEach((st, i) => setTimeout(() => {
+      run.insertAdjacentHTML("beforeend", `<div class="tc tc--running"><div class="tc__row">${ic("chevron-right", "icon--sm chev")}<span class="tc__title"><span class="pre">Enviado ao Sculk:</span> ${esc(st[0])}</span><span class="tc__size">${st[1]}</span></div></div>`);
+    }, 700 + i * 700));
+    setTimeout(() => {
+      clearInterval(tick);
+      S.reading = false;
+      c.status = finish.status || (prevStatus === "lendo" ? "respondida" : prevStatus);
+      el.outerHTML = aiMsgHtml(finish.msg);
+      c.msgs.push(finish.msg);
+      if (finish.after) finish.after();
+      renderList(); updateSend();
+      if (S.drawer) renderDrawer();
+      scrollEnd();
+      say("Resposta do Sculk recebida.");
+    }, 900 + steps.length * 700 + 900);
+  }
+  function scrollEnd() { const s = $("#scroll"); s.scrollTop = s.scrollHeight; }
+
+  function send() {
+    const c = byId(S.active);
+    const t = $("#ask").value.trim();
+    if (!c || !t || S.reading) return;
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    const m = { who: "me", time: hh, text: t };
+    c.msgs.push(m);
+    $("#thread").insertAdjacentHTML("beforeend", meMsgHtml(m));
+    $("#ask").value = ""; autosize();
+    c.requests += 2;
+    renderComposer(c);
+    const f = c.followUp || { consult: ["lista de mods", "3,1 KB"], text: "Olhei de novo o que já foi enviado nesta conversa e não achei nada novo sobre isso. Se o problema voltar, teste de novo: o log novo entra aqui.", ev: [] };
+    const cid = "x" + Date.now();
+    runReading(c, [f.consult], { msg: { who: "ai", time: hh, model: PROV[c.provider].modes ? modelOf(c) : PROV[c.provider].strong,
+      consults: { n: 1, size: f.consult[1], items: [{ id: cid, t: f.consult[0], size: f.consult[1], ask: "buscar_no_log {\"texto\": \"" + t.slice(0, 40).replace(/"/g, "'") + "\"}", body: "Nenhum resultado novo além das linhas já enviadas nesta conversa." }] },
+      claims: [{ html: esc(f.text), ev: f.ev }], props: [], conf: f.ev.length ? 2 : 1 } });
+  }
+
+  function startConversation() {
+    const sym = SYMPTOMS.find((s) => s[0] === S.symptom);
+    const tell = $("#tell").value.trim();
+    const src = $("#src").value;
+    const body = INITIAL_NEW();
+    const c = { id: "n" + Date.now(), group: "Hoje", title: sym[1], meta: src.startsWith("Último") ? "Travou hoje, 15:23" : src, about: src.replace("Último travamento: ", "o travamento de "), status: "lendo",
+      provider: "claude", mode: S.newMode, started: "hoje, agora", tokens: "~3 mil", requests: 1,
+      perms: { configs: $("#pConfigs").checked, github: $("#pGithub").checked }, notices: [],
+      msgs: [{ who: "me", time: "agora", text: tell || sym[1] + ".", att: { size: "7,8 KB", bytes: "7.811 bytes", body } }] };
+    CONVS.unshift(c);
+    S.active = c.id; S.symptom = null;
+    closeConsent();
+    renderList(); renderConv();
+    $("#chatTitle").focus();
+    const steps = [["lista de mods", "4,2 KB"], ["busca por \"JarBlockTile\" no log do teste de hoje às 15:23", "0,9 KB"], ["versões do Supplementaries no CurseForge para NeoForge 1.21.1", "0,8 KB"]];
+    runReading(c, steps, {
+      status: "respondida",
+      msg: { who: "ai", time: "agora", model: PROV.claude[S.newMode === "fundo" ? "strong" : "fast"],
+        consults: { n: 3, size: "5,9 KB", items: [
+          { id: "n1", t: steps[0][0], size: steps[0][1], ask: "listar_mods {}", body: MODLIST },
+          { id: "n2", t: steps[1][0], size: steps[1][1], ask: "buscar_no_log {\"teste\": \"2026-10-20 15:23\", \"texto\": \"JarBlockTile\"}", body: "1 resultado em latest.log (teste de 20/10/2026 15:23):\n6.104  \tat net.mehvahdjukaar.supplementaries.common.block.tiles.JarBlockTile.loadAdditional(JarBlockTile.java:118) ~[supplementaries-1.21.1-3.1.10.jar%23377!/:?]" },
+          { id: "n3", t: steps[2][0], size: steps[2][1], ask: "versoes_no_curseforge {\"projeto\": 412082, \"loader\": \"neoforge\", \"minecraft\": \"1.21.1\"}", body: "Supplementaries · NeoForge · Minecraft 1.21.1\n3.1.12   18/10/2026   release   Fixed jars crashing when loading items from removed mods\n3.1.10   30/09/2026   release" },
+        ] },
+        claims: [
+          { html: "O mundo trava porque um jarro do Supplementaries guarda um item de um mod que saiu do pack. Ao carregar o jarro, o Supplementaries 3.1.10 não sabe lidar com o item que sumiu.", ev: [["latest.log, linha 6.104", "n2"]] },
+          { html: "A versão 3.1.12 corrige exatamente isso.", ev: [["versões no CurseForge", "n3"]] },
+        ], props: ["sup"], conf: 2 },
+      after: () => { c.title = "O Supplementaries trava ao carregar um jarro do mundo"; c.tokens = "~11 mil"; c.requests = 4; $("#chatTitle").textContent = c.title; $("#chatTitle").title = c.title; renderComposer(c); },
+    });
+  }
+
+  /* ---------- Avisos, dicas, menu ---------- */
+  function toast(text, opt) {
+    const t = document.createElement("div");
+    t.className = "toast" + (opt && opt.ok ? " toast--ok" : "");
+    t.innerHTML = `${ic(opt && opt.ok ? "circle-check" : "info")}<span>${esc(text)}</span>${opt && opt.undo ? '<button type="button" class="btn btn--ghost btn--sm" data-act="toast-undo">Desfazer</button>' : "<span></span>"}`;
+    $("#toasts").appendChild(t);
+    setTimeout(() => t.remove(), opt && opt.undo ? 7000 : 3600);
+  }
+  const say = (s) => { $("#live").textContent = s; };
+
+  const tip = $("#tip");
+  let tipFor = null;
+  function showTip(el) {
+    const txt = el.dataset.tip;
+    if (!txt) return hideTip();
+    tipFor = el;
+    tip.textContent = txt; tip.hidden = false;
+    const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    let x, y;
+    if (el.closest(".rail")) { x = r.right + 8; y = r.top + (r.height - h) / 2; }
+    else { x = Math.min(Math.max(8, r.left + (r.width - w) / 2), innerWidth - w - 8); y = r.bottom + 8; if (y + h > innerHeight - 8) y = r.top - h - 8; }
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.hidden = true; tipFor = null; }
+  document.addEventListener("mouseover", (e) => { const el = e.target.closest("[data-tip]"); if (el && el !== tipFor) showTip(el); else if (!el && tipFor) hideTip(); });
+  document.addEventListener("focusin", (e) => { const el = e.target.closest("[data-tip]"); if (el) showTip(el); else hideTip(); });
+  document.addEventListener("scroll", hideTip, true);
+
+  function toggleMenu(open) {
+    const m = $("#testMenu"), b = $("#testMore");
+    const willOpen = open === undefined ? m.hidden : open;
+    if (willOpen) {
+      const r = b.getBoundingClientRect();
+      m.hidden = false;
+      m.style.top = r.bottom + 4 + "px";
+      m.style.left = r.right - m.offsetWidth + "px";
+      b.setAttribute("aria-expanded", "true");
+      m.querySelector("button").focus();
+    } else if (!m.hidden) {
+      m.hidden = true; b.setAttribute("aria-expanded", "false"); b.focus();
+    }
+  }
+
+  function revealConsult(ref) {
+    const tc = $("#tc-" + ref);
+    if (!tc) return;
+    const group = tc.closest(".consults");
+    group.open = true; tc.open = true;
+    tc.classList.remove("is-flash"); void tc.offsetWidth; tc.classList.add("is-flash");
+    tc.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+    tc.querySelector("summary").focus({ preventScroll: true });
+  }
+
+  function setProposal(id, state) {
+    const p = P[id];
+    const prev = p.state;
+    p.state = state;
+    if (state === "applied") p.appliedAt = "hoje às " + new Date().toTimeString().slice(0, 5);
+    const el = $("#prop-" + id);
+    if (el) el.outerHTML = proposalHtml(id);
+    const c = CONVS.find((cv) => cv.msgs.some((m) => m.props && m.props.includes(id)));
+    const cnt = $("#saveCount");
+    let n = parseInt(cnt.textContent, 10);
+    if (state === "applied") n += p.count; else if (prev === "applied") n -= p.count;
+    cnt.textContent = n + " alterações";
+    $("#saveBtn").setAttribute("aria-label", `Salvar versão, ${n} alterações não salvas`);
+    if (c) {
+      const anyApplied = c.msgs.some((m) => m.props && m.props.some((x) => P[x].state === "applied"));
+      if (anyApplied) c.status = "aplicada";
+      else if (c.status === "aplicada") c.status = c.id === "dh" ? "esperando" : "respondida";
+      renderList();
+    }
+    const btn = $("#prop-" + id + " .proposal__actions button");
+    if (btn) btn.focus();
+    if (state === "applied") toast(`${p.title.replace(/^./, (ch) => ch.toUpperCase())}: aplicada. Ponto de segurança criado.`, { ok: true });
+    if (state === "dismissed") say("Proposta descartada. Nada mudou no pack.");
+  }
+
+  /* ---------- Cliques ---------- */
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-act]");
+    if (!$("#testMenu").hidden && !e.target.closest("#testMenu") && !e.target.closest("#testMore")) toggleMenu(false);
+    if (!t) return;
+    if (t.tagName === "A") e.preventDefault();
+    const act = t.dataset.act;
+    if (t.getAttribute("aria-disabled") === "true" && act !== "proto") { e.preventDefault(); showTip(t); return; }
+    switch (act) {
+      case "proto": e.preventDefault(); if (t.closest("#testMenu")) toggleMenu(false); toast(t.dataset.msg || "Fora deste protótipo."); break;
+      case "open": if (S.active !== t.dataset.id) { S.active = t.dataset.id; S.confirm = false; renderList(); renderConv(); } $("#convList [aria-current]")?.focus(); break;
+      case "new": S.symptom = null; renderNew(); $("#chatTitle").focus(); break;
+      case "drawer": S.drawer ? closeDrawer() : openDrawer(); break;
+      case "drawer-close": closeDrawer(); break;
+      case "apply": setProposal(t.dataset.p, "applied"); break;
+      case "dismiss": setProposal(t.dataset.p, "dismissed"); break;
+      case "undo": setProposal(t.dataset.p, "pending"); toast("Desfeito. O pack voltou ao que era antes."); break;
+      case "test-now": case "test": testNow(); break;
+      case "test-menu": toggleMenu(); break;
+      case "ev": revealConsult(t.dataset.ref); break;
+      case "jump-att": { const a = $(".att"); if (a) { a.open = true; a.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" }); a.querySelector("summary").focus({ preventScroll: true }); } break; }
+      case "delete-ask": S.confirm = true; renderDrawer(); $("#delYes").focus(); break;
+      case "delete-no": S.confirm = false; renderDrawer(); $("#delAsk").focus(); break;
+      case "delete-yes": deleteConv(); break;
+      case "toast-undo": if (S.lastDeleted) { CONVS.splice(S.lastDeleted.i, 0, S.lastDeleted.c); S.active = S.lastDeleted.c.id; S.lastDeleted = null; renderList(); renderConv(); toast("Conversa de volta."); } t.closest(".toast").remove(); break;
+      case "symptom": S.symptom = t.dataset.s; renderNewKeep(); $(`.chip[data-s="${S.symptom}"]`).focus(); break;
+      case "new-mode": S.newMode = t.dataset.mode; renderNewKeep(); $(`[data-act="new-mode"][data-mode="${S.newMode}"]`).focus(); break;
+      case "start": openConsent(); break;
+      case "consent-cancel": closeConsent(); break;
+      case "consent-ok": startConversation(); break;
+      case "send": send(); break;
+      case "clear-search": $("#q").value = ""; S.query = ""; $("#qClear").hidden = true; renderList(); $("#q").focus(); break;
+      case "copy": { const pre = t.dataset.target ? $("#" + t.dataset.target) : t.closest("div").parentElement.querySelector("pre"); try { navigator.clipboard.writeText(pre.textContent).then(() => toast("Copiado."), () => toast("Selecione o texto e use Ctrl+C.")); } catch (err) { toast("Selecione o texto e use Ctrl+C."); } break; }
+    }
+  });
+
+  function renderNewKeep() {
+    const tell = $("#tell") ? $("#tell").value : "";
+    const src = $("#src") ? $("#src").selectedIndex : 0;
+    const top = $("#scroll").scrollTop;
+    renderNew();
+    $("#tell").value = tell; $("#src").selectedIndex = src; $("#scroll").scrollTop = top;
+  }
+
+  function testNow() {
+    const tasks = $("#tasks");
+    tasks.classList.add("is-busy");
+    $("#tasksText").innerHTML = '<span class="loader" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Teste: copiando o pack para o teste';
+    toast("O teste começou. O andamento fica no rodapé.");
+    setTimeout(() => { tasks.classList.remove("is-busy"); $("#tasksText").textContent = "Nenhuma tarefa em andamento"; }, 6000);
+  }
+
+  function deleteConv() {
+    const i = CONVS.findIndex((c) => c.id === S.active);
+    if (i < 0) return;
+    S.lastDeleted = { i, c: CONVS[i] };
+    CONVS.splice(i, 1);
+    closeDrawer(true);
+    S.active = CONVS.length ? CONVS[Math.min(i, CONVS.length - 1)].id : "new";
+    renderList();
+    if (CONVS.length) renderConv(); else renderNew();
+    toast("Conversa apagada.", { undo: true });
+    $("#chatTitle").focus();
+  }
+
+  /* ---------- Teclado ---------- */
+  const ask = $("#ask");
+  function autosize() { ask.style.height = "auto"; ask.style.height = Math.min(ask.scrollHeight, 200) + "px"; }
+  ask.addEventListener("input", () => { autosize(); updateSend(); });
+  ask.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+  $("#q").addEventListener("input", (e) => { S.query = e.target.value; $("#qClear").hidden = !S.query; renderList(); });
+
+  $("#modeSel").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mode]"); const c = byId(S.active);
+    if (!b || !c) return;
+    c.mode = b.dataset.mode; renderComposer(c);
+    if (S.drawer) renderDrawer();
+    say(b.textContent + " selecionado.");
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (!tip.hidden) { hideTip(); if (!$("#consent").hidden || S.drawer || !$("#testMenu").hidden) { /* segue */ } else return; }
+      if (!$("#testMenu").hidden) { toggleMenu(false); return; }
+      if (!$("#consent").hidden) { closeConsent(); return; }
+      if (S.confirm) { S.confirm = false; renderDrawer(); $("#delAsk").focus(); return; }
+      if (S.drawer) { closeDrawer(); return; }
+    }
+    if (e.key === "Tab" && !$("#consent").hidden) {
+      const f = $$('#consent button, #consent input, #consent [tabindex="0"]').filter((x) => !x.disabled && x.offsetParent !== null);
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === $("#cTitle"))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    const conv = e.target.closest && e.target.closest(".conv");
+    if (conv && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      const all = $$(".conv"), i = all.indexOf(conv);
+      const nx = all[i + (e.key === "ArrowDown" ? 1 : -1)];
+      if (nx) nx.focus();
+    }
+    const radio = e.target.closest && e.target.closest('[role="radio"]');
+    if (radio && ["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"].includes(e.key)) {
+      e.preventDefault();
+      const all = $$('[role="radio"]', radio.parentElement), i = all.indexOf(radio);
+      const nx = all[(i + (e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1) + all.length) % all.length];
+      nx.click();
+    }
+    if (!$("#testMenu").hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      const all = $$("#testMenu button"), i = all.indexOf(document.activeElement);
+      all[(i + (e.key === "ArrowDown" ? 1 : -1) + all.length) % all.length].focus();
+    }
+  });
+
+  /* Sem menu de contexto do navegador, exceto onde há texto para copiar */
+  document.addEventListener("contextmenu", (e) => { if (!e.target.closest("input, textarea, .copyable")) e.preventDefault(); });
+  $("#consent").addEventListener("mousedown", (e) => { if (e.target === $("#consent")) e.preventDefault(); });
+
+  /* ---------- Início ---------- */
+  renderList();
+  renderConv();
+  autosize();
+
+  /* Estados prontos pelo endereço (para conferência): #detalhes, #nova, #consentimento, #gemini, #aberto, #aplicada, #lendo */
+  const start = new Set(location.hash.slice(1).split(",").filter(Boolean));
+  if (start.has("gemini")) { S.active = "dh"; renderList(); renderConv(); }
+  if (start.has("aberto")) { $$(".att, .consults").forEach((d) => (d.open = true)); const tc = $(".tc"); if (tc) tc.open = true; }
+  if (start.has("aplicada")) { setProposal("iris", "applied"); setProposal("jei", "dismissed"); }
+  if (start.has("detalhes")) openDrawer();
+  if (start.has("nova") || start.has("consentimento")) { if (start.has("consentimento")) S.symptom = "world"; renderNew(); }
+  if (start.has("consentimento")) openConsent();
+  if (start.has("iniciada")) { S.symptom = "world"; renderNew(); startConversation(); }
+  if (start.has("lendo")) { ask.value = "Preciso mexer no Sodium Extra também?"; updateSend(); send(); }
+})();
+</script>
