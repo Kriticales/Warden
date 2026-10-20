@@ -3,7 +3,13 @@
  * cabem entre colunas vizinhas e as listas da explicação em palavras. Funções puras, testadas
  * sem React.
  */
-import type { FocusEdge, FocusNode, FocusReport, RelationKind } from '../../../lib/ipc/bindings';
+import type {
+  EmbeddedMod,
+  FocusEdge,
+  FocusNode,
+  FocusReport,
+  RelationKind,
+} from '../../../lib/ipc/bindings';
 
 /** Altura de um nó e espaço entre nós (as do protótipo, `depGraph`). */
 export const ROW = 56;
@@ -170,6 +176,47 @@ export function summarizeCenter(report: FocusReport): CenterSummary {
     }
   }
   return summary;
+}
+
+/** Um nome da lista "Dentro dele": um mod embutido, ou as partes da Fabric API juntas. */
+export interface EmbeddedEntry {
+  key: string;
+  /** O nome declarado; vazio no grupo da Fabric API (o texto vem da tradução). */
+  name: string;
+  /** Os ids (para o `title`; o id cru não aparece no texto). */
+  ids: string[];
+  /** Quantas partes da Fabric API o grupo junta (0 fora do grupo). */
+  fabricParts: number;
+}
+
+/** Ids que não são módulos da Fabric API, apesar do prefixo: a própria Fabric API inteira, o
+ * loader e as linguagens (`fabric-language-kotlin`). */
+const NOT_FABRIC_PART = /^fabric[_-]?(api|loader)$|^fabric[_-]language[_-]/;
+
+/** `true` para um módulo da Fabric API (ou da Forgified Fabric API): `fabric_api_base`… */
+export function isFabricPart(id: string): boolean {
+  const lower = id.toLowerCase();
+  return /^fabric[_-]/.test(lower) && !NOT_FABRIC_PART.test(lower);
+}
+
+/**
+ * A lista "Dentro dele" para ler: os nomes declarados, com os módulos da Fabric API juntos numa
+ * entrada só ("partes da Fabric API (N)"), no fim da lista.
+ */
+export function embeddedEntries(embedded: readonly EmbeddedMod[]): EmbeddedEntry[] {
+  const parts = embedded.filter((module) => isFabricPart(module.id));
+  const entries: EmbeddedEntry[] = embedded
+    .filter((module) => !isFabricPart(module.id))
+    .map((module) => ({ key: module.id, name: module.name, ids: [module.id], fabricParts: 0 }));
+  if (parts.length > 0) {
+    entries.push({
+      key: 'fabric-api-parts',
+      name: '',
+      ids: parts.map((module) => module.id),
+      fabricParts: parts.length,
+    });
+  }
+  return entries;
 }
 
 /** Nome de cada chave de nó. */

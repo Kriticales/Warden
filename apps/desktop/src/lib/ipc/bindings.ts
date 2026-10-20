@@ -3127,6 +3127,8 @@ export type DependentsReport = {
 	targets: NodeRef[],
 	/**  O que o item declara (só com um alvo; vazio com vários). */
 	dependsOn: DependsOn[],
+	/**  Os mods que o item traz dentro dele (só com um alvo; vazio com vários). */
+	embedded: EmbeddedMod[],
 	/**  Quem declara uma relação com os alvos, de qualquer tipo. */
 	usedBy: UsedBy[],
 	/**
@@ -3304,6 +3306,14 @@ id: string }) & { config?: never } |
 ({ kind: "require"; 
 /**  Config da injeção. */
 config: string }) & { id?: never };
+
+/**  Um mod embutido (jar-in-jar) dentro de um item. */
+export type EmbeddedMod = {
+	/**  Id do mod (`fabric_api_base`). */
+	id: string,
+	/**  Nome que o jar embutido declara ("Forgified Fabric API Base"); o id quando não há. */
+	name: string,
+};
 
 /**  Filtro **Ambiente**. */
 export type EnvironmentFilter = 
@@ -3801,8 +3811,8 @@ export type FocusNode = {
 	 *  −2 do nível −1); positivo = quem depende do centro (1 direto, 2 do nível 1).
 	 */
 	level: number,
-	/**  Ids dos mods embutidos no item (jar-in-jar), que ficam dentro do nó. */
-	embedded: string[],
+	/**  Os mods embutidos no item (jar-in-jar), que ficam dentro do nó, com id e nome. */
+	embedded: EmbeddedMod[],
 	/**  O item é uma biblioteca (agrupadas no pack inteiro). */
 	library: boolean,
 };

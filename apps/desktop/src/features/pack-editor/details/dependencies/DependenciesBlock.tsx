@@ -15,6 +15,7 @@ import type {
   RelationKind,
   WhyReport,
 } from '../../../../lib/ipc/bindings';
+import { EmbeddedNames } from '../../graph/EmbeddedNames';
 import type { DetailBlockProps } from '../blocks';
 import { useDependents, useWhyInPack } from './api';
 import { describeWhy, type WhyLine } from './why';
@@ -53,6 +54,15 @@ export function DependenciesBlock({ packId, item }: DetailBlockProps) {
         <dd>
           <DependsOnList report={dependents.data} />
         </dd>
+        {dependents.data.embedded.length > 0 ? (
+          <>
+            <dt>{t('trazDentro')}</dt>
+            <dd>
+              {t('modulos', { count: dependents.data.embedded.length })}{' '}
+              <EmbeddedNames embedded={dependents.data.embedded} />
+            </dd>
+          </>
+        ) : null}
         <dt>{t('usadoPor')}</dt>
         <dd>
           <UsedByList report={dependents.data} />
@@ -88,12 +98,14 @@ function stateKey(kind: RelationKind, state: DependsOnState): StateKey {
 
 function DependsOnList({ report }: { report: DependentsReport }) {
   const { t } = useTranslation('grafo');
-  if (report.dependsOn.length === 0) {
+  // O que o próprio jar traz não é dependência de fora: vai em "Traz dentro" (P3).
+  const relations = report.dependsOn.filter((relation) => relation.state !== 'own');
+  if (relations.length === 0) {
     return <span className="t-3">{t('nenhumModDependeDe')}</span>;
   }
   return (
     <ul className="stack-2">
-      {report.dependsOn.map((relation) => {
+      {relations.map((relation) => {
         const incompatible = isIncompatible(relation.kind);
         const state = stateKey(relation.kind, relation.state);
         const provider = relation.providers[0];

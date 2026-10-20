@@ -27,6 +27,21 @@
   flex: none;
   color: var(--color-danger-text);
 }
+/* O centro fica no fluxo (no design system ele é absoluto, com altura fixa da coluna): com
+   muitos mods embutidos o cartão cresce e a linha do desenho cresce junto, sem cobrir a
+   legenda. As colunas dos lados e as calhas têm a altura das linhas e ficam centralizadas na
+   mesma linha, então as ligações continuam chegando no meio do cartão. */
+.graph .graph__body {
+  align-items: center;
+}
+.graph .gcol--center {
+  display: flex;
+  align-items: center;
+}
+.graph .gcenter {
+  position: static;
+  width: 100%;
+}
 .gcenter {
   border: 0;
   color: var(--color-text);

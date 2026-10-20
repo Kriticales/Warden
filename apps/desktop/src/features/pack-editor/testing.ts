@@ -39,7 +39,13 @@ export function editorBackend({ pack, inventory, handlers = {} }: EditorBackendO
         loaderVersion: row.loaderVersion,
       }),
     // Pack sem relações: o bloco "Dependências" dos detalhes (D-07) não encontra nada.
-    graph_dependents: () => ({ targets: [], dependsOn: [], usedBy: [], affected: [] }),
+    graph_dependents: () => ({
+      targets: [],
+      dependsOn: [],
+      embedded: [],
+      usedBy: [],
+      affected: [],
+    }),
     graph_why_in_pack: (args) => ({
       item: { path: String(args.path), name: String(args.path) },
       why: { kind: 'noDependents' },

@@ -432,6 +432,97 @@ fn depende_de_mostra_falta_incompatibilidade_presente_e_ignora_o_que_o_loader_fo
     );
 }
 
+/// O Sodium 0.8.13 para NeoForge 1.21.1, com os metadados reais do corpus: o jar de fora se
+/// diz `LIBRARY` e traz o mod de verdade e partes da Fabric API (Forgified) embutidos.
+fn sodium_neoforge() -> GraphItem {
+    let snapshot =
+        include_str!("../../../warden-jarmeta/tests/snapshots/corpus__neoforge-1.21.1-sodium.snap");
+    let json = snapshot.rsplit_once("---\n").unwrap().1;
+    GraphItem {
+        path: path("sodium"),
+        name: "Sodium".to_owned(),
+        jar: Some(serde_json::from_str(json).unwrap()),
+        api_required: Vec::new(),
+    }
+}
+
+#[test]
+fn sodium_neoforge_real_nao_lista_as_relacoes_internas_dos_embutidos() {
+    let graph = Graph::build(&input(vec![sodium_neoforge(), item("iris", &[])]));
+    let report = graph.dependents(&[path("sodium")]).unwrap();
+    // As partes da Fabric API que vêm dentro pedem umas às outras: isso não é "Depende de".
+    assert!(
+        report
+            .depends_on
+            .iter()
+            .all(|d| d.state != DependsOnState::Own),
+        "{:?}",
+        report.depends_on
+    );
+    assert!(
+        report
+            .depends_on
+            .iter()
+            .all(|d| d.range.as_deref() != Some("*")),
+        "{:?}",
+        report.depends_on
+    );
+    // O que vem dentro aparece com o nome declarado, e o próprio Sodium não conta.
+    let inside: Vec<(&str, &str)> = report
+        .embedded
+        .iter()
+        .map(|m| (m.id.as_str(), m.name.as_str()))
+        .collect();
+    assert!(
+        inside.contains(&("fabric_api_base", "Forgified Fabric API Base")),
+        "{inside:?}"
+    );
+    assert!(inside.iter().all(|(id, _)| *id != "sodium"), "{inside:?}");
+    let focus = graph.focus(&path("sodium"), 1).unwrap();
+    assert_eq!(focus.nodes[0].embedded, report.embedded);
+}
+
+#[test]
+fn sodium_neoforge_real_nao_e_biblioteca_nem_sobra() {
+    // O manifesto diz `LIBRARY`, mas o jar embutido declara o mesmo mod `sodium` do de fora:
+    // é o mod, não uma biblioteca.
+    let graph = Graph::build(&input(vec![sodium_neoforge(), item("iris", &[])]));
+    let why = graph.why_in_pack(&path("sodium")).unwrap();
+    assert!(!matches!(why.why, Why::Unused { .. }), "{:?}", why.why);
+    assert!(
+        !orphan_names(&graph).contains(&"Sodium".to_owned()),
+        "{:?}",
+        orphan_names(&graph)
+    );
+}
+
+#[test]
+fn faixa_asterisco_e_qualquer_versao() {
+    let mut main = item("main", &[]);
+    main.jar = Some(serde_json::from_value(jar_json(
+        &json!({
+            "source": "neoForgeModsToml",
+            "loader": "neoForge",
+            "id": "main",
+            "dependencies": [
+                {"id": "a", "kind": "required", "range": {"dialect": "maven", "spec": "*"}},
+                {"id": "b", "kind": "required", "range": {"dialect": "fabric", "predicates": ["*"]}},
+                {"id": "c", "kind": "required", "range": {"dialect": "maven", "spec": "[1,)"}},
+            ],
+        }),
+        &[],
+    ))
+    .unwrap());
+    let graph = Graph::build(&input(vec![main]));
+    let report = graph.dependents(&[path("main")]).unwrap();
+    let ranges: Vec<(&str, Option<&str>)> = report
+        .depends_on
+        .iter()
+        .map(|d| (d.id.as_str(), d.range.as_deref()))
+        .collect();
+    assert_eq!(ranges, vec![("a", None), ("b", None), ("c", Some("[1,)"))]);
+}
+
 #[test]
 fn relacao_da_api_entra_quando_nao_ha_jar_e_nao_duplica_a_do_jar() {
     let mut a = GraphItem {

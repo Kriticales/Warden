@@ -44,8 +44,8 @@ mod tests;
 pub use focus::{FocusEdge, FocusNode, FocusReport, MAX_FOCUS_DEPTH};
 pub use inferred::{InferredEdge, InferredSource, InferredStore};
 pub use query::{
-    Affected, ChainLink, DependentsReport, DependsOn, DependsOnState, NodeRef, Orphan, ProviderRef,
-    UnknownItem, UsedBy, Why, WhyReport,
+    Affected, ChainLink, DependentsReport, DependsOn, DependsOnState, EmbeddedMod, NodeRef, Orphan,
+    ProviderRef, UnknownItem, UsedBy, Why, WhyReport,
 };
 
 use std::collections::{BTreeMap, HashMap};
@@ -189,6 +189,8 @@ pub(crate) struct ModNode {
 #[derive(Debug, Clone)]
 pub(crate) struct EmbeddedNode {
     pub(crate) id: String,
+    /// Nome que o descritor do jar embutido declara.
+    pub(crate) name: Option<String>,
 }
 
 /// Quem satisfaz uma dependência.

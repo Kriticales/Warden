@@ -35,15 +35,17 @@ fn relation_kind(kind: DependencyKind) -> RelationKind {
     }
 }
 
-/// A faixa como a interface mostra; `None` para "qualquer versão".
+/// A faixa como a interface mostra; `None` para "qualquer versão" (inclusive o `*`, que os
+/// descritores usam com esse sentido e que na interface aparecia cru).
 fn range_text(range: &VersionRange) -> Option<String> {
+    let any = |text: &str| matches!(text.trim(), "" | "*");
     match range {
         VersionRange::Any => None,
         VersionRange::Fabric { predicates } => {
-            (!predicates.is_empty()).then(|| predicates.join(" ou "))
+            (!predicates.iter().any(|p| any(p))).then(|| predicates.join(" ou "))
         }
-        VersionRange::Maven { spec } => Some(spec.clone()),
-        VersionRange::Exact { version } => Some(version.clone()),
+        VersionRange::Maven { spec } => (!any(spec)).then(|| spec.clone()),
+        VersionRange::Exact { version } => (!any(version)).then(|| version.clone()),
     }
 }
 
@@ -52,6 +54,8 @@ struct Declared {
     id: String,
     kind: RelationKind,
     range: Option<String>,
+    /// Declarada por um mod embutido (jar-in-jar), não pelo jar de cima.
+    embedded: bool,
 }
 
 /// O que se tira de um jar (e dos jars dentro dele).
@@ -59,8 +63,8 @@ struct Declared {
 struct Collected {
     /// Mods do jar de cima, com os ids que cada um `provides`.
     mods: Vec<(String, Vec<String>)>,
-    /// Mods dos jars embutidos.
-    embedded: Vec<(String, Vec<String>)>,
+    /// Mods dos jars embutidos, com o nome declarado (quando há).
+    embedded: Vec<(String, Vec<String>, Option<String>)>,
     declared: Vec<Declared>,
     library: bool,
 }
@@ -79,28 +83,49 @@ fn collect(loader: Loader, jar: &JarMetadata) -> Collected {
             if !seen.insert(module.id.to_ascii_lowercase()) {
                 continue;
             }
-            let entry = (module.id.clone(), module.provides.clone());
             if top {
-                out.mods.push(entry);
+                out.mods.push((module.id.clone(), module.provides.clone()));
             } else {
-                out.embedded.push(entry);
+                out.embedded.push((
+                    module.id.clone(),
+                    module.provides.clone(),
+                    module.name.clone(),
+                ));
             }
             for dependency in &module.dependencies {
                 out.declared.push(Declared {
                     id: dependency.id.clone(),
                     kind: relation_kind(dependency.kind),
                     range: range_text(&dependency.range),
+                    embedded: !top,
                 });
             }
         }
     }
-    out.library = jar
+    let library_manifest = jar
         .manifest
         .as_ref()
         .and_then(|manifest| manifest.fml_mod_type.as_deref())
-        .is_some_and(|kind| matches!(kind, "LIBRARY" | "GAMELIBRARY"))
+        .is_some_and(|kind| matches!(kind, "LIBRARY" | "GAMELIBRARY"));
+    out.library = (library_manifest && !wraps_own_mod(loader, jar))
         || out.mods.iter().any(|(id, _)| is_known_library(id));
     out
+}
+
+/// `true` se um jar embutido declara um mod com o mesmo id de um mod do jar de cima. É o
+/// caso do Sodium para NeoForge: o jar de fora se diz `LIBRARY` (é só o serviço que carrega
+/// cedo) e o mod de verdade vem num jar dentro dele. Esse jar não é uma biblioteca.
+fn wraps_own_mod(loader: Loader, jar: &JarMetadata) -> bool {
+    let own: HashSet<String> = jar
+        .effective_mods_for_loader(loader)
+        .iter()
+        .map(|module| module.id.to_ascii_lowercase())
+        .collect();
+    jar.walk()
+        .iter()
+        .filter(|(prefix, _)| !prefix.is_empty())
+        .flat_map(|(_, meta)| meta.mods_for_loader(loader))
+        .any(|module| own.contains(&module.id.to_ascii_lowercase()))
 }
 
 pub(super) fn build(input: &GraphInput) -> Graph {
@@ -123,8 +148,13 @@ pub(super) fn build(input: &GraphInput) -> Graph {
             collected
                 .mods
                 .iter()
-                .chain(&collected.embedded)
                 .map(|(_, aliases)| aliases.clone())
+                .chain(
+                    collected
+                        .embedded
+                        .iter()
+                        .map(|(_, aliases, _)| aliases.clone()),
+                )
                 .collect(),
         );
         items.push(ItemNode {
@@ -138,7 +168,10 @@ pub(super) fn build(input: &GraphInput) -> Graph {
             embedded: collected
                 .embedded
                 .iter()
-                .map(|(id, _)| EmbeddedNode { id: id.clone() })
+                .map(|(id, _, name)| EmbeddedNode {
+                    id: id.clone(),
+                    name: name.clone(),
+                })
                 .collect(),
             library: collected.library,
             requirements: Vec::new(),
@@ -253,6 +286,12 @@ fn resolve_requirements(
             }
             State::InPack
         } else if own {
+            // O que um mod embutido pede e o próprio jar já traz é assunto interno do jar:
+            // não aparece em "Depende de" (no Sodium, eram as partes da Fabric API pedindo
+            // umas às outras).
+            if decl.embedded {
+                continue;
+            }
             found.clear();
             State::Own
         } else if found.is_empty() {

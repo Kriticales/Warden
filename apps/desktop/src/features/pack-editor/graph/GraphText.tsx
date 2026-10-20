@@ -13,6 +13,7 @@ import type { FocusEdge, FocusReport, Orphan, PackId } from '../../../lib/ipc/bi
 import { useDependents, useWhyInPack } from '../details/dependencies/api';
 import { whyLine } from '../details/dependencies/DependenciesBlock';
 import { describeWhy } from '../details/dependencies/why';
+import { EmbeddedNames } from './EmbeddedNames';
 import { labels, summarizeCenter } from './model';
 
 const list = (names: readonly string[]) =>
@@ -57,7 +58,8 @@ export function InWords({ packId, report }: { packId: PackId; report: FocusRepor
         ) : null}
         {centerNode && centerNode.embedded.length > 0 ? (
           <li>
-            <b>{t('palavras.dentro', { nome: name })}</b> {list(centerNode.embedded)}
+            <b>{t('palavras.dentro', { nome: name })}</b>{' '}
+            <EmbeddedNames embedded={centerNode.embedded} />
           </li>
         ) : null}
         <li>

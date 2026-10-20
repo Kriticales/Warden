@@ -32,6 +32,9 @@ export const grafo = {
   fornecidoPorEmbutido: 'dentro de {{nome}}',
   fornecidoComoAlias: 'como {{id}}',
   dentroDesteMod: 'dentro deste mod',
+  trazDentro: 'Traz dentro',
+  modulos_one: '{{count}} módulo:',
+  modulos_other: '{{count}} módulos:',
   porque: {
     voce: 'Você adicionou',
     voceEm: 'Você adicionou em {{data}}',
@@ -39,7 +42,8 @@ export const grafo = {
     exigidoPor: 'Exigido por {{nome}}',
     queEExigidoPor: 'que é exigido por {{nome}}',
     queVoceAdicionou: 'que você adicionou',
-    semUso: 'Nenhum mod usa mais; pode ser removido',
+    semUso:
+      'Nenhum mod do pack parece precisar dele. Se você não o adicionou de propósito, dá para remover',
     soOpcional_one: 'Só é usado como opcional por {{nomes}}',
     soOpcional_other: 'Só é usado como opcional por {{nomes}}',
     ciclo: 'Faz parte de um ciclo de dependência com {{nomes}}',

@@ -68,7 +68,14 @@ function createReport(center: InventoryItem = CREATE): FocusReport {
     nodes: [
       node(JEI, -1),
       MISSING,
-      node(CREATE, 0, { embedded: ['flywheel', 'registrate'] }),
+      node(CREATE, 0, {
+        embedded: [
+          { id: 'flywheel', name: 'Flywheel' },
+          { id: 'registrate', name: 'Registrate' },
+          { id: 'fabric_api_base', name: 'Forgified Fabric API Base' },
+          { id: 'fabric_renderer_api_v1', name: 'Forgified Fabric Renderer API (v1)' },
+        ],
+      }),
       node(CRAFTS, 1),
       node(RIVAL, 1),
       node(SLICE, 1),
@@ -95,6 +102,7 @@ function backendFor(focus: (args: Record<string, unknown>) => FocusReport = () =
       graph_dependents: () => ({
         targets: [],
         dependsOn: [],
+        embedded: [],
         usedBy: [],
         affected: [{ item: { path: CRAFTS.path, name: CRAFTS.name }, depth: 1, needs: [] }],
       }),
@@ -149,7 +157,22 @@ describe('modo Grafo de Mods (D-11)', () => {
     expect(right?.textContent).toContain('Rival');
     // As embutidas ficam dentro do nó do Create.
     const center = within(graph).getByRole('button', { name: /^Create/ });
-    expect(center.textContent).toContain('Dentro dele: flywheel e registrate');
+    // Com os nomes legíveis; as partes da Fabric API juntas e o id só no `title` (P2).
+    expect(center.textContent).toContain(
+      'Dentro dele: Flywheel, Registrate e partes da Fabric API (2)',
+    );
+    expect(center.textContent).not.toContain('fabric_api_base');
+    expect(within(center).getByText('partes da Fabric API (2)').getAttribute('title')).toBe(
+      'fabric_api_base, fabric_renderer_api_v1',
+    );
+    expect(within(center).getByText('Flywheel').getAttribute('title')).toBe('flywheel');
+    // O cartão do centro fica no fluxo, sem altura fixa: cresce sem cobrir a legenda (P2).
+    expect(center.style.top).toBe('');
+    const centerColumn = center.closest<HTMLElement>('.gcol--center');
+    expect(centerColumn?.style.height).toBe('');
+    expect(centerColumn?.style.minHeight).not.toBe('');
+    // A linha do topo explica a tela, e a legenda explica cada termo.
+    expect(screen.getByText(/^Este é o mapa de quem precisa de quem/)).toBeDefined();
     expect(center.textContent).toContain('1.0.0 · Modrinth');
     // Tipo de cada ligação no nó e na legenda.
     expect(within(graph).getByRole('button', { name: /^JEI/ }).textContent).toContain('opcional');
@@ -160,6 +183,8 @@ describe('modo Grafo de Mods (D-11)', () => {
     for (const kind of ['Obrigatória', 'Opcional ou recomendada', 'Incompatível', 'Inferida']) {
       expect(legend.textContent).toContain(kind);
     }
+    expect(legend.textContent).toContain('Obrigatória: sem o outro mod, este não abre');
+    expect(legend.textContent).toContain('Embutida: vem dentro do arquivo do próprio mod');
     // E na lista em texto, uma linha por ligação com o tipo.
     const links = screen.getByRole('region', { name: '5 ligações' });
     const lines = within(links)
@@ -175,7 +200,9 @@ describe('modo Grafo de Mods (D-11)', () => {
     // Em palavras.
     const words = screen.getByRole('region', { name: 'Em palavras' });
     expect(words.textContent).toContain('Create precisa de: ponder (não está no pack)');
-    expect(words.textContent).toContain('Vêm dentro do próprio Create: flywheel e registrate');
+    expect(words.textContent).toContain(
+      'Vêm dentro do próprio Create: Flywheel, Registrate e partes da Fabric API (2)',
+    );
     expect(words.textContent).toContain(
       'Precisam do Create: Crafts and Additions e Slice and Dice',
     );
