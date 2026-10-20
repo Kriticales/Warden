@@ -6,6 +6,9 @@
  * - **Remover**: a confirmação de Remover da lista de Mods (com quem depende do item);
  * - **Mudar lado**: o mesmo "Alterar lado" da lista de Mods;
  * - **Atualizar**: abre os detalhes do item em Mods (troca de versão e atualização);
+ * - **Trocar pela versão certa** (ADR-0061): o "Trocar de versão" de sempre, já na versão mais
+ *   nova para o Minecraft e o loader do pack; a troca grava o `.pw.toml` novo no lugar do
+ *   errado numa transação só;
  * - **Java, memória, argumento**: abre Ajustes do teste neste computador;
  * - **Config**: abre o arquivo em Configs;
  * - **Restaurar padrão** (C-06): a diferença da chave restaurada e a gravação com confirmação.
@@ -32,6 +35,7 @@ import {
   type PackRestoreTarget,
 } from '../configs/form/defaults/PackRestoreDialog';
 import { useInventory, useSetSide } from '../pack-editor/api';
+import { ChangeVersionDialog } from '../pack-editor/change-version/ChangeVersionDialog';
 import { RemoveDialog } from '../pack-editor/mods/RemoveDialog';
 import { TestSettingsDialog } from '../pack-editor/test-settings/TestSettingsDialog';
 import { usePack } from '../packs/api';
@@ -73,6 +77,10 @@ export function useFixes(
   const [removing, setRemoving] = useState<InventoryItem[] | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [restoring, setRestoring] = useState<PackRestoreTarget | null>(null);
+  const [replacing, setReplacing] = useState<{
+    item: InventoryItem;
+    opener: HTMLElement | null;
+  } | null>(null);
 
   const fail = (error: unknown) => {
     showToast({ kind: 'danger', title: appErrorMessage(toAppError(error)) });
@@ -142,6 +150,18 @@ export function useFixes(
         );
         return;
       }
+      case 'replaceVersion': {
+        const path = itemOf(entry, fix.item)?.path;
+        const item = inventory.data?.items.find((candidate) => candidate.path === path);
+        if (item && (item.source === 'modrinth' || item.source === 'curseforge')) {
+          const opener = document.activeElement;
+          setReplacing({ item, opener: opener instanceof HTMLElement ? opener : null });
+        } else if (path) {
+          // Sem fonte (arquivo local, link): os detalhes do item, como em Atualizar.
+          void navigate({ to: '/packs/$packId/mods', params: { packId }, search: { item: path } });
+        }
+        return;
+      }
       case 'updateItem': {
         const path = itemOf(entry, fix.item)?.path;
         if (path) {
@@ -197,6 +217,18 @@ export function useFixes(
           onFixed?.();
         }}
       />
+      {replacing ? (
+        <ChangeVersionDialog
+          packId={packId}
+          item={replacing.item}
+          open
+          onOpenChange={(open) => {
+            if (!open) setReplacing(null);
+          }}
+          returnFocusTo={() => replacing.opener}
+          onChanged={onFixed}
+        />
+      ) : null}
       <PackRestoreDialog
         packId={packId}
         target={restoring}

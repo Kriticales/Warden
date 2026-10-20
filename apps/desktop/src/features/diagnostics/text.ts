@@ -204,6 +204,8 @@ export function fixLabel(entry: ReportFinding, fix: SuggestedFix): string {
       return t('correcao.remover', { nome: refName(entry, fix.item) });
     case 'updateItem':
       return t('correcao.atualizar', { nome: refName(entry, fix.item) });
+    case 'replaceVersion':
+      return t('correcao.trocarVersao');
     case 'setSide':
       return t(`correcao.lado.${fix.side satisfies FindingSide}`);
     case 'changeJava':
@@ -223,10 +225,15 @@ export function fixLabel(entry: ReportFinding, fix: SuggestedFix): string {
   }
 }
 
-/** Uma correção leva a um item que está no pack? (Remover, Atualizar e Mudar lado só valem
- * para itens do pack.) */
+/** Uma correção leva a um item que está no pack? (Remover, Atualizar, Trocar pela versão certa
+ * e Mudar lado só valem para itens do pack.) */
 export function fixAvailable(entry: ReportFinding, fix: SuggestedFix): boolean {
-  if (fix.kind === 'removeItem' || fix.kind === 'updateItem' || fix.kind === 'setSide') {
+  if (
+    fix.kind === 'removeItem' ||
+    fix.kind === 'updateItem' ||
+    fix.kind === 'replaceVersion' ||
+    fix.kind === 'setSide'
+  ) {
     return itemOf(entry, fix.item)?.path != null;
   }
   return true;

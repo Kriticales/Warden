@@ -1871,3 +1871,101 @@ mod rede {
         assert_conforming(&by_link).await;
     }
 }
+
+// --- Loader estrito (ADR-0061) ----------------------------------------------------------
+
+const CF_XAERO: u64 = 920_001;
+
+const NEOFORGE_1_21_1: On = On {
+    minecraft: "1.21.1",
+    loader: "NeoForge",
+    loader_type: 6,
+};
+const FORGE_1_21_1: On = On {
+    minecraft: "1.21.1",
+    loader: "Forge",
+    loader_type: 1,
+};
+
+/// Um arquivo do "Xaero" simulado, com a data e, se `extra`, mais uma tag de loader.
+fn xaero_file(on: On, file_id: u64, date: &str, extra: Option<&str>) -> Value {
+    let name = format!("xaero-{}-{file_id}.jar", on.loader.to_ascii_lowercase());
+    let sha1 = format!("{file_id:0>40}");
+    let mut file = cf_file_on(on, CF_XAERO, file_id, &name, &sha1, &[]);
+    file["fileDate"] = date.into();
+    if let Some(tag) = extra {
+        file["gameVersions"]
+            .as_array_mut()
+            .unwrap()
+            .push(tag.into());
+    }
+    file
+}
+
+/// O plano do "Xaero" num pack NeoForge 1.21.1 com estes arquivos na CurseForge (a simulada
+/// não filtra por loader: o Warden confere de novo o que a fonte devolve).
+async fn xaero_plan(files: Vec<Value>) -> AddPlan {
+    let modrinth = modrinth_empty().await;
+    let curseforge = MockServer::start().await;
+    let project = cf_project_on(
+        NEOFORGE_1_21_1,
+        CF_XAERO,
+        "xaeros-minimap",
+        "Xaero's Minimap",
+        "xaero96",
+        false,
+    );
+    curseforge_mock(&curseforge, vec![project], files).await;
+    let temp = tempfile::tempdir().unwrap();
+    pack(temp.path(), "1.21.1", Loader::NeoForge);
+    let sources = add_sources(&modrinth, &curseforge);
+    plan_of(
+        &sources,
+        temp.path(),
+        vec![choice(SourceId::Curseforge, CF_XAERO)],
+    )
+    .await
+}
+
+#[tokio::test]
+async fn neoforge_1211_escolhe_o_arquivo_neoforge_mesmo_com_um_forge_mais_novo() {
+    let plan = xaero_plan(vec![
+        xaero_file(FORGE_1_21_1, 9_002, "2026-09-30T10:00:00Z", None),
+        xaero_file(NEOFORGE_1_21_1, 9_001, "2026-08-01T10:00:00Z", None),
+    ])
+    .await;
+    let versions: Vec<&str> = plan.nodes.iter().map(|n| n.version_id.as_str()).collect();
+    assert_eq!(versions, ["9001"], "{plan:#?}");
+    assert!(plan.missing.is_empty());
+}
+
+#[tokio::test]
+async fn neoforge_1211_so_com_arquivo_forge_fica_sem_versao_compativel() {
+    let plan = xaero_plan(vec![xaero_file(
+        FORGE_1_21_1,
+        9_002,
+        "2026-09-30T10:00:00Z",
+        None,
+    )])
+    .await;
+    assert!(plan.nodes.is_empty(), "{plan:#?}");
+    let missing: Vec<&str> = plan.missing.iter().map(|item| item.key.as_str()).collect();
+    assert_eq!(missing, [format!("curseforge:{CF_XAERO}")]);
+}
+
+#[tokio::test]
+async fn arquivo_com_as_tags_forge_e_neoforge_e_aceito_como_neoforge() {
+    let plan = xaero_plan(vec![
+        xaero_file(
+            FORGE_1_21_1,
+            9_003,
+            "2026-09-30T10:00:00Z",
+            Some("NeoForge"),
+        ),
+        xaero_file(NEOFORGE_1_21_1, 9_001, "2026-08-01T10:00:00Z", None),
+    ])
+    .await;
+    let versions: Vec<&str> = plan.nodes.iter().map(|n| n.version_id.as_str()).collect();
+    assert_eq!(versions, ["9003"], "{plan:#?}");
+    assert!(plan.nodes[0].compatible);
+}

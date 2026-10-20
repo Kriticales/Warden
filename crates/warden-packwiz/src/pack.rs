@@ -264,8 +264,42 @@ impl PackManifest {
             .collect()
     }
 
+    /// Loaders cujos mods o pack aceita para **escolher** uma versão (ADR-0061), na ordem de
+    /// preferência: o do pack primeiro.
+    ///
+    /// Mais estrito que [`Self::compatible_loaders`]: um pack NeoForge só aceita mods `forge` no
+    /// Minecraft 1.20.1 (o NeoForge dessa versão ainda carrega mods do Forge), e depois dos
+    /// `neoforge`; Quilt aceita Fabric. É a lista que o Warden usa ao adicionar, atualizar,
+    /// trocar de versão e marcar "compatível" na busca.
+    #[must_use]
+    pub fn strict_loaders(&self) -> Vec<Loader> {
+        let has = |loader: Loader| {
+            self.versions
+                .as_ref()
+                .is_some_and(|versions| versions.contains_key(loader.key()))
+        };
+        let mut loaders = Vec::new();
+        if has(Loader::Quilt) {
+            loaders.extend([Loader::Quilt, Loader::Fabric]);
+        } else if has(Loader::Fabric) {
+            loaders.push(Loader::Fabric);
+        }
+        if has(Loader::NeoForge) {
+            loaders.push(Loader::NeoForge);
+            if self.minecraft_version().map(str::trim) == Some("1.20.1") {
+                loaders.push(Loader::Forge);
+            }
+        } else if has(Loader::Forge) {
+            loaders.push(Loader::Forge);
+        }
+        loaders
+    }
+
     /// Loaders cujos mods o pack aceita (`GetCompatibleLoaders` do packwiz): Quilt aceita
-    /// Fabric; NeoForge aceita Forge.
+    /// Fabric; NeoForge aceita Forge, em qualquer versão do Minecraft.
+    ///
+    /// Só para paridade com o packwiz (o que o binário aceitaria). Para escolher uma versão,
+    /// use [`Self::strict_loaders`] (ADR-0061).
     #[must_use]
     pub fn compatible_loaders(&self) -> Vec<Loader> {
         let has = |loader: Loader| {
@@ -466,6 +500,26 @@ mod tests {
         assert!(pack.loaders().is_empty());
         assert!(pack.minecraft_version().is_none());
         assert_eq!(Loader::LiteLoader.key(), "liteloader");
+    }
+
+    #[test]
+    fn loaders_estritos_so_aceitam_forge_no_neoforge_1201() {
+        let mut pack = PackManifest::new("x", "1.21.1");
+        pack.set_loader_version(Loader::NeoForge, "21.1.77");
+        assert_eq!(pack.strict_loaders(), [Loader::NeoForge]);
+        assert_eq!(pack.compatible_loaders(), [Loader::NeoForge, Loader::Forge]);
+        let mut pack = PackManifest::new("x", "1.20.1");
+        pack.set_loader_version(Loader::NeoForge, "47.1.106");
+        assert_eq!(pack.strict_loaders(), [Loader::NeoForge, Loader::Forge]);
+        let mut pack = PackManifest::new("x", "1.21.1");
+        pack.set_loader_version(Loader::Forge, "52.0.1");
+        assert_eq!(pack.strict_loaders(), [Loader::Forge]);
+        let mut pack = PackManifest::new("x", "1.21.1");
+        pack.set_loader_version(Loader::Fabric, "0.16.14");
+        assert_eq!(pack.strict_loaders(), [Loader::Fabric]);
+        let mut pack = PackManifest::new("x", "1.21.1");
+        pack.set_loader_version(Loader::Quilt, "0.26.4");
+        assert_eq!(pack.strict_loaders(), [Loader::Quilt, Loader::Fabric]);
     }
 
     #[test]

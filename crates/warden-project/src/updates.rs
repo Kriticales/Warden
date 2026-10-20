@@ -213,7 +213,8 @@ impl UpdateContext<'_> {
     }
 }
 
-/// Minecraft e loaders do pack, para filtrar as versões.
+/// Minecraft e loaders do pack, para filtrar as versões (`strict_loaders`, ADR-0061: uma
+/// atualização nunca troca o loader do pack por outro, como NeoForge por Forge na 1.21.1).
 #[derive(Debug, Clone)]
 struct Target {
     minecraft: String,
@@ -235,7 +236,7 @@ impl Target {
             .to_owned();
         Ok(Self {
             minecraft,
-            loaders: manifest.compatible_loaders(),
+            loaders: manifest.strict_loaders(),
         })
     }
 
@@ -414,6 +415,56 @@ fn is_newer(candidate: &str, installed: &str) -> bool {
     candidate[..19] > installed[..19]
 }
 
+/// Os filtros do `version_files/update`: um por loader, na ordem de preferência do pack
+/// (ADR-0061). Com mais de um (NeoForge 1.20.1 aceita Forge), a mais nova do loader do pack
+/// vence e o outro só vale para os arquivos sem nenhuma versão dele. Com um loader, um filtro.
+fn modrinth_filters(ctx: &UpdateContext<'_>, target: &Target) -> Vec<UpdateFilter> {
+    let loaders = target.modrinth_loaders();
+    let groups: Vec<Vec<String>> = if loaders.len() > 1 {
+        loaders.iter().map(|loader| vec![loader.clone()]).collect()
+    } else {
+        vec![loaders]
+    };
+    groups
+        .into_iter()
+        .map(|loaders| UpdateFilter {
+            loaders,
+            game_versions: vec![target.minecraft.clone()],
+            version_types: ctx.modrinth_types(),
+        })
+        .collect()
+}
+
+/// A versão mais nova de cada hash, filtro a filtro: o filtro de antes vence.
+async fn newest_by_loader(
+    ctx: &UpdateContext<'_>,
+    filters: &[UpdateFilter],
+    hashes: &[String],
+    algorithm: HashAlgorithm,
+    cancel: Option<&CancellationToken>,
+) -> std::result::Result<HashMap<String, Version>, warden_modrinth::Error> {
+    let mut newest = HashMap::new();
+    for filter in filters {
+        let pending: Vec<String> = hashes
+            .iter()
+            .filter(|hash| !newest.contains_key(*hash))
+            .cloned()
+            .collect();
+        if pending.is_empty() {
+            break;
+        }
+        let found = ctx
+            .modrinth
+            .version_files_update(&pending, algorithm, filter, cancel)
+            .await?;
+        // O loader de antes vence, mesmo que a resposta traga outros hashes.
+        for (hash, version) in found {
+            newest.entry(hash).or_insert(version);
+        }
+    }
+    Ok(newest)
+}
+
 async fn check_modrinth(
     ctx: &UpdateContext<'_>,
     target: &Target,
@@ -421,11 +472,7 @@ async fn check_modrinth(
     items: &mut [UpdateItem],
     cancel: Option<&CancellationToken>,
 ) {
-    let filter = UpdateFilter {
-        loaders: target.modrinth_loaders(),
-        game_versions: vec![target.minecraft.clone()],
-        version_types: ctx.modrinth_types(),
-    };
+    let filters = modrinth_filters(ctx, target);
     for algorithm in [HashAlgorithm::Sha512, HashAlgorithm::Sha1] {
         let group: Vec<&ModrinthJob> = jobs
             .iter()
@@ -436,10 +483,7 @@ async fn check_modrinth(
         }
         let hashes: Vec<String> = group.iter().map(|job| job.hash.clone()).collect();
         let result = async {
-            let newest = ctx
-                .modrinth
-                .version_files_update(&hashes, algorithm, &filter, cancel)
-                .await?;
+            let newest = newest_by_loader(ctx, &filters, &hashes, algorithm, cancel).await?;
             let installed = ctx
                 .modrinth
                 .version_files(&hashes, algorithm, cancel)
@@ -506,6 +550,38 @@ struct CurseforgeJob {
     file: u32,
 }
 
+/// O arquivo mais novo de um projeto da CurseForge para o Minecraft e o loader do pack: o loader
+/// do pack antes dos outros aceitos (NeoForge antes de Forge na 1.20.1, ADR-0061) e, no mesmo
+/// loader, o mais novo.
+fn best_curseforge_file(
+    ctx: &UpdateContext<'_>,
+    target: &Target,
+    loaders: &[ModLoaderType],
+    project: &warden_curseforge::Mod,
+) -> Option<u64> {
+    let rank = |loader: Option<ModLoaderType>| {
+        loader
+            .and_then(|loader| loaders.iter().position(|known| *known == loader))
+            .unwrap_or(loaders.len())
+    };
+    project
+        .latest_files_indexes
+        .iter()
+        .filter(|index| index.game_version == target.minecraft)
+        .filter(|index| {
+            index
+                .mod_loader
+                .is_none_or(|loader| loader == ModLoaderType::Any || loaders.contains(&loader))
+        })
+        .filter(|index| ctx.allows(channel_of_curseforge(index.release_type)))
+        .min_by(|a, b| {
+            rank(a.mod_loader)
+                .cmp(&rank(b.mod_loader))
+                .then_with(|| b.file_id.cmp(&a.file_id))
+        })
+        .map(|index| index.file_id)
+}
+
 async fn check_curseforge(
     ctx: &UpdateContext<'_>,
     target: &Target,
@@ -555,18 +631,7 @@ async fn check_curseforge(
             );
             continue;
         };
-        let best = project
-            .latest_files_indexes
-            .iter()
-            .filter(|index| index.game_version == target.minecraft)
-            .filter(|index| {
-                index
-                    .mod_loader
-                    .is_none_or(|loader| loader == ModLoaderType::Any || loaders.contains(&loader))
-            })
-            .filter(|index| ctx.allows(channel_of_curseforge(index.release_type)))
-            .map(|index| index.file_id)
-            .max();
+        let best = best_curseforge_file(ctx, target, &loaders, project);
         match best {
             Some(file_id) if file_id > u64::from(job.file) => wanted.push((job.index, file_id)),
             _ => set_status(item, UpdateStatus::UpToDate),

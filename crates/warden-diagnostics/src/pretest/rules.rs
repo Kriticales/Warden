@@ -76,24 +76,20 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
             if !api.loaders.is_empty()
                 && !api_loader_matches(&api.loaders, input.pack.loader, &input.pack.minecraft)
             {
-                let severity = if input.pack.loader == Loader::NeoForge
-                    && api.loaders.contains(&Loader::Forge)
-                    && release_cmp(&input.pack.minecraft, "1.20.2")
-                        .is_some_and(std::cmp::Ordering::is_ge)
-                {
-                    Severity::Warning
-                } else {
-                    Severity::Error
-                };
-                findings.push(single(
-                    "E_LOADER",
-                    severity,
+                // Erro também para um mod `forge` num NeoForge 1.20.2+ (ADR-0061): o NeoForge
+                // dessas versões não carrega mods do Forge, como a regra do jar confirma.
+                findings.push(with_loader_fixes(
+                    single(
+                        "E_LOADER",
+                        Severity::Error,
+                        item,
+                        Evidence::Api {
+                            source: api.source,
+                            url: api.url.clone(),
+                            field: "loaders".into(),
+                        },
+                    ),
                     item,
-                    Evidence::Api {
-                        source: api.source,
-                        url: api.url.clone(),
-                        field: "loaders".into(),
-                    },
                 ));
             }
             if !api.game_versions.is_empty() && !api.game_versions.contains(&input.pack.minecraft) {
@@ -310,7 +306,10 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
                         )
                     },
                 );
-                findings.push(single("E_LOADER", Severity::Error, item, evidence));
+                findings.push(with_loader_fixes(
+                    single("E_LOADER", Severity::Error, item, evidence),
+                    item,
+                ));
             }
             if !fabric_only || connector {
                 let mut local_ids = HashSet::new();
@@ -529,7 +528,49 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
             }
         }
     }
+    merge_loader_findings(&mut findings);
     Ok(findings)
+}
+
+/// As correções de um item de outro loader: trocar pela versão certa (só para item de uma fonte,
+/// que tem outras versões) e remover.
+fn with_loader_fixes(finding: Finding, item: &PackItem) -> Finding {
+    let finding = if item.api.is_some() {
+        finding.with_fix(SuggestedFix::ReplaceVersion {
+            item: item_ref(item),
+        })
+    } else {
+        finding
+    };
+    finding.with_fix(SuggestedFix::RemoveItem {
+        item: item_ref(item),
+    })
+}
+
+/// Une os `E_LOADER` do mesmo item (a regra da API e a do jar, na passagem completa) num achado
+/// só, com as evidências das duas: o relatório teria dois cards com o mesmo `finding_id`.
+fn merge_loader_findings(findings: &mut Vec<Finding>) {
+    let mut first: HashMap<Vec<ItemRef>, usize> = HashMap::new();
+    let mut merged: Vec<Finding> = Vec::with_capacity(findings.len());
+    for finding in findings.drain(..) {
+        if finding.rule().as_str() != "E_LOADER" {
+            merged.push(finding);
+            continue;
+        }
+        if let Some(&index) = first.get(finding.items()) {
+            let target = &mut merged[index];
+            for evidence in finding.evidence() {
+                target.push_evidence(evidence.clone());
+            }
+            for fix in finding.fixes() {
+                *target = target.clone().with_fix(fix.clone());
+            }
+        } else {
+            first.insert(finding.items().to_vec(), merged.len());
+            merged.push(finding);
+        }
+    }
+    *findings = merged;
 }
 
 #[allow(clippy::too_many_lines)] // As três faixas e as oito relações usam o mesmo contexto do mod.

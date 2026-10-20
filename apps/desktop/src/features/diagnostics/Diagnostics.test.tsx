@@ -9,7 +9,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AddPlanRequest, TestRequest } from '../../lib/ipc/bindings';
+import type { AddPlanRequest, ChangeVersionOptions, TestRequest } from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
 import { ipcError, type Handler } from '../../test/backend';
 import { makeAppError } from '../../test/factories';
@@ -25,6 +25,7 @@ import {
   MISSING_DEP,
   WRONG_SIDE,
   makeDiagnosis,
+  makeEntry,
   makeReport,
 } from './diagnostics.fixtures';
 
@@ -212,6 +213,101 @@ describe('seção Problemas (T14)', () => {
     await waitFor(() => {
       expect(backend.callsOf('diagnostics_run')).toHaveLength(2);
     });
+  });
+
+  it('mod de outro loader: erro com "Trocar pela versão certa" (Trocar de versão, já na mais nova) e "Remover"', async () => {
+    const sodium = { kind: 'metafile', path: 'mods/sodium.pw.toml' } as const;
+    const wrongLoader = makeEntry(
+      {
+        rule: 'E_LOADER',
+        severity: 'error',
+        evidence: [
+          {
+            kind: 'api',
+            source: 'modrinth',
+            url: 'https://api.modrinth.com/v2/version/forge01',
+            field: 'loaders',
+          },
+        ],
+        fixes: [
+          { kind: 'replaceVersion', item: sodium },
+          { kind: 'removeItem', item: sodium },
+        ],
+      },
+      [{ path: 'mods/sodium.pw.toml', name: 'Sodium' }],
+    );
+    const choice = (id: string, number: string, published: string) => ({
+      id,
+      number,
+      channel: 'release' as const,
+      published,
+      fileName: `sodium-${id}.jar`,
+      installed: false,
+      older: false,
+    });
+    const options: ChangeVersionOptions = {
+      path: 'mods/sodium.pw.toml',
+      name: 'Sodium',
+      source: 'modrinth',
+      currentId: 'forge01',
+      current: '0.8.13-forge',
+      currentIncompatible: true,
+      pinned: false,
+      // Só as versões para o Minecraft e o loader do pack, a mais nova primeiro.
+      versions: [
+        choice('neo02', '0.8.13-neoforge', '2026-09-01T10:00:00Z'),
+        choice('neo01', '0.8.12-neoforge', '2026-08-01T10:00:00Z'),
+      ],
+    };
+    const { backend, url } = setup({
+      diagnostics_report_get: () => makeReport({ findings: [wrongLoader] }),
+      item_version_options: () => options,
+      item_version_plan: (args) => ({
+        path: options.path,
+        name: 'Sodium',
+        current: options.current,
+        to: options.versions.find((v) => v.id === args.versionId) ?? options.versions[0],
+        same: false,
+        downgrade: false,
+        newDependencies: [],
+        conflicts: [],
+      }),
+      item_version_change: () => ({
+        path: options.path,
+        name: 'Sodium',
+        from: '0.8.13-forge',
+        to: '0.8.13-neoforge',
+        toId: 'neo02',
+        downgrade: false,
+      }),
+    });
+    await openProblems(url);
+    const errors = screen.getByRole('region', {
+      name: 'Erros impedem o teste, a menos que você escolha testar mesmo assim',
+    });
+    const card = within(errors).getByRole('article', { name: 'Sodium é para outro loader' });
+    expect(within(card).getByRole('button', { name: 'Remover Sodium' })).toBeDefined();
+    const user = userEvent.setup();
+    await user.click(within(card).getByRole('button', { name: 'Trocar pela versão certa' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Trocar a versão de Sodium' });
+    const select = await within(dialog).findByRole<HTMLSelectElement>('combobox', {
+      name: 'Versão',
+    });
+    // A instalada (Forge) não serve: começa na mais nova do loader do pack.
+    expect(select.value).toBe('neo02');
+    expect(backend.callsOf('item_version_change')).toHaveLength(0);
+    await user.click(
+      await within(dialog).findByRole('button', { name: 'Trocar para 0.8.13-neoforge' }),
+    );
+    await waitFor(() => {
+      expect(backend.callsOf('item_version_change')).toHaveLength(1);
+    });
+    expect(backend.callsOf('item_version_change')[0]?.args).toMatchObject({
+      path: 'mods/sodium.pw.toml',
+      expectedCurrentId: 'forge01',
+      versionId: 'neo02',
+    });
+    expect(await screen.findByText('Sodium agora está na versão 0.8.13-neoforge.')).toBeDefined();
   });
 
   it('sem nada encontrado: "Nenhum problema encontrado"; pack vanilla: nada a conferir', async () => {

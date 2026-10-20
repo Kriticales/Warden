@@ -64,5 +64,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0058](0058-patch-do-endereco-da-curseforge-no-packwiz.md) | Patch 0002 do packwiz: endereço da API da CurseForge trocável, só para testes (exceção à 0049) | técnica |
 | [0059](0059-envio-da-publicacao-por-smart-http.md) | Envio da publicação pelo protocolo "smart HTTP" do git sobre a `warden-http` (complementa a 0015 e a 0028; proposta da V-03) | técnica |
 | [0060](0060-ia-com-varios-provedores.md) | IA com vários provedores: Gemini (padrão), OpenAI e Claude, pela API oficial e com a chave do usuário (complementa a 0014, a 0030 e a 0055; complemento de 19/10/2026: o Gemini usa o Flash e troca para o Flash-Lite quando a cota diária acaba) | dono + técnica |
+| [0061](0061-loader-estrito-ao-adicionar-atualizar-e-trocar-versao.md) | Loader estrito ao adicionar, atualizar e trocar versão: o mod tem de ser para o Minecraft e o loader do pack; Forge só no NeoForge 1.20.1 (complementa a 0006) | dono |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.

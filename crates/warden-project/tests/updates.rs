@@ -27,7 +27,7 @@ use warden_project::registry::Registry;
 use warden_project::updates::{
     UpdateChannel, UpdateContext, UpdateReason, UpdateSelection, UpdateStatus, apply, check, plan,
 };
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{body_partial_json, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn http() -> HttpClient {
@@ -937,4 +937,155 @@ async fn aplicar_grava_a_referencia_nova_mantem_lado_e_opcional_e_cria_ponto_de_
     .await
     .unwrap_err();
     assert_eq!(error.code, Code::PackChangedExternally);
+}
+
+/// Pack NeoForge escrito à mão, com um item da CurseForge (projeto 400, arquivo 500).
+fn neoforge_pack(root: &Path, minecraft: &str) {
+    let mut manifest = PackManifest::new("NeoForge", minecraft);
+    manifest.set_loader_version(warden_packwiz::Loader::NeoForge, "21.1.77");
+    write(root, "pack.toml", &manifest.to_toml_string());
+    let index = PackIndex {
+        hash_format: "sha256".into(),
+        files: vec![IndexEntry::new("mods/x.pw.toml", "00")],
+    };
+    write(root, "index.toml", &index.to_toml_string());
+    write(
+        root,
+        "mods/x.pw.toml",
+        &curseforge_metafile(400, 500).to_toml_string(),
+    );
+}
+
+#[tokio::test]
+async fn atualizacao_nunca_troca_o_neoforge_pelo_forge() {
+    // ADR-0061: na 1.21.1 um arquivo Forge mais novo não é atualização de um mod NeoForge; na
+    // 1.20.1 o Forge é aceito, mas o NeoForge vem antes.
+    for (minecraft, expected) in [("1.21.1", None), ("1.20.1", Some("600"))] {
+        let temp = tempfile::tempdir().unwrap();
+        neoforge_pack(temp.path(), minecraft);
+        let server = MockServer::start().await;
+        let mods = json!({ "data": [cf_mod(400, &json!([
+            {"gameVersion": minecraft, "fileId": 500, "filename": "x-500.jar", "releaseType": 1, "gameVersionTypeId": 1, "modLoader": 6},
+            {"gameVersion": minecraft, "fileId": 600, "filename": "x-600.jar", "releaseType": 1, "gameVersionTypeId": 1, "modLoader": 6},
+            {"gameVersion": minecraft, "fileId": 900, "filename": "x-900.jar", "releaseType": 1, "gameVersionTypeId": 1, "modLoader": 1}
+        ]))]});
+        // Na 1.21.1 só existe o NeoForge instalado e o Forge mais novo.
+        let mods = if minecraft == "1.21.1" {
+            let mut mods = mods;
+            mods["data"][0]["latestFilesIndexes"]
+                .as_array_mut()
+                .unwrap()
+                .remove(1);
+            mods
+        } else {
+            mods
+        };
+        Mock::given(method("POST"))
+            .and(path("/v1/mods"))
+            .respond_with(json_response(&mods))
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/v1/mods/files"))
+            .respond_with(json_response(&json!({ "data": [
+                cf_file(600, 400, "x-600.jar", 1, &json!([])),
+                cf_file(900, 400, "x-900.jar", 1, &json!([]))
+            ]})))
+            .mount(&server)
+            .await;
+        let cf = curseforge(&server, Some("chave"));
+        let mr_server = MockServer::start().await;
+        let mr = modrinth(&mr_server);
+        let report = check(temp.path(), &ctx(&mr, Some(&cf), false), None)
+            .await
+            .unwrap();
+        let item = report.item("mods/x.pw.toml").unwrap();
+        match expected {
+            None => assert_eq!(item.status, UpdateStatus::UpToDate, "{minecraft}: {item:?}"),
+            Some(id) => {
+                assert_eq!(
+                    item.status,
+                    UpdateStatus::Available,
+                    "{minecraft}: {item:?}"
+                );
+                assert_eq!(item.new_version.as_ref().unwrap().id, id);
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn modrinth_no_neoforge_1201_prefere_o_neoforge_e_so_usa_forge_sem_ele() {
+    // ADR-0061: uma consulta por loader, na ordem do pack. Mod 0 tem NeoForge (mais antigo que o
+    // Forge novo) e fica no NeoForge; mod 1 só tem Forge.
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let mut manifest = PackManifest::new("NeoForge", "1.20.1");
+    manifest.set_loader_version(warden_packwiz::Loader::NeoForge, "47.1.106");
+    write(root, "pack.toml", &manifest.to_toml_string());
+    let files = modrinth_files(2);
+    let index = PackIndex {
+        hash_format: "sha256".into(),
+        files: files
+            .iter()
+            .map(|(path, _)| IndexEntry::new(path, "00"))
+            .collect(),
+    };
+    write(root, "index.toml", &index.to_toml_string());
+    for (path, text) in &files {
+        write(root, path, text);
+    }
+    let server = MockServer::start().await;
+    let version = |id: &str, n: usize, date: &str| {
+        version_json(
+            id,
+            &format!("proj{n:04}"),
+            id,
+            "release",
+            date,
+            &hash_of(n + 20_000),
+        )
+    };
+    let mut neo = serde_json::Map::new();
+    neo.insert(hash_of(0), version("neo00000", 0, "2026-02-01T00:00:00Z"));
+    let mut forge = serde_json::Map::new();
+    forge.insert(hash_of(0), version("frg00000", 0, "2026-03-01T00:00:00Z"));
+    forge.insert(hash_of(1), version("frg00001", 1, "2026-03-01T00:00:00Z"));
+    for (loader, body) in [("neoforge", neo), ("forge", forge)] {
+        Mock::given(method("POST"))
+            .and(path("/v2/version_files/update"))
+            .and(body_partial_json(json!({ "loaders": [loader] })))
+            .respond_with(json_response(&Value::Object(body)))
+            .mount(&server)
+            .await;
+    }
+    let mut installed = serde_json::Map::new();
+    for n in 0..2 {
+        installed.insert(
+            hash_of(n),
+            version_json(
+                &format!("old{n:05}"),
+                &format!("proj{n:04}"),
+                "1.0",
+                "release",
+                "2026-01-01T00:00:00Z",
+                &hash_of(n),
+            ),
+        );
+    }
+    Mock::given(method("POST"))
+        .and(path("/v2/version_files"))
+        .respond_with(json_response(&Value::Object(installed)))
+        .mount(&server)
+        .await;
+    let mr = modrinth(&server);
+    let report = check(root, &ctx(&mr, None, false), None).await.unwrap();
+    let offered = |path: &str| {
+        report
+            .item(path)
+            .and_then(|item| item.new_version.as_ref())
+            .map(|new| new.id.clone())
+    };
+    assert_eq!(offered("mods/mod000.pw.toml").as_deref(), Some("neo00000"));
+    assert_eq!(offered("mods/mod001.pw.toml").as_deref(), Some("frg00001"));
 }
