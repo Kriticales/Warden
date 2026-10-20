@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use serde::Serialize;
 
-use super::query::NodeRef;
+use super::query::{EmbeddedMod, NodeRef};
 use super::{Graph, RelationKind, Requirement, State, UnknownItem};
 
 /// Quantos níveis de cada lado o desenho focado aceita.
@@ -35,8 +35,8 @@ pub struct FocusNode {
     /// 0 = centro (ou todos, no pack inteiro); negativo = o que o centro exige (−1 direto,
     /// −2 do nível −1); positivo = quem depende do centro (1 direto, 2 do nível 1).
     pub level: i8,
-    /// Ids dos mods embutidos no item (jar-in-jar), que ficam dentro do nó.
-    pub embedded: Vec<String>,
+    /// Os mods embutidos no item (jar-in-jar), que ficam dentro do nó, com id e nome.
+    pub embedded: Vec<EmbeddedMod>,
     /// O item é uma biblioteca (agrupadas no pack inteiro).
     pub library: bool,
 }
@@ -107,7 +107,7 @@ impl<'g> Builder<'g> {
                 item: Some(self.graph.node(index)),
                 label: item.name.clone(),
                 level,
-                embedded: item.embedded.iter().map(|m| m.id.clone()).collect(),
+                embedded: self.graph.embedded_of(index),
                 library: item.library,
             },
         );
@@ -370,7 +370,8 @@ mod tests {
         );
         // As embutidas ficam dentro do nó do Create, sem ligação própria; o jogo não é nó.
         let center = &report.nodes[3];
-        assert_eq!(center.embedded, vec!["flywheel", "registrate"]);
+        let inside: Vec<&str> = center.embedded.iter().map(|m| m.id.as_str()).collect();
+        assert_eq!(inside, vec!["flywheel", "registrate"]);
         assert!(
             report
                 .edges

@@ -20,6 +20,16 @@ pub struct NodeRef {
     pub name: String,
 }
 
+/// Um mod embutido (jar-in-jar) dentro de um item.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct EmbeddedMod {
+    /// Id do mod (`fabric_api_base`).
+    pub id: String,
+    /// Nome que o jar embutido declara ("Forgified Fabric API Base"); o id quando não há.
+    pub name: String,
+}
+
 /// O caminho pedido não é de um item do grafo.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnknownItem(pub String);
@@ -114,6 +124,8 @@ pub struct DependentsReport {
     pub targets: Vec<NodeRef>,
     /// O que o item declara (só com um alvo; vazio com vários).
     pub depends_on: Vec<DependsOn>,
+    /// Os mods que o item traz dentro dele (só com um alvo; vazio com vários).
+    pub embedded: Vec<EmbeddedMod>,
     /// Quem declara uma relação com os alvos, de qualquer tipo.
     pub used_by: Vec<UsedBy>,
     /// O que para de funcionar se os alvos saírem: o fecho transitivo das dependências
@@ -244,18 +256,35 @@ impl Graph {
         }
         let target_set: HashSet<usize> = targets.iter().copied().collect();
 
-        let depends_on = match targets.as_slice() {
-            [only] => self.dependencies_of(*only),
-            _ => Vec::new(),
+        let (depends_on, embedded) = match targets.as_slice() {
+            [only] => (self.dependencies_of(*only), self.embedded_of(*only)),
+            _ => (Vec::new(), Vec::new()),
         };
         let used_by = self.used_by(&target_set);
         let affected = self.affected(&target_set);
         Ok(DependentsReport {
             targets: targets.iter().map(|&index| self.node(index)).collect(),
             depends_on,
+            embedded,
             used_by,
             affected,
         })
+    }
+
+    /// Os mods embutidos no item, com o nome declarado (ou o id).
+    pub(super) fn embedded_of(&self, index: usize) -> Vec<EmbeddedMod> {
+        self.items[index]
+            .embedded
+            .iter()
+            .map(|module| EmbeddedMod {
+                id: module.id.clone(),
+                name: module
+                    .name
+                    .clone()
+                    .filter(|name| !name.trim().is_empty())
+                    .unwrap_or_else(|| module.id.clone()),
+            })
+            .collect()
     }
 
     fn dependencies_of(&self, index: usize) -> Vec<DependsOn> {

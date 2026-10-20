@@ -239,7 +239,10 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
     const hash = /hash = "(.+)"/.exec(metafile)?.[1] ?? '';
     const text = await fullText('[role="dialog"]');
     expect(text).toContain(filename);
-    expect(text).toContain(hash);
+    // O hash fica numa linha, abreviado (início…fim), com o completo no `title` (P3).
+    expect(hash.length).toBeGreaterThan(20);
+    expect(text).toContain(`${hash.slice(0, 8)}…${hash.slice(-8)}`);
+    await expect(drawer.$(`[title="${hash}"]`)).toExist();
     await screenshot('22-detalhes-curseforge-sem-chave');
     await closeOverlay();
   });

@@ -134,16 +134,8 @@ export function GraphView({ packId, items, center, onCenter, onView, onOpenItem 
         <LoadingState inline label={t('carregando')} />
       ) : (
         <div className="stack">
-          <FocusedGraph
-            report={focus.data}
-            centerSub={centerSub(mods.find((item) => item.path === chosen))}
-            onOpen={onOpenItem}
-          />
-          <InWords packId={packId} report={focus.data} />
-          <EdgeList report={focus.data} />
-          <OrphansNote orphans={orphans.data ?? []} onOpen={onOpenItem} />
-          <p className="t-xs t-3">
-            {t('rodape')}{' '}
+          <p className="t-sm t-2 grafo-intro">
+            {t('intro')}{' '}
             <Button
               variant="link"
               onClick={() => {
@@ -153,6 +145,14 @@ export function GraphView({ packId, items, center, onCenter, onView, onOpenItem 
               {t('inteiro.abrir')}
             </Button>
           </p>
+          <FocusedGraph
+            report={focus.data}
+            centerSub={centerSub(mods.find((item) => item.path === chosen))}
+            onOpen={onOpenItem}
+          />
+          <InWords packId={packId} report={focus.data} />
+          <EdgeList report={focus.data} />
+          <OrphansNote orphans={orphans.data ?? []} onOpen={onOpenItem} />
         </div>
       )}
       <WholeGraphDialog

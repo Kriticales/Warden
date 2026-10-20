@@ -27,13 +27,17 @@ export const grafoDesenho = {
     nivel2Direita: 'Usados por estes',
   },
   regiao: 'Grafo de dependências de {{nome}}',
+  intro:
+    'Este é o mapa de quem precisa de quem: no meio, o mod escolhido; à esquerda, o que ele precisa para funcionar; à direita, os mods que precisam dele. Clique num mod para abrir os detalhes ou troque o mod do centro no seletor acima.',
   no: {
     noPack: 'no pack',
     falta: 'não está no pack',
     biblioteca: 'biblioteca',
     embutidas_one: '{{count}} dentro',
     embutidas_other: '{{count}} dentro',
-    dentroDele: 'Dentro dele: {{nomes}}',
+    dentroDele: 'Dentro dele:',
+    partesFabric_one: 'parte da Fabric API ({{count}})',
+    partesFabric_other: 'partes da Fabric API ({{count}})',
     mais_one: 'e mais {{count}} (na lista em texto)',
     mais_other: 'e mais {{count}} (na lista em texto)',
   },
@@ -42,8 +46,15 @@ export const grafoDesenho = {
     obrigatoria: 'Obrigatória',
     opcional: 'Opcional ou recomendada',
     incompativel: 'Incompatível',
-    inferida: 'Inferida (não declarada pelo mod)',
-    embutida: 'Embutida: fica dentro do nó',
+    inferida: 'Inferida',
+    embutida: 'Embutida',
+    dicas: {
+      obrigatoria: 'sem o outro mod, este não abre',
+      opcional: 'usa o outro mod se ele estiver no pack, mas funciona sem',
+      incompativel: 'os dois não podem ficar juntos no pack',
+      inferida: 'o mod não avisa, mas o Warden viu que ele precisa do outro',
+      embutida: 'vem dentro do arquivo do próprio mod; não precisa adicionar',
+    },
   },
   palavras: {
     titulo: 'Em palavras',
@@ -78,8 +89,6 @@ export const grafoDesenho = {
     texto: 'Nenhum mod do pack precisa mais delas. Podem ser removidas.',
     ver: 'Ver {{nome}}',
   },
-  rodape:
-    'Clique num mod para abrir os detalhes. Para colocar outro mod no centro, use "Ver no grafo" nos detalhes ou o seletor acima.',
   inteiro: {
     abrir: 'Ver o pack inteiro',
     titulo: 'O pack inteiro',

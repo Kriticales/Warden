@@ -4,6 +4,7 @@ import type { FocusEdge, FocusNode, FocusReport, RelationKind } from '../../../l
 import {
   centerOptions,
   edgeStyle,
+  embeddedEntries,
   GAP,
   layoutFocus,
   ROW,
@@ -125,6 +126,24 @@ describe('modelo do grafo focado (D-11)', () => {
     expect(list.map((entry) => [entry.node.key, entry.needs])).toEqual([
       ['a', ['b']],
       ['b', []],
+    ]);
+  });
+});
+
+describe('embeddedEntries', () => {
+  it('junta os módulos da Fabric API e mantém o resto com o nome declarado', () => {
+    const entries = embeddedEntries([
+      { id: 'fabric_api_base', name: 'Forgified Fabric API Base' },
+      { id: 'fabric-renderer-api-v1', name: 'Fabric Renderer API (v1)' },
+      { id: 'fabric-api', name: 'Fabric API' },
+      { id: 'fabric-language-kotlin', name: 'Fabric Language Kotlin' },
+      { id: 'sodium', name: 'Sodium' },
+    ]);
+    expect(entries.map((entry) => [entry.name, entry.ids, entry.fabricParts])).toEqual([
+      ['Fabric API', ['fabric-api'], 0],
+      ['Fabric Language Kotlin', ['fabric-language-kotlin'], 0],
+      ['Sodium', ['sodium'], 0],
+      ['', ['fabric_api_base', 'fabric-renderer-api-v1'], 2],
     ]);
   });
 });

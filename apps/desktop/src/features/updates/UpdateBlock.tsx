@@ -1,7 +1,7 @@
 /**
  * Bloco "Atualização" do painel de detalhes (SPEC T07 e T10; protótipo `detailDrawer`): a versão
  * nova com o botão Atualizar, ou o estado do item (em dia, fixado, não verificado, não foi
- * possível verificar, não se aplica). O botão só fica habilitado com "Atualização disponível"
+ * possível verificar, não se aplica). O botão só aparece com "Atualização disponível"
  * (CA-T10-02).
  */
 import { RefreshCw } from 'lucide-react';
@@ -42,19 +42,19 @@ export function UpdateBlock({ packId, item }: DetailBlockProps) {
             : t(`estado.${status}`)
         }
         actions={
-          <Button
-            size="sm"
-            variant={available ? 'primary' : 'secondary'}
-            icon={RefreshCw}
-            disabled={!available}
-            onClick={() => {
-              setReviewing(true);
-            }}
-          >
-            {available
-              ? t('detalhes.atualizarPara', { version: update.newVersion?.number ?? '' })
-              : t('detalhes.atualizar')}
-          </Button>
+          // Sem atualização, não há o que fazer aqui: o botão desabilitado só ocupava espaço.
+          available ? (
+            <Button
+              size="sm"
+              variant="primary"
+              icon={RefreshCw}
+              onClick={() => {
+                setReviewing(true);
+              }}
+            >
+              {t('detalhes.atualizarPara', { version: update.newVersion?.number ?? '' })}
+            </Button>
+          ) : undefined
         }
       >
         <div className="alert__text">

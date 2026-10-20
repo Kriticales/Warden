@@ -98,6 +98,16 @@
   image-rendering: auto;
   object-fit: cover;
 }
+.kit__icon {
+  /* Protótipo (`screens-discover.js`, kit): bloco com o medidor no meio, em ciano. */
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-text);
+}
+.tile.kit__icon svg {
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
+}
 .preview__icon {
   width: 56px;
   height: 56px;

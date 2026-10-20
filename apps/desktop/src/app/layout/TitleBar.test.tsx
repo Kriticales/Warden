@@ -61,10 +61,12 @@ describe('TitleBar', () => {
     useReportDialog.setState({ open: false });
   });
 
-  it('mostra a marca e os botões com rótulos em português, sem problemas de acessibilidade', async () => {
+  it('nome da janela só para o leitor de tela e botões com rótulos em português, sem problemas de acessibilidade', async () => {
     windowBackend();
     const { container } = renderTitleBar();
-    expect(screen.getByText('Warden')).toBeTruthy();
+    // A marca fica só no cabeçalho (P13): aqui o nome da janela é só para o leitor de tela.
+    expect(screen.getByText('Warden').className).toBe('sr-only');
+    expect(container.querySelector('.brand__mark, .titlebar__mark')).toBeNull();
     expect(screen.getByRole('group', { name: 'Janela' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Minimizar' })).toBeTruthy();
     expect(await screen.findByRole('button', { name: 'Maximizar' })).toBeTruthy();

@@ -4,13 +4,14 @@
  * caixas; "Adicionar kit" abre o **diálogo de dependências** (T09) com os itens marcados, então
  * nada entra em silêncio.
  */
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Gauge, Plus } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { Button } from '../../../components/ui/button';
+import { Icon } from '../../../components/ui/icon';
 import type { AddResult, Kit, Loader, PackId } from '../../../lib/ipc/bindings';
 import { DependenciesDialog, type DependenciesRequest } from '../dependencies/DependenciesDialog';
 import { loaderName } from '../../packs/lib/pack-list';
@@ -91,7 +92,10 @@ function KitRow({
   const listId = useId();
   const chosen = selectedItems(kit, selection);
   return (
-    <li className="drow drow--compact">
+    <li className="drow drow--nobox">
+      <span className="tile tile--lg kit__icon" aria-hidden="true">
+        <Icon icon={Gauge} size="lg" />
+      </span>
       <span className="drow__main">
         <span className="drow__line">
           <b>{kit.name}</b>

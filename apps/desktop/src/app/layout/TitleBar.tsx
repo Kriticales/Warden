@@ -18,7 +18,6 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BrandMark } from '../../components/common/PixelArt';
 import { ReportButton } from '../../features/report/ReportButton';
 import { cn } from '../../lib/cn';
 import { commands, events, type TitleBarMaximize } from '../../lib/ipc/bindings';
@@ -132,10 +131,9 @@ export function TitleBar() {
   const appWindow = getCurrentWindow();
   return (
     <div className={cn('titlebar', !active && 'titlebar--inactive')} data-testid="titlebar">
-      <span className="titlebar__brand">
-        <BrandMark className="titlebar__mark" />
-        <span className="titlebar__name">{t('marca')}</span>
-      </span>
+      {/* A marca aparece no cabeçalho logo abaixo; aqui fica só o nome da janela para o leitor
+          de tela (decisão do dono, P13: duas marcas seguidas pareciam repetição). */}
+      <span className="sr-only">{t('marca')}</span>
       <div className="titlebar__actions">
         <ReportButton place="titlebar" />
       </div>

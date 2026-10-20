@@ -19,7 +19,13 @@ const node = (name: string) => ({ path: `mods/${name.toLowerCase()}.pw.toml`, na
 const LIB = makeItem({ name: 'Lib' });
 const BACKPACKS = makeItem({ name: 'Backpacks' });
 
-const emptyReport: DependentsReport = { targets: [], dependsOn: [], usedBy: [], affected: [] };
+const emptyReport: DependentsReport = {
+  targets: [],
+  dependsOn: [],
+  embedded: [],
+  usedBy: [],
+  affected: [],
+};
 
 async function openDrawer(
   item: InventoryItem,
@@ -121,6 +127,36 @@ describe('bloco Dependências dos detalhes (D-07)', () => {
     expect(drawer.textContent).not.toContain('Se você remover');
   });
 
+  it('o que vem dentro do jar não aparece em "Depende de": vai em "Traz dentro", com nomes (P3)', async () => {
+    const { drawer } = await openDrawer(
+      LIB,
+      {
+        ...emptyReport,
+        dependsOn: [
+          {
+            id: 'fabric_api_base',
+            kind: 'required',
+            range: null,
+            state: 'own',
+            providers: [],
+            note: null,
+          },
+        ],
+        embedded: [
+          { id: 'sodium_extra', name: 'Sodium Extra' },
+          { id: 'fabric_api_base', name: 'Forgified Fabric API Base' },
+          { id: 'fabric_renderer_api_v1', name: 'Forgified Fabric Renderer API (v1)' },
+        ],
+      },
+      { item: node('Lib'), why: { kind: 'noDependents' }, cycle: [] },
+    );
+    expect(await within(drawer).findByText('Traz dentro')).toBeDefined();
+    expect(drawer.textContent).toContain('3 módulos: Sodium Extra e partes da Fabric API (2)');
+    expect(drawer.textContent).not.toContain('vem dentro deste mod');
+    expect(drawer.textContent).toContain('Nenhum outro mod');
+    expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
   it('quem declara o item incompatível não aparece em "Usado por"', async () => {
     const { drawer } = await openDrawer(
       LIB,
@@ -143,7 +179,7 @@ describe('bloco Dependências dos detalhes (D-07)', () => {
     expect(drawer.textContent).not.toContain('Rival');
   });
 
-  it('biblioteca sem uso diz que pode ser removida (CA-T06-06)', async () => {
+  it('biblioteca sem uso diz, com cuidado, que dá para remover (CA-T06-06)', async () => {
     const { drawer } = await openDrawer(LIB, emptyReport, {
       item: node('Lib'),
       why: { kind: 'unused', optionalUsers: [node('Extra')] },
@@ -151,7 +187,7 @@ describe('bloco Dependências dos detalhes (D-07)', () => {
     });
     expect(
       await within(drawer).findByText(
-        'Nenhum mod usa mais; pode ser removido. Só é usado como opcional por Extra',
+        'Nenhum mod do pack parece precisar dele. Se você não o adicionou de propósito, dá para remover. Só é usado como opcional por Extra',
       ),
     ).toBeDefined();
     expect(drawer.textContent).toContain('Faz parte de um ciclo de dependência com Outro');

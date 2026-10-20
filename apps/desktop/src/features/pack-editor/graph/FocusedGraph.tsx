@@ -22,6 +22,7 @@ import {
   type Column,
   type EdgeStyle,
 } from './model';
+import { EmbeddedNames } from './EmbeddedNames';
 
 /** Largura das calhas entre as colunas (a do protótipo). */
 const GUTTER = 72;
@@ -139,15 +140,11 @@ function ColumnWithGutter({
         </svg>
       ) : null}
       {column.level === 0 ? (
-        <div className="gcol gcol--center" style={{ height }}>
+        // O centro não tem altura fixa: com muitos mods embutidos o cartão cresce e a área
+        // cresce junto (as colunas e as calhas ficam centralizadas na mesma linha).
+        <div className="gcol gcol--center" style={{ minHeight: height }}>
           {column.nodes[0] ? (
-            <CenterNode
-              node={column.nodes[0]}
-              top={y.get(column.nodes[0].key) ?? 0}
-              sub={centerSub}
-              onOpen={onOpen}
-              t={t}
-            />
+            <CenterNode node={column.nodes[0]} sub={centerSub} onOpen={onOpen} t={t} />
           ) : null}
         </div>
       ) : (
@@ -234,13 +231,11 @@ function GraphNode({
 
 function CenterNode({
   node,
-  top,
   sub,
   onOpen,
   t,
 }: {
   node: FocusNode;
-  top: number;
   sub: string | null;
   onOpen: (path: string) => void;
   t: DrawT;
@@ -251,7 +246,6 @@ function CenterNode({
     <button
       type="button"
       className="gcenter"
-      style={{ top: Math.max(0, top - (inside ? 64 : 28)) }}
       onClick={() => {
         if (item) onOpen(item.path);
       }}
@@ -267,9 +261,9 @@ function CenterNode({
         {inside ? (
           <span className="gcenter__inside">
             <Icon icon={Box} size="sm" />
-            {t('no.dentroDele', {
-              nomes: new Intl.ListFormat('pt-BR', { type: 'conjunction' }).format(node.embedded),
-            })}
+            <span>
+              {t('no.dentroDele')} <EmbeddedNames embedded={node.embedded} />
+            </span>
           </span>
         ) : null}
       </span>
@@ -277,28 +271,33 @@ function CenterNode({
   );
 }
 
+/** Legenda com uma dica curta em cada tipo, para quem não conhece os termos (P2). */
 function Legend() {
   const { t } = useTranslation('grafoDesenho');
-  const entries: [EdgeStyle, string][] = [
-    ['required', t('legenda.obrigatoria')],
-    ['optional', t('legenda.opcional')],
-    ['incompatible', t('legenda.incompativel')],
-    ['inferred', t('legenda.inferida')],
+  const entries: [EdgeStyle, string, string][] = [
+    ['required', t('legenda.obrigatoria'), t('legenda.dicas.obrigatoria')],
+    ['optional', t('legenda.opcional'), t('legenda.dicas.opcional')],
+    ['incompatible', t('legenda.incompativel'), t('legenda.dicas.incompativel')],
+    ['inferred', t('legenda.inferida'), t('legenda.dicas.inferida')],
   ];
   return (
     <ul className="graph__legend" aria-label={t('legenda.titulo')}>
-      {entries.map(([style, text]) => (
+      {entries.map(([style, text, hint]) => (
         <li key={style}>
           <svg width="28" height="8" aria-hidden="true" focusable="false">
             <path className={`gedge gedge--${style}`} d="M0 4h28" strokeDasharray={DASH[style]} />
           </svg>
           {style === 'incompatible' ? <Icon icon={TriangleAlert} size="sm" /> : null}
-          {text}
+          <span>
+            <b>{text}</b>: <span className="t-3">{hint}</span>
+          </span>
         </li>
       ))}
       <li>
         <Icon icon={Box} size="sm" />
-        {t('legenda.embutida')}
+        <span>
+          <b>{t('legenda.embutida')}</b>: <span className="t-3">{t('legenda.dicas.embutida')}</span>
+        </span>
       </li>
     </ul>
   );

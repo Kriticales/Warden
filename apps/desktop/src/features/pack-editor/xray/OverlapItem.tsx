@@ -20,6 +20,25 @@ export function RiskBadge({ risk }: { risk: Risk }) {
   return <span className={`badge badge--${BADGE[risk]}`}>{t(`risco.${risk}`)}</span>;
 }
 
+/** Nomes de classe (`LevelRenderer.renderLevel`) quebram depois de cada ponto, não no meio. */
+export function BreakAtDots({ text }: { text: string }) {
+  const pieces = text.split('.');
+  return (
+    <>
+      {pieces.map((piece, index) => (
+        <Fragment key={index}>
+          {piece}
+          {index < pieces.length - 1 ? (
+            <>
+              .<wbr />
+            </>
+          ) : null}
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
 export interface OverlapItemProps {
   overlap: Overlap;
   /** Nome de cada item do pack pelo caminho. */
@@ -59,24 +78,25 @@ export function OverlapItem({ overlap, names }: OverlapItemProps) {
   return (
     <li className={`mixin mixin--${RISK_CLASS[overlap.risk]}`}>
       <div className="mixin__head">
-        <span className="mixin__target">{partLabel(overlap)}</span>
+        <span className="mixin__target">
+          <BreakAtDots text={partLabel(overlap)} />
+        </span>
         <RiskBadge risk={overlap.risk} />
       </div>
-      <div className="path">{fullClass(overlap)}</div>
+      <div className="path">
+        <BreakAtDots text={fullClass(overlap)} />
+      </div>
+      {/* Um participante por linha (P3): com o "+" solto entre eles, a quebra caía no meio. */}
       <div className="mixin__who">
-        {overlap.participants.map((participant, index) => (
-          <Fragment key={`${participant.item}:${participant.mixinClass}:${participant.kind}`}>
-            {index > 0 ? (
-              <span className="t-3" aria-hidden="true">
-                +
-              </span>
-            ) : null}
-            <span className="mixin__mod">
-              <b>{name(participant.item)}</b>{' '}
-              <span className="t-mono t-3">{annotation(participant.kind)}</span>{' '}
-              <span className="t-3">{t(`tipo.${participant.kind}`)}</span>
-            </span>
-          </Fragment>
+        {overlap.participants.map((participant) => (
+          <span
+            key={`${participant.item}:${participant.mixinClass}:${participant.kind}`}
+            className="mixin__mod"
+          >
+            <b>{name(participant.item)}</b>{' '}
+            <span className="t-mono t-3">{annotation(participant.kind)}</span>{' '}
+            <span className="t-3">{t(`tipo.${participant.kind}`)}</span>
+          </span>
         ))}
       </div>
       <p className="mixin__why">{t(`regra.${overlap.rule}`)}</p>
