@@ -31,6 +31,7 @@ mod test_hooks;
 mod test_profiles;
 pub mod test_session;
 pub mod watcher;
+mod webview_behavior;
 mod window_chrome;
 
 /// Testes do gerador do registro de comandos (o mesmo arquivo roda no `build.rs`).
@@ -220,7 +221,9 @@ fn create_main_window(
     let mut builder = tauri::WebviewWindowBuilder::from_config(app.handle(), config)?
         .data_directory(webview_dir)
         // No Windows a barra de título é a do Warden (UI-01; `window_chrome`).
-        .decorations(!window_chrome::CUSTOM_TITLE_BAR);
+        .decorations(!window_chrome::CUSTOM_TITLE_BAR)
+        // App, não página (ADR-0063; `webview_behavior`): sem preenchimento automático.
+        .general_autofill_enabled(false);
     if cfg!(all(windows, debug_assertions))
         && let Some(args) = webview2_args_with(
             std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
@@ -232,6 +235,7 @@ fn create_main_window(
     }
     let window = builder.build()?;
     window_chrome::attach(&window);
+    webview_behavior::attach(&window);
     Ok(())
 }
 

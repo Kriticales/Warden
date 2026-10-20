@@ -9,6 +9,10 @@
 # Fixtures do packwiz: bytes intocados, senão os hashes do index.toml deixam de valer.
 crates/warden-packwiz/tests/fixtures/** -text
 
+# Cópia do portablemc do crates.io: bytes intocados, senão os hashes de ORIGINAL.sha256 deixam
+# de valer (ADR-0062).
+third_party/portablemc/** -text
+
 # Binários.
 *.png binary
 *.ico binary

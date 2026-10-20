@@ -1,7 +1,9 @@
 //! Comandos do domínio `diagnostics` (SPEC T14 sem IA; ARCHITECTURE §9; ROADMAP D-03).
 //!
 //! - `diagnostics_run`: "Verificar agora" da seção Problemas (passagem completa com os jars que
-//!   já existem: os arquivos guardados no pack e os da instância de teste com o mesmo nome).
+//!   já existem: os arquivos guardados no pack e os da instância de teste com o mesmo nome),
+//!   também a verificação automática ao abrir a seção. Aparece nas Tarefas como "Verificar o
+//!   pack" ([`CHECK`]).
 //! - `diagnostics_report_get`: o último relatório, com os ignorados e a marca "ficou velho"
 //!   (o pack mudou depois dele).
 //! - `diagnostics_ignore`: "Ignorar este aviso neste pack" (grava em `.warden/project.toml`).
@@ -40,8 +42,11 @@ use self::report::{
 use crate::commands::inventory::{notify_changed, pack_root};
 use crate::error::AppError;
 use crate::events::PackArea;
-use crate::operations::OperationHandle;
+use crate::operations::{OperationHandle, OperationKind};
 use crate::state::AppState;
+
+/// Tipo da tarefa "Verificar o pack" (seção Problemas).
+pub(crate) const CHECK: OperationKind = OperationKind::new("diagnostics.check");
 
 /// "Verificar agora": confere o pack e grava o relatório.
 #[tauri::command]
@@ -50,7 +55,19 @@ pub(crate) async fn diagnostics_run(
     state: State<'_, AppState>,
     pack_id: PackId,
 ) -> Result<DiagnosticsReport, AppError> {
-    check(&state, pack_id, CheckPass::Complete, None).await
+    run_check(&state, pack_id).await
+}
+
+/// A verificação completa da seção Problemas, registrada como tarefa: o rodapé mostra
+/// "1 tarefa em andamento" enquanto a seção mostra "Verificando…". Sem "Cancelar": ela é
+/// curta e, cancelada, deixaria a seção sem relatório.
+pub(crate) async fn run_check(
+    state: &AppState,
+    pack_id: PackId,
+) -> Result<DiagnosticsReport, AppError> {
+    let handle = state.operations.start(CHECK, Some(pack_id), false);
+    let result = check(state, pack_id, CheckPass::Complete, Some(&handle)).await;
+    handle.finish(result)
 }
 
 /// O último relatório do pack (`None`: nunca verificado neste computador).

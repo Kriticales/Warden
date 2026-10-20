@@ -10,10 +10,20 @@ import { useTauriEvent } from '../../lib/ipc/events';
 import { queryKeys } from '../../lib/ipc/keys';
 import { commandQuery } from '../../lib/ipc/query';
 import { operationName } from './operation-text';
-import { applyOperationUpdate, isFinished } from './operations';
+import { applyOperationUpdate, isFinished, mergeOperationLists } from './operations';
 import { useTasksUi } from './tasks-store';
 
-export const operationsQuery = commandQuery(queryKeys.operations, commands.operationsList);
+/**
+ * A lista que chega de `operations_list` passa por `mergeOperationLists`: uma resposta pedida
+ * antes de um `operation-updated` não desfaz o aviso (fica o retrato de `revision` maior).
+ */
+export const operationsQuery = {
+  ...commandQuery(queryKeys.operations, commands.operationsList),
+  structuralSharing: (current: unknown, incoming: unknown) =>
+    Array.isArray(current)
+      ? mergeOperationLists(current as OperationSnapshot[], incoming as OperationSnapshot[])
+      : incoming,
+};
 
 /** A lista de operações (em andamento e concluídas). */
 export function useOperations() {

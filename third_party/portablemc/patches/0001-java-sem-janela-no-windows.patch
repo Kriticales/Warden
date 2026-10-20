@@ -1,0 +1,65 @@
+Warden: o Java que o motor roda na instalação não abre janela de console no Windows (ADR-0062).
+
+O Warden é um app de janela, sem console. No Windows, todo programa de console que ele abre
+sem a opção CREATE_NO_WINDOW ganha um console novo, com janela. O portablemc 5.0.5 roda o
+`java.exe` que o Warden entrega (`JvmPolicy::Static`) em dois lugares sem essa opção:
+
+- `src/base/mod.rs`, em `find_jvm_versions`: o `java -version`, a cada instalação (a cada
+  teste do pack);
+- `src/forge/mod.rs`, em `try_install`: cada "processor" do instalador do Forge e do NeoForge,
+  na primeira instalação.
+
+Cada um piscava uma janela preta de terminal. O patch só acrescenta a opção
+CREATE_NO_WINDOW (0x08000000) a esses dois comandos, no Windows; nada mais muda. O
+`Game::command` (`src/base/mod.rs`, abrir o jogo) fica como está: o Warden monta e abre o
+processo do jogo ele mesmo (`warden_launcher::process`, que já usa a opção). O teste
+`crates/warden-launcher/tests/java_sem_janela.rs` falha sem o patch no Windows.
+
+Base: portablemc 5.0.5 do crates.io (checksum em third_party/portablemc/WARDEN.md). Aplicar
+com `git apply` na pasta do crate.
+
+diff --git a/src/base/mod.rs b/src/base/mod.rs
+index 1e43ea4..1014acd 100644
+--- a/src/base/mod.rs
++++ b/src/base/mod.rs
+@@ -1509,12 +1509,18 @@ impl Installer {
+         // double quotes.
+         for jvm in jvms.iter_mut() {
+             
+-            let child = Command::new(&jvm.file)
++            let mut command = Command::new(&jvm.file);
++            command
+                 .arg("-version")
+                 .stdout(Stdio::null())
+-                .stderr(Stdio::piped())
+-                .spawn()
+-                .ok();
++                .stderr(Stdio::piped());
++            // Warden: no console window for the console `java.exe` (CREATE_NO_WINDOW).
++            #[cfg(windows)]
++            {
++                use std::os::windows::process::CommandExt;
++                command.creation_flags(0x0800_0000);
++            }
++            let child = command.spawn().ok();
+             
+             if child.is_some() {
+                 remaining += 1;
+diff --git a/src/forge/mod.rs b/src/forge/mod.rs
+index 2459ea6..78da97a 100644
+--- a/src/forge/mod.rs
++++ b/src/forge/mod.rs
+@@ -1151,6 +1151,13 @@ fn try_install(
+                     }
+                 }
+ 
++                // Warden: no console window for each processor (CREATE_NO_WINDOW).
++                #[cfg(windows)]
++                {
++                    use std::os::windows::process::CommandExt;
++                    command.creation_flags(0x0800_0000);
++                }
++
+                 let output = command.output()
+                     .map_err(|e| base::Error::new_io(e, format!("spawn: {}", jvm_file.display())))?;
+ 

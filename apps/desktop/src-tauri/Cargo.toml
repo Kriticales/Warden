@@ -87,6 +87,9 @@ windows = { workspace = true, features = [
   "Win32_UI_Input_KeyboardAndMouse",
   "Win32_UI_WindowsAndMessaging",
 ] }
+# Atalhos de navegador, menu de contexto e preenchimento automático do WebView2 (ADR-0063). O
+# `unsafe` fica isolado em `src/webview_behavior/windows.rs`.
+webview2-com.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -79,6 +79,7 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | `cafebabe` | 0.9.0 | 0BSD | `warden-mixin` | Leitura das classes de mixin dos jars (só o constant pool e as anotações, sem bytecode) no raio-x de mixins (D-10; ADR-0034 e ADR-0056). |
 | `criterion` | 0.8.2 | Apache-2.0 OR MIT | `warden-packwiz`, `warden-project`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics`, `warden-export` (benchmarks) | Medições de desempenho com o pack grande (A-04; SPEC §8), em `cargo bench`. Sem as funções padrão (`rayon`, `plotters`): só a medida e o relatório no terminal. Os benchmarks também usam `sha2` e `zip` (já registrados) como dependências de desenvolvimento, para gerar o pack e os jars sintéticos. |
 | `prost` | 0.14.4 | Apache-2.0 | `warden-perf` | Leitura dos perfis do spark (`.sparkprofile`, `.sparkheap`; protobuf) no "Testar com perfil de desempenho" (L-12; ARCHITECTURE §7.7). O código das mensagens é gerado uma vez pelo `prost-build` a partir dos `.proto` do spark e fica no repositório (`crates/warden-perf/src/spark/generated.rs`), sem `protoc` no build. Traz o `prost-derive` (Apache-2.0) com `itertools` e `either` (MIT OR Apache-2.0). |
+| `webview2-com` | 0.39.1 | MIT | `warden-app` (Windows) | O app se comporta como app, não como página (B1-C, ADR-0063): desliga os atalhos de navegador e o preenchimento automático do WebView2 e filtra o menu de contexto do Edge. A mesma versão que o `wry` do Tauri já usa. |
 
 ## Ferramentas instaladas por `cargo xtask setup` (crates.io, `cargo install --locked`)
 
@@ -178,6 +179,12 @@ Uma seção por origem (registro acréscimo-apenas, ROADMAP §1). As versões ex
 | Origem | Versão | Licença | Para quê |
 |---|---|---|---|
 | [packwiz/packwiz](https://github.com/packwiz/packwiz) | commit em [`third_party/packwiz/COMMIT`](third_party/packwiz/COMMIT) (`ef87d96`, 2026-09-06) | MIT ([`third_party/packwiz/LICENSE`](third_party/packwiz/LICENSE)) | Refresh, validação e exportação do pack ([ADR-0007](docs/decisions/0007-sidecar-packwiz.md)). Compilado por `cargo xtask build-packwiz` com os patches de [`third_party/packwiz/patches/`](third_party/packwiz/patches/) e embutido como sidecar do Tauri. As dependências Go do packwiz vêm do `go.sum` do commit. |
+
+## Crates Rust emendadas (`third_party/`)
+
+| Origem | Versão | Licença | Para quê |
+|---|---|---|---|
+| [theorzr/portablemc](https://github.com/theorzr/portablemc) | 5.0.5 do crates.io (commit `99fdead`), cópia em [`third_party/portablemc/`](third_party/portablemc/WARDEN.md) | Apache-2.0 ([`third_party/portablemc/LICENSE`](third_party/portablemc/LICENSE)) | O mesmo motor do launcher da seção "Crates Rust", trocado pela cópia no `[patch.crates-io]` do `Cargo.toml` com os patches de [`third_party/portablemc/patches/`](third_party/portablemc/patches/): o Java da instalação roda sem janela de console no Windows ([ADR-0062](docs/decisions/0062-emenda-do-portablemc-java-sem-janela.md)). |
 
 ## Comportamento portado (reescrito em Rust a partir da leitura, sem cópia literal)
 

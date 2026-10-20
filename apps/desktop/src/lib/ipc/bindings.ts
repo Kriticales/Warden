@@ -6445,6 +6445,11 @@ export type OperationSnapshot = {
 	finishedAtMs: number | null,
 	/**  Erro, quando terminou com erro. */
 	error: AppError | null,
+	/**
+	 *  Ordem do retrato: cresce a cada mudança de qualquer operação do registro. Entre dois
+	 *  retratos da mesma operação, vale o de `revision` maior.
+	 */
+	revision: number,
 };
 
 /**  Etapa atual. */

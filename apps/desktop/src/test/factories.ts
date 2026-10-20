@@ -64,6 +64,7 @@ export function makeOperation(overrides: Partial<OperationSnapshot> = {}): Opera
     startedAtMs: BASE_TIME_MS,
     finishedAtMs: null,
     error: null,
+    revision: 1,
     ...overrides,
   };
 }

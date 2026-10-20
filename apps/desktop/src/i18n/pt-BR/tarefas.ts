@@ -51,6 +51,21 @@ export const tarefas = {
   },
   tipoDesconhecido: 'Tarefa do Warden',
   tipos: {
+    // B1-C: os tipos que ainda caíam em "Tarefa do Warden".
+    pack: {
+      create: 'Criar pack',
+    },
+    diagnostics: {
+      check: 'Verificar o pack',
+    },
+    configs: {
+      write: 'Salvar config',
+      preserve: 'Mudar "Não substituir se o jogador já tiver"',
+      copyDefaultconfigs: 'Copiar config para defaultconfigs/',
+    },
+    scripts: {
+      copyToInstance: 'Copiar script para a instância de teste',
+    },
     test: {
       start: 'Testar o pack',
     },
@@ -61,14 +76,20 @@ export const tarefas = {
       setSide: 'Alterar lado',
       remove: 'Remover do pack',
       include: 'Incluir arquivos no pack',
+      setOptional: 'Mudar "Opcional para o jogador"',
+      setPinned: 'Fixar ou soltar a versão',
     },
     export: {
       run: 'Exportar',
+      formatRun: 'Exportar .mrpack ou .zip da CurseForge',
+      prism: 'Gerar a instância para o Prism',
+      serverPack: 'Gerar o pacote para servidor',
     },
     add: {
       apply: 'Adicionar ao pack',
       // P1-11: link do Modrinth, link direto e arquivo do computador.
       modrinthLink: 'Ler o link do Modrinth',
+      curseforgeLink: 'Ler o link da CurseForge',
       directLink: 'Baixar o link',
       localInspect: 'Ler arquivos do computador',
       localApply: 'Adicionar arquivos ao pack',
