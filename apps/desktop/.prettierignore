@@ -6,3 +6,5 @@ dist/
 coverage/
 src-tauri/
 node_modules/
+# Notas da ferramenta de design (impeccable): não são código do app.
+.impeccable/
