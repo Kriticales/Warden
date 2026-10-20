@@ -3278,7 +3278,12 @@ export type DiscoveryErrorCode =
  */
 "MODPACK_UNREADABLE";
 
-/**  Como um item do pack foi reconhecido como o mesmo projeto vindo de outra fonte. */
+/**
+ *  Como um item do pack foi reconhecido como o mesmo projeto vindo de outra fonte.
+ * 
+ *  A ordem é a da confiança: o projeto equivalente vale mais que o hash, que vale mais que o
+ *  nome.
+ */
 export type DuplicateMatch = 
 /**  O mesmo projeto, identificado pelo hash do arquivo na outra fonte. */
 "project" | 

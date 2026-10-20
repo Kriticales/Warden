@@ -100,6 +100,9 @@ pub struct ApiMetadata {
     pub client_side: Option<bool>,
     /// Campo `server_side` do Modrinth, se conhecido.
     pub server_side: Option<bool>,
+    /// O mesmo projeto noutras fontes (fonte, ID), achado pelo hash do arquivo ou pelo nome: o
+    /// `MezzConfig` da CurseForge também atende a quem pede o do Modrinth.
+    pub equivalents: Vec<(Source, String)>,
 }
 
 /// Canal de publicação da versão.
@@ -348,6 +351,7 @@ mod tests {
             download_blocked: false,
             client_side: Some(true),
             server_side: Some(false),
+            equivalents: Vec::new(),
         });
         let mut input = Input {
             pack: pack(Loader::NeoForge),
@@ -500,6 +504,7 @@ mod tests {
             download_blocked: source == Source::CurseForge,
             client_side: None,
             server_side: None,
+            equivalents: Vec::new(),
         };
         let mut first = item("primeiro", Loader::Fabric);
         first.api = Some(api(Source::Modrinth, "m1"));
@@ -529,6 +534,117 @@ mod tests {
         ] {
             assert!(codes(&found).contains(&code), "{code}: {:?}", codes(&found));
         }
+    }
+
+    fn api_of(source: Source, project_id: &str, slug: Option<&str>) -> ApiMetadata {
+        ApiMetadata {
+            source,
+            url: format!("https://example.invalid/{project_id}"),
+            project_id: project_id.into(),
+            project_slug: slug.map(Into::into),
+            game_versions: vec!["1.21.1".into()],
+            loaders: vec![Loader::NeoForge],
+            release: ReleaseChannel::Release,
+            relations: vec![],
+            archived: false,
+            download_blocked: false,
+            client_side: None,
+            server_side: None,
+            equivalents: Vec::new(),
+        }
+    }
+
+    fn requiring(source: Source, project_id: &str, dependency: &str) -> ApiMetadata {
+        let mut api = api_of(source, project_id, None);
+        api.relations.push(ApiRelation {
+            project_id: dependency.into(),
+            kind: ApiRelationKind::Required,
+            field: "dependencies".into(),
+        });
+        api
+    }
+
+    fn quick(items: Vec<PackItem>) -> Vec<String> {
+        let input = Input {
+            pack: pack(Loader::NeoForge),
+            pass: Pass::Quick,
+            items,
+        };
+        codes(&analyze(&input).unwrap())
+            .into_iter()
+            .map(str::to_owned)
+            .collect()
+    }
+
+    /// P4: o JEI do Modrinth pede o `m-mezz`; o `MezzConfig` está no pack pela CurseForge.
+    #[test]
+    fn dependencia_presente_pela_outra_fonte_nao_falta() {
+        let mut jei = item("jei", Loader::NeoForge);
+        jei.api = Some(requiring(Source::Modrinth, "u6dRKJwZ", "m-mezz"));
+        let mut mezz = item("mezzconfig", Loader::NeoForge);
+        mezz.api = Some(api_of(Source::CurseForge, "1000", None));
+        assert!(quick(vec![jei.clone(), mezz.clone()]).contains(&"E_MISSING_DEP".to_owned()));
+
+        mezz.api
+            .as_mut()
+            .unwrap()
+            .equivalents
+            .push((Source::Modrinth, "m-mezz".into()));
+        let found = quick(vec![jei, mezz]);
+        assert!(!found.contains(&"E_MISSING_DEP".to_owned()), "{found:?}");
+    }
+
+    /// O caminho inverso: o JEI da CurseForge pede o `1000`; o `MezzConfig` veio do Modrinth.
+    #[test]
+    fn dependencia_da_curseforge_presente_pelo_modrinth_nao_falta() {
+        let mut jei = item("jei", Loader::NeoForge);
+        jei.api = Some(requiring(Source::CurseForge, "238222", "1000"));
+        let mut mezz = item("mezzconfig", Loader::NeoForge);
+        let mut api = api_of(Source::Modrinth, "m-mezz", Some("mezzconfig"));
+        api.equivalents.push((Source::CurseForge, "1000".into()));
+        mezz.api = Some(api);
+        let found = quick(vec![jei, mezz]);
+        assert!(!found.contains(&"E_MISSING_DEP".to_owned()), "{found:?}");
+    }
+
+    /// Duplicata entre fontes na passagem rápida: pelo slug, agora que a CurseForge também o
+    /// informa, e pelo projeto equivalente, sem slug. Cada par é acusado uma vez.
+    #[test]
+    fn duplicata_entre_fontes_pelo_slug_da_curseforge_e_pelo_equivalente() {
+        let duplicates = |found: &[String]| {
+            found
+                .iter()
+                .filter(|code| code.as_str() == "E_DUPLICATE_FILE")
+                .count()
+        };
+        let mut modrinth = item("jei-modrinth", Loader::NeoForge);
+        modrinth.api = Some(api_of(Source::Modrinth, "u6dRKJwZ", Some("jei")));
+        let mut curseforge = item("jei-curseforge", Loader::NeoForge);
+        curseforge.api = Some(api_of(Source::CurseForge, "238222", Some("jei")));
+        assert_eq!(
+            duplicates(&quick(vec![modrinth.clone(), curseforge.clone()])),
+            1
+        );
+
+        // Sem slug na CurseForge, só o equivalente achado pelo hash.
+        curseforge.api.as_mut().unwrap().project_slug = None;
+        assert_eq!(
+            duplicates(&quick(vec![modrinth.clone(), curseforge.clone()])),
+            0
+        );
+        curseforge
+            .api
+            .as_mut()
+            .unwrap()
+            .equivalents
+            .push((Source::Modrinth, "u6dRKJwZ".into()));
+        assert_eq!(
+            duplicates(&quick(vec![modrinth.clone(), curseforge.clone()])),
+            1
+        );
+        // A outra ordem, e o slug e o equivalente juntos: ainda uma vez.
+        curseforge.api.as_mut().unwrap().project_slug = Some("jei".into());
+        assert_eq!(duplicates(&quick(vec![curseforge, modrinth])), 1);
     }
 
     #[test]
@@ -562,6 +678,7 @@ mod tests {
             download_blocked: false,
             client_side: None,
             server_side: None,
+            equivalents: Vec::new(),
         });
         item
     }

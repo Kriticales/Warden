@@ -205,7 +205,10 @@ describe('página Adicionar', () => {
     expect(within(bar).getByText('3 selecionados')).toBeDefined();
     await userEvent.click(within(bar).getByRole('button', { name: 'Adicionar 3 ao pack' }));
 
-    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 3 itens' });
+    // O título faz a mesma conta do botão: os 3 escolhidos e as 2 dependências.
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Adicionar 3 escolhidos + 2 dependências',
+    });
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
     const required = await within(dialog).findByRole('region', { name: 'Obrigatórias' });
     expect(within(required).getByText('Fabric API')).toBeDefined();

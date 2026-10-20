@@ -1969,3 +1969,346 @@ async fn arquivo_com_as_tags_forge_e_neoforge_e_aceito_como_neoforge() {
     assert_eq!(versions, ["9003"], "{plan:#?}");
     assert!(plan.nodes[0].compatible);
 }
+
+// --- O mesmo mod pedido pelas duas fontes (B1-B) ----------------------------------------
+
+/// JEI e a biblioteca dele na CurseForge.
+const CF_JEI: u64 = 920_001;
+const CF_MEZZ: u64 = 920_002;
+/// No Modrinth: o JEI, o `MezzConfig` (com outro nome e outro slug: só o SHA-1 os liga), um mod
+/// que também exige o `MezzConfig` e o Jade, que tem o JEI como opcional.
+const MR_JEI: &str = "mrJei0001";
+const MR_MEZZ: &str = "mrMezz001";
+const MR_MEZZ_GUI: &str = "mrGui0001";
+const MR_JADE: &str = "mrJade001";
+const JEI_SHA1: &str = "4444444444444444444444444444444444444444";
+const MEZZ_SHA1: &str = "5555555555555555555555555555555555555555";
+
+fn mezz_cf_projects() -> Vec<Value> {
+    vec![
+        cf_project(CF_JEI, "jei", "Just Enough Items (JEI)", "mezz", false),
+        cf_project(CF_MEZZ, "mezzconfig", "MezzConfig", "mezz", false),
+    ]
+}
+
+fn mezz_cf_files() -> Vec<Value> {
+    vec![
+        cf_file(
+            CF_JEI,
+            CF_JEI * 10,
+            "jei-1.21.1-fabric-19.21.0.247.jar",
+            JEI_SHA1,
+            &[(CF_MEZZ, 3)],
+        ),
+        cf_file(
+            CF_MEZZ,
+            CF_MEZZ * 10,
+            "mezzconfig-1.21.1-1.0.0.jar",
+            MEZZ_SHA1,
+            &[],
+        ),
+    ]
+}
+
+fn mr_project(id: &str, slug: &str, title: &str) -> Value {
+    json!({
+        "id": id, "slug": slug, "project_type": "mod", "title": title, "status": "approved",
+        "client_side": "required", "server_side": "required"
+    })
+}
+
+fn mr_version(
+    id: &str,
+    project: &str,
+    number: &str,
+    sha1: &str,
+    environment: Option<&str>,
+    deps: &[(&str, &str)],
+) -> Value {
+    json!({
+        "id": id, "project_id": project, "name": number, "version_number": number,
+        "game_versions": ["1.21.1"], "loaders": ["fabric"], "environment": environment,
+        "version_type": "release", "status": "listed", "featured": false, "downloads": 1,
+        "date_published": "2026-09-01T00:00:00Z",
+        "files": [{
+            "hashes": {"sha1": sha1, "sha512": "ab".repeat(64)},
+            "url": format!("https://cdn.modrinth.com/data/{project}/versions/{id}/{project}.jar"),
+            "filename": format!("{project}-{number}.jar"), "primary": true, "size": 1000
+        }],
+        "dependencies": deps.iter()
+            .map(|(project, kind)| json!({"project_id": project, "version_id": null, "dependency_type": kind}))
+            .collect::<Vec<_>>()
+    })
+}
+
+fn mezz_mr_projects() -> Vec<Value> {
+    vec![
+        mr_project(MR_JEI, "jei", "Just Enough Items"),
+        mr_project(MR_MEZZ, "mezz-lib", "Mezz Lib"),
+        mr_project(MR_MEZZ_GUI, "mezzconfiggui", "MezzConfigGUI"),
+        mr_project(MR_JADE, "jade", "Jade"),
+    ]
+}
+
+fn mezz_mr_versions() -> Vec<Value> {
+    vec![
+        // O mesmo arquivo do JEI da CurseForge; o Modrinth informa o lado.
+        mr_version(
+            "vJei00001",
+            MR_JEI,
+            "19.21.0.247",
+            JEI_SHA1,
+            Some("client_and_server"),
+            &[],
+        ),
+        mr_version("vMezz0001", MR_MEZZ, "1.0.0", MEZZ_SHA1, None, &[]),
+        mr_version(
+            "vGui00001",
+            MR_MEZZ_GUI,
+            "2.0.0",
+            "6666666666666666666666666666666666666666",
+            None,
+            &[(MR_MEZZ, "required")],
+        ),
+        mr_version(
+            "vJade0001",
+            MR_JADE,
+            "15.8.2",
+            "7777777777777777777777777777777777777777",
+            None,
+            &[(MR_JEI, "optional")],
+        ),
+    ]
+}
+
+/// Um Modrinth com estes projetos e versões: projetos e versões em lote, as versões de um
+/// projeto e a busca de arquivos pelo hash (`POST /version_files`).
+async fn modrinth_mock(projects: Vec<Value>, versions: Vec<Value>) -> MockServer {
+    let server = MockServer::start().await;
+    let ids_of = |request: &Request| -> Vec<String> {
+        request
+            .url
+            .query_pairs()
+            .find(|(key, _)| key == "ids")
+            .map(|(_, value)| serde_json::from_str(&value).unwrap())
+            .unwrap_or_default()
+    };
+    let all = projects;
+    Mock::given(method("GET"))
+        .and(path("/v2/projects"))
+        .respond_with(move |request: &Request| {
+            let ids = ids_of(request);
+            let found: Vec<&Value> = all
+                .iter()
+                .filter(|project| ids.iter().any(|id| project["id"] == id.as_str()))
+                .collect();
+            ResponseTemplate::new(200).set_body_json(found)
+        })
+        .mount(&server)
+        .await;
+    let all = versions.clone();
+    Mock::given(method("GET"))
+        .and(path("/v2/versions"))
+        .respond_with(move |request: &Request| {
+            let ids = ids_of(request);
+            let found: Vec<&Value> = all
+                .iter()
+                .filter(|version| ids.iter().any(|id| version["id"] == id.as_str()))
+                .collect();
+            ResponseTemplate::new(200).set_body_json(found)
+        })
+        .mount(&server)
+        .await;
+    let all = versions.clone();
+    Mock::given(method("GET"))
+        .and(path_regex(r"^/v2/project/[^/]+/version$"))
+        .respond_with(move |request: &Request| {
+            let project = request.url.path().split('/').nth(3).unwrap().to_owned();
+            let found: Vec<&Value> = all
+                .iter()
+                .filter(|version| version["project_id"] == project.as_str())
+                .collect();
+            ResponseTemplate::new(200).set_body_json(found)
+        })
+        .mount(&server)
+        .await;
+    let all = versions;
+    Mock::given(method("POST"))
+        .and(path("/v2/version_files"))
+        .respond_with(move |request: &Request| {
+            let body: Value = serde_json::from_slice(&request.body).unwrap();
+            let mut found = serde_json::Map::new();
+            for hash in body["hashes"].as_array().unwrap() {
+                let hash = hash.as_str().unwrap();
+                if let Some(version) = all
+                    .iter()
+                    .find(|version| version["files"][0]["hashes"]["sha1"] == hash)
+                {
+                    found.insert(hash.to_owned(), version.clone());
+                }
+            }
+            ResponseTemplate::new(200).set_body_json(Value::Object(found))
+        })
+        .mount(&server)
+        .await;
+    server
+}
+
+async fn mezz_sources() -> (MockServer, MockServer, AddSources) {
+    let modrinth = modrinth_mock(mezz_mr_projects(), mezz_mr_versions()).await;
+    let curseforge = MockServer::start().await;
+    curseforge_mock(&curseforge, mezz_cf_projects(), mezz_cf_files()).await;
+    let sources = add_sources(&modrinth, &curseforge);
+    (modrinth, curseforge, sources)
+}
+
+/// P1: o JEI da CurseForge e o `MezzConfigGUI` do Modrinth exigem o mesmo `MezzConfig`, cada um
+/// pela sua fonte (o mesmo arquivo, pelo SHA-1, com nomes diferentes): um nó só, o do
+/// Modrinth (ADR-0027), com os dois pais. O JEI escolhido pela CurseForge não reaparece como
+/// opcional do Jade vindo do Modrinth, e ganha o lado que o Modrinth informa. A versão da
+/// CurseForge aparece legível.
+#[tokio::test]
+async fn dependencia_comum_pelas_duas_fontes_vira_um_no() {
+    let (_modrinth, _curseforge, sources) = mezz_sources().await;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fabric_target(root);
+    refresh(root).await;
+
+    let plan = plan_of(
+        &sources,
+        root,
+        vec![
+            choice(SourceId::Curseforge, CF_JEI),
+            choice(SourceId::Modrinth, MR_MEZZ_GUI),
+            choice(SourceId::Modrinth, MR_JADE),
+        ],
+    )
+    .await;
+    let keys: Vec<(&str, NodeRole)> = plan
+        .nodes
+        .iter()
+        .map(|node| (node.key.as_str(), node.role))
+        .collect();
+    let jei = format!("curseforge:{CF_JEI}");
+    let gui = format!("modrinth:{MR_MEZZ_GUI}");
+    let jade = format!("modrinth:{MR_JADE}");
+    let mezz = format!("modrinth:{MR_MEZZ}");
+    assert_eq!(
+        keys,
+        [
+            (jei.as_str(), NodeRole::Chosen),
+            (gui.as_str(), NodeRole::Chosen),
+            (jade.as_str(), NodeRole::Chosen),
+            (mezz.as_str(), NodeRole::Required),
+        ],
+        "{plan:#?}"
+    );
+    let library = &plan.nodes[3];
+    assert_eq!(library.required_by, [gui.clone(), jei.clone()]);
+    assert!(plan.missing.is_empty() && plan.installed.is_empty());
+
+    let chosen_jei = &plan.nodes[0];
+    assert_eq!(chosen_jei.optional_for, [jade]);
+    assert_eq!(chosen_jei.version_number, "19.21.0.247");
+    assert_eq!(chosen_jei.side, SideChoice::Both);
+    assert_eq!(chosen_jei.side_note, None, "o lado veio do Modrinth");
+}
+
+/// A dependência comum pela CurseForge também cai no nó do Modrinth quando só a CurseForge a
+/// pede num nível e o Modrinth no seguinte (fica o do Modrinth, com os dois pais).
+#[tokio::test]
+async fn no_da_curseforge_cede_ao_do_modrinth_no_nivel_seguinte() {
+    let mut projects = mezz_mr_projects();
+    projects.push(mr_project("mrMid0001", "meio", "Meio"));
+    let mut versions = mezz_mr_versions();
+    // O `MezzConfigGUI` pede o `MezzConfig` por um intermediário: um nível depois do JEI.
+    versions[2] = mr_version(
+        "vGui00001",
+        MR_MEZZ_GUI,
+        "2.0.0",
+        "6666666666666666666666666666666666666666",
+        None,
+        &[("mrMid0001", "required")],
+    );
+    versions.push(mr_version(
+        "vMid00001",
+        "mrMid0001",
+        "1.0",
+        "8888888888888888888888888888888888888888",
+        None,
+        &[(MR_MEZZ, "required")],
+    ));
+    let modrinth = modrinth_mock(projects, versions).await;
+    let curseforge = MockServer::start().await;
+    curseforge_mock(&curseforge, mezz_cf_projects(), mezz_cf_files()).await;
+    let sources = add_sources(&modrinth, &curseforge);
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fabric_target(root);
+    refresh(root).await;
+
+    let plan = plan_of(
+        &sources,
+        root,
+        vec![
+            choice(SourceId::Curseforge, CF_JEI),
+            choice(SourceId::Modrinth, MR_MEZZ_GUI),
+        ],
+    )
+    .await;
+    let libraries: Vec<_> = plan
+        .nodes
+        .iter()
+        .filter(|node| node.role == NodeRole::Required && node.project_id != "mrMid0001")
+        .collect();
+    assert_eq!(libraries.len(), 1, "{plan:#?}");
+    assert_eq!(libraries[0].key, format!("modrinth:{MR_MEZZ}"));
+    assert_eq!(
+        libraries[0].required_by,
+        [
+            format!("curseforge:{CF_JEI}"),
+            "modrinth:mrMid0001".to_owned()
+        ]
+    );
+}
+
+/// O pedido com o mesmo mod pelas duas fontes grava um `.pw.toml` só.
+#[tokio::test]
+async fn gravar_dois_itens_equivalentes_grava_um_so() {
+    let (_modrinth, _curseforge, sources) = mezz_sources().await;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fabric_target(root);
+    refresh(root).await;
+    let Some(cli) = packwiz(root) else { return };
+    let request = AddApplyRequest {
+        items: vec![
+            ApplyItem {
+                source: SourceId::Modrinth,
+                project_id: MR_MEZZ.into(),
+                version_id: "vMezz0001".into(),
+                side: None,
+                replaces: None,
+            },
+            ApplyItem {
+                source: SourceId::Curseforge,
+                project_id: CF_MEZZ.to_string(),
+                version_id: (CF_MEZZ * 10).to_string(),
+                side: None,
+                replaces: None,
+            },
+        ],
+    };
+    let result = add_apply(root, &sources, &request, &cli, &CancellationToken::new())
+        .await
+        .unwrap();
+    let paths: Vec<&str> = result.added.iter().map(|item| item.path.as_str()).collect();
+    assert_eq!(paths, ["mods/mezz-lib.pw.toml"]);
+    let mods: Vec<String> = fs::read_dir(root.join("mods"))
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(mods, ["mezz-lib.pw.toml"]);
+    assert_conforming(root).await;
+}

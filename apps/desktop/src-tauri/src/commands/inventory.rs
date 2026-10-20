@@ -73,6 +73,12 @@ pub(crate) fn curseforge(state: &AppState) -> Result<CurseforgeClient, AppError>
         .secrets
         .get(SecretKind::Curseforge)
         .map_err(|error| AppError::from_domain(&error))?;
+    // A CurseForge simulada dos testes (a mesma do Testar).
+    #[cfg(test)]
+    if let Some(base) = state.tests.curseforge_base.as_deref() {
+        return CurseforgeClient::with_base_url(http()?, base, key)
+            .map_err(|error| AppError::from_domain(&error));
+    }
     CurseforgeClient::new(http()?, key).map_err(|error| AppError::from_domain(&error))
 }
 

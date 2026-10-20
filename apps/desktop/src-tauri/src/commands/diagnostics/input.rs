@@ -19,7 +19,9 @@ use warden_instance::InstanceDirs;
 use warden_jarmeta::{JarMetadata, Loader};
 use warden_java::{JavaChoiceRequest, LoaderKind, MinecraftVersion};
 use warden_packwiz::Side;
+use warden_project::dedup::{CrossIdentity, same_across};
 use warden_project::inventory::{InventoryItem, ItemKind, ItemSource, ItemState};
+use warden_project::search::SourceId;
 
 use crate::commands::graph::{existing, jar_locations, read_jars};
 use crate::commands::inventory::pack_root;
@@ -167,7 +169,7 @@ pub(crate) async fn build_input(
 
     let candidates: Vec<&InventoryItem> =
         snapshot.items.iter().filter(|item| checked(item)).collect();
-    let api = api_metadata(state, &candidates).await;
+    let api = api_metadata(state, &candidates, &snapshot.metafiles).await;
 
     let mut jars = if pass == Pass::Complete {
         read_pack_jars(state, pack_id, snapshot, &candidates).await?
@@ -340,15 +342,185 @@ fn java_for(
     Ok((chosen, minimum))
 }
 
-/// Metadados das APIs por caminho do item. Falha de rede: o item fica sem eles.
+/// Metadados das APIs por caminho do item, com o mesmo projeto noutra fonte. Falha de rede: o
+/// item fica sem eles.
 async fn api_metadata(
     state: &AppState,
     items: &[&InventoryItem],
+    metafiles: &HashMap<String, (Side, Option<String>)>,
 ) -> HashMap<String, ApiMetadata> {
     let mut found = HashMap::new();
     found.extend(modrinth_metadata(state, items).await);
     found.extend(curseforge_metadata(state, items).await);
+    link_equivalents(state, items, metafiles, &mut found).await;
     found
+}
+
+/// Liga cada item ao mesmo projeto noutra fonte (o `MezzConfig` da CurseForge atende a quem pede
+/// o do Modrinth), com a peça de identidade entre fontes (`warden_project::dedup`):
+///
+/// - pelo SHA-1 que o `.pw.toml` da CurseForge guarda, conferido no Modrinth (uma requisição);
+/// - para as dependências que nenhum item atende pela mesma fonte, pelo slug ou nome
+///   normalizado do projeto pedido (uma requisição por fonte, com o cache de cada uma).
+///
+/// A impressão digital da CurseForge (murmur2) pediria os bytes dos jars, que a passagem
+/// rápida não tem; o nome cobre o caminho do Modrinth para a CurseForge. Falha de rede: o
+/// item fica sem equivalentes.
+async fn link_equivalents(
+    state: &AppState,
+    items: &[&InventoryItem],
+    metafiles: &HashMap<String, (Side, Option<String>)>,
+    found: &mut HashMap<String, ApiMetadata>,
+) {
+    let by_path: Vec<(String, String)> = items
+        .iter()
+        .filter(|item| item.source == ItemSource::Curseforge && found.contains_key(&item.path))
+        .filter_map(|item| {
+            let (_, hash) = metafiles.get(&item.path)?;
+            let sha1 = hash.as_deref()?.strip_prefix("sha1:")?;
+            Some((item.path.clone(), sha1.to_ascii_lowercase()))
+        })
+        .collect();
+    if !by_path.is_empty() {
+        let hashes: Vec<String> = by_path.iter().map(|(_, sha1)| sha1.clone()).collect();
+        match state
+            .modrinth
+            .version_files(&hashes, warden_modrinth::HashAlgorithm::Sha1, None)
+            .await
+        {
+            Ok(versions) => {
+                for (path, sha1) in &by_path {
+                    if let Some(version) = versions.get(sha1) {
+                        add_equivalent(found, path, Source::Modrinth, &version.project_id);
+                    }
+                }
+            }
+            Err(error) => {
+                tracing::info!(%error, "hashes da CurseForge não conferidos no Modrinth");
+            }
+        }
+    }
+    for target in unmet_targets(state, found).await {
+        let wanted = target.identity();
+        for item in items {
+            let Some(api) = found.get(&item.path) else {
+                continue;
+            };
+            let identity = CrossIdentity {
+                source: Some(source_id(api.source)),
+                project_id: Some(&api.project_id),
+                sha1: None,
+                equivalents: &[],
+                slug: api
+                    .project_slug
+                    .as_deref()
+                    .or_else(|| warden_packwiz::metafile_stem(&item.path))
+                    .unwrap_or_default(),
+                title: &item.name,
+            };
+            if same_across(&wanted, &identity).is_some() {
+                add_equivalent(found, &item.path, target.source, &target.id);
+            }
+        }
+    }
+}
+
+/// Um projeto pedido por algum item (obrigatório ou incompatível) que nenhum item atende pela
+/// mesma fonte, com o slug e o nome que a fonte informa.
+struct Target {
+    source: Source,
+    id: String,
+    slug: String,
+    title: String,
+}
+
+impl Target {
+    fn identity(&self) -> CrossIdentity<'_> {
+        CrossIdentity {
+            source: Some(source_id(self.source)),
+            project_id: Some(&self.id),
+            sha1: None,
+            equivalents: &[],
+            slug: &self.slug,
+            title: &self.title,
+        }
+    }
+}
+
+async fn unmet_targets(state: &AppState, found: &HashMap<String, ApiMetadata>) -> Vec<Target> {
+    let met = |source: Source, id: &str| {
+        found.values().any(|api| {
+            (api.source == source && api.project_id == id)
+                || api
+                    .equivalents
+                    .iter()
+                    .any(|(known, known_id)| *known == source && known_id == id)
+        })
+    };
+    let mut modrinth = Vec::new();
+    let mut curseforge = Vec::new();
+    for api in found.values() {
+        for relation in &api.relations {
+            if met(api.source, &relation.project_id) {
+                continue;
+            }
+            match api.source {
+                Source::Modrinth => modrinth.push(relation.project_id.clone()),
+                Source::CurseForge => curseforge.extend(relation.project_id.parse::<u64>().ok()),
+            }
+        }
+    }
+    modrinth.sort();
+    modrinth.dedup();
+    curseforge.sort_unstable();
+    curseforge.dedup();
+    let mut targets = Vec::new();
+    if !modrinth.is_empty() {
+        match state.modrinth.projects(&modrinth, None).await {
+            Ok(projects) => targets.extend(projects.into_iter().map(|project| Target {
+                source: Source::Modrinth,
+                id: project.id,
+                slug: project.slug,
+                title: project.title,
+            })),
+            Err(error) => tracing::info!(%error, "dependências do Modrinth sem nome para conferir"),
+        }
+    }
+    if !curseforge.is_empty()
+        && let Ok(client) = crate::commands::inventory::curseforge(state)
+    {
+        match client.projects(&curseforge, None).await {
+            Ok(projects) => targets.extend(projects.into_iter().map(|project| Target {
+                source: Source::CurseForge,
+                id: project.id.to_string(),
+                slug: project.slug,
+                title: project.name,
+            })),
+            Err(error) => {
+                tracing::info!(%error, "dependências da CurseForge sem nome para conferir");
+            }
+        }
+    }
+    targets
+}
+
+fn add_equivalent(found: &mut HashMap<String, ApiMetadata>, path: &str, source: Source, id: &str) {
+    if let Some(api) = found.get_mut(path)
+        && api.source != source
+        && !api
+            .equivalents
+            .iter()
+            .any(|(known, known_id)| *known == source && known_id == id)
+    {
+        api.equivalents.push((source, id.to_owned()));
+    }
+}
+
+fn source_id(source: Source) -> SourceId {
+    match source {
+        Source::Modrinth => SourceId::Modrinth,
+        Source::CurseForge => SourceId::Curseforge,
+    }
 }
 
 async fn modrinth_metadata(
@@ -454,6 +626,7 @@ fn modrinth_api(
         download_blocked: false,
         client_side: project.and_then(|project| side_supported(project.client_side)),
         server_side: project.and_then(|project| side_supported(project.server_side)),
+        equivalents: Vec::new(),
     }
 }
 
@@ -485,15 +658,39 @@ async fn curseforge_metadata(
             return HashMap::new();
         }
     };
+    // O slug do projeto, para achar o mesmo mod vindo do Modrinth.
+    let mut mod_ids: Vec<u64> = files.iter().map(|file| file.mod_id).collect();
+    mod_ids.sort_unstable();
+    mod_ids.dedup();
+    let projects: HashMap<u64, warden_curseforge::Mod> = match client.projects(&mod_ids, None).await
+    {
+        Ok(projects) => projects
+            .into_iter()
+            .map(|project| (project.id, project))
+            .collect(),
+        Err(error) => {
+            tracing::info!(%error, "projetos da CurseForge indisponíveis para o diagnóstico");
+            HashMap::new()
+        }
+    };
     let by_id: HashMap<u64, &warden_curseforge::File> =
         files.iter().map(|file| (file.id, file)).collect();
     wanted
         .into_iter()
-        .filter_map(|(item, id)| Some((item.path.clone(), curseforge_api(by_id.get(&id)?))))
+        .filter_map(|(item, id)| {
+            let file = by_id.get(&id)?;
+            Some((
+                item.path.clone(),
+                curseforge_api(file, projects.get(&file.mod_id)),
+            ))
+        })
         .collect()
 }
 
-fn curseforge_api(file: &warden_curseforge::File) -> ApiMetadata {
+fn curseforge_api(
+    file: &warden_curseforge::File,
+    project: Option<&warden_curseforge::Mod>,
+) -> ApiMetadata {
     use warden_curseforge::{RelationType, ReleaseType};
     let mut loaders = Vec::new();
     let mut game_versions = Vec::new();
@@ -529,7 +726,9 @@ fn curseforge_api(file: &warden_curseforge::File) -> ApiMetadata {
         source: Source::CurseForge,
         url: format!("https://api.curseforge.com/v1/mods/{}/files/{}", file.mod_id, file.id),
         project_id: file.mod_id.to_string(),
-        project_slug: None,
+        project_slug: project
+            .map(|project| project.slug.clone())
+            .filter(|slug| !slug.is_empty()),
         game_versions,
         loaders,
         release: match file.release_type {
@@ -542,6 +741,7 @@ fn curseforge_api(file: &warden_curseforge::File) -> ApiMetadata {
         download_blocked: file.download_url.is_none(),
         client_side: None,
         server_side: None,
+        equivalents: Vec::new(),
     }
 }
 

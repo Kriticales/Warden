@@ -27,6 +27,9 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
     let mut hashes: HashMap<&str, &PackItem> = HashMap::new();
     let mut projects: HashMap<(&str, &str), &PackItem> = HashMap::new();
     let mut cross_source: HashMap<String, (&PackItem, crate::Source)> = HashMap::new();
+    // O mesmo projeto por outra fonte: (fonte, ID) do equivalente → item que o declarou.
+    let mut equivalent_of: HashMap<(crate::Source, &str), &PackItem> = HashMap::new();
+    let mut cross_pairs: HashSet<(&str, &str)> = HashSet::new();
     let mut ids: HashMap<String, Vec<(&PackItem, Option<&str>)>> = HashMap::new();
 
     for item in &input.items {
@@ -43,10 +46,7 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
             ));
         }
         if let Some(api) = &item.api {
-            let source = match api.source {
-                crate::Source::Modrinth => "modrinth",
-                crate::Source::CurseForge => "curseforge",
-            };
+            let source = source_key(api.source);
             if !api.project_id.is_empty()
                 && let Some(other) = projects.insert((source, &api.project_id), item)
             {
@@ -63,6 +63,7 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
                 && let Some((other, source)) =
                     cross_source.insert(slug.to_ascii_lowercase(), (item, api.source))
                 && source != api.source
+                && cross_pairs.insert(pair_key(other, item))
             {
                 findings.push(pair_finding(
                     "E_DUPLICATE_FILE",
@@ -71,6 +72,38 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
                     item,
                     api_ev(other, "slug"),
                     api_ev(item, "slug"),
+                ));
+            }
+            // O mesmo projeto por outra fonte, achado pelo hash ou pelo nome (num sentido ou
+            // no outro).
+            let twin = api
+                .equivalents
+                .iter()
+                .find_map(|(source, id)| projects.get(&(source_key(*source), id.as_str())).copied())
+                .or_else(|| {
+                    equivalent_of
+                        .get(&(api.source, api.project_id.as_str()))
+                        .copied()
+                })
+                .filter(|other| {
+                    other
+                        .api
+                        .as_ref()
+                        .is_some_and(|other| other.source != api.source)
+                });
+            for (source, id) in &api.equivalents {
+                equivalent_of.insert((*source, id.as_str()), item);
+            }
+            if let Some(other) = twin
+                && cross_pairs.insert(pair_key(other, item))
+            {
+                findings.push(pair_finding(
+                    "E_DUPLICATE_FILE",
+                    Severity::Error,
+                    other,
+                    item,
+                    api_ev(other, "project_id"),
+                    api_ev(item, "project_id"),
                 ));
             }
             if !api.loaders.is_empty()
@@ -172,9 +205,13 @@ pub(super) fn analyze(input: &Input) -> Result<Vec<Finding>> {
                 );
             }
             for relation in &api.relations {
+                // Presente pela mesma fonte ou pelo projeto equivalente noutra fonte.
                 let present = input.items.iter().find(|other| {
                     other.api.as_ref().is_some_and(|a| {
-                        a.source == api.source && a.project_id == relation.project_id
+                        (a.source == api.source && a.project_id == relation.project_id)
+                            || a.equivalents.iter().any(|(source, id)| {
+                                *source == api.source && *id == relation.project_id
+                            })
                     })
                 });
                 match (relation.kind, present) {
@@ -803,6 +840,23 @@ fn loader_name(loader: Loader) -> &'static str {
         Loader::Quilt => "quilt",
         Loader::Forge => "forge",
         Loader::NeoForge => "neoforge",
+    }
+}
+
+/// Nome da fonte na chave dos projetos já vistos.
+fn source_key(source: crate::Source) -> &'static str {
+    match source {
+        crate::Source::Modrinth => "modrinth",
+        crate::Source::CurseForge => "curseforge",
+    }
+}
+
+/// O par de itens em ordem estável, para acusar a mesma duplicata uma vez só.
+fn pair_key<'a>(a: &'a PackItem, b: &'a PackItem) -> (&'a str, &'a str) {
+    if a.path <= b.path {
+        (&a.path, &b.path)
+    } else {
+        (&b.path, &a.path)
     }
 }
 

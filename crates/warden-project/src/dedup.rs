@@ -2,10 +2,13 @@
 //!
 //! - **Na lista da busca:** dois resultados são o mesmo projeto quando o autor e o slug (ou o
 //!   nome) normalizados coincidem ([`same_project`]).
+//! - **Entre fontes, em qualquer lugar** (o pack, o plano de "Adicionar", a gravação e o
+//!   diagnóstico): [`same_across`] é a peça única que diz se dois projetos de fontes
+//!   diferentes são o mesmo, pelo projeto equivalente achado pelo hash (o SHA-1 que a
+//!   CurseForge informa, conferido no Modrinth), pelo SHA-1 do arquivo e, em último caso, pelo
+//!   slug ou nome normalizado ([`CrossIdentity`]).
 //! - **No pack:** um item que vai entrar por uma fonte e já está no pack por outra é achado
-//!   pelo projeto equivalente (o mesmo projeto na outra fonte, quando a fonte informa) ou pelo
-//!   hash do arquivo (o SHA-1 que o `.pw.toml` da CurseForge guarda, conferido no Modrinth), e
-//!   em último caso pelo nome normalizado ([`PackItems::equivalent`]).
+//!   por essa mesma peça ([`PackItems::equivalent`]).
 //!
 //! Normalizar: minúsculas, sem acentos, sem espaços e sem pontuação ("Farmer's Delight" e
 //! "farmers-delight" ficam iguais).
@@ -41,7 +44,12 @@ pub struct Identity<'a> {
 }
 
 /// Como um item do pack foi reconhecido como o mesmo projeto vindo de outra fonte.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
+///
+/// A ordem é a da confiança: o projeto equivalente vale mais que o hash, que vale mais que o
+/// nome.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, specta::Type,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum DuplicateMatch {
     /// O mesmo projeto, identificado pelo hash do arquivo na outra fonte.
@@ -65,6 +73,63 @@ pub fn same_project(a: Identity<'_>, b: Identity<'_>) -> bool {
         !x.is_empty() && x == normalize(y)
     };
     same(a.slug, b.slug) || same(a.title, b.title) || same(a.slug, b.title) || same(a.title, b.slug)
+}
+
+/// O que reconhece um projeto noutra fonte: a peça única de identidade entre fontes, usada no
+/// pack, no plano de "Adicionar", na gravação e no diagnóstico.
+#[derive(Debug, Clone, Copy)]
+pub struct CrossIdentity<'a> {
+    /// Fonte (nenhuma: link direto).
+    pub source: Option<SourceId>,
+    /// ID do projeto na fonte.
+    pub project_id: Option<&'a str>,
+    /// SHA-1 do arquivo, quando conhecido.
+    pub sha1: Option<&'a str>,
+    /// Chaves do mesmo projeto noutras fontes, achadas pelo hash (`modrinth:u6dRKJwZ`).
+    pub equivalents: &'a [String],
+    /// Slug (ou o nome base do `.pw.toml`).
+    pub slug: &'a str,
+    /// Nome.
+    pub title: &'a str,
+}
+
+impl CrossIdentity<'_> {
+    /// Chave estável (`modrinth:<id>`), se vem de uma fonte.
+    #[must_use]
+    pub fn key(&self) -> Option<String> {
+        Some(self.source?.key(self.project_id?))
+    }
+
+    fn names(&self) -> [String; 2] {
+        [normalize(self.slug), normalize(self.title)]
+    }
+}
+
+/// Se `a` e `b`, de **fontes diferentes**, são o mesmo projeto, e como: pelo projeto
+/// equivalente achado pelo hash (num sentido ou no outro), pelo SHA-1 do arquivo, ou pelo slug
+/// ou nome normalizado. Da mesma fonte, nunca (o mesmo projeto ali é a mesma chave).
+#[must_use]
+pub fn same_across(a: &CrossIdentity<'_>, b: &CrossIdentity<'_>) -> Option<DuplicateMatch> {
+    if a.source == b.source {
+        return None;
+    }
+    let listed = |of: &CrossIdentity<'_>, key: Option<String>| {
+        key.is_some_and(|key| of.equivalents.contains(&key))
+    };
+    if listed(a, b.key()) || listed(b, a.key()) {
+        return Some(DuplicateMatch::Project);
+    }
+    if let (Some(x), Some(y)) = (a.sha1, b.sha1)
+        && !x.is_empty()
+        && x.eq_ignore_ascii_case(y)
+    {
+        return Some(DuplicateMatch::Hash);
+    }
+    let names = b.names();
+    a.names()
+        .iter()
+        .any(|name| !name.is_empty() && names.contains(name))
+        .then_some(DuplicateMatch::Name)
 }
 
 /// Um item do pack, com o que serve para achar o mesmo projeto em outra fonte.
@@ -124,6 +189,20 @@ impl PackItem {
     pub fn key(&self) -> Option<String> {
         Some(self.source?.key(self.project_id.as_deref()?))
     }
+
+    /// A identidade entre fontes (o slug é o nome base do `.pw.toml`), com as chaves
+    /// equivalentes achadas pelo hash.
+    #[must_use]
+    pub fn identity<'a>(&'a self, equivalents: &'a [String]) -> CrossIdentity<'a> {
+        CrossIdentity {
+            source: self.source,
+            project_id: self.project_id.as_deref(),
+            sha1: self.sha1.as_deref(),
+            equivalents,
+            slug: metafile_stem(&self.path).unwrap_or_default(),
+            title: &self.name,
+        }
+    }
 }
 
 /// Os itens do pack que vêm de uma fonte ou de um link, para achar duplicatas.
@@ -171,6 +250,14 @@ impl PackItems {
         })
     }
 
+    /// O item do pack com esta chave (`modrinth:<id>`).
+    #[must_use]
+    pub fn by_key(&self, key: &str) -> Option<&PackItem> {
+        self.items
+            .iter()
+            .find(|item| item.key().is_some_and(|known| known == key))
+    }
+
     /// O item do pack com este projeto, nesta mesma fonte.
     #[must_use]
     pub fn same_source(&self, source: SourceId, project_id: &str) -> Option<&PackItem> {
@@ -190,34 +277,30 @@ impl PackItems {
         identity: Identity<'_>,
         sha1: Option<&str>,
     ) -> Option<(&PackItem, DuplicateMatch)> {
-        let key = source.key(project_id);
-        let others = || {
-            self.items
-                .iter()
-                .filter(move |item| item.source != Some(source))
+        let wanted = CrossIdentity {
+            source: Some(source),
+            project_id: Some(project_id),
+            sha1,
+            equivalents: &[],
+            slug: identity.slug,
+            title: identity.title,
         };
-        if let Some(item) = self
-            .by_equivalent_key(&key)
-            .filter(|item| item.source != Some(source))
-        {
-            return Some((item, DuplicateMatch::Project));
-        }
-        if let Some(sha1) = sha1.filter(|sha1| !sha1.is_empty()) {
-            let sha1 = sha1.to_ascii_lowercase();
-            if let Some(item) = others().find(|item| item.sha1.as_deref() == Some(sha1.as_str())) {
-                return Some((item, DuplicateMatch::Hash));
+        let mut best: Option<(&PackItem, DuplicateMatch)> = None;
+        for item in &self.items {
+            let Some(how) = same_across(&wanted, &item.identity(self.equivalents_of(item))) else {
+                continue;
+            };
+            if best.is_none_or(|(_, known)| how < known) {
+                best = Some((item, how));
             }
         }
-        let names = [normalize(identity.slug), normalize(identity.title)];
-        others()
-            .find(|item| {
-                let stem = metafile_stem(&item.path).map(normalize).unwrap_or_default();
-                let name = normalize(&item.name);
-                names
-                    .iter()
-                    .any(|wanted| !wanted.is_empty() && (*wanted == stem || *wanted == name))
-            })
-            .map(|item| (item, DuplicateMatch::Name))
+        best
+    }
+
+    /// As chaves equivalentes noutras fontes de um item do pack.
+    #[must_use]
+    pub fn equivalents_of(&self, item: &PackItem) -> &[String] {
+        self.equivalents.get(&item.path).map_or(&[], Vec::as_slice)
     }
 
     /// Chaves dos projetos do pack, inclusive as equivalentes achadas pelo hash.

@@ -150,6 +150,169 @@ async fn modrinth(state: &mut AppState) -> MockServer {
     server
 }
 
+const MEZZ_SHA1: &str = "5555555555555555555555555555555555555555";
+
+/// O metafile do Modrinth de um projeto e versão simulados.
+fn modrinth_metafile(name: &str, project: &str, version: &str) -> String {
+    format!(
+        "name = \"{name}\"\nfilename = \"{project}.jar\"\nside = \"both\"\n\n\
+         [download]\nurl = \"https://cdn.modrinth.com/data/{project}/versions/{version}/{project}.jar\"\n\
+         hash-format = \"sha512\"\nhash = \"{}\"\n\n\
+         [update]\n[update.modrinth]\nmod-id = \"{project}\"\nversion = \"{version}\"\n",
+        "ab".repeat(64)
+    )
+}
+
+/// O metafile da CurseForge de um projeto e arquivo simulados.
+fn curseforge_metafile(name: &str, project: u64, file: u64, sha1: &str) -> String {
+    format!(
+        "name = \"{name}\"\nfilename = \"{project}.jar\"\nside = \"both\"\n\n\
+         [download]\nhash-format = \"sha1\"\nhash = \"{sha1}\"\nmode = \"metadata:curseforge\"\n\n\
+         [update]\n[update.curseforge]\nfile-id = {file}\nproject-id = {project}\n"
+    )
+}
+
+/// O Modrinth simulado do caso do `MezzConfig`: o JEI pede o `mrMezz001`, achado pelo SHA-1.
+async fn mezz_modrinth(state: &mut AppState) -> MockServer {
+    let modrinth = MockServer::start().await;
+    let file = |sha1: &str| {
+        serde_json::json!([{
+            "hashes": {"sha1": sha1, "sha512": "ab".repeat(64)},
+            "url": "https://cdn.modrinth.com/x.jar", "filename": "x.jar",
+            "primary": true, "size": 1
+        }])
+    };
+    let version = |id: &str, project: &str, sha1: &str, deps: serde_json::Value| {
+        serde_json::json!({
+            "id": id, "project_id": project, "name": id, "version_number": "1.0.0",
+            "game_versions": ["1.21.1"], "loaders": ["fabric"], "version_type": "release",
+            "status": "listed", "featured": false, "downloads": 1,
+            "date_published": "2026-09-01T00:00:00Z", "files": file(sha1), "dependencies": deps
+        })
+    };
+    let jei = version(
+        "vJei00001",
+        "mrJei0001",
+        "4444444444444444444444444444444444444444",
+        serde_json::json!([{"project_id": "mrMezz001", "dependency_type": "required"}]),
+    );
+    let mezz = version("vMezz0001", "mrMezz001", MEZZ_SHA1, serde_json::json!([]));
+    Mock::given(method("GET"))
+        .and(path("/versions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([jei])))
+        .mount(&modrinth)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/projects"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([{
+            "id": "mrJei0001", "slug": "jei", "project_type": "mod",
+            "title": "Just Enough Items", "status": "approved",
+            "client_side": "required", "server_side": "required"
+        }])))
+        .mount(&modrinth)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/version_files"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(serde_json::json!({ MEZZ_SHA1: mezz })),
+        )
+        .mount(&modrinth)
+        .await;
+    let http = warden_http::HttpClient::new(warden_http::HttpConfig::for_version("0.0.0")).unwrap();
+    state.modrinth = warden_modrinth::ModrinthClient::with_base_url(
+        http,
+        &format!("{}/", modrinth.uri()),
+        Some(warden_modrinth::MetadataCache::in_memory(None).unwrap()),
+    )
+    .unwrap();
+    modrinth
+}
+
+/// A CurseForge simulada (com a chave de teste) do caso do `MezzConfig`.
+async fn mezz_curseforge(state: &mut AppState) -> MockServer {
+    let curseforge = MockServer::start().await;
+    let cf_file = |id: u64, mod_id: u64, sha1: &str| {
+        serde_json::json!({
+            "id": id, "gameId": 432, "modId": mod_id, "isAvailable": true,
+            "displayName": "x", "fileName": "x.jar", "releaseType": 1,
+            "hashes": [{"value": sha1, "algo": 1}],
+            "downloadUrl": "https://edge.forgecdn.net/files/x.jar",
+            "gameVersions": ["1.21.1", "Fabric"], "dependencies": []
+        })
+    };
+    let cf_project = |id: u64, slug: &str, name: &str| {
+        serde_json::json!({
+            "id": id, "gameId": 432, "name": name, "slug": slug, "classId": 6,
+            "links": {"websiteUrl": format!("https://www.curseforge.com/minecraft/mc-mods/{slug}")}
+        })
+    };
+    Mock::given(method("POST"))
+        .and(path("/v1/mods/files"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"data": [
+            cf_file(9_200_020, 920_002, MEZZ_SHA1),
+            cf_file(9_200_010, 920_001, "3333333333333333333333333333333333333333"),
+        ]})))
+        .mount(&curseforge)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/mods"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"data": [
+            cf_project(920_002, "mezzconfig", "MezzConfig"),
+            cf_project(920_001, "jei", "Just Enough Items (JEI)"),
+        ]})))
+        .mount(&curseforge)
+        .await;
+    state.tests = std::sync::Arc::new(
+        crate::test_session::TestSessions::new(&state.paths, &state.catalog)
+            .with_curseforge_base(format!("{}/v1/", curseforge.uri())),
+    );
+    state
+        .secrets
+        .set(
+            warden_secrets::SecretKind::Curseforge,
+            &secrecy::SecretString::from("chave-de-teste".to_owned()),
+        )
+        .unwrap();
+    curseforge
+}
+
+/// P4 de ponta a ponta, na passagem rápida: o JEI do Modrinth pede o `mrMezz001`, que está no
+/// pack pela CurseForge (o Modrinth acha o arquivo pelo SHA-1): nenhuma dependência faltando.
+/// E o JEI que também veio pela CurseForge é acusado como duplicado pelo slug, que a CurseForge
+/// agora informa.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn dependencia_pela_outra_fonte_e_duplicata_pelo_slug_da_curseforge() {
+    let Some((dir, mut state, cli)) = setup() else {
+        return;
+    };
+    let _modrinth = mezz_modrinth(&mut state).await;
+    let _curseforge = mezz_curseforge(&mut state).await;
+
+    let jei = modrinth_metafile("Just Enough Items", "mrJei0001", "vJei00001");
+    let mezz = curseforge_metafile("MezzConfig", 920_002, 9_200_020, MEZZ_SHA1);
+    let jei_cf = curseforge_metafile(
+        "Just Enough Items (JEI)",
+        920_001,
+        9_200_010,
+        "3333333333333333333333333333333333333333",
+    );
+    let (pack, _root) = fabric_pack(
+        &state,
+        dir.path(),
+        &cli,
+        &[
+            ("mods/jei.pw.toml", jei.as_bytes()),
+            ("mods/mezzconfig.pw.toml", mezz.as_bytes()),
+            ("mods/jei-cf.pw.toml", jei_cf.as_bytes()),
+        ],
+    )
+    .await;
+    let report = check(&state, pack, CheckPass::Quick, None).await.unwrap();
+    let found = rules(&report);
+    assert!(!found.contains(&"E_MISSING_DEP"), "{report:#?}");
+    assert!(found.contains(&"E_DUPLICATE_FILE"), "{report:#?}");
+}
+
 fn rules(report: &DiagnosticsReport) -> Vec<&str> {
     report
         .findings

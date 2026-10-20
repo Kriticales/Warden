@@ -4,8 +4,9 @@
  * iniciais). Mostra o que você escolheu, as obrigatórias (marcadas; desmarcar avisa), o que já
  * está no pack, as opcionais (desmarcadas), o que não tem versão para o pack, as
  * incompatibilidades declaradas (com o pack e entre os próprios itens) e o mesmo mod no pack por
- * outra fonte (substituir ou não adicionar). **Adicionar N itens** grava tudo de uma vez:
- * ou todos entram, ou nenhum.
+ * outra fonte (substituir ou não adicionar). O título e o botão fazem a mesma conta ("Adicionar
+ * 9 escolhidos + 6 dependências" e **Adicionar 15 itens**), e "Pedida por" só cita quem entra.
+ * O botão grava tudo de uma vez: ou todos entram, ou nenhum.
  */
 import { CircleCheck, Plus, TriangleAlert } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
@@ -32,10 +33,12 @@ import { type PackTarget, useTargetText } from '../common/text';
 import {
   applyRequest,
   type DependencyChoices,
+  includedCounts,
   includedKeys,
   joinNames,
   NO_CHOICES,
   nodesOf,
+  onlyIncluded,
   titlesOf,
 } from './model';
 
@@ -62,6 +65,27 @@ export function DependenciesDialog({
 }: DependenciesDialogProps) {
   const { t } = useTranslation('adicionar');
   const plan = useAddPlan(packId, request?.choices ?? null);
+  // Antes do plano, os nomes pedidos; depois, a mesma conta do botão.
+  const requestTitle = (asked: DependenciesRequest) =>
+    asked.titles.length === 1
+      ? t('dependencias.tituloUm', { name: asked.titles[0] ?? '' })
+      : t('dependencias.tituloVarios', { count: asked.titles.length });
+  const planTitle = (data: AddPlan, keys: ReadonlySet<string>) => {
+    const { chosen, dependencies } = includedCounts(data, keys);
+    const name = chosen.length === 1 ? (chosen[0]?.title ?? '') : null;
+    if (dependencies === 0) {
+      return name === null
+        ? t('dependencias.tituloVarios', { count: chosen.length })
+        : t('dependencias.tituloUm', { name });
+    }
+    const deps = t('dependencias.contaDependencias', { count: dependencies });
+    return name === null
+      ? t('dependencias.tituloVariosMais', {
+          escolhidos: t('dependencias.contaEscolhidos', { count: chosen.length }),
+          dependencias: deps,
+        })
+      : t('dependencias.tituloUmMais', { name, dependencias: deps });
+  };
   const apply = useAddApply(packId);
   const [choices, setChoices] = useState<DependencyChoices>(NO_CHOICES);
   const included = useMemo(
@@ -70,11 +94,7 @@ export function DependenciesDialog({
   );
 
   const title =
-    request === null
-      ? ''
-      : request.titles.length === 1
-        ? t('dependencias.tituloUm', { name: request.titles[0] ?? '' })
-        : t('dependencias.tituloVarios', { count: request.titles.length });
+    request === null ? '' : plan.data ? planTitle(plan.data, included) : requestTitle(request);
 
   const close = () => {
     if (apply.isPending) return;
@@ -237,7 +257,13 @@ function PlanView({ plan, target, included, choices, onChange }: PlanViewProps) 
                 targetText={targetText}
                 checked={included.has(node.key)}
                 disabled={!requested}
-                description={t('dependencias.pedidaPor', { names: names(node.requiredBy) })}
+                description={
+                  requested
+                    ? t('dependencias.pedidaPor', {
+                        names: names(onlyIncluded(node.requiredBy, included)),
+                      })
+                    : undefined
+                }
                 warning={requested && unchecked ? t('dependencias.semObrigatoria') : null}
                 onChange={(on) => {
                   onChange({ ...choices, unchecked: toggle(choices.unchecked, node.key, !on) });
@@ -270,19 +296,26 @@ function PlanView({ plan, target, included, choices, onChange }: PlanViewProps) 
 
       {optional.length > 0 ? (
         <Group title={t('dependencias.opcionais')}>
-          {optional.map((node) => (
-            <NodeCheck
-              key={node.key}
-              node={node}
-              targetText={targetText}
-              checked={included.has(node.key)}
-              disabled={!node.optionalFor.some((key) => included.has(key))}
-              description={t('dependencias.opcionalPara', { names: names(node.optionalFor) })}
-              onChange={(on) => {
-                onChange({ ...choices, optional: toggle(choices.optional, node.key, on) });
-              }}
-            />
-          ))}
+          {optional.map((node) => {
+            const wanted = onlyIncluded(node.optionalFor, included);
+            return (
+              <NodeCheck
+                key={node.key}
+                node={node}
+                targetText={targetText}
+                checked={included.has(node.key)}
+                disabled={wanted.length === 0}
+                description={
+                  wanted.length > 0
+                    ? t('dependencias.opcionalPara', { names: names(wanted) })
+                    : undefined
+                }
+                onChange={(on) => {
+                  onChange({ ...choices, optional: toggle(choices.optional, node.key, on) });
+                }}
+              />
+            );
+          })}
         </Group>
       ) : null}
 
@@ -336,7 +369,7 @@ interface NodeCheckProps {
   targetText: string;
   checked: boolean;
   disabled?: boolean;
-  description?: string;
+  description?: string | undefined;
   warning?: string | null;
   onChange: (checked: boolean) => void;
 }

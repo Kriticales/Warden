@@ -220,11 +220,11 @@ impl AddSource for ModrinthAdd {
         Ok(versions.iter().map(source_version).collect())
     }
 
-    async fn projects_by_sha1(
+    async fn versions_by_sha1(
         &self,
         hashes: &[String],
         cancel: &CancellationToken,
-    ) -> Result<HashMap<String, String>> {
+    ) -> Result<HashMap<String, SourceVersion>> {
         let found = self
             .client
             .version_files(hashes, HashAlgorithm::Sha1, Some(cancel))
@@ -232,7 +232,7 @@ impl AddSource for ModrinthAdd {
             .map_err(|e| unavailable(&e))?;
         Ok(found
             .into_iter()
-            .map(|(hash, version)| (hash, version.project_id))
+            .map(|(hash, version)| (hash.to_ascii_lowercase(), source_version(&version)))
             .collect())
     }
 
