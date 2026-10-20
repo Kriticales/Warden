@@ -49,7 +49,11 @@ export function TopBar({ back, where, hideLinks = false }: TopBarProps) {
         {hideLinks
           ? null
           : appBarLinks.map((link) => (
-              <Link key={link.to} to={link.to} className={buttonVariants({ variant: 'ghost' })}>
+              <Link
+                key={link.to}
+                to={link.to}
+                className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+              >
                 <Icon icon={link.icon} />
                 <span>{t(link.labelKey)}</span>
               </Link>

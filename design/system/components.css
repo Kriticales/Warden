@@ -475,7 +475,7 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 /* Barra do nível do app: marca, onde você está e Configurações. Sem menu lateral. */
 .topbar {
   position: relative; z-index: var(--z-header);
-  display: flex; align-items: center; gap: var(--space-4); height: var(--size-topbar); padding: 0 var(--space-6) 6px;
+  display: flex; align-items: center; gap: var(--space-4); height: var(--size-topbar); padding: 0 var(--space-6) var(--space-3);
   background-color: var(--color-surface-1); background-image: var(--fx-vein); background-size: 64px 64px;
 }
 .topbar::after, .packhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--fx-sculk-edge) repeat-x left bottom / 48px 6px; pointer-events: none; }

@@ -28,7 +28,8 @@ body {
 
 /* Barra de título da janela, só no Windows (UI-01; `TitleBar.tsx`). A barra inteira é região de
    arraste nativa do WebView2; os botões não. Botões no estilo dos menus, discretos: bisel só no
-   hover; fechar fica vermelho. Janela sem foco: marca, nome e botões apagados. */
+   hover; fechar fica vermelho. Janela sem foco: botões apagados. A marca não aparece aqui: ela
+   já está no cabeçalho logo abaixo (P13); o nome da janela fica só para o leitor de tela. */
 .titlebar {
   flex: none;
   display: flex;
@@ -39,31 +40,6 @@ body {
   user-select: none;
   -webkit-app-region: drag;
   app-region: drag;
-}
-.titlebar__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-3);
-  color: var(--color-text-2);
-  transition: color var(--duration-fast) var(--ease-out);
-}
-.titlebar__mark {
-  width: var(--size-icon-md);
-  height: var(--size-icon-md);
-  image-rendering: pixelated;
-  flex: none;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    filter var(--duration-fast) var(--ease-out);
-}
-.titlebar__name {
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-medium);
-  font-size: var(--text-md);
-  line-height: var(--text-md--line-height);
-  letter-spacing: var(--tracking-display);
-  text-shadow: var(--shadow-pixel-text);
 }
 .titlebar__controls {
   display: flex;
@@ -114,16 +90,22 @@ body {
   height: calc(var(--spacing) * 2.5);
   fill: currentColor;
 }
-.titlebar--inactive .titlebar__brand,
 .titlebar--inactive .titlebar__btn:not(:hover, .is-hover) {
   color: var(--color-text-3);
 }
-.titlebar--inactive .titlebar__mark {
-  opacity: 0.6;
-  filter: grayscale(1);
+
+/* Cabeçalhos (P13). Os botões fantasma têm respiro interno, que só aparece no hover: nas pontas
+   ele empurrava o texto para dentro e, ao lado do separador, deixava um lado mais largo que o
+   outro. A margem negativa devolve esse respiro, então o texto de "← Meus packs" e o de
+   "Configurações" ficam na margem do cabeçalho, e o separador fica à mesma distância do texto
+   e da marca. */
+.topbar > .btn--ghost:first-child,
+.packhead__row > .btn--ghost:first-child {
+  margin-left: calc(-1 * var(--space-3));
+  margin-right: calc(-1 * var(--space-3));
 }
-.titlebar--inactive .titlebar__name {
-  text-shadow: none;
+.topbar__end > .btn--ghost:last-child {
+  margin-right: calc(-1 * var(--space-3));
 }
 
 /* Aviso legal da Mojang/Microsoft (T01, T23). Igual ao do protótipo final. */

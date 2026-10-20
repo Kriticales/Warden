@@ -114,6 +114,17 @@ describe('moldura das telas', () => {
     expect(await axePage(container)).toHaveNoViolations();
   });
 
+  it('os botões do cabeçalho têm o mesmo tamanho (P13)', async () => {
+    mockBackend();
+    renderRouter('/b', { broken: false });
+    const back = await screen.findByRole('link', { name: 'Meus packs' });
+    const settings = screen.getByRole('link', { name: 'Configurações' });
+    for (const button of [back, settings]) {
+      expect(button.classList.contains('btn--ghost')).toBe(true);
+      expect(button.classList.contains('btn--sm')).toBe(true);
+    }
+  });
+
   it('a primeira tela não rouba o foco; a troca de tela leva o foco ao título', async () => {
     mockBackend();
     const user = userEvent.setup();
