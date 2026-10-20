@@ -520,3 +520,22 @@ fn trechos_e_parametros_vao_redigidos_para_a_tela() {
     assert_eq!(redacted.fixes(), original.fixes());
     assert_eq!(redacted.rule(), original.rule());
 }
+
+/// "Verificar agora" (e a verificação automática da seção Problemas) aparece nas Tarefas como
+/// "Verificar o pack" (`diagnostics.check`), do pack, até terminar, mesmo quando falha.
+#[tokio::test]
+async fn verificar_agora_registra_a_tarefa() {
+    let dir = tempfile::tempdir().unwrap();
+    let state = test_state(dir.path());
+    let pack = PackId::new();
+    run_check(&state, pack).await.unwrap_err();
+    let operations = state.operations.list();
+    assert_eq!(operations.len(), 1, "{operations:#?}");
+    let operation = &operations[0];
+    assert_eq!(operation.kind.as_str(), "diagnostics.check");
+    assert_eq!(operation.pack_id, Some(pack));
+    assert_eq!(
+        operation.state,
+        crate::operations::OperationState::Failed
+    );
+}

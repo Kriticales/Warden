@@ -11,6 +11,10 @@
 //! ([`OperationHandle::ensure_not_cancelled`]) ou a qualquer momento de uma espera
 //! ([`OperationHandle::run_cancellable`]). Um trecho que não pode ser interrompido (a gravação
 //! final de uma transação) chama [`OperationHandle::set_cancellable`] com `false`.
+//!
+//! Cada retrato ([`OperationSnapshot`]) leva uma `revision` que só cresce, contada no registro
+//! inteiro: o aviso sai fora da trava e a lista pode chegar à interface depois de um aviso mais
+//! novo, então a interface fica sempre com o retrato de `revision` maior.
 
 use std::borrow::Cow;
 use std::collections::{BTreeMap, VecDeque};
@@ -113,6 +117,10 @@ pub struct OperationSnapshot {
     pub finished_at_ms: Option<u64>,
     /// Erro, quando terminou com erro.
     pub error: Option<AppError>,
+    /// Ordem do retrato: cresce a cada mudança de qualquer operação do registro. Entre dois
+    /// retratos da mesma operação, vale o de `revision` maior.
+    #[specta(type = specta_typescript::Number)]
+    pub revision: u64,
 }
 
 /// Quem recebe cada mudança (na app, emite `operation-updated`).
@@ -131,6 +139,16 @@ struct Running {
 struct Inner {
     running: BTreeMap<OperationId, Running>,
     finished: VecDeque<OperationSnapshot>,
+    /// Última `revision` dada.
+    revision: u64,
+}
+
+impl Inner {
+    /// A próxima `revision`.
+    fn next_revision(&mut self) -> u64 {
+        self.revision += 1;
+        self.revision
+    }
 }
 
 struct Shared {
@@ -147,10 +165,17 @@ impl Shared {
     fn update(&self, id: OperationId, change: impl FnOnce(&mut Running) -> bool) {
         let notice = {
             let mut inner = self.lock();
+            let inner = &mut *inner;
             let Some(running) = inner.running.get_mut(&id) else {
                 return;
             };
-            change(running).then(|| running.snapshot.clone())
+            if change(running) {
+                inner.revision += 1;
+                running.snapshot.revision = inner.revision;
+                Some(running.snapshot.clone())
+            } else {
+                None
+            }
         };
         if let Some(snapshot) = notice {
             (self.notifier)(&snapshot);
@@ -195,26 +220,31 @@ impl OperationRegistry {
     ) -> OperationHandle {
         let id = OperationId::new();
         let token = CancellationToken::new();
-        let snapshot = OperationSnapshot {
-            id,
-            kind,
-            pack_id,
-            state: OperationState::Running,
-            stage: None,
-            progress: None,
-            cancellable,
-            started_at_ms: now_ms(),
-            finished_at_ms: None,
-            error: None,
+        let snapshot = {
+            let mut inner = self.shared.lock();
+            let snapshot = OperationSnapshot {
+                id,
+                kind,
+                pack_id,
+                state: OperationState::Running,
+                stage: None,
+                progress: None,
+                cancellable,
+                started_at_ms: now_ms(),
+                finished_at_ms: None,
+                error: None,
+                revision: inner.next_revision(),
+            };
+            inner.running.insert(
+                id,
+                Running {
+                    snapshot: snapshot.clone(),
+                    token: token.clone(),
+                    last_progress_notice: None,
+                },
+            );
+            snapshot
         };
-        self.shared.lock().running.insert(
-            id,
-            Running {
-                snapshot: snapshot.clone(),
-                token: token.clone(),
-                last_progress_notice: None,
-            },
-        );
         (self.shared.notifier)(&snapshot);
         OperationHandle {
             id,
@@ -260,6 +290,7 @@ impl OperationRegistry {
     pub fn cancel(&self, id: OperationId) -> Result<(), AppError> {
         let notice = {
             let mut inner = self.shared.lock();
+            let inner = &mut *inner;
             let already_finished = inner.finished.iter().any(|snapshot| snapshot.id == id);
             match inner.running.get_mut(&id) {
                 Some(running) if !running.snapshot.cancellable => {
@@ -270,6 +301,8 @@ impl OperationRegistry {
                 Some(running) => {
                     running.token.cancel();
                     running.snapshot.state = OperationState::Cancelling;
+                    inner.revision += 1;
+                    running.snapshot.revision = inner.revision;
                     Some(running.snapshot.clone())
                 }
                 None if already_finished => None,
@@ -438,6 +471,7 @@ impl OperationHandle {
             snapshot.finished_at_ms = Some(now_ms());
             snapshot.cancellable = false;
             snapshot.error = error;
+            snapshot.revision = inner.next_revision();
             inner.finished.push_front(snapshot.clone());
             inner.finished.truncate(FINISHED_KEPT);
             snapshot
@@ -582,6 +616,27 @@ pub(crate) mod tests {
         );
         assert!(matches!(events[1], OperationEvent::Stage { .. }));
         assert!(matches!(events.last(), Some(OperationEvent::Finished)));
+    }
+
+    #[test]
+    fn revision_cresce_a_cada_aviso_de_qualquer_operacao() {
+        let (registry, seen) = recording_registry();
+        let first = registry.start(KIND, None, true);
+        let second = registry.start(KIND, None, true);
+        first.stage("baixar", "teste.etapa.baixar");
+        second.set_waiting_for_lock(true);
+        registry.cancel(second.id()).unwrap();
+        let first_id = first.id();
+        first.finish(Ok(())).unwrap();
+        second
+            .finish(Err::<(), _>(AppError::cancelled()))
+            .unwrap_err();
+
+        let revisions: Vec<u64> = seen.lock().unwrap().iter().map(|s| s.revision).collect();
+        assert_eq!(revisions, (1..=7).collect::<Vec<_>>());
+        // A lista e o `get` devolvem o mesmo retrato do último aviso.
+        assert_eq!(registry.get(first_id).unwrap().revision, 6);
+        assert_eq!(registry.list().first().unwrap().revision, 7);
     }
 
     #[test]
