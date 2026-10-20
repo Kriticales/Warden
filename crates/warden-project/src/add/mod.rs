@@ -460,7 +460,8 @@ async fn fetch_chosen(
 }
 
 /// Tira do pedido o item equivalente a um anterior (o mesmo mod por outra fonte, pelo SHA-1 do
-/// arquivo ou pelo nome): o pack fica com um `.pw.toml` só, o do primeiro.
+/// arquivo ou pelo nome): o pack fica com um `.pw.toml` só, o do primeiro. Só entre itens do
+/// mesmo tipo: um mod e um shader com o mesmo nome não são o mesmo projeto.
 fn without_equivalents<'a>(
     wanted: Vec<&'a ApplyItem>,
     projects: &HashMap<String, SourceProject>,
@@ -469,7 +470,7 @@ fn without_equivalents<'a>(
     let identity = |item: &ApplyItem| {
         let project = projects.get(&item.source.key(&item.project_id))?;
         let version = versions.get(&item.source.key(&item.version_id));
-        Some(CrossIdentity {
+        let identity = CrossIdentity {
             source: Some(item.source),
             project_id: Some(&project.id),
             sha1: version
@@ -478,13 +479,18 @@ fn without_equivalents<'a>(
             equivalents: &[],
             slug: &project.slug,
             title: &project.title,
-        })
+        };
+        Some((identity, project.kind))
     };
+    let same_kind =
+        |a: Option<ProjectKind>, b: Option<ProjectKind>| a.is_none() || b.is_none() || a == b;
     let mut kept: Vec<&ApplyItem> = Vec::new();
     for item in wanted {
-        let twin = identity(item).and_then(|mine| {
+        let twin = identity(item).and_then(|(mine, kind)| {
             kept.iter().find(|known| {
-                identity(known).is_some_and(|other| same_across(&mine, &other).is_some())
+                identity(known).is_some_and(|(other, other_kind)| {
+                    same_kind(kind, other_kind) && same_across(&mine, &other).is_some()
+                })
             })
         });
         if let Some(known) = twin {
@@ -647,6 +653,44 @@ mod tests {
             side_note: None,
             dependencies: Vec::new(),
         }
+    }
+
+    #[test]
+    fn pedido_com_o_mesmo_mod_pelas_duas_fontes_grava_um_so_mas_nao_mistura_tipos() {
+        let project = |source: SourceId, id: &str, title: &str, kind: ProjectKind| SourceProject {
+            source,
+            id: id.into(),
+            slug: title.to_ascii_lowercase(),
+            title: title.into(),
+            kind: Some(kind),
+            icon_url: None,
+            side: None,
+        };
+        let item = |source: SourceId, id: &str| ApplyItem {
+            source,
+            project_id: id.into(),
+            version_id: format!("{id}-v"),
+            side: None,
+            replaces: None,
+        };
+        let projects: HashMap<String, SourceProject> = [
+            project(SourceId::Modrinth, "mr1", "Fresh", ProjectKind::Mod),
+            project(SourceId::Curseforge, "1", "Fresh", ProjectKind::Mod),
+            project(SourceId::Curseforge, "2", "Fresh", ProjectKind::ResourcePack),
+        ]
+        .into_iter()
+        .map(|project| (project.source.key(&project.id), project))
+        .collect();
+        let modrinth = item(SourceId::Modrinth, "mr1");
+        let same_mod = item(SourceId::Curseforge, "1");
+        let resource_pack = item(SourceId::Curseforge, "2");
+        let kept = without_equivalents(
+            vec![&modrinth, &same_mod, &resource_pack],
+            &projects,
+            &HashMap::new(),
+        );
+        let ids: Vec<&str> = kept.iter().map(|item| item.project_id.as_str()).collect();
+        assert_eq!(ids, ["mr1", "2"]);
     }
 
     #[test]
