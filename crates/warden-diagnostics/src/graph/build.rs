@@ -42,7 +42,8 @@ fn range_text(range: &VersionRange) -> Option<String> {
     match range {
         VersionRange::Any => None,
         VersionRange::Fabric { predicates } => {
-            (!predicates.iter().any(|p| any(p))).then(|| predicates.join(" ou "))
+            (!predicates.is_empty() && !predicates.iter().any(|p| any(p)))
+                .then(|| predicates.join(" ou "))
         }
         VersionRange::Maven { spec } => (!any(spec)).then(|| spec.clone()),
         VersionRange::Exact { version } => (!any(version)).then(|| version.clone()),

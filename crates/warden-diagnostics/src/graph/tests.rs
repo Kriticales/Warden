@@ -508,6 +508,8 @@ fn faixa_asterisco_e_qualquer_versao() {
                 {"id": "a", "kind": "required", "range": {"dialect": "maven", "spec": "*"}},
                 {"id": "b", "kind": "required", "range": {"dialect": "fabric", "predicates": ["*"]}},
                 {"id": "c", "kind": "required", "range": {"dialect": "maven", "spec": "[1,)"}},
+                // Faixa do Fabric sem predicado: qualquer versão, não uma faixa vazia.
+                {"id": "d", "kind": "required", "range": {"dialect": "fabric", "predicates": []}},
             ],
         }),
         &[],
@@ -520,7 +522,10 @@ fn faixa_asterisco_e_qualquer_versao() {
         .iter()
         .map(|d| (d.id.as_str(), d.range.as_deref()))
         .collect();
-    assert_eq!(ranges, vec![("a", None), ("b", None), ("c", Some("[1,)"))]);
+    assert_eq!(
+        ranges,
+        vec![("a", None), ("b", None), ("c", Some("[1,)")), ("d", None)]
+    );
 }
 
 #[test]
