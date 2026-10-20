@@ -390,3 +390,30 @@ body {
 .about__links {
   margin-top: var(--space-3);
 }
+
+/* App, não página (ADR-0063; `src/app/app-behavior.ts`): a interface não se seleciona como
+   texto de página, e imagens e links não se arrastam. Continuam selecionáveis os campos, o
+   editor de configs, o console e os logs, código e caminhos, as mensagens de erro e o que
+   tiver a classe `.selectable`. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input,
+textarea,
+[contenteditable]:not([contenteditable='false']),
+.cm-editor,
+.console__log,
+pre,
+code,
+.code,
+.path,
+.alert--danger,
+.selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+img,
+a {
+  -webkit-user-drag: none;
+}

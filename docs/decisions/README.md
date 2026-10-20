@@ -65,5 +65,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0059](0059-envio-da-publicacao-por-smart-http.md) | Envio da publicação pelo protocolo "smart HTTP" do git sobre a `warden-http` (complementa a 0015 e a 0028; proposta da V-03) | técnica |
 | [0060](0060-ia-com-varios-provedores.md) | IA com vários provedores: Gemini (padrão), OpenAI e Claude, pela API oficial e com a chave do usuário (complementa a 0014, a 0030 e a 0055; complemento de 19/10/2026: o Gemini usa o Flash e troca para o Flash-Lite quando a cota diária acaba) | dono + técnica |
 | [0062](0062-emenda-do-portablemc-java-sem-janela.md) | Emenda do portablemc: Java sem janela no Windows (complementa a 0057 e a 0049) | técnica |
+| [0063](0063-o-warden-se-comporta-como-app.md) | O Warden se comporta como app, não como página: atalhos de navegador, menu de contexto, seleção e arrastar | técnica |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.

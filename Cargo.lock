@@ -6781,6 +6781,7 @@ dependencies = [
  "warden-secrets",
  "warden-server",
  "warden-versioning",
+ "webview2-com",
  "windows",
  "wiremock",
  "x11rb",

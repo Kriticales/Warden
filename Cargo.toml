@@ -120,6 +120,8 @@ url = "2.5.8"
 which = "8.0.6"
 windows = "0.62.2"
 windows-native-keyring-store = "1.1.0"
+# Ajustes do WebView2 da janela (ADR-0063): a mesma versão que o `wry` do Tauri já usa.
+webview2-com = "0.39.1"
 wiremock = "0.6.5"
 x11rb = "0.13.2"
 zbus-secret-service-keyring-store = "1.0.1"
