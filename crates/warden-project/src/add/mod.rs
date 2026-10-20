@@ -36,6 +36,7 @@ use warden_packwiz::{
 };
 use warden_packwiz_cli::Packwiz;
 
+use crate::dedup::{CrossIdentity, same_across};
 use crate::search::{PackTarget, ProjectKind, SourceId};
 use crate::side::SideChoice;
 use crate::transaction::PackTransaction;
@@ -269,13 +270,14 @@ pub trait AddSource: Send + Sync {
         cancel: &CancellationToken,
     ) -> Result<Vec<SourceVersion>>;
 
-    /// Projetos desta fonte pelos SHA-1 de arquivos (achar no pack o mesmo mod vindo de
-    /// outra fonte): SHA-1 → ID do projeto. Os desconhecidos ficam de fora.
-    async fn projects_by_sha1(
+    /// Versões desta fonte pelos SHA-1 de arquivos (achar o mesmo mod vindo de outra fonte, e
+    /// o lado que esta fonte informa para ele): SHA-1 em minúsculas → versão. Os desconhecidos
+    /// ficam de fora.
+    async fn versions_by_sha1(
         &self,
         hashes: &[String],
         cancel: &CancellationToken,
-    ) -> Result<HashMap<String, String>>;
+    ) -> Result<HashMap<String, SourceVersion>>;
 
     /// O `.pw.toml` desta versão, como o packwiz escreveria, com o lado dado.
     fn metafile(
@@ -444,6 +446,47 @@ async fn fetch_chosen(
     Ok((projects, versions))
 }
 
+/// Tira do pedido o item equivalente a um anterior (o mesmo mod por outra fonte, pelo SHA-1 do
+/// arquivo ou pelo nome): o pack fica com um `.pw.toml` só, o do primeiro.
+fn without_equivalents<'a>(
+    wanted: Vec<&'a ApplyItem>,
+    projects: &HashMap<String, SourceProject>,
+    versions: &HashMap<String, SourceVersion>,
+) -> Vec<&'a ApplyItem> {
+    let identity = |item: &ApplyItem| {
+        let project = projects.get(&item.source.key(&item.project_id))?;
+        let version = versions.get(&item.source.key(&item.version_id));
+        Some(CrossIdentity {
+            source: Some(item.source),
+            project_id: Some(&project.id),
+            sha1: version
+                .and_then(|version| version.file.as_ref())
+                .and_then(|file| file.sha1.as_deref()),
+            equivalents: &[],
+            slug: &project.slug,
+            title: &project.title,
+        })
+    };
+    let mut kept: Vec<&ApplyItem> = Vec::new();
+    for item in wanted {
+        let twin = identity(item).and_then(|mine| {
+            kept.iter().find(|known| {
+                identity(known).is_some_and(|other| same_across(&mine, &other).is_some())
+            })
+        });
+        if let Some(known) = twin {
+            tracing::info!(
+                item = %item.source.key(&item.project_id),
+                fica = %known.source.key(&known.project_id),
+                "o mesmo mod veio por duas fontes; grava só um"
+            );
+        } else {
+            kept.push(item);
+        }
+    }
+    kept
+}
+
 /// Planeja apagar o item do pack que um item novo substitui (duplicado entre fontes).
 fn delete_replaced(pack: &PackState, tx: &mut PackTransaction, old: &str) -> Result<String> {
     let old = old.replace('\\', "/");
@@ -461,7 +504,9 @@ fn delete_replaced(pack: &PackState, tx: &mut PackTransaction, old: &str) -> Res
 /// substituídos apagados, numa única transação com um só `packwiz refresh`. Ou todos entram,
 /// ou nenhum (CA-T08-11, CA-T09-03).
 ///
-/// Itens que já estão no pack pela mesma fonte são pulados (vão em `skipped`).
+/// Itens que já estão no pack pela mesma fonte são pulados (vão em `skipped`). Dois itens
+/// equivalentes no pedido (o mesmo mod por duas fontes) gravam um `.pw.toml` só, o do
+/// primeiro.
 ///
 /// Erros: [`Code::InvalidInput`] (sem itens, versão que não é do projeto, item a substituir
 /// que não está no pack); [`Code::SearchSourceUnavailable`] se a fonte não responder (nada é
@@ -499,6 +544,7 @@ pub async fn add_apply(
         }
     }
     let (projects, versions) = fetch_chosen(sources, &wanted, cancel).await?;
+    let wanted = without_equivalents(wanted, &projects, &versions);
     let mut taken: Vec<String> = pack.stems.clone();
     taken.extend(stems_on_disk(root));
     let mut tx = PackTransaction::new(root.to_path_buf());

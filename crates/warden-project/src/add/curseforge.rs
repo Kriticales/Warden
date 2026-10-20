@@ -5,8 +5,9 @@
 //! - **Versão:** o "ID da versão" desta fonte é o ID do arquivo.
 //! - **Lado:** a CurseForge não informa o lado: o padrão é "Cliente e servidor", com a
 //!   observação "Lado desconhecido — confira se é só de cliente" (SPEC T08, regras comuns).
+//!   No plano, quando o Modrinth tem o mesmo arquivo (pelo SHA-1), vale o lado dele.
 //! - **SHA-1:** a API não acha arquivo por SHA-1 (só pela impressão digital murmur2), então
-//!   [`AddSource::projects_by_sha1`] não acha nada aqui; a conferência entre fontes acontece
+//!   [`AddSource::versions_by_sha1`] não acha nada aqui; a conferência entre fontes acontece
 //!   pelo Modrinth, que acha o SHA-1 que a CurseForge informou.
 //! - **Nada vai para o disco:** a crate `warden-curseforge` guarda o cache só em memória; aqui
 //!   o `.pw.toml` leva apenas os IDs, o nome e o hash (sem endereço de download).
@@ -183,6 +184,100 @@ pub fn source_version(file: &File) -> SourceVersion {
     }
 }
 
+/// A versão legível de um arquivo da CurseForge, para mostrar ao lado do nome: o
+/// `displayName` (ou o nome do arquivo) sem o nome do projeto, o loader, a versão do
+/// Minecraft e o "for … 1.21.1" ("jei-1.21.1-neoforge-19.21.0.247.jar" e "Just Enough Items
+/// 19.21.0.247 for NeoForge 1.21.1" viram "19.21.0.247"). Sem nada que pareça versão, o nome
+/// do arquivo.
+#[must_use]
+pub fn readable_number(version: &SourceVersion, project_title: &str) -> String {
+    let file_name = version
+        .file
+        .as_ref()
+        .map(|file| file.name.as_str())
+        .unwrap_or_default();
+    let text = if version.number.trim().is_empty() {
+        file_name
+    } else {
+        version.number.as_str()
+    };
+    let found = version_tokens(text, project_title, &version.game_versions);
+    if found.is_empty() {
+        if file_name.is_empty() {
+            version.number.clone()
+        } else {
+            file_name.to_owned()
+        }
+    } else {
+        found.join(" ")
+    }
+}
+
+const LOADER_WORDS: [&str; 5] = ["forge", "neoforge", "fabric", "quilt", "liteloader"];
+
+fn version_tokens(text: &str, project_title: &str, game_versions: &[String]) -> Vec<String> {
+    let mut text = text.trim().to_owned();
+    for extension in [".jar", ".zip"] {
+        if text.to_ascii_lowercase().ends_with(extension) {
+            text.truncate(text.len() - extension.len());
+        }
+    }
+    // Sem o que vem entre colchetes ou parênteses ("[NeoForge 1.21.1]").
+    let mut plain = String::new();
+    let mut depth = 0_u32;
+    for c in text.chars() {
+        match c {
+            '[' | '(' => depth += 1,
+            ']' | ')' => depth = depth.saturating_sub(1),
+            _ if depth == 0 => plain.push(c),
+            _ => {}
+        }
+    }
+    // Sem o " for NeoForge 1.21.1" do fim.
+    // Minúsculas só ASCII: as posições no texto continuam as mesmas.
+    if let Some(at) = plain.to_ascii_lowercase().find(" for ") {
+        plain.truncate(at);
+    }
+    // Sem o nome do projeto ("Just Enough Items 19.21.0.247").
+    let title = project_title.trim();
+    if !title.is_empty()
+        && let Some(at) = plain.to_ascii_lowercase().find(&title.to_ascii_lowercase())
+    {
+        plain.replace_range(at..at + title.len(), " ");
+    }
+    let minecraft = |token: &str| {
+        let lower = token.to_ascii_lowercase();
+        lower.starts_with("mc")
+            || lower.rsplit('.').next() == Some("x")
+            || game_versions
+                .iter()
+                .any(|game| game == token || game.starts_with(&format!("{token}.")))
+    };
+    plain
+        .split(|c: char| c.is_whitespace() || c == '-' || c == '_')
+        .filter_map(|token| {
+            // "15.8.2+neoforge" e "0.6.0+mc1.21.1": sem o loader e o Minecraft colados.
+            let token = match token.split_once('+') {
+                Some((head, tail))
+                    if LOADER_WORDS.contains(&tail.to_ascii_lowercase().as_str())
+                        || minecraft(tail) =>
+                {
+                    head
+                }
+                _ => token,
+            };
+            let token = token
+                .strip_prefix(['v', 'V'])
+                .filter(|rest| rest.starts_with(|c: char| c.is_ascii_digit()))
+                .unwrap_or(token);
+            (token.starts_with(|c: char| c.is_ascii_digit())
+                && !LOADER_WORDS.contains(&token.to_ascii_lowercase().as_str())
+                && !minecraft(token))
+            .then(|| token.to_owned())
+        })
+        .collect()
+}
+
 #[async_trait::async_trait]
 impl AddSource for CurseforgeAdd {
     fn id(&self) -> SourceId {
@@ -273,11 +368,11 @@ impl AddSource for CurseforgeAdd {
         Ok(files.iter().map(source_version).collect())
     }
 
-    async fn projects_by_sha1(
+    async fn versions_by_sha1(
         &self,
         _hashes: &[String],
         _cancel: &CancellationToken,
-    ) -> Result<HashMap<String, String>> {
+    ) -> Result<HashMap<String, SourceVersion>> {
         // A API só reconhece arquivos pela impressão digital (murmur2), não pelo SHA-1.
         Ok(HashMap::new())
     }
@@ -372,6 +467,56 @@ mod tests {
             ]
         );
         assert_eq!(version.side_note, Some(SideNote::Unknown));
+    }
+
+    #[test]
+    fn versao_legivel_sem_nome_loader_e_minecraft() {
+        let version = |number: &str, name: &str| {
+            let mut version = source_version(&file(serde_json::json!({
+                "id": 1, "modId": 2, "isAvailable": true,
+                "displayName": number, "fileName": name,
+                "gameVersions": ["1.21.1", "NeoForge"],
+            })));
+            version.game_versions = vec!["1.21.1".into()];
+            version
+        };
+        let cases = [
+            (
+                "jei-1.21.1-neoforge-19.21.0.247.jar",
+                "Just Enough Items (JEI)",
+                "19.21.0.247",
+            ),
+            (
+                "Just Enough Items 19.21.0.247 for NeoForge 1.21.1",
+                "Just Enough Items",
+                "19.21.0.247",
+            ),
+            ("[NeoForge 1.21.1] Jade 15.8.2+neoforge", "Jade", "15.8.2"),
+            ("MezzConfig-1.21.1-1.0.0", "MezzConfig", "1.0.0"),
+            ("appleskin-neoforge-mc1.21-3.0.5", "AppleSkin", "3.0.5"),
+            (
+                "Applied Energistics 2 v19.0.1-beta",
+                "Applied Energistics 2",
+                "19.0.1",
+            ),
+            ("sodium-fabric-0.6.0+mc1.21.1.jar", "Sodium", "0.6.0"),
+        ];
+        for (number, title, expected) in cases {
+            assert_eq!(
+                readable_number(&version(number, "arquivo.jar"), title),
+                expected,
+                "{number}"
+            );
+        }
+        // Nada que pareça versão: o nome do arquivo.
+        assert_eq!(
+            readable_number(
+                &version("MezzConfig NeoForge 1.21.1", "mezz.jar"),
+                "MezzConfig"
+            ),
+            "mezz.jar"
+        );
+        assert_eq!(readable_number(&version("", "mezz-2.0.jar"), "Mezz"), "2.0");
     }
 
     #[test]

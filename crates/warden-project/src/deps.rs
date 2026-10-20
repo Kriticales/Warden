@@ -6,7 +6,10 @@
 //! - **obrigatórias** em cadeia (as de uma opcional também, ligadas a ela); a versão é a que a
 //!   dependência pede, se servir para o pack, ou a mais nova compatível do canal;
 //! - **opcionais** só dos itens escolhidos (informativas, desmarcadas);
-//! - a mesma dependência pedida por vários itens vira **um** nó, com todos em `required_by`;
+//! - a mesma dependência pedida por vários itens vira **um** nó, com todos em `required_by`,
+//!   mesmo quando cada um a pede por uma fonte (o `MezzConfig` do Modrinth e o da CurseForge
+//!   são o mesmo nó, achado pelo SHA-1 ou pelo nome; fica o escolhido e, entre iguais, o do
+//!   Modrinth, ADR-0027); um item escolhido nunca reaparece como opcional;
 //! - o que já está no pack (pelo projeto, pelo projeto equivalente achado pelo hash ou pelo
 //!   nome) não entra de novo e aparece em "Já no pack";
 //! - **incompatibilidades** declaradas nos dois sentidos: as que os itens novos declaram (com o
@@ -25,11 +28,12 @@ use crate::add::plan::{
     PlanMissing, PlanNode, PlanTarget,
 };
 use crate::add::{
-    AddChoice, AddSource, AddSources, ChannelPolicy, DependencyKind, SourceProject, SourceVersion,
-    source_off,
+    AddChoice, AddSource, AddSources, ChannelPolicy, DependencyKind, SideNote, SourceProject,
+    SourceVersion, curseforge, source_off,
 };
-use crate::dedup::{Identity, PackItem, PackItems};
+use crate::dedup::{CrossIdentity, DuplicateMatch, Identity, PackItem, PackItems, same_across};
 use crate::search::SourceId;
+use crate::side::SideChoice;
 use crate::{Error, ProjectErrorCode as Code};
 
 /// Níveis de dependência seguidos.
@@ -57,15 +61,15 @@ pub(crate) async fn find_equivalents(
         if hashes.is_empty() {
             continue;
         }
-        match source.projects_by_sha1(&hashes, cancel).await {
+        match source.versions_by_sha1(&hashes, cancel).await {
             Ok(found) => {
                 let matches: Vec<(String, String)> = items
                     .items()
                     .iter()
                     .filter(|item| item.source != Some(id))
                     .filter_map(|item| {
-                        let project = found.get(item.sha1.as_deref()?)?;
-                        Some((item.path.clone(), id.key(project)))
+                        let version = found.get(item.sha1.as_deref()?)?;
+                        Some((item.path.clone(), id.key(&version.project_id)))
                     })
                     .collect();
                 for (path, key) in matches {
@@ -100,6 +104,18 @@ struct Declared {
     version_id: Option<String>,
 }
 
+/// Um item com projeto e versão a caminho de virar nó: um escolhido, ou uma dependência com
+/// todos os itens do nível que a pedem.
+#[derive(Debug, Clone)]
+struct Candidate {
+    key: String,
+    role: NodeRole,
+    project: SourceProject,
+    version: SourceVersion,
+    picked: bool,
+    edges: Vec<Edge>,
+}
+
 struct Resolver<'a> {
     sources: &'a AddSources,
     pack: &'a PackState,
@@ -107,7 +123,15 @@ struct Resolver<'a> {
     cancel: &'a CancellationToken,
     nodes: Vec<PlanNode>,
     index: HashMap<String, usize>,
+    /// Chave de um projeto equivalente a um nó (o mesmo mod noutra fonte) → chave do nó.
+    aliases: HashMap<String, String>,
     sha1: HashMap<String, String>,
+    /// Chaves do mesmo projeto noutras fontes, achadas pelo SHA-1, por nó.
+    equivalents: HashMap<String, Vec<String>>,
+    /// Versões achadas pelo SHA-1 noutra fonte: (fonte consultada, SHA-1) → versão.
+    by_sha1: HashMap<(SourceId, String), SourceVersion>,
+    /// SHA-1 já consultados (achados ou não), para não perguntar de novo.
+    checked_sha1: HashSet<String>,
     projects: HashMap<String, SourceProject>,
     installed: Vec<PlanInstalled>,
     missing: Vec<PlanMissing>,
@@ -129,13 +153,18 @@ pub(crate) async fn resolve(
         cancel,
         nodes: Vec::new(),
         index: HashMap::new(),
+        aliases: HashMap::new(),
         sha1: HashMap::new(),
+        equivalents: HashMap::new(),
+        by_sha1: HashMap::new(),
+        checked_sha1: HashSet::new(),
         projects: HashMap::new(),
         installed: Vec::new(),
         missing: Vec::new(),
         declared: Vec::new(),
     };
-    let mut queue = resolver.chosen(choices).await?;
+    let chosen = resolver.chosen(choices).await?;
+    let mut queue = resolver.settle_all(chosen).await?;
     let mut depth = 0;
     while !queue.is_empty() {
         if depth >= MAX_DEPTH || resolver.nodes.len() >= MAX_NODES {
@@ -170,6 +199,19 @@ impl Resolver<'_> {
         self.sources.get(id).ok_or_else(|| source_off(id))
     }
 
+    /// A chave do nó que responde por `key` (ela mesma, ou o nó equivalente noutra fonte).
+    fn canonical(&self, key: &str) -> String {
+        let mut key = key.to_owned();
+        // Os apelidos sempre apontam para um nó vivo; o limite só protege de um ciclo.
+        for _ in 0..4 {
+            match self.aliases.get(&key) {
+                Some(next) if *next != key => key.clone_from(next),
+                _ => break,
+            }
+        }
+        key
+    }
+
     /// Busca, em lote, os projetos ainda desconhecidos.
     async fn load_projects(&mut self, source: SourceId, ids: &[String]) -> Result<()> {
         let missing: Vec<String> = unique(
@@ -187,8 +229,8 @@ impl Resolver<'_> {
         Ok(())
     }
 
-    /// Os itens escolhidos: projeto, versão e as primeiras dependências.
-    async fn chosen(&mut self, choices: &[AddChoice]) -> Result<Vec<Edge>> {
+    /// Os itens escolhidos: projeto e versão de cada um.
+    async fn chosen(&mut self, choices: &[AddChoice]) -> Result<Vec<Candidate>> {
         let mut seen = HashSet::new();
         let choices: Vec<&AddChoice> = choices
             .iter()
@@ -220,7 +262,7 @@ impl Resolver<'_> {
             }
         }
         let pack = self.pack;
-        let mut edges = Vec::new();
+        let mut candidates = Vec::new();
         for choice in choices {
             let key = choice.source.key(&choice.project_id);
             if let Some(item) = pack.items.same_source(choice.source, &choice.project_id) {
@@ -259,9 +301,16 @@ impl Resolver<'_> {
                 self.add_missing(&key, &project.title, NodeRole::Chosen, None);
                 continue;
             };
-            edges.extend(self.push_node(&project, &version, NodeRole::Chosen, None, picked));
+            candidates.push(Candidate {
+                key,
+                role: NodeRole::Chosen,
+                project,
+                version,
+                picked,
+                edges: Vec::new(),
+            });
         }
-        Ok(edges)
+        Ok(candidates)
     }
 
     /// A versão padrão de um projeto para o pack.
@@ -273,31 +322,300 @@ impl Resolver<'_> {
         Ok(self.policy.pick(&versions).cloned())
     }
 
-    /// Acrescenta um nó e devolve as dependências dele.
+    /// Os candidatos de um nível viram nós (ou se juntam a um nó equivalente, ou contam como
+    /// já no pack). Devolve as dependências dos nós novos.
+    async fn settle_all(&mut self, candidates: Vec<Candidate>) -> Result<Vec<Edge>> {
+        self.look_up_sha1(&candidates).await;
+        let mut next = Vec::new();
+        for candidate in &candidates {
+            next.extend(self.settle(candidate));
+        }
+        Ok(next)
+    }
+
+    /// Procura, em lote, o arquivo de cada candidato nas outras fontes pelo SHA-1 (o `MezzConfig`
+    /// da CurseForge é o `m-mezz` do Modrinth; e o Modrinth informa o lado). Uma fonte que não
+    /// responde só deixa de ajudar: o nome ainda serve.
+    async fn look_up_sha1(&mut self, candidates: &[Candidate]) {
+        let mut found_projects: Vec<(SourceId, String)> = Vec::new();
+        for source in self.sources.all() {
+            let id = source.id();
+            let hashes: Vec<String> = unique(
+                candidates
+                    .iter()
+                    .filter(|candidate| candidate.project.source != id)
+                    .filter_map(|candidate| file_sha1(&candidate.version))
+                    .filter(|sha1| {
+                        !self
+                            .checked_sha1
+                            .contains(&format!("{}:{sha1}", id.label()))
+                    }),
+            );
+            if hashes.is_empty() {
+                continue;
+            }
+            for sha1 in &hashes {
+                self.checked_sha1.insert(format!("{}:{sha1}", id.label()));
+            }
+            match source.versions_by_sha1(&hashes, self.cancel).await {
+                Ok(found) => {
+                    for (sha1, version) in found {
+                        found_projects.push((id, version.project_id.clone()));
+                        self.by_sha1.insert((id, sha1), version);
+                    }
+                }
+                Err(error) => {
+                    tracing::warn!(%error, fonte = id.label(), "não foi possível conferir os hashes do plano");
+                }
+            }
+        }
+        // O projeto achado informa o lado quando a versão não informa.
+        for source in [SourceId::Modrinth, SourceId::Curseforge] {
+            let ids: Vec<String> = found_projects
+                .iter()
+                .filter(|(id, _)| *id == source)
+                .map(|(_, project)| project.clone())
+                .collect();
+            if !ids.is_empty()
+                && let Err(error) = self.load_projects(source, &ids).await
+            {
+                tracing::warn!(%error, "projetos achados pelo hash indisponíveis");
+            }
+        }
+    }
+
+    /// As versões do mesmo arquivo nas outras fontes, achadas pelo SHA-1.
+    fn same_file(&self, version: &SourceVersion) -> Vec<&SourceVersion> {
+        let Some(sha1) = file_sha1(version) else {
+            return Vec::new();
+        };
+        self.sources
+            .all()
+            .map(AddSource::id)
+            .filter(|id| *id != version.source)
+            .filter_map(|id| self.by_sha1.get(&(id, sha1.clone())))
+            .collect()
+    }
+
+    /// O lado que outra fonte informa para o mesmo arquivo (a CurseForge não informa o lado;
+    /// o Modrinth, sim), quando ela sabe.
+    fn side_elsewhere(&self, version: &SourceVersion) -> Option<(SideChoice, Option<SideNote>)> {
+        self.same_file(version).into_iter().find_map(|found| {
+            if found.side_note != Some(SideNote::Unknown) {
+                return Some((found.side, found.side_note));
+            }
+            self.projects
+                .get(&found.source.key(&found.project_id))
+                .and_then(|project| project.side)
+                .filter(|(_, note)| *note != Some(SideNote::Unknown))
+        })
+    }
+
+    /// Um candidato vira nó, junta-se ao nó equivalente que já está no plano ou conta como já
+    /// no pack. Devolve as dependências do que entrou.
+    fn settle(&mut self, candidate: &Candidate) -> Vec<Edge> {
+        let equivalents: Vec<String> = self
+            .same_file(&candidate.version)
+            .into_iter()
+            .map(|found| found.source.key(&found.project_id))
+            .collect();
+        let sha1 = file_sha1(&candidate.version);
+        let project = &candidate.project;
+        if candidate.role != NodeRole::Chosen {
+            // O mesmo mod no pack por outra fonte ou link: conta como já no pack. (Um
+            // escolhido nessa situação vira duplicado, com a opção de substituir.)
+            let pack = self.pack;
+            let identity = Identity {
+                author: "",
+                slug: &project.slug,
+                title: &project.title,
+            };
+            let in_pack = equivalents
+                .iter()
+                .find_map(|key| pack.items.by_key(key))
+                .or_else(|| {
+                    pack.items
+                        .equivalent(project.source, &project.id, identity, sha1.as_deref())
+                        .map(|(item, _)| item)
+                });
+            if let Some(item) = in_pack {
+                for edge in &candidate.edges {
+                    if edge.role == NodeRole::Required {
+                        self.installed(&candidate.key, item, false, Some(&edge.parent));
+                    }
+                }
+                return Vec::new();
+            }
+        }
+        let identity = CrossIdentity {
+            source: Some(project.source),
+            project_id: Some(&project.id),
+            sha1: sha1.as_deref(),
+            equivalents: &equivalents,
+            slug: &project.slug,
+            title: &project.title,
+        };
+        if let Some(position) = self.equivalent_node(&identity) {
+            return self.merge(position, candidate, equivalents);
+        }
+        let key = candidate.key.clone();
+        let next = self.push_node(candidate, Vec::new(), Vec::new());
+        self.equivalents.insert(key.clone(), equivalents);
+        for edge in &candidate.edges {
+            self.link_known(edge, &key);
+        }
+        next
+    }
+
+    /// O nó do plano que é este projeto por outra fonte (o escolhido primeiro, depois o mais
+    /// confiável: projeto, hash, nome).
+    fn equivalent_node(&self, identity: &CrossIdentity<'_>) -> Option<usize> {
+        self.nodes
+            .iter()
+            .enumerate()
+            .filter_map(|(position, node)| {
+                let equivalents = self
+                    .equivalents
+                    .get(&node.key)
+                    .map_or(&[][..], Vec::as_slice);
+                let other = CrossIdentity {
+                    source: Some(node.source),
+                    project_id: Some(&node.project_id),
+                    sha1: self.sha1.get(&node.key).map(String::as_str),
+                    equivalents,
+                    slug: &node.slug,
+                    title: &node.title,
+                };
+                let how = same_across(identity, &other)?;
+                Some(((node.role != NodeRole::Chosen, how), position))
+            })
+            .min()
+            .map(|(_, position)| position)
+    }
+
+    /// Junta o candidato ao nó equivalente: fica o escolhido; entre iguais, o do Modrinth
+    /// (ADR-0027). Os pais dos dois ficam no nó que fica.
+    fn merge(
+        &mut self,
+        position: usize,
+        candidate: &Candidate,
+        equivalents: Vec<String>,
+    ) -> Vec<Edge> {
+        let existing = &self.nodes[position];
+        let rank = |role: NodeRole, source: SourceId| {
+            (role != NodeRole::Chosen, source != SourceId::Modrinth)
+        };
+        let replace =
+            rank(candidate.role, candidate.project.source) < rank(existing.role, existing.source);
+        let mut next = Vec::new();
+        let kept = if replace {
+            let old = existing.key.clone();
+            let role = stronger(existing.role, candidate.role);
+            let required_by = existing.required_by.clone();
+            let optional_for = existing.optional_for.clone();
+            let key = candidate.key.clone();
+            self.index.remove(&old);
+            self.sha1.remove(&old);
+            self.equivalents.remove(&old);
+            let candidate_role = Candidate {
+                role,
+                ..candidate.clone()
+            };
+            // O nó vai para o fim e volta para a posição do antigo.
+            next = self.push_node(&candidate_role, required_by, optional_for);
+            let node = self
+                .nodes
+                .pop()
+                .unwrap_or_else(|| unreachable!("o nó acabou de entrar"));
+            self.nodes[position] = node;
+            self.index.insert(key.clone(), position);
+            self.equivalents.insert(key.clone(), equivalents);
+            self.rekey(&old, &key);
+            key
+        } else {
+            let key = existing.key.clone();
+            self.aliases.insert(candidate.key.clone(), key.clone());
+            key
+        };
+        for edge in &candidate.edges {
+            self.link_known(edge, &kept);
+        }
+        next
+    }
+
+    /// A chave `old` saiu do plano em favor de `new`: os pais, as incompatibilidades e os
+    /// apelidos passam a apontar para `new`.
+    fn rekey(&mut self, old: &str, new: &str) {
+        let swap = |list: &mut Vec<String>| {
+            if list.iter().any(|key| key == old) {
+                list.retain(|key| key != old);
+                push_unique(list, new);
+            }
+        };
+        for node in &mut self.nodes {
+            swap(&mut node.required_by);
+            swap(&mut node.optional_for);
+            node.required_by.retain(|key| key != &node.key);
+            node.optional_for.retain(|key| key != &node.key);
+        }
+        for entry in &mut self.installed {
+            swap(&mut entry.required_by);
+        }
+        for entry in &mut self.missing {
+            swap(&mut entry.required_by);
+        }
+        for declared in &mut self.declared {
+            if declared.by == old {
+                new.clone_into(&mut declared.by);
+            }
+        }
+        for target in self.aliases.values_mut() {
+            if target == old {
+                new.clone_into(target);
+            }
+        }
+        self.aliases.insert(old.to_owned(), new.to_owned());
+    }
+
+    /// Acrescenta o nó do candidato (com estes pais) e devolve as dependências dele.
     fn push_node(
         &mut self,
-        project: &SourceProject,
-        version: &SourceVersion,
-        role: NodeRole,
-        parent: Option<&str>,
-        picked: bool,
+        candidate: &Candidate,
+        required_by: Vec<String>,
+        optional_for: Vec<String>,
     ) -> Vec<Edge> {
-        let key = project.source.key(&project.id);
+        let Candidate {
+            key,
+            role,
+            project,
+            version,
+            picked,
+            ..
+        } = candidate;
+        let role = *role;
         let kind = project.kind.unwrap_or(crate::search::ProjectKind::Mod);
         let file_name = version
             .file
             .as_ref()
             .map(|file| file.name.clone())
             .unwrap_or_default();
-        if let Some(sha1) = version.file.as_ref().and_then(|file| file.sha1.clone()) {
+        if let Some(sha1) = file_sha1(version) {
             self.sha1.insert(key.clone(), sha1);
         }
-        // Versão sem `environment`: vale o lado do projeto, se ele informar.
-        let (side, side_note) = match (version.side_note, project.side) {
-            (Some(crate::add::SideNote::Unknown), Some(project_side)) => project_side,
+        // Versão sem `environment`: vale o lado do projeto, se ele informar; na falta dele, o
+        // que outra fonte informa para o mesmo arquivo.
+        let (side, side_note) = match version.side_note {
+            Some(SideNote::Unknown) => project
+                .side
+                .or_else(|| self.side_elsewhere(version))
+                .unwrap_or((version.side, version.side_note)),
             _ => (version.side, version.side_note),
         };
-        let mut node = PlanNode {
+        let version_number = match project.source {
+            SourceId::Curseforge => curseforge::readable_number(version, &project.title),
+            SourceId::Modrinth => version.number.clone(),
+        };
+        let node = PlanNode {
             key: key.clone(),
             role,
             source: project.source,
@@ -307,19 +625,16 @@ impl Resolver<'_> {
             icon_url: project.icon_url.clone(),
             kind,
             version_id: version.id.clone(),
-            version_number: version.number.clone(),
+            version_number,
             channel: version.channel,
-            outside_channel: picked && !self.policy.allows(version.channel),
+            outside_channel: *picked && !self.policy.allows(version.channel),
             compatible: version.compatible(project.kind, &self.pack.target),
             file_name,
             side,
             side_note,
-            required_by: Vec::new(),
-            optional_for: Vec::new(),
+            required_by,
+            optional_for,
         };
-        if let Some(parent) = parent {
-            link(&mut node, role, parent);
-        }
         self.index.insert(key.clone(), self.nodes.len());
         self.nodes.push(node);
         let mut edges = Vec::new();
@@ -355,19 +670,21 @@ impl Resolver<'_> {
 
     /// Resolve um nível de dependências e devolve o próximo.
     async fn level(&mut self, edges: Vec<Edge>) -> Result<Vec<Edge>> {
-        let (edges, pinned) = self.pin_versions(edges).await?;
+        let (mut edges, pinned) = self.pin_versions(edges).await?;
+        // O Modrinth primeiro: entre duas fontes com o mesmo mod, fica o dele (ADR-0027).
+        edges.sort_by_key(|edge| edge.source != SourceId::Modrinth);
         for source in [SourceId::Modrinth, SourceId::Curseforge] {
             let ids: Vec<String> = edges
                 .iter()
                 .filter(|edge| edge.source == source)
                 .filter_map(|edge| edge.project_id.clone())
-                .filter(|id| !self.index.contains_key(&source.key(id)))
+                .filter(|id| !self.index.contains_key(&self.canonical(&source.key(id))))
                 .collect();
             if !ids.is_empty() {
                 self.load_projects(source, &ids).await?;
             }
         }
-        let mut next = Vec::new();
+        let mut candidates: Vec<Candidate> = Vec::new();
         for edge in edges {
             let Some(project_id) = edge.project_id.clone() else {
                 tracing::debug!(pai = %edge.parent, "dependência sem projeto nem versão conhecida");
@@ -377,9 +694,17 @@ impl Resolver<'_> {
             if key == edge.parent || self.link_known(&edge, &key) {
                 continue;
             }
-            next.extend(self.resolve_new(&edge, &project_id, &key, &pinned).await?);
+            // A mesma dependência pedida por outro item deste nível.
+            if let Some(known) = candidates.iter_mut().find(|known| known.key == key) {
+                known.role = stronger(known.role, edge.role);
+                known.edges.push(edge);
+                continue;
+            }
+            if let Some(candidate) = self.candidate(edge, &project_id, key, &pinned).await? {
+                candidates.push(candidate);
+            }
         }
-        Ok(next)
+        self.settle_all(candidates).await
     }
 
     /// Busca, em lote, as versões exatas pedidas; dependências que só informam a versão
@@ -417,20 +742,26 @@ impl Resolver<'_> {
         Ok((edges, pinned))
     }
 
-    /// Liga a dependência ao que já se sabe dela (nó do plano, já no pack, sem versão).
-    /// Devolve se ela já era conhecida.
+    /// Liga a dependência ao que já se sabe dela (nó do plano, inclusive o equivalente noutra
+    /// fonte, já no pack, sem versão). Devolve se ela já era conhecida.
     fn link_known(&mut self, edge: &Edge, key: &str) -> bool {
-        if let Some(&position) = self.index.get(key) {
+        let node_key = self.canonical(key);
+        let parent = self.canonical(&edge.parent);
+        if let Some(&position) = self.index.get(&node_key) {
+            if node_key == parent {
+                // O mod pede a si mesmo pela outra fonte: nada a ligar.
+                return true;
+            }
             let node = &mut self.nodes[position];
             if edge.role == NodeRole::Required && node.role == NodeRole::Optional {
                 node.role = NodeRole::Required;
             }
-            link(node, edge.role, &edge.parent);
+            link(node, edge.role, &parent);
             return true;
         }
         if let Some(entry) = self.installed.iter_mut().find(|entry| entry.key == key) {
             if edge.role == NodeRole::Required {
-                push_unique(&mut entry.required_by, &edge.parent);
+                push_unique(&mut entry.required_by, &parent);
             }
             return true;
         }
@@ -438,7 +769,7 @@ impl Resolver<'_> {
             if edge.role == NodeRole::Required && entry.role == NodeRole::Optional {
                 entry.role = NodeRole::Required;
             }
-            push_unique(&mut entry.required_by, &edge.parent);
+            push_unique(&mut entry.required_by, &parent);
             return true;
         }
         let pack = self.pack;
@@ -448,30 +779,30 @@ impl Resolver<'_> {
             .or_else(|| pack.items.by_equivalent_key(key));
         if let Some(item) = in_pack {
             if edge.role == NodeRole::Required {
-                self.installed(key, item, false, Some(&edge.parent));
+                self.installed(key, item, false, Some(&parent));
             }
             return true;
         }
         false
     }
 
-    /// Uma dependência ainda desconhecida: versão, e vira nó (ou "sem versão", ou "já no
-    /// pack" por outra fonte). Devolve as dependências do novo nó.
-    async fn resolve_new(
+    /// Uma dependência ainda desconhecida: projeto e versão (ou "sem versão"). O candidato
+    /// ainda pode ser o mesmo mod de um nó ou do pack por outra fonte ([`Resolver::settle`]).
+    async fn candidate(
         &mut self,
-        edge: &Edge,
+        edge: Edge,
         project_id: &str,
-        key: &str,
+        key: String,
         pinned: &HashMap<String, SourceVersion>,
-    ) -> Result<Vec<Edge>> {
+    ) -> Result<Option<Candidate>> {
         let parent = Some(edge.parent.as_str());
-        let Some(project) = self.projects.get(key).cloned() else {
-            self.add_missing(key, project_id, edge.role, parent);
-            return Ok(Vec::new());
+        let Some(project) = self.projects.get(&key).cloned() else {
+            self.add_missing(&key, project_id, edge.role, parent);
+            return Ok(None);
         };
         if project.kind.is_none() {
-            self.add_missing(key, &project.title, edge.role, parent);
-            return Ok(Vec::new());
+            self.add_missing(&key, &project.title, edge.role, parent);
+            return Ok(None);
         }
         let wanted = edge
             .version_id
@@ -487,27 +818,17 @@ impl Resolver<'_> {
             None => (self.default_version(&project).await?, true),
         };
         let Some(version) = version else {
-            self.add_missing(key, &project.title, edge.role, parent);
-            return Ok(Vec::new());
+            self.add_missing(&key, &project.title, edge.role, parent);
+            return Ok(None);
         };
-        // O mesmo mod no pack por outra fonte ou link: conta como já no pack.
-        let sha1 = version.file.as_ref().and_then(|file| file.sha1.as_deref());
-        let identity = Identity {
-            author: "",
-            slug: &project.slug,
-            title: &project.title,
-        };
-        let pack = self.pack;
-        if let Some((item, _)) = pack
-            .items
-            .equivalent(edge.source, project_id, identity, sha1)
-        {
-            if edge.role == NodeRole::Required {
-                self.installed(key, item, false, parent);
-            }
-            return Ok(Vec::new());
-        }
-        Ok(self.push_node(&project, &version, edge.role, parent, picked))
+        Ok(Some(Candidate {
+            key,
+            role: edge.role,
+            project,
+            version,
+            picked,
+            edges: vec![edge],
+        }))
     }
 
     fn installed(&mut self, key: &str, item: &PackItem, chosen: bool, parent: Option<&str>) {
@@ -549,10 +870,18 @@ impl Resolver<'_> {
                     title: &node.title,
                 };
                 let sha1 = self.sha1.get(&node.key).map(String::as_str);
-                let (item, matched_by) =
+                let by_hash = self
+                    .equivalents
+                    .get(&node.key)
+                    .into_iter()
+                    .flatten()
+                    .find_map(|key| self.pack.items.by_key(key))
+                    .map(|item| (item, DuplicateMatch::Project));
+                let (item, matched_by) = by_hash.or_else(|| {
                     self.pack
                         .items
-                        .equivalent(node.source, &node.project_id, identity, sha1)?;
+                        .equivalent(node.source, &node.project_id, identity, sha1)
+                })?;
                 Some(PlanDuplicate {
                     key: node.key.clone(),
                     existing_path: item.path.clone(),
@@ -659,7 +988,7 @@ impl Resolver<'_> {
     }
 
     fn party_of_node(&self, key: &str) -> Option<ConflictParty> {
-        let node = &self.nodes[*self.index.get(key)?];
+        let node = &self.nodes[*self.index.get(&self.canonical(key))?];
         Some(ConflictParty {
             key: node.key.clone(),
             title: node.title.clone(),
@@ -699,6 +1028,26 @@ fn insert_conflict(
         declared_by: declared_by.to_owned(),
         reason: None,
     });
+}
+
+/// O SHA-1 do arquivo de uma versão, em minúsculas.
+fn file_sha1(version: &SourceVersion) -> Option<String> {
+    version
+        .file
+        .as_ref()
+        .and_then(|file| file.sha1.as_deref())
+        .filter(|sha1| !sha1.is_empty())
+        .map(str::to_ascii_lowercase)
+}
+
+/// O papel mais forte: escolhido, depois obrigatória, depois opcional.
+fn stronger(a: NodeRole, b: NodeRole) -> NodeRole {
+    let weight = |role| match role {
+        NodeRole::Chosen => 2,
+        NodeRole::Required => 1,
+        NodeRole::Optional => 0,
+    };
+    if weight(b) > weight(a) { b } else { a }
 }
 
 fn link(node: &mut PlanNode, role: NodeRole, parent: &str) {
