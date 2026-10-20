@@ -10,6 +10,11 @@
 .xray__actions {
   margin-top: var(--space-2);
 }
+/* Quem altera: um mod por linha (o design system põe lado a lado, separados por "+"). */
+.xray .mixin__who {
+  display: grid;
+  justify-items: start;
+}
 
 /* "Ver todas as alterações" abre por cima do painel de detalhes, no mesmo lugar: sem escurecer
    nem deslizar de novo, parece o mesmo painel trocando de conteúdo. */

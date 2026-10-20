@@ -601,7 +601,17 @@ describe('detalhes do item (T07)', () => {
     expect(await within(drawer).findByText('mais leve')).toBeDefined();
     expect(drawer.textContent).toContain('Minecraft 1.21.1 · fabric');
     expect(drawer.textContent).toContain('sodium-fabric-0.8.13+mc1.21.1.jar · 1,2 MB');
-    expect(drawer.textContent).toContain(
+    // O tamanho não quebra no meio; o hash fica numa linha, abreviado, com o completo no
+    // `title` e Copiar ao lado (P3).
+    expect(within(drawer).getByText('· 1,2 MB').classList.contains('itemsize')).toBe(true);
+    const hash = within(drawer).getByText('8614a374…8e823f7e');
+    expect(hash.getAttribute('title')).toBe(
+      '8614a374593698069a80ac74de8cd9c28f3928d16819a0e0d6320b538e823f7e',
+    );
+    const user = userEvent.setup();
+    await user.click(within(drawer).getByRole('button', { name: 'Copiar' }));
+    expect(await within(drawer).findByRole('button', { name: 'Copiado' })).toBeDefined();
+    expect(await navigator.clipboard.readText()).toBe(
       '8614a374593698069a80ac74de8cd9c28f3928d16819a0e0d6320b538e823f7e',
     );
     expect(within(drawer).getByRole<HTMLSelectElement>('combobox', { name: 'Lado' }).value).toBe(
@@ -668,7 +678,7 @@ describe('detalhes do item (T07)', () => {
     expect(await within(drawer).findByText('Detalhes indisponíveis sem internet')).toBeDefined();
     expect(drawer.textContent).toContain('Applied Energistics 2');
     expect(drawer.textContent).toContain('appliedenergistics2-forge-15.4.10.jar');
-    expect(drawer.textContent).toContain('ac255a120499f79f8deade474da09e3c00ff9bad');
+    expect(within(drawer).getByTitle('ac255a120499f79f8deade474da09e3c00ff9bad')).toBeDefined();
     expect(within(drawer).getByRole<HTMLSelectElement>('combobox', { name: 'Lado' }).value).toBe(
       'both',
     );

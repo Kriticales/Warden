@@ -145,6 +145,11 @@ describe('raio-x de mixins nos detalhes (D-10)', () => {
     expect(high?.textContent).toContain('Risco alto');
     expect(high?.textContent).toContain('Sodium Extra @Redirect troca uma chamada');
     expect(high?.textContent).toContain('Sodium Extras @Redirect');
+    // Um participante por linha, sem o "+" solto; o alvo pode quebrar depois de cada ponto (P3).
+    const who = high?.querySelector('.mixin__who');
+    expect(who?.children).toHaveLength(2);
+    expect(who?.textContent).not.toContain('+');
+    expect(high?.querySelector('.mixin__target wbr')).not.toBeNull();
     expect(high?.textContent).toContain('Só um vale; o outro é pulado em silêncio.');
     // Nome legível ensinado pelo refmap.
     expect(low?.textContent).toContain('WorldRenderer.renderSky');

@@ -55,7 +55,6 @@ export const atualizacoes = {
     naoVerificado: 'Ainda não foi verificado.',
     naoAplica: 'Arquivo local ou link direto: não há onde consultar.',
     atualizarPara: 'Atualizar para {{version}}',
-    atualizar: 'Atualizar',
   },
   revisao: {
     tituloUm: 'Atualizar {{name}}',

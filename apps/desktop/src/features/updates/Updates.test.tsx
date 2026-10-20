@@ -68,16 +68,15 @@ describe('atualizações na lista de Mods (T10)', () => {
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
-  it('CA-T10-02: nos detalhes, Atualizar fica desabilitado fora de "Atualização disponível"', async () => {
+  it('CA-T10-02: nos detalhes, Atualizar só aparece com "Atualização disponível"', async () => {
     const { url } = backendWith(REPORT, { item_details: () => makeDetails(BETA) });
     await openMods(url);
     await screen.findByText('2 atualizações disponíveis.');
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Beta' }));
     const panel = await screen.findByRole('dialog');
-    const button = await within(panel).findByRole('button', { name: 'Atualizar' });
-    expect(button.hasAttribute('disabled')).toBe(true);
-    expect(within(panel).getByText('Em dia')).toBeDefined();
+    expect(await within(panel).findByText('Em dia')).toBeDefined();
+    expect(within(panel).queryByRole('button', { name: /^Atualizar/ })).toBeNull();
   });
 
   it('nos detalhes de um item com atualização, o botão abre a revisão de um item', async () => {

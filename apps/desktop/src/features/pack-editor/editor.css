@@ -69,8 +69,27 @@
 .itemhead__meta {
   margin-top: var(--space-1);
 }
+/* Todas as listas rótulo/valor do painel (versão, dependências) com a mesma coluna de rótulo,
+   para os valores começarem na mesma linha vertical de um bloco para o outro (P3). */
+.drawer {
+  --kv-label: calc(var(--space-16) * 2);
+}
+.drawer__body .kv {
+  grid-template-columns: var(--kv-label) minmax(0, 1fr);
+}
+/* Respiro no fim do painel: o último bloco não encosta na barra de baixo. */
+.drawer__body {
+  padding-bottom: var(--space-8);
+}
+.itemsize {
+  white-space: nowrap;
+}
+/* O hash numa linha só (abreviado; o completo fica no `title`), com Copiar ao lado. */
 .itemhash {
-  overflow-wrap: anywhere;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  white-space: nowrap;
 }
 .itemdesc__body {
   margin-top: var(--space-2);
