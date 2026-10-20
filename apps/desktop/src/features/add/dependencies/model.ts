@@ -6,7 +6,7 @@
  * - **Escolhido:** entra se continuar marcado. Se já está no pack por outra fonte, só entra
  *   quando o usuário escolhe substituir (manter os dois faria o jogo travar).
  * - **Obrigatória:** entra quando algum item que a pede entra, salvo se o usuário desmarcar.
- * - **Opcional:** só entra se o usuário marcar.
+ * - **Opcional:** só entra se o usuário marcar e algum item para quem ela é opcional entrar.
  *
  * O fecho é transitivo: a obrigatória de uma opcional só entra se a opcional entrar; a de uma
  * obrigatória desmarcada também sai (a não ser que outro item que entra a peça).
@@ -38,15 +38,22 @@ export function includedKeys(plan: AddPlan, choices: DependencyChoices): Set<str
     if (duplicates.has(node.key) && !choices.replace.has(node.key)) continue;
     included.add(node.key);
   }
-  for (const node of plan.nodes) {
-    if (node.role === 'optional' && choices.optional.has(node.key)) included.add(node.key);
-  }
-  // Fecho: cada obrigatória entra quando alguém que a pede entrou.
+  // Fecho: cada obrigatória entra quando alguém que a pede entrou; cada opcional marcada, quando
+  // algum item para quem ela é opcional entrou (desmarcado o mod que a pedia, ela sai, como a
+  // caixa desabilitada mostra).
   let changed = true;
   while (changed) {
     changed = false;
     for (const node of plan.nodes) {
-      if (node.role !== 'required' || included.has(node.key)) continue;
+      if (included.has(node.key)) continue;
+      if (node.role === 'optional') {
+        if (choices.optional.has(node.key) && node.optionalFor.some((key) => included.has(key))) {
+          included.add(node.key);
+          changed = true;
+        }
+        continue;
+      }
+      if (node.role !== 'required') continue;
       if (choices.unchecked.has(node.key)) continue;
       if (node.requiredBy.some((key) => included.has(key))) {
         included.add(node.key);

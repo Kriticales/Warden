@@ -74,6 +74,15 @@ describe('diálogo de dependências: o que entra', () => {
     expect([...includedKeys(plan, { ...NO_CHOICES, optional: new Set(['modrinth:OPT']) })]).toEqual(
       [MODMENU, 'modrinth:OPT', 'modrinth:LIBOPT', 'modrinth:LIB', 'modrinth:LIBLIB'],
     );
+    // Opcional marcada, mas o mod que a pedia foi desmarcado: ela sai (e a lib dela também),
+    // como a caixa desabilitada mostra; não conta no botão nem é gravada.
+    const orphan = includedKeys(plan, {
+      ...NO_CHOICES,
+      unchecked: new Set([MODMENU]),
+      optional: new Set(['modrinth:OPT']),
+    });
+    expect([...orphan]).toEqual([]);
+    expect(applyRequest(plan, orphan, NO_CHOICES).items).toEqual([]);
   });
 
   it('duplicado entre fontes: só entra com "Substituir", e a gravação apaga o antigo', () => {
