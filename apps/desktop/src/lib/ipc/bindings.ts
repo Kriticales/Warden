@@ -8964,6 +8964,14 @@ item: ItemRef } |
 { kind: "updateItem"; 
 /**  O item. */
 item: ItemRef } | 
+/**
+ *  Trocar o item pela versão mais nova para o Minecraft e o loader do pack, do mesmo
+ *  projeto (o fluxo de "Trocar de versão"; ADR-0061). A versão errada sai na mesma
+ *  transação.
+ */
+{ kind: "replaceVersion"; 
+/**  O item. */
+item: ItemRef } | 
 /**  Mudar o lado do item. */
 { kind: "setSide"; 
 /**  O item. */

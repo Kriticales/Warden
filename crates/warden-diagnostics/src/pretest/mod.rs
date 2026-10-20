@@ -545,6 +545,93 @@ mod tests {
         assert!(codes(&analyze(&input).unwrap()).contains(&"E_LOADER"));
     }
 
+    /// Um item do Modrinth que a API marca só com estes loaders (sem jar: passagem rápida).
+    fn api_item(id: &str, loaders: Vec<Loader>, minecraft: &str) -> PackItem {
+        let mut item = item(id, Loader::Forge);
+        item.jar = None;
+        item.api = Some(ApiMetadata {
+            source: Source::Modrinth,
+            url: format!("https://api.modrinth.com/v2/version/{id}"),
+            project_id: id.into(),
+            project_slug: None,
+            game_versions: vec![minecraft.into()],
+            loaders,
+            release: ReleaseChannel::Release,
+            relations: vec![],
+            archived: false,
+            download_blocked: false,
+            client_side: None,
+            server_side: None,
+        });
+        item
+    }
+
+    #[test]
+    fn mod_forge_pela_api_em_neoforge_1211_e_erro_com_correcoes() {
+        let xaero = api_item("xaero", vec![Loader::Forge], "1.21.1");
+        let reference = crate::model::ItemRef::Metafile {
+            path: xaero.path.clone(),
+        };
+        let input = Input {
+            pack: pack(Loader::NeoForge),
+            pass: Pass::Quick,
+            items: vec![xaero],
+        };
+        let found = analyze(&input).unwrap();
+        let loader: Vec<&Finding> = found
+            .iter()
+            .filter(|f| f.rule().as_str() == "E_LOADER")
+            .collect();
+        assert_eq!(loader.len(), 1, "{found:?}");
+        assert_eq!(loader[0].severity(), crate::Severity::Error);
+        assert_eq!(
+            loader[0].fixes(),
+            [
+                crate::SuggestedFix::ReplaceVersion {
+                    item: reference.clone()
+                },
+                crate::SuggestedFix::RemoveItem { item: reference },
+            ]
+        );
+    }
+
+    #[test]
+    fn mod_forge_pela_api_em_neoforge_1201_nao_gera_achado() {
+        let mut input = Input {
+            pack: pack(Loader::NeoForge),
+            pass: Pass::Quick,
+            items: vec![api_item("xaero", vec![Loader::Forge], "1.20.1")],
+        };
+        input.pack.minecraft = "1.20.1".into();
+        input.pack.loader_version = "47.1.106".into();
+        let found = analyze(&input).unwrap();
+        assert!(found.is_empty(), "{found:?}");
+    }
+
+    #[test]
+    fn regra_da_api_e_do_jar_viram_um_achado_so() {
+        let mut xaero = item("xaero", Loader::Forge);
+        xaero.api = api_item("xaero", vec![Loader::Forge], "1.21.1").api;
+        let input = Input {
+            pack: pack(Loader::NeoForge),
+            pass: Pass::Complete,
+            items: vec![xaero],
+        };
+        let found = analyze(&input).unwrap();
+        let loader: Vec<&Finding> = found
+            .iter()
+            .filter(|f| f.rule().as_str() == "E_LOADER")
+            .collect();
+        assert_eq!(loader.len(), 1, "{found:?}");
+        let kinds: Vec<bool> = loader[0]
+            .evidence()
+            .iter()
+            .map(|evidence| matches!(evidence, crate::model::Evidence::Api { .. }))
+            .collect();
+        assert_eq!(kinds, [true, false], "{:?}", loader[0].evidence());
+        assert_eq!(loader[0].fixes().len(), 2);
+    }
+
     #[test]
     fn dependencias_aninhadas_e_connector_satisfazem_o_pack() {
         let mut main = item("principal", Loader::Fabric);

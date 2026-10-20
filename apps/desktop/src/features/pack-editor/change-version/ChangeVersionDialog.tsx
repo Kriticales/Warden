@@ -29,6 +29,8 @@ export interface ChangeVersionDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Quem abriu o diálogo: recebe o foco de volta ao fechar. */
   returnFocusTo: () => HTMLElement | null;
+  /** Depois de trocar a versão (o Diagnóstico verifica o pack de novo). */
+  onChanged?: (() => void) | undefined;
 }
 
 export function ChangeVersionDialog({
@@ -37,6 +39,7 @@ export function ChangeVersionDialog({
   open,
   onOpenChange,
   returnFocusTo,
+  onChanged,
 }: ChangeVersionDialogProps) {
   const { t } = useTranslation('trocarVersao');
   const options = useVersionOptions(packId, item.path, open);
@@ -50,6 +53,7 @@ export function ChangeVersionDialog({
             returnFocusTo={returnFocusTo}
             onDone={() => {
               onOpenChange(false);
+              onChanged?.();
             }}
           />
         ) : (

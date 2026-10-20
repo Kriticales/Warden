@@ -100,6 +100,7 @@ export const diagnostico = {
     abrirAdicionar: 'Abrir Adicionar',
     remover: 'Remover {{nome}}',
     atualizar: 'Atualizar {{nome}}',
+    trocarVersao: 'Trocar pela versão certa',
     lado: {
       client: 'Mudar lado para Só cliente',
       server: 'Mudar lado para Só servidor',
