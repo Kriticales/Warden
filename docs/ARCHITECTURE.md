@@ -331,7 +331,7 @@ Equivalência obrigatória: para cada tipo de `.pw.toml` que o Warden escreve, e
 
 - **Lado a partir do jar** (local, link, CurseForge): Fabric `environment: "client"` → sugere `client`; Forge `clientSideOnly = true` ou `displayTest = "IGNORE_ALL_VERSION"` → sugere `client`. Sugestão aparece no diálogo de adição; o padrão é `both`.
 - **Hashes:** índice em `sha256`; download Modrinth `sha512`; CurseForge `sha1` (ou `md5`/`murmur2` quando a API não der `sha1`); link direto `sha256`.
-- **Loaders compatíveis:** pack NeoForge aceita mods `neoforge`; mods `forge` são aceitos em NeoForge 1.20.1. Em NeoForge ≥ 1.20.2, um mod marcado só como `forge` na API gera aviso na passagem rápida e **erro** na passagem completa se o jar não tiver `META-INF/neoforge.mods.toml`. Pack Fabric aceita `fabric`. Packs com mais de um loader não são abertos.
+- **Loaders compatíveis (estritos, ADR-0061):** ao adicionar, atualizar e trocar de versão, o mod tem de ser para a versão do Minecraft e para o loader do pack (a versão do loader não importa), e entra a versão mais nova que atende às duas condições. Pack NeoForge aceita mods `neoforge`; mods `forge` só no NeoForge 1.20.1, e depois dos `neoforge`. Pack Forge aceita `forge`; Fabric, `fabric`; Quilt, `quilt` e `fabric`. As candidatas são ordenadas pela posição do loader nessa lista e, no mesmo loader, pela data (a mais nova primeiro); um arquivo com as tags `forge` e `neoforge` conta como `neoforge`. Sem versão para o Minecraft e o loader do pack, o mod vai para "Sem versão compatível": nunca entra o de outro loader. A lista do packwiz (`compatible_loaders`, que aceita `forge` em qualquer NeoForge) fica só para paridade com o binário. No diagnóstico, um mod marcado só como `forge` na API num NeoForge ≥ 1.20.2 é **erro** (`E_LOADER`), como o jar sem `META-INF/neoforge.mods.toml` na passagem completa; os dois viram um achado só, com as correções "Trocar pela versão certa" e "Remover". Packs com mais de um loader não são abertos.
 
 ### 6.3 Sidecar do packwiz (ADR-0007)
 
@@ -667,7 +667,7 @@ Regras (códigos estáveis):
 
 | Código | Regra | Gravidade | Fonte |
 |---|---|---|---|
-| `E_LOADER` | Jar sem metadados do loader do pack, ou versão da plataforma sem o loader. Mods `forge` em NeoForge 1.20.1 são aceitos; em ≥ 1.20.2, aviso na passagem rápida e erro na completa se o jar não tiver `neoforge.mods.toml` (§6.2). | erro | jar + API |
+| `E_LOADER` | Jar sem metadados do loader do pack, ou versão da plataforma sem o loader. Mods `forge` em NeoForge 1.20.1 são aceitos; em ≥ 1.20.2, erro pela API (tags sem `neoforge`) e pelo jar sem `neoforge.mods.toml`, num achado só (§6.2, ADR-0061). Correções: "Trocar pela versão certa" (itens do Modrinth e da CurseForge) e "Remover". | erro | jar + API |
 | `E_MCVERSION` | Versão do Minecraft fora do que o mod declara (`depends.minecraft`, `versionRange`, `acceptedMinecraftVersions`, `mcversion`, `game_versions`). Se a versão estiver em `acceptable-game-versions`, vira aviso. | erro/aviso | jar + API |
 | `E_LOADERVERSION` | Versão do loader do pack fora da faixa exigida (`fabricloader`, `loaderVersion`, dependência `forge`/`neoforge`). | erro | jar |
 | `E_MISSING_DEP` | Dependência obrigatória ausente, considerando `provides` e jars aninhados, e o lado da dependência. | erro | jar + API |
