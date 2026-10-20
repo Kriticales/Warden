@@ -225,7 +225,12 @@ fn check_link(
     (!anchors.contains(&anchor.to_lowercase())).then(|| format!("âncora #{anchor} não existe"))
 }
 
-/// Arquivos Markdown versionados, relativos à raiz.
+/// Markdown de terceiros copiado sem mudança, com links para arquivos que a cópia não traz (o
+/// `README.md` do crate do portablemc aponta para `doc/`, que o pacote do crates.io não tem;
+/// ADR-0062).
+const UPSTREAM_MARKDOWN: &[&str] = &["third_party/portablemc/README.md"];
+
+/// Arquivos Markdown versionados, relativos à raiz (sem os de [`UPSTREAM_MARKDOWN`]).
 fn versioned_markdown(root: &Path) -> Result<Vec<String>> {
     let output = Cmd::new("git")
         .cwd(root)
@@ -233,7 +238,7 @@ fn versioned_markdown(root: &Path) -> Result<Vec<String>> {
         .read()?;
     Ok(output
         .split('\0')
-        .filter(|name| !name.is_empty())
+        .filter(|name| !name.is_empty() && !UPSTREAM_MARKDOWN.contains(name))
         .map(str::to_owned)
         .collect())
 }
@@ -341,6 +346,21 @@ mod tests {
                 ("docs/a.md", 4, "falta.md"),
                 ("docs/a.md", 5, "../README.md#nada")
             ]
+        );
+    }
+
+    #[test]
+    fn markdown_de_terceiros_copiado_fica_de_fora() {
+        let files = versioned_markdown(&workspace_root()).unwrap();
+        assert!(
+            files
+                .iter()
+                .any(|file| file == "third_party/portablemc/WARDEN.md")
+        );
+        assert!(
+            !files
+                .iter()
+                .any(|file| file == "third_party/portablemc/README.md")
         );
     }
 }
