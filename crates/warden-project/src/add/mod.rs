@@ -229,6 +229,19 @@ impl SourceVersion {
     }
 }
 
+/// Ordena as candidatas para o pack (ADR-0061): primeiro pelo loader, na ordem de preferência
+/// do pack (num NeoForge 1.20.1, as `neoforge` antes das `forge`), depois a mais nova primeiro.
+/// Assim a "mais nova" que [`ChannelPolicy::pick`] escolhe é do loader do pack sempre que ele
+/// tiver uma versão.
+pub fn sort_candidates(versions: &mut [SourceVersion], target: &PackTarget) {
+    versions.sort_by(|a, b| {
+        target
+            .loader_rank(&a.loaders)
+            .cmp(&target.loader_rank(&b.loaders))
+            .then_with(|| b.published.cmp(&a.published))
+    });
+}
+
 /// Se a versão do Minecraft é 1.13 ou anterior, quando só o Forge existia ("1.7.10", "1.12.2").
 fn forge_only_minecraft(version: &str) -> bool {
     let mut parts = version.split('.');

@@ -341,7 +341,8 @@ pub struct PackTarget {
     pub minecraft: String,
     /// A versão do pack seguida das `acceptable-game-versions`.
     pub game_versions: Vec<String>,
-    /// Loaders cujos mods o pack aceita (`compatible_loaders` do packwiz), o do pack primeiro.
+    /// Loaders cujos mods o pack aceita, o do pack primeiro (`strict_loaders`, ADR-0061): um
+    /// pack NeoForge só aceita mods `forge` no Minecraft 1.20.1.
     pub loaders: Vec<Loader>,
 }
 
@@ -362,7 +363,7 @@ impl PackTarget {
         Ok(Self {
             minecraft,
             game_versions,
-            loaders: manifest.compatible_loaders(),
+            loaders: manifest.strict_loaders(),
         })
     }
 
@@ -387,6 +388,22 @@ impl PackTarget {
             }
             ProjectKind::ResourcePack | ProjectKind::Shader => Vec::new(),
         }
+    }
+
+    /// Posição na preferência do pack do melhor loader de uma versão (0: o loader do pack).
+    /// Uma versão com as tags `forge` e `neoforge` conta como `neoforge`. Sem nenhum loader da
+    /// lista (resource packs, arquivo antigo sem tag), vai para o fim.
+    #[must_use]
+    pub fn loader_rank(&self, loaders: &[String]) -> usize {
+        loaders
+            .iter()
+            .filter_map(|tag| {
+                self.loaders
+                    .iter()
+                    .position(|loader| tag.eq_ignore_ascii_case(loader.key()))
+            })
+            .min()
+            .unwrap_or(self.loaders.len())
     }
 }
 
@@ -1199,5 +1216,24 @@ mod tests {
         assert!(target.loader_names(ProjectKind::Shader).is_empty());
         assert_eq!(SourceId::Curseforge.key("238222"), "curseforge:238222");
         assert_eq!(ProjectKind::ResourcePack.folder(), "resourcepacks");
+    }
+
+    #[test]
+    fn neoforge_depois_da_1201_nao_aceita_mods_do_forge() {
+        let mut manifest = PackManifest::new("T", "1.21.1");
+        manifest.set_loader_version(Loader::NeoForge, "21.1.77");
+        let target = PackTarget::from_manifest(&manifest).unwrap();
+        assert_eq!(target.loader_names(ProjectKind::Mod), ["neoforge"]);
+        assert_eq!(target.loader_rank(&["NeoForge".into()]), 0);
+        assert_eq!(target.loader_rank(&["forge".into()]), 1);
+
+        let mut manifest = PackManifest::new("T", "1.20.1");
+        manifest.set_loader_version(Loader::NeoForge, "47.1.106");
+        let target = PackTarget::from_manifest(&manifest).unwrap();
+        assert_eq!(target.loader_names(ProjectKind::Mod), ["neoforge", "forge"]);
+        // As duas tags: conta como NeoForge.
+        assert_eq!(target.loader_rank(&["forge".into(), "neoforge".into()]), 0);
+        assert_eq!(target.loader_rank(&["forge".into()]), 1);
+        assert_eq!(target.loader_rank(&[]), 2);
     }
 }

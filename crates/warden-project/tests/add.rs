@@ -1077,3 +1077,100 @@ async fn plano_de_um_item_usa_poucas_requisicoes() {
     assert_eq!(api.requests("/v2/project/").await, 1);
     assert_eq!(api.requests("/v2/version_files").await, 0);
 }
+
+/// Uma versão simulada do Sodium para NeoForge 1.21.1 (a real `uMOpc5uV`) com outro ID, outros
+/// loaders e outra data (ADR-0061).
+fn sodium_variant(id: &str, loaders: &[&str], date: &str) -> Value {
+    let mut version = version_json(&recorded("versions-sodium-neoforge-1.21.1"), "uMOpc5uV");
+    version["id"] = id.into();
+    version["loaders"] = serde_json::json!(loaders);
+    version["date_published"] = date.into();
+    version["version_number"] = format!("{id}-{}", loaders.join("-")).into();
+    let file = &mut version["files"][0];
+    file["filename"] = format!("sodium-{id}.jar").into();
+    file["url"] =
+        format!("https://cdn.modrinth.com/data/{SODIUM}/versions/{id}/sodium-{id}.jar").into();
+    let hex = id.bytes().fold(String::new(), |mut hex, byte| {
+        use std::fmt::Write as _;
+        let _ = write!(hex, "{byte:02x}");
+        hex
+    });
+    file["hashes"]["sha1"] = format!("{hex:0>40}").into();
+    file["hashes"]["sha512"] = format!("{hex:0>128}").into();
+    version
+}
+
+/// O Modrinth simulado servindo `versions` como as versões do Sodium (sem filtrar: o Warden
+/// confere de novo o que a fonte devolve).
+async fn sodium_with(versions: Vec<Value>) -> Api {
+    let api = Api::start().await;
+    Mock::given(method("GET"))
+        .and(path(format!("/v2/project/{SODIUM}/version")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(versions))
+        .with_priority(1)
+        .mount(&api.server)
+        .await;
+    api
+}
+
+#[tokio::test]
+async fn loader_estrito_neoforge_1211_prefere_neoforge_ao_forge_mais_novo() {
+    let api = sodium_with(vec![
+        sodium_variant("forgeNew", &["forge"], "2026-09-30T10:00:00Z"),
+        sodium_variant("neoOld01", &["neoforge"], "2026-08-01T10:00:00Z"),
+    ])
+    .await;
+    let temp = tempfile::tempdir().unwrap();
+    pack(temp.path(), "1.21.1", Loader::NeoForge, &[]);
+    let plan = plan_of(&api, temp.path(), &[SODIUM]).await;
+    assert_eq!(node(&plan, SODIUM).version_id, "neoOld01");
+    assert!(plan.missing.is_empty(), "{plan:#?}");
+}
+
+#[tokio::test]
+async fn loader_estrito_neoforge_1211_so_com_forge_fica_sem_versao_compativel() {
+    let api = sodium_with(vec![sodium_variant(
+        "forgeNew",
+        &["forge"],
+        "2026-09-30T10:00:00Z",
+    )])
+    .await;
+    let temp = tempfile::tempdir().unwrap();
+    pack(temp.path(), "1.21.1", Loader::NeoForge, &[]);
+    let plan = plan_of(&api, temp.path(), &[SODIUM]).await;
+    assert!(plan.nodes.is_empty(), "{plan:#?}");
+    assert_eq!(plan.missing.len(), 1);
+    assert_eq!(plan.missing[0].role, NodeRole::Chosen);
+}
+
+#[tokio::test]
+async fn loader_estrito_versao_com_as_duas_tags_conta_como_neoforge() {
+    let api = sodium_with(vec![
+        sodium_variant("bothTags", &["forge", "neoforge"], "2026-09-30T10:00:00Z"),
+        sodium_variant("neoOld01", &["neoforge"], "2026-08-01T10:00:00Z"),
+    ])
+    .await;
+    let temp = tempfile::tempdir().unwrap();
+    pack(temp.path(), "1.21.1", Loader::NeoForge, &[]);
+    let plan = plan_of(&api, temp.path(), &[SODIUM]).await;
+    assert_eq!(node(&plan, SODIUM).version_id, "bothTags");
+    assert!(node(&plan, SODIUM).compatible);
+}
+
+#[tokio::test]
+async fn loader_estrito_neoforge_1201_aceita_forge_mas_depois_do_neoforge() {
+    let mut forge = sodium_variant("forgeNew", &["forge"], "2026-09-30T10:00:00Z");
+    let mut neo = sodium_variant("neoOld01", &["neoforge"], "2026-08-01T10:00:00Z");
+    for version in [&mut forge, &mut neo] {
+        version["game_versions"] = serde_json::json!(["1.20.1"]);
+    }
+    let api = sodium_with(vec![forge.clone(), neo]).await;
+    let temp = tempfile::tempdir().unwrap();
+    pack(temp.path(), "1.20.1", Loader::NeoForge, &[]);
+    let plan = plan_of(&api, temp.path(), &[SODIUM]).await;
+    assert_eq!(node(&plan, SODIUM).version_id, "neoOld01");
+    // Só com o Forge, o Forge entra (o NeoForge 1.20.1 carrega mods do Forge).
+    let api = sodium_with(vec![forge]).await;
+    let plan = plan_of(&api, temp.path(), &[SODIUM]).await;
+    assert_eq!(node(&plan, SODIUM).version_id, "forgeNew");
+}

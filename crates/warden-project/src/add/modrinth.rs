@@ -203,8 +203,7 @@ impl AddSource for ModrinthAdd {
             // O servidor já filtra; conferir de novo protege de uma resposta mais larga.
             .filter(|version| version.file.is_some() && version.compatible(project.kind, target))
             .collect();
-        // A API já devolve a mais nova primeiro; a ordem estável garante isso.
-        versions.sort_by(|a, b| b.published.cmp(&a.published));
+        super::sort_candidates(&mut versions, target);
         Ok(versions)
     }
 

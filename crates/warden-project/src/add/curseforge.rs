@@ -252,7 +252,7 @@ impl AddSource for CurseforgeAdd {
                 }
             }
         }
-        versions.sort_by(|a, b| b.published.cmp(&a.published));
+        super::sort_candidates(&mut versions, target);
         Ok(versions)
     }
 
