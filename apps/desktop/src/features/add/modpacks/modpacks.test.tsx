@@ -188,7 +188,8 @@ describe('Tipo = Modpacks', () => {
     const bar = within(panel).getByRole('region', { name: 'Mods selecionados' });
     expect(within(bar).getByText('5 selecionados')).toBeDefined();
     await userEvent.click(within(bar).getByRole('button', { name: 'Adicionar 5 selecionados' }));
-    expect(await screen.findByRole('dialog', { name: 'Adicionar 5 itens' })).toBeDefined();
+    // O plano simulado traz um nó só, e o título conta o que o plano diz que entra.
+    expect(await screen.findByRole('dialog', { name: 'Adicionar Mod Menu' })).toBeDefined();
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
     await waitFor(() => {
       expect(backend.callsOf('add_plan')).toHaveLength(1);

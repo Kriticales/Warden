@@ -24,6 +24,7 @@ describe('diálogo de dependências: o que entra', () => {
       source: 'modrinth',
       projectId: 'P7dR8mSH',
       versionId: 'V-FABRIC-API',
+      side: 'client',
       replaces: null,
     });
     expect(joinNames(titlesOf(plan, plan.nodes[2]?.requiredBy ?? []))).toBe('Mod Menu e AppleSkin');
@@ -96,6 +97,7 @@ describe('diálogo de dependências: o que entra', () => {
         source: 'modrinth',
         projectId: 'mOgUt4GM',
         versionId: 'V-MODMENU',
+        side: 'client',
         replaces: 'mods/modmenu.pw.toml',
       },
     ]);

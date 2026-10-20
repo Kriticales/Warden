@@ -59,7 +59,9 @@ function setup(plan: AddPlan, request: DependenciesRequest = TWO, apply: unknown
 describe('diálogo de dependências', () => {
   it('CA-T08-11/CA-T09-05: um diálogo para os itens, a biblioteca comum uma vez; desmarcar avisa; grava de uma vez; axe', async () => {
     const { backend, onAdded } = setup(makePlan());
-    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 2 itens' });
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Adicionar 2 escolhidos + 2 dependências',
+    });
     expect(
       within(dialog).getByText('Nada foi gravado ainda. Confira o que vai entrar no pack.'),
     ).toBeDefined();
@@ -74,6 +76,9 @@ describe('diálogo de dependências', () => {
     expect(
       within(dialog).getByText('Sem esta dependência o jogo provavelmente não abre.'),
     ).toBeDefined();
+    expect(
+      screen.getByRole('dialog', { name: 'Adicionar 2 escolhidos + 1 dependência' }),
+    ).toBeDefined();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Adicionar 3 itens' }));
 
     await waitFor(() => {
@@ -83,9 +88,27 @@ describe('diálogo de dependências', () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]?.args.request).toEqual({
       items: [
-        { source: 'modrinth', projectId: 'mOgUt4GM', versionId: 'V-MODMENU', replaces: null },
-        { source: 'modrinth', projectId: 'EsAfCjCV', versionId: 'V-APPLESKIN', replaces: null },
-        { source: 'modrinth', projectId: 'eXts2L7r', versionId: 'V-PLACEHOLDER', replaces: null },
+        {
+          source: 'modrinth',
+          projectId: 'mOgUt4GM',
+          versionId: 'V-MODMENU',
+          side: 'client',
+          replaces: null,
+        },
+        {
+          source: 'modrinth',
+          projectId: 'EsAfCjCV',
+          versionId: 'V-APPLESKIN',
+          side: 'client',
+          replaces: null,
+        },
+        {
+          source: 'modrinth',
+          projectId: 'eXts2L7r',
+          versionId: 'V-PLACEHOLDER',
+          side: 'client',
+          replaces: null,
+        },
       ],
     });
     expect(await screen.findByText('3 itens adicionados ao pack')).toBeDefined();
@@ -149,7 +172,8 @@ describe('diálogo de dependências', () => {
       ],
       titles: ['Embeddium', 'Mod Menu'],
     });
-    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 2 itens' });
+    // O Mod Menu já está no pack pela CurseForge e não entra por padrão: só o Embeddium.
+    const dialog = await screen.findByRole('dialog', { name: 'Adicionar Embeddium' });
     expect(
       await within(dialog).findByText('Embeddium é incompatível com Sodium, que já está no pack.'),
     ).toBeDefined();
@@ -177,15 +201,66 @@ describe('diálogo de dependências', () => {
     });
     expect(backend.callsOf('add_apply')[0]?.args.request).toEqual({
       items: [
-        { source: 'modrinth', projectId: 'sk9rgfiA', versionId: 'V-MODMENU', replaces: null },
+        {
+          source: 'modrinth',
+          projectId: 'sk9rgfiA',
+          versionId: 'V-MODMENU',
+          side: 'client',
+          replaces: null,
+        },
         {
           source: 'modrinth',
           projectId: 'mOgUt4GM',
           versionId: 'V-MODMENU',
+          side: 'client',
           replaces: 'mods/modmenu.pw.toml',
         },
       ],
     });
+  });
+
+  it('B1-B: o título e o botão fazem a mesma conta, e "Pedida por" só cita quem entra', async () => {
+    const plan = makePlan({
+      nodes: [
+        ...makePlan().nodes,
+        makeNode({
+          projectId: 'nU0bVIaL',
+          slug: 'badpackets',
+          title: 'Bad Packets',
+          role: 'optional',
+          versionId: 'V-BADPACKETS',
+          optionalFor: ['modrinth:EsAfCjCV'],
+        }),
+      ],
+    });
+    setup(plan);
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Adicionar 2 escolhidos + 2 dependências',
+    });
+    expect(within(dialog).getByRole('button', { name: 'Adicionar 4 itens' })).toBeDefined();
+    const optional = within(dialog).getByRole('region', { name: 'Opcionais' });
+    await userEvent.click(within(optional).getByRole('checkbox', { name: /Bad Packets/ }));
+    expect(
+      screen.getByRole('dialog', { name: 'Adicionar 2 escolhidos + 3 dependências' }),
+    ).toBeDefined();
+    expect(within(dialog).getByRole('button', { name: 'Adicionar 5 itens' })).toBeDefined();
+    await userEvent.click(within(optional).getByRole('checkbox', { name: /Bad Packets/ }));
+
+    // Desmarcar o AppleSkin: a Fabric API só é pedida pelo Mod Menu, e a opcional dele some.
+    const chosen = within(dialog).getByRole('region', { name: 'O que você escolheu' });
+    await userEvent.click(within(chosen).getByRole('checkbox', { name: /AppleSkin/ }));
+    const required = within(dialog).getByRole('region', { name: 'Obrigatórias' });
+    expect(within(required).getAllByText('Pedida por Mod Menu.')).toHaveLength(2);
+    expect(within(required).queryByText(/AppleSkin/)).toBeNull();
+    expect(within(optional).queryByText(/Opcional para/)).toBeNull();
+    expect(
+      screen.getByRole('dialog', { name: 'Adicionar Mod Menu + 2 dependências' }),
+    ).toBeDefined();
+    expect(within(dialog).getByRole('button', { name: 'Adicionar 3 itens' })).toBeDefined();
+
+    // Sem nenhum escolhido, nenhuma obrigatória diz quem a pede.
+    await userEvent.click(within(chosen).getByRole('checkbox', { name: /Mod Menu/ }));
+    expect(within(required).queryByText(/Pedida por/)).toBeNull();
   });
 
   it('falha ao gravar: o erro aparece no diálogo e nada é dado como adicionado', async () => {
@@ -199,7 +274,9 @@ describe('diálogo de dependências', () => {
         ),
       ),
     );
-    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 2 itens' });
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Adicionar 2 escolhidos + 2 dependências',
+    });
     await userEvent.click(await within(dialog).findByRole('button', { name: 'Adicionar 4 itens' }));
     expect(
       await within(dialog).findByText('Não foi possível adicionar. Nada foi gravado.'),

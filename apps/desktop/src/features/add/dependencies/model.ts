@@ -57,7 +57,10 @@ export function includedKeys(plan: AddPlan, choices: DependencyChoices): Set<str
   return included;
 }
 
-/** O pedido de gravação: os nós que entram, na ordem do plano, com `replaces` dos duplicados. */
+/**
+ * O pedido de gravação: os nós que entram, na ordem do plano, com o lado que o plano mostrou
+ * (o da CurseForge pode vir do Modrinth, pelo mesmo arquivo) e `replaces` dos duplicados.
+ */
 export function applyRequest(
   plan: AddPlan,
   included: ReadonlySet<string>,
@@ -75,9 +78,27 @@ export function applyRequest(
         source: node.source,
         projectId: node.projectId,
         versionId: node.versionId,
+        side: node.side,
         replaces: replaced.get(node.key) ?? null,
       })),
   };
+}
+
+/**
+ * O que o título e o botão contam, a mesma conta: os escolhidos que entram e as dependências
+ * (obrigatórias e opcionais marcadas) que entram com eles.
+ */
+export function includedCounts(
+  plan: AddPlan,
+  included: ReadonlySet<string>,
+): { chosen: PlanNode[]; dependencies: number } {
+  const chosen = plan.nodes.filter((node) => node.role === 'chosen' && included.has(node.key));
+  return { chosen, dependencies: included.size - chosen.length };
+}
+
+/** Só as chaves dos itens que entram (para "Pedida por X", sem quem foi desmarcado). */
+export function onlyIncluded(keys: readonly string[], included: ReadonlySet<string>): string[] {
+  return keys.filter((key) => included.has(key));
 }
 
 /** Os nomes dos itens do plano pelas chaves (para "Pedida por X e Y"). */
