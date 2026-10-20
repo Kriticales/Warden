@@ -81,7 +81,10 @@ fn unpatched() -> Result<BTreeMap<String, String>> {
         .collect::<Result<_, _>>()?;
     patches.sort();
     for patch in patches.iter().rev() {
+        // Sem conversão de fim de linha: com `core.autocrlf=true` (o padrão do Git para
+        // Windows), o `git apply` gravaria os arquivos desfeitos com CRLF.
         Cmd::new("git")
+            .args(["-c", "core.autocrlf=false", "-c", "core.eol=lf"])
             .args(["apply", "-R", "--whitespace=nowarn"])
             .args([patch])
             .cwd(temp.path())
