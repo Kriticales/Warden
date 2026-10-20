@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { AddResult, Kit } from '../../../lib/ipc/bindings';
 import { axeComponent } from '../../../test/axe';
+import { drowShapeErrors } from '../../../test/drow';
 import { mockBackend } from '../../../test/backend';
 import { nextPackId } from '../../../test/factories';
 import { renderWithProviders } from '../../../test/render';
@@ -62,6 +63,15 @@ describe('Kits de desempenho', () => {
     expect(within(list).getAllByRole('checkbox')).toHaveLength(5);
     expect(within(list).getByText('Muda a geração do mundo. Vem desmarcado.')).toBeDefined();
     expect(await axeComponent(document.body)).toHaveNoViolations();
+  });
+
+  it('cada linha tem um filho por coluna da grade: o botão não cobre o nome do kit (P16)', async () => {
+    setup();
+    await userEvent.click(await screen.findByRole('button', { name: 'Ver o que vem no kit' }));
+    const row = screen.getByText('Desempenho para Fabric 1.21 em diante').closest('.drow');
+    expect(row?.classList.contains('drow--nobox')).toBe(true);
+    expect(row?.querySelector(':scope > .kit__icon svg')).not.toBeNull();
+    expect(drowShapeErrors(document.body)).toEqual([]);
   });
 
   it('Adicionar kit abre o diálogo de dependências só com os mods marcados e nada entra antes de confirmar', async () => {
