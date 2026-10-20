@@ -77,6 +77,7 @@ fn api(n: usize, m: &pack_grande::ModGerado) -> ApiMetadata {
         download_blocked: false,
         client_side: Some(true),
         server_side: Some(true),
+        equivalents: Vec::new(),
     }
 }
 

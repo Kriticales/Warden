@@ -480,6 +480,7 @@ fn converte_os_itens_do_diagnostico_ligando_a_api_pelo_projeto() {
         download_blocked: false,
         client_side: None,
         server_side: None,
+        equivalents: Vec::new(),
     };
     let make = |id: &str, api: ApiMetadata| PackItem {
         path: path(id),
