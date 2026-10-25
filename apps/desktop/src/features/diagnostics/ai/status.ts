@@ -16,12 +16,7 @@ import { dayRelation } from '../../../lib/format';
 
 /** O selo da conversa na lista. */
 export type ConversationTag =
-  | 'lendo'
-  | 'respondida'
-  | 'esperando'
-  | 'aplicada'
-  | 'erro'
-  | 'interrompida';
+  'lendo' | 'respondida' | 'esperando' | 'aplicada' | 'erro' | 'interrompida';
 
 /**
  * Lendo enquanto o Sculk responde; Esperando você quando há proposta para decidir; Aplicada
@@ -57,10 +52,7 @@ export function groupOf(atMs: number, now: number = Date.now()): ConversationGro
 
 /** Sem acentos e em minúsculas, para a busca. */
 export function fold(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 /** O modelo que respondeu (ou vai responder) a pergunta. */

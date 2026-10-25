@@ -113,7 +113,13 @@ export function AiSettings() {
 }
 
 /** Os modelos do provedor ativo (só informativo; o modo é escolhido a cada pergunta). */
-function ModelSetting({ provider, keyConfigured }: { provider: AiProvider; keyConfigured: boolean }) {
+function ModelSetting({
+  provider,
+  keyConfigured,
+}: {
+  provider: AiProvider;
+  keyConfigured: boolean;
+}) {
   const { t } = useTranslation('ia');
   const models = useAiModels(provider, keyConfigured);
   const footer = (

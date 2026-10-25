@@ -184,9 +184,7 @@ export function NewConversation({
   const preview = useAiPreview(packId);
   const chooseLog = useChooseLog(packId);
   const ids = useId();
-  const [symptom, setSymptom] = useState<AiSymptom | null>(
-    sessionId ? 'crashInWorld' : null,
-  );
+  const [symptom, setSymptom] = useState<AiSymptom | null>(sessionId ? 'crashInWorld' : null);
   const [choice, setChoice] = useState<SourceChoice | null>(null);
   const [pick, setPick] = useState<AiLocalPick | null>(null);
   const [note, setNote] = useState('');

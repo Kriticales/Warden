@@ -139,9 +139,7 @@ export function DetailsDrawer({
             <dd>{providerName(view.provider)}</dd>
             <dt>{t('detalhes.modelo')}</dt>
             <dd>
-              <span className="mono">
-                {initial ? (initial.model ?? view.model) : view.model}
-              </span>
+              <span className="mono">{initial ? (initial.model ?? view.model) : view.model}</span>
               {lighter.length > 0 ? (
                 <span className="sub">
                   {t('detalhes.modeloLeve', {
@@ -169,10 +167,12 @@ export function DetailsDrawer({
         <section className="dsec" aria-labelledby={`${titleId}-ler`}>
           <h3 id={`${titleId}-ler`}>{t('detalhes.podeLer')}</h3>
           <ul className="perms">
-            {scope === 'pack' ? (
-              <Perm allowed label={t('detalhes.leituras.pack')} />
-            ) : null}
-            <Perm allowed label={t('detalhes.leituras.logs')} sub={t('detalhes.leituras.logsSub')} />
+            {scope === 'pack' ? <Perm allowed label={t('detalhes.leituras.pack')} /> : null}
+            <Perm
+              allowed
+              label={t('detalhes.leituras.logs')}
+              sub={t('detalhes.leituras.logsSub')}
+            />
             {scope === 'pack' ? (
               <>
                 <Perm allowed label={t('detalhes.leituras.desempenho')} />
@@ -282,7 +282,7 @@ function Perm({
     <li className={allowed ? undefined : 'off'}>
       <Icon icon={allowed ? Check : X} className={allowed ? 'yes' : 'no'} />
       <span>{label}</span>
-      {allowed ? (sub ? <small>{sub}</small> : null) : <small>{t('detalhes.leituras.negado')}</small>}
+      {allowed ? sub ? <small>{sub}</small> : null : <small>{t('detalhes.leituras.negado')}</small>}
     </li>
   );
 }
@@ -307,7 +307,7 @@ function Notice({
     return (
       <Alert
         kind="warn"
-       
+
         title={t('mudou.titulo')}
         actions={
           <Button size="sm" onClick={onNew}>

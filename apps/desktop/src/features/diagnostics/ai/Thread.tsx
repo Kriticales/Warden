@@ -230,9 +230,7 @@ function MeMessage({
   first: boolean;
 }) {
   const { t } = useTranslation('ia');
-  const text = first
-    ? (view.note ?? `${symptomLabel(view.summary.symptom)}.`)
-    : turn.question;
+  const text = first ? (view.note ?? `${symptomLabel(view.summary.symptom)}.`) : turn.question;
   const bytes = byteLength(turn.question);
   return (
     <article className="msg msg--me" aria-label={t('conversa.suaMensagem')}>

@@ -211,7 +211,9 @@ describe('Sensor Sculk (D-04)', function () {
     await clickStable(sectionLink('Sensor Sculk'));
     await waitTitle('Nova conversa');
     // No Gemini não há escolha de como procurar.
-    await expect($('form.newconv').$('[role="radiogroup"][aria-label="Como o Sculk procura"]')).not.toBeExisting();
+    await expect(
+      $('form.newconv').$('[role="radiogroup"][aria-label="Como o Sculk procura"]'),
+    ).not.toBeExisting();
     await expect($('form.newconv').$('span=Como procurar')).not.toBeExisting();
     // Sem teste gravado, "Começar pelo" vem em "Só o pack".
     await chooseSource('pack');

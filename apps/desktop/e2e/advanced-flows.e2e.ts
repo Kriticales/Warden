@@ -12,7 +12,7 @@
  *    diálogo só, "Já no pack" no modpack e a lista de Mods com os dois.
  * 3. Travou sem causa: o menu ▾ do Testar abre a busca do culpado, que acha o `charlie.jar`;
  *    "Ver o que o charlie.jar altera no jogo" abre o raio-x nos detalhes; a conversa com a IA
- *    (Gemini simulado) leva o que a pessoa contou e a resposta aparece com o "Enviado à IA".
+ *    (Gemini simulado) leva o que a pessoa contou e a resposta aparece com o "Enviado ao Sculk".
  * 4. Testar como servidor e gerar o pacote para servidor: o menu ▾ só pelo teclado (o foco
  *    volta ao ▾ quando o diálogo da EULA fecha), o servidor local com o jogo dentro, os
  *    formatos de Exportar (Prism e .mrpack), o pacote para servidor testado no servidor local e,
@@ -572,35 +572,35 @@ describe('Fluxo 8: travou sem causa, o culpado e a conversa com a IA (A-07)', fu
     await $('[role="dialog"]').waitForExist({ reverse: true, timeout: 10_000 });
   });
 
-  it('a conversa com a IA leva o que a pessoa contou e mostra a resposta com o que foi enviado', async () => {
-    await step('Diagnóstico com IA', async () => {
-      await clickStable(sectionLink('Diagnóstico com IA'));
-      await waitHeading('Diagnóstico com IA');
-      await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
-      await clickStable($('label*=Trava ao entrar no mundo'));
-      const source = $('select.select');
+  it('a conversa com o Sculk leva o que a pessoa contou e mostra a resposta com o que foi enviado', async () => {
+    await step('Sensor Sculk', async () => {
+      await clickStable(sectionLink('Sensor Sculk'));
+      const form = $('form.newconv');
+      await form.waitForDisplayed({ timeout: 30_000 });
+      await clickStable(form.$('button[role="radio"]*=Trava ao entrar no mundo'));
+      const source = form.$('select.select');
       await source.waitForEnabled({ timeout: 30_000 });
       await source.selectByAttribute('value', 'pack');
-      const field = $('textarea');
+      const field = form.$('textarea');
       await field.click();
       await field.addValue(note);
     });
     await step('consentimento', async () => {
-      await clickStable($('main').$('button=Começar conversa'));
+      await clickStable($('form.newconv').$('button*=Começar conversa'));
       const dialog = $('[role="dialog"]');
-      await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+      await dialog.$('h2*=Começar uma conversa com o Sculk?').waitForDisplayed({ timeout: 30_000 });
       const text = await fullText(
         '[role="dialog"] pre[aria-label="Texto inicial que será enviado"]',
       );
       expect(text).toContain(note);
       await expectAccessible();
       await screenshot('08-4-consentimento');
-      await clickStable(dialog.$('button=Começar conversa'));
+      await clickStable(dialog.$('button*=Enviar e começar'));
       await dialog.waitForDisplayed({ reverse: true, timeout: 30_000 });
     });
     await step('a resposta', async () => {
-      await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
-      await expect($$('details.toolcall')).toBeElementsArrayOfSize({ gte: 3 });
+      await $('.ai__foot*=O Sculk pode errar').waitForDisplayed({ timeout: 60_000 });
+      await expect($$('details.tc')).toBeElementsArrayOfSize({ gte: 2 });
     });
     const state = (await (await fetch(`${MOCK_URL}/__gemini`)).json()) as {
       generate: string[];

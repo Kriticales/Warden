@@ -33,7 +33,7 @@ describe('seções do pack (sections.ts)', () => {
       { nome: 'Mods', desc: 'Mods, resource packs e shaders' },
       { nome: 'Configs', desc: 'Arquivos de ajuste e scripts do pack' },
       { nome: 'Problemas', desc: 'Saúde do pack, problemas e travamentos' },
-      { nome: 'Diagnóstico com IA', desc: 'Conversar com a IA sobre um problema do pack' },
+      { nome: 'Sensor Sculk', desc: 'Conversar com o Sculk sobre um problema do pack' },
       { nome: 'Histórico', desc: 'Versões salvas e publicação' },
       { nome: 'Exportar', desc: 'Gerar o pack para quem vai jogar' },
     ]);

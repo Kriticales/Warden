@@ -26,14 +26,7 @@ import {
 } from './editor.fixtures';
 import { editorBackend } from './testing';
 
-const SECTIONS = [
-  'Mods',
-  'Configs',
-  'Problemas',
-  'Diagnóstico com IA',
-  'Histórico',
-  'Exportar',
-] as const;
+const SECTIONS = ['Mods', 'Configs', 'Problemas', 'Sensor Sculk', 'Histórico', 'Exportar'] as const;
 
 /**
  * O jsdom não mede elementos (`offsetHeight` é 0). A lista virtualizada precisa da altura da área
@@ -88,8 +81,8 @@ describe('pack aberto (T05)', () => {
     ]);
     const mods = within(sectionMenu()).getByRole('link', { name: /Mods/ });
     expect(mods.getAttribute('aria-current')).toBe('page');
-    // Mods tem o contador de itens; todas as seções já têm página (Configs, Problemas, ✦
-    // Diagnóstico com IA, Exportar e Histórico: C-02, D-03, D-04, E-01 e V-02), nenhuma fica
+    // Mods tem o contador de itens; todas as seções já têm página (Configs, Problemas,
+    // Sensor Sculk, Exportar e Histórico: C-02, D-03, D-04, E-01 e V-02), nenhuma fica
     // indisponível. O Histórico conta as alterações não salvas.
     expect(within(mods).getByLabelText('4 itens')).toBeDefined();
     expect(within(sectionMenu()).getByLabelText('5 alterações não salvas')).toBeDefined();

@@ -294,8 +294,7 @@ export const ia = {
     texto: 'O Warden fechou antes de o Sculk responder. Nada foi alterado no pack.',
   },
   resposta: {
-    limite:
-      'O Sculk chegou ao limite de consultas desta pergunta e respondeu com o que já tinha.',
+    limite: 'O Sculk chegou ao limite de consultas desta pergunta e respondeu com o que já tinha.',
     semConclusao: 'O Sculk não encontrou a causa com o que consultou.',
     semConclusaoTexto:
       'Isso é uma resposta válida. A busca do culpado testa o pack por partes até achar o mod que causa o problema.',
@@ -410,7 +409,8 @@ export const ia = {
     textoInicial: 'Texto inicial',
     total: 'Total',
     avisos: 'Avisos desta conversa',
-    quota_one: 'O limite diário do modelo mais forte acabou; {{count}} resposta usou o mais leve ({{modelo}}).',
+    quota_one:
+      'O limite diário do modelo mais forte acabou; {{count}} resposta usou o mais leve ({{modelo}}).',
     quota_other:
       'O limite diário do modelo mais forte acabou; {{count}} respostas usaram o mais leve ({{modelo}}).',
     timeout_one:

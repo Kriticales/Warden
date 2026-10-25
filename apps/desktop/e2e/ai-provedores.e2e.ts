@@ -485,7 +485,9 @@ describe('IA com vários provedores (D-18)', function () {
 
     // A pergunta seguinte, "Procurar a fundo", sai no Opus mais novo da lista.
     const composer = $('form.composer');
-    await expect(composer.$('[role="radiogroup"][aria-label="Como o Sculk procura"]')).toBeDisplayed();
+    await expect(
+      composer.$('[role="radiogroup"][aria-label="Como o Sculk procura"]'),
+    ).toBeDisplayed();
     await clickStable(composer.$('button[role="radio"]=Procurar a fundo'));
     await composer.$('textarea').setValue('E se eu tirar o Sodium?');
     await clickStable(composer.$('button*=Enviar'));
