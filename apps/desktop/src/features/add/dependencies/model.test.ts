@@ -13,6 +13,7 @@ import {
   setIncluded,
   titlesOf,
   unknownSide,
+  withKnownTitles,
 } from './model';
 
 const MODMENU = 'modrinth:mOgUt4GM';
@@ -275,5 +276,29 @@ describe('diálogo Adicionar itens: árvore, situação e conta', () => {
     const optional = setIncluded(plan, NO_CHOICES, 'modrinth:OPT', true);
     expect(includedKeys(plan, optional).has('modrinth:OPT')).toBe(true);
     expect(unknownSide(plan, includedKeys(plan, optional))).toEqual([]);
+  });
+});
+
+describe('nomes conhecidos', () => {
+  it('withKnownTitles: o escolhido sem versão que veio só com o ID ganha o nome da busca', () => {
+    const plan = makePlan({
+      missing: [
+        { key: 'modrinth:PtjYWJkn', title: 'PtjYWJkn', role: 'chosen', requiredBy: [] },
+        { key: 'modrinth:OUTRO', title: 'Outro Nome', role: 'required', requiredBy: [MODMENU] },
+      ],
+    });
+    const fixed = withKnownTitles(
+      plan,
+      [
+        { source: 'modrinth', projectId: 'PtjYWJkn', versionId: null },
+        { source: 'modrinth', projectId: 'OUTRO', versionId: null },
+      ],
+      ['Sodium Extra', 'Não troca'],
+    );
+    expect(fixed.missing.map((item) => item.title)).toEqual(['Sodium Extra', 'Outro Nome']);
+    expect(titlesOf(fixed, ['modrinth:PtjYWJkn'])).toEqual(['Sodium Extra']);
+    // Sem nada a trocar, o mesmo plano.
+    const same = makePlan();
+    expect(withKnownTitles(same, [], [])).toBe(same);
   });
 });

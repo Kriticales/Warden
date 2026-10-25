@@ -14,6 +14,7 @@
  */
 import type {
   AddApplyRequest,
+  AddChoice,
   AddPlan,
   PlanConflict,
   PlanInstalled,
@@ -112,6 +113,31 @@ export function titlesOf(plan: AddPlan, keys: readonly string[]): string[] {
   for (const missing of plan.missing)
     if (!byKey.has(missing.key)) byKey.set(missing.key, missing.title);
   return keys.map((key) => byKey.get(key) ?? key);
+}
+
+/**
+ * O plano com os nomes que a tela já conhecia: um item sem versão para o pack pode vir só com o
+ * ID (a fonte não informou o nome), mas quem o escolheu viu o nome na busca.
+ */
+export function withKnownTitles(
+  plan: AddPlan,
+  choices: readonly AddChoice[],
+  titles: readonly string[],
+): AddPlan {
+  const known = new Map<string, string>();
+  choices.forEach((choice, index) => {
+    const title = titles[index];
+    if (title) known.set(`${choice.source}:${choice.projectId}`, title);
+  });
+  if (!plan.missing.some((item) => known.has(item.key))) return plan;
+  return {
+    ...plan,
+    missing: plan.missing.map((item) => {
+      const title = known.get(item.key);
+      const id = item.key.slice(item.key.indexOf(':') + 1);
+      return title && (item.title === id || item.title === '') ? { ...item, title } : item;
+    }),
+  };
 }
 
 /** Lista legível em pt-BR: "A", "A e B", "A, B e C". */

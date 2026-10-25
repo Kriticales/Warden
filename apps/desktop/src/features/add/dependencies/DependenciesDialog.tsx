@@ -63,6 +63,7 @@ import {
   type TreeItem,
   type TreeRow,
   unknownSide,
+  withKnownTitles,
 } from './model';
 import './dependencies.css';
 
@@ -91,14 +92,20 @@ export function DependenciesDialog({
   const pack = usePack(packId);
   const alvo = useTargetShort(target);
   const plan = useAddPlan(packId, request?.choices ?? null);
+  // O plano com os nomes que a busca já mostrou (um item sem versão pode vir só com o ID).
+  const data = useMemo(
+    () =>
+      plan.data && request ? withKnownTitles(plan.data, request.choices, request.titles) : null,
+    [plan.data, request],
+  );
   const apply = useAddApply(packId);
   const [choices, setChoices] = useState<DependencyChoices>(NO_CHOICES);
   const [current, setCurrent] = useState<string | null>(null);
   const included = useMemo(
-    () => (plan.data ? includedKeys(plan.data, choices) : new Set<string>()),
-    [plan.data, choices],
+    () => (data ? includedKeys(data, choices) : new Set<string>()),
+    [data, choices],
   );
-  const counts = plan.data ? roleCounts(plan.data, included) : null;
+  const counts = data ? roleCounts(data, included) : null;
 
   // Antes do plano, os nomes pedidos; depois, a mesma conta do botão e do rodapé.
   const title =
@@ -171,9 +178,9 @@ export function DependenciesDialog({
                 variant="primary"
                 icon={Plus}
                 loading={apply.isPending}
-                disabled={!plan.data || included.size === 0}
+                disabled={!data || included.size === 0}
                 onClick={() => {
-                  if (plan.data) confirm(plan.data);
+                  if (data) confirm(data);
                 }}
               >
                 {apply.isPending
@@ -183,9 +190,7 @@ export function DependenciesDialog({
             </>
           }
         >
-          {plan.isPending ? (
-            <LoadingState label={t('dependencias.carregando')} />
-          ) : plan.isError ? (
+          {plan.isError ? (
             <ErrorPanel
               title={t('dependencias.erro')}
               error={plan.error}
@@ -193,9 +198,11 @@ export function DependenciesDialog({
                 void plan.refetch();
               }}
             />
+          ) : data === null ? (
+            <LoadingState label={t('dependencias.carregando')} />
           ) : (
             <PlanView
-              plan={plan.data}
+              plan={data}
               alvo={alvo}
               included={included}
               choices={choices}

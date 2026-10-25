@@ -37,7 +37,6 @@ export const adicionar = {
   },
   arquivo: {
     escolher: 'Escolher arquivo do computador…',
-    escolherCurto: 'Arquivo do computador…',
     dica: 'Escolher .jar ou .zip do computador. Também dá para arrastar para a janela.',
   },
   modo: {

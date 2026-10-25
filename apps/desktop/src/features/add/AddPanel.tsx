@@ -64,7 +64,7 @@ import type { LinkPick } from './curseforge/api';
 import { resultOfLink } from './curseforge/link';
 import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
-import { useDiscoverCategories } from './discover/api';
+import { useDiscoverCategories, useDiscoverHome } from './discover/api';
 import { DiscoverHome } from './discover/DiscoverHome';
 import { DirectLinkPanel } from './link/DirectLinkPanel';
 import { classifyLink } from './link/link';
@@ -155,7 +155,10 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const pages = useMemo(() => search.data?.pages ?? [], [search.data]);
   const results = useMemo(() => mergePages(pages), [pages]);
   const warnings = useMemo(() => pageWarnings(pages), [pages]);
-  const sources = useMemo(() => knownSources(pages), [pages]);
+  // O início pede as fontes ao mesmo tempo (a mesma consulta que a lista do início usa).
+  const home = useDiscoverHome(packId, kind, showHome);
+  const searchSources = useMemo(() => knownSources(pages), [pages]);
+  const sources = showHome ? (home.data?.sources ?? []) : searchSources;
   const inventoryKeys = useMemo(
     () => new Set((inventory.data?.items ?? []).map((item) => item.key)),
     [inventory.data],
@@ -318,7 +321,6 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
           <Button
             icon={FilePlus}
             title={t('arquivo.dica')}
-            aria-label={t('arquivo.escolher')}
             loading={chooseFiles.isPending}
             onClick={() => {
               chooseFiles.mutate(undefined, {
@@ -328,8 +330,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               });
             }}
           >
-            <span className="wide-only">{t('arquivo.escolher')}</span>
-            <span className="narrow-only">{t('arquivo.escolherCurto')}</span>
+            {t('arquivo.escolher')}
           </Button>
         </div>
 
@@ -400,7 +401,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             )}
           </div>
           <LockLine target={target} sources={lockSources} />
-          <div className="sr-only" id={`${id}-status`} role="status">
+          <div className="sr-only addsearch__status" id={`${id}-status`} role="status">
             <StatusText
               loading={loading}
               query={query}

@@ -98,7 +98,7 @@ describe('início da descoberta', () => {
       screen.getByText(
         (_, element) =>
           element?.classList.contains('lockline') === true &&
-          element.textContent.includes('Só versões para Minecraft 1.20.1 com Forge'),
+          element.textContent.includes('Só versões para Minecraft 1.20.1 com Forge, no Modrinth.'),
       ),
     ).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();

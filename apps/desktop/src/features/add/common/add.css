@@ -66,9 +66,6 @@
   font-weight: var(--font-weight-medium);
   color: var(--color-ok-text);
 }
-.narrow-only {
-  display: none;
-}
 .addsearch {
   flex: none;
   display: flex;
@@ -193,6 +190,12 @@
 }
 .trow > * {
   min-width: 0;
+}
+/* O cabeçalho da tabela fica preso no topo: o que rola até o topo (o foco do teclado, um clique)
+   para logo abaixo dele, e não por baixo. */
+.addscroll .trow,
+.addscroll .mcard {
+  scroll-margin-top: 48px;
 }
 .trow:hover {
   background: var(--color-surface-1);
@@ -764,12 +767,6 @@
   }
   .addsearch__kindselect {
     display: block;
-  }
-  .wide-only {
-    display: none;
-  }
-  .narrow-only {
-    display: inline;
   }
 }
 
