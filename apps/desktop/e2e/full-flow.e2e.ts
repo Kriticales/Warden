@@ -305,8 +305,11 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     await $('h1=Adicionar ao pack').waitForDisplayed();
     await $('input[type="search"]').setValue('sodium');
     await $('.trow*=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
-    expect(await resultRow('Sodium').getText()).toContain('Modrinth e CurseForge');
-    expect(await resultRow('Mod Só da CurseForge').getText()).not.toContain('Modrinth');
+    // A fonte é a marca (quadrado e losango), com o nome para o leitor de tela.
+    const rowText = async (name: string) =>
+      String(await resultRow(name).getProperty('textContent'));
+    expect(await rowText('Sodium')).toContain('Modrinth e CurseForge');
+    expect(await rowText('Mod Só da CurseForge')).not.toContain('Modrinth');
     expect(await $('body').getText()).not.toContain('Mostrando só o Modrinth.');
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('a03-03-busca-combinada');
