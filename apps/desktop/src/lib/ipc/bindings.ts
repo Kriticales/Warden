@@ -752,6 +752,39 @@ export const commands = {
 	 *  `app.TEST_ARTIFACT_INVALID` (arquivo que não é desta sessão ou que sumiu).
 	 */
 	perfOpenSparkViewer: (packId: PackId, sessionId: string, file: string) => typedError<null, AppError>(__TAURI_INVOKE("perf_open_spark_viewer", { packId, sessionId, file })),
+	/**  O desempenho do último teste do pack que chegou a carregar (`null`: nenhum carregou). */
+	perfLastTest: (packId: PackId) => typedError<{
+	/**  A sessão (nome da pasta). */
+	sessionId: string,
+	/**  Início (ms desde 1970). */
+	startedAtMs: number,
+	/**  Versão do pack testada. */
+	packVersion: string | null,
+	/**  Modo do teste. */
+	mode: TestMode,
+	/**  Tempo para abrir, em ms. */
+	loadedMs: number,
+	/**  Até entrar no mundo, em ms (`None`: não entrou). */
+	worldMs: number | null,
+	/**  A última sessão de outra versão que carregou, para a variação do tempo para abrir. */
+	previous: PreviousLoad | null,
+	/**  A memória do jogo (`None` sem leitura). */
+	memory: GameMemoryUse | null,
+	/**  Pico da RAM do processo, em MB. */
+	ramPeakMb: number | null,
+	/**  O tempo por tick do perfil do spark salvo no teste. */
+	tick: TickSummary | null,
+	/**
+	 *  Os mods que mais usaram processamento no perfil do spark (`None`: sem perfil do spark
+	 *  neste teste).
+	 */
+	sparkTop: SparkRow[] | null,
+	/**
+	 *  A comparação com a versão anterior (`None`: não há outra versão com testes comparáveis,
+	 *  ou o último teste tinha alterações não salvas).
+	 */
+	comparison: VersionComparison | null,
+} | null, AppError>(__TAURI_INVOKE("perf_last_test", { packId })),
 	/**
 	 *  O resultado do "como o jogador recebe" de uma sessão (`None`: sessão de outro modo).
 	 *  Erros: `app.TEST_SESSION_NOT_FOUND`.
@@ -2411,6 +2444,15 @@ export type ClaimStatus =
 /**  "não verificado". */
 "unverified";
 
+/**  O que a comparação com a versão anterior deu. */
+export type ComparisonStatus = 
+/**  Passou do critério de "mais pesada". */
+"heavier" | 
+/**  Menos de 2 testes comparáveis numa das versões. */
+"fewTests" | 
+/**  Não passou do critério. */
+"notHeavier";
+
 /**  Quanto o formulário confia no tipo e nos limites do campo. */
 export type Confidence = 
 /**  Declarado pelo arquivo, ou tipo inequívoco pelo valor. */
@@ -4058,6 +4100,16 @@ export type GalleryItem = {
 	featured: boolean,
 };
 
+/**  A memória do jogo no teste (a heap da JVM, L-11). */
+export type GameMemoryUse = {
+	/**  O maior uso, em MB: depois das coletas quando houve medida, senão o bruto. */
+	usedMb: number,
+	/**  O máximo que o jogo podia usar, em MB. */
+	maxMb: number,
+	/**  A memória ficou perto do máximo por mais de um minuto (`W_LOW_HEAP`). */
+	nearLimit: boolean,
+};
+
 /**  Situação do jogo de um pack (`game-state`). */
 export type GamePhase = 
 /**  Preparando o teste (Java, Minecraft, cópia do pack). */
@@ -5548,6 +5600,40 @@ export type LangLocale =
 /**  `en_us.json`. */
 "enUs";
 
+/**  O desempenho do último teste que carregou. */
+export type LastTestPerf = {
+	/**  A sessão (nome da pasta). */
+	sessionId: string,
+	/**  Início (ms desde 1970). */
+	startedAtMs: number,
+	/**  Versão do pack testada. */
+	packVersion: string | null,
+	/**  Modo do teste. */
+	mode: TestMode,
+	/**  Tempo para abrir, em ms. */
+	loadedMs: number,
+	/**  Até entrar no mundo, em ms (`None`: não entrou). */
+	worldMs: number | null,
+	/**  A última sessão de outra versão que carregou, para a variação do tempo para abrir. */
+	previous: PreviousLoad | null,
+	/**  A memória do jogo (`None` sem leitura). */
+	memory: GameMemoryUse | null,
+	/**  Pico da RAM do processo, em MB. */
+	ramPeakMb: number | null,
+	/**  O tempo por tick do perfil do spark salvo no teste. */
+	tick: TickSummary | null,
+	/**
+	 *  Os mods que mais usaram processamento no perfil do spark (`None`: sem perfil do spark
+	 *  neste teste).
+	 */
+	sparkTop: SparkRow[] | null,
+	/**
+	 *  A comparação com a versão anterior (`None`: não há outra versão com testes comparáveis,
+	 *  ou o último teste tinha alterações não salvas).
+	 */
+	comparison: VersionComparison | null,
+};
+
 /**  O estado do último teste que tirou pontos. */
 export type LastTestState = 
 /**  O último teste travou. */
@@ -6040,6 +6126,15 @@ export type MetaUpdate = {
 	/**  Descrição (até 2000 caracteres; vazia remove). */
 	description: string,
 };
+
+/**  A métrica que passou do critério. */
+export type Metric = 
+/**  Tempo para abrir. */
+"loadTime" | 
+/**  Memória máxima. */
+"memory" | 
+/**  Tempo por tick (spark). */
+"tick";
 
 /**  Uma versão do Minecraft. */
 export type MinecraftVersion = {
@@ -9586,6 +9681,24 @@ export type VersionChoice = {
 	installed: boolean,
 	/**  É mais antiga que a instalada (trocar para ela é um rebaixamento). */
 	older: boolean,
+};
+
+/**  A comparação da versão do último teste com a versão salva anterior (T33). */
+export type VersionComparison = {
+	/**  O resultado. */
+	status: ComparisonStatus,
+	/**  A versão do último teste. */
+	version: string,
+	/**  A versão anterior com testes comparáveis. */
+	previousVersion: string,
+	/**  A métrica que passou do critério (só em [`ComparisonStatus::Heavier`]). */
+	metric: Metric | null,
+	/**  Mediana da versão do último teste (ms, MB ou ms por tick). */
+	current: number | null,
+	/**  Mediana da versão anterior. */
+	previous: number | null,
+	/**  Quanto a mais, em %. */
+	percent: number | null,
 };
 
 /**  As dependências de uma versão. */

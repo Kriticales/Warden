@@ -184,10 +184,12 @@ describe('Travamentos em Problemas (D-06; CA-T14-08)', function () {
     await waitHeading('Problemas');
     const block = $(CRASHES);
     await block.waitForDisplayed({ timeout: 60_000 });
-    const row = block.$('tr*=Travou 2 vezes');
+    const row = block.$('li.rowlist__row*=Travou 2 vezes');
     await row.waitForDisplayed({ timeout: 60_000 });
     // Uma linha só, com as versões das duas vezes e a causa encontrada.
-    expect(await block.$$('tbody tr').length).toBe(1);
+    expect(await block.$$('ul.diag-crashes > li').length).toBe(1);
+    // Sem conversa ligada: "✦ Conversar com o Sculk".
+    await expect(row.$('a=Conversar com o Sculk')).toBeDisplayed();
     await expect(row).toHaveText(
       expect.stringContaining('Uma criatura ou objeto do mundo quebrou o jogo (meumod:golem)'),
     );
@@ -216,7 +218,7 @@ describe('Travamentos em Problemas (D-06; CA-T14-08)', function () {
   });
 
   it('"Ver o que causou" abre o resultado do teste mais novo', async () => {
-    const row = $(CRASHES).$('tr*=Travou 2 vezes');
+    const row = $(CRASHES).$('li.rowlist__row*=Travou 2 vezes');
     await clickStable(row.$('a=Ver o que causou'));
     await waitHeading('O jogo travou');
     const why = $('section[aria-labelledby="why-crashed-title"]');

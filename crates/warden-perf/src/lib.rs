@@ -8,6 +8,7 @@
 //!   (L-10);
 //! - [`hsperf`]: a memória da JVM do jogo pelo `hsperfdata`, sem JDK (L-11);
 //! - [`findings`]: a memória do jogo ao longo do teste e os achados de memória (L-11);
+//! - [`heavier`]: o critério de "versão mais pesada" da T33, pelas medianas;
 //! - [`SessionPerf`]: o que cada sessão de teste grava no `session.json` (campo `perf`).
 //!
 //! O resto (tempo por mod, spark, histórico entre versões) vem das tarefas que o
@@ -15,6 +16,7 @@
 
 mod error;
 pub mod findings;
+pub mod heavier;
 pub mod hsperf;
 pub mod load_time;
 pub mod mod_timing;

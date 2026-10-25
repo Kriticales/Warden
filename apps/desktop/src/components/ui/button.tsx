@@ -25,6 +25,7 @@ export const buttonVariants = cva('btn', {
       danger: 'btn--danger',
       'danger-ghost': 'btn--danger-ghost',
       link: 'btn--link',
+      ai: 'btn--ai',
     },
     size: {
       md: '',

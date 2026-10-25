@@ -29,6 +29,7 @@ import {
   makeGroup,
   makeSignature,
 } from './crashes.fixtures';
+import { makeSummary } from '../ai/ai.fixtures';
 import { MAX_WHERE_LENGTH, crashTitle, shorten, versionsText } from './text';
 
 /** Título do grupo padrão dos dados de teste (sem achado gravado). */
@@ -55,7 +56,7 @@ async function openCrashes(url: string) {
 }
 
 function rowOf(block: HTMLElement, text: string | RegExp): HTMLElement {
-  const row = within(block).getByText(text).closest('tr');
+  const row = within(block).getByText(text).closest('li');
   if (!row) throw new Error(`linha de ${String(text)}`);
   return row;
 }
@@ -64,9 +65,10 @@ describe('Travamentos em Problemas (T14)', () => {
   it('CA-T14-08: mesma causa vira uma linha "Travou 2 vezes" com as versões de cada vez; causas diferentes, linhas diferentes; axe', async () => {
     const { url } = setup();
     const block = await openCrashes(url);
-    const rows = await within(block).findAllByRole('row');
-    // Cabeçalho + uma linha por causa.
-    expect(rows).toHaveLength(3);
+    const rows = await within(block).findAllByRole('listitem');
+    // Uma linha por causa.
+    expect(rows).toHaveLength(2);
+    expect(within(block).getByText('2 causas')).toBeDefined();
 
     const npe = rowOf(block, NPE_TITLE);
     expect(within(npe).getByText('Travou 2 vezes')).toBeDefined();
@@ -89,6 +91,51 @@ describe('Travamentos em Problemas (T14)', () => {
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
+  it('Sculk: "Abrir a conversa com o Sculk" quando já há conversa ligada à causa; "✦ Conversar com o Sculk" quando não há', async () => {
+    const { url } = setup({
+      ai_conversations_list: () => [
+        makeSummary({
+          id: '01K7AAAAAAAAAAAAAAAAAAAAAA',
+          updatedAtMs: 1,
+          origin: {
+            kind: 'session',
+            sessionId: 'x',
+            lastCrash: false,
+            signature: '0a1b2c3d4e5f6071',
+          },
+        }),
+        // A mais nova vale.
+        makeSummary({
+          id: '01K7CCCCCCCCCCCCCCCCCCCCCC',
+          updatedAtMs: 2,
+          origin: {
+            kind: 'session',
+            sessionId: 'y',
+            lastCrash: true,
+            signature: '0a1b2c3d4e5f6071',
+          },
+        }),
+        makeSummary({ id: '01K7DDDDDDDDDDDDDDDDDDDDDD', origin: { kind: 'packOnly' } }),
+      ],
+    });
+    const block = await openCrashes(url);
+    const npe = rowOf(block, NPE_TITLE);
+    const open = await within(npe).findByRole('link', {
+      name: /^Abrir a conversa com o Sculk sobre o travamento de /,
+    });
+    expect(open.textContent).toBe('Abrir a conversa com o Sculk');
+    expect(open.getAttribute('href')).toMatch(/\/ia\/01K7CCCCCCCCCCCCCCCCCCCCCC$/);
+    expect(within(npe).queryByRole('link', { name: /^Conversar com o Sculk/ })).toBeNull();
+
+    const balm = rowOf(block, 'Waystones precisa de balm, que não está no pack');
+    const talk = within(balm).getByRole('link', {
+      name: /^Conversar com o Sculk sobre o travamento de /,
+    });
+    expect(talk.className).toContain('btn--ai');
+    expect(talk.querySelector('svg')).not.toBeNull();
+    expect(talk.getAttribute('href')).toContain('/ia?sessao=');
+  });
+
   it('"Ver o que causou" abre o resultado do teste mais novo do grupo', async () => {
     const { url } = setup();
     const block = await openCrashes(url);
@@ -107,7 +154,11 @@ describe('Travamentos em Problemas (T14)', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     await user.click(toggle);
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    const list = await within(block).findByRole('list');
+    await waitFor(() => {
+      expect(block.querySelector('ul.diag-crashes__occurrences')).not.toBeNull();
+    });
+    const list = block.querySelector<HTMLElement>('ul.diag-crashes__occurrences');
+    if (!list) throw new Error('lista das vezes');
     expect(document.getElementById(toggle.getAttribute('aria-controls') ?? '')).not.toBeNull();
     const links = within(list).getAllByRole('link');
     expect(links).toHaveLength(2);
@@ -117,7 +168,7 @@ describe('Travamentos em Problemas (T14)', () => {
     expect(backend.callsOf('crash_get')[0]?.args).toMatchObject({ signature: '0a1b2c3d4e5f6071' });
 
     await user.click(within(npe).getByRole('button', { name: 'Ocultar' }));
-    expect(within(block).queryByRole('list')).toBeNull();
+    expect(block.querySelector('ul.diag-crashes__occurrences')).toBeNull();
   });
 
   it('situação "Não voltou a acontecer desde a versão" quando um teste depois fechou normalmente', async () => {
@@ -133,16 +184,16 @@ describe('Travamentos em Problemas (T14)', () => {
         }),
     });
     const block = await openCrashes(url);
-    expect(within(block).getByText('Não voltou a acontecer desde a 1.4.1').className).toContain(
-      'status--muted',
-    );
+    expect(
+      within(block).getByText('Não voltou a acontecer desde a 1.4.1').closest('.tag')?.className,
+    ).toContain('tag--plain');
   });
 
-  it('nenhum teste travou: a frase de vazio, sem tabela', async () => {
+  it('nenhum teste travou: a frase de vazio, sem lista', async () => {
     const { url } = setup({ crashes_list: () => makeCrashList({ groups: [] }) });
     const block = await openCrashes(url);
     expect(within(block).getByText('Nenhum teste deste pack travou.')).toBeDefined();
-    expect(within(block).queryByRole('table')).toBeNull();
+    expect(within(block).queryByRole('list')).toBeNull();
   });
 
   it('erro ao ler: o painel de erro com "Tentar de novo"', async () => {

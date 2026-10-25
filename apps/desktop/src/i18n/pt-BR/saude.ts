@@ -22,6 +22,11 @@ export const saude = {
   calculando: 'Calculando a saúde do pack…',
   erro: 'Não foi possível calcular a saúde do pack.',
   tirouPontos: 'O que tirou pontos',
+  nadaTirou: 'Nada tirou pontos.',
+  comoCalcula: 'Como a nota é calculada',
+  /** Selo da barra do painel: quando a verificação rodou. */
+  verificado: 'Verificado {{quando}}',
+  naoVerificado: 'Ainda não verificado',
   pontos: '−{{pontos}}',
   pontosRotulo: 'menos {{pontos}} pontos',
   limite: '(o limite desta categoria)',

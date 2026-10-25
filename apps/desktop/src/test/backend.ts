@@ -75,6 +75,10 @@ const DEFAULTS: Record<string, Handler> = {
     groups: [],
     retention: { budgetBytes: 500 * 1024 * 1024, nearLimit: false, overLimit: false, prunable: [] },
   }),
+  // Desempenho do último teste (bug-01): nenhum teste carregou.
+  perf_last_test: () => null,
+  // Conversas do Sculk (D-04): nenhuma (os Travamentos procuram a conversa ligada).
+  ai_conversations_list: () => [],
   // Busca do culpado (D-12): nenhuma guardada.
   bisect_get: () => null,
   // Downloads manuais da CurseForge (L-06): nenhum esperando.

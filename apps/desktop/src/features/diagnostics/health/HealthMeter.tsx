@@ -1,7 +1,7 @@
 /**
  * A nota de saúde (`health()` do design system): no topo de Problemas, o número grande, a faixa
- * com ícone e palavra, os 10 blocos e o aviso fixo; na coluna de Meus packs, número, ícone e
- * palavra numa linha. A faixa nunca é só cor: o ícone e a palavra dizem o mesmo. Sem nota
+ * com ícone e palavra, os blocos e o aviso fixo; na coluna de Meus packs, número, ícone e
+ * palavra numa linha. A barra tem 20 blocos (um a cada 5 pontos). A faixa nunca é só cor: o ícone e a palavra dizem o mesmo. Sem nota
  * ("sem dados"), o número vira "—".
  */
 import { CircleCheck, CircleHelp, CircleX, TriangleAlert, type LucideIcon } from 'lucide-react';
@@ -15,6 +15,9 @@ export interface HealthValue {
   score: number;
   band: HealthBand;
 }
+
+/** Blocos da barra (um a cada 5 pontos). */
+const BLOCKS = 20;
 
 const BANDS: Record<HealthBand | 'none', { css: string; icon: LucideIcon }> = {
   great: { css: 'great', icon: CircleCheck },
@@ -37,8 +40,8 @@ export function HealthMeter({
 }: {
   value: HealthValue | null;
   size: 'lg' | 'sm';
-  /** Texto abaixo da faixa (lg); padrão: o aviso fixo. */
-  note?: string;
+  /** Texto abaixo da faixa (lg); padrão: o aviso fixo; `null`: nenhum (o painel mostra). */
+  note?: string | null;
 }) {
   const { t } = useTranslation('saude');
   const band = BANDS[value?.band ?? 'none'];
@@ -54,7 +57,7 @@ export function HealthMeter({
       </span>
     );
   }
-  const on = value ? Math.round(value.score / 10) : 0;
+  const on = value ? Math.round(value.score / 5) : 0;
   return (
     <div
       className={`health health--lg health--${band.css}`}
@@ -70,12 +73,12 @@ export function HealthMeter({
           <Icon icon={band.icon} />
           <span>{label}</span>
         </div>
-        <div className="health__blocks" aria-hidden="true">
-          {Array.from({ length: 10 }, (_, index) => (
+        <div className="health__blocks health__blocks--fill" aria-hidden="true">
+          {Array.from({ length: BLOCKS }, (_, index) => (
             <i key={index} className={index < on ? 'on' : undefined} />
           ))}
         </div>
-        <p className="health__note">{note ?? t('aviso')}</p>
+        {note === null ? null : <p className="health__note">{note ?? t('aviso')}</p>}
       </div>
     </div>
   );

@@ -198,7 +198,8 @@ describe('Saúde do pack: Problemas e Meus packs (D-08; T14 e T02)', function ()
       expect.stringContaining('Resumo dos problemas conhecidos. Não garante que o pack funciona.'),
     );
 
-    await healthBlock().$('summary=O que tirou pontos').click();
+    // "O que tirou pontos" fica à vista no painel (esboço aprovado do bug-01).
+    await expect(healthBlock().$('h3=O que tirou pontos')).toBeDisplayed();
     const rows = healthBlock().$$('ul.losses > li');
     await browser.waitUntil(async () => (await rows.length) === 2, {
       timeout: 10_000,
@@ -217,15 +218,11 @@ describe('Saúde do pack: Problemas e Meus packs (D-08; T14 e T02)', function ()
 
   it('"Ignorar neste pack" devolve os pontos e a linha do aviso fica riscada', async () => {
     await dismissToasts();
-    const card = $('article.issue*=Sodium está no lado errado');
+    const card = $('article*=Sodium está no lado errado');
     const ignore = card.$('button=Ignorar neste pack');
     await ignore.waitForClickable({ timeout: 30_000 });
     await ignore.click();
     await healthMeter('Saúde do pack: 90 de 100, Ótimo').waitForDisplayed({ timeout: 30_000 });
-    const details = healthBlock().$('details');
-    if (!(await details.getAttribute('open'))) {
-      await healthBlock().$('summary=O que tirou pontos').click();
-    }
     const ignored = healthBlock().$('ul.losses > li.is-ignored');
     await ignored.waitForDisplayed({ timeout: 10_000 });
     await expect(ignored).toHaveText(expect.stringContaining('(ignorado por você)'));

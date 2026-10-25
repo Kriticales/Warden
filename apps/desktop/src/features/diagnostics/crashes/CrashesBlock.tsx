@@ -1,14 +1,23 @@
 /**
- * Travamentos na seção Problemas (SPEC T14; ROADMAP D-06; protótipo `problemas`, tabela
- * `crashesTable`): os testes que travaram agrupados pela causa (assinatura), com quantas vezes,
- * a última vez e as versões do pack, a situação, "Ver o que causou" (o resultado do teste mais
- * novo do grupo) e cada vez que travou. Substitui o "Último travamento" da D-03.
+ * Travamentos na seção Problemas (SPEC T14; ROADMAP D-06; esboço aprovado do bug-01,
+ * "Separadas"): os testes que travaram agrupados pela causa (assinatura), uma linha por causa
+ * com quantas vezes, a última vez e as versões do pack, o selo da situação, "Ver o que causou"
+ * (o resultado do teste mais novo do grupo), cada vez que travou, "Encontrar o mod culpado" e
+ * a ligação com o Sculk: **Abrir a conversa com o Sculk** quando já há conversa ligada ao
+ * travamento, **✦ Conversar com o Sculk** quando não há.
  *
  * A retenção dos travamentos guardados avisa perto do limite e, passando dele, oferece apagar
  * os mais antigos (com confirmação).
  */
 import { Link } from '@tanstack/react-router';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  CircleCheck,
+  CircleHelp,
+  History,
+  OctagonX,
+} from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -17,10 +26,13 @@ import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import { Button } from '../../../components/ui/button';
+import { Icon } from '../../../components/ui/icon';
 import type { CrashGroupView, CrashRetention, PackId } from '../../../lib/ipc/bindings';
 import { CrashBisectAction } from '../../bisect/CrashEntry';
 import { formatMemory, formatWhen } from '../../test/text';
-import { CrashAiButton } from '../ai/AskAi';
+import { useAiConversations } from '../ai/api';
+import { AskSculkLink, OpenSculkConversation } from '../components/AskSculk';
+import { Count } from '../components/Count';
 import type { ProblemsBlockProps } from '../problems-blocks';
 import { useCrash, useCrashes, usePruneCrashes } from './api';
 import { crashTitle, situationKind, situationText, versionLabel, versionsText } from './text';
@@ -31,117 +43,156 @@ const MIB = 1024 * 1024;
 export function CrashesBlock({ packId }: ProblemsBlockProps) {
   const { t } = useTranslation('travamentos');
   const crashes = useCrashes(packId);
+  const conversations = useAiConversations(packId);
   const limite = formatMemory((crashes.data?.retention.budgetBytes ?? 500 * MIB) / MIB);
+  const count = crashes.data?.groups.length ?? 0;
+
+  // A conversa mais nova ligada a cada travamento (pela assinatura).
+  const linked = new Map<string, string>();
+  for (const conversation of [...(conversations.data ?? [])].sort(
+    (a, b) => a.updatedAtMs - b.updatedAtMs,
+  )) {
+    if (conversation.origin.kind === 'session' && conversation.origin.signature) {
+      linked.set(conversation.origin.signature, conversation.id);
+    }
+  }
 
   return (
-    <section className="stack-2" aria-labelledby="diag-crashes-title">
-      <h2 className="group-title" id="diag-crashes-title">
-        {t('titulo')} <span className="t-3">{t('subtitulo')}</span>
-      </h2>
+    <section className="panel panel--parts" aria-labelledby="diag-crashes-title">
+      <div className="panel__bar">
+        <h2 className="panel__bar-title" id="diag-crashes-title">
+          <Icon icon={OctagonX} />
+          {t('titulo')}
+        </h2>
+        {count > 0 ? <Count value={count} label={t('quantos', { count })} /> : null}
+      </div>
       {crashes.isPending ? (
-        <LoadingState label={t('carregando')} />
+        <div className="panel__body">
+          <LoadingState label={t('carregando')} inline />
+        </div>
       ) : crashes.isError ? (
-        <ErrorPanel
-          title={t('erro')}
-          error={crashes.error}
-          compact
-          onRetry={() => {
-            void crashes.refetch();
-          }}
-        />
+        <div className="panel__body">
+          <ErrorPanel
+            title={t('erro')}
+            error={crashes.error}
+            compact
+            onRetry={() => {
+              void crashes.refetch();
+            }}
+          />
+        </div>
       ) : (
         <>
           <RetentionNotice packId={packId} retention={crashes.data.retention} limite={limite} />
           {crashes.data.groups.length === 0 ? (
-            <p className="t-sm t-3">{t('vazio')}</p>
-          ) : (
-            <div className="tablewrap">
-              <table className="table diag-crashes">
-                <thead>
-                  <tr>
-                    <th>{t('colunas.causa')}</th>
-                    <th>{t('colunas.vezes')}</th>
-                    <th>{t('colunas.ultima')}</th>
-                    <th>{t('colunas.situacao')}</th>
-                    <th className="shrink">
-                      <span className="sr-only">{t('colunas.acoes')}</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {crashes.data.groups.map((group) => (
-                    <CrashRow key={group.signature.hash} packId={packId} group={group} />
-                  ))}
-                </tbody>
-              </table>
+            <div className="panel__body">
+              <p className="t-sm t-3">{t('vazio')}</p>
             </div>
+          ) : (
+            <ul className="rowlist diag-crashes">
+              {crashes.data.groups.map((group) => (
+                <CrashRow
+                  key={group.signature.hash}
+                  packId={packId}
+                  group={group}
+                  conversationId={linked.get(group.signature.hash) ?? null}
+                />
+              ))}
+            </ul>
           )}
-          <p className="t-xs t-3">{t('rodape', { limite })}</p>
+          <div className="panel__foot">
+            <span className="t-xs t-3">
+              {t('subtitulo')}. {t('rodape', { limite })}
+            </span>
+          </div>
         </>
       )}
     </section>
   );
 }
 
-function CrashRow({ packId, group }: { packId: PackId; group: CrashGroupView }) {
+const SITUATION_TAG = { ok: 'tag--ok', danger: 'tag--danger', muted: 'tag--plain' } as const;
+
+function CrashRow({
+  packId,
+  group,
+  conversationId,
+}: {
+  packId: PackId;
+  group: CrashGroupView;
+  conversationId: string | null;
+}) {
   const { t } = useTranslation('travamentos');
   const [open, setOpen] = useState(false);
   const listId = useId();
   const quando = formatWhen(group.lastAtMs);
+  const kind = situationKind(group.situation);
   return (
-    <>
-      <tr>
-        <td className="t-strong">{crashTitle(group)}</td>
-        <td className="t-2">{t('vezes', { count: group.count })}</td>
-        <td className="t-2">
-          {quando}
-          <div className="t-xs t-3">{versionsText(group.versions)}</div>
-        </td>
-        <td>
-          <span className={`status status--${situationKind(group.situation)} diag-crashes__status`}>
-            {situationText(group.situation)}
-          </span>
-        </td>
-        <td className="shrink">
-          <div className="row row--wrap diag-crashes__actions">
-            <Button size="sm" asChild>
-              <Link
-                to="/packs/$packId/teste"
-                params={{ packId }}
-                search={{ sessao: group.latestSessionId }}
-                aria-label={t('verCausaRotulo', { quando })}
-              >
-                {t('verCausa')}
-              </Link>
-            </Button>
-            <CrashAiButton packId={packId} sessionId={group.latestSessionId} quando={quando} />
-            {group.count > 1 ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={open ? ChevronDown : ChevronRight}
-                aria-expanded={open}
-                aria-controls={listId}
-                onClick={() => {
-                  setOpen((value) => !value);
-                }}
-              >
-                {open ? t('ocultarVezes') : t('verVezes', { count: group.count })}
-              </Button>
-            ) : null}
-            {/* D-12: "Encontrar o mod culpado" e a busca ligada a este travamento. */}
-            <CrashBisectAction packId={packId} group={group} />
-          </div>
-        </td>
-      </tr>
+    <li className={`rowlist__row rowlist__row--${kind === 'muted' ? 'info' : 'danger'}`}>
+      <Icon icon={OctagonX} size="md" />
+      <h3 className="rowlist__title">{crashTitle(group)}</h3>
+      <p className="rowlist__text">
+        <span>{t('vezes', { count: group.count })}</span>
+        {' · '}
+        <span>{t('ultimaVez', { quando })}</span>
+        {' · '}
+        <span>{versionsText(group.versions)}</span>
+      </p>
+      <div className="rowlist__actions">
+        <span className={`tag ${SITUATION_TAG[kind]} diag-crashes__status`}>
+          <Icon icon={kind === 'ok' ? CircleCheck : kind === 'danger' ? CircleHelp : History} />
+          {situationText(group.situation)}
+        </span>
+        <Button size="sm" variant="ghost" asChild>
+          <Link
+            to="/packs/$packId/teste"
+            params={{ packId }}
+            search={{ sessao: group.latestSessionId }}
+            aria-label={t('verCausaRotulo', { quando })}
+          >
+            {t('verCausa')}
+          </Link>
+        </Button>
+        {group.count > 1 ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={open ? ChevronDown : ChevronRight}
+            aria-expanded={open}
+            aria-controls={listId}
+            onClick={() => {
+              setOpen((value) => !value);
+            }}
+          >
+            {open ? t('ocultarVezes') : t('verVezes', { count: group.count })}
+          </Button>
+        ) : null}
+        {/* D-12: "Encontrar o mod culpado" e a busca ligada a este travamento. */}
+        <CrashBisectAction packId={packId} group={group} />
+        {conversationId ? (
+          <OpenSculkConversation
+            packId={packId}
+            conversationId={conversationId}
+            label={t('sculk.abrirRotulo', { quando })}
+          >
+            {t('sculk.abrir')}
+          </OpenSculkConversation>
+        ) : (
+          <AskSculkLink
+            packId={packId}
+            subject={{ sessao: group.latestSessionId }}
+            label={t('sculk.conversarRotulo', { quando })}
+          >
+            {t('sculk.conversar')}
+          </AskSculkLink>
+        )}
+      </div>
       {open ? (
-        <tr>
-          <td colSpan={5} id={listId}>
-            <Occurrences packId={packId} signature={group.signature.hash} />
-          </td>
-        </tr>
+        <div className="rowlist__more" id={listId}>
+          <Occurrences packId={packId} signature={group.signature.hash} />
+        </div>
       ) : null}
-    </>
+    </li>
   );
 }
 
@@ -205,6 +256,7 @@ function RetentionNotice({
     return (
       <Alert
         kind="warn"
+        className="diag-crashes__notice"
         title={t('retencao.passouTitulo', { limite })}
         actions={
           <ConfirmDialog
@@ -225,14 +277,22 @@ function RetentionNotice({
   }
   if (retention.overLimit) {
     return (
-      <Alert kind="warn" title={t('retencao.passouTitulo', { limite })}>
+      <Alert
+        kind="warn"
+        className="diag-crashes__notice"
+        title={t('retencao.passouTitulo', { limite })}
+      >
         {t('retencao.passouSemApagar')}
       </Alert>
     );
   }
   if (retention.nearLimit) {
     return (
-      <Alert kind="info" title={t('retencao.pertoTitulo', { limite })}>
+      <Alert
+        kind="info"
+        className="diag-crashes__notice"
+        title={t('retencao.pertoTitulo', { limite })}
+      >
         {t('retencao.perto')}
       </Alert>
     );

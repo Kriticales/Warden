@@ -539,7 +539,7 @@ async function openSection_heading() {
 }
 
 describe('entradas da IA (T14 ✦ "Onde")', () => {
-  it('Travamentos: "✦ Conversar com a IA" leva à seção com a sessão mais nova do grupo', async () => {
+  it('Travamentos: "✦ Conversar com o Sculk" leva à seção com a sessão mais nova do grupo', async () => {
     const { url } = editorBackend({
       handlers: {
         diagnostics_report_get: () => null,
@@ -574,7 +574,7 @@ describe('entradas da IA (T14 ✦ "Onde")', () => {
     renderApp(`${url}/problemas`);
     const link = await screen.findByRole(
       'link',
-      { name: /Conversar com a IA sobre o travamento de/ },
+      { name: /Conversar com o Sculk sobre o travamento de/ },
       { timeout: 10_000 },
     );
     expect(link.getAttribute('href')).toContain(`/ia?sessao=${SESSION_ID}`);

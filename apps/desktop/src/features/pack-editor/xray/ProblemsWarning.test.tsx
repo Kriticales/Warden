@@ -5,7 +5,6 @@
  * teste.
  */
 import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import type { DiagnosticsReport, ReportFinding } from '../../../lib/ipc/bindings';
@@ -85,7 +84,7 @@ async function openProblems(finding: ReportFinding) {
   });
   renderApp(`${setup.url}/problemas`);
   await screen.findByRole('heading', { level: 1, name: 'Problemas' }, { timeout: 10_000 });
-  return screen.getByRole('region', { name: 'Avisos não impedem o teste' });
+  return screen.getByRole('region', { name: 'Avisos · não impedem o teste' });
 }
 
 describe('aviso "alteram o mesmo ponto do jogo" em Problemas (D-10)', () => {
@@ -109,7 +108,7 @@ describe('aviso "alteram o mesmo ponto do jogo" em Problemas (D-10)', () => {
       'Os dois mudam SodiumGameOptionPages.general e mais 1 parte (risco alto). Muitas vezes é de propósito; se o jogo travar ou uma função de um deles sumir, comece por eles. O último teste travou citando a config de um deles. Este aviso nunca impede o teste.',
     );
     expect(card.textContent).not.toMatch(/incompatíve|\{\{|\$t\(/);
-    await userEvent.setup().click(within(card).getByText('Como sabemos'));
+    // A evidência fica à vista na linha do achado (esboço do bug-01).
     expect(card.textContent).toContain('sodium-extra.mixins.json');
     expect(card.textContent).toContain('mixins.sodiumextras.json');
     expect(card.textContent).toContain('@Redirect em SodiumGameOptionPages.general');

@@ -38,6 +38,16 @@ export const travamentos = {
     causaEncontrada: 'Causa encontrada',
     causaNaoEncontrada: 'Causa não encontrada',
   },
+  /** A linha de cada causa: "Travou 3 vezes · última hoje, 22:10 · versões 0.1.1 a 0.1.2". */
+  ultimaVez: 'última {{quando}}',
+  quantos_one: '{{count}} causa',
+  quantos_other: '{{count}} causas',
+  sculk: {
+    conversar: 'Conversar com o Sculk',
+    conversarRotulo: 'Conversar com o Sculk sobre o travamento de {{quando}}',
+    abrir: 'Abrir a conversa com o Sculk',
+    abrirRotulo: 'Abrir a conversa com o Sculk sobre o travamento de {{quando}}',
+  },
   verCausa: 'Ver o que causou',
   verCausaRotulo: 'Ver o que causou o travamento de {{quando}}',
   verVezes_one: 'Ver a {{count}} vez',

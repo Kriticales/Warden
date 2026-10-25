@@ -1,7 +1,9 @@
 /**
- * Seção Problemas (SPEC T14 "Seção Problemas"; protótipo `problemas`; descrição "Saúde do pack,
- * problemas e travamentos"): "Verificar agora" e os blocos registrados em `problems-blocks.ts`
- * (a saúde do pack da D-08, os achados do pré-teste e os Travamentos da D-06).
+ * Seção Problemas (SPEC T14 "Seção Problemas"; esboço aprovado do bug-01, "Separadas"):
+ * cabeçalho com a descrição "Saúde do pack, problemas e travamentos" e "Verificar agora", e os
+ * blocos registrados em `problems-blocks.ts` em duas colunas: na larga, os achados do pré-teste
+ * e os Travamentos (D-03, D-06); na da direita, a saúde do pack (D-08) e o desempenho do último
+ * teste.
  *
  * O pack nunca verificado, ou que mudou desde a última verificação (`stale`), é verificado
  * sozinho ao abrir a seção: depois de uma correção, a lista se atualiza sem clique.
@@ -16,9 +18,11 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { Button } from '../../components/ui/button';
 import type { PackId } from '../../lib/ipc/bindings';
 import { useDiagnosticsReport, useRunCheck } from './api';
-import { orderedProblemsBlocks } from './problems-blocks';
-import { countBySeverity, formatAgo } from './text';
+import { orderedProblemsBlocks, type ProblemsColumn } from './problems-blocks';
 import './diagnostics.css';
+
+/** As duas colunas do esboço: a larga e a da direita. */
+const COLUMNS = ['main', 'side'] as const satisfies readonly ProblemsColumn[];
 
 export function ProblemsPage({ packId }: { packId: PackId }) {
   const { t } = useTranslation('diagnostico');
@@ -57,25 +61,11 @@ export function ProblemsPage({ packId }: { packId: PackId }) {
     );
   }
 
-  const counts = data ? countBySeverity(data.findings) : null;
-  const total = counts ? counts.error + counts.warning + counts.info : 0;
-  let sub: string;
-  if (check.isPending) {
-    sub = t('secao.verificando');
-  } else if (!data) {
-    sub = t('secao.nunca');
-  } else {
-    const quando = formatAgo(data.checkedAtMs);
-    sub = `${
-      total > 0 ? t('secao.resumo', { count: total, quando }) : t('secao.resumoVazio', { quando })
-    }. ${t('secao.tambem')}`;
-  }
-
   return (
     <div className="stack diag-page">
       <PageHead
         title={t('secao.titulo')}
-        sub={sub}
+        sub={t('secao.descricao')}
         actions={
           <Button
             icon={RefreshCw}
@@ -98,9 +88,20 @@ export function ProblemsPage({ packId }: { packId: PackId }) {
           }}
         />
       ) : null}
-      {orderedProblemsBlocks().map((block) => (
-        <block.component key={block.id} packId={packId} report={data} checking={check.isPending} />
-      ))}
+      <div className="diag-cols">
+        {COLUMNS.map((column) => (
+          <div key={column} className="diag-cols__col">
+            {orderedProblemsBlocks(undefined, column).map((block) => (
+              <block.component
+                key={block.id}
+                packId={packId}
+                report={data}
+                checking={check.isPending}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

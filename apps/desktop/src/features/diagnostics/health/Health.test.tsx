@@ -59,10 +59,12 @@ async function openHealth(url: string) {
   return block;
 }
 
-/** Abre "O que tirou pontos" e devolve as linhas. */
-async function losses(block: HTMLElement): Promise<HTMLElement[]> {
-  await userEvent.setup().click(within(block).getByText('O que tirou pontos'));
-  return within(block).getAllByRole('listitem');
+/** As linhas de "O que tirou pontos" (sempre à vista no painel, como no esboço do bug-01). */
+function losses(block: HTMLElement): Promise<HTMLElement[]> {
+  expect(
+    within(block).getByRole('heading', { level: 3, name: 'O que tirou pontos' }),
+  ).toBeDefined();
+  return Promise.resolve(within(block).getAllByRole('listitem'));
 }
 
 function sectionMenu() {
@@ -277,13 +279,17 @@ describe('saúde do pack em Problemas (T14)', () => {
     expect(within(block).queryByText('O que tirou pontos')).toBeNull();
   });
 
-  it('nota 100 sem nada a mostrar em "O que tirou pontos"', async () => {
+  it('nota 100: "O que tirou pontos" diz que nada tirou; o selo diz quando verificou', async () => {
     const { url } = setup({ health_get: () => makeHealth() });
     const block = await openHealth(url);
     expect(
       within(block).getByRole('group', { name: 'Saúde do pack: 100 de 100, Ótimo' }),
     ).toBeDefined();
-    expect(within(block).queryByText('O que tirou pontos')).toBeNull();
+    expect(within(block).getByText('Nada tirou pontos.')).toBeDefined();
+    expect(within(block).queryAllByRole('listitem')).toHaveLength(0);
+    expect(within(block).getByText(/^Verificado /)).toBeDefined();
+    // A barra tem 20 blocos, todos acesos com 100.
+    expect(block.querySelectorAll('.health__blocks i.on')).toHaveLength(20);
   });
 
   it('erro ao calcular: a mensagem com "Tentar de novo"', async () => {
