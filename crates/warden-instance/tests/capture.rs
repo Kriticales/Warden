@@ -659,7 +659,7 @@ fn caminho_do_pack_nao_vaza_nos_erros() {
 async fn configs_pessoais_nunca_viram_candidatas_ao_pack() {
     let pack = base_pack().with_file("config/xaerominimap.txt", "zoom:1\n");
     let lab = Lab::new(&pack).await;
-    let store = lab._dir.path().join("pessoais");
+    let store = lab.cache.with_file_name("pessoais");
     let personal = PersonalConfigs::load(&store).unwrap();
     let paths: BTreeSet<String> = personal.paths();
     lab.baseline();
@@ -672,7 +672,7 @@ async fn configs_pessoais_nunca_viram_candidatas_ao_pack() {
     lab.play_write("config/xaerominimap.txt", b"zoom:3\n");
     lab.play_write(
         "config/sodium-options.json",
-        SODIUM.replace("3", "4").as_bytes(),
+        SODIUM.replace('3', "4").as_bytes(),
     );
 
     // Sem a lista pessoal (o comportamento antigo), o options.txt viria pré-marcado.

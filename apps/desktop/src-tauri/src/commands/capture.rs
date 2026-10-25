@@ -356,7 +356,14 @@ mod tests {
             &sources,
             root,
             dirs,
-            &MaterializeOptions::default(),
+            // Como o Testar: as configs pessoais (ADR-0067) ficam de fora da cópia do pack.
+            &MaterializeOptions {
+                personal: warden_instance::DEFAULT_PERSONAL
+                    .iter()
+                    .map(|path| (*path).to_owned())
+                    .collect(),
+                ..MaterializeOptions::default()
+            },
             &NoProgress,
             &CancellationToken::new(),
         )
@@ -434,7 +441,8 @@ mod tests {
         }
 
         // Com o jogo aberto: a pessoa edita a config da instância pelo editor de configs
-        // (CA-T12-04) e o jogo grava a distância de renderização.
+        // (CA-T12-04) e o jogo grava a distância de renderização no options.txt, que é pessoal
+        // (ADR-0067) e não aparece.
         let read = read_file(&dirs.game_dir, ConfigOrigin::Instance, "config/Ajustes do mod/ação.toml")
             .unwrap();
         save_to_instance(
@@ -462,7 +470,7 @@ mod tests {
         for hook in &hooks {
             fields.extend(hook.after_exit(&context, &exit_context).await.unwrap());
         }
-        assert_eq!(fields["capture"], json!({"changes": 2, "needsReview": true}));
+        assert_eq!(fields["capture"], json!({"changes": 1, "needsReview": true}));
 
         let view = capture_view(&dirs, &root).unwrap().unwrap();
         assert_eq!(view.session_id, "2026-10-13_14-20-00");
@@ -473,10 +481,7 @@ mod tests {
             .collect();
         assert_eq!(
             groups,
-            [
-                ("config/Ajustes do mod/ação.toml", CaptureGroup::PackConfig),
-                ("options.txt", CaptureGroup::Options),
-            ]
+            [("config/Ajustes do mod/ação.toml", CaptureGroup::PackConfig)]
         );
 
         // Testar de novo antes de decidir: recusado, com o teste das mudanças.
@@ -491,22 +496,20 @@ mod tests {
                 resolution: CaptureResolution::Take,
                 expected_pack_sha256: view.files[0].pack_sha256.clone(),
             }],
-            option_keys: vec!["renderDistance".into()],
-            expected_options_sha256: view.files[1].pack_sha256.clone(),
+            option_keys: Vec::new(),
+            expected_options_sha256: None,
         };
         let applied = apply_impl(&state, &cli, id, request.clone()).await.unwrap();
-        assert_eq!(applied.count, 2);
-        assert_eq!(
-            applied.files,
-            ["config/Ajustes do mod/ação.toml", "options.txt"]
-        );
+        assert_eq!(applied.count, 1);
+        assert_eq!(applied.files, ["config/Ajustes do mod/ação.toml"]);
         assert_eq!(
             fs::read_to_string(root.join("config/Ajustes do mod/ação.toml")).unwrap(),
             "a = 22\n"
         );
+        // O options.txt do pack não muda: a preferência ficou só neste computador.
         assert_eq!(
             fs::read_to_string(root.join("options.txt")).unwrap(),
-            "version:3465\nrenderDistance:16\n"
+            "version:3465\nrenderDistance:8\n"
         );
         // O índice foi atualizado pelo `packwiz refresh`.
         let index = fs::read_to_string(root.join("index.toml")).unwrap();

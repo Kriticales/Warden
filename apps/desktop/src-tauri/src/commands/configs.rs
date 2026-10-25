@@ -133,16 +133,14 @@ pub(crate) async fn write_impl(
     let result = async {
         let _lock = state.locks.write_for(pack_id, &handle).await;
         let root = origin_root(state, pack_id, origin)?;
-        match cli {
-            Some(cli) => save_to_pack(&root, path, text, expected_hash, cli, handle.token())
+        if let Some(cli) = cli {
+            return save_to_pack(&root, path, text, expected_hash, cli, handle.token())
                 .await
-                .map_err(domain),
-            None => {
-                let saved = save_to_instance(&root, path, text, expected_hash).map_err(domain)?;
-                keep_personal_copy(state, pack_id, &root, path);
-                Ok(saved)
-            }
+                .map_err(domain);
         }
+        let saved = save_to_instance(&root, path, text, expected_hash).map_err(domain)?;
+        keep_personal_copy(state, pack_id, &root, path);
+        Ok(saved)
     }
     .await;
     handle.finish(result)

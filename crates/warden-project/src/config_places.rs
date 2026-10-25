@@ -48,6 +48,7 @@ pub enum ConfigPlace {
 }
 
 /// Uma config da lista juntada.
+#[allow(clippy::struct_excessive_bools)] // marcas independentes do contrato do IPC
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PlacedConfig {
