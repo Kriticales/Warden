@@ -1,29 +1,31 @@
 /**
- * A caixa "Só o que mudou do padrão" (SPEC T12; protótipos `configs` e `configs-busca`; C-06),
- * usada no formulário do arquivo aberto e na busca em todas as configs.
+ * O filtro "Mudou do padrão" (SPEC T12; esboço aprovado `design/bug-01/configs.html`; C-06), em
+ * botão (sem caixa de seleção), no formulário do arquivo aberto e na coluna da seção.
  */
 import { useTranslation } from 'react-i18next';
 
-import { Checkbox } from '../../../settings/components/fields';
+import { FilterChip } from '../../places/FilterChip';
 import './defaults.css';
 
 export interface ChangedFilterProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
-  /** Linha de explicação abaixo (a contagem, no formulário). */
-  desc?: string | undefined;
+  /** Quantas chaves (ou arquivos) mudaram do padrão. */
+  count?: number | null;
+  /** O rótulo longo ("Só o que mudou do padrão") em vez do curto. */
+  long?: boolean;
 }
 
-export function ChangedFilter({ checked, onChange, desc }: ChangedFilterProps) {
+export function ChangedFilter({ checked, onChange, count, long = false }: ChangedFilterProps) {
   const { t } = useTranslation('configsPadrao');
+  const { t: tc } = useTranslation('configs');
   return (
-    <div className="cfg-changed-filter" title={t('filtro.dica')}>
-      <Checkbox
-        label={t('filtro.rotulo')}
-        {...(desc === undefined ? {} : { desc })}
-        checked={checked}
-        onChange={onChange}
-      />
-    </div>
+    <FilterChip
+      label={long ? t('filtro.rotulo') : tc('filtros.mudouCurto')}
+      pressed={checked}
+      count={count}
+      title={t('filtro.dica')}
+      onChange={onChange}
+    />
   );
 }

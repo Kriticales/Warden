@@ -8,6 +8,7 @@
 
 pub mod add;
 pub mod change_version;
+pub mod config_places;
 pub mod configs;
 pub mod create;
 pub mod dedup;

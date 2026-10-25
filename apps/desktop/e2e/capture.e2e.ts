@@ -3,9 +3,13 @@
  * `warden-launcher` (modo `filhos`: fica aberto até "Parar jogo"). Enquanto o jogo está aberto, o
  * teste muda arquivos da instância como o jogo mudaria; ao parar, o resultado mostra a captura.
  *
- * - CA-T15-01: mudar a distância de renderização faz aparecer só `renderDistance`; trazer grava
- *   só essa linha no `options.txt` do pack.
+ * - CA-T15-01: mudar `dificuldade` numa config do pack faz aparecer só essa chave; trazer grava
+ *   só essa linha no pack.
+ * - CA-T15-07 (ADR-0067): o `options.txt` é pessoal: mudar a distância de renderização não
+ *   aparece, ele nunca vai para o pack e volta igual no teste seguinte, mesmo apagado.
  * - CA-T15-02: uma config só reformatada não aparece.
+ * - Configs (T12, P9): depois do teste, a seção abre no teste local com os três grupos e o
+ *   `options.txt` em "Só neste computador".
  * - CA-T15-03 e CA-T15-06: arquivos sempre ignorados (logs, spark, KubeJS, ProbeJS) não
  *   aparecem.
  * - Testar de novo com mudanças não revisadas pergunta antes; "Descartar e testar" segue.
@@ -40,9 +44,12 @@ const PACK = join(DATA_ROOT, 'fora', 'Pack da captura ç');
 const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 
-const OPTIONS = 'version:3465\nrenderDistance:12\nguiScale:0\nfullscreen:false\n';
+const OPTIONS = 'version:3465\nrenderDistance:16\nguiScale:0\nfullscreen:false\n';
 const CONFIG = '# Config do pack\n[geral]\n\tdificuldade = 2\n\tnome = "Vale"\n';
+const BROUGHT = CONFIG.replace('dificuldade = 2', 'dificuldade = 3');
 const MARKER = 'config/captura-e2e.toml';
+const REFORMAT = 'config/reformatada.toml';
+const REFORMAT_TEXT = '[geral]\n\tnome = "Vale"\n';
 
 function sha256(data: string): string {
   return createHash('sha256').update(data).digest('hex');
@@ -90,6 +97,16 @@ function instanceGameDir(): string {
     if (existsSync(join(game, MARKER))) return game;
   }
   throw new Error('instância de teste do pack da captura ausente');
+}
+
+/** A cópia pessoal guardada pelo Warden (ADR-0067), do único pack com configs pessoais. */
+function personalCopy(relative: string): string {
+  const root = join(DATA_ROOT, 'data', 'personal');
+  for (const id of readdirSync(root)) {
+    const file = join(root, id, 'files', relative);
+    if (existsSync(file)) return file;
+  }
+  throw new Error(`cópia pessoal de ${relative} ausente`);
 }
 
 /** O jogo grava um arquivo na instância. */
@@ -149,7 +166,7 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     }
     rmSync(PACK, { recursive: true, force: true });
     mkdirSync(join(DATA_ROOT, 'fora'), { recursive: true });
-    writePack({ 'options.txt': OPTIONS, [MARKER]: CONFIG });
+    writePack({ [MARKER]: CONFIG, [REFORMAT]: REFORMAT_TEXT });
     mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
     writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
     rmSync(REGISTRY_FILE, { force: true });
@@ -182,17 +199,13 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     await waitHeading('Mods');
   });
 
-  it('CA-T15-01, CA-T15-02, CA-T15-03 e CA-T15-06: só a mudança de verdade aparece', async () => {
+  it('CA-T15-01, -02, -03, -06 e -07: só a mudança de verdade aparece; options.txt nunca', async () => {
     await playAndStop(() => {
-      play(
-        'options.txt',
-        OPTIONS.replace('renderDistance:12', 'renderDistance:16').replace(
-          'version:3465',
-          'version:3700',
-        ),
-      );
+      play(MARKER, BROUGHT);
+      // Preferência pessoal (ADR-0067): nunca é candidata ao pack.
+      play('options.txt', OPTIONS);
       // Reformatada pelo jogo: mesmos valores.
-      play(MARKER, '[geral]\r\n    nome = "Vale"\r\n    dificuldade = 2\r\n');
+      play(REFORMAT, '[geral]\r\n    nome = "Vale"\r\n');
       // Sempre ignorados.
       play('logs/latest.log', 'linha');
       play('config/spark/perfil.sparkprofile', 'perfil');
@@ -203,10 +216,12 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     const block = capture();
     await block.waitForDisplayed({ timeout: 15_000 });
     await expect(block).toHaveText(expect.stringContaining('Durante o teste, 1 arquivo mudou'));
-    await expect(block).toHaveText(expect.stringContaining('renderDistance'));
+    await expect(block).toHaveText(expect.stringContaining('geral.dificuldade'));
     const text = await block.getText();
     for (const hidden of [
-      'captura-e2e.toml',
+      'options.txt',
+      'renderDistance',
+      'reformatada.toml',
       'latest.log',
       'sparkprofile',
       'web_server',
@@ -218,9 +233,9 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     await expect(block).toHaveText(
       expect.stringContaining('1 arquivo só foi reformatado pelo jogo'),
     );
-    expect(
-      await block.$('input[aria-label="Trazer renderDistance para o pack"]').isSelected(),
-    ).toBe(true);
+    expect(await block.$(`input[aria-label="Trazer ${MARKER} para o pack"]`).isSelected()).toBe(
+      true,
+    );
     expect(await seriousViolations()).toEqual([]);
     await screenshot('c03-o-que-mudou');
   });
@@ -248,7 +263,7 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     await capture().waitForDisplayed({ timeout: 15_000 });
   });
 
-  it('CA-T15-01: trazer grava só a linha de renderDistance no options.txt do pack', async () => {
+  it('CA-T15-01: trazer grava só a linha da dificuldade; o options.txt fica só aqui', async () => {
     await dismissToasts();
     const bring = capture().$('button=Trazer 1 selecionado para o pack');
     await bring.waitForClickable();
@@ -259,13 +274,18 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     await screenshot('c03-trazido');
     await dialog.$('button=Continuar editando').click();
     await waitText('1 mudança foi trazida para o pack');
-    const written = readFileSync(join(PACK, 'options.txt'), 'utf8');
-    expect(written).toBe(OPTIONS.replace('renderDistance:12', 'renderDistance:16'));
+    expect(readFileSync(join(PACK, MARKER), 'utf8')).toBe(BROUGHT);
+    // ADR-0067: o options.txt nunca vai para o pack; a cópia pessoal ficou nos dados do Warden.
+    expect(existsSync(join(PACK, 'options.txt'))).toBe(false);
+    expect(readFileSync(personalCopy('options.txt'), 'utf8')).toBe(OPTIONS);
   });
 
-  it('Descartar: o teste seguinte começa sem perguntar e a config volta à do pack', async () => {
+  it('Descartar: a config volta à do pack; o options.txt volta igual mesmo apagado', async () => {
+    // Descartar apaga da instância as configs do pack que mudaram (a próxima cópia as grava de
+    // novo): a pasta do jogo fica guardada antes.
+    const game = instanceGameDir();
     await playAndStop(() => {
-      play(MARKER, CONFIG.replace('dificuldade = 2', 'dificuldade = 3'));
+      play(MARKER, BROUGHT.replace('dificuldade = 3', 'dificuldade = 4'));
     });
     const block = capture();
     await block.waitForDisplayed({ timeout: 15_000 });
@@ -276,7 +296,40 @@ describe('O que mudou durante o teste (C-03; T15)', function () {
     await dialog.waitForDisplayed();
     await dialog.$('button=Descartar mudanças').click();
     await waitText('Mudanças deste teste descartadas');
+    // Apagada na instância: o próximo teste devolve a cópia guardada (CA-T15-07).
+    rmSync(join(game, 'options.txt'));
     await playAndStop(() => undefined);
-    expect(readFileSync(join(instanceGameDir(), MARKER), 'utf8')).toBe(CONFIG);
+    expect(readFileSync(join(game, MARKER), 'utf8')).toBe(BROUGHT);
+    expect(readFileSync(join(game, 'options.txt'), 'utf8')).toBe(OPTIONS);
+    expect(existsSync(join(PACK, 'options.txt'))).toBe(false);
+  });
+
+  it('Configs: o teste local com No pack, Só no teste e Só neste computador; axe', async () => {
+    await dismissToasts();
+    // O jogo criou uma config que nunca foi para o pack.
+    play('config/criada-pelo-jogo.toml', 'ligado = true\n');
+    await $('nav[aria-label="Seções do pack"]').$('a*=Configs').click();
+    await $('h1=Configs').waitForDisplayed();
+    const pack = $('[role="tree"][aria-label="Configs que estão no pack"]');
+    await pack.waitForDisplayed({ timeout: 15_000 });
+    expect(await $('[role="radio"][aria-checked="true"]').getText()).toContain('Do teste local');
+    await expect(pack).toHaveElementProperty(
+      'textContent',
+      expect.stringContaining('captura-e2e.toml'),
+    );
+    const onlyTest = $('[role="tree"][aria-label="Configs que estão só no teste"]');
+    await expect(onlyTest).toHaveElementProperty(
+      'textContent',
+      expect.stringContaining('criada-pelo-jogo.toml'),
+    );
+    const personal = $('[role="tree"][aria-label="Preferências pessoais"]');
+    await expect(personal).toHaveElementProperty(
+      'textContent',
+      expect.stringContaining('Opções do jogo'),
+    );
+    await personal.$('[role="treeitem"]*=Opções do jogo').click();
+    await $('.band*=Preferência pessoal.').waitForDisplayed();
+    expect(await seriousViolations()).toEqual([]);
+    await screenshot('c03-configs-tres-grupos');
   });
 });

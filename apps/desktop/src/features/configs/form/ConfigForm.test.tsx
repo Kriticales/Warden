@@ -27,7 +27,7 @@ import { axePage } from '../../../test/axe';
 import { ipcError } from '../../../test/backend';
 import { makeAppError } from '../../../test/factories';
 import { renderApp } from '../../../test/render';
-import { editorBackend } from '../../pack-editor/testing';
+import { editorBackend, overviewFromTree } from '../../pack-editor/testing';
 import { makeSettings } from '../../settings/testing';
 import { setEditorMode } from './model';
 
@@ -147,10 +147,22 @@ function open(path: string, options: Options) {
   const disk = options.pack;
   const preserve = { ...(options.preserve ?? { inIndex: true, preserve: false }) };
   const copies = [...(options.copy ?? [])];
+  const tree = () => ({
+    available: true,
+    files: Object.keys(disk).map((file) => ({
+      path: file,
+      size: 10,
+      modifiedAtMs: 1,
+      binary: false,
+    })),
+    truncated: false,
+  });
   const { backend, url } = editorBackend({
     pack: { loader: 'neoforge', minecraft: '1.21.1' },
     handlers: {
       settings_get: () => makeSettings({ configDiffBeforeSave: true }),
+      // O dono escolheu "Manter no pack" para o options.txt (ADR-0067): ele não é pessoal aqui.
+      config_overview: (args) => overviewFromTree(tree, args.packId, []),
       config_tree: () => ({
         available: true,
         files: Object.keys(disk).map((file) => ({
@@ -437,7 +449,7 @@ describe('Formulário de configs (T12, C-04)', () => {
     });
     expect(option).toHaveProperty('checked', false);
     const before = {
-      tree: backend.callsOf('config_tree').length,
+      tree: backend.callsOf('config_overview').length,
       row: backend.callsOf('pack_get').length,
       preserve: backend.callsOf('config_preserve').length,
       read: backend.callsOf('config_read').length,
@@ -450,7 +462,7 @@ describe('Formulário de configs (T12, C-04)', () => {
       preserve: true,
     });
     await waitFor(() => {
-      expect(backend.callsOf('config_tree').length).toBeGreaterThan(before.tree);
+      expect(backend.callsOf('config_overview').length).toBeGreaterThan(before.tree);
       expect(backend.callsOf('pack_get').length).toBeGreaterThan(before.row);
       expect(backend.callsOf('config_preserve').length).toBeGreaterThan(before.preserve);
       expect(backend.callsOf('config_read').length).toBeGreaterThan(before.read);
@@ -486,7 +498,7 @@ describe('Formulário de configs (T12, C-04)', () => {
       ],
     });
     const button = await screen.findByRole('button', { name: 'Copiar para defaultconfigs/' });
-    const treeCalls = backend.callsOf('config_tree').length;
+    const treeCalls = backend.callsOf('config_overview').length;
     await user.click(button);
     const dialog = await screen.findByRole('alertdialog', {
       name: 'Substituir defaultconfigs/create-server.toml?',
@@ -497,7 +509,7 @@ describe('Formulário de configs (T12, C-04)', () => {
       backend.callsOf('config_copy_to_defaultconfigs').map((call) => call.args.overwrite),
     ).toEqual([false, true]);
     await waitFor(() => {
-      expect(backend.callsOf('config_tree').length).toBeGreaterThan(treeCalls);
+      expect(backend.callsOf('config_overview').length).toBeGreaterThan(treeCalls);
     });
     await waitFor(() => {
       expect(document.activeElement).toBe(

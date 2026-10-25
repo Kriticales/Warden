@@ -195,7 +195,7 @@ function openScript(search: string, options: Options = {}) {
       // Como `warden_scripts::sync::copy_to_instance`.
       scripts_copy_to_instance: (args) => {
         atCopy.push({
-          tree: backend.callsOf('config_tree').length,
+          tree: backend.callsOf('config_overview').length,
           capture: backend.callsOf('capture_get').length,
         });
         const path = args.path as string;
@@ -482,7 +482,7 @@ describe('editor de scripts (T26)', () => {
     act(() => {
       editor.dispatch({ changes: { from: editor.state.doc.length, insert: '// novo\n' } });
     });
-    const treeCalls = backend.callsOf('config_tree').length;
+    const treeCalls = backend.callsOf('config_overview').length;
     await user.click(await screen.findByRole('button', { name: 'Salvar e recarregar' }));
     await waitFor(() => {
       expect(backend.callsOf('scripts_reload')).toHaveLength(1);
@@ -492,7 +492,7 @@ describe('editor de scripts (T26)', () => {
     await screen.findByText('No KubeJS 6, recarregar precisa de um comando no jogo.');
     // A lista de arquivos é relida depois de gravar (dados na tela sempre atuais).
     await waitFor(() => {
-      expect(backend.callsOf('config_tree').length).toBeGreaterThan(treeCalls);
+      expect(backend.callsOf('config_overview').length).toBeGreaterThan(treeCalls);
     });
   });
 
@@ -505,7 +505,7 @@ describe('editor de scripts (T26)', () => {
     await view();
     await screen.findByText('O jogo está aberto com a instância de teste.');
     await user.click(screen.getByRole('button', { name: 'Editar na instância de teste' }));
-    await screen.findByText('Você está editando a instância de teste, não o pack.');
+    await screen.findByText('Teste local.');
     await view();
   });
 
@@ -558,7 +558,7 @@ describe('editor de scripts (T26)', () => {
     expect(atCopy).toHaveLength(1);
     const moment = atCopy[0] ?? { tree: 0, capture: 0 };
     await waitFor(() => {
-      expect(backend.callsOf('config_tree').length).toBeGreaterThan(moment.tree);
+      expect(backend.callsOf('config_overview').length).toBeGreaterThan(moment.tree);
       expect(backend.callsOf('capture_get').length).toBeGreaterThan(moment.capture);
     });
     const note = screen.getByText('Salvo no pack e copiado para a instância de teste.');
@@ -571,7 +571,7 @@ describe('editor de scripts (T26)', () => {
     expect(screen.queryByText('Salvo no pack e copiado para a instância de teste.')).toBeNull();
     // A instância mostra o texto copiado.
     await user.click(screen.getByRole('button', { name: 'Editar na instância de teste' }));
-    await screen.findByText('Você está editando a instância de teste, não o pack.');
+    await screen.findByText('Teste local.');
     await waitFor(async () => {
       expect((await view()).state.doc.toString()).toMatch(/^\/\/ topo/);
     });
@@ -624,7 +624,7 @@ describe('editor de scripts (T26)', () => {
     await user.keyboard('{Control>}s{/Control}');
     await screen.findByText('O script na instância de teste foi mudado direto nela.');
     await user.click(screen.getByRole('button', { name: 'Abrir o da instância' }));
-    await screen.findByText('Você está editando a instância de teste, não o pack.');
+    await screen.findByText('Teste local.');
     await waitFor(async () => {
       expect((await view()).state.doc.toString()).toBe('// mexido na instância\n');
     });

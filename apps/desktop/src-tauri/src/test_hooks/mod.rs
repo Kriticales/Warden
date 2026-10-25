@@ -17,7 +17,7 @@
 //! [`HookContext::ignore_pack_errors`]). Erro no `after_exit` não perde a sessão: vira aviso.
 //!
 //! **Registro acréscimo-apenas** (ROADMAP §1): cada tarefa declara o seu módulo
-//! (`diagnostics.rs` da D-03, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10,
+//! (`diagnostics.rs` da D-03, `personal.rs` da T3, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10,
 //! `crash_history.rs` da D-06, `perf_profile.rs` da L-12) e acrescenta uma linha em
 //! [`registered`]. [`registered`] é chamado a cada teste: cada gancho
 //! pode guardar o estado do teste em andamento.
@@ -27,6 +27,7 @@ mod crash_history;
 mod diagnostics;
 mod perf;
 mod perf_profile;
+mod personal;
 
 pub(crate) use perf::session_perf;
 pub(crate) use perf_profile::jvm_args as perf_profile_jvm_args;
@@ -153,6 +154,8 @@ pub(crate) fn registered() -> Vec<Arc<dyn TestHooks>> {
     vec![
         // D-03: pré-teste (rápido) e verificação final; "Por que travou" no fim.
         Arc::new(diagnostics::DiagnosticsHooks),
+        // T3 (ADR-0067): configs pessoais devolvidas antes da linha de base e guardadas no fim.
+        Arc::new(personal::PersonalHooks),
         // C-03: linha de base antes de abrir o jogo e o que mudou durante o teste.
         Arc::new(capture::CaptureHooks),
         // L-10: RAM do processo e tempos até carregar e entrar no mundo.
@@ -175,6 +178,7 @@ mod tests {
             names,
             [
                 "diagnostics",
+                "personal",
                 "capture",
                 "perf",
                 "crash_history",

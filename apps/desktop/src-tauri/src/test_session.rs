@@ -712,6 +712,8 @@ impl Runner<'_> {
                 .map_or(OptionalSelection::Saved, |choices| {
                     OptionalSelection::Explicit(OptionalChoices { choices })
                 }),
+            // Configs pessoais (ADR-0067): a cópia do pack não toca nelas.
+            personal: crate::commands::configs_places::personal_paths(self.state, self.pack_id),
             ..MaterializeOptions::default()
         };
         self.sync_with(pack_root, dirs, &options).await

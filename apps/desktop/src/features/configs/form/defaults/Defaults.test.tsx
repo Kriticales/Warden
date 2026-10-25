@@ -294,9 +294,12 @@ describe('Padrões das configs (T12, C-06)', () => {
     const user = userEvent.setup();
     const { url } = setup();
     const form = await openForm(url);
-    const filter = within(form).getByRole('checkbox', { name: /Só o que mudou do padrão/ });
-    expect(within(form).getByText('2 chaves diferentes do padrão')).toBeDefined();
+    // Em botão, sem caixa de seleção (esboço aprovado do bug-01), com a contagem ao lado.
+    const filter = within(form).getByRole('button', { name: /Mudou do padrão/ });
+    expect(filter.getAttribute('aria-pressed')).toBe('false');
+    expect(filter.textContent).toContain('2');
     await user.click(filter);
+    expect(filter.getAttribute('aria-pressed')).toBe('true');
     const keys = [...form.querySelectorAll('.cfgform__key')].map((node) =>
       node.textContent.replace('alterado', ''),
     );
@@ -335,29 +338,33 @@ describe('Busca em todas as configs com "Só o que mudou do padrão" (C-05 + C-0
     };
   }
 
-  it('o filtro sozinho lista as chaves alteradas, com a marca, e vai junto da busca', async () => {
+  it('"Só o que mudou do padrão" na coluna deixa na árvore só os arquivos alterados', async () => {
     const user = userEvent.setup();
-    const { backend, url } = setup({ config_search: answer });
+    const { backend, url } = setup({
+      config_search: answer,
+      config_tree: () => ({
+        available: true,
+        files: [
+          { path: FILE, size: 10, modifiedAtMs: 1, binary: false },
+          { path: 'config/igual.toml', size: 10, modifiedAtMs: 1, binary: false },
+        ],
+        truncated: false,
+      }),
+    });
     renderApp(`${url}/configs`);
-    const filter = await screen.findByRole('checkbox', { name: /Só o que mudou do padrão/ });
+    await screen.findByRole('treeitem', { name: /igual\.toml/ }, { timeout: 10_000 });
+    const filter = screen.getByRole('button', { name: /Só o que mudou do padrão/ });
+    // A contagem é de arquivos com alguma chave alterada (pelo índice da busca).
+    await waitFor(() => {
+      expect(filter.textContent).toContain('1');
+    });
+    expect(backend.callsOf('config_search').some((call) => call.args.onlyChanged === true)).toBe(
+      true,
+    );
     await user.click(filter);
-    expect(
-      await screen.findByRole('heading', { name: '1 chave em 1 arquivo mudaram do padrão' }),
-    ).toBeDefined();
-    expect(screen.getByText('Mudou do padrão')).toBeDefined();
-    await waitFor(() => {
-      expect(backend.callsOf('config_search').at(-1)?.args).toMatchObject({
-        query: '',
-        onlyChanged: true,
-      });
-    });
-    await user.type(screen.getByRole('searchbox', { name: 'Buscar em todas as configs' }), 'chunk');
-    await waitFor(() => {
-      expect(backend.callsOf('config_search').at(-1)?.args).toMatchObject({
-        query: 'chunk',
-        onlyChanged: true,
-      });
-    });
+    expect(filter.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByRole('treeitem', { name: /igual\.toml/ })).toBeNull();
+    expect(screen.getByRole('treeitem', { name: /chunks/ })).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 });

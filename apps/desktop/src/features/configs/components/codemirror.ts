@@ -98,9 +98,18 @@ const theme = EditorView.theme({
     backgroundColor: 'var(--color-primary-soft)',
   },
   '.cm-selectionMatch': { backgroundColor: 'var(--color-surface-3)' },
+  // Não salvo: ciano (a cor das alterações do editor); diferente do pack: âmbar (a cor do teste
+  // local, esboço aprovado `design/bug-01/configs.html`).
   '.cm-line.cm-changed': {
+    backgroundColor: 'var(--color-primary-soft)',
+    boxShadow: 'inset 3px 0 0 var(--color-primary)',
+  },
+  '.cm-line.cm-packdiff': {
     backgroundColor: 'var(--color-warn-soft)',
     boxShadow: 'inset 3px 0 0 var(--color-warn)',
+  },
+  '.cm-line.cm-packdiff.cm-changed': {
+    boxShadow: 'inset 3px 0 0 var(--color-primary)',
   },
   '.cm-panels': {
     backgroundColor: 'var(--color-surface-1)',
@@ -155,6 +164,27 @@ const changedLines = StateField.define<DecorationSet>({
   provide: (field) => EditorView.decorations.from(field),
 });
 
+/** Linhas diferentes do pack (o teste local aberto, SPEC T12; ADR-0067). */
+export const setPackLines = StateEffect.define<readonly number[]>();
+
+const packLines = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(value, transaction) {
+    let next = value.map(transaction.changes);
+    for (const effect of transaction.effects) {
+      if (effect.is(setPackLines)) {
+        const doc = transaction.state.doc;
+        const ranges = effect.value
+          .filter((line) => line >= 1 && line <= doc.lines)
+          .map((line) => Decoration.line({ class: 'cm-packdiff' }).range(doc.line(line).from));
+        next = Decoration.set(ranges, true);
+      }
+    }
+    return next;
+  },
+  provide: (field) => EditorView.decorations.from(field),
+});
+
 export interface EditorOptions {
   doc: string;
   language: EditorLanguage;
@@ -193,6 +223,7 @@ export function createEditorState(options: EditorOptions): EditorState {
     syntaxHighlighting(highlight),
     languageExtension(language),
     changedLines,
+    packLines,
     extra ?? [],
     theme,
     // `tabindex`: o axe só conta a área rolável como alcançável pelo teclado com um filho

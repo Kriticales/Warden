@@ -14,13 +14,21 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import type { ConfigContent, ConfigFile } from '../../lib/ipc/bindings';
+import type {
+  ConfigComparison,
+  ConfigContent,
+  ConfigFile,
+  KeyDifference,
+} from '../../lib/ipc/bindings';
 import { axePage } from '../../test/axe';
 import { ipcError } from '../../test/backend';
 import { makeAppError } from '../../test/factories';
 import { renderApp } from '../../test/render';
-import { editorBackend } from '../pack-editor/testing';
+import { editorBackend, overviewFromTree } from '../pack-editor/testing';
 import { makeSettings } from '../settings/testing';
+
+// O painel Detalhes abre sozinho em janelas largas (o jsdom começa com 1024 px).
+window.innerWidth = 1440;
 
 type Disk = Record<
   string,
@@ -52,6 +60,8 @@ interface Options {
   treeErrorOnce?: boolean;
   /** `config_write` falha com um erro que não é de alteração por fora. */
   writeError?: boolean;
+  /** Chaves diferentes entre o teste e o pack, por arquivo (`config_compare`). */
+  differences?: Record<string, KeyDifference[]>;
 }
 
 function isBinary(options: Options, path: string): boolean {
@@ -64,22 +74,47 @@ function openConfigs(path: string, options: Options = {}) {
     Disk | null
   >;
   let treeFailures = 0;
+  const tree = (args: Record<string, unknown>) => {
+    if (options.treeErrorOnce && treeFailures === 0) {
+      treeFailures += 1;
+      return ipcError(makeAppError(undefined, { detail: 'disco' }));
+    }
+    const disk = disks[args.origin as 'pack' | 'instance'];
+    return {
+      available: disk !== null,
+      files: Object.keys(disk ?? {}).map((path) => listed(path, isBinary(options, path))),
+      truncated: false,
+    };
+  };
   const { backend, url } = editorBackend({
     pack: { loader: options.loader ?? 'forge', minecraft: options.minecraft ?? '1.20.1' },
     handlers: {
       settings_get: () => makeSettings({ configDiffBeforeSave: options.diff ?? true }),
-      config_tree: (args) => {
-        if (options.treeErrorOnce && treeFailures === 0) {
-          treeFailures += 1;
-          return ipcError(makeAppError(undefined, { detail: 'disco' }));
-        }
-        const disk = disks[args.origin as 'pack' | 'instance'];
+      config_overview: async (args) => {
+        const overview = await overviewFromTree(tree, args.packId);
         return {
-          available: disk !== null,
-          files: Object.keys(disk ?? {}).map((path) => listed(path, isBinary(options, path))),
-          truncated: false,
+          ...overview,
+          files: overview.files.map((file) => {
+            const keys = options.differences?.[file.path];
+            return keys ? { ...file, differs: true, differences: keys.length } : file;
+          }),
         };
       },
+      config_compare: (args) =>
+        ({
+          path: String(args.path),
+          byKey: true,
+          keys: options.differences?.[String(args.path)] ?? [],
+          lines: 0,
+          packText: disks.pack?.[String(args.path)]?.text ?? null,
+          testText: disks.instance?.[String(args.path)]?.text ?? null,
+        }) satisfies ConfigComparison,
+      config_bring: () => ({ hash: 'x', size: 1, changed: true }),
+      config_revert: () => ({ hash: 'x', size: 1, changed: true }),
+      config_mark_personal: () => 0,
+      config_unmark_personal: () => true,
+      config_keep_personal_out: (args) => (args.paths as string[]).length,
+      config_tree: tree,
       config_read: (args) => {
         const disk = disks[args.origin as 'pack' | 'instance'] ?? {};
         const file = disk[args.path as string];
@@ -139,43 +174,45 @@ async function type(text: string) {
 }
 
 describe('Configs (T12)', () => {
-  it('lista a árvore do pack, filtra por nome e abre o arquivo na URL; axe', async () => {
+  it('lista a árvore do pack e abre o arquivo na URL; axe', async () => {
     const user = userEvent.setup();
     openConfigs('', {
       pack: {
         [CREATE]: entry(CREATE_TEXT),
         'config/jei/jei-client.ini': entry('a=1\n'),
-        'options.txt': entry('fov:70\n'),
       },
     });
     await screen.findByRole('heading', { level: 1, name: 'Configs' }, { timeout: 10_000 });
-    const tree = await screen.findByRole('tree', { name: 'Arquivos' });
+    // Sem instância de teste, a vista é o pack: só o que vai para os jogadores.
+    const tree = await screen.findByRole('tree', { name: 'Configs que estão no pack' });
     expect(within(tree).getByRole('treeitem', { name: /create-common\.toml/ })).toBeDefined();
-    expect(
-      within(tree).getByRole('treeitem', { name: 'Opções do jogo (options.txt)' }),
-    ).toBeDefined();
+    expect(screen.getByRole('radio', { name: 'Do pack' }).getAttribute('aria-checked')).toBe(
+      'true',
+    );
     expect(screen.getByText('Escolha um arquivo')).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
 
-    await user.type(screen.getByRole('searchbox', { name: 'Filtrar por nome de arquivo' }), 'jei');
-    // Com o filtro ligado a árvore é outra (tudo aberto): busca de novo.
-    const filtered = await screen.findByRole('tree', { name: 'Arquivos' });
-    expect(within(filtered).queryByRole('treeitem', { name: /create-common/ })).toBeNull();
-    await user.click(await within(filtered).findByRole('treeitem', { name: /jei-client\.ini/ }));
+    await user.click(within(tree).getByRole('treeitem', { name: /^jei/ }));
+    await user.click(await within(tree).findByRole('treeitem', { name: /jei-client\.ini/ }));
     await screen.findByRole('textbox', { name: 'Conteúdo de config/jei/jei-client.ini' });
     expect(screen.getByText(/Propriedades · UTF-8 · LF · linha 1, coluna 1/)).toBeDefined();
+    // A faixa diz para onde o arquivo vai.
+    expect(screen.getByText('Config do pack.')).toBeDefined();
   });
 
-  it('mostra o estado vazio do pack sem configs e o da instância que não existe', async () => {
-    const user = userEvent.setup();
+  it('mostra o estado vazio do pack sem configs; o teste local espera o primeiro teste', async () => {
     openConfigs('', { pack: {} });
     await screen.findByText('Este pack ainda não tem configs');
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: 'Origem dos arquivos' }),
-      'Mostrando: instância de teste',
+    const test = screen.getByRole('radio', { name: 'Do teste local' });
+    expect(test.getAttribute('aria-disabled')).toBe('true');
+    expect(test.getAttribute('title')).toBe(
+      'O teste local aparece depois do primeiro teste do pack.',
     );
+  });
+
+  it('?origem=instancia sem instância: explica que ela nasce no primeiro teste', async () => {
+    openConfigs('?origem=instancia', { pack: { [CREATE]: entry(CREATE_TEXT) } });
     await screen.findByText('Ainda não existe uma instância de teste');
-    expect(screen.getByText('Você está editando a instância de teste, não o pack.')).toBeDefined();
   });
 
   it('estados de erro: lista que não se lê, arquivo que sumiu e gravação que falha', async () => {
@@ -447,14 +484,17 @@ describe('Configs (T12)', () => {
     openConfigs('', {
       pack: {
         [CREATE]: entry(CREATE_TEXT),
-        'options.txt': entry('fov:70\n'),
         'notas.txt': entry('lembrar\n'),
         'patchouli_books/guia/livro.json': entry('{}\n'),
         'servers.dat': entry('\u0000'),
       },
       readOnly: { 'servers.dat': 'binary' },
     });
-    const tree = await screen.findByRole('tree', { name: 'Arquivos' }, { timeout: 10_000 });
+    const tree = await screen.findByRole(
+      'tree',
+      { name: 'Configs que estão no pack' },
+      { timeout: 10_000 },
+    );
     expect(within(tree).getByRole('treeitem', { name: /notas\.txt/ })).toBeDefined();
     expect(within(tree).getByRole('treeitem', { name: /patchouli_books\/guia/ })).toBeDefined();
     const servers = within(tree).getByRole('treeitem', { name: /servers\.dat/ });
@@ -477,17 +517,203 @@ describe('Configs (T12)', () => {
     await screen.findByRole('textbox', { name: 'Conteúdo de notas.txt' });
   });
 
-  it('instância de teste: mostra o aviso fixo e grava na origem da instância', async () => {
+  it('instância de teste: a faixa diz que é só do teste e grava na origem da instância', async () => {
     const user = userEvent.setup();
     const { backend } = openConfigs('?origem=instancia&arquivo=config/a.toml', {
       pack: {},
       instance: { 'config/a.toml': entry('a = 1\n') },
       diff: false,
     });
-    await screen.findByText('Você está editando a instância de teste, não o pack.');
+    await screen.findByText('Só no teste local.');
     await type('b = 2');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
     await screen.findByText('a.toml salvo.');
     expect(backend.callsOf('config_write')[0]?.args.origin).toBe('instance');
+  });
+});
+
+/** A faixa do lugar que tem esse texto. */
+function bandOf(text: string): HTMLElement {
+  const band = screen.getByText(text).closest<HTMLElement>('.band');
+  if (!band) throw new Error(`faixa com "${text}" não encontrada`);
+  return band;
+}
+
+const DH = 'config/DistantHorizons.toml';
+const DH_PACK = '[quality]\nlodDistance = 256\n[ssao]\nenableSsao = true\n';
+const DH_TEST = '[quality]\nlodDistance = 128\n[ssao]\nenableSsao = false\n';
+const DH_KEYS: KeyDifference[] = [
+  { key: 'quality.lodDistance', pack: '256', test: '128', perKey: true },
+  { key: 'ssao.enableSsao', pack: 'true', test: 'false', perKey: true },
+];
+
+/** Um pack testado: as configs do pack, as que o jogo criou e o options.txt pessoal. */
+function tested(path = '') {
+  return openConfigs(path, {
+    pack: {
+      [DH]: entry(DH_PACK),
+      'config/crash_assistant/config.toml': entry('[general]\nx = 1\n'),
+    },
+    instance: {
+      [DH]: entry(DH_TEST),
+      'config/crash_assistant/config.toml': entry('[general]\nx = 1\n'),
+      [CREATE]: entry(CREATE_TEXT),
+      'options.txt': entry('renderDistance:12\n'),
+    },
+    differences: { [DH]: DH_KEYS },
+    diff: false,
+  });
+}
+
+describe('Configs em três grupos (P9, P7; ADR-0067)', () => {
+  it('o teste local junta o pack, o que o jogo criou e as preferências pessoais; axe', async () => {
+    tested();
+    // Com a instância, a seção abre no teste local, onde os mods criam as configs.
+    const pack = await screen.findByRole(
+      'tree',
+      { name: 'Configs que estão no pack' },
+      { timeout: 10_000 },
+    );
+    expect(screen.getByRole('radio', { name: 'Do teste local' }).getAttribute('aria-checked')).toBe(
+      'true',
+    );
+    const dh = within(pack).getByRole('treeitem', { name: /DistantHorizons\.toml/ });
+    expect(dh.textContent).toContain('2 chaves diferentes do pack');
+    const onlyTest = screen.getByRole('tree', { name: 'Configs que estão só no teste' });
+    expect(within(onlyTest).getByRole('treeitem', { name: /create-common\.toml/ })).toBeDefined();
+    const personal = screen.getByRole('tree', { name: 'Preferências pessoais' });
+    expect(within(personal).getByRole('treeitem', { name: /Opções do jogo/ })).toBeDefined();
+    // As pessoais não estão em nenhum outro grupo.
+    expect(within(onlyTest).queryByRole('treeitem', { name: /options\.txt/ })).toBeNull();
+    expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
+  it('"Diferente do pack" e as setas do teclado andam pela árvore', async () => {
+    const user = userEvent.setup();
+    tested();
+    await screen.findByRole('tree', { name: 'Configs que estão no pack' }, { timeout: 10_000 });
+    const filter = screen.getByRole('button', { name: /Só o que difere do pack/ });
+    expect(filter.textContent).toContain('1');
+    await user.click(filter);
+    expect(filter.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByRole('treeitem', { name: /crash_assistant/ })).toBeNull();
+    expect(screen.queryByRole('treeitem', { name: /create-common/ })).toBeNull();
+    expect(screen.getByRole('treeitem', { name: /DistantHorizons/ })).toBeDefined();
+    await user.click(filter);
+
+    // Um item só fica no Tab; as setas andam entre os itens.
+    const first = screen.getAllByRole('treeitem')[0];
+    expect(first?.tabIndex).toBe(0);
+    first?.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(screen.getAllByRole('treeitem')[1]);
+  });
+
+  it('teste diferente do pack: faixa, Trazer só as chaves e Detalhes com as diferenças', async () => {
+    const user = userEvent.setup();
+    const { backend } = tested(`?origem=instancia&arquivo=${DH}`);
+    await screen.findByText(/2 chaves estão diferentes do pack/, undefined, { timeout: 10_000 });
+    const details = screen.getByRole('complementary', { name: 'Detalhes' });
+    expect(within(details).getByText('quality.lodDistance')).toBeDefined();
+    expect(within(details).getByText('2 diferenças do pack')).toBeDefined();
+    // O Texto marca as linhas diferentes do pack.
+    await waitFor(() => {
+      expect(document.querySelectorAll('.cm-packdiff').length).toBe(2);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Trazer as 2 para o pack' }));
+    await waitFor(() => {
+      expect(backend.callsOf('config_bring')).toHaveLength(1);
+    });
+    expect(backend.callsOf('config_bring')[0]?.args).toMatchObject({
+      path: DH,
+      keys: ['quality.lodDistance', 'ssao.enableSsao'],
+    });
+    await screen.findByText('DistantHorizons.toml foi para o pack.');
+
+    // Detalhes recolhe pelo botão.
+    await user.click(screen.getByRole('button', { name: 'Detalhes' }));
+    expect(screen.queryByRole('complementary', { name: 'Detalhes' })).toBeNull();
+  });
+
+  it('Comparar: teste e pack lado a lado, → traz a chave e ← volta ao do pack', async () => {
+    const user = userEvent.setup();
+    const { backend } = tested(`?origem=comparar&arquivo=${DH}`);
+    const region = await screen.findByRole(
+      'region',
+      { name: 'Comparar o teste local com o pack' },
+      { timeout: 10_000 },
+    );
+    expect(
+      within(region).getByText('2 diferenças entre o seu teste local e o pack.'),
+    ).toBeDefined();
+    await user.click(
+      within(region).getByRole('button', { name: 'Trazer quality.lodDistance para o pack' }),
+    );
+    await waitFor(() => {
+      expect(backend.callsOf('config_bring')[0]?.args.keys).toEqual(['quality.lodDistance']);
+    });
+    await user.click(
+      within(region).getByRole('button', { name: 'Voltar ssao.enableSsao ao do pack' }),
+    );
+    await waitFor(() => {
+      expect(backend.callsOf('config_revert')[0]?.args.keys).toEqual(['ssao.enableSsao']);
+    });
+    expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
+  it('só no teste: Trazer para o pack e Marcar como pessoal (com confirmação)', async () => {
+    const user = userEvent.setup();
+    const { backend } = tested(`?origem=instancia&arquivo=${CREATE}`);
+    await screen.findByText('Só no teste local.', undefined, { timeout: 10_000 });
+    const band = bandOf('Só no teste local.');
+    await user.click(within(band).getByRole('button', { name: 'Trazer para o pack' }));
+    await waitFor(() => {
+      expect(backend.callsOf('config_bring')[0]?.args).toMatchObject({ path: CREATE, keys: null });
+    });
+
+    await user.click(within(band).getByRole('button', { name: 'Marcar como pessoal' }));
+    const ask = await screen.findByRole('alertdialog', {
+      name: 'Marcar create-common.toml como pessoal?',
+    });
+    await user.click(within(ask).getByRole('button', { name: 'Marcar como pessoal' }));
+    await waitFor(() => {
+      expect(backend.callsOf('config_mark_personal')[0]?.args.path).toBe(CREATE);
+    });
+  });
+
+  it('preferência pessoal: faixa própria e Deixar de ser pessoal…', async () => {
+    const user = userEvent.setup();
+    const { backend } = tested('?origem=instancia&arquivo=options.txt');
+    await screen.findByText('Preferência pessoal.', undefined, { timeout: 10_000 });
+    const band = bandOf('Preferência pessoal.');
+    await user.click(within(band).getByRole('button', { name: 'Deixar de ser pessoal…' }));
+    const ask = await screen.findByRole('alertdialog', {
+      name: 'options.txt deixa de ser pessoal?',
+    });
+    await user.click(within(ask).getByRole('button', { name: 'Deixar de ser pessoal' }));
+    await waitFor(() => {
+      expect(backend.callsOf('config_unmark_personal')[0]?.args.path).toBe('options.txt');
+    });
+  });
+
+  it('migração: o options.txt no pack é perguntado ao abrir o pack; nada sai sem escolha', async () => {
+    const user = userEvent.setup();
+    const { backend } = openConfigs('', {
+      pack: { 'options.txt': entry('fov:70\n'), [CREATE]: entry(CREATE_TEXT) },
+    });
+    // Uma faixa abaixo do cabeçalho: não bloqueia o resto do pack.
+    const dialog = await screen.findByRole(
+      'region',
+      { name: 'O options.txt agora fica só neste computador' },
+      { timeout: 10_000 },
+    );
+    expect(backend.callsOf('config_keep_personal_out')).toHaveLength(0);
+    expect(await axePage(document.body)).toHaveNoViolations();
+    await user.click(within(dialog).getByRole('button', { name: 'Tirar do pack e guardar aqui' }));
+    await waitFor(() => {
+      expect(backend.callsOf('config_keep_personal_out')[0]?.args.paths).toEqual(['options.txt']);
+    });
+    await screen.findByText('1 arquivo saiu do pack e ficou guardado neste computador.');
   });
 });

@@ -10,7 +10,9 @@
 //!   (a sessão é gravada do mesmo jeito).
 
 use serde_json::{Map, Value, json};
-use warden_instance::{capture_after_exit, load_capture, take_baseline};
+use warden_instance::{capture_after_exit_with, load_capture, take_baseline};
+
+use crate::commands::configs_places::personal_paths;
 
 use super::{ExitContext, HookContext, TestHooks};
 use crate::error::{AppError, AppErrorCode};
@@ -65,6 +67,8 @@ impl TestHooks for CaptureHooks {
     ) -> Result<Map<String, Value>, AppError> {
         let dirs = context.dirs.clone();
         let pack_root = context.pack_root.to_path_buf();
+        // Configs pessoais (ADR-0067) nunca aparecem como candidatas ao pack.
+        let personal = personal_paths(context.state, context.pack_id);
         let session_id = exit
             .session_dir
             .file_name()
@@ -72,7 +76,7 @@ impl TestHooks for CaptureHooks {
             .unwrap_or_default()
             .to_owned();
         let outcome = blocking(move || {
-            capture_after_exit(&dirs, &pack_root, &session_id)
+            capture_after_exit_with(&dirs, &pack_root, &session_id, &personal)
                 .map_err(|error| AppError::from_domain(&error))
         })
         .await?;

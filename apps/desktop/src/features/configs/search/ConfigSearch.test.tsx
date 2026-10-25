@@ -299,28 +299,29 @@ describe('Buscar em todas as configs (C-05)', () => {
     expect((box as HTMLInputElement).value).toBe('');
   });
 
-  it('instância que ainda não existe e erro da busca com Tentar de novo', async () => {
+  it('sem instância a busca é no pack; erro da busca com Tentar de novo', async () => {
     const user = userEvent.setup();
     let failures = 0;
-    openConfigs('?origem=instancia', {
+    const { backend } = openConfigs('?origem=instancia', {
       answer: (args) => {
-        if (args.origin === 'instance' && args.query !== '' && failures === 0) {
+        if (args.query !== '' && failures === 0) {
           failures += 1;
           return ipcError(makeAppError(undefined, { detail: 'disco' }));
         }
         return {
-          status: { ...READY, available: false, totalFiles: 0, indexedFiles: 0 },
+          status: READY,
           results: args.query === '' ? null : results([]).results,
           cancelled: false,
         };
       },
     });
+    // A instância ainda não existe: a seção explica e a busca procura no pack.
+    await screen.findByText('Ainda não existe uma instância de teste');
     await user.type(await searchBox(), 'spawn');
     await screen.findByText('Não foi possível buscar nas configs.');
+    expect(backend.callsOf('config_search').at(-1)?.args.origin).toBe('pack');
     await user.click(screen.getByRole('button', { name: 'Tentar de novo' }));
-    await screen.findByText(
-      'A instância de teste ainda não existe. Teste o pack uma vez para buscar nas configs dela.',
-    );
+    await screen.findByText('Nenhuma config com “spawn”.');
   });
 
   it('edição por fora: o aviso do Rust relê a busca, a árvore, o arquivo e o cabeçalho', async () => {
@@ -331,7 +332,7 @@ describe('Buscar em todas as configs (C-05)', () => {
     await screen.findByRole('heading', { name: '3 resultados em 2 arquivos para “spawn”' });
     const before = {
       search: searches(backend).filter((query) => query === 'spawn').length,
-      tree: backend.callsOf('config_tree').length,
+      tree: backend.callsOf('config_overview').length,
       file: backend.callsOf('config_read').length,
       row: backend.callsOf('pack_get').length,
     };
@@ -351,13 +352,13 @@ describe('Buscar em todas as configs (C-05)', () => {
       expect(searches(backend).filter((query) => query === 'spawn').length).toBeGreaterThan(
         before.search,
       );
-      expect(backend.callsOf('config_tree').length).toBeGreaterThan(before.tree);
+      expect(backend.callsOf('config_overview').length).toBeGreaterThan(before.tree);
       expect(backend.callsOf('config_read').length).toBeGreaterThan(before.file);
       expect(backend.callsOf('pack_get').length).toBeGreaterThan(before.row);
     });
 
     // O índice pronto (sem mudança de arquivo) só relê a busca.
-    const tree = backend.callsOf('config_tree').length;
+    const tree = backend.callsOf('config_overview').length;
     const count = searches(backend).filter((query) => query === 'spawn').length;
     await act(async () => {
       await backend.emit('config-index-changed', {
@@ -371,7 +372,7 @@ describe('Buscar em todas as configs (C-05)', () => {
     await waitFor(() => {
       expect(searches(backend).filter((query) => query === 'spawn').length).toBeGreaterThan(count);
     });
-    expect(backend.callsOf('config_tree').length).toBe(tree);
+    expect(backend.callsOf('config_overview').length).toBe(tree);
   });
 
   it('várias chaves na mesma linha (tabela inline) aparecem todas, sem chave repetida', async () => {

@@ -11,7 +11,7 @@
  * lista de campos e os avisos de "só texto". O filtro "Só o que mudou do padrão" e
  * "Restaurar padrão" são da C-06 (`./defaults/`).
  */
-import { FileCode } from 'lucide-react';
+import { FileCode, Search } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,14 +23,18 @@ import { Tooltip } from '../../../components/ui/tooltip';
 import type {
   ConfigField,
   ConfigForm as ConfigFormData,
+  FormItem,
   FormValue,
+  KeyDifference,
   PackId,
   TextOnlyReason,
 } from '../../../lib/ipc/bindings';
+import { fold } from '../model';
+import { FilterChip } from '../places/FilterChip';
 import { useConfigForm, useFormApply } from './api';
 import { ChangedFilter } from './defaults/ChangedFilter';
 import { changedCount, onlyChanged } from './defaults/model';
-import { FieldRow } from './FieldRow';
+import { FieldRow, type PackKey } from './FieldRow';
 import type { EditorMode } from './model';
 import './form.css';
 
@@ -171,6 +175,65 @@ export interface ConfigFormViewProps {
   onFallback: (error: unknown) => void;
   /** "Restaurar padrão" de uma chave (C-06): o editor mostra a diferença antes. */
   onRestore: (field: ConfigField) => void;
+  /** As chaves diferentes entre o teste local e o pack (SPEC T12; ADR-0067). */
+  pack?: FormPackDiff | null;
+}
+
+/** As diferenças com o outro lado (o pack, se o editor mostra o teste; ou o contrário). */
+export interface FormPackDiff {
+  keys: ReadonlyMap<string, KeyDifference>;
+  side: 'test' | 'pack';
+  /** "Trazer para o pack" de uma chave. */
+  onBring?: (key: string) => void;
+  /** A chave sendo trazida agora. */
+  busyKey?: string | null;
+}
+
+/** O texto em que a busca do arquivo procura: chave, rótulo do mod e descrição. */
+function searchable(item: FormItem): string {
+  if (item.kind !== 'field') return fold(item.key);
+  return fold(
+    [item.key, item.label?.text ?? '', item.label?.tooltip ?? '', item.description ?? ''].join(' '),
+  );
+}
+
+/**
+ * Os itens que passam nos filtros. Uma seção só aparece se algum campo dela aparece; sem filtro
+ * nenhum, tudo.
+ */
+export function visibleItems(
+  items: readonly FormItem[],
+  {
+    query,
+    changedOnly,
+    diffKeys,
+  }: {
+    query: string;
+    changedOnly: boolean;
+    diffKeys: ReadonlySet<string> | null;
+  },
+): FormItem[] {
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0 && !changedOnly && diffKeys === null) return [...items];
+  const base = changedOnly ? onlyChanged(items) : items;
+  const out: FormItem[] = [];
+  let section: FormItem | null = null;
+  for (const item of base) {
+    if (item.kind === 'section') {
+      section = item;
+      continue;
+    }
+    const text = searchable(item);
+    const passes =
+      words.every((word) => text.includes(word)) && (diffKeys === null || diffKeys.has(item.key));
+    if (!passes) continue;
+    if (section) {
+      out.push(section);
+      section = null;
+    }
+    out.push(item);
+  }
+  return out;
 }
 
 /** Os campos do arquivo, na ordem dele. */
@@ -182,12 +245,22 @@ export function ConfigFormView({
   onOpenText,
   onFallback,
   onRestore,
+  pack = null,
 }: ConfigFormViewProps) {
   const { t } = useTranslation('configsFormulario');
   const { t: tp } = useTranslation('configsPadrao');
+  const { t: tc } = useTranslation('configs');
   const [changedOnly, setChangedOnly] = useState(false);
+  const [diffOnly, setDiffOnly] = useState(false);
+  const [query, setQuery] = useState('');
   const changed = changedCount(form.items);
-  const items = changedOnly ? onlyChanged(form.items) : form.items;
+  const diffCount = pack ? pack.keys.size : 0;
+  const items = visibleItems(form.items, {
+    query,
+    changedOnly,
+    diffKeys: diffOnly && pack ? new Set(pack.keys.keys()) : null,
+  });
+  const filtering = query.trim() !== '' || changedOnly || (diffOnly && diffCount > 0);
   const apply = useFormApply();
   // As edições vão uma de cada vez, sempre sobre o texto mais novo.
   const latest = useRef(text);
@@ -212,15 +285,53 @@ export function ConfigFormView({
     });
   };
 
+  const packKey = (key: string): PackKey | null => {
+    const difference = pack?.keys.get(key);
+    if (!pack || !difference) return null;
+    return {
+      difference,
+      side: pack.side,
+      onBring: pack.onBring
+        ? () => {
+            pack.onBring?.(key);
+          }
+        : undefined,
+      busy: pack.busyKey === key,
+    };
+  };
+
   return (
     <div className="cfgform cfg-form" role="group" aria-label={t('area', { arquivo: path })}>
-      <ChangedFilter
-        checked={changedOnly}
-        onChange={setChangedOnly}
-        desc={tp('filtro.contagem', { count: changed })}
-      />
+      <div className="cfgform__tools" role="group" aria-label={tc('filtros.rotulo')}>
+        <label className="qbox qbox--sm">
+          <Search className="icon icon--sm" aria-hidden="true" />
+          <span className="sr-only">{t('buscarNoArquivo')}</span>
+          <input
+            className="input input--sm"
+            type="search"
+            value={query}
+            placeholder={t('buscarNoArquivo')}
+            onChange={(event) => {
+              setQuery(event.target.value);
+            }}
+          />
+        </label>
+        <ChangedFilter checked={changedOnly} onChange={setChangedOnly} count={changed} />
+        {diffCount > 0 ? (
+          <FilterChip
+            label={tc('filtros.difereCurto')}
+            place="test"
+            pressed={diffOnly}
+            count={diffCount}
+            title={tc('filtros.difereDica')}
+            onChange={setDiffOnly}
+          />
+        ) : null}
+      </div>
       {changedOnly && changed === 0 ? (
         <p className="t-sm t-3 cfg-changed-filter__empty">{tp('filtro.nenhumaNoArquivo')}</p>
+      ) : filtering && items.length === 0 ? (
+        <p className="t-sm t-3 cfg-changed-filter__empty">{t('nenhumaComFiltro')}</p>
       ) : null}
       {items.map((item) => {
         switch (item.kind) {
@@ -264,6 +375,7 @@ export function ConfigFormView({
                 field={item}
                 onEdit={edit}
                 onRestore={onRestore}
+                pack={packKey(item.key)}
               />
             );
         }

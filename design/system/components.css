@@ -488,6 +488,9 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 .content { max-width: var(--size-content-max); margin-inline: auto; min-height: 100%; }
 .content--read { max-width: var(--size-content-read); }
 .content--wide { max-width: var(--size-content-wide); }
+/* Telas em colunas na janela toda (Configs): sem a margem da área principal, cada coluna rola sozinha. */
+.content--full { max-width: none; flex: 1 1 auto; min-height: 0; width: 100%; }
+.app__main:has(> .content--full) { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
 .content:has(> .empty--center) { display: flex; flex-direction: column; }
 
 /* Barra do nível do app: marca, onde você está e Configurações. Sem menu lateral. */
@@ -672,7 +675,8 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 .tree__item .icon { width: 14px; height: 14px; color: var(--color-text-3); }
 .tree__item:hover { background: var(--color-surface-2); color: var(--color-text); }
 .tree__item[aria-selected="true"] { background: var(--color-primary-soft); color: var(--color-text); box-shadow: inset var(--border-bar) 0 0 var(--color-primary); }
-.tree__item:focus-visible { outline-offset: -2px; }
+/* Foco fino por dentro: o contorno grosso (--border-block) em volta do item escolhido era a "borda branca" do relatório de bugs nº 1. */
+.tree__item:focus-visible { outline: var(--border-thin) solid var(--color-focus); outline-offset: calc(-1 * var(--border-thin)); }
 .tree__item--dirty::after { content: ""; width: 6px; height: 6px; margin-left: auto; background: var(--color-warn); }
 .tree__item--friendly { font-family: var(--font-ui); font-size: var(--text-sm); }
 
@@ -963,7 +967,7 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 /* Modo formulário: cada chave vira um campo com a descrição original do mod */
 .cfgform { display: grid; gap: var(--space-1); padding: var(--space-3); }
 .cfgform__row { display: grid; grid-template-columns: minmax(0, 1fr) 200px auto; gap: var(--space-3); align-items: center; padding: var(--space-3); background: var(--color-surface-1); border: var(--border-thin) solid var(--color-border); }
-.cfgform__row--changed { box-shadow: inset 3px 0 0 var(--color-warn); }
+.cfgform__row--changed { box-shadow: inset 3px 0 0 var(--color-primary); }
 .cfgform__key { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text); }
 .cfgform__desc { font-size: var(--text-xs); color: var(--color-text-3); }
 .cfgform__group { margin: var(--space-3) 0 var(--space-1); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-primary-text); }
@@ -1454,3 +1458,81 @@ button.evid:focus-visible { clip-path: none; }
   .ggutter { width: 48px; }
   .mtag .mtag__rest { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+
+/* ============================================================================================
+   Lugares das configs (SPEC T12; ADR-0067; esboço aprovado design/bug-01/configs.html):
+   pack (vai para os jogadores) = ciano; teste local = âmbar; pessoal (só neste computador) = osso.
+   ============================================================================================ */
+:root { --place-pack: var(--color-primary-text); --place-test: var(--color-warn-text); --place-own: var(--color-text-2); }
+
+/* Seletor em destaque, na largura toda, com ícone e a cor do lugar escolhido */
+.segmented--wide { display: flex; width: 100%; }
+.segmented--wide button { flex: 1 1 0; min-width: 0; height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.segmented button .icon { width: 14px; height: 14px; flex: none; }
+.segmented button[data-view="pack"][aria-checked="true"] .icon { color: var(--place-pack); }
+.segmented button[data-view="test"][aria-checked="true"] { box-shadow: inset 0 -2px 0 var(--color-warn); }
+.segmented button[data-view="test"][aria-checked="true"] .icon { color: var(--place-test); }
+.segmented button[data-view="compare"][aria-checked="true"] { box-shadow: inset 0 -2px 0 var(--color-text-2); }
+.segmented button[aria-disabled="true"] { color: var(--color-text-3); cursor: not-allowed; }
+
+/* Filtro em botão (no lugar da caixa de seleção), com contagem */
+.fchips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fchips--stack { flex-direction: column; }
+.fchips--stack .fchip { width: 100%; justify-content: flex-start; }
+.fchips--stack .fchip__n { margin-left: auto; }
+.fchip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 var(--space-3); border: 0; background: transparent; color: var(--color-text-2); font-size: var(--text-sm); font-weight: var(--font-weight-semibold); white-space: nowrap; }
+.fchip::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: var(--shape-notch-sm); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); transition: background-color var(--duration-fast) var(--ease-out); }
+.fchip:hover { color: var(--color-text); }
+.fchip:hover::before { background: var(--color-surface-3); }
+.fchip[aria-pressed="true"] { color: var(--color-text); }
+.fchip[aria-pressed="true"]::before { background: var(--color-primary-soft); box-shadow: inset 0 0 0 1px var(--color-primary); }
+.fchip__n { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 500; color: var(--color-text-3); }
+.fchip[aria-pressed="true"] .fchip__n { color: var(--color-primary-text); }
+.fchip--test[aria-pressed="true"]::before { background: var(--color-warn-soft); box-shadow: inset 0 0 0 1px var(--color-warn); }
+.fchip--test[aria-pressed="true"] .fchip__n { color: var(--place-test); }
+.fchip__sq { width: 6px; height: 6px; flex: none; background: var(--color-warn); }
+
+/* Campo de busca com a lupa por dentro */
+.qbox { position: relative; display: block; }
+.qbox > .icon { position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%); color: var(--color-text-3); pointer-events: none; }
+.qbox .input { width: 100%; padding-left: 34px; }
+
+/* Grupos da árvore e marcas por arquivo */
+.tgroup { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-4) var(--space-1); font-size: var(--text-2xs); line-height: var(--text-2xs--line-height); font-weight: var(--font-weight-bold); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.tgroup .icon { width: 12px; height: 12px; }
+.tgroup--pack .icon { color: var(--place-pack); }
+.tgroup--test .icon { color: var(--place-test); }
+.tgroup--own .icon { color: var(--place-own); }
+.tgroup__n { margin-left: auto; font-family: var(--font-mono); letter-spacing: 0; }
+.mk { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }
+.mk--diff { color: var(--place-test); }
+.mk--diff::before { content: ""; width: 6px; height: 6px; background: var(--color-warn); }
+.mk--dirty::before { content: ""; width: 6px; height: 6px; background: var(--color-primary); }
+.mk--own .icon { width: 12px; height: 12px; color: var(--place-own); }
+.hintbox { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-4) var(--space-4) 0; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border-strong); font-size: var(--text-sm); color: var(--color-text-2); }
+.hintbox strong { color: var(--color-text); }
+.hintbox .btn { align-self: flex-start; }
+
+/* Faixa do lugar, abaixo da barra do editor: diz para onde o arquivo vai */
+.band { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-5); border-bottom: var(--border-thin) solid var(--color-border); font-size: var(--text-sm); color: var(--color-text-2); }
+.band > .icon { flex: none; width: 16px; height: 16px; }
+.band__t { flex: 1 1 280px; min-width: 0; }
+.band__t b { font-weight: var(--font-weight-bold); }
+.band__acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.band--pack { background: var(--color-primary-soft); box-shadow: inset 0 1px 0 var(--color-primary-line); }
+.band--pack > .icon, .band--pack b { color: var(--place-pack); }
+.band--test { background: var(--color-warn-soft); box-shadow: inset 0 1px 0 rgba(242, 179, 61, 0.4); }
+.band--test > .icon, .band--test b { color: var(--place-test); }
+.band--own { background: var(--color-surface-2); box-shadow: inset 0 1px 0 var(--color-border-strong); }
+.band--own > .icon, .band--own b { color: var(--color-text); }
+
+/* Formulário: ferramentas do arquivo e a chave diferente do pack ("no pack: X") */
+.cfgform__tools { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.cfgform__tools .qbox { flex: 0 1 300px; min-width: 200px; }
+.cfgform__row--diff .cfgform__label::before, .cfgform__row--diff .cfgform__key:first-child::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: var(--space-2); vertical-align: middle; background: var(--color-warn); }
+.cfgform__pack { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); font-size: var(--text-xs); }
+.pk { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2); background: var(--color-warn-soft); box-shadow: inset 0 0 0 1px rgba(242, 179, 61, 0.4); clip-path: var(--shape-notch-sm); color: var(--color-text-2); white-space: nowrap; }
+/* Faixa da migração das configs pessoais, abaixo do cabeçalho do pack (não bloqueia o pack) */
+.pack-migrate { flex: none; max-width: var(--size-content-wide); margin: 0 auto var(--space-5); }
+.app__main:has(> .content--full) > .pack-migrate { width: 100%; max-width: none; margin: 0; padding: var(--space-3) var(--space-4); border-bottom: var(--border-thin) solid var(--color-border); }
+.pk b { font-family: var(--font-mono); font-weight: 500; color: var(--place-test); }

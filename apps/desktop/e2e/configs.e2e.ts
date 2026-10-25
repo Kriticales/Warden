@@ -3,6 +3,8 @@
  * real gerou para o Fabric 1.21.1 (`crates/warden-packwiz/tests/fixtures/packwiz-output/
  * fabric-1.21.1`): tem `config/exemplo.properties` e um `options.txt` no índice.
  *
+ * - ADR-0067: o `options.txt` do pack é pessoal; ao abrir o pack o Warden avisa e, com "Tirar do
+ *   pack e guardar aqui", ele sai do pack e do índice.
  * - A árvore mostra os arquivos do pack (sem o `pack.toml` e o `index.toml`); abrir um arquivo põe o caminho na URL e o texto no editor.
  * - CA-T12-01: abrir e salvar sem mudanças não toca no disco (Salvar fica desabilitado).
  * - Salvar mostra as diferenças, grava só o que mudou (o resto, byte a byte) e o `index.toml`
@@ -58,6 +60,7 @@ const FIXTURE = join(
 );
 const PACK = join(DATA_ROOT, 'fora', 'pack-configs');
 const CONFIG = join(PACK, 'config', 'exemplo.properties');
+const OTHER = join(PACK, 'config', 'outra.properties');
 const SETTINGS_FILE = join(DATA_ROOT, 'config', 'settings.json');
 const REGISTRY_FILE = join(DATA_ROOT, 'config', 'packs.json');
 
@@ -145,6 +148,7 @@ describe('Configs (C-02; T12)', () => {
     rmSync(PACK, { recursive: true, force: true });
     mkdirSync(join(DATA_ROOT, 'fora'), { recursive: true });
     cpSync(FIXTURE, PACK, { recursive: true });
+    writeFileSync(OTHER, 'outra=1\n');
     writeFileSync(PICK_FILE, '');
     mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
     writeFileSync(SETTINGS_FILE, '{ "schemaVersion": 1 }\n');
@@ -165,6 +169,17 @@ describe('Configs (C-02; T12)', () => {
     await $('button=Abrir pack').click();
     await $('h1=Mods').waitForDisplayed({ timeout: 60_000 });
 
+    // O fixture leva um options.txt no pack: o aviso das configs pessoais pergunta antes.
+    const migrate = $('section.pack-migrate*=O options.txt agora fica só neste computador');
+    await migrate.waitForDisplayed({ timeout: 30_000 });
+    expect(existsSync(join(PACK, 'options.txt'))).toBe(true);
+    await screenshot('39-configs-migracao');
+    expect(await seriousViolations()).toEqual([]);
+    await migrate.$('button=Tirar do pack e guardar aqui').click();
+    await waitToast('1 arquivo saiu do pack e ficou guardado neste computador.');
+    expect(existsSync(join(PACK, 'options.txt'))).toBe(false);
+    expect(readFileSync(join(PACK, 'index.toml'), 'utf8')).not.toContain('options.txt');
+
     await $('nav[aria-label="Seções do pack"]').$('a*=Configs').click();
     await $('h1=Configs').waitForDisplayed();
     const tree = $('[role="tree"]');
@@ -174,12 +189,9 @@ describe('Configs (C-02; T12)', () => {
       'textContent',
       expect.stringContaining('exemplo.properties'),
     );
-    await expect(tree).toHaveElementProperty(
-      'textContent',
-      expect.stringContaining('Opções do jogo (options.txt)'),
-    );
-    // O que o packwiz gerencia não aparece.
+    // O que o packwiz gerencia não aparece, nem o options.txt (agora pessoal).
     const names = await tree.getProperty('textContent');
+    expect(String(names)).not.toContain('options.txt');
     expect(String(names)).not.toContain('pack.toml');
     expect(String(names)).not.toContain('index.toml');
 
@@ -239,7 +251,7 @@ describe('Configs (C-02; T12)', () => {
 
   it('trocar de arquivo com alterações não salvas pede confirmação', async () => {
     await typeAtEnd('x=9');
-    await $('[role="treeitem"]*=Opções do jogo').click();
+    await $('[role="treeitem"]*=outra.properties').click();
     const ask = $('[role="alertdialog"]*=Sair sem salvar?');
     await ask.waitForDisplayed();
     await screenshot('43-configs-sair');
@@ -247,15 +259,22 @@ describe('Configs (C-02; T12)', () => {
     await expect($('h1=Configs')).toBeDisplayed();
     await expect($('.cm-content')).toHaveText(expect.stringContaining('x=9'));
 
-    await $('[role="treeitem"]*=Opções do jogo').click();
+    await $('[role="treeitem"]*=outra.properties').click();
     await $('[role="alertdialog"]*=Sair sem salvar?').$('button=Descartar alterações').click();
-    await expect($('.editor__file')).toHaveText('options.txt');
+    // `textContent`: o caminho pode estar cortado com reticências na barra estreita.
+    await expect($('.editor__file')).toHaveElementProperty(
+      'textContent',
+      'config/outra.properties',
+    );
     expect(readFileSync(CONFIG, 'utf8')).toBe('chave=de-fora\n');
   });
 
   it('Ctrl+S com o foco no editor salva uma vez, sem conflito', async () => {
     await $('[role="treeitem"]*=exemplo.properties').click();
-    await expect($('.editor__file')).toHaveText('config/exemplo.properties');
+    await expect($('.editor__file')).toHaveElementProperty(
+      'textContent',
+      'config/exemplo.properties',
+    );
     await typeAtEnd('atalho=1');
     await browser.keys(['Control', 's']);
     const dialog = $('[role="dialog"]*=Salvar exemplo.properties?');

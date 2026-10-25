@@ -20,6 +20,8 @@
 //!   teste" (T15, C-03): a linha de base antes do jogo, a comparação depois, o conflito de três
 //!   vias com o pack e o que gravar no pack ([`plan_apply`]); a lista de sempre ignorados é
 //!   `data/capture-ignore.txt` ([`CaptureIgnore`]).
+//! - [`PersonalConfigs`]: as configs pessoais (`options.txt` e parentes, ADR-0067), guardadas
+//!   nos dados do Warden, devolvidas à instância em todo teste e nunca levadas ao pack.
 //! - [`accept_manual_file`]: download manual de um mod bloqueado da CurseForge (T20).
 //! - [`ManualDownloads`], [`provide_file`] e [`DownloadsWatch`]: a lista da T20 com o estado de
 //!   cada item, o arquivo escolhido conferido pelo hash antes de qualquer cópia e o vigia da
@@ -45,6 +47,7 @@ mod manifest;
 mod manual_downloads;
 mod materialize;
 mod optional_choices;
+mod personal;
 pub mod player_install;
 pub mod player_tools;
 pub mod subset;
@@ -57,8 +60,8 @@ pub use blocked::{BlockedFile, accept_manual_file};
 pub use capture::{
     ApplyPlan, CAPTURE_FILE, Capture, CaptureApplyRequest, CaptureChange, CaptureDecision,
     CaptureError, CaptureGroup, CaptureOption, CaptureOutcome, CaptureResolution, CaptureStatus,
-    CaptureValue, CapturedFile, VOLATILE_OPTIONS, capture_after_exit, discard, finish_apply,
-    load_capture, plan_apply, set_option_lines,
+    CaptureValue, CapturedFile, VOLATILE_OPTIONS, capture_after_exit, capture_after_exit_with,
+    discard, finish_apply, load_capture, plan_apply, set_option_lines,
 };
 pub use clean_instance::{CLEAN_PREFIX, CleanInstance, KEPT_DIR, keep_logs};
 pub use downloads::{
@@ -84,6 +87,7 @@ pub use materialize::{
     STAGE_LABEL, Sources, game_requirement, materialize,
 };
 pub use optional_choices::{OPTIONAL_CHOICES_FILE, OptionalChoices};
+pub use personal::{DEFAULT_PERSONAL, PERSONAL_FILE, PERSONAL_FILES_DIR, PersonalConfigs};
 pub use player_tools::PlayerToolsMode;
 pub use three_way::{
     CaptureConflict, CaptureFileView, CaptureTexts, CaptureView, capture_texts, capture_view, merge,

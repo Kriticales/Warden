@@ -46,6 +46,7 @@ import { commandError } from '../../../lib/ipc/query';
 import { useConfigWrite } from '../api';
 import {
   ConfigFormView,
+  type FormPackDiff,
   FallbackNotice,
   FormPending,
   ModeSwitch,
@@ -135,7 +136,21 @@ export interface ConfigEditorProps {
   /** Linha para ir (resultado da busca em todas as configs, C-05). */
   goTo?: LineRequest | null;
   addon?: EditorAddon | null;
+  /** O nome na barra (o nome amigável das preferências pessoais); sem ele, o do arquivo. */
+  title?: string | undefined;
+  /** A faixa abaixo da barra: para onde o arquivo vai (pack, teste, pessoal; SPEC T12). */
+  band?: ReactNode;
+  /** Peças da barra antes de Salvar (o botão Detalhes da seção). */
+  headActions?: ReactNode;
+  /** As diferenças com o outro lado (teste × pack), por chave e o texto do outro lado. */
+  packDiff?: EditorPackDiff | null;
   ref?: Ref<CodeEditorHandle>;
+}
+
+/** As diferenças do arquivo aberto com o outro lado (ADR-0067). */
+export interface EditorPackDiff extends FormPackDiff {
+  /** O texto do pack, para marcar no Texto as linhas diferentes (só com o teste aberto). */
+  packText: string | null;
 }
 
 type Dialogs = 'none' | 'save' | 'diff' | 'reload' | 'overwrite' | 'discard';
@@ -155,6 +170,10 @@ export function ConfigEditor({
   onGuard,
   goTo = null,
   addon = null,
+  title,
+  band = null,
+  headActions = null,
+  packDiff = null,
   ref,
 }: ConfigEditorProps) {
   const { t } = useTranslation('configs');
@@ -337,15 +356,21 @@ export function ConfigEditor({
 
   return (
     <section ref={section} className="editor cfg-editor" aria-label={t('editor.area')}>
-      <div className="editor__bar">
-        <span className="editor__file">{file.path}</span>
-        <span className={origin === 'instance' ? 'tag tag--warn' : 'tag tag--plain'}>
+      <div className="editor__bar cfg-edhead">
+        <span className="cfg-edhead__t">
+          <span className="cfg-edhead__name">{title ?? name}</span>
+          <span className="cfg-edhead__path" title={file.path}>
+            <span className="editor__file">{file.path}</span>
+          </span>
+        </span>
+        <span className="sr-only">
           {origin === 'instance' ? t('instancia.etiqueta') : t('pack.etiqueta')}
         </span>
         <AddonSlot render={addon?.barStart} api={api} />
-        <span className="grow" />
         <AddonSlot render={addon?.barEnd} api={api} />
-        {readOnly ? null : (
+        {readOnly ? (
+          headActions
+        ) : (
           <>
             <ModeSwitch
               mode={mode}
@@ -373,6 +398,7 @@ export function ConfigEditor({
                 {t('editor.buscar')}
               </Button>
             )}
+            {headActions}
             {dirty ? (
               <Button
                 size="sm"
@@ -400,6 +426,7 @@ export function ConfigEditor({
         )}
       </div>
 
+      {band}
       {conflict ? (
         <div className="cfg-editor__notice">
           <Alert
@@ -496,6 +523,7 @@ export function ConfigEditor({
           onRestore={(field) => {
             setRestoring({ kind: 'key', key: field.key });
           }}
+          pack={packDiff}
         />
       ) : formWaiting ? (
         <FormPending state={formState} />
@@ -511,6 +539,7 @@ export function ConfigEditor({
           resetKey={`${file.path}:${origin}:${String(resetKey)}`}
           initial={text}
           saved={base.text}
+          compareTo={packDiff?.side === 'test' ? packDiff.packText : null}
           language={language}
           readOnly={readOnly}
           lineSeparator={lineSeparator}

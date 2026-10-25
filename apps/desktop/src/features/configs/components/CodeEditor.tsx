@@ -13,7 +13,7 @@ import { EditorView } from '@codemirror/view';
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react';
 
 import type { EditorLanguage } from '../model';
-import { createEditorState, setChangedLines } from './codemirror';
+import { createEditorState, setChangedLines, setPackLines } from './codemirror';
 import { diffLines } from '../../../lib/diff';
 
 export interface CodeEditorHandle {
@@ -42,6 +42,8 @@ export interface CodeEditorProps {
   initial: string;
   /** O texto salvo, para marcar as linhas alteradas. */
   saved: string;
+  /** O texto do pack, para marcar as linhas diferentes dele (o teste local aberto). */
+  compareTo?: string | null;
   language: EditorLanguage;
   readOnly: boolean;
   lineSeparator: '\n' | '\r\n';
@@ -78,6 +80,7 @@ export function CodeEditor({
   resetKey,
   initial,
   saved,
+  compareTo = null,
   language,
   readOnly,
   lineSeparator,
@@ -96,10 +99,12 @@ export function CodeEditor({
   // Os callbacks mudam a cada render; o editor chama sempre a versão mais nova.
   const callbacks = useRef({ onChange, onCursor, onGoTo });
   const savedRef = useRef(saved);
+  const compareRef = useRef(compareTo);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => {
     callbacks.current = { onChange, onCursor, onGoTo };
     savedRef.current = saved;
+    compareRef.current = compareTo;
   });
 
   useEffect(() => {
@@ -110,10 +115,14 @@ export function CodeEditor({
     const mark = () => {
       const current = view.current;
       if (current) {
+        const text = current.state.sliceDoc();
         current.dispatch({
-          effects: setChangedLines.of(
-            changedLineNumbers(savedRef.current, current.state.sliceDoc()),
-          ),
+          effects: [
+            setChangedLines.of(changedLineNumbers(savedRef.current, text)),
+            setPackLines.of(
+              compareRef.current === null ? [] : changedLineNumbers(compareRef.current, text),
+            ),
+          ],
         });
       }
     };
@@ -177,15 +186,19 @@ export function CodeEditor({
     view.current?.dispatch({ effects: extra.current.reconfigure(extensionsRef.current) });
   }, [extensions]);
 
-  // O texto salvo mudou (gravou): remarca as linhas.
+  // O texto salvo (gravou) ou o do pack mudou: remarca as linhas.
   useEffect(() => {
     const current = view.current;
     if (current) {
+      const text = current.state.sliceDoc();
       current.dispatch({
-        effects: setChangedLines.of(changedLineNumbers(saved, current.state.sliceDoc())),
+        effects: [
+          setChangedLines.of(changedLineNumbers(saved, text)),
+          setPackLines.of(compareTo === null ? [] : changedLineNumbers(compareTo, text)),
+        ],
       });
     }
-  }, [saved]);
+  }, [saved, compareTo]);
 
   useImperativeHandle(ref, () => ({
     openSearch: () => {
