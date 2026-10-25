@@ -176,4 +176,16 @@ mod tests {
         assert_eq!(release.titulo, "Warden 1.0.1");
         assert!(release.notas.starts_with("Esta é uma versão de conserto"));
     }
+
+    #[test]
+    fn notas_da_1_1_0_estao_prontas() {
+        let texto = ler_versao(&workspace_root(), "1.1.0").unwrap();
+        let release = montar("1.1.0", &texto, COMMIT, &instalador(None)).unwrap();
+        assert_eq!(release.tag, "v1.1.0");
+        assert_eq!(release.titulo, "Warden 1.1.0");
+        assert!(release.notas.starts_with("Esta versão traz os consertos"));
+        for trecho in ["## Vindo da 1.0.1", "Cofre do Windows", "**1.1.0**"] {
+            assert!(release.notas.contains(trecho), "faltou {trecho:?}");
+        }
+    }
 }
