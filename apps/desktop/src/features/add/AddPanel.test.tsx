@@ -1,8 +1,9 @@
 /**
- * Página Adicionar (SPEC T08) no app inteiro, com o backend simulado: tela cheia com o menu
- * recolhido, busca com "Já no pack" e sem versão compatível, rolagem com a próxima página,
- * seleção múltipla que abre **um** diálogo de dependências (CA-T08-11, lado da interface),
- * aviso de fonte indisponível com "Tentar de novo" e erro da busca.
+ * Página Adicionar (SPEC T08; esboço `design/bug-01/adicionar.html`, opção 4) no app inteiro,
+ * com o backend simulado: tela cheia com o menu recolhido, busca com "No pack" e sem versão
+ * compatível, rolagem com a próxima página, seleção múltipla que abre **um** diálogo Adicionar
+ * itens (CA-T08-11, lado da interface), aviso de fonte indisponível com "Tentar de novo" e erro
+ * da busca.
  */
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -69,7 +70,10 @@ async function openAdd(url: string) {
  */
 async function openAndSearch(app: { url: string; backend: MockBackend }, query: string) {
   await openAdd(app.url);
-  await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar' }), query);
+  await userEvent.type(
+    screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' }),
+    query,
+  );
   await waitFor(
     () => {
       expect(app.backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({
@@ -80,8 +84,9 @@ async function openAndSearch(app: { url: string; backend: MockBackend }, query: 
   );
 }
 
+/** O grupo dos resultados da busca ("Resultados para “mod”"). */
 function results() {
-  return screen.findByRole('list', { name: 'Resultados' });
+  return screen.findByRole('rowgroup', { name: /^Resultados/ }, { timeout: 5000 });
 }
 
 describe('página Adicionar', () => {
@@ -100,8 +105,12 @@ describe('página Adicionar', () => {
     ).toBeDefined();
     expect(document.querySelector('.secmenu--compact')).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Voltar para Mods' })).toBeDefined();
-    expect(screen.getByText('Minecraft 1.21.1 com Fabric')).toBeDefined();
-    expect(screen.getByRole('combobox', { name: 'Tipo' })).toBeDefined();
+    expect(document.querySelector('.lockline')?.textContent).toContain(
+      'Só versões para Minecraft 1.21.1 com Fabric',
+    );
+    expect(screen.getByRole('radiogroup', { name: 'Tipo' })).toBeDefined();
+    expect(screen.getByRole('radio', { name: 'Mods' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Lista' }).getAttribute('aria-checked')).toBe('true');
     // Escolher arquivo (P1-11): disponível; o fluxo está em `local/local.test.tsx`.
     expect(
       screen
@@ -109,9 +118,7 @@ describe('página Adicionar', () => {
         .getAttribute('aria-disabled'),
     ).toBeNull();
     // Campo vazio e sem filtros: o início da descoberta, não a busca.
-    expect(
-      await screen.findByRole('heading', { name: 'Populares para Minecraft 1.21.1 com Fabric' }),
-    ).toBeDefined();
+    expect(await screen.findByRole('rowgroup', { name: 'Populares' })).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
@@ -127,7 +134,10 @@ describe('página Adicionar', () => {
       },
     });
     await openAdd(url);
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar' }), 'sodium');
+    await userEvent.type(
+      screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' }),
+      'sodium',
+    );
     expect(await screen.findByText('21 resultados para “sodium”, do Modrinth')).toBeDefined();
     const list = await results();
     const last = backend.callsOf('search_projects').at(-1);
@@ -143,16 +153,16 @@ describe('página Adicionar', () => {
     });
     // Sodium está no inventário; Lithium vem marcado pela busca.
     const rowOf = (name: string) => {
-      const row = within(list).getByRole('button', { name }).closest('li');
+      const row = within(list).getByRole('button', { name }).closest<HTMLElement>('[role="row"]');
       if (!row) throw new Error(`sem linha para ${name}`);
       return row;
     };
     expect(within(rowOf('Sodium')).queryByRole('checkbox')).toBeNull();
-    expect(within(rowOf('Sodium')).getByText('Já no pack')).toBeDefined();
+    expect(within(rowOf('Sodium')).getByText('No pack')).toBeDefined();
     expect(within(rowOf('Lithium')).queryByRole('checkbox')).toBeNull();
     expect(within(rowOf('Mod Antigo')).getByRole<HTMLInputElement>('checkbox').disabled).toBe(true);
-    expect(within(rowOf('Mod Antigo')).getByText('Sem versão para o seu pack')).toBeDefined();
-    expect(within(rowOf('Mod Menu')).getByText('por Prospector')).toBeDefined();
+    expect(within(rowOf('Mod Antigo')).getByText('Sem versão')).toBeDefined();
+    expect(within(rowOf('Mod Menu')).getByText('Prospector')).toBeDefined();
 
     await userEvent.click(screen.getByRole('button', { name: 'Carregar mais' }));
     expect(await within(list).findByRole('button', { name: 'Continuum' })).toBeDefined();
@@ -162,11 +172,11 @@ describe('página Adicionar', () => {
   it('digitar a partir do início não busca com o texto anterior: um pedido só, com o texto inteiro', async () => {
     const { url, backend } = setup();
     await openAdd(url);
-    expect(await screen.findByRole('heading', { name: /^Populares para/ })).toBeDefined();
-    const field = screen.getByRole('searchbox', { name: 'Buscar' });
+    expect(await screen.findByRole('rowgroup', { name: 'Populares' })).toBeDefined();
+    const field = screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' });
     await userEvent.type(field, 's');
     // A primeira tecla já tira o início da tela, mas ainda não é uma busca.
-    expect(screen.queryByRole('heading', { name: /^Populares para/ })).toBeNull();
+    expect(screen.queryByRole('rowgroup', { name: 'Populares' })).toBeNull();
     await userEvent.type(field, 'odium');
     expect(await screen.findByText('6 resultados para “sodium”, do Modrinth')).toBeDefined();
     const queries = backend
@@ -199,21 +209,22 @@ describe('página Adicionar', () => {
     await openAndSearch({ url, backend }, 'mod');
     const list = await results();
     for (const name of ['Mod Menu', 'AppleSkin', 'Iris']) {
-      await userEvent.click(within(list).getByRole('checkbox', { name: `Selecionar ${name}` }));
+      await userEvent.click(
+        within(list).getByRole('checkbox', { name: `Marcar ${name} para adicionar` }),
+      );
     }
-    const bar = screen.getByRole('region', { name: 'Itens selecionados' });
-    expect(within(bar).getByText('3 selecionados')).toBeDefined();
+    const bar = screen.getByRole('region', { name: 'Itens marcados' });
+    expect(bar.textContent).toContain('3 marcados · Mod Menu, AppleSkin e Iris');
     await userEvent.click(within(bar).getByRole('button', { name: 'Adicionar 3 ao pack' }));
 
-    // O título faz a mesma conta do botão: os 3 escolhidos e as 2 dependências.
-    const dialog = await screen.findByRole('dialog', {
-      name: 'Adicionar 3 escolhidos + 2 dependências',
-    });
+    // O título faz a mesma conta do botão e do rodapé: 3 escolhidos + 2 obrigatórias.
+    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 5 itens ao pack' });
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
-    const required = await within(dialog).findByRole('region', { name: 'Obrigatórias' });
-    expect(within(required).getByText('Fabric API')).toBeDefined();
-    expect(backend.callsOf('add_plan')).toHaveLength(1);
-    expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
+    const tree = within(dialog).getByRole('table', { name: 'O que entra, por mod escolhido' });
+    expect(within(tree).getByRole('button', { name: 'Fabric API' })).toBeDefined();
+    expect(dialog.textContent).toContain('3 escolhidos + 2 obrigatórias = 5 itens');
+    // O diálogo pede o plano dos 3 (a barra pode ter pedido antes, para as obrigatórias).
+    expect(backend.callsOf('add_plan').at(-1)?.args.request).toEqual({
       items: [
         { source: 'modrinth', projectId: 'mOgUt4GM', versionId: null },
         { source: 'modrinth', projectId: 'EsAfCjCV', versionId: null },
@@ -228,7 +239,7 @@ describe('página Adicionar', () => {
     expect(
       await screen.findByRole('link', { name: 'Voltar para Mods · 5 adicionados' }),
     ).toBeDefined();
-    expect(screen.queryByRole('region', { name: 'Itens selecionados' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Itens marcados' })).toBeNull();
   });
 
   it('pré-visualização: clicar no nome mostra a descrição; Adicionar ao pack abre o diálogo do item', async () => {
@@ -243,7 +254,9 @@ describe('página Adicionar', () => {
     });
     expect(await within(preview).findByText('mais leve')).toBeDefined();
     await userEvent.click(within(preview).getByRole('button', { name: 'Adicionar ao pack' }));
-    expect(await screen.findByRole('dialog', { name: 'Adicionar Mod Menu' })).toBeDefined();
+    expect(
+      await screen.findByRole('dialog', { name: /^Adicionar (Mod Menu|1 item ao pack)$/ }),
+    ).toBeDefined();
     expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
       items: [{ source: 'modrinth', projectId: 'mOgUt4GM', versionId: 'SMxNOGZ6' }],
     });

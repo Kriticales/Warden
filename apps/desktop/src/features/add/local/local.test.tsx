@@ -117,7 +117,9 @@ describe('arquivo do computador', () => {
         name: 'Adicionar como referência ao Modrinth (recomendado)',
       }),
     );
-    expect(await screen.findByRole('dialog', { name: 'Adicionar Sodium' })).toBeDefined();
+    expect(
+      await screen.findByRole('dialog', { name: /^Adicionar (Sodium|1 item ao pack)$/ }),
+    ).toBeDefined();
     expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
       items: [{ source: 'modrinth', projectId: 'AANobbMI', versionId: 'SMxNOGZ6' }],
     });
@@ -302,7 +304,7 @@ describe('arquivo do computador', () => {
 
 describe('links colados no campo único', () => {
   async function paste(text: string) {
-    const input = screen.getByRole('searchbox', { name: 'Buscar' });
+    const input = screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' });
     await userEvent.clear(input);
     await userEvent.click(input);
     await userEvent.paste(text);
@@ -376,7 +378,8 @@ describe('links colados no campo único', () => {
       },
       { timeout: 10_000 },
     );
-    expect(screen.queryByText(/Escolha um resultado/)).toBeNull();
+    // O detalhe ocupa o lugar dos filtros.
+    expect(screen.queryByRole('complementary', { name: 'Filtros' })).toBeNull();
     await backend.emit('local-files-dropped', {
       files: [{ token: 'D1', fileName: 'sodium.jar' }],
       ignored: 0,
@@ -384,7 +387,7 @@ describe('links colados no campo único', () => {
     expect(
       await screen.findByRole('list', { name: 'Arquivos para adicionar' }, { timeout: 10_000 }),
     ).toBeDefined();
-    expect(screen.getByText(/Escolha um resultado/)).toBeDefined();
+    expect(screen.getByRole('complementary', { name: 'Filtros' })).toBeDefined();
   });
 
   it('link de versão do Modrinth abre o diálogo com aquela versão', async () => {
@@ -401,7 +404,11 @@ describe('links colados no campo único', () => {
     await openAdd(url);
     await paste('https://modrinth.com/mod/sodium/version/mc1.21.1-0.6.0-fabric');
     expect(
-      await screen.findByRole('dialog', { name: 'Adicionar Sodium' }, { timeout: 10_000 }),
+      await screen.findByRole(
+        'dialog',
+        { name: /^Adicionar (Sodium|1 item ao pack)$/ },
+        { timeout: 10_000 },
+      ),
     ).toBeDefined();
     expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
       items: [{ source: 'modrinth', projectId: 'AANobbMI', versionId: 'SMxNOGZ6' }],

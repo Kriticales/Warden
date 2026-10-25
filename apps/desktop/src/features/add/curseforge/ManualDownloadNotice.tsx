@@ -8,13 +8,13 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from '../../../components/ui/alert';
 import { Icon } from '../../../components/ui/icon';
 
-/** A marca curta da linha de resultado. */
-export function ManualDownloadTag() {
+/** A marca da linha de resultado (`short`: "Download manual", para a coluna Situação). */
+export function ManualDownloadTag({ short = false }: { short?: boolean }) {
   const { t } = useTranslation('adicionarCurseforge');
   return (
     <span className="tag tag--warn" title={t('downloadManualDica')}>
       <Icon icon={Download} />
-      {t('downloadManual')}
+      {short ? t('downloadManualCurto') : t('downloadManual')}
     </span>
   );
 }

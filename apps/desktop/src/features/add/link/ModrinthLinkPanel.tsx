@@ -43,6 +43,7 @@ export function resultOfModrinthLink(target: ModrinthLinkTarget): SearchResult {
     inPack: false,
     compatible: true,
     manualDownload: false,
+    isLibrary: false,
   };
 }
 

@@ -5,6 +5,7 @@
  */
 export const adicionarCurseforge = {
   downloadManual: 'Download manual necessário',
+  downloadManualCurto: 'Download manual',
   downloadManualDica:
     'O autor bloqueou downloads por outros apps. Quem joga vai precisar baixar este arquivo à mão.',
   downloadManualAviso: {

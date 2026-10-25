@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from '../../../components/ui/icon';
 
-import type { SourceRef } from '../../../lib/ipc/bindings';
+import type { SourceId, SourceRef } from '../../../lib/ipc/bindings';
 import { loaderName } from '../../packs/lib/pack-list';
 import { ago, sourceLabel } from './model';
 
@@ -23,6 +23,14 @@ export function useTargetText(target: PackTarget): string {
   return target.loader
     ? t('alvo', { minecraft: target.minecraft, loader: loaderName(target.loader) })
     : t('alvoSemLoader', { minecraft: target.minecraft });
+}
+
+/** "1.21.1 · NeoForge" (o alvo curto do diálogo Adicionar itens). */
+export function useTargetShort(target: PackTarget): string {
+  const { t } = useTranslation('adicionar');
+  return target.loader
+    ? t('alvoCurto', { minecraft: target.minecraft, loader: loaderName(target.loader) })
+    : target.minecraft;
 }
 
 /** "hoje", "ontem", "há 3 dias"… */
@@ -67,13 +75,54 @@ export function SourceMark({ sources }: { sources: readonly Pick<SourceRef, 'sou
   );
 }
 
-/** Marca "Já no pack". */
+/**
+ * As marcas de fonte sem a etiqueta (esboço `adicionar.html`: quadrado verde do Modrinth,
+ * losango laranja da CurseForge), com o nome para o leitor de tela; `label` mostra o nome.
+ */
+export function SourceDots({
+  sources,
+  label = false,
+}: {
+  sources: readonly Pick<SourceRef, 'source'>[];
+  label?: boolean;
+}) {
+  const { t } = useTranslation('adicionar');
+  const which = sourceLabel(sources);
+  const ids = which === 'ambas' ? (['modrinth', 'curseforge'] as const) : [which];
+  const name = t(`fonte.${which}`);
+  return (
+    <span className="srcdots" title={name}>
+      {ids.map((id) => (
+        <span key={id} className={`srcdots__mark srcdots__mark--${id}`} aria-hidden="true" />
+      ))}
+      <span className={label ? undefined : 'sr-only'}>{name}</span>
+    </span>
+  );
+}
+
+/** Legenda das marcas: "■ Modrinth ◆ CurseForge". */
+export function SourceLegend({
+  sources = ['modrinth', 'curseforge'],
+}: {
+  sources?: readonly SourceId[];
+}) {
+  const { t } = useTranslation('adicionar');
+  return (
+    <span className="srclegend" aria-label={t('trava.legenda')} role="group">
+      {sources.map((source) => (
+        <SourceDots key={source} sources={[{ source }]} label />
+      ))}
+    </span>
+  );
+}
+
+/** Selo "No pack". */
 export function InPackTag() {
   const { t } = useTranslation('adicionar');
   return (
-    <span className="tag tag--primary">
+    <span className="tag tag--ok">
       <Icon icon={Check} />
-      {t('resultado.jaNoPack')}
+      {t('resultado.noPack')}
     </span>
   );
 }

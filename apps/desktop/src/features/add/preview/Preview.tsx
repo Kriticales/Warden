@@ -32,7 +32,7 @@ import type {
 } from '../../../lib/ipc/bindings';
 import { useProjectDetails, useProjectVersions } from '../common/api';
 import { formatCount } from '../common/model';
-import { ProjectIcon } from '../common/ResultRow';
+import { ProjectIcon } from '../common/ProjectIcon';
 import { type PackTarget, SourceMark, useAgoText, useTargetText } from '../common/text';
 import { ManualDownloadNotice } from '../curseforge/ManualDownloadNotice';
 import { SourceCheck } from '../curseforge/SourceCheck';

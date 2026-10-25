@@ -93,3 +93,19 @@ export function useAddApply(packId: PackId) {
     invalidates: [queryKeys.packArea(packId, 'inventory'), packsKeys.row(packId), packsKeys.list],
   });
 }
+
+/**
+ * As dependências já conhecidas da seleção (a barra de marcados): o mesmo plano do diálogo,
+ * guardado por 5 minutos, sem tentar de novo. Só quando a seleção para de mudar.
+ */
+export function useKnownDependencies(packId: PackId, choices: readonly AddChoice[]) {
+  return useQuery({
+    ...commandQuery(
+      [...queryKeys.packArea(packId, 'inventory'), 'knownDependencies', choices] as const,
+      () => commands.addPlan(packId, { items: [...choices] }),
+    ),
+    enabled: choices.length > 0,
+    staleTime: SEARCH_STALE_MS,
+    retry: false,
+  });
+}

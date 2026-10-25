@@ -150,7 +150,7 @@ describe('Tipo = Modpacks', () => {
     // Já no seu pack: sem caixa.
     const create = rowOf(panel, 'Create');
     expect(within(create).queryByRole('checkbox')).toBeNull();
-    expect(within(create).getByText('Já no pack')).toBeDefined();
+    expect(within(create).getByText('No pack')).toBeDefined();
     // Compatível: com caixa.
     expect(within(rowOf(panel, 'Jade')).getByRole<HTMLInputElement>('checkbox').disabled).toBe(
       false,
@@ -189,7 +189,7 @@ describe('Tipo = Modpacks', () => {
     expect(within(bar).getByText('5 selecionados')).toBeDefined();
     await userEvent.click(within(bar).getByRole('button', { name: 'Adicionar 5 selecionados' }));
     // O plano simulado traz um nó só, e o título conta o que o plano diz que entra.
-    expect(await screen.findByRole('dialog', { name: 'Adicionar Mod Menu' })).toBeDefined();
+    expect(await screen.findByRole('dialog', { name: 'Adicionar 1 item ao pack' })).toBeDefined();
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
     await waitFor(() => {
       expect(backend.callsOf('add_plan')).toHaveLength(1);
@@ -213,7 +213,7 @@ describe('Tipo = Modpacks', () => {
     await userEvent.click(
       within(panel).getByRole('checkbox', { name: 'Só os que não estão no seu pack' }),
     );
-    expect(within(panel).queryByText('Já no pack')).toBeNull();
+    expect(within(panel).queryByText('No pack')).toBeNull();
     await userEvent.click(within(panel).getByRole('checkbox', { name: 'Selecionar Jade' }));
     await userEvent.click(within(panel).getByRole('button', { name: 'Adicionar 1 selecionado' }));
     await waitFor(() => {
@@ -323,7 +323,7 @@ describe('Tipo = Modpacks', () => {
     });
     expect(backend.callsOf('pack_get').length).toBeGreaterThan(packBefore);
     await waitFor(() => {
-      expect(within(rowOf(panel, 'Jade')).getByText('Já no pack')).toBeDefined();
+      expect(within(rowOf(panel, 'Jade')).getByText('No pack')).toBeDefined();
     });
     expect(
       within(panel).getByText(

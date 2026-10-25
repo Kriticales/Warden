@@ -84,7 +84,7 @@ describe('Kits de desempenho', () => {
     expect(backend.callsOf('add_apply')).toHaveLength(0);
 
     await user.click(screen.getByRole('button', { name: 'Adicionar kit' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 2 itens' });
+    const dialog = await screen.findByRole('dialog', { name: 'Adicionar 2 itens ao pack' });
     expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
       items: [
         { source: 'modrinth', projectId: 'AANobbMI' },
