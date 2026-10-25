@@ -337,9 +337,10 @@ describe('Testar como servidor (L-09; T27)', function () {
     const link = $('header.topbar').$('a*=Configurações');
     await link.waitForClickable();
     await link.click();
-    const label = $('span=EULA do Minecraft');
-    await label.waitForDisplayed({ timeout: 30_000 });
-    const group = label.parentElement();
+    await $('h1*=Geral').waitForDisplayed({ timeout: 30_000 });
+    await $('nav.sidenav').$('a*=Teste').click();
+    const group = $('div.srow*=EULA do Minecraft');
+    await group.waitForDisplayed({ timeout: 30_000 });
     await expect(group).toHaveText(expect.stringContaining('Aceita em'));
     await group.$('button=Revogar').click();
     await expect(group).toHaveText(expect.stringContaining('Ainda não aceita'), { wait: 15_000 });

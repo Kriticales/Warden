@@ -74,13 +74,13 @@ describe('fumaça', () => {
 
   it('mostra "Sobre o Warden", em Configurações, com a versão e o aviso legal', async () => {
     await $('header.topbar').$('a*=Configurações').click();
-    const about = $('h2=Sobre o Warden');
-    await about.waitForExist();
-    await about.scrollIntoView();
+    await $('h1*=Geral').waitForDisplayed();
+    await $('nav.sidenav').$('a*=Sobre o Warden').click();
+    await $('h1*=Sobre o Warden').waitForDisplayed();
     await expect($('[data-testid="aviso-legal"]')).toHaveText(
       'NÃO É UM PRODUTO OFICIAL DO MINECRAFT. NÃO É APROVADO PELA MOJANG OU PELA MICROSOFT NEM ASSOCIADO A ELAS.',
     );
-    await expect($('#sobre dl.kv')).toHaveText(expect.stringContaining(VERSION));
+    await expect($('dl.about-kv')).toHaveText(expect.stringContaining(VERSION));
     await screenshot('03-sobre');
     await $('header.topbar').$('a*=Meus packs').click();
     await $('h1=Meus packs').waitForDisplayed();
