@@ -1,26 +1,32 @@
 /**
- * Seção Configs do pack (SPEC T12; protótipo `configs`): à esquerda a origem dos arquivos, o
- * filtro por nome e a árvore; à direita o editor de texto do arquivo escolhido.
+ * Seção Configs do pack (SPEC T12; ADR-0067; esboço aprovado `design/bug-01/configs.html`,
+ * opção 1 "Três colunas" com o "Comparar" da opção 3).
  *
- * Acima da árvore, "Buscar em todas as configs" (C-05): enquanto a busca está ativa, os
- * resultados ficam no lugar do editor (que continua montado, com as alterações não salvas), e
- * clicar num resultado abre o arquivo na linha da chave (`linha` na URL).
+ * - **Esquerda**: o título, o seletor **Do pack | Do teste local | Comparar**, uma busca só
+ *   (nomes e conteúdo; os resultados ficam no lugar da árvore), os filtros "Mudou do padrão" e
+ *   "Diferente do pack" em botões e a árvore em três grupos: No pack, Só no teste e Só neste
+ *   computador (`places/`).
+ * - **Meio**: o editor (Formulário | Texto) com a faixa do lugar; no teste, cada chave diferente
+ *   do pack mostra "no pack: X" e **Trazer para o pack**, e no Texto as linhas diferentes ficam
+ *   marcadas. No Comparar, o teste e o pack lado a lado com as setas → e ←.
+ * - **Direita**: **Detalhes** (onde está, diferenças com o pack, avisos, Marcar como pessoal),
+ *   recolhível pelo botão Detalhes.
  *
- * O arquivo e a origem escolhidos moram na URL (`arquivo`, `origem`), então voltar do navegador,
- * trocar de seção e abrir a partir de outra tela passam todos pelo mesmo caminho. Com alterações
- * não salvas, qualquer saída (outro arquivo, outra origem, outra seção, fechar o app) pede
+ * Por que juntar as origens: os mods criam as configs na instância de teste quando o jogo abre;
+ * a seção que lia só o pack mostrava só a config do Crash Assistant.
+ *
+ * O arquivo, a vista e a linha moram na URL (`arquivo`, `origem`, `linha`). Com alterações não
+ * salvas, qualquer saída (outro arquivo, outra vista, outra seção, fechar o app) pede
  * confirmação: Salvar e continuar, Descartar ou Continuar editando.
  */
 import { useBlocker } from '@tanstack/react-router';
-import { Search, X } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Columns2, Monitor, PanelRight, RotateCcw, Users, type LucideIcon } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PageHead } from '../../app/layout/PageHead';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorPanel } from '../../components/common/ErrorPanel';
 import { LoadingState } from '../../components/common/LoadingState';
-import { Alert } from '../../components/ui/alert';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -28,24 +34,41 @@ import {
 } from '../../components/ui/alert-dialog';
 import { Button } from '../../components/ui/button';
 import type { ConfigOrigin, PackId } from '../../lib/ipc/bindings';
+import { cn } from '../../lib/cn';
 import { usePack } from '../packs/api';
 import { useSettings } from '../settings/api';
-import { useConfigFile, useConfigTree } from './api';
+import { useConfigFile } from './api';
 import type { LineRequest } from './components/CodeEditor';
 import { ConfigEditor, type EditorGuard } from './components/ConfigEditor';
-import { FileTree } from './components/FileTree';
-import { buildTree, filterFiles } from './model';
 import { ChangedFilter } from './form/defaults/ChangedFilter';
+import { usePlaceActions } from './places/actions';
+import { useConfigCompare, useConfigOverview } from './places/api';
+import { CompareView } from './places/CompareView';
+import { DetailsPanel } from './places/DetailsPanel';
+import { EditorBand } from './places/EditorBand';
+import { FilterChip } from './places/FilterChip';
+import {
+  byPath,
+  differingCount,
+  editorOrigin,
+  filterFiles,
+  groupFiles,
+  paramOf,
+  viewOf,
+  type OriginParam,
+  type View,
+} from './places/model';
+import { PlacesTree } from './places/PlacesTree';
+import { useConfigSearch } from './search/api';
 import { ConfigSearchField } from './search/ConfigSearchField';
 import { ConfigSearchResults } from './search/ConfigSearchResults';
 import { useScriptAddon } from './scripts/useScriptAddon';
 import './configs.css';
 
-const ORIGINS = ['pack', 'instance'] as const satisfies readonly ConfigOrigin[];
-
 export interface ConfigsSearch {
-  /** `instancia` mostra os arquivos da instância de teste; sem isso, os do pack. */
-  origem?: 'instancia';
+  /** A vista: `pack`, `instancia` (teste local) ou `comparar`. Sem ela, o teste local quando a
+   * instância existe; senão, o pack. */
+  origem?: OriginParam;
   /** Caminho do arquivo aberto. */
   arquivo?: string;
   /** Linha para ir no arquivo aberto (resultado da busca em todas as configs). */
@@ -58,24 +81,50 @@ export interface ConfigsPageProps {
   onNavigate: (search: ConfigsSearch) => void;
 }
 
+/** O painel Detalhes (o botão do editor o controla). */
+const DETAILS_ID = 'cfgx-det';
+
+/** Os detalhes abertos ou fechados valem para a seção toda nesta abertura do app. */
+const remembered = { details: true };
+
+const VIEWS: { view: View; icon: LucideIcon; label: 'pack' | 'test' | 'compare' }[] = [
+  { view: 'pack', icon: Users, label: 'pack' },
+  { view: 'test', icon: Monitor, label: 'test' },
+  { view: 'compare', icon: Columns2, label: 'compare' },
+];
+
 export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
   const { t } = useTranslation('configs');
-  const origin: ConfigOrigin = search.origem === 'instancia' ? 'instance' : 'pack';
-  const path = search.arquivo ?? null;
   const pack = usePack(packId);
   const settings = useSettings();
-  const tree = useConfigTree(packId, origin);
+  const overview = useConfigOverview(packId);
+  const testAvailable = overview.data?.testAvailable ?? false;
+  const view = viewOf(search.origem, testAvailable, search.arquivo !== undefined);
+  const path = search.arquivo ?? null;
+  const placed = byPath(overview.data?.files, path);
+  const origin: ConfigOrigin = editorOrigin(view, placed);
   const file = useConfigFile(packId, origin, path);
-  const [filter, setFilter] = useState('');
+  const compareWanted = placed?.place === 'pack' && placed.inTest && placed.differs;
+  const comparison = useConfigCompare(packId, path, compareWanted);
+  const actions = usePlaceActions(packId);
   const [searchText, setSearchText] = useState('');
   const [resultsOpen, setResultsOpen] = useState(false);
-  // "Só o que mudou do padrão" (C-06): sozinho, lista todas as chaves alteradas.
   const [onlyChanged, setOnlyChanged] = useState(false);
+  const [onlyDiffers, setOnlyDiffers] = useState(false);
+  const [showDetails, setShowDetails] = useState(remembered.details);
   // Cada clique num resultado é um pedido novo, mesmo para a mesma linha.
   const [lineRequest, setLineRequest] = useState(0);
-  const searching = resultsOpen && (searchText.trim() !== '' || onlyChanged);
+  const searching = resultsOpen && searchText.trim() !== '';
+  const searchOrigin: ConfigOrigin = view === 'pack' || !testAvailable ? 'pack' : 'instance';
   const goTo: LineRequest | null =
     search.linha === undefined ? null : { line: search.linha, request: lineRequest };
+
+  // "Mudou do padrão": os arquivos com alguma chave diferente do padrão (pelo índice da busca).
+  const changed = useConfigSearch(packId, searchOrigin, '', null, true, true);
+  const changedPaths = useMemo(
+    () => new Set((changed.data?.results?.groups ?? []).map((group) => group.path)),
+    [changed.data],
+  );
 
   // As alterações não salvas do editor aberto; a referência é para a guarda ler o valor atual.
   const guard = useRef<EditorGuard | null>(null);
@@ -85,6 +134,9 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
     setDirty(next?.dirty ?? false);
   }, []);
 
+  // Sem `origem` na URL vale a vista calculada: escolher outra linha do mesmo arquivo não é
+  // trocar de vista.
+  const originOf = (value: unknown) => (value as ConfigsSearch).origem ?? paramOf(view);
   const blocker = useBlocker({
     // Ir para outra linha do mesmo arquivo não sai dele.
     shouldBlockFn: ({ current, next }) =>
@@ -92,48 +144,48 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
       !(
         current.pathname === next.pathname &&
         (current.search as ConfigsSearch).arquivo === (next.search as ConfigsSearch).arquivo &&
-        (current.search as ConfigsSearch).origem === (next.search as ConfigsSearch).origem
+        originOf(current.search) === originOf(next.search)
       ),
     enableBeforeUnload: () => guard.current?.dirty ?? false,
     withResolver: true,
   });
 
-  const nodes = useMemo(
-    () => buildTree(filterFiles(tree.data?.files ?? [], filter)),
-    [tree.data, filter],
-  );
-  const visible = nodes.length > 0;
-  const filtering = filter.trim() !== '';
+  const files = overview.data?.files ?? [];
+  const filtered = filterFiles(files, {
+    changed: onlyChanged ? changedPaths : null,
+    differs: onlyDiffers && view !== 'pack',
+  });
+  const groups = groupFiles(filtered, view);
+  const onlyTestCount = files.filter((entry) => entry.place === 'test').length;
+  const changedCount = files.filter((entry) => changedPaths.has(entry.path)).length;
+  const filtering = onlyChanged || (onlyDiffers && view !== 'pack');
 
-  const select = (nextPath: string, line?: number) => {
+  const go = (next: View, nextPath: string | null = path, line?: number) => {
     onNavigate({
-      ...(origin === 'instance' ? { origem: 'instancia' as const } : {}),
-      arquivo: nextPath,
+      origem: paramOf(next),
+      ...(nextPath === null ? {} : { arquivo: nextPath }),
       ...(line === undefined ? {} : { linha: line }),
     });
   };
-
+  const select = (nextPath: string, line?: number) => {
+    go(view, nextPath, line);
+  };
   const clearSearch = () => {
     setSearchText('');
-    setOnlyChanged(false);
     setResultsOpen(false);
   };
+  const toggleDetails = () => {
+    remembered.details = !showDetails;
+    setShowDetails(!showDetails);
+  };
+
   // Scripts KubeJS e CraftTweaker abrem com os recursos do editor de scripts (C-07; T26).
-  const onOpenFile = useCallback(
-    (next: string) => {
-      onNavigate({
-        ...(origin === 'instance' ? { origem: 'instancia' as const } : {}),
-        arquivo: next,
-      });
-    },
-    [origin, onNavigate],
-  );
-  const onOpenInInstance = useCallback(
-    (next: string) => {
-      onNavigate({ origem: 'instancia', arquivo: next });
-    },
-    [onNavigate],
-  );
+  const onOpenFile = (next: string) => {
+    onNavigate({ origem: paramOf(view), arquivo: next });
+  };
+  const onOpenInInstance = (next: string) => {
+    onNavigate({ origem: 'instancia', arquivo: next });
+  };
   const scriptAddon = useScriptAddon({
     packId,
     origin,
@@ -144,34 +196,248 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
     onOpenInInstance,
   });
 
+  const onViewKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const index = VIEWS.findIndex((entry) => entry.view === view);
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const next = VIEWS[(index + step + VIEWS.length) % VIEWS.length];
+    if (!next) return;
+    go(next.view);
+    const group = event.currentTarget.parentElement;
+    requestAnimationFrame(() => {
+      group?.querySelector<HTMLButtonElement>(`[data-view="${next.view}"]`)?.focus();
+    });
+  };
+
+  const perKeys = (comparison.data?.keys ?? []).filter((key) => key.perKey).map((key) => key.key);
+  const packDiff =
+    placed?.place === 'pack' && placed.differs && comparison.data?.byKey
+      ? {
+          keys: new Map(comparison.data.keys.map((key) => [key.key, key])),
+          side: origin === 'instance' ? ('test' as const) : ('pack' as const),
+          packText: comparison.data.packText,
+          busyKey: actions.busy?.startsWith(`${placed.path}|`)
+            ? actions.busy.slice(placed.path.length + 1)
+            : null,
+          ...(origin === 'instance'
+            ? {
+                onBring: (key: string) => {
+                  actions.bring(placed.path, [key]);
+                },
+              }
+            : {}),
+        }
+      : placed?.place === 'pack' && placed.differs && comparison.data && origin === 'instance'
+        ? {
+            keys: new Map(),
+            side: 'test' as const,
+            packText: comparison.data.packText,
+          }
+        : null;
+
+  const detailsButton = placed ? (
+    <Button
+      size="sm"
+      icon={PanelRight}
+      aria-expanded={showDetails}
+      aria-controls={DETAILS_ID}
+      className={cn('cfgx__det-toggle', showDetails && 'is-on')}
+      onClick={toggleDetails}
+    >
+      {t('detalhes.botao')}
+    </Button>
+  ) : null;
+
+  const compareMode = view === 'compare' && placed?.place === 'pack' && placed.inTest;
+  // `compareMode` já garante o arquivo; o TypeScript não acompanha.
+  const compared = compareMode ? placed : undefined;
+
+  let main;
+  if (overview.isPending) {
+    main = <LoadingState label={t('carregando')} />;
+  } else if (overview.isError) {
+    main = (
+      <ErrorPanel
+        title={t('erroArvore')}
+        error={overview.error}
+        onRetry={() => {
+          void overview.refetch();
+        }}
+      />
+    );
+  } else if (view !== 'pack' && !testAvailable) {
+    main = (
+      <EmptyState
+        glyph="dots"
+        title={t('vazio.instanciaTitulo')}
+        text={t('vazio.instanciaTexto')}
+      />
+    );
+  } else if (files.length === 0) {
+    main = <EmptyState glyph="dots" title={t('vazio.titulo')} text={t('vazio.texto')} />;
+  } else if (path === null) {
+    main = (
+      <EmptyState
+        compact
+        glyph="box"
+        title={t('vazio.semArquivoTitulo')}
+        text={t('vazio.semArquivoTexto')}
+      />
+    );
+  } else if (compared) {
+    main = comparison.isSuccess ? (
+      <div className="cfgx__compare">
+        <div className="editor__bar cfg-edhead">
+          <span className="cfg-edhead__t">
+            <span className="cfg-edhead__name">{compared.path.split('/').pop()}</span>
+            <span className="editor__file cfg-edhead__path">{compared.path}</span>
+          </span>
+          {detailsButton}
+        </div>
+        <CompareView file={compared} comparison={comparison.data} actions={actions} />
+      </div>
+    ) : comparison.isError ? (
+      <ErrorPanel title={t('editor.erroArquivo', { arquivo: path })} error={comparison.error} />
+    ) : compared.differs ? (
+      <LoadingState label={t('editor.carregandoArquivo')} />
+    ) : (
+      <div className="cfgx__compare">
+        <div className="editor__bar cfg-edhead">
+          <span className="cfg-edhead__t">
+            <span className="cfg-edhead__name">{compared.path.split('/').pop()}</span>
+            <span className="editor__file cfg-edhead__path">{compared.path}</span>
+          </span>
+          {detailsButton}
+        </div>
+        <div className="cmp">
+          <div className="cmp__sum">
+            <span className="cmp__sum-t">
+              <b>{t('comparar.igual')}</b> {t('comparar.igualTexto')}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  } else if (file.isPending) {
+    main = <LoadingState label={t('editor.carregandoArquivo')} />;
+  } else if (file.isError) {
+    main = (
+      <ErrorPanel
+        title={t('editor.erroArquivo', { arquivo: path })}
+        error={file.error}
+        onRetry={() => {
+          void file.refetch();
+        }}
+      />
+    );
+  } else {
+    main = (
+      <ConfigEditor
+        key={`${origin}:${file.data.path}`}
+        packId={packId}
+        origin={origin}
+        file={file.data}
+        loader={pack.data?.loader ?? null}
+        minecraft={pack.data?.minecraft ?? null}
+        showDiff={settings.data?.configDiffBeforeSave ?? true}
+        onGuard={onGuard}
+        goTo={goTo}
+        addon={scriptAddon}
+        headActions={detailsButton}
+        packDiff={packDiff}
+        band={
+          <>
+            {view === 'compare' && placed && placed.place !== 'pack' ? (
+              <div className="band band--own" role="note">
+                <span className="band__t">{t('comparar.soVale')}</span>
+              </div>
+            ) : null}
+            {placed ? (
+              <EditorBand
+                file={placed}
+                view={view}
+                testAvailable={testAvailable}
+                perKeys={perKeys}
+                actions={actions}
+                onShowTest={() => {
+                  go('test');
+                }}
+              />
+            ) : null}
+          </>
+        }
+      />
+    );
+  }
+
   return (
-    <div className="stack cfg-page">
-      <PageHead title={t('titulo')} sub={t('sub')} />
-      {origin === 'instance' ? (
-        <Alert kind="warn" title={t('instancia.aviso')}>
-          {t('instancia.avisoTexto')}
-        </Alert>
-      ) : null}
-      <div className="cfg-layout">
-        <div className="cfg-layout__side">
-          <select
-            className="select select--sm"
-            aria-label={t('origem.rotulo')}
-            value={origin}
-            onChange={(event) => {
-              onNavigate(event.target.value === 'instance' ? { origem: 'instancia' } : {});
-              setFilter('');
+    <div className={cn('cfgx', showDetails && placed ? 'cfgx--det' : '')}>
+      <aside className="cfgx__nav" aria-labelledby="cfgx-title">
+        <div className="cfgx__colhead">
+          <h1 id="cfgx-title">{t('titulo')}</h1>
+          <Button
+            size="sm"
+            variant="ghost"
+            iconOnly
+            icon={RotateCcw}
+            onClick={() => {
+              void overview.refetch();
+              void file.refetch();
             }}
           >
-            {ORIGINS.map((value) => (
-              <option key={value} value={value}>
-                {t(`origem.${value}`)}
-              </option>
-            ))}
-          </select>
+            {t('recarregar')}
+          </Button>
+        </div>
+        <div className="cfgx__top">
+          <div className="cfgx__origin">
+            <div
+              className="segmented segmented--wide"
+              role="radiogroup"
+              aria-label={t('origem.rotulo')}
+            >
+              {VIEWS.map((entry) => {
+                const disabled = entry.view !== 'pack' && !testAvailable && overview.isSuccess;
+                return (
+                  <button
+                    key={entry.view}
+                    type="button"
+                    role="radio"
+                    data-view={entry.view}
+                    aria-checked={view === entry.view}
+                    aria-disabled={disabled ? true : undefined}
+                    title={disabled ? t('origem.semTeste') : undefined}
+                    tabIndex={view === entry.view ? 0 : -1}
+                    onKeyDown={onViewKey}
+                    onClick={() => {
+                      if (!disabled) go(entry.view);
+                    }}
+                  >
+                    <entry.icon className="icon" aria-hidden="true" />
+                    <span>{t(`origem.${entry.label}`)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className={cn('cfgx__cap', `cfgx__cap--${view}`)}>
+              {view === 'pack' ? (
+                <>
+                  <b>{t('origem.legendaPack')}</b> {t('origem.legendaPackTexto')}
+                </>
+              ) : view === 'test' ? (
+                <>
+                  <b>{t('origem.legendaTeste')}</b> {t('origem.legendaTesteTexto')}
+                </>
+              ) : (
+                <>
+                  <b>{t('origem.legendaComparar')}</b> {t('origem.legendaCompararTexto')}
+                </>
+              )}
+            </p>
+          </div>
           <ConfigSearchField
             packId={packId}
-            origin={origin}
+            origin={searchOrigin}
             value={searchText}
             onChange={(value) => {
               setSearchText(value);
@@ -182,77 +448,31 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
             }}
             onClear={clearSearch}
           />
-          <ChangedFilter
-            checked={onlyChanged}
-            onChange={(checked) => {
-              setOnlyChanged(checked);
-              setResultsOpen(true);
-            }}
-          />
-          <div className="cfg-filter">
-            <Search className="icon icon--sm" aria-hidden="true" />
-            <input
-              className="input input--sm"
-              type="search"
-              value={filter}
-              placeholder={t('arvore.filtro')}
-              aria-label={t('arvore.filtro')}
-              onChange={(event) => {
-                setFilter(event.target.value);
-              }}
+          <div className="fchips fchips--stack" role="group" aria-label={t('filtros.rotulo')}>
+            <ChangedFilter
+              long
+              checked={onlyChanged}
+              onChange={setOnlyChanged}
+              count={changedCount}
             />
-            {filtering ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                iconOnly
-                icon={X}
-                onClick={() => {
-                  setFilter('');
-                }}
-              >
-                {t('arvore.filtroLimpar')}
-              </Button>
-            ) : null}
+            {view === 'pack' ? null : (
+              <FilterChip
+                label={t('filtros.difere')}
+                place="test"
+                pressed={onlyDiffers}
+                count={differingCount(files)}
+                title={t('filtros.difereDica')}
+                onChange={setOnlyDiffers}
+              />
+            )}
           </div>
-          {tree.isPending ? (
-            <LoadingState label={t('carregando')} />
-          ) : tree.isError ? (
-            <ErrorPanel
-              title={t('erroArvore')}
-              error={tree.error}
-              onRetry={() => {
-                void tree.refetch();
-              }}
-            />
-          ) : (
-            <>
-              {tree.data.truncated ? (
-                <p className="t-xs t-3">{t('arvore.cortada', { max: '20.000' })}</p>
-              ) : null}
-              {visible ? (
-                <FileTree
-                  key={`${origin}:${filtering ? 'filtro' : 'tudo'}`}
-                  nodes={nodes}
-                  selected={path}
-                  dirty={dirty ? path : null}
-                  expandAll={filtering}
-                  onSelect={select}
-                />
-              ) : tree.data.available && filtering ? (
-                <p className="t-sm t-3">{t('arvore.semResultado', { busca: filter.trim() })}</p>
-              ) : null}
-            </>
-          )}
         </div>
-
-        <div className={searching ? 'cfg-layout__main is-searching' : 'cfg-layout__main'}>
+        <div className="cfgx__list">
           {searching ? (
             <ConfigSearchResults
               packId={packId}
-              origin={origin}
+              origin={searchOrigin}
               query={searchText}
-              onlyChanged={onlyChanged}
               onOpen={(nextPath, line) => {
                 setResultsOpen(false);
                 setLineRequest((count) => count + 1);
@@ -260,52 +480,43 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
               }}
               onClear={clearSearch}
             />
+          ) : overview.isSuccess ? (
+            <>
+              {overview.data.truncated ? (
+                <p className="ctree__note">{t('arvore.cortada', { max: '20.000' })}</p>
+              ) : null}
+              {filtering && filtered.length === 0 ? (
+                <p className="ctree__note">{t('filtros.nenhum')}</p>
+              ) : (
+                <PlacesTree
+                  key={view}
+                  groups={groups}
+                  view={view}
+                  selected={path}
+                  dirty={dirty ? path : null}
+                  expandAll={filtering}
+                  onlyTestCount={onlyTestCount}
+                  onSelect={select}
+                  onShowTest={() => {
+                    go('test', null);
+                  }}
+                />
+              )}
+            </>
           ) : null}
-          {tree.isSuccess && !tree.data.available ? (
-            <EmptyState
-              glyph="dots"
-              title={t(origin === 'instance' ? 'vazio.instanciaTitulo' : 'vazio.titulo')}
-              text={t(origin === 'instance' ? 'vazio.instanciaTexto' : 'vazio.texto')}
-            />
-          ) : tree.isSuccess && tree.data.files.length === 0 ? (
-            <EmptyState
-              glyph="dots"
-              title={t(origin === 'instance' ? 'vazio.instanciaSemArquivos' : 'vazio.titulo')}
-              text={origin === 'instance' ? undefined : t('vazio.texto')}
-            />
-          ) : path === null ? (
-            <EmptyState
-              compact
-              glyph="box"
-              title={t('vazio.semArquivoTitulo')}
-              text={t('vazio.semArquivoTexto')}
-            />
-          ) : file.isPending ? (
-            <LoadingState label={t('editor.carregandoArquivo')} />
-          ) : file.isError ? (
-            <ErrorPanel
-              title={t('editor.erroArquivo', { arquivo: path })}
-              error={file.error}
-              onRetry={() => {
-                void file.refetch();
-              }}
-            />
-          ) : (
-            <ConfigEditor
-              key={`${origin}:${file.data.path}`}
-              packId={packId}
-              origin={origin}
-              file={file.data}
-              loader={pack.data?.loader ?? null}
-              minecraft={pack.data?.minecraft ?? null}
-              showDiff={settings.data?.configDiffBeforeSave ?? true}
-              onGuard={onGuard}
-              goTo={goTo}
-              addon={scriptAddon}
-            />
-          )}
         </div>
-      </div>
+        {view === 'pack' ? <p className="cfgx__foot">{t('grupos.rodapePack')}</p> : null}
+      </aside>
+
+      <div className="cfgx__main">{main}</div>
+
+      {showDetails && placed ? (
+        <div id={DETAILS_ID} className="cfgx__det-wrap">
+          <DetailsPanel file={placed} view={view} comparison={comparison.data} actions={actions} />
+        </div>
+      ) : null}
+
+      {actions.dialogs}
 
       <AlertDialog
         open={blocker.status === 'blocked'}

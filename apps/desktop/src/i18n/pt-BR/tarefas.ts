@@ -62,6 +62,8 @@ export const tarefas = {
       write: 'Salvar config',
       preserve: 'Mudar "Não substituir se o jogador já tiver"',
       copyDefaultconfigs: 'Copiar config para defaultconfigs/',
+      bring: 'Trazer config para o pack',
+      personal: 'Mudar configs pessoais',
     },
     scripts: {
       copyToInstance: 'Copiar script para a instância de teste',

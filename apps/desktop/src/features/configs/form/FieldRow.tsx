@@ -15,7 +15,8 @@ import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '../../../components/ui/icon';
-import type { ConfigField, FormValue } from '../../../lib/ipc/bindings';
+import { Button } from '../../../components/ui/button';
+import type { ConfigField, FormValue, KeyDifference } from '../../../lib/ipc/bindings';
 import { Switch } from '../../settings/components/fields';
 import { ChangedMark, DefaultLine, RangeError, RestoreButton } from './defaults/DefaultInfo';
 import {
@@ -33,6 +34,43 @@ export interface FieldRowProps {
   onEdit: (field: ConfigField, value: FormValue) => void;
   /** "Restaurar padrão" desta chave (C-06). */
   onRestore: (field: ConfigField) => void;
+  /** A chave está diferente entre o teste local e o pack (SPEC T12; ADR-0067). */
+  pack?: PackKey | null;
+}
+
+/** Uma chave diferente entre o teste e o pack, vista de um dos lados. */
+export interface PackKey {
+  difference: KeyDifference;
+  /** O lado aberto no editor: no teste mostra "no pack: X" e Trazer; no pack, "no teste: X". */
+  side: 'test' | 'pack';
+  /** "Trazer para o pack" desta chave (só no teste, com a chave nos dois lados). */
+  onBring?: (() => void) | undefined;
+  busy?: boolean;
+}
+
+/** "no pack: 256" e **Trazer para o pack** (esboço aprovado `design/bug-01/configs.html`). */
+function PackLine({ pack }: { pack: PackKey }) {
+  const { t } = useTranslation('configs');
+  const other = pack.side === 'test' ? pack.difference.pack : pack.difference.test;
+  return (
+    <div className="cfgform__pack">
+      <span className="pk">
+        {pack.side === 'test' ? t('chave.noPack') : t('chave.noTeste')}{' '}
+        <b>{other ?? t('chave.ausente')}</b>
+      </span>
+      {pack.side === 'test' && pack.onBring && pack.difference.perKey ? (
+        <Button
+          size="sm"
+          loading={pack.busy ?? false}
+          title={t('chave.trazerDica', { valor: pack.difference.test ?? '' })}
+          aria-label={t('chave.trazerChave', { chave: pack.difference.key })}
+          onClick={pack.onBring}
+        >
+          {t('chave.trazer')}
+        </Button>
+      ) : null}
+    </div>
+  );
 }
 
 function Meta({ field, id }: { field: ConfigField; id: string }) {
@@ -82,7 +120,7 @@ function Meta({ field, id }: { field: ConfigField; id: string }) {
   );
 }
 
-export function FieldRow({ field, onEdit, onRestore }: FieldRowProps) {
+export function FieldRow({ field, onEdit, onRestore, pack = null }: FieldRowProps) {
   const { t } = useTranslation('configsFormulario');
   const id = useId();
   const name = fieldName(field);
@@ -224,6 +262,7 @@ export function FieldRow({ field, onEdit, onRestore }: FieldRowProps) {
         'cfgform__row',
         field.defaultState === 'changed' ? 'cfgform__row--changed' : '',
         problem || fileError ? 'cfgform__row--error' : '',
+        pack ? 'cfgform__row--diff' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -247,6 +286,7 @@ export function FieldRow({ field, onEdit, onRestore }: FieldRowProps) {
         ) : fileError ? (
           <RangeError field={field} id={rangeId} />
         ) : null}
+        {pack ? <PackLine pack={pack} /> : null}
       </div>
       <div className="cfgform__ctl">{input}</div>
       <div className="cfgform__act">

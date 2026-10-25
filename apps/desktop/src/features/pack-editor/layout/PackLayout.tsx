@@ -19,6 +19,7 @@ import { ErrorPanel } from '../../../components/common/ErrorPanel';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { Alert } from '../../../components/ui/alert';
 import type { PackId, PackRow } from '../../../lib/ipc/bindings';
+import { PersonalMigration } from '../../configs/places/PersonalMigration';
 import { usePack } from '../../packs/api';
 import { PackHeader } from '../header/PackHeader';
 import { usePackWatch } from '../watch';
@@ -84,6 +85,8 @@ export function PackLayout({ packId }: { packId: PackId }) {
   return (
     <>
       <PackHeader pack={pack.data} />
+      {/* ADR-0067: o pack ainda leva o options.txt (ou outra config pessoal)? Pergunta antes. */}
+      <PersonalMigration packId={packId} />
       <div className="packbody">
         <SectionMenu packId={packId} compact={compact} />
         <main className="app__main" id={MAIN_ID} tabIndex={-1}>

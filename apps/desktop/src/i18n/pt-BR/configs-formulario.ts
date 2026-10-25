@@ -4,6 +4,8 @@
  * motivo, "Não substituir se o jogador já tiver" e "Copiar para defaultconfigs/".
  */
 export const configsFormulario = {
+  buscarNoArquivo: 'Buscar neste arquivo',
+  nenhumaComFiltro: 'Nenhuma chave com esses filtros.',
   modo: {
     rotulo: 'Modo do editor',
     formulario: 'Formulário',
