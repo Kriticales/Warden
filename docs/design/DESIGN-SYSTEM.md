@@ -1,8 +1,8 @@
 # Warden: design system (direção Deep Dark)
 
-> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3). Versão 1.2 (tarefa D5, 02/10/2026): componentes do Warden 1.1 "Profissional" (§4.2), padrões de tela da 1.1 (§5), verificação refeita (§7) e crítica da D5 (§8.4).
+> Tarefa D3, 01/10/2026. Versão 1.1 (tarefa D4, mesmo dia): componentes das funções avançadas (§4.1), padrões de tela novos (§5), verificação refeita (§7) e crítica da D4 (§8.3). Versão 1.2 (tarefa D5, 02/10/2026): componentes do Warden 1.2 "Profissional" (§4.2), padrões de tela da 1.2 (§5), verificação refeita (§7) e crítica da D5 (§8.4).
 > Galeria com todos os componentes e estados: `design/system/index.html`, publicada como Artifact do claude.ai em https://claude.ai/artifact/Uur9YtN2EtUhJBxKi7qUhr (versão 3, D5; a página antiga do Superset saiu do ar com a troca de ferramenta, link atualizado na D7)
-> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado como Artifact do claude.ai em https://claude.ai/artifact/JAPB9Nd8BhtNzMXgF6evhi (versão 3, D5: 94 telas e diálogos; 30 da D4 e 13 do Warden 1.1, marcados com o selo "1.1")
+> Protótipo final montado só com este sistema: `design/prototipo-final/index.html`, publicado como Artifact do claude.ai em https://claude.ai/artifact/JAPB9Nd8BhtNzMXgF6evhi (versão 3, D5: 94 telas e diálogos; 30 da D4 e 13 do Warden 1.2, marcados com o selo "1.2")
 > Para republicar: `node design/tools/montar-publicacao.mjs` e publicar a pasta gerada no mesmo Artifact (o orquestrador confere antes de mostrar ao dono; AGENTS.md, "Design").
 > Mapeamento para Tailwind CSS 4 + shadcn/ui: [`HANDOFF.md`](HANDOFF.md).
 > Estrutura que este sistema veste (obrigatória, aprovada): [`ESTRUTURA.md`](ESTRUTURA.md).
@@ -293,9 +293,9 @@ Na galeria, grupo “Funções avançadas (D4)”. Mesmas regras de sempre: só 
 | **Menu com grupos e rádio** (`menu` com `{ group }` e `{ radio }`) | Menu ▾ do Testar | título de grupo, rádio marcado e desmarcado | Submenus |
 | **Menu de seções recolhido** (`sectionMenu` com `compact`) | Só na página de descoberta | ícones com tooltip e ponto do contador | Recolher em outras telas |
 
-### 4.2 Componentes do Warden 1.1 "Profissional" (D5)
+### 4.2 Componentes do Warden 1.2 "Profissional" (D5)
 
-Na galeria, grupo “Warden 1.1 (Profissional)”. Onde cada função mora: `ESTRUTURA.md` §14. Mesmas regras: só tokens (nenhum token novo foi preciso), estado com ícone e palavra, nada de abas, listas densas em vez de cartões.
+Na galeria, grupo “Warden 1.2 (Profissional)”. Onde cada função mora: `ESTRUTURA.md` §14. Mesmas regras: só tokens (nenhum token novo foi preciso), estado com ícone e palavra, nada de abas, listas densas em vez de cartões.
 
 | Componente | Quando usar | Estados mostrados | Evite |
 |---|---|---|---|
@@ -308,7 +308,7 @@ Na galeria, grupo “Warden 1.1 (Profissional)”. Onde cada função mora: `EST
 | **Campo do log** (`logSource(o)`) | Página Travamento de um jogador: colar link ou escolher arquivo | vazio, link reconhecido, link inválido (erro ligado ao campo), baixando | Abas Link · Arquivo |
 | **Grupo** (`groupChip(name, o)`, `groupPicker(o)`) | Chips na linha de mod e no painel; seletor no menu “Pôr no grupo ▾” e no painel | chip, chip pequeno, chip removível (botão de 28 px “Tirar do grupo X”), seletor com marcados, seletor vazio | Cor por grupo; chamar de “categoria” ou “tag” |
 | **Nota e grupos** (`noteBlock(o)`) | Topo do painel de detalhes do mod | vazio, preenchido, editando (contador fica âmbar a 20 caracteres do limite de 200), salvo (“Salvo no pack”) | Nota longa; botão Salvar só para a nota (salva ao sair do campo) |
-| **Linha de mod 1.1** (`modRow` com `note`, `groups`, `maint`, `sec`) | Lista de Mods | nota no lugar da descrição, até 2 grupos e “+N”, marca de manutenção, selo curto de segurança | Mais de uma marca de cada tipo; resultados bons de segurança na lista |
+| **Linha de mod 1.2** (`modRow` com `note`, `groups`, `maint`, `sec`) | Lista de Mods | nota no lugar da descrição, até 2 grupos e “+N”, marca de manutenção, selo curto de segurança | Mais de uma marca de cada tipo; resultados bons de segurança na lista |
 | **Desempenho entre versões** (`versionChart(o)`, `versionTable(values, o)`) | Página de detalhe no Histórico, com “Mostrar: Tempo para abrir · Memória máxima · Tempo por tick” | normal, versão mais pesada (blocos e contorno âmbar mais o selo “Mais pesada”), versão sem testes comparáveis (barra tracejada), carregando; tabela equivalente logo abaixo | Destaque só na cor; eixo que não começa do zero; duas medidas no mesmo gráfico |
 | **Item repetido entre mods** (`dupMaterial(o)`) | Página Itens repetidos entre mods, um material por linha | com minério, só itens, já resolvido (“Unificado pelo AlmostUnified”), versão antiga do Minecraft (sugestão diferente, ex.: UniDict) | Tratar como erro ou aviso; esconder de onde veio a informação |
 
@@ -347,10 +347,10 @@ Seguem a Alternativa A aprovada (ver `ESTRUTURA.md`):
 - **Busca do culpado (D4):** modo da tela do teste. Título “Buscando o mod culpado”, trilha de rodadas no lugar das etapas, “Agora: rodada N” em destaque, tabela das rodadas e coluna com os suspeitos. O botão do cabeçalho vira “Buscando o culpado: ver progresso” e o rodapé mostra a tarefa.
 - **Conversa com a IA (D4):** página de detalhe da seção ✦ Diagnóstico com IA (“← Conversas”), mensagens à esquerda e um resumo da conversa à direita (modelo, tokens, o que a IA pode ler). Campo “Perguntar mais” no fim.
 - **Teste com servidor (D4):** mesma tela do teste, com a etapa “Preparar o servidor”, “Mostrando: Servidor · Jogo” sobre o console e a linha de comando do servidor.
-- **Verificações do pack (1.1):** painel logo abaixo da saúde, em Problemas, com uma linha por verificação e o link “Ver” para a página de detalhe (“← Problemas”). Os achados que pedem ação também aparecem na lista de Problemas, com o selo “1.1”.
-- **Páginas de detalhe da 1.1:** Segurança dos mods, Manutenção dos mods, Itens repetidos entre mods e Travamento de um jogador (em Problemas) e Desempenho entre versões (no Histórico). Título curto em pixel com o selo “1.1”, uma linha de explicação, a linha “quando foi verificado” com “Verificar agora”, e a lista agrupada com os problemas primeiro. O aviso honesto “não é um antivírus” fica sempre no topo da página de segurança.
-- **Substitutos (1.1):** no próprio painel de detalhes do mod, com “← Detalhes”, como “Ver todas as alterações” do raio-x. Nunca diálogo sobre o painel.
-- **Mods agrupados por grupo (1.1):** a mesma lista, com um grupo recolhível por grupo do usuário e “Sem grupo” recolhido no fim; o chip do próprio grupo não se repete nas linhas daquele grupo.
+- **Verificações do pack (1.2):** painel logo abaixo da saúde, em Problemas, com uma linha por verificação e o link “Ver” para a página de detalhe (“← Problemas”). Os achados que pedem ação também aparecem na lista de Problemas, com o selo “1.2”.
+- **Páginas de detalhe da 1.2:** Segurança dos mods, Manutenção dos mods, Itens repetidos entre mods e Travamento de um jogador (em Problemas) e Desempenho entre versões (no Histórico). Título curto em pixel com o selo “1.2”, uma linha de explicação, a linha “quando foi verificado” com “Verificar agora”, e a lista agrupada com os problemas primeiro. O aviso honesto “não é um antivírus” fica sempre no topo da página de segurança.
+- **Substitutos (1.2):** no próprio painel de detalhes do mod, com “← Detalhes”, como “Ver todas as alterações” do raio-x. Nunca diálogo sobre o painel.
+- **Mods agrupados por grupo (1.2):** a mesma lista, com um grupo recolhível por grupo do usuário e “Sem grupo” recolhido no fim; o chip do próprio grupo não se repete nas linhas daquele grupo.
 
 ## 6. Textos
 
@@ -376,7 +376,7 @@ Revisado com a skill `design:accessibility-review` (WCAG 2.1 AA). **Verificado e
 | Teclado (26 testes automatizados; 8 novos da D4: menu com grupos pulando os títulos, itens de rádio do perfil com `aria-checked` e troca do perfil no botão Testar, nós do grafo focáveis, bloco “Enviado à IA” abrindo com Enter, menu recolhido com tooltip no foco e nome acessível, seleção da descoberta com Espaço) | diálogo: foco entra no título, Tab e Shift+Tab presos, Esc fecha e devolve o foco; menu do Testar: Enter e ↓ abrem, ↓ e End navegam, Esc devolve o foco; menu de seções: Enter navega e o foco vai para o título; painel lateral: foco entra, Esc fecha; atalho “Pular para o conteúdo”; anel de foco visível em todos os controles amostrados |
 | Movimento reduzido | emulado: pulso, carregador e durações param; a opção do app também funciona |
 | Links do protótipo | nenhum aponta para tela inexistente |
-| **D5:** axe-core nas **182 combinações** de tela e estado (94 telas e diálogos, 13 do Warden 1.1 com 50 estados, mais os estados novos em telas existentes: Publicar bloqueado, versão mais pesada no resultado do teste, arquivo removido na manutenção), em 1280 e 1024 (364 páginas) | 0 violações, 0 erros de JavaScript, nenhum estouro horizontal |
+| **D5:** axe-core nas **182 combinações** de tela e estado (94 telas e diálogos, 13 do Warden 1.2 com 50 estados, mais os estados novos em telas existentes: Publicar bloqueado, versão mais pesada no resultado do teste, arquivo removido na manutenção), em 1280 e 1024 (364 páginas) | 0 violações, 0 erros de JavaScript, nenhum estouro horizontal |
 | **D5:** teclado, 15 testes novos (diálogo “Confiar neste arquivo”: foco no título, Tab preso, botão só habilita depois de digitar o nome, Esc volta; painel de substitutos com foco e Esc; os três “Ver” das Verificações alcançáveis por Tab e com nome; “Pôr no grupo” abre com Enter e fecha com Esc; chip removível com nome; contador da nota ligado ao campo; “Mostrar” do desempenho troca com as setas e o gráfico acompanha; gráfico escondido do leitor de tela e tabela com legenda; erro do link do jogador ligado ao campo) e os da D3/D4 de novo (25 executados; o do tooltip dentro do diálogo só roda quando há um tooltip aberto) | todos passaram, nenhuma falha |
 
 Garantias do sistema: rótulo visível em todo campo; erros ligados ao campo (`aria-invalid`, `aria-describedby`); `aria-current` na seção ativa e na etapa atual; `role="progressbar"` com valores; console com `role="log"`; toasts com `role="status"` (erro com `role="alert"`); confirmações destrutivas com `role="alertdialog"`; alvos de clique de no mínimo 28 px (acima dos 24 px da WCAG 2.2; o critério de 44 px da 2.5.5 é AAA e voltado a toque).
@@ -443,13 +443,13 @@ Feita com a skill `design:design-critique`, de forma severa, sobre capturas reai
 | Achado | Lente | Gravidade | Correção |
 |---|---|---|---|
 | A caixa da nota dizia que a nota “vai junto quando você publica”, o contrário da regra (notas não vão para os jogadores). | Clareza / honestidade | Alta | Texto corrigido no componente: “Fica guardada no pack, só para você: não vai para os jogadores, a menos que você inclua as notas no resumo da versão.” |
-| Problemas dizia “4 encontrados”, mas o painel de Verificações mostrava um ponto de atenção e um mod arquivado que não estavam na lista. | Coerência | Alta | Os dois entraram como avisos na lista, com o selo “1.1”; contagem, nota de saúde (26) e “O que tirou pontos” acertados em todas as telas. |
+| Problemas dizia “4 encontrados”, mas o painel de Verificações mostrava um ponto de atenção e um mod arquivado que não estavam na lista. | Coerência | Alta | Os dois entraram como avisos na lista, com o selo “1.2”; contagem, nota de saúde (26) e “O que tirou pontos” acertados em todas as telas. |
 | A manutenção mostrava um arquivo removido que o painel de Problemas e o Publicar não mostravam. | Coerência | Média | O arquivo removido virou o estado “Arquivo removido” da página, ligado ao Publicar bloqueado; o estado normal bate com o painel. |
 | “Pontos de atenção” usava o mesmo escudo de “Não deu para conferir”. | Consistência | Média | Selo próprio (escudo pela metade, âmbar) no design system. |
 | Na lista agrupada por grupo, o chip do grupo se repetia em todas as linhas daquele grupo. | Hierarquia | Média | O chip do próprio grupo some nas linhas do grupo; ficam só os outros grupos do mod. |
 | Os textos do jogador falavam da 1.4.2 como publicada, mas o Histórico diz que a última publicada é a 1.4.0. | Coerência | Média | O jogador agora usa a 1.4.0 (exata pelo `packwiz.json`); no caso “versão antiga”, a correção está numa versão ainda não publicada, e a tela sugere publicar. |
 | “Agrupar por” tinha rótulos diferentes em duas telas. | Consistência | Baixa | “Agrupar por: tipo · grupo · nenhum” nas duas. |
-| O selo “P1” era usado para marcar funções da 1.1. | Clareza | Baixa | Selo “1.1” com tooltip próprio (“vem na versão seguinte à primeira versão do app”), também ao lado do título das telas novas. |
+| O selo “P1” era usado para marcar funções da 1.2. | Clareza | Baixa | Selo “1.2” com tooltip próprio (“vem na versão depois da 1.1”), também ao lado do título das telas novas. |
 
 **O que fica de propósito.** O botão “Procurar substituto” leva aos substitutos do Xaero's Minimap em todas as entradas do protótipo (o app real mostra os do mod escolhido). A página de segurança mostra a evidência técnica (hash, classe) recolhida em “Como sabemos”, para quem quiser conferir, sem obrigar o leigo a ler. “Cara de IA”: nenhum gradiente, vidro, emoji ou cartão em grade foi acrescentado; o gráfico de desempenho é de blocos, de uma cor só, com a tabela ao lado; o brilhinho aparece só no botão e no diálogo da IA do travamento de jogador.
 

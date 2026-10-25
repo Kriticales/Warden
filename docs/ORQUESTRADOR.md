@@ -129,14 +129,14 @@ O dono trocou o Superset (no WSL) pelo **Orca, no Windows**. Os agentes usam o C
 - SPEC, ARCHITECTURE, ROADMAP e QUALITY 1.3, com as decisões D1–D33 e as ADRs 0001–0047;
 - estrutura de navegação aprovada (D2), design system e protótipo aprovados (D3);
 - funções avançadas da v1 (D4);
-- Warden 1.1 "Profissional" (D5).
+- Warden 1.2 "Profissional" (D5).
 
 **Nenhum código do app foi escrito ainda.**
 
 **O roteiro:**
 - v1 = 75 tarefas em 12 ondas, marcos M1–M5;
-- Warden 1.1 = marco M6, tarefas W-01 a W-12, que só começam depois do M5;
-- as seis funções da 1.1:
+- Warden 1.2 = marco M6, tarefas W-01 a W-12, que só começam depois do M5;
+- as seis funções da 1.2:
   1. checagem de malware nos mods;
   2. mods removidos ou abandonados;
   3. crash de jogador;

@@ -1,6 +1,6 @@
 # Desempenho com packs grandes (A-04)
 
-Medições das metas da [SPEC §8](SPEC.md#8-requisitos-não-funcionais) com um pack de **300 mods e 500 configs** gerado e com um **pack real** de 405 mods (tarefa A-04 do [ROADMAP](ROADMAP.md)), os gargalos encontrados e o que foi corrigido. As metas P1 da D4 (raio-x de mixins, console agrupado) e as da 1.1 são medidas pelas tarefas donas.
+Medições das metas da [SPEC §8](SPEC.md#8-requisitos-não-funcionais) com um pack de **300 mods e 500 configs** gerado e com um **pack real** de 405 mods (tarefa A-04 do [ROADMAP](ROADMAP.md)), os gargalos encontrados e o que foi corrigido. As metas P1 da D4 (raio-x de mixins, console agrupado) e as da 1.2 são medidas pelas tarefas donas.
 
 ## Como medir
 

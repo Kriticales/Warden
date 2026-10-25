@@ -1,6 +1,6 @@
 # Warden — Padrão de qualidade obrigatório
 
-> Versão do documento: 1.5 (2026-10-04). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038); glossário, testes e privacidade do Warden 1.1 "Profissional" na tarefa D5 (ADR-0039 a ADR-0047); desenvolvimento direto no Windows na tarefa D6 (ADR-0048): §13 nova, testes, fim de linha e caminho do `.env`; o que as ondas 0 e 1 ensinaram, na tarefa D7: TypeScript fixado e risco do ESLint (§2.2), convenção dos testes de rede (§4.1), sidecar antes do `check` (§12), pnpm, manifesto do Windows, antivírus que cria temporários e programas do Windows chamados pelo Git Bash (§13).
+> Versão do documento: 1.5 (2026-10-04). Tarefa A1; glossário e regra de segredos atualizados na tarefa D2 (decisões do dono, ADR-0025 a ADR-0029); glossário, testes e privacidade das funções avançadas na tarefa D4 (ADR-0030 a ADR-0038); glossário, testes e privacidade do Warden 1.2 "Profissional" na tarefa D5 (ADR-0039 a ADR-0047); desenvolvimento direto no Windows na tarefa D6 (ADR-0048): §13 nova, testes, fim de linha e caminho do `.env`; o que as ondas 0 e 1 ensinaram, na tarefa D7: TypeScript fixado e risco do ESLint (§2.2), convenção dos testes de rede (§4.1), sidecar antes do `check` (§12), pnpm, manifesto do Windows, antivírus que cria temporários e programas do Windows chamados pelo Git Bash (§13).
 > Vale para **todos** os agentes e para o orquestrador. Uma entrega que não cumpre este documento não é integrada.
 > Referências: `ARCHITECTURE.md` (estrutura), `SPEC.md` (critérios de aceite), `ROADMAP.md` (tarefas), `docs/decisions/` (ADRs).
 
@@ -118,8 +118,8 @@ missing_errors_doc = "allow"
 | Desempenho | `crates/*/benches/`, `apps/desktop/e2e/perf/` | `criterion`, medições E2E | marcos e tarefa A-04 |
 | Servidor local real (D4) | `crates/warden-server/tests/server_*.rs` | instaladores oficiais + Java, marcados `#[ignore = "servidor"]` | sob demanda e antes do marco M4 |
 | IA com servidor simulado (D4) | `crates/warden-ai/tests/` | servidor que imita o Gemini, inclusive a recusa de histórico com *thought signatures* alteradas, e o GitHub | toda mudança; chave real só no teste de rede |
-| Segurança dos mods (1.1) | `crates/warden-security/tests/` | jars **sintéticos** gerados por `cargo xtask fixtures-security` (um por regra da lista de sinais, mais jars limpos e reais do corpus da P1-06 para falso positivo); respostas reais gravadas do Modrinth e da CurseForge | toda mudança; `cargo xtask check-signatures` na CI |
-| Logs de jogadores (1.1) | `crates/warden-diagnostics/tests/corpus-player/` | logs reais públicos, já redigidos, com a origem (URL da issue) anotada, por formato (Forge 1.7.10, 1.12.2 e moderno, NeoForge, Fabric, Prism, `packwiz.json`) | toda mudança |
+| Segurança dos mods (1.2) | `crates/warden-security/tests/` | jars **sintéticos** gerados por `cargo xtask fixtures-security` (um por regra da lista de sinais, mais jars limpos e reais do corpus da P1-06 para falso positivo); respostas reais gravadas do Modrinth e da CurseForge | toda mudança; `cargo xtask check-signatures` na CI |
+| Logs de jogadores (1.2) | `crates/warden-diagnostics/tests/corpus-player/` | logs reais públicos, já redigidos, com a origem (URL da issue) anotada, por formato (Forge 1.7.10, 1.12.2 e moderno, NeoForge, Fabric, Prism, `packwiz.json`) | toda mudança |
 
 Regras:
 - **Nada de dados reais do dono.** Testes e E2E nunca tocam nas pastas reais do Warden, nos packs do dono nem no cofre do Windows (§13.6).
@@ -132,7 +132,7 @@ Regras:
 - **E2E** cobre pelo menos o caminho feliz de cada fluxo P0 e um caminho de erro, pela interface real (clique, digitação), sem chamar comandos diretamente.
 - **Guarda de contrato:** teste que lista os comandos registrados no Rust e verifica que cada um é usado por algum código em `src/features/` (equivalente ao `ipcConsumerGuard` de R4); a lista de exceções só pode diminuir.
 - **Algoritmos com executor simulado (D4):** a busca do culpado e a nota de saúde são funções puras testadas com executores e dados simulados e com `proptest` (nenhum prefixo sem dependências; um achado a mais nunca aumenta a nota).
-- **Nunca malware real (1.1):** nenhum arquivo malicioso real entra no repositório, em fixtures ou em caches de teste. Os sinais são provados com jars sintéticos que reproduzem só o padrão (constantes e instruções), sem código que funcione; os hashes de arquivos maliciosos conhecidos entram como dados, sem o arquivo.
+- **Nunca malware real (1.2):** nenhum arquivo malicioso real entra no repositório, em fixtures ou em caches de teste. Os sinais são provados com jars sintéticos que reproduzem só o padrão (constantes e instruções), sem código que funcione; os hashes de arquivos maliciosos conhecidos entram como dados, sem o arquivo.
 - **Nada de jogo, servidor ou IA de verdade para provar a interface:** E2E usam processos Java de teste que imitam o jogo e o servidor (imprimem os marcadores, travam, criam filhos) e servidores HTTP simulados.
 
 ### 4.2 Cobertura mínima (linhas)
@@ -141,7 +141,7 @@ Medida com `cargo llvm-cov nextest` e `vitest --coverage` (v8), aplicada por `ca
 
 | Alvo | Mínimo |
 |---|---|
-| `warden-packwiz`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics`, `warden-catalog`, `warden-bisect`, `warden-mixin`, `warden-import`, `warden-security` (1.1) | 85% |
+| `warden-packwiz`, `warden-configs`, `warden-jarmeta`, `warden-diagnostics`, `warden-catalog`, `warden-bisect`, `warden-mixin`, `warden-import`, `warden-security` (1.2) | 85% |
 | Demais crates de domínio | 75% |
 | `warden-app` | sem mínimo numérico (coberto por E2E e guardas de contrato) |
 | `apps/desktop/src/lib/**`, `src/features/*/lib/**` | 85% |
@@ -281,19 +281,19 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Página aberta por Adicionar (D4) | página de descoberta (na interface, o título continua "Adicionar ao pack") | loja, explorar, marketplace |
 | Grafo de dependências (D4) | Ver como: Grafo; "quem precisa de quem" | árvore de dependências, diagrama |
 | Abrir pack packwiz ou de outro app (D4) | Abrir ou importar… | Importar pack, Abrir pack existente |
-| Checagem de malware dos mods (1.1) | segurança dos mods; "não é um antivírus" | antivírus, proteção, escudo, scan |
-| Hash igual ao do arquivo da plataforma (1.1) | confere com o arquivo oficial / não confere com o arquivo oficial | hash válido, íntegro, verificado (sem dizer contra o quê) |
-| Assinatura de malware encontrada (1.1) | sinal de programa malicioso conhecido | vírus, ameaça, infectado |
-| Padrão heurístico em arquivo fora das plataformas (1.1) | ponto de atenção | suspeito (sozinho), perigoso |
-| Liberar um arquivo apontado (1.1) | confiar neste arquivo | ignorar ameaça, permitir, whitelist |
-| Mods removidos, arquivados ou parados (1.1) | manutenção dos mods; "removido do Modrinth", "arquivado pelo autor", "arquivo removido" | abandonado (como rótulo), morto, descontinuado |
-| Mod parecido sugerido (1.1) | substituto; ação "Procurar substituto" | alternativa (como botão), recomendação |
-| Log enviado por quem joga (1.1) | travamento de um jogador; ação "Analisar travamento de um jogador…" | log de terceiros, relatório de crash do usuário |
-| Texto do usuário num mod (1.1) | nota | comentário, descrição, anotação |
-| Etiqueta do usuário para mods (1.1) | grupo; "Grupos do pack" | tag, categoria, pasta, coleção |
-| Materiais iguais em vários mods (1.1) | itens repetidos entre mods; solução: unificar, unificador de itens | duplicatas, conflito de itens |
-| Resultado que não é erro nem aviso (1.1) | conselho | dica, sugestão automática |
-| Gráfico de tempo e memória por versão (1.1) | desempenho entre versões; "Tempo para abrir", "Memória máxima", "Tempo por tick"; aviso "Esta versão está mais pesada" | benchmark, performance, regressão |
+| Checagem de malware dos mods (1.2) | segurança dos mods; "não é um antivírus" | antivírus, proteção, escudo, scan |
+| Hash igual ao do arquivo da plataforma (1.2) | confere com o arquivo oficial / não confere com o arquivo oficial | hash válido, íntegro, verificado (sem dizer contra o quê) |
+| Assinatura de malware encontrada (1.2) | sinal de programa malicioso conhecido | vírus, ameaça, infectado |
+| Padrão heurístico em arquivo fora das plataformas (1.2) | ponto de atenção | suspeito (sozinho), perigoso |
+| Liberar um arquivo apontado (1.2) | confiar neste arquivo | ignorar ameaça, permitir, whitelist |
+| Mods removidos, arquivados ou parados (1.2) | manutenção dos mods; "removido do Modrinth", "arquivado pelo autor", "arquivo removido" | abandonado (como rótulo), morto, descontinuado |
+| Mod parecido sugerido (1.2) | substituto; ação "Procurar substituto" | alternativa (como botão), recomendação |
+| Log enviado por quem joga (1.2) | travamento de um jogador; ação "Analisar travamento de um jogador…" | log de terceiros, relatório de crash do usuário |
+| Texto do usuário num mod (1.2) | nota | comentário, descrição, anotação |
+| Etiqueta do usuário para mods (1.2) | grupo; "Grupos do pack" | tag, categoria, pasta, coleção |
+| Materiais iguais em vários mods (1.2) | itens repetidos entre mods; solução: unificar, unificador de itens | duplicatas, conflito de itens |
+| Resultado que não é erro nem aviso (1.2) | conselho | dica, sugestão automática |
+| Gráfico de tempo e memória por versão (1.2) | desempenho entre versões; "Tempo para abrir", "Memória máxima", "Tempo por tick"; aviso "Esta versão está mais pesada" | benchmark, performance, regressão |
 
 ## 9. Segurança e privacidade
 
@@ -302,7 +302,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 3. **Tipos de segredo:** `secrecy::SecretString` no Rust; no frontend, campos de senha que enviam o valor ao comando `secrets_set` e limpam o estado em seguida; nunca guardar em Zustand, Query cache ou `localStorage`.
 4. **PII:** nada é enviado à IA sem o consentimento explícito da conversa (ADR-0030: uma vez por conversa, listando o que a IA pode consultar) e sem passar pela redação (ARCHITECTURE §9.4). O texto inicial mostrado é o texto enviado, e cada envio seguinte aparece na conversa com os bytes exatos. A busca de issues no GitHub envia só o repositório e palavras do erro redigidas, e só com a permissão da conversa. Nada muda no pack por ação da IA sem o clique em Aplicar.
 4a. **Rede local (D4):** servidor local, servidor de arquivos do teste pelo link e chamadas ao servidor web do KubeJS só em `127.0.0.1`; o token do KubeJS nunca sai do Rust (ARCHITECTURE §20).
-4b. **Warden 1.1:** a checagem de segurança envia só hashes ao Modrinth e à CurseForge, nunca o jar (teste que registra os corpos das requisições); logs de jogadores são baixados só dos hosts da lista da SPEC T30, pelo Rust, e gravados só depois da redação (nome do jogador e da instância incluídos); as métricas de desempenho e a impressão do computador ficam nos dados locais e nunca saem; respostas da CurseForge da manutenção e dos substitutos ficam só em memória; notas e grupos nunca vão para os jogadores nem para o GitHub, exceto as notas que o usuário escolher pôr no resumo da versão.
+4b. **Warden 1.2:** a checagem de segurança envia só hashes ao Modrinth e à CurseForge, nunca o jar (teste que registra os corpos das requisições); logs de jogadores são baixados só dos hosts da lista da SPEC T30, pelo Rust, e gravados só depois da redação (nome do jogador e da instância incluídos); as métricas de desempenho e a impressão do computador ficam nos dados locais e nunca saem; respostas da CurseForge da manutenção e dos substitutos ficam só em memória; notas e grupos nunca vão para os jogadores nem para o GitHub, exceto as notas que o usuário escolher pôr no resumo da versão.
 5. **Registros:** sem segredos; sem corpo de respostas da CurseForge; sem ambiente de processos filhos.
 6. **Entrada externa** (APIs, jars, zips, logs, configs) é não confiável: limites de tamanho, parsers tolerantes que não entram em pânico (testes com `proptest`/entradas malformadas), proteção contra *zip slip* e *path traversal*, HTML/Markdown higienizado.
 7. **Processos:** argv sempre em vetor, nunca via shell; ambiente limpo para o sidecar; nenhum comando genérico exposto à interface.

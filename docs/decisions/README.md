@@ -42,13 +42,13 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0036](0036-funcoes-avancadas-na-estrutura.md) | Funções avançadas encaixadas na estrutura aprovada | dono |
 | [0037](0037-editor-de-scripts.md) | Editor de scripts KubeJS e CraftTweaker | dono + técnica |
 | [0038](0038-monitor-de-desempenho.md) | Monitor de desempenho do jogo sem JDK | técnica |
-| [0039](0039-warden-1-1-profissional.md) | Warden 1.1 "Profissional": versão nova e ganchos na v1 | dono + técnica |
+| [0039](0039-warden-1-1-profissional.md) | Warden 1.1 "Profissional": versão nova e ganchos na v1 (hoje a 1.2: ADR-0071) | dono + técnica |
 | [0040](0040-seguranca-dos-mods.md) | Checagem de segurança dos mods | dono + técnica |
 | [0041](0041-lista-de-sinais-embutida.md) | Lista de sinais embutida e atualizada com o app | técnica |
 | [0042](0042-manutencao-e-substitutos.md) | Manutenção dos mods e substitutos | dono |
 | [0043](0043-travamento-de-jogador.md) | Analisar o travamento de um jogador | dono |
 | [0044](0044-notas-e-grupos.md) | Notas e grupos em `.warden/mods.toml` | técnica |
-| [0045](0045-funcoes-1-1-na-estrutura.md) | Funções da 1.1 encaixadas na estrutura aprovada | dono |
+| [0045](0045-funcoes-1-1-na-estrutura.md) | Funções da 1.1 encaixadas na estrutura aprovada (hoje a 1.2: ADR-0071) | dono |
 | [0046](0046-itens-repetidos.md) | Itens repetidos: detecção estática e peso na saúde | dono + técnica |
 | [0047](0047-desempenho-entre-versoes.md) | Desempenho entre versões | técnica |
 | [0048](0048-desenvolvimento-no-windows.md) | Plataformas: Windows primeiro, desenvolvimento direto no Windows (substitui a 0003; isolamento: ver 0053) | dono + técnica |
@@ -72,5 +72,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0068](0068-adicionar-lista-ou-cartoes-e-bibliotecas.md) | Adicionar: Lista ou Cartões (o app lembra o modo), filtros à direita, bibliotecas escondidas, o que já está no pack nas listas com o selo No pack e o diálogo Adicionar itens em árvore + detalhe (muda a SPEC T08/T09) | dono + técnica |
 | [0069](0069-chaves-so-no-cofre-do-sistema.md) | Chaves só no cofre do sistema; sai o modo `.env`, com a migração das chaves ao abrir o app (substitui a 0025) | dono |
 | [0070](0070-ordem-de-preferencia-dos-provedores.md) | Ordem de preferência dos provedores do Sculk (o 1º com chave funcionando abre as conversas novas) e Configurações com menu lateral (complementa a 0060) | dono |
+| [0071](0071-renumeracao-das-versoes.md) | Renumeração: a 1.1 é o lote do relatório de bugs nº 1; o Warden "Profissional" vira 1.2 (renomeia a versão da 0039 a 0047, sem mudar o conteúdo delas) | dono |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.

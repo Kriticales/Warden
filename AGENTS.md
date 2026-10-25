@@ -12,7 +12,7 @@ App desktop pessoal e privado (Tauri 2: backend Rust + interface React/TypeScrip
 
 - `docs/SPEC.md`: o que o app faz, tela por tela, com critérios de aceite (CA-Txx-yy). §9 lista o que fica fora; §10 tem as decisões do dono (D1–D33).
 - `docs/ARCHITECTURE.md`: crates, módulos e contratos.
-- `docs/ROADMAP.md`: as tarefas (F0-xx, P1-xx, L-xx, D-xx, A-xx, V-xx, E-xx, W-xx...), com dependências, posse de arquivos, critérios e verificação, em ondas. Marcos M1–M5 (v1) e M6 (Warden 1.1 "Profissional").
+- `docs/ROADMAP.md`: as tarefas (F0-xx, P1-xx, L-xx, D-xx, A-xx, V-xx, E-xx, W-xx...), com dependências, posse de arquivos, critérios e verificação, em ondas. Marcos M1–M5 (v1) e M6 (Warden 1.2 "Profissional").
 - `docs/QUALITY.md`: padrões de código, testes, cobertura, glossário (termos da interface) e privacidade.
 - `docs/decisions/`: ADRs 0001–0047. Não contrarie uma ADR sem registrar uma nova.
 - `docs/research/01–06`: pesquisas (boas práticas, launcher, packwiz/APIs, projetos anteriores, diagnóstico avançado, criação/edição/descoberta). Leia as seções "Implicações para o Warden" do que for relevante à sua tarefa.

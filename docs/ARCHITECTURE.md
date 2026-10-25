@@ -1,6 +1,6 @@
 # Warden — Arquitetura técnica
 
-> Versão do documento: 1.5 (2026-10-04). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor; e na tarefa D5 com o **Warden 1.1 "Profissional"** (ADR-0039 a ADR-0047): crate `warden-security`, módulos novos e os ganchos que a v1 deixa prontos (§21); e na tarefa D6 com o **desenvolvimento direto no Windows** (ADR-0048): toolchain, `.gitattributes`, `xtask`, pastas de desenvolvimento e cofre de teste; e na tarefa D7 com **o que as ondas 0 e 1 descobriram** (ADR-0049 a ADR-0056): contratos da F0-05 (§4, §5), chamada do packwiz (§6.3), memória da JVM (§7.7), IA (§9.5), raio-x próprio (§9.6), busca do culpado (§9.7), configs JSON (§10), instância pronta para o Prism (§12.3), cofre (§14) e rede (§17).
+> Versão do documento: 1.5 (2026-10-04). Tarefa A1; atualizada na tarefa D2 com as decisões do dono (ADR-0025 a ADR-0029): segredos, busca combinada, Java, IA e publicação no GitHub; na tarefa D4 com as funções avançadas (ADR-0030 a ADR-0038): busca do culpado, IA com ferramentas, raio-x de mixins, grafo, nota de saúde, desempenho, servidor local, descoberta, importação, scripts e pacote para servidor; e na tarefa D5 com o **Warden 1.2 "Profissional"** (ADR-0039 a ADR-0047): crate `warden-security`, módulos novos e os ganchos que a v1 deixa prontos (§21); e na tarefa D6 com o **desenvolvimento direto no Windows** (ADR-0048): toolchain, `.gitattributes`, `xtask`, pastas de desenvolvimento e cofre de teste; e na tarefa D7 com **o que as ondas 0 e 1 descobriram** (ADR-0049 a ADR-0056): contratos da F0-05 (§4, §5), chamada do packwiz (§6.3), memória da JVM (§7.7), IA (§9.5), raio-x próprio (§9.6), busca do culpado (§9.7), configs JSON (§10), instância pronta para o Prism (§12.3), cofre (§14) e rede (§17).
 > Público: agentes de implementação e orquestrador. O dono pode ler a §1 para ter a visão geral.
 > Fonte de verdade das decisões: `docs/decisions/` (ADRs citados como ADR-00NN). O que é produto está em `SPEC.md`; padrões obrigatórios em `QUALITY.md`; ordem de construção em `ROADMAP.md`.
 
@@ -26,7 +26,7 @@
 18. [Frontend](#18-frontend)
 19. [Bibliotecas escolhidas](#19-bibliotecas-escolhidas)
 20. [Segurança do app Tauri](#20-segurança-do-app-tauri)
-21. [Warden 1.1 "Profissional": módulos e ganchos na v1](#21-warden-11-profissional-módulos-e-ganchos-na-v1)
+21. [Warden 1.2 "Profissional": módulos e ganchos na v1](#21-warden-12-profissional-módulos-e-ganchos-na-v1)
 
 ---
 
@@ -133,13 +133,13 @@ Regras do monorepo:
 | `warden-import` | Importar `.mrpack`, zip da CurseForge (via sidecar em staging) e instâncias do Prism/MultiMC e do app da CurseForge para o formato packwiz, com higiene obrigatória (§12.2, ADR-0035). | core, packwiz, packwiz-cli, modrinth, curseforge, http, jarmeta |
 | `warden-scripts` | Scripts KubeJS e CraftTweaker: detecção de versão, trechos prontos, índice de IDs, leitura de erros dos logs, cliente do servidor web local do KubeJS 7, comando de recarga certo por versão (§10.2, ADR-0037). | core, jarmeta, http |
 | `warden-versioning` | Git embutido (`git2`): repositório, ponto inicial, salvar versão, versão final, tags, pontos de segurança, restauração transacional, diffs, changelog e notas de publicação, publicação no GitHub (linha de publicação, push, Release pela API REST; §11.1). Nomes legíveis de versões vêm de um trait `VersionNameResolver` implementado pela `warden-app` (com Modrinth e CurseForge). | core, packwiz, http |
-| `warden-security` (1.1) | Segurança dos mods: leitura dos jars sem executar (`zip` + `cafebabe`), descida em jars embutidos, sinais conhecidos e pontos de atenção a partir de `data/signatures.toml`, conferência com o arquivo oficial a partir dos resultados das APIs (recebidos por trait, sem depender dos clientes), confiança por hash (`.warden/trust.toml`), cache por hash (§21.1, ADR-0040, ADR-0041). Não existe na v1: a W-01 cria a crate. | core, jarmeta, packwiz (murmur2) |
+| `warden-security` (1.2) | Segurança dos mods: leitura dos jars sem executar (`zip` + `cafebabe`), descida em jars embutidos, sinais conhecidos e pontos de atenção a partir de `data/signatures.toml`, conferência com o arquivo oficial a partir dos resultados das APIs (recebidos por trait, sem depender dos clientes), confiança por hash (`.warden/trust.toml`), cache por hash (§21.1, ADR-0040, ADR-0041). Não existe na v1: a W-01 cria a crate. | core, jarmeta, packwiz (murmur2) |
 | `warden-export` | Pré-visualização e exportação nativa (pasta/zip), conformidade; P1 (v1, decisão D1): `.mrpack`/CurseForge via sidecar em staging, com validação; P1 (D4): pacote para servidor nas duas variantes (§12.1); P1 (D7): instância pronta para o Prism, `.mrpack` gerado pelo Warden (§12.3, ADR-0050). | core, packwiz, packwiz-cli, project |
 | `warden-secrets` | Armazenamento de segredos: sempre o cofre do sistema (`keyring-core` com o armazenamento de cada sistema; ADR-0052 e ADR-0069), a migração única do `.env` antigo para o cofre, o final da chave para a tela, `SecretString`, fallback de desenvolvimento por variável de ambiente só em build de debug. | core |
 | `warden-app` (`apps/desktop/src-tauri`) | Comandos, eventos, estado do app, configurações (`settings.json`), registro de operações, ligação de tudo. | todas |
 | `xtask` | `setup`, `dev`, `check` (e `check --fast`), `check-deps`, `check-docs`, `bindings`, `coverage`, `test-network` (F0-01); `build-packwiz` (F0-03); `preview` (F0-04: gera ou baixa da CI o instalador, instala e abre a versão de teste); `e2e-driver` (F0-06: `msedgedriver` da versão do WebView2); `fixtures-packwiz` (P1-01); `installer` (L-03: bootstrap do packwiz-installer e JRE de testes; L-07 acrescenta o `packwiz-installer.jar`); `notices` (A-02); `check-kits` (P1-18, em `xtask/src/tasks/check_kits.rs`: valida kits e mods iniciais contra a API do Modrinth). | — (ferramenta) |
 
-Na 1.1 (§21), crescem também: `warden-diagnostics` (manutenção, lista de mods e versão do jogador, itens repetidos, categorias novas da saúde), `warden-jarmeta` (materiais, tags e geração de minério), `warden-perf` (histórico de desempenho), `warden-project` (notas e grupos, troca por substituto), `warden-discovery` (busca de parecidos) e `warden-versioning` (notas no resumo, checagens do Publicar).
+Na 1.2 (§21), crescem também: `warden-diagnostics` (manutenção, lista de mods e versão do jogador, itens repetidos, categorias novas da saúde), `warden-jarmeta` (materiais, tags e geração de minério), `warden-perf` (histórico de desempenho), `warden-project` (notas e grupos, troca por substituto), `warden-discovery` (busca de parecidos) e `warden-versioning` (notas no resumo, checagens do Publicar).
 
 Grafo sem ciclos; `warden-core` não depende de ninguém. Nenhuma crate de domínio chama outra "para cima" (ex.: `warden-instance` não depende de `warden-project`; quem orquestra é `warden-app`). A busca do culpado, o servidor local, a validação do pacote para servidor e as ferramentas da IA são orquestrados pela `warden-app` (`bisect_session.rs`, `server_session.rs`, `ai_tools/`), que liga instância, launcher, servidor e diagnóstico.
 
@@ -194,12 +194,12 @@ Contrato inicial (nomes estáveis; parâmetros detalhados pelas tarefas donas de
 | github | `github_status` (repositório, visibilidade, versão publicada, link do pack), `github_setup` (criar público/privado ou vincular existente), `publish_plan` (avisos e notas da versão), `publish_run` (devolve o id da Release), `publish_prism_instance` (P1, E-04: gera a instância pronta da versão publicada e anexa à Release) |
 | export | `export_preview`, `export_run` (com versão salva opcional, P1; formato pacote para servidor com a variante, P1; formato instância pronta para o Prism, P1, §12.3) |
 | java | `java_runtimes_list` (com os packs que usam cada um e o motivo), `java_runtime_remove`, `java_runtimes_check_updates`, `java_choice` (Java automático de um pack, com motivo) |
-| security (1.1) | `security_scan` (todos os arquivos ou uma lista; canal de progresso), `security_report_get`, `security_trust` (por hash, com o nome digitado), `security_replace_with_official` |
-| maintenance (1.1) | `maintenance_check` (com ou sem cache), `maintenance_report_get`, `replacements_find` (item), `item_replace_plan`, `item_replace_apply` |
-| player reports (1.1) | `player_report_from_link`, `player_report_from_files` (diálogo nativo), `player_report_from_text`, `player_reports_list`, `player_report_get`, `player_report_delete` |
-| annotations (1.1) | `annotations_get`, `annotation_set_note`, `groups_create`, `groups_rename`, `groups_delete`, `items_set_groups` |
-| duplicates (1.1) | `duplicates_report_get` |
-| perf history (1.1) | `perf_history_get` (perfil; devolve versões, medianas, exclusões e o veredito "mais pesada") |
+| security (1.2) | `security_scan` (todos os arquivos ou uma lista; canal de progresso), `security_report_get`, `security_trust` (por hash, com o nome digitado), `security_replace_with_official` |
+| maintenance (1.2) | `maintenance_check` (com ou sem cache), `maintenance_report_get`, `replacements_find` (item), `item_replace_plan`, `item_replace_apply` |
+| player reports (1.2) | `player_report_from_link`, `player_report_from_files` (diálogo nativo), `player_report_from_text`, `player_reports_list`, `player_report_get`, `player_report_delete` |
+| annotations (1.2) | `annotations_get`, `annotation_set_note`, `groups_create`, `groups_rename`, `groups_delete`, `items_set_groups` |
+| duplicates (1.2) | `duplicates_report_get` |
+| perf history (1.2) | `perf_history_get` (perfil; devolve versões, medianas, exclusões e o veredito "mais pesada") |
 
 **Contratos já integrados (F0-05, registrados na D7).** Nomes e formas estáveis; mudanças são de contrato:
 - `app_info` → `AppInfo { version, commit: Option<String>, platform: "windows" | "linux" | "other", debugBuild }`. `platform` é o que a F0-04 confere (WebView2 no Windows); `debugBuild` diz se o app aceita as variáveis de desenvolvimento (ADR-0048, ADR-0053).
@@ -275,14 +275,14 @@ pub enum ErrorCode {
     // D4
     Mixin(MixinErrorCode), Bisect(BisectErrorCode), Server(ServerErrorCode), Perf(PerfErrorCode),
     Discovery(DiscoveryErrorCode), Import(ImportErrorCode), Scripts(ScriptsErrorCode),
-    // D5 (Warden 1.1); a W-01 acrescenta o domínio com INTERNAL
+    // D5 (Warden 1.2); a W-01 acrescenta o domínio com INTERNAL
     Security(SecurityErrorCode),
 }
 ```
 
 - Códigos já integrados (F0-05): `app` = `INTERNAL`, `OPERATION_NOT_FOUND`, `OPERATION_NOT_CANCELLABLE`, `SETTINGS_INVALID` (`params.field` diz qual), `SETTINGS_NEWER_VERSION` (o `settings.json` é de uma versão mais nova e não é alterado); `secrets` = `INTERNAL`, `INVALID_VALUE`, `NOT_CONFIGURED`, `VAULT_UNAVAILABLE`, `VAULT_FAILED`, `ENV_FILE_UNREADABLE`, `VERIFY_FAILED`, `BACKEND_SWITCH_FAILED`.
 - `CoreErrorCode` (de `warden-core`) reúne o que é comum a todos: `CANCELLED`, `TIMEOUT`, `IO`, `PATH_OUTSIDE_ROOT`, `NETWORK_UNAVAILABLE`. `PACK_CHANGED_EXTERNALLY` pertence a `Project`.
-- A F0-05 cria todos os domínios acima, exceto o `Security` da 1.1 (acrescentado pela W-01), já com um código `INTERNAL` (os domínios da D4 também, para que as tarefas novas só acrescentem códigos); tarefas posteriores só acrescentam códigos no enum da própria crate e as frases no arquivo `apps/desktop/src/i18n/errors/<domínio>.ts`, tipado como `Record<<Domínio>ErrorCode, string>` (o TypeScript falha se faltar tradução).
+- A F0-05 cria todos os domínios acima, exceto o `Security` da 1.2 (acrescentado pela W-01), já com um código `INTERNAL` (os domínios da D4 também, para que as tarefas novas só acrescentem códigos); tarefas posteriores só acrescentam códigos no enum da própria crate e as frases no arquivo `apps/desktop/src/i18n/errors/<domínio>.ts`, tipado como `Record<<Domínio>ErrorCode, string>` (o TypeScript falha se faltar tradução).
 - Frontend: `ErrorPanel` mostra a frase traduzida, a sugestão de ação, e "Detalhes técnicos" com `domain.code`, `detail` e `operationId`, com botão Copiar.
 - `detail` nunca contém segredo (§14) e é truncado em 16 KB.
 - `INTERNAL` existe para bugs: todo `INTERNAL` visto em teste ou uso vira tarefa para criar um código específico.
@@ -1000,9 +1000,9 @@ cache/xray/                           raio-x de mixins por conjunto de jars (§9
 cache/installer/                      packwiz-installer-bootstrap e packwiz-installer fixados (§8.5)
 cache/server-installers/              instaladores e jars de servidor por loader e versão (§7.6)
 logs/                                 registros do app (§16)
-perf/<pack-id>.jsonl                  (1.1, gravado desde a v1) uma linha de métricas por teste; não é podado (§21.6)
-player-reports/<pack-id>/<ULID>/      (1.1) travamentos de jogadores: só a cópia redigida e o resultado (§21.3)
-cache/security/<sha256>.json          (1.1) resultado da leitura de segurança de cada jar, com a versão da lista (§21.1)
+perf/<pack-id>.jsonl                  (1.2, gravado desde a v1) uma linha de métricas por teste; não é podado (§21.6)
+player-reports/<pack-id>/<ULID>/      (1.2) travamentos de jogadores: só a cópia redigida e o resultado (§21.3)
+cache/security/<sha256>.json          (1.2) resultado da leitura de segurança de cada jar, com a versão da lista (§21.1)
 ```
 
 Dentro de cada pack:
@@ -1011,9 +1011,9 @@ Dentro de cada pack:
 pack.toml  index.toml  .packwizignore  .gitignore  .gitattributes  CHANGELOG.md
 mods/  resourcepacks/  shaderpacks/  config/  defaultconfigs/  kubejs/  …    (conteúdo)
 .warden/project.toml                  id do pack, schemaVersion, avisos do diagnóstico ignorados (P1), ferramentas do jogador (D4),
-                                      origem dos arquivos locais vindos de importação (gancho 1.1)
-.warden/mods.toml                     (1.1) notas e grupos dos mods (§21.4, ADR-0044)
-.warden/trust.toml                    (1.1) arquivos em que você confiou, por hash (§21.1)
+                                      origem dos arquivos locais vindos de importação (gancho 1.2)
+.warden/mods.toml                     (1.2) notas e grupos dos mods (§21.4, ADR-0044)
+.warden/trust.toml                    (1.2) arquivos em que você confiou, por hash (§21.1)
 server-overrides/                     (opcional) arquivos só do pacote para servidor; fora do índice (§6.4, §12.1)
 .git/
 ```
@@ -1066,9 +1066,9 @@ ADR-0069 (substitui a ADR-0025, que substituía a ADR-0017).
 - GitHub: API REST (`GET /user`, `POST /user/repos`, `GET /repos/{dono}/{repo}`, `POST /repos/{dono}/{repo}/releases`) por `warden-http` (§11.1). D4: busca de issues para a IA (`GET /search/issues?q=repo:<dono>/<repo>+is:issue+<termos>`), com o token quando existir (30 buscas/min) ou sem ele (10 buscas/min), e cache de 1 h por consulta; downloads de Release do packwiz-installer pela URL de download (que não usa a API).
 - Instaladores de servidor (D4): Fabric meta (`/v2/versions/loader/<mc>/<loader>/<installer>/server/jar`), Maven do Forge e do NeoForge (`--installServer`), `downloads.server` do JSON da versão.
 - Gemini (D4): só pelo laço da §9.5; `countTokens` antes da primeira requisição de cada conversa.
-- (1.1) Conferência de segurança: Modrinth `POST /v2/version_files` (sha512, em lote); CurseForge `POST /v1/fingerprints/432` (murmur2) e conferência do SHA-1 de `file.hashes` e do `fileStatus`; só hashes saem (§21.1).
-- (1.1) Manutenção: Modrinth `GET /v2/projects?ids=` e `POST /v2/version_files`; CurseForge `POST /v1/mods` e `POST /v1/mods/files`; os lotes omitem IDs inexistentes, então o resultado é sempre comparado com o pedido (§21.2). Parecidos: Modrinth `/v2/search` com `categories`, `versions`, loader e `disclosure_types!=archived`; CurseForge `/v1/mods/search` com `categoryIds`, `gameVersion` e `modLoaderType`.
-- (1.1) Logs de jogadores: só leitura de texto cru, por HTTPS, até 10 MB, tempo-limite de 30 s: `api.mclo.gs/1/raw/<id>`, `pastebin.com/raw/<id>`, `paste.ee/r/<id>`, gist cru, 0x0.st, `hst.sh/raw/<key>`, `api.paste.gg/v1/pastes/<id>?full=true` (§21.3).
+- (1.2) Conferência de segurança: Modrinth `POST /v2/version_files` (sha512, em lote); CurseForge `POST /v1/fingerprints/432` (murmur2) e conferência do SHA-1 de `file.hashes` e do `fileStatus`; só hashes saem (§21.1).
+- (1.2) Manutenção: Modrinth `GET /v2/projects?ids=` e `POST /v2/version_files`; CurseForge `POST /v1/mods` e `POST /v1/mods/files`; os lotes omitem IDs inexistentes, então o resultado é sempre comparado com o pedido (§21.2). Parecidos: Modrinth `/v2/search` com `categories`, `versions`, loader e `disclosure_types!=archived`; CurseForge `/v1/mods/search` com `categoryIds`, `gameVersion` e `modLoaderType`.
+- (1.2) Logs de jogadores: só leitura de texto cru, por HTTPS, até 10 MB, tempo-limite de 30 s: `api.mclo.gs/1/raw/<id>`, `pastebin.com/raw/<id>`, `paste.ee/r/<id>`, gist cru, 0x0.st, `hst.sh/raw/<key>`, `api.paste.gg/v1/pastes/<id>?full=true` (§21.3).
 
 ### 17.1 Descoberta, modpacks e imagens (D4)
 
@@ -1129,7 +1129,7 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 | Windows | `windows` (Job Objects) | Encerramento da árvore de processos. |
 | Testes | `cargo-nextest`, `insta` (dourados), `wiremock`, `tempfile`, `proptest`, `criterion`, `cargo-llvm-cov`, `cargo-deny` | QUALITY §4. |
 | Leitura de `.class` (D4) | `cafebabe` (0BSD), com `ParseOptions::parse_bytecode(false)`; `noak` (MIT/Apache-2.0) como reserva | Lê as anotações visíveis, invisíveis e de parâmetro sem teto de versão de classe (R5A §5.7). O intermed (MIT) é avaliado no spike S-R5-1. |
-| Segurança dos mods (1.1) | `cafebabe` (o mesmo), com o bytecode decodificado só nas classes candidatas; `zip` (já usado) | Leitura sem executar nada, limites contra *zip bomb* (§21.1). YARA-X foi considerado e ficou para depois (ADR-0040). |
+| Segurança dos mods (1.2) | `cafebabe` (o mesmo), com o bytecode decodificado só nas classes candidatas; `zip` (já usado) | Leitura sem executar nada, limites contra *zip bomb* (§21.1). YARA-X foi considerado e ficou para depois (ADR-0040). |
 | Protobuf (D4) | `prost` (Apache-2.0) | Perfis do spark a partir dos `.proto` públicos (§7.7). |
 | Busca aproximada (D4) | `nucleo-matcher` (MPL-2.0) | Busca em todas as configs (§10.1). |
 | Processo e memória (D4) | `windows` (já usado) no Windows; `/proc` no Linux | RAM do processo (§7.7); leitor de `hsperfdata` próprio (sem crate: as existentes são imaturas ou GPL). |
@@ -1163,11 +1163,11 @@ Versões exatas fixadas no `Cargo.lock`/`pnpm-lock.yaml` pela F0-01; atualizaç�
 - Downloads só por HTTPS, com hash verificado antes de uso.
 - **Rede local (D4):** o servidor local escuta só em `127.0.0.1` (§7.6); o servidor de arquivos do "Testar como o jogador recebe" também (§8.5); chamadas ao servidor web do KubeJS saem só do Rust, só para `127.0.0.1`, com o token lido na hora e nunca exposto à interface (§10.2). Nenhuma porta é aberta para a rede.
 - **IA (D4):** texto de logs, issues e changelogs é dado não confiável; nenhuma ferramenta da IA tem efeito sem o clique do usuário (§9.5).
-- **1.1:** jars são lidos, nunca carregados nem executados pelo Warden; a leitura tem limites de profundidade de jars embutidos, de tamanho descompactado e de quantidade de entradas (proteção contra *zip bomb*). Logs baixados de links são texto não confiável: tamanho máximo, sem seguir redirecionamento para outro host que não esteja na lista, nunca renderizados como HTML.
+- **1.2:** jars são lidos, nunca carregados nem executados pelo Warden; a leitura tem limites de profundidade de jars embutidos, de tamanho descompactado e de quantidade de entradas (proteção contra *zip bomb*). Logs baixados de links são texto não confiável: tamanho máximo, sem seguir redirecionamento para outro host que não esteja na lista, nunca renderizados como HTML.
 
-## 21. Warden 1.1 "Profissional": módulos e ganchos na v1
+## 21. Warden 1.2 "Profissional": módulos e ganchos na v1
 
-ADR-0039 a ADR-0047; telas SPEC T28 a T33; tarefas ROADMAP W-01 a W-12 (fase 7, marco M6). Nada desta seção é construído na v1, exceto os **ganchos** da §21.7, que entram nas tarefas da v1 com custo mínimo.
+ADR-0039 a ADR-0047; telas SPEC T28 a T33; tarefas ROADMAP W-01 a W-12 (fase 7, marco M6). Nada desta seção é construído na v1, exceto os **ganchos** da §21.7, que entram nas tarefas da v1 com custo mínimo. Até 25/10/2026 esta versão se chamava 1.1; a 1.1 passou a ser o lote do relatório de bugs nº 1 (ADR-0071). Nas ADR-0039 a ADR-0047 e nos registros antigos, "1.1" ainda quer dizer esta versão.
 
 ### 21.1 Segurança dos mods (`warden-security`; ADR-0040, ADR-0041)
 
@@ -1224,13 +1224,13 @@ groups = ["01JA2…"]
 
 ### 21.7 Ganchos que a v1 deixa prontos
 
-Custo mínimo, sem função visível na v1. Cada um entra nas entregas da tarefa citada ("Gancho 1.1:" no ROADMAP) e tem o seu teste.
+Custo mínimo, sem função visível na v1. Cada um entra nas entregas da tarefa citada ("Gancho 1.2:" no ROADMAP) e tem o seu teste.
 
 | # | Tarefa da v1 | Gancho | Usado por |
 |---|---|---|---|
 | 1 | P1-03, L-03 | O download calcula sha1, sha256, sha512 e o murmur2 da CurseForge de uma vez, e o `cache/downloads/index.sqlite` guarda os quatro mais a origem (fonte, projeto, versão, URL) de cada jar. | W-01, W-02 (conferência sem reler os jars), W-06 (identificar jars por hash) |
 | 2 | P1-19 | Jars que ficam como arquivo local num pack importado são marcados com a origem da importação em `.warden/project.toml`. | W-02 (atenção redobrada aos jars de packs importados) |
-| 3 | L-04, L-10 | A sessão grava a assinatura do perfil, a impressão do computador e a marca de primeira abertura; cada teste acrescenta uma linha em `perf/<pack-id>.jsonl`, que a poda das sessões não apaga. | W-10 (sem isto, os testes feitos antes da 1.1 ficariam fora do gráfico) |
+| 3 | L-04, L-10 | A sessão grava a assinatura do perfil, a impressão do computador e a marca de primeira abertura; cada teste acrescenta uma linha em `perf/<pack-id>.jsonl`, que a poda das sessões não apaga. | W-10 (sem isto, os testes feitos antes da 1.2 ficariam fora do gráfico) |
 | 4 | P1-07, P1-08 | O leitor de `.warden/` preserva arquivos e tabelas desconhecidos (`.warden/mods.toml` e `.warden/trust.toml` reservados); cada item tem chave estável; o agrupamento da lista é uma função genérica. | W-02, W-08 |
 | 5 | D-02, D-06 | A análise pós-crash aceita qualquer texto de log e a redação aceita regras extras; o registro de travamento tem o campo `origin`. | W-06, W-07 |
 | 6 | V-03 | As conferências do `publish_plan` são uma lista de checagens plugáveis (trait `PublishCheck`). | W-03 |

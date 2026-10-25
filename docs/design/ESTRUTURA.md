@@ -2,7 +2,7 @@
 
 > Tarefa D2, 01/10/2026. **Aprovada pelo dono no mesmo dia: Alternativa A** (ver §0). A SPEC, a ARCHITECTURE, o ROADMAP, o QUALITY e as ADRs 0025 a 0029 já foram atualizados; este documento registra a proposta e o porquê.
 > **Tarefa D4, 01/10/2026:** as funções avançadas pedidas pelo dono (pesquisas R5A e R5B) entram na mesma estrutura, sem seção nova e sem abas. Onde fica cada uma e as poucas mudanças de nome estão na [§13](#13-funções-avançadas-d4-onde-fica-cada-uma); ela prevalece sobre as seções anteriores quando houver diferença.
-> **Tarefa D5, 02/10/2026:** as seis funções do **Warden 1.1 "Profissional"** (segurança dos mods, manutenção, travamento de um jogador, notas e grupos, itens repetidos, desempenho entre versões) entram na mesma estrutura, de novo sem seção nova e sem abas. Onde fica cada uma está na [§14](#14-warden-11-profissional-d5-onde-fica-cada-função); ela prevalece sobre as seções anteriores quando houver diferença.
+> **Tarefa D5, 02/10/2026:** as seis funções do **Warden 1.2 "Profissional"** (segurança dos mods, manutenção, travamento de um jogador, notas e grupos, itens repetidos, desempenho entre versões) entram na mesma estrutura, de novo sem seção nova e sem abas. Onde fica cada uma está na [§14](#14-warden-12-profissional-d5-onde-fica-cada-função); ela prevalece sobre as seções anteriores quando houver diferença.
 > Rascunho clicável: `design/estrutura/index.html` (abre direto no navegador, sem internet). A página publicada no Superset saiu do ar com a troca de ferramenta; a versão navegável aprovada, já com o visual, é o protótipo final: https://claude.ai/artifact/JAPB9Nd8BhtNzMXgF6evhi (design system: https://claude.ai/artifact/Uur9YtN2EtUhJBxKi7qUhr).
 > Base: `docs/SPEC.md` (telas T01 a T23), relatórios em `docs/research/` e o motivo da reprovação do protótipo D1.
 
@@ -24,7 +24,7 @@ Este documento define **como se navega no Warden**, antes de qualquer estilo vis
 11. [Como usar o rascunho clicável](#11-como-usar-o-rascunho-clicável)
 12. [Limites deste rascunho e pontos em aberto](#12-limites-deste-rascunho-e-pontos-em-aberto)
 13. [Funções avançadas (D4): onde fica cada uma](#13-funções-avançadas-d4-onde-fica-cada-uma)
-14. [Warden 1.1 "Profissional" (D5): onde fica cada função](#14-warden-11-profissional-d5-onde-fica-cada-função)
+14. [Warden 1.2 "Profissional" (D5): onde fica cada função](#14-warden-12-profissional-d5-onde-fica-cada-função)
 
 ---
 
@@ -537,9 +537,9 @@ Revisados com a skill `design:ux-copy` e acrescentados ao glossário (`QUALITY.m
 - O botão **▶ Testar** continua fazendo só o teste normal. Servidor local, busca do culpado e perfil de desempenho nunca rodam sem o usuário pedir.
 - O protótipo final (`design/prototipo-final/`) mostra as telas novas; o mapa do protótipo lista os caminhos.
 
-## 14. Warden 1.1 "Profissional" (D5): onde fica cada função
+## 14. Warden 1.2 "Profissional" (D5): onde fica cada função
 
-Depois da D4, o dono perguntou o que faltava para o Warden ser um gerenciador de mods profissional e aprovou seis funções. Elas formam uma **versão nova do app, o Warden 1.1 "Profissional"**, construída depois da v1 (marco M6 do ROADMAP; SPEC §10, D27 a D33). Esta seção diz onde cada uma mora. As regras da §1 continuam valendo sem exceção: **dois níveis, 6 seções no pack, nenhuma aba, o raro escondido**. Nada novo vira seção: tudo entra como página de detalhe, modo de exibição, filtro, painel, diálogo ou item de menu.
+Depois da D4, o dono perguntou o que faltava para o Warden ser um gerenciador de mods profissional e aprovou seis funções. Elas formam uma **versão nova do app, o Warden 1.2 "Profissional"**, construída depois da v1 (marco M6 do ROADMAP; SPEC §10, D27 a D33). Até 25/10/2026 esta versão se chamava 1.1; a 1.1 passou a ser o lote do relatório de bugs nº 1 (ADR-0071). Nas ADR-0039 a ADR-0047 e nos registros antigos, "1.1" ainda quer dizer esta versão. Esta seção diz onde cada uma mora. As regras da §1 continuam valendo sem exceção: **dois níveis, 6 seções no pack, nenhuma aba, o raro escondido**. Nada novo vira seção: tudo entra como página de detalhe, modo de exibição, filtro, painel, diálogo ou item de menu.
 
 O lugar natural de quase tudo é **Problemas**: segurança, manutenção, itens repetidos e o travamento de um jogador são coisas que podem dar errado no pack. Para Problemas não virar uma página interminável, ela ganha um painel curto **Verificações do pack**, com uma linha por verificação e um link para a página de detalhe de cada uma. Os achados que exigem ação (um arquivo suspeito, um mod removido) aparecem também na lista normal de achados, com a gravidade de sempre.
 
@@ -548,16 +548,16 @@ O lugar natural de quase tudo é **Problemas**: segurança, manutenção, itens 
 ```
 PACK ABERTO
 ├── Mods ........ Mods, resource packs e shaders
-│   ├── barra: + "Agrupar por: Tipo · Grupo · Nenhum" (caixa de seleção) e filtro "Grupo"   (1.1)
-│   ├── linha do mod: a nota aparece na segunda linha, no lugar da descrição               (1.1)
-│   ├── barra de seleção: + "Pôr no grupo ▾"                                                (1.1)
-│   ├── Grupos do pack (diálogo, pelo menu ⋯ de Mods): criar, renomear, apagar             (1.1)
-│   └── Detalhes do item (painel): + "Nota e grupos" (no topo) e "Segurança do arquivo"     (1.1)
+│   ├── barra: + "Agrupar por: Tipo · Grupo · Nenhum" (caixa de seleção) e filtro "Grupo"   (1.2)
+│   ├── linha do mod: a nota aparece na segunda linha, no lugar da descrição               (1.2)
+│   ├── barra de seleção: + "Pôr no grupo ▾"                                                (1.2)
+│   ├── Grupos do pack (diálogo, pelo menu ⋯ de Mods): criar, renomear, apagar             (1.2)
+│   └── Detalhes do item (painel): + "Nota e grupos" (no topo) e "Segurança do arquivo"     (1.2)
 │                                   + "Manutenção" quando o mod foi removido ou parou
 │                                     └── Procurar substituto (no mesmo painel, "← Detalhes")
 ├── Problemas ... Saúde do pack, problemas e travamentos   (descrição igual)
 │   ├── Saúde do pack (topo): + categorias "Segurança", "Manutenção" (ampliada), "Itens repetidos"
-│   ├── Verificações do pack (painel novo, logo abaixo da saúde)                             (1.1)
+│   ├── Verificações do pack (painel novo, logo abaixo da saúde)                             (1.2)
 │   │     Segurança dos mods ......... → página "Segurança dos mods" (← Problemas)
 │   │     Manutenção dos mods ........ → página "Manutenção dos mods" (← Problemas)
 │   │     Itens repetidos entre mods . → página "Itens repetidos entre mods" (← Problemas)
@@ -566,16 +566,16 @@ PACK ABERTO
 │         "Analisar travamento de um jogador…" → página "Travamento de um jogador" (← Problemas)
 │         └── ✦ Conversar com a IA sobre este travamento (mesmo consentimento de sempre)
 ├── Histórico ... Versões salvas e publicação
-│   ├── + bloco "Desempenho entre versões" (resumo de uma linha)                            (1.1)
+│   ├── + bloco "Desempenho entre versões" (resumo de uma linha)                            (1.2)
 │   │     → página "Desempenho entre versões" (← Histórico): gráfico por versão salva
-│   └── Salvar versão (diálogo): + "Incluir as notas dos mods no resumo"                    (1.1)
-│       Publicar versão (diálogo): + "Checagens obrigatórias" (segurança e manutenção)      (1.1)
+│   └── Salvar versão (diálogo): + "Incluir as notas dos mods no resumo"                    (1.2)
+│       Publicar versão (diálogo): + "Checagens obrigatórias" (segurança e manutenção)      (1.2)
 └── (Configs, ✦ Diagnóstico com IA e Exportar não mudam)
 Fora do menu:
-├── Tela do teste: "Verificação final" passa a incluir a segurança dos arquivos;            (1.1)
+├── Tela do teste: "Verificação final" passa a incluir a segurança dos arquivos;            (1.2)
 │     o resultado ganha o aviso "Esta versão está mais pesada" quando for o caso
-├── Adicionar (descoberta): arquivo do computador e link direto passam pela checagem        (1.1)
-└── Meus packs → Importar modpack: o resumo ganha "Segurança dos arquivos"                  (1.1)
+├── Adicionar (descoberta): arquivo do computador e link direto passam pela checagem        (1.2)
+└── Meus packs → Importar modpack: o resumo ganha "Segurança dos arquivos"                  (1.2)
 ```
 
 ### 14.2 Onde fica cada função
@@ -627,6 +627,6 @@ Revisados com a skill `design:ux-copy` e acrescentados ao glossário (`QUALITY.m
 
 ### 14.5 O que continua igual
 
-- Os 10 fluxos do protótipo não ganharam passo novo. A 1.1 acrescenta três caminhos laterais (fluxos 11 a 13 do mapa do protótipo): conferir a segurança e trocar um mod removido antes de publicar; analisar o travamento de um jogador; organizar o pack com notas e grupos e ver o desempenho entre versões.
+- Os 10 fluxos do protótipo não ganharam passo novo. A 1.2 acrescenta três caminhos laterais (fluxos 11 a 13 do mapa do protótipo): conferir a segurança e trocar um mod removido antes de publicar; analisar o travamento de um jogador; organizar o pack com notas e grupos e ver o desempenho entre versões.
 - O ▶ Testar continua fazendo só o teste normal. A checagem de segurança entra dentro da "Verificação final", que já existia, e só lê os arquivos (não abre nada).
 - Os três pontos de design pendentes da D4 (DESIGN-SYSTEM §10: tamanho do menu ▾ do Testar, menu recolhido na descoberta e grafo focado) não foram mexidos.

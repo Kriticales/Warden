@@ -22,7 +22,7 @@ web
 - **Cobertura:** Minecraft de 1.7.10 até a versão mais nova, com Forge (todas as versões), NeoForge (1.20.1+) e Fabric (1.14+); versões anteriores à 1.7.10 só como "melhor esforço" (SPEC §4; ADR-0005).
 - **Por que existe:** substitui os protótipos `packwiz-gui` e `packwiz-gui-manager`. A ponte com o Prism era a fonte de defeito mais recorrente nesses apps (AGENTS.md; ADR-0010).
 - **Sucesso:** a pasta do pack fica sempre limpa e no formato packwiz puro. Nada é dado como pronto sem prova contra o packwiz real e o jogo real. O dono descobre por que o jogo travou e entrega versões que os jogadores recebem sozinhos (SPEC §1 princípios 1 a 4; QUALITY §1).
-- **Estado:** versão 1.0.0 lançada e conserto 1.0.1 publicado (docs/versoes/1.0.0.md; docs/versoes/1.0.1.md). A próxima é o Warden 1.1 "Profissional", marco M6: segurança dos mods, manutenção e substitutos, travamento de um jogador, notas e grupos, itens repetidos e desempenho entre versões (ROADMAP §13; SPEC §4).
+- **Estado:** versão 1.0.0 lançada, conserto 1.0.1 publicado e a 1.1, com os consertos e as telas novas do relatório de bugs nº 1, preparada (docs/versoes/1.0.0.md; docs/versoes/1.0.1.md; docs/versoes/1.1.0.md; ADR-0071). A próxima é o Warden 1.2 "Profissional", marco M6: segurança dos mods, manutenção e substitutos, travamento de um jogador, notas e grupos, itens repetidos e desempenho entre versões (ROADMAP §13; SPEC §4).
 
 ## Positioning
 
