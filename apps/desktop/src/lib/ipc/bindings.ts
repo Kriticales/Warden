@@ -352,6 +352,36 @@ export const commands = {
 	 *  diferente não é tocado e a resposta pede a confirmação.
 	 */
 	configCopyToDefaultconfigs: (packId: PackId, path: string, overwrite: boolean) => typedError<CopyOutcome, AppError>(__TAURI_INVOKE("config_copy_to_defaultconfigs", { packId, path, overwrite })),
+	/**  A lista juntada da seção Configs. */
+	configOverview: (packId: PackId) => typedError<ConfigOverview, AppError>(__TAURI_INVOKE("config_overview", { packId })),
+	/**  As diferenças de `path` entre o teste e o pack. */
+	configCompare: (packId: PackId, path: string) => typedError<ConfigComparison, AppError>(__TAURI_INVOKE("config_compare", { packId, path })),
+	/**
+	 *  "Trazer para o pack": grava no pack o arquivo do teste inteiro (`keys` = `None`) ou só o
+	 *  valor dessas chaves.
+	 */
+	configBring: (packId: PackId, path: string, keys: string[] | null) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_bring", { packId, path, keys })),
+	/**
+	 *  "Voltar ao do pack": grava na instância de teste o arquivo do pack inteiro (`keys` =
+	 *  `None`) ou só o valor dessas chaves.
+	 */
+	configRevert: (packId: PackId, path: string, keys: string[] | null) => typedError<ConfigSaved, AppError>(__TAURI_INVOKE("config_revert", { packId, path, keys })),
+	/**
+	 *  "Marcar como pessoal": `path` passa a ficar só neste computador. Se estava no pack, sai
+	 *  dele (com a cópia guardada antes). Devolve quantos arquivos saíram do pack (0 ou 1).
+	 */
+	configMarkPersonal: (packId: PackId, path: string) => typedError<number, AppError>(__TAURI_INVOKE("config_mark_personal", { packId, path })),
+	/**
+	 *  "Deixar de ser pessoal": `path` volta a ser uma config comum (fica na instância de teste;
+	 *  para ir aos jogadores, "Trazer para o pack"). A cópia guardada é apagada.
+	 */
+	configUnmarkPersonal: (packId: PackId, path: string) => typedError<boolean, AppError>(__TAURI_INVOKE("config_unmark_personal", { packId, path })),
+	/**
+	 *  Migração do ADR-0067: as configs pessoais que o pack ainda leva (`options.txt`) saem dele,
+	 *  com a cópia guardada neste computador. Só depois de a pessoa ver o aviso e confirmar.
+	 *  Devolve quantos arquivos saíram do pack.
+	 */
+	configKeepPersonalOut: (packId: PackId, paths: string[]) => typedError<number, AppError>(__TAURI_INVOKE("config_keep_personal_out", { packId, paths })),
 	/**  Busca em todas as configs da origem. Busca vazia só prepara o índice e devolve a situação. */
 	configSearch: (packId: PackId, origin: ConfigOrigin, query: string, modId: string | null, onlyChanged: boolean) => typedError<ConfigSearchResponse, AppError>(__TAURI_INVOKE("config_search", { packId, origin, query, modId, onlyChanged })),
 	/**
@@ -2420,6 +2450,22 @@ export type ConfidenceMeter =
 /**  Todas as afirmações verificadas, com pelo menos duas evidências válidas. */
 "high";
 
+/**  As diferenças de um arquivo entre o teste e o pack. */
+export type ConfigComparison = {
+	/**  Caminho. */
+	path: string,
+	/**  Formato conhecido: as diferenças vêm por chave. */
+	byKey: boolean,
+	/**  Chaves diferentes, na ordem do arquivo do pack (e as novas no fim). */
+	keys: KeyDifference[],
+	/**  Linhas diferentes (formato desconhecido; 0 nos conhecidos). */
+	lines: number,
+	/**  Texto do pack (sem o BOM), se existe e cabe no editor. */
+	packText: string | null,
+	/**  Texto do teste (sem o BOM), se existe e cabe no editor. */
+	testText: string | null,
+};
+
 /**  Um arquivo lido. */
 export type ConfigContent = {
 	/**  Caminho relativo à origem. */
@@ -2516,6 +2562,30 @@ export type ConfigOrigin =
 "pack" | 
 /**  A instância de teste (vale só para o teste; vira "O que mudou durante o teste"). */
 "instance";
+
+/**  A lista juntada da seção Configs. */
+export type ConfigOverview = {
+	/**  A instância de teste existe (só depois do primeiro teste). */
+	testAvailable: boolean,
+	/**  As configs, em ordem de caminho. */
+	files: PlacedConfig[],
+	/**  Alguma das listas passou de [`crate::configs::MAX_LISTED_FILES`] e foi cortada. */
+	truncated: boolean,
+	/**
+	 *  Configs pessoais que ainda estão no pack (a migração do ADR-0067 pergunta antes de
+	 *  tirar).
+	 */
+	personalInPack: string[],
+};
+
+/**  Grupo de uma config na seção. */
+export type ConfigPlace = 
+/**  Está no pack: vai para os jogadores. */
+"pack" | 
+/**  Só na instância de teste: o jogo criou e ninguém trouxe. */
+"test" | 
+/**  Preferência pessoal: só neste computador. */
+"personal";
 
 /**  Resultado de uma gravação. */
 export type ConfigSaved = {
@@ -5421,6 +5491,18 @@ export type JavaVersion = {
 	build: number,
 };
 
+/**  Uma chave diferente entre o teste e o pack. */
+export type KeyDifference = {
+	/**  A chave, como o formulário mostra (`client.quality.distance`). */
+	key: string,
+	/**  Valor no pack (`None`: a chave não existe lá). */
+	pack: string | null,
+	/**  Valor no teste (`None`: a chave não existe lá). */
+	test: string | null,
+	/**  Existe nos dois lados: dá para trazer ou voltar só esta chave. */
+	perKey: boolean,
+};
+
 /**  Quantas alterações de um tipo. */
 export type KindCount = {
 	/**  Tipo. */
@@ -6806,6 +6888,32 @@ export type PhaseTime = {
 	phase: string,
 	/**  Duração somada, em ms. */
 	ms: number,
+};
+
+/**  Uma config da lista juntada. */
+export type PlacedConfig = {
+	/**  Caminho relativo (o mesmo no pack e na instância). */
+	path: string,
+	/**  Grupo. */
+	place: ConfigPlace,
+	/**  Existe no pack. */
+	inPack: boolean,
+	/**  Existe na instância de teste. */
+	inTest: boolean,
+	/**  Tamanho em bytes (do teste, se existe lá; senão do pack). */
+	size: number,
+	/**  Última alteração (do teste, se existe lá; senão do pack), em milissegundos Unix. */
+	modifiedAtMs: number | null,
+	/**  Parece binário (sem edição). */
+	binary: boolean,
+	/**  O teste tem valores diferentes do pack (só com os dois; só formatação não conta). */
+	differs: boolean,
+	/**  Quantas chaves diferem (formatos conhecidos) ou quantas linhas (texto). 0 se igual. */
+	differences: number,
+	/**  Se as diferenças são por chave (formato conhecido) ou por linha. */
+	byKey: boolean,
+	/**  O arquivo pode ir para o pack ("Trazer para o pack": fica numa pasta que o pack leva). */
+	bringable: boolean,
 };
 
 /**  Incompatibilidade declarada (Modrinth `incompatible`, CurseForge "incompatível"). */

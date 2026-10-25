@@ -137,11 +137,38 @@ pub(crate) async fn write_impl(
             Some(cli) => save_to_pack(&root, path, text, expected_hash, cli, handle.token())
                 .await
                 .map_err(domain),
-            None => save_to_instance(&root, path, text, expected_hash).map_err(domain),
+            None => {
+                let saved = save_to_instance(&root, path, text, expected_hash).map_err(domain)?;
+                keep_personal_copy(state, pack_id, &root, path);
+                Ok(saved)
+            }
         }
     }
     .await;
     handle.finish(result)
+}
+
+/// Uma config pessoal editada na instância (ADR-0067): a cópia guardada acompanha, para o
+/// próximo teste devolver o que a pessoa escreveu. Falha aqui não desfaz a gravação: o fim do
+/// próximo teste guarda de novo.
+fn keep_personal_copy(state: &AppState, pack_id: PackId, game: &std::path::Path, path: &str) {
+    let Ok(personal) = crate::commands::configs_places::personal_of(state, pack_id) else {
+        return;
+    };
+    let normalized = path.replace('\\', "/");
+    if !personal.contains(&normalized) {
+        return;
+    }
+    let result = std::fs::read(game.join(&normalized))
+        .map_err(|error| error.to_string())
+        .and_then(|bytes| {
+            personal
+                .store(&normalized, &bytes)
+                .map_err(|error| error.to_string())
+        });
+    if let Err(error) = result {
+        tracing::warn!(%error, "a cópia da config pessoal não foi atualizada");
+    }
 }
 
 #[cfg(test)]
@@ -254,6 +281,43 @@ mod tests {
         assert_eq!(
             fs::read_to_string(game.join("config/a.toml")).unwrap(),
             "a = 2\n"
+        );
+    }
+
+    #[tokio::test]
+    async fn editar_o_options_do_teste_atualiza_a_copia_pessoal() {
+        let dir = tempfile::tempdir().unwrap();
+        let state = test_state(dir.path());
+        let root = dir.path().join("pack");
+        fs::create_dir_all(&root).unwrap();
+        let record = warden_project::registry::PackRecord {
+            id: PackId::new(),
+            name: "Vale".into(),
+            path: root,
+            last_test: None,
+            extra: std::collections::BTreeMap::new(),
+        };
+        let id = record.id;
+        state.packs.insert(record).unwrap();
+        let game = state.paths.instance_dir(id).join("minecraft");
+        fs::create_dir_all(&game).unwrap();
+        fs::write(game.join("options.txt"), "renderDistance:8\n").unwrap();
+        let read = read_file(&game, ConfigOrigin::Instance, "options.txt").unwrap();
+        write_impl(
+            &state,
+            None,
+            id,
+            ConfigOrigin::Instance,
+            "options.txt",
+            "renderDistance:20\n",
+            &read.hash,
+        )
+        .await
+        .unwrap();
+        let personal = crate::commands::configs_places::personal_of(&state, id).unwrap();
+        assert_eq!(
+            personal.stored("options.txt").unwrap().as_deref(),
+            Some(&b"renderDistance:20\n"[..])
         );
     }
 
