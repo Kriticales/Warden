@@ -479,7 +479,7 @@ describe('EULA em Configurações → Teste (CA-T21-05)', () => {
         },
       },
     );
-    renderApp('/configuracoes');
+    renderApp('/configuracoes/teste');
     const group = await screen.findByRole('group', { name: 'EULA do Minecraft' });
     expect(within(group).getByText('Aceita em 01/10/2026')).toBeDefined();
     await userEvent.setup().click(within(group).getByRole('button', { name: 'Revogar' }));

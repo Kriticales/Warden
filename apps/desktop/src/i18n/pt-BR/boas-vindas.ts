@@ -32,12 +32,11 @@ export const boasVindas = {
   },
   chaves: {
     titulo: 'Chaves',
-    texto: 'Todas são opcionais. Sem elas o Warden funciona; só algumas partes ficam de fora.',
+    texto:
+      'Todas são opcionais. Sem elas o Warden funciona; só algumas partes ficam de fora. Elas ficam guardadas no Cofre do Windows.',
     jaConfigurada: 'Já configurada. Deixe em branco para manter.',
     iaTexto:
       'Para o Diagnóstico com IA, com a sua chave. O Gemini é o sugerido para começar, porque tem plano gratuito; a OpenAI e o Claude cobram por uso na sua conta.',
-    cofreDesc: 'Protegido pelo seu usuário do Windows.',
-    envDesc: 'Texto comum na pasta de dados do Warden. Outros programas conseguem ler.',
   },
   voltar: 'Voltar',
   proximo: 'Próximo',
@@ -51,7 +50,7 @@ export const boasVindas = {
     dados: 'Dados do Warden',
     dadosValor: '%APPDATA%\\dev.kriticales.warden',
     chaves: 'Chaves',
-    chavesValor: 'Cofre do Windows (ou .env, se você escolher)',
+    chavesValor: 'Cofre do Windows (Gerenciador de Credenciais)',
     rodape: 'Nada disso vai para o GitHub sem você publicar uma versão.',
   },
 } as const;

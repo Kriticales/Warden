@@ -7,6 +7,13 @@ export const armazenamento = {
   descricao:
     'Espaço que o Warden usa neste computador, fora das pastas dos packs. Os tamanhos são medidos ao abrir esta página.',
   legenda: 'Espaço usado pelo Warden',
+  espaco: 'Espaço usado',
+  espacoDesc: 'Os tamanhos são medidos ao abrir esta página.',
+  total: 'Total',
+  limparDesc:
+    'Apaga os arquivos baixados guardados e os temporários. Instâncias de teste, mundos, Javas, arquivos do Minecraft e os seus packs ficam.',
+  limparDica:
+    'O próximo teste baixa de novo só o que faltar. Fica indisponível com um jogo aberto ou uma tarefa em andamento.',
   itens: {
     cache: 'Cache de downloads',
     minecraft: 'Minecraft e loaders',

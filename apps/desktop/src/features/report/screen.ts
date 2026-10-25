@@ -24,6 +24,8 @@ type ScreenKey =
 const SCREENS: Readonly<Record<string, ScreenKey>> = {
   '/boas-vindas': 'primeiraExecucao',
   '/configuracoes': 'configuracoes',
+  '/configuracoes/': 'configuracoes',
+  '/configuracoes/$pagina': 'configuracoes',
   '/': 'meusPacks',
   '/packs/': 'meusPacks',
   '/packs/$packId': 'pack',

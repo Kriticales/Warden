@@ -8,6 +8,7 @@ import { useFocusOnNavigation } from '../app/layout/useFocusOnNavigation';
 import { useOperationsSync } from '../app/tasks/useOperations';
 import { Toaster } from '../components/ui/toast';
 import { ReportProblem } from '../features/report/ReportProblem';
+import { MigrationToast } from '../features/settings/keys/MigrationToast';
 import { TestRootHooks } from '../features/test/QuitWithGameDialog';
 import { usePackChangedInvalidation } from '../lib/ipc/events';
 
@@ -25,7 +26,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
  * conteúdo) e o rodapé com Tarefas. Liga também a
  * invalidação por `pack-changed`, a lista de operações por `operation-updated` e o jogo aberto
  * (`game-state`, com a confirmação de fechar o Warden durante o jogo; L-04). O diálogo
- * "Relatar problema" e o atalho dele (Ctrl+Shift+E) também ficam aqui (UI-02).
+ * "Relatar problema" e o atalho dele (Ctrl+Shift+E) também ficam aqui (UI-02), e o aviso da
+ * migração das chaves do `.env` antigo para o cofre (ADR-0069).
  */
 function RootLayout() {
   const { queryClient } = Route.useRouteContext();
@@ -43,6 +45,7 @@ function RootLayout() {
       <Toaster />
       <TestRootHooks />
       <ReportProblem />
+      <MigrationToast />
     </>
   );
 }

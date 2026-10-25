@@ -32,7 +32,6 @@ import {
 } from './ai.fixtures';
 
 const ALL_KEYS: SecretsStatus = {
-  backend: 'keyring',
   curseforge: false,
   gemini: true,
   openai: true,
@@ -324,7 +323,11 @@ describe('a conversa e o provedor em que começou (CA-T14-21, CA-T14-24)', () =>
 
 describe('a seção com o provedor ativo', () => {
   it('OpenAI ativa sem a chave dela: pede a chave da OpenAI, cita os três provedores e não consulta a IA', async () => {
-    const { backend, url } = setup({ provider: 'openai', keys: { openai: false } });
+    // ADR-0070: com outro provedor com chave, o Sculk usaria esse; aqui nenhum tem chave.
+    const { backend, url } = setup({
+      provider: 'openai',
+      keys: { openai: false, gemini: false, anthropic: false },
+    });
     renderApp(`${url}/ia`);
     expect(
       await screen.findByText('Falta a chave da OpenAI', {}, { timeout: 10_000 }),

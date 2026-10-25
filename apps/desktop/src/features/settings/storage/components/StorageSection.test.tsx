@@ -64,6 +64,7 @@ describe('Configurações → Armazenamento (T21, A-06)', () => {
       'Minecraft e loaders': 'Medindo…',
       Javas: 'Medindo…',
       'Instâncias de teste': 'Medindo…',
+      Total: 'Medindo…',
     });
     measuring.resolve(usage());
     await screen.findByText('610,0 MB');
@@ -72,6 +73,7 @@ describe('Configurações → Armazenamento (T21, A-06)', () => {
       'Minecraft e loaders': '2,4 GB',
       Javas: '610,0 MB',
       'Instâncias de teste': '3,1 GB',
+      Total: '7,9 GB',
     });
     expect(await axeComponent(container)).toHaveNoViolations();
   });

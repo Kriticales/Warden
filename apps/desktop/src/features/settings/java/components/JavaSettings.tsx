@@ -3,8 +3,7 @@
  * instalado pelo Warden, os packs que usam cada um e por que aquela versão, com "Procurar
  * atualizações do Java" e "Remover Javas sem uso".
  *
- * A P1-13 encaixa este bloco no painel "Teste" da página de Configurações (registro
- * `features/settings/sections.ts`).
+ * Fica na linha "Java" de Configurações → Teste (`pages/TestPage.tsx`, CA-T21-04).
  */
 import { RefreshCw, Trash2 } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -36,9 +35,14 @@ import {
 export interface JavaSettingsProps {
   /** Nível do título, para seguir a hierarquia da página. Padrão: 3 (dentro de "Teste"). */
   headingLevel?: 3 | 4;
+  /**
+   * Sem o título: dentro da linha "Java" de Configurações → Teste, que já o mostra (esboço
+   * `design/bug-01/configuracoes.html`).
+   */
+  bare?: boolean;
 }
 
-export function JavaSettings({ headingLevel = 3 }: JavaSettingsProps) {
+export function JavaSettings({ headingLevel = 3, bare = false }: JavaSettingsProps) {
   const { t } = useTranslation('java');
   const titleId = useId();
   const runtimes = useJavaRuntimes();
@@ -61,6 +65,14 @@ export function JavaSettings({ headingLevel = 3 }: JavaSettingsProps) {
     body = <JavaContent overview={runtimes.data} />;
   }
 
+  if (bare) {
+    return (
+      <div className="stack-3">
+        <p className="t-sm t-3">{t('secao.descricao')}</p>
+        {body}
+      </div>
+    );
+  }
   return (
     <div role="group" aria-labelledby={titleId}>
       <Heading className="field__label" id={titleId}>

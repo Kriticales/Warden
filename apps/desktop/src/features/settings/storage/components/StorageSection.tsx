@@ -1,14 +1,14 @@
 /**
  * Configurações → Armazenamento (SPEC T21, P1; A-06): o espaço usado pelo cache de downloads,
- * pelos arquivos do Minecraft e dos loaders, pelos Javas e pelas instâncias de teste, e
- * "Limpar cache".
+ * pelos arquivos do Minecraft e dos loaders, pelos Javas e pelas instâncias de teste, com uma
+ * barra por item e o total, e "Limpar cache".
  *
  * A medição roda no Rust, fora da thread da interface; enquanto ela não chega, cada valor diz
  * "Medindo…". "Limpar cache" fica indisponível (com o motivo) enquanto houver jogo aberto ou
  * tarefa em andamento; o Rust recusa do mesmo jeito se o pedido chegar assim mesmo.
  */
 import { Trash2 } from 'lucide-react';
-import { Fragment, useId } from 'react';
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useOperations } from '../../../../app/tasks/useOperations';
@@ -20,7 +20,7 @@ import { showToast } from '../../../../components/ui/toast';
 import { formatBytes } from '../../../../lib/format';
 import type { StorageUsage } from '../../../../lib/ipc/bindings';
 import { useTestStore } from '../../../test/store';
-import { SettingsPanel } from '../../components/SettingsPanel';
+import { SettingRow, SettingsFrame } from '../../layout/SettingsFrame';
 import { useClearCache, useStorageUsage, useStorageUsageSync } from '../api';
 
 const ITEMS = [
@@ -30,41 +30,67 @@ const ITEMS = [
   ['instances', 'instancias'],
 ] as const satisfies readonly (readonly [keyof StorageUsage, string])[];
 
+/** A menor barra visível, em %: um item quase vazio ainda aparece. */
+const MIN_BAR_PERCENT = 1.5;
+
 export function StorageSection() {
   const { t } = useTranslation('armazenamento');
   useStorageUsageSync();
   const usage = useStorageUsage();
   return (
-    <SettingsPanel title={t('titulo')}>
-      <p className="t-sm t-2">{t('descricao')}</p>
-      {usage.isError ? (
-        <ErrorPanel
-          compact
-          error={usage.error}
-          onRetry={() => {
-            void usage.refetch();
-          }}
-        />
-      ) : (
-        <UsageList usage={usage.data ?? null} />
-      )}
-      <ClearCache cacheBytes={usage.data?.clearable ?? null} />
-    </SettingsPanel>
+    <SettingsFrame page="armazenamento">
+      <div className="sform">
+        <SettingRow title={t('espaco')} desc={t('espacoDesc')} wide>
+          {usage.isError ? (
+            <ErrorPanel
+              compact
+              error={usage.error}
+              onRetry={() => {
+                void usage.refetch();
+              }}
+            />
+          ) : (
+            <UsageList usage={usage.data ?? null} />
+          )}
+        </SettingRow>
+        <SettingRow title={t('limpar')} desc={t('limparDesc')}>
+          <ClearCache cacheBytes={usage.data?.clearable ?? null} />
+        </SettingRow>
+      </div>
+    </SettingsFrame>
   );
 }
 
 function UsageList({ usage }: { usage: StorageUsage | null }) {
   const { t } = useTranslation('armazenamento');
+  const largest = usage ? Math.max(...ITEMS.map(([field]) => usage[field]), 1) : 1;
+  const total = usage ? ITEMS.reduce((sum, [field]) => sum + usage[field], 0) : null;
   return (
-    <dl className="kv" aria-label={t('legenda')} aria-busy={usage === null}>
+    <dl className="usage" aria-label={t('legenda')} aria-busy={usage === null}>
       {ITEMS.map(([field, label]) => (
-        <Fragment key={field}>
+        <div className="usage__row" key={field}>
           <dt>{t(`itens.${label}`)}</dt>
-          <dd className={usage ? undefined : 't-3'}>
+          <span className="usage__bar" aria-hidden="true">
+            {usage ? (
+              <i
+                style={{
+                  width: `${Math.max(MIN_BAR_PERCENT, (usage[field] / largest) * 100).toFixed(1)}%`,
+                }}
+              />
+            ) : null}
+          </span>
+          <dd className={usage ? 'usage__value' : 'usage__value t-3'}>
             {usage ? formatBytes(usage[field]) : t('medindo')}
           </dd>
-        </Fragment>
+        </div>
       ))}
+      <div className="usage__row usage__row--total">
+        <dt>{t('total')}</dt>
+        <span aria-hidden="true" />
+        <dd className={total === null ? 'usage__value t-3' : 'usage__value'}>
+          {total === null ? t('medindo') : formatBytes(total)}
+        </dd>
+      </div>
     </dl>
   );
 }
@@ -91,12 +117,7 @@ function ClearCache({ cacheBytes }: { cacheBytes: number | null }) {
   const clear = useClearCache();
   const blocked = useBlockedReason();
   const trigger = (
-    <Button
-      size="sm"
-      icon={Trash2}
-      disabled={blocked !== null}
-      aria-describedby={blocked ? hintId : undefined}
-    >
+    <Button icon={Trash2} disabled={blocked !== null} aria-describedby={hintId}>
       {t('limpar')}
     </Button>
   );
@@ -130,11 +151,9 @@ function ClearCache({ cacheBytes }: { cacheBytes: number | null }) {
           />
         )}
       </div>
-      {blocked ? (
-        <p className="field__hint" id={hintId}>
-          {blocked}
-        </p>
-      ) : null}
+      <p className="field__hint" id={hintId}>
+        {blocked ?? t('limparDica')}
+      </p>
     </div>
   );
 }
