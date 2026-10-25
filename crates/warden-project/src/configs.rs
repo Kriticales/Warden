@@ -162,7 +162,7 @@ pub fn hash_bytes(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
 
-fn size_u32(size: u64) -> u32 {
+pub(crate) fn size_u32(size: u64) -> u32 {
     u32::try_from(size).unwrap_or(u32::MAX)
 }
 
@@ -172,7 +172,7 @@ fn size_u32(size: u64) -> u32 {
 
 /// Divide o caminho em componentes sem `.` e vazios. Recusa `..`, caminho absoluto (`/…`,
 /// `\\…`) e `:` (letra de unidade e fluxo alternativo do NTFS).
-fn components(relative: &str) -> Result<Vec<&str>> {
+pub(crate) fn components(relative: &str) -> Result<Vec<&str>> {
     if relative.starts_with(['/', '\\']) || relative.contains(':') {
         return Err(invalid_path(relative));
     }
@@ -236,7 +236,7 @@ fn is_hidden(parts: &[&str]) -> bool {
 }
 
 /// O que decide quais arquivos de uma origem o editor mostra.
-struct Scope {
+pub(crate) struct Scope {
     /// Só no pack: as regras de quem joga (`None` na instância).
     pack: Option<PackRules>,
 }
@@ -253,7 +253,7 @@ struct PackRules {
 impl Scope {
     /// As regras da origem. No pack, lê o `.packwizignore` e o `pack.toml` da `root`; se um
     /// deles falta ou não se lê, valem os padrões do packwiz e o `index.toml`.
-    fn new(root: &Path, origin: ConfigOrigin) -> Self {
+    pub(crate) fn new(root: &Path, origin: ConfigOrigin) -> Self {
         let pack = (origin == ConfigOrigin::Pack).then(|| {
             let packwizignore = fs::read_to_string(root.join(PACKWIZIGNORE_FILE)).ok();
             let index = fs::read_to_string(root.join(PACK_FILE))
@@ -271,7 +271,7 @@ impl Scope {
     }
 
     /// Se o arquivo pode aparecer na origem.
-    fn is_listed(&self, parts: &[&str]) -> bool {
+    pub(crate) fn is_listed(&self, parts: &[&str]) -> bool {
         let (Some(first), Some(last)) = (parts.first(), parts.last()) else {
             return false;
         };
@@ -350,7 +350,7 @@ fn is_other_pack_path(parts: &[&str]) -> bool {
 }
 
 /// Valida o caminho pedido pela interface e devolve o caminho no disco e o normalizado.
-fn resolve(
+pub(crate) fn resolve(
     root: &Path,
     origin: ConfigOrigin,
     relative: &str,
@@ -684,7 +684,7 @@ fn not_editable(reason: ReadOnlyReason) -> Error {
 /// Apaga `.warden-tmp` que sobraram de uma gravação interrompida na pasta do arquivo. A falha
 /// da limpeza é descartada de propósito: o temporário que sobrar é ignorado pelo índice
 /// (`*.warden-tmp` no bloco obrigatório do `.packwizignore`) e a próxima gravação tenta de novo.
-fn sweep_leftovers(path: &Path) {
+pub(crate) fn sweep_leftovers(path: &Path) {
     if let Some(parent) = path.parent() {
         let _ = remove_temp_files(parent);
     }
