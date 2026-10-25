@@ -5,10 +5,12 @@
  * - CA-T01-01: com a pasta de dados vazia, o app abre na primeira execução; ao concluir, abre
  *   no início, e reiniciar não mostra o assistente de novo (o `settings.json` existe);
  * - CA-T01-02: `Zé` é recusado com a regra; `Ze_123` é aceito;
- * - CA-T21-01 (interface): a chave salva continua "Configurada" depois de reiniciar;
- * - CA-T21-03 (interface): ir para o `.env` pede confirmação e deixa o aviso fixo, que
- *   continua depois de reiniciar; "Voltar para o cofre" tira o aviso e a chave continua
- *   "Configurada".
+ * - Configurações com o menu lateral (esboço `design/bug-01/configuracoes.html`): cada
+ *   página com endereço próprio e a atual marcada;
+ * - CA-T21-01 (interface): a chave salva aparece só como `••••xxxx` e continua depois de
+ *   reiniciar;
+ * - CA-T21-07 e ADR-0069: quem estava no antigo modo `.env` tem a chave levada para o cofre ao
+ *   abrir o app, com aviso, e o `.env` some.
  *
  * O "Testar" da CurseForge (CA-T21-02) fica nos testes de componente e de backend: aqui ele
  * falaria com a CurseForge de verdade. O diálogo nativo de pasta também não é aberto (ele
@@ -16,7 +18,7 @@
  *
  * Roda antes da fumaça (ordem alfabética dos arquivos) e deixa o app configurado.
  */
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { $, $$, browser, expect } from '@wdio/globals';
@@ -39,26 +41,40 @@ async function restartApp(): Promise<void> {
   await $('header.topbar').waitForDisplayed();
 }
 
+/** Abre Configurações pela barra do app (cai em Geral) e vai para Chaves e contas. */
 async function openSettings(): Promise<void> {
+  // Dentro de Configurações a barra não repete o link: volta a Meus packs antes.
+  if (!(await $('header.topbar').$('a*=Configurações').isExisting())) {
+    await $('header.topbar').$('a*=Meus packs').click();
+    await $('h1=Meus packs').waitForDisplayed();
+  }
   const link = $('header.topbar').$('a*=Configurações');
   await link.waitForClickable();
   await link.click();
-  await $('h1=Configurações').waitForDisplayed();
+  await $('h1*=Geral').waitForDisplayed();
+}
+
+async function openKeys(): Promise<void> {
+  await openSettings();
+  await $('nav.sidenav').$('a*=Chaves e contas').click();
+  await $('h1*=Chaves e contas').waitForDisplayed();
   await $('[data-testid="chave-curseforge"]').waitForDisplayed();
 }
 
-/** Valor do campo ligado ao rótulo com este texto. */
-async function fieldValue(label: string): Promise<string | null> {
-  return browser.execute((text) => {
-    const found = [...document.querySelectorAll('label')].find(
-      (element) => element.textContent === text,
-    );
-    return found?.control instanceof HTMLInputElement ? found.control.value : null;
-  }, label);
+const curseforgeRow = () => $('[data-testid="chave-curseforge"]');
+/** O texto do item marcado como página atual no menu lateral. */
+async function currentPage(): Promise<string> {
+  return browser.execute(
+    () => document.querySelector('nav.sidenav a[aria-current="page"]')?.textContent ?? '',
+  );
 }
 
-const curseforgeRow = () => $('[data-testid="chave-curseforge"]');
-const envWarning = () => $('div.alert*=As chaves estão num arquivo de texto.');
+/** Pasta de configuração do app de teste (`WARDEN_DATA_ROOT/config`). */
+function configDir(): string {
+  const root = process.env.WARDEN_E2E_DATA_ROOT;
+  if (!root) throw new Error('WARDEN_E2E_DATA_ROOT não definida');
+  return join(root, 'config');
+}
 
 describe('primeira execução e Configurações', () => {
   it('CA-T01-01: com a pasta de dados vazia, abre na primeira execução com o aviso legal', async () => {
@@ -112,62 +128,96 @@ describe('primeira execução e Configurações', () => {
     await expect($('ol[aria-label="Etapas da primeira execução"]')).not.toBeExisting();
   });
 
-  it('CA-T21-01: a chave salva aparece só como "Configurada"', async () => {
+  it('o menu lateral tem as 8 páginas, cada uma com endereço próprio, e marca a atual', async () => {
     await openSettings();
-    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Configurada'));
-    await expect(curseforgeRow().$('input')).not.toBeExisting();
+    const names = await browser.execute(() =>
+      [...document.querySelectorAll('nav.sidenav .sidenav__name')].map((item) => item.textContent),
+    );
+    expect(names).toEqual([
+      'Geral',
+      'Chaves e contas',
+      'Sensor Sculk',
+      'Teste',
+      'Editor de configs',
+      'Privacidade e registros',
+      'Armazenamento',
+      'Sobre o Warden',
+    ]);
+    expect(await currentPage()).toContain('Geral');
+    await screenshot('05-geral');
+    expect(await seriousViolationSummaries()).toEqual([]);
+    for (const [page, title] of [
+      ['sensor-sculk', 'Sensor Sculk'],
+      ['teste', 'Teste'],
+      ['editor', 'Editor de configs'],
+      ['registros', 'Privacidade e registros'],
+      ['armazenamento', 'Armazenamento'],
+      ['sobre', 'Sobre o Warden'],
+    ] as const) {
+      await $('nav.sidenav').$(`a[href="/configuracoes/${page}"]`).click();
+      await $(`h1*=${title}`).waitForDisplayed();
+      expect(await currentPage()).toContain(title);
+      await screenshot(`06-${page}`);
+      expect(await seriousViolationSummaries()).toEqual([]);
+    }
+    // Sobre: o commit do packwiz embutido (T23).
+    await expect($('dd*=ef87d96')).toBeDisplayed();
+  });
+
+  it('CA-T21-01: a chave salva aparece só como ••••final, ainda não testada', async () => {
+    await openKeys();
+    await expect(curseforgeRow()).toHaveText(expect.stringContaining('••••6789'));
+    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Não testada'));
+    await curseforgeRow().click();
+    await expect($('section.keydet')).toHaveText(expect.stringContaining('••••6789'));
+    await expect($('section.keydet input[type="password"]')).not.toBeExisting();
+    await expect($('div.vault')).toHaveText(expect.stringMatching(/[Cc]ofre do (sistema|Windows)/));
     const html = await browser.execute(() => document.documentElement.outerHTML);
     expect(html.includes(FAKE_KEY)).toBe(false);
-    await screenshot('05-configuracoes');
+    await screenshot('07-chaves');
     expect(await seriousViolationSummaries()).toEqual([]);
   });
 
-  it('CA-T01-01 e CA-T21-01: reiniciar abre no início e a chave continua "Configurada"', async () => {
+  it('CA-T01-01 e CA-T21-01: reiniciar abre no início e a chave continua guardada', async () => {
     await restartApp();
     await $('h1=Meus packs').waitForDisplayed();
     await expect($('ol[aria-label="Etapas da primeira execução"]')).not.toBeExisting();
     await openSettings();
-    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Configurada'));
-    expect(await fieldValue('Nome do jogador nos testes')).toBe('Ze_123');
+    const name = await $('input.input:not(.input--mono)').getValue();
+    expect(name).toBe('Ze_123');
+    await $('nav.sidenav').$('a*=Chaves e contas').click();
+    await expect(curseforgeRow()).toHaveText(expect.stringContaining('••••6789'));
   });
 
-  it('CA-T21-03: ir para o .env pede confirmação, e o aviso fica fixo mesmo depois de reiniciar', async () => {
-    await $('label.choice*=Arquivo .env').click();
-    const dialog = $('[role="alertdialog"]');
-    await dialog.waitForDisplayed();
-    await expect(dialog).toHaveText(
-      expect.stringContaining(
-        'Qualquer programa no seu computador, e qualquer backup ou sincronização dessa pasta, consegue ler as chaves.',
-      ),
+  it('CA-T21-07 e ADR-0069: o modo .env antigo é levado para o cofre ao abrir, com aviso, e o .env some', async () => {
+    const settingsFile = join(configDir(), 'settings.json');
+    const settings = JSON.parse(readFileSync(settingsFile, 'utf8')) as Record<string, unknown>;
+    writeFileSync(
+      settingsFile,
+      JSON.stringify({ ...settings, secretsBackend: 'envfile' }, null, 2),
     );
-    await screenshot('06-confirmar-env');
-    await $('button=Usar arquivo .env').click();
-    await envWarning().waitForDisplayed();
-    await screenshot('07-env');
-
+    const envFile = join(configDir(), '.env');
+    writeFileSync(envFile, `GITHUB_TOKEN='e2e-token-falso-do-github-4321'\n`);
     await restartApp();
-    await openSettings();
-    await envWarning().waitForDisplayed();
-    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Configurada'));
-  });
-
-  it('CA-T21-03: "Voltar para o cofre" tira o aviso e a chave continua "Configurada"', async () => {
-    await $('button=Voltar para o cofre').click();
-    await envWarning().waitForDisplayed({ reverse: true });
-    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Configurada'));
-    await restartApp();
-    await openSettings();
-    await expect(envWarning()).not.toBeExisting();
-    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Configurada'));
+    await $('.toast*=Suas chaves foram para o').waitForDisplayed();
+    expect(existsSync(envFile)).toBe(false);
+    expect(readFileSync(settingsFile, 'utf8')).not.toContain('secretsBackend');
+    await openKeys();
+    await expect($('div.alert*=Suas chaves agora ficam no')).toBeDisplayed();
+    await expect($('[data-testid="chave-github"]')).toHaveText(expect.stringContaining('••••4321'));
+    await screenshot('08-migracao');
+    expect(await seriousViolationSummaries()).toEqual([]);
   });
 
   it('Remover pede confirmação e a chave volta a ser um campo vazio', async () => {
-    await curseforgeRow().$('button=Remover').click();
+    await curseforgeRow().click();
+    await $('section.keydet').$('button=Remover').click();
     const dialog = $('[role="alertdialog"]');
     await dialog.waitForDisplayed();
     await $('button=Remover chave').click();
-    await curseforgeRow().$('input[type="password"]').waitForDisplayed();
-    await expect(curseforgeRow().$('input[type="password"]')).toHaveValue('');
+    await $('section.keydet input[type="password"]').waitForDisplayed();
+    await expect($('section.keydet input[type="password"]')).toHaveValue('');
+    await expect(curseforgeRow()).toHaveText(expect.stringContaining('Sem chave'));
   });
 
   it('em 1024 px nada estoura na horizontal', async () => {
@@ -177,6 +227,6 @@ describe('primeira execução e Configurações', () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBe(0);
-    await screenshot('08-configuracoes-1024');
+    await screenshot('09-configuracoes-1024');
   });
 });

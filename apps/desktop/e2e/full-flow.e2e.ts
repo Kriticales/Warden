@@ -13,7 +13,7 @@
  *
  * Cada passo confere o que aparece na tela e o que ficou no disco:
  *
- * 1. Configurações: a chave da CurseForge e o token do GitHub ficam "Configurada".
+ * 1. Configurações: a chave da CurseForge e o token do GitHub ficam guardados (••••final).
  * 2. Criar pack Fabric 1.21.1 com os mods iniciais (spark, Crash Assistant e a Fabric API que o
  *    spark traz): o pack abre em Mods com os três, e a config do Crash Assistant existe.
  * 3. Adicionar: a busca combinada mostra o Sodium uma vez, "Modrinth e CurseForge", e o mod só da
@@ -52,6 +52,7 @@ import {
   stopGame,
   waitToast,
 } from './steps';
+import { keyItem, openKeysPage, saveKey } from './keys';
 import { dismissToasts } from './toasts';
 import { zipEntries, zipEntry } from './zip';
 
@@ -222,18 +223,13 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
 
   it('1. Configurações: guarda a chave da CurseForge e o token do GitHub', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
-    const link = $('header.topbar').$('a*=Configurações');
-    await link.waitForClickable();
-    await link.click();
+    await openKeysPage();
     for (const [kind, value] of [
       ['curseforge', CHAVE_BOA],
       ['github', GITHUB_TOKEN],
     ] as const) {
-      const row = $(`[data-testid="chave-${kind}"]`);
-      await row.waitForDisplayed({ timeout: 30_000 });
-      await row.$('input').setValue(value);
-      await row.$('button=Salvar').click();
-      await expect(row).toHaveText(expect.stringContaining('Configurada'), { wait: 15_000 });
+      await saveKey(kind, value);
+      await expect(keyItem(kind)).toHaveText(expect.stringContaining(`••••${value.slice(-4)}`));
     }
     const html = await browser.execute(() => document.documentElement.outerHTML);
     expect(html.includes(CHAVE_BOA)).toBe(false);

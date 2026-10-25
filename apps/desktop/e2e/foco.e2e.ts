@@ -370,9 +370,15 @@ describe('Teclado e foco nas telas P0 (A-01)', () => {
   it('Configurações: foco visível em todos os controles; axe', async () => {
     await goToPacks();
     await $('header').$('a=Configurações').click();
-    await $('h1=Configurações').waitForDisplayed();
-    await $('h2=Geral').waitForDisplayed();
+    await $('h1*=Geral').waitForDisplayed();
     expect(await tabThroughPage()).toEqual([]);
     expect(await seriousViolationSummaries()).toEqual([]);
+    // As páginas com mais controles: Chaves e contas e Sensor Sculk (a ordem dos provedores).
+    for (const page of ['Chaves e contas', 'Sensor Sculk']) {
+      await $('nav.sidenav').$(`a*=${page}`).click();
+      await $(`h1*=${page}`).waitForDisplayed();
+      expect(await tabThroughPage()).toEqual([]);
+      expect(await seriousViolationSummaries()).toEqual([]);
+    }
   });
 });

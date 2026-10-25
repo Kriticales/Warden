@@ -22,6 +22,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolationSummaries } from './axe';
 import { GITHUB_LOGIN, GITHUB_TOKEN } from './mock-server/github';
 import { jogadorJar } from './mock-server/player';
+import { openKeysPage, saveKey } from './keys';
 import { dismissToasts } from './toasts';
 import { openOrImport } from './open-or-import';
 
@@ -257,14 +258,8 @@ describe('Testar como o jogador recebe (L-07; T13)', function () {
     // Token do GitHub em Configurações (pela tela Meus packs).
     await dismissToasts();
     await $('header.packhead').$('a*=Meus packs').click();
-    const settings = $('header.topbar').$('a*=Configurações');
-    await settings.waitForClickable({ timeout: 30_000 });
-    await settings.click();
-    const row = $('[data-testid="chave-github"]');
-    await row.waitForDisplayed({ timeout: 30_000 });
-    await row.$('input').setValue(GITHUB_TOKEN);
-    await row.$('button=Salvar').click();
-    await expect(row).toHaveText(expect.stringContaining('Configurada'), { wait: 15_000 });
+    await openKeysPage();
+    await saveKey('github', GITHUB_TOKEN);
 
     // Volta ao pack e publica a 1.0.0.
     await dismissToasts();

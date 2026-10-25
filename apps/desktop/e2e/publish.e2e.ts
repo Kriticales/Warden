@@ -23,6 +23,7 @@ import { $, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { GITHUB_LOGIN, GITHUB_TOKEN, type GithubState } from './mock-server/github';
+import { keyItem, openKeysPage, saveKey } from './keys';
 import { dismissToasts } from './toasts';
 import { openOrImport } from './open-or-import';
 import { dialogNamed, openSection, saveFinal } from './steps';
@@ -86,17 +87,15 @@ describe('Publicar versão no GitHub (V-03; T18)', () => {
     rmSync(join(DATA_ROOT, 'cofre-de-teste', 'github-token'), { force: true });
   });
 
-  it('salva o token do GitHub e o Testar confere na API', async () => {
-    const link = $('header.topbar').$('a*=Configurações');
-    await link.waitForClickable();
-    await link.click();
-    const row = $('[data-testid="chave-github"]');
-    await row.waitForDisplayed({ timeout: 30_000 });
-    await row.$('input').setValue(GITHUB_TOKEN);
-    await row.$('button=Salvar').click();
-    await expect(row).toHaveText(expect.stringContaining('Configurada'), { wait: 15_000 });
-    await row.$('button=Testar').click();
-    await expect(row).toHaveText(expect.stringContaining('Funcionando'), { wait: 30_000 });
+  it('salva o token do GitHub e o teste confere na API', async () => {
+    await openKeysPage();
+    // Salvar testa na hora (`GET /user` no simulado).
+    await saveKey('github', GITHUB_TOKEN);
+    await expect(keyItem('github')).toHaveText(expect.stringContaining('Funcionando'));
+    await $('section.keydet').$('button=Testar').click();
+    await expect(keyItem('github')).toHaveText(expect.stringContaining('Funcionando'), {
+      wait: 30_000,
+    });
     const html = await browser.execute(() => document.documentElement.outerHTML);
     expect(html.includes(GITHUB_TOKEN)).toBe(false);
   });
