@@ -5,9 +5,8 @@
  * Sem menu: só o indicador de etapas. Reabre por Configurações → "Rever boas-vindas".
  *
  * Nada é gravado até **Concluir** (ou **Pular, configuro depois**), exceto a pasta, que o
- * diálogo nativo grava ao ser escolhida (ARCHITECTURE §4.1). Ao concluir, na ordem: o modo
- * das chaves (se o `.env` foi escolhido), as chaves digitadas e, por último, o nome do
- * jogador, que grava o `settings.json` e encerra a primeira execução (CA-T01-01). O provedor da
+ * diálogo nativo grava ao ser escolhida (ARCHITECTURE §4.1). Ao concluir, na ordem: as chaves
+ * digitadas (sempre no cofre do sistema; ADR-0069) e, por último, o nome do jogador, que grava o `settings.json` e encerra a primeira execução (CA-T01-01). O provedor da
  * IA, se não for o já gravado, é gravado antes das chaves. Uma falha no
  * meio deixa o assistente aberto, com o erro, para tentar de novo.
  */
@@ -25,7 +24,6 @@ import { Icon } from '../../../components/ui/icon';
 import {
   commands,
   type AiProvider,
-  type BackendKind,
   type SecretKind,
   type SecretsStatus,
 } from '../../../lib/ipc/bindings';
@@ -43,13 +41,10 @@ import {
 import { aiKeys, useAiSettings } from '../../diagnostics/ai/api';
 import { AI_PROVIDERS, providerName, secretOf } from '../../settings/ai/providers';
 import { Choice, TextField } from '../../settings/components/fields';
-import { EnvConfirmDialog } from '../../settings/components/KeysSection';
 import { PacksDirField } from '../../settings/components/PacksDirField';
 import { PlayerNameField } from '../../settings/components/PlayerNameField';
 import '../../settings/settings.css';
 
-/** Nome do grupo de rádio do modo das chaves. */
-const BACKEND_GROUP = 'onboarding-backend';
 /** Nome do grupo de rádio do provedor da IA. */
 const PROVIDER_GROUP = 'onboarding-ia-provedor';
 
@@ -75,15 +70,11 @@ export function OnboardingWizard() {
   const [name, setName] = useState<string | null>(null);
   const [nameTouched, setNameTouched] = useState(false);
   const [keys, setKeys] = useState<Keys>(EMPTY_KEYS);
-  const [backend, setBackend] = useState<BackendKind | null>(null);
-  const [confirmEnv, setConfirmEnv] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const firstRender = useRef(true);
 
   const playerName = name ?? settings.data?.playerName ?? 'Jogador';
-  const savedBackend = secrets.data?.backend ?? 'keyring';
-  const chosenBackend = backend ?? savedBackend;
   const savedProvider = aiSettings.data?.provider ?? 'gemini';
   const chosenProvider = provider ?? savedProvider;
   const nameValid = isValidPlayerName(playerName);
@@ -106,9 +97,6 @@ export function OnboardingWizard() {
     try {
       if (withKeys) {
         let status: SecretsStatus | null = null;
-        if (chosenBackend !== savedBackend) {
-          status = unwrap(await commands.secretsBackendSet(chosenBackend));
-        }
         if (chosenProvider !== savedProvider) {
           const view = unwrap(await commands.aiProviderSet(chosenProvider));
           queryClient.setQueryData(aiKeys.settings, view);
@@ -217,24 +205,7 @@ export function OnboardingWizard() {
               setKeys((current) => ({ ...current, [secretOf(chosenProvider)]: value }));
             }}
           />
-          <BackendChoice
-            value={chosenBackend}
-            onVault={() => {
-              setBackend('keyring');
-            }}
-            onEnv={() => {
-              setConfirmEnv(true);
-            }}
-          />
         </div>
-        <EnvConfirmDialog
-          open={confirmEnv}
-          onOpenChange={setConfirmEnv}
-          onConfirm={async () => {
-            setBackend('envfile');
-            return Promise.resolve();
-          }}
-        />
       </>
     );
   }
@@ -425,44 +396,6 @@ function AiKeyChoice({
           onChange(event.target.value);
         }}
       />
-    </fieldset>
-  );
-}
-
-function BackendChoice({
-  value,
-  onVault,
-  onEnv,
-}: {
-  value: BackendKind;
-  onVault: () => void;
-  onEnv: () => void;
-}) {
-  const { t } = useTranslation('configuracoes');
-  const { t: tw } = useTranslation('boasVindas');
-  const legendId = useId();
-  return (
-    <fieldset className="m-0 border-0 p-0" aria-labelledby={legendId}>
-      <legend className="field__label mb-2" id={legendId}>
-        {t('guardar.legenda')}
-      </legend>
-      <div className="choice-list choice-list--2">
-        <Choice
-          name={BACKEND_GROUP}
-          title={t('guardar.cofre')}
-          badge={<span className="tag tag--ok ml-2">{t('guardar.recomendado')}</span>}
-          desc={tw('chaves.cofreDesc')}
-          checked={value === 'keyring'}
-          onSelect={onVault}
-        />
-        <Choice
-          name={BACKEND_GROUP}
-          title={t('guardar.env')}
-          desc={tw('chaves.envDesc')}
-          checked={value === 'envfile'}
-          onSelect={onEnv}
-        />
-      </div>
     </fieldset>
   );
 }

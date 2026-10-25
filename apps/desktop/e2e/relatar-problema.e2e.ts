@@ -418,7 +418,8 @@ describe('Relatar problema', () => {
     const link = $('header.topbar').$('a*=Configurações');
     await link.waitForClickable();
     await link.click();
-    await $('h1=Configurações').waitForDisplayed();
+    // Configurações abre na Geral (menu lateral; ADR-0070).
+    await $('h1*=Geral').waitForDisplayed();
     await browser.keys(['Control', 'Shift', 'e']);
     await dialog().waitForDisplayed();
     await expand('O que o Warden coleta sozinho');

@@ -37,7 +37,7 @@ Tomadas em 01/10/2026, a partir deste documento e dos comentários na página pu
 | **Alternativa A** aprovada, com a sexta seção **✦ Diagnóstico com IA**; Alternativa B descartada. | SPEC §5 e T05, ADR-0026 |
 | Mudanças **M1 a M12** (§7) aprovadas. | SPEC (telas citadas em cada M) |
 | **Busca combinada** Modrinth + CurseForge num resultado só, com a fonte marcada e sem duplicatas; sem chave da CurseForge, só Modrinth com aviso. Some o seletor "Onde buscar". | SPEC T08, ADR-0027 |
-| **Chaves:** cofre do Windows por padrão, com opção de arquivo `.env` na pasta de dados do Warden e aviso claro de que é texto legível por outros programas. | SPEC T21, ADR-0025 |
+| **Chaves:** sempre no cofre do Windows (decisão revista no relatório de bugs nº 1; sai a opção do `.env`). | SPEC T21, ADR-0069 |
 | **Java:** o mais novo que funciona com cada versão, sempre atualizado, com o motivo à vista. | SPEC T11 e T21, ADR-0029 |
 | **GitHub distribui o pack:** salvar continua local; versões marcadas como **versão final** são publicadas com **Publicar versão** (nome escolhido no lugar de "Enviar ao GitHub"), com changelog, tag e Release; jogadores atualizam pelo link do `pack.toml`; repositório público recomendado, privado como "só backup". Substitui a D2 antiga ("sempre privado"). | SPEC T16–T18 e §10 (D14), ADR-0028 |
 
@@ -263,9 +263,9 @@ Na Alternativa B, as áreas do painel usam os mesmos nomes. A única diferença 
 | T19 | Exportar | **Exportar**: uma página de cima para baixo (conferências → formato → o que vai → exportar). |
 | T19 | Exportar uma versão salva (P1) | Em Histórico, dentro de cada versão. |
 | T20 | Downloads manuais da CurseForge | Etapa 3 do teste. Aviso antecipado na página Adicionar. |
-| T21 | Configurações do app | Página única rolável, com seções e sem submenu. Chaves e contas logo depois de Geral, com "Onde guardar as chaves" (cofre ou `.env`). Em Teste, uma tabela de Java mostra qual pack usa cada versão e por que não é a mais nova de todas. |
+| T21 | Configurações do app | Menu lateral com 8 páginas (Geral, Chaves e contas, Sensor Sculk, Teste, Editor de configs, Privacidade e registros, Armazenamento, Sobre o Warden), cada uma com endereço próprio (relatório de bugs nº 1, esboço `design/bug-01/configuracoes.html`; ADR-0070). As chaves ficam sempre no cofre do Windows (ADR-0069). Em Teste, uma tabela de Java mostra qual pack usa cada versão e por que não é a mais nova de todas. |
 | T22 | Tarefas | Indicador no rodapé de todas as telas → gaveta. |
-| T23 | Sobre | Última seção de Configurações ("Sobre o Warden"). O aviso legal também aparece na primeira execução. |
+| T23 | Sobre | Última página de Configurações ("Sobre o Warden"). O aviso legal também aparece na primeira execução. |
 
 ## 7. Mudanças propostas na SPEC
 

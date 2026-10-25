@@ -100,6 +100,18 @@ const DEFAULTS: Record<string, Handler> = {
     keyConfigured: false,
     models: null,
     providers: [],
+    order: ['gemini', 'openai', 'anthropic'],
+  }),
+  // Chaves e contas (ADR-0069): nenhuma chave no cofre e nada vindo do `.env` antigo (o aviso
+  // da migração é lido ao abrir o app).
+  secrets_overview: () => ({
+    keys: ['curseforge', 'gemini', 'openai', 'anthropic', 'github'].map((kind) => ({
+      kind,
+      configured: false,
+      hint: null,
+      check: null,
+    })),
+    migration: null,
   }),
   ai_models_get: () => ({ economical: 'gemini-9.1-flash-lite', careful: 'gemini-9.1-flash' }),
   // Registros do frontend (`tauri-plugin-log`) e links externos (`opener`).

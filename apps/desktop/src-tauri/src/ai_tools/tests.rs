@@ -858,19 +858,18 @@ async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a
     assert_eq!(order, AiProvider::ALL);
     assert!(!view.providers[1].key_configured && !view.providers[2].key_configured);
 
-    // Cada provedor guarda a sua escolha; voltar ao Gemini traz a dele.
+    // ADR-0070: sem a chave da OpenAI, pôr a OpenAI em primeiro não muda o provedor das
+    // conversas novas (o Sculk pula quem não tem chave).
     let view = provider_set_impl(&setup.state, AiProvider::Openai).unwrap();
     assert_eq!(
-        (view.provider, view.tier, view.key_configured),
-        (AiProvider::Openai, ModelTier::Economical, false)
+        view.order,
+        [
+            AiProvider::Openai,
+            AiProvider::Gemini,
+            AiProvider::Anthropic
+        ]
     );
-    let view = settings_set_impl(&setup.state, ModelTier::Careful).unwrap();
-    assert_eq!(view.tier, ModelTier::Careful);
-    let view = provider_set_impl(&setup.state, AiProvider::Anthropic).unwrap();
-    assert_eq!(view.tier, ModelTier::Economical);
-    let view = provider_set_impl(&setup.state, AiProvider::Gemini).unwrap();
-    assert_eq!(view.tier, ModelTier::Careful);
-    assert_eq!(view.providers[1].tier, ModelTier::Careful);
+    assert_eq!(view.provider, AiProvider::Gemini);
 
     // As chaves de cada provedor ficam no cofre, nunca no arquivo das configurações.
     for (kind, value) in [
@@ -883,6 +882,20 @@ async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a
             .set(kind, &SecretString::from(value))
             .unwrap();
     }
+
+    // Cada provedor guarda a sua escolha; voltar ao Gemini traz a dele.
+    let view = provider_set_impl(&setup.state, AiProvider::Openai).unwrap();
+    assert_eq!(
+        (view.provider, view.tier, view.key_configured),
+        (AiProvider::Openai, ModelTier::Economical, true)
+    );
+    let view = settings_set_impl(&setup.state, ModelTier::Careful).unwrap();
+    assert_eq!(view.tier, ModelTier::Careful);
+    let view = provider_set_impl(&setup.state, AiProvider::Anthropic).unwrap();
+    assert_eq!(view.tier, ModelTier::Economical);
+    let view = provider_set_impl(&setup.state, AiProvider::Gemini).unwrap();
+    assert_eq!(view.tier, ModelTier::Careful);
+    assert_eq!(view.providers[1].tier, ModelTier::Careful);
     let view = settings_view(&setup.state).unwrap();
     assert!(view.providers.iter().all(|p| p.key_configured));
     let text = fs::read_to_string(&file).unwrap();

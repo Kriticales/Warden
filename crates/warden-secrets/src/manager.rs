@@ -1,15 +1,16 @@
-//! Serviço de segredos do app: estado, gravar, remover, ler na hora do uso e trocar de modo.
+//! Serviço de segredos do app: estado, gravar, remover, ler na hora do uso e a migração única
+//! do `.env` antigo para o cofre (ADR-0069).
 
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, MutexGuard, PoisonError, RwLock};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use secrecy::{ExposeSecret as _, SecretString};
 use warden_core::fault;
 
-use crate::envfile::EnvFileStore;
 use crate::error::SecretsError;
 use crate::keyring::KeyringStore;
-use crate::kind::{BackendKind, SecretKind, SecretsStatus};
+use crate::kind::{SecretKind, SecretsStatus};
+use crate::legacy_env::{read_legacy_env, remove_legacy_env};
 use crate::store::{SecretStore, normalize_secret};
 
 /// Variável que troca o cofre do sistema pelo cofre de teste em arquivo, só em build de
@@ -64,46 +65,45 @@ pub type EnvLookup = fn(&str) -> Option<String>;
 /// Configuração do serviço de segredos.
 #[derive(Debug, Clone)]
 pub struct SecretsConfig {
-    /// Caminho do `.env` do modo [`BackendKind::Envfile`].
-    pub env_file: PathBuf,
+    /// Caminho do `.env` do antigo modo "guardar num arquivo" (ADR-0025), lido só pela
+    /// migração para o cofre ([`Secrets::migrate_legacy_env`]).
+    pub legacy_env_file: PathBuf,
     /// Substituto do cofre do sistema (só tem efeito em build de debug).
     pub keyring_override: Option<BackendOverride>,
     /// Recuo de desenvolvimento: ler `CURSEFORGE_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`,
-    /// `ANTHROPIC_API_KEY` e `GITHUB_TOKEN` do ambiente quando o armazenamento não tem a chave
-    /// (só tem efeito em build de debug).
+    /// `ANTHROPIC_API_KEY` e `GITHUB_TOKEN` do ambiente quando o cofre não tem a chave (só tem
+    /// efeito em build de debug).
     pub env_fallback: Option<EnvLookup>,
 }
 
 impl SecretsConfig {
-    /// Configuração do app: `.env` em `env_file`, substituto do cofre se houver e recuo pelo
-    /// ambiente real (ambos só em debug).
+    /// Configuração do app: o `.env` antigo em `legacy_env_file`, substituto do cofre se houver
+    /// e recuo pelo ambiente real (ambos só em debug).
     #[must_use]
-    pub fn for_app(env_file: PathBuf, keyring_override: Option<BackendOverride>) -> Self {
+    pub fn for_app(legacy_env_file: PathBuf, keyring_override: Option<BackendOverride>) -> Self {
         Self {
-            env_file,
+            legacy_env_file,
             keyring_override,
             env_fallback: Some(|name| std::env::var(name).ok()),
         }
     }
 }
 
-/// Resultado de uma troca de modo.
+/// O que a migração do `.env` antigo fez.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SwitchReport {
-    /// Modo anterior.
-    pub from: BackendKind,
-    /// Modo novo (já em vigor e gravado).
-    pub to: BackendKind,
-    /// Segredos movidos.
+pub struct EnvMigration {
+    /// Chaves gravadas no cofre (e conferidas) a partir do `.env`.
     pub moved: Vec<SecretKind>,
-    /// Segredos que não puderam ser apagados da origem (a cópia nova vale; a antiga sobrou).
-    pub leftovers: Vec<SecretKind>,
+    /// Chaves do `.env` que o cofre já tinha e ficaram como estavam no cofre.
+    pub kept: Vec<SecretKind>,
+    /// O `.env` foi apagado. `false`: as chaves já estão no cofre, mas o arquivo sobrou (a
+    /// próxima abertura tenta apagar de novo).
+    pub file_removed: bool,
 }
 
-/// Armazenamento que não pôde ser aberto: toda operação devolve o erro de abertura.
+/// Cofre que não pôde ser aberto: toda operação devolve o erro de abertura.
 #[derive(Debug)]
 struct UnavailableStore {
-    backend: BackendKind,
     message: String,
 }
 
@@ -117,10 +117,6 @@ impl UnavailableStore {
 }
 
 impl SecretStore for UnavailableStore {
-    fn backend(&self) -> BackendKind {
-        self.backend
-    }
-
     fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError> {
         Err(self.error(kind))
     }
@@ -134,48 +130,45 @@ impl SecretStore for UnavailableStore {
     }
 }
 
-/// Serviço de segredos. Seguro para usar de várias threads: gravações, remoções e trocas de
-/// modo são serializadas; leituras não esperam.
+/// Serviço de segredos. Seguro para usar de várias threads: gravações, remoções e a migração
+/// são serializadas; leituras não esperam.
 pub struct Secrets {
     config: SecretsConfig,
-    active: RwLock<Arc<dyn SecretStore>>,
+    store: Arc<dyn SecretStore>,
     writes: Mutex<()>,
 }
 
 impl std::fmt::Debug for Secrets {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Secrets")
-            .field("backend", &self.backend())
-            .field("env_file", &self.config.env_file)
+            .field("store", &self.store)
+            .field("legacy_env_file", &self.config.legacy_env_file)
             .finish_non_exhaustive()
     }
 }
 
+/// Menor chave que mostra o final (`••••` + 4 caracteres): numa chave curta, 4 caracteres
+/// seriam uma parte grande demais dela. As chaves reais têm de 30 a 200 caracteres.
+const MIN_LEN_FOR_HINT: usize = 16;
+
 impl Secrets {
-    /// Abre o serviço no modo `backend` (o gravado em `settings.json`). Não falha: se o cofre
-    /// do sistema não abrir, cada operação devolve [`SecretsError::VaultUnavailable`].
+    /// Abre o cofre do sistema (ou o de teste, em debug). Não falha: se o cofre do sistema não
+    /// abrir, cada operação devolve [`SecretsError::VaultUnavailable`].
     #[must_use]
-    pub fn open(config: SecretsConfig, backend: BackendKind) -> Self {
-        let store = store_for(&config, backend);
+    pub fn open(config: SecretsConfig) -> Self {
+        let store = store_for(&config);
         Self {
             config,
-            active: RwLock::new(store),
+            store,
             writes: Mutex::new(()),
         }
     }
 
-    /// Modo em uso.
-    #[must_use]
-    pub fn backend(&self) -> BackendKind {
-        self.active_store().backend()
-    }
-
-    /// Quais segredos estão configurados no armazenamento em uso (sem o recuo pelo ambiente:
-    /// "Configurada" quer dizer guardada pelo Warden).
+    /// Quais segredos estão configurados no cofre (sem o recuo pelo ambiente: "configurada"
+    /// quer dizer guardada pelo Warden).
     pub fn status(&self) -> Result<SecretsStatus, SecretsError> {
-        let store = self.active_store();
+        let store = &self.store;
         Ok(SecretsStatus {
-            backend: store.backend(),
             curseforge: store.get(SecretKind::Curseforge)?.is_some(),
             gemini: store.get(SecretKind::Gemini)?.is_some(),
             openai: store.get(SecretKind::Openai)?.is_some(),
@@ -184,25 +177,33 @@ impl Secrets {
         })
     }
 
+    /// Os últimos 4 caracteres da chave guardada, para a interface mostrar `••••xxxx` (a chave
+    /// inteira nunca sai do backend). `None` sem chave ou com uma chave curta demais.
+    pub fn hint(&self, kind: SecretKind) -> Result<Option<String>, SecretsError> {
+        Ok(self.store.get(kind)?.and_then(|value| {
+            let chars: Vec<char> = value.expose_secret().chars().collect();
+            (chars.len() >= MIN_LEN_FOR_HINT).then(|| chars[chars.len() - 4..].iter().collect())
+        }))
+    }
+
     /// Grava um segredo digitado pelo usuário: limpa e valida, grava e relê para conferir.
     pub fn set(&self, kind: SecretKind, value: &SecretString) -> Result<(), SecretsError> {
         let value = normalize_secret(kind, value)?;
         let _writes = self.lock_writes();
-        let store = self.active_store();
-        store.set(kind, &value)?;
-        verify(store.as_ref(), kind, &value)
+        self.store.set(kind, &value)?;
+        verify(self.store.as_ref(), kind, &value)
     }
 
     /// Apaga um segredo.
     pub fn remove(&self, kind: SecretKind) -> Result<(), SecretsError> {
         let _writes = self.lock_writes();
-        self.active_store().remove(kind)
+        self.store.remove(kind)
     }
 
     /// Lê um segredo na hora do uso (cliente da CurseForge, dos provedores de IA, do GitHub). Em
-    /// build de debug, se o armazenamento não tiver a chave, usa a variável de ambiente.
+    /// build de debug, se o cofre não tiver a chave, usa a variável de ambiente.
     pub fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError> {
-        if let Some(value) = self.active_store().get(kind)? {
+        if let Some(value) = self.store.get(kind)? {
             return Ok(Some(value));
         }
         Ok(self.env_fallback(kind))
@@ -225,87 +226,69 @@ impl Secrets {
         Ok(values)
     }
 
-    /// Troca o modo, movendo as chaves (ARCHITECTURE §14; ADR-0025):
+    /// Leva as chaves do `.env` antigo para o cofre (ADR-0069), ao abrir o app:
     ///
-    /// 1. para cada segredo, grava no destino e relê para conferir (o que não existe na origem
-    ///    é apagado do destino, para o destino ficar igual à origem);
-    /// 2. chama `persist(to)`, que grava o modo novo em `settings.json`;
-    /// 3. passa a usar o destino e só então apaga da origem (voltar para o cofre apaga o
-    ///    `.env`).
+    /// 1. sem o arquivo, não faz nada (`Ok(None)`);
+    /// 2. cada chave do arquivo é gravada no cofre e relida para conferir. Com `env_wins`
+    ///    (o `settings.json` ainda dizia que o `.env` era o lugar das chaves), o valor do
+    ///    arquivo substitui o do cofre; sem ele, o cofre já era o lugar em uso e só recebe as
+    ///    chaves que não tem;
+    /// 3. só depois de **todas** conferidas, o arquivo é apagado.
     ///
-    /// Se 1 ou 2 falharem, o destino volta a ser como era, o modo continua o antigo e nenhuma
-    /// chave se perde ([`SecretsError::BackendSwitchFailed`]). Se apagar da origem falhar, a
-    /// troca vale e o que sobrou aparece em [`SwitchReport::leftovers`].
-    pub fn switch_backend(
-        &self,
-        to: BackendKind,
-        persist: impl FnOnce(BackendKind) -> Result<(), String>,
-    ) -> Result<SwitchReport, SecretsError> {
+    /// Se algo falhar em 2, o arquivo fica intacto e nada se perde
+    /// ([`SecretsError::EnvMigrationFailed`]); a próxima abertura tenta de novo (o que já foi
+    /// para o cofre é regravado igual). Se apagar falhar, as chaves já estão no cofre e
+    /// [`EnvMigration::file_removed`] diz que o arquivo sobrou.
+    pub fn migrate_legacy_env(&self, env_wins: bool) -> Result<Option<EnvMigration>, SecretsError> {
         let _writes = self.lock_writes();
-        let from_store = self.active_store();
-        let from = from_store.backend();
-        if from == to {
-            return Ok(SwitchReport {
-                from,
-                to,
-                moved: Vec::new(),
-                leftovers: Vec::new(),
-            });
+        let path = &self.config.legacy_env_file;
+        let wrap = |source| SecretsError::EnvMigrationFailed {
+            source: Box::new(source),
+        };
+        let Some(entries) = read_legacy_env(path).map_err(wrap)? else {
+            return Ok(None);
+        };
+        let mut moved = Vec::new();
+        let mut kept = Vec::new();
+        for (kind, value) in entries {
+            let copied = (|| {
+                let current = self.store.get(kind)?;
+                if !env_wins && current.is_some() {
+                    return Ok(false);
+                }
+                self.store.set(kind, &value)?;
+                fault::check("secrets.migrate.after_copy")?;
+                verify(self.store.as_ref(), kind, &value)?;
+                Ok(true)
+            })()
+            .map_err(wrap)?;
+            if copied {
+                moved.push(kind);
+            } else {
+                kept.push(kind);
+            }
         }
-        let to_store = store_for(&self.config, to);
-
-        let mut previous = Vec::new();
-        let copied =
-            copy_all(from_store.as_ref(), to_store.as_ref(), &mut previous).and_then(|moved| {
-                fault::check("secrets.switch.before_persist")?;
-                persist(to).map_err(|message| SecretsError::PersistFailed { message })?;
-                Ok(moved)
-            });
-        let moved = match copied {
-            Ok(moved) => moved,
+        let removed = fault::check("secrets.migrate.before_remove")
+            .map_err(SecretsError::from)
+            .and_then(|()| remove_legacy_env(path));
+        let file_removed = match removed {
+            Ok(()) => true,
             Err(error) => {
-                restore(to_store.as_ref(), previous);
-                return Err(SecretsError::BackendSwitchFailed {
-                    from,
-                    to,
-                    source: Box::new(error),
-                });
+                tracing::warn!(%error, "migração do .env: chaves no cofre, mas o arquivo sobrou");
+                false
             }
         };
-
-        *self.active.write().unwrap_or_else(PoisonError::into_inner) = Arc::clone(&to_store);
-
-        let mut leftovers = Vec::new();
-        for kind in SecretKind::ALL {
-            let removed = fault::check("secrets.switch.before_remove_source")
-                .map_err(SecretsError::from)
-                .and_then(|()| from_store.remove(kind));
-            if let Err(error) = removed {
-                tracing::warn!(?kind, %error, "troca de modo: cópia antiga não apagada");
-                leftovers.push(kind);
-            }
-        }
-        if leftovers.is_empty()
-            && let Err(error) = from_store.purge()
-        {
-            tracing::warn!(%error, "troca de modo: armazenamento antigo não esvaziado");
-        }
         tracing::info!(
-            ?from,
-            ?to,
             moved = moved.len(),
-            "chaves movidas de armazenamento"
+            kept = kept.len(),
+            file_removed,
+            "chaves do .env antigo levadas para o cofre"
         );
-        Ok(SwitchReport {
-            from,
-            to,
+        Ok(Some(EnvMigration {
             moved,
-            leftovers,
-        })
-    }
-
-    fn active_store(&self) -> Arc<dyn SecretStore> {
-        Arc::clone(&self.active.read().unwrap_or_else(PoisonError::into_inner))
+            kept,
+            file_removed,
+        }))
     }
 
     fn lock_writes(&self) -> MutexGuard<'_, ()> {
@@ -329,56 +312,6 @@ impl Secrets {
     }
 }
 
-/// Copia e confere cada segredo; guarda em `previous` o que o destino tinha antes de cada
-/// mudança, para desfazer.
-fn copy_all(
-    from: &dyn SecretStore,
-    to: &dyn SecretStore,
-    previous: &mut Vec<(SecretKind, Option<SecretString>)>,
-) -> Result<Vec<SecretKind>, SecretsError> {
-    let mut moved = Vec::new();
-    for kind in SecretKind::ALL {
-        let value = from.get(kind)?;
-        let before = to.get(kind)?;
-        previous.push((kind, before));
-        match value {
-            Some(value) => {
-                to.set(kind, &value)?;
-                fault::check("secrets.switch.after_copy")?;
-                verify(to, kind, &value)?;
-                moved.push(kind);
-            }
-            None => to.remove(kind)?,
-        }
-    }
-    Ok(moved)
-}
-
-/// Desfaz as mudanças no destino. Falhas aqui não perdem nada (a origem está intacta), mas
-/// ficam registradas.
-fn restore(to: &dyn SecretStore, previous: Vec<(SecretKind, Option<SecretString>)>) {
-    for (kind, before) in previous {
-        let result = match before {
-            Some(value) => to.set(kind, &value),
-            None => to.remove(kind),
-        };
-        if let Err(error) = result {
-            tracing::error!(?kind, %error, "troca de modo: não foi possível desfazer no destino");
-        }
-    }
-    if let Some(error) = purge_if_empty(to) {
-        tracing::error!(%error, "troca de modo: destino não esvaziado");
-    }
-}
-
-/// Se o destino ficou vazio depois de desfazer, apaga o que o representa (o `.env` vazio).
-fn purge_if_empty(to: &dyn SecretStore) -> Option<SecretsError> {
-    let empty = SecretKind::ALL
-        .iter()
-        .all(|kind| matches!(to.get(*kind), Ok(None)));
-    if empty { to.purge().err() } else { None }
-}
-
 fn verify(
     store: &dyn SecretStore,
     kind: SecretKind,
@@ -386,31 +319,24 @@ fn verify(
 ) -> Result<(), SecretsError> {
     match store.get(kind)? {
         Some(read) if read.expose_secret() == value.expose_secret() => Ok(()),
-        _ => Err(SecretsError::VerifyFailed {
-            kind,
-            backend: store.backend(),
-        }),
+        _ => Err(SecretsError::VerifyFailed { kind }),
     }
 }
 
-fn store_for(config: &SecretsConfig, backend: BackendKind) -> Arc<dyn SecretStore> {
-    match backend {
-        BackendKind::Envfile => Arc::new(EnvFileStore::new(config.env_file.clone())),
-        BackendKind::Keyring => {
-            #[cfg(debug_assertions)]
-            if let Some(BackendOverride::TestFile(dir)) = &config.keyring_override {
-                return Arc::new(crate::testfile::TestFileStore::new(dir.clone()));
-            }
-            match KeyringStore::system() {
-                Ok(store) => Arc::new(store),
-                Err(error) => {
-                    tracing::error!(%error, "cofre do sistema indisponível");
-                    Arc::new(UnavailableStore {
-                        backend,
-                        message: error.to_string(),
-                    })
-                }
-            }
+fn store_for(config: &SecretsConfig) -> Arc<dyn SecretStore> {
+    #[cfg(debug_assertions)]
+    if let Some(BackendOverride::TestFile(dir)) = &config.keyring_override {
+        return Arc::new(crate::testfile::TestFileStore::new(dir.clone()));
+    }
+    #[cfg(not(debug_assertions))]
+    let _ = config;
+    match KeyringStore::system() {
+        Ok(store) => Arc::new(store),
+        Err(error) => {
+            tracing::error!(%error, "cofre do sistema indisponível");
+            Arc::new(UnavailableStore {
+                message: error.to_string(),
+            })
         }
     }
 }
@@ -434,20 +360,26 @@ mod tests {
 
     fn config(root: &Path) -> SecretsConfig {
         SecretsConfig {
-            env_file: root.join("config").join(".env"),
+            legacy_env_file: root.join("config").join(".env"),
             keyring_override: Some(BackendOverride::TestFile(root.join("cofre-de-teste"))),
             env_fallback: None,
         }
     }
 
-    fn fill(secrets: &Secrets) {
-        secrets.set(SecretKind::Curseforge, &secret(CF)).unwrap();
-        secrets.set(SecretKind::Gemini, &secret(GEMINI)).unwrap();
-        secrets.set(SecretKind::Openai, &secret(OPENAI)).unwrap();
-        secrets
-            .set(SecretKind::Anthropic, &secret(ANTHROPIC))
-            .unwrap();
-        secrets.set(SecretKind::Github, &secret(GITHUB)).unwrap();
+    fn env_file(root: &Path) -> PathBuf {
+        root.join("config").join(".env")
+    }
+
+    /// Um `.env` como o do antigo modo arquivo, com as cinco chaves.
+    fn write_legacy_env(root: &Path) {
+        std::fs::create_dir_all(root.join("config")).unwrap();
+        std::fs::write(
+            env_file(root),
+            format!(
+                "CURSEFORGE_API_KEY='{CF}'\nGEMINI_API_KEY='{GEMINI}'\nOPENAI_API_KEY='{OPENAI}'\nANTHROPIC_API_KEY='{ANTHROPIC}'\nGITHUB_TOKEN='{GITHUB}'\n"
+            ),
+        )
+        .unwrap();
     }
 
     fn value(secrets: &Secrets, kind: SecretKind) -> Option<String> {
@@ -484,19 +416,18 @@ mod tests {
     fn f0_05_ca3_cofre_de_teste_mantem_o_estado_ao_reabrir() {
         let dir = tempfile::tempdir().unwrap();
         {
-            let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
+            let secrets = Secrets::open(config(dir.path()));
             let status = secrets.status().unwrap();
             assert!(!status.curseforge && !status.gemini && !status.github);
             secrets
                 .set(SecretKind::Curseforge, &secret(&format!("  {CF}\n")))
                 .unwrap();
         }
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
+        let secrets = Secrets::open(config(dir.path()));
         let status = secrets.status().unwrap();
         assert_eq!(
             status,
             SecretsStatus {
-                backend: BackendKind::Keyring,
                 curseforge: true,
                 gemini: false,
                 openai: false,
@@ -509,24 +440,35 @@ mod tests {
         assert!(!secrets.status().unwrap().curseforge);
     }
 
-    /// Critério 3 da F0-05 (modo `.env`): gravar e reabrir mantém o estado.
+    /// Só os últimos 4 caracteres saem do cofre; chave curta não mostra nada.
     #[test]
-    fn f0_05_ca3_modo_env_mantem_o_estado_ao_reabrir() {
+    fn final_da_chave() {
         let dir = tempfile::tempdir().unwrap();
-        Secrets::open(config(dir.path()), BackendKind::Envfile)
-            .set(SecretKind::Gemini, &secret(GEMINI))
+        let secrets = Secrets::open(config(dir.path()));
+        assert_eq!(secrets.hint(SecretKind::Openai).unwrap(), None);
+        secrets.set(SecretKind::Openai, &secret(OPENAI)).unwrap();
+        assert_eq!(
+            secrets.hint(SecretKind::Openai).unwrap().as_deref(),
+            Some("enai")
+        );
+        secrets
+            .set(SecretKind::Github, &secret("ghp_curta"))
             .unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Envfile);
-        assert!(secrets.status().unwrap().gemini);
-        assert_eq!(secrets.backend(), BackendKind::Envfile);
-        let text = std::fs::read_to_string(dir.path().join("config/.env")).unwrap();
-        assert_eq!(text, format!("GEMINI_API_KEY='{GEMINI}'\n"));
+        assert_eq!(secrets.hint(SecretKind::Github).unwrap(), None);
+        // Caracteres fora do ASCII não são cortados no meio.
+        secrets
+            .set(SecretKind::Gemini, &secret("chave-de-teste-com-ção"))
+            .unwrap();
+        assert_eq!(
+            secrets.hint(SecretKind::Gemini).unwrap().as_deref(),
+            Some("-ção")
+        );
     }
 
     #[test]
     fn valor_invalido_nao_grava() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
+        let secrets = Secrets::open(config(dir.path()));
         let error = secrets
             .set(SecretKind::Github, &secret(" \n "))
             .unwrap_err();
@@ -540,7 +482,7 @@ mod tests {
     #[test]
     fn require_sem_chave_e_nao_configurada() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
+        let secrets = Secrets::open(config(dir.path()));
         let error = secrets.require(SecretKind::Gemini).unwrap_err();
         assert_eq!(
             error.code(),
@@ -557,7 +499,7 @@ mod tests {
             "CURSEFORGE_API_KEY" => Some("ambiente-perde".to_owned()),
             _ => None,
         });
-        let secrets = Secrets::open(config, BackendKind::Keyring);
+        let secrets = Secrets::open(config);
         secrets.set(SecretKind::Curseforge, &secret(CF)).unwrap();
         assert_eq!(value(&secrets, SecretKind::Curseforge).as_deref(), Some(CF));
         assert_eq!(
@@ -570,163 +512,135 @@ mod tests {
         assert_eq!(secrets.current_values().unwrap().len(), 2);
     }
 
-    /// CA-T21-03 (backend) e critério 3 da F0-05: ida para o `.env` e volta para o cofre movem
-    /// as três chaves e apagam a cópia anterior; reabrir mantém o estado.
+    /// ADR-0069: sem `.env` antigo, a migração não faz nada.
     #[test]
-    fn f0_05_ca3_ca_t21_03_troca_de_modo_move_as_chaves() {
+    fn migracao_sem_env_nao_faz_nada() {
         let dir = tempfile::tempdir().unwrap();
-        let vault = dir.path().join("cofre-de-teste");
-        let env_file = dir.path().join("config/.env");
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        fill(&secrets);
-
-        let mut persisted = None;
-        let report = secrets
-            .switch_backend(BackendKind::Envfile, |mode| {
-                persisted = Some(mode);
-                Ok(())
-            })
-            .unwrap();
-        assert_eq!(persisted, Some(BackendKind::Envfile));
-        assert_eq!(report.moved, SecretKind::ALL.to_vec());
-        assert!(report.leftovers.is_empty());
-        assert_eq!(secrets.backend(), BackendKind::Envfile);
-        assert_all(&secrets);
-        let text = std::fs::read_to_string(&env_file).unwrap();
-        assert!(text.contains(CF) && text.contains(GEMINI) && text.contains(GITHUB));
-        assert!(text.contains(&format!("OPENAI_API_KEY='{OPENAI}'")));
-        assert!(text.contains(&format!("ANTHROPIC_API_KEY='{ANTHROPIC}'")));
-        assert_eq!(
-            std::fs::read_dir(&vault).unwrap().count(),
-            0,
-            "cofre não esvaziado"
-        );
-
-        let reopened = Secrets::open(config(dir.path()), BackendKind::Envfile);
-        assert_all(&reopened);
-        let status = reopened.status().unwrap();
-        assert!(status.curseforge && status.gemini && status.github);
-        assert!(status.openai && status.anthropic);
-
-        reopened
-            .switch_backend(BackendKind::Keyring, |_| Ok(()))
-            .unwrap();
-        assert!(!env_file.exists(), "voltar para o cofre apaga o .env");
-        assert_all(&reopened);
-        assert_all(&Secrets::open(config(dir.path()), BackendKind::Keyring));
+        let secrets = Secrets::open(config(dir.path()));
+        assert_eq!(secrets.migrate_legacy_env(true).unwrap(), None);
+        assert!(!secrets.status().unwrap().curseforge);
     }
 
+    /// ADR-0069 (CA-T21-07): quem estava no modo `.env` tem as cinco chaves levadas para o
+    /// cofre, conferidas, e o arquivo apagado; reabrir mantém tudo.
     #[test]
-    fn trocar_para_o_mesmo_modo_nao_faz_nada() {
+    fn migracao_leva_as_chaves_para_o_cofre_e_apaga_o_env() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        fill(&secrets);
-        let report = secrets
-            .switch_backend(BackendKind::Keyring, |_| panic!("não deve gravar"))
-            .unwrap();
-        assert!(report.moved.is_empty());
-        assert_all(&secrets);
-    }
-
-    #[test]
-    fn destino_com_sobra_antiga_fica_igual_a_origem() {
-        let dir = tempfile::tempdir().unwrap();
-        let env = EnvFileStore::new(dir.path().join("config/.env"));
-        env.set(SecretKind::Github, &secret("ghp_velho")).unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        secrets.set(SecretKind::Gemini, &secret(GEMINI)).unwrap();
+        write_legacy_env(dir.path());
+        let secrets = Secrets::open(config(dir.path()));
+        // Sobra antiga no cofre (de antes de ir para o `.env`): o `.env` vale.
         secrets
-            .switch_backend(BackendKind::Envfile, |_| Ok(()))
+            .set(SecretKind::Github, &secret("ghp_velho"))
             .unwrap();
-        assert_eq!(value(&secrets, SecretKind::Github), None);
-        assert_eq!(value(&secrets, SecretKind::Gemini).as_deref(), Some(GEMINI));
-    }
-
-    fn assert_rolled_back(dir: &Path, secrets: &Secrets, error: &SecretsError) {
-        assert_eq!(
-            error.code(),
-            DomainCode::Domain(SecretsErrorCode::BackendSwitchFailed)
-        );
-        assert_eq!(secrets.backend(), BackendKind::Keyring);
-        assert_all(secrets);
-        assert_all(&Secrets::open(config(dir), BackendKind::Keyring));
+        let report = secrets.migrate_legacy_env(true).unwrap().unwrap();
+        assert_eq!(report.moved, SecretKind::ALL.to_vec());
+        assert!(report.kept.is_empty());
+        assert!(report.file_removed);
         assert!(
-            !dir.join("config/.env").exists(),
-            "o destino desfeito não deve deixar .env"
+            !env_file(dir.path()).exists(),
+            "o .env deveria ter sido apagado"
         );
+        assert_all(&secrets);
+        assert_all(&Secrets::open(config(dir.path())));
+        // Rodar de novo não faz nada.
+        assert_eq!(secrets.migrate_legacy_env(true).unwrap(), None);
     }
 
-    /// Critério 3 da F0-05 / CA-T21-03: falha injetada no meio da cópia não perde nenhuma
-    /// chave e mantém o modo antigo.
+    /// Com o cofre como lugar em uso (o `.env` era uma sobra), o cofre não perde o que tem:
+    /// o arquivo só completa o que falta.
     #[test]
-    fn f0_05_ca3_falha_no_meio_da_copia_nao_perde_chaves() {
-        for successes in 0..3 {
+    fn migracao_com_o_cofre_em_uso_so_completa_o_que_falta() {
+        let dir = tempfile::tempdir().unwrap();
+        write_legacy_env(dir.path());
+        let secrets = Secrets::open(config(dir.path()));
+        secrets
+            .set(SecretKind::Github, &secret("ghp_atual"))
+            .unwrap();
+        let report = secrets.migrate_legacy_env(false).unwrap().unwrap();
+        assert_eq!(report.kept, vec![SecretKind::Github]);
+        assert_eq!(report.moved.len(), 4);
+        assert_eq!(
+            value(&secrets, SecretKind::Github).as_deref(),
+            Some("ghp_atual")
+        );
+        assert_eq!(value(&secrets, SecretKind::Gemini).as_deref(), Some(GEMINI));
+        assert!(!env_file(dir.path()).exists());
+    }
+
+    /// Falha no meio da cópia: o `.env` fica intacto, nenhuma chave se perde, e a tentativa
+    /// seguinte termina o serviço.
+    #[test]
+    fn migracao_que_falha_no_meio_nao_apaga_o_env() {
+        for successes in 0..5 {
             let dir = tempfile::tempdir().unwrap();
-            let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-            fill(&secrets);
-            let _guard = fault::arm_after("secrets.switch.after_copy", successes);
-            let error = secrets
-                .switch_backend(BackendKind::Envfile, |_| panic!("não deve gravar o modo"))
-                .unwrap_err();
-            assert_eq!(fault::hits("secrets.switch.after_copy"), successes + 1);
-            assert_rolled_back(dir.path(), &secrets, &error);
+            write_legacy_env(dir.path());
+            let before = std::fs::read(env_file(dir.path())).unwrap();
+            let secrets = Secrets::open(config(dir.path()));
+            {
+                let _guard = fault::arm_after("secrets.migrate.after_copy", successes);
+                let error = secrets.migrate_legacy_env(true).unwrap_err();
+                assert_eq!(
+                    error.code(),
+                    DomainCode::Domain(SecretsErrorCode::EnvMigrationFailed)
+                );
+                assert!(!error.to_string().contains(CF));
+            }
+            assert_eq!(std::fs::read(env_file(dir.path())).unwrap(), before);
+            let report = secrets.migrate_legacy_env(true).unwrap().unwrap();
+            assert!(report.file_removed);
+            assert_all(&secrets);
         }
     }
 
-    /// Falha ao gravar no disco no meio da cópia (escrita atômica do `.env`).
+    /// Cofre fora do ar: nada é apagado e o erro diz que dá para tentar de novo.
     #[test]
-    fn f0_05_ca3_falha_de_disco_no_destino_nao_perde_chaves() {
+    fn migracao_com_o_cofre_fora_do_ar_mantem_o_env() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        fill(&secrets);
-        let _guard = fault::arm_after("atomic_write.before_rename", 1);
-        let error = secrets
-            .switch_backend(BackendKind::Envfile, |_| Ok(()))
-            .unwrap_err();
-        let source = std::error::Error::source(&error).unwrap().to_string();
-        assert!(source.contains("renomear"), "{source}");
-        assert_rolled_back(dir.path(), &secrets, &error);
+        write_legacy_env(dir.path());
+        let secrets = Secrets {
+            config: config(dir.path()),
+            store: Arc::new(UnavailableStore {
+                message: "serviço parado".to_owned(),
+            }),
+            writes: Mutex::new(()),
+        };
+        let error = secrets.migrate_legacy_env(true).unwrap_err();
+        assert!(error.retryable());
+        assert!(env_file(dir.path()).exists());
     }
 
-    /// Falha ao gravar o modo em `settings.json`: nada muda.
+    /// `.env` que não é texto: erro próprio, arquivo intacto.
     #[test]
-    fn f0_05_ca3_falha_ao_gravar_o_modo_nao_perde_chaves() {
+    fn migracao_de_env_ilegivel_mantem_o_arquivo() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        fill(&secrets);
-        let error = secrets
-            .switch_backend(BackendKind::Envfile, |_| Err("disco cheio".to_owned()))
-            .unwrap_err();
-        assert!(error.detail().unwrap().contains("disco cheio"));
-        assert_rolled_back(dir.path(), &secrets, &error);
-
-        let _guard = fault::arm("secrets.switch.before_persist");
-        let error = secrets
-            .switch_backend(BackendKind::Envfile, |_| panic!("não deve gravar o modo"))
-            .unwrap_err();
-        assert_rolled_back(dir.path(), &secrets, &error);
+        std::fs::create_dir_all(dir.path().join("config")).unwrap();
+        std::fs::write(env_file(dir.path()), [0xff, 0xfe, 0x00]).unwrap();
+        let secrets = Secrets::open(config(dir.path()));
+        let error = secrets.migrate_legacy_env(true).unwrap_err();
+        assert_eq!(
+            error.code(),
+            DomainCode::Domain(SecretsErrorCode::EnvMigrationFailed)
+        );
+        assert!(env_file(dir.path()).exists());
     }
 
-    /// Falha ao apagar da origem depois de a troca valer: as chaves existem no destino, a
-    /// troca vale e o que sobrou é informado.
+    /// Apagar o `.env` falha depois de as chaves estarem no cofre: a migração vale e diz que o
+    /// arquivo sobrou.
     #[test]
-    fn f0_05_ca3_falha_ao_apagar_a_origem_mantem_a_troca() {
+    fn migracao_que_nao_apaga_o_env_avisa() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        fill(&secrets);
-        let _guard = fault::arm_after("secrets.switch.before_remove_source", 1);
-        let report = secrets
-            .switch_backend(BackendKind::Envfile, |_| Ok(()))
-            .unwrap();
-        assert_eq!(report.leftovers, vec![SecretKind::Gemini]);
-        assert_eq!(secrets.backend(), BackendKind::Envfile);
+        write_legacy_env(dir.path());
+        let secrets = Secrets::open(config(dir.path()));
+        let _guard = fault::arm("secrets.migrate.before_remove");
+        let report = secrets.migrate_legacy_env(true).unwrap().unwrap();
+        assert!(!report.file_removed);
         assert_all(&secrets);
+        assert!(env_file(dir.path()).exists());
     }
 
     #[test]
     fn cofre_indisponivel_responde_com_erro() {
         let store = UnavailableStore {
-            backend: BackendKind::Keyring,
             message: "serviço parado".to_owned(),
         };
         for result in [
@@ -746,9 +660,9 @@ mod tests {
     #[test]
     fn erro_de_disco_vira_codigo_comum() {
         let dir = tempfile::tempdir().unwrap();
-        // `config` é um arquivo: o `.env` não pode ser criado dentro dele.
-        std::fs::write(dir.path().join("config"), b"").unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Envfile);
+        // `cofre-de-teste` é um arquivo: o cofre de teste não pode criar a pasta.
+        std::fs::write(dir.path().join("cofre-de-teste"), b"").unwrap();
+        let secrets = Secrets::open(config(dir.path()));
         let error = secrets
             .set(SecretKind::Gemini, &secret(GEMINI))
             .unwrap_err();
@@ -759,8 +673,12 @@ mod tests {
     #[test]
     fn debug_nao_mostra_valores() {
         let dir = tempfile::tempdir().unwrap();
-        let secrets = Secrets::open(config(dir.path()), BackendKind::Keyring);
-        fill(&secrets);
+        let secrets = Secrets::open(config(dir.path()));
+        secrets.set(SecretKind::Curseforge, &secret(CF)).unwrap();
+        secrets.set(SecretKind::Openai, &secret(OPENAI)).unwrap();
+        secrets
+            .set(SecretKind::Anthropic, &secret(ANTHROPIC))
+            .unwrap();
         let text = format!(
             "{secrets:?} {:?} {:?} {:?}",
             secrets.get(SecretKind::Curseforge),

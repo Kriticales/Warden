@@ -26,6 +26,7 @@ import { ANTHROPIC_E2E_KEY, ANTHROPIC_E2E_MODEL } from './mock-server/anthropic'
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
 import { OPENAI_E2E_KEY, OPENAI_E2E_MODEL } from './mock-server/openai';
 import { MCLOGS_E2E_ID, PASTEBIN_E2E_ID } from './mock-server/paste';
+import { useProviderFirst } from './keys';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -292,17 +293,10 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     ['anthropic', 'Claude', ANTHROPIC_E2E_MODEL],
   ] as const) {
     it(`junção D-16/D-17 × D-19: a análise por link funciona com ${radio}`, async () => {
-      // Configurações › IA: o provedor ativo passa a ser este (a chave já está no cofre).
-      // A barra de cima tem Configurações em qualquer tela (aqui, a conversa do caso anterior).
-      await clickStable($('header.topbar').$('a*=Configurações'));
-      await waitHeading('Configurações');
-      const choice = $('fieldset*=Provedor da IA').$(`label.choice*=${radio}`);
-      const input = choice.$('input[type="radio"]');
-      await clickStable(input.parentElement().parentElement());
-      await browser.waitUntil(async () => input.isSelected(), {
-        timeout: 30_000,
-        timeoutMsg: `${radio} não ficou escolhido`,
-      });
+      // Configurações › Sensor Sculk: este provedor vai para o primeiro da ordem e abre as
+      // conversas novas (a chave já está no cofre; ADR-0070). A barra de cima tem
+      // Configurações em qualquer tela (aqui, a conversa do caso anterior).
+      await useProviderFirst(provider);
 
       const before = {
         gemini: (await mockState('gemini')).generate.length,

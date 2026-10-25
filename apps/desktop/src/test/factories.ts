@@ -23,6 +23,7 @@ export function makeAppInfo(overrides: Partial<AppInfo> = {}): AppInfo {
     commit: 'abc123def456',
     platform: 'windows',
     debugBuild: false,
+    packwizCommit: 'ef87d964f8cbd52b3b13ea42453ef322290e2b9e',
     ...overrides,
   };
 }

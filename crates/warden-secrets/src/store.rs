@@ -3,7 +3,7 @@
 use secrecy::{ExposeSecret as _, SecretString};
 
 use crate::error::SecretsError;
-use crate::kind::{BackendKind, SecretKind};
+use crate::kind::SecretKind;
 
 /// Maior valor aceito: chaves e tokens reais têm menos de 200 caracteres.
 const MAX_SECRET_LEN: usize = 4096;
@@ -11,10 +11,6 @@ const MAX_SECRET_LEN: usize = 4096;
 /// Um lugar onde os segredos ficam. As operações são síncronas e rápidas (cofre do sistema
 /// ou arquivo pequeno); quem chama de código assíncrono usa `spawn_blocking`.
 pub trait SecretStore: Send + Sync + std::fmt::Debug {
-    /// Qual modo este armazenamento representa (o cofre de teste se apresenta como
-    /// [`BackendKind::Keyring`], porque o substitui).
-    fn backend(&self) -> BackendKind;
-
     /// Lê o segredo, se existir.
     fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError>;
 
@@ -23,19 +19,12 @@ pub trait SecretStore: Send + Sync + std::fmt::Debug {
 
     /// Apaga o segredo. Apagar o que não existe não é erro.
     fn remove(&self, kind: SecretKind) -> Result<(), SecretsError>;
-
-    /// Apaga tudo o que este armazenamento guarda do Warden (fim de uma troca de modo).
-    fn purge(&self) -> Result<(), SecretsError> {
-        for kind in SecretKind::ALL {
-            self.remove(kind)?;
-        }
-        Ok(())
-    }
 }
 
 /// Limpa e valida um valor digitado: tira espaços e quebras de linha das pontas (comuns ao
-/// colar) e recusa vazio, caracteres de controle, aspas simples (o `.env` usa aspas simples
-/// para não expandir `$`, ADR-0025) e valores longos demais.
+/// colar) e recusa vazio, caracteres de controle, aspas simples (o `.env` antigo usava
+/// aspas simples, ADR-0025; a regra continua para um valor valer igual em qualquer lugar) e
+/// valores longos demais.
 pub fn normalize_secret(
     kind: SecretKind,
     value: &SecretString,

@@ -70,9 +70,12 @@ export const commands = {
 	addLocalDiscard: (tokens: string[]) => __TAURI_INVOKE<void>("add_local_discard", { tokens }),
 	/**  O provedor ativo, a escolha do modelo de cada provedor e as chaves configuradas. */
 	aiSettingsGet: () => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_get")),
-	/**  Grava a escolha do modelo **do provedor ativo** (cada provedor guarda a sua). */
+	/**  Grava a escolha do modelo **do provedor das conversas novas** (cada provedor guarda a sua). */
 	aiSettingsSet: (tier: ModelTier) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_set", { tier })),
-	/**  Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas. */
+	/**
+	 *  Põe um provedor em primeiro na ordem de preferência (as boas-vindas). As conversas já
+	 *  começadas continuam no provedor delas.
+	 */
 	aiProviderSet: (provider: AiProvider) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_provider_set", { provider })),
 	/**
 	 *  Os modelos que a chave do provedor ativo alcança (no Gemini, o Flash estável mais novo nas
@@ -152,6 +155,10 @@ export const commands = {
 	 *  respondendo, para.
 	 */
 	aiStandaloneDelete: (conversationId: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_standalone_delete", { conversationId })),
+	/**  Grava a ordem de preferência dos provedores. Um provedor que falte vai para o fim. */
+	aiOrderSet: (order: AiProvider[]) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_order_set", { order })),
+	/**  Os modelos que a chave de `provider` alcança (rede só na primeira vez nesta execução). */
+	aiModelsOf: (provider: AiProvider) => typedError<ModelChoices, AppError>(__TAURI_INVOKE("ai_models_of", { provider })),
 	/**  A diferença exata de uma proposta (o diálogo de Aplicar). Nada é gravado. */
 	aiProposalReview: (packId: PackId, conversationId: string, proposalId: string) => typedError<ProposalReview, AppError>(__TAURI_INVOKE("ai_proposal_review", { packId, conversationId, proposalId })),
 	/**  Aplica a proposta mostrada no diálogo (o `token` da prévia). */
@@ -864,18 +871,18 @@ export const commands = {
 	 *  Erros: `app.TEST_INSTANCE_MISSING`, `scripts.VS_CODE_NOT_FOUND`, `scripts.VS_CODE_FAILED`.
 	 */
 	scriptsOpenVscode: (packId: PackId) => typedError<null, AppError>(__TAURI_INVOKE("scripts_open_vscode", { packId })),
-	/**  Onde as chaves ficam e quais estão configuradas. */
+	/**  Quais chaves estão configuradas. */
 	secretsStatus: () => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_status")),
+	/**  Cada chave com o final e o último teste, e o aviso da migração do `.env`. */
+	secretsOverview: () => typedError<KeysOverview, AppError>(__TAURI_INVOKE("secrets_overview")),
+	/**  Tenta de novo levar as chaves do `.env` antigo para o cofre. */
+	secretsMigrationRetry: () => typedError<KeysOverview, AppError>(__TAURI_INVOKE("secrets_migration_retry")),
 	/**  Grava uma chave digitada e devolve o estado. */
 	secretsSet: (kind: SecretKind, value: string) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_set", { kind, value })),
 	/**  Apaga uma chave e devolve o estado. */
 	secretsRemove: (kind: SecretKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_remove", { kind })),
-	/**  Testa uma chave na API dela. */
+	/**  Testa uma chave na API dela e guarda o resultado (funcionou ou recusada). */
 	secretsTest: (kind: SecretKind) => typedError<SecretTestResult, AppError>(__TAURI_INVOKE("secrets_test", { kind })),
-	/**  Modo das chaves em uso. */
-	secretsBackendGet: () => typedError<BackendKind, AppError>(__TAURI_INVOKE("secrets_backend_get")),
-	/**  Troca o modo das chaves (cofre ↔ `.env`), movendo-as, e devolve o estado. */
-	secretsBackendSet: (backend: BackendKind) => typedError<SecretsStatus, AppError>(__TAURI_INVOKE("secrets_backend_set", { backend })),
 	/**  "Aceito a EULA": grava o aceite com a data de agora. */
 	serverEulaAccept: () => typedError<Settings, AppError>(__TAURI_INVOKE("server_eula_accept")),
 	/**  "Revogar": apaga o aceite; o próximo servidor local pede de novo. */
@@ -1375,6 +1382,8 @@ export type AiProviderSettings = {
 	tier: ModelTier,
 	/**  Há chave deste provedor. */
 	keyConfigured: boolean,
+	/**  A chave foi recusada no último **Testar**: o Sculk pula este provedor (ADR-0070). */
+	keyRefused: boolean,
 	/**  Os modelos já resolvidos nesta execução (sem rede). */
 	models: ModelChoices | null,
 };
@@ -1392,8 +1401,8 @@ export type AiSessionOption = {
 };
 
 /**
- *  O que Configurações mostra da IA. `tier`, `keyConfigured` e `models` são os do provedor
- *  ativo.
+ *  O que Configurações mostra da IA. `provider` é o das conversas novas (o primeiro da ordem
+ *  com a chave funcionando, ADR-0070); `tier`, `keyConfigured` e `models` são os dele.
  */
 export type AiSettingsView = {
 	/**  O provedor das conversas novas. */
@@ -1406,6 +1415,8 @@ export type AiSettingsView = {
 	models: ModelChoices | null,
 	/**  Cada provedor, na ordem da tela. */
 	providers: AiProviderSettings[],
+	/**  A ordem de preferência (ADR-0070). */
+	order: AiProvider[],
 };
 
 /**  O que analisar. */
@@ -1676,6 +1687,11 @@ export type AppInfo = {
 	platform: Platform,
 	/**  Build de desenvolvimento (debug). */
 	debugBuild: boolean,
+	/**
+	 *  Commit do packwiz embutido (o fixado em `third_party/packwiz/COMMIT`, de onde o sidecar
+	 *  é compilado; T23).
+	 */
+	packwizCommit: string,
 };
 
 /**  Um item que [`apply`] atualizou. */
@@ -1736,13 +1752,6 @@ export type At = {
 	 */
 	target: string,
 };
-
-/**  Onde as chaves ficam, gravado em `settings.json` como `secretsBackend`. */
-export type BackendKind = 
-/**  Cofre do sistema (padrão). */
-"keyring" | 
-/**  Arquivo `.env` na pasta de configuração do Warden. */
-"envfile";
 
 /**  As faixas da nota (também na saída, para o rodapé de "O que tirou pontos"). */
 export type Bands = {
@@ -3319,6 +3328,19 @@ export type EmbeddedMod = {
 	/**  Nome que o jar embutido declara ("Forgified Fabric API Base"); o id quando não há. */
 	name: string,
 };
+
+/**  O que a migração do `.env` antigo para o cofre fez ao abrir o app (ADR-0069). */
+export type EnvMigrationNotice = 
+/**  As chaves foram para o cofre, conferidas uma a uma. */
+{ kind: "moved"; 
+/**  As chaves levadas. */
+moved: SecretKind[]; 
+/**  O `.env` foi apagado (`false`: sobrou e o Warden tenta apagar na próxima abertura). */
+fileRemoved: boolean } | 
+/**  Não terminou: o `.env` continua onde estava e nenhuma chave se perdeu. */
+{ kind: "failed"; 
+/**  Por quê. */
+error: AppError };
 
 /**  Filtro **Ambiente**. */
 export type EnvironmentFilter = 
@@ -5419,6 +5441,41 @@ export type JavaVersion = {
 	patch: number,
 	/**  Número do build (`+1`, `-b07`); 0 quando não informado. */
 	build: number,
+};
+
+/**  O último teste de uma chave. */
+export type KeyCheck = {
+	/**  O resultado. */
+	outcome: KeyCheckOutcome,
+	/**  Quando (RFC 3339, UTC). */
+	at: string,
+};
+
+/**  O que o último teste disse da chave. */
+export type KeyCheckOutcome = 
+/**  O serviço aceitou a chave. */
+"working" | 
+/**  O serviço recusou a chave (inválida, apagada, vencida). */
+"refused";
+
+/**  Uma chave em Configurações → Chaves e contas. Nunca leva o valor. */
+export type KeyOverview = {
+	/**  Qual chave. */
+	kind: SecretKind,
+	/**  Está no cofre. */
+	configured: boolean,
+	/**  Os últimos 4 caracteres, para `••••xxxx` (`null` sem chave ou com chave curta). */
+	hint: string | null,
+	/**  O último **Testar** desta chave. */
+	check: KeyCheck | null,
+};
+
+/**  As cinco chaves e o aviso da migração do `.env`. */
+export type KeysOverview = {
+	/**  Na ordem de [`SecretKind::ALL`]. */
+	keys: KeyOverview[],
+	/**  O que a migração do `.env` fez nesta abertura do app, se fez algo. */
+	migration: EnvMigrationNotice | null,
 };
 
 /**  Quantas alterações de um tipo. */
@@ -8280,17 +8337,23 @@ export type SecretsErrorCode =
 "VAULT_UNAVAILABLE" | 
 /**  O cofre do sistema recusou a operação. */
 "VAULT_FAILED" | 
-/**  O arquivo `.env` existe mas não pôde ser lido como texto. */
+/**  O arquivo `.env` antigo existe mas não pôde ser lido como texto. */
 "ENV_FILE_UNREADABLE" | 
 /**  Depois de gravar, a releitura não trouxe o mesmo valor. */
 "VERIFY_FAILED" | 
-/**  A troca de modo falhou; as chaves continuam no modo anterior. */
-"BACKEND_SWITCH_FAILED";
+/**
+ *  A troca de modo falhou; as chaves continuam no modo anterior. Não acontece mais desde
+ *  a ADR-0069 (as chaves ficam sempre no cofre); o código fica porque a lista só cresce.
+ */
+"BACKEND_SWITCH_FAILED" | 
+/**
+ *  Levar as chaves do `.env` antigo para o cofre do sistema não terminou; o `.env` continua
+ *  onde estava e nenhuma chave se perde (ADR-0069).
+ */
+"ENV_MIGRATION_FAILED";
 
-/**  O que a interface sabe das chaves: onde ficam e quais estão configuradas. */
+/**  O que a interface sabe das chaves: quais estão configuradas. */
 export type SecretsStatus = {
-	/**  Armazenamento em uso. */
-	backend: BackendKind,
 	/**  Chave da CurseForge configurada. */
 	curseforge: boolean,
 	/**  Chave do Gemini configurada. */
@@ -8639,8 +8702,6 @@ export type SessionPerf = {
 export type Settings = {
 	/**  Versão do formato. */
 	schemaVersion?: number,
-	/**  Onde ficam as chaves (muda só por `secrets_backend_set`). */
-	secretsBackend?: BackendKind,
 	/**
 	 *  Pasta padrão dos packs; `null` = a pasta padrão do sistema (Documentos\Warden).
 	 *  Muda por um comando que abre o diálogo nativo (ARCHITECTURE §4.1), não por

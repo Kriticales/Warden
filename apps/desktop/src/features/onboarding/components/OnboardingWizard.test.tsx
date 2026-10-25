@@ -110,7 +110,6 @@ describe('primeira execução', () => {
     await user.click(screen.getByRole('button', { name: 'Pular, configuro depois' }));
     await screen.findByRole('heading', { level: 1, name: 'Meus packs' });
     expect(backend.callsOf('secrets_set')).toEqual([]);
-    expect(backend.callsOf('secrets_backend_set')).toEqual([]);
     expect(backend.state.exists).toBe(true);
   });
 
@@ -136,36 +135,25 @@ describe('primeira execução', () => {
     );
   });
 
-  it('chaves digitadas e o .env (com confirmação) são gravados ao concluir, antes do settings.json', async () => {
+  it('ADR-0069: as chaves digitadas vão para o cofre ao concluir, antes do settings.json; não há escolha de onde guardar', async () => {
     const backend = firstRunBackend();
     const user = userEvent.setup();
     renderApp('/');
     await goToKeys(user);
+    expect(screen.queryByText('Onde guardar as chaves')).toBeNull();
+    expect(screen.queryByRole('radio', { name: /\.env/ })).toBeNull();
+    expect(screen.getByText(/Elas ficam guardadas no Cofre do Windows\./)).toBeDefined();
     await user.type(screen.getByLabelText('Chave da CurseForge'), 'cf-123');
     await user.type(screen.getByLabelText('Token do GitHub'), 'gh-456');
-    await user.click(screen.getByRole('radio', { name: /Arquivo \.env/ }));
-    const dialog = await screen.findByRole('alertdialog', {
-      name: 'Guardar as chaves num arquivo .env?',
-    });
-    await user.click(within(dialog).getByRole('button', { name: 'Usar arquivo .env' }));
-    await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).toBeNull();
-    });
-    expect(screen.getByRole<HTMLInputElement>('radio', { name: /Arquivo \.env/ }).checked).toBe(
-      true,
-    );
     // Nada gravado antes de concluir.
-    expect(backend.callsOf('secrets_backend_set')).toEqual([]);
+    expect(backend.callsOf('secrets_set')).toEqual([]);
 
     await user.click(screen.getByRole('button', { name: 'Concluir' }));
     await screen.findByRole('heading', { level: 1, name: 'Meus packs' });
     const order = backend.calls
       .map((call) => call.command)
-      .filter((command) =>
-        ['secrets_backend_set', 'secrets_set', 'settings_update'].includes(command),
-      );
-    expect(order).toEqual(['secrets_backend_set', 'secrets_set', 'secrets_set', 'settings_update']);
-    expect(backend.callsOf('secrets_backend_set')[0]?.args).toEqual({ backend: 'envfile' });
+      .filter((command) => ['secrets_set', 'settings_update'].includes(command));
+    expect(order).toEqual(['secrets_set', 'secrets_set', 'settings_update']);
     expect(backend.callsOf('secrets_set').map((call) => call.args)).toEqual([
       { kind: 'curseforge', value: 'cf-123' },
       { kind: 'github', value: 'gh-456' },
@@ -231,7 +219,6 @@ describe('primeira execução', () => {
   it('reaberto com chaves já salvas, avisa que em branco mantém a chave', async () => {
     mockSettingsBackend({
       secrets: {
-        backend: 'keyring',
         curseforge: true,
         gemini: false,
         openai: false,

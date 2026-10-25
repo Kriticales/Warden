@@ -28,12 +28,16 @@ describe('Sobre o Warden (T23)', () => {
     expect(await axeComponent(container)).toHaveNoViolations();
   });
 
-  it('build de desenvolvimento e commit desconhecido', async () => {
+  it('build de desenvolvimento e commit desconhecido; o commit do packwiz embutido sempre (T23)', async () => {
     mockBackend({ app_info: () => makeAppInfo({ commit: null, debugBuild: true }) });
-    renderWithProviders(<AboutWarden headingLevel={3} />);
+    renderWithProviders(<AboutWarden />);
     expect(await screen.findByText('Desenvolvimento (debug)')).toBeDefined();
     expect(screen.queryByText('Commit')).toBeNull();
-    expect(screen.getByRole('heading', { level: 3, name: 'Sobre o Warden' })).toBeDefined();
+    expect(screen.getByText('packwiz embutido')).toBeDefined();
+    expect(screen.getByText('ef87d96').getAttribute('title')).toBe(
+      'ef87d964f8cbd52b3b13ea42453ef322290e2b9e',
+    );
+    expect(screen.getByRole('heading', { level: 1, name: 'Sobre o Warden' })).toBeDefined();
   });
 
   it('carregando e erro (o aviso legal aparece mesmo assim)', async () => {

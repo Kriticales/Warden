@@ -11,7 +11,7 @@ use secrecy::{ExposeSecret as _, SecretString};
 use warden_core::{CoreError, atomic_write_private};
 
 use crate::error::SecretsError;
-use crate::kind::{BackendKind, SecretKind};
+use crate::kind::SecretKind;
 use crate::store::SecretStore;
 
 /// Cofre de teste numa pasta.
@@ -39,11 +39,6 @@ impl TestFileStore {
 }
 
 impl SecretStore for TestFileStore {
-    /// Faz o papel do cofre do sistema.
-    fn backend(&self) -> BackendKind {
-        BackendKind::Keyring
-    }
-
     fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError> {
         let path = self.file(kind);
         match std::fs::read(&path) {
@@ -84,7 +79,6 @@ mod tests {
     fn grava_le_e_apaga() {
         let dir = tempfile::tempdir().unwrap();
         let store = TestFileStore::new(dir.path().join("cofre"));
-        assert_eq!(store.backend(), BackendKind::Keyring);
         assert!(store.get(SecretKind::Github).unwrap().is_none());
         store
             .set(SecretKind::Github, &SecretString::from("ghp_x".to_owned()))
@@ -98,7 +92,7 @@ mod tests {
             "ghp_x"
         );
         assert!(store.dir().join("github-token").is_file());
-        store.purge().unwrap();
+        store.remove(SecretKind::Github).unwrap();
         assert!(store.get(SecretKind::Github).unwrap().is_none());
         store.remove(SecretKind::Github).unwrap();
     }

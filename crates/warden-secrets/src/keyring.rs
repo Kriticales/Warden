@@ -13,7 +13,7 @@ use keyring_core::{CredentialStore, Entry, Error as KeyringError};
 use secrecy::{ExposeSecret as _, SecretString};
 
 use crate::error::SecretsError;
-use crate::kind::{BackendKind, SecretKind};
+use crate::kind::SecretKind;
 use crate::store::SecretStore;
 
 /// Serviço do Warden no cofre (ARCHITECTURE §14).
@@ -62,10 +62,6 @@ impl KeyringStore {
 }
 
 impl SecretStore for KeyringStore {
-    fn backend(&self) -> BackendKind {
-        BackendKind::Keyring
-    }
-
     fn get(&self, kind: SecretKind) -> Result<Option<SecretString>, SecretsError> {
         match self.entry(kind)?.get_password() {
             Ok(value) if value.is_empty() => Ok(None),
@@ -205,7 +201,7 @@ mod tests {
         let reopened = KeyringStore::with_service(&service).unwrap();
         let read = reopened.get(SecretKind::Gemini).unwrap().unwrap();
         assert_eq!(read.expose_secret(), value.expose_secret());
-        reopened.purge().unwrap();
+        reopened.remove(SecretKind::Gemini).unwrap();
         assert!(reopened.get(SecretKind::Gemini).unwrap().is_none());
     }
 }

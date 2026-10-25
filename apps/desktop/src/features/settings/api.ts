@@ -4,14 +4,15 @@
  *
  * O backend devolve o estado novo em cada mutação; ele é gravado direto no cache, sem nova
  * leitura. As chaves nunca passam por aqui depois de salvas: a interface só conhece
- * `SecretsStatus` (ARCHITECTURE §14).
+ * `SecretsStatus` e `KeysOverview` (o final `••••xxxx` e o último teste; ARCHITECTURE §14). Elas
+ * ficam sempre no cofre do sistema (ADR-0069).
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   commands,
   type AppError,
-  type BackendKind,
+  type KeysOverview,
   type SecretKind,
   type SecretsStatus,
   type Settings,
@@ -27,6 +28,8 @@ export const settingsKeys = {
   settings: ['app', 'settings'] as const,
   status: ['app', 'settings', 'status'] as const,
   secrets: ['app', 'secrets'] as const,
+  /** Cada chave com o final e o último teste, e o aviso da migração do `.env`. */
+  overview: ['app', 'secrets', 'overview'] as const,
 };
 
 export const settingsQuery = commandQuery(settingsKeys.settings, commands.settingsGet);
@@ -43,6 +46,26 @@ export function useSettingsStatus() {
 
 export function useSecretsStatus() {
   return useQuery(secretsStatusQuery);
+}
+
+export const keysOverviewQuery = commandQuery(settingsKeys.overview, commands.secretsOverview);
+
+export function useKeysOverview() {
+  return useQuery(keysOverviewQuery);
+}
+
+/** Tenta de novo levar as chaves do `.env` antigo para o cofre (ADR-0069). */
+export function useRetryKeysMigration() {
+  const queryClient = useQueryClient();
+  return useCommandMutation(() => commands.secretsMigrationRetry(), {
+    onSuccess: async (overview: KeysOverview) => {
+      queryClient.setQueryData(settingsKeys.overview, overview);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: settingsKeys.secrets, exact: true }),
+        queryClient.invalidateQueries({ queryKey: AI_APP_KEY }),
+      ]);
+    },
+  });
 }
 
 /** Altera configurações (`SettingsPatch`). Gravar também encerra a primeira execução. */
@@ -77,8 +100,12 @@ function useSecretsMutation<V>(
   return useCommandMutation(command, {
     onSuccess: async (status: SecretsStatus) => {
       queryClient.setQueryData(settingsKeys.secrets, status);
-      // As chaves dos provedores mudam o "tem chave" e os modelos da IA (D-18).
-      await queryClient.invalidateQueries({ queryKey: AI_APP_KEY });
+      // As chaves dos provedores mudam o "tem chave", o provedor das conversas novas e os
+      // modelos da IA (D-18; ADR-0070); o final e o teste da chave mudam também.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: settingsKeys.overview }),
+        queryClient.invalidateQueries({ queryKey: AI_APP_KEY }),
+      ]);
     },
     // Uma falha no meio pode ter mudado parte do estado: relê do disco (regra do disco como
     // verdade).
@@ -100,12 +127,14 @@ export function useRemoveSecret() {
   return useSecretsMutation((kind: SecretKind) => commands.secretsRemove(kind));
 }
 
-export function useSetSecretsBackend() {
-  return useSecretsMutation((backend: BackendKind) => commands.secretsBackendSet(backend));
-}
-
+/**
+ * Testa uma chave. O resultado fica gravado (funcionou ou recusada) e muda o provedor das
+ * conversas novas (ADR-0070): relê a visão das chaves e a IA ao terminar, dando certo ou não.
+ */
 export function useTestSecret() {
-  return useCommandMutation((kind: SecretKind) => commands.secretsTest(kind));
+  return useCommandMutation((kind: SecretKind) => commands.secretsTest(kind), {
+    invalidates: [settingsKeys.overview, AI_APP_KEY],
+  });
 }
 
 export function useRevealLogsFolder() {
@@ -132,9 +161,9 @@ export function packsDirProblem(error: AppError | null): string | null {
 }
 
 /**
- * As chaves das linhas próprias de "Chaves e contas" e da primeira execução, na ordem da tela.
- * As dos provedores da IA (Gemini, OpenAI e Claude; ADR-0060) ficam na área IA da mesma seção
- * (`ai/AiSettings.tsx`) e no passo da IA das boas-vindas (D-18).
+ * As chaves de "Mods e publicação" em Chaves e contas e da primeira execução, na ordem da tela.
+ * As dos provedores do Sculk (Gemini, OpenAI e Claude; ADR-0060) vêm depois, na ordem de
+ * preferência (ADR-0070), e no passo da IA das boas-vindas (D-18).
  */
 export type OwnSecretKind = Extract<SecretKind, 'curseforge' | 'github'>;
 

@@ -850,7 +850,9 @@ describe('Fluxo 10: importar um modpack de outro app (A-07)', () => {
 
   it('Configurações → Armazenamento mostra o espaço usado e passa no axe', async () => {
     await clickStable($('header.topbar').$('a*=Configurações'));
-    await $('h2=Armazenamento').waitForDisplayed({ timeout: 30_000 });
+    await $('h1*=Geral').waitForDisplayed({ timeout: 30_000 });
+    await clickStable($('nav.sidenav').$('a*=Armazenamento'));
+    await $('h1*=Armazenamento').waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(async () => !(await fullText('main')).includes('Medindo…'), {
       timeout: 30_000,
       timeoutMsg: 'o espaço usado não terminou de ser medido',

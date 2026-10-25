@@ -1,7 +1,8 @@
 /**
- * Backend simulado com estado para Chaves e contas › IA (D-18): o provedor ativo e a escolha do
- * modelo de cada provedor mudam como no Rust (`ai/settings.json`), e os modelos vêm do provedor
- * ativo. Junto com `mockSettingsBackend`, que guarda o estado das chaves.
+ * Backend simulado com estado para a IA em Configurações (D-18; ADR-0070): a ordem de
+ * preferência dos provedores, a escolha do modelo de cada um e o provedor das conversas novas
+ * (o primeiro da ordem com a chave funcionando, como no Rust). Junto com `mockSettingsBackend`,
+ * que guarda o estado das chaves e o último teste.
  */
 import type {
   AiProvider,
@@ -25,43 +26,65 @@ export const TEST_MODELS: Record<AiProvider, ModelChoices> = {
 };
 
 export interface FakeAiState {
-  provider: AiProvider;
+  order: AiProvider[];
   tiers: Record<AiProvider, ModelTier>;
 }
 
 export function fakeAiHandlers(
   secrets: () => SecretsStatus,
-  initial: Partial<FakeAiState> = {},
+  /** `provider`: esse provedor em primeiro na ordem (o jeito antigo de escolher um só). */
+  { provider, ...initial }: Partial<FakeAiState> & { provider?: AiProvider } = {},
+  /** Se a chave do provedor foi recusada no último teste. */
+  refused: (provider: AiProvider) => boolean = () => false,
 ): { state: FakeAiState; handlers: Record<string, Handler> } {
   const state: FakeAiState = {
-    provider: 'gemini',
+    order: provider
+      ? [provider, ...AI_PROVIDERS.filter((item) => item !== provider)]
+      : [...AI_PROVIDERS],
     tiers: { gemini: 'economical', openai: 'economical', anthropic: 'economical' },
     ...initial,
   };
+  const usable = (provider: AiProvider) => secrets()[provider] && !refused(provider);
+  const current = () => state.order.find(usable) ?? state.order[0] ?? 'gemini';
   const view = (): AiSettingsView => {
     const providers = AI_PROVIDERS.map((provider) => ({
       provider,
       tier: state.tiers[provider],
       keyConfigured: secrets()[provider],
+      keyRefused: refused(provider),
       models: null,
     }));
-    const active = providers.find((item) => item.provider === state.provider) ?? providers[0];
+    const active = providers.find((item) => item.provider === current()) ?? providers[0];
     if (!active) throw new Error('sem provedor');
-    return { ...active, providers };
+    return {
+      provider: active.provider,
+      tier: active.tier,
+      keyConfigured: active.keyConfigured,
+      models: active.models,
+      providers,
+      order: [...state.order],
+    };
   };
   return {
     state,
     handlers: {
       ai_settings_get: view,
       ai_provider_set: ({ provider }) => {
-        state.provider = provider as AiProvider;
+        const chosen = provider as AiProvider;
+        state.order = [chosen, ...state.order.filter((item) => item !== chosen)];
+        return view();
+      },
+      ai_order_set: ({ order }) => {
+        const asked = order as AiProvider[];
+        state.order = [...asked, ...AI_PROVIDERS.filter((item) => !asked.includes(item))];
         return view();
       },
       ai_settings_set: ({ tier }) => {
-        state.tiers = { ...state.tiers, [state.provider]: tier as ModelTier };
+        state.tiers = { ...state.tiers, [current()]: tier as ModelTier };
         return view();
       },
-      ai_models_get: () => TEST_MODELS[state.provider],
+      ai_models_get: () => TEST_MODELS[current()],
+      ai_models_of: ({ provider }) => TEST_MODELS[provider as AiProvider],
     },
   };
 }

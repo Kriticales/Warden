@@ -1,7 +1,9 @@
 //! Comandos do domínio `ai` (ARCHITECTURE §4.1 e §9.5; SPEC T14 ✦; ROADMAP D-04).
 //!
-//! - `ai_settings_get` / `ai_settings_set` / `ai_provider_set`: o provedor de IA ativo (Gemini,
-//!   o padrão, OpenAI ou Claude; ADR-0060) e, por provedor, "Mais econômico" ou "Análise mais
+//! - `ai_settings_get` / `ai_settings_set` / `ai_provider_set`: o provedor de IA das conversas
+//!   novas (Gemini, OpenAI ou Claude; ADR-0060), o primeiro com a chave funcionando na ordem de
+//!   preferência ([`super::ai_order`], ADR-0070; `ai_provider_set` põe um provedor em primeiro)
+//!   e, por provedor, "Mais econômico" ou "Análise mais
 //!   cuidadosa" (`ai/settings.json` nos dados do Warden); `ai_models_get`: os modelos que a
 //!   chave do provedor ativo alcança, pela lista de modelos da conta (nenhum nome fixo no
 //!   código, ADR-0055).
@@ -270,10 +272,16 @@ impl<'a> Busy<'a> {
 /// `ai/settings.json`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct AiSettingsFile {
-    /// O provedor das conversas novas (sem o campo, o arquivo da D-04: Gemini).
+pub(super) struct AiSettingsFile {
+    /// O primeiro da ordem de preferência (sem o campo, o arquivo da D-04: Gemini). Antes da
+    /// ADR-0070 era o provedor único das conversas novas; continua gravado para uma versão
+    /// anterior do Warden ler.
     #[serde(default)]
-    ai_provider: AiProvider,
+    pub(super) ai_provider: AiProvider,
+    /// A ordem de preferência dos provedores (ADR-0070). Sem o campo, `aiProvider` primeiro e
+    /// os outros na ordem da tela ([`super::ai_order::normalized`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub(super) ai_order: Vec<AiProvider>,
     /// A escolha do Gemini (o campo da D-04, mantido para o arquivo continuar valendo).
     #[serde(default)]
     tier: ModelTier,
@@ -283,6 +291,18 @@ struct AiSettingsFile {
 }
 
 impl AiSettingsFile {
+    /// A ordem de preferência completa (ADR-0070).
+    pub(super) fn order(&self) -> Vec<AiProvider> {
+        super::ai_order::normalized(&self.ai_order, self.ai_provider)
+    }
+
+    /// O provedor das conversas novas: o primeiro da ordem com a chave funcionando.
+    pub(super) fn new_conversation_provider(&self, state: &AppState) -> AiProvider {
+        super::ai_order::new_conversation_provider(&self.order(), |provider| {
+            super::ai_order::usable(state, provider)
+        })
+    }
+
     /// A escolha do modelo de um provedor.
     fn tier_of(&self, provider: AiProvider) -> ModelTier {
         match (self.tiers.get(&provider), provider) {
@@ -313,14 +333,14 @@ fn settings_file(state: &AppState) -> PathBuf {
     state.paths.data_dir().join("ai").join("settings.json")
 }
 
-fn load_settings(state: &AppState) -> AiSettingsFile {
+pub(super) fn load_settings(state: &AppState) -> AiSettingsFile {
     std::fs::read(settings_file(state))
         .ok()
         .and_then(|bytes| serde_json::from_slice(&bytes).ok())
         .unwrap_or_default()
 }
 
-fn save_settings(state: &AppState, settings: &AiSettingsFile) -> Result<(), AppError> {
+pub(super) fn save_settings(state: &AppState, settings: &AiSettingsFile) -> Result<(), AppError> {
     let path = settings_file(state);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
@@ -349,12 +369,14 @@ pub(crate) struct AiProviderSettings {
     pub(crate) tier: ModelTier,
     /// Há chave deste provedor.
     pub(crate) key_configured: bool,
+    /// A chave foi recusada no último **Testar**: o Sculk pula este provedor (ADR-0070).
+    pub(crate) key_refused: bool,
     /// Os modelos já resolvidos nesta execução (sem rede).
     pub(crate) models: Option<ModelChoices>,
 }
 
-/// O que Configurações mostra da IA. `tier`, `keyConfigured` e `models` são os do provedor
-/// ativo.
+/// O que Configurações mostra da IA. `provider` é o das conversas novas (o primeiro da ordem
+/// com a chave funcionando, ADR-0070); `tier`, `keyConfigured` e `models` são os dele.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct AiSettingsView {
@@ -368,6 +390,8 @@ pub(crate) struct AiSettingsView {
     pub(crate) models: Option<ModelChoices>,
     /// Cada provedor, na ordem da tela.
     pub(crate) providers: Vec<AiProviderSettings>,
+    /// A ordem de preferência (ADR-0070).
+    pub(crate) order: Vec<AiProvider>,
 }
 
 pub(crate) fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError> {
@@ -380,12 +404,14 @@ pub(crate) fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError
             provider,
             tier: settings.tier_of(provider),
             key_configured: status.is_configured(secret_of(provider)),
+            key_refused: state.key_checks.refused(secret_of(provider)),
             models: models.get(&provider).map(|(_, models)| models.clone()),
         })
         .collect();
+    let current = settings.new_conversation_provider(state);
     let active = providers
         .iter()
-        .find(|item| item.provider == settings.ai_provider)
+        .find(|item| item.provider == current)
         .cloned()
         .ok_or_else(|| AppError::internal("provedor ativo fora da lista"))?;
     Ok(AiSettingsView {
@@ -394,6 +420,7 @@ pub(crate) fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError
         key_configured: active.key_configured,
         models: active.models,
         providers,
+        order: settings.order(),
     })
 }
 
@@ -409,13 +436,13 @@ pub(crate) fn settings_set_impl(
     tier: ModelTier,
 ) -> Result<AiSettingsView, AppError> {
     let mut settings = load_settings(state);
-    let provider = settings.ai_provider;
+    let provider = settings.new_conversation_provider(state);
     settings.set_tier(provider, tier);
     save_settings(state, &settings)?;
     settings_view(state)
 }
 
-/// Grava a escolha do modelo **do provedor ativo** (cada provedor guarda a sua).
+/// Grava a escolha do modelo **do provedor das conversas novas** (cada provedor guarda a sua).
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn ai_settings_set(
@@ -430,12 +457,14 @@ pub(crate) fn provider_set_impl(
     provider: AiProvider,
 ) -> Result<AiSettingsView, AppError> {
     let mut settings = load_settings(state);
+    settings.ai_order = super::ai_order::moved_to_front(&settings.order(), provider);
     settings.ai_provider = provider;
     save_settings(state, &settings)?;
     settings_view(state)
 }
 
-/// Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas.
+/// Põe um provedor em primeiro na ordem de preferência (as boas-vindas). As conversas já
+/// começadas continuam no provedor delas.
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn ai_provider_set(
@@ -450,9 +479,19 @@ fn key_fingerprint(key: &SecretString) -> String {
     hex::encode(Sha256::digest(key.expose_secret().as_bytes()))
 }
 
-/// Os modelos da chave do provedor ativo (rede só na primeira vez, ou com `refresh`).
+/// Os modelos da chave do provedor das conversas novas (rede só na primeira vez, ou com
+/// `refresh`).
 async fn models_impl(state: &AppState, refresh: bool) -> Result<ModelChoices, AppError> {
-    let provider = load_settings(state).ai_provider;
+    let provider = load_settings(state).new_conversation_provider(state);
+    models_for(state, provider, refresh).await
+}
+
+/// Os modelos da chave de `provider` (rede só na primeira vez, ou com `refresh`).
+pub(super) async fn models_for(
+    state: &AppState,
+    provider: AiProvider,
+    refresh: bool,
+) -> Result<ModelChoices, AppError> {
     let key = state.secrets.require(secret_of(provider))?;
     let fingerprint = key_fingerprint(&key);
     if !refresh
@@ -808,7 +847,7 @@ pub(crate) async fn preview_impl(
 ) -> Result<AiPreview, AppError> {
     let root = pack_root(state, pack_id)?;
     let settings = load_settings(state);
-    let provider = settings.ai_provider;
+    let provider = settings.new_conversation_provider(state);
     let key = state.secrets.require(secret_of(provider))?;
     let models = models_impl(state, false).await?;
     let (model, _) = models
@@ -1060,7 +1099,7 @@ pub(crate) async fn run_impl(
 fn conversation_key(state: &AppState, provider: AiProvider) -> Result<SecretString, AppError> {
     match state.secrets.require(secret_of(provider)) {
         Err(warden_secrets::SecretsError::NotConfigured { .. })
-            if load_settings(state).ai_provider != provider =>
+            if load_settings(state).new_conversation_provider(state) != provider =>
         {
             Err(domain(&warden_ai::Error::ProviderKeyMissing { provider }))
         }
@@ -1495,7 +1534,7 @@ pub(crate) async fn standalone_preview_impl(
         crate::ai_tools::standalone::parse_link(url)?;
     }
     let settings = load_settings(state);
-    let provider = settings.ai_provider;
+    let provider = settings.new_conversation_provider(state);
     let key = state.secrets.require(secret_of(provider))?;
     let models = models_impl(state, false).await?;
     let (model, _) = models

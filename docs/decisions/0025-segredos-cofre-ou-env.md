@@ -1,6 +1,6 @@
 # ADR-0025 — Segredos: cofre do sistema por padrão, arquivo .env opcional
 
-- **Status:** aceita · **Data:** 2026-10-01 · **Origem:** decisão do dono (comentário na página da estrutura, tarefa D2) · **Substitui:** ADR-0017
+- **Status:** substituída pela [ADR-0069](0069-chaves-so-no-cofre-do-sistema.md) em 2026-10-25 · **Data:** 2026-10-01 · **Origem:** decisão do dono (comentário na página da estrutura, tarefa D2) · **Substitui:** ADR-0017
 
 ## Contexto
 

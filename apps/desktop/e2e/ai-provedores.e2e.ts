@@ -3,19 +3,20 @@
  * simulados de `mock-server/` (o do Gemini exige a chave só no cabeçalho e o histórico intacto,
  * como a API real):
  *
- * - CA-T21-06: em Chaves e contas › IA, o Gemini vem como padrão; a chave salva pela tela passa
- *   no Testar; a linha única do Gemini mostra o modelo; trocar para a OpenAI, escolher "Análise
- *   mais cuidadosa", ir ao Claude e voltar mantém a escolha de cada um; reiniciar mantém tudo;
- *   nenhuma chave aparece em `settings.json` nem em `ai/settings.json` (varredura);
+ * - CA-T21-06 (ADR-0070): em Chaves e contas, a chave do Gemini salva pela tela é testada na
+ *   hora e fica "Funcionando"; em Configurações → Sensor Sculk, o Gemini abre as conversas
+ *   novas, com o modelo; pôr a OpenAI (sem chave) em primeiro não muda o provedor das conversas
+ *   novas ("Pulado: sem chave"); reiniciar mantém a ordem; nenhuma chave aparece em
+ *   `settings.json` nem em `ai/settings.json` (varredura);
  * - CA-T14-20 (Gemini): a conversa nova usa o provedor escolhido; o consentimento mostra o nome
  *   do provedor e o modelo, com o aviso de plano gratuito;
- * - CA-T14-21 (telas): trocar o provedor ativo não muda a conversa já começada, que continua
- *   abrindo com o Gemini; sem a chave do Gemini, ela pede essa chave e leva a Configurações, e
- *   perguntar de novo mostra qual chave falta, sem nenhuma requisição de rede.
+ * - CA-T14-21 (telas): mudar a ordem não muda a conversa já começada, que continua abrindo com
+ *   o Gemini; sem a chave do Gemini, ela pede essa chave e leva a Configurações, e perguntar de
+ *   novo mostra qual chave falta, sem nenhuma requisição de rede.
  *
  * - CA-T14-20 (OpenAI e Claude, ligados na junção do lote 12 com os simulados e os tradutores da
- *   D-16/D-17): a chave pela tela, o modelo da regra na seção e no consentimento, sem plano
- *   gratuito, e a conversa nova só no provedor ativo.
+ *   D-16/D-17): a chave pela tela, o provedor em primeiro na ordem, o modelo da regra na seção
+ *   e no consentimento, sem plano gratuito, e a conversa nova só nesse provedor.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -28,7 +29,7 @@ import { $, browser, expect } from '@wdio/globals';
 import { seriousViolationSummaries } from './axe';
 import { ANTHROPIC_E2E_KEY, ANTHROPIC_E2E_MODEL } from './mock-server/anthropic';
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
-import { OPENAI_E2E_KEY } from './mock-server/openai';
+import { OPENAI_E2E_KEY, OPENAI_E2E_MODEL } from './mock-server/openai';
 import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
@@ -123,6 +124,11 @@ function keyLabel(provider: AiProvider): string {
   return { gemini: 'do Gemini', openai: 'da OpenAI', anthropic: 'do Claude' }[provider];
 }
 
+/** O nome na tela: Gemini, OpenAI, Claude. */
+function providerName(provider: AiProvider): string {
+  return { gemini: 'Gemini', openai: 'OpenAI', anthropic: 'Claude' }[provider];
+}
+
 async function screenshot(name: string): Promise<void> {
   if (!SCREENSHOTS) return;
   mkdirSync(SCREENSHOTS, { recursive: true });
@@ -148,11 +154,9 @@ async function clickStable(element: ReturnType<typeof $>): Promise<void> {
   await element.click();
 }
 
-/** A área IA de Chaves e contas. */
-const aiArea = () => $('section[aria-labelledby]*=Provedor da IA');
-const providerRadio = (name: string) =>
-  $('fieldset*=Provedor da IA').$(`label.choice*=${name}`).$('input[type="radio"]');
-const keyRow = (kind: string) => $(`[data-testid="chave-${kind}"]`);
+const keyItem = (kind: string) => $(`[data-testid="chave-${kind}"]`);
+/** A linha de um provedor na ordem de Configurações → Sensor Sculk. */
+const orderRow = (provider: AiProvider) => $(`.porder__row[data-provider="${provider}"]`);
 
 /** Meus packs, de onde estiver (a volta do pack ou de Configurações). */
 async function openMyPacks(): Promise<void> {
@@ -162,11 +166,40 @@ async function openMyPacks(): Promise<void> {
   await waitHeading('Meus packs');
 }
 
-async function openSettings(): Promise<void> {
+/** Configurações → uma página do menu lateral. */
+async function openSettings(page: 'Chaves e contas' | 'Sensor Sculk'): Promise<void> {
   await openMyPacks();
   await clickStable($('header.topbar').$('a*=Configurações'));
-  await waitHeading('Configurações');
-  await aiArea().waitForDisplayed({ timeout: 30_000 });
+  await waitHeading('Geral');
+  await clickStable($('nav.sidenav').$(`a*=${page}`));
+  await waitHeading(page);
+}
+
+/** Salva a chave do provedor pela tela; o Warden testa na hora e ela fica "Funcionando". */
+async function saveKey(provider: AiProvider, key: string): Promise<void> {
+  await openSettings('Chaves e contas');
+  await clickStable(keyItem(provider));
+  const detail = $('section.keydet');
+  await detail.$(`input[type="password"]`).waitForDisplayed({ timeout: 30_000 });
+  await expect($(`label=Chave ${keyLabel(provider)}`)).toBeDisplayed();
+  await detail.$('input[type="password"]').setValue(key);
+  await clickStable(detail.$('button=Salvar'));
+  await keyItem(provider).$('span*=Funcionando').waitForDisplayed({ timeout: 30_000 });
+}
+
+/** Põe o provedor em primeiro na ordem (pelas setas) e espera cada passo ser gravado. */
+async function moveToTop(provider: AiProvider): Promise<void> {
+  await openSettings('Sensor Sculk');
+  for (;;) {
+    const order = aiSettings().aiOrder ?? [...AI_PROVIDERS];
+    const index = order.indexOf(provider);
+    if (index <= 0) break;
+    await clickStable(orderRow(provider).$(`button[aria-label="Subir ${providerName(provider)}"]`));
+    await browser.waitUntil(() => (aiSettings().aiOrder ?? []).indexOf(provider) === index - 1, {
+      timeout: 30_000,
+      timeoutMsg: 'a ordem não foi gravada',
+    });
+  }
 }
 
 /** Meus packs → o pack → ✦ Diagnóstico com IA. */
@@ -178,19 +211,11 @@ async function openAiSection(): Promise<void> {
   await waitHeading('Diagnóstico com IA');
 }
 
-/** Escolhe um rádio e espera a escolha valer (o backend grava e a tela relê). */
-async function choose(radio: ReturnType<typeof $>): Promise<void> {
-  await clickStable(radio.parentElement().parentElement());
-  await browser.waitUntil(async () => radio.isSelected(), {
-    timeout: 30_000,
-    timeoutMsg: 'a escolha não ficou marcada',
-  });
-}
-
-function aiSettings(): { aiProvider?: string; tiers?: Record<string, string> } {
+function aiSettings(): { aiProvider?: string; aiOrder?: string[] } {
+  if (!existsSync(AI_SETTINGS_FILE)) return {};
   return JSON.parse(readFileSync(AI_SETTINGS_FILE, 'utf8')) as {
     aiProvider?: string;
-    tiers?: Record<string, string>;
+    aiOrder?: string[];
   };
 }
 
@@ -233,24 +258,19 @@ describe('IA com vários provedores (D-18)', function () {
     else await open.click();
     await waitHeading('Mods');
 
-    await openSettings();
-    expect(await providerRadio('Gemini').isSelected()).toBe(true);
-    const row = keyRow('gemini');
-    await row.$('input[aria-label="Chave do Gemini"]').setValue(GEMINI_E2E_KEY);
-    await clickStable(row.$('button=Salvar'));
-    await row.$('span*=Configurada').waitForDisplayed({ timeout: 30_000 });
-    await clickStable(row.$('button=Testar'));
-    await row.$('span*=Funcionando').waitForDisplayed({ timeout: 30_000 });
-    const line = $('[data-testid="ia-modelo-gemini"]');
-    await expect(line).toHaveText(
-      expect.stringContaining('Usa sempre o modelo mais forte do plano gratuito'),
-    );
-    await line.$('span*=Hoje: gemini-9.1-flash.').waitForDisplayed({ timeout: 30_000 });
-    await expect(line).toHaveText(
-      expect.stringContaining('para o mais leve (gemini-9.1-flash-lite), só naquela pergunta'),
-    );
+    await saveKey('gemini', GEMINI_E2E_KEY);
+    await expect($('section.keydet')).toHaveText(expect.stringContaining('1º na preferência'));
     expect(await axeAfterToasts()).toEqual([]);
-    await screenshot('d18-01-configuracoes-gemini');
+    await screenshot('d18-01-chaves-gemini');
+
+    await openSettings('Sensor Sculk');
+    const geminiRow = orderRow('gemini');
+    await geminiRow.$('span*=Conversas novas').waitForDisplayed({ timeout: 30_000 });
+    await geminiRow.$('b=gemini-9.1-flash').waitForDisplayed({ timeout: 30_000 });
+    await expect(geminiRow).toHaveText(expect.stringContaining('gemini-9.1-flash-lite'));
+    await expect(orderRow('openai')).toHaveText(expect.stringContaining('Pulado: sem chave'));
+    expect(await axeAfterToasts()).toEqual([]);
+    await screenshot('d18-01-sensor-sculk-gemini');
 
     await openAiSection();
     await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
@@ -273,42 +293,34 @@ describe('IA com vários provedores (D-18)', function () {
     expect(state.generate.length).toBe(2);
   });
 
-  it('CA-T21-06: a escolha de cada provedor fica ao trocar e voltar, e depois de reiniciar; nenhuma chave nos arquivos', async () => {
-    await openSettings();
-    await choose(providerRadio('OpenAI'));
-    const openai = $('fieldset*=Modelo (OpenAI)');
-    await openai.waitForDisplayed({ timeout: 30_000 });
-    await expect(openai).toHaveText(expect.stringContaining('A OpenAI cobra por uso'));
-    await choose(openai.$('label.choice*=Análise mais cuidadosa').$('input'));
-    await choose(providerRadio('Claude'));
-    const claude = $('fieldset*=Modelo (Claude)');
-    await claude.waitForDisplayed({ timeout: 30_000 });
-    expect(await claude.$('label.choice*=Mais econômico').$('input').isSelected()).toBe(true);
-    await choose(providerRadio('OpenAI'));
-    await openai.waitForDisplayed({ timeout: 30_000 });
-    expect(await openai.$('label.choice*=Análise mais cuidadosa').$('input').isSelected()).toBe(
-      true,
+  it('CA-T21-06 (ADR-0070): a OpenAI sem chave em primeiro é pulada; a ordem fica depois de reiniciar; nenhuma chave nos arquivos', async () => {
+    await openSettings('Sensor Sculk');
+    await clickStable(orderRow('openai').$('button[aria-label="Subir OpenAI"]'));
+    await browser.waitUntil(() => aiSettings().aiOrder?.[0] === 'openai', {
+      timeout: 30_000,
+      timeoutMsg: 'a ordem não foi gravada',
+    });
+    expect(aiSettings()).toMatchObject({
+      aiOrder: ['openai', 'gemini', 'anthropic'],
+      aiProvider: 'openai',
+    });
+    await $('.porder__row').waitForDisplayed();
+    expect(await $('.porder__row').getAttribute('data-provider')).toBe('openai');
+    await expect(orderRow('openai')).toHaveText(expect.stringContaining('Pulado: sem chave'));
+    await expect(orderRow('gemini')).toHaveText(expect.stringContaining('Conversas novas'));
+    await expect($('nav.sidenav').$('a*=Sensor Sculk')).toHaveText(
+      expect.stringContaining('Gemini'),
     );
-    expect(aiSettings()).toMatchObject({ aiProvider: 'openai', tiers: { openai: 'careful' } });
     expect(await axeAfterToasts()).toEqual([]);
-    await screenshot('d18-03-configuracoes-openai');
+    await screenshot('d18-03-sensor-sculk-ordem');
 
-    // Reiniciar mantém o provedor, a escolha e a chave do Gemini.
+    // Reiniciar mantém a ordem e a chave do Gemini.
     await browser.reloadSession();
     await browser.setWindowSize(1366, 900);
     await $('header.topbar').waitForDisplayed({ timeout: 60_000 });
-    await openSettings();
-    await browser.waitUntil(async () => providerRadio('OpenAI').isSelected(), {
-      timeout: 30_000,
-      timeoutMsg: 'a OpenAI não continuou escolhida depois de reiniciar',
-    });
-    expect(
-      await $('fieldset*=Modelo (OpenAI)')
-        .$('label.choice*=Análise mais cuidadosa')
-        .$('input')
-        .isSelected(),
-    ).toBe(true);
-    await keyRow('gemini').$('span*=Configurada').waitForDisplayed({ timeout: 30_000 });
+    await openSettings('Sensor Sculk');
+    await orderRow('gemini').$('span*=Conversas novas').waitForDisplayed({ timeout: 30_000 });
+    expect(await $('.porder__row').getAttribute('data-provider')).toBe('openai');
 
     // Varredura: a chave nunca vai para os arquivos de configuração.
     for (const file of [SETTINGS_FILE, AI_SETTINGS_FILE]) {
@@ -318,9 +330,8 @@ describe('IA com vários provedores (D-18)', function () {
   });
 
   it('CA-T14-21 (telas): a conversa do Gemini continua nele; sem a chave dele, pede a chave e nada vai para a rede', async () => {
-    // O provedor ativo é a OpenAI, sem chave: a seção pede a chave dela, e a conversa continua lá.
+    // A OpenAI está em primeiro, sem chave: a conversa do Gemini continua nele.
     await openAiSection();
-    await $('.empty__title*=Falta a chave da OpenAI').waitForDisplayed({ timeout: 30_000 });
     const list = $('section[aria-labelledby="ia-conversas"]');
     await clickStable(list.$('a*=Continuar'));
     await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
@@ -330,18 +341,22 @@ describe('IA com vários provedores (D-18)', function () {
     );
     await expect($('div.alert*=Falta a chave do Gemini')).not.toBeExisting();
 
-    // Sem a chave do Gemini, a conversa pede essa chave.
-    await openSettings();
-    await clickStable(keyRow('gemini').$('button=Remover'));
+    // Sem a chave do Gemini, a conversa pede essa chave. Remover avisa que ninguém assume.
+    await openSettings('Chaves e contas');
+    await clickStable(keyItem('gemini'));
+    await clickStable($('section.keydet').$('button=Remover'));
     const confirm = $('[role="alertdialog"]');
     await confirm.waitForDisplayed({ timeout: 10_000 });
+    await expect(confirm).toHaveText(
+      expect.stringContaining('Nenhum outro provedor tem chave funcionando'),
+    );
     await clickStable(confirm.$('button=Remover chave'));
-    await keyRow('gemini').$('input[aria-label="Chave do Gemini"]').waitForDisplayed({
-      timeout: 30_000,
-    });
+    await keyItem('gemini').$('span*=Sem chave').waitForDisplayed({ timeout: 30_000 });
     const before = (await gemini()).generate.length;
 
+    // Sem nenhuma chave, a seção pede a chave do primeiro da ordem (a OpenAI).
     await openAiSection();
+    await $('.empty__title*=Falta a chave da OpenAI').waitForDisplayed({ timeout: 30_000 });
     await clickStable($('section[aria-labelledby="ia-conversas"]').$('a*=Continuar'));
     const notice = $('div.alert*=Falta a chave do Gemini');
     await notice.waitForDisplayed({ timeout: 30_000 });
@@ -359,16 +374,16 @@ describe('IA com vários provedores (D-18)', function () {
     await expect(failure).toHaveText(expect.stringContaining('Nada foi alterado no pack.'));
     expect((await gemini()).generate.length).toBe(before);
 
-    // "Abrir Configurações" do aviso leva a Chaves e contas.
+    // "Abrir Configurações" do aviso leva a Configurações.
     await clickStable(notice.$('a=Abrir Configurações'));
-    await waitHeading('Configurações');
-    await aiArea().waitForDisplayed({ timeout: 30_000 });
+    await waitHeading('Geral');
   });
 
   /**
-   * CA-T14-20 com a OpenAI e o Claude: a chave salva pela tela passa no Testar, a seção mostra o
-   * provedor e o modelo que a regra escolheu na lista do simulado (D-16/D-17), o consentimento
-   * diz o provedor e o modelo, sem plano gratuito, e a conversa nova vai só ao provedor ativo.
+   * CA-T14-20 com a OpenAI e o Claude: a chave salva pela tela passa no teste, o provedor vai para
+   * o primeiro da ordem, a seção mostra o provedor e o modelo que a regra escolheu na lista do
+   * simulado (D-16/D-17), o consentimento diz o provedor e o modelo, sem plano gratuito, e a
+   * conversa nova vai só a esse provedor.
    */
   async function conversationWith(options: {
     provider: AiProvider;
@@ -380,14 +395,11 @@ describe('IA com vários provedores (D-18)', function () {
     shot: string;
   }): Promise<void> {
     const before = await allProviders();
-    await openSettings();
-    await choose(providerRadio(options.radio));
-    const row = keyRow(options.provider);
-    await row.$(`input[aria-label="Chave ${keyLabel(options.provider)}"]`).setValue(options.key);
-    await clickStable(row.$('button=Salvar'));
-    await row.$('span*=Configurada').waitForDisplayed({ timeout: 30_000 });
-    await clickStable(row.$('button=Testar'));
-    await row.$('span*=Funcionando').waitForDisplayed({ timeout: 30_000 });
+    await saveKey(options.provider, options.key);
+    await moveToTop(options.provider);
+    await orderRow(options.provider)
+      .$('span*=Conversas novas')
+      .waitForDisplayed({ timeout: 30_000 });
 
     await openAiSection();
     await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
@@ -430,13 +442,13 @@ describe('IA com vários provedores (D-18)', function () {
   }
 
   it('CA-T14-20 (OpenAI): com a chave da OpenAI, a conversa nova vai só à OpenAI e o consentimento diz "OpenAI (gpt-…)"', async () => {
-    // A OpenAI ficou com "Análise mais cuidadosa" no caso acima: a regra dá o `gpt-N-sol`.
+    // O modelo da conversa é o "Mais econômico" (o modo de cada pergunta é da T1).
     await conversationWith({
       provider: 'openai',
       radio: 'OpenAI',
       key: OPENAI_E2E_KEY,
-      model: 'gpt-9-sol',
-      tier: 'análise mais cuidadosa',
+      model: OPENAI_E2E_MODEL,
+      tier: 'mais econômico',
       charge: 'O uso é cobrado na sua chave da OpenAI',
       shot: 'd18-05-consentimento-openai',
     });
