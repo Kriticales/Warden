@@ -74,6 +74,7 @@ impl MergedItem {
             in_pack,
             compatible: hits.iter().any(|hit| hit.compatible),
             manual_download: hits.iter().all(|hit| hit.manual_download),
+            is_library: hits.iter().any(|hit| hit.is_library),
             sources: hits.into_iter().map(|hit| hit.reference).collect(),
         }
     }
@@ -239,6 +240,7 @@ mod tests {
             created: updated.into(),
             compatible: true,
             manual_download: source == SourceId::Curseforge,
+            is_library: false,
         }
     }
 
@@ -342,7 +344,9 @@ mod tests {
     #[test]
     fn duplicata_vira_um_item_com_as_duas_fontes() {
         let m = [hit(M, "jei", "mezz", 10.0, ""), hit(M, "M2", "b", 1.0, "")];
-        let c = [hit(C, "C1", "c", 1.0, ""), hit(C, "JEI", "Mezz", 20.0, "")];
+        let mut c = [hit(C, "C1", "c", 1.0, ""), hit(C, "JEI", "Mezz", 20.0, "")];
+        // Só a CurseForge o classifica como biblioteca: o item combinado também é.
+        c[1].is_library = true;
         let combined = combine(
             &[
                 SourceBatch {
@@ -367,6 +371,9 @@ mod tests {
         assert!((result.downloads - 30.0).abs() < f64::EPSILON);
         assert_eq!(result.sources.len(), 2);
         assert!(!result.manual_download, "o Modrinth baixa sozinho");
+        assert!(result.is_library, "uma fonte basta para ser biblioteca");
+        let alone = combined.items[2].clone().into_result(&InstalledKeys::new());
+        assert!(!alone.is_library);
     }
 
     #[test]

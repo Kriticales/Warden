@@ -3,9 +3,9 @@
 //!
 //! Cada lista é uma busca vazia da busca combinada, ordenada por downloads ou por atualização.
 //! Cada fonte recebe **uma requisição por lista**, no total duas (o orçamento é de no máximo 3
-//! por fonte). O que já está no pack não ocupa lugar nas listas: os nomes mais populares que já
-//! foram adicionados vêm à parte para a nota "também estão entre os mais baixados, mas já estão
-//! no seu pack".
+//! por fonte). As listas trazem a página inteira (ADR-0068): o que já está no pack aparece com o
+//! selo "No pack" e as bibliotecas vêm marcadas (`is_library`), para a interface escondê-las
+//! numa linha só. O total de cada lista vem junto ("17 de 2.481").
 
 use serde::Serialize;
 use warden_core::CancellationToken;
@@ -15,11 +15,8 @@ use warden_project::search::{
     SearchSort, SourceFilter, SourceId, SourceWarning, search,
 };
 
-/// Itens de cada lista do início.
-pub const HOME_ITEMS: usize = 8;
-
-/// Quantos nomes "já no pack" a nota do início cita.
-const HIDDEN_NAMES: usize = 4;
+/// Itens de cada lista do início: uma página da busca combinada.
+pub const HOME_ITEMS: usize = warden_project::search::PAGE_SIZE;
 
 /// O início da descoberta.
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
@@ -29,8 +26,10 @@ pub struct DiscoverHome {
     pub popular: Vec<SearchResult>,
     /// Os atualizados há menos tempo para o pack.
     pub updated: Vec<SearchResult>,
-    /// Nomes dos mais baixados que já estão no pack (ficam fora de `popular`).
-    pub popular_in_pack: Vec<String>,
+    /// Quantos projetos há para o pack na lista dos populares (soma das fontes).
+    pub popular_total: f64,
+    /// Quantos há na lista dos atualizados.
+    pub updated_total: f64,
     /// As fontes consultadas.
     pub sources: Vec<SourceId>,
     /// Fontes que ficaram de fora, e por quê.
@@ -68,28 +67,22 @@ pub async fn home(
         search(sources, target, installed, &updated_request, cancel),
     );
     let (popular, updated) = (popular?, updated?);
-    let popular_in_pack = popular
-        .items
-        .iter()
-        .filter(|item| item.in_pack)
-        .map(|item| item.title.clone())
-        .take(HIDDEN_NAMES)
-        .collect();
     let warnings = merged_warnings(&popular, &updated);
     Ok(DiscoverHome {
         sources: popular.sources.clone(),
+        popular_total: popular.total,
+        updated_total: updated.total,
         popular: available(popular),
         updated: available(updated),
-        popular_in_pack,
         warnings,
     })
 }
 
-/// Só o que ainda dá para adicionar, até [`HOME_ITEMS`].
+/// O que tem versão para o pack (inclusive o que já está nele), até [`HOME_ITEMS`].
 fn available(page: SearchPage) -> Vec<SearchResult> {
     page.items
         .into_iter()
-        .filter(|item| !item.in_pack && item.compatible)
+        .filter(|item| item.compatible)
         .take(HOME_ITEMS)
         .collect()
 }

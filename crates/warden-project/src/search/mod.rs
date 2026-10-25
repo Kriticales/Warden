@@ -264,6 +264,7 @@ pub struct SourceRef {
 }
 
 /// Um resultado da busca combinada.
+#[allow(clippy::struct_excessive_bools)] // marcas independentes da linha: é o contrato com a interface
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
@@ -291,7 +292,17 @@ pub struct SearchResult {
     /// CurseForge: o autor bloqueou downloads por apps de terceiros ("Download manual
     /// necessário").
     pub manual_download: bool,
+    /// Biblioteca (alguma fonte a classifica assim: Modrinth `library`, CurseForge "API and
+    /// Library"): não muda o jogo sozinha e entra quando um mod precisa dela. A página
+    /// Adicionar a esconde por padrão (ADR-0068).
+    pub is_library: bool,
 }
+
+/// Categoria do Modrinth das bibliotecas (`categories` da busca).
+pub const MODRINTH_LIBRARY_CATEGORY: &str = "library";
+
+/// ID da categoria "API and Library" da CurseForge (`categories[].id` e `primaryCategoryId`).
+pub const CURSEFORGE_LIBRARY_CATEGORY: u32 = 421;
 
 /// Aviso de uma fonte que ficou de fora desta página.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -451,6 +462,8 @@ pub struct SourceHit {
     pub compatible: bool,
     /// Download manual necessário (CurseForge).
     pub manual_download: bool,
+    /// A fonte classifica o projeto como biblioteca.
+    pub is_library: bool,
 }
 
 /// Uma página de uma fonte.
@@ -978,6 +991,7 @@ mod tests {
                 created: String::new(),
                 compatible: true,
                 manual_download: false,
+                is_library: false,
             }
         }
     }
