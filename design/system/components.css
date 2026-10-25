@@ -177,6 +177,14 @@ code, kbd, samp, pre { font-family: var(--font-mono); font-size: 0.93em; }
 .panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
 .panel__title { font-family: var(--font-display); font-weight: var(--font-weight-medium); font-size: var(--text-lg); line-height: var(--text-lg--line-height); letter-spacing: var(--tracking-display); text-shadow: var(--shadow-pixel-text); }
 .panel__title--sans { font-family: var(--font-ui); font-size: var(--text-md); font-weight: var(--font-weight-bold); letter-spacing: 0; text-shadow: none; }
+/* Painel em partes (Problemas): barra com título e contadores, corpo e rodapé, separados por linhas */
+.panel--parts { padding: 0; }
+.panel__bar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); min-height: var(--size-control-lg); padding: var(--space-2) var(--space-4); border-bottom: var(--border-thin) solid var(--color-border); }
+.panel__bar-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-base); line-height: var(--text-base--line-height); font-weight: var(--font-weight-bold); }
+.panel__bar-title .icon { color: var(--color-text-3); }
+.panel__body { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); }
+.panel__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-3) var(--space-4); border-top: var(--border-thin) solid var(--color-border); font-size: var(--text-sm); }
+.panel__subtitle { font-size: var(--text-xs); line-height: var(--text-xs--line-height); font-weight: var(--font-weight-bold); color: var(--color-text-2); }
 .group-title { display: flex; align-items: baseline; gap: var(--space-2); margin: var(--space-5) 0 var(--space-2); font-weight: var(--font-weight-bold); font-size: var(--text-base); }
 .group-title .t-3 { font-weight: var(--font-weight-regular); font-size: var(--text-sm); }
 
@@ -235,6 +243,10 @@ code, kbd, samp, pre { font-family: var(--font-mono); font-size: 0.93em; }
 .btn--link:active, .btn--link.is-active { transform: none; }
 .btn--link::before, .btn--link::after { display: none; }
 .btn--link.t-2 { --btn-fg: var(--color-text-2); }
+
+/* Ação do Sculk (a IA) no meio de ações sem IA: contorno e texto em osso, sempre com o ✦ */
+.btn--ai { --btn-bg: var(--color-surface-1); --btn-fg: var(--color-ai); --btn-edge: var(--color-ai-line); --btn-bevel: none; }
+.btn--ai:hover, .btn--ai.is-hover { --btn-bg: var(--color-surface-2); --btn-edge: var(--color-ai); }
 
 .btn--sm { --btn-shape: var(--shape-notch-sm); height: var(--size-control-sm); padding: 0 var(--space-3); font-size: var(--text-sm); gap: var(--space-1); }
 .btn--lg { height: var(--size-control-lg); padding: 0 var(--space-6); font-size: var(--text-md); }
@@ -747,6 +759,24 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 .alert--compact { padding: var(--space-2) var(--space-3); }
 
 /* Problema (Problemas e checagem do teste): título, explicação, evidência, correção */
+/* Lista em linhas dentro de um painel em partes (achados e travamentos em Problemas): ícone da
+   gravidade, título, explicação, evidência em mono e as ações. A gravidade tem ícone e palavra. */
+.rowlist { margin: 0; padding: 0; list-style: none; }
+.rowlist__sev { padding: var(--space-3) var(--space-4) var(--space-1); font-size: var(--text-2xs); line-height: var(--text-2xs--line-height); font-weight: var(--font-weight-bold); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-3); }
+.rowlist > li + li { border-top: var(--border-thin) solid var(--color-border); }
+.rowlist__row { display: grid; grid-template-columns: var(--size-icon-lg) minmax(0, 1fr); gap: var(--space-1) var(--space-3); padding: var(--space-3) var(--space-4); }
+.rowlist__row > .icon { margin-top: 2px; color: var(--color-text-3); }
+.rowlist__row--danger > .icon { color: var(--color-danger-text); }
+.rowlist__row--warn > .icon { color: var(--color-warn-text); }
+.rowlist__row--ok > .icon { color: var(--color-ok-text); }
+.rowlist__row--ignored { opacity: 0.8; }
+.rowlist__row--ignored .rowlist__title { text-decoration: line-through; }
+.rowlist__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); min-width: 0; }
+.rowlist__title { font-weight: var(--font-weight-semibold); }
+.rowlist__text, .rowlist__ev, .rowlist__actions, .rowlist__more { grid-column: 2; min-width: 0; }
+.rowlist__text { font-size: var(--text-sm); line-height: var(--text-sm--line-height); color: var(--color-text-2); }
+.rowlist__ev { font-family: var(--font-mono); font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-text-3); overflow-wrap: anywhere; white-space: pre-wrap; }
+.rowlist__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-1); }
 .issue { padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5); background: var(--color-surface-1); border: var(--border-thin) solid var(--color-border); box-shadow: inset var(--border-bar) 0 0 var(--issue-bar, var(--color-border-control)); }
 .issue + .issue { margin-top: var(--space-2); }
 .issue--danger { --issue-bar: var(--color-danger); }
@@ -956,6 +986,23 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 .losses__txt { color: var(--color-text-2); }
 .losses__txt b { color: var(--color-text); }
 .losses .is-ignored .losses__pts, .losses .is-ignored .losses__txt b { color: var(--color-text-3); text-decoration: line-through; }
+/* Saúde no painel da coluna (Problemas): 20 blocos que ocupam a largura */
+.health__blocks--fill { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); }
+.health__blocks--fill i { width: auto; }
+
+/* Números de um teste (Desempenho do último teste): rótulo pequeno, valor em mono, nota abaixo */
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-4); margin: 0; }
+.metrics dt { font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-text-3); }
+.metrics dd { margin: 0; font-family: var(--font-mono); font-size: var(--text-md); line-height: var(--text-md--line-height); color: var(--color-text); }
+.metrics__note { display: block; font-family: var(--font-ui); font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-text-3); }
+.metrics__note--warn { color: var(--color-warn-text); }
+/* Barras de quanto cada mod usou (spark): nome, barra e porcentagem */
+.barlist { display: flex; flex-direction: column; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.barlist li { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) 3rem; gap: var(--space-2); align-items: center; font-size: var(--text-sm); line-height: var(--text-sm--line-height); }
+.barlist__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barlist__bar { height: var(--space-2); background: var(--color-surface-3); }
+.barlist__bar i { display: block; height: 100%; background: var(--color-primary); }
+.barlist__pct { font-family: var(--font-mono); font-size: var(--text-xs); text-align: right; color: var(--color-text-2); }
 
 /* Busca do culpado: trilha de rodadas (forma do ícone diz o resultado; cor só reforça) */
 .rounds { display: flex; flex-wrap: wrap; gap: var(--space-1); }
