@@ -126,6 +126,8 @@ export function StandalonePage({ conversationId }: { conversationId: string | nu
   return (
     <AppPage back={{ to: '/', label: t('pagina.voltar') }} where={t('pagina.titulo')}>
       <div className="sculk sculk--app" data-testid="analisar-log">
+        {/* O título da página, para o leitor de tela (a barra de cima já mostra onde se está). */}
+        <h1 className="sr-only">{t('pagina.titulo')}</h1>
         <ConversationList
           conversations={list}
           selectedId={conversationId}

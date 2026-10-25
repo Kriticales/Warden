@@ -569,6 +569,7 @@ code.req {
   background: var(--color-surface-1);
 }
 .composer__inner {
+  width: 100%;
   max-width: var(--sculk-read);
   margin: 0 auto;
   display: grid;
@@ -948,4 +949,14 @@ code.req {
   .tc.is-flash > summary {
     animation: none;
   }
+}
+
+/* O texto inicial quebra as linhas longas: sem isso, a largura mínima do texto alarga o diálogo
+   para fora da tela. */
+.consent pre.raw {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.consent {
+  min-width: 0;
 }

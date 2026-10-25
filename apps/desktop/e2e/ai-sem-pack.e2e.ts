@@ -183,7 +183,7 @@ describe('Analisar um log sem pack (D-19)', function () {
   it('CA-T14-26: Meus packs abre "Analisar um log"; outro site e o hastebin são recusados', async () => {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     await clickStable($('main').$('a*=Analisar um log'));
-    await waitHeading('Analisar um log');
+    await $('[data-testid="analisar-log"]').waitForDisplayed({ timeout: 60_000 });
     await $('section.sculk__chat').$('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
     await $('p=Nenhuma conversa sem pack ainda.').waitForDisplayed({ timeout: 30_000 });
     await chooseSymptom();
@@ -292,7 +292,7 @@ describe('Analisar um log sem pack (D-19)', function () {
     await browser.setWindowSize(1366, 900);
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     await clickStable($('main').$('a*=Analisar um log'));
-    await waitHeading('Analisar um log');
+    await $('[data-testid="analisar-log"]').waitForDisplayed({ timeout: 60_000 });
     await browser.waitUntil(async () => (await standaloneRows().length) === 1, {
       timeout: 30_000,
       timeoutMsg: 'a conversa não apareceu em Conversas sem pack',
@@ -330,7 +330,7 @@ describe('Analisar um log sem pack (D-19)', function () {
       await clickStable($('a*=Meus packs'));
       await waitHeading('Meus packs');
       await clickStable($('main').$('a*=Analisar um log'));
-      await waitHeading('Analisar um log');
+      await $('[data-testid="analisar-log"]').waitForDisplayed({ timeout: 60_000 });
       await clickStable($('aside.sculk__convs').$('button*=Nova conversa'));
       await $('section.sculk__chat').$('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
       await chooseSymptom();
