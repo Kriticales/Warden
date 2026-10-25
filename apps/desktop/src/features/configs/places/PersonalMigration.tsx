@@ -1,13 +1,15 @@
 /**
  * A migração das configs pessoais (ADR-0067): quando o pack aberto ainda leva o `options.txt`
  * (ou outra preferência pessoal), o Warden avisa ao abrir o pack, numa faixa logo abaixo do
- * cabeçalho (não bloqueia o resto do pack), e pergunta antes de mexer. Nada some sem o dono ver:
+ * cabeçalho (não bloqueia o resto do pack; aparece em Mods, onde o pack abre, e em Configs), e
+ * pergunta antes de mexer. Nada some sem o dono ver:
  *
  * - **Tirar do pack e guardar aqui**: a cópia fica guardada neste computador (a do teste local,
  *   se houver; senão a do pack) e o arquivo sai do pack;
  * - **Manter no pack**: o arquivo deixa de ser pessoal e continua indo para os jogadores;
  * - **Agora não**: pergunta de novo na próxima vez que o pack abrir.
  */
+import { useLocation } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -20,14 +22,20 @@ import { useConfigOverview, useKeepPersonalOut, useUnmarkPersonal } from './api'
 /** Packs em que a pessoa escolheu "Agora não" nesta abertura do app. */
 const postponed = new Set<PackId>();
 
+/** Só na abertura do pack (Mods) e em Configs: nas outras seções a faixa tiraria espaço. */
+function shownHere(pathname: string): boolean {
+  return /\/(mods|configs)\/?$/.test(pathname);
+}
+
 export function PersonalMigration({ packId }: { packId: PackId }) {
   const { t } = useTranslation('configs');
+  const here = useLocation({ select: (location) => shownHere(location.pathname) });
   const overview = useConfigOverview(packId);
   const keepOut = useKeepPersonalOut(packId);
   const unmark = useUnmarkPersonal(packId);
   const [later, setLater] = useState(() => postponed.has(packId));
   const paths = overview.data?.personalInPack ?? [];
-  const open = !later && paths.length > 0;
+  const open = here && !later && paths.length > 0;
   const busy = keepOut.isPending || unmark.isPending;
 
   const postpone = () => {
