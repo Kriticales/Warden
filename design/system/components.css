@@ -471,8 +471,8 @@ kbd, .kbd { display: inline-block; min-width: 20px; padding: 1px 5px; font-famil
 .content--read { max-width: var(--size-content-read); }
 .content--wide { max-width: var(--size-content-wide); }
 /* Telas em colunas na janela toda (Configs): sem a margem da área principal, cada coluna rola sozinha. */
-.content--full { max-width: none; height: 100%; }
-.app__main:has(> .content--full) { padding: 0; overflow: hidden; }
+.content--full { max-width: none; flex: 1 1 auto; min-height: 0; width: 100%; }
+.app__main:has(> .content--full) { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
 .content:has(> .empty--center) { display: flex; flex-direction: column; }
 
 /* Barra do nível do app: marca, onde você está e Configurações. Sem menu lateral. */
@@ -1456,5 +1456,6 @@ button.evid:focus-visible { clip-path: none; }
 .cfgform__pack { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); font-size: var(--text-xs); }
 .pk { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2); background: var(--color-warn-soft); box-shadow: inset 0 0 0 1px rgba(242, 179, 61, 0.4); clip-path: var(--shape-notch-sm); color: var(--color-text-2); white-space: nowrap; }
 /* Faixa da migração das configs pessoais, abaixo do cabeçalho do pack (não bloqueia o pack) */
-.pack-migrate { flex: none; padding: var(--space-3) var(--space-8) 0; }
+.pack-migrate { flex: none; max-width: var(--size-content-wide); margin: 0 auto var(--space-5); }
+.app__main:has(> .content--full) > .pack-migrate { width: 100%; max-width: none; margin: 0; padding: var(--space-3) var(--space-4); border-bottom: var(--border-thin) solid var(--color-border); }
 .pk b { font-family: var(--font-mono); font-weight: 500; color: var(--place-test); }

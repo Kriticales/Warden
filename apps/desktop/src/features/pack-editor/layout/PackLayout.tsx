@@ -85,11 +85,12 @@ export function PackLayout({ packId }: { packId: PackId }) {
   return (
     <>
       <PackHeader pack={pack.data} />
-      {/* ADR-0067: o pack ainda leva o options.txt (ou outra config pessoal)? Pergunta antes. */}
-      <PersonalMigration packId={packId} />
       <div className="packbody">
         <SectionMenu packId={packId} compact={compact} />
         <main className="app__main" id={MAIN_ID} tabIndex={-1}>
+          {/* ADR-0067: o pack ainda leva o options.txt (ou outra config pessoal)? Pergunta antes,
+              dentro da área principal: o menu do pack não muda de lugar quando a faixa chega. */}
+          <PersonalMigration packId={packId} />
           <div className={contentClass(width)}>
             <Outlet />
           </div>
