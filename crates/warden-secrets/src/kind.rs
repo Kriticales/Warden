@@ -1,4 +1,4 @@
-//! Quais segredos existem e onde podem ficar.
+//! Quais segredos existem (todos ficam no cofre do sistema; ADR-0069).
 
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +42,7 @@ impl SecretKind {
         }
     }
 
-    /// Nome da variável no `.env` e no ambiente de desenvolvimento.
+    /// Nome da variável no `.env` antigo (migração, ADR-0069) e no ambiente de desenvolvimento.
     #[must_use]
     pub const fn env_var(self) -> &'static str {
         match self {
@@ -55,26 +55,11 @@ impl SecretKind {
     }
 }
 
-/// Onde as chaves ficam, gravado em `settings.json` como `secretsBackend`.
-#[derive(
-    Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum BackendKind {
-    /// Cofre do sistema (padrão).
-    #[default]
-    Keyring,
-    /// Arquivo `.env` na pasta de configuração do Warden.
-    Envfile,
-}
-
-/// O que a interface sabe das chaves: onde ficam e quais estão configuradas.
+/// O que a interface sabe das chaves: quais estão configuradas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 #[allow(clippy::struct_excessive_bools)] // um campo por chave da tela: é o contrato com a interface
 pub struct SecretsStatus {
-    /// Armazenamento em uso.
-    pub backend: BackendKind,
     /// Chave da CurseForge configurada.
     pub curseforge: bool,
     /// Chave do Gemini configurada.
@@ -111,10 +96,6 @@ mod tests {
             serde_json::to_value(SecretKind::ALL).unwrap(),
             serde_json::json!(["curseforge", "gemini", "openai", "anthropic", "github"])
         );
-        assert_eq!(
-            serde_json::to_value([BackendKind::Keyring, BackendKind::Envfile]).unwrap(),
-            serde_json::json!(["keyring", "envfile"])
-        );
         let accounts: Vec<_> = SecretKind::ALL.iter().map(|kind| kind.account()).collect();
         assert_eq!(
             accounts,
@@ -142,7 +123,6 @@ mod tests {
     #[test]
     fn estado_por_tipo() {
         let status = SecretsStatus {
-            backend: BackendKind::Keyring,
             curseforge: true,
             gemini: false,
             openai: true,
@@ -154,6 +134,5 @@ mod tests {
         assert!(status.is_configured(SecretKind::Openai));
         assert!(!status.is_configured(SecretKind::Anthropic));
         assert!(status.is_configured(SecretKind::Github));
-        assert_eq!(BackendKind::default(), BackendKind::Keyring);
     }
 }

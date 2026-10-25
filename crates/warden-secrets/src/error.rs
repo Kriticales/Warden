@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use warden_core::{CoreError, DomainCode, DomainError, error_chain};
 
-use crate::kind::{BackendKind, SecretKind};
+use crate::kind::SecretKind;
 
 /// Códigos do domínio `secrets` (ARCHITECTURE §5). Só acréscimo.
 #[derive(
@@ -25,12 +25,16 @@ pub enum SecretsErrorCode {
     VaultUnavailable,
     /// O cofre do sistema recusou a operação.
     VaultFailed,
-    /// O arquivo `.env` existe mas não pôde ser lido como texto.
+    /// O arquivo `.env` antigo existe mas não pôde ser lido como texto.
     EnvFileUnreadable,
     /// Depois de gravar, a releitura não trouxe o mesmo valor.
     VerifyFailed,
-    /// A troca de modo falhou; as chaves continuam no modo anterior.
+    /// A troca de modo falhou; as chaves continuam no modo anterior. Não acontece mais desde
+    /// a ADR-0069 (as chaves ficam sempre no cofre); o código fica porque a lista só cresce.
     BackendSwitchFailed,
+    /// Levar as chaves do `.env` antigo para o cofre do sistema não terminou; o `.env` continua
+    /// onde estava e nenhuma chave se perde (ADR-0069).
+    EnvMigrationFailed,
 }
 
 /// Erro de uma operação com segredos.
@@ -73,29 +77,17 @@ pub enum SecretsError {
         path: PathBuf,
     },
     /// Releitura diferente do que foi gravado.
-    #[error("a releitura de {kind:?} no armazenamento {backend:?} não confere")]
+    #[error("a releitura de {kind:?} no cofre não confere")]
     VerifyFailed {
         /// Qual segredo.
         kind: SecretKind,
-        /// Onde foi gravado.
-        backend: BackendKind,
     },
-    /// Troca de modo desfeita.
-    #[error("a troca para {to:?} falhou; as chaves continuam em {from:?}")]
-    BackendSwitchFailed {
-        /// Modo anterior (continua valendo).
-        from: BackendKind,
-        /// Modo pedido.
-        to: BackendKind,
+    /// A migração do `.env` antigo para o cofre parou; o arquivo continua lá.
+    #[error("as chaves do .env antigo não foram levadas para o cofre; o arquivo continua lá")]
+    EnvMigrationFailed {
         /// O que falhou.
         #[source]
         source: Box<SecretsError>,
-    },
-    /// Falha ao gravar o modo novo em `settings.json` durante a troca.
-    #[error("falha ao gravar o modo das chaves nas configurações: {message}")]
-    PersistFailed {
-        /// Mensagem do erro (sem segredo: `settings.json` nunca contém valores).
-        message: String,
     },
     /// Falha comum (disco, ponto de falha injetado…).
     #[error(transparent)]
@@ -113,9 +105,7 @@ impl DomainError for SecretsError {
             Self::VaultFailed { .. } => SecretsErrorCode::VaultFailed,
             Self::EnvFileUnreadable { .. } => SecretsErrorCode::EnvFileUnreadable,
             Self::VerifyFailed { .. } => SecretsErrorCode::VerifyFailed,
-            Self::BackendSwitchFailed { .. } | Self::PersistFailed { .. } => {
-                SecretsErrorCode::BackendSwitchFailed
-            }
+            Self::EnvMigrationFailed { .. } => SecretsErrorCode::EnvMigrationFailed,
             Self::Core(error) => return core_code(error),
         })
     }
@@ -152,7 +142,8 @@ impl DomainError for SecretsError {
 
     fn retryable(&self) -> bool {
         match self {
-            Self::VaultUnavailable { .. } | Self::BackendSwitchFailed { .. } => true,
+            Self::VaultUnavailable { .. } => true,
+            Self::EnvMigrationFailed { source } => source.retryable(),
             Self::Core(error) => error.retryable(),
             _ => false,
         }
@@ -205,6 +196,7 @@ mod tests {
             SecretsErrorCode::EnvFileUnreadable,
             SecretsErrorCode::VerifyFailed,
             SecretsErrorCode::BackendSwitchFailed,
+            SecretsErrorCode::EnvMigrationFailed,
         ])
         .unwrap();
         assert_eq!(
@@ -217,7 +209,8 @@ mod tests {
                 "VAULT_FAILED",
                 "ENV_FILE_UNREADABLE",
                 "VERIFY_FAILED",
-                "BACKEND_SWITCH_FAILED"
+                "BACKEND_SWITCH_FAILED",
+                "ENV_MIGRATION_FAILED"
             ])
         );
     }
@@ -236,24 +229,18 @@ mod tests {
         assert_eq!(error.params()["reason"], "vazio");
         assert!(!error.retryable());
 
-        let switch = SecretsError::BackendSwitchFailed {
-            from: BackendKind::Keyring,
-            to: BackendKind::Envfile,
-            source: Box::new(SecretsError::NotConfigured {
+        let migration = SecretsError::EnvMigrationFailed {
+            source: Box::new(SecretsError::VaultUnavailable {
                 kind: SecretKind::Github,
+                message: "serviço parado".to_owned(),
             }),
         };
         assert_eq!(
-            switch.code(),
-            DomainCode::Domain(SecretsErrorCode::BackendSwitchFailed)
+            migration.code(),
+            DomainCode::Domain(SecretsErrorCode::EnvMigrationFailed)
         );
-        assert!(switch.retryable());
-        assert!(
-            switch
-                .detail()
-                .unwrap()
-                .contains("causa: Github não está configurado")
-        );
+        assert!(migration.retryable());
+        assert!(migration.detail().unwrap().contains("serviço parado"));
 
         let core_error = SecretsError::from(std::io::Error::other("falha injetada"));
         assert_eq!(
