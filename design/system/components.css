@@ -1255,7 +1255,7 @@ button.evid:focus-visible { clip-path: none; }
 .scripterr__loc { padding: 0; border: 0; background: none; color: var(--color-primary-text); font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; }
 .scripterr__loc:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ---------- 16. Warden 1.1 "Profissional" (D5) ----------
+/* ---------- 16. Warden 1.2 "Profissional" (D5) ----------
    Verificações do pack, selo de segurança, substituto sugerido, versão no log do jogador,
    campo do log, grupos e nota, linha de mod com nota/grupos, desempenho entre versões,
    itens repetidos entre mods. */

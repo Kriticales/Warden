@@ -1,4 +1,4 @@
-/* Warden 1.1 "Profissional" (tarefa D5): travamento de um jogador (T30), notas e grupos de mods (T31)
+/* Warden 1.2 "Profissional" (tarefa D5): travamento de um jogador (T30), notas e grupos de mods (T31)
    e desempenho entre versões (T33). Lugares definidos em docs/design/ESTRUTURA.md §14:
    jogador em Problemas (← Problemas), notas e grupos em Mods, desempenho no Histórico (← Histórico). */
 (function () {

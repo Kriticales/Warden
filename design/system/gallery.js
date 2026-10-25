@@ -452,8 +452,8 @@
     "Só na página de descoberta, que precisa de três colunas. Ícones com o nome e a descrição no tooltip e no nome acessível; o ponto no canto repete o contador (vermelho com erro, âmbar com não salvas). Volta ao normal ao sair da página.",
     `<div style="height:330px;display:flex;border:1px solid var(--color-border)">${sectionMenu([{ id: "mods", name: "Mods", desc: "Mods, resource packs e shaders", icon: "puzzle", count: 128 }, { id: "configs", name: "Configs", desc: "Arquivos de ajuste e scripts do pack", icon: "file-code" }, { id: "problemas", name: "Problemas", desc: "Saúde do pack, problemas e travamentos", icon: "triangle-alert", count: 4, countKind: "danger", countLabel: "4 problemas" }, { id: "ia", name: "Diagnóstico com IA", desc: "Conversar com a IA sobre um problema do pack", icon: "sparkles", ai: true }, { id: "historico", name: "Histórico", desc: "Versões salvas e publicação", icon: "history", count: 5, countKind: "warn", countLabel: "5 alterações não salvas" }, { id: "exportar", name: "Exportar", desc: "Gerar o pack para quem vai jogar", icon: "package" }], "mods", { compact: true, label: "Seções do pack (recolhido)" })}<div class="fake" style="padding:16px">Página de descoberta</div></div>`);
 
-  // ======================= WARDEN 1.1 (PROFISSIONAL) =======================
-  const G2 = "Warden 1.1 (Profissional)";
+  // ======================= WARDEN 1.2 (PROFISSIONAL) =======================
+  const G2 = "Warden 1.2 (Profissional)";
   const VER_ROWS = (o = {}) => [
     { icon: "shield", title: "Segurança dos mods", summary: o.secSum || "Cada arquivo conferido com o oficial do Modrinth ou da CurseForge.", statusKind: o.sec || "ok", statusText: o.secText || "128 conferem", linkAttrs: { "data-demo": "" } },
     { icon: "wrench", title: "Manutenção dos mods", summary: o.mntSum || "Mods removidos, arquivados ou sem atualização.", statusKind: o.mnt || "ok", statusText: o.mntText || "Nenhum problema" },

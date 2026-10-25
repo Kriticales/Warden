@@ -144,7 +144,7 @@
   .chatpage__side { position: static; }
 }
 
-/* ---------- Warden 1.1 · Jogador, notas e desempenho (screens-pro-outros.js; só tokens) ---------- */
+/* ---------- Warden 1.2 · Jogador, notas e desempenho (screens-pro-outros.js; só tokens) ---------- */
 .pro-o-page { max-width: 980px; }
 .pro-o-src { display: grid; gap: var(--space-3); }
 .pro-o-services { font-size: var(--text-xs); color: var(--color-text-3); }
@@ -163,7 +163,7 @@
 .pro-o-newgroup .row > .input { flex: 1; }
 .pro-o-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-6); }
 
-/* ---------- Warden 1.1 · Problemas (segurança, manutenção, substitutos, itens repetidos) ---------- */
+/* ---------- Warden 1.2 · Problemas (segurança, manutenção, substitutos, itens repetidos) ---------- */
 .pro-p-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-3); }
 .pro-p-meta__txt { font-size: var(--text-sm); color: var(--color-text-3); }
 .pro-p-sum { font-size: var(--text-sm); color: var(--color-text-2); max-width: 80ch; }

@@ -1,4 +1,4 @@
-/* Warden 1.1 "Profissional" (tarefa D5): páginas de detalhe de Problemas.
+/* Warden 1.2 "Profissional" (tarefa D5): páginas de detalhe de Problemas.
    Segurança dos mods (T28), Manutenção dos mods e substitutos (T29), Itens repetidos entre mods (T32)
    e a etapa "Verificação final" do teste com erro de segurança (T13, T28). */
 (function () {

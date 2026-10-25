@@ -232,8 +232,8 @@
   const BADGE_ICONS = { danger: "circle-x", warn: "triangle-alert", ok: "circle-check", info: "info", neutral: null, p1: null };
   function badge(kind, text) {
     const ic = BADGE_ICONS[kind];
-    // "v11": função do Warden 1.1 "Profissional", a versão seguinte à v1 (mesmo visual do selo P1)
-    const tip = kind === "p1" ? ' data-tip="Prioridade 1: entra logo depois da primeira versão do app"' : kind === "v11" ? ' data-tip="Warden 1.1: vem na versão seguinte à primeira versão do app"' : "";
+    // "v11": função do Warden 1.2 "Profissional", a versão depois da 1.1 (mesmo visual do selo P1; ADR-0071)
+    const tip = kind === "p1" ? ' data-tip="Prioridade 1: entra logo depois da primeira versão do app"' : kind === "v11" ? ' data-tip="Warden 1.2: vem na versão depois da 1.1"' : "";
     return `<span class="badge badge--${kind === "v11" ? "p1" : kind}"${tip}>${ic ? icon(ic) : ""}${text}</span>`;
   }
   function count(n, kind, label) {
@@ -665,7 +665,7 @@
     }).join("")}</ul>${o.after || ""}</nav>`;
   }
   // Linha de mod. m: { name, desc, ver, src, side, update, flags[], selected, kind(error|warn|invalid|new|outside), id }
-  // 1.1 (opcionais): note (texto da nota, no lugar da descrição), groups[] (até 2 chips + "+N"),
+  // 1.2 (opcionais): note (texto da nota, no lugar da descrição), groups[] (até 2 chips + "+N"),
   // maint { kind, text } (marca de manutenção) e sec (selo de segurança curto; só resultados que pedem atenção).
   function modRow(m, o = {}) {
     const cls = ["modrow", m.kind ? "modrow--" + m.kind : "", m.state ? "is-" + m.state : ""].join(" ");
@@ -706,7 +706,7 @@
   function packTableHead(o = {}) { return PACK_HEAD.replace("$H", o.withHealth ? `<th><span data-tip="Resumo dos problemas conhecidos, de 0 a 100. Não garante que o pack funciona." tabindex="0" style="border-bottom:1px dotted var(--color-text-3)">Saúde</span></th>` : ""); }
 
   // ======================================================================
-  // ---------- Warden 1.1 "Profissional" (D5) ----------
+  // ---------- Warden 1.2 "Profissional" (D5) ----------
   // Segurança, manutenção, travamento de jogador, notas e grupos, itens repetidos
   // e desempenho entre versões. Mesmas regras: só tokens, estado com ícone + palavra.
   // ======================================================================

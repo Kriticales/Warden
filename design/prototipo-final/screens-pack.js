@@ -26,7 +26,7 @@
     if (state === "carregando") return head + tools + `<div class="tablewrap"><table class="table" aria-busy="true">${W.modTableHead()}<tbody>${W.skeletonRows(8, 5)}</tbody></table></div>`;
     const banner = `<div class="mods-banner">${W.alert({ kind: "neutral", compact: true, icon: "refresh-cw", title: "5 atualizações disponíveis.", text: "Nenhuma é aplicada sem você revisar antes.", actions: B("Revisar e atualizar", "atualizar", { size: "sm" }) })}</div>`;
     const sel = `<div class="selbar" style="margin-bottom:12px" role="region" aria-label="Ações para os selecionados"><span class="selbar__count">1 selecionado</span>${B("Alterar lado", "", { size: "sm" })}${B("Atualizar", "", { size: "sm", icon: "refresh-cw" })}${B("Remover", "", { size: "sm", variant: "danger-ghost", icon: "trash-2" })}<span class="grow"></span>${B("Limpar seleção", "", { size: "sm", variant: "ghost" })}</div>`;
-    // Warden 1.1: nota na segunda linha e grupos ao lado do nome (SPEC T31)
+    // Warden 1.2: nota na segunda linha e grupos ao lado do nome (SPEC T31)
     const NOTES = { "Embeddium": ["Deixa o jogo mais leve; ficou no lugar do Rubidium", ["Performance"]], "Just Enough Items (JEI)": ["Receitas à mão: pedido dos jogadores", ["Qualidade de vida"]], "Sophisticated Backpacks": ["Mochilas para o começo do jogo", ["Qualidade de vida", "Exploração"]] };
     let mods = D.MODS.map((m) => toRow(m, { ...(NOTES[m[0]] ? { note: NOTES[m[0]][0], groups: NOTES[m[0]][1] } : {}), selected: m[0] === "Embeddium", attrs: go(m[0].startsWith("Just") ? "mods-detalhe" : m[0] === "Epic Fight" || m[0] === "Supplementaries" ? "mods-raio-x" : m[0] === "Waystones" || m[0] === "Rubidium" ? "problemas" : m[0] === "Create" ? "mods-grafo" : "") }));
     if (state === "erro") {
@@ -40,7 +40,7 @@
       group("g-sh", "Shaders", 1, D.SHADERS.map((m) => W.modRow(toRow(m))).join(""));
   }
   window.P.modsContent = modsContent;
-  // "Agrupar por: grupo" leva à tela da lista agrupada por grupo (Warden 1.1)
+  // "Agrupar por: grupo" leva à tela da lista agrupada por grupo (Warden 1.2)
   document.addEventListener("change", (e) => { if (e.target.matches && e.target.matches("[data-groupby]")) { const v = e.target.selectedIndex; window.P.navigate(v === 1 ? "mods-grupos" : "mods"); } });
   const viewAsAfter = (to) => () => document.querySelectorAll("[data-viewas] [role=radio]").forEach((b) => { if (b.getAttribute("aria-checked") !== "true") b.setAttribute("data-go", to); });
   def("mods", { group: "pack", title: "Mods, resource packs e shaders", spec: "T05, T06, T10", render: (s) => packShell("mods", modsContent(s), s === "vazio" ? { unsaved: 0, problems: 0, empty: true } : {}), states: { carregando: "Lendo o índice do pack", vazio: "Pack sem mods", erro: "Um arquivo inválido e um fora do índice" }, after: viewAsAfter("mods-grafo") });
@@ -218,7 +218,7 @@
       <div class="row">${o.actions || ""}</div></div>
       ${losses ? `<details class="disclosure" style="margin-top:12px"${o.open ? " open" : ""}><summary>O que tirou pontos</summary>${W.healthLosses(losses)}<p class="t-xs t-3" style="margin-top:6px">Faixas: 90 a 100 Ótimo, 75 a 89 Bom, 50 a 74 Atenção, abaixo de 50 Crítico. Avisos que você mandar ignorar não tiram pontos.</p></details>` : ""}</section>`;
   }
-  // Warden 1.1: Verificações do pack (ESTRUTURA §14, SPEC T14 item 1a). Cada linha leva à página de detalhe.
+  // Warden 1.2: Verificações do pack (ESTRUTURA §14, SPEC T14 item 1a). Cada linha leva à página de detalhe.
   function verifyPanel(o = {}) {
     return W.verifyPanel([
       { icon: "shield-check", title: "Segurança dos mods", statusKind: o.loading ? "loading" : "warn", statusText: o.loading ? "Conferindo" : "1 ponto de atenção", summary: "124 conferem com o arquivo oficial; 3 arquivos do computador sem sinal conhecido; 1 com pontos de atenção.", linkLabel: "Ver", linkAttrs: go("seguranca") },
@@ -242,8 +242,8 @@
       <h2 class="group-title">Avisos</h2>
       ${W.issue({ kind: "warn", id: "pb-3", title: "Xaero's Minimap está como Cliente e servidor, mas só funciona no cliente", text: "Num servidor, ele impede o servidor de abrir.", evidence: "O Modrinth informa client_side: required, server_side: unsupported.", actions: B("Mudar lado para Só cliente", "", { size: "sm" }) })}
       ${W.issue({ kind: "warn", id: "pb-4", title: "Epic Fight e Supplementaries alteram o mesmo ponto do jogo", text: "Os dois trocam a mesma chamada no movimento das criaturas (LivingEntity#travel). Só uma das trocas vale, e a outra some sem aviso. Pode ser a causa do travamento de 30/09.", evidence: "Lido dos arquivos dos dois mods: @Redirect no mesmo ponto, nos dois com prioridade 1000. O crash report de 30/09 às 21:14 cita epicfight.mixins.json.", actions: B("Ver o que o Epic Fight altera", "mods-raio-x", { size: "sm", icon: "scan-search" }) + B("Encontrar o mod culpado", "culpado-config", { size: "sm", variant: "ghost", icon: "target" }) + W.badge("p1", "P1") })}
-      ${W.issue({ kind: "warn", id: "pb-5", title: "fastchest-extra.jar tem pontos de atenção", text: "É um arquivo do computador, que não está no Modrinth nem na CurseForge, e carrega código de um endereço da internet. Pode ser legítimo, mas confira de onde veio.", evidence: "Segurança dos mods: a classe fce/Loader cria um URLClassLoader com o endereço http://85.217.144.130:8080 (IP fixo).", actions: B("Ver segurança dos mods", "seguranca", { size: "sm", icon: "shield-check" }) + B("Remover do pack", "remover", { size: "sm", variant: "ghost" }) + W.badge("v11", "1.1") })}
-      ${W.issue({ kind: "warn", id: "pb-6", title: "O Clumps foi arquivado pelo autor", text: "O mod continua baixando, mas não deve receber correções. Se der problema, troque por um substituto.", evidence: "A CurseForge informa o projeto Clumps como inativo (consultado hoje às 14:02).", actions: B("Ver manutenção", "manutencao", { size: "sm", icon: "calendar-clock" }) + W.badge("v11", "1.1") })}
+      ${W.issue({ kind: "warn", id: "pb-5", title: "fastchest-extra.jar tem pontos de atenção", text: "É um arquivo do computador, que não está no Modrinth nem na CurseForge, e carrega código de um endereço da internet. Pode ser legítimo, mas confira de onde veio.", evidence: "Segurança dos mods: a classe fce/Loader cria um URLClassLoader com o endereço http://85.217.144.130:8080 (IP fixo).", actions: B("Ver segurança dos mods", "seguranca", { size: "sm", icon: "shield-check" }) + B("Remover do pack", "remover", { size: "sm", variant: "ghost" }) + W.badge("v11", "1.2") })}
+      ${W.issue({ kind: "warn", id: "pb-6", title: "O Clumps foi arquivado pelo autor", text: "O mod continua baixando, mas não deve receber correções. Se der problema, troque por um substituto.", evidence: "A CurseForge informa o projeto Clumps como inativo (consultado hoje às 14:02).", actions: B("Ver manutenção", "manutencao", { size: "sm", icon: "calendar-clock" }) + W.badge("v11", "1.2") })}
       <div class="row row--between row--wrap" style="margin-top:24px"><h2 class="group-title" style="margin:0">Travamentos <span class="t-3">dos seus testes e de jogadores, agrupados pela causa</span></h2>${B("Analisar travamento de um jogador…", "jogador", { size: "sm", icon: "file-text" })}</div>${crashesTable()}`;
   }
   window.P.problemsContent = problemsContent;
@@ -287,7 +287,7 @@
   def("salvo", { group: "pack", title: "Versão salva: próximos passos", spec: "T16, T18", hidden: true, render: () => packShell("historico", historyContent("normal"), { unsaved: 0, version: "1.5.0",
     overlay: W.dialog({ esc: "historico", size: "sm", title: "Versão 1.5.0 salva como versão final", body: `<p>Ela está guardada neste computador. Os jogadores só recebem quando você publicar.</p>`, foot: B("Fechar", "historico", { variant: "ghost" }) + B("Exportar arquivo", "exportar", { icon: "package" }) + B("Publicar versão 1.5.0", "publicar", { variant: "primary", icon: "globe" }) }) }) });
 
-  // Warden 1.1: checagens obrigatórias (segurança e manutenção) antes dos avisos. blocked = arquivo removido.
+  // Warden 1.2: checagens obrigatórias (segurança e manutenção) antes dos avisos. blocked = arquivo removido.
   function publishChecks(blocked) {
     const sec = `<li class="is-ok">${W.icon("circle-check")}<span><b>Segurança dos mods:</b> os 128 arquivos conferem com o oficial ou não têm nenhum sinal conhecido. ${B("Ver detalhes", "seguranca", { variant: "link" })}</span></li>`;
     const maint = blocked
