@@ -21,6 +21,7 @@ mod commands;
 mod error;
 pub mod events;
 mod img_protocol;
+mod key_checks;
 pub mod locks;
 pub mod logging;
 pub mod operations;

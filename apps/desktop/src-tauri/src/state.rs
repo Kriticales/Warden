@@ -62,11 +62,17 @@ pub struct AppState {
     /// ✦ Diagnóstico com IA: prévias do consentimento, conversas respondendo e modelos (D-04;
     /// só memória).
     pub(crate) ai: crate::commands::ai::AiHub,
+    /// O último **Testar** de cada chave (T5; ADR-0069 e ADR-0070).
+    pub(crate) key_checks: crate::key_checks::KeyChecks,
+    /// O que a migração do `.env` antigo para o cofre fez nesta abertura (ADR-0069; só
+    /// memória, mostrado uma vez em Configurações → Chaves e contas).
+    pub(crate) env_migration:
+        std::sync::Mutex<Option<crate::commands::secrets::EnvMigrationNotice>>,
 }
 
 impl AppState {
     /// Abre o estado: cria as pastas básicas, apaga temporários de quedas anteriores, lê as
-    /// configurações e abre as chaves no modo gravado.
+    /// configurações, abre o cofre e leva para ele as chaves do `.env` antigo, se houver.
     pub(crate) fn open(
         paths: AppPaths,
         keyring_override: Option<BackendOverride>,
@@ -82,10 +88,14 @@ impl AppState {
         if let Some(logging) = &logging {
             logging.set_level(settings.get().log_level);
         }
-        let secrets = Secrets::open(
-            SecretsConfig::for_app(paths.secrets_env_file(), keyring_override),
-            settings.get().secrets_backend,
-        );
+        let secrets = Secrets::open(SecretsConfig::for_app(
+            paths.secrets_env_file(),
+            keyring_override,
+        ));
+        // ADR-0069: quem usava o `.env` tem as chaves levadas para o cofre agora.
+        let env_migration = crate::commands::secrets::run_env_migration(&secrets, &settings);
+        let key_checks =
+            crate::key_checks::KeyChecks::open(paths.config_dir().join("key-checks.json"));
         let secret_testers = SecretTesters::default();
         secret_testers.register(
             warden_secrets::SecretKind::Curseforge,
@@ -143,6 +153,8 @@ impl AppState {
                 console_groups: crate::commands::console::ConsoleGroups::default(),
                 servers: Arc::default(),
                 ai: crate::commands::ai::AiHub::default(),
+                key_checks,
+                env_migration: std::sync::Mutex::new(env_migration),
             },
             outcome,
         ))
@@ -212,7 +224,6 @@ fn open_java(paths: &AppPaths) -> Result<warden_java::JavaRuntimes, AppError> {
 pub(crate) mod tests {
     use super::*;
     use std::path::Path;
-    use warden_secrets::BackendKind;
 
     /// Estado de teste numa pasta temporária, com o cofre de teste em arquivo.
     pub(crate) fn test_state(root: &Path) -> AppState {
@@ -229,7 +240,6 @@ pub(crate) mod tests {
         let state = test_state(dir.path());
         assert!(state.paths.logs_dir().is_dir());
         assert!(!state.settings.exists());
-        assert_eq!(state.secrets.backend(), BackendKind::Keyring);
         assert!(format!("{:?}", state.secret_testers).contains("Curseforge"));
         let testers = format!("{:?}", state.secret_testers);
         assert!(
@@ -307,8 +317,11 @@ pub(crate) mod tests {
         assert_eq!(code(error), "KEY_INVALID");
     }
 
+    /// ADR-0069 (CA-T21-07): quem abre o app no antigo modo `.env` tem as chaves levadas
+    /// para o cofre, o `.env` apagado e o `secretsBackend` tirado do `settings.json`.
     #[test]
-    fn apaga_temporarios_e_abre_no_modo_gravado() {
+    fn apaga_temporarios_e_migra_o_modo_env_para_o_cofre() {
+        use warden_secrets::{ExposeSecret as _, SecretKind};
         let dir = tempfile::tempdir().unwrap();
         let config = dir.path().join("config");
         std::fs::create_dir_all(&config).unwrap();
@@ -318,8 +331,31 @@ pub(crate) mod tests {
             r#"{"schemaVersion":1,"secretsBackend":"envfile"}"#,
         )
         .unwrap();
+        std::fs::write(
+            config.join(".env"),
+            "GEMINI_API_KEY='chave-de-teste-do-gemini-0000'\n",
+        )
+        .unwrap();
         let state = test_state(dir.path());
         assert!(!config.join("settings.json.1-0.warden-tmp").exists());
-        assert_eq!(state.secrets.backend(), BackendKind::Envfile);
+        assert!(!config.join(".env").exists());
+        assert_eq!(
+            state
+                .secrets
+                .get(SecretKind::Gemini)
+                .unwrap()
+                .unwrap()
+                .expose_secret(),
+            "chave-de-teste-do-gemini-0000"
+        );
+        let settings = std::fs::read_to_string(config.join("settings.json")).unwrap();
+        assert!(!settings.contains("secretsBackend"), "{settings}");
+        assert_eq!(
+            *state.env_migration.lock().unwrap(),
+            Some(crate::commands::secrets::EnvMigrationNotice::Moved {
+                moved: vec![SecretKind::Gemini],
+                file_removed: true,
+            })
+        );
     }
 }

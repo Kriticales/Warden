@@ -49,7 +49,13 @@ pub(crate) struct AppInfo {
     pub(crate) platform: Platform,
     /// Build de desenvolvimento (debug).
     pub(crate) debug_build: bool,
+    /// Commit do packwiz embutido (o fixado em `third_party/packwiz/COMMIT`, de onde o sidecar
+    /// é compilado; T23).
+    pub(crate) packwiz_commit: String,
 }
+
+/// O commit fixado do packwiz (40 dígitos hexadecimais).
+const PACKWIZ_COMMIT: &str = include_str!("../../../../../third_party/packwiz/COMMIT");
 
 impl AppInfo {
     fn current() -> Self {
@@ -59,6 +65,7 @@ impl AppInfo {
             commit: (!commit.is_empty()).then(|| commit.to_owned()),
             platform: Platform::current(),
             debug_build: cfg!(debug_assertions),
+            packwiz_commit: PACKWIZ_COMMIT.trim().to_owned(),
         }
     }
 }
@@ -305,6 +312,9 @@ mod tests {
             assert!(!commit.is_empty());
         }
         assert_eq!(info.debug_build, cfg!(debug_assertions));
+        // T23: o commit do packwiz embutido, 40 dígitos hexadecimais.
+        assert_eq!(info.packwiz_commit.len(), 40);
+        assert!(info.packwiz_commit.chars().all(|c| c.is_ascii_hexdigit()));
         #[cfg(windows)]
         assert_eq!(info.platform, Platform::Windows);
     }
@@ -316,6 +326,7 @@ mod tests {
             commit: Some("abc".into()),
             platform: Platform::Windows,
             debug_build: false,
+            packwiz_commit: "ef87d96".into(),
         };
         let json = serde_json::to_value(info).unwrap();
         assert_eq!(
@@ -324,7 +335,8 @@ mod tests {
                 "version": "1.2.3",
                 "commit": "abc",
                 "platform": "windows",
-                "debugBuild": false
+                "debugBuild": false,
+                "packwizCommit": "ef87d96"
             })
         );
     }

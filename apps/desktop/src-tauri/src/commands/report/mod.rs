@@ -591,6 +591,7 @@ mod tests {
             commit: Some("1a2b3c4d5e6f".into()),
             platform: Platform::Linux,
             debug_build: false,
+            packwiz_commit: "ef87d964f8cbd52b3b13ea42453ef322290e2b9e".into(),
         }
     }
 

@@ -8,8 +8,10 @@
 //!   abre com os padrões.
 //! - Gravação atômica. O arquivo só passa a existir quando algo é gravado: a primeira execução
 //!   (T01) é "não existe `settings.json`".
-//! - Nunca contém segredo: as chaves ficam no cofre ou no `.env` (ADR-0025); aqui fica só o
-//!   modo (`secretsBackend`), que muda por `secrets_backend_set`.
+//! - Nunca contém segredo: as chaves ficam sempre no cofre do sistema (ADR-0069). O campo
+//!   antigo `secretsBackend` (modo "arquivo `.env`" da ADR-0025) só é lido para a migração das
+//!   chaves e sai do arquivo quando ela termina ([`SettingsStore::legacy_env_mode`] e
+//!   [`SettingsStore::forget_secrets_backend`]).
 
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
@@ -17,12 +19,14 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use warden_core::{CoreError, atomic_write};
-use warden_secrets::BackendKind;
 
 use crate::error::{AppError, AppErrorCode};
 
 /// Versão atual do formato.
 pub(crate) const SCHEMA_VERSION: u32 = 1;
+
+/// O campo do antigo modo das chaves (ADR-0025), lido só pela migração (ADR-0069).
+const LEGACY_SECRETS_BACKEND: &str = "secretsBackend";
 
 /// Nível de detalhe dos registros (Configurações → Privacidade e registros).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -55,8 +59,6 @@ pub enum TestMemory {
 pub struct Settings {
     /// Versão do formato.
     pub schema_version: u32,
-    /// Onde ficam as chaves (muda só por `secrets_backend_set`).
-    pub secrets_backend: BackendKind,
     /// Pasta padrão dos packs; `null` = a pasta padrão do sistema (Documentos\Warden).
     /// Muda por um comando que abre o diálogo nativo (ARCHITECTURE §4.1), não por
     /// `settings_update`.
@@ -85,7 +87,6 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             schema_version: SCHEMA_VERSION,
-            secrets_backend: BackendKind::Keyring,
             packs_dir: None,
             player_name: "Jogador".to_owned(),
             log_level: LogLevel::Normal,
@@ -242,10 +243,30 @@ impl SettingsStore {
         self.modify(|settings| patch.apply(settings))
     }
 
-    /// Grava o modo das chaves (usado no meio da troca de modo).
-    pub fn set_secrets_backend(&self, backend: BackendKind) -> Result<(), AppError> {
-        self.modify(|settings| settings.secrets_backend = backend)
-            .map(|_| ())
+    /// Se o `settings.json` ainda diz que as chaves ficam no `.env` (o antigo
+    /// `"secretsBackend": "envfile"`): na migração para o cofre, o `.env` vale (ADR-0069).
+    pub fn legacy_env_mode(&self) -> bool {
+        self.lock()
+            .settings
+            .unknown
+            .get(LEGACY_SECRETS_BACKEND)
+            .and_then(Value::as_str)
+            == Some("envfile")
+    }
+
+    /// Tira o campo antigo `secretsBackend` do arquivo, depois da migração das chaves. Sem o
+    /// campo (ou num arquivo de versão mais nova, que esta versão não altera), não faz nada.
+    pub fn forget_secrets_backend(&self) -> Result<(), AppError> {
+        let present = {
+            let state = self.lock();
+            !state.read_only && state.settings.unknown.contains_key(LEGACY_SECRETS_BACKEND)
+        };
+        if present {
+            self.modify(|settings| {
+                settings.unknown.remove(LEGACY_SECRETS_BACKEND);
+            })?;
+        }
+        Ok(())
     }
 
     /// Grava a pasta padrão dos packs (`None` = a do sistema). Só `settings_choose_packs_dir`
@@ -526,7 +547,7 @@ mod tests {
             error.code,
             ErrorCode::App(AppErrorCode::SettingsNewerVersion)
         );
-        assert!(store.set_secrets_backend(BackendKind::Envfile).is_err());
+        store.forget_secrets_backend().unwrap();
         assert_eq!(std::fs::read_to_string(&path).unwrap(), original);
     }
 
@@ -549,13 +570,43 @@ mod tests {
         }
     }
 
+    /// ADR-0069: o `secretsBackend` antigo é lido para a migração e sai do arquivo depois
+    /// dela, sem mexer no resto.
     #[test]
-    fn modo_das_chaves_e_gravado() {
+    fn modo_antigo_das_chaves_e_lido_e_depois_esquecido() {
         let dir = tempfile::tempdir().unwrap();
-        let (store, _) = store_in(dir.path());
-        store.set_secrets_backend(BackendKind::Envfile).unwrap();
-        let (reopened, _) = store_in(dir.path());
-        assert_eq!(reopened.get().secrets_backend, BackendKind::Envfile);
+        let path = dir.path().join("config/settings.json");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(
+            &path,
+            r#"{"schemaVersion":1,"secretsBackend":"envfile","playerName":"Alex"}"#,
+        )
+        .unwrap();
+        let (store, _) = SettingsStore::open(path.clone()).unwrap();
+        assert!(store.legacy_env_mode());
+        store.forget_secrets_backend().unwrap();
+        assert!(!store.legacy_env_mode());
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(!text.contains("secretsBackend"), "{text}");
+        assert!(text.contains("\"playerName\": \"Alex\""), "{text}");
+        let (reopened, _) = SettingsStore::open(path.clone()).unwrap();
+        assert!(!reopened.legacy_env_mode());
+
+        // Modo cofre antigo: não é o `.env`, e o campo também sai.
+        std::fs::write(&path, r#"{"schemaVersion":1,"secretsBackend":"keyring"}"#).unwrap();
+        let (store, _) = SettingsStore::open(path.clone()).unwrap();
+        assert!(!store.legacy_env_mode());
+        store.forget_secrets_backend().unwrap();
+        assert!(
+            !std::fs::read_to_string(&path)
+                .unwrap()
+                .contains("secretsBackend")
+        );
+
+        // Sem o campo, não grava nada (a primeira execução continua sem `settings.json`).
+        let (fresh, _) = store_in(&dir.path().join("outro"));
+        fresh.forget_secrets_backend().unwrap();
+        assert!(!fresh.exists());
     }
 
     #[test]
@@ -581,7 +632,6 @@ mod tests {
             json,
             serde_json::json!({
                 "schemaVersion": 1,
-                "secretsBackend": "keyring",
                 "packsDir": null,
                 "playerName": "Jogador",
                 "logLevel": "normal",
