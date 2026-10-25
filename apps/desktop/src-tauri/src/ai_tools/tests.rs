@@ -1080,11 +1080,13 @@ async fn mount_claude(setup: &Setup) -> Arc<Mutex<Vec<Value>>> {
         .with_priority(1)
         .mount(&setup.server)
         .await;
-    Mock::given(wiremock::matchers::path_regex(r"/v1/messages/count_tokens$"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "input_tokens": 1500 })))
-        .with_priority(1)
-        .mount(&setup.server)
-        .await;
+    Mock::given(wiremock::matchers::path_regex(
+        r"/v1/messages/count_tokens$",
+    ))
+    .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "input_tokens": 1500 })))
+    .with_priority(1)
+    .mount(&setup.server)
+    .await;
     let seen = Arc::clone(&bodies);
     Mock::given(wiremock::matchers::path_regex(r"/v1/messages$"))
         .respond_with(move |request: &Request| {
@@ -1150,7 +1152,14 @@ async fn ca_t14_31_no_claude_cada_pergunta_usa_o_modelo_do_seu_modo() {
         .unwrap();
 
     // A pergunta seguinte, a fundo: o modelo é resolvido ao rodar, pela lista da chave.
-    send_impl(&setup.state, setup.pack, &id, "E a fundo?", Some(SearchMode::Deep)).unwrap();
+    send_impl(
+        &setup.state,
+        setup.pack,
+        &id,
+        "E a fundo?",
+        Some(SearchMode::Deep),
+    )
+    .unwrap();
     run_impl(&setup.state, setup.pack, &id, noop())
         .await
         .unwrap();
@@ -1184,7 +1193,10 @@ async fn ca_t14_31_no_claude_cada_pergunta_usa_o_modelo_do_seu_modo() {
             (Some(SearchMode::Deep), Some("claude-opus-9-9")),
         ]
     );
-    assert_eq!(view.model, "claude-sonnet-9-9", "o modelo da conversa não muda");
+    assert_eq!(
+        view.model, "claude-sonnet-9-9",
+        "o modelo da conversa não muda"
+    );
     assert!(
         generated(&setup.seen).is_empty(),
         "nenhum pedido foi ao Gemini"
@@ -1217,7 +1229,14 @@ async fn gemini_ignora_o_modo_pedido_na_pergunta() {
     run_impl(&setup.state, setup.pack, &id, noop())
         .await
         .unwrap();
-    send_impl(&setup.state, setup.pack, &id, "E agora?", Some(SearchMode::Deep)).unwrap();
+    send_impl(
+        &setup.state,
+        setup.pack,
+        &id,
+        "E agora?",
+        Some(SearchMode::Deep),
+    )
+    .unwrap();
     run_impl(&setup.state, setup.pack, &id, noop())
         .await
         .unwrap();

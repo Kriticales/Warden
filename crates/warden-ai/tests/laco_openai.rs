@@ -425,10 +425,10 @@ async fn paralelas_malformada_e_resposta_pela_responder() {
 
     let requests = setup.openai.requests();
     // Escalonamento por etapa pelo allowed_tools; tools fixo; sistema em instructions.
-    assert_eq!(allowed(&requests[0]).len(), 12);
+    assert_eq!(allowed(&requests[0]).len(), 14);
     assert!(!allowed(&requests[0]).contains(&"read_config".to_owned()));
     assert!(allowed(&requests[0]).contains(&"responder".to_owned()));
-    assert_eq!(allowed(&requests[2]).len(), 16);
+    assert_eq!(allowed(&requests[2]).len(), 18);
     for request in &requests {
         assert_eq!(request["tool_choice"]["type"], "allowed_tools");
         assert_eq!(request["tool_choice"]["mode"], "required");

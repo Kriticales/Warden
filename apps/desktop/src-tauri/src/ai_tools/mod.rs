@@ -8,7 +8,8 @@
 //! `search_mod_issues`, `get_mixin_report`, `get_bisect_result`) com
 //! [`warden_ai::tools::ToolRegistry::with_extra`], no mesmo esquema (declaradas desde o começo e
 //! liberadas por `allowedFunctionNames`): [`external`], [`xray`], [`bisect`] e [`proposals`]
-//! (que também prepara, aplica e descarta as propostas pelos fluxos normais).
+//! (que também prepara, aplica e descarta as propostas pelos fluxos normais). [`perf`] lê o
+//! desempenho dos testes (`get_test_performance` e `get_performance_profile`).
 //!
 //! Tudo o que sai daqui passa pela redação (ARCHITECTURE §9.4): caminhos relativos à pasta do
 //! pack ou com `<usuário>`, sem o nome do jogador, IPs, e-mails nem chaves.
@@ -16,6 +17,7 @@
 mod bisect;
 pub(crate) mod external;
 pub(crate) mod initial;
+mod perf;
 pub(crate) mod proposals;
 mod read;
 pub(crate) mod standalone;
@@ -34,7 +36,9 @@ use warden_ai::external::{
     GET_BISECT_RESULT, GET_MIXIN_REPORT, GET_MOD_CHANGELOG, SEARCH_MOD_ISSUES,
 };
 use warden_ai::proposals::{ProposalKind, ProposalSummary};
-use warden_ai::tools::{KnownMods, ToolOutput, ToolRegistry, ToolSource};
+use warden_ai::tools::{
+    GET_PERFORMANCE_PROFILE, GET_TEST_PERFORMANCE, KnownMods, ToolOutput, ToolRegistry, ToolSource,
+};
 use warden_core::{CancellationToken, PackId};
 use warden_diagnostics::Redactor;
 
@@ -134,6 +138,10 @@ impl ToolSource for PackTools<'_> {
             GET_MOD_CHANGELOG => external::mod_changelog(self, args).await,
             GET_MIXIN_REPORT => xray::mixin_report(self, args).await,
             GET_BISECT_RESULT => bisect::bisect_result(self),
+            GET_TEST_PERFORMANCE => perf::test_performance(self, args).await,
+            GET_PERFORMANCE_PROFILE => {
+                perf::performance_profile(self, &text_arg(args, "session_id")).await
+            }
             _ => return read::call(self, name, args).await,
         };
         // Nada sai sem passar pela redação (inclusive as mensagens de erro).
