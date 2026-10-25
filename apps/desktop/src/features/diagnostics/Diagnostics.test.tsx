@@ -77,11 +77,17 @@ describe('seção Problemas (T14)', () => {
   it('lista por gravidade, com explicação, itens e "Como sabemos"; contador no menu; axe', async () => {
     const { url } = setup();
     await openProblems(url);
-    expect(screen.getByText(/^3 encontrados · última verificação há 3 minutos/)).toBeDefined();
+    // Cabeçalho do esboço do bug-01: a descrição fixa; os contadores na barra do painel e
+    // quando verificou no selo da saúde.
+    expect(document.querySelector('.pagehead__sub')?.textContent).toBe(
+      'Saúde do pack, problemas e travamentos',
+    );
+    const panel = screen.getByRole('region', { name: 'Achados antes do teste' });
+    expect(within(panel).getByText('1 erro')).toBeDefined();
+    expect(within(panel).getByText('1 aviso')).toBeDefined();
+    expect(within(panel).getByText('1 informação')).toBeDefined();
 
-    const errors = screen.getByRole('region', {
-      name: 'Erros impedem o teste, a menos que você escolha testar mesmo assim',
-    });
+    const errors = screen.getByRole('region', { name: 'Erros · impedem o teste' });
     const missing = within(errors).getByRole('article', {
       name: 'Meu Mod precisa de Sodium, que não está no pack',
     });
@@ -92,16 +98,24 @@ describe('seção Problemas (T14)', () => {
       ),
     ).toBeDefined();
     expect(within(missing).getByRole('link', { name: 'Ver Meu Mod' })).toBeDefined();
-    const user = userEvent.setup();
-    await user.click(within(missing).getByText('Como sabemos'));
+    // A evidência fica à vista, em mono, com o rótulo "Como sabemos" para o leitor de tela.
+    expect(within(missing).getByRole('list', { name: 'Como sabemos' })).toBeDefined();
     expect(within(missing).getByText('O arquivo fabric.mod.json de Meu Mod diz:')).toBeDefined();
     expect(within(missing).getByText('sodium: Any')).toBeDefined();
 
-    const warnings = screen.getByRole('region', { name: 'Avisos não impedem o teste' });
+    const warnings = screen.getByRole('region', { name: 'Avisos · não impedem o teste' });
     expect(
       within(warnings).getByRole('article', { name: 'Sodium está no lado errado' }),
     ).toBeDefined();
-    expect(screen.getByRole('region', { name: 'Informações só para você saber' })).toBeDefined();
+    expect(screen.getByRole('region', { name: 'Informações · só para você saber' })).toBeDefined();
+    // Cada achado tem "✦ Perguntar ao Sculk": conversa nova com o achado como assunto.
+    const ask = within(missing).getByRole('link', {
+      name: 'Perguntar ao Sculk sobre: Meu Mod precisa de Sodium, que não está no pack',
+    });
+    const href = new URL(ask.getAttribute('href') ?? '', 'http://x');
+    expect(href.pathname).toMatch(/\/ia$/);
+    expect(href.searchParams.get('sintoma')).toBe('other');
+    expect(href.searchParams.get('assunto')).toContain('Meu Mod precisa de Sodium');
 
     // Contador: 1 erro + 1 aviso (a informação não conta), em cor de perigo.
     const count = within(sectionMenu()).getByLabelText('2 problemas');
@@ -282,9 +296,7 @@ describe('seção Problemas (T14)', () => {
       }),
     });
     await openProblems(url);
-    const errors = screen.getByRole('region', {
-      name: 'Erros impedem o teste, a menos que você escolha testar mesmo assim',
-    });
+    const errors = screen.getByRole('region', { name: 'Erros · impedem o teste' });
     const card = within(errors).getByRole('article', { name: 'Sodium é para outro loader' });
     expect(within(card).getByRole('button', { name: 'Remover Sodium' })).toBeDefined();
     const user = userEvent.setup();

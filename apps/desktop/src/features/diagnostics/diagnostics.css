@@ -36,3 +36,44 @@
   display: grid;
   gap: var(--space-2);
 }
+/* Linhas de achado (`FindingRow`): a evidência em mono, sem marcadores, com o trecho limitado. */
+.diag-row__proofs {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.diag-row__excerpt {
+  display: block;
+  max-height: 12rem;
+  overflow: auto;
+}
+/* As duas colunas da seção (esboço do bug-01): a larga com achados e travamentos, a da direita
+   com a saúde e o desempenho (340 px). Em larguras pequenas, uma coluna só. */
+.diag-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+.diag-cols__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+/* A conta é pela largura da própria seção (o menu do pack pode estar aberto ou recolhido). */
+.diag-page {
+  container-type: inline-size;
+}
+@container (max-width: 760px) {
+  .diag-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.diag-perf__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

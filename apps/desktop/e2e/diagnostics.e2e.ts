@@ -135,9 +135,10 @@ function testButton() {
   return $('header.packhead .testbtn__main');
 }
 
-/** Um achado pelo título (`article` com `aria-labelledby`). */
+/** Um achado pelo título (`article` com `aria-labelledby`: a linha em Problemas, o cartão no
+ * resultado do teste). */
 function finding(title: string) {
-  return $(`article.issue*=${title}`);
+  return $(`article*=${title}`);
 }
 
 describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
@@ -188,8 +189,9 @@ describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
     const side = finding('Sodium está no lado errado');
     await side.waitForDisplayed({ timeout: 60_000 });
     expect((await side.getText()).toLowerCase()).toContain('aviso');
-    await side.$('summary=Como sabemos').click();
+    // A evidência fica à vista, em mono (esboço aprovado do bug-01).
     await expect(side).toHaveText(expect.stringContaining('server_side'));
+    await expect(side.$('a*=Perguntar ao Sculk')).toBeDisplayed();
     // Contador: 1 aviso.
     await expect(sectionLink('Problemas')).toHaveText(expect.stringContaining('1'));
     expect(await seriousViolationSummaries()).toEqual([]);

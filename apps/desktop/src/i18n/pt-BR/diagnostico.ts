@@ -26,12 +26,11 @@ export const diagnostico = {
   },
   secao: {
     titulo: 'Problemas',
+    /** Linha do cabeçalho (esboço aprovado do bug-01). */
+    descricao: 'Saúde do pack, problemas e travamentos',
     nunca: 'O pack ainda não foi verificado neste computador.',
     verificando: 'Verificando…',
     erroLer: 'Não foi possível ler os problemas do pack.',
-    resumo_one: '{{count}} encontrado · última verificação {{quando}}',
-    resumo_other: '{{count}} encontrados · última verificação {{quando}}',
-    resumoVazio: 'Última verificação {{quando}}',
     agora: 'há pouco',
     tambem: 'A verificação também roda sozinha ao clicar em Testar.',
     rapida:
@@ -54,6 +53,29 @@ export const diagnostico = {
     ignorados_other: '{{count}} avisos ignorados por você neste pack',
     mostrarIgnorados: 'Mostrar os ignorados',
     esconderIgnorados: 'Esconder os ignorados',
+  },
+  /** O painel dos achados do pré-teste (esboço aprovado do bug-01, "Separadas"). */
+  antesDoTeste: {
+    titulo: 'Achados antes do teste',
+    erros_one: '{{count}} erro',
+    erros_other: '{{count}} erros',
+    avisos_one: '{{count}} aviso',
+    avisos_other: '{{count}} avisos',
+    infos_one: '{{count}} informação',
+    infos_other: '{{count}} informações',
+    /** Título de cada grupo, com a nota curta. */
+    grupo: {
+      error: 'Erros · impedem o teste',
+      warning: 'Avisos · não impedem o teste',
+      info: 'Informações · só para você saber',
+    },
+  },
+  /** "✦ Perguntar ao Sculk" num achado: abre uma conversa nova com ele como assunto. */
+  sculk: {
+    perguntar: 'Perguntar ao Sculk',
+    perguntarRotulo: 'Perguntar ao Sculk sobre: {{titulo}}',
+    /** O assunto que vai para "Contar algo" na conversa nova. */
+    assunto: 'Quero entender este achado da verificação do pack: "{{titulo}}". {{texto}}',
   },
   grupos: {
     error: 'Erros',

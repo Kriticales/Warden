@@ -8,6 +8,8 @@
  *   "Entrou no mundo em", sem violações sérias do axe.
  * - No resultado, "Abriu em" com o tempo; testando outra versão do pack, mais lenta para
  *   carregar, a diferença para a anterior ("… a mais que na 1.0.0"), ao vivo e no resultado.
+ * - Em Problemas, "Desempenho do último teste" (bug-01) com a variação em % e "✦ Perguntar ao
+ *   Sculk por que ficou mais lento".
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -207,5 +209,19 @@ describe('Desempenho em todo teste (L-10; CA-T13-09)', function () {
     await $(RESULT_BLOCK).waitForExist();
     expect(await textOf(RESULT_BLOCK)).toContain('a mais que na 1.0.0');
     await screenshot('51-resultado-abriu-em');
+  });
+
+  it('Problemas mostra o desempenho do último teste, com a variação e "✦ Perguntar ao Sculk"', async () => {
+    await $('nav[aria-label="Seções do pack"]').$('a*=Problemas').click();
+    await waitHeading('Problemas');
+    const block = $('section[aria-labelledby]*=Desempenho do último teste');
+    await block.$('dt=Tempo para abrir').waitForDisplayed({ timeout: 30_000 });
+    const text = await block.getText();
+    expect(text).toMatch(/Tempo para abrir\n\d+ s\n\+\d+% que na 1\.0\.0/);
+    expect(text).toContain('Até entrar no mundo');
+    expect(text).toContain('Sem perfil do spark neste teste.');
+    await expect(block.$('a*=Perguntar ao Sculk por que ficou mais lento')).toBeDisplayed();
+    expect(await seriousViolations()).toEqual([]);
+    await screenshot('52-problemas-desempenho');
   });
 });
