@@ -165,13 +165,27 @@ async function waitHeading(text: string, timeout = 60_000): Promise<void> {
   await $(`h1*=${text}`).waitForDisplayed({ timeout });
 }
 
-/** Abre um arquivo em Configs pelo filtro da árvore. */
+/** Abre um arquivo em Configs pela árvore do grupo "No pack", abrindo as pastas do caminho. */
 async function openFile(name: string): Promise<void> {
   await dismissToasts();
-  const filter = $('input[aria-label="Filtrar por nome de arquivo"]');
-  await filter.waitForDisplayed();
-  await filter.setValue(name);
-  const item = $('[role="tree"]').$(`[role="treeitem"]*=${name}`);
+  const tree = $('[role="tree"]');
+  await tree.waitForDisplayed({ timeout: 30_000 });
+  for (const dir of RECEITAS.split('/').slice(0, -1)) {
+    // A pasta fechada cujo nome tem esse pedaço do caminho ("kubejs", ou "kubejs/server_scripts"
+    // quando a árvore junta as duas).
+    await browser.execute((part) => {
+      const closed = document.querySelectorAll<HTMLElement>(
+        '[role="tree"] [role="treeitem"][aria-expanded="false"]',
+      );
+      for (const node of closed) {
+        if (node.textContent.includes(part)) {
+          node.click();
+          return;
+        }
+      }
+    }, dir);
+  }
+  const item = tree.$(`[role="treeitem"]*=${name}`);
   await item.waitForDisplayed({ timeout: 30_000 });
   await item.click();
   await $(`[aria-label="Conteúdo de ${RECEITAS}"]`).waitForDisplayed({ timeout: 30_000 });
@@ -387,9 +401,7 @@ describe('Editor de scripts (C-07; T26)', function () {
 
     // No editor, na instância de teste.
     await goToConfigs();
-    await $('select[aria-label="Origem dos arquivos"]').selectByVisibleText(
-      'Mostrando: instância de teste',
-    );
+    await $('[role="radio"]*=Do teste local').click();
     await openFile('receitas.js');
     const reload = $('button=Recarregar no jogo');
     await browser.waitUntil(async () => (await reload.getAttribute('aria-disabled')) === null, {
@@ -464,9 +476,7 @@ describe('Editor de scripts (C-07; T26)', function () {
     if (!kubejs) throw new Error('o teste do KubeJS 7 não rodou');
     const game = instanceGameDir();
     await dismissToasts();
-    await $('select[aria-label="Origem dos arquivos"]').selectByVisibleText(
-      'Mostrando: arquivos do pack',
-    );
+    await $('[role="radio"]*=Do pack').click();
     await openFile('receitas.js');
     await waitAlert('Salvar grava no pack e copia o script');
     await dismissToasts();
