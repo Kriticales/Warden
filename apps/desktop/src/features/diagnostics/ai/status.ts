@@ -52,7 +52,10 @@ export function groupOf(atMs: number, now: number = Date.now()): ConversationGro
 
 /** Sem acentos e em minúsculas, para a busca. */
 export function fold(text: string): string {
-  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 /** O modelo que respondeu (ou vai responder) a pergunta. */

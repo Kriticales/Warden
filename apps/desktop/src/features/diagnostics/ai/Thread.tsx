@@ -451,7 +451,11 @@ function ConsultItem({ domId, step }: { domId: string; step: ToolStep }) {
   return (
     <details className={cn('tc', failed && 'tc--error')} id={domId}>
       <summary>
-        <Icon icon={failed ? CircleAlert : ChevronRight} size="sm" className={failed ? undefined : 'chev'} />
+        <Icon
+          icon={failed ? CircleAlert : ChevronRight}
+          size="sm"
+          className={failed ? undefined : 'chev'}
+        />
         <span className="tc__title">
           <span className="tc__pre">{t('consultas.pre')}</span> {stepLabel(step)}
           {step.denied

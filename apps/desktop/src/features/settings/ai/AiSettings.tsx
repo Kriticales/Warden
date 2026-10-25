@@ -2,7 +2,7 @@
  * Chaves e contas › IA (SPEC T21 e T14 ✦; ADR-0055 e ADR-0060; D-18), o encaixe da D-04 que
  * agora cobre os três provedores:
  *
- * - **Provedor da IA** das conversas novas: Gemini (o padrão, com plano gratuito), OpenAI ou
+ * - **Provedor do Sculk** das conversas novas: Gemini (o padrão, com plano gratuito), OpenAI ou
  *   Claude. As conversas já começadas continuam no provedor delas.
  * - **Chave de cada provedor**, na mesma linha das outras chaves (`KeyRow`: Testar, Substituir,
  *   Remover e o passo a passo com a página oficial).

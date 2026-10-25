@@ -286,7 +286,9 @@ describe('Sensor Sculk (D-04)', function () {
     const unverified = $('li.claim*=O pack travou por falta de memória.');
     await expect(unverified).toHaveElementClass('claim--no');
     await expect(unverified).toHaveText(expect.stringContaining('não verificado'));
-    await expect($('.ai__foot').$('.meter')).toHaveText(expect.stringContaining('Confiança: média'));
+    await expect($('.ai__foot').$('.meter')).toHaveText(
+      expect.stringContaining('Confiança: média'),
+    );
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('d04-02-conversa');
 
