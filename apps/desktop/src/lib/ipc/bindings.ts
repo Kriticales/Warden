@@ -68,10 +68,8 @@ export const commands = {
 	addLocalApply: (packId: PackId, items: LocalApplyItem[]) => typedError<AddResult, AppError>(__TAURI_INVOKE("add_local_apply", { packId, items })),
 	/**  Esquece arquivos que a tela não vai adicionar (e apaga o download do link direto). */
 	addLocalDiscard: (tokens: string[]) => __TAURI_INVOKE<void>("add_local_discard", { tokens }),
-	/**  O provedor ativo, a escolha do modelo de cada provedor e as chaves configuradas. */
+	/**  O provedor ativo e as chaves configuradas. */
 	aiSettingsGet: () => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_get")),
-	/**  Grava a escolha do modelo **do provedor ativo** (cada provedor guarda a sua). */
-	aiSettingsSet: (tier: ModelTier) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_settings_set", { tier })),
 	/**  Troca o provedor das conversas novas. As conversas já começadas continuam no provedor delas. */
 	aiProviderSet: (provider: AiProvider) => typedError<AiSettingsView, AppError>(__TAURI_INVOKE("ai_provider_set", { provider })),
 	/**
@@ -106,7 +104,11 @@ export const commands = {
 	 *  Acrescenta uma pergunta à conversa (sem rede); a interface chama `ai_conversation_run` em
 	 *  seguida.
 	 */
-	aiConversationSend: (packId: PackId, conversationId: string, text: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_conversation_send", { packId, conversationId, text })),
+	aiConversationSend: (packId: PackId, conversationId: string, text: string, mode: 
+/**  "Procurar rápido": o modelo estável mais econômico do provedor e menos consultas. */
+"quick" | 
+/**  "Procurar a fundo": o modelo estável mais forte da faixa barata e mais consultas. */
+"deep" | null) => typedError<null, AppError>(__TAURI_INVOKE("ai_conversation_send", { packId, conversationId, text, mode })),
 	/**  As conversas do pack, da mais nova para a mais antiga. */
 	aiConversationsList: (packId: PackId) => typedError<AiConversationSummary[], AppError>(__TAURI_INVOKE("ai_conversations_list", { packId })),
 	/**  Uma conversa com as mensagens, as consultas e o que mudou no pack desde então. */
@@ -142,7 +144,11 @@ export const commands = {
 	 *  Acrescenta uma pergunta à conversa sem pack (sem rede); a interface chama
 	 *  `ai_standalone_run` em seguida.
 	 */
-	aiStandaloneSend: (conversationId: string, text: string) => typedError<null, AppError>(__TAURI_INVOKE("ai_standalone_send", { conversationId, text })),
+	aiStandaloneSend: (conversationId: string, text: string, mode: 
+/**  "Procurar rápido": o modelo estável mais econômico do provedor e menos consultas. */
+"quick" | 
+/**  "Procurar a fundo": o modelo estável mais forte da faixa barata e mais consultas. */
+"deep" | null) => typedError<null, AppError>(__TAURI_INVOKE("ai_standalone_send", { conversationId, text, mode })),
 	/**  As conversas sem pack, da mais nova para a mais antiga. */
 	aiStandaloneList: () => typedError<AiConversationSummary[], AppError>(__TAURI_INVOKE("ai_standalone_list")),
 	/**  Uma conversa sem pack com as mensagens e as consultas. */
@@ -1205,6 +1211,8 @@ export type AiConversationSummary = {
 	tokens: number,
 	/**  Propostas da IA esperando a decisão do usuário (D-14). */
 	pendingProposals: number,
+	/**  Propostas aplicadas (o selo "Aplicada" da lista do Sensor Sculk). */
+	appliedProposals: number,
 };
 
 /**  `ai-conversation-updated`: uma conversa mudou (pergunta, consulta, resposta, erro, espera). */
@@ -1221,10 +1229,8 @@ export type AiConversationView = {
 	summary: AiConversationSummary,
 	/**  O provedor em que a conversa começou (ela fica nele). */
 	provider: AiProvider,
-	/**  O modelo. */
+	/**  O modelo da primeira pergunta (cada pergunta guarda o seu modo e o seu modelo). */
 	model: string,
-	/**  Mais econômico ou mais cuidadoso. */
-	tier: ModelTier | null,
 	/**  As permissões escolhidas. */
 	permissions: AiPermissions,
 	/**  O que a pessoa contou. */
@@ -1339,8 +1345,8 @@ export type AiPreview = {
 	provider: AiProvider,
 	/**  O modelo. */
 	model: string,
-	/**  Mais econômico ou mais cuidadoso (custo esperado). */
-	tier: ModelTier | null,
+	/**  Como o Sculk vai procurar na primeira pergunta (`None` no Gemini, sem escolha). */
+	mode: SearchMode | null,
 	/**
 	 *  A busca no GitHub está disponível nesta versão (a ferramenta `search_mod_issues` da D-14
 	 *  está no registro).
@@ -1354,8 +1360,10 @@ export type AiPreviewRequest = {
 	symptom: AiSymptom,
 	/**  "Começar pelo". */
 	source: AiSource,
-	/**  "Contar algo à IA". */
+	/**  "Conte o que aconteceu". */
 	note: string | null,
+	/**  "Procurar rápido" ou "Procurar a fundo" (só no Claude e na OpenAI; ignorado no Gemini). */
+	mode?: SearchMode | null,
 };
 
 /**  Um provedor de IA. */
@@ -1371,8 +1379,6 @@ export type AiProvider =
 export type AiProviderSettings = {
 	/**  O provedor. */
 	provider: AiProvider,
-	/**  A escolha do modelo neste provedor. */
-	tier: ModelTier,
 	/**  Há chave deste provedor. */
 	keyConfigured: boolean,
 	/**  Os modelos já resolvidos nesta execução (sem rede). */
@@ -1391,15 +1397,10 @@ export type AiSessionOption = {
 	packVersion: string | null,
 };
 
-/**
- *  O que Configurações mostra da IA. `tier`, `keyConfigured` e `models` são os do provedor
- *  ativo.
- */
+/**  O que Configurações mostra da IA. `keyConfigured` e `models` são os do provedor ativo. */
 export type AiSettingsView = {
 	/**  O provedor das conversas novas. */
 	provider: AiProvider,
-	/**  A escolha do modelo no provedor ativo. */
-	tier: ModelTier,
 	/**  Há chave do provedor ativo. */
 	keyConfigured: boolean,
 	/**  Os modelos do provedor ativo já resolvidos nesta execução (sem rede). */
@@ -1437,8 +1438,10 @@ export type AiStandalonePreviewRequest = {
 	symptom: AiSymptom,
 	/**  O arquivo ou o link. */
 	source: AiStandaloneSource,
-	/**  "Contar algo à IA". */
+	/**  "Conte o que aconteceu". */
 	note: string | null,
+	/**  "Procurar rápido" ou "Procurar a fundo" (só no Claude e na OpenAI; ignorado no Gemini). */
+	mode?: SearchMode | null,
 };
 
 /**  O que analisar sem pack. */
@@ -2745,6 +2748,17 @@ export type ConversationTurn = {
 	 *  antes da D-15b: a cota diária, a única troca de então).
 	 */
 	fallbackReason?: FallbackReason | null,
+	/**
+	 *  Como o Sculk procurou nesta pergunta (ADR-0064): "Procurar rápido" ou "Procurar a fundo"
+	 *  no Claude e na OpenAI; `None` no Gemini (sem escolha) e nas conversas de antes da escolha
+	 *  por pergunta.
+	 */
+	mode?: SearchMode | null,
+	/**
+	 *  O modelo pedido para esta pergunta (o do modo; `None`: o da conversa, como antes da
+	 *  escolha por pergunta). A troca para o mais leve fica em `fallback_model`.
+	 */
+	model?: string | null,
 };
 
 /**  Resultado de "Copiar para defaultconfigs/". */
@@ -6091,9 +6105,9 @@ export type ModUpdateReport = {
 
 /**  Os modelos resolvidos para uma chave. */
 export type ModelChoices = {
-	/**  O modelo do nível "Mais econômico" (`None`: nenhum disponível). */
+	/**  O modelo de "Procurar rápido" (`None`: nenhum disponível). */
 	economical: string | null,
-	/**  O modelo do nível "Análise mais cuidadosa". */
+	/**  O modelo de "Procurar a fundo". */
 	careful: string | null,
 	/**
 	 *  O modelo mais leve, que o laço usa sozinho numa pergunta quando a cota diária do modelo
@@ -6101,19 +6115,6 @@ export type ModelChoices = {
 	 */
 	lighter?: string | null,
 };
-
-/**  A escolha em Configurações, por provedor. */
-export type ModelTier = 
-/**
- *  Padrão: o modelo estável mais econômico do provedor. No Gemini, os dois níveis usam o
- *  modelo mais forte do plano gratuito, o Flash mais novo (decisão do dono, ADR-0060).
- */
-"economical" | 
-/**
- *  "Análise mais cuidadosa": o modelo estável mais capaz da faixa barata (no Gemini, o
- *  Flash mais novo, com poucas conversas por dia no plano gratuito).
- */
-"careful";
 
 /**  A lista de mods de um modpack, para o painel da direita da página de descoberta. */
 export type ModpackContents = {
@@ -8129,6 +8130,17 @@ export type SearchCursor = {
 	/**  Deslocamento de cada fonte. */
 	offsets: SourceOffset[],
 };
+
+/**
+ *  Como o Sculk procura numa pergunta (ADR-0064): escolhido a cada pergunta no Claude e na
+ *  OpenAI; no Gemini não há escolha (os dois usam o Flash estável mais novo, com a troca para o
+ *  Flash-Lite no limite diário, ADR-0060).
+ */
+export type SearchMode = 
+/**  "Procurar rápido": o modelo estável mais econômico do provedor e menos consultas. */
+"quick" | 
+/**  "Procurar a fundo": o modelo estável mais forte da faixa barata e mais consultas. */
+"deep";
 
 /**  Como a busca terminou. */
 export type SearchOutcome = 

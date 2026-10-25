@@ -1,8 +1,8 @@
 //! Escolha do modelo da OpenAI pela lista da chave (`GET v1/models`; decisão do dono de
 //! 18/10/2026, ADR-0060).
 //!
-//! Nenhum nome fica no código, só a regra da família: "Mais econômico" é o `gpt-N-luna` e
-//! "Análise mais cuidadosa" é o `gpt-N-sol`, com **N a maior geração inteira em que os dois
+//! Nenhum nome fica no código, só a regra da família: "Procurar rápido" usa o `gpt-N-luna` e
+//! "Procurar a fundo" usa o `gpt-N-sol`, com **N a maior geração inteira em que os dois
 //! existem** na lista da chave. Fora: versões quebradas (`gpt-6.1-sol`, `gpt-5.6-luna`), o
 //! `astra` (equivale ao mais caro), `pro`, `codex`, `chat-latest`, `mini`, `nano` e qualquer
 //! sufixo (`gpt-6-luna-2026-09-01`): só a forma exata `gpt-<inteiro>-luna|sol` entra. Sem o par,
@@ -14,27 +14,27 @@ use serde_json::Value;
 
 use super::{OpenAiClient, Problem, api_message, classify};
 use crate::error::{Error, Result};
-use crate::providers::{AiProvider, ModelChoices, ModelTier};
+use crate::providers::{AiProvider, ModelChoices, SearchMode};
 
 /// Lê `gpt-<N>-luna` e `gpt-<N>-sol` (N inteiro, sem ponto nem sufixo).
-fn family(name: &str) -> Option<(u32, ModelTier)> {
+fn family(name: &str) -> Option<(u32, SearchMode)> {
     let rest = name.strip_prefix("gpt-")?;
     let (generation, kind) = rest.split_once('-')?;
     if generation.is_empty() || !generation.bytes().all(|byte| byte.is_ascii_digit()) {
         return None;
     }
-    let tier = match kind {
-        "luna" => ModelTier::Economical,
-        "sol" => ModelTier::Careful,
+    let mode = match kind {
+        "luna" => SearchMode::Quick,
+        "sol" => SearchMode::Deep,
         _ => return None,
     };
-    Some((generation.parse().ok()?, tier))
+    Some((generation.parse().ok()?, mode))
 }
 
-/// O nível de um nome de modelo (`None`: não é um `gpt-N-luna` nem um `gpt-N-sol`).
+/// O modo de um nome de modelo (`None`: não é um `gpt-N-luna` nem um `gpt-N-sol`).
 #[must_use]
-pub fn tier_of(model: &str) -> Option<ModelTier> {
-    family(model).map(|(_, tier)| tier)
+pub fn mode_of(model: &str) -> Option<SearchMode> {
+    family(model).map(|(_, mode)| mode)
 }
 
 /// O par da maior geração inteira com `luna` e `sol` (`None`: nenhuma geração tem os dois).
@@ -42,11 +42,11 @@ pub fn tier_of(model: &str) -> Option<ModelTier> {
 pub fn resolve<'a>(ids: impl IntoIterator<Item = &'a str>) -> Option<ModelChoices> {
     let mut generations: BTreeMap<u32, (bool, bool)> = BTreeMap::new();
     for id in ids {
-        if let Some((generation, tier)) = family(id) {
+        if let Some((generation, mode)) = family(id) {
             let slot = generations.entry(generation).or_default();
-            match tier {
-                ModelTier::Economical => slot.0 = true,
-                ModelTier::Careful => slot.1 = true,
+            match mode {
+                SearchMode::Quick => slot.0 = true,
+                SearchMode::Deep => slot.1 = true,
             }
         }
     }
@@ -158,10 +158,10 @@ mod tests {
             "gpt-x-sol",
             "o3",
         ] {
-            assert_eq!(tier_of(name), None, "{name}");
+            assert_eq!(mode_of(name), None, "{name}");
         }
-        assert_eq!(tier_of("gpt-6-luna"), Some(ModelTier::Economical));
-        assert_eq!(tier_of("gpt-6-sol"), Some(ModelTier::Careful));
+        assert_eq!(mode_of("gpt-6-luna"), Some(SearchMode::Quick));
+        assert_eq!(mode_of("gpt-6-sol"), Some(SearchMode::Deep));
     }
 
     #[test]

@@ -24,7 +24,7 @@ use warden_ai::AiErrorCode;
 use warden_ai::conversation::AnswerVia;
 use warden_ai::engine::{Engine, Limits, NoObserver};
 use warden_ai::providers::openai::OpenAiClient;
-use warden_ai::providers::{AiProvider, ModelTier, Provider, http_config};
+use warden_ai::providers::{AiProvider, Provider, SearchMode, http_config};
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -42,12 +42,9 @@ async fn rede_openai_conversa_curta_com_o_modelo_mais_economico() {
     let http = HttpClient::new(http_config(HttpConfig::for_version("0.0.0"))).unwrap();
     let client = OpenAiClient::new(http, SecretString::from(key)).unwrap();
     let choices = client.models().await.unwrap();
-    let (model, tier) = choices.pick(ModelTier::Economical).expect("nenhum modelo");
-    assert_eq!(tier, ModelTier::Economical);
-    assert_eq!(
-        AiProvider::Openai.tier_of(model),
-        Some(ModelTier::Economical)
-    );
+    let (model, mode) = choices.pick(SearchMode::Quick).expect("nenhum modelo");
+    assert_eq!(mode, SearchMode::Quick);
+    assert_eq!(AiProvider::Openai.mode_of(model), Some(SearchMode::Quick));
     eprintln!("rede_openai: modelo {model}");
 
     let registry = ToolRegistry::new();

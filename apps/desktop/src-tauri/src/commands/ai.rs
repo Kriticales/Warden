@@ -1,10 +1,10 @@
 //! Comandos do domínio `ai` (ARCHITECTURE §4.1 e §9.5; SPEC T14 ✦; ROADMAP D-04).
 //!
-//! - `ai_settings_get` / `ai_settings_set` / `ai_provider_set`: o provedor de IA ativo (Gemini,
-//!   o padrão, OpenAI ou Claude; ADR-0060) e, por provedor, "Mais econômico" ou "Análise mais
-//!   cuidadosa" (`ai/settings.json` nos dados do Warden); `ai_models_get`: os modelos que a
-//!   chave do provedor ativo alcança, pela lista de modelos da conta (nenhum nome fixo no
-//!   código, ADR-0055).
+//! - `ai_settings_get` / `ai_provider_set`: o provedor do Sensor Sculk ativo (Gemini, o padrão,
+//!   OpenAI ou Claude; ADR-0060; `ai/settings.json` nos dados do Warden); `ai_models_get`: os
+//!   modelos que a chave do provedor ativo alcança, pela lista de modelos da conta (nenhum nome
+//!   fixo no código, ADR-0055). O modelo não é mais escolhido aqui: cada pergunta escolhe
+//!   "Procurar rápido" ou "Procurar a fundo" no Claude e na OpenAI (ADR-0064).
 //! - `ai_sources_list`: as sessões do Testar para "Começar pelo"; `ai_log_choose`: o diálogo
 //!   nativo para um log ou crash report do computador (o caminho não sai do backend).
 //! - `ai_conversation_preview`: o texto inicial **exato** (já redigido), o tamanho, o provedor e
@@ -17,7 +17,8 @@
 //!   um erro). Demora: a interface não espera; acompanha pelo evento `ai-conversation-updated`.
 //!   Antes da primeira requisição, a contagem de tokens do pedido inteiro. Usa o provedor e a
 //!   chave **da conversa**, não o ativo (ADR-0060): sem essa chave, `AI_PROVIDER_KEY_MISSING`.
-//! - `ai_conversation_send`: acrescenta uma pergunta (sem rede); a interface chama `run` depois.
+//! - `ai_conversation_send`: acrescenta uma pergunta com o modo dela (sem rede); a interface chama
+//!   `run` depois, que resolve o modelo do modo.
 //! - `ai_conversations_list`, `ai_conversation_get`, `ai_conversation_delete`.
 //! - `ai_standalone_*` (D-19): os mesmos passos para a conversa **sem pack**, sobre um log do
 //!   computador ou aberto por um link colado (mclo.gs ou pastebin), em `ai/_sem-pack/`, com o
@@ -27,7 +28,7 @@
 //! (CA-T14-06).
 #![allow(clippy::needless_pass_by_value)] // argumentos pertencem ao contrato do Tauri
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
@@ -44,7 +45,7 @@ use warden_ai::conversation::{
 use warden_ai::engine::{Engine, Limits, LiveStatus, NoObserver, Observer, now_ms, pending, push_question};
 use warden_ai::evidence::ClaimStatus;
 use warden_ai::proposals::{Proposal, ProposalState};
-use warden_ai::providers::{self, AiProvider, Message, ModelChoices, ModelTier, Provider};
+use warden_ai::providers::{self, AiProvider, Message, ModelChoices, SearchMode, Provider};
 use warden_ai::tools::AiPermissions;
 use warden_core::{CancellationToken, PackId, atomic_write_private};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -108,6 +109,8 @@ struct Preview {
     note: Option<String>,
     provider: AiProvider,
     model: String,
+    /// Como procurar na primeira pergunta (`None` no Gemini).
+    mode: Option<SearchMode>,
     /// O modelo mais leve para quando a cota diária de `model` acabar.
     fallback_model: Option<String>,
     initial: initial::Initial,
@@ -267,37 +270,15 @@ impl<'a> Busy<'a> {
 // Configurações
 // ---------------------------------------------------------------------------------------
 
-/// `ai/settings.json`.
+/// `ai/settings.json`. O arquivo de antes da ADR-0064 ainda tem a escolha fixa do modelo
+/// (`tier` e `tiers`): os campos são ignorados ao ler e somem na próxima gravação (o modo agora
+/// é escolhido a cada pergunta).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct AiSettingsFile {
     /// O provedor das conversas novas (sem o campo, o arquivo da D-04: Gemini).
     #[serde(default)]
     ai_provider: AiProvider,
-    /// A escolha do Gemini (o campo da D-04, mantido para o arquivo continuar valendo).
-    #[serde(default)]
-    tier: ModelTier,
-    /// A escolha de cada provedor (o Gemini também, quando escolhido depois da D-15).
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    tiers: BTreeMap<AiProvider, ModelTier>,
-}
-
-impl AiSettingsFile {
-    /// A escolha do modelo de um provedor.
-    fn tier_of(&self, provider: AiProvider) -> ModelTier {
-        match (self.tiers.get(&provider), provider) {
-            (Some(tier), _) => *tier,
-            (None, AiProvider::Gemini) => self.tier,
-            (None, _) => ModelTier::default(),
-        }
-    }
-
-    fn set_tier(&mut self, provider: AiProvider, tier: ModelTier) {
-        self.tiers.insert(provider, tier);
-        if provider == AiProvider::Gemini {
-            self.tier = tier;
-        }
-    }
 }
 
 /// A chave de cada provedor no cofre.
@@ -345,23 +326,18 @@ fn save_settings(state: &AppState, settings: &AiSettingsFile) -> Result<(), AppE
 pub(crate) struct AiProviderSettings {
     /// O provedor.
     pub(crate) provider: AiProvider,
-    /// A escolha do modelo neste provedor.
-    pub(crate) tier: ModelTier,
     /// Há chave deste provedor.
     pub(crate) key_configured: bool,
     /// Os modelos já resolvidos nesta execução (sem rede).
     pub(crate) models: Option<ModelChoices>,
 }
 
-/// O que Configurações mostra da IA. `tier`, `keyConfigured` e `models` são os do provedor
-/// ativo.
+/// O que Configurações mostra da IA. `keyConfigured` e `models` são os do provedor ativo.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct AiSettingsView {
     /// O provedor das conversas novas.
     pub(crate) provider: AiProvider,
-    /// A escolha do modelo no provedor ativo.
-    pub(crate) tier: ModelTier,
     /// Há chave do provedor ativo.
     pub(crate) key_configured: bool,
     /// Os modelos do provedor ativo já resolvidos nesta execução (sem rede).
@@ -378,7 +354,6 @@ pub(crate) fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError
         .iter()
         .map(|&provider| AiProviderSettings {
             provider,
-            tier: settings.tier_of(provider),
             key_configured: status.is_configured(secret_of(provider)),
             models: models.get(&provider).map(|(_, models)| models.clone()),
         })
@@ -390,39 +365,17 @@ pub(crate) fn settings_view(state: &AppState) -> Result<AiSettingsView, AppError
         .ok_or_else(|| AppError::internal("provedor ativo fora da lista"))?;
     Ok(AiSettingsView {
         provider: active.provider,
-        tier: active.tier,
         key_configured: active.key_configured,
         models: active.models,
         providers,
     })
 }
 
-/// O provedor ativo, a escolha do modelo de cada provedor e as chaves configuradas.
+/// O provedor ativo e as chaves configuradas.
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn ai_settings_get(state: State<'_, AppState>) -> Result<AiSettingsView, AppError> {
     settings_view(&state)
-}
-
-pub(crate) fn settings_set_impl(
-    state: &AppState,
-    tier: ModelTier,
-) -> Result<AiSettingsView, AppError> {
-    let mut settings = load_settings(state);
-    let provider = settings.ai_provider;
-    settings.set_tier(provider, tier);
-    save_settings(state, &settings)?;
-    settings_view(state)
-}
-
-/// Grava a escolha do modelo **do provedor ativo** (cada provedor guarda a sua).
-#[tauri::command]
-#[specta::specta]
-pub(crate) fn ai_settings_set(
-    state: State<'_, AppState>,
-    tier: ModelTier,
-) -> Result<AiSettingsView, AppError> {
-    settings_set_impl(&state, tier)
 }
 
 pub(crate) fn provider_set_impl(
@@ -454,6 +407,16 @@ fn key_fingerprint(key: &SecretString) -> String {
 async fn models_impl(state: &AppState, refresh: bool) -> Result<ModelChoices, AppError> {
     let provider = load_settings(state).ai_provider;
     let key = state.secrets.require(secret_of(provider))?;
+    models_of(state, provider, key, refresh).await
+}
+
+/// Os modelos que `key` alcança em `provider` (guardados por chave nesta execução).
+async fn models_of(
+    state: &AppState,
+    provider: AiProvider,
+    key: SecretString,
+    refresh: bool,
+) -> Result<ModelChoices, AppError> {
     let fingerprint = key_fingerprint(&key);
     if !refresh
         && let Some((cached, models)) = lock(&state.ai.models).get(&provider)
@@ -669,8 +632,11 @@ pub(crate) struct AiPreviewRequest {
     pub(crate) symptom: AiSymptom,
     /// "Começar pelo".
     pub(crate) source: AiSource,
-    /// "Contar algo à IA".
+    /// "Conte o que aconteceu".
     pub(crate) note: Option<String>,
+    /// "Procurar rápido" ou "Procurar a fundo" (só no Claude e na OpenAI; ignorado no Gemini).
+    #[serde(default)]
+    pub(crate) mode: Option<SearchMode>,
 }
 
 /// O consentimento.
@@ -692,8 +658,8 @@ pub(crate) struct AiPreview {
     pub(crate) provider: AiProvider,
     /// O modelo.
     pub(crate) model: String,
-    /// Mais econômico ou mais cuidadoso (custo esperado).
-    pub(crate) tier: Option<ModelTier>,
+    /// Como o Sculk vai procurar na primeira pergunta (`None` no Gemini, sem escolha).
+    pub(crate) mode: Option<SearchMode>,
     /// A busca no GitHub está disponível nesta versão (a ferramenta `search_mod_issues` da D-14
     /// está no registro).
     pub(crate) github_available: bool,
@@ -801,6 +767,20 @@ impl warden_ai::tools::ToolSource for NoSource {
     }
 }
 
+/// O modo de uma pergunta no provedor: no Gemini não há escolha (ADR-0064); nos outros, o
+/// pedido ou, sem ele, "Procurar a fundo" (o padrão da tela).
+pub(crate) fn mode_for(provider: AiProvider, asked: Option<SearchMode>) -> Option<SearchMode> {
+    (provider != AiProvider::Gemini).then(|| asked.unwrap_or(SearchMode::Deep))
+}
+
+/// O modelo do modo (no Gemini, o Flash, que os dois níveis usam).
+fn model_for(models: &ModelChoices, mode: Option<SearchMode>) -> Result<String, AppError> {
+    models
+        .pick(mode.unwrap_or(SearchMode::Deep))
+        .map(|(model, _)| model.to_owned())
+        .ok_or_else(|| domain(&warden_ai::Error::NoModel))
+}
+
 pub(crate) async fn preview_impl(
     state: &AppState,
     pack_id: PackId,
@@ -811,10 +791,8 @@ pub(crate) async fn preview_impl(
     let provider = settings.ai_provider;
     let key = state.secrets.require(secret_of(provider))?;
     let models = models_impl(state, false).await?;
-    let (model, _) = models
-        .pick(settings.tier_of(provider))
-        .ok_or_else(|| domain(&warden_ai::Error::NoModel))?;
-    let model = model.to_owned();
+    let mode = mode_for(provider, request.mode);
+    let model = model_for(&models, mode)?;
     let fallback_model = models.lighter.clone().filter(|lighter| *lighter != model);
     let subject = resolve_subject(state, pack_id, &request.source)?;
     let note = request
@@ -840,7 +818,7 @@ pub(crate) async fn preview_impl(
         text: built.text.clone(),
         bytes,
         estimated_tokens: base.map(|base| base + bytes.div_ceil(4)),
-        tier: provider.tier_of(&model),
+        mode,
         provider,
         model: model.clone(),
         github_available: registry()
@@ -864,6 +842,7 @@ pub(crate) async fn preview_impl(
             note,
             provider,
             model,
+            mode,
             fallback_model,
             initial: built,
             snapshot,
@@ -913,6 +892,10 @@ pub(crate) fn start_impl(
     );
     conversation.fallback_model = preview.fallback_model;
     push_question(&mut conversation, preview.initial.text);
+    if let Some(turn) = conversation.turns.last_mut() {
+        turn.mode = preview.mode;
+        turn.model = Some(conversation.model.clone());
+    }
     let store = store(state, pack_id);
     if let Some(log) = &preview.initial.local_log {
         store
@@ -994,6 +977,7 @@ pub(crate) async fn run_impl(
     notify(pack_id, id);
     let result = async {
         let key = conversation_key(state, conversation.provider)?;
+        resolve_turn_model(state, &mut conversation, &key).await?;
         let client = state.ai.client(conversation.provider, key)?;
         let local_log = matches!(conversation.origin, ConversationOrigin::LocalFile { .. })
             .then(|| store.local_log(id).ok())
@@ -1015,7 +999,7 @@ pub(crate) async fn run_impl(
             observer: &observer,
             timer: Arc::new(SystemTimer::new()),
             cancel: cancel.clone(),
-            limits: Limits::default(),
+            limits: Limits::for_mode(conversation.turns.last().and_then(|turn| turn.mode)),
         };
         if conversation.initial_tokens.is_none() && conversation.requests == 0 {
             // O tamanho exato do pedido inicial, contado pelo provedor (sistema, ferramentas e o
@@ -1052,6 +1036,25 @@ pub(crate) async fn run_impl(
     drop(guard);
     notify(pack_id, id);
     result
+}
+
+/// O modelo da pergunta pendente feita com um modo e ainda sem modelo (uma pergunta nova no
+/// Claude ou na OpenAI): o do modo, pela lista de modelos da chave da conversa (ADR-0064).
+async fn resolve_turn_model(
+    state: &AppState,
+    conversation: &mut Conversation,
+    key: &SecretString,
+) -> Result<(), AppError> {
+    let provider = conversation.provider;
+    let Some(turn) = conversation.turns.last_mut() else {
+        return Ok(());
+    };
+    if turn.model.is_some() || turn.mode.is_none() {
+        return Ok(());
+    }
+    let models = models_of(state, provider, key.clone(), false).await?;
+    turn.model = Some(model_for(&models, turn.mode)?);
+    Ok(())
 }
 
 /// A chave do provedor **da conversa** (ADR-0060). Sem ela: o erro de sempre quando é o
@@ -1105,6 +1108,7 @@ pub(crate) fn send_impl(
     pack_id: PackId,
     id: &str,
     text: &str,
+    mode: Option<SearchMode>,
 ) -> Result<(), AppError> {
     pack_root(state, pack_id)?;
     let text = text.trim();
@@ -1118,6 +1122,10 @@ pub(crate) fn send_impl(
         return Err(domain(&warden_ai::Error::ConversationBusy { id: id.to_owned() }));
     }
     push_question(&mut conversation, text.to_owned());
+    let mode = mode_for(conversation.provider, mode);
+    if let Some(turn) = conversation.turns.last_mut() {
+        turn.mode = mode;
+    }
     store.save(&conversation).map_err(|error| domain(&error))
 }
 
@@ -1131,8 +1139,9 @@ pub(crate) fn ai_conversation_send(
     pack_id: PackId,
     conversation_id: String,
     text: String,
+    mode: Option<SearchMode>,
 ) -> Result<(), AppError> {
-    send_impl(&state, pack_id, &conversation_id, &text)?;
+    send_impl(&state, pack_id, &conversation_id, &text, mode)?;
     app_notify(app)(pack_id, &conversation_id);
     Ok(())
 }
@@ -1182,6 +1191,8 @@ pub(crate) struct AiConversationSummary {
     pub(crate) tokens: u64,
     /// Propostas da IA esperando a decisão do usuário (D-14).
     pub(crate) pending_proposals: u32,
+    /// Propostas aplicadas (o selo "Aplicada" da lista do Sensor Sculk).
+    pub(crate) applied_proposals: u32,
 }
 
 fn title_of(conversation: &Conversation) -> Option<String> {
@@ -1240,6 +1251,14 @@ fn summary_of(hub: &AiHub, conversation: &Conversation) -> AiConversationSummary
                 .count(),
         )
         .unwrap_or(u32::MAX),
+        applied_proposals: u32::try_from(
+            conversation
+                .proposals
+                .iter()
+                .filter(|proposal| matches!(proposal.state, ProposalState::Applied { .. }))
+                .count(),
+        )
+        .unwrap_or(u32::MAX),
     }
 }
 
@@ -1274,10 +1293,8 @@ pub(crate) struct AiConversationView {
     pub(crate) summary: AiConversationSummary,
     /// O provedor em que a conversa começou (ela fica nele).
     pub(crate) provider: AiProvider,
-    /// O modelo.
+    /// O modelo da primeira pergunta (cada pergunta guarda o seu modo e o seu modelo).
     pub(crate) model: String,
-    /// Mais econômico ou mais cuidadoso.
-    pub(crate) tier: Option<ModelTier>,
     /// As permissões escolhidas.
     pub(crate) permissions: AiPermissions,
     /// O que a pessoa contou.
@@ -1311,7 +1328,6 @@ pub(crate) async fn get_impl(
         .unwrap_or_default();
     Ok(AiConversationView {
         summary: summary_of(&state.ai, &conversation),
-        tier: conversation.provider.tier_of(&conversation.model),
         provider: conversation.provider,
         model: conversation.model.clone(),
         permissions: conversation.permissions,
@@ -1426,8 +1442,11 @@ pub(crate) struct AiStandalonePreviewRequest {
     pub(crate) symptom: AiSymptom,
     /// O arquivo ou o link.
     pub(crate) source: AiStandaloneSource,
-    /// "Contar algo à IA".
+    /// "Conte o que aconteceu".
     pub(crate) note: Option<String>,
+    /// "Procurar rápido" ou "Procurar a fundo" (só no Claude e na OpenAI; ignorado no Gemini).
+    #[serde(default)]
+    pub(crate) mode: Option<SearchMode>,
 }
 
 /// O log da prévia sem pack, lido do computador ou baixado do link.
@@ -1498,10 +1517,8 @@ pub(crate) async fn standalone_preview_impl(
     let provider = settings.ai_provider;
     let key = state.secrets.require(secret_of(provider))?;
     let models = models_impl(state, false).await?;
-    let (model, _) = models
-        .pick(settings.tier_of(provider))
-        .ok_or_else(|| domain(&warden_ai::Error::NoModel))?;
-    let model = model.to_owned();
+    let mode = mode_for(provider, request.mode);
+    let model = model_for(&models, mode)?;
     let fallback_model = models.lighter.clone().filter(|lighter| *lighter != model);
     let subject = standalone_subject(state, &request.source).await?;
     let note = request
@@ -1521,7 +1538,7 @@ pub(crate) async fn standalone_preview_impl(
         text: built.text.clone(),
         bytes,
         estimated_tokens: base.map(|base| base + bytes.div_ceil(4)),
-        tier: provider.tier_of(&model),
+        mode,
         provider,
         model: model.clone(),
         github_available: crate::ai_tools::standalone::registry()
@@ -1544,6 +1561,7 @@ pub(crate) async fn standalone_preview_impl(
             note,
             provider,
             model,
+            mode,
             fallback_model,
             initial: built,
             created: now_ms(),
@@ -1586,6 +1604,10 @@ pub(crate) fn standalone_start_impl(
     );
     conversation.fallback_model = preview.fallback_model;
     push_question(&mut conversation, preview.initial.text);
+    if let Some(turn) = conversation.turns.last_mut() {
+        turn.mode = preview.mode;
+        turn.model = Some(conversation.model.clone());
+    }
     let store = crate::ai_tools::standalone::store(state);
     if let Some(log) = &preview.initial.local_log {
         store
@@ -1649,6 +1671,7 @@ pub(crate) async fn standalone_run_impl(
     notify(id);
     let result = async {
         let key = conversation_key(state, conversation.provider)?;
+        resolve_turn_model(state, &mut conversation, &key).await?;
         let client = state.ai.client(conversation.provider, key)?;
         let tools = StandaloneTools::new(state, store.local_log(id).ok(), cancel.clone());
         let registry = standalone_registry();
@@ -1666,7 +1689,7 @@ pub(crate) async fn standalone_run_impl(
             observer: &observer,
             timer: Arc::new(SystemTimer::new()),
             cancel: cancel.clone(),
-            limits: Limits::default(),
+            limits: Limits::for_mode(conversation.turns.last().and_then(|turn| turn.mode)),
         };
         if conversation.initial_tokens.is_none() && conversation.requests == 0 {
             match engine
@@ -1714,7 +1737,12 @@ pub(crate) async fn ai_standalone_run(
     standalone_run_impl(&state, &conversation_id, standalone_notify(app)).await
 }
 
-pub(crate) fn standalone_send_impl(state: &AppState, id: &str, text: &str) -> Result<(), AppError> {
+pub(crate) fn standalone_send_impl(
+    state: &AppState,
+    id: &str,
+    text: &str,
+    mode: Option<SearchMode>,
+) -> Result<(), AppError> {
     let text = text.trim();
     if text.is_empty() || text.chars().count() > MAX_QUESTION_CHARS {
         return Err(AppError::new(warden_project::ProjectErrorCode::InvalidInput)
@@ -1726,6 +1754,10 @@ pub(crate) fn standalone_send_impl(state: &AppState, id: &str, text: &str) -> Re
         return Err(domain(&warden_ai::Error::ConversationBusy { id: id.to_owned() }));
     }
     push_question(&mut conversation, text.to_owned());
+    let mode = mode_for(conversation.provider, mode);
+    if let Some(turn) = conversation.turns.last_mut() {
+        turn.mode = mode;
+    }
     store.save(&conversation).map_err(|error| domain(&error))
 }
 
@@ -1738,8 +1770,9 @@ pub(crate) fn ai_standalone_send(
     state: State<'_, AppState>,
     conversation_id: String,
     text: String,
+    mode: Option<SearchMode>,
 ) -> Result<(), AppError> {
-    standalone_send_impl(&state, &conversation_id, &text)?;
+    standalone_send_impl(&state, &conversation_id, &text, mode)?;
     standalone_notify(app)(&conversation_id);
     Ok(())
 }
@@ -1768,7 +1801,6 @@ pub(crate) fn standalone_get_impl(state: &AppState, id: &str) -> Result<AiConver
         .map_err(|error| domain(&error))?;
     Ok(AiConversationView {
         summary: summary_of(&state.ai, &conversation),
-        tier: conversation.provider.tier_of(&conversation.model),
         provider: conversation.provider,
         model: conversation.model.clone(),
         permissions: conversation.permissions,

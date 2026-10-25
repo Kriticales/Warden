@@ -24,7 +24,7 @@ use warden_ai::AiErrorCode;
 use warden_ai::conversation::AnswerVia;
 use warden_ai::engine::{Engine, Limits, NoObserver};
 use warden_ai::providers::anthropic::AnthropicClient;
-use warden_ai::providers::{AiProvider, ModelTier, Provider, http_config};
+use warden_ai::providers::{AiProvider, Provider, SearchMode, http_config};
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_core::{CancellationToken, DomainCode, DomainError};
 use warden_http::{HttpClient, HttpConfig, SystemTimer};
@@ -42,11 +42,11 @@ async fn rede_anthropic_conversa_curta_com_o_modelo_mais_economico() {
     let http = HttpClient::new(http_config(HttpConfig::for_version("0.0.0"))).unwrap();
     let client = AnthropicClient::new(http, SecretString::from(key)).unwrap();
     let choices = client.models().await.unwrap();
-    let (model, tier) = choices.pick(ModelTier::Economical).expect("nenhum modelo");
-    assert_eq!(tier, ModelTier::Economical);
+    let (model, mode) = choices.pick(SearchMode::Quick).expect("nenhum modelo");
+    assert_eq!(mode, SearchMode::Quick);
     assert_eq!(
-        AiProvider::Anthropic.tier_of(model),
-        Some(ModelTier::Economical)
+        AiProvider::Anthropic.mode_of(model),
+        Some(SearchMode::Quick)
     );
     eprintln!("rede_anthropic: modelo {model}");
 

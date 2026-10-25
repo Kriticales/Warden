@@ -20,7 +20,7 @@ use warden_core::atomic_write_private;
 
 use crate::error::{Error, Result};
 use crate::evidence::CheckedAnswer;
-use crate::providers::{AiProvider, Message, gemini};
+use crate::providers::{AiProvider, Message, SearchMode, gemini};
 use crate::tools::{AiPermissions, ToolItem};
 
 /// Versão do formato do arquivo (1: D-04, só Gemini; 2: vários provedores, D-15).
@@ -264,6 +264,29 @@ pub struct ConversationTurn {
     #[serde(default)]
     #[specta(optional)]
     pub fallback_reason: Option<FallbackReason>,
+    /// Como o Sculk procurou nesta pergunta (ADR-0064): "Procurar rápido" ou "Procurar a fundo"
+    /// no Claude e na OpenAI; `None` no Gemini (sem escolha) e nas conversas de antes da escolha
+    /// por pergunta.
+    #[serde(default)]
+    #[specta(optional)]
+    pub mode: Option<SearchMode>,
+    /// O modelo pedido para esta pergunta (o do modo; `None`: o da conversa, como antes da
+    /// escolha por pergunta). A troca para o mais leve fica em `fallback_model`.
+    #[serde(default)]
+    #[specta(optional)]
+    pub model: Option<String>,
+}
+
+impl ConversationTurn {
+    /// O modelo que respondeu (ou vai responder) esta pergunta: o mais leve da troca, o do modo
+    /// ou o da conversa.
+    #[must_use]
+    pub fn model_or<'a>(&'a self, conversation_model: &'a str) -> &'a str {
+        self.fallback_model
+            .as_deref()
+            .or(self.model.as_deref())
+            .unwrap_or(conversation_model)
+    }
 }
 
 /// Por que uma pergunta trocou para o modelo mais leve.

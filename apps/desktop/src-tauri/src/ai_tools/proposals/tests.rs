@@ -58,6 +58,7 @@ async fn conversation(setup: &Setup) -> String {
             symptom: warden_ai::conversation::AiSymptom::CrashInWorld,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await

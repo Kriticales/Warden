@@ -379,6 +379,8 @@ pub(crate) struct StandalonePreview {
     pub(crate) note: Option<String>,
     pub(crate) provider: AiProvider,
     pub(crate) model: String,
+    /// Como procurar na primeira pergunta (`None` no Gemini; ADR-0064).
+    pub(crate) mode: Option<warden_ai::providers::SearchMode>,
     /// O modelo mais leve para quando a cota diária de `model` acabar (como com pack).
     pub(crate) fallback_model: Option<String>,
     pub(crate) initial: Initial,
