@@ -20,7 +20,7 @@
  * confirmação: Salvar e continuar, Descartar ou Continuar editando.
  */
 import { useBlocker } from '@tanstack/react-router';
-import { Columns2, Monitor, PanelRight, RotateCcw, Users, type LucideIcon } from 'lucide-react';
+import { PanelRight, RotateCcw } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -52,6 +52,7 @@ import {
   differingCount,
   editorOrigin,
   filterFiles,
+  friendlyKey,
   groupFiles,
   paramOf,
   viewOf,
@@ -81,16 +82,20 @@ export interface ConfigsPageProps {
   onNavigate: (search: ConfigsSearch) => void;
 }
 
+/** Largura da janela a partir da qual o painel Detalhes abre sozinho. */
+const DETAILS_MIN_WIDTH = 1280;
+
 /** O painel Detalhes (o botão do editor o controla). */
 const DETAILS_ID = 'cfgx-det';
 
 /** Os detalhes abertos ou fechados valem para a seção toda nesta abertura do app. */
-const remembered = { details: true };
+// Aberto de começo só quando cabe ao lado do editor (o esboço aprovado tem 1440 px).
+const remembered: { details: boolean | null } = { details: null };
 
-const VIEWS: { view: View; icon: LucideIcon; label: 'pack' | 'test' | 'compare' }[] = [
-  { view: 'pack', icon: Users, label: 'pack' },
-  { view: 'test', icon: Monitor, label: 'test' },
-  { view: 'compare', icon: Columns2, label: 'compare' },
+const VIEWS: { view: View; label: 'pack' | 'test' | 'compare' }[] = [
+  { view: 'pack', label: 'pack' },
+  { view: 'test', label: 'test' },
+  { view: 'compare', label: 'compare' },
 ];
 
 export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
@@ -111,7 +116,9 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
   const [resultsOpen, setResultsOpen] = useState(false);
   const [onlyChanged, setOnlyChanged] = useState(false);
   const [onlyDiffers, setOnlyDiffers] = useState(false);
-  const [showDetails, setShowDetails] = useState(remembered.details);
+  const [showDetails, setShowDetails] = useState(
+    () => remembered.details ?? window.innerWidth >= DETAILS_MIN_WIDTH,
+  );
   // Cada clique num resultado é um pedido novo, mesmo para a mesma linha.
   const [lineRequest, setLineRequest] = useState(0);
   const searching = resultsOpen && searchText.trim() !== '';
@@ -249,6 +256,7 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
     </Button>
   ) : null;
 
+  const friendly = placed?.place === 'personal' ? friendlyKey(placed.path) : null;
   const compareMode = view === 'compare' && placed?.place === 'pack' && placed.inTest;
   // `compareMode` já garante o arquivo; o TypeScript não acompanha.
   const compared = compareMode ? placed : undefined;
@@ -291,7 +299,9 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
         <div className="editor__bar cfg-edhead">
           <span className="cfg-edhead__t">
             <span className="cfg-edhead__name">{compared.path.split('/').pop()}</span>
-            <span className="editor__file cfg-edhead__path">{compared.path}</span>
+            <span className="cfg-edhead__path">
+              <span className="editor__file">{compared.path}</span>
+            </span>
           </span>
           {detailsButton}
         </div>
@@ -306,7 +316,9 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
         <div className="editor__bar cfg-edhead">
           <span className="cfg-edhead__t">
             <span className="cfg-edhead__name">{compared.path.split('/').pop()}</span>
-            <span className="editor__file cfg-edhead__path">{compared.path}</span>
+            <span className="cfg-edhead__path">
+              <span className="editor__file">{compared.path}</span>
+            </span>
           </span>
           {detailsButton}
         </div>
@@ -345,6 +357,7 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
         goTo={goTo}
         addon={scriptAddon}
         headActions={detailsButton}
+        title={friendly ? t(`pessoal.nomes.${friendly}`) : undefined}
         packDiff={packDiff}
         band={
           <>
@@ -413,7 +426,6 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
                       if (!disabled) go(entry.view);
                     }}
                   >
-                    <entry.icon className="icon" aria-hidden="true" />
                     <span>{t(`origem.${entry.label}`)}</span>
                   </button>
                 );
@@ -512,7 +524,13 @@ export function ConfigsPage({ packId, search, onNavigate }: ConfigsPageProps) {
 
       {showDetails && placed ? (
         <div id={DETAILS_ID} className="cfgx__det-wrap">
-          <DetailsPanel file={placed} view={view} comparison={comparison.data} actions={actions} />
+          <DetailsPanel
+            file={placed}
+            view={view}
+            comparison={comparison.data}
+            testAvailable={testAvailable}
+            actions={actions}
+          />
         </div>
       ) : null}
 

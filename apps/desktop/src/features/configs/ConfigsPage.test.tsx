@@ -27,6 +27,9 @@ import { renderApp } from '../../test/render';
 import { editorBackend, overviewFromTree } from '../pack-editor/testing';
 import { makeSettings } from '../settings/testing';
 
+// O painel Detalhes abre sozinho em janelas largas (o jsdom começa com 1024 px).
+window.innerWidth = 1440;
+
 type Disk = Record<
   string,
   { text: string; hash: string; lineEnding?: ConfigContent['lineEnding'] }
@@ -699,8 +702,9 @@ describe('Configs em três grupos (P9, P7; ADR-0067)', () => {
     const { backend } = openConfigs('', {
       pack: { 'options.txt': entry('fov:70\n'), [CREATE]: entry(CREATE_TEXT) },
     });
+    // Uma faixa abaixo do cabeçalho: não bloqueia o resto do pack.
     const dialog = await screen.findByRole(
-      'dialog',
+      'region',
       { name: 'O options.txt agora fica só neste computador' },
       { timeout: 10_000 },
     );

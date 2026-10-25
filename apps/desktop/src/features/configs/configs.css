@@ -458,10 +458,6 @@
 .cfgx__notices .alert {
   font-size: var(--text-xs);
 }
-.cfgx__migrate {
-  margin: 0 0 var(--space-3);
-  padding-left: var(--space-5);
-}
 
 /* ---------- Comparar ---------- */
 .cmp {
@@ -578,4 +574,9 @@
   text-align: right;
   color: var(--color-text-3);
   user-select: none;
+}
+.cfg-edhead__path .editor__file {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }

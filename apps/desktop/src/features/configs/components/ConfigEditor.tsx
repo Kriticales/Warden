@@ -136,6 +136,8 @@ export interface ConfigEditorProps {
   /** Linha para ir (resultado da busca em todas as configs, C-05). */
   goTo?: LineRequest | null;
   addon?: EditorAddon | null;
+  /** O nome na barra (o nome amigável das preferências pessoais); sem ele, o do arquivo. */
+  title?: string | undefined;
   /** A faixa abaixo da barra: para onde o arquivo vai (pack, teste, pessoal; SPEC T12). */
   band?: ReactNode;
   /** Peças da barra antes de Salvar (o botão Detalhes da seção). */
@@ -168,6 +170,7 @@ export function ConfigEditor({
   onGuard,
   goTo = null,
   addon = null,
+  title,
   band = null,
   headActions = null,
   packDiff = null,
@@ -355,9 +358,9 @@ export function ConfigEditor({
     <section ref={section} className="editor cfg-editor" aria-label={t('editor.area')}>
       <div className="editor__bar cfg-edhead">
         <span className="cfg-edhead__t">
-          <span className="cfg-edhead__name">{name}</span>
-          <span className="editor__file cfg-edhead__path" title={file.path}>
-            {file.path}
+          <span className="cfg-edhead__name">{title ?? name}</span>
+          <span className="cfg-edhead__path" title={file.path}>
+            <span className="editor__file">{file.path}</span>
           </span>
         </span>
         <span className="sr-only">

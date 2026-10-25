@@ -1455,4 +1455,6 @@ button.evid:focus-visible { clip-path: none; }
 .cfgform__row--diff .cfgform__label::before, .cfgform__row--diff .cfgform__key:first-child::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: var(--space-2); vertical-align: middle; background: var(--color-warn); }
 .cfgform__pack { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); font-size: var(--text-xs); }
 .pk { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--space-2); background: var(--color-warn-soft); box-shadow: inset 0 0 0 1px rgba(242, 179, 61, 0.4); clip-path: var(--shape-notch-sm); color: var(--color-text-2); white-space: nowrap; }
+/* Faixa da migração das configs pessoais, abaixo do cabeçalho do pack (não bloqueia o pack) */
+.pack-migrate { flex: none; padding: var(--space-3) var(--space-8) 0; }
 .pk b { font-family: var(--font-mono); font-weight: 500; color: var(--place-test); }

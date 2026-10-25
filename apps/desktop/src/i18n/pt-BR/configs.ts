@@ -75,7 +75,7 @@ export const configs = {
     titulo_one: 'O {{arquivos}} agora fica só neste computador',
     titulo_other: 'Estes arquivos agora ficam só neste computador',
     texto:
-      'Preferências como vídeo, som, teclas e minimapa são de cada jogador. O Warden guarda as suas aqui, devolve em todo teste e não manda mais para os jogadores. Este pack ainda leva:',
+      'Preferências como vídeo, som, teclas e minimapa são de cada jogador. O Warden guarda as suas aqui, devolve em todo teste e não manda mais para os jogadores. Este pack ainda leva',
     nada: 'Nada é apagado sem você escolher. A sua cópia fica guardada antes de sair do pack.',
     tirar: 'Tirar do pack e guardar aqui',
     manter: 'Manter no pack',

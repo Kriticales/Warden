@@ -8,8 +8,9 @@
 //!    mudou formatação, ordem ou comentário, o arquivo é "reformatado" e não aparece
 //!    (CA-T15-02).
 //! 3. Cada mudança cai num grupo ([`CaptureGroup`]): configs do pack, `options.txt` por chave
-//!    (sem as voláteis, [`VOLATILE_OPTIONS`]; só quando não é pessoal, ADR-0067), arquivos criados pelos mods, configs de mundo,
-//!    mods colocados à mão, resource packs e shaders, datapacks.
+//!    (sem as voláteis, [`VOLATILE_OPTIONS`]; só quando não é pessoal, ADR-0067), arquivos
+//!    criados pelos mods, configs de mundo, mods colocados à mão, resource packs e shaders,
+//!    datapacks. As configs pessoais nunca aparecem ([`capture_after_exit_with`]).
 //! 4. Uma config do pack que o jogo só reformatou (ou um `options.txt` do pack em que só
 //!    mudaram chaves voláteis) volta à versão do pack na hora: a próxima cópia do pack não
 //!    para pedindo revisão por causa disso.

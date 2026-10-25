@@ -20,12 +20,20 @@ export interface DetailsPanelProps {
   file: PlacedConfig;
   view: View;
   comparison: ConfigComparison | undefined;
+  /** A instância de teste existe. */
+  testAvailable: boolean;
   actions: PlaceActions;
 }
 
 const DATE = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
-export function DetailsPanel({ file, view, comparison, actions }: DetailsPanelProps) {
+export function DetailsPanel({
+  file,
+  view,
+  comparison,
+  testAvailable,
+  actions,
+}: DetailsPanelProps) {
   const { t } = useTranslation('configs');
   const format = formatKey(languageOf(file.path));
   const differs = file.place === 'pack' && file.inTest && file.differs;
@@ -84,13 +92,15 @@ export function DetailsPanel({ file, view, comparison, actions }: DetailsPanelPr
                   <Monitor className="icon" aria-hidden="true" />
                   <span className="place__t">{t('detalhes.teste')}</span>
                   <span className={cn('place__d', differs && 'place__d--test')}>
-                    {!file.inTest
-                      ? t('detalhes.testeAusente')
-                      : !file.inPack
-                        ? t('detalhes.testeCriado')
-                        : file.differs
-                          ? t('detalhes.testeDifere', { count: file.differences })
-                          : t('detalhes.testeIgual')}
+                    {!testAvailable
+                      ? t('origem.semTeste')
+                      : !file.inTest
+                        ? t('detalhes.testeAusente')
+                        : !file.inPack
+                          ? t('detalhes.testeCriado')
+                          : file.differs
+                            ? t('detalhes.testeDifere', { count: file.differences })
+                            : t('detalhes.testeIgual')}
                   </span>
                 </li>
               </>
