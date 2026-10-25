@@ -14,15 +14,20 @@ const SAME_TIME_MS = 1000;
 const GB = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 const MS = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 
+/** Um total de memória como o usuário escolheu: "6 GB", "4 GB", "512 MB". */
+function totalText(mb: number): string {
+  return mb >= 1024 ? `${GB.format(mb / 1024)} ${t('unidade.gb')}` : memoryText(mb);
+}
+
 /** "5,8 de 6 GB"; abaixo de 1 GB, cada lado com a sua unidade ("900 MB de 2 GB"). */
 export function memoryOfText(usedMb: number, maxMb: number): string {
   if (usedMb >= 1024 && maxMb >= 1024) {
     return t('ultimoTeste.memoriaDe', {
       usado: GB.format(usedMb / 1024),
-      maximo: `${GB.format(maxMb / 1024)} ${t('unidade.gb')}`,
+      maximo: totalText(maxMb),
     });
   }
-  return t('ultimoTeste.memoriaDe', { usado: memoryText(usedMb), maximo: memoryText(maxMb) });
+  return t('ultimoTeste.memoriaDe', { usado: memoryText(usedMb), maximo: totalText(maxMb) });
 }
 
 /** Um tempo por tick: "38 ms", "12,5 ms". */

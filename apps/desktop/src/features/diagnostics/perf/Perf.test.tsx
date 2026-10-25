@@ -14,6 +14,7 @@ import { editorBackend } from '../../pack-editor/testing';
 import { makeSources, makePreview } from '../ai/ai.fixtures';
 import { makeReport } from '../diagnostics.fixtures';
 import { PERF_SESSION_ID, makeLastTestPerf } from './perf.fixtures';
+import { memoryOfText } from './text';
 
 function setup(handlers: Record<string, Handler> = {}) {
   return editorBackend({
@@ -82,6 +83,8 @@ describe('Desempenho do último teste (T14; bug-01)', () => {
     expect(href.searchParams.get('sintoma')).toBe('slow');
     expect(href.searchParams.get('assunto')).toContain('abre 24% mais lenta que a 0.1.1');
     expect(ask.className).toContain('btn--ai');
+    // O ✦ marca o que é do Sculk.
+    expect(ask.querySelector('svg')).not.toBeNull();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
@@ -163,6 +166,15 @@ describe('Desempenho do último teste (T14; bug-01)', () => {
       ['Achados antes do teste', 'Travamentos'],
       ['Saúde do pack', 'Desempenho do último teste'],
     ]);
+  });
+});
+
+describe('textos do desempenho', () => {
+  it('memória "usado de máximo": o máximo como o usuário escolheu, sem casa decimal à toa', () => {
+    expect(memoryOfText(5939, 6144)).toBe('5,8 de 6 GB');
+    expect(memoryOfText(67, 4096)).toBe('67 MB de 4 GB');
+    expect(memoryOfText(3000, 6656)).toBe('2,9 de 6,5 GB');
+    expect(memoryOfText(300, 512)).toBe('300 MB de 512 MB');
   });
 });
 

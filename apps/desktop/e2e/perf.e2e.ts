@@ -217,7 +217,7 @@ describe('Desempenho em todo teste (L-10; CA-T13-09)', function () {
     const block = $('section[aria-labelledby]*=Desempenho do último teste');
     await block.$('dt=Tempo para abrir').waitForDisplayed({ timeout: 30_000 });
     const text = await block.getText();
-    expect(text).toMatch(/Tempo para abrir\n\d+ s\n\+\d+% que na 1\.0\.0/);
+    expect(text).toMatch(/Tempo para abrir\s*\d+ s\s*\+\d+% que na 1\.0\.0/);
     expect(text).toContain('Até entrar no mundo');
     expect(text).toContain('Sem perfil do spark neste teste.');
     await expect(block.$('a*=Perguntar ao Sculk por que ficou mais lento')).toBeDisplayed();

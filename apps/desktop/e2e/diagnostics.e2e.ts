@@ -188,7 +188,9 @@ describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
     await waitHeading('Problemas');
     const side = finding('Sodium está no lado errado');
     await side.waitForDisplayed({ timeout: 60_000 });
-    expect((await side.getText()).toLowerCase()).toContain('aviso');
+    // A gravidade em palavra: o grupo "Avisos" (e "Aviso" para o leitor de tela na linha).
+    // (o título do grupo sai em maiúsculas pelo CSS; o texto é "Avisos · não impedem o teste").
+    expect((await $('h3.rowlist__sev').getText()).toLowerCase()).toContain('avisos');
     // A evidência fica à vista, em mono (esboço aprovado do bug-01).
     await expect(side).toHaveText(expect.stringContaining('server_side'));
     await expect(side.$('a*=Perguntar ao Sculk')).toBeDisplayed();
@@ -207,7 +209,7 @@ describe('Diagnóstico: Problemas e Testar (D-03; T13 e T14)', function () {
     await waitHeading('Problemas');
 
     await finding('Sodium está no lado errado').$('button=Mudar lado para Só cliente').click();
-    await $('h2=Nenhum problema encontrado').waitForDisplayed({ timeout: 60_000 });
+    await $('h3=Nenhum problema encontrado').waitForDisplayed({ timeout: 60_000 });
     expect(readFileSync(join(PACK, 'mods', 'sodium.pw.toml'), 'utf8')).toContain('side = "client"');
     await screenshot('d03-03-lado-corrigido');
   });

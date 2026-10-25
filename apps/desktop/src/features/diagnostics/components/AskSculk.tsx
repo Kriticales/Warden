@@ -13,6 +13,7 @@ import { MessageSquare, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Button } from '../../../components/ui/button';
+import { Icon } from '../../../components/ui/icon';
 import type { AiSymptom, PackId } from '../../../lib/ipc/bindings';
 
 export interface SculkSubject {
@@ -37,9 +38,10 @@ export function AskSculkLink({
   children: ReactNode;
 }) {
   return (
-    <Button size="sm" variant="ai" icon={Sparkles} asChild>
+    <Button size="sm" variant="ai" asChild>
       <Link to="/packs/$packId/ia" params={{ packId }} search={subject} aria-label={label}>
-        {children}
+        <Icon icon={Sparkles} />
+        <span>{children}</span>
       </Link>
     </Button>
   );
@@ -58,13 +60,14 @@ export function OpenSculkConversation({
   children: ReactNode;
 }) {
   return (
-    <Button size="sm" variant="ai" icon={MessageSquare} asChild>
+    <Button size="sm" variant="ai" asChild>
       <Link
         to="/packs/$packId/ia/$conversaId"
         params={{ packId, conversaId: conversationId }}
         aria-label={label}
       >
-        {children}
+        <Icon icon={MessageSquare} />
+        <span>{children}</span>
       </Link>
     </Button>
   );

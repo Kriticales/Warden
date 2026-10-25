@@ -17,3 +17,8 @@
   font: inherit;
   cursor: help;
 }
+/* No painel da coluna, a faixa e os 20 blocos ocupam a largura que sobra ao lado da nota. */
+.health-panel .health__side {
+  flex: 1;
+  min-width: 0;
+}

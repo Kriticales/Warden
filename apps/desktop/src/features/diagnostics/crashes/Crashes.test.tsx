@@ -132,6 +132,7 @@ describe('Travamentos em Problemas (T14)', () => {
       name: /^Conversar com o Sculk sobre o travamento de /,
     });
     expect(talk.className).toContain('btn--ai');
+    expect(talk.querySelector('svg')).not.toBeNull();
     expect(talk.getAttribute('href')).toContain('/ia?sessao=');
   });
 
