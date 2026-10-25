@@ -59,7 +59,7 @@ Termos como aparecem na interface. A lista completa de termos obrigatórios fica
 | **Resource pack** | Pacote de texturas, sons e textos. |
 | **Shader** | Pacote de efeitos visuais (exige Iris/Oculus ou similar). |
 | **Loader** | O carregador de mods: Forge, NeoForge ou Fabric. |
-| **Config** | Arquivo de configuração de um mod ou do jogo (`config/`, `defaultconfigs/`, `options.txt`). |
+| **Config** | Arquivo de configuração de um mod ou do jogo (`config/`, `defaultconfigs/`; `options.txt` é pessoal, ver T12). |
 | **Instância de teste** | A pasta onde o Minecraft roda quando você clica em "Testar". É separada do pack. |
 | **Lado** | Onde um mod precisa estar: "Cliente e servidor", "Só cliente" ou "Só servidor". |
 | **Fonte** | De onde vem um item: Modrinth, CurseForge, Link direto ou Arquivo local. |
@@ -568,13 +568,32 @@ Aparece antes de gravar qualquer coisa no pack.
 
 **Objetivo:** editar as configurações do pack e, durante os testes, as da instância. A descrição da seção passa a ser "Arquivos de ajuste e scripts do pack" (decisão D20); scripts KubeJS e CraftTweaker abrem no mesmo editor, com os recursos de T26.
 
-**Árvore de arquivos à esquerda** com o seletor de origem "Mostrando: arquivos do pack / instância de teste" (caixa de seleção, não abas):
-- **Pack:** `config/`, `defaultconfigs/`, `kubejs/`, `scripts/`, `options.txt` e demais arquivos de texto do pack.
-- **Instância de teste** (quando existir): `config/`, `defaultconfigs/`, `options.txt` e `saves/<mundo>/serverconfig/`. Edições aqui valem só para o teste e aparecem depois em "O que mudou durante o teste" (T15). Aberta pelo botão **Editar configs do teste** (T13), já nesta origem, com aviso fixo e **Voltar ao teste**.
+**Layout em três colunas** (ADR-0067; esboço aprovado `design/bug-01/configs.html`):
+- **Esquerda, "Configs":** o seletor **Do pack | Do teste local | Comparar**, uma busca só e a árvore. Colunas cortam nomes longos com reticências; o foco do teclado é uma linha fina por dentro do item.
+- **Meio, editor:** Formulário | Texto, com uma faixa colorida dizendo para onde o arquivo vai ("Vai para os jogadores", "Só neste teste", "Só neste computador").
+- **Direita, Detalhes:** formato, tamanho, se foi alterado, onde está, diferenças com o pack, avisos e **Marcar como pessoal**. Recolhível pelo botão **Detalhes**.
 
-Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem edição na v1.
+**Origens e grupos:** a seção junta o pack e a instância de teste (as configs dos mods só nascem na instância quando o jogo abre). A árvore tem três grupos:
+- **No pack:** `config/`, `defaultconfigs/`, `kubejs/`, `scripts/` e demais arquivos de texto do pack. Vai para os jogadores.
+- **Só no teste:** o jogo criou na instância de teste (`config/`, `defaultconfigs/`, `saves/<mundo>/serverconfig/`) e o arquivo nunca foi para o pack. Edições aqui valem só para o teste e aparecem depois em "O que mudou durante o teste" (T15). O botão **Editar configs do teste** (T13) abre a seção já em "Do teste local", com aviso fixo e **Voltar ao teste**.
+- **Só neste computador** (com cadeado): as configs pessoais (abaixo).
 
-**Buscar em todas as configs (P0; R5B §2.4):** campo acima da árvore. Procura nas chaves, nos valores, nos comentários e (P1) nos rótulos traduzidos de todos os arquivos de `config/`, `defaultconfigs/`, `kubejs/config/`, `options.txt` e demais arquivos de texto da origem escolhida, sem diferenciar maiúsculas nem acentos. Os resultados substituem a árvore enquanto a busca está ativa, agrupados por arquivo ("8 resultados em 5 arquivos"), com a chave, o valor e o trecho do comentário; clicar abre o arquivo **já na chave**, no modo em que você estava (formulário ou texto). Filtros (caixas de seleção): "Só o que mudou do padrão" (P1) e "Só deste mod". O índice se atualiza sozinho quando um arquivo muda.
+"Do pack" mostra só o que está no pack e, quando há configs só no teste, o aviso "N configs estão só no teste" com **Ver no teste local**. Antes do primeiro teste não existe instância e só "Do pack" tem arquivos.
+
+**Comparar:** põe o arquivo do teste e o do pack lado a lado, com a diferença por chave (formatos sem leitura por chave contam linhas) e setas por chave: **→** traz o valor do teste para o pack e **←** volta ao do pack.
+
+**Trazer para o pack e Voltar ao do pack:** quando a config do teste difere do pack, o editor mostra "no pack: X" e **Trazer para o pack** em cada chave; no modo Texto, as linhas diferentes do pack ficam marcadas. Trazer grava o arquivo inteiro ou só as chaves escolhidas, pela mesma transação das outras mudanças do pack, com atualização do índice (`packwiz refresh`). **Voltar ao do pack** grava o valor do pack na instância de teste.
+
+Busca por nome de arquivo e por conteúdo, na mesma caixa. Arquivos binários (ex.: `servers.dat`) aparecem sem edição na v1.
+
+**Buscar em todas as configs (P0; R5B §2.4):** campo no topo da coluna da esquerda. Procura nos nomes de arquivo, nas chaves, nos valores, nos comentários e (P1) nos rótulos traduzidos de todos os arquivos de `config/`, `defaultconfigs/`, `kubejs/config/` e demais arquivos de texto da origem escolhida, sem diferenciar maiúsculas nem acentos. Os resultados substituem a árvore enquanto a busca está ativa, agrupados por arquivo ("8 resultados em 5 arquivos"), com a chave, o valor e o trecho do comentário; clicar abre o arquivo **já na chave**, no modo em que você estava (formulário ou texto). Filtros, como botões que se ligam e desligam (não são caixas de seleção): "Mudou do padrão" (P1) e "Diferente do pack". O índice se atualiza sozinho quando um arquivo muda.
+
+**Configs pessoais (ADR-0067; decisão P7 do dono):** algumas configs são preferência da pessoa, não do pack.
+- **Lista padrão:** `options.txt`, `optionsof.txt`, `optionsshaders.txt`, `config/xaerominimap.txt` e `config/xaeroworldmap.txt`.
+- **Onde ficam:** nos dados do Warden, por pack. A cópia **volta para a instância em todo teste** e é guardada de novo quando o jogo fecha. Editar um deles pela origem "teste" também atualiza a cópia.
+- **Nunca vão para o pack:** a sincronização do pack com a instância não escreve, não apaga e não pede revisão desses arquivos, e "O que mudou durante o teste" (T15) não os mostra. O teste como servidor (T27) os ignora.
+- **Marcar como pessoal** (Detalhes ou menu ⋯): acrescenta o arquivo à lista. Se estava no pack, ele sai do pack depois de você confirmar; a cópia guardada é a da instância de teste, ou a do pack se a instância não tem o arquivo. **Deixar de ser pessoal…** tira da lista (inclusive um dos padrões) e apaga a cópia guardada; o arquivo continua na instância como "Só no teste" e, para ir aos jogadores, usa **Trazer para o pack**.
+- **Aviso ao abrir um pack que ainda leva uma config pessoal** (por exemplo o `options.txt` que versões antigas do Warden gravavam no pack): "O options.txt agora fica só neste computador." com **Tirar do pack e guardar aqui** (guarda a cópia, a da instância de teste se houver, senão a do pack, e tira o arquivo do pack, com atualização do índice), **Manter no pack** (o arquivo deixa de ser pessoal) e **Agora não** (pergunta de novo na próxima abertura). Nada sai do pack sem você ver.
 
 **Editor de texto (P0):** realce de sintaxe por extensão (TOML, JSON, JSON5, YAML, `.properties`, `.cfg`, JavaScript, texto), números de linha, buscar e substituir, desfazer. Arquivos acima de 2 MB abrem só para leitura com aviso.
 
@@ -584,14 +603,14 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 - Sair do arquivo com alterações não salvas pede confirmação.
 - A gravação preserva tudo o que não foi editado (comentários, ordem, espaços), byte a byte.
 
-**Formulário (P1):** para TOML do Forge/NeoForge, JSON/JSONC, JSON5, `.properties`, `.cfg` do Forge antigo e `options.txt`. Mostra as chaves por seção, com os comentários do arquivo como ajuda, faixas e valores permitidos quando o arquivo informa (`#Range`, `#Allowed Values`, `[range: …]`, `Min`/`Max`, `Valid values`, prefixos `B:`/`I:`/`D:`/`S:` do `.cfg`), e controles por tipo (liga/desliga, número com limite, lista de opções, texto, lista, cor). Tipo, faixa e padrão vêm em camadas (R5B §2.2): metadados explícitos do arquivo, tipo pelo valor, frases do comentário ("Defaults to X", marcadas **deduzido**) e o **rótulo do próprio mod**, lido do arquivo de idioma do jar (`pt_br.json` quando existir, senão `en_us.json`), mostrado com a chave real ao lado. Só os valores alterados são gravados. Alternar entre formulário e texto a qualquer momento (dois modos de ver o mesmo arquivo). Só chaves que já existem no arquivo são editadas pelo formulário (acrescentar ou apagar chaves é pelo texto). Arquivo que não volta idêntico na leitura de teste, estruturas muito profundas, arquivos acima de 2 MB e arquivos que não estão em UTF-8 abrem só em texto, com o motivo (ADR-0054); um nó complexo pode ser editado como "trecho em texto".
+**Formulário (P1):** para TOML do Forge/NeoForge, JSON/JSONC, JSON5, `.properties`, `.cfg` do Forge antigo e `options.txt` (este, como config pessoal; ver acima). Mostra as chaves por seção, com os comentários do arquivo como ajuda, faixas e valores permitidos quando o arquivo informa (`#Range`, `#Allowed Values`, `[range: …]`, `Min`/`Max`, `Valid values`, prefixos `B:`/`I:`/`D:`/`S:` do `.cfg`), e controles por tipo (liga/desliga, número com limite, lista de opções, texto, lista, cor). Tipo, faixa e padrão vêm em camadas (R5B §2.2): metadados explícitos do arquivo, tipo pelo valor, frases do comentário ("Defaults to X", marcadas **deduzido**) e o **rótulo do próprio mod**, lido do arquivo de idioma do jar (`pt_br.json` quando existir, senão `en_us.json`), mostrado com a chave real ao lado. Só os valores alterados são gravados. Alternar entre formulário e texto a qualquer momento (dois modos de ver o mesmo arquivo). Só chaves que já existem no arquivo são editadas pelo formulário (acrescentar ou apagar chaves é pelo texto). Arquivo que não volta idêntico na leitura de teste, estruturas muito profundas, arquivos acima de 2 MB e arquivos que não estão em UTF-8 abrem só em texto, com o motivo (ADR-0054); um nó complexo pode ser editado como "trecho em texto".
 
 **Padrão e restaurar (P1; R5B §2.5, camada A):** quando o arquivo informa o padrão (`Default:` do NeoForge, `[default: …]` do Forge antigo), cada chave mostra "padrão: X" (com a origem no tooltip) e uma marca quando o valor é diferente, com **Restaurar padrão**; o arquivo tem **Restaurar o arquivo todo para o padrão** no menu ⋯, sempre com a diferença antes de gravar. Chave sem padrão conhecido não mostra nada (nunca um padrão inventado). Valor fora da faixa informada aparece com erro no próprio campo ("12.0 está fora da faixa 0,0 a 10,0. O Forge troca por 1,0 sem avisar.") e também vira problema antes do teste (T14).
 
 **Avisos contextuais:**
 - Arquivo `*-server.toml` em `config/` (Forge/NeoForge 1.13+): "Este tipo de config vale por mundo. Para valer em mundos novos, ele precisa estar em `defaultconfigs/`." (P0) com **Copiar para defaultconfigs/** (P1).
 - Arquivos do Forge/NeoForge: "O jogo pode reescrever este arquivo e apagar comentários que você adicionar." No NeoForge, acrescenta: "Valores fora da faixa voltam ao padrão e chaves que o mod não conhece são apagadas quando o jogo abre." (R5B §2.3)
-- `options.txt` no pack: "Este arquivo substitui as preferências de quem já joga o pack." com a opção **Não substituir se o jogador já tiver** (grava `preserve = true` no índice; P1).
+- `options.txt`: é config pessoal (ADR-0067) e fica só neste computador, então não há mais o aviso "Este arquivo substitui as preferências de quem já joga o pack." nem o caminho normal da opção **Não substituir se o jogador já tiver** (`preserve = true`). Um `options.txt` que ainda esteja no pack dispara o aviso de migração acima. Quem marcar **Manter no pack** continua podendo usar a opção (P1).
 
 | CA | Critério |
 |---|---|
@@ -604,6 +623,11 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 | CA-T12-07 | Editar um arquivo por fora atualiza os resultados da busca em até 2 s, sem reiniciar o app. |
 | CA-T12-08 | (P1) Para um TOML do NeoForge com `# Default:`, `# Range:` e `#Allowed Values`, um `.cfg` do Forge 1.12.2 com `[range: …, default: …]` e um JSON do AutoConfig com a chave de tradução no jar, o formulário mostra o controle certo, a faixa, o padrão (quando há) e o rótulo do jar, com a chave real ao lado (teste com o corpus de configs reais e jars de teste). |
 | CA-T12-09 | (P1) "Restaurar padrão" numa chave com padrão no comentário altera só aquela linha; o filtro "Só o que mudou do padrão" mostra exatamente as chaves diferentes do padrão; uma chave sem padrão conhecido nunca aparece como alterada. |
+| CA-T12-10 | Com o pack e a instância de teste tendo arquivos diferentes, a árvore mostra os três grupos: "No pack" só com o que está no pack, "Só no teste" com o que só existe na instância e "Só neste computador" (com cadeado) com o `options.txt`; "Do pack" mostra "N configs estão só no teste" com **Ver no teste local**; sem instância de teste só "Do pack" tem arquivos (ADR-0067; teste de domínio + componente). |
+| CA-T12-11 | **Trazer para o pack** numa chave de um config cujo valor no teste difere do pack grava só aquela linha no arquivo do pack (diff de uma linha), atualiza o índice e não altera as outras chaves nem os comentários. |
+| CA-T12-12 | Em **Comparar**, teste e pack aparecem lado a lado; **→** numa chave traz o valor do teste para o pack e **←** volta o valor do pack na instância de teste, só naquela chave. |
+| CA-T12-13 | Mudar `renderDistance` no `options.txt` e testar de novo: o valor volta igual na instância em todo teste, o `options.txt` do pack não muda (hash antes e depois) e o arquivo nunca entra na sincronização do pack nem em "O que mudou durante o teste". |
+| CA-T12-14 | Abrir um pack que ainda leva `options.txt` mostra o aviso "O options.txt agora fica só neste computador" antes de qualquer mudança: **Agora não** não altera nada e o aviso volta na próxima abertura; **Tirar do pack e guardar aqui** guarda a cópia e tira o arquivo do pack numa transação; **Manter no pack** deixa de tratar o arquivo como pessoal. |
 
 ---
 
@@ -754,7 +778,7 @@ Busca por nome de arquivo. Arquivos binários (ex.: `servers.dat`) aparecem sem 
 | Grupo | Exemplos | Pré-seleção |
 |---|---|---|
 | Configs alterados que vieram do pack | `config/sodium-options.json` | marcado |
-| `options.txt` (por chave) | `renderDistance`, teclas `key_*`, `lang`, `guiScale` | marcadas as chaves não voláteis; chaves voláteis (`version`, `lastServer`, `fullscreen`, `tutorialStep` etc.) nunca aparecem |
+| Configs pessoais (`options.txt`, `optionsof.txt`, `optionsshaders.txt`, minimapa Xaero) | `renderDistance`, teclas `key_*`, `lang`, `guiScale` | nunca aparecem como candidatos: ficam só neste computador e voltam em todo teste (T12, ADR-0067) |
 | Arquivos novos gerados pelo jogo/mods | configs criados na primeira execução | desmarcado, grupo recolhido |
 | Configs de mundo (`saves/<mundo>/serverconfig/`) | `create-server.toml` | desmarcado; destino proposto: `defaultconfigs/` |
 | Mods colocados/removidos manualmente na pasta da instância | um `.jar` novo em `mods/` | nunca copiado; o Warden identifica pelo hash e oferece **Adicionar ao pack** pelo fluxo normal (T08) |
@@ -771,12 +795,13 @@ Sempre ignorados: `logs/`, `crash-reports/`, `saves/` (exceto serverconfig acima
 
 | CA | Critério |
 |---|---|
-| CA-T15-01 | Mudar a distância de renderização no jogo faz aparecer só `renderDistance` no grupo options.txt; aceitar grava só essa chave no `options.txt` do pack (diff de uma linha). |
+| CA-T15-01 | Mudar `dificuldade` numa config do pack faz aparecer só essa chave; aceitar grava só essa linha no arquivo do pack (diff de uma linha). |
 | CA-T15-02 | Um config que o Forge apenas reformatou (mesmos valores) não aparece na lista. |
 | CA-T15-03 | Nenhum arquivo da lista "sempre ignorados" aparece, mesmo que tenha mudado. |
 | CA-T15-04 | Um jar colocado manualmente em `mods/` da instância nunca é copiado para o pack; a ação oferecida é adicionar como referência quando o hash é reconhecido. |
 | CA-T15-05 | O conflito de três vias é mostrado quando o arquivo foi alterado no pack (pelo editor) e na instância (no jogo) durante o mesmo teste. |
 | CA-T15-06 | Arquivos novos ou alterados na instância em `config/spark/` (`*.sparkprofile`, `*.sparkheap`, `tmp*`), `kubejs/config/web_server.json`, `.probe/`, `.vscode/` e `local/kubejs/` nunca aparecem em "O que mudou durante o teste" (teste com instância sintética). |
+| CA-T15-07 | Mudar `renderDistance` no `options.txt` durante o teste não faz aparecer nada em "O que mudou durante o teste", o `options.txt` do pack não muda, e o valor volta igual no teste seguinte (ADR-0067). |
 
 ---
 
@@ -903,7 +928,7 @@ Com repositório privado, o Histórico mostra "Só backup: o link não funciona 
 - **Baixar os mods pelo link do pack** (padrão, recomendado): o zip leva os scripts `start.bat` e `start.sh`, que rodam o packwiz-installer-bootstrap com `-s server` e `--bootstrap-no-update` (com o installer junto) antes de iniciar o servidor; o servidor se atualiza a cada versão publicada. Exige o pack publicado (T18); sem publicação, a opção aparece desabilitada com o motivo e **Publicar versão**.
 - **Mods dentro do zip**: o Warden baixa os jars e os coloca em `mods/`. Funciona sem internet, mas o zip fica grande; mods da CurseForge bloqueados para terceiros exigem download manual (T20) e o Warden pede confirmação para embutir arquivos de terceiros (licença).
 
-As duas levam só o que o servidor usa: mods cujo lado não é "Só cliente" ("8 mods só de cliente ficam de fora: …"), `config/`, `defaultconfigs/`, `kubejs/` sem `client_scripts/`, `scripts/`, o que estiver em `server-overrides/` e `user_jvm_args.txt` com a memória recomendada; nunca `options.txt`, `servers.dat`, resource packs nem shaders. Os scripts instalam o loader na primeira execução e pedem o aceite da EULA a quem roda o servidor (o Warden nunca grava `eula=true` no pacote). Aviso "Este pacote ainda não foi testado num servidor" com **Testar como servidor** (T27); com a caixa "Testar no servidor deste computador depois de gerar" (marcada por padrão quando a EULA já foi aceita), o Warden descompacta numa pasta temporária e roda o servidor até "Done": "Pacote para servidor testado: o servidor abriu em 34 s."
+As duas levam só o que o servidor usa: mods cujo lado não é "Só cliente" ("8 mods só de cliente ficam de fora: …"), `config/`, `defaultconfigs/`, `kubejs/` sem `client_scripts/`, `scripts/`, o que estiver em `server-overrides/` e `user_jvm_args.txt` com a memória recomendada; nunca `options.txt` (config pessoal, ADR-0067), `servers.dat`, resource packs nem shaders. Os scripts instalam o loader na primeira execução e pedem o aceite da EULA a quem roda o servidor (o Warden nunca grava `eula=true` no pacote). Aviso "Este pacote ainda não foi testado num servidor" com **Testar como servidor** (T27); com a caixa "Testar no servidor deste computador depois de gerar" (marcada por padrão quando a EULA já foi aceita), o Warden descompacta numa pasta temporária e roda o servidor até "Done": "Pacote para servidor testado: o servidor abriu em 34 s."
 
 **Antes de exportar (sempre):**
 1. Verificação de higiene (a mesma de T04).
@@ -914,7 +939,7 @@ As duas levam só o que o servidor usa: mods cujo lado não é "Só cliente" ("8
 - mods/resource packs/shaders por referência (quantos; não incluem o arquivo);
 - arquivos locais incluídos (marcados, com tamanho);
 - configs incluídos;
-- alertas: arquivos grandes (> 20 MB), padrões suspeitos de cache, `options.txt` sem "não substituir", arquivos soltos na raiz do pack.
+- alertas: arquivos grandes (> 20 MB), padrões suspeitos de cache, arquivos soltos na raiz do pack.
 - Excluir algo da exportação = **Excluir do pack** (adiciona regra ao `.packwizignore`, mostrando a mudança).
 
 **Resultado:** contém só `pack.toml`, `index.toml` e os arquivos listados no índice. Nunca `.warden/`, `.git/`, `CHANGELOG.md` nem nada fora do índice. Mensagem final com **Abrir pasta**.
@@ -1004,7 +1029,7 @@ Painel (gaveta) aberto pelo indicador do rodapé, presente em todas as telas do 
 - **Nome e pasta** do pack novo (mesmas regras do T03, etapa 1).
 - **Resumo da conversão** (lista, com contagens e "Ver lista"): **viram referência** (Modrinth ou CurseForge, inclusive jars soltos identificados pelo hash); **ficam como arquivo local** (jars que não estão em nenhuma loja, com aviso de licença); **para revisar** (lado desconhecido, `env` fora da especificação, `client-overrides/`, opcionais sem padrão definido); **não entram** (lixo encontrado pela verificação de higiene do T04, como `.mixin.out/`, `xmcl.json`, `mods/.connector/temp/`, logs e caches). `server-overrides/` vai para a pasta `server-overrides/` do pack, que só o pacote para servidor usa.
 - (1.1) **Segurança dos arquivos:** os jars que ficam como arquivo local passam pela checagem de segurança (T28) antes de o pack ser criado, com atenção redobrada (os pontos de atenção valem para eles); com erro de segurança, o resumo mostra o arquivo em "não entram", com **Confiar neste arquivo…** como saída.
-- **Instância do Prism:** a memória e os argumentos da instância viram um **perfil do teste** (T11); `options.txt` e `servers.dat` são perguntados ("Levar suas preferências para o pack?").
+- **Instância do Prism:** a memória e os argumentos da instância viram um **perfil do teste** (T11); `options.txt` e `servers.dat` são perguntados ("Levar suas preferências para o pack?"); um `options.txt` que for para o pack dispara o aviso de migração das configs pessoais na abertura seguinte (T12, ADR-0067).
 - **Importar como pack novo**: cria o pack (repositório git, arquivos de controle, `.warden/`) e abre em Mods com o aviso "N itens para revisar" em Problemas. O arquivo de origem nunca é alterado.
 
 **Estados:** lendo o arquivo (progresso); loader não suportado (Quilt: mesma mensagem do T04, nada é criado); zip da CurseForge sem chave da CurseForge: "Para importar um modpack da CurseForge, o Warden precisa da sua chave da CurseForge." com **Abrir Configurações**; arquivo corrompido ou com caminhos perigosos: recusa com o motivo, nada é criado.

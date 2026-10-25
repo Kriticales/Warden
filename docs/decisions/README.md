@@ -67,5 +67,6 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0061](0061-loader-estrito-ao-adicionar-atualizar-e-trocar-versao.md) | Loader estrito ao adicionar, atualizar e trocar versão: o mod tem de ser para o Minecraft e o loader do pack; Forge só no NeoForge 1.20.1 (complementa a 0006) | dono |
 | [0062](0062-emenda-do-portablemc-java-sem-janela.md) | Emenda do portablemc: Java sem janela no Windows (complementa a 0057 e a 0049) | técnica |
 | [0063](0063-o-warden-se-comporta-como-app.md) | O Warden se comporta como app, não como página: atalhos de navegador, menu de contexto, seleção e arrastar | técnica |
+| [0067](0067-configs-pessoais-e-tres-origens.md) | Configs pessoais só neste computador (`options.txt` e outras) e a seção Configs com três origens: pack, teste e só neste computador (complementa a 0013; muda trechos da SPEC T12 e T15) | dono |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.
