@@ -160,6 +160,9 @@ pub struct MaterializeOptions {
     pub player_tools: PlayerToolsMode,
     /// Downloads simultâneos.
     pub max_parallel_downloads: usize,
+    /// Configs pessoais (ADR-0067; [`crate::PersonalConfigs`]): mesmo no pack, nunca são
+    /// gravadas, apagadas nem revisadas na instância, e saem do manifesto.
+    pub personal: BTreeSet<String>,
 }
 
 impl Default for MaterializeOptions {
@@ -170,6 +173,7 @@ impl Default for MaterializeOptions {
             optionals: OptionalSelection::Saved,
             player_tools: PlayerToolsMode::Normal,
             max_parallel_downloads: 6,
+            personal: BTreeSet::new(),
         }
     }
 }
@@ -751,12 +755,17 @@ pub async fn materialize(
     let side = options.side;
     let root = pack_root.to_path_buf();
     let player_tools = options.player_tools.clone();
-    let plan = blocking(move || plan(&root, side, &choices, &player_tools)).await?;
+    let mut plan = blocking(move || plan(&root, side, &choices, &player_tools)).await?;
     check_cancel(cancel)?;
 
     fs::create_dir_all(&dirs.game_dir)
         .map_err(|e| Error::io("criar a pasta", &dirs.game_dir, e))?;
-    let old = Manifest::load(&dirs.state_dir)?;
+    let mut old = Manifest::load(&dirs.state_dir)?;
+    // Configs pessoais: ficam como estão na instância, quem cuida delas é o
+    // `PersonalConfigs`; o manifesto as esquece (não são mais do pack).
+    plan.items
+        .retain(|item| !options.personal.contains(&item.dest));
+    old.files.retain(|path, _| !options.personal.contains(path));
 
     // 1. Situação de cada item e do que saiu do pack, sem mexer em nada.
     let game_dir = dirs.game_dir.clone();

@@ -14,7 +14,7 @@
 
 mod conformance_support;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 use std::time::{Duration, SystemTime};
@@ -23,8 +23,8 @@ use conformance_support::{TestPack, dirs, materialize_ok, sources, temp_dir};
 use warden_instance::{
     CaptureApplyRequest, CaptureChange, CaptureDecision, CaptureError, CaptureGroup,
     CaptureResolution, CaptureStatus, InstanceDirs, MaterializeOptions, OnModified, Outcome,
-    capture_after_exit, capture_texts, capture_view, discard, finish_apply, load_capture,
-    materialize, plan_apply, take_baseline,
+    PersonalConfigs, capture_after_exit, capture_after_exit_with, capture_texts, capture_view,
+    discard, finish_apply, load_capture, materialize, plan_apply, take_baseline,
 };
 
 const OPTIONS: &str = "version:3465\nrenderDistance:12\nguiScale:0\nlang:en_us\nfullscreen:false\nkey_key.jump:key.keyboard.space\n";
@@ -650,4 +650,99 @@ fn caminho_do_pack_nao_vaza_nos_erros() {
         "{error}"
     );
     let _ = Path::new(&home);
+}
+
+/// ADR-0067: o `options.txt` (e o minimapa) são pessoais. O que o jogo muda neles não aparece
+/// como candidato ao pack, a captura não pede revisão por eles, e a cópia seguinte do pack não os
+/// sobrescreve nem pede revisão, mesmo com o `options.txt` ainda no pack.
+#[tokio::test]
+async fn configs_pessoais_nunca_viram_candidatas_ao_pack() {
+    let pack = base_pack().with_file("config/xaerominimap.txt", "zoom:1\n");
+    let lab = Lab::new(&pack).await;
+    let store = lab._dir.path().join("pessoais");
+    let personal = PersonalConfigs::load(&store).unwrap();
+    let paths: BTreeSet<String> = personal.paths();
+    lab.baseline();
+    lab.play_write(
+        "options.txt",
+        OPTIONS
+            .replace("renderDistance:12", "renderDistance:16")
+            .as_bytes(),
+    );
+    lab.play_write("config/xaerominimap.txt", b"zoom:3\n");
+    lab.play_write(
+        "config/sodium-options.json",
+        SODIUM.replace("3", "4").as_bytes(),
+    );
+
+    // Sem a lista pessoal (o comportamento antigo), o options.txt viria pré-marcado.
+    let old = capture_after_exit(&lab.instance, &lab.pack, "antes")
+        .unwrap()
+        .unwrap();
+    assert!(
+        old.capture
+            .files
+            .iter()
+            .any(|file| file.group == CaptureGroup::Options)
+    );
+
+    lab.baseline();
+    lab.play_write(
+        "options.txt",
+        OPTIONS
+            .replace("renderDistance:12", "renderDistance:20")
+            .as_bytes(),
+    );
+    lab.play_write("config/xaerominimap.txt", b"zoom:4\n");
+    let outcome = capture_after_exit_with(&lab.instance, &lab.pack, "s", &paths)
+        .unwrap()
+        .unwrap();
+    let shown: Vec<&str> = outcome
+        .capture
+        .files
+        .iter()
+        .map(|f| f.path.as_str())
+        .collect();
+    assert!(!shown.contains(&"options.txt"), "{shown:?}");
+    assert!(!shown.contains(&"config/xaerominimap.txt"), "{shown:?}");
+
+    // A cópia guardada acompanha o que o jogo deixou.
+    personal.save_from(&lab.instance.game_dir).unwrap();
+    assert!(
+        String::from_utf8(personal.stored("options.txt").unwrap().unwrap())
+            .unwrap()
+            .contains("renderDistance:20")
+    );
+
+    // A próxima cópia do pack (com o options.txt ainda nele) não toca nos pessoais nem pede
+    // revisão por causa deles.
+    let options = MaterializeOptions {
+        on_modified: OnModified::Pause,
+        personal: paths.clone(),
+        ..MaterializeOptions::default()
+    };
+    lab.play_write("config/sodium-options.json", SODIUM.as_bytes());
+    let outcome = materialize(
+        &sources(&lab.cache, None),
+        &lab.pack,
+        &lab.instance,
+        &options,
+        &warden_core::NoProgress,
+        &warden_core::CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(matches!(outcome, Outcome::Done(_)), "{outcome:?}");
+    assert!(
+        fs::read_to_string(lab.game("options.txt"))
+            .unwrap()
+            .contains("renderDistance:20")
+    );
+    assert_eq!(
+        fs::read_to_string(lab.game("config/xaerominimap.txt")).unwrap(),
+        "zoom:4\n"
+    );
+    // O manifesto esqueceu os pessoais: nem sem a lista eles são mais "do pack modificados".
+    let manifest = warden_instance::Manifest::load(&lab.instance.state_dir).unwrap();
+    assert!(!manifest.files.contains_key("options.txt"));
 }

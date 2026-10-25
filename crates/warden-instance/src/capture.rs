@@ -8,7 +8,7 @@
 //!    mudou formatação, ordem ou comentário, o arquivo é "reformatado" e não aparece
 //!    (CA-T15-02).
 //! 3. Cada mudança cai num grupo ([`CaptureGroup`]): configs do pack, `options.txt` por chave
-//!    (sem as voláteis, [`VOLATILE_OPTIONS`]), arquivos criados pelos mods, configs de mundo,
+//!    (sem as voláteis, [`VOLATILE_OPTIONS`]; só quando não é pessoal, ADR-0067), arquivos criados pelos mods, configs de mundo,
 //!    mods colocados à mão, resource packs e shaders, datapacks.
 //! 4. Uma config do pack que o jogo só reformatou (ou um `options.txt` do pack em que só
 //!    mudaram chaves voláteis) volta à versão do pack na hora: a próxima cópia do pack não
@@ -348,6 +348,8 @@ struct Collector<'a> {
     restored: Vec<String>,
     reformatted: u32,
     aggregated: BTreeSet<String>,
+    /// Configs pessoais (ADR-0067): nunca aparecem como candidatas ao pack.
+    personal: &'a BTreeSet<String>,
 }
 
 impl Collector<'_> {
@@ -358,6 +360,10 @@ impl Collector<'_> {
         before: Option<&FileState>,
         now: Option<&Now>,
     ) -> Result<(), Error> {
+        if self.personal.contains(path) {
+            // Preferência de quem testa: fica só neste computador (`PersonalConfigs`).
+            return Ok(());
+        }
         let managed = self.manifest.files.get(path);
         let from_pack = managed.is_some_and(|entry| entry.origin == EntryOrigin::Pack);
         let change = match (before, now) {
@@ -520,6 +526,17 @@ pub fn capture_after_exit(
     pack_root: &Path,
     session_id: &str,
 ) -> Result<Option<CaptureOutcome>, Error> {
+    capture_after_exit_with(dirs, pack_root, session_id, &BTreeSet::new())
+}
+
+/// [`capture_after_exit`] sem as configs pessoais (ADR-0067; [`crate::PersonalConfigs`]): o que
+/// mudou nesses caminhos não aparece como candidato ao pack.
+pub fn capture_after_exit_with(
+    dirs: &InstanceDirs,
+    pack_root: &Path,
+    session_id: &str,
+    personal: &BTreeSet<String>,
+) -> Result<Option<CaptureOutcome>, Error> {
     let Some(baseline) = Baseline::load(&dirs.state_dir)? else {
         return Ok(None);
     };
@@ -534,6 +551,7 @@ pub fn capture_after_exit(
         restored: Vec::new(),
         reformatted: 0,
         aggregated: BTreeSet::new(),
+        personal,
     };
     for (path, (before, now)) in &changed {
         collector.add(path, *before, now.as_ref())?;

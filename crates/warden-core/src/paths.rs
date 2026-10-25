@@ -217,6 +217,13 @@ impl AppPaths {
         self.data_dir.join("ai").join(pack.to_string())
     }
 
+    /// Configs pessoais de um pack (ADR-0067): `options.txt` e parentes, guardados aqui e
+    /// copiados para a instância de teste em todo teste; nunca vão para o pack.
+    #[must_use]
+    pub fn personal_dir(&self, pack: PackId) -> PathBuf {
+        self.data_dir.join("personal").join(pack.to_string())
+    }
+
     /// Métricas de desempenho de um pack (uma linha por teste).
     #[must_use]
     pub fn perf_file(&self, pack: PackId) -> PathBuf {
@@ -328,6 +335,7 @@ mod tests {
             paths.tmp_dir(),
             paths.packwiz_config_file(),
             paths.ai_dir(pack),
+            paths.personal_dir(pack),
             paths.perf_file(pack),
         ];
         for path in &all {
