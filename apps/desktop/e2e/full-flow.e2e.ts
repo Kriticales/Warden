@@ -175,7 +175,7 @@ async function waitGameOpen(): Promise<void> {
 /** A linha de resultado da busca com este nome. */
 function resultRow(name: string) {
   return $(
-    `.//li[contains(@class,"drow")][.//button[contains(@class,"drow__name")][normalize-space()="${name}"]]`,
+    `.//div[@role="row"][.//button[contains(@class,"tname__n")][normalize-space()="${name}"]]`,
   );
 }
 
@@ -304,14 +304,14 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     await $('a=Adicionar').click();
     await $('h1=Adicionar ao pack').waitForDisplayed();
     await $('input[type="search"]').setValue('sodium');
-    await $('.drow*=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
+    await $('.trow*=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
     expect(await resultRow('Sodium').getText()).toContain('Modrinth e CurseForge');
     expect(await resultRow('Mod Só da CurseForge').getText()).not.toContain('Modrinth');
     expect(await $('body').getText()).not.toContain('Mostrando só o Modrinth.');
     expect(await seriousViolationSummaries()).toEqual([]);
     await screenshot('a03-03-busca-combinada');
 
-    await $('button.drow__name=Sodium').click();
+    await $('button.tname__n=Sodium').click();
     const preview = $('aside.disc__preview');
     await preview.waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(
@@ -326,20 +326,20 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
     await browser.waitUntil(
-      async () => String(await dialog.getProperty('textContent')).includes('O que você escolheu'),
+      async () => String(await dialog.getProperty('textContent')).includes('entrar no pack'),
       { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
     );
     await dialog.$('button=Adicionar 1 item').click();
     await waitToast('1 item adicionado ao pack');
     await dialog.waitForExist({ reverse: true });
-    await resultRow('Sodium').$('.tag*=Já no pack').waitForDisplayed({ timeout: 30_000 });
+    await resultRow('Sodium').$('.tag*=No pack').waitForDisplayed({ timeout: 30_000 });
 
     const sodium = read('mods/sodium.pw.toml');
     expect(sodium).toContain('[update.modrinth]');
     expect(sodium).toContain('mod-id = "AANobbMI"');
     expect(read('index.toml')).toContain('mods/sodium.pw.toml');
 
-    await $('a*=Voltar para Mods').click();
+    await $('a[aria-label^="Voltar para Mods"]').click();
     await $('h1=Mods').waitForDisplayed();
     await $('tr.modrow*=Sodium').waitForDisplayed({ timeout: 30_000 });
   });

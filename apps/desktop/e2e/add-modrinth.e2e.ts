@@ -11,7 +11,7 @@
  * - Marcar 2 resultados abre um único diálogo de dependências (CA-T08-11); um deles não tem
  *   versão para o pack e fica de fora.
  * - Confirmar grava `mods/sodium.pw.toml` com `[update.modrinth]`, `sha512` e `side = "client"`,
- *   o índice passa a listá-lo e a busca continua aberta, com "Já no pack".
+ *   o índice passa a listá-lo e a busca continua aberta, com "No pack".
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -106,7 +106,7 @@ async function fullText(selector: string): Promise<string> {
 /** Os nomes dos resultados, na ordem. */
 async function resultNames(): Promise<string[]> {
   return browser.execute(() =>
-    Array.from(document.querySelectorAll('.drow .drow__name')).map((b) => b.textContent),
+    Array.from(document.querySelectorAll('.tname__n')).map((b) => b.textContent),
   );
 }
 
@@ -150,7 +150,7 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
   it('buscar "sodium" traz o Sodium entre os 3 primeiros (CA-T08-01)', async () => {
     const field = $('input[type="search"]');
     await field.setValue('sodium');
-    await $('button.drow__name=Sodium').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Sodium').waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(async () => (await resultNames()).length >= 3);
     const names = await resultNames();
     expect(names.slice(0, 3)).toContain('Sodium');
@@ -159,7 +159,7 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
   });
 
   it('a pré-visualização mostra a versão estável mais nova', async () => {
-    await $('button.drow__name=Sodium').click();
+    await $('button.tname__n=Sodium').click();
     const preview = $('aside.disc__preview');
     await preview.waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(
@@ -171,21 +171,21 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
   });
 
   it('marcar 2 resultados abre um único diálogo de dependências (CA-T08-11)', async () => {
-    await $('input[aria-label="Selecionar Sodium"]').click();
-    await $('input[aria-label="Selecionar Sodium Extra"]').click();
-    await $('.selbar*=2 selecionados').waitForDisplayed();
+    await $('input[aria-label="Marcar Sodium para adicionar"]').click();
+    await $('input[aria-label="Marcar Sodium Extra para adicionar"]').click();
+    await $('.selbar*=2 marcados').waitForDisplayed();
     await screenshot('03-selecao');
     await $('button=Adicionar 2 ao pack').click();
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
     await browser.waitUntil(
-      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      async () => (await fullText('[role="dialog"]')).includes('entrar no pack'),
       { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
     );
     const text = await fullText('[role="dialog"]');
     expect(text).toContain('Sodium');
     // O Sodium Extra não tem versão gravada para o pack: fica de fora, com o motivo.
-    expect(text).toContain('Sem versão compatível');
+    expect(text).toContain('Sem versão');
     expect(await $$('[role="dialog"]').length).toBe(1);
     await screenshot('04-dependencias');
   });
@@ -203,14 +203,14 @@ describe('Adicionar pelo Modrinth (P1-09)', () => {
     expect(read('index.toml')).toContain('mods/sodium.pw.toml');
 
     await $('h1=Adicionar ao pack').waitForDisplayed();
-    await $('.drow*=Já no pack').waitForDisplayed({ timeout: 30_000 });
-    expect(await $('input[aria-label="Selecionar Sodium"]').isExisting()).toBe(false);
-    expect(await $('body').getText()).toContain('Voltar para Mods · 1 adicionado');
+    await $('.trow*=No pack').waitForDisplayed({ timeout: 30_000 });
+    expect(await $('input[aria-label="Marcar Sodium para adicionar"]').isExisting()).toBe(false);
+    expect(await $('a[aria-label="Voltar para Mods · 1 adicionado"]').isExisting()).toBe(true);
     await screenshot('05-adicionado');
   });
 
   it('voltar para Mods mostra o Sodium na lista', async () => {
-    await $('a*=Voltar para Mods').click();
+    await $('a[aria-label^="Voltar para Mods"]').click();
     await $('h1=Mods').waitForDisplayed();
     await $('tr.modrow*=Sodium').waitForDisplayed({ timeout: 30_000 });
   });

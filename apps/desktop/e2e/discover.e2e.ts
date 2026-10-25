@@ -3,14 +3,14 @@
  * respostas gravadas do Modrinth e a CurseForge simulada (servidor de fixtures; nada vai à
  * internet).
  *
- * - Campo vazio: "Populares para Minecraft 1.21.1 com Fabric", "Atualizados recentemente" e as
+ * - Campo vazio: "Populares", "Atualizados recentemente" (na Lista e nos Cartões) e as
  *   categorias, com no máximo 3 requisições ao Modrinth e nenhuma à CurseForge (sem chave).
  * - A categoria "Tecnologia" filtra a busca pela categoria mapeada do Modrinth.
  * - Pré-visualização completa: índice, galeria (no Modrinth, as miniaturas e o visualizador; na
  *   CurseForge, com a chave, a imagem grande servida pelo `warden-img://` a partir do servidor de
  *   fixtures, sem depender da rede), versões com as notas pedidas só ao abrir a linha e
  *   dependências.
- * - Abaixo de 1180 px a coluna de filtros recolhe atrás do botão "Filtros".
+ * - Abaixo de 1180 px o Tipo vira uma lista suspensa e a coluna Resumo sai; os filtros ficam.
  * - Depois da sessão com imagens da CurseForge, a pasta de dados do WebView não guarda nenhuma
  *   resposta da CurseForge nem endereço `warden-img://` (o cache de disco do WebView não pode ter
  *   dados da API).
@@ -108,7 +108,7 @@ async function names(listLabel: string): Promise<string[]> {
   return browser.execute(
     (label) =>
       Array.from(
-        document.querySelectorAll(`ul[aria-label="${label}"] .drow .drow__name`),
+        document.querySelectorAll(`[role="rowgroup"][aria-label="${label}"] .tname__n`),
         (button) => button.textContent,
       ),
     listLabel,
@@ -244,10 +244,11 @@ describe('Descoberta (P1-16)', () => {
 
     await $('a=Adicionar').click();
     await $('h1=Adicionar ao pack').waitForDisplayed();
-    await $('h2=Populares para Minecraft 1.21.1 com Fabric').waitForDisplayed({ timeout: 30_000 });
+    await $('h2=Populares').waitForDisplayed({ timeout: 30_000 });
     await $('h2=Atualizados recentemente').waitForDisplayed();
-    expect((await names('Populares para Minecraft 1.21.1 com Fabric')).length).toBeGreaterThan(0);
-    expect(await $('label=Tecnologia').isExisting()).toBe(true);
+    expect((await names('Populares')).length).toBeGreaterThan(0);
+    expect(await $('button=Tecnologia').isExisting()).toBe(true);
+    expect(await fullText('.lockline')).toContain('Só versões para Minecraft 1.21.1 com Fabric');
 
     const lines = await mockRequests();
     const searches =
@@ -259,19 +260,41 @@ describe('Descoberta (P1-16)', () => {
     await screenshot('01-inicio');
   });
 
+  it('Lista | Cartões: a seleção continua e o app lembra o modo', async () => {
+    // O primeiro dos populares que ainda dá para marcar (o que está no pack não tem caixa).
+    const box = $(
+      'div[role="rowgroup"][aria-label="Populares"] input[type="checkbox"]:not(:disabled)',
+    );
+    const label = (await box.getAttribute('aria-label')) ?? '';
+    await box.click();
+    await $('.selbar*=1 marcado').waitForDisplayed();
+    await screenshot('01a-lista-marcado');
+    await $('button[role="radio"]=Cartões').click();
+    await $('ul.cgrid[aria-label="Populares"]').waitForDisplayed({ timeout: 10_000 });
+    expect(await $(`button[aria-label="${label}"]`).getAttribute('aria-pressed')).toBe('true');
+    await screenshot('01b-cartoes');
+    expect(await browser.execute(() => window.localStorage.getItem('warden.adicionar.modo'))).toBe(
+      'cartoes',
+    );
+    await $('button[role="radio"]=Lista').click();
+    await $('div[role="rowgroup"][aria-label="Populares"]').waitForDisplayed();
+    await $('.selbar').$('button=Limpar').click();
+    await $('.selbar').waitForExist({ reverse: true });
+  });
+
   it('a categoria Tecnologia filtra a busca pela categoria mapeada', async () => {
-    await $('label*=Tecnologia').click();
-    await $('ul[aria-label="Resultados"]').waitForDisplayed({ timeout: 30_000 });
+    await $('button=Tecnologia').click();
+    await $('div[role="rowgroup"][aria-label="Tecnologia"]').waitForDisplayed({ timeout: 30_000 });
     const lines = await mockRequests();
     const last = lines.filter((line) => line.includes('/modrinth/v2/search')).at(-1);
     expect(decodeURIComponent(last ?? '')).toContain('categories:technology');
     await screenshot('02-categoria');
-    await $('label=Todas as categorias').click();
-    await $('h2=Populares para Minecraft 1.21.1 com Fabric').waitForDisplayed({ timeout: 30_000 });
+    await $('button=Todas').click();
+    await $('h2=Populares').waitForDisplayed({ timeout: 30_000 });
   });
 
   it('CA-T08-13: a pré-visualização mostra galeria, versões com notas sob demanda e dependências', async () => {
-    await $('button.drow__name=Sodium').click();
+    await $('button.tname__n=Sodium').click();
     const preview = $('aside.disc__preview');
     await preview.waitForDisplayed({ timeout: 30_000 });
     expect(await fullText('aside.disc__preview nav[aria-label="Partes desta página"]')).toContain(
@@ -317,8 +340,8 @@ describe('Descoberta (P1-16)', () => {
     const field = $('input[type="search"]');
     await field.click();
     await field.addValue('mod');
-    await $('button.drow__name=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
-    await $('button.drow__name=Mod Só da CurseForge').click();
+    await $('button.tname__n=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Mod Só da CurseForge').click();
     await $('aside.disc__preview')
       .$('h2=Mod Só da CurseForge')
       .waitForDisplayed({ timeout: 30_000 });
@@ -369,23 +392,24 @@ describe('Descoberta (P1-16)', () => {
     await field.click();
     await browser.keys([Key.Ctrl, 'a']);
     await browser.keys(Key.Backspace);
-    await $('h2=Populares para Minecraft 1.21.1 com Fabric').waitForDisplayed({ timeout: 30_000 });
-    await $('button.drow__name=Sodium').click();
+    await $('h2=Populares').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Sodium').click();
     await $('aside.disc__preview').$('h2=Sodium').waitForDisplayed({ timeout: 30_000 });
   });
 
-  it('abaixo de 1180 px a coluna de filtros recolhe atrás do botão "Filtros"', async () => {
+  it('abaixo de 1180 px o Tipo vira lista suspensa e o Resumo sai; os filtros continuam', async () => {
+    await $('button=Filtros').click();
+    await $('aside[aria-label="Filtros"]').waitForDisplayed({ timeout: 10_000 });
     await browser.setWindowSize(1100, 800);
-    const button = $('button=Filtros');
-    await button.waitForDisplayed({ timeout: 10_000 });
-    expect(await $('label=Todas as categorias').isDisplayed()).toBe(false);
-    await button.click();
-    await $('label=Todas as categorias').waitForDisplayed();
-    await screenshot('05-filtros-recolhidos');
+    await $('select[aria-label="Tipo"]').waitForDisplayed({ timeout: 10_000 });
+    expect(await $('div[role="radiogroup"][aria-label="Tipo"]').isDisplayed()).toBe(false);
+    expect(await $('button=Todas').isDisplayed()).toBe(true);
+    await screenshot('05-janela-estreita');
     await browser.setWindowSize(1366, 860);
-    await browser.waitUntil(async () => !(await $('button=Filtros').isDisplayed()), {
-      timeoutMsg: 'o botão Filtros deveria sumir em tela larga',
-    });
+    await browser.waitUntil(
+      async () => $('div[role="radiogroup"][aria-label="Tipo"]').isDisplayed(),
+      { timeoutMsg: 'o Tipo deveria voltar a ser o seletor segmentado em tela larga' },
+    );
   });
 
   it('a pasta do WebView não guarda dados da CurseForge nem endereços warden-img', async () => {
