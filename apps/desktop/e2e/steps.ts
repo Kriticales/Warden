@@ -7,7 +7,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-import { $, browser, expect } from '@wdio/globals';
+import { $, $$, browser, expect } from '@wdio/globals';
 
 import { replaceValue } from './fields';
 import { dismissToasts } from './toasts';
@@ -119,4 +119,28 @@ export function expectedFiles(pack: string): string[] {
   const index = readFileSync(join(pack, 'index.toml'), 'utf8');
   const files = [...index.matchAll(/^file = "([^"]+)"/gm)].map((match) => match[1] ?? '');
   return ['index.toml', 'pack.toml', ...files].sort();
+}
+
+/**
+ * Etapa Loader do Criar pack: espera as listas de todos os loaders e a pré-seleção do
+ * recomendado (a lista para de mudar) e escolhe `title` pelo título do cartão. Clicar enquanto
+ * uma lista ainda carrega pode cair no cartão de cima, se a lista mudar entre achar o cartão e
+ * clicar (achado do `full-flow` no Linux).
+ */
+export async function chooseLoader(title: string): Promise<void> {
+  await $('fieldset[aria-busy="true"]').waitForExist({ reverse: true, timeout: 60_000 });
+  await browser.waitUntil(
+    async () => (await $$('fieldset input[type="radio"]:checked').length) === 1,
+    { timeout: 30_000, timeoutMsg: 'o loader recomendado não veio marcado' },
+  );
+  const card = $(
+    `//div[contains(@class,"choice--split")][.//span[@class="choice__title" and normalize-space()="${title}"]]`,
+  );
+  const label = card.$('span.choice__title');
+  await label.waitForStable({ timeout: 10_000 });
+  await label.click();
+  await browser.waitUntil(() => card.$('input').isSelected(), {
+    timeout: 15_000,
+    timeoutMsg: `${title} não ficou marcado`,
+  });
 }

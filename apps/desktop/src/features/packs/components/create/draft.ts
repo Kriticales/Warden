@@ -44,3 +44,18 @@ export function checkProblem(error: AppError | null, name = ''): CheckProblem | 
   if (Array.from(trimmed).length > 64) return { field: 'name', key: 'nome.longo' };
   return { field: 'name', key: 'nome.invalido' };
 }
+
+/**
+ * A pré-seleção do loader recomendado, que a etapa Loader grava sozinha quando as listas chegam.
+ * Só vale enquanto ninguém escolheu nesta versão do Minecraft: o efeito que a grava pode rodar
+ * logo depois de um clique, com o rascunho da renderização anterior, e esse clique não pode ser
+ * desfeito. Por isso a decisão é tomada sobre o rascunho atual.
+ */
+export function preselectLoader(
+  draft: Draft,
+  loader: Loader | null,
+  loaderVersion: string | null,
+): Draft {
+  if (draft.loaderReady) return draft;
+  return { ...draft, loader, loaderVersion, loaderReady: true, initial: null };
+}

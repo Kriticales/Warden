@@ -6,6 +6,11 @@
  * loader vem pré-selecionada pelo catálogo (a indicada pelo Forge, a estável mais nova do
  * NeoForge e do Fabric); "Escolher outra versão" mostra a lista completa, e só ali aparece qual
  * versão o Forge indica.
+ *
+ * A pré-seleção já aparece na mesma renderização em que as listas terminam de chegar (o
+ * recomendado vem marcado, com "Escolher outra versão"). Se ela só aparecesse depois do efeito
+ * que a grava, as opções de baixo pulariam uma linha logo depois de aparecer, e um clique feito
+ * nesse instante cairia na opção de cima (achado do E2E `full-flow` no Linux).
  */
 import { useQueries } from '@tanstack/react-query';
 import { useEffect, useId, useState } from 'react';
@@ -27,7 +32,13 @@ export interface LoaderStepProps {
   version: string | null;
   /** O usuário (ou a pré-seleção) já escolheu nesta versão do Minecraft. */
   ready: boolean;
+  /** A escolha do usuário (um clique ou outra versão do loader). */
   onChange: (loader: Loader | null, version: string | null) => void;
+  /**
+   * Grava a pré-seleção do recomendado. Quem recebe ignora se o usuário já escolheu
+   * (`preselectLoader`): o efeito que chama isto pode rodar logo depois de um clique.
+   */
+  onPreselect: (loader: Loader | null, version: string | null) => void;
 }
 
 /** A versão pré-selecionada, ou a primeira da lista (a mais nova). */
@@ -35,7 +46,14 @@ export function defaultVersion(list: LoaderVersions): string | null {
   return list.preselected ?? list.versions[0]?.version ?? null;
 }
 
-export function LoaderStep({ minecraft, loader, version, ready, onChange }: LoaderStepProps) {
+export function LoaderStep({
+  minecraft,
+  loader,
+  version,
+  ready,
+  onChange,
+  onPreselect,
+}: LoaderStepProps) {
   const { t } = useTranslation('packs');
   const name = useId();
   const results = useQueries({
@@ -54,12 +72,16 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
   const first = available[0];
   const firstList = first ? lists.get(first) : undefined;
   const failed = results.some((result) => result.isError);
+  // Com uma consulta falhando, nada é marcado sozinho: o usuário decide depois de tentar de novo.
+  const preselecting = !ready && !pending && !failed;
+  const preselected = first ?? null;
+  const preselectedVersion = firstList ? defaultVersion(firstList) : null;
   useEffect(() => {
-    // Com uma consulta falhando, nada é marcado sozinho: o usuário decide depois de tentar de novo.
-    if (ready || pending || failed) return;
-    if (first && firstList) onChange(first, defaultVersion(firstList));
-    else onChange(null, null);
-  }, [ready, pending, failed, first, firstList, onChange]);
+    if (preselecting) onPreselect(preselected, preselectedVersion);
+  }, [preselecting, preselected, preselectedVersion, onPreselect]);
+  // O que a tela mostra marcado: a pré-seleção já nesta renderização, antes de ser gravada.
+  const shownLoader = preselecting ? preselected : loader;
+  const shownVersion = preselecting ? preselectedVersion : version;
 
   const choose = (key: Loader | null) => {
     const list = key ? lists.get(key) : undefined;
@@ -99,8 +121,8 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
                 loader={key}
                 list={list}
                 recommended={key === first && !pending && !failed}
-                checked={loader === key}
-                version={loader === key ? version : null}
+                checked={shownLoader === key}
+                version={shownLoader === key ? shownVersion : null}
                 onSelect={() => {
                   choose(key);
                 }}
@@ -121,7 +143,7 @@ export function LoaderStep({ minecraft, loader, version, ready, onChange }: Load
             name={name}
             title={t('criar.loader.vanilla')}
             desc={t('criar.loader.vanillaDesc')}
-            checked={loader === null && ready}
+            checked={shownLoader === null && (ready || preselecting)}
             onSelect={() => {
               choose(null);
             }}

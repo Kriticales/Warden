@@ -32,7 +32,7 @@ import { LoaderStep } from './create/LoaderStep';
 import { MinecraftStep } from './create/MinecraftStep';
 import { NameStep } from './create/NameStep';
 import { SummaryStep } from './create/SummaryStep';
-import { checkProblem, type Draft } from './create/draft';
+import { checkProblem, preselectLoader, type Draft } from './create/draft';
 import '../packs.css';
 
 const STEP_KEYS = ['nome', 'minecraft', 'loader', 'mods', 'resumo'] as const;
@@ -86,6 +86,10 @@ export function CreatePackWizard({ onClose, returnFocusTo }: CreatePackWizardPro
 
   const setInitial = useCallback((initial: InitialChoice) => {
     setDraft((current) => ({ ...current, initial }));
+  }, []);
+
+  const onPreselectLoader = useCallback((loader: Loader | null, loaderVersion: string | null) => {
+    setDraft((current) => preselectLoader(current, loader, loaderVersion));
   }, []);
 
   const update = (patch: Partial<Draft>) => {
@@ -295,6 +299,7 @@ export function CreatePackWizard({ onClose, returnFocusTo }: CreatePackWizardPro
               onChange={(loader: Loader | null, loaderVersion: string | null) => {
                 update({ loader, loaderVersion, loaderReady: true, initial: null });
               }}
+              onPreselect={onPreselectLoader}
             />
           ) : null}
           {key === 'mods' && draft.minecraft !== null ? (

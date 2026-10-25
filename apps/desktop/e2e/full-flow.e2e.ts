@@ -43,6 +43,7 @@ import { seriousViolationSummaries } from './axe';
 import { CHAVE_BOA } from './mock-server/curseforge';
 import { GITHUB_LOGIN, GITHUB_TOKEN, type GithubState } from './mock-server/github';
 import {
+  chooseLoader,
   closeDialog,
   dialogNamed,
   expectedFiles,
@@ -261,8 +262,7 @@ describe('Fluxo completo: criar, adicionar, configurar, testar, salvar, publicar
     await $('label.check=1.21.1').click();
     await next();
 
-    await $('span.choice__title=Fabric').click();
-    await browser.waitUntil(() => $('.choice--split*=Fabric').$('input').isSelected());
+    await chooseLoader('Fabric');
     await next();
 
     // Os dois mods iniciais vêm marcados (D16); o spark traz a Fabric API junto.

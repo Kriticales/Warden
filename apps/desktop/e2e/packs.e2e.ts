@@ -37,6 +37,7 @@ import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolations } from './axe';
 import { openOrImport } from './open-or-import';
+import { chooseLoader } from './steps';
 import { dismissToasts } from './toasts';
 
 const SCREENSHOTS = process.env.WARDEN_E2E_SCREENSHOTS;
@@ -404,8 +405,7 @@ describe('Meus packs, Criar pack e Abrir pack', () => {
     await $('label.check=1.21.1').click();
     await wizardNext();
 
-    await $('span.choice__title=Fabric').click();
-    await browser.waitUntil(() => $('.choice--split*=Fabric').$('input').isSelected());
+    await chooseLoader('Fabric');
     await wizardNext();
 
     // Spark e Crash Assistant chegam marcados (D16), com a versão que será usada; o spark traz a
