@@ -109,7 +109,7 @@ impl TestWindow {
         }
     }
 
-    /// Como a assinatura do perfil (gancho 1.1) grava a janela.
+    /// Como a assinatura do perfil (gancho 1.2) grava a janela.
     pub(crate) fn signature(self) -> Option<String> {
         match self {
             Self::Default => None,
@@ -134,7 +134,7 @@ pub(crate) enum OnLaunch {
 }
 
 impl OnLaunch {
-    /// Como a assinatura do perfil (gancho 1.1) grava "Ao abrir o jogo".
+    /// Como a assinatura do perfil (gancho 1.2) grava "Ao abrir o jogo".
     pub(crate) fn signature(&self) -> &'static str {
         match self {
             Self::Menu => "menu",

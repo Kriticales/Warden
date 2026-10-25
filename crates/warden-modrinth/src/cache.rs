@@ -1,7 +1,7 @@
 //! Cache persistente do Modrinth em `cache/metadata.sqlite` (ARCHITECTURE §13 e §17).
 //!
 //! - Projetos: valem 24 h. Além do JSON cru, `status`, `updated` e `game_versions` ficam em
-//!   colunas próprias (gancho 1.1 da ADR-0039, item 7: a manutenção dos mods da W-04 lê esses
+//!   colunas próprias (gancho 1.2 da ADR-0039, item 7: a manutenção dos mods da W-04 lê esses
 //!   campos sem pedir de novo à API; ver [`MetadataCache::project_summary`]).
 //! - Versões: imutáveis, não vencem. Uma versão vinda de uma lista sem notas
 //!   (`include_changelog=false`) fica marcada como incompleta e não atende quem pede a versão
@@ -85,7 +85,7 @@ pub struct Cached<T> {
     pub fresh: bool,
 }
 
-/// Campos do projeto guardados em colunas (gancho 1.1).
+/// Campos do projeto guardados em colunas (gancho 1.2).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectSummary {
     /// ID.
@@ -315,7 +315,7 @@ impl MetadataCache {
         .await
     }
 
-    /// `status`, `updated` e `game_versions` de um projeto, lidos das colunas (gancho 1.1).
+    /// `status`, `updated` e `game_versions` de um projeto, lidos das colunas (gancho 1.2).
     pub async fn project_summary(&self, id: &str) -> Result<Option<ProjectSummary>> {
         let id = id.to_owned();
         let row = self
@@ -618,7 +618,7 @@ mod tests {
         assert!(cache.projects_by_key(&[]).await.unwrap().is_empty());
     }
 
-    /// Gancho 1.1 (ADR-0039, item 7).
+    /// Gancho 1.2 (ADR-0039, item 7).
     #[tokio::test]
     async fn gancho_1_1_status_updated_e_game_versions_em_colunas() {
         let cache = MetadataCache::in_memory(None).unwrap();

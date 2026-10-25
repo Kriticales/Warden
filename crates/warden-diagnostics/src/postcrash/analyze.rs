@@ -51,7 +51,7 @@ impl Candidate {
     }
 }
 
-/// Analisa um texto solto (gancho 1.1, ADR-0039): um log escolhido no computador, colado ou
+/// Analisa um texto solto (gancho 1.2, ADR-0039): um log escolhido no computador, colado ou
 /// baixado de um jogador. `name` aparece na evidência.
 pub fn analyze_text(name: &str, text: &str, context: &AnalysisContext) -> Result<Analysis> {
     analyze(

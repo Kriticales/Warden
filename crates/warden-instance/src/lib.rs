@@ -11,7 +11,7 @@
 //! - [`game_requirement`]: versão do Minecraft e versão **exata** do loader do `pack.toml`,
 //!   com que o motor do launcher instala o jogo (D7).
 //! - [`DownloadCache`]: `cache/downloads/` por SHA-256, com `index.sqlite` dos quatro hashes e
-//!   da origem de cada arquivo (gancho 1.1 da ADR-0039).
+//!   da origem de cada arquivo (gancho 1.2 da ADR-0039).
 //! - [`Manifest`], o que o Warden colocou na instância: `state/manifest.json`.
 //! - [`OptionalChoices`], as escolhas dos opcionais: `state/optional-choices.json`.
 //! - [`player_tools`]: o que das ferramentas do jogador (spark, Crash Assistant) entra em cada

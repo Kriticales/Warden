@@ -3,7 +3,7 @@
 //! - Cada arquivo fica uma vez só, endereçado pelo SHA-256: `cache/downloads/<aa>/<sha256>`.
 //! - `cache/downloads/index.sqlite` guarda, por arquivo, sha1, sha256, sha512, o murmur2 da
 //!   CurseForge (e o md5, quando foi calculado) e o tamanho, além das origens (fonte, projeto,
-//!   versão, URL). É o gancho 1.1 da ADR-0039 (item 1): a conferência de segurança e a
+//!   versão, URL). É o gancho 1.2 da ADR-0039 (item 1): a conferência de segurança e a
 //!   identificação de jars não precisam reler os arquivos. Os hashes vêm de uma passada só
 //!   ([`warden_http::FileHashes`], calculados pela `warden-http` durante o download).
 //! - Um arquivo é achado por qualquer um dos hashes ([`DownloadCache::find`]): o `.pw.toml` do

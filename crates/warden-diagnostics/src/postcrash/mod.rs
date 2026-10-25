@@ -13,7 +13,7 @@
 //!    menos: gravidade, depois crash report > tela de erro do loader > exceção > genérico, depois
 //!    o peso do padrão.
 //!
-//! Gancho 1.1 (ADR-0039): [`analyze_text`] aceita qualquer texto de log, sem pasta de sessão
+//! Gancho 1.2 (ADR-0039): [`analyze_text`] aceita qualquer texto de log, sem pasta de sessão
 //! (log escolhido no computador para a IA; travamento de um jogador).
 //!
 //! Limites: a análise só lê. Ligar ids e jars aos itens do pack, a assinatura do travamento

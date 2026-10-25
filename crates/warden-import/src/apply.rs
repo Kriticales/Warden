@@ -73,7 +73,7 @@ struct ImportTable<'a> {
 }
 
 /// `.warden/project.toml` do pack importado: o documento mínimo do T03 mais a tabela
-/// `[import]` com a origem, os jars que ficaram como arquivo local (gancho 1.1 da ARCHITECTURE
+/// `[import]` com a origem, os jars que ficaram como arquivo local (gancho 1.2 da ARCHITECTURE
 /// §21.7, usado pela W-02) e os itens para revisar.
 pub(crate) fn project_document(id: PackId, plan: &ImportPlan) -> Result<String> {
     let review = plan

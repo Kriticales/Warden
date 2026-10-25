@@ -30,7 +30,7 @@ pub enum ProjectType {
     Unknown,
 }
 
-/// Situação do projeto no Modrinth (`status`; usado pela manutenção dos mods da 1.1).
+/// Situação do projeto no Modrinth (`status`; usado pela manutenção dos mods da 1.2).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProjectStatus {

@@ -1,5 +1,5 @@
 //! O computador do teste: memória total (limite da memória automática, SPEC T13) e a
-//! impressão do computador gravada na sessão (gancho 1.1 da ADR-0039: comparar testes só do
+//! impressão do computador gravada na sessão (gancho 1.2 da ADR-0039: comparar testes só do
 //! mesmo computador).
 
 use serde::Serialize;

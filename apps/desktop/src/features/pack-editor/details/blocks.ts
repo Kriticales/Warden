@@ -6,7 +6,7 @@
  * (200), versão instalada e arquivo (300), lado (400) e novidades da versão (800). A P1-14
  * acrescentou "Mais opções" (900: fixar versão e opcional). Reservados: 500 para "Depende de /
  * Usado por / Por que está no pack" (D-07) e 600 para "O que este mod altera no jogo" (raio-x,
- * D-10). Os da 1.1 (nota e grupos, segurança, manutenção) usam o mesmo registro.
+ * D-10). Os da 1.2 (nota e grupos, segurança, manutenção) usam o mesmo registro.
  *
  * Um bloco devolve `null` quando não tem o que mostrar para aquele item.
  */

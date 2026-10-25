@@ -12,7 +12,7 @@
 //!
 //! A `warden-instance` lê a mesma tabela para decidir o que entra na instância de teste
 //! (`warden-instance/src/player_tools.rs`). O leitor preserva tudo o que não conhece: as outras
-//! tabelas, os comentários e a ordem (Gancho 1.1).
+//! tabelas, os comentários e a ordem (Gancho 1.2).
 //!
 //! **Crash Assistant (licença própria, ADR-0033).** O Warden só inclui o mod no pack por
 //! referência e escreve uma config inicial ([`crash_assistant_config`]) com chaves que o autor

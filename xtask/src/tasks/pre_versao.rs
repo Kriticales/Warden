@@ -29,7 +29,7 @@ use sha2::{Digest as _, Sha256};
 
 use crate::util::{Cmd, target_dir, workspace_root};
 
-/// Marcos que podem virar pré-versão (ROADMAP §13: M1 a M5 da v1 e M6, o Warden 1.1).
+/// Marcos que podem virar pré-versão (ROADMAP §13: M1 a M5 da v1 e M6, o Warden 1.2).
 const MARCOS: std::ops::RangeInclusive<u8> = 1..=6;
 
 /// Marca dos trechos do modelo ainda não preenchidos (`docs/pre-versoes/MODELO.md`).

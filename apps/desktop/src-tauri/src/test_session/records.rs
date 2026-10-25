@@ -8,7 +8,7 @@
 //!   publicada), `head` é o commit da última versão salva e `unsavedFiles`, quantos arquivos
 //!   estavam diferentes dela;
 //! - `memory` (`{ mb, auto }`), `javaRuntime`, `modCount`;
-//! - gancho 1.1 (ADR-0039): `profileSignature` (memória, Java, argumentos, janela e "ao abrir
+//! - gancho 1.2 (ADR-0039): `profileSignature` (memória, Java, argumentos, janela e "ao abrir
 //!   o jogo", com um `hash` que junta tudo), `machine` (a impressão do computador) e
 //!   `firstLaunch` (primeira abertura desta instância).
 
@@ -58,7 +58,7 @@ pub(crate) fn pack_tree_hash_of(pack: &[u8], index_file: &str, index: &[u8]) -> 
     format!("sha256:{}", hex::encode(hasher.finalize()))
 }
 
-/// A assinatura do perfil do teste (gancho 1.1).
+/// A assinatura do perfil do teste (gancho 1.2).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProfileSignature {

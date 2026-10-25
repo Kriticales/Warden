@@ -20,7 +20,7 @@
 //! No fim, a sessão grava o campo `perf` ([`SessionPerf`]: pico de RAM, pico do Job Object no
 //! Windows, tempos, a última sessão de outra versão do pack no mesmo modo, a memória do jogo e
 //! os achados de memória) e acrescenta uma linha em `perf/<pack-id>.jsonl` nos dados locais
-//! (gancho 1.1, ARCHITECTURE §21.6; ADR-0039 e ADR-0047), que a poda das sessões não apaga.
+//! (gancho 1.2, ARCHITECTURE §21.6; ADR-0039 e ADR-0047), que a poda das sessões não apaga.
 
 use std::io::Write as _;
 use std::path::Path;
@@ -443,7 +443,7 @@ pub(crate) fn session_perf(record: &SessionRecord) -> Option<SessionPerf> {
 }
 
 /// Uma linha de `perf/<pack-id>.jsonl` (ARCHITECTURE §21.6). Os nomes são o contrato com o
-/// histórico da 1.1 (W-10): não mude sem migrar.
+/// histórico da 1.2 (W-10): não mude sem migrar.
 #[derive(Debug, Serialize)]
 struct HistoryLine {
     sessao: String,

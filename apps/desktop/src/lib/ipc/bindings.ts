@@ -5136,7 +5136,7 @@ export type Inventory = {
 /**  Uma linha do inventário. */
 export type InventoryItem = {
 	/**
-	 *  Chave estável (gancho 1.1, ADR-0039): `modrinth:<projeto>`, `curseforge:<projeto>` ou
+	 *  Chave estável (gancho 1.2, ADR-0039): `modrinth:<projeto>`, `curseforge:<projeto>` ou
 	 *  `path:<caminho>`.
 	 */
 	key: string,
@@ -7841,7 +7841,7 @@ export type PublishCheckId =
 /**
  *  Um achado das conferências antes de publicar. Os que bloqueiam são
  *  [`PublishFinding::SecretFound`] e [`PublishFinding::Hygiene`]; os demais são avisos
- *  ("Publicar mesmo assim"). Registro acréscimo-apenas: a W-03 acrescenta os da 1.1.
+ *  ("Publicar mesmo assim"). Registro acréscimo-apenas: a W-03 acrescenta os da 1.2.
  */
 export type PublishFinding = 
 /**  Algo com cara de chave ou token: arquivo e linha. */

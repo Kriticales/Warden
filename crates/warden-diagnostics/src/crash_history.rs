@@ -9,7 +9,7 @@
 //! 2. **causa encontrada**: a análise do travamento mais novo achou um erro determinístico;
 //! 3. **causa não encontrada**.
 //!
-//! Gancho 1.1 (ADR-0039): cada travamento tem a origem ([`CrashOrigin`]); por enquanto só
+//! Gancho 1.2 (ADR-0039): cada travamento tem a origem ([`CrashOrigin`]); por enquanto só
 //! existe "teste". A W-07 acrescenta a do jogador.
 //!
 //! Limites: só agrupa o que recebe. Ler as sessões do disco e a retenção ficam com o app.

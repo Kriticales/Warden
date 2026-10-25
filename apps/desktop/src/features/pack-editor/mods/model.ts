@@ -3,8 +3,8 @@
  * tabela virtualizada.
  *
  * O agrupamento é genérico (`groupItems` recebe a função que dá o grupo de cada item): a lista
- * agrupa por tipo; a W-08 (Warden 1.1) acrescenta "Agrupar por: grupo" com outra função, sem
- * mexer na tabela (gancho 1.1, ADR-0039).
+ * agrupa por tipo; a W-08 (Warden 1.2) acrescenta "Agrupar por: grupo" com outra função, sem
+ * mexer na tabela (gancho 1.2, ADR-0039).
  */
 import type { InventoryItem, ItemKind, ItemSide, ItemSource } from '../../../lib/ipc/bindings';
 

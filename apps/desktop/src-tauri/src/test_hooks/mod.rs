@@ -5,7 +5,7 @@
 //!   "Verificar o pack (rápido)", da D-03);
 //! - [`TestHooks::before_launch`]: com a instância pronta, logo antes de abrir o jogo (passo 4,
 //!   "Verificação final", da D-03; linha de base da captura, da C-03; checagem de segurança,
-//!   da 1.1);
+//!   da 1.2);
 //! - [`TestHooks::on_game_started`] e [`TestHooks::on_game_line`]: com o jogo aberto, logo
 //!   depois de abrir o processo e a cada linha da saída (desempenho, da L-10);
 //! - [`TestHooks::after_exit`]: depois que o jogo fechou, antes de gravar a sessão ("Por que
@@ -17,7 +17,7 @@
 //! [`HookContext::ignore_pack_errors`]). Erro no `after_exit` não perde a sessão: vira aviso.
 //!
 //! **Registro acréscimo-apenas** (ROADMAP §1): cada tarefa declara o seu módulo
-//! (`diagnostics.rs` da D-03, `personal.rs` da T3, `capture.rs` da C-03, `security.rs` da 1.1, `perf.rs` da L-10,
+//! (`diagnostics.rs` da D-03, `personal.rs` da T3, `capture.rs` da C-03, `security.rs` da 1.2, `perf.rs` da L-10,
 //! `crash_history.rs` da D-06, `perf_profile.rs` da L-12) e acrescenta uma linha em
 //! [`registered`]. [`registered`] é chamado a cada teste: cada gancho
 //! pode guardar o estado do teste em andamento.

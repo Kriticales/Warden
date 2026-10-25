@@ -4,7 +4,7 @@
 //! Cada checagem recebe o mesmo [`PublishContext`] (a versão e a árvore que vai para o
 //! GitHub) e devolve achados do tipo que o app define (a interface os mostra como avisos ou
 //! bloqueios). A v1 registra a varredura de segredos, a higiene, os mods da CurseForge, a
-//! versão não testada e os problemas; a W-03 (1.1) acrescenta "Segurança dos mods" e
+//! versão não testada e os problemas; a W-03 (1.2) acrescenta "Segurança dos mods" e
 //! "Manutenção dos mods" sem mexer nas outras.
 
 use std::path::Path;

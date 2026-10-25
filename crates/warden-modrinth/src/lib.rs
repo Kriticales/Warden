@@ -6,7 +6,7 @@
 //!   verificação de atualizações em lote (`/version_files/update`: uma requisição para o pack
 //!   inteiro) e listas de referência (loaders, versões do Minecraft, categorias).
 //! - [`MetadataCache`]: `cache/metadata.sqlite` com projetos (24 h), versões (imutáveis) e
-//!   listas (24 h); sem rede, o cliente usa o que houver. Gancho 1.1: `status`, `updated` e
+//!   listas (24 h); sem rede, o cliente usa o que houver. Gancho 1.2: `status`, `updated` e
 //!   `game_versions` de cada projeto ficam em colunas ([`MetadataCache::project_summary`]).
 //! - Modelos tolerantes ([`Project`], [`Version`]…), com o `environment` novo do projeto
 //!   (lista) e da versão (valor).

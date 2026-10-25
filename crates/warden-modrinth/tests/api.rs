@@ -118,7 +118,7 @@ async fn busca_com_facets_codificados() {
     assert!(raw_query.contains("%5B%5B"), "{raw_query}");
 }
 
-/// Gancho 1.1 (ADR-0039, item 7) com a resposta real do Sodium.
+/// Gancho 1.2 (ADR-0039, item 7) com a resposta real do Sodium.
 #[tokio::test]
 async fn projeto_com_cache_de_24h_e_gancho_1_1() {
     let s = setup().await;

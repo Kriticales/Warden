@@ -1665,7 +1665,7 @@ fn assert_heap_read(
 /// CA-T13-09: toda sessão grava o pico de RAM do processo e os tempos até carregar e até
 /// entrar no mundo; com o jogo aberto, as amostras passam pelo canal a cada 1 s e param quando
 /// o jogo fecha; a sessão de outra versão do pack vira a comparação; cada teste acrescenta uma
-/// linha no histórico `perf/<pack-id>.jsonl` (gancho 1.1).
+/// linha no histórico `perf/<pack-id>.jsonl` (gancho 1.2).
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
     let dir = tempfile::tempdir().unwrap();
@@ -1732,7 +1732,7 @@ async fn ca_t13_09_desempenho_grava_pico_e_tempos_e_compara_versoes() {
         OperationEvent::PerfSample { previous: Some(p), .. } if p.pack_version == "1.0.0"
     )));
 
-    // Histórico: uma linha por teste, com os campos do contrato da 1.1.
+    // Histórico: uma linha por teste, com os campos do contrato da 1.2.
     let history = std::fs::read_to_string(state.paths.perf_file(pack)).unwrap();
     let lines: Vec<serde_json::Value> = history
         .lines()

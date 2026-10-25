@@ -93,7 +93,7 @@ impl ProgressSink for RecordedProgress {
     }
 }
 
-/// Gancho 1.1 (ADR-0039, item 1): sha1, sha256, sha512 e murmur2 de uma vez.
+/// Gancho 1.2 (ADR-0039, item 1): sha1, sha256, sha512 e murmur2 de uma vez.
 #[tokio::test]
 async fn download_calcula_os_quatro_hashes_e_confere() {
     let data = payload();

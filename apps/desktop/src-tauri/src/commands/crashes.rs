@@ -55,7 +55,7 @@ const NEAR_LIMIT_PERCENT: u64 = 90;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CrashRecord {
-    /// De onde veio (gancho 1.1, ADR-0039: por enquanto sempre `test`).
+    /// De onde veio (gancho 1.2, ADR-0039: por enquanto sempre `test`).
     pub(crate) origin: CrashOrigin,
     /// A assinatura.
     pub(crate) signature: CrashSignature,

@@ -287,8 +287,8 @@ mod tests {
             "f0-01--esqueleto-do-monorepo"
         );
         assert_eq!(
-            slug("Fase 7 — Warden 1.1 \"Profissional\""),
-            "fase-7--warden-11-profissional"
+            slug("Fase 7 — Warden 1.2 \"Profissional\""),
+            "fase-7--warden-12-profissional"
         );
         assert_eq!(slug("`warden-core` e o_resto"), "warden-core-e-o_resto");
     }

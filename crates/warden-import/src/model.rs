@@ -223,7 +223,7 @@ pub(crate) enum Content {
     Staged(PathBuf),
 }
 
-/// Registro da importação em `.warden/project.toml` (gancho 1.1 da ARCHITECTURE §21.7: os
+/// Registro da importação em `.warden/project.toml` (gancho 1.2 da ARCHITECTURE §21.7: os
 /// jars que ficam como arquivo local levam a origem).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalJar {

@@ -27,7 +27,7 @@
 //! o escreve em CP850 e CP1252, como UTF-8 lido como CP1252 (`JosÃ©`) e com `?` no lugar dos
 //! acentos.
 //!
-//! Gancho 1.1 (ADR-0039): [`RedactionProfile::with_rule`] aceita regras extras (expressões ou
+//! Gancho 1.2 (ADR-0039): [`RedactionProfile::with_rule`] aceita regras extras (expressões ou
 //! textos fixos), usadas pela redação de logs de jogadores (nome da pasta da instância etc.).
 
 use std::collections::BTreeMap;
@@ -60,7 +60,7 @@ pub enum Placeholder {
     Email,
     /// Chave, token ou senha.
     Secret,
-    /// Marcador de uma regra extra (gancho 1.1), como `<instância>`.
+    /// Marcador de uma regra extra (gancho 1.2), como `<instância>`.
     Custom(String),
 }
 
@@ -95,7 +95,7 @@ impl Placeholder {
     }
 }
 
-/// Regra extra de redação (gancho 1.1, ADR-0039).
+/// Regra extra de redação (gancho 1.2, ADR-0039).
 #[derive(Clone)]
 pub struct ExtraRule {
     kind: ExtraKind,
@@ -267,7 +267,7 @@ impl RedactionProfile {
         self
     }
 
-    /// Acrescenta uma regra extra (gancho 1.1).
+    /// Acrescenta uma regra extra (gancho 1.2).
     #[must_use]
     pub fn with_rule(mut self, rule: ExtraRule) -> Self {
         self.rules.push(rule);

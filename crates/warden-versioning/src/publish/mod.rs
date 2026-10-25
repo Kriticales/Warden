@@ -5,7 +5,7 @@
 //!   publicação, o `CHANGELOG.md` publicado e o estado "Release pendente".
 //! - [`run`]: o envio protegido e a Release.
 //! - [`secrets`]: a varredura que bloqueia a publicação.
-//! - [`checks`]: as conferências plugáveis do `publish_plan` (gancho 1.1).
+//! - [`checks`]: as conferências plugáveis do `publish_plan` (gancho 1.2).
 //! - `transport`: o protocolo "smart HTTP" do git sobre a `warden-http` (ADR-0059).
 
 use std::collections::BTreeMap;

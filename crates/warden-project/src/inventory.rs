@@ -88,7 +88,7 @@ pub enum ItemState {
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct InventoryItem {
-    /// Chave estável (gancho 1.1, ADR-0039): `modrinth:<projeto>`, `curseforge:<projeto>` ou
+    /// Chave estável (gancho 1.2, ADR-0039): `modrinth:<projeto>`, `curseforge:<projeto>` ou
     /// `path:<caminho>`.
     pub key: String,
     /// Caminho relativo à pasta do pack, com `/`: o `.pw.toml`, ou o próprio arquivo.
@@ -534,7 +534,7 @@ pub(crate) async fn modrinth_versions(
 }
 
 /// Agrupa itens por uma chave, preservando a ordem: os grupos aparecem na ordem do primeiro
-/// item de cada um, e os itens de cada grupo na ordem recebida (gancho 1.1: a W-08 acrescenta
+/// item de cada um, e os itens de cada grupo na ordem recebida (gancho 1.2: a W-08 acrescenta
 /// "por grupo").
 pub fn group_by<K: Ord + Clone>(
     items: &[InventoryItem],

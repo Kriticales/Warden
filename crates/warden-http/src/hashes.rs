@@ -1,8 +1,8 @@
-//! Hashes dos downloads (gancho 1.1 da ADR-0039, item 1).
+//! Hashes dos downloads (gancho 1.2 da ADR-0039, item 1).
 //!
 //! Todo download calcula de uma vez sha1, sha256, sha512 e a impressão murmur2 da CurseForge
 //! ([`FileHashes`]), para o índice do cache de downloads (L-03) e a conferência de segurança
-//! da 1.1 não precisarem reler os jars.
+//! da 1.2 não precisarem reler os jars.
 //!
 //! - sha1, sha256 e sha512 (e o md5, só quando o hash esperado é md5) são calculados durante o
 //!   download, pedaço a pedaço, na mesma passada que grava no disco.

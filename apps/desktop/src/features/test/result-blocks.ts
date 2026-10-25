@@ -3,7 +3,7 @@
  * acréscimo-apenas** (ROADMAP §1): a C-03 acrescenta "O que mudou durante o teste" (ordem 100);
  * a D-03 troca a linha `why-crashed` pela análise do travamento ("Por que travou" com a causa e
  * a correção); a L-10, o resumo do desempenho ("Abriu em …", ordem 50); a L-12, "Desempenho";
- * a 1.1, "Esta versão está mais pesada"; a D-12, "Encontrar o mod culpado" (ordem 205); a D-04,
+ * a 1.2, "Esta versão está mais pesada"; a D-12, "Encontrar o mod culpado" (ordem 205); a D-04,
  * "✦ Perguntar ao Sculk" (ordem 210). Cada
  * componente devolve `null` quando não tem nada a mostrar.
  */

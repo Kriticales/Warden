@@ -53,7 +53,7 @@ pub enum DiagnosticsError {
         source: io::Error,
     },
 
-    /// Regra extra de redação inválida (gancho 1.1, ADR-0039).
+    /// Regra extra de redação inválida (gancho 1.2, ADR-0039).
     #[error("regra de redação inválida {pattern:?}: {reason}")]
     InvalidRedactionRule {
         /// Expressão recebida (truncada em 200 caracteres).

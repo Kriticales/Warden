@@ -2,7 +2,7 @@
 //! jogadores".
 //!
 //! - `publish_plan`: a árvore da versão montada pela exportação (E-01, origem "versão salva"),
-//!   as conferências plugáveis (gancho 1.1, ADR-0039: [`PublishFinding`] e a lista de
+//!   as conferências plugáveis (gancho 1.2, ADR-0039: [`PublishFinding`] e a lista de
 //!   [`checks`]), as notas desde a última versão publicada e a situação da `main` do GitHub;
 //! - `publish_run`: confere de novo o que bloqueia, publica (linha de publicação, envio
 //!   protegido, Release) e devolve o link do pack, as notas e o id da Release (a E-04 anexa a
@@ -106,7 +106,7 @@ pub(crate) enum CheckFailure {
 
 /// Um achado das conferências antes de publicar. Os que bloqueiam são
 /// [`PublishFinding::SecretFound`] e [`PublishFinding::Hygiene`]; os demais são avisos
-/// ("Publicar mesmo assim"). Registro acréscimo-apenas: a W-03 acrescenta os da 1.1.
+/// ("Publicar mesmo assim"). Registro acréscimo-apenas: a W-03 acrescenta os da 1.2.
 #[derive(Debug, Clone, Serialize, specta::Type)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub(crate) enum PublishFinding {
@@ -644,7 +644,7 @@ fn stored_secrets(state: &AppState) -> Vec<SecretString> {
         .collect()
 }
 
-/// As conferências da v1, na ordem do diálogo. Registro acréscimo-apenas (gancho 1.1): a W-03
+/// As conferências da v1, na ordem do diálogo. Registro acréscimo-apenas (gancho 1.2): a W-03
 /// acrescenta "Segurança dos mods" e "Manutenção dos mods" aqui.
 fn checks(
     state: &AppState,

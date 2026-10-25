@@ -473,7 +473,7 @@ async fn ca_t24_01_mrpack_real_do_create_plus() {
     assert!(on_disk.contains_key("config/create-common.toml"));
     assert!(on_disk.contains_key("configureddefaults/options.txt"));
     assert!(on_disk.contains_key("mods/sablephysicscompat-1.3.0.jar"));
-    // Gancho 1.1: o jar local leva a origem da importação.
+    // Gancho 1.2: o jar local leva a origem da importação.
     let project = fs::read_to_string(root.join(".warden/project.toml")).unwrap();
     assert!(project.contains("[import]"), "{project}");
     assert!(project.contains("source = \"mrpack\""));
