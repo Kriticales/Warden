@@ -21,6 +21,7 @@ import { useIgnoreFinding } from '../api';
 import { useFixes } from '../fixes';
 import type { ProblemsBlockProps } from '../problems-blocks';
 import { countBySeverity } from '../text';
+import { Count } from './Count';
 import { FindingRow } from './FindingRow';
 
 const GROUPS: readonly Severity[] = ['error', 'warning', 'info'];
@@ -44,17 +45,21 @@ export function FindingsBlock({ packId, report, checking }: ProblemsBlockProps) 
         {t('antesDoTeste.titulo')}
       </h2>
       {counts && counts.error > 0 ? (
-        <span className="count count--danger">
-          {t('antesDoTeste.erros', { count: counts.error })}
-        </span>
+        <Count
+          kind="danger"
+          value={counts.error}
+          label={t('antesDoTeste.erros', { count: counts.error })}
+        />
       ) : null}
       {counts && counts.warning > 0 ? (
-        <span className="count count--warn">
-          {t('antesDoTeste.avisos', { count: counts.warning })}
-        </span>
+        <Count
+          kind="warn"
+          value={counts.warning}
+          label={t('antesDoTeste.avisos', { count: counts.warning })}
+        />
       ) : null}
       {counts && counts.info > 0 ? (
-        <span className="count">{t('antesDoTeste.infos', { count: counts.info })}</span>
+        <Count value={counts.info} label={t('antesDoTeste.infos', { count: counts.info })} />
       ) : null}
     </div>
   );

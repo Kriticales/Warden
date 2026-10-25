@@ -32,6 +32,7 @@ import { CrashBisectAction } from '../../bisect/CrashEntry';
 import { formatMemory, formatWhen } from '../../test/text';
 import { useAiConversations } from '../ai/api';
 import { AskSculkLink, OpenSculkConversation } from '../components/AskSculk';
+import { Count } from '../components/Count';
 import type { ProblemsBlockProps } from '../problems-blocks';
 import { useCrash, useCrashes, usePruneCrashes } from './api';
 import { crashTitle, situationKind, situationText, versionLabel, versionsText } from './text';
@@ -63,7 +64,7 @@ export function CrashesBlock({ packId }: ProblemsBlockProps) {
           <Icon icon={OctagonX} />
           {t('titulo')}
         </h2>
-        {count > 0 ? <span className="count">{t('quantos', { count })}</span> : null}
+        {count > 0 ? <Count value={count} label={t('quantos', { count })} /> : null}
       </div>
       {crashes.isPending ? (
         <div className="panel__body">
