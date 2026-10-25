@@ -420,18 +420,20 @@ function KeyEditor({
       ? t('chaves.rotuloCampoToken', { de: words.de })
       : t('chaves.rotuloCampoChave', { de: words.de });
 
-  const save = () => {
+  const save = async () => {
     if (value.trim() === '' || setSecret.isPending) return;
-    setSecret.mutate(
-      { kind, value },
-      {
-        onSuccess: () => {
-          setValue('');
-          showToast({ kind: 'ok', title: t('chaves.salva', { nome: words.name, cofre: vault }) });
-          onSaved();
-        },
-      },
-    );
+    try {
+      // `mutateAsync`, não `mutate` com `onSuccess`: o campo some assim que a chave aparece no
+      // cofre (a visão das chaves é relida antes de a gravação terminar), e o `onSuccess` do
+      // `mutate` de um componente que saiu da tela nunca roda; o teste da chave não rodaria.
+      await setSecret.mutateAsync({ kind, value });
+    } catch {
+      // O erro fica em `setSecret.error`, mostrado abaixo do campo.
+      return;
+    }
+    setValue('');
+    showToast({ kind: 'ok', title: t('chaves.salva', { nome: words.name, cofre: vault }) });
+    onSaved();
   };
 
   return (
@@ -458,7 +460,7 @@ function KeyEditor({
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              save();
+              void save();
             }
           }}
         />
@@ -467,7 +469,9 @@ function KeyEditor({
           {...(replacing ? {} : { icon: Plus })}
           disabled={value.trim() === ''}
           loading={setSecret.isPending}
-          onClick={save}
+          onClick={() => {
+            void save();
+          }}
         >
           {setSecret.isPending ? t('chaves.salvando') : t('chaves.salvar')}
         </Button>

@@ -36,7 +36,9 @@ export async function saveKey(kind: E2eKeyKind, value: string): Promise<void> {
   await browser.waitUntil(
     async () => {
       const text = await item.getText();
-      return text.includes('••••') && !text.includes('Testando');
+      if (text.includes('Funcionando') || text.includes('Recusada')) return true;
+      const detail = await $('section.keydet').getText();
+      return detail.includes('Não deu para testar') || detail.includes('não sabe testar');
     },
     { timeout: 60_000, timeoutMsg: `a chave ${kind} não foi salva e testada` },
   );
