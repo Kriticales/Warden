@@ -116,6 +116,8 @@ pub struct SourceProject {
     pub slug: String,
     /// Nome.
     pub title: String,
+    /// Resumo de uma linha (o "o que faz" do diálogo de dependências).
+    pub summary: String,
     /// Tipo (nenhum: um tipo que não entra pela página Adicionar, como modpack ou datapack).
     pub kind: Option<ProjectKind>,
     /// Ícone.
@@ -662,6 +664,7 @@ mod tests {
             id: id.into(),
             slug: title.to_ascii_lowercase(),
             title: title.into(),
+            summary: String::new(),
             kind: Some(kind),
             icon_url: None,
             side: None,

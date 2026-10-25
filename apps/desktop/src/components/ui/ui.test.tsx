@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent } from './alert-dial
 import { Button } from './button';
 import { Dialog, DialogContent, DialogTrigger } from './dialog';
 import { Menu, MenuContent, MenuIconTrigger, MenuItem } from './menu';
+import { Segmented } from './segmented';
 import { Sheet, SheetContent, SheetTrigger } from './sheet';
 import { dismissToast, showToast, useToastStore } from './toast';
 import { Tooltip, TooltipProvider } from './tooltip';
@@ -144,6 +145,45 @@ describe('Button', () => {
       </Button>,
     );
     expect(screen.getByRole('link', { name: 'Meus packs' }).className).toBe('btn btn--ghost');
+  });
+});
+
+describe('Segmented', () => {
+  function Modes() {
+    const [mode, setMode] = useState<'lista' | 'cartoes'>('lista');
+    return (
+      <Segmented
+        label="Ver como"
+        value={mode}
+        options={[
+          { value: 'lista', label: 'Lista' },
+          { value: 'cartoes', label: 'Cartões', hint: 'Cartões com ícone' },
+        ]}
+        onChange={setMode}
+      />
+    );
+  }
+
+  it('grupo de rádio com uma parada do Tab; as setas trocam a opção e levam o foco; axe', async () => {
+    const user = userEvent.setup();
+    render(<Modes />);
+    const lista = screen.getByRole('radio', { name: 'Lista' });
+    const cartoes = screen.getByRole('radio', { name: 'Cartões' });
+    expect(screen.getByRole('radiogroup', { name: 'Ver como' })).toBeDefined();
+    expect(lista.getAttribute('aria-checked')).toBe('true');
+    expect(lista.tabIndex).toBe(0);
+    expect(cartoes.tabIndex).toBe(-1);
+    await user.tab();
+    expect(document.activeElement).toBe(lista);
+    await user.keyboard('{ArrowRight}');
+    expect(cartoes.getAttribute('aria-checked')).toBe('true');
+    expect(document.activeElement).toBe(cartoes);
+    await user.keyboard('{ArrowRight}');
+    expect(lista.getAttribute('aria-checked')).toBe('true');
+    await user.click(cartoes);
+    expect(cartoes.getAttribute('aria-checked')).toBe('true');
+    expect(cartoes.getAttribute('title')).toBe('Cartões com ícone');
+    expect(await axeComponent(document.body)).toHaveNoViolations();
   });
 });
 

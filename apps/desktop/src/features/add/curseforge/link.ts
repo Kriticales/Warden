@@ -58,5 +58,6 @@ export function resultOfLink(target: LinkTarget): SearchResult {
     inPack: false,
     compatible: true,
     manualDownload: target.manualDownload,
+    isLibrary: false,
   };
 }

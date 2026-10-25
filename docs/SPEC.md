@@ -418,28 +418,30 @@ Seção **Mods**: uma lista única, agrupada por tipo (Mods, Resource packs, Sha
 
 ### T08 — Adicionar: página de descoberta, busca combinada, link e arquivo (P0; partes P1 indicadas)
 
-Página **Adicionar** dentro do pack, aberta pelo botão **Adicionar** da seção Mods, **em tela cheia**: o menu lateral do pack recolhe para ícones (com o nome no tooltip) enquanto ela está aberta, e o cabeçalho do pack continua visível (decisão D15, ESTRUTURA N6). No topo, "← Voltar para Mods" com quantos itens entraram ("· 2 adicionados"). Sem abas:
+Página **Adicionar ao pack** dentro do pack, aberta pelo botão **Adicionar** da seção Mods, **em tela cheia**: o menu lateral do pack recolhe para ícones (com o nome no tooltip) enquanto ela está aberta, e o cabeçalho do pack continua visível (decisão D15, ESTRUTURA N6). No topo, "← Mods" com quantos itens entraram ("· 2 adicionados") e **Escolher arquivo do computador…**. Sem abas (esboço aprovado: `design/bug-01/adicionar.html`, opção 4; ADR-0068):
 - seletor **Tipo** (Mods, Resource packs, Shaders e, P1, **Modpacks**), que já vem no tipo de onde você clicou;
 - um **campo único** que busca pelo nome ou aceita um **link colado** (o Warden reconhece o link pelo formato);
-- o botão **Escolher arquivo do computador…** (ou arrastar arquivos para a lista de Mods).
+- o seletor **Lista | Cartões** ao lado da busca. **Lista** é a tabela densa: linhas de ~40 px com nome e autor, resumo, downloads, atualizado, fonte e situação; clicar no título de **Nome** ordena o que já foi carregado, e **Downloads** e **Atualizado** pedem a busca já ordenada. **Cartões** é a grade de cartões baixos (3 colunas na janela larga), com ícone, resumo de 2 linhas e o botão **Marcar**. O que foi marcado continua marcado ao trocar, e o app lembra o último modo;
+- abaixo, uma linha discreta com cadeado: "Só versões para Minecraft 1.21.1 com NeoForge, no Modrinth e na CurseForge.", com a legenda das marcas das fontes;
+- arrastar arquivos para a janela (ou para a lista de Mods) também adiciona.
 
-Três colunas: **filtros** (categorias, ambiente, ordenar; fonte em "Mais filtros"), **resultados** e **pré-visualização**. De 1024 a 1180 px, a coluna de filtros recolhe atrás do botão "Filtros".
+Duas colunas: à esquerda os **resultados** (com rolagem própria) e a barra dos marcados; à direita os **filtros**, iguais nos dois modos: **Categoria** em lista curta (8 e "Mais N categorias", sem texto quebrando; a categoria que só existe numa loja leva a marca discreta dela), **Funciona em** (Qualquer, Cliente, Servidor), **Mostrar também** (Bibliotecas; O que já está no pack; Mods sem versão para o pack), **Fonte** (com as duas fontes ligadas) e **Limpar**. Clicar no nome de um mod mostra o **detalhe** dele (a pré-visualização) no lugar dos filtros, com "← Filtros" para voltar.
 
-**Início (P0), com o campo vazio:** listas (nunca grade de cartões) "Populares para <loader> <versão>" e "Atualizados recentemente", já filtradas para o pack, e a lista de **categorias** na coluna de filtros, com nomes em português de um mapeamento curado que junta as categorias do Modrinth e da CurseForge (categoria sem par filtra só a fonte que a tem). P1: "Kits de desempenho" da faixa do pack (ADR-0033), que abrem no diálogo de dependências (T09) com as caixas marcadas. Orçamento: no máximo 3 requisições por fonte para montar o início.
+**Início (P0), com o campo vazio:** "Populares" e "Atualizados recentemente", já filtrados para o pack, na Lista ou nos Cartões, com a contagem ("17 de 2.481") e **Ver todos** (a busca completa já ordenada). O que já está no pack aparece com o selo **No pack**, sem caixa. As **bibliotecas** (Modrinth `library`, CurseForge "API and Library") ficam escondidas por padrão: uma linha "N bibliotecas escondidas (entram sozinhas quando um mod precisa): … **Mostrar**" na Lista, um grupo fechado "Bibliotecas populares (N)" nos Cartões; aparecem quando você busca pelo nome, escolhe a categoria Bibliotecas ou liga "Mostrar também: Bibliotecas". As **categorias** têm nomes em português de um mapeamento curado que junta as categorias do Modrinth e da CurseForge (categoria sem par filtra só a fonte que a tem). P1: "Kits de desempenho" da faixa do pack (ADR-0033), que abrem no diálogo Adicionar itens (T09) com as caixas marcadas. Orçamento: no máximo 3 requisições por fonte para montar o início.
 
-**Seleção múltipla (P0):** cada resultado tem uma caixa de seleção; a barra fixa "N selecionados · **Adicionar N ao pack**" abre **um** diálogo de dependências (T09) para o conjunto. Itens "Já no pack" não têm caixa.
+**Seleção múltipla (P0):** cada resultado tem uma caixa de seleção (nos Cartões, o botão **Marcar**); a barra fixa embaixo mostra a contagem, os nomes, as dependências obrigatórias que já dá para saber ("Já sabemos de 1 obrigatória: Balm.") e **Adicionar N ao pack →**, que abre **um** diálogo Adicionar itens (T09) para o conjunto. Itens "No pack" não têm caixa.
 
 **Busca combinada (Modrinth + CurseForge; ADR-0027):**
 - Uma busca consulta as duas fontes ao mesmo tempo e mostra **um resultado só**. Cada item mostra a fonte: "Modrinth", "CurseForge" ou "Modrinth e CurseForge".
 - **Sem duplicatas:** o mesmo mod nas duas fontes vira um item só. Na lista, são o mesmo mod quando autor e nome (ou slug) coincidem nas duas fontes. Na pré-visualização, o Warden confere o arquivo da versão escolhida pelo SHA-1 nas duas fontes e avisa se forem diferentes. O item unificado tem o seletor **Fonte**; o padrão é o Modrinth (informa o lado e tem cache local).
-- **Ordem:** relevância intercalada pela posição em cada fonte, sem favorecer nenhuma; ordenar por downloads, atualização recente ou novos usa os valores de cada fonte. O filtro **Fonte** (todas, só Modrinth, só CurseForge) fica em "Mais filtros".
-- Filtros já aplicados e travados por padrão: versão do Minecraft do pack, loader do pack (mods) e tipo de projeto. "Mostrar também os sem versão compatível" desligado por padrão.
-- Filtros extras (em "Mais filtros"): fonte, categorias, ambiente (cliente/servidor), ordenar por relevância, downloads, atualizados recentemente, novos.
-- Resultado: ícone, nome, autor, resumo, downloads, data da última atualização, fonte, marca "Já no pack" e, na CurseForge, marca "Download manual necessário" quando o autor bloqueou downloads por apps de terceiros.
+- **Ordem:** relevância intercalada pela posição em cada fonte, sem favorecer nenhuma; ordenar por downloads, atualização recente ou novos usa os valores de cada fonte (na Lista, pelos títulos das colunas; nos Cartões, por **Ordenar**). O filtro **Fonte** (as duas, só Modrinth, só CurseForge) fica na coluna de filtros.
+- Filtros já aplicados e travados por padrão: versão do Minecraft do pack, loader do pack (mods) e tipo de projeto (a linha com cadeado). "Mostrar também: Mods sem versão para o pack" desligado por padrão.
+- Filtros extras (na coluna de filtros): categoria, Funciona em (cliente/servidor), Mostrar também, fonte.
+- Resultado: ícone, nome, autor, resumo, downloads, data da última atualização, fonte e a situação: **No pack**, "Sem versão", **Biblioteca** ou, na CurseForge, "Download manual" quando o autor bloqueou downloads por apps de terceiros.
 - Rolagem infinita, 20 itens por página (já combinados).
 - Clicar abre a pré-visualização com seletor de fonte (quando houver duas) e de versão. Versão padrão: a mais nova compatível do canal configurado (padrão: só versões estáveis; beta/alpha só com a opção em Configurações). A pré-visualização é uma página rolável, **sem abas**, com um índice fixo "Descrição · Galeria · Versões · Dependências · Links": cabeçalho (ícone, nome, autor, fontes, downloads, atualização, licença, lado, **Adicionar ao pack**); **descrição** (P0) com a higienização da ARCHITECTURE §18 (no Modrinth, `rehype-raw` antes de `rehype-sanitize`; vídeos viram miniatura com "Abrir no navegador", nunca `iframe`); P1: **galeria** (miniaturas; clicar mostra a imagem grande sobre a página), **versões** filtradas para o pack com o changelog de cada uma (expansível; na CurseForge, buscado só ao abrir a linha), **dependências** (obrigatórias, opcionais, incompatíveis, cada uma com "Já no pack" ou "Será adicionada") e **links** (issues, código, wiki, Discord; abrem no navegador).
 - **Ordenar por downloads ou atualização** com as duas fontes mescla pelos números de cada uma; relevância continua intercalada pela posição (ADR-0027).
-- **Adicionar ao pack** abre a tela de dependências (T09). Depois de adicionar, a busca continua aberta e o item passa a mostrar "Já no pack".
+- **Adicionar ao pack** abre o diálogo Adicionar itens (T09). Depois de adicionar, a busca continua aberta e o item passa a mostrar "No pack".
 - **Imagens da CurseForge (P1):** servidas por um protocolo próprio do Warden, só em memória, para que o cache de disco do WebView não guarde dados da API (termos da CurseForge; ARCHITECTURE §17).
 - **Sem chave da CurseForge:** a busca mostra só o Modrinth, com o aviso "Mostrando só o Modrinth. Para buscar também na CurseForge, informe sua chave em Configurações." e **Abrir Configurações**; nenhuma requisição vai para a CurseForge. **Chave recusada:** o mesmo, com "A CurseForge recusou a chave. Confira em Configurações."
 - **Uma fonte com erro** (fora do ar, tempo esgotado): mostra os resultados da outra, com "Não foi possível buscar no <fonte> agora." e **Tentar de novo**.
@@ -474,8 +476,8 @@ Três colunas: **filtros** (categorias, ambiente, ordenar; fonte em "Mais filtro
 | CA-T08-07 | Um link `http://` é recusado com mensagem; nenhum arquivo é baixado. |
 | CA-T08-08 | Com servidores simulados em que o JEI existe no Modrinth e na CurseForge com o mesmo arquivo, buscar "jei" num pack Forge 1.20.1 mostra o JEI uma única vez, marcado "Modrinth e CurseForge"; escolher a fonte CurseForge na pré-visualização grava `mode = "metadata:curseforge"`, e a Modrinth grava `[update.modrinth]`. Um mod só da CurseForge aparece marcado "CurseForge". |
 | CA-T08-09 | Com a CurseForge respondendo erro 500 (simulado), a busca mostra os resultados do Modrinth e o aviso de fonte indisponível; com o Modrinth fora, mostra os da CurseForge; a interface nunca fica carregando para sempre. |
-| CA-T08-10 | Com o campo vazio num pack Forge 1.20.1, o início mostra "Populares para Forge 1.20.1", "Atualizados recentemente" e as categorias, usando no máximo 3 requisições por fonte (servidor simulado contando chamadas); escolher a categoria "Tecnologia" filtra as duas fontes pelas categorias mapeadas. |
-| CA-T08-11 | Marcar 3 resultados e clicar em "Adicionar 3 ao pack" abre um único diálogo de dependências com os 3 e as dependências deles; confirmar grava tudo de uma vez (uma transação, um `refresh`); falha simulada no meio não deixa nenhum `.pw.toml` novo. |
+| CA-T08-10 | Com o campo vazio num pack Forge 1.20.1, o início mostra "Populares", "Atualizados recentemente" e as categorias, usando no máximo 3 requisições por fonte (servidor simulado contando chamadas); o que já está no pack aparece com "No pack" e as bibliotecas ficam escondidas numa linha; escolher a categoria "Tecnologia" filtra as duas fontes pelas categorias mapeadas. |
+| CA-T08-11 | Marcar 3 resultados e clicar em "Adicionar 3 ao pack" abre um único diálogo Adicionar itens com os 3 e as dependências deles; confirmar grava tudo de uma vez (uma transação, um `refresh`); falha simulada no meio não deixa nenhum `.pw.toml` novo. Trocar entre Lista e Cartões mantém o que foi marcado. |
 | CA-T08-12 | Uma descrição do Modrinth com HTML misturado ao Markdown (`<h1 style>`, `<iframe>` do YouTube, `<img onerror>`, `<script>`) aparece formatada, sem `iframe`, sem estilo inline e sem executar código; o vídeo vira miniatura com "Abrir no navegador" (teste de componente). |
 | CA-T08-13 | (P1) A pré-visualização mostra galeria, versões com changelog e dependências com "Já no pack"/"Será adicionada"; na CurseForge, o changelog só é pedido ao abrir a linha (servidor simulado contando chamadas); nenhuma imagem da CurseForge fica no cache de disco do WebView (verificado pela pasta de dados do WebView depois de uma sessão). |
 
@@ -497,19 +499,21 @@ Filtro "Só os que não estão no seu pack"; seletor **Versão**: "a mesma do mo
 
 ### T09 — Dependências e conflitos ao adicionar (P0)
 
-Aparece antes de gravar qualquer coisa no pack.
+Diálogo **Adicionar itens**: aparece antes de gravar qualquer coisa no pack, para um item ou vários de uma vez (seleção múltipla, kit de desempenho, mods de um modpack, link, arquivo achado pelo hash). Esboço aprovado: `design/bug-01/adicionar-itens.html`, opção 4 · Árvore + detalhe (ADR-0068).
 
-**Conteúdo:**
-- **Obrigatórias** (resolvidas em cadeia): marcadas. Desmarcar mostra "Sem esta dependência o jogo provavelmente não abre."
-- **Já no pack:** listadas em verde, sem ação.
-- **Opcionais:** desmarcadas, só informativas.
-- **Sem versão compatível:** "Nenhuma versão de X para 1.20.1 Forge." O item principal ainda pode ser adicionado (vai aparecer no diagnóstico).
-- **Incompatibilidades declaradas** com itens do pack (Modrinth `incompatible`, CurseForge "incompatível", metadados do jar `breaks`/`incompatible`): aviso em vermelho com o motivo, quando o autor informar.
-- **Duplicado entre fontes:** "Este mod já está no pack pela CurseForge." com **Substituir pela versão do Modrinth** e **Cancelar** (manter os dois faria o jogo travar com mod duplicado).
+**Árvore, à esquerda:** um bloco por mod escolhido, com versão (número limpo, sempre no mesmo formato) e fonte; o que só ele pede fica pendurado nele (e o que só a pendurada pede, pendurado nela), com o papel ("obrigatória", "opcional") e a situação em um selo só. O que mais de um item pede aparece **uma vez**, em **Em comum**, com "Pedida por A e B". Desmarcar um mod apaga o galho dele; o que fica de fora continua na árvore, apagado, com selo ("Desmarcado", "Não entra", "Sem versão").
+- **Obrigatórias** (resolvidas em cadeia): marcadas. Desmarcar mostra o selo "Jogo pode não abrir" e, no detalhe, "Sem X, o jogo provavelmente não abre" com **Marcar de novo**.
+- **Já no pack:** na árvore com ✓ e o selo "no pack", sem caixa.
+- **Opcionais:** desmarcadas; só entram se você marcar e o mod que as pede entrar.
+- **Sem versão compatível:** "Nenhuma versão de X para 1.20.1 · Forge." O item principal ainda pode ser adicionado (a falta aparece no diagnóstico).
+- **Incompatibilidades declaradas** com itens do pack (Modrinth `incompatible`, CurseForge "incompatível", metadados do jar `breaks`/`incompatible`) ou entre os próprios itens: selo "Incompatível" e, no detalhe, o aviso com quem declarou, o motivo (quando o autor informar) e **Não adicionar X**.
+- **Duplicado entre fontes:** "X já está no pack pela CurseForge" com **Manter o do pack (não adicionar)** (padrão; manter os dois faria o jogo travar com mod duplicado) e **Trocar pela versão do Modrinth**.
 
-**Botão:** **Adicionar N itens**. A gravação é atômica: ou todos os itens confirmados entram, ou nenhum.
+**No topo da árvore:** o que pede decisão numa linha só ("2 itens precisam de você antes de adicionar: Embeddium incompatível com Sodium · FerriteCore já está no pack pela CurseForge"; clicar no nome abre o detalhe com o botão que resolve) e o aviso de **lado não informado**, uma vez ("Lado não informado em 5 itens: … Entram no cliente e no servidor (o normal). Só confira se for montar um servidor.").
 
-**Vários itens de uma vez** (seleção múltipla, kit de desempenho, mods de um modpack, mods iniciais): o diálogo agrupa por item escolhido, junta as dependências comuns (cada uma aparece uma vez) e mostra as incompatibilidades entre os próprios itens escolhidos.
+**Detalhe, à direita:** a conta em blocos no alto ("7 itens vão entrar no pack": escolhidos + obrigatórias + opcionais, cada bloco abre o item) e o porquê do item clicado: papel e quem pede ou o que traz, o problema dele (com a ação), o que faz, situação, versão, arquivo, fonte e lado.
+
+**Conta e botão:** a mesma conta no título ("Adicionar 7 itens ao pack"), no rodapé ("3 escolhidos + 2 obrigatórias + 2 opcionais = 7 itens") e no botão (**Adicionar 7 itens**); "Pedida por" só cita quem entra. A gravação é atômica: ou todos os itens confirmados entram, ou nenhum.
 
 | CA | Critério |
 |---|---|

@@ -10,7 +10,7 @@ import { Button } from '../../../components/ui/button';
 import { cn } from '../../../lib/cn';
 import type { SearchResult } from '../../../lib/ipc/bindings';
 import { formatCount } from '../common/model';
-import { ProjectIcon } from '../common/ResultRow';
+import { ProjectIcon } from '../common/ProjectIcon';
 import { SourceMark, useAgoText } from '../common/text';
 
 export interface ModpackRowProps {

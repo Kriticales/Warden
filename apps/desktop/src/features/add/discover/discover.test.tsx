@@ -1,12 +1,14 @@
 /**
- * Início da descoberta e categorias (SPEC T08, CA-T08-10, lado da interface) no app inteiro, com
- * o backend simulado: campo vazio mostra "Populares para <loader> <versão>" e "Atualizados
- * recentemente" (sem chamar a busca), a nota dos que já estão no pack, "Ver mais", as categorias
- * em português que filtram a busca, o aviso de fonte fora do ar e a coluna de filtros que recolhe.
+ * Início da descoberta, modos de exibição e filtros (SPEC T08, CA-T08-10; ADR-0068; esboço
+ * `design/bug-01/adicionar.html`, opção 4) no app inteiro, com o backend simulado: campo vazio
+ * mostra "Populares" e "Atualizados recentemente" (sem chamar a busca), o que já está no pack com
+ * o selo No pack, as bibliotecas escondidas numa linha, **Lista | Cartões** (a seleção continua
+ * e o app lembra o modo), as categorias curtas que filtram a busca, a ordem pelas colunas e o
+ * detalhe no lugar dos filtros.
  */
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { axePage } from '../../../test/axe';
 import { type Handler, ipcError } from '../../../test/backend';
@@ -18,6 +20,7 @@ import { FABRIC_KIT } from '../../packs/create/initial-mods/initial-mods.fixture
 import {
   APPLESKIN,
   CATEGORIES,
+  FABRIC_API,
   LITHIUM,
   makeHome,
   makeNode,
@@ -49,6 +52,23 @@ function setup(handlers: Record<string, Handler> = {}) {
   });
 }
 
+/** O grupo da lista ("Populares", "Atualizados recentemente", "Resultados"…). */
+function group(name: string | RegExp) {
+  return screen.findByRole('rowgroup', { name }, { timeout: 10_000 });
+}
+
+/** Os nomes na ordem em que aparecem num grupo da lista ou dos cartões. */
+function namesIn(element: HTMLElement): string[] {
+  return Array.from(
+    element.querySelectorAll('.tname__n, .mcard__n'),
+    (button) => button.textContent,
+  );
+}
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
 async function openAdd(url: string) {
   renderApp(`${url}/adicionar`);
   await screen.findByRole('heading', { level: 1, name: 'Adicionar ao pack' }, { timeout: 10_000 });
@@ -58,63 +78,154 @@ describe('início da descoberta', () => {
   it('CA-T08-10: campo vazio mostra populares, atualizados e categorias, sem chamar a busca; axe', async () => {
     const { url, backend } = setup();
     await openAdd(url);
-    const popular = await screen.findByRole('list', {
-      name: 'Populares para Minecraft 1.20.1 com Forge',
-    });
-    expect(
-      within(popular)
-        .getAllByRole('button')
-        .map((button) => button.textContent),
-    ).toEqual(['Sodium', 'Mod Menu']);
-    const updated = screen.getByRole('list', { name: 'Atualizados recentemente' });
-    expect(within(updated).getByRole('button', { name: 'AppleSkin' })).toBeDefined();
-    // Categorias na coluna de filtros, com nome em português.
+    const popular = await group('Populares');
+    // Sodium está no inventário do pack: aparece com o selo No pack, sem caixa (ADR-0068).
+    expect(namesIn(popular)).toEqual(['Sodium', 'Mod Menu']);
+    expect(within(popular).getByText('2 de 2.481')).toBeDefined();
+    const updated = await group('Atualizados recentemente');
+    expect(namesIn(updated)).toEqual(['AppleSkin']);
+    // Categorias na coluna de filtros, à direita, com nome em português.
     const filters = screen.getByRole('complementary', { name: 'Filtros' });
-    expect(within(filters).getByRole('radio', { name: 'Todas as categorias' })).toBeDefined();
-    expect(within(filters).getByRole('radio', { name: 'Tecnologia' })).toBeDefined();
+    expect(
+      within(filters).getByRole('button', { name: 'Todas' }).getAttribute('aria-pressed'),
+    ).toBe('true');
+    expect(within(filters).getByRole('button', { name: 'Tecnologia' })).toBeDefined();
     expect(backend.callsOf('discover_home')).toHaveLength(1);
     expect(backend.callsOf('discover_home')[0]?.args).toMatchObject({ kind: 'mod' });
     expect(backend.callsOf('search_projects')).toHaveLength(0);
+    // A trava de versão vira uma linha discreta.
     expect(
-      screen.getByText('Mostrando o que funciona no pack. Digite para buscar pelo nome.'),
+      screen.getByText(
+        (_, element) =>
+          element?.classList.contains('lockline') === true &&
+          element.textContent.includes('Só versões para Minecraft 1.20.1 com Forge, no Modrinth.'),
+      ),
     ).toBeDefined();
     expect(await axePage(document.body)).toHaveNoViolations();
   });
 
-  it('o que já está no pack não ocupa lugar e os nomes dos populares aparecem numa nota', async () => {
+  it('o que já está no pack aparece com o selo No pack; "O que já está no pack" desligado esconde', async () => {
     const { url } = setup({
-      discover_home: () => makeHome({ popularInPack: ['Create', 'Jade', 'Waystones'] }),
+      discover_home: () => makeHome({ popular: [LITHIUM, MODMENU], updated: [] }),
     });
     await openAdd(url);
-    expect(
-      await screen.findByText(
-        'Create, Jade e Waystones também estão entre os mais baixados, mas já estão no seu pack.',
-      ),
-    ).toBeDefined();
+    const popular = await group('Populares');
+    const lithium = within(popular)
+      .getByRole('button', { name: 'Lithium' })
+      .closest('[role="row"]');
+    expect(lithium && within(lithium as HTMLElement).queryByRole('checkbox')).toBeNull();
+    expect(lithium && within(lithium as HTMLElement).getByText('No pack')).toBeDefined();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'O que já está no pack' }));
+    expect(namesIn(await group('Populares'))).toEqual(['Mod Menu']);
   });
 
-  it('um nome só usa o singular da nota', async () => {
-    const { url } = setup({ discover_home: () => makeHome({ popularInPack: ['Create'] }) });
+  it('bibliotecas ficam escondidas numa linha, e Mostrar as traz de volta', async () => {
+    const { url } = setup({
+      discover_home: () => makeHome({ popular: [MODMENU, FABRIC_API], updated: [] }),
+    });
     await openAdd(url);
-    expect(
-      await screen.findByText(
-        'Create também está entre os mais baixados, mas já está no seu pack.',
-      ),
-    ).toBeDefined();
+    const popular = await group('Populares');
+    expect(namesIn(popular)).toEqual(['Mod Menu']);
+    expect(within(popular).getByText('1 biblioteca escondida')).toBeDefined();
+    expect(within(popular).getByText(/Fabric API/)).toBeDefined();
+    await userEvent.click(within(popular).getByRole('button', { name: 'Mostrar' }));
+    expect(namesIn(await group('Populares'))).toEqual(['Mod Menu', 'Fabric API']);
+    expect(screen.getByRole<HTMLInputElement>('checkbox', { name: /^Bibliotecas/ }).checked).toBe(
+      true,
+    );
+    expect(screen.getByText('Biblioteca')).toBeDefined();
   });
 
-  it('abrir um item do início mostra a pré-visualização e a seleção abre um diálogo só', async () => {
+  it('Lista | Cartões: a seleção continua ao trocar, as bibliotecas viram um grupo fechado e o app lembra o modo', async () => {
+    const { url } = setup({
+      discover_home: () => makeHome({ popular: [MODMENU, FABRIC_API], updated: [APPLESKIN] }),
+    });
+    await openAdd(url);
+    await group('Populares');
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Marcar Mod Menu para adicionar' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Cartões' }));
+    const cards = await screen.findByRole('list', { name: 'Populares' });
+    const mark = within(cards).getByRole('button', { name: 'Marcar Mod Menu para adicionar' });
+    expect(mark.getAttribute('aria-pressed')).toBe('true');
+    expect(mark.textContent).toBe('Marcado');
+    expect(screen.getByRole('region', { name: 'Itens marcados' }).textContent).toContain(
+      '1 marcado',
+    );
+    // As bibliotecas: um grupo fechado.
+    const libraries = screen.getByRole('button', { name: /Bibliotecas populares \(1\)/ });
+    expect(libraries.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('button', { name: 'Fabric API' })).toBeNull();
+    await userEvent.click(libraries);
+    expect(screen.getByRole('button', { name: 'Fabric API' })).toBeDefined();
+    // Marcar pelo cartão também conta.
+    await userEvent.click(
+      within(await screen.findByRole('list', { name: 'Atualizados recentemente' })).getByRole(
+        'button',
+        { name: 'Marcar AppleSkin para adicionar' },
+      ),
+    );
+    expect(screen.getByRole('region', { name: 'Itens marcados' }).textContent).toContain(
+      '2 marcados',
+    );
+    expect(localStorage.getItem('warden.adicionar.modo')).toBe('cartoes');
+    expect(await axePage(document.body)).toHaveNoViolations();
+  });
+
+  it('o app abre no último modo usado', async () => {
+    localStorage.setItem('warden.adicionar.modo', 'cartoes');
     const { url } = setup();
     await openAdd(url);
-    const popular = await screen.findByRole('list', {
-      name: 'Populares para Minecraft 1.20.1 com Forge',
+    expect(await screen.findByRole('list', { name: 'Populares' })).toBeDefined();
+    expect(screen.getByRole('radio', { name: 'Cartões' }).getAttribute('aria-checked')).toBe(
+      'true',
+    );
+    expect(screen.queryByRole('table')).toBeNull();
+  });
+
+  it('a barra dos marcados diz os nomes e as obrigatórias que já dá para saber', async () => {
+    const { url, backend } = setup({
+      add_plan: () =>
+        makePlan({
+          nodes: [
+            makeNode(),
+            makeNode({
+              projectId: 'P7dR8mSH',
+              title: 'Fabric API',
+              role: 'required',
+              requiredBy: ['modrinth:mOgUt4GM'],
+            }),
+          ],
+        }),
     });
-    await userEvent.click(within(popular).getByRole('checkbox', { name: 'Selecionar Mod Menu' }));
-    expect(screen.getByRole('region', { name: 'Itens selecionados' })).toBeDefined();
+    await openAdd(url);
+    await group('Populares');
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Marcar Mod Menu para adicionar' }));
+    const bar = screen.getByRole('region', { name: 'Itens marcados' });
+    expect(bar.textContent).toContain('1 marcado · Mod Menu');
+    expect(bar.textContent).toContain('No próximo passo você confere as dependências');
+    await waitFor(
+      () => {
+        expect(bar.textContent).toContain('Já sabemos de 1 obrigatória: Fabric API.');
+      },
+      { timeout: 5_000 },
+    );
+    expect(backend.callsOf('add_plan')[0]?.args.request).toEqual({
+      items: [{ source: 'modrinth', projectId: 'mOgUt4GM', versionId: null }],
+    });
+    expect(within(bar).getByRole('button', { name: 'Adicionar 1 ao pack' })).toBeDefined();
+  });
+
+  it('clicar no nome mostra o detalhe no lugar dos filtros; "Filtros" volta', async () => {
+    const { url } = setup();
+    await openAdd(url);
+    const popular = await group('Populares');
     await userEvent.click(within(popular).getByRole('button', { name: 'Mod Menu' }));
     expect(
       await screen.findByRole('complementary', { name: 'Pré-visualização: Mod Menu' }),
     ).toBeDefined();
+    expect(screen.queryByRole('complementary', { name: 'Filtros' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Filtros' }));
+    expect(screen.getByRole('complementary', { name: 'Filtros' })).toBeDefined();
   });
 
   it('"Kits de desempenho" (P1-18) no início de mods: "Adicionar kit" abre o diálogo de dependências', async () => {
@@ -141,17 +252,17 @@ describe('início da descoberta', () => {
     const { url, backend } = setup({ kits_list: () => [FABRIC_KIT] });
     await openAdd(url);
     await screen.findByRole('heading', { name: 'Kits de desempenho' });
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Tipo' }), 'shader');
+    await userEvent.click(screen.getByRole('radio', { name: 'Shaders' }));
     await waitFor(() => {
       expect(screen.queryByRole('heading', { name: 'Kits de desempenho' })).toBeNull();
     });
     expect(backend.callsOf('kits_list')).toHaveLength(1);
   });
 
-  it('"Ver mais" dos populares abre a busca ordenada por downloads', async () => {
+  it('"Ver todos" dos populares abre a busca ordenada por downloads', async () => {
     const { url, backend } = setup();
     await openAdd(url);
-    await userEvent.click(await screen.findByRole('button', { name: 'Ver mais dos populares' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Ver todos os populares' }));
     await waitFor(() => {
       expect(backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({
         query: '',
@@ -159,47 +270,99 @@ describe('início da descoberta', () => {
         category: null,
       });
     });
-    expect(await screen.findByRole('list', { name: 'Resultados' })).toBeDefined();
-    expect(screen.queryByRole('list', { name: 'Atualizados recentemente' })).toBeNull();
+    expect(await group('Resultados')).toBeDefined();
+    expect(screen.queryByRole('rowgroup', { name: 'Atualizados recentemente' })).toBeNull();
+    // A coluna Downloads mostra a ordem.
+    expect(screen.getByRole('columnheader', { name: 'Downloads' }).getAttribute('aria-sort')).toBe(
+      'descending',
+    );
   });
 
-  it('escolher a categoria Tecnologia filtra a busca; "Todas as categorias" volta ao início', async () => {
+  it('as colunas ordenam: Atualizado pede a busca ordenada, Nome ordena o que já veio', async () => {
+    const { url, backend } = setup({
+      search_projects: () => makePage([MODMENU, APPLESKIN, SODIUM]),
+    });
+    await openAdd(url);
+    await group('Populares');
+    await userEvent.click(screen.getByRole('button', { name: 'Atualizado' }));
+    await waitFor(() => {
+      expect(backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({
+        sort: 'updated',
+      });
+    });
+    const results = await group('Resultados');
+    expect(namesIn(results)).toEqual(['Mod Menu', 'AppleSkin', 'Sodium']);
+    await userEvent.click(screen.getByRole('button', { name: 'Nome' }));
+    expect(namesIn(await group('Resultados'))).toEqual(['AppleSkin', 'Mod Menu', 'Sodium']);
+    expect(screen.getByRole('columnheader', { name: 'Nome' }).getAttribute('aria-sort')).toBe(
+      'ascending',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Nome' }));
+    expect(namesIn(await group('Resultados'))).toEqual(['Sodium', 'Mod Menu', 'AppleSkin']);
+  });
+
+  it('escolher a categoria Tecnologia filtra a busca; "Todas" volta ao início', async () => {
     const { url, backend } = setup();
     await openAdd(url);
-    await userEvent.click(await screen.findByRole('radio', { name: 'Tecnologia' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Tecnologia' }));
     await waitFor(() => {
       expect(backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({
         kind: 'mod',
         category: 'tecnologia',
       });
     });
-    expect(await screen.findByRole('list', { name: 'Resultados' })).toBeDefined();
-    expect(screen.getByRole<HTMLInputElement>('radio', { name: 'Tecnologia' }).checked).toBe(true);
-    // O botão de filtros conta a categoria.
-    expect(screen.getByRole('button', { name: 'Filtros · 1 ativo' })).toBeDefined();
-    await userEvent.click(screen.getByRole('radio', { name: 'Todas as categorias' }));
-    expect(
-      await screen.findByRole('list', { name: 'Populares para Minecraft 1.20.1 com Forge' }),
-    ).toBeDefined();
+    // O grupo leva o nome da categoria.
+    expect(await group('Tecnologia')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Tecnologia' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Todas' }));
+    expect(await group('Populares')).toBeDefined();
   });
 
-  it('categoria só do Modrinth diz de qual fonte é', async () => {
-    const { url } = setup();
+  it('categoria só do Modrinth leva a marca da loja, sem texto quebrando', async () => {
+    const { url } = setup({
+      discover_categories: () => [
+        ...CATEGORIES,
+        { id: 'redstone', name: 'Redstone', sources: ['curseforge'] },
+      ],
+    });
     await openAdd(url);
-    const radio = await screen.findByRole('radio', { name: /Desempenho/ });
-    expect(radio.closest('label')?.textContent).toContain('Só no Modrinth');
+    const only = await screen.findByRole('button', { name: /Desempenho/ });
+    expect(only.getAttribute('title')).toBe('Desempenho · Só no Modrinth');
+    expect(only.querySelector('.srcdots__mark--modrinth')).not.toBeNull();
+    expect(only.textContent).not.toContain('Só no');
+    expect(screen.getByRole('button', { name: /Redstone/ }).getAttribute('title')).toBe(
+      'Redstone · Só na CurseForge',
+    );
   });
 
-  it('sem a CurseForge ligada, nenhuma categoria leva a nota "Só no Modrinth"', async () => {
+  it('sem a CurseForge ligada, nenhuma categoria leva a marca de uma loja só', async () => {
     const { url } = setup({
       discover_categories: () =>
         CATEGORIES.map((category) => ({ ...category, sources: ['modrinth' as const] })),
     });
     await openAdd(url);
     const filters = await screen.findByRole('complementary', { name: 'Filtros' });
-    const tech = await within(filters).findByRole('radio', { name: 'Tecnologia' });
-    expect(tech.closest('label')?.textContent).toBe('Tecnologia');
-    expect(within(filters).queryByText(/Só no Modrinth/)).toBeNull();
+    const tech = await within(filters).findByRole('button', { name: 'Tecnologia' });
+    expect(tech.getAttribute('title')).toBe('Tecnologia');
+    expect(filters.querySelector('.clist .srcdots')).toBeNull();
+  });
+
+  it('a lista de categorias é curta: 8 e "Mais N categorias"', async () => {
+    const many = Array.from({ length: 11 }, (_, index) => ({
+      id: `c${String(index)}`,
+      name: `Categoria ${String(index + 1)}`,
+      sources: ['modrinth' as const, 'curseforge' as const],
+    }));
+    const { url } = setup({ discover_categories: () => many });
+    await openAdd(url);
+    const filters = await screen.findByRole('complementary', { name: 'Filtros' });
+    await within(filters).findByRole('button', { name: 'Categoria 8' });
+    expect(within(filters).queryByRole('button', { name: 'Categoria 9' })).toBeNull();
+    await userEvent.click(within(filters).getByRole('button', { name: 'Mais 3 categorias' }));
+    expect(within(filters).getByRole('button', { name: 'Categoria 11' })).toBeDefined();
+    expect(within(filters).getByRole('button', { name: 'Mostrar menos' })).toBeDefined();
   });
 
   it('trocar o tipo volta os filtros (as categorias são de cada tipo)', async () => {
@@ -210,9 +373,31 @@ describe('início da descoberta', () => {
           : CATEGORIES,
     });
     await openAdd(url);
-    await userEvent.click(await screen.findByRole('radio', { name: 'Magia' }));
-    await screen.findByRole('list', { name: 'Resultados' });
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Tipo' }), 'shader');
+    await userEvent.click(await screen.findByRole('button', { name: 'Magia' }));
+    await group('Magia');
+    await userEvent.click(screen.getByRole('radio', { name: 'Shaders' }));
+    expect(await screen.findByRole('button', { name: 'Realista' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Todas' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('Limpar volta os filtros ao padrão', async () => {
+    const { url, backend } = setup();
+    await openAdd(url);
+    const filters = await screen.findByRole('complementary', { name: 'Filtros' });
+    const clear = within(filters).getByRole<HTMLButtonElement>('button', { name: 'Limpar' });
+    expect(clear.disabled).toBe(true);
+    await userEvent.click(within(filters).getByRole('radio', { name: 'Servidor' }));
+    await waitFor(() => {
+      expect(backend.callsOf('search_projects').at(-1)?.args.request).toMatchObject({
+        environment: 'server',
+      });
+    });
+    expect(clear.disabled).toBe(false);
+    await userEvent.click(clear);
+    expect(await group('Populares')).toBeDefined();
+    expect(
+      within(filters).getByRole('radio', { name: 'Qualquer' }).getAttribute('aria-checked'),
+    ).toBe('true');
   });
 
   it('fonte fora do ar no início: aviso com "Tentar de novo" que refaz o início', async () => {
@@ -264,34 +449,5 @@ describe('início da descoberta', () => {
     });
     await openAdd(url);
     expect(await screen.findByText('Não foi possível montar o início agora.')).toBeDefined();
-  });
-
-  it('Já no pack pelo inventário também some da seleção do início', async () => {
-    const { url } = setup({
-      discover_home: () => makeHome({ popular: [LITHIUM, SODIUM], updated: [] }),
-    });
-    await openAdd(url);
-    const popular = await screen.findByRole('list', {
-      name: 'Populares para Minecraft 1.20.1 com Forge',
-    });
-    const lithium = within(popular).getByRole('button', { name: 'Lithium' }).closest('li');
-    expect(lithium && within(lithium).queryByRole('checkbox')).toBeNull();
-  });
-});
-
-describe('coluna de filtros que recolhe', () => {
-  it('o botão Filtros abre e fecha a coluna (a CSS decide quando ele aparece)', async () => {
-    const { url } = setup();
-    await openAdd(url);
-    const button = await screen.findByRole('button', { name: 'Filtros' });
-    expect(button.getAttribute('aria-expanded')).toBe('false');
-    const body = document.getElementById(button.getAttribute('aria-controls') ?? '');
-    expect(body).not.toBeNull();
-    expect(body?.closest('.disc__filters')?.classList.contains('is-open')).toBe(false);
-    await userEvent.click(button);
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-    expect(body?.closest('.disc__filters')?.classList.contains('is-open')).toBe(true);
-    await userEvent.click(button);
-    expect(button.getAttribute('aria-expanded')).toBe('false');
   });
 });

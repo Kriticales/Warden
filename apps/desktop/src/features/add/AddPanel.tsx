@@ -1,35 +1,39 @@
 /**
- * Página Adicionar (SPEC T08; ESTRUTURA N6; protótipo `adicionar-busca`): em tela cheia, com o
- * menu do pack recolhido (a rota declara `packMenu: 'compact'`) e o cabeçalho do pack visível.
- * Sem abas: seletor **Tipo**, um campo único de busca e **Escolher arquivo do computador…**
- * (P1-11). Três colunas: filtros, resultados (com caixa de seleção e a barra "N selecionados ·
- * Adicionar N ao pack") e pré-visualização. Adicionar abre sempre **um** diálogo de dependências
- * (T09) para o conjunto; depois de gravar, a busca continua aberta e os itens passam a mostrar
- * "Já no pack".
+ * Página Adicionar ao pack (SPEC T08; ESTRUTURA N6; esboço aprovado
+ * `design/bug-01/adicionar.html`, opção 4 · As duas, com seletor; ADR-0068): em tela cheia, com
+ * o menu do pack recolhido (a rota declara `packMenu: 'compact'`) e o cabeçalho do pack visível.
  *
- * Com o campo vazio e sem filtros, o início (P1-16): "Populares para <loader> <versão>" e
- * "Atualizados recentemente", mais as categorias na coluna de filtros. Digitar, escolher uma
- * categoria ou mexer num filtro troca o início pela busca. Um link colado no campo é lido no
- * lugar da busca: da CurseForge (P1-10), pelo packwiz numa cópia do pack (ARCHITECTURE §6.1); do
- * Modrinth, pela API; direto `https://`, baixado uma vez; `http://`, recusado sem baixar nada
- * (P1-11). Arquivos escolhidos no computador ou arrastados para a janela abrem a lista de
- * arquivos (`local/`), com a identificação pelo hash e o bloqueio de loader ou versão.
+ * Duas colunas: à esquerda o tipo (Mods, Resource packs, Shaders, Modpacks), o campo único de
+ * busca, o seletor **Lista | Cartões** (o app lembra o último modo; o que foi marcado continua
+ * marcado ao trocar), a linha discreta com a trava de versão, os resultados e a barra dos
+ * marcados; à direita os filtros, que dão lugar ao detalhe do mod quando você clica no nome
+ * dele. Adicionar abre sempre **um** diálogo Adicionar itens (T09) para o conjunto; depois de
+ * gravar, a busca continua aberta e os itens passam a mostrar "No pack".
+ *
+ * Com o campo vazio e sem filtros, o início (P1-16): "Populares" e "Atualizados recentemente",
+ * mais os kits. Digitar, escolher uma categoria ou mexer num filtro de busca troca o início pela
+ * busca. Um link colado no campo é lido no lugar da busca: da CurseForge (P1-10), pelo packwiz
+ * numa cópia do pack (ARCHITECTURE §6.1); do Modrinth, pela API; direto `https://`, baixado uma
+ * vez; `http://`, recusado sem baixar nada (P1-11). Arquivos escolhidos no computador ou
+ * arrastados para a janela abrem a lista de arquivos (`local/`), com a identificação pelo hash e
+ * o bloqueio de loader ou versão.
  *
  * Com Tipo = Modpacks (P1-17), os resultados são modpacks sem caixa de seleção (um modpack nunca
- * entra no pack) e abrir um deles mostra, no lugar da pré-visualização, a lista de mods dele
- * (`modpacks/`), cuja seleção abre o mesmo diálogo de dependências.
+ * entra no pack) e abrir um deles mostra, no lugar dos filtros, a lista de mods dele
+ * (`modpacks/`), cuja seleção abre o mesmo diálogo.
  */
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft, FilePlus, Plus, Search } from 'lucide-react';
+import { ArrowLeft, FilePlus, LayoutGrid, List, Lock, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
-import { PageHead } from '../../app/layout/PageHead';
+import { PageTitle } from '../../app/layout/PageHead';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorPanel } from '../../components/common/ErrorPanel';
 import { Skeleton } from '../../components/common/LoadingState';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { Icon } from '../../components/ui/icon';
+import { Segmented } from '../../components/ui/segmented';
 import { cn } from '../../lib/cn';
 import type {
   AddResult,
@@ -40,7 +44,9 @@ import type {
   PackId,
   ProjectKind,
   SearchResult,
+  SourceId,
 } from '../../lib/ipc/bindings';
+import { loaderName } from '../packs/lib/pack-list';
 import { useInventory } from '../pack-editor/api';
 import { usePack } from '../packs/api';
 import { useSearch } from './common/api';
@@ -48,34 +54,40 @@ import {
   activeFilterCount,
   FiltersColumn,
   NO_FILTERS,
+  searchFilters,
   type UserFilters,
 } from './common/FiltersColumn';
 import { isInPack, knownSources, mergePages, pageWarnings, sourceLabel } from './common/model';
-import { ResultRow } from './common/ResultRow';
-import { type PackTarget, useTargetText } from './common/text';
+import { type PackTarget, SourceLegend, useTargetText } from './common/text';
 import { WarningAlert } from './common/WarningAlert';
 import type { LinkPick } from './curseforge/api';
 import { resultOfLink } from './curseforge/link';
 import { CurseforgeLinkPanel } from './curseforge/LinkPanel';
 import { DependenciesDialog, type DependenciesRequest } from './dependencies/DependenciesDialog';
+import { useDiscoverCategories, useDiscoverHome } from './discover/api';
 import { DiscoverHome } from './discover/DiscoverHome';
 import { DirectLinkPanel } from './link/DirectLinkPanel';
 import { classifyLink } from './link/link';
 import { ModrinthLinkPanel, resultOfModrinthLink } from './link/ModrinthLinkPanel';
-import { ModpackPanel } from './modpacks/ModpackPanel';
-import { ModpackRow } from './modpacks/ModpackRow';
 import { RefusedLink } from './link/RefusedLink';
 import { useChooseFiles } from './local/api';
 import { takePendingDrop, useDroppedFiles } from './local/dropped';
 import { LocalFilesPanel } from './local/LocalFilesPanel';
-import { preferredRef } from './modrinth/source';
+import { ModpackPanel } from './modpacks/ModpackPanel';
+import { ModpackRow } from './modpacks/ModpackRow';
 import { Preview } from './preview/Preview';
+import { readViewMode, saveViewMode, type ViewMode } from './results/model';
+import { ResultsView, type ResultsViewProps } from './results/ResultsView';
+import { choicesOf, SelectionBar } from './results/SelectionBar';
 import './common/add.css';
 
 export const PROJECT_KINDS: readonly ProjectKind[] = ['mod', 'resourcePack', 'shader', 'modpack'];
 
 /** Espera entre a última tecla e a busca. */
 const TYPING_DELAY_MS = 300;
+
+/** A categoria curada das bibliotecas: escolhida, elas aparecem. */
+const LIBRARIES_CATEGORY = 'bibliotecas';
 
 export interface AddPanelProps {
   packId: PackId;
@@ -112,22 +124,28 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   // sair do início, seria uma busca vazia que troca a lista logo depois, levando o foco junto).
   const typing = typedLink === null && text.trim() !== query;
   const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
-  // O início aparece com o campo vazio e sem nenhum filtro; qualquer um deles liga a busca.
-  // Modpacks não têm início: o campo vazio já lista os modpacks para o pack.
+  const [view, setView] = useState<ViewMode>(() => readViewMode());
+  // O início aparece com o campo vazio e sem nenhum filtro de busca; qualquer um deles liga a
+  // busca. Modpacks não têm início: o campo vazio já lista os modpacks para o pack.
   const modpacks = kind === 'modpack';
   const showHome =
     !modpacks && query === '' && text.trim() === '' && activeFilterCount(filters) === 0;
-  const search = useSearch(packId, { query, kind, ...filters }, !showHome && !typing);
+  const search = useSearch(
+    packId,
+    { query, kind, ...searchFilters(filters) },
+    !showHome && !typing,
+  );
   const [selected, setSelected] = useState<ReadonlyMap<string, SearchResult>>(new Map());
   const [current, setCurrent] = useState<SearchResult | null>(null);
   const [request, setRequest] = useState<DependenciesRequest | null>(null);
   const [added, setAdded] = useState(0);
-  // O projeto do link aberto na pré-visualização, e a versão escolhida lá para o packwiz ler.
+  // O projeto do link aberto no detalhe, e a versão escolhida lá para o packwiz ler.
   const [linkProject, setLinkProject] = useState<{ url: string; projectId: string } | null>(null);
   const [linkPick, setLinkPick] = useState<LinkPick | null>(null);
   // Arquivos do computador (escolhidos ou arrastados), aberto no lugar dos resultados.
   const [local, setLocal] = useState<LocalFilesDropped | null>(() => takePendingDrop());
   const chooseFiles = useChooseFiles(packId);
+  const categories = useDiscoverCategories(kind);
   const id = useId();
 
   const target: PackTarget = {
@@ -137,7 +155,10 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
   const pages = useMemo(() => search.data?.pages ?? [], [search.data]);
   const results = useMemo(() => mergePages(pages), [pages]);
   const warnings = useMemo(() => pageWarnings(pages), [pages]);
-  const sources = useMemo(() => knownSources(pages), [pages]);
+  // O início pede as fontes ao mesmo tempo (a mesma consulta que a lista do início usa).
+  const home = useDiscoverHome(packId, kind, showHome);
+  const searchSources = useMemo(() => knownSources(pages), [pages]);
+  const sources = showHome ? (home.data?.sources ?? []) : searchSources;
   const inventoryKeys = useMemo(
     () => new Set((inventory.data?.items ?? []).map((item) => item.key)),
     [inventory.data],
@@ -152,12 +173,13 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     });
   }, []);
 
+  const changeView = (next: ViewMode) => {
+    setView(next);
+    saveViewMode(next);
+  };
+
   const openDialog = (items: readonly SearchResult[]) => {
-    const choices = items.flatMap((result) => {
-      const ref = preferredRef(result.sources);
-      return ref ? [{ source: ref.source, projectId: ref.projectId, versionId: null }] : [];
-    });
-    setRequest({ choices, titles: items.map((result) => result.title) });
+    setRequest({ choices: choicesOf(items), titles: items.map((result) => result.title) });
   };
 
   const onAdded = (result: AddResult) => {
@@ -207,7 +229,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     setAdded((count) => count + result.added.length);
   };
 
-  // A lista de arquivos ocupa o lugar dos resultados: a pré-visualização aberta fecha.
+  // A lista de arquivos ocupa o lugar dos resultados: o detalhe aberto fecha.
   const openLocal = (files: LocalFilesDropped) => {
     setCurrent(null);
     setLocal(files);
@@ -217,6 +239,14 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     if (dropped.files.length > 0 || dropped.ignored > 0) openLocal(dropped);
   });
 
+  const changeKind = (next: ProjectKind) => {
+    setSelected(new Map());
+    setCurrent(null);
+    // As categorias são de cada tipo: trocar o tipo volta os filtros ao começo.
+    setFilters(NO_FILTERS);
+    onKindChange(next);
+  };
+
   const modpackOpen = modpacks && current !== null;
 
   const loading =
@@ -224,46 +254,111 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
     !showHome &&
     (search.isPending || (search.isFetching && !search.isFetchingNextPage));
 
+  // A Lista e os Cartões mostram as mesmas coisas, do mesmo jeito.
+  const resultsProps: Omit<ResultsViewProps, 'groups'> = {
+    view,
+    options: {
+      hideLibraries:
+        kind === 'mod' &&
+        !filters.showLibraries &&
+        query === '' &&
+        filters.category !== LIBRARIES_CATEGORY,
+      showInPack: filters.showInPack,
+      inventoryKeys,
+    },
+    selected,
+    currentKey: current?.key ?? null,
+    onToggle: toggle,
+    onOpen: setCurrent,
+    onShowLibraries: () => {
+      setFilters((now) => ({ ...now, showLibraries: true }));
+    },
+    sort: filters.sort,
+    onSort: (sort) => {
+      setFilters((now) => ({ ...now, sort }));
+    },
+  };
+  const categoryName =
+    filters.category === null
+      ? null
+      : (categories.data?.find((category) => category.id === filters.category)?.name ?? null);
+  const groupTitle =
+    query !== ''
+      ? t('resultado.resultadosPara', { query })
+      : (categoryName ?? t('resultado.lista'));
+  // As fontes da linha da trava: as da busca (ou do início) ou, antes delas, as duas.
+  const lockSources: readonly SourceId[] =
+    sources.length > 0 ? sources : ['modrinth', 'curseforge'];
+
   return (
-    <div className="add-page">
-      <PageHead
-        title={t('titulo')}
-        back={
+    <div
+      className={cn(
+        'add-page',
+        current && !modpacks && 'add-page--detail',
+        modpackOpen && 'add-page--modpack',
+      )}
+    >
+      <div className="add-main">
+        <div className="addhead">
           <Link
             to="/packs/$packId/mods"
             params={{ packId }}
-            className={buttonVariants({ variant: 'ghost', size: 'sm' })}
-          >
-            <Icon icon={ArrowLeft} />
-            <span>{added > 0 ? t('voltarAdicionados', { count: added }) : t('voltar')}</span>
-          </Link>
-        }
-      />
-      <div className="add-top" role="search">
-        <select
-          className="select"
-          aria-label={t('tipo.rotulo')}
-          value={kind}
-          onChange={(event) => {
-            const next = PROJECT_KINDS.find((value) => value === event.target.value);
-            if (next) {
-              setSelected(new Map());
-              setCurrent(null);
-              // As categorias são de cada tipo: trocar o tipo volta os filtros ao começo.
-              setFilters(NO_FILTERS);
-              onKindChange(next);
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'addhead__back')}
+            title={t('voltarDica')}
+            aria-label={
+              added > 0 ? t('voltarRotuloAdicionados', { count: added }) : t('voltarRotulo')
             }
-          }}
-        >
-          {PROJECT_KINDS.map((value) => (
-            <option key={value} value={value}>
-              {t(`tipo.${value}`)}
-            </option>
-          ))}
-        </select>
-        <div className="omnibox">
-          <div className="grow">
-            <div className={cn('inputwrap', loading && 'inputwrap--loading')}>
+          >
+            <Icon icon={ArrowLeft} size="sm" />
+            <span>{t('voltar')}</span>
+            {added > 0 ? (
+              <span className="addhead__added">{t('adicionados', { count: added })}</span>
+            ) : null}
+          </Link>
+          <span className="addhead__sep" aria-hidden="true" />
+          <PageTitle className="addhead__title">{t('titulo')}</PageTitle>
+          <span className="grow" />
+          <Button
+            icon={FilePlus}
+            title={t('arquivo.dica')}
+            loading={chooseFiles.isPending}
+            onClick={() => {
+              chooseFiles.mutate(undefined, {
+                onSuccess: (files) => {
+                  if (files.length > 0) openLocal({ files, ignored: 0 });
+                },
+              });
+            }}
+          >
+            {t('arquivo.escolher')}
+          </Button>
+        </div>
+
+        <div className="addsearch" role="search">
+          <div className="addsearch__row">
+            <Segmented
+              className="addsearch__kind"
+              label={t('tipo.rotulo')}
+              value={kind}
+              options={PROJECT_KINDS.map((value) => ({ value, label: t(`tipo.${value}`) }))}
+              onChange={changeKind}
+            />
+            <select
+              className="select addsearch__kindselect"
+              aria-label={t('tipo.rotulo')}
+              value={kind}
+              onChange={(event) => {
+                const next = PROJECT_KINDS.find((value) => value === event.target.value);
+                if (next) changeKind(next);
+              }}
+            >
+              {PROJECT_KINDS.map((value) => (
+                <option key={value} value={value}>
+                  {t(`tipo.${value}`)}
+                </option>
+              ))}
+            </select>
+            <div className={cn('inputwrap addsearch__field', loading && 'inputwrap--loading')}>
               <Icon icon={Search} />
               {loading ? (
                 <span className="loader" aria-hidden="true">
@@ -287,64 +382,49 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
                 }}
               />
             </div>
-            <div className="omnibox__status" id={`${id}-status`} role="status">
-              <StatusText
-                loading={loading}
-                query={query}
-                total={Math.max(pages[0]?.total ?? 0, results.length)}
-                sources={pages[0]?.sources ?? []}
+            {modpacks ? null : (
+              <Segmented
+                className="addsearch__view"
+                label={t('modo.rotulo')}
+                value={view}
+                options={[
+                  { value: 'lista', label: t('modo.lista'), icon: List, hint: t('modo.listaDica') },
+                  {
+                    value: 'cartoes',
+                    label: t('modo.cartoes'),
+                    icon: LayoutGrid,
+                    hint: t('modo.cartoesDica'),
+                  },
+                ]}
+                onChange={changeView}
               />
-            </div>
+            )}
+          </div>
+          <LockLine target={target} sources={lockSources} />
+          <div className="sr-only addsearch__status" id={`${id}-status`} role="status">
+            <StatusText
+              loading={loading}
+              query={query}
+              total={Math.max(pages[0]?.total ?? 0, results.length)}
+              sources={pages[0]?.sources ?? []}
+            />
           </div>
         </div>
-        <Button
-          icon={FilePlus}
-          loading={chooseFiles.isPending}
-          onClick={() => {
-            chooseFiles.mutate(undefined, {
-              onSuccess: (files) => {
-                if (files.length > 0) openLocal({ files, ignored: 0 });
-              },
-            });
-          }}
-        >
-          {t('arquivo.escolher')}
-        </Button>
-      </div>
 
-      {!showHome && warnings.length > 0 ? (
-        <div className="stack-2 preview__section">
-          {warnings.map((warning) => (
-            <WarningAlert
-              key={`${warning.source}:${warning.reason}`}
-              warning={warning}
-              onRetry={() => {
-                void search.refetch();
-              }}
-            />
-          ))}
-        </div>
-      ) : null}
-
-      <div
-        className={cn(
-          'disc',
-          showHome && !current && 'disc--start',
-          modpackOpen && 'disc--modpack',
-          modpacks && !current && 'disc--start',
-        )}
-      >
-        {/* Com um modpack aberto, a lista de mods dele ocupa o lugar dos filtros. */}
-        {modpackOpen ? null : (
-          <FiltersColumn
-            kind={kind}
-            target={target}
-            filters={filters}
-            onChange={setFilters}
-            sources={sources}
-          />
-        )}
-        <div className="disc__main">
+        <div className="addscroll">
+          {!showHome && warnings.length > 0 ? (
+            <div className="stack-2 addscroll__warn">
+              {warnings.map((warning) => (
+                <WarningAlert
+                  key={`${warning.source}:${warning.reason}`}
+                  warning={warning}
+                  onRetry={() => {
+                    void search.refetch();
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
           {chooseFiles.isError ? (
             <ErrorPanel compact title={t('erro')} error={chooseFiles.error} />
           ) : null}
@@ -399,11 +479,7 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               packId={packId}
               kind={kind}
               target={target}
-              selected={selected}
-              currentKey={current?.key ?? null}
-              inventoryKeys={inventoryKeys}
-              onToggle={toggle}
-              onOpen={setCurrent}
+              results={resultsProps}
               onSeeMore={(sort) => {
                 setFilters({ ...filters, sort });
               }}
@@ -432,28 +508,23 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
             />
           ) : (
             <>
-              <ul className="dlist" aria-label={t('resultado.lista')}>
-                {results.map((result) =>
-                  modpacks ? (
+              {modpacks ? (
+                <ul className="dlist" aria-label={t('resultado.lista')}>
+                  {results.map((result) => (
                     <ModpackRow
                       key={result.key}
                       result={result}
                       current={current?.key === result.key}
                       onOpen={setCurrent}
                     />
-                  ) : (
-                    <ResultRow
-                      key={result.key}
-                      result={result}
-                      inPack={isInPack(result, inventoryKeys)}
-                      selected={selected.has(result.key)}
-                      current={current?.key === result.key}
-                      onToggle={toggle}
-                      onOpen={setCurrent}
-                    />
-                  ),
-                )}
-              </ul>
+                  ))}
+                </ul>
+              ) : (
+                <ResultsView
+                  {...resultsProps}
+                  groups={[{ key: 'resultados', title: groupTitle, items: results, total: null }]}
+                />
+              )}
               <MoreResults
                 hasMore={search.hasNextPage}
                 loading={search.isFetchingNextPage}
@@ -463,33 +534,22 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               />
             </>
           )}
-          {selected.size > 0 ? (
-            <div className="selbar disc__selbar" role="region" aria-label={t('selecao.rotulo')}>
-              <span className="selbar__count" aria-live="polite">
-                {t('selecao.contagem', { count: selected.size })}
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setSelected(new Map());
-                }}
-              >
-                {t('selecao.limpar')}
-              </Button>
-              <span className="grow" />
-              <Button
-                variant="primary"
-                icon={Plus}
-                onClick={() => {
-                  openDialog([...selected.values()]);
-                }}
-              >
-                {t('selecao.adicionar', { count: selected.size })}
-              </Button>
-            </div>
-          ) : null}
         </div>
+        {selected.size > 0 ? (
+          <SelectionBar
+            packId={packId}
+            selected={[...selected.values()]}
+            onClear={() => {
+              setSelected(new Map());
+            }}
+            onAdd={() => {
+              openDialog([...selected.values()]);
+            }}
+          />
+        ) : null}
+      </div>
+
+      <div className="add-side">
         {modpackOpen ? (
           <ModpackPanel
             key={current.key}
@@ -504,33 +564,57 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
               setCurrent(null);
             }}
           />
-        ) : modpacks ? null : current ? (
-          <Preview
-            key={current.key}
-            packId={packId}
-            result={current}
-            inPack={isInPack(current, inventoryKeys)}
-            kind={kind}
-            target={target}
-            onAdd={(choice, title) => {
-              // Do link de projeto: quem lê a versão escolhida é o packwiz (CA-T08-03).
-              const fileId = choice.versionId;
-              const fromLink =
-                linkUrl !== null &&
-                linkProject?.url === linkUrl &&
-                choice.source === 'curseforge' &&
-                choice.projectId === linkProject.projectId;
-              if (fromLink && typeof fileId === 'string') {
-                setLinkPick({ projectId: choice.projectId, fileId });
-              } else {
-                setRequest({ choices: [choice], titles: [title] });
-              }
-            }}
-          />
+        ) : current && !modpacks ? (
+          <div className="add-side__detail" role="region" aria-label={t('filtros.detalheRotulo')}>
+            <div className="sidehead sidehead--back">
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={ArrowLeft}
+                onClick={() => {
+                  setCurrent(null);
+                }}
+              >
+                {t('filtros.detalheVoltar')}
+              </Button>
+              <span className="grow" />
+              <Button
+                size="sm"
+                variant="ghost"
+                iconOnly
+                icon={X}
+                onClick={() => {
+                  setCurrent(null);
+                }}
+              >
+                {t('filtros.detalheFechar')}
+              </Button>
+            </div>
+            <Preview
+              key={current.key}
+              packId={packId}
+              result={current}
+              inPack={isInPack(current, inventoryKeys)}
+              kind={kind}
+              target={target}
+              onAdd={(choice, title) => {
+                // Do link de projeto: quem lê a versão escolhida é o packwiz (CA-T08-03).
+                const fileId = choice.versionId;
+                const fromLink =
+                  linkUrl !== null &&
+                  linkProject?.url === linkUrl &&
+                  choice.source === 'curseforge' &&
+                  choice.projectId === linkProject.projectId;
+                if (fromLink && typeof fileId === 'string') {
+                  setLinkPick({ projectId: choice.projectId, fileId });
+                } else {
+                  setRequest({ choices: [choice], titles: [title] });
+                }
+              }}
+            />
+          </div>
         ) : (
-          <aside className="panel disc__preview" aria-label={t('previa.rotuloVazio')}>
-            <p className="t-sm t-3">{t('previa.nenhuma')}</p>
-          </aside>
+          <FiltersColumn kind={kind} filters={filters} onChange={setFilters} sources={sources} />
         )}
       </div>
 
@@ -544,6 +628,35 @@ export function AddPanel({ packId, kind, onKindChange }: AddPanelProps) {
         onAdded={onAdded}
       />
     </div>
+  );
+}
+
+/** "🔒 Só versões para Minecraft 1.21.1 com NeoForge, no Modrinth e na CurseForge." */
+function LockLine({ target, sources }: { target: PackTarget; sources: readonly SourceId[] }) {
+  const { t } = useTranslation('adicionar');
+  const fontes = t(`trava.fontes.${sourceLabel(sources.map((source) => ({ source })))}`);
+  return (
+    <p className="lockline">
+      <Icon icon={Lock} size="sm" />
+      <span>
+        {target.loader ? (
+          <Trans
+            t={t}
+            i18nKey="trava.texto"
+            values={{ minecraft: target.minecraft, loader: loaderName(target.loader), fontes }}
+            components={{ b: <b /> }}
+          />
+        ) : (
+          <Trans
+            t={t}
+            i18nKey="trava.textoSemLoader"
+            values={{ minecraft: target.minecraft, fontes }}
+            components={{ b: <b /> }}
+          />
+        )}
+      </span>
+      <SourceLegend sources={sources} />
+    </p>
   );
 }
 
@@ -567,19 +680,19 @@ function StatusText({
 
 function ResultsSkeleton() {
   return (
-    <ul className="dlist" aria-busy="true">
-      {Array.from({ length: 5 }, (_, index) => (
-        <li key={index} className="drow" aria-hidden="true">
+    <div className="tbl" aria-busy="true">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div key={index} className="trow" aria-hidden="true">
           <Skeleton shape="tile" width="18px" />
-          <Skeleton shape="tile" width="40px" />
-          <span className="stack-2">
-            <Skeleton width="45%" />
-            <Skeleton width="80%" />
-          </span>
+          <Skeleton width="70%" />
+          <Skeleton width="85%" />
+          <Skeleton width="80%" />
+          <Skeleton width="80%" />
           <span />
-        </li>
+          <span />
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 

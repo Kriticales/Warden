@@ -204,7 +204,7 @@ describe('Adicionar por link e arquivo do computador (P1-11)', () => {
     // Um endereço que existe e responderia: o servidor de fixtures, por http.
     await typeInField(`${MOCK_URL}/direto/files.example.com/mods/Mod%20do%20Link%202.0.jar`);
     await $('.alert*=Links http:// não são aceitos.').waitForDisplayed({ timeout: 15_000 });
-    expect(await fullText('.disc__main')).toContain('Nada foi baixado.');
+    expect(await fullText('.addscroll')).toContain('Nada foi baixado.');
     await browser.pause(800);
     expect((await requests()).filter((line) => line.includes('/direto/'))).toEqual([]);
     expect(await seriousViolationSummaries()).toEqual([]);
@@ -265,7 +265,7 @@ describe('Adicionar por link e arquivo do computador (P1-11)', () => {
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
     await browser.waitUntil(
-      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      async () => (await fullText('[role="dialog"]')).includes('entrar no pack'),
       { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
     );
     await dialog.$('button=Adicionar 1 item').click();
@@ -299,7 +299,7 @@ describe('Adicionar por link e arquivo do computador (P1-11)', () => {
     expect(readFileSync(join(FORGE_PACK, 'mods', 'Mod Fabric (teste) ç.jar'))).toEqual(fabricJar);
     expect(read(FORGE_PACK, 'index.toml')).toContain('mods/Mod Fabric (teste) ç.jar');
     await dismissToasts();
-    await $('a*=Voltar para Mods').click();
+    await $('a[aria-label^="Voltar para Mods"]').click();
     await $('h1=Mods').waitForDisplayed();
     await $('tr.modrow*=Mod Fabric (teste) ç').waitForDisplayed({ timeout: 30_000 });
     await screenshot('06-na-lista');

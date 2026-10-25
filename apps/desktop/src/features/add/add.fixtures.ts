@@ -39,6 +39,7 @@ export function makeResult(overrides: Partial<SearchResult> = {}): SearchResult 
     inPack: false,
     compatible: true,
     manualDownload: false,
+    isLibrary: false,
     ...overrides,
     sources,
   };
@@ -63,6 +64,13 @@ export const LITHIUM = makeResult({
   summary: 'Otimiza a lógica do jogo.',
   inPack: true,
   sources: [ref('gvQqBUqZ', { slug: 'lithium' })],
+});
+export const FABRIC_API = makeResult({
+  title: 'Fabric API',
+  author: 'modmuss50',
+  summary: 'Biblioteca básica para mods de Fabric.',
+  isLibrary: true,
+  sources: [ref('P7dR8mSH', { slug: 'fabric-api' })],
 });
 export const OLD_MOD = makeResult({
   title: 'Mod Antigo',
@@ -141,6 +149,7 @@ export function makeNode(overrides: Partial<PlanNode> = {}): PlanNode {
     projectId,
     slug: 'modmenu',
     title: 'Mod Menu',
+    summary: 'Lista os mods no menu.',
     iconUrl: null,
     kind: 'mod',
     versionId: 'V-MODMENU',
@@ -203,7 +212,8 @@ export function makeHome(overrides: Partial<DiscoverHome> = {}): DiscoverHome {
   return {
     popular: [SODIUM, MODMENU],
     updated: [APPLESKIN],
-    popularInPack: [],
+    popularTotal: 2481,
+    updatedTotal: 2481,
     sources: ['modrinth'],
     warnings: [],
     ...overrides,

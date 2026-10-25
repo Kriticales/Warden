@@ -175,7 +175,7 @@ describe('link da CurseForge no campo único', () => {
       add_plan: () => plan,
     });
     await openAdd(url);
-    const field = screen.getByRole('searchbox', { name: 'Buscar' });
+    const field = screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' });
     await userEvent.click(field);
     await userEvent.paste(FILE_LINK);
     const dialog = await screen.findByRole('dialog', { name: 'Adicionar Just Enough Items (JEI)' });
@@ -199,7 +199,9 @@ describe('link da CurseForge no campo único', () => {
   it('link de projeto abre a pré-visualização com o seletor de versão', async () => {
     const { url, backend } = setup({ curseforge_link_resolve: () => JEI });
     await openAdd(url);
-    await userEvent.click(screen.getByRole('searchbox', { name: 'Buscar' }));
+    await userEvent.click(
+      screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' }),
+    );
     await userEvent.paste(PROJECT_LINK);
     const preview = await screen.findByRole('complementary', {
       name: 'Pré-visualização: Just Enough Items (JEI)',
@@ -228,7 +230,9 @@ describe('link da CurseForge no campo único', () => {
       add_plan: () => plan,
     });
     await openAdd(url);
-    await userEvent.click(screen.getByRole('searchbox', { name: 'Buscar' }));
+    await userEvent.click(
+      screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' }),
+    );
     await userEvent.paste(PROJECT_LINK);
     const preview = await screen.findByRole('complementary', {
       name: 'Pré-visualização: Just Enough Items (JEI)',
@@ -255,7 +259,9 @@ describe('link da CurseForge no campo único', () => {
         ipcError(makeAppError({ domain: 'packwizCli', code: 'COMMAND_FAILED' })),
     });
     await openAdd(url);
-    await userEvent.click(screen.getByRole('searchbox', { name: 'Buscar' }));
+    await userEvent.click(
+      screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' }),
+    );
     await userEvent.paste(PROJECT_LINK);
     const preview = await screen.findByRole('complementary', {
       name: 'Pré-visualização: Just Enough Items (JEI)',
@@ -275,7 +281,9 @@ describe('link da CurseForge no campo único', () => {
         ipcError(makeAppError({ domain: 'curseforge', code: 'CURSEFORGE_KEY_MISSING' })),
     });
     await openAdd(url);
-    await userEvent.click(screen.getByRole('searchbox', { name: 'Buscar' }));
+    await userEvent.click(
+      screen.getByRole('searchbox', { name: 'Buscar pelo nome ou colar um link' }),
+    );
     await userEvent.paste(PROJECT_LINK);
     expect(
       await screen.findByText(

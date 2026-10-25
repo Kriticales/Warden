@@ -98,6 +98,16 @@ pub fn hit_compatible(project: &Mod, kind: ProjectKind, target: &PackTarget) -> 
     })
 }
 
+/// Se o projeto é uma biblioteca (categoria "API and Library", principal ou não).
+#[must_use]
+pub fn is_library(project: &Mod) -> bool {
+    project.primary_category_id == Some(super::CURSEFORGE_LIBRARY_CATEGORY)
+        || project
+            .categories
+            .iter()
+            .any(|category| category.id == super::CURSEFORGE_LIBRARY_CATEGORY)
+}
+
 fn non_empty(value: Option<&String>) -> Option<String> {
     value.cloned().filter(|v| !v.trim().is_empty())
 }
@@ -214,6 +224,7 @@ impl SearchSource for CurseforgeSearch {
                         .unwrap_or_default(),
                     created: non_empty(project.date_created.as_ref()).unwrap_or_default(),
                     manual_download: project.is_distribution_blocked(),
+                    is_library: is_library(&project),
                     summary: project.summary,
                     title: project.name,
                     compatible,
@@ -263,6 +274,31 @@ mod tests {
             .into_iter()
             .find(|(key, _)| *key == name)
             .map(|(_, value)| value)
+    }
+
+    fn project(value: serde_json::Value) -> Mod {
+        serde_json::from_value(value).unwrap()
+    }
+
+    #[test]
+    fn biblioteca_pela_categoria_api_and_library() {
+        // 421 = "API and Library" (`GET /v1/categories?gameId=432`).
+        let library = serde_json::json!({
+            "id": 419_057, "name": "Architectury API", "primaryCategoryId": 421,
+            "categories": [{"id": 421, "gameId": 432, "name": "API and Library", "slug": "library-api", "classId": 6, "parentCategoryId": 6}],
+        });
+        assert!(is_library(&project(library)));
+        // Só entre as outras categorias (a principal é outra) também conta.
+        let secondary = serde_json::json!({
+            "id": 1, "name": "X", "primaryCategoryId": 423,
+            "categories": [{"id": 423, "name": "Map and Information"}, {"id": 421, "name": "API and Library"}],
+        });
+        assert!(is_library(&project(secondary)));
+        let jei = serde_json::json!({
+            "id": 238_222, "name": "Just Enough Items (JEI)", "primaryCategoryId": 423,
+            "categories": [{"id": 423, "name": "Map and Information"}],
+        });
+        assert!(!is_library(&project(jei)));
     }
 
     #[test]

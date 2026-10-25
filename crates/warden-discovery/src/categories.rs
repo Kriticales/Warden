@@ -161,6 +161,21 @@ mod tests {
     }
 
     #[test]
+    fn bibliotecas_usa_as_mesmas_categorias_que_marcam_is_library() {
+        // A categoria "Bibliotecas" e o selo de biblioteca dos resultados (ADR-0068) não podem
+        // divergir: os dois vêm da mesma categoria de cada fonte.
+        let filter = resolve("bibliotecas", ProjectKind::Mod).unwrap();
+        assert_eq!(
+            filter.modrinth,
+            [warden_project::search::MODRINTH_LIBRARY_CATEGORY]
+        );
+        assert_eq!(
+            filter.curseforge,
+            [warden_project::search::CURSEFORGE_LIBRARY_CATEGORY]
+        );
+    }
+
+    #[test]
     fn categoria_de_outro_tipo_nao_resolve() {
         assert!(resolve("rp-combate", ProjectKind::Mod).is_none());
         assert!(resolve("não-existe", ProjectKind::Mod).is_none());

@@ -613,7 +613,7 @@ impl Resolver<'_> {
         };
         let version_number = match project.source {
             SourceId::Curseforge => curseforge::readable_number(version, &project.title),
-            SourceId::Modrinth => version.number.clone(),
+            SourceId::Modrinth => crate::add::modrinth::readable_number(version, &project.title),
         };
         let node = PlanNode {
             key: key.clone(),
@@ -622,6 +622,7 @@ impl Resolver<'_> {
             project_id: project.id.clone(),
             slug: project.slug.clone(),
             title: project.title.clone(),
+            summary: project.summary.clone(),
             icon_url: project.icon_url.clone(),
             kind,
             version_id: version.id.clone(),

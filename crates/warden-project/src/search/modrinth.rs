@@ -98,6 +98,15 @@ pub fn hit_compatible(hit: &SearchHit, kind: ProjectKind, target: &PackTarget) -
     version && loader
 }
 
+/// Se o resultado é uma biblioteca (categoria `library` da busca).
+#[must_use]
+pub fn hit_is_library(hit: &SearchHit) -> bool {
+    hit.categories
+        .iter()
+        .chain(&hit.display_categories)
+        .any(|category| category == super::MODRINTH_LIBRARY_CATEGORY)
+}
+
 /// Endereço da página do projeto no Modrinth.
 #[must_use]
 pub fn page_url(project: &Project) -> String {
@@ -187,6 +196,7 @@ impl SearchSource for ModrinthSearch {
             .into_iter()
             .map(|hit| {
                 let compatible = hit_compatible(&hit, query.kind, &query.target);
+                let is_library = hit_is_library(&hit);
                 SourceHit {
                     reference: SourceRef {
                         source: SourceId::Modrinth,
@@ -202,6 +212,7 @@ impl SearchSource for ModrinthSearch {
                     created: hit.date_created,
                     compatible,
                     manual_download: false,
+                    is_library,
                 }
             })
             .collect();
@@ -246,6 +257,29 @@ mod tests {
             .find(|(key, _)| *key == name)
             .map(|(_, value)| value)
             .unwrap_or_default()
+    }
+
+    fn search_hit(categories: &[&str], display: &[&str]) -> SearchHit {
+        serde_json::from_value(serde_json::json!({
+            "project_id": "lhGA9TYQ",
+            "project_type": "mod",
+            "slug": "architectury-api",
+            "title": "Architectury API",
+            "categories": categories,
+            "display_categories": display,
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn biblioteca_pela_categoria_library_da_busca() {
+        // A categoria vem da lista oficial (`GET /v2/tag/category`, fixture de 2026-10-04).
+        assert!(hit_is_library(&search_hit(&["fabric", "library"], &[])));
+        assert!(hit_is_library(&search_hit(&["fabric"], &["library"])));
+        assert!(!hit_is_library(&search_hit(
+            &["fabric", "utility"],
+            &["utility"]
+        )));
     }
 
     #[test]

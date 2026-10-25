@@ -63,6 +63,8 @@ pub struct PlanNode {
     pub slug: String,
     /// Nome.
     pub title: String,
+    /// Resumo de uma linha, como a fonte informa ("o que faz", no detalhe do diálogo).
+    pub summary: String,
     /// Ícone.
     pub icon_url: Option<String>,
     /// Tipo (pasta do pack).

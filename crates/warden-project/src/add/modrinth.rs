@@ -104,7 +104,23 @@ fn source_project(project: Project) -> SourceProject {
         id: project.id,
         slug: project.slug,
         title: project.title,
+        summary: project.description,
         side,
+    }
+}
+
+/// Número da versão para a tela, no mesmo formato da CurseForge
+/// ([`super::curseforge::readable_number`]): sem o loader, a versão do Minecraft e o nome do
+/// projeto ("mc1.21.1-0.6.0-neoforge" e "0.6.0+mc1.21.1" viram "0.6.0"). Sem nada que pareça
+/// versão, o número como o autor escreveu.
+#[must_use]
+pub fn readable_number(version: &SourceVersion, project_title: &str) -> String {
+    let found =
+        super::curseforge::version_tokens(&version.number, project_title, &version.game_versions);
+    if found.is_empty() {
+        version.number.trim().to_owned()
+    } else {
+        found.join(" ")
     }
 }
 
@@ -271,6 +287,41 @@ impl AddSource for ModrinthAdd {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn numero_legivel_sem_loader_nem_minecraft() {
+        let version = |number: &str| SourceVersion {
+            source: SourceId::Modrinth,
+            id: "v1".into(),
+            project_id: "p".into(),
+            number: number.into(),
+            channel: VersionChannel::Release,
+            published: String::new(),
+            game_versions: vec!["1.21.1".into()],
+            loaders: vec!["neoforge".into()],
+            file: None,
+            side: SideChoice::Both,
+            side_note: None,
+            dependencies: Vec::new(),
+        };
+        let cases = [
+            ("mc1.21.1-0.5.11-neoforge", "Sodium", "0.5.11"),
+            ("0.6.0+mc1.21.1", "Sodium", "0.6.0"),
+            ("1.21.1-21.1.12", "Waystones", "21.1.12"),
+            ("21.1.12", "Waystones", "21.1.12"),
+            ("v3.0.9+neoforge", "AppleSkin", "3.0.9"),
+            ("Jade 15.10.6", "Jade", "15.10.6"),
+        ];
+        for (number, title, expected) in cases {
+            assert_eq!(
+                readable_number(&version(number), title),
+                expected,
+                "{number}"
+            );
+        }
+        // Nada que pareça versão: como o autor escreveu.
+        assert_eq!(readable_number(&version("Release"), "X"), "Release");
+    }
 
     #[test]
     fn lado_pela_versao_e_pelo_projeto() {

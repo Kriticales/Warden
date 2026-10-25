@@ -119,6 +119,7 @@ fn source_project(project: Mod) -> SourceProject {
         id: project.id.to_string(),
         slug: project.slug,
         title: project.name,
+        summary: project.summary,
         side: None,
     }
 }
@@ -215,7 +216,11 @@ pub fn readable_number(version: &SourceVersion, project_title: &str) -> String {
 
 const LOADER_WORDS: [&str; 5] = ["forge", "neoforge", "fabric", "quilt", "liteloader"];
 
-fn version_tokens(text: &str, project_title: &str, game_versions: &[String]) -> Vec<String> {
+pub(crate) fn version_tokens(
+    text: &str,
+    project_title: &str,
+    game_versions: &[String],
+) -> Vec<String> {
     let mut text = text.trim().to_owned();
     for extension in [".jar", ".zip"] {
         if text.to_ascii_lowercase().ends_with(extension) {
@@ -532,6 +537,7 @@ mod tests {
             id: "238222".into(),
             slug: "jei".into(),
             title: "Just Enough Items (JEI)".into(),
+            summary: String::new(),
             kind: Some(ProjectKind::Mod),
             icon_url: None,
             side: None,

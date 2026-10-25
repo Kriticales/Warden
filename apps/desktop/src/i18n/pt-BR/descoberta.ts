@@ -1,35 +1,28 @@
 /**
- * Descoberta (SPEC T08, P1-16): início com populares e atualizados, categorias, filtros que
- * recolhem e as partes da pré-visualização completa (galeria, versões com notas, dependências).
- * Protótipo: `design/prototipo-final/screens-discover.js`. Glossário: QUALITY §8.2.
+ * Descoberta (SPEC T08, P1-16; ADR-0068): início com populares e atualizados, categorias e as
+ * partes da pré-visualização completa (galeria, versões com notas, dependências). Esboço
+ * aprovado: `design/bug-01/adicionar.html` (opção 4). Glossário: QUALITY §8.2.
  */
 export const descoberta = {
   inicio: {
     rotulo: 'Início da descoberta',
-    populares: 'Populares para {{alvo}}',
+    populares: 'Populares',
     atualizados: 'Atualizados recentemente',
-    verMais: 'Ver mais',
-    verMaisPopulares: 'Ver mais dos populares',
-    verMaisAtualizados: 'Ver mais dos atualizados',
-    jaNoPack_one: '{{names}} também está entre os mais baixados, mas já está no seu pack.',
-    jaNoPack_other: '{{names}} também estão entre os mais baixados, mas já estão no seu pack.',
+    verTodos: 'Ver todos',
+    verTodosPopulares: 'Ver todos os populares',
+    verTodosAtualizados: 'Ver todos os atualizados',
     vazio: 'Nada para mostrar aqui ainda.',
     vazioTexto: 'Nenhum item popular funciona em {{alvo}}. Digite um nome para buscar.',
     erro: 'Não foi possível montar o início agora.',
   },
   categorias: {
-    titulo: 'Categorias',
-    todas: 'Todas as categorias',
-    soUmaFonte: 'Só no {{fonte}}',
+    titulo: 'Categoria',
+    todas: 'Todas',
+    mais_one: 'Mais {{count}} categoria',
+    mais_other: 'Mais {{count}} categorias',
+    menos: 'Mostrar menos',
     carregando: 'Lendo as categorias…',
     erro: 'Não foi possível ler as categorias.',
-    escolhida: 'Categoria: {{name}}',
-    limpar: 'Mostrar todas',
-  },
-  filtros: {
-    botao: 'Filtros',
-    botaoAtivos_one: 'Filtros · {{count}} ativo',
-    botaoAtivos_other: 'Filtros · {{count}} ativos',
   },
   indice: {
     rotulo: 'Partes desta página',

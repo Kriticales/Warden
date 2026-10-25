@@ -1,17 +1,19 @@
 /**
- * Coluna de filtros da página Adicionar (protótipo `filters`): a linha travada com o que o pack
- * aceita (versão do Minecraft, loader e tipo, sempre aplicados), Categorias (P1-16), Ambiente,
- * Ordenar e, em "Mais filtros", Fonte (só com mais de uma fonte) e "Mostrar também os sem
- * versão compatível". Abaixo de 1180 px a coluna recolhe atrás do botão "Filtros" (a CSS
- * decide; o botão só existe para essa largura).
+ * Coluna de filtros da página Adicionar, à direita (esboço `design/bug-01/adicionar.html`,
+ * opção 4; ADR-0068), igual na Lista e nos Cartões: Categoria (lista curta com 8 e "Mais N"),
+ * Funciona em, Mostrar também (Bibliotecas, O que já está no pack, Mods sem versão para o pack)
+ * e Fonte (só com mais de uma fonte ligada). **Limpar** volta tudo ao padrão.
+ *
+ * Bibliotecas e "O que já está no pack" mudam só o que aparece (sem nova busca); categoria,
+ * lado, fonte e "sem versão" vão para a busca e trocam o início pelos resultados.
  */
-import { ListFilter, Lock } from 'lucide-react';
-import { useId, useState } from 'react';
+import { ListFilter } from 'lucide-react';
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../../../components/ui/button';
-import { cn } from '../../../lib/cn';
 import { Icon } from '../../../components/ui/icon';
+import { Segmented } from '../../../components/ui/segmented';
 import type {
   EnvironmentFilter,
   ProjectKind,
@@ -20,7 +22,6 @@ import type {
   SourceId,
 } from '../../../lib/ipc/bindings';
 import { CategoriesFilter } from '../discover/CategoriesFilter';
-import { type PackTarget, useTargetText } from './text';
 
 /** Os filtros que o usuário muda (o resto vem do pack). */
 export interface UserFilters {
@@ -30,6 +31,10 @@ export interface UserFilters {
   includeIncompatible: boolean;
   /** `id` da categoria curada (nenhuma: todas). */
   category: string | null;
+  /** "Mostrar também: Bibliotecas" (escondidas por padrão). */
+  showLibraries: boolean;
+  /** "Mostrar também: O que já está no pack" (ligado por padrão, com o selo No pack). */
+  showInPack: boolean;
 }
 
 export const NO_FILTERS: UserFilters = {
@@ -38,9 +43,11 @@ export const NO_FILTERS: UserFilters = {
   environment: null,
   includeIncompatible: false,
   category: null,
+  showLibraries: false,
+  showInPack: true,
 };
 
-/** Quantos filtros estão ligados (para o botão "Filtros · 2 ativos"). */
+/** Quantos filtros mudam a busca (qualquer um deles troca o início pelos resultados). */
 export function activeFilterCount(filters: UserFilters): number {
   return [
     filters.sort !== NO_FILTERS.sort,
@@ -51,46 +58,60 @@ export function activeFilterCount(filters: UserFilters): number {
   ].filter(Boolean).length;
 }
 
-const SORTS: readonly SearchSort[] = ['relevance', 'downloads', 'updated', 'newest'];
+/** Se há algo para o **Limpar** desfazer (inclusive o que só muda o que aparece). */
+export function filtersChanged(filters: UserFilters): boolean {
+  return (
+    activeFilterCount(filters) > 0 ||
+    filters.showLibraries !== NO_FILTERS.showLibraries ||
+    filters.showInPack !== NO_FILTERS.showInPack
+  );
+}
+
+/** Os filtros de busca, sem o que só muda o que aparece. */
+export function searchFilters(filters: UserFilters) {
+  return {
+    sort: filters.sort,
+    source: filters.source,
+    environment: filters.environment,
+    includeIncompatible: filters.includeIncompatible,
+    category: filters.category,
+  };
+}
+
 const SOURCE_FILTERS: readonly SourceFilter[] = ['all', 'modrinth', 'curseforge'];
-const ENVIRONMENTS: readonly EnvironmentFilter[] = ['client', 'server'];
+const ENVIRONMENTS: readonly ('all' | EnvironmentFilter)[] = ['all', 'client', 'server'];
 
 export interface FiltersColumnProps {
   kind: ProjectKind;
-  target: PackTarget;
   filters: UserFilters;
   onChange: (filters: UserFilters) => void;
-  /** Fontes conhecidas nesta busca: o filtro Fonte só aparece com mais de uma. */
+  /** Fontes conhecidas: o filtro Fonte só aparece com mais de uma. */
   sources: readonly SourceId[];
 }
 
-export function FiltersColumn({ kind, target, filters, onChange, sources }: FiltersColumnProps) {
+export function FiltersColumn({ kind, filters, onChange, sources }: FiltersColumnProps) {
   const { t } = useTranslation('adicionar');
-  const { t: td } = useTranslation('descoberta');
-  const targetText = useTargetText(target);
+  const changed = filtersChanged(filters);
   const id = useId();
-  const [open, setOpen] = useState(false);
-  const active = activeFilterCount(filters);
   return (
-    <aside className={cn('disc__filters', open && 'is-open')} aria-label={t('filtros.rotulo')}>
-      <Button
-        className="disc__fbtn"
-        icon={ListFilter}
-        aria-expanded={open}
-        aria-controls={`${id}-body`}
-        onClick={() => {
-          setOpen((now) => !now);
-        }}
-      >
-        {active > 0 ? td('filtros.botaoAtivos', { count: active }) : td('filtros.botao')}
-      </Button>
-      <div className="disc__fbody" id={`${id}-body`}>
-        <p className="filters-lock">
-          <Icon icon={Lock} size="sm" />
-          <span>
-            {t('filtros.trava')} <b>{targetText}</b>.
-          </span>
-        </p>
+    <aside className="side" aria-label={t('filtros.rotulo')}>
+      <div className="sidehead">
+        <h2 className="sidehead__t">
+          <Icon icon={ListFilter} />
+          {t('filtros.rotulo')}
+        </h2>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={!changed}
+          onClick={() => {
+            onChange({ ...NO_FILTERS, sort: filters.sort });
+          }}
+        >
+          {t('filtros.limpar')}
+        </Button>
+      </div>
+      <div className="sidebody">
         <CategoriesFilter
           kind={kind}
           value={filters.category}
@@ -98,74 +119,51 @@ export function FiltersColumn({ kind, target, filters, onChange, sources }: Filt
             onChange({ ...filters, category });
           }}
         />
-        <div className="field">
-          <label className="field__label" htmlFor={`${id}-env`}>
-            {t('filtros.ambiente')}
-          </label>
-          <select
-            id={`${id}-env`}
-            className="select"
-            value={filters.environment ?? ''}
-            onChange={(event) => {
-              const environment =
-                ENVIRONMENTS.find((value) => value === event.target.value) ?? null;
-              onChange({ ...filters, environment });
+        <section className="fsec">
+          <h3 className="fsec__t" id={`${id}-lado`}>
+            {t('filtros.funcionaEm')}
+          </h3>
+          <Segmented
+            full
+            labelledBy={`${id}-lado`}
+            value={filters.environment ?? 'all'}
+            options={ENVIRONMENTS.map((value) => ({
+              value,
+              label: t(`filtros.ambiente.${value === 'all' ? 'qualquer' : value}`),
+            }))}
+            onChange={(value) => {
+              onChange({ ...filters, environment: value === 'all' ? null : value });
             }}
-          >
-            <option value="">{t('filtros.ambienteOpcoes.qualquer')}</option>
-            {ENVIRONMENTS.map((value) => (
-              <option key={value} value={value}>
-                {t(`filtros.ambienteOpcoes.${value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label className="field__label" htmlFor={`${id}-sort`}>
-            {t('filtros.ordenar')}
-          </label>
-          <select
-            id={`${id}-sort`}
-            className="select"
-            value={filters.sort}
-            onChange={(event) => {
-              const sort = SORTS.find((value) => value === event.target.value) ?? 'relevance';
-              onChange({ ...filters, sort });
-            }}
-          >
-            {SORTS.map((value) => (
-              <option key={value} value={value}>
-                {t(`filtros.ordem.${value}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <details className="disclosure">
-          <summary>{t('filtros.mais')}</summary>
-          <div className="stack-2">
-            {sources.length > 1 ? (
-              <div className="field">
-                <label className="field__label" htmlFor={`${id}-src`}>
-                  {t('filtros.fonte')}
-                </label>
-                <select
-                  id={`${id}-src`}
-                  className="select"
-                  value={filters.source}
+          />
+        </section>
+        <section className="fsec">
+          <h3 className="fsec__t">{t('filtros.mostrar')}</h3>
+          <div className="fchecks">
+            {kind === 'mod' ? (
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={filters.showLibraries}
                   onChange={(event) => {
-                    const source =
-                      SOURCE_FILTERS.find((value) => value === event.target.value) ?? 'all';
-                    onChange({ ...filters, source });
+                    onChange({ ...filters, showLibraries: event.target.checked });
                   }}
-                >
-                  {SOURCE_FILTERS.map((value) => (
-                    <option key={value} value={value}>
-                      {t(`filtros.fonteOpcoes.${value}`)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                />
+                <span className="check__text">
+                  {t('filtros.bibliotecas')}
+                  <span className="check__desc">{t('filtros.bibliotecasDica')}</span>
+                </span>
+              </label>
             ) : null}
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={filters.showInPack}
+                onChange={(event) => {
+                  onChange({ ...filters, showInPack: event.target.checked });
+                }}
+              />
+              <span>{t('filtros.noPack')}</span>
+            </label>
             <label className="check">
               <input
                 type="checkbox"
@@ -174,10 +172,32 @@ export function FiltersColumn({ kind, target, filters, onChange, sources }: Filt
                   onChange({ ...filters, includeIncompatible: event.target.checked });
                 }}
               />
-              <span>{t('filtros.semVersao')}</span>
+              <span className="check__text">
+                {t('filtros.semVersao')}
+                <span className="check__desc">{t('filtros.semVersaoDica')}</span>
+              </span>
             </label>
           </div>
-        </details>
+        </section>
+        {sources.length > 1 ? (
+          <section className="fsec">
+            <h3 className="fsec__t" id={`${id}-fonte`}>
+              {t('filtros.fonte')}
+            </h3>
+            <Segmented
+              full
+              labelledBy={`${id}-fonte`}
+              value={filters.source}
+              options={SOURCE_FILTERS.map((value) => ({
+                value,
+                label: t(`filtros.fonteOpcoes.${value}`),
+              }))}
+              onChange={(source) => {
+                onChange({ ...filters, source });
+              }}
+            />
+          </section>
+        ) : null}
       </div>
     </aside>
   );

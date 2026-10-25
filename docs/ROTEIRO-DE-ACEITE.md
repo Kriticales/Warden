@@ -86,21 +86,21 @@ Os cinco caminhos das funções avançadas, do jeito que você vai usar no dia a
 
 ### 1. Descobrir e adicionar vários mods de uma vez
 
-1. Abra um pack com Minecraft 1.21.1 e Fabric e clique **Adicionar**, em **Mods**. Tem que abrir **Adicionar ao pack**, com **Populares para Minecraft 1.21.1 com Fabric** e **Atualizados recentemente**.
-2. Digite `sodium` no campo de busca. Os resultados das duas fontes aparecem numa lista só, cada um com a marca **Modrinth**, **CurseForge** ou **Modrinth e CurseForge**.
-3. Clique no nome de um resultado. À direita aparece a pré-visualização, com a descrição, a galeria, as versões e as dependências.
-4. Marque a caixa de dois resultados que ainda não estão no pack. Embaixo aparece **2 selecionados** e o botão **Adicionar 2 ao pack**.
-5. Clique **Adicionar 2 ao pack**. Abre **uma** janela só, **Adicionar 2 itens**, com **O que você escolheu** e as dependências obrigatórias de cada um.
-6. Clique **Adicionar … itens**. Aparece o aviso **… itens adicionados ao pack**, os dois ficam com **Já no pack** na busca e o botão do alto vira **Voltar para Mods · … adicionados**.
-7. Clique **Voltar para Mods**. Os itens novos estão na lista.
-8. Teclado: volte a **Adicionar**, clique no campo de busca e use só **Tab**, **Espaço** e **Enter**. O contorno do foco tem que aparecer em cada parada; **Espaço** marca a caixa de um resultado e **Enter** no nome abre a pré-visualização.
+1. Abra um pack com Minecraft 1.21.1 e Fabric e clique **Adicionar**, em **Mods**. Tem que abrir **Adicionar ao pack**, com **Populares** e **Atualizados recentemente**, os filtros à direita e, embaixo da busca, a linha **Só versões para Minecraft 1.21.1 com Fabric…**. O que já está no pack aparece com **No pack**; as bibliotecas ficam numa linha **… bibliotecas escondidas**, com **Mostrar**.
+2. Digite `sodium` no campo de busca. Os resultados das duas fontes aparecem numa lista só, cada um com a marca da fonte (quadrado verde do Modrinth, losango laranja da CurseForge).
+3. Clique no nome de um resultado. No lugar dos filtros aparece o detalhe, com a descrição, a galeria, as versões e as dependências; **← Filtros** volta.
+4. Marque a caixa de dois resultados que ainda não estão no pack. Embaixo aparece **2 marcados**, com os nomes, e o botão **Adicionar 2 ao pack →**. Troque para **Cartões** ao lado da busca: os dois continuam marcados. Feche e abra a página de novo: ela volta em **Cartões**.
+5. Clique **Adicionar 2 ao pack**. Abre **uma** janela só, **Adicionar … itens ao pack**, com um bloco por mod escolhido e as dependências penduradas nele (as que os dois pedem aparecem uma vez, em **Em comum**). Clique numa dependência: à direita aparece o porquê dela. O título, o botão e a conta do rodapé têm de mostrar o mesmo número.
+6. Clique **Adicionar … itens**. Aparece o aviso **… itens adicionados ao pack**, os dois ficam com **No pack** na busca e o botão do alto vira **Mods · … adicionados**.
+7. Clique **Mods**, no alto. Os itens novos estão na lista.
+8. Teclado: volte a **Adicionar**, clique no campo de busca e use só **Tab**, **Espaço**, **Enter** e as setas. O contorno do foco tem que aparecer em cada parada; **Espaço** marca a caixa de um resultado, **Enter** no nome abre o detalhe e as setas trocam **Lista** e **Cartões**.
 
 ### 2. Trazer mods de outro modpack
 
 1. Em **Adicionar ao pack**, troque **Tipo** para **Modpacks** e busque um modpack conhecido.
-2. Clique **Ver os mods** num resultado. À direita aparece **Mods deste modpack (…)**, com **Já no pack** nos que você já tem, **Sem versão para …** nos que não servem e **Arquivo fora das lojas** nos jars do autor (esses não podem ser marcados).
+2. Clique **Ver os mods** num resultado. À direita aparece **Mods deste modpack (…)**, com **No pack** nos que você já tem, **Sem versão para …** nos que não servem e **Arquivo fora das lojas** nos jars do autor (esses não podem ser marcados).
 3. Marque dois mods que ainda não estão no seu pack e clique **Adicionar 2 selecionados**. Abre uma janela só, com o que vai entrar.
-4. Confirme. Os dois passam a mostrar **Já no pack** na lista do modpack, e aparecem em **Mods** quando você voltar.
+4. Confirme. Os dois passam a mostrar **No pack** na lista do modpack, e aparecem em **Mods** quando você voltar.
 
 ### 3. Travou sem causa: encontrar o culpado e conversar com a IA
 

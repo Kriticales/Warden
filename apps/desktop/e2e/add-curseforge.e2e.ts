@@ -163,7 +163,7 @@ async function searchFor(text: string): Promise<void> {
 /** A linha de resultado com este nome. */
 function row(name: string) {
   return $(
-    `.//li[contains(@class,"drow")][.//button[contains(@class,"drow__name")][normalize-space()="${name}"]]`,
+    `.//div[@role="row"][.//button[contains(@class,"tname__n")][normalize-space()="${name}"]]`,
   );
 }
 
@@ -171,9 +171,8 @@ function row(name: string) {
 async function countResults(name: string): Promise<number> {
   return browser.execute(
     (wanted) =>
-      Array.from(document.querySelectorAll('.drow .drow__name')).filter(
-        (b) => b.textContent === wanted,
-      ).length,
+      Array.from(document.querySelectorAll('.tname__n')).filter((b) => b.textContent === wanted)
+        .length,
     name,
   );
 }
@@ -217,7 +216,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
   it('CA-T08-06: sem chave, só o Modrinth, com o aviso e nenhuma requisição à CurseForge', async () => {
     await resetRequests();
     await searchFor('sodium');
-    await $('button.drow__name=Sodium').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Sodium').waitForDisplayed({ timeout: 30_000 });
     await $('div.alert*=Mostrando só o Modrinth.').waitForDisplayed();
     const body = await $('body').getText();
     expect(body).toContain('Para buscar também na CurseForge, informe sua chave em Configurações.');
@@ -231,14 +230,16 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
   it('CA-T08-08: com chave, o Sodium das duas fontes aparece uma vez; o resto vem marcado', async () => {
     setKey(CHAVE_BOA);
     await searchFor('sodium mod');
-    await $('.drow*=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
+    await $('.trow*=Mod Só da CurseForge').waitForDisplayed({ timeout: 30_000 });
     expect(await $('body').getText()).not.toContain('Mostrando só o Modrinth.');
     expect(await countResults('Sodium')).toBe(1);
-    expect(await row('Sodium').getText()).toContain('Modrinth e CurseForge');
-    const only = await row('Mod Só da CurseForge').getText();
+    // A fonte é a marca (quadrado e losango), com o nome para o leitor de tela.
+    const text = async (name: string) => String(await row(name).getProperty('textContent'));
+    expect(await text('Sodium')).toContain('Modrinth e CurseForge');
+    const only = await text('Mod Só da CurseForge');
     expect(only).toContain('CurseForge');
     expect(only).not.toContain('Modrinth');
-    expect(await row('Mod Bloqueado').getText()).toContain('Download manual necessário');
+    expect(await text('Mod Bloqueado')).toContain('Download manual');
     // A chave do usuário foi a que a CurseForge recebeu.
     expect((await curseforgeRequests()).length).toBeGreaterThan(0);
     expect(await seriousViolationSummaries()).toEqual([]);
@@ -246,7 +247,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
   });
 
   it('a pré-visualização confere o SHA-1; escolher a CurseForge grava mode = "metadata:curseforge"', async () => {
-    await $('button.drow__name=Sodium').click();
+    await $('button.tname__n=Sodium').click();
     const preview = $('aside.disc__preview');
     await preview.waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(
@@ -268,12 +269,10 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
     await browser.waitUntil(
-      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      async () => (await fullText('[role="dialog"]')).includes('entrar no pack'),
       { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
     );
-    expect(await fullText('[role="dialog"]')).toContain(
-      'Lado desconhecido — confira se é só de cliente.',
-    );
+    expect(await fullText('[role="dialog"]')).toContain('Lado não informado em 1 item: Sodium.');
     await screenshot('04-dependencias-curseforge');
     await dialog.$('button=Adicionar 1 item').click();
     await waitToast('1 item adicionado ao pack');
@@ -287,12 +286,12 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     expect(sodium).toContain('side = "both"');
     expect(sodium).not.toContain('[update.modrinth]');
     expect(read('index.toml')).toContain('mods/sodium.pw.toml');
-    await row('Sodium').$('.tag*=Já no pack').waitForDisplayed({ timeout: 30_000 });
+    await row('Sodium').$('.tag*=No pack').waitForDisplayed({ timeout: 30_000 });
   });
 
   it('um mod só da CurseForge entra com a dependência obrigatória, numa gravação só', async () => {
     await dismissToasts();
-    await $('input[aria-label="Selecionar Mod Só da CurseForge"]').click();
+    await $('input[aria-label="Marcar Mod Só da CurseForge para adicionar"]').click();
     await $('button=Adicionar 1 ao pack').click();
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed();
@@ -300,7 +299,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
       async () => (await fullText('[role="dialog"]')).includes('Biblioteca da CurseForge'),
       { timeout: 30_000, timeoutMsg: 'a dependência não apareceu no plano' },
     );
-    expect(await fullText('[role="dialog"]')).toContain('Obrigatórias');
+    expect(await fullText('[role="dialog"]')).toContain('obrigatória');
     await screenshot('05-dependencia-curseforge');
     await dialog.$('button=Adicionar 2 itens').click();
     await waitToast('2 itens adicionados ao pack');
@@ -310,7 +309,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     const index = read('index.toml');
     expect(index).toContain('mods/mod-so-da-curseforge.pw.toml');
     expect(index).toContain('mods/biblioteca-curseforge.pw.toml');
-    expect(await $('body').getText()).toContain('Voltar para Mods · 3 adicionados');
+    expect(await $('a[aria-label="Voltar para Mods · 3 adicionados"]').isExisting()).toBe(true);
   });
 
   it('CA-T08-03: link de projeto da CurseForge: a versão escolhida passa pelo packwiz', async () => {
@@ -338,7 +337,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed({ timeout: 60_000 });
     await browser.waitUntil(
-      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      async () => (await fullText('[role="dialog"]')).includes('entrar no pack'),
       { timeout: 30_000, timeoutMsg: 'o plano não apareceu no diálogo' },
     );
     // Quem leu a versão foi o packwiz, numa cópia: ele pede o arquivo um a um.
@@ -366,13 +365,13 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     expect(await $('body').getText()).toContain(
       'Confira em Configurações. Mostrando só o Modrinth.',
     );
-    await $('button.drow__name=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
     await screenshot('07-chave-recusada');
     // A segunda busca com a mesma chave nem pergunta à CurseForge.
     await resetRequests();
     await searchFor('sodium de novo');
     await $('div.alert*=A CurseForge recusou a chave.').waitForDisplayed({ timeout: 30_000 });
-    await $('button.drow__name=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
     expect(await curseforgeRequests()).toEqual([]);
   });
 
@@ -382,7 +381,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
     await $('div.alert*=Não foi possível buscar no CurseForge agora.').waitForDisplayed({
       timeout: 60_000,
     });
-    await $('button.drow__name=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
+    await $('button.tname__n=Sodium Extra').waitForDisplayed({ timeout: 30_000 });
     await expect($('button=Tentar de novo')).toBeDisplayed();
     await screenshot('08-fonte-com-erro');
     expect(await seriousViolationSummaries()).toEqual([]);
@@ -390,7 +389,7 @@ describe('Adicionar pela CurseForge (P1-10)', () => {
 
   it('voltar para Mods mostra os itens da CurseForge na lista', async () => {
     setKey(CHAVE_BOA);
-    await $('a*=Voltar para Mods').click();
+    await $('a[aria-label^="Voltar para Mods"]').click();
     await $('h1=Mods').waitForDisplayed();
     await $('tr.modrow*=Sodium').waitForDisplayed({ timeout: 30_000 });
     await $('tr.modrow*=Biblioteca da CurseForge').waitForDisplayed({ timeout: 30_000 });

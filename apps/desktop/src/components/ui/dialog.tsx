@@ -26,8 +26,8 @@ export interface DialogContentProps {
   title: ReactNode;
   /** Linha abaixo do título, ligada por `aria-describedby`. */
   description?: ReactNode;
-  /** Largura: 480, 600 (padrão) ou 780 px. */
-  size?: 'sm' | 'md' | 'lg';
+  /** Largura: 480, 600 (padrão), 780 ou 1200 px (duas colunas, como o diálogo Adicionar itens). */
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Botões do rodapé. */
   footer?: ReactNode;
   /** Rodapé com os botões nas pontas (ação secundária à esquerda). */

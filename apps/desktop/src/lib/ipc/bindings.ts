@@ -3317,8 +3317,10 @@ export type DiscoverHome = {
 	popular: SearchResult[],
 	/**  Os atualizados há menos tempo para o pack. */
 	updated: SearchResult[],
-	/**  Nomes dos mais baixados que já estão no pack (ficam fora de `popular`). */
-	popularInPack: string[],
+	/**  Quantos projetos há para o pack na lista dos populares (soma das fontes). */
+	popularTotal: number | null,
+	/**  Quantos há na lista dos atualizados. */
+	updatedTotal: number | null,
 	/**  As fontes consultadas. */
 	sources: SourceId[],
 	/**  Fontes que ficaram de fora, e por quê. */
@@ -7066,6 +7068,8 @@ export type PlanNode = {
 	slug: string,
 	/**  Nome. */
 	title: string,
+	/**  Resumo de uma linha, como a fonte informa ("o que faz", no detalhe do diálogo). */
+	summary: string,
 	/**  Ícone. */
 	iconUrl: string | null,
 	/**  Tipo (pasta do pack). */
@@ -8399,6 +8403,12 @@ export type SearchResult = {
 	 *  necessário").
 	 */
 	manualDownload: boolean,
+	/**
+	 *  Biblioteca (alguma fonte a classifica assim: Modrinth `library`, CurseForge "API and
+	 *  Library"): não muda o jogo sozinha e entra quando um mod precisa dela. A página
+	 *  Adicionar a esconde por padrão (ADR-0068).
+	 */
+	isLibrary: boolean,
 };
 
 /**  Ordem dos resultados. */

@@ -3,10 +3,10 @@
  * packwiz de verdade e o servidor de fixtures (nada vai à internet):
  *
  * - Tipo = Modpacks busca modpacks; abrir o "Pacote Leve" do Modrinth lista os mods com no
- *   máximo 4 requisições ao Modrinth e marca "Já no pack", compatível, "Sem versão para…" e
+ *   máximo 4 requisições ao Modrinth e marca "No pack", compatível, "Sem versão para…" e
  *   "Arquivo fora das lojas".
  * - "Adicionar 2 selecionados" abre um diálogo de dependências só, grava com a versão do
- *   modpack e a lista passa a mostrar os dois como "Já no pack".
+ *   modpack e a lista passa a mostrar os dois como "No pack".
  * - Com a chave da CurseForge, o "Vale CurseForge" abre pelo `manifest.json` lido por partes: o
  *   app resolve o redirecionamento do "edge" antes (que responde 404 a pedidos com `Range`) e só
  *   pede partes ao servidor final. Depois da sessão, nada do manifesto nem da resposta da API
@@ -158,7 +158,7 @@ describe('Navegar por modpacks (P1-17)', () => {
 
     await steadyClick('a=Adicionar');
     await $('h1=Adicionar ao pack').waitForDisplayed();
-    await $('select[aria-label="Tipo"]').selectByAttribute('value', 'modpack');
+    await $('button[role="radio"]=Modpacks').click();
     const open = 'button[aria-label="Ver os mods de Pacote Leve"]';
     await $(open).waitForDisplayed({ timeout: 30_000 });
     // Sem caixa de seleção nos resultados: um modpack nunca entra no pack.
@@ -176,13 +176,13 @@ describe('Navegar por modpacks (P1-17)', () => {
     expect(modrinth).toBeLessThanOrEqual(4);
 
     expect(await fullText(PANEL_LEVE)).toContain('Licença do modpack: MIT.');
-    expect(await modRow(PANEL_LEVE, 'Sodium')).toContain('Já no pack');
-    expect(await modRow(PANEL_LEVE, 'Lithium')).toContain('Já no pack');
+    expect(await modRow(PANEL_LEVE, 'Sodium')).toContain('No pack');
+    expect(await modRow(PANEL_LEVE, 'Lithium')).toContain('No pack');
     expect(await modRow(PANEL_LEVE, 'Rubidium')).toContain(
       'Sem versão para Minecraft 1.21.1 com Fabric',
     );
     expect(await modRow(PANEL_LEVE, 'ajustes-do-autor-1.0')).toContain('Arquivo fora das lojas');
-    expect(await modRow(PANEL_LEVE, 'spark')).not.toContain('Já no pack');
+    expect(await modRow(PANEL_LEVE, 'spark')).not.toContain('No pack');
     // O modpack é do mesmo Minecraft e loader: "a mesma do modpack" é o padrão.
     expect(await $(`${PANEL_LEVE} select[aria-label="Versão dos mods"]`).getValue()).toBe('same');
   });
@@ -196,7 +196,7 @@ describe('Navegar por modpacks (P1-17)', () => {
     const dialog = $('[role="dialog"]');
     await dialog.waitForDisplayed({ timeout: 30_000 });
     await browser.waitUntil(
-      async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+      async () => (await fullText('[role="dialog"]')).includes('entrar no pack'),
       { timeout: 30_000, timeoutMsg: 'o plano não chegou' },
     );
     expect(await $$('[role="dialog"]').length).toBe(1);
@@ -218,8 +218,8 @@ describe('Navegar por modpacks (P1-17)', () => {
     // A lista do modpack foi relida: os dois agora estão no pack.
     await browser.waitUntil(
       async () =>
-        (await modRow(PANEL_LEVE, 'spark')).includes('Já no pack') &&
-        (await modRow(PANEL_LEVE, 'Crash Assistant')).includes('Já no pack'),
+        (await modRow(PANEL_LEVE, 'spark')).includes('No pack') &&
+        (await modRow(PANEL_LEVE, 'Crash Assistant')).includes('No pack'),
       { timeout: 30_000, timeoutMsg: 'a lista do modpack não mostrou os itens adicionados' },
     );
     expect(await $(`${PANEL_LEVE} [role="region"]`).isExisting()).toBe(false);
@@ -240,8 +240,8 @@ describe('Navegar por modpacks (P1-17)', () => {
     await steadyClick(open);
     await $(PANEL_VALE).$('h2=Mods deste modpack (3)').waitForDisplayed({ timeout: 30_000 });
 
-    expect(await modRow(PANEL_VALE, 'Sodium')).toContain('Já no pack');
-    expect(await modRow(PANEL_VALE, 'Mod Só da CurseForge')).not.toContain('Já no pack');
+    expect(await modRow(PANEL_VALE, 'Sodium')).toContain('No pack');
+    expect(await modRow(PANEL_VALE, 'Mod Só da CurseForge')).not.toContain('No pack');
     expect(await modRow(PANEL_VALE, 'feito-a-mao-1.0')).toContain('Arquivo fora das lojas');
     expect(await fullText(PANEL_VALE)).toContain('A fonte não informa a licença deste modpack.');
 

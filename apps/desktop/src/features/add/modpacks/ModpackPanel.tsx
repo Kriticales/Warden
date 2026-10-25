@@ -35,7 +35,7 @@ import type {
 } from '../../../lib/ipc/bindings';
 import { loaderName } from '../../packs/lib/pack-list';
 import { formatCount } from '../common/model';
-import { ProjectIcon } from '../common/ResultRow';
+import { ProjectIcon } from '../common/ProjectIcon';
 import { InPackTag, type PackTarget, SourceMark, useTargetText } from '../common/text';
 import { preferredRef } from '../modrinth/source';
 import { useModpackContents } from './api';

@@ -255,7 +255,7 @@ async fn inicio_usa_no_maximo_tres_requisicoes_por_fonte() {
 }
 
 #[tokio::test]
-async fn inicio_deixa_de_fora_o_que_ja_esta_no_pack_e_cita_os_nomes() {
+async fn inicio_mostra_o_que_ja_esta_no_pack_com_o_selo_e_o_total() {
     let api = Api::with_search().await;
     let installed = InstalledKeys::from([format!("modrinth:{SODIUM}")]);
     let page = home(
@@ -267,13 +267,18 @@ async fn inicio_deixa_de_fora_o_que_ja_esta_no_pack_e_cita_os_nomes() {
     )
     .await
     .unwrap();
-    assert!(
-        page.popular
-            .iter()
-            .chain(&page.updated)
-            .all(|item| !item.in_pack && item.key != format!("modrinth:{SODIUM}"))
-    );
-    assert_eq!(page.popular_in_pack, ["Sodium"]);
+    // O que já está no pack continua na lista, marcado (ADR-0068): o selo "No pack".
+    let sodium = page
+        .popular
+        .iter()
+        .find(|item| item.key == format!("modrinth:{SODIUM}"))
+        .expect("Sodium continua entre os populares");
+    assert!(sodium.in_pack);
+    assert_eq!(page.popular.iter().filter(|item| item.in_pack).count(), 1);
+    // O total da busca vem junto ("N de total"), nunca menor que a lista.
+    let shown = u32::try_from(page.popular.len()).unwrap();
+    assert!(page.popular_total >= f64::from(shown) && page.popular_total > 0.0);
+    assert!(page.updated_total > 0.0);
 }
 
 #[tokio::test]

@@ -9,7 +9,7 @@
  *    dois resultados das duas fontes, abrir a pré-visualização), um diálogo de dependências
  *    para os dois, a gravação numa vez só e a lista de Mods com os três itens.
  * 2. Trazer mods de um modpack: Tipo = Modpacks, o "Pacote Leve", dois mods marcados, um
- *    diálogo só, "Já no pack" no modpack e a lista de Mods com os dois.
+ *    diálogo só, "No pack" no modpack e a lista de Mods com os dois.
  * 3. Travou sem causa: o menu ▾ do Testar abre a busca do culpado, que acha o `charlie.jar`;
  *    "Ver o que o charlie.jar altera no jogo" abre o raio-x nos detalhes; a conversa com a IA
  *    (Gemini simulado) leva o que a pessoa contou e a resposta aparece com o "Enviado ao Sculk".
@@ -309,9 +309,7 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
     await step('Adicionar', async () => {
       await clickStable($('a=Adicionar'));
       await $('h1=Adicionar ao pack').waitForDisplayed();
-      await $('h2=Populares para Minecraft 1.21.1 com Fabric').waitForDisplayed({
-        timeout: 30_000,
-      });
+      await $('h2=Populares').waitForDisplayed({ timeout: 30_000 });
       await $('h2=Atualizados recentemente').waitForDisplayed();
     });
     await expectAccessible();
@@ -328,13 +326,14 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
       // O início também lista o Sodium e o Mod Só da CurseForge, e a lista é redesenhada do zero
       // a cada busca nova: só vale a lista da busca com o texto inteiro, dita pelo estado do
       // campo ("N resultados para “sodium mod”"). Antes disso, o Tab cairia numa linha que some.
-      await $('.omnibox__status*=resultados para “sodium mod”').waitForDisplayed({
-        timeout: 30_000,
-      });
-      const results = $('ul[aria-label="Resultados"]');
-      await results.$('button.drow__name=Mod Só da CurseForge').waitForDisplayed();
-      await results.$('button.drow__name=Sodium').waitForDisplayed();
-      await expect($('h2=Populares para Minecraft 1.21.1 com Fabric')).not.toBeExisting();
+      await browser.waitUntil(
+        async () => (await fullText('.addsearch__status')).includes('resultados para “sodium mod”'),
+        { timeout: 30_000, timeoutMsg: 'a busca com o texto inteiro não chegou' },
+      );
+      const results = $('div[role="rowgroup"][aria-label="Resultados para “sodium mod”"]');
+      await results.$('button.tname__n=Mod Só da CurseForge').waitForDisplayed();
+      await results.$('button.tname__n=Sodium').waitForDisplayed();
+      await expect($('h2=Populares')).not.toBeExisting();
       await dismissToasts();
       // O foco volta ao campo, como se a pessoa tivesse acabado de digitar.
       await browser.execute(() => {
@@ -342,15 +341,18 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
       });
     });
     await step('marcar o Sodium com Espaço', async () => {
-      await pressUntilFocused('Tab', (name) => name === 'Selecionar Sodium');
+      await pressUntilFocused('Tab', (name) => name === 'Marcar Sodium para adicionar');
       await expectFocusVisible();
       await browser.keys(' ');
-      await $('.selbar*=1 selecionado').waitForDisplayed();
+      await $('.selbar*=1 marcado').waitForDisplayed();
     });
     await step('marcar o Mod Só da CurseForge com Espaço', async () => {
-      await pressUntilFocused('Tab', (name) => name === 'Selecionar Mod Só da CurseForge');
+      await pressUntilFocused(
+        'Tab',
+        (name) => name === 'Marcar Mod Só da CurseForge para adicionar',
+      );
       await browser.keys(' ');
-      await $('.selbar*=2 selecionados').waitForDisplayed();
+      await $('.selbar*=2 marcados').waitForDisplayed();
     });
     await step('abrir a pré-visualização do Sodium com Enter', async () => {
       await browser.execute(() => {
@@ -381,7 +383,7 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
       const plan = await fullText('[role="dialog"]');
       expect(plan).toContain('Sodium');
       expect(plan).toContain('Mod Só da CurseForge');
-      expect(plan).toContain('Obrigatórias');
+      expect(plan).toContain('obrigatória');
     });
     await expectAccessible();
     await screenshot('06-3-dependencias');
@@ -393,11 +395,11 @@ describe('Fluxo 6: descobrir e adicionar vários mods (A-07)', () => {
     expect(read(pack, 'mods/sodium.pw.toml')).toContain('[update.modrinth]');
     expect(read(pack, 'mods/mod-so-da-curseforge.pw.toml')).toContain('metadata:curseforge');
     expect(read(pack, 'mods/biblioteca-curseforge.pw.toml')).toContain('metadata:curseforge');
-    await step('a descoberta marca "Já no pack" e a volta para Mods mostra os três', async () => {
+    await step('a descoberta marca "No pack" e a volta para Mods mostra os três', async () => {
       await $(
-        '//li[contains(@class, "drow")][.//button[normalize-space(.)="Sodium"]]//*[contains(., "Já no pack")]',
+        '//div[@role="row"][.//button[normalize-space(.)="Sodium"]]//*[contains(@class, "tag")][contains(., "No pack")]',
       ).waitForDisplayed({ timeout: 30_000 });
-      await clickStable($('a*=Voltar para Mods · 3 adicionados'));
+      await clickStable($('a[aria-label="Voltar para Mods · 3 adicionados"]'));
       await waitHeading('Mods');
       for (const name of ['Sodium', 'Mod Só da CurseForge', 'Biblioteca da CurseForge']) {
         await $(`tr.modrow*=${name}`).waitForDisplayed({ timeout: 30_000 });
@@ -442,20 +444,20 @@ describe('Fluxo 7: trazer mods de outro modpack (A-07)', () => {
       await $('h1=Adicionar ao pack').waitForDisplayed();
     });
     await step('Tipo = Modpacks', async () => {
-      await $('select[aria-label="Tipo"]').selectByAttribute('value', 'modpack');
+      await $('button[role="radio"]=Modpacks').click();
       const open = $('button[aria-label="Ver os mods de Pacote Leve"]');
       await open.waitForDisplayed({ timeout: 30_000 });
       await clickStable(open);
       await $(panel).$('h2=Mods deste modpack (6)').waitForDisplayed({ timeout: 30_000 });
     });
-    expect(await modRow('Sodium')).toContain('Já no pack');
-    expect(await modRow('spark')).not.toContain('Já no pack');
+    expect(await modRow('Sodium')).toContain('No pack');
+    expect(await modRow('spark')).not.toContain('No pack');
     expect(await modRow('ajustes-do-autor-1.0')).toContain('Arquivo fora das lojas');
     await expectAccessible();
     await screenshot('07-1-modpack');
   });
 
-  it('dois mods marcados entram num diálogo só e aparecem como "Já no pack" e em Mods', async () => {
+  it('dois mods marcados entram num diálogo só e aparecem como "No pack" e em Mods', async () => {
     await step('marcar e adicionar', async () => {
       await clickStable($(`${panel} input[aria-label="Selecionar spark"]`));
       await clickStable($(`${panel} input[aria-label="Selecionar Crash Assistant"]`));
@@ -466,7 +468,7 @@ describe('Fluxo 7: trazer mods de outro modpack (A-07)', () => {
       );
       await $('[role="dialog"]').waitForDisplayed({ timeout: 30_000 });
       await browser.waitUntil(
-        async () => (await fullText('[role="dialog"]')).includes('O que você escolheu'),
+        async () => (await fullText('[role="dialog"]')).includes('entrar no pack'),
         { timeout: 30_000, timeoutMsg: 'o plano não chegou' },
       );
       expect(await $$('[role="dialog"]').length).toBe(1);
@@ -482,15 +484,15 @@ describe('Fluxo 7: trazer mods de outro modpack (A-07)', () => {
     await step('o modpack relido mostra os dois no pack', async () => {
       await browser.waitUntil(
         async () =>
-          (await modRow('spark')).includes('Já no pack') &&
-          (await modRow('Crash Assistant')).includes('Já no pack'),
+          (await modRow('spark')).includes('No pack') &&
+          (await modRow('Crash Assistant')).includes('No pack'),
         { timeout: 30_000, timeoutMsg: 'o modpack não mostrou os itens adicionados' },
       );
     });
     // Gravado com a versão que o modpack usa (spark `cALUj9l1`).
     expect(read(pack, 'mods/spark.pw.toml')).toContain('cALUj9l1');
     await step('a lista de Mods mostra os dois', async () => {
-      await clickStable($('a*=Voltar para Mods'));
+      await clickStable($('a[aria-label^="Voltar para Mods"]'));
       await waitHeading('Mods');
       await $('tr.modrow*=spark').waitForDisplayed({ timeout: 30_000 });
       await $('tr.modrow*=Crash Assistant').waitForDisplayed({ timeout: 30_000 });
